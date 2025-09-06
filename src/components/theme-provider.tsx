@@ -1,11 +1,13 @@
-// src/components/theme-provider.tsx
-
-"use client" // 이 컴포넌트는 클라이언트 측에서 상호작용해야 하므로 명시합니다.
+"use client"
 
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
-// 오류 이미지에 있던 '.../dist/types' 경로는 잘못된 경로입니다. 아래가 올바른 타입 import 방식입니다.
-import { type ThemeProviderProps } from "next-themes/dist/types" 
+// 🚨 이 부분이 핵심적인 변경점입니다. 🚨
+// 이전의 불안정한 import 구문을 삭제하고, 아래에서 직접 타입을 추론하여 사용합니다.
+
+// ThemeProviderProps 타입을 직접 추론해서 가져옵니다.
+// 이렇게 하면 라이브러리 내부 구조가 바뀌어도 코드가 깨지지 않습니다.
+type ThemeProviderProps = React.ComponentProps<typeof NextThemesProvider>
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>
