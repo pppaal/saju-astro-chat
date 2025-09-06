@@ -1,42 +1,50 @@
-// app/page.tsx
 "use client";
 
 import React, { useRef, useEffect, useState, FormEvent } from 'react';
 
-// 별 배경 컴포넌트 (수정 없음, 그대로 두셔도 됩니다)
+// 별 배경 컴포넌트 (모든 오류가 수정된 최종 버전)
 const StarryBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    // 🚨 이 방어 코드가 있음에도 TypeScript가 의심하고 있습니다.
+    if (!ctx) return; 
+
     let stars: any[] = [];
     const numStars = 500;
+
     const setCanvasSize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvas!.width = window.innerWidth;
+      canvas!.height = window.innerHeight;
     };
+
     function Star(this: any) {
-      this.x = Math.random() * canvas.width;
-      this.y = Math.random() * canvas.height;
+      this.x = Math.random() * canvas!.width;
+      this.y = Math.random() * canvas!.height;
       this.size = Math.random() * 1.5 + 0.5;
       this.speed = Math.random() * 0.5 + 0.2;
     }
+
     Star.prototype.draw = function () {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
+      // ✅ `ctx`를 사용하는 곳에 `!`를 추가합니다.
+      ctx!.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx!.beginPath();
+      ctx!.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx!.fill();
     };
+
     Star.prototype.update = function () {
       this.y += this.speed;
-      if (this.y > canvas.height) {
+      if (this.y > canvas!.height) {
         this.y = 0 - this.size;
-        this.x = Math.random() * canvas.width;
+        this.x = Math.random() * canvas!.width;
       }
     };
+
     function init() {
       setCanvasSize();
       stars = [];
@@ -44,30 +52,34 @@ const StarryBackground = () => {
         stars.push(new (Star as any)());
       }
     }
+
     let animationFrameId: number;
     function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // ✅ `ctx`를 사용하는 곳에 `!`를 추가합니다.
+      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
       stars.forEach(star => {
         star.update();
         star.draw();
       });
       animationFrameId = requestAnimationFrame(animate);
     }
+
     init();
     animate();
+
     window.addEventListener('resize', init);
+
     return () => {
       window.removeEventListener('resize', init);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
-  return <canvas ref={canvasRef} id="star-canvas" />;
+
+  return <canvas ref={canvasRef} id="star-canvas" style={{ position: 'fixed', top: 0, left: 0, zIndex: -1, width: '100vw', height: '100vh', background: 'black' }} />;
 };
 
 
-// =======================================================================
-// ✨✨✨ 메인 페이지 컴포넌트 (수정된 최종 버전) ✨✨✨
-// =======================================================================
+// 메인 페이지 컴포넌트 (수정 없음)
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState('');
@@ -104,7 +116,6 @@ export default function HomePage() {
     }
   };
 
-  // '다시 분석하기' 또는 에러 확인 후 처음으로 돌아가는 함수
   const resetState = () => {
     setAnalysisResult('');
     setError('');
@@ -116,12 +127,6 @@ export default function HomePage() {
       <StarryBackground />
       <main className="content-wrapper" style={{ overflowY: 'auto', maxHeight: '100vh', paddingTop: '5rem', paddingBottom: '5rem' }}>
         
-        {/* 
-          🚨 여기가 수정된 핵심 부분입니다! 🚨
-          이전: {!analysisResult && ( ... )}
-          수정: {!analysisResult && !isLoading && ( ... )}
-          '로딩 중이 아닐 때' 라는 조건을 추가하여, 로딩이 시작되면 폼이 사라지도록 합니다.
-        */}
         {!analysisResult && !isLoading && (
           <>
             <h1 className="main-title">Destiny Tracker</h1>
@@ -149,10 +154,8 @@ export default function HomePage() {
           </>
         )}
 
-        {/* 로딩 중일 때 표시되는 화면 */}
         {isLoading && <div className="subtitle">별의 기운을 읽는 중...</div>}
         
-        {/* 에러가 발생했을 때 표시되는 화면 */}
         {error && (
             <div style={{color: '#ffdddd', marginTop: '1rem', backgroundColor: 'rgba(255,0,0,0.2)', padding: '1.5rem', borderRadius: '8px'}}>
                 <h3 style={{fontSize: '1.2rem', marginBottom: '1rem'}}>오류가 발생했습니다</h3>
@@ -163,7 +166,6 @@ export default function HomePage() {
             </div>
         )}
 
-        {/* 분석 결과가 성공적으로 도착했을 때 표시되는 화면 */}
         {analysisResult && (
           <div style={{ 
             backgroundColor: 'rgba(0,0,0,0.5)', 
