@@ -1,0 +1,151 @@
+/* app/globals.css */
+
+/* 1. Tailwind CSS 기본 설정 (Next.js 기본 설치 시 포함) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. 전역 CSS 변수 및 기본 스타일 (우리의 디자인 시스템) */
+:root {
+  --background: #0c0a14; /* 깊은 밤하늘색 */
+  --foreground: #f0f0f0;
+  --primary: #9333ea; /* 신비로운 보라색 */
+  --primary-glow: rgba(147, 51, 234, 0.5);
+  --secondary: #2a283e;
+  --border: #4a4863;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Noto Sans', sans-serif;
+  overflow: hidden; /* 스크롤바 숨기기 */
+}
+
+/* 3. 쏟아지는 별 배경 (Canvas) */
+#star-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* 모든 컨텐츠 뒤로 보내기 */
+}
+
+/* 4. 컨텐츠 중앙 정렬 및 애니메이션 */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* 5. 빛나는 타이틀 (Destiny Tracker) */
+.main-title {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 4rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 5px #fff, 0 0 15px var(--primary-glow), 0 0 30px var(--primary-glow);
+  animation: fadeInUp 1s ease-out;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #c0c0c0;
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 1s ease-out 0.2s;
+  animation-fill-mode: both; /* 애니메이션 시작 전에는 숨김 */
+}
+
+/* 6. 세련된 입력 폼 */
+.destiny-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 320px;
+  animation: fadeInUp 1s ease-out 0.4s;
+  animation-fill-mode: both;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #a0a0a0;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  background-color: var(--secondary);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* 7. 빛나는 분석 시작 버튼 */
+.submit-button {
+  background-color: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.3s;
+  box-shadow: 0 0 15px var(--primary-glow);
+  animation: pulse 2s infinite;
+}
+
+.submit-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px var(--primary-glow);
+}
+
+.submit-button:active {
+  transform: scale(1);
+}
+
+/* 8. 등장 애니메이션 키프레임 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 버튼의 은은한 빛 효과 */
+@keyframes pulse {
+  0% { box-shadow: 0 0 15px var(--primary-glow); }
+  50% { box-shadow: 0 0 25px var(--primary-glow); }
+  100% { box-shadow: 0 0 15px var(--primary-glow); }
+}
