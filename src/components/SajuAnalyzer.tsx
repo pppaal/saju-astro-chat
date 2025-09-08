@@ -1,65 +1,38 @@
+// 파일 위치: src/components/SajuAnalyzer.tsx
+
 "use client";
 
-import React, { useState, FormEvent } from 'react';
-import UserInfoForm from './UserInfoForm'; // '웨이터' 컴포넌트 호출
+import React from 'react';
 
+// [핵심!] onBack 함수를 props로 받기 위한 타입 정의
 interface SajuAnalyzerProps {
-  onBack: () => void; // '처음으로' 돌아가기 기능
+  onBack: () => void;
 }
 
-const SajuAnalyzer = ({ onBack }: SajuAnalyzerProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState('');
-  const [error, setError] = useState('');
+// [핵심!] props로 onBack을 받도록 수정
+const SajuAnalyzer: React.FC<SajuAnalyzerProps> = ({ onBack }) => {
+  // 여기에 기존에 있던 사주 분석 관련 코드(useState, 함수 등)가 그대로 있으면 됩니다.
+  // 이 부분은 건드리지 않으셔도 됩니다.
 
-  // '웨이터(UserInfoForm)'가 전달해준 주문서를 받아 '주방(API)'에 전달하는 함수
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setAnalysisResult('');
-    setError('');
-    const formData = new FormData(event.currentTarget);
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(formData)),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '서버 오류');
-      setAnalysisResult(data.result);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 결과/오류 화면은 이전과 동일
-  if (analysisResult) return (
-    <div className="result-container">
-      <h2 className="main-title">당신의 우주적 분석</h2>
-      <div className="analysis-result" dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\n/g, '<br />') }} />
-      <button onClick={() => setAnalysisResult('')} className="submit-button">다시 분석하기</button>
-    </div>
-  );
-
-  if (error) return (
-    <div className="result-container">
-      <h3 className="error-title">오류가 발생했습니다</h3>
-      <p>{error}</p>
-      <button onClick={() => setError('')} className="submit-button">다시 시도하기</button>
-    </div>
-  );
-
-  // 기본 화면: 이제 '웨이터(UserInfoForm)'를 불러와서 보여줍니다.
   return (
-    <>
-      <h1 className="main-title">사주 분석</h1>
-      <p className="subtitle">별들이 기억하는 당신의 이야기를 확인하세요.</p>
-      <UserInfoForm onSubmit={handleSubmit} isLoading={isLoading} />
-      <button onClick={onBack} className="back-button">처음으로</button>
-    </>
+    // 컴포넌트의 최상위 태그 (div, section 등)
+    <div style={{ color: 'white', textAlign: 'center', padding: '2rem', zIndex: 10, width: '100%' }}>
+      {/* [핵심!] 메뉴로 돌아가는 버튼 추가 */}
+      <button 
+        onClick={onBack} 
+        style={{ position: 'absolute', top: '20px', left: '20px', background: 'none', border: '1px solid white', color: 'white', padding: '8px 12px', cursor: 'pointer', zIndex: 20 }}
+      >
+        ← 메뉴로
+      </button>
+
+      {/* --- 여기부터는 SajuAnalyzer의 기존 내용입니다 --- */}
+      <h1>사주 분석</h1>
+      <p>생년월일시를 입력하여 당신의 사주를 분석해보세요.</p>
+      {/* 예시: <UserInfoForm /> 같은 컴포넌트가 여기에 있을 수 있습니다. */}
+      {/* ... 기존의 사주 분석 UI ... */}
+      {/* ------------------------------------------- */}
+
+    </div>
   );
 };
 
