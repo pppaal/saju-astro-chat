@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 // 우리가 만든 부품들을 모두 가져옵니다.
-import StarryBackground from '@/components/StarryBackground';
+import StarrySky from '@/components/StarrySky';
 import SajuAnalyzer from '@/components/SajuAnalyzer';
 import TarotReader from '@/components/TarotReader';
 
@@ -40,7 +40,7 @@ export default function HomePage() {
 
   return (
     <>
-      <StarryBackground /> {/* 배경은 항상 보입니다. */}
+      <StarrySky /> {/* 배경은 항상 보입니다. */}
       <main className="content-wrapper">
         {/* renderContent 함수가 현재 mode에 맞는 화면을 그려줍니다. */}
         {renderContent()}
