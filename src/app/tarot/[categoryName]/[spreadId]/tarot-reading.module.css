@@ -1,0 +1,215 @@
+.loading, .error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  font-family: 'Lora', serif;
+  color: #e0d8f0;
+  background-color: #0f051a;
+}
+.error a {
+  color: #a885d8;
+  margin-left: 1rem;
+}
+
+/* --- 카드 선택 화면 --- */
+.readingContainer {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #0f051a;
+  perspective: 2000px;
+}
+
+.instructions {
+  text-align: center;
+  color: #ffd700;
+  margin-bottom: 2rem;
+  z-index: 100;
+  font-family: 'Cinzel', serif;
+}
+.instructions h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  text-shadow: 0 0 10px #ffd700;
+}
+.instructions p {
+  font-size: 1.2rem;
+  color: #e0d8f0;
+  opacity: 0.8;
+}
+
+.cardSpreadContainer {
+  position: relative;
+  width: 120%;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-width: 900px;
+}
+
+.cardWrapper {
+  position: absolute;
+  width: 90px;
+  height: 150px;
+  transform-origin: bottom center;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transform: rotate(calc((var(--i) - 39) * 2.5deg)) translateY(-50px);
+}
+
+.cardBack {
+  width: 100%;
+  height: 100%;
+  background: #1d1033;
+  border: 2px solid #a885d8;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  background-image: radial-gradient(circle, #4a376b, #1d1033);
+}
+
+.cardWrapper:hover {
+  transform: rotate(calc((var(--i) - 39) * 2.5deg)) translateY(-80px) !important;
+  z-index: 100;
+}
+
+.cardWrapper.selected {
+  transform: translateY(-120px) scale(1.1) !important;
+  cursor: default;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.cardWrapper.revealing.selected {
+  transform: translateY(-200px) translateX(calc((var(--selection-order) - 2) * 120px)) scale(1.2);
+  z-index: calc(100 + var(--selection-order));
+}
+
+
+/* --- 결과 화면 --- */
+.resultsContainer {
+  width: 100%;
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #0f051a;
+  color: #e0d8f0;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.resultsHeader {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  color: #ffd700;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.resultsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 1400px;
+}
+
+.resultCardSlot {
+  flex: 1;
+  min-width: 350px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.positionTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 1.7rem;
+  color: #a885d8;
+  margin-bottom: 1.5rem;
+  height: 50px;
+}
+
+.imageContainer {
+  width: 220px;
+  margin-bottom: 1.5rem;
+  border-radius: 10px;
+  border: 3px solid transparent;
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+}
+
+.resultCardImage {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  transition: all 0.3s ease-in-out;
+  display: block;
+}
+
+.resultCardImage.reversed {
+  /* 이미지를 뒤집는 대신 컨테이너에 스타일을 적용합니다. */
+}
+
+.imageContainer:has(.reversed) {
+  border-color: #a885d8;
+  box-shadow: 0 5px 25px rgba(168, 133, 216, 0.4);
+}
+
+.cardName {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+
+.keywords {
+  font-style: italic;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+  height: 40px;
+}
+
+.meaning {
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 90%;
+}
+
+.resetButton {
+  margin-top: 4rem;
+  padding: 12px 30px;
+  background-color: transparent;
+  border: 2px solid #ffd700;
+  border-radius: 50px;
+  color: #ffd700;
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.resetButton:hover {
+  background-color: #ffd700;
+  color: #0f051a;
+  box-shadow: 0 0 20px #ffd700;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

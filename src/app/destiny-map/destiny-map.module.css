@@ -1,0 +1,122 @@
+/* Wrap variables inside a local scope instead of :root */
+.wrapper {
+  --bg: #0b0f1a;
+  --panel: #121727;
+  --panel-border: rgba(138, 164, 255, 0.16);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.65);
+  --input-bg: #0f1424;
+  --input-border: rgba(138, 164, 255, 0.22);
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --glow: 0 0 36px rgba(176, 192, 255, 0.15);
+  --gold-1: #ffd36a;
+  --gold-2: #ffb347;
+}
+
+/* Page container */
+.page {
+  min-height: 100svh;
+  background: radial-gradient(1200px 700px at 20% 0%, rgba(122, 142, 255, 0.08), transparent),
+              radial-gradient(1000px 600px at 80% 100%, rgba(255, 142, 220, 0.06), transparent),
+              var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+
+/* Card */
+.card {
+  width: 100%;
+  max-width: 820px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)) , var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow), var(--glow);
+  padding: 28px;
+}
+
+/* Header */
+.title {
+  font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
+  letter-spacing: 0.5px;
+  font-size: 36px;
+  line-height: 1.1;
+  color: var(--text);
+  text-shadow: 0 0 24px rgba(176, 192, 255, 0.35);
+  margin: 4px 0 8px;
+  text-align: center;
+}
+
+.subtitle {
+  color: var(--muted);
+  text-align: center;
+  margin: 0 0 22px;
+}
+
+/* Form layout */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text);
+  height: 44px;
+  border-radius: 12px;
+  padding: 0 12px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .06s ease;
+  width: 100%;
+}
+
+.input:focus {
+  border-color: rgba(176, 192, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(176, 192, 255, 0.15);
+}
+
+.input::placeholder { color: rgba(255,255,255,0.45); }
+
+/* Button */
+.primary {
+  margin-top: 8px;
+  height: 46px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: .2px;
+  color: #2b1d00;
+  background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
+  box-shadow: 0 10px 22px rgba(255, 193, 77, 0.28), inset 0 1px 0 rgba(255,255,255,0.55);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.primary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(255, 193, 77, 0.36), inset 0 1px 0 rgba(255,255,255,0.6); }
+.primary:active { transform: translateY(0); }

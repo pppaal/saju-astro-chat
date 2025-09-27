@@ -1,0 +1,150 @@
+.container {
+  /* 페이지 중앙 정렬 */
+  margin-left: auto;
+  margin-right: auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* 페이지 높이 & 여백 */
+  min-height: 100vh;
+  padding: 4rem 2rem;
+
+  /* 배경 */
+  background-color: #110f1e;
+}
+
+/* --- 수정 구슬 --- */
+.crystalBallContainer {
+  position: relative;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.crystalBall {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #f0eaff,
+    #d9cfff,
+    #b8a6ff,
+    #8e78ff 70%
+  );
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 25px var(--glow-color),
+    inset 0 0 15px rgba(255, 255, 255, 0.7);
+  animation: float 4s ease-in-out infinite;
+}
+.crystalBallBase {
+  width: 70px;
+  height: 20px;
+  background: #221c3b;
+  border-radius: 5px;
+  margin-top: -12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* --- 제목/부제목 --- */
+.title {
+  font-family: 'Merriweather', serif;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 15px var(--glow-color);
+  text-align: center;
+}
+.subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 4rem;
+  opacity: 0.8;
+  text-align: center;
+}
+
+/* --- 토픽 카드 그리드 --- */
+.topicGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem 3rem;
+  width: 100%;
+}
+.topicCard {
+  text-decoration: none;
+  color: var(--text-color);
+  padding: 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.topicCard:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.topicCard:hover .arrow {
+  transform: translateX(5px);
+  color: var(--glow-color);
+}
+.topicTitle {
+  font-family: 'Merriweather', serif;
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+.topicDescription {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+.arrow {
+  font-size: 1.5rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+  color: #6a5f9a;
+}
+
+/* --- 반응형 --- */
+@media (max-width: 900px) {
+  .topicGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .topicGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .title {
+    font-size: 2rem;
+  }
+  .subtitle {
+    margin-bottom: 2rem;
+  }
+}
+
+/* --- Back Button (왼쪽 상단 고정) --- */
+.backButton {
+  position: fixed;   /* 👈 스크롤 내려도 항상 화면 왼쪽 위에 고정 */
+  top: 1rem;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  z-index: 100;
+}
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

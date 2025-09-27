@@ -1,0 +1,33 @@
+/* 경로: src/components/ui/StarrySky.module.css (전체 교체) */
+.starlightContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -10; /* 핵심: 모든 콘텐츠보다 뒤에 있도록 설정 */
+}
+
+.star {
+  position: absolute;
+  top: -10px;
+  background-color: white;
+  border-radius: 50%;
+  width: var(--size);
+  height: var(--size);
+  left: var(--left);
+  
+  animation: fall var(--fall-duration) var(--fall-delay) linear infinite,
+             twinkle var(--twinkle-duration) var(--fall-delay) ease-in-out infinite;
+}
+
+@keyframes fall {
+  from { transform: translateY(0vh); }
+  to { transform: translateY(110vh); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}

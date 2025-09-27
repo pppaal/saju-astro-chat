@@ -1,151 +1,69 @@
-/* app/globals.css */
+/* ===================================================== */
+/* 아래 내용을 globals.css 파일의 맨 위에 추가해주세요. */
+/* ===================================================== */
 
-/* 1. Tailwind CSS 기본 설정 (Next.js 기본 설치 시 포함) */
+/* 폰트 불러오기 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300&display=swap');
+
+/* --- 모든 페이지에서 사용할 공용 CSS 변수 정의 --- */
+:root {
+  --bg-color: #0c0a1a;
+  --text-color: #EAE6FF;
+  --glow-color: #A899FF;
+  --card-bg-color: rgba(25, 20, 50, 0.4);
+  --card-border-color: rgba(168, 153, 255, 0.2);
+  --card-hover-border-color: rgba(168, 153, 255, 0.8);
+}
+
+/* 
+  기존에 globals.css에 있던 내용은 
+  이 아래에 그대로 두시면 됩니다. 
+*/
+
+/* 1. Tailwind CSS의 필수 명령어들을 다시 포함시킵니다. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 2. 전역 CSS 변수 및 기본 스타일 (우리의 디자인 시스템) */
-:root {
-  --background: #0c0a14; /* 깊은 밤하늘색 */
-  --foreground: #f0f0f0;
-  --primary: #9333ea; /* 신비로운 보라색 */
-  --primary-glow: rgba(147, 51, 234, 0.5);
-  --secondary: #2a283e;
-  --border: #4a4863;
-}
-
+/* 2. 그 아래에 우리가 원하는 전역 기본 스타일을 추가합니다. */
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'Noto Sans', sans-serif;
-  overflow: hidden; /* 스크롤바 숨기기 */
+  /* 검은색보다 조금 더 부드럽고 신비로운 느낌의 어두운 남색으로 변경했습니다. */
+  background-color: #1a1a2e; 
+  color: white;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* 3. 쏟아지는 별 배경 (Canvas) */
-#star-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1; /* 모든 컨텐츠 뒤로 보내기 */
-}
-
-/* 4. 컨텐츠 중앙 정렬 및 애니메이션 */
-.content-wrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-/* 5. 빛나는 타이틀 (Destiny Tracker) */
-.main-title {
-  font-family: 'Exo 2', sans-serif;
-  font-size: 4rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 5px #fff, 0 0 15px var(--primary-glow), 0 0 30px var(--primary-glow);
-  animation: fadeInUp 1s ease-out;
-}
-
-.subtitle {
-  font-size: 1.1rem;
-  color: #c0c0c0;
-  margin-bottom: 2.5rem;
-  animation: fadeInUp 1s ease-out 0.2s;
-  animation-fill-mode: both; /* 애니메이션 시작 전에는 숨김 */
-}
-
-/* 6. 세련된 입력 폼 */
-.destiny-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 320px;
-  animation: fadeInUp 1s ease-out 0.4s;
-  animation-fill-mode: both;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-.form-group label {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  color: #a0a0a0;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  background-color: var(--secondary);
-  border: 1px solid var(--border);
-  color: var(--foreground);
-  padding: 0.8rem 1rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 10px var(--primary-glow);
-}
-
-/* 7. 빛나는 분석 시작 버튼 */
+/* ===== 공통 버튼 스타일 ===== */
 .submit-button {
-  background-color: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 1rem;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  font-weight: 500;
+  background: linear-gradient(135deg, #ffd700, #ff9d00); /* 금빛 그라데이션 */
+  border: 2px solid #fff3b0;
+  color: #000; /* 검은 글씨 → 대비 확실하게 */
+  padding: 16px 36px;
+  border-radius: 50px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.3s;
-  box-shadow: 0 0 15px var(--primary-glow);
-  animation: pulse 2s infinite;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
-
 .submit-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px var(--primary-glow);
+  background: linear-gradient(135deg, #ffe066, #ffc233); /* hover 시 밝아짐 */
+  border-color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: 0 0 24px rgba(255, 255, 200, 0.9);
 }
 
-.submit-button:active {
-  transform: scale(1);
-}
+/* --- 폰트 임포트 --- */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@300;400&display=swap');
 
-/* 8. 등장 애니메이션 키프레임 */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 버튼의 은은한 빛 효과 */
-@keyframes pulse {
-  0% { box-shadow: 0 0 15px var(--primary-glow); }
-  50% { box-shadow: 0 0 25px var(--primary-glow); }
-  100% { box-shadow: 0 0 15px var(--primary-glow); }
+/* --- 전역 변수 --- */
+:root {
+    --bg-color: #110f1e;
+    --text-color: #EAE6FF;
+    --glow-color: #A899FF;
+    --card-bg-color: rgba(45, 38, 79, 0.2);
+    --card-border-color: rgba(168, 153, 255, 0.2);
+    --card-hover-border-color: rgba(168, 153, 255, 0.8);
+    --button-bg-color: transparent;
+    --button-active-bg-color: #A899FF;
 }

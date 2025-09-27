@@ -1,12 +1,15 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  // 이 부분을 추가해주세요!
-  eslint: {
-    // 경고: 이 옵션은 프로젝트에 ESLint 오류가 있어도 
-    // 프로덕션 빌드를 성공적으로 완료시킵니다.
-    ignoreDuringBuilds: true,
-  },
-}
+  // 워크스페이스 루트 명시(루트 추정 경고 제거)
+  outputFileTracingRoot: path.join(__dirname),
 
-export default nextConfig
+  // 필요 시 주석 해제: standalone 산출물(.next/standalone) 생성
+  // output: "standalone",
+
+  // 빌드 시 ESLint 오류로 중단하지 않도록
+  eslint: { ignoreDuringBuilds: true },
+};
+
+export default nextConfig;
