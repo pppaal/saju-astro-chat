@@ -110,3 +110,81 @@
   font-weight: 700;
 }
 .back:hover { text-decoration: underline; }
+
+/* Summary KPI Bar */
+.summaryBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 12px 0 8px;
+}
+@media (max-width: 860px) {
+  .summaryBar { grid-template-columns: repeat(2, 1fr); }
+}
+.kpi {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(138, 164, 255, 0.16);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+}
+.kpiLabel { font-size: 12px; color: rgba(255,255,255,0.65); }
+.kpiValue { display:block; font-size: 18px; font-weight: 800; margin-top: 4px; }
+.meter {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.meter i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6ee7b7, #60a5fa);
+  border-radius: 999px;
+}
+
+/* Insights (3줄 요약) */
+.insights {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.insight {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(12, 18, 32, 0.7);
+  border: 1px solid rgba(30, 42, 58, 0.9);
+}
+.insightText { line-height: 1.35; }
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;
+  background: #64748b;
+}
+.lvl1 .dot { background: #22c55e; } /* 기회 */
+.lvl2 .dot { background: #f59e0b; } /* 주의 */
+.lvl3 .dot { background: #ef4444; } /* 경고 */
+
+/* Accordion blocks */
+.acc {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(138, 164, 255, 0.16);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.acc > summary {
+  list-style: none;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 14px;
+  color: rgba(255,255,255,0.92);
+}
+.acc[open] { border-color: rgba(120, 160, 255, 0.35); }

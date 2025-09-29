@@ -12,6 +12,8 @@ const menuItems = [
   { name: "Tarot", href: "/tarot" },
   { name: "Dream", href: "/dream" },
   { name: "Numerology", href: "/numerology" },
+  { name: "Compatibility", href: "/compatibility" },
+  { name: "Personality", href: "/personality" },
 ];
 
 export default function MainPage() {
