@@ -1,6 +1,6 @@
 "use client";
 
-import { generatePromptForGemini } from "@/lib/Astrology/astrology";
+import { generatePromptForGemini } from "@/lib/astrology/astrology";
 import { useState, FormEvent } from "react";
 
 // 입력 타입

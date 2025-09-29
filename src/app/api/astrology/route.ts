@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePromptForGemini, NatalChartInput } from "@/lib/Astrology/astrology";
+import { generatePromptForGemini, NatalChartInput } from "@/lib/astrology/astrology";
 import { callGeminiText } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {

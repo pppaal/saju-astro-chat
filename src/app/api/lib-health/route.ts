@@ -1,6 +1,6 @@
 export async function GET() {
   const SajuLib = await import("@/lib/Saju/saju");
-  const AstroLib = await import("@/lib/Astrology/astrology");
+  const AstroLib = await import("@/lib/astrology/astrology");
 
   const sajuExports = Object.keys(SajuLib || {});
   const astroExports = Object.keys(AstroLib || {});
