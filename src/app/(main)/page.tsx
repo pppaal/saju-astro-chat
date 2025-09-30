@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./main-page.module.css";
 
@@ -18,6 +18,21 @@ const menuItems = [
 
 export default function MainPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const [visitors, setVisitors] = useState<number | null>(null);
+
+  useEffect(() => {
+    const bumpAndFetch = async () => {
+      try {
+        await fetch("/api/visitors-today", { method: "POST" });
+        const res = await fetch("/api/visitors-today");
+        const data = await res.json();
+        setVisitors(typeof data?.count === "number" ? data.count : 0);
+      } catch {
+        setVisitors(null);
+      }
+    };
+    bumpAndFetch();
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -160,6 +175,9 @@ export default function MainPage() {
       <canvas ref={canvasRef} className={styles.particleCanvas} />
 
       <header className={styles.header}>
+        <Link href="/" className={styles.headerLink}>
+          {`Today's visitors${visitors === null ? "" : `: ${visitors}`}`}
+        </Link>
         <Link href="/journey" className={styles.headerLink}>My Journey</Link>
         <Link href="/community" className={styles.headerLink}>Community</Link>
       </header>
