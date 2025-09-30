@@ -1,27 +1,46 @@
 {
   "compilerOptions": {
+    // 최신 타깃/모듈 설정 (Next 15 호환)
     "target": "ES2022",
     "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "preserve",
+
+    // 타입 안정성
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "allowJs": false,
 
+    // 경로 별칭(@ → src/*)
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     },
 
+    // 환경 타입
     "types": ["node", "react", "react-dom"],
+
+    // 기타
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
-    "plugins": [{ "name": "next" }]
+    "plugins": [{ "name": "next" }],
+
+    // 대소문자 불일치로 인한 CI/리눅스 빌드 실패 방지
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["next-env.d.ts", ".next/types/**/*.ts", "src/**/*", "env.d.ts"],
-  "exclude": ["node_modules", ".next", "dist"]
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "src/**/*",
+    "env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist"
+  ]
 }
