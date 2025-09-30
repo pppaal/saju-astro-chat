@@ -72,8 +72,15 @@
   letter-spacing: 0.2rem;
   margin: 0;
   text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
-  animation: pulseGlow 4s ease-in-out infinite;
+  /* [수정] 계속 반복되는 애니메이션 대신, 부드러운 전환 효과를 위해 transition을 추가합니다. */
+  transition: text-shadow 0.4s ease;
 }
+
+/* [추가] 마우스를 올렸을 때만 글로우 효과가 강해지도록 합니다. */
+.title:hover {
+  text-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+}
+
 
 .subtitle {
   font-size: 1.1rem;
@@ -181,6 +188,24 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  /* [추가] 개별 카드 애니메이션을 위해 시작 시 투명하게 만듭니다. */
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+  /* [추가] 마우스 호버 시 부드러운 효과를 위한 transition 입니다. */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* [추가] 각 카드에 애니메이션 시간차를 설정합니다. */
+.featureCard:nth-child(1) { animation-delay: 1.2s; }
+.featureCard:nth-child(2) { animation-delay: 1.4s; }
+.featureCard:nth-child(3) { animation-delay: 1.6s; }
+/* 카드가 더 많아질 경우 위와 같이 추가하면 됩니다. */
+
+
+/* [추가] 마우스를 올렸을 때 카드가 살짝 위로 움직이고 그림자가 생기는 효과입니다. */
+.featureCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 30px var(--glow-color);
 }
 
 .featureTitle {
@@ -219,13 +244,20 @@
 }
 
 /* --- Responsive Media Queries --- */
-@media (max-width: 900px) {
+
+/* [추가] 태블릿 사이즈를 위한 2열 레이아웃을 추가합니다. */
+@media (max-width: 1024px) {
   .featuresGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
+/* [수정] 기존 900px를 768px로 조정하여 모바일 대응을 더 명확하게 합니다. */
 @media (max-width: 768px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+
   .container {
     padding: 3rem 1rem;
     gap: 3rem;
@@ -236,16 +268,36 @@
   .navLink { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
 }
 
-/* Destiny Map 전용 금빛 버튼 스타일 */
-.goldNav {
-  color: #2b1d00 !important;
-  background: linear-gradient(135deg, #ffd36a, #ffb347) !important;
-  border-color: rgba(255, 215, 128, 0.9) !important;
-  box-shadow: 0 10px 22px rgba(255, 193, 77, 0.35), inset 0 1px 0 rgba(255,255,255,0.55) !important;
+
+/* --- Destiny Map 전용 금빛 버튼 스타일 --- */
+
+/* [수정] !important를 제거하기 위해 선택자를 '.navLink.goldNav'로 더 구체화합니다. */
+.navLink.goldNav {
+  color: #2b1d00;
+  background: linear-gradient(135deg, #ffd36a, #ffb347);
+  border-color: rgba(255, 215, 128, 0.9);
+  box-shadow: 0 10px 22px rgba(255, 193, 77, 0.35), inset 0 1px 0 rgba(255,255,255,0.55);
   transform: translateY(-2px);
 }
-.goldNav:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45), inset 0 1px 0 rgba(255,255,255,0.6) !important;
-  color: #2b1d00 !important;
+
+.navLink.goldNav:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45), inset 0 1px 0 rgba(255,255,255,0.6);
+  color: #2b1d00;
+}
+
+
+/* [추가] 키보드 사용자를 위한 접근성 포커스 스타일입니다. */
+.headerLink:focus,
+.navLink:focus,
+.reportButton:focus {
+  outline: 2px solid var(--glow-color);
+  outline-offset: 3px;
+  box-shadow: 0 0 20px var(--glow-color); /* 호버 효과와 유사하게 처리 */
+}
+
+/* goldNav 버튼은 포커스 색상을 금색으로 별도 지정 */
+.navLink.goldNav:focus {
+  outline-color: #ffd36a;
+  box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45);
 }
