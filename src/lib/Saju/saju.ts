@@ -1,4 +1,3 @@
-// src/lib/Saju/saju.ts
 import { toDate } from 'date-fns-tz';
 import Calendar from 'korean-lunar-calendar';
 import { FiveElement, YinYang } from './types';
@@ -25,13 +24,31 @@ function isCheoneulGwiin(dayMasterStemName: string, targetBranchName: string): b
   return CHEONEUL_GWIIN_MAP[dayMasterStemName]?.includes(targetBranchName) ?? false;
 }
 
+// 안전 파서: "06:40", "6:40", "06:40 AM/PM" 모두 처리
+function parseHourMinute(t: string): { h: number; m: number } {
+  const s = String(t ?? '').trim().toUpperCase();
+  const isPM = /\bPM$/.test(s);
+  const isAM = /\bAM$/.test(s);
+  const core = s.replace(/\s?(AM|PM)$/i, '');
+  const [hh = '0', mm = '0'] = core.split(':');
+  let h = Number(hh);
+  let m = Number(mm?.replace(/\D/g, '') ?? '0');
+  if (isPM && h < 12) h += 12;
+  if (isAM && h === 12) h = 0;
+  if (!Number.isFinite(h)) h = 0;
+  if (!Number.isFinite(m)) m = 0;
+  if (h < 0) h = 0; if (h > 23) h = 23;
+  if (m < 0) m = 0; if (m > 59) m = 59;
+  return { h, m };
+}
+
 // 메인 계산
 export function calculateSajuData(
   birthDate: string, birthTime: string, gender: 'male' | 'female',
   calendarType: 'solar' | 'lunar', timezone: string, longitude: number
 ) {
   try {
-    // 1) 출생시각: 출생지 타임존(OpenCage) 사용
+    // 1) 출생시각: 출생지 타임존 사용
     let solarBirthDateStr = birthDate;
     if (calendarType === 'lunar') {
       const calendar = new Calendar();
@@ -77,16 +94,37 @@ export function calculateSajuData(
     const dayPillar = { stem: STEMS[dayStemIndex], branch: BRANCHES[dayBranchIndex] };
     const dayMaster = dayPillar.stem;
 
-    // 5) 시기둥(출생지 타임존 기준 시각)
-    const [hour, minute] = birthTime.split(':').map(Number);
-    const timeValue = hour * 100 + minute;
-    let hourBranchIndex: number;
-    if (timeValue >= 2330 || timeValue < 130) hourBranchIndex = 0; else if (timeValue < 330) hourBranchIndex = 1;
-    else if (timeValue < 530) hourBranchIndex = 2; else if (timeValue < 730) hourBranchIndex = 3;
-    else if (timeValue < 930) hourBranchIndex = 4; else if (timeValue < 1130) hourBranchIndex = 5;
-    else if (timeValue < 1330) hourBranchIndex = 6; else if (timeValue < 1530) hourBranchIndex = 7;
-    else if (timeValue < 1730) hourBranchIndex = 8; else if (timeValue < 1930) hourBranchIndex = 9;
-    else if (timeValue < 2130) hourBranchIndex = 10; else hourBranchIndex = 11;
+    // 5) 시기둥(현지 HH:mm 문자열만 사용, 분 단위 경계표 + 子정 23:30 처리)
+    const { h: hour, m: minute } = parseHourMinute(birthTime);
+    const totalMin = hour * 60 + minute;
+
+    // [start, end) 분 단위 구간. 子(23:30~01:29:59) 처리를 위해 24:00+ 비교도 수행.
+    const ranges = [
+      { idx: 0, start: 23 * 60 + 30, end: 24 * 60 + 60 + 30 }, // 子 23:30~25:29:59(=01:29:59)
+      { idx: 1, start: 1 * 60 + 30, end: 3 * 60 + 30 },   // 丑 01:30~03:29:59
+      { idx: 2, start: 3 * 60 + 30, end: 5 * 60 + 30 },   // 寅 03:30~05:29:59
+      { idx: 3, start: 5 * 60 + 30, end: 7 * 60 + 30 },   // 卯 05:30~07:29:59
+      { idx: 4, start: 7 * 60 + 30, end: 9 * 60 + 30 },   // 辰
+      { idx: 5, start: 9 * 60 + 30, end: 11 * 60 + 30 },  // 巳
+      { idx: 6, start: 11 * 60 + 30, end: 13 * 60 + 30 }, // 午
+      { idx: 7, start: 13 * 60 + 30, end: 15 * 60 + 30 }, // 未
+      { idx: 8, start: 15 * 60 + 30, end: 17 * 60 + 30 }, // 申
+      { idx: 9, start: 17 * 60 + 30, end: 19 * 60 + 30 }, // 酉
+      { idx: 10, start: 19 * 60 + 30, end: 21 * 60 + 30 },// 戌
+      { idx: 11, start: 21 * 60 + 30, end: 23 * 60 + 30 },// 亥
+    ];
+
+    const candidates = [totalMin, totalMin + 24 * 60];
+    let hourBranchIndex = 0;
+    outer:
+    for (const t of candidates) {
+      for (const r of ranges) {
+        if (t >= r.start && t < r.end) {
+          hourBranchIndex = r.idx;
+          break outer;
+        }
+      }
+    }
 
     const firstHourStemName = TIME_STEM_LOOKUP[dayPillar.stem.name];
     const firstHourStemIndex = STEMS.findIndex(s => s.name === firstHourStemName);

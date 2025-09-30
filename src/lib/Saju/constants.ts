@@ -1,3 +1,5 @@
+// src/lib/Saju/constants.ts
+
 import { FiveElement, StemBranchInfo } from './types';
 
 export const STEMS: StemBranchInfo[] = [

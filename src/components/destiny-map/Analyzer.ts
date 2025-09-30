@@ -1,6 +1,6 @@
 "use server";
 
-import * as AstroLib from "@/lib/astrology/astrology";
+import * as AstroLib from "@/lib/astrology/index";
 import * as SajuLib from "@/lib/Saju/saju";
 
 export type DestinyInput = {

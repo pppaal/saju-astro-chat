@@ -1,5 +1,5 @@
 // app/api/saju/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { toDate } from 'date-fns-tz';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { getDaeunCycles, getAnnualCycles, getMonthlyCycles, getIljinCalendar } from '@/lib/Saju/unse';
@@ -56,75 +56,50 @@ const toBranch = (ganji: { name: string; element: string }): StemBranchInfo => (
   yin_yang: '양',
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json().catch(() => null);
+    const body = await req.json().catch(() => null);
     if (!body) {
       return NextResponse.json({ message: 'Invalid JSON body.' }, { status: 400 });
     }
 
-    const { birthDate: birthDateString, birthTime, gender, calendarType, cityName } = body;
+    // 기존 cityName → 제거, timezone 필드 추가
+    const {
+      birthDate: birthDateString,
+      birthTime: birthTimeRaw,
+      gender,
+      calendarType,
+      timezone, // 예: 'Asia/Seoul'
+    } = body;
 
-    if (!birthDateString || !birthTime || !gender || !calendarType || !cityName) {
+    if (!birthDateString || !birthTimeRaw || !gender || !calendarType || !timezone) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENCAGE_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ message: 'OpenCage API key is not configured.' }, { status: 500 });
-    }
+    // 1) 출생지 시간대 Date
+    const birthDate = toDate(`${birthDateString}T${birthTimeRaw}:00`, { timeZone: timezone });
 
-    // 1) 위치 조회
-    const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(cityName)}&key=${apiKey}&limit=1&language=en`;
-    const geoResponse = await fetch(geoUrl).catch(err => {
-      console.error('OpenCage fetch error:', err);
-      return null;
-    });
-    if (!geoResponse) {
-      return NextResponse.json({ message: 'Failed to call geocoding service.' }, { status: 502 });
-    }
-    const geoData = await geoResponse.json().catch(err => {
-      console.error('OpenCage parse error:', err);
-      return null;
-    });
-    if (!geoData || !geoData.results || geoData.results.length === 0) {
-      return NextResponse.json({ message: `Could not find location data for "${cityName}"` }, { status: 404 });
-    }
-
-    const { lng: longitude } = geoData.results[0].geometry;
-    const { name: timezone } = geoData.results[0].annotations.timezone;
-
-    // 2) 출생지 시간대 Date
-    const fullBirthString = `${birthDateString}T${birthTime}:00`;
-    const birthDate = toDate(fullBirthString, { timeZone: timezone });
-
-    // 3) 한국(KST) 보정(요구사항)
-    let adjustedBirthTime = birthTime;
+    // 2) 한국(KST) -30분 보정(원하면 유지, 아니면 지우세요)
+    let adjustedBirthTime = String(birthTimeRaw);
     if (timezone === 'Asia/Seoul') {
       const tempDate = new Date(birthDate);
       tempDate.setMinutes(tempDate.getMinutes() - 30);
-      const hours = String(tempDate.getHours()).padStart(2, '0');
-      const minutes = String(tempDate.getMinutes()).padStart(2, '0');
-      adjustedBirthTime = `${hours}:${minutes}`;
+      const hh = String(tempDate.getHours()).padStart(2, '0');
+      const mm = String(tempDate.getMinutes()).padStart(2, '0');
+      adjustedBirthTime = `${hh}:${mm}`;
     }
 
-    // 4) 사주 계산
-    let sajuResult: any;
-    try {
-      sajuResult = calculateSajuData(
-        birthDateString,
-        adjustedBirthTime,
-        gender,
-        calendarType,
-        timezone,
-        longitude
-      );
-    } catch (e) {
-      console.error('calculateSajuData error:', e);
-      return NextResponse.json({ message: 'Failed to calculate saju data.' }, { status: 500 });
-    }
+    // 3) 사주 계산(외부 API에서 오던 longitude는 더 이상 사용 안 함 → 0)
+    const sajuResult = calculateSajuData(
+      birthDateString,
+      adjustedBirthTime,
+      gender,
+      calendarType,
+      timezone,
+      0
+    );
 
-    // 5) sajuPillars 구성 (yin_yang 포함)
+    // 4) sajuPillars 구성 (yin_yang 포함)
     const sajuPillars = {
       year: {
         heavenlyStem: withYY(sajuResult.yearPillar.heavenlyStem.name, sajuResult.yearPillar.heavenlyStem.element),
@@ -144,16 +119,16 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // 6) 대운
+    // 5) 대운
     const daeunInfo = getDaeunCycles(
       birthDate,
       gender,
       sajuPillars,
       sajuResult.dayMaster,
-      'Asia/Seoul'
+      'Asia/Seoul' // 내부 규칙대로 KST 기준 비교 유지
     );
 
-    // 7) 연/월/일 운
+    // 6) 연/월/일 운
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
@@ -161,14 +136,14 @@ export async function POST(request: NextRequest) {
     const wolun = getMonthlyCycles(currentYear, sajuResult.dayMaster);
     const iljin = getIljinCalendar(currentYear, currentMonth, sajuResult.dayMaster);
 
-    // 8) 프롬프트
+    // 7) GPT 프롬프트(옵션)
     const gptPrompt = formatSajuForGPT({
       ...sajuResult,
       birthDate: birthDateString,
       daeun: daeunInfo,
     });
 
-    // 9) 응답
+    // 8) 응답
     return NextResponse.json({
       birthYear: new Date(birthDateString).getFullYear(),
       birthDate: birthDateString,

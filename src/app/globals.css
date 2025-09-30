@@ -1,69 +1,177 @@
-/* ===================================================== */
-/* 아래 내용을 globals.css 파일의 맨 위에 추가해주세요. */
-/* ===================================================== */
-
-/* 폰트 불러오기 */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300&display=swap');
-
-/* --- 모든 페이지에서 사용할 공용 CSS 변수 정의 --- */
-:root {
-  --bg-color: #0c0a1a;
-  --text-color: #EAE6FF;
-  --glow-color: #A899FF;
-  --card-bg-color: rgba(25, 20, 50, 0.4);
-  --card-border-color: rgba(168, 153, 255, 0.2);
-  --card-hover-border-color: rgba(168, 153, 255, 0.8);
+/* ============ Fonts ============ */
+/* 문서 기준: Cinzel(제목), Roboto(본문) */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIU7ww63mVu7gtR-kwKxNvkNOjw-tbnTYo.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIU7ww63mVu7gtR-kwKxNvkNOjw-jHgTYo.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/roboto/v49/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuaabWmT.ttf) format('truetype');
 }
 
-/* 
-  기존에 globals.css에 있던 내용은 
-  이 아래에 그대로 두시면 됩니다. 
-*/
-
-/* 1. Tailwind CSS의 필수 명령어들을 다시 포함시킵니다. */
+/* ============ Tailwind ============ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 2. 그 아래에 우리가 원하는 전역 기본 스타일을 추가합니다. */
+/* ============ Global tokens (:root 하나로 통합) ============ */
+:root {
+  /* 사이트 공용 색상 */
+  --bg-color: #0c0a1a;
+  --text-color: #EAE6FF;
+  --glow-color: #A899FF;
+
+  /* 카드/경계 */
+  --card-bg-color: rgba(25, 20, 50, 0.4);
+  --card-border-color: rgba(168, 153, 255, 0.2);
+  --card-hover-border-color: rgba(168, 153, 255, 0.8);
+
+  /* 입력/패널 공용 */
+  --panel: #121727;
+  --panel-border: rgba(138, 164, 255, 0.16);
+  --input-bg: #0f1424;
+  --input-border: rgba(138, 164, 255, 0.22);
+
+  /* 그림자/빛 */
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --glow: 0 0 36px rgba(176, 192, 255, 0.15);
+
+  /* 골드 버튼 그라디언트 */
+  --gold-1: #ffd36a;
+  --gold-2: #ffb347;
+
+  /* 옵션 */
+  --button-bg-color: transparent;
+  --button-active-bg-color: #A899FF;
+}
+
+/* ============ Base ============ */
 body {
-  /* 검은색보다 조금 더 부드럽고 신비로운 느낌의 어두운 남색으로 변경했습니다. */
-  background-color: #1a1a2e; 
+  background-color: #1a1a2e;
   color: white;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* ===== 공통 버튼 스타일 ===== */
-.submit-button {
-  background: linear-gradient(135deg, #ffd700, #ff9d00); /* 금빛 그라데이션 */
+/* ============ 공통 버튼: .btn-primary로 통일 ============ */
+/* 기존 .submit-button / .primary를 이 클래스로 교체 */
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
   border: 2px solid #fff3b0;
-  color: #000; /* 검은 글씨 → 대비 확실하게 */
+  color: #2b1d00;
   padding: 16px 36px;
   border-radius: 50px;
   cursor: pointer;
   font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 800;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 22px rgba(255, 193, 77, 0.28), inset 0 1px 0 rgba(255,255,255,0.55);
 }
-.submit-button:hover {
-  background: linear-gradient(135deg, #ffe066, #ffc233); /* hover 시 밝아짐 */
+.btn-primary:hover {
+  background: linear-gradient(135deg, #ffe066, #ffc233);
   border-color: #ffffff;
-  transform: scale(1.08);
-  box-shadow: 0 0 24px rgba(255, 255, 200, 0.9);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 28px rgba(255, 193, 77, 0.36), 0 0 24px rgba(255, 255, 200, 0.9);
 }
 
-/* --- 폰트 임포트 --- */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@300;400&display=swap');
+/* ============ 세부 페이지 공통 레이아웃 ============ */
+/* wrapper: 세부 페이지에서만 쓰는 ‘지역 변수’ 세트 */
+.wrapper {
+  --bg: #0b0f1a;
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.65);
+  /* panel, border, input 계열은 :root 값을 재사용 */
+}
 
-/* --- 전역 변수 --- */
-:root {
-    --bg-color: #110f1e;
-    --text-color: #EAE6FF;
-    --glow-color: #A899FF;
-    --card-bg-color: rgba(45, 38, 79, 0.2);
-    --card-border-color: rgba(168, 153, 255, 0.2);
-    --card-hover-border-color: rgba(168, 153, 255, 0.8);
-    --button-bg-color: transparent;
-    --button-active-bg-color: #A899FF;
+.page {
+  min-height: 100svh;
+  background:
+    radial-gradient(1200px 700px at 20% 0%, rgba(122,142,255,0.08), transparent),
+    radial-gradient(1000px 600px at 80% 100%, rgba(255,142,220,0.06), transparent),
+    var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+
+.card {
+  width: 100%;
+  max-width: 820px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow), var(--glow);
+  padding: 28px;
+}
+
+/* 타이틀/서브타이틀 */
+.title {
+  font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
+  letter-spacing: .5px;
+  font-size: 36px;
+  line-height: 1.1;
+  color: var(--text);
+  text-shadow: 0 0 24px rgba(176,192,255,0.35);
+  margin: 4px 0 8px;
+  text-align: center;
+}
+.subtitle { color: var(--muted); text-align: center; margin: 0 0 22px; }
+
+/* 폼 레이아웃 */
+.form { display: flex; flex-direction: column; gap: 16px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+.label { color: var(--muted); font-size: 13px; }
+
+/* 입력 */
+.input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text);
+  height: 44px;
+  border-radius: 12px;
+  padding: 0 12px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .06s ease;
+  width: 100%;
+}
+.input:focus {
+  border-color: rgba(176,192,255,0.55);
+  box-shadow: 0 0 0 4px rgba(176,192,255,0.15);
+}
+.input::placeholder { color: rgba(255,255,255,0.45); }
+
+.back-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.back-btn:hover {
+  background-color: rgba(255,255,255,0.06);
+  border-color: rgba(176,192,255,0.55);
+  box-shadow: 0 0 0 4px rgba(176,192,255,0.15);
 }
