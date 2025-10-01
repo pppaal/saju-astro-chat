@@ -1,5 +1,6 @@
 "use client";
 
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./main-page.module.css";
@@ -183,12 +184,12 @@ export default function MainPage() {
       </header>
 
       <div className={styles.content}>
-        <h1 className={styles.title}>Destiny Tracker</h1>
+        <h1 className={styles.title}>destinypal</h1>
         <p className={styles.subtitle}>
-          Unveil the secrets of the cosmos and your path within it.
+          Unfold your personal destiny map by analyzing cosmic patterns with AI
         </p>
 
-        {/* 여기: 금빛 강조 포함된 메뉴 렌더 */}
+        {/* 여기: 금빛 강조 포함된 메뉴 렌더 */} 
         <nav className={styles.nav}>
           {menuItems.map((item, index) => (
             <Link

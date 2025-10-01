@@ -2,7 +2,6 @@
 
 'use client';
 
-import { toUTC } from "src/utils/datetime"; // 경로 맞게 조정
 import { useState, FormEvent, useMemo } from 'react';
 import SajuResultDisplay from './SajuResultDisplay';
 // 상대경로로 변경(components/saju → lib/Saju)
@@ -69,40 +68,30 @@ export default function SajuAnalyzer() {
     return tzList.filter((t: string) => t.toLowerCase().includes(q)).slice(0, 200);
   }, [tzList, tzQuery]);
 
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSajuResult(null);
 
-const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError(null);
-  setSajuResult(null);
-
-  try {
-    // 2) 여기(try 안)에서 birthUTC 계산 — 추가됨
-    const birthUTC = toUTC(
-      formData.birthDate,
-      formData.birthTime,
-      formData.timezone
-    ).toISOString();
-
-    // 3) 원래 payload에 birthUTC만 추가 — 추가됨
-    const payload = { ...formData, birthUTC };
-
-    const response = await fetch('/api/saju', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data?.message || 'An unknown server error occurred.');
+    try {
+      const payload = { ...formData };
+      const response = await fetch('/api/saju', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.message || 'An unknown server error occurred.');
+      }
+      setSajuResult(data as ApiFullResponse);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch analysis data.');
+    } finally {
+      setIsLoading(false);
     }
-    setSajuResult(data as ApiFullResponse);
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Failed to fetch analysis data.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}>
