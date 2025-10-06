@@ -1,7 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
 
-// 1. 기본 설정 부분
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,9 +8,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// 2. NextAuth.js에 필요한 모델들 (테이블 정의)
-// 이 부분 때문에 "empty migration" 오류가 발생했습니다.
 
 model Account {
   id                 String  @id @default(cuid())
@@ -38,6 +33,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -49,6 +45,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model VerificationToken {

@@ -3,24 +3,53 @@ import styles from "./result.module.css";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
 
-// 1) 유틸: 텍스트 → 점수/장식/퀘스트
-const POS = ["강하다","기회","성장","혁신","집중력","성공","몰두","통찰","유리","활성화"];
-const NEG = ["부족","주의","갈등","불안정","과열","지연","제약","소모","긴장","위험"];
+const POS = [
+  "strong",
+  "opportunity",
+  "growth",
+  "innovation",
+  "focus",
+  "success",
+  "momentum",
+  "clarity",
+  "advantage",
+  "energized",
+  "synergy",
+  "alignment",
+];
+const NEG = [
+  "lack",
+  "warning",
+  "conflict",
+  "instability",
+  "overheated",
+  "delay",
+  "restriction",
+  "drain",
+  "tension",
+  "risk",
+  "exhaustion",
+  "fatigue",
+];
 const MAP = {
-  career: ["목표","직업","커리어","일","사회","전문","명예","직위","집중"],
-  love: ["연애","관계","파트너","대인","감정","배려","사랑","상대","소통"],
-  health: ["건강","체력","휴식","컨디션","스트레스","수면","리듬","과로","회복"],
+  career: ["career", "profession", "work", "leadership", "wealth", "ambition", "achievement"],
+  love: ["relationship", "partner", "collaboration", "team", "emotions", "bond"],
+  health: ["health", "vitality", "energy", "wellbeing", "balance", "stress", "restoration"],
 };
 
 function scoreFromText(text: string) {
   const clamp = (n: number) => Math.max(0, Math.min(100, n));
   const base = 60;
-  const posCount = (text.match(new RegExp(POS.join("|"), "g"))?.length ?? 0);
-  const negCount = (text.match(new RegExp(NEG.join("|"), "g"))?.length ?? 0);
-  const sectionScore = (keys: string[]) => {
+  const patternPos = new RegExp(`\\b(${POS.join("|")})\\b`, "gi");
+  const patternNeg = new RegExp(`\\b(${NEG.join("|")})\\b`, "gi");
+  const posCount = text.match(patternPos)?.length ?? 0;
+  const negCount = text.match(patternNeg)?.length ?? 0;
+  const sectionScore = (keywords: string[]) => {
     const lower = text.toLowerCase();
     let s = base + posCount * 2 - negCount * 2;
-    for (const k of keys) if (lower.includes(k)) s += 2;
+    for (const keyword of keywords) {
+      if (lower.includes(keyword)) s += 2;
+    }
     return clamp(s);
   };
   return {
@@ -33,38 +62,57 @@ function scoreFromText(text: string) {
 
 function decorateText(htmlOrMd: string) {
   const highlights = [
-    { k: "혁신", cls: "badge good" },
-    { k: "집중", cls: "badge good" },
-    { k: "기회", cls: "badge good" },
-    { k: "성장", cls: "badge good" },
-    { k: "갈등", cls: "badge warn" },
-    { k: "주의", cls: "badge warn" },
-    { k: "부족", cls: "badge warn" },
+    { k: "opportunity", cls: "badge good" },
+    { k: "alignment", cls: "badge good" },
+    { k: "clarity", cls: "badge good" },
+    { k: "growth", cls: "badge good" },
+    { k: "warning", cls: "badge warn" },
+    { k: "conflict", cls: "badge warn" },
+    { k: "restriction", cls: "badge warn" },
   ];
   let s = htmlOrMd;
   for (const { k, cls } of highlights) {
-    const re = new RegExp(k, "g");
-    s = s.replace(re, `<mark class="${cls}">${k}</mark>`);
+    const re = new RegExp(k, "gi");
+    s = s.replace(re, (match) => `<mark class="${cls}">${match}</mark>`);
   }
   return s;
 }
 
 function makeQuests(text: string) {
-  const qs: { title: string; why: string; impact: "S" | "M" | "L" }[] = [];
-  if (text.includes("의사소통") || text.includes("소통") || text.includes("수성")) {
-    qs.push({ title: "하루 10문장 스피치 노트", why: "수성 역행/소통 이슈 상쇄", impact: "M" });
+  const quests: { title: string; why: string; impact: "S" | "M" | "L" }[] = [];
+  const lower = text.toLowerCase();
+  if (lower.includes("communication") || lower.includes("mercury") || lower.includes("air element")) {
+    quests.push({
+      title: "Daily communication sprint",
+      why: "Balances Mercury and the Air element—keeps dialogues crisp.",
+      impact: "M",
+    });
   }
-  if (text.includes("갈등") || text.includes("화성") || text.includes("7하우스")) {
-    qs.push({ title: "관계 룰 3가지 합의", why: "대인 갈등 감소", impact: "L" });
+  if (lower.includes("conflict") || lower.includes("mars") || lower.includes("seventh house")) {
+    quests.push({
+      title: "Partnership alignment charter",
+      why: "Defuses Martial friction in collaborative zones.",
+      impact: "L",
+    });
   }
-  if (text.includes("화 기운 부족") || text.includes("활동력")) {
-    qs.push({ title: "주 3회 20분 유산소", why: "화(火) 보충과 리듬 안정", impact: "M" });
+  if (lower.includes("low fire") || lower.includes("vitality deficit") || lower.includes("burnout risk")) {
+    quests.push({
+      title: "3x weekly cardio ignition",
+      why: "Restores Fire energy and anchors routine rhythm.",
+      impact: "M",
+    });
   }
-  if (qs.length < 3) qs.push({ title: "주간 리플렉션 15분", why: "정리·통찰 강화", impact: "S" });
-  return qs.slice(0, 3);
+  if (quests.length < 3) {
+    quests.push({
+      title: "Weekly 20-minute reflection",
+      why: "Integrates Saju insights with astro transits for conscious decisions.",
+      impact: "S",
+    });
+  }
+  return quests.slice(0, 3);
 }
 
-type SP = Record<string, string | undefined>;
+type SearchParams = Record<string, string | string[] | undefined>;
 
 type UIResult = {
   scores: { overall: number; career: number; love: number; health: number };
@@ -74,54 +122,63 @@ type UIResult = {
 function toPercent(v: any) {
   const n = Number(v);
   if (!Number.isFinite(n)) return "0%";
-  return Math.min(100, Math.max(0, n)) + "%";
+  return `${Math.min(100, Math.max(0, n))}%`;
 }
 
-// gemini.text를 최우선으로 쓰는 어댑터
+function gatherText(result: unknown): string {
+  const r = result as Record<string, any>;
+  return [
+    r?.gemini?.text,
+    r?.summary,
+    r?.markdown,
+    r?.plainText,
+    r?.text,
+    r?.content,
+    r?.report,
+    r?.html,
+    r?.message,
+    r?.body,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function adaptToUI(result: any): UIResult {
+  const r = result as Record<string, any>;
   const num = (v: any) => {
     const x = Number(v);
     return Number.isFinite(x) ? Math.max(0, Math.min(100, x)) : NaN;
   };
 
-  // 1) 점수 원본 시도
   let scores = {
-    overall: num(result?.score ?? result?.overall ?? result?.scores?.overall ?? result?.scores?.total ?? result?.total),
-    career:  num(result?.careerScore ?? result?.scores?.career ?? result?.scores?.work ?? result?.career),
-    love:    num(result?.loveScore ?? result?.scores?.love ?? result?.scores?.romance ?? result?.love),
-    health:  num(result?.healthScore ?? result?.scores?.health ?? result?.scores?.vitality ?? result?.health),
+    overall: num(r?.score ?? r?.overall ?? r?.scores?.overall ?? r?.scores?.total ?? r?.total),
+    career: num(r?.careerScore ?? r?.scores?.career ?? r?.scores?.work ?? r?.career),
+    love: num(r?.loveScore ?? r?.scores?.love ?? r?.scores?.relationship ?? r?.love),
+    health: num(r?.healthScore ?? r?.scores?.health ?? r?.scores?.vitality ?? r?.health),
   };
 
-  // 2) 텍스트 소스: gemini.text 최우선 + 기타 보조
-  const r: any = result;
-  const textBlob = [
-    r?.gemini?.text,
-    r?.summary, r?.markdown, r?.plainText, r?.text, r?.content,
-    r?.report, r?.html, r?.message, r?.body,
-  ].filter(Boolean).join("\n");
+  const textBlob = gatherText(r);
 
-  // 3) 점수 부족 시 텍스트로 추정
   if ([scores.overall, scores.career, scores.love, scores.health].some((v) => !Number.isFinite(v))) {
     const est = scoreFromText(textBlob || "");
     scores = {
       overall: Number.isFinite(scores.overall) ? (scores.overall as number) : est.overall,
-      career:  Number.isFinite(scores.career)  ? (scores.career as number)  : est.career,
-      love:    Number.isFinite(scores.love)    ? (scores.love as number)    : est.love,
-      health:  Number.isFinite(scores.health)  ? (scores.health as number)  : est.health,
+      career: Number.isFinite(scores.career) ? (scores.career as number) : est.career,
+      love: Number.isFinite(scores.love) ? (scores.love as number) : est.love,
+      health: Number.isFinite(scores.health) ? (scores.health as number) : est.health,
     };
   }
 
-  // 4) 인사이트: gemini.highlights 우선
   let insights: UIResult["insights"] = [];
   if (Array.isArray(r?.gemini?.highlights) && r.gemini.highlights.length) {
-    insights = r.gemini.highlights.slice(0, 3).map((t: any, i: number) => ({
-      text: String(t),
+    insights = r.gemini.highlights.slice(0, 3).map((item: any, i: number) => ({
+      text: String(item),
       level: (i ? 2 : 1) as 1 | 2,
     }));
   } else if (typeof textBlob === "string" && textBlob.trim()) {
     const sentences = textBlob
       .replace(/[#*>\-`]/g, " ")
-      .split(/(?<=[.!?])\s+|(?<=\.)\s+|(?<=\!)\s+|(?<=\?)\s+/)
+      .split(/(?<=[.!?])\s+/)
       .filter((v) => v && v.trim().length > 3)
       .slice(0, 3);
     insights = sentences.map((s, i) => ({ text: s.trim(), level: (i ? 2 : 1) as 1 | 2 }));
@@ -130,9 +187,9 @@ function adaptToUI(result: any): UIResult {
   return {
     scores: {
       overall: scores.overall ?? 60,
-      career:  scores.career  ?? 60,
-      love:    scores.love    ?? 60,
-      health:  scores.health  ?? 60,
+      career: scores.career ?? 60,
+      love: scores.love ?? 60,
+      health: scores.health ?? 60,
     },
     insights,
   };
@@ -141,123 +198,124 @@ function adaptToUI(result: any): UIResult {
 export default async function DestinyResultPage({
   searchParams,
 }: {
-  searchParams: Promise<SP>; // Next 15: 비동기
+  searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
 
-  const name = sp.name ?? "";
-  const birthDate = sp.birthDate ?? "";
-  const birthTime = sp.birthTime ?? "";
-  const city = sp.city ?? "";
-  const gender = sp.gender ?? "";
+  const name = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? "";
+  const birthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? "";
+  const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? "";
+  const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? "";
+  const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? "";
 
   const raw = await analyzeDestiny({ name, birthDate, birthTime, city, gender });
   const ui = adaptToUI(raw);
+  const textBlob = gatherText(raw);
+  const quests = makeQuests(textBlob || "");
+  const decorated = textBlob ? decorateText(textBlob) : null;
 
   return (
     <main className={styles.page}>
       <section className={styles.card}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Destiny Map -- Results</h1>
+          <h1 className={styles.title}>Destiny Map — Integrated Report</h1>
           <p className={styles.subtitle}>
-            Holistic reading using your Saju pillars and luck cycles with Astrology.
+            A synthesis of your Korean Four Pillars cycles and Western astrological chart.
           </p>
 
-        <div className={styles.profile}>
-          <span className={styles.kv}><b>Name:</b> {name || "--"}</span>
-          <span className={styles.kv}><b>Birth Date:</b> {birthDate || "--"}</span>
-          <span className={styles.kv}><b>Birth Time:</b> {birthTime || "--"}</span>
-          <span className={styles.kv}><b>City:</b> {city || "--"}</span>
-          <span className={styles.kv}><b>Gender:</b> {gender || "--"}</span>
-        </div>
+          <div className={styles.profile}>
+            <span className={styles.kv}>
+              <b>Name:</b> {name || "--"}
+            </span>
+            <span className={styles.kv}>
+              <b>Birth Date:</b> {birthDate || "--"}
+            </span>
+            <span className={styles.kv}>
+              <b>Birth Time:</b> {birthTime || "--"}
+            </span>
+            <span className={styles.kv}>
+              <b>City:</b> {city || "--"}
+            </span>
+            <span className={styles.kv}>
+              <b>Gender:</b> {gender || "--"}
+            </span>
+          </div>
 
-        <div className={styles.summaryBar}>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Overall</span>
-            <span className={styles.kpiValue}>{ui.scores.overall}</span>
-            <div className={styles.meter}><i style={{ width: toPercent(ui.scores.overall) }} /></div>
+          <div className={styles.summaryBar}>
+            <div className={styles.kpi}>
+              <span className={styles.kpiLabel}>Overall</span>
+              <span className={styles.kpiValue}>{ui.scores.overall}</span>
+              <div className={styles.meter}>
+                <i style={{ width: toPercent(ui.scores.overall) }} />
+              </div>
+            </div>
+            <div className={styles.kpi}>
+              <span className={styles.kpiLabel}>Career</span>
+              <span className={styles.kpiValue}>{ui.scores.career}</span>
+              <div className={styles.meter}>
+                <i style={{ width: toPercent(ui.scores.career) }} />
+              </div>
+            </div>
+            <div className={styles.kpi}>
+              <span className={styles.kpiLabel}>Relationship</span>
+              <span className={styles.kpiValue}>{ui.scores.love}</span>
+              <div className={styles.meter}>
+                <i style={{ width: toPercent(ui.scores.love) }} />
+              </div>
+            </div>
+            <div className={styles.kpi}>
+              <span className={styles.kpiLabel}>Vitality</span>
+              <span className={styles.kpiValue}>{ui.scores.health}</span>
+              <div className={styles.meter}>
+                <i style={{ width: toPercent(ui.scores.health) }} />
+              </div>
+            </div>
           </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Career</span>
-            <span className={styles.kpiValue}>{ui.scores.career}</span>
-            <div className={styles.meter}><i style={{ width: toPercent(ui.scores.career) }} /></div>
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Relationship</span>
-            <span className={styles.kpiValue}>{ui.scores.love}</span>
-            <div className={styles.meter}><i style={{ width: toPercent(ui.scores.love) }} /></div>
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Health</span>
-            <span className={styles.kpiValue}>{ui.scores.health}</span>
-            <div className={styles.meter}><i style={{ width: toPercent(ui.scores.health) }} /></div>
-          </div>
-        </div>
 
-        {ui.insights.length > 0 && (
-          <ul className={styles.insights}>
-            {ui.insights.map((it, i) => (
-              <li key={i} className={`${styles.insight} ${styles[`lvl${it.level}`]}`}>
-                <span className={styles.dot} />
-                <span className={styles.insightText}>{it.text}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+          {ui.insights.length > 0 && (
+            <ul className={styles.insights}>
+              {ui.insights.map((it, i) => (
+                <li key={i} className={`${styles.insight} ${styles[`lvl${it.level}`]}`}>
+                  <span className={styles.dot} />
+                  <span className={styles.insightText}>{it.text}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </header>
 
-        {/* 원래 포맷 그대로: Display 결과 본문 */}
         <Display result={raw} />
 
-        {/* Action Quests: gemini.text 기반 */}
-        {(() => {
-          const r: any = raw;
-          const textBlob = [
-            r?.gemini?.text,
-            r?.summary, r?.markdown, r?.plainText, r?.text, r?.content,
-            r?.report, r?.html, r?.message, r?.body,
-          ].filter(Boolean).join("\n");
-          const quests = makeQuests(textBlob || "");
-          return quests.length ? (
-            <section className={styles.section}>
-              <h2 className={styles.h2}>Action Quests</h2>
-              <div className={styles.questGrid}>
-                {quests.map((q: any, i: number) => (
-                  <div key={i} className={styles.quest}>
-                    <h4>
-                      {q.title}{" "}
-                      <span className={`${styles.badgeImpact} ${styles[q.impact]}`}>{q.impact}</span>
-                    </h4>
-                    <p style={{ margin: 0, opacity: 0.9 }}>{q.why}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null;
-        })()}
+        {quests.length ? (
+          <section className={styles.section}>
+            <h2 className={styles.h2}>Action Quests</h2>
+            <div className={styles.questGrid}>
+              {quests.map((q, i) => (
+                <div key={i} className={styles.quest}>
+                  <h4>
+                    {q.title}{" "}
+                    <span className={`${styles.badgeImpact} ${styles[q.impact]}`}>{q.impact}</span>
+                  </h4>
+                  <p style={{ margin: 0, opacity: 0.9 }}>{q.why}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
-        {/* Decorated Summary: 키워드 하이라이트 */}
-        {(() => {
-          const r: any = raw;
-          const textBlob = [
-            r?.gemini?.text,
-            r?.summary, r?.markdown, r?.plainText, r?.text, r?.content,
-            r?.report, r?.html, r?.message, r?.body,
-          ].filter(Boolean).join("\n");
-          if (!textBlob) return null;
-          const deco = decorateText(textBlob);
-          return (
-            <section className={styles.section}>
-              <details className={styles.acc}>
-                <summary>Decorated Summary</summary>
-                <div dangerouslySetInnerHTML={{ __html: deco }} />
-              </details>
-            </section>
-          );
-        })()}
+        {decorated ? (
+          <section className={styles.section}>
+            <details className={styles.acc}>
+              <summary>Decorated Summary</summary>
+              <div dangerouslySetInnerHTML={{ __html: decorated }} />
+            </details>
+          </section>
+        ) : null}
 
         <footer className={styles.footer}>
-          <a className={styles.back} href="/destiny-map">← Back to form</a>
+          <a className={styles.back} href="/destiny-map">
+            ← Back to form
+          </a>
         </footer>
       </section>
     </main>

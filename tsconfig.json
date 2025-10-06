@@ -1,43 +1,49 @@
 {
   "compilerOptions": {
-    // 최신 타깃/모듈 설정 (Next 15 호환)
+    // --- 프로젝트 기본 설정 ---
     "target": "ES2022",
-    "lib": ["ES2023", "DOM"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "preserve",
+    "plugins": [{ "name": "next" }],
+    "incremental": true,
 
-    // 타입 안정성
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "allowJs": false,
-
-    // 경로 별칭(@ → src/*)
+    // --- 경로 별칭 설정 (가장 중요!) ---
+    // 이 부분이 '@/' 같은 경로를 인식하게 해줍니다.
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     },
 
-    // 환경 타입
-    "types": ["node", "react", "react-dom"],
+    // --- 타입 검사 및 안정성 ---
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowJs": false,
+    "forceConsistentCasingInFileNames": true, // 대소문자 구분 강제
+    "isolatedModules": true,
 
-    // 기타
+    // --- 모듈 호환성 ---
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "incremental": true,
-    "plugins": [{ "name": "next" }],
 
-    // 대소문자 불일치로 인한 CI/리눅스 빌드 실패 방지
-    "forceConsistentCasingInFileNames": true
+    // --- 타입 정의 경로 ---
+    // 사용자님께서 추가하신 좋은 설정입니다.
+    "typeRoots": ["./node_modules/@types", "./types"], 
+    "types": ["node", "react", "react-dom"]
   },
+  // --- 컴파일에 포함할 파일 목록 ---
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "src/**/*",
-    "env.d.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "types/**/*.ts",
+    "env.d.ts",
+    "next.config.mjs" // next.config.mjs도 포함하여 타입 검사를 받도록 합니다.
   ],
+  // --- 컴파일에서 제외할 폴더 목록 ---
   "exclude": [
     "node_modules",
     ".next",

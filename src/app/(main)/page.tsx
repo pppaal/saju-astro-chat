@@ -179,7 +179,7 @@ export default function MainPage() {
         <Link href="/" className={styles.headerLink}>
           {`Today's visitors${visitors === null ? "" : `: ${visitors}`}`}
         </Link>
-        <Link href="/journey" className={styles.headerLink}>My Journey</Link>
+        <Link href="/myjourney" className={styles.headerLink}>My Journey</Link>
         <Link href="/community" className={styles.headerLink}>Community</Link>
       </header>
 
