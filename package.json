@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "python3 -m ensurepip --upgrade && python3 -m pip install --upgrade pip setuptools wheel",
+    "preinstall": "node scripts/bootstrap-python.mjs",
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
@@ -53,6 +53,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
     "autoprefixer": "^10.4.21",
     "copy-webpack-plugin": "^13.0.1",
     "eslint": "^9",
