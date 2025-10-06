@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "node -e \"process.exit(0)\"",
+    "preinstall": "python3 -m ensurepip --upgrade && python3 -m pip install --upgrade pip setuptools wheel",
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
@@ -13,8 +13,8 @@
   "overrides": {
     "node-gyp": "^10.0.1",
     "swisseph": {
-    "node-gyp": "^10.0.1"
-  }
+      "node-gyp": "^10.0.1"
+    }
   },
   "dependencies": {
     "@aharris02/bazi-calculator-by-alvamind": "^1.0.16",
