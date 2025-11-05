@@ -54,6 +54,18 @@ export const CHEONEUL_GWIIN_MAP: { [key: string]: string[] } = {
     '丙': ['亥', '酉'], '丁': ['亥', '酉'], '壬': ['卯', '巳'], '癸': ['卯', '巳'], '辛': ['寅', '午'],
 };
 
+// 절기 데이터 지원 범위(연도)
+export const KASI_START_YEAR = 1940;
+export const KASI_END_YEAR = 2050;
+
+// 입력 연도가 지원 범위 내인지 확인
+export function assertKasiYearInRange(year: number) {
+  if (year < KASI_START_YEAR || year > KASI_END_YEAR) {
+    const msg = `Supported solar-term year range is ${KASI_START_YEAR}–${KASI_END_YEAR}. Received: ${year}.`;
+    throw new RangeError(msg);
+  }
+}
+
 // ✅ [핵심] 1940년부터 2050년까지의 KASI 월별 절기(節) 데이터
 export const KASI_SOLAR_TERMS: { [year: number]: { [month: number]: string } } = {
     1940: { 1: "1940-01-06 13:58", 2: "1940-02-05 00:21", 3: "1940-03-06 06:48", 4: "1940-04-05 11:51", 5: "1940-05-06 05:42", 6: "1940-06-06 12:54", 7: "1940-07-07 18:31", 8: "1940-08-08 05:25", 9: "1940-09-08 07:43", 10: "1940-10-08 23:25", 11: "1940-11-08 02:16", 12: "1940-12-07 13:16" },

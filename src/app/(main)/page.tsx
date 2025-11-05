@@ -1,25 +1,35 @@
 "use client";
 
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./main-page.module.css";
+import HeaderUser from "./HeaderUser";
 
-const menuItems = [
-  { name: "Destiny Map", href: "/destiny-map", highlight: true }, // 금빛 강조
-  { name: "Saju", href: "/saju" },
-  { name: "Astrology", href: "/astrology" },
-  { name: "Iching", href: "/iching" },
-  { name: "Tarot", href: "/tarot" },
-  { name: "Dream", href: "/dream" },
-  { name: "Numerology", href: "/numerology" },
-  { name: "Compatibility", href: "/compatibility" },
-  { name: "Personality", href: "/personality" },
+// [추가] i18n 가져오기
+import { useI18n } from "@/i18n/I18nProvider";
+// [선택] 언어 스위처(언어 바꾸는 드롭다운)
+import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
+
+// 메뉴는 키만 보관하고, 실제 표시 문자열은 t로 변환
+const rawMenu = [
+  { key: "destinyMap", href: "/destiny-map", highlight: true },
+  { key: "saju", href: "/saju" },
+  { key: "astrology", href: "/astrology" },
+  { key: "iching", href: "/iching" },
+  { key: "tarot", href: "/tarot" },
+  { key: "dream", href: "/dream" },
+  { key: "numerology", href: "/numerology" },
+  { key: "compatibility", href: "/compatibility" },
+  { key: "personality", href: "/personality" },
 ];
 
 export default function MainPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const [visitors, setVisitors] = useState<number | null>(null);
+
+  // [추가] 번역 훅
+  const { t } = useI18n();
 
   useEffect(() => {
     const bumpAndFetch = async () => {
@@ -171,38 +181,50 @@ export default function MainPage() {
     };
   }, []);
 
+  // [추가] 메뉴 표시 이름을 번역으로 변환
+  const menu = rawMenu.map((m) => ({ ...m, name: t(`menu.${m.key}`) }));
+
   return (
     <main className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
 
       <header className={styles.header}>
         <Link href="/" className={styles.headerLink}>
-          {`Today's visitors${visitors === null ? "" : `: ${visitors}`}`}
+          {`${t("app.visitors")}${visitors === null ? "" : `: ${visitors}`}`}
         </Link>
-        <Link href="/myjourney" className={styles.headerLink}>My Journey</Link>
-        <Link href="/community" className={styles.headerLink}>Community</Link>
+        <HeaderUser />
+        <Link href="/myjourney" className={styles.headerLink}>
+          {t("app.myJourney")}
+        </Link>
+        <Link href="/community" className={styles.headerLink}>
+          {t("app.community")}
+        </Link>
+
+        {/* [선택] 언어 스위처를 헤더에 표시 */}
+        <LanguageSwitcher />
       </header>
 
       <div className={styles.content}>
-        <h1 className={styles.title}>destinypal</h1>
+        <h1 className={styles.title}>{t("app.title")}</h1>
         <p className={styles.subtitle}>
-          Unfold your personal destiny map by analyzing cosmic patterns with AI
+          {t("app.subtitle")}
         </p>
 
-        {/* 여기: 금빛 강조 포함된 메뉴 렌더 */} 
         <nav className={styles.nav}>
-          {menuItems.map((item, index) => (
+          {menu.map((item, index) => (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={`${styles.navLink} ${item.highlight ? styles.goldNav : ""}`}
               style={{ "--delay": `${0.5 + index * 0.1}s` } as React.CSSProperties}
             >
-              {item.name}{item.highlight ? " ✨" : ""}
+              {item.name}
             </Link>
           ))}
         </nav>
       </div>
+
+      <SpeedInsights />
     </main>
   );
 }

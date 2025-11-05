@@ -1,9 +1,11 @@
+// src/lib/Saju/saju.ts
 import { toDate } from 'date-fns-tz';
 import Calendar from 'korean-lunar-calendar';
 import { FiveElement, YinYang } from './types';
 import {
-  STEMS, BRANCHES, MONTH_STEM_LOOKUP, TIME_STEM_LOOKUP, JIJANGGAN,
-  CHEONEUL_GWIIN_MAP, FIVE_ELEMENT_RELATIONS, getSolarTermKST
+STEMS, BRANCHES, MONTH_STEM_LOOKUP, TIME_STEM_LOOKUP, JIJANGGAN,
+CHEONEUL_GWIIN_MAP, FIVE_ELEMENT_RELATIONS, getSolarTermKST,
+assertKasiYearInRange
 } from './constants';
 
 // 내부 타입(간단화)
@@ -60,6 +62,7 @@ export function calculateSajuData(
     const birthDateTime = toDate(`${solarBirthDateStr}T${birthTime}`, { timeZone: timezone });
 
     const year = birthDateTime.getFullYear();
+    assertKasiYearInRange(year); // ← 이 한 줄을 year 바로 다음에 추가
     const month = birthDateTime.getMonth() + 1;
     const day = birthDateTime.getDate();
 
