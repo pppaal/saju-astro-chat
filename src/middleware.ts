@@ -30,5 +30,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Next.js 정적 자산, favicon, 그리고 NextAuth 경로(api/auth) 제외
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
 }
