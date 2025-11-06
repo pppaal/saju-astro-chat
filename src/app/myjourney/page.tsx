@@ -1,7 +1,7 @@
 'use client'
 
 import { SessionProvider, useSession, signIn, signOut } from 'next-auth/react'
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'  // ← Suspense 추가
 import { useRouter, useSearchParams } from 'next/navigation'
 
 type Profile = {
@@ -12,10 +12,12 @@ type Profile = {
   gender?: string | null
 }
 
-export default function Page() {
+export default function MyJourneyClient() {
   return (
     <SessionProvider>
-      <MyJourneyPage />
+      <Suspense fallback={null}>
+        <MyJourneyPage />
+      </Suspense>
     </SessionProvider>
   )
 }
@@ -34,10 +36,8 @@ function MyJourneyPage() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
 
-  // Destiny Map 즉시 반영용 프로필 상태
   const [profile, setProfile] = useState<Profile>({})
 
-  // 로그인 상태면 기존 프로필 불러오기
   useEffect(() => {
     const load = async () => {
       if (status !== 'authenticated') return
@@ -55,7 +55,6 @@ function MyJourneyPage() {
     load()
   }, [status])
 
-  // 진입/리다이렉트 플래그 유지(기존 로직 유지)
   useEffect(() => {
     if (typeof window === 'undefined') return
     const fromQuery = search.get('from')
@@ -107,7 +106,6 @@ function MyJourneyPage() {
     router.back()
   }
 
-  // 저장 → 즉시 Destiny Map 연동
   const saveBirthInfo = async () => {
     setMsg('')
     if (!session) {
@@ -134,7 +132,7 @@ function MyJourneyPage() {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Failed to save')
       setMsg('Saved successfully.')
-      setProfile(data.user) // ← 여기서 Destiny Map에 즉시 반영
+      setProfile(data.user)
     } catch (e: any) {
       setMsg(e?.message || 'Error occurred')
     } finally {
@@ -177,7 +175,6 @@ function MyJourneyPage() {
         )}
       </section>
 
-      {/* 좌측 입력 + 우측 Destiny 패널 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
         <section style={cardDark}>
           <h2 style={h2Dark}>Birth Information</h2>
@@ -239,7 +236,6 @@ function MyJourneyPage() {
   )
 }
 
-// 간단한 Destiny 계산 훅(데모)
 function useDestiny(profile: Profile, targetDate: string) {
   const result = {
     date: targetDate,
