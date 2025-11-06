@@ -1,16 +1,14 @@
-"use server";
-
 export type DestinyInput = {
-  name: string;
-  birthDate: string; 
-  birthTime: string; 
-  city: string;
-  gender: string;
+  name: string;
+  birthDate: string;
+  birthTime: string;
+  city: string;
+  gender: string;
 };
 
 export type DestinyResult = {
   profile: DestinyInput;
-  gemini: { text: string; highlights?: string[]; };
+  interpretation: string;
   saju?: any;
   astrology?: any;
   error?: string;
@@ -18,9 +16,12 @@ export type DestinyResult = {
 
 export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult> {
   try {
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+    // Vercel 환경: VERCEL_URL은 보통 도메인만 오므로 스킴을 붙여줍니다.
+    const baseUrl =
+      process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000';
 
-    // 💡 --- 핵심 수정사항: 이제 Analyzer는 받은 정보를 그대로 전달하기만 합니다. ---
     const response = await fetch(`${baseUrl}/api/destiny-map`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -28,26 +29,34 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
       cache: 'no-store',
     });
 
-    const result = await response.json();
+    // 에러 응답이 비-JSON일 가능성 대비
+    let result: any = null;
+    try {
+      result = await response.json();
+    } catch {
+      result = null;
+    }
 
     if (!response.ok) {
-      throw new Error(result.error || `API Error: ${response.status}`);
+      const msg =
+        result?.error?.message ||
+        result?.error ||
+        `API Error: ${response.status}`;
+      throw new Error(msg);
     }
-    
+
     return {
       profile: input,
-      ...result
+      interpretation: result?.interpretation || 'No analysis text received.',
+      saju: result?.saju,
+      astrology: result?.astrology,
     };
-
   } catch (error: any) {
-    console.error("Analyzer Error:", error);
+    console.error('Analyzer Error:', error);
     return {
-        profile: input,
-        gemini: { 
-            text: `Analysis Error:\n${error.message}` 
-        },
-        error: error.message 
+      profile: input,
+      interpretation: `Analysis Error:\n${error?.message || String(error)}`,
+      error: error?.message || String(error),
     };
   }
 }
-

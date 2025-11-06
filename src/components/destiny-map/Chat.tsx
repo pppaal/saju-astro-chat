@@ -3,60 +3,52 @@
 import React, { useState, useTransition } from "react";
 
 type Profile = { name: string; birthDate: string; birthTime: string; city: string; gender: string };
-type ChatProps = { profile: Profile; evidence: string };
 
+// 1. Props 이름을 'initialContext'로 사용합니다.
+type ChatProps = { profile: Profile; initialContext: string };
+
+// 2. 도메인별 지시사항을 영어로 정의합니다.
 const domainPrompts: Record<string, string> = {
-  early: `주제: 초년기(0~20대 초반).
-필수 형식: 
-- 2줄 요약
-- 근거 블록 2~4개(근거/해석/시사점/타이밍)
-- 마지막 1줄 교차검증`,
-  career: `주제: 커리어/브랜딩.
-필수 형식:
-- 2줄 요약
-- 기회2/리스크1 + 타이밍
-- 역할/협업 조정전략 1줄`,
-  love: `주제: 관계/사랑.
-필수 형식:
-- 2줄 요약
-- 패턴2/주의1 + 타이밍
-- 경계설정 팁 1줄`,
-  money: `주제: 돈/현금흐름.
-필수 형식:
-- 2줄 요약
-- 수입 레버2/지출 리스크1 + 타이밍
-- 실행 제안 1줄`,
+  early: `Topic: Early Life (0-20s). Required format: 2-line summary, 2-4 evidence blocks (evidence/interpretation/implication), 1-line cross-validation.`,
+  career: `Topic: Career/Branding. Required format: 2-line summary, 2 opportunities/1 risk with timing, 1-line strategy for role adjustment.`,
+  love: `Topic: Relationships/Love. Required format: 2-line summary, 2 patterns/1 caution with timing, 1 tip for boundary setting.`,
+  money: `Topic: Finances/Cash Flow. Required format: 2-line summary, 2 income levers/1 spending risk with timing, 1 actionable suggestion.`,
 };
 
-export default function Chat({ profile, evidence }: ChatProps) {
+export default function Chat({ profile, initialContext }: ChatProps) {
   const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
   const [input, setInput] = useState("");
   const [pending, startTransition] = useTransition();
 
   const makePrompt = (q: string) => {
+    // 3. 질문에서 키워드를 찾을 때 영어 단어를 사용합니다.
     const key =
-      q.includes("초년") ? "early" :
-      q.includes("커리어") || q.includes("이직") ? "career" :
-      q.includes("사랑") || q.includes("연애") || q.includes("관계") ? "love" :
-      q.includes("돈") || q.includes("재정") ? "money" : "early";
+      q.toLowerCase().includes("early") ? "early" :
+      q.toLowerCase().includes("career") || q.toLowerCase().includes("job") ? "career" :
+      q.toLowerCase().includes("love") || q.toLowerCase().includes("relationship") ? "love" :
+      q.toLowerCase().includes("money") || q.toLowerCase().includes("finance") ? "money" : "early";
 
+    // 4. 프롬프트 전체를 영어로 구성하고 'initialContext'를 사용합니다.
     return `
-너는 Destiny Map 채팅 분석가다. 일반론 금지, Evidence 인용 필수.
-사용자: ${profile.name} / ${profile.birthDate} ${profile.birthTime} / ${profile.city} / ${profile.gender}
+You are a Destiny Map chat analyst. Answer based ONLY on the provided "Initial Analysis Context". Do not use general knowledge.
 
-Evidence(핵심 근거):
-${evidence}
+User Profile: ${profile.name} / ${profile.birthDate} ${profile.birthTime} / ${profile.city} / ${profile.gender}
 
-사용자 질문:
+Initial Analysis Context:
+---
+${initialContext} 
+---
+
+User's Question:
 ${q}
 
-도메인 지시:
+Domain Directive for this question:
 ${domainPrompts[key]}
 
-출력 원칙:
-- 근거 없는 성격 일반화 금지
-- '-' bullet 사용
-- 주/월 단위 타이밍
+Output Principles:
+- Cite evidence from the context.
+- Use '-' bullets.
+- Be concise and direct.
 `.trim();
   };
 
@@ -68,11 +60,13 @@ ${domainPrompts[key]}
         const res = await fetch("/api/destiny-map", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: makePrompt(q) }),
+          // 5. 백엔드에 '채팅' 요청임을 알리는 'chatPrompt'를 보냅니다.
+          body: JSON.stringify({ chatPrompt: makePrompt(q), profile }),
         });
         const j = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(j?.error || res.statusText || "Request failed");
-        const text = typeof j?.text === "string" ? j.text : "[Empty]";
+        // 6. 백엔드의 응답 필드('interpretation')에 맞춰 수정합니다.
+        const text = typeof j?.interpretation === "string" ? j.interpretation : "[Empty Response]";
         setMessages((m) => [...m, { role: "ai", text }]);
       } catch (e: any) {
         setMessages((m) => [...m, { role: "ai", text: `[Error] ${String(e?.message || e)}` }]);
@@ -80,11 +74,12 @@ ${domainPrompts[key]}
     });
   };
 
+  // 7. 추천 질문을 영어로 변경합니다.
   const suggestions = [
-    "초년기(0~12세) 핵심 패턴과 근거는?",
-    "3개월 내 커리어 전환 타이밍과 이유 2가지만",
-    "관계 갈등 시 내 패턴과 조정전략은?",
-    "이번 달 돈 흐름: 기회 2, 리스크 1?",
+    "What were the key patterns of my early life (0-12)?",
+    "Top 2 reasons for a career change in the next 3 months?",
+    "My main conflict pattern in relationships and how to fix it?",
+    "This month's financial forecast: 2 opportunities, 1 risk?",
   ];
 
   return (
@@ -153,7 +148,7 @@ ${domainPrompts[key]}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="언제/왜/무엇을 포함해 물어보면 더 정밀해요."
+          placeholder="Ask with 'when/why/what' for more precise answers."
           style={{
             flex: 1,
             background: "rgba(10,16,28,0.8)",
@@ -176,7 +171,7 @@ ${domainPrompts[key]}
             cursor: pending ? "default" : "pointer",
           }}
         >
-          {pending ? "생각 중..." : "질문"}
+          {pending ? "Thinking..." : "Ask"}
         </button>
       </form>
     </div>

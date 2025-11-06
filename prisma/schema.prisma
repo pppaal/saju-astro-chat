@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,18 +8,18 @@ datasource db {
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -34,7 +32,7 @@ model Session {
   userId       String
   expires      DateTime
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -47,6 +45,18 @@ model User {
   sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // 프로필(생년월일/시간/성별/도시/타임존)
+  birthDate String?
+  birthTime String?
+  gender    String?
+  birthCity String?   // 예: "Seoul, KR"
+  tzId      String?   // 예: "Asia/Seoul"
+
+  // 관계
+  readings Reading[]
+  fortunes Fortune[]
+  snapshots DestinySnapshot[] // 날짜별 Destiny Map 스냅샷
 }
 
 model VerificationToken {
@@ -55,4 +65,47 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Reading {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type    String // "SAJU" | "TAROT" | "ASTROLOGY" 등
+  title   String?
+  content String  @db.Text
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Fortune {
+  id      String   @id @default(cuid())
+  userId  String
+  date    DateTime
+  kind    String
+  title   String?
+  content String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, kind])
+  @@index([userId, date])
+}
+
+model DestinySnapshot {
+  id         String   @id @default(cuid())
+  userId     String
+  targetDate String   // 'YYYY-MM-DD' 저장 권장
+  data       Json     // 계산된 Destiny Map 결과 스냅샷
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetDate])
+  @@index([userId, targetDate])
 }

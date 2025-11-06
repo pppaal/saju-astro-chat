@@ -1,7 +1,6 @@
 // src/app/api/lib-health/route.ts
-
 export async function GET() {
-  // 동적 import: 빌드 시 평가 안전 + 경로 표준화
+  // 동적 import: 빌드 시 평가 안전
   const SajuLib = await import('@/lib/Saju/saju').catch(() => ({} as any));
   const AstroLib = await import('@/lib/astrology/astrologyService').catch(() => ({} as any));
 
@@ -13,7 +12,7 @@ export async function GET() {
   let sajuError: string | null = null;
   let astroError: string | null = null;
 
-  // Saju: 기존 가능한 엔트리들을 시도
+  // Saju: 가능한 엔트리 호출 시도
   try {
     const sajuFn: any =
       (SajuLib as any).getSaju ||
@@ -35,15 +34,17 @@ export async function GET() {
     sajuError = String(e?.message || e);
   }
 
-  // Astrology: 표준 API(generatePromptForGemini) 사용
+  // Astrology: Gemini 의존 엔트리 실행 제거
+  // 가능한 경우, 순수 계산/생성 함수만 호출 (예: buildChartData, calculateHouses 등)
   try {
-    const gen: any =
-      (AstroLib as any).generatePromptForGemini ||
+    const astroFn: any =
+      (AstroLib as any).buildChartData ||
+      (AstroLib as any).calculateChart ||
       (AstroLib as any).default ||
       null;
 
-    if (typeof gen === 'function') {
-      astroSample = gen({
+    if (typeof astroFn === 'function') {
+      astroSample = await astroFn({
         year: 1993,
         month: 5,
         date: 1,
@@ -55,7 +56,7 @@ export async function GET() {
         timeZone: 'Asia/Seoul',
       });
     } else {
-      astroError = 'No function: generatePromptForGemini/default';
+      astroError = 'No function: buildChartData/calculateChart/default';
     }
   } catch (e: any) {
     astroError = String(e?.message || e);

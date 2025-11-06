@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import StarrySky from "@/components/ui/StarrySky";
 import BackButton from "@/components/ui/BackButton";
+import { I18nProvider } from "@/i18n/I18nProvider";
 
 // 버튼 표시를 경로로 제어하는 작은 클라이언트 컴포넌트
 function BackButtonInLayout() {
@@ -40,9 +41,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <StarrySky />
-        <BackButtonInLayout /> {/* 메인(/)이면 자동 숨김 */}
-        <main>{children}</main>
+        <I18nProvider>
+          <StarrySky />
+          {/* 메인(/)이면 자동 숨김 */}
+          <BackButtonInLayout />
+          <main>{children}</main>
+        </I18nProvider>
       </body>
     </html>
   );
