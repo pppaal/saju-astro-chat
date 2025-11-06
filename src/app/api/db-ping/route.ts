@@ -1,5 +1,4 @@
 import { Client } from "pg";
-
 export const runtime = "nodejs";
 
 export async function GET() {
