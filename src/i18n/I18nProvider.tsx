@@ -4,8 +4,9 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 /**
  * 다국어 사전: en, ko, zh, ar, es
- * - 타이틀은 요청대로 모든 언어에서 "destinypal" 고정
- * - 누락되면 화면에 키가 그대로 보이지 않도록, fallback 로직 포함
+ * - 타이틀은 모든 언어에서 "destinypal" 고정
+ * - 폼에 필요한 키(app.name 등) 포함
+ * - 누락되면 영어 → 마지막 세그먼트 순으로 fallback
  */
 const dicts = {
   en: {
@@ -16,6 +17,19 @@ const dicts = {
       myJourney: "My Journey",
       community: "Community",
       back: "Back",
+      // form
+      name: "Name",
+      namePh: "Your name",
+      birthDate: "Birth Date",
+      birthTime: "Birth Time",
+      birthCity: "Birth City (English)",
+      cityPh: "Seoul",
+      gender: "Gender",
+      male: "Male",
+      female: "Female",
+      other: "Other",
+      preferNot: "Prefer not to say",
+      analyze: "Analyze",
     },
     menu: {
       destinyMap: "Destiny Map",
@@ -38,6 +52,19 @@ const dicts = {
       myJourney: "나의 여정",
       community: "커뮤니티",
       back: "뒤로",
+      // form
+      name: "이름",
+      namePh: "이름을 입력하세요",
+      birthDate: "생년월일",
+      birthTime: "출생 시간",
+      birthCity: "출생 도시(영문)",
+      cityPh: "Seoul",
+      gender: "성별",
+      male: "남성",
+      female: "여성",
+      other: "기타",
+      preferNot: "응답 안함",
+      analyze: "분석하기",
     },
     menu: {
       destinyMap: "운명 지도",
@@ -60,6 +87,19 @@ const dicts = {
       myJourney: "我的旅程",
       community: "社区",
       back: "返回",
+      // form
+      name: "姓名",
+      namePh: "请输入姓名",
+      birthDate: "出生日期",
+      birthTime: "出生时间",
+      birthCity: "出生城市（英文）",
+      cityPh: "Seoul",
+      gender: "性别",
+      male: "男",
+      female: "女",
+      other: "其他",
+      preferNot: "不便回答",
+      analyze: "开始分析",
     },
     menu: {
       destinyMap: "命运地图",
@@ -77,11 +117,25 @@ const dicts = {
   ar: {
     app: {
       title: "destinypal",
-      subtitle: "افتح خريطة قدرك الشخصية عبر تحليل أنماط الكون بالذكاء الاصطناعي",
+      subtitle:
+        "افتح خريطة قدرك الشخصية عبر تحليل أنماط الكون بالذكاء الاصطناعي",
       visitors: "زوار اليوم",
       myJourney: "رحلتي",
       community: "المجتمع",
       back: "رجوع",
+      // form
+      name: "الاسم",
+      namePh: "اكتب اسمك",
+      birthDate: "تاريخ الميلاد",
+      birthTime: "وقت الميلاد",
+      birthCity: "مدينة الميلاد (بالإنجليزية)",
+      cityPh: "سيول",
+      gender: "النوع",
+      male: "ذكر",
+      female: "أنثى",
+      other: "آخر",
+      preferNot: "أفضل عدم الإجابة",
+      analyze: "تحليل",
     },
     menu: {
       destinyMap: "خريطة القدر",
@@ -99,11 +153,25 @@ const dicts = {
   es: {
     app: {
       title: "destinypal",
-      subtitle: "Despliega tu mapa del destino analizando patrones cósmicos con IA",
+      subtitle:
+        "Despliega tu mapa del destino analizando patrones cósmicos con IA",
       visitors: "Visitantes de hoy",
       myJourney: "Mi viaje",
       community: "Comunidad",
       back: "Atrás",
+      // form
+      name: "Nombre",
+      namePh: "Tu nombre",
+      birthDate: "Fecha de nacimiento",
+      birthTime: "Hora de nacimiento",
+      birthCity: "Ciudad de nacimiento (inglés)",
+      cityPh: "Seúl",
+      gender: "Género",
+      male: "Hombre",
+      female: "Mujer",
+      other: "Otro",
+      preferNot: "Prefiero no decirlo",
+      analyze: "Analizar",
     },
     menu: {
       destinyMap: "Mapa del destino",
@@ -135,7 +203,7 @@ const SUPPORTED: Locale[] = ["en", "ko", "zh", "ar", "es"];
 const isRtl = (l: Locale) => l === "ar";
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // 기본 ko → 필요시 브라우저 언어 감지로 변경 가능
+  // 기본 ko
   const [locale, setLocale] = useState<Locale>("ko");
 
   // 초기 로드: localStorage → 브라우저 언어 → ko
@@ -148,8 +216,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
     try {
-      const nav = navigator.language?.slice(0, 2);
-      const guess = SUPPORTED.find((l) => l.startsWith(nav as string));
+      const nav2 = navigator.language?.slice(0, 2);
+      const guess = SUPPORTED.find((l) => l.startsWith(nav2 as string));
       if (guess) setLocale(guess);
     } catch {}
   }, []);
@@ -160,26 +228,23 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("locale", locale);
     } catch {}
     document.documentElement.lang = locale;
-    document.documentElement.dir = "ltr";
+    document.documentElement.dir = isRtl(locale) ? "rtl" : "ltr";
   }, [locale]);
 
-  // t 함수: 현재 언어 → 없으면 영어 → 그래도 없으면 마지막 세그먼트를 표시
+  // t 함수: 현재 언어 → 영어 → 마지막 세그먼트
   const t = useMemo(() => {
-    const cur = dicts[locale];
-    const fallback = dicts.en;
-    return (path: string) => {
-      const getter = (obj: any, p: string) =>
-        p.split(".").reduce<any>((acc, key) => (acc && key in acc ? acc[key] : undefined), obj);
+    const getter = (obj: any, p: string) =>
+      p.split(".").reduce<any>((acc, key) => (acc && key in acc ? acc[key] : undefined), obj);
 
+    return (path: string) => {
+      const cur = dicts[locale];
       const got = getter(cur, path);
       if (typeof got === "string") return got;
 
-      const fb = getter(fallback, path);
+      const fb = getter(dicts.en, path);
       if (typeof fb === "string") return fb;
 
-      // 키가 없으면 마지막 세그먼트만 보여주기(UX 최소 훼손)
-      const seg = path.split(".").pop() || path;
-      return seg;
+      return path.split(".").pop() || path;
     };
   }, [locale]);
 

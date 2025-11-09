@@ -1,11 +1,13 @@
 // src/lib/Saju/saju.ts
+
+// src/lib/Saju/saju.ts
 import { toDate } from 'date-fns-tz';
 import Calendar from 'korean-lunar-calendar';
 import { FiveElement, YinYang } from './types';
 import {
-STEMS, BRANCHES, MONTH_STEM_LOOKUP, TIME_STEM_LOOKUP, JIJANGGAN,
-CHEONEUL_GWIIN_MAP, FIVE_ELEMENT_RELATIONS, getSolarTermKST,
-assertKasiYearInRange
+  STEMS, BRANCHES, MONTH_STEM_LOOKUP, TIME_STEM_LOOKUP, JIJANGGAN,
+  CHEONEUL_GWIIN_MAP, FIVE_ELEMENT_RELATIONS, getSolarTermKST,
+  assertKasiYearInRange
 } from './constants';
 
 // 내부 타입(간단화)
@@ -62,7 +64,7 @@ export function calculateSajuData(
     const birthDateTime = toDate(`${solarBirthDateStr}T${birthTime}`, { timeZone: timezone });
 
     const year = birthDateTime.getFullYear();
-    assertKasiYearInRange(year); // ← 이 한 줄을 year 바로 다음에 추가
+    assertKasiYearInRange(year);
     const month = birthDateTime.getMonth() + 1;
     const day = birthDateTime.getDate();
 
@@ -87,11 +89,18 @@ export function calculateSajuData(
     const monthStemIndex = (firstMonthStemIndex + sajuMonthOrderIndex) % 10;
     const monthPillar = { stem: STEMS[monthStemIndex], branch: BRANCHES[monthBranchIndex] };
 
-    // 4) 일기둥(만세력식 JDN)
-    const a = Math.floor((14 - month) / 12);
-    const y_ = year + 4800 - a;
-    const m_ = month + 12 * a - 3;
-    const jdn = day + Math.floor((153 * m_ + 2) / 5) + 365 * y_ + Math.floor(y_ / 4) - Math.floor(y_ / 100) + Math.floor(y_ / 400) - 32045;
+    // 4) 일기둥(만세력식 JDN) — 출생지 "로컬 날짜(Y/M/D)" 기준으로 계산
+    const birthLocal = toDate(`${solarBirthDateStr}T${birthTime}`, { timeZone: timezone });
+    const num = (opt: Intl.DateTimeFormatOptions) =>
+      Number(new Intl.DateTimeFormat('en-CA', { timeZone: timezone, ...opt }).format(birthLocal));
+    const Y = num({ year: 'numeric' });
+    const M = num({ month: '2-digit' });
+    const D = num({ day: '2-digit' });
+
+    const a = Math.floor((14 - M) / 12);
+    const y_ = Y + 4800 - a;
+    const m_ = M + 12 * a - 3;
+    const jdn = D + Math.floor((153 * m_ + 2) / 5) + 365 * y_ + Math.floor(y_ / 4) - Math.floor(y_ / 100) + Math.floor(y_ / 400) - 32045;
     const dayStemIndex = (jdn + 49) % 10;
     const dayBranchIndex = (jdn + 49) % 12;
     const dayPillar = { stem: STEMS[dayStemIndex], branch: BRANCHES[dayBranchIndex] };
@@ -200,7 +209,12 @@ export function calculateSajuData(
       fiveElementsCount[p.branch.element]++;
     });
 
-    const currentAge = new Date().getFullYear() - year + 1;
+    // 현재 나이: 출생지 로컬 연도 기준, 현재연도는 KST 기준
+    const birthYearLocal = Y;
+    const nowKST = new Date(Date.now() - 9 * 60 * 60 * 1000);
+    const currentYearKST = nowKST.getUTCFullYear() + 1;
+    const currentAge = currentYearKST - birthYearLocal;
+
     const currentLuckPillar = daeWoonList.slice().reverse().find(d => currentAge >= d.age) || daeWoonList[0];
 
     return {

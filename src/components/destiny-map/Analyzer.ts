@@ -4,6 +4,7 @@ export type DestinyInput = {
   birthTime: string;
   city: string;
   gender: string;
+  lang?: "en" | "ko" | "ja" | "zh" | "es"; // 추가
 };
 
 export type DestinyResult = {
@@ -12,6 +13,7 @@ export type DestinyResult = {
   saju?: any;
   astrology?: any;
   error?: string;
+  lang?: DestinyInput["lang"];
 };
 
 export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult> {
@@ -20,16 +22,18 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
     const baseUrl =
       process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000';
+        : "http://localhost:3000";
+
+    // lang 기본값: 없으면 'en'
+    const payload = { ...input, lang: input.lang ?? "en" };
 
     const response = await fetch(`${baseUrl}/api/destiny-map`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-      cache: 'no-store',
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload), // lang 포함
+      cache: "no-store",
     });
 
-    // 에러 응답이 비-JSON일 가능성 대비
     let result: any = null;
     try {
       result = await response.json();
@@ -47,16 +51,18 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
 
     return {
       profile: input,
-      interpretation: result?.interpretation || 'No analysis text received.',
+      interpretation: result?.interpretation || "No analysis text received.",
       saju: result?.saju,
       astrology: result?.astrology,
+      lang: result?.lang ?? payload.lang, // 디버깅용
     };
   } catch (error: any) {
-    console.error('Analyzer Error:', error);
+    console.error("Analyzer Error:", error);
     return {
       profile: input,
       interpretation: `Analysis Error:\n${error?.message || String(error)}`,
       error: error?.message || String(error),
+      lang: input.lang,
     };
   }
 }
