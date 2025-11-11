@@ -223,6 +223,15 @@ export default function MainPage() {
           ))}
         </nav>
       </div>
+<div className={styles.policyBar}>
+
+<Link href="/policy/terms" className={styles.policyBtn}>{t("common.terms")}</Link>
+
+<Link href="/policy/privacy" className={styles.policyBtn}>{t("common.privacy")}</Link>
+
+<Link href="/policy/refund" className={styles.policyBtn}>{t("common.refunds")}</Link>
+
+</div>
 
       <SpeedInsights />
     </main>

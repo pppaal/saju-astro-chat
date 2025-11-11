@@ -28,7 +28,6 @@ function initializeSwisseph() {
   swisseph.swe_set_ephe_path(ephePath)
 }
 
-// AM/PM 포함 HH:mm 파서
 function parseHM(input: string) {
   const s = String(input).trim().toUpperCase()
   const ampm = (s.match(/\s?(AM|PM)$/) || [])[1]
@@ -65,7 +64,6 @@ export async function POST(request: Request) {
 
     const { h, m } = parseHM(String(time))
 
-    // 입력된 TZ 기준 로컬 → UTC (KST -9h 보정 제거)
     const local = dayjs.tz(
       `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')} ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`,
       'YYYY-MM-DD HH:mm',
@@ -84,7 +82,7 @@ export async function POST(request: Request) {
     const jd = swisseph.swe_julday(utcYear, utcMonth, utcDay, utcHour, swisseph.SE_GREG_CAL)
     if (!Number.isFinite(jd)) throw new Error('율리우스일(JD) 계산 실패')
 
-    // 행성 계산: 콜백 → Promise 래핑 유지
+    // 행성 계산
     const planetPromises = planetsToCalculate.map(
       p =>
         new Promise((resolve, reject) => {
@@ -94,14 +92,25 @@ export async function POST(request: Request) {
         })
     )
 
-    // 하우스 계산: 3인자 호출(0.5.17 호환)
+    // 하우스 계산: Placidus 명시 + asc/mc 안전 추출
     const housePromise = new Promise((resolve, reject) => {
-      const houseResult: any = (swisseph as any).swe_houses(jd, latitude, longitude)
-      if (houseResult && houseResult.error) return reject(new Error(`House calculation failed: ${houseResult.error}`))
-      if (houseResult && houseResult.house && houseResult.ascendant !== undefined && houseResult.mc !== undefined) {
-        return resolve(houseResult)
+      try {
+        const hsys = 'P' // Placidus
+        const flags = swisseph.SEFLG_SPEED
+        const hr: any = (swisseph as any).swe_houses_ex(jd, flags, latitude, longitude, hsys)
+
+        // 일부 빌드에서 asc 키명 차이 대응
+        const ascRaw = (hr.ascendant ?? hr.asc ?? hr.ASC) as number | undefined
+        const mcRaw = (hr.mc ?? hr.MC) as number | undefined
+
+        if (ascRaw == null || mcRaw == null || !Number.isFinite(ascRaw) || !Number.isFinite(mcRaw)) {
+          throw new Error('ASC/MC 값을 가져오지 못했습니다.')
+        }
+
+        resolve({ ascendant: ascRaw, mc: mcRaw, houseCusps: hr.house })
+      } catch (e: any) {
+        reject(new Error(`House calculation failed: ${e?.message || e}`))
       }
-      reject(new Error('하우스 정보를 계산할 수 없습니다. 서버 로그를 확인해주세요.'))
     })
 
     const [planetResults, houseResult]: [any[], any] = await Promise.all([Promise.all(planetPromises), housePromise])
@@ -111,18 +120,20 @@ export async function POST(request: Request) {
         planet: planetsToCalculate[i].name,
         zodiacSign: zodiacSigns[Math.floor(p.longitude / 30)],
         degree: parseFloat((p.longitude % 30).toFixed(2)),
+        longitude: parseFloat(p.longitude?.toFixed?.(5) ?? String(p.longitude)),
       })),
       ascendant: {
         zodiacSign: zodiacSigns[Math.floor(houseResult.ascendant / 30)],
         degree: parseFloat((houseResult.ascendant % 30).toFixed(2)),
+        longitude: parseFloat(houseResult.ascendant.toFixed(5)),
       },
       midheaven: {
         zodiacSign: zodiacSigns[Math.floor(houseResult.mc / 30)],
         degree: parseFloat((houseResult.mc % 30).toFixed(2)),
+        longitude: parseFloat(houseResult.mc.toFixed(5)),
       },
     }
 
-    // 여기만 수정: interpretation을 빈 문자열로 보내지 않음
     const planetLines = chartData.planets
       .map(p => `${p.planet}: ${p.zodiacSign} ${p.degree}°`)
       .join('\n')
@@ -137,7 +148,19 @@ export async function POST(request: Request) {
       `행성 위치\n${planetLines}\n\n` +
       `주의: 이 해석은 자동 생성된 요약입니다.`
 
-    return NextResponse.json({ chartData, interpretation }, { status: 200 })
+    // 디버그 정보: 입력 에코백 + UTC/JD + ASC/MC 원시값 + 하우스 시스템/좌표
+    const debug = {
+      input: { date, time, timeZone, latitude, longitude },
+      utc: u.format('YYYY-MM-DD HH:mm:ss[Z]'),
+      jd,
+      ascRaw: chartData.ascendant.longitude, // 0–360
+      mcRaw: chartData.midheaven.longitude,  // 0–360
+      hsys: 'P',
+      lat: latitude,
+      lon: longitude,
+    }
+
+    return NextResponse.json({ chartData, interpretation, debug }, { status: 200 })
   } catch (error: any) {
     console.error('API 처리 중 최종 에러:', error)
     return NextResponse.json({ error: error.message || '알 수 없는 에러가 발생했습니다.' }, { status: 500 })

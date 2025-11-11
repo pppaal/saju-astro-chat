@@ -1,303 +1,342 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@300&display=swap');
-
 /* --- Global Layout --- */
 .container {
-  --bg-color: #0c0c1e;
-  --text-color: #e0e0ff;
-  --glow-color: #c5a6ff;
-  --card-bg-color: rgba(25, 25, 35, 0.4);
-  --card-border-color: rgba(255, 255, 255, 0.2);
+--bg-color: #0c0c1e;
+--text-color: #e0e0ff;
+--glow-color: #c5a6ff;
+--card-bg-color: rgba(25, 25, 35, 0.4);
+--card-border-color: rgba(255, 255, 255, 0.2);
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  width: 100vw; 
-  max-width: 100%;
-  color: var(--text-color);
-  font-family: 'Roboto', sans-serif;
-  overflow-x: hidden; 
-  position: relative;
-  padding: 5rem 1rem;
-  gap: 4rem;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+width: 100vw;
+max-width: 100%;
+color: var(--text-color);
+font-family: 'Roboto', sans-serif;
+overflow-x: hidden;
+position: relative;
+padding: 5rem 1rem;
+gap: 4rem;
 }
 
 /* --- Particle Background --- */
 .particleCanvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
+position: fixed;
+top: 0; left: 0;
+width: 100%;
+height: 100%;
+z-index: 0;
 }
 
 /* --- Header --- */
 .header {
-    position: absolute;
-    top: 25px;
-    right: 40px;
-    z-index: 10;
-    display: flex;
-    gap: 25px;
+position: absolute;
+top: 25px;
+right: 40px;
+z-index: 10;
+display: flex;
+gap: 25px;
 }
 
 .headerLink {
-    color: var(--text-color);
-    text-decoration: none;
-    font-size: 16px;
-    transition: text-shadow 0.3s;
+color: var(--text-color);
+text-decoration: none;
+font-size: 16px;
+transition: text-shadow 0.3s;
 }
 
 .headerLink:hover {
-    text-shadow: 0 0 5px #fff, 0 0 10px #fff;
+text-shadow: 0 0 5px #fff, 0 0 10px #fff;
 }
 
 /* --- Main Content Box --- */
 .content {
-  text-align: center;
-  z-index: 1;
-  padding: 2rem;
-  background: var(--card-bg-color);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-  animation: fadeIn 1.5s ease-out;
+text-align: center;
+z-index: 1;
+padding: 2rem;
+background: var(--card-bg-color);
+border-radius: 20px;
+backdrop-filter: blur(10px);
+box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+animation: fadeIn 1.5s ease-out;
 }
 
 .title {
-  font-family: 'Cinzel', serif;
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: 0.2rem;
-  margin: 0;
-  text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
-  /* [수정] 계속 반복되는 애니메이션 대신, 부드러운 전환 효과를 위해 transition을 추가합니다. */
-  transition: text-shadow 0.4s ease;
+font-family: 'Cinzel', serif;
+font-size: 3rem;
+font-weight: 700;
+letter-spacing: 0.2rem;
+margin: 0;
+text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
+transition: text-shadow 0.4s ease;
 }
 
-/* [추가] 마우스를 올렸을 때만 글로우 효과가 강해지도록 합니다. */
 .title:hover {
-  text-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+text-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
 }
-
 
 .subtitle {
-  font-size: 1.1rem;
-  opacity: 0.8;
-  margin: 1rem auto 2.5rem;
-  max-width: 400px;
+font-size: 1.1rem;
+opacity: 0.8;
+margin: 1rem auto 2.5rem;
+max-width: 400px;
 }
 
 /* --- Navigation Menu --- */
 .nav {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  justify-content: center;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 1rem;
+justify-content: center;
 }
 
 .navLink {
-  color: var(--text-color);
-  text-decoration: none;
-  font-family: 'Cinzel', serif;
-  font-size: 1rem;
-  padding: 0.8rem 1.5rem;
-  border: 1px solid var(--card-border-color);
-  border-radius: 50px;
-  transition: all 0.3s ease;
-  opacity: 0;
-  animation: fadeInUp 0.5s ease-out forwards;
-  animation-delay: var(--delay);
+color: var(--text-color);
+text-decoration: none;
+font-family: 'Cinzel', serif;
+font-size: 1rem;
+padding: 0.8rem 1.5rem;
+border: 1px solid var(--card-border-color);
+border-radius: 50px;
+transition: all 0.3s ease;
+opacity: 0;
+animation: fadeInUp 0.5s ease-out forwards;
+animation-delay: var(--delay);
 }
 
 .navLink:hover {
-  background-color: var(--glow-color);
-  color: var(--bg-color);
-  border-color: var(--glow-color);
-  box-shadow: 0 0 20px var(--glow-color);
-  transform: translateY(-3px);
+background-color: var(--glow-color);
+color: var(--bg-color);
+border-color: var(--glow-color);
+box-shadow: 0 0 20px var(--glow-color);
+transform: translateY(-3px);
 }
 
 /* --- General Animations --- */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color); }
-  50% { text-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color); }
+0%, 100% { text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color); }
+50% { text-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color); }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
 }
 
 /* --- New Features Section Styles --- */
 .featuresContainer {
-  width: 100%;
-  max-width: 1200px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  animation: fadeIn 1.5s ease-out 1s forwards;
-  opacity: 0;
+width: 100%;
+max-width: 1200px;
+z-index: 1;
+display: flex;
+flex-direction: column;
+gap: 2rem;
+animation: fadeIn 1.5s ease-out 1s forwards;
+opacity: 0;
 }
 
 .insightPanel {
-  width: 100%;
-  padding: 1.5rem 2rem;
-  background: var(--card-bg-color);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  text-align: center;
-  border-top: 1px solid var(--card-border-color);
-  border-bottom: 1px solid var(--card-border-color);
+width: 100%;
+padding: 1.5rem 2rem;
+background: var(--card-bg-color);
+border-radius: 20px;
+backdrop-filter: blur(10px);
+text-align: center;
+border-top: 1px solid var(--card-border-color);
+border-bottom: 1px solid var(--card-border-color);
 }
 
 .sectionTitle {
-  font-family: 'Cinzel', serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.1rem;
-  margin: 0;
-  color: var(--glow-color);
+font-family: 'Cinzel', serif;
+font-size: 1.5rem;
+font-weight: 700;
+letter-spacing: 0.1rem;
+margin: 0;
+color: var(--glow-color);
 }
 
 .insightText {
-  font-size: 1.1rem;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
+font-size: 1.1rem;
+margin-top: 1rem;
+margin-bottom: 0.5rem;
 }
 
 .featuresGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 2rem;
 }
 
 .featureCard {
-  background: var(--card-bg-color);
-  border-radius: 20px;
-  padding: 2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--card-border-color);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  /* [추가] 개별 카드 애니메이션을 위해 시작 시 투명하게 만듭니다. */
-  opacity: 0;
-  animation: fadeInUp 0.6s ease-out forwards;
-  /* [추가] 마우스 호버 시 부드러운 효과를 위한 transition 입니다. */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+background: var(--card-bg-color);
+border-radius: 20px;
+padding: 2rem;
+backdrop-filter: blur(10px);
+border: 1px solid var(--card-border-color);
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+opacity: 0;
+animation: fadeInUp 0.6s ease-out forwards;
+transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* [추가] 각 카드에 애니메이션 시간차를 설정합니다. */
 .featureCard:nth-child(1) { animation-delay: 1.2s; }
 .featureCard:nth-child(2) { animation-delay: 1.4s; }
 .featureCard:nth-child(3) { animation-delay: 1.6s; }
-/* 카드가 더 많아질 경우 위와 같이 추가하면 됩니다. */
 
-
-/* [추가] 마우스를 올렸을 때 카드가 살짝 위로 움직이고 그림자가 생기는 효과입니다. */
 .featureCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 30px var(--glow-color);
+transform: translateY(-5px);
+box-shadow: 0 0 30px var(--glow-color);
 }
 
 .featureTitle {
-  font-family: 'Cinzel', serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--glow-color);
-  margin: 0;
-  margin-bottom: 0.5rem;
+font-family: 'Cinzel', serif;
+font-size: 1.3rem;
+font-weight: 700;
+color: var(--glow-color);
+margin: 0 0 0.5rem 0;
 }
 
 .featureText {
-  font-size: 1rem;
-  opacity: 0.9;
-  line-height: 1.6;
-  flex-grow: 1; 
+font-size: 1rem;
+opacity: 0.9;
+line-height: 1.6;
+flex-grow: 1;
 }
 
 .reportButton {
-    margin-top: auto;
-    padding: 0.75rem 1rem;
-    background: transparent;
-    color: var(--text-color);
-    border: 1px solid var(--card-border-color);
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Cinzel', serif;
-    font-weight: 700;
+margin-top: auto;
+padding: 0.75rem 1rem;
+background: transparent;
+color: var(--text-color);
+border: 1px solid var(--card-border-color);
+border-radius: 50px;
+cursor: pointer;
+transition: all 0.3s ease;
+font-family: 'Cinzel', serif;
+font-weight: 700;
 }
 
 .reportButton:hover {
-    background-color: var(--glow-color);
-    color: var(--bg-color);
-    border-color: var(--glow-color);
+background-color: var(--glow-color);
+color: var(--bg-color);
+border-color: var(--glow-color);
 }
 
 /* --- Responsive Media Queries --- */
-
-/* [추가] 태블릿 사이즈를 위한 2열 레이아웃을 추가합니다. */
 @media (max-width: 1024px) {
-  .featuresGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.featuresGrid {
+grid-template-columns: repeat(2, 1fr);
+}
 }
 
-/* [수정] 기존 900px를 768px로 조정하여 모바일 대응을 더 명확하게 합니다. */
 @media (max-width: 768px) {
-  .featuresGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .container {
-    padding: 3rem 1rem;
-    gap: 3rem;
-  }
-  .title { font-size: 2.5rem; }
-  .subtitle { font-size: 1rem; }
-  .nav { grid-template-columns: repeat(2, 1fr); }
-  .navLink { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
+.featuresGrid {
+grid-template-columns: 1fr;
 }
 
+.container {
+padding: 3rem 1rem;
+gap: 3rem;
+}
+
+.title { font-size: 2.5rem; }
+.subtitle { font-size: 1rem; }
+.nav { grid-template-columns: repeat(2, 1fr); }
+.navLink { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
+}
 
 /* --- Destiny Map 전용 금빛 버튼 스타일 --- */
-
-/* [수정] !important를 제거하기 위해 선택자를 '.navLink.goldNav'로 더 구체화합니다. */
 .navLink.goldNav {
-  color: #2b1d00;
-  background: linear-gradient(135deg, #ffd36a, #ffb347);
-  border-color: rgba(255, 215, 128, 0.9);
-  box-shadow: 0 10px 22px rgba(255, 193, 77, 0.35), inset 0 1px 0 rgba(255,255,255,0.55);
-  transform: translateY(-2px);
+color: #2b1d00;
+background: linear-gradient(135deg, #ffd36a, #ffb347);
+border-color: rgba(255, 215, 128, 0.9);
+box-shadow: 0 10px 22px rgba(255, 193, 77, 0.35), inset 0 1px 0 rgba(255,255,255,0.55);
+transform: translateY(-2px);
 }
 
 .navLink.goldNav:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45), inset 0 1px 0 rgba(255,255,255,0.6);
-  color: #2b1d00;
+transform: translateY(-4px);
+box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45), inset 0 1px 0 rgba(255,255,255,0.6);
+color: #2b1d00;
 }
 
-
-/* [추가] 키보드 사용자를 위한 접근성 포커스 스타일입니다. */
+/* 접근성 포커스 스타일 */
 .headerLink:focus,
 .navLink:focus,
 .reportButton:focus {
-  outline: 2px solid var(--glow-color);
-  outline-offset: 3px;
-  box-shadow: 0 0 20px var(--glow-color); /* 호버 효과와 유사하게 처리 */
+outline: 2px solid var(--glow-color);
+outline-offset: 3px;
+box-shadow: 0 0 20px var(--glow-color);
 }
 
-/* goldNav 버튼은 포커스 색상을 금색으로 별도 지정 */
 .navLink.goldNav:focus {
-  outline-color: #ffd36a;
-  box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45);
+outline-color: #ffd36a;
+box-shadow: 0 14px 28px rgba(255, 193, 77, 0.45);
+}
+
+/* --- Policy Buttons (약관/정책) --- */
+.policyBar {
+position: fixed;
+left: 0;
+right: 0;
+bottom: 20px;
+display: flex;
+gap: 12px;
+justify-content: center;
+flex-wrap: wrap;
+padding: 8px 12px;
+z-index: 10;
+}
+
+.policyBtn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+height: 38px;
+min-width: 100px;
+padding: 0 16px;
+border-radius: 999px;
+text-decoration: none;
+
+background: rgba(255,255,255,0.16);
+border: 1px solid rgba(255,255,255,0.40);
+color: #121425;
+font-size: 13px;
+font-weight: 700;
+letter-spacing: .2px;
+
+backdrop-filter: blur(6px);
+box-shadow: 0 6px 18px rgba(0,0,0,.25);
+transition: background .18s ease, border-color .18s ease, transform .05s ease, box-shadow .18s ease;
+}
+
+.policyBtn:hover {
+background: rgba(255,255,255,0.22);
+border-color: rgba(255,255,255,0.55);
+box-shadow: 0 8px 22px rgba(0,0,0,.3);
+transform: translateY(-1px);
+}
+
+.policyBtn:active {
+transform: translateY(0);
+}
+
+.policyBtn:focus {
+outline: 2px solid #b6c8ff;
+outline-offset: 3px;
+box-shadow: 0 0 0 3px rgba(182,200,255,.35), 0 8px 22px rgba(0,0,0,.32);
+}
+
+@media (max-width: 480px) {
+.policyBar { bottom: 14px; gap: 8px; }
+.policyBtn { height: 34px; min-width: 88px; font-size: 12px; padding: 0 12px; }
 }

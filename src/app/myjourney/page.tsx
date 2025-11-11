@@ -22,6 +22,20 @@ export default function MyJourneyClient() {
   )
 }
 
+// 추가: Stripe Checkout 호출 헬퍼
+async function startCheckout() {
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+    credentials: 'include',
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok || !data?.url) {
+    alert(`Checkout error: ${data?.error || res.status}`)
+    return
+  }
+  window.location.href = data.url
+}
+
 function MyJourneyPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -156,9 +170,19 @@ function MyJourneyPage() {
             <p style={{ margin: '6px 0', color: '#EAE6FF' }}>
               Signed in as {session.user?.name ?? session.user?.email}
             </p>
-            <button style={btnGhostDark} onClick={() => signOut({ callbackUrl: '/myjourney?from=oauth' })}>
-              Sign out
-            </button>
+            {/* 추가: 결제 시작 버튼 */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                style={btnPrimaryDark}
+                onClick={startCheckout}
+                title="Subscribe to Premium"
+              >
+                Go Premium (HK$39/mo)
+              </button>
+              <button style={btnGhostDark} onClick={() => signOut({ callbackUrl: '/myjourney?from=oauth' })}>
+                Sign out
+              </button>
+            </div>
           </>
         ) : (
           <>
