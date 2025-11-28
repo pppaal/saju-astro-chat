@@ -1,0 +1,10 @@
+﻿id,angle,category,label,description
+conjunction,0,Major,합,통합·집중
+sextile,60,Major,육분,기회의 조화
+square,90,Major,사각,도전 긴장
+trine,120,Major,삼합,자연스러운 조화
+opposition,180,Major,대립,극적 균형
+quincunx,150,Minor,퀸컨크스,조율 불균형
+semi_sextile,30,Minor,반육분,약한 연결
+sesqui_quadrate,135,Minor,세스퀴사각,압박 조정
+quintile,72,Minor,퀸타일,창조적 연결

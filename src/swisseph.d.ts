@@ -21,7 +21,7 @@ declare module 'swisseph' {
   type SwissEphSuccessResult = { longitude: number; latitude: number; distance: number; longitudeSpeed: number; latitudeSpeed: number; distanceSpeed: number; rflag: number; };
   type SwissEphErrorResult = { error: string; };
 
-  export function swe_calc_ut(jd_ut: number, ipl: number, iflag: number, callback: (result: SwissEphSuccessResult | SwissEphErrorResult) => void): void;
+  export function swe_calc_ut(jd_ut: number, ipl: number, ifldag: number, callback: (result: SwissEphSuccessResult | SwissEphErrorResult) => void): void;
 
   // 💡 --- 핵심 수정사항 --- 💡
   // swe_houses의 실제 반환 타입과 일치하도록 최종 정의합니다.
