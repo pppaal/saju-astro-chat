@@ -189,6 +189,11 @@ export default function MainPage() {
       <canvas ref={canvasRef} className={styles.particleCanvas} />
 
       <header className={styles.header}>
+        {/* 추가: 좌측 상단 About 링크 */}
+        <Link href="/about" className={styles.headerLink}>
+          {t("app.about")}
+        </Link>
+
         <Link href="/" className={styles.headerLink}>
           {`${t("app.visitors")}${visitors === null ? "" : `: ${visitors}`}`}
         </Link>
@@ -223,15 +228,11 @@ export default function MainPage() {
           ))}
         </nav>
       </div>
-<div className={styles.policyBar}>
-
-<Link href="/policy/terms" className={styles.policyBtn}>{t("common.terms")}</Link>
-
-<Link href="/policy/privacy" className={styles.policyBtn}>{t("common.privacy")}</Link>
-
-<Link href="/policy/refund" className={styles.policyBtn}>{t("common.refunds")}</Link>
-
-</div>
+      <div className={styles.policyBar}>
+        <Link href="/policy/terms" className={styles.policyBtn}>{t("common.terms")}</Link>
+        <Link href="/policy/privacy" className={styles.policyBtn}>{t("common.privacy")}</Link>
+        <Link href="/policy/refund" className={styles.policyBtn}>{t("common.refunds")}</Link>
+      </div>
 
       <SpeedInsights />
     </main>

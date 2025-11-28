@@ -1,0 +1,670 @@
+﻿id,source,target,relation,description
+REL_Sun_Aries,Sun,Aries,위치,"Sun in Aries: Aries(Fire,Cardinal)의 기질로 Sun가 표현된다 → 도전·선도·열정"
+REL_Sun_Taurus,Sun,Taurus,위치,"Sun in Taurus: Taurus(Earth,Fixed)의 기질로 Sun가 표현된다 → 안정·소유·인내"
+REL_Sun_Gemini,Sun,Gemini,위치,"Sun in Gemini: Gemini(Air,Mutable)의 기질로 Sun가 표현된다 → 소통·호기심·지성"
+REL_Sun_Cancer,Sun,Cancer,위치,"Sun in Cancer: Cancer(Water,Cardinal)의 기질로 Sun가 표현된다 → 보호·감정·가정"
+REL_Sun_Leo,Sun,Leo,위치,"Sun in Leo: Leo(Fire,Fixed)의 기질로 Sun가 표현된다 → 표현·창의·리더십"
+REL_Sun_Virgo,Sun,Virgo,위치,"Sun in Virgo: Virgo(Earth,Mutable)의 기질로 Sun가 표현된다 → 분석·실용·봉사"
+REL_Sun_Libra,Sun,Libra,위치,"Sun in Libra: Libra(Air,Cardinal)의 기질로 Sun가 표현된다 → 조화·관계·균형"
+REL_Sun_Scorpio,Sun,Scorpio,위치,"Sun in Scorpio: Scorpio(Water,Fixed)의 기질로 Sun가 표현된다 → 깊이·집착·변형"
+REL_Sun_Sagittarius,Sun,Sagittarius,위치,"Sun in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Sun가 표현된다 → 탐험·철학·낙관"
+REL_Sun_Capricorn,Sun,Capricorn,위치,"Sun in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Sun가 표현된다 → 책임·성취·현실"
+REL_Sun_Aquarius,Sun,Aquarius,위치,"Sun in Aquarius: Aquarius(Air,Fixed)의 기질로 Sun가 표현된다 → 혁신·이상·인도주의"
+REL_Sun_Pisces,Sun,Pisces,위치,"Sun in Pisces: Pisces(Water,Mutable)의 기질로 Sun가 표현된다 → 연민·창조·영감"
+REL_Moon_Aries,Moon,Aries,위치,"Moon in Aries: Aries(Fire,Cardinal)의 기질로 Moon가 표현된다 → 도전·선도·열정"
+REL_Moon_Taurus,Moon,Taurus,위치,"Moon in Taurus: Taurus(Earth,Fixed)의 기질로 Moon가 표현된다 → 안정·소유·인내"
+REL_Moon_Gemini,Moon,Gemini,위치,"Moon in Gemini: Gemini(Air,Mutable)의 기질로 Moon가 표현된다 → 소통·호기심·지성"
+REL_Moon_Cancer,Moon,Cancer,위치,"Moon in Cancer: Cancer(Water,Cardinal)의 기질로 Moon가 표현된다 → 보호·감정·가정"
+REL_Moon_Leo,Moon,Leo,위치,"Moon in Leo: Leo(Fire,Fixed)의 기질로 Moon가 표현된다 → 표현·창의·리더십"
+REL_Moon_Virgo,Moon,Virgo,위치,"Moon in Virgo: Virgo(Earth,Mutable)의 기질로 Moon가 표현된다 → 분석·실용·봉사"
+REL_Moon_Libra,Moon,Libra,위치,"Moon in Libra: Libra(Air,Cardinal)의 기질로 Moon가 표현된다 → 조화·관계·균형"
+REL_Moon_Scorpio,Moon,Scorpio,위치,"Moon in Scorpio: Scorpio(Water,Fixed)의 기질로 Moon가 표현된다 → 깊이·집착·변형"
+REL_Moon_Sagittarius,Moon,Sagittarius,위치,"Moon in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Moon가 표현된다 → 탐험·철학·낙관"
+REL_Moon_Capricorn,Moon,Capricorn,위치,"Moon in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Moon가 표현된다 → 책임·성취·현실"
+REL_Moon_Aquarius,Moon,Aquarius,위치,"Moon in Aquarius: Aquarius(Air,Fixed)의 기질로 Moon가 표현된다 → 혁신·이상·인도주의"
+REL_Moon_Pisces,Moon,Pisces,위치,"Moon in Pisces: Pisces(Water,Mutable)의 기질로 Moon가 표현된다 → 연민·창조·영감"
+REL_Mercury_Aries,Mercury,Aries,위치,"Mercury in Aries: Aries(Fire,Cardinal)의 기질로 Mercury가 표현된다 → 도전·선도·열정"
+REL_Mercury_Taurus,Mercury,Taurus,위치,"Mercury in Taurus: Taurus(Earth,Fixed)의 기질로 Mercury가 표현된다 → 안정·소유·인내"
+REL_Mercury_Gemini,Mercury,Gemini,위치,"Mercury in Gemini: Gemini(Air,Mutable)의 기질로 Mercury가 표현된다 → 소통·호기심·지성"
+REL_Mercury_Cancer,Mercury,Cancer,위치,"Mercury in Cancer: Cancer(Water,Cardinal)의 기질로 Mercury가 표현된다 → 보호·감정·가정"
+REL_Mercury_Leo,Mercury,Leo,위치,"Mercury in Leo: Leo(Fire,Fixed)의 기질로 Mercury가 표현된다 → 표현·창의·리더십"
+REL_Mercury_Virgo,Mercury,Virgo,위치,"Mercury in Virgo: Virgo(Earth,Mutable)의 기질로 Mercury가 표현된다 → 분석·실용·봉사"
+REL_Mercury_Libra,Mercury,Libra,위치,"Mercury in Libra: Libra(Air,Cardinal)의 기질로 Mercury가 표현된다 → 조화·관계·균형"
+REL_Mercury_Scorpio,Mercury,Scorpio,위치,"Mercury in Scorpio: Scorpio(Water,Fixed)의 기질로 Mercury가 표현된다 → 깊이·집착·변형"
+REL_Mercury_Sagittarius,Mercury,Sagittarius,위치,"Mercury in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Mercury가 표현된다 → 탐험·철학·낙관"
+REL_Mercury_Capricorn,Mercury,Capricorn,위치,"Mercury in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Mercury가 표현된다 → 책임·성취·현실"
+REL_Mercury_Aquarius,Mercury,Aquarius,위치,"Mercury in Aquarius: Aquarius(Air,Fixed)의 기질로 Mercury가 표현된다 → 혁신·이상·인도주의"
+REL_Mercury_Pisces,Mercury,Pisces,위치,"Mercury in Pisces: Pisces(Water,Mutable)의 기질로 Mercury가 표현된다 → 연민·창조·영감"
+REL_Venus_Aries,Venus,Aries,위치,"Venus in Aries: Aries(Fire,Cardinal)의 기질로 Venus가 표현된다 → 도전·선도·열정"
+REL_Venus_Taurus,Venus,Taurus,위치,"Venus in Taurus: Taurus(Earth,Fixed)의 기질로 Venus가 표현된다 → 안정·소유·인내"
+REL_Venus_Gemini,Venus,Gemini,위치,"Venus in Gemini: Gemini(Air,Mutable)의 기질로 Venus가 표현된다 → 소통·호기심·지성"
+REL_Venus_Cancer,Venus,Cancer,위치,"Venus in Cancer: Cancer(Water,Cardinal)의 기질로 Venus가 표현된다 → 보호·감정·가정"
+REL_Venus_Leo,Venus,Leo,위치,"Venus in Leo: Leo(Fire,Fixed)의 기질로 Venus가 표현된다 → 표현·창의·리더십"
+REL_Venus_Virgo,Venus,Virgo,위치,"Venus in Virgo: Virgo(Earth,Mutable)의 기질로 Venus가 표현된다 → 분석·실용·봉사"
+REL_Venus_Libra,Venus,Libra,위치,"Venus in Libra: Libra(Air,Cardinal)의 기질로 Venus가 표현된다 → 조화·관계·균형"
+REL_Venus_Scorpio,Venus,Scorpio,위치,"Venus in Scorpio: Scorpio(Water,Fixed)의 기질로 Venus가 표현된다 → 깊이·집착·변형"
+REL_Venus_Sagittarius,Venus,Sagittarius,위치,"Venus in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Venus가 표현된다 → 탐험·철학·낙관"
+REL_Venus_Capricorn,Venus,Capricorn,위치,"Venus in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Venus가 표현된다 → 책임·성취·현실"
+REL_Venus_Aquarius,Venus,Aquarius,위치,"Venus in Aquarius: Aquarius(Air,Fixed)의 기질로 Venus가 표현된다 → 혁신·이상·인도주의"
+REL_Venus_Pisces,Venus,Pisces,위치,"Venus in Pisces: Pisces(Water,Mutable)의 기질로 Venus가 표현된다 → 연민·창조·영감"
+REL_Mars_Aries,Mars,Aries,위치,"Mars in Aries: Aries(Fire,Cardinal)의 기질로 Mars가 표현된다 → 도전·선도·열정"
+REL_Mars_Taurus,Mars,Taurus,위치,"Mars in Taurus: Taurus(Earth,Fixed)의 기질로 Mars가 표현된다 → 안정·소유·인내"
+REL_Mars_Gemini,Mars,Gemini,위치,"Mars in Gemini: Gemini(Air,Mutable)의 기질로 Mars가 표현된다 → 소통·호기심·지성"
+REL_Mars_Cancer,Mars,Cancer,위치,"Mars in Cancer: Cancer(Water,Cardinal)의 기질로 Mars가 표현된다 → 보호·감정·가정"
+REL_Mars_Leo,Mars,Leo,위치,"Mars in Leo: Leo(Fire,Fixed)의 기질로 Mars가 표현된다 → 표현·창의·리더십"
+REL_Mars_Virgo,Mars,Virgo,위치,"Mars in Virgo: Virgo(Earth,Mutable)의 기질로 Mars가 표현된다 → 분석·실용·봉사"
+REL_Mars_Libra,Mars,Libra,위치,"Mars in Libra: Libra(Air,Cardinal)의 기질로 Mars가 표현된다 → 조화·관계·균형"
+REL_Mars_Scorpio,Mars,Scorpio,위치,"Mars in Scorpio: Scorpio(Water,Fixed)의 기질로 Mars가 표현된다 → 깊이·집착·변형"
+REL_Mars_Sagittarius,Mars,Sagittarius,위치,"Mars in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Mars가 표현된다 → 탐험·철학·낙관"
+REL_Mars_Capricorn,Mars,Capricorn,위치,"Mars in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Mars가 표현된다 → 책임·성취·현실"
+REL_Mars_Aquarius,Mars,Aquarius,위치,"Mars in Aquarius: Aquarius(Air,Fixed)의 기질로 Mars가 표현된다 → 혁신·이상·인도주의"
+REL_Mars_Pisces,Mars,Pisces,위치,"Mars in Pisces: Pisces(Water,Mutable)의 기질로 Mars가 표현된다 → 연민·창조·영감"
+REL_Jupiter_Aries,Jupiter,Aries,위치,"Jupiter in Aries: Aries(Fire,Cardinal)의 기질로 Jupiter가 표현된다 → 도전·선도·열정"
+REL_Jupiter_Taurus,Jupiter,Taurus,위치,"Jupiter in Taurus: Taurus(Earth,Fixed)의 기질로 Jupiter가 표현된다 → 안정·소유·인내"
+REL_Jupiter_Gemini,Jupiter,Gemini,위치,"Jupiter in Gemini: Gemini(Air,Mutable)의 기질로 Jupiter가 표현된다 → 소통·호기심·지성"
+REL_Jupiter_Cancer,Jupiter,Cancer,위치,"Jupiter in Cancer: Cancer(Water,Cardinal)의 기질로 Jupiter가 표현된다 → 보호·감정·가정"
+REL_Jupiter_Leo,Jupiter,Leo,위치,"Jupiter in Leo: Leo(Fire,Fixed)의 기질로 Jupiter가 표현된다 → 표현·창의·리더십"
+REL_Jupiter_Virgo,Jupiter,Virgo,위치,"Jupiter in Virgo: Virgo(Earth,Mutable)의 기질로 Jupiter가 표현된다 → 분석·실용·봉사"
+REL_Jupiter_Libra,Jupiter,Libra,위치,"Jupiter in Libra: Libra(Air,Cardinal)의 기질로 Jupiter가 표현된다 → 조화·관계·균형"
+REL_Jupiter_Scorpio,Jupiter,Scorpio,위치,"Jupiter in Scorpio: Scorpio(Water,Fixed)의 기질로 Jupiter가 표현된다 → 깊이·집착·변형"
+REL_Jupiter_Sagittarius,Jupiter,Sagittarius,위치,"Jupiter in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Jupiter가 표현된다 → 탐험·철학·낙관"
+REL_Jupiter_Capricorn,Jupiter,Capricorn,위치,"Jupiter in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Jupiter가 표현된다 → 책임·성취·현실"
+REL_Jupiter_Aquarius,Jupiter,Aquarius,위치,"Jupiter in Aquarius: Aquarius(Air,Fixed)의 기질로 Jupiter가 표현된다 → 혁신·이상·인도주의"
+REL_Jupiter_Pisces,Jupiter,Pisces,위치,"Jupiter in Pisces: Pisces(Water,Mutable)의 기질로 Jupiter가 표현된다 → 연민·창조·영감"
+REL_Saturn_Aries,Saturn,Aries,위치,"Saturn in Aries: Aries(Fire,Cardinal)의 기질로 Saturn가 표현된다 → 도전·선도·열정"
+REL_Saturn_Taurus,Saturn,Taurus,위치,"Saturn in Taurus: Taurus(Earth,Fixed)의 기질로 Saturn가 표현된다 → 안정·소유·인내"
+REL_Saturn_Gemini,Saturn,Gemini,위치,"Saturn in Gemini: Gemini(Air,Mutable)의 기질로 Saturn가 표현된다 → 소통·호기심·지성"
+REL_Saturn_Cancer,Saturn,Cancer,위치,"Saturn in Cancer: Cancer(Water,Cardinal)의 기질로 Saturn가 표현된다 → 보호·감정·가정"
+REL_Saturn_Leo,Saturn,Leo,위치,"Saturn in Leo: Leo(Fire,Fixed)의 기질로 Saturn가 표현된다 → 표현·창의·리더십"
+REL_Saturn_Virgo,Saturn,Virgo,위치,"Saturn in Virgo: Virgo(Earth,Mutable)의 기질로 Saturn가 표현된다 → 분석·실용·봉사"
+REL_Saturn_Libra,Saturn,Libra,위치,"Saturn in Libra: Libra(Air,Cardinal)의 기질로 Saturn가 표현된다 → 조화·관계·균형"
+REL_Saturn_Scorpio,Saturn,Scorpio,위치,"Saturn in Scorpio: Scorpio(Water,Fixed)의 기질로 Saturn가 표현된다 → 깊이·집착·변형"
+REL_Saturn_Sagittarius,Saturn,Sagittarius,위치,"Saturn in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Saturn가 표현된다 → 탐험·철학·낙관"
+REL_Saturn_Capricorn,Saturn,Capricorn,위치,"Saturn in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Saturn가 표현된다 → 책임·성취·현실"
+REL_Saturn_Aquarius,Saturn,Aquarius,위치,"Saturn in Aquarius: Aquarius(Air,Fixed)의 기질로 Saturn가 표현된다 → 혁신·이상·인도주의"
+REL_Saturn_Pisces,Saturn,Pisces,위치,"Saturn in Pisces: Pisces(Water,Mutable)의 기질로 Saturn가 표현된다 → 연민·창조·영감"
+REL_Uranus_Aries,Uranus,Aries,위치,"Uranus in Aries: Aries(Fire,Cardinal)의 기질로 Uranus가 표현된다 → 도전·선도·열정"
+REL_Uranus_Taurus,Uranus,Taurus,위치,"Uranus in Taurus: Taurus(Earth,Fixed)의 기질로 Uranus가 표현된다 → 안정·소유·인내"
+REL_Uranus_Gemini,Uranus,Gemini,위치,"Uranus in Gemini: Gemini(Air,Mutable)의 기질로 Uranus가 표현된다 → 소통·호기심·지성"
+REL_Uranus_Cancer,Uranus,Cancer,위치,"Uranus in Cancer: Cancer(Water,Cardinal)의 기질로 Uranus가 표현된다 → 보호·감정·가정"
+REL_Uranus_Leo,Uranus,Leo,위치,"Uranus in Leo: Leo(Fire,Fixed)의 기질로 Uranus가 표현된다 → 표현·창의·리더십"
+REL_Uranus_Virgo,Uranus,Virgo,위치,"Uranus in Virgo: Virgo(Earth,Mutable)의 기질로 Uranus가 표현된다 → 분석·실용·봉사"
+REL_Uranus_Libra,Uranus,Libra,위치,"Uranus in Libra: Libra(Air,Cardinal)의 기질로 Uranus가 표현된다 → 조화·관계·균형"
+REL_Uranus_Scorpio,Uranus,Scorpio,위치,"Uranus in Scorpio: Scorpio(Water,Fixed)의 기질로 Uranus가 표현된다 → 깊이·집착·변형"
+REL_Uranus_Sagittarius,Uranus,Sagittarius,위치,"Uranus in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Uranus가 표현된다 → 탐험·철학·낙관"
+REL_Uranus_Capricorn,Uranus,Capricorn,위치,"Uranus in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Uranus가 표현된다 → 책임·성취·현실"
+REL_Uranus_Aquarius,Uranus,Aquarius,위치,"Uranus in Aquarius: Aquarius(Air,Fixed)의 기질로 Uranus가 표현된다 → 혁신·이상·인도주의"
+REL_Uranus_Pisces,Uranus,Pisces,위치,"Uranus in Pisces: Pisces(Water,Mutable)의 기질로 Uranus가 표현된다 → 연민·창조·영감"
+REL_Neptune_Aries,Neptune,Aries,위치,"Neptune in Aries: Aries(Fire,Cardinal)의 기질로 Neptune가 표현된다 → 도전·선도·열정"
+REL_Neptune_Taurus,Neptune,Taurus,위치,"Neptune in Taurus: Taurus(Earth,Fixed)의 기질로 Neptune가 표현된다 → 안정·소유·인내"
+REL_Neptune_Gemini,Neptune,Gemini,위치,"Neptune in Gemini: Gemini(Air,Mutable)의 기질로 Neptune가 표현된다 → 소통·호기심·지성"
+REL_Neptune_Cancer,Neptune,Cancer,위치,"Neptune in Cancer: Cancer(Water,Cardinal)의 기질로 Neptune가 표현된다 → 보호·감정·가정"
+REL_Neptune_Leo,Neptune,Leo,위치,"Neptune in Leo: Leo(Fire,Fixed)의 기질로 Neptune가 표현된다 → 표현·창의·리더십"
+REL_Neptune_Virgo,Neptune,Virgo,위치,"Neptune in Virgo: Virgo(Earth,Mutable)의 기질로 Neptune가 표현된다 → 분석·실용·봉사"
+REL_Neptune_Libra,Neptune,Libra,위치,"Neptune in Libra: Libra(Air,Cardinal)의 기질로 Neptune가 표현된다 → 조화·관계·균형"
+REL_Neptune_Scorpio,Neptune,Scorpio,위치,"Neptune in Scorpio: Scorpio(Water,Fixed)의 기질로 Neptune가 표현된다 → 깊이·집착·변형"
+REL_Neptune_Sagittarius,Neptune,Sagittarius,위치,"Neptune in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Neptune가 표현된다 → 탐험·철학·낙관"
+REL_Neptune_Capricorn,Neptune,Capricorn,위치,"Neptune in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Neptune가 표현된다 → 책임·성취·현실"
+REL_Neptune_Aquarius,Neptune,Aquarius,위치,"Neptune in Aquarius: Aquarius(Air,Fixed)의 기질로 Neptune가 표현된다 → 혁신·이상·인도주의"
+REL_Neptune_Pisces,Neptune,Pisces,위치,"Neptune in Pisces: Pisces(Water,Mutable)의 기질로 Neptune가 표현된다 → 연민·창조·영감"
+REL_Pluto_Aries,Pluto,Aries,위치,"Pluto in Aries: Aries(Fire,Cardinal)의 기질로 Pluto가 표현된다 → 도전·선도·열정"
+REL_Pluto_Taurus,Pluto,Taurus,위치,"Pluto in Taurus: Taurus(Earth,Fixed)의 기질로 Pluto가 표현된다 → 안정·소유·인내"
+REL_Pluto_Gemini,Pluto,Gemini,위치,"Pluto in Gemini: Gemini(Air,Mutable)의 기질로 Pluto가 표현된다 → 소통·호기심·지성"
+REL_Pluto_Cancer,Pluto,Cancer,위치,"Pluto in Cancer: Cancer(Water,Cardinal)의 기질로 Pluto가 표현된다 → 보호·감정·가정"
+REL_Pluto_Leo,Pluto,Leo,위치,"Pluto in Leo: Leo(Fire,Fixed)의 기질로 Pluto가 표현된다 → 표현·창의·리더십"
+REL_Pluto_Virgo,Pluto,Virgo,위치,"Pluto in Virgo: Virgo(Earth,Mutable)의 기질로 Pluto가 표현된다 → 분석·실용·봉사"
+REL_Pluto_Libra,Pluto,Libra,위치,"Pluto in Libra: Libra(Air,Cardinal)의 기질로 Pluto가 표현된다 → 조화·관계·균형"
+REL_Pluto_Scorpio,Pluto,Scorpio,위치,"Pluto in Scorpio: Scorpio(Water,Fixed)의 기질로 Pluto가 표현된다 → 깊이·집착·변형"
+REL_Pluto_Sagittarius,Pluto,Sagittarius,위치,"Pluto in Sagittarius: Sagittarius(Fire,Mutable)의 기질로 Pluto가 표현된다 → 탐험·철학·낙관"
+REL_Pluto_Capricorn,Pluto,Capricorn,위치,"Pluto in Capricorn: Capricorn(Earth,Cardinal)의 기질로 Pluto가 표현된다 → 책임·성취·현실"
+REL_Pluto_Aquarius,Pluto,Aquarius,위치,"Pluto in Aquarius: Aquarius(Air,Fixed)의 기질로 Pluto가 표현된다 → 혁신·이상·인도주의"
+REL_Pluto_Pisces,Pluto,Pisces,위치,"Pluto in Pisces: Pisces(Water,Mutable)의 기질로 Pluto가 표현된다 → 연민·창조·영감"
+REL_Sun_H1,Sun,H1,하우스,Sun in H1: 자아·외적태도·개성 영역에서 Sun의 특성이 드러난다
+REL_Sun_H2,Sun,H2,하우스,Sun in H2: 가치·자원·안정·경제 영역에서 Sun의 특성이 드러난다
+REL_Sun_H3,Sun,H3,하우스,Sun in H3: 의사소통·학습·형제 영역에서 Sun의 특성이 드러난다
+REL_Sun_H4,Sun,H4,하우스,Sun in H4: 가정·감정적 뿌리·내면안정 영역에서 Sun의 특성이 드러난다
+REL_Sun_H5,Sun,H5,하우스,Sun in H5: 창의·사랑·자녀·자기표현 영역에서 Sun의 특성이 드러난다
+REL_Sun_H6,Sun,H6,하우스,Sun in H6: 일상·노동·건강·봉사 영역에서 Sun의 특성이 드러난다
+REL_Sun_H7,Sun,H7,하우스,Sun in H7: 파트너십·결혼·타인과의 관계 영역에서 Sun의 특성이 드러난다
+REL_Sun_H8,Sun,H8,하우스,Sun in H8: 공유·친밀함·변형 영역에서 Sun의 특성이 드러난다
+REL_Sun_H9,Sun,H9,하우스,Sun in H9: 철학·탐험·신념체계 영역에서 Sun의 특성이 드러난다
+REL_Sun_H10,Sun,H10,하우스,Sun in H10: 명예·직업·사회적 역할 영역에서 Sun의 특성이 드러난다
+REL_Sun_H11,Sun,H11,하우스,Sun in H11: 집단·우정·이상 영역에서 Sun의 특성이 드러난다
+REL_Sun_H12,Sun,H12,하우스,Sun in H12: 무의식·영성·끝맺음 영역에서 Sun의 특성이 드러난다
+REL_Moon_H1,Moon,H1,하우스,Moon in H1: 자아·외적태도·개성 영역에서 Moon의 특성이 드러난다
+REL_Moon_H2,Moon,H2,하우스,Moon in H2: 가치·자원·안정·경제 영역에서 Moon의 특성이 드러난다
+REL_Moon_H3,Moon,H3,하우스,Moon in H3: 의사소통·학습·형제 영역에서 Moon의 특성이 드러난다
+REL_Moon_H4,Moon,H4,하우스,Moon in H4: 가정·감정적 뿌리·내면안정 영역에서 Moon의 특성이 드러난다
+REL_Moon_H5,Moon,H5,하우스,Moon in H5: 창의·사랑·자녀·자기표현 영역에서 Moon의 특성이 드러난다
+REL_Moon_H6,Moon,H6,하우스,Moon in H6: 일상·노동·건강·봉사 영역에서 Moon의 특성이 드러난다
+REL_Moon_H7,Moon,H7,하우스,Moon in H7: 파트너십·결혼·타인과의 관계 영역에서 Moon의 특성이 드러난다
+REL_Moon_H8,Moon,H8,하우스,Moon in H8: 공유·친밀함·변형 영역에서 Moon의 특성이 드러난다
+REL_Moon_H9,Moon,H9,하우스,Moon in H9: 철학·탐험·신념체계 영역에서 Moon의 특성이 드러난다
+REL_Moon_H10,Moon,H10,하우스,Moon in H10: 명예·직업·사회적 역할 영역에서 Moon의 특성이 드러난다
+REL_Moon_H11,Moon,H11,하우스,Moon in H11: 집단·우정·이상 영역에서 Moon의 특성이 드러난다
+REL_Moon_H12,Moon,H12,하우스,Moon in H12: 무의식·영성·끝맺음 영역에서 Moon의 특성이 드러난다
+REL_Mercury_H1,Mercury,H1,하우스,Mercury in H1: 자아·외적태도·개성 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H2,Mercury,H2,하우스,Mercury in H2: 가치·자원·안정·경제 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H3,Mercury,H3,하우스,Mercury in H3: 의사소통·학습·형제 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H4,Mercury,H4,하우스,Mercury in H4: 가정·감정적 뿌리·내면안정 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H5,Mercury,H5,하우스,Mercury in H5: 창의·사랑·자녀·자기표현 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H6,Mercury,H6,하우스,Mercury in H6: 일상·노동·건강·봉사 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H7,Mercury,H7,하우스,Mercury in H7: 파트너십·결혼·타인과의 관계 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H8,Mercury,H8,하우스,Mercury in H8: 공유·친밀함·변형 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H9,Mercury,H9,하우스,Mercury in H9: 철학·탐험·신념체계 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H10,Mercury,H10,하우스,Mercury in H10: 명예·직업·사회적 역할 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H11,Mercury,H11,하우스,Mercury in H11: 집단·우정·이상 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H12,Mercury,H12,하우스,Mercury in H12: 무의식·영성·끝맺음 영역에서 Mercury의 특성이 드러난다
+REL_Venus_H1,Venus,H1,하우스,Venus in H1: 자아·외적태도·개성 영역에서 Venus의 특성이 드러난다
+REL_Venus_H2,Venus,H2,하우스,Venus in H2: 가치·자원·안정·경제 영역에서 Venus의 특성이 드러난다
+REL_Venus_H3,Venus,H3,하우스,Venus in H3: 의사소통·학습·형제 영역에서 Venus의 특성이 드러난다
+REL_Venus_H4,Venus,H4,하우스,Venus in H4: 가정·감정적 뿌리·내면안정 영역에서 Venus의 특성이 드러난다
+REL_Venus_H5,Venus,H5,하우스,Venus in H5: 창의·사랑·자녀·자기표현 영역에서 Venus의 특성이 드러난다
+REL_Venus_H6,Venus,H6,하우스,Venus in H6: 일상·노동·건강·봉사 영역에서 Venus의 특성이 드러난다
+REL_Venus_H7,Venus,H7,하우스,Venus in H7: 파트너십·결혼·타인과의 관계 영역에서 Venus의 특성이 드러난다
+REL_Venus_H8,Venus,H8,하우스,Venus in H8: 공유·친밀함·변형 영역에서 Venus의 특성이 드러난다
+REL_Venus_H9,Venus,H9,하우스,Venus in H9: 철학·탐험·신념체계 영역에서 Venus의 특성이 드러난다
+REL_Venus_H10,Venus,H10,하우스,Venus in H10: 명예·직업·사회적 역할 영역에서 Venus의 특성이 드러난다
+REL_Venus_H11,Venus,H11,하우스,Venus in H11: 집단·우정·이상 영역에서 Venus의 특성이 드러난다
+REL_Venus_H12,Venus,H12,하우스,Venus in H12: 무의식·영성·끝맺음 영역에서 Venus의 특성이 드러난다
+REL_Mars_H1,Mars,H1,하우스,Mars in H1: 자아·외적태도·개성 영역에서 Mars의 특성이 드러난다
+REL_Mars_H2,Mars,H2,하우스,Mars in H2: 가치·자원·안정·경제 영역에서 Mars의 특성이 드러난다
+REL_Mars_H3,Mars,H3,하우스,Mars in H3: 의사소통·학습·형제 영역에서 Mars의 특성이 드러난다
+REL_Mars_H4,Mars,H4,하우스,Mars in H4: 가정·감정적 뿌리·내면안정 영역에서 Mars의 특성이 드러난다
+REL_Mars_H5,Mars,H5,하우스,Mars in H5: 창의·사랑·자녀·자기표현 영역에서 Mars의 특성이 드러난다
+REL_Mars_H6,Mars,H6,하우스,Mars in H6: 일상·노동·건강·봉사 영역에서 Mars의 특성이 드러난다
+REL_Mars_H7,Mars,H7,하우스,Mars in H7: 파트너십·결혼·타인과의 관계 영역에서 Mars의 특성이 드러난다
+REL_Mars_H8,Mars,H8,하우스,Mars in H8: 공유·친밀함·변형 영역에서 Mars의 특성이 드러난다
+REL_Mars_H9,Mars,H9,하우스,Mars in H9: 철학·탐험·신념체계 영역에서 Mars의 특성이 드러난다
+REL_Mars_H10,Mars,H10,하우스,Mars in H10: 명예·직업·사회적 역할 영역에서 Mars의 특성이 드러난다
+REL_Mars_H11,Mars,H11,하우스,Mars in H11: 집단·우정·이상 영역에서 Mars의 특성이 드러난다
+REL_Mars_H12,Mars,H12,하우스,Mars in H12: 무의식·영성·끝맺음 영역에서 Mars의 특성이 드러난다
+REL_Jupiter_H1,Jupiter,H1,하우스,Jupiter in H1: 자아·외적태도·개성 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H2,Jupiter,H2,하우스,Jupiter in H2: 가치·자원·안정·경제 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H3,Jupiter,H3,하우스,Jupiter in H3: 의사소통·학습·형제 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H4,Jupiter,H4,하우스,Jupiter in H4: 가정·감정적 뿌리·내면안정 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H5,Jupiter,H5,하우스,Jupiter in H5: 창의·사랑·자녀·자기표현 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H6,Jupiter,H6,하우스,Jupiter in H6: 일상·노동·건강·봉사 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H7,Jupiter,H7,하우스,Jupiter in H7: 파트너십·결혼·타인과의 관계 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H8,Jupiter,H8,하우스,Jupiter in H8: 공유·친밀함·변형 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H9,Jupiter,H9,하우스,Jupiter in H9: 철학·탐험·신념체계 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H10,Jupiter,H10,하우스,Jupiter in H10: 명예·직업·사회적 역할 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H11,Jupiter,H11,하우스,Jupiter in H11: 집단·우정·이상 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H12,Jupiter,H12,하우스,Jupiter in H12: 무의식·영성·끝맺음 영역에서 Jupiter의 특성이 드러난다
+REL_Saturn_H1,Saturn,H1,하우스,Saturn in H1: 자아·외적태도·개성 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H2,Saturn,H2,하우스,Saturn in H2: 가치·자원·안정·경제 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H3,Saturn,H3,하우스,Saturn in H3: 의사소통·학습·형제 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H4,Saturn,H4,하우스,Saturn in H4: 가정·감정적 뿌리·내면안정 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H5,Saturn,H5,하우스,Saturn in H5: 창의·사랑·자녀·자기표현 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H6,Saturn,H6,하우스,Saturn in H6: 일상·노동·건강·봉사 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H7,Saturn,H7,하우스,Saturn in H7: 파트너십·결혼·타인과의 관계 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H8,Saturn,H8,하우스,Saturn in H8: 공유·친밀함·변형 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H9,Saturn,H9,하우스,Saturn in H9: 철학·탐험·신념체계 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H10,Saturn,H10,하우스,Saturn in H10: 명예·직업·사회적 역할 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H11,Saturn,H11,하우스,Saturn in H11: 집단·우정·이상 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H12,Saturn,H12,하우스,Saturn in H12: 무의식·영성·끝맺음 영역에서 Saturn의 특성이 드러난다
+REL_Uranus_H1,Uranus,H1,하우스,Uranus in H1: 자아·외적태도·개성 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H2,Uranus,H2,하우스,Uranus in H2: 가치·자원·안정·경제 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H3,Uranus,H3,하우스,Uranus in H3: 의사소통·학습·형제 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H4,Uranus,H4,하우스,Uranus in H4: 가정·감정적 뿌리·내면안정 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H5,Uranus,H5,하우스,Uranus in H5: 창의·사랑·자녀·자기표현 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H6,Uranus,H6,하우스,Uranus in H6: 일상·노동·건강·봉사 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H7,Uranus,H7,하우스,Uranus in H7: 파트너십·결혼·타인과의 관계 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H8,Uranus,H8,하우스,Uranus in H8: 공유·친밀함·변형 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H9,Uranus,H9,하우스,Uranus in H9: 철학·탐험·신념체계 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H10,Uranus,H10,하우스,Uranus in H10: 명예·직업·사회적 역할 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H11,Uranus,H11,하우스,Uranus in H11: 집단·우정·이상 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H12,Uranus,H12,하우스,Uranus in H12: 무의식·영성·끝맺음 영역에서 Uranus의 특성이 드러난다
+REL_Neptune_H1,Neptune,H1,하우스,Neptune in H1: 자아·외적태도·개성 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H2,Neptune,H2,하우스,Neptune in H2: 가치·자원·안정·경제 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H3,Neptune,H3,하우스,Neptune in H3: 의사소통·학습·형제 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H4,Neptune,H4,하우스,Neptune in H4: 가정·감정적 뿌리·내면안정 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H5,Neptune,H5,하우스,Neptune in H5: 창의·사랑·자녀·자기표현 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H6,Neptune,H6,하우스,Neptune in H6: 일상·노동·건강·봉사 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H7,Neptune,H7,하우스,Neptune in H7: 파트너십·결혼·타인과의 관계 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H8,Neptune,H8,하우스,Neptune in H8: 공유·친밀함·변형 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H9,Neptune,H9,하우스,Neptune in H9: 철학·탐험·신념체계 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H10,Neptune,H10,하우스,Neptune in H10: 명예·직업·사회적 역할 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H11,Neptune,H11,하우스,Neptune in H11: 집단·우정·이상 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H12,Neptune,H12,하우스,Neptune in H12: 무의식·영성·끝맺음 영역에서 Neptune의 특성이 드러난다
+REL_Pluto_H1,Pluto,H1,하우스,Pluto in H1: 자아·외적태도·개성 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H2,Pluto,H2,하우스,Pluto in H2: 가치·자원·안정·경제 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H3,Pluto,H3,하우스,Pluto in H3: 의사소통·학습·형제 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H4,Pluto,H4,하우스,Pluto in H4: 가정·감정적 뿌리·내면안정 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H5,Pluto,H5,하우스,Pluto in H5: 창의·사랑·자녀·자기표현 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H6,Pluto,H6,하우스,Pluto in H6: 일상·노동·건강·봉사 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H7,Pluto,H7,하우스,Pluto in H7: 파트너십·결혼·타인과의 관계 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H8,Pluto,H8,하우스,Pluto in H8: 공유·친밀함·변형 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H9,Pluto,H9,하우스,Pluto in H9: 철학·탐험·신념체계 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H10,Pluto,H10,하우스,Pluto in H10: 명예·직업·사회적 역할 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H11,Pluto,H11,하우스,Pluto in H11: 집단·우정·이상 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H12,Pluto,H12,하우스,Pluto in H12: 무의식·영성·끝맺음 영역에서 Pluto의 특성이 드러난다
+REL_Sun_Moon_conjunction,Sun,Moon,conjunction,Sun-Moon 합 (0°): 통합·집중
+REL_Sun_Moon_sextile,Sun,Moon,sextile,Sun-Moon 육분 (60°): 기회의 조화
+REL_Sun_Moon_square,Sun,Moon,square,Sun-Moon 사각 (90°): 도전 긴장
+REL_Sun_Moon_trine,Sun,Moon,trine,Sun-Moon 삼합 (120°): 자연스러운 조화
+REL_Sun_Moon_opposition,Sun,Moon,opposition,Sun-Moon 대립 (180°): 극적 균형
+REL_Sun_Moon_quincunx,Sun,Moon,quincunx,Sun-Moon 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Moon_semi_sextile,Sun,Moon,semi_sextile,Sun-Moon 반육분 (30°): 약한 연결
+REL_Sun_Moon_sesqui_quadrate,Sun,Moon,sesqui_quadrate,Sun-Moon 세스퀴사각 (135°): 압박 조정
+REL_Sun_Moon_quintile,Sun,Moon,quintile,Sun-Moon 퀸타일 (72°): 창조적 연결
+REL_Sun_Mercury_conjunction,Sun,Mercury,conjunction,Sun-Mercury 합 (0°): 통합·집중
+REL_Sun_Mercury_sextile,Sun,Mercury,sextile,Sun-Mercury 육분 (60°): 기회의 조화
+REL_Sun_Mercury_square,Sun,Mercury,square,Sun-Mercury 사각 (90°): 도전 긴장
+REL_Sun_Mercury_trine,Sun,Mercury,trine,Sun-Mercury 삼합 (120°): 자연스러운 조화
+REL_Sun_Mercury_opposition,Sun,Mercury,opposition,Sun-Mercury 대립 (180°): 극적 균형
+REL_Sun_Mercury_quincunx,Sun,Mercury,quincunx,Sun-Mercury 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Mercury_semi_sextile,Sun,Mercury,semi_sextile,Sun-Mercury 반육분 (30°): 약한 연결
+REL_Sun_Mercury_sesqui_quadrate,Sun,Mercury,sesqui_quadrate,Sun-Mercury 세스퀴사각 (135°): 압박 조정
+REL_Sun_Mercury_quintile,Sun,Mercury,quintile,Sun-Mercury 퀸타일 (72°): 창조적 연결
+REL_Sun_Venus_conjunction,Sun,Venus,conjunction,Sun-Venus 합 (0°): 통합·집중
+REL_Sun_Venus_sextile,Sun,Venus,sextile,Sun-Venus 육분 (60°): 기회의 조화
+REL_Sun_Venus_square,Sun,Venus,square,Sun-Venus 사각 (90°): 도전 긴장
+REL_Sun_Venus_trine,Sun,Venus,trine,Sun-Venus 삼합 (120°): 자연스러운 조화
+REL_Sun_Venus_opposition,Sun,Venus,opposition,Sun-Venus 대립 (180°): 극적 균형
+REL_Sun_Venus_quincunx,Sun,Venus,quincunx,Sun-Venus 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Venus_semi_sextile,Sun,Venus,semi_sextile,Sun-Venus 반육분 (30°): 약한 연결
+REL_Sun_Venus_sesqui_quadrate,Sun,Venus,sesqui_quadrate,Sun-Venus 세스퀴사각 (135°): 압박 조정
+REL_Sun_Venus_quintile,Sun,Venus,quintile,Sun-Venus 퀸타일 (72°): 창조적 연결
+REL_Sun_Mars_conjunction,Sun,Mars,conjunction,Sun-Mars 합 (0°): 통합·집중
+REL_Sun_Mars_sextile,Sun,Mars,sextile,Sun-Mars 육분 (60°): 기회의 조화
+REL_Sun_Mars_square,Sun,Mars,square,Sun-Mars 사각 (90°): 도전 긴장
+REL_Sun_Mars_trine,Sun,Mars,trine,Sun-Mars 삼합 (120°): 자연스러운 조화
+REL_Sun_Mars_opposition,Sun,Mars,opposition,Sun-Mars 대립 (180°): 극적 균형
+REL_Sun_Mars_quincunx,Sun,Mars,quincunx,Sun-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Mars_semi_sextile,Sun,Mars,semi_sextile,Sun-Mars 반육분 (30°): 약한 연결
+REL_Sun_Mars_sesqui_quadrate,Sun,Mars,sesqui_quadrate,Sun-Mars 세스퀴사각 (135°): 압박 조정
+REL_Sun_Mars_quintile,Sun,Mars,quintile,Sun-Mars 퀸타일 (72°): 창조적 연결
+REL_Sun_Jupiter_conjunction,Sun,Jupiter,conjunction,Sun-Jupiter 합 (0°): 통합·집중
+REL_Sun_Jupiter_sextile,Sun,Jupiter,sextile,Sun-Jupiter 육분 (60°): 기회의 조화
+REL_Sun_Jupiter_square,Sun,Jupiter,square,Sun-Jupiter 사각 (90°): 도전 긴장
+REL_Sun_Jupiter_trine,Sun,Jupiter,trine,Sun-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Sun_Jupiter_opposition,Sun,Jupiter,opposition,Sun-Jupiter 대립 (180°): 극적 균형
+REL_Sun_Jupiter_quincunx,Sun,Jupiter,quincunx,Sun-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Jupiter_semi_sextile,Sun,Jupiter,semi_sextile,Sun-Jupiter 반육분 (30°): 약한 연결
+REL_Sun_Jupiter_sesqui_quadrate,Sun,Jupiter,sesqui_quadrate,Sun-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Sun_Jupiter_quintile,Sun,Jupiter,quintile,Sun-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Sun_Saturn_conjunction,Sun,Saturn,conjunction,Sun-Saturn 합 (0°): 통합·집중
+REL_Sun_Saturn_sextile,Sun,Saturn,sextile,Sun-Saturn 육분 (60°): 기회의 조화
+REL_Sun_Saturn_square,Sun,Saturn,square,Sun-Saturn 사각 (90°): 도전 긴장
+REL_Sun_Saturn_trine,Sun,Saturn,trine,Sun-Saturn 삼합 (120°): 자연스러운 조화
+REL_Sun_Saturn_opposition,Sun,Saturn,opposition,Sun-Saturn 대립 (180°): 극적 균형
+REL_Sun_Saturn_quincunx,Sun,Saturn,quincunx,Sun-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Saturn_semi_sextile,Sun,Saturn,semi_sextile,Sun-Saturn 반육분 (30°): 약한 연결
+REL_Sun_Saturn_sesqui_quadrate,Sun,Saturn,sesqui_quadrate,Sun-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Sun_Saturn_quintile,Sun,Saturn,quintile,Sun-Saturn 퀸타일 (72°): 창조적 연결
+REL_Sun_Uranus_conjunction,Sun,Uranus,conjunction,Sun-Uranus 합 (0°): 통합·집중
+REL_Sun_Uranus_sextile,Sun,Uranus,sextile,Sun-Uranus 육분 (60°): 기회의 조화
+REL_Sun_Uranus_square,Sun,Uranus,square,Sun-Uranus 사각 (90°): 도전 긴장
+REL_Sun_Uranus_trine,Sun,Uranus,trine,Sun-Uranus 삼합 (120°): 자연스러운 조화
+REL_Sun_Uranus_opposition,Sun,Uranus,opposition,Sun-Uranus 대립 (180°): 극적 균형
+REL_Sun_Uranus_quincunx,Sun,Uranus,quincunx,Sun-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Uranus_semi_sextile,Sun,Uranus,semi_sextile,Sun-Uranus 반육분 (30°): 약한 연결
+REL_Sun_Uranus_sesqui_quadrate,Sun,Uranus,sesqui_quadrate,Sun-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Sun_Uranus_quintile,Sun,Uranus,quintile,Sun-Uranus 퀸타일 (72°): 창조적 연결
+REL_Sun_Neptune_conjunction,Sun,Neptune,conjunction,Sun-Neptune 합 (0°): 통합·집중
+REL_Sun_Neptune_sextile,Sun,Neptune,sextile,Sun-Neptune 육분 (60°): 기회의 조화
+REL_Sun_Neptune_square,Sun,Neptune,square,Sun-Neptune 사각 (90°): 도전 긴장
+REL_Sun_Neptune_trine,Sun,Neptune,trine,Sun-Neptune 삼합 (120°): 자연스러운 조화
+REL_Sun_Neptune_opposition,Sun,Neptune,opposition,Sun-Neptune 대립 (180°): 극적 균형
+REL_Sun_Neptune_quincunx,Sun,Neptune,quincunx,Sun-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Neptune_semi_sextile,Sun,Neptune,semi_sextile,Sun-Neptune 반육분 (30°): 약한 연결
+REL_Sun_Neptune_sesqui_quadrate,Sun,Neptune,sesqui_quadrate,Sun-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Sun_Neptune_quintile,Sun,Neptune,quintile,Sun-Neptune 퀸타일 (72°): 창조적 연결
+REL_Sun_Pluto_conjunction,Sun,Pluto,conjunction,Sun-Pluto 합 (0°): 통합·집중
+REL_Sun_Pluto_sextile,Sun,Pluto,sextile,Sun-Pluto 육분 (60°): 기회의 조화
+REL_Sun_Pluto_square,Sun,Pluto,square,Sun-Pluto 사각 (90°): 도전 긴장
+REL_Sun_Pluto_trine,Sun,Pluto,trine,Sun-Pluto 삼합 (120°): 자연스러운 조화
+REL_Sun_Pluto_opposition,Sun,Pluto,opposition,Sun-Pluto 대립 (180°): 극적 균형
+REL_Sun_Pluto_quincunx,Sun,Pluto,quincunx,Sun-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Pluto_semi_sextile,Sun,Pluto,semi_sextile,Sun-Pluto 반육분 (30°): 약한 연결
+REL_Sun_Pluto_sesqui_quadrate,Sun,Pluto,sesqui_quadrate,Sun-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Sun_Pluto_quintile,Sun,Pluto,quintile,Sun-Pluto 퀸타일 (72°): 창조적 연결
+REL_Moon_Mercury_conjunction,Moon,Mercury,conjunction,Moon-Mercury 합 (0°): 통합·집중
+REL_Moon_Mercury_sextile,Moon,Mercury,sextile,Moon-Mercury 육분 (60°): 기회의 조화
+REL_Moon_Mercury_square,Moon,Mercury,square,Moon-Mercury 사각 (90°): 도전 긴장
+REL_Moon_Mercury_trine,Moon,Mercury,trine,Moon-Mercury 삼합 (120°): 자연스러운 조화
+REL_Moon_Mercury_opposition,Moon,Mercury,opposition,Moon-Mercury 대립 (180°): 극적 균형
+REL_Moon_Mercury_quincunx,Moon,Mercury,quincunx,Moon-Mercury 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Mercury_semi_sextile,Moon,Mercury,semi_sextile,Moon-Mercury 반육분 (30°): 약한 연결
+REL_Moon_Mercury_sesqui_quadrate,Moon,Mercury,sesqui_quadrate,Moon-Mercury 세스퀴사각 (135°): 압박 조정
+REL_Moon_Mercury_quintile,Moon,Mercury,quintile,Moon-Mercury 퀸타일 (72°): 창조적 연결
+REL_Moon_Venus_conjunction,Moon,Venus,conjunction,Moon-Venus 합 (0°): 통합·집중
+REL_Moon_Venus_sextile,Moon,Venus,sextile,Moon-Venus 육분 (60°): 기회의 조화
+REL_Moon_Venus_square,Moon,Venus,square,Moon-Venus 사각 (90°): 도전 긴장
+REL_Moon_Venus_trine,Moon,Venus,trine,Moon-Venus 삼합 (120°): 자연스러운 조화
+REL_Moon_Venus_opposition,Moon,Venus,opposition,Moon-Venus 대립 (180°): 극적 균형
+REL_Moon_Venus_quincunx,Moon,Venus,quincunx,Moon-Venus 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Venus_semi_sextile,Moon,Venus,semi_sextile,Moon-Venus 반육분 (30°): 약한 연결
+REL_Moon_Venus_sesqui_quadrate,Moon,Venus,sesqui_quadrate,Moon-Venus 세스퀴사각 (135°): 압박 조정
+REL_Moon_Venus_quintile,Moon,Venus,quintile,Moon-Venus 퀸타일 (72°): 창조적 연결
+REL_Moon_Mars_conjunction,Moon,Mars,conjunction,Moon-Mars 합 (0°): 통합·집중
+REL_Moon_Mars_sextile,Moon,Mars,sextile,Moon-Mars 육분 (60°): 기회의 조화
+REL_Moon_Mars_square,Moon,Mars,square,Moon-Mars 사각 (90°): 도전 긴장
+REL_Moon_Mars_trine,Moon,Mars,trine,Moon-Mars 삼합 (120°): 자연스러운 조화
+REL_Moon_Mars_opposition,Moon,Mars,opposition,Moon-Mars 대립 (180°): 극적 균형
+REL_Moon_Mars_quincunx,Moon,Mars,quincunx,Moon-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Mars_semi_sextile,Moon,Mars,semi_sextile,Moon-Mars 반육분 (30°): 약한 연결
+REL_Moon_Mars_sesqui_quadrate,Moon,Mars,sesqui_quadrate,Moon-Mars 세스퀴사각 (135°): 압박 조정
+REL_Moon_Mars_quintile,Moon,Mars,quintile,Moon-Mars 퀸타일 (72°): 창조적 연결
+REL_Moon_Jupiter_conjunction,Moon,Jupiter,conjunction,Moon-Jupiter 합 (0°): 통합·집중
+REL_Moon_Jupiter_sextile,Moon,Jupiter,sextile,Moon-Jupiter 육분 (60°): 기회의 조화
+REL_Moon_Jupiter_square,Moon,Jupiter,square,Moon-Jupiter 사각 (90°): 도전 긴장
+REL_Moon_Jupiter_trine,Moon,Jupiter,trine,Moon-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Moon_Jupiter_opposition,Moon,Jupiter,opposition,Moon-Jupiter 대립 (180°): 극적 균형
+REL_Moon_Jupiter_quincunx,Moon,Jupiter,quincunx,Moon-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Jupiter_semi_sextile,Moon,Jupiter,semi_sextile,Moon-Jupiter 반육분 (30°): 약한 연결
+REL_Moon_Jupiter_sesqui_quadrate,Moon,Jupiter,sesqui_quadrate,Moon-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Moon_Jupiter_quintile,Moon,Jupiter,quintile,Moon-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Moon_Saturn_conjunction,Moon,Saturn,conjunction,Moon-Saturn 합 (0°): 통합·집중
+REL_Moon_Saturn_sextile,Moon,Saturn,sextile,Moon-Saturn 육분 (60°): 기회의 조화
+REL_Moon_Saturn_square,Moon,Saturn,square,Moon-Saturn 사각 (90°): 도전 긴장
+REL_Moon_Saturn_trine,Moon,Saturn,trine,Moon-Saturn 삼합 (120°): 자연스러운 조화
+REL_Moon_Saturn_opposition,Moon,Saturn,opposition,Moon-Saturn 대립 (180°): 극적 균형
+REL_Moon_Saturn_quincunx,Moon,Saturn,quincunx,Moon-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Saturn_semi_sextile,Moon,Saturn,semi_sextile,Moon-Saturn 반육분 (30°): 약한 연결
+REL_Moon_Saturn_sesqui_quadrate,Moon,Saturn,sesqui_quadrate,Moon-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Moon_Saturn_quintile,Moon,Saturn,quintile,Moon-Saturn 퀸타일 (72°): 창조적 연결
+REL_Moon_Uranus_conjunction,Moon,Uranus,conjunction,Moon-Uranus 합 (0°): 통합·집중
+REL_Moon_Uranus_sextile,Moon,Uranus,sextile,Moon-Uranus 육분 (60°): 기회의 조화
+REL_Moon_Uranus_square,Moon,Uranus,square,Moon-Uranus 사각 (90°): 도전 긴장
+REL_Moon_Uranus_trine,Moon,Uranus,trine,Moon-Uranus 삼합 (120°): 자연스러운 조화
+REL_Moon_Uranus_opposition,Moon,Uranus,opposition,Moon-Uranus 대립 (180°): 극적 균형
+REL_Moon_Uranus_quincunx,Moon,Uranus,quincunx,Moon-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Uranus_semi_sextile,Moon,Uranus,semi_sextile,Moon-Uranus 반육분 (30°): 약한 연결
+REL_Moon_Uranus_sesqui_quadrate,Moon,Uranus,sesqui_quadrate,Moon-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Moon_Uranus_quintile,Moon,Uranus,quintile,Moon-Uranus 퀸타일 (72°): 창조적 연결
+REL_Moon_Neptune_conjunction,Moon,Neptune,conjunction,Moon-Neptune 합 (0°): 통합·집중
+REL_Moon_Neptune_sextile,Moon,Neptune,sextile,Moon-Neptune 육분 (60°): 기회의 조화
+REL_Moon_Neptune_square,Moon,Neptune,square,Moon-Neptune 사각 (90°): 도전 긴장
+REL_Moon_Neptune_trine,Moon,Neptune,trine,Moon-Neptune 삼합 (120°): 자연스러운 조화
+REL_Moon_Neptune_opposition,Moon,Neptune,opposition,Moon-Neptune 대립 (180°): 극적 균형
+REL_Moon_Neptune_quincunx,Moon,Neptune,quincunx,Moon-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Neptune_semi_sextile,Moon,Neptune,semi_sextile,Moon-Neptune 반육분 (30°): 약한 연결
+REL_Moon_Neptune_sesqui_quadrate,Moon,Neptune,sesqui_quadrate,Moon-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Moon_Neptune_quintile,Moon,Neptune,quintile,Moon-Neptune 퀸타일 (72°): 창조적 연결
+REL_Moon_Pluto_conjunction,Moon,Pluto,conjunction,Moon-Pluto 합 (0°): 통합·집중
+REL_Moon_Pluto_sextile,Moon,Pluto,sextile,Moon-Pluto 육분 (60°): 기회의 조화
+REL_Moon_Pluto_square,Moon,Pluto,square,Moon-Pluto 사각 (90°): 도전 긴장
+REL_Moon_Pluto_trine,Moon,Pluto,trine,Moon-Pluto 삼합 (120°): 자연스러운 조화
+REL_Moon_Pluto_opposition,Moon,Pluto,opposition,Moon-Pluto 대립 (180°): 극적 균형
+REL_Moon_Pluto_quincunx,Moon,Pluto,quincunx,Moon-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Pluto_semi_sextile,Moon,Pluto,semi_sextile,Moon-Pluto 반육분 (30°): 약한 연결
+REL_Moon_Pluto_sesqui_quadrate,Moon,Pluto,sesqui_quadrate,Moon-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Moon_Pluto_quintile,Moon,Pluto,quintile,Moon-Pluto 퀸타일 (72°): 창조적 연결
+REL_Mercury_Venus_conjunction,Mercury,Venus,conjunction,Mercury-Venus 합 (0°): 통합·집중
+REL_Mercury_Venus_sextile,Mercury,Venus,sextile,Mercury-Venus 육분 (60°): 기회의 조화
+REL_Mercury_Venus_square,Mercury,Venus,square,Mercury-Venus 사각 (90°): 도전 긴장
+REL_Mercury_Venus_trine,Mercury,Venus,trine,Mercury-Venus 삼합 (120°): 자연스러운 조화
+REL_Mercury_Venus_opposition,Mercury,Venus,opposition,Mercury-Venus 대립 (180°): 극적 균형
+REL_Mercury_Venus_quincunx,Mercury,Venus,quincunx,Mercury-Venus 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Venus_semi_sextile,Mercury,Venus,semi_sextile,Mercury-Venus 반육분 (30°): 약한 연결
+REL_Mercury_Venus_sesqui_quadrate,Mercury,Venus,sesqui_quadrate,Mercury-Venus 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Venus_quintile,Mercury,Venus,quintile,Mercury-Venus 퀸타일 (72°): 창조적 연결
+REL_Mercury_Mars_conjunction,Mercury,Mars,conjunction,Mercury-Mars 합 (0°): 통합·집중
+REL_Mercury_Mars_sextile,Mercury,Mars,sextile,Mercury-Mars 육분 (60°): 기회의 조화
+REL_Mercury_Mars_square,Mercury,Mars,square,Mercury-Mars 사각 (90°): 도전 긴장
+REL_Mercury_Mars_trine,Mercury,Mars,trine,Mercury-Mars 삼합 (120°): 자연스러운 조화
+REL_Mercury_Mars_opposition,Mercury,Mars,opposition,Mercury-Mars 대립 (180°): 극적 균형
+REL_Mercury_Mars_quincunx,Mercury,Mars,quincunx,Mercury-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Mars_semi_sextile,Mercury,Mars,semi_sextile,Mercury-Mars 반육분 (30°): 약한 연결
+REL_Mercury_Mars_sesqui_quadrate,Mercury,Mars,sesqui_quadrate,Mercury-Mars 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Mars_quintile,Mercury,Mars,quintile,Mercury-Mars 퀸타일 (72°): 창조적 연결
+REL_Mercury_Jupiter_conjunction,Mercury,Jupiter,conjunction,Mercury-Jupiter 합 (0°): 통합·집중
+REL_Mercury_Jupiter_sextile,Mercury,Jupiter,sextile,Mercury-Jupiter 육분 (60°): 기회의 조화
+REL_Mercury_Jupiter_square,Mercury,Jupiter,square,Mercury-Jupiter 사각 (90°): 도전 긴장
+REL_Mercury_Jupiter_trine,Mercury,Jupiter,trine,Mercury-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Mercury_Jupiter_opposition,Mercury,Jupiter,opposition,Mercury-Jupiter 대립 (180°): 극적 균형
+REL_Mercury_Jupiter_quincunx,Mercury,Jupiter,quincunx,Mercury-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Jupiter_semi_sextile,Mercury,Jupiter,semi_sextile,Mercury-Jupiter 반육분 (30°): 약한 연결
+REL_Mercury_Jupiter_sesqui_quadrate,Mercury,Jupiter,sesqui_quadrate,Mercury-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Jupiter_quintile,Mercury,Jupiter,quintile,Mercury-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Mercury_Saturn_conjunction,Mercury,Saturn,conjunction,Mercury-Saturn 합 (0°): 통합·집중
+REL_Mercury_Saturn_sextile,Mercury,Saturn,sextile,Mercury-Saturn 육분 (60°): 기회의 조화
+REL_Mercury_Saturn_square,Mercury,Saturn,square,Mercury-Saturn 사각 (90°): 도전 긴장
+REL_Mercury_Saturn_trine,Mercury,Saturn,trine,Mercury-Saturn 삼합 (120°): 자연스러운 조화
+REL_Mercury_Saturn_opposition,Mercury,Saturn,opposition,Mercury-Saturn 대립 (180°): 극적 균형
+REL_Mercury_Saturn_quincunx,Mercury,Saturn,quincunx,Mercury-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Saturn_semi_sextile,Mercury,Saturn,semi_sextile,Mercury-Saturn 반육분 (30°): 약한 연결
+REL_Mercury_Saturn_sesqui_quadrate,Mercury,Saturn,sesqui_quadrate,Mercury-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Saturn_quintile,Mercury,Saturn,quintile,Mercury-Saturn 퀸타일 (72°): 창조적 연결
+REL_Mercury_Uranus_conjunction,Mercury,Uranus,conjunction,Mercury-Uranus 합 (0°): 통합·집중
+REL_Mercury_Uranus_sextile,Mercury,Uranus,sextile,Mercury-Uranus 육분 (60°): 기회의 조화
+REL_Mercury_Uranus_square,Mercury,Uranus,square,Mercury-Uranus 사각 (90°): 도전 긴장
+REL_Mercury_Uranus_trine,Mercury,Uranus,trine,Mercury-Uranus 삼합 (120°): 자연스러운 조화
+REL_Mercury_Uranus_opposition,Mercury,Uranus,opposition,Mercury-Uranus 대립 (180°): 극적 균형
+REL_Mercury_Uranus_quincunx,Mercury,Uranus,quincunx,Mercury-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Uranus_semi_sextile,Mercury,Uranus,semi_sextile,Mercury-Uranus 반육분 (30°): 약한 연결
+REL_Mercury_Uranus_sesqui_quadrate,Mercury,Uranus,sesqui_quadrate,Mercury-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Uranus_quintile,Mercury,Uranus,quintile,Mercury-Uranus 퀸타일 (72°): 창조적 연결
+REL_Mercury_Neptune_conjunction,Mercury,Neptune,conjunction,Mercury-Neptune 합 (0°): 통합·집중
+REL_Mercury_Neptune_sextile,Mercury,Neptune,sextile,Mercury-Neptune 육분 (60°): 기회의 조화
+REL_Mercury_Neptune_square,Mercury,Neptune,square,Mercury-Neptune 사각 (90°): 도전 긴장
+REL_Mercury_Neptune_trine,Mercury,Neptune,trine,Mercury-Neptune 삼합 (120°): 자연스러운 조화
+REL_Mercury_Neptune_opposition,Mercury,Neptune,opposition,Mercury-Neptune 대립 (180°): 극적 균형
+REL_Mercury_Neptune_quincunx,Mercury,Neptune,quincunx,Mercury-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Neptune_semi_sextile,Mercury,Neptune,semi_sextile,Mercury-Neptune 반육분 (30°): 약한 연결
+REL_Mercury_Neptune_sesqui_quadrate,Mercury,Neptune,sesqui_quadrate,Mercury-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Neptune_quintile,Mercury,Neptune,quintile,Mercury-Neptune 퀸타일 (72°): 창조적 연결
+REL_Mercury_Pluto_conjunction,Mercury,Pluto,conjunction,Mercury-Pluto 합 (0°): 통합·집중
+REL_Mercury_Pluto_sextile,Mercury,Pluto,sextile,Mercury-Pluto 육분 (60°): 기회의 조화
+REL_Mercury_Pluto_square,Mercury,Pluto,square,Mercury-Pluto 사각 (90°): 도전 긴장
+REL_Mercury_Pluto_trine,Mercury,Pluto,trine,Mercury-Pluto 삼합 (120°): 자연스러운 조화
+REL_Mercury_Pluto_opposition,Mercury,Pluto,opposition,Mercury-Pluto 대립 (180°): 극적 균형
+REL_Mercury_Pluto_quincunx,Mercury,Pluto,quincunx,Mercury-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Pluto_semi_sextile,Mercury,Pluto,semi_sextile,Mercury-Pluto 반육분 (30°): 약한 연결
+REL_Mercury_Pluto_sesqui_quadrate,Mercury,Pluto,sesqui_quadrate,Mercury-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Pluto_quintile,Mercury,Pluto,quintile,Mercury-Pluto 퀸타일 (72°): 창조적 연결
+REL_Venus_Mars_conjunction,Venus,Mars,conjunction,Venus-Mars 합 (0°): 통합·집중
+REL_Venus_Mars_sextile,Venus,Mars,sextile,Venus-Mars 육분 (60°): 기회의 조화
+REL_Venus_Mars_square,Venus,Mars,square,Venus-Mars 사각 (90°): 도전 긴장
+REL_Venus_Mars_trine,Venus,Mars,trine,Venus-Mars 삼합 (120°): 자연스러운 조화
+REL_Venus_Mars_opposition,Venus,Mars,opposition,Venus-Mars 대립 (180°): 극적 균형
+REL_Venus_Mars_quincunx,Venus,Mars,quincunx,Venus-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Mars_semi_sextile,Venus,Mars,semi_sextile,Venus-Mars 반육분 (30°): 약한 연결
+REL_Venus_Mars_sesqui_quadrate,Venus,Mars,sesqui_quadrate,Venus-Mars 세스퀴사각 (135°): 압박 조정
+REL_Venus_Mars_quintile,Venus,Mars,quintile,Venus-Mars 퀸타일 (72°): 창조적 연결
+REL_Venus_Jupiter_conjunction,Venus,Jupiter,conjunction,Venus-Jupiter 합 (0°): 통합·집중
+REL_Venus_Jupiter_sextile,Venus,Jupiter,sextile,Venus-Jupiter 육분 (60°): 기회의 조화
+REL_Venus_Jupiter_square,Venus,Jupiter,square,Venus-Jupiter 사각 (90°): 도전 긴장
+REL_Venus_Jupiter_trine,Venus,Jupiter,trine,Venus-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Venus_Jupiter_opposition,Venus,Jupiter,opposition,Venus-Jupiter 대립 (180°): 극적 균형
+REL_Venus_Jupiter_quincunx,Venus,Jupiter,quincunx,Venus-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Jupiter_semi_sextile,Venus,Jupiter,semi_sextile,Venus-Jupiter 반육분 (30°): 약한 연결
+REL_Venus_Jupiter_sesqui_quadrate,Venus,Jupiter,sesqui_quadrate,Venus-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Venus_Jupiter_quintile,Venus,Jupiter,quintile,Venus-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Venus_Saturn_conjunction,Venus,Saturn,conjunction,Venus-Saturn 합 (0°): 통합·집중
+REL_Venus_Saturn_sextile,Venus,Saturn,sextile,Venus-Saturn 육분 (60°): 기회의 조화
+REL_Venus_Saturn_square,Venus,Saturn,square,Venus-Saturn 사각 (90°): 도전 긴장
+REL_Venus_Saturn_trine,Venus,Saturn,trine,Venus-Saturn 삼합 (120°): 자연스러운 조화
+REL_Venus_Saturn_opposition,Venus,Saturn,opposition,Venus-Saturn 대립 (180°): 극적 균형
+REL_Venus_Saturn_quincunx,Venus,Saturn,quincunx,Venus-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Saturn_semi_sextile,Venus,Saturn,semi_sextile,Venus-Saturn 반육분 (30°): 약한 연결
+REL_Venus_Saturn_sesqui_quadrate,Venus,Saturn,sesqui_quadrate,Venus-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Venus_Saturn_quintile,Venus,Saturn,quintile,Venus-Saturn 퀸타일 (72°): 창조적 연결
+REL_Venus_Uranus_conjunction,Venus,Uranus,conjunction,Venus-Uranus 합 (0°): 통합·집중
+REL_Venus_Uranus_sextile,Venus,Uranus,sextile,Venus-Uranus 육분 (60°): 기회의 조화
+REL_Venus_Uranus_square,Venus,Uranus,square,Venus-Uranus 사각 (90°): 도전 긴장
+REL_Venus_Uranus_trine,Venus,Uranus,trine,Venus-Uranus 삼합 (120°): 자연스러운 조화
+REL_Venus_Uranus_opposition,Venus,Uranus,opposition,Venus-Uranus 대립 (180°): 극적 균형
+REL_Venus_Uranus_quincunx,Venus,Uranus,quincunx,Venus-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Uranus_semi_sextile,Venus,Uranus,semi_sextile,Venus-Uranus 반육분 (30°): 약한 연결
+REL_Venus_Uranus_sesqui_quadrate,Venus,Uranus,sesqui_quadrate,Venus-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Venus_Uranus_quintile,Venus,Uranus,quintile,Venus-Uranus 퀸타일 (72°): 창조적 연결
+REL_Venus_Neptune_conjunction,Venus,Neptune,conjunction,Venus-Neptune 합 (0°): 통합·집중
+REL_Venus_Neptune_sextile,Venus,Neptune,sextile,Venus-Neptune 육분 (60°): 기회의 조화
+REL_Venus_Neptune_square,Venus,Neptune,square,Venus-Neptune 사각 (90°): 도전 긴장
+REL_Venus_Neptune_trine,Venus,Neptune,trine,Venus-Neptune 삼합 (120°): 자연스러운 조화
+REL_Venus_Neptune_opposition,Venus,Neptune,opposition,Venus-Neptune 대립 (180°): 극적 균형
+REL_Venus_Neptune_quincunx,Venus,Neptune,quincunx,Venus-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Neptune_semi_sextile,Venus,Neptune,semi_sextile,Venus-Neptune 반육분 (30°): 약한 연결
+REL_Venus_Neptune_sesqui_quadrate,Venus,Neptune,sesqui_quadrate,Venus-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Venus_Neptune_quintile,Venus,Neptune,quintile,Venus-Neptune 퀸타일 (72°): 창조적 연결
+REL_Venus_Pluto_conjunction,Venus,Pluto,conjunction,Venus-Pluto 합 (0°): 통합·집중
+REL_Venus_Pluto_sextile,Venus,Pluto,sextile,Venus-Pluto 육분 (60°): 기회의 조화
+REL_Venus_Pluto_square,Venus,Pluto,square,Venus-Pluto 사각 (90°): 도전 긴장
+REL_Venus_Pluto_trine,Venus,Pluto,trine,Venus-Pluto 삼합 (120°): 자연스러운 조화
+REL_Venus_Pluto_opposition,Venus,Pluto,opposition,Venus-Pluto 대립 (180°): 극적 균형
+REL_Venus_Pluto_quincunx,Venus,Pluto,quincunx,Venus-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Pluto_semi_sextile,Venus,Pluto,semi_sextile,Venus-Pluto 반육분 (30°): 약한 연결
+REL_Venus_Pluto_sesqui_quadrate,Venus,Pluto,sesqui_quadrate,Venus-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Venus_Pluto_quintile,Venus,Pluto,quintile,Venus-Pluto 퀸타일 (72°): 창조적 연결
+REL_Mars_Jupiter_conjunction,Mars,Jupiter,conjunction,Mars-Jupiter 합 (0°): 통합·집중
+REL_Mars_Jupiter_sextile,Mars,Jupiter,sextile,Mars-Jupiter 육분 (60°): 기회의 조화
+REL_Mars_Jupiter_square,Mars,Jupiter,square,Mars-Jupiter 사각 (90°): 도전 긴장
+REL_Mars_Jupiter_trine,Mars,Jupiter,trine,Mars-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Mars_Jupiter_opposition,Mars,Jupiter,opposition,Mars-Jupiter 대립 (180°): 극적 균형
+REL_Mars_Jupiter_quincunx,Mars,Jupiter,quincunx,Mars-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Jupiter_semi_sextile,Mars,Jupiter,semi_sextile,Mars-Jupiter 반육분 (30°): 약한 연결
+REL_Mars_Jupiter_sesqui_quadrate,Mars,Jupiter,sesqui_quadrate,Mars-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Mars_Jupiter_quintile,Mars,Jupiter,quintile,Mars-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Mars_Saturn_conjunction,Mars,Saturn,conjunction,Mars-Saturn 합 (0°): 통합·집중
+REL_Mars_Saturn_sextile,Mars,Saturn,sextile,Mars-Saturn 육분 (60°): 기회의 조화
+REL_Mars_Saturn_square,Mars,Saturn,square,Mars-Saturn 사각 (90°): 도전 긴장
+REL_Mars_Saturn_trine,Mars,Saturn,trine,Mars-Saturn 삼합 (120°): 자연스러운 조화
+REL_Mars_Saturn_opposition,Mars,Saturn,opposition,Mars-Saturn 대립 (180°): 극적 균형
+REL_Mars_Saturn_quincunx,Mars,Saturn,quincunx,Mars-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Saturn_semi_sextile,Mars,Saturn,semi_sextile,Mars-Saturn 반육분 (30°): 약한 연결
+REL_Mars_Saturn_sesqui_quadrate,Mars,Saturn,sesqui_quadrate,Mars-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Mars_Saturn_quintile,Mars,Saturn,quintile,Mars-Saturn 퀸타일 (72°): 창조적 연결
+REL_Mars_Uranus_conjunction,Mars,Uranus,conjunction,Mars-Uranus 합 (0°): 통합·집중
+REL_Mars_Uranus_sextile,Mars,Uranus,sextile,Mars-Uranus 육분 (60°): 기회의 조화
+REL_Mars_Uranus_square,Mars,Uranus,square,Mars-Uranus 사각 (90°): 도전 긴장
+REL_Mars_Uranus_trine,Mars,Uranus,trine,Mars-Uranus 삼합 (120°): 자연스러운 조화
+REL_Mars_Uranus_opposition,Mars,Uranus,opposition,Mars-Uranus 대립 (180°): 극적 균형
+REL_Mars_Uranus_quincunx,Mars,Uranus,quincunx,Mars-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Uranus_semi_sextile,Mars,Uranus,semi_sextile,Mars-Uranus 반육분 (30°): 약한 연결
+REL_Mars_Uranus_sesqui_quadrate,Mars,Uranus,sesqui_quadrate,Mars-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Mars_Uranus_quintile,Mars,Uranus,quintile,Mars-Uranus 퀸타일 (72°): 창조적 연결
+REL_Mars_Neptune_conjunction,Mars,Neptune,conjunction,Mars-Neptune 합 (0°): 통합·집중
+REL_Mars_Neptune_sextile,Mars,Neptune,sextile,Mars-Neptune 육분 (60°): 기회의 조화
+REL_Mars_Neptune_square,Mars,Neptune,square,Mars-Neptune 사각 (90°): 도전 긴장
+REL_Mars_Neptune_trine,Mars,Neptune,trine,Mars-Neptune 삼합 (120°): 자연스러운 조화
+REL_Mars_Neptune_opposition,Mars,Neptune,opposition,Mars-Neptune 대립 (180°): 극적 균형
+REL_Mars_Neptune_quincunx,Mars,Neptune,quincunx,Mars-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Neptune_semi_sextile,Mars,Neptune,semi_sextile,Mars-Neptune 반육분 (30°): 약한 연결
+REL_Mars_Neptune_sesqui_quadrate,Mars,Neptune,sesqui_quadrate,Mars-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Mars_Neptune_quintile,Mars,Neptune,quintile,Mars-Neptune 퀸타일 (72°): 창조적 연결
+REL_Mars_Pluto_conjunction,Mars,Pluto,conjunction,Mars-Pluto 합 (0°): 통합·집중
+REL_Mars_Pluto_sextile,Mars,Pluto,sextile,Mars-Pluto 육분 (60°): 기회의 조화
+REL_Mars_Pluto_square,Mars,Pluto,square,Mars-Pluto 사각 (90°): 도전 긴장
+REL_Mars_Pluto_trine,Mars,Pluto,trine,Mars-Pluto 삼합 (120°): 자연스러운 조화
+REL_Mars_Pluto_opposition,Mars,Pluto,opposition,Mars-Pluto 대립 (180°): 극적 균형
+REL_Mars_Pluto_quincunx,Mars,Pluto,quincunx,Mars-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Pluto_semi_sextile,Mars,Pluto,semi_sextile,Mars-Pluto 반육분 (30°): 약한 연결
+REL_Mars_Pluto_sesqui_quadrate,Mars,Pluto,sesqui_quadrate,Mars-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Mars_Pluto_quintile,Mars,Pluto,quintile,Mars-Pluto 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Saturn_conjunction,Jupiter,Saturn,conjunction,Jupiter-Saturn 합 (0°): 통합·집중
+REL_Jupiter_Saturn_sextile,Jupiter,Saturn,sextile,Jupiter-Saturn 육분 (60°): 기회의 조화
+REL_Jupiter_Saturn_square,Jupiter,Saturn,square,Jupiter-Saturn 사각 (90°): 도전 긴장
+REL_Jupiter_Saturn_trine,Jupiter,Saturn,trine,Jupiter-Saturn 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Saturn_opposition,Jupiter,Saturn,opposition,Jupiter-Saturn 대립 (180°): 극적 균형
+REL_Jupiter_Saturn_quincunx,Jupiter,Saturn,quincunx,Jupiter-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Saturn_semi_sextile,Jupiter,Saturn,semi_sextile,Jupiter-Saturn 반육분 (30°): 약한 연결
+REL_Jupiter_Saturn_sesqui_quadrate,Jupiter,Saturn,sesqui_quadrate,Jupiter-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Saturn_quintile,Jupiter,Saturn,quintile,Jupiter-Saturn 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Uranus_conjunction,Jupiter,Uranus,conjunction,Jupiter-Uranus 합 (0°): 통합·집중
+REL_Jupiter_Uranus_sextile,Jupiter,Uranus,sextile,Jupiter-Uranus 육분 (60°): 기회의 조화
+REL_Jupiter_Uranus_square,Jupiter,Uranus,square,Jupiter-Uranus 사각 (90°): 도전 긴장
+REL_Jupiter_Uranus_trine,Jupiter,Uranus,trine,Jupiter-Uranus 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Uranus_opposition,Jupiter,Uranus,opposition,Jupiter-Uranus 대립 (180°): 극적 균형
+REL_Jupiter_Uranus_quincunx,Jupiter,Uranus,quincunx,Jupiter-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Uranus_semi_sextile,Jupiter,Uranus,semi_sextile,Jupiter-Uranus 반육분 (30°): 약한 연결
+REL_Jupiter_Uranus_sesqui_quadrate,Jupiter,Uranus,sesqui_quadrate,Jupiter-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Uranus_quintile,Jupiter,Uranus,quintile,Jupiter-Uranus 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Neptune_conjunction,Jupiter,Neptune,conjunction,Jupiter-Neptune 합 (0°): 통합·집중
+REL_Jupiter_Neptune_sextile,Jupiter,Neptune,sextile,Jupiter-Neptune 육분 (60°): 기회의 조화
+REL_Jupiter_Neptune_square,Jupiter,Neptune,square,Jupiter-Neptune 사각 (90°): 도전 긴장
+REL_Jupiter_Neptune_trine,Jupiter,Neptune,trine,Jupiter-Neptune 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Neptune_opposition,Jupiter,Neptune,opposition,Jupiter-Neptune 대립 (180°): 극적 균형
+REL_Jupiter_Neptune_quincunx,Jupiter,Neptune,quincunx,Jupiter-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Neptune_semi_sextile,Jupiter,Neptune,semi_sextile,Jupiter-Neptune 반육분 (30°): 약한 연결
+REL_Jupiter_Neptune_sesqui_quadrate,Jupiter,Neptune,sesqui_quadrate,Jupiter-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Neptune_quintile,Jupiter,Neptune,quintile,Jupiter-Neptune 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Pluto_conjunction,Jupiter,Pluto,conjunction,Jupiter-Pluto 합 (0°): 통합·집중
+REL_Jupiter_Pluto_sextile,Jupiter,Pluto,sextile,Jupiter-Pluto 육분 (60°): 기회의 조화
+REL_Jupiter_Pluto_square,Jupiter,Pluto,square,Jupiter-Pluto 사각 (90°): 도전 긴장
+REL_Jupiter_Pluto_trine,Jupiter,Pluto,trine,Jupiter-Pluto 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Pluto_opposition,Jupiter,Pluto,opposition,Jupiter-Pluto 대립 (180°): 극적 균형
+REL_Jupiter_Pluto_quincunx,Jupiter,Pluto,quincunx,Jupiter-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Pluto_semi_sextile,Jupiter,Pluto,semi_sextile,Jupiter-Pluto 반육분 (30°): 약한 연결
+REL_Jupiter_Pluto_sesqui_quadrate,Jupiter,Pluto,sesqui_quadrate,Jupiter-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Pluto_quintile,Jupiter,Pluto,quintile,Jupiter-Pluto 퀸타일 (72°): 창조적 연결
+REL_Saturn_Uranus_conjunction,Saturn,Uranus,conjunction,Saturn-Uranus 합 (0°): 통합·집중
+REL_Saturn_Uranus_sextile,Saturn,Uranus,sextile,Saturn-Uranus 육분 (60°): 기회의 조화
+REL_Saturn_Uranus_square,Saturn,Uranus,square,Saturn-Uranus 사각 (90°): 도전 긴장
+REL_Saturn_Uranus_trine,Saturn,Uranus,trine,Saturn-Uranus 삼합 (120°): 자연스러운 조화
+REL_Saturn_Uranus_opposition,Saturn,Uranus,opposition,Saturn-Uranus 대립 (180°): 극적 균형
+REL_Saturn_Uranus_quincunx,Saturn,Uranus,quincunx,Saturn-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Saturn_Uranus_semi_sextile,Saturn,Uranus,semi_sextile,Saturn-Uranus 반육분 (30°): 약한 연결
+REL_Saturn_Uranus_sesqui_quadrate,Saturn,Uranus,sesqui_quadrate,Saturn-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Saturn_Uranus_quintile,Saturn,Uranus,quintile,Saturn-Uranus 퀸타일 (72°): 창조적 연결
+REL_Saturn_Neptune_conjunction,Saturn,Neptune,conjunction,Saturn-Neptune 합 (0°): 통합·집중
+REL_Saturn_Neptune_sextile,Saturn,Neptune,sextile,Saturn-Neptune 육분 (60°): 기회의 조화
+REL_Saturn_Neptune_square,Saturn,Neptune,square,Saturn-Neptune 사각 (90°): 도전 긴장
+REL_Saturn_Neptune_trine,Saturn,Neptune,trine,Saturn-Neptune 삼합 (120°): 자연스러운 조화
+REL_Saturn_Neptune_opposition,Saturn,Neptune,opposition,Saturn-Neptune 대립 (180°): 극적 균형
+REL_Saturn_Neptune_quincunx,Saturn,Neptune,quincunx,Saturn-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Saturn_Neptune_semi_sextile,Saturn,Neptune,semi_sextile,Saturn-Neptune 반육분 (30°): 약한 연결
+REL_Saturn_Neptune_sesqui_quadrate,Saturn,Neptune,sesqui_quadrate,Saturn-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Saturn_Neptune_quintile,Saturn,Neptune,quintile,Saturn-Neptune 퀸타일 (72°): 창조적 연결
+REL_Saturn_Pluto_conjunction,Saturn,Pluto,conjunction,Saturn-Pluto 합 (0°): 통합·집중
+REL_Saturn_Pluto_sextile,Saturn,Pluto,sextile,Saturn-Pluto 육분 (60°): 기회의 조화
+REL_Saturn_Pluto_square,Saturn,Pluto,square,Saturn-Pluto 사각 (90°): 도전 긴장
+REL_Saturn_Pluto_trine,Saturn,Pluto,trine,Saturn-Pluto 삼합 (120°): 자연스러운 조화
+REL_Saturn_Pluto_opposition,Saturn,Pluto,opposition,Saturn-Pluto 대립 (180°): 극적 균형
+REL_Saturn_Pluto_quincunx,Saturn,Pluto,quincunx,Saturn-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Saturn_Pluto_semi_sextile,Saturn,Pluto,semi_sextile,Saturn-Pluto 반육분 (30°): 약한 연결
+REL_Saturn_Pluto_sesqui_quadrate,Saturn,Pluto,sesqui_quadrate,Saturn-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Saturn_Pluto_quintile,Saturn,Pluto,quintile,Saturn-Pluto 퀸타일 (72°): 창조적 연결
+REL_Uranus_Neptune_conjunction,Uranus,Neptune,conjunction,Uranus-Neptune 합 (0°): 통합·집중
+REL_Uranus_Neptune_sextile,Uranus,Neptune,sextile,Uranus-Neptune 육분 (60°): 기회의 조화
+REL_Uranus_Neptune_square,Uranus,Neptune,square,Uranus-Neptune 사각 (90°): 도전 긴장
+REL_Uranus_Neptune_trine,Uranus,Neptune,trine,Uranus-Neptune 삼합 (120°): 자연스러운 조화
+REL_Uranus_Neptune_opposition,Uranus,Neptune,opposition,Uranus-Neptune 대립 (180°): 극적 균형
+REL_Uranus_Neptune_quincunx,Uranus,Neptune,quincunx,Uranus-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Uranus_Neptune_semi_sextile,Uranus,Neptune,semi_sextile,Uranus-Neptune 반육분 (30°): 약한 연결
+REL_Uranus_Neptune_sesqui_quadrate,Uranus,Neptune,sesqui_quadrate,Uranus-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Uranus_Neptune_quintile,Uranus,Neptune,quintile,Uranus-Neptune 퀸타일 (72°): 창조적 연결
+REL_Uranus_Pluto_conjunction,Uranus,Pluto,conjunction,Uranus-Pluto 합 (0°): 통합·집중
+REL_Uranus_Pluto_sextile,Uranus,Pluto,sextile,Uranus-Pluto 육분 (60°): 기회의 조화
+REL_Uranus_Pluto_square,Uranus,Pluto,square,Uranus-Pluto 사각 (90°): 도전 긴장
+REL_Uranus_Pluto_trine,Uranus,Pluto,trine,Uranus-Pluto 삼합 (120°): 자연스러운 조화
+REL_Uranus_Pluto_opposition,Uranus,Pluto,opposition,Uranus-Pluto 대립 (180°): 극적 균형
+REL_Uranus_Pluto_quincunx,Uranus,Pluto,quincunx,Uranus-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Uranus_Pluto_semi_sextile,Uranus,Pluto,semi_sextile,Uranus-Pluto 반육분 (30°): 약한 연결
+REL_Uranus_Pluto_sesqui_quadrate,Uranus,Pluto,sesqui_quadrate,Uranus-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Uranus_Pluto_quintile,Uranus,Pluto,quintile,Uranus-Pluto 퀸타일 (72°): 창조적 연결
+REL_Neptune_Pluto_conjunction,Neptune,Pluto,conjunction,Neptune-Pluto 합 (0°): 통합·집중
+REL_Neptune_Pluto_sextile,Neptune,Pluto,sextile,Neptune-Pluto 육분 (60°): 기회의 조화
+REL_Neptune_Pluto_square,Neptune,Pluto,square,Neptune-Pluto 사각 (90°): 도전 긴장
+REL_Neptune_Pluto_trine,Neptune,Pluto,trine,Neptune-Pluto 삼합 (120°): 자연스러운 조화
+REL_Neptune_Pluto_opposition,Neptune,Pluto,opposition,Neptune-Pluto 대립 (180°): 극적 균형
+REL_Neptune_Pluto_quincunx,Neptune,Pluto,quincunx,Neptune-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Neptune_Pluto_semi_sextile,Neptune,Pluto,semi_sextile,Neptune-Pluto 반육분 (30°): 약한 연결
+REL_Neptune_Pluto_sesqui_quadrate,Neptune,Pluto,sesqui_quadrate,Neptune-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Neptune_Pluto_quintile,Neptune,Pluto,quintile,Neptune-Pluto 퀸타일 (72°): 창조적 연결
+REL_Asc_Aries,Asc,Aries,상승점,Asc in Aries: Asc의 자질이 Aries의 에너지로 표현됨
+REL_Asc_Taurus,Asc,Taurus,상승점,Asc in Taurus: Asc의 자질이 Taurus의 에너지로 표현됨
+REL_Asc_Gemini,Asc,Gemini,상승점,Asc in Gemini: Asc의 자질이 Gemini의 에너지로 표현됨
+REL_Asc_Cancer,Asc,Cancer,상승점,Asc in Cancer: Asc의 자질이 Cancer의 에너지로 표현됨
+REL_Asc_Leo,Asc,Leo,상승점,Asc in Leo: Asc의 자질이 Leo의 에너지로 표현됨
+REL_Asc_Virgo,Asc,Virgo,상승점,Asc in Virgo: Asc의 자질이 Virgo의 에너지로 표현됨
+REL_Asc_Libra,Asc,Libra,상승점,Asc in Libra: Asc의 자질이 Libra의 에너지로 표현됨
+REL_Asc_Scorpio,Asc,Scorpio,상승점,Asc in Scorpio: Asc의 자질이 Scorpio의 에너지로 표현됨
+REL_Asc_Sagittarius,Asc,Sagittarius,상승점,Asc in Sagittarius: Asc의 자질이 Sagittarius의 에너지로 표현됨
+REL_Asc_Capricorn,Asc,Capricorn,상승점,Asc in Capricorn: Asc의 자질이 Capricorn의 에너지로 표현됨
+REL_Asc_Aquarius,Asc,Aquarius,상승점,Asc in Aquarius: Asc의 자질이 Aquarius의 에너지로 표현됨
+REL_Asc_Pisces,Asc,Pisces,상승점,Asc in Pisces: Asc의 자질이 Pisces의 에너지로 표현됨
+REL_MC_Aries,MC,Aries,중천,MC in Aries: MC의 자질이 Aries의 에너지로 표현됨
+REL_MC_Taurus,MC,Taurus,중천,MC in Taurus: MC의 자질이 Taurus의 에너지로 표현됨
+REL_MC_Gemini,MC,Gemini,중천,MC in Gemini: MC의 자질이 Gemini의 에너지로 표현됨
+REL_MC_Cancer,MC,Cancer,중천,MC in Cancer: MC의 자질이 Cancer의 에너지로 표현됨
+REL_MC_Leo,MC,Leo,중천,MC in Leo: MC의 자질이 Leo의 에너지로 표현됨
+REL_MC_Virgo,MC,Virgo,중천,MC in Virgo: MC의 자질이 Virgo의 에너지로 표현됨
+REL_MC_Libra,MC,Libra,중천,MC in Libra: MC의 자질이 Libra의 에너지로 표현됨
+REL_MC_Scorpio,MC,Scorpio,중천,MC in Scorpio: MC의 자질이 Scorpio의 에너지로 표현됨
+REL_MC_Sagittarius,MC,Sagittarius,중천,MC in Sagittarius: MC의 자질이 Sagittarius의 에너지로 표현됨
+REL_MC_Capricorn,MC,Capricorn,중천,MC in Capricorn: MC의 자질이 Capricorn의 에너지로 표현됨
+REL_MC_Aquarius,MC,Aquarius,중천,MC in Aquarius: MC의 자질이 Aquarius의 에너지로 표현됨
+REL_MC_Pisces,MC,Pisces,중천,MC in Pisces: MC의 자질이 Pisces의 에너지로 표현됨

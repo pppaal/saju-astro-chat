@@ -1,0 +1,23 @@
+{
+"extends": "./tsconfig.json",
+"compilerOptions": {
+"module": "CommonJS",
+"moduleResolution": "Node",
+"noEmit": true,
+"baseUrl": ".",
+"paths": {
+"@/lib/astrology": ["src/lib/astrology/index.ts"],
+"@/lib/astrology/": ["src/lib/astrology/"], 
+"@/": ["src/"],
+"@/app/": ["src/app/"],
+"@/components/": ["src/components/"],
+"@/lib/": ["src/lib/"],
+"@/lib/Saju/": ["src/lib/Saju/"],
+"@/lib/Tarot/": ["src/lib/Tarot/"],
+"@/lib/iChing/": ["src/lib/iChing/"],
+"@/lib/destiny-map/": ["src/lib/destiny-map/"],
+"@/lib/numerology/": ["src/lib/numerology/"]
+}
+},
+"include": ["scripts//*", "src//*"]
+}

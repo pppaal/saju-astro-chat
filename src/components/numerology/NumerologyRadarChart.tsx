@@ -9,7 +9,7 @@ import {
   Filler,
   Tooltip,
 } from 'chart.js';
-import { CoreNumerologyProfile } from '@/lib/numerology';
+import { CoreNumerologyProfile } from '@/lib/numerology/numerology';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
