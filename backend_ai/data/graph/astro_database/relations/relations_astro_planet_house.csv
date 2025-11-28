@@ -1,0 +1,121 @@
+﻿id,source,target,relation,description
+REL_Sun_H1,Sun,H1,하우스,Sun in H1: 자아·외적태도·개성 영역에서 Sun의 특성이 드러난다
+REL_Sun_H2,Sun,H2,하우스,Sun in H2: 가치·자원·안정·경제 영역에서 Sun의 특성이 드러난다
+REL_Sun_H3,Sun,H3,하우스,Sun in H3: 의사소통·학습·형제 영역에서 Sun의 특성이 드러난다
+REL_Sun_H4,Sun,H4,하우스,Sun in H4: 가정·감정적 뿌리·내면안정 영역에서 Sun의 특성이 드러난다
+REL_Sun_H5,Sun,H5,하우스,Sun in H5: 창의·사랑·자녀·자기표현 영역에서 Sun의 특성이 드러난다
+REL_Sun_H6,Sun,H6,하우스,Sun in H6: 일상·노동·건강·봉사 영역에서 Sun의 특성이 드러난다
+REL_Sun_H7,Sun,H7,하우스,Sun in H7: 파트너십·결혼·타인과의 관계 영역에서 Sun의 특성이 드러난다
+REL_Sun_H8,Sun,H8,하우스,Sun in H8: 공유·친밀함·변형 영역에서 Sun의 특성이 드러난다
+REL_Sun_H9,Sun,H9,하우스,Sun in H9: 철학·탐험·신념체계 영역에서 Sun의 특성이 드러난다
+REL_Sun_H10,Sun,H10,하우스,Sun in H10: 명예·직업·사회적 역할 영역에서 Sun의 특성이 드러난다
+REL_Sun_H11,Sun,H11,하우스,Sun in H11: 집단·우정·이상 영역에서 Sun의 특성이 드러난다
+REL_Sun_H12,Sun,H12,하우스,Sun in H12: 무의식·영성·끝맺음 영역에서 Sun의 특성이 드러난다
+REL_Moon_H1,Moon,H1,하우스,Moon in H1: 자아·외적태도·개성 영역에서 Moon의 특성이 드러난다
+REL_Moon_H2,Moon,H2,하우스,Moon in H2: 가치·자원·안정·경제 영역에서 Moon의 특성이 드러난다
+REL_Moon_H3,Moon,H3,하우스,Moon in H3: 의사소통·학습·형제 영역에서 Moon의 특성이 드러난다
+REL_Moon_H4,Moon,H4,하우스,Moon in H4: 가정·감정적 뿌리·내면안정 영역에서 Moon의 특성이 드러난다
+REL_Moon_H5,Moon,H5,하우스,Moon in H5: 창의·사랑·자녀·자기표현 영역에서 Moon의 특성이 드러난다
+REL_Moon_H6,Moon,H6,하우스,Moon in H6: 일상·노동·건강·봉사 영역에서 Moon의 특성이 드러난다
+REL_Moon_H7,Moon,H7,하우스,Moon in H7: 파트너십·결혼·타인과의 관계 영역에서 Moon의 특성이 드러난다
+REL_Moon_H8,Moon,H8,하우스,Moon in H8: 공유·친밀함·변형 영역에서 Moon의 특성이 드러난다
+REL_Moon_H9,Moon,H9,하우스,Moon in H9: 철학·탐험·신념체계 영역에서 Moon의 특성이 드러난다
+REL_Moon_H10,Moon,H10,하우스,Moon in H10: 명예·직업·사회적 역할 영역에서 Moon의 특성이 드러난다
+REL_Moon_H11,Moon,H11,하우스,Moon in H11: 집단·우정·이상 영역에서 Moon의 특성이 드러난다
+REL_Moon_H12,Moon,H12,하우스,Moon in H12: 무의식·영성·끝맺음 영역에서 Moon의 특성이 드러난다
+REL_Mercury_H1,Mercury,H1,하우스,Mercury in H1: 자아·외적태도·개성 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H2,Mercury,H2,하우스,Mercury in H2: 가치·자원·안정·경제 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H3,Mercury,H3,하우스,Mercury in H3: 의사소통·학습·형제 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H4,Mercury,H4,하우스,Mercury in H4: 가정·감정적 뿌리·내면안정 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H5,Mercury,H5,하우스,Mercury in H5: 창의·사랑·자녀·자기표현 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H6,Mercury,H6,하우스,Mercury in H6: 일상·노동·건강·봉사 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H7,Mercury,H7,하우스,Mercury in H7: 파트너십·결혼·타인과의 관계 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H8,Mercury,H8,하우스,Mercury in H8: 공유·친밀함·변형 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H9,Mercury,H9,하우스,Mercury in H9: 철학·탐험·신념체계 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H10,Mercury,H10,하우스,Mercury in H10: 명예·직업·사회적 역할 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H11,Mercury,H11,하우스,Mercury in H11: 집단·우정·이상 영역에서 Mercury의 특성이 드러난다
+REL_Mercury_H12,Mercury,H12,하우스,Mercury in H12: 무의식·영성·끝맺음 영역에서 Mercury의 특성이 드러난다
+REL_Venus_H1,Venus,H1,하우스,Venus in H1: 자아·외적태도·개성 영역에서 Venus의 특성이 드러난다
+REL_Venus_H2,Venus,H2,하우스,Venus in H2: 가치·자원·안정·경제 영역에서 Venus의 특성이 드러난다
+REL_Venus_H3,Venus,H3,하우스,Venus in H3: 의사소통·학습·형제 영역에서 Venus의 특성이 드러난다
+REL_Venus_H4,Venus,H4,하우스,Venus in H4: 가정·감정적 뿌리·내면안정 영역에서 Venus의 특성이 드러난다
+REL_Venus_H5,Venus,H5,하우스,Venus in H5: 창의·사랑·자녀·자기표현 영역에서 Venus의 특성이 드러난다
+REL_Venus_H6,Venus,H6,하우스,Venus in H6: 일상·노동·건강·봉사 영역에서 Venus의 특성이 드러난다
+REL_Venus_H7,Venus,H7,하우스,Venus in H7: 파트너십·결혼·타인과의 관계 영역에서 Venus의 특성이 드러난다
+REL_Venus_H8,Venus,H8,하우스,Venus in H8: 공유·친밀함·변형 영역에서 Venus의 특성이 드러난다
+REL_Venus_H9,Venus,H9,하우스,Venus in H9: 철학·탐험·신념체계 영역에서 Venus의 특성이 드러난다
+REL_Venus_H10,Venus,H10,하우스,Venus in H10: 명예·직업·사회적 역할 영역에서 Venus의 특성이 드러난다
+REL_Venus_H11,Venus,H11,하우스,Venus in H11: 집단·우정·이상 영역에서 Venus의 특성이 드러난다
+REL_Venus_H12,Venus,H12,하우스,Venus in H12: 무의식·영성·끝맺음 영역에서 Venus의 특성이 드러난다
+REL_Mars_H1,Mars,H1,하우스,Mars in H1: 자아·외적태도·개성 영역에서 Mars의 특성이 드러난다
+REL_Mars_H2,Mars,H2,하우스,Mars in H2: 가치·자원·안정·경제 영역에서 Mars의 특성이 드러난다
+REL_Mars_H3,Mars,H3,하우스,Mars in H3: 의사소통·학습·형제 영역에서 Mars의 특성이 드러난다
+REL_Mars_H4,Mars,H4,하우스,Mars in H4: 가정·감정적 뿌리·내면안정 영역에서 Mars의 특성이 드러난다
+REL_Mars_H5,Mars,H5,하우스,Mars in H5: 창의·사랑·자녀·자기표현 영역에서 Mars의 특성이 드러난다
+REL_Mars_H6,Mars,H6,하우스,Mars in H6: 일상·노동·건강·봉사 영역에서 Mars의 특성이 드러난다
+REL_Mars_H7,Mars,H7,하우스,Mars in H7: 파트너십·결혼·타인과의 관계 영역에서 Mars의 특성이 드러난다
+REL_Mars_H8,Mars,H8,하우스,Mars in H8: 공유·친밀함·변형 영역에서 Mars의 특성이 드러난다
+REL_Mars_H9,Mars,H9,하우스,Mars in H9: 철학·탐험·신념체계 영역에서 Mars의 특성이 드러난다
+REL_Mars_H10,Mars,H10,하우스,Mars in H10: 명예·직업·사회적 역할 영역에서 Mars의 특성이 드러난다
+REL_Mars_H11,Mars,H11,하우스,Mars in H11: 집단·우정·이상 영역에서 Mars의 특성이 드러난다
+REL_Mars_H12,Mars,H12,하우스,Mars in H12: 무의식·영성·끝맺음 영역에서 Mars의 특성이 드러난다
+REL_Jupiter_H1,Jupiter,H1,하우스,Jupiter in H1: 자아·외적태도·개성 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H2,Jupiter,H2,하우스,Jupiter in H2: 가치·자원·안정·경제 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H3,Jupiter,H3,하우스,Jupiter in H3: 의사소통·학습·형제 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H4,Jupiter,H4,하우스,Jupiter in H4: 가정·감정적 뿌리·내면안정 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H5,Jupiter,H5,하우스,Jupiter in H5: 창의·사랑·자녀·자기표현 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H6,Jupiter,H6,하우스,Jupiter in H6: 일상·노동·건강·봉사 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H7,Jupiter,H7,하우스,Jupiter in H7: 파트너십·결혼·타인과의 관계 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H8,Jupiter,H8,하우스,Jupiter in H8: 공유·친밀함·변형 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H9,Jupiter,H9,하우스,Jupiter in H9: 철학·탐험·신념체계 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H10,Jupiter,H10,하우스,Jupiter in H10: 명예·직업·사회적 역할 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H11,Jupiter,H11,하우스,Jupiter in H11: 집단·우정·이상 영역에서 Jupiter의 특성이 드러난다
+REL_Jupiter_H12,Jupiter,H12,하우스,Jupiter in H12: 무의식·영성·끝맺음 영역에서 Jupiter의 특성이 드러난다
+REL_Saturn_H1,Saturn,H1,하우스,Saturn in H1: 자아·외적태도·개성 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H2,Saturn,H2,하우스,Saturn in H2: 가치·자원·안정·경제 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H3,Saturn,H3,하우스,Saturn in H3: 의사소통·학습·형제 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H4,Saturn,H4,하우스,Saturn in H4: 가정·감정적 뿌리·내면안정 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H5,Saturn,H5,하우스,Saturn in H5: 창의·사랑·자녀·자기표현 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H6,Saturn,H6,하우스,Saturn in H6: 일상·노동·건강·봉사 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H7,Saturn,H7,하우스,Saturn in H7: 파트너십·결혼·타인과의 관계 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H8,Saturn,H8,하우스,Saturn in H8: 공유·친밀함·변형 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H9,Saturn,H9,하우스,Saturn in H9: 철학·탐험·신념체계 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H10,Saturn,H10,하우스,Saturn in H10: 명예·직업·사회적 역할 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H11,Saturn,H11,하우스,Saturn in H11: 집단·우정·이상 영역에서 Saturn의 특성이 드러난다
+REL_Saturn_H12,Saturn,H12,하우스,Saturn in H12: 무의식·영성·끝맺음 영역에서 Saturn의 특성이 드러난다
+REL_Uranus_H1,Uranus,H1,하우스,Uranus in H1: 자아·외적태도·개성 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H2,Uranus,H2,하우스,Uranus in H2: 가치·자원·안정·경제 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H3,Uranus,H3,하우스,Uranus in H3: 의사소통·학습·형제 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H4,Uranus,H4,하우스,Uranus in H4: 가정·감정적 뿌리·내면안정 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H5,Uranus,H5,하우스,Uranus in H5: 창의·사랑·자녀·자기표현 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H6,Uranus,H6,하우스,Uranus in H6: 일상·노동·건강·봉사 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H7,Uranus,H7,하우스,Uranus in H7: 파트너십·결혼·타인과의 관계 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H8,Uranus,H8,하우스,Uranus in H8: 공유·친밀함·변형 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H9,Uranus,H9,하우스,Uranus in H9: 철학·탐험·신념체계 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H10,Uranus,H10,하우스,Uranus in H10: 명예·직업·사회적 역할 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H11,Uranus,H11,하우스,Uranus in H11: 집단·우정·이상 영역에서 Uranus의 특성이 드러난다
+REL_Uranus_H12,Uranus,H12,하우스,Uranus in H12: 무의식·영성·끝맺음 영역에서 Uranus의 특성이 드러난다
+REL_Neptune_H1,Neptune,H1,하우스,Neptune in H1: 자아·외적태도·개성 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H2,Neptune,H2,하우스,Neptune in H2: 가치·자원·안정·경제 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H3,Neptune,H3,하우스,Neptune in H3: 의사소통·학습·형제 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H4,Neptune,H4,하우스,Neptune in H4: 가정·감정적 뿌리·내면안정 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H5,Neptune,H5,하우스,Neptune in H5: 창의·사랑·자녀·자기표현 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H6,Neptune,H6,하우스,Neptune in H6: 일상·노동·건강·봉사 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H7,Neptune,H7,하우스,Neptune in H7: 파트너십·결혼·타인과의 관계 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H8,Neptune,H8,하우스,Neptune in H8: 공유·친밀함·변형 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H9,Neptune,H9,하우스,Neptune in H9: 철학·탐험·신념체계 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H10,Neptune,H10,하우스,Neptune in H10: 명예·직업·사회적 역할 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H11,Neptune,H11,하우스,Neptune in H11: 집단·우정·이상 영역에서 Neptune의 특성이 드러난다
+REL_Neptune_H12,Neptune,H12,하우스,Neptune in H12: 무의식·영성·끝맺음 영역에서 Neptune의 특성이 드러난다
+REL_Pluto_H1,Pluto,H1,하우스,Pluto in H1: 자아·외적태도·개성 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H2,Pluto,H2,하우스,Pluto in H2: 가치·자원·안정·경제 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H3,Pluto,H3,하우스,Pluto in H3: 의사소통·학습·형제 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H4,Pluto,H4,하우스,Pluto in H4: 가정·감정적 뿌리·내면안정 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H5,Pluto,H5,하우스,Pluto in H5: 창의·사랑·자녀·자기표현 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H6,Pluto,H6,하우스,Pluto in H6: 일상·노동·건강·봉사 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H7,Pluto,H7,하우스,Pluto in H7: 파트너십·결혼·타인과의 관계 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H8,Pluto,H8,하우스,Pluto in H8: 공유·친밀함·변형 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H9,Pluto,H9,하우스,Pluto in H9: 철학·탐험·신념체계 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H10,Pluto,H10,하우스,Pluto in H10: 명예·직업·사회적 역할 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H11,Pluto,H11,하우스,Pluto in H11: 집단·우정·이상 영역에서 Pluto의 특성이 드러난다
+REL_Pluto_H12,Pluto,H12,하우스,Pluto in H12: 무의식·영성·끝맺음 영역에서 Pluto의 특성이 드러난다

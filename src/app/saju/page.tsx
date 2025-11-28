@@ -1,3 +1,5 @@
+//src/app/saju/page.tsx
+
 'use client';
 
 import SajuAnalyzer from "@/components/saju/SajuAnalyzer";

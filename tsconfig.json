@@ -1,3 +1,5 @@
+//tsconfig.json
+
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -8,14 +10,28 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
+
+    // ✅ 모듈 관련
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+
+    // ✅ 중요: import 시 .ts 확장자 붙이지 않아도 됨
+    "allowImportingTsExtensions": false,
+
+    // ✅ 타입 인식
     "types": ["node", "next", "react", "react-dom"],
+
+    // ✅ 타입 루트 추가 (pdf-lib 선언 포함)
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+
+    // ✅ Next.js 플러그인
     "plugins": [{ "name": "next" }],
+
+    // ✅ 경로 alias
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -27,9 +43,15 @@
       "@/lib/iChing/*": ["src/lib/iChing/*"],
       "@/lib/astrology/*": ["src/lib/astrology/*"],
       "@/lib/destiny-map/*": ["src/lib/destiny-map/*"],
-      "@/lib/numerology/*": ["src/lib/numerology/*"]
+      "@/lib/numerology/*": ["src/lib/numerology/*"],
+      "@/narrative/*": ["src/narrative/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "src/**/*",
+    "**/*.d.ts",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

@@ -1,0 +1,406 @@
+﻿id,source,target,relation,description
+REL_Sun_Moon_conjunction,Sun,Moon,conjunction,Sun-Moon 합 (0°): 통합·집중
+REL_Sun_Moon_sextile,Sun,Moon,sextile,Sun-Moon 육분 (60°): 기회의 조화
+REL_Sun_Moon_square,Sun,Moon,square,Sun-Moon 사각 (90°): 도전 긴장
+REL_Sun_Moon_trine,Sun,Moon,trine,Sun-Moon 삼합 (120°): 자연스러운 조화
+REL_Sun_Moon_opposition,Sun,Moon,opposition,Sun-Moon 대립 (180°): 극적 균형
+REL_Sun_Moon_quincunx,Sun,Moon,quincunx,Sun-Moon 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Moon_semi_sextile,Sun,Moon,semi_sextile,Sun-Moon 반육분 (30°): 약한 연결
+REL_Sun_Moon_sesqui_quadrate,Sun,Moon,sesqui_quadrate,Sun-Moon 세스퀴사각 (135°): 압박 조정
+REL_Sun_Moon_quintile,Sun,Moon,quintile,Sun-Moon 퀸타일 (72°): 창조적 연결
+REL_Sun_Mercury_conjunction,Sun,Mercury,conjunction,Sun-Mercury 합 (0°): 통합·집중
+REL_Sun_Mercury_sextile,Sun,Mercury,sextile,Sun-Mercury 육분 (60°): 기회의 조화
+REL_Sun_Mercury_square,Sun,Mercury,square,Sun-Mercury 사각 (90°): 도전 긴장
+REL_Sun_Mercury_trine,Sun,Mercury,trine,Sun-Mercury 삼합 (120°): 자연스러운 조화
+REL_Sun_Mercury_opposition,Sun,Mercury,opposition,Sun-Mercury 대립 (180°): 극적 균형
+REL_Sun_Mercury_quincunx,Sun,Mercury,quincunx,Sun-Mercury 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Mercury_semi_sextile,Sun,Mercury,semi_sextile,Sun-Mercury 반육분 (30°): 약한 연결
+REL_Sun_Mercury_sesqui_quadrate,Sun,Mercury,sesqui_quadrate,Sun-Mercury 세스퀴사각 (135°): 압박 조정
+REL_Sun_Mercury_quintile,Sun,Mercury,quintile,Sun-Mercury 퀸타일 (72°): 창조적 연결
+REL_Sun_Venus_conjunction,Sun,Venus,conjunction,Sun-Venus 합 (0°): 통합·집중
+REL_Sun_Venus_sextile,Sun,Venus,sextile,Sun-Venus 육분 (60°): 기회의 조화
+REL_Sun_Venus_square,Sun,Venus,square,Sun-Venus 사각 (90°): 도전 긴장
+REL_Sun_Venus_trine,Sun,Venus,trine,Sun-Venus 삼합 (120°): 자연스러운 조화
+REL_Sun_Venus_opposition,Sun,Venus,opposition,Sun-Venus 대립 (180°): 극적 균형
+REL_Sun_Venus_quincunx,Sun,Venus,quincunx,Sun-Venus 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Venus_semi_sextile,Sun,Venus,semi_sextile,Sun-Venus 반육분 (30°): 약한 연결
+REL_Sun_Venus_sesqui_quadrate,Sun,Venus,sesqui_quadrate,Sun-Venus 세스퀴사각 (135°): 압박 조정
+REL_Sun_Venus_quintile,Sun,Venus,quintile,Sun-Venus 퀸타일 (72°): 창조적 연결
+REL_Sun_Mars_conjunction,Sun,Mars,conjunction,Sun-Mars 합 (0°): 통합·집중
+REL_Sun_Mars_sextile,Sun,Mars,sextile,Sun-Mars 육분 (60°): 기회의 조화
+REL_Sun_Mars_square,Sun,Mars,square,Sun-Mars 사각 (90°): 도전 긴장
+REL_Sun_Mars_trine,Sun,Mars,trine,Sun-Mars 삼합 (120°): 자연스러운 조화
+REL_Sun_Mars_opposition,Sun,Mars,opposition,Sun-Mars 대립 (180°): 극적 균형
+REL_Sun_Mars_quincunx,Sun,Mars,quincunx,Sun-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Mars_semi_sextile,Sun,Mars,semi_sextile,Sun-Mars 반육분 (30°): 약한 연결
+REL_Sun_Mars_sesqui_quadrate,Sun,Mars,sesqui_quadrate,Sun-Mars 세스퀴사각 (135°): 압박 조정
+REL_Sun_Mars_quintile,Sun,Mars,quintile,Sun-Mars 퀸타일 (72°): 창조적 연결
+REL_Sun_Jupiter_conjunction,Sun,Jupiter,conjunction,Sun-Jupiter 합 (0°): 통합·집중
+REL_Sun_Jupiter_sextile,Sun,Jupiter,sextile,Sun-Jupiter 육분 (60°): 기회의 조화
+REL_Sun_Jupiter_square,Sun,Jupiter,square,Sun-Jupiter 사각 (90°): 도전 긴장
+REL_Sun_Jupiter_trine,Sun,Jupiter,trine,Sun-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Sun_Jupiter_opposition,Sun,Jupiter,opposition,Sun-Jupiter 대립 (180°): 극적 균형
+REL_Sun_Jupiter_quincunx,Sun,Jupiter,quincunx,Sun-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Jupiter_semi_sextile,Sun,Jupiter,semi_sextile,Sun-Jupiter 반육분 (30°): 약한 연결
+REL_Sun_Jupiter_sesqui_quadrate,Sun,Jupiter,sesqui_quadrate,Sun-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Sun_Jupiter_quintile,Sun,Jupiter,quintile,Sun-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Sun_Saturn_conjunction,Sun,Saturn,conjunction,Sun-Saturn 합 (0°): 통합·집중
+REL_Sun_Saturn_sextile,Sun,Saturn,sextile,Sun-Saturn 육분 (60°): 기회의 조화
+REL_Sun_Saturn_square,Sun,Saturn,square,Sun-Saturn 사각 (90°): 도전 긴장
+REL_Sun_Saturn_trine,Sun,Saturn,trine,Sun-Saturn 삼합 (120°): 자연스러운 조화
+REL_Sun_Saturn_opposition,Sun,Saturn,opposition,Sun-Saturn 대립 (180°): 극적 균형
+REL_Sun_Saturn_quincunx,Sun,Saturn,quincunx,Sun-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Saturn_semi_sextile,Sun,Saturn,semi_sextile,Sun-Saturn 반육분 (30°): 약한 연결
+REL_Sun_Saturn_sesqui_quadrate,Sun,Saturn,sesqui_quadrate,Sun-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Sun_Saturn_quintile,Sun,Saturn,quintile,Sun-Saturn 퀸타일 (72°): 창조적 연결
+REL_Sun_Uranus_conjunction,Sun,Uranus,conjunction,Sun-Uranus 합 (0°): 통합·집중
+REL_Sun_Uranus_sextile,Sun,Uranus,sextile,Sun-Uranus 육분 (60°): 기회의 조화
+REL_Sun_Uranus_square,Sun,Uranus,square,Sun-Uranus 사각 (90°): 도전 긴장
+REL_Sun_Uranus_trine,Sun,Uranus,trine,Sun-Uranus 삼합 (120°): 자연스러운 조화
+REL_Sun_Uranus_opposition,Sun,Uranus,opposition,Sun-Uranus 대립 (180°): 극적 균형
+REL_Sun_Uranus_quincunx,Sun,Uranus,quincunx,Sun-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Uranus_semi_sextile,Sun,Uranus,semi_sextile,Sun-Uranus 반육분 (30°): 약한 연결
+REL_Sun_Uranus_sesqui_quadrate,Sun,Uranus,sesqui_quadrate,Sun-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Sun_Uranus_quintile,Sun,Uranus,quintile,Sun-Uranus 퀸타일 (72°): 창조적 연결
+REL_Sun_Neptune_conjunction,Sun,Neptune,conjunction,Sun-Neptune 합 (0°): 통합·집중
+REL_Sun_Neptune_sextile,Sun,Neptune,sextile,Sun-Neptune 육분 (60°): 기회의 조화
+REL_Sun_Neptune_square,Sun,Neptune,square,Sun-Neptune 사각 (90°): 도전 긴장
+REL_Sun_Neptune_trine,Sun,Neptune,trine,Sun-Neptune 삼합 (120°): 자연스러운 조화
+REL_Sun_Neptune_opposition,Sun,Neptune,opposition,Sun-Neptune 대립 (180°): 극적 균형
+REL_Sun_Neptune_quincunx,Sun,Neptune,quincunx,Sun-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Neptune_semi_sextile,Sun,Neptune,semi_sextile,Sun-Neptune 반육분 (30°): 약한 연결
+REL_Sun_Neptune_sesqui_quadrate,Sun,Neptune,sesqui_quadrate,Sun-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Sun_Neptune_quintile,Sun,Neptune,quintile,Sun-Neptune 퀸타일 (72°): 창조적 연결
+REL_Sun_Pluto_conjunction,Sun,Pluto,conjunction,Sun-Pluto 합 (0°): 통합·집중
+REL_Sun_Pluto_sextile,Sun,Pluto,sextile,Sun-Pluto 육분 (60°): 기회의 조화
+REL_Sun_Pluto_square,Sun,Pluto,square,Sun-Pluto 사각 (90°): 도전 긴장
+REL_Sun_Pluto_trine,Sun,Pluto,trine,Sun-Pluto 삼합 (120°): 자연스러운 조화
+REL_Sun_Pluto_opposition,Sun,Pluto,opposition,Sun-Pluto 대립 (180°): 극적 균형
+REL_Sun_Pluto_quincunx,Sun,Pluto,quincunx,Sun-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Sun_Pluto_semi_sextile,Sun,Pluto,semi_sextile,Sun-Pluto 반육분 (30°): 약한 연결
+REL_Sun_Pluto_sesqui_quadrate,Sun,Pluto,sesqui_quadrate,Sun-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Sun_Pluto_quintile,Sun,Pluto,quintile,Sun-Pluto 퀸타일 (72°): 창조적 연결
+REL_Moon_Mercury_conjunction,Moon,Mercury,conjunction,Moon-Mercury 합 (0°): 통합·집중
+REL_Moon_Mercury_sextile,Moon,Mercury,sextile,Moon-Mercury 육분 (60°): 기회의 조화
+REL_Moon_Mercury_square,Moon,Mercury,square,Moon-Mercury 사각 (90°): 도전 긴장
+REL_Moon_Mercury_trine,Moon,Mercury,trine,Moon-Mercury 삼합 (120°): 자연스러운 조화
+REL_Moon_Mercury_opposition,Moon,Mercury,opposition,Moon-Mercury 대립 (180°): 극적 균형
+REL_Moon_Mercury_quincunx,Moon,Mercury,quincunx,Moon-Mercury 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Mercury_semi_sextile,Moon,Mercury,semi_sextile,Moon-Mercury 반육분 (30°): 약한 연결
+REL_Moon_Mercury_sesqui_quadrate,Moon,Mercury,sesqui_quadrate,Moon-Mercury 세스퀴사각 (135°): 압박 조정
+REL_Moon_Mercury_quintile,Moon,Mercury,quintile,Moon-Mercury 퀸타일 (72°): 창조적 연결
+REL_Moon_Venus_conjunction,Moon,Venus,conjunction,Moon-Venus 합 (0°): 통합·집중
+REL_Moon_Venus_sextile,Moon,Venus,sextile,Moon-Venus 육분 (60°): 기회의 조화
+REL_Moon_Venus_square,Moon,Venus,square,Moon-Venus 사각 (90°): 도전 긴장
+REL_Moon_Venus_trine,Moon,Venus,trine,Moon-Venus 삼합 (120°): 자연스러운 조화
+REL_Moon_Venus_opposition,Moon,Venus,opposition,Moon-Venus 대립 (180°): 극적 균형
+REL_Moon_Venus_quincunx,Moon,Venus,quincunx,Moon-Venus 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Venus_semi_sextile,Moon,Venus,semi_sextile,Moon-Venus 반육분 (30°): 약한 연결
+REL_Moon_Venus_sesqui_quadrate,Moon,Venus,sesqui_quadrate,Moon-Venus 세스퀴사각 (135°): 압박 조정
+REL_Moon_Venus_quintile,Moon,Venus,quintile,Moon-Venus 퀸타일 (72°): 창조적 연결
+REL_Moon_Mars_conjunction,Moon,Mars,conjunction,Moon-Mars 합 (0°): 통합·집중
+REL_Moon_Mars_sextile,Moon,Mars,sextile,Moon-Mars 육분 (60°): 기회의 조화
+REL_Moon_Mars_square,Moon,Mars,square,Moon-Mars 사각 (90°): 도전 긴장
+REL_Moon_Mars_trine,Moon,Mars,trine,Moon-Mars 삼합 (120°): 자연스러운 조화
+REL_Moon_Mars_opposition,Moon,Mars,opposition,Moon-Mars 대립 (180°): 극적 균형
+REL_Moon_Mars_quincunx,Moon,Mars,quincunx,Moon-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Mars_semi_sextile,Moon,Mars,semi_sextile,Moon-Mars 반육분 (30°): 약한 연결
+REL_Moon_Mars_sesqui_quadrate,Moon,Mars,sesqui_quadrate,Moon-Mars 세스퀴사각 (135°): 압박 조정
+REL_Moon_Mars_quintile,Moon,Mars,quintile,Moon-Mars 퀸타일 (72°): 창조적 연결
+REL_Moon_Jupiter_conjunction,Moon,Jupiter,conjunction,Moon-Jupiter 합 (0°): 통합·집중
+REL_Moon_Jupiter_sextile,Moon,Jupiter,sextile,Moon-Jupiter 육분 (60°): 기회의 조화
+REL_Moon_Jupiter_square,Moon,Jupiter,square,Moon-Jupiter 사각 (90°): 도전 긴장
+REL_Moon_Jupiter_trine,Moon,Jupiter,trine,Moon-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Moon_Jupiter_opposition,Moon,Jupiter,opposition,Moon-Jupiter 대립 (180°): 극적 균형
+REL_Moon_Jupiter_quincunx,Moon,Jupiter,quincunx,Moon-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Jupiter_semi_sextile,Moon,Jupiter,semi_sextile,Moon-Jupiter 반육분 (30°): 약한 연결
+REL_Moon_Jupiter_sesqui_quadrate,Moon,Jupiter,sesqui_quadrate,Moon-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Moon_Jupiter_quintile,Moon,Jupiter,quintile,Moon-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Moon_Saturn_conjunction,Moon,Saturn,conjunction,Moon-Saturn 합 (0°): 통합·집중
+REL_Moon_Saturn_sextile,Moon,Saturn,sextile,Moon-Saturn 육분 (60°): 기회의 조화
+REL_Moon_Saturn_square,Moon,Saturn,square,Moon-Saturn 사각 (90°): 도전 긴장
+REL_Moon_Saturn_trine,Moon,Saturn,trine,Moon-Saturn 삼합 (120°): 자연스러운 조화
+REL_Moon_Saturn_opposition,Moon,Saturn,opposition,Moon-Saturn 대립 (180°): 극적 균형
+REL_Moon_Saturn_quincunx,Moon,Saturn,quincunx,Moon-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Saturn_semi_sextile,Moon,Saturn,semi_sextile,Moon-Saturn 반육분 (30°): 약한 연결
+REL_Moon_Saturn_sesqui_quadrate,Moon,Saturn,sesqui_quadrate,Moon-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Moon_Saturn_quintile,Moon,Saturn,quintile,Moon-Saturn 퀸타일 (72°): 창조적 연결
+REL_Moon_Uranus_conjunction,Moon,Uranus,conjunction,Moon-Uranus 합 (0°): 통합·집중
+REL_Moon_Uranus_sextile,Moon,Uranus,sextile,Moon-Uranus 육분 (60°): 기회의 조화
+REL_Moon_Uranus_square,Moon,Uranus,square,Moon-Uranus 사각 (90°): 도전 긴장
+REL_Moon_Uranus_trine,Moon,Uranus,trine,Moon-Uranus 삼합 (120°): 자연스러운 조화
+REL_Moon_Uranus_opposition,Moon,Uranus,opposition,Moon-Uranus 대립 (180°): 극적 균형
+REL_Moon_Uranus_quincunx,Moon,Uranus,quincunx,Moon-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Uranus_semi_sextile,Moon,Uranus,semi_sextile,Moon-Uranus 반육분 (30°): 약한 연결
+REL_Moon_Uranus_sesqui_quadrate,Moon,Uranus,sesqui_quadrate,Moon-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Moon_Uranus_quintile,Moon,Uranus,quintile,Moon-Uranus 퀸타일 (72°): 창조적 연결
+REL_Moon_Neptune_conjunction,Moon,Neptune,conjunction,Moon-Neptune 합 (0°): 통합·집중
+REL_Moon_Neptune_sextile,Moon,Neptune,sextile,Moon-Neptune 육분 (60°): 기회의 조화
+REL_Moon_Neptune_square,Moon,Neptune,square,Moon-Neptune 사각 (90°): 도전 긴장
+REL_Moon_Neptune_trine,Moon,Neptune,trine,Moon-Neptune 삼합 (120°): 자연스러운 조화
+REL_Moon_Neptune_opposition,Moon,Neptune,opposition,Moon-Neptune 대립 (180°): 극적 균형
+REL_Moon_Neptune_quincunx,Moon,Neptune,quincunx,Moon-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Neptune_semi_sextile,Moon,Neptune,semi_sextile,Moon-Neptune 반육분 (30°): 약한 연결
+REL_Moon_Neptune_sesqui_quadrate,Moon,Neptune,sesqui_quadrate,Moon-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Moon_Neptune_quintile,Moon,Neptune,quintile,Moon-Neptune 퀸타일 (72°): 창조적 연결
+REL_Moon_Pluto_conjunction,Moon,Pluto,conjunction,Moon-Pluto 합 (0°): 통합·집중
+REL_Moon_Pluto_sextile,Moon,Pluto,sextile,Moon-Pluto 육분 (60°): 기회의 조화
+REL_Moon_Pluto_square,Moon,Pluto,square,Moon-Pluto 사각 (90°): 도전 긴장
+REL_Moon_Pluto_trine,Moon,Pluto,trine,Moon-Pluto 삼합 (120°): 자연스러운 조화
+REL_Moon_Pluto_opposition,Moon,Pluto,opposition,Moon-Pluto 대립 (180°): 극적 균형
+REL_Moon_Pluto_quincunx,Moon,Pluto,quincunx,Moon-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Moon_Pluto_semi_sextile,Moon,Pluto,semi_sextile,Moon-Pluto 반육분 (30°): 약한 연결
+REL_Moon_Pluto_sesqui_quadrate,Moon,Pluto,sesqui_quadrate,Moon-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Moon_Pluto_quintile,Moon,Pluto,quintile,Moon-Pluto 퀸타일 (72°): 창조적 연결
+REL_Mercury_Venus_conjunction,Mercury,Venus,conjunction,Mercury-Venus 합 (0°): 통합·집중
+REL_Mercury_Venus_sextile,Mercury,Venus,sextile,Mercury-Venus 육분 (60°): 기회의 조화
+REL_Mercury_Venus_square,Mercury,Venus,square,Mercury-Venus 사각 (90°): 도전 긴장
+REL_Mercury_Venus_trine,Mercury,Venus,trine,Mercury-Venus 삼합 (120°): 자연스러운 조화
+REL_Mercury_Venus_opposition,Mercury,Venus,opposition,Mercury-Venus 대립 (180°): 극적 균형
+REL_Mercury_Venus_quincunx,Mercury,Venus,quincunx,Mercury-Venus 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Venus_semi_sextile,Mercury,Venus,semi_sextile,Mercury-Venus 반육분 (30°): 약한 연결
+REL_Mercury_Venus_sesqui_quadrate,Mercury,Venus,sesqui_quadrate,Mercury-Venus 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Venus_quintile,Mercury,Venus,quintile,Mercury-Venus 퀸타일 (72°): 창조적 연결
+REL_Mercury_Mars_conjunction,Mercury,Mars,conjunction,Mercury-Mars 합 (0°): 통합·집중
+REL_Mercury_Mars_sextile,Mercury,Mars,sextile,Mercury-Mars 육분 (60°): 기회의 조화
+REL_Mercury_Mars_square,Mercury,Mars,square,Mercury-Mars 사각 (90°): 도전 긴장
+REL_Mercury_Mars_trine,Mercury,Mars,trine,Mercury-Mars 삼합 (120°): 자연스러운 조화
+REL_Mercury_Mars_opposition,Mercury,Mars,opposition,Mercury-Mars 대립 (180°): 극적 균형
+REL_Mercury_Mars_quincunx,Mercury,Mars,quincunx,Mercury-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Mars_semi_sextile,Mercury,Mars,semi_sextile,Mercury-Mars 반육분 (30°): 약한 연결
+REL_Mercury_Mars_sesqui_quadrate,Mercury,Mars,sesqui_quadrate,Mercury-Mars 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Mars_quintile,Mercury,Mars,quintile,Mercury-Mars 퀸타일 (72°): 창조적 연결
+REL_Mercury_Jupiter_conjunction,Mercury,Jupiter,conjunction,Mercury-Jupiter 합 (0°): 통합·집중
+REL_Mercury_Jupiter_sextile,Mercury,Jupiter,sextile,Mercury-Jupiter 육분 (60°): 기회의 조화
+REL_Mercury_Jupiter_square,Mercury,Jupiter,square,Mercury-Jupiter 사각 (90°): 도전 긴장
+REL_Mercury_Jupiter_trine,Mercury,Jupiter,trine,Mercury-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Mercury_Jupiter_opposition,Mercury,Jupiter,opposition,Mercury-Jupiter 대립 (180°): 극적 균형
+REL_Mercury_Jupiter_quincunx,Mercury,Jupiter,quincunx,Mercury-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Jupiter_semi_sextile,Mercury,Jupiter,semi_sextile,Mercury-Jupiter 반육분 (30°): 약한 연결
+REL_Mercury_Jupiter_sesqui_quadrate,Mercury,Jupiter,sesqui_quadrate,Mercury-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Jupiter_quintile,Mercury,Jupiter,quintile,Mercury-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Mercury_Saturn_conjunction,Mercury,Saturn,conjunction,Mercury-Saturn 합 (0°): 통합·집중
+REL_Mercury_Saturn_sextile,Mercury,Saturn,sextile,Mercury-Saturn 육분 (60°): 기회의 조화
+REL_Mercury_Saturn_square,Mercury,Saturn,square,Mercury-Saturn 사각 (90°): 도전 긴장
+REL_Mercury_Saturn_trine,Mercury,Saturn,trine,Mercury-Saturn 삼합 (120°): 자연스러운 조화
+REL_Mercury_Saturn_opposition,Mercury,Saturn,opposition,Mercury-Saturn 대립 (180°): 극적 균형
+REL_Mercury_Saturn_quincunx,Mercury,Saturn,quincunx,Mercury-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Saturn_semi_sextile,Mercury,Saturn,semi_sextile,Mercury-Saturn 반육분 (30°): 약한 연결
+REL_Mercury_Saturn_sesqui_quadrate,Mercury,Saturn,sesqui_quadrate,Mercury-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Saturn_quintile,Mercury,Saturn,quintile,Mercury-Saturn 퀸타일 (72°): 창조적 연결
+REL_Mercury_Uranus_conjunction,Mercury,Uranus,conjunction,Mercury-Uranus 합 (0°): 통합·집중
+REL_Mercury_Uranus_sextile,Mercury,Uranus,sextile,Mercury-Uranus 육분 (60°): 기회의 조화
+REL_Mercury_Uranus_square,Mercury,Uranus,square,Mercury-Uranus 사각 (90°): 도전 긴장
+REL_Mercury_Uranus_trine,Mercury,Uranus,trine,Mercury-Uranus 삼합 (120°): 자연스러운 조화
+REL_Mercury_Uranus_opposition,Mercury,Uranus,opposition,Mercury-Uranus 대립 (180°): 극적 균형
+REL_Mercury_Uranus_quincunx,Mercury,Uranus,quincunx,Mercury-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Uranus_semi_sextile,Mercury,Uranus,semi_sextile,Mercury-Uranus 반육분 (30°): 약한 연결
+REL_Mercury_Uranus_sesqui_quadrate,Mercury,Uranus,sesqui_quadrate,Mercury-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Uranus_quintile,Mercury,Uranus,quintile,Mercury-Uranus 퀸타일 (72°): 창조적 연결
+REL_Mercury_Neptune_conjunction,Mercury,Neptune,conjunction,Mercury-Neptune 합 (0°): 통합·집중
+REL_Mercury_Neptune_sextile,Mercury,Neptune,sextile,Mercury-Neptune 육분 (60°): 기회의 조화
+REL_Mercury_Neptune_square,Mercury,Neptune,square,Mercury-Neptune 사각 (90°): 도전 긴장
+REL_Mercury_Neptune_trine,Mercury,Neptune,trine,Mercury-Neptune 삼합 (120°): 자연스러운 조화
+REL_Mercury_Neptune_opposition,Mercury,Neptune,opposition,Mercury-Neptune 대립 (180°): 극적 균형
+REL_Mercury_Neptune_quincunx,Mercury,Neptune,quincunx,Mercury-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Neptune_semi_sextile,Mercury,Neptune,semi_sextile,Mercury-Neptune 반육분 (30°): 약한 연결
+REL_Mercury_Neptune_sesqui_quadrate,Mercury,Neptune,sesqui_quadrate,Mercury-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Neptune_quintile,Mercury,Neptune,quintile,Mercury-Neptune 퀸타일 (72°): 창조적 연결
+REL_Mercury_Pluto_conjunction,Mercury,Pluto,conjunction,Mercury-Pluto 합 (0°): 통합·집중
+REL_Mercury_Pluto_sextile,Mercury,Pluto,sextile,Mercury-Pluto 육분 (60°): 기회의 조화
+REL_Mercury_Pluto_square,Mercury,Pluto,square,Mercury-Pluto 사각 (90°): 도전 긴장
+REL_Mercury_Pluto_trine,Mercury,Pluto,trine,Mercury-Pluto 삼합 (120°): 자연스러운 조화
+REL_Mercury_Pluto_opposition,Mercury,Pluto,opposition,Mercury-Pluto 대립 (180°): 극적 균형
+REL_Mercury_Pluto_quincunx,Mercury,Pluto,quincunx,Mercury-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Mercury_Pluto_semi_sextile,Mercury,Pluto,semi_sextile,Mercury-Pluto 반육분 (30°): 약한 연결
+REL_Mercury_Pluto_sesqui_quadrate,Mercury,Pluto,sesqui_quadrate,Mercury-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Mercury_Pluto_quintile,Mercury,Pluto,quintile,Mercury-Pluto 퀸타일 (72°): 창조적 연결
+REL_Venus_Mars_conjunction,Venus,Mars,conjunction,Venus-Mars 합 (0°): 통합·집중
+REL_Venus_Mars_sextile,Venus,Mars,sextile,Venus-Mars 육분 (60°): 기회의 조화
+REL_Venus_Mars_square,Venus,Mars,square,Venus-Mars 사각 (90°): 도전 긴장
+REL_Venus_Mars_trine,Venus,Mars,trine,Venus-Mars 삼합 (120°): 자연스러운 조화
+REL_Venus_Mars_opposition,Venus,Mars,opposition,Venus-Mars 대립 (180°): 극적 균형
+REL_Venus_Mars_quincunx,Venus,Mars,quincunx,Venus-Mars 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Mars_semi_sextile,Venus,Mars,semi_sextile,Venus-Mars 반육분 (30°): 약한 연결
+REL_Venus_Mars_sesqui_quadrate,Venus,Mars,sesqui_quadrate,Venus-Mars 세스퀴사각 (135°): 압박 조정
+REL_Venus_Mars_quintile,Venus,Mars,quintile,Venus-Mars 퀸타일 (72°): 창조적 연결
+REL_Venus_Jupiter_conjunction,Venus,Jupiter,conjunction,Venus-Jupiter 합 (0°): 통합·집중
+REL_Venus_Jupiter_sextile,Venus,Jupiter,sextile,Venus-Jupiter 육분 (60°): 기회의 조화
+REL_Venus_Jupiter_square,Venus,Jupiter,square,Venus-Jupiter 사각 (90°): 도전 긴장
+REL_Venus_Jupiter_trine,Venus,Jupiter,trine,Venus-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Venus_Jupiter_opposition,Venus,Jupiter,opposition,Venus-Jupiter 대립 (180°): 극적 균형
+REL_Venus_Jupiter_quincunx,Venus,Jupiter,quincunx,Venus-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Jupiter_semi_sextile,Venus,Jupiter,semi_sextile,Venus-Jupiter 반육분 (30°): 약한 연결
+REL_Venus_Jupiter_sesqui_quadrate,Venus,Jupiter,sesqui_quadrate,Venus-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Venus_Jupiter_quintile,Venus,Jupiter,quintile,Venus-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Venus_Saturn_conjunction,Venus,Saturn,conjunction,Venus-Saturn 합 (0°): 통합·집중
+REL_Venus_Saturn_sextile,Venus,Saturn,sextile,Venus-Saturn 육분 (60°): 기회의 조화
+REL_Venus_Saturn_square,Venus,Saturn,square,Venus-Saturn 사각 (90°): 도전 긴장
+REL_Venus_Saturn_trine,Venus,Saturn,trine,Venus-Saturn 삼합 (120°): 자연스러운 조화
+REL_Venus_Saturn_opposition,Venus,Saturn,opposition,Venus-Saturn 대립 (180°): 극적 균형
+REL_Venus_Saturn_quincunx,Venus,Saturn,quincunx,Venus-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Saturn_semi_sextile,Venus,Saturn,semi_sextile,Venus-Saturn 반육분 (30°): 약한 연결
+REL_Venus_Saturn_sesqui_quadrate,Venus,Saturn,sesqui_quadrate,Venus-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Venus_Saturn_quintile,Venus,Saturn,quintile,Venus-Saturn 퀸타일 (72°): 창조적 연결
+REL_Venus_Uranus_conjunction,Venus,Uranus,conjunction,Venus-Uranus 합 (0°): 통합·집중
+REL_Venus_Uranus_sextile,Venus,Uranus,sextile,Venus-Uranus 육분 (60°): 기회의 조화
+REL_Venus_Uranus_square,Venus,Uranus,square,Venus-Uranus 사각 (90°): 도전 긴장
+REL_Venus_Uranus_trine,Venus,Uranus,trine,Venus-Uranus 삼합 (120°): 자연스러운 조화
+REL_Venus_Uranus_opposition,Venus,Uranus,opposition,Venus-Uranus 대립 (180°): 극적 균형
+REL_Venus_Uranus_quincunx,Venus,Uranus,quincunx,Venus-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Uranus_semi_sextile,Venus,Uranus,semi_sextile,Venus-Uranus 반육분 (30°): 약한 연결
+REL_Venus_Uranus_sesqui_quadrate,Venus,Uranus,sesqui_quadrate,Venus-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Venus_Uranus_quintile,Venus,Uranus,quintile,Venus-Uranus 퀸타일 (72°): 창조적 연결
+REL_Venus_Neptune_conjunction,Venus,Neptune,conjunction,Venus-Neptune 합 (0°): 통합·집중
+REL_Venus_Neptune_sextile,Venus,Neptune,sextile,Venus-Neptune 육분 (60°): 기회의 조화
+REL_Venus_Neptune_square,Venus,Neptune,square,Venus-Neptune 사각 (90°): 도전 긴장
+REL_Venus_Neptune_trine,Venus,Neptune,trine,Venus-Neptune 삼합 (120°): 자연스러운 조화
+REL_Venus_Neptune_opposition,Venus,Neptune,opposition,Venus-Neptune 대립 (180°): 극적 균형
+REL_Venus_Neptune_quincunx,Venus,Neptune,quincunx,Venus-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Neptune_semi_sextile,Venus,Neptune,semi_sextile,Venus-Neptune 반육분 (30°): 약한 연결
+REL_Venus_Neptune_sesqui_quadrate,Venus,Neptune,sesqui_quadrate,Venus-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Venus_Neptune_quintile,Venus,Neptune,quintile,Venus-Neptune 퀸타일 (72°): 창조적 연결
+REL_Venus_Pluto_conjunction,Venus,Pluto,conjunction,Venus-Pluto 합 (0°): 통합·집중
+REL_Venus_Pluto_sextile,Venus,Pluto,sextile,Venus-Pluto 육분 (60°): 기회의 조화
+REL_Venus_Pluto_square,Venus,Pluto,square,Venus-Pluto 사각 (90°): 도전 긴장
+REL_Venus_Pluto_trine,Venus,Pluto,trine,Venus-Pluto 삼합 (120°): 자연스러운 조화
+REL_Venus_Pluto_opposition,Venus,Pluto,opposition,Venus-Pluto 대립 (180°): 극적 균형
+REL_Venus_Pluto_quincunx,Venus,Pluto,quincunx,Venus-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Venus_Pluto_semi_sextile,Venus,Pluto,semi_sextile,Venus-Pluto 반육분 (30°): 약한 연결
+REL_Venus_Pluto_sesqui_quadrate,Venus,Pluto,sesqui_quadrate,Venus-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Venus_Pluto_quintile,Venus,Pluto,quintile,Venus-Pluto 퀸타일 (72°): 창조적 연결
+REL_Mars_Jupiter_conjunction,Mars,Jupiter,conjunction,Mars-Jupiter 합 (0°): 통합·집중
+REL_Mars_Jupiter_sextile,Mars,Jupiter,sextile,Mars-Jupiter 육분 (60°): 기회의 조화
+REL_Mars_Jupiter_square,Mars,Jupiter,square,Mars-Jupiter 사각 (90°): 도전 긴장
+REL_Mars_Jupiter_trine,Mars,Jupiter,trine,Mars-Jupiter 삼합 (120°): 자연스러운 조화
+REL_Mars_Jupiter_opposition,Mars,Jupiter,opposition,Mars-Jupiter 대립 (180°): 극적 균형
+REL_Mars_Jupiter_quincunx,Mars,Jupiter,quincunx,Mars-Jupiter 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Jupiter_semi_sextile,Mars,Jupiter,semi_sextile,Mars-Jupiter 반육분 (30°): 약한 연결
+REL_Mars_Jupiter_sesqui_quadrate,Mars,Jupiter,sesqui_quadrate,Mars-Jupiter 세스퀴사각 (135°): 압박 조정
+REL_Mars_Jupiter_quintile,Mars,Jupiter,quintile,Mars-Jupiter 퀸타일 (72°): 창조적 연결
+REL_Mars_Saturn_conjunction,Mars,Saturn,conjunction,Mars-Saturn 합 (0°): 통합·집중
+REL_Mars_Saturn_sextile,Mars,Saturn,sextile,Mars-Saturn 육분 (60°): 기회의 조화
+REL_Mars_Saturn_square,Mars,Saturn,square,Mars-Saturn 사각 (90°): 도전 긴장
+REL_Mars_Saturn_trine,Mars,Saturn,trine,Mars-Saturn 삼합 (120°): 자연스러운 조화
+REL_Mars_Saturn_opposition,Mars,Saturn,opposition,Mars-Saturn 대립 (180°): 극적 균형
+REL_Mars_Saturn_quincunx,Mars,Saturn,quincunx,Mars-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Saturn_semi_sextile,Mars,Saturn,semi_sextile,Mars-Saturn 반육분 (30°): 약한 연결
+REL_Mars_Saturn_sesqui_quadrate,Mars,Saturn,sesqui_quadrate,Mars-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Mars_Saturn_quintile,Mars,Saturn,quintile,Mars-Saturn 퀸타일 (72°): 창조적 연결
+REL_Mars_Uranus_conjunction,Mars,Uranus,conjunction,Mars-Uranus 합 (0°): 통합·집중
+REL_Mars_Uranus_sextile,Mars,Uranus,sextile,Mars-Uranus 육분 (60°): 기회의 조화
+REL_Mars_Uranus_square,Mars,Uranus,square,Mars-Uranus 사각 (90°): 도전 긴장
+REL_Mars_Uranus_trine,Mars,Uranus,trine,Mars-Uranus 삼합 (120°): 자연스러운 조화
+REL_Mars_Uranus_opposition,Mars,Uranus,opposition,Mars-Uranus 대립 (180°): 극적 균형
+REL_Mars_Uranus_quincunx,Mars,Uranus,quincunx,Mars-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Uranus_semi_sextile,Mars,Uranus,semi_sextile,Mars-Uranus 반육분 (30°): 약한 연결
+REL_Mars_Uranus_sesqui_quadrate,Mars,Uranus,sesqui_quadrate,Mars-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Mars_Uranus_quintile,Mars,Uranus,quintile,Mars-Uranus 퀸타일 (72°): 창조적 연결
+REL_Mars_Neptune_conjunction,Mars,Neptune,conjunction,Mars-Neptune 합 (0°): 통합·집중
+REL_Mars_Neptune_sextile,Mars,Neptune,sextile,Mars-Neptune 육분 (60°): 기회의 조화
+REL_Mars_Neptune_square,Mars,Neptune,square,Mars-Neptune 사각 (90°): 도전 긴장
+REL_Mars_Neptune_trine,Mars,Neptune,trine,Mars-Neptune 삼합 (120°): 자연스러운 조화
+REL_Mars_Neptune_opposition,Mars,Neptune,opposition,Mars-Neptune 대립 (180°): 극적 균형
+REL_Mars_Neptune_quincunx,Mars,Neptune,quincunx,Mars-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Neptune_semi_sextile,Mars,Neptune,semi_sextile,Mars-Neptune 반육분 (30°): 약한 연결
+REL_Mars_Neptune_sesqui_quadrate,Mars,Neptune,sesqui_quadrate,Mars-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Mars_Neptune_quintile,Mars,Neptune,quintile,Mars-Neptune 퀸타일 (72°): 창조적 연결
+REL_Mars_Pluto_conjunction,Mars,Pluto,conjunction,Mars-Pluto 합 (0°): 통합·집중
+REL_Mars_Pluto_sextile,Mars,Pluto,sextile,Mars-Pluto 육분 (60°): 기회의 조화
+REL_Mars_Pluto_square,Mars,Pluto,square,Mars-Pluto 사각 (90°): 도전 긴장
+REL_Mars_Pluto_trine,Mars,Pluto,trine,Mars-Pluto 삼합 (120°): 자연스러운 조화
+REL_Mars_Pluto_opposition,Mars,Pluto,opposition,Mars-Pluto 대립 (180°): 극적 균형
+REL_Mars_Pluto_quincunx,Mars,Pluto,quincunx,Mars-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Mars_Pluto_semi_sextile,Mars,Pluto,semi_sextile,Mars-Pluto 반육분 (30°): 약한 연결
+REL_Mars_Pluto_sesqui_quadrate,Mars,Pluto,sesqui_quadrate,Mars-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Mars_Pluto_quintile,Mars,Pluto,quintile,Mars-Pluto 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Saturn_conjunction,Jupiter,Saturn,conjunction,Jupiter-Saturn 합 (0°): 통합·집중
+REL_Jupiter_Saturn_sextile,Jupiter,Saturn,sextile,Jupiter-Saturn 육분 (60°): 기회의 조화
+REL_Jupiter_Saturn_square,Jupiter,Saturn,square,Jupiter-Saturn 사각 (90°): 도전 긴장
+REL_Jupiter_Saturn_trine,Jupiter,Saturn,trine,Jupiter-Saturn 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Saturn_opposition,Jupiter,Saturn,opposition,Jupiter-Saturn 대립 (180°): 극적 균형
+REL_Jupiter_Saturn_quincunx,Jupiter,Saturn,quincunx,Jupiter-Saturn 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Saturn_semi_sextile,Jupiter,Saturn,semi_sextile,Jupiter-Saturn 반육분 (30°): 약한 연결
+REL_Jupiter_Saturn_sesqui_quadrate,Jupiter,Saturn,sesqui_quadrate,Jupiter-Saturn 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Saturn_quintile,Jupiter,Saturn,quintile,Jupiter-Saturn 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Uranus_conjunction,Jupiter,Uranus,conjunction,Jupiter-Uranus 합 (0°): 통합·집중
+REL_Jupiter_Uranus_sextile,Jupiter,Uranus,sextile,Jupiter-Uranus 육분 (60°): 기회의 조화
+REL_Jupiter_Uranus_square,Jupiter,Uranus,square,Jupiter-Uranus 사각 (90°): 도전 긴장
+REL_Jupiter_Uranus_trine,Jupiter,Uranus,trine,Jupiter-Uranus 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Uranus_opposition,Jupiter,Uranus,opposition,Jupiter-Uranus 대립 (180°): 극적 균형
+REL_Jupiter_Uranus_quincunx,Jupiter,Uranus,quincunx,Jupiter-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Uranus_semi_sextile,Jupiter,Uranus,semi_sextile,Jupiter-Uranus 반육분 (30°): 약한 연결
+REL_Jupiter_Uranus_sesqui_quadrate,Jupiter,Uranus,sesqui_quadrate,Jupiter-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Uranus_quintile,Jupiter,Uranus,quintile,Jupiter-Uranus 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Neptune_conjunction,Jupiter,Neptune,conjunction,Jupiter-Neptune 합 (0°): 통합·집중
+REL_Jupiter_Neptune_sextile,Jupiter,Neptune,sextile,Jupiter-Neptune 육분 (60°): 기회의 조화
+REL_Jupiter_Neptune_square,Jupiter,Neptune,square,Jupiter-Neptune 사각 (90°): 도전 긴장
+REL_Jupiter_Neptune_trine,Jupiter,Neptune,trine,Jupiter-Neptune 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Neptune_opposition,Jupiter,Neptune,opposition,Jupiter-Neptune 대립 (180°): 극적 균형
+REL_Jupiter_Neptune_quincunx,Jupiter,Neptune,quincunx,Jupiter-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Neptune_semi_sextile,Jupiter,Neptune,semi_sextile,Jupiter-Neptune 반육분 (30°): 약한 연결
+REL_Jupiter_Neptune_sesqui_quadrate,Jupiter,Neptune,sesqui_quadrate,Jupiter-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Neptune_quintile,Jupiter,Neptune,quintile,Jupiter-Neptune 퀸타일 (72°): 창조적 연결
+REL_Jupiter_Pluto_conjunction,Jupiter,Pluto,conjunction,Jupiter-Pluto 합 (0°): 통합·집중
+REL_Jupiter_Pluto_sextile,Jupiter,Pluto,sextile,Jupiter-Pluto 육분 (60°): 기회의 조화
+REL_Jupiter_Pluto_square,Jupiter,Pluto,square,Jupiter-Pluto 사각 (90°): 도전 긴장
+REL_Jupiter_Pluto_trine,Jupiter,Pluto,trine,Jupiter-Pluto 삼합 (120°): 자연스러운 조화
+REL_Jupiter_Pluto_opposition,Jupiter,Pluto,opposition,Jupiter-Pluto 대립 (180°): 극적 균형
+REL_Jupiter_Pluto_quincunx,Jupiter,Pluto,quincunx,Jupiter-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Jupiter_Pluto_semi_sextile,Jupiter,Pluto,semi_sextile,Jupiter-Pluto 반육분 (30°): 약한 연결
+REL_Jupiter_Pluto_sesqui_quadrate,Jupiter,Pluto,sesqui_quadrate,Jupiter-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Jupiter_Pluto_quintile,Jupiter,Pluto,quintile,Jupiter-Pluto 퀸타일 (72°): 창조적 연결
+REL_Saturn_Uranus_conjunction,Saturn,Uranus,conjunction,Saturn-Uranus 합 (0°): 통합·집중
+REL_Saturn_Uranus_sextile,Saturn,Uranus,sextile,Saturn-Uranus 육분 (60°): 기회의 조화
+REL_Saturn_Uranus_square,Saturn,Uranus,square,Saturn-Uranus 사각 (90°): 도전 긴장
+REL_Saturn_Uranus_trine,Saturn,Uranus,trine,Saturn-Uranus 삼합 (120°): 자연스러운 조화
+REL_Saturn_Uranus_opposition,Saturn,Uranus,opposition,Saturn-Uranus 대립 (180°): 극적 균형
+REL_Saturn_Uranus_quincunx,Saturn,Uranus,quincunx,Saturn-Uranus 퀸컨크스 (150°): 조율 불균형
+REL_Saturn_Uranus_semi_sextile,Saturn,Uranus,semi_sextile,Saturn-Uranus 반육분 (30°): 약한 연결
+REL_Saturn_Uranus_sesqui_quadrate,Saturn,Uranus,sesqui_quadrate,Saturn-Uranus 세스퀴사각 (135°): 압박 조정
+REL_Saturn_Uranus_quintile,Saturn,Uranus,quintile,Saturn-Uranus 퀸타일 (72°): 창조적 연결
+REL_Saturn_Neptune_conjunction,Saturn,Neptune,conjunction,Saturn-Neptune 합 (0°): 통합·집중
+REL_Saturn_Neptune_sextile,Saturn,Neptune,sextile,Saturn-Neptune 육분 (60°): 기회의 조화
+REL_Saturn_Neptune_square,Saturn,Neptune,square,Saturn-Neptune 사각 (90°): 도전 긴장
+REL_Saturn_Neptune_trine,Saturn,Neptune,trine,Saturn-Neptune 삼합 (120°): 자연스러운 조화
+REL_Saturn_Neptune_opposition,Saturn,Neptune,opposition,Saturn-Neptune 대립 (180°): 극적 균형
+REL_Saturn_Neptune_quincunx,Saturn,Neptune,quincunx,Saturn-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Saturn_Neptune_semi_sextile,Saturn,Neptune,semi_sextile,Saturn-Neptune 반육분 (30°): 약한 연결
+REL_Saturn_Neptune_sesqui_quadrate,Saturn,Neptune,sesqui_quadrate,Saturn-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Saturn_Neptune_quintile,Saturn,Neptune,quintile,Saturn-Neptune 퀸타일 (72°): 창조적 연결
+REL_Saturn_Pluto_conjunction,Saturn,Pluto,conjunction,Saturn-Pluto 합 (0°): 통합·집중
+REL_Saturn_Pluto_sextile,Saturn,Pluto,sextile,Saturn-Pluto 육분 (60°): 기회의 조화
+REL_Saturn_Pluto_square,Saturn,Pluto,square,Saturn-Pluto 사각 (90°): 도전 긴장
+REL_Saturn_Pluto_trine,Saturn,Pluto,trine,Saturn-Pluto 삼합 (120°): 자연스러운 조화
+REL_Saturn_Pluto_opposition,Saturn,Pluto,opposition,Saturn-Pluto 대립 (180°): 극적 균형
+REL_Saturn_Pluto_quincunx,Saturn,Pluto,quincunx,Saturn-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Saturn_Pluto_semi_sextile,Saturn,Pluto,semi_sextile,Saturn-Pluto 반육분 (30°): 약한 연결
+REL_Saturn_Pluto_sesqui_quadrate,Saturn,Pluto,sesqui_quadrate,Saturn-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Saturn_Pluto_quintile,Saturn,Pluto,quintile,Saturn-Pluto 퀸타일 (72°): 창조적 연결
+REL_Uranus_Neptune_conjunction,Uranus,Neptune,conjunction,Uranus-Neptune 합 (0°): 통합·집중
+REL_Uranus_Neptune_sextile,Uranus,Neptune,sextile,Uranus-Neptune 육분 (60°): 기회의 조화
+REL_Uranus_Neptune_square,Uranus,Neptune,square,Uranus-Neptune 사각 (90°): 도전 긴장
+REL_Uranus_Neptune_trine,Uranus,Neptune,trine,Uranus-Neptune 삼합 (120°): 자연스러운 조화
+REL_Uranus_Neptune_opposition,Uranus,Neptune,opposition,Uranus-Neptune 대립 (180°): 극적 균형
+REL_Uranus_Neptune_quincunx,Uranus,Neptune,quincunx,Uranus-Neptune 퀸컨크스 (150°): 조율 불균형
+REL_Uranus_Neptune_semi_sextile,Uranus,Neptune,semi_sextile,Uranus-Neptune 반육분 (30°): 약한 연결
+REL_Uranus_Neptune_sesqui_quadrate,Uranus,Neptune,sesqui_quadrate,Uranus-Neptune 세스퀴사각 (135°): 압박 조정
+REL_Uranus_Neptune_quintile,Uranus,Neptune,quintile,Uranus-Neptune 퀸타일 (72°): 창조적 연결
+REL_Uranus_Pluto_conjunction,Uranus,Pluto,conjunction,Uranus-Pluto 합 (0°): 통합·집중
+REL_Uranus_Pluto_sextile,Uranus,Pluto,sextile,Uranus-Pluto 육분 (60°): 기회의 조화
+REL_Uranus_Pluto_square,Uranus,Pluto,square,Uranus-Pluto 사각 (90°): 도전 긴장
+REL_Uranus_Pluto_trine,Uranus,Pluto,trine,Uranus-Pluto 삼합 (120°): 자연스러운 조화
+REL_Uranus_Pluto_opposition,Uranus,Pluto,opposition,Uranus-Pluto 대립 (180°): 극적 균형
+REL_Uranus_Pluto_quincunx,Uranus,Pluto,quincunx,Uranus-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Uranus_Pluto_semi_sextile,Uranus,Pluto,semi_sextile,Uranus-Pluto 반육분 (30°): 약한 연결
+REL_Uranus_Pluto_sesqui_quadrate,Uranus,Pluto,sesqui_quadrate,Uranus-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Uranus_Pluto_quintile,Uranus,Pluto,quintile,Uranus-Pluto 퀸타일 (72°): 창조적 연결
+REL_Neptune_Pluto_conjunction,Neptune,Pluto,conjunction,Neptune-Pluto 합 (0°): 통합·집중
+REL_Neptune_Pluto_sextile,Neptune,Pluto,sextile,Neptune-Pluto 육분 (60°): 기회의 조화
+REL_Neptune_Pluto_square,Neptune,Pluto,square,Neptune-Pluto 사각 (90°): 도전 긴장
+REL_Neptune_Pluto_trine,Neptune,Pluto,trine,Neptune-Pluto 삼합 (120°): 자연스러운 조화
+REL_Neptune_Pluto_opposition,Neptune,Pluto,opposition,Neptune-Pluto 대립 (180°): 극적 균형
+REL_Neptune_Pluto_quincunx,Neptune,Pluto,quincunx,Neptune-Pluto 퀸컨크스 (150°): 조율 불균형
+REL_Neptune_Pluto_semi_sextile,Neptune,Pluto,semi_sextile,Neptune-Pluto 반육분 (30°): 약한 연결
+REL_Neptune_Pluto_sesqui_quadrate,Neptune,Pluto,sesqui_quadrate,Neptune-Pluto 세스퀴사각 (135°): 압박 조정
+REL_Neptune_Pluto_quintile,Neptune,Pluto,quintile,Neptune-Pluto 퀸타일 (72°): 창조적 연결

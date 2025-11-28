@@ -1,4 +1,4 @@
-//src/lib/Saju/timezone.ts//
+// src/lib/Saju/timezone.ts
 
 export function getSupportedTimezones(): string[] {
   const anyIntl = Intl as any;
@@ -43,23 +43,42 @@ export function getUserTimezone(): string {
   }
 }
 
+/**
+ * 내부 캐시: 같은 timeZone에 대해 Intl.DateTimeFormat 인스턴스를 재사용하여 성능 개선
+ * 주의: Node 런타임의 ICU 구성에 따라 지원 타임존이 달라질 수 있음(컨테이너/이미지별 차이).
+ */
+const dtfCache = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * 주어진 UTC 시각(instantUTC)에서 특정 timeZone의 오프셋(분)을 계산
+ * 반환값: offset minutes (예: KST는 540)
+ * 유효하지 않은 timeZone 등 오류 시 0을 반환(UTC와 구분 필요하면 로직을 number | null로 바꿔도 됨)
+ */
 export function getOffsetMinutes(instantUTC: Date, timeZone: string): number {
-  // timeZone 유효성 확인: 잘못되면 UTC로 처리
+  // timeZone 유효성 확인: 잘못되면 UTC로 처리(여기선 0 리턴)
   try {
     new Intl.DateTimeFormat('en-US', { timeZone });
   } catch {
     return 0;
   }
 
-  let dtf: Intl.DateTimeFormat;
-  try {
-    dtf = new Intl.DateTimeFormat('en-US', {
-      timeZone, hour12: false,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
-  } catch {
-    return 0;
+  let dtf = dtfCache.get(timeZone);
+  if (!dtf) {
+    try {
+      dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      dtfCache.set(timeZone, dtf);
+    } catch {
+      return 0;
+    }
   }
 
   let parts: Intl.DateTimeFormatPart[];
@@ -69,7 +88,7 @@ export function getOffsetMinutes(instantUTC: Date, timeZone: string): number {
     return 0;
   }
 
-  const map = Object.fromEntries(parts.map(p => [p.type, p.value])) as Record<string,string>;
+  const map = Object.fromEntries(parts.map(p => [p.type, p.value])) as Record<string, string>;
   const y = Number(map.year);
   const mo = Number(map.month);
   const d = Number(map.day);

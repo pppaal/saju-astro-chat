@@ -1,99 +1,153 @@
+//src/components/destiny-map/Display.tsx
+
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify";
 import type { DestinyResult } from "./Analyzer";
-import styles from "@/app/destiny-map/result/result.module.css";
 import Chat from "./Chat";
+import styles from "@/app/destiny-map/result/result.module.css";
 
-// 5개 언어용 간단 i18n
-const I18N = {
-  en: {
-    hello: (name: string) => `Hello, ${name}`,
-    intro: "Here is your life path analysis (based on Saju/Astrology).",
-    followup: "Ask a Follow-up Question",
-    userFallback: "User",
-    analysisFallback: "Failed to load the analysis result.",
-  },
-  ko: {
-    hello: (name: string) => `안녕하세요, ${name}`,
-    intro: "사주/점성술 기반의 삶의 길 분석입니다.",
-    followup: "후속 질문하기",
-    userFallback: "사용자",
-    analysisFallback: "분석 결과를 불러오지 못했습니다.",
-  },
-  ja: {
-    hello: (name: string) => `こんにちは、${name} さん`,
-    intro: "四柱推命／占星術に基づくライフパス分析です。",
-    followup: "追質問する",
-    userFallback: "ユーザー",
-    analysisFallback: "分析結果の読み込みに失敗しました。",
-  },
-  zh: {
-    hello: (name: string) => `你好，${name}`,
-    intro: "基于四柱／西方占星的生命路径分析。",
-    followup: "继续提问",
-    userFallback: "用户",
-    analysisFallback: "无法加载分析结果。",
-  },
-  es: {
-    hello: (name: string) => `Hola, ${name}`,
-    intro: "Análisis de tu camino de vida (basado en Saju/Astrología).",
-    followup: "Haz una pregunta de seguimiento",
-    userFallback: "Usuario",
-    analysisFallback: "No se pudo cargar el resultado del análisis.",
-  },
-} as const;
+type LangKey = "en" | "ko" | "ja" | "zh" | "es";
+type ReportType = "core" | "timing" | "compat";
 
-type LangKey = keyof typeof I18N;
+const KO = {
+  userFallback: "사용자",
+  analysisFallback: "분석 결과를 불러오지 못했습니다.",
+  tagline: {
+    core: (label: string) =>
+      `사주 흐름과 서양 분석을 통합한 요약입니다 · Theme: ${label}`,
+  },
+  followup: "후속 질문하기",
+};
+const EN = {
+  userFallback: "User",
+  analysisFallback: "Failed to load analysis.",
+  tagline: { core: (label: string) => `Integrated summary · Theme: ${label}` },
+  followup: "Ask a follow‑up question",
+};
+const I18N: Record<LangKey, any> = { ko: KO, en: EN, ja: EN, zh: EN, es: EN };
 
-type DisplayProps = {
+export default function Display({
+  result,
+  lang = "ko",
+  theme,
+  reportType = "core",
+}: {
   result: DestinyResult;
   lang?: LangKey;
-};
+  theme?: string;
+  reportType?: ReportType;
+}) {
+  const tr = I18N[lang] ?? I18N.ko;
 
-export default function Display({ result, lang = "en" }: DisplayProps) {
-  const tr = I18N[lang] ?? I18N.en;
+  if ((result as any)?.error) {
+    return (
+      <div className={styles.summary}>
+        ⚠️ 분석 요청 중 오류:
+        {(result as any).errorMessage || (result as any).error}
+      </div>
+    );
+  }
 
-  // 이름 및 분석 텍스트
-  const name = result.profile.name?.trim() || tr.userFallback;
-  const analysisText = result.interpretation || tr.analysisFallback;
+  const themeKeys = Object.keys(result?.themes || {});
+  const [activeTheme, setActiveTheme] = useState(
+    theme || themeKeys[0] || "focus_overall"
+  );
 
-  // 칩 데이터(현재 없음)
-  const chips: string[] = [];
+  const themed = result?.themes?.[activeTheme];
+  const name = result?.profile?.name?.trim() || tr.userFallback;
 
-  // 채팅 컨텍스트: 전체 분석 텍스트를 전달
-  const chatContext = analysisText;
+  // ✅ 개요, 성향, 조언 헤더 바로 뒤에 줄바꿈 없을 경우 자동 \n\n 추가
+// ✅ 헤딩(개요/성향/조언) 뒤 누락 개행 자동 보정
+  const fixedText =
+    typeof themed?.interpretation === "string"
+      ? themed.interpretation
+          // ##, ###, # # 등 모든 헤더 뒤 줄 바꿈 보정
+          .replace(/(#+\s*(개요|성향|조언)\s*)(?![\r\n])/g, "$1\n\n")
+          // 혹시 붙은 ## ## 중복 처리
+          .replace(/##+\s*/g, "## ")
+      : tr.analysisFallback;
 
   return (
     <div>
-      <div className={styles.section}>
-        <h2 className={styles.h2}>{tr.hello(name)}</h2>
-        <p style={{ margin: "6px 0 0", opacity: 0.9 }}>
-          {tr.intro}
-        </p>
-      </div>
-
-      {chips.length > 0 && (
-        <div className={styles.section}>
-          {chips.map((h: string, i: number) => (
-            <span key={i} className={styles.badge}>{h}</span>
+      {/* 테마 탭 */}
+      {themeKeys.length > 1 && (
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
+          {themeKeys.map((key) => (
+            <button
+              key={key}
+              onClick={() => setActiveTheme(key)}
+              className={styles.badge}
+              aria-pressed={activeTheme === key}
+              style={{
+                background: activeTheme === key ? "#2563eb" : "transparent",
+                color: activeTheme === key ? "#fff" : "inherit",
+                borderColor: activeTheme === key ? "#2563eb" : "#4b5563",
+                padding: "6px 12px",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+            >
+              {key}
+            </button>
           ))}
         </div>
       )}
 
-      <div className={styles.section}>
-        <div className={styles.summary}>
-          {/* Markdown을 쓰려면 react-markdown으로 교체 가능 */}
-          <pre style={{ whiteSpace: "pre-wrap", margin: 0, fontFamily: "inherit" }}>
-            {analysisText}
-          </pre>
+      {/* Header */}
+      <div className={styles.header}>
+        <h2 className={styles.title}>{activeTheme} 리포트</h2>
+        <p className={styles.subtitle}>
+          {tr.tagline.core(activeTheme || "report")}
+        </p>
+        <div className={styles.profile}>
+          <span className={styles.kv}>🌿 이름: {name}</span>
         </div>
       </div>
 
+      {/* 본문 */}
+      <div className={styles.summary}>
+        <ReactMarkdown
+          skipHtml={true}
+          components={{
+            h1: ({ node, ...props }) => <h2 className={styles.h2} {...props} />,
+            h2: ({ node, ...props }) => <h3 className={styles.h2} {...props} />,
+            ul: ({ node, ...props }) => (
+              <ul style={{ marginLeft: 20, lineHeight: 1.7 }} {...props} />
+            ),
+            li: ({ node, ...props }) => (
+              <li style={{ marginBottom: 6 }} {...props} />
+            ),
+            p: ({ node, ...props }) => (
+              <p style={{ marginBottom: 12 }} {...props} />
+            ),
+          }}
+        >
+          {DOMPurify.sanitize(fixedText, {
+            ALLOWED_TAGS: [],
+            ALLOWED_ATTR: [],
+            USE_PROFILES: { html: false },
+          })}
+        </ReactMarkdown>
+      </div>
+
+      {/* 후속 질문 */}
       <div className={styles.section}>
         <h3 className={styles.h2}>{tr.followup}</h3>
-        {/* Chat에도 lang 전달해서 채팅 UI/응답 언어 일치 */}
-        <Chat profile={result.profile} initialContext={chatContext} lang={lang} />
+        <Chat
+          profile={result?.profile as any}
+          lang={lang}
+          theme={activeTheme}
+        />
       </div>
     </div>
   );

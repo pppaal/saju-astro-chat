@@ -24,7 +24,6 @@ export default function LanguageSwitcher() {
         cursor: "pointer",
       }}
     >
-      {/* 옵션에도 색상 힌트 제공 */}
       <option value="en" style={{ background: "#1b2133", color: "#e8eeff" }}>
         English
       </option>
@@ -39,6 +38,18 @@ export default function LanguageSwitcher() {
       </option>
       <option value="es" style={{ background: "#1b2133", color: "#e8eeff" }}>
         Español
+      </option>
+      <option value="hi" style={{ background: "#1b2133", color: "#e8eeff" }}>
+        हिन्दी
+      </option>
+      <option value="ru" style={{ background: "#1b2133", color: "#e8eeff" }}>
+        Русский
+      </option>
+      <option value="fr" style={{ background: "#1b2133", color: "#e8eeff" }}>
+        Français
+      </option>
+      <option value="ja" style={{ background: "#1b2133", color: "#e8eeff" }}>
+        日本語
       </option>
     </select>
   );

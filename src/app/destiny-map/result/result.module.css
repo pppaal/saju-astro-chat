@@ -1,3 +1,7 @@
+/* ──────────────────────────────── */
+/* 🌌  DESTINY REPORT PAGE STYLING */
+/* ──────────────────────────────── */
+
 /* Page background */
 .page {
   min-height: 100svh;
@@ -14,24 +18,25 @@
 /* Card container */
 .card {
   width: 100%;
-  max-width: 980px;
+  max-width: 1280px;           /* ✅ 폭 980 → 1280 으로 확장 */
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), #121727;
   border: 1px solid rgba(138, 164, 255, 0.16);
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 36px rgba(176,192,255,0.15);
-  padding: 26px;
+  padding: 32px 40px;          /* 조금 여유 */
+  overflow-x: hidden;
 }
 
 /* Header */
-.header { margin-bottom: 12px; }
+.header { margin-bottom: 16px; }
 
 .title {
   font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
   letter-spacing: 0.5px;
-  font-size: 32px;
+  font-size: 2rem;
   text-align: center;
-  margin: 2px 0 8px;
-  text-shadow: 0 0 24px rgba(176, 192, 255, 0.35);
+  margin: 2px 0 6px;
+  text-shadow: 0 0 20px rgba(176,192,255,0.35);
 }
 
 .subtitle {
@@ -43,148 +48,93 @@
 .profile {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 16px;
   justify-content: center;
-  padding: 10px 12px;
+  gap: 10px 16px;
+  padding: 10px 14px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.06);
 }
 
 .kv {
   color: rgba(255,255,255,0.88);
-  font-size: 13px;
+  font-size: 0.85rem;
 }
 
-/* Sections */
+/* Sections layout */
 .section {
-  margin-top: 18px;
-  padding-top: 6px;
+  margin-top: 24px;
+  padding-top: 8px;
 }
 
-.h2 {
-  font-size: 18px;
-  color: rgba(255,255,255,0.9);
-  margin: 8px 0 10px;
-}
-
-/* Summary box and blocks */
-.summary {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
-  padding: 12px;
-}
-
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-@media (max-width: 860px) {
-  .grid2 { grid-template-columns: 1fr; }
-}
-
-/* Highlight badges */
-.badge {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 4px 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06);
-  font-size: 12px;
-  color: rgba(255,255,255,0.9);
-  margin-right: 8px;
-}
-
-/* Footer */
-.footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
-}
-
-.back {
-  color: rgba(255, 221, 132, 0.95);
-  text-decoration: none;
-  font-weight: 700;
-}
-.back:hover { text-decoration: underline; }
-
-/* Summary KPI Bar */
-.summaryBar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 12px 0 8px;
-}
-@media (max-width: 860px) {
-  .summaryBar { grid-template-columns: repeat(2, 1fr); }
-}
-.kpi {
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(138, 164, 255, 0.16);
-  border-radius: 12px;
-  padding: 10px;
-  text-align: center;
-}
-.kpiLabel { font-size: 12px; color: rgba(255,255,255,0.65); }
-.kpiValue { display:block; font-size: 18px; font-weight: 800; margin-top: 4px; }
-.meter {
+/* Headings -------------------------------------------------- */
+.h2,
+.sectionHeader {
   position: relative;
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  overflow: hidden;
-  margin-top: 8px;
-}
-.meter i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-  border-radius: 999px;
-}
-
-/* Insights (3줄 요약) */
-.insights {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.insight {
-  display: flex;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(12, 18, 32, 0.7);
-  border: 1px solid rgba(30, 42, 58, 0.9);
-}
-.insightText { line-height: 1.35; }
-.dot {
-  width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;
-  background: #64748b;
-}
-.lvl1 .dot { background: #22c55e; } /* 기회 */
-.lvl2 .dot { background: #f59e0b; } /* 주의 */
-.lvl3 .dot { background: #ef4444; } /* 경고 */
-
-/* Accordion blocks */
-.acc {
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(138, 164, 255, 0.16);
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin-top: 12px;
-}
-.acc > summary {
-  list-style: none;
-  cursor: pointer;
+  font-size: 1.8rem;            /* ✅ 약 30px */
   font-weight: 800;
-  font-size: 14px;
-  color: rgba(255,255,255,0.92);
+  letter-spacing: 0.8px;
+  margin: 48px 0 20px;
+  color: #ffffff;
+  text-align: center;
+  text-shadow: 0 0 12px rgba(99,155,255,0.5);
 }
-.acc[open] { border-color: rgba(120, 160, 255, 0.35); }
+
+/* header bullet */
+.h2::before,
+.sectionHeader::before {
+  content: "◆";
+  color: #60a5fa;
+  margin-right: 10px;
+  text-shadow: 0 0 10px rgba(96,165,250,0.45);
+}
+
+/* divider line */
+.h2::after,
+.sectionHeader::after {
+  content: "";
+  display: block;
+  width: 100px;
+  height: 3px;
+  margin: 10px auto;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
+  border-radius: 999px;
+}
+
+/* SUMMARY AREA --------------------------------------------- */
+.summary {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 24px 30px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+/* 요약 본문 block (ReactMarkdown) */
+.summaryBox {
+  background: transparent;
+  font-size: 1.125rem;         /* ✅ 약 18px */
+  line-height: 1.85;
+  color: rgba(255,255,255,0.94);
+  text-align: justify;
+  max-width: 1100px;           /* ✅ 폭 960 → 1100 */
+  margin: 0 auto;
+}
+
+/* Paragraphs & Lists */
+.summaryBox p { margin-bottom: 1.4em; }
+.summaryBox ul { list-style: disc; margin-left: 1.8em; margin-bottom: 1.2em; }
+.summaryBox li { margin-bottom: 0.6em; }
+.summaryBox strong {
+  color: #ffd166;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255,209,102,0.35);
+}
+
+/* responsive */
+@media (max-width: 860px) {
+  .card { max-width: 96%; padding: 20px; }
+  .summaryBox { font-size: 1rem; line-height: 1.7; max-width: 100%; }
+  .h2, .sectionHeader { font-size: 1.4rem; margin: 36px 0 16px; }
+}

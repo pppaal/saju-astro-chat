@@ -1,0 +1,25 @@
+﻿id,source,target,relation,description
+REL_Asc_Aries,Asc,Aries,상승점,Asc in Aries: Asc의 자질이 Aries의 에너지로 표현됨
+REL_Asc_Taurus,Asc,Taurus,상승점,Asc in Taurus: Asc의 자질이 Taurus의 에너지로 표현됨
+REL_Asc_Gemini,Asc,Gemini,상승점,Asc in Gemini: Asc의 자질이 Gemini의 에너지로 표현됨
+REL_Asc_Cancer,Asc,Cancer,상승점,Asc in Cancer: Asc의 자질이 Cancer의 에너지로 표현됨
+REL_Asc_Leo,Asc,Leo,상승점,Asc in Leo: Asc의 자질이 Leo의 에너지로 표현됨
+REL_Asc_Virgo,Asc,Virgo,상승점,Asc in Virgo: Asc의 자질이 Virgo의 에너지로 표현됨
+REL_Asc_Libra,Asc,Libra,상승점,Asc in Libra: Asc의 자질이 Libra의 에너지로 표현됨
+REL_Asc_Scorpio,Asc,Scorpio,상승점,Asc in Scorpio: Asc의 자질이 Scorpio의 에너지로 표현됨
+REL_Asc_Sagittarius,Asc,Sagittarius,상승점,Asc in Sagittarius: Asc의 자질이 Sagittarius의 에너지로 표현됨
+REL_Asc_Capricorn,Asc,Capricorn,상승점,Asc in Capricorn: Asc의 자질이 Capricorn의 에너지로 표현됨
+REL_Asc_Aquarius,Asc,Aquarius,상승점,Asc in Aquarius: Asc의 자질이 Aquarius의 에너지로 표현됨
+REL_Asc_Pisces,Asc,Pisces,상승점,Asc in Pisces: Asc의 자질이 Pisces의 에너지로 표현됨
+REL_MC_Aries,MC,Aries,중천,MC in Aries: MC의 자질이 Aries의 에너지로 표현됨
+REL_MC_Taurus,MC,Taurus,중천,MC in Taurus: MC의 자질이 Taurus의 에너지로 표현됨
+REL_MC_Gemini,MC,Gemini,중천,MC in Gemini: MC의 자질이 Gemini의 에너지로 표현됨
+REL_MC_Cancer,MC,Cancer,중천,MC in Cancer: MC의 자질이 Cancer의 에너지로 표현됨
+REL_MC_Leo,MC,Leo,중천,MC in Leo: MC의 자질이 Leo의 에너지로 표현됨
+REL_MC_Virgo,MC,Virgo,중천,MC in Virgo: MC의 자질이 Virgo의 에너지로 표현됨
+REL_MC_Libra,MC,Libra,중천,MC in Libra: MC의 자질이 Libra의 에너지로 표현됨
+REL_MC_Scorpio,MC,Scorpio,중천,MC in Scorpio: MC의 자질이 Scorpio의 에너지로 표현됨
+REL_MC_Sagittarius,MC,Sagittarius,중천,MC in Sagittarius: MC의 자질이 Sagittarius의 에너지로 표현됨
+REL_MC_Capricorn,MC,Capricorn,중천,MC in Capricorn: MC의 자질이 Capricorn의 에너지로 표현됨
+REL_MC_Aquarius,MC,Aquarius,중천,MC in Aquarius: MC의 자질이 Aquarius의 에너지로 표현됨
+REL_MC_Pisces,MC,Pisces,중천,MC in Pisces: MC의 자질이 Pisces의 에너지로 표현됨
