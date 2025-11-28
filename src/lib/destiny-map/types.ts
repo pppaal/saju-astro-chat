@@ -1,47 +1,38 @@
-export type Gender = "male" | "female";
-export type CalendarType = "solar" | "lunar";
+/**
+ * src/lib/destiny-map/types.ts
+ * 타입 정의 전용 — DestinyMap 내부 데이터 구조 타입 선언
+ */
 
-export type DestinyInput = {
-  name?: string;
-  birthDate: string;      // "YYYY-MM-DD" (기본 양력)
-  birthTime: string;      // "HH:mm" or "HH:mm:ss"
-  city?: string;
-  latitude: number;
-  longitude: number;
-  timeZone: string;       // IANA TZ
-  gender: Gender;
-  calendarType?: CalendarType;
-};
+export interface Pillar {
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+  ganji?: string;
+}
 
-export type WesternChart = import("../astrology/astrologyService").NatalChartData;
-export type SajuChart = Awaited<ReturnType<typeof import("../Saju/saju").calculateSajuData>>;
-
-export type DestinyAggregate = {
-  input: DestinyInput;
-  western: WesternChart;
-  saju: SajuChart;
-};
-
-// 통합 운세의 표준 스키마(원하는 만큼 확장 가능)
-export type DestinySynthesis = {
-  highlights: string[];              // 한 줄 요약 포인트
-  personality: {                     // 성향 통합
-    keywords: string[];
-    notes: string;
+export interface SajuResult {
+  dayMaster?: { name?: string; element?: string };
+  fiveElements?: Record<string, number>;
+  pillars?: { year?: Pillar; month?: Pillar; day?: Pillar; time?: Pillar };
+  unse?: {
+    daeun?: Array<{ age?: number; ganji?: string }>;
   };
-  timing: {                          // 타이밍/운세 흐름
-    currentYearLuck?: string;
-    currentMonthLuck?: string;
-    daeWoon?: {
-      startAge: number;
-      isForward: boolean;
-      current?: string;
-    };
-    transits?: string[];             // 서양 트랜싯 요약(옵션)
+}
+
+export interface AstrologyResult {
+  facts?: {
+    sun?: { sign?: string };
+    moon?: { sign?: string };
+    venus?: { sign?: string };
+    mars?: { sign?: string };
+    elementRatios?: Record<string, number>;
   };
-  elementsBalance: {                 // 오행/원소 통합 뷰
-    fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number; };
-    classicalElements?: { fire: number; earth: number; air: number; water: number; }; // 있으면
-  };
-  cautions?: string[];               // 유의점
-};
+  ascendant?: { sign?: string };
+  dominantElement?: string;
+  dominantPlanet?: string;
+}
+
+export interface CombinedResult {
+  saju: SajuResult;
+  astrology: AstrologyResult;
+  summary?: string;
+}

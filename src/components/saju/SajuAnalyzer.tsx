@@ -4,35 +4,30 @@
 
 import { useState, FormEvent, useMemo } from 'react';
 import SajuResultDisplay from './SajuResultDisplay';
-// 상대경로로 변경(components/saju → lib/Saju)
-import { getSupportedTimezones, getUserTimezone, getOffsetMinutes, formatOffset } from '../../lib/Saju';
+import {
+  getSupportedTimezones,
+  getUserTimezone,
+  getOffsetMinutes,
+  formatOffset,
+  // 라이브러리 타입
+  type DayMaster,
+  type DaeunData,
+  type YeonunData,
+  type WolunData,
+  type IljinData,
+  type PillarData,
+} from '../../lib/Saju';
 
-// --- 타입 정의 ---
-type FiveElement = '목' | '화' | '토' | '금' | '수';
-type YinYang = '양' | '음';
-interface GanjiData { name: string; element: FiveElement; sibsin: string; }
-interface JijangganData { chogi: { name: string; sibsin: string; }; junggi: { name: string; sibsin: string; }; jeonggi: { name: string; sibsin: string; }; }
-interface PillarData { heavenlyStem: GanjiData; earthlyBranch: GanjiData; jijanggan: JijangganData; }
-interface UnseData { heavenlyStem: string; earthlyBranch:string; sibsin: { cheon: string; ji: string; }; }
-interface DaeunData extends UnseData { age: number; }
-interface YeonunData extends UnseData { year: number; }
-interface WolunData extends UnseData { year: number; month: number; }
-interface IljinData {
-  year: number; month: number; day: number;
-  heavenlyStem: string; earthlyBranch: string;
-  sibsin: { cheon: string; ji: string; };
-  isCheoneulGwiin: boolean;
-}
-
+// 서버 응답 타입: 라이브러리 타입만 사용
 interface ApiFullResponse {
   birthYear: number;
   yearPillar: PillarData;
   monthPillar: PillarData;
   dayPillar: PillarData;
   timePillar: PillarData;
-  daeun: { daeunsu: number; cycles: DaeunData[]; };
-  fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number; };
-  dayMaster: { name: string; element: FiveElement; yin_yang: YinYang; };
+  daeun: { daeunsu: number; cycles: DaeunData[] };
+  fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number };
+  dayMaster: DayMaster;
   yeonun: YeonunData[];
   wolun: WolunData[];
   iljin: IljinData[];
@@ -59,7 +54,7 @@ export default function SajuAnalyzer() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const filteredTz: string[] = useMemo(() => {
@@ -85,6 +80,7 @@ export default function SajuAnalyzer() {
       if (!response.ok) {
         throw new Error(data?.message || 'An unknown server error occurred.');
       }
+      // 서버가 라이브러리 타입과 동일 구조를 반환한다고 가정
       setSajuResult(data as ApiFullResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch analysis data.');
@@ -102,30 +98,64 @@ export default function SajuAnalyzer() {
           padding: '2rem',
           borderRadius: '12px',
           border: '1px solid #4f4f7a',
-          marginBottom: '2rem'
+          marginBottom: '2rem',
         }}
       >
         <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="calendarType" style={labelStyle}>양력/음력</label>
-          <select id="calendarType" name="calendarType" value={formData.calendarType} onChange={handleInputChange} style={selectStyle}>
+          <label htmlFor="calendarType" style={labelStyle}>
+            양력/음력
+          </label>
+          <select
+            id="calendarType"
+            name="calendarType"
+            value={formData.calendarType}
+            onChange={handleInputChange}
+            style={selectStyle}
+          >
             <option value="solar">양력</option>
             <option value="lunar">음력</option>
           </select>
         </div>
 
         <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="birthDate" style={labelStyle}>생년월일</label>
-          <input id="birthDate" name="birthDate" type="date" value={formData.birthDate} onChange={handleInputChange} style={inputStyle} />
+          <label htmlFor="birthDate" style={labelStyle}>
+            생년월일
+          </label>
+          <input
+            id="birthDate"
+            name="birthDate"
+            type="date"
+            value={formData.birthDate}
+            onChange={handleInputChange}
+            style={inputStyle}
+          />
         </div>
 
         <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="birthTime" style={labelStyle}>태어난 시간</label>
-          <input id="birthTime" name="birthTime" type="time" value={formData.birthTime} onChange={handleInputChange} style={inputStyle} />
+          <label htmlFor="birthTime" style={labelStyle}>
+            태어난 시간
+          </label>
+          <input
+            id="birthTime"
+            name="birthTime"
+            type="time"
+            value={formData.birthTime}
+            onChange={handleInputChange}
+            style={inputStyle}
+          />
         </div>
 
         <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="gender" style={labelStyle}>성별</label>
-          <select id="gender" name="gender" value={formData.gender} onChange={handleInputChange} style={selectStyle}>
+          <label htmlFor="gender" style={labelStyle}>
+            성별
+          </label>
+          <select
+            id="gender"
+            name="gender"
+            value={formData.gender}
+            onChange={handleInputChange}
+            style={selectStyle}
+          >
             <option value="male">남자</option>
             <option value="female">여자</option>
           </select>
@@ -136,7 +166,7 @@ export default function SajuAnalyzer() {
           <input
             placeholder="타임존 검색 (예: seoul, new_york)"
             value={tzQuery}
-            onChange={e => setTzQuery(e.target.value)}
+            onChange={(e) => setTzQuery(e.target.value)}
             style={inputStyle}
           />
           <select
@@ -161,7 +191,11 @@ export default function SajuAnalyzer() {
         </button>
       </form>
 
-      {error && <p style={{ color: '#ff6b6b', marginTop: '1rem', textAlign: 'center' }}>오류: {error}</p>}
+      {error && (
+        <p style={{ color: '#ff6b6b', marginTop: '1rem', textAlign: 'center' }}>
+          오류: {error}
+        </p>
+      )}
       {sajuResult && <SajuResultDisplay result={sajuResult} />}
     </div>
   );
@@ -171,7 +205,7 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
   fontWeight: '500',
   marginBottom: '0.5rem',
-  color: '#e0e0e0'
+  color: '#e0e0e0',
 };
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -180,7 +214,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: '6px',
   fontSize: '1rem',
   backgroundColor: '#161625',
-  color: '#ffffff'
+  color: '#ffffff',
 };
 const selectStyle: React.CSSProperties = { ...inputStyle, appearance: 'none' };
 const buttonStyle = (disabled: boolean): React.CSSProperties => ({
@@ -194,5 +228,5 @@ const buttonStyle = (disabled: boolean): React.CSSProperties => ({
   fontSize: '1.1rem',
   fontWeight: 'bold',
   transition: 'background-color 0.2s',
-  opacity: disabled ? 0.6 : 1
+  opacity: disabled ? 0.6 : 1,
 });

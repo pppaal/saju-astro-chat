@@ -1,3 +1,5 @@
+//src/app/astrology/page.tsx
+
 'use client';
 
 import { useState, FormEvent, useMemo, useEffect } from 'react';
@@ -5,31 +7,44 @@ import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import ResultDisplay from '@/components/astrology/ResultDisplay';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
 
 export default function Home() {
+  const { locale, t } = useI18n();
+
   // 날짜/시간
-  const [date, setDate] = useState('1995-02-09');
-  const [time, setTime] = useState('06:40');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
 
   // 결과/상태
   const [interpretation, setInterpretation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 타임존 목록(선택적으로 표시만), 기본은 사용자 혹은 Asia/Seoul
-  const timezones = useMemo(() => getSupportedTimezones(), []);
-  const [timeZone, setTimeZone] = useState<string>(getUserTimezone() || 'Asia/Seoul');
+  // Details 데이터
+  const [chartData, setChartData] = useState<any | null>(null);
+  const [aspects, setAspects] = useState<any[] | null>(null);
 
-  // 도시 자동완성 상태
-  const [cityQuery, setCityQuery] = useState<string>('Seoul, KR');
+  // Advanced 데이터
+  const [advanced, setAdvanced] = useState<any | null>(null);
+
+  // 타임존 목록
+  const timezones = useMemo(() => getSupportedTimezones(), []);
+  const [timeZone, setTimeZone] = useState<string>(() => {
+    const list = getSupportedTimezones();
+    return list[0] || getUserTimezone() || 'UTC';
+  });
+
+  // 도시 자동완성
+  const [cityQuery, setCityQuery] = useState<string>('');
   const [suggestions, setSuggestions] = useState<CityItem[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // 좌표(내부 상태로만 보관)
-  const [latitude, setLatitude] = useState<number>(37.5665);
-  const [longitude, setLongitude] = useState<number>(126.978);
+  // 좌표
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   // 디바운스 자동완성
   useEffect(() => {
@@ -38,7 +53,7 @@ export default function Home() {
       setSuggestions([]);
       return;
     }
-    const t = setTimeout(async () => {
+    const tmr = setTimeout(async () => {
       try {
         const items = (await searchCities(q, { limit: 20 })) as CityItem[];
         setSuggestions(items);
@@ -47,10 +62,10 @@ export default function Home() {
         setSuggestions([]);
       }
     }, 150);
-    return () => clearTimeout(t);
+    return () => clearTimeout(tmr);
   }, [cityQuery]);
 
-  // 도시 선택 시: 위경도 설정 + 타임존 자동 추정 + 드롭다운 닫기
+  // 도시 선택
   const onPickCity = (item: CityItem) => {
     setCityQuery(`${item.name}, ${item.country}`);
     setLatitude(item.lat);
@@ -58,12 +73,10 @@ export default function Home() {
     setShowDropdown(false);
 
     try {
-      const guessed = tzLookup(item.lat, item.lon); // e.g., 'Asia/Seoul'
-      if (guessed && typeof guessed === 'string') {
-        setTimeZone(guessed);
-      }
+      const guessed = tzLookup(item.lat, item.lon);
+      if (guessed && typeof guessed === 'string') setTimeZone(guessed);
     } catch {
-      // 경계 지역 등 오류 시 기존 timeZone 유지
+      // ignore
     }
   };
 
@@ -72,6 +85,29 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setInterpretation(null);
+    setChartData(null);
+    setAspects(null);
+    setAdvanced(null);
+
+    // 입력 검증
+    try {
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new Error(t('error.dateRequired') || 'Please enter a valid birth date (YYYY-MM-DD).');
+      }
+      if (!time || !/^\d{2}:\d{2}$/.test(time)) {
+        throw new Error(t('error.timeRequired') || 'Please enter a valid birth time (HH:MM).');
+      }
+      if (latitude == null || longitude == null) {
+        throw new Error(t('error.cityRequired') || 'Please search and select your birth city.');
+      }
+      if (!timeZone) {
+        throw new Error(t('error.timezoneRequired') || 'Please select a time zone.');
+      }
+    } catch (e: any) {
+      setIsLoading(false);
+      setError(e?.message || (t('error.unknown') as string) || 'Unknown error.');
+      return;
+    }
 
     try {
       const body = {
@@ -81,6 +117,7 @@ export default function Home() {
         longitude,
         timeZone,
         city: cityQuery,
+        locale,
       };
 
       const response = await fetch('/api/astrology', {
@@ -93,6 +130,7 @@ export default function Home() {
       if (!response.ok) throw new Error(result?.error || `서버 응답 오류: ${response.status}`);
       if (result?.error) throw new Error(result.error);
 
+      // 해석 텍스트
       const possible =
         result?.interpretation ??
         result?.result ??
@@ -102,10 +140,26 @@ export default function Home() {
       if (typeof possible === 'string' && possible.trim()) {
         setInterpretation(possible);
       } else {
-        throw new Error('서버 응답에 분석 데이터가 없습니다.');
+        throw new Error(t('error.noData') || '서버 응답에 분석 데이터가 없습니다.');
       }
+
+      // 기본 테이블 데이터
+      if (result?.chartData) setChartData(result.chartData);
+      if (Array.isArray(result?.aspects)) setAspects(result.aspects);
+
+      // Advanced 데이터 (여러 경로 대비)
+      const adv =
+        result?.advanced ??
+        result?.data?.advanced ??
+        result?.chartData?.advanced ??
+        null;
+
+      // 디버그는 필요하면 개발자도구에서만 확인
+      // console.log('advanced from API:', adv);
+
+      setAdvanced(adv);
     } catch (err: any) {
-      setError(err.message || '알 수 없는 오류가 발생했습니다.');
+      setError(err.message || (t('error.unknown') as string) || '알 수 없는 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +188,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => window.history.back()}
-          aria-label="Go back"
+          aria-label={t('app.back') || 'Back'}
           className="absolute left-4 top-4 md:left-6 md:top-6 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/30 text-white/85 backdrop-blur-sm text-xl hover:bg-black/45 transition-colors"
         >
           ←
@@ -142,14 +196,20 @@ export default function Home() {
 
         <div className="w-full max-w-3xl mx-auto bg-black/40 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg p-6 md:p-10 lg:p-14 fade-in-card animate-float">
           <div className="text-center mb-8 md:mb-10">
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">AI Natal Chart</h1>
-            <p className="text-base md:text-lg text-indigo-200">Discover your cosmic map based on your birth information.</p>
+            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">
+              {t('ui.titleAstrology') || 'AI Natal Chart'}
+            </h1>
+            <p className="text-base md:text-lg text-indigo-200">
+              {t('ui.subtitleAstrology') || 'Discover your cosmic map based on your birth information.'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-7">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-7">
               <div>
-                <label htmlFor="date" className="block text-sm font-medium text-indigo-100 mb-2">Date of Birth</label>
+                <label htmlFor="date" className="block text-sm font-medium text-indigo-100 mb-2">
+                  {t('app.birthDate') || 'Birth Date'}
+                </label>
                 <input
                   type="date"
                   id="date"
@@ -162,7 +222,9 @@ export default function Home() {
               </div>
 
               <div>
-                <label htmlFor="time" className="block text-sm font-medium text-indigo-100 mb-2">Time of Birth</label>
+                <label htmlFor="time" className="block text-sm font-medium text-indigo-100 mb-2">
+                  {t('app.birthTime') || 'Birth Time'}
+                </label>
                 <input
                   type="time"
                   id="time"
@@ -177,7 +239,9 @@ export default function Home() {
 
             {/* 도시 자동완성 */}
             <div className="relative">
-              <label htmlFor="city" className="block text-sm font-medium text-indigo-100 mb-2">City of Birth</label>
+              <label htmlFor="city" className="block text-sm font-medium text-indigo-100 mb-2">
+                {t('app.birthCity') || 'Birth City (English)'}
+              </label>
               <input
                 id="city"
                 name="city"
@@ -186,7 +250,7 @@ export default function Home() {
                 onChange={(e) => setCityQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder='e.g., "Seoul, KR" or "London, GB"'
+                placeholder={t('app.cityPh') || 'Seoul'}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
               />
               {showDropdown && suggestions.length > 0 && (
@@ -198,25 +262,24 @@ export default function Home() {
                       onMouseDown={(e) => { e.preventDefault(); onPickCity(s); }}
                     >
                       {s.name}, {s.country}
-                      <span className="text-xs text-white/60"> {/* 좌표는 UI에서 감춤/축약 */}
-                        {/* ({s.lat.toFixed(3)}, {s.lon.toFixed(3)}) */}
-                      </span>
                     </li>
                   ))}
                 </ul>
               )}
               <p className="text-xs text-white/60 mt-2">
-                Tip: Choose a city; time zone will be set automatically.
+                {t('ui.tipChooseCity') || 'Tip: Choose a city; time zone will be set automatically.'}
               </p>
             </div>
 
-            {/* 위도/경도 필드 숨김 처리 */}
-            <input type="hidden" name="latitude" value={latitude} />
-            <input type="hidden" name="longitude" value={longitude} />
+            {/* 숨김 좌표 */}
+            <input type="hidden" name="latitude" value={latitude ?? ''} />
+            <input type="hidden" name="longitude" value={longitude ?? ''} />
 
-            {/* 타임존은 자동 채움 + 필요 시만 수정 가능 */}
+            {/* 타임존 */}
             <div>
-              <label htmlFor="timeZone" className="block text-sm font-medium text-indigo-100 mb-2">Time Zone</label>
+              <label htmlFor="timeZone" className="block text-sm font-medium text-indigo-100 mb-2">
+                {t('ui.timeZone') || 'Time Zone'}
+              </label>
               <div className="grid grid-cols-1 gap-2">
                 <input
                   id="timeZone"
@@ -225,7 +288,7 @@ export default function Home() {
                   className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400"
                 />
                 <details className="text-xs text-white/70">
-                  <summary className="cursor-pointer">Change manually</summary>
+                  <summary className="cursor-pointer">{t('ui.changeManually') || 'Change manually'}</summary>
                   <select
                     value={timeZone}
                     onChange={(e) => setTimeZone(e.target.value)}
@@ -250,15 +313,22 @@ export default function Home() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Analyzing...
+                  {t('ui.analyzing') || 'Analyzing...'}
                 </>
               ) : (
-                'Generate My Chart'
+                t('ui.generate') || 'Generate My Chart'
               )}
             </button>
           </form>
 
-          <ResultDisplay isLoading={isLoading} error={error} interpretation={interpretation} />
+          <ResultDisplay
+            isLoading={isLoading}
+            error={error}
+            interpretation={interpretation}
+            chartData={chartData}
+            aspects={aspects}
+            advanced={advanced}
+          />
         </div>
       </main>
     </>
