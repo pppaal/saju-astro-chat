@@ -2,7 +2,7 @@
 export async function GET() {
   // 동적 import: 빌드 시 평가 안전
   const SajuLib = await import('@/lib/Saju/saju').catch(() => ({} as any));
-  const AstroLib = await import('@/lib/astrology/astrologyService').catch(() => ({} as any));
+  const AstroLib = await import('@/lib/astrology/foundation/astrologyService').catch(() => ({} as any));
 
   const sajuExports = Object.keys(SajuLib || {});
   const astroExports = Object.keys(AstroLib || {});

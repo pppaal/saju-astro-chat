@@ -6,14 +6,18 @@ import {
   FIVE_ELEMENT_RELATIONS, getSolarTermKST
 } from './constants';
 import {
-  FiveElement, YinYang, DayMaster, DaeunData, YeonunData, WolunData, IljinData, StemBranchInfo
+  FiveElement, YinYang, DayMaster, DaeunData, YeonunData, WolunData, IljinData, StemBranchInfo,
+  SajuPillars as SajuPillarsAll
 } from './types';
 
 // 내부 유틸: 로컬 타임존 영향 제거용 UTC Date 생성
 const utcDate = (y: number, m1to12: number, d: number, hh = 0, mm = 0, ss = 0, ms = 0) =>
   new Date(Date.UTC(y, m1to12 - 1, d, hh, mm, ss, ms));
 
-function getSibseong(dayMaster: { element: FiveElement; yin_yang: YinYang }, target: StemBranchInfo): string {
+function getSibseong(
+  dayMaster: { element: FiveElement; yin_yang: YinYang },
+  target: StemBranchInfo
+): string {
   if (!dayMaster || !target) return '';
   if (dayMaster.element === target.element) return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재';
   if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관';
@@ -28,59 +32,56 @@ function isCheoneulGwiin(dayMasterStemName: string, targetBranchName: string): b
 }
 
 // 출생 시각을 "출생지 타임존" 기준 로컬 → UTC 타임스탬프로 정규화
-// birthDate는 "출생지 로컬 시각" Date라고 가정하면, 문자열로 안전 변환 후 toDate 사용을 권장
 function normalizeBirthToUTC(birthDate: Date, timezone: string): Date {
-  // birthDate를 구성요소로 분해해 'yyyy-MM-ddTHH:mm:ss'를 만든 뒤, 해당 타임존으로 toDate
   const y = birthDate.getFullYear();
   const m = birthDate.getMonth() + 1;
   const d = birthDate.getDate();
   const hh = birthDate.getHours();
   const mi = birthDate.getMinutes();
   const ss = birthDate.getSeconds();
+
   const isoLocal = `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-  // date-fns-tz: toDate(로컬ISO, { timeZone }) → 해당 타임존의 로컬시를 실제 UTC로 변환
   try {
-    // @ts-ignore: 타입 시그니처 상 overload 이슈 회피
+    // date-fns-tz: 문자열을 timezone 로컬 시각으로 해석해 UTC Date 반환
+    // @ts-ignore: 일부 타입 정의 이슈 회피
     return toDate(isoLocal, { timeZone: timezone });
   } catch {
-    // 실패 시 입력 Date를 있는 그대로 사용(환경 의존). 가능하면 UI에서 24h 입력과 타임존을 강제하세요.
-    return birthDate;
+    // 폴백: 최소한 호스트 타임존 영향 없이 UTC로 동일 숫자 시각 구성
+    return utcDate(y, m, d, hh, mi, ss, 0);
   }
 }
 
-export interface Pillar {
-  heavenlyStem: StemBranchInfo;
-  earthlyBranch: StemBranchInfo;
-}
-export interface SajuPillars {
-  year: Pillar;
-  month: Pillar;
-  day: Pillar;
-  time: Pillar;
+/* === 대운 라운딩 정책 === */
+const DAEUN_ROUNDING: 'round' | 'ceil' | 'floor' = 'round';
+function daysToDaeunAge(days: number): number {
+  const v = days / 3;
+  let age: number;
+  if (DAEUN_ROUNDING === 'ceil') age = Math.ceil(v);
+  else if (DAEUN_ROUNDING === 'floor') age = Math.floor(v);
+  else age = Math.round(v);
+  return Math.max(1, age);
 }
 
 export function getDaeunCycles(
   birthDate: Date,
   gender: 'male' | 'female',
-  sajuPillars: SajuPillars,
+  sajuPillars: SajuPillarsAll,
   dayMaster: DayMaster,
   timezone: string
 ): { daeunsu: number; cycles: DaeunData[] } {
   if (!birthDate || !sajuPillars || !dayMaster || !timezone) {
-    console.error('getDaeunCycles: 유효하지 않은 인자가 전달되었습니다.');
+    console.error('getDaeunCycles: 유효하지 않은 인자');
     return { daeunsu: 0, cycles: [] };
   }
 
   const yearStemYinYang = sajuPillars.year.heavenlyStem.yin_yang;
   const isForward = (yearStemYinYang === '양' && gender === 'male') || (yearStemYinYang === '음' && gender === 'female');
 
-  // 출생 시각을 출생지 타임존 기준 UTC로 정규화하여 환경 차이 제거
   const birthUTC = normalizeBirthToUTC(birthDate, timezone);
-
   const y = birthUTC.getUTCFullYear();
   const m = birthUTC.getUTCMonth() + 1;
 
-  // 절입 시각은 KST 기준으로 제공된다고 가정(getSolarTermKST)
+  // 주의: getSolarTermKST가 KST 기준 Date를 반환한다고 가정
   const cur = getSolarTermKST(y, m);
   if (!cur) return { daeunsu: 0, cycles: [] };
 
@@ -103,14 +104,13 @@ export function getDaeunCycles(
 
   const diffMs = isForward ? nextTerm.getTime() - birthUTC.getTime() : birthUTC.getTime() - previousTerm.getTime();
   const diffDays = diffMs / 86400000;
-  let daeunsu = Math.round(diffDays / 3);
-  if (daeunsu < 1) daeunsu = 1;
+  const daeunsu = daysToDaeunAge(diffDays);
 
   const cycles: DaeunData[] = [];
   const startStemIndex = STEMS.findIndex(s => s.name === sajuPillars.month.heavenlyStem.name);
   const startBranchIndex = BRANCHES.findIndex(b => b.name === sajuPillars.month.earthlyBranch.name);
   if (startStemIndex === -1 || startBranchIndex === -1) {
-    console.error('대운 시작 간지를 찾지 못했습니다.');
+    console.error('대운 시작 간지 탐색 실패');
     return { daeunsu: 0, cycles: [] };
   }
 
@@ -163,49 +163,57 @@ export function getMonthlyCycles(year: number, dayMaster: DayMaster): WolunData[
   const yearStemName = STEMS[year_gapja_index % 10]?.name;
   if (!yearStemName) return [];
 
-  const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName];
+  const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName]; // 寅월의 월간
   const firstMonthStemIndex = STEMS.findIndex(s => s.name === firstMonthStemName);
 
-  const branchOrder = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1];
+  // 양력월→월지 매핑: 1=丑, 2=寅, 3=卯, ... 11=亥, 12=子 (간편화)
+  const G_BRANCH: ReadonlyArray<string> = ['丑','寅','卯','辰','巳','午','未','申','酉','戌','亥','子'];
+  const TIGER_INDEX = BRANCHES.findIndex(b => b.name === '寅');
+
   for (let i = 0; i < 12; i++) {
-    const month = i + 1; // 로컬 Date 영향 제거: 그냥 1~12 사용
-    const stem = STEMS[(firstMonthStemIndex + i) % 10];
-    const branch = BRANCHES[branchOrder[i]];
-    if (stem && branch) {
-      cycles.push({
-        year,
-        month,
-        heavenlyStem: stem.name,
-        earthlyBranch: branch.name,
-        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, branch) },
-      });
-    }
+    const month = i + 1;
+    const branchName = G_BRANCH[i];
+    const branchIndex = BRANCHES.findIndex(b => b.name === branchName);
+
+    const offsetFromTiger = (branchIndex - TIGER_INDEX + 12) % 12;
+    const stem = STEMS[(firstMonthStemIndex + offsetFromTiger) % 10];
+    const branch = BRANCHES[branchIndex];
+
+    cycles.push({
+      year,
+      month,
+      heavenlyStem: stem.name,
+      earthlyBranch: branch.name,
+      sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, branch) },
+    });
   }
-  // 정렬만 유지(역순 필요하면 reverse 유지)
-  return cycles.sort((a, b) => a.month - b.month).reverse();
+  return cycles.sort((a, b) => a.month - b.month);
 }
 
+/* ===================== 일진(KST 기준) 확정 ===================== */
 export function getIljinCalendar(year: number, month: number, dayMaster: DayMaster): IljinData[] {
-  // daysInMonth를 로컬 대신 UTC 기반으로 계산해 환경 차이 제거
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const calendar: IljinData[] = [];
 
-  // KST 자정(00:00) 기준 UTC 타임스탬프 생성
-  const kstMidnightUTC = (Y: number, M: number, D: number): number => {
-    // KST = UTC+9 → UTC 시각으로는 전날 15:00
-    return Date.UTC(Y, M - 1, D, -9, 0, 0, 0);
-  };
+  const kstMidnightUTC = (Y: number, M: number, D: number): number =>
+    Date.UTC(Y, M - 1, D, -9, 0, 0, 0);
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const msUTC = kstMidnightUTC(year, month, day);
+  // 1984-02-04 00:00 KST == 1984-02-03 15:00 UTC
+  const BASE_UTC_MS = Date.UTC(1984, 1, 3, 15, 0, 0, 0);
+  const BASE_EPOCH_DAYS = Math.floor(BASE_UTC_MS / 86400000);
+  const DAY_MS = 86400000;
 
-    // JDN 계산(UTC 기준)
-    // 2440587.5는 Unix epoch(1970-01-01T00:00:00Z)의 JDN
-    const jdn = Math.floor(msUTC / 86400000 + 2440587.5);
+  const firstUTC = kstMidnightUTC(year, month, 1);
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextFirstUTC = kstMidnightUTC(nextYear, nextMonth, 1);
 
-    // 일간 간지
-    const stemIndex = (jdn + 9) % 10;
-    const branchIndex = (jdn + 1) % 12;
+  let d = 1;
+  for (let ms = firstUTC; ms < nextFirstUTC; ms += DAY_MS, d++) {
+    const curDays = Math.floor(ms / DAY_MS);
+    const offset = (curDays - BASE_EPOCH_DAYS) + 4; // 포함 보정
+
+    const stemIndex = ((offset % 10) + 10) % 10;
+    const branchIndex = ((offset % 12) + 12) % 12;
 
     const stem = STEMS[stemIndex];
     const branch = BRANCHES[branchIndex];
@@ -214,7 +222,7 @@ export function getIljinCalendar(year: number, month: number, dayMaster: DayMast
     calendar.push({
       year,
       month,
-      day,
+      day: d,
       heavenlyStem: stem.name,
       earthlyBranch: branch.name,
       sibsin: {

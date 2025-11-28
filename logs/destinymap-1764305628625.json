@@ -1,0 +1,1781 @@
+{
+  "body": {
+    "name": "aㄴㅇㅁㄴㅇ",
+    "birthDate": "1995-02-09",
+    "birthTime": "06:40",
+    "city": "Seoul, KR",
+    "latitude": 37.566,
+    "longitude": 126.9784,
+    "gender": "Male",
+    "lang": "ko",
+    "theme": "focus_overall",
+    "themes": [
+      "focus_overall"
+    ]
+  },
+  "report": {
+    "meta": {
+      "generator": "DestinyMap Report via Flask‑Fusion",
+      "generatedAt": "2025-11-28T04:53:48.581Z",
+      "theme": "focus_overall",
+      "lang": "ko",
+      "name": "aㄴㅇㅁㄴㅇ",
+      "gender": "Male",
+      "modelUsed": "Flask‑Fusion‑LLM"
+    },
+    "summary": "Name: aㄴㅇㅁㄴㅇ · Sun: 물병자리 · Moon: 쌍둥이자리 · Asc: 물병자리 · MC: 사수자리 · Dominant Element: undefined · Day Master: 辛 (금)",
+    "report": "그는 물병자리와 쌍둥이자리의 조화로운 에너지 속에서 빛나는 금빛 영혼을 지니고 있습니다. 그의 삶은 한 폭의 화폭과도 같았다. 사주와 점성의 데이터가 그의 인생을 다채롭게 물들였다. 태양이 사자자리에 위치한 그는 리더십이 강하고 표현력이 풍부했다. 그의 말은 사람들을 끌어당기고, 그의 존재감은 주변을 밝혀주는 등불과 같았다. 하지만 그의 내면은 달과도 같았다. 달이 밤하늘에 비추는 것처럼, 그의 내면에도 감정의 물결이 끊임없이 흐르고 있었다. 깊은 감정과 비밀스러운 내면, 감성적 통찰력은 그의 삶을 더욱 풍부하게 만들었다. 목기와 화기가 결합한 그의 사주는 창의성과 추진력을 강하게 만들었다. 그는 목표를 향해 활력을 얻었고, 성장과 추진의 시기에는 그의 에너지는 더욱 강해졌다. 리더십과 탈피 에너지의 균형을 잡는 시기에는, 그는 자신의 내면을 더욱 깊게 이해하고, 자신의 가능성을 했다. 그의 일간은 으로, 금 기운을 가졌다. 이는 그의 삶에 안정과 평화를 가져다주었다. 오행의 분포는 3, 0, 2, 2, 1로, 그의 삶은 자연과 조화된 균형을 유지했다. 대운의 흐름은 그의 삶을 다양한 경험과 도전으로 채웠다. 세운의 흐름은 그의 삶을 더욱 다채롭게 만들었다. 일진의 흐름은 그의 일상에 다양한 에너지를 가져다주었다. 그의 삶은 한 순간 한 순간이 다르게 흐르는 강과도 같았다. 점성 데이터를 살펴보면, 그의 은 물병자리 자리 12 하우스에 위치했다. 이는 그의 내면에 깊은 감정과 상상력이 있음을 보여준다. 은 쌍둥이자리 자리 3 하우스에 위치해, 그의 감정은 끊임없이 변화하고 있었다. 은 물병자리 자리 12 하우스에 위치해, 그의 생각은 창의적이고 상상력이 풍부했다. 은 염소자리 자리 11 하우스에 위치해, 그의 사랑과 관계는 안정적이고 했다. 은 사자자리 자리 7 하우스에 위치해, 그의 열정과 에너지는 강했다. 은 사수자리 자리 10 하우스에 위치해, 그의 성장과 발전은 끊임없이 계속되었다. 은 물고기자리 자리 1 하우스에 위치해, 그의 책임감과 의무감은 강했다. 은 염소자리 자리 12 하우스에 위치해, 그의 내면에는 혁신과 변화를 위한 에너지가 있었다. 은 염소자리 자리 12 하우스에 위치해, 그의 상상력과 창의성은 무한했다. 은 사수자리 자리 9 하우스에 위치해, 그의 변혁과 재생은 끊임없이 계속되었다. 상승궁은 물병자리 자리로, 그의 외적 인상과 진입 태도는 독특하고 창의적이었다. 중천은 사수자리 자리로, 그의 사회적 성취와 목표는 높고 명확했다. 12개의 하우스 데이터는 그의 삶의 다양한 영역을 보여주었다. 그의 삶은 다양한 색깔과 에너지로 채워져 있었다. 사주와 점성의 데이터가 그의 인생을 다채롭게 물들였다. 그는 자신의 내면을 깊게 이해하고, 자신의 가능성을 했다. 그의 삶은 한 순간 한 순간이 다르게 흐르는 강과도 같았다.",
+    "raw": {
+      "meta": {
+        "generator": "DestinyMap Core Engine (file save)",
+        "generatedAt": "2025-11-28T04:53:23.108Z",
+        "name": "aㄴㅇㅁㄴㅇ",
+        "gender": "male"
+      },
+      "astrology": {
+        "facts": {
+          "planets": [
+            {
+              "name": "Sun",
+              "longitude": 319.7064371115099,
+              "sign": "물병자리",
+              "degree": 19,
+              "minute": 42,
+              "formatted": "물병자리 19° 42'",
+              "norm": 319.7064371115099,
+              "house": 12
+            },
+            {
+              "name": "Moon",
+              "longitude": 64.88577809875052,
+              "sign": "쌍둥이자리",
+              "degree": 4,
+              "minute": 53,
+              "formatted": "쌍둥이자리 4° 53'",
+              "norm": 64.8857780987505,
+              "house": 3
+            },
+            {
+              "name": "Mercury",
+              "longitude": 309.00911860690366,
+              "sign": "물병자리",
+              "degree": 9,
+              "minute": 0,
+              "formatted": "물병자리 9° 00'",
+              "norm": 309.0091186069037,
+              "house": 12
+            },
+            {
+              "name": "Venus",
+              "longitude": 274.6181545219409,
+              "sign": "염소자리",
+              "degree": 4,
+              "minute": 37,
+              "formatted": "염소자리 4° 37'",
+              "norm": 274.6181545219408,
+              "house": 11
+            },
+            {
+              "name": "Mars",
+              "longitude": 144.16393716694873,
+              "sign": "사자자리",
+              "degree": 24,
+              "minute": 9,
+              "formatted": "사자자리 24° 09'",
+              "norm": 144.1639371669487,
+              "house": 7
+            },
+            {
+              "name": "Jupiter",
+              "longitude": 251.51251059204705,
+              "sign": "사수자리",
+              "degree": 11,
+              "minute": 30,
+              "formatted": "사수자리 11° 30'",
+              "norm": 251.51251059204708,
+              "house": 10
+            },
+            {
+              "name": "Saturn",
+              "longitude": 341.97665121698253,
+              "sign": "물고기자리",
+              "degree": 11,
+              "minute": 58,
+              "formatted": "물고기자리 11° 58'",
+              "norm": 341.97665121698253,
+              "house": 1
+            },
+            {
+              "name": "Uranus",
+              "longitude": 297.74081494744956,
+              "sign": "염소자리",
+              "degree": 27,
+              "minute": 44,
+              "formatted": "염소자리 27° 44'",
+              "norm": 297.7408149474495,
+              "house": 12
+            },
+            {
+              "name": "Neptune",
+              "longitude": 294.01724607233757,
+              "sign": "염소자리",
+              "degree": 24,
+              "minute": 1,
+              "formatted": "염소자리 24° 01'",
+              "norm": 294.01724607233757,
+              "house": 12
+            },
+            {
+              "name": "Pluto",
+              "longitude": 240.4460833178238,
+              "sign": "사수자리",
+              "degree": 0,
+              "minute": 26,
+              "formatted": "사수자리 0° 26'",
+              "norm": 240.44608331782376,
+              "house": 9
+            },
+            {
+              "name": "True Node",
+              "longitude": 219.34015210180385,
+              "sign": "전갈자리",
+              "degree": 9,
+              "minute": 20,
+              "formatted": "전갈자리 9° 20'",
+              "norm": 219.34015210180382,
+              "house": 8
+            }
+          ],
+          "ascendant": {
+            "name": "Ascendant",
+            "longitude": 321.96584220641455,
+            "sign": "물병자리",
+            "degree": 21,
+            "minute": 57,
+            "formatted": "물병자리 21° 57'",
+            "norm": 321.96584220641455,
+            "house": 1
+          },
+          "mc": {
+            "name": "MC",
+            "longitude": 247.35053768948586,
+            "sign": "사수자리",
+            "degree": 7,
+            "minute": 21,
+            "formatted": "사수자리 7° 21'",
+            "norm": 247.35053768948592,
+            "house": 10
+          },
+          "houses": [
+            {
+              "cusp": 321.96584220641455,
+              "formatted": "물병자리 21° 57'"
+            },
+            {
+              "cusp": 7.757307663605344,
+              "formatted": "양자리 7° 45'"
+            },
+            {
+              "cusp": 42.078404296819116,
+              "formatted": "황소자리 12° 04'"
+            },
+            {
+              "cusp": 67.35053768948586,
+              "formatted": "쌍둥이자리 7° 21'"
+            },
+            {
+              "cusp": 89.13040848841877,
+              "formatted": "쌍둥이자리 29° 07'"
+            },
+            {
+              "cusp": 111.92898179975441,
+              "formatted": "게자리 21° 55'"
+            },
+            {
+              "cusp": 141.96584220641455,
+              "formatted": "사자자리 21° 57'"
+            },
+            {
+              "cusp": 187.75730766360533,
+              "formatted": "천칭자리 7° 45'"
+            },
+            {
+              "cusp": 222.07840429681912,
+              "formatted": "전갈자리 12° 04'"
+            },
+            {
+              "cusp": 247.35053768948586,
+              "formatted": "사수자리 7° 21'"
+            },
+            {
+              "cusp": 269.13040848841877,
+              "formatted": "사수자리 29° 07'"
+            },
+            {
+              "cusp": 291.9289817997544,
+              "formatted": "염소자리 21° 55'"
+            }
+          ]
+        },
+        "planets": [
+          {
+            "name": "Sun",
+            "longitude": 319.7064371115099,
+            "sign": "물병자리",
+            "degree": 19,
+            "minute": 42,
+            "formatted": "물병자리 19° 42'",
+            "norm": 319.7064371115099,
+            "house": 12
+          },
+          {
+            "name": "Moon",
+            "longitude": 64.88577809875052,
+            "sign": "쌍둥이자리",
+            "degree": 4,
+            "minute": 53,
+            "formatted": "쌍둥이자리 4° 53'",
+            "norm": 64.8857780987505,
+            "house": 3
+          },
+          {
+            "name": "Mercury",
+            "longitude": 309.00911860690366,
+            "sign": "물병자리",
+            "degree": 9,
+            "minute": 0,
+            "formatted": "물병자리 9° 00'",
+            "norm": 309.0091186069037,
+            "house": 12
+          },
+          {
+            "name": "Venus",
+            "longitude": 274.6181545219409,
+            "sign": "염소자리",
+            "degree": 4,
+            "minute": 37,
+            "formatted": "염소자리 4° 37'",
+            "norm": 274.6181545219408,
+            "house": 11
+          },
+          {
+            "name": "Mars",
+            "longitude": 144.16393716694873,
+            "sign": "사자자리",
+            "degree": 24,
+            "minute": 9,
+            "formatted": "사자자리 24° 09'",
+            "norm": 144.1639371669487,
+            "house": 7
+          },
+          {
+            "name": "Jupiter",
+            "longitude": 251.51251059204705,
+            "sign": "사수자리",
+            "degree": 11,
+            "minute": 30,
+            "formatted": "사수자리 11° 30'",
+            "norm": 251.51251059204708,
+            "house": 10
+          },
+          {
+            "name": "Saturn",
+            "longitude": 341.97665121698253,
+            "sign": "물고기자리",
+            "degree": 11,
+            "minute": 58,
+            "formatted": "물고기자리 11° 58'",
+            "norm": 341.97665121698253,
+            "house": 1
+          },
+          {
+            "name": "Uranus",
+            "longitude": 297.74081494744956,
+            "sign": "염소자리",
+            "degree": 27,
+            "minute": 44,
+            "formatted": "염소자리 27° 44'",
+            "norm": 297.7408149474495,
+            "house": 12
+          },
+          {
+            "name": "Neptune",
+            "longitude": 294.01724607233757,
+            "sign": "염소자리",
+            "degree": 24,
+            "minute": 1,
+            "formatted": "염소자리 24° 01'",
+            "norm": 294.01724607233757,
+            "house": 12
+          },
+          {
+            "name": "Pluto",
+            "longitude": 240.4460833178238,
+            "sign": "사수자리",
+            "degree": 0,
+            "minute": 26,
+            "formatted": "사수자리 0° 26'",
+            "norm": 240.44608331782376,
+            "house": 9
+          },
+          {
+            "name": "True Node",
+            "longitude": 219.34015210180385,
+            "sign": "전갈자리",
+            "degree": 9,
+            "minute": 20,
+            "formatted": "전갈자리 9° 20'",
+            "norm": 219.34015210180382,
+            "house": 8
+          }
+        ],
+        "houses": [
+          {
+            "cusp": 321.96584220641455,
+            "formatted": "물병자리 21° 57'"
+          },
+          {
+            "cusp": 7.757307663605344,
+            "formatted": "양자리 7° 45'"
+          },
+          {
+            "cusp": 42.078404296819116,
+            "formatted": "황소자리 12° 04'"
+          },
+          {
+            "cusp": 67.35053768948586,
+            "formatted": "쌍둥이자리 7° 21'"
+          },
+          {
+            "cusp": 89.13040848841877,
+            "formatted": "쌍둥이자리 29° 07'"
+          },
+          {
+            "cusp": 111.92898179975441,
+            "formatted": "게자리 21° 55'"
+          },
+          {
+            "cusp": 141.96584220641455,
+            "formatted": "사자자리 21° 57'"
+          },
+          {
+            "cusp": 187.75730766360533,
+            "formatted": "천칭자리 7° 45'"
+          },
+          {
+            "cusp": 222.07840429681912,
+            "formatted": "전갈자리 12° 04'"
+          },
+          {
+            "cusp": 247.35053768948586,
+            "formatted": "사수자리 7° 21'"
+          },
+          {
+            "cusp": 269.13040848841877,
+            "formatted": "사수자리 29° 07'"
+          },
+          {
+            "cusp": 291.9289817997544,
+            "formatted": "염소자리 21° 55'"
+          }
+        ],
+        "ascendant": {
+          "name": "Ascendant",
+          "longitude": 321.96584220641455,
+          "sign": "물병자리",
+          "degree": 21,
+          "minute": 57,
+          "formatted": "물병자리 21° 57'",
+          "norm": 321.96584220641455,
+          "house": 1
+        },
+        "mc": {
+          "name": "MC",
+          "longitude": 247.35053768948586,
+          "sign": "사수자리",
+          "degree": 7,
+          "minute": 21,
+          "formatted": "사수자리 7° 21'",
+          "norm": 247.35053768948592,
+          "house": 10
+        },
+        "aspects": [],
+        "meta": {
+          "planets": [
+            {
+              "name": "Sun",
+              "longitude": 319.7064371115099,
+              "sign": "물병자리",
+              "degree": 19,
+              "minute": 42,
+              "formatted": "물병자리 19° 42'",
+              "norm": 319.7064371115099,
+              "house": 12
+            },
+            {
+              "name": "Moon",
+              "longitude": 64.88577809875052,
+              "sign": "쌍둥이자리",
+              "degree": 4,
+              "minute": 53,
+              "formatted": "쌍둥이자리 4° 53'",
+              "norm": 64.8857780987505,
+              "house": 3
+            },
+            {
+              "name": "Mercury",
+              "longitude": 309.00911860690366,
+              "sign": "물병자리",
+              "degree": 9,
+              "minute": 0,
+              "formatted": "물병자리 9° 00'",
+              "norm": 309.0091186069037,
+              "house": 12
+            },
+            {
+              "name": "Venus",
+              "longitude": 274.6181545219409,
+              "sign": "염소자리",
+              "degree": 4,
+              "minute": 37,
+              "formatted": "염소자리 4° 37'",
+              "norm": 274.6181545219408,
+              "house": 11
+            },
+            {
+              "name": "Mars",
+              "longitude": 144.16393716694873,
+              "sign": "사자자리",
+              "degree": 24,
+              "minute": 9,
+              "formatted": "사자자리 24° 09'",
+              "norm": 144.1639371669487,
+              "house": 7
+            },
+            {
+              "name": "Jupiter",
+              "longitude": 251.51251059204705,
+              "sign": "사수자리",
+              "degree": 11,
+              "minute": 30,
+              "formatted": "사수자리 11° 30'",
+              "norm": 251.51251059204708,
+              "house": 10
+            },
+            {
+              "name": "Saturn",
+              "longitude": 341.97665121698253,
+              "sign": "물고기자리",
+              "degree": 11,
+              "minute": 58,
+              "formatted": "물고기자리 11° 58'",
+              "norm": 341.97665121698253,
+              "house": 1
+            },
+            {
+              "name": "Uranus",
+              "longitude": 297.74081494744956,
+              "sign": "염소자리",
+              "degree": 27,
+              "minute": 44,
+              "formatted": "염소자리 27° 44'",
+              "norm": 297.7408149474495,
+              "house": 12
+            },
+            {
+              "name": "Neptune",
+              "longitude": 294.01724607233757,
+              "sign": "염소자리",
+              "degree": 24,
+              "minute": 1,
+              "formatted": "염소자리 24° 01'",
+              "norm": 294.01724607233757,
+              "house": 12
+            },
+            {
+              "name": "Pluto",
+              "longitude": 240.4460833178238,
+              "sign": "사수자리",
+              "degree": 0,
+              "minute": 26,
+              "formatted": "사수자리 0° 26'",
+              "norm": 240.44608331782376,
+              "house": 9
+            },
+            {
+              "name": "True Node",
+              "longitude": 219.34015210180385,
+              "sign": "전갈자리",
+              "degree": 9,
+              "minute": 20,
+              "formatted": "전갈자리 9° 20'",
+              "norm": 219.34015210180382,
+              "house": 8
+            }
+          ],
+          "ascendant": {
+            "name": "Ascendant",
+            "longitude": 321.96584220641455,
+            "sign": "물병자리",
+            "degree": 21,
+            "minute": 57,
+            "formatted": "물병자리 21° 57'",
+            "norm": 321.96584220641455,
+            "house": 1
+          },
+          "mc": {
+            "name": "MC",
+            "longitude": 247.35053768948586,
+            "sign": "사수자리",
+            "degree": 7,
+            "minute": 21,
+            "formatted": "사수자리 7° 21'",
+            "norm": 247.35053768948592,
+            "house": 10
+          },
+          "houses": [
+            {
+              "cusp": 321.96584220641455,
+              "formatted": "물병자리 21° 57'"
+            },
+            {
+              "cusp": 7.757307663605344,
+              "formatted": "양자리 7° 45'"
+            },
+            {
+              "cusp": 42.078404296819116,
+              "formatted": "황소자리 12° 04'"
+            },
+            {
+              "cusp": 67.35053768948586,
+              "formatted": "쌍둥이자리 7° 21'"
+            },
+            {
+              "cusp": 89.13040848841877,
+              "formatted": "쌍둥이자리 29° 07'"
+            },
+            {
+              "cusp": 111.92898179975441,
+              "formatted": "게자리 21° 55'"
+            },
+            {
+              "cusp": 141.96584220641455,
+              "formatted": "사자자리 21° 57'"
+            },
+            {
+              "cusp": 187.75730766360533,
+              "formatted": "천칭자리 7° 45'"
+            },
+            {
+              "cusp": 222.07840429681912,
+              "formatted": "전갈자리 12° 04'"
+            },
+            {
+              "cusp": 247.35053768948586,
+              "formatted": "사수자리 7° 21'"
+            },
+            {
+              "cusp": 269.13040848841877,
+              "formatted": "사수자리 29° 07'"
+            },
+            {
+              "cusp": 291.9289817997544,
+              "formatted": "염소자리 21° 55'"
+            }
+          ],
+          "engine": "Swiss Ephemeris",
+          "seVersion": "2.09.03"
+        },
+        "options": {
+          "theme": "western",
+          "houseSystem": "Placidus",
+          "nodeType": "true",
+          "includeMinorAspects": false,
+          "enable": {
+            "chiron": true,
+            "lilith": "true",
+            "pof": true
+          }
+        }
+      },
+      "saju": {
+        "facts": {
+          "yearPillar": {
+            "heavenlyStem": {
+              "name": "乙",
+              "element": "목",
+              "sibsin": "편재"
+            },
+            "earthlyBranch": {
+              "name": "亥",
+              "element": "수",
+              "sibsin": "상관"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "戊",
+                "sibsin": "정인"
+              },
+              "junggi": {
+                "name": "甲",
+                "sibsin": "정재"
+              },
+              "jeonggi": {
+                "name": "壬",
+                "sibsin": "상관"
+              }
+            },
+            "hiddenStems": {
+              "main": "壬",
+              "all": [
+                "戊",
+                "甲",
+                "壬"
+              ]
+            }
+          },
+          "monthPillar": {
+            "heavenlyStem": {
+              "name": "戊",
+              "element": "토",
+              "sibsin": "정인"
+            },
+            "earthlyBranch": {
+              "name": "寅",
+              "element": "목",
+              "sibsin": "정재"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "戊",
+                "sibsin": "정인"
+              },
+              "junggi": {
+                "name": "丙",
+                "sibsin": "정관"
+              },
+              "jeonggi": {
+                "name": "甲",
+                "sibsin": "정재"
+              }
+            },
+            "hiddenStems": {
+              "main": "甲",
+              "all": [
+                "戊",
+                "丙",
+                "甲"
+              ]
+            }
+          },
+          "dayPillar": {
+            "heavenlyStem": {
+              "name": "辛",
+              "element": "금",
+              "sibsin": "비견"
+            },
+            "earthlyBranch": {
+              "name": "未",
+              "element": "토",
+              "sibsin": "편인"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "丁",
+                "sibsin": "편관"
+              },
+              "junggi": {
+                "name": "乙",
+                "sibsin": "편재"
+              },
+              "jeonggi": {
+                "name": "己",
+                "sibsin": "편인"
+              }
+            },
+            "hiddenStems": {
+              "main": "己",
+              "all": [
+                "丁",
+                "乙",
+                "己"
+              ]
+            }
+          },
+          "timePillar": {
+            "heavenlyStem": {
+              "name": "辛",
+              "element": "금",
+              "sibsin": "비견"
+            },
+            "earthlyBranch": {
+              "name": "卯",
+              "element": "목",
+              "sibsin": "편재"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "甲",
+                "sibsin": "정재"
+              },
+              "junggi": {
+                "name": "乙",
+                "sibsin": "편재"
+              },
+              "jeonggi": {
+                "name": "乙",
+                "sibsin": "편재"
+              }
+            },
+            "hiddenStems": {
+              "main": "乙",
+              "all": [
+                "甲",
+                "乙",
+                "乙"
+              ]
+            }
+          },
+          "daeWoon": {
+            "startAge": 11,
+            "isForward": false,
+            "current": {
+              "age": 21,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "상관"
+              }
+            },
+            "list": [
+              {
+                "age": 11,
+                "heavenlyStem": "丁",
+                "earthlyBranch": "丑",
+                "sibsin": {
+                  "cheon": "편관",
+                  "ji": "편인"
+                }
+              },
+              {
+                "age": 21,
+                "heavenlyStem": "丙",
+                "earthlyBranch": "子",
+                "sibsin": {
+                  "cheon": "정관",
+                  "ji": "상관"
+                }
+              },
+              {
+                "age": 31,
+                "heavenlyStem": "乙",
+                "earthlyBranch": "亥",
+                "sibsin": {
+                  "cheon": "편재",
+                  "ji": "상관"
+                }
+              },
+              {
+                "age": 41,
+                "heavenlyStem": "甲",
+                "earthlyBranch": "戌",
+                "sibsin": {
+                  "cheon": "정재",
+                  "ji": "정인"
+                }
+              },
+              {
+                "age": 51,
+                "heavenlyStem": "癸",
+                "earthlyBranch": "酉",
+                "sibsin": {
+                  "cheon": "식신",
+                  "ji": "비견"
+                }
+              },
+              {
+                "age": 61,
+                "heavenlyStem": "壬",
+                "earthlyBranch": "申",
+                "sibsin": {
+                  "cheon": "상관",
+                  "ji": "겁재"
+                }
+              },
+              {
+                "age": 71,
+                "heavenlyStem": "辛",
+                "earthlyBranch": "未",
+                "sibsin": {
+                  "cheon": "비견",
+                  "ji": "편인"
+                }
+              },
+              {
+                "age": 81,
+                "heavenlyStem": "庚",
+                "earthlyBranch": "午",
+                "sibsin": {
+                  "cheon": "겁재",
+                  "ji": "편관"
+                }
+              },
+              {
+                "age": 91,
+                "heavenlyStem": "己",
+                "earthlyBranch": "巳",
+                "sibsin": {
+                  "cheon": "편인",
+                  "ji": "정관"
+                }
+              },
+              {
+                "age": 101,
+                "heavenlyStem": "戊",
+                "earthlyBranch": "辰",
+                "sibsin": {
+                  "cheon": "정인",
+                  "ji": "정인"
+                }
+              }
+            ]
+          },
+          "fiveElements": {
+            "wood": 3,
+            "fire": 0,
+            "earth": 2,
+            "metal": 2,
+            "water": 1
+          },
+          "dayMaster": {
+            "name": "辛",
+            "element": "금",
+            "yin_yang": "음"
+          }
+        },
+        "pillars": {
+          "year": {
+            "heavenlyStem": {
+              "name": "乙",
+              "element": "목",
+              "sibsin": "편재"
+            },
+            "earthlyBranch": {
+              "name": "亥",
+              "element": "수",
+              "sibsin": "상관"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "戊",
+                "sibsin": "정인"
+              },
+              "junggi": {
+                "name": "甲",
+                "sibsin": "정재"
+              },
+              "jeonggi": {
+                "name": "壬",
+                "sibsin": "상관"
+              }
+            },
+            "hiddenStems": {
+              "main": "壬",
+              "all": [
+                "戊",
+                "甲",
+                "壬"
+              ]
+            }
+          },
+          "month": {
+            "heavenlyStem": {
+              "name": "戊",
+              "element": "토",
+              "sibsin": "정인"
+            },
+            "earthlyBranch": {
+              "name": "寅",
+              "element": "목",
+              "sibsin": "정재"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "戊",
+                "sibsin": "정인"
+              },
+              "junggi": {
+                "name": "丙",
+                "sibsin": "정관"
+              },
+              "jeonggi": {
+                "name": "甲",
+                "sibsin": "정재"
+              }
+            },
+            "hiddenStems": {
+              "main": "甲",
+              "all": [
+                "戊",
+                "丙",
+                "甲"
+              ]
+            }
+          },
+          "day": {
+            "heavenlyStem": {
+              "name": "辛",
+              "element": "금",
+              "sibsin": "비견"
+            },
+            "earthlyBranch": {
+              "name": "未",
+              "element": "토",
+              "sibsin": "편인"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "丁",
+                "sibsin": "편관"
+              },
+              "junggi": {
+                "name": "乙",
+                "sibsin": "편재"
+              },
+              "jeonggi": {
+                "name": "己",
+                "sibsin": "편인"
+              }
+            },
+            "hiddenStems": {
+              "main": "己",
+              "all": [
+                "丁",
+                "乙",
+                "己"
+              ]
+            }
+          },
+          "time": {
+            "heavenlyStem": {
+              "name": "辛",
+              "element": "금",
+              "sibsin": "비견"
+            },
+            "earthlyBranch": {
+              "name": "卯",
+              "element": "목",
+              "sibsin": "편재"
+            },
+            "jijanggan": {
+              "chogi": {
+                "name": "甲",
+                "sibsin": "정재"
+              },
+              "junggi": {
+                "name": "乙",
+                "sibsin": "편재"
+              },
+              "jeonggi": {
+                "name": "乙",
+                "sibsin": "편재"
+              }
+            },
+            "hiddenStems": {
+              "main": "乙",
+              "all": [
+                "甲",
+                "乙",
+                "乙"
+              ]
+            }
+          }
+        },
+        "dayMaster": {
+          "name": "辛",
+          "element": "금",
+          "yin_yang": "음"
+        },
+        "unse": {
+          "daeun": [
+            {
+              "age": 2,
+              "heavenlyStem": "丁",
+              "earthlyBranch": "丑",
+              "sibsin": {
+                "cheon": "편관",
+                "ji": "편인"
+              }
+            },
+            {
+              "age": 12,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "상관"
+              }
+            },
+            {
+              "age": 22,
+              "heavenlyStem": "乙",
+              "earthlyBranch": "亥",
+              "sibsin": {
+                "cheon": "편재",
+                "ji": "식신"
+              }
+            },
+            {
+              "age": 32,
+              "heavenlyStem": "甲",
+              "earthlyBranch": "戌",
+              "sibsin": {
+                "cheon": "정재",
+                "ji": "정인"
+              }
+            },
+            {
+              "age": 42,
+              "heavenlyStem": "癸",
+              "earthlyBranch": "酉",
+              "sibsin": {
+                "cheon": "식신",
+                "ji": "비견"
+              }
+            },
+            {
+              "age": 52,
+              "heavenlyStem": "壬",
+              "earthlyBranch": "申",
+              "sibsin": {
+                "cheon": "상관",
+                "ji": "겁재"
+              }
+            },
+            {
+              "age": 62,
+              "heavenlyStem": "辛",
+              "earthlyBranch": "未",
+              "sibsin": {
+                "cheon": "비견",
+                "ji": "편인"
+              }
+            },
+            {
+              "age": 72,
+              "heavenlyStem": "庚",
+              "earthlyBranch": "午",
+              "sibsin": {
+                "cheon": "겁재",
+                "ji": "정관"
+              }
+            },
+            {
+              "age": 82,
+              "heavenlyStem": "己",
+              "earthlyBranch": "巳",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편관"
+              }
+            },
+            {
+              "age": 92,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "辰",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "정인"
+              }
+            }
+          ],
+          "annual": [
+            {
+              "year": 2004,
+              "heavenlyStem": "甲",
+              "earthlyBranch": "申",
+              "sibsin": {
+                "cheon": "정재",
+                "ji": "겁재"
+              }
+            },
+            {
+              "year": 2003,
+              "heavenlyStem": "癸",
+              "earthlyBranch": "未",
+              "sibsin": {
+                "cheon": "식신",
+                "ji": "편인"
+              }
+            },
+            {
+              "year": 2002,
+              "heavenlyStem": "壬",
+              "earthlyBranch": "午",
+              "sibsin": {
+                "cheon": "상관",
+                "ji": "정관"
+              }
+            },
+            {
+              "year": 2001,
+              "heavenlyStem": "辛",
+              "earthlyBranch": "巳",
+              "sibsin": {
+                "cheon": "비견",
+                "ji": "편관"
+              }
+            },
+            {
+              "year": 2000,
+              "heavenlyStem": "庚",
+              "earthlyBranch": "辰",
+              "sibsin": {
+                "cheon": "겁재",
+                "ji": "정인"
+              }
+            },
+            {
+              "year": 1999,
+              "heavenlyStem": "己",
+              "earthlyBranch": "卯",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편재"
+              }
+            },
+            {
+              "year": 1998,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "寅",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "정재"
+              }
+            },
+            {
+              "year": 1997,
+              "heavenlyStem": "丁",
+              "earthlyBranch": "丑",
+              "sibsin": {
+                "cheon": "편관",
+                "ji": "편인"
+              }
+            },
+            {
+              "year": 1996,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "상관"
+              }
+            },
+            {
+              "year": 1995,
+              "heavenlyStem": "乙",
+              "earthlyBranch": "亥",
+              "sibsin": {
+                "cheon": "편재",
+                "ji": "식신"
+              }
+            }
+          ],
+          "monthly": [
+            {
+              "year": 1995,
+              "month": 1,
+              "heavenlyStem": "己",
+              "earthlyBranch": "丑",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편인"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "寅",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "정재"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 3,
+              "heavenlyStem": "己",
+              "earthlyBranch": "卯",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편재"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 4,
+              "heavenlyStem": "庚",
+              "earthlyBranch": "辰",
+              "sibsin": {
+                "cheon": "겁재",
+                "ji": "정인"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 5,
+              "heavenlyStem": "辛",
+              "earthlyBranch": "巳",
+              "sibsin": {
+                "cheon": "비견",
+                "ji": "편관"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 6,
+              "heavenlyStem": "壬",
+              "earthlyBranch": "午",
+              "sibsin": {
+                "cheon": "상관",
+                "ji": "정관"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 7,
+              "heavenlyStem": "癸",
+              "earthlyBranch": "未",
+              "sibsin": {
+                "cheon": "식신",
+                "ji": "편인"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 8,
+              "heavenlyStem": "甲",
+              "earthlyBranch": "申",
+              "sibsin": {
+                "cheon": "정재",
+                "ji": "겁재"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 9,
+              "heavenlyStem": "乙",
+              "earthlyBranch": "酉",
+              "sibsin": {
+                "cheon": "편재",
+                "ji": "비견"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 10,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "戌",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "정인"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 11,
+              "heavenlyStem": "丁",
+              "earthlyBranch": "亥",
+              "sibsin": {
+                "cheon": "편관",
+                "ji": "식신"
+              }
+            },
+            {
+              "year": 1995,
+              "month": 12,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "상관"
+              }
+            }
+          ],
+          "iljin": [
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 1,
+              "heavenlyStem": "癸",
+              "earthlyBranch": "亥",
+              "sibsin": {
+                "cheon": "식신",
+                "ji": "식신"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 2,
+              "heavenlyStem": "甲",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정재",
+                "ji": "상관"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 3,
+              "heavenlyStem": "乙",
+              "earthlyBranch": "丑",
+              "sibsin": {
+                "cheon": "편재",
+                "ji": "편인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 4,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "寅",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "정재"
+              },
+              "isCheoneulGwiin": true
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 5,
+              "heavenlyStem": "丁",
+              "earthlyBranch": "卯",
+              "sibsin": {
+                "cheon": "편관",
+                "ji": "편재"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 6,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "辰",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "정인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 7,
+              "heavenlyStem": "己",
+              "earthlyBranch": "巳",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편관"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 8,
+              "heavenlyStem": "庚",
+              "earthlyBranch": "午",
+              "sibsin": {
+                "cheon": "겁재",
+                "ji": "정관"
+              },
+              "isCheoneulGwiin": true
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 9,
+              "heavenlyStem": "辛",
+              "earthlyBranch": "未",
+              "sibsin": {
+                "cheon": "비견",
+                "ji": "편인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 10,
+              "heavenlyStem": "壬",
+              "earthlyBranch": "申",
+              "sibsin": {
+                "cheon": "상관",
+                "ji": "겁재"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 11,
+              "heavenlyStem": "癸",
+              "earthlyBranch": "酉",
+              "sibsin": {
+                "cheon": "식신",
+                "ji": "비견"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 12,
+              "heavenlyStem": "甲",
+              "earthlyBranch": "戌",
+              "sibsin": {
+                "cheon": "정재",
+                "ji": "정인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 13,
+              "heavenlyStem": "乙",
+              "earthlyBranch": "亥",
+              "sibsin": {
+                "cheon": "편재",
+                "ji": "식신"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 14,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "상관"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 15,
+              "heavenlyStem": "丁",
+              "earthlyBranch": "丑",
+              "sibsin": {
+                "cheon": "편관",
+                "ji": "편인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 16,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "寅",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "정재"
+              },
+              "isCheoneulGwiin": true
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 17,
+              "heavenlyStem": "己",
+              "earthlyBranch": "卯",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편재"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 18,
+              "heavenlyStem": "庚",
+              "earthlyBranch": "辰",
+              "sibsin": {
+                "cheon": "겁재",
+                "ji": "정인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 19,
+              "heavenlyStem": "辛",
+              "earthlyBranch": "巳",
+              "sibsin": {
+                "cheon": "비견",
+                "ji": "편관"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 20,
+              "heavenlyStem": "壬",
+              "earthlyBranch": "午",
+              "sibsin": {
+                "cheon": "상관",
+                "ji": "정관"
+              },
+              "isCheoneulGwiin": true
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 21,
+              "heavenlyStem": "癸",
+              "earthlyBranch": "未",
+              "sibsin": {
+                "cheon": "식신",
+                "ji": "편인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 22,
+              "heavenlyStem": "甲",
+              "earthlyBranch": "申",
+              "sibsin": {
+                "cheon": "정재",
+                "ji": "겁재"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 23,
+              "heavenlyStem": "乙",
+              "earthlyBranch": "酉",
+              "sibsin": {
+                "cheon": "편재",
+                "ji": "비견"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 24,
+              "heavenlyStem": "丙",
+              "earthlyBranch": "戌",
+              "sibsin": {
+                "cheon": "정관",
+                "ji": "정인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 25,
+              "heavenlyStem": "丁",
+              "earthlyBranch": "亥",
+              "sibsin": {
+                "cheon": "편관",
+                "ji": "식신"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 26,
+              "heavenlyStem": "戊",
+              "earthlyBranch": "子",
+              "sibsin": {
+                "cheon": "정인",
+                "ji": "상관"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 27,
+              "heavenlyStem": "己",
+              "earthlyBranch": "丑",
+              "sibsin": {
+                "cheon": "편인",
+                "ji": "편인"
+              },
+              "isCheoneulGwiin": false
+            },
+            {
+              "year": 1995,
+              "month": 2,
+              "day": 28,
+              "heavenlyStem": "庚",
+              "earthlyBranch": "寅",
+              "sibsin": {
+                "cheon": "겁재",
+                "ji": "정재"
+              },
+              "isCheoneulGwiin": true
+            }
+          ]
+        },
+        "sinsal": {
+          "twelveStage": {
+            "year": "목욕",
+            "month": "태",
+            "day": "쇠",
+            "time": "절"
+          },
+          "hits": [
+            {
+              "kind": "지살",
+              "pillars": [
+                "year"
+              ],
+              "target": "亥",
+              "detail": "일지(未) 기준"
+            },
+            {
+              "kind": "월살",
+              "pillars": [
+                "month"
+              ],
+              "target": "寅",
+              "detail": "일지(未) 기준"
+            },
+            {
+              "kind": "겁살",
+              "pillars": [
+                "time"
+              ],
+              "target": "卯",
+              "detail": "일지(未) 기준"
+            },
+            {
+              "kind": "천을귀인",
+              "pillars": [
+                "year"
+              ],
+              "target": "亥"
+            },
+            {
+              "kind": "문곡",
+              "pillars": [
+                "year"
+              ],
+              "target": "亥"
+            },
+            {
+              "kind": "괴강",
+              "pillars": [
+                "day"
+              ],
+              "target": "未"
+            },
+            {
+              "kind": "태극귀인",
+              "pillars": [
+                "day"
+              ],
+              "target": "未"
+            },
+            {
+              "kind": "도화",
+              "pillars": [
+                "time"
+              ],
+              "target": "卯"
+            },
+            {
+              "kind": "고신",
+              "pillars": [
+                "time"
+              ],
+              "target": "卯"
+            },
+            {
+              "kind": "문곡",
+              "pillars": [
+                "time"
+              ],
+              "target": "卯"
+            },
+            {
+              "kind": "길성",
+              "pillars": [
+                "month"
+              ],
+              "target": "寅",
+              "detail": "예시 길성 세트"
+            }
+          ],
+          "byPillar": {
+            "year": {
+              "twelveShinsal": [
+                "지살살"
+              ],
+              "generalShinsal": [],
+              "lucky": [
+                "천을귀인",
+                "문곡"
+              ]
+            },
+            "month": {
+              "twelveShinsal": [
+                "월살살"
+              ],
+              "generalShinsal": [],
+              "lucky": []
+            },
+            "day": {
+              "twelveShinsal": [],
+              "generalShinsal": [
+                "괴강살"
+              ],
+              "lucky": [
+                "태극귀인"
+              ]
+            },
+            "time": {
+              "twelveShinsal": [
+                "겁살살"
+              ],
+              "generalShinsal": [
+                "도화살",
+                "고신살"
+              ],
+              "lucky": [
+                "문곡"
+              ]
+            }
+          }
+        }
+      },
+      "summary": "Name: aㄴㅇㅁㄴㅇ · Sun: 물병자리 · Moon: 쌍둥이자리 · Asc: 물병자리 · MC: 사수자리 · Dominant Element: undefined · Day Master: 辛 (금)"
+    }
+  }
+}
