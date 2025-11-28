@@ -41,3 +41,10 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# 가상환경
+venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
