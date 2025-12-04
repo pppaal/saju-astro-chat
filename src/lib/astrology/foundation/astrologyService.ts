@@ -10,7 +10,7 @@ const swisseph = require("swisseph");
 
 import { Chart } from "./types";
 import { formatLongitude } from "./utils";
-import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from "./houses";
+import { calcHouses, inferHouseOf } from "./houses";
 
 // --- 기존 public API 타입(하위호환 유지) ---
 export interface NatalChartInput {

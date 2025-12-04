@@ -1,5 +1,4 @@
 // src/lib/Saju/shinsal.ts
-/* eslint-disable no-console */
 import { BRANCHES, STEMS } from './constants';
 import type { FiveElement, YinYang } from './types';
 
@@ -76,8 +75,8 @@ export const DEFAULT_ANNOTATE_OPTIONS: Required<AnnotateOptions> = {
   ruleSet: 'standard',
 };
 
-const stemByName = (name: string) => STEMS.find(s => s.name === name);
-const branchByName = (name: string) => BRANCHES.find(b => b.name === name);
+const _stemByName = (name: string) => STEMS.find(s => s.name === name);
+const _branchByName = (name: string) => BRANCHES.find(b => b.name === name);
 
 /* ===== 정규화 ===== */
 const BRANCH_KO_TO_HAN: Record<string, string> = {
@@ -123,7 +122,7 @@ export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): T
   console.log('[12운성]', { dayStemName, branchName, start, diff, stage: TWELVE_STAGE_ORDER[diff] });
   return TWELVE_STAGE_ORDER[diff];
 }
-export function getTwelveStagesForPillars(p: SajuPillarsLike, basis: 'day' = 'day'): { [K in PillarKind]: TwelveStage } {
+export function getTwelveStagesForPillars(p: SajuPillarsLike, _basis: 'day' = 'day'): { [K in PillarKind]: TwelveStage } {
   const dayStemName = normalizeStemName(p.day.heavenlyStem.name);
   return {
     year: getTwelveStage(dayStemName, p.year.earthlyBranch.name),

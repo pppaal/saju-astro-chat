@@ -1,37 +1,129 @@
-#backend_ai/app/app.py
+import logging
+import os
+import time
+from collections import defaultdict
+from typing import Optional, Tuple
+from uuid import uuid4
 
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, g, request
 from flask_cors import CORS
+
+from backend_ai.app.astro_parser import calculate_astrology_data
 from backend_ai.app.fusion_logic import interpret_with_ai
 from backend_ai.app.saju_parser import calculate_saju_data
-from backend_ai.app.astro_parser import calculate_astrology_data
-import os
 
-# ============================================================
-# 🚀 Flask Application
-# ============================================================
+# Flask Application
 app = Flask(__name__)
-CORS(app)  # ✅ 프론트(Next.js)와 연동 시 CORS 허용
+CORS(app)  # allow cross-origin (Next.js)
 
-# ------------------------------------------------------------
-# 기본 확인용 라우트
-# ------------------------------------------------------------
+# Basic logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("backend_ai")
+
+# Optional Sentry (no-op if DSN missing)
+try:
+    import sentry_sdk
+
+    if os.getenv("SENTRY_DSN"):
+        sentry_sdk.init(dsn=os.getenv("SENTRY_DSN"))
+        logger.info("Sentry initialized for Flask backend.")
+except Exception as e:  # pragma: no cover
+    logger.warning(f"Sentry init skipped: {e}")
+
+# Simple token gate + rate limiting
+ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
+RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
+RATE_WINDOW_SECONDS = 60
+_rate_state = defaultdict(list)  # ip -> timestamps
+
+
+def _client_id() -> str:
+    return (
+        (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+        or request.remote_addr
+        or "unknown"
+    )
+
+
+def _check_rate() -> Tuple[bool, Optional[float]]:
+    now = time.time()
+    client = _client_id()
+    window = [t for t in _rate_state[client] if now - t < RATE_WINDOW_SECONDS]
+    _rate_state[client] = window
+    if len(window) >= RATE_LIMIT:
+        retry_after = max(0, RATE_WINDOW_SECONDS - (now - window[0]))
+        return False, retry_after
+    window.append(now)
+    _rate_state[client] = window
+    return True, None
+
+
+def _require_auth() -> Optional[Tuple[dict, int]]:
+    if not ADMIN_TOKEN:
+        return None
+    auth_header = request.headers.get("Authorization", "")
+    token = None
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+    token = token or request.headers.get("X-API-KEY") or request.args.get("token")
+    if token != ADMIN_TOKEN:
+        return {"status": "error", "message": "unauthorized"}, 401
+    return None
+
+
+@app.before_request
+def before_request():
+    g.request_id = str(uuid4())
+    g._start_time = time.time()
+
+    ok, retry_after = _check_rate()
+    if not ok:
+        logger.warning(
+            f"[RATE_LIMIT] client={_client_id()} path={request.path} retry_after={retry_after}"
+        )
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "rate limit exceeded",
+                    "retry_after": retry_after,
+                }
+            ),
+            429,
+        )
+
+    auth_error = _require_auth()
+    if auth_error:
+        logger.warning(f"[AUTH] blocked client={_client_id()} path={request.path}")
+        body, code = auth_error
+        return jsonify(body), code
+
+
+@app.after_request
+def after_request(response):
+    response.headers["X-Request-ID"] = getattr(g, "request_id", "")
+    try:
+        duration = time.time() - getattr(g, "_start_time", time.time())
+        logger.info(
+            f"[REQ] id={getattr(g, 'request_id', '')} path={request.path} "
+            f"status={response.status_code} dur_ms={int(duration*1000)}"
+        )
+    except Exception:
+        pass
+    return response
+
+
+# Health check
 @app.route("/", methods=["GET"])
 def index():
-    return jsonify({
-        "status": "ok",
-        "message": "✨ Fusion AI (Saju + Astrology + Tarot) backend is running!"
-    })
+    return jsonify({"status": "ok", "message": "DestinyPal Fusion AI backend is running!"})
 
 
-# ------------------------------------------------------------
-# 🔮 Fusion 통합 해석 엔드포인트
-# ------------------------------------------------------------
+# Fusion endpoint
 @app.route("/ask", methods=["POST"])
 def ask():
     """
-    프런트엔드에서 전달한 사주, 점성, 타로 데이터를 받아
-    fusion_logic을 통해 해석 결과를 반환.
+    Accepts saju/astro/tarot facts + theme/locale/prompt and runs fusion logic.
     """
     try:
         data = request.get_json(force=True)
@@ -39,30 +131,29 @@ def ask():
         astro_data = data.get("astro") or {}
         tarot_data = data.get("tarot") or {}
         theme = data.get("theme", "daily")
-        prompt = data.get("prompt")  # ✅ 추가된 부분 (테마 프롬프트 전달 받기)
+        locale = data.get("locale", "en")
+        prompt = (data.get("prompt") or "")[:500]  # clamp extra instructions
 
-        print(f"📩 [ASK] Theme: {theme}")  # 로그 확인용
+        logger.info(f"[ASK] id={g.request_id} theme={theme} locale={locale}")
 
-        # ✅ 필수 facts 구성
         facts = {
             "theme": theme,
             "saju": saju_data,
             "astro": astro_data,
             "tarot": tarot_data,
-            "prompt": prompt,  # ✅ 추가된 부분 (interpret_with_ai로 전달)
+            "prompt": prompt,
+            "locale": locale,
         }
 
         result = interpret_with_ai(facts)
         return jsonify({"status": "success", "data": result})
 
     except Exception as e:
-        print(f"[ERROR] /ask 실패 → {e}")
+        logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /ask failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# ------------------------------------------------------------
-# 🧭 사주만 단독 계산 테스트
-# ------------------------------------------------------------
+# Saju calc
 @app.route("/calc_saju", methods=["POST"])
 def calc_saju():
     try:
@@ -74,34 +165,33 @@ def calc_saju():
         result = calculate_saju_data(birth_date, birth_time, gender)
         return jsonify({"status": "success", "saju": result})
     except Exception as e:
+        logger.exception(f"[ERROR] /calc_saju failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# ------------------------------------------------------------
-# 🌌 점성학만 단독 계산 테스트
-# ------------------------------------------------------------
+# Astrology calc
 @app.route("/calc_astro", methods=["POST"])
 def calc_astro():
     try:
         body = request.get_json(force=True)
-        result = calculate_astrology_data({
-            "year": body.get("year"),
-            "month": body.get("month"),
-            "day": body.get("day"),
-            "hour": body.get("hour"),
-            "minute": body.get("minute"),
-            "latitude": body.get("latitude"),
-            "longitude": body.get("longitude"),
-        })
+        result = calculate_astrology_data(
+            {
+                "year": body.get("year"),
+                "month": body.get("month"),
+                "day": body.get("day"),
+                "hour": body.get("hour"),
+                "minute": body.get("minute"),
+                "latitude": body.get("latitude"),
+                "longitude": body.get("longitude"),
+            }
+        )
         return jsonify({"status": "success", "astro": result})
     except Exception as e:
+        logger.exception(f"[ERROR] /calc_astro failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# ------------------------------------------------------------
-# ✨ 구동 시작점
-# ------------------------------------------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"🚀 Flask server starting on http://127.0.0.1:{port}")
+    logger.info(f"Flask server starting on http://127.0.0.1:{port}")
     app.run(host="0.0.0.0", port=port, debug=True)
