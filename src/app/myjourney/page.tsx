@@ -189,12 +189,26 @@ function MyJourneyPage() {
             <p style={{ margin: '6px 0', color: '#9EA4C9' }}>
               Create an account or sign in to save your birth info.
             </p>
-            <button
-              style={btnPrimaryDark}
-              onClick={() => signIn('google', { callbackUrl: '/myjourney?from=oauth' })}
-            >
-              Continue with Google
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button
+                style={btnGoogleDark}
+                onClick={() => signIn('google', { callbackUrl: '/myjourney?from=oauth' })}
+              >
+                <span style={{ fontSize: 18 }}>🔍</span> Continue with Google
+              </button>
+              <button
+                style={btnKakaoDark}
+                onClick={() => signIn('kakao', { callbackUrl: '/myjourney?from=oauth' })}
+              >
+                <span style={{ fontSize: 18 }}>💬</span> Continue with Kakao
+              </button>
+              <button
+                style={btnFacebookDark}
+                onClick={() => signIn('facebook', { callbackUrl: '/myjourney?from=oauth' })}
+              >
+                <span style={{ fontSize: 18 }}>📘</span> Continue with Facebook
+              </button>
+            </div>
           </>
         )}
       </section>
@@ -377,5 +391,44 @@ const btnGhostDark: React.CSSProperties = {
   background: 'transparent',
   border: '1px solid rgba(138,164,255,0.22)',
   color: '#EAE6FF',
+}
+const btnGoogleDark: React.CSSProperties = {
+  padding: '12px 16px',
+  borderRadius: 12,
+  background: 'white',
+  color: '#333',
+  border: '2px solid #ddd',
+  fontWeight: 600,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  justifyContent: 'center',
+  cursor: 'pointer',
+}
+const btnKakaoDark: React.CSSProperties = {
+  padding: '12px 16px',
+  borderRadius: 12,
+  background: '#FEE500',
+  color: '#000000',
+  border: '2px solid #FEE500',
+  fontWeight: 600,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  justifyContent: 'center',
+  cursor: 'pointer',
+}
+const btnFacebookDark: React.CSSProperties = {
+  padding: '12px 16px',
+  borderRadius: 12,
+  background: '#1877F2',
+  color: 'white',
+  border: '2px solid #1877F2',
+  fontWeight: 600,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  justifyContent: 'center',
+  cursor: 'pointer',
 }
 const muted: React.CSSProperties = { color: '#9EA4C9' }

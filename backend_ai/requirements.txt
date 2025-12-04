@@ -1,0 +1,21 @@
+# --- Core AI dependencies ---
+torch>=2.2.0
+torchvision>=0.17.0
+torchaudio>=2.2.0
+
+# --- Web framework ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.29.0
+
+# --- AI API integrations ---
+openai>=1.50.0
+together>=0.2.4  # Together.ai API client (확인 필요 시 업데이트)
+
+# --- Utility & Config ---
+python-dotenv>=1.0.1
+pydantic>=2.9.2
+requests>=2.32.0
+
+# --- Optional: performance & security ---
+httpx>=0.27.0
+orjson>=3.10.0  # FastAPI의 JSON 인코딩 속도 향상
