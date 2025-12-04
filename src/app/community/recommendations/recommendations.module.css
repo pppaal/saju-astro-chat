@@ -1,0 +1,1089 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  color: white;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  margin: 0;
+}
+
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(103, 126, 234, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.retryButton {
+  padding: 0.75rem 2rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retryButton:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(103, 126, 234, 0.3);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  color: #333;
+}
+
+.tab:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(103, 126, 234, 0.3);
+}
+
+/* Content */
+.content {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.sectionHeader h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sectionHeader p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.card {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Career Section */
+.fieldItem {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.fieldHeader h4 {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+}
+
+.successRate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rateLabel {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.rateValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.reason {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.timeframe {
+  color: #667eea;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.progressBar {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 1s ease;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list li {
+  padding: 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.list li:last-child {
+  border-bottom: none;
+}
+
+.checkmark {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.warningList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.warningList li {
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+}
+
+.warningIcon {
+  font-size: 1.2rem;
+}
+
+.actionStep {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.stepHeader {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepText {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.stepMeta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.priority {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.priority.high {
+  background: #fee;
+  color: #d32f2f;
+}
+
+.priority.medium {
+  background: #fff3cd;
+  color: #f57c00;
+}
+
+.priority.low {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.deadline {
+  color: #667eea;
+  font-size: 0.9rem;
+}
+
+/* Love Section */
+.matchItem {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff0f6 0%, #ffe0ec 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.matchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.matchHeader h4 {
+  font-size: 1.3rem;
+  color: #c2185b;
+  margin: 0;
+}
+
+.compatibility {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.heartIcon {
+  font-size: 1.2rem;
+}
+
+.compatibilityValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #c2185b;
+}
+
+.matchReason {
+  color: #555;
+  line-height: 1.6;
+}
+
+.avoidItem {
+  padding: 1rem;
+  background: #ffebee;
+  border-left: 4px solid #f44336;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.avoidItem h4 {
+  color: #d32f2f;
+  margin: 0 0 0.5rem 0;
+}
+
+.avoidItem p {
+  color: #555;
+  margin: 0;
+}
+
+.timePeriod {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 12px;
+}
+
+.dateRange {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1565c0;
+}
+
+.arrow {
+  font-size: 1.5rem;
+}
+
+.periodReason {
+  text-align: center;
+  color: #555;
+  margin: 0;
+}
+
+.placeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.placeCard {
+  padding: 1rem;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #6a1b9a;
+}
+
+.tipsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tipsList li {
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #e8f5e9;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.tipIcon {
+  font-size: 1.2rem;
+}
+
+/* Fitness Section */
+.exerciseItem {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.exerciseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.exerciseHeader h4 {
+  font-size: 1.3rem;
+  color: #2e7d32;
+  margin: 0;
+}
+
+.intensity {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: white;
+}
+
+.intensity.high {
+  color: #d32f2f;
+}
+
+.intensity.medium {
+  color: #f57c00;
+}
+
+.intensity.low {
+  color: #388e3c;
+}
+
+.exerciseReason {
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.frequency {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.frequencyIcon {
+  font-size: 1.2rem;
+}
+
+.bestTime {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: 12px;
+}
+
+.timeIcon {
+  font-size: 2rem;
+}
+
+.timeText {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e65100;
+}
+
+.targetGoal {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #01579b;
+  margin: 0;
+}
+
+.avoidList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.avoidList li {
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffebee;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.avoidIcon {
+  font-size: 1.2rem;
+}
+
+/* Health Section */
+.vulnerableItem {
+  padding: 1.5rem;
+  background: #fff3e0;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.areaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.areaHeader h4 {
+  font-size: 1.3rem;
+  color: #e65100;
+  margin: 0;
+}
+
+.severity {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: white;
+}
+
+.severity.high {
+  color: #d32f2f;
+}
+
+.severity.medium {
+  color: #f57c00;
+}
+
+.severity.low {
+  color: #388e3c;
+}
+
+.prevention {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.preventionLabel {
+  font-weight: 700;
+  color: #e65100;
+}
+
+.prevention p {
+  margin: 0.5rem 0 0 0;
+  color: #555;
+}
+
+.dietSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dietCategory h4 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.dietCategory h4.recommended {
+  color: #388e3c;
+}
+
+.dietCategory h4.avoid {
+  color: #d32f2f;
+}
+
+.dietCategory h4.supplements {
+  color: #1976d2;
+}
+
+.foodGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.foodItem {
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+}
+
+.sleepSchedule {
+  display: flex;
+  justify-content: space-around;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.sleepTime {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sleepIcon {
+  font-size: 2.5rem;
+}
+
+.sleepLabel {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.sleepValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3f51b5;
+}
+
+.sleepReason {
+  text-align: center;
+  color: #555;
+  font-style: italic;
+}
+
+.mentalHealth {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.mentalCategory h4 {
+  color: #5e35b1;
+  margin-bottom: 1rem;
+}
+
+.mentalCategory ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mentalCategory li {
+  padding: 0.75rem;
+  background: #f3e5f5;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+/* Wealth Section */
+.wealthAnalysis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.wealthItem {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.wealthLabel {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.wealthValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f57f17;
+}
+
+.investmentStrategy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.strategyItem {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.strategyHeader h4 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.optionCard {
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.incomeStream {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.streamHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.streamHeader h4 {
+  font-size: 1.3rem;
+  color: #2e7d32;
+  margin: 0;
+}
+
+.effort {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: white;
+}
+
+.effort.high {
+  color: #d32f2f;
+}
+
+.effort.medium {
+  color: #f57c00;
+}
+
+.effort.low {
+  color: #388e3c;
+}
+
+.streamDetails {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.income,
+.timeline {
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.luckyPeriod {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.periodDates {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e65100;
+}
+
+.periodFocus {
+  text-align: center;
+  color: #555;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Lifestyle Section */
+.locationInfo {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+  border-radius: 12px;
+}
+
+.cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cityTag {
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #01579b;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.locationReason {
+  color: #555;
+  margin: 1rem 0;
+  line-height: 1.6;
+}
+
+.climate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #01579b;
+  font-weight: 600;
+}
+
+.climateIcon {
+  font-size: 1.5rem;
+}
+
+.hobbyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.hobbyCard {
+  padding: 1rem;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #6a1b9a;
+}
+
+.travelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.travelCategory h4 {
+  color: #1565c0;
+  margin-bottom: 1rem;
+}
+
+.travelCategory ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.travelCategory li {
+  padding: 0.75rem;
+  background: #e1f5fe;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.travelStyle {
+  padding: 1rem;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: #f57f17;
+}
+
+.styleIcon {
+  font-size: 1.5rem;
+}
+
+.socialLife {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.socialItem h4 {
+  color: #5e35b1;
+  margin-bottom: 1rem;
+}
+
+.socialItem p {
+  padding: 1rem;
+  background: #f3e5f5;
+  border-radius: 8px;
+  color: #333;
+  margin: 0;
+}
+
+.socialItem ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.socialItem li {
+  padding: 0.75rem;
+  background: #f3e5f5;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.dailyRoutine {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.routineSection h4 {
+  color: #1976d2;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.routineSection ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.routineSection li {
+  padding: 0.75rem;
+  background: #e3f2fd;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .tabs {
+    gap: 0.25rem;
+  }
+
+  .tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .wealthAnalysis,
+  .dailyRoutine {
+    grid-template-columns: 1fr;
+  }
+
+  .sleepSchedule {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .fieldHeader,
+  .matchHeader,
+  .exerciseHeader,
+  .areaHeader,
+  .streamHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

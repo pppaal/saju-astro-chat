@@ -39,7 +39,7 @@ export interface CombinedResult {
   summary: string;
 }
 
-/* 🐉 신살 계산 */
+// ---------- Helpers ----------
 async function getSinsal(pillars: any) {
   try {
     if (!pillars?.year || !pillars?.month || !pillars?.day || !pillars?.time) return null;
@@ -57,16 +57,108 @@ async function getSinsal(pillars: any) {
       includeUnlucky: true,
     });
   } catch (err) {
-    console.error("[getSinsal error]", err);
+    console.error("[getSinsal_error]", err);
     return null;
   }
 }
 
-/* 🚀 Main Engine */
+function computePoF(planets: any[], houses: any[], ascendant: any) {
+  const norm = (deg: number) => ((deg % 360) + 360) % 360;
+  const findPlanet = (name: string) => planets.find((p: any) => p?.name === name);
+  const sunLon = findPlanet("Sun")?.longitude;
+  const moonLon = findPlanet("Moon")?.longitude;
+  const ascLon = ascendant?.longitude;
+  if (typeof sunLon === "number" && typeof moonLon === "number" && typeof ascLon === "number") {
+    const pofLon = norm(ascLon + moonLon - sunLon);
+    const signNames = [
+      "Aries",
+      "Taurus",
+      "Gemini",
+      "Cancer",
+      "Leo",
+      "Virgo",
+      "Libra",
+      "Scorpio",
+      "Sagittarius",
+      "Capricorn",
+      "Aquarius",
+      "Pisces",
+    ];
+    const signIndex = Math.floor(pofLon / 30) % 12;
+    const signName = signNames[signIndex];
+    const degInSign = pofLon % 30;
+    const degree = Math.floor(degInSign);
+    const minute = Math.round((degInSign - degree) * 60);
+
+    // house determination: simple cusp check
+    const cusps = (houses as any[]) || [];
+    let houseNum = 0;
+    if (cusps.length === 12) {
+      const cuspDegs = cusps.map((c) => Number(c.cusp) || 0);
+      for (let i = 0; i < 12; i++) {
+        const start = cuspDegs[i];
+        const end = cuspDegs[(i + 1) % 12];
+        const inRange = start < end ? pofLon >= start && pofLon < end : pofLon >= start || pofLon < end;
+        if (inRange) {
+          houseNum = i + 1;
+          break;
+        }
+      }
+    }
+
+    (planets as any[]).push({
+      name: "Part of Fortune",
+      longitude: pofLon,
+      sign: signName,
+      degree,
+      minute,
+      formatted: `${signName} ${degree}° ${minute.toString().padStart(2, "0")}'`,
+      norm: pofLon,
+      house: houseNum,
+    });
+  }
+}
+
+function calcTransitsToLights(transitPlanets: any[], lights: { name: string; longitude: number }[], orb = 4) {
+  const normDiff = (a: number, b: number) => {
+    const d = Math.abs(a - b) % 360;
+    return Math.min(d, 360 - d);
+  };
+  const desired: Record<string, number> = {
+    conjunction: 0,
+    sextile: 60,
+    square: 90,
+    trine: 120,
+    opposition: 180,
+  };
+  const transits: any[] = [];
+  for (const tr of transitPlanets) {
+    const lon = typeof tr?.longitude === "number" ? tr.longitude : null;
+    const name = tr?.name;
+    if (!name || lon === null) continue;
+    for (const tgt of lights) {
+      const d = normDiff(lon, tgt.longitude);
+      for (const [atype, angle] of Object.entries(desired)) {
+        if (Math.abs(d - angle) <= orb) {
+          transits.push({
+            type: atype,
+            from: { name, longitude: lon },
+            to: { name: tgt.name, longitude: tgt.longitude },
+            orb: Number(d - angle).toFixed(2),
+          });
+          break;
+        }
+      }
+    }
+  }
+  return transits;
+}
+
+/* Main Engine */
 export async function computeDestinyMap(input: CombinedInput): Promise<CombinedResult> {
   try {
     const { birthDate, birthTime, latitude, longitude, gender: rawGender, tz, name } = input;
-    console.log("📥 [Engine] Input:", input);
+    console.log("[Engine] Input:", input);
 
     const gender = (rawGender ?? "male").toLowerCase() as "male" | "female";
     const [year, month, day] = birthDate.split("-").map(Number);
@@ -76,8 +168,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     const birthDateObj = new Date(birthISO);
     if (isNaN(birthDateObj.getTime())) throw new Error("Invalid birth date/time format");
 
-    /* ---------- 점성 ---------- */
-    console.log("🔭 [Engine] Start astrology calculation...");
+    // ---------- Astrology (natal) ----------
     const natalRaw = await calculateNatalChart({
       year,
       month,
@@ -94,12 +185,36 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     const astroMeta = (buildEngineMeta as any)(astroFacts, astroAspects);
     const { planets, houses, ascendant, mc } = natalRaw;
 
-    console.log("✨ Astrology finished:", {
+    // Part of Fortune
+    computePoF(planets as any[], houses as any[], ascendant);
+
+    // Transit aspects to lights (now, UTC)
+    const now = new Date();
+    const transitRaw = await calculateNatalChart({
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      date: now.getUTCDate(),
+      hour: now.getUTCHours(),
+      minute: now.getUTCMinutes(),
+      latitude,
+      longitude,
+      timeZone: "UTC",
+    });
+    const transitPlanets = (transitRaw as any).planets || [];
+    const lights = [
+      { name: "Sun", longitude: planets.find((p: any) => p.name === "Sun")?.longitude ?? 0 },
+      { name: "Moon", longitude: planets.find((p: any) => p.name === "Moon")?.longitude ?? 0 },
+      { name: "Ascendant", longitude: (ascendant as any)?.longitude ?? 0 },
+      { name: "MC", longitude: (mc as any)?.longitude ?? 0 },
+    ];
+    const transits = calcTransitsToLights(transitPlanets, lights, 4);
+
+    console.log("[Astrology finished]:", {
       sun: planets.find((p) => p.name === "Sun")?.sign,
       moon: planets.find((p) => p.name === "Moon")?.sign,
     });
 
-    /* ---------- 사주 ---------- */
+    // ---------- Saju ----------
     const timezone = tz ?? "Asia/Seoul";
     const [hh, mmRaw] = birthTime.split(":");
     const safeBirthTime = `${hh.padStart(2, "0")}:${(mmRaw ?? "00").padStart(2, "0")}`;
@@ -107,12 +222,11 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     let sajuFacts: SajuFacts | any = {};
     try {
       sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, "solar", timezone);
-      console.log("🧭 SajuFacts keys:", Object.keys(sajuFacts || {}));
+      console.log("[SajuFacts keys]:", Object.keys(sajuFacts || {}));
     } catch (err) {
-      console.error("❌ [calculateSajuData Error]", err);
+      console.error("[calculateSajuData Error]", err);
     }
 
-    // ⛳ 루트 바로 참조
     const pillars = {
       year: sajuFacts?.yearPillar,
       month: sajuFacts?.monthPillar,
@@ -121,7 +235,6 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     };
     const dayMaster = sajuFacts?.dayMaster ?? {};
 
-    /* ---------- 운세 ---------- */
     let daeun: any[] = [];
     let annual: any[] = [];
     let monthly: any[] = [];
@@ -140,17 +253,17 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
         iljin = Array.isArray(i) ? i : [];
-        console.log("✅ 운세 계산 완료:", daeun.length);
+        console.log("[운세 cycles]:", daeun.length);
       } catch (err) {
-        console.warn("[운세 계산 실패]", err);
+        console.warn("[운세 계산 경고]", err);
       }
     } else {
-      console.warn("⚠️ Invalid pillars → skip 운세 calculation");
+      console.warn("Invalid pillars, skip 운세 calculation");
     }
 
     const sinsal = hasValidPillars ? await getSinsal(pillars) : null;
 
-    /* ---------- 요약 ---------- */
+    // ---------- Summary ----------
     const dayMasterText =
       typeof dayMaster === "string"
         ? dayMaster
@@ -175,19 +288,40 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       .filter(Boolean)
       .join(" · ");
 
-    /* ---------- 파일 저장 ---------- */
+    // ---------- Log save ----------
     try {
       const dir = path.join(process.cwd(), "logs");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir);
       const file = path.join(dir, `destinymap-${Date.now()}.json`);
       fs.writeFileSync(
         file,
-        JSON.stringify({ input, pillars, dayMaster, daeun, annual, monthly, iljin, summary }, null, 2),
+        JSON.stringify(
+          {
+            input,
+            report: {
+              astrology: {
+                facts: astroFacts,
+                planets,
+                houses,
+                ascendant,
+                mc,
+                aspects: astroAspects,
+                meta: astroMeta,
+                options: astroOptions,
+                transits,
+              },
+              saju: { facts: sajuFacts, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal },
+              summary,
+            },
+          },
+          null,
+          2
+        ),
         "utf8"
       );
-      console.log("💾 [Engine] Full output saved:", file);
+      console.log("[Engine] Full output saved:", file);
     } catch (err) {
-      console.warn("⚠️ Log save failed:", err);
+      console.warn("Log save failed:", err);
     }
 
     return {
@@ -197,17 +331,27 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         name,
         gender,
       },
-      astrology: { facts: astroFacts, planets, houses, ascendant, mc, aspects: astroAspects, meta: astroMeta, options: astroOptions },
+      astrology: {
+        facts: astroFacts,
+        planets,
+        houses,
+        ascendant,
+        mc,
+        aspects: astroAspects,
+        meta: astroMeta,
+        options: astroOptions,
+        transits,
+      },
       saju: { facts: sajuFacts, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal },
       summary,
     };
   } catch (err: any) {
-    console.error("🛑 [computeDestinyMap Error]", err);
+    console.error("[computeDestinyMap Error]", err);
     return {
       meta: { generator: "DestinyMap Core Engine (error)", generatedAt: new Date().toISOString() },
       astrology: {},
       saju: { facts: {}, pillars: {}, dayMaster: {}, unse: { daeun: [], annual: [], monthly: [], iljin: [] }, sinsal: null },
-      summary: "⚠️ Calculation error occurred — returning data-only result.",
+      summary: "Calculation error occurred. Returning data-only result.",
     };
   }
 }

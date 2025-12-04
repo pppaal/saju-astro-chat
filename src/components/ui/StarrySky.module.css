@@ -31,3 +31,15 @@
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+    opacity: 0.5;
+  }
+  .starlightContainer {
+    background: radial-gradient(80% 80% at 50% 10%, rgba(168,153,255,0.08), transparent),
+                radial-gradient(70% 70% at 30% 90%, rgba(80,188,255,0.08), transparent),
+                #0c0a1a;
+  }
+}

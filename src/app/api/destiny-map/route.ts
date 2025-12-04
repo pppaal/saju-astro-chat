@@ -5,6 +5,10 @@ import { generateReport } from "@/lib/destiny-map/reportService";
 import type { SajuResult, AstrologyResult } from "@/lib/destiny-map/types";
 import fs from "fs";
 import path from "path";
+import { apiGuard } from "@/lib/apiGuard";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth/authOptions";
+import { sendNotification } from "@/lib/notifications/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -30,6 +34,9 @@ function cleanseText(raw: string) {
  */
 export async function POST(request: Request) {
   try {
+    const guard = await apiGuard(request, { path: "destiny-map", limit: 30, windowSeconds: 60 });
+    if (guard instanceof NextResponse) return guard;
+
     const body = await request.json();
     console.log("✅ [API] DestinyMap POST body:", body);
 
@@ -68,6 +75,24 @@ export async function POST(request: Request) {
 
     console.log("✨ [API] Report generated!");
     console.log(JSON.stringify(report, null, 2));
+
+    // -----------------------------------------------
+    // 🔔 알림 전송 (로그인한 사용자에게만)
+    // -----------------------------------------------
+    try {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.email) {
+        sendNotification(session.user.email, {
+          type: "system",
+          title: "✨ Destiny Map Ready!",
+          message: `Your ${theme} reading for ${name || 'your profile'} has been generated successfully.`,
+          link: "/destiny-map/result",
+        });
+        console.log("🔔 [API] Notification sent to:", session.user.email);
+      }
+    } catch (notifErr) {
+      console.warn("⚠️ [API] Notification send failed:", notifErr);
+    }
 
     // -----------------------------------------------
     // 🪄 fallback values

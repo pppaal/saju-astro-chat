@@ -10,8 +10,22 @@ interface Star {
 
 export default function StarrySky() {
   const [stars, setStars] = useState<Star[]>([]);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduceMotion(mq.matches);
+    const handler = () => setReduceMotion(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setStars([]);
+      return;
+    }
     const generatedStars: Star[] = Array.from({ length: 100 }).map((_, i) => {
       const size = Math.random() * 2 + 1;
       return {
@@ -26,7 +40,7 @@ export default function StarrySky() {
       };
     });
     setStars(generatedStars);
-  }, []);
+  }, [reduceMotion]);
 
   return (
     <div className={styles.starlightContainer}>

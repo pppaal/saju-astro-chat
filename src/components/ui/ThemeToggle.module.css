@@ -1,0 +1,53 @@
+.themeToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.themeToggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(176, 192, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(176, 192, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.themeToggle:focus-visible {
+  outline: 2px solid #7c5cff;
+  outline-offset: 2px;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-color);
+  transition: transform 0.3s ease;
+}
+
+.themeToggle:hover .icon {
+  transform: rotate(20deg);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
+.icon {
+  animation: fadeIn 0.3s ease-in-out;
+}
