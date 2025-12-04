@@ -40,7 +40,7 @@ export default function IchingPage() {
 
         /* 🆕 타이틀 텍스트 */
         .title {
-          font-family: 'Cinzel', serif;
+          font-family: var(--font-cinzel), serif;
           font-size: 3rem;
           font-weight: 700;
           color: #ffd700;

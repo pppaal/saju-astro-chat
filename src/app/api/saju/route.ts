@@ -316,7 +316,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       .filter(k => LUCKY_SET.has(k))
   )).sort((a, b) => LUCKY_ORDER.indexOf(a) - LUCKY_ORDER.indexOf(b));
 
-  const lucky = luckyKinds.map(n =>
+  const _lucky = luckyKinds.map(n =>
     ['천을귀인','태극귀인','금여성','천문성','문창','문곡'].includes(n) ? n : `${n}살`
   );
   // [추가 끝]

@@ -4,7 +4,6 @@ import tsParser from '@typescript-eslint/parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// 이전 버전의 Node.js 호환성을 위한 코드
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,12 +13,17 @@ const compat = new FlatCompat({
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 const config = [
-  // Next.js 기본 규칙을 그대로 사용
   ...compat.config({
     extends: ['next/core-web-vitals'],
   }),
 
-  // TypeScript 파일에만 적용할 전용 설정
+  {
+    ignores: [
+      'src/lib/cities.js',
+      'src/lib/destiny-map/visual/*',
+    ],
+  },
+
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {

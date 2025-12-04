@@ -1,6 +1,6 @@
-{
+﻿{
   "input": {
-    "name": "aㄴㅇㅁㄴㅇ",
+    "name": "aã„´ã…‡ã…ã„´ã…‡",
     "birthDate": "1995-02-09",
     "birthTime": "06:40",
     "latitude": 37.566,
@@ -11,327 +11,327 @@
   "pillars": {
     "year": {
       "heavenlyStem": {
-        "name": "乙",
-        "element": "목",
-        "sibsin": "편재"
+        "name": "ä¹™",
+        "element": "ëª©",
+        "sibsin": "íŽ¸ìž¬"
       },
       "earthlyBranch": {
-        "name": "亥",
-        "element": "수",
-        "sibsin": "상관"
+        "name": "äº¥",
+        "element": "ìˆ˜",
+        "sibsin": "ìƒê´€"
       },
       "jijanggan": {
         "chogi": {
-          "name": "戊",
-          "sibsin": "정인"
+          "name": "æˆŠ",
+          "sibsin": "ì •ì¸"
         },
         "junggi": {
-          "name": "甲",
-          "sibsin": "정재"
+          "name": "ç”²",
+          "sibsin": "ì •ìž¬"
         },
         "jeonggi": {
-          "name": "壬",
-          "sibsin": "상관"
+          "name": "å£¬",
+          "sibsin": "ìƒê´€"
         }
       },
       "hiddenStems": {
-        "main": "壬",
+        "main": "å£¬",
         "all": [
-          "戊",
-          "甲",
-          "壬"
+          "æˆŠ",
+          "ç”²",
+          "å£¬"
         ]
       }
     },
     "month": {
       "heavenlyStem": {
-        "name": "戊",
-        "element": "토",
-        "sibsin": "정인"
+        "name": "æˆŠ",
+        "element": "í† ",
+        "sibsin": "ì •ì¸"
       },
       "earthlyBranch": {
-        "name": "寅",
-        "element": "목",
-        "sibsin": "정재"
+        "name": "å¯…",
+        "element": "ëª©",
+        "sibsin": "ì •ìž¬"
       },
       "jijanggan": {
         "chogi": {
-          "name": "戊",
-          "sibsin": "정인"
+          "name": "æˆŠ",
+          "sibsin": "ì •ì¸"
         },
         "junggi": {
-          "name": "丙",
-          "sibsin": "정관"
+          "name": "ä¸™",
+          "sibsin": "ì •ê´€"
         },
         "jeonggi": {
-          "name": "甲",
-          "sibsin": "정재"
+          "name": "ç”²",
+          "sibsin": "ì •ìž¬"
         }
       },
       "hiddenStems": {
-        "main": "甲",
+        "main": "ç”²",
         "all": [
-          "戊",
-          "丙",
-          "甲"
+          "æˆŠ",
+          "ä¸™",
+          "ç”²"
         ]
       }
     },
     "day": {
       "heavenlyStem": {
-        "name": "辛",
-        "element": "금",
-        "sibsin": "비견"
+        "name": "è¾›",
+        "element": "ê¸ˆ",
+        "sibsin": "ë¹„ê²¬"
       },
       "earthlyBranch": {
-        "name": "未",
-        "element": "토",
-        "sibsin": "편인"
+        "name": "æœª",
+        "element": "í† ",
+        "sibsin": "íŽ¸ì¸"
       },
       "jijanggan": {
         "chogi": {
-          "name": "丁",
-          "sibsin": "편관"
+          "name": "ä¸",
+          "sibsin": "íŽ¸ê´€"
         },
         "junggi": {
-          "name": "乙",
-          "sibsin": "편재"
+          "name": "ä¹™",
+          "sibsin": "íŽ¸ìž¬"
         },
         "jeonggi": {
-          "name": "己",
-          "sibsin": "편인"
+          "name": "å·±",
+          "sibsin": "íŽ¸ì¸"
         }
       },
       "hiddenStems": {
-        "main": "己",
+        "main": "å·±",
         "all": [
-          "丁",
-          "乙",
-          "己"
+          "ä¸",
+          "ä¹™",
+          "å·±"
         ]
       }
     },
     "time": {
       "heavenlyStem": {
-        "name": "辛",
-        "element": "금",
-        "sibsin": "비견"
+        "name": "è¾›",
+        "element": "ê¸ˆ",
+        "sibsin": "ë¹„ê²¬"
       },
       "earthlyBranch": {
-        "name": "卯",
-        "element": "목",
-        "sibsin": "편재"
+        "name": "å¯",
+        "element": "ëª©",
+        "sibsin": "íŽ¸ìž¬"
       },
       "jijanggan": {
         "chogi": {
-          "name": "甲",
-          "sibsin": "정재"
+          "name": "ç”²",
+          "sibsin": "ì •ìž¬"
         },
         "junggi": {
-          "name": "乙",
-          "sibsin": "편재"
+          "name": "ä¹™",
+          "sibsin": "íŽ¸ìž¬"
         },
         "jeonggi": {
-          "name": "乙",
-          "sibsin": "편재"
+          "name": "ä¹™",
+          "sibsin": "íŽ¸ìž¬"
         }
       },
       "hiddenStems": {
-        "main": "乙",
+        "main": "ä¹™",
         "all": [
-          "甲",
-          "乙",
-          "乙"
+          "ç”²",
+          "ä¹™",
+          "ä¹™"
         ]
       }
     }
   },
   "dayMaster": {
-    "name": "辛",
-    "element": "금",
-    "yin_yang": "음"
+    "name": "è¾›",
+    "element": "ê¸ˆ",
+    "yin_yang": "ìŒ"
   },
   "daeun": [
     {
       "age": 2,
-      "heavenlyStem": "丁",
-      "earthlyBranch": "丑",
+      "heavenlyStem": "ä¸",
+      "earthlyBranch": "ä¸‘",
       "sibsin": {
-        "cheon": "편관",
-        "ji": "편인"
+        "cheon": "íŽ¸ê´€",
+        "ji": "íŽ¸ì¸"
       }
     },
     {
       "age": 12,
-      "heavenlyStem": "丙",
-      "earthlyBranch": "子",
+      "heavenlyStem": "ä¸™",
+      "earthlyBranch": "å­",
       "sibsin": {
-        "cheon": "정관",
-        "ji": "상관"
+        "cheon": "ì •ê´€",
+        "ji": "ìƒê´€"
       }
     },
     {
       "age": 22,
-      "heavenlyStem": "乙",
-      "earthlyBranch": "亥",
+      "heavenlyStem": "ä¹™",
+      "earthlyBranch": "äº¥",
       "sibsin": {
-        "cheon": "편재",
-        "ji": "식신"
+        "cheon": "íŽ¸ìž¬",
+        "ji": "ì‹ì‹ "
       }
     },
     {
       "age": 32,
-      "heavenlyStem": "甲",
-      "earthlyBranch": "戌",
+      "heavenlyStem": "ç”²",
+      "earthlyBranch": "æˆŒ",
       "sibsin": {
-        "cheon": "정재",
-        "ji": "정인"
+        "cheon": "ì •ìž¬",
+        "ji": "ì •ì¸"
       }
     },
     {
       "age": 42,
-      "heavenlyStem": "癸",
-      "earthlyBranch": "酉",
+      "heavenlyStem": "ç™¸",
+      "earthlyBranch": "é…‰",
       "sibsin": {
-        "cheon": "식신",
-        "ji": "비견"
+        "cheon": "ì‹ì‹ ",
+        "ji": "ë¹„ê²¬"
       }
     },
     {
       "age": 52,
-      "heavenlyStem": "壬",
-      "earthlyBranch": "申",
+      "heavenlyStem": "å£¬",
+      "earthlyBranch": "ç”³",
       "sibsin": {
-        "cheon": "상관",
-        "ji": "겁재"
+        "cheon": "ìƒê´€",
+        "ji": "ê²ìž¬"
       }
     },
     {
       "age": 62,
-      "heavenlyStem": "辛",
-      "earthlyBranch": "未",
+      "heavenlyStem": "è¾›",
+      "earthlyBranch": "æœª",
       "sibsin": {
-        "cheon": "비견",
-        "ji": "편인"
+        "cheon": "ë¹„ê²¬",
+        "ji": "íŽ¸ì¸"
       }
     },
     {
       "age": 72,
-      "heavenlyStem": "庚",
-      "earthlyBranch": "午",
+      "heavenlyStem": "åºš",
+      "earthlyBranch": "åˆ",
       "sibsin": {
-        "cheon": "겁재",
-        "ji": "정관"
+        "cheon": "ê²ìž¬",
+        "ji": "ì •ê´€"
       }
     },
     {
       "age": 82,
-      "heavenlyStem": "己",
-      "earthlyBranch": "巳",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "å·³",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편관"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ê´€"
       }
     },
     {
       "age": 92,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "辰",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "è¾°",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "정인"
+        "cheon": "ì •ì¸",
+        "ji": "ì •ì¸"
       }
     }
   ],
   "annual": [
     {
       "year": 2004,
-      "heavenlyStem": "甲",
-      "earthlyBranch": "申",
+      "heavenlyStem": "ç”²",
+      "earthlyBranch": "ç”³",
       "sibsin": {
-        "cheon": "정재",
-        "ji": "겁재"
+        "cheon": "ì •ìž¬",
+        "ji": "ê²ìž¬"
       }
     },
     {
       "year": 2003,
-      "heavenlyStem": "癸",
-      "earthlyBranch": "未",
+      "heavenlyStem": "ç™¸",
+      "earthlyBranch": "æœª",
       "sibsin": {
-        "cheon": "식신",
-        "ji": "편인"
+        "cheon": "ì‹ì‹ ",
+        "ji": "íŽ¸ì¸"
       }
     },
     {
       "year": 2002,
-      "heavenlyStem": "壬",
-      "earthlyBranch": "午",
+      "heavenlyStem": "å£¬",
+      "earthlyBranch": "åˆ",
       "sibsin": {
-        "cheon": "상관",
-        "ji": "정관"
+        "cheon": "ìƒê´€",
+        "ji": "ì •ê´€"
       }
     },
     {
       "year": 2001,
-      "heavenlyStem": "辛",
-      "earthlyBranch": "巳",
+      "heavenlyStem": "è¾›",
+      "earthlyBranch": "å·³",
       "sibsin": {
-        "cheon": "비견",
-        "ji": "편관"
+        "cheon": "ë¹„ê²¬",
+        "ji": "íŽ¸ê´€"
       }
     },
     {
       "year": 2000,
-      "heavenlyStem": "庚",
-      "earthlyBranch": "辰",
+      "heavenlyStem": "åºš",
+      "earthlyBranch": "è¾°",
       "sibsin": {
-        "cheon": "겁재",
-        "ji": "정인"
+        "cheon": "ê²ìž¬",
+        "ji": "ì •ì¸"
       }
     },
     {
       "year": 1999,
-      "heavenlyStem": "己",
-      "earthlyBranch": "卯",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "å¯",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편재"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ìž¬"
       }
     },
     {
       "year": 1998,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "寅",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "å¯…",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "정재"
+        "cheon": "ì •ì¸",
+        "ji": "ì •ìž¬"
       }
     },
     {
       "year": 1997,
-      "heavenlyStem": "丁",
-      "earthlyBranch": "丑",
+      "heavenlyStem": "ä¸",
+      "earthlyBranch": "ä¸‘",
       "sibsin": {
-        "cheon": "편관",
-        "ji": "편인"
+        "cheon": "íŽ¸ê´€",
+        "ji": "íŽ¸ì¸"
       }
     },
     {
       "year": 1996,
-      "heavenlyStem": "丙",
-      "earthlyBranch": "子",
+      "heavenlyStem": "ä¸™",
+      "earthlyBranch": "å­",
       "sibsin": {
-        "cheon": "정관",
-        "ji": "상관"
+        "cheon": "ì •ê´€",
+        "ji": "ìƒê´€"
       }
     },
     {
       "year": 1995,
-      "heavenlyStem": "乙",
-      "earthlyBranch": "亥",
+      "heavenlyStem": "ä¹™",
+      "earthlyBranch": "äº¥",
       "sibsin": {
-        "cheon": "편재",
-        "ji": "식신"
+        "cheon": "íŽ¸ìž¬",
+        "ji": "ì‹ì‹ "
       }
     }
   ],
@@ -339,121 +339,121 @@
     {
       "year": 1995,
       "month": 1,
-      "heavenlyStem": "己",
-      "earthlyBranch": "丑",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "ä¸‘",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편인"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ì¸"
       }
     },
     {
       "year": 1995,
       "month": 2,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "寅",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "å¯…",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "정재"
+        "cheon": "ì •ì¸",
+        "ji": "ì •ìž¬"
       }
     },
     {
       "year": 1995,
       "month": 3,
-      "heavenlyStem": "己",
-      "earthlyBranch": "卯",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "å¯",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편재"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ìž¬"
       }
     },
     {
       "year": 1995,
       "month": 4,
-      "heavenlyStem": "庚",
-      "earthlyBranch": "辰",
+      "heavenlyStem": "åºš",
+      "earthlyBranch": "è¾°",
       "sibsin": {
-        "cheon": "겁재",
-        "ji": "정인"
+        "cheon": "ê²ìž¬",
+        "ji": "ì •ì¸"
       }
     },
     {
       "year": 1995,
       "month": 5,
-      "heavenlyStem": "辛",
-      "earthlyBranch": "巳",
+      "heavenlyStem": "è¾›",
+      "earthlyBranch": "å·³",
       "sibsin": {
-        "cheon": "비견",
-        "ji": "편관"
+        "cheon": "ë¹„ê²¬",
+        "ji": "íŽ¸ê´€"
       }
     },
     {
       "year": 1995,
       "month": 6,
-      "heavenlyStem": "壬",
-      "earthlyBranch": "午",
+      "heavenlyStem": "å£¬",
+      "earthlyBranch": "åˆ",
       "sibsin": {
-        "cheon": "상관",
-        "ji": "정관"
+        "cheon": "ìƒê´€",
+        "ji": "ì •ê´€"
       }
     },
     {
       "year": 1995,
       "month": 7,
-      "heavenlyStem": "癸",
-      "earthlyBranch": "未",
+      "heavenlyStem": "ç™¸",
+      "earthlyBranch": "æœª",
       "sibsin": {
-        "cheon": "식신",
-        "ji": "편인"
+        "cheon": "ì‹ì‹ ",
+        "ji": "íŽ¸ì¸"
       }
     },
     {
       "year": 1995,
       "month": 8,
-      "heavenlyStem": "甲",
-      "earthlyBranch": "申",
+      "heavenlyStem": "ç”²",
+      "earthlyBranch": "ç”³",
       "sibsin": {
-        "cheon": "정재",
-        "ji": "겁재"
+        "cheon": "ì •ìž¬",
+        "ji": "ê²ìž¬"
       }
     },
     {
       "year": 1995,
       "month": 9,
-      "heavenlyStem": "乙",
-      "earthlyBranch": "酉",
+      "heavenlyStem": "ä¹™",
+      "earthlyBranch": "é…‰",
       "sibsin": {
-        "cheon": "편재",
-        "ji": "비견"
+        "cheon": "íŽ¸ìž¬",
+        "ji": "ë¹„ê²¬"
       }
     },
     {
       "year": 1995,
       "month": 10,
-      "heavenlyStem": "丙",
-      "earthlyBranch": "戌",
+      "heavenlyStem": "ä¸™",
+      "earthlyBranch": "æˆŒ",
       "sibsin": {
-        "cheon": "정관",
-        "ji": "정인"
+        "cheon": "ì •ê´€",
+        "ji": "ì •ì¸"
       }
     },
     {
       "year": 1995,
       "month": 11,
-      "heavenlyStem": "丁",
-      "earthlyBranch": "亥",
+      "heavenlyStem": "ä¸",
+      "earthlyBranch": "äº¥",
       "sibsin": {
-        "cheon": "편관",
-        "ji": "식신"
+        "cheon": "íŽ¸ê´€",
+        "ji": "ì‹ì‹ "
       }
     },
     {
       "year": 1995,
       "month": 12,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "子",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "å­",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "상관"
+        "cheon": "ì •ì¸",
+        "ji": "ìƒê´€"
       }
     }
   ],
@@ -462,11 +462,11 @@
       "year": 1995,
       "month": 2,
       "day": 1,
-      "heavenlyStem": "癸",
-      "earthlyBranch": "亥",
+      "heavenlyStem": "ç™¸",
+      "earthlyBranch": "äº¥",
       "sibsin": {
-        "cheon": "식신",
-        "ji": "식신"
+        "cheon": "ì‹ì‹ ",
+        "ji": "ì‹ì‹ "
       },
       "isCheoneulGwiin": false
     },
@@ -474,11 +474,11 @@
       "year": 1995,
       "month": 2,
       "day": 2,
-      "heavenlyStem": "甲",
-      "earthlyBranch": "子",
+      "heavenlyStem": "ç”²",
+      "earthlyBranch": "å­",
       "sibsin": {
-        "cheon": "정재",
-        "ji": "상관"
+        "cheon": "ì •ìž¬",
+        "ji": "ìƒê´€"
       },
       "isCheoneulGwiin": false
     },
@@ -486,11 +486,11 @@
       "year": 1995,
       "month": 2,
       "day": 3,
-      "heavenlyStem": "乙",
-      "earthlyBranch": "丑",
+      "heavenlyStem": "ä¹™",
+      "earthlyBranch": "ä¸‘",
       "sibsin": {
-        "cheon": "편재",
-        "ji": "편인"
+        "cheon": "íŽ¸ìž¬",
+        "ji": "íŽ¸ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -498,11 +498,11 @@
       "year": 1995,
       "month": 2,
       "day": 4,
-      "heavenlyStem": "丙",
-      "earthlyBranch": "寅",
+      "heavenlyStem": "ä¸™",
+      "earthlyBranch": "å¯…",
       "sibsin": {
-        "cheon": "정관",
-        "ji": "정재"
+        "cheon": "ì •ê´€",
+        "ji": "ì •ìž¬"
       },
       "isCheoneulGwiin": true
     },
@@ -510,11 +510,11 @@
       "year": 1995,
       "month": 2,
       "day": 5,
-      "heavenlyStem": "丁",
-      "earthlyBranch": "卯",
+      "heavenlyStem": "ä¸",
+      "earthlyBranch": "å¯",
       "sibsin": {
-        "cheon": "편관",
-        "ji": "편재"
+        "cheon": "íŽ¸ê´€",
+        "ji": "íŽ¸ìž¬"
       },
       "isCheoneulGwiin": false
     },
@@ -522,11 +522,11 @@
       "year": 1995,
       "month": 2,
       "day": 6,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "辰",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "è¾°",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "정인"
+        "cheon": "ì •ì¸",
+        "ji": "ì •ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -534,11 +534,11 @@
       "year": 1995,
       "month": 2,
       "day": 7,
-      "heavenlyStem": "己",
-      "earthlyBranch": "巳",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "å·³",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편관"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ê´€"
       },
       "isCheoneulGwiin": false
     },
@@ -546,11 +546,11 @@
       "year": 1995,
       "month": 2,
       "day": 8,
-      "heavenlyStem": "庚",
-      "earthlyBranch": "午",
+      "heavenlyStem": "åºš",
+      "earthlyBranch": "åˆ",
       "sibsin": {
-        "cheon": "겁재",
-        "ji": "정관"
+        "cheon": "ê²ìž¬",
+        "ji": "ì •ê´€"
       },
       "isCheoneulGwiin": true
     },
@@ -558,11 +558,11 @@
       "year": 1995,
       "month": 2,
       "day": 9,
-      "heavenlyStem": "辛",
-      "earthlyBranch": "未",
+      "heavenlyStem": "è¾›",
+      "earthlyBranch": "æœª",
       "sibsin": {
-        "cheon": "비견",
-        "ji": "편인"
+        "cheon": "ë¹„ê²¬",
+        "ji": "íŽ¸ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -570,11 +570,11 @@
       "year": 1995,
       "month": 2,
       "day": 10,
-      "heavenlyStem": "壬",
-      "earthlyBranch": "申",
+      "heavenlyStem": "å£¬",
+      "earthlyBranch": "ç”³",
       "sibsin": {
-        "cheon": "상관",
-        "ji": "겁재"
+        "cheon": "ìƒê´€",
+        "ji": "ê²ìž¬"
       },
       "isCheoneulGwiin": false
     },
@@ -582,11 +582,11 @@
       "year": 1995,
       "month": 2,
       "day": 11,
-      "heavenlyStem": "癸",
-      "earthlyBranch": "酉",
+      "heavenlyStem": "ç™¸",
+      "earthlyBranch": "é…‰",
       "sibsin": {
-        "cheon": "식신",
-        "ji": "비견"
+        "cheon": "ì‹ì‹ ",
+        "ji": "ë¹„ê²¬"
       },
       "isCheoneulGwiin": false
     },
@@ -594,11 +594,11 @@
       "year": 1995,
       "month": 2,
       "day": 12,
-      "heavenlyStem": "甲",
-      "earthlyBranch": "戌",
+      "heavenlyStem": "ç”²",
+      "earthlyBranch": "æˆŒ",
       "sibsin": {
-        "cheon": "정재",
-        "ji": "정인"
+        "cheon": "ì •ìž¬",
+        "ji": "ì •ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -606,11 +606,11 @@
       "year": 1995,
       "month": 2,
       "day": 13,
-      "heavenlyStem": "乙",
-      "earthlyBranch": "亥",
+      "heavenlyStem": "ä¹™",
+      "earthlyBranch": "äº¥",
       "sibsin": {
-        "cheon": "편재",
-        "ji": "식신"
+        "cheon": "íŽ¸ìž¬",
+        "ji": "ì‹ì‹ "
       },
       "isCheoneulGwiin": false
     },
@@ -618,11 +618,11 @@
       "year": 1995,
       "month": 2,
       "day": 14,
-      "heavenlyStem": "丙",
-      "earthlyBranch": "子",
+      "heavenlyStem": "ä¸™",
+      "earthlyBranch": "å­",
       "sibsin": {
-        "cheon": "정관",
-        "ji": "상관"
+        "cheon": "ì •ê´€",
+        "ji": "ìƒê´€"
       },
       "isCheoneulGwiin": false
     },
@@ -630,11 +630,11 @@
       "year": 1995,
       "month": 2,
       "day": 15,
-      "heavenlyStem": "丁",
-      "earthlyBranch": "丑",
+      "heavenlyStem": "ä¸",
+      "earthlyBranch": "ä¸‘",
       "sibsin": {
-        "cheon": "편관",
-        "ji": "편인"
+        "cheon": "íŽ¸ê´€",
+        "ji": "íŽ¸ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -642,11 +642,11 @@
       "year": 1995,
       "month": 2,
       "day": 16,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "寅",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "å¯…",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "정재"
+        "cheon": "ì •ì¸",
+        "ji": "ì •ìž¬"
       },
       "isCheoneulGwiin": true
     },
@@ -654,11 +654,11 @@
       "year": 1995,
       "month": 2,
       "day": 17,
-      "heavenlyStem": "己",
-      "earthlyBranch": "卯",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "å¯",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편재"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ìž¬"
       },
       "isCheoneulGwiin": false
     },
@@ -666,11 +666,11 @@
       "year": 1995,
       "month": 2,
       "day": 18,
-      "heavenlyStem": "庚",
-      "earthlyBranch": "辰",
+      "heavenlyStem": "åºš",
+      "earthlyBranch": "è¾°",
       "sibsin": {
-        "cheon": "겁재",
-        "ji": "정인"
+        "cheon": "ê²ìž¬",
+        "ji": "ì •ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -678,11 +678,11 @@
       "year": 1995,
       "month": 2,
       "day": 19,
-      "heavenlyStem": "辛",
-      "earthlyBranch": "巳",
+      "heavenlyStem": "è¾›",
+      "earthlyBranch": "å·³",
       "sibsin": {
-        "cheon": "비견",
-        "ji": "편관"
+        "cheon": "ë¹„ê²¬",
+        "ji": "íŽ¸ê´€"
       },
       "isCheoneulGwiin": false
     },
@@ -690,11 +690,11 @@
       "year": 1995,
       "month": 2,
       "day": 20,
-      "heavenlyStem": "壬",
-      "earthlyBranch": "午",
+      "heavenlyStem": "å£¬",
+      "earthlyBranch": "åˆ",
       "sibsin": {
-        "cheon": "상관",
-        "ji": "정관"
+        "cheon": "ìƒê´€",
+        "ji": "ì •ê´€"
       },
       "isCheoneulGwiin": true
     },
@@ -702,11 +702,11 @@
       "year": 1995,
       "month": 2,
       "day": 21,
-      "heavenlyStem": "癸",
-      "earthlyBranch": "未",
+      "heavenlyStem": "ç™¸",
+      "earthlyBranch": "æœª",
       "sibsin": {
-        "cheon": "식신",
-        "ji": "편인"
+        "cheon": "ì‹ì‹ ",
+        "ji": "íŽ¸ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -714,11 +714,11 @@
       "year": 1995,
       "month": 2,
       "day": 22,
-      "heavenlyStem": "甲",
-      "earthlyBranch": "申",
+      "heavenlyStem": "ç”²",
+      "earthlyBranch": "ç”³",
       "sibsin": {
-        "cheon": "정재",
-        "ji": "겁재"
+        "cheon": "ì •ìž¬",
+        "ji": "ê²ìž¬"
       },
       "isCheoneulGwiin": false
     },
@@ -726,11 +726,11 @@
       "year": 1995,
       "month": 2,
       "day": 23,
-      "heavenlyStem": "乙",
-      "earthlyBranch": "酉",
+      "heavenlyStem": "ä¹™",
+      "earthlyBranch": "é…‰",
       "sibsin": {
-        "cheon": "편재",
-        "ji": "비견"
+        "cheon": "íŽ¸ìž¬",
+        "ji": "ë¹„ê²¬"
       },
       "isCheoneulGwiin": false
     },
@@ -738,11 +738,11 @@
       "year": 1995,
       "month": 2,
       "day": 24,
-      "heavenlyStem": "丙",
-      "earthlyBranch": "戌",
+      "heavenlyStem": "ä¸™",
+      "earthlyBranch": "æˆŒ",
       "sibsin": {
-        "cheon": "정관",
-        "ji": "정인"
+        "cheon": "ì •ê´€",
+        "ji": "ì •ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -750,11 +750,11 @@
       "year": 1995,
       "month": 2,
       "day": 25,
-      "heavenlyStem": "丁",
-      "earthlyBranch": "亥",
+      "heavenlyStem": "ä¸",
+      "earthlyBranch": "äº¥",
       "sibsin": {
-        "cheon": "편관",
-        "ji": "식신"
+        "cheon": "íŽ¸ê´€",
+        "ji": "ì‹ì‹ "
       },
       "isCheoneulGwiin": false
     },
@@ -762,11 +762,11 @@
       "year": 1995,
       "month": 2,
       "day": 26,
-      "heavenlyStem": "戊",
-      "earthlyBranch": "子",
+      "heavenlyStem": "æˆŠ",
+      "earthlyBranch": "å­",
       "sibsin": {
-        "cheon": "정인",
-        "ji": "상관"
+        "cheon": "ì •ì¸",
+        "ji": "ìƒê´€"
       },
       "isCheoneulGwiin": false
     },
@@ -774,11 +774,11 @@
       "year": 1995,
       "month": 2,
       "day": 27,
-      "heavenlyStem": "己",
-      "earthlyBranch": "丑",
+      "heavenlyStem": "å·±",
+      "earthlyBranch": "ä¸‘",
       "sibsin": {
-        "cheon": "편인",
-        "ji": "편인"
+        "cheon": "íŽ¸ì¸",
+        "ji": "íŽ¸ì¸"
       },
       "isCheoneulGwiin": false
     },
@@ -786,14 +786,14 @@
       "year": 1995,
       "month": 2,
       "day": 28,
-      "heavenlyStem": "庚",
-      "earthlyBranch": "寅",
+      "heavenlyStem": "åºš",
+      "earthlyBranch": "å¯…",
       "sibsin": {
-        "cheon": "겁재",
-        "ji": "정재"
+        "cheon": "ê²ìž¬",
+        "ji": "ì •ìž¬"
       },
       "isCheoneulGwiin": true
     }
   ],
-  "summary": "Name: aㄴㅇㅁㄴㅇ · Sun: 물병자리 · Moon: 쌍둥이자리 · Asc: 물병자리 · MC: 사수자리 · Dominant Element: undefined · Day Master: 辛 (금)"
+  "summary": "Name: aã„´ã…‡ã…ã„´ã…‡ Â· Sun: ë¬¼ë³‘ìžë¦¬ Â· Moon: ìŒë‘¥ì´ìžë¦¬ Â· Asc: ë¬¼ë³‘ìžë¦¬ Â· MC: ì‚¬ìˆ˜ìžë¦¬ Â· Dominant Element: undefined Â· Day Master: è¾› (ê¸ˆ)"
 }

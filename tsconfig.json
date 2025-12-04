@@ -11,7 +11,7 @@
     "noEmit": true,
     "esModuleInterop": true,
 
-    // ✅ 모듈 관련
+    // âœ… ëª¨ë“ˆ ê´€ë ¨
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
@@ -19,19 +19,19 @@
     "jsx": "preserve",
     "incremental": true,
 
-    // ✅ 중요: import 시 .ts 확장자 붙이지 않아도 됨
+    // âœ… ì¤‘ìš”: import ì‹œ .ts í™•ìž¥ìž ë¶™ì´ì§€ ì•Šì•„ë„ ë¨
     "allowImportingTsExtensions": false,
 
-    // ✅ 타입 인식
+    // âœ… íƒ€ìž… ì¸ì‹
     "types": ["node", "next", "react", "react-dom"],
 
-    // ✅ 타입 루트 추가 (pdf-lib 선언 포함)
+    // âœ… íƒ€ìž… ë£¨íŠ¸ ì¶”ê°€ (pdf-lib ì„ ì–¸ í¬í•¨)
     "typeRoots": ["./node_modules/@types", "./src/types"],
 
-    // ✅ Next.js 플러그인
+    // âœ… Next.js í”ŒëŸ¬ê·¸ì¸
     "plugins": [{ "name": "next" }],
 
-    // ✅ 경로 alias
+    // âœ… ê²½ë¡œ alias
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],

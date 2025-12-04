@@ -1,12 +1,12 @@
 // components/destiny-map/FortuneBubbles.tsx
 
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { SajuResult } from "@/lib/destiny-map/types";
 
 export default function FortuneBubbles({ saju }: { saju: SajuResult }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const five = saju?.fiveElements ?? {};
+  const five = useMemo(() => saju?.fiveElements ?? {}, [saju]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -80,7 +80,7 @@ export default function FortuneBubbles({ saju }: { saju: SajuResult }) {
       if (animationId) cancelAnimationFrame(animationId);
       ctx.clearRect(0, 0, width, height);
     };
-  }, [saju]);
+  }, [five]);
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>

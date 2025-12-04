@@ -1,0 +1,3502 @@
+{
+  "rule_1": {
+    "when": [
+      "sun_leo_h6_sextile_6"
+    ],
+    "text": "Sun_Leo_H6_sextile_6",
+    "weight": 1
+  },
+  "rule_2": {
+    "when": [
+      "sun_leo_h8_trine_563"
+    ],
+    "text": "Sun_Leo_H8_trine_563",
+    "weight": 1
+  },
+  "rule_3": {
+    "when": [
+      "sun_leo_h6_trine_772"
+    ],
+    "text": "Sun_Leo_H6_trine_772",
+    "weight": 1
+  },
+  "rule_4": {
+    "when": [
+      "sun_leo_h11_trine_440"
+    ],
+    "text": "Sun_Leo_H11_trine_440",
+    "weight": 1
+  },
+  "rule_5": {
+    "when": [
+      "sun_leo_h7_square_447"
+    ],
+    "text": "Sun_Leo_H7_square_447",
+    "weight": 1
+  },
+  "rule_6": {
+    "when": [
+      "moon_leo_h7_trine_919"
+    ],
+    "text": "Moon_Leo_H7_trine_919",
+    "weight": 1
+  },
+  "rule_7": {
+    "when": [
+      "sun_leo_h4_trine_1493"
+    ],
+    "text": "Sun_Leo_H4_trine_1493",
+    "weight": 1
+  },
+  "rule_8": {
+    "when": [
+      "sun_leo_h5_trine_2251"
+    ],
+    "text": "Sun_Leo_H5_trine_2251",
+    "weight": 1
+  },
+  "rule_9": {
+    "when": [
+      "sun_leo_h9_trine_2359"
+    ],
+    "text": "Sun_Leo_H9_trine_2359",
+    "weight": 1
+  },
+  "rule_10": {
+    "when": [
+      "sun_leo_h7_trine_2506"
+    ],
+    "text": "Sun_Leo_H7_trine_2506",
+    "weight": 1
+  },
+  "rule_11": {
+    "when": [
+      "sun_leo_h2_trine_3512"
+    ],
+    "text": "Sun_Leo_H2_trine_3512",
+    "weight": 1
+  },
+  "rule_12": {
+    "when": [
+      "sun_leo_h1_trine_4502"
+    ],
+    "text": "Sun_Leo_H1_trine_4502",
+    "weight": 1
+  },
+  "rule_13": {
+    "when": [
+      "sun_leo_h3_trine_9029"
+    ],
+    "text": "Sun_Leo_H3_trine_9029",
+    "weight": 1
+  },
+  "rule_14": {
+    "when": [
+      "venus_leo_h1_trine_151"
+    ],
+    "text": "Venus_Leo_H1_trine_151",
+    "weight": 1
+  },
+  "rule_15": {
+    "when": [
+      "mars_leo_h5_square_208"
+    ],
+    "text": "Mars_Leo_H5_square_208",
+    "weight": 1
+  },
+  "rule_16": {
+    "when": [
+      "pluto_leo_h1_trine_443"
+    ],
+    "text": "Pluto_Leo_H1_trine_443",
+    "weight": 1
+  },
+  "rule_17": {
+    "when": [
+      "sun_virgo_h8_trine_558"
+    ],
+    "text": "Sun_Virgo_H8_trine_558",
+    "weight": 1
+  },
+  "rule_18": {
+    "when": [
+      "moon_leo_h1_square_624"
+    ],
+    "text": "Moon_Leo_H1_square_624",
+    "weight": 1
+  },
+  "rule_19": {
+    "when": [
+      "mars_leo_h4_trine_1041"
+    ],
+    "text": "Mars_Leo_H4_trine_1041",
+    "weight": 1
+  },
+  "rule_20": {
+    "when": [
+      "sun_leo_h1_square_1170"
+    ],
+    "text": "Sun_Leo_H1_square_1170",
+    "weight": 1
+  },
+  "rule_21": {
+    "when": [
+      "moon_leo_h8_trine_2039"
+    ],
+    "text": "Moon_Leo_H8_trine_2039",
+    "weight": 1
+  },
+  "rule_22": {
+    "when": [
+      "moon_leo_h6_trine_2762"
+    ],
+    "text": "Moon_Leo_H6_trine_2762",
+    "weight": 1
+  },
+  "rule_23": {
+    "when": [
+      "moon_leo_h9_trine_3591"
+    ],
+    "text": "Moon_Leo_H9_trine_3591",
+    "weight": 1
+  },
+  "rule_24": {
+    "when": [
+      "moon_leo_h2_trine_4783"
+    ],
+    "text": "Moon_Leo_H2_trine_4783",
+    "weight": 1
+  },
+  "rule_25": {
+    "when": [
+      "sun_leo_h4_square_5160"
+    ],
+    "text": "Sun_Leo_H4_square_5160",
+    "weight": 1
+  },
+  "rule_26": {
+    "when": [
+      "mars_leo_h3_trine_5194"
+    ],
+    "text": "Mars_Leo_H3_trine_5194",
+    "weight": 1
+  },
+  "rule_27": {
+    "when": [
+      "mars_leo_h2_trine_6073"
+    ],
+    "text": "Mars_Leo_H2_trine_6073",
+    "weight": 1
+  },
+  "rule_28": {
+    "when": [
+      "mars_leo_h7_trine_6672"
+    ],
+    "text": "Mars_Leo_H7_trine_6672",
+    "weight": 1
+  },
+  "rule_29": {
+    "when": [
+      "sun_leo_h8_square_6962"
+    ],
+    "text": "Sun_Leo_H8_square_6962",
+    "weight": 1
+  },
+  "rule_30": {
+    "when": [
+      "sun_leo_h3_square_7186"
+    ],
+    "text": "Sun_Leo_H3_square_7186",
+    "weight": 1
+  },
+  "rule_31": {
+    "when": [
+      "mars_leo_h1_trine_7388"
+    ],
+    "text": "Mars_Leo_H1_trine_7388",
+    "weight": 1
+  },
+  "rule_32": {
+    "when": [
+      "sun_leo_h12_trine_8515"
+    ],
+    "text": "Sun_Leo_H12_trine_8515",
+    "weight": 1
+  },
+  "rule_33": {
+    "when": [
+      "sun_leo_h10_trine_8812"
+    ],
+    "text": "Sun_Leo_H10_trine_8812",
+    "weight": 1
+  },
+  "rule_34": {
+    "when": [
+      "mars_leo_h9_trine_9736"
+    ],
+    "text": "Mars_Leo_H9_trine_9736",
+    "weight": 1
+  },
+  "rule_35": {
+    "when": [
+      "venus_libra_h8_trine_46"
+    ],
+    "text": "Venus_Libra_H8_trine_46",
+    "weight": 1
+  },
+  "rule_36": {
+    "when": [
+      "mars_aries_h7_trine_103"
+    ],
+    "text": "Mars_Aries_H7_trine_103",
+    "weight": 1
+  },
+  "rule_37": {
+    "when": [
+      "sun_pisces_h5_trine_209"
+    ],
+    "text": "Sun_Pisces_H5_trine_209",
+    "weight": 1
+  },
+  "rule_38": {
+    "when": [
+      "mars_virgo_h1_trine_227"
+    ],
+    "text": "Mars_Virgo_H1_trine_227",
+    "weight": 1
+  },
+  "rule_39": {
+    "when": [
+      "sun_aries_h10_trine_244"
+    ],
+    "text": "Sun_Aries_H10_trine_244",
+    "weight": 1
+  },
+  "rule_40": {
+    "when": [
+      "sun_taurus_h8_trine_255"
+    ],
+    "text": "Sun_Taurus_H8_trine_255",
+    "weight": 1
+  },
+  "rule_41": {
+    "when": [
+      "sun_cancer_h1_trine_271"
+    ],
+    "text": "Sun_Cancer_H1_trine_271",
+    "weight": 1
+  },
+  "rule_42": {
+    "when": [
+      "moon_virgo_h1_trine_453"
+    ],
+    "text": "Moon_Virgo_H1_trine_453",
+    "weight": 1
+  },
+  "rule_43": {
+    "when": [
+      "sun_leo_h5_quintile_528"
+    ],
+    "text": "Sun_Leo_H5_quintile_528",
+    "weight": 1
+  },
+  "rule_44": {
+    "when": [
+      "mars_aries_h1_trine_556"
+    ],
+    "text": "Mars_Aries_H1_trine_556",
+    "weight": 1
+  },
+  "rule_45": {
+    "when": [
+      "sun_gemini_h7_trine_575"
+    ],
+    "text": "Sun_Gemini_H7_trine_575",
+    "weight": 1
+  },
+  "rule_46": {
+    "when": [
+      "uranus_leo_h4_trine_697"
+    ],
+    "text": "Uranus_Leo_H4_trine_697",
+    "weight": 1
+  },
+  "rule_47": {
+    "when": [
+      "pluto_leo_h5_square_804"
+    ],
+    "text": "Pluto_Leo_H5_square_804",
+    "weight": 1
+  },
+  "rule_48": {
+    "when": [
+      "sun_leo_h9_quintile_824"
+    ],
+    "text": "Sun_Leo_H9_quintile_824",
+    "weight": 1
+  },
+  "rule_49": {
+    "when": [
+      "moon_leo_h8_sextile_920"
+    ],
+    "text": "Moon_Leo_H8_sextile_920",
+    "weight": 1
+  },
+  "rule_50": {
+    "when": [
+      "saturn_leo_h3_trine_927"
+    ],
+    "text": "Saturn_Leo_H3_trine_927",
+    "weight": 1
+  },
+  "rule_51": {
+    "when": [
+      "sun_leo_h4_quintile_965"
+    ],
+    "text": "Sun_Leo_H4_quintile_965",
+    "weight": 1
+  },
+  "rule_52": {
+    "when": [
+      "mars_leo_h5_sextile_999"
+    ],
+    "text": "Mars_Leo_H5_sextile_999",
+    "weight": 1
+  },
+  "rule_53": {
+    "when": [
+      "sun_aries_h3_trine_1165"
+    ],
+    "text": "Sun_Aries_H3_trine_1165",
+    "weight": 1
+  },
+  "rule_54": {
+    "when": [
+      "mars_leo_h10_trine_1171"
+    ],
+    "text": "Mars_Leo_H10_trine_1171",
+    "weight": 1
+  },
+  "rule_55": {
+    "when": [
+      "venus_leo_h7_trine_1409"
+    ],
+    "text": "Venus_Leo_H7_trine_1409",
+    "weight": 1
+  },
+  "rule_56": {
+    "when": [
+      "pluto_leo_h9_trine_1664"
+    ],
+    "text": "Pluto_Leo_H9_trine_1664",
+    "weight": 1
+  },
+  "rule_57": {
+    "when": [
+      "pluto_leo_h3_trine_1666"
+    ],
+    "text": "Pluto_Leo_H3_trine_1666",
+    "weight": 1
+  },
+  "rule_58": {
+    "when": [
+      "sun_libra_h3_trine_1760"
+    ],
+    "text": "Sun_Libra_H3_trine_1760",
+    "weight": 1
+  },
+  "rule_59": {
+    "when": [
+      "moon_leo_h2_square_1772"
+    ],
+    "text": "Moon_Leo_H2_square_1772",
+    "weight": 1
+  },
+  "rule_60": {
+    "when": [
+      "sun_aries_h6_trine_1812"
+    ],
+    "text": "Sun_Aries_H6_trine_1812",
+    "weight": 1
+  },
+  "rule_61": {
+    "when": [
+      "sun_libra_h7_trine_1880"
+    ],
+    "text": "Sun_Libra_H7_trine_1880",
+    "weight": 1
+  },
+  "rule_62": {
+    "when": [
+      "sun_aries_h5_trine_1945"
+    ],
+    "text": "Sun_Aries_H5_trine_1945",
+    "weight": 1
+  },
+  "rule_63": {
+    "when": [
+      "mars_leo_h8_square_1949"
+    ],
+    "text": "Mars_Leo_H8_square_1949",
+    "weight": 1
+  },
+  "rule_64": {
+    "when": [
+      "sun_leo_h12_square_2199"
+    ],
+    "text": "Sun_Leo_H12_square_2199",
+    "weight": 1
+  },
+  "rule_65": {
+    "when": [
+      "sun_aries_h4_trine_2639"
+    ],
+    "text": "Sun_Aries_H4_trine_2639",
+    "weight": 1
+  },
+  "rule_66": {
+    "when": [
+      "moon_leo_h6_square_2810"
+    ],
+    "text": "Moon_Leo_H6_square_2810",
+    "weight": 1
+  },
+  "rule_67": {
+    "when": [
+      "sun_leo_h9_sextile_2835"
+    ],
+    "text": "Sun_Leo_H9_sextile_2835",
+    "weight": 1
+  },
+  "rule_68": {
+    "when": [
+      "moon_leo_h3_square_2845"
+    ],
+    "text": "Moon_Leo_H3_square_2845",
+    "weight": 1
+  },
+  "rule_69": {
+    "when": [
+      "moon_leo_h12_trine_3030"
+    ],
+    "text": "Moon_Leo_H12_trine_3030",
+    "weight": 1
+  },
+  "rule_70": {
+    "when": [
+      "venus_leo_h5_trine_3309"
+    ],
+    "text": "Venus_Leo_H5_trine_3309",
+    "weight": 1
+  },
+  "rule_71": {
+    "when": [
+      "pluto_leo_h2_trine_3422"
+    ],
+    "text": "Pluto_Leo_H2_trine_3422",
+    "weight": 1
+  },
+  "rule_72": {
+    "when": [
+      "sun_aries_h1_trine_3425"
+    ],
+    "text": "Sun_Aries_H1_trine_3425",
+    "weight": 1
+  },
+  "rule_73": {
+    "when": [
+      "sun_libra_h6_trine_3758"
+    ],
+    "text": "Sun_Libra_H6_trine_3758",
+    "weight": 1
+  },
+  "rule_74": {
+    "when": [
+      "sun_leo_h11_square_3936"
+    ],
+    "text": "Sun_Leo_H11_square_3936",
+    "weight": 1
+  },
+  "rule_75": {
+    "when": [
+      "sun_libra_h8_trine_4232"
+    ],
+    "text": "Sun_Libra_H8_trine_4232",
+    "weight": 1
+  },
+  "rule_76": {
+    "when": [
+      "sun_libra_h5_trine_4544"
+    ],
+    "text": "Sun_Libra_H5_trine_4544",
+    "weight": 1
+  },
+  "rule_77": {
+    "when": [
+      "sun_leo_h2_sextile_4893"
+    ],
+    "text": "Sun_Leo_H2_sextile_4893",
+    "weight": 1
+  },
+  "rule_78": {
+    "when": [
+      "sun_virgo_h1_trine_4948"
+    ],
+    "text": "Sun_Virgo_H1_trine_4948",
+    "weight": 1
+  },
+  "rule_79": {
+    "when": [
+      "sun_leo_h7_sextile_4994"
+    ],
+    "text": "Sun_Leo_H7_sextile_4994",
+    "weight": 1
+  },
+  "rule_80": {
+    "when": [
+      "mars_leo_h12_trine_5040"
+    ],
+    "text": "Mars_Leo_H12_trine_5040",
+    "weight": 1
+  },
+  "rule_81": {
+    "when": [
+      "venus_leo_h2_trine_5363"
+    ],
+    "text": "Venus_Leo_H2_trine_5363",
+    "weight": 1
+  },
+  "rule_82": {
+    "when": [
+      "pluto_leo_h8_trine_5619"
+    ],
+    "text": "Pluto_Leo_H8_trine_5619",
+    "weight": 1
+  },
+  "rule_83": {
+    "when": [
+      "sun_aries_h2_trine_6069"
+    ],
+    "text": "Sun_Aries_H2_trine_6069",
+    "weight": 1
+  },
+  "rule_84": {
+    "when": [
+      "mars_leo_h11_trine_6275"
+    ],
+    "text": "Mars_Leo_H11_trine_6275",
+    "weight": 1
+  },
+  "rule_85": {
+    "when": [
+      "mars_leo_h6_square_6284"
+    ],
+    "text": "Mars_Leo_H6_square_6284",
+    "weight": 1
+  },
+  "rule_86": {
+    "when": [
+      "sun_virgo_h3_trine_6504"
+    ],
+    "text": "Sun_Virgo_H3_trine_6504",
+    "weight": 1
+  },
+  "rule_87": {
+    "when": [
+      "moon_leo_h5_square_6736"
+    ],
+    "text": "Moon_Leo_H5_square_6736",
+    "weight": 1
+  },
+  "rule_88": {
+    "when": [
+      "mars_leo_h1_square_6743"
+    ],
+    "text": "Mars_Leo_H1_square_6743",
+    "weight": 1
+  },
+  "rule_89": {
+    "when": [
+      "sun_aries_h9_trine_6750"
+    ],
+    "text": "Sun_Aries_H9_trine_6750",
+    "weight": 1
+  },
+  "rule_90": {
+    "when": [
+      "mars_leo_h7_square_6755"
+    ],
+    "text": "Mars_Leo_H7_square_6755",
+    "weight": 1
+  },
+  "rule_91": {
+    "when": [
+      "moon_leo_h11_trine_6935"
+    ],
+    "text": "Moon_Leo_H11_trine_6935",
+    "weight": 1
+  },
+  "rule_92": {
+    "when": [
+      "venus_leo_h9_trine_7146"
+    ],
+    "text": "Venus_Leo_H9_trine_7146",
+    "weight": 1
+  },
+  "rule_93": {
+    "when": [
+      "sun_libra_h4_trine_7174"
+    ],
+    "text": "Sun_Libra_H4_trine_7174",
+    "weight": 1
+  },
+  "rule_94": {
+    "when": [
+      "moon_leo_h10_trine_7446"
+    ],
+    "text": "Moon_Leo_H10_trine_7446",
+    "weight": 1
+  },
+  "rule_95": {
+    "when": [
+      "mars_leo_h2_square_7484"
+    ],
+    "text": "Mars_Leo_H2_square_7484",
+    "weight": 1
+  },
+  "rule_96": {
+    "when": [
+      "sun_leo_h5_sextile_7782"
+    ],
+    "text": "Sun_Leo_H5_sextile_7782",
+    "weight": 1
+  },
+  "rule_97": {
+    "when": [
+      "sun_libra_h2_trine_7815"
+    ],
+    "text": "Sun_Libra_H2_trine_7815",
+    "weight": 1
+  },
+  "rule_98": {
+    "when": [
+      "sun_virgo_h5_trine_8217"
+    ],
+    "text": "Sun_Virgo_H5_trine_8217",
+    "weight": 1
+  },
+  "rule_99": {
+    "when": [
+      "venus_leo_h3_trine_8435"
+    ],
+    "text": "Venus_Leo_H3_trine_8435",
+    "weight": 1
+  },
+  "rule_100": {
+    "when": [
+      "sun_leo_h4_sextile_8439"
+    ],
+    "text": "Sun_Leo_H4_sextile_8439",
+    "weight": 1
+  },
+  "rule_101": {
+    "when": [
+      "mars_leo_h9_square_8917"
+    ],
+    "text": "Mars_Leo_H9_square_8917",
+    "weight": 1
+  },
+  "rule_102": {
+    "when": [
+      "sun_leo_h8_sextile_9022"
+    ],
+    "text": "Sun_Leo_H8_sextile_9022",
+    "weight": 1
+  },
+  "rule_103": {
+    "when": [
+      "venus_leo_h6_trine_9128"
+    ],
+    "text": "Venus_Leo_H6_trine_9128",
+    "weight": 1
+  },
+  "rule_104": {
+    "when": [
+      "venus_leo_h8_trine_9199"
+    ],
+    "text": "Venus_Leo_H8_trine_9199",
+    "weight": 1
+  },
+  "rule_105": {
+    "when": [
+      "sun_virgo_h4_trine_9293"
+    ],
+    "text": "Sun_Virgo_H4_trine_9293",
+    "weight": 1
+  },
+  "rule_106": {
+    "when": [
+      "pluto_leo_h5_trine_9299"
+    ],
+    "text": "Pluto_Leo_H5_trine_9299",
+    "weight": 1
+  },
+  "rule_107": {
+    "when": [
+      "sun_libra_h1_trine_9313"
+    ],
+    "text": "Sun_Libra_H1_trine_9313",
+    "weight": 1
+  },
+  "rule_108": {
+    "when": [
+      "moon_leo_h7_square_9440"
+    ],
+    "text": "Moon_Leo_H7_square_9440",
+    "weight": 1
+  },
+  "rule_109": {
+    "when": [
+      "pluto_leo_h6_trine_9478"
+    ],
+    "text": "Pluto_Leo_H6_trine_9478",
+    "weight": 1
+  },
+  "rule_110": {
+    "when": [
+      "sun_virgo_h2_trine_9810"
+    ],
+    "text": "Sun_Virgo_H2_trine_9810",
+    "weight": 1
+  },
+  "rule_111": {
+    "when": [
+      "sun_virgo_h9_trine_9865"
+    ],
+    "text": "Sun_Virgo_H9_trine_9865",
+    "weight": 1
+  },
+  "rule_112": {
+    "when": [
+      "venus_leo_h8_quincunx_16"
+    ],
+    "text": "Venus_Leo_H8_quincunx_16",
+    "weight": 1
+  },
+  "rule_113": {
+    "when": [
+      "sun_gemini_h4_sextile_23"
+    ],
+    "text": "Sun_Gemini_H4_sextile_23",
+    "weight": 1
+  },
+  "rule_114": {
+    "when": [
+      "mars_virgo_h8_square_156"
+    ],
+    "text": "Mars_Virgo_H8_square_156",
+    "weight": 1
+  },
+  "rule_115": {
+    "when": [
+      "sun_cancer_h8_square_368"
+    ],
+    "text": "Sun_Cancer_H8_square_368",
+    "weight": 1
+  },
+  "rule_116": {
+    "when": [
+      "mars_aries_h10_trine_390"
+    ],
+    "text": "Mars_Aries_H10_trine_390",
+    "weight": 1
+  },
+  "rule_117": {
+    "when": [
+      "sun_virgo_h5_sextile_403"
+    ],
+    "text": "Sun_Virgo_H5_sextile_403",
+    "weight": 1
+  },
+  "rule_118": {
+    "when": [
+      "moon_leo_h1_quincunx_425"
+    ],
+    "text": "Moon_Leo_H1_quincunx_425",
+    "weight": 1
+  },
+  "rule_119": {
+    "when": [
+      "venus_libra_h1_trine_432"
+    ],
+    "text": "Venus_Libra_H1_trine_432",
+    "weight": 1
+  },
+  "rule_120": {
+    "when": [
+      "moon_cancer_h7_trine_473"
+    ],
+    "text": "Moon_Cancer_H7_trine_473",
+    "weight": 1
+  },
+  "rule_121": {
+    "when": [
+      "neptune_leo_h1_trine_494"
+    ],
+    "text": "Neptune_Leo_H1_trine_494",
+    "weight": 1
+  },
+  "rule_122": {
+    "when": [
+      "sun_gemini_h12_trine_520"
+    ],
+    "text": "Sun_Gemini_H12_trine_520",
+    "weight": 1
+  },
+  "rule_123": {
+    "when": [
+      "uranus_leo_h5_square_527"
+    ],
+    "text": "Uranus_Leo_H5_square_527",
+    "weight": 1
+  },
+  "rule_124": {
+    "when": [
+      "jupiter_leo_h6_trine_572"
+    ],
+    "text": "Jupiter_Leo_H6_trine_572",
+    "weight": 1
+  },
+  "rule_125": {
+    "when": [
+      "sun_pisces_h2_square_620"
+    ],
+    "text": "Sun_Pisces_H2_square_620",
+    "weight": 1
+  },
+  "rule_126": {
+    "when": [
+      "mars_taurus_h8_trine_662"
+    ],
+    "text": "Mars_Taurus_H8_trine_662",
+    "weight": 1
+  },
+  "rule_127": {
+    "when": [
+      "neptune_leo_h6_trine_710"
+    ],
+    "text": "Neptune_Leo_H6_trine_710",
+    "weight": 1
+  },
+  "rule_128": {
+    "when": [
+      "uranus_leo_h3_square_720"
+    ],
+    "text": "Uranus_Leo_H3_square_720",
+    "weight": 1
+  },
+  "rule_129": {
+    "when": [
+      "sun_cancer_h9_square_725"
+    ],
+    "text": "Sun_Cancer_H9_square_725",
+    "weight": 1
+  },
+  "rule_130": {
+    "when": [
+      "moon_cancer_h9_trine_743"
+    ],
+    "text": "Moon_Cancer_H9_trine_743",
+    "weight": 1
+  },
+  "rule_131": {
+    "when": [
+      "sun_cancer_h5_square_753"
+    ],
+    "text": "Sun_Cancer_H5_square_753",
+    "weight": 1
+  },
+  "rule_132": {
+    "when": [
+      "moon_aries_h12_trine_785"
+    ],
+    "text": "Moon_Aries_H12_trine_785",
+    "weight": 1
+  },
+  "rule_133": {
+    "when": [
+      "moon_gemini_h6_trine_848"
+    ],
+    "text": "Moon_Gemini_H6_trine_848",
+    "weight": 1
+  },
+  "rule_134": {
+    "when": [
+      "moon_gemini_h8_trine_851"
+    ],
+    "text": "Moon_Gemini_H8_trine_851",
+    "weight": 1
+  },
+  "rule_135": {
+    "when": [
+      "mars_leo_h4_quincunx_981"
+    ],
+    "text": "Mars_Leo_H4_quincunx_981",
+    "weight": 1
+  },
+  "rule_136": {
+    "when": [
+      "moon_aries_h6_trine_1054"
+    ],
+    "text": "Moon_Aries_H6_trine_1054",
+    "weight": 1
+  },
+  "rule_137": {
+    "when": [
+      "mars_leo_h4_sextile_1081"
+    ],
+    "text": "Mars_Leo_H4_sextile_1081",
+    "weight": 1
+  },
+  "rule_138": {
+    "when": [
+      "sun_aries_h1_square_1259"
+    ],
+    "text": "Sun_Aries_H1_square_1259",
+    "weight": 1
+  },
+  "rule_139": {
+    "when": [
+      "pluto_leo_h6_square_1403"
+    ],
+    "text": "Pluto_Leo_H6_square_1403",
+    "weight": 1
+  },
+  "rule_140": {
+    "when": [
+      "sun_aries_h5_square_1414"
+    ],
+    "text": "Sun_Aries_H5_square_1414",
+    "weight": 1
+  },
+  "rule_141": {
+    "when": [
+      "mars_virgo_h7_trine_1417"
+    ],
+    "text": "Mars_Virgo_H7_trine_1417",
+    "weight": 1
+  },
+  "rule_142": {
+    "when": [
+      "sun_libra_h11_trine_1535"
+    ],
+    "text": "Sun_Libra_H11_trine_1535",
+    "weight": 1
+  },
+  "rule_143": {
+    "when": [
+      "venus_leo_h10_trine_1548"
+    ],
+    "text": "Venus_Leo_H10_trine_1548",
+    "weight": 1
+  },
+  "rule_144": {
+    "when": [
+      "sun_leo_h8_quintile_1765"
+    ],
+    "text": "Sun_Leo_H8_quintile_1765",
+    "weight": 1
+  },
+  "rule_145": {
+    "when": [
+      "moon_libra_h4_trine_1826"
+    ],
+    "text": "Moon_Libra_H4_trine_1826",
+    "weight": 1
+  },
+  "rule_146": {
+    "when": [
+      "sun_taurus_h5_trine_1935"
+    ],
+    "text": "Sun_Taurus_H5_trine_1935",
+    "weight": 1
+  },
+  "rule_147": {
+    "when": [
+      "sun_virgo_h6_square_1980"
+    ],
+    "text": "Sun_Virgo_H6_square_1980",
+    "weight": 1
+  },
+  "rule_148": {
+    "when": [
+      "venus_leo_h5_square_1999"
+    ],
+    "text": "Venus_Leo_H5_square_1999",
+    "weight": 1
+  },
+  "rule_149": {
+    "when": [
+      "sun_virgo_h3_square_2013"
+    ],
+    "text": "Sun_Virgo_H3_square_2013",
+    "weight": 1
+  },
+  "rule_150": {
+    "when": [
+      "mars_leo_h7_sextile_2096"
+    ],
+    "text": "Mars_Leo_H7_sextile_2096",
+    "weight": 1
+  },
+  "rule_151": {
+    "when": [
+      "sun_leo_h4_quincunx_2129"
+    ],
+    "text": "Sun_Leo_H4_quincunx_2129",
+    "weight": 1
+  },
+  "rule_152": {
+    "when": [
+      "pluto_leo_h4_square_2167"
+    ],
+    "text": "Pluto_Leo_H4_square_2167",
+    "weight": 1
+  },
+  "rule_153": {
+    "when": [
+      "sun_aries_h12_trine_2185"
+    ],
+    "text": "Sun_Aries_H12_trine_2185",
+    "weight": 1
+  },
+  "rule_154": {
+    "when": [
+      "mars_aries_h6_trine_2194"
+    ],
+    "text": "Mars_Aries_H6_trine_2194",
+    "weight": 1
+  },
+  "rule_155": {
+    "when": [
+      "moon_virgo_h2_trine_2337"
+    ],
+    "text": "Moon_Virgo_H2_trine_2337",
+    "weight": 1
+  },
+  "rule_156": {
+    "when": [
+      "sun_taurus_h3_trine_2355"
+    ],
+    "text": "Sun_Taurus_H3_trine_2355",
+    "weight": 1
+  },
+  "rule_157": {
+    "when": [
+      "moon_libra_h3_trine_2462"
+    ],
+    "text": "Moon_Libra_H3_trine_2462",
+    "weight": 1
+  },
+  "rule_158": {
+    "when": [
+      "venus_leo_h1_square_2474"
+    ],
+    "text": "Venus_Leo_H1_square_2474",
+    "weight": 1
+  },
+  "rule_159": {
+    "when": [
+      "sun_leo_h7_quintile_2587"
+    ],
+    "text": "Sun_Leo_H7_quintile_2587",
+    "weight": 1
+  },
+  "rule_160": {
+    "when": [
+      "mars_aries_h9_trine_2613"
+    ],
+    "text": "Mars_Aries_H9_trine_2613",
+    "weight": 1
+  },
+  "rule_161": {
+    "when": [
+      "sun_leo_h8_quincunx_2626"
+    ],
+    "text": "Sun_Leo_H8_quincunx_2626",
+    "weight": 1
+  },
+  "rule_162": {
+    "when": [
+      "uranus_leo_h5_trine_2663"
+    ],
+    "text": "Uranus_Leo_H5_trine_2663",
+    "weight": 1
+  },
+  "rule_163": {
+    "when": [
+      "sun_virgo_h7_square_2691"
+    ],
+    "text": "Sun_Virgo_H7_square_2691",
+    "weight": 1
+  },
+  "rule_164": {
+    "when": [
+      "mars_leo_h12_square_2711"
+    ],
+    "text": "Mars_Leo_H12_square_2711",
+    "weight": 1
+  },
+  "rule_165": {
+    "when": [
+      "mars_aries_h3_trine_2800"
+    ],
+    "text": "Mars_Aries_H3_trine_2800",
+    "weight": 1
+  },
+  "rule_166": {
+    "when": [
+      "sun_leo_h2_quintile_2910"
+    ],
+    "text": "Sun_Leo_H2_quintile_2910",
+    "weight": 1
+  },
+  "rule_167": {
+    "when": [
+      "mars_leo_h10_square_2953"
+    ],
+    "text": "Mars_Leo_H10_square_2953",
+    "weight": 1
+  },
+  "rule_168": {
+    "when": [
+      "sun_libra_h6_square_3070"
+    ],
+    "text": "Sun_Libra_H6_square_3070",
+    "weight": 1
+  },
+  "rule_169": {
+    "when": [
+      "sun_aries_h9_square_3146"
+    ],
+    "text": "Sun_Aries_H9_square_3146",
+    "weight": 1
+  },
+  "rule_170": {
+    "when": [
+      "sun_leo_h1_quintile_3206"
+    ],
+    "text": "Sun_Leo_H1_quintile_3206",
+    "weight": 1
+  },
+  "rule_171": {
+    "when": [
+      "moon_aries_h3_trine_3286"
+    ],
+    "text": "Moon_Aries_H3_trine_3286",
+    "weight": 1
+  },
+  "rule_172": {
+    "when": [
+      "mars_libra_h6_trine_3292"
+    ],
+    "text": "Mars_Libra_H6_trine_3292",
+    "weight": 1
+  },
+  "rule_173": {
+    "when": [
+      "venus_leo_h11_trine_3349"
+    ],
+    "text": "Venus_Leo_H11_trine_3349",
+    "weight": 1
+  },
+  "rule_174": {
+    "when": [
+      "moon_libra_h8_trine_3403"
+    ],
+    "text": "Moon_Libra_H8_trine_3403",
+    "weight": 1
+  },
+  "rule_175": {
+    "when": [
+      "sun_taurus_h2_trine_3498"
+    ],
+    "text": "Sun_Taurus_H2_trine_3498",
+    "weight": 1
+  },
+  "rule_176": {
+    "when": [
+      "uranus_leo_h8_trine_3589"
+    ],
+    "text": "Uranus_Leo_H8_trine_3589",
+    "weight": 1
+  },
+  "rule_177": {
+    "when": [
+      "sun_pisces_h2_trine_3593"
+    ],
+    "text": "Sun_Pisces_H2_trine_3593",
+    "weight": 1
+  },
+  "rule_178": {
+    "when": [
+      "moon_libra_h1_trine_3863"
+    ],
+    "text": "Moon_Libra_H1_trine_3863",
+    "weight": 1
+  },
+  "rule_179": {
+    "when": [
+      "moon_aries_h8_trine_4071"
+    ],
+    "text": "Moon_Aries_H8_trine_4071",
+    "weight": 1
+  },
+  "rule_180": {
+    "when": [
+      "sun_leo_h5_quincunx_4076"
+    ],
+    "text": "Sun_Leo_H5_quincunx_4076",
+    "weight": 1
+  },
+  "rule_181": {
+    "when": [
+      "mars_aries_h8_trine_4126"
+    ],
+    "text": "Mars_Aries_H8_trine_4126",
+    "weight": 1
+  },
+  "rule_182": {
+    "when": [
+      "moon_leo_h5_sextile_4284"
+    ],
+    "text": "Moon_Leo_H5_sextile_4284",
+    "weight": 1
+  },
+  "rule_183": {
+    "when": [
+      "moon_libra_h5_trine_4353"
+    ],
+    "text": "Moon_Libra_H5_trine_4353",
+    "weight": 1
+  },
+  "rule_184": {
+    "when": [
+      "sun_virgo_h9_square_4475"
+    ],
+    "text": "Sun_Virgo_H9_square_4475",
+    "weight": 1
+  },
+  "rule_185": {
+    "when": [
+      "mars_libra_h5_trine_4512"
+    ],
+    "text": "Mars_Libra_H5_trine_4512",
+    "weight": 1
+  },
+  "rule_186": {
+    "when": [
+      "mars_leo_h11_square_4568"
+    ],
+    "text": "Mars_Leo_H11_square_4568",
+    "weight": 1
+  },
+  "rule_187": {
+    "when": [
+      "sun_gemini_h8_trine_4586"
+    ],
+    "text": "Sun_Gemini_H8_trine_4586",
+    "weight": 1
+  },
+  "rule_188": {
+    "when": [
+      "mars_libra_h3_trine_4618"
+    ],
+    "text": "Mars_Libra_H3_trine_4618",
+    "weight": 1
+  },
+  "rule_189": {
+    "when": [
+      "sun_taurus_h4_trine_4622"
+    ],
+    "text": "Sun_Taurus_H4_trine_4622",
+    "weight": 1
+  },
+  "rule_190": {
+    "when": [
+      "sun_cancer_h7_trine_4662"
+    ],
+    "text": "Sun_Cancer_H7_trine_4662",
+    "weight": 1
+  },
+  "rule_191": {
+    "when": [
+      "sun_gemini_h9_trine_4792"
+    ],
+    "text": "Sun_Gemini_H9_trine_4792",
+    "weight": 1
+  },
+  "rule_192": {
+    "when": [
+      "sun_aries_h8_square_4802"
+    ],
+    "text": "Sun_Aries_H8_square_4802",
+    "weight": 1
+  },
+  "rule_193": {
+    "when": [
+      "mars_leo_h3_sextile_4880"
+    ],
+    "text": "Mars_Leo_H3_sextile_4880",
+    "weight": 1
+  },
+  "rule_194": {
+    "when": [
+      "venus_leo_h4_square_4939"
+    ],
+    "text": "Venus_Leo_H4_square_4939",
+    "weight": 1
+  },
+  "rule_195": {
+    "when": [
+      "venus_leo_h7_square_5069"
+    ],
+    "text": "Venus_Leo_H7_square_5069",
+    "weight": 1
+  },
+  "rule_196": {
+    "when": [
+      "moon_aries_h2_trine_5184"
+    ],
+    "text": "Moon_Aries_H2_trine_5184",
+    "weight": 1
+  },
+  "rule_197": {
+    "when": [
+      "sun_cancer_h9_trine_5200"
+    ],
+    "text": "Sun_Cancer_H9_trine_5200",
+    "weight": 1
+  },
+  "rule_198": {
+    "when": [
+      "sun_leo_h1_quincunx_5233"
+    ],
+    "text": "Sun_Leo_H1_quincunx_5233",
+    "weight": 1
+  },
+  "rule_199": {
+    "when": [
+      "mars_leo_h6_sextile_5320"
+    ],
+    "text": "Mars_Leo_H6_sextile_5320",
+    "weight": 1
+  },
+  "rule_200": {
+    "when": [
+      "sun_libra_h12_trine_5331"
+    ],
+    "text": "Sun_Libra_H12_trine_5331",
+    "weight": 1
+  },
+  "rule_201": {
+    "when": [
+      "saturn_leo_h4_trine_5403"
+    ],
+    "text": "Saturn_Leo_H4_trine_5403",
+    "weight": 1
+  },
+  "rule_202": {
+    "when": [
+      "sun_cancer_h6_trine_5435"
+    ],
+    "text": "Sun_Cancer_H6_trine_5435",
+    "weight": 1
+  },
+  "rule_203": {
+    "when": [
+      "sun_cancer_h2_trine_5470"
+    ],
+    "text": "Sun_Cancer_H2_trine_5470",
+    "weight": 1
+  },
+  "rule_204": {
+    "when": [
+      "moon_aries_h5_trine_5539"
+    ],
+    "text": "Moon_Aries_H5_trine_5539",
+    "weight": 1
+  },
+  "rule_205": {
+    "when": [
+      "venus_leo_h12_trine_5563"
+    ],
+    "text": "Venus_Leo_H12_trine_5563",
+    "weight": 1
+  },
+  "rule_206": {
+    "when": [
+      "mars_virgo_h2_trine_5618"
+    ],
+    "text": "Mars_Virgo_H2_trine_5618",
+    "weight": 1
+  },
+  "rule_207": {
+    "when": [
+      "sun_gemini_h5_trine_5625"
+    ],
+    "text": "Sun_Gemini_H5_trine_5625",
+    "weight": 1
+  },
+  "rule_208": {
+    "when": [
+      "uranus_leo_h9_trine_5659"
+    ],
+    "text": "Uranus_Leo_H9_trine_5659",
+    "weight": 1
+  },
+  "rule_209": {
+    "when": [
+      "moon_libra_h7_trine_5661"
+    ],
+    "text": "Moon_Libra_H7_trine_5661",
+    "weight": 1
+  },
+  "rule_210": {
+    "when": [
+      "moon_leo_h6_sextile_5679"
+    ],
+    "text": "Moon_Leo_H6_sextile_5679",
+    "weight": 1
+  },
+  "rule_211": {
+    "when": [
+      "sun_virgo_h12_trine_5696"
+    ],
+    "text": "Sun_Virgo_H12_trine_5696",
+    "weight": 1
+  },
+  "rule_212": {
+    "when": [
+      "moon_virgo_h7_trine_5765"
+    ],
+    "text": "Moon_Virgo_H7_trine_5765",
+    "weight": 1
+  },
+  "rule_213": {
+    "when": [
+      "sun_gemini_h6_trine_5780"
+    ],
+    "text": "Sun_Gemini_H6_trine_5780",
+    "weight": 1
+  },
+  "rule_214": {
+    "when": [
+      "venus_leo_h2_square_5823"
+    ],
+    "text": "Venus_Leo_H2_square_5823",
+    "weight": 1
+  },
+  "rule_215": {
+    "when": [
+      "uranus_leo_h3_trine_5832"
+    ],
+    "text": "Uranus_Leo_H3_trine_5832",
+    "weight": 1
+  },
+  "rule_216": {
+    "when": [
+      "mars_aries_h4_trine_5851"
+    ],
+    "text": "Mars_Aries_H4_trine_5851",
+    "weight": 1
+  },
+  "rule_217": {
+    "when": [
+      "moon_virgo_h8_trine_5925"
+    ],
+    "text": "Moon_Virgo_H8_trine_5925",
+    "weight": 1
+  },
+  "rule_218": {
+    "when": [
+      "uranus_leo_h7_trine_6055"
+    ],
+    "text": "Uranus_Leo_H7_trine_6055",
+    "weight": 1
+  },
+  "rule_219": {
+    "when": [
+      "sun_pisces_h1_trine_6099"
+    ],
+    "text": "Sun_Pisces_H1_trine_6099",
+    "weight": 1
+  },
+  "rule_220": {
+    "when": [
+      "sun_virgo_h8_square_6108"
+    ],
+    "text": "Sun_Virgo_H8_square_6108",
+    "weight": 1
+  },
+  "rule_221": {
+    "when": [
+      "sun_leo_h11_sextile_6172"
+    ],
+    "text": "Sun_Leo_H11_sextile_6172",
+    "weight": 1
+  },
+  "rule_222": {
+    "when": [
+      "sun_libra_h4_square_6174"
+    ],
+    "text": "Sun_Libra_H4_square_6174",
+    "weight": 1
+  },
+  "rule_223": {
+    "when": [
+      "sun_gemini_h3_trine_6262"
+    ],
+    "text": "Sun_Gemini_H3_trine_6262",
+    "weight": 1
+  },
+  "rule_224": {
+    "when": [
+      "venus_leo_h6_square_6266"
+    ],
+    "text": "Venus_Leo_H6_square_6266",
+    "weight": 1
+  },
+  "rule_225": {
+    "when": [
+      "saturn_leo_h6_trine_6293"
+    ],
+    "text": "Saturn_Leo_H6_trine_6293",
+    "weight": 1
+  },
+  "rule_226": {
+    "when": [
+      "moon_virgo_h9_trine_6338"
+    ],
+    "text": "Moon_Virgo_H9_trine_6338",
+    "weight": 1
+  },
+  "rule_227": {
+    "when": [
+      "sun_libra_h7_square_6340"
+    ],
+    "text": "Sun_Libra_H7_square_6340",
+    "weight": 1
+  },
+  "rule_228": {
+    "when": [
+      "uranus_leo_h1_trine_6423"
+    ],
+    "text": "Uranus_Leo_H1_trine_6423",
+    "weight": 1
+  },
+  "rule_229": {
+    "when": [
+      "pluto_leo_h3_square_6428"
+    ],
+    "text": "Pluto_Leo_H3_square_6428",
+    "weight": 1
+  },
+  "rule_230": {
+    "when": [
+      "moon_leo_h11_square_6431"
+    ],
+    "text": "Moon_Leo_H11_square_6431",
+    "weight": 1
+  },
+  "rule_231": {
+    "when": [
+      "sun_leo_h9_quincunx_6456"
+    ],
+    "text": "Sun_Leo_H9_quincunx_6456",
+    "weight": 1
+  },
+  "rule_232": {
+    "when": [
+      "moon_virgo_h5_trine_6494"
+    ],
+    "text": "Moon_Virgo_H5_trine_6494",
+    "weight": 1
+  },
+  "rule_233": {
+    "when": [
+      "sun_leo_h12_sextile_6496"
+    ],
+    "text": "Sun_Leo_H12_sextile_6496",
+    "weight": 1
+  },
+  "rule_234": {
+    "when": [
+      "sun_pisces_h7_trine_6531"
+    ],
+    "text": "Sun_Pisces_H7_trine_6531",
+    "weight": 1
+  },
+  "rule_235": {
+    "when": [
+      "moon_leo_h12_square_6542"
+    ],
+    "text": "Moon_Leo_H12_square_6542",
+    "weight": 1
+  },
+  "rule_236": {
+    "when": [
+      "mars_leo_h8_sextile_6566"
+    ],
+    "text": "Mars_Leo_H8_sextile_6566",
+    "weight": 1
+  },
+  "rule_237": {
+    "when": [
+      "sun_leo_h3_quintile_6598"
+    ],
+    "text": "Sun_Leo_H3_quintile_6598",
+    "weight": 1
+  },
+  "rule_238": {
+    "when": [
+      "uranus_leo_h2_trine_6620"
+    ],
+    "text": "Uranus_Leo_H2_trine_6620",
+    "weight": 1
+  },
+  "rule_239": {
+    "when": [
+      "mars_aries_h5_trine_6679"
+    ],
+    "text": "Mars_Aries_H5_trine_6679",
+    "weight": 1
+  },
+  "rule_240": {
+    "when": [
+      "pluto_leo_h8_square_6855"
+    ],
+    "text": "Pluto_Leo_H8_square_6855",
+    "weight": 1
+  },
+  "rule_241": {
+    "when": [
+      "moon_aries_h1_trine_7087"
+    ],
+    "text": "Moon_Aries_H1_trine_7087",
+    "weight": 1
+  },
+  "rule_242": {
+    "when": [
+      "sun_virgo_h11_trine_7164"
+    ],
+    "text": "Sun_Virgo_H11_trine_7164",
+    "weight": 1
+  },
+  "rule_243": {
+    "when": [
+      "sun_libra_h3_square_7171"
+    ],
+    "text": "Sun_Libra_H3_square_7171",
+    "weight": 1
+  },
+  "rule_244": {
+    "when": [
+      "mars_virgo_h3_trine_7222"
+    ],
+    "text": "Mars_Virgo_H3_trine_7222",
+    "weight": 1
+  },
+  "rule_245": {
+    "when": [
+      "sun_pisces_h9_trine_7256"
+    ],
+    "text": "Sun_Pisces_H9_trine_7256",
+    "weight": 1
+  },
+  "rule_246": {
+    "when": [
+      "sun_virgo_h1_square_7327"
+    ],
+    "text": "Sun_Virgo_H1_square_7327",
+    "weight": 1
+  },
+  "rule_247": {
+    "when": [
+      "sun_taurus_h9_trine_7502"
+    ],
+    "text": "Sun_Taurus_H9_trine_7502",
+    "weight": 1
+  },
+  "rule_248": {
+    "when": [
+      "sun_cancer_h3_trine_7539"
+    ],
+    "text": "Sun_Cancer_H3_trine_7539",
+    "weight": 1
+  },
+  "rule_249": {
+    "when": [
+      "sun_gemini_h1_trine_7545"
+    ],
+    "text": "Sun_Gemini_H1_trine_7545",
+    "weight": 1
+  },
+  "rule_250": {
+    "when": [
+      "moon_leo_h7_sextile_7561"
+    ],
+    "text": "Moon_Leo_H7_sextile_7561",
+    "weight": 1
+  },
+  "rule_251": {
+    "when": [
+      "mars_leo_h2_sextile_7563"
+    ],
+    "text": "Mars_Leo_H2_sextile_7563",
+    "weight": 1
+  },
+  "rule_252": {
+    "when": [
+      "sun_taurus_h1_trine_7725"
+    ],
+    "text": "Sun_Taurus_H1_trine_7725",
+    "weight": 1
+  },
+  "rule_253": {
+    "when": [
+      "mars_leo_h9_sextile_7831"
+    ],
+    "text": "Mars_Leo_H9_sextile_7831",
+    "weight": 1
+  },
+  "rule_254": {
+    "when": [
+      "sun_virgo_h5_square_7876"
+    ],
+    "text": "Sun_Virgo_H5_square_7876",
+    "weight": 1
+  },
+  "rule_255": {
+    "when": [
+      "mars_libra_h1_trine_7922"
+    ],
+    "text": "Mars_Libra_H1_trine_7922",
+    "weight": 1
+  },
+  "rule_256": {
+    "when": [
+      "sun_virgo_h4_square_7942"
+    ],
+    "text": "Sun_Virgo_H4_square_7942",
+    "weight": 1
+  },
+  "rule_257": {
+    "when": [
+      "moon_leo_h4_sextile_7956"
+    ],
+    "text": "Moon_Leo_H4_sextile_7956",
+    "weight": 1
+  },
+  "rule_258": {
+    "when": [
+      "sun_libra_h10_trine_7975"
+    ],
+    "text": "Sun_Libra_H10_trine_7975",
+    "weight": 1
+  },
+  "rule_259": {
+    "when": [
+      "sun_leo_h10_sextile_7992"
+    ],
+    "text": "Sun_Leo_H10_sextile_7992",
+    "weight": 1
+  },
+  "rule_260": {
+    "when": [
+      "mars_aries_h2_trine_8088"
+    ],
+    "text": "Mars_Aries_H2_trine_8088",
+    "weight": 1
+  },
+  "rule_261": {
+    "when": [
+      "mars_libra_h7_trine_8104"
+    ],
+    "text": "Mars_Libra_H7_trine_8104",
+    "weight": 1
+  },
+  "rule_262": {
+    "when": [
+      "pluto_leo_h2_square_8171"
+    ],
+    "text": "Pluto_Leo_H2_square_8171",
+    "weight": 1
+  },
+  "rule_263": {
+    "when": [
+      "pluto_leo_h7_square_8188"
+    ],
+    "text": "Pluto_Leo_H7_square_8188",
+    "weight": 1
+  },
+  "rule_264": {
+    "when": [
+      "moon_libra_h2_trine_8194"
+    ],
+    "text": "Moon_Libra_H2_trine_8194",
+    "weight": 1
+  },
+  "rule_265": {
+    "when": [
+      "sun_cancer_h4_trine_8214"
+    ],
+    "text": "Sun_Cancer_H4_trine_8214",
+    "weight": 1
+  },
+  "rule_266": {
+    "when": [
+      "sun_libra_h1_square_8222"
+    ],
+    "text": "Sun_Libra_H1_square_8222",
+    "weight": 1
+  },
+  "rule_267": {
+    "when": [
+      "mars_virgo_h6_trine_8396"
+    ],
+    "text": "Mars_Virgo_H6_trine_8396",
+    "weight": 1
+  },
+  "rule_268": {
+    "when": [
+      "sun_aries_h7_square_8425"
+    ],
+    "text": "Sun_Aries_H7_square_8425",
+    "weight": 1
+  },
+  "rule_269": {
+    "when": [
+      "sun_libra_h5_square_8457"
+    ],
+    "text": "Sun_Libra_H5_square_8457",
+    "weight": 1
+  },
+  "rule_270": {
+    "when": [
+      "sun_aries_h4_square_8496"
+    ],
+    "text": "Sun_Aries_H4_square_8496",
+    "weight": 1
+  },
+  "rule_271": {
+    "when": [
+      "venus_leo_h8_square_8579"
+    ],
+    "text": "Venus_Leo_H8_square_8579",
+    "weight": 1
+  },
+  "rule_272": {
+    "when": [
+      "sun_libra_h8_square_8594"
+    ],
+    "text": "Sun_Libra_H8_square_8594",
+    "weight": 1
+  },
+  "rule_273": {
+    "when": [
+      "mars_virgo_h4_trine_8708"
+    ],
+    "text": "Mars_Virgo_H4_trine_8708",
+    "weight": 1
+  },
+  "rule_274": {
+    "when": [
+      "sun_pisces_h8_trine_8817"
+    ],
+    "text": "Sun_Pisces_H8_trine_8817",
+    "weight": 1
+  },
+  "rule_275": {
+    "when": [
+      "saturn_leo_h9_trine_8962"
+    ],
+    "text": "Saturn_Leo_H9_trine_8962",
+    "weight": 1
+  },
+  "rule_276": {
+    "when": [
+      "sun_taurus_h6_trine_9028"
+    ],
+    "text": "Sun_Taurus_H6_trine_9028",
+    "weight": 1
+  },
+  "rule_277": {
+    "when": [
+      "pluto_leo_h1_square_9068"
+    ],
+    "text": "Pluto_Leo_H1_square_9068",
+    "weight": 1
+  },
+  "rule_278": {
+    "when": [
+      "saturn_leo_h5_trine_9143"
+    ],
+    "text": "Saturn_Leo_H5_trine_9143",
+    "weight": 1
+  },
+  "rule_279": {
+    "when": [
+      "sun_leo_h6_quincunx_9429"
+    ],
+    "text": "Sun_Leo_H6_quincunx_9429",
+    "weight": 1
+  },
+  "rule_280": {
+    "when": [
+      "moon_libra_h6_trine_9518"
+    ],
+    "text": "Moon_Libra_H6_trine_9518",
+    "weight": 1
+  },
+  "rule_281": {
+    "when": [
+      "uranus_leo_h6_trine_9565"
+    ],
+    "text": "Uranus_Leo_H6_trine_9565",
+    "weight": 1
+  },
+  "rule_282": {
+    "when": [
+      "sun_aries_h6_square_9629"
+    ],
+    "text": "Sun_Aries_H6_square_9629",
+    "weight": 1
+  },
+  "rule_283": {
+    "when": [
+      "sun_cancer_h5_trine_9658"
+    ],
+    "text": "Sun_Cancer_H5_trine_9658",
+    "weight": 1
+  },
+  "rule_284": {
+    "when": [
+      "sun_leo_h3_quincunx_9726"
+    ],
+    "text": "Sun_Leo_H3_quincunx_9726",
+    "weight": 1
+  },
+  "rule_285": {
+    "when": [
+      "sun_virgo_h10_trine_9740"
+    ],
+    "text": "Sun_Virgo_H10_trine_9740",
+    "weight": 1
+  },
+  "rule_286": {
+    "when": [
+      "mars_virgo_h9_trine_9760"
+    ],
+    "text": "Mars_Virgo_H9_trine_9760",
+    "weight": 1
+  },
+  "rule_287": {
+    "when": [
+      "sun_leo_h2_quincunx_9778"
+    ],
+    "text": "Sun_Leo_H2_quincunx_9778",
+    "weight": 1
+  },
+  "rule_288": {
+    "when": [
+      "mars_libra_h2_trine_9835"
+    ],
+    "text": "Mars_Libra_H2_trine_9835",
+    "weight": 1
+  },
+  "rule_289": {
+    "when": [
+      "moon_aries_h4_trine_9905"
+    ],
+    "text": "Moon_Aries_H4_trine_9905",
+    "weight": 1
+  },
+  "rule_290": {
+    "when": [
+      "moon_virgo_h6_trine_9938"
+    ],
+    "text": "Moon_Virgo_H6_trine_9938",
+    "weight": 1
+  },
+  "rule_291": {
+    "when": [
+      "sun_virgo_h2_square_9966"
+    ],
+    "text": "Sun_Virgo_H2_square_9966",
+    "weight": 1
+  },
+  "rule_292": {
+    "when": [
+      "venus_libra_h4_quintile_4"
+    ],
+    "text": "Venus_Libra_H4_quintile_4",
+    "weight": 1
+  },
+  "rule_293": {
+    "when": [
+      "venus_cancer_h12_trine_28"
+    ],
+    "text": "Venus_Cancer_H12_trine_28",
+    "weight": 1
+  },
+  "rule_294": {
+    "when": [
+      "saturn_leo_h10_sextile_37"
+    ],
+    "text": "Saturn_Leo_H10_sextile_37",
+    "weight": 1
+  },
+  "rule_295": {
+    "when": [
+      "sun_aquarius_h5_square_38"
+    ],
+    "text": "Sun_Aquarius_H5_square_38",
+    "weight": 1
+  },
+  "rule_296": {
+    "when": [
+      "mars_scorpio_h6_square_71"
+    ],
+    "text": "Mars_Scorpio_H6_square_71",
+    "weight": 1
+  },
+  "rule_297": {
+    "when": [
+      "jupiter_virgo_h1_trine_75"
+    ],
+    "text": "Jupiter_Virgo_H1_trine_75",
+    "weight": 1
+  },
+  "rule_298": {
+    "when": [
+      "mercury_virgo_h7_trine_84"
+    ],
+    "text": "Mercury_Virgo_H7_trine_84",
+    "weight": 1
+  },
+  "rule_299": {
+    "when": [
+      "moon_leo_h1_opposition_86"
+    ],
+    "text": "Moon_Leo_H1_opposition_86",
+    "weight": 1
+  },
+  "rule_300": {
+    "when": [
+      "uranus_leo_h2_quintile_87"
+    ],
+    "text": "Uranus_Leo_H2_quintile_87",
+    "weight": 1
+  },
+  "rule_301": {
+    "when": [
+      "uranus_libra_h2_square_90"
+    ],
+    "text": "Uranus_Libra_H2_square_90",
+    "weight": 1
+  },
+  "rule_302": {
+    "when": [
+      "saturn_virgo_h5_square_91"
+    ],
+    "text": "Saturn_Virgo_H5_square_91",
+    "weight": 1
+  },
+  "rule_303": {
+    "when": [
+      "uranus_virgo_h5_square_96"
+    ],
+    "text": "Uranus_Virgo_H5_square_96",
+    "weight": 1
+  },
+  "rule_304": {
+    "when": [
+      "moon_gemini_h10_trine_100"
+    ],
+    "text": "Moon_Gemini_H10_trine_100",
+    "weight": 1
+  },
+  "rule_305": {
+    "when": [
+      "mars_aries_h12_square_105"
+    ],
+    "text": "Mars_Aries_H12_square_105",
+    "weight": 1
+  },
+  "rule_306": {
+    "when": [
+      "venus_leo_h10_sextile_107"
+    ],
+    "text": "Venus_Leo_H10_sextile_107",
+    "weight": 1
+  },
+  "rule_307": {
+    "when": [
+      "venus_aries_h6_square_167"
+    ],
+    "text": "Venus_Aries_H6_square_167",
+    "weight": 1
+  },
+  "rule_308": {
+    "when": [
+      "sun_pisces_h6_sextile_173"
+    ],
+    "text": "Sun_Pisces_H6_sextile_173",
+    "weight": 1
+  },
+  "rule_309": {
+    "when": [
+      "moon_pisces_h9_square_198"
+    ],
+    "text": "Moon_Pisces_H9_square_198",
+    "weight": 1
+  },
+  "rule_310": {
+    "when": [
+      "uranus_leo_h8_sextile_217"
+    ],
+    "text": "Uranus_Leo_H8_sextile_217",
+    "weight": 1
+  },
+  "rule_311": {
+    "when": [
+      "sun_taurus_h2_sextile_272"
+    ],
+    "text": "Sun_Taurus_H2_sextile_272",
+    "weight": 1
+  },
+  "rule_312": {
+    "when": [
+      "sun_gemini_h12_square_280"
+    ],
+    "text": "Sun_Gemini_H12_square_280",
+    "weight": 1
+  },
+  "rule_313": {
+    "when": [
+      "mars_cancer_h12_trine_281"
+    ],
+    "text": "Mars_Cancer_H12_trine_281",
+    "weight": 1
+  },
+  "rule_314": {
+    "when": [
+      "pluto_leo_h5_quincunx_320"
+    ],
+    "text": "Pluto_Leo_H5_quincunx_320",
+    "weight": 1
+  },
+  "rule_315": {
+    "when": [
+      "pluto_cancer_h9_trine_338"
+    ],
+    "text": "Pluto_Cancer_H9_trine_338",
+    "weight": 1
+  },
+  "rule_316": {
+    "when": [
+      "sun_virgo_h6_quintile_370"
+    ],
+    "text": "Sun_Virgo_H6_quintile_370",
+    "weight": 1
+  },
+  "rule_317": {
+    "when": [
+      "venus_aries_h7_square_489"
+    ],
+    "text": "Venus_Aries_H7_square_489",
+    "weight": 1
+  },
+  "rule_318": {
+    "when": [
+      "mercury_leo_h1_square_490"
+    ],
+    "text": "Mercury_Leo_H1_square_490",
+    "weight": 1
+  },
+  "rule_319": {
+    "when": [
+      "venus_gemini_h8_trine_492"
+    ],
+    "text": "Venus_Gemini_H8_trine_492",
+    "weight": 1
+  },
+  "rule_320": {
+    "when": [
+      "mars_gemini_h6_square_545"
+    ],
+    "text": "Mars_Gemini_H6_square_545",
+    "weight": 1
+  },
+  "rule_321": {
+    "when": [
+      "sun_libra_h1_quincunx_576"
+    ],
+    "text": "Sun_Libra_H1_quincunx_576",
+    "weight": 1
+  },
+  "rule_322": {
+    "when": [
+      "saturn_virgo_h8_trine_582"
+    ],
+    "text": "Saturn_Virgo_H8_trine_582",
+    "weight": 1
+  },
+  "rule_323": {
+    "when": [
+      "pluto_leo_h12_sextile_616"
+    ],
+    "text": "Pluto_Leo_H12_sextile_616",
+    "weight": 1
+  },
+  "rule_324": {
+    "when": [
+      "mercury_leo_h10_trine_628"
+    ],
+    "text": "Mercury_Leo_H10_trine_628",
+    "weight": 1
+  },
+  "rule_325": {
+    "when": [
+      "mars_gemini_h12_trine_648"
+    ],
+    "text": "Mars_Gemini_H12_trine_648",
+    "weight": 1
+  },
+  "rule_326": {
+    "when": [
+      "moon_virgo_h2_sextile_663"
+    ],
+    "text": "Moon_Virgo_H2_sextile_663",
+    "weight": 1
+  },
+  "rule_327": {
+    "when": [
+      "uranus_virgo_h9_trine_666"
+    ],
+    "text": "Uranus_Virgo_H9_trine_666",
+    "weight": 1
+  },
+  "rule_328": {
+    "when": [
+      "moon_scorpio_h3_trine_667"
+    ],
+    "text": "Moon_Scorpio_H3_trine_667",
+    "weight": 1
+  },
+  "rule_329": {
+    "when": [
+      "moon_cancer_h11_trine_711"
+    ],
+    "text": "Moon_Cancer_H11_trine_711",
+    "weight": 1
+  },
+  "rule_330": {
+    "when": [
+      "uranus_aries_h1_trine_723"
+    ],
+    "text": "Uranus_Aries_H1_trine_723",
+    "weight": 1
+  },
+  "rule_331": {
+    "when": [
+      "sun_libra_h11_sextile_739"
+    ],
+    "text": "Sun_Libra_H11_sextile_739",
+    "weight": 1
+  },
+  "rule_332": {
+    "when": [
+      "sun_scorpio_h7_square_760"
+    ],
+    "text": "Sun_Scorpio_H7_square_760",
+    "weight": 1
+  },
+  "rule_333": {
+    "when": [
+      "venus_leo_h1_quincunx_764"
+    ],
+    "text": "Venus_Leo_H1_quincunx_764",
+    "weight": 1
+  },
+  "rule_334": {
+    "when": [
+      "uranus_virgo_h6_trine_767"
+    ],
+    "text": "Uranus_Virgo_H6_trine_767",
+    "weight": 1
+  },
+  "rule_335": {
+    "when": [
+      "moon_aries_h10_square_770"
+    ],
+    "text": "Moon_Aries_H10_square_770",
+    "weight": 1
+  },
+  "rule_336": {
+    "when": [
+      "venus_pisces_h6_trine_793"
+    ],
+    "text": "Venus_Pisces_H6_trine_793",
+    "weight": 1
+  },
+  "rule_337": {
+    "when": [
+      "pluto_libra_h5_square_827"
+    ],
+    "text": "Pluto_Libra_H5_square_827",
+    "weight": 1
+  },
+  "rule_338": {
+    "when": [
+      "mars_libra_h1_sextile_880"
+    ],
+    "text": "Mars_Libra_H1_sextile_880",
+    "weight": 1
+  },
+  "rule_339": {
+    "when": [
+      "sun_aries_h4_quincunx_904"
+    ],
+    "text": "Sun_Aries_H4_quincunx_904",
+    "weight": 1
+  },
+  "rule_340": {
+    "when": [
+      "mercury_leo_h12_trine_952"
+    ],
+    "text": "Mercury_Leo_H12_trine_952",
+    "weight": 1
+  },
+  "rule_341": {
+    "when": [
+      "uranus_leo_h9_sextile_958"
+    ],
+    "text": "Uranus_Leo_H9_sextile_958",
+    "weight": 1
+  },
+  "rule_342": {
+    "when": [
+      "pluto_taurus_h7_trine_967"
+    ],
+    "text": "Pluto_Taurus_H7_trine_967",
+    "weight": 1
+  },
+  "rule_343": {
+    "when": [
+      "moon_cancer_h7_square_996"
+    ],
+    "text": "Moon_Cancer_H7_square_996",
+    "weight": 1
+  },
+  "rule_344": {
+    "when": [
+      "moon_taurus_h2_trine_1115"
+    ],
+    "text": "Moon_Taurus_H2_trine_1115",
+    "weight": 1
+  },
+  "rule_345": {
+    "when": [
+      "sun_gemini_h6_square_1116"
+    ],
+    "text": "Sun_Gemini_H6_square_1116",
+    "weight": 1
+  },
+  "rule_346": {
+    "when": [
+      "sun_scorpio_h1_trine_1123"
+    ],
+    "text": "Sun_Scorpio_H1_trine_1123",
+    "weight": 1
+  },
+  "rule_347": {
+    "when": [
+      "jupiter_leo_h1_trine_1130"
+    ],
+    "text": "Jupiter_Leo_H1_trine_1130",
+    "weight": 1
+  },
+  "rule_348": {
+    "when": [
+      "sun_pisces_h7_square_1137"
+    ],
+    "text": "Sun_Pisces_H7_square_1137",
+    "weight": 1
+  },
+  "rule_349": {
+    "when": [
+      "mars_leo_h8_quintile_1143"
+    ],
+    "text": "Mars_Leo_H8_quintile_1143",
+    "weight": 1
+  },
+  "rule_350": {
+    "when": [
+      "sun_pisces_h6_square_1155"
+    ],
+    "text": "Sun_Pisces_H6_square_1155",
+    "weight": 1
+  },
+  "rule_351": {
+    "when": [
+      "venus_aries_h6_trine_1239"
+    ],
+    "text": "Venus_Aries_H6_trine_1239",
+    "weight": 1
+  },
+  "rule_352": {
+    "when": [
+      "mars_pisces_h7_trine_1250"
+    ],
+    "text": "Mars_Pisces_H7_trine_1250",
+    "weight": 1
+  },
+  "rule_353": {
+    "when": [
+      "moon_cancer_h1_trine_1261"
+    ],
+    "text": "Moon_Cancer_H1_trine_1261",
+    "weight": 1
+  },
+  "rule_354": {
+    "when": [
+      "sun_cancer_h1_square_1314"
+    ],
+    "text": "Sun_Cancer_H1_square_1314",
+    "weight": 1
+  },
+  "rule_355": {
+    "when": [
+      "mars_libra_h7_square_1367"
+    ],
+    "text": "Mars_Libra_H7_square_1367",
+    "weight": 1
+  },
+  "rule_356": {
+    "when": [
+      "mars_virgo_h12_trine_1380"
+    ],
+    "text": "Mars_Virgo_H12_trine_1380",
+    "weight": 1
+  },
+  "rule_357": {
+    "when": [
+      "saturn_leo_h8_square_1397"
+    ],
+    "text": "Saturn_Leo_H8_square_1397",
+    "weight": 1
+  },
+  "rule_358": {
+    "when": [
+      "sun_pisces_h11_trine_1459"
+    ],
+    "text": "Sun_Pisces_H11_trine_1459",
+    "weight": 1
+  },
+  "rule_359": {
+    "when": [
+      "uranus_leo_h11_trine_1532"
+    ],
+    "text": "Uranus_Leo_H11_trine_1532",
+    "weight": 1
+  },
+  "rule_360": {
+    "when": [
+      "venus_libra_h2_trine_1565"
+    ],
+    "text": "Venus_Libra_H2_trine_1565",
+    "weight": 1
+  },
+  "rule_361": {
+    "when": [
+      "mars_leo_h1_quintile_1579"
+    ],
+    "text": "Mars_Leo_H1_quintile_1579",
+    "weight": 1
+  },
+  "rule_362": {
+    "when": [
+      "mars_leo_h11_sextile_1621"
+    ],
+    "text": "Mars_Leo_H11_sextile_1621",
+    "weight": 1
+  },
+  "rule_363": {
+    "when": [
+      "mars_virgo_h11_trine_1623"
+    ],
+    "text": "Mars_Virgo_H11_trine_1623",
+    "weight": 1
+  },
+  "rule_364": {
+    "when": [
+      "sun_virgo_h2_sextile_1715"
+    ],
+    "text": "Sun_Virgo_H2_sextile_1715",
+    "weight": 1
+  },
+  "rule_365": {
+    "when": [
+      "mars_leo_h1_quincunx_1722"
+    ],
+    "text": "Mars_Leo_H1_quincunx_1722",
+    "weight": 1
+  },
+  "rule_366": {
+    "when": [
+      "sun_aries_h10_square_1758"
+    ],
+    "text": "Sun_Aries_H10_square_1758",
+    "weight": 1
+  },
+  "rule_367": {
+    "when": [
+      "moon_leo_h4_quintile_1782"
+    ],
+    "text": "Moon_Leo_H4_quintile_1782",
+    "weight": 1
+  },
+  "rule_368": {
+    "when": [
+      "mercury_leo_h5_trine_1800"
+    ],
+    "text": "Mercury_Leo_H5_trine_1800",
+    "weight": 1
+  },
+  "rule_369": {
+    "when": [
+      "pluto_virgo_h9_trine_1879"
+    ],
+    "text": "Pluto_Virgo_H9_trine_1879",
+    "weight": 1
+  },
+  "rule_370": {
+    "when": [
+      "sun_aries_h5_sextile_1882"
+    ],
+    "text": "Sun_Aries_H5_sextile_1882",
+    "weight": 1
+  },
+  "rule_371": {
+    "when": [
+      "moon_taurus_h4_trine_1888"
+    ],
+    "text": "Moon_Taurus_H4_trine_1888",
+    "weight": 1
+  },
+  "rule_372": {
+    "when": [
+      "moon_taurus_h6_trine_1923"
+    ],
+    "text": "Moon_Taurus_H6_trine_1923",
+    "weight": 1
+  },
+  "rule_373": {
+    "when": [
+      "venus_leo_h9_sextile_1944"
+    ],
+    "text": "Venus_Leo_H9_sextile_1944",
+    "weight": 1
+  },
+  "rule_374": {
+    "when": [
+      "moon_libra_h12_trine_1948"
+    ],
+    "text": "Moon_Libra_H12_trine_1948",
+    "weight": 1
+  },
+  "rule_375": {
+    "when": [
+      "mercury_leo_h3_trine_1975"
+    ],
+    "text": "Mercury_Leo_H3_trine_1975",
+    "weight": 1
+  },
+  "rule_376": {
+    "when": [
+      "sun_pisces_h10_trine_1978"
+    ],
+    "text": "Sun_Pisces_H10_trine_1978",
+    "weight": 1
+  },
+  "rule_377": {
+    "when": [
+      "moon_leo_h10_sextile_2035"
+    ],
+    "text": "Moon_Leo_H10_sextile_2035",
+    "weight": 1
+  },
+  "rule_378": {
+    "when": [
+      "mars_leo_h10_sextile_2094"
+    ],
+    "text": "Mars_Leo_H10_sextile_2094",
+    "weight": 1
+  },
+  "rule_379": {
+    "when": [
+      "saturn_leo_h12_trine_2119"
+    ],
+    "text": "Saturn_Leo_H12_trine_2119",
+    "weight": 1
+  },
+  "rule_380": {
+    "when": [
+      "neptune_leo_h7_trine_2164"
+    ],
+    "text": "Neptune_Leo_H7_trine_2164",
+    "weight": 1
+  },
+  "rule_381": {
+    "when": [
+      "sun_taurus_h3_square_2247"
+    ],
+    "text": "Sun_Taurus_H3_square_2247",
+    "weight": 1
+  },
+  "rule_382": {
+    "when": [
+      "moon_cancer_h8_trine_2279"
+    ],
+    "text": "Moon_Cancer_H8_trine_2279",
+    "weight": 1
+  },
+  "rule_383": {
+    "when": [
+      "pluto_aries_h2_trine_2330"
+    ],
+    "text": "Pluto_Aries_H2_trine_2330",
+    "weight": 1
+  },
+  "rule_384": {
+    "when": [
+      "pluto_leo_h9_sextile_2357"
+    ],
+    "text": "Pluto_Leo_H9_sextile_2357",
+    "weight": 1
+  },
+  "rule_385": {
+    "when": [
+      "mercury_leo_h6_trine_2365"
+    ],
+    "text": "Mercury_Leo_H6_trine_2365",
+    "weight": 1
+  },
+  "rule_386": {
+    "when": [
+      "sun_cancer_h6_square_2417"
+    ],
+    "text": "Sun_Cancer_H6_square_2417",
+    "weight": 1
+  },
+  "rule_387": {
+    "when": [
+      "sun_scorpio_h2_trine_2445"
+    ],
+    "text": "Sun_Scorpio_H2_trine_2445",
+    "weight": 1
+  },
+  "rule_388": {
+    "when": [
+      "mars_leo_h2_quincunx_2457"
+    ],
+    "text": "Mars_Leo_H2_quincunx_2457",
+    "weight": 1
+  },
+  "rule_389": {
+    "when": [
+      "uranus_leo_h12_trine_2467"
+    ],
+    "text": "Uranus_Leo_H12_trine_2467",
+    "weight": 1
+  },
+  "rule_390": {
+    "when": [
+      "venus_leo_h5_sextile_2484"
+    ],
+    "text": "Venus_Leo_H5_sextile_2484",
+    "weight": 1
+  },
+  "rule_391": {
+    "when": [
+      "mars_leo_h12_sextile_2532"
+    ],
+    "text": "Mars_Leo_H12_sextile_2532",
+    "weight": 1
+  },
+  "rule_392": {
+    "when": [
+      "saturn_leo_h3_square_2607"
+    ],
+    "text": "Saturn_Leo_H3_square_2607",
+    "weight": 1
+  },
+  "rule_393": {
+    "when": [
+      "venus_libra_h9_trine_2615"
+    ],
+    "text": "Venus_Libra_H9_trine_2615",
+    "weight": 1
+  },
+  "rule_394": {
+    "when": [
+      "moon_taurus_h5_trine_2620"
+    ],
+    "text": "Moon_Taurus_H5_trine_2620",
+    "weight": 1
+  },
+  "rule_395": {
+    "when": [
+      "pluto_aries_h1_trine_2669"
+    ],
+    "text": "Pluto_Aries_H1_trine_2669",
+    "weight": 1
+  },
+  "rule_396": {
+    "when": [
+      "pluto_libra_h3_trine_2718"
+    ],
+    "text": "Pluto_Libra_H3_trine_2718",
+    "weight": 1
+  },
+  "rule_397": {
+    "when": [
+      "mars_gemini_h5_trine_2774"
+    ],
+    "text": "Mars_Gemini_H5_trine_2774",
+    "weight": 1
+  },
+  "rule_398": {
+    "when": [
+      "sun_aries_h3_sextile_2778"
+    ],
+    "text": "Sun_Aries_H3_sextile_2778",
+    "weight": 1
+  },
+  "rule_399": {
+    "when": [
+      "moon_virgo_h10_trine_2784"
+    ],
+    "text": "Moon_Virgo_H10_trine_2784",
+    "weight": 1
+  },
+  "rule_400": {
+    "when": [
+      "moon_libra_h1_square_2840"
+    ],
+    "text": "Moon_Libra_H1_square_2840",
+    "weight": 1
+  },
+  "rule_401": {
+    "when": [
+      "mars_aries_h2_square_2976"
+    ],
+    "text": "Mars_Aries_H2_square_2976",
+    "weight": 1
+  },
+  "rule_402": {
+    "when": [
+      "sun_virgo_h8_sextile_3005"
+    ],
+    "text": "Sun_Virgo_H8_sextile_3005",
+    "weight": 1
+  },
+  "rule_403": {
+    "when": [
+      "moon_gemini_h5_trine_3008"
+    ],
+    "text": "Moon_Gemini_H5_trine_3008",
+    "weight": 1
+  },
+  "rule_404": {
+    "when": [
+      "sun_scorpio_h6_trine_3010"
+    ],
+    "text": "Sun_Scorpio_H6_trine_3010",
+    "weight": 1
+  },
+  "rule_405": {
+    "when": [
+      "moon_virgo_h5_square_3019"
+    ],
+    "text": "Moon_Virgo_H5_square_3019",
+    "weight": 1
+  },
+  "rule_406": {
+    "when": [
+      "moon_aries_h2_square_3077"
+    ],
+    "text": "Moon_Aries_H2_square_3077",
+    "weight": 1
+  },
+  "rule_407": {
+    "when": [
+      "pluto_libra_h7_trine_3082"
+    ],
+    "text": "Pluto_Libra_H7_trine_3082",
+    "weight": 1
+  },
+  "rule_408": {
+    "when": [
+      "moon_cancer_h4_trine_3100"
+    ],
+    "text": "Moon_Cancer_H4_trine_3100",
+    "weight": 1
+  },
+  "rule_409": {
+    "when": [
+      "mars_pisces_h1_trine_3104"
+    ],
+    "text": "Mars_Pisces_H1_trine_3104",
+    "weight": 1
+  },
+  "rule_410": {
+    "when": [
+      "mars_aries_h4_square_3223"
+    ],
+    "text": "Mars_Aries_H4_square_3223",
+    "weight": 1
+  },
+  "rule_411": {
+    "when": [
+      "sun_leo_h10_quincunx_3225"
+    ],
+    "text": "Sun_Leo_H10_quincunx_3225",
+    "weight": 1
+  },
+  "rule_412": {
+    "when": [
+      "neptune_leo_h2_trine_3233"
+    ],
+    "text": "Neptune_Leo_H2_trine_3233",
+    "weight": 1
+  },
+  "rule_413": {
+    "when": [
+      "mars_libra_h12_trine_3258"
+    ],
+    "text": "Mars_Libra_H12_trine_3258",
+    "weight": 1
+  },
+  "rule_414": {
+    "when": [
+      "venus_leo_h6_sextile_3261"
+    ],
+    "text": "Venus_Leo_H6_sextile_3261",
+    "weight": 1
+  },
+  "rule_415": {
+    "when": [
+      "moon_taurus_h1_trine_3267"
+    ],
+    "text": "Moon_Taurus_H1_trine_3267",
+    "weight": 1
+  },
+  "rule_416": {
+    "when": [
+      "sun_cancer_h11_trine_3344"
+    ],
+    "text": "Sun_Cancer_H11_trine_3344",
+    "weight": 1
+  },
+  "rule_417": {
+    "when": [
+      "moon_aries_h10_trine_3379"
+    ],
+    "text": "Moon_Aries_H10_trine_3379",
+    "weight": 1
+  },
+  "rule_418": {
+    "when": [
+      "saturn_leo_h11_trine_3451"
+    ],
+    "text": "Saturn_Leo_H11_trine_3451",
+    "weight": 1
+  },
+  "rule_419": {
+    "when": [
+      "mars_taurus_h2_trine_3490"
+    ],
+    "text": "Mars_Taurus_H2_trine_3490",
+    "weight": 1
+  },
+  "rule_420": {
+    "when": [
+      "moon_pisces_h3_trine_3554"
+    ],
+    "text": "Moon_Pisces_H3_trine_3554",
+    "weight": 1
+  },
+  "rule_421": {
+    "when": [
+      "sun_taurus_h7_square_3594"
+    ],
+    "text": "Sun_Taurus_H7_square_3594",
+    "weight": 1
+  },
+  "rule_422": {
+    "when": [
+      "sun_scorpio_h9_trine_3602"
+    ],
+    "text": "Sun_Scorpio_H9_trine_3602",
+    "weight": 1
+  },
+  "rule_423": {
+    "when": [
+      "saturn_leo_h5_square_3609"
+    ],
+    "text": "Saturn_Leo_H5_square_3609",
+    "weight": 1
+  },
+  "rule_424": {
+    "when": [
+      "jupiter_leo_h2_trine_3681"
+    ],
+    "text": "Jupiter_Leo_H2_trine_3681",
+    "weight": 1
+  },
+  "rule_425": {
+    "when": [
+      "mars_leo_h3_quincunx_3688"
+    ],
+    "text": "Mars_Leo_H3_quincunx_3688",
+    "weight": 1
+  },
+  "rule_426": {
+    "when": [
+      "jupiter_leo_h4_trine_3690"
+    ],
+    "text": "Jupiter_Leo_H4_trine_3690",
+    "weight": 1
+  },
+  "rule_427": {
+    "when": [
+      "mars_leo_h8_quincunx_3706"
+    ],
+    "text": "Mars_Leo_H8_quincunx_3706",
+    "weight": 1
+  },
+  "rule_428": {
+    "when": [
+      "jupiter_leo_h7_trine_3715"
+    ],
+    "text": "Jupiter_Leo_H7_trine_3715",
+    "weight": 1
+  },
+  "rule_429": {
+    "when": [
+      "mars_leo_h5_quincunx_3754"
+    ],
+    "text": "Mars_Leo_H5_quincunx_3754",
+    "weight": 1
+  },
+  "rule_430": {
+    "when": [
+      "pluto_libra_h4_trine_3762"
+    ],
+    "text": "Pluto_Libra_H4_trine_3762",
+    "weight": 1
+  },
+  "rule_431": {
+    "when": [
+      "moon_libra_h7_square_3765"
+    ],
+    "text": "Moon_Libra_H7_square_3765",
+    "weight": 1
+  },
+  "rule_432": {
+    "when": [
+      "sun_taurus_h2_square_3815"
+    ],
+    "text": "Sun_Taurus_H2_square_3815",
+    "weight": 1
+  },
+  "rule_433": {
+    "when": [
+      "mars_leo_h7_quincunx_3960"
+    ],
+    "text": "Mars_Leo_H7_quincunx_3960",
+    "weight": 1
+  },
+  "rule_434": {
+    "when": [
+      "sun_libra_h10_square_3975"
+    ],
+    "text": "Sun_Libra_H10_square_3975",
+    "weight": 1
+  },
+  "rule_435": {
+    "when": [
+      "venus_virgo_h9_trine_4041"
+    ],
+    "text": "Venus_Virgo_H9_trine_4041",
+    "weight": 1
+  },
+  "rule_436": {
+    "when": [
+      "mars_gemini_h2_trine_4053"
+    ],
+    "text": "Mars_Gemini_H2_trine_4053",
+    "weight": 1
+  },
+  "rule_437": {
+    "when": [
+      "mercury_leo_h4_trine_4068"
+    ],
+    "text": "Mercury_Leo_H4_trine_4068",
+    "weight": 1
+  },
+  "rule_438": {
+    "when": [
+      "jupiter_leo_h3_trine_4082"
+    ],
+    "text": "Jupiter_Leo_H3_trine_4082",
+    "weight": 1
+  },
+  "rule_439": {
+    "when": [
+      "sun_taurus_h6_square_4109"
+    ],
+    "text": "Sun_Taurus_H6_square_4109",
+    "weight": 1
+  },
+  "rule_440": {
+    "when": [
+      "mars_leo_h6_quincunx_4156"
+    ],
+    "text": "Mars_Leo_H6_quincunx_4156",
+    "weight": 1
+  },
+  "rule_441": {
+    "when": [
+      "mars_libra_h1_square_4183"
+    ],
+    "text": "Mars_Libra_H1_square_4183",
+    "weight": 1
+  },
+  "rule_442": {
+    "when": [
+      "mars_virgo_h7_square_4246"
+    ],
+    "text": "Mars_Virgo_H7_square_4246",
+    "weight": 1
+  },
+  "rule_443": {
+    "when": [
+      "pluto_leo_h11_square_4252"
+    ],
+    "text": "Pluto_Leo_H11_square_4252",
+    "weight": 1
+  },
+  "rule_444": {
+    "when": [
+      "mars_aries_h8_square_4260"
+    ],
+    "text": "Mars_Aries_H8_square_4260",
+    "weight": 1
+  },
+  "rule_445": {
+    "when": [
+      "mars_cancer_h3_trine_4262"
+    ],
+    "text": "Mars_Cancer_H3_trine_4262",
+    "weight": 1
+  },
+  "rule_446": {
+    "when": [
+      "pluto_leo_h3_sextile_4310"
+    ],
+    "text": "Pluto_Leo_H3_sextile_4310",
+    "weight": 1
+  },
+  "rule_447": {
+    "when": [
+      "mars_pisces_h8_trine_4360"
+    ],
+    "text": "Mars_Pisces_H8_trine_4360",
+    "weight": 1
+  },
+  "rule_448": {
+    "when": [
+      "sun_pisces_h1_square_4367"
+    ],
+    "text": "Sun_Pisces_H1_square_4367",
+    "weight": 1
+  },
+  "rule_449": {
+    "when": [
+      "venus_virgo_h7_trine_4458"
+    ],
+    "text": "Venus_Virgo_H7_trine_4458",
+    "weight": 1
+  },
+  "rule_450": {
+    "when": [
+      "mars_pisces_h5_trine_4465"
+    ],
+    "text": "Mars_Pisces_H5_trine_4465",
+    "weight": 1
+  },
+  "rule_451": {
+    "when": [
+      "mars_taurus_h5_trine_4472"
+    ],
+    "text": "Mars_Taurus_H5_trine_4472",
+    "weight": 1
+  },
+  "rule_452": {
+    "when": [
+      "pluto_virgo_h7_trine_4519"
+    ],
+    "text": "Pluto_Virgo_H7_trine_4519",
+    "weight": 1
+  },
+  "rule_453": {
+    "when": [
+      "moon_libra_h10_trine_4552"
+    ],
+    "text": "Moon_Libra_H10_trine_4552",
+    "weight": 1
+  },
+  "rule_454": {
+    "when": [
+      "pluto_libra_h2_trine_4605"
+    ],
+    "text": "Pluto_Libra_H2_trine_4605",
+    "weight": 1
+  },
+  "rule_455": {
+    "when": [
+      "mars_taurus_h6_trine_4691"
+    ],
+    "text": "Mars_Taurus_H6_trine_4691",
+    "weight": 1
+  },
+  "rule_456": {
+    "when": [
+      "moon_pisces_h4_trine_4703"
+    ],
+    "text": "Moon_Pisces_H4_trine_4703",
+    "weight": 1
+  },
+  "rule_457": {
+    "when": [
+      "sun_leo_h12_quintile_4718"
+    ],
+    "text": "Sun_Leo_H12_quintile_4718",
+    "weight": 1
+  },
+  "rule_458": {
+    "when": [
+      "mars_leo_h9_quincunx_4723"
+    ],
+    "text": "Mars_Leo_H9_quincunx_4723",
+    "weight": 1
+  },
+  "rule_459": {
+    "when": [
+      "uranus_leo_h1_square_4735"
+    ],
+    "text": "Uranus_Leo_H1_square_4735",
+    "weight": 1
+  },
+  "rule_460": {
+    "when": [
+      "moon_aries_h5_square_4769"
+    ],
+    "text": "Moon_Aries_H5_square_4769",
+    "weight": 1
+  },
+  "rule_461": {
+    "when": [
+      "moon_taurus_h3_trine_4791"
+    ],
+    "text": "Moon_Taurus_H3_trine_4791",
+    "weight": 1
+  },
+  "rule_462": {
+    "when": [
+      "mars_virgo_h9_square_4825"
+    ],
+    "text": "Mars_Virgo_H9_square_4825",
+    "weight": 1
+  },
+  "rule_463": {
+    "when": [
+      "neptune_leo_h3_trine_4838"
+    ],
+    "text": "Neptune_Leo_H3_trine_4838",
+    "weight": 1
+  },
+  "rule_464": {
+    "when": [
+      "sun_taurus_h1_square_4843"
+    ],
+    "text": "Sun_Taurus_H1_square_4843",
+    "weight": 1
+  },
+  "rule_465": {
+    "when": [
+      "mars_virgo_h10_trine_4899"
+    ],
+    "text": "Mars_Virgo_H10_trine_4899",
+    "weight": 1
+  },
+  "rule_466": {
+    "when": [
+      "sun_libra_h1_sextile_4930"
+    ],
+    "text": "Sun_Libra_H1_sextile_4930",
+    "weight": 1
+  },
+  "rule_467": {
+    "when": [
+      "sun_gemini_h11_trine_4966"
+    ],
+    "text": "Sun_Gemini_H11_trine_4966",
+    "weight": 1
+  },
+  "rule_468": {
+    "when": [
+      "saturn_leo_h2_square_4968"
+    ],
+    "text": "Saturn_Leo_H2_square_4968",
+    "weight": 1
+  },
+  "rule_469": {
+    "when": [
+      "moon_pisces_h5_trine_5023"
+    ],
+    "text": "Moon_Pisces_H5_trine_5023",
+    "weight": 1
+  },
+  "rule_470": {
+    "when": [
+      "saturn_leo_h1_square_5105"
+    ],
+    "text": "Saturn_Leo_H1_square_5105",
+    "weight": 1
+  },
+  "rule_471": {
+    "when": [
+      "moon_virgo_h6_square_5117"
+    ],
+    "text": "Moon_Virgo_H6_square_5117",
+    "weight": 1
+  },
+  "rule_472": {
+    "when": [
+      "moon_aries_h1_square_5168"
+    ],
+    "text": "Moon_Aries_H1_square_5168",
+    "weight": 1
+  },
+  "rule_473": {
+    "when": [
+      "pluto_leo_h4_sextile_5180"
+    ],
+    "text": "Pluto_Leo_H4_sextile_5180",
+    "weight": 1
+  },
+  "rule_474": {
+    "when": [
+      "mars_virgo_h6_square_5195"
+    ],
+    "text": "Mars_Virgo_H6_square_5195",
+    "weight": 1
+  },
+  "rule_475": {
+    "when": [
+      "venus_leo_h10_square_5197"
+    ],
+    "text": "Venus_Leo_H10_square_5197",
+    "weight": 1
+  },
+  "rule_476": {
+    "when": [
+      "pluto_leo_h7_sextile_5230"
+    ],
+    "text": "Pluto_Leo_H7_sextile_5230",
+    "weight": 1
+  },
+  "rule_477": {
+    "when": [
+      "pluto_aries_h7_trine_5338"
+    ],
+    "text": "Pluto_Aries_H7_trine_5338",
+    "weight": 1
+  },
+  "rule_478": {
+    "when": [
+      "mars_gemini_h9_trine_5342"
+    ],
+    "text": "Mars_Gemini_H9_trine_5342",
+    "weight": 1
+  },
+  "rule_479": {
+    "when": [
+      "sun_taurus_h10_trine_5402"
+    ],
+    "text": "Sun_Taurus_H10_trine_5402",
+    "weight": 1
+  },
+  "rule_480": {
+    "when": [
+      "moon_pisces_h1_trine_5427"
+    ],
+    "text": "Moon_Pisces_H1_trine_5427",
+    "weight": 1
+  },
+  "rule_481": {
+    "when": [
+      "venus_virgo_h1_trine_5428"
+    ],
+    "text": "Venus_Virgo_H1_trine_5428",
+    "weight": 1
+  },
+  "rule_482": {
+    "when": [
+      "uranus_leo_h9_square_5445"
+    ],
+    "text": "Uranus_Leo_H9_square_5445",
+    "weight": 1
+  },
+  "rule_483": {
+    "when": [
+      "mars_virgo_h3_square_5478"
+    ],
+    "text": "Mars_Virgo_H3_square_5478",
+    "weight": 1
+  },
+  "rule_484": {
+    "when": [
+      "mars_virgo_h2_square_5548"
+    ],
+    "text": "Mars_Virgo_H2_square_5548",
+    "weight": 1
+  },
+  "rule_485": {
+    "when": [
+      "mars_cancer_h6_trine_5592"
+    ],
+    "text": "Mars_Cancer_H6_trine_5592",
+    "weight": 1
+  },
+  "rule_486": {
+    "when": [
+      "moon_virgo_h1_square_5646"
+    ],
+    "text": "Moon_Virgo_H1_square_5646",
+    "weight": 1
+  },
+  "rule_487": {
+    "when": [
+      "pluto_libra_h6_trine_5668"
+    ],
+    "text": "Pluto_Libra_H6_trine_5668",
+    "weight": 1
+  },
+  "rule_488": {
+    "when": [
+      "mars_taurus_h7_trine_5683"
+    ],
+    "text": "Mars_Taurus_H7_trine_5683",
+    "weight": 1
+  },
+  "rule_489": {
+    "when": [
+      "mars_cancer_h1_trine_5685"
+    ],
+    "text": "Mars_Cancer_H1_trine_5685",
+    "weight": 1
+  },
+  "rule_490": {
+    "when": [
+      "sun_pisces_h3_square_5703"
+    ],
+    "text": "Sun_Pisces_H3_square_5703",
+    "weight": 1
+  },
+  "rule_491": {
+    "when": [
+      "venus_virgo_h6_trine_5706"
+    ],
+    "text": "Venus_Virgo_H6_trine_5706",
+    "weight": 1
+  },
+  "rule_492": {
+    "when": [
+      "neptune_leo_h9_trine_5825"
+    ],
+    "text": "Neptune_Leo_H9_trine_5825",
+    "weight": 1
+  },
+  "rule_493": {
+    "when": [
+      "mars_taurus_h1_trine_5826"
+    ],
+    "text": "Mars_Taurus_H1_trine_5826",
+    "weight": 1
+  },
+  "rule_494": {
+    "when": [
+      "moon_gemini_h1_trine_5911"
+    ],
+    "text": "Moon_Gemini_H1_trine_5911",
+    "weight": 1
+  },
+  "rule_495": {
+    "when": [
+      "venus_virgo_h3_trine_5931"
+    ],
+    "text": "Venus_Virgo_H3_trine_5931",
+    "weight": 1
+  },
+  "rule_496": {
+    "when": [
+      "moon_leo_h2_quintile_5942"
+    ],
+    "text": "Moon_Leo_H2_quintile_5942",
+    "weight": 1
+  },
+  "rule_497": {
+    "when": [
+      "mars_pisces_h3_trine_6053"
+    ],
+    "text": "Mars_Pisces_H3_trine_6053",
+    "weight": 1
+  },
+  "rule_498": {
+    "when": [
+      "venus_virgo_h5_trine_6092"
+    ],
+    "text": "Venus_Virgo_H5_trine_6092",
+    "weight": 1
+  },
+  "rule_499": {
+    "when": [
+      "sun_aries_h11_square_6169"
+    ],
+    "text": "Sun_Aries_H11_square_6169",
+    "weight": 1
+  },
+  "rule_500": {
+    "when": [
+      "moon_leo_h3_quincunx_6180"
+    ],
+    "text": "Moon_Leo_H3_quincunx_6180",
+    "weight": 1
+  }
+}

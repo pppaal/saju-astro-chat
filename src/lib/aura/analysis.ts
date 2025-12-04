@@ -7,11 +7,11 @@ const clampPct = (v: number, max: number) =>
 export function analyzeAura(answers: AuraQuizAnswers): AuraAnalysis {
   let extraversion = 0,
     introversion = 0,
-    sensing = 0,
+    _sensing = 0,
     intuition = 0,
     thinking = 0,
-    feeling = 0,
-    judging = 0,
+    _feeling = 0,
+    _judging = 0,
     perceiving = 0;
 
   let openness = 0,
@@ -24,9 +24,9 @@ export function analyzeAura(answers: AuraQuizAnswers): AuraAnalysis {
   };
 
   if (answers.q1_energy === 'A') extraversion++; else introversion++;
-  if (answers.q2_focus === 'A') intuition++; else sensing++;
-  if (answers.q3_decision === 'A') thinking++; else feeling++;
-  if (answers.q4_planning === 'A') { judging++; conscientiousness += 2; } else { perceiving++; conscientiousness--; }
+  if (answers.q2_focus === 'A') intuition++; else _sensing++;
+  if (answers.q3_decision === 'A') thinking++; else _feeling++;
+  if (answers.q4_planning === 'A') { _judging++; conscientiousness += 2; } else { perceiving++; conscientiousness--; }
   if (answers.q5_new_ideas === 'A') openness += 2; else openness--;
   if (answers.q6_chores === 'A') conscientiousness += 2; else conscientiousness--;
   if (answers.q7_conflict === 'A') agreeableness += 2; else agreeableness--;

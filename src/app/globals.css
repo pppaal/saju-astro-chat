@@ -1,62 +1,130 @@
 /* ============ Fonts ============ */
-/* 문서 기준: Cinzel(제목), Roboto(본문) */
-@font-face {
-  font-family: 'Cinzel';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIU7ww63mVu7gtR-kwKxNvkNOjw-tbnTYo.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Cinzel';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIU7ww63mVu7gtR-kwKxNvkNOjw-jHgTYo.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 300;
-  font-stretch: normal;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/roboto/v49/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuaabWmT.ttf) format('truetype');
-}
+/* Fonts are now loaded via Next.js font optimization in layout.tsx */
+/* CSS variables are available:
+   --font-montserrat
+   --font-noto-kr
+   --font-cinzel
+   --font-roboto
+   --font-lora
+   --font-merriweather
+*/
 
 /* ============ Tailwind ============ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ============ Global tokens (:root 하나로 통합) ============ */
+/* ============ Accessibility & Focus Indicators ============ */
+/* Enhanced focus indicators for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #7c5cff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #7c5cff;
+  outline-offset: 2px;
+}
+
+/* Skip to main content link for screen readers */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1em;
+  background-color: #7c5cff;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.skip-to-main:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1em;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 :root {
-  /* 사이트 공용 색상 */
+  /* Dark mode (default) */
   --bg-color: #0c0a1a;
   --text-color: #EAE6FF;
   --glow-color: #A899FF;
+  --muted: rgba(232, 234, 246, 0.75);
+  --accent: #63d2ff;
+  --accent-2: #7cf29c;
+  --card-bg: rgba(20, 22, 40, 0.7);
+  --card-border: rgba(255, 255, 255, 0.12);
 
-  /* 카드/경계 */
   --card-bg-color: rgba(25, 20, 50, 0.4);
   --card-border-color: rgba(168, 153, 255, 0.2);
   --card-hover-border-color: rgba(168, 153, 255, 0.8);
 
-  /* 입력/패널 공용 */
   --panel: #121727;
   --panel-border: rgba(138, 164, 255, 0.16);
   --input-bg: #0f1424;
   --input-border: rgba(138, 164, 255, 0.22);
 
-  /* 그림자/빛 */
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   --glow: 0 0 36px rgba(176, 192, 255, 0.15);
 
-  /* 골드 버튼 그라디언트 */
   --gold-1: #ffd36a;
   --gold-2: #ffb347;
 
-  /* 옵션 */
   --button-bg-color: transparent;
   --button-active-bg-color: #A899FF;
+}
+
+/* Light mode */
+[data-theme="light"] {
+  --bg-color: #f5f7fa;
+  --text-color: #1a1a2e;
+  --glow-color: #6366f1;
+  --muted: rgba(30, 30, 50, 0.7);
+  --accent: #3b82f6;
+  --accent-2: #10b981;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(0, 0, 0, 0.08);
+
+  --card-bg-color: rgba(255, 255, 255, 0.95);
+  --card-border-color: rgba(100, 102, 241, 0.15);
+  --card-hover-border-color: rgba(100, 102, 241, 0.6);
+
+  --panel: #ffffff;
+  --panel-border: rgba(100, 102, 241, 0.12);
+  --input-bg: #f9fafb;
+  --input-border: rgba(100, 102, 241, 0.18);
+
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
+  --glow: 0 0 36px rgba(99, 102, 241, 0.08);
+
+  --gold-1: #f59e0b;
+  --gold-2: #f97316;
+
+  --button-bg-color: transparent;
+  --button-active-bg-color: #6366f1;
+}
+
+[data-theme="light"] body {
+  background-color: #f5f7fa;
+  color: #1a1a2e;
 }
 
 /* ============ Base ============ */
@@ -66,8 +134,8 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* ============ 공통 버튼: .btn-primary로 통일 ============ */
-/* 기존 .submit-button / .primary를 이 클래스로 교체 */
+
+
 .btn-primary {
   background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
   border: 2px solid #fff3b0;
@@ -87,13 +155,13 @@ body {
   box-shadow: 0 14px 28px rgba(255, 193, 77, 0.36), 0 0 24px rgba(255, 255, 200, 0.9);
 }
 
-/* ============ 세부 페이지 공통 레이아웃 ============ */
-/* wrapper: 세부 페이지에서만 쓰는 ‘지역 변수’ 세트 */
+
+
 .wrapper {
   --bg: #0b0f1a;
   --text: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.65);
-  /* panel, border, input 계열은 :root 값을 재사용 */
+  
 }
 
 .page {
@@ -117,9 +185,9 @@ body {
   padding: 28px;
 }
 
-/* 타이틀/서브타이틀 */
+
 .title {
-  font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
+  font-family: var(--font-cinzel), ui-serif, Georgia, "Times New Roman", serif;
   letter-spacing: .5px;
   font-size: 36px;
   line-height: 1.1;
@@ -130,7 +198,7 @@ body {
 }
 .subtitle { color: var(--muted); text-align: center; margin: 0 0 22px; }
 
-/* 폼 레이아웃 */
+
 .form { display: flex; flex-direction: column; gap: 16px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
@@ -138,7 +206,7 @@ body {
 .field { display: flex; flex-direction: column; gap: 8px; }
 .label { color: var(--muted); font-size: 13px; }
 
-/* 입력 */
+
 .input {
   background: var(--input-bg);
   border: 1px solid var(--input-border);
@@ -183,7 +251,7 @@ body {
   padding: 56px 16px 100px;
 }
 
-/* 상단 뒤로가기 버튼 고정 레이어 */
+
 .pp-back {
   position: sticky;
   top: 16px;
@@ -193,7 +261,7 @@ body {
   margin-bottom: 8px;
 }
 
-/* 페이드업 리빌 */
+
 .reveal {
   opacity: 0;
   transform: translateY(16px);
@@ -210,7 +278,7 @@ body {
   padding: 28px 12px 10px;
 }
 .pp-title {
-  font-family: "Montserrat", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-montserrat), var(--font-noto-kr), system-ui, -apple-system, sans-serif;
   font-weight: 800;
   font-size: clamp(28px, 5vw, 48px);
   letter-spacing: -0.02em;
@@ -358,7 +426,7 @@ body {
   line-height: 1.75;
 }
 
-/* 버튼 변형(기존 토큰과 조화) */
+
 .btn-ghost {
   border: 1px solid var(--panel-border);
   color: var(--text-color);
@@ -388,7 +456,7 @@ body {
   box-shadow: 0 12px 26px rgba(255, 193, 77, .32);
 }
 
-/* 모션 최소화 접근성 */
+
 @media (prefers-reduced-motion: reduce) {
   .reveal,
   .reveal.reveal-in {

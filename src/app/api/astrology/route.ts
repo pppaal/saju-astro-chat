@@ -1,27 +1,24 @@
 // src/app/api/astrology/route.ts
-
 import { NextResponse } from "next/server";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-// 상대 경로로 라이브러리 참조 (별칭 @ 미사용)
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/request-ip";
+import { captureServerError } from "@/lib/telemetry";
+import { requirePublicToken } from "@/lib/auth/publicToken";
 import {
   calculateNatalChart,
   toChart,
   type AspectRules,
-} from "../../../lib/astrology";
-import {
   resolveOptions,
   findNatalAspectsPlus,
   buildEngineMeta,
-} from "../../../lib/astrology";
+} from "@/lib/astrology";
 
-/* =========================
-   i18n 라벨(요약 텍스트)
-   ========================= */
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const LABELS = {
   en: {
     title: "Natal Chart Summary",
@@ -30,60 +27,34 @@ const LABELS = {
     planetPositions: "Planet Positions",
     notice: "Note: This interpretation is automatically generated.",
   },
-  ko: {
-    title: "기본 천궁도 요약",
-    asc: "상승점",
-    mc: "중천",
-    planetPositions: "행성 위치",
-    notice: "주의: 이 해석은 자동 생성된 요약입니다.",
-  },
-  zh: {
-    title: "本命盘摘要",
-    asc: "上升点",
-    mc: "天顶点",
-    planetPositions: "行星位置",
-    notice: "注意：此解读为自动生成。",
-  },
-  ar: {
-    title: "ملخص الخريطة الفلكية",
-    asc: "الطالع",
-    mc: "MC",
-    planetPositions: "مواضع الكواكب",
-    notice: "ملاحظة: هذا التفسير تم إنشاؤه تلقائيًا.",
-  },
-  es: {
-    title: "Resumen de Carta Natal",
-    asc: "Ascendente",
-    mc: "MC",
-    planetPositions: "Posiciones de los Planetas",
-    notice: "Aviso: Esta interpretación es generada automáticamente.",
-  },
+  ko: null,
+  zh: null,
+  ar: null,
+  es: null,
+} as const;
+
+const EN_SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"] as const;
+const SIGNS = {
+  en: EN_SIGNS,
+  ko: EN_SIGNS,
+  zh: EN_SIGNS,
+  ar: EN_SIGNS,
+  es: EN_SIGNS,
+} as const;
+type LocaleKey = keyof typeof SIGNS;
+
+const PLANET_LABELS = {
+  en: { Sun:"Sun", Moon:"Moon", Mercury:"Mercury", Venus:"Venus", Mars:"Mars", Jupiter:"Jupiter", Saturn:"Saturn", Uranus:"Uranus", Neptune:"Neptune", Pluto:"Pluto", "True Node":"True Node" },
+  ko: null,
+  zh: null,
+  ar: null,
+  es: null,
 } as const;
 
 function pickLabels(locale?: string) {
   const key = (locale || "en").split("-")[0] as keyof typeof LABELS;
   return LABELS[key] ?? LABELS.en;
 }
-
-/* =========================
-   별자리/행성 라벨 현지화 유틸
-   ========================= */
-const SIGNS = {
-  en: ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"],
-  ko: ["양자리","황소자리","쌍둥이자리","게자리","사자자리","처녀자리","천칭자리","전갈자리","사수자리","염소자리","물병자리","물고기자리"],
-  zh: ["白羊座","金牛座","双子座","巨蟹座","狮子座","处女座","天秤座","天蝎座","射手座","摩羯座","水瓶座","双鱼座"],
-  ar: ["الحمل","الثور","الجوزاء","السرطان","الأسد","العذراء","الميزان","العقرب","القوس","الجدي","الدلو","الحوت"],
-  es: ["Aries","Tauro","Géminis","Cáncer","Leo","Virgo","Libra","Escorpio","Sagitario","Capricornio","Acuario","Piscis"],
-} as const;
-type LocaleKey = keyof typeof SIGNS;
-
-const PLANET_LABELS = {
-  en: { Sun:"Sun", Moon:"Moon", Mercury:"Mercury", Venus:"Venus", Mars:"Mars", Jupiter:"Jupiter", Saturn:"Saturn", Uranus:"Uranus", Neptune:"Neptune", Pluto:"Pluto", "True Node":"True Node" },
-  ko: { Sun:"태양", Moon:"달", Mercury:"수성", Venus:"금성", Mars:"화성", Jupiter:"목성", Saturn:"토성", Uranus:"천왕성", Neptune:"해왕성", Pluto:"명왕성", "True Node":"진월교점" },
-  zh: { Sun:"太阳", Moon:"月亮", Mercury:"水星", Venus:"金星", Mars:"火星", Jupiter:"木星", Saturn:"土星", Uranus:"天王星", Neptune:"海王星", Pluto:"冥王星", "True Node":"真北交点" },
-  ar: { Sun:"الشمس", Moon:"القمر", Mercury:"عطارد", Venus:"الزهرة", Mars:"المريخ", Jupiter:"المشتري", Saturn:"زحل", Uranus:"أورانوس", Neptune:"نبتون", Pluto:"بلوتو", "True Node":"العقدة الشمالية" },
-  es: { Sun:"Sol", Moon:"Luna", Mercury:"Mercurio", Venus:"Venus", Mars:"Marte", Jupiter:"Júpiter", Saturn:"Saturno", Uranus:"Urano", Neptune:"Neptuno", Pluto:"Plutón", "True Node":"Nodo Norte" },
-} as const;
 
 function normalizeLocale(l?: string): LocaleKey {
   const k = (l || "en").split("-")[0] as LocaleKey;
@@ -124,12 +95,12 @@ function localizeSignLabel(inputSign: string, target: LocaleKey): string {
 function localizePlanetLabel(inputName: string, target: LocaleKey): string {
   const enKeys = Object.keys(PLANET_LABELS.en) as (keyof typeof PLANET_LABELS.en)[];
   if (enKeys.includes(inputName as any)) {
-    return PLANET_LABELS[target][inputName as keyof typeof PLANET_LABELS.en] || String(inputName);
+    return PLANET_LABELS[target]?.[inputName as keyof typeof PLANET_LABELS.en] || String(inputName);
   }
-  for (const labels of Object.values(PLANET_LABELS) as any[]) {
+  for (const labels of Object.values(PLANET_LABELS).filter(Boolean) as any[]) {
     for (const enKey of enKeys) {
       if (labels[enKey] === inputName) {
-        return (PLANET_LABELS as any)[target][enKey] || (PLANET_LABELS as any).en[enKey];
+        return (PLANET_LABELS as any)[target]?.[enKey] || (PLANET_LABELS as any).en[enKey];
       }
     }
   }
@@ -142,35 +113,40 @@ function parseHM(input: string) {
   const core = s.replace(/\s?(AM|PM)$/, "");
   const [hhRaw, mmRaw = "0"] = core.split(":");
   let h = Number(hhRaw), m = Number(mmRaw);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) throw new Error("시간 형식이 올바르지 않습니다.");
+  if (!Number.isFinite(h) || !Number.isFinite(m)) throw new Error("Enter a valid time (HH:mm or HH:mm AM/PM).");
   if (ampm === "PM" && h < 12) h += 12;
   if (ampm === "AM" && h === 12) h = 0;
-  if (h < 0 || h > 23 || m < 0 || m > 59) throw new Error("시간 범위가 올바르지 않습니다.");
+  if (h < 0 || h > 23 || m < 0 || m > 59) throw new Error("Time must be within 00:00-23:59.");
   return { h, m };
 }
 
-/* =========================
-   메인 핸들러
-   ========================= */
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request.headers);
+    const limit = await rateLimit(`astro:${ip}`, { limit: 30, windowSeconds: 60 });
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+    }
+    if (!requirePublicToken(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+    }
+
     const body = await request.json();
     const { date, time, latitude, longitude, timeZone, locale, options } = body ?? {};
     const L = pickLabels(locale);
     const locKey = normalizeLocale(locale);
 
-    // 입력 검증
     if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
-      return NextResponse.json({ error: "필수 입력(date, time, latitude, longitude, timeZone)이 누락되었습니다." }, { status: 400 });
+      return NextResponse.json({ error: "date, time, latitude, longitude, and timeZone are required." }, { status: 400, headers: limit.headers });
     }
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return NextResponse.json({ error: "위도/경도 값이 올바르지 않습니다." }, { status: 400 });
+      return NextResponse.json({ error: "latitude/longitude out of range." }, { status: 400, headers: limit.headers });
     }
 
     const [year, month, day] = String(date).split("-").map(Number);
     if (!year || !month || !day) {
-      return NextResponse.json({ error: "날짜 형식은 YYYY-MM-DD 이어야 합니다." }, { status: 400 });
+      return NextResponse.json({ error: "date must be YYYY-MM-DD." }, { status: 400, headers: limit.headers });
     }
 
     const { h, m } = parseHM(String(time));
@@ -180,13 +156,11 @@ export async function POST(request: Request) {
       String(timeZone)
     );
     if (!local.isValid()) {
-      return NextResponse.json({ error: "날짜/시간/시간대 조합이 올바르지 않습니다." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid date/time/timeZone combination." }, { status: 400, headers: limit.headers });
     }
 
-    // 0) 옵션 확정(미전달 시 preset/기본값)
     const opts = resolveOptions(options);
 
-    // 1) 출생 차트 계산
     const natal = await calculateNatalChart({
       year, month, date: day,
       hour: h, minute: m,
@@ -194,7 +168,6 @@ export async function POST(request: Request) {
       timeZone: String(timeZone),
     });
 
-    // 2) 요약 텍스트(다국어)
     const ascSplit = splitSignAndDegree(String((natal as any).ascendant?.formatted || ""));
     const mcSplit  = splitSignAndDegree(String((natal as any).mc?.formatted || ""));
     const ascStr = `${localizeSignLabel(ascSplit.signPart, locKey)} ${ascSplit.degreePart}`.trim();
@@ -207,10 +180,9 @@ export async function POST(request: Request) {
       return `${name}: ${sign} ${degreePart}`.trim();
     }).join("\n");
 
-    const basics = `${L.asc}: ${ascStr}\n${L.mc}: ${mcStr}`;
-    const interpretation = `${L.title}\n${basics}\n\n${L.planetPositions}\n${planetLines}\n\n${L.notice}`;
+    const basics = `${L?.asc ?? "Ascendant"}: ${ascStr}\n${L?.mc ?? "MC"}: ${mcStr}`;
+    const interpretation = `${L?.title ?? "Natal Chart Summary"}\n${basics}\n\n${L?.planetPositions ?? "Planet Positions"}\n${planetLines}\n\n${L?.notice ?? ""}`;
 
-    // 3) 위상 계산(Advanced Plus)
     const chart = toChart(natal as any);
     const aspectRules: AspectRules = {
       includeMinor: opts.includeMinorAspects,
@@ -218,11 +190,8 @@ export async function POST(request: Request) {
       scoring: { weights: { orb: 0.55, aspect: 0.4, speed: 0.05 } },
     };
     const aspectsPlus = findNatalAspectsPlus(chart as any, aspectRules, opts);
-
-    // 4) 엔진 메타 확장 (NatalChartData 타입에 meta가 없다 → 별도 chartMeta로 분리)
     const chartMeta = buildEngineMeta(((natal as any).meta ?? {}) as any, opts);
 
-    // 5) Advanced 페이로드(더보기 섹션)
     const houses = (chart as any).houses || (natal as any).houses || [];
     const pointsRaw = (chart as any).points || (natal as any).planets || [];
     const points = pointsRaw.map((p: any) => ({
@@ -245,11 +214,10 @@ export async function POST(request: Request) {
       aspectsPlus,
     };
 
-    // 6) 응답
     const res = NextResponse.json(
       {
-        chartData: natal,      // 타입 충돌 방지: natal 자체에는 meta 안 붙임
-        chartMeta,             // 메타는 별도 필드
+        chartData: natal,
+        chartMeta,
         aspects: aspectsPlus,
         interpretation,
         advanced,
@@ -257,12 +225,13 @@ export async function POST(request: Request) {
       },
       { status: 200 }
     );
+    limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
   } catch (error: any) {
-    console.error("API 처리 중 최종 에러:", error);
+    captureServerError(error, { route: "/api/astrology" });
     return NextResponse.json(
-      { error: error?.message || "알 수 없는 에러가 발생했습니다." },
+      { error: error?.message || "Unexpected server error." },
       { status: 500 }
     );
   }

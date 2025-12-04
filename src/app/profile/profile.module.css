@@ -1,0 +1,407 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a0a1a 0%, #141424 100%);
+  padding: 0;
+}
+
+.backButtonContainer {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 18px;
+  color: #a89fcf;
+}
+
+.loginPrompt {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 100px 20px;
+  text-align: center;
+}
+
+.loginPrompt h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  background: linear-gradient(135deg, #a89fcf 0%, #7c5cff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loginPrompt p {
+  color: #a89fcf;
+  font-size: 16px;
+  margin: 0 0 32px 0;
+}
+
+.loginBtn {
+  padding: 14px 32px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c5cff 0%, #9b7fff 100%);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+  font-size: 16px;
+}
+
+.loginBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 92, 255, 0.4);
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 100px 20px 60px;
+}
+
+.profileHeader {
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.08) 0%, rgba(155, 127, 255, 0.04) 100%);
+  border: 1px solid rgba(124, 92, 255, 0.2);
+  border-radius: 20px;
+  padding: 40px;
+  margin-bottom: 32px;
+}
+
+.profileInfo {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.profileImage {
+  border-radius: 50%;
+  border: 3px solid rgba(124, 92, 255, 0.3);
+}
+
+.profileName {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #e9e9f5;
+}
+
+.profileEmail {
+  color: #a89fcf;
+  font-size: 16px;
+  margin: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 36px;
+  font-weight: 700;
+  color: #7c5cff;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  color: #a89fcf;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 32px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: transparent;
+  color: #a89fcf;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.tab:hover {
+  background: rgba(124, 92, 255, 0.1);
+  color: #cfcafc;
+}
+
+.tabActive {
+  background: #7c5cff;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+}
+
+.content {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 32px;
+  min-height: 400px;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #e9e9f5;
+}
+
+.subsectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 32px 0 16px 0;
+  color: #e9e9f5;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activityItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.activityItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(124, 92, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.activityIcon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(124, 92, 255, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.activityContent {
+  flex: 1;
+}
+
+.activityTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e9e9f5;
+  margin-bottom: 4px;
+}
+
+.activityDesc {
+  font-size: 14px;
+  color: #a89fcf;
+  margin-bottom: 4px;
+}
+
+.activityTime {
+  font-size: 12px;
+  color: #7c7c94;
+}
+
+.activityLink {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(124, 92, 255, 0.1);
+  color: #7c5cff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.activityLink:hover {
+  background: rgba(124, 92, 255, 0.2);
+  color: #9b7fff;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #7c7c94;
+  font-size: 16px;
+}
+
+.savedSection,
+.statsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info {
+  color: #a89fcf;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c5cff 0%, #9b7fff 100%);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+  align-self: flex-start;
+}
+
+.linkButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 92, 255, 0.4);
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.statBox {
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.05) 0%, rgba(155, 127, 255, 0.02) 100%);
+  border: 1px solid rgba(124, 92, 255, 0.2);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.statBoxLabel {
+  font-size: 13px;
+  color: #a89fcf;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.statBoxValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: #7c5cff;
+  margin-bottom: 8px;
+}
+
+.statBoxSubtext {
+  font-size: 14px;
+  color: #7c7c94;
+}
+
+.servicesUsed {
+  margin-top: 32px;
+}
+
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.serviceItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.serviceIcon {
+  font-size: 24px;
+  width: 40px;
+  text-align: center;
+}
+
+.serviceName {
+  flex: 1;
+  color: #e9e9f5;
+  font-weight: 500;
+}
+
+.serviceCount {
+  color: #7c5cff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .profileHeader {
+    padding: 24px;
+  }
+
+  .profileInfo {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profileName {
+    font-size: 24px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 20px;
+  }
+
+  .activityItem {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .statGrid {
+    grid-template-columns: 1fr;
+  }
+}

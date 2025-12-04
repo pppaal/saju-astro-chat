@@ -42,6 +42,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  passwordHash  String?
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
@@ -58,6 +59,10 @@ model User {
   readings Reading[]
   fortunes Fortune[]
   snapshots DestinySnapshot[] // 날짜별 Destiny Map 스냅샷
+  dailyFortunes DailyFortune[] // 오늘의 운세
+
+  // 이메일 알림 동의
+  emailNotifications Boolean @default(false)
 }
 
 model VerificationToken {
@@ -109,4 +114,23 @@ model DestinySnapshot {
 
   @@unique([userId, targetDate])
   @@index([userId, targetDate])
+}
+
+model DailyFortune {
+  id            String   @id @default(cuid())
+  userId        String
+  date          String   // 'YYYY-MM-DD'
+  loveScore     Int      // 0-100
+  careerScore   Int      // 0-100
+  wealthScore   Int      // 0-100
+  healthScore   Int      // 0-100
+  overallScore  Int      // 0-100
+  luckyColor    String?
+  luckyNumber   Int?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
 }

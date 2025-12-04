@@ -1,0 +1,58 @@
+.wrapper {
+  min-height: 100svh;
+  background:
+    radial-gradient(900px 600px at 20% 10%, rgba(168, 153, 255, 0.08), transparent),
+    radial-gradient(800px 500px at 80% 90%, rgba(80, 188, 255, 0.06), transparent),
+    var(--bg-color, #0c0a1a);
+  padding: 24px 16px 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 840px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--panel, #121727);
+  border: 1px solid var(--panel-border, rgba(138,164,255,0.16));
+  border-radius: 18px;
+  box-shadow: var(--shadow, 0 24px 60px rgba(0,0,0,0.55));
+  padding: 32px 28px;
+  color: var(--text-color, #eae6ff);
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: clamp(1.5rem, 2vw, 1.9rem);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted, rgba(255,255,255,0.75));
+  line-height: 1.6;
+}
+
+.form {
+  margin-top: 20px;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 24px 18px;
+  }
+  .actionRow {
+    justify-content: flex-start;
+  }
+}

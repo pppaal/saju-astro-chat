@@ -1,6 +1,6 @@
 // src/lib/Saju/relations.ts
 
-import { BRANCHES, STEMS } from './constants';
+import { STEMS } from './constants';
 import type { PillarKind, RelationHit } from './types';
 
 /* ========== 옵션/유틸 ========== */
