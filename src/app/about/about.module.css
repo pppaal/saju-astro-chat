@@ -1,420 +1,378 @@
 .page {
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a1a 0%, #141424 100%);
-  padding: 0;
+  background: radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.12), transparent),
+              radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.10), transparent);
+  background-color: #0a0e1f;
+  color: var(--text-color, #e8ecf5);
+  overflow-x: hidden;
+  padding-bottom: 96px;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.backButtonContainer {
+.backButton {
   position: fixed;
   top: 20px;
   left: 20px;
   z-index: 100;
 }
 
-/* Hero Section */
-.hero {
+.main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 120px 32px 60px;
+  padding: 120px 32px 64px;
+  position: relative;
+  z-index: 1;
+}
+
+.stars {
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(2px 2px at 80% 20%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 15% 80%, rgba(255,255,255,0.25), transparent),
+    radial-gradient(1px 1px at 90% 50%, rgba(255,255,255,0.25), transparent);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero {
   text-align: center;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.8s ease forwards;
+  margin-bottom: 80px;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 @keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.title {
-  font-size: clamp(36px, 6vw, 56px);
+.heroTitle {
+  font-size: clamp(36px, 5vw, 56px);
   font-weight: 800;
-  margin: 0 0 24px 0;
-  background: linear-gradient(135deg, #a89fcf 0%, #7c5cff 50%, #ff8bd1 100%);
+  line-height: 1.2;
+  margin: 0 0 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #a8b9ff 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  text-shadow: 0 2px 40px rgba(136, 179, 247, 0.3);
 }
 
-.subtitle {
+.heroSub {
   max-width: 800px;
-  margin: 0 auto 32px;
-  color: #cfcafc;
-  font-size: clamp(16px, 2.5vw, 20px);
+  margin: 0 auto;
+  color: rgba(255,255,255,0.75);
   line-height: 1.7;
+  font-size: 17px;
+  font-weight: 400;
 }
 
-.ctaRow {
+/* Services Section */
+.servicesSection {
+  margin-bottom: 100px;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.eyebrow {
+  color: #88b3f7;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  font-size: 14px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 800;
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, #fff 0%, #d0e0ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sectionDesc {
+  color: rgba(255,255,255,0.7);
+  font-size: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Service Grid */
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.serviceCard {
+  position: relative;
+  display: block;
+  border-radius: 24px;
+  padding: 40px 32px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height: 240px;
+}
+
+.serviceCard:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s ease;
+}
+
+.serviceCard:hover .cardOverlay {
+  background: rgba(0,0,0,0.1);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.cardContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.serviceIcon {
+  font-size: 48px;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 20px rgba(255,255,255,0.3));
+}
+
+.serviceTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.serviceDesc {
+  color: rgba(255,255,255,0.9);
+  font-size: 15px;
+  line-height: 1.6;
+  flex-grow: 1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.serviceArrow {
+  font-size: 24px;
+  color: rgba(255,255,255,0.6);
+  transition: transform 0.3s ease;
+}
+
+.serviceCard:hover .serviceArrow {
+  transform: translateX(8px);
+  color: rgba(255,255,255,1);
+}
+
+/* Philosophy Section */
+.philosophy {
+  margin-bottom: 100px;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.philosophyTitle {
+  text-align: center;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  margin: 0 0 48px;
+  background: linear-gradient(135deg, #fff 0%, #d0e0ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.philosophyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.philosophyCard {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 32px 28px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.philosophyCard:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+
+.philosophyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 12px rgba(136, 179, 247, 0.3));
+}
+
+.philosophyCard h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.philosophyCard p {
+  color: rgba(255,255,255,0.7);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* CTA Section */
+.cta {
+  text-align: center;
+  padding: 60px 32px;
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 32px;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.ctaTitle {
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 800;
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, #fff 0%, #a8b9ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ctaSub {
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  margin: 0 0 32px;
+}
+
+.ctaButtons {
   display: flex;
   gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-top: 32px;
 }
 
-.btnPrimary {
-  padding: 14px 32px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #7c5cff 0%, #9b7fff 100%);
-  color: #fff;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btnPrimary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(124, 92, 255, 0.5);
-}
-
-.btnGhost {
-  padding: 14px 32px;
-  border-radius: 12px;
-  background: transparent;
-  color: #cfcafc;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  border: 2px solid rgba(124, 92, 255, 0.3);
-  transition: all 0.2s ease;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btnGhost:hover {
-  border-color: #7c5cff;
-  background: rgba(124, 92, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-/* Visual Section */
-.visual {
-  max-width: 1200px;
-  margin: 60px auto;
-  padding: 0 32px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 40px;
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
   align-items: center;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.8s ease 0.2s forwards;
-}
-
-@media (min-width: 920px) {
-  .visual {
-    grid-template-columns: 1.2fr 1fr;
-  }
-}
-
-.ovoidContainer {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 8;
-  border-radius: 200px;
-  overflow: hidden;
-  border: 2px solid rgba(124, 92, 255, 0.3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 0 80px rgba(124, 92, 255, 0.15);
-  background: rgba(10, 10, 26, 0.5);
-  backdrop-filter: blur(10px);
-}
-
-.ovoidCanvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.visualCopy {
-  text-align: left;
-}
-
-.visualCopy h2 {
-  font-size: clamp(24px, 3.5vw, 36px);
+  justify-content: center;
+  padding: 16px 32px;
+  border-radius: 999px;
   font-weight: 700;
-  margin: 0 0 16px 0;
-  color: #e9e9f5;
-  letter-spacing: -0.01em;
-}
-
-.visualCopy p {
-  color: #a89fcf;
-  line-height: 1.8;
-  font-size: clamp(15px, 2.2vw, 18px);
-}
-
-/* Discover Section */
-.discover {
-  max-width: 1200px;
-  margin: 80px auto 100px;
-  padding: 0 32px;
-  text-align: center;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.8s ease 0.4s forwards;
-}
-
-.discover h2 {
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  color: #e9e9f5;
-  letter-spacing: -0.01em;
-}
-
-.discoverSub {
-  max-width: 800px;
-  margin: 0 auto 48px;
-  color: #a89fcf;
-  font-size: clamp(15px, 2.2vw, 18px);
-  line-height: 1.7;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
-  text-align: left;
-}
-
-@media (min-width: 920px) {
-  .grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.card {
-  padding: 32px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
+  font-size: 16px;
+  text-decoration: none;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.ctaPrimary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
 }
 
-.card:hover::before {
-  opacity: 1;
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(102, 126, 234, 0.5);
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(124, 92, 255, 0.3);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+.ctaSecondary {
+  background: rgba(255,255,255,0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
-.cardSaju {
-  --card-accent: linear-gradient(135deg, #ffd36a, #ffb347);
-}
-
-.cardAstro {
-  --card-accent: linear-gradient(135deg, #89a3ff, #c7a8ff);
-}
-
-.cardIching {
-  --card-accent: linear-gradient(135deg, #7ee8fa, #80ff72);
-}
-
-.cardTarot {
-  --card-accent: linear-gradient(135deg, #ff8bd1, #ffd1ff);
-}
-
-.cardHead {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.dotSaju {
-  background: linear-gradient(135deg, #ffd36a, #ffb347);
-}
-
-.dotAstro {
-  background: linear-gradient(135deg, #89a3ff, #c7a8ff);
-}
-
-.dotIching {
-  background: linear-gradient(135deg, #7ee8fa, #80ff72);
-}
-
-.dotTarot {
-  background: linear-gradient(135deg, #ff8bd1, #ffd1ff);
-}
-
-.cardHead h3 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0;
-  color: #e9e9f5;
-  letter-spacing: 0.02em;
-}
-
-.card p {
-  color: #cfcafc;
-  line-height: 1.75;
-  margin: 0 0 16px 0;
-  font-size: 15px;
-}
-
-.bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px 0;
-}
-
-.bullets li {
-  padding: 8px 0;
-  color: #a89fcf;
-  font-size: 14px;
-  line-height: 1.6;
-  position: relative;
-  padding-left: 24px;
-}
-
-.bullets li::before {
-  content: "•";
-  position: absolute;
-  left: 8px;
-  color: #7c5cff;
-  font-weight: bold;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-
-.btnSoft {
-  padding: 10px 20px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #7c5cff 0%, #9b7fff 100%);
-  color: #fff;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btnSoft:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.4);
-}
-
-.accordion {
-  border: none;
-  background: transparent;
-}
-
-.accordion summary {
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: #cfcafc;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 14px;
-  transition: all 0.2s ease;
-  list-style: none;
-}
-
-.accordion summary::-webkit-details-marker {
-  display: none;
-}
-
-.accordion summary::after {
-  content: " ▼";
-  font-size: 10px;
-  margin-left: 6px;
-  transition: transform 0.2s ease;
-  display: inline-block;
-}
-
-.accordion[open] summary::after {
-  transform: rotate(180deg);
-}
-
-.accordion summary:hover {
-  background: rgba(124, 92, 255, 0.1);
-  border-color: rgba(124, 92, 255, 0.3);
-}
-
-.accordionContent {
-  margin-top: 12px;
-  padding: 12px;
-  color: #a89fcf;
-  line-height: 1.75;
-  font-size: 14px;
-  border-left: 2px solid rgba(124, 92, 255, 0.3);
-  padding-left: 16px;
+.ctaSecondary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .hero {
-    padding: 100px 20px 40px;
+@media (max-width: 900px) {
+  .serviceGrid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
   }
 
-  .title {
+  .philosophyGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 100px 20px 64px;
+  }
+
+  .heroTitle {
     font-size: 32px;
   }
 
-  .subtitle {
-    font-size: 16px;
+  .heroSub {
+    font-size: 15px;
   }
 
-  .visual,
-  .discover {
-    padding: 0 20px;
+  .serviceGrid {
+    grid-template-columns: 1fr;
   }
 
-  .card {
-    padding: 24px;
+  .philosophyGrid {
+    grid-template-columns: 1fr;
   }
 
-  .ctaRow {
+  .serviceCard {
+    padding: 32px 24px;
+    min-height: 200px;
+  }
+
+  .ctaButtons {
     flex-direction: column;
+    width: 100%;
   }
 
-  .btnPrimary,
-  .btnGhost {
+  .ctaPrimary,
+  .ctaSecondary {
     width: 100%;
-    text-align: center;
   }
 }

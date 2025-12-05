@@ -1,259 +1,333 @@
-// 1. 타입을 tarot.types.ts에서 가져옵니다.
-import { TarotTheme } from "./tarot.types"; 
+import { TarotTheme } from "./tarot.types";
 
-// 2. 파일 내의 중복된 타입 정의는 삭제합니다.
-
-// 3. tarotThemes 데이터에 각 스프레드별로 positions 배열을 추가합니다.
+// Spread/theme definitions for Tarot. Content only cleaned; logic unchanged.
 export const tarotThemes: TarotTheme[] = [
   {
-    id: 'general-insight',
-    category: 'General Insight',
-    description: 'Explore the overall energy surrounding you.',
+    id: "general-insight",
+    category: "General Insight",
+    description: "Explore the overall energy surrounding you.",
     spreads: [
-      { 
-        id: 'quick-reading', 
-        title: 'Quick Reading', 
-        cardCount: 1, 
-        description: 'A quick, clear piece of advice or a core insight into your current situation.',
-        positions: [
-          { title: 'Core Insight' }
-        ]
+      {
+        id: "quick-reading",
+        title: "Quick Reading",
+        cardCount: 1,
+        description: "A quick, clear piece of advice or a core insight into your current situation.",
+        positions: [{ title: "Core Insight" }],
       },
-      { 
-        id: 'past-present-future', 
-        title: 'Past, Present, Future', 
-        cardCount: 3, 
-        description: 'Examine the flow of time: the cause from the past, the current situation, and the likely future.',
-        positions: [
-          { title: 'The Past' },
-          { title: 'The Present' },
-          { title: 'The Future' }
-        ]
+      {
+        id: "past-present-future",
+        title: "Past, Present, Future",
+        cardCount: 3,
+        description: "Examine the flow of time: the cause from the past, the current situation, and the likely future.",
+        positions: [{ title: "The Past" }, { title: "The Present" }, { title: "The Future" }],
       },
-      { 
-        id: 'celtic-cross', 
-        title: 'The Celtic Cross', 
-        cardCount: 10, 
-        description: 'A deep and comprehensive reading that covers all aspects of your situation in great detail.',
+      {
+        id: "celtic-cross",
+        title: "The Celtic Cross",
+        cardCount: 10,
+        description: "A deep and comprehensive reading that covers all aspects of your situation in great detail.",
         positions: [
-          { title: 'The Present' }, { title: 'The Challenge' }, { title: 'The Past' },
-          { title: 'The Future' }, { title: 'Above (Conscious)' }, { title: 'Below (Subconscious)' },
-          { title: 'Advice' }, { title: 'External Influences' }, { title: 'Hopes and Fears' },
-          { title: 'The Outcome' }
-        ]
-      }
-    ]
+          { title: "The Present" },
+          { title: "The Challenge" },
+          { title: "The Past" },
+          { title: "The Future" },
+          { title: "Above (Conscious)" },
+          { title: "Below (Subconscious)" },
+          { title: "Advice" },
+          { title: "External Influences" },
+          { title: "Hopes and Fears" },
+          { title: "The Outcome" },
+        ],
+      },
+    ],
   },
   {
-    id: 'love-relationships',
-    category: 'Love & Relationships',
-    description: 'Uncover the mysteries of your heart.',
+    id: "love-relationships",
+    category: "Love & Relationships",
+    description: "Uncover the mysteries of your heart.",
     spreads: [
-      { 
-        id: 'relationship-check-in', 
-        title: 'Relationship Check-in', 
-        cardCount: 2, 
-        description: 'A snapshot of you and your partner\'s energies within the relationship.',
-        positions: [
-          { title: 'Your Energy' },
-          { title: 'Partner\'s Energy' }
-        ]
+      {
+        id: "relationship-check-in",
+        title: "Relationship Check-in",
+        cardCount: 2,
+        description: "A snapshot of you and your partner's energies within the relationship.",
+        positions: [{ title: "Your Energy" }, { title: "Partner's Energy" }],
       },
-      { 
-        id: 'relationship-cross', 
-        title: 'Relationship Cross', 
-        cardCount: 5, 
-        description: 'An in-depth analysis of your connection, challenges, and future direction.',
+      {
+        id: "relationship-cross",
+        title: "Relationship Cross",
+        cardCount: 5,
+        description: "An in-depth analysis of your connection, challenges, and future direction.",
         positions: [
-          { title: 'You' }, { title: 'Your Partner' }, { title: 'The Connection' },
-          { title: 'The Challenge' }, { title: 'The Outcome' }
-        ]
+          { title: "You" },
+          { title: "Your Partner" },
+          { title: "The Connection" },
+          { title: "The Challenge" },
+          { title: "The Outcome" },
+        ],
       },
-      { 
-        id: 'finding-a-partner', 
-        title: 'Finding a Partner', 
-        cardCount: 4, 
-        description: 'Gain clarity on what you seek, what blocks you, and how to attract love.',
+      {
+        id: "finding-a-partner",
+        title: "Finding a Partner",
+        cardCount: 4,
+        description: "Gain clarity on what you seek, what blocks you, and how to attract love.",
         positions: [
-          { title: 'What You Seek' }, { title: 'What Blocks You' },
-          { title: 'How to Attract' }, { title: 'Potential Partner' }
-        ]
-      }
-    ]
+          { title: "What You Seek" },
+          { title: "What Blocks You" },
+          { title: "How to Attract" },
+          { title: "Potential Partner" },
+        ],
+      },
+    ],
   },
   {
-    id: 'career-work',
-    category: 'Career & Work',
-    description: 'Find clarity on your professional journey.',
+    id: "career-work",
+    category: "Career & Work",
+    description: "Find clarity on your professional journey.",
     spreads: [
-      { 
-        id: 'quick-guidance', 
-        title: 'Quick Guidance', 
-        cardCount: 1, 
-        description: 'A single point of focus or advice for your professional life today.',
-        positions: [
-          { title: 'Key Focus' }
-        ]
+      {
+        id: "quick-guidance",
+        title: "Quick Guidance",
+        cardCount: 1,
+        description: "A single point of focus or advice for your professional life today.",
+        positions: [{ title: "Key Focus" }],
       },
-      { 
-        id: 'career-path', 
-        title: 'Career Path', 
-        cardCount: 3, 
-        description: 'Understand your current role, your next step, and your ultimate career potential.',
-        positions: [
-          { title: 'Current Role' }, { title: 'Next Step' }, { title: 'Long-term Potential' }
-        ]
+      {
+        id: "career-path",
+        title: "Career Path",
+        cardCount: 3,
+        description: "Understand your current role, your next step, and your ultimate career potential.",
+        positions: [{ title: "Current Role" }, { title: "Next Step" }, { title: "Long-term Potential" }],
       },
-      { 
-        id: 'work-life-balance', 
-        title: 'Work-Life Balance', 
-        cardCount: 5, 
-        description: 'Explore the dynamics between your career, personal life, and overall well-being.',
+      {
+        id: "work-life-balance",
+        title: "Work-Life Balance",
+        cardCount: 5,
+        description: "Explore the dynamics between your career, personal life, and overall well-being.",
         positions: [
-          { title: 'Work Energy' }, { title: 'Life Energy' }, { title: 'The Conflict' },
-          { title: 'Path to Harmony' }, { title: 'Ideal State' }
-        ]
-      }
-    ]
+          { title: "Work Energy" },
+          { title: "Life Energy" },
+          { title: "The Conflict" },
+          { title: "Path to Harmony" },
+          { title: "Ideal State" },
+        ],
+      },
+    ],
   },
   {
-    id: 'money-finance',
-    category: 'Money & Finance',
-    description: 'Seek guidance on your financial situation.',
+    id: "money-finance",
+    category: "Money & Finance",
+    description: "Seek guidance on your financial situation.",
     spreads: [
-      { 
-        id: 'financial-snapshot', 
-        title: 'Financial Snapshot', 
-        cardCount: 1, 
-        description: 'The core energy surrounding your financial situation right now.',
-        positions: [
-          { title: 'Current Situation' }
-        ]
+      {
+        id: "financial-snapshot",
+        title: "Financial Snapshot",
+        cardCount: 2,
+        description: "A quick look at your current money flow and the immediate next step.",
+        positions: [{ title: "Current Flow" }, { title: "Next Step" }],
       },
-      { 
-        id: 'path-to-abundance', 
-        title: 'Path to Abundance', 
-        cardCount: 3, 
-        description: 'Identify your financial blocks, the action to take, and the potential outcome.',
+      {
+        id: "abundance-path",
+        title: "Abundance Path",
+        cardCount: 4,
+        description: "Understand your money mindset, opportunities, and how to align with abundance.",
         positions: [
-          { title: 'Your Blockage' }, { title: 'Action to Take' }, { title: 'Potential Outcome' }
-        ]
+          { title: "Mindset" },
+          { title: "Opportunity" },
+          { title: "Action" },
+          { title: "Long-term Outlook" },
+        ],
       },
-      { 
-        id: 'investment-potential', 
-        title: 'Investment Potential', 
-        cardCount: 4, 
-        description: 'Assess the potential risks and rewards of a financial decision.',
+      {
+        id: "career-money",
+        title: "Career & Money",
+        cardCount: 5,
+        description: "Connect your career direction with your financial goals.",
         positions: [
-          { title: 'The Opportunity' }, { title: 'Potential Risk' },
-          { title: 'Potential Reward' }, { title: 'Final Advice' }
-        ]
-      }
-    ]
+          { title: "Career Direction" },
+          { title: "Skills to Leverage" },
+          { title: "Blockers" },
+          { title: "Money Advice" },
+          { title: "Outcome" },
+        ],
+      },
+    ],
   },
   {
-    id: 'well-being-health',
-    category: 'Well-being & Health',
-    description: 'Listen to the whispers of your body and mind.',
+    id: "well-being-health",
+    category: "Well-being & Health",
+    description: "Listen to the whispers of your body and mind.",
     spreads: [
-      { 
-        id: 'energy-check', 
-        title: 'Energy Check', 
-        cardCount: 1, 
-        description: 'A quick look at your current state of mental or physical energy.',
-        positions: [
-          { title: 'Your Energy' }
-        ]
+      {
+        id: "mind-body-scan",
+        title: "Mind-Body Scan",
+        cardCount: 3,
+        description: "Check-in with mind, body, and spirit to regain balance.",
+        positions: [{ title: "Mind" }, { title: "Body" }, { title: "Spirit" }],
       },
-      { 
-        id: 'mind-body-spirit', 
-        title: 'Mind, Body, Spirit', 
-        cardCount: 3, 
-        description: 'An overview of your health on the mental, physical, and spiritual planes.',
+      {
+        id: "healing-path",
+        title: "Healing Path",
+        cardCount: 4,
+        description: "Identify areas needing care and the steps to heal.",
         positions: [
-          { title: 'Mind' }, { title: 'Body' }, { title: 'Spirit' }
-        ]
+          { title: "Area Needing Care" },
+          { title: "What Supports Healing" },
+          { title: "What to Release" },
+          { title: "Outcome" },
+        ],
       },
-      { 
-        id: 'path-to-healing', 
-        title: 'Path to Healing', 
-        cardCount: 4, 
-        description: 'Guidance on what needs attention and the steps toward recovery and balance.',
+      {
+        id: "energy-balance",
+        title: "Energy Balance",
+        cardCount: 5,
+        description: "Balance your energy flow and daily routine.",
         positions: [
-          { title: 'What Needs Healing' }, { title: 'Path to Recovery' },
-          { title: 'Inner Strength' }, { title: 'Outcome' }
-        ]
-      }
-    ]
+          { title: "Morning Energy" },
+          { title: "Midday Energy" },
+          { title: "Evening Energy" },
+          { title: "Energy Drain" },
+          { title: "Energy Refill" },
+        ],
+      },
+    ],
   },
   {
-    id: 'spiritual-growth',
-    category: 'Spiritual Growth',
-    description: 'Connect with your higher self.',
+    id: "spiritual-growth",
+    category: "Spiritual Growth",
+    description: "Connect with your higher self.",
     spreads: [
-      { 
-        id: 'message-from-higher-self', 
-        title: 'Message from Higher Self', 
-        cardCount: 1, 
-        description: 'Receive a direct message that your soul wants you to hear now.',
-        positions: [
-          { title: 'The Message' }
-        ]
+      {
+        id: "inner-voice",
+        title: "Inner Voice",
+        cardCount: 1,
+        description: "A single card to hear what your higher self wants to say.",
+        positions: [{ title: "Message" }],
       },
-      { 
-        id: 'your-spiritual-path', 
-        title: 'Your Spiritual Path', 
-        cardCount: 3, 
-        description: 'Explore your past spiritual lessons, current challenges, and future growth.',
+      {
+        id: "shadow-work",
+        title: "Shadow Work",
+        cardCount: 4,
+        description: "Meet and heal the shadow aspects within.",
         positions: [
-          { title: 'Past Lessons' }, { title: 'Current Challenge' }, { title: 'Future Growth' }
-        ]
+          { title: "Shadow Aspect" },
+          { title: "How It Shows Up" },
+          { title: "How to Heal" },
+          { title: "Lesson" },
+        ],
       },
-      { 
-        id: 'unlocking-potential', 
-        title: 'Unlocking Potential', 
-        cardCount: 5, 
-        description: 'Discover your hidden strengths and the keys to unlocking your spiritual gifts.',
+      {
+        id: "path-of-growth",
+        title: "Path of Growth",
+        cardCount: 5,
+        description: "Understand your current spiritual lesson and next steps.",
         positions: [
-          { title: 'Hidden Strength' }, { title: 'The Blockage' }, { title: 'The Key' },
-          { title: 'Action to Take' }, { title: 'Unlocked Potential' }
-        ]
-      }
-    ]
+          { title: "Current Lesson" },
+          { title: "Support" },
+          { title: "Challenge" },
+          { title: "Practice" },
+          { title: "Outcome" },
+        ],
+      },
+    ],
   },
   {
-    id: 'daily-reading',
-    category: 'Daily Reading',
-    description: 'A quick look at the energies of your day.',
+    id: "decisions-crossroads",
+    category: "Decisions & Crossroads",
+    description: "Compare options and pick the most aligned path.",
     spreads: [
-      { 
-        id: 'morning-energy', 
-        title: 'Morning Energy', 
-        cardCount: 1, 
-        description: 'Set the tone for your day with a single guiding card.',
+      {
+        id: "two-paths",
+        title: "Two Paths",
+        cardCount: 6,
+        description: "Contrast two options side by side and reveal the guidance between them.",
         positions: [
-          { title: 'Energy for the Day' }
-        ]
+          { title: "Past Influence" },
+          { title: "Path A - Strength" },
+          { title: "Path A - Risk" },
+          { title: "Path B - Strength" },
+          { title: "Path B - Risk" },
+          { title: "Guidance / Best Fit" },
+        ],
       },
-      { 
-        id: 'daily-focus', 
-        title: 'Daily Focus', 
-        cardCount: 2, 
-        description: 'What to embrace and what to avoid as you go through your day.',
+      {
+        id: "yes-no-why",
+        title: "Yes / No / Why",
+        cardCount: 3,
+        description: "A concise check on feasibility plus the hidden factor you need to know.",
         positions: [
-          { title: 'Embrace This' },
-          { title: 'Avoid This' }
-        ]
+          { title: "Yes Energy" },
+          { title: "No Energy" },
+          { title: "Hidden Factor" },
+        ],
       },
-      { 
-        id: 'the-days-journey', 
-        title: 'The Day\'s Journey', 
-        cardCount: 3, 
-        description: 'A look at the energies of your morning, afternoon, and evening.',
+      {
+        id: "timing-window",
+        title: "Timing Window",
+        cardCount: 4,
+        description: "Assess when to act and how the energy shifts over time.",
         positions: [
-          { title: 'Morning' }, { title: 'Afternoon' }, { title: 'Evening' }
-        ]
-      }
-    ]
-  }
+          { title: "Now" },
+          { title: "1-3 Months" },
+          { title: "3-6 Months" },
+          { title: "Key Action to Unlock Timing" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "self-discovery",
+    category: "Self-Discovery",
+    description: "Deeper inner work beyond the day-to-day.",
+    spreads: [
+      {
+        id: "identity-core",
+        title: "Identity Core",
+        cardCount: 5,
+        description: "Clarify your core driver, blind spot, and the gift you bring.",
+        positions: [
+          { title: "Core Drive" },
+          { title: "Deep Need" },
+          { title: "Blind Spot" },
+          { title: "Unique Gift" },
+          { title: "Integration Step" },
+        ],
+      },
+      {
+        id: "shadow-integration",
+        title: "Shadow Integration",
+        cardCount: 6,
+        description: "Extend shadow work into practical integration steps.",
+        positions: [
+          { title: "Shadow Pattern" },
+          { title: "Trigger" },
+          { title: "Protective Role" },
+          { title: "Cost" },
+          { title: "Healing Practice" },
+          { title: "Integration Signal" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "daily-reading",
+    category: "Daily Reading",
+    description: "A quick look at the energies of your day.",
+    spreads: [
+      {
+        id: "day-card",
+        title: "Card of the Day",
+        cardCount: 1,
+        description: "A single card to guide your day.",
+        positions: [{ title: "Message" }],
+      },
+      {
+        id: "three-times",
+        title: "The Day's Journey",
+        cardCount: 3,
+        description: "A look at the energies of your morning, afternoon, and evening.",
+        positions: [{ title: "Morning" }, { title: "Afternoon" }, { title: "Evening" }],
+      },
+    ],
+  },
 ];

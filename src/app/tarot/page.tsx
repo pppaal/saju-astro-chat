@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
-import BackButton from "@/components/ui/BackButton";
+import ServicePageLayout from "@/components/ui/ServicePageLayout";
 import styles from "./tarot-home.module.css";
 
 const topics = [
@@ -73,38 +72,15 @@ const topics = [
 ];
 
 export default function TarotHomePage() {
-  const router = useRouter();
   const { translate } = useI18n();
 
   return (
-    <div className={styles.container}>
-      <div className={styles.backButtonContainer}>
-        <BackButton />
-      </div>
-
-      {/* Enhanced crystal ball with mystical effects */}
-      <div className={styles.crystalBallContainer}>
-        <div className={styles.orbRing}></div>
-        <div className={styles.orbRing2}></div>
-        <div className={styles.crystalBall}>
-          <div className={styles.innerGlow}></div>
-          <div className={styles.sparkle} style={{ top: "30%", left: "30%" }}>✦</div>
-          <div className={styles.sparkle} style={{ top: "60%", right: "35%" }}>✦</div>
-          <div className={styles.sparkle} style={{ top: "45%", left: "50%" }}>✦</div>
-        </div>
-        <div className={styles.crystalBallBase}>
-          <div className={styles.baseTop}></div>
-          <div className={styles.baseMiddle}></div>
-        </div>
-      </div>
-
-      <h1 className={styles.title}>
-        {translate("tarot.home.title", "What is your question?")}
-      </h1>
-      <p className={styles.subtitle}>
-        {translate("tarot.home.subtitle", "Choose a topic to begin your reading.")}
-      </p>
-
+    <ServicePageLayout
+      icon="🔮"
+      title={translate("tarot.home.title", "What is your question?")}
+      subtitle={translate("tarot.home.subtitle", "Choose a topic to begin your reading")}
+      particleColor="#a78bfa"
+    >
       <div className={styles.topicGrid}>
         {topics.map((topic, index) => (
           <Link
@@ -129,6 +105,6 @@ export default function TarotHomePage() {
           </Link>
         ))}
       </div>
-    </div>
+    </ServicePageLayout>
   );
 }

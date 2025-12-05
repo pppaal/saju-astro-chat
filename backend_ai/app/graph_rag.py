@@ -33,9 +33,12 @@ class GraphRAG:
         self.rules = {}
 
         # ✅ SentenceTransformer 초기화 (CPU 강제 — meta tensor 오류 방지)
+        # PyTorch 2.6+ meta tensor compatibility fix
+        os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+        torch.set_default_device("cpu")
         self.embed_model = SentenceTransformer(
             "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-            device="cpu",
+            device="cpu"
         )
 
         self.node_embeds = None
@@ -45,7 +48,10 @@ class GraphRAG:
         if not os.path.exists(self.graph_dir):
             raise FileNotFoundError(f"[GraphRAG] ❌ 그래프 폴더 없음: {self.graph_dir}")
         if not os.path.exists(self.rules_dir):
-            print(f"[GraphRAG] ⚠️ rules 폴더 없음: {self.rules_dir}")
+            try:
+                print(f"[GraphRAG] ⚠️ rules 폴더 없음: {self.rules_dir}".encode('utf-8', errors='replace').decode('utf-8'))
+            except:
+                print(f"[GraphRAG] Rules folder not found: {self.rules_dir}")
 
         # ✅ 초기 로드
         self._load_all()
@@ -69,7 +75,10 @@ class GraphRAG:
                     elif any(x in name for x in ["edge", "relation", "link"]):
                         self._load_edges(path)
                 except Exception as e:
-                    print(f"[GraphRAG] ⚠️ CSV 로드 실패({path}): {e}")
+                    try:
+                        print(f"[GraphRAG] ⚠️ CSV 로드 실패({path}): {e}".encode('utf-8', errors='replace').decode('utf-8'))
+                    except:
+                        print(f"[GraphRAG] CSV load failed({path}): {e}")
 
         # 2️⃣ 룰 JSON 로드
         if os.path.exists(self.rules_dir):
@@ -83,17 +92,32 @@ class GraphRAG:
                         with open(path, encoding="utf-8") as f:
                             self.rules[key] = json.load(f)
                     except json.JSONDecodeError:
-                        print(f"[GraphRAG] ⚠️ JSON 파싱 오류 → {file}")
+                        try:
+                            print(f"[GraphRAG] ⚠️ JSON 파싱 오류 → {file}".encode('utf-8', errors='replace').decode('utf-8'))
+                        except:
+                            print(f"[GraphRAG] JSON parse error: {file}")
                     except Exception as e:
-                        print(f"[GraphRAG] ⚠️ 규칙 로드 실패 → {file}: {e}")
+                        try:
+                            print(f"[GraphRAG] ⚠️ 규칙 로드 실패 → {file}: {e}".encode('utf-8', errors='replace').decode('utf-8'))
+                        except:
+                            print(f"[GraphRAG] Rule load failed: {file}: {e}")
 
-        print(
-            f"[GraphRAG] ✅ 그래프 노드 {len(self.graph.nodes)}개 / 엣지 {len(self.graph.edges)}개 로드 완료"
-        )
+        try:
+            print(
+                f"[GraphRAG] ✅ 그래프 노드 {len(self.graph.nodes)}개 / 엣지 {len(self.graph.edges)}개 로드 완료".encode('utf-8', errors='replace').decode('utf-8')
+            )
+        except:
+            print(f"[GraphRAG] Graph nodes {len(self.graph.nodes)} / edges {len(self.graph.edges)} loaded")
         if self.rules:
-            print(f"[GraphRAG] ✅ 규칙 세트: {', '.join(sorted(self.rules.keys()))}")
+            try:
+                print(f"[GraphRAG] ✅ 규칙 세트: {', '.join(sorted(self.rules.keys()))}".encode('utf-8', errors='replace').decode('utf-8'))
+            except:
+                print(f"[GraphRAG] Rules loaded: {', '.join(sorted(self.rules.keys()))}")
         else:
-            print(f"[GraphRAG] ⚠️ 로드된 규칙 세트 없음")
+            try:
+                print(f"[GraphRAG] ⚠️ 로드된 규칙 세트 없음".encode('utf-8', errors='replace').decode('utf-8'))
+            except:
+                print(f"[GraphRAG] No rules loaded")
 
     # =====================================================================
     # 🧩 Node / Edge 로더
@@ -144,7 +168,10 @@ class GraphRAG:
         self.node_texts = texts
         if not texts:
             self.node_embeds = None
-            print("[GraphRAG] ⚠️ 임베딩 대상 노드 텍스트가 없습니다.")
+            try:
+                print("[GraphRAG] ⚠️ 임베딩 대상 노드 텍스트가 없습니다.".encode('utf-8', errors='replace').decode('utf-8'))
+            except:
+                print("[GraphRAG] No node text for embeddings")
             return
 
         self.node_embeds = self.embed_model.encode(
@@ -152,9 +179,12 @@ class GraphRAG:
             convert_to_tensor=True,
             normalize_embeddings=True,
         )
-        print(
-            f"[GraphRAG] 🔹 임베딩 {self.node_embeds.size(0)}개 생성 및 캐시 완료"
-        )
+        try:
+            print(
+                f"[GraphRAG] 🔹 임베딩 {self.node_embeds.size(0)}개 생성 및 캐시 완료".encode('utf-8', errors='replace').decode('utf-8')
+            )
+        except:
+            print(f"[GraphRAG] Embeddings {self.node_embeds.size(0)} generated and cached")
 
     # =====================================================================
     # 🔍 임베딩 기반 검색

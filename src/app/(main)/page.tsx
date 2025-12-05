@@ -21,6 +21,100 @@ type Particle = {
   draw: () => void;
 };
 
+type TarotCard = {
+  name: string;
+  icon: string;
+  number: string;
+  suit?: string;
+};
+
+// Complete 78-card tarot deck
+const TAROT_DECK: TarotCard[] = [
+  // Major Arcana (22 cards)
+  { name: "THE FOOL", icon: "🃏", number: "0" },
+  { name: "THE MAGICIAN", icon: "🎩", number: "I" },
+  { name: "THE HIGH PRIESTESS", icon: "🌙", number: "II" },
+  { name: "THE EMPRESS", icon: "👑", number: "III" },
+  { name: "THE EMPEROR", icon: "⚔️", number: "IV" },
+  { name: "THE HIEROPHANT", icon: "📿", number: "V" },
+  { name: "THE LOVERS", icon: "💕", number: "VI" },
+  { name: "THE CHARIOT", icon: "🏇", number: "VII" },
+  { name: "STRENGTH", icon: "🦁", number: "VIII" },
+  { name: "THE HERMIT", icon: "🕯️", number: "IX" },
+  { name: "WHEEL OF FORTUNE", icon: "☸️", number: "X" },
+  { name: "JUSTICE", icon: "⚖️", number: "XI" },
+  { name: "THE HANGED MAN", icon: "🙃", number: "XII" },
+  { name: "DEATH", icon: "💀", number: "XIII" },
+  { name: "TEMPERANCE", icon: "🍶", number: "XIV" },
+  { name: "THE DEVIL", icon: "😈", number: "XV" },
+  { name: "THE TOWER", icon: "⚡", number: "XVI" },
+  { name: "THE STAR", icon: "⭐", number: "XVII" },
+  { name: "THE MOON", icon: "🌙", number: "XVIII" },
+  { name: "THE SUN", icon: "☀️", number: "XIX" },
+  { name: "JUDGEMENT", icon: "📯", number: "XX" },
+  { name: "THE WORLD", icon: "🌍", number: "XXI" },
+  // Minor Arcana - Wands (14 cards)
+  { name: "ACE OF WANDS", icon: "🔥", number: "A", suit: "WANDS" },
+  { name: "TWO OF WANDS", icon: "🔥", number: "II", suit: "WANDS" },
+  { name: "THREE OF WANDS", icon: "🔥", number: "III", suit: "WANDS" },
+  { name: "FOUR OF WANDS", icon: "🔥", number: "IV", suit: "WANDS" },
+  { name: "FIVE OF WANDS", icon: "🔥", number: "V", suit: "WANDS" },
+  { name: "SIX OF WANDS", icon: "🔥", number: "VI", suit: "WANDS" },
+  { name: "SEVEN OF WANDS", icon: "🔥", number: "VII", suit: "WANDS" },
+  { name: "EIGHT OF WANDS", icon: "🔥", number: "VIII", suit: "WANDS" },
+  { name: "NINE OF WANDS", icon: "🔥", number: "IX", suit: "WANDS" },
+  { name: "TEN OF WANDS", icon: "🔥", number: "X", suit: "WANDS" },
+  { name: "PAGE OF WANDS", icon: "🔥", number: "P", suit: "WANDS" },
+  { name: "KNIGHT OF WANDS", icon: "🔥", number: "Kn", suit: "WANDS" },
+  { name: "QUEEN OF WANDS", icon: "🔥", number: "Q", suit: "WANDS" },
+  { name: "KING OF WANDS", icon: "🔥", number: "K", suit: "WANDS" },
+  // Minor Arcana - Cups (14 cards)
+  { name: "ACE OF CUPS", icon: "💧", number: "A", suit: "CUPS" },
+  { name: "TWO OF CUPS", icon: "💧", number: "II", suit: "CUPS" },
+  { name: "THREE OF CUPS", icon: "💧", number: "III", suit: "CUPS" },
+  { name: "FOUR OF CUPS", icon: "💧", number: "IV", suit: "CUPS" },
+  { name: "FIVE OF CUPS", icon: "💧", number: "V", suit: "CUPS" },
+  { name: "SIX OF CUPS", icon: "💧", number: "VI", suit: "CUPS" },
+  { name: "SEVEN OF CUPS", icon: "💧", number: "VII", suit: "CUPS" },
+  { name: "EIGHT OF CUPS", icon: "💧", number: "VIII", suit: "CUPS" },
+  { name: "NINE OF CUPS", icon: "💧", number: "IX", suit: "CUPS" },
+  { name: "TEN OF CUPS", icon: "💧", number: "X", suit: "CUPS" },
+  { name: "PAGE OF CUPS", icon: "💧", number: "P", suit: "CUPS" },
+  { name: "KNIGHT OF CUPS", icon: "💧", number: "Kn", suit: "CUPS" },
+  { name: "QUEEN OF CUPS", icon: "💧", number: "Q", suit: "CUPS" },
+  { name: "KING OF CUPS", icon: "💧", number: "K", suit: "CUPS" },
+  // Minor Arcana - Swords (14 cards)
+  { name: "ACE OF SWORDS", icon: "⚔️", number: "A", suit: "SWORDS" },
+  { name: "TWO OF SWORDS", icon: "⚔️", number: "II", suit: "SWORDS" },
+  { name: "THREE OF SWORDS", icon: "⚔️", number: "III", suit: "SWORDS" },
+  { name: "FOUR OF SWORDS", icon: "⚔️", number: "IV", suit: "SWORDS" },
+  { name: "FIVE OF SWORDS", icon: "⚔️", number: "V", suit: "SWORDS" },
+  { name: "SIX OF SWORDS", icon: "⚔️", number: "VI", suit: "SWORDS" },
+  { name: "SEVEN OF SWORDS", icon: "⚔️", number: "VII", suit: "SWORDS" },
+  { name: "EIGHT OF SWORDS", icon: "⚔️", number: "VIII", suit: "SWORDS" },
+  { name: "NINE OF SWORDS", icon: "⚔️", number: "IX", suit: "SWORDS" },
+  { name: "TEN OF SWORDS", icon: "⚔️", number: "X", suit: "SWORDS" },
+  { name: "PAGE OF SWORDS", icon: "⚔️", number: "P", suit: "SWORDS" },
+  { name: "KNIGHT OF SWORDS", icon: "⚔️", number: "Kn", suit: "SWORDS" },
+  { name: "QUEEN OF SWORDS", icon: "⚔️", number: "Q", suit: "SWORDS" },
+  { name: "KING OF SWORDS", icon: "⚔️", number: "K", suit: "SWORDS" },
+  // Minor Arcana - Pentacles (14 cards)
+  { name: "ACE OF PENTACLES", icon: "🪙", number: "A", suit: "PENTACLES" },
+  { name: "TWO OF PENTACLES", icon: "🪙", number: "II", suit: "PENTACLES" },
+  { name: "THREE OF PENTACLES", icon: "🪙", number: "III", suit: "PENTACLES" },
+  { name: "FOUR OF PENTACLES", icon: "🪙", number: "IV", suit: "PENTACLES" },
+  { name: "FIVE OF PENTACLES", icon: "🪙", number: "V", suit: "PENTACLES" },
+  { name: "SIX OF PENTACLES", icon: "🪙", number: "VI", suit: "PENTACLES" },
+  { name: "SEVEN OF PENTACLES", icon: "🪙", number: "VII", suit: "PENTACLES" },
+  { name: "EIGHT OF PENTACLES", icon: "🪙", number: "VIII", suit: "PENTACLES" },
+  { name: "NINE OF PENTACLES", icon: "🪙", number: "IX", suit: "PENTACLES" },
+  { name: "TEN OF PENTACLES", icon: "🪙", number: "X", suit: "PENTACLES" },
+  { name: "PAGE OF PENTACLES", icon: "🪙", number: "P", suit: "PENTACLES" },
+  { name: "KNIGHT OF PENTACLES", icon: "🪙", number: "Kn", suit: "PENTACLES" },
+  { name: "QUEEN OF PENTACLES", icon: "🪙", number: "Q", suit: "PENTACLES" },
+  { name: "KING OF PENTACLES", icon: "🪙", number: "K", suit: "PENTACLES" },
+];
+
 const serviceLinks = [
   { label: "Destiny Map", href: "/destiny-map" },
   { label: "Astrology", href: "/astrology" },
@@ -42,7 +136,7 @@ export default function MainPage() {
     return res === last ? fallback : res;
   }, [t]);
 
-  const [answer, setAnswer] = useState(
+  const [_answer, setAnswer] = useState(
     translate("landing.prompt1", "What do the stars say about my path today?")
   );
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -51,6 +145,17 @@ export default function MainPage() {
   const [visitorError, setVisitorError] = useState<string | null>(null);
   const trackedOnce = useRef(false);
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
+
+  // Tarot card state
+  const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
+  const [selectedCards, setSelectedCards] = useState<TarotCard[]>([
+    TAROT_DECK[16], // THE TOWER (default)
+    TAROT_DECK[17], // THE STAR (default)
+    TAROT_DECK[18], // THE MOON (default)
+    TAROT_DECK[19], // THE SUN (default)
+  ]);
+  const [usedCardIndices, setUsedCardIndices] = useState<Set<number>>(new Set([16, 17, 18, 19]));
+  const [isDeckSpread, setIsDeckSpread] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -113,6 +218,54 @@ export default function MainPage() {
 
     run();
   }, [metricsToken]);
+
+  // Tarot card click handlers
+  const handleCardClick = useCallback((index: number) => {
+    console.log('Card clicked:', index);
+    // Flip card and select random card from deck
+    const newFlippedCards = [...flippedCards];
+    newFlippedCards[index] = !newFlippedCards[index];
+    console.log('New flipped state:', newFlippedCards);
+    setFlippedCards(newFlippedCards);
+
+    // Select random card from deck (no duplicates)
+    if (!flippedCards[index]) {
+      // Get available card indices (not yet used)
+      const availableIndices = Array.from({ length: TAROT_DECK.length }, (_, i) => i)
+        .filter(i => !usedCardIndices.has(i));
+
+      if (availableIndices.length > 0) {
+        const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+        const newSelectedCards = [...selectedCards];
+        newSelectedCards[index] = TAROT_DECK[randomIndex];
+        console.log('New selected card:', TAROT_DECK[randomIndex]);
+        setSelectedCards(newSelectedCards);
+
+        // Mark this card as used
+        const newUsedIndices = new Set(usedCardIndices);
+        newUsedIndices.add(randomIndex);
+        setUsedCardIndices(newUsedIndices);
+      }
+    }
+  }, [flippedCards, selectedCards, usedCardIndices]);
+
+  const handleDeckClick = useCallback(() => {
+    console.log('Deck clicked, current spread:', isDeckSpread);
+    const newSpreadState = !isDeckSpread;
+    setIsDeckSpread(newSpreadState);
+
+    // Reset all cards when closing the deck
+    if (!newSpreadState) {
+      setFlippedCards([false, false, false, false]);
+      setSelectedCards([
+        TAROT_DECK[16], // THE TOWER (default)
+        TAROT_DECK[17], // THE STAR (default)
+        TAROT_DECK[18], // THE MOON (default)
+        TAROT_DECK[19], // THE SUN (default)
+      ]);
+      setUsedCardIndices(new Set([16, 17, 18, 19]));
+    }
+  }, [isDeckSpread]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -283,6 +436,9 @@ export default function MainPage() {
           <Link href="/community" className={styles.navLink}>
             {t("app.community")}
           </Link>
+          <Link href="/about" className={styles.navLink}>
+            {translate("common.about", "About")}
+          </Link>
         </nav>
         <div className={styles.headerLinks}>
           <HeaderUser />
@@ -341,16 +497,47 @@ export default function MainPage() {
             </p>
           </div>
           <div className={styles.heroGlass}>
-            <p className={styles.heroLabel}>
-              {translate("landing.aiChatDemo", "AI Chat Demo")}
-            </p>
+            <div className={styles.chatHeader}>
+              <div className={styles.chatHeaderLeft}>
+                <div className={styles.avatarBot}>AI</div>
+                <div>
+                  <div className={styles.chatHeaderTitle}>DestinyPal AI</div>
+                  <div className={styles.chatHeaderStatus}>Online</div>
+                </div>
+              </div>
+            </div>
             <div className={styles.chatBubble}>
-              <div className={styles.userMessage}>
-                {translate("landing.prompt1", "What do the stars say about my path today?")}
+              <div className={`${styles.messageRow} ${styles.userRow}`}>
+                <div className={styles.messageContent}>
+                  <div className={styles.userMessage}>
+                    {translate("landing.prompt1", "How is my fortune today?")}
+                  </div>
+                  <div className={styles.messageTime}>Just now</div>
+                </div>
+                <div className={styles.avatarUser}>You</div>
               </div>
-              <div className={styles.aiMessage}>
-                {answer}
+              <div className={`${styles.messageRow} ${styles.aiRow}`}>
+                <div className={styles.avatarBot}>AI</div>
+                <div className={styles.messageContent}>
+                  <div className={styles.aiMessage}>
+                    {translate("landing.aiResponse", "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.")}
+                  </div>
+                  <div className={styles.messageTime}>Just now</div>
+                </div>
               </div>
+            </div>
+            <div className={styles.chatInputArea}>
+              <input
+                type="text"
+                className={styles.chatInput}
+                placeholder={translate("landing.chatInputPlaceholder", "Ask about your destiny...")}
+                disabled
+              />
+              <button className={styles.chatSendBtn} disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 8L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -450,8 +637,8 @@ export default function MainPage() {
           <div className={`${styles.planet} ${styles.planetSaturn}`}>♄</div>
         </div>
         <div className={styles.astrologyInfo}>
-          <p><strong>{translate("landing.ascendant", "상승궁")}:</strong> {translate("landing.aquarius", "물병자리")} ♒ | <strong>{translate("landing.sun", "태양")}:</strong> {translate("landing.scorpio", "전갈자리")} ♏ | <strong>{translate("landing.moon", "달")}:</strong> {translate("landing.pisces", "물고기자리")} ♓</p>
-          <p>{translate("landing.astrologyInfo", "오늘은 새로운 시작에 유리한 날입니다. 창의성이 빛을 발할 것입니다.")}</p>
+          <p><strong>{translate("landing.ascendant", "Ascendant")}:</strong> {translate("landing.aquarius", "Aquarius")} ♒ | <strong>{translate("landing.sun", "Sun")}:</strong> {translate("landing.scorpio", "Scorpio")} ♏ | <strong>{translate("landing.moon", "Moon")}:</strong> {translate("landing.pisces", "Pisces")} ♓</p>
+          <p>{translate("landing.todayMessage", "Today is a favorable day for new beginnings. Creativity will shine.")}</p>
         </div>
       </section>
 
@@ -468,29 +655,61 @@ export default function MainPage() {
           <div className={styles.pillar}>
             <div className={styles.pillarLabel}>{translate("landing.hourPillar", "時柱")}</div>
             <div className={styles.pillarChar}>
-              <div className={styles.stem}>甲</div>
-              <div className={styles.branch}>子</div>
+              <div className={styles.stem} style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', borderColor: 'rgba(34, 197, 94, 0.5)' }}>
+                <span className={styles.elementIcon}>🌳</span>
+                <span className={styles.charMain}>甲</span>
+                <span className={styles.charTranslation}>Wood</span>
+              </div>
+              <div className={styles.branch} style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 0.5)' }}>
+                <span className={styles.elementIcon}>💧</span>
+                <span className={styles.charMain}>子</span>
+                <span className={styles.charTranslation}>Water</span>
+              </div>
             </div>
           </div>
           <div className={styles.pillar}>
             <div className={styles.pillarLabel}>{translate("landing.dayPillar", "日柱")}</div>
             <div className={styles.pillarChar}>
-              <div className={styles.stem}>丙</div>
-              <div className={styles.branch}>寅</div>
+              <div className={styles.stem} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)' }}>
+                <span className={styles.elementIcon}>🔥</span>
+                <span className={styles.charMain}>丙</span>
+                <span className={styles.charTranslation}>Fire</span>
+              </div>
+              <div className={styles.branch} style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', borderColor: 'rgba(34, 197, 94, 0.5)' }}>
+                <span className={styles.elementIcon}>🌳</span>
+                <span className={styles.charMain}>寅</span>
+                <span className={styles.charTranslation}>Wood</span>
+              </div>
             </div>
           </div>
           <div className={styles.pillar}>
             <div className={styles.pillarLabel}>{translate("landing.monthPillar", "月柱")}</div>
             <div className={styles.pillarChar}>
-              <div className={styles.stem}>戊</div>
-              <div className={styles.branch}>午</div>
+              <div className={styles.stem} style={{ backgroundColor: 'rgba(234, 179, 8, 0.2)', borderColor: 'rgba(234, 179, 8, 0.5)' }}>
+                <span className={styles.elementIcon}>🏔️</span>
+                <span className={styles.charMain}>戊</span>
+                <span className={styles.charTranslation}>Earth</span>
+              </div>
+              <div className={styles.branch} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)' }}>
+                <span className={styles.elementIcon}>🔥</span>
+                <span className={styles.charMain}>午</span>
+                <span className={styles.charTranslation}>Fire</span>
+              </div>
             </div>
           </div>
           <div className={styles.pillar}>
             <div className={styles.pillarLabel}>{translate("landing.yearPillar", "年柱")}</div>
             <div className={styles.pillarChar}>
-              <div className={styles.stem}>庚</div>
-              <div className={styles.branch}>申</div>
+              <div className={styles.stem} style={{ backgroundColor: 'rgba(229, 229, 229, 0.2)', borderColor: 'rgba(229, 229, 229, 0.5)' }}>
+                <span className={styles.elementIcon}>⚔️</span>
+                <span className={styles.charMain}>庚</span>
+                <span className={styles.charTranslation}>Metal</span>
+              </div>
+              <div className={styles.branch} style={{ backgroundColor: 'rgba(229, 229, 229, 0.2)', borderColor: 'rgba(229, 229, 229, 0.5)' }}>
+                <span className={styles.elementIcon}>⚔️</span>
+                <span className={styles.charMain}>申</span>
+                <span className={styles.charTranslation}>Metal</span>
+              </div>
             </div>
           </div>
         </div>
@@ -498,17 +717,54 @@ export default function MainPage() {
         <div className={styles.luckTimeline}>
           <div className={styles.timelineLabel}>{translate("landing.greatFortune", "대운 (大運)")}</div>
           <div className={styles.timelineTrack}>
+            <div className={styles.luckPeriod}>
+              <span className={styles.luckAge}>8-17{translate("landing.ageUnit", "세")}</span>
+              <div className={styles.luckChars}>
+                <span>己未</span>
+                <span className={styles.luckTranslation}>Earth-Earth</span>
+              </div>
+            </div>
+            <div className={styles.luckPeriod}>
+              <span className={styles.luckAge}>18-27{translate("landing.ageUnit", "세")}</span>
+              <div className={styles.luckChars}>
+                <span>庚申</span>
+                <span className={styles.luckTranslation}>Metal-Metal</span>
+              </div>
+            </div>
             <div className={`${styles.luckPeriod} ${styles.active}`}>
               <span className={styles.luckAge}>28-37{translate("landing.ageUnit", "세")}</span>
-              <span className={styles.luckChars}>辛酉</span>
+              <div className={styles.luckChars}>
+                <span>辛酉</span>
+                <span className={styles.luckTranslation}>Metal-Metal</span>
+              </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>38-47{translate("landing.ageUnit", "세")}</span>
-              <span className={styles.luckChars}>壬戌</span>
+              <div className={styles.luckChars}>
+                <span>壬戌</span>
+                <span className={styles.luckTranslation}>Water-Earth</span>
+              </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>48-57{translate("landing.ageUnit", "세")}</span>
-              <span className={styles.luckChars}>癸亥</span>
+              <div className={styles.luckChars}>
+                <span>癸亥</span>
+                <span className={styles.luckTranslation}>Water-Water</span>
+              </div>
+            </div>
+            <div className={styles.luckPeriod}>
+              <span className={styles.luckAge}>58-67{translate("landing.ageUnit", "세")}</span>
+              <div className={styles.luckChars}>
+                <span>甲子</span>
+                <span className={styles.luckTranslation}>Wood-Water</span>
+              </div>
+            </div>
+            <div className={styles.luckPeriod}>
+              <span className={styles.luckAge}>68-77{translate("landing.ageUnit", "세")}</span>
+              <div className={styles.luckChars}>
+                <span>乙丑</span>
+                <span className={styles.luckTranslation}>Wood-Earth</span>
+              </div>
             </div>
           </div>
         </div>
@@ -545,6 +801,24 @@ export default function MainPage() {
             </div>
           </div>
         </div>
+        {/* Shinsal (Lucky Stars) Section */}
+        <div className={styles.shinsalContainer}>
+          <div className={styles.shinsalCard}>
+            <div className={styles.shinsalIcon}>✨</div>
+            <div className={styles.shinsalName}>Heavenly Noble</div>
+            <div className={styles.shinsalDesc}>Guardian energy</div>
+          </div>
+          <div className={styles.shinsalCard}>
+            <div className={styles.shinsalIcon}>🐴</div>
+            <div className={styles.shinsalName}>Post Horse</div>
+            <div className={styles.shinsalDesc}>Travel & movement</div>
+          </div>
+          <div className={styles.shinsalCard}>
+            <div className={styles.shinsalIcon}>🌸</div>
+            <div className={styles.shinsalName}>Peach Blossom</div>
+            <div className={styles.shinsalDesc}>Charm & romance</div>
+          </div>
+        </div>
       </section>
 
       {/* Tarot Feature Section */}
@@ -557,14 +831,25 @@ export default function MainPage() {
         </p>
         {/* Card Deck - 78 cards shuffling */}
         <div className={styles.tarotDeckContainer}>
-          <div className={styles.tarotDeck}>
+          <div
+            className={`${styles.tarotDeck} ${isDeckSpread ? styles.deckSpread : ''}`}
+            onClick={handleDeckClick}
+            style={{
+              width: isDeckSpread ? '400px' : '120px',
+              height: isDeckSpread ? '200px' : '200px',
+              transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            }}
+          >
             {[...Array(15)].map((_, i) => (
               <div
                 key={i}
                 className={styles.deckCard}
                 style={{
-                  transform: `translateX(${i * 0.5}px) translateY(${i * 0.5}px) rotate(${(i - 7) * 2}deg)`,
-                  zIndex: 15 - i
+                  transform: isDeckSpread
+                    ? `translateX(${(i - 7) * 25}px) translateY(${Math.abs(i - 7) * 15}px) rotate(${(i - 7) * 5}deg)`
+                    : `translateX(${i * 0.5}px) translateY(${i * 0.5}px) rotate(${(i - 7) * 2}deg)`,
+                  zIndex: 15 - i,
+                  transition: `all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.06}s`
                 }}
               />
             ))}
@@ -575,58 +860,30 @@ export default function MainPage() {
         </div>
         {/* Selected Cards */}
         <div className={styles.tarotCards}>
-          <div className={styles.tarotCard}>
-            <div className={styles.cardBack}>
-              <div className={styles.cardPattern}>✦</div>
-              <div className={styles.cardCenter}>
-                <span className={styles.cardCenterIcon}>🔮</span>
+          {[0, 1, 2, 3].map((index) => (
+            <div
+              key={index}
+              className={`${styles.tarotCard} ${flippedCards[index] ? styles.flipped : ''}`}
+              onClick={() => handleCardClick(index)}
+            >
+              <div className={styles.cardBack}>
+                <div className={styles.cardPattern}>✦</div>
+                <div className={styles.cardPattern}>✦</div>
+                <div className={styles.cardPattern}>✦</div>
+                <div className={styles.cardPattern}>✦</div>
+                <div className={styles.cardCenter}>
+                  <span className={styles.cardCenterIcon}>🔮</span>
+                </div>
+              </div>
+              <div className={styles.cardFront}>
+                <div className={styles.cardHeader}>{selectedCards[index]?.name}</div>
+                <div className={styles.cardMainIcon}>{selectedCards[index]?.icon}</div>
+                <div className={styles.cardFooter}>
+                  {selectedCards[index]?.suit || selectedCards[index]?.number}
+                </div>
               </div>
             </div>
-            <div className={styles.cardFront}>
-              <div className={styles.cardHeader}>THE STAR</div>
-              <div className={styles.cardMainIcon}>⭐</div>
-              <div className={styles.cardFooter}>XVII</div>
-            </div>
-          </div>
-          <div className={styles.tarotCard}>
-            <div className={styles.cardBack}>
-              <div className={styles.cardPattern}>✦</div>
-              <div className={styles.cardCenter}>
-                <span className={styles.cardCenterIcon}>🔮</span>
-              </div>
-            </div>
-            <div className={styles.cardFront}>
-              <div className={styles.cardHeader}>THE MOON</div>
-              <div className={styles.cardMainIcon}>🌙</div>
-              <div className={styles.cardFooter}>XVIII</div>
-            </div>
-          </div>
-          <div className={styles.tarotCard}>
-            <div className={styles.cardBack}>
-              <div className={styles.cardPattern}>✦</div>
-              <div className={styles.cardCenter}>
-                <span className={styles.cardCenterIcon}>🔮</span>
-              </div>
-            </div>
-            <div className={styles.cardFront}>
-              <div className={styles.cardHeader}>THE SUN</div>
-              <div className={styles.cardMainIcon}>☀️</div>
-              <div className={styles.cardFooter}>XIX</div>
-            </div>
-          </div>
-          <div className={styles.tarotCard}>
-            <div className={styles.cardBack}>
-              <div className={styles.cardPattern}>✦</div>
-              <div className={styles.cardCenter}>
-                <span className={styles.cardCenterIcon}>🔮</span>
-              </div>
-            </div>
-            <div className={styles.cardFront}>
-              <div className={styles.cardHeader}>THE TOWER</div>
-              <div className={styles.cardMainIcon}>⚡</div>
-              <div className={styles.cardFooter}>XVI</div>
-            </div>
-          </div>
+          ))}
         </div>
         <div className={styles.tarotLabels}>
           <span>{translate("landing.tarotPast", "과거")}</span>
@@ -650,18 +907,6 @@ export default function MainPage() {
           </Link>
         </div>
       </section>
-
-      <div className={styles.policyBar}>
-        <Link href="/policy/terms" className={styles.policyBtn}>
-          {t("common.terms")}
-        </Link>
-        <Link href="/policy/privacy" className={styles.policyBtn}>
-          {t("common.privacy")}
-        </Link>
-        <Link href="/policy/refund" className={styles.policyBtn}>
-          {t("common.refunds")}
-        </Link>
-      </div>
 
       <SpeedInsights />
     </main>

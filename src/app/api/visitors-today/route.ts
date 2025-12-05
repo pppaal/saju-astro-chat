@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, increment, Firestore } from "firebase/firestore";
 import { getAuth, signInAnonymously, signInWithCustomToken, Auth } from "firebase/auth";
@@ -163,3 +163,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Failed to increment count: ${error.message}` }, { status: 500 });
   }
 }
+

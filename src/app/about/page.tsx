@@ -1,175 +1,236 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import BackButton from "@/components/ui/BackButton";
-import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./about.module.css";
 
-// Dynamic import with loading fallback - reduces initial bundle size
-const OvoidCanvas = dynamic(() => import("@/components/canvas/OvoidCanvas"), {
-  loading: () => (
-    <div style={{
-      width: "100%",
-      height: "100%",
-      background: "linear-gradient(135deg, rgba(10, 10, 26, 0.8) 0%, rgba(20, 20, 36, 0.8) 100%)",
-      borderRadius: "200px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#a89fcf"
-    }}>
-      Loading animation...
-    </div>
-  ),
-  ssr: false, // Canvas animations don't need SSR
-});
+const services = [
+  {
+    id: "destiny-map",
+    icon: "◎",
+    title: "Destiny Map",
+    titleKo: "데스티니 맵",
+    description: "AI가 사주, 점성술, 타로를 융합해 당신의 운명 지도를 한눈에 보여줍니다",
+    descriptionEn: "AI combines Saju, Astrology, and Tarot to reveal your complete destiny map",
+    href: "/destiny-map",
+    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  },
+  {
+    id: "astrology",
+    icon: "✦",
+    title: "Astrology",
+    titleKo: "점성술",
+    description: "행성의 배치와 하우스 위치로 당신의 성격과 운명의 흐름을 읽습니다",
+    descriptionEn: "Read your personality and destiny through planetary positions and houses",
+    href: "/astrology",
+    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  },
+  {
+    id: "saju",
+    icon: "四柱",
+    title: "Saju",
+    titleKo: "사주",
+    description: "사주팔자로 오행 밸런스와 대운·세운의 흐름을 분석합니다",
+    descriptionEn: "Analyze five elements balance and fortune cycles through Four Pillars",
+    href: "/saju",
+    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+  },
+  {
+    id: "tarot",
+    icon: "♜",
+    title: "Tarot",
+    titleKo: "타로",
+    description: "78장의 카드로 현재 상황과 미래의 가능성을 직관적으로 탐색합니다",
+    descriptionEn: "Explore current situations and future possibilities through 78 cards",
+    href: "/tarot",
+    gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+  },
+  {
+    id: "iching",
+    icon: "☯",
+    title: "I Ching",
+    titleKo: "주역",
+    description: "64괘의 지혜로 현재의 상황과 변화의 방향을 제시합니다",
+    descriptionEn: "Wisdom of 64 hexagrams guides current situation and direction of change",
+    href: "/iching",
+    gradient: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
+  },
+  {
+    id: "dream",
+    icon: "💭",
+    title: "Dream",
+    titleKo: "꿈해몽",
+    description: "꿈속 상징과 메시지를 해석해 무의식의 신호를 읽습니다",
+    descriptionEn: "Interpret dream symbols and messages from your subconscious",
+    href: "/dream",
+    gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+  },
+  {
+    id: "numerology",
+    icon: "🔢",
+    title: "Numerology",
+    titleKo: "수비학",
+    description: "생년월일의 숫자로 당신의 인생 경로와 잠재력을 탐구합니다",
+    descriptionEn: "Discover your life path and potential through birth date numbers",
+    href: "/numerology",
+    gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+  },
+  {
+    id: "compatibility",
+    icon: "💕",
+    title: "Compatibility",
+    titleKo: "궁합",
+    description: "사주와 점성술로 두 사람의 조화와 관계 역학을 분석합니다",
+    descriptionEn: "Analyze harmony and relationship dynamics between two people",
+    href: "/compatibility",
+    gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
+  },
+  {
+    id: "personality",
+    icon: "🎭",
+    title: "Personality",
+    titleKo: "성격분석",
+    description: "다양한 관점에서 당신의 성격 특성과 장단점을 심층 분석합니다",
+    descriptionEn: "Deep analysis of your personality traits, strengths, and weaknesses",
+    href: "/personality",
+    gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
+  },
+];
 
 export default function AboutPage() {
-  const { t } = useI18n();
+  const [lang, setLang] = useState('ko');
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem('locale') || 'ko';
+    setLang(savedLang);
+  }, []);
 
   return (
     <div className={styles.page}>
-      <div className={styles.backButtonContainer}>
+      <div className={styles.backButton}>
         <BackButton />
       </div>
 
-      {/* Hero Section */}
-      <section className={styles.hero}>
-        <h1 className={styles.title}>
-          {t("about.heroTitle1")}
-          <br />
-          {t("about.heroTitle2")}
-        </h1>
-        <p className={styles.subtitle}>
-          {t("about.heroSubtitle")}
-        </p>
-        <div className={styles.ctaRow}>
-          <Link href="/destiny-map" className={styles.btnPrimary}>
-            {t("about.tryDestinyMap")}
-          </Link>
-          <Link href="/about/features" className={styles.btnGhost}>
-            {t("about.seeFeatures")}
-          </Link>
-        </div>
-      </section>
+      <main className={styles.main}>
+        <section className={styles.hero}>
+          <div className={styles.stars} aria-hidden />
+          <h1 className={styles.heroTitle}>
+            {lang === 'ko' ? '별과 기운을 읽고,' : 'Read the stars and energy,'}
+            <br />
+            {lang === 'ko' ? '당신의 선택을 더 똑똑하게.' : 'Make smarter choices.'}
+          </h1>
+          <p className={styles.heroSub}>
+            {lang === 'ko'
+              ? '출생 데이터와 체계화된 해석 프레임으로 사주·점성학·주역·타로를 한 곳에. 정확한 입력과 윤리적 가이드를 바탕으로, 단정적 예언이 아닌 실용적 힌트를 제공합니다.'
+              : 'Combine Saju, Astrology, I Ching, and Tarot in one place with precise data and ethical guidance. We provide practical hints, not absolute predictions.'}
+          </p>
+        </section>
 
-      {/* Visual Section */}
-      <section className={styles.visual} aria-label="overview visual">
-        <div className={styles.ovoidContainer}>
-          <OvoidCanvas canvasId="aboutCanvas" className={styles.ovoidCanvas} />
-        </div>
-        <div className={styles.visualCopy}>
-          <h2>{t("about.visualTitle")}</h2>
-          <p>{t("about.visualDesc")}</p>
-        </div>
-      </section>
+        <section className={styles.servicesSection}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.eyebrow}>
+              {lang === 'ko' ? 'DestinyPal 서비스' : 'DestinyPal Services'}
+            </p>
+            <h2 className={styles.sectionTitle}>
+              {lang === 'ko' ? '9가지 운명 리딩' : '9 Destiny Readings'}
+            </h2>
+            <p className={styles.sectionDesc}>
+              {lang === 'ko'
+                ? '각 서비스의 고유한 관점으로 당신의 운명을 다각도로 탐색하세요'
+                : 'Explore your destiny from multiple perspectives with each unique service'}
+            </p>
+          </div>
 
-      {/* Discover Section */}
-      <section className={styles.discover}>
-        <h2>{t("about.discoverTitle")}</h2>
-        <p className={styles.discoverSub}>
-          {t("about.discoverSubtitle")}
-        </p>
-
-        <div className={styles.grid}>
-          {/* Saju Card */}
-          <article className={`${styles.card} ${styles.cardSaju}`}>
-            <div className={styles.cardHead}>
-              <span className={`${styles.dot} ${styles.dotSaju}`} aria-hidden="true" />
-              <h3>{t("about.sajuTitle")}</h3>
-            </div>
-            <p>{t("about.sajuDesc")}</p>
-            <ul className={styles.bullets}>
-              <li>{t("about.sajuStrength")}</li>
-              <li>{t("about.sajuAccuracy")}</li>
-            </ul>
-            <div className={styles.actions}>
-              <Link href="/saju" className={styles.btnSoft}>
-                {t("about.sajuLink")}
-              </Link>
-              <details className={styles.accordion}>
-                <summary>{t("about.sajuDetailTitle")}</summary>
-                <div className={styles.accordionContent}>
-                  {t("about.sajuDetail")}
+          <div className={styles.serviceGrid}>
+            {services.map((service) => (
+              <Link
+                key={service.id}
+                href={service.href}
+                className={styles.serviceCard}
+                style={{
+                  background: service.gradient,
+                }}
+              >
+                <div className={styles.cardOverlay} />
+                <div className={styles.cardContent}>
+                  <div className={styles.serviceIcon}>{service.icon}</div>
+                  <h3 className={styles.serviceTitle}>
+                    {lang === 'ko' ? service.titleKo : service.title}
+                  </h3>
+                  <p className={styles.serviceDesc}>
+                    {lang === 'ko' ? service.description : service.descriptionEn}
+                  </p>
+                  <span className={styles.serviceArrow}>→</span>
                 </div>
-              </details>
-            </div>
-          </article>
-
-          {/* Astrology Card */}
-          <article className={`${styles.card} ${styles.cardAstro}`}>
-            <div className={styles.cardHead}>
-              <span className={`${styles.dot} ${styles.dotAstro}`} aria-hidden="true" />
-              <h3>{t("about.astroTitle")}</h3>
-            </div>
-            <p>{t("about.astroDesc")}</p>
-            <ul className={styles.bullets}>
-              <li>{t("about.astroStrength")}</li>
-              <li>{t("about.astroAccuracy")}</li>
-            </ul>
-            <div className={styles.actions}>
-              <Link href="/astrology" className={styles.btnSoft}>
-                {t("about.astroLink")}
               </Link>
-              <details className={styles.accordion}>
-                <summary>{t("about.astroDetailTitle")}</summary>
-                <div className={styles.accordionContent}>
-                  {t("about.astroDetail")}
-                </div>
-              </details>
-            </div>
-          </article>
+            ))}
+          </div>
+        </section>
 
-          {/* I Ching Card */}
-          <article className={`${styles.card} ${styles.cardIching}`}>
-            <div className={styles.cardHead}>
-              <span className={`${styles.dot} ${styles.dotIching}`} aria-hidden="true" />
-              <h3>{t("about.ichingTitle")}</h3>
+        <section className={styles.philosophy}>
+          <h2 className={styles.philosophyTitle}>
+            {lang === 'ko' ? '우리의 철학' : 'Our Philosophy'}
+          </h2>
+          <div className={styles.philosophyGrid}>
+            <div className={styles.philosophyCard}>
+              <div className={styles.philosophyIcon}>🎯</div>
+              <h3>{lang === 'ko' ? '정확한 계산' : 'Accurate Calculation'}</h3>
+              <p>
+                {lang === 'ko'
+                  ? '시간대, 절기, DST 등을 정확히 반영한 신뢰할 수 있는 계산 로직'
+                  : 'Reliable calculations reflecting time zones, seasons, and DST'}
+              </p>
             </div>
-            <p>{t("about.ichingDesc")}</p>
-            <ul className={styles.bullets}>
-              <li>{t("about.ichingStrength")}</li>
-              <li>{t("about.ichingAccuracy")}</li>
-            </ul>
-            <div className={styles.actions}>
-              <Link href="/iching" className={styles.btnSoft}>
-                {t("about.ichingLink")}
-              </Link>
-              <details className={styles.accordion}>
-                <summary>{t("about.ichingDetailTitle")}</summary>
-                <div className={styles.accordionContent}>
-                  {t("about.ichingDetail")}
-                </div>
-              </details>
+            <div className={styles.philosophyCard}>
+              <div className={styles.philosophyIcon}>🤝</div>
+              <h3>{lang === 'ko' ? '윤리적 가이드' : 'Ethical Guidance'}</h3>
+              <p>
+                {lang === 'ko'
+                  ? '단정적 예언이 아닌, 선택을 돕는 실용적 힌트 제공'
+                  : 'Practical hints to help choices, not absolute predictions'}
+              </p>
             </div>
-          </article>
+            <div className={styles.philosophyCard}>
+              <div className={styles.philosophyIcon}>✨</div>
+              <h3>{lang === 'ko' ? '직관적 UI' : 'Intuitive UI'}</h3>
+              <p>
+                {lang === 'ko'
+                  ? '복잡한 정보를 쉽고 아름답게 전달하는 인터페이스'
+                  : 'Beautiful interface that makes complex information easy'}
+              </p>
+            </div>
+            <div className={styles.philosophyCard}>
+              <div className={styles.philosophyIcon}>🤖</div>
+              <h3>{lang === 'ko' ? 'AI 융합' : 'AI Integration'}</h3>
+              <p>
+                {lang === 'ko'
+                  ? '여러 점술 체계를 AI로 융합해 통합적 인사이트 제공'
+                  : 'AI-powered integration of multiple divination systems'}
+              </p>
+            </div>
+          </div>
+        </section>
 
-          {/* Tarot Card */}
-          <article className={`${styles.card} ${styles.cardTarot}`}>
-            <div className={styles.cardHead}>
-              <span className={`${styles.dot} ${styles.dotTarot}`} aria-hidden="true" />
-              <h3>{t("about.tarotTitle")}</h3>
-            </div>
-            <p>{t("about.tarotDesc")}</p>
-            <ul className={styles.bullets}>
-              <li>{t("about.tarotStrength")}</li>
-              <li>{t("about.tarotAccuracy")}</li>
-            </ul>
-            <div className={styles.actions}>
-              <Link href="/tarot" className={styles.btnSoft}>
-                {t("about.tarotLink")}
-              </Link>
-              <details className={styles.accordion}>
-                <summary>{t("about.tarotDetailTitle")}</summary>
-                <div className={styles.accordionContent}>
-                  {t("about.tarotDetail")}
-                </div>
-              </details>
-            </div>
-          </article>
-        </div>
-      </section>
+        <section className={styles.cta}>
+          <h2 className={styles.ctaTitle}>
+            {lang === 'ko' ? '지금 바로 시작하세요' : 'Start Now'}
+          </h2>
+          <p className={styles.ctaSub}>
+            {lang === 'ko'
+              ? '당신의 운명 지도를 AI와 함께 탐색해보세요'
+              : 'Explore your destiny map with AI'}
+          </p>
+          <div className={styles.ctaButtons}>
+            <Link href="/destiny-map" className={styles.ctaPrimary}>
+              {lang === 'ko' ? 'Destiny Map 시작' : 'Start Destiny Map'}
+            </Link>
+            <Link href="/" className={styles.ctaSecondary}>
+              {lang === 'ko' ? '메인으로' : 'Go Home'}
+            </Link>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

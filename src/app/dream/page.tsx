@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, FormEvent } from 'react';
 import tzLookup from 'tz-lookup';
 import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
+import ServicePageLayout from '@/components/ui/ServicePageLayout';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
 
@@ -114,25 +115,15 @@ export default function DreamInsightPage() {
   };
 
   return (
-    <>
+    <ServicePageLayout
+      icon="🌙"
+      title="Dream Insight"
+      subtitle="Explore the deeper meaning of your dreams with astrological insights"
+    >
       <style jsx global>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn .5s ease-out forwards; }
       `}</style>
-
-      <main className="relative min-h-screen p-4 md:p-8 text-white bg-[#0c0a1a]">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          aria-label="Go back"
-          className="absolute left-4 top-4 z-10 grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 text-white/85 backdrop-blur-sm text-lg hover:bg-black/45 transition-colors"
-        >
-          ←
-        </button>
-
-        <h1 className="text-center text-3xl md:text-5xl font-extrabold mb-6 md:mb-8 text-[#a48fff] drop-shadow-lg">
-          Dream + Natal Insight
-        </h1>
 
         <div className="mx-auto w-full max-w-4xl bg-black/35 backdrop-blur-xl rounded-2xl border border-white/15 shadow-xl p-5 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -349,7 +340,6 @@ export default function DreamInsightPage() {
             )}
           </section>
         </div>
-      </main>
-    </>
+    </ServicePageLayout>
   );
 }

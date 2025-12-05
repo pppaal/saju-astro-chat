@@ -5,9 +5,10 @@
 import { computeDestinyMap } from "./astrologyengine";
 import { buildPromptByTheme } from "@/lib/destiny-map/prompt/fortune";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 
 /**
- * 🧭 DestinyMap Report Service – Flask Fusion AI Version
+ * DestinyMap Report Service - Fusion backend version
  */
 
 export interface ReportOutput {
@@ -25,16 +26,14 @@ export interface ReportOutput {
   raw: any;
 }
 
-/* 🔹 fallback 오행 탐지 */
-function extractElements(text: string) {
-  const m = text.match(/목\s?(\d+).*?화\s?(\d+).*?토\s?(\d+).*?금\s?(\d+).*?수\s?(\d+)/s);
-  if (m) {
-    return { fiveElements: { 목: +m[1], 화: +m[2], 토: +m[3], 금: +m[4], 수: +m[5] } };
-  }
-  return { fiveElements: { 목: 25, 화: 25, 토: 20, 금: 20, 수: 15 } };
+// Extract reasonable five-element defaults when AI text is unavailable
+function extractElements(_text: string) {
+  return {
+    fiveElements: { wood: 25, fire: 25, earth: 20, metal: 20, water: 15 },
+  };
 }
 
-/* ✅ 텍스트 정화 함수 */
+// Basic cleansing to remove HTML/script/style directives
 function cleanseText(raw: string) {
   if (!raw) return "";
   return raw
@@ -69,9 +68,26 @@ export async function generateReport({
   lang?: string;
   extraPrompt?: string;
 }): Promise<ReportOutput> {
-  // -----------------------------------------------------------------------
-  // 1️⃣ 사주 + 점성 전체 데이터 계산
-  // -----------------------------------------------------------------------
+  const safeExtra = extraPrompt ? guardText(extraPrompt, 2000) : "";
+  if (extraPrompt && containsForbidden(extraPrompt)) {
+    const msg = safetyMessage(lang);
+    return {
+      meta: {
+        generator: "DestinyMap_Report_via_Fusion",
+        generatedAt: new Date().toISOString(),
+        theme,
+        lang,
+        name,
+        gender,
+        modelUsed: "filtered",
+      },
+      summary: "",
+      report: msg,
+      raw: {},
+    };
+  }
+
+  // 1) Calculate astro + saju baseline
   const result: CombinedResult = await computeDestinyMap({
     name,
     birthDate,
@@ -82,52 +98,79 @@ export async function generateReport({
     theme,
   });
 
-  // -----------------------------------------------------------------------
-  // 2️⃣ 테마 프롬프트 생성
-  // -----------------------------------------------------------------------
+  // 2) Build theme prompt
   const themePrompt = buildPromptByTheme(theme, lang, result);
-  const fullPrompt = extraPrompt ? `${themePrompt}\n\n${extraPrompt}` : themePrompt;
+  const fullPrompt = safeExtra ? `${themePrompt}\n\n${safeExtra}` : themePrompt;
 
-  // -----------------------------------------------------------------------
-  // 3️⃣ Flask 백엔드 /ask 엔드포인트로 요청
-  // -----------------------------------------------------------------------
+  // 3) Call fusion backend
   const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
 
   let aiText = "";
   let modelUsed = "";
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add API authentication if ADMIN_API_TOKEN is available
+    const apiToken = process.env.ADMIN_API_TOKEN;
+    if (apiToken) {
+      headers["X-API-KEY"] = apiToken;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
     const response = await fetch(`${backendUrl}/ask`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         theme,
-        prompt: fullPrompt,       // ✅ 프론트 프롬프트 전달
+        prompt: fullPrompt,
         saju: result.saju,
         astro: result.astrology,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) throw new Error(`Flask server error: ${response.status}`);
 
     const data = await response.json();
-    aiText =
-      data?.data?.fusion_layer ||
-      data?.data?.report ||
-      "⚠️ Flask 응답에서 결과를 찾을 수 없습니다.";
-    modelUsed = data?.data?.model || "Flask‑Fusion‑LLM";
+
+    // Check for fusion_layer or report content
+    const fusionText = data?.data?.fusion_layer || data?.data?.report || "";
+    const contextText = data?.data?.context || "";
+
+    if (fusionText && fusionText.trim()) {
+      aiText = fusionText;
+    } else if (contextText && contextText.trim()) {
+      // If fusion_layer is empty but we have context, use that
+      aiText = lang === "ko"
+        ? `사주 및 점성술 분석 결과:\n\n${contextText.substring(0, 2000)}`
+        : `Saju and Astrology Analysis:\n\n${contextText.substring(0, 2000)}`;
+    } else {
+      aiText = lang === "ko"
+        ? "백엔드 응답이 없어 기본 데이터만 반환합니다."
+        : "No detailed response from fusion backend; returning data-only result.";
+    }
+
+    modelUsed = data?.data?.model || "fusion-backend";
   } catch (err) {
-    console.error("🛑 Flask AI 요청 실패:", err);
-    aiText = "⚠️ AI 서버 연결 에러입니다.";
-    modelUsed = "Error‑Fallback";
+    console.error("[DestinyMap] Fusion backend call failed:", err);
+    aiText =
+      lang === "ko"
+        ? "백엔드 응답이 없어 기본 데이터만 반환합니다."
+        : "Fusion backend unavailable; returning data-only result.";
+    modelUsed = "error-fallback";
   }
 
-  // -----------------------------------------------------------------------
-  // 4️⃣ 결과 반환
-  // -----------------------------------------------------------------------
+  // 4) Assemble response
   return {
     meta: {
-      generator: "DestinyMap Report via Flask‑Fusion",
+      generator: "DestinyMap_Report_via_Fusion",
       generatedAt: new Date().toISOString(),
       theme,
       lang,

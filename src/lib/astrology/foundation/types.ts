@@ -1,18 +1,18 @@
 // src/lib/astrology/foundation/types.ts
-export type ZodiacKo =
-  | "양자리" | "황소자리" | "쌍둥이자리" | "게자리" | "사자자리" | "처녀자리"
-  | "천칭자리" | "전갈자리" | "사수자리" | "염소자리" | "물병자리" | "물고기자리";
 
-export type HouseSystem = "Placidus" | "WholeSign"; // 추후 "Koch" | "Equal" 확장 가능
+export type ZodiacKo =
+  | "Aries" | "Taurus" | "Gemini" | "Cancer" | "Leo" | "Virgo"
+  | "Libra" | "Scorpio" | "Sagittarius" | "Capricorn" | "Aquarius" | "Pisces";
+
+export type HouseSystem = "Placidus" | "WholeSign";
 
 export type AspectType =
   | "conjunction" | "sextile" | "square" | "trine" | "opposition"
-  // optional minors
   | "semisextile" | "quincunx" | "quintile" | "biquintile";
 
 export type AspectRules = {
   aspects?: AspectType[];
-  includeMinor?: boolean; // true면 semisextile/quincunx/… 포함
+  includeMinor?: boolean;
   maxResults?: number; // default 50
   orbs?: {
     Sun?: number;
@@ -22,8 +22,8 @@ export type AspectRules = {
     angles?: number;  // ASC/MC
     default?: number; // fallback
   };
-  perAspectOrbs?: Partial<Record<AspectType, number>>; // 각별 기본 오브
-  perPairOrbs?: Record<string, number>; // "Sun|Moon|trine": 6 처럼 세밀 제어
+  perAspectOrbs?: Partial<Record<AspectType, number>>;
+  perPairOrbs?: Record<string, number>;
   scoring?: {
     weights?: { orb?: number; aspect?: number; speed?: number };
   };
@@ -31,19 +31,19 @@ export type AspectRules = {
 
 export type PlanetBase = {
   name: string;       // "Sun" etc.
-  longitude: number;  // 0–360
+  longitude: number;  // 0-360
   sign: ZodiacKo;
-  degree: number;     // 0–29
-  minute: number;     // 0–59
-  formatted: string;  // "양자리 12° 34'"
-  house: number;      // 1–12
+  degree: number;     // 0-29
+  minute: number;     // 0-59
+  formatted: string;  // "Aries 12deg 34'"
+  house: number;      // 1-12
   speed?: number;     // deg/day
   retrograde?: boolean;
 };
 
 export type House = {
-  index: number;      // 1–12
-  cusp: number;       // 0–360
+  index: number;      // 1-12
+  cusp: number;       // 0-360
   sign: ZodiacKo;
   formatted: string;
 };
@@ -85,15 +85,11 @@ export type AspectHit = {
   to:   AspectEnd;
   type: AspectType;
   orb: number;        // degrees
-  applying?: boolean; // 접근중 여부
-  score?: number;     // 가중 점수(정렬용)
+  applying?: boolean;
+  score?: number;
 };
 
-// src/lib/astrology/foundation/types.ts
-
-// --- (기존 코드 아래에 이어서 추가) ---
-
-// 점성학 요약 정보(AI-Narrative용)
+// Narrative facts carrier
 export interface AstrologyChartFacts {
   sun: PlanetBase;
   moon: PlanetBase;
@@ -107,5 +103,5 @@ export interface AstrologyChartFacts {
   pluto?: PlanetBase;
   asc?: PlanetBase;
   aspects?: Record<string, any>;
-  elementRatios?: Record<string, number>; // 불-흙-공기-물 비율
+  elementRatios?: Record<string, number>;
 }

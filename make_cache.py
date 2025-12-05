@@ -15,7 +15,7 @@ print("[CacheBuilder] 🧠 임베딩 계산을 시작합니다... (한 번만 �
 # 3️⃣ 임베딩 생성 (한 번만)
 corpus_embeds = embed_batch(texts, batch_size=128)
 
-# 4️⃣ 저장
+# 4️⃣ 저장i-            2g                               
 cache_path = os.path.join(graph_root, "corpus_embeds.pt")
 torch.save(corpus_embeds, cache_path)
 

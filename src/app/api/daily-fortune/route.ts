@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { birthDate, birthTime, latitude, longitude, sendEmail = false } = body;
+    const { birthDate, birthTime: _birthTime, latitude: _latitude, longitude: _longitude, sendEmail = false } = body;
 
     if (!birthDate) {
       return NextResponse.json({ error: "Birth date required" }, { status: 400 });
@@ -90,9 +90,9 @@ export async function POST(request: Request) {
  */
 function calculateDailyFortune(
   birthDate: string,
-  birthTime?: string,
-  latitude?: number,
-  longitude?: number
+  _birthTime?: string,
+  _latitude?: number,
+  _longitude?: number
 ) {
   const today = new Date();
   const birth = new Date(birthDate);

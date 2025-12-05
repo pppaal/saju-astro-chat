@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
@@ -31,7 +32,7 @@ export default function NotificationsPage() {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>🔔</span>
+          <span className={styles.emptyIcon}>≡ƒöö</span>
           <h2>Please sign in to view notifications</h2>
           <Link href="/" className={styles.backLink}>
             Go to Home
@@ -57,12 +58,12 @@ export default function NotificationsPage() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "like": return "❤️";
-      case "comment": return "💬";
-      case "reply": return "↩️";
-      case "mention": return "📢";
-      case "system": return "🔔";
-      default: return "🔔";
+      case "like": return "Γ¥ñ∩╕Å";
+      case "comment": return "≡ƒÆ¼";
+      case "reply": return "Γå⌐∩╕Å";
+      case "mention": return "≡ƒôó";
+      case "system": return "≡ƒöö";
+      default: return "≡ƒöö";
     }
   };
 
@@ -105,31 +106,31 @@ export default function NotificationsPage() {
             className={`${styles.filterBtn} ${filter === "like" ? styles.active : ""}`}
             onClick={() => setFilter("like")}
           >
-            ❤️ Likes
+            Γ¥ñ∩╕Å Likes
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "comment" ? styles.active : ""}`}
             onClick={() => setFilter("comment")}
           >
-            💬 Comments
+            ≡ƒÆ¼ Comments
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "reply" ? styles.active : ""}`}
             onClick={() => setFilter("reply")}
           >
-            ↩️ Replies
+            Γå⌐∩╕Å Replies
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "mention" ? styles.active : ""}`}
             onClick={() => setFilter("mention")}
           >
-            📢 Mentions
+            ≡ƒôó Mentions
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "system" ? styles.active : ""}`}
             onClick={() => setFilter("system")}
           >
-            🔔 System
+            ≡ƒöö System
           </button>
         </div>
       </header>
@@ -138,7 +139,7 @@ export default function NotificationsPage() {
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>
-              {filter === "unread" ? "✅" : "🔔"}
+              {filter === "unread" ? "Γ£à" : "≡ƒöö"}
             </span>
             <h2>
               {filter === "unread"
@@ -194,7 +195,7 @@ export default function NotificationsPage() {
                   }}
                   aria-label="Delete notification"
                 >
-                  ×
+                  ├ù
                 </button>
               </div>
             ))}
@@ -204,3 +205,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+

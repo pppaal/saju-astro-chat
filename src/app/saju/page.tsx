@@ -1,4 +1,4 @@
-//src/app/saju/page.tsx
+﻿//src/app/saju/page.tsx
 
 'use client';
 
@@ -24,3 +24,4 @@ export default function SajuPage() {
     </div>
   );
 }
+

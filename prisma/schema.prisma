@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-provider = "postgresql"
-url = env("DATABASE_URL")
-relationMode = "prisma"
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model Account {
@@ -14,15 +14,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -32,37 +31,32 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // 프로필(생년월일/시간/성별/도시/타임존)
-  birthDate String?
-  birthTime String?
-  gender    String?
-  birthCity String?   // 예: "Seoul, KR"
-  tzId      String?   // 예: "Asia/Seoul"
-
-  // 관계
-  readings Reading[]
-  fortunes Fortune[]
-  snapshots DestinySnapshot[] // 날짜별 Destiny Map 스냅샷
-  dailyFortunes DailyFortune[] // 오늘의 운세
-
-  // 이메일 알림 동의
-  emailNotifications Boolean @default(false)
+  id                 String            @id @default(cuid())
+  name               String?
+  email              String?           @unique
+  emailVerified      DateTime?
+  image              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  birthDate          String?
+  birthTime          String?
+  gender             String?
+  birthCity          String?
+  tzId               String?
+  passwordHash       String?
+  emailNotifications Boolean           @default(false)
+  accounts           Account[]
+  sessions           Session[]
+  readings           Reading[]
+  fortunes           Fortune[]
+  snapshots          DestinySnapshot[]
+  dailyFortunes      DailyFortune[]
+  interactions       UserInteraction[]
+  preferences        UserPreferences?
 }
 
 model VerificationToken {
@@ -77,27 +71,23 @@ model Reading {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  type    String // "SAJU" | "TAROT" | "ASTROLOGY" 등
-  title   String?
-  content String  @db.Text
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String?
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Fortune {
-  id      String   @id @default(cuid())
-  userId  String
-  date    DateTime
-  kind    String
-  title   String?
-  content String
-
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  kind      String
+  title     String?
+  content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date, kind])
   @@index([userId, date])
@@ -106,31 +96,59 @@ model Fortune {
 model DestinySnapshot {
   id         String   @id @default(cuid())
   userId     String
-  targetDate String   // 'YYYY-MM-DD' 저장 권장
-  data       Json     // 계산된 Destiny Map 결과 스냅샷
+  targetDate String
+  data       Json
   createdAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, targetDate])
   @@index([userId, targetDate])
 }
 
 model DailyFortune {
-  id            String   @id @default(cuid())
-  userId        String
-  date          String   // 'YYYY-MM-DD'
-  loveScore     Int      // 0-100
-  careerScore   Int      // 0-100
-  wealthScore   Int      // 0-100
-  healthScore   Int      // 0-100
-  overallScore  Int      // 0-100
-  luckyColor    String?
-  luckyNumber   Int?
-  createdAt     DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String
+  date         String
+  loveScore    Int
+  careerScore  Int
+  wealthScore  Int
+  healthScore  Int
+  overallScore Int
+  luckyColor   String?
+  luckyNumber  Int?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model UserInteraction {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  type      String
+  service   String
+  theme     String?
+  rating    Int?
+  metadata  Json?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, service])
+  @@index([userId, theme])
+}
+
+model UserPreferences {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  preferredLanguage    String   @default("en")
+  preferredThemes      Json?
+  preferredServices    Json?
+  notificationSettings Json?
+  readingLength        String   @default("medium")
+  tonePreference       String   @default("casual")
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

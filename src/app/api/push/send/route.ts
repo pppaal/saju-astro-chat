@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     try {
       // @ts-ignore - web-push is an optional dependency
       webpush = (await import("web-push")).default;
-    } catch (importError) {
+    } catch {
       return NextResponse.json(
         { error: "web-push module not installed. Run: npm install web-push" },
         { status: 500 }

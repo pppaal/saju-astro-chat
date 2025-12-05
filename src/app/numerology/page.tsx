@@ -7,6 +7,7 @@ import { getSupportedTimezones, getUserTimezone } from "@/lib/Saju/timezone";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import { describe, luckyTag } from "@/lib/numerology/descriptions";
+import ServicePageLayout from "@/components/ui/ServicePageLayout";
 
 // 타입
 type CityItem = { name: string; country: string; lat: number; lon: number };
@@ -214,9 +215,12 @@ export default function Page() {
   };
 
   return (
+    <ServicePageLayout
+      icon="🔢"
+      title="Numerology Insights"
+      subtitle="Discover your life path and lucky numbers through numerology"
+    >
     <main className={styles.page}>
-      <button onClick={() => window.history.back()} className={styles.backButton}>← Back</button>
-      <h1 className={styles.title}>Numerology Insights</h1>
 
       {!profile && (
         <div className={styles.formContainer}>
@@ -386,5 +390,6 @@ export default function Page() {
         </>
       )}
     </main>
+    </ServicePageLayout>
   );
 }

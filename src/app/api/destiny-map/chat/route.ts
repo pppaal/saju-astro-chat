@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { computeDestinyMap } from "@/lib/destiny-map/astrologyengine";
 import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import Stripe from "stripe";
 import { apiGuard } from "@/lib/apiGuard";
+import { callBackendWithFallback } from "@/lib/backend-health";
+import { guardText, cleanText as _cleanText, PROMPT_BUDGET_CHARS, safetyMessage, containsForbidden } from "@/lib/textGuards";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export const maxDuration = 120;
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
+type BackendReply = { fusion_layer?: string; report?: string };
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
@@ -18,7 +21,7 @@ function clampMessages(messages: ChatMessage[], max = 6) {
 
 function buildChatPrompt(lang: string, theme: string, snapshot: string, history: ChatMessage[]) {
   const historyText = history
-    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+    .map((m) => `${m.role.toUpperCase()}: ${guardText(m.content, 400)}`)
     .join("\n")
     .slice(0, 2000); // guard length
 
@@ -33,7 +36,7 @@ function buildChatPrompt(lang: string, theme: string, snapshot: string, history:
     "Recent conversation:",
     historyText || "(none yet)",
     "Respond briefly (<=140 words) in the target locale. Keep tone supportive and specific.",
-    lastUser ? `Latest user message: ${lastUser.content}` : "",
+    lastUser ? `Latest user message: ${guardText(lastUser.content, 400)}` : "",
     `Respond in ${lang}.`,
   ]
     .filter(Boolean)
@@ -55,9 +58,7 @@ async function checkStripeActive(email?: string) {
       status: "all",
       limit: 5,
     });
-    const active = subs.data.find((s) =>
-      ["active", "trialing", "past_due"].includes(s.status)
-    );
+    const active = subs.data.find((s) => ["active", "trialing", "past_due"].includes(s.status));
     if (active) return true;
   }
   return false;
@@ -67,6 +68,9 @@ export async function POST(request: Request) {
   try {
     const guard = await apiGuard(request, { path: "destiny-map-chat", limit: 45, windowSeconds: 60 });
     if (guard instanceof NextResponse) return guard;
+
+    // Lazy-load heavy astro engine to avoid resolving swisseph during build/deploy
+    const { computeDestinyMap } = await import("@/lib/destiny-map/astrologyengine");
 
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -107,51 +111,55 @@ export async function POST(request: Request) {
       theme,
     });
 
-    const snapshot = buildAllDataPrompt(lang, theme, result);
+    const snapshot = buildAllDataPrompt(lang, theme, result).slice(0, 2500);
     const trimmedHistory = clampMessages(messages);
 
     // 2) build chat prompt
-    const cvSnippet = (cvText || "").toString().slice(0, 1500);
+    const cvSnippet = guardText(cvText || "", 1200);
+    const safetyFlag =
+      containsForbidden(cvSnippet) ||
+      [...trimmedHistory, { role: "user", content: cvSnippet }].some((m) => m.content.includes("[filtered]"));
+    if (safetyFlag) {
+      const msg = safetyMessage(lang);
+      return NextResponse.json({ reply: msg, fallback: true, safety: true });
+    }
+
     const chatPrompt = [
       buildChatPrompt(lang, theme, snapshot, trimmedHistory),
       cvSnippet ? `User CV (partial):\n${cvSnippet}` : "",
     ]
       .filter(Boolean)
-      .join("\n\n");
+      .join("\n\n")
+      .slice(0, PROMPT_BUDGET_CHARS);
 
-    // 3) call backend fusion
+    // 3) call backend fusion with health check
     const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
-    const response = await fetch(`${backendUrl}/ask`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(process.env.ADMIN_API_TOKEN
-          ? { Authorization: `Bearer ${process.env.ADMIN_API_TOKEN}` }
-          : {}),
-      },
-      body: JSON.stringify({
+
+    const fallbackReply =
+      lang === "ko"
+        ? "AI 분석 서비스가 일시적으로 불가합니다. 잠시 후 다시 시도해 주세요."
+        : "AI analysis service is temporarily unavailable. Please try again later.";
+    const fallbackPayload: BackendReply = { fusion_layer: fallbackReply };
+
+    const { success, data } = await callBackendWithFallback<BackendReply>(
+      backendUrl,
+      "/ask",
+      {
         theme: theme || "chat",
         prompt: chatPrompt,
         saju: result.saju,
         astro: result.astrology,
         locale: lang,
-      }),
+      },
+      fallbackPayload
+    );
+
+    const reply = data?.fusion_layer || data?.report || fallbackReply;
+
+    return NextResponse.json({
+      reply,
+      fallback: !success, // Indicate if using fallback
     });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Flask error ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    const reply =
-      data?.data?.fusion_layer ||
-      data?.data?.report ||
-      (lang === "ko"
-        ? "지금은 답변이 어렵습니다. 잠시 후 다시 시도해주세요."
-        : "No response, please try again later.");
-
-    return NextResponse.json({ reply });
   } catch (err: any) {
     console.error("[DestinyMap chat API error]", err);
     return NextResponse.json({ error: err.message ?? "Internal Server Error" }, { status: 500 });

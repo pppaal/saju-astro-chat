@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * POST /api/notifications/send
  * Send a notification to a user (for testing or from other API routes)
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
  * GET /api/notifications/send
  * Test endpoint to send a sample notification
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {

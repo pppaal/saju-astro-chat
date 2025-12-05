@@ -20,7 +20,7 @@ Fusion Generator
 load_dotenv()
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-MAX_OUTPUT_TOKENS = 1800
+MAX_OUTPUT_TOKENS = 3500
 
 
 # ===============================================================
@@ -92,28 +92,35 @@ PRESETS = {
 # ===============================================================
 # GPT-5-mini refinement
 # ===============================================================
-def refine_with_gpt5mini(raw_text: str, theme: str) -> str:
-    """Polish the Llama draft with GPT-5-mini."""
+def refine_with_gpt5mini(raw_text: str, theme: str, locale: str = "en") -> str:
+    """Polish the Llama draft with GPT-4o-mini."""
     try:
         gpt = get_openai_llm()
-        system_prompt = (
-            "You are a concise editor. Polish style, keep structure, empathetic but not wordy. "
-            "Avoid medical/legal/financial claims; this is entertainment/self-help. "
-            "Keep language and tone consistent with the requested locale."
-        )
+
+        if locale == "ko":
+            system_prompt = (
+                "당신은 전문 운세 에디터입니다. 스타일을 다듬되 구조는 유지하고, 공감하되 장황하지 않게 작성합니다. "
+                "의료/법률/재정 관련 주장은 피하세요. 이것은 오락/자기계발 콘텐츠입니다. "
+                "한국어로 자연스럽고 설득력 있게 다듬어주세요. 구체적이고 개인화된 느낌을 유지하세요."
+            )
+            user_prompt = f"테마: {theme}\n\n다음 초안을 한국어로 다듬어주세요. 구조와 길이를 유지하되 더 자연스럽고 설득력 있게 만들어주세요:\n\n{raw_text}"
+        else:
+            system_prompt = (
+                "You are a professional fortune editor. Polish style, keep structure, be empathetic but not wordy. "
+                "Avoid medical/legal/financial claims; this is entertainment/self-help. "
+                "Make it natural, engaging, and convincing while maintaining the detailed analysis."
+            )
+            user_prompt = f"Theme: {theme}\n\nPolish this draft, keep the structure and length but make it more engaging and convincing:\n\n{raw_text}"
 
         resp = _chat_with_retry(
             gpt,
-            model="gpt-5-mini",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": f"Theme: {theme}\n\nPolish this draft, keep it concise and structured (max {MAX_OUTPUT_TOKENS} tokens):\n\n{raw_text}",
-                },
+                {"role": "user", "content": user_prompt},
             ],
             max_tokens=MAX_OUTPUT_TOKENS,
-            temperature=0.15,
+            temperature=0.2,
             top_p=0.9,
         )
         return resp.choices[0].message.content.strip()
@@ -134,13 +141,18 @@ def generate_fusion_report(
     locale: str = "en",
     user_prompt: str = "",
     dataset_text: str = "",
+    tarot_text: str = "",
 ):
     """Blend saju + astro + graph + rules with Llama draft then GPT mini polish."""
     try:
         print("[FusionGenerate] Step1: Together LLM request start")
 
-        query = f"{saju_text}\n{astro_text}\n{theme}"
-        graph_context = search_graphs(query, top_k=6)
+        query_parts = [saju_text, astro_text]
+        if tarot_text:
+            query_parts.append(tarot_text)
+        query_parts.append(theme)
+        query = "\n".join(query_parts)
+        graph_context = search_graphs(query, top_k=12)
 
         preset_text = PRESETS.get(theme, PRESETS["life_path"])
         safe_user_prompt = (user_prompt or "").strip()
@@ -150,21 +162,25 @@ def generate_fusion_report(
         extra_user = (
             f"\n\n[User instructions - may be in {locale}]\n{safe_user_prompt}\n" if safe_user_prompt else ""
         )
+        tarot_block = f"\n\n[TAROT summary]\n{tarot_text}" if tarot_text else ""
 
-        sections = ["Summary", "Guidance", "Risks", "Action Plan"]
-        section_texts = []
-
-        for sec in sections:
-            print(f"[Together] Generating section '{sec}' ...")
-            sub_prompt = f"""
+        # Single comprehensive prompt instead of 7 separate sections
+        comprehensive_prompt = f"""
 {preset_text}
 
-Write a concise '{sec}' section.
-Use saju + astro + graph context to keep it specific.
-- Keep total response under ~2000 chars
-- Use clear headings if desired (### Title)
-- Avoid medical/legal/financial claims; entertainment/self-help only.
- - Respond in locale: {locale}
+Create a comprehensive fortune analysis with these sections:
+1. Current Period & Element Balance
+2. Life Path Summary
+3. Guidance & Opportunities
+4. Challenges & Cautions
+
+Requirements:
+- Total 800-1200 words across all sections
+- Use saju + astro + graph context for specific, personalized insights
+- Include dates, elements, or planetary positions when relevant
+- Engaging, confident, personalized language
+- Avoid medical/legal/financial claims (entertainment/self-help only)
+- If locale is '{locale}', respond ENTIRELY in that language with natural expressions
 
 [Graph context]
 {graph_context}
@@ -175,26 +191,27 @@ Use saju + astro + graph context to keep it specific.
 [ASTRO summary]
 {astro_text}
 
+{tarot_block}
+
 {dataset_summary}
 {extra_user}
 """
-            resp = _chat_with_retry(
-                model,
-                model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-                messages=[{"role": "user", "content": sub_prompt.strip()}],
-                temperature=0.1,
-                top_p=0.9,
-                max_tokens=MAX_OUTPUT_TOKENS,
-            )
 
-            text = resp.choices[0].message.content.strip()
-            text = re.sub(r"(#+\s*(Summary|Guidance|Risks|Action Plan)\s*)", "", text)
-            text = re.sub(r"\n{3,}", "\n\n", text)
-            section_texts.append(text)
+        print("[Together] Generating comprehensive analysis...")
+        resp = _chat_with_retry(
+            model,
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            messages=[{"role": "user", "content": comprehensive_prompt.strip()}],
+            temperature=0.15,
+            top_p=0.9,
+            max_tokens=MAX_OUTPUT_TOKENS,
+        )
 
-        llama_report = "\n\n".join(section_texts).strip()
+        llama_report = resp.choices[0].message.content.strip()
+        llama_report = re.sub(r"\n{3,}", "\n\n", llama_report)
+
         print("[FusionGenerate] Step2: GPT-mini polishing")
-        refined_report = refine_with_gpt5mini(llama_report, theme)
+        refined_report = refine_with_gpt5mini(llama_report, theme, locale)
 
         return {
             "status": "success",

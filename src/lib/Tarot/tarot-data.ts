@@ -11,10 +11,12 @@ export interface Card {
   upright: {
     keywords: string[];
     meaning: string;
+    advice?: string;
   };
   reversed: {
     keywords: string[];
     meaning: string;
+    advice?: string;
   };
 }
 

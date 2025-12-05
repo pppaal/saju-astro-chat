@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendNotificationDigest } from "@/lib/email/emailService";
+import { sendNotificationDigest as _sendNotificationDigest } from "@/lib/email/emailService";
 
 export const dynamic = "force-dynamic";
 

@@ -20,6 +20,8 @@ const dicts = {
       prompt1: "How is my fortune today?",
       prompt2: "I have an important decision.",
       prompt3: "What about love and relationships?",
+      chatInputPlaceholder: "Ask about your destiny...",
+      aiResponse: "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.",
       astrologyTitle: "Astrology",
       astrologyDesc: "Animated planets, houses, and aspects.",
       destinyTitle: "Destiny Map",
@@ -60,6 +62,7 @@ const dicts = {
       scorpio: "Scorpio",
       pisces: "Pisces",
       ageUnit: "years old",
+      todayMessage: "Today is a favorable day for new beginnings. Creativity will shine.",
     },
     common: {
       terms: "Terms of Service",
@@ -183,6 +186,8 @@ const dicts = {
       prompt1: "오늘 운세가 궁금해요.",
       prompt2: "중요한 결정을 내려야 해요.",
       prompt3: "연애/인연 운을 보고 싶어요.",
+      chatInputPlaceholder: "운세에 대해 물어보세요...",
+      aiResponse: "오늘 당신의 점성학적 차트를 보면 행성 배치가 매우 유리합니다. 사주 오행의 조화가 뛰어나며, 특히 사업운과 재물운이 강하게 나타나고 있습니다. 달의 위치는 감정적 명확함을 시사하며, 목성의 영향으로 성장의 기회가 확대됩니다.",
       astrologyTitle: "점성",
       astrologyDesc: "행성·하우스·어스펙트를 애니메이션으로.",
       destinyTitle: "Destiny Map",
@@ -223,6 +228,7 @@ const dicts = {
       scorpio: "전갈자리",
       pisces: "물고기자리",
       ageUnit: "세",
+      todayMessage: "오늘은 새로운 시작에 유리한 날입니다. 창의성이 빛을 발할 것입니다.",
     },
     common: {
       terms: "이용약관",
@@ -346,6 +352,8 @@ const dicts = {
       prompt1: "¿Cómo está mi fortuna hoy?",
       prompt2: "Tengo una decisión importante.",
       prompt3: "¿Y el amor o las relaciones?",
+      chatInputPlaceholder: "Pregunta sobre tu destino...",
+      aiResponse: "Según tu carta astrológica, hoy trae alineaciones planetarias favorables. Tus elementos Saju muestran una fuerte armonía, particularmente en los sectores de carrera y riqueza. La posición de la Luna sugiere claridad emocional, mientras que la influencia de Júpiter mejora las oportunidades de crecimiento.",
       astrologyTitle: "Astrología",
       astrologyDesc: "Planetas, casas y aspectos animados.",
       destinyTitle: "Mapa del destino",
@@ -506,9 +514,11 @@ const dicts = {
       servicesEyebrow: "Services DestinyPal",
       servicesTitle: "Lectures clés en un coup d’œil",
       servicesDesc: "Survolez une carte pour en voir l’aperçu.",
-      prompt1: "Comment est ma chance aujourd’hui ?",
-      prompt2: "J’ai une décision importante.",
-      prompt3: "Et l’amour ou les relations ?",
+      prompt1: "Comment est ma chance aujourd'hui ?",
+      prompt2: "J'ai une décision importante.",
+      prompt3: "Et l'amour ou les relations ?",
+      chatInputPlaceholder: "Posez votre question sur votre destin...",
+      aiResponse: "Selon votre carte astrologique, les alignements planétaires d'aujourd'hui sont favorables. Vos éléments Saju montrent une harmonie utile pour la carrière et les finances. La Lune apporte de la clarté émotionnelle et Jupiter ouvre des opportunités.",
       astrologyTitle: "Astrologie",
       astrologyDesc: "Planètes, maisons et aspects animés.",
       destinyTitle: "Carte du destin",
@@ -1309,6 +1319,23 @@ const dicts = {
   },
 } as const;
 
+function fillMissing(base: any, target: any) {
+  for (const [k, v] of Object.entries(base)) {
+    if (!(k in target)) {
+      (target as any)[k] = v;
+      continue;
+    }
+    if (v && typeof v === "object" && !Array.isArray(v) && target[k] && typeof target[k] === "object") {
+      fillMissing(v, target[k]);
+    }
+  }
+}
+
+for (const [locale, data] of Object.entries(dicts)) {
+  if (locale === "en") continue;
+  fillMissing(dicts.en, data);
+}
+
 type Locale = keyof typeof dicts;
 
 type I18nContextType = {
@@ -1319,9 +1346,11 @@ type I18nContextType = {
   dir: "ltr" | "rtl";
 };
 
+export const DICTS = dicts;
+
 const I18nContext = createContext<I18nContextType | null>(null);
 
-const SUPPORTED = Object.keys(dicts) as Locale[];
+export const SUPPORTED_LOCALES = Object.keys(dicts) as Locale[];
 const isRtl = (l: Locale) => l === "ar";
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -1330,14 +1359,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("locale") as Locale | null;
-      if (stored && SUPPORTED.includes(stored)) {
+      if (stored && SUPPORTED_LOCALES.includes(stored)) {
         setLocale(stored);
         return;
       }
     } catch {}
     try {
       const nav2 = navigator.language?.slice(0, 2) as Locale | undefined;
-      if (nav2 && SUPPORTED.includes(nav2)) setLocale(nav2);
+      if (nav2 && SUPPORTED_LOCALES.includes(nav2)) setLocale(nav2);
     } catch {}
   }, []);
 

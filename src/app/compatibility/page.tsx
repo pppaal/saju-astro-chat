@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
+import ServicePageLayout from '@/components/ui/ServicePageLayout';
 
 type Relation = 'friend' | 'lover' | 'other';
 
@@ -167,9 +168,12 @@ export default function CompatPage() {
   };
 
   return (
+    <ServicePageLayout
+      icon="💕"
+      title="Compatibility Analysis"
+      subtitle="Discover relationship compatibility through astrological birth data"
+    >
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      <h1>Compatibility</h1>
-      <p>Enter up to 4 people to get a quick compatibility score.</p>
 
       <div style={{ margin: '16px 0' }}>
         <label>People count: </label>
@@ -242,5 +246,6 @@ export default function CompatPage() {
         </pre>
       )}
     </div>
+    </ServicePageLayout>
   );
 }

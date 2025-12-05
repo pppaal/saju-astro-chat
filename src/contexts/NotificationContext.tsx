@@ -84,6 +84,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => {
       es.close();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const addNotification = useCallback((notif: Omit<Notification, "id" | "read" | "createdAt">) => {

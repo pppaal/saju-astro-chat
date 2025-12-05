@@ -321,61 +321,222 @@
 }
 
 .heroGlass {
-  padding: 20px;
+  padding: 0;
   border-radius: 20px;
   backdrop-filter: blur(10px);
   background: rgba(5,7,20,0.6);
   border: 1px solid rgba(99, 210, 255, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 320px;
-  max-width: 380px;
+  min-width: 340px;
+  max-width: 420px;
+  min-height: 340px;
   box-shadow: 0 12px 32px rgba(0,0,0,0.3),
               0 0 0 1px rgba(99, 210, 255, 0.1) inset;
+  overflow: hidden;
+}
+
+.chatHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(5,7,20,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chatHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chatHeaderTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.chatHeaderStatus {
+  font-size: 12px;
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chatHeaderStatus::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .chatBubble {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
   animation: fadeInUp 0.6s ease-out;
 }
 
+.messageRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.userRow {
+  flex-direction: row-reverse;
+}
+
+.aiRow {
+  flex-direction: row;
+}
+
+.messageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 75%;
+}
+
+.userRow .messageContent {
+  align-items: flex-end;
+}
+
+.aiRow .messageContent {
+  align-items: flex-start;
+}
+
+.userRow .messageTime {
+  text-align: right;
+  padding-right: 2px;
+  padding-left: 0;
+}
+
+.avatarUser,
+.avatarBot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.avatarUser {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.avatarBot {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+}
+
 .userMessage {
-  align-self: flex-end;
   background: linear-gradient(135deg, rgba(99, 210, 255, 0.25), rgba(124, 242, 156, 0.15));
   border: 1px solid rgba(99, 210, 255, 0.4);
   padding: 10px 14px;
   border-radius: 16px 16px 4px 16px;
   font-size: 0.95rem;
-  max-width: 80%;
   box-shadow: 0 4px 12px rgba(99, 210, 255, 0.15);
-  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1.5;
 }
 
 .aiMessage {
-  align-self: flex-start;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15);
   padding: 10px 14px;
   border-radius: 16px 16px 16px 4px;
   font-size: 0.95rem;
-  max-width: 85%;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
   position: relative;
+  line-height: 1.5;
 }
 
-.aiMessage::before {
-  content: '✨';
-  position: absolute;
-  left: -20px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
-  animation: sparkle 1.5s ease-in-out infinite;
+.messageTime {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  padding-left: 2px;
+}
+
+.chatInputArea {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  background: rgba(5,7,20,0.4);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.chatInput {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.chatInput:focus {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(99, 210, 255, 0.4);
+}
+
+.chatInput::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+.chatSendBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .typingIndicator {
@@ -585,52 +746,6 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-
-.policyBar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 20px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 8px 12px;
-  z-index: 10;
-}
-
-.policyBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 38px;
-  min-width: 100px;
-  padding: 0 16px;
-  border-radius: 999px;
-  text-decoration: none;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.40);
-  color: #121425;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: .2px;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  transition: background .18s ease, border-color .18s ease, transform .05s ease, box-shadow .18s ease;
-}
-
-.policyBtn:hover {
-  background: rgba(255,255,255,0.22);
-  border-color: rgba(255,255,255,0.55);
-  box-shadow: 0 8px 22px rgba(0,0,0,.3);
-  transform: translateY(-1px);
-}
-
-.policyBtn:focus {
-  outline: 2px solid #b6c8ff;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 3px rgba(182,200,255,.35), 0 8px 22px rgba(0,0,0,.32);
 }
 
 @keyframes fadeIn {
@@ -845,7 +960,8 @@ to { opacity: 1; transform: translateY(0); }
   background: linear-gradient(135deg, rgba(99, 210, 255, 0.1), rgba(124, 242, 156, 0.05));
   border: 2px solid rgba(99, 210, 255, 0.3);
   border-radius: 16px;
-  padding: 1.5rem 2rem;
+  padding: 1.5rem 3rem;
+  min-width: 180px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
 }
@@ -856,16 +972,46 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 .stem, .branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.2rem 1.5rem;
+  min-width: 140px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stem:hover, .branch:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.elementIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.charMain {
   font-size: 3rem;
   font-weight: 900;
   color: #ffffff;
-  animation: charCycle 8s ease-in-out infinite;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 }
 
-.branch {
+.branch .charMain {
   font-size: 2.5rem;
-  color: rgba(124, 242, 156, 0.9);
-  animation-delay: 4s;
+}
+
+.charTranslation {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: capitalize;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
 }
 
 @keyframes charCycle {
@@ -895,8 +1041,10 @@ to { opacity: 1; transform: translateY(0); }
 .timelineTrack {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 0.5rem 0;
 }
 
 .luckPeriod {
@@ -937,16 +1085,28 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 .luckChars {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 1.8rem;
   font-weight: 900;
   color: #ffffff;
   animation: charCycle 6s ease-in-out infinite;
 }
 
+.luckTranslation {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
 .sajuContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.5rem;
   margin-top: 2rem;
 }
 
@@ -971,6 +1131,7 @@ to { opacity: 1; transform: translateY(0); }
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 80px;
 }
 
 .elementProgress {
@@ -1016,19 +1177,91 @@ to { opacity: 1; transform: translateY(0); }
   50% { opacity: 0.7; }
 }
 
+/* Shinsal (Lucky Stars) Section */
+.shinsalContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background: rgba(138, 43, 226, 0.05);
+  border: 1px solid rgba(186, 85, 211, 0.2);
+  border-radius: 20px;
+}
+
+.shinsalCard {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.15), rgba(186, 85, 211, 0.08));
+  border: 2px solid rgba(186, 85, 211, 0.3);
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.shinsalCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(186, 85, 211, 0.5);
+  box-shadow: 0 12px 40px rgba(138, 43, 226, 0.3);
+}
+
+.shinsalIcon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 4px 12px rgba(186, 85, 211, 0.5));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.shinsalName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.shinsalDesc {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.02em;
+}
+
 /* Tarot Section */
 .tarotDeckContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 2rem 0;
+  margin: 3rem 0;
+  min-height: 150px;
 }
 
 .tarotDeck {
   position: relative;
-  width: 160px;
-  height: 260px;
+  width: 120px;
+  height: 200px;
   margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tarotDeck:hover {
+  transform: scale(1.05);
+}
+
+.tarotDeck.deckSpread {
+  width: 400px !important;
+  height: 200px !important;
+}
+
+.tarotDeck:active {
+  transform: scale(0.98) translateY(-5px);
 }
 
 .deckCard {
@@ -1041,6 +1274,14 @@ to { opacity: 1; transform: translateY(0); }
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6),
               inset 0 1px 0 rgba(138, 43, 226, 0.3);
   transition: transform 0.3s ease;
+  transform-origin: center bottom;
+}
+
+@keyframes deckShuffle {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+  25% { transform: translateX(2px) translateY(-2px) rotate(1deg); }
+  50% { transform: translateX(-2px) translateY(2px) rotate(-1deg); }
+  75% { transform: translateX(1px) translateY(-1px) rotate(0.5deg); }
 }
 
 .deckCard::before {
@@ -1063,15 +1304,17 @@ to { opacity: 1; transform: translateY(0); }
   color: rgba(138, 43, 226, 0.8);
   font-weight: 600;
   letter-spacing: 0.05em;
+  margin-top: 1.5rem;
 }
 
 .tarotCards {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  perspective: 1500px;
+  align-items: flex-start;
+  gap: 2rem;
   margin-top: 3rem;
   flex-wrap: wrap;
+  padding: 0 1rem;
 }
 
 .tarotCard {
@@ -1080,11 +1323,27 @@ to { opacity: 1; transform: translateY(0); }
   height: 240px;
   cursor: pointer;
   transform-style: preserve-3d;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.6s ease;
+  flex-shrink: 0;
+  transform-origin: center center;
 }
 
-.tarotCard:hover {
-  transform: translateY(-30px) rotateY(180deg);
+/* Animation rules moved below to use :not(.flipped) selector */
+
+.tarotCard:hover:not(.flipped) {
+  transform: translateY(-15px);
+}
+
+.tarotCard:active {
+  transform: scale(0.98);
+}
+
+.tarotCard.flipped {
+  transform: rotateY(180deg);
+}
+
+.tarotCard.flipped:hover {
+  transform: rotateY(180deg) translateY(-15px);
 }
 
 .cardFront,
@@ -1108,6 +1367,10 @@ to { opacity: 1; transform: translateY(0); }
   justify-content: center;
   position: relative;
   overflow: hidden;
+}
+
+.cardFront {
+  transform: rotateY(180deg);
 }
 
 .cardBack::before {
@@ -1141,38 +1404,67 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 .cardFront {
-  background: linear-gradient(145deg, #f8f4ff 0%, #e8deff 100%);
-  border: 3px solid #b8a3d9;
+  background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e8 50%, #fdfbf7 100%);
+  border: 4px solid #8b6914;
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 0.8rem;
+  padding: 1.2rem 1rem;
   position: relative;
+  box-shadow:
+    0 0 0 1px #c4a14a inset,
+    0 0 0 8px #fdfbf7 inset,
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(139, 105, 20, 0.3);
 }
 
 .cardFront::before {
   content: '';
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(138, 43, 226, 0.2);
+  inset: 12px;
+  border: 2px solid #8b6914;
   border-radius: 8px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(139, 105, 20, 0.03) 8px,
+    rgba(139, 105, 20, 0.03) 16px
+  );
+}
+
+.cardFront::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  border: 1px solid rgba(139, 105, 20, 0.2);
+  border-radius: 6px;
   pointer-events: none;
 }
 
 .cardHeader,
 .cardFooter {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #4a2c6e;
-  letter-spacing: 0.05em;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #5a4210;
+  letter-spacing: 0.08em;
   text-align: center;
+  text-transform: uppercase;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  font-family: 'Georgia', serif;
 }
 
 .cardMainIcon {
-  font-size: 4.5rem;
-  filter: drop-shadow(0 2px 8px rgba(138, 43, 226, 0.3));
+  font-size: 5.5rem;
+  filter: drop-shadow(0 4px 12px rgba(139, 105, 20, 0.4));
+  z-index: 1;
 }
 
 @keyframes cardFloat {
@@ -1180,17 +1472,17 @@ to { opacity: 1; transform: translateY(0); }
   50% { transform: rotateY(0deg) translateZ(5px); }
 }
 
-.tarotCard:nth-child(1) {
-  animation: cardReveal 1s ease-out 0.3s both;
+.tarotCard:nth-child(1):not(.flipped) {
+  animation: cardReveal 1s ease-out 0.3s forwards;
 }
-.tarotCard:nth-child(2) {
-  animation: cardReveal 1s ease-out 0.6s both;
+.tarotCard:nth-child(2):not(.flipped) {
+  animation: cardReveal 1s ease-out 0.6s forwards;
 }
-.tarotCard:nth-child(3) {
-  animation: cardReveal 1s ease-out 0.9s both;
+.tarotCard:nth-child(3):not(.flipped) {
+  animation: cardReveal 1s ease-out 0.9s forwards;
 }
-.tarotCard:nth-child(4) {
-  animation: cardReveal 1s ease-out 1.2s both;
+.tarotCard:nth-child(4):not(.flipped) {
+  animation: cardReveal 1s ease-out 1.2s forwards;
 }
 
 @keyframes cardReveal {
@@ -1207,12 +1499,17 @@ to { opacity: 1; transform: translateY(0); }
 .tarotLabels {
   display: flex;
   justify-content: center;
-  gap: 6.5rem;
-  margin-top: 1.5rem;
+  gap: 1.5rem;
+  margin: 1.5rem auto 0;
   font-size: 0.95rem;
   color: rgba(124, 242, 156, 0.8);
   font-weight: 600;
   letter-spacing: 0.05em;
+}
+
+.tarotLabels span {
+  width: 140px;
+  text-align: center;
 }
 
 .tarotLabels span {
@@ -1297,7 +1594,6 @@ to { opacity: 1; transform: translateY(0); }
   .services { gap: 1rem; }
   .serviceHeader { flex-direction: column; }
   .serviceGrid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-  .policyBar { position: static; padding-top: 0; }
 
   .featureSection { margin: 3rem auto; padding: 2rem 1rem; }
 
@@ -1313,12 +1609,14 @@ to { opacity: 1; transform: translateY(0); }
   .timelineTrack { gap: 0.5rem; }
   .luckPeriod { padding: 1rem 1.5rem; }
 
-  .tarotDeck { width: 140px; height: 220px; }
-  .tarotCard { width: 100px; height: 180px; }
-  .cardMainIcon { font-size: 3rem; }
-  .cardCenterIcon { font-size: 2.5rem; }
-  .cardHeader, .cardFooter { font-size: 0.6rem; }
-  .tarotLabels { gap: 3.5rem; font-size: 0.85rem; }
+  .tarotDeck { width: 100px; height: 180px; }
+  .tarotDeck.deckSpread { width: 350px !important; height: 220px !important; }
+  .tarotCard { width: 90px; height: 160px; }
+  .cardMainIcon { font-size: 2.5rem; }
+  .cardCenterIcon { font-size: 2rem; }
+  .cardHeader, .cardFooter { font-size: 0.55rem; }
+  .tarotLabels { max-width: 380px; font-size: 0.8rem; gap: 0.8rem; }
+  .tarotLabels span { width: 90px; }
 
   .ctaSection { margin: 4rem auto; padding: 3rem 1.5rem; }
 }

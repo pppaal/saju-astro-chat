@@ -26,6 +26,7 @@ export default function RecommendationsPage() {
     if (status === "authenticated") {
       loadRecommendations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, router]);
 
   async function loadRecommendations() {

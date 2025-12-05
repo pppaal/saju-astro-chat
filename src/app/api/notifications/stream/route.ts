@@ -10,7 +10,7 @@ export const runtime = "nodejs";
  * Server-Sent Events (SSE) endpoint for real-time notifications
  * GET /api/notifications/stream?userId=user@example.com
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -37,21 +37,17 @@ export async function GET(request: NextRequest) {
       controller.enqueue(`data: ${data}\n\n`);
 
       // Keep connection alive with heartbeat
-      const heartbeat = setInterval(() => {
-        try {
-          controller.enqueue(`: heartbeat\n\n`);
-        } catch (error) {
-          clearInterval(heartbeat);
-        }
-      }, 30000); // Every 30 seconds
+    const heartbeat = setInterval(() => {
+      controller.enqueue(`: heartbeat\n\n`);
+    }, 30000); // Every 30 seconds
 
       // Cleanup on connection close
-      request.signal.addEventListener("abort", () => {
+      _request.signal.addEventListener("abort", () => {
         clearInterval(heartbeat);
         unregisterClient(userId);
         try {
           controller.close();
-        } catch (e) {
+        } catch {
           // Controller already closed
         }
       });
