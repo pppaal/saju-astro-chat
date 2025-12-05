@@ -2,91 +2,104 @@
 export type AuraOption = { id: string; text: string };
 export type AuraQuestion = { id: string; text: string; options: AuraOption[] };
 
+// Custom “Nova” personality battery (MBTI-tier depth, copyright-safe).
 export const questions: AuraQuestion[] = [
   {
     id: 'q1_energy',
-    text: 'After a busy week of social activities, you feel:',
+    text: 'After a day full of people and meetings, you:',
     options: [
-      { id: 'A', text: 'Energized and ready for more.' },
-      { id: 'B', text: 'Drained and in need of solitude to recharge.' },
+      { id: 'A', text: 'Feel charged and want to keep the momentum going.' },
+      { id: 'B', text: 'Need quiet space to reset before engaging again.' },
     ],
   },
   {
-    id: 'q2_focus',
-    text: 'When learning something new, you prefer:',
+    id: 'q2_strategy',
+    text: 'Starting a new project, you first:',
     options: [
-      { id: 'A', text: 'To understand the underlying concepts and theories first.' },
-      { id: 'B', text: 'To get hands-on experience with practical applications.' },
+      { id: 'A', text: 'Map possibilities and future scenarios.' },
+      { id: 'B', text: 'Define concrete steps and resources.' },
     ],
   },
   {
-    id: 'q3_decision',
-    text: 'You are asked to make a difficult decision at work. Your primary consideration is:',
+    id: 'q3_planning',
+    text: 'For trips or big milestones, you prefer:',
     options: [
-      { id: 'A', text: 'The logical and objective consequences for the company.' },
-      { id: 'B', text: 'The impact on the people involved and team harmony.' },
+      { id: 'A', text: 'A structured plan with checkpoints.' },
+      { id: 'B', text: 'A light outline and freedom to improvise.' },
     ],
   },
   {
-    id: 'q4_planning',
-    text: 'When it comes to a vacation:',
+    id: 'q4_conflict',
+    text: 'In tension with someone you value, you lean toward:',
     options: [
-      { id: 'A', text: 'You prefer a detailed itinerary to make the most of your time.' },
-      { id: 'B', text: 'You prefer to leave your options open and go with the flow.' },
+      { id: 'A', text: 'Stating the facts and clarifying principles.' },
+      { id: 'B', text: 'Reading the room and protecting the relationship.' },
     ],
   },
   {
-    id: 'q5_new_ideas',
-    text: 'You are most drawn to ideas that are:',
+    id: 'q5_risk',
+    text: 'When an unexpected opportunity appears, you:',
     options: [
-      { id: 'A', text: 'Abstract, novel, and challenge your perspective.' },
-      { id: 'B', text: 'Traditional, proven, and grounded in reality.' },
+      { id: 'A', text: 'Say yes and figure it out en route.' },
+      { id: 'B', text: 'Pause to confirm stability and fit.' },
     ],
   },
   {
-    id: 'q6_chores',
-    text: 'When faced with a tedious but necessary task, you tend to:',
+    id: 'q6_learning',
+    text: 'You grasp ideas fastest when they are:',
     options: [
-      { id: 'A', text: 'Do it immediately to get it out of the way.' },
-      { id: 'B', text: 'Procrastinate and wait until the last minute.' },
+      { id: 'A', text: 'Presented as patterns, models, or metaphors.' },
+      { id: 'B', text: 'Broken into examples and step-by-step proof.' },
     ],
   },
   {
-    id: 'q7_conflict',
-    text: 'In a disagreement, your priority is:',
+    id: 'q7_deadlines',
+    text: 'On deadlines you typically:',
     options: [
-      { id: 'A', text: 'To find a compromise that makes everyone feel heard.' },
-      { id: 'B', text: 'To defend your position and win the argument.' },
+      { id: 'A', text: 'Start early and track progress steadily.' },
+      { id: 'B', text: 'Surge near the end when pressure is highest.' },
     ],
   },
   {
-    id: 'q8_stress',
-    text: 'When something unexpected goes wrong, you are more likely to feel:',
+    id: 'q8_team_role',
+    text: 'In a team setting you naturally:',
     options: [
-      { id: 'A', text: 'Anxious and worried about the potential outcomes.' },
-      { id: 'B', text: 'Calm and confident in your ability to handle it.' },
+      { id: 'A', text: 'Spark ideas and rally energy.' },
+      { id: 'B', text: 'Coordinate tasks and keep execution on track.' },
     ],
   },
   {
-    id: 'q9_motivation',
-    text: 'At your core, you are most driven by a need for:',
+    id: 'q9_decision',
+    text: 'Important choices are settled by:',
     options: [
-      { id: 'A', text: 'Security and support.' },
-      { id: 'B', text: 'Perfection and improvement.' },
-      { id: 'C', text: 'Uniqueness and self-expression.' },
-      { id: 'D', text: 'Success and admiration.' },
+      { id: 'A', text: 'Evidence, structure, and clear trade-offs.' },
+      { id: 'B', text: 'Values, people impact, and gut coherence.' },
     ],
   },
   {
-    id: 'q10_fear',
-    text: 'Your greatest fear is:',
+    id: 'q10_recharge',
+    text: 'Your ideal recharge day is:',
     options: [
-      { id: 'A', text: 'Being controlled or limited by others.' },
-      { id: 'B', text: 'Missing out on exciting experiences.' },
-      { id: 'C', text: 'Being in conflict with those you care about.' },
-      { id: 'D', text: 'Being seen as incapable or worthless.' },
+      { id: 'A', text: 'Spontaneous hangs or events with others.' },
+      { id: 'B', text: 'Solo time, deep focus, or a quiet ritual.' },
+    ],
+  },
+  {
+    id: 'q11_change',
+    text: 'When plans change last-minute, you:',
+    options: [
+      { id: 'A', text: 'See options and pivot quickly.' },
+      { id: 'B', text: 'Prefer to stabilize and minimize surprises.' },
+    ],
+  },
+  {
+    id: 'q12_expression',
+    text: 'Sharing your work, you tend to:',
+    options: [
+      { id: 'A', text: 'Show early drafts to gather reactions.' },
+      { id: 'B', text: 'Refine privately before unveiling.' },
     ],
   },
 ];
 
-export const TOTAL_QUESTIONS = questions.length;    
+export const TOTAL_QUESTIONS = questions.length;

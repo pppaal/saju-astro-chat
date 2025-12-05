@@ -16,7 +16,7 @@ export async function POST(_request: NextRequest) {
   }
 
   try {
-    const subscription = await request.json();
+    const subscription = await _request.json();
 
     // Validate subscription object
     if (!subscription || !subscription.endpoint) {

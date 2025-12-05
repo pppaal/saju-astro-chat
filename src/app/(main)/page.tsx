@@ -439,6 +439,9 @@ export default function MainPage() {
           <Link href="/about" className={styles.navLink}>
             {translate("common.about", "About")}
           </Link>
+          <Link href="/destiny-match" className={styles.navLink}>
+            💫 Destiny Match
+          </Link>
         </nav>
         <div className={styles.headerLinks}>
           <HeaderUser />
@@ -476,6 +479,9 @@ export default function MainPage() {
               {translate("landing.statsTotal", "Total")}
             </p>
             <p className={styles.statValue}>{totalVisitors ?? "—"}</p>
+            <p className={styles.statSince}>
+              {translate("landing.statsSince", "(Since Dec 2024)")}
+            </p>
           </div>
           <div className={styles.statFootnote}>
             {visitorError ?? translate("landing.statsFootnote", "Visitors update in real time.")}
@@ -483,8 +489,49 @@ export default function MainPage() {
         </div>
       </div>
 
+      {/* How to Use - 3 Step Process */}
+      <section className={styles.howToUseSection}>
+        <h2 className={styles.howToUseTitle}>
+          {translate("landing.howToUseTitle", "3 Steps to Your Destiny")}
+        </h2>
+        <div className={styles.stepsContainer}>
+          <div className={styles.stepCard}>
+            <div className={styles.stepNumber}>1</div>
+            <div className={styles.stepIcon}>📝</div>
+            <h3 className={styles.stepTitle}>
+              {translate("landing.step1Title", "Enter Your Info")}
+            </h3>
+            <p className={styles.stepDesc}>
+              {translate("landing.step1Desc", "생년월일, 시간, 위치를 입력하세요")}
+            </p>
+          </div>
+          <div className={styles.stepArrow}>→</div>
+          <div className={styles.stepCard}>
+            <div className={styles.stepNumber}>2</div>
+            <div className={styles.stepIcon}>💬</div>
+            <h3 className={styles.stepTitle}>
+              {translate("landing.step2Title", "Chat & Explore")}
+            </h3>
+            <p className={styles.stepDesc}>
+              {translate("landing.step2Desc", "AI와 대화하며 운명을 탐색하세요")}
+            </p>
+          </div>
+          <div className={styles.stepArrow}>→</div>
+          <div className={styles.stepCard}>
+            <div className={styles.stepNumber}>3</div>
+            <div className={styles.stepIcon}>🎴</div>
+            <h3 className={styles.stepTitle}>
+              {translate("landing.step3Title", "Draw Tarot")}
+            </h3>
+            <p className={styles.stepDesc}>
+              {translate("landing.step3Desc", "타로 카드로 직관적 답을 얻으세요")}
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className={styles.services}>
-        <div className={styles.serviceHeader}>
+        <div className={styles.serviceHeaderCentered}>
           <div>
             <p className={styles.sectionEyebrow}>
               {translate("landing.servicesEyebrow", "DestinyPal Services")}
@@ -658,12 +705,12 @@ export default function MainPage() {
               <div className={styles.stem} style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', borderColor: 'rgba(34, 197, 94, 0.5)' }}>
                 <span className={styles.elementIcon}>🌳</span>
                 <span className={styles.charMain}>甲</span>
-                <span className={styles.charTranslation}>Wood</span>
+                <span className={styles.charTranslation}>{translate("landing.elementWoodEn", "Wood")}</span>
               </div>
               <div className={styles.branch} style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 0.5)' }}>
                 <span className={styles.elementIcon}>💧</span>
                 <span className={styles.charMain}>子</span>
-                <span className={styles.charTranslation}>Water</span>
+                <span className={styles.charTranslation}>{translate("landing.elementWaterEn", "Water")}</span>
               </div>
             </div>
           </div>
@@ -673,12 +720,12 @@ export default function MainPage() {
               <div className={styles.stem} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)' }}>
                 <span className={styles.elementIcon}>🔥</span>
                 <span className={styles.charMain}>丙</span>
-                <span className={styles.charTranslation}>Fire</span>
+                <span className={styles.charTranslation}>{translate("landing.elementFireEn", "Fire")}</span>
               </div>
               <div className={styles.branch} style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', borderColor: 'rgba(34, 197, 94, 0.5)' }}>
                 <span className={styles.elementIcon}>🌳</span>
                 <span className={styles.charMain}>寅</span>
-                <span className={styles.charTranslation}>Wood</span>
+                <span className={styles.charTranslation}>{translate("landing.elementWoodEn", "Wood")}</span>
               </div>
             </div>
           </div>
@@ -688,12 +735,12 @@ export default function MainPage() {
               <div className={styles.stem} style={{ backgroundColor: 'rgba(234, 179, 8, 0.2)', borderColor: 'rgba(234, 179, 8, 0.5)' }}>
                 <span className={styles.elementIcon}>🏔️</span>
                 <span className={styles.charMain}>戊</span>
-                <span className={styles.charTranslation}>Earth</span>
+                <span className={styles.charTranslation}>{translate("landing.elementEarthEn", "Earth")}</span>
               </div>
               <div className={styles.branch} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)' }}>
                 <span className={styles.elementIcon}>🔥</span>
                 <span className={styles.charMain}>午</span>
-                <span className={styles.charTranslation}>Fire</span>
+                <span className={styles.charTranslation}>{translate("landing.elementFireEn", "Fire")}</span>
               </div>
             </div>
           </div>
@@ -703,12 +750,12 @@ export default function MainPage() {
               <div className={styles.stem} style={{ backgroundColor: 'rgba(229, 229, 229, 0.2)', borderColor: 'rgba(229, 229, 229, 0.5)' }}>
                 <span className={styles.elementIcon}>⚔️</span>
                 <span className={styles.charMain}>庚</span>
-                <span className={styles.charTranslation}>Metal</span>
+                <span className={styles.charTranslation}>{translate("landing.elementMetalEn", "Metal")}</span>
               </div>
               <div className={styles.branch} style={{ backgroundColor: 'rgba(229, 229, 229, 0.2)', borderColor: 'rgba(229, 229, 229, 0.5)' }}>
                 <span className={styles.elementIcon}>⚔️</span>
                 <span className={styles.charMain}>申</span>
-                <span className={styles.charTranslation}>Metal</span>
+                <span className={styles.charTranslation}>{translate("landing.elementMetalEn", "Metal")}</span>
               </div>
             </div>
           </div>
@@ -721,49 +768,49 @@ export default function MainPage() {
               <span className={styles.luckAge}>8-17{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>己未</span>
-                <span className={styles.luckTranslation}>Earth-Earth</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.earthEarth", "Earth-Earth")}</span>
               </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>18-27{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>庚申</span>
-                <span className={styles.luckTranslation}>Metal-Metal</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.metalMetal", "Metal-Metal")}</span>
               </div>
             </div>
             <div className={`${styles.luckPeriod} ${styles.active}`}>
               <span className={styles.luckAge}>28-37{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>辛酉</span>
-                <span className={styles.luckTranslation}>Metal-Metal</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.metalMetal", "Metal-Metal")}</span>
               </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>38-47{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>壬戌</span>
-                <span className={styles.luckTranslation}>Water-Earth</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.waterEarth", "Water-Earth")}</span>
               </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>48-57{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>癸亥</span>
-                <span className={styles.luckTranslation}>Water-Water</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.waterWater", "Water-Water")}</span>
               </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>58-67{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>甲子</span>
-                <span className={styles.luckTranslation}>Wood-Water</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.woodWater", "Wood-Water")}</span>
               </div>
             </div>
             <div className={styles.luckPeriod}>
               <span className={styles.luckAge}>68-77{translate("landing.ageUnit", "세")}</span>
               <div className={styles.luckChars}>
                 <span>乙丑</span>
-                <span className={styles.luckTranslation}>Wood-Earth</span>
+                <span className={styles.luckTranslation}>{translate("landing.elementCombo.woodEarth", "Wood-Earth")}</span>
               </div>
             </div>
           </div>
@@ -805,18 +852,18 @@ export default function MainPage() {
         <div className={styles.shinsalContainer}>
           <div className={styles.shinsalCard}>
             <div className={styles.shinsalIcon}>✨</div>
-            <div className={styles.shinsalName}>Heavenly Noble</div>
-            <div className={styles.shinsalDesc}>Guardian energy</div>
+            <div className={styles.shinsalName}>{translate("landing.shinsal.heavenlyNoble", "Heavenly Noble")}</div>
+            <div className={styles.shinsalDesc}>{translate("landing.shinsal.heavenlyNobleDesc", "Guardian energy")}</div>
           </div>
           <div className={styles.shinsalCard}>
             <div className={styles.shinsalIcon}>🐴</div>
-            <div className={styles.shinsalName}>Post Horse</div>
-            <div className={styles.shinsalDesc}>Travel & movement</div>
+            <div className={styles.shinsalName}>{translate("landing.shinsal.postHorse", "Post Horse")}</div>
+            <div className={styles.shinsalDesc}>{translate("landing.shinsal.postHorseDesc", "Travel & movement")}</div>
           </div>
           <div className={styles.shinsalCard}>
             <div className={styles.shinsalIcon}>🌸</div>
-            <div className={styles.shinsalName}>Peach Blossom</div>
-            <div className={styles.shinsalDesc}>Charm & romance</div>
+            <div className={styles.shinsalName}>{translate("landing.shinsal.peachBlossom", "Peach Blossom")}</div>
+            <div className={styles.shinsalDesc}>{translate("landing.shinsal.peachBlossomDesc", "Charm & romance")}</div>
           </div>
         </div>
       </section>

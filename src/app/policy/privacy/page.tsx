@@ -4,11 +4,11 @@ import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "../policy.module.css";
 
-type Locale = "en" | "ko" | "zh" | "ar" | "es";
+type Locale = "en" | "ko" | "zh" | "ar" | "es" | "fr" | "ja" | "ru";
 type Section = { title: string; body: string };
 
 function asLocale(l: string): Locale {
-  const list: Locale[] = ["en", "ko", "zh", "ar", "es"];
+  const list: Locale[] = ["en", "ko", "zh", "ar", "es", "fr", "ja", "ru"];
   return (list as readonly string[]).includes(l) ? (l as Locale) : "en";
 }
 
@@ -88,6 +88,9 @@ const privacyData: Record<Locale, typeof base> = {
   zh: base,
   ar: base,
   es: base,
+  fr: base,
+  ja: base,
+  ru: base,
 };
 
 function SectionView({ s }: { s: Section }) {

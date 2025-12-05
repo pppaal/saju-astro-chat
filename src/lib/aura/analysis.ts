@@ -1,108 +1,198 @@
-// src/lib/aura/analysis.ts
-import { AuraQuizAnswers, PersonalityProfile, AuraAnalysis } from '@/lib/aura/types';
+import { AURA_ARCHETYPES } from './archetypes';
+import {
+  AuraAnalysis,
+  AuraAxisKey,
+  AuraAxisResult,
+  AuraPole,
+  AuraQuizAnswers,
+  PersonalityProfile,
+} from './types';
 
-const clampPct = (v: number, max: number) =>
-  Math.max(0, Math.min(100, Math.round((v / max) * 100)));
+type AxisState = Record<AuraAxisKey, Record<AuraPole, number>>;
+
+const AXES: Record<AuraAxisKey, [AuraPole, AuraPole]> = {
+  energy: ['radiant', 'grounded'],
+  cognition: ['visionary', 'structured'],
+  decision: ['logic', 'empathic'],
+  rhythm: ['flow', 'anchor'],
+};
+
+type Effect = { axis: AuraAxisKey; pole: AuraPole; weight: number };
+type AnswerEffects = Record<string, Record<string, Effect[]>>;
+
+// Map each answer to axis/pole weights (custom, copyright-safe “Nova” model).
+const EFFECTS: AnswerEffects = {
+  q1_energy: {
+    A: [{ axis: 'energy', pole: 'radiant', weight: 2 }],
+    B: [{ axis: 'energy', pole: 'grounded', weight: 2 }],
+  },
+  q2_strategy: {
+    A: [{ axis: 'cognition', pole: 'visionary', weight: 2 }],
+    B: [{ axis: 'cognition', pole: 'structured', weight: 2 }],
+  },
+  q3_planning: {
+    A: [{ axis: 'rhythm', pole: 'anchor', weight: 2 }],
+    B: [{ axis: 'rhythm', pole: 'flow', weight: 2 }],
+  },
+  q4_conflict: {
+    A: [{ axis: 'decision', pole: 'logic', weight: 2 }],
+    B: [{ axis: 'decision', pole: 'empathic', weight: 2 }],
+  },
+  q5_risk: {
+    A: [
+      { axis: 'energy', pole: 'radiant', weight: 1 },
+      { axis: 'rhythm', pole: 'flow', weight: 1 },
+    ],
+    B: [
+      { axis: 'energy', pole: 'grounded', weight: 1 },
+      { axis: 'rhythm', pole: 'anchor', weight: 1 },
+    ],
+  },
+  q6_learning: {
+    A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
+    B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
+  },
+  q7_deadlines: {
+    A: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
+    B: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
+  },
+  q8_team_role: {
+    A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
+    B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
+  },
+  q9_decision: {
+    A: [{ axis: 'decision', pole: 'logic', weight: 2 }],
+    B: [{ axis: 'decision', pole: 'empathic', weight: 2 }],
+  },
+  q10_recharge: {
+    A: [{ axis: 'energy', pole: 'radiant', weight: 2 }],
+    B: [{ axis: 'energy', pole: 'grounded', weight: 2 }],
+  },
+  q11_change: {
+    A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
+    B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
+  },
+  q12_expression: {
+    A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
+    B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
+  },
+};
+
+const resolveAxis = (axis: AuraAxisKey, state: AxisState): AuraAxisResult => {
+  const [p1, p2] = AXES[axis];
+  const a = state[axis][p1] ?? 0;
+  const b = state[axis][p2] ?? 0;
+  const total = a + b || 1;
+  const dominant = (a >= b ? p1 : p2) as AuraPole;
+  const dominantScore = Math.round(((a >= b ? a : b) / total) * 100);
+  return { pole: dominant, score: dominantScore };
+};
+
+const letterForAxis = (axis: AuraAxisKey, pole: AuraPole): string => {
+  if (axis === 'energy') return pole === 'radiant' ? 'R' : 'G';
+  if (axis === 'cognition') return pole === 'visionary' ? 'V' : 'S';
+  if (axis === 'decision') return pole === 'logic' ? 'L' : 'H';
+  return pole === 'flow' ? 'F' : 'A';
+};
+
+const fallbackArchetype = (code: string) => ({
+  code,
+  name: 'Adaptive Polymath',
+  summary: 'Balanced across axes with adaptable strengths.',
+  strengths: ['Flexible', 'Integrative thinking', 'Situational awareness'],
+  cautions: ['May delay decisions', 'Risk of unclear priorities'],
+  idealRoles: ['Generalist PM', 'Operations hybrid', 'Founder associate'],
+  growth: ['Name a primary lane for this season', 'Ship smaller bets faster'],
+  compatibilityHint: 'Pairs with specialists to go deeper; you provide glue.',
+});
 
 export function analyzeAura(answers: AuraQuizAnswers): AuraAnalysis {
-  let extraversion = 0,
-    introversion = 0,
-    _sensing = 0,
-    intuition = 0,
-    thinking = 0,
-    _feeling = 0,
-    _judging = 0,
-    perceiving = 0;
+  const zeroAxis = (a: AuraPole, b: AuraPole): Record<AuraPole, number> =>
+    ({
+      radiant: 0,
+      grounded: 0,
+      visionary: 0,
+      structured: 0,
+      logic: 0,
+      empathic: 0,
+      flow: 0,
+      anchor: 0,
+      [a]: 0,
+      [b]: 0,
+    } as Record<AuraPole, number>);
 
-  let openness = 0,
-    conscientiousness = 0,
-    agreeableness = 0,
-    neuroticism = 0;
-
-  const enneagram: Record<string, number> = {
-    '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0,
+  const state: AxisState = {
+    energy: zeroAxis('radiant', 'grounded'),
+    cognition: zeroAxis('visionary', 'structured'),
+    decision: zeroAxis('logic', 'empathic'),
+    rhythm: zeroAxis('flow', 'anchor'),
   };
 
-  if (answers.q1_energy === 'A') extraversion++; else introversion++;
-  if (answers.q2_focus === 'A') intuition++; else _sensing++;
-  if (answers.q3_decision === 'A') thinking++; else _feeling++;
-  if (answers.q4_planning === 'A') { _judging++; conscientiousness += 2; } else { perceiving++; conscientiousness--; }
-  if (answers.q5_new_ideas === 'A') openness += 2; else openness--;
-  if (answers.q6_chores === 'A') conscientiousness += 2; else conscientiousness--;
-  if (answers.q7_conflict === 'A') agreeableness += 2; else agreeableness--;
-  if (answers.q8_stress === 'A') neuroticism += 2; else neuroticism--;
+  // Apply answer effects
+  Object.entries(answers).forEach(([qId, choice]) => {
+    const effects = choice ? EFFECTS[qId]?.[choice] : undefined;
+    effects?.forEach(({ axis, pole, weight }) => {
+      state[axis][pole] = (state[axis][pole] ?? 0) + weight;
+    });
+  });
 
-  switch (answers.q9_motivation) {
-    case 'A': enneagram['6']++; break;
-    case 'B': enneagram['1']++; break;
-    case 'C': enneagram['4']++; break;
-    case 'D': enneagram['3']++; break;
-  }
-  switch (answers.q10_fear) {
-    case 'A': enneagram['8']++; break;
-    case 'B': enneagram['7']++; break;
-    case 'C': enneagram['9']++; break;
-    case 'D': { enneagram['2']++; enneagram['3']++; break; }
-  }
+  const axisResults: Record<AuraAxisKey, AuraAxisResult> = {
+    energy: resolveAxis('energy', state),
+    cognition: resolveAxis('cognition', state),
+    decision: resolveAxis('decision', state),
+    rhythm: resolveAxis('rhythm', state),
+  };
+
+  const typeCode = (
+    letterForAxis('energy', axisResults.energy.pole) +
+    letterForAxis('cognition', axisResults.cognition.pole) +
+    letterForAxis('decision', axisResults.decision.pole) +
+    letterForAxis('rhythm', axisResults.rhythm.pole)
+  ) as string;
+
+  const archetype = AURA_ARCHETYPES[typeCode] ?? fallbackArchetype(typeCode);
+
+  const openness = axisResults.cognition.pole === 'visionary' ? axisResults.cognition.score : 100 - axisResults.cognition.score;
+  const conscientiousness = axisResults.rhythm.pole === 'anchor' ? axisResults.rhythm.score : 100 - axisResults.rhythm.score;
+  const extraversion = axisResults.energy.pole === 'radiant' ? axisResults.energy.score : 100 - axisResults.energy.score;
+  const agreeableness = axisResults.decision.pole === 'empathic' ? axisResults.decision.score : 100 - axisResults.decision.score;
 
   const profile: PersonalityProfile = {
-    extraversion: clampPct(extraversion, 1),
-    introversion: clampPct(introversion, 1),
-    intuition: clampPct(intuition, 1),
-    thinking: clampPct(thinking, 1),
-    perceiving: clampPct(perceiving, 1),
-    openness: clampPct(openness, 2),
-    conscientiousness: clampPct(conscientiousness, 4),
-    agreeableness: clampPct(agreeableness, 2),
-    neuroticism: clampPct(neuroticism, 2),
-    enneagram,
+    openness,
+    conscientiousness,
+    extraversion,
+    agreeableness,
+    neuroticism: 50,
+    introversion: 100 - extraversion,
+    intuition: openness,
+    thinking: axisResults.decision.pole === 'logic' ? axisResults.decision.score : 100 - axisResults.decision.score,
+    perceiving: axisResults.rhythm.pole === 'flow' ? axisResults.rhythm.score : 100 - axisResults.rhythm.score,
+    enneagram: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0 },
   };
 
-  let title = 'The Balanced Soul';
-  let summary = 'You navigate the world with a rare balance of logic and emotion, planning and spontaneity.';
-  let strengths = ['Adaptable', 'Well-rounded', 'Resilient'];
-  let challenges = ['Can be indecisive', 'May lack a single-minded focus'];
-  let career = 'Great fit for roles that blend technical skill and people focus.';
-  let relationships = 'Stable and understanding partner.';
-  let guidance = 'Embrace your multifaceted nature.';
-
-  if (profile.intuition > 60 && profile.thinking > 60 && profile.conscientiousness > 70) {
-    title = 'The Visionary Architect';
-    summary = 'You don\'t just dream of the future; you build the blueprints for it.';
-    strengths = ['Strategic Thinking', 'Long-range Planning', 'Intellectual Rigor'];
-    challenges = ['Can seem detached', 'Perfectionistic', 'Impatient with inefficiency'];
-    career = 'CEO, systems architect, research scientist, strategist.';
-    guidance = 'Share your why to inspire others to join your cause.';
-  }
-
-  if (profile.extraversion > 60 && profile.agreeableness > 70 && (profile.enneagram['2'] > 0 || profile.enneagram['9'] > 0)) {
-    title = 'The Compassionate Catalyst';
-    summary = 'A natural connector driven by empathy and harmony.';
-    strengths = ['High Empathy', 'Team Building', 'Inspirational Communication'];
-    challenges = ['Neglects own needs', 'Avoids necessary conflict'];
-    career = 'HR leader, non-profit director, therapist, teacher, community manager.';
-    guidance = 'Schedule time for your own needs; your well-being fuels your gift.';
-  }
-
-  if (profile.openness > 70 && profile.perceiving > 60 && profile.enneagram['7'] > 0) {
-    title = 'The Creative Adventurer';
-    summary = 'Curious, spontaneous, and imaginative.';
-    strengths = ['Divergent Thinking', 'Spontaneity', 'Optimism', 'Adaptability'];
-    challenges = ['Follow-through', 'Boredom with routine'];
-    career = 'Entrepreneur, artist, brand strategist, R&D.';
-    guidance = 'Pick a few meaningful projects and commit to them.';
-  }
+  const primaryColor = `hsl(${180 + openness * 0.8}, 80%, 60%)`;
+  const secondaryColor = `hsl(${axisResults.energy.pole === 'radiant' ? 210 : 330}, 75%, 65%)`;
 
   return {
-    title,
-    summary,
-    strengths,
-    challenges,
-    career,
-    relationships,
-    guidance,
+    title: archetype.name,
+    personaName: archetype.name,
+    summary: archetype.summary,
+    typeCode,
+    axes: axisResults,
+    primaryColor,
+    secondaryColor,
+    strengths: archetype.strengths,
+    challenges: archetype.cautions,
+    career: archetype.idealRoles.slice(0, 3).join(', '),
+    relationships: archetype.compatibilityHint,
+    guidance: archetype.growth.join(' '),
+    keyMotivations: [
+      axisResults.energy.pole === 'radiant' ? 'Visibility and momentum' : 'Depth and steadiness',
+      axisResults.cognition.pole === 'visionary' ? 'Possibility and patterns' : 'Clarity and proof',
+      axisResults.decision.pole === 'empathic' ? 'People impact' : 'Objective correctness',
+    ],
+    recommendedRoles: archetype.idealRoles,
+    compatibilityHint: archetype.compatibilityHint,
     profile,
-    primaryColor: `hsl(${180 + profile.openness * 1.5}, 80%, 60%)`,
-    secondaryColor: `hsl(${300 + profile.agreeableness}, 85%, 65%)`,
   };
 }

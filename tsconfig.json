@@ -1,5 +1,3 @@
-//tsconfig.json
-
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -10,28 +8,16 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-
-    // âœ… ëª¨ë“ˆ ê´€ë ¨
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-
-    // âœ… ì¤‘ìš”: import ì‹œ .ts í™•ìž¥ìž ë¶™ì´ì§€ ì•Šì•„ë„ ë¨
     "allowImportingTsExtensions": false,
-
-    // âœ… íƒ€ìž… ì¸ì‹
     "types": ["node", "next", "react", "react-dom"],
-
-    // âœ… íƒ€ìž… ë£¨íŠ¸ ì¶”ê°€ (pdf-lib ì„ ì–¸ í¬í•¨)
     "typeRoots": ["./node_modules/@types", "./src/types"],
-
-    // âœ… Next.js í”ŒëŸ¬ê·¸ì¸
     "plugins": [{ "name": "next" }],
-
-    // âœ… ê²½ë¡œ alias
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -47,11 +33,6 @@
       "@/narrative/*": ["src/narrative/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "src/**/*",
-    "**/*.d.ts",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["next-env.d.ts", "src/**/*", "**/*.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

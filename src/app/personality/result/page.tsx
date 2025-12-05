@@ -9,7 +9,7 @@ export default function ResultPage() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('aura_answers');
+      const raw = localStorage.getItem('auraQuizAnswers') ?? localStorage.getItem('aura_answers');
       if (raw) setAnswers(JSON.parse(raw));
     } catch {
       // noop
@@ -20,7 +20,7 @@ export default function ResultPage() {
     setAnswers((prev) => {
       const next = { ...prev, [qId]: aId };
       try {
-        localStorage.setItem('aura_answers', JSON.stringify(next));
+        localStorage.setItem('auraQuizAnswers', JSON.stringify(next));
       } catch {
         // noop
       }

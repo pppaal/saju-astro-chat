@@ -46,7 +46,10 @@ export default function ThemeSelectClient() {
   const sp = useSearchParams();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
-  const baseParams = useMemo(() => new URLSearchParams(sp.toString()), [sp]);
+  const baseParams = useMemo(
+    () => new URLSearchParams(sp?.toString() ?? ""),
+    [sp]
+  );
 
   // ------------------------------------------------------------ //
   // 🎨 Particle Animation
@@ -193,8 +196,8 @@ export default function ThemeSelectClient() {
     const params = new URLSearchParams(baseParams.toString());
     params.set('theme', theme);
 
-    const lat = sp.get('latitude') || sp.get('lat');
-    const lon = sp.get('longitude') || sp.get('lon');
+    const lat = sp?.get('latitude') || sp?.get('lat');
+    const lon = sp?.get('longitude') || sp?.get('lon');
     if (lat) params.set('latitude', lat);
     if (lon) params.set('longitude', lon);
 
@@ -202,7 +205,7 @@ export default function ThemeSelectClient() {
   };
 
   const onBack = () => {
-    const lang = sp.get('lang') || 'ko';
+    const lang = sp?.get('lang') || 'ko';
     router.push(`/destiny-map?lang=${lang}`);
   };
 

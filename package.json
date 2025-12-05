@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
     "test:unit": "set TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\",\"jsx\":\"react-jsx\"}&& node -r ts-node/register --test tests/*.test.ts",
     "dev:astro": "ts-node -P tsconfig.scripts.json -r tsconfig-paths/register scripts/dev-astro.ts"
   },
@@ -90,6 +91,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
     "typescript": "^5",
+    "vitest": "^4.0.15",
     "webpack": "^5.102.1"
   }
 }

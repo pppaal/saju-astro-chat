@@ -75,14 +75,9 @@ function ensureEphePath() {
 export async function calculateNatalChart(input: NatalChartInput): Promise<NatalChartData> {
   ensureEphePath();
 
+  const pad = (v: number) => String(v).padStart(2, "0");
   const local = dayjs.tz(
-    {
-      year: input.year,
-      month: input.month - 1,
-      date: input.date,
-      hour: input.hour,
-      minute: input.minute,
-    },
+    `${input.year}-${pad(input.month)}-${pad(input.date)}T${pad(input.hour)}:${pad(input.minute)}:00`,
     input.timeZone
   );
   if (!local.isValid()) throw new Error("Invalid local datetime for given timeZone");

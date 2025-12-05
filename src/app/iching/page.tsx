@@ -2,10 +2,12 @@
 
 import React from 'react';
 import IChingReader from '../../components/iching/IChingReader';
+import { useI18n } from '@/i18n/I18nProvider';
 
 //--- IchingPage Component ---//
 export default function IchingPage() {
-    
+  const { translate } = useI18n();
+
   const handleBack = () => {
     window.history.back();
   };
@@ -133,7 +135,7 @@ export default function IchingPage() {
             <div className="hex-line broken"></div>
             <div className="hex-line"></div>
           </div>
-          <h1 className="title">Wisdom of the IChing</h1>
+          <h1 className="title">{translate('iching.title', 'Wisdom of the I Ching')}</h1>
         </div>
 
         {/* 기존 리더 컴포넌트 */}

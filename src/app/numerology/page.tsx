@@ -53,9 +53,13 @@ function reduceToCore(num: number) {
 }
 
 // 컴포넌트
-function ResultCard({ title, value, description }: { title: string; value: React.ReactNode; description: string }) {
+function ResultCard({ title, value, description, index }: { title: string; value: React.ReactNode; description: string; index?: number }) {
   return (
-    <div className={styles.resultCard}>
+    <div
+      className={styles.resultCard}
+      style={index !== undefined ? { animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both` } : undefined}
+    >
+      <div className={styles.cardGlow} />
       <span className={styles.resultValue}>{value}</span>
       <h3 className={styles.resultTitle}>{title}</h3>
       <p className={styles.resultDescription}>{description}</p>
@@ -221,9 +225,29 @@ export default function Page() {
       subtitle="Discover your life path and lucky numbers through numerology"
     >
     <main className={styles.page}>
+      {/* Background Particles */}
+      <div className={styles.particles}>
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className={styles.particle}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 6}s`,
+              animationDuration: `${4 + Math.random() * 4}s`,
+            }}
+          />
+        ))}
+      </div>
 
       {!profile && (
-        <div className={styles.formContainer}>
+        <div className={`${styles.formContainer} ${styles.fadeIn}`}>
+          <div className={styles.formHeader}>
+            <div className={styles.formIcon}>🔢</div>
+            <h1 className={styles.formTitle}>Numerology Reading</h1>
+            <p className={styles.formSubtitle}>Discover your life path and lucky numbers</p>
+          </div>
           <div className={`${styles.row} ${styles.two}`}>
             <div>
               <label className={styles.inputLabel} htmlFor="name">Full Name</label>
@@ -345,31 +369,51 @@ export default function Page() {
             </div>
           </div>
 
-          <button className={styles.calcButton} onClick={handleCalculate}>Reveal My Numbers</button>
+          <button className={styles.calcButton} onClick={handleCalculate}>
+            <span className={styles.buttonGlow} />
+            <span className={styles.buttonText}>Reveal My Numbers</span>
+          </button>
           {error && <div className={styles.error}>{error}</div>}
         </div>
       )}
 
       {profile && (
-        <>
-          <div className={styles.resultsGrid}>
-            <ResultCard title="Life Path Number" value={profile.lifePathNumber} description={describe("lifePath", profile.lifePathNumber)} />
-            <ResultCard title="Expression Number" value={profile.expressionNumber} description={describe("expression", profile.expressionNumber)} />
-            <ResultCard title="Soul Urge Number" value={profile.soulUrgeNumber} description={describe("soulUrge", profile.soulUrgeNumber)} />
-            <ResultCard title="Personality Number" value={profile.personalityNumber} description={describe("personality", profile.personalityNumber)} />
+        <div className={styles.resultsContainer}>
+          <button className={styles.resetButton} onClick={() => { setProfile(null); setLuckyNumbers(null); }}>
+            ← New Reading
+          </button>
+
+          <div className={styles.resultsHeader}>
+            <div className={styles.headerIcon}>✨</div>
+            <h1 className={styles.resultsTitle}>Your Numerology Profile</h1>
+            <p className={styles.resultsSubtitle}>Discover the numbers that shape your destiny</p>
           </div>
 
-          <div className={styles.luckyWrap}>
-            <div className={styles.luckyTitle}>행운 숫자 추천</div>
+          <div className={styles.resultsGrid}>
+            <ResultCard title="Life Path Number" value={profile.lifePathNumber} description={describe("lifePath", profile.lifePathNumber)} index={0} />
+            <ResultCard title="Expression Number" value={profile.expressionNumber} description={describe("expression", profile.expressionNumber)} index={1} />
+            <ResultCard title="Soul Urge Number" value={profile.soulUrgeNumber} description={describe("soulUrge", profile.soulUrgeNumber)} index={2} />
+            <ResultCard title="Personality Number" value={profile.personalityNumber} description={describe("personality", profile.personalityNumber)} index={3} />
+          </div>
+
+          <div className={`${styles.luckyWrap} ${styles.luckyReveal}`}>
+            <div className={styles.luckyHeader}>
+              <div className={styles.luckyIcon}>🍀</div>
+              <div className={styles.luckyTitle}>Lucky Numbers</div>
+            </div>
             {luckyNumbers?.length ? (
               <div className={styles.chips}>
                 {luckyNumbers.map((n, i) => {
                   const r = reduceToCore(n);
                   return (
-                    <span className={styles.chip} key={`${n}-${i}`}>
-                      {n}
-                      <span className={styles.chipTag}>#{r} {luckyTag[r] || "에너지"}</span>
-                    </span>
+                    <div
+                      className={styles.chip}
+                      key={`${n}-${i}`}
+                      style={{ animation: `chipPop 0.5s ease-out ${0.6 + i * 0.1}s both` }}
+                    >
+                      <div className={styles.chipNumber}>{n}</div>
+                      <div className={styles.chipTag}>#{r} {luckyTag[r] || "에너지"}</div>
+                    </div>
                   );
                 })}
               </div>
@@ -379,7 +423,7 @@ export default function Page() {
           </div>
 
           {(birthCity || currCity) && (
-            <div className={styles.luckyWrap} style={{ marginTop: "1rem" }}>
+            <div className={`${styles.luckyWrap} ${styles.summaryWrap}`} style={{ marginTop: "1rem" }}>
               <div className={styles.luckyTitle}>입력 요약</div>
               <div className={styles.resultDescription}>
                 {birthCity && <>출생 도시: {birthCity}{timeZone ? ` (TZ: ${timeZone})` : ""} · 출생 시간: {birthtime}<br /></>}
@@ -387,7 +431,7 @@ export default function Page() {
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </main>
     </ServicePageLayout>

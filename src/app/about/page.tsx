@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "./about.module.css";
 
@@ -99,12 +99,7 @@ const services = [
 ];
 
 export default function AboutPage() {
-  const [lang, setLang] = useState('ko');
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem('locale') || 'ko';
-    setLang(savedLang);
-  }, []);
+  const { translate } = useI18n();
 
   return (
     <div className={styles.page}>
@@ -116,29 +111,25 @@ export default function AboutPage() {
         <section className={styles.hero}>
           <div className={styles.stars} aria-hidden />
           <h1 className={styles.heroTitle}>
-            {lang === 'ko' ? '별과 기운을 읽고,' : 'Read the stars and energy,'}
+            {translate("about.heroTitle1", "Read the stars and energy,")}
             <br />
-            {lang === 'ko' ? '당신의 선택을 더 똑똑하게.' : 'Make smarter choices.'}
+            {translate("about.heroTitle2", "Make smarter choices.")}
           </h1>
           <p className={styles.heroSub}>
-            {lang === 'ko'
-              ? '출생 데이터와 체계화된 해석 프레임으로 사주·점성학·주역·타로를 한 곳에. 정확한 입력과 윤리적 가이드를 바탕으로, 단정적 예언이 아닌 실용적 힌트를 제공합니다.'
-              : 'Combine Saju, Astrology, I Ching, and Tarot in one place with precise data and ethical guidance. We provide practical hints, not absolute predictions.'}
+            {translate("about.heroSub", "Combine Saju, Astrology, I Ching, and Tarot in one place with precise data and ethical guidance. We provide practical hints, not absolute predictions.")}
           </p>
         </section>
 
         <section className={styles.servicesSection}>
           <div className={styles.sectionHeader}>
             <p className={styles.eyebrow}>
-              {lang === 'ko' ? 'DestinyPal 서비스' : 'DestinyPal Services'}
+              {translate("about.servicesEyebrow", "DestinyPal Services")}
             </p>
             <h2 className={styles.sectionTitle}>
-              {lang === 'ko' ? '9가지 운명 리딩' : '9 Destiny Readings'}
+              {translate("about.servicesTitle", "9 Destiny Readings")}
             </h2>
             <p className={styles.sectionDesc}>
-              {lang === 'ko'
-                ? '각 서비스의 고유한 관점으로 당신의 운명을 다각도로 탐색하세요'
-                : 'Explore your destiny from multiple perspectives with each unique service'}
+              {translate("about.servicesDesc", "Explore your destiny from multiple perspectives with each unique service")}
             </p>
           </div>
 
@@ -156,10 +147,10 @@ export default function AboutPage() {
                 <div className={styles.cardContent}>
                   <div className={styles.serviceIcon}>{service.icon}</div>
                   <h3 className={styles.serviceTitle}>
-                    {lang === 'ko' ? service.titleKo : service.title}
+                    {translate(`about.service.${service.id}.title`, service.title)}
                   </h3>
                   <p className={styles.serviceDesc}>
-                    {lang === 'ko' ? service.description : service.descriptionEn}
+                    {translate(`about.service.${service.id}.desc`, service.descriptionEn)}
                   </p>
                   <span className={styles.serviceArrow}>→</span>
                 </div>
@@ -170,43 +161,35 @@ export default function AboutPage() {
 
         <section className={styles.philosophy}>
           <h2 className={styles.philosophyTitle}>
-            {lang === 'ko' ? '우리의 철학' : 'Our Philosophy'}
+            {translate("about.philosophyTitle", "Our Philosophy")}
           </h2>
           <div className={styles.philosophyGrid}>
             <div className={styles.philosophyCard}>
               <div className={styles.philosophyIcon}>🎯</div>
-              <h3>{lang === 'ko' ? '정확한 계산' : 'Accurate Calculation'}</h3>
+              <h3>{translate("about.philosophy.accurate.title", "Accurate Calculation")}</h3>
               <p>
-                {lang === 'ko'
-                  ? '시간대, 절기, DST 등을 정확히 반영한 신뢰할 수 있는 계산 로직'
-                  : 'Reliable calculations reflecting time zones, seasons, and DST'}
+                {translate("about.philosophy.accurate.desc", "Reliable calculations reflecting time zones, seasons, and DST")}
               </p>
             </div>
             <div className={styles.philosophyCard}>
               <div className={styles.philosophyIcon}>🤝</div>
-              <h3>{lang === 'ko' ? '윤리적 가이드' : 'Ethical Guidance'}</h3>
+              <h3>{translate("about.philosophy.ethical.title", "Ethical Guidance")}</h3>
               <p>
-                {lang === 'ko'
-                  ? '단정적 예언이 아닌, 선택을 돕는 실용적 힌트 제공'
-                  : 'Practical hints to help choices, not absolute predictions'}
+                {translate("about.philosophy.ethical.desc", "Practical hints to help choices, not absolute predictions")}
               </p>
             </div>
             <div className={styles.philosophyCard}>
               <div className={styles.philosophyIcon}>✨</div>
-              <h3>{lang === 'ko' ? '직관적 UI' : 'Intuitive UI'}</h3>
+              <h3>{translate("about.philosophy.ui.title", "Intuitive UI")}</h3>
               <p>
-                {lang === 'ko'
-                  ? '복잡한 정보를 쉽고 아름답게 전달하는 인터페이스'
-                  : 'Beautiful interface that makes complex information easy'}
+                {translate("about.philosophy.ui.desc", "Beautiful interface that makes complex information easy")}
               </p>
             </div>
             <div className={styles.philosophyCard}>
               <div className={styles.philosophyIcon}>🤖</div>
-              <h3>{lang === 'ko' ? 'AI 융합' : 'AI Integration'}</h3>
+              <h3>{translate("about.philosophy.ai.title", "AI Integration")}</h3>
               <p>
-                {lang === 'ko'
-                  ? '여러 점술 체계를 AI로 융합해 통합적 인사이트 제공'
-                  : 'AI-powered integration of multiple divination systems'}
+                {translate("about.philosophy.ai.desc", "AI-powered integration of multiple divination systems")}
               </p>
             </div>
           </div>
@@ -214,19 +197,17 @@ export default function AboutPage() {
 
         <section className={styles.cta}>
           <h2 className={styles.ctaTitle}>
-            {lang === 'ko' ? '지금 바로 시작하세요' : 'Start Now'}
+            {translate("about.ctaTitle", "Start Now")}
           </h2>
           <p className={styles.ctaSub}>
-            {lang === 'ko'
-              ? '당신의 운명 지도를 AI와 함께 탐색해보세요'
-              : 'Explore your destiny map with AI'}
+            {translate("about.ctaSub", "Explore your destiny map with AI")}
           </p>
           <div className={styles.ctaButtons}>
             <Link href="/destiny-map" className={styles.ctaPrimary}>
-              {lang === 'ko' ? 'Destiny Map 시작' : 'Start Destiny Map'}
+              {translate("about.ctaPrimary", "Start Destiny Map")}
             </Link>
             <Link href="/" className={styles.ctaSecondary}>
-              {lang === 'ko' ? '메인으로' : 'Go Home'}
+              {translate("about.ctaSecondary", "Go Home")}
             </Link>
           </div>
         </section>

@@ -47,7 +47,7 @@ async function startCheckout() {
 }
 
 function MyJourneyPage() {
-  const { data: _session, status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const search = useSearchParams();
 
@@ -90,7 +90,7 @@ function MyJourneyPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const fromQuery = search.get("from");
+    const fromQuery = search?.get("from");
     const looksLikeAuthReferrer =
       document.referrer.includes("/api/auth") ||
       document.referrer.includes("accounts.google.com") ||

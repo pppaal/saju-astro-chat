@@ -8,7 +8,8 @@ import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import styles from "./spread-selection.module.css";
 
 export default function SpreadSelectionPage() {
-  const { categoryName } = useParams();
+  const params = useParams();
+  const categoryName = params?.categoryName as string | undefined;
   const { translate } = useI18n();
   const theme = tarotThemes.find((t) => t.id === categoryName);
 
