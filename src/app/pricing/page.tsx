@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 
 export default function PricingPage() {
@@ -12,14 +12,14 @@ export default function PricingPage() {
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
-    else alert(data.error || '결제 생성 실패');
+    else alert(data.error || 'Ω▓░∞á£ ∞â¥∞ä▒ ∞ïñφî¿');
   }
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
       <h1 style={{ marginBottom: 12 }}>destinypal Pricing</h1>
 
-      <label style={{ display: 'block', fontSize: 14, marginBottom: 6 }}>Email(선택)</label>
+      <label style={{ display: 'block', fontSize: 14, marginBottom: 6 }}>Email(∞äáφâ¥)</label>
       <input
         placeholder="you@example.com"
         value={email}
@@ -32,23 +32,24 @@ export default function PricingPage() {
           onClick={() => checkout('monthly-premium')}
           style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #333', cursor: 'pointer' }}
         >
-          Premium HK$39/월
+          Premium HK$39/∞¢ö
         </button>
 
         <button
           onClick={() => checkout('annual-premium')}
           style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #333', cursor: 'pointer' }}
         >
-          Premium HK$299/년
+          Premium HK$299/δàä
         </button>
 
         <button
           onClick={() => checkout('full-report-unlock')}
           style={{ padding: '12px 16px', borderRadius: 8, border: '1px solid #333', cursor: 'pointer' }}
         >
-          전체 리포트 1회 HK$49
+          ∞áä∞▓┤ δª¼φÅ¼φè╕ 1φÜî HK$49
         </button>
       </div>
     </div>
   );
 }
+

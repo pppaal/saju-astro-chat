@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import AuraQuiz from '@/components/aura/AuraQuiz';
@@ -34,3 +34,4 @@ export default function ResultPage() {
     </main>
   );
 }
+

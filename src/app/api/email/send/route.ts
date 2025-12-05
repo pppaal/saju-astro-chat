@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  * POST /api/email/send
  * Send email notification to a user
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
  * GET /api/email/send
  * Test endpoint to send a sample email
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {

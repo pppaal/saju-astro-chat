@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -10,6 +10,17 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { useToast } from "@/components/ui/Toast";
 import { PostSkeleton } from "@/components/ui/Skeleton";
 import styles from "./community.module.css";
+
+type Particle = {
+  x: number;
+  y: number;
+  size: number;
+  speedX: number;
+  speedY: number;
+  color: string;
+  update: () => void;
+  draw: () => void;
+};
 
 type MediaType = "image" | "video";
 
@@ -61,6 +72,41 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => Date.now();
 
 const CATEGORIES = ["all", "tarot", "zodiac", "fortune", "stars", "saju"];
+
+const EXTERNAL_COMMUNITIES = [
+  {
+    name: "r/astrology",
+    platform: "Reddit",
+    icon: "🔮",
+    members: "1.2M",
+    gradient: "linear-gradient(135deg, #FF4500 0%, #FF6B35 100%)",
+    url: "https://reddit.com/r/astrology"
+  },
+  {
+    name: "r/tarot",
+    platform: "Reddit",
+    icon: "🃏",
+    members: "580K",
+    gradient: "linear-gradient(135deg, #FF4500 0%, #FF6B35 100%)",
+    url: "https://reddit.com/r/tarot"
+  },
+  {
+    name: "#astrology",
+    platform: "Instagram",
+    icon: "✨",
+    members: "12M+",
+    gradient: "linear-gradient(135deg, #833AB4 0%, #FD1D1D 50%, #FCB045 100%)",
+    url: "https://instagram.com/explore/tags/astrology"
+  },
+  {
+    name: "Astrology Twitter",
+    platform: "Twitter/X",
+    icon: "🌟",
+    members: "Active",
+    gradient: "linear-gradient(135deg, #1DA1F2 0%, #0C85D0 100%)",
+    url: "https://twitter.com/search?q=astrology"
+  }
+];
 
 const seed: Post[] = [
   {
@@ -119,11 +165,12 @@ export default function CommunityPage() {
   const { t } = useI18n();
   const toast = useToast();
   const isLoggedIn = !!session?.user;
+  const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [posts, setPosts] = useState<Post[]>(seed);
   const [tab, setTab] = useState<SortKey>("new");
   const [category, setCategory] = useState<string>("all");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
 
@@ -137,6 +184,145 @@ export default function CommunityPage() {
   const [showComments, setShowComments] = useState<Record<string, boolean>>({});
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
+
+  // Particle Animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const PARTICLE_COUNT = 60;
+    const MAX_LINK_DISTANCE = 100;
+    const MOUSE_INTERACTION_RADIUS = 180;
+    const PARTICLE_BASE_SPEED = 0.25;
+
+    let particlesArray: Particle[] = [];
+    let raf = 0;
+
+    const mouse = {
+      x: undefined as number | undefined,
+      y: undefined as number | undefined,
+      radius: MOUSE_INTERACTION_RADIUS,
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    };
+    const handleMouseOut = () => {
+      mouse.x = undefined;
+      mouse.y = undefined;
+    };
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+    window.addEventListener('resize', handleResize);
+
+    class ParticleImpl implements Particle {
+      x: number;
+      y: number;
+      size: number;
+      speedX: number;
+      speedY: number;
+      color: string;
+
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
+        this.speedY = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
+        const colors = ['#7c5cff', '#a78bfa', '#ff6b9d', '#ffa36c', '#43e97b'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (mouse.x !== undefined && mouse.y !== undefined) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius) {
+            const forceDirectionX = dx / distance;
+            const forceDirectionY = dy / distance;
+            const force = (mouse.radius - distance) / mouse.radius;
+            const directionX = forceDirectionX * force * 2;
+            const directionY = forceDirectionY * force * 2;
+            this.x -= directionX;
+            this.y -= directionY;
+          }
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      particlesArray = [];
+      let numberOfParticles = (canvas.height * canvas.width) / 12000;
+      numberOfParticles = Math.min(numberOfParticles, PARTICLE_COUNT);
+      for (let i = 0; i < numberOfParticles; i++) {
+        particlesArray.push(new ParticleImpl());
+      }
+    }
+
+    function connectParticles() {
+      for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a; b < particlesArray.length; b++) {
+          const dx = particlesArray[a].x - particlesArray[b].x;
+          const dy = particlesArray[a].y - particlesArray[b].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < MAX_LINK_DISTANCE) {
+            const opacity = (1 - distance / MAX_LINK_DISTANCE) * 0.4;
+            ctx.strokeStyle = `rgba(124, 92, 255, ${opacity})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+      connectParticles();
+      raf = requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseout', handleMouseOut);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     let list = posts.filter(p => p.parentId === null && p.status !== "hidden");
@@ -242,10 +428,6 @@ export default function CommunityPage() {
       const text = commentTexts[postId]?.trim();
       if (!text) return;
 
-      // Extract mentions (@username)
-      const mentionRegex = /@(\w+)/g;
-      const mentions = [...text.matchAll(mentionRegex)].map(m => m[1]);
-
       const newComment: Comment = {
         id: uid(),
         postId,
@@ -265,10 +447,6 @@ export default function CommunityPage() {
       );
       setCommentTexts(prev => ({ ...prev, [postId]: "" }));
       toast.success("Comment added!");
-
-      if (mentions.length > 0) {
-        toast.info(`Mentioned: ${mentions.join(", ")}`);
-      }
     });
   }
 
@@ -306,7 +484,6 @@ export default function CommunityPage() {
       const text = replyTexts[commentId]?.trim();
       if (!text) return;
 
-      // Extract mention from reply
       const mentionMatch = text.match(/@(\w+)/);
       const mentionedUser = mentionMatch ? mentionMatch[1] : undefined;
 
@@ -395,7 +572,6 @@ export default function CommunityPage() {
           newSet.add(id);
           toast.success("Post saved to bookmarks!");
         }
-        // Save to localStorage
         localStorage.setItem("savedPosts", JSON.stringify(Array.from(newSet)));
         return newSet;
       });
@@ -424,21 +600,24 @@ export default function CommunityPage() {
 
   return (
     <div className={styles.page}>
+      <canvas ref={canvasRef} className={styles.particleCanvas} />
       <div className={styles.backButtonContainer}>
         <BackButton />
       </div>
 
       <header className={styles.header}>
-        <div>
-          <h1 className={styles.h1}>{t("community.title", "Community")}</h1>
-          <p className={styles.headerDesc}>
-            {t("community.subtitle", "Share your readings, insights, and connect with fellow seekers")}
-          </p>
+        <div className={styles.headerLeft}>
+          <div className={styles.logoSection}>
+            <span className={styles.logoIcon}>🌍</span>
+            <div>
+              <h1 className={styles.h1}>Global Cosmic Hub</h1>
+              <p className={styles.headerDesc}>
+                Connect with seekers worldwide • Share insights • Find your cosmic match
+              </p>
+            </div>
+          </div>
         </div>
         <div className={styles.headerRight}>
-          <Link href="/community/recommendations" className={styles.recommendationsLink}>
-            ✨ AI 추천
-          </Link>
           <div className={styles.tabs}>
             <button
               aria-pressed={tab === "new"}
@@ -466,6 +645,54 @@ export default function CommunityPage() {
           )}
         </div>
       </header>
+
+      {/* External Communities Hub */}
+      <section className={styles.externalHub}>
+        <div className={styles.hubHeader}>
+          <h2 className={styles.hubTitle}>🌐 Connect to Global Communities</h2>
+          <p className={styles.hubSubtitle}>Join millions of cosmic seekers across platforms</p>
+        </div>
+        <div className={styles.communityGrid}>
+          {EXTERNAL_COMMUNITIES.map((community, index) => (
+            <a
+              key={community.name}
+              href={community.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.communityCard}
+              style={{
+                background: community.gradient,
+                animationDelay: `${index * 0.1}s`
+              }}
+            >
+              <div className={styles.communityIcon}>{community.icon}</div>
+              <div className={styles.communityInfo}>
+                <div className={styles.communityName}>{community.name}</div>
+                <div className={styles.communityPlatform}>{community.platform}</div>
+                <div className={styles.communityMembers}>{community.members} members</div>
+              </div>
+              <div className={styles.communityArrow}>→</div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Matching Feature Teaser */}
+      <section className={styles.matchingSection}>
+        <div className={styles.matchingCard}>
+          <div className={styles.matchingIcon}>💫</div>
+          <div className={styles.matchingContent}>
+            <h3 className={styles.matchingTitle}>Cosmic Compatibility Matching</h3>
+            <p className={styles.matchingDesc}>
+              Find your perfect cosmic match based on birth charts, zodiac signs, and shared interests
+            </p>
+            <Link href="/community/matching" className={styles.matchingButton}>
+              <span>Coming Soon</span>
+              <span className={styles.matchingButtonIcon}>✨</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <div className={styles.controlsRow}>
         <div className={styles.searchBar}>

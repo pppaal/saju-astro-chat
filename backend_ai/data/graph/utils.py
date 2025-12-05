@@ -29,15 +29,15 @@ def get_model():
     if _MODEL is None:
         try:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            print(f"[GraphUtils] 🧠 Loading embedding model: {_MODEL_NAME}")
+            print(f"[GraphUtils] Loading embedding model: {_MODEL_NAME}")
             print(f"[GraphUtils] Using device: {device}")
-            print("[GraphUtils] ⏳ 모델 다운로드 및 로딩 중... (처음 1회만 오래 걸림)")
+            print("[GraphUtils] Downloading and loading model... (slow on first run)")
 
             _MODEL = SentenceTransformer(_MODEL_NAME, device=device)
-            print("[GraphUtils] ✅ SentenceTransformer 모델 로드 완료")
+            print("[GraphUtils] SentenceTransformer model loaded successfully")
 
         except Exception as e:
-            raise RuntimeError(f"❌ SentenceTransformer load failed: {e}")
+            raise RuntimeError(f"ERROR: SentenceTransformer load failed: {e}")
     return _MODEL
 
 
@@ -52,12 +52,12 @@ def _load_graph_nodes(graph_root: str) -> list[dict]:
     """
     all_nodes = []
     targets = ["astro_database", "cross_analysis", "saju", "rules", "fusion"]
-    print(f"[GraphLoader] 📂 Scanning base: {graph_root}")
+    print(f"[GraphLoader] Scanning base: {graph_root}")
 
     for sub in targets:
         folder = os.path.join(graph_root, sub)
         if not os.path.isdir(folder):
-            print(f"[GraphLoader] ⚠️ Missing folder → {folder}")
+            print(f"[GraphLoader] WARNING: Missing folder -> {folder}")
             continue
 
         for root, _, files in os.walk(folder):
@@ -91,7 +91,7 @@ def _load_graph_nodes(graph_root: str) -> list[dict]:
                                         }
                                     )
                     except Exception as e:
-                        print(f"[GraphLoader] ❌ CSV load failed: {path} | {e}")
+                        print(f"[GraphLoader] ERROR: CSV load failed: {path} | {e}")
                         continue
 
                 # ============================= JSON =============================
@@ -118,10 +118,10 @@ def _load_graph_nodes(graph_root: str) -> list[dict]:
                                 all_nodes.append(node)
 
                     except Exception as e:
-                        print(f"[GraphLoader] ❌ JSON load failed: {path} | {e}")
+                        print(f"[GraphLoader] ERROR: JSON load failed: {path} | {e}")
                         continue
 
-    print(f"[GraphLoader] ✅ Loaded {len(all_nodes)} nodes total.")
+    print(f"[GraphLoader] Loaded {len(all_nodes)} nodes total.")
     return all_nodes
 
 
@@ -173,15 +173,15 @@ def embed_text(text: str):
 def embed_batch(texts: list[str], batch_size: int = 64):
     """여러 문장을 배치로 임베딩 (속도 향상)."""
     model = get_model()
-    print(f"[GraphUtils] ⚙️ Encoding {len(texts)} texts (batch={batch_size})...")
+    print(f"[GraphUtils] Encoding {len(texts)} texts (batch={batch_size})...")
     embeds = model.encode(
         texts,
         batch_size=batch_size,
         convert_to_tensor=True,
         normalize_embeddings=True,
-        show_progress_bar=True,  # ✅ 진행바 표시
+        show_progress_bar=True,
     )
-    print(f"[GraphUtils] ✅ Batch embedding complete: {embeds.shape}")
+    print(f"[GraphUtils] Batch embedding complete: {embeds.shape}")
     return embeds
 
 
@@ -212,29 +212,31 @@ def search_graphs(query: str, top_k: int = 5, graph_root=None):
         _GRAPH_MTIME = current_mtime
 
     if not _NODES_CACHE or not _TEXTS_CACHE:
-        print("[GraphSearch] ⚠️ No graph nodes found.")
+        print("[GraphSearch] WARNING: No graph nodes found.")
         return []
 
-    print(f"[GraphSearch] 🔎 Embedding & searching in corpus ({len(_NODES_CACHE)} nodes)...")
+    print(f"[GraphSearch] Embedding & searching in corpus ({len(_NODES_CACHE)} nodes)...")
     cache_key = _hash_text(query)
 
-    # ✅ 캐시 재사용
-    q_emb = _CACHE_EMBEDS.get(cache_key) or embed_text(query)
-    _CACHE_EMBEDS[cache_key] = q_emb
+    # ✅ 캐시 재사용 (Tensor 체크 - Python 'or' 연산자 사용 불가)
+    q_emb = _CACHE_EMBEDS.get(cache_key)
+    if q_emb is None:
+        q_emb = embed_text(query)
+        _CACHE_EMBEDS[cache_key] = q_emb
 
-    # ⚡ 프리컴퓨트 임베딩 로드 또는 생성
+    # Precompute embedding load or generate
     if _CORPUS_EMBEDS_CACHE is None:
         if _CORPUS_EMBEDS_PATH and os.path.exists(_CORPUS_EMBEDS_PATH):
-            print(f"[GraphUtils] ⚡ Loading cached embeds: {_CORPUS_EMBEDS_PATH}")
+            print(f"[GraphUtils] Loading cached embeds: {_CORPUS_EMBEDS_PATH}")
             _CORPUS_EMBEDS_CACHE = torch.load(_CORPUS_EMBEDS_PATH, map_location="cpu")
         else:
             _CORPUS_EMBEDS_CACHE = embed_batch(_TEXTS_CACHE, batch_size=64)
             try:
                 if _CORPUS_EMBEDS_PATH:
                     torch.save(_CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH)
-                    print(f"[GraphUtils] 💾 Saved embeds → {_CORPUS_EMBEDS_PATH}")
+                    print(f"[GraphUtils] Saved embeds -> {_CORPUS_EMBEDS_PATH}")
             except Exception as e:
-                print(f"[GraphUtils] ⚠️ Failed to save embeds: {e}")
+                print(f"[GraphUtils] WARNING: Failed to save embeds: {e}")
 
     corpus_embeds = _CORPUS_EMBEDS_CACHE
     scores = util.cos_sim(q_emb, corpus_embeds)[0]
@@ -246,15 +248,15 @@ def search_graphs(query: str, top_k: int = 5, graph_root=None):
         node["score"] = round(float(score), 4)
         results.append(node)
 
-    print(f"[GraphSearch] ✅ Top-{top_k} results ready.")
+    print(f"[GraphSearch] Top-{top_k} results ready.")
     return results
 
 
 # ===============================================================
-# 🧪 LOCAL TEST
+# LOCAL TEST
 # ===============================================================
 if __name__ == "__main__":
     query = "리더십과 추진력이 조화를 이루는 시기"
-    print(f"[GraphSearch] 🔍 Query: {query}")
+    print(f"[GraphSearch] Query: {query}")
     results = search_graphs(query, top_k=5)
     print(json.dumps(results, ensure_ascii=False, indent=2))

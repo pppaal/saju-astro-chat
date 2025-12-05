@@ -2,8 +2,10 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
+import "../styles/mobile-touch.css";
 import StarrySky from "@/components/ui/StarrySky";
 import BackButton from "@/components/ui/BackButton";
+import Footer from "@/components/ui/Footer";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
@@ -15,7 +17,7 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
 import PushNotificationPrompt from "@/components/notifications/PushNotificationPrompt";
 import AuthProvider from "@/components/AuthProvider";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Montserrat, Noto_Sans_KR, Cinzel, Roboto, Lora, Merriweather } from "next/font/google";
 
 // Primary fonts with optimized loading
@@ -168,8 +170,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </a>
 
         {/* Analytics */}
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
-        <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} />
+        <Suspense fallback={null}>
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} />
+        </Suspense>
 
         <ErrorBoundary>
           <AuthProvider>
@@ -181,6 +187,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <StarrySky />
                     <BackButtonInLayout />
                     <main id="main-content">{children}</main>
+                    <Footer />
                   </NotificationProvider>
                 </ToastProvider>
               </I18nProvider>

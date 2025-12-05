@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // src/app/api/lib-health/route.ts
 export async function GET() {
   // 동적 import: 빌드 시 평가 안전

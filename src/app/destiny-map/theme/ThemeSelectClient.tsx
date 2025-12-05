@@ -1,7 +1,20 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import styles from './theme.module.css';
+
+// ✅ 파티클 타입
+type Particle = {
+  x: number;
+  y: number;
+  size: number;
+  speedX: number;
+  speedY: number;
+  color: string;
+  update: () => void;
+  draw: () => void;
+};
 
 // ✅ 테마 키 타입 (9개)
 type ThemeKey =
@@ -31,8 +44,150 @@ const THEMES: { key: ThemeKey; title: string; desc: string; emoji: string }[] = 
 export default function ThemeSelectClient() {
   const router = useRouter();
   const sp = useSearchParams();
+  const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const baseParams = useMemo(() => new URLSearchParams(sp.toString()), [sp]);
+
+  // ------------------------------------------------------------ //
+  // 🎨 Particle Animation
+  // ------------------------------------------------------------ //
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const PARTICLE_COUNT = 60;
+    const MAX_LINK_DISTANCE = 100;
+    const MOUSE_INTERACTION_RADIUS = 180;
+    const PARTICLE_BASE_SPEED = 0.25;
+
+    let particlesArray: Particle[] = [];
+    let raf = 0;
+
+    const mouse = {
+      x: undefined as number | undefined,
+      y: undefined as number | undefined,
+      radius: MOUSE_INTERACTION_RADIUS,
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    };
+    const handleMouseOut = () => {
+      mouse.x = undefined;
+      mouse.y = undefined;
+    };
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+    window.addEventListener('resize', handleResize);
+
+    class ParticleImpl implements Particle {
+      x: number;
+      y: number;
+      size: number;
+      speedX: number;
+      speedY: number;
+      color: string;
+
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
+        this.speedY = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
+        const colors = ['#a78bfa', '#8b5cf6', '#7c3aed', '#6366f1', '#818cf8'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (mouse.x !== undefined && mouse.y !== undefined) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius) {
+            const forceDirectionX = dx / distance;
+            const forceDirectionY = dy / distance;
+            const force = (mouse.radius - distance) / mouse.radius;
+            const directionX = forceDirectionX * force * 2;
+            const directionY = forceDirectionY * force * 2;
+            this.x -= directionX;
+            this.y -= directionY;
+          }
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      particlesArray = [];
+      let numberOfParticles = (canvas.height * canvas.width) / 12000;
+      numberOfParticles = Math.min(numberOfParticles, PARTICLE_COUNT);
+      for (let i = 0; i < numberOfParticles; i++) {
+        particlesArray.push(new ParticleImpl());
+      }
+    }
+
+    function connectParticles() {
+      for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a; b < particlesArray.length; b++) {
+          const dx = particlesArray[a].x - particlesArray[b].x;
+          const dy = particlesArray[a].y - particlesArray[b].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < MAX_LINK_DISTANCE) {
+            const opacity = (1 - distance / MAX_LINK_DISTANCE) * 0.5;
+            ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+      connectParticles();
+      raf = requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseout', handleMouseOut);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const onPick = (theme: ThemeKey) => {
     const params = new URLSearchParams(baseParams.toString());
@@ -52,94 +207,33 @@ export default function ThemeSelectClient() {
   };
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
-      }}
-    >
-      <section
-        style={{
-          width: '100%',
-          maxWidth: 960,
-          background: 'var(--card, #111)',
-          color: 'var(--fg, #fff)',
-          border: '1px solid var(--border, rgba(255,255,255,0.12))',
-          borderRadius: 16,
-          padding: 24,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-        }}
-      >
-        <header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: 16,
-          }}
-        >
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            style={{
-              marginRight: 12,
-              width: 40,
-              height: 40,
-              borderRadius: 999,
-              border: '1px solid var(--border, rgba(255,255,255,0.15))',
-              background: 'transparent',
-              color: 'inherit',
-              cursor: 'pointer',
-            }}
-          >
+    <main className={styles.container}>
+      <canvas ref={canvasRef} className={styles.particleCanvas} />
+
+      <section className={styles.card}>
+        <header className={styles.header}>
+          <button onClick={onBack} aria-label="Back" className={styles.backButton}>
             ←
           </button>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>분석 테마 선택</h1>
-            <p
-              style={{
-                margin: '6px 0 0 0',
-                opacity: 0.8,
-                fontSize: 14,
-              }}
-            >
+          <div className={styles.headerContent}>
+            <h1 className={styles.title}>분석 테마 선택</h1>
+            <p className={styles.subtitle}>
               원하는 포커스를 선택하면, 리포트가 해당 주제에 맞춰 강조됩니다.
             </p>
           </div>
         </header>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 16,
-            marginTop: 12,
-          }}
-        >
-          {THEMES.map((th) => (
+        <div className={styles.grid}>
+          {THEMES.map((th, index) => (
             <button
               key={th.key}
               onClick={() => onPick(th.key)}
-              style={{
-                textAlign: 'left',
-                background:
-                  'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
-                border: '1px solid var(--border, rgba(255,255,255,0.15))',
-                padding: 16,
-                borderRadius: 14,
-                color: 'inherit',
-                cursor: 'pointer',
-                transition: 'transform .12s ease',
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = 'translateY(-2px)')
-              }
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+              className={styles.themeCard}
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
-              <div style={{ fontSize: 28 }}>{th.emoji}</div>
-              <div style={{ fontWeight: 700, marginTop: 8 }}>{th.title}</div>
-              <div style={{ opacity: 0.8, marginTop: 6, fontSize: 13 }}>{th.desc}</div>
+              <div className={styles.emoji}>{th.emoji}</div>
+              <div className={styles.themeTitle}>{th.title}</div>
+              <div className={styles.themeDesc}>{th.desc}</div>
             </button>
           ))}
         </div>

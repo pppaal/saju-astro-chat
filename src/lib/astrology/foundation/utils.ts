@@ -2,8 +2,8 @@
 import { ZodiacKo } from "./types";
 
 export const ZODIAC_SIGNS: ZodiacKo[] = [
-  "양자리","황소자리","쌍둥이자리","게자리","사자자리","처녀자리",
-  "천칭자리","전갈자리","사수자리","염소자리","물병자리","물고기자리",
+  "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+  "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
 ];
 
 export function formatLongitude(lon: number) {
@@ -17,13 +17,12 @@ export function formatLongitude(lon: number) {
     sign,
     degree,
     minute,
-    formatted: `${sign} ${degree}° ${String(minute).padStart(2, "0")}'`,
+    formatted: `${sign} ${degree}deg ${String(minute).padStart(2, "0")}'`,
     norm,
   };
 }
 
 export function angleDiff(a: number, b: number) {
-  // 0~180 사이의 최소 분리각
   const d = Math.abs(((a - b) % 360 + 540) % 360 - 180);
   return 180 - d;
 }

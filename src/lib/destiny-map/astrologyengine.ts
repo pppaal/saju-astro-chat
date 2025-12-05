@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import {
   calculateNatalChart,
@@ -20,6 +20,9 @@ import {
 import { annotateShinsal, toSajuPillarsLike } from "../Saju/shinsal";
 import fs from "fs";
 import path from "path";
+import tzLookup from "tz-lookup";
+
+const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === "true";
 
 export interface CombinedInput {
   name?: string;
@@ -40,6 +43,27 @@ export interface CombinedResult {
 }
 
 // ---------- Helpers ----------
+function maskInput(input: CombinedInput) {
+  const maskName = (val?: string) => (val ? `${val[0] ?? ""}***` : undefined);
+  return {
+    ...input,
+    name: maskName(input.name),
+    birthDate: input.birthDate ? "****-**-**" : undefined,
+    birthTime: input.birthTime ? "**:**" : undefined,
+    latitude: typeof input.latitude === "number" ? Number(input.latitude.toFixed(3)) : input.latitude,
+    longitude: typeof input.longitude === "number" ? Number(input.longitude.toFixed(3)) : input.longitude,
+  };
+}
+
+function resolveTimezone(tz: string | undefined, latitude: number, longitude: number) {
+  if (tz) return tz;
+  try {
+    return tzLookup(latitude, longitude);
+  } catch {
+    return "Asia/Seoul";
+  }
+}
+
 async function getSinsal(pillars: any) {
   try {
     if (!pillars?.year || !pillars?.month || !pillars?.day || !pillars?.time) return null;
@@ -112,7 +136,7 @@ function computePoF(planets: any[], houses: any[], ascendant: any) {
       sign: signName,
       degree,
       minute,
-      formatted: `${signName} ${degree}° ${minute.toString().padStart(2, "0")}'`,
+      formatted: `${signName} ${degree} deg ${minute.toString().padStart(2, "0")}'`,
       norm: pofLon,
       house: houseNum,
     });
@@ -158,14 +182,21 @@ function calcTransitsToLights(transitPlanets: any[], lights: { name: string; lon
 export async function computeDestinyMap(input: CombinedInput): Promise<CombinedResult> {
   try {
     const { birthDate, birthTime, latitude, longitude, gender: rawGender, tz, name } = input;
-    console.log("[Engine] Input:", input);
+    if (enableDebugLogs) { console.log("[Engine] Input received"); }
 
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+      throw new Error("Invalid coordinates range");
+    }
+
+    const resolvedTz = resolveTimezone(tz, latitude, longitude);
+    if (!tz && enableDebugLogs) {
+      console.warn("[Engine] Timezone inferred", resolvedTz);
+    }
     const gender = (rawGender ?? "male").toLowerCase() as "male" | "female";
     const [year, month, day] = birthDate.split("-").map(Number);
     const [hour, minute] = birthTime.split(":").map((v) => Number(v) || 0);
 
-    const birthISO = `${birthDate}T${birthTime.length === 5 ? birthTime + ":00" : birthTime}`;
-    const birthDateObj = new Date(birthISO);
+    const birthDateObj = new Date(Date.UTC(year, month - 1, day, hour, minute));
     if (isNaN(birthDateObj.getTime())) throw new Error("Invalid birth date/time format");
 
     // ---------- Astrology (natal) ----------
@@ -177,7 +208,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       minute,
       latitude,
       longitude,
-      timeZone: tz ?? "Asia/Seoul",
+      timeZone: resolvedTz,
     });
     const astroFacts = natalRaw as unknown as AstrologyChartFacts;
     const astroOptions = resolveOptions();
@@ -209,20 +240,22 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     ];
     const transits = calcTransitsToLights(transitPlanets, lights, 4);
 
-    console.log("[Astrology finished]:", {
-      sun: planets.find((p) => p.name === "Sun")?.sign,
-      moon: planets.find((p) => p.name === "Moon")?.sign,
-    });
+    if (enableDebugLogs) {
+      console.log("[Astrology finished]:", {
+        sun: planets.find((p) => p.name === "Sun")?.sign,
+        moon: planets.find((p) => p.name === "Moon")?.sign,
+      });
+    }
 
     // ---------- Saju ----------
-    const timezone = tz ?? "Asia/Seoul";
+    const timezone = resolvedTz;
     const [hh, mmRaw] = birthTime.split(":");
     const safeBirthTime = `${hh.padStart(2, "0")}:${(mmRaw ?? "00").padStart(2, "0")}`;
 
     let sajuFacts: SajuFacts | any = {};
     try {
       sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, "solar", timezone);
-      console.log("[SajuFacts keys]:", Object.keys(sajuFacts || {}));
+      if (enableDebugLogs) { console.log("[SajuFacts keys]:", Object.keys(sajuFacts || {})); }
     } catch (err) {
       console.error("[calculateSajuData Error]", err);
     }
@@ -253,12 +286,12 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
         iljin = Array.isArray(i) ? i : [];
-        console.log("[운세 cycles]:", daeun.length);
+        console.log("[Unse cycles]:", daeun.length);
       } catch (err) {
-        console.warn("[운세 계산 경고]", err);
+        console.warn("[Unse calculation warning]", err);
       }
     } else {
-      console.warn("Invalid pillars, skip 운세 calculation");
+      console.warn("Invalid pillars, skip unse calculation");
     }
 
     const sinsal = hasValidPillars ? await getSinsal(pillars) : null;
@@ -286,42 +319,44 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       `Day Master: ${dayMasterText}`,
     ]
       .filter(Boolean)
-      .join(" · ");
+      .join(" | ");
 
     // ---------- Log save ----------
-    try {
-      const dir = path.join(process.cwd(), "logs");
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-      const file = path.join(dir, `destinymap-${Date.now()}.json`);
-      fs.writeFileSync(
-        file,
-        JSON.stringify(
-          {
-            input,
-            report: {
-              astrology: {
-                facts: astroFacts,
-                planets,
-                houses,
-                ascendant,
-                mc,
-                aspects: astroAspects,
-                meta: astroMeta,
-                options: astroOptions,
-                transits,
+    if (enableDebugLogs) {
+      try {
+        const dir = path.join(process.cwd(), "logs");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        const file = path.join(dir, `destinymap-${Date.now()}.json`);
+        fs.writeFileSync(
+          file,
+          JSON.stringify(
+            {
+              input: maskInput(input),
+              report: {
+                astrology: {
+                  facts: astroFacts,
+                  planets,
+                  houses,
+                  ascendant,
+                  mc,
+                  aspects: astroAspects,
+                  meta: astroMeta,
+                  options: astroOptions,
+                  transits,
+                },
+                saju: { facts: sajuFacts, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal },
+                summary,
               },
-              saju: { facts: sajuFacts, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal },
-              summary,
             },
-          },
-          null,
-          2
-        ),
-        "utf8"
-      );
-      console.log("[Engine] Full output saved:", file);
-    } catch (err) {
-      console.warn("Log save failed:", err);
+            null,
+            2
+          ),
+          "utf8"
+        );
+        console.log("[Engine] Full output saved:", file);
+      } catch (err) {
+        console.warn("Log save failed:", err);
+      }
     }
 
     return {

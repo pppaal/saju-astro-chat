@@ -28,7 +28,7 @@ export default function PushNotificationPrompt() {
     try {
       // Simply mark as enabled - real-time notifications work via SSE
       localStorage.setItem("notifications-enabled", "true");
-      setMessage("✅ Notifications enabled! You'll receive updates in real-time.");
+      setMessage("✅ Notifications enabled! You&apos;ll receive updates in real-time.");
 
       setTimeout(() => {
         setShowPrompt(false);
@@ -68,7 +68,7 @@ export default function PushNotificationPrompt() {
         <p className={styles.message}>
           Stay updated with real-time notifications about your readings,
           destiny maps, and important updates. Notifications will appear
-          in your browser while you're using the app.
+          in your browser while you&apos;re using the app.
         </p>
 
         {message && <p className={styles.statusMessage}>{message}</p>}

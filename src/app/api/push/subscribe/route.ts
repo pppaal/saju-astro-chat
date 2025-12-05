@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
  * POST /api/push/subscribe
  * Save user's push notification subscription
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
  * DELETE /api/push/subscribe
  * Remove user's push notification subscription
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {

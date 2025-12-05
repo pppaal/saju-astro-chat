@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -25,7 +25,7 @@ export default function QuizPage() {
     const progress = Object.keys(answers).length;
     const maxProgress = TOTAL_QUESTIONS > 0 ? TOTAL_QUESTIONS : 1;
 
-    // 문자열 템플릿으로 hsl을 감싸야 함
+    // δ¼╕∞₧É∞ù┤ φà£φöîδª┐∞£╝δí£ hsl∞¥ä Ω░É∞ï╕∞ò╝ φò¿
     return [
       `hsl(${220 + (progress / maxProgress) * 90}, 90%, 65%)`,
       `hsl(${300 - (progress / maxProgress) * 70}, 90%, 65%)`,
@@ -43,7 +43,7 @@ export default function QuizPage() {
             <p className="text-gray-300 mt-2">Answer honestly to reveal your inner landscape.</p>
           </div>
 
-          {/* JSX 외부 토큰 제거: 'handlebars' 삭제 */}
+          {/* JSX ∞Ö╕δ╢Ç φåáφü░ ∞á£Ω▒░: 'handlebars' ∞é¡∞á£ */}
 
           <AuraQuiz answers={answers} onAnswerChange={handleAnswerChange} />
 
@@ -62,3 +62,4 @@ export default function QuizPage() {
     </>
   );
 }
+

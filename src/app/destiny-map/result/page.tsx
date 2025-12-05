@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import styles from "./result.module.css";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
+// Import retained intentionally; disable unused lint because FortuneCharts is optional rendering
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import FortuneCharts from "@/components/destiny-map/FortuneCharts";
 
 // ✅ searchParams 타입 정의
@@ -86,7 +88,9 @@ export default function DestinyResultPage({
   if (loading) {
     return (
       <main className={styles.page}>
-        <div style={{ padding: 40, fontSize: 16 }}>⏳ Analyzing your destiny chart...</div>
+        <section className={styles.card}>
+          <div style={{ padding: 40, fontSize: 16, textAlign: 'center' }}>⏳ Analyzing your destiny chart...</div>
+        </section>
       </main>
     );
   }
@@ -94,7 +98,9 @@ export default function DestinyResultPage({
   if (error) {
     return (
       <main className={styles.page}>
-        <div style={{ padding: 40, color: "crimson" }}>⚠️ {error}</div>
+        <section className={styles.card}>
+          <div style={{ padding: 40, color: "crimson" }}>⚠️ {error}</div>
+        </section>
       </main>
     );
   }
@@ -102,7 +108,9 @@ export default function DestinyResultPage({
   if (!result) {
     return (
       <main className={styles.page}>
-        <div style={{ padding: 40 }}>결과를 불러오지 못했습니다.</div>
+        <section className={styles.card}>
+          <div style={{ padding: 40 }}>결과를 불러오지 못했습니다.</div>
+        </section>
       </main>
     );
   }
@@ -160,13 +168,6 @@ export default function DestinyResultPage({
 
         {/* 🧮 리포트 본문 렌더 */}
         <Display result={result} lang={lang} theme={activeTheme} reportType="core" />
-
-        {/* ✅ 추가 차트 (사주) */}
-        {result?.themes?.[activeTheme]?.raw?.saju && (
-          <div style={{ marginTop: 40 }}>
-            <FortuneCharts saju={result.themes[activeTheme].raw.saju} />
-          </div>
-        )}
       </section>
     </main>
   );

@@ -11,6 +11,13 @@ from flask_cors import CORS
 from backend_ai.app.astro_parser import calculate_astrology_data
 from backend_ai.app.fusion_logic import interpret_with_ai
 from backend_ai.app.saju_parser import calculate_saju_data
+from backend_ai.app.redis_cache import get_cache
+from backend_ai.app.performance_optimizer import (
+    track_performance,
+    get_performance_stats,
+    get_cache_health,
+    suggest_optimizations,
+)
 
 # Flask Application
 app = Flask(__name__)
@@ -119,11 +126,12 @@ def index():
     return jsonify({"status": "ok", "message": "DestinyPal Fusion AI backend is running!"})
 
 
-# Fusion endpoint
+# Fusion endpoint with caching and performance optimization
 @app.route("/ask", methods=["POST"])
 def ask():
     """
     Accepts saju/astro/tarot facts + theme/locale/prompt and runs fusion logic.
+    Enhanced with Redis caching and performance monitoring.
     """
     try:
         data = request.get_json(force=True)
@@ -145,7 +153,20 @@ def ask():
             "locale": locale,
         }
 
+        # Performance monitoring
+        start_time = time.time()
         result = interpret_with_ai(facts)
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        logger.info(f"[ASK] id={g.request_id} completed in {duration_ms}ms cache_hit={result.get('cached', False)}")
+
+        # Add performance metadata
+        if isinstance(result, dict):
+            result["performance"] = {
+                "duration_ms": duration_ms,
+                "cached": result.get("cached", False)
+            }
+
         return jsonify({"status": "success", "data": result})
 
     except Exception as e:
@@ -188,6 +209,89 @@ def calc_astro():
         return jsonify({"status": "success", "astro": result})
     except Exception as e:
         logger.exception(f"[ERROR] /calc_astro failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# Cache stats and management
+@app.route("/cache/stats", methods=["GET"])
+def cache_stats():
+    """Get cache statistics."""
+    try:
+        cache = get_cache()
+        stats = cache.stats()
+        return jsonify({"status": "success", "cache": stats})
+    except Exception as e:
+        logger.exception(f"[ERROR] /cache/stats failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/cache/clear", methods=["POST"])
+def cache_clear():
+    """Clear cache (admin only)."""
+    try:
+        cache = get_cache()
+        pattern = request.json.get("pattern", "fusion:*") if request.json else "fusion:*"
+        cleared = cache.clear(pattern)
+        return jsonify({"status": "success", "cleared": cleared})
+    except Exception as e:
+        logger.exception(f"[ERROR] /cache/clear failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# Performance monitoring endpoints
+@app.route("/performance/stats", methods=["GET"])
+def performance_stats():
+    """Get performance statistics with optimization suggestions."""
+    try:
+        stats = get_performance_stats()
+        suggestions = suggest_optimizations(stats)
+        cache_health = get_cache_health()
+
+        return jsonify({
+            "status": "success",
+            "performance": stats,
+            "cache_health": cache_health,
+            "suggestions": suggestions
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /performance/stats failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/health/full", methods=["GET"])
+def full_health_check():
+    """Comprehensive health check including performance metrics."""
+    try:
+        perf_stats = get_performance_stats()
+        cache_health = get_cache_health()
+
+        # Calculate overall health score
+        health_score = 100
+
+        # Penalize for low cache hit rate
+        if perf_stats["cache_hit_rate"] < 30:
+            health_score -= 20
+
+        # Penalize for slow responses
+        if perf_stats["avg_response_time_ms"] > 2000:
+            health_score -= 15
+
+        # Penalize for cache issues
+        if cache_health["health_score"] < 80:
+            health_score -= 15
+
+        status_text = "excellent" if health_score >= 90 else "good" if health_score >= 70 else "degraded"
+
+        return jsonify({
+            "status": "success",
+            "health_score": health_score,
+            "status_text": status_text,
+            "performance": perf_stats,
+            "cache": cache_health,
+            "timestamp": time.time()
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /health/full failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
