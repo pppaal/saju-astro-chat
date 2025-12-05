@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import AuraRingVisual from '@/components/aura/AuraRingVisual';
+import styles from './Personality.module.css';
 
 export default function PersonalityHomePage() {
   const defaultColors = ['hsl(220, 90%, 65%)', 'hsl(300, 90%, 65%)', 'hsl(180, 90%, 65%)'];
@@ -8,19 +9,46 @@ export default function PersonalityHomePage() {
   return (
     <>
       <AuraRingVisual colors={defaultColors} />
-      <main className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 z-10">
-        <div className="aura-fade-in">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tight">
+
+      {/* Background Orbs */}
+      <div className={styles.orbs}>
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className={styles.orb}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              width: `${150 + Math.random() * 200}px`,
+              height: `${150 + Math.random() * 200}px`,
+              background: `radial-gradient(circle, ${
+                i % 3 === 0
+                  ? 'rgba(167, 139, 250, 0.4)'
+                  : i % 3 === 1
+                  ? 'rgba(236, 72, 153, 0.4)'
+                  : 'rgba(245, 158, 11, 0.4)'
+              }, transparent)`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${6 + Math.random() * 6}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <main className={styles.page}>
+        <div className={`${styles.hero} ${styles.fadeIn}`}>
+          <div className={styles.heroIcon}>✨</div>
+          <h1 className={styles.heroTitle}>
             Discover Your True Aura
           </h1>
-          <p className="max-w-2xl text-lg md:text-xl text-gray-300 mb-8">
+          <p className={styles.heroSubtitle}>
             A next-generation personality test to reveal your unique energy, core motivations, and hidden potential.
           </p>
-          <Link
-            href="/personality/quiz"
-            className="bg-white text-gray-900 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-200 transition-all transform hover:scale-105 shadow-2xl shadow-white/10"
-          >
-            Start the Free Discovery Test
+          <Link href="/personality/quiz">
+            <button className={styles.heroButton}>
+              <span className={styles.buttonGlow} />
+              Start the Free Discovery Test
+            </button>
           </Link>
         </div>
       </main>

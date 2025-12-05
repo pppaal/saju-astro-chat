@@ -1,6 +1,8 @@
 // ✅ src/app/api/dates/route.ts
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   // 한국(UTC+9) 기준 시각 계산
   const now = new Date(Date.now() + 9 * 60 * 60 * 1000);

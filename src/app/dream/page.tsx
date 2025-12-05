@@ -5,6 +5,16 @@ import tzLookup from 'tz-lookup';
 import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
+import { useI18n } from '@/i18n/I18nProvider';
+import {
+  DREAM_SYMBOLS,
+  DREAM_EMOTIONS,
+  DREAM_THEMES,
+  DREAM_CONTEXT,
+  generateDreamPrompt,
+  generateQuickDreamEntry,
+} from '@/lib/dream/dreamPrompts';
+import styles from './Dream.module.css';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
 
@@ -14,17 +24,24 @@ type InsightResponse = {
   astrology?: { highlights: string[]; sun?: string; moon?: string; asc?: string };
   crossInsights?: string[];
   recommendations?: string[];
-  themes?: { label: string; weight: number }[]; // 0 ~ 1
+  themes?: { label: string; weight: number }[];
   raw?: any;
   error?: string;
 };
 
 export default function DreamInsightPage() {
-  // Dream
-  const [dream, setDream] = useState('');
+  // Dream - Quick Select Mode
+  const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
+  const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [selectedContext, setSelectedContext] = useState<string[]>([]);
+  const [additionalDetails, setAdditionalDetails] = useState('');
+  const [useDetailedMode, setUseDetailedMode] = useState(false);
+  const [detailedDream, setDetailedDream] = useState('');
   const [share, setShare] = useState(false);
 
   // Birth data
+  const [showBirthData, setShowBirthData] = useState(false);
   const [date, setDate] = useState('1995-02-09');
   const [time, setTime] = useState('06:40');
   const [cityQuery, setCityQuery] = useState('Seoul, KR');
@@ -41,6 +58,7 @@ export default function DreamInsightPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<InsightResponse | null>(null);
+  const [activeSymbolCategory, setActiveSymbolCategory] = useState<keyof typeof DREAM_SYMBOLS>('animals');
 
   // Autocomplete debounce
   useEffect(() => {
@@ -75,14 +93,54 @@ export default function DreamInsightPage() {
     } catch {}
   };
 
+  const toggleSymbol = (symbol: string) => {
+    setSelectedSymbols(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const toggleEmotion = (emotion: string) => {
+    setSelectedEmotions(prev =>
+      prev.includes(emotion) ? prev.filter(e => e !== emotion) : [...prev, emotion]
+    );
+  };
+
+  const toggleTheme = (theme: string) => {
+    setSelectedThemes(prev =>
+      prev.includes(theme) ? prev.filter(t => t !== theme) : [...prev, theme]
+    );
+  };
+
+  const toggleContext = (context: string) => {
+    setSelectedContext(prev =>
+      prev.includes(context) ? prev.filter(c => c !== context) : [...prev, context]
+    );
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setResult(null);
 
-    const trimmed = dream.trim();
-    if (!trimmed) {
+    // Generate dream text based on mode
+    let dreamText: string;
+    if (useDetailedMode) {
+      dreamText = detailedDream.trim();
+    } else {
+      if (selectedSymbols.length === 0 && selectedEmotions.length === 0 && !additionalDetails.trim()) {
+        setIsLoading(false);
+        setError('Please select at least some symbols or emotions, or describe your dream.');
+        return;
+      }
+      dreamText = generateQuickDreamEntry({
+        symbols: selectedSymbols,
+        emotions: selectedEmotions,
+        additionalDetails,
+      });
+    }
+
+    if (!dreamText) {
       setIsLoading(false);
       setError('Please enter your dream.');
       return;
@@ -90,9 +148,13 @@ export default function DreamInsightPage() {
 
     try {
       const body = {
-        dream: trimmed,
+        dream: dreamText,
+        symbols: selectedSymbols,
+        emotions: selectedEmotions,
+        themes: selectedThemes,
+        context: selectedContext,
         share,
-        birth: { date, time, latitude, longitude, timeZone, city: cityQuery },
+        birth: showBirthData ? { date, time, latitude, longitude, timeZone, city: cityQuery } : undefined,
       };
 
       const res = await fetch('/api/dream-insight', {
@@ -114,232 +176,399 @@ export default function DreamInsightPage() {
     }
   };
 
+  const resetForm = () => {
+    setSelectedSymbols([]);
+    setSelectedEmotions([]);
+    setSelectedThemes([]);
+    setSelectedContext([]);
+    setAdditionalDetails('');
+    setDetailedDream('');
+    setResult(null);
+    setError(null);
+  };
+
   return (
     <ServicePageLayout
       icon="🌙"
       title="Dream Insight"
       subtitle="Explore the deeper meaning of your dreams with astrological insights"
     >
-      <style jsx global>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn .5s ease-out forwards; }
-      `}</style>
+      <main className={styles.page}>
+        {/* Background Stars */}
+        <div className={styles.stars}>
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className={styles.star}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 4}s`,
+                animationDuration: `${3 + Math.random() * 3}s`,
+              }}
+            />
+          ))}
+        </div>
 
-        <div className="mx-auto w-full max-w-4xl bg-black/35 backdrop-blur-xl rounded-2xl border border-white/15 shadow-xl p-5 md:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Dream input */}
-            <div>
-              <label htmlFor="dream" className="block text-sm font-medium text-indigo-100 mb-2">
-                Describe your dream
-              </label>
-              <textarea
-                id="dream"
-                placeholder="Include key symbols, feelings, people, places, colors, and what happened."
-                value={dream}
-                onChange={(e) => setDream(e.target.value)}
-                className="w-full h-44 md:h-56 bg-white/10 border border-white/20 rounded-lg p-4 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              />
-              <div className="mt-2 flex items-center gap-2 text-sm">
+        {!result && (
+          <div className={`${styles.formContainer} ${styles.fadeIn}`}>
+            <div className={styles.formHeader}>
+              <div className={styles.formIcon}>🌙</div>
+              <h1 className={styles.formTitle}>Dream Interpretation</h1>
+              <p className={styles.formSubtitle}>Select dream elements or write freely</p>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              {/* Mode Toggle */}
+              <div className={styles.modeToggle}>
+                <button
+                  type="button"
+                  className={!useDetailedMode ? styles.modeActive : styles.modeInactive}
+                  onClick={() => setUseDetailedMode(false)}
+                >
+                  Quick Select
+                </button>
+                <button
+                  type="button"
+                  className={useDetailedMode ? styles.modeActive : styles.modeInactive}
+                  onClick={() => setUseDetailedMode(true)}
+                >
+                  Write Freely
+                </button>
+              </div>
+
+              {!useDetailedMode ? (
+                <>
+                  {/* Dream Symbols - Quick Select */}
+                  <div className={styles.section}>
+                    <label className={styles.sectionLabel}>Dream Symbols</label>
+                    <p className={styles.sectionHint}>Select what you saw in your dream</p>
+
+                    {/* Symbol Category Tabs */}
+                    <div className={styles.categoryTabs}>
+                      {(Object.keys(DREAM_SYMBOLS) as Array<keyof typeof DREAM_SYMBOLS>).map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          className={activeSymbolCategory === category ? styles.tabActive : styles.tab}
+                          onClick={() => setActiveSymbolCategory(category)}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className={styles.chipGrid}>
+                      {DREAM_SYMBOLS[activeSymbolCategory].map((symbol) => (
+                        <button
+                          key={symbol.en}
+                          type="button"
+                          className={selectedSymbols.includes(symbol.en) ? styles.chipSelected : styles.chip}
+                          onClick={() => toggleSymbol(symbol.en)}
+                        >
+                          {symbol.emoji} {symbol.ko}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dream Emotions */}
+                  <div className={styles.section}>
+                    <label className={styles.sectionLabel}>Emotions Felt</label>
+                    <p className={styles.sectionHint}>How did the dream make you feel?</p>
+                    <div className={styles.chipGrid}>
+                      {DREAM_EMOTIONS.map((emotion) => (
+                        <button
+                          key={emotion.en}
+                          type="button"
+                          className={selectedEmotions.includes(emotion.en) ? styles.chipSelected : styles.chip}
+                          onClick={() => toggleEmotion(emotion.en)}
+                        >
+                          {emotion.emoji} {emotion.ko}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dream Themes */}
+                  <div className={styles.section}>
+                    <label className={styles.sectionLabel}>Dream Type (Optional)</label>
+                    <p className={styles.sectionHint}>What kind of dream was it?</p>
+                    <div className={styles.chipGrid}>
+                      {DREAM_THEMES.map((theme) => (
+                        <button
+                          key={theme.en}
+                          type="button"
+                          className={selectedThemes.includes(theme.ko) ? styles.chipSelected : styles.chip}
+                          onClick={() => toggleTheme(theme.ko)}
+                        >
+                          {theme.ko}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dream Context */}
+                  <div className={styles.section}>
+                    <label className={styles.sectionLabel}>When/Context (Optional)</label>
+                    <p className={styles.sectionHint}>When did you have this dream?</p>
+                    <div className={styles.chipGrid}>
+                      {DREAM_CONTEXT.map((ctx) => (
+                        <button
+                          key={ctx.en}
+                          type="button"
+                          className={selectedContext.includes(ctx.ko) ? styles.chipSelected : styles.chip}
+                          onClick={() => toggleContext(ctx.ko)}
+                        >
+                          {ctx.ko}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Additional Details */}
+                  <div className={styles.section}>
+                    <label htmlFor="additionalDetails" className={styles.sectionLabel}>
+                      Additional Details (Optional)
+                    </label>
+                    <textarea
+                      id="additionalDetails"
+                      placeholder="Add any other details about your dream..."
+                      value={additionalDetails}
+                      onChange={(e) => setAdditionalDetails(e.target.value)}
+                      className={styles.textareaSmall}
+                      rows={3}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Detailed Dream Input */}
+                  <div className={styles.section}>
+                    <label htmlFor="detailedDream" className={styles.label}>
+                      Describe your dream in detail
+                    </label>
+                    <textarea
+                      id="detailedDream"
+                      placeholder="Include key symbols, feelings, people, places, colors, and what happened..."
+                      value={detailedDream}
+                      onChange={(e) => setDetailedDream(e.target.value)}
+                      className={styles.textarea}
+                      rows={8}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Share Checkbox */}
+              <div className={styles.checkbox}>
                 <input
                   id="share"
                   type="checkbox"
                   checked={share}
                   onChange={(e) => setShare(e.target.checked)}
                 />
-                <label htmlFor="share" className="text-white/80">Share anonymously to the Dreamer Map</label>
+                <label htmlFor="share">Share anonymously to the Dreamer Map</label>
               </div>
-            </div>
 
-            {/* Birth data */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label htmlFor="date" className="block text-sm font-medium text-indigo-100 mb-2">Date of Birth</label>
-                <input
-                  id="date"
-                  type="date"
-                  required
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="time" className="block text-sm font-medium text-indigo-100 mb-2">Time of Birth</label>
-                <input
-                  id="time"
-                  type="time"
-                  required
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-                />
-              </div>
-            </div>
+              {/* Birth Data (Collapsible) */}
+              <div className={styles.collapsibleSection}>
+                <button
+                  type="button"
+                  className={styles.collapsibleToggle}
+                  onClick={() => setShowBirthData(!showBirthData)}
+                >
+                  {showBirthData ? '▼' : '▶'} Add Birth Data for Astrological Insights (Optional)
+                </button>
 
-            {/* City autocomplete */}
-            <div className="relative">
-              <label htmlFor="city" className="block text-sm font-medium text-indigo-100 mb-2">City of Birth</label>
-              <input
-                id="city"
-                autoComplete="off"
-                value={cityQuery}
-                onChange={(e) => setCityQuery(e.target.value)}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder='e.g., "Seoul, KR"'
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              />
-              {showDropdown && suggestions.length > 0 && (
-                <ul className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-lg border border-white/15 bg-black/70 backdrop-blur-md">
-                  {suggestions.map((s, i) => (
-                    <li
-                      key={`${s.country}-${s.name}-${i}`}
-                      className="px-4 py-2 hover:bg-white/10 cursor-pointer"
-                      onMouseDown={(e) => { e.preventDefault(); onPickCity(s); }}
-                    >
-                      {s.name}, {s.country}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="text-xs text-white/60 mt-2">Tip: Timezone auto-detected from city.</p>
-            </div>
+                {showBirthData && (
+                  <div className={styles.birthDataSection}>
+                    <div className={`${styles.grid} ${styles.gridTwo}`}>
+                      <div>
+                        <label htmlFor="date" className={styles.label}>Date of Birth</label>
+                        <input
+                          id="date"
+                          type="date"
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="time" className={styles.label}>Time of Birth</label>
+                        <input
+                          id="time"
+                          type="time"
+                          value={time}
+                          onChange={(e) => setTime(e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
+                    </div>
 
-            {/* Hidden lat/lon */}
-            <input type="hidden" name="latitude" value={latitude} />
-            <input type="hidden" name="longitude" value={longitude} />
+                    <div className={styles.relative}>
+                      <label htmlFor="city" className={styles.label}>City of Birth</label>
+                      <input
+                        id="city"
+                        autoComplete="off"
+                        value={cityQuery}
+                        onChange={(e) => setCityQuery(e.target.value)}
+                        onFocus={() => setShowDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                        placeholder='e.g., "Seoul, KR"'
+                        className={styles.input}
+                      />
+                      {showDropdown && suggestions.length > 0 && (
+                        <ul className={styles.dropdown}>
+                          {suggestions.map((s, i) => (
+                            <li
+                              key={`${s.country}-${s.name}-${i}`}
+                              className={styles.dropdownItem}
+                              onMouseDown={(e) => { e.preventDefault(); onPickCity(s); }}
+                            >
+                              {s.name}, {s.country}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <p className={styles.inputSmall}>Timezone auto-detected from city.</p>
+                    </div>
 
-            {/* Timezone */}
-            <div>
-              <label htmlFor="timeZone" className="block text-sm font-medium text-indigo-100 mb-2">Time Zone</label>
-              <div className="grid grid-cols-1 gap-2">
-                <input
-                  id="timeZone"
-                  readOnly
-                  value={timeZone}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white"
-                />
-                <details className="text-xs text-white/70">
-                  <summary className="cursor-pointer">Change manually</summary>
-                  <select
-                    value={timeZone}
-                    onChange={(e) => setTimeZone(e.target.value)}
-                    className="mt-2 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white"
-                  >
-                    {timezones.map((tz) => (
-                      <option key={tz} value={tz} className="bg-gray-900 text-white">{tz}</option>
-                    ))}
-                  </select>
-                </details>
-              </div>
-            </div>
+                    <input type="hidden" name="latitude" value={latitude} />
+                    <input type="hidden" name="longitude" value={longitude} />
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-400/50 text-white font-bold py-3.5 px-4 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center text-lg"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Analyzing...
-                </>
-              ) : (
-                'Interpret My Dream'
-              )}
-            </button>
-          </form>
-
-          {/* Result */}
-          <section className="mt-8 space-y-6 fade-in">
-            {error && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-100">
-                {error}
-              </div>
-            )}
-
-            {result && (
-              <div className="space-y-6">
-                {result.summary && (
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-4">
-                    <h2 className="text-xl font-semibold mb-2">Summary</h2>
-                    <p className="text-white/90">{result.summary}</p>
-                  </div>
-                )}
-
-                {Array.isArray(result.themes) && result.themes.length > 0 && (
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-4">
-                    <h3 className="font-semibold mb-3">Themes</h3>
-                    <div className="space-y-2">
-                      {result.themes.map((t, idx) => (
-                        <div key={idx}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>{t.label}</span>
-                            <span className="text-white/60">{Math.round(t.weight * 100)}%</span>
-                          </div>
-                          <div className="h-2 w-full rounded bg-white/10 overflow-hidden">
-                            <div
-                              className="h-2 bg-gradient-to-r from-indigo-400 to-fuchsia-500"
-                              style={{ width: `${Math.min(100, Math.max(0, t.weight * 100))}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                    <div>
+                      <label htmlFor="timeZone" className={styles.label}>Time Zone</label>
+                      <input
+                        id="timeZone"
+                        readOnly
+                        value={timeZone}
+                        className={styles.input}
+                      />
                     </div>
                   </div>
                 )}
+              </div>
 
-                {Array.isArray(result.dreamSymbols) && result.dreamSymbols.length > 0 && (
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-4">
-                    <h3 className="font-semibold mb-3">Key Symbols</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-white/90">
-                      {result.dreamSymbols.map((s, i) => (
-                        <li key={i}>
-                          <span className="font-medium">{s.label}:</span> {s.meaning}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={styles.submitButton}
+              >
+                <span className={styles.buttonGlow} />
+                {isLoading ? (
+                  <>
+                    <svg className={styles.spinner} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Analyzing...
+                  </>
+                ) : (
+                  'Interpret My Dream'
                 )}
+              </button>
 
-                {result.astrology && (
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-4">
-                    <h3 className="font-semibold mb-3">Astrology Highlights</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-white/90">
-                      {result.astrology.sun && <li>Sun: {result.astrology.sun}</li>}
-                      {result.astrology.moon && <li>Moon: {result.astrology.moon}</li>}
-                      {result.astrology.asc && <li>Ascendant: {result.astrology.asc}</li>}
-                      {Array.isArray(result.astrology.highlights) &&
-                        result.astrology.highlights.map((h, i) => <li key={i}>{h}</li>)}
-                    </ul>
-                  </div>
-                )}
+              {error && <div className={styles.error}>{error}</div>}
+            </form>
+          </div>
+        )}
 
-                {Array.isArray(result.crossInsights) && result.crossInsights.length > 0 && (
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-4">
-                    <h3 className="font-semibold mb-3">Cross-Insights</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-white/90">
-                      {result.crossInsights.map((c, i) => <li key={i}>{c}</li>)}
-                    </ul>
-                  </div>
-                )}
+        {/* Results */}
+        {result && (
+          <div className={styles.resultsContainer}>
+            <button
+              onClick={resetForm}
+              className={styles.resetButton}
+            >
+              ← Interpret Another Dream
+            </button>
 
-                {Array.isArray(result.recommendations) && result.recommendations.length > 0 && (
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-4">
-                    <h3 className="font-semibold mb-3">Next Steps</h3>
-                    <ol className="list-decimal pl-5 space-y-1 text-white/90">
-                      {result.recommendations.map((r, i) => <li key={i}>{r}</li>)}
-                    </ol>
-                  </div>
-                )}
+            {result.summary && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0s' }}>
+                <div className={styles.resultCardGlow} />
+                <h2 className={styles.resultTitle}>Summary</h2>
+                <p className={styles.resultText}>{result.summary}</p>
               </div>
             )}
-          </section>
-        </div>
+
+            {Array.isArray(result.themes) && result.themes.length > 0 && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.1s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>Themes</h3>
+                <div>
+                  {result.themes.map((t, idx) => (
+                    <div key={idx} className={styles.themeBar}>
+                      <div className={styles.themeLabel}>
+                        <span>{t.label}</span>
+                        <span className={styles.themePercent}>{Math.round(t.weight * 100)}%</span>
+                      </div>
+                      <div className={styles.themeBarContainer}>
+                        <div
+                          className={styles.themeBarFill}
+                          style={{
+                            width: `${Math.min(100, Math.max(0, t.weight * 100))}%`,
+                            animationDelay: `${0.2 + idx * 0.1}s`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {Array.isArray(result.dreamSymbols) && result.dreamSymbols.length > 0 && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.2s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>Key Symbols</h3>
+                <ul className={styles.resultList}>
+                  {result.dreamSymbols.map((s, i) => (
+                    <li key={i}>
+                      <span style={{ fontWeight: 600 }}>{s.label}:</span> {s.meaning}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.astrology && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.3s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>Astrology Highlights</h3>
+                <ul className={styles.resultList}>
+                  {result.astrology.sun && <li>Sun: {result.astrology.sun}</li>}
+                  {result.astrology.moon && <li>Moon: {result.astrology.moon}</li>}
+                  {result.astrology.asc && <li>Ascendant: {result.astrology.asc}</li>}
+                  {Array.isArray(result.astrology.highlights) &&
+                    result.astrology.highlights.map((h, i) => <li key={i}>{h}</li>)}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(result.crossInsights) && result.crossInsights.length > 0 && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.4s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>Cross-Insights</h3>
+                <ul className={styles.resultList}>
+                  {result.crossInsights.map((c, i) => <li key={i}>{c}</li>)}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(result.recommendations) && result.recommendations.length > 0 && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.5s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>Next Steps</h3>
+                <ol className={styles.resultListOrdered}>
+                  {result.recommendations.map((r, i) => <li key={i}>{r}</li>)}
+                </ol>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
     </ServicePageLayout>
   );
 }

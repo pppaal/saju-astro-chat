@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     // ========================================
     // 1️⃣ 오늘의 운세 점수 계산
     // ========================================
-    const fortune = calculateDailyFortune(birthDate, birthTime, latitude, longitude);
+    const fortune = calculateDailyFortune(birthDate, _birthTime, _latitude, _longitude);
 
     // ========================================
     // 2️⃣ 데이터베이스에 저장

@@ -19,7 +19,8 @@ export default function TarotReadingPage() {
   const router = useRouter();
   const params = useParams();
   const { translate } = useI18n();
-  const { categoryName, spreadId } = params;
+  const categoryName = params?.categoryName as string | undefined;
+  const spreadId = params?.spreadId as string | undefined;
 
   const [gameState, setGameState] = useState<'loading' | 'picking' | 'revealing' | 'results' | 'error'>('loading');
   const [spreadInfo, setSpreadInfo] = useState<Spread | null>(null);

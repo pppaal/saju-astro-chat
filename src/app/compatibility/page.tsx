@@ -5,6 +5,7 @@ import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
+import styles from './Compatibility.module.css';
 
 type Relation = 'friend' | 'lover' | 'other';
 
@@ -36,6 +37,12 @@ const makeEmptyPerson = (defaults?: Partial<PersonForm>): PersonForm => ({
   showDropdown: false,
   ...(defaults || {}),
 });
+
+const relationIcons: Record<Relation, string> = {
+  lover: '💕',
+  friend: '🤝',
+  other: '✨',
+};
 
 export default function CompatPage() {
   const [count, setCount] = useState<number>(2);
@@ -173,79 +180,251 @@ export default function CompatPage() {
       title="Compatibility Analysis"
       subtitle="Discover relationship compatibility through astrological birth data"
     >
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
+      <main className={styles.page}>
+        {/* Background Hearts */}
+        <div className={styles.hearts}>
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className={styles.heart}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 8}s`,
+                animationDuration: `${6 + Math.random() * 4}s`,
+              }}
+            >
+              💖
+            </div>
+          ))}
+        </div>
 
-      <div style={{ margin: '16px 0' }}>
-        <label>People count: </label>
-        <input
-          type="number"
-          min={2}
-          max={4}
-          value={count}
-          onChange={(e) => setCount(Number(e.target.value))}
-        />
-      </div>
+        {!resultText && (
+          <div className={`${styles.formContainer} ${styles.fadeIn}`}>
+            <div className={styles.formHeader}>
+              <div className={styles.formIcon}>💕</div>
+              <h1 className={styles.formTitle}>Relationship Compatibility</h1>
+              <p className={styles.formSubtitle}>
+                Explore the cosmic connections between hearts
+              </p>
+            </div>
 
-      {persons.map((p, idx) => (
-        <div key={idx} style={{ border: '1px solid #ccc', padding: 12, marginBottom: 12 }}>
-          <h3>Person {idx + 1}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <input value={p.name} onChange={(e) => update(idx, 'name', e.target.value)} placeholder="Name" />
-            <input value={p.date} onChange={(e) => update(idx, 'date', e.target.value)} placeholder="YYYY-MM-DD" />
-            <input value={p.time} onChange={(e) => update(idx, 'time', e.target.value)} placeholder="HH:mm" />
-            <input
-              value={p.cityQuery}
-              onChange={(e) => update(idx, 'cityQuery', e.target.value)}
-              placeholder="City, Country"
-            />
-
-            <select value={p.timeZone} onChange={(e) => update(idx, 'timeZone', e.target.value)}>
-              {timezones.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-
-            {idx > 0 && (
-              <>
-                <select value={p.relation ?? ''} onChange={(e) => update(idx, 'relation', e.target.value as Relation)}>
-                  <option value="">Relation to Person 1</option>
-                  <option value="lover">Partner</option>
-                  <option value="friend">Friend</option>
-                  <option value="other">Other</option>
-                </select>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+              {/* Count Selector */}
+              <div className={styles.countSelector}>
+                <label htmlFor="count" className={styles.countLabel}>
+                  Number of People (2-4)
+                </label>
                 <input
-                  value={p.relationNote ?? ''}
-                  onChange={(e) => update(idx, 'relationNote', e.target.value)}
-                  placeholder="Short note"
-                  disabled={p.relation !== 'other'}
+                  id="count"
+                  type="number"
+                  min={2}
+                  max={4}
+                  value={count}
+                  onChange={(e) => setCount(Number(e.target.value))}
+                  className={styles.countInput}
                 />
-              </>
-            )}
-          </div>
+              </div>
 
-          {p.suggestions.length > 0 && p.showDropdown && (
-            <div style={{ background: '#f3f4f6', padding: 8 }}>
-              {p.suggestions.map((c) => (
-                <div key={`${c.name}-${c.country}`} onClick={() => onPickCity(idx, c)} style={{ cursor: 'pointer', padding: 4 }}>
-                  {c.name}, {c.country}
+              {/* Person Cards */}
+              {persons.map((p, idx) => (
+                <div
+                  key={idx}
+                  className={styles.personCard}
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
+                  <div className={styles.cardGlow} />
+                  <h3 className={styles.personTitle}>
+                    <span className={styles.personIcon}>
+                      {idx === 0 ? '👤' : relationIcons[p.relation || 'friend']}
+                    </span>
+                    Person {idx + 1}
+                  </h3>
+
+                  <div className={styles.grid}>
+                    {/* Name */}
+                    <div>
+                      <label htmlFor={`name-${idx}`} className={styles.label}>
+                        Name
+                      </label>
+                      <input
+                        id={`name-${idx}`}
+                        value={p.name}
+                        onChange={(e) => update(idx, 'name', e.target.value)}
+                        placeholder="Name"
+                        className={styles.input}
+                      />
+                    </div>
+
+                    {/* Date & Time */}
+                    <div className={`${styles.grid} ${styles.gridTwo}`}>
+                      <div>
+                        <label htmlFor={`date-${idx}`} className={styles.label}>
+                          Date of Birth
+                        </label>
+                        <input
+                          id={`date-${idx}`}
+                          type="date"
+                          value={p.date}
+                          onChange={(e) => update(idx, 'date', e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`time-${idx}`} className={styles.label}>
+                          Time of Birth
+                        </label>
+                        <input
+                          id={`time-${idx}`}
+                          type="time"
+                          value={p.time}
+                          onChange={(e) => update(idx, 'time', e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
+                    </div>
+
+                    {/* City Autocomplete */}
+                    <div className={styles.relative}>
+                      <label htmlFor={`city-${idx}`} className={styles.label}>
+                        City of Birth
+                      </label>
+                      <input
+                        id={`city-${idx}`}
+                        autoComplete="off"
+                        value={p.cityQuery}
+                        onChange={(e) => update(idx, 'cityQuery', e.target.value)}
+                        onFocus={() => update(idx, 'showDropdown', true)}
+                        onBlur={() => setTimeout(() => update(idx, 'showDropdown', false), 200)}
+                        placeholder='e.g., "Seoul, KR"'
+                        className={styles.input}
+                      />
+                      {p.suggestions.length > 0 && p.showDropdown && (
+                        <ul className={styles.dropdown}>
+                          {p.suggestions.map((c, i) => (
+                            <li
+                              key={`${c.name}-${c.country}-${i}`}
+                              className={styles.dropdownItem}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                onPickCity(idx, c);
+                              }}
+                            >
+                              {c.name}, {c.country}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Timezone */}
+                    <div>
+                      <label htmlFor={`tz-${idx}`} className={styles.label}>
+                        Time Zone
+                      </label>
+                      <select
+                        id={`tz-${idx}`}
+                        value={p.timeZone}
+                        onChange={(e) => update(idx, 'timeZone', e.target.value)}
+                        className={styles.select}
+                      >
+                        {timezones.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Relation (for Person 2+) */}
+                    {idx > 0 && (
+                      <div className={`${styles.grid} ${styles.gridTwo}`}>
+                        <div>
+                          <label htmlFor={`rel-${idx}`} className={styles.label}>
+                            Relation to Person 1
+                          </label>
+                          <select
+                            id={`rel-${idx}`}
+                            value={p.relation ?? ''}
+                            onChange={(e) => update(idx, 'relation', e.target.value as Relation)}
+                            className={styles.select}
+                          >
+                            <option value="">Select relation</option>
+                            <option value="lover">Partner / Lover 💕</option>
+                            <option value="friend">Friend 🤝</option>
+                            <option value="other">Other ✨</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor={`note-${idx}`} className={styles.label}>
+                            Relation Note
+                          </label>
+                          <input
+                            id={`note-${idx}`}
+                            value={p.relationNote ?? ''}
+                            onChange={(e) => update(idx, 'relationNote', e.target.value)}
+                            placeholder="Short note"
+                            disabled={p.relation !== 'other'}
+                            className={styles.input}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={styles.submitButton}
+              >
+                <span className={styles.buttonGlow} />
+                {isLoading ? (
+                  <>
+                    <svg
+                      className={styles.spinner}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Calculating...
+                  </>
+                ) : (
+                  'Analyze Compatibility'
+                )}
+              </button>
+
+              {error && <div className={styles.error}>{error}</div>}
+            </form>
+          </div>
+        )}
+
+        {/* Results */}
+        {resultText && (
+          <div className={styles.resultsContainer}>
+            <div className={`${styles.resultCard} ${styles.fadeIn}`}>
+              <div className={styles.resultCardGlow} />
+              {resultText}
             </div>
-          )}
-        </div>
-      ))}
-
-      <button onClick={handleSubmit} disabled={isLoading}>
-        {isLoading ? 'Calculating...' : 'Calculate'}
-      </button>
-
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {resultText && (
-        <pre style={{ whiteSpace: 'pre-wrap', marginTop: 16, padding: 12, background: '#f9fafb' }}>
-          {resultText}
-        </pre>
-      )}
-    </div>
+          </div>
+        )}
+      </main>
     </ServicePageLayout>
   );
 }

@@ -8,7 +8,9 @@ export interface Hexagram {
   lines: string[];
 }
 
-export const IChingData: Hexagram[] = [
+const hexSymbol = (n: number) => String.fromCharCode(0x4dc0 + (n - 1)); // Unicode hexagram block
+
+const rawIChingData: Hexagram[] = [
   {
     number: 1,
     binary: '111111',
@@ -1034,4 +1036,9 @@ export const IChingData: Hexagram[] = [
     ]
   }
 ];
+
+export const IChingData: Hexagram[] = rawIChingData.map((hex) => ({
+  ...hex,
+  symbol: hexSymbol(hex.number),
+}));
 

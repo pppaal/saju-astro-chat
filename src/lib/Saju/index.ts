@@ -25,3 +25,6 @@ export {
 
 // 타임존
 export * from './timezone';
+
+// Human-readable labels (Hangul/romanization) for stems & branches
+export * from './labels';

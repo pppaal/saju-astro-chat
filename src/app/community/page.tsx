@@ -11,6 +11,9 @@ import { useToast } from "@/components/ui/Toast";
 import { PostSkeleton } from "@/components/ui/Skeleton";
 import styles from "./community.module.css";
 
+// Prevent static export errors; this page depends on client/session data.
+export const dynamic = "force-dynamic";
+
 type Particle = {
   x: number;
   y: number;
@@ -601,11 +604,15 @@ export default function CommunityPage() {
   return (
     <div className={styles.page}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
-      <div className={styles.backButtonContainer}>
-        <BackButton />
-      </div>
 
-      <header className={styles.header}>
+      <div className={styles.container}>
+        {/* Back Button */}
+        <div className={styles.backButtonContainer}>
+          <Link href="/" className={styles.backButton}>← Back</Link>
+        </div>
+
+        {/* Header */}
+        <header className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.logoSection}>
             <span className={styles.logoIcon}>🌍</span>
@@ -644,10 +651,10 @@ export default function CommunityPage() {
             </button>
           )}
         </div>
-      </header>
+        </header>
 
-      {/* External Communities Hub */}
-      <section className={styles.externalHub}>
+        {/* External Communities Hub */}
+        <section className={styles.externalHub}>
         <div className={styles.hubHeader}>
           <h2 className={styles.hubTitle}>🌐 Connect to Global Communities</h2>
           <p className={styles.hubSubtitle}>Join millions of cosmic seekers across platforms</p>
@@ -675,10 +682,10 @@ export default function CommunityPage() {
             </a>
           ))}
         </div>
-      </section>
+        </section>
 
-      {/* Matching Feature Teaser */}
-      <section className={styles.matchingSection}>
+        {/* Matching Feature Teaser */}
+        <section className={styles.matchingSection}>
         <div className={styles.matchingCard}>
           <div className={styles.matchingIcon}>💫</div>
           <div className={styles.matchingContent}>
@@ -692,9 +699,9 @@ export default function CommunityPage() {
             </Link>
           </div>
         </div>
-      </section>
+        </section>
 
-      <div className={styles.controlsRow}>
+        <div className={styles.controlsRow}>
         <div className={styles.searchBar}>
           <input
             type="text"
@@ -714,9 +721,9 @@ export default function CommunityPage() {
             </button>
           )}
         </div>
-      </div>
+        </div>
 
-      <div className={styles.controlsRow}>
+        <div className={styles.controlsRow}>
         <div className={styles.categories}>
           <span className={styles.catLabel}>{t("community.categories", "Categories")}:</span>
           <div className={styles.catChips}>
@@ -731,10 +738,10 @@ export default function CommunityPage() {
             ))}
           </div>
         </div>
-      </div>
+        </div>
 
-      {isLoggedIn && (
-        <section className={styles.composeSection}>
+        {isLoggedIn && (
+          <section className={styles.composeSection}>
           <h2 className={styles.h2}>{t("community.createPost", "Create a Post")}</h2>
           <p className={styles.guide}>
             {t("community.postGuide", "Share your insights, readings, or questions with the community")}
@@ -800,19 +807,19 @@ export default function CommunityPage() {
               </div>
             </div>
           </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {!isLoggedIn && (
-        <div className={styles.loginPrompt}>
+        {!isLoggedIn && (
+          <div className={styles.loginPrompt}>
           <p>{t("community.loginToPost", "Log in to create posts and join the discussion")}</p>
           <button onClick={() => signIn()} className={styles.loginPromptBtn}>
             {t("community.login", "Log in")}
           </button>
-        </div>
-      )}
+          </div>
+        )}
 
-      <main className={styles.feed} role="main" aria-label="Community feed">
+        <main className={styles.feed} role="main" aria-label="Community feed">
         {isLoading ? (
           <div className={styles.grid}>
             <PostSkeleton />
@@ -1065,7 +1072,8 @@ export default function CommunityPage() {
             ))}
           </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

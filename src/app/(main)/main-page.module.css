@@ -282,6 +282,13 @@
   font-weight: 800;
 }
 
+.statSince {
+  margin: 4px 0 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
 .statFootnote {
   font-size: 0.9rem;
   color: var(--muted);
@@ -302,6 +309,22 @@
   align-items: flex-start;
 }
 
+.serviceHeaderCentered {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .serviceHeaderCentered {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
 .sectionEyebrow {
   margin: 0;
   font-weight: 800;
@@ -320,6 +343,111 @@
   color: var(--muted);
 }
 
+/* ====================================
+   PREVIEW CARDS (3 boxes)
+   ==================================== */
+.previewCardsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.previewCard {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+}
+
+.previewCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(99, 210, 255, 0.6), rgba(124, 242, 156, 0.6));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.previewCard:hover::before {
+  transform: scaleX(1);
+}
+
+.previewCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(99, 210, 255, 0.2);
+}
+
+.previewCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.previewIcon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 4px 12px rgba(136, 179, 247, 0.5));
+}
+
+.previewCardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.previewCardContent {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.previewCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.previewTag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(136, 179, 247, 0.9);
+  background: rgba(136, 179, 247, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(136, 179, 247, 0.2);
+}
+
+.previewArrow {
+  font-size: 1.5rem;
+  color: rgba(136, 179, 247, 0.6);
+  transition: all 0.3s ease;
+}
+
+.previewCard:hover .previewArrow {
+  transform: translateX(4px);
+  color: rgba(136, 179, 247, 1);
+}
+
+/* Old heroGlass - keeping for backward compatibility */
 .heroGlass {
   padding: 0;
   border-radius: 20px;
@@ -1619,4 +1747,205 @@ to { opacity: 1; transform: translateY(0); }
   .tarotLabels span { width: 90px; }
 
   .ctaSection { margin: 4rem auto; padding: 3rem 1.5rem; }
+}
+
+/* ====================================
+   HOW TO USE SECTION - 3 STEPS
+   ==================================== */
+.howToUseSection {
+  max-width: 1200px;
+  margin: 5rem auto 5rem;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.howToUseTitle {
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 4rem;
+  background: linear-gradient(135deg, #fff 0%, #a8b9ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 40px rgba(136, 179, 247, 0.3);
+}
+
+.stepsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: nowrap;
+}
+
+.stepCard {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stepCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.stepCard:hover::before {
+  transform: scaleX(1);
+}
+
+.stepCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+}
+
+.stepNumber {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.stepIcon {
+  font-size: 4rem;
+  margin: 0 0 1.5rem;
+  filter: drop-shadow(0 4px 20px rgba(136, 179, 247, 0.5));
+  animation: float 3s ease-in-out infinite;
+}
+
+.stepCard:nth-child(2) .stepIcon {
+  animation-delay: 0.5s;
+}
+
+.stepCard:nth-child(4) .stepIcon {
+  animation-delay: 1s;
+}
+
+.stepTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.75rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.stepDesc {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.stepArrow {
+  font-size: 2rem;
+  color: rgba(136, 179, 247, 0.6);
+  font-weight: 300;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Responsive - How to Use */
+@media (max-width: 900px) {
+  .stepsContainer {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .stepArrow {
+    transform: rotate(90deg);
+    margin: 0;
+  }
+
+  .stepCard {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .howToUseSection {
+    margin: 3rem auto 3rem;
+    padding: 0 1rem;
+  }
+
+  .howToUseTitle {
+    font-size: 28px;
+    margin-bottom: 2.5rem;
+  }
+
+  .stepCard {
+    padding: 2rem 1.5rem;
+  }
+
+  .stepIcon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .stepTitle {
+    font-size: 1.25rem;
+  }
+
+  .stepDesc {
+    font-size: 0.9rem;
+  }
+
+  /* Preview Cards Responsive */
+  .previewCardsContainer {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .previewCard {
+    padding: 1.5rem 1.25rem;
+    min-height: auto;
+  }
+
+  .previewCardTitle {
+    font-size: 1.1rem;
+  }
+
+  .previewCardContent {
+    font-size: 0.9rem;
+  }
 }
