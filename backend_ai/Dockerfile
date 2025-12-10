@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Create backend_ai folder structure to match import paths
+# (app.py uses "from backend_ai.app.xxx import yyy")
+RUN mkdir -p /app/backend_ai
+COPY . /app/backend_ai/
 
 # Expose port
 EXPOSE 5000
@@ -20,8 +22,11 @@ EXPOSE 5000
 # Railway injects PORT env var
 ENV PORT=5000
 
-# Set PYTHONPATH to include parent for backend_ai imports
-ENV PYTHONPATH=/app:/
+# Set PYTHONPATH so "from backend_ai.app.xxx" works
+ENV PYTHONPATH=/app
+
+# Work from the backend_ai directory where main.py is
+WORKDIR /app/backend_ai
 
 # Start command (uses $PORT from Railway)
 CMD gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
