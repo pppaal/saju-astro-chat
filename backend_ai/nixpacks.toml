@@ -4,5 +4,8 @@ nixPkgs = ["python310", "gcc"]
 [phases.install]
 cmds = ["pip install -r requirements.txt"]
 
+[variables]
+PYTHONPATH = "/app/backend_ai:/"
+
 [start]
 cmd = "gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"

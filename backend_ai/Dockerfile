@@ -20,5 +20,8 @@ EXPOSE 5000
 # Railway injects PORT env var
 ENV PORT=5000
 
+# Set PYTHONPATH to include parent for backend_ai imports
+ENV PYTHONPATH=/app:/
+
 # Start command (uses $PORT from Railway)
 CMD gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
