@@ -8,7 +8,10 @@ import BackButton from "@/components/ui/BackButton";
 import Footer from "@/components/ui/Footer";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { ToastProvider } from "@/components/ui/Toast";
-import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+// ErrorBoundary temporarily disabled - Next.js 15 compatibility issue
+// import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { ConsentProvider } from "@/contexts/ConsentContext";
+import { ConsentBanner } from "@/components/consent/ConsentBanner";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -73,29 +76,29 @@ function BackButtonInLayout() {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://destinytracker.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com"),
   title: {
-    default: "Destiny Tracker | Chart the cosmos, navigate your destiny",
-    template: "%s | Destiny Tracker",
+    default: "DestinyPal | AI Spiritual Mental Care Platform",
+    template: "%s | DestinyPal",
   },
-  description: "AI-powered astrology, Saju, Tarot, and I Ching readings. Discover your destiny map with personalized insights combining Eastern and Western divination traditions.",
+  description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.",
   keywords: [
+    "mental wellness",
+    "self-discovery",
     "astrology",
     "saju",
     "tarot",
-    "i ching",
-    "destiny map",
-    "AI fortune telling",
-    "birth chart",
-    "horoscope",
+    "psychology",
+    "mindfulness",
+    "spiritual care",
     "사주",
-    "점성술",
-    "타로",
-    "운세",
+    "심리",
+    "명상",
+    "자기이해",
   ],
-  authors: [{ name: "Destiny Tracker" }],
-  creator: "Destiny Tracker",
-  publisher: "Destiny Tracker",
+  authors: [{ name: "DestinyPal" }],
+  creator: "DestinyPal",
+  publisher: "DestinyPal",
   formatDetection: {
     email: false,
     address: false,
@@ -105,24 +108,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "Destiny Tracker",
-    title: "Destiny Tracker | Chart the cosmos, navigate your destiny",
-    description: "AI-powered astrology, Saju, Tarot, and I Ching readings. Discover your destiny map with personalized insights.",
+    siteName: "DestinyPal",
+    title: "DestinyPal | AI Spiritual Mental Care Platform",
+    description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Destiny Tracker - AI-powered destiny readings",
+        alt: "DestinyPal - AI Spiritual Mental Care",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Destiny Tracker | Chart the cosmos, navigate your destiny",
-    description: "AI-powered astrology, Saju, Tarot, and I Ching readings. Discover your destiny map with personalized insights.",
+    title: "DestinyPal | AI Spiritual Mental Care Platform",
+    description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
     images: ["/og-image.png"],
-    creator: "@destinytracker",
+    creator: "@destinypal",
   },
   robots: {
     index: true,
@@ -140,8 +143,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   const websiteJsonLd = generateJsonLd({
     type: "WebSite",
-    name: "Destiny Tracker",
-    description: "AI-powered astrology, Saju, Tarot, and I Ching readings. Discover your destiny map with personalized insights.",
+    name: "DestinyPal",
+    description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
   });
 
   const organizationJsonLd = generateJsonLd({
@@ -169,15 +172,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Skip to main content
         </a>
 
-        {/* Analytics */}
-        <Suspense fallback={null}>
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} />
-        </Suspense>
+        <ConsentProvider>
+          {/* Analytics */}
+          <Suspense fallback={null}>
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} />
+          </Suspense>
 
-        <ErrorBoundary>
           <AuthProvider>
             <ThemeProvider>
               <I18nProvider>
@@ -193,7 +196,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </I18nProvider>
             </ThemeProvider>
           </AuthProvider>
-        </ErrorBoundary>
+
+          <ConsentBanner />
+        </ConsentProvider>
       </body>
     </html>
   );

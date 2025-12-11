@@ -1,4 +1,5 @@
-import {withSentryConfig} from '@sentry/nextjs';
+// Temporarily disable Sentry for debugging
+// import {withSentryConfig} from '@sentry/nextjs';
 // 파일 경로: next.config.ts
 
 import path from 'path';
@@ -9,6 +10,48 @@ const nextConfig = {
   // 이 옵션은 swisseph가 node_modules를 참조할 수 있도록 도와줍니다.
   outputFileTracingRoot: path.join(__dirname),
   eslint: { ignoreDuringBuilds: true },
+
+  // Performance optimizations
+  poweredByHeader: false, // Remove X-Powered-By header
+  compress: true, // Enable gzip compression
+  reactStrictMode: true,
+
+  // Experimental performance features
+  experimental: {
+    optimizeCss: true, // CSS optimization
+    scrollRestoration: true, // Remember scroll position
+  },
+
+  // Cache headers for static assets
+  async headers() {
+    return [
+      {
+        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/:all*(js|css)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/:all*(woff|woff2|ttf|otf)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        // API routes with short cache
+        source: '/api/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, max-age=0' },
+        ],
+      },
+    ];
+  },
 
   // 이미지 최적화 설정
   images: {
@@ -62,37 +105,17 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Temporarily disable Sentry wrapper for debugging
+export default nextConfig;
 
-export default withSentryConfig(undefined, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
-
+/*
+export default withSentryConfig(nextConfig, {
   org: "destinypal",
-
   project: "javascript-nextjs",
-
-  // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
-
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
   tunnelRoute: "/monitoring",
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
-
-  // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-  // See the following for more information:
-  // https://docs.sentry.io/product/crons/
-  // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
 });
+*/
