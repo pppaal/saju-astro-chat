@@ -6,9 +6,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import Stripe from 'stripe';
 import { calculateSajuData } from '@/lib/Saju/saju';
+import { rateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/request-ip';
 
 // 프리미엄 상태 확인 헬퍼
-async function checkPremiumStatus(email?: string): Promise<boolean> {
+async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email) return false;
 
@@ -16,6 +18,12 @@ async function checkPremiumStatus(email?: string): Promise<boolean> {
   if (!emailRegex.test(email) || email.length > 254) return false;
 
   try {
+    const rlKey = `saju-premium:${email.toLowerCase()}:${ip ?? 'unknown'}`;
+    const limit = await rateLimit(rlKey, { limit: 5, windowSeconds: 60 });
+    if (!limit.allowed) {
+      return false;
+    }
+
     const stripe = new Stripe(key, { apiVersion: '2024-12-18.acacia' as any });
     const customers = await stripe.customers.search({
       query: `email:'${email}'`,
@@ -271,6 +279,7 @@ const buildJijangganRaw = (raw: JijangganAny) => {
 ------------------------------*/
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req.headers as Headers);
     const body = await req.json().catch(() => null);
     if (!body) {
       return NextResponse.json({ message: 'Invalid JSON body.' }, { status: 400 });
@@ -284,7 +293,7 @@ export async function POST(req: Request) {
     // 프리미엄 상태 확인 (로그인 + Stripe 구독)
     const session = await getServerSession(authOptions);
     const isPremium = session?.user?.email
-      ? await checkPremiumStatus(session.user.email)
+      ? await checkPremiumStatus(session.user.email, ip)
       : false;
 
     // 사용자 현재 위치 타임존 (운세 계산용) - 없으면 출생 타임존 사용

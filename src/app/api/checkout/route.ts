@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { getPriceId, allowedPriceIds, type PlanKey, type BillingCycle } from '@/lib/payments/prices'
 
 export const runtime = 'nodejs'
 
@@ -24,6 +25,11 @@ function isValidEmail(email?: string | null) {
   return emailRegex.test(email)
 }
 
+type CheckoutBody = {
+  plan?: PlanKey
+  billingCycle?: BillingCycle
+}
+
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers)
 
@@ -41,15 +47,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'not_authenticated' }, { status: 401, headers: rateHeaders })
     }
 
-    const price = process.env.NEXT_PUBLIC_PRICE_MONTHLY // price_xxx
     const base = process.env.NEXT_PUBLIC_BASE_URL // e.g., https://your-domain.com
-    if (!price) {
-      console.error('ERR: NEXT_PUBLIC_PRICE_MONTHLY missing')
-      return NextResponse.json({ error: 'missing_price' }, { status: 500, headers: rateHeaders })
-    }
     if (!base) {
       console.error('ERR: NEXT_PUBLIC_BASE_URL missing')
       return NextResponse.json({ error: 'missing_base_url' }, { status: 500, headers: rateHeaders })
+    }
+
+    const body = (await req.json().catch(() => ({}))) as CheckoutBody
+    const plan = body.plan || 'premium'
+    const billingCycle = body.billingCycle || 'monthly'
+    const price = getPriceId(plan, billingCycle)
+    if (!price || !allowedPriceIds().includes(price)) {
+      console.error('[checkout] price not allowed', { plan, billingCycle })
+      return NextResponse.json({ error: 'invalid_price' }, { status: 400, headers: rateHeaders })
     }
 
     const stripe = getStripe()
@@ -77,9 +87,11 @@ export async function POST(req: NextRequest) {
         allow_promotion_codes: true,
         customer_email: email,
         metadata: {
-          productId: 'monthly-premium',
+          productId: `${plan}-${billingCycle}`,
           userId: (session.user as any)?.id || '',
           source: 'web',
+          plan,
+          billingCycle,
         },
       },
       { idempotencyKey }
@@ -94,6 +106,8 @@ export async function POST(req: NextRequest) {
       email,
       ip,
       checkoutId: checkout.id,
+      plan,
+      billingCycle,
     })
 
     return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })

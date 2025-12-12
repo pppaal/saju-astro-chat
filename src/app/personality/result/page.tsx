@@ -105,7 +105,7 @@ export default function ResultPage() {
       <main className={styles.page}>
         <div className={styles.loading}>
           <div className={styles.spinner} />
-          <p>Loading your persona...</p>
+          <p>{t('personality.loading', 'Loading your persona...')}</p>
         </div>
       </main>
     );
@@ -116,10 +116,10 @@ export default function ResultPage() {
       <main className={styles.page}>
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>✨</div>
-          <h1>No Results Yet</h1>
-          <p>Complete the personality quiz to discover your Nova Persona</p>
+          <h1>{t('personality.noResults', 'No Results Yet')}</h1>
+          <p>{t('personality.noResultsDesc', 'Complete the personality quiz to discover your Nova Persona')}</p>
           <Link href="/personality/quiz" className={styles.ctaButton}>
-            Start Quiz
+            {t('personality.startQuiz', 'Start Quiz')}
           </Link>
         </div>
       </main>
@@ -160,20 +160,20 @@ export default function ResultPage() {
           </div>
 
           <div className={styles.heroContent}>
-            <p className={styles.preTitle}>Your Nova Persona</p>
+            <p className={styles.preTitle}>{t('personality.yourNovaPersona', 'Your Nova Persona')}</p>
             <h1 className={styles.personaName}>{analysis.personaName}</h1>
             <p className={styles.summary}>{analysis.summary}</p>
 
             <div className={styles.badges}>
               <div className={styles.typeCodeBadge}>
                 <span className={styles.typeCodeValue}>{analysis.typeCode}</span>
-                <span className={styles.typeCodeLabel}>Type Code</span>
+                <span className={styles.typeCodeLabel}>{t('personality.typeCode', 'Type Code')}</span>
               </div>
               {analysis.consistencyScore !== undefined && (
                 <div className={styles.consistencyBadge}>
                   <span className={styles.consistencyValue}>{analysis.consistencyScore}%</span>
                   <span className={styles.consistencyLabel}>
-                    {analysis.consistencyLabel || 'Consistency'}
+                    {analysis.consistencyLabel || t('personality.consistency', 'Consistency')}
                   </span>
                 </div>
               )}
@@ -185,7 +185,7 @@ export default function ResultPage() {
         <section className={styles.motivationsSection}>
           <h2 className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>🎯</span>
-            Key Motivations
+            {t('personality.keyMotivations', 'Key Motivations')}
           </h2>
           <div className={styles.motivationCards}>
             {analysis.keyMotivations.map((motivation, i) => (
@@ -205,35 +205,35 @@ export default function ResultPage() {
         <section className={styles.axesSection}>
           <h2 className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>📊</span>
-            Personality Spectrum
+            {t('personality.axes', 'Personality Spectrum')}
           </h2>
           <div className={styles.axesCard}>
             <AxisBar
-              label="Energy"
+              label={t('personality.axis.energy', 'Energy')}
               score={analysis.axes.energy.score}
-              left="Grounded"
-              right="Radiant"
+              left={t('personality.axis.grounded', 'Grounded')}
+              right={t('personality.axis.radiant', 'Radiant')}
               delay={0}
             />
             <AxisBar
-              label="Cognition"
+              label={t('personality.axis.cognition', 'Cognition')}
               score={analysis.axes.cognition.score}
-              left="Structured"
-              right="Visionary"
+              left={t('personality.axis.structured', 'Structured')}
+              right={t('personality.axis.visionary', 'Visionary')}
               delay={100}
             />
             <AxisBar
-              label="Decision"
+              label={t('personality.axis.decision', 'Decision')}
               score={analysis.axes.decision.score}
-              left="Empathic"
-              right="Logic"
+              left={t('personality.axis.empathic', 'Empathic')}
+              right={t('personality.axis.logic', 'Logic')}
               delay={200}
             />
             <AxisBar
-              label="Rhythm"
+              label={t('personality.axis.rhythm', 'Rhythm')}
               score={analysis.axes.rhythm.score}
-              left="Anchor"
-              right="Flow"
+              left={t('personality.axis.anchor', 'Anchor')}
+              right={t('personality.axis.flow', 'Flow')}
               delay={300}
             />
           </div>
@@ -245,7 +245,7 @@ export default function ResultPage() {
           <div className={styles.traitCard}>
             <div className={styles.traitHeader}>
               <span className={styles.traitIcon}>💪</span>
-              <h3>Strengths</h3>
+              <h3>{t('personality.strengths', 'Strengths')}</h3>
             </div>
             <div className={styles.traitTags}>
               {analysis.strengths.map((s) => (
@@ -258,7 +258,7 @@ export default function ResultPage() {
           <div className={styles.traitCard}>
             <div className={styles.traitHeader}>
               <span className={styles.traitIcon}>⚡</span>
-              <h3>Growth Areas</h3>
+              <h3>{t('personality.challenges', 'Growth Areas')}</h3>
             </div>
             <div className={styles.traitTags}>
               {analysis.challenges.map((c) => (
@@ -271,7 +271,7 @@ export default function ResultPage() {
           <div className={styles.traitCard}>
             <div className={styles.traitHeader}>
               <span className={styles.traitIcon}>🎭</span>
-              <h3>Ideal Roles</h3>
+              <h3>{t('personality.roles', 'Ideal Roles')}</h3>
             </div>
             <div className={styles.traitTags}>
               {analysis.recommendedRoles.map((r) => (
@@ -284,7 +284,7 @@ export default function ResultPage() {
           <div className={styles.traitCard}>
             <div className={styles.traitHeader}>
               <span className={styles.traitIcon}>💼</span>
-              <h3>Career Focus</h3>
+              <h3>{t('personality.career', 'Career Focus')}</h3>
             </div>
             <p className={styles.traitText}>{analysis.career}</p>
           </div>
@@ -294,12 +294,12 @@ export default function ResultPage() {
         <section className={styles.insightsSection}>
           <div className={styles.insightCard}>
             <div className={styles.insightIcon}>🤝</div>
-            <h3>Compatibility</h3>
+            <h3>{t('personality.compatibility', 'Compatibility')}</h3>
             <p>{analysis.compatibilityHint}</p>
           </div>
           <div className={styles.insightCard}>
             <div className={styles.insightIcon}>🧭</div>
-            <h3>Guidance</h3>
+            <h3>{t('personality.guidance', 'Guidance')}</h3>
             <p>{analysis.guidance}</p>
           </div>
         </section>
@@ -307,13 +307,13 @@ export default function ResultPage() {
         {/* Action Buttons */}
         <section className={styles.actions}>
           <button onClick={handleShare} className={styles.shareButton}>
-            <span>📤</span> Share Result
+            <span>📤</span> {t('personality.share', 'Share Result')}
           </button>
           <button onClick={handleDownload} className={styles.downloadButton}>
-            <span>📥</span> Download JSON
+            <span>📥</span> {t('personality.download', 'Download JSON')}
           </button>
           <Link href="/personality/quiz" className={styles.retakeButton}>
-            <span>🔄</span> Retake Quiz
+            <span>🔄</span> {t('personality.retake', 'Retake Quiz')}
           </Link>
         </section>
       </div>
