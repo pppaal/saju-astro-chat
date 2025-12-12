@@ -159,71 +159,6 @@ export const KOREAN_LUCKY_SYMBOLS = [
   { ko: '큰 물', en: 'Large Water', emoji: '🌊', meaning: '재물, 풍요' },
 ] as const;
 
-// Chinese Dream Interpretation (中国解梦)
-export const CHINESE_DREAM_SYMBOLS = [
-  { zh: '龙', en: 'Dragon', emoji: '🐉', meaning: 'Imperial power, success' },
-  { zh: '凤凰', en: 'Phoenix', emoji: '🦅', meaning: 'Rebirth, opportunity' },
-  { zh: '鱼', en: 'Fish', emoji: '🐟', meaning: 'Abundance, surplus' },
-  { zh: '莲花', en: 'Lotus', emoji: '🪷', meaning: 'Purity, enlightenment' },
-  { zh: '竹子', en: 'Bamboo', emoji: '🎋', meaning: 'Resilience, integrity' },
-  { zh: '红色', en: 'Red Color', emoji: '🔴', meaning: 'Joy, prosperity' },
-  { zh: '桥', en: 'Bridge', emoji: '🌉', meaning: 'Transition, connection' },
-] as const;
-
-// Islamic Dream Interpretation (تفسير الأحلام الإسلامي)
-export const ISLAMIC_DREAM_TYPES = [
-  { ar: 'رؤيا صادقة', en: 'True Vision', emoji: '✨', meaning: 'Divine message' },
-  { ar: 'حلم من النفس', en: 'Self Dream', emoji: '💭', meaning: 'Personal thoughts' },
-  { ar: 'حلم من الشيطان', en: 'Satanic Dream', emoji: '⚠️', meaning: 'Ignore and seek refuge' },
-] as const;
-
-export const ISLAMIC_BLESSED_SYMBOLS = [
-  { ar: 'ماء', en: 'Water', emoji: '💧', meaning: 'Knowledge, purity' },
-  { ar: 'نور', en: 'Light', emoji: '💡', meaning: 'Guidance, truth' },
-  { ar: 'كتاب', en: 'Book', emoji: '📖', meaning: 'Wisdom, learning' },
-  { ar: 'حديقة', en: 'Garden', emoji: '🌳', meaning: 'Paradise, goodness' },
-  { ar: 'طائر', en: 'Bird', emoji: '🦅', meaning: 'Freedom, message' },
-] as const;
-
-// Western/European Dream Symbolism (서양 꿈 상징)
-export const WESTERN_DREAM_ARCHETYPES = [
-  { en: 'Shadow', emoji: '🌑', meaning: 'Unconscious aspects of self' },
-  { en: 'Anima/Animus', emoji: '⚖️', meaning: 'Inner feminine/masculine' },
-  { en: 'The Wise Old Man', emoji: '🧙', meaning: 'Inner wisdom, guidance' },
-  { en: 'The Hero', emoji: '🦸', meaning: 'Overcoming challenges' },
-  { en: 'The Trickster', emoji: '🃏', meaning: 'Change, transformation' },
-] as const;
-
-// Indian/Hindu Dream Interpretation (भारतीय स्वप्न व्याख्या)
-export const HINDU_DREAM_SYMBOLS = [
-  { hi: 'कमल', en: 'Lotus', emoji: '🪷', meaning: 'Spiritual awakening' },
-  { hi: 'गाय', en: 'Cow', emoji: '🐄', meaning: 'Prosperity, motherhood' },
-  { hi: 'हाथी', en: 'Elephant', emoji: '🐘', meaning: 'Wisdom, Ganesha blessings' },
-  { hi: 'सांप', en: 'Snake', emoji: '🐍', meaning: 'Kundalini, transformation' },
-  { hi: 'सूर्य', en: 'Sun', emoji: '☀️', meaning: 'Consciousness, vitality' },
-  { hi: 'गंगा', en: 'Sacred River', emoji: '🌊', meaning: 'Purification, flow' },
-] as const;
-
-// Native American Dream Traditions (아메리카 원주민 꿈 전통)
-export const NATIVE_AMERICAN_SYMBOLS = [
-  { en: 'Eagle', emoji: '🦅', meaning: 'Vision, spiritual messenger' },
-  { en: 'Wolf', emoji: '🐺', meaning: 'Teacher, pathfinder' },
-  { en: 'Bear', emoji: '🐻', meaning: 'Strength, introspection' },
-  { en: 'Buffalo', emoji: '🦬', meaning: 'Abundance, prayer' },
-  { en: 'Spider', emoji: '🕷️', meaning: 'Creativity, connection' },
-  { en: 'Feather', emoji: '🪶', meaning: 'Truth, lightness' },
-] as const;
-
-// Japanese Dream Interpretation (日本の夢占い)
-export const JAPANESE_DREAM_SYMBOLS = [
-  { ja: '富士山', en: 'Mt. Fuji', emoji: '🗻', meaning: 'Great fortune, achievement' },
-  { ja: '鷹', en: 'Hawk', emoji: '🦅', meaning: 'Success, opportunity' },
-  { ja: '茄子', en: 'Eggplant', emoji: '🍆', meaning: 'Achievement (first dream)' },
-  { ja: '桜', en: 'Cherry Blossom', emoji: '🌸', meaning: 'New beginnings, beauty' },
-  { ja: '鯉', en: 'Koi', emoji: '🐟', meaning: 'Perseverance, success' },
-  { ja: '鶴', en: 'Crane', emoji: '🦢', meaning: 'Longevity, good fortune' },
-] as const;
-
 // Dream Context/Timing
 export const DREAM_CONTEXT = [
   { ko: '새벽 꿈', en: 'Early morning dream', significance: 'Often considered most meaningful' },
@@ -244,13 +179,6 @@ export function generateDreamPrompt(params: {
   context?: string[];
   koreanType?: string[];
   luckySymbols?: string[];
-  chineseSymbols?: string[];
-  islamicTypes?: string[];
-  islamicBlessed?: string[];
-  westernArchetypes?: string[];
-  hinduSymbols?: string[];
-  nativeAmericanSymbols?: string[];
-  japaneseSymbols?: string[];
   birthData?: {
     sun?: string;
     moon?: string;
@@ -260,12 +188,10 @@ export function generateDreamPrompt(params: {
   const {
     dream, symbols, emotions, themes, context,
     koreanType, luckySymbols,
-    chineseSymbols, islamicTypes, islamicBlessed,
-    westernArchetypes, hinduSymbols, nativeAmericanSymbols, japaneseSymbols,
     birthData
   } = params;
 
-  let prompt = `You are an expert dream interpreter with deep knowledge of global dream interpretation traditions including Korean, Chinese, Islamic, Western/Jungian, Hindu, Native American, and Japanese approaches. You synthesize insights from multiple cultural perspectives along with astrological analysis.
+  let prompt = `You are an expert dream interpreter with deep knowledge of Korean traditional dream interpretation (해몽) and Western psychological approaches. You synthesize insights from both Eastern and Western perspectives along with astrological analysis.
 
 ## Dream Description
 ${dream}
@@ -312,62 +238,6 @@ ${koreanType.join(', ')}
     prompt += `\n## Korean Lucky Symbols Present (길몽 상징)
 ${luckySymbols.join(', ')}
 **Note**: These are traditionally auspicious symbols in Korean dream interpretation. Consider their cultural significance.
-`;
-  }
-
-  // Add Chinese symbols
-  if (chineseSymbols && chineseSymbols.length > 0) {
-    prompt += `\n## Chinese Dream Symbols (中国解梦)
-${chineseSymbols.join(', ')}
-**Note**: Consider Chinese cultural interpretations of these symbols (e.g., dragons = imperial power, fish = abundance).
-`;
-  }
-
-  // Add Islamic dream types
-  if (islamicTypes && islamicTypes.length > 0) {
-    prompt += `\n## Islamic Dream Classification (تفسير الأحلام)
-${islamicTypes.join(', ')}
-**Note**: Apply Islamic dream interpretation framework (True Vision from Allah, Self Dream, or Satanic Dream).
-`;
-  }
-
-  // Add Islamic blessed symbols
-  if (islamicBlessed && islamicBlessed.length > 0) {
-    prompt += `\n## Islamic Blessed Symbols
-${islamicBlessed.join(', ')}
-**Note**: These are considered blessed symbols in Islamic tradition.
-`;
-  }
-
-  // Add Western/Jungian archetypes
-  if (westernArchetypes && westernArchetypes.length > 0) {
-    prompt += `\n## Western/Jungian Archetypes
-${westernArchetypes.join(', ')}
-**Note**: Interpret using Jungian psychology and Western dream symbolism.
-`;
-  }
-
-  // Add Hindu/Indian symbols
-  if (hinduSymbols && hinduSymbols.length > 0) {
-    prompt += `\n## Hindu/Indian Dream Symbols (स्वप्न)
-${hinduSymbols.join(', ')}
-**Note**: Consider Hindu spiritual and cultural meanings.
-`;
-  }
-
-  // Add Native American symbols
-  if (nativeAmericanSymbols && nativeAmericanSymbols.length > 0) {
-    prompt += `\n## Native American Symbols
-${nativeAmericanSymbols.join(', ')}
-**Note**: Consider Native American spiritual traditions and animal symbolism.
-`;
-  }
-
-  // Add Japanese symbols
-  if (japaneseSymbols && japaneseSymbols.length > 0) {
-    prompt += `\n## Japanese Dream Symbols (夢占い)
-${japaneseSymbols.join(', ')}
-**Note**: Consider Japanese cultural meanings (e.g., Mt. Fuji, hawk, eggplant = traditional first dream symbols).
 `;
   }
 

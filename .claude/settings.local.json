@@ -78,7 +78,10 @@
       "Bash(do mv \"$file\" \"$file%.png.png.png\")",
       "Bash(npx tsx:*)",
       "Bash(node:*)",
-      "Bash(taskkill /PID 33648 /F)"
+      "Bash(taskkill /PID 33648 /F)",
+      "Bash(node scripts/fix-quotes.mjs:*)",
+      "Bash(timeout /t:*)",
+      "Bash(npx tsc --noEmit)"
     ],
     "deny": [],
     "ask": []

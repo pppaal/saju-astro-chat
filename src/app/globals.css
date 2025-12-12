@@ -65,10 +65,10 @@ select:focus-visible,
 }
 
 :root {
-  /* Enhanced Dark Mode Color Palette */
-  --bg-color: #050714;
-  --bg-secondary: #0a0e1f;
-  --bg-tertiary: #111827;
+  /* Enhanced Dark Mode Color Palette - Lighter shade */
+  --bg-color: #0d1225;
+  --bg-secondary: #131a2e;
+  --bg-tertiary: #1a2238;
 
   --text-color: #EAE6FF;
   --text-secondary: rgba(234, 230, 255, 0.85);

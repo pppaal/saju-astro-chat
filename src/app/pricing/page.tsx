@@ -320,9 +320,8 @@ export default function PricingPage() {
   const ui = uiLabels[lang] || uiLabels.en;
 
   const formatPrice = (price: number) => {
-    if (price === 0) return lang === 'ko' ? '무료' : lang === 'zh' ? '免费' : 'Free';
+    if (price === 0) return lang === 'ko' ? '무료' : 'Free';
     if (lang === 'ko') return price.toLocaleString('ko-KR');
-    if (lang === 'zh') return price.toLocaleString('zh-CN');
     return price.toFixed(2);
   };
 

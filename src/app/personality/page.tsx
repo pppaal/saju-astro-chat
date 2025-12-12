@@ -1,57 +1,128 @@
 'use client';
-import Link from 'next/link';
-import AuraRingVisual from '@/components/aura/AuraRingVisual';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useI18n } from '@/i18n/I18nProvider';
+import BackButton from '@/components/ui/BackButton';
 import styles from './Personality.module.css';
 
 export default function PersonalityHomePage() {
-  const defaultColors = ['hsl(220, 90%, 65%)', 'hsl(300, 90%, 65%)', 'hsl(180, 90%, 65%)'];
+  const { t } = useI18n();
+  const router = useRouter();
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
+
+  const handleStart = () => {
+    if (gender) {
+      localStorage.setItem('auraGender', gender);
+      router.push('/personality/quiz');
+    }
+  };
 
   return (
-    <>
-      <AuraRingVisual colors={defaultColors} />
+    <main className={styles.page}>
+      {/* Back Button */}
+      <div className={styles.backButton}>
+        <BackButton />
+      </div>
 
-      {/* Background Orbs */}
-      <div className={styles.orbs}>
-        {[...Array(8)].map((_, i) => (
+      {/* Animated Stars Background - deterministic positions */}
+      <div className={styles.stars}>
+        {[...Array(60)].map((_, i) => (
           <div
             key={i}
-            className={styles.orb}
+            className={styles.star}
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${150 + Math.random() * 200}px`,
-              height: `${150 + Math.random() * 200}px`,
-              background: `radial-gradient(circle, ${
-                i % 3 === 0
-                  ? 'rgba(167, 139, 250, 0.4)'
-                  : i % 3 === 1
-                  ? 'rgba(236, 72, 153, 0.4)'
-                  : 'rgba(245, 158, 11, 0.4)'
-              }, transparent)`,
-              animationDelay: `${Math.random() * 8}s`,
-              animationDuration: `${6 + Math.random() * 6}s`,
+              left: `${(i * 37 + 13) % 100}%`,
+              top: `${(i * 53 + 7) % 100}%`,
+              animationDelay: `${(i * 0.08) % 4}s`,
+              width: `${2 + (i % 3)}px`,
+              height: `${2 + (i % 3)}px`,
             }}
           />
         ))}
       </div>
 
-      <main className={styles.page}>
-        <div className={`${styles.hero} ${styles.fadeIn}`}>
-          <div className={styles.heroIcon}>✨</div>
-          <h1 className={styles.heroTitle}>
-            Discover Your True Aura
+      {/* Hero Card */}
+      <div className={`${styles.card} ${styles.fadeIn}`}>
+        <div className={styles.header}>
+          <div className={styles.icon}>✨</div>
+          <h1 className={styles.title}>
+            {t('personality.discoverAura', 'Discover Your True Aura')}
           </h1>
-          <p className={styles.heroSubtitle}>
-            A next-generation personality test to reveal your unique energy, core motivations, and hidden potential.
+          <p className={styles.subtitle}>
+            {t('personality.discoverDesc', 'A next-generation personality test to reveal your unique energy, core motivations, and hidden potential.')}
           </p>
-          <Link href="/personality/quiz">
-            <button className={styles.heroButton}>
-              <span className={styles.buttonGlow} />
-              Start the Free Discovery Test
-            </button>
-          </Link>
         </div>
-      </main>
-    </>
+
+        {/* Test Info */}
+        <div className={styles.testInfo}>
+          <div className={styles.infoItem}>
+            <span className={styles.infoIcon}>📝</span>
+            <span className={styles.infoText}>{t('personality.questionCount', '40 Questions')}</span>
+          </div>
+          <div className={styles.infoDivider} />
+          <div className={styles.infoItem}>
+            <span className={styles.infoIcon}>⏱️</span>
+            <span className={styles.infoText}>{t('personality.estimatedTime', '~5 Minutes')}</span>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className={styles.features}>
+          <div className={styles.featureItem}>
+            <span className={styles.featureIcon}>🌈</span>
+            <div>
+              <h3>{t('personality.feature1Title', 'Energy Profile')}</h3>
+              <p>{t('personality.feature1Desc', 'Discover if you are radiant or grounded')}</p>
+            </div>
+          </div>
+          <div className={styles.featureItem}>
+            <span className={styles.featureIcon}>🧠</span>
+            <div>
+              <h3>{t('personality.feature2Title', 'Thinking Style')}</h3>
+              <p>{t('personality.feature2Desc', 'Visionary vs structured approach')}</p>
+            </div>
+          </div>
+          <div className={styles.featureItem}>
+            <span className={styles.featureIcon}>💫</span>
+            <div>
+              <h3>{t('personality.feature3Title', 'Hidden Potential')}</h3>
+              <p>{t('personality.feature3Desc', 'Unlock your unique strengths')}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Gender Selection */}
+        <div className={styles.genderSection}>
+          <p className={styles.genderLabel}>{t('personality.selectGender', 'Select Your Character')}</p>
+          <div className={styles.genderButtons}>
+            <button
+              type="button"
+              onClick={() => setGender('male')}
+              className={`${styles.genderButton} ${gender === 'male' ? styles.genderButtonSelected : ''}`}
+            >
+              <span className={styles.genderIcon}>👨</span>
+              <span className={styles.genderText}>{t('personality.male', 'Male')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setGender('female')}
+              className={`${styles.genderButton} ${gender === 'female' ? styles.genderButtonSelected : ''}`}
+            >
+              <span className={styles.genderIcon}>👩</span>
+              <span className={styles.genderText}>{t('personality.female', 'Female')}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* CTA Button */}
+        <button
+          onClick={handleStart}
+          disabled={!gender}
+          className={styles.submitButton}
+        >
+          {t('personality.startTest', 'Start the Free Discovery Test')}
+        </button>
+      </div>
+    </main>
   );
 }

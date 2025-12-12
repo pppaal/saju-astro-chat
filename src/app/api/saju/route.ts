@@ -9,6 +9,20 @@ import { calculateSajuData } from '@/lib/Saju/saju';
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 
+// simple in-memory cache to reduce repeated Stripe lookups per runtime
+const premiumCache = new Map<string, { value: boolean; expires: number }>();
+const PREMIUM_TTL_MS = 5 * 60 * 1000;
+
+function getCachedPremium(email: string) {
+  const entry = premiumCache.get(email.toLowerCase());
+  if (entry && entry.expires > Date.now()) return entry.value;
+  return null;
+}
+
+function setCachedPremium(email: string, value: boolean) {
+  premiumCache.set(email.toLowerCase(), { value, expires: Date.now() + PREMIUM_TTL_MS });
+}
+
 // 프리미엄 상태 확인 헬퍼
 async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -16,6 +30,9 @@ async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean>
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email) || email.length > 254) return false;
+
+  const cached = getCachedPremium(email);
+  if (cached !== null) return cached;
 
   try {
     const rlKey = `saju-premium:${email.toLowerCase()}:${ip ?? 'unknown'}`;
@@ -39,11 +56,15 @@ async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean>
       const active = subs.data.find((s) =>
         ['active', 'trialing', 'past_due'].includes(s.status)
       );
-      if (active) return true;
+      if (active) {
+        setCachedPremium(email, true);
+        return true;
+      }
     }
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Premium check failed:', e);
   }
+  setCachedPremium(email, false);
   return false;
 }
 import {

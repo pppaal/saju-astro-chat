@@ -181,6 +181,59 @@
   max-width: 600px;
 }
 
+/* Avatar Section */
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatarWrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 237, 234, 0.15);
+  border: 2px solid rgba(168, 237, 234, 0.2);
+}
+
+.avatar {
+  display: block;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.genderToggle {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.genderBtn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.genderBtn:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.genderBtn.active {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
 .preTitle {
   font-size: 0.9rem;
   text-transform: uppercase;

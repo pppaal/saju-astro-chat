@@ -55,7 +55,7 @@
 
 /* Form Container */
 .formContainer {
-  max-width: 900px;
+  max-width: 1200px;
   width: 100%;
   background: rgba(0, 0, 0, 0.4);
   padding: 3rem;
@@ -65,6 +65,14 @@
   position: relative;
   z-index: 1;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Person Cards Container */
+.personCardsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .formHeader {
@@ -144,8 +152,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
+  padding: 1.5rem;
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -185,18 +192,21 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .gridTwo {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
   .gridTwo {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -363,7 +373,7 @@
 
 /* Results Container */
 .resultsContainer {
-  max-width: 900px;
+  max-width: 1200px;
   width: 100%;
   position: relative;
   z-index: 1;
