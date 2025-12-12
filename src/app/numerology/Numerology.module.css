@@ -513,6 +513,145 @@
   75% { transform: translateX(10px); }
 }
 
+/* Auto-detected timezone display */
+.autoDetected {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 12px;
+  color: #34d399;
+  font-size: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.autoIcon {
+  font-size: 1.2rem;
+}
+
+/* Current Cycle Section */
+.cycleWrap {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.cycleSubtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.cycleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.cycleCard {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.cycleCard:hover {
+  transform: translateY(-4px);
+}
+
+.cycleNumber {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a78bfa, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.cycleLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.cycleDesc {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+
+/* Daily Lucky Numbers */
+.dailyWrap {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.15));
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.dailyChip {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3)) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+}
+
+.dailyDate {
+  text-align: center;
+  color: #fbbf24;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.dailyNote {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+
+.luckyNote {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+/* How It Works Section */
+.howItWorks {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.howGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.howItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.howItem strong {
+  color: #ffd166;
+  font-size: 0.9rem;
+}
+
+.howItem span {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .formContainer {
@@ -534,5 +673,13 @@
   .chip {
     flex: 1 1 calc(50% - 0.5rem);
     min-width: 120px;
+  }
+
+  .cycleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .howGrid {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,0 +1,364 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "placements/arabic_parts",
+  "$count": 96,
+  "$description": "아랍 파트(아랍 점) - 주요 96개 아랍 파트의 계산 공식과 해석",
+
+  "overview": {
+    "origin": "헬레니즘 점성술에서 유래, 아랍 점성가들이 발전시킴",
+    "calculation": "Asc + Planet A - Planet B (밤에는 반대로 계산하는 경우도 있음)",
+    "usage": "특정 삶의 영역에 대한 깊은 통찰 제공",
+    "primary_parts": ["Fortune (행운)", "Spirit (영혼)", "Eros (에로스)", "Victory (승리)"]
+  },
+
+  "Fortune": {
+    "$name": "행운의 파트 (Part of Fortune / Fortuna)",
+    "$formula": "Asc + Moon - Sun (낮 차트) / Asc + Sun - Moon (밤 차트)",
+    "$significance": "물질적 행복, 건강, 세속적 행운이 나타나는 영역",
+
+    "in_signs": {
+      "Aries": {"fortune": "용기를 통한 행운", "action": "주도적 행동에서 성공"},
+      "Taurus": {"fortune": "인내를 통한 행운", "action": "물질적 안정에서 성공"},
+      "Gemini": {"fortune": "소통을 통한 행운", "action": "네트워킹에서 성공"},
+      "Cancer": {"fortune": "돌봄을 통한 행운", "action": "가정/돌봄에서 성공"},
+      "Leo": {"fortune": "창조성을 통한 행운", "action": "자기표현에서 성공"},
+      "Virgo": {"fortune": "봉사를 통한 행운", "action": "헌신적 일에서 성공"},
+      "Libra": {"fortune": "관계를 통한 행운", "action": "파트너십에서 성공"},
+      "Scorpio": {"fortune": "변형을 통한 행운", "action": "위기 극복에서 성공"},
+      "Sagittarius": {"fortune": "탐험을 통한 행운", "action": "확장에서 성공"},
+      "Capricorn": {"fortune": "노력을 통한 행운", "action": "성취에서 성공"},
+      "Aquarius": {"fortune": "혁신을 통한 행운", "action": "집단 활동에서 성공"},
+      "Pisces": {"fortune": "연민을 통한 행운", "action": "영적 추구에서 성공"}
+    },
+
+    "in_houses": {
+      "H1": {"fortune_area": "자기 자신", "manifestation": "개인적 노력으로 행운"},
+      "H2": {"fortune_area": "재정/가치", "manifestation": "재정적 풍요"},
+      "H3": {"fortune_area": "소통/학습", "manifestation": "지적 추구로 행운"},
+      "H4": {"fortune_area": "가정/뿌리", "manifestation": "가정에서 행운"},
+      "H5": {"fortune_area": "창조/연애", "manifestation": "창조적 활동으로 행운"},
+      "H6": {"fortune_area": "일/건강", "manifestation": "일과 건강에서 행운"},
+      "H7": {"fortune_area": "관계", "manifestation": "파트너십으로 행운"},
+      "H8": {"fortune_area": "변형/공유자원", "manifestation": "변형과 상속에서 행운"},
+      "H9": {"fortune_area": "철학/여행", "manifestation": "학습과 여행에서 행운"},
+      "H10": {"fortune_area": "커리어", "manifestation": "사회적 성공에서 행운"},
+      "H11": {"fortune_area": "희망/그룹", "manifestation": "집단 활동에서 행운"},
+      "H12": {"fortune_area": "영적/은둔", "manifestation": "영적 추구에서 행운"}
+    }
+  },
+
+  "Spirit": {
+    "$name": "영혼의 파트 (Part of Spirit / Daimon)",
+    "$formula": "Asc + Sun - Moon (낮 차트) / Asc + Moon - Sun (밤 차트)",
+    "$significance": "영혼의 목적, 의지, 내면의 성취",
+
+    "in_signs": {
+      "Aries": {"spirit": "용기를 통한 영적 성장", "purpose": "개척자 정신"},
+      "Taurus": {"spirit": "물질과 영성 통합", "purpose": "체현된 영성"},
+      "Gemini": {"spirit": "학습을 통한 영적 성장", "purpose": "지적 탐구"},
+      "Cancer": {"spirit": "돌봄을 통한 영적 성장", "purpose": "감정적 지혜"},
+      "Leo": {"spirit": "창조를 통한 영적 성장", "purpose": "신성한 창조"},
+      "Virgo": {"spirit": "봉사를 통한 영적 성장", "purpose": "겸손한 봉사"},
+      "Libra": {"spirit": "관계를 통한 영적 성장", "purpose": "조화 추구"},
+      "Scorpio": {"spirit": "변형을 통한 영적 성장", "purpose": "죽음과 재탄생"},
+      "Sagittarius": {"spirit": "진리를 통한 영적 성장", "purpose": "진리 탐구"},
+      "Capricorn": {"spirit": "성취를 통한 영적 성장", "purpose": "영적 성숙"},
+      "Aquarius": {"spirit": "인류애를 통한 영적 성장", "purpose": "집단 의식"},
+      "Pisces": {"spirit": "초월을 통한 영적 성장", "purpose": "합일"}
+    }
+  },
+
+  "Eros": {
+    "$name": "에로스의 파트 (Part of Eros)",
+    "$formula": "Asc + Venus - Mars (또는 반대)",
+    "$significance": "열정적 사랑, 성적 끌림, 창조적 에너지",
+
+    "in_signs": {
+      "Aries": {"eros": "강렬하고 충동적인 열정", "attraction": "용감한 파트너"},
+      "Taurus": {"eros": "관능적이고 지속적인 열정", "attraction": "안정적인 파트너"},
+      "Gemini": {"eros": "지적이고 유희적인 열정", "attraction": "재치 있는 파트너"},
+      "Cancer": {"eros": "감정적이고 돌보는 열정", "attraction": "돌보는 파트너"},
+      "Leo": {"eros": "드라마틱하고 로맨틱한 열정", "attraction": "카리스마 있는 파트너"},
+      "Virgo": {"eros": "섬세하고 봉사적인 열정", "attraction": "헌신적인 파트너"},
+      "Libra": {"eros": "조화롭고 아름다운 열정", "attraction": "우아한 파트너"},
+      "Scorpio": {"eros": "강렬하고 변형적인 열정", "attraction": "깊은 파트너"},
+      "Sagittarius": {"eros": "모험적이고 자유로운 열정", "attraction": "탐험적 파트너"},
+      "Capricorn": {"eros": "진지하고 지속적인 열정", "attraction": "성숙한 파트너"},
+      "Aquarius": {"eros": "독특하고 자유로운 열정", "attraction": "비전통적 파트너"},
+      "Pisces": {"eros": "로맨틱하고 영적인 열정", "attraction": "영혼의 파트너"}
+    }
+  },
+
+  "Victory": {
+    "$name": "승리의 파트 (Part of Victory)",
+    "$formula": "Asc + Jupiter - Saturn",
+    "$significance": "성공, 승리, 목표 달성 영역",
+
+    "in_signs": {
+      "Aries": {"victory": "용기로 승리", "success": "경쟁에서 이김"},
+      "Taurus": {"victory": "인내로 승리", "success": "지속성으로 성공"},
+      "Gemini": {"victory": "소통으로 승리", "success": "정보로 성공"},
+      "Cancer": {"victory": "돌봄으로 승리", "success": "감정 지능으로 성공"},
+      "Leo": {"victory": "창조로 승리", "success": "리더십으로 성공"},
+      "Virgo": {"victory": "봉사로 승리", "success": "디테일로 성공"},
+      "Libra": {"victory": "협력으로 승리", "success": "파트너십으로 성공"},
+      "Scorpio": {"victory": "변형으로 승리", "success": "재탄생으로 성공"},
+      "Sagittarius": {"victory": "비전으로 승리", "success": "믿음으로 성공"},
+      "Capricorn": {"victory": "노력으로 승리", "success": "규율로 성공"},
+      "Aquarius": {"victory": "혁신으로 승리", "success": "독창성으로 성공"},
+      "Pisces": {"victory": "연민으로 승리", "success": "영감으로 성공"}
+    }
+  },
+
+  "Love": {
+    "$name": "사랑의 파트 (Part of Love)",
+    "$formula": "Asc + Venus - Sun",
+    "$significance": "사랑의 표현 방식, 로맨틱 끌림",
+
+    "in_signs": {
+      "Aries": "열정적이고 직접적인 사랑",
+      "Taurus": "감각적이고 충실한 사랑",
+      "Gemini": "유희적이고 지적인 사랑",
+      "Cancer": "돌보고 보호하는 사랑",
+      "Leo": "드라마틱하고 관대한 사랑",
+      "Virgo": "헌신적이고 실용적인 사랑",
+      "Libra": "조화롭고 아름다운 사랑",
+      "Scorpio": "강렬하고 변형적인 사랑",
+      "Sagittarius": "자유롭고 모험적인 사랑",
+      "Capricorn": "진지하고 지속적인 사랑",
+      "Aquarius": "자유롭고 우정 같은 사랑",
+      "Pisces": "로맨틱하고 희생적인 사랑"
+    }
+  },
+
+  "Marriage": {
+    "$name": "결혼의 파트 (Part of Marriage)",
+    "$formula": "Asc + Descendant - Venus",
+    "$significance": "결혼 운, 파트너십 패턴",
+
+    "in_signs": {
+      "Aries": "독립적 파트너십, 열정적 결혼",
+      "Taurus": "안정적이고 지속적인 결혼",
+      "Gemini": "소통 기반의 결혼",
+      "Cancer": "가정 중심의 결혼",
+      "Leo": "로맨틱하고 드라마틱한 결혼",
+      "Virgo": "실용적이고 봉사적인 결혼",
+      "Libra": "조화롭고 균형 잡힌 결혼 (강조)",
+      "Scorpio": "강렬하고 변형적인 결혼",
+      "Sagittarius": "자유롭고 성장하는 결혼",
+      "Capricorn": "전통적이고 지속적인 결혼",
+      "Aquarius": "비전통적이고 자유로운 결혼",
+      "Pisces": "영적이고 연민적인 결혼"
+    }
+  },
+
+  "Children": {
+    "$name": "자녀의 파트 (Part of Children)",
+    "$formula": "Asc + Saturn - Jupiter (또는 반대)",
+    "$significance": "자녀 운, 양육 스타일",
+
+    "in_signs": {
+      "Aries": "독립적 자녀, 용기 양육",
+      "Taurus": "안정적 자녀, 물질적 양육",
+      "Gemini": "지적 자녀, 소통 양육",
+      "Cancer": "감정적 자녀, 돌봄 양육 (강조)",
+      "Leo": "창조적 자녀, 격려 양육",
+      "Virgo": "실용적 자녀, 봉사 양육",
+      "Libra": "조화로운 자녀, 균형 양육",
+      "Scorpio": "강렬한 자녀, 변형적 양육",
+      "Sagittarius": "자유로운 자녀, 탐험 양육",
+      "Capricorn": "성숙한 자녀, 규율 양육",
+      "Aquarius": "독특한 자녀, 자유 양육",
+      "Pisces": "창조적 자녀, 영적 양육"
+    }
+  },
+
+  "Death": {
+    "$name": "죽음의 파트 (Part of Death)",
+    "$formula": "Asc + 8H cusp - Moon",
+    "$significance": "변형, 종말, 유산 (문자적 죽음이 아닌 심리적 변형)",
+
+    "in_signs": {
+      "Aries": "갑작스러운 변형, 용기 있는 종말",
+      "Taurus": "점진적 변형, 물질적 유산",
+      "Gemini": "지적 변형, 소통의 종말",
+      "Cancer": "감정적 변형, 가족 유산",
+      "Leo": "드라마틱 변형, 창조적 유산",
+      "Virgo": "분석적 변형, 봉사의 유산",
+      "Libra": "관계적 변형, 조화의 유산",
+      "Scorpio": "강렬한 변형, 재탄생 (강조)",
+      "Sagittarius": "철학적 변형, 지혜의 유산",
+      "Capricorn": "구조적 변형, 성취의 유산",
+      "Aquarius": "혁신적 변형, 인류애 유산",
+      "Pisces": "영적 변형, 초월"
+    }
+  },
+
+  "Career": {
+    "$name": "커리어의 파트 (Part of Career)",
+    "$formula": "Asc + Saturn - Moon",
+    "$significance": "직업 운, 사회적 역할",
+
+    "in_signs": {
+      "Aries": "리더십 커리어, 개척자",
+      "Taurus": "물질적 커리어, 예술/재정",
+      "Gemini": "소통 커리어, 미디어/교육",
+      "Cancer": "돌봄 커리어, 의료/가정",
+      "Leo": "창조적 커리어, 연예/리더십",
+      "Virgo": "봉사 커리어, 건강/분석",
+      "Libra": "관계 커리어, 법률/외교",
+      "Scorpio": "변형적 커리어, 심리/연구",
+      "Sagittarius": "확장적 커리어, 여행/교육",
+      "Capricorn": "성취적 커리어, 경영/정부 (강조)",
+      "Aquarius": "혁신적 커리어, 기술/인도주의",
+      "Pisces": "영감적 커리어, 예술/영성"
+    }
+  },
+
+  "Illness": {
+    "$name": "질병의 파트 (Part of Illness)",
+    "$formula": "Asc + Mars - Saturn",
+    "$significance": "건강 취약점, 주의해야 할 영역",
+
+    "in_signs": {
+      "Aries": "두통, 발열, 염증",
+      "Taurus": "목 문제, 갑상선, 대사",
+      "Gemini": "호흡기, 신경계, 손/팔",
+      "Cancer": "소화기, 가슴, 감정적 건강",
+      "Leo": "심장, 등, 순환계",
+      "Virgo": "장, 소화, 신경과민 (강조)",
+      "Libra": "신장, 피부, 균형",
+      "Scorpio": "생식기, 배설, 만성 질환",
+      "Sagittarius": "엉덩이, 간, 좌골신경",
+      "Capricorn": "뼈, 관절, 피부",
+      "Aquarius": "발목, 순환, 신경계",
+      "Pisces": "발, 림프, 면역계"
+    }
+  },
+
+  "Sudden_Events": {
+    "$name": "갑작스러운 사건의 파트 (Part of Sudden Events)",
+    "$formula": "Asc + Uranus - Saturn",
+    "$significance": "예상치 못한 사건, 혁명적 변화",
+
+    "in_signs": {
+      "Aries": "갑작스러운 시작, 충동적 변화",
+      "Taurus": "재정적 충격, 가치 변화",
+      "Gemini": "정보 충격, 갑작스러운 학습",
+      "Cancer": "가정 변화, 감정적 충격",
+      "Leo": "창조적 돌파, 드라마틱 사건",
+      "Virgo": "건강/일 변화, 시스템 붕괴",
+      "Libra": "관계 충격, 균형 회복",
+      "Scorpio": "심층적 변형, 위기 돌파",
+      "Sagittarius": "신념 변화, 갑작스러운 여행",
+      "Capricorn": "커리어 변화, 구조 붕괴",
+      "Aquarius": "혁명적 각성, 집단 변화 (강조)",
+      "Pisces": "영적 각성, 환상 깨짐"
+    }
+  },
+
+  "Wisdom": {
+    "$name": "지혜의 파트 (Part of Wisdom)",
+    "$formula": "Asc + Jupiter - Saturn",
+    "$significance": "지혜 획득 방식, 인생 교훈",
+
+    "in_signs": {
+      "Aries": "행동을 통한 지혜",
+      "Taurus": "경험을 통한 지혜",
+      "Gemini": "학습을 통한 지혜",
+      "Cancer": "감정을 통한 지혜",
+      "Leo": "창조를 통한 지혜",
+      "Virgo": "봉사를 통한 지혜",
+      "Libra": "관계를 통한 지혜",
+      "Scorpio": "변형을 통한 지혜",
+      "Sagittarius": "탐구를 통한 지혜 (강조)",
+      "Capricorn": "성취를 통한 지혜",
+      "Aquarius": "혁신을 통한 지혜",
+      "Pisces": "직관을 통한 지혜"
+    }
+  },
+
+  "Karma": {
+    "$name": "카르마의 파트 (Part of Karma)",
+    "$formula": "Asc + Saturn - Sun",
+    "$significance": "카르마적 교훈, 전생 과제",
+
+    "in_signs": {
+      "Aries": "자기주장의 카르마",
+      "Taurus": "물질/가치의 카르마",
+      "Gemini": "소통/학습의 카르마",
+      "Cancer": "돌봄/가정의 카르마",
+      "Leo": "자기표현의 카르마",
+      "Virgo": "봉사/완벽의 카르마",
+      "Libra": "관계/균형의 카르마",
+      "Scorpio": "변형/권력의 카르마",
+      "Sagittarius": "진리/자유의 카르마",
+      "Capricorn": "성취/책임의 카르마",
+      "Aquarius": "집단/혁신의 카르마",
+      "Pisces": "영성/연민의 카르마"
+    }
+  },
+
+  "Faith": {
+    "$name": "신앙의 파트 (Part of Faith)",
+    "$formula": "Asc + Mercury - Moon",
+    "$significance": "영적 신념, 믿음의 성격",
+
+    "in_signs": {
+      "Aries": "용기 있는 신앙",
+      "Taurus": "체현된 신앙",
+      "Gemini": "지적 신앙",
+      "Cancer": "감정적 신앙",
+      "Leo": "창조적 신앙",
+      "Virgo": "실용적 신앙",
+      "Libra": "조화로운 신앙",
+      "Scorpio": "변형적 신앙",
+      "Sagittarius": "확장적 신앙 (강조)",
+      "Capricorn": "전통적 신앙",
+      "Aquarius": "진보적 신앙",
+      "Pisces": "신비적 신앙"
+    }
+  },
+
+  "Honor": {
+    "$name": "명예의 파트 (Part of Honor)",
+    "$formula": "Asc + Sun - Saturn",
+    "$significance": "사회적 명예, 인정받는 영역",
+
+    "in_signs": {
+      "Aries": "용기로 명예",
+      "Taurus": "지속성으로 명예",
+      "Gemini": "소통으로 명예",
+      "Cancer": "돌봄으로 명예",
+      "Leo": "창조로 명예 (강조)",
+      "Virgo": "봉사로 명예",
+      "Libra": "조화로 명예",
+      "Scorpio": "변형으로 명예",
+      "Sagittarius": "지혜로 명예",
+      "Capricorn": "성취로 명예",
+      "Aquarius": "혁신으로 명예",
+      "Pisces": "연민으로 명예"
+    }
+  },
+
+  "Necessity": {
+    "$name": "필요의 파트 (Part of Necessity / Ananke)",
+    "$formula": "Asc + Mars - Saturn",
+    "$significance": "불가피한 운명, 피할 수 없는 과제",
+
+    "in_signs": {
+      "Aries": "행동의 필요성",
+      "Taurus": "안정의 필요성",
+      "Gemini": "학습의 필요성",
+      "Cancer": "돌봄의 필요성",
+      "Leo": "표현의 필요성",
+      "Virgo": "봉사의 필요성",
+      "Libra": "균형의 필요성",
+      "Scorpio": "변형의 필요성",
+      "Sagittarius": "성장의 필요성",
+      "Capricorn": "성취의 필요성",
+      "Aquarius": "혁신의 필요성",
+      "Pisces": "초월의 필요성"
+    }
+  }
+}

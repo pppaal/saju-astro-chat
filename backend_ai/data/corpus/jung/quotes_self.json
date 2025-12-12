@@ -1,0 +1,109 @@
+{
+  "concept": "self",
+  "concept_kr": "자기(Self)",
+  "description": "The Self is the archetype of wholeness and the regulating center of the psyche",
+  "quotes": [
+    {
+      "id": "self_001",
+      "en": "The self is not only the centre, but also the whole circumference which embraces both conscious and unconscious; it is the centre of this totality.",
+      "kr": "자기(Self)는 중심일 뿐만 아니라 의식과 무의식 모두를 포괄하는 전체 원주이기도 하다. 자기는 이 전체성의 중심이다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "tags": [
+        "self",
+        "wholeness",
+        "consciousness"
+      ]
+    },
+    {
+      "id": "self_002",
+      "en": "Your vision will become clear only when you can look into your own heart. Who looks outside, dreams; who looks inside, awakes.",
+      "kr": "당신의 비전은 오직 자신의 마음 속을 들여다볼 수 있을 때만 명확해진다. 밖을 보는 자는 꿈꾸고, 안을 보는 자는 깨어난다.",
+      "source": "Letters Vol. I",
+      "year": 1916,
+      "cw_volume": "Letters",
+      "tags": [
+        "self",
+        "vision",
+        "awakening"
+      ]
+    },
+    {
+      "id": "self_003",
+      "en": "The privilege of a lifetime is to become who you truly are.",
+      "kr": "평생의 특권은 진정한 자기 자신이 되는 것이다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "tags": [
+        "self",
+        "authenticity"
+      ]
+    },
+    {
+      "id": "self_004",
+      "en": "Until you make the unconscious conscious, it will direct your life and you will call it fate.",
+      "kr": "무의식을 의식화하기 전까지, 그것은 당신의 삶을 지배할 것이고 당신은 그것을 운명이라 부를 것이다.",
+      "source": "Aion",
+      "year": 1951,
+      "cw_volume": "CW 9ii",
+      "tags": [
+        "self",
+        "unconscious",
+        "fate"
+      ]
+    },
+    {
+      "id": "self_005",
+      "en": "As far as we can discern, the sole purpose of human existence is to kindle a light in the darkness of mere being.",
+      "kr": "우리가 분별할 수 있는 한, 인간 존재의 유일한 목적은 단순한 존재의 어둠 속에서 빛을 밝히는 것이다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "tags": [
+        "self",
+        "meaning",
+        "light"
+      ]
+    },
+    {
+      "id": "self_006",
+      "en": "The experience of the self is always a defeat for the ego.",
+      "kr": "자기(Self)의 경험은 언제나 자아(ego)에게는 패배다.",
+      "source": "Mysterium Coniunctionis",
+      "year": 1955,
+      "cw_volume": "CW 14",
+      "tags": [
+        "self",
+        "ego",
+        "transformation"
+      ]
+    },
+    {
+      "id": "self_007",
+      "en": "The self is a circle whose centre is everywhere and whose circumference is nowhere.",
+      "kr": "자기(Self)는 중심이 어디에나 있고 원주가 어디에도 없는 원이다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "tags": [
+        "self",
+        "infinity",
+        "mandala"
+      ]
+    },
+    {
+      "id": "self_008",
+      "en": "Individuation means becoming an in-dividual, and implies becoming ones own self.",
+      "kr": "개성화란 나눌 수 없는 존재가 되는 것이며, 자기 자신이 되는 것을 의미한다.",
+      "source": "Two Essays on Analytical Psychology",
+      "year": 1928,
+      "cw_volume": "CW 7",
+      "tags": [
+        "self",
+        "individuation"
+      ]
+    }
+  ]
+}

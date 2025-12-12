@@ -1,0 +1,225 @@
+# Dream Symbols - 20 Common Dream Images
+# App: DestinyPal
+# Style: Dreamy, ethereal, soft
+
+================================================================================
+
+## 1. 비행 (Flying)
+Filename: dream_01_flying.jpg
+Prompt:
+dreamy symbol illustration, flying through clouds,
+person floating freely in soft sky, arms spread,
+ethereal pastel blue and pink clouds, freedom feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 2. 떨어짐 (Falling)
+Filename: dream_02_falling.jpg
+Prompt:
+dreamy symbol illustration, falling through space,
+peaceful figure descending through soft clouds,
+ethereal gradient from blue to purple, floating objects,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 3. 물 (Water)
+Filename: dream_03_water.jpg
+Prompt:
+dreamy symbol illustration, underwater scene,
+crystal clear blue water, soft light rays from above,
+ethereal bubbles and gentle waves, peaceful feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 4. 문 (Door)
+Filename: dream_04_door.jpg
+Prompt:
+dreamy symbol illustration, mysterious glowing door,
+ornate door slightly open with light streaming through,
+ethereal mist around frame, opportunity feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 5. 계단 (Stairs)
+Filename: dream_05_stairs.jpg
+Prompt:
+dreamy symbol illustration, spiral staircase to sky,
+elegant stairs ascending into soft clouds,
+ethereal golden light above, journey feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 6. 이빨 (Teeth)
+Filename: dream_06_teeth.jpg
+Prompt:
+dreamy symbol illustration, pearls and crystals,
+abstract representation with white gems floating,
+ethereal soft pink background, transformation feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 7. 뱀 (Snake)
+Filename: dream_07_snake.jpg
+Prompt:
+dreamy symbol illustration, mystical golden snake,
+elegant serpent coiled peacefully, wise eyes,
+ethereal green and gold tones, wisdom feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 8. 돼지 (Pig - Wealth)
+Filename: dream_08_pig.jpg
+Prompt:
+dreamy symbol illustration, lucky golden pig,
+cute piggy with gold coins, prosperity symbol,
+ethereal warm golden background, abundance feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 9. 죽음 (Death - Transformation)
+Filename: dream_09_death.jpg
+Prompt:
+dreamy symbol illustration, butterfly emerging from cocoon,
+beautiful transformation, old to new, rebirth,
+ethereal purple and white tones, change feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 10. 아기 (Baby)
+Filename: dream_10_baby.jpg
+Prompt:
+dreamy symbol illustration, peaceful sleeping baby,
+innocent child surrounded by soft clouds and stars,
+ethereal pink and blue tones, new beginning feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 11. 집 (House)
+Filename: dream_11_house.jpg
+Prompt:
+dreamy symbol illustration, cozy glowing house,
+warm light from windows, peaceful home at twilight,
+ethereal blue and orange tones, security feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 12. 차 (Car/Vehicle)
+Filename: dream_12_vehicle.jpg
+Prompt:
+dreamy symbol illustration, vintage car on endless road,
+driving toward horizon, open sky ahead,
+ethereal sunset colors, life journey feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 13. 꽃 (Flowers)
+Filename: dream_13_flowers.jpg
+Prompt:
+dreamy symbol illustration, blooming magical flowers,
+various beautiful flowers opening, garden of dreams,
+ethereal rainbow soft colors, growth feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 14. 새 (Bird)
+Filename: dream_14_bird.jpg
+Prompt:
+dreamy symbol illustration, beautiful bird in flight,
+elegant white bird soaring through pastel sky,
+ethereal soft clouds, freedom and hope feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 15. 달 (Moon)
+Filename: dream_15_moon.jpg
+Prompt:
+dreamy symbol illustration, luminous full moon,
+large glowing moon over calm water reflection,
+ethereal silver and blue tones, intuition feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 16. 불 (Fire)
+Filename: dream_16_fire.jpg
+Prompt:
+dreamy symbol illustration, dancing flames,
+warm gentle fire, orange and gold flickering,
+ethereal warm background, passion and energy feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 17. 숲/나무 (Forest/Trees)
+Filename: dream_17_forest.jpg
+Prompt:
+dreamy symbol illustration, enchanted forest path,
+magical trees with soft light filtering through,
+ethereal green and gold tones, mystery feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 18. 바다 (Ocean)
+Filename: dream_18_ocean.jpg
+Prompt:
+dreamy symbol illustration, vast peaceful ocean,
+calm sea meeting soft sky at horizon,
+ethereal blue gradient tones, emotion depth feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 19. 거울 (Mirror)
+Filename: dream_19_mirror.jpg
+Prompt:
+dreamy symbol illustration, ornate magical mirror,
+beautiful frame with mysterious reflection,
+ethereal silver and purple tones, self-discovery feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 20. 별 (Stars)
+Filename: dream_20_stars.jpg
+Prompt:
+dreamy symbol illustration, shower of falling stars,
+magical starry sky, wishes coming true,
+ethereal navy and gold tones, hope and dreams feeling,
+soft glow, dreamy atmosphere, gentle lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+================================================================================

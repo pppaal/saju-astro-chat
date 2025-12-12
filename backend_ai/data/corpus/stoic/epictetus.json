@@ -1,0 +1,88 @@
+{
+  "philosopher": "epictetus",
+  "philosopher_kr": "에픽테토스",
+  "title": "Greek Stoic Philosopher (50-135 AD)",
+  "main_work": "Enchiridion (Handbook)",
+  "quotes": [
+    {
+      "id": "ep_001",
+      "en": "It is not what happens to you, but how you react to it that matters.",
+      "kr": "중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.",
+      "source": "Enchiridion",
+      "tags": [
+        "reaction",
+        "control"
+      ]
+    },
+    {
+      "id": "ep_002",
+      "en": "We cannot choose our external circumstances, but we can always choose how we respond to them.",
+      "kr": "외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.",
+      "source": "Enchiridion",
+      "tags": [
+        "choice",
+        "response"
+      ]
+    },
+    {
+      "id": "ep_003",
+      "en": "Make the best use of what is in your power, and take the rest as it happens.",
+      "kr": "당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.",
+      "source": "Discourses",
+      "tags": [
+        "control",
+        "acceptance"
+      ]
+    },
+    {
+      "id": "ep_004",
+      "en": "First say to yourself what you would be; and then do what you have to do.",
+      "kr": "먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.",
+      "source": "Discourses",
+      "tags": [
+        "identity",
+        "action"
+      ]
+    },
+    {
+      "id": "ep_005",
+      "en": "No man is free who is not master of himself.",
+      "kr": "자기 자신의 주인이 아닌 사람은 자유롭지 않다.",
+      "source": "Discourses",
+      "tags": [
+        "freedom",
+        "mastery"
+      ]
+    },
+    {
+      "id": "ep_006",
+      "en": "Wealth consists not in having great possessions, but in having few wants.",
+      "kr": "부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.",
+      "source": "Discourses",
+      "tags": [
+        "wealth",
+        "desire"
+      ]
+    },
+    {
+      "id": "ep_007",
+      "en": "If you want to improve, be content to be thought foolish and stupid.",
+      "kr": "발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.",
+      "source": "Enchiridion",
+      "tags": [
+        "growth",
+        "humility"
+      ]
+    },
+    {
+      "id": "ep_008",
+      "en": "Circumstances do not make the man, they reveal him.",
+      "kr": "환경이 사람을 만드는 것이 아니라, 그를 드러낸다.",
+      "source": "Discourses",
+      "tags": [
+        "character",
+        "circumstances"
+      ]
+    }
+  ]
+}

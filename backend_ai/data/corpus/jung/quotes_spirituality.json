@@ -1,0 +1,157 @@
+{
+  "concept": "spirituality",
+  "concept_kr": "영성과 종교",
+  "description": "Jung's insights on spirituality, religion, and the divine - from Answer to Job and other works",
+  "quotes": [
+    {
+      "id": "spirit_001",
+      "en": "Religion is the fruit of that great spiritual unknown, the unconscious psyche.",
+      "kr": "종교는 위대한 영적 미지, 무의식적 정신의 열매이다.",
+      "source": "Psychology and Religion",
+      "year": 1938,
+      "cw_volume": "CW 11",
+      "context": "On religion and the unconscious",
+      "tags": ["religion", "unconscious", "spiritual", "psyche"]
+    },
+    {
+      "id": "spirit_002",
+      "en": "Man is not a machine in the sense that he can consistently maintain the same output of work. He can meet the demands of outer necessity only if he is also adapted to his own inner world.",
+      "kr": "인간은 일관되게 같은 양의 일을 유지할 수 있다는 의미에서 기계가 아니다. 그는 자신의 내면 세계에도 적응해야만 외부 필요의 요구를 충족시킬 수 있다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On inner and outer adaptation",
+      "tags": ["inner world", "adaptation", "work", "balance"]
+    },
+    {
+      "id": "spirit_003",
+      "en": "As far as we can discern, the sole purpose of human existence is to kindle a light in the darkness of mere being.",
+      "kr": "우리가 분별할 수 있는 한, 인간 존재의 유일한 목적은 단순한 존재의 어둠 속에서 빛을 밝히는 것이다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the purpose of existence",
+      "tags": ["purpose", "existence", "light", "darkness"]
+    },
+    {
+      "id": "spirit_004",
+      "en": "I find that all my thoughts circle around God like the planets around the sun, and are as irresistibly attracted by Him.",
+      "kr": "나는 나의 모든 생각이 행성들이 태양 주위를 돌듯이 신 주위를 맴돌며, 저항할 수 없이 그분에게 끌린다는 것을 발견한다.",
+      "source": "Letters",
+      "year": 1952,
+      "cw_volume": "Letters",
+      "context": "On the centrality of God in thought",
+      "tags": ["God", "thoughts", "attraction", "center"]
+    },
+    {
+      "id": "spirit_005",
+      "en": "Bidden or not bidden, God is present.",
+      "kr": "부르든 부르지 않든, 신은 존재한다.",
+      "source": "Inscription at Jung's home",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "Latin inscription above Jung's door: Vocatus atque non vocatus, Deus aderit",
+      "tags": ["God", "presence", "invoke", "destiny"]
+    },
+    {
+      "id": "spirit_006",
+      "en": "The divine process of change manifests itself to our human understanding and must needs become a human process.",
+      "kr": "신성한 변화의 과정은 우리의 인간적 이해에 자신을 드러내며, 필연적으로 인간적 과정이 되어야 한다.",
+      "source": "Answer to Job",
+      "year": 1952,
+      "cw_volume": "CW 11",
+      "context": "On divine and human transformation",
+      "tags": ["divine", "change", "human", "transformation"]
+    },
+    {
+      "id": "spirit_007",
+      "en": "It is the function of consciousness not only to recognize and assimilate the external world through the gateway of the senses, but to translate into visible reality the world within us.",
+      "kr": "의식의 기능은 감각의 관문을 통해 외부 세계를 인식하고 동화시키는 것뿐만 아니라, 우리 안의 세계를 가시적 현실로 번역하는 것이다.",
+      "source": "The Undiscovered Self",
+      "year": 1957,
+      "cw_volume": "CW 10",
+      "context": "On consciousness and inner world",
+      "tags": ["consciousness", "inner world", "reality", "translation"]
+    },
+    {
+      "id": "spirit_008",
+      "en": "Your vision will become clear only when you can look into your own heart. Who looks outside, dreams; who looks inside, awakes.",
+      "kr": "당신의 비전은 오직 자신의 마음을 들여다볼 수 있을 때만 명확해질 것이다. 밖을 보는 자는 꿈꾸고; 안을 보는 자는 깨어난다.",
+      "source": "Letters",
+      "year": 1916,
+      "cw_volume": "Letters",
+      "context": "On inner vision and awakening",
+      "tags": ["vision", "heart", "dreams", "awakening"]
+    },
+    {
+      "id": "spirit_009",
+      "en": "Nobody can fall so low unless he has a great depth.",
+      "kr": "위대한 깊이를 가지지 않고서는 아무도 그렇게 낮게 떨어질 수 없다.",
+      "source": "Psychology and Religion",
+      "year": 1938,
+      "cw_volume": "CW 11",
+      "context": "On depth and fall",
+      "tags": ["depth", "fall", "potential", "height"]
+    },
+    {
+      "id": "spirit_010",
+      "en": "The decisive question for man is: Is he related to something infinite or not?",
+      "kr": "인간에게 결정적인 질문은: 그가 무한한 것과 관계가 있는가, 없는가이다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On relationship to the infinite",
+      "tags": ["infinite", "meaning", "relationship", "question"]
+    },
+    {
+      "id": "spirit_011",
+      "en": "The experience of the Self is always a defeat for the ego.",
+      "kr": "자기 경험은 항상 자아의 패배이다.",
+      "source": "Mysterium Coniunctionis",
+      "year": 1955,
+      "cw_volume": "CW 14",
+      "context": "On ego and Self relationship",
+      "tags": ["Self", "ego", "defeat", "transcendence"]
+    },
+    {
+      "id": "spirit_012",
+      "en": "Life has always seemed to me like a plant that lives on its rhizome. Its true life is invisible, hidden in the rhizome.",
+      "kr": "삶은 항상 나에게 뿌리줄기로 사는 식물처럼 보였다. 그 진정한 삶은 보이지 않으며, 뿌리줄기 안에 숨겨져 있다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the hidden nature of true life",
+      "tags": ["life", "invisible", "hidden", "rhizome"]
+    },
+    {
+      "id": "spirit_013",
+      "en": "The least of things with a meaning is worth more in life than the greatest of things without it.",
+      "kr": "의미 있는 가장 작은 것이 의미 없는 가장 큰 것보다 삶에서 더 가치 있다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On meaning and value",
+      "tags": ["meaning", "value", "life", "worth"]
+    },
+    {
+      "id": "spirit_014",
+      "en": "Whenever we touch nature we get clean. People who have lost their relationship with nature have lost their soul.",
+      "kr": "우리가 자연을 접할 때마다 우리는 깨끗해진다. 자연과의 관계를 잃은 사람들은 영혼을 잃은 것이다.",
+      "source": "Letters",
+      "year": 1947,
+      "cw_volume": "Letters",
+      "context": "On nature and the soul",
+      "tags": ["nature", "soul", "relationship", "clean"]
+    },
+    {
+      "id": "spirit_015",
+      "en": "The soul demands your folly, not your wisdom.",
+      "kr": "영혼은 당신의 지혜가 아닌 당신의 어리석음을 요구한다.",
+      "source": "The Red Book",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the soul's unconventional demands",
+      "tags": ["soul", "folly", "wisdom", "demands"]
+    }
+  ]
+}

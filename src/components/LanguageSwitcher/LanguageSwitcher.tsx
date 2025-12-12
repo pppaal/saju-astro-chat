@@ -1,5 +1,18 @@
 "use client";
-import { useI18n } from "@/i18n/I18nProvider";
+import { SUPPORTED_LOCALES, useI18n } from "@/i18n/I18nProvider";
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  ko: "한국어",
+  es: "Español",
+  fr: "Français",
+  de: "Deutsch",
+  pt: "Português",
+  ru: "Русский",
+  ja: "日本語",
+  zh: "中文",
+  ar: "العربية",
+};
 
 export default function LanguageSwitcher() {
   const { locale, setLocale, dir } = useI18n();
@@ -9,6 +22,7 @@ export default function LanguageSwitcher() {
       value={locale}
       onChange={(e) => setLocale(e.target.value as any)}
       aria-label="Language"
+      title="Select language"
       dir={dir}
       style={{
         background: "rgba(255,255,255,0.10)",
@@ -24,33 +38,11 @@ export default function LanguageSwitcher() {
         cursor: "pointer",
       }}
     >
-      <option value="en" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        English
-      </option>
-      <option value="ko" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        한국어
-      </option>
-      <option value="zh" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        中文
-      </option>
-      <option value="ar" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        العربية
-      </option>
-      <option value="es" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        Español
-      </option>
-      <option value="hi" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        हिन्दी
-      </option>
-      <option value="ru" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        Русский
-      </option>
-      <option value="fr" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        Français
-      </option>
-      <option value="ja" style={{ background: "#1b2133", color: "#e8eeff" }}>
-        日本語
-      </option>
+      {SUPPORTED_LOCALES.map((loc) => (
+        <option key={loc} value={loc} style={{ background: "#1b2133", color: "#e8eeff" }}>
+          {LANGUAGE_LABELS[loc] ?? loc.toUpperCase()}
+        </option>
+      ))}
     </select>
   );
 }

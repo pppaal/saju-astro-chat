@@ -1,0 +1,235 @@
+/* ====================================
+   PROFILE PAGE - Premium Design
+   ==================================== */
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background: radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.08), transparent),
+              radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.06), transparent),
+              linear-gradient(180deg, #050714 0%, #0a0f1f 100%);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.backButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.backButton:hover {
+  background: rgba(99, 210, 255, 0.1);
+  border-color: rgba(99, 210, 255, 0.3);
+  transform: translateX(-2px);
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #050714 0%, #0a0f1f 100%);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 210, 255, 0.15);
+  border-radius: 24px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease-out 0.1s backwards;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -100% -100% auto auto;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 210, 255, 0.08), transparent 40%);
+  pointer-events: none;
+}
+
+.cardTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 0.5rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cardDesc {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.95rem;
+  margin: 0 0 2rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.input {
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.input:focus {
+  border-color: rgba(99, 210, 255, 0.5);
+  background: rgba(99, 210, 255, 0.05);
+  box-shadow: 0 0 0 3px rgba(99, 210, 255, 0.1);
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.message {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.success {
+  background: rgba(124, 242, 156, 0.1);
+  color: #7cf29c;
+  border: 1px solid rgba(124, 242, 156, 0.2);
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.saveButton {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #63d2ff 0%, #7cf29c 100%);
+  color: #041018;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 1rem;
+  box-shadow: 0 8px 24px rgba(99, 210, 255, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.saveButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(99, 210, 255, 0.4);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.25rem;
+  }
+
+  .header {
+    gap: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,234 @@
+{
+  "_meta": {
+    "theme": "daily",
+    "title": "Daily Guidance 오늘의 운세",
+    "description": "Quick, actionable insights for navigating your day"
+  },
+  "major_arcana_daily": {
+    "The Fool": {
+      "today": "A day for new beginnings and spontaneity. Say yes to unexpected opportunities.",
+      "korean": "새로운 시작과 즉흥성을 위한 날입니다. 예상치 못한 기회에 예라고 말하세요.",
+      "morning": "Start fresh. Leave yesterday behind.",
+      "afternoon": "Take a small risk. Try something new.",
+      "evening": "Reflect on what new experiences taught you.",
+      "lucky": "Lucky color: Yellow. Lucky number: 0.",
+      "caution": "Don't be reckless, but don't be overly cautious either.",
+      "action": "Do one thing today that slightly scares you."
+    },
+    "The Magician": {
+      "today": "Your personal power is strong. Take initiative and make things happen.",
+      "korean": "개인적인 힘이 강합니다. 주도권을 잡고 일을 일어나게 만드세요.",
+      "morning": "Set clear intentions for the day.",
+      "afternoon": "Execute your plans with confidence.",
+      "evening": "Review what you manifested today.",
+      "lucky": "Lucky color: Red and white. Lucky number: 1.",
+      "caution": "Don't manipulate - use your power ethically.",
+      "action": "Accomplish one important task you've been putting off."
+    },
+    "The High Priestess": {
+      "today": "Trust your intuition. Things may not be as they appear on the surface.",
+      "korean": "직감을 신뢰하세요. 표면에 보이는 대로가 아닐 수 있습니다.",
+      "morning": "Listen to your first waking thoughts.",
+      "afternoon": "Observe more than you speak.",
+      "evening": "Pay attention to your dreams tonight.",
+      "lucky": "Lucky color: Blue and silver. Lucky number: 2.",
+      "caution": "Don't ignore gut feelings about people or situations.",
+      "action": "Take 10 minutes for silent reflection."
+    },
+    "The Empress": {
+      "today": "Nurture yourself and others. Creativity flows. Connect with nature.",
+      "korean": "자신과 다른 사람을 돌보세요. 창의성이 흐릅니다. 자연과 연결하세요.",
+      "morning": "Eat a nourishing breakfast.",
+      "afternoon": "Express creativity or spend time in nature.",
+      "evening": "Create comfort and beauty around you.",
+      "lucky": "Lucky color: Green and pink. Lucky number: 3.",
+      "caution": "Don't neglect your own needs while caring for others.",
+      "action": "Do something creative or spend time outdoors."
+    },
+    "The Emperor": {
+      "today": "Take charge. Focus on structure and getting things done efficiently.",
+      "korean": "책임을 지세요. 구조와 효율적으로 일을 완수하는 데 집중하세요.",
+      "morning": "Make a structured plan for your day.",
+      "afternoon": "Lead with authority. Make decisions.",
+      "evening": "Review what you accomplished.",
+      "lucky": "Lucky color: Red and orange. Lucky number: 4.",
+      "caution": "Don't be too rigid or controlling.",
+      "action": "Complete one task that requires discipline."
+    },
+    "The Hierophant": {
+      "today": "Follow established methods. Seek advice from those with experience.",
+      "korean": "확립된 방법을 따르세요. 경험 있는 사람들의 조언을 구하세요.",
+      "morning": "Start with your usual routine.",
+      "afternoon": "Consult mentors or experts if needed.",
+      "evening": "Reflect on what traditions serve you.",
+      "lucky": "Lucky color: Purple and white. Lucky number: 5.",
+      "caution": "Don't blindly follow rules that don't serve you.",
+      "action": "Learn something from someone more experienced."
+    },
+    "The Lovers": {
+      "today": "Important choices. Focus on relationships and what you value most.",
+      "korean": "중요한 선택. 관계와 가장 소중히 여기는 것에 집중하세요.",
+      "morning": "Connect with someone you love.",
+      "afternoon": "Make decisions aligned with your values.",
+      "evening": "Quality time with loved ones.",
+      "lucky": "Lucky color: Pink and orange. Lucky number: 6.",
+      "caution": "Don't avoid important decisions.",
+      "action": "Tell someone important that you appreciate them."
+    },
+    "The Chariot": {
+      "today": "Move forward with determination. Overcome obstacles through willpower.",
+      "korean": "결단력을 가지고 앞으로 나아가세요. 의지력으로 장애물을 극복하세요.",
+      "morning": "Set your direction and commit.",
+      "afternoon": "Push through challenges. Don't give up.",
+      "evening": "Celebrate your victories, however small.",
+      "lucky": "Lucky color: Black and gold. Lucky number: 7.",
+      "caution": "Don't run over others in your drive to succeed.",
+      "action": "Make significant progress on a goal."
+    },
+    "Strength": {
+      "today": "Lead with patience and compassion. Gentle persistence wins.",
+      "korean": "인내와 연민으로 이끌어가세요. 부드러운 끈기가 승리합니다.",
+      "morning": "Approach the day with calm confidence.",
+      "afternoon": "Handle challenges with patience, not force.",
+      "evening": "Be gentle with yourself.",
+      "lucky": "Lucky color: Gold and yellow. Lucky number: 8.",
+      "caution": "Don't let impatience make you aggressive.",
+      "action": "Handle one difficult situation with unusual patience."
+    },
+    "The Hermit": {
+      "today": "Seek solitude for reflection. Your own wisdom is your guide.",
+      "korean": "성찰을 위해 고독을 찾으세요. 자신의 지혜가 안내자입니다.",
+      "morning": "Start with quiet time alone.",
+      "afternoon": "Work independently if possible.",
+      "evening": "Journal or meditate.",
+      "lucky": "Lucky color: Gray and blue. Lucky number: 9.",
+      "caution": "Don't isolate when you need connection.",
+      "action": "Spend at least 30 minutes in quiet reflection."
+    },
+    "Wheel of Fortune": {
+      "today": "Changes are happening. Stay flexible and trust the turns.",
+      "korean": "변화가 일어나고 있습니다. 유연하게 유지하고 전환을 신뢰하세요.",
+      "morning": "Expect the unexpected today.",
+      "afternoon": "Go with the flow when things shift.",
+      "evening": "Reflect on what changed and why.",
+      "lucky": "Lucky color: Blue and purple. Lucky number: 10.",
+      "caution": "Don't resist inevitable changes.",
+      "action": "Embrace one unexpected change positively."
+    },
+    "Justice": {
+      "today": "Focus on fairness and balance. Take responsibility for your actions.",
+      "korean": "공정함과 균형에 집중하세요. 행동에 책임을 지세요.",
+      "morning": "Start with honest self-assessment.",
+      "afternoon": "Make fair decisions. Keep commitments.",
+      "evening": "Balance your accounts - literally or figuratively.",
+      "lucky": "Lucky color: Green and white. Lucky number: 11.",
+      "caution": "Don't judge others harshly.",
+      "action": "Right one wrong or balance one scale."
+    },
+    "The Hanged Man": {
+      "today": "Pause before acting. A different perspective is needed.",
+      "korean": "행동하기 전에 멈추세요. 다른 관점이 필요합니다.",
+      "morning": "Don't rush. Let things unfold.",
+      "afternoon": "Try seeing a situation from another angle.",
+      "evening": "Accept what you cannot change today.",
+      "lucky": "Lucky color: Blue. Lucky number: 12.",
+      "caution": "Don't force progress today.",
+      "action": "Consciously pause before one major action."
+    },
+    "Death": {
+      "today": "Let something end so something new can begin.",
+      "korean": "새로운 것이 시작되도록 무언가를 끝내세요.",
+      "morning": "Release what's not working.",
+      "afternoon": "Accept necessary endings gracefully.",
+      "evening": "Clear physical or emotional clutter.",
+      "lucky": "Lucky color: Black and white. Lucky number: 13.",
+      "caution": "Don't hold on to what needs to go.",
+      "action": "Let go of one thing that no longer serves you."
+    },
+    "Temperance": {
+      "today": "Seek balance in all things. Patience brings harmony.",
+      "korean": "모든 일에서 균형을 찾으세요. 인내가 조화를 가져옵니다.",
+      "morning": "Start with balanced, moderate approach.",
+      "afternoon": "Find middle ground in conflicts.",
+      "evening": "Don't overdo anything - balance work and rest.",
+      "lucky": "Lucky color: Blue and orange. Lucky number: 14.",
+      "caution": "Avoid extremes in any direction.",
+      "action": "Practice moderation in one area where you typically overdo."
+    },
+    "The Devil": {
+      "today": "Examine what's holding you back. Break one small chain.",
+      "korean": "당신을 가로막는 것을 검토하세요. 작은 사슬 하나를 끊으세요.",
+      "morning": "Notice habits that don't serve you.",
+      "afternoon": "Resist one temptation consciously.",
+      "evening": "Reflect on what controls you.",
+      "lucky": "Lucky color: Black and red. Lucky number: 15.",
+      "caution": "Don't indulge in unhealthy patterns.",
+      "action": "Break one small unhealthy habit today."
+    },
+    "The Tower": {
+      "today": "Expect disruptions. They clear the way for something better.",
+      "korean": "혼란을 예상하세요. 더 나은 것을 위한 길을 열어줍니다.",
+      "morning": "Be prepared for surprises.",
+      "afternoon": "Don't resist sudden changes.",
+      "evening": "Find the gift in any disruption.",
+      "lucky": "Lucky color: Red. Lucky number: 16.",
+      "caution": "Don't panic if things fall apart.",
+      "action": "If something breaks today, ask what it's making room for."
+    },
+    "The Star": {
+      "today": "A day of hope and healing. Follow your inspiration.",
+      "korean": "희망과 치유의 날. 영감을 따르세요.",
+      "morning": "Set hopeful intentions.",
+      "afternoon": "Follow what inspires you.",
+      "evening": "Practice gratitude.",
+      "lucky": "Lucky color: Light blue and silver. Lucky number: 17.",
+      "caution": "Don't let cynicism dim your light.",
+      "action": "Share hope or inspiration with someone."
+    },
+    "The Moon": {
+      "today": "Trust your intuition. Things may be confusing but will clarify.",
+      "korean": "직감을 신뢰하세요. 혼란스러울 수 있지만 명확해질 것입니다.",
+      "morning": "Pay attention to dreams or early hunches.",
+      "afternoon": "Navigate uncertainty with intuition.",
+      "evening": "Don't make major decisions while confused.",
+      "lucky": "Lucky color: Silver and purple. Lucky number: 18.",
+      "caution": "Don't let fear drive decisions.",
+      "action": "Trust one intuition you'd normally dismiss."
+    },
+    "The Sun": {
+      "today": "A bright, successful day. Celebrate and share your joy.",
+      "korean": "밝고 성공적인 날. 축하하고 기쁨을 나누세요.",
+      "morning": "Start with optimism and energy.",
+      "afternoon": "Tackle challenges - success is likely.",
+      "evening": "Celebrate what went well.",
+      "lucky": "Lucky color: Yellow and orange. Lucky number: 19.",
+      "caution": "Don't dim your light for others.",
+      "action": "Celebrate one success openly."
+    },
+    "Judgement": {
+      "today": "A day for important decisions and honest self-assessment.",
+      "korean": "중요한 결정과 솔직한 자기 평가를 위한 날.",
+      "morning": "Evaluate where you are in life.",
+      "afternoon": "Make decisions you've been avoiding.",
+      "evening": "Forgive yourself or others.",
+      "lucky": "Lucky color: Red and white. Lucky number: 20.",
+      "caution": "Don't judge yourself or others too harshly.",
+      "action": "Make one decision you've been postponing."
+    },
+    "The World": {
+      "today": "Completion and accomplishment. Celebrate achievements.",
+      "korean": "완성과 성취. 성취를 축하하세요.",
+      "morning": "Appreciate how far you've come.",
+      "afternoon": "Complete unfinished tasks.",
+      "evening": "Celebrate your wholeness.",
+      "lucky": "Lucky color: All colors. Lucky number: 21.",
+      "caution": "Don't rush to the next thing without celebrating.",
+      "action": "Complete one cycle and acknowledge it fully."
+    }
+  },
+  "quick_guidance": {
+    "format": "Concise, actionable, immediately useful",
+    "length": "Keep daily readings brief - 50-100 words max",
+    "focus": "What to do TODAY, not long-term predictions"
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "_meta": {
+    "title": "Reversed Card Special Rules",
+    "description": "역방향 카드의 특별한 해석 방법과 역방향 조합 의미"
+  },
+  "reversed_interpretation_styles": {
+    "blocked_energy": {
+      "description": "막힌 에너지 해석",
+      "meaning": "카드의 긍정적 에너지가 표현되지 못하고 막혀 있음",
+      "example": "역방향 Ace of Wands = 열정이 억압되어 있거나 시작하지 못하는 상태"
+    },
+    "internalized": {
+      "description": "내면화된 에너지",
+      "meaning": "카드의 에너지가 외부로 표현되지 않고 내면에서 작용",
+      "example": "역방향 The Sun = 외적 성공보다 내면의 기쁨에 집중"
+    },
+    "delayed": {
+      "description": "지연된 에너지",
+      "meaning": "카드의 결과가 나타나는 시간이 지연됨",
+      "example": "역방향 Eight of Wands = 빠른 진전이 지연되고 있음"
+    },
+    "excess": {
+      "description": "과잉 에너지",
+      "meaning": "카드의 에너지가 과도하게 나타남",
+      "example": "역방향 The Emperor = 과도한 통제, 독재적"
+    },
+    "shadow_aspect": {
+      "description": "그림자 측면",
+      "meaning": "카드의 부정적/무의식적 측면이 드러남",
+      "example": "역방향 The Lovers = 관계의 숨겨진 문제, 불화"
+    },
+    "returning_energy": {
+      "description": "돌아오는 에너지",
+      "meaning": "과거의 교훈이나 상황이 다시 돌아옴",
+      "example": "역방향 Six of Cups = 과거의 관계나 상황이 재등장"
+    }
+  },
+  "reversed_pairs": {
+    "warning_combinations": [
+      {
+        "cards": ["The Tower (R)", "Ten of Swords (R)"],
+        "meaning": "최악의 상황이 지나갔으나 아직 회복 중",
+        "korean": "폭풍이 지나갔어요. 이제 천천히 회복할 시간입니다.",
+        "advice": "서두르지 말고 충분히 치유하세요"
+      },
+      {
+        "cards": ["The Devil (R)", "Eight of Swords (R)"],
+        "meaning": "속박에서 벗어나는 중, 해방의 과정",
+        "korean": "드디어 당신을 묶던 것에서 벗어나고 있어요!",
+        "advice": "완전한 자유를 향해 계속 나아가세요"
+      },
+      {
+        "cards": ["Three of Swords (R)", "Five of Cups (R)"],
+        "meaning": "슬픔에서 회복하는 중, 치유의 시작",
+        "korean": "상처가 아물기 시작했어요. 치유되고 있습니다.",
+        "advice": "과거를 보내고 앞으로 나아가세요"
+      }
+    ],
+    "positive_reversed_combinations": [
+      {
+        "cards": ["Death (R)", "The Tower (R)"],
+        "meaning": "변화에 대한 저항이 무너지고 있음",
+        "korean": "저항하던 변화를 받아들이기 시작했어요.",
+        "advice": "흐름에 맡기면 더 순탄해질 거예요"
+      },
+      {
+        "cards": ["The Hanged Man (R)", "Four of Swords (R)"],
+        "meaning": "기다림의 시간이 끝나가고 있음",
+        "korean": "드디어 움직일 때가 됐어요!",
+        "advice": "준비하세요, 곧 행동할 시간입니다"
+      },
+      {
+        "cards": ["Nine of Swords (R)", "The Star (R)"],
+        "meaning": "불안에서 벗어나 희망을 찾는 중",
+        "korean": "밤새 고민하던 것들이 해결되기 시작해요.",
+        "advice": "이제 희망을 품어도 괜찮아요"
+      }
+    ]
+  },
+  "all_reversed_reading": {
+    "description": "리딩의 모든 카드가 역방향일 때",
+    "interpretation": "내면적 작업의 시기, 외부보다 내면에 집중해야 할 때",
+    "meaning": "당신의 질문에 대한 답이 외부가 아닌 내면에 있어요",
+    "advice": "행동보다 성찰의 시간을 가지세요. 무의식의 메시지에 주의를 기울이세요."
+  },
+  "mostly_reversed_reading": {
+    "description": "대부분의 카드가 역방향일 때 (70% 이상)",
+    "interpretation": "막힘, 저항, 또는 숨겨진 요소가 많은 상황",
+    "meaning": "표면 아래 많은 것이 움직이고 있어요",
+    "advice": "인내심을 가지세요. 때가 되면 드러날 거예요."
+  },
+  "reversed_by_position": {
+    "past_reversed": {
+      "meaning": "과거의 해결되지 않은 에너지가 아직 영향을 주고 있음",
+      "advice": "과거를 돌아보고 정리할 필요가 있어요"
+    },
+    "present_reversed": {
+      "meaning": "현재 에너지가 막혀있거나 내면화되어 있음",
+      "advice": "지금 상황을 다른 관점에서 바라보세요"
+    },
+    "future_reversed": {
+      "meaning": "미래의 결과가 지연되거나 다른 형태로 나타날 수 있음",
+      "advice": "유연하게 대비하세요. 예상과 다를 수 있어요"
+    },
+    "advice_reversed": {
+      "meaning": "보통과 다른 접근법이 필요함",
+      "advice": "반대로 생각해보세요. 일반적인 조언이 맞지 않을 수 있어요"
+    },
+    "outcome_reversed": {
+      "meaning": "결과가 내면적이거나 지연될 수 있음",
+      "advice": "눈에 보이는 결과만 기대하지 마세요"
+    }
+  },
+  "reversed_major_arcana_special": {
+    "The Fool (R)": {
+      "special_meaning": "무모함 또는 새 시작에 대한 두려움",
+      "advice": "용기를 내되 무모하지는 마세요"
+    },
+    "The Magician (R)": {
+      "special_meaning": "재능이 발휘되지 못함, 또는 속임수",
+      "advice": "진정성을 가지고 능력을 써야 해요"
+    },
+    "The High Priestess (R)": {
+      "special_meaning": "직관을 무시하고 있음, 숨겨진 진실 외면",
+      "advice": "내면의 소리에 귀 기울이세요"
+    },
+    "The Empress (R)": {
+      "special_meaning": "창조성 막힘, 자기 돌봄 소홀",
+      "advice": "자신을 먼저 채우세요"
+    },
+    "The Emperor (R)": {
+      "special_meaning": "권위 남용 또는 권위에 대한 저항",
+      "advice": "균형 잡힌 리더십이 필요해요"
+    },
+    "The Lovers (R)": {
+      "special_meaning": "관계의 불화, 잘못된 선택",
+      "advice": "진정 원하는 것이 무엇인지 돌아보세요"
+    },
+    "The Chariot (R)": {
+      "special_meaning": "방향 상실, 의지력 부족",
+      "advice": "목표를 다시 점검하세요"
+    },
+    "Strength (R)": {
+      "special_meaning": "자신감 부족, 내면의 두려움",
+      "advice": "내면의 힘을 믿으세요"
+    },
+    "The Hermit (R)": {
+      "special_meaning": "고립, 또는 혼자만의 시간 필요",
+      "advice": "균형을 찾으세요 - 홀로 있거나 세상과 연결되거나"
+    },
+    "Wheel of Fortune (R)": {
+      "special_meaning": "운의 정체, 또는 카르마적 교훈",
+      "advice": "이 시기에 배울 것이 있어요"
+    },
+    "Justice (R)": {
+      "special_meaning": "불공정, 또는 결과 지연",
+      "advice": "정의는 시간이 걸려도 이루어져요"
+    },
+    "Death (R)": {
+      "special_meaning": "변화에 대한 저항, 놓지 못함",
+      "advice": "흘려보내야 새로운 것이 올 수 있어요"
+    },
+    "The Tower (R)": {
+      "special_meaning": "내면적 변화, 또는 붕괴 회피",
+      "advice": "피할 수 없는 변화라면 받아들이세요"
+    },
+    "The Star (R)": {
+      "special_meaning": "희망 상실, 또는 비현실적 기대",
+      "advice": "작은 희망부터 다시 품어보세요"
+    },
+    "The Moon (R)": {
+      "special_meaning": "두려움 극복, 또는 환상에서 깨어남",
+      "advice": "진실을 직면할 용기를 내세요"
+    },
+    "The Sun (R)": {
+      "special_meaning": "내면의 기쁨, 또는 지연된 성공",
+      "advice": "외적 인정보다 내적 만족을 찾으세요"
+    },
+    "Judgement (R)": {
+      "special_meaning": "자기 의심, 소명에 응답하지 않음",
+      "advice": "자신을 용서하고 새로운 기회를 잡으세요"
+    },
+    "The World (R)": {
+      "special_meaning": "완성 직전 지연, 마지막 단계에서 막힘",
+      "advice": "거의 다 왔어요. 조금만 더 인내하세요"
+    }
+  }
+}

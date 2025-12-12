@@ -1,0 +1,73 @@
+{
+  "concept": "individuation",
+  "concept_kr": "개성화",
+  "description": "The process of becoming a psychological individual, a whole",
+  "quotes": [
+    {
+      "id": "ind_001",
+      "en": "Individuation does not shut one out from the world, but gathers the world to oneself.",
+      "kr": "개성화는 세상으로부터 단절시키는 것이 아니라, 세상을 자신에게로 모으는 것이다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": [
+        "individuation",
+        "world"
+      ]
+    },
+    {
+      "id": "ind_002",
+      "en": "The goal of individuation is to divest the self of the false wrappings of the persona.",
+      "kr": "개성화의 목표는 페르소나의 거짓 포장을 자기에게서 벗겨내는 것이다.",
+      "source": "CW 7",
+      "year": 1928,
+      "tags": [
+        "individuation",
+        "persona"
+      ]
+    },
+    {
+      "id": "ind_003",
+      "en": "The symbols of the individuation process mark its stages like milestones.",
+      "kr": "개성화 과정의 상징들은 이정표처럼 그 단계들을 표시한다.",
+      "source": "CW 12",
+      "year": 1944,
+      "tags": [
+        "individuation",
+        "symbols"
+      ]
+    },
+    {
+      "id": "ind_004",
+      "en": "The meeting with oneself is, at first, the meeting with one's own shadow.",
+      "kr": "자기 자신과의 만남은 처음에는 자신의 그림자와의 만남이다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "individuation",
+        "shadow"
+      ]
+    },
+    {
+      "id": "ind_005",
+      "en": "We cannot change anything unless we accept it. Condemnation does not liberate, it oppresses.",
+      "kr": "받아들이지 않는 한 아무것도 바꿀 수 없다. 비난은 해방시키지 않고 억압한다.",
+      "source": "CW 11",
+      "year": 1933,
+      "tags": [
+        "individuation",
+        "acceptance"
+      ]
+    },
+    {
+      "id": "ind_006",
+      "en": "The shoe that fits one person pinches another; there is no recipe for living that suits all cases.",
+      "kr": "한 사람에게 맞는 신발이 다른 사람에게는 조인다. 모든 경우에 맞는 삶의 처방은 없다.",
+      "source": "CW 11",
+      "year": 1933,
+      "tags": [
+        "individuation",
+        "individual"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+{
+  "_meta": {
+    "description": "칼 융(Carl Jung) 분석심리학 기반 꿈 해석",
+    "version": "1.0.0",
+    "source": "Jung's Collected Works, Man and His Symbols",
+    "last_updated": "2024-12"
+  },
+
+  "_theory": {
+    "collective_unconscious": "개인을 넘어 인류 공통의 무의식",
+    "archetypes": "집단무의식 속 원형적 패턴들",
+    "individuation": "자기실현 과정, 의식과 무의식의 통합",
+    "compensation": "의식의 일방성을 보상하는 꿈의 기능"
+  },
+
+  "archetype_shadow": {
+    "when": ["shadow", "그림자", "dark figure", "어두운 존재", "enemy", "villain", "악당"],
+    "text": "그림자(Shadow)는 자아가 거부하고 억압한 측면입니다. 꿈에서 위협적인 인물, 쫓아오는 어둠, 자신의 어두운 버전으로 나타납니다. 그림자와 싸우는 것은 자신의 억압된 면과의 갈등이며, 통합하면 더 완전한 인격이 됩니다. 그림자는 당신이 싫어하지만, 수용하면 힘이 되는 것입니다.",
+    "weight": 10,
+    "archetype": "shadow",
+    "manifestations": {
+      "쫓아오는 어두운 존재": "억압된 측면이 인정 요구",
+      "자신의 악한 버전": "인정하지 않는 자아의 면",
+      "그림자와 싸움": "내면 갈등",
+      "그림자와 화해": "통합, 성장",
+      "그림자가 사라짐": "억압된 것의 해방"
+    },
+    "growth_question": "내가 싫어하는 타인의 특성이 사실 나 안에도 있지 않은가?"
+  },
+
+  "archetype_anima": {
+    "when": ["anima", "mysterious woman", "신비로운 여성", "여신", "muse", "영감의 여인"],
+    "text": "아니마(Anima)는 남성 무의식의 여성적 측면입니다. 신비롭고 매력적인 여성, 여신, 영감을 주는 뮤즈로 나타납니다. 아니마는 창조성, 감정, 직관, 관계 능력과 연결됩니다. 아니마와의 만남은 내면의 여성성 통합을 의미하며, 무시하면 관계 문제나 창조성 억압으로 나타납니다.",
+    "weight": 10,
+    "archetype": "anima",
+    "manifestations": {
+      "아름다운 낯선 여성": "무의식의 여성성 접촉",
+      "구하러 오는 여성": "직관/감정의 안내",
+      "위험한 유혹녀": "통합되지 않은 아니마",
+      "여신 형상": "영적 여성성",
+      "어머니 같은 여성": "양육적 측면"
+    },
+    "growth_question": "나의 감정과 직관을 얼마나 신뢰하고 표현하는가?"
+  },
+
+  "archetype_animus": {
+    "when": ["animus", "mysterious man", "신비로운 남성", "영웅", "안내자", "mentor"],
+    "text": "아니무스(Animus)는 여성 무의식의 남성적 측면입니다. 안내하는 남성, 영웅, 멘토, 또는 위협적인 남성으로 나타납니다. 아니무스는 로고스(이성), 주장, 행동력과 연결됩니다. 긍정적 아니무스는 내면의 지혜를 안내하고, 부정적 아니무스는 비판적 내면 목소리로 나타납니다.",
+    "weight": 10,
+    "archetype": "animus",
+    "manifestations": {
+      "안내하는 남성": "내면의 지혜",
+      "영웅 형상": "행동력과 용기",
+      "비판하는 남성": "부정적 아니무스",
+      "아버지 형상": "권위, 구조",
+      "연인 남성": "창조적 결합"
+    },
+    "growth_question": "나의 이성과 주장을 어떻게 표현하고 있는가?"
+  },
+
+  "archetype_wise_old_man": {
+    "when": ["wise old man", "현자", "노인", "sage", "guru", "스승", "mentor", "wizard"],
+    "text": "현자(Wise Old Man/Woman)는 내면의 지혜와 안내를 상징합니다. 어려운 시기에 나타나 조언을 주는 노인, 마법사, 선생님으로 나타납니다. 이 원형은 당신 안에 이미 있는 지혜를 의인화한 것입니다. 그의 말에 귀 기울이세요.",
+    "weight": 9,
+    "archetype": "wise_old_man",
+    "manifestations": {
+      "조언하는 노인": "내면의 지혜가 말함",
+      "마법사/마녀": "변화의 힘",
+      "선생님 형상": "배워야 할 교훈",
+      "신비로운 안내자": "영적 인도"
+    },
+    "growth_question": "이 현자가 주는 메시지는 무엇인가?"
+  },
+
+  "archetype_great_mother": {
+    "when": ["great mother", "대모", "mother figure", "어머니", "goddess", "terra", "자연"],
+    "text": "대모(Great Mother)는 양육, 보호, 창조의 원형이자 삼키는 파괴의 양면성을 가집니다. 돌보는 어머니, 자연, 대지로 나타나며, 때로는 무서운 마녀나 질식시키는 어머니로도 나타납니다. 생명을 주고 빼앗는 자연의 이중성을 나타냅니다.",
+    "weight": 9,
+    "archetype": "great_mother",
+    "manifestations": {
+      "돌보는 어머니": "양육, 보호",
+      "대지/자연": "근원으로의 연결",
+      "무서운 마녀": "삼키는 모성",
+      "풍요의 여신": "창조성, 풍요"
+    },
+    "growth_question": "어머니적 에너지와 어떤 관계인가? 양육받고 있는가, 질식당하는가?"
+  },
+
+  "archetype_hero": {
+    "when": ["hero", "영웅", "quest", "모험", "battle", "전투", "victory", "승리"],
+    "text": "영웅(Hero)은 자아 발달과 장애물 극복의 원형입니다. 용을 무찌르는 영웅은 무의식(혼돈)을 정복하는 의식의 승리입니다. 영웅 여정은 출발-시련-귀환의 구조로, 변화와 성장의 과정을 나타냅니다.",
+    "weight": 9,
+    "archetype": "hero",
+    "manifestations": {
+      "괴물과 싸움": "내면의 공포 극복",
+      "모험을 떠남": "자기발견 여정",
+      "보물을 찾음": "자기실현",
+      "집으로 귀환": "통합과 완성"
+    },
+    "growth_question": "지금 어떤 '용'과 싸우고 있으며, 그 결과 무엇을 얻을 것인가?"
+  },
+
+  "archetype_trickster": {
+    "when": ["trickster", "트릭스터", "joker", "광대", "chaos", "혼란", "fool"],
+    "text": "트릭스터(Trickster)는 규칙을 어기고 혼란을 일으키는 원형입니다. 광대, 사기꾼, 장난꾸러기로 나타나며, 경직된 질서를 뒤흔들어 변화를 촉진합니다. 불편하지만 필요한 변화의 촉매입니다.",
+    "weight": 8,
+    "archetype": "trickster",
+    "manifestations": {
+      "장난치는 인물": "변화의 필요",
+      "규칙 파괴": "경직된 사고 깨기",
+      "예상치 못한 반전": "새로운 관점",
+      "카드의 조커": "가능성의 열림"
+    },
+    "growth_question": "삶에서 너무 경직된 부분은 없는가?"
+  },
+
+  "archetype_child": {
+    "when": ["child", "아이", "inner child", "내면아이", "divine child", "신성한 아이"],
+    "text": "아이(Divine Child)는 순수함, 새로운 시작, 가능성의 원형입니다. 꿈에서 아이를 보는 것은 새로운 가능성이 태어나고 있음을 의미합니다. 상처받은 아이는 과거의 트라우마를, 빛나는 아이는 자기실현의 잠재력을 나타냅니다.",
+    "weight": 9,
+    "archetype": "child",
+    "manifestations": {
+      "행복한 아이": "새 가능성, 희망",
+      "우는 아이": "돌봄이 필요한 내면",
+      "상처받은 아이": "과거 상처",
+      "빛나는 아이": "자기실현의 씨앗"
+    },
+    "growth_question": "내면의 아이는 어떤 상태이며, 무엇이 필요한가?"
+  },
+
+  "archetype_self": {
+    "when": ["self", "자기", "mandala", "만다라", "wholeness", "전체성", "center", "중심"],
+    "text": "자기(Self)는 의식과 무의식의 전체성, 인격의 중심을 나타내는 가장 중요한 원형입니다. 만다라, 원, 사각형 안의 원, 빛나는 보석, 신적 형상으로 나타납니다. 자기를 만나는 것은 개인화(individuation) 과정의 목표입니다.",
+    "weight": 10,
+    "archetype": "self",
+    "manifestations": {
+      "만다라/원": "전체성의 상징",
+      "빛나는 보석": "자기의 중심",
+      "신적 형상": "초월적 자기",
+      "완전한 구체": "완성과 통합"
+    },
+    "growth_question": "나는 진정한 나 자신과 얼마나 연결되어 있는가?"
+  },
+
+  "symbol_water_unconscious": {
+    "when": ["deep water", "깊은 물", "ocean", "무의식의 바다", "underwater"],
+    "text": "융에게 물은 무의식의 상징입니다. 깊은 물은 깊은 무의식, 물에 들어가는 것은 무의식 탐험입니다. 맑은 물은 명료함을, 탁한 물은 혼란을 나타냅니다. 물에서 나오는 것은 무의식으로부터 통찰을 가져오는 것입니다.",
+    "weight": 9,
+    "concept": "unconscious",
+    "interpretations": {
+      "물에 들어감": "무의식 탐험",
+      "물에서 보물 발견": "무의식의 자원 발견",
+      "익사할 뻔함": "무의식에 압도됨",
+      "수면 위로 올라옴": "통찰의 의식화"
+    }
+  },
+
+  "symbol_house_psyche": {
+    "when": ["house", "집", "building", "건물", "rooms", "방"],
+    "text": "융에게 집은 정신(psyche) 전체의 상징입니다. 위층은 의식, 아래층/지하실은 무의식을 나타냅니다. 알려지지 않은 방을 발견하는 것은 자기 자신의 새로운 측면을 발견하는 것입니다.",
+    "weight": 9,
+    "concept": "psyche",
+    "interpretations": {
+      "지하실": "억압된 무의식",
+      "다락방": "높은 생각, 영성",
+      "숨겨진 방 발견": "자기의 새 측면",
+      "집 수리": "자기 발전 작업"
+    }
+  },
+
+  "process_compensation": {
+    "when": ["extreme dream", "반대 꿈", "unexpected dream"],
+    "text": "융의 보상 이론: 꿈은 의식의 일방적 태도를 보상합니다. 너무 이성적인 사람은 감정적 꿈을, 너무 순종적인 사람은 반항적 꿈을 꿉니다. 꿈이 '이상하다'면 그것이 정확히 당신에게 필요한 것입니다.",
+    "weight": 8,
+    "concept": "compensation",
+    "application": "꿈의 메시지가 일상의 태도와 반대라면, 균형이 필요한 신호입니다"
+  },
+
+  "process_individuation": {
+    "when": ["transformation dream", "변화 꿈", "growth dream", "journey dream"],
+    "text": "개인화(Individuation)는 융 심리학의 핵심 개념으로, 진정한 자기가 되어가는 과정입니다. 여정 꿈, 변화 꿈, 죽음과 재탄생 꿈은 이 과정을 반영합니다. 어려운 꿈도 성장의 일부입니다.",
+    "weight": 9,
+    "concept": "individuation",
+    "stages": {
+      "그림자 직면": "억압된 면 인정",
+      "아니마/아니무스 만남": "내면의 이성 에너지 통합",
+      "자기 원형 접근": "전체성을 향한 이동",
+      "새로운 자아 탄생": "통합된 인격"
+    }
+  },
+
+  "method_amplification": {
+    "when": ["symbol", "상징", "image", "이미지"],
+    "text": "융의 확충법(Amplification): 꿈의 이미지를 신화, 동화, 종교적 상징과 연결하여 의미를 확장합니다. 개인적 연상과 집단적(원형적) 의미 모두를 탐색합니다.",
+    "weight": 7,
+    "concept": "method",
+    "application": "이 상징이 신화나 전설에서 어떤 의미를 갖는지 탐색하세요"
+  },
+
+  "method_active_imagination": {
+    "when": ["continuing dream", "꿈 이어가기", "dialogue"],
+    "text": "융의 적극적 상상(Active Imagination): 깨어 있는 상태에서 꿈의 이미지와 대화하거나 꿈을 이어가는 기법입니다. 꿈속 인물에게 질문하고 답을 '듣습니다'. 무의식과의 의식적 대화입니다.",
+    "weight": 7,
+    "concept": "method",
+    "application": "꿈속 인물이나 상징에게 '너는 무엇을 원하는가?'라고 물어보세요"
+  }
+}

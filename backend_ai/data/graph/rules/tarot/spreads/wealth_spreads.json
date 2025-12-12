@@ -1,0 +1,195 @@
+{
+  "_meta": {
+    "theme": "wealth",
+    "title": "재물운 타로 스프레드",
+    "description": "재물, 투자, 재정 관련 다양한 질문 유형별 스프레드"
+  },
+  "sub_topics": {
+    "financial_outlook": {
+      "id": "financial_outlook",
+      "title": "재정 전망",
+      "korean": "올해 재물운",
+      "description": "올해 전반적인 재정 상황과 흐름",
+      "card_count": 10,
+      "spread_name": "Financial Outlook Spread",
+      "positions": [
+        {"position": 1, "name": "현재 재정", "meaning": "현재 재정 상태", "prompt_hint": "지금 돈과 관련된 에너지"},
+        {"position": 2, "name": "수입 흐름", "meaning": "수입의 흐름과 전망", "prompt_hint": "돈이 들어오는 에너지"},
+        {"position": 3, "name": "지출 패턴", "meaning": "지출과 관련된 에너지", "prompt_hint": "돈이 나가는 패턴"},
+        {"position": 4, "name": "재정 장애물", "meaning": "재정적 성장을 막는 것", "prompt_hint": "돈을 막는 요소"},
+        {"position": 5, "name": "숨은 기회", "meaning": "눈에 보이지 않는 재정 기회", "prompt_hint": "놓치고 있는 기회"},
+        {"position": 6, "name": "3개월 후", "meaning": "3개월 후 재정 상황", "prompt_hint": "단기 재정 전망"},
+        {"position": 7, "name": "6개월 후", "meaning": "6개월 후 재정 상황", "prompt_hint": "중기 재정 전망"},
+        {"position": 8, "name": "연말 전망", "meaning": "연말 재정 상태", "prompt_hint": "올해 끝의 재정"},
+        {"position": 9, "name": "재정 조언", "meaning": "돈 관리에 대한 조언", "prompt_hint": "재정 관리 핵심"},
+        {"position": 10, "name": "행운의 열쇠", "meaning": "재물운을 높이는 열쇠", "prompt_hint": "부를 끌어당기는 방법"}
+      ]
+    },
+    "investment": {
+      "id": "investment",
+      "title": "투자",
+      "korean": "투자 결정",
+      "description": "투자 여부와 시기, 종목 결정",
+      "card_count": 10,
+      "spread_name": "Investment Decision Spread",
+      "positions": [
+        {"position": 1, "name": "투자 에너지", "meaning": "현재 투자에 대한 전반적 운", "prompt_hint": "투자 결정의 에너지"},
+        {"position": 2, "name": "시장 상황", "meaning": "현재 시장/경제 에너지", "prompt_hint": "외부 환경"},
+        {"position": 3, "name": "투자 적기", "meaning": "지금이 투자할 때인지", "prompt_hint": "타이밍의 적절성"},
+        {"position": 4, "name": "수익 가능성", "meaning": "수익을 낼 가능성", "prompt_hint": "이익 전망"},
+        {"position": 5, "name": "리스크", "meaning": "투자의 위험 요소", "prompt_hint": "손실 가능성"},
+        {"position": 6, "name": "단기 전망", "meaning": "3개월 내 투자 결과", "prompt_hint": "단기 수익"},
+        {"position": 7, "name": "장기 전망", "meaning": "1년 후 투자 결과", "prompt_hint": "장기 수익"},
+        {"position": 8, "name": "대안", "meaning": "고려해야 할 다른 옵션", "prompt_hint": "다른 투자 방향"},
+        {"position": 9, "name": "주의점", "meaning": "투자 시 주의할 점", "prompt_hint": "조심해야 할 것"},
+        {"position": 10, "name": "최종 조언", "meaning": "투자에 대한 조언", "prompt_hint": "투자 결정의 핵심"}
+      ]
+    },
+    "debt": {
+      "id": "debt",
+      "title": "빚/부채",
+      "korean": "빚 해결",
+      "description": "부채 상환과 재정 회복",
+      "card_count": 8,
+      "spread_name": "Debt Recovery Spread",
+      "positions": [
+        {"position": 1, "name": "부채 에너지", "meaning": "현재 부채 상황의 에너지", "prompt_hint": "빚의 현재 상태"},
+        {"position": 2, "name": "근본 원인", "meaning": "부채가 생긴 근본 원인", "prompt_hint": "빚의 근원"},
+        {"position": 3, "name": "해결 가능성", "meaning": "부채 해결 가능성", "prompt_hint": "갚을 수 있는지"},
+        {"position": 4, "name": "해결 방법", "meaning": "가장 효과적인 해결 방법", "prompt_hint": "빚을 줄이는 방법"},
+        {"position": 5, "name": "시간 전망", "meaning": "해결까지 걸리는 시간", "prompt_hint": "완전히 갚는 시기"},
+        {"position": 6, "name": "도움", "meaning": "받을 수 있는 도움", "prompt_hint": "외부의 지원"},
+        {"position": 7, "name": "피해야 할 것", "meaning": "상황을 악화시키는 것", "prompt_hint": "하지 말아야 할 것"},
+        {"position": 8, "name": "조언", "meaning": "부채 해결을 위한 조언", "prompt_hint": "재정 회복의 열쇠"}
+      ]
+    },
+    "savings": {
+      "id": "savings",
+      "title": "저축",
+      "korean": "저축/자산 형성",
+      "description": "저축과 자산 증식 방법",
+      "card_count": 8,
+      "spread_name": "Wealth Building Spread",
+      "positions": [
+        {"position": 1, "name": "저축 에너지", "meaning": "현재 저축 에너지", "prompt_hint": "돈을 모으는 능력"},
+        {"position": 2, "name": "저축 습관", "meaning": "현재 저축 습관", "prompt_hint": "돈을 다루는 패턴"},
+        {"position": 3, "name": "목표 달성", "meaning": "저축 목표 달성 가능성", "prompt_hint": "목표에 도달할 수 있는지"},
+        {"position": 4, "name": "방해 요소", "meaning": "저축을 방해하는 것", "prompt_hint": "돈을 새게 하는 것"},
+        {"position": 5, "name": "개선 방법", "meaning": "저축을 늘리는 방법", "prompt_hint": "더 많이 모으는 법"},
+        {"position": 6, "name": "적합한 방식", "meaning": "나에게 맞는 저축 방식", "prompt_hint": "어떻게 모을지"},
+        {"position": 7, "name": "6개월 전망", "meaning": "6개월 후 저축 상황", "prompt_hint": "반년 후 모인 돈"},
+        {"position": 8, "name": "조언", "meaning": "자산 형성을 위한 조언", "prompt_hint": "부자가 되는 열쇠"}
+      ]
+    },
+    "lottery": {
+      "id": "lottery",
+      "title": "횡재",
+      "korean": "횡재운/로또",
+      "description": "예상치 못한 재물, 횡재 가능성",
+      "card_count": 7,
+      "spread_name": "Windfall Spread",
+      "positions": [
+        {"position": 1, "name": "횡재 에너지", "meaning": "현재 횡재 에너지", "prompt_hint": "뜻밖의 돈이 올 가능성"},
+        {"position": 2, "name": "가능성", "meaning": "횡재할 확률", "prompt_hint": "큰 돈이 들어올 가능성"},
+        {"position": 3, "name": "경로", "meaning": "횡재가 올 수 있는 경로", "prompt_hint": "어떤 형태로 올지"},
+        {"position": 4, "name": "시기", "meaning": "횡재가 올 수 있는 시기", "prompt_hint": "언제 올 가능성이 높은지"},
+        {"position": 5, "name": "행동", "meaning": "횡재를 끌어당기는 행동", "prompt_hint": "운을 높이는 방법"},
+        {"position": 6, "name": "주의점", "meaning": "횡재와 관련된 주의점", "prompt_hint": "조심해야 할 것"},
+        {"position": 7, "name": "조언", "meaning": "횡재운에 대한 조언", "prompt_hint": "행운에 대한 메시지"}
+      ]
+    },
+    "real_estate": {
+      "id": "real_estate",
+      "title": "부동산",
+      "korean": "부동산 투자/매매",
+      "description": "부동산 구매, 판매, 투자 결정",
+      "card_count": 10,
+      "spread_name": "Real Estate Spread",
+      "positions": [
+        {"position": 1, "name": "부동산 에너지", "meaning": "현재 부동산 관련 에너지", "prompt_hint": "부동산 운의 상태"},
+        {"position": 2, "name": "시장 상황", "meaning": "현재 부동산 시장 에너지", "prompt_hint": "시장의 흐름"},
+        {"position": 3, "name": "매수 타이밍", "meaning": "지금 사기 좋은지", "prompt_hint": "구매 적기"},
+        {"position": 4, "name": "매도 타이밍", "meaning": "지금 팔기 좋은지", "prompt_hint": "판매 적기"},
+        {"position": 5, "name": "적합한 물건", "meaning": "어떤 유형이 좋은지", "prompt_hint": "맞는 부동산 종류"},
+        {"position": 6, "name": "투자 가치", "meaning": "투자 가치와 수익성", "prompt_hint": "수익 전망"},
+        {"position": 7, "name": "리스크", "meaning": "부동산 관련 위험", "prompt_hint": "조심해야 할 리스크"},
+        {"position": 8, "name": "1년 전망", "meaning": "1년 후 부동산 상황", "prompt_hint": "1년 뒤 시장"},
+        {"position": 9, "name": "장기 전망", "meaning": "장기적인 부동산 운", "prompt_hint": "장기 투자 결과"},
+        {"position": 10, "name": "조언", "meaning": "부동산에 대한 조언", "prompt_hint": "부동산 결정의 핵심"}
+      ]
+    },
+    "income_increase": {
+      "id": "income_increase",
+      "title": "수입 증가",
+      "korean": "수입 늘리기",
+      "description": "소득을 늘리는 방법과 시기",
+      "card_count": 8,
+      "spread_name": "Income Growth Spread",
+      "positions": [
+        {"position": 1, "name": "현재 수입", "meaning": "현재 수입 에너지", "prompt_hint": "지금 들어오는 돈"},
+        {"position": 2, "name": "증가 가능성", "meaning": "수입 증가 가능성", "prompt_hint": "더 벌 수 있는 가능성"},
+        {"position": 3, "name": "증가 경로", "meaning": "수입이 늘어나는 방법", "prompt_hint": "돈이 들어올 경로"},
+        {"position": 4, "name": "필요한 행동", "meaning": "수입 증가를 위해 할 일", "prompt_hint": "실질적으로 해야 할 것"},
+        {"position": 5, "name": "숨은 재능", "meaning": "돈이 되는 숨은 재능", "prompt_hint": "활용할 수 있는 능력"},
+        {"position": 6, "name": "시기", "meaning": "수입이 늘어나는 시기", "prompt_hint": "언제 늘어날지"},
+        {"position": 7, "name": "장애물", "meaning": "수입 증가를 막는 것", "prompt_hint": "돈을 막는 요소"},
+        {"position": 8, "name": "조언", "meaning": "수입 증가를 위한 조언", "prompt_hint": "더 많이 버는 핵심"}
+      ]
+    },
+    "business_money": {
+      "id": "business_money",
+      "title": "사업 재정",
+      "korean": "사업 자금/수익",
+      "description": "사업의 재정 상황과 전망",
+      "card_count": 10,
+      "spread_name": "Business Finance Spread",
+      "positions": [
+        {"position": 1, "name": "사업 재정", "meaning": "현재 사업 재정 상태", "prompt_hint": "사업 돈의 상태"},
+        {"position": 2, "name": "수익성", "meaning": "사업의 수익성", "prompt_hint": "이익을 내는 정도"},
+        {"position": 3, "name": "현금 흐름", "meaning": "현금 유동성 상황", "prompt_hint": "현금이 도는 상태"},
+        {"position": 4, "name": "비용 관리", "meaning": "비용 관련 에너지", "prompt_hint": "지출 관리 상태"},
+        {"position": 5, "name": "자금 조달", "meaning": "자금 조달 가능성", "prompt_hint": "투자/대출 가능성"},
+        {"position": 6, "name": "성장 가능성", "meaning": "사업 확장과 성장", "prompt_hint": "사업 성장 전망"},
+        {"position": 7, "name": "재정 리스크", "meaning": "재정적 위험 요소", "prompt_hint": "돈 관련 위험"},
+        {"position": 8, "name": "6개월 전망", "meaning": "6개월 후 사업 재정", "prompt_hint": "반년 후 상황"},
+        {"position": 9, "name": "1년 전망", "meaning": "1년 후 사업 재정", "prompt_hint": "1년 후 상황"},
+        {"position": 10, "name": "조언", "meaning": "사업 재정 관리 조언", "prompt_hint": "사업 돈 관리 핵심"}
+      ]
+    },
+    "spending_habits": {
+      "id": "spending_habits",
+      "title": "소비 습관",
+      "korean": "돈 쓰는 패턴",
+      "description": "소비 습관 분석과 개선",
+      "card_count": 7,
+      "spread_name": "Spending Pattern Spread",
+      "positions": [
+        {"position": 1, "name": "소비 에너지", "meaning": "현재 소비 에너지", "prompt_hint": "돈을 쓰는 패턴"},
+        {"position": 2, "name": "감정적 소비", "meaning": "감정에 의한 지출", "prompt_hint": "충동구매 경향"},
+        {"position": 3, "name": "돈에 대한 태도", "meaning": "돈에 대한 무의식적 태도", "prompt_hint": "돈을 바라보는 관점"},
+        {"position": 4, "name": "새는 곳", "meaning": "돈이 새는 곳", "prompt_hint": "불필요한 지출"},
+        {"position": 5, "name": "개선 방법", "meaning": "소비 습관 개선 방법", "prompt_hint": "더 현명하게 쓰는 법"},
+        {"position": 6, "name": "우선순위", "meaning": "돈을 써야 할 우선순위", "prompt_hint": "가치 있는 지출"},
+        {"position": 7, "name": "조언", "meaning": "소비에 대한 조언", "prompt_hint": "현명한 소비의 열쇠"}
+      ]
+    },
+    "money_blocks": {
+      "id": "money_blocks",
+      "title": "재정 블록",
+      "korean": "돈이 안 모이는 이유",
+      "description": "재정적 성장을 막는 내면의 블록",
+      "card_count": 8,
+      "spread_name": "Money Blocks Spread",
+      "positions": [
+        {"position": 1, "name": "표면적 블록", "meaning": "눈에 보이는 재정 장애", "prompt_hint": "겉으로 드러난 문제"},
+        {"position": 2, "name": "무의식적 블록", "meaning": "무의식 속 돈에 대한 믿음", "prompt_hint": "숨겨진 돈 관념"},
+        {"position": 3, "name": "과거 영향", "meaning": "과거가 미치는 영향", "prompt_hint": "어린 시절 돈 경험"},
+        {"position": 4, "name": "두려움", "meaning": "돈에 대한 두려움", "prompt_hint": "재정적 공포"},
+        {"position": 5, "name": "자기 가치", "meaning": "스스로 느끼는 가치", "prompt_hint": "돈을 받을 자격감"},
+        {"position": 6, "name": "해제 방법", "meaning": "블록을 해제하는 방법", "prompt_hint": "장애물 제거법"},
+        {"position": 7, "name": "새로운 믿음", "meaning": "받아들여야 할 새로운 믿음", "prompt_hint": "건강한 돈 관념"},
+        {"position": 8, "name": "조언", "meaning": "재정 블록 해제 조언", "prompt_hint": "풍요를 여는 열쇠"}
+      ]
+    }
+  }
+}

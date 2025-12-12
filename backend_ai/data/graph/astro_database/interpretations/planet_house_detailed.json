@@ -1,0 +1,1928 @@
+{
+  "meta": {
+    "type": "planet_in_house",
+    "count": 120
+  },
+  "interpretations": [
+    {
+      "id": "Sun_in_house_1",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "태양이(가) 1하우스에서 자아와 정체성의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "강한 자아 정체성과 리더십, 개성이 뚜렷하고 존재감이 강합니다.",
+      "challenges": "1하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_2",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "태양이(가) 2하우스에서 재물과 가치관의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_3",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "태양이(가) 3하우스에서 소통과 학습의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_4",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "태양이(가) 4하우스에서 가정과 뿌리의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_5",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "태양이(가) 5하우스에서 창조성과 즐거움의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_6",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "태양이(가) 6하우스에서 건강과 일상의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_7",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "태양이(가) 7하우스에서 파트너십과 관계의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_8",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "태양이(가) 8하우스에서 변환과 공유자원의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_9",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "태양이(가) 9하우스에서 철학과 확장의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_10",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "태양이(가) 10하우스에서 사회적 지위와 직업의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "사회적 성공과 명예를 추구하며, 공적 영역에서 빛나고자 합니다.",
+      "challenges": "10하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_11",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "태양이(가) 11하우스에서 우정과 희망의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Sun_in_house_12",
+      "planet": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "태양이(가) 12하우스에서 무의식과 영성의 영역을 빛을 비추고 활성화합니다.",
+      "manifestation": "태양의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 태양의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "태양의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_1",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "달이(가) 1하우스에서 자아와 정체성의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_2",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "달이(가) 2하우스에서 재물과 가치관의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_3",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "달이(가) 3하우스에서 소통과 학습의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_4",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "달이(가) 4하우스에서 가정과 뿌리의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "가정이 정서적 중심이며, 가족과의 유대가 매우 중요합니다.",
+      "challenges": "4하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_5",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "달이(가) 5하우스에서 창조성과 즐거움의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_6",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "달이(가) 6하우스에서 건강과 일상의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_7",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "달이(가) 7하우스에서 파트너십과 관계의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "파트너에게 정서적으로 깊이 연결되며, 관계에서 안정을 찾습니다.",
+      "challenges": "7하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_8",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "달이(가) 8하우스에서 변환과 공유자원의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_9",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "달이(가) 9하우스에서 철학과 확장의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_10",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "달이(가) 10하우스에서 사회적 지위와 직업의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_11",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "달이(가) 11하우스에서 우정과 희망의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Moon_in_house_12",
+      "planet": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "달이(가) 12하우스에서 무의식과 영성의 영역을 감정적으로 반응하고 양육합니다.",
+      "manifestation": "달의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 달의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "달의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_1",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "수성이(가) 1하우스에서 자아와 정체성의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_2",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "수성이(가) 2하우스에서 재물과 가치관의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_3",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "수성이(가) 3하우스에서 소통과 학습의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_4",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "수성이(가) 4하우스에서 가정과 뿌리의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_5",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "수성이(가) 5하우스에서 창조성과 즐거움의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_6",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "수성이(가) 6하우스에서 건강과 일상의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_7",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "수성이(가) 7하우스에서 파트너십과 관계의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_8",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "수성이(가) 8하우스에서 변환과 공유자원의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_9",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "수성이(가) 9하우스에서 철학과 확장의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_10",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "수성이(가) 10하우스에서 사회적 지위와 직업의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_11",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "수성이(가) 11하우스에서 우정과 희망의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mercury_in_house_12",
+      "planet": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "수성이(가) 12하우스에서 무의식과 영성의 영역을 사고하고 소통합니다.",
+      "manifestation": "수성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 수성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "수성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_1",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "금성이(가) 1하우스에서 자아와 정체성의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_2",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "금성이(가) 2하우스에서 재물과 가치관의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_3",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "금성이(가) 3하우스에서 소통과 학습의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_4",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "금성이(가) 4하우스에서 가정과 뿌리의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_5",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "금성이(가) 5하우스에서 창조성과 즐거움의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "예술과 로맨스에 재능이 있으며, 창조적 자기표현을 즐깁니다.",
+      "challenges": "5하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_6",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "금성이(가) 6하우스에서 건강과 일상의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_7",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "금성이(가) 7하우스에서 파트너십과 관계의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "조화로운 파트너십을 추구하며, 결혼과 관계가 인생의 중요한 부분입니다.",
+      "challenges": "7하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_8",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "금성이(가) 8하우스에서 변환과 공유자원의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_9",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "금성이(가) 9하우스에서 철학과 확장의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_10",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "금성이(가) 10하우스에서 사회적 지위와 직업의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_11",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "금성이(가) 11하우스에서 우정과 희망의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Venus_in_house_12",
+      "planet": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "금성이(가) 12하우스에서 무의식과 영성의 영역을 사랑하고 가치를 부여합니다.",
+      "manifestation": "금성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 금성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "금성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_1",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "화성이(가) 1하우스에서 자아와 정체성의 영역을 행동하고 추진합니다.",
+      "manifestation": "적극적이고 경쟁적이며, 강한 추진력과 결단력을 가졌습니다.",
+      "challenges": "1하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_2",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "화성이(가) 2하우스에서 재물과 가치관의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_3",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "화성이(가) 3하우스에서 소통과 학습의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_4",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "화성이(가) 4하우스에서 가정과 뿌리의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_5",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "화성이(가) 5하우스에서 창조성과 즐거움의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_6",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "화성이(가) 6하우스에서 건강과 일상의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_7",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "화성이(가) 7하우스에서 파트너십과 관계의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_8",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "화성이(가) 8하우스에서 변환과 공유자원의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_9",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "화성이(가) 9하우스에서 철학과 확장의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_10",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "화성이(가) 10하우스에서 사회적 지위와 직업의 영역을 행동하고 추진합니다.",
+      "manifestation": "야심차고 직업적 성공을 위해 노력하며, 권위적 위치를 추구합니다.",
+      "challenges": "10하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_11",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "화성이(가) 11하우스에서 우정과 희망의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Mars_in_house_12",
+      "planet": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "화성이(가) 12하우스에서 무의식과 영성의 영역을 행동하고 추진합니다.",
+      "manifestation": "화성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 화성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "화성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_1",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "목성이(가) 1하우스에서 자아와 정체성의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_2",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "목성이(가) 2하우스에서 재물과 가치관의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_3",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "목성이(가) 3하우스에서 소통과 학습의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_4",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "목성이(가) 4하우스에서 가정과 뿌리의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_5",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "목성이(가) 5하우스에서 창조성과 즐거움의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_6",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "목성이(가) 6하우스에서 건강과 일상의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_7",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "목성이(가) 7하우스에서 파트너십과 관계의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_8",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "목성이(가) 8하우스에서 변환과 공유자원의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_9",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "목성이(가) 9하우스에서 철학과 확장의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "철학, 종교, 고등교육에 관심이 많고 해외 여행/유학 기회가 많습니다.",
+      "challenges": "9하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_10",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "목성이(가) 10하우스에서 사회적 지위와 직업의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_11",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "목성이(가) 11하우스에서 우정과 희망의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Jupiter_in_house_12",
+      "planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "목성이(가) 12하우스에서 무의식과 영성의 영역을 확장하고 풍요롭게 합니다.",
+      "manifestation": "목성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 목성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "목성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_1",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "토성이(가) 1하우스에서 자아와 정체성의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_2",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "토성이(가) 2하우스에서 재물과 가치관의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_3",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "토성이(가) 3하우스에서 소통과 학습의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_4",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "토성이(가) 4하우스에서 가정과 뿌리의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_5",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "토성이(가) 5하우스에서 창조성과 즐거움의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_6",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "토성이(가) 6하우스에서 건강과 일상의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_7",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "토성이(가) 7하우스에서 파트너십과 관계의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_8",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "토성이(가) 8하우스에서 변환과 공유자원의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_9",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "토성이(가) 9하우스에서 철학과 확장의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_10",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "토성이(가) 10하우스에서 사회적 지위와 직업의 영역을 구조화하고 제한합니다.",
+      "manifestation": "직업에서 큰 책임을 지며, 시간이 지나면서 권위를 얻습니다.",
+      "challenges": "10하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_11",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "토성이(가) 11하우스에서 우정과 희망의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Saturn_in_house_12",
+      "planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "토성이(가) 12하우스에서 무의식과 영성의 영역을 구조화하고 제한합니다.",
+      "manifestation": "토성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 토성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "토성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_1",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "천왕성이(가) 1하우스에서 자아와 정체성의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_2",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "천왕성이(가) 2하우스에서 재물과 가치관의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_3",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "천왕성이(가) 3하우스에서 소통과 학습의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_4",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "천왕성이(가) 4하우스에서 가정과 뿌리의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_5",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "천왕성이(가) 5하우스에서 창조성과 즐거움의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_6",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "천왕성이(가) 6하우스에서 건강과 일상의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_7",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "천왕성이(가) 7하우스에서 파트너십과 관계의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_8",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "천왕성이(가) 8하우스에서 변환과 공유자원의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_9",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "천왕성이(가) 9하우스에서 철학과 확장의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_10",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "천왕성이(가) 10하우스에서 사회적 지위와 직업의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_11",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "천왕성이(가) 11하우스에서 우정과 희망의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Uranus_in_house_12",
+      "planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "천왕성이(가) 12하우스에서 무의식과 영성의 영역을 혁신하고 변화시킵니다.",
+      "manifestation": "천왕성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 천왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "천왕성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_1",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "해왕성이(가) 1하우스에서 자아와 정체성의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_2",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "해왕성이(가) 2하우스에서 재물과 가치관의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_3",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "해왕성이(가) 3하우스에서 소통과 학습의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_4",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "해왕성이(가) 4하우스에서 가정과 뿌리의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_5",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "해왕성이(가) 5하우스에서 창조성과 즐거움의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_6",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "해왕성이(가) 6하우스에서 건강과 일상의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_7",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "해왕성이(가) 7하우스에서 파트너십과 관계의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_8",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "해왕성이(가) 8하우스에서 변환과 공유자원의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_9",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "해왕성이(가) 9하우스에서 철학과 확장의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_10",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "해왕성이(가) 10하우스에서 사회적 지위와 직업의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_11",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "해왕성이(가) 11하우스에서 우정과 희망의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Neptune_in_house_12",
+      "planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "해왕성이(가) 12하우스에서 무의식과 영성의 영역을 영감을 주고 초월합니다.",
+      "manifestation": "해왕성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 해왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "해왕성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_1",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 1,
+        "ko": "1하우스"
+      },
+      "life_area": "self",
+      "core_interpretation": "명왕성이(가) 1하우스에서 자아와 정체성의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 1하우스의 영역에서 표현됩니다.",
+      "challenges": "1하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 자아에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_2",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 2,
+        "ko": "2하우스"
+      },
+      "life_area": "money",
+      "core_interpretation": "명왕성이(가) 2하우스에서 재물과 가치관의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 2하우스의 영역에서 표현됩니다.",
+      "challenges": "2하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 재물에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_3",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 3,
+        "ko": "3하우스"
+      },
+      "life_area": "communication",
+      "core_interpretation": "명왕성이(가) 3하우스에서 소통과 학습의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 3하우스의 영역에서 표현됩니다.",
+      "challenges": "3하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 소통에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_4",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 4,
+        "ko": "4하우스"
+      },
+      "life_area": "home",
+      "core_interpretation": "명왕성이(가) 4하우스에서 가정과 뿌리의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 4하우스의 영역에서 표현됩니다.",
+      "challenges": "4하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 가정에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_5",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 5,
+        "ko": "5하우스"
+      },
+      "life_area": "creativity",
+      "core_interpretation": "명왕성이(가) 5하우스에서 창조성과 즐거움의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 5하우스의 영역에서 표현됩니다.",
+      "challenges": "5하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 창조성에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_6",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 6,
+        "ko": "6하우스"
+      },
+      "life_area": "health",
+      "core_interpretation": "명왕성이(가) 6하우스에서 건강과 일상의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 6하우스의 영역에서 표현됩니다.",
+      "challenges": "6하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 건강에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_7",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 7,
+        "ko": "7하우스"
+      },
+      "life_area": "partnership",
+      "core_interpretation": "명왕성이(가) 7하우스에서 파트너십과 관계의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 7하우스의 영역에서 표현됩니다.",
+      "challenges": "7하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 파트너십에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_8",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 8,
+        "ko": "8하우스"
+      },
+      "life_area": "transformation",
+      "core_interpretation": "명왕성이(가) 8하우스에서 변환과 공유자원의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 8하우스의 영역에서 표현됩니다.",
+      "challenges": "8하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 변환에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_9",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 9,
+        "ko": "9하우스"
+      },
+      "life_area": "philosophy",
+      "core_interpretation": "명왕성이(가) 9하우스에서 철학과 확장의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 9하우스의 영역에서 표현됩니다.",
+      "challenges": "9하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 철학에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_10",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 10,
+        "ko": "10하우스"
+      },
+      "life_area": "career",
+      "core_interpretation": "명왕성이(가) 10하우스에서 사회적 지위와 직업의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 10하우스의 영역에서 표현됩니다.",
+      "challenges": "10하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 사회적지위에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_11",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 11,
+        "ko": "11하우스"
+      },
+      "life_area": "community",
+      "core_interpretation": "명왕성이(가) 11하우스에서 우정과 희망의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 11하우스의 영역에서 표현됩니다.",
+      "challenges": "11하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 친구에 집중하면 성장의 기회가 됩니다."
+    },
+    {
+      "id": "Pluto_in_house_12",
+      "planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "house": {
+        "number": 12,
+        "ko": "12하우스"
+      },
+      "life_area": "unconscious",
+      "core_interpretation": "명왕성이(가) 12하우스에서 무의식과 영성의 영역을 변환하고 재생합니다.",
+      "manifestation": "명왕성의 에너지가 12하우스의 영역에서 표현됩니다.",
+      "challenges": "12하우스의 영역에서 명왕성의 에너지를 균형 있게 사용하는 것이 과제입니다.",
+      "opportunities": "명왕성의 에너지를 무의식에 집중하면 성장의 기회가 됩니다."
+    }
+  ]
+}

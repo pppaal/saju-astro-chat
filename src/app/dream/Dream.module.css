@@ -659,6 +659,984 @@
   transform: translateX(-4px);
 }
 
+/* Cultural Section (Collapsible) */
+.culturalSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Cultural Notes Grid in Results */
+.culturalNotesGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.culturalNote {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.culturalNote:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(168, 237, 234, 0.3);
+}
+
+.culturalFlag {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.culturalNote strong {
+  display: block;
+  color: #a8edea;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.culturalNote p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Lucky Elements Card */
+.luckyCard {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(168, 237, 234, 0.08));
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.luckyCard:hover {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 12px 40px rgba(255, 215, 0, 0.15);
+}
+
+.luckyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.luckyBadge {
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border-radius: 999px;
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1.1rem;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.luckyNumbers,
+.luckyColors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.luckyNumbers strong,
+.luckyColors strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.numberBalls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.numberBall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffd700, #ff8c00);
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.numberBall:nth-child(1) { animation-delay: 0s; }
+.numberBall:nth-child(2) { animation-delay: 0.1s; }
+.numberBall:nth-child(3) { animation-delay: 0.2s; }
+.numberBall:nth-child(4) { animation-delay: 0.3s; }
+.numberBall:nth-child(5) { animation-delay: 0.4s; }
+.numberBall:nth-child(6) { animation-delay: 0.5s; }
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.colorTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.colorTag {
+  padding: 0.5rem 1rem;
+  background: rgba(168, 237, 234, 0.15);
+  border: 1px solid rgba(168, 237, 234, 0.3);
+  border-radius: 999px;
+  color: #a8edea;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.luckyAdvice {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border-left: 3px solid #ffd700;
+}
+
+.luckyAdvice strong {
+  display: block;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+
+.luckyAdvice p {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== PREMIUM FEATURES ===== */
+
+/* Element Analysis */
+.elementAnalysis {
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+  border-radius: 12px;
+  border-left: 3px solid #8b5cf6;
+  margin-top: 1rem;
+}
+
+.elementAnalysis strong {
+  display: block;
+  color: #a78bfa;
+  margin-bottom: 0.5rem;
+}
+
+.elementAnalysis p {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 0.75rem 0;
+}
+
+.confidenceBar {
+  position: relative;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.confidenceFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  border-radius: 12px;
+  transition: width 1s ease-out;
+}
+
+.confidenceBar span {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  color: white;
+  font-weight: 600;
+}
+
+/* Combination Card */
+.combinationCard {
+  border-color: rgba(236, 72, 153, 0.3) !important;
+}
+
+.combinationList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.combinationItem {
+  padding: 1rem;
+  border-radius: 12px;
+  border-left: 4px solid;
+  transition: transform 0.3s ease;
+}
+
+.combinationItem:hover {
+  transform: translateX(5px);
+}
+
+.luckyCombo {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+  border-color: #10b981;
+}
+
+.warningCombo {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+  border-color: #f59e0b;
+}
+
+.comboHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.comboSymbols {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(90deg, #ec4899, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.comboScore {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.comboMeaning {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 0.5rem;
+}
+
+.comboInterpretation {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.fortuneType {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Taemong Card */
+.taemongCard {
+  border-color: rgba(251, 191, 36, 0.3) !important;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(245, 158, 11, 0.02));
+}
+
+.taemongPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.taemongSymbol {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1));
+  border-radius: 12px;
+}
+
+.symbolName {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.luckyScore {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.taemongDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.taemongTrait,
+.taemongGender {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.taemongTrait strong,
+.taemongGender strong {
+  color: #fbbf24;
+  margin-right: 0.5rem;
+}
+
+.taemongInterp {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+  margin: 0;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.celebrityExamples {
+  padding: 0.75rem;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.celebrityExamples strong {
+  color: #fbbf24;
+}
+
+.taemongOthers {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.taemongOthers strong {
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.taemongSymbolList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.taemongTag {
+  padding: 0.4rem 0.8rem;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #fbbf24;
+}
+
+/* ===== NEW UX FEATURES ===== */
+
+/* Voice Input Button */
+.voiceButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.voiceButton:hover {
+  background: rgba(168, 237, 234, 0.1);
+  border-color: rgba(168, 237, 234, 0.4);
+  color: #a8edea;
+}
+
+.voiceButtonActive {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ef4444;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.voiceIcon {
+  font-size: 1.2rem;
+}
+
+.voiceWave {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.voiceWave span {
+  width: 3px;
+  height: 12px;
+  background: #ef4444;
+  border-radius: 2px;
+  animation: wave 0.5s ease-in-out infinite;
+}
+
+.voiceWave span:nth-child(1) { animation-delay: 0s; }
+.voiceWave span:nth-child(2) { animation-delay: 0.1s; }
+.voiceWave span:nth-child(3) { animation-delay: 0.2s; }
+.voiceWave span:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes wave {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+/* Search Bar */
+.searchContainer {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: rgba(168, 237, 234, 0.5);
+  box-shadow: 0 0 0 3px rgba(168, 237, 234, 0.1);
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.searchClear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchClear:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Selection Preview */
+.previewContainer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(168, 237, 234, 0.05);
+  border: 1px dashed rgba(168, 237, 234, 0.3);
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.previewTitle {
+  color: #a8edea;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.previewText {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Progress Indicator */
+.progressContainer {
+  margin-bottom: 2rem;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progressLabel {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.progressPercent {
+  color: #a8edea;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.progressTrack {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #a8edea, #fed6e3);
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.progressSteps {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.progressStep {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.3s ease;
+}
+
+.progressStepActive {
+  color: #a8edea;
+}
+
+/* Recent Dreams */
+.recentDreamsToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  width: 100%;
+  text-align: left;
+}
+
+.recentDreamsToggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(168, 237, 234, 0.3);
+}
+
+.recentDreamsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+.recentDreamItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.recentDreamItem:hover {
+  background: rgba(168, 237, 234, 0.1);
+  border-color: rgba(168, 237, 234, 0.3);
+  transform: translateX(4px);
+}
+
+.recentDreamIcon {
+  font-size: 1.5rem;
+}
+
+.recentDreamContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.recentDreamTitle {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentDreamDate {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.recentDreamDelete {
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  font-size: 1rem;
+}
+
+.recentDreamDelete:hover {
+  color: #ef4444;
+}
+
+/* Smart Recommendations */
+.recommendationsContainer {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(254, 214, 227, 0.05);
+  border: 1px solid rgba(254, 214, 227, 0.2);
+  border-radius: 12px;
+}
+
+.recommendationsTitle {
+  color: #fed6e3;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recommendationsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recommendChip {
+  padding: 0.5rem 1rem;
+  background: rgba(254, 214, 227, 0.1);
+  border: 1px solid rgba(254, 214, 227, 0.3);
+  border-radius: 999px;
+  color: #fed6e3;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.recommendChip:hover {
+  background: rgba(254, 214, 227, 0.2);
+  transform: scale(1.05);
+}
+
+/* Tooltip */
+.chipWithTooltip {
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(168, 237, 234, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.chipWithTooltip:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* Selected Symbols Bar (Drag & Drop) */
+.selectedBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.selectedBarEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.selectedBarActive {
+  border-color: rgba(168, 237, 234, 0.4);
+  background: rgba(168, 237, 234, 0.05);
+}
+
+.selectedChip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.2), rgba(254, 214, 227, 0.2));
+  border: 1px solid rgba(168, 237, 234, 0.4);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.selectedChip:active {
+  cursor: grabbing;
+}
+
+.selectedChipDragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.selectedChipRemove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.75rem;
+  transition: color 0.2s ease;
+}
+
+.selectedChipRemove:hover {
+  color: #ef4444;
+}
+
+/* Auto-save indicator */
+.autoSaveIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(52, 211, 153, 0.1);
+  border-radius: 999px;
+  color: #34d399;
+  font-size: 0.75rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.autoSaveIcon {
+  animation: spin 1s linear infinite;
+}
+
+/* Voice Input Panel */
+.voicePanel {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 16px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.voicePanelTitle {
+  color: #ef4444;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.voiceTranscript {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  min-height: 60px;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.voiceControls {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.voiceControlBtn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.voiceStopBtn {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+}
+
+.voiceStopBtn:hover {
+  background: #dc2626;
+}
+
+.voiceUseBtn {
+  background: transparent;
+  border: 2px solid #34d399;
+  color: #34d399;
+}
+
+.voiceUseBtn:hover {
+  background: rgba(52, 211, 153, 0.1);
+}
+
+/* Toolbar Row */
+.toolbarRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* No Results */
+.noResults {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Saved Notification */
+.savedNotification {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(168, 237, 234, 0.15));
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 12px;
+  color: #34d399;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.5s ease;
+}
+
+.savedNotification span {
+  font-size: 1.2rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .formContainer {
@@ -685,5 +1663,439 @@
 
   .categoryTabs {
     padding-bottom: 0.5rem;
+  }
+
+  .culturalNotesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .numberBall {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}
+
+/* ================================================
+   CELESTIAL CONTEXT SECTION STYLES
+   ================================================ */
+
+.celestialCard {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9));
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  overflow: hidden;
+}
+
+.celestialCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+}
+
+/* Moon Phase Section */
+.moonPhaseSection {
+  padding: 1.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 16px;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.moonPhaseHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.moonEmoji {
+  font-size: 3rem;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+  animation: moonGlow 3s ease-in-out infinite;
+}
+
+@keyframes moonGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.8));
+  }
+}
+
+.moonPhaseInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.moonPhaseName {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.moonIllumination {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.intensityBadge {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.dreamQuality {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.qualityLabel {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.qualityValue {
+  background: rgba(139, 92, 246, 0.2);
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+  color: #a78bfa;
+  font-weight: 500;
+}
+
+.moonMeaning {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.enhancedThemes {
+  margin-bottom: 1rem;
+}
+
+.themesLabel {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.themeTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.themeTag {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.moonAdvice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(251, 191, 36, 0.1);
+  padding: 1rem;
+  border-radius: 12px;
+  border-left: 3px solid #fbbf24;
+}
+
+.adviceIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.moonAdvice p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Moon Sign Section */
+.moonSignSection {
+  padding: 1.25rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.moonSignHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.signIcon {
+  font-size: 1.2rem;
+}
+
+.signName {
+  font-weight: 600;
+  color: #c4b5fd;
+  font-size: 1.1rem;
+}
+
+.signFlavor {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 0.75rem;
+  font-style: italic;
+}
+
+.enhancedSymbols {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.symbolTag {
+  background: rgba(96, 165, 250, 0.2);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #93c5fd;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+/* Retrograde Section */
+.retrogradeSection {
+  padding: 1.25rem;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.retrogradeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #f87171;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.retroIcon {
+  font-size: 1.2rem;
+  animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+.retrogradeItem {
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.retrogradeItem:last-child {
+  margin-bottom: 0;
+}
+
+.retroPlanet {
+  font-weight: 600;
+  color: #fca5a5;
+  font-size: 1rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.retroThemes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.retroTheme {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.retroInterpretation {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Aspects Section */
+.aspectsSection {
+  padding: 1.25rem;
+  background: rgba(6, 182, 212, 0.08);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.aspectsHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #22d3ee;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.aspectIcon {
+  font-size: 1.2rem;
+}
+
+.aspectItem {
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.aspectItem:last-child {
+  margin-bottom: 0;
+}
+
+.aspectName {
+  font-weight: 600;
+  color: #67e8f9;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.aspectThemes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.aspectTheme {
+  background: rgba(6, 182, 212, 0.15);
+  color: #67e8f9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.aspectNote {
+  margin: 0;
+  color: #fde68a;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Planets Section */
+.planetsSection {
+  margin-top: 0.5rem;
+}
+
+.planetsDetails {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.planetsSummary {
+  padding: 1rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.planetsSummary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.planetsList {
+  padding: 0.5rem 1rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.planetItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.planetName {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.planetSign {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+.retroBadge {
+  color: #f87171;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+/* Responsive for Celestial Section */
+@media (max-width: 768px) {
+  .moonPhaseHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .moonEmoji {
+    font-size: 2.5rem;
+  }
+
+  .moonPhaseName {
+    font-size: 1.1rem;
+  }
+
+  .planetsList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .retrogradeSection,
+  .aspectsSection,
+  .moonSignSection {
+    padding: 1rem;
   }
 }

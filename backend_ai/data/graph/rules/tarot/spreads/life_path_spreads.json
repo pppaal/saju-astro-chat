@@ -1,0 +1,203 @@
+{
+  "_meta": {
+    "theme": "life_path",
+    "title": "인생경로 타로 스프레드",
+    "description": "삶의 방향, 운명, 인생 전반에 관한 심층 스프레드"
+  },
+  "sub_topics": {
+    "life_direction": {
+      "id": "life_direction",
+      "title": "인생 방향",
+      "korean": "나의 인생 방향",
+      "description": "현재 삶의 방향과 앞으로의 길",
+      "card_count": 12,
+      "spread_name": "Life Direction Spread",
+      "positions": [
+        {"position": 1, "name": "현재 위치", "meaning": "인생에서 현재 위치", "prompt_hint": "지금 어디에 있는지"},
+        {"position": 2, "name": "지나온 길", "meaning": "여기까지 온 여정", "prompt_hint": "걸어온 길"},
+        {"position": 3, "name": "핵심 자아", "meaning": "진정한 나의 본질", "prompt_hint": "진짜 나"},
+        {"position": 4, "name": "숨겨진 잠재력", "meaning": "아직 발현되지 않은 잠재력", "prompt_hint": "숨은 가능성"},
+        {"position": 5, "name": "삶의 목적", "meaning": "이번 생의 목적", "prompt_hint": "살아가는 이유"},
+        {"position": 6, "name": "현재 도전", "meaning": "지금 직면한 도전", "prompt_hint": "극복할 것"},
+        {"position": 7, "name": "기회", "meaning": "다가오는 기회", "prompt_hint": "열리는 문"},
+        {"position": 8, "name": "다음 단계", "meaning": "다음으로 갈 단계", "prompt_hint": "다음 발걸음"},
+        {"position": 9, "name": "장기 방향", "meaning": "장기적인 삶의 방향", "prompt_hint": "먼 미래"},
+        {"position": 10, "name": "필요한 변화", "meaning": "필요한 변화", "prompt_hint": "바꿔야 할 것"},
+        {"position": 11, "name": "지지 에너지", "meaning": "나를 돕는 에너지", "prompt_hint": "도움을 주는 것"},
+        {"position": 12, "name": "인생 메시지", "meaning": "삶에 대한 핵심 메시지", "prompt_hint": "인생의 핵심"}
+      ]
+    },
+    "crossroads": {
+      "id": "crossroads",
+      "title": "인생 갈림길",
+      "korean": "중요한 선택의 기로",
+      "description": "인생의 중요한 갈림길에서의 선택",
+      "card_count": 10,
+      "spread_name": "Crossroads Spread",
+      "positions": [
+        {"position": 1, "name": "갈림길 에너지", "meaning": "현재 갈림길의 에너지", "prompt_hint": "선택의 순간"},
+        {"position": 2, "name": "현재 상황", "meaning": "지금 상황의 본질", "prompt_hint": "무엇이 놓여있는지"},
+        {"position": 3, "name": "길 A", "meaning": "첫 번째 길", "prompt_hint": "A 방향"},
+        {"position": 4, "name": "길 A 결과", "meaning": "첫 번째 길의 결과", "prompt_hint": "A를 택하면"},
+        {"position": 5, "name": "길 B", "meaning": "두 번째 길", "prompt_hint": "B 방향"},
+        {"position": 6, "name": "길 B 결과", "meaning": "두 번째 길의 결과", "prompt_hint": "B를 택하면"},
+        {"position": 7, "name": "두려움", "meaning": "선택을 막는 두려움", "prompt_hint": "망설이는 이유"},
+        {"position": 8, "name": "영혼의 선호", "meaning": "영혼이 원하는 방향", "prompt_hint": "마음이 가는 곳"},
+        {"position": 9, "name": "결정 열쇠", "meaning": "결정을 위한 핵심 요소", "prompt_hint": "결정의 키"},
+        {"position": 10, "name": "조언", "meaning": "갈림길에서의 조언", "prompt_hint": "선택의 핵심"}
+      ]
+    },
+    "life_lessons": {
+      "id": "life_lessons",
+      "title": "인생 교훈",
+      "korean": "삶의 배움",
+      "description": "이번 생에서 배워야 할 교훈",
+      "card_count": 8,
+      "spread_name": "Life Lessons Spread",
+      "positions": [
+        {"position": 1, "name": "핵심 교훈", "meaning": "이번 생의 핵심 교훈", "prompt_hint": "배워야 할 것"},
+        {"position": 2, "name": "배우는 중인 것", "meaning": "현재 배우고 있는 교훈", "prompt_hint": "지금 배우는 것"},
+        {"position": 3, "name": "저항", "meaning": "배움에 저항하는 것", "prompt_hint": "받아들이기 어려운 것"},
+        {"position": 4, "name": "이미 배운 것", "meaning": "마스터한 교훈", "prompt_hint": "이미 아는 것"},
+        {"position": 5, "name": "다음 교훈", "meaning": "다가올 배움", "prompt_hint": "곧 배울 것"},
+        {"position": 6, "name": "교훈의 선물", "meaning": "배움이 주는 선물", "prompt_hint": "배움의 보상"},
+        {"position": 7, "name": "적용 방법", "meaning": "교훈을 적용하는 방법", "prompt_hint": "실천하는 법"},
+        {"position": 8, "name": "조언", "meaning": "삶의 교훈에 대한 조언", "prompt_hint": "배움의 핵심"}
+      ]
+    },
+    "true_self": {
+      "id": "true_self",
+      "title": "진정한 자아",
+      "korean": "진짜 나는 누구인가",
+      "description": "진정한 자아 발견과 자기 이해",
+      "card_count": 10,
+      "spread_name": "True Self Spread",
+      "positions": [
+        {"position": 1, "name": "보여주는 나", "meaning": "세상에 보여주는 나", "prompt_hint": "페르소나"},
+        {"position": 2, "name": "숨기는 나", "meaning": "숨기고 있는 나", "prompt_hint": "감추는 면"},
+        {"position": 3, "name": "진정한 나", "meaning": "가장 진실한 나", "prompt_hint": "본질적인 나"},
+        {"position": 4, "name": "타고난 강점", "meaning": "타고난 강점과 재능", "prompt_hint": "천부적 능력"},
+        {"position": 5, "name": "성장 영역", "meaning": "발전시킬 영역", "prompt_hint": "키워야 할 것"},
+        {"position": 6, "name": "자기 믿음", "meaning": "나에 대한 제한적 믿음", "prompt_hint": "나를 막는 생각"},
+        {"position": 7, "name": "자기 수용", "meaning": "받아들여야 할 나의 면", "prompt_hint": "인정해야 할 것"},
+        {"position": 8, "name": "진정성 표현", "meaning": "진정한 나를 표현하는 법", "prompt_hint": "진짜 나로 사는 법"},
+        {"position": 9, "name": "자기 사랑", "meaning": "자기 사랑의 방법", "prompt_hint": "나를 사랑하는 법"},
+        {"position": 10, "name": "조언", "meaning": "진정한 자아에 대한 조언", "prompt_hint": "자기 발견의 핵심"}
+      ]
+    },
+    "life_cycles": {
+      "id": "life_cycles",
+      "title": "인생 사이클",
+      "korean": "인생의 주기",
+      "description": "현재 인생 사이클과 전환기",
+      "card_count": 8,
+      "spread_name": "Life Cycles Spread",
+      "positions": [
+        {"position": 1, "name": "현재 사이클", "meaning": "지금 어떤 주기에 있는지", "prompt_hint": "현재 시즌"},
+        {"position": 2, "name": "끝나가는 것", "meaning": "마무리되는 사이클", "prompt_hint": "닫히는 장"},
+        {"position": 3, "name": "시작되는 것", "meaning": "새로 시작되는 사이클", "prompt_hint": "열리는 장"},
+        {"position": 4, "name": "전환의 의미", "meaning": "이 전환의 의미", "prompt_hint": "변화의 의미"},
+        {"position": 5, "name": "놓아줄 것", "meaning": "보내야 할 것", "prompt_hint": "흘려보낼 것"},
+        {"position": 6, "name": "받아들일 것", "meaning": "맞이할 것", "prompt_hint": "열어둘 것"},
+        {"position": 7, "name": "전환 기간", "meaning": "전환에 걸리는 시간", "prompt_hint": "얼마나 걸릴지"},
+        {"position": 8, "name": "조언", "meaning": "사이클 전환 조언", "prompt_hint": "전환의 핵심"}
+      ]
+    },
+    "destiny_fate": {
+      "id": "destiny_fate",
+      "title": "운명",
+      "korean": "나의 운명",
+      "description": "운명적인 요소와 자유 의지",
+      "card_count": 10,
+      "spread_name": "Destiny Spread",
+      "positions": [
+        {"position": 1, "name": "운명 에너지", "meaning": "현재 운명의 에너지", "prompt_hint": "운명의 힘"},
+        {"position": 2, "name": "타고난 운명", "meaning": "타고난 운명적 요소", "prompt_hint": "정해진 것"},
+        {"position": 3, "name": "자유 의지", "meaning": "자유 의지로 바꿀 수 있는 것", "prompt_hint": "선택할 수 있는 것"},
+        {"position": 4, "name": "카르마", "meaning": "카르마적 영향", "prompt_hint": "업의 영향"},
+        {"position": 5, "name": "운명의 만남", "meaning": "운명적으로 만날 인연", "prompt_hint": "정해진 인연"},
+        {"position": 6, "name": "운명의 일", "meaning": "운명적으로 할 일", "prompt_hint": "정해진 역할"},
+        {"position": 7, "name": "운명 변곡점", "meaning": "운명을 바꿀 수 있는 순간", "prompt_hint": "분기점"},
+        {"position": 8, "name": "운명 실현 방법", "meaning": "운명을 실현하는 방법", "prompt_hint": "운명을 사는 법"},
+        {"position": 9, "name": "운명 vs 의지", "meaning": "운명과 의지의 균형", "prompt_hint": "균형점"},
+        {"position": 10, "name": "조언", "meaning": "운명에 대한 조언", "prompt_hint": "운명의 핵심"}
+      ]
+    },
+    "life_changes": {
+      "id": "life_changes",
+      "title": "인생 변화",
+      "korean": "큰 변화의 시기",
+      "description": "인생의 큰 변화와 전환",
+      "card_count": 10,
+      "spread_name": "Life Changes Spread",
+      "positions": [
+        {"position": 1, "name": "변화 에너지", "meaning": "다가오는 변화의 에너지", "prompt_hint": "변화의 기운"},
+        {"position": 2, "name": "변화 영역", "meaning": "변화가 일어날 영역", "prompt_hint": "바뀔 곳"},
+        {"position": 3, "name": "변화 시기", "meaning": "변화가 시작되는 시기", "prompt_hint": "언제 시작될지"},
+        {"position": 4, "name": "변화 원인", "meaning": "변화를 촉발하는 것", "prompt_hint": "트리거"},
+        {"position": 5, "name": "저항", "meaning": "변화에 대한 저항", "prompt_hint": "막으려는 것"},
+        {"position": 6, "name": "필요한 것", "meaning": "변화를 위해 필요한 것", "prompt_hint": "준비할 것"},
+        {"position": 7, "name": "놓아줄 것", "meaning": "변화를 위해 놓아줄 것", "prompt_hint": "보낼 것"},
+        {"position": 8, "name": "지지", "meaning": "변화 중 지지가 되는 것", "prompt_hint": "의지할 것"},
+        {"position": 9, "name": "변화 후", "meaning": "변화 후의 모습", "prompt_hint": "바뀐 후"},
+        {"position": 10, "name": "조언", "meaning": "변화에 대한 조언", "prompt_hint": "변화의 핵심"}
+      ]
+    },
+    "purpose_meaning": {
+      "id": "purpose_meaning",
+      "title": "삶의 의미",
+      "korean": "삶의 의미 찾기",
+      "description": "삶의 의미와 목적 발견",
+      "card_count": 8,
+      "spread_name": "Life Meaning Spread",
+      "positions": [
+        {"position": 1, "name": "현재 의미", "meaning": "지금 느끼는 삶의 의미", "prompt_hint": "삶의 의미 상태"},
+        {"position": 2, "name": "공허함", "meaning": "공허함을 느끼는 곳", "prompt_hint": "빈 곳"},
+        {"position": 3, "name": "충만함", "meaning": "충만함을 느끼는 곳", "prompt_hint": "채워진 곳"},
+        {"position": 4, "name": "의미의 원천", "meaning": "의미를 주는 것", "prompt_hint": "의미를 주는 것"},
+        {"position": 5, "name": "기여", "meaning": "세상에 기여하는 방식", "prompt_hint": "줄 수 있는 것"},
+        {"position": 6, "name": "유산", "meaning": "남기고 싶은 것", "prompt_hint": "레거시"},
+        {"position": 7, "name": "의미 찾기", "meaning": "더 의미 있는 삶을 위한 행동", "prompt_hint": "의미를 찾는 법"},
+        {"position": 8, "name": "조언", "meaning": "삶의 의미에 대한 조언", "prompt_hint": "의미의 핵심"}
+      ]
+    },
+    "major_decision": {
+      "id": "major_decision",
+      "title": "중대 결정",
+      "korean": "인생의 중대한 결정",
+      "description": "인생을 바꿀 중요한 결정",
+      "card_count": 10,
+      "spread_name": "Major Decision Spread",
+      "positions": [
+        {"position": 1, "name": "결정 에너지", "meaning": "이 결정의 에너지", "prompt_hint": "결정의 무게"},
+        {"position": 2, "name": "결정의 본질", "meaning": "결정해야 할 것의 본질", "prompt_hint": "무엇을 결정하는지"},
+        {"position": 3, "name": "내 마음", "meaning": "내 마음이 원하는 것", "prompt_hint": "마음의 소리"},
+        {"position": 4, "name": "현실", "meaning": "현실적 고려 사항", "prompt_hint": "실질적인 것"},
+        {"position": 5, "name": "두려움", "meaning": "결정을 막는 두려움", "prompt_hint": "무서운 것"},
+        {"position": 6, "name": "용기", "meaning": "필요한 용기", "prompt_hint": "용기 낼 곳"},
+        {"position": 7, "name": "결정하면", "meaning": "결정 후 예상되는 변화", "prompt_hint": "결정의 결과"},
+        {"position": 8, "name": "결정 안 하면", "meaning": "현상 유지 시 결과", "prompt_hint": "그대로면"},
+        {"position": 9, "name": "결정 열쇠", "meaning": "결정의 핵심 요소", "prompt_hint": "결정의 키"},
+        {"position": 10, "name": "조언", "meaning": "중대 결정에 대한 조언", "prompt_hint": "결정의 핵심"}
+      ]
+    },
+    "bucket_list": {
+      "id": "bucket_list",
+      "title": "버킷리스트",
+      "korean": "이루고 싶은 것들",
+      "description": "삶에서 이루고 싶은 것들에 대한 안내",
+      "card_count": 8,
+      "spread_name": "Bucket List Spread",
+      "positions": [
+        {"position": 1, "name": "가장 원하는 것", "meaning": "가장 이루고 싶은 것", "prompt_hint": "1순위 소망"},
+        {"position": 2, "name": "숨겨진 소망", "meaning": "말하지 못한 소망", "prompt_hint": "비밀 소원"},
+        {"position": 3, "name": "가능성", "meaning": "이룰 가능성", "prompt_hint": "실현 가능성"},
+        {"position": 4, "name": "장애물", "meaning": "실현을 막는 것", "prompt_hint": "막는 것"},
+        {"position": 5, "name": "첫 걸음", "meaning": "지금 할 수 있는 첫 걸음", "prompt_hint": "시작할 것"},
+        {"position": 6, "name": "필요한 자원", "meaning": "필요한 자원과 도움", "prompt_hint": "필요한 것"},
+        {"position": 7, "name": "이룬 후", "meaning": "이루었을 때의 삶", "prompt_hint": "달성 후"},
+        {"position": 8, "name": "조언", "meaning": "소망 실현에 대한 조언", "prompt_hint": "꿈 실현의 핵심"}
+      ]
+    }
+  }
+}

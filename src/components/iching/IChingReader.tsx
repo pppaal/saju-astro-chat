@@ -6,17 +6,14 @@ import HexagramLine from "./HexagramLine";
 import ResultDisplay from "@/components/iching/ResultDisplay";
 import { IChingResult } from "@/components/iching/types";
 import { useI18n } from "@/i18n/I18nProvider";
-
-interface IChingReaderProps {
-  onBack: () => void;
-}
+import styles from "./IChingReader.module.css";
 
 type LineResult = { value: number; isChanging: boolean };
 type DivinationStatus = "idle" | "drawing" | "finished";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-const IChingReader: React.FC<IChingReaderProps> = ({ onBack }) => {
+const IChingReader: React.FC = () => {
   const { translate } = useI18n();
   const [result, setResult] = useState<IChingResult | null>(null);
   const [status, setStatus] = useState<DivinationStatus>("idle");
@@ -104,79 +101,54 @@ const IChingReader: React.FC<IChingReaderProps> = ({ onBack }) => {
   };
 
   return (
-    <div
-      style={{
-        color: "white",
-        textAlign: "center",
-        zIndex: 10,
-        width: "100%",
-        maxWidth: "600px",
-        margin: "0 auto",
-      }}
-    >
-      <button
-        onClick={onBack}
-        style={{
-          position: "absolute",
-          top: "20px",
-          left: "20px",
-          background: "rgba(0,0,0,0.3)",
-          border: "1px solid white",
-          color: "white",
-          padding: "8px 12px",
-          cursor: "pointer",
-          borderRadius: "8px",
-        }}
-      >
-        ◀ {translate("iching.back", "Back to Menu")}
-      </button>
-
-      <div
-        style={{
-          width: "100px",
-          height: "200px",
-          margin: "2rem auto",
-          display: "flex",
-          flexDirection: "column-reverse",
-          justifyContent: "flex-start",
-        }}
-      >
+    <div className={styles.readerContainer}>
+      {/* Lines Display */}
+      <div className={styles.linesContainer}>
         {(status === "drawing" || status === "finished") &&
           drawnLines.map((line, index) => (
-            <HexagramLine
-              key={index}
-              type={line.value === 1 ? "solid" : "broken"}
-              isChanging={line.isChanging}
-            />
+            <div key={index} className={styles.lineWrapper}>
+              <HexagramLine
+                type={line.value === 1 ? "solid" : "broken"}
+                isChanging={line.isChanging}
+              />
+            </div>
           ))}
       </div>
 
+      {/* Idle State */}
       {status === "idle" && (
-        <>
-          <p style={{ margin: "1rem 0" }}>
+        <div className={styles.promptSection}>
+          <p className={styles.promptText}>
             {translate(
               "iching.prompt",
               "Calm your mind and press the button to receive guidance."
             )}
           </p>
-          <button onClick={handleDivination} className="submit-button">
+          <button onClick={handleDivination} className={styles.castButton}>
             {translate("iching.cast", "Cast Hexagram")}
           </button>
-        </>
+        </div>
       )}
 
+      {/* Drawing State */}
       {status === "drawing" && (
-        <p>{translate("iching.casting", "Casting the lines...")}</p>
+        <div className={styles.statusContainer}>
+          <p className={styles.statusText}>
+            {translate("iching.casting", "Casting the lines")}
+            <span className={styles.statusDots}>
+              <span className={styles.statusDot}></span>
+              <span className={styles.statusDot}></span>
+              <span className={styles.statusDot}></span>
+            </span>
+          </p>
+        </div>
       )}
 
+      {/* Finished State */}
       {status === "finished" && (
         <>
           <ResultDisplay result={result} />
-          <button
-            onClick={reset}
-            className="submit-button"
-            style={{ marginTop: "2rem" }}
-          >
+          <button onClick={reset} className={styles.resetButton}>
             {translate("iching.castAgain", "Cast Again")}
           </button>
         </>

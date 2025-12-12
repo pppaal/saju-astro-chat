@@ -6,8 +6,66 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   animation: fadeIn 0.6s ease-out;
+}
+
+/* ========== Notice Bar ========== */
+.noticeBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 14px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 16px;
+}
+
+.noticeIcon {
+  font-size: 18px;
+}
+
+/* ========== Typing Dots Container ========== */
+.typingDots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========== Send Button Icon ========== */
+.sendIcon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+}
+
+/* ========== File Upload Enhancements ========== */
+.fileLabelIcon {
+  font-size: 16px;
+}
+
+.fileIcon {
+  color: #22c55e;
+  margin-right: 6px;
+}
+
+/* ========== Fallback Note ========== */
+.fallbackNote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.fallbackIcon {
+  font-size: 16px;
 }
 
 @keyframes fadeIn {
@@ -158,10 +216,10 @@
 
 .assistantMessage,
 .userMessage {
-  padding: 14px 18px;
-  border-radius: 16px;
-  font-size: 15px;
-  line-height: 1.7;
+  padding: 18px 22px;
+  border-radius: 18px;
+  font-size: 1.1rem;
+  line-height: 1.85;
   white-space: pre-wrap;
   word-wrap: break-word;
   position: relative;
@@ -426,21 +484,294 @@
   }
 }
 
+/* ========== Voice Recording Button ========== */
+.voiceButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.voiceButton:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.voiceButton.recording {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  animation: recordingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+.micIcon {
+  font-size: 16px;
+}
+
+.recordingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ========== Loading Spinner for PDF ========== */
+.loadingSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== Counselor Avatar Animation ========== */
+.counselorAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
+  border: 3px solid rgba(167, 139, 250, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow:
+    0 0 20px rgba(139, 92, 246, 0.5),
+    0 0 40px rgba(139, 92, 246, 0.3),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: counselorGlow 3s ease-in-out infinite, counselorFloat 4s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.counselorAvatar::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent 30%
+  );
+  animation: counselorRotate 4s linear infinite;
+}
+
+.counselorAvatar::after {
+  content: '🔮';
+  font-size: 24px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+@keyframes counselorGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(139, 92, 246, 0.5),
+      0 0 40px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(139, 92, 246, 0.7),
+      0 0 60px rgba(139, 92, 246, 0.5),
+      0 0 80px rgba(167, 139, 250, 0.3);
+  }
+}
+
+@keyframes counselorFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes counselorRotate {
+  to { transform: rotate(360deg); }
+}
+
+/* Thinking state for counselor */
+.counselorThinking {
+  animation: counselorGlow 1s ease-in-out infinite, counselorFloat 2s ease-in-out infinite;
+}
+
+.counselorThinking::after {
+  animation: counselorPulseIcon 1s ease-in-out infinite;
+}
+
+@keyframes counselorPulseIcon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* ========== Tarot Transition Card ========== */
+.tarotPromptCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 16px;
+  margin-top: 20px;
+  animation: fadeInSlide 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.tarotPromptCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { left: -100%; }
+  50% { left: 100%; }
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tarotPromptIcon {
+  font-size: 40px;
+  filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.5));
+  animation: tarotIconFloat 3s ease-in-out infinite;
+}
+
+@keyframes tarotIconFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.tarotPromptContent {
+  flex: 1;
+}
+
+.tarotPromptTitle {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(90deg, #a78bfa, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tarotPromptDesc {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.tarotPromptButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4);
+  white-space: nowrap;
+}
+
+.tarotPromptButton:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 24px rgba(236, 72, 153, 0.6);
+}
+
+.tarotPromptButton:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .tarotPromptCard {
+    flex-direction: column;
+    text-align: center;
+    padding: 18px;
+  }
+
+  .tarotPromptButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* ========== Responsive Design ========== */
 @media (max-width: 768px) {
   .messagesPanel {
     min-height: 280px;
     max-height: 400px;
-    padding: 16px;
+    padding: 18px;
   }
 
   .messageBubble {
-    max-width: 85%;
+    max-width: 88%;
   }
 
   .avatar {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 
   .avatarIcon {
@@ -449,8 +780,9 @@
 
   .assistantMessage,
   .userMessage {
-    padding: 12px 14px;
-    font-size: 14px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    line-height: 1.75;
   }
 
   .inputRow {
@@ -460,39 +792,58 @@
   .sendButton {
     width: 100%;
     min-width: unset;
-    padding: 14px 24px;
+    padding: 16px 24px;
   }
 
   .emptyIcon {
-    font-size: 48px;
+    font-size: 52px;
   }
 
   .emptyText {
-    font-size: 14px;
+    font-size: 15px;
+  }
+
+  .textarea {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .messagesPanel {
-    min-height: 240px;
-    padding: 12px;
+    min-height: 220px;
+    padding: 14px;
   }
 
   .messageRow {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .avatar {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
   }
 
   .avatarIcon {
     font-size: 16px;
   }
 
+  .assistantMessage,
+  .userMessage {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
   .textarea {
-    font-size: 14px;
-    min-height: 48px;
+    font-size: 16px;
+    min-height: 52px;
+  }
+
+  .sendButton {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .fileLabel {
+    padding: 10px 14px;
   }
 }

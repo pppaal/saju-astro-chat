@@ -1,0 +1,381 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "timing/transits_complete",
+  "$count": 400,
+  "$description": "트랜짓 행성의 네이탈 포인트 통과 완전판 해석",
+
+  "overview": {
+    "principle": "현재 하늘의 행성이 출생 차트의 포인트를 자극할 때 특정 경험이 활성화됩니다.",
+    "jung_connection": "외부 사건을 통한 무의식의 활성화, 개성화 과정의 촉매",
+    "orb_guide": {
+      "fast_planets": "1-2도 (달, 수성, 금성, 태양)",
+      "medium_planets": "2-3도 (화성, 목성)",
+      "slow_planets": "1-2도 (토성, 천왕성, 해왕성, 명왕성)"
+    }
+  },
+
+  "jupiter_transits": {
+    "duration": "각 사인에 약 1년, 각 포인트 통과 시 2-3주",
+    "nature": "확장, 기회, 행운, 과잉",
+    "to_Sun": {
+      "conjunction": {
+        "theme": "확장과 성공의 해",
+        "opportunity": "자신감 상승, 인정, 성공 기회",
+        "challenge": "과대망상, 무절제",
+        "advice": "기회를 잡되 현실감 유지",
+        "duration": "약 2주 정점, 전후 영향"
+      },
+      "opposition": {
+        "theme": "외부를 통한 확장",
+        "opportunity": "파트너십 통한 성장, 법적 성공",
+        "challenge": "타인에게 지나친 기대",
+        "advice": "균형 잡힌 확장"
+      },
+      "square": {
+        "theme": "성장통",
+        "opportunity": "도전을 통한 확장",
+        "challenge": "무리한 확장, 과신",
+        "advice": "신중한 성장"
+      },
+      "trine": {
+        "theme": "자연스러운 행운",
+        "opportunity": "쉽게 오는 기회",
+        "advice": "기회를 놓치지 말 것"
+      }
+    },
+    "to_Moon": {
+      "conjunction": {
+        "theme": "감정적 풍요",
+        "opportunity": "가정 확장, 감정적 치유, 임신 가능",
+        "challenge": "감정적 과잉",
+        "advice": "감정적 관대함 실천"
+      },
+      "opposition": {"theme": "관계에서 감정적 성장", "opportunity": "가족 확장"},
+      "square": {"theme": "감정적 성장통", "challenge": "무절제한 감정"}
+    },
+    "to_Venus": {
+      "conjunction": {
+        "theme": "사랑과 풍요",
+        "opportunity": "연애, 결혼, 재정적 이득, 예술적 성공",
+        "challenge": "탐닉",
+        "advice": "사랑과 아름다움을 즐기되 절제"
+      },
+      "opposition": {"theme": "관계 확장", "opportunity": "파트너 통한 행운"},
+      "square": {"theme": "가치 성장", "challenge": "과소비"}
+    },
+    "to_Mars": {
+      "conjunction": {
+        "theme": "확장된 행동력",
+        "opportunity": "대담한 행동, 스포츠 성공, 모험",
+        "challenge": "무모함, 과도한 경쟁",
+        "advice": "에너지를 건설적으로"
+      },
+      "square": {"theme": "행동의 과잉", "challenge": "무모한 위험"}
+    },
+    "to_Saturn": {
+      "conjunction": {
+        "theme": "구조화된 성장",
+        "opportunity": "현실적 확장, 사업 성장, 인정",
+        "challenge": "제한된 낙관",
+        "advice": "현실적 목표 확장"
+      },
+      "opposition": {"theme": "책임과 성장", "opportunity": "성숙한 성공"}
+    },
+    "to_Ascendant": {
+      "conjunction": {
+        "theme": "새로운 시작의 축복",
+        "opportunity": "자신감, 새로운 기회, 여행",
+        "advice": "자기 확장의 시기"
+      }
+    },
+    "to_MC": {
+      "conjunction": {
+        "theme": "커리어 확장",
+        "opportunity": "승진, 명성, 사업 확장",
+        "advice": "커리어 목표를 향해"
+      }
+    }
+  },
+
+  "saturn_transits": {
+    "duration": "각 사인에 약 2.5년, 각 포인트 통과 시 수 주",
+    "nature": "제한, 책임, 성숙, 구조화",
+    "cycle_note": "새턴 리턴 (29.5년 주기)이 가장 중요",
+    "to_Sun": {
+      "conjunction": {
+        "theme": "현실 직면의 해",
+        "experience": "책임 증가, 제한, 성숙 요구",
+        "opportunity": "진정한 성취, 구조 구축",
+        "challenge": "우울, 자기 의심, 장애물",
+        "advice": "현실을 받아들이고 장기 목표 수립",
+        "duration": "약 1-2개월 집중, 전후 영향 수개월"
+      },
+      "opposition": {
+        "theme": "타인을 통한 현실 인식",
+        "experience": "관계에서 책임, 균형 요구",
+        "challenge": "파트너십 압박"
+      },
+      "square": {
+        "theme": "정체성 위기",
+        "experience": "자아와 현실의 충돌",
+        "challenge": "좌절, 방향 상실",
+        "opportunity": "재정립"
+      },
+      "trine": {
+        "theme": "안정적 성장",
+        "opportunity": "노력의 보상"
+      }
+    },
+    "to_Moon": {
+      "conjunction": {
+        "theme": "감정적 성숙",
+        "experience": "감정 억제, 책임, 가족 이슈",
+        "opportunity": "감정적 안정, 가정 구조화",
+        "challenge": "우울, 외로움, 어머니 이슈",
+        "advice": "감정을 억압하지 말고 성숙시키기"
+      },
+      "opposition": {"theme": "감정과 책임의 균형", "challenge": "관계에서 냉담"},
+      "square": {"theme": "감정적 시험", "challenge": "안전 위협 느낌"}
+    },
+    "to_Venus": {
+      "conjunction": {
+        "theme": "사랑의 시험",
+        "experience": "관계 평가, 가치 재정립",
+        "opportunity": "진지한 약속, 성숙한 사랑",
+        "challenge": "관계 냉각, 이별, 재정 제한"
+      },
+      "square": {"theme": "사랑과 책임 충돌", "challenge": "자기 가치 시험"}
+    },
+    "to_Mars": {
+      "conjunction": {
+        "theme": "행동의 제한",
+        "experience": "좌절, 에너지 억제",
+        "opportunity": "훈련된 행동, 인내 개발",
+        "challenge": "분노 억압, 피로"
+      },
+      "square": {"theme": "좌절과 분노", "challenge": "장애물, 지연"}
+    },
+    "to_Saturn": {
+      "conjunction": {
+        "theme": "새턴 리턴",
+        "experience": "인생 재평가, 성인이 됨",
+        "age": "약 29-30세 (1차), 58-60세 (2차)",
+        "opportunity": "진정한 자기 구축",
+        "challenge": "위기, 끝과 시작",
+        "advice": "인생의 방향을 재설정할 기회"
+      }
+    },
+    "to_Ascendant": {
+      "conjunction": {
+        "theme": "자아 재구조화",
+        "experience": "자기 이미지 재정립, 책임 증가",
+        "challenge": "건강 주의"
+      }
+    },
+    "to_MC": {
+      "conjunction": {
+        "theme": "커리어 전환점",
+        "experience": "직업적 책임, 성취 또는 변화",
+        "opportunity": "경력 정점",
+        "challenge": "직업적 압박"
+      }
+    }
+  },
+
+  "uranus_transits": {
+    "duration": "각 사인에 약 7년, 각 포인트 통과 시 수 개월",
+    "nature": "갑작스러운 변화, 해방, 혁명, 각성",
+    "to_Sun": {
+      "conjunction": {
+        "theme": "정체성의 혁명",
+        "experience": "갑작스러운 자기 인식, 삶의 방향 전환",
+        "opportunity": "진정한 자유, 새로운 시작",
+        "challenge": "불안정, 예측 불가, 갑작스러운 변화",
+        "advice": "변화를 두려워하지 말고 진정한 자신이 되기"
+      },
+      "opposition": {
+        "theme": "중년의 각성 (약 42세)",
+        "experience": "삶의 재평가, 억압된 것의 폭발",
+        "opportunity": "후반전 시작",
+        "challenge": "위기, 갑작스러운 변화"
+      },
+      "square": {
+        "theme": "긴장과 돌파",
+        "experience": "내적 불안, 변화 욕구",
+        "challenge": "충동적 행동"
+      }
+    },
+    "to_Moon": {
+      "conjunction": {
+        "theme": "감정적 혁명",
+        "experience": "감정 패턴의 갑작스러운 변화, 이사",
+        "opportunity": "감정적 해방",
+        "challenge": "불안, 가정 불안정"
+      },
+      "opposition": {"theme": "감정적 자유 vs 안정", "challenge": "가정 이슈"}
+    },
+    "to_Venus": {
+      "conjunction": {
+        "theme": "사랑의 혁명",
+        "experience": "갑작스러운 만남 또는 이별",
+        "opportunity": "흥분, 새로운 관계",
+        "challenge": "불안정, 갑작스러운 끝"
+      },
+      "square": {"theme": "관계 지진", "challenge": "불륜, 갑작스러운 이별"}
+    },
+    "to_Mars": {
+      "conjunction": {
+        "theme": "폭발적 행동",
+        "experience": "갑작스러운 행동, 사고 위험",
+        "opportunity": "용기, 독립",
+        "challenge": "충동, 사고",
+        "advice": "에너지를 건설적으로"
+      }
+    },
+    "to_Ascendant": {
+      "conjunction": {
+        "theme": "완전한 방향 전환",
+        "experience": "외모, 성격, 삶의 방향 급변",
+        "opportunity": "새로운 자아"
+      }
+    },
+    "to_MC": {
+      "conjunction": {
+        "theme": "커리어 혁명",
+        "experience": "갑작스러운 직업 변화",
+        "opportunity": "독립, 혁신",
+        "challenge": "해고, 급격한 전환"
+      }
+    }
+  },
+
+  "neptune_transits": {
+    "duration": "각 사인에 약 14년, 각 포인트 통과 시 1-2년",
+    "nature": "용해, 영감, 환상, 혼란",
+    "to_Sun": {
+      "conjunction": {
+        "theme": "정체성의 용해",
+        "experience": "자아의 경계 녹음, 영적 각성",
+        "opportunity": "영적 성장, 예술적 영감, 연민",
+        "challenge": "정체성 혼란, 자기기만, 피로",
+        "advice": "영적 실천, 창조적 표현, 현실 접지",
+        "duration": "1-2년 지속"
+      },
+      "opposition": {"theme": "타인을 통한 환상", "challenge": "기만, 이상화"},
+      "square": {"theme": "정체성과 이상의 갈등", "challenge": "혼란, 방향 상실"}
+    },
+    "to_Moon": {
+      "conjunction": {
+        "theme": "감정의 바다",
+        "experience": "감정적 민감성 극대화, 직관 증가",
+        "opportunity": "영적 연결, 치유",
+        "challenge": "우울, 중독 위험, 경계 상실"
+      }
+    },
+    "to_Venus": {
+      "conjunction": {
+        "theme": "이상적 사랑",
+        "experience": "로맨틱한 환상, 예술적 영감",
+        "opportunity": "영적 사랑, 창조성",
+        "challenge": "환상, 기만, 불륜"
+      }
+    },
+    "to_Ascendant": {
+      "conjunction": {
+        "theme": "자아의 용해",
+        "experience": "정체성 혼란 또는 영적 각성",
+        "challenge": "건강 모호, 방향 상실"
+      }
+    },
+    "to_MC": {
+      "conjunction": {
+        "theme": "커리어의 이상화",
+        "experience": "소명 추구, 예술/영성 커리어",
+        "challenge": "방향 혼란, 스캔들"
+      }
+    }
+  },
+
+  "pluto_transits": {
+    "duration": "각 사인에 12-31년 (불규칙), 각 포인트 통과 시 1-3년",
+    "nature": "심층 변형, 죽음과 재생, 권력",
+    "to_Sun": {
+      "conjunction": {
+        "theme": "정체성의 죽음과 재탄생",
+        "experience": "완전한 자아 변형, 권력 경험",
+        "opportunity": "깊은 힘 발견, 재탄생",
+        "challenge": "권력 투쟁, 집착, 위기",
+        "advice": "통제를 내려놓고 변형에 항복",
+        "duration": "1-3년",
+        "intensity": "인생에서 가장 강렬한 트랜짓 중 하나"
+      },
+      "opposition": {"theme": "타인을 통한 권력 대면", "challenge": "권력 투쟁"},
+      "square": {"theme": "변형의 위기", "challenge": "강렬한 도전"}
+    },
+    "to_Moon": {
+      "conjunction": {
+        "theme": "감정의 심층 정화",
+        "experience": "감정적 지하세계 탐험, 트라우마 치유",
+        "opportunity": "심리적 재탄생",
+        "challenge": "강박, 집착, 가족 위기"
+      }
+    },
+    "to_Venus": {
+      "conjunction": {
+        "theme": "사랑의 변형",
+        "experience": "관계의 죽음과 재탄생, 강렬한 열정",
+        "opportunity": "진정한 가치 발견",
+        "challenge": "집착, 질투, 재정 위기"
+      }
+    },
+    "to_Mars": {
+      "conjunction": {
+        "theme": "의지력의 변형",
+        "experience": "엄청난 힘의 발현",
+        "opportunity": "불굴의 의지",
+        "challenge": "폭력, 권력 남용"
+      }
+    },
+    "to_Ascendant": {
+      "conjunction": {
+        "theme": "완전한 자아 변형",
+        "experience": "불사조처럼 재탄생",
+        "opportunity": "깊은 카리스마",
+        "challenge": "정체성 위기"
+      }
+    },
+    "to_MC": {
+      "conjunction": {
+        "theme": "커리어의 변형",
+        "experience": "직업적 죽음과 재탄생",
+        "opportunity": "권력 위치",
+        "challenge": "커리어 위기"
+      }
+    }
+  },
+
+  "mars_transits": {
+    "duration": "각 사인에 약 6주, 각 포인트 통과 시 2-3일",
+    "nature": "에너지, 행동, 갈등, 열정",
+    "to_Sun": {"theme": "에너지 폭발", "opportunity": "행동력", "challenge": "충돌"},
+    "to_Moon": {"theme": "감정적 반응", "opportunity": "용기", "challenge": "분노"},
+    "to_Venus": {"theme": "열정", "opportunity": "로맨스", "challenge": "갈등"},
+    "to_Mars": {"theme": "에너지 정점 (화성 리턴, 2년)", "opportunity": "새로운 행동 사이클"},
+    "to_Saturn": {"theme": "좌절된 행동", "challenge": "장애물"}
+  },
+
+  "venus_transits": {
+    "duration": "각 사인에 약 4주, 각 포인트 통과 시 1-2일",
+    "nature": "사랑, 조화, 아름다움, 재정",
+    "to_Sun": {"theme": "매력의 날", "opportunity": "사랑, 사교"},
+    "to_Moon": {"theme": "감정적 조화", "opportunity": "관계, 가정 평화"},
+    "to_Venus": {"theme": "금성 리턴", "opportunity": "사랑과 가치 재평가"},
+    "to_Mars": {"theme": "열정", "opportunity": "로맨스, 끌림"}
+  },
+
+  "lunar_transits": {
+    "duration": "각 사인에 약 2.5일",
+    "nature": "기분, 반응, 일상",
+    "note": "일상적 기분과 반응에 영향, 중요한 결정의 타이밍에 참고"
+  }
+}

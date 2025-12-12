@@ -1,15 +1,25 @@
 import os
 import json
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 
 
 class RuleEngine:
-    """Simple JSON-based rule matcher with tokenized conditions."""
+    """Simple JSON-based rule matcher with tokenized conditions and RLHF weight support."""
 
     def __init__(self, rules_dir: str):
         self.rules_dir = os.path.abspath(rules_dir)
         self.rules: Dict[str, Dict[str, Any]] = {}
+        self._rlhf_weights: Dict[str, float] = {}  # RLHF-adjusted weights
         self._load_rules()
+
+    def set_rlhf_weights(self, weights: Dict[str, float]):
+        """
+        Set RLHF-adjusted weights for rules.
+        These weights are learned from user feedback.
+        """
+        self._rlhf_weights = weights or {}
+        if weights:
+            print(f"[RuleEngine] Loaded {len(weights)} RLHF weights")
 
     def _load_rules(self):
         print(f"[RuleEngine] DEBUG rules_dir = {self.rules_dir}")
@@ -65,7 +75,7 @@ class RuleEngine:
                 uniq.append(t)
         return uniq
 
-    def evaluate(self, facts: Dict[str, Any]) -> Dict[str, Any]:
+    def evaluate(self, facts: Dict[str, Any], search_all: bool = False) -> Dict[str, Any]:
         """
         facts:
         {
@@ -74,9 +84,17 @@ class RuleEngine:
           "astro": {...},
           ...
         }
+        search_all: If True, search across all rule sets (for persona rules)
         """
         theme = facts.get("theme", "daily")
-        rule_set = self.rules.get(theme, {})
+        if search_all:
+            # Combine all rule sets for cross-domain matching
+            rule_set = {}
+            for key, rules in self.rules.items():
+                if key != "meta":
+                    rule_set.update(rules)
+        else:
+            rule_set = self.rules.get(theme, {})
 
         tokens = set(self._flatten_tokens(facts))
         matches: List[Tuple[int, str]] = []  # (score, text)
@@ -103,15 +121,20 @@ class RuleEngine:
                 continue
 
             if all(c in tokens for c in conditions):
-                final_score = score + min(len(text), 200)
-                matches.append((final_score, text))
+                # Apply RLHF weight adjustment
+                rlhf_multiplier = self._rlhf_weights.get(key, 1.0)
+                final_score = (score + min(len(text), 200)) * rlhf_multiplier
+                matches.append((final_score, text, key))  # Include rule key for tracking
 
         matches.sort(key=lambda x: x[0], reverse=True)
         matched_texts = [m[1] for m in matches[:10]]
+        matched_rule_ids = [m[2] for m in matches[:10]]  # Rule IDs for RLHF tracking
 
         return {
           "theme": theme,
           "rules_loaded": list(self.rules.keys()),
           "matched_rules": matched_texts,
+          "matched_rule_ids": matched_rule_ids,  # For RLHF feedback
           "matched_count": len(matches),
+          "rlhf_weights_applied": len(self._rlhf_weights) > 0,
         }

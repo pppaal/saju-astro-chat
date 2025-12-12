@@ -1,0 +1,114 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "meta/index",
+  "$version": "1.0.0",
+  "$created": "2024",
+  "$description": "사주명리 문학적 해석 데이터베이스 인덱스",
+  "$language": "ko",
+  "database_structure": {
+    "total_estimated_entries": 150,
+    "folders": [
+      {
+        "name": "core",
+        "description": "사주의 기본 요소 정의",
+        "files": [
+          {
+            "name": "heavenly_stems.json",
+            "entries": 10,
+            "description": "십천간 문학적 해석"
+          },
+          {
+            "name": "earthly_branches.json",
+            "entries": 12,
+            "description": "십이지지 문학적 해석"
+          },
+          {
+            "name": "five_elements.json",
+            "entries": 5,
+            "description": "오행 문학적 해석"
+          },
+          {
+            "name": "ten_gods.json",
+            "entries": 10,
+            "description": "십신 문학적 해석"
+          }
+        ]
+      },
+      {
+        "name": "interactions",
+        "description": "천간/지지 간 상호작용",
+        "files": [
+          {
+            "name": "combinations.json",
+            "entries": 15,
+            "description": "천간합/지지합/삼합"
+          },
+          {
+            "name": "clashes.json",
+            "entries": 10,
+            "description": "천간충/지지충"
+          },
+          {
+            "name": "punishments.json",
+            "entries": 7,
+            "description": "삼형/자형/상형"
+          }
+        ]
+      },
+      {
+        "name": "combinations",
+        "description": "간지 조합",
+        "files": [
+          {
+            "name": "sixty_ganji.json",
+            "entries": 60,
+            "description": "60갑자 해석"
+          }
+        ]
+      },
+      {
+        "name": "domains",
+        "description": "영역별 해석",
+        "files": [
+          {
+            "name": "love.json",
+            "entries": 14,
+            "description": "연애/결혼운"
+          },
+          {
+            "name": "career.json",
+            "entries": 20,
+            "description": "직업/사업운"
+          },
+          {
+            "name": "wealth.json",
+            "entries": 14,
+            "description": "재물운"
+          },
+          {
+            "name": "health.json",
+            "entries": 15,
+            "description": "건강운"
+          }
+        ]
+      },
+      {
+        "name": "timing",
+        "description": "시간에 따른 운세",
+        "files": [
+          {
+            "name": "major_luck.json",
+            "entries": 23,
+            "description": "대운 해석"
+          }
+        ]
+      }
+    ]
+  },
+  "quality_notes": {
+    "language": "한국어 (문학적 표현)",
+    "style": "시적이고 심리학적 통찰을 담은 해석",
+    "coverage": "전통 명리학 + 현대 심리학적 접근",
+    "sources": "전통 명리학 원전 + 현대적 재해석"
+  }
+}

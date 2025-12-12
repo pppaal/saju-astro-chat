@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
-import BackButton from "@/components/ui/BackButton";
-import { useI18n } from "@/i18n/I18nProvider";
+import { useI18n, DICTS } from "@/i18n/I18nProvider";
 import { useToast } from "@/components/ui/Toast";
 import { PostSkeleton } from "@/components/ui/Skeleton";
 import styles from "./community.module.css";
@@ -75,102 +74,121 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => Date.now();
 
 const CATEGORIES = ["all", "tarot", "zodiac", "fortune", "stars", "saju"];
+type CommunityEntry = { name?: string; platform?: string; members?: string; icon?: string };
+type ExternalCommunity = { name: string; platform: string; members: string; icon: string; url: string; gradient: string };
+type SeedPostEntry = { author?: string; title?: string; body?: string; category?: string; tags?: string[] };
 
-const EXTERNAL_COMMUNITIES = [
-  {
-    name: "r/astrology",
-    platform: "Reddit",
-    icon: "🔮",
-    members: "1.2M",
-    gradient: "linear-gradient(135deg, #FF4500 0%, #FF6B35 100%)",
-    url: "https://reddit.com/r/astrology"
-  },
-  {
-    name: "r/tarot",
-    platform: "Reddit",
-    icon: "🃏",
-    members: "580K",
-    gradient: "linear-gradient(135deg, #FF4500 0%, #FF6B35 100%)",
-    url: "https://reddit.com/r/tarot"
-  },
-  {
-    name: "#astrology",
-    platform: "Instagram",
-    icon: "✨",
-    members: "12M+",
-    gradient: "linear-gradient(135deg, #833AB4 0%, #FD1D1D 50%, #FCB045 100%)",
-    url: "https://instagram.com/explore/tags/astrology"
-  },
-  {
-    name: "Astrology Twitter",
-    platform: "Twitter/X",
-    icon: "🌟",
-    members: "Active",
-    gradient: "linear-gradient(135deg, #1DA1F2 0%, #0C85D0 100%)",
-    url: "https://twitter.com/search?q=astrology"
-  }
+const FALLBACK_COMMUNITIES: ExternalCommunity[] = [
+  { name: "r/astrology", platform: "Reddit", members: "1.2M", icon: "*", url: "https://www.reddit.com/r/astrology", gradient: "linear-gradient(135deg, #2b2b52, #4a3f77)" },
+  { name: "r/tarot", platform: "Reddit", members: "580K", icon: "*", url: "https://www.reddit.com/r/tarot", gradient: "linear-gradient(135deg, #1f2937, #3b82f6)" },
+  { name: "#astrology", platform: "Instagram", members: "12M+", icon: "*", url: "https://www.instagram.com/explore/tags/astrology/", gradient: "linear-gradient(135deg, #111827, #6b21a8)" },
+  { name: "Astrology Twitter", platform: "Twitter/X", members: "Active", icon: "*", url: "https://twitter.com/search?q=astrology", gradient: "linear-gradient(135deg, #0f172a, #1d4ed8)" },
 ];
 
-const seed: Post[] = [
+const FALLBACK_SEED_POSTS: SeedPostEntry[] = [
   {
-    id: uid(),
-    parentId: null,
     author: "Orion",
     title: "Today's Tarot Spread - Major Insights",
-    mediaType: "image",
-    url: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800&h=600",
     body: "Just finished my morning tarot reading and got some powerful cards! The Tower, The Star, and The World. What an interesting combination for starting the day.",
     category: "tarot",
     tags: ["destinypal", "tarot", "daily"],
-    createdAt: now() - 1000 * 60 * 45,
-    likes: 8,
-    likedBy: [],
-    status: "visible",
-    comments: [],
   },
   {
-    id: uid(),
-    parentId: null,
     author: "Lyra",
     title: "Understanding Your Natal Chart - Beginner's Guide",
-    mediaType: "image",
-    url: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&h=600",
     body: "For everyone asking about how to read their birth chart! Here's a quick visual guide to the houses and what they represent.",
     category: "zodiac",
     tags: ["astrology", "guide", "natal chart"],
-    createdAt: now() - 1000 * 60 * 15,
-    likes: 12,
-    likedBy: [],
-    status: "visible",
-    comments: [],
   },
 ];
+
+const sanitizeIcon = (icon?: string) => {
+  if (!icon) return "*";
+  const ascii = icon.replace(/[^\x00-\x7F]/g, "*").trim();
+  return ascii || "*";
+};
+
+const getCommunityDict = (locale: string) => {
+  const dict = (DICTS as any)?.[locale]?.community;
+  return dict || (DICTS as any)?.en?.community || {};
+};
+
+const buildExternalCommunities = (locale: string): ExternalCommunity[] => {
+  const dict = getCommunityDict(locale);
+  const fromDict = Array.isArray(dict?.externalCommunities) && dict.externalCommunities.length > 0
+    ? dict.externalCommunities
+    : FALLBACK_COMMUNITIES;
+
+  return fromDict.map((entry: CommunityEntry, index: number) => {
+    const fallback = FALLBACK_COMMUNITIES[index % FALLBACK_COMMUNITIES.length];
+    return {
+      name: entry.name || fallback.name,
+      platform: entry.platform || fallback.platform,
+      members: entry.members || fallback.members,
+      icon: sanitizeIcon(entry.icon || fallback.icon),
+      url: fallback.url,
+      gradient: fallback.gradient,
+    };
+  });
+};
+
+const buildSeedPosts = (locale: string): Post[] => {
+  const dict = getCommunityDict(locale);
+  const fromDict = Array.isArray(dict?.seedPosts) && dict.seedPosts.length > 0
+    ? dict.seedPosts
+    : FALLBACK_SEED_POSTS;
+  const baseTime = now();
+
+  return fromDict.map((entry: SeedPostEntry, index: number) => {
+    const fallback = FALLBACK_SEED_POSTS[index % FALLBACK_SEED_POSTS.length];
+    return {
+      id: uid(),
+      parentId: null,
+      author: entry.author || fallback.author || "User",
+      authorImage: undefined,
+      title: entry.title || fallback.title || "Untitled",
+      mediaType: "image",
+      url: "",
+      body: entry.body || fallback.body || "",
+      category: entry.category || fallback.category || "tarot",
+      tags: Array.isArray(entry.tags) ? entry.tags.filter(Boolean) : (fallback.tags || []),
+      createdAt: baseTime - (index + 1) * 60 * 60 * 1000,
+      likes: 0,
+      likedBy: [],
+      status: "visible",
+      comments: [],
+    };
+  });
+};
 
 // Hydration-safe timestamp
 function TimeStamp({ epoch }: { epoch: number }) {
   const [text, setText] = useState("");
+  const { t } = useI18n();
   useEffect(() => {
     const diff = Date.now() - epoch;
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(mins / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) setText(`${days}d ago`);
-    else if (hours > 0) setText(`${hours}h ago`);
-    else if (mins > 0) setText(`${mins}m ago`);
-    else setText("just now");
-  }, [epoch]);
+    if (days > 0) setText(t("community.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days)));
+    else if (hours > 0) setText(t("community.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours)));
+    else if (mins > 0) setText(t("community.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(mins)));
+    else setText(t("community.time.justNow", "just now"));
+  }, [epoch, t]);
   return <span suppressHydrationWarning>{text}</span>;
 }
 
 export default function CommunityPage() {
   const { data: session } = useSession();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const toast = useToast();
   const isLoggedIn = !!session?.user;
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
-  const [posts, setPosts] = useState<Post[]>(seed);
+  const seedPosts = useMemo(() => buildSeedPosts(locale), [locale]);
+  const externalCommunities = useMemo(() => buildExternalCommunities(locale), [locale]);
+  const [posts, setPosts] = useState<Post[]>(seedPosts);
   const [tab, setTab] = useState<SortKey>("new");
   const [category, setCategory] = useState<string>("all");
   const [isLoading, _setIsLoading] = useState(false);
@@ -187,6 +205,10 @@ export default function CommunityPage() {
   const [showComments, setShowComments] = useState<Record<string, boolean>>({});
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setPosts(seedPosts);
+  }, [seedPosts]);
 
   // Particle Animation
   useEffect(() => {
@@ -362,7 +384,7 @@ export default function CommunityPage() {
     const titleText = title.trim();
     const urlText = url.trim();
     if (!titleText) {
-      toast.error("Title is required");
+      toast.error(t("community.errors.titleRequired", "Title is required"));
       return;
     }
 
@@ -388,7 +410,7 @@ export default function CommunityPage() {
     setUrl("");
     setBody("");
     setTags("");
-    toast.success("Post created successfully!");
+    toast.success(t("community.success.postCreated", "Post created successfully!"));
   }
 
   function guard(fn: () => void) {
@@ -419,9 +441,9 @@ export default function CommunityPage() {
       );
       const post = posts.find(p => p.id === id);
       if (post?.likedBy.includes(userId)) {
-        toast.info("Like removed");
+        toast.info(t("community.success.likeRemoved", "Like removed"));
       } else {
-        toast.success("Post liked!");
+        toast.success(t("community.success.postLiked", "Post liked!"));
       }
     });
   }
@@ -449,7 +471,7 @@ export default function CommunityPage() {
         )
       );
       setCommentTexts(prev => ({ ...prev, [postId]: "" }));
-      toast.success("Comment added!");
+      toast.success(t("community.success.commentAdded", "Comment added!"));
     });
   }
 
@@ -516,7 +538,7 @@ export default function CommunityPage() {
         })
       );
       setReplyTexts(prev => ({ ...prev, [commentId]: "" }));
-      toast.success("Reply added!");
+      toast.success(t("community.success.replyAdded", "Reply added!"));
     });
   }
 
@@ -560,7 +582,7 @@ export default function CommunityPage() {
   function report(id: string) {
     guard(() => {
       setPosts(ps => ps.map(p => (p.id === id ? { ...p, status: "reported" } : p)));
-      toast.info("Post reported. Thank you for keeping our community safe.");
+      toast.info(t("community.success.reported", "Post reported. Thank you for keeping our community safe."));
     });
   }
 
@@ -570,10 +592,10 @@ export default function CommunityPage() {
         const newSet = new Set(prev);
         if (newSet.has(id)) {
           newSet.delete(id);
-          toast.info("Post removed from bookmarks");
+          toast.info(t("community.success.unsaved", "Post removed from bookmarks"));
         } else {
           newSet.add(id);
-          toast.success("Post saved to bookmarks!");
+          toast.success(t("community.success.saved", "Post saved to bookmarks!"));
         }
         localStorage.setItem("savedPosts", JSON.stringify(Array.from(newSet)));
         return newSet;
@@ -608,18 +630,18 @@ export default function CommunityPage() {
       <div className={styles.container}>
         {/* Back Button */}
         <div className={styles.backButtonContainer}>
-          <Link href="/" className={styles.backButton}>← Back</Link>
+          <Link href="/" className={styles.backButton}>{"< Back"}</Link>
         </div>
 
         {/* Header */}
         <header className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.logoSection}>
-            <span className={styles.logoIcon}>🌍</span>
+            <span className={styles.logoIcon}>*</span>
             <div>
-              <h1 className={styles.h1}>Global Cosmic Hub</h1>
+              <h1 className={styles.h1}>{t("community.headerTitle", "Global Cosmic Hub")}</h1>
               <p className={styles.headerDesc}>
-                Connect with seekers worldwide • Share insights • Find your cosmic match
+                {t("community.headerDesc", "Connect with seekers worldwide - Share insights - Find your cosmic match")}
               </p>
             </div>
           </div>
@@ -656,11 +678,11 @@ export default function CommunityPage() {
         {/* External Communities Hub */}
         <section className={styles.externalHub}>
         <div className={styles.hubHeader}>
-          <h2 className={styles.hubTitle}>🌐 Connect to Global Communities</h2>
-          <p className={styles.hubSubtitle}>Join millions of cosmic seekers across platforms</p>
+          <h2 className={styles.hubTitle}>{t("community.hubTitle", "Connect to Global Communities")}</h2>
+          <p className={styles.hubSubtitle}>{t("community.hubSubtitle", "Join millions of cosmic seekers across platforms")}</p>
         </div>
         <div className={styles.communityGrid}>
-          {EXTERNAL_COMMUNITIES.map((community, index) => (
+          {externalCommunities.map((community, index) => (
             <a
               key={community.name}
               href={community.url}
@@ -678,7 +700,7 @@ export default function CommunityPage() {
                 <div className={styles.communityPlatform}>{community.platform}</div>
                 <div className={styles.communityMembers}>{community.members} members</div>
               </div>
-              <div className={styles.communityArrow}>→</div>
+              <div className={styles.communityArrow}>{"->"}</div>
             </a>
           ))}
         </div>
@@ -687,15 +709,15 @@ export default function CommunityPage() {
         {/* Matching Feature Teaser */}
         <section className={styles.matchingSection}>
         <div className={styles.matchingCard}>
-          <div className={styles.matchingIcon}>💫</div>
+          <div className={styles.matchingIcon}>*</div>
           <div className={styles.matchingContent}>
-            <h3 className={styles.matchingTitle}>Cosmic Compatibility Matching</h3>
+            <h3 className={styles.matchingTitle}>{t("community.matchingTitle", "Cosmic Compatibility Matching")}</h3>
             <p className={styles.matchingDesc}>
-              Find your perfect cosmic match based on birth charts, zodiac signs, and shared interests
+              {t("community.matchingDesc", "Find your perfect cosmic match based on birth charts, zodiac signs, and shared interests")}
             </p>
             <Link href="/community/matching" className={styles.matchingButton}>
-              <span>Coming Soon</span>
-              <span className={styles.matchingButtonIcon}>✨</span>
+              <span>{t("community.comingSoon", "Coming Soon")}</span>
+              <span className={styles.matchingButtonIcon}>{"->"}</span>
             </Link>
           </div>
         </div>
@@ -715,9 +737,9 @@ export default function CommunityPage() {
             <button
               onClick={() => setSearchQuery("")}
               className={styles.clearSearch}
-              aria-label="Clear search"
+              aria-label={t("community.clearSearch", "Clear search")}
             >
-              ✕
+              x
             </button>
           )}
         </div>
@@ -733,7 +755,7 @@ export default function CommunityPage() {
                 onClick={() => setCategory(c)}
                 className={`${styles.chip} ${category === c ? styles.chipActive : ""}`}
               >
-                {c}
+                {t(`community.categoryLabels.${c}`, c)}
               </button>
             ))}
           </div>
@@ -849,7 +871,7 @@ export default function CommunityPage() {
                       <div className={styles.author}>{p.author}</div>
                       <div className={styles.meta}>
                         <TimeStamp epoch={p.createdAt} />
-                        <span>•</span>
+                        <span>-</span>
                         <span>{p.category}</span>
                       </div>
                     </div>
@@ -901,13 +923,13 @@ export default function CommunityPage() {
                     disabled={!isLoggedIn}
                     title={isLoggedIn ? (p.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Unlike" : "Like") : t("community.loginToLike", "Log in to like")}
                   >
-                    {p.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "❤️" : "🤍"} {p.likes}
+                    {p.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Liked" : "Like"} {p.likes}
                   </button>
                   <button
                     onClick={() => setShowComments(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
                     className={styles.actionBtn}
                   >
-                    💬 {p.comments.length}
+                    {t("community.comments", "Comments")} {p.comments.length}
                   </button>
                   <button
                     onClick={() => toggleBookmark(p.id)}
@@ -915,7 +937,7 @@ export default function CommunityPage() {
                     disabled={!isLoggedIn}
                     title={savedPosts.has(p.id) ? "Remove bookmark" : "Save to bookmarks"}
                   >
-                    {savedPosts.has(p.id) ? "🔖" : "📑"} {t("community.save", "Save")}
+                    {savedPosts.has(p.id) ? t("community.saved", "Saved") : t("community.save", "Save")}
                   </button>
                   <button
                     onClick={() => report(p.id)}
@@ -957,23 +979,22 @@ export default function CommunityPage() {
                             </div>
                             <p className={styles.commentBody}>{comment.body}</p>
 
-                            <div className={styles.commentActions}>
+                                                        <div className={styles.commentActions}>
                               <button
                                 onClick={() => toggleCommentLike(p.id, comment.id)}
                                 className={`${styles.commentActionBtn} ${!isLoggedIn ? styles.disabledBtn : ""} ${comment.likedBy.includes(session?.user?.email || session?.user?.name || "") ? styles.liked : ""}`}
                                 disabled={!isLoggedIn}
                               >
-                                {comment.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "❤️" : "🤍"} {comment.likes}
+                                {comment.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Liked" : "Like"} {comment.likes}
                               </button>
                               <button
                                 onClick={() => setShowReplies(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
                                 className={styles.commentActionBtn}
                               >
-                                💬 Reply ({comment.replies.length})
+                                Reply ({comment.replies.length})
                               </button>
                             </div>
-
-                            {/* Replies */}
+{/* Replies */}
                             {showReplies[comment.id] && (
                               <div className={styles.repliesSection}>
                                 {comment.replies.length > 0 && (
@@ -993,7 +1014,7 @@ export default function CommunityPage() {
                                           <span className={styles.replyAuthor}>{reply.author}</span>
                                           {reply.mentionedUser && (
                                             <span className={styles.mention}>
-                                              → @{reply.mentionedUser}
+                                              @{reply.mentionedUser}
                                             </span>
                                           )}
                                           <span className={styles.replyTime}>
@@ -1006,7 +1027,7 @@ export default function CommunityPage() {
                                           className={`${styles.commentActionBtn} ${!isLoggedIn ? styles.disabledBtn : ""} ${reply.likedBy.includes(session?.user?.email || session?.user?.name || "") ? styles.liked : ""}`}
                                           disabled={!isLoggedIn}
                                         >
-                                          {reply.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "❤️" : "🤍"} {reply.likes}
+                                          {reply.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Liked" : "Like"} {reply.likes}
                                         </button>
                                       </div>
                                     ))}
@@ -1077,3 +1098,25 @@ export default function CommunityPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

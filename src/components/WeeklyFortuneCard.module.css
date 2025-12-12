@@ -1,0 +1,106 @@
+.card {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.3), rgba(30, 27, 75, 0.5));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+  max-width: 400px;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.badge {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.week {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+
+.image {
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 16px 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+}
+
+.theme {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: capitalize;
+  text-align: center;
+  margin: 0;
+}
+
+.footer {
+  padding: 12px 16px;
+  text-align: center;
+  border-top: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.message {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.skeleton {
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(
+    90deg,
+    rgba(139, 92, 246, 0.1) 25%,
+    rgba(139, 92, 246, 0.2) 50%,
+    rgba(139, 92, 246, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    max-width: 100%;
+    margin: 0 16px;
+  }
+}

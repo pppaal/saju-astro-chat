@@ -1,0 +1,202 @@
+{
+  "landing": {
+    "heroTitle": "Connais-toi. Crée demain.",
+    "heroSub": "Là où destin, psychologie et spiritualité se croisent",
+    "statsToday": "Aujourd'hui",
+    "statsTotal": "Total",
+    "statsSince": "(Depuis Oct 2025)",
+    "statsFootnote": "Visiteurs en temps réel",
+    "servicesEyebrow": "Services DestinyPal",
+    "servicesTitle": "Lectures principales",
+    "servicesDesc": "Survolez les cartes pour un aperçu.",
+    "prompt1": "Je veux connaître ma fortune du jour.",
+    "prompt2": "Je dois prendre une décision importante.",
+    "prompt3": "Je veux voir ma chance en amour.",
+    "chatInputPlaceholder": "Posez vos questions sur votre destin...",
+    "aiResponse": "Votre thème astral d'aujourd'hui montre des alignements planétaires très favorables. L'équilibre des cinq éléments est excellent, surtout pour la carrière et la richesse. La position lunaire suggère une clarté émotionnelle, et Jupiter élargit les opportunités de croissance.",
+    "astrologyTitle": "Astrologie",
+    "astrologyDesc": "Planètes, maisons et aspects animés.",
+    "destinyTitle": "Carte du Destin",
+    "destinyDesc": "Intègre Saju, transits astraux et tarot sur une carte.",
+    "sajuTitle": "Saju",
+    "sajuDesc": "Visualisez l'équilibre des cinq éléments et cycles de fortune.",
+    "tarotTitle": "Tarot",
+    "tarotDesc": "Tirages intuitifs avec animation de cartes.",
+    "astrologySectionTitle": "Votre journée, astrologiquement",
+    "astrologySectionSubtitle": "Découvrez comment les planètes influencent votre destin en temps réel",
+    "sajuSectionTitle": "Équilibre des cinq éléments avec Saju",
+    "sajuSectionSubtitle": "Vérifiez votre distribution d'énergie et trouvez l'équilibre",
+    "tarotSectionTitle": "Lecture tarot du jour",
+    "tarotSectionSubtitle": "Écoutez le message des cartes",
+    "tarotDeckLabel": "78 cartes de tarot",
+    "tarotPast": "Passé",
+    "tarotPresent": "Présent",
+    "tarotFuture": "Futur",
+    "tarotAdvice": "Conseil",
+    "ctaTitle": "Prenez de meilleures décisions",
+    "ctaSubtitle": "L'IA lit votre destin et vous guide vers le meilleur choix",
+    "ctaButton": "Commencer maintenant →",
+    "aiChatDemo": "Démo chat IA",
+    "ascendant": "Ascendant",
+    "sun": "Soleil",
+    "moon": "Lune",
+    "hourPillar": "Pilier Heure",
+    "dayPillar": "Pilier Jour",
+    "monthPillar": "Pilier Mois",
+    "yearPillar": "Pilier Année",
+    "greatFortune": "Grande Fortune",
+    "elementWood": "Bois",
+    "elementFire": "Feu",
+    "elementEarth": "Terre",
+    "elementMetal": "Métal",
+    "elementWater": "Eau",
+    "elementWoodEn": "Wood",
+    "elementFireEn": "Fire",
+    "elementEarthEn": "Earth",
+    "elementMetalEn": "Metal",
+    "elementWaterEn": "Water",
+    "aquarius": "Verseau",
+    "scorpio": "Scorpion",
+    "pisces": "Poissons",
+    "ageUnit": " ans",
+    "todayMessage": "Aujourd'hui est favorable aux nouveaux départs. Votre créativité brillera.",
+    "searchPlaceholder": "Que voulez-vous savoir aujourd'hui ?",
+    "hint1": "Ma fortune du jour",
+    "hint2": "Comment est ma chance en amour ?",
+    "hint3": "Dois-je changer de travail ?",
+    "scrollDown": "Faites défiler pour en voir plus",
+    "questionPlaceholder": "Posez votre question de vie...",
+    "questionHint1": "Quelle est ma direction ?",
+    "questionHint2": "Comment sera mon année ?",
+    "questionHint3": "Quelle carrière me convient ?",
+    "elementCombo": {
+      "earthEarth": "Terre-Terre",
+      "metalMetal": "Métal-Métal",
+      "waterEarth": "Eau-Terre",
+      "waterWater": "Eau-Eau",
+      "woodWater": "Bois-Eau",
+      "woodEarth": "Bois-Terre"
+    },
+    "shinsal": {
+      "heavenlyNoble": "Noble Céleste",
+      "heavenlyNobleDesc": "Énergie protectrice",
+      "postHorse": "Cheval de Poste",
+      "postHorseDesc": "Voyage et mouvement",
+      "peachBlossom": "Fleur de Pêcher",
+      "peachBlossomDesc": "Charme et romance"
+    }
+  },
+  "common": {
+    "start": "Commencer",
+    "about": "À propos",
+    "ourService": "Services",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "refunds": "Politique de remboursement"
+  },
+  "app": {
+    "myJourney": "Mon Voyage",
+    "community": "Communauté"
+  },
+  "about": {
+    "heroTitle1": "Diagnostiquer avec le Destin.",
+    "heroTitle2": "Analyser avec la Psychologie.",
+    "heroTitle3": "Guérir avec la Spiritualité.",
+    "heroSub": "Le destin parle. L'IA écoute. Vous décidez.",
+    "heroSubtitle": "Le destin parle. L'IA écoute. Vous décidez.",
+    "tryDestinyMap": "Commencer Carte du Destin",
+    "seeFeatures": "Voir les fonctionnalités",
+    "visualTitle": "Votre navigation de destin, comme le monde l'aime",
+    "visualDesc": "Interface épurée avec logique de calcul fiable. Reflète correctement fuseaux horaires, saisons et heure d'été, traduit les résultats en langage compréhensible.",
+    "servicesEyebrow": "Services DestinyPal",
+    "servicesTitle": "8 Lectures du Destin",
+    "servicesDesc": "Explorez votre destin sous plusieurs perspectives avec chaque service unique",
+    "discoverTitle": "Quatre Cadres",
+    "discoverSubtitle": "Choisissez selon votre question ou utilisez-les ensemble pour vérifier le timing et les thèmes.",
+    "sajuTitle": "Saju (Quatre Piliers)",
+    "sajuDesc": "Interprète année, mois, jour, heure avec troncs célestes et branches terrestres pour l'équilibre des cinq éléments et cycles à long terme.",
+    "sajuStrength": "Force: Transitions de thèmes à long terme, équilibre énergétique",
+    "sajuAccuracy": "Précision: Heure de naissance et correction du terme solaire",
+    "sajuDetailTitle": "Détails",
+    "sajuDetail": "Les changements d'heure peuvent affecter la personnalité et le timing. Les limites des termes solaires et corrections d'heure locale sont importantes.",
+    "sajuLink": "Aller à Saju",
+    "astroTitle": "Astrologie",
+    "astroDesc": "Lit planètes, signes, maisons et aspects dans les thèmes nataux, avec transits/retours pour le timing.",
+    "astroStrength": "Force: Détails par maison, modèles psychologiques/relationnels",
+    "astroAccuracy": "Précision: Heure, fuseau horaire/heure d'été, système de maisons",
+    "astroDetailTitle": "Détails",
+    "astroDetail": "Même des erreurs de 5-15 minutes peuvent changer ASC/maisons. Dossiers hospitaliers + reflet de l'heure d'été recommandés.",
+    "astroLink": "Aller à Astrologie",
+    "ichingTitle": "I Ching",
+    "ichingDesc": "Capture le flux actuel et les points de transition avec le langage symbolique des 64 hexagrammes.",
+    "ichingStrength": "Force: Indices de direction aux carrefours de décision",
+    "ichingAccuracy": "Précision: Qualité de la question et clarté du contexte",
+    "ichingDetailTitle": "Détails",
+    "ichingDetail": "Les questions ouvertes donnent des conseils plus clairs que les questions oui/non.",
+    "ichingLink": "Aller à I Ching",
+    "tarotTitle": "Tarot",
+    "tarotDesc": "Révèle les modèles psychologiques et relationnels actuels avec des cartes symboliques, fournissant un guide d'action immédiat.",
+    "tarotStrength": "Force: Aperçus rapides, favorable au coaching",
+    "tarotAccuracy": "Précision: Spécificité de la question, tirage, stratégie de re-tirage",
+    "tarotDetailTitle": "Détails",
+    "tarotDetail": "La même carte peut signifier différentes choses selon le contexte/position. Voir avec des scénarios d'action.",
+    "tarotLink": "Aller au Tarot",
+    "philosophyTitle": "Notre Philosophie",
+    "philosophy": {
+      "accurate": {
+        "title": "Calcul Précis",
+        "desc": "Calculs fiables reflétant fuseaux horaires, saisons et heure d'été"
+      },
+      "ethical": {
+        "title": "Guidance Éthique",
+        "desc": "Indices pratiques pour aider aux choix, pas de prédictions absolues"
+      },
+      "ui": {
+        "title": "Interface Intuitive",
+        "desc": "Belle interface qui rend les informations complexes accessibles"
+      },
+      "ai": {
+        "title": "Intégration IA",
+        "desc": "Intégration alimentée par IA de multiples systèmes de divination"
+      }
+    },
+    "service": {
+      "astrology": {
+        "title": "Astrologie",
+        "desc": "Lisez votre personnalité et destin à travers positions planétaires et maisons"
+      },
+      "saju": {
+        "title": "Saju",
+        "desc": "Analysez l'équilibre des cinq éléments et cycles de fortune à travers Quatre Piliers"
+      },
+      "tarot": {
+        "title": "Tarot",
+        "desc": "Explorez situations actuelles et possibilités futures à travers 78 cartes"
+      },
+      "iching": {
+        "title": "I Ching",
+        "desc": "La sagesse des 64 hexagrammes guide situation actuelle et direction de changement"
+      },
+      "dream": {
+        "title": "Rêve",
+        "desc": "Interprétez symboles de rêves et messages de votre subconscient"
+      },
+      "numerology": {
+        "title": "Numérologie",
+        "desc": "Découvrez votre chemin de vie et potentiel à travers les nombres de date de naissance"
+      },
+      "compatibility": {
+        "title": "Compatibilité",
+        "desc": "Analysez harmonie et dynamique relationnelle entre deux personnes"
+      },
+      "personality": {
+        "title": "Personnalité",
+        "desc": "Analyse approfondie de vos traits de personnalité, forces et faiblesses"
+      }
+    },
+    "ctaTitle": "Commencer Maintenant",
+    "ctaSub": "Explorez votre carte du destin avec l'IA",
+    "ctaPrimary": "Commencer Carte du Destin",
+    "ctaSecondary": "Retour à l'accueil"
+  }
+}

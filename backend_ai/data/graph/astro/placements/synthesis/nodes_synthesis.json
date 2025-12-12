@@ -1,0 +1,217 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/synthesis/nodes",
+  "$count": 144,
+  "$description": "달의 노드 Sign×House 통합 해석 - 카르마적 과거(남노드)와 영혼의 성장 방향(북노드)",
+
+  "overview": {
+    "principle": "북노드의 사인은 성장 방향을, 하우스는 성장이 일어나는 영역을 보여줍니다. 남노드는 정반대 사인/하우스에 위치합니다.",
+    "jung_connection": "개성화 과정 - 편안한 과거(남노드)에서 성장의 미래(북노드)로",
+    "cycle": "노드는 약 18.6년에 한 바퀴를 돌며, 노드 리턴은 18-19세, 37-38세, 55-56세에 발생",
+    "domains": ["카르마", "영혼의 목적", "과거생 재능", "이생의 도전", "운명"]
+  },
+
+  "Aries_NorthNode": {
+    "south_node": "Libra (천칭자리) - 관계와 타협에 익숙함",
+    "lesson": "자기주장과 독립성 개발",
+    "H1": {"growth": "용기 있는 정체성 개발", "comfort_zone": "타인 의존", "challenge": "혼자 서기", "gift": "리더십"},
+    "H2": {"growth": "독립적 자원 확보", "comfort_zone": "공유 자원 의존", "challenge": "자급자족", "gift": "자기 가치"},
+    "H3": {"growth": "직접적 소통", "comfort_zone": "중재자 역할", "challenge": "자기 의견 표현", "gift": "명확한 소통"},
+    "H4": {"growth": "가정에서 주도권", "comfort_zone": "파트너에 의존", "challenge": "가정 리더십", "gift": "가정 보호자"},
+    "H5": {"growth": "창조적 자기표현", "comfort_zone": "타인 창조성 지원", "challenge": "자신의 창조", "gift": "독창적 예술"},
+    "H6": {"growth": "독립적 일 스타일", "comfort_zone": "협력적 일", "challenge": "자기 방식", "gift": "개척자"},
+    "H7": {"growth": "관계에서 자기주장", "comfort_zone": "양보와 타협", "challenge": "필요 표현", "gift": "균형 잡힌 관계"},
+    "H8": {"growth": "변형적 용기", "comfort_zone": "평화 유지", "challenge": "깊은 변화", "gift": "재탄생"},
+    "H9": {"growth": "자신만의 철학", "comfort_zone": "타인 철학 수용", "challenge": "진리 탐구", "gift": "비전"},
+    "H10": {"growth": "리더십 커리어", "comfort_zone": "파트너십 커리어", "challenge": "독립적 성공", "gift": "개척자"},
+    "H11": {"growth": "집단에서 리더십", "comfort_zone": "조화 유지자", "challenge": "비전 제시", "gift": "혁신"},
+    "H12": {"growth": "영적 용기", "comfort_zone": "영적 의존", "challenge": "영적 개척", "gift": "영적 전사"}
+  },
+
+  "Taurus_NorthNode": {
+    "south_node": "Scorpio (전갈자리) - 위기와 변형에 익숙함",
+    "lesson": "안정과 단순함 추구",
+    "H1": {"growth": "평화로운 정체성", "comfort_zone": "드라마", "challenge": "단순함", "gift": "안정"},
+    "H2": {"growth": "물질적 안정 구축", "comfort_zone": "공유 자원 의존", "challenge": "자급자족", "gift": "풍요"},
+    "H3": {"growth": "실용적 소통", "comfort_zone": "심층적 소통", "challenge": "단순한 표현", "gift": "명확함"},
+    "H4": {"growth": "안정적 가정", "comfort_zone": "감정적 드라마", "challenge": "평화로운 가정", "gift": "안전"},
+    "H5": {"growth": "단순한 즐거움", "comfort_zone": "강렬한 열정", "challenge": "가벼운 즐거움", "gift": "창조"},
+    "H6": {"growth": "안정적 일", "comfort_zone": "위기 대응", "challenge": "일상 루틴", "gift": "건강"},
+    "H7": {"growth": "안정적 관계", "comfort_zone": "강렬한 관계", "challenge": "평화로운 관계", "gift": "조화"},
+    "H8": {"growth": "단순화된 변형", "comfort_zone": "복잡한 변형", "challenge": "점진적 변화", "gift": "재건"},
+    "H9": {"growth": "실용적 철학", "comfort_zone": "비밀스러운 지식", "challenge": "실용적 진리", "gift": "지혜"},
+    "H10": {"growth": "안정적 커리어", "comfort_zone": "권력 추구", "challenge": "지속 가능한 성공", "gift": "성취"},
+    "H11": {"growth": "평화로운 집단", "comfort_zone": "집단 변형", "challenge": "안정적 공동체", "gift": "공동체"},
+    "H12": {"growth": "단순한 영성", "comfort_zone": "신비주의", "challenge": "체현된 영성", "gift": "평화"}
+  },
+
+  "Gemini_NorthNode": {
+    "south_node": "Sagittarius (사수자리) - 큰 그림과 철학에 익숙함",
+    "lesson": "세부사항과 소통에 집중",
+    "H1": {"growth": "호기심 많은 정체성", "comfort_zone": "철학적 자아", "challenge": "다양한 관심", "gift": "적응력"},
+    "H2": {"growth": "다양한 수입원", "comfort_zone": "큰 투자", "challenge": "실용적 재정", "gift": "다재다능"},
+    "H3": {"growth": "효과적 소통 (본궁)", "comfort_zone": "설교", "challenge": "듣기", "gift": "소통"},
+    "H4": {"growth": "다양한 가정 활동", "comfort_zone": "철학적 가정", "challenge": "실용적 가정", "gift": "적응"},
+    "H5": {"growth": "다양한 창조", "comfort_zone": "큰 비전", "challenge": "작은 프로젝트", "gift": "다양성"},
+    "H6": {"growth": "다양한 일", "comfort_zone": "사명", "challenge": "일상 업무", "gift": "융통성"},
+    "H7": {"growth": "소통하는 관계", "comfort_zone": "철학적 관계", "challenge": "일상 대화", "gift": "연결"},
+    "H8": {"growth": "정보 공유", "comfort_zone": "비밀 유지", "challenge": "투명성", "gift": "통찰"},
+    "H9": {"growth": "열린 학습", "comfort_zone": "독단", "challenge": "지속적 학습", "gift": "호기심"},
+    "H10": {"growth": "소통 커리어", "comfort_zone": "철학적 커리어", "challenge": "실용적 성공", "gift": "네트워킹"},
+    "H11": {"growth": "다양한 그룹", "comfort_zone": "이념 그룹", "challenge": "다양성 수용", "gift": "연결"},
+    "H12": {"growth": "호기심 있는 영성", "comfort_zone": "독단적 영성", "challenge": "열린 탐구", "gift": "통찰"}
+  },
+
+  "Cancer_NorthNode": {
+    "south_node": "Capricorn (염소자리) - 성취와 구조에 익숙함",
+    "lesson": "감정과 돌봄 개발",
+    "H1": {"growth": "감정적 정체성", "comfort_zone": "성취 정체성", "challenge": "취약성 허용", "gift": "공감"},
+    "H2": {"growth": "감정적 안전", "comfort_zone": "물질적 성공", "challenge": "내면 풍요", "gift": "자기 돌봄"},
+    "H3": {"growth": "감정적 소통", "comfort_zone": "실용적 소통", "challenge": "감정 표현", "gift": "공감적 소통"},
+    "H4": {"growth": "가정 우선 (본궁)", "comfort_zone": "커리어 우선", "challenge": "가정 돌봄", "gift": "양육"},
+    "H5": {"growth": "감정적 창조", "comfort_zone": "성취 지향 창조", "challenge": "즐거움", "gift": "놀이"},
+    "H6": {"growth": "돌봄 일", "comfort_zone": "구조화된 일", "challenge": "감정적 봉사", "gift": "치유"},
+    "H7": {"growth": "양육하는 관계", "comfort_zone": "실용적 관계", "challenge": "감정적 친밀", "gift": "돌봄"},
+    "H8": {"growth": "감정적 변형", "comfort_zone": "구조적 변형", "challenge": "감정 해방", "gift": "치유"},
+    "H9": {"growth": "감정 기반 신념", "comfort_zone": "논리 기반 신념", "challenge": "직관 신뢰", "gift": "지혜"},
+    "H10": {"growth": "돌봄 커리어", "comfort_zone": "권력 커리어", "challenge": "감정적 리더십", "gift": "양육적 성공"},
+    "H11": {"growth": "돌봄 공동체", "comfort_zone": "성취 지향 그룹", "challenge": "감정적 연결", "gift": "공동체"},
+    "H12": {"growth": "감정적 영성", "comfort_zone": "구조화된 영성", "challenge": "감정 해방", "gift": "연민"}
+  },
+
+  "Leo_NorthNode": {
+    "south_node": "Aquarius (물병자리) - 집단과 객관성에 익숙함",
+    "lesson": "자기표현과 창조성 개발",
+    "H1": {"growth": "빛나는 정체성", "comfort_zone": "집단 속 익명", "challenge": "눈에 띄기", "gift": "카리스마"},
+    "H2": {"growth": "창조적 가치", "comfort_zone": "집단 가치", "challenge": "개인적 재능", "gift": "자기 가치"},
+    "H3": {"growth": "창조적 표현", "comfort_zone": "객관적 소통", "challenge": "개인적 목소리", "gift": "영감"},
+    "H4": {"growth": "빛나는 가정", "comfort_zone": "비전통적 가정", "challenge": "가정의 기쁨", "gift": "따뜻함"},
+    "H5": {"growth": "창조와 사랑 (본궁)", "comfort_zone": "그룹 활동", "challenge": "자기 창조", "gift": "예술"},
+    "H6": {"growth": "창조적 일", "comfort_zone": "인도주의적 일", "challenge": "개인적 공헌", "gift": "봉사"},
+    "H7": {"growth": "로맨틱 관계", "comfort_zone": "우정", "challenge": "특별한 사랑", "gift": "열정"},
+    "H8": {"growth": "열정적 변형", "comfort_zone": "집단 변형", "challenge": "개인적 재탄생", "gift": "힘"},
+    "H9": {"growth": "개인적 철학", "comfort_zone": "집단 이념", "challenge": "자신의 진리", "gift": "비전"},
+    "H10": {"growth": "빛나는 커리어", "comfort_zone": "집단적 성공", "challenge": "개인적 성공", "gift": "리더십"},
+    "H11": {"growth": "그룹에서 빛나기", "comfort_zone": "집단 속 익명", "challenge": "리더십", "gift": "영감"},
+    "H12": {"growth": "창조적 영성", "comfort_zone": "비개인적 영성", "challenge": "개인적 신과 연결", "gift": "기쁨"}
+  },
+
+  "Virgo_NorthNode": {
+    "south_node": "Pisces (물고기자리) - 영성과 초월에 익숙함",
+    "lesson": "실용성과 분석력 개발",
+    "H1": {"growth": "실용적 정체성", "comfort_zone": "꿈꾸는 자아", "challenge": "현실 기반", "gift": "효율성"},
+    "H2": {"growth": "실용적 재정", "comfort_zone": "물질 초월", "challenge": "재정 관리", "gift": "실용성"},
+    "H3": {"growth": "명확한 소통", "comfort_zone": "모호한 소통", "challenge": "정밀함", "gift": "분석"},
+    "H4": {"growth": "조직화된 가정", "comfort_zone": "혼돈적 가정", "challenge": "구조", "gift": "질서"},
+    "H5": {"growth": "세밀한 창조", "comfort_zone": "영감 의존", "challenge": "기술 개발", "gift": "장인정신"},
+    "H6": {"growth": "효율적 일 (본궁)", "comfort_zone": "희생", "challenge": "경계 설정", "gift": "봉사"},
+    "H7": {"growth": "실용적 관계", "comfort_zone": "이상적 관계", "challenge": "현실적 기대", "gift": "헌신"},
+    "H8": {"growth": "분석적 변형", "comfort_zone": "신비적 변형", "challenge": "구체적 변화", "gift": "치유"},
+    "H9": {"growth": "실용적 철학", "comfort_zone": "신비주의", "challenge": "적용 가능한 지혜", "gift": "가르침"},
+    "H10": {"growth": "전문적 커리어", "comfort_zone": "표류", "challenge": "구체적 목표", "gift": "성취"},
+    "H11": {"growth": "조직화된 그룹", "comfort_zone": "이상주의 그룹", "challenge": "실용적 기여", "gift": "봉사"},
+    "H12": {"growth": "건강한 경계", "comfort_zone": "경계 해체", "challenge": "자기 보호", "gift": "분별"}
+  },
+
+  "Libra_NorthNode": {
+    "south_node": "Aries (양자리) - 독립과 자기주장에 익숙함",
+    "lesson": "협력과 관계 기술 개발",
+    "H1": {"growth": "조화로운 정체성", "comfort_zone": "공격적 자아", "challenge": "타인 고려", "gift": "외교"},
+    "H2": {"growth": "공유된 가치", "comfort_zone": "독립적 자원", "challenge": "협력적 재정", "gift": "공정"},
+    "H3": {"growth": "외교적 소통", "comfort_zone": "직접적 소통", "challenge": "경청", "gift": "중재"},
+    "H4": {"growth": "조화로운 가정", "comfort_zone": "독립적 가정", "challenge": "가족 협력", "gift": "평화"},
+    "H5": {"growth": "협력적 창조", "comfort_zone": "독창적 창조", "challenge": "공동 창조", "gift": "협력"},
+    "H6": {"growth": "협력적 일", "comfort_zone": "독립적 일", "challenge": "팀워크", "gift": "조화"},
+    "H7": {"growth": "파트너십 (본궁)", "comfort_zone": "독립", "challenge": "헌신", "gift": "관계"},
+    "H8": {"growth": "공유된 변형", "comfort_zone": "독립적 변형", "challenge": "친밀감", "gift": "신뢰"},
+    "H9": {"growth": "균형 잡힌 철학", "comfort_zone": "독단", "challenge": "다양한 관점", "gift": "지혜"},
+    "H10": {"growth": "협력적 커리어", "comfort_zone": "독립적 성공", "challenge": "파트너십", "gift": "협력"},
+    "H11": {"growth": "조화로운 그룹", "comfort_zone": "리더 역할", "challenge": "협력", "gift": "중재"},
+    "H12": {"growth": "내면 평화", "comfort_zone": "내면 전쟁", "challenge": "자기 용서", "gift": "조화"}
+  },
+
+  "Scorpio_NorthNode": {
+    "south_node": "Taurus (황소자리) - 안정과 물질에 익숙함",
+    "lesson": "변형과 심층 경험 추구",
+    "H1": {"growth": "강렬한 정체성", "comfort_zone": "안정적 자아", "challenge": "변형", "gift": "재탄생"},
+    "H2": {"growth": "공유된 자원", "comfort_zone": "독립적 소유", "challenge": "신뢰", "gift": "변형"},
+    "H3": {"growth": "심층적 소통", "comfort_zone": "표면적 소통", "challenge": "진실", "gift": "통찰"},
+    "H4": {"growth": "감정적 깊이", "comfort_zone": "안정적 가정", "challenge": "트라우마 직면", "gift": "치유"},
+    "H5": {"growth": "열정적 창조", "comfort_zone": "안전한 창조", "challenge": "리스크", "gift": "변형"},
+    "H6": {"growth": "변형적 일", "comfort_zone": "안정적 일", "challenge": "위기 대응", "gift": "치유"},
+    "H7": {"growth": "깊은 관계", "comfort_zone": "안정적 관계", "challenge": "친밀감", "gift": "변형"},
+    "H8": {"growth": "변형 수용 (본궁)", "comfort_zone": "안정 추구", "challenge": "죽음과 재탄생", "gift": "재생"},
+    "H9": {"growth": "신비로운 진리", "comfort_zone": "실용적 진리", "challenge": "깊은 탐구", "gift": "지혜"},
+    "H10": {"growth": "변형적 커리어", "comfort_zone": "안정적 커리어", "challenge": "권력", "gift": "영향력"},
+    "H11": {"growth": "변형적 집단", "comfort_zone": "안정적 그룹", "challenge": "집단 변형", "gift": "혁명"},
+    "H12": {"growth": "심층적 영성", "comfort_zone": "물질적 영성", "challenge": "무의식 탐험", "gift": "초월"}
+  },
+
+  "Sagittarius_NorthNode": {
+    "south_node": "Gemini (쌍둥이자리) - 정보와 소통에 익숙함",
+    "lesson": "큰 그림과 의미 추구",
+    "H1": {"growth": "비전 있는 정체성", "comfort_zone": "다면적 자아", "challenge": "방향성", "gift": "목적"},
+    "H2": {"growth": "풍요로운 가치", "comfort_zone": "다양한 수입", "challenge": "집중", "gift": "풍요"},
+    "H3": {"growth": "영감을 주는 소통", "comfort_zone": "정보 수집", "challenge": "가르침", "gift": "지혜"},
+    "H4": {"growth": "철학적 가정", "comfort_zone": "바쁜 가정", "challenge": "의미", "gift": "비전"},
+    "H5": {"growth": "영감받은 창조", "comfort_zone": "다양한 취미", "challenge": "집중", "gift": "예술"},
+    "H6": {"growth": "의미 있는 일", "comfort_zone": "다양한 일", "challenge": "사명", "gift": "봉사"},
+    "H7": {"growth": "성장하는 관계", "comfort_zone": "가벼운 관계", "challenge": "헌신", "gift": "동반 성장"},
+    "H8": {"growth": "철학적 변형", "comfort_zone": "지적 분석", "challenge": "신앙", "gift": "재탄생"},
+    "H9": {"growth": "진리 탐구 (본궁)", "comfort_zone": "정보 수집", "challenge": "의미 발견", "gift": "지혜"},
+    "H10": {"growth": "비전 있는 커리어", "comfort_zone": "다양한 커리어", "challenge": "사명", "gift": "리더십"},
+    "H11": {"growth": "이상주의 그룹", "comfort_zone": "네트워킹", "challenge": "비전 공유", "gift": "영감"},
+    "H12": {"growth": "영적 탐험", "comfort_zone": "지적 영성", "challenge": "신앙", "gift": "초월"}
+  },
+
+  "Capricorn_NorthNode": {
+    "south_node": "Cancer (게자리) - 돌봄과 감정에 익숙함",
+    "lesson": "성취와 책임 개발",
+    "H1": {"growth": "성숙한 정체성", "comfort_zone": "감정적 자아", "challenge": "자기 통제", "gift": "성숙"},
+    "H2": {"growth": "물질적 성공", "comfort_zone": "감정적 안전", "challenge": "재정 목표", "gift": "풍요"},
+    "H3": {"growth": "전략적 소통", "comfort_zone": "감정적 소통", "challenge": "명확함", "gift": "효율"},
+    "H4": {"growth": "구조화된 가정", "comfort_zone": "감정 중심 가정", "challenge": "규율", "gift": "안정"},
+    "H5": {"growth": "진지한 창조", "comfort_zone": "놀이 중심", "challenge": "훈련", "gift": "장인정신"},
+    "H6": {"growth": "전문적 일", "comfort_zone": "돌봄 일", "challenge": "효율", "gift": "전문성"},
+    "H7": {"growth": "성숙한 관계", "comfort_zone": "의존적 관계", "challenge": "책임", "gift": "헌신"},
+    "H8": {"growth": "구조적 변형", "comfort_zone": "감정적 변형", "challenge": "통제", "gift": "재건"},
+    "H9": {"growth": "현실적 철학", "comfort_zone": "감정적 신앙", "challenge": "실용적 지혜", "gift": "가르침"},
+    "H10": {"growth": "커리어 성공 (본궁)", "comfort_zone": "가정 우선", "challenge": "야망", "gift": "성취"},
+    "H11": {"growth": "조직화된 그룹", "comfort_zone": "감정적 그룹", "challenge": "리더십", "gift": "구조"},
+    "H12": {"growth": "훈련된 영성", "comfort_zone": "감정적 영성", "challenge": "규율", "gift": "성숙"}
+  },
+
+  "Aquarius_NorthNode": {
+    "south_node": "Leo (사자자리) - 자기표현과 인정에 익숙함",
+    "lesson": "집단과 인류를 위한 봉사",
+    "H1": {"growth": "인류애적 정체성", "comfort_zone": "자기 중심", "challenge": "집단 의식", "gift": "비전"},
+    "H2": {"growth": "공유된 가치", "comfort_zone": "개인 소유", "challenge": "나눔", "gift": "평등"},
+    "H3": {"growth": "객관적 소통", "comfort_zone": "자기 표현", "challenge": "경청", "gift": "연결"},
+    "H4": {"growth": "비전통적 가정", "comfort_zone": "왕족적 가정", "challenge": "평등", "gift": "자유"},
+    "H5": {"growth": "집단 창조", "comfort_zone": "개인 창조", "challenge": "협력", "gift": "혁신"},
+    "H6": {"growth": "인도주의적 일", "comfort_zone": "인정받는 일", "challenge": "봉사", "gift": "개혁"},
+    "H7": {"growth": "우정 기반 관계", "comfort_zone": "로맨틱 관계", "challenge": "평등", "gift": "자유"},
+    "H8": {"growth": "집단 변형", "comfort_zone": "개인 변형", "challenge": "공유", "gift": "혁명"},
+    "H9": {"growth": "진보적 철학", "comfort_zone": "개인적 진리", "challenge": "집단 비전", "gift": "비전"},
+    "H10": {"growth": "혁신적 커리어", "comfort_zone": "인정받는 커리어", "challenge": "봉사", "gift": "혁신"},
+    "H11": {"growth": "집단 의식 (본궁)", "comfort_zone": "중심 역할", "challenge": "평등", "gift": "인류애"},
+    "H12": {"growth": "비개인적 영성", "comfort_zone": "개인 신과 연결", "challenge": "우주 의식", "gift": "초월"}
+  },
+
+  "Pisces_NorthNode": {
+    "south_node": "Virgo (처녀자리) - 분석과 실용성에 익숙함",
+    "lesson": "영성과 연민 개발",
+    "H1": {"growth": "영적 정체성", "comfort_zone": "실용적 자아", "challenge": "직관 신뢰", "gift": "연민"},
+    "H2": {"growth": "영적 풍요", "comfort_zone": "물질적 안전", "challenge": "신뢰", "gift": "믿음"},
+    "H3": {"growth": "직관적 소통", "comfort_zone": "분석적 소통", "challenge": "시적 표현", "gift": "영감"},
+    "H4": {"growth": "영적 가정", "comfort_zone": "실용적 가정", "challenge": "감정 흐름", "gift": "치유"},
+    "H5": {"growth": "영감받은 창조", "comfort_zone": "기술적 창조", "challenge": "흐름", "gift": "예술"},
+    "H6": {"growth": "치유 봉사", "comfort_zone": "실용적 봉사", "challenge": "희생", "gift": "치유"},
+    "H7": {"growth": "영혼의 관계", "comfort_zone": "실용적 관계", "challenge": "무조건적 사랑", "gift": "합일"},
+    "H8": {"growth": "신비로운 변형", "comfort_zone": "분석적 변형", "challenge": "내려놓기", "gift": "초월"},
+    "H9": {"growth": "신앙", "comfort_zone": "분석", "challenge": "믿음", "gift": "지혜"},
+    "H10": {"growth": "영적 사명", "comfort_zone": "전문적 성공", "challenge": "봉사", "gift": "영감"},
+    "H11": {"growth": "연민의 공동체", "comfort_zone": "봉사 그룹", "challenge": "무조건적 수용", "gift": "치유"},
+    "H12": {"growth": "영적 초월 (본궁)", "comfort_zone": "실용적 영성", "challenge": "완전한 내려놓기", "gift": "합일"}
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "concept": "psychological_types",
+  "concept_kr": "심리 유형",
+  "description": "Jung's theory of psychological types - introversion, extraversion, and the four functions",
+  "quotes": [
+    {
+      "id": "types_001",
+      "en": "There is no such thing as a pure introvert or extravert. Such a person would be in the lunatic asylum.",
+      "kr": "순수한 내향형이나 외향형 같은 것은 없다. 그런 사람은 정신병원에 있을 것이다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the spectrum of personality types",
+      "tags": ["introvert", "extravert", "balance", "types"]
+    },
+    {
+      "id": "types_002",
+      "en": "The meeting of two personalities is like the contact of two chemical substances: if there is any reaction, both are transformed.",
+      "kr": "두 인격의 만남은 두 화학 물질의 접촉과 같다: 어떤 반응이 있으면, 둘 다 변화한다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On transformation through relationship",
+      "tags": ["personality", "relationship", "transformation", "chemistry"]
+    },
+    {
+      "id": "types_003",
+      "en": "Everything that irritates us about others can lead us to an understanding of ourselves.",
+      "kr": "다른 사람에 대해 우리를 짜증나게 하는 모든 것은 우리 자신에 대한 이해로 이끌 수 있다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On projection and self-knowledge",
+      "tags": ["irritation", "others", "self-understanding", "projection"]
+    },
+    {
+      "id": "types_004",
+      "en": "Sensation tells us a thing is. Thinking tells us what it is. Feeling tells us what it is worth.",
+      "kr": "감각은 무언가가 있다고 말한다. 사고는 그것이 무엇인지 말한다. 감정은 그것이 얼마나 가치 있는지 말한다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the four psychological functions",
+      "tags": ["sensation", "thinking", "feeling", "functions"]
+    },
+    {
+      "id": "types_005",
+      "en": "The intuitive function is represented in consciousness by an attitude of expectancy, by vision and penetration.",
+      "kr": "직관 기능은 기대의 태도, 비전과 통찰에 의해 의식 속에 표현된다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the intuitive function",
+      "tags": ["intuition", "vision", "consciousness", "function"]
+    },
+    {
+      "id": "types_006",
+      "en": "The shoe that fits one person pinches another; there is no recipe for living that suits all cases.",
+      "kr": "한 사람에게 맞는 신발이 다른 사람에게는 조인다; 모든 경우에 맞는 삶의 처방은 없다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On individual differences",
+      "tags": ["individual", "difference", "life", "unique"]
+    },
+    {
+      "id": "types_007",
+      "en": "Thinking is the function which seeks to apprehend the world and adjust to it by way of thought.",
+      "kr": "사고는 생각의 방식으로 세계를 파악하고 그것에 적응하려는 기능이다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the thinking function",
+      "tags": ["thinking", "function", "apprehension", "adjustment"]
+    },
+    {
+      "id": "types_008",
+      "en": "Feeling is primarily a process that takes place between the ego and a given content, a process that imparts to the content a definite value.",
+      "kr": "감정은 주로 자아와 주어진 내용 사이에서 일어나는 과정이며, 내용에 명확한 가치를 부여하는 과정이다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the feeling function",
+      "tags": ["feeling", "function", "value", "ego"]
+    },
+    {
+      "id": "types_009",
+      "en": "The introvert is not necessarily a shy person; he simply prefers to draw his energy from his inner world.",
+      "kr": "내향형은 반드시 수줍은 사람이 아니다; 그는 단순히 자신의 내면 세계에서 에너지를 끌어오는 것을 선호한다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On introversion",
+      "tags": ["introvert", "energy", "inner world", "preference"]
+    },
+    {
+      "id": "types_010",
+      "en": "The extravert's philosophy of life and his ethics are as a rule of a highly collective nature with a strong streak of altruism.",
+      "kr": "외향형의 삶의 철학과 윤리는 대개 강한 이타주의적 경향을 가진 고도로 집단적인 성격을 띤다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On extraversion",
+      "tags": ["extravert", "collective", "altruism", "ethics"]
+    },
+    {
+      "id": "types_011",
+      "en": "The inferior function is always associated with an archaic personality in ourselves.",
+      "kr": "열등 기능은 항상 우리 안의 원시적 인격과 연관되어 있다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the inferior function",
+      "tags": ["inferior function", "archaic", "personality", "shadow"]
+    },
+    {
+      "id": "types_012",
+      "en": "Only the man who can consciously assent to the power of the inner voice becomes a personality.",
+      "kr": "내면의 목소리의 힘에 의식적으로 동의할 수 있는 사람만이 인격이 된다.",
+      "source": "The Development of Personality",
+      "year": 1934,
+      "cw_volume": "CW 17",
+      "context": "On becoming a personality",
+      "tags": ["personality", "inner voice", "consciousness", "development"]
+    },
+    {
+      "id": "types_013",
+      "en": "Every individual needs revolution, inner division, overthrow of the existing order, and renewal.",
+      "kr": "모든 개인은 혁명, 내면의 분열, 기존 질서의 전복, 그리고 갱신이 필요하다.",
+      "source": "Symbols of Transformation",
+      "year": 1952,
+      "cw_volume": "CW 5",
+      "context": "On the necessity of inner revolution",
+      "tags": ["revolution", "change", "renewal", "individual"]
+    },
+    {
+      "id": "types_014",
+      "en": "We should not pretend to understand the world only by the intellect; we apprehend it just as much by feeling.",
+      "kr": "우리는 지성만으로 세계를 이해한다고 가장해서는 안 된다; 우리는 감정으로도 그것을 똑같이 파악한다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On balanced understanding",
+      "tags": ["intellect", "feeling", "understanding", "balance"]
+    },
+    {
+      "id": "types_015",
+      "en": "Type differentiation often begins very early, so early that in some cases one must speak of it as innate.",
+      "kr": "유형 분화는 종종 매우 일찍 시작되어, 어떤 경우에는 선천적이라고 말해야 할 정도이다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the origins of type",
+      "tags": ["type", "innate", "early development", "differentiation"]
+    }
+  ]
+}

@@ -1,0 +1,1014 @@
+# backend_ai/app/dream_logic.py
+
+import os
+import json
+import traceback
+import hashlib
+from datetime import datetime
+from dotenv import load_dotenv
+
+from backend_ai.app.rule_engine import RuleEngine
+from backend_ai.app.redis_cache import get_cache
+from backend_ai.app.dream_embeddings import get_dream_embed_rag
+from backend_ai.model.fusion_generate import _generate_with_together, refine_with_gpt5mini
+from backend_ai.app.realtime_astro import get_current_transits
+
+
+# ===============================================================
+# DREAM INTERPRETATION PROMPT BUILDER
+# ===============================================================
+def build_dream_prompt(
+    dream_text: str,
+    symbols: list,
+    emotions: list,
+    themes: list,
+    context: list,
+    cultural: dict,
+    matched_rules: dict,
+    locale: str = "en",
+    celestial_context: dict = None
+) -> str:
+    """Build comprehensive dream interpretation prompt."""
+
+    lang_instruction = {
+        "ko": "Please respond entirely in Korean (한국어로 답변해주세요).",
+        "en": "Please respond in English.",
+        "ja": "日本語で回答してください。",
+        "zh": "请用中文回答。",
+        "es": "Por favor responde en español.",
+        "fr": "Veuillez répondre en français.",
+        "ru": "Пожалуйста, отвечайте на русском языке.",
+        "ar": "يرجى الرد باللغة العربية."
+    }.get(locale, "Please respond in English.")
+
+    prompt = f"""You are an expert dream interpreter with deep knowledge of multiple cultural traditions including:
+- Korean dream interpretation (한국 해몽) including 길몽/흉몽, 태몽, and lottery dreams
+- Chinese dream symbolism (周公解梦)
+- Islamic dream interpretation (تفسير الأحلام)
+- Jungian/Western psychology and archetypes
+- Hindu dream traditions
+- Japanese dream interpretation (夢占い)
+- Native American dream wisdom
+
+{lang_instruction}
+
+## Dream Description
+{dream_text}
+
+## Selected Symbols
+{', '.join(symbols) if symbols else 'None specified'}
+
+## Emotions Felt
+{', '.join(emotions) if emotions else 'None specified'}
+
+## Dream Type/Themes
+{', '.join(themes) if themes else 'None specified'}
+
+## Dream Context
+{', '.join(context) if context else 'None specified'}
+
+## Cultural Symbols Selected
+"""
+
+    # Add cultural symbols
+    cultural_parts = []
+    if cultural.get('koreanTypes'):
+        cultural_parts.append(f"Korean Types: {', '.join(cultural['koreanTypes'])}")
+    if cultural.get('koreanLucky'):
+        cultural_parts.append(f"Korean Lucky: {', '.join(cultural['koreanLucky'])}")
+    if cultural.get('chinese'):
+        cultural_parts.append(f"Chinese: {', '.join(cultural['chinese'])}")
+    if cultural.get('islamicTypes'):
+        cultural_parts.append(f"Islamic Types: {', '.join(cultural['islamicTypes'])}")
+    if cultural.get('islamicBlessed'):
+        cultural_parts.append(f"Islamic Blessed: {', '.join(cultural['islamicBlessed'])}")
+    if cultural.get('western'):
+        cultural_parts.append(f"Western/Jungian: {', '.join(cultural['western'])}")
+    if cultural.get('hindu'):
+        cultural_parts.append(f"Hindu: {', '.join(cultural['hindu'])}")
+    if cultural.get('nativeAmerican'):
+        cultural_parts.append(f"Native American: {', '.join(cultural['nativeAmerican'])}")
+    if cultural.get('japanese'):
+        cultural_parts.append(f"Japanese: {', '.join(cultural['japanese'])}")
+
+    prompt += '\n'.join(cultural_parts) if cultural_parts else 'None specified'
+
+    # Add celestial context if available
+    if celestial_context:
+        moon = celestial_context.get('moon_phase', {})
+        moon_sign_info = celestial_context.get('moon_sign', {})
+        retrogrades = celestial_context.get('retrogrades', [])
+        aspects = celestial_context.get('significant_aspects', [])
+
+        prompt += f"""
+
+## Current Celestial Configuration (현재 천체 배치)
+"""
+        if moon:
+            prompt += f"""
+[Moon Phase - 달의 위상]
+{moon.get('emoji', '')} {moon.get('korean', moon.get('name', ''))} (밝기 {moon.get('illumination', 0)}%)
+Dream Quality: {moon.get('dream_quality', '')}
+"""
+            if moon.get('dream_meaning'):
+                prompt += f"Meaning: {moon.get('dream_meaning')}\n"
+            if moon.get('favorable_symbols'):
+                prompt += f"Favorable Symbols: {', '.join(moon.get('favorable_symbols', []))}\n"
+            if moon.get('enhanced_themes'):
+                prompt += f"Enhanced Themes: {', '.join(moon.get('enhanced_themes', []))}\n"
+            if moon.get('advice'):
+                prompt += f"Moon Phase Advice: {moon.get('advice')}\n"
+
+        if moon_sign_info and moon_sign_info.get('sign'):
+            prompt += f"""
+[Moon Sign - 달의 별자리]
+{moon_sign_info.get('korean', '')} ({moon_sign_info.get('sign', '')})
+Dream Flavor: {moon_sign_info.get('dream_flavor', '')}
+"""
+            if moon_sign_info.get('enhanced_symbols'):
+                prompt += f"Enhanced Symbols: {', '.join(moon_sign_info.get('enhanced_symbols', []))}\n"
+
+        if retrogrades:
+            prompt += "\n[Retrograde Planets - 역행 행성]\n"
+            for retro in retrogrades:
+                prompt += f"- {retro.get('korean', retro.get('planet', ''))} {retro.get('emoji', '')}\n"
+                if retro.get('themes'):
+                    prompt += f"  Themes: {', '.join(retro.get('themes', []))}\n"
+                if retro.get('interpretation'):
+                    prompt += f"  Effect: {retro.get('interpretation')}\n"
+
+        if aspects:
+            prompt += "\n[Significant Planetary Aspects - 주요 행성 배치]\n"
+            for asp in aspects:
+                prompt += f"- {asp.get('aspect', '')}\n"
+                if asp.get('themes'):
+                    prompt += f"  Themes: {', '.join(asp.get('themes', []))}\n"
+                if asp.get('special_note'):
+                    prompt += f"  Note: {asp.get('special_note')}\n"
+
+        prompt += """
+IMPORTANT: Factor the current celestial configuration into your dream interpretation.
+Moon phase affects dream intensity and themes. Retrograde periods influence dream content.
+"""
+
+    # Add matched rules context
+    if matched_rules:
+        prompt += f"""
+
+## Relevant Interpretations from Knowledge Base
+{chr(10).join(['- ' + rule for rule in matched_rules.get('texts', [])[:10]])}
+"""
+
+    # Add Korean-specific notes if available
+    korean_notes = matched_rules.get('korean_notes', [])
+    if korean_notes:
+        prompt += f"""
+## Korean Traditional Interpretation (한국 해몽)
+{chr(10).join(['- ' + note for note in korean_notes[:5]])}
+"""
+
+    # Add specific context matches
+    specifics = matched_rules.get('specifics', [])
+    if specifics:
+        prompt += f"""
+## Specific Dream Contexts Found
+{chr(10).join(['- ' + s for s in specifics[:8]])}
+"""
+
+    # Add categories detected
+    categories = matched_rules.get('categories', [])
+    if categories:
+        prompt += f"""
+## Dream Categories Detected: {', '.join(categories)}
+"""
+
+    # Add advice from matched rules
+    advice = matched_rules.get('advice', [])
+    if advice:
+        prompt += f"""
+## Recommended Advice from Knowledge Base
+{chr(10).join(['- ' + a for a in advice[:3]])}
+"""
+
+    # Add premium feature context
+    combo_insights = matched_rules.get('combination_insights', [])
+    if combo_insights:
+        prompt += f"""
+## Symbol Combination Analysis (심볼 조합 분석)
+{chr(10).join(['- ' + c for c in combo_insights])}
+Important: These symbol combinations have special significance in dream interpretation.
+"""
+
+    taemong_insight = matched_rules.get('taemong_insight')
+    if taemong_insight:
+        prompt += f"""
+## Conception Dream Analysis (태몽 분석)
+{taemong_insight}
+Note: This dream may be a 태몽 (conception dream). Consider discussing:
+- Predicted traits for the child
+- Gender hints from traditional interpretation
+- Auspiciousness of this taemong symbol
+"""
+
+    lucky_context = matched_rules.get('lucky_numbers_context')
+    if lucky_context:
+        prompt += f"""
+## Lucky Numbers Context
+{lucky_context}
+Note: Include specific lucky numbers in your luckyElements response based on the symbols.
+"""
+
+    prompt += """
+
+## Response Format
+Provide your interpretation as a JSON object with this exact structure:
+```json
+{
+  "summary": "2-3 sentence overview of the dream's core message",
+  "dreamSymbols": [
+    {"label": "symbol name", "meaning": "interpretation combining multiple traditions"}
+  ],
+  "themes": [
+    {"label": "theme name", "weight": 0.0-1.0}
+  ],
+  "astrology": {
+    "highlights": ["relevant astrological/energetic insights"],
+    "sun": "if birth data provided",
+    "moon": "emotional/lunar influences",
+    "asc": "outer expression"
+  },
+  "crossInsights": [
+    "unique insights from combining Eastern and Western perspectives"
+  ],
+  "recommendations": [
+    "practical action or reflection based on the dream"
+  ],
+  "culturalNotes": {
+    "korean": "specific Korean interpretation if applicable",
+    "chinese": "specific Chinese interpretation if applicable",
+    "islamic": "specific Islamic interpretation if applicable",
+    "western": "Jungian/Western interpretation if applicable"
+  },
+  "luckyElements": {
+    "isLucky": true/false,
+    "luckyNumbers": [numbers if lottery dream],
+    "luckyColors": ["colors"],
+    "advice": "specific luck-related advice"
+  }
+}
+```
+
+Be insightful, culturally sensitive, and specific to the dream content. Avoid generic interpretations.
+"""
+    return prompt
+
+
+# ===============================================================
+# DREAM INTERPRETATION ENGINE
+# ===============================================================
+class DreamRuleEngine:
+    """Rule engine specifically for dream interpretation."""
+
+    def __init__(self):
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        rules_dir = os.path.join(base_dir, "data", "graph", "rules", "dream")
+        self.rules_dir = rules_dir
+        self.rules = {}
+        self.advanced_data = {}  # For combinations, taemong, lucky_numbers
+        self._load_rules()
+        self._load_advanced_data()
+
+    def _load_rules(self):
+        if not os.path.exists(self.rules_dir):
+            print(f"[DreamRuleEngine] Creating rules directory: {self.rules_dir}")
+            os.makedirs(self.rules_dir, exist_ok=True)
+            return
+
+        for filename in os.listdir(self.rules_dir):
+            if not filename.endswith('.json'):
+                continue
+            path = os.path.join(self.rules_dir, filename)
+            try:
+                with open(path, encoding='utf-8') as f:
+                    key = os.path.splitext(filename)[0]
+                    self.rules[key] = json.load(f)
+            except Exception as e:
+                print(f"[DreamRuleEngine] Failed to load {filename}: {e}")
+
+        print(f"[DreamRuleEngine] Loaded {len(self.rules)} rule files: {list(self.rules.keys())}")
+
+    def _load_advanced_data(self):
+        """Load premium features: combinations, taemong, lucky_numbers."""
+        advanced_path = os.path.join(self.rules_dir, "dream_symbols_advanced.json")
+        if os.path.exists(advanced_path):
+            try:
+                with open(advanced_path, encoding='utf-8') as f:
+                    data = json.load(f)
+                    self.advanced_data = {
+                        'combinations': data.get('symbol_combinations', {}).get('combinations', {}),
+                        'taemong': data.get('taemong', {}).get('symbols', {}),
+                        'lucky_numbers': data.get('lucky_numbers', {}),
+                        'categories': data.get('categories', {})
+                    }
+                    print(f"[DreamRuleEngine] Loaded advanced data: {len(self.advanced_data['combinations'])} combinations, "
+                          f"{len(self.advanced_data['taemong'])} taemong symbols, "
+                          f"{len(self.advanced_data['lucky_numbers'].get('symbol_mappings', {}))} lucky mappings")
+            except Exception as e:
+                print(f"[DreamRuleEngine] Failed to load advanced data: {e}")
+
+        # Load astro rules for dream interpretation
+        self._load_astro_rules()
+
+    def _load_astro_rules(self):
+        """Load celestial/astro rules for dream interpretation."""
+        astro_path = os.path.join(self.rules_dir, "dream_astro_rules.json")
+        self.astro_rules = {}
+        if os.path.exists(astro_path):
+            try:
+                with open(astro_path, encoding='utf-8') as f:
+                    self.astro_rules = json.load(f)
+                    print(f"[DreamRuleEngine] Loaded astro rules: "
+                          f"{len(self.astro_rules.get('moon_phase_dream_effects', {}))} moon phases, "
+                          f"{len(self.astro_rules.get('planet_transit_dream_effects', {}))} transit effects")
+            except Exception as e:
+                print(f"[DreamRuleEngine] Failed to load astro rules: {e}")
+
+    def get_celestial_context(self, locale: str = "ko") -> dict:
+        """Get current celestial context for dream interpretation."""
+        try:
+            # Get current transits from realtime_astro
+            transits = get_current_transits()
+            moon_phase = transits.get('moon', {})
+
+            # Get moon phase dream effects
+            phase_name = moon_phase.get('phase_name', '')
+            moon_effects = self.astro_rules.get('moon_phase_dream_effects', {}).get(phase_name, {})
+
+            # Get current moon sign (if available in transits)
+            moon_planet = next((p for p in transits.get('planets', []) if p.get('name') == 'Moon'), None)
+            moon_sign = moon_planet.get('sign', '') if moon_planet else ''
+            moon_sign_effects = self.astro_rules.get('planet_transit_dream_effects', {}).get('moon_sign_effect', {}).get('signs', {}).get(moon_sign, {})
+
+            # Check for retrograde planets
+            retrogrades = transits.get('retrogrades', [])
+            retrograde_effects = []
+            transit_effects = self.astro_rules.get('planet_transit_dream_effects', {})
+
+            for planet in retrogrades:
+                planet_lower = planet.lower()
+                if planet_lower == 'mercury':
+                    effect = transit_effects.get('mercury_retrograde', {})
+                    if effect:
+                        retrograde_effects.append({
+                            'planet': planet,
+                            'korean': effect.get('korean', ''),
+                            'emoji': effect.get('emoji', ''),
+                            'themes': effect.get('dream_effects', {}).get('themes', []),
+                            'common_symbols': effect.get('dream_effects', {}).get('common_symbols', []),
+                            'interpretation': effect.get('dream_effects', {}).get('interpretation_guide', {}).get(locale, '')
+                        })
+                elif planet_lower == 'venus':
+                    effect = transit_effects.get('venus_retrograde', {})
+                    if effect:
+                        retrograde_effects.append({
+                            'planet': planet,
+                            'korean': effect.get('korean', ''),
+                            'themes': effect.get('dream_effects', {}).get('themes', [])
+                        })
+                elif planet_lower == 'mars':
+                    effect = transit_effects.get('mars_retrograde', {})
+                    if effect:
+                        retrograde_effects.append({
+                            'planet': planet,
+                            'korean': effect.get('korean', ''),
+                            'themes': effect.get('dream_effects', {}).get('themes', [])
+                        })
+
+            # Check for significant planetary aspects
+            aspects = transits.get('aspects', [])
+            significant_aspects = []
+            for aspect in aspects[:5]:  # Top 5 aspects
+                p1 = aspect.get('planet1', '').lower()
+                p2 = aspect.get('planet2', '').lower()
+                aspect_type = aspect.get('aspect', '')
+
+                # Check for Jupiter/Neptune transits (important for dreams)
+                if 'jupiter' in [p1, p2]:
+                    effect = transit_effects.get('jupiter_transit', {})
+                    if effect:
+                        significant_aspects.append({
+                            'aspect': f"{aspect['planet1']} {aspect_type} {aspect['planet2']}",
+                            'themes': effect.get('dream_effects', {}).get('themes', []),
+                            'interpretation': effect.get('dream_effects', {}).get('interpretation_guide', {}).get(locale, '')
+                        })
+                if 'neptune' in [p1, p2]:
+                    effect = transit_effects.get('neptune_transit', {})
+                    if effect:
+                        significant_aspects.append({
+                            'aspect': f"{aspect['planet1']} {aspect_type} {aspect['planet2']}",
+                            'themes': effect.get('dream_effects', {}).get('themes', []),
+                            'special_note': effect.get('dream_effects', {}).get('special_note', {}).get(locale, ''),
+                            'interpretation': effect.get('dream_effects', {}).get('interpretation_guide', {}).get(locale, '')
+                        })
+
+            # Build celestial context
+            return {
+                'timestamp': transits.get('timestamp'),
+                'moon_phase': {
+                    'name': phase_name,
+                    'korean': moon_effects.get('korean', moon_phase.get('phase_ko', '')),
+                    'emoji': moon_effects.get('emoji', moon_phase.get('emoji', '')),
+                    'illumination': moon_phase.get('illumination', 0),
+                    'age_days': moon_phase.get('age_days', 0),
+                    'dream_quality': moon_effects.get('dream_quality', ''),
+                    'dream_meaning': moon_effects.get('dream_meaning', {}).get(locale, ''),
+                    'favorable_symbols': moon_effects.get('favorable_symbols', []),
+                    'intensified_symbols': moon_effects.get('intensified_symbols', []),
+                    'advice': moon_effects.get('advice', {}).get(locale, ''),
+                    'weight_modifier': moon_effects.get('interpretation_boost', {}).get('weight_modifier', 1.0),
+                    'enhanced_themes': moon_effects.get('interpretation_boost', {}).get('themes', [])
+                },
+                'moon_sign': {
+                    'sign': moon_sign,
+                    'korean': moon_sign_effects.get('ko', ''),
+                    'dream_flavor': moon_sign_effects.get('dream_flavor', ''),
+                    'enhanced_symbols': moon_sign_effects.get('enhanced_symbols', [])
+                },
+                'retrogrades': retrograde_effects,
+                'significant_aspects': significant_aspects[:3],
+                'planets': [
+                    {
+                        'name': p.get('name'),
+                        'name_ko': p.get('name_ko'),
+                        'sign': p.get('sign'),
+                        'sign_ko': p.get('sign_ko'),
+                        'retrograde': p.get('retrograde', False)
+                    }
+                    for p in transits.get('planets', [])[:7]  # Sun through Saturn
+                ],
+                'source': transits.get('source', 'unknown')
+            }
+
+        except Exception as e:
+            print(f"[DreamRuleEngine] Failed to get celestial context: {e}")
+            traceback.print_exc()
+            return None
+
+    def detect_combinations(self, dream_text: str, symbols: list) -> list:
+        """Detect symbol combinations in dream for enhanced interpretation."""
+        combinations = self.advanced_data.get('combinations', {})
+        if not combinations:
+            return []
+
+        detected = []
+        dream_lower = dream_text.lower()
+        symbol_set = set(s.lower() for s in symbols)
+
+        for combo_key, combo_data in combinations.items():
+            # Parse combination key (e.g., "뱀+물", "돼지+금색")
+            parts = [p.strip() for p in combo_key.split('+')]
+
+            # Check if all parts are present in symbols or dream text
+            all_present = all(
+                part in symbol_set or part in dream_lower
+                for part in parts
+            )
+
+            if all_present:
+                detected.append({
+                    'combination': combo_key,
+                    'meaning': combo_data.get('meaning', ''),
+                    'interpretation': combo_data.get('interpretation', ''),
+                    'fortune_type': combo_data.get('fortune_type', ''),
+                    'is_lucky': combo_data.get('is_lucky', False),
+                    'lucky_score': combo_data.get('lucky_score', 50)
+                })
+
+        # Sort by lucky_score descending
+        detected.sort(key=lambda x: x['lucky_score'], reverse=True)
+        return detected[:5]  # Return top 5 combinations
+
+    def detect_taemong(self, dream_text: str, symbols: list, themes: list) -> dict:
+        """Detect if this is a 태몽 (conception dream) and provide interpretation."""
+        taemong_data = self.advanced_data.get('taemong', {})
+        if not taemong_data:
+            return None
+
+        # Check if 태몽-related themes are selected
+        taemong_keywords = ['태몽', '임신', 'taemong', 'conception', 'pregnancy', '아기', '출산']
+        is_taemong_context = any(
+            kw in theme.lower() for theme in themes for kw in taemong_keywords
+        ) or any(
+            kw in dream_text.lower() for kw in taemong_keywords
+        )
+
+        # Find matching taemong symbols
+        detected_symbols = []
+        dream_lower = dream_text.lower()
+        all_inputs = set(s.lower() for s in symbols) | set(dream_lower.split())
+
+        for symbol, data in taemong_data.items():
+            if symbol.lower() in all_inputs or symbol.lower() in dream_lower:
+                detected_symbols.append({
+                    'symbol': symbol,
+                    'child_trait': data.get('child_trait', ''),
+                    'gender_hint': data.get('gender_hint', ''),
+                    'interpretation': data.get('interpretation', ''),
+                    'celebrity_examples': data.get('celebrity_examples', []),
+                    'lucky_score': data.get('lucky_score', 0)
+                })
+
+        if detected_symbols:
+            # Sort by lucky_score
+            detected_symbols.sort(key=lambda x: x['lucky_score'], reverse=True)
+            return {
+                'is_taemong': is_taemong_context or len(detected_symbols) > 0,
+                'symbols': detected_symbols[:3],
+                'primary_symbol': detected_symbols[0] if detected_symbols else None
+            }
+
+        return None
+
+    def generate_lucky_numbers(self, dream_text: str, symbols: list) -> dict:
+        """Generate lucky numbers based on dream symbols."""
+        lucky_data = self.advanced_data.get('lucky_numbers', {})
+        symbol_mappings = lucky_data.get('symbol_mappings', {})
+
+        if not symbol_mappings:
+            return None
+
+        dream_lower = dream_text.lower()
+        all_inputs = set(s.lower() for s in symbols)
+
+        # Collect numbers from matched symbols
+        primary_numbers = []
+        secondary_numbers = []
+        elements = []
+        matched_symbols = []
+
+        for symbol, mapping in symbol_mappings.items():
+            if symbol.lower() in all_inputs or symbol.lower() in dream_lower:
+                matched_symbols.append(symbol)
+                primary_numbers.extend(mapping.get('primary', []))
+                secondary_numbers.extend(mapping.get('secondary', []))
+                elements.append(mapping.get('element', ''))
+
+        if not matched_symbols:
+            return None
+
+        # Extract numbers mentioned in dream text
+        import re
+        dream_numbers = [int(n) for n in re.findall(r'\d+', dream_text) if 1 <= int(n) <= 45]
+
+        # Build final number set
+        # Priority: dream_numbers > primary > secondary
+        final_numbers = set()
+
+        # Add numbers from dream first
+        for n in dream_numbers[:2]:
+            if 1 <= n <= 45:
+                final_numbers.add(n)
+
+        # Add primary numbers
+        import random
+        random.shuffle(primary_numbers)
+        for n in primary_numbers:
+            if len(final_numbers) >= 6:
+                break
+            if n not in final_numbers and 1 <= n <= 45:
+                final_numbers.add(n)
+
+        # Add secondary numbers if needed
+        random.shuffle(secondary_numbers)
+        for n in secondary_numbers:
+            if len(final_numbers) >= 6:
+                break
+            if n not in final_numbers and 1 <= n <= 45:
+                final_numbers.add(n)
+
+        # If still not enough, generate based on element compatibility
+        element_compat = lucky_data.get('number_generation_rules', {}).get('element_compatibility', {})
+        dominant_element = max(set(elements), key=elements.count) if elements else None
+
+        while len(final_numbers) < 6:
+            # Add a random number if we don't have enough
+            new_num = random.randint(1, 45)
+            if new_num not in final_numbers:
+                final_numbers.add(new_num)
+
+        return {
+            'numbers': sorted(list(final_numbers))[:6],
+            'matched_symbols': matched_symbols[:5],
+            'dominant_element': dominant_element,
+            'element_analysis': f"오행 {dominant_element} 기운이 강한 꿈입니다." if dominant_element else None,
+            'confidence': min(len(matched_symbols) / 3, 1.0)  # Higher confidence with more matches
+        }
+
+    def evaluate(self, facts: dict) -> dict:
+        """
+        Evaluate dream facts against rules and return matched interpretations.
+        Returns dict with: texts, korean_notes, specifics, categories
+        """
+        # Flatten all facts into tokens
+        tokens = set()
+        dream_text = facts.get('dream', '').lower()
+
+        def add_tokens(obj):
+            if isinstance(obj, str):
+                for word in obj.lower().replace(',', ' ').split():
+                    tokens.add(word.strip())
+                # Also add the full string for phrase matching
+                tokens.add(obj.lower())
+            elif isinstance(obj, list):
+                for item in obj:
+                    add_tokens(item)
+            elif isinstance(obj, dict):
+                for v in obj.values():
+                    add_tokens(v)
+
+        add_tokens(facts.get('dream', ''))
+        add_tokens(facts.get('symbols', []))
+        add_tokens(facts.get('emotions', []))
+        add_tokens(facts.get('themes', []))
+        add_tokens(facts.get('context', []))
+        add_tokens(facts.get('cultural', {}))
+
+        # Match against rules with enhanced scoring
+        matches = []
+        korean_notes = []
+        specific_matches = []
+        categories = set()
+
+        for rule_file, rules in self.rules.items():
+            for rule_id, rule in rules.items():
+                if not isinstance(rule, dict):
+                    continue
+                if rule_id.startswith('_'):  # Skip metadata
+                    continue
+
+                conditions = rule.get('when', [])
+                if isinstance(conditions, str):
+                    conditions = [conditions]
+
+                # Calculate match score
+                match_score = 0
+                matched_conditions = []
+
+                for c in conditions:
+                    c_lower = c.lower()
+                    # Direct token match
+                    if c_lower in tokens:
+                        match_score += 2
+                        matched_conditions.append(c)
+                    # Substring match in dream text
+                    elif c_lower in dream_text:
+                        match_score += 1
+                        matched_conditions.append(c)
+
+                if match_score > 0:
+                    weight = rule.get('weight', 1)
+                    final_score = weight * match_score
+                    text = rule.get('text', '')
+
+                    if text:
+                        matches.append((final_score, text, rule_file))
+
+                    # Collect Korean interpretation
+                    korean = rule.get('korean', '')
+                    if korean:
+                        korean_notes.append((final_score, korean))
+
+                    # Collect category
+                    category = rule.get('category', '')
+                    if category:
+                        categories.add(category)
+
+                    # Check specifics for detailed matching
+                    specifics = rule.get('specifics', {})
+                    if specifics:
+                        for specific_key, specific_value in specifics.items():
+                            if any(word in dream_text for word in specific_key.lower().split()):
+                                specific_matches.append((final_score + 5, f"{specific_key}: {specific_value}"))
+
+        # Sort and deduplicate
+        matches.sort(key=lambda x: x[0], reverse=True)
+        korean_notes.sort(key=lambda x: x[0], reverse=True)
+        specific_matches.sort(key=lambda x: x[0], reverse=True)
+
+        return {
+            'texts': [m[1] for m in matches[:15]],
+            'korean_notes': [k[1] for k in korean_notes[:5]],
+            'specifics': [s[1] for s in specific_matches[:10]],
+            'categories': list(categories),
+            'sources': list(set(m[2] for m in matches[:15]))
+        }
+
+
+# ===============================================================
+# MAIN INTERPRETER
+# ===============================================================
+def _merge_unique(list1: list, list2: list) -> list:
+    """Merge two lists preserving order, removing duplicates"""
+    seen = set()
+    result = []
+    for item in list1 + list2:
+        # Use first 100 chars as key to avoid near-duplicates
+        key = item[:100] if isinstance(item, str) else str(item)[:100]
+        if key not in seen:
+            seen.add(key)
+            result.append(item)
+    return result
+
+
+def _get_fallback_interpretations(dream_text: str, locale: str = "en") -> list:
+    """
+    매칭되는 규칙이 없을 때 사용할 범용 해석 가이드라인
+    Universal dream interpretation guidelines when no specific rules match
+    """
+    dream_lower = dream_text.lower()
+
+    # 감정 키워드 감지
+    emotion_hints = []
+    if any(w in dream_lower for w in ['무섭', '두렵', 'scary', 'fear', 'afraid', '공포']):
+        emotion_hints.append("꿈에서 느낀 두려움은 현실에서 회피하고 있는 문제나 불안을 반영할 수 있습니다.")
+    if any(w in dream_lower for w in ['행복', '기쁨', 'happy', 'joy', '좋은', 'good']):
+        emotion_hints.append("긍정적인 감정의 꿈은 현재 삶에서 만족감이나 희망을 나타냅니다.")
+    if any(w in dream_lower for w in ['슬프', '울', 'sad', 'cry', '눈물']):
+        emotion_hints.append("슬픔이나 눈물의 꿈은 해소되지 않은 감정이나 상실감을 처리하는 과정일 수 있습니다.")
+    if any(w in dream_lower for w in ['화나', '분노', 'angry', 'rage', '짜증']):
+        emotion_hints.append("분노의 꿈은 억눌린 좌절감이나 표현하지 못한 감정을 나타낼 수 있습니다.")
+
+    # 상황 키워드 감지
+    situation_hints = []
+    if any(w in dream_lower for w in ['집', 'house', 'home', '방']):
+        situation_hints.append("꿈에서 집은 자아(Self)를 상징합니다. 집의 상태가 현재 심리 상태를 반영합니다.")
+    if any(w in dream_lower for w in ['사람', '친구', '가족', 'people', 'friend', 'family']):
+        situation_hints.append("꿈에 등장하는 사람들은 그 관계에 대한 무의식적 생각이나 자신의 일부를 투영한 것일 수 있습니다.")
+    if any(w in dream_lower for w in ['길', '도로', 'road', 'path', '여행']):
+        situation_hints.append("길이나 여행의 꿈은 인생의 방향성과 선택에 대한 고민을 나타낼 수 있습니다.")
+
+    # 기본 해석 가이드라인
+    base_interpretations = [
+        "꿈은 무의식이 의식에 보내는 메시지입니다. 융(Jung)에 따르면 꿈은 심리적 균형을 위한 보상 기능을 합니다.",
+        "꿈의 해석에서 가장 중요한 것은 꿈꾼 사람 자신의 연상입니다. 꿈의 상징이 당신에게 어떤 의미인지 생각해보세요.",
+        "반복되는 꿈은 특히 주목할 가치가 있습니다. 무의식이 계속해서 전달하려는 메시지가 있을 수 있습니다."
+    ]
+
+    # 한국 전통 해몽 기본
+    korean_base = [
+        "한국 해몽에서는 꿈을 길몽(좋은 꿈)과 흉몽(나쁜 꿈)으로 나누지만, 표면적 의미와 반대인 경우도 많습니다.",
+        "전통 해몽에서 꿈은 미래의 징조로 해석되기도 하며, 특히 새벽꿈이 가장 영험하다고 합니다."
+    ]
+
+    return base_interpretations + emotion_hints + situation_hints + korean_base
+
+
+def _create_cache_key(facts: dict) -> str:
+    """Create a cache key from dream facts."""
+    # Include only relevant fields for caching
+    cache_data = {
+        "dream": facts.get("dream", ""),
+        "symbols": sorted(facts.get("symbols", [])),
+        "emotions": sorted(facts.get("emotions", [])),
+        "themes": sorted(facts.get("themes", [])),
+        "locale": facts.get("locale", "en"),
+    }
+    serialized = json.dumps(cache_data, sort_keys=True)
+    return f"dream:{hashlib.sha256(serialized.encode()).hexdigest()[:16]}"
+
+
+def interpret_dream(facts: dict) -> dict:
+    """
+    Main dream interpretation function.
+
+    facts: {
+        "dream": "dream text",
+        "symbols": ["snake", "water"],
+        "emotions": ["fear", "curiosity"],
+        "themes": ["예지몽"],
+        "context": ["새벽 꿈"],
+        "locale": "ko",
+        "cultural": {
+            "koreanTypes": [...],
+            "koreanLucky": [...],
+            ...
+        },
+        "birth": {...} optional
+    }
+    """
+    load_dotenv()
+
+    try:
+        # Check cache first
+        cache = get_cache()
+        cache_key = _create_cache_key(facts)
+        cached_result = cache.get("dream", {"key": cache_key})
+
+        if cached_result:
+            print(f"[interpret_dream] Cache HIT for key: {cache_key}")
+            cached_result["cached"] = True
+            return cached_result
+
+        api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("LLM API key is missing")
+
+        locale = facts.get("locale", "en")
+        dream_text = facts.get("dream", "")
+        symbols = facts.get("symbols", [])
+        emotions = facts.get("emotions", [])
+        themes = facts.get("themes", [])
+        context = facts.get("context", [])
+        cultural = {
+            "koreanTypes": facts.get("koreanTypes", []),
+            "koreanLucky": facts.get("koreanLucky", []),
+            "chinese": facts.get("chinese", []),
+            "islamicTypes": facts.get("islamicTypes", []),
+            "islamicBlessed": facts.get("islamicBlessed", []),
+            "western": facts.get("western", []),
+            "hindu": facts.get("hindu", []),
+            "nativeAmerican": facts.get("nativeAmerican", []),
+            "japanese": facts.get("japanese", []),
+        }
+
+        # Get rule matches (keyword-based)
+        rule_engine = DreamRuleEngine()
+        keyword_matches = rule_engine.evaluate(facts)
+
+        # CELESTIAL CONTEXT: Get current moon phase and planetary transits
+        celestial_context = rule_engine.get_celestial_context(locale)
+        if celestial_context:
+            print(f"[interpret_dream] Celestial context: Moon={celestial_context.get('moon_phase', {}).get('name', 'N/A')}, "
+                  f"Sign={celestial_context.get('moon_sign', {}).get('sign', 'N/A')}, "
+                  f"Retrogrades={len(celestial_context.get('retrogrades', []))}")
+
+        # PREMIUM FEATURES: Detect combinations, taemong, lucky numbers
+        detected_combinations = rule_engine.detect_combinations(dream_text, symbols)
+        taemong_result = rule_engine.detect_taemong(dream_text, symbols, themes)
+        lucky_numbers_result = rule_engine.generate_lucky_numbers(dream_text, symbols)
+
+        if detected_combinations:
+            print(f"[interpret_dream] Detected {len(detected_combinations)} symbol combinations")
+        if taemong_result:
+            # Use ASCII-safe output to avoid Windows encoding issues
+            print("[interpret_dream] Taemong detected: primary_symbol found")
+        if lucky_numbers_result:
+            print(f"[interpret_dream] Generated lucky numbers: {lucky_numbers_result.get('numbers', [])}")
+
+        # Get embedding-based matches (semantic similarity)
+        try:
+            embed_rag = get_dream_embed_rag()
+            embed_matches = embed_rag.get_interpretation_context(dream_text, top_k=8)
+            print(f"[interpret_dream] Embedding search found {len(embed_matches.get('texts', []))} matches (quality: {embed_matches.get('match_quality', 'unknown')})")
+        except Exception as embed_err:
+            print(f"[interpret_dream] Embedding search failed: {embed_err}")
+            embed_matches = {'texts': [], 'korean_notes': [], 'categories': [], 'specifics': [], 'advice': []}
+
+        # Merge results (keyword + embedding)
+        merged_texts = _merge_unique(keyword_matches.get('texts', []), embed_matches.get('texts', []))[:15]
+        merged_korean = _merge_unique(keyword_matches.get('korean_notes', []), embed_matches.get('korean_notes', []))[:5]
+        merged_specifics = _merge_unique(keyword_matches.get('specifics', []), embed_matches.get('specifics', []))[:10]
+        merged_categories = list(set(keyword_matches.get('categories', []) + embed_matches.get('categories', [])))
+        merged_advice = embed_matches.get('advice', [])[:3]
+
+        # FALLBACK: If no matches found, add universal dream interpretation guidelines
+        if not merged_texts:
+            print("[interpret_dream] No rule matches found, using fallback interpretations")
+            merged_texts = _get_fallback_interpretations(dream_text, locale)
+            merged_korean = ["꿈은 무의식의 메시지입니다. 꿈에서 느낀 감정과 상황을 되돌아보세요."]
+            merged_categories = ["general", "personal_reflection"]
+            merged_advice = [
+                "꿈 일기를 작성하여 패턴을 찾아보세요",
+                "꿈에서 느낀 감정이 현실의 어떤 상황과 연결되는지 생각해보세요"
+            ]
+
+        matched_rules = {
+            'texts': merged_texts,
+            'korean_notes': merged_korean,
+            'specifics': merged_specifics,
+            'categories': merged_categories,
+            'sources': list(set(keyword_matches.get('sources', []) + embed_matches.get('sources', []))),
+            'advice': merged_advice,
+            'match_quality': embed_matches.get('match_quality', 'keyword_only')
+        }
+
+        # Add premium feature context to matched_rules for LLM prompt
+        if detected_combinations:
+            combo_texts = [f"심볼 조합 '{c['combination']}': {c['interpretation']}" for c in detected_combinations[:3]]
+            matched_rules['combination_insights'] = combo_texts
+        if taemong_result and taemong_result.get('primary_symbol'):
+            primary = taemong_result['primary_symbol']
+            matched_rules['taemong_insight'] = f"태몽 분석: {primary['symbol']} - {primary['interpretation']}"
+        if lucky_numbers_result:
+            matched_rules['lucky_numbers_context'] = f"행운의 숫자 분석: {lucky_numbers_result.get('element_analysis', '')}"
+
+        # Build prompt
+        prompt = build_dream_prompt(
+            dream_text=dream_text,
+            symbols=symbols,
+            emotions=emotions,
+            themes=themes,
+            context=context,
+            cultural=cultural,
+            matched_rules=matched_rules,
+            locale=locale,
+            celestial_context=celestial_context
+        )
+
+        # Call LLM using Together API
+        system_instruction = "You are an expert dream interpreter. Always respond with valid JSON only."
+        full_prompt = f"[SYSTEM]\n{system_instruction}\n\n[USER]\n{prompt}"
+
+        response_text = _generate_with_together(full_prompt, max_tokens=2000, temperature=0.2)
+
+        # Parse JSON from response
+        # Try to extract JSON from markdown code blocks
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        elif "```" in response_text:
+            json_start = response_text.find("```") + 3
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+
+        try:
+            result = json.loads(response_text)
+        except json.JSONDecodeError:
+            # If JSON parsing fails, return raw text
+            result = {
+                "summary": response_text[:500],
+                "dreamSymbols": [],
+                "themes": [],
+                "raw_response": response_text
+            }
+
+        # GPT-4o-mini polishing (like destiny-map pattern)
+        # Step 2: Polish Llama 3.3 70B draft with GPT-4o-mini
+        try:
+            if result.get('summary'):
+                print(f"[interpret_dream] Step2: GPT-4o-mini polishing summary...")
+                polished_summary = refine_with_gpt5mini(result['summary'], 'dream', locale)
+                result['summary'] = polished_summary
+
+            # Polish crossInsights if present
+            if result.get('crossInsights') and isinstance(result['crossInsights'], list):
+                polished_insights = []
+                for insight in result['crossInsights'][:3]:  # Limit to first 3 for speed
+                    if insight and len(insight) > 20:  # Only polish substantial text
+                        polished = refine_with_gpt5mini(insight, 'dream', locale)
+                        polished_insights.append(polished)
+                    else:
+                        polished_insights.append(insight)
+                # Add remaining insights without polishing
+                polished_insights.extend(result['crossInsights'][3:])
+                result['crossInsights'] = polished_insights
+
+            print(f"[interpret_dream] GPT-4o-mini polishing completed")
+        except Exception as polish_err:
+            print(f"[interpret_dream] GPT polish failed, using original: {polish_err}")
+            # Continue with original Llama output if polish fails
+
+        # Enhance luckyElements with generated numbers if available
+        if lucky_numbers_result and lucky_numbers_result.get('numbers'):
+            if 'luckyElements' not in result:
+                result['luckyElements'] = {}
+            result['luckyElements']['luckyNumbers'] = lucky_numbers_result['numbers']
+            result['luckyElements']['matchedSymbols'] = lucky_numbers_result.get('matched_symbols', [])
+            result['luckyElements']['elementAnalysis'] = lucky_numbers_result.get('element_analysis')
+            result['luckyElements']['confidence'] = lucky_numbers_result.get('confidence', 0)
+            if result['luckyElements'].get('isLucky') is None:
+                result['luckyElements']['isLucky'] = True
+
+        final_result = {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "locale": locale,
+            "matched_rules": matched_rules,
+            "cached": False,
+            "premium_features": {
+                "combinations": detected_combinations if detected_combinations else None,
+                "taemong": taemong_result if taemong_result else None,
+                "lucky_numbers": lucky_numbers_result if lucky_numbers_result else None
+            },
+            "celestial": celestial_context,
+            **result
+        }
+
+        # Cache the result
+        try:
+            cache.set("dream", {"key": cache_key}, final_result)
+            print(f"[interpret_dream] Cached result for key: {cache_key}")
+        except Exception as cache_err:
+            print(f"[interpret_dream] Cache SET failed: {cache_err}")
+
+        return final_result
+
+    except Exception as e:
+        print(f"[interpret_dream] Error: {e}")
+        traceback.print_exc()
+        return {
+            "status": "error",
+            "message": str(e),
+            "trace": traceback.format_exc()
+        }

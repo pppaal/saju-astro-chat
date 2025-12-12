@@ -1,0 +1,267 @@
+{
+  "_meta": {
+    "title": "Tarot Lucky Items",
+    "description": "타로 카드 기반 행운 아이템 - 행운의 색, 숫자, 요일, 방향, 크리스탈"
+  },
+  "card_lucky_items": {
+    "The Fool": {
+      "lucky_color": ["하늘색", "노란색", "흰색"],
+      "lucky_number": [0, 22, 4],
+      "lucky_day": "일요일",
+      "lucky_direction": "어디든 마음 가는 곳",
+      "lucky_crystal": ["터키석", "아쿠아마린", "청금석"],
+      "lucky_flower": "데이지, 해바라기",
+      "lucky_scent": "페퍼민트, 레몬",
+      "power_object": "여행 가방, 배낭"
+    },
+    "The Magician": {
+      "lucky_color": ["빨강", "흰색", "금색"],
+      "lucky_number": [1, 10, 28],
+      "lucky_day": "수요일",
+      "lucky_direction": "모든 방향",
+      "lucky_crystal": ["시트린", "투명 수정", "파이어 오팔"],
+      "lucky_flower": "장미",
+      "lucky_scent": "프랭킨센스, 샌달우드",
+      "power_object": "펜, 열쇠"
+    },
+    "The High Priestess": {
+      "lucky_color": ["은색", "보라", "남색"],
+      "lucky_number": [2, 11, 20],
+      "lucky_day": "월요일",
+      "lucky_direction": "북쪽",
+      "lucky_crystal": ["문스톤", "자수정", "라브라도라이트"],
+      "lucky_flower": "백합, 연꽃",
+      "lucky_scent": "재스민, 캐모마일",
+      "power_object": "거울, 일기장"
+    },
+    "The Empress": {
+      "lucky_color": ["초록", "분홍", "금색"],
+      "lucky_number": [3, 12, 21],
+      "lucky_day": "금요일",
+      "lucky_direction": "남쪽",
+      "lucky_crystal": ["로즈쿼츠", "에메랄드", "페리도트"],
+      "lucky_flower": "장미, 모란",
+      "lucky_scent": "로즈, 바닐라",
+      "power_object": "식물, 보석"
+    },
+    "The Emperor": {
+      "lucky_color": ["빨강", "금색", "보라"],
+      "lucky_number": [4, 13, 22],
+      "lucky_day": "화요일",
+      "lucky_direction": "동쪽",
+      "lucky_crystal": ["레드 재스퍼", "루비", "호랑이 눈"],
+      "lucky_flower": "카네이션",
+      "lucky_scent": "시더우드, 베티버",
+      "power_object": "시계, 명함"
+    },
+    "The Hierophant": {
+      "lucky_color": ["보라", "금색", "흰색"],
+      "lucky_number": [5, 14, 23],
+      "lucky_day": "목요일",
+      "lucky_direction": "북동쪽",
+      "lucky_crystal": ["라피스라줄리", "사파이어", "아메시스트"],
+      "lucky_flower": "아이리스",
+      "lucky_scent": "프랭킨센스, 미르",
+      "power_object": "책, 열쇠"
+    },
+    "The Lovers": {
+      "lucky_color": ["분홍", "빨강", "흰색"],
+      "lucky_number": [6, 15, 24],
+      "lucky_day": "금요일",
+      "lucky_direction": "남동쪽",
+      "lucky_crystal": ["로즈쿼츠", "로도나이트", "가넷"],
+      "lucky_flower": "장미",
+      "lucky_scent": "로즈, 일랑일랑",
+      "power_object": "커플 아이템, 하트 모양"
+    },
+    "The Chariot": {
+      "lucky_color": ["은색", "검정", "파랑"],
+      "lucky_number": [7, 16, 25],
+      "lucky_day": "월요일",
+      "lucky_direction": "모든 방향 (전진)",
+      "lucky_crystal": ["블랙 오닉스", "헤마타이트", "무나카이트"],
+      "lucky_flower": "카네이션",
+      "lucky_scent": "유칼립투스, 로즈마리",
+      "power_object": "자동차 키, 트로피"
+    },
+    "Strength": {
+      "lucky_color": ["금색", "주황", "노랑"],
+      "lucky_number": [8, 17, 26],
+      "lucky_day": "일요일",
+      "lucky_direction": "남쪽",
+      "lucky_crystal": ["호랑이 눈", "카넬리안", "골드 토파즈"],
+      "lucky_flower": "해바라기",
+      "lucky_scent": "시나몬, 오렌지",
+      "power_object": "사자 모양, 금 액세서리"
+    },
+    "The Hermit": {
+      "lucky_color": ["회색", "갈색", "남색"],
+      "lucky_number": [9, 18, 27],
+      "lucky_day": "토요일",
+      "lucky_direction": "북쪽",
+      "lucky_crystal": ["자수정", "흑요석", "스모키쿼츠"],
+      "lucky_flower": "바이올렛",
+      "lucky_scent": "세이지, 샌달우드",
+      "power_object": "등불, 지팡이, 책"
+    },
+    "Wheel of Fortune": {
+      "lucky_color": ["보라", "금색", "파랑"],
+      "lucky_number": [10, 5, 14],
+      "lucky_day": "목요일",
+      "lucky_direction": "시계 방향으로 회전",
+      "lucky_crystal": ["라브라도라이트", "아벤츄린", "시트린"],
+      "lucky_flower": "수레국화",
+      "lucky_scent": "네롤리, 베르가못",
+      "power_object": "동전, 바퀴 모양"
+    },
+    "Justice": {
+      "lucky_color": ["파랑", "흰색", "금색"],
+      "lucky_number": [11, 2, 20],
+      "lucky_day": "금요일",
+      "lucky_direction": "균형잡힌 중앙",
+      "lucky_crystal": ["에메랄드", "투명 수정", "블루 카이아나이트"],
+      "lucky_flower": "백합",
+      "lucky_scent": "라벤더, 민트",
+      "power_object": "저울, 깃털"
+    },
+    "The Hanged Man": {
+      "lucky_color": ["파랑", "초록", "은색"],
+      "lucky_number": [12, 3, 21],
+      "lucky_day": "수요일",
+      "lucky_direction": "역방향 (다른 관점)",
+      "lucky_crystal": ["아쿠아마린", "셀레나이트", "문스톤"],
+      "lucky_flower": "등나무",
+      "lucky_scent": "유칼립투스, 페퍼민트",
+      "power_object": "물 관련 아이템"
+    },
+    "Death": {
+      "lucky_color": ["검정", "흰색", "빨강"],
+      "lucky_number": [13, 4, 22],
+      "lucky_day": "토요일",
+      "lucky_direction": "서쪽 (해지는 방향)",
+      "lucky_crystal": ["흑요석", "스모키쿼츠", "블랙 투르말린"],
+      "lucky_flower": "흰 국화",
+      "lucky_scent": "미르, 파출리",
+      "power_object": "나비 모양"
+    },
+    "Temperance": {
+      "lucky_color": ["파랑", "보라", "무지개색"],
+      "lucky_number": [14, 5, 23],
+      "lucky_day": "목요일",
+      "lucky_direction": "북동쪽",
+      "lucky_crystal": ["아메트린", "플루오라이트", "오팔"],
+      "lucky_flower": "아이리스",
+      "lucky_scent": "라벤더, 캐모마일",
+      "power_object": "컵, 물병"
+    },
+    "The Devil": {
+      "lucky_color": ["검정", "빨강", "금색"],
+      "lucky_number": [15, 6, 24],
+      "lucky_day": "토요일",
+      "lucky_direction": "아래 (그림자 작업)",
+      "lucky_crystal": ["흑요석", "스모키쿼츠", "가넷"],
+      "lucky_flower": "검은 장미",
+      "lucky_scent": "파출리, 머스크",
+      "power_object": "열쇠 (해방의 상징)"
+    },
+    "The Tower": {
+      "lucky_color": ["빨강", "검정", "금색"],
+      "lucky_number": [16, 7, 25],
+      "lucky_day": "화요일",
+      "lucky_direction": "새로운 방향",
+      "lucky_crystal": ["흑요석", "말라카이트", "라브라도라이트"],
+      "lucky_flower": "칸나",
+      "lucky_scent": "시더우드, 프랭킨센스",
+      "power_object": "번개 모양"
+    },
+    "The Star": {
+      "lucky_color": ["파랑", "은색", "노랑"],
+      "lucky_number": [17, 8, 26],
+      "lucky_day": "토요일",
+      "lucky_direction": "북쪽 (북극성)",
+      "lucky_crystal": ["아쿠아마린", "셀레스타이트", "청금석"],
+      "lucky_flower": "데이지",
+      "lucky_scent": "유칼립투스, 민트",
+      "power_object": "별 모양"
+    },
+    "The Moon": {
+      "lucky_color": ["은색", "흰색", "보라"],
+      "lucky_number": [18, 9, 27],
+      "lucky_day": "월요일",
+      "lucky_direction": "서쪽",
+      "lucky_crystal": ["문스톤", "라브라도라이트", "자수정"],
+      "lucky_flower": "백합",
+      "lucky_scent": "재스민, 캐모마일",
+      "power_object": "달 모양, 조개껍데기"
+    },
+    "The Sun": {
+      "lucky_color": ["노랑", "금색", "주황"],
+      "lucky_number": [19, 1, 10],
+      "lucky_day": "일요일",
+      "lucky_direction": "동쪽 (해뜨는 방향)",
+      "lucky_crystal": ["시트린", "썬스톤", "호박"],
+      "lucky_flower": "해바라기",
+      "lucky_scent": "오렌지, 레몬",
+      "power_object": "해 모양"
+    },
+    "Judgement": {
+      "lucky_color": ["흰색", "금색", "빨강"],
+      "lucky_number": [20, 2, 11],
+      "lucky_day": "일요일",
+      "lucky_direction": "위 (상승)",
+      "lucky_crystal": ["투명 수정", "셀레나이트", "화이트 토파즈"],
+      "lucky_flower": "백합",
+      "lucky_scent": "프랭킨센스, 미르",
+      "power_object": "종, 나팔 모양"
+    },
+    "The World": {
+      "lucky_color": ["보라", "파랑", "금색"],
+      "lucky_number": [21, 3, 12],
+      "lucky_day": "목요일",
+      "lucky_direction": "모든 방향 (360도)",
+      "lucky_crystal": ["라피스라줄리", "오팔", "몰다바이트"],
+      "lucky_flower": "만개한 꽃",
+      "lucky_scent": "로즈, 자스민",
+      "power_object": "지구본, 원형 아이템"
+    }
+  },
+  "suit_lucky_items": {
+    "wands": {
+      "lucky_color": ["빨강", "주황", "노랑"],
+      "lucky_direction": "남쪽",
+      "lucky_day": "화요일",
+      "lucky_element": "불",
+      "lucky_crystal": ["카넬리안", "파이어 오팔", "레드 재스퍼"],
+      "lucky_activity": "운동, 창작 활동"
+    },
+    "cups": {
+      "lucky_color": ["파랑", "분홍", "은색"],
+      "lucky_direction": "서쪽",
+      "lucky_day": "월요일, 금요일",
+      "lucky_element": "물",
+      "lucky_crystal": ["로즈쿼츠", "아쿠아마린", "문스톤"],
+      "lucky_activity": "명상, 예술, 데이트"
+    },
+    "swords": {
+      "lucky_color": ["노랑", "흰색", "하늘색"],
+      "lucky_direction": "동쪽",
+      "lucky_day": "수요일",
+      "lucky_element": "공기",
+      "lucky_crystal": ["플루오라이트", "소달라이트", "투명 수정"],
+      "lucky_activity": "공부, 글쓰기, 토론"
+    },
+    "pentacles": {
+      "lucky_color": ["초록", "갈색", "금색"],
+      "lucky_direction": "북쪽",
+      "lucky_day": "토요일",
+      "lucky_element": "땅",
+      "lucky_crystal": ["타이거아이", "그린 아벤츄린", "황철석"],
+      "lucky_activity": "재테크, 정원 가꾸기, 요리"
+    }
+  },
+  "reading_lucky_items": {
+    "description": "리딩 결과를 바탕으로 행운 아이템 추천",
+    "method": "뽑힌 카드 중 가장 긍정적인 카드의 행운 아이템을 중심으로",
+    "combination_rule": "여러 카드의 공통 색상/숫자가 있으면 더욱 강력"
+  }
+}

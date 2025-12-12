@@ -1,0 +1,132 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "meta/index",
+  "$version": "1.0.0",
+  "$created": "2024",
+  "$description": "서양 점성술 문학적 해석 데이터베이스 인덱스",
+  "$language": "ko",
+
+  "database_structure": {
+    "total_estimated_entries": 2500,
+    "folders": [
+      {
+        "name": "core",
+        "description": "기본 점성술 요소 정의",
+        "files": [
+          {"name": "planets.json", "entries": 18, "description": "행성/천체 정의"},
+          {"name": "signs.json", "entries": 12, "description": "별자리 정의"},
+          {"name": "houses.json", "entries": 12, "description": "하우스 정의"},
+          {"name": "aspect_types.json", "entries": 9, "description": "애스펙트 정의"}
+        ]
+      },
+      {
+        "name": "placements",
+        "description": "행성 배치 해석",
+        "files": [
+          {"name": "planet_in_sign.json", "entries": 216, "description": "18행성 × 12별자리"},
+          {"name": "planet_in_house.json", "entries": 180, "description": "15행성 × 12하우스"}
+        ],
+        "subfolders": [
+          {
+            "name": "domains",
+            "description": "도메인별 배치 해석",
+            "files": [
+              {"name": "love.json", "entries": 84, "description": "연애/관계"},
+              {"name": "career.json", "entries": 96, "description": "커리어/직업"},
+              {"name": "health.json", "entries": 72, "description": "건강/웰빙"},
+              {"name": "wealth.json", "entries": 84, "description": "재물/풍요"},
+              {"name": "spiritual.json", "entries": 96, "description": "영성/카르마"}
+            ]
+          }
+        ]
+      },
+      {
+        "name": "dynamics",
+        "description": "동적 점성술 요소",
+        "files": [
+          {"name": "natal_aspects.json", "entries": 180, "description": "출생차트 애스펙트"},
+          {"name": "transits.json", "entries": 120, "description": "운행 트랜짓"},
+          {"name": "retrogrades.json", "entries": 50, "description": "역행 해석"}
+        ]
+      },
+      {
+        "name": "advanced",
+        "description": "고급 점성술 기법",
+        "files": [
+          {"name": "house_rulers.json", "entries": 144, "description": "하우스 룰러 위치"},
+          {"name": "decans.json", "entries": 36, "description": "데칸 해석"},
+          {"name": "dignities.json", "entries": 100, "description": "품위 시스템"},
+          {"name": "patterns.json", "entries": 30, "description": "차트 패턴"},
+          {"name": "nodes.json", "entries": 24, "description": "노드 축 해석"}
+        ]
+      },
+      {
+        "name": "synastry",
+        "description": "궁합/시너스트리",
+        "files": [
+          {"name": "aspects.json", "entries": 150, "description": "두 사람 간 애스펙트"},
+          {"name": "house_overlays.json", "entries": 120, "description": "하우스 오버레이"},
+          {"name": "compatibility.json", "entries": 78, "description": "별자리 간 궁합"}
+        ]
+      },
+      {
+        "name": "timing",
+        "description": "타이밍 기법",
+        "files": [
+          {"name": "returns.json", "entries": 40, "description": "태양/달 리턴"},
+          {"name": "eclipses.json", "entries": 30, "description": "이클립스 해석"}
+        ]
+      }
+    ]
+  },
+
+  "interpretation_structure": {
+    "planet_in_sign": {
+      "fields": ["planet", "sign", "dignity", "core", "light", "shadow", "growth", "karma", "gift"],
+      "description": "행성이 별자리에 위치할 때의 해석"
+    },
+    "planet_in_house": {
+      "fields": ["planet", "house", "core", "light", "shadow", "growth", "life_area", "gift"],
+      "description": "행성이 하우스에 위치할 때의 해석"
+    },
+    "aspect": {
+      "fields": ["energy", "gift", "challenge", "expression"],
+      "description": "두 행성 간 애스펙트 해석"
+    },
+    "synastry_aspect": {
+      "fields": ["harmony", "chemistry", "dynamic", "gift", "challenge", "growth"],
+      "description": "두 사람 간 애스펙트 해석"
+    }
+  },
+
+  "usage_guide": {
+    "reading_natal_chart": [
+      "1. Sun, Moon, Ascendant 확인 (core/)",
+      "2. 행성 별자리 위치 확인 (placements/planet_in_sign.json)",
+      "3. 행성 하우스 위치 확인 (placements/planet_in_house.json)",
+      "4. 주요 애스펙트 확인 (dynamics/natal_aspects.json)",
+      "5. 차트 패턴 확인 (advanced/patterns.json)",
+      "6. 역행 행성 확인 (dynamics/retrogrades.json)",
+      "7. 도메인별 심화 해석 (placements/domains/)"
+    ],
+    "reading_synastry": [
+      "1. 원소/모달리티 궁합 확인 (synastry/compatibility.json)",
+      "2. 주요 애스펙트 확인 (synastry/aspects.json)",
+      "3. 하우스 오버레이 확인 (synastry/house_overlays.json)",
+      "4. 노드 연결 확인 (synastry/aspects.json - karmic)"
+    ],
+    "reading_transits": [
+      "1. 현재 운행 트랜짓 확인 (dynamics/transits.json)",
+      "2. 역행 행성 확인 (dynamics/retrogrades.json)",
+      "3. 이클립스 영향 확인 (timing/eclipses.json)",
+      "4. 태양/달 리턴 확인 (timing/returns.json)"
+    ]
+  },
+
+  "quality_notes": {
+    "language": "한국어 (문학적 표현)",
+    "style": "시적이고 통찰력 있는 해석",
+    "coverage": "전문 점성술 앱 수준의 완전성",
+    "sources": "전통 점성술 + 현대 심리 점성술"
+  }
+}

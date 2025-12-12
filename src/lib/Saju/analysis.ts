@@ -4,14 +4,15 @@
 // - 코드 의존 없음. 번들 제외를 원하면 빌드 설정에서 제외하세요.
 //
 // 디렉터리 개요
-// ├─ constants.ts   : 도메인 상수/룩업/절입 계산 훅(getSolarTermKST)
-// ├─ index.ts       : 공개 엔트리(퍼블릭 API)
-// ├─ relations.ts   : 합/충/형/파/해/원진/삼합/육합/방합/공망 등 관계 판단 유틸
-// ├─ saju.ts        : 핵심 원국 계산기(연/월/일/시 기둥 산출)
-// ├─ shinsal.ts     : 신살(역마/화개/겁살 등) 계산 유틸
-// ├─ timezone.ts    : 타임존 유틸(Intl 기반 오프셋 계산 + 성능 캐시)
-// ├─ types.ts       : 도메인 타입의 단일 출처(SSOT)
-// └─ unse.ts        : 운세/달력 유틸(대운/연운/월운/일진)
+// ├─ constants.ts      : 도메인 상수/룩업/절입 계산 훅(getSolarTermKST)
+// ├─ index.ts          : 공개 엔트리(퍼블릭 API)
+// ├─ relations.ts      : 합/충/형/파/해/원진/삼합/육합/방합/공망 등 관계 판단 유틸
+// ├─ saju.ts           : 핵심 원국 계산기(연/월/일/시 기둥 산출)
+// ├─ shinsal.ts        : 신살(역마/화개/겁살 등) 계산 유틸
+// ├─ timezone.ts       : 타임존 유틸(Intl 기반 오프셋 계산 + 성능 캐시)
+// ├─ types.ts          : 도메인 타입의 단일 출처(SSOT)
+// ├─ unse.ts           : 운세/달력 유틸(대운/연운/월운/일진)
+// └─ astrologyengine.ts: 고급 분석 (신강/신약, 격국, 용신) ⭐ NEW
 //
 // 핵심 타입 개요(types.ts)
 // - FiveElement(오행), YinYang(음양), SibsinKind(십성)
@@ -101,3 +102,46 @@
 //   const yeonun = getAnnualCycles(currentYear - 5, 11, saju.dayMaster);
 //   const wolun = getMonthlyCycles(currentYear, saju.dayMaster);
 //   const iljin = getIljinCalendar(year, month, saju.dayMaster);
+//
+// 고급 분석(astrologyengine.ts) - 2024.12 NEW
+// ===========================================
+// 신강/신약(身强/身弱) 판단
+// - analyzeStrength(dayMaster, pillars): StrengthAnalysis 반환
+// - 점수 계산: 비겁+인성(helping) vs 식상+재성+관성(draining)
+// - 월지 계절 보너스: 월지가 일간을 도우면 +2점
+// - 레벨: 극신강(+40이상) / 신강(+15~40) / 중화(-15~+15) / 신약(-40~-15) / 극신약(-40이하)
+//
+// 격국(格局) 판단
+// - analyzeGeokguk(dayMaster, pillars, strength): GeokgukAnalysis 반환
+// - 건록격/양인격: 월지가 일간의 건록지/양인지인 경우
+// - 종격: 극신강(종왕/종강), 극신약(종재/종살/종아)
+// - 정격 8격: 월지 정기의 십성 + 투출 여부로 판단
+//   - 정관격/편관격/정재격/편재격/정인격/편인격/식신격/상관격
+//
+// 용신(用神) 판단
+// - analyzeYongsin(dayMaster, strength, geokguk): YongsinAnalysis 반환
+// - 종격: 그 세를 따르는 오행이 용신
+// - 신강: 설기/극하는 오행 (식상/재성/관성)
+// - 신약: 생조하는 오행 (인성/비겁)
+// - 중화: 가장 부족한 오행 보충
+//
+// 통합 분석 함수
+// - analyzeAdvancedSaju(dayMaster, pillars): 신강/신약 + 격국 + 용신 일괄 분석
+//
+// 운세 평가 유틸
+// - evaluateElementInfluence(element, yongsin): 용신/희신/기신/한신/구신 판정
+// - scoreUnseElement(stemEl, branchEl, yongsin): 대운/세운 점수 계산
+//
+// 사용 예시
+//   import { calculateSajuData, analyzeAdvancedSaju } from '@/lib/Saju';
+//
+//   const saju = calculateSajuData(input);
+//   const advanced = analyzeAdvancedSaju(saju.dayMaster, {
+//     yearPillar: saju.yearPillar,
+//     monthPillar: saju.monthPillar,
+//     dayPillar: saju.dayPillar,
+//     timePillar: saju.timePillar,
+//   });
+//   console.log(advanced.strength.level);  // '신강' | '신약' | ...
+//   console.log(advanced.geokguk.type);    // '정관격' | '편재격' | ...
+//   console.log(advanced.yongsin.primary); // '목' | '화' | ...

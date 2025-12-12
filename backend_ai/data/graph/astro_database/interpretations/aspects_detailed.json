@@ -1,0 +1,4733 @@
+{
+  "meta": {
+    "type": "aspects",
+    "count": 225
+  },
+  "interpretations": [
+    {
+      "id": "Sun_conjunction_Moon",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 달가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "자아와 감정의 통합, 내면의 조화",
+      "challenging_expression": "태양와(과) 달 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Moon",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 달가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "자아와 감정의 통합, 내면의 조화",
+      "challenging_expression": "태양와(과) 달 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Moon",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 달가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "자아와 감정의 통합, 내면의 조화",
+      "challenging_expression": "태양와(과) 달 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Moon",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 달가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "자아와 감정의 통합, 내면의 조화",
+      "challenging_expression": "태양와(과) 달 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Moon",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 달가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "자아와 감정의 통합, 내면의 조화",
+      "challenging_expression": "태양와(과) 달 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Mercury",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 수성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "명확한 자기표현과 소통 능력",
+      "challenging_expression": "태양와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Mercury",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 수성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "명확한 자기표현과 소통 능력",
+      "challenging_expression": "태양와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Mercury",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 수성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "명확한 자기표현과 소통 능력",
+      "challenging_expression": "태양와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Mercury",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 수성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "명확한 자기표현과 소통 능력",
+      "challenging_expression": "태양와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Mercury",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 수성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "명확한 자기표현과 소통 능력",
+      "challenging_expression": "태양와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Venus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 금성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "자신을 사랑하고 창조적 표현",
+      "challenging_expression": "태양와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Venus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 금성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "자신을 사랑하고 창조적 표현",
+      "challenging_expression": "태양와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Venus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 금성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "자신을 사랑하고 창조적 표현",
+      "challenging_expression": "태양와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Venus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 금성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "자신을 사랑하고 창조적 표현",
+      "challenging_expression": "태양와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Venus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 금성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "자신을 사랑하고 창조적 표현",
+      "challenging_expression": "태양와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Mars",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 화성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "강한 의지력과 실행력",
+      "challenging_expression": "태양와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Mars",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 화성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "강한 의지력과 실행력",
+      "challenging_expression": "태양와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Mars",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 화성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "강한 의지력과 실행력",
+      "challenging_expression": "태양와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Mars",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 화성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "강한 의지력과 실행력",
+      "challenging_expression": "태양와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Mars",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 화성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "강한 의지력과 실행력",
+      "challenging_expression": "태양와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Jupiter",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 목성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "자신감과 낙관주의, 성공 가능성",
+      "challenging_expression": "태양와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Jupiter",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 목성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "자신감과 낙관주의, 성공 가능성",
+      "challenging_expression": "태양와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Jupiter",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 목성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "자신감과 낙관주의, 성공 가능성",
+      "challenging_expression": "태양와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Jupiter",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 목성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "자신감과 낙관주의, 성공 가능성",
+      "challenging_expression": "태양와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Jupiter",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 목성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "자신감과 낙관주의, 성공 가능성",
+      "challenging_expression": "태양와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Saturn",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 토성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "태양와(과) 토성의 시너지",
+      "challenging_expression": "태양와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Saturn",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 토성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 토성의 시너지",
+      "challenging_expression": "태양와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Saturn",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 토성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 토성의 시너지",
+      "challenging_expression": "태양와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Saturn",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 토성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 토성의 시너지",
+      "challenging_expression": "태양와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Saturn",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 토성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 토성의 시너지",
+      "challenging_expression": "태양와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Uranus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "태양와(과) 천왕성의 시너지",
+      "challenging_expression": "태양와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Uranus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 천왕성의 시너지",
+      "challenging_expression": "태양와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Uranus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 천왕성의 시너지",
+      "challenging_expression": "태양와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Uranus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 천왕성의 시너지",
+      "challenging_expression": "태양와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Uranus",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 천왕성의 시너지",
+      "challenging_expression": "태양와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Neptune",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "태양와(과) 해왕성의 시너지",
+      "challenging_expression": "태양와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Neptune",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 해왕성의 시너지",
+      "challenging_expression": "태양와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Neptune",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 해왕성의 시너지",
+      "challenging_expression": "태양와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Neptune",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 해왕성의 시너지",
+      "challenging_expression": "태양와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Neptune",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 해왕성의 시너지",
+      "challenging_expression": "태양와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_conjunction_Pluto",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "태양와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "태양와(과) 명왕성의 시너지",
+      "challenging_expression": "태양와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Sun_sextile_Pluto",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 명왕성의 시너지",
+      "challenging_expression": "태양와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_square_Pluto",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 명왕성의 시너지",
+      "challenging_expression": "태양와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Sun_trine_Pluto",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "태양와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "태양와(과) 명왕성의 시너지",
+      "challenging_expression": "태양와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Sun_opposition_Pluto",
+      "planet1": {
+        "en": "Sun",
+        "ko": "태양"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "태양와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "태양와(과) 명왕성의 시너지",
+      "challenging_expression": "태양와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Mercury",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 수성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 수성의 시너지",
+      "challenging_expression": "달와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Mercury",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 수성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 수성의 시너지",
+      "challenging_expression": "달와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Mercury",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 수성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 수성의 시너지",
+      "challenging_expression": "달와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Mercury",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 수성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 수성의 시너지",
+      "challenging_expression": "달와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Mercury",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 수성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 수성의 시너지",
+      "challenging_expression": "달와(과) 수성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Venus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 금성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "감정적 조화와 사랑하는 능력",
+      "challenging_expression": "달와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Venus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 금성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "감정적 조화와 사랑하는 능력",
+      "challenging_expression": "달와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Venus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 금성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "감정적 조화와 사랑하는 능력",
+      "challenging_expression": "달와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Venus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 금성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "감정적 조화와 사랑하는 능력",
+      "challenging_expression": "달와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Venus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 금성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "감정적 조화와 사랑하는 능력",
+      "challenging_expression": "달와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Mars",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 화성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 화성의 시너지",
+      "challenging_expression": "달와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Mars",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 화성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 화성의 시너지",
+      "challenging_expression": "달와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Mars",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 화성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 화성의 시너지",
+      "challenging_expression": "달와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Mars",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 화성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 화성의 시너지",
+      "challenging_expression": "달와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Mars",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 화성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 화성의 시너지",
+      "challenging_expression": "달와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Jupiter",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 목성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 목성의 시너지",
+      "challenging_expression": "달와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Jupiter",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 목성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 목성의 시너지",
+      "challenging_expression": "달와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Jupiter",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 목성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 목성의 시너지",
+      "challenging_expression": "달와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Jupiter",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 목성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 목성의 시너지",
+      "challenging_expression": "달와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Jupiter",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 목성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 목성의 시너지",
+      "challenging_expression": "달와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Saturn",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 토성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 토성의 시너지",
+      "challenging_expression": "달와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Saturn",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 토성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 토성의 시너지",
+      "challenging_expression": "달와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Saturn",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 토성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 토성의 시너지",
+      "challenging_expression": "달와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Saturn",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 토성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 토성의 시너지",
+      "challenging_expression": "달와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Saturn",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 토성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 토성의 시너지",
+      "challenging_expression": "달와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Uranus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 천왕성의 시너지",
+      "challenging_expression": "달와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Uranus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 천왕성의 시너지",
+      "challenging_expression": "달와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Uranus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 천왕성의 시너지",
+      "challenging_expression": "달와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Uranus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 천왕성의 시너지",
+      "challenging_expression": "달와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Uranus",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 천왕성의 시너지",
+      "challenging_expression": "달와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Neptune",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 해왕성의 시너지",
+      "challenging_expression": "달와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Neptune",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 해왕성의 시너지",
+      "challenging_expression": "달와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Neptune",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 해왕성의 시너지",
+      "challenging_expression": "달와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Neptune",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 해왕성의 시너지",
+      "challenging_expression": "달와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Neptune",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 해왕성의 시너지",
+      "challenging_expression": "달와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_conjunction_Pluto",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "달와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "달와(과) 명왕성의 시너지",
+      "challenging_expression": "달와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Moon_sextile_Pluto",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 명왕성의 시너지",
+      "challenging_expression": "달와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_square_Pluto",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 명왕성의 시너지",
+      "challenging_expression": "달와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Moon_trine_Pluto",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "달와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "달와(과) 명왕성의 시너지",
+      "challenging_expression": "달와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Moon_opposition_Pluto",
+      "planet1": {
+        "en": "Moon",
+        "ko": "달"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "달와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "달와(과) 명왕성의 시너지",
+      "challenging_expression": "달와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Venus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 금성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "수성와(과) 금성의 시너지",
+      "challenging_expression": "수성와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Venus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 금성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 금성의 시너지",
+      "challenging_expression": "수성와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Venus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 금성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 금성의 시너지",
+      "challenging_expression": "수성와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Venus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 금성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 금성의 시너지",
+      "challenging_expression": "수성와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Venus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 금성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 금성의 시너지",
+      "challenging_expression": "수성와(과) 금성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Mars",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 화성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "수성와(과) 화성의 시너지",
+      "challenging_expression": "수성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Mars",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 화성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 화성의 시너지",
+      "challenging_expression": "수성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Mars",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 화성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 화성의 시너지",
+      "challenging_expression": "수성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Mars",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 화성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 화성의 시너지",
+      "challenging_expression": "수성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Mars",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 화성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 화성의 시너지",
+      "challenging_expression": "수성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Jupiter",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 목성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "넓은 시야와 학습 능력",
+      "challenging_expression": "수성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Jupiter",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 목성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "넓은 시야와 학습 능력",
+      "challenging_expression": "수성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Jupiter",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 목성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "넓은 시야와 학습 능력",
+      "challenging_expression": "수성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Jupiter",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 목성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "넓은 시야와 학습 능력",
+      "challenging_expression": "수성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Jupiter",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 목성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "넓은 시야와 학습 능력",
+      "challenging_expression": "수성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Saturn",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 토성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "수성와(과) 토성의 시너지",
+      "challenging_expression": "수성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Saturn",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 토성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 토성의 시너지",
+      "challenging_expression": "수성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Saturn",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 토성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 토성의 시너지",
+      "challenging_expression": "수성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Saturn",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 토성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 토성의 시너지",
+      "challenging_expression": "수성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Saturn",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 토성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 토성의 시너지",
+      "challenging_expression": "수성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Uranus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "수성와(과) 천왕성의 시너지",
+      "challenging_expression": "수성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Uranus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 천왕성의 시너지",
+      "challenging_expression": "수성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Uranus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 천왕성의 시너지",
+      "challenging_expression": "수성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Uranus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 천왕성의 시너지",
+      "challenging_expression": "수성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Uranus",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 천왕성의 시너지",
+      "challenging_expression": "수성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Neptune",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "수성와(과) 해왕성의 시너지",
+      "challenging_expression": "수성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Neptune",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 해왕성의 시너지",
+      "challenging_expression": "수성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Neptune",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 해왕성의 시너지",
+      "challenging_expression": "수성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Neptune",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 해왕성의 시너지",
+      "challenging_expression": "수성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Neptune",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 해왕성의 시너지",
+      "challenging_expression": "수성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_conjunction_Pluto",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "수성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "수성와(과) 명왕성의 시너지",
+      "challenging_expression": "수성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mercury_sextile_Pluto",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 명왕성의 시너지",
+      "challenging_expression": "수성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_square_Pluto",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 명왕성의 시너지",
+      "challenging_expression": "수성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mercury_trine_Pluto",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "수성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "수성와(과) 명왕성의 시너지",
+      "challenging_expression": "수성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mercury_opposition_Pluto",
+      "planet1": {
+        "en": "Mercury",
+        "ko": "수성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "수성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "수성와(과) 명왕성의 시너지",
+      "challenging_expression": "수성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_conjunction_Mars",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "금성와(과) 화성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "열정적인 사랑과 매력",
+      "challenging_expression": "금성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Venus_sextile_Mars",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 화성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "열정적인 사랑과 매력",
+      "challenging_expression": "금성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_square_Mars",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 화성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "열정적인 사랑과 매력",
+      "challenging_expression": "금성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_trine_Mars",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 화성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "열정적인 사랑과 매력",
+      "challenging_expression": "금성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_opposition_Mars",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 화성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "열정적인 사랑과 매력",
+      "challenging_expression": "금성와(과) 화성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_conjunction_Jupiter",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "금성와(과) 목성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "금성와(과) 목성의 시너지",
+      "challenging_expression": "금성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Venus_sextile_Jupiter",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 목성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 목성의 시너지",
+      "challenging_expression": "금성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_square_Jupiter",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 목성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 목성의 시너지",
+      "challenging_expression": "금성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_trine_Jupiter",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 목성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 목성의 시너지",
+      "challenging_expression": "금성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_opposition_Jupiter",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 목성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 목성의 시너지",
+      "challenging_expression": "금성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_conjunction_Saturn",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "금성와(과) 토성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "금성와(과) 토성의 시너지",
+      "challenging_expression": "금성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Venus_sextile_Saturn",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 토성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 토성의 시너지",
+      "challenging_expression": "금성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_square_Saturn",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 토성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 토성의 시너지",
+      "challenging_expression": "금성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_trine_Saturn",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 토성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 토성의 시너지",
+      "challenging_expression": "금성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_opposition_Saturn",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 토성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 토성의 시너지",
+      "challenging_expression": "금성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_conjunction_Uranus",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "금성와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "금성와(과) 천왕성의 시너지",
+      "challenging_expression": "금성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Venus_sextile_Uranus",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 천왕성의 시너지",
+      "challenging_expression": "금성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_square_Uranus",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 천왕성의 시너지",
+      "challenging_expression": "금성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_trine_Uranus",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 천왕성의 시너지",
+      "challenging_expression": "금성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_opposition_Uranus",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 천왕성의 시너지",
+      "challenging_expression": "금성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_conjunction_Neptune",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "금성와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "금성와(과) 해왕성의 시너지",
+      "challenging_expression": "금성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Venus_sextile_Neptune",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 해왕성의 시너지",
+      "challenging_expression": "금성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_square_Neptune",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 해왕성의 시너지",
+      "challenging_expression": "금성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_trine_Neptune",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 해왕성의 시너지",
+      "challenging_expression": "금성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_opposition_Neptune",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 해왕성의 시너지",
+      "challenging_expression": "금성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_conjunction_Pluto",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "금성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "금성와(과) 명왕성의 시너지",
+      "challenging_expression": "금성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Venus_sextile_Pluto",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 명왕성의 시너지",
+      "challenging_expression": "금성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_square_Pluto",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 명왕성의 시너지",
+      "challenging_expression": "금성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Venus_trine_Pluto",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "금성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "금성와(과) 명왕성의 시너지",
+      "challenging_expression": "금성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Venus_opposition_Pluto",
+      "planet1": {
+        "en": "Venus",
+        "ko": "금성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "금성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "금성와(과) 명왕성의 시너지",
+      "challenging_expression": "금성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_conjunction_Jupiter",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "화성와(과) 목성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "화성와(과) 목성의 시너지",
+      "challenging_expression": "화성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mars_sextile_Jupiter",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 목성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 목성의 시너지",
+      "challenging_expression": "화성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_square_Jupiter",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 목성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 목성의 시너지",
+      "challenging_expression": "화성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_trine_Jupiter",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 목성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 목성의 시너지",
+      "challenging_expression": "화성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_opposition_Jupiter",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 목성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 목성의 시너지",
+      "challenging_expression": "화성와(과) 목성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_conjunction_Saturn",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "화성와(과) 토성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "화성와(과) 토성의 시너지",
+      "challenging_expression": "화성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mars_sextile_Saturn",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 토성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 토성의 시너지",
+      "challenging_expression": "화성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_square_Saturn",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 토성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 토성의 시너지",
+      "challenging_expression": "화성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_trine_Saturn",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 토성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 토성의 시너지",
+      "challenging_expression": "화성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_opposition_Saturn",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 토성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 토성의 시너지",
+      "challenging_expression": "화성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_conjunction_Uranus",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "화성와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "화성와(과) 천왕성의 시너지",
+      "challenging_expression": "화성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mars_sextile_Uranus",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 천왕성의 시너지",
+      "challenging_expression": "화성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_square_Uranus",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 천왕성의 시너지",
+      "challenging_expression": "화성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_trine_Uranus",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 천왕성의 시너지",
+      "challenging_expression": "화성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_opposition_Uranus",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 천왕성의 시너지",
+      "challenging_expression": "화성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_conjunction_Neptune",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "화성와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "화성와(과) 해왕성의 시너지",
+      "challenging_expression": "화성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mars_sextile_Neptune",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 해왕성의 시너지",
+      "challenging_expression": "화성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_square_Neptune",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 해왕성의 시너지",
+      "challenging_expression": "화성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_trine_Neptune",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 해왕성의 시너지",
+      "challenging_expression": "화성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_opposition_Neptune",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 해왕성의 시너지",
+      "challenging_expression": "화성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_conjunction_Pluto",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "화성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "화성와(과) 명왕성의 시너지",
+      "challenging_expression": "화성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Mars_sextile_Pluto",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 명왕성의 시너지",
+      "challenging_expression": "화성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_square_Pluto",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 명왕성의 시너지",
+      "challenging_expression": "화성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Mars_trine_Pluto",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "화성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "화성와(과) 명왕성의 시너지",
+      "challenging_expression": "화성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Mars_opposition_Pluto",
+      "planet1": {
+        "en": "Mars",
+        "ko": "화성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "화성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "화성와(과) 명왕성의 시너지",
+      "challenging_expression": "화성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_conjunction_Saturn",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "목성와(과) 토성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "이상과 현실의 균형",
+      "challenging_expression": "목성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Jupiter_sextile_Saturn",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 토성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "이상과 현실의 균형",
+      "challenging_expression": "목성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_square_Saturn",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 토성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "이상과 현실의 균형",
+      "challenging_expression": "목성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_trine_Saturn",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 토성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "이상과 현실의 균형",
+      "challenging_expression": "목성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_opposition_Saturn",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 토성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "이상과 현실의 균형",
+      "challenging_expression": "목성와(과) 토성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_conjunction_Uranus",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "목성와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "목성와(과) 천왕성의 시너지",
+      "challenging_expression": "목성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Jupiter_sextile_Uranus",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "목성와(과) 천왕성의 시너지",
+      "challenging_expression": "목성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_square_Uranus",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "목성와(과) 천왕성의 시너지",
+      "challenging_expression": "목성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_trine_Uranus",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "목성와(과) 천왕성의 시너지",
+      "challenging_expression": "목성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_opposition_Uranus",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "목성와(과) 천왕성의 시너지",
+      "challenging_expression": "목성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_conjunction_Neptune",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "목성와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "목성와(과) 해왕성의 시너지",
+      "challenging_expression": "목성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Jupiter_sextile_Neptune",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "목성와(과) 해왕성의 시너지",
+      "challenging_expression": "목성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_square_Neptune",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "목성와(과) 해왕성의 시너지",
+      "challenging_expression": "목성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_trine_Neptune",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "목성와(과) 해왕성의 시너지",
+      "challenging_expression": "목성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_opposition_Neptune",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "목성와(과) 해왕성의 시너지",
+      "challenging_expression": "목성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_conjunction_Pluto",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "목성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "목성와(과) 명왕성의 시너지",
+      "challenging_expression": "목성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Jupiter_sextile_Pluto",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "목성와(과) 명왕성의 시너지",
+      "challenging_expression": "목성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_square_Pluto",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "목성와(과) 명왕성의 시너지",
+      "challenging_expression": "목성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Jupiter_trine_Pluto",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "목성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "목성와(과) 명왕성의 시너지",
+      "challenging_expression": "목성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Jupiter_opposition_Pluto",
+      "planet1": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "목성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "목성와(과) 명왕성의 시너지",
+      "challenging_expression": "목성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Saturn_conjunction_Uranus",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "토성와(과) 천왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "토성와(과) 천왕성의 시너지",
+      "challenging_expression": "토성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Saturn_sextile_Uranus",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "토성와(과) 천왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "토성와(과) 천왕성의 시너지",
+      "challenging_expression": "토성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Saturn_square_Uranus",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "토성와(과) 천왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "토성와(과) 천왕성의 시너지",
+      "challenging_expression": "토성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Saturn_trine_Uranus",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "토성와(과) 천왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "토성와(과) 천왕성의 시너지",
+      "challenging_expression": "토성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Saturn_opposition_Uranus",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "토성와(과) 천왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "토성와(과) 천왕성의 시너지",
+      "challenging_expression": "토성와(과) 천왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Saturn_conjunction_Neptune",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "토성와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "토성와(과) 해왕성의 시너지",
+      "challenging_expression": "토성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Saturn_sextile_Neptune",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "토성와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "토성와(과) 해왕성의 시너지",
+      "challenging_expression": "토성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Saturn_square_Neptune",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "토성와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "토성와(과) 해왕성의 시너지",
+      "challenging_expression": "토성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Saturn_trine_Neptune",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "토성와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "토성와(과) 해왕성의 시너지",
+      "challenging_expression": "토성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Saturn_opposition_Neptune",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "토성와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "토성와(과) 해왕성의 시너지",
+      "challenging_expression": "토성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Saturn_conjunction_Pluto",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "토성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "토성와(과) 명왕성의 시너지",
+      "challenging_expression": "토성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Saturn_sextile_Pluto",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "토성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "토성와(과) 명왕성의 시너지",
+      "challenging_expression": "토성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Saturn_square_Pluto",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "토성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "토성와(과) 명왕성의 시너지",
+      "challenging_expression": "토성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Saturn_trine_Pluto",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "토성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "토성와(과) 명왕성의 시너지",
+      "challenging_expression": "토성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Saturn_opposition_Pluto",
+      "planet1": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "토성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "토성와(과) 명왕성의 시너지",
+      "challenging_expression": "토성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Uranus_conjunction_Neptune",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "천왕성와(과) 해왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "천왕성와(과) 해왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Uranus_sextile_Neptune",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "천왕성와(과) 해왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "천왕성와(과) 해왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Uranus_square_Neptune",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "천왕성와(과) 해왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "천왕성와(과) 해왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Uranus_trine_Neptune",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "천왕성와(과) 해왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "천왕성와(과) 해왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Uranus_opposition_Neptune",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "천왕성와(과) 해왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "천왕성와(과) 해왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 해왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Uranus_conjunction_Pluto",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "천왕성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "천왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Uranus_sextile_Pluto",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "천왕성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "천왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Uranus_square_Pluto",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "천왕성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "천왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Uranus_trine_Pluto",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "천왕성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "천왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Uranus_opposition_Pluto",
+      "planet1": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "천왕성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "천왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "천왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Neptune_conjunction_Pluto",
+      "planet1": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "conjunction",
+        "ko": "합",
+        "angle": 0
+      },
+      "nature": "neutral",
+      "core_interpretation": "해왕성와(과) 명왕성가 합(0°)를 이룹니다. 두 에너지가 융합하여 하나가 됩니다.",
+      "positive_expression": "해왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "해왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "융합된 에너지를 하나의 통합된 표현으로 발전시키세요."
+    },
+    {
+      "id": "Neptune_sextile_Pluto",
+      "planet1": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "sextile",
+        "ko": "육분",
+        "angle": 60
+      },
+      "nature": "harmonious",
+      "core_interpretation": "해왕성와(과) 명왕성가 육분(60°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "해왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "해왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Neptune_square_Pluto",
+      "planet1": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "square",
+        "ko": "사각",
+        "angle": 90
+      },
+      "nature": "challenging",
+      "core_interpretation": "해왕성와(과) 명왕성가 사각(90°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "해왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "해왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    },
+    {
+      "id": "Neptune_trine_Pluto",
+      "planet1": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "trine",
+        "ko": "삼합",
+        "angle": 120
+      },
+      "nature": "harmonious",
+      "core_interpretation": "해왕성와(과) 명왕성가 삼합(120°)를 이룹니다. 두 에너지가 조화롭게 협력합니다.",
+      "positive_expression": "해왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "해왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "자연스러운 재능을 의식적으로 활용하고 발전시키세요."
+    },
+    {
+      "id": "Neptune_opposition_Pluto",
+      "planet1": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "planet2": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "aspect": {
+        "en": "opposition",
+        "ko": "대립",
+        "angle": 180
+      },
+      "nature": "challenging",
+      "core_interpretation": "해왕성와(과) 명왕성가 대립(180°)를 이룹니다. 두 에너지 사이에 긴장이 있지만 성장의 동력이 됩니다.",
+      "positive_expression": "해왕성와(과) 명왕성의 시너지",
+      "challenging_expression": "해왕성와(과) 명왕성 사이의 갈등을 의식적으로 통합해야 합니다.",
+      "integration_advice": "긴장을 성장의 동력으로 전환하세요. 두 에너지의 균형점을 찾으세요."
+    }
+  ]
+}

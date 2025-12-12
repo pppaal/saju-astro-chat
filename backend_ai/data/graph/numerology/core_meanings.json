@@ -1,0 +1,1887 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Core numerology meanings for numbers 1-9 and master numbers 11, 22, 33",
+    "usage": "Used for Life Path, Expression, Soul Urge, Personality, and Personal Cycle interpretations"
+  },
+  "numbers": {
+    "1": {
+      "archetype": {
+        "ko": "Leader / Pioneer",
+        "en": "Leader / Pioneer"
+      },
+      "keywords": {
+        "ko": [
+          "independence",
+          "beginning",
+          "leadership",
+          "creativity",
+          "confidence",
+          "ambition"
+        ],
+        "en": [
+          "independence",
+          "beginning",
+          "leadership",
+          "creativity",
+          "confidence",
+          "ambition"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about leadership and independence.",
+          "detail": "With Life Path 1, you are a born leader. Your mission is to pioneer new paths and set directions for others to follow. You have strong independence, self-confidence, and potential to change the world with creative ideas.",
+          "lesson": "Learn humility and listen to others' opinions.",
+          "challenge": "Excessive self-centeredness and loneliness"
+        },
+        "en": {
+          "summary": "Your life path is about leadership and independence.",
+          "detail": "With Life Path 1, you are a born leader. Your mission is to pioneer new paths and set directions for others to follow. You have strong independence, self-confidence, and potential to change the world with creative ideas.",
+          "lesson": "Learn humility and listen to others' opinions.",
+          "challenge": "Excessive self-centeredness and loneliness"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You contribute to the world through creative leadership.",
+          "detail": "Expression number 1 indicates you are designed to contribute through original ideas and leadership. Your talent lies in creating new things and inspiring others."
+        },
+        "en": {
+          "summary": "You contribute to the world through creative leadership.",
+          "detail": "Expression number 1 indicates you are designed to contribute through original ideas and leadership. Your talent lies in creating new things and inspiring others."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for independence and achievement.",
+          "detail": "Soul Urge 1 indicates a deep desire for independence and self-achievement. You have a strong desire to accomplish something on your own and be recognized."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for independence and achievement.",
+          "detail": "Soul Urge 1 indicates a deep desire for independence and self-achievement. You have a strong desire to accomplish something on your own and be recognized."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a confident and decisive image.",
+          "detail": "Personality number 1 means others see you as confident, decisive, and independent. Leadership and strong will are felt in first impressions."
+        },
+        "en": {
+          "summary": "You project a confident and decisive image.",
+          "detail": "Personality number 1 means others see you as confident, decisive, and independent. Leadership and strong will are felt in first impressions."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of new beginnings.",
+          "detail": "Personal Year 1 marks the start of a 9-year cycle. Perfect for starting new projects and setting new directions. Take initiative and plant new seeds.",
+          "focus": [
+            "New starts",
+            "Exercising leadership",
+            "Independent action"
+          ],
+          "avoid": [
+            "Indecision",
+            "Past attachment",
+            "Depending on others"
+          ]
+        },
+        "en": {
+          "summary": "A year of new beginnings.",
+          "detail": "Personal Year 1 marks the start of a 9-year cycle. Perfect for starting new projects and setting new directions. Take initiative and plant new seeds.",
+          "focus": [
+            "New starts",
+            "Exercising leadership",
+            "Independent action"
+          ],
+          "avoid": [
+            "Indecision",
+            "Past attachment",
+            "Depending on others"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "leadership",
+          "originality",
+          "decisiveness",
+          "confidence",
+          "ambition"
+        ],
+        "en": [
+          "leadership",
+          "originality",
+          "decisiveness",
+          "confidence",
+          "ambition"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "stubbornness",
+          "self-centered",
+          "impatience",
+          "loneliness"
+        ],
+        "en": [
+          "stubbornness",
+          "self-centered",
+          "impatience",
+          "loneliness"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "CEO",
+          "entrepreneur",
+          "inventor",
+          "director",
+          "freelancer"
+        ],
+        "en": [
+          "CEO",
+          "entrepreneur",
+          "inventor",
+          "director",
+          "freelancer"
+        ]
+      },
+      "relationships": {
+        "ko": "You need space and respect for your independence. Compatible with 2, 5, 7.",
+        "en": "You need space and respect for your independence. Compatible with 2, 5, 7."
+      },
+      "health": {
+        "ko": "Watch head, heart, and eyes. Stress management is important.",
+        "en": "Watch head, heart, and eyes. Stress management is important."
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "red",
+      "gemstone": "ruby"
+    },
+    "2": {
+      "archetype": {
+        "ko": "Mediator / Partner",
+        "en": "Mediator / Partner"
+      },
+      "keywords": {
+        "ko": [
+          "cooperation",
+          "balance",
+          "diplomacy",
+          "sensitivity",
+          "partnership",
+          "harmony"
+        ],
+        "en": [
+          "cooperation",
+          "balance",
+          "diplomacy",
+          "sensitivity",
+          "partnership",
+          "harmony"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about cooperation and balance.",
+          "detail": "With Life Path 2, you are a natural mediator. Your mission is to reconcile opposing sides and create harmony. You have excellent sensitivity, understand others' emotions well, and shine in teamwork.",
+          "lesson": "Value your own needs too.",
+          "challenge": "Excessive dependency and indecision"
+        },
+        "en": {
+          "summary": "Your life path is about cooperation and balance.",
+          "detail": "With Life Path 2, you are a natural mediator. Your mission is to reconcile opposing sides and create harmony. You have excellent sensitivity, understand others' emotions well, and shine in teamwork.",
+          "lesson": "Value your own needs too.",
+          "challenge": "Excessive dependency and indecision"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring peace through diplomatic abilities.",
+          "detail": "Expression number 2 indicates you are designed to contribute through harmony and cooperation. Your talent lies in resolving conflicts and connecting people."
+        },
+        "en": {
+          "summary": "You bring peace through diplomatic abilities.",
+          "detail": "Expression number 2 indicates you are designed to contribute through harmony and cooperation. Your talent lies in resolving conflicts and connecting people."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for love and connection.",
+          "detail": "Soul Urge 2 indicates a deep desire to be loved and connected. Deep partnerships and emotional bonds bring you happiness."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for love and connection.",
+          "detail": "Soul Urge 2 indicates a deep desire to be loved and connected. Deep partnerships and emotional bonds bring you happiness."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a kind and cooperative image.",
+          "detail": "Personality number 2 means others see you as kind, cooperative, and sensitive. You give a soft and approachable impression."
+        },
+        "en": {
+          "summary": "You project a kind and cooperative image.",
+          "detail": "Personality number 2 means others see you as kind, cooperative, and sensitive. You give a soft and approachable impression."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of cooperation and patience.",
+          "detail": "Personal Year 2 is about waiting and cooperation. Watch the seeds planted last year grow. Strengthen partnerships and pay attention to details.",
+          "focus": [
+            "Partnerships",
+            "Patience",
+            "Details"
+          ],
+          "avoid": [
+            "Impatience",
+            "Unilateral action",
+            "Provoking conflict"
+          ]
+        },
+        "en": {
+          "summary": "A year of cooperation and patience.",
+          "detail": "Personal Year 2 is about waiting and cooperation. Watch the seeds planted last year grow. Strengthen partnerships and pay attention to details.",
+          "focus": [
+            "Partnerships",
+            "Patience",
+            "Details"
+          ],
+          "avoid": [
+            "Impatience",
+            "Unilateral action",
+            "Provoking conflict"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "diplomacy",
+          "empathy",
+          "cooperation",
+          "patience",
+          "intuition"
+        ],
+        "en": [
+          "diplomacy",
+          "empathy",
+          "cooperation",
+          "patience",
+          "intuition"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "indecision",
+          "oversensitivity",
+          "dependency",
+          "self-sacrifice"
+        ],
+        "en": [
+          "indecision",
+          "oversensitivity",
+          "dependency",
+          "self-sacrifice"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "counselor",
+          "diplomat",
+          "mediator",
+          "secretary",
+          "social worker"
+        ],
+        "en": [
+          "counselor",
+          "diplomat",
+          "mediator",
+          "secretary",
+          "social worker"
+        ]
+      },
+      "relationships": {
+        "ko": "You want deep emotional connection. Compatible with 1, 6, 9.",
+        "en": "You want deep emotional connection. Compatible with 1, 6, 9."
+      },
+      "health": {
+        "ko": "Watch nervous system and digestion. Sensitive to stress.",
+        "en": "Watch nervous system and digestion. Sensitive to stress."
+      },
+      "element": "water",
+      "planet": "Moon",
+      "color": "orange",
+      "gemstone": "moonstone"
+    },
+    "3": {
+      "archetype": {
+        "ko": "Communicator / Creator",
+        "en": "Communicator / Creator"
+      },
+      "keywords": {
+        "ko": [
+          "expression",
+          "creativity",
+          "joy",
+          "communication",
+          "art",
+          "optimism"
+        ],
+        "en": [
+          "expression",
+          "creativity",
+          "joy",
+          "communication",
+          "art",
+          "optimism"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about creative expression.",
+          "detail": "With Life Path 3, you are a natural artist. Your mission is to express ideas through words, writing, or art and bring joy to others. You are optimistic, social, and brighten your surroundings.",
+          "lesson": "Develop depth and focus.",
+          "challenge": "Scattered attention and superficial relationships"
+        },
+        "en": {
+          "summary": "Your life path is about creative expression.",
+          "detail": "With Life Path 3, you are a natural artist. Your mission is to express ideas through words, writing, or art and bring joy to others. You are optimistic, social, and brighten your surroundings.",
+          "lesson": "Develop depth and focus.",
+          "challenge": "Scattered attention and superficial relationships"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring joy through artistic talents.",
+          "detail": "Expression number 3 indicates you are designed to contribute through creative expression. You shine in writing, acting, art, and other expressive fields."
+        },
+        "en": {
+          "summary": "You bring joy through artistic talents.",
+          "detail": "Expression number 3 indicates you are designed to contribute through creative expression. You shine in writing, acting, art, and other expressive fields."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for self-expression and recognition.",
+          "detail": "Soul Urge 3 indicates a deep desire to express yourself and be recognized. Creating and sharing brings you happiness."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for self-expression and recognition.",
+          "detail": "Soul Urge 3 indicates a deep desire to express yourself and be recognized. Creating and sharing brings you happiness."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a bright and charming image.",
+          "detail": "Personality number 3 means others see you as bright, fun, and charming. You have the charisma to be the life of the party."
+        },
+        "en": {
+          "summary": "You project a bright and charming image.",
+          "detail": "Personality number 3 means others see you as bright, fun, and charming. You have the charisma to be the life of the party."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of creation and expression.",
+          "detail": "Personal Year 3 is about self-expression and socializing. Create, meet people, and enjoy life. Great time to share your ideas with the world.",
+          "focus": [
+            "Creation",
+            "Social networking",
+            "Self-expression"
+          ],
+          "avoid": [
+            "Isolation",
+            "Pessimism",
+            "Suppressing expression"
+          ]
+        },
+        "en": {
+          "summary": "A year of creation and expression.",
+          "detail": "Personal Year 3 is about self-expression and socializing. Create, meet people, and enjoy life. Great time to share your ideas with the world.",
+          "focus": [
+            "Creation",
+            "Social networking",
+            "Self-expression"
+          ],
+          "avoid": [
+            "Isolation",
+            "Pessimism",
+            "Suppressing expression"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "creativity",
+          "communication",
+          "optimism",
+          "humor",
+          "inspiration"
+        ],
+        "en": [
+          "creativity",
+          "communication",
+          "optimism",
+          "humor",
+          "inspiration"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "scattered",
+          "superficial",
+          "grandiosity",
+          "mood swings"
+        ],
+        "en": [
+          "scattered",
+          "superficial",
+          "grandiosity",
+          "mood swings"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "writer",
+          "actor",
+          "artist",
+          "broadcaster",
+          "designer"
+        ],
+        "en": [
+          "writer",
+          "actor",
+          "artist",
+          "broadcaster",
+          "designer"
+        ]
+      },
+      "relationships": {
+        "ko": "You value fun and romance. Compatible with 5, 6, 9.",
+        "en": "You value fun and romance. Compatible with 5, 6, 9."
+      },
+      "health": {
+        "ko": "Watch throat and nervous system. Avoid overwork.",
+        "en": "Watch throat and nervous system. Avoid overwork."
+      },
+      "element": "fire",
+      "planet": "Jupiter",
+      "color": "yellow",
+      "gemstone": "topaz"
+    },
+    "4": {
+      "archetype": {
+        "ko": "Builder / Steward",
+        "en": "Builder / Steward"
+      },
+      "keywords": {
+        "ko": [
+          "stability",
+          "structure",
+          "diligence",
+          "practicality",
+          "foundation",
+          "patience"
+        ],
+        "en": [
+          "stability",
+          "structure",
+          "diligence",
+          "practicality",
+          "foundation",
+          "patience"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about building foundations.",
+          "detail": "With Life Path 4, you are a natural builder. Your mission is to establish solid foundations and achieve goals systematically. You are diligent, reliable, and achieve great results through steady effort.",
+          "lesson": "Develop flexibility and embrace change.",
+          "challenge": "Rigidity and workaholism"
+        },
+        "en": {
+          "summary": "Your life path is about building foundations.",
+          "detail": "With Life Path 4, you are a natural builder. Your mission is to establish solid foundations and achieve goals systematically. You are diligent, reliable, and achieve great results through steady effort.",
+          "lesson": "Develop flexibility and embrace change.",
+          "challenge": "Rigidity and workaholism"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring stability through systematic abilities.",
+          "detail": "Expression number 4 indicates you are designed to contribute through organization and structure. Creating and maintaining order is your talent."
+        },
+        "en": {
+          "summary": "You bring stability through systematic abilities.",
+          "detail": "Expression number 4 indicates you are designed to contribute through organization and structure. Creating and maintaining order is your talent."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for stability and security.",
+          "detail": "Soul Urge 4 indicates a deep desire for stability and security. Solid foundations and predictable life bring you peace."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for stability and security.",
+          "detail": "Soul Urge 4 indicates a deep desire for stability and security. Solid foundations and predictable life bring you peace."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a reliable and practical image.",
+          "detail": "Personality number 4 means others see you as reliable, practical, and diligent. You provide a sense of stability."
+        },
+        "en": {
+          "summary": "You project a reliable and practical image.",
+          "detail": "Personality number 4 means others see you as reliable, practical, and diligent. You provide a sense of stability."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of foundation building.",
+          "detail": "Personal Year 4 is about hard work and laying foundations. Build systems, manage health, and prepare for the future.",
+          "focus": [
+            "Foundation work",
+            "Building systems",
+            "Health management"
+          ],
+          "avoid": [
+            "Shortcuts",
+            "Unstable choices",
+            "Overwork"
+          ]
+        },
+        "en": {
+          "summary": "A year of foundation building.",
+          "detail": "Personal Year 4 is about hard work and laying foundations. Build systems, manage health, and prepare for the future.",
+          "focus": [
+            "Foundation work",
+            "Building systems",
+            "Health management"
+          ],
+          "avoid": [
+            "Shortcuts",
+            "Unstable choices",
+            "Overwork"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "diligence",
+          "organization",
+          "patience",
+          "reliability",
+          "practicality"
+        ],
+        "en": [
+          "diligence",
+          "organization",
+          "patience",
+          "reliability",
+          "practicality"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "rigidity",
+          "stubbornness",
+          "workaholism",
+          "resisting change"
+        ],
+        "en": [
+          "rigidity",
+          "stubbornness",
+          "workaholism",
+          "resisting change"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "architect",
+          "accountant",
+          "engineer",
+          "manager",
+          "banker"
+        ],
+        "en": [
+          "architect",
+          "accountant",
+          "engineer",
+          "manager",
+          "banker"
+        ]
+      },
+      "relationships": {
+        "ko": "You want a stable and reliable partner. Compatible with 2, 6, 8.",
+        "en": "You want a stable and reliable partner. Compatible with 2, 6, 8."
+      },
+      "health": {
+        "ko": "Watch joints and bones. Stress relief is important.",
+        "en": "Watch joints and bones. Stress relief is important."
+      },
+      "element": "earth",
+      "planet": "Uranus",
+      "color": "green",
+      "gemstone": "emerald"
+    },
+    "5": {
+      "archetype": {
+        "ko": "Explorer / Free Spirit",
+        "en": "Explorer / Free Spirit"
+      },
+      "keywords": {
+        "ko": [
+          "freedom",
+          "change",
+          "adventure",
+          "versatility",
+          "adaptability",
+          "experience"
+        ],
+        "en": [
+          "freedom",
+          "change",
+          "adventure",
+          "versatility",
+          "adaptability",
+          "experience"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about freedom and experience.",
+          "detail": "With Life Path 5, you are a natural explorer. Your mission is to have new experiences, embrace change, and live freely. You are versatile, adaptable, and want to taste all that life offers.",
+          "lesson": "Develop focus and responsibility.",
+          "challenge": "Scattered attention and instability"
+        },
+        "en": {
+          "summary": "Your life path is about freedom and experience.",
+          "detail": "With Life Path 5, you are a natural explorer. Your mission is to have new experiences, embrace change, and live freely. You are versatile, adaptable, and want to taste all that life offers.",
+          "lesson": "Develop focus and responsibility.",
+          "challenge": "Scattered attention and instability"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring vitality through diverse experiences.",
+          "detail": "Expression number 5 indicates you are designed to contribute through variety and change. Bringing new ideas and energy is your talent."
+        },
+        "en": {
+          "summary": "You bring vitality through diverse experiences.",
+          "detail": "Expression number 5 indicates you are designed to contribute through variety and change. Bringing new ideas and energy is your talent."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for freedom and adventure.",
+          "detail": "Soul Urge 5 indicates a deep desire for freedom and new experiences. Exploring without constraints brings you happiness."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for freedom and adventure.",
+          "detail": "Soul Urge 5 indicates a deep desire for freedom and new experiences. Exploring without constraints brings you happiness."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a dynamic and attractive image.",
+          "detail": "Personality number 5 means others see you as dynamic, interesting, and attractive. Your ever-changing energy is felt."
+        },
+        "en": {
+          "summary": "You project a dynamic and attractive image.",
+          "detail": "Personality number 5 means others see you as dynamic, interesting, and attractive. Your ever-changing energy is felt."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of change and freedom.",
+          "detail": "Personal Year 5 is about change and adventure. Travel, try new things, and enjoy freedom. Unexpected opportunities arise.",
+          "focus": [
+            "Embracing change",
+            "New experiences",
+            "Free choices"
+          ],
+          "avoid": [
+            "Excessive stability seeking",
+            "Resisting change",
+            "Boredom"
+          ]
+        },
+        "en": {
+          "summary": "A year of change and freedom.",
+          "detail": "Personal Year 5 is about change and adventure. Travel, try new things, and enjoy freedom. Unexpected opportunities arise.",
+          "focus": [
+            "Embracing change",
+            "New experiences",
+            "Free choices"
+          ],
+          "avoid": [
+            "Excessive stability seeking",
+            "Resisting change",
+            "Boredom"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "adaptability",
+          "versatility",
+          "adventurousness",
+          "communication",
+          "charm"
+        ],
+        "en": [
+          "adaptability",
+          "versatility",
+          "adventurousness",
+          "communication",
+          "charm"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "instability",
+          "scattered",
+          "irresponsible",
+          "impulsive"
+        ],
+        "en": [
+          "instability",
+          "scattered",
+          "irresponsible",
+          "impulsive"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "traveler",
+          "sales",
+          "journalist",
+          "marketer",
+          "event planner"
+        ],
+        "en": [
+          "traveler",
+          "sales",
+          "journalist",
+          "marketer",
+          "event planner"
+        ]
+      },
+      "relationships": {
+        "ko": "You want a partner who respects your freedom. Compatible with 1, 3, 7.",
+        "en": "You want a partner who respects your freedom. Compatible with 1, 3, 7."
+      },
+      "health": {
+        "ko": "Watch nervous system and addictions. Balanced living needed.",
+        "en": "Watch nervous system and addictions. Balanced living needed."
+      },
+      "element": "air",
+      "planet": "Mercury",
+      "color": "turquoise",
+      "gemstone": "aquamarine"
+    },
+    "6": {
+      "archetype": {
+        "ko": "Guardian / Nurturer",
+        "en": "Guardian / Nurturer"
+      },
+      "keywords": {
+        "ko": [
+          "home",
+          "responsibility",
+          "love",
+          "nurturing",
+          "harmony",
+          "service"
+        ],
+        "en": [
+          "home",
+          "responsibility",
+          "love",
+          "nurturing",
+          "harmony",
+          "service"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about love and responsibility.",
+          "detail": "With Life Path 6, you are a natural nurturer. Your mission is to care for family and community and create harmonious environments. You are loving, responsible, and devoted to others' happiness.",
+          "lesson": "Take care of your own needs too.",
+          "challenge": "Excessive interference and self-sacrifice"
+        },
+        "en": {
+          "summary": "Your life path is about love and responsibility.",
+          "detail": "With Life Path 6, you are a natural nurturer. Your mission is to care for family and community and create harmonious environments. You are loving, responsible, and devoted to others' happiness.",
+          "lesson": "Take care of your own needs too.",
+          "challenge": "Excessive interference and self-sacrifice"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring love through care and service.",
+          "detail": "Expression number 6 indicates you are designed to contribute through nurturing and responsibility. Healing and creating harmony is your talent."
+        },
+        "en": {
+          "summary": "You bring love through care and service.",
+          "detail": "Expression number 6 indicates you are designed to contribute through nurturing and responsibility. Healing and creating harmony is your talent."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for home and peace.",
+          "detail": "Soul Urge 6 indicates a deep desire for a warm home and peaceful relationships. Loving and being loved brings you happiness."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for home and peace.",
+          "detail": "Soul Urge 6 indicates a deep desire for a warm home and peaceful relationships. Loving and being loved brings you happiness."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a warm and trustworthy image.",
+          "detail": "Personality number 6 means others see you as warm, nurturing, and trustworthy. You provide comfort and stability."
+        },
+        "en": {
+          "summary": "You project a warm and trustworthy image.",
+          "detail": "Personality number 6 means others see you as warm, nurturing, and trustworthy. You provide comfort and stability."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of home and responsibility.",
+          "detail": "Personal Year 6 focuses on home and responsibility. Care for family relationships, organize your home, and devote to loved ones.",
+          "focus": [
+            "Family",
+            "Home matters",
+            "Responsibility"
+          ],
+          "avoid": [
+            "Neglecting family",
+            "Excessive interference",
+            "Self-sacrifice"
+          ]
+        },
+        "en": {
+          "summary": "A year of home and responsibility.",
+          "detail": "Personal Year 6 focuses on home and responsibility. Care for family relationships, organize your home, and devote to loved ones.",
+          "focus": [
+            "Family",
+            "Home matters",
+            "Responsibility"
+          ],
+          "avoid": [
+            "Neglecting family",
+            "Excessive interference",
+            "Self-sacrifice"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "love",
+          "responsibility",
+          "healing",
+          "harmony",
+          "service"
+        ],
+        "en": [
+          "love",
+          "responsibility",
+          "healing",
+          "harmony",
+          "service"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "overprotection",
+          "interference",
+          "self-sacrifice",
+          "perfectionism"
+        ],
+        "en": [
+          "overprotection",
+          "interference",
+          "self-sacrifice",
+          "perfectionism"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "nurse",
+          "teacher",
+          "counselor",
+          "interior designer",
+          "chef"
+        ],
+        "en": [
+          "nurse",
+          "teacher",
+          "counselor",
+          "interior designer",
+          "chef"
+        ]
+      },
+      "relationships": {
+        "ko": "You value deep commitment and harmony. Compatible with 2, 3, 9.",
+        "en": "You value deep commitment and harmony. Compatible with 2, 3, 9."
+      },
+      "health": {
+        "ko": "Watch heart and skin. Stress management is important.",
+        "en": "Watch heart and skin. Stress management is important."
+      },
+      "element": "earth",
+      "planet": "Venus",
+      "color": "blue",
+      "gemstone": "sapphire"
+    },
+    "7": {
+      "archetype": {
+        "ko": "Seeker / Philosopher",
+        "en": "Seeker / Philosopher"
+      },
+      "keywords": {
+        "ko": [
+          "wisdom",
+          "introspection",
+          "analysis",
+          "intuition",
+          "spirituality",
+          "research"
+        ],
+        "en": [
+          "wisdom",
+          "introspection",
+          "analysis",
+          "intuition",
+          "spirituality",
+          "research"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about wisdom and seeking.",
+          "detail": "With Life Path 7, you are a natural seeker. Your mission is to pursue truth, understand deeply, and achieve spiritual growth. You have excellent intuition, are analytical, and seek truth beneath the surface.",
+          "lesson": "Connect with and trust others.",
+          "challenge": "Isolation and excessive skepticism"
+        },
+        "en": {
+          "summary": "Your life path is about wisdom and seeking.",
+          "detail": "With Life Path 7, you are a natural seeker. Your mission is to pursue truth, understand deeply, and achieve spiritual growth. You have excellent intuition, are analytical, and seek truth beneath the surface.",
+          "lesson": "Connect with and trust others.",
+          "challenge": "Isolation and excessive skepticism"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring wisdom through deep insight.",
+          "detail": "Expression number 7 indicates you are designed to contribute through research and analysis. Discovering and sharing deep truths is your talent."
+        },
+        "en": {
+          "summary": "You bring wisdom through deep insight.",
+          "detail": "Expression number 7 indicates you are designed to contribute through research and analysis. Discovering and sharing deep truths is your talent."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for truth and understanding.",
+          "detail": "Soul Urge 7 indicates a deep desire to understand truth and grow spiritually. Deep contemplation and seeking bring you peace."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for truth and understanding.",
+          "detail": "Soul Urge 7 indicates a deep desire to understand truth and grow spiritually. Deep contemplation and seeking bring you peace."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a mysterious and intellectual image.",
+          "detail": "Personality number 7 means others see you as mysterious, intellectual, and independent. A deep presence is felt."
+        },
+        "en": {
+          "summary": "You project a mysterious and intellectual image.",
+          "detail": "Personality number 7 means others see you as mysterious, intellectual, and independent. A deep presence is felt."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of inner exploration.",
+          "detail": "Personal Year 7 is about rest and inner exploration. Have alone time, meditate, and think deeply. An opportunity for spiritual growth.",
+          "focus": [
+            "Meditation",
+            "Research",
+            "Self-reflection"
+          ],
+          "avoid": [
+            "Excessive activity",
+            "Superficial relationships",
+            "Ignoring intuition"
+          ]
+        },
+        "en": {
+          "summary": "A year of inner exploration.",
+          "detail": "Personal Year 7 is about rest and inner exploration. Have alone time, meditate, and think deeply. An opportunity for spiritual growth.",
+          "focus": [
+            "Meditation",
+            "Research",
+            "Self-reflection"
+          ],
+          "avoid": [
+            "Excessive activity",
+            "Superficial relationships",
+            "Ignoring intuition"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "intuition",
+          "analysis",
+          "wisdom",
+          "spirituality",
+          "independence"
+        ],
+        "en": [
+          "intuition",
+          "analysis",
+          "wisdom",
+          "spirituality",
+          "independence"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "isolation",
+          "skepticism",
+          "cynicism",
+          "secretiveness"
+        ],
+        "en": [
+          "isolation",
+          "skepticism",
+          "cynicism",
+          "secretiveness"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "researcher",
+          "philosopher",
+          "scientist",
+          "analyst",
+          "spiritual guide"
+        ],
+        "en": [
+          "researcher",
+          "philosopher",
+          "scientist",
+          "analyst",
+          "spiritual guide"
+        ]
+      },
+      "relationships": {
+        "ko": "You want deep and intellectual connection. Compatible with 1, 5, 9.",
+        "en": "You want deep and intellectual connection. Compatible with 1, 5, 9."
+      },
+      "health": {
+        "ko": "Watch nervous system and mental health. Adequate rest needed.",
+        "en": "Watch nervous system and mental health. Adequate rest needed."
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "purple",
+      "gemstone": "amethyst"
+    },
+    "8": {
+      "archetype": {
+        "ko": "Executor / Strategist",
+        "en": "Executor / Strategist"
+      },
+      "keywords": {
+        "ko": [
+          "power",
+          "achievement",
+          "material",
+          "ambition",
+          "business",
+          "karma"
+        ],
+        "en": [
+          "power",
+          "achievement",
+          "material",
+          "ambition",
+          "business",
+          "karma"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about achievement and abundance.",
+          "detail": "With Life Path 8, you are a natural leader and achiever. Your mission is to attain material success, manage resources, and use power wisely. You are ambitious, decisive, and have potential for great accomplishment.",
+          "lesson": "Find balance between material and spiritual.",
+          "challenge": "Greed and abuse of power"
+        },
+        "en": {
+          "summary": "Your life path is about achievement and abundance.",
+          "detail": "With Life Path 8, you are a natural leader and achiever. Your mission is to attain material success, manage resources, and use power wisely. You are ambitious, decisive, and have potential for great accomplishment.",
+          "lesson": "Find balance between material and spiritual.",
+          "challenge": "Greed and abuse of power"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring abundance through business abilities.",
+          "detail": "Expression number 8 indicates you are designed to contribute through business and organizational skills. Managing resources and delivering results is your talent."
+        },
+        "en": {
+          "summary": "You bring abundance through business abilities.",
+          "detail": "Expression number 8 indicates you are designed to contribute through business and organizational skills. Managing resources and delivering results is your talent."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for success and recognition.",
+          "detail": "Soul Urge 8 indicates a deep desire to succeed and have influence. Achievement and recognition bring you satisfaction."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for success and recognition.",
+          "detail": "Soul Urge 8 indicates a deep desire to succeed and have influence. Achievement and recognition bring you satisfaction."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a successful and authoritative image.",
+          "detail": "Personality number 8 means others see you as successful, authoritative, and capable. An influential presence is felt."
+        },
+        "en": {
+          "summary": "You project a successful and authoritative image.",
+          "detail": "Personality number 8 means others see you as successful, authoritative, and capable. An influential presence is felt."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of achievement and finance.",
+          "detail": "Personal Year 8 focuses on business and finance. Set big goals, invest, and advance your career. Opportunity for material success.",
+          "focus": [
+            "Business",
+            "Investment",
+            "Career advancement"
+          ],
+          "avoid": [
+            "Greed",
+            "Ethical violations",
+            "Imbalance"
+          ]
+        },
+        "en": {
+          "summary": "A year of achievement and finance.",
+          "detail": "Personal Year 8 focuses on business and finance. Set big goals, invest, and advance your career. Opportunity for material success.",
+          "focus": [
+            "Business",
+            "Investment",
+            "Career advancement"
+          ],
+          "avoid": [
+            "Greed",
+            "Ethical violations",
+            "Imbalance"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "leadership",
+          "business sense",
+          "decisiveness",
+          "ambition",
+          "organization"
+        ],
+        "en": [
+          "leadership",
+          "business sense",
+          "decisiveness",
+          "ambition",
+          "organization"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "greed",
+          "abuse of power",
+          "materialism",
+          "coldness"
+        ],
+        "en": [
+          "greed",
+          "abuse of power",
+          "materialism",
+          "coldness"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "CEO",
+          "investor",
+          "banker",
+          "lawyer",
+          "politician"
+        ],
+        "en": [
+          "CEO",
+          "investor",
+          "banker",
+          "lawyer",
+          "politician"
+        ]
+      },
+      "relationships": {
+        "ko": "You want a partner who understands your ambition. Compatible with 2, 4, 6.",
+        "en": "You want a partner who understands your ambition. Compatible with 2, 4, 6."
+      },
+      "health": {
+        "ko": "Watch blood pressure and heart. Stress management is essential.",
+        "en": "Watch blood pressure and heart. Stress management is essential."
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "gold",
+      "gemstone": "citrine"
+    },
+    "9": {
+      "archetype": {
+        "ko": "Humanitarian / Sage",
+        "en": "Humanitarian / Sage"
+      },
+      "keywords": {
+        "ko": [
+          "compassion",
+          "service",
+          "completion",
+          "universal love",
+          "wisdom",
+          "spirituality"
+        ],
+        "en": [
+          "compassion",
+          "service",
+          "completion",
+          "universal love",
+          "wisdom",
+          "spirituality"
+        ]
+      },
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about compassion and service.",
+          "detail": "With Life Path 9, you are a natural humanitarian. Your mission is to make the world better, serve others, and practice universal love. You are compassionate, generous, and see the world with a broad view.",
+          "lesson": "Let go of attachments and receive while giving.",
+          "challenge": "Excessive sacrifice and disappointment"
+        },
+        "en": {
+          "summary": "Your life path is about compassion and service.",
+          "detail": "With Life Path 9, you are a natural humanitarian. Your mission is to make the world better, serve others, and practice universal love. You are compassionate, generous, and see the world with a broad view.",
+          "lesson": "Let go of attachments and receive while giving.",
+          "challenge": "Excessive sacrifice and disappointment"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bring love through service and art.",
+          "detail": "Expression number 9 indicates you are designed to contribute through humanitarian efforts and art. Inspiring and healing is your talent."
+        },
+        "en": {
+          "summary": "You bring love through service and art.",
+          "detail": "Expression number 9 indicates you are designed to contribute through humanitarian efforts and art. Inspiring and healing is your talent."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for meaningful contribution.",
+          "detail": "Soul Urge 9 indicates a deep desire to contribute to the world in meaningful ways. Giving and having impact brings you satisfaction."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for meaningful contribution.",
+          "detail": "Soul Urge 9 indicates a deep desire to contribute to the world in meaningful ways. Giving and having impact brings you satisfaction."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a warm and worldly image.",
+          "detail": "Personality number 9 means others see you as warm, sophisticated, and having a broad perspective. A compassionate presence is felt."
+        },
+        "en": {
+          "summary": "You project a warm and worldly image.",
+          "detail": "Personality number 9 means others see you as warm, sophisticated, and having a broad perspective. A compassionate presence is felt."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of completion and closure.",
+          "detail": "Personal Year 9 is the last year of a 9-year cycle. Finish incomplete things and let go what needs releasing. Time to clear for a new cycle.",
+          "focus": [
+            "Finishing",
+            "Clearing",
+            "Service"
+          ],
+          "avoid": [
+            "New starts",
+            "Attachment",
+            "Holding on forcefully"
+          ]
+        },
+        "en": {
+          "summary": "A year of completion and closure.",
+          "detail": "Personal Year 9 is the last year of a 9-year cycle. Finish incomplete things and let go what needs releasing. Time to clear for a new cycle.",
+          "focus": [
+            "Finishing",
+            "Clearing",
+            "Service"
+          ],
+          "avoid": [
+            "New starts",
+            "Attachment",
+            "Holding on forcefully"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "compassion",
+          "generosity",
+          "wisdom",
+          "artistry",
+          "inspiration"
+        ],
+        "en": [
+          "compassion",
+          "generosity",
+          "wisdom",
+          "artistry",
+          "inspiration"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "excessive sacrifice",
+          "lack of boundaries",
+          "depression",
+          "unrealistic"
+        ],
+        "en": [
+          "excessive sacrifice",
+          "lack of boundaries",
+          "depression",
+          "unrealistic"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "activist",
+          "artist",
+          "doctor",
+          "teacher",
+          "philanthropist"
+        ],
+        "en": [
+          "activist",
+          "artist",
+          "doctor",
+          "teacher",
+          "philanthropist"
+        ]
+      },
+      "relationships": {
+        "ko": "You want deep soul connection. Compatible with 2, 3, 6.",
+        "en": "You want deep soul connection. Compatible with 2, 3, 6."
+      },
+      "health": {
+        "ko": "Watch immune system and emotional health. Self-care needed.",
+        "en": "Watch immune system and emotional health. Self-care needed."
+      },
+      "element": "fire",
+      "planet": "Mars",
+      "color": "bronze",
+      "gemstone": "opal"
+    },
+    "11": {
+      "archetype": {
+        "ko": "Illuminator / Inspirer",
+        "en": "Illuminator / Inspirer"
+      },
+      "keywords": {
+        "ko": [
+          "inspiration",
+          "intuition",
+          "spiritual awakening",
+          "vision",
+          "healing",
+          "revelation"
+        ],
+        "en": [
+          "inspiration",
+          "intuition",
+          "spiritual awakening",
+          "vision",
+          "healing",
+          "revelation"
+        ]
+      },
+      "master": true,
+      "baseNumber": 2,
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about spiritual illumination.",
+          "detail": "With Master Number 11, you are born with a special mission. Your role is to guide others with intuition and inspiration and convey spiritual truth. You have high sensitivity and intuition, being a light for others.",
+          "lesson": "Connect high energy to reality.",
+          "challenge": "Anxiety, self-doubt, disconnection from reality"
+        },
+        "en": {
+          "summary": "Your life path is about spiritual illumination.",
+          "detail": "With Master Number 11, you are born with a special mission. Your role is to guide others with intuition and inspiration and convey spiritual truth. You have high sensitivity and intuition, being a light for others.",
+          "lesson": "Connect high energy to reality.",
+          "challenge": "Anxiety, self-doubt, disconnection from reality"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You illuminate the world with inspiration and vision.",
+          "detail": "Master Expression 11 indicates you are designed to contribute through spiritual insight and creative vision."
+        },
+        "en": {
+          "summary": "You illuminate the world with inspiration and vision.",
+          "detail": "Master Expression 11 indicates you are designed to contribute through spiritual insight and creative vision."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for spiritual fulfillment.",
+          "detail": "Master Soul Urge 11 indicates a deep desire for spiritual enlightenment and inspiring others."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for spiritual fulfillment.",
+          "detail": "Master Soul Urge 11 indicates a deep desire for spiritual enlightenment and inspiring others."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a charismatic and mysterious image.",
+          "detail": "Master Personality 11 means others see you as charismatic, inspiring, and special."
+        },
+        "en": {
+          "summary": "You project a charismatic and mysterious image.",
+          "detail": "Master Personality 11 means others see you as charismatic, inspiring, and special."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of spiritual awakening.",
+          "detail": "Personal Year 11/2 is about heightened intuition and spiritual growth. Listen to your inner voice and follow inspiration.",
+          "focus": [
+            "Spiritual growth",
+            "Following intuition",
+            "Creating"
+          ],
+          "avoid": [
+            "Ignoring intuition",
+            "Excessive pragmatism",
+            "Suppressing vision"
+          ]
+        },
+        "en": {
+          "summary": "A year of spiritual awakening.",
+          "detail": "Personal Year 11/2 is about heightened intuition and spiritual growth. Listen to your inner voice and follow inspiration.",
+          "focus": [
+            "Spiritual growth",
+            "Following intuition",
+            "Creating"
+          ],
+          "avoid": [
+            "Ignoring intuition",
+            "Excessive pragmatism",
+            "Suppressing vision"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "intuition",
+          "inspiration",
+          "vision",
+          "charisma",
+          "creativity"
+        ],
+        "en": [
+          "intuition",
+          "inspiration",
+          "vision",
+          "charisma",
+          "creativity"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "anxiety",
+          "self-doubt",
+          "hypersensitivity",
+          "reality avoidance"
+        ],
+        "en": [
+          "anxiety",
+          "self-doubt",
+          "hypersensitivity",
+          "reality avoidance"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "spiritual leader",
+          "artist",
+          "psychologist",
+          "writer",
+          "healer"
+        ],
+        "en": [
+          "spiritual leader",
+          "artist",
+          "psychologist",
+          "writer",
+          "healer"
+        ]
+      },
+      "relationships": {
+        "ko": "You want a spiritually connected partner. Compatible with 2, 6, 9.",
+        "en": "You want a spiritually connected partner. Compatible with 2, 6, 9."
+      },
+      "health": {
+        "ko": "Watch nervous system and anxiety. Meditation and grounding important.",
+        "en": "Watch nervous system and anxiety. Meditation and grounding important."
+      },
+      "element": "air",
+      "planet": "Uranus",
+      "color": "silver",
+      "gemstone": "pearl"
+    },
+    "22": {
+      "archetype": {
+        "ko": "Master Builder",
+        "en": "Master Builder"
+      },
+      "keywords": {
+        "ko": [
+          "grand vision",
+          "manifestation",
+          "organization",
+          "global impact",
+          "durability",
+          "system"
+        ],
+        "en": [
+          "grand vision",
+          "manifestation",
+          "organization",
+          "global impact",
+          "durability",
+          "system"
+        ]
+      },
+      "master": true,
+      "baseNumber": 4,
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about manifesting grand visions.",
+          "detail": "With Master Number 22, you have the most powerful potential. Your mission is to turn grand visions into reality, build sustainable systems, and leave a lasting legacy.",
+          "lesson": "Find balance between practicality and vision.",
+          "challenge": "Overwhelm, gap between vision and reality"
+        },
+        "en": {
+          "summary": "Your life path is about manifesting grand visions.",
+          "detail": "With Master Number 22, you have the most powerful potential. Your mission is to turn grand visions into reality, build sustainable systems, and leave a lasting legacy.",
+          "lesson": "Find balance between practicality and vision.",
+          "challenge": "Overwhelm, gap between vision and reality"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You transform the world through large-scale projects.",
+          "detail": "Master Expression 22 indicates you are designed to contribute through large-scale organization and system building."
+        },
+        "en": {
+          "summary": "You transform the world through large-scale projects.",
+          "detail": "Master Expression 22 indicates you are designed to contribute through large-scale organization and system building."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for a meaningful legacy.",
+          "detail": "Master Soul Urge 22 indicates a deep desire to build something that lasts."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for a meaningful legacy.",
+          "detail": "Master Soul Urge 22 indicates a deep desire to build something that lasts."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project an authoritative and capable image.",
+          "detail": "Master Personality 22 means others see you as highly capable and destined for great things."
+        },
+        "en": {
+          "summary": "You project an authoritative and capable image.",
+          "detail": "Master Personality 22 means others see you as highly capable and destined for great things."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of large-scale building.",
+          "detail": "Personal Year 22/4 is about enhanced building and organizing. Start large projects and build sustainable foundations.",
+          "focus": [
+            "Large projects",
+            "Organization building",
+            "Long-term planning"
+          ],
+          "avoid": [
+            "Thinking small",
+            "Unstructured approach",
+            "Giving up vision"
+          ]
+        },
+        "en": {
+          "summary": "A year of large-scale building.",
+          "detail": "Personal Year 22/4 is about enhanced building and organizing. Start large projects and build sustainable foundations.",
+          "focus": [
+            "Large projects",
+            "Organization building",
+            "Long-term planning"
+          ],
+          "avoid": [
+            "Thinking small",
+            "Unstructured approach",
+            "Giving up vision"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "grand vision",
+          "execution",
+          "organization",
+          "durability",
+          "influence"
+        ],
+        "en": [
+          "grand vision",
+          "execution",
+          "organization",
+          "durability",
+          "influence"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "overwhelm",
+          "excessive burden",
+          "perfectionism",
+          "unrealistic expectations"
+        ],
+        "en": [
+          "overwhelm",
+          "excessive burden",
+          "perfectionism",
+          "unrealistic expectations"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "architect",
+          "politician",
+          "foundation founder",
+          "global CEO",
+          "urban planner"
+        ],
+        "en": [
+          "architect",
+          "politician",
+          "foundation founder",
+          "global CEO",
+          "urban planner"
+        ]
+      },
+      "relationships": {
+        "ko": "You want a partner who supports your vision. Compatible with 4, 6, 8.",
+        "en": "You want a partner who supports your vision. Compatible with 4, 6, 8."
+      },
+      "health": {
+        "ko": "Watch stress and burnout. Rest and balance essential.",
+        "en": "Watch stress and burnout. Rest and balance essential."
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "brown",
+      "gemstone": "tiger's eye"
+    },
+    "33": {
+      "archetype": {
+        "ko": "Master Healer / Teacher",
+        "en": "Master Healer / Teacher"
+      },
+      "keywords": {
+        "ko": [
+          "healing",
+          "service",
+          "compassion",
+          "spiritual teaching",
+          "sacrifice",
+          "blessing"
+        ],
+        "en": [
+          "healing",
+          "service",
+          "compassion",
+          "spiritual teaching",
+          "sacrifice",
+          "blessing"
+        ]
+      },
+      "master": true,
+      "baseNumber": 6,
+      "lifePath": {
+        "ko": {
+          "summary": "Your life path is about healing and service.",
+          "detail": "With Master Number 33, you have the highest spiritual mission. Your role is to heal others with deep love and compassion, teach spiritual truths, and practice unconditional service.",
+          "lesson": "Care for yourself while caring for others.",
+          "challenge": "Excessive sacrifice, martyr complex"
+        },
+        "en": {
+          "summary": "Your life path is about healing and service.",
+          "detail": "With Master Number 33, you have the highest spiritual mission. Your role is to heal others with deep love and compassion, teach spiritual truths, and practice unconditional service.",
+          "lesson": "Care for yourself while caring for others.",
+          "challenge": "Excessive sacrifice, martyr complex"
+        }
+      },
+      "expression": {
+        "ko": {
+          "summary": "You bless the world through healing and teaching.",
+          "detail": "Master Expression 33 indicates you are designed to contribute through healing and spiritual teaching."
+        },
+        "en": {
+          "summary": "You bless the world through healing and teaching.",
+          "detail": "Master Expression 33 indicates you are designed to contribute through healing and spiritual teaching."
+        }
+      },
+      "soulUrge": {
+        "ko": {
+          "summary": "Deep inside, you yearn for healing and service.",
+          "detail": "Master Soul Urge 33 indicates a deep desire to heal and serve others."
+        },
+        "en": {
+          "summary": "Deep inside, you yearn for healing and service.",
+          "detail": "Master Soul Urge 33 indicates a deep desire to heal and serve others."
+        }
+      },
+      "personality": {
+        "ko": {
+          "summary": "You project a compassionate and healing image.",
+          "detail": "Master Personality 33 means others see you as deeply compassionate and spiritual."
+        },
+        "en": {
+          "summary": "You project a compassionate and healing image.",
+          "detail": "Master Personality 33 means others see you as deeply compassionate and spiritual."
+        }
+      },
+      "personalYear": {
+        "ko": {
+          "summary": "A year of deep service.",
+          "detail": "Personal Year 33/6 is about enhanced healing and service. Help others and practice compassion. But don't forget self-care.",
+          "focus": [
+            "Healing",
+            "Service",
+            "Teaching"
+          ],
+          "avoid": [
+            "Excessive sacrifice",
+            "Self-neglect",
+            "Martyr mentality"
+          ]
+        },
+        "en": {
+          "summary": "A year of deep service.",
+          "detail": "Personal Year 33/6 is about enhanced healing and service. Help others and practice compassion. But don't forget self-care.",
+          "focus": [
+            "Healing",
+            "Service",
+            "Teaching"
+          ],
+          "avoid": [
+            "Excessive sacrifice",
+            "Self-neglect",
+            "Martyr mentality"
+          ]
+        }
+      },
+      "strengths": {
+        "ko": [
+          "healing power",
+          "compassion",
+          "spiritual wisdom",
+          "service",
+          "unconditional love"
+        ],
+        "en": [
+          "healing power",
+          "compassion",
+          "spiritual wisdom",
+          "service",
+          "unconditional love"
+        ]
+      },
+      "weaknesses": {
+        "ko": [
+          "excessive sacrifice",
+          "martyr complex",
+          "lack of boundaries",
+          "self-neglect"
+        ],
+        "en": [
+          "excessive sacrifice",
+          "martyr complex",
+          "lack of boundaries",
+          "self-neglect"
+        ]
+      },
+      "careers": {
+        "ko": [
+          "spiritual teacher",
+          "healer",
+          "counselor",
+          "humanitarian leader",
+          "clergy"
+        ],
+        "en": [
+          "spiritual teacher",
+          "healer",
+          "counselor",
+          "humanitarian leader",
+          "clergy"
+        ]
+      },
+      "relationships": {
+        "ko": "You want a spiritually mature partner. Compatible with 6, 9, 11.",
+        "en": "You want a spiritually mature partner. Compatible with 6, 9, 11."
+      },
+      "health": {
+        "ko": "Watch emotional health and boundaries. Self-care essential.",
+        "en": "Watch emotional health and boundaries. Self-care essential."
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "violet",
+      "gemstone": "diamond"
+    }
+  }
+}

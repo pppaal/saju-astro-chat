@@ -1,0 +1,482 @@
+{
+  "meta": {
+    "type": "compatibility_detailed",
+    "description": "사주 궁합(宮合) 상세 해석 - 연인, 부부, 사업 파트너",
+    "version": "2.0"
+  },
+  "concepts": {
+    "definition": "궁합은 두 사람의 사주를 비교하여 서로의 조화와 갈등을 분석하는 것",
+    "importance": "결혼, 동업, 인간관계에서 중요한 참고 자료",
+    "caution": "궁합은 절대적이지 않음. 노력으로 극복 가능",
+    "types": {
+      "연애궁합": "연인 관계의 조화",
+      "결혼궁합": "부부로서의 조화",
+      "사업궁합": "동업자, 비즈니스 파트너",
+      "친구궁합": "우정과 협력"
+    }
+  },
+  "daymaster_compatibility": {
+    "description": "일간(日干) 간의 궁합",
+    "combinations": {
+      "갑_기": {
+        "type": "합",
+        "name": "갑기합토",
+        "compatibility_score": 85,
+        "nature": "중정지합. 안정적이고 신뢰로운 관계",
+        "strengths": ["안정감", "신뢰", "현실적", "오래감"],
+        "weaknesses": ["변화 부족", "답답할 수 있음"],
+        "marriage": "매우 좋음. 안정적이고 신뢰로운 결혼",
+        "business": "좋음. 부동산, 건설, 농업 분야 유리",
+        "advice": "서로의 다름을 인정하면 최고의 파트너"
+      },
+      "을_경": {
+        "type": "합",
+        "name": "을경합금",
+        "compatibility_score": 80,
+        "nature": "인의지합. 부드러움과 강함의 조화",
+        "strengths": ["상호 보완", "끌림 강함", "성장"],
+        "weaknesses": ["충돌 가능", "주도권 다툼"],
+        "marriage": "좋음. 서로 다른 점이 매력",
+        "business": "좋음. 결단력과 유연함의 조화",
+        "advice": "서로의 강점을 인정하면 시너지"
+      },
+      "병_신": {
+        "type": "합",
+        "name": "병신합수",
+        "compatibility_score": 75,
+        "nature": "위엄지합/음란지합. 강렬한 끌림",
+        "strengths": ["매력적", "열정적", "화려함"],
+        "weaknesses": ["바람기 주의", "질투", "불안정"],
+        "marriage": "화려하지만 주의 필요. 신뢰 구축 중요",
+        "business": "예술, 연예, 패션 분야 유리",
+        "advice": "신뢰와 안정이 관계 유지의 열쇠"
+      },
+      "정_임": {
+        "type": "합",
+        "name": "정임합목",
+        "compatibility_score": 70,
+        "nature": "인수지합. 깊고 신비로운 관계",
+        "strengths": ["깊은 이해", "정서적 교감", "지적 연결"],
+        "weaknesses": ["감정 기복", "집착", "불안정"],
+        "marriage": "깊이 있으나 감정 관리 필요",
+        "business": "예술, 연구, 학문 분야 유리",
+        "advice": "감정에 휩쓸리지 말고 이성적 균형 필요"
+      },
+      "무_계": {
+        "type": "합",
+        "name": "무계합화",
+        "compatibility_score": 65,
+        "nature": "무정지합. 안정적이지만 열정 부족",
+        "strengths": ["안정", "신뢰", "실속"],
+        "weaknesses": ["열정 부족", "나이 차이", "소통 어려움"],
+        "marriage": "안정적이지만 로맨스 부족할 수 있음",
+        "business": "좋음. 안정적 파트너십",
+        "advice": "의도적으로 로맨스 노력 필요"
+      },
+      "갑_경": {
+        "type": "충",
+        "name": "갑경충",
+        "compatibility_score": 45,
+        "nature": "강한 충돌. 경쟁과 갈등",
+        "strengths": ["서로 자극", "성장 계기"],
+        "weaknesses": ["갈등 많음", "다툼", "경쟁"],
+        "marriage": "어려움. 많은 노력 필요",
+        "business": "경쟁 관계가 되기 쉬움",
+        "advice": "서로 다른 영역에서 활동하면 가능"
+      },
+      "을_신": {
+        "type": "충",
+        "name": "을신충",
+        "compatibility_score": 50,
+        "nature": "섬세한 충돌. 말로 상처",
+        "strengths": ["예리함 공유", "분석적"],
+        "weaknesses": ["말로 상처", "비판", "예민함"],
+        "marriage": "주의 필요. 말조심",
+        "business": "비평, 분석 분야면 가능",
+        "advice": "서로 비판하지 말고 격려하기"
+      },
+      "병_임": {
+        "type": "충",
+        "name": "병임충",
+        "compatibility_score": 40,
+        "nature": "극렬한 충돌. 감정 폭발",
+        "strengths": ["열정적"],
+        "weaknesses": ["감정 기복", "사랑과 증오", "불안정"],
+        "marriage": "매우 어려움. 감정 조절 필수",
+        "business": "피하는 게 좋음",
+        "advice": "감정을 다스리는 훈련 필요"
+      },
+      "정_계": {
+        "type": "충",
+        "name": "정계충",
+        "compatibility_score": 45,
+        "nature": "은밀한 충돌. 마음의 상처",
+        "strengths": ["감성 공유"],
+        "weaknesses": ["오해", "섭섭함", "우울"],
+        "marriage": "어려움. 소통 노력 필요",
+        "business": "감정 배제하면 가능",
+        "advice": "마음을 열고 솔직하게 대화"
+      },
+      "same_element": {
+        "갑_갑": {
+          "compatibility_score": 55,
+          "nature": "경쟁 관계. 같은 방향이지만 충돌",
+          "advice": "서로 다른 영역 확보 필요"
+        },
+        "을_을": {
+          "compatibility_score": 60,
+          "nature": "공감 관계. 부드러운 동질감",
+          "advice": "결단력 부족할 수 있음"
+        },
+        "병_병": {
+          "compatibility_score": 50,
+          "nature": "경쟁 관계. 빛의 대결",
+          "advice": "서로 빛나려 하면 충돌"
+        },
+        "정_정": {
+          "compatibility_score": 65,
+          "nature": "공감 관계. 섬세한 이해",
+          "advice": "감정 기복 조심"
+        },
+        "무_무": {
+          "compatibility_score": 55,
+          "nature": "안정적이지만 답답함",
+          "advice": "변화를 주는 노력 필요"
+        },
+        "기_기": {
+          "compatibility_score": 60,
+          "nature": "부드러운 동질감",
+          "advice": "리더십 부재 가능"
+        },
+        "경_경": {
+          "compatibility_score": 45,
+          "nature": "칼과 칼의 대결",
+          "advice": "양보하는 연습 필요"
+        },
+        "신_신": {
+          "compatibility_score": 55,
+          "nature": "섬세한 공감",
+          "advice": "비판 줄이기"
+        },
+        "임_임": {
+          "compatibility_score": 50,
+          "nature": "지혜의 경쟁",
+          "advice": "서로 인정하기"
+        },
+        "계_계": {
+          "compatibility_score": 60,
+          "nature": "깊은 공감",
+          "advice": "현실 감각 필요"
+        }
+      }
+    }
+  },
+  "branch_compatibility": {
+    "description": "일지(日支) 간의 궁합",
+    "samhap": {
+      "인오술": {
+        "elements": ["인", "오", "술"],
+        "result": "화국",
+        "compatibility_score": 90,
+        "meaning": "불의 삼합. 열정과 활력",
+        "strengths": ["열정 공유", "활발함", "추진력"],
+        "marriage": "매우 좋음. 함께 성장",
+        "advice": "열정이 식지 않게 노력"
+      },
+      "신자진": {
+        "elements": ["신", "자", "진"],
+        "result": "수국",
+        "compatibility_score": 90,
+        "meaning": "물의 삼합. 지혜와 소통",
+        "strengths": ["지적 교감", "소통", "이해"],
+        "marriage": "매우 좋음. 깊은 이해",
+        "advice": "감정 표현도 중요"
+      },
+      "사유축": {
+        "elements": ["사", "유", "축"],
+        "result": "금국",
+        "compatibility_score": 90,
+        "meaning": "금의 삼합. 결단과 실속",
+        "strengths": ["실속", "결단력", "안정"],
+        "marriage": "좋음. 현실적 부부",
+        "advice": "유연함 필요"
+      },
+      "해묘미": {
+        "elements": ["해", "묘", "미"],
+        "result": "목국",
+        "compatibility_score": 90,
+        "meaning": "나무의 삼합. 성장과 조화",
+        "strengths": ["성장", "조화", "발전"],
+        "marriage": "좋음. 함께 성장하는 관계",
+        "advice": "현실 감각 보완"
+      }
+    },
+    "yukhap": {
+      "자축": {
+        "elements": ["자", "축"],
+        "compatibility_score": 85,
+        "meaning": "토국으로 합. 안정적 결합",
+        "strengths": ["안정", "신뢰", "결속"],
+        "marriage": "좋음. 안정적인 가정"
+      },
+      "인해": {
+        "elements": ["인", "해"],
+        "compatibility_score": 85,
+        "meaning": "목국으로 합. 성장하는 결합",
+        "strengths": ["성장", "지원", "발전"],
+        "marriage": "좋음. 서로 도움"
+      },
+      "묘술": {
+        "elements": ["묘", "술"],
+        "compatibility_score": 80,
+        "meaning": "화국으로 합. 열정적 결합",
+        "strengths": ["열정", "활력"],
+        "weaknesses": ["약간 불안정"],
+        "marriage": "좋음. 하지만 갈등 시 화해 노력"
+      },
+      "진유": {
+        "elements": ["진", "유"],
+        "compatibility_score": 85,
+        "meaning": "금국으로 합. 실속있는 결합",
+        "strengths": ["실속", "결단"],
+        "marriage": "좋음. 현실적 부부"
+      },
+      "사신": {
+        "elements": ["사", "신"],
+        "compatibility_score": 75,
+        "meaning": "수국으로 합하나 형도 있음",
+        "strengths": ["지혜 공유"],
+        "weaknesses": ["갈등 가능"],
+        "marriage": "좋으나 주의 필요"
+      },
+      "오미": {
+        "elements": ["오", "미"],
+        "compatibility_score": 80,
+        "meaning": "토/화국으로 합. 따뜻한 결합",
+        "strengths": ["따뜻함", "조화"],
+        "marriage": "좋음. 따뜻한 가정"
+      }
+    },
+    "chung": {
+      "자오충": {
+        "elements": ["자", "오"],
+        "compatibility_score": 30,
+        "meaning": "물과 불의 충돌",
+        "impact": "극렬한 갈등. 정반대 성향",
+        "marriage": "매우 어려움. 조화 힘듦",
+        "advice": "서로 다름을 인정하고 존중"
+      },
+      "축미충": {
+        "elements": ["축", "미"],
+        "compatibility_score": 40,
+        "meaning": "토와 토의 충돌. 답답함",
+        "impact": "고집 충돌. 양보 어려움",
+        "marriage": "어려움. 고집 부리지 말기",
+        "advice": "유연함 필요"
+      },
+      "인신충": {
+        "elements": ["인", "신"],
+        "compatibility_score": 35,
+        "meaning": "목과 금의 충돌",
+        "impact": "강한 충돌. 사고 주의",
+        "marriage": "어려움. 다툼 많음",
+        "advice": "물리적 충돌 주의"
+      },
+      "묘유충": {
+        "elements": ["묘", "유"],
+        "compatibility_score": 35,
+        "meaning": "목과 금의 섬세한 충돌",
+        "impact": "말로 상처. 비판",
+        "marriage": "어려움. 말조심",
+        "advice": "비판 대신 격려"
+      },
+      "진술충": {
+        "elements": ["진", "술"],
+        "compatibility_score": 40,
+        "meaning": "토와 토의 충돌. 창고 부딪힘",
+        "impact": "고집. 재물 다툼",
+        "marriage": "어려움. 재산 문제 주의",
+        "advice": "돈 문제 명확히"
+      },
+      "사해충": {
+        "elements": ["사", "해"],
+        "compatibility_score": 35,
+        "meaning": "화와 수의 충돌",
+        "impact": "감정 폭발. 극과 극",
+        "marriage": "어려움. 감정 조절",
+        "advice": "냉정함 유지"
+      }
+    },
+    "wongjin": {
+      "pairs": {
+        "자미": {
+          "compatibility_score": 45,
+          "meaning": "인연이지만 미워함",
+          "advice": "끌리지만 밀어내는 관계. 의도적 노력 필요"
+        },
+        "축오": {
+          "compatibility_score": 45,
+          "meaning": "인연이지만 답답함",
+          "advice": "서로 답답해함. 소통 노력"
+        },
+        "인사": {
+          "compatibility_score": 50,
+          "meaning": "형과 원진. 복잡한 관계",
+          "advice": "조심스럽게 관계 유지"
+        },
+        "묘진": {
+          "compatibility_score": 50,
+          "meaning": "해로 관계도 있음",
+          "advice": "가까이 하되 적당한 거리"
+        },
+        "신해": {
+          "compatibility_score": 50,
+          "meaning": "해로 관계",
+          "advice": "서로 해치지 않게 조심"
+        },
+        "유술": {
+          "compatibility_score": 50,
+          "meaning": "해로 관계",
+          "advice": "경쟁하지 않기"
+        }
+      }
+    }
+  },
+  "special_compatibility": {
+    "yongsin_match": {
+      "description": "용신이 서로를 도와주는 관계",
+      "example": "A의 용신이 목인데 B의 사주에 목이 강함",
+      "effect": "최고의 궁합. 서로에게 필요한 존재",
+      "compatibility_score": 95
+    },
+    "gisin_conflict": {
+      "description": "기신이 서로를 해치는 관계",
+      "example": "A의 기신이 화인데 B의 사주에 화가 강함",
+      "effect": "어려운 궁합. 함께 있으면 해로움",
+      "compatibility_score": 25
+    },
+    "twelve_stages_match": {
+      "description": "12운성으로 보는 궁합",
+      "matches": {
+        "장생_장생": "함께 성장. 좋음",
+        "왕지_왕지": "둘 다 강함. 경쟁 가능",
+        "묘지_묘지": "둘 다 약함. 서로 의지",
+        "양_양": "서로 도움. 좋음"
+      }
+    }
+  },
+  "marriage_compatibility": {
+    "best_matches": {
+      "description": "결혼에 최고 좋은 조합",
+      "conditions": [
+        "일간이 합하는 관계",
+        "일지가 삼합 또는 육합",
+        "용신이 서로를 도움",
+        "천을귀인이 상대에게 있음"
+      ],
+      "examples": [
+        {
+          "combination": "갑일간 + 기일간 + 일지 삼합",
+          "score": 95,
+          "description": "최고의 결혼 궁합"
+        }
+      ]
+    },
+    "challenging_matches": {
+      "description": "결혼에 어려운 조합",
+      "conditions": [
+        "일간이 충하는 관계",
+        "일지가 충",
+        "양인살이 상대에게 향함",
+        "원진살"
+      ],
+      "advice": "어렵지만 불가능하지 않음. 이해와 노력으로 극복"
+    },
+    "timing": {
+      "good_years": [
+        "본인 용신이 오는 해",
+        "천을귀인이 오는 해",
+        "일지와 합하는 해",
+        "도화가 오지만 합도 있는 해"
+      ],
+      "avoid_years": [
+        "삼재가 든 해",
+        "충이 오는 해",
+        "양인살이 활성화되는 해"
+      ]
+    }
+  },
+  "business_compatibility": {
+    "best_matches": {
+      "conditions": [
+        "서로 다른 강점이 보완됨",
+        "재성과 관성이 균형",
+        "신뢰할 수 있는 십성 배치"
+      ],
+      "by_role": {
+        "CEO_CFO": "일간이 재성과 관성으로 보완",
+        "창업자_투자자": "식상과 재성의 조화",
+        "영업_기술": "재성과 인성의 조화"
+      }
+    },
+    "warning_signs": {
+      "both_strong_bigeop": "둘 다 비겁이 강하면 경쟁",
+      "both_strong_kwansung": "둘 다 관성이 강하면 권력 다툼",
+      "geupjae_meet": "겁재가 서로에게 향하면 돈 문제"
+    }
+  },
+  "compatibility_score_interpretation": {
+    "90-100": {
+      "level": "천생연분",
+      "description": "최고의 궁합. 함께하면 시너지",
+      "advice": "감사하며 관계 유지"
+    },
+    "75-89": {
+      "level": "좋은 궁합",
+      "description": "서로에게 도움. 조화로움",
+      "advice": "장점 살리고 단점 보완"
+    },
+    "60-74": {
+      "level": "무난한 궁합",
+      "description": "특별히 좋지도 나쁘지도 않음",
+      "advice": "노력하면 좋아질 수 있음"
+    },
+    "45-59": {
+      "level": "주의 필요 궁합",
+      "description": "갈등 요소 있음. 조심 필요",
+      "advice": "서로 이해하려는 노력 필수"
+    },
+    "30-44": {
+      "level": "어려운 궁합",
+      "description": "많은 갈등 예상. 도전적",
+      "advice": "정말 원한다면 전문가 상담"
+    },
+    "0-29": {
+      "level": "매우 어려운 궁합",
+      "description": "함께하기 힘든 조합",
+      "advice": "신중한 결정 필요"
+    }
+  },
+  "response_templates": {
+    "excellent": {
+      "opening": "{person1}님과 {person2}님은 천생연분의 궁합입니다!",
+      "detail": "{reason}으로 서로에게 최고의 파트너입니다.",
+      "advice": "이 인연을 소중히 여기세요. 함께라면 더 큰 행복을 만들 수 있습니다."
+    },
+    "good": {
+      "opening": "{person1}님과 {person2}님은 좋은 궁합입니다.",
+      "detail": "{strength} 덕분에 조화로운 관계가 가능합니다. 다만 {weakness}에 주의하세요.",
+      "advice": "서로의 장점을 살리면 더욱 발전하는 관계가 됩니다."
+    },
+    "average": {
+      "opening": "{person1}님과 {person2}님은 무난한 궁합입니다.",
+      "detail": "특별히 좋거나 나쁜 요소는 없습니다. {neutral_point}",
+      "advice": "노력에 따라 좋은 관계로 발전할 수 있습니다."
+    },
+    "challenging": {
+      "opening": "{person1}님과 {person2}님은 주의가 필요한 궁합입니다.",
+      "detail": "{conflict_reason} 때문에 갈등이 생길 수 있습니다.",
+      "advice": "{resolution_advice} 서로를 이해하려는 노력이 중요합니다."
+    }
+  }
+}

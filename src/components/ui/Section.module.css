@@ -1,0 +1,30 @@
+.section {
+  width: 100%;
+  padding: var(--dp-space-10) var(--dp-space-4);
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dp-space-3);
+}
+
+.eyebrow {
+  color: var(--dp-accent-strong);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--dp-text-primary);
+}
+
+.description {
+  max-width: 720px;
+  color: var(--dp-text-secondary);
+}

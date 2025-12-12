@@ -1,0 +1,113 @@
+# Numerology Numbers 1-9
+# App: DestinyPal
+# Style: Elegant, mystical, each number has unique energy
+
+================================================================================
+
+## 1. Number 1 (리더십, 독립)
+Filename: number_01.jpg
+Prompt:
+mystical numerology illustration, number one,
+elegant golden 1 with crown and sun rays,
+leadership and independence energy, pioneer spirit,
+deep purple background with gold accents, sacred geometry,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 2. Number 2 (조화, 파트너십)
+Filename: number_02.jpg
+Prompt:
+mystical numerology illustration, number two,
+elegant silver 2 with yin yang and moon phases,
+harmony and partnership energy, balance spirit,
+deep blue background with silver accents, flowing curves,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 3. Number 3 (창의성, 표현)
+Filename: number_03.jpg
+Prompt:
+mystical numerology illustration, number three,
+vibrant colorful 3 with artistic swirls and stars,
+creativity and expression energy, joyful spirit,
+gradient purple to pink background, playful patterns,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 4. Number 4 (안정, 기반)
+Filename: number_04.jpg
+Prompt:
+mystical numerology illustration, number four,
+solid earthy 4 with stone texture and roots,
+stability and foundation energy, grounded spirit,
+deep green brown background with earth tones,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 5. Number 5 (자유, 변화)
+Filename: number_05.jpg
+Prompt:
+mystical numerology illustration, number five,
+dynamic 5 with wind swirls and adventure elements,
+freedom and change energy, explorer spirit,
+teal and orange gradient background, movement feel,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 6. Number 6 (사랑, 가정)
+Filename: number_06.jpg
+Prompt:
+mystical numerology illustration, number six,
+warm loving 6 with heart and home symbols,
+love and family energy, nurturing spirit,
+soft rose pink background with warm light,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 7. Number 7 (지혜, 영성)
+Filename: number_07.jpg
+Prompt:
+mystical numerology illustration, number seven,
+mystical purple 7 with third eye and cosmos,
+wisdom and spirituality energy, seeker spirit,
+deep indigo background with stars and nebula,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 8. Number 8 (풍요, 성공)
+Filename: number_08.jpg
+Prompt:
+mystical numerology illustration, number eight,
+luxurious gold 8 infinity with abundance symbols,
+prosperity and success energy, powerful spirit,
+rich black and gold background, wealth elements,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 9. Number 9 (완성, 인도주의)
+Filename: number_09.jpg
+Prompt:
+mystical numerology illustration, number nine,
+enlightened white gold 9 with universal symbols,
+completion and humanitarian energy, wise spirit,
+cosmic gradient background with divine light,
+soft glow, mystical atmosphere, premium feel,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 500
+
+================================================================================

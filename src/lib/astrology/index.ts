@@ -15,7 +15,18 @@ export type {
 // ======================================================
 // 🪐 Transit / Aspects / Houses (기초 확장 API)
 // ======================================================
-export { calculateTransitChart } from "./foundation/transit";
+export {
+  calculateTransitChart,
+  findTransitAspects,
+  findMajorTransits,
+  getTransitKeywords,
+} from "./foundation/transit";
+
+export type {
+  TransitAspect,
+  TransitEvent,
+} from "./foundation/transit";
+
 export { findAspects, findNatalAspects } from "./foundation/aspects";
 export { calcHouses } from "./foundation/houses";
 
@@ -43,6 +54,138 @@ export { findAspectsPlus, findNatalAspectsPlus } from "./advanced/aspectsPlus";
 
 export { buildEngineMeta } from "./advanced/meta";
 export type { ExtendedMeta } from "./advanced/meta";
+
+// ======================================================
+// ⭐ Extra Points (Chiron, Lilith, Part of Fortune, Vertex)
+// ======================================================
+export {
+  calculateChiron,
+  calculateLilith,
+  calculatePartOfFortune,
+  calculateVertex,
+  extendChartWithExtraPoints,
+  calculateExtraPoints,
+  isNightChart,
+} from "./foundation/extraPoints";
+
+export type {
+  ExtraPoint,
+  ExtendedChart,
+} from "./foundation/types";
+
+// ======================================================
+// 🔄 Progressions (Secondary Progressions, Solar Arc)
+// ======================================================
+export {
+  calculateSecondaryProgressions,
+  calculateSolarArcDirections,
+  getProgressedMoonPhase,
+  getProgressionSummary,
+  findProgressedToNatalAspects,
+  findProgressedInternalAspects,
+  findProgressedMoonAspects,
+  getProgressedAspectKeywords,
+} from "./foundation/progressions";
+
+export type {
+  ProgressedAspect,
+} from "./foundation/progressions";
+
+export type {
+  ProgressionInput,
+  ProgressedChart,
+} from "./foundation/types";
+
+// ======================================================
+// 🎂 Returns (Solar Return, Lunar Return)
+// ======================================================
+export {
+  calculateSolarReturn,
+  calculateLunarReturn,
+  getSolarReturnSummary,
+  getLunarReturnSummary,
+} from "./foundation/returns";
+
+export type {
+  SolarReturnInput,
+  LunarReturnInput,
+  ReturnChart,
+} from "./foundation/types";
+
+// ======================================================
+// 💕 Synastry (두 차트 비교)
+// ======================================================
+export {
+  calculateSynastry,
+  findSynastryAspects,
+} from "./foundation/synastry";
+
+export type {
+  SynastryInput,
+  SynastryResult,
+  HouseOverlay,
+} from "./foundation/synastry";
+
+// ======================================================
+// 🔗 Composite (합성 차트)
+// ======================================================
+export {
+  calculateComposite,
+  getCompositeSummary,
+} from "./foundation/composite";
+
+export type {
+  CompositeInput,
+  CompositeChart,
+} from "./foundation/composite";
+
+// ======================================================
+// ⚡ Midpoints (미드포인트)
+// ======================================================
+export {
+  calculateMidpoints,
+  findMidpointActivations,
+  getMidpoint,
+  findCrossMidpointActivations,
+} from "./foundation/midpoints";
+
+export type {
+  Midpoint,
+  MidpointActivation,
+} from "./foundation/midpoints";
+
+// ======================================================
+// ⭐ Fixed Stars (항성)
+// ======================================================
+export {
+  findFixedStarConjunctions,
+  getFixedStar,
+  getAllFixedStars,
+  correctForPrecession,
+} from "./foundation/fixedStars";
+
+export type {
+  FixedStar,
+  FixedStarConjunction,
+} from "./foundation/fixedStars";
+
+// ======================================================
+// 🌑 Eclipses (이클립스)
+// ======================================================
+export {
+  findEclipseImpact,
+  getUpcomingEclipses,
+  getEclipsesBetween,
+  getEclipsesInSign,
+  getEclipseAxis,
+  checkEclipseSensitivity,
+  getAllEclipses,
+} from "./foundation/eclipses";
+
+export type {
+  Eclipse,
+  EclipseImpact,
+} from "./foundation/eclipses";
 
 // ======================================================
 // 🪄 Narrative Engine 및 분석기용 타입 Export

@@ -1,0 +1,497 @@
+{
+  "meta": {
+    "type": "jiji_relations",
+    "version": "2.0",
+    "generated_at": "2025-12-09T20:20:13.649278"
+  },
+  "yukchung": {
+    "자오충": {
+      "branches": [
+        "자",
+        "오"
+      ],
+      "meaning": "물과 불의 충돌. 가장 강렬한 충",
+      "effects": {
+        "general": "급격한 변화, 이사, 이별, 사고 주의",
+        "career": "직장 변동, 전업",
+        "relationship": "배우자나 자녀와 갈등, 이별",
+        "health": "심장, 신장, 혈액 관련 질환 주의",
+        "year_month": "어린 시절 가정 불안정",
+        "month_day": "직업과 배우자 사이 갈등",
+        "day_hour": "배우자, 자녀와 멀어짐"
+      },
+      "advice": "변화를 받아들이고 유연하게 대처하세요"
+    },
+    "축미충": {
+      "branches": [
+        "축",
+        "미"
+      ],
+      "meaning": "토와 토의 충돌. 가장 약한 충",
+      "effects": {
+        "general": "고집 충돌, 완고한 대립",
+        "career": "부동산, 농업 관련 변동",
+        "relationship": "고집으로 인한 갈등",
+        "health": "위장, 비장, 피부 질환"
+      },
+      "advice": "유연한 사고를 가지세요"
+    },
+    "인신충": {
+      "branches": [
+        "인",
+        "신"
+      ],
+      "meaning": "목과 금의 충돌. 역마충으로 이동성 강함",
+      "effects": {
+        "general": "잦은 이동, 변화, 바쁜 생활",
+        "career": "출장이 많거나 이직이 잦음",
+        "relationship": "멀리 떨어져 지내는 관계",
+        "health": "간, 폐, 신경계 질환",
+        "travel": "해외 인연, 이민"
+      },
+      "advice": "변화를 기회로 활용하세요"
+    },
+    "묘유충": {
+      "branches": [
+        "묘",
+        "유"
+      ],
+      "meaning": "목과 금의 충돌. 도화충으로 이성 문제",
+      "effects": {
+        "general": "이성 관계 복잡, 구설수",
+        "career": "예술 분야에서 큰 변동",
+        "relationship": "이성으로 인한 갈등, 불륜 주의",
+        "health": "간, 폐, 피부, 시력"
+      },
+      "advice": "이성 관계를 정리하고 절제하세요"
+    },
+    "진술충": {
+      "branches": [
+        "진",
+        "술"
+      ],
+      "meaning": "토와 토의 충돌. 천라지망",
+      "effects": {
+        "general": "법적 문제, 큰 사건 사고",
+        "career": "사업 실패 또는 대성공",
+        "relationship": "큰 변화를 겪는 관계",
+        "health": "위장, 당뇨, 피부"
+      },
+      "advice": "신중하게 행동하고 법을 지키세요"
+    },
+    "사해충": {
+      "branches": [
+        "사",
+        "해"
+      ],
+      "meaning": "화와 수의 충돌",
+      "effects": {
+        "general": "계획이 엎어지는 경우가 많음",
+        "career": "사업 변동, 투자 실패 주의",
+        "relationship": "갑작스러운 이별",
+        "health": "심장, 신장, 혈압"
+      },
+      "advice": "계획을 신중히 세우고 대비하세요"
+    }
+  },
+  "yukhab": {
+    "자축합토": {
+      "branches": [
+        "자",
+        "축"
+      ],
+      "result": "토",
+      "meaning": "수와 토가 합하여 토가 됨",
+      "effects": {
+        "general": "안정, 결속, 새로운 결합",
+        "career": "파트너십, 계약",
+        "relationship": "연인의 인연, 결혼"
+      }
+    },
+    "인해합목": {
+      "branches": [
+        "인",
+        "해"
+      ],
+      "result": "목",
+      "meaning": "목과 수가 합하여 목이 됨",
+      "effects": {
+        "general": "발전, 성장, 새로운 시작",
+        "career": "귀인의 도움",
+        "relationship": "지지해주는 인연"
+      }
+    },
+    "묘술합화": {
+      "branches": [
+        "묘",
+        "술"
+      ],
+      "result": "화",
+      "meaning": "목과 토가 합하여 화가 됨",
+      "effects": {
+        "general": "열정, 밝은 에너지",
+        "career": "새로운 프로젝트",
+        "relationship": "뜨거운 만남"
+      }
+    },
+    "진유합금": {
+      "branches": [
+        "진",
+        "유"
+      ],
+      "result": "금",
+      "meaning": "토와 금이 합하여 금이 됨",
+      "effects": {
+        "general": "결실, 재물, 성취",
+        "career": "금전적 이득",
+        "relationship": "현실적 결합"
+      }
+    },
+    "사신합수": {
+      "branches": [
+        "사",
+        "신"
+      ],
+      "result": "수",
+      "meaning": "화와 금이 합하여 수가 됨",
+      "effects": {
+        "general": "지혜, 변화, 유동성",
+        "career": "유연한 대처",
+        "relationship": "지적인 만남"
+      }
+    },
+    "오미합": {
+      "branches": [
+        "오",
+        "미"
+      ],
+      "result": "화토",
+      "meaning": "화와 토가 합함",
+      "effects": {
+        "general": "따뜻함, 안정",
+        "career": "협력",
+        "relationship": "부부의 인연"
+      }
+    }
+  },
+  "samhab": {
+    "인오술_화국": {
+      "branches": [
+        "인",
+        "오",
+        "술"
+      ],
+      "result": "화",
+      "meaning": "화의 삼합. 열정, 명예, 활동력",
+      "effects": {
+        "general": "강력한 추진력과 열정",
+        "career": "리더십 발휘, 큰 성취",
+        "relationship": "열정적인 관계",
+        "health": "심장, 눈 관련 주의"
+      }
+    },
+    "해묘미_목국": {
+      "branches": [
+        "해",
+        "묘",
+        "미"
+      ],
+      "result": "목",
+      "meaning": "목의 삼합. 성장, 인덕, 학문",
+      "effects": {
+        "general": "발전과 성장의 에너지",
+        "career": "학문, 교육 분야 성공",
+        "relationship": "인덕이 있음",
+        "health": "간, 담 관련 주의"
+      }
+    },
+    "신자진_수국": {
+      "branches": [
+        "신",
+        "자",
+        "진"
+      ],
+      "result": "수",
+      "meaning": "수의 삼합. 지혜, 유동성, 재물",
+      "effects": {
+        "general": "지혜롭고 유연한 대처",
+        "career": "금융, 유통, 무역 유리",
+        "relationship": "지적인 교류",
+        "health": "신장, 방광 관련 주의"
+      }
+    },
+    "사유축_금국": {
+      "branches": [
+        "사",
+        "유",
+        "축"
+      ],
+      "result": "금",
+      "meaning": "금의 삼합. 결단, 재물, 결실",
+      "effects": {
+        "general": "결단력과 실행력",
+        "career": "재물 축적, 사업 성공",
+        "relationship": "현실적 결합",
+        "health": "폐, 대장 관련 주의"
+      }
+    }
+  },
+  "banghab": {
+    "인묘진_동방목": {
+      "branches": [
+        "인",
+        "묘",
+        "진"
+      ],
+      "result": "목",
+      "meaning": "동방 목의 방합. 봄의 에너지",
+      "effects": "새로운 시작, 성장, 발전의 힘"
+    },
+    "사오미_남방화": {
+      "branches": [
+        "사",
+        "오",
+        "미"
+      ],
+      "result": "화",
+      "meaning": "남방 화의 방합. 여름의 에너지",
+      "effects": "열정, 명예, 화려함"
+    },
+    "신유술_서방금": {
+      "branches": [
+        "신",
+        "유",
+        "술"
+      ],
+      "result": "금",
+      "meaning": "서방 금의 방합. 가을의 에너지",
+      "effects": "결실, 수확, 재물"
+    },
+    "해자축_북방수": {
+      "branches": [
+        "해",
+        "자",
+        "축"
+      ],
+      "result": "수",
+      "meaning": "북방 수의 방합. 겨울의 에너지",
+      "effects": "저장, 지혜, 심화"
+    }
+  },
+  "hyung": {
+    "인사형": {
+      "branches": [
+        "인",
+        "사"
+      ],
+      "type": "무례지형",
+      "meaning": "예의 없이 부딪힘",
+      "effects": "법적 문제, 건강 문제, 배신"
+    },
+    "사신형": {
+      "branches": [
+        "사",
+        "신"
+      ],
+      "type": "무례지형",
+      "meaning": "감정 충돌",
+      "effects": "다툼, 고소고발"
+    },
+    "인신형": {
+      "branches": [
+        "인",
+        "신"
+      ],
+      "type": "무례지형",
+      "meaning": "강한 충돌",
+      "effects": "사고, 수술, 이별"
+    },
+    "축술미형": {
+      "branches": [
+        "축",
+        "술",
+        "미"
+      ],
+      "type": "무은지형",
+      "meaning": "배은망덕",
+      "effects": "신뢰 문제, 배신"
+    },
+    "자묘형": {
+      "branches": [
+        "자",
+        "묘"
+      ],
+      "type": "무례지형",
+      "meaning": "예의 없음",
+      "effects": "불화, 이성 문제"
+    },
+    "진진형": {
+      "branches": [
+        "진",
+        "진"
+      ],
+      "type": "자형",
+      "meaning": "스스로 해침",
+      "effects": "고집, 자충수"
+    },
+    "오오형": {
+      "branches": [
+        "오",
+        "오"
+      ],
+      "type": "자형",
+      "meaning": "스스로 해침",
+      "effects": "급한 성격으로 인한 문제"
+    },
+    "유유형": {
+      "branches": [
+        "유",
+        "유"
+      ],
+      "type": "자형",
+      "meaning": "스스로 해침",
+      "effects": "외로움, 고독"
+    },
+    "해해형": {
+      "branches": [
+        "해",
+        "해"
+      ],
+      "type": "자형",
+      "meaning": "스스로 해침",
+      "effects": "우유부단, 결정 장애"
+    }
+  },
+  "pa": {
+    "자유파": {
+      "branches": [
+        "자",
+        "유"
+      ],
+      "effects": "계획 무산"
+    },
+    "오묘파": {
+      "branches": [
+        "오",
+        "묘"
+      ],
+      "effects": "불화, 갈등"
+    },
+    "진축파": {
+      "branches": [
+        "진",
+        "축"
+      ],
+      "effects": "답답함"
+    },
+    "술미파": {
+      "branches": [
+        "술",
+        "미"
+      ],
+      "effects": "지연, 방해"
+    },
+    "인해파": {
+      "branches": [
+        "인",
+        "해"
+      ],
+      "effects": "불신"
+    },
+    "사신파": {
+      "branches": [
+        "사",
+        "신"
+      ],
+      "effects": "손재"
+    }
+  },
+  "hae": {
+    "자미해": {
+      "branches": [
+        "자",
+        "미"
+      ],
+      "effects": "육친 이별, 건강 문제"
+    },
+    "축오해": {
+      "branches": [
+        "축",
+        "오"
+      ],
+      "effects": "관재, 구설"
+    },
+    "인사해": {
+      "branches": [
+        "인",
+        "사"
+      ],
+      "effects": "사기, 손재"
+    },
+    "묘진해": {
+      "branches": [
+        "묘",
+        "진"
+      ],
+      "effects": "질병, 이별"
+    },
+    "신해해": {
+      "branches": [
+        "신",
+        "해"
+      ],
+      "effects": "도난, 손실"
+    },
+    "유술해": {
+      "branches": [
+        "유",
+        "술"
+      ],
+      "effects": "관재, 질병"
+    }
+  },
+  "won": {
+    "자미원진": {
+      "branches": [
+        "자",
+        "미"
+      ],
+      "effects": "서로 미워하나 떨어지지 못함"
+    },
+    "축오원진": {
+      "branches": [
+        "축",
+        "오"
+      ],
+      "effects": "앙숙"
+    },
+    "인유원진": {
+      "branches": [
+        "인",
+        "유"
+      ],
+      "effects": "충돌"
+    },
+    "묘신원진": {
+      "branches": [
+        "묘",
+        "신"
+      ],
+      "effects": "갈등"
+    },
+    "진해원진": {
+      "branches": [
+        "진",
+        "해"
+      ],
+      "effects": "불화"
+    },
+    "사술원진": {
+      "branches": [
+        "사",
+        "술"
+      ],
+      "effects": "반목"
+    }
+  }
+}

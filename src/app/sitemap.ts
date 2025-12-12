@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinytracker.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
 
   const routes = [
     { path: "", priority: 1.0, changeFrequency: "daily" as const },

@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import { ChangingLine, IChingResult } from "@/components/iching/types";
 import { useI18n } from "@/i18n/I18nProvider";
+import styles from "./ResultDisplay.module.css";
 
 interface ResultDisplayProps {
   result: IChingResult | null;
@@ -8,69 +11,83 @@ interface ResultDisplayProps {
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
   const { translate } = useI18n();
+
   if (!result) return null;
-  if (result.error) return <p style={{ color: "red" }}>{result.error}</p>;
+  if (result.error) return <p className={styles.errorText}>{result.error}</p>;
 
   return (
-    <div
-      style={{
-        marginTop: "1rem",
-        background: "rgba(0,0,0,0.3)",
-        padding: "1.5rem",
-        borderRadius: "8px",
-        textAlign: "left",
-        backdropFilter: "blur(5px)",
-      }}
-    >
-      <h2>
-        {translate("iching.today", "Today's Hexagram")}:{" "}
-        {result.primaryHexagram.name} {result.primaryHexagram.symbol}
-      </h2>
-      <p style={{ marginTop: "1rem" }}>
-        <strong>[{translate("iching.judgment", "Judgment")}]</strong>{" "}
-        {result.primaryHexagram.judgment}
-      </p>
-      <p style={{ marginTop: "0.5rem", color: "#ccc" }}>
-        <strong>[{translate("iching.image", "Image")}]</strong>{" "}
-        {result.primaryHexagram.image}
-      </p>
+    <div className={styles.resultContainer}>
+      {/* Primary Hexagram Card */}
+      <div className={styles.resultCard}>
+        <div className={styles.hexagramHeader}>
+          <div className={styles.hexagramIcon}>☯</div>
+          <div className={styles.hexagramInfo}>
+            <h2 className={styles.hexagramTitle}>
+              {translate("iching.today", "Today's Hexagram")}:{" "}
+              {result.primaryHexagram.name}
+              <span className={styles.hexagramSymbol}>
+                {result.primaryHexagram.symbol}
+              </span>
+            </h2>
+          </div>
+        </div>
 
+        <div className={styles.divider} />
+
+        {/* Judgment */}
+        <div>
+          <div className={styles.sectionLabel}>
+            {translate("iching.judgment", "Judgment")}
+          </div>
+          <p className={styles.sectionText}>
+            {result.primaryHexagram.judgment}
+          </p>
+        </div>
+
+        <div className={styles.divider} />
+
+        {/* Image */}
+        <div>
+          <div className={styles.sectionLabel}>
+            {translate("iching.image", "Image")}
+          </div>
+          <p className={styles.imageText}>
+            {result.primaryHexagram.image}
+          </p>
+        </div>
+      </div>
+
+      {/* Changing Lines */}
       {result.changingLines.length > 0 && (
-        <div
-          style={{
-            marginTop: "1.5rem",
-            borderTop: "1px solid #444",
-            paddingTop: "1.5rem",
-          }}
-        >
-          <h3 style={{ color: "#ffdd00" }}>
-            [{translate("iching.changingLines", "Changing Lines")}]
-          </h3>
-          {result.changingLines.map((line: ChangingLine) => (
-            <p key={line.index} style={{ marginTop: "0.5rem" }}>
-              - {line.text}
-            </p>
-          ))}
+        <div className={styles.changingLinesCard}>
+          <div className={styles.changingLinesHeader}>
+            <span className={styles.changingLinesIcon}>✦</span>
+            <h3 className={styles.changingLinesTitle}>
+              {translate("iching.changingLines", "Changing Lines")}
+            </h3>
+          </div>
+          <div className={styles.changingLinesList}>
+            {result.changingLines.map((line: ChangingLine) => (
+              <div key={line.index} className={styles.changingLineItem}>
+                {line.text}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
+      {/* Resulting Hexagram */}
       {result.resultingHexagram && (
-        <div
-          style={{
-            marginTop: "1.5rem",
-            borderTop: "1px solid #444",
-            paddingTop: "1.5rem",
-          }}
-        >
-          <h3>
-            [
-            {translate(
-              "iching.resulting",
-              "Resulting Hexagram"
-            )}: {result.resultingHexagram.name}{" "}
-            {result.resultingHexagram.symbol}]
-          </h3>
-          <p style={{ marginTop: "0.5rem" }}>
+        <div className={styles.resultingCard}>
+          <div className={styles.resultingHeader}>
+            <span className={styles.resultingIcon}>→</span>
+            <h3 className={styles.resultingTitle}>
+              {translate("iching.resulting", "Resulting Hexagram")}:{" "}
+              {result.resultingHexagram.name}{" "}
+              {result.resultingHexagram.symbol}
+            </h3>
+          </div>
+          <p className={styles.resultingText}>
             {result.resultingHexagram.judgment}
           </p>
         </div>

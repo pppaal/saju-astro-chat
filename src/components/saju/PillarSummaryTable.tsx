@@ -43,6 +43,28 @@ export default function PillarSummaryTable({
     if (typeof v === 'string') return v.trim();
     if (typeof v === 'number' || typeof v === 'boolean') return String(v);
     if (Array.isArray(v)) return v.map(toDisplayString).filter(Boolean).join('\n');
+    // Handle objects (like pillar data) - extract name/text properties
+    if (typeof v === 'object') {
+      const obj = v as Record<string, unknown>;
+      // Try common text properties
+      if (obj.name && typeof obj.name === 'string') return obj.name;
+      if (obj.text && typeof obj.text === 'string') return obj.text;
+      if (obj.display && typeof obj.display === 'string') return obj.display;
+      // For jijanggan object structure
+      if (obj.chogi || obj.junggi || obj.jeonggi) {
+        const parts: string[] = [];
+        if (obj.chogi && typeof (obj.chogi as any)?.name === 'string') parts.push((obj.chogi as any).name);
+        if (obj.junggi && typeof (obj.junggi as any)?.name === 'string') parts.push((obj.junggi as any).name);
+        if (obj.jeonggi && typeof (obj.jeonggi as any)?.name === 'string') parts.push((obj.jeonggi as any).name);
+        return parts.join(' ');
+      }
+      // Fallback: try to stringify or return empty
+      try {
+        return JSON.stringify(v);
+      } catch {
+        return '';
+      }
+    }
     return String(v);
   };
   const val = (v?: unknown) => <div style={cellBase}>{toDisplayString(v) || '—'}</div>;

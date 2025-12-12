@@ -1,0 +1,253 @@
+{
+  "$schema": "jung_therapeutic_v1",
+  "$description": "융 심리학 기반 치료적 통찰 및 질문 - 사주/점성술/타로 통합",
+
+  "therapeutic_questions": {
+    "shadow_work": {
+      "category": "그림자 작업",
+      "questions": [
+        "가장 싫어하는 사람의 특성 3가지를 적어보세요. 그것이 당신의 그림자입니다.",
+        "화가 날 때 당신은 어떻게 되나요? 그 '어두운 당신'은 무엇을 원하나요?",
+        "만약 아무도 판단하지 않는다면, 당신이 하고 싶은 '나쁜' 것은 무엇인가요?",
+        "당신이 절대 되지 않겠다고 맹세한 사람은 누구인가요? 왜 그렇게 강하게 거부하나요?",
+        "꿈에서 당신을 쫓아오는 것은 무엇인가요? 그것이 당신에게 말하고 싶은 것은?"
+      ],
+      "saju_trigger": ["편관 과다", "상관 억압", "겁재 충돌"],
+      "astro_trigger": ["명왕성 트랜짓", "8하우스 활성화", "화성-명왕성 애스펙트"]
+    },
+    "anima_animus": {
+      "category": "아니마/아니무스 작업",
+      "for_men": [
+        "꿈에 나타나는 여성은 어떤 모습인가요? 그녀가 당신에게 원하는 것은?",
+        "당신이 가장 매력적으로 느끼는 여성 유형은? 그 특성 중 당신 안에 있는 것은?",
+        "감정을 표현하기 어려운가요? 그 감정들은 어디로 가나요?",
+        "어머니와의 관계가 연인 선택에 어떤 영향을 미쳤나요?"
+      ],
+      "for_women": [
+        "꿈에 나타나는 남성은 어떤 모습인가요? 그가 당신에게 말하고 싶은 것은?",
+        "내면의 비판적 목소리는 누구의 것인가요? 아버지? 선생?",
+        "당신이 존경하는 남성의 특성 중 당신 안에서 개발할 수 있는 것은?",
+        "결단을 내리기 어려울 때, 무엇이 두려운가요?"
+      ],
+      "saju_trigger": ["인성 과다", "관성 과다"],
+      "astro_trigger": ["금성-화성 애스펙트", "달-태양 관계"]
+    },
+    "persona_work": {
+      "category": "페르소나 작업",
+      "questions": [
+        "완전히 혼자 있을 때 당신은 누구인가요?",
+        "사람들 앞에서의 당신과 혼자일 때의 당신, 얼마나 다른가요?",
+        "어떤 상황에서 '진짜 나'를 숨기나요? 왜 그래야 하나요?",
+        "만약 모든 역할을 내려놓는다면, 무엇이 남나요?",
+        "당신이 연기하고 있다고 느낄 때는 언제인가요?"
+      ],
+      "saju_trigger": ["비견 과다", "식신 과다"],
+      "astro_trigger": ["1하우스 강조", "태양-상승점 갈등"]
+    },
+    "inner_child": {
+      "category": "내면 아이 작업",
+      "questions": [
+        "어린 시절 당신에게 가장 필요했지만 받지 못한 것은 무엇인가요?",
+        "7살의 당신에게 지금 무슨 말을 해주고 싶나요?",
+        "마지막으로 순수하게 놀이를 즐긴 것은 언제인가요?",
+        "어린 시절 꿈꿨던 것 중 포기한 것은 무엇인가요? 왜 포기했나요?",
+        "당신의 내면 아이는 지금 무엇을 원하고 있나요?"
+      ],
+      "saju_trigger": ["식신 약함", "인성 과다로 억압"],
+      "astro_trigger": ["5하우스 문제", "태양-토성 하드 애스펙트", "키론"]
+    },
+    "meaning_crisis": {
+      "category": "의미 위기/영혼의 어두운 밤",
+      "questions": [
+        "지금 삶에서 가장 의미 없게 느껴지는 것은 무엇인가요?",
+        "만약 내일 모든 것이 사라진다면, 무엇이 가장 그리울까요?",
+        "당신이 진정으로 살아있다고 느끼는 순간은 언제인가요?",
+        "죽음을 앞두고 후회할 것이 있다면 무엇일까요?",
+        "당신의 삶이 하나의 이야기라면, 지금은 어떤 챕터인가요?"
+      ],
+      "saju_trigger": ["용신 약화", "대운 전환기"],
+      "astro_trigger": ["토성 리턴", "명왕성 트랜짓", "12하우스 활성화"]
+    }
+  },
+
+  "saju_jung_bridges": {
+    "sipsin_archetype_mapping": {
+      "비견": {
+        "archetype": "영웅/페르소나",
+        "shadow": "경쟁심, 자기중심",
+        "therapeutic_theme": "나는 누구인가? 타인과 어떻게 다른가?"
+      },
+      "겁재": {
+        "archetype": "트릭스터/그림자",
+        "shadow": "탐욕, 약탈성",
+        "therapeutic_theme": "내가 원하는 것을 정당하게 추구하고 있는가?"
+      },
+      "식신": {
+        "archetype": "신성한 아이",
+        "shadow": "탐닉, 게으름",
+        "therapeutic_theme": "내면 아이가 자유롭게 표현되고 있는가?"
+      },
+      "상관": {
+        "archetype": "트릭스터/반역자",
+        "shadow": "파괴성, 조롱",
+        "therapeutic_theme": "무엇에 반항하고 있는가? 그 에너지를 창조로 바꿀 수 있는가?"
+      },
+      "편재": {
+        "archetype": "트릭스터/모험가",
+        "shadow": "투기, 불안정",
+        "therapeutic_theme": "풍요와 자유에 대한 관계는 건강한가?"
+      },
+      "정재": {
+        "archetype": "아니마(남)/질서",
+        "shadow": "인색함, 집착",
+        "therapeutic_theme": "안정감은 어디서 오는가? 소유로 자아를 증명하는가?"
+      },
+      "편관": {
+        "archetype": "아버지/그림자",
+        "shadow": "폭군, 통제",
+        "therapeutic_theme": "권위와의 관계는 어떠한가? 아버지 상은?"
+      },
+      "정관": {
+        "archetype": "아버지/현자",
+        "shadow": "경직, 억압",
+        "therapeutic_theme": "규칙과 질서가 나를 지키는가, 감옥인가?"
+      },
+      "편인": {
+        "archetype": "현자/트릭스터",
+        "shadow": "공허함, 고독",
+        "therapeutic_theme": "직관과 영감이 어디서 오는가? 뿌리 없는 지식은 아닌가?"
+      },
+      "정인": {
+        "archetype": "태모/아니마",
+        "shadow": "의존성, 나태",
+        "therapeutic_theme": "어머니와의 관계는? 스스로를 돌볼 수 있는가?"
+      }
+    }
+  },
+
+  "astro_jung_bridges": {
+    "planet_archetype_mapping": {
+      "sun": {
+        "archetype": "자기(Self), 영웅",
+        "shadow": "에고 인플레이션",
+        "therapeutic_theme": "진정한 정체성 vs 에고의 욕망"
+      },
+      "moon": {
+        "archetype": "아니마, 태모, 내면 아이",
+        "shadow": "감정적 반응성, 퇴행",
+        "therapeutic_theme": "정서적 안전감, 어머니 콤플렉스"
+      },
+      "mercury": {
+        "archetype": "트릭스터, 헤르메스",
+        "shadow": "교활함, 피상성",
+        "therapeutic_theme": "소통 방식, 진실과 거짓"
+      },
+      "venus": {
+        "archetype": "아니마, 아프로디테",
+        "shadow": "허영, 의존",
+        "therapeutic_theme": "사랑받을 가치, 자기 가치"
+      },
+      "mars": {
+        "archetype": "영웅/전사, 아레스",
+        "shadow": "폭력성, 파괴",
+        "therapeutic_theme": "분노와 욕망의 건강한 표현"
+      },
+      "jupiter": {
+        "archetype": "현자, 제우스",
+        "shadow": "과잉, 오만",
+        "therapeutic_theme": "의미와 성장, 과대망상"
+      },
+      "saturn": {
+        "archetype": "노현자, 크로노스, 아버지",
+        "shadow": "우울, 경직",
+        "therapeutic_theme": "한계, 책임, 아버지 콤플렉스"
+      },
+      "uranus": {
+        "archetype": "트릭스터, 프로메테우스",
+        "shadow": "혼란, 소외",
+        "therapeutic_theme": "자유와 반항, 개성화"
+      },
+      "neptune": {
+        "archetype": "신비주의자, 집단 무의식",
+        "shadow": "환상, 중독, 회피",
+        "therapeutic_theme": "영성과 도피의 경계"
+      },
+      "pluto": {
+        "archetype": "그림자, 하데스",
+        "shadow": "집착, 파괴",
+        "therapeutic_theme": "죽음과 재생, 그림자 통합"
+      },
+      "chiron": {
+        "archetype": "상처받은 치유자",
+        "shadow": "상처에 갇힘",
+        "therapeutic_theme": "상처가 치유의 원천이 되는 과정"
+      }
+    }
+  },
+
+  "tarot_jung_bridges": {
+    "major_arcana_journey": {
+      "description": "메이저 아르카나는 개성화 여정의 상징적 지도",
+      "stages": {
+        "fool_to_chariot": {
+          "theme": "자아 형성",
+          "jung_parallel": "에고 발달, 페르소나 형성",
+          "cards": ["Fool", "Magician", "High Priestess", "Empress", "Emperor", "Hierophant", "Lovers", "Chariot"]
+        },
+        "strength_to_temperance": {
+          "theme": "그림자 대면",
+          "jung_parallel": "그림자 통합, 내면 여정",
+          "cards": ["Strength", "Hermit", "Wheel", "Justice", "Hanged Man", "Death", "Temperance"]
+        },
+        "devil_to_world": {
+          "theme": "자기 실현",
+          "jung_parallel": "개성화 완성, 자기(Self) 경험",
+          "cards": ["Devil", "Tower", "Star", "Moon", "Sun", "Judgement", "World"]
+        }
+      }
+    }
+  },
+
+  "dream_interpretation": {
+    "common_symbols": {
+      "water": {
+        "meaning": "무의식, 감정",
+        "variations": {
+          "calm_water": "평화로운 무의식",
+          "stormy_water": "감정적 혼란",
+          "drowning": "무의식에 압도됨",
+          "swimming": "무의식 탐험"
+        }
+      },
+      "house": {
+        "meaning": "자아, 심리 구조",
+        "variations": {
+          "basement": "무의식, 그림자",
+          "attic": "고차원 의식, 영성",
+          "rooms": "자아의 다양한 측면",
+          "unknown_room": "미발견된 자기 측면"
+        }
+      },
+      "chase": {
+        "meaning": "그림자 회피",
+        "therapeutic": "쫓아오는 것을 돌아보라. 그것이 원하는 것은?"
+      },
+      "falling": {
+        "meaning": "통제 상실, 에고 해체",
+        "therapeutic": "무엇을 놓아야 하는가?"
+      },
+      "death": {
+        "meaning": "변형, 옛 자아의 죽음",
+        "therapeutic": "무엇이 끝나야 하는가? 새로운 시작의 조건은?"
+      },
+      "animal": {
+        "meaning": "본능, 무의식적 에너지",
+        "variations": {
+          "snake": "변형, 치유, 무의식 에너지",
+          "wolf": "야생성, 본능, 그림자",
+          "bird": "영혼, 초월, 자유"
+        }
+      }
+    }
+  }
+}

@@ -130,10 +130,10 @@ export default function ServicePageLayout({
     }
 
     function connectParticles() {
-      for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
-          const dx = particlesArray[a].x - particlesArray[b].x;
-          const dy = particlesArray[a].y - particlesArray[b].y;
+      for (let i = 0; i < particlesArray.length; i++) {
+        for (let j = i; j < particlesArray.length; j++) {
+          const dx = particlesArray[i].x - particlesArray[j].x;
+          const dy = particlesArray[i].y - particlesArray[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance < MAX_LINK_DISTANCE) {
             const opacity = 1 - distance / MAX_LINK_DISTANCE;
@@ -144,8 +144,8 @@ export default function ServicePageLayout({
             ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.6})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
+            ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
             ctx.stroke();
           }
         }

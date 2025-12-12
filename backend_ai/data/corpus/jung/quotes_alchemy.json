@@ -1,0 +1,127 @@
+{
+  "concept": "alchemy",
+  "concept_kr": "연금술",
+  "description": "Psychology and Alchemy - Jung's exploration of alchemical symbolism as a metaphor for psychological transformation",
+  "quotes": [
+    {
+      "id": "alch_001",
+      "en": "The meeting with oneself is, at first, the meeting with one's own shadow. The shadow is a tight passage, a narrow door, whose painful constriction no one is spared who goes down to the deep well.",
+      "kr": "자기 자신과의 만남은 처음에 자신의 그림자와의 만남이다. 그림자는 좁은 통로, 좁은 문이며, 깊은 우물로 내려가는 사람은 누구도 그 고통스러운 압박을 피할 수 없다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the shadow as gateway to the Self",
+      "tags": ["shadow", "self", "meeting", "descent", "alchemy"]
+    },
+    {
+      "id": "alch_002",
+      "en": "The alchemists, who in their own way knew more about the nature of the individuation process than we moderns do, expressed this paradox through the symbol of the Ouroboros, the snake that eats its own tail.",
+      "kr": "연금술사들은 자신들의 방식으로 현대인보다 개성화 과정의 본질에 대해 더 많이 알았으며, 이 역설을 자기 꼬리를 먹는 뱀인 우로보로스의 상징으로 표현했다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the ouroboros as symbol of individuation",
+      "tags": ["alchemy", "ouroboros", "individuation", "symbol"]
+    },
+    {
+      "id": "alch_003",
+      "en": "The gold of the alchemists is not the gold of the money-changers but a symbol of the Self, the incorruptible substance that is sought through the opus.",
+      "kr": "연금술사들의 금은 환전상의 금이 아니라, 작업을 통해 추구되는 불변의 물질인 자기(Self)의 상징이다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On gold as symbol of the Self",
+      "tags": ["gold", "self", "alchemy", "symbol", "transformation"]
+    },
+    {
+      "id": "alch_004",
+      "en": "No one can make a genuine transformation in personality by study and technique alone. It requires the genuine confrontation with oneself, with the shadow.",
+      "kr": "연구와 기술만으로는 누구도 진정한 인격 변환을 이룰 수 없다. 그것은 자기 자신과의, 그림자와의 진정한 대면을 필요로 한다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On genuine transformation",
+      "tags": ["transformation", "shadow", "confrontation", "personality"]
+    },
+    {
+      "id": "alch_005",
+      "en": "The opus alchymicum proceeds from the prima materia, the dark chaos, to the gold of wisdom. So too does the work on the psyche proceed from confusion to clarity.",
+      "kr": "연금술 작업은 어두운 혼돈인 원질(prima materia)에서 지혜의 금으로 진행된다. 정신에 대한 작업도 마찬가지로 혼란에서 명료함으로 진행된다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the process of transformation",
+      "tags": ["alchemy", "chaos", "gold", "transformation", "psyche"]
+    },
+    {
+      "id": "alch_006",
+      "en": "The alchemists called the transformation process 'solve et coagula' – dissolve and coagulate. The old form must be dissolved before the new can take shape.",
+      "kr": "연금술사들은 변환 과정을 '용해하고 응고하라(solve et coagula)'라고 불렀다. 새로운 형태가 형성되기 전에 오래된 형태가 용해되어야 한다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On dissolution and reformation",
+      "tags": ["alchemy", "dissolution", "transformation", "renewal"]
+    },
+    {
+      "id": "alch_007",
+      "en": "What is down below is like that which is above, and what is above is like that which is below, to accomplish the miracles of the One Thing.",
+      "kr": "아래에 있는 것은 위에 있는 것과 같고, 위에 있는 것은 아래에 있는 것과 같다. 하나의 기적을 성취하기 위해.",
+      "source": "Psychology and Alchemy (Emerald Tablet)",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "The Hermetic axiom on correspondence",
+      "tags": ["hermes", "above", "below", "unity", "correspondence"]
+    },
+    {
+      "id": "alch_008",
+      "en": "The nigredo or blackening is the first stage of the alchemical opus, corresponding psychologically to the encounter with the shadow, the dark night of the soul.",
+      "kr": "흑화(nigredo) 또는 검어짐은 연금술 작업의 첫 번째 단계로, 심리학적으로 그림자와의 만남, 영혼의 어두운 밤에 해당한다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the nigredo as shadow encounter",
+      "tags": ["nigredo", "shadow", "darkness", "alchemy", "transformation"]
+    },
+    {
+      "id": "alch_009",
+      "en": "The rubedo, or reddening, is the culmination of the work, when the opposites are united and the philosopher's stone is achieved – the symbol of the integrated Self.",
+      "kr": "적화(rubedo) 또는 붉어짐은 작업의 절정으로, 대립물이 통합되고 현자의 돌이 달성될 때이다 – 통합된 자기의 상징.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the rubedo as Self integration",
+      "tags": ["rubedo", "self", "integration", "philosopher's stone", "alchemy"]
+    },
+    {
+      "id": "alch_010",
+      "en": "The vessel of transformation is the psyche itself. The alchemist's retort is a symbol of the inner space where the work of transformation takes place.",
+      "kr": "변환의 그릇은 정신 자체이다. 연금술사의 증류기는 변환 작업이 일어나는 내면 공간의 상징이다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the psyche as vessel of transformation",
+      "tags": ["vessel", "psyche", "transformation", "alchemy", "inner"]
+    },
+    {
+      "id": "alch_011",
+      "en": "In the end, the alchemist realized that he himself was both the subject and object of his experiment, that the transformation he sought was his own.",
+      "kr": "결국 연금술사는 자신이 실험의 주체이자 객체이며, 그가 추구한 변환이 자신의 것임을 깨달았다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On the alchemist as subject of transformation",
+      "tags": ["alchemy", "self", "transformation", "realization"]
+    },
+    {
+      "id": "alch_012",
+      "en": "Fire is the great transformer. It purifies, destroys, and renews. In the psyche, it is the passion and intensity that drives transformation.",
+      "kr": "불은 위대한 변환자이다. 그것은 정화하고, 파괴하고, 갱신한다. 정신에서 그것은 변환을 이끄는 열정과 강렬함이다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On fire as symbol of transformation",
+      "tags": ["fire", "transformation", "passion", "purification", "alchemy"]
+    }
+  ]
+}

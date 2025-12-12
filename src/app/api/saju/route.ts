@@ -2,7 +2,42 @@
 
 import { NextResponse } from 'next/server';
 import { toDate } from 'date-fns-tz';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/authOptions';
+import Stripe from 'stripe';
 import { calculateSajuData } from '@/lib/Saju/saju';
+
+// 프리미엄 상태 확인 헬퍼
+async function checkPremiumStatus(email?: string): Promise<boolean> {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || !email) return false;
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email) || email.length > 254) return false;
+
+  try {
+    const stripe = new Stripe(key, { apiVersion: '2024-12-18.acacia' as any });
+    const customers = await stripe.customers.search({
+      query: `email:'${email}'`,
+      limit: 3,
+    });
+
+    for (const c of customers.data) {
+      const subs = await stripe.subscriptions.list({
+        customer: c.id,
+        status: 'all',
+        limit: 5,
+      });
+      const active = subs.data.find((s) =>
+        ['active', 'trialing', 'past_due'].includes(s.status)
+      );
+      if (active) return true;
+    }
+  } catch (e) {
+    if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Premium check failed:', e);
+  }
+  return false;
+}
 import {
   getDaeunCycles,
   getAnnualCycles,
@@ -17,6 +52,27 @@ import {
   getTwelveShinsalSingleByPillar,
 } from '@/lib/Saju/shinsal';
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations';
+
+// === 고급 분석 모듈 import ===
+import { determineGeokguk, getGeokgukDescription } from '@/lib/Saju/geokguk';
+import {
+  determineYongsin,
+  getYongsinDescription,
+  getLuckyColors,
+  getLuckyDirection,
+  getLuckyNumbers,
+} from '@/lib/Saju/yongsin';
+import { analyzeHyeongchung } from '@/lib/Saju/hyeongchung';
+import { calculateTonggeun, calculateDeukryeong } from '@/lib/Saju/tonggeun';
+import { getJohuYongsin } from '@/lib/Saju/johuYongsin';
+import { analyzeSibsinComprehensive } from '@/lib/Saju/sibsinAnalysis';
+import { analyzeHealth, analyzeCareer } from '@/lib/Saju/healthCareer';
+import { generateComprehensiveReport } from '@/lib/Saju/comprehensiveReport';
+import { calculateComprehensiveScore } from '@/lib/Saju/strengthScore';
+import {
+  getTwelveStageInterpretation,
+  getElementInterpretation,
+} from '@/lib/Saju/interpretations';
 
 /* -----------------------------
    Utilities
@@ -71,12 +127,22 @@ const toBranch = (src: { name: string; element: string; sibsin?: string }) => ({
   sibsin: src.sibsin ?? '',
 });
 
-// KST helper (single)
-function nowKST() {
+// 타임존 기반 현재 날짜 헬퍼
+function getNowInTimezone(tz?: string) {
   const now = new Date();
-  const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(now));
-  const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', month: '2-digit' }).format(now));
-  return { year: y, month: m };
+  const effectiveTz = tz || 'Asia/Seoul';
+  try {
+    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, year: 'numeric' }).format(now));
+    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, month: '2-digit' }).format(now));
+    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, day: '2-digit' }).format(now));
+    return { year: y, month: m, day: d };
+  } catch {
+    // fallback to KST
+    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(now));
+    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', month: '2-digit' }).format(now));
+    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', day: '2-digit' }).format(now));
+    return { year: y, month: m, day: d };
+  }
 }
 
 // Lucky whitelist/ordering
@@ -210,10 +276,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Invalid JSON body.' }, { status: 400 });
     }
 
-    const { birthDate: birthDateString, birthTime: birthTimeRaw, gender, calendarType, timezone } = body;
+    const { birthDate: birthDateString, birthTime: birthTimeRaw, gender, calendarType, timezone, userTimezone } = body;
     if (!birthDateString || !birthTimeRaw || !gender || !calendarType || !timezone) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
+
+    // 프리미엄 상태 확인 (로그인 + Stripe 구독)
+    const session = await getServerSession(authOptions);
+    const isPremium = session?.user?.email
+      ? await checkPremiumStatus(session.user.email)
+      : false;
+
+    // 사용자 현재 위치 타임존 (운세 계산용) - 없으면 출생 타임존 사용
+    const effectiveUserTz = userTimezone || timezone;
 
     const birthDate = toDate(`${birthDateString}T${birthTimeRaw}:00`, { timeZone: timezone });
     const adjustedBirthTime = String(birthTimeRaw);
@@ -258,10 +333,11 @@ export async function POST(req: Request) {
       sajuResult.dayMaster,
       'Asia/Seoul'
     );
-    const { year: currentYearKST, month: currentMonthKST } = nowKST();
-    const yeonun = getAnnualCycles(currentYearKST, 10, sajuResult.dayMaster);
-    const wolun = getMonthlyCycles(currentYearKST, sajuResult.dayMaster);
-    const iljin = getIljinCalendar(currentYearKST, currentMonthKST, sajuResult.dayMaster);
+    // 사용자 타임존 기준 현재 날짜로 운세 계산
+    const userNow = getNowInTimezone(effectiveUserTz);
+    const yeonun = getAnnualCycles(userNow.year, 10, sajuResult.dayMaster);
+    const wolun = getMonthlyCycles(userNow.year, sajuResult.dayMaster);
+    const iljin = getIljinCalendar(userNow.year, userNow.month, sajuResult.dayMaster);
 
     // 12운성/신살/길성
     const twelveStages = getTwelveStagesForPillars(sajuPillars);
@@ -360,15 +436,230 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     );
     const relations = analyzeRelations(relationsInput);
 
+    // ======== 고급 분석 시작 ========
+
+    // 고급 분석 함수용 간단한 형식으로 변환
+    // (일부 모듈은 'time', 다른 모듈은 'hour' 사용 - 둘 다 포함)
+    const timePillarSimple = {
+      stem: sajuResult.timePillar.heavenlyStem.name,
+      branch: sajuResult.timePillar.earthlyBranch.name,
+    };
+    const simplePillars = {
+      year: {
+        stem: sajuResult.yearPillar.heavenlyStem.name,
+        branch: sajuResult.yearPillar.earthlyBranch.name,
+      },
+      month: {
+        stem: sajuResult.monthPillar.heavenlyStem.name,
+        branch: sajuResult.monthPillar.earthlyBranch.name,
+      },
+      day: {
+        stem: sajuResult.dayPillar.heavenlyStem.name,
+        branch: sajuResult.dayPillar.earthlyBranch.name,
+      },
+      time: timePillarSimple,
+      hour: timePillarSimple,  // alias for modules that use 'hour'
+    };
+
+    // 공통 pillarsWithHour 객체 (hour key 사용하는 모듈용) - 한 번만 정의
+    const pillarsWithHour = {
+      year: { stem: simplePillars.year.stem, branch: simplePillars.year.branch },
+      month: { stem: simplePillars.month.stem, branch: simplePillars.month.branch },
+      day: { stem: simplePillars.day.stem, branch: simplePillars.day.branch },
+      hour: { stem: simplePillars.time.stem, branch: simplePillars.time.branch },
+    };
+
+    // 1. 격국 분석
+    let geokgukAnalysis = null;
+    try {
+      const geokguk = determineGeokguk(simplePillars);
+      geokgukAnalysis = {
+        ...geokguk,
+        description: getGeokgukDescription(geokguk.primary),
+      };
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Geokguk analysis failed:', e);
+    }
+
+    // 2. 용신 분석
+    let yongsinAnalysis = null;
+    try {
+      const yongsin = determineYongsin(simplePillars);
+      const luckyColors = getLuckyColors(yongsin.primaryYongsin);
+      const luckyDirection = getLuckyDirection(yongsin.primaryYongsin);
+      const luckyNumbers = getLuckyNumbers(yongsin.primaryYongsin);
+      yongsinAnalysis = {
+        ...yongsin,
+        description: getYongsinDescription(yongsin.primaryYongsin),
+        luckyColors,
+        luckyDirection,
+        luckyNumbers,
+      };
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Yongsin analysis failed:', e);
+    }
+
+    // 3. 형충회합 분석
+    let hyeongchungAnalysis = null;
+    try {
+      hyeongchungAnalysis = analyzeHyeongchung(simplePillars);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Hyeongchung analysis failed:', e);
+    }
+
+    // 4. 통근/득령 분석
+    let tonggeunAnalysis = null;
+    let deukryeongAnalysis = null;
+    try {
+      tonggeunAnalysis = calculateTonggeun(dayMasterStem, simplePillars);
+      deukryeongAnalysis = calculateDeukryeong(dayMasterStem, sajuResult.monthPillar.earthlyBranch.name);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Tonggeun/Deukryeong analysis failed:', e);
+    }
+
+    // 5. 조후용신 (궁통보감) - dayMasterStem (甲,乙...) 사용, element (목,화...) 아님
+    let johuYongsinAnalysis = null;
+    try {
+      const monthBranch = sajuResult.monthPillar.earthlyBranch.name;
+      johuYongsinAnalysis = getJohuYongsin(dayMasterStem, monthBranch);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] JohuYongsin analysis failed:', e);
+    }
+
+    // 6. 십신 종합 분석 (uses hour instead of time)
+    let sibsinAnalysis = null;
+    try {
+      sibsinAnalysis = analyzeSibsinComprehensive(pillarsWithHour as any);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Sibsin analysis failed:', e);
+    }
+
+    // 7. 건강 분석
+    let healthAnalysis = null;
+    try {
+      healthAnalysis = analyzeHealth(pillarsWithHour as any);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Health analysis failed:', e);
+    }
+
+    // 8. 직업 적성 분석
+    let careerAnalysis = null;
+    try {
+      careerAnalysis = analyzeCareer(pillarsWithHour as any);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Career analysis failed:', e);
+    }
+
+    // 9. 종합 점수 (uses full SajuPillars type from types.ts)
+    let comprehensiveScore = null;
+    try {
+      comprehensiveScore = calculateComprehensiveScore(sajuPillars);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Comprehensive score failed:', e);
+    }
+
+    // 10. 종합 리포트
+    let comprehensiveReport = null;
+    try {
+      comprehensiveReport = generateComprehensiveReport(pillarsWithHour as any);
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Comprehensive report failed:', e);
+    }
+
+    // 11. 해석 데이터 수집
+    const interpretations = {
+      twelveStages: {} as Record<string, any>,
+      elements: {} as Record<string, any>,
+    };
+    try {
+      // 12운성 해석
+      for (const [pillar, stage] of Object.entries(twelveStages)) {
+        if (stage) {
+          interpretations.twelveStages[pillar] = getTwelveStageInterpretation(stage as any);
+        }
+      }
+      // 오행 해석
+      for (const [elem, count] of Object.entries(sajuResult.fiveElements)) {
+        if ((count as number) > 0) {
+          interpretations.elements[elem] = getElementInterpretation(elem as any);
+        }
+      }
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Interpretations failed:', e);
+    }
+
+    // ======== 고급 분석 끝 ========
+
     const gptPrompt = formatSajuForGPT({
       ...sajuResult,
       birthDate: birthDateString,
       daeun: daeunInfo,
     });
 
+    // 분석 기준일 (사용자 타임존)
+    const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`;
+
+    // ======== 프리미엄 콘텐츠 분리 ========
+    // 무료: 기본 명식, 오행, 합충, 신살 (형충회합)
+    // 유료: 격국, 용신, 건강/직업 분석, 종합 리포트
+
+    // 무료 사용자용 미리보기 (일부 정보만 노출)
+    const freePreview = {
+      // 격국 - 이름만 노출
+      geokguk: geokgukAnalysis ? {
+        primary: geokgukAnalysis.primary,
+        category: geokgukAnalysis.category,
+        // description, confidence는 유료
+      } : null,
+      // 용신 - 행운색/방향만 노출
+      yongsin: yongsinAnalysis ? {
+        primaryYongsin: yongsinAnalysis.primaryYongsin,
+        luckyColors: yongsinAnalysis.luckyColors,
+        // description, secondaryYongsin, kibsin 등은 유료
+      } : null,
+      // 형충회합 - 무료 (기본 분석)
+      hyeongchung: hyeongchungAnalysis,
+      // 나머지는 잠금
+      tonggeun: null,
+      deukryeong: null,
+      johuYongsin: null,
+      sibsin: null,
+      health: null,
+      career: null,
+      score: comprehensiveScore ? {
+        overall: comprehensiveScore.overall,
+        grade: comprehensiveScore.grade,
+        // 상세 breakdown은 유료
+      } : null,
+      report: null,
+      interpretations: null,
+    };
+
+    // 프리미엄 사용자용 전체 분석
+    const fullAdvancedAnalysis = {
+      geokguk: geokgukAnalysis,
+      yongsin: yongsinAnalysis,
+      hyeongchung: hyeongchungAnalysis,
+      tonggeun: tonggeunAnalysis,
+      deukryeong: deukryeongAnalysis,
+      johuYongsin: johuYongsinAnalysis,
+      sibsin: sibsinAnalysis,
+      health: healthAnalysis,
+      career: careerAnalysis,
+      score: comprehensiveScore,
+      report: comprehensiveReport,
+      interpretations,
+    };
+
     return NextResponse.json({
+      // 프리미엄 상태 플래그
+      isPremium,
+      isLoggedIn: !!session?.user?.id,
+
       birthYear: new Date(birthDateString).getFullYear(),
       birthDate: birthDateString,
+      analysisDate,
+      userTimezone: effectiveUserTz,
       yearPillar: sajuResult.yearPillar,
       monthPillar: sajuResult.monthPillar,
       dayPillar: sajuResult.dayPillar,
@@ -408,6 +699,9 @@ const rawShinsal = getShinsalHits(sajuPillars, {
 
       relations,
       gptPrompt,
+
+      // ======== 고급 분석 결과 (프리미엄 여부에 따라 분기) ========
+      advancedAnalysis: isPremium ? fullAdvancedAnalysis : freePreview,
     });
   } catch (error) {
     console.error('[API /api/saju] Uncaught error:', error);

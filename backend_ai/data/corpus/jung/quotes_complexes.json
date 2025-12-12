@@ -1,0 +1,55 @@
+{
+  "concept": "complexes",
+  "concept_kr": "콤플렉스",
+  "description": "Emotionally charged groups of ideas or images that act as autonomous personalities within the psyche",
+  "quotes": [
+    {
+      "id": "complex_001",
+      "en": "A complex is a collection of images and ideas, clustered round a core derived from one or more archetypes.",
+      "kr": "콤플렉스는 하나 이상의 원형에서 파생된 핵심 주위에 모여 있는 이미지와 관념의 집합이다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["complex", "archetype", "psyche"]
+    },
+    {
+      "id": "complex_002",
+      "en": "Complexes are psychic fragments which have split off owing to traumatic influences or certain incompatible tendencies.",
+      "kr": "콤플렉스는 외상적 영향이나 양립할 수 없는 경향으로 인해 분리된 정신적 파편이다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["complex", "trauma", "split"]
+    },
+    {
+      "id": "complex_003",
+      "en": "Everyone knows nowadays that people 'have complexes.' What is not so well known is that complexes can have us.",
+      "kr": "요즘 누구나 사람들이 '콤플렉스를 가지고 있다'는 것을 안다. 잘 알려지지 않은 것은 콤플렉스가 우리를 가질 수 있다는 것이다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["complex", "possession", "autonomy"]
+    },
+    {
+      "id": "complex_004",
+      "en": "The via regia to the unconscious is not the dream but the complex, which is the architect of dreams and of symptoms.",
+      "kr": "무의식으로 가는 왕도는 꿈이 아니라 콤플렉스이며, 콤플렉스가 꿈과 증상의 건축가이다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["complex", "unconscious", "dreams"]
+    },
+    {
+      "id": "complex_005",
+      "en": "A complex can be really overcome only if it is lived out to the full.",
+      "kr": "콤플렉스는 오직 충분히 살아낼 때만 진정으로 극복될 수 있다.",
+      "source": "CW 16",
+      "year": 1946,
+      "tags": ["complex", "integration", "healing"]
+    },
+    {
+      "id": "complex_006",
+      "en": "The existence of complexes throws serious doubt on the naive assumption of the unity of consciousness.",
+      "kr": "콤플렉스의 존재는 의식의 통일성에 대한 순진한 가정에 심각한 의문을 제기한다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["complex", "consciousness", "unity"]
+    }
+  ]
+}

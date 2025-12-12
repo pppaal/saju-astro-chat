@@ -1,0 +1,55 @@
+{
+  "concept": "transcendent_function",
+  "concept_kr": "초월 기능",
+  "description": "The psychic function that arises from the tension between consciousness and the unconscious and supports their union",
+  "quotes": [
+    {
+      "id": "tf_001",
+      "en": "The transcendent function arises from the union of conscious and unconscious contents.",
+      "kr": "초월 기능은 의식과 무의식 내용의 합일에서 발생한다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["transcendent function", "union", "consciousness"]
+    },
+    {
+      "id": "tf_002",
+      "en": "There is nothing mysterious or metaphysical about the term 'transcendent function.' It means a psychological function comparable to a mathematical function of the same name.",
+      "kr": "'초월 기능'이라는 용어에는 신비롭거나 형이상학적인 것이 없다. 그것은 같은 이름의 수학적 함수에 비견되는 심리적 기능을 의미한다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["transcendent function", "definition", "psychology"]
+    },
+    {
+      "id": "tf_003",
+      "en": "The shuttling to and fro of arguments and affects represents the transcendent function of opposites.",
+      "kr": "논쟁과 정서의 왕복 운동은 대립물의 초월 기능을 나타낸다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["transcendent function", "opposites", "dialectic"]
+    },
+    {
+      "id": "tf_004",
+      "en": "The confrontation of the two positions generates a tension charged with energy and creates a living, third thing.",
+      "kr": "두 입장의 대면은 에너지로 충전된 긴장을 생성하고 살아있는 제3의 것을 창조한다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["transcendent function", "third thing", "synthesis"]
+    },
+    {
+      "id": "tf_005",
+      "en": "The new thing that emerges is neither the thesis nor the antithesis, but the synthesis that transcends them both.",
+      "kr": "나타나는 새로운 것은 정도 반도 아니며, 둘 다를 초월하는 합이다.",
+      "source": "CW 7",
+      "year": 1928,
+      "tags": ["transcendent function", "synthesis", "transcendence"]
+    },
+    {
+      "id": "tf_006",
+      "en": "The transcendent function does not proceed without aim and purpose, but leads to the revelation of the essential man.",
+      "kr": "초월 기능은 목적과 목표 없이 진행되지 않으며, 본질적인 인간의 계시로 이끈다.",
+      "source": "CW 8",
+      "year": 1960,
+      "tags": ["transcendent function", "purpose", "essence"]
+    }
+  ]
+}

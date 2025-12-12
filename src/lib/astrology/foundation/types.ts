@@ -78,7 +78,7 @@ export type TransitInput = {
   timeZone: string;   // IANA
 };
 
-export type AspectEnd = { name: string; kind: "natal" | "transit" | "angle"; house?: number; sign?: ZodiacKo; longitude: number };
+export type AspectEnd = { name: string; kind: "natal" | "transit" | "progressed" | "angle"; house?: number; sign?: ZodiacKo; longitude: number };
 
 export type AspectHit = {
   from: AspectEnd;
@@ -87,6 +87,58 @@ export type AspectHit = {
   orb: number;        // degrees
   applying?: boolean;
   score?: number;
+};
+
+// ===========================
+// Extended Points & Returns
+// ===========================
+
+export type ProgressionInput = {
+  natal: NatalInput;
+  targetDate: string; // ISO date for which to calculate progressions
+};
+
+export type SolarReturnInput = {
+  natal: NatalInput;
+  year: number; // Year for which to calculate solar return
+};
+
+export type LunarReturnInput = {
+  natal: NatalInput;
+  month: number; // 1-12
+  year: number;
+};
+
+export type ProgressedChart = Chart & {
+  progressionType: "secondary" | "solarArc";
+  yearsProgressed: number;
+  progressedDate: string;
+};
+
+export type ReturnChart = Chart & {
+  returnType: "solar" | "lunar";
+  returnYear: number;
+  returnMonth?: number;
+  exactReturnTime: string; // ISO string of exact return moment
+};
+
+export type ExtraPoint = {
+  name: string;
+  longitude: number;
+  sign: ZodiacKo;
+  degree: number;
+  minute: number;
+  formatted: string;
+  house: number;
+  description?: string;
+};
+
+export type ExtendedChart = Chart & {
+  chiron?: ExtraPoint;
+  lilith?: ExtraPoint;       // Mean Black Moon Lilith
+  trueNode?: ExtraPoint;     // already in planets as "True Node"
+  partOfFortune?: ExtraPoint;
+  vertex?: ExtraPoint;
 };
 
 // Narrative facts carrier
@@ -102,6 +154,10 @@ export interface AstrologyChartFacts {
   neptune?: PlanetBase;
   pluto?: PlanetBase;
   asc?: PlanetBase;
+  chiron?: ExtraPoint;
+  lilith?: ExtraPoint;
+  partOfFortune?: ExtraPoint;
+  vertex?: ExtraPoint;
   aspects?: Record<string, any>;
   elementRatios?: Record<string, number>;
 }

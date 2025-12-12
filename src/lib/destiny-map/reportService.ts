@@ -47,6 +47,24 @@ function cleanseText(raw: string) {
     .trim();
 }
 
+/**
+ * 사용자 타임존 기준 현재 날짜 반환 (YYYY-MM-DD)
+ */
+function getDateInTimezone(tz?: string): string {
+  const now = new Date();
+  if (!tz) return now.toISOString().slice(0, 10);
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now);
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
 export async function generateReport({
   name,
   birthDate,
@@ -57,6 +75,7 @@ export async function generateReport({
   theme,
   lang = "ko",
   extraPrompt,
+  userTimezone,
 }: {
   name?: string;
   birthDate: string;
@@ -67,6 +86,7 @@ export async function generateReport({
   theme: string;
   lang?: string;
   extraPrompt?: string;
+  userTimezone?: string;
 }): Promise<ReportOutput> {
   const safeExtra = extraPrompt ? guardText(extraPrompt, 2000) : "";
   if (extraPrompt && containsForbidden(extraPrompt)) {
@@ -87,7 +107,7 @@ export async function generateReport({
     };
   }
 
-  // 1) Calculate astro + saju baseline
+  // 1) Calculate astro + saju baseline (userTimezone으로 트랜짓/프로그레션 계산)
   const result: CombinedResult = await computeDestinyMap({
     name,
     birthDate,
@@ -96,7 +116,12 @@ export async function generateReport({
     longitude,
     gender,
     theme,
+    userTimezone,
   });
+
+  // 사용자 타임존 기준 분석 날짜 추가
+  result.userTimezone = userTimezone;
+  result.analysisDate = getDateInTimezone(userTimezone);
 
   // 2) Build theme prompt
   const themePrompt = buildPromptByTheme(theme, lang, result);
@@ -120,7 +145,7 @@ export async function generateReport({
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (AI generation takes 40-50s)
 
     const response = await fetch(`${backendUrl}/ask`, {
       method: "POST",
@@ -130,6 +155,7 @@ export async function generateReport({
         prompt: fullPrompt,
         saju: result.saju,
         astro: result.astrology,
+        locale: lang,  // Pass language to backend for proper translation
       }),
       signal: controller.signal,
     });

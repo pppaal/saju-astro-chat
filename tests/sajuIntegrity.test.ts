@@ -1,5 +1,3 @@
-import { describe, it, expect } from "vitest";
-
 import {
   STEMS,
   BRANCHES,
@@ -45,10 +43,19 @@ describe("Saju constants", () => {
     expect(Object.keys(TIME_STEM_LOOKUP)).toHaveLength(10);
   });
 
-  it("jijanggan maps 12 branches and has 3 stem entries each", () => {
+  it("jijanggan maps 12 branches with correct stem entries", () => {
     expect(Object.keys(JIJANGGAN)).toHaveLength(12);
-    for (const val of Object.values(JIJANGGAN)) {
-      expect(Object.keys(val)).toHaveLength(3);
+    // 子, 卯, 酉: 정기만 (1개)
+    // 午, 亥: 여기 + 정기 (2개)
+    // 나머지: 여기 + 중기 + 정기 (3개)
+    const expectedCounts: Record<string, number> = {
+      '子': 1, '卯': 1, '酉': 1,
+      '午': 2, '亥': 2,
+      '丑': 3, '寅': 3, '辰': 3, '巳': 3, '未': 3, '申': 3, '戌': 3,
+    };
+    for (const [branch, val] of Object.entries(JIJANGGAN)) {
+      expect(Object.keys(val)).toHaveLength(expectedCounts[branch]);
+      expect(val['정기']).toBeDefined(); // 정기는 항상 존재
     }
   });
 

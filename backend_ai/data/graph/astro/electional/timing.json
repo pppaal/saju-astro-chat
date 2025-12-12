@@ -1,0 +1,368 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "electional/timing",
+  "$count": 120,
+  "$description": "일렉셔널 아스트롤로지 - 최적의 타이밍 선택",
+
+  "overview": {
+    "name_ko": "선택 점성술 (일렉셔널 아스트롤로지)",
+    "name_en": "Electional Astrology",
+    "principle": "특정 활동을 시작하기에 가장 좋은 시간을 선택",
+    "significance": "고대부터 중요한 결정과 이벤트의 타이밍을 정하는 데 사용",
+    "key_principles": [
+      "달의 위상과 사인이 가장 중요",
+      "어센던트와 1하우스 지배성",
+      "해당 활동의 자연적 지배성 강화",
+      "말레픽(화성, 토성) 약화",
+      "역행 행성 피하기"
+    ]
+  },
+
+  "moon_phases": {
+    "new_moon": {
+      "name_ko": "삭 (뉴문)",
+      "best_for": ["새로운 시작", "씨앗 심기", "새 프로젝트 구상"],
+      "avoid_for": ["결과 수확", "완성", "공개 발표"],
+      "energy": "잠재력. 내면적. 시작의 씨앗.",
+      "advice": "조용히 의도를 세우고 준비하세요."
+    },
+    "waxing_crescent": {
+      "name_ko": "초승달",
+      "best_for": ["계획 구체화", "자원 수집", "기초 작업"],
+      "avoid_for": ["완성 작업", "수확"],
+      "energy": "성장하는 에너지. 모멘텀 구축.",
+      "advice": "계획을 구체화하고 행동을 시작하세요."
+    },
+    "first_quarter": {
+      "name_ko": "상현달",
+      "best_for": ["결단", "행동", "도전 극복"],
+      "avoid_for": ["휴식", "마무리"],
+      "energy": "긴장과 행동. 장애물 극복.",
+      "advice": "결단력 있게 행동하고 장애물을 돌파하세요."
+    },
+    "waxing_gibbous": {
+      "name_ko": "차오르는 달",
+      "best_for": ["다듬기", "분석", "개선"],
+      "avoid_for": ["새로운 시작"],
+      "energy": "정제와 완성 준비.",
+      "advice": "세부 사항을 다듬고 완성을 준비하세요."
+    },
+    "full_moon": {
+      "name_ko": "보름달 (만월)",
+      "best_for": ["완성", "수확", "공개", "발표", "축하"],
+      "avoid_for": ["새로운 시작", "비밀 유지"],
+      "energy": "최고조. 완성. 조명.",
+      "advice": "결과를 수확하고 축하하세요. 감정적으로 민감할 수 있습니다."
+    },
+    "waning_gibbous": {
+      "name_ko": "기울어가는 달",
+      "best_for": ["가르침", "공유", "감사"],
+      "avoid_for": ["새 프로젝트 시작"],
+      "energy": "확산과 공유.",
+      "advice": "배운 것을 나누고 감사를 표현하세요."
+    },
+    "last_quarter": {
+      "name_ko": "하현달",
+      "best_for": ["정리", "해방", "끝내기"],
+      "avoid_for": ["새로운 시작", "확장"],
+      "energy": "재평가와 해방.",
+      "advice": "더 이상 필요 없는 것을 놓아주세요."
+    },
+    "waning_crescent": {
+      "name_ko": "그믐달",
+      "best_for": ["휴식", "명상", "마무리", "치유"],
+      "avoid_for": ["새로운 시작", "중요한 결정"],
+      "energy": "휴식과 통합. 새 주기 준비.",
+      "advice": "쉬고 성찰하며 다음 주기를 준비하세요."
+    }
+  },
+
+  "moon_in_signs": {
+    "Aries": {
+      "best_for": ["새로운 시작", "독립적 행동", "스포츠", "경쟁"],
+      "avoid_for": ["협력 필요한 일", "인내 필요한 일", "섬세한 작업"],
+      "duration": "약 2.5일",
+      "energy": "빠르고 충동적. 행동 지향."
+    },
+    "Taurus": {
+      "best_for": ["재정", "부동산", "투자", "정원 가꾸기", "요리", "예술"],
+      "avoid_for": ["빠른 변화", "융통성 필요한 일"],
+      "duration": "약 2.5일",
+      "energy": "안정적이고 감각적. 물질적."
+    },
+    "Gemini": {
+      "best_for": ["소통", "글쓰기", "학습", "여행", "네트워킹"],
+      "avoid_for": ["장기 약속", "집중 필요한 작업"],
+      "duration": "약 2.5일",
+      "energy": "가볍고 다재다능. 사교적."
+    },
+    "Cancer": {
+      "best_for": ["가정", "가족", "부동산", "요리", "감정적 대화"],
+      "avoid_for": ["공적 발표", "객관적 결정"],
+      "duration": "약 2.5일",
+      "energy": "민감하고 보호적. 가정 중심."
+    },
+    "Leo": {
+      "best_for": ["창조적 작업", "공연", "프레젠테이션", "아이들", "로맨스"],
+      "avoid_for": ["협력 작업", "겸손 필요한 일"],
+      "duration": "약 2.5일",
+      "energy": "창조적이고 자신감. 표현적."
+    },
+    "Virgo": {
+      "best_for": ["건강", "정리", "분석", "디테일 작업", "봉사"],
+      "avoid_for": ["큰 그림", "비전 작업", "위험 감수"],
+      "duration": "약 2.5일",
+      "energy": "분석적이고 실용적. 정교함."
+    },
+    "Libra": {
+      "best_for": ["관계", "계약", "협상", "결혼", "예술", "법률"],
+      "avoid_for": ["독립적 행동", "갈등 상황"],
+      "duration": "약 2.5일",
+      "energy": "조화롭고 외교적. 파트너십."
+    },
+    "Scorpio": {
+      "best_for": ["연구", "심리", "투자", "성적 친밀감", "변형"],
+      "avoid_for": ["표면적 상호작용", "가벼운 모임"],
+      "duration": "약 2.5일",
+      "energy": "깊고 강렬. 변형적."
+    },
+    "Sagittarius": {
+      "best_for": ["여행", "교육", "출판", "법률", "종교/영적 활동"],
+      "avoid_for": ["세부 작업", "집중 필요한 일"],
+      "duration": "약 2.5일",
+      "energy": "확장적이고 낙관적. 탐험적."
+    },
+    "Capricorn": {
+      "best_for": ["비즈니스", "커리어", "장기 계획", "구조화", "정치"],
+      "avoid_for": ["감정적 표현", "즉흥적 행동"],
+      "duration": "약 2.5일",
+      "energy": "진지하고 야심적. 실용적."
+    },
+    "Aquarius": {
+      "best_for": ["기술", "혁신", "그룹 활동", "인도주의", "친구"],
+      "avoid_for": ["전통적 접근", "감정적 친밀감"],
+      "duration": "약 2.5일",
+      "energy": "혁신적이고 독립적. 진보적."
+    },
+    "Pisces": {
+      "best_for": ["예술", "영성", "치유", "명상", "상상력 작업"],
+      "avoid_for": ["현실적 결정", "세부 계약", "정확성 필요한 일"],
+      "duration": "약 2.5일",
+      "energy": "직관적이고 민감. 영적."
+    }
+  },
+
+  "void_of_course_moon": {
+    "name_ko": "보이드 오브 코스 문",
+    "description": "달이 현재 사인에서 마지막 애스펙트를 형성한 후 다음 사인으로 이동하기 전",
+    "general_rule": "새로운 시작에 좋지 않음",
+    "best_for": ["루틴 작업", "명상", "휴식", "창조적 자유 작업"],
+    "avoid_for": ["중요한 시작", "계약", "구매", "중요한 회의"],
+    "exceptions": "이미 진행 중인 일의 완성은 괜찮음",
+    "duration": "몇 분에서 하루 이상까지 다양"
+  },
+
+  "activities_timing": {
+    "business": {
+      "starting_business": {
+        "best_moon": "차오르는 달, 황소/처녀/염소자리 달",
+        "best_day": "목요일 (목성) 또는 일요일 (태양)",
+        "strengthen": "목성, 2하우스, 10하우스",
+        "avoid": "역행 수성, 보이드 문, 화성 긴장 애스펙트"
+      },
+      "signing_contracts": {
+        "best_moon": "차오르는 달, 쌍둥이/천칭자리 달",
+        "strengthen": "수성 순행, 3하우스/7하우스 강화",
+        "avoid": "역행 수성, 보이드 문, 해왕성 긴장 애스펙트"
+      },
+      "negotiations": {
+        "best_moon": "천칭자리 달",
+        "strengthen": "금성과 수성의 좋은 애스펙트",
+        "avoid": "화성 긴장 애스펙트, 보이드 문"
+      },
+      "job_interview": {
+        "best_moon": "사자자리 또는 염소자리 달",
+        "strengthen": "태양, MC, 10하우스 강화",
+        "avoid": "달-토성 긴장, 역행 수성"
+      }
+    },
+    "relationships": {
+      "wedding": {
+        "best_moon": "차오르는 달 (삭 후 보름 전), 천칭/황소/게자리 달",
+        "best_day": "금요일 (금성)",
+        "strengthen": "금성, 7하우스, 달의 좋은 애스펙트",
+        "avoid": "달-화성 또는 달-토성 긴장, 금성 역행, 보이드 문"
+      },
+      "first_date": {
+        "best_moon": "차오르는 달, 천칭/사자자리 달",
+        "strengthen": "금성의 좋은 애스펙트, 5하우스",
+        "avoid": "금성 역행, 달-토성 긴장"
+      },
+      "proposing": {
+        "best_moon": "보름달 또는 직전, 천칭/게자리 달",
+        "strengthen": "금성-목성 좋은 애스펙트",
+        "avoid": "금성 역행, 토성 긴장"
+      }
+    },
+    "health": {
+      "surgery": {
+        "best_moon": "기울어가는 달 (수술 부위 회복)",
+        "avoid_moon": "해당 신체 부위 지배 사인의 달",
+        "rule": "양자리 달 = 머리 수술 피함, 황소자리 달 = 목 수술 피함 등",
+        "general_avoid": "보름달 (출혈), 화성 긴장 애스펙트"
+      },
+      "starting_diet": {
+        "best_moon": "기울어가는 달 (줄이는 것), 처녀자리 달",
+        "avoid": "차오르는 달, 황소자리 달"
+      },
+      "starting_exercise": {
+        "best_moon": "차오르는 달, 양자리/사자자리 달",
+        "strengthen": "화성의 좋은 애스펙트",
+        "avoid": "해왕성 긴장 애스펙트 (동기 부족)"
+      }
+    },
+    "travel": {
+      "long_journey": {
+        "best_moon": "차오르는 달, 궁수자리/쌍둥이자리 달",
+        "strengthen": "목성, 9하우스",
+        "avoid": "달-해왕성 긴장 (혼란), 역행 수성 (통신/교통 문제)"
+      },
+      "vacation": {
+        "best_moon": "사자자리/궁수자리/물고기자리 달",
+        "strengthen": "금성-목성 좋은 애스펙트",
+        "avoid": "토성 긴장 애스펙트"
+      }
+    },
+    "legal": {
+      "filing_lawsuit": {
+        "best_moon": "차오르는 달, 천칭자리 달",
+        "strengthen": "목성, 9하우스, 화성 (전투력)",
+        "avoid": "해왕성 긴장 (기만), 역행 수성"
+      },
+      "court_appearance": {
+        "best_moon": "천칭자리 또는 궁수자리 달",
+        "strengthen": "목성-태양 좋은 애스펙트",
+        "avoid": "화성-목성 긴장, 해왕성 긴장"
+      }
+    },
+    "creative": {
+      "launching_project": {
+        "best_moon": "차오르는 달 (삭 후), 사자/물병자리 달",
+        "strengthen": "태양, 5하우스, 창조적 행성",
+        "avoid": "토성 긴장 (제한), 보이드 문"
+      },
+      "artistic_performance": {
+        "best_moon": "사자자리 또는 물고기자리 달",
+        "strengthen": "금성-해왕성 좋은 애스펙트",
+        "avoid": "토성 긴장, 화성 긴장"
+      }
+    },
+    "financial": {
+      "investing": {
+        "best_moon": "황소자리/염소자리 달",
+        "strengthen": "목성-금성 좋은 애스펙트, 2하우스",
+        "avoid": "해왕성 긴장 (기만), 천왕성 긴장 (불안정)"
+      },
+      "buying_property": {
+        "best_moon": "황소자리/게자리 달, 차오르는 달",
+        "strengthen": "4하우스, 토성 (안정)",
+        "avoid": "역행 수성, 해왕성 긴장"
+      },
+      "selling": {
+        "best_moon": "쌍둥이자리 달 (소통), 기울어가는 달",
+        "strengthen": "수성의 좋은 애스펙트",
+        "avoid": "역행 수성"
+      }
+    },
+    "spiritual": {
+      "meditation_retreat": {
+        "best_moon": "기울어가는 달, 물고기자리/게자리 달",
+        "strengthen": "해왕성, 12하우스",
+        "avoid": "화성 긴장 애스펙트"
+      },
+      "spiritual_initiation": {
+        "best_moon": "삭 또는 보름, 전갈/물고기자리 달",
+        "strengthen": "명왕성, 8하우스, 12하우스"
+      }
+    }
+  },
+
+  "planetary_hours": {
+    "description": "각 행성이 지배하는 시간. 해당 활동에 적합한 행성의 시간 선택.",
+    "calculation": "일출부터 일몰까지를 12등분 (낮 시간), 일몰부터 다음 일출까지 12등분 (밤 시간)",
+    "Sun": {
+      "day": "일요일",
+      "activities": ["리더십", "명예", "성공", "건강", "자아 표현"]
+    },
+    "Moon": {
+      "day": "월요일",
+      "activities": ["가정", "여성", "대중", "직관", "변화"]
+    },
+    "Mars": {
+      "day": "화요일",
+      "activities": ["전쟁", "경쟁", "수술", "운동", "용기 필요한 일"]
+    },
+    "Mercury": {
+      "day": "수요일",
+      "activities": ["소통", "계약", "글쓰기", "학습", "여행"]
+    },
+    "Jupiter": {
+      "day": "목요일",
+      "activities": ["확장", "법률", "종교", "교육", "행운"]
+    },
+    "Venus": {
+      "day": "금요일",
+      "activities": ["사랑", "예술", "아름다움", "사교", "결혼"]
+    },
+    "Saturn": {
+      "day": "토요일",
+      "activities": ["장기 계획", "구조", "부동산", "어른", "제한"]
+    }
+  },
+
+  "retrograde_periods": {
+    "mercury_retrograde": {
+      "duration": "약 3주, 연 3-4회",
+      "avoid": ["계약 서명", "전자기기 구매", "새 프로젝트 시작", "중요한 여행"],
+      "good_for": ["재검토", "과거 연락처 재연결", "미완성 프로젝트 완성", "수정/편집"]
+    },
+    "venus_retrograde": {
+      "duration": "약 40일, 약 18개월마다",
+      "avoid": ["결혼", "새 관계 시작", "성형 수술", "고가 구매"],
+      "good_for": ["과거 관계 성찰", "가치 재평가", "예술적 수정"]
+    },
+    "mars_retrograde": {
+      "duration": "약 2개월, 약 2년마다",
+      "avoid": ["새 사업 시작", "법적 분쟁 시작", "수술", "공격적 행동"],
+      "good_for": ["전략 재검토", "내면의 분노 처리", "완료되지 않은 행동 완성"]
+    },
+    "jupiter_retrograde": {
+      "duration": "약 4개월, 연 1회",
+      "impact": "내면적 성장과 철학적 재평가",
+      "good_for": ["영적 성장", "신념 재검토", "과거의 기회 재고려"]
+    },
+    "saturn_retrograde": {
+      "duration": "약 4.5개월, 연 1회",
+      "impact": "책임과 구조의 재평가",
+      "good_for": ["과거의 책임 정리", "장기 계획 재검토"]
+    }
+  },
+
+  "general_rules": {
+    "always_check": [
+      "달의 위상 (차오르는 = 시작, 기우는 = 종료/해방)",
+      "달의 사인 (활동에 적합한지)",
+      "보이드 오브 코스 문 피하기",
+      "역행 행성 확인",
+      "해당 활동의 자연 지배성 강화",
+      "말레픽(화성, 토성)의 긴장 애스펙트 피하기"
+    ],
+    "priority_order": [
+      "1. 보이드 오브 코스 문 피하기",
+      "2. 역행 행성 피하기 (특히 수성)",
+      "3. 적절한 달 위상",
+      "4. 적절한 달 사인",
+      "5. 해당 행성의 좋은 애스펙트"
+    ]
+  }
+}

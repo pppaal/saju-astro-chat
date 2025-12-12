@@ -1,0 +1,286 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "advanced/house_rulers",
+  "$count": 144,
+  "$description": "하우스 룰러가 다른 하우스에 위치할 때의 해석",
+  "$note": "12 하우스 룰러 × 12 하우스 위치 = 144 조합",
+  "ruler_positions": {
+    "1st_house_ruler_in": {
+      "1st": {
+        "meaning": "자아가 자아에 집중",
+        "expression": "강한 개인적 정체성, 자기 표현",
+        "life_focus": "자기 발견과 자아 실현",
+        "gift": "명확한 자기 인식",
+        "challenge": "자기중심적 경향"
+      },
+      "2nd": {
+        "meaning": "자아가 자원에 연결",
+        "expression": "재능으로 수입 창출, 자기 가치 = 재정",
+        "life_focus": "물질적 안정 추구",
+        "gift": "재능을 돈으로 바꾸는 능력",
+        "challenge": "물질에 정체성 의존"
+      },
+      "3rd": {
+        "meaning": "자아가 소통에 연결",
+        "expression": "말과 글로 자기 표현",
+        "life_focus": "학습, 소통, 이웃 관계",
+        "gift": "뛰어난 소통 능력",
+        "challenge": "생각 과잉"
+      },
+      "4th": {
+        "meaning": "자아가 가정에 연결",
+        "expression": "가정이 정체성의 핵심",
+        "life_focus": "가족, 뿌리, 내면 세계",
+        "gift": "깊은 정서적 기반",
+        "challenge": "가족 의존성"
+      },
+      "5th": {
+        "meaning": "자아가 창조에 연결",
+        "expression": "창조적 자기 표현",
+        "life_focus": "예술, 연애, 아이",
+        "gift": "창의성과 기쁨",
+        "challenge": "과도한 드라마"
+      },
+      "6th": {
+        "meaning": "자아가 봉사에 연결",
+        "expression": "일과 건강이 정체성",
+        "life_focus": "봉사, 루틴, 건강",
+        "gift": "유용함과 효율성",
+        "challenge": "일중독"
+      },
+      "7th": {
+        "meaning": "자아가 타인에 연결",
+        "expression": "관계를 통해 자아 발견",
+        "life_focus": "파트너십, 협력",
+        "gift": "관계 능력",
+        "challenge": "자기 상실"
+      },
+      "8th": {
+        "meaning": "자아가 변형에 연결",
+        "expression": "깊은 변형을 통한 자아 발견",
+        "life_focus": "위기, 친밀감, 공유 자원",
+        "gift": "재생 능력",
+        "challenge": "강박적 통제"
+      },
+      "9th": {
+        "meaning": "자아가 확장에 연결",
+        "expression": "탐험과 철학이 정체성",
+        "life_focus": "여행, 교육, 신념",
+        "gift": "넓은 시야",
+        "challenge": "영원한 방랑"
+      },
+      "10th": {
+        "meaning": "자아가 성취에 연결",
+        "expression": "커리어가 정체성의 핵심",
+        "life_focus": "명성, 성취, 사회적 역할",
+        "gift": "야망과 성공",
+        "challenge": "공적 이미지 집착"
+      },
+      "11th": {
+        "meaning": "자아가 집단에 연결",
+        "expression": "그룹을 통한 자아 실현",
+        "life_focus": "우정, 희망, 인도주의",
+        "gift": "네트워킹 능력",
+        "challenge": "개인성 상실"
+      },
+      "12th": {
+        "meaning": "자아가 초월에 연결",
+        "expression": "숨겨진 정체성, 영적 자아",
+        "life_focus": "영성, 무의식, 봉사",
+        "gift": "영적 깊이",
+        "challenge": "자기 인식 어려움"
+      }
+    },
+    "7th_house_ruler_in": {
+      "1st": {
+        "meaning": "파트너십이 자아에 집중",
+        "expression": "관계가 정체성에 필수",
+        "relationship_style": "파트너가 자아의 일부",
+        "gift": "관계 지향적",
+        "challenge": "혼자 있기 어려움"
+      },
+      "2nd": {
+        "meaning": "파트너십이 자원에 연결",
+        "expression": "파트너와 재정 공유",
+        "relationship_style": "재정적 파트너십",
+        "gift": "함께 부 창출",
+        "challenge": "돈 문제가 관계에 영향"
+      },
+      "3rd": {
+        "meaning": "파트너십이 소통에 연결",
+        "expression": "대화가 관계의 핵심",
+        "relationship_style": "지적 파트너",
+        "gift": "훌륭한 소통 관계",
+        "challenge": "깊이 부족 가능"
+      },
+      "4th": {
+        "meaning": "파트너십이 가정에 연결",
+        "expression": "파트너가 가족이 됨",
+        "relationship_style": "가정 중심 관계",
+        "gift": "안정적인 가정 파트너십",
+        "challenge": "가족 문제가 관계에 영향"
+      },
+      "5th": {
+        "meaning": "파트너십이 창조에 연결",
+        "expression": "로맨틱하고 재미있는 관계",
+        "relationship_style": "창의적 파트너",
+        "gift": "즐거운 관계",
+        "challenge": "진지함 부족 가능"
+      },
+      "6th": {
+        "meaning": "파트너십이 봉사에 연결",
+        "expression": "일하는 파트너십",
+        "relationship_style": "실용적 협력",
+        "gift": "함께 일함",
+        "challenge": "로맨스 부족 가능"
+      },
+      "7th": {
+        "meaning": "파트너십이 파트너십에 집중",
+        "expression": "관계가 인생의 핵심",
+        "relationship_style": "완전한 파트너 지향",
+        "gift": "관계 전문가",
+        "challenge": "정체성 상실 가능"
+      },
+      "8th": {
+        "meaning": "파트너십이 변형에 연결",
+        "expression": "깊고 강렬한 관계",
+        "relationship_style": "변형적 파트너십",
+        "gift": "깊은 친밀감",
+        "challenge": "권력 투쟁"
+      },
+      "9th": {
+        "meaning": "파트너십이 확장에 연결",
+        "expression": "함께 성장하는 관계",
+        "relationship_style": "철학적 파트너",
+        "gift": "해외/문화 간 관계",
+        "challenge": "자유 vs 헌신"
+      },
+      "10th": {
+        "meaning": "파트너십이 성취에 연결",
+        "expression": "공적 파트너십",
+        "relationship_style": "사업/사회적 파트너",
+        "gift": "파워 커플",
+        "challenge": "사생활 부족"
+      },
+      "11th": {
+        "meaning": "파트너십이 집단에 연결",
+        "expression": "친구가 연인이 됨",
+        "relationship_style": "우정 기반 관계",
+        "gift": "자유로운 파트너십",
+        "challenge": "로맨스 부족 가능"
+      },
+      "12th": {
+        "meaning": "파트너십이 초월에 연결",
+        "expression": "숨겨진 관계, 영적 연결",
+        "relationship_style": "영혼 파트너, 카르마적 관계",
+        "gift": "영적 깊이",
+        "challenge": "비밀 관계, 희생"
+      }
+    },
+    "10th_house_ruler_in": {
+      "1st": {
+        "meaning": "커리어가 자아에 연결",
+        "expression": "자신이 곧 직업",
+        "career_style": "개인 브랜딩",
+        "gift": "자연스러운 공적 이미지",
+        "challenge": "사생활 부족"
+      },
+      "2nd": {
+        "meaning": "커리어가 자원에 연결",
+        "expression": "돈 버는 것이 명성",
+        "career_style": "재정 중심 커리어",
+        "gift": "수익성 있는 직업",
+        "challenge": "돈에 의한 평가"
+      },
+      "3rd": {
+        "meaning": "커리어가 소통에 연결",
+        "expression": "소통이 직업",
+        "career_style": "미디어, 교육, 세일즈",
+        "gift": "소통 능력으로 성공",
+        "challenge": "깊이 부족"
+      },
+      "4th": {
+        "meaning": "커리어가 가정에 연결",
+        "expression": "가정 기반 사업 또는 부동산",
+        "career_style": "재택근무, 가족 사업",
+        "gift": "일과 가정의 통합",
+        "challenge": "경계 부족"
+      },
+      "5th": {
+        "meaning": "커리어가 창조에 연결",
+        "expression": "창의적 직업",
+        "career_style": "엔터테인먼트, 예술",
+        "gift": "즐거운 일",
+        "challenge": "안정성 부족 가능"
+      },
+      "6th": {
+        "meaning": "커리어가 봉사에 연결",
+        "expression": "일 자체가 커리어",
+        "career_style": "봉사, 건강 관련",
+        "gift": "유능한 전문가",
+        "challenge": "일중독"
+      },
+      "7th": {
+        "meaning": "커리어가 파트너십에 연결",
+        "expression": "파트너와 함께하는 커리어",
+        "career_style": "컨설팅, 법률, 협력",
+        "gift": "파트너십으로 성공",
+        "challenge": "의존성"
+      },
+      "8th": {
+        "meaning": "커리어가 변형에 연결",
+        "expression": "변형 관련 직업",
+        "career_style": "금융, 심리학, 연구",
+        "gift": "깊이 있는 커리어",
+        "challenge": "위기 다루기"
+      },
+      "9th": {
+        "meaning": "커리어가 확장에 연결",
+        "expression": "해외/교육 관련 커리어",
+        "career_style": "출판, 교육, 여행",
+        "gift": "글로벌 성공",
+        "challenge": "정착 어려움"
+      },
+      "10th": {
+        "meaning": "커리어가 커리어에 집중",
+        "expression": "커리어 중심 인생",
+        "career_style": "야망적 전문가",
+        "gift": "강력한 커리어 성공",
+        "challenge": "일-삶 불균형"
+      },
+      "11th": {
+        "meaning": "커리어가 집단에 연결",
+        "expression": "그룹을 통한 성공",
+        "career_style": "네트워킹, 기술, 사회운동",
+        "gift": "집단 영향력",
+        "challenge": "개인 인정 부족"
+      },
+      "12th": {
+        "meaning": "커리어가 초월에 연결",
+        "expression": "뒤에서 일하는 커리어",
+        "career_style": "봉사, 예술, 영성",
+        "gift": "영적 커리어",
+        "challenge": "인정 부족"
+      }
+    }
+  },
+  "intercepted_houses": {
+    "meaning": "차단된 에너지, 접근하기 어려운 삶의 영역",
+    "interpretation": {
+      "1st_7th_intercepted": "자아와 관계 표현 어려움",
+      "2nd_8th_intercepted": "자원과 친밀감 접근 어려움",
+      "3rd_9th_intercepted": "소통과 신념 표현 어려움",
+      "4th_10th_intercepted": "가정과 커리어 균형 어려움",
+      "5th_11th_intercepted": "창조와 집단 참여 어려움",
+      "6th_12th_intercepted": "봉사와 영성 통합 어려움"
+    },
+    "healing": "의식적 노력으로 차단된 에너지 해방",
+    "description": "intercepted_houses: 차단된 에너지, 접근하기 어려운 삶의 영역"
+  },
+  "empty_houses": {
+    "meaning": "행성이 없는 하우스, 덜 중요한 것이 아님",
+    "interpretation": "하우스 룰러의 위치로 해석",
+    "advice": "행성이 없어도 룰러가 에너지를 전달",
+    "description": "empty_houses: 행성이 없는 하우스, 덜 중요한 것이 아님 행성이 없어도 룰러가 에너지를 전달"
+  }
+}

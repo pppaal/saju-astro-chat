@@ -1,16 +1,18 @@
-﻿'use client';
+'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuraQuiz from '@/components/aura/AuraQuiz';
-import AuraRingVisual from '@/components/aura/AuraRingVisual';
 import type { AuraQuizAnswers } from '@/lib/aura/types';
 import { TOTAL_QUESTIONS } from '@/lib/aura/questions';
+import styles from '../Personality.module.css';
 
 export default function QuizPage() {
   const router = useRouter();
   const [answers, setAnswers] = useState<AuraQuizAnswers>({});
-  const isQuizComplete = Object.keys(answers).length === TOTAL_QUESTIONS;
+  const progress = Object.keys(answers).length;
+  const isQuizComplete = progress === TOTAL_QUESTIONS;
+  const progressPercent = Math.round((progress / TOTAL_QUESTIONS) * 100);
 
   const handleAnswerChange = (questionId: string, answerId: string) => {
     setAnswers((prev: AuraQuizAnswers) => ({ ...prev, [questionId]: answerId }));
@@ -21,45 +23,52 @@ export default function QuizPage() {
     router.push('/personality/result');
   };
 
-  const auraColors = useMemo(() => {
-    const progress = Object.keys(answers).length;
-    const maxProgress = TOTAL_QUESTIONS > 0 ? TOTAL_QUESTIONS : 1;
-
-    // δ¼╕∞₧É∞ù┤ φà£φöîδª┐∞£╝δí£ hsl∞¥ä Ω░É∞ï╕∞ò╝ φò¿
-    return [
-      `hsl(${220 + (progress / maxProgress) * 90}, 90%, 65%)`,
-      `hsl(${300 - (progress / maxProgress) * 70}, 90%, 65%)`,
-      `hsl(${180 + (progress / maxProgress) * 50}, 90%, 65%)`,
-    ];
-  }, [answers]);
-
   return (
-    <>
-      <AuraRingVisual colors={auraColors} />
-      <main className="relative min-h-screen flex items-center justify-center z-10">
-        <div className="container mx-auto py-20 px-4 max-w-3xl">
-          <div className="text-center mb-10 aura-fade-in">
-            <h1 className="text-4xl font-bold text-white">Aura Discovery Quiz</h1>
-            <p className="text-gray-300 mt-2">Answer honestly to reveal your inner landscape.</p>
-          </div>
+    <main className={styles.page}>
+      {/* Background Stars - deterministic positions to avoid hydration mismatch */}
+      <div className={styles.stars}>
+        {[...Array(50)].map((_, i) => (
+          <div
+            key={i}
+            className={styles.star}
+            style={{
+              left: `${(i * 37 + 13) % 100}%`,
+              top: `${(i * 53 + 7) % 100}%`,
+              animationDelay: `${(i * 0.08) % 4}s`,
+            }}
+          />
+        ))}
+      </div>
 
-          {/* JSX ∞Ö╕δ╢Ç φåáφü░ ∞á£Ω▒░: 'handlebars' ∞é¡∞á£ */}
-
-          <AuraQuiz answers={answers} onAnswerChange={handleAnswerChange} />
-
-          {isQuizComplete && (
-            <div className="mt-12 text-center aura-fade-in" style={{ animationDelay: '500ms' }}>
-              <button
-                onClick={handleViewResults}
-                className="bg-blue-600 text-white font-bold py-3 px-10 rounded-full text-xl hover:bg-blue-700 transition-transform transform hover:scale-105 shadow-lg animate-pulse"
-              >
-                Calculate My Aura
-              </button>
-            </div>
-          )}
+      <div className={styles.card}>
+        {/* Header */}
+        <div className={styles.header}>
+          <div className={styles.icon}>✨</div>
+          <h1 className={styles.title}>Aura Discovery</h1>
+          <p className={styles.subtitle}>Answer honestly to reveal your inner landscape.</p>
         </div>
-      </main>
-    </>
+
+        {/* Progress Bar */}
+        <div className={styles.progressContainer}>
+          <div className={styles.progressHeader}>
+            <span className={styles.progressLabel}>Progress</span>
+            <span className={styles.progressPercent}>{progress} / {TOTAL_QUESTIONS}</span>
+          </div>
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
+
+        {/* Quiz */}
+        <AuraQuiz answers={answers} onAnswerChange={handleAnswerChange} />
+
+        {/* Submit Button */}
+        {isQuizComplete && (
+          <button onClick={handleViewResults} className={styles.submitButton}>
+            Calculate My Aura
+          </button>
+        )}
+      </div>
+    </main>
   );
 }
-

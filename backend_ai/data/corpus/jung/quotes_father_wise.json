@@ -1,0 +1,73 @@
+{
+  "concept": "father_wise_old_man",
+  "concept_kr": "아버지/현자 원형",
+  "description": "Father represents authority and guidance, Wise Old Man represents wisdom and spiritual insight",
+  "quotes": [
+    {
+      "id": "father_001",
+      "en": "The father represents the world of moral commandments and prohibitions.",
+      "kr": "아버지는 도덕적 계명과 금기의 세계를 대표한다.",
+      "source": "CW 5",
+      "year": 1952,
+      "tags": [
+        "father",
+        "morality"
+      ]
+    },
+    {
+      "id": "father_002",
+      "en": "The father is the representative of the spirit, whose function is to oppose pure instinctuality.",
+      "kr": "아버지는 정신의 대표자이며, 그 기능은 순수한 본능성에 반대하는 것이다.",
+      "source": "CW 5",
+      "year": 1952,
+      "tags": [
+        "father",
+        "spirit"
+      ]
+    },
+    {
+      "id": "wise_001",
+      "en": "The wise old man appears when the hero is in a desperate situation from which only profound reflection can extricate him.",
+      "kr": "현자는 영웅이 오직 깊은 성찰만이 구해낼 수 있는 절망적인 상황에 처했을 때 나타난다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "wise old man",
+        "hero"
+      ]
+    },
+    {
+      "id": "wise_002",
+      "en": "The wise old man represents knowledge, reflection, insight, wisdom, cleverness, and intuition.",
+      "kr": "현자는 지식, 성찰, 통찰, 지혜, 영리함, 직관을 대표한다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "wise old man",
+        "wisdom"
+      ]
+    },
+    {
+      "id": "wise_003",
+      "en": "Often the old man asks questions like who? why? whence? for the purpose of inducing self-reflection.",
+      "kr": "종종 노인은 자기 성찰을 유도할 목적으로 누구? 왜? 어디서? 와 같은 질문을 던진다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "wise old man",
+        "questions"
+      ]
+    },
+    {
+      "id": "wise_004",
+      "en": "The archetype of spirit appears when insight and good advice are needed but cannot be mustered on one's own.",
+      "kr": "정신의 원형은 통찰과 좋은 조언이 필요하지만 스스로 모을 수 없을 때 나타난다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "wise old man",
+        "spirit"
+      ]
+    }
+  ]
+}

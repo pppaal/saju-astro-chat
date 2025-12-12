@@ -132,4 +132,44 @@ export class Numerology {
       birthdayNumber: this.getBirthdayNumber(),
     };
   }
+
+  /**
+   * Calculates the Personal Year Number for a given year.
+   * Shows the theme/energy of a specific year for this person.
+   * Formula: birth month + birth day + current year → reduce to single digit
+   */
+  public getPersonalYearNumber(year: number = new Date().getFullYear()): NumerologyNumber {
+    const month = this.birthDate.getUTCMonth() + 1;
+    const day = this.birthDate.getUTCDate();
+    const sum = `${month}${day}${year}`
+      .split("")
+      .map(Number)
+      .reduce((a, b) => a + b, 0);
+    return this._reduceToDigit(sum);
+  }
+
+  /**
+   * Calculates the Personal Month Number.
+   * Shows the theme/energy of a specific month for this person.
+   * Formula: Personal Year + calendar month → reduce to single digit
+   */
+  public getPersonalMonthNumber(year: number = new Date().getFullYear(), month: number = new Date().getMonth() + 1): NumerologyNumber {
+    const personalYear = this.getPersonalYearNumber(year);
+    const sum = personalYear + month;
+    return this._reduceToDigit(sum);
+  }
+
+  /**
+   * Calculates the Personal Day Number.
+   * Shows the energy of a specific day for this person.
+   * Formula: Personal Month + calendar day → reduce to single digit
+   */
+  public getPersonalDayNumber(date: Date = new Date()): NumerologyNumber {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const personalMonth = this.getPersonalMonthNumber(year, month);
+    const sum = personalMonth + day;
+    return this._reduceToDigit(sum);
+  }
 }

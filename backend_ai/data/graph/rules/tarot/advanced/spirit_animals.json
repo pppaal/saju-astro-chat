@@ -1,0 +1,244 @@
+{
+  "_meta": {
+    "title": "Spirit Animal Connections",
+    "description": "타로 카드와 영적 동물(토템)의 연결 - 각 카드의 에너지를 동물로 표현"
+  },
+  "major_arcana_animals": {
+    "The Fool": {
+      "animal": "나비",
+      "korean_animal": "나비 (Butterfly)",
+      "meaning": "변화, 자유, 영혼의 여정",
+      "message": "가볍게 날아오르세요. 변화는 아름다운 것입니다.",
+      "guidance": "나비처럼 과거의 껍질을 벗고 새롭게 태어나세요"
+    },
+    "The Magician": {
+      "animal": "여우",
+      "korean_animal": "여우 (Fox)",
+      "meaning": "영리함, 적응력, 기술",
+      "message": "당신은 필요한 모든 도구를 가지고 있습니다.",
+      "guidance": "여우의 영리함으로 상황을 활용하세요"
+    },
+    "The High Priestess": {
+      "animal": "올빼미",
+      "korean_animal": "올빼미 (Owl)",
+      "meaning": "지혜, 직관, 어둠 속의 시야",
+      "message": "내면의 지혜를 신뢰하세요. 답은 이미 당신 안에 있습니다.",
+      "guidance": "올빼미처럼 보이지 않는 것을 볼 수 있습니다"
+    },
+    "The Empress": {
+      "animal": "곰",
+      "korean_animal": "곰 (Bear)",
+      "meaning": "양육, 보호, 풍요",
+      "message": "당신의 창조력은 무한합니다.",
+      "guidance": "어머니 곰처럼 사랑으로 보호하고 양육하세요"
+    },
+    "The Emperor": {
+      "animal": "독수리",
+      "korean_animal": "독수리 (Eagle)",
+      "meaning": "권위, 넓은 시야, 리더십",
+      "message": "높이 날아 전체를 보세요. 리더의 자리가 당신을 기다립니다.",
+      "guidance": "독수리처럼 높은 관점에서 상황을 파악하세요"
+    },
+    "The Hierophant": {
+      "animal": "코끼리",
+      "korean_animal": "코끼리 (Elephant)",
+      "meaning": "지혜, 기억, 전통",
+      "message": "조상의 지혜가 당신을 안내합니다.",
+      "guidance": "코끼리처럼 전통과 지혜를 소중히 하세요"
+    },
+    "The Lovers": {
+      "animal": "백조",
+      "korean_animal": "백조 (Swan)",
+      "meaning": "사랑, 우아함, 평생의 파트너십",
+      "message": "진정한 사랑은 선택입니다.",
+      "guidance": "백조처럼 헌신적이고 우아한 사랑을 하세요"
+    },
+    "The Chariot": {
+      "animal": "말",
+      "korean_animal": "말 (Horse)",
+      "meaning": "자유, 힘, 전진",
+      "message": "목표를 향해 달려가세요. 멈추지 마세요.",
+      "guidance": "말의 힘과 결단력으로 앞으로 나아가세요"
+    },
+    "Strength": {
+      "animal": "사자",
+      "korean_animal": "사자 (Lion)",
+      "meaning": "용기, 힘, 부드러운 통제",
+      "message": "진정한 힘은 부드러움 속에 있습니다.",
+      "guidance": "사자의 용기와 위엄으로 도전에 맞서세요"
+    },
+    "The Hermit": {
+      "animal": "거북이",
+      "korean_animal": "거북이 (Turtle)",
+      "meaning": "인내, 내면 여정, 고요",
+      "message": "천천히 가도 괜찮습니다. 지혜는 고요 속에서 옵니다.",
+      "guidance": "거북이처럼 자신만의 속도로 나아가세요"
+    },
+    "Wheel of Fortune": {
+      "animal": "스핑크스/매",
+      "korean_animal": "매 (Falcon)",
+      "meaning": "운명, 변화, 새로운 관점",
+      "message": "바퀴가 돌고 있습니다. 변화에 유연하세요.",
+      "guidance": "매처럼 높이서 전체 그림을 보세요"
+    },
+    "Justice": {
+      "animal": "부엉이",
+      "korean_animal": "부엉이 (Horned Owl)",
+      "meaning": "정의, 진실, 균형",
+      "message": "진실은 언제나 밝혀집니다.",
+      "guidance": "부엉이의 예리한 눈으로 진실을 직시하세요"
+    },
+    "The Hanged Man": {
+      "animal": "박쥐",
+      "korean_animal": "박쥐 (Bat)",
+      "meaning": "새로운 관점, 항복, 전환",
+      "message": "때로는 거꾸로 보아야 진실이 보입니다.",
+      "guidance": "박쥐처럼 다른 관점에서 상황을 바라보세요"
+    },
+    "Death": {
+      "animal": "까마귀",
+      "korean_animal": "까마귀 (Raven)",
+      "meaning": "변환, 재탄생, 신비",
+      "message": "끝은 새로운 시작입니다. 두려워하지 마세요.",
+      "guidance": "까마귀처럼 변화를 두려워하지 마세요"
+    },
+    "Temperance": {
+      "animal": "학",
+      "korean_animal": "학 (Crane)",
+      "meaning": "균형, 인내, 조화",
+      "message": "균형이 열쇠입니다. 서두르지 마세요.",
+      "guidance": "학처럼 우아하게 균형을 유지하세요"
+    },
+    "The Devil": {
+      "animal": "염소/늑대",
+      "korean_animal": "늑대 (Wolf)",
+      "meaning": "본능, 그림자, 속박",
+      "message": "당신을 묶는 것이 무엇인지 보세요.",
+      "guidance": "늑대의 야성을 인정하되 통제하세요"
+    },
+    "The Tower": {
+      "animal": "번개새/독수리",
+      "korean_animal": "벼락 새 (Thunderbird)",
+      "meaning": "갑작스러운 변화, 파괴와 재건",
+      "message": "번개가 치면 하늘이 맑아집니다.",
+      "guidance": "폭풍 후의 맑은 하늘을 기대하세요"
+    },
+    "The Star": {
+      "animal": "돌고래",
+      "korean_animal": "돌고래 (Dolphin)",
+      "meaning": "희망, 기쁨, 치유",
+      "message": "별빛이 당신을 안내합니다. 희망을 가지세요.",
+      "guidance": "돌고래처럼 기쁨과 희망을 가지세요"
+    },
+    "The Moon": {
+      "animal": "늑대",
+      "korean_animal": "늑대 (Wolf)",
+      "meaning": "본능, 무의식, 직관",
+      "message": "달빛 아래서 진실이 드러납니다.",
+      "guidance": "늑대처럼 본능을 신뢰하세요"
+    },
+    "The Sun": {
+      "animal": "봉황",
+      "korean_animal": "봉황 (Phoenix)",
+      "meaning": "재탄생, 기쁨, 활력",
+      "message": "당신은 빛나고 있습니다!",
+      "guidance": "봉황처럼 다시 일어나 빛을 발하세요"
+    },
+    "Judgement": {
+      "animal": "독수리",
+      "korean_animal": "독수리 (Eagle)",
+      "meaning": "부활, 부름, 높은 관점",
+      "message": "새로운 부름에 응답하세요.",
+      "guidance": "독수리처럼 높이 날아 새로운 시작을 맞이하세요"
+    },
+    "The World": {
+      "animal": "뱀(우로보로스)",
+      "korean_animal": "뱀 (Ouroboros Snake)",
+      "meaning": "완성, 순환, 통합",
+      "message": "당신은 완전합니다. 한 순환이 완성되었습니다.",
+      "guidance": "뱀처럼 탈피하고 새로운 순환을 시작하세요"
+    }
+  },
+  "suit_animals": {
+    "wands": {
+      "element": "Fire",
+      "animals": ["사자", "용", "여우", "도마뱀"],
+      "korean": "불의 동물들",
+      "meaning": "열정, 행동, 창의력"
+    },
+    "cups": {
+      "element": "Water",
+      "animals": ["돌고래", "물고기", "백조", "해마"],
+      "korean": "물의 동물들",
+      "meaning": "감정, 직관, 관계"
+    },
+    "swords": {
+      "element": "Air",
+      "animals": ["독수리", "올빼미", "나비", "매"],
+      "korean": "공기의 동물들",
+      "meaning": "지성, 소통, 진실"
+    },
+    "pentacles": {
+      "element": "Earth",
+      "animals": ["곰", "소", "코끼리", "거북이"],
+      "korean": "땅의 동물들",
+      "meaning": "물질, 안정, 실용"
+    }
+  },
+  "court_card_animals": {
+    "pages": {
+      "description": "배우는 동물",
+      "animals": {
+        "Page of Wands": "여우 새끼",
+        "Page of Cups": "물고기",
+        "Page of Swords": "까치",
+        "Page of Pentacles": "토끼"
+      }
+    },
+    "knights": {
+      "description": "행동하는 동물",
+      "animals": {
+        "Knight of Wands": "치타",
+        "Knight of Cups": "유니콘",
+        "Knight of Swords": "매",
+        "Knight of Pentacles": "황소"
+      }
+    },
+    "queens": {
+      "description": "양육하는 동물",
+      "animals": {
+        "Queen of Wands": "암사자",
+        "Queen of Cups": "백조",
+        "Queen of Swords": "암독수리",
+        "Queen of Pentacles": "어미 곰"
+      }
+    },
+    "kings": {
+      "description": "통치하는 동물",
+      "animals": {
+        "King of Wands": "수사자",
+        "King of Cups": "고래",
+        "King of Swords": "독수리",
+        "King of Pentacles": "코끼리"
+      }
+    }
+  },
+  "animal_messages_by_reading": {
+    "multiple_fire_animals": {
+      "message": "열정과 행동의 에너지가 강합니다. 두려워하지 말고 앞으로 나아가세요.",
+      "korean": "불의 동물들이 당신을 응원합니다"
+    },
+    "multiple_water_animals": {
+      "message": "감정과 직관에 집중하세요. 마음의 소리를 들으세요.",
+      "korean": "물의 동물들이 당신의 감정을 안내합니다"
+    },
+    "multiple_air_animals": {
+      "message": "명확한 사고와 소통이 중요합니다. 진실을 말하세요.",
+      "korean": "공기의 동물들이 당신의 말에 날개를 달아줍니다"
+    },
+    "multiple_earth_animals": {
+      "message": "실용적으로 접근하세요. 한 발씩 착실하게 나아가세요.",
+      "korean": "땅의 동물들이 당신의 기반을 든든히 합니다"
+    }
+  }
+}

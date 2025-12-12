@@ -1,0 +1,5 @@
+.grid {
+  display: grid;
+  gap: var(--dp-space-4);
+  width: 100%;
+}

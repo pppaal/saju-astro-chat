@@ -1,0 +1,548 @@
+# Minimal Modern Deck - 78 Cards
+
+## 0. The Fool (바보)
+Filename: 0.jpg
+Prompt:
+minimalist modern tarot card, The Fool, young traveler at cliff edge, white rose, small dog, mountains, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 1. The Magician (마법사)
+Filename: 1.jpg
+Prompt:
+minimalist modern tarot card, The Magician, figure with wand raised, infinity symbol above head, four elements on table, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 2. The High Priestess (여사제)
+Filename: 2.jpg
+Prompt:
+minimalist modern tarot card, The High Priestess, seated woman between pillars, crescent moon, scroll of Torah, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 3. The Empress (여황제)
+Filename: 3.jpg
+Prompt:
+minimalist modern tarot card, The Empress, pregnant woman on throne, wheat field, venus symbol, nature, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 4. The Emperor (황제)
+Filename: 4.jpg
+Prompt:
+minimalist modern tarot card, The Emperor, stern ruler on stone throne, rams head, red robes, mountains, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 5. The Hierophant (교황)
+Filename: 5.jpg
+Prompt:
+minimalist modern tarot card, The Hierophant, religious figure between pillars, blessing gesture, two acolytes, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 6. The Lovers (연인)
+Filename: 6.jpg
+Prompt:
+minimalist modern tarot card, The Lovers, naked man and woman, angel above, tree of knowledge, sun, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 7. The Chariot (전차)
+Filename: 7.jpg
+Prompt:
+minimalist modern tarot card, The Chariot, armored warrior in chariot, two sphinxes, city behind, stars, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 8. Strength (힘)
+Filename: 8.jpg
+Prompt:
+minimalist modern tarot card, Strength, woman gently closing lion's mouth, infinity symbol, flowers, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 9. The Hermit (은둔자)
+Filename: 9.jpg
+Prompt:
+minimalist modern tarot card, The Hermit, old man with lantern and staff, mountain peak, grey robes, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 10. Wheel of Fortune (운명의 수레바퀴)
+Filename: 10.jpg
+Prompt:
+minimalist modern tarot card, Wheel of Fortune, great wheel with symbols, sphinx, snake, four creatures, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 11. Justice (정의)
+Filename: 11.jpg
+Prompt:
+minimalist modern tarot card, Justice, seated figure with scales and sword, pillars, crown, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 12. The Hanged Man (매달린 사람)
+Filename: 12.jpg
+Prompt:
+minimalist modern tarot card, The Hanged Man, man suspended upside down from tree, halo, serene face, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 13. Death (죽음)
+Filename: 13.jpg
+Prompt:
+minimalist modern tarot card, Death, skeleton knight on white horse, fallen figures, rising sun, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 14. Temperance (절제)
+Filename: 14.jpg
+Prompt:
+minimalist modern tarot card, Temperance, angel pouring water between cups, one foot in water, irises, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 15. The Devil (악마)
+Filename: 15.jpg
+Prompt:
+minimalist modern tarot card, The Devil, horned figure on pedestal, chained couple, inverted pentagram, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 16. The Tower (탑)
+Filename: 16.jpg
+Prompt:
+minimalist modern tarot card, The Tower, lightning striking tower, falling figures, crown falling, flames, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 17. The Star (별)
+Filename: 17.jpg
+Prompt:
+minimalist modern tarot card, The Star, nude woman pouring water, eight stars, ibis bird, night sky, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 18. The Moon (달)
+Filename: 18.jpg
+Prompt:
+minimalist modern tarot card, The Moon, full moon with face, two towers, dog and wolf, crayfish, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 19. The Sun (태양)
+Filename: 19.jpg
+Prompt:
+minimalist modern tarot card, The Sun, joyful child on white horse, sunflowers, bright sun, wall, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 20. Judgement (심판)
+Filename: 20.jpg
+Prompt:
+minimalist modern tarot card, Judgement, angel with trumpet, rising dead, mountains, clouds, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 21. The World (세계)
+Filename: 21.jpg
+Prompt:
+minimalist modern tarot card, The World, dancing figure in wreath, four creatures, completion, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 22. Ace of Wands (완드 에이스)
+Filename: 22.jpg
+Prompt:
+minimalist modern tarot card, Ace of Wands, hand holding sprouting wand from cloud, leaves falling, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 23. Two of Wands (완드 2)
+Filename: 23.jpg
+Prompt:
+minimalist modern tarot card, Two of Wands, man on castle holding globe, looking at sea, two wands, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 24. Three of Wands (완드 3)
+Filename: 24.jpg
+Prompt:
+minimalist modern tarot card, Three of Wands, figure watching ships at sea, three wands, cliff, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 25. Four of Wands (완드 4)
+Filename: 25.jpg
+Prompt:
+minimalist modern tarot card, Four of Wands, garland between four wands, celebration, castle, couple, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 26. Five of Wands (완드 5)
+Filename: 26.jpg
+Prompt:
+minimalist modern tarot card, Five of Wands, five youths fighting with wands, conflict, competition, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 27. Six of Wands (완드 6)
+Filename: 27.jpg
+Prompt:
+minimalist modern tarot card, Six of Wands, victorious rider on horse, laurel wreath, crowd, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 28. Seven of Wands (완드 7)
+Filename: 28.jpg
+Prompt:
+minimalist modern tarot card, Seven of Wands, man defending position on hill, six wands below, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 29. Eight of Wands (완드 8)
+Filename: 29.jpg
+Prompt:
+minimalist modern tarot card, Eight of Wands, eight wands flying through clear sky, movement, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 30. Nine of Wands (완드 9)
+Filename: 30.jpg
+Prompt:
+minimalist modern tarot card, Nine of Wands, wounded man guarding eight wands, bandaged head, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 31. Ten of Wands (완드 10)
+Filename: 31.jpg
+Prompt:
+minimalist modern tarot card, Ten of Wands, man carrying heavy bundle of ten wands, town ahead, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 32. Page of Wands (완드 페이지)
+Filename: 32.jpg
+Prompt:
+minimalist modern tarot card, Page of Wands, young person holding wand, desert landscape, salamanders, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 33. Knight of Wands (완드 기사)
+Filename: 33.jpg
+Prompt:
+minimalist modern tarot card, Knight of Wands, knight on rearing horse, wand raised, pyramids, fire, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 34. Queen of Wands (완드 여왕)
+Filename: 34.jpg
+Prompt:
+minimalist modern tarot card, Queen of Wands, queen on throne with sunflowers, black cat, wand, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 35. King of Wands (완드 왕)
+Filename: 35.jpg
+Prompt:
+minimalist modern tarot card, King of Wands, king on throne with living wand, salamander, lion, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 36. Ace of Cups (컵 에이스)
+Filename: 36.jpg
+Prompt:
+minimalist modern tarot card, Ace of Cups, hand holding overflowing chalice, dove, lotus, water, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 37. Two of Cups (컵 2)
+Filename: 37.jpg
+Prompt:
+minimalist modern tarot card, Two of Cups, man and woman exchanging cups, caduceus, lion, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 38. Three of Cups (컵 3)
+Filename: 38.jpg
+Prompt:
+minimalist modern tarot card, Three of Cups, three dancing women raising cups, harvest, celebration, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 39. Four of Cups (컵 4)
+Filename: 39.jpg
+Prompt:
+minimalist modern tarot card, Four of Cups, seated figure under tree, three cups, hand offering cup, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 40. Five of Cups (컵 5)
+Filename: 40.jpg
+Prompt:
+minimalist modern tarot card, Five of Cups, cloaked figure mourning spilled cups, bridge, river, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 41. Six of Cups (컵 6)
+Filename: 41.jpg
+Prompt:
+minimalist modern tarot card, Six of Cups, children exchanging flowers in cups, garden, nostalgia, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 42. Seven of Cups (컵 7)
+Filename: 42.jpg
+Prompt:
+minimalist modern tarot card, Seven of Cups, figure facing seven cups with visions, clouds, choices, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 43. Eight of Cups (컵 8)
+Filename: 43.jpg
+Prompt:
+minimalist modern tarot card, Eight of Cups, figure walking away from stacked cups, moon, mountains, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 44. Nine of Cups (컵 9)
+Filename: 44.jpg
+Prompt:
+minimalist modern tarot card, Nine of Cups, satisfied man with arms crossed, nine cups arranged, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 45. Ten of Cups (컵 10)
+Filename: 45.jpg
+Prompt:
+minimalist modern tarot card, Ten of Cups, happy family under rainbow, home, children dancing, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 46. Page of Cups (컵 페이지)
+Filename: 46.jpg
+Prompt:
+minimalist modern tarot card, Page of Cups, young person with cup, fish emerging, sea, blue outfit, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 47. Knight of Cups (컵 기사)
+Filename: 47.jpg
+Prompt:
+minimalist modern tarot card, Knight of Cups, knight on white horse holding cup, river, wings, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 48. Queen of Cups (컵 여왕)
+Filename: 48.jpg
+Prompt:
+minimalist modern tarot card, Queen of Cups, queen on throne by sea, ornate cup, angels, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 49. King of Cups (컵 왕)
+Filename: 49.jpg
+Prompt:
+minimalist modern tarot card, King of Cups, king on throne in turbulent sea, cup, fish amulet, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 50. Ace of Swords (소드 에이스)
+Filename: 50.jpg
+Prompt:
+minimalist modern tarot card, Ace of Swords, hand holding sword from cloud, crown, mountains, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 51. Two of Swords (소드 2)
+Filename: 51.jpg
+Prompt:
+minimalist modern tarot card, Two of Swords, blindfolded woman crossing swords, moon, water, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 52. Three of Swords (소드 3)
+Filename: 52.jpg
+Prompt:
+minimalist modern tarot card, Three of Swords, heart pierced by three swords, rain, clouds, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 53. Four of Swords (소드 4)
+Filename: 53.jpg
+Prompt:
+minimalist modern tarot card, Four of Swords, knight lying on tomb, stained glass, prayer, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 54. Five of Swords (소드 5)
+Filename: 54.jpg
+Prompt:
+minimalist modern tarot card, Five of Swords, victor with three swords, defeated figures, stormy sky, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 55. Six of Swords (소드 6)
+Filename: 55.jpg
+Prompt:
+minimalist modern tarot card, Six of Swords, ferryman rowing woman and child, six swords, calm water ahead, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 56. Seven of Swords (소드 7)
+Filename: 56.jpg
+Prompt:
+minimalist modern tarot card, Seven of Swords, figure sneaking with five swords, camp behind, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 57. Eight of Swords (소드 8)
+Filename: 57.jpg
+Prompt:
+minimalist modern tarot card, Eight of Swords, bound blindfolded woman surrounded by swords, water, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 58. Nine of Swords (소드 9)
+Filename: 58.jpg
+Prompt:
+minimalist modern tarot card, Nine of Swords, person sitting up in bed, nine swords on wall, nightmare, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 59. Ten of Swords (소드 10)
+Filename: 59.jpg
+Prompt:
+minimalist modern tarot card, Ten of Swords, figure lying face down, ten swords in back, dawn, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 60. Page of Swords (소드 페이지)
+Filename: 60.jpg
+Prompt:
+minimalist modern tarot card, Page of Swords, young person holding sword, windy sky, birds, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 61. Knight of Swords (소드 기사)
+Filename: 61.jpg
+Prompt:
+minimalist modern tarot card, Knight of Swords, knight charging on horse, sword raised, storm, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 62. Queen of Swords (소드 여왕)
+Filename: 62.jpg
+Prompt:
+minimalist modern tarot card, Queen of Swords, stern queen on throne, raised sword, butterfly, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 63. King of Swords (소드 왕)
+Filename: 63.jpg
+Prompt:
+minimalist modern tarot card, King of Swords, king on throne with upright sword, clouds, authority, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 64. Ace of Pentacles (펜타클 에이스)
+Filename: 64.jpg
+Prompt:
+minimalist modern tarot card, Ace of Pentacles, hand holding golden pentacle, garden gate, lilies, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 65. Two of Pentacles (펜타클 2)
+Filename: 65.jpg
+Prompt:
+minimalist modern tarot card, Two of Pentacles, juggler balancing two pentacles, infinity, ships, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 66. Three of Pentacles (펜타클 3)
+Filename: 66.jpg
+Prompt:
+minimalist modern tarot card, Three of Pentacles, craftsman in cathedral, architects, collaboration, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 67. Four of Pentacles (펜타클 4)
+Filename: 67.jpg
+Prompt:
+minimalist modern tarot card, Four of Pentacles, man holding pentacle tightly, crown, city behind, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 68. Five of Pentacles (펜타클 5)
+Filename: 68.jpg
+Prompt:
+minimalist modern tarot card, Five of Pentacles, two beggars in snow, stained glass window, poverty, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 69. Six of Pentacles (펜타클 6)
+Filename: 69.jpg
+Prompt:
+minimalist modern tarot card, Six of Pentacles, wealthy man giving to beggars, scales, generosity, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 70. Seven of Pentacles (펜타클 7)
+Filename: 70.jpg
+Prompt:
+minimalist modern tarot card, Seven of Pentacles, farmer leaning on hoe, pentacles on vine, patience, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 71. Eight of Pentacles (펜타클 8)
+Filename: 71.jpg
+Prompt:
+minimalist modern tarot card, Eight of Pentacles, craftsman carving pentacles, workshop, diligence, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 72. Nine of Pentacles (펜타클 9)
+Filename: 72.jpg
+Prompt:
+minimalist modern tarot card, Nine of Pentacles, elegant woman in garden, falcon, abundance, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 73. Ten of Pentacles (펜타클 10)
+Filename: 73.jpg
+Prompt:
+minimalist modern tarot card, Ten of Pentacles, wealthy family under archway, dogs, generations, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 74. Page of Pentacles (펜타클 페이지)
+Filename: 74.jpg
+Prompt:
+minimalist modern tarot card, Page of Pentacles, young person gazing at pentacle, green field, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 75. Knight of Pentacles (펜타클 기사)
+Filename: 75.jpg
+Prompt:
+minimalist modern tarot card, Knight of Pentacles, knight on heavy horse, pentacle, plowed field, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 76. Queen of Pentacles (펜타클 여왕)
+Filename: 76.jpg
+Prompt:
+minimalist modern tarot card, Queen of Pentacles, queen on throne in garden, rabbit, pentacle, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 77. King of Pentacles (펜타클 왕)
+Filename: 77.jpg
+Prompt:
+minimalist modern tarot card, King of Pentacles, king on throne with pentacle, grapes, bull, clean geometric design, stark black background with white line art, single accent color highlight, negative space composition, contemporary design, bold simple shapes, zen aesthetic, vector art style, clean edges, premium design, elegant simplicity --ar 2:3 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+

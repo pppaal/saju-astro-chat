@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -25,15 +25,9 @@ type UserProfile = {
 
 type ViewMode = 'swipe' | 'grid';
 
-const ZODIAC_SIGNS = [
-  '♈ Aries', '♉ Taurus', '♊ Gemini', '♋ Cancer',
-  '♌ Leo', '♍ Virgo', '♎ Libra', '♏ Scorpio',
-  '♐ Sagittarius', '♑ Capricorn', '♒ Aquarius', '♓ Pisces'
-];
+const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 
-const SAJU_ELEMENTS = [
-  '🔥 Fire', '💧 Water', '🌳 Wood', '⚡ Metal', '⛰️ Earth'
-];
+const SAJU_ELEMENTS = ["Fire", "Water", "Wood", "Metal", "Earth"];
 
 // Premium mock profiles
 const MOCK_PROFILES: UserProfile[] = [
@@ -41,14 +35,14 @@ const MOCK_PROFILES: UserProfile[] = [
     id: '1',
     name: 'Luna',
     age: 28,
-    avatar: '🌙',
-    photos: ['🌙', '✨', '🌸'],
-    zodiacSign: '♓ Pisces',
-    sajuElement: '💧 Water',
+    avatar: 'moon',
+    photos: ['moon', 'starlit', 'dusk'],
+    zodiacSign: 'Pisces',
+    sajuElement: 'Water',
     birthChart: 'Moon in Cancer, Rising Scorpio',
     interests: ['Tarot', 'Moon Phases', 'Crystals'],
     compatibility: 95,
-    bio: 'Intuitive soul seeking deep cosmic connections. Professional tarot reader 🔮 Love moonlit walks and spiritual conversations.',
+    bio: 'Intuitive soul seeking deep cosmic connections. Professional tarot reader. Love moonlit walks and spiritual conversations.',
     distance: 2,
     verified: true,
     occupation: 'Tarot Reader'
@@ -57,14 +51,14 @@ const MOCK_PROFILES: UserProfile[] = [
     id: '2',
     name: 'Phoenix',
     age: 32,
-    avatar: '☀️',
-    photos: ['☀️', '🔥', '⭐'],
-    zodiacSign: '♌ Leo',
-    sajuElement: '🔥 Fire',
+    avatar: 'phoenix',
+    photos: ['phoenix', 'sun', 'fire'],
+    zodiacSign: 'Leo',
+    sajuElement: 'Fire',
     birthChart: 'Sun in Leo, Moon in Aries',
     interests: ['Astrology', 'Manifestation', 'Yoga'],
     compatibility: 88,
-    bio: 'Life coach & astrology enthusiast 🌟 Passionate about empowering others through cosmic wisdom.',
+    bio: 'Life coach and astrology enthusiast. Passionate about empowering others through cosmic wisdom.',
     distance: 5,
     verified: true,
     occupation: 'Life Coach'
@@ -73,14 +67,14 @@ const MOCK_PROFILES: UserProfile[] = [
     id: '3',
     name: 'Aria',
     age: 26,
-    avatar: '✨',
-    photos: ['✨', '🌺', '🦋'],
-    zodiacSign: '♒ Aquarius',
-    sajuElement: '⚡ Metal',
+    avatar: 'aria',
+    photos: ['aria', 'sky', 'night'],
+    zodiacSign: 'Aquarius',
+    sajuElement: 'Metal',
     birthChart: 'Sun in Aquarius, Moon in Gemini',
     interests: ['Dream Analysis', 'Spirituality', 'Meditation'],
     compatibility: 82,
-    bio: 'Creative artist exploring consciousness 🎨 Love deep conversations about the universe and our place in it.',
+    bio: 'Creative artist exploring consciousness. Loves deep conversations about the universe.',
     distance: 8,
     verified: false,
     occupation: 'Artist'
@@ -89,14 +83,14 @@ const MOCK_PROFILES: UserProfile[] = [
     id: '4',
     name: 'Rose',
     age: 30,
-    avatar: '🌹',
-    photos: ['🌹', '💎', '🕉️'],
-    zodiacSign: '♏ Scorpio',
-    sajuElement: '💧 Water',
+    avatar: 'rose',
+    photos: ['rose', 'bloom', 'water'],
+    zodiacSign: 'Scorpio',
+    sajuElement: 'Water',
     birthChart: 'Sun in Scorpio, Moon in Pisces',
     interests: ['Energy Healing', 'Chakras', 'Crystals'],
     compatibility: 79,
-    bio: 'Reiki master & crystal healer 💎 Dedicated to helping others find balance and spiritual awakening.',
+    bio: 'Reiki master and crystal healer dedicated to balance and awakening.',
     distance: 12,
     verified: true,
     occupation: 'Reiki Master'
@@ -105,14 +99,14 @@ const MOCK_PROFILES: UserProfile[] = [
     id: '5',
     name: 'Kai',
     age: 29,
-    avatar: '🌊',
-    photos: ['🌊', '🐚', '🌙'],
-    zodiacSign: '♋ Cancer',
-    sajuElement: '💧 Water',
+    avatar: 'kai',
+    photos: ['kai', 'sea', 'moon'],
+    zodiacSign: 'Cancer',
+    sajuElement: 'Water',
     birthChart: 'Sun in Cancer, Moon in Taurus',
     interests: ['Meditation', 'Yoga', 'Moon Phases'],
     compatibility: 91,
-    bio: 'Ocean lover and meditation guide 🧘 Seeking someone to share spiritual adventures with.',
+    bio: 'Ocean lover and meditation guide seeking someone to share spiritual adventures with.',
     distance: 3,
     verified: true,
     occupation: 'Meditation Teacher'
@@ -121,14 +115,14 @@ const MOCK_PROFILES: UserProfile[] = [
     id: '6',
     name: 'Sage',
     age: 34,
-    avatar: '🍃',
-    photos: ['🍃', '🌿', '🦉'],
-    zodiacSign: '♉ Taurus',
-    sajuElement: '⛰️ Earth',
+    avatar: 'sage',
+    photos: ['sage', 'herb', 'forest'],
+    zodiacSign: 'Taurus',
+    sajuElement: 'Earth',
     birthChart: 'Sun in Taurus, Moon in Virgo',
     interests: ['Numerology', 'Astrology', 'Crystals'],
     compatibility: 86,
-    bio: 'Grounded soul with ancient wisdom 🦉 Herbalist and spiritual guide living in harmony with nature.',
+    bio: 'Grounded soul with ancient wisdom. Herbalist and spiritual guide living in harmony with nature.',
     distance: 7,
     verified: false,
     occupation: 'Herbalist'
@@ -141,7 +135,7 @@ export default function DestinyMatchPage() {
   const [profiles] = useState<UserProfile[]>(MOCK_PROFILES);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
-  const [passedProfiles, setPassedProfiles] = useState<string[]>([]);
+  const [_passedProfiles, setPassedProfiles] = useState<string[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -249,25 +243,27 @@ export default function DestinyMatchPage() {
       <div className={styles.container}>
         {/* Header */}
         <header className={styles.header}>
-          <Link href="/" className={styles.backButton}>← Back</Link>
+          <Link href="/" className={styles.backButton}>{'< Back'}</Link>
           <h1 className={styles.title}>
-            <span className={styles.titleIcon}>💫</span>
+            <span className={styles.titleIcon}>*</span>
             Destiny Match
           </h1>
           <div className={styles.headerButtons}>
             <button
-              onClick={() => setViewMode(viewMode === 'swipe' ? 'grid' : 'swipe')}
+              onClick={() => setViewMode(viewMode === "swipe" ? "grid" : "swipe")}
               className={styles.iconButton}
-              title={viewMode === 'swipe' ? 'Grid View' : 'Swipe View'}
+              title={viewMode === "swipe" ? "Grid View" : "Swipe View"}
+              type="button"
             >
-              {viewMode === 'swipe' ? '▦' : '⊡'}
+              {viewMode === "swipe" ? "SWIPE" : "GRID"}
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={styles.iconButton}
               title="Filters"
+              type="button"
             >
-              ⚙️
+              ??
             </button>
           </div>
         </header>
@@ -313,7 +309,7 @@ export default function DestinyMatchPage() {
             {!hasMoreProfiles ? (
               <div className={styles.noMoreCards}>
                 <div className={styles.noMoreIcon}>🌟</div>
-                <h2>You've seen everyone!</h2>
+                <h2>You&apos;ve seen everyone!</h2>
                 <p>Check back later for more cosmic connections</p>
                 <button
                   onClick={() => setCurrentIndex(0)}
@@ -568,3 +564,10 @@ export default function DestinyMatchPage() {
     </div>
   );
 }
+
+
+
+
+
+
+

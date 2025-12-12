@@ -1,0 +1,73 @@
+{
+  "concept": "child_trickster",
+  "concept_kr": "아이/트릭스터 원형",
+  "description": "Child represents potential and new beginnings, Trickster represents rule-breaking and transformation",
+  "quotes": [
+    {
+      "id": "child_001",
+      "en": "The child motif represents the preconscious, childhood aspect of the collective psyche.",
+      "kr": "아이 모티프는 집단 심리의 전의식적, 유년기 측면을 대표한다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "child",
+        "preconscious"
+      ]
+    },
+    {
+      "id": "child_002",
+      "en": "The child is potential future.",
+      "kr": "아이는 잠재적 미래다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "child",
+        "future"
+      ]
+    },
+    {
+      "id": "child_003",
+      "en": "In individuation, the child anticipates the figure from the synthesis of conscious and unconscious.",
+      "kr": "개성화 과정에서, 아이는 의식과 무의식의 종합에서 나오는 형상을 예고한다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "child",
+        "individuation"
+      ]
+    },
+    {
+      "id": "trickster_001",
+      "en": "The trickster is a primitive cosmic being of divine-animal nature, superior yet inferior to man.",
+      "kr": "트릭스터는 신적-동물적 본성을 가진 원시적 우주적 존재로, 인간보다 우월하면서도 열등하다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "trickster",
+        "nature"
+      ]
+    },
+    {
+      "id": "trickster_002",
+      "en": "The trickster is a collective shadow figure, a summation of all inferior traits.",
+      "kr": "트릭스터는 집단적 그림자 형상이며, 모든 열등한 성격 특성의 총합이다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "trickster",
+        "shadow"
+      ]
+    },
+    {
+      "id": "trickster_003",
+      "en": "The trickster is a forerunner of the savior, God, man, and animal at once.",
+      "kr": "트릭스터는 구원자의 선구자이며, 신, 인간, 동물을 동시에 갖춘다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "trickster",
+        "savior"
+      ]
+    }
+  ]
+}

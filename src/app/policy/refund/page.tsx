@@ -1,18 +1,14 @@
 "use client";
+
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "../policy.module.css";
 
-type Locale = "en" | "ko" | "zh" | "ar" | "es" | "fr" | "ja" | "ru";
 type Section = { title: string; body: string };
-
-function asLocale(l: string): Locale {
-  const list: Locale[] = ["en", "ko", "zh", "ar", "es", "fr", "ja", "ru"];
-  return (list as readonly string[]).includes(l) ? (l as Locale) : "en";
-}
 
 const PSP_NAME = "Stripe";
 const CONTACT_EMAIL = "rheeco88@gmail.com";
+const EFFECTIVE_DATE = "2025-12-12";
 
 const sections: Section[] = [
   {
@@ -37,7 +33,7 @@ const sections: Section[] = [
   },
   {
     title: "6. Chargebacks and Disputes",
-    body: "Chargeback Policy: If you initiate a chargeback or payment dispute with your bank without first contacting us, we reserve the right to:\n- Immediately suspend or terminate your account\n- Deny future service access\n- Pursue legal remedies for fraudulent chargebacks\n\nDispute Resolution: Please contact us first at " + CONTACT_EMAIL + " if you have any billing concerns. We are committed to resolving issues fairly and promptly\n\nFraud Prevention: We actively monitor for fraudulent transactions. Suspected fraudulent activity may result in account suspension and referral to law enforcement"
+    body: `Chargeback Policy: If you initiate a chargeback or payment dispute with your bank without first contacting us, we reserve the right to:\n- Immediately suspend or terminate your account\n- Deny future service access\n- Pursue legal remedies for fraudulent chargebacks\n\nDispute Resolution: Please contact us first at ${CONTACT_EMAIL} if you have any billing concerns. We are committed to resolving issues fairly and promptly\n\nFraud Prevention: We actively monitor for fraudulent transactions. Suspected fraudulent activity may result in account suspension and referral to law enforcement`
   },
   {
     title: "7. Free Trials and Promotional Offers",
@@ -65,24 +61,6 @@ const sections: Section[] = [
   },
 ];
 
-const base = {
-  title: "Refunds and Billing Policy",
-  effective: "Effective date: 2025-01-01",
-  sections,
-  footer: "Addendum: Effective 2025-01-01",
-};
-
-const refundsData: Record<Locale, typeof base> = {
-  en: base,
-  ko: base,
-  zh: base,
-  ar: base,
-  es: base,
-  fr: base,
-  ja: base,
-  ru: base,
-};
-
 function SectionView({ s }: { s: Section }) {
   return (
     <section className={styles.section}>
@@ -93,8 +71,8 @@ function SectionView({ s }: { s: Section }) {
 }
 
 export default function RefundPage() {
-  const { locale } = useI18n();
-  const L = refundsData[asLocale(locale)];
+  const { t } = useI18n();
+
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -103,16 +81,20 @@ export default function RefundPage() {
         </div>
         <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.title}>{L.title}</h1>
-            <p className={styles.effectiveDate}>{L.effective}</p>
+            <h1 className={styles.title}>{t("policy.refund.title", "Refunds and Billing Policy")}</h1>
+            <p className={styles.effectiveDate}>
+              {t("policy.refund.effective", "Effective date")}: {EFFECTIVE_DATE}
+            </p>
           </div>
           <div className={styles.content}>
-            {L.sections.map((s: Section, i: number) => (
+            {sections.map((s: Section, i: number) => (
               <SectionView key={`${s.title}-${i}`} s={s} />
             ))}
           </div>
           <div className={styles.footer}>
-            <p className={styles.footerText}>{L.footer}</p>
+            <p className={styles.footerText}>
+              {t("policy.refund.footer", "Addendum")}: {EFFECTIVE_DATE}
+            </p>
           </div>
         </div>
       </div>

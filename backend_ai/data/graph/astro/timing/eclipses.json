@@ -1,0 +1,171 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "timing/eclipses",
+  "$count": 30,
+  "$description": "일식과 월식의 점성학적 해석",
+  "$note": "이클립스 시즌과 영향",
+
+  "eclipse_basics": {
+    "solar_eclipse": {
+      "type": "새 달 + 노드 근접",
+      "meaning": "새로운 시작, 운명적 문 열림",
+      "energy": "외향적, 새로운 기회, 시작",
+      "duration_effect": "6개월",
+      "intensity": "강력한 새 달"
+    },
+    "lunar_eclipse": {
+      "type": "보름달 + 노드 근접",
+      "meaning": "종결, 감정적 절정, 해방",
+      "energy": "내향적, 완료, 내려놓기",
+      "duration_effect": "6개월",
+      "intensity": "강력한 보름달"
+    },
+    "eclipse_season": {
+      "frequency": "연 2회, 각 약 5주",
+      "pattern": "보통 2-3개의 이클립스가 연속으로 발생",
+      "energy": "운명적 시기, 가속화된 카르마"
+    }
+  },
+
+  "eclipse_in_signs": {
+    "Aries": {
+      "themes": "정체성, 독립성, 새로운 시작",
+      "solar": "자아에 대한 새로운 장 열림",
+      "lunar": "개인적 목표의 완료/해방"
+    },
+    "Taurus": {
+      "themes": "재정, 가치, 안정성",
+      "solar": "새로운 재정적 시작",
+      "lunar": "물질적/가치 문제 해결"
+    },
+    "Gemini": {
+      "themes": "소통, 학습, 이웃/형제",
+      "solar": "새로운 아이디어/학습 시작",
+      "lunar": "정보/소통 관련 완료"
+    },
+    "Cancer": {
+      "themes": "가정, 가족, 감정적 안전",
+      "solar": "가정에 새로운 장 열림",
+      "lunar": "가족 문제 해결/해방"
+    },
+    "Leo": {
+      "themes": "창조성, 자녀, 로맨스, 자기 표현",
+      "solar": "창조적 새로운 시작",
+      "lunar": "로맨스/창조 프로젝트 완료"
+    },
+    "Virgo": {
+      "themes": "건강, 일, 봉사",
+      "solar": "새로운 건강/일 시작",
+      "lunar": "봉사/건강 문제 해결"
+    },
+    "Libra": {
+      "themes": "관계, 파트너십, 균형",
+      "solar": "새로운 관계 시작",
+      "lunar": "관계 완료/균형 회복"
+    },
+    "Scorpio": {
+      "themes": "변형, 친밀감, 공유 자원",
+      "solar": "깊은 변형 시작",
+      "lunar": "권력/친밀감 문제 해방"
+    },
+    "Sagittarius": {
+      "themes": "여행, 교육, 신념",
+      "solar": "새로운 모험/학습 시작",
+      "lunar": "신념 체계 완료/해방"
+    },
+    "Capricorn": {
+      "themes": "커리어, 권위, 구조",
+      "solar": "새로운 커리어 시작",
+      "lunar": "사회적 지위 변화/완료"
+    },
+    "Aquarius": {
+      "themes": "우정, 그룹, 미래 비전",
+      "solar": "새로운 그룹/목표 시작",
+      "lunar": "친구 관계 변화/해방"
+    },
+    "Pisces": {
+      "themes": "영성, 치유, 무의식",
+      "solar": "새로운 영적 시작",
+      "lunar": "과거/카르마 해방"
+    }
+  },
+
+  "eclipse_in_houses": {
+    "1st_7th_axis": {
+      "themes": "자아 vs 타인, 정체성 vs 관계",
+      "solar_in_1st": "새로운 정체성/시작",
+      "lunar_in_7th": "관계 완료/해방",
+      "advice": "자아와 관계의 균형 찾기"
+    },
+    "2nd_8th_axis": {
+      "themes": "내 자원 vs 공유 자원",
+      "solar_in_2nd": "새로운 수입원/가치관",
+      "lunar_in_8th": "부채/친밀감 해방",
+      "advice": "재정과 권력 역학 재평가"
+    },
+    "3rd_9th_axis": {
+      "themes": "지역 vs 해외, 세부 vs 큰 그림",
+      "solar_in_3rd": "새로운 학습/소통",
+      "lunar_in_9th": "신념 체계 해방",
+      "advice": "학습과 가르침의 균형"
+    },
+    "4th_10th_axis": {
+      "themes": "가정 vs 커리어",
+      "solar_in_4th": "가정에 새로운 시작",
+      "lunar_in_10th": "커리어 변화/완료",
+      "advice": "개인 생활과 공적 역할 균형"
+    },
+    "5th_11th_axis": {
+      "themes": "창조/로맨스 vs 친구/그룹",
+      "solar_in_5th": "새로운 로맨스/창조",
+      "lunar_in_11th": "우정 관계 변화",
+      "advice": "개인 기쁨과 집단 참여 균형"
+    },
+    "6th_12th_axis": {
+      "themes": "일상 봉사 vs 영적 도피",
+      "solar_in_6th": "새로운 건강/일 루틴",
+      "lunar_in_12th": "숨겨진 것 해방",
+      "advice": "봉사와 휴식의 균형"
+    }
+  },
+
+  "eclipse_conjunctions": {
+    "eclipse_conjunct_Sun": {
+      "meaning": "정체성의 운명적 변화",
+      "effect": "자아 재정의, 중요한 전환점",
+      "advice": "변화에 열려 있기"
+    },
+    "eclipse_conjunct_Moon": {
+      "meaning": "감정적/가정적 운명적 변화",
+      "effect": "감정 패턴 변화, 가정 변화",
+      "advice": "감정을 신뢰하기"
+    },
+    "eclipse_conjunct_Ascendant": {
+      "meaning": "삶의 방향 전환",
+      "effect": "새로운 정체성/이미지",
+      "advice": "새로운 시작 준비"
+    },
+    "eclipse_conjunct_MC": {
+      "meaning": "커리어 운명적 전환",
+      "effect": "공적 이미지/직업 변화",
+      "advice": "목표 재평가"
+    },
+    "eclipse_conjunct_NorthNode": {
+      "meaning": "강력한 운명적 이벤트",
+      "effect": "영혼의 성장 방향으로 푸시",
+      "advice": "운명을 신뢰하기"
+    }
+  },
+
+  "eclipse_timing": {
+    "activation": {
+      "immediate": "이클립스 전후 2주",
+      "delayed": "트랜짓 행성이 이클립스 지점 활성화 시",
+      "full_effect": "6개월 동안 전개"
+    },
+    "sensitive_points": {
+      "explanation": "출생 차트에서 이클립스와 5도 이내 접촉하는 지점",
+      "effect": "해당 영역에 운명적 변화"
+    }
+  }
+}

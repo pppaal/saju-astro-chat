@@ -1,0 +1,62 @@
+{
+  "concept": "mother",
+  "concept_kr": "어머니 원형",
+  "description": "The Mother archetype represents nurturing, protection, and the source of life",
+  "quotes": [
+    {
+      "id": "mother_001",
+      "en": "The mother archetype forms the foundation of the so-called mother complex.",
+      "kr": "어머니 원형은 소위 어머니 콤플렉스의 기반을 형성한다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "mother",
+        "complex"
+      ]
+    },
+    {
+      "id": "mother_002",
+      "en": "The qualities associated with the mother archetype are maternal solicitude, wisdom, spiritual exaltation, and any helpful instinct.",
+      "kr": "어머니 원형과 연관된 특성은 모성적 배려, 지혜, 영적 고양, 그리고 모든 도움을 주는 본능이다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "mother",
+        "nurturing"
+      ]
+    },
+    {
+      "id": "mother_003",
+      "en": "On the negative side the mother archetype may connote anything secret, hidden, dark; the abyss, anything that devours, seduces, and poisons.",
+      "kr": "부정적 측면에서 어머니 원형은 비밀스럽고, 숨겨져 있고, 어두운 모든 것; 심연, 삼키고, 유혹하고, 독살하는 모든 것을 의미할 수 있다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "mother",
+        "shadow"
+      ]
+    },
+    {
+      "id": "mother_004",
+      "en": "The mother is the first carrier of the anima-image.",
+      "kr": "어머니는 아니마 이미지의 첫 번째 담지자다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "mother",
+        "anima"
+      ]
+    },
+    {
+      "id": "mother_005",
+      "en": "All those influences do not come from the mother herself, but from the archetype projected upon her.",
+      "kr": "모든 영향들은 어머니 자신에게서 오는 것이 아니라, 그녀에게 투사된 원형에서 온다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "mother",
+        "projection"
+      ]
+    }
+  ]
+}

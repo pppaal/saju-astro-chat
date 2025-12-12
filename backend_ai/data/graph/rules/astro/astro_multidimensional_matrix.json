@@ -1,0 +1,374 @@
+{
+  "$schema": "astro_multidimensional_matrix_v2",
+  "$description": "점성술 다차원 해석 매트릭스 - 자동 생성",
+  "planet_archetypes": {
+    "sun": {
+      "archetype": "자아/영웅",
+      "jung": "Self, 영웅",
+      "body": "심장, 척추"
+    },
+    "moon": {
+      "archetype": "감정/어머니",
+      "jung": "아니마, 내면 아이",
+      "body": "위장, 유방"
+    },
+    "mercury": {
+      "archetype": "소통/트릭스터",
+      "jung": "트릭스터, 헤르메스",
+      "body": "신경계, 손"
+    },
+    "venus": {
+      "archetype": "사랑/아름다움",
+      "jung": "아니마, 아프로디테",
+      "body": "신장, 목"
+    },
+    "mars": {
+      "archetype": "행동/전사",
+      "jung": "영웅, 아레스",
+      "body": "근육, 혈액"
+    },
+    "jupiter": {
+      "archetype": "확장/현자",
+      "jung": "현자, 제우스",
+      "body": "간, 대퇴부"
+    },
+    "saturn": {
+      "archetype": "한계/아버지",
+      "jung": "노현자, 크로노스",
+      "body": "뼈, 관절"
+    },
+    "uranus": {
+      "archetype": "해방/혁명",
+      "jung": "프로메테우스",
+      "body": "신경계, 발목"
+    },
+    "neptune": {
+      "archetype": "꿈/영성",
+      "jung": "집단 무의식",
+      "body": "림프계, 발"
+    },
+    "pluto": {
+      "archetype": "변형/그림자",
+      "jung": "그림자, 하데스",
+      "body": "생식기"
+    },
+    "chiron": {
+      "archetype": "상처받은 치유자",
+      "jung": "상처받은 치유자",
+      "body": "만성 상처"
+    }
+  },
+  "sign_elements": {
+    "aries": "화",
+    "taurus": "토",
+    "gemini": "공기",
+    "cancer": "수",
+    "leo": "화",
+    "virgo": "토",
+    "libra": "공기",
+    "scorpio": "수",
+    "sagittarius": "화",
+    "capricorn": "토",
+    "aquarius": "공기",
+    "pisces": "수"
+  },
+  "sign_modalities": {
+    "cardinal": [
+      "aries",
+      "cancer",
+      "libra",
+      "capricorn"
+    ],
+    "fixed": [
+      "taurus",
+      "leo",
+      "scorpio",
+      "aquarius"
+    ],
+    "mutable": [
+      "gemini",
+      "virgo",
+      "sagittarius",
+      "pisces"
+    ]
+  },
+  "house_themes": {
+    "1": {
+      "theme": "자아/외모",
+      "jung": "페르소나",
+      "life_area": "정체성"
+    },
+    "2": {
+      "theme": "재물/가치",
+      "jung": "자기 가치",
+      "life_area": "자원"
+    },
+    "3": {
+      "theme": "소통/학습",
+      "jung": "마음의 표현",
+      "life_area": "커뮤니케이션"
+    },
+    "4": {
+      "theme": "가정/뿌리",
+      "jung": "어머니 콤플렉스",
+      "life_area": "가정"
+    },
+    "5": {
+      "theme": "창조/사랑",
+      "jung": "내면 아이",
+      "life_area": "자기표현"
+    },
+    "6": {
+      "theme": "건강/봉사",
+      "jung": "완벽주의, 신체화",
+      "life_area": "일상"
+    },
+    "7": {
+      "theme": "파트너십",
+      "jung": "아니마/아니무스 투사",
+      "life_area": "관계"
+    },
+    "8": {
+      "theme": "변형/공유자원",
+      "jung": "그림자, 죽음재생",
+      "life_area": "심층"
+    },
+    "9": {
+      "theme": "철학/여행",
+      "jung": "의미 추구",
+      "life_area": "확장"
+    },
+    "10": {
+      "theme": "경력/명성",
+      "jung": "아버지 콤플렉스",
+      "life_area": "사회적 역할"
+    },
+    "11": {
+      "theme": "친구/이상",
+      "jung": "집단 연결",
+      "life_area": "공동체"
+    },
+    "12": {
+      "theme": "무의식/영성",
+      "jung": "개인 무의식",
+      "life_area": "초월"
+    }
+  },
+  "aspect_dynamics": {
+    "conjunction": {
+      "energy": "융합/증폭",
+      "challenge": "구분 어려움",
+      "gift": "집중된 힘"
+    },
+    "opposition": {
+      "energy": "대립/투사",
+      "challenge": "분열",
+      "gift": "균형"
+    },
+    "square": {
+      "energy": "긴장/성장",
+      "challenge": "갈등",
+      "gift": "동기"
+    },
+    "trine": {
+      "energy": "조화/흐름",
+      "challenge": "당연시",
+      "gift": "재능"
+    },
+    "sextile": {
+      "energy": "기회/잠재력",
+      "challenge": "노력 필요",
+      "gift": "기회"
+    }
+  },
+  "transit_power_levels": {
+    "sun": {
+      "duration": "1일",
+      "impact": "low"
+    },
+    "moon": {
+      "duration": "2-3시간",
+      "impact": "very_low"
+    },
+    "mercury": {
+      "duration": "1-3주",
+      "impact": "low"
+    },
+    "venus": {
+      "duration": "1-4주",
+      "impact": "low"
+    },
+    "mars": {
+      "duration": "2-3개월",
+      "impact": "medium_low"
+    },
+    "jupiter": {
+      "duration": "1년",
+      "impact": "medium"
+    },
+    "saturn": {
+      "duration": "2-3년",
+      "impact": "high"
+    },
+    "uranus": {
+      "duration": "7-8년",
+      "impact": "very_high"
+    },
+    "neptune": {
+      "duration": "10-14년",
+      "impact": "very_high"
+    },
+    "pluto": {
+      "duration": "12-30년",
+      "impact": "transformative"
+    },
+    "chiron": {
+      "duration": "2-8년",
+      "impact": "high"
+    }
+  },
+  "life_cycle_triggers": {
+    "saturn_return_1": {
+      "age": "29-30",
+      "theme": "첫 번째 성인기, 진정한 책임"
+    },
+    "saturn_return_2": {
+      "age": "58-60",
+      "theme": "두 번째 지혜기, 인생 총결산"
+    },
+    "uranus_opposition": {
+      "age": "40-42",
+      "theme": "중년 위기, 억압된 자기 해방"
+    },
+    "chiron_return": {
+      "age": "50-51",
+      "theme": "상처가 선물로 변환"
+    },
+    "jupiter_return": {
+      "age": "12, 24, 36, 48...",
+      "theme": "확장과 기회의 주기"
+    },
+    "progressed_moon": {
+      "cycle": "27.5년",
+      "theme": "감정적 진화"
+    }
+  },
+  "question_analysis_priority": {
+    "career": {
+      "primary_houses": [
+        10,
+        6,
+        2
+      ],
+      "primary_planets": [
+        "saturn",
+        "sun",
+        "mars",
+        "jupiter"
+      ],
+      "key_aspects_to": [
+        "MC",
+        "sun",
+        "saturn"
+      ],
+      "transit_sensitivity": [
+        "saturn_10th",
+        "jupiter_10th",
+        "pluto_10th"
+      ]
+    },
+    "relationship": {
+      "primary_houses": [
+        7,
+        5,
+        8
+      ],
+      "primary_planets": [
+        "venus",
+        "mars",
+        "moon"
+      ],
+      "key_aspects_to": [
+        "venus",
+        "descendant",
+        "moon"
+      ],
+      "transit_sensitivity": [
+        "venus_7th",
+        "jupiter_7th",
+        "saturn_7th"
+      ]
+    },
+    "money": {
+      "primary_houses": [
+        2,
+        8,
+        10
+      ],
+      "primary_planets": [
+        "venus",
+        "jupiter",
+        "pluto"
+      ],
+      "key_aspects_to": [
+        "venus",
+        "jupiter",
+        "2nd_ruler"
+      ],
+      "transit_sensitivity": [
+        "jupiter_2nd",
+        "saturn_2nd",
+        "uranus_2nd"
+      ]
+    },
+    "health": {
+      "primary_houses": [
+        6,
+        1,
+        8,
+        12
+      ],
+      "primary_planets": [
+        "sun",
+        "moon",
+        "mars",
+        "saturn"
+      ],
+      "key_aspects_to": [
+        "ASC",
+        "sun",
+        "moon"
+      ],
+      "transit_sensitivity": [
+        "saturn_6th",
+        "pluto_1st",
+        "neptune_12th"
+      ]
+    },
+    "timing": {
+      "analysis": [
+        "transits",
+        "progressions",
+        "solar_arc",
+        "returns"
+      ],
+      "key_triggers": [
+        "new_moon",
+        "full_moon",
+        "eclipses",
+        "stations"
+      ]
+    }
+  },
+  "interpretation_algorithm": {
+    "step_1": "Big Three 확인: 태양/달/상승점",
+    "step_2": "질문 관련 하우스 지배성 확인",
+    "step_3": "해당 하우스 내 행성 분석",
+    "step_4": "주요 애스펙트 분석",
+    "step_5": "현재 트랜짓 영향 분석",
+    "step_6": "생애 주기 맥락 고려",
+    "step_7": "융 심리학적 원형 연결",
+    "step_8": "사주와의 교차 분석",
+    "step_9": "통합 스토리텔링 및 조언"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "concept": "active_imagination",
+  "concept_kr": "적극적 상상",
+  "description": "A meditation technique wherein the contents of one's unconscious are translated into images, narrative or personified",
+  "quotes": [
+    {
+      "id": "ai_001",
+      "en": "Active imagination is a method of introspection for observing the stream of interior images.",
+      "kr": "적극적 상상은 내면 이미지의 흐름을 관찰하기 위한 내성의 방법이다.",
+      "source": "CW 14",
+      "year": 1955,
+      "tags": ["active imagination", "introspection", "images"]
+    },
+    {
+      "id": "ai_002",
+      "en": "The art of letting things happen, action through non-action, letting go of oneself, became for me the key opening the door to the way.",
+      "kr": "일이 일어나도록 내버려두는 기술, 무위를 통한 행동, 자기를 놓아주는 것이 나에게 길로 통하는 문을 여는 열쇠가 되었다.",
+      "source": "Commentary on The Secret of the Golden Flower",
+      "year": 1929,
+      "tags": ["active imagination", "letting go", "way"]
+    },
+    {
+      "id": "ai_003",
+      "en": "When you concentrate on a mental picture, it begins to stir, the image becomes enriched by details, it moves and develops.",
+      "kr": "정신적 그림에 집중하면 그것이 움직이기 시작하고, 이미지는 세부 사항으로 풍부해지며, 움직이고 발전한다.",
+      "source": "CW 14",
+      "year": 1955,
+      "tags": ["active imagination", "concentration", "development"]
+    },
+    {
+      "id": "ai_004",
+      "en": "The technique of active imagination can be practised by anyone who has a certain amount of patience with himself.",
+      "kr": "적극적 상상의 기술은 자신에게 어느 정도의 인내심을 가진 사람이라면 누구나 실천할 수 있다.",
+      "source": "CW 14",
+      "year": 1955,
+      "tags": ["active imagination", "technique", "patience"]
+    },
+    {
+      "id": "ai_005",
+      "en": "The images of the unconscious place a great responsibility upon a man. Failure to understand them, or a shirking of ethical responsibility, deprives him of his wholeness.",
+      "kr": "무의식의 이미지는 사람에게 큰 책임을 지운다. 그것을 이해하지 못하거나 윤리적 책임을 회피하면 온전함을 잃게 된다.",
+      "source": "CW 11",
+      "year": 1958,
+      "tags": ["active imagination", "responsibility", "wholeness"]
+    },
+    {
+      "id": "ai_006",
+      "en": "To paint what we see before us is a different art from painting what we see within.",
+      "kr": "우리 앞에 있는 것을 그리는 것은 우리 내면에서 보는 것을 그리는 것과 다른 예술이다.",
+      "source": "CW 15",
+      "year": 1950,
+      "tags": ["active imagination", "art", "inner vision"]
+    }
+  ]
+}

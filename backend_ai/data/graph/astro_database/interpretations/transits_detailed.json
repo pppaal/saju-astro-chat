@@ -1,0 +1,1688 @@
+{
+  "meta": {
+    "type": "transits",
+    "count": 140
+  },
+  "interpretations": [
+    {
+      "id": "TR_Jupiter_conjunction_Sun",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Sun",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_Sun",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Sun",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_Sun",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Sun",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_Sun",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Sun",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Jupiter_conjunction_Moon",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Moon",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_Moon",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Moon",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_Moon",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Moon",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_Moon",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Moon",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Jupiter_conjunction_Mercury",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_Mercury",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_Mercury",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_Mercury",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Jupiter_conjunction_Venus",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Venus",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_Venus",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Venus",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_Venus",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Venus",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_Venus",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Venus",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Jupiter_conjunction_Mars",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mars",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_Mars",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mars",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_Mars",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mars",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_Mars",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "Mars",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Jupiter_conjunction_ASC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "ASC",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_ASC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "ASC",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_ASC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "ASC",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_ASC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "ASC",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Jupiter_conjunction_MC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "MC",
+      "aspect": "conjunction",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_square_MC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "MC",
+      "aspect": "square",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_opposition_MC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "MC",
+      "aspect": "opposition",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Jupiter_trine_MC",
+      "transit_planet": {
+        "en": "Jupiter",
+        "ko": "목성"
+      },
+      "natal_point": "MC",
+      "aspect": "trine",
+      "duration": "약 1년간 영향",
+      "theme": "확장, 기회, 성장, 행운 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_Sun",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Sun",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_Sun",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Sun",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_Sun",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Sun",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_Sun",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Sun",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_Moon",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Moon",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_Moon",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Moon",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_Moon",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Moon",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_Moon",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Moon",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_Mercury",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_Mercury",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_Mercury",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_Mercury",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_Venus",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Venus",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_Venus",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Venus",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_Venus",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Venus",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_Venus",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Venus",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_Mars",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mars",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_Mars",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mars",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_Mars",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mars",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_Mars",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "Mars",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_ASC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "ASC",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_ASC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "ASC",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_ASC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "ASC",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_ASC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "ASC",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Saturn_conjunction_MC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "MC",
+      "aspect": "conjunction",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_square_MC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "MC",
+      "aspect": "square",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_opposition_MC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "MC",
+      "aspect": "opposition",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Saturn_trine_MC",
+      "transit_planet": {
+        "en": "Saturn",
+        "ko": "토성"
+      },
+      "natal_point": "MC",
+      "aspect": "trine",
+      "duration": "약 2-3년간 영향",
+      "theme": "제한, 시험, 성숙, 책임 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_Sun",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_Sun",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_Sun",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_Sun",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_Moon",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_Moon",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_Moon",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_Moon",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_Mercury",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_Mercury",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_Mercury",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_Mercury",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_Venus",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_Venus",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_Venus",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_Venus",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_Mars",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_Mars",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_Mars",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_Mars",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_ASC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_ASC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_ASC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_ASC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Uranus_conjunction_MC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "conjunction",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_square_MC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "square",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_opposition_MC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "opposition",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Uranus_trine_MC",
+      "transit_planet": {
+        "en": "Uranus",
+        "ko": "천왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "trine",
+      "duration": "약 7년간 영향",
+      "theme": "변화, 해방, 돌발, 혁신 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_Sun",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_Sun",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_Sun",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_Sun",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_Moon",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_Moon",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_Moon",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_Moon",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_Mercury",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_Mercury",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_Mercury",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_Mercury",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_Venus",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_Venus",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_Venus",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_Venus",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_Mars",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_Mars",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_Mars",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_Mars",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_ASC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_ASC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_ASC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_ASC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Neptune_conjunction_MC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "conjunction",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_square_MC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "square",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_opposition_MC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "opposition",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Neptune_trine_MC",
+      "transit_planet": {
+        "en": "Neptune",
+        "ko": "해왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "trine",
+      "duration": "약 14년간 영향",
+      "theme": "환상, 영감, 혼란, 초월 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_Sun",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_Sun",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_Sun",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_Sun",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Sun",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_Moon",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_Moon",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_Moon",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_Moon",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Moon",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_Mercury",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_Mercury",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_Mercury",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_Mercury",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mercury",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_Venus",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_Venus",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_Venus",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_Venus",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Venus",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_Mars",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_Mars",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_Mars",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_Mars",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "Mars",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_ASC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_ASC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_ASC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_ASC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "ASC",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    },
+    {
+      "id": "TR_Pluto_conjunction_MC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "conjunction",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 강력한 새로운 시작",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_square_MC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "square",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 도전과 성장 압력",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_opposition_MC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "opposition",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 인식과 균형 필요",
+      "advice": "이 시기의 에너지를 의식적으로 활용하세요. 변화에 저항하지 말고 흐름에 맡기되, 중요한 결정은 신중하게 하세요."
+    },
+    {
+      "id": "TR_Pluto_trine_MC",
+      "transit_planet": {
+        "en": "Pluto",
+        "ko": "명왕성"
+      },
+      "natal_point": "MC",
+      "aspect": "trine",
+      "duration": "약 15-30년간 영향",
+      "theme": "변환, 권력, 재생, 심층 변화 - 자연스러운 흐름과 기회",
+      "advice": "이 시기의 순조로운 에너지를 적극적으로 활용하세요. 좋은 기회가 올 수 있습니다."
+    }
+  ]
+}

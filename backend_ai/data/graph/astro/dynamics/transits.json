@@ -1,0 +1,1436 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "dynamics/transits",
+  "$count": 175,
+  "$description": "운행 행성이 출생 차트 행성에 미치는 영향 해석",
+  "$note": "5개 외행성 × 7개 출생 포인트 × 5개 애스펙트 = 175 조합",
+
+  "Jupiter_transits": {
+    "Jupiter_to_Sun": {
+      "conjunction": {
+        "duration": "약 2주",
+        "cycle": "12년 주기",
+        "energy": "자신감, 확장, 행운의 정점",
+        "opportunities": "성장, 인정, 새로운 시작",
+        "challenges": "과신, 과도함",
+        "advice": "큰 그림을 보고 기회를 잡으세요"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "조화로운 성장 기회",
+        "opportunities": "자연스러운 확장, 지원",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "적극적으로 기회를 활용하세요"
+      },
+      "square": {
+        "duration": "약 2주",
+        "energy": "과도한 확장, 긴장감 있는 성장",
+        "opportunities": "도전을 통한 성장",
+        "challenges": "무리한 약속, 판단 오류",
+        "advice": "현실적인 목표를 설정하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "자연스러운 흐름과 행운",
+        "opportunities": "쉬운 성공, 확장",
+        "challenges": "기회를 당연시함",
+        "advice": "이 시기를 최대한 활용하세요"
+      },
+      "opposition": {
+        "duration": "약 2주",
+        "energy": "타인을 통한 기회",
+        "opportunities": "파트너십, 협력 확대",
+        "challenges": "과도한 약속, 균형 상실",
+        "advice": "타인의 관점에서 성장하세요"
+      }
+    },
+    "Jupiter_to_Moon": {
+      "conjunction": {
+        "duration": "약 2주",
+        "energy": "감정적 풍요, 가정의 확장",
+        "opportunities": "이사, 가족 성장, 정서적 치유",
+        "challenges": "감정적 과잉",
+        "advice": "가정과 감정 건강에 투자하세요"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "감정적 조화, 부드러운 성장",
+        "opportunities": "가정 개선, 정서적 안정",
+        "challenges": "안주하기 쉬움",
+        "advice": "감정적 성장을 추구하세요"
+      },
+      "square": {
+        "duration": "약 2주",
+        "energy": "감정적 과잉, 불안정",
+        "opportunities": "감정 패턴 인식",
+        "challenges": "과식, 과소비, 감정 기복",
+        "advice": "감정적 절제를 연습하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "정서적 풍요, 자연스러운 행복",
+        "opportunities": "가정의 행복, 감정 치유",
+        "challenges": "너무 편안함에 빠짐",
+        "advice": "이 행복을 나누세요"
+      },
+      "opposition": {
+        "duration": "약 2주",
+        "energy": "감정과 확장 사이 균형",
+        "opportunities": "관계를 통한 정서적 성장",
+        "challenges": "감정적 과민",
+        "advice": "타인의 필요도 고려하세요"
+      }
+    },
+    "Jupiter_to_Mercury": {
+      "conjunction": {
+        "duration": "약 2주",
+        "energy": "사고 확장, 학습, 소통",
+        "opportunities": "교육, 출판, 여행, 계약",
+        "challenges": "과대 약속, 산만함",
+        "advice": "새로운 아이디어를 탐구하세요"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "지적 기회, 부드러운 학습",
+        "opportunities": "학습, 소통 개선",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "새로운 것을 배우세요"
+      },
+      "square": {
+        "duration": "약 2주",
+        "energy": "과도한 정보, 판단 오류",
+        "opportunities": "사고방식 확장",
+        "challenges": "산만함, 과장",
+        "advice": "중요한 것에 집중하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "쉬운 학습, 소통 행운",
+        "opportunities": "계약, 교육, 글쓰기 성공",
+        "challenges": "깊이 없는 학습",
+        "advice": "지식을 공유하세요"
+      },
+      "opposition": {
+        "duration": "약 2주",
+        "energy": "타인의 아이디어에서 배움",
+        "opportunities": "다른 관점 수용",
+        "challenges": "의견 충돌",
+        "advice": "열린 마음으로 경청하세요"
+      }
+    },
+    "Jupiter_to_Venus": {
+      "conjunction": {
+        "duration": "약 2주",
+        "energy": "사랑, 돈, 아름다움의 확장",
+        "opportunities": "로맨스, 재정적 이득, 사회적 성공",
+        "challenges": "과소비, 과도한 쾌락",
+        "advice": "사랑과 아름다움을 즐기세요"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "조화로운 관계, 재정 기회",
+        "opportunities": "소셜 이벤트, 작은 재정 이득",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "사교 활동을 늘리세요"
+      },
+      "square": {
+        "duration": "약 2주",
+        "energy": "과도한 쾌락 추구",
+        "opportunities": "가치관 재평가",
+        "challenges": "과소비, 게으름, 방종",
+        "advice": "절제를 연습하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "사랑과 재정의 행운",
+        "opportunities": "로맨스, 예술적 성공, 재정 이득",
+        "challenges": "너무 쉬운 성공에 안주",
+        "advice": "이 행운을 최대한 활용하세요"
+      },
+      "opposition": {
+        "duration": "약 2주",
+        "energy": "관계에서 확장과 균형",
+        "opportunities": "파트너를 통한 재정적 기회",
+        "challenges": "과도한 의존, 과소비",
+        "advice": "관계에서 균형을 찾으세요"
+      }
+    },
+    "Jupiter_to_Mars": {
+      "conjunction": {
+        "duration": "약 2주",
+        "energy": "에너지와 용기의 확장",
+        "opportunities": "대담한 행동, 경쟁 승리, 시작",
+        "challenges": "무모함, 과도한 자신감",
+        "advice": "용기 있게 행동하되 지혜롭게"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "건설적 에너지, 기회",
+        "opportunities": "스포츠, 사업 시작",
+        "challenges": "에너지를 분산시킴",
+        "advice": "에너지를 집중하세요"
+      },
+      "square": {
+        "duration": "약 2주",
+        "energy": "과도한 에너지, 충동",
+        "opportunities": "큰 도전 극복",
+        "challenges": "무모함, 분노, 사고",
+        "advice": "신중하게 행동하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "자연스러운 성공, 에너지 흐름",
+        "opportunities": "경쟁 승리, 운동 성공",
+        "challenges": "너무 쉬움에 안주",
+        "advice": "대담하게 행동하세요"
+      },
+      "opposition": {
+        "duration": "약 2주",
+        "energy": "타인과의 경쟁/협력",
+        "opportunities": "파트너십을 통한 성공",
+        "challenges": "갈등, 과도한 경쟁",
+        "advice": "협력과 경쟁의 균형을 찾으세요"
+      }
+    },
+    "Jupiter_to_Saturn": {
+      "conjunction": {
+        "duration": "약 3주",
+        "cycle": "20년 주기",
+        "energy": "새로운 사회적 주기 시작",
+        "opportunities": "장기 목표 설정, 책임감 있는 확장",
+        "challenges": "확장과 제한 사이 균형",
+        "advice": "현실적인 장기 계획을 세우세요"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "안정적 성장 기회",
+        "opportunities": "사업 확장, 구조적 개선",
+        "challenges": "보수적 접근",
+        "advice": "꾸준한 성장을 추구하세요"
+      },
+      "square": {
+        "duration": "약 3주",
+        "energy": "확장 vs 제한의 갈등",
+        "opportunities": "구조 재평가",
+        "challenges": "좌절, 지연, 제한",
+        "advice": "인내하며 현실적으로 접근하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "안정적이고 지속 가능한 성장",
+        "opportunities": "장기적 성공, 인정",
+        "challenges": "너무 보수적",
+        "advice": "안정 속에서 확장하세요"
+      },
+      "opposition": {
+        "duration": "약 3주",
+        "energy": "성장과 책임의 균형점",
+        "opportunities": "성숙한 확장",
+        "challenges": "과도한 야망 vs 제한",
+        "advice": "균형 잡힌 성장을 선택하세요"
+      }
+    },
+    "Jupiter_to_ASC": {
+      "conjunction": {
+        "duration": "약 2주",
+        "energy": "새로운 시작, 자아 확장",
+        "opportunities": "이미지 개선, 새 프로젝트",
+        "challenges": "체중 증가, 과신",
+        "advice": "새로운 모험을 시작하세요"
+      },
+      "sextile": {
+        "duration": "약 2주",
+        "energy": "사회적 기회, 호감",
+        "opportunities": "네트워킹, 첫인상 개선",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "사교 활동을 늘리세요"
+      },
+      "square": {
+        "duration": "약 2주",
+        "energy": "과도한 자기표현",
+        "opportunities": "자기 인식 확장",
+        "challenges": "거만함, 과장",
+        "advice": "겸손함을 유지하세요"
+      },
+      "trine": {
+        "duration": "약 2주",
+        "energy": "자연스러운 매력, 행운",
+        "opportunities": "쉬운 시작, 좋은 인상",
+        "challenges": "안주",
+        "advice": "이 시기를 활용하세요"
+      },
+      "opposition": {
+        "duration": "약 2주",
+        "energy": "관계를 통한 자아 확장",
+        "opportunities": "파트너십, 협력",
+        "challenges": "타인에 대한 과도한 기대",
+        "advice": "타인을 통해 성장하세요"
+      }
+    }
+  },
+
+  "Saturn_transits": {
+    "Saturn_to_Sun": {
+      "conjunction": {
+        "duration": "약 2-3주 (접근, 정확, 분리)",
+        "cycle": "29.5년 주기",
+        "energy": "새로운 성숙의 주기, 책임의 정점",
+        "opportunities": "장기 성취, 권위 확립, 성숙",
+        "challenges": "제한, 책임 부담, 우울",
+        "advice": "진정한 자아를 구축하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "안정적 진전, 구조화 기회",
+        "opportunities": "커리어 발전, 인정",
+        "challenges": "추가 노력 필요",
+        "advice": "꾸준히 노력하세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "도전과 장애물",
+        "opportunities": "역경을 통한 성장",
+        "challenges": "좌절, 제한, 시험",
+        "advice": "인내하고 필요한 수정을 하세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "자연스러운 구조와 성취",
+        "opportunities": "안정적 진전, 인정",
+        "challenges": "안주",
+        "advice": "꾸준한 노력을 계속하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "관계에서 책임의 정점",
+        "opportunities": "관계 성숙, 파트너십 평가",
+        "challenges": "관계 시험, 분리",
+        "advice": "관계에서 균형을 찾으세요"
+      }
+    },
+    "Saturn_to_Moon": {
+      "conjunction": {
+        "duration": "약 2-3주",
+        "energy": "감정적 성숙, 가정 책임",
+        "opportunities": "정서적 안정, 가정 구축",
+        "challenges": "외로움, 우울, 감정 억압",
+        "advice": "감정적 성숙을 받아들이세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "정서적 안정화",
+        "opportunities": "가정 개선, 감정 정리",
+        "challenges": "노력 필요",
+        "advice": "감정적 기반을 다지세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "정서적 시험, 가정 문제",
+        "opportunities": "감정 패턴 인식",
+        "challenges": "우울, 고립감, 가정 갈등",
+        "advice": "자기 돌봄에 집중하세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "정서적 안정, 성숙",
+        "opportunities": "가정 안정, 감정 지혜",
+        "challenges": "보수적 경향",
+        "advice": "안정 속에서 성장하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "관계에서 정서적 책임",
+        "opportunities": "관계의 성숙",
+        "challenges": "정서적 거리감, 고립",
+        "advice": "감정적 균형을 찾으세요"
+      }
+    },
+    "Saturn_to_Mercury": {
+      "conjunction": {
+        "duration": "약 2-3주",
+        "energy": "사고와 소통의 구조화",
+        "opportunities": "진지한 학습, 장기 계획",
+        "challenges": "비관적 사고, 소통 어려움",
+        "advice": "중요한 결정과 학습에 집중하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "실용적 사고, 계획 기회",
+        "opportunities": "학습, 문서 작업",
+        "challenges": "추가 집중 필요",
+        "advice": "체계적으로 학습하세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "사고의 시험, 소통 장애",
+        "opportunities": "사고방식 재평가",
+        "challenges": "비관, 오해, 지연",
+        "advice": "명확하게 소통하세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "구조화된 사고, 실용적 지혜",
+        "opportunities": "장기 계획, 진지한 학습",
+        "challenges": "유연성 부족",
+        "advice": "지혜롭게 계획하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "타인과의 소통 시험",
+        "opportunities": "다른 관점 학습",
+        "challenges": "의견 충돌, 비판",
+        "advice": "경청하고 배우세요"
+      }
+    },
+    "Saturn_to_Venus": {
+      "conjunction": {
+        "duration": "약 2-3주",
+        "energy": "관계와 가치의 시험",
+        "opportunities": "진지한 관계, 재정 구조화",
+        "challenges": "외로움, 거절, 재정 제한",
+        "advice": "진정한 가치가 무엇인지 평가하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "관계 안정화, 재정 계획",
+        "opportunities": "헌신적 관계, 저축",
+        "challenges": "노력 필요",
+        "advice": "관계에 투자하세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "관계/재정 시험",
+        "opportunities": "가치관 재평가",
+        "challenges": "외로움, 거절, 재정 문제",
+        "advice": "진정한 사랑을 구분하세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "안정적 관계, 재정 성숙",
+        "opportunities": "장기 헌신, 현명한 투자",
+        "challenges": "보수적 접근",
+        "advice": "안정 속에서 사랑하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "관계에서 책임의 균형",
+        "opportunities": "파트너십 성숙",
+        "challenges": "관계 시험, 냉담함",
+        "advice": "균형 잡힌 관계를 추구하세요"
+      }
+    },
+    "Saturn_to_Mars": {
+      "conjunction": {
+        "duration": "약 2-3주",
+        "energy": "행동과 에너지의 제한",
+        "opportunities": "규율 있는 노력, 지구력",
+        "challenges": "좌절, 분노 억압, 장애물",
+        "advice": "인내심을 가지고 전략적으로 행동하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "규율 있는 행동 기회",
+        "opportunities": "체계적 추진, 인내",
+        "challenges": "느린 진전",
+        "advice": "꾸준히 노력하세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "좌절과 장애물",
+        "opportunities": "인내력 개발",
+        "challenges": "분노, 좌절, 에너지 고갈",
+        "advice": "분노를 건설적으로 표현하세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "규율 있고 효과적인 행동",
+        "opportunities": "지속적 성취, 인내의 결실",
+        "challenges": "느린 속도",
+        "advice": "장기적 관점에서 행동하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "타인과의 갈등/책임",
+        "opportunities": "협력의 교훈",
+        "challenges": "대립, 제한",
+        "advice": "갈등을 성숙하게 해결하세요"
+      }
+    },
+    "Saturn_to_Jupiter": {
+      "conjunction": {
+        "duration": "약 2-3주",
+        "energy": "현실적 확장, 구조화된 성장",
+        "opportunities": "장기 사업, 현실적 목표",
+        "challenges": "확장 제한, 비관",
+        "advice": "현실적인 야망을 추구하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "안정적 성장 기회",
+        "opportunities": "사업 발전, 학습",
+        "challenges": "보수적 접근",
+        "advice": "꾸준히 확장하세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "성장 vs 제한의 갈등",
+        "opportunities": "현실적 목표 재설정",
+        "challenges": "좌절, 지연, 비관",
+        "advice": "현실적으로 접근하세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "지속 가능한 성장",
+        "opportunities": "장기적 성공, 안정적 확장",
+        "challenges": "안주",
+        "advice": "현명하게 성장하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "확장과 제한의 균형점",
+        "opportunities": "균형 잡힌 성장",
+        "challenges": "내적 갈등",
+        "advice": "두 가지를 모두 존중하세요"
+      }
+    },
+    "Saturn_to_ASC": {
+      "conjunction": {
+        "duration": "약 2-3주",
+        "energy": "새로운 성숙의 시작, 책임",
+        "opportunities": "이미지 재구축, 성숙한 시작",
+        "challenges": "무거움, 제한, 우울",
+        "advice": "성숙한 새 출발을 하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3주",
+        "energy": "안정적 자기표현",
+        "opportunities": "이미지 개선, 인정",
+        "challenges": "노력 필요",
+        "advice": "신뢰를 쌓으세요"
+      },
+      "square": {
+        "duration": "약 2-3주",
+        "energy": "자아 표현의 시험",
+        "opportunities": "자기 인식 성장",
+        "challenges": "자신감 저하, 제한",
+        "advice": "인내하며 자신을 돌보세요"
+      },
+      "trine": {
+        "duration": "약 2-3주",
+        "energy": "자연스러운 권위, 성숙",
+        "opportunities": "인정, 안정적 진전",
+        "challenges": "보수적 경향",
+        "advice": "지혜롭게 자신을 표현하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3주",
+        "energy": "관계에서 자아의 시험",
+        "opportunities": "파트너십 성숙",
+        "challenges": "관계 시험, 책임",
+        "advice": "관계에서 균형을 찾으세요"
+      }
+    }
+  },
+
+  "Uranus_transits": {
+    "Uranus_to_Sun": {
+      "conjunction": {
+        "duration": "약 1년 (정확한 시기 수개월)",
+        "cycle": "84년 주기 (한 번)",
+        "energy": "급진적 정체성 변화",
+        "opportunities": "해방, 각성, 새로운 시작",
+        "challenges": "불안정, 예측 불가, 충격",
+        "advice": "진정한 자유를 향해 변화하세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "흥미로운 변화 기회",
+        "opportunities": "새로운 방향, 혁신",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "새로움에 열려 있으세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "자유와 안정 사이 긴장",
+        "opportunities": "돌파구, 혁신",
+        "challenges": "반란, 불안정, 갑작스러운 변화",
+        "advice": "건설적인 변화를 선택하세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "자연스러운 변화와 해방",
+        "opportunities": "쉬운 혁신, 자유",
+        "challenges": "변화를 충분히 활용하지 않음",
+        "advice": "자유롭게 혁신하세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "cycle": "42세경 - 중년의 각성",
+        "energy": "관계를 통한 해방",
+        "opportunities": "파트너십 혁신, 새로운 관점",
+        "challenges": "관계 불안정, 분리",
+        "advice": "관계에서 자유와 연결의 균형"
+      }
+    },
+    "Uranus_to_Moon": {
+      "conjunction": {
+        "duration": "약 1년",
+        "energy": "감정적 각성, 가정 변화",
+        "opportunities": "정서적 해방, 새로운 생활 방식",
+        "challenges": "불안정, 갑작스러운 이동",
+        "advice": "감정적 자유를 수용하세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "감정적 새로움에 대한 기회",
+        "opportunities": "가정 혁신, 새로운 감정 표현",
+        "challenges": "변화에 저항",
+        "advice": "새로운 감정 패턴을 탐색하세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "감정적 불안정, 가정 혼란",
+        "opportunities": "정서적 각성",
+        "challenges": "불안, 갑작스러운 변화, 이사",
+        "advice": "변화 속에서 안정을 찾으세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "감정적 자유, 직관 각성",
+        "opportunities": "새로운 생활 방식",
+        "challenges": "변화를 충분히 수용하지 않음",
+        "advice": "직관을 따르세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "energy": "관계에서 감정적 변화",
+        "opportunities": "관계 혁신",
+        "challenges": "감정적 혼란, 분리",
+        "advice": "감정과 자유의 균형을 찾으세요"
+      }
+    },
+    "Uranus_to_Mercury": {
+      "conjunction": {
+        "duration": "약 1년",
+        "energy": "사고의 혁명, 새로운 아이디어",
+        "opportunities": "발명, 기술, 혁신적 소통",
+        "challenges": "산만함, 불안정한 사고",
+        "advice": "새로운 아이디어를 수용하세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "혁신적 사고 기회",
+        "opportunities": "새로운 학습, 기술 활용",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "새로운 것을 배우세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "사고 패턴 혼란",
+        "opportunities": "사고방식 혁신",
+        "challenges": "불안, 산만함, 의사소통 문제",
+        "advice": "새로운 관점에 열려 있으세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "자연스러운 혁신적 사고",
+        "opportunities": "쉬운 학습, 기술 도입",
+        "challenges": "깊이 부족",
+        "advice": "창의적으로 생각하세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "energy": "타인의 혁신적 아이디어",
+        "opportunities": "다른 관점에서 배움",
+        "challenges": "의견 충돌, 오해",
+        "advice": "다양한 관점을 수용하세요"
+      }
+    },
+    "Uranus_to_Venus": {
+      "conjunction": {
+        "duration": "약 1년",
+        "energy": "사랑과 가치관의 혁명",
+        "opportunities": "새로운 관계, 창의적 돌파",
+        "challenges": "관계 불안정, 갑작스러운 끌림/분리",
+        "advice": "사랑에서 진정한 자유를 찾으세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "관계/재정 혁신 기회",
+        "opportunities": "새로운 만남, 수입원",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "새로운 관계에 열려 있으세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "관계 불안정, 가치관 혼란",
+        "opportunities": "진정한 가치 발견",
+        "challenges": "갑작스러운 이별/만남, 재정 불안",
+        "advice": "진정으로 원하는 것을 탐색하세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "자유롭고 흥미로운 관계",
+        "opportunities": "새로운 로맨스, 창의적 성공",
+        "challenges": "안정 부족",
+        "advice": "자유로운 사랑을 즐기세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "energy": "관계에서 자유와 연결의 긴장",
+        "opportunities": "관계 혁신",
+        "challenges": "갑작스러운 분리, 불안정",
+        "advice": "관계에서 새로운 균형을 찾으세요"
+      }
+    },
+    "Uranus_to_Mars": {
+      "conjunction": {
+        "duration": "약 1년",
+        "energy": "에너지와 행동의 각성",
+        "opportunities": "혁신적 행동, 새로운 시작",
+        "challenges": "충동적 행동, 사고 위험",
+        "advice": "신중하면서도 대담하게 행동하세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "혁신적 행동 기회",
+        "opportunities": "새로운 활동, 기술 도입",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "새로운 방식으로 행동하세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "충동성, 사고 위험",
+        "opportunities": "돌파구 가능",
+        "challenges": "충동, 분노, 사고",
+        "advice": "주의하면서 변화하세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "흥미롭고 혁신적인 행동",
+        "opportunities": "성공적 혁신, 새 시작",
+        "challenges": "안정 부족",
+        "advice": "대담하게 혁신하세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "energy": "타인과의 갈등/혁신",
+        "opportunities": "협력적 혁신",
+        "challenges": "갈등, 예측 불가",
+        "advice": "협력적으로 변화하세요"
+      }
+    },
+    "Uranus_to_Saturn": {
+      "conjunction": {
+        "duration": "약 1년",
+        "energy": "구조와 혁신의 충돌",
+        "opportunities": "시스템 혁신, 구조적 변화",
+        "challenges": "긴장, 불안정, 붕괴",
+        "advice": "구조를 혁신하세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "구조적 혁신 기회",
+        "opportunities": "시스템 개선",
+        "challenges": "변화에 저항",
+        "advice": "점진적으로 혁신하세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "자유 vs 제한의 긴장",
+        "opportunities": "구조 재평가",
+        "challenges": "갈등, 불안정, 긴장",
+        "advice": "균형을 찾으세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "안정적 혁신",
+        "opportunities": "구조적 개선",
+        "challenges": "변화가 느림",
+        "advice": "지속 가능하게 혁신하세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "energy": "자유와 책임의 균형점",
+        "opportunities": "균형 잡힌 변화",
+        "challenges": "내적 갈등",
+        "advice": "두 가지를 통합하세요"
+      }
+    },
+    "Uranus_to_ASC": {
+      "conjunction": {
+        "duration": "약 1년",
+        "energy": "정체성 혁명, 새로운 시작",
+        "opportunities": "완전한 변신, 해방",
+        "challenges": "불안정, 예측 불가",
+        "advice": "진정한 자신을 표현하세요"
+      },
+      "sextile": {
+        "duration": "약 1년",
+        "energy": "흥미로운 자기표현",
+        "opportunities": "이미지 혁신",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "새롭게 자신을 표현하세요"
+      },
+      "square": {
+        "duration": "약 1년",
+        "energy": "정체성 혼란",
+        "opportunities": "자기 발견",
+        "challenges": "불안정, 불안",
+        "advice": "변화 속에서 자신을 찾으세요"
+      },
+      "trine": {
+        "duration": "약 1년",
+        "energy": "자연스러운 해방, 독특함",
+        "opportunities": "쉬운 변화, 혁신",
+        "challenges": "안정 부족",
+        "advice": "자유롭게 자신을 표현하세요"
+      },
+      "opposition": {
+        "duration": "약 1년",
+        "energy": "관계를 통한 정체성 각성",
+        "opportunities": "파트너십 혁신",
+        "challenges": "관계 불안정",
+        "advice": "관계에서 자유를 찾으세요"
+      }
+    }
+  },
+
+  "Neptune_transits": {
+    "Neptune_to_Sun": {
+      "conjunction": {
+        "duration": "약 2년",
+        "cycle": "165년 주기 (대부분 한 번)",
+        "energy": "자아의 용해와 영적 각성",
+        "opportunities": "영성, 창의성, 연민 발달",
+        "challenges": "혼란, 자기 기만, 정체성 상실",
+        "advice": "영적 실천과 현실 접지의 균형"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "영적/창의적 기회",
+        "opportunities": "직관 발달, 예술적 영감",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "영적 성장을 추구하세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "이상과 현실 사이 갈등",
+        "opportunities": "영적 성장, 예술적 영감",
+        "challenges": "자기 기만, 실망, 혼란",
+        "advice": "환상과 현실을 구분하세요"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 영적 흐름",
+        "opportunities": "직관, 창의성, 연민",
+        "challenges": "현실과 동떨어짐",
+        "advice": "영적 재능을 활용하세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "타인에게 이상 투사",
+        "opportunities": "관계에서 영성 발견",
+        "challenges": "파트너 이상화, 실망",
+        "advice": "현실적인 관계 기대를 가지세요"
+      }
+    },
+    "Neptune_to_Moon": {
+      "conjunction": {
+        "duration": "약 2년",
+        "energy": "감정적 경계 용해",
+        "opportunities": "직관 발달, 영적 감수성",
+        "challenges": "감정적 혼란, 우울, 의존",
+        "advice": "건강한 경계를 유지하세요"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "감정적 직관 기회",
+        "opportunities": "영적 감수성, 창의성",
+        "challenges": "기회를 놓칠 수 있음",
+        "advice": "직관을 발달시키세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "감정적 혼란, 경계 문제",
+        "opportunities": "감정 패턴 인식",
+        "challenges": "우울, 의존, 자기 기만",
+        "advice": "현실에 발을 딛으세요"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 감정적 직관",
+        "opportunities": "영적 감수성, 예술적 재능",
+        "challenges": "현실과 동떨어짐",
+        "advice": "직관을 신뢰하세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "관계에서 감정 투사",
+        "opportunities": "감정적 성장",
+        "challenges": "이상화, 실망, 의존",
+        "advice": "관계에서 현실을 보세요"
+      }
+    },
+    "Neptune_to_Mercury": {
+      "conjunction": {
+        "duration": "약 2년",
+        "energy": "사고의 용해, 직관적 소통",
+        "opportunities": "시적 재능, 영적 통찰",
+        "challenges": "혼란, 망각, 거짓말",
+        "advice": "직관과 논리의 균형을 찾으세요"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "직관적 사고 기회",
+        "opportunities": "창의적 글쓰기, 영적 학습",
+        "challenges": "집중력 부족",
+        "advice": "창의적으로 소통하세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "사고 혼란, 소통 문제",
+        "opportunities": "직관 발달",
+        "challenges": "착각, 거짓말, 오해",
+        "advice": "중요한 결정은 신중하게"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 직관적 사고",
+        "opportunities": "시적 재능, 영적 소통",
+        "challenges": "현실적 사고 부족",
+        "advice": "창의성을 발휘하세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "타인의 아이디어에 혼란",
+        "opportunities": "다른 관점 수용",
+        "challenges": "오해, 기만",
+        "advice": "명확하게 소통하세요"
+      }
+    },
+    "Neptune_to_Venus": {
+      "conjunction": {
+        "duration": "약 2년",
+        "energy": "사랑의 이상화, 예술적 영감",
+        "opportunities": "영혼의 사랑, 창의적 돌파",
+        "challenges": "비현실적 사랑, 실망",
+        "advice": "사랑의 영적 차원을 탐구하세요"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "로맨틱/예술적 기회",
+        "opportunities": "영적 사랑, 창의성",
+        "challenges": "비현실성",
+        "advice": "예술적 재능을 개발하세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "사랑에서 환상과 실망",
+        "opportunities": "진정한 가치 발견",
+        "challenges": "이상화, 배신, 손실",
+        "advice": "현실적인 기대를 가지세요"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 로맨틱/예술적 흐름",
+        "opportunities": "영적 사랑, 예술적 성공",
+        "challenges": "현실과 동떨어짐",
+        "advice": "아름다움을 창조하세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "관계에서 이상화",
+        "opportunities": "영적 관계 학습",
+        "challenges": "실망, 배신감",
+        "advice": "파트너를 있는 그대로 보세요"
+      }
+    },
+    "Neptune_to_Mars": {
+      "conjunction": {
+        "duration": "약 2년",
+        "energy": "행동력 약화, 영적 행동",
+        "opportunities": "영적/예술적 추구",
+        "challenges": "무기력, 방향 상실, 중독",
+        "advice": "영적 목표를 위해 행동하세요"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "직관적 행동 기회",
+        "opportunities": "창의적 활동, 봉사",
+        "challenges": "에너지 분산",
+        "advice": "영감을 받아 행동하세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "행동력 혼란",
+        "opportunities": "영적 전사 발달",
+        "challenges": "무기력, 속임, 중독",
+        "advice": "명확한 목표를 유지하세요"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 영적 행동",
+        "opportunities": "예술적/영적 성취",
+        "challenges": "현실적 성취 부족",
+        "advice": "직관을 따라 행동하세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "타인에게 행동력 투사",
+        "opportunities": "협력적 영적 행동",
+        "challenges": "속임, 피해자 의식",
+        "advice": "경계를 유지하세요"
+      }
+    },
+    "Neptune_to_Saturn": {
+      "conjunction": {
+        "duration": "약 2년",
+        "energy": "구조의 용해, 영적 책임",
+        "opportunities": "영적 구조 구축",
+        "challenges": "혼란, 두려움, 붕괴",
+        "advice": "영적 토대를 세우세요"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "현실과 이상의 통합 기회",
+        "opportunities": "실용적 영성",
+        "challenges": "균형 찾기 어려움",
+        "advice": "이상을 현실로 만드세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "이상 vs 현실의 갈등",
+        "opportunities": "두려움 직면",
+        "challenges": "불안, 두려움, 혼란",
+        "advice": "현실에 발을 딛으세요"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 영적 구조",
+        "opportunities": "이상의 구체화",
+        "challenges": "현실적 노력 부족",
+        "advice": "꿈을 현실로 만드세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "책임과 이상의 균형점",
+        "opportunities": "균형 잡힌 영성",
+        "challenges": "갈등, 혼란",
+        "advice": "두 가지를 통합하세요"
+      }
+    },
+    "Neptune_to_ASC": {
+      "conjunction": {
+        "duration": "약 2년",
+        "energy": "정체성 용해, 영적 각성",
+        "opportunities": "영적 변신, 연민",
+        "challenges": "정체성 혼란, 자기 상실",
+        "advice": "영적 정체성을 발견하세요"
+      },
+      "sextile": {
+        "duration": "약 2년",
+        "energy": "영적 이미지 기회",
+        "opportunities": "매력, 직관",
+        "challenges": "방향 부족",
+        "advice": "영적 자아를 표현하세요"
+      },
+      "square": {
+        "duration": "약 2년",
+        "energy": "정체성 혼란",
+        "opportunities": "자기 발견",
+        "challenges": "혼란, 속임, 자기 기만",
+        "advice": "현실에 발을 딛으세요"
+      },
+      "trine": {
+        "duration": "약 2년",
+        "energy": "자연스러운 영적 매력",
+        "opportunities": "직관, 연민",
+        "challenges": "경계 부족",
+        "advice": "영적 재능을 나누세요"
+      },
+      "opposition": {
+        "duration": "약 2년",
+        "energy": "관계에서 이상화/혼란",
+        "opportunities": "영적 관계",
+        "challenges": "속임, 실망",
+        "advice": "관계에서 현실을 보세요"
+      }
+    }
+  },
+
+  "Pluto_transits": {
+    "Pluto_to_Sun": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "cycle": "248년 주기 (대부분 경험하지 않음)",
+        "energy": "완전한 자아 변형",
+        "opportunities": "권력 발견, 재탄생, 깊은 변화",
+        "challenges": "권력 투쟁, 집착, 파괴",
+        "advice": "죽고 다시 태어나는 과정을 신뢰하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "변형 기회, 권력 발견",
+        "opportunities": "심층적 변화, 자원 발견",
+        "challenges": "변화에 저항",
+        "advice": "깊은 변화를 환영하세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "권력과 자아의 긴장",
+        "opportunities": "위기를 통한 변형",
+        "challenges": "권력 투쟁, 강박, 통제",
+        "advice": "통제를 내려놓고 변형을 허용하세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 변형, 권력",
+        "opportunities": "쉬운 변형, 자원 접근",
+        "challenges": "변화를 충분히 활용하지 않음",
+        "advice": "깊은 변화를 수용하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "관계에서 권력 역학",
+        "opportunities": "관계의 깊은 변형",
+        "challenges": "권력 투쟁, 조종",
+        "advice": "관계에서 건강한 권력 균형을 찾으세요"
+      }
+    },
+    "Pluto_to_Moon": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "energy": "감정적 정화, 가정 변형",
+        "opportunities": "깊은 치유, 심리적 통찰",
+        "challenges": "감정적 위기, 집착",
+        "advice": "어두운 감정을 대면하고 치유하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "감정적 변형 기회",
+        "opportunities": "심리적 통찰, 치유",
+        "challenges": "변화에 저항",
+        "advice": "감정적 깊이를 탐구하세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "감정적 위기, 가정 변형",
+        "opportunities": "심층적 치유",
+        "challenges": "집착, 조종, 위기",
+        "advice": "어두운 감정을 직면하세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 감정적 변형",
+        "opportunities": "깊은 치유, 직관",
+        "challenges": "변화를 충분히 활용하지 않음",
+        "advice": "감정적 지혜를 발달시키세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "관계에서 감정적 권력 역학",
+        "opportunities": "관계 심화",
+        "challenges": "조종, 집착",
+        "advice": "건강한 감정적 경계를 유지하세요"
+      }
+    },
+    "Pluto_to_Mercury": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "energy": "사고의 변형, 심층적 통찰",
+        "opportunities": "심리학, 연구, 진실 발견",
+        "challenges": "강박적 사고, 비밀",
+        "advice": "진실을 탐구하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "심층적 사고 기회",
+        "opportunities": "연구, 조사, 통찰",
+        "challenges": "집중력 부족",
+        "advice": "깊이 파고드세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "사고 패턴 위기",
+        "opportunities": "사고방식 변형",
+        "challenges": "강박, 비밀, 조종",
+        "advice": "건강한 의사소통을 유지하세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 심층적 사고",
+        "opportunities": "연구, 통찰, 설득력",
+        "challenges": "조종 경향",
+        "advice": "지혜롭게 영향력을 사용하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "타인의 심층적 영향",
+        "opportunities": "관점 변형",
+        "challenges": "조종, 권력 투쟁",
+        "advice": "건강한 소통을 유지하세요"
+      }
+    },
+    "Pluto_to_Venus": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "energy": "사랑과 가치관의 변형",
+        "opportunities": "깊은 사랑, 완전한 변형",
+        "challenges": "집착, 질투, 관계 위기",
+        "advice": "사랑에서 깊은 변형을 허용하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "관계/재정 변형 기회",
+        "opportunities": "깊은 연결, 자원 발견",
+        "challenges": "변화에 저항",
+        "advice": "관계를 심화시키세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "관계/재정 위기",
+        "opportunities": "진정한 가치 발견",
+        "challenges": "집착, 질투, 손실",
+        "advice": "집착을 내려놓으세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 관계 변형",
+        "opportunities": "깊은 사랑, 재정 성장",
+        "challenges": "변화를 충분히 활용하지 않음",
+        "advice": "깊이 사랑하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "관계에서 권력 역학",
+        "opportunities": "관계 변형",
+        "challenges": "조종, 질투",
+        "advice": "건강한 관계 역학을 만드세요"
+      }
+    },
+    "Pluto_to_Mars": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "energy": "의지와 행동의 변형",
+        "opportunities": "강력한 성취, 재탄생",
+        "challenges": "분노, 권력 남용, 폭력",
+        "advice": "파괴적 에너지를 건설적으로 변형하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "강력한 행동 기회",
+        "opportunities": "변형적 성취, 권력",
+        "challenges": "에너지 집중 필요",
+        "advice": "강력하게 행동하세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "권력과 분노의 위기",
+        "opportunities": "의지력 변형",
+        "challenges": "폭력, 분노, 권력 투쟁",
+        "advice": "분노를 건설적으로 표현하세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 권력과 의지",
+        "opportunities": "강력한 성취",
+        "challenges": "권력 남용 경향",
+        "advice": "지혜롭게 권력을 사용하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "타인과의 권력 투쟁",
+        "opportunities": "협력적 권력",
+        "challenges": "갈등, 폭력",
+        "advice": "건강한 경쟁을 유지하세요"
+      }
+    },
+    "Pluto_to_Saturn": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "energy": "구조의 완전한 변형",
+        "opportunities": "시스템 재구축",
+        "challenges": "붕괴, 두려움, 권위 문제",
+        "advice": "오래된 구조를 변형하세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "구조적 변형 기회",
+        "opportunities": "시스템 개선",
+        "challenges": "변화에 저항",
+        "advice": "점진적으로 변형하세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "권위와 구조의 위기",
+        "opportunities": "시스템 재평가",
+        "challenges": "권위 충돌, 붕괴",
+        "advice": "필요한 변화를 받아들이세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 구조 변형",
+        "opportunities": "지속 가능한 변화",
+        "challenges": "변화가 느림",
+        "advice": "장기적으로 변형하세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "권위와 권력의 균형점",
+        "opportunities": "균형 잡힌 변형",
+        "challenges": "갈등, 권력 투쟁",
+        "advice": "균형을 찾으세요"
+      }
+    },
+    "Pluto_to_ASC": {
+      "conjunction": {
+        "duration": "약 2-3년",
+        "energy": "완전한 정체성 변형",
+        "opportunities": "재탄생, 권력 발견",
+        "challenges": "위기, 강박, 권력 투쟁",
+        "advice": "완전히 변형되세요"
+      },
+      "sextile": {
+        "duration": "약 2-3년",
+        "energy": "정체성 변형 기회",
+        "opportunities": "개인적 권력 발견",
+        "challenges": "변화에 저항",
+        "advice": "더 강한 자아를 발견하세요"
+      },
+      "square": {
+        "duration": "약 2-3년",
+        "energy": "정체성 위기",
+        "opportunities": "깊은 자기 발견",
+        "challenges": "강박, 권력 투쟁",
+        "advice": "변형을 수용하세요"
+      },
+      "trine": {
+        "duration": "약 2-3년",
+        "energy": "자연스러운 자아 변형",
+        "opportunities": "쉬운 권력 접근",
+        "challenges": "변화를 충분히 활용하지 않음",
+        "advice": "개인적 권력을 발달시키세요"
+      },
+      "opposition": {
+        "duration": "약 2-3년",
+        "energy": "관계를 통한 변형",
+        "opportunities": "관계 심화",
+        "challenges": "권력 투쟁, 조종",
+        "advice": "관계에서 건강한 권력 균형을 찾으세요"
+      }
+    }
+  },
+
+  "lunar_transits": {
+    "New_Moon": {
+      "conjunction_natal_Sun": {
+        "duration": "1일",
+        "cycle": "매년 생일 무렵",
+        "energy": "개인적 새로운 시작",
+        "advice": "새로운 의도를 설정하세요"
+      },
+      "conjunction_natal_Moon": {
+        "duration": "1일",
+        "cycle": "매달",
+        "energy": "감정적 새로운 시작",
+        "advice": "감정적 의도를 설정하세요"
+      },
+      "conjunction_natal_ASC": {
+        "duration": "1일",
+        "energy": "이미지와 시작의 새로운 주기",
+        "advice": "새로운 자기표현을 시작하세요"
+      }
+    },
+    "Full_Moon": {
+      "conjunction_natal_Sun": {
+        "duration": "1일",
+        "energy": "자아의 조명, 완성",
+        "advice": "성취를 축하하고 균형을 찾으세요"
+      },
+      "opposition_natal_Sun": {
+        "duration": "1일",
+        "energy": "관계에서 자아 발견",
+        "advice": "타인의 관점에서 자신을 보세요"
+      },
+      "conjunction_natal_Moon": {
+        "duration": "1일",
+        "energy": "감정적 절정, 표현",
+        "advice": "감정을 표현하세요"
+      }
+    },
+    "Lunar_Eclipse": {
+      "general": {
+        "duration": "2주 영향, 6개월 주제",
+        "energy": "감정적 종결, 운명적 사건",
+        "advice": "내려놓아야 할 것에 주목하세요"
+      }
+    },
+    "Solar_Eclipse": {
+      "general": {
+        "duration": "2주 영향, 6개월 주제",
+        "energy": "새로운 시작, 운명적 방향",
+        "advice": "새로운 가능성에 열려 있으세요"
+      }
+    }
+  },
+
+  "Saturn_Return": {
+    "first_return": {
+      "age": "28-30세",
+      "duration": "약 2-3년",
+      "theme": "성인기 진입, 책임 수용",
+      "opportunities": "성숙, 권위 확립, 장기 목표",
+      "challenges": "현실 직면, 구조 재평가",
+      "advice": "진정한 성인이 되세요. 아동기를 졸업하세요."
+    },
+    "second_return": {
+      "age": "57-59세",
+      "duration": "약 2-3년",
+      "theme": "지혜의 장로, 유산",
+      "opportunities": "지혜 공유, 멘토십, 성찰",
+      "challenges": "건강, 은퇴, 목적 재정의",
+      "advice": "지혜를 공유하고 의미 있는 유산을 남기세요."
+    },
+    "third_return": {
+      "age": "86-88세",
+      "duration": "약 2-3년",
+      "theme": "삶의 완성, 영적 성숙",
+      "opportunities": "깊은 지혜, 평화",
+      "challenges": "건강, 삶의 정리",
+      "advice": "삶의 완성을 경험하세요."
+    }
+  },
+
+  "Jupiter_Return": {
+    "cycle": {
+      "age": "12, 24, 36, 48, 60, 72, 84세",
+      "duration": "약 1년",
+      "theme": "새로운 성장과 확장의 주기",
+      "opportunities": "행운, 확장, 새로운 기회",
+      "advice": "비전을 확장하고 새로운 모험을 시작하세요."
+    }
+  },
+
+  "Chiron_Return": {
+    "return": {
+      "age": "49-51세",
+      "duration": "약 1-2년",
+      "theme": "상처 입은 치유자로 성숙",
+      "opportunities": "치유 완성, 지혜 공유",
+      "challenges": "과거 상처 재등장",
+      "advice": "상처가 지혜가 되게 하세요."
+    }
+  },
+
+  "Uranus_Opposition": {
+    "cycle": {
+      "age": "40-44세",
+      "duration": "약 1-2년",
+      "theme": "중년의 각성, 자유 추구",
+      "opportunities": "재발견, 해방, 새로운 방향",
+      "challenges": "불안정, 관계 위기, 정체성 혼란",
+      "advice": "진정한 자유를 향해 변화하세요."
+    }
+  }
+}

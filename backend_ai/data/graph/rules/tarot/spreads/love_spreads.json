@@ -1,0 +1,222 @@
+{
+  "_meta": {
+    "theme": "love",
+    "title": "연애 타로 스프레드",
+    "description": "연애/결혼/관계에 관한 다양한 질문 유형별 스프레드"
+  },
+  "sub_topics": {
+    "secret_admirer": {
+      "id": "secret_admirer",
+      "title": "나를 좋아하는 사람",
+      "korean": "나를 좋아하는 인연",
+      "description": "현재 나를 좋아하는 사람이 있는지, 그 사람의 마음과 다가올 인연",
+      "card_count": 12,
+      "spread_name": "Secret Admirer Spread",
+      "positions": [
+        {"position": 1, "name": "현재 에너지", "meaning": "그 사람이 현재 나에게 보내는 에너지", "prompt_hint": "이 사람이 당신을 향해 보내는 현재의 에너지와 관심"},
+        {"position": 2, "name": "첫인상", "meaning": "그 사람이 나를 처음 봤을 때 느낀 감정", "prompt_hint": "처음 당신을 봤을 때의 인상과 끌림"},
+        {"position": 3, "name": "숨겨진 감정", "meaning": "겉으로 드러나지 않는 진짜 마음", "prompt_hint": "표현하지 못하는 깊은 속마음과 감정"},
+        {"position": 4, "name": "망설이는 이유", "meaning": "다가오지 못하는 이유나 두려움", "prompt_hint": "다가오는 것을 주저하게 만드는 것"},
+        {"position": 5, "name": "진심", "meaning": "그 사람의 진정한 의도와 감정", "prompt_hint": "가장 깊은 곳에 있는 진심"},
+        {"position": 6, "name": "장애물", "meaning": "두 사람 사이의 장애물이나 방해 요소", "prompt_hint": "관계 발전을 막는 외부 요인"},
+        {"position": 7, "name": "원하는 것", "meaning": "그 사람이 당신에게 원하는 것", "prompt_hint": "당신과의 관계에서 바라는 것"},
+        {"position": 8, "name": "앞으로의 행동", "meaning": "가까운 미래에 취할 행동", "prompt_hint": "곧 보여줄 행동이나 시도"},
+        {"position": 9, "name": "타이밍", "meaning": "인연이 다가올 시기", "prompt_hint": "관계가 진전될 시점"},
+        {"position": 10, "name": "조언", "meaning": "당신이 취해야 할 태도나 행동", "prompt_hint": "이 상황에서 당신에게 필요한 조언"},
+        {"position": 11, "name": "결과", "meaning": "현재 흐름대로 갔을 때의 결과", "prompt_hint": "자연스럽게 흘러갔을 때 예상되는 결과"},
+        {"position": 12, "name": "숨겨진 메시지", "meaning": "우주가 전하는 숨겨진 메시지", "prompt_hint": "이 리딩에서 놓치지 말아야 할 핵심 메시지"}
+      ]
+    },
+    "current_partner": {
+      "id": "current_partner",
+      "title": "연인의 마음",
+      "korean": "지금 연인의 속마음",
+      "description": "현재 연인이 나에 대해 어떤 감정을 갖고 있는지",
+      "card_count": 10,
+      "spread_name": "Partner's Heart Spread",
+      "positions": [
+        {"position": 1, "name": "현재 감정", "meaning": "연인이 지금 나에게 느끼는 감정", "prompt_hint": "파트너가 현재 느끼는 감정 상태"},
+        {"position": 2, "name": "좋아하는 점", "meaning": "나의 어떤 면을 좋아하는지", "prompt_hint": "당신에게서 매력을 느끼는 부분"},
+        {"position": 3, "name": "불만", "meaning": "속으로 불만족스러워하는 부분", "prompt_hint": "표현하지 못한 불만이나 아쉬움"},
+        {"position": 4, "name": "숨기는 것", "meaning": "나에게 숨기고 있는 것", "prompt_hint": "아직 말하지 않은 비밀이나 생각"},
+        {"position": 5, "name": "미래 비전", "meaning": "우리 관계의 미래를 어떻게 보는지", "prompt_hint": "함께하는 미래에 대한 비전"},
+        {"position": 6, "name": "두려움", "meaning": "관계에서 느끼는 두려움", "prompt_hint": "관계에 대한 걱정이나 불안"},
+        {"position": 7, "name": "원하는 것", "meaning": "당신에게 바라는 것", "prompt_hint": "관계에서 더 원하는 것"},
+        {"position": 8, "name": "헌신도", "meaning": "관계에 대한 헌신과 진지함", "prompt_hint": "얼마나 진지하게 생각하는지"},
+        {"position": 9, "name": "조언", "meaning": "관계 발전을 위한 조언", "prompt_hint": "더 좋은 관계를 위해 필요한 것"},
+        {"position": 10, "name": "전망", "meaning": "3개월 후 관계의 모습", "prompt_hint": "가까운 미래의 관계 상태"}
+      ]
+    },
+    "crush": {
+      "id": "crush",
+      "title": "짝사랑",
+      "korean": "짝사랑 상대의 마음",
+      "description": "짝사랑하는 상대가 나를 어떻게 생각하는지",
+      "card_count": 8,
+      "spread_name": "Crush Reading Spread",
+      "positions": [
+        {"position": 1, "name": "상대의 현재", "meaning": "그 사람의 현재 상황과 마음 상태", "prompt_hint": "현재 삶의 상황과 감정 상태"},
+        {"position": 2, "name": "나에 대한 인식", "meaning": "그 사람이 나를 어떻게 인식하는지", "prompt_hint": "당신을 어떤 사람으로 보는지"},
+        {"position": 3, "name": "호감도", "meaning": "나에게 느끼는 호감의 정도", "prompt_hint": "끌림이나 관심의 수준"},
+        {"position": 4, "name": "가능성", "meaning": "관계 발전 가능성", "prompt_hint": "로맨틱한 관계로 발전할 가능성"},
+        {"position": 5, "name": "장애물", "meaning": "다가가는 것을 막는 요소", "prompt_hint": "관계 진전을 방해하는 것"},
+        {"position": 6, "name": "접근법", "meaning": "어떻게 다가가야 하는지", "prompt_hint": "효과적인 접근 방법"},
+        {"position": 7, "name": "타이밍", "meaning": "고백하기 좋은 시기", "prompt_hint": "행동을 취하기 좋은 때"},
+        {"position": 8, "name": "결과", "meaning": "고백했을 때 예상 결과", "prompt_hint": "마음을 표현했을 때의 반응"}
+      ]
+    },
+    "reconciliation": {
+      "id": "reconciliation",
+      "title": "재회",
+      "korean": "헤어진 연인과의 재회",
+      "description": "헤어진 연인과 다시 만날 수 있을지",
+      "card_count": 10,
+      "spread_name": "Reconciliation Spread",
+      "positions": [
+        {"position": 1, "name": "상대의 현재", "meaning": "전 연인의 현재 상황", "prompt_hint": "지금 그 사람의 삶과 마음 상태"},
+        {"position": 2, "name": "나에 대한 감정", "meaning": "아직 나에게 남아있는 감정", "prompt_hint": "당신에 대해 느끼는 현재 감정"},
+        {"position": 3, "name": "이별 원인", "meaning": "헤어지게 된 근본 원인", "prompt_hint": "관계가 끝난 진짜 이유"},
+        {"position": 4, "name": "후회", "meaning": "상대가 후회하는 것", "prompt_hint": "관계에서 아쉬워하는 부분"},
+        {"position": 5, "name": "재회 가능성", "meaning": "다시 만날 확률", "prompt_hint": "재결합의 가능성"},
+        {"position": 6, "name": "필요한 변화", "meaning": "재회를 위해 필요한 변화", "prompt_hint": "달라져야 할 것들"},
+        {"position": 7, "name": "타이밍", "meaning": "연락하기 좋은 시기", "prompt_hint": "다시 연결될 수 있는 시점"},
+        {"position": 8, "name": "접근법", "meaning": "어떻게 다가가야 하는지", "prompt_hint": "재회를 위한 접근 방법"},
+        {"position": 9, "name": "재회 후 관계", "meaning": "다시 만났을 때 관계의 질", "prompt_hint": "재결합 후 예상되는 관계"},
+        {"position": 10, "name": "최종 조언", "meaning": "우주가 주는 조언", "prompt_hint": "이 상황에서 가장 중요한 메시지"}
+      ]
+    },
+    "situationship": {
+      "id": "situationship",
+      "title": "썸",
+      "korean": "썸타는 상대",
+      "description": "썸을 타고 있는 상대와의 관계 진전",
+      "card_count": 8,
+      "spread_name": "Situationship Spread",
+      "positions": [
+        {"position": 1, "name": "상대의 마음", "meaning": "썸 상대가 나를 어떻게 생각하는지", "prompt_hint": "당신에 대한 현재 감정"},
+        {"position": 2, "name": "진지함", "meaning": "얼마나 진지하게 생각하는지", "prompt_hint": "관계에 대한 진정성"},
+        {"position": 3, "name": "망설임", "meaning": "관계 진전을 망설이는 이유", "prompt_hint": "공식화를 주저하는 이유"},
+        {"position": 4, "name": "다른 사람", "meaning": "다른 이성이 있는지", "prompt_hint": "다른 관심 대상의 존재"},
+        {"position": 5, "name": "발전 가능성", "meaning": "공식 연인이 될 가능성", "prompt_hint": "정식 교제로 발전할 확률"},
+        {"position": 6, "name": "내가 할 일", "meaning": "관계 진전을 위해 내가 해야 할 것", "prompt_hint": "당신이 취해야 할 행동"},
+        {"position": 7, "name": "타이밍", "meaning": "관계 정리가 될 시기", "prompt_hint": "결론이 날 시점"},
+        {"position": 8, "name": "결과", "meaning": "이 썸의 최종 결과", "prompt_hint": "이 관계의 귀결"}
+      ]
+    },
+    "marriage": {
+      "id": "marriage",
+      "title": "결혼",
+      "korean": "결혼운",
+      "description": "결혼 시기와 결혼 후의 삶",
+      "card_count": 10,
+      "spread_name": "Marriage Spread",
+      "positions": [
+        {"position": 1, "name": "현재 결혼운", "meaning": "현재 결혼에 대한 전반적인 운", "prompt_hint": "지금 결혼 에너지의 상태"},
+        {"position": 2, "name": "배우자상", "meaning": "미래 배우자의 특성", "prompt_hint": "결혼 상대의 성향과 특징"},
+        {"position": 3, "name": "만남 시기", "meaning": "배우자를 만나는 시기", "prompt_hint": "인연을 만나게 될 때"},
+        {"position": 4, "name": "만남 경로", "meaning": "어떻게 만나게 되는지", "prompt_hint": "인연이 연결되는 방식"},
+        {"position": 5, "name": "결혼 시기", "meaning": "결혼하게 될 시기", "prompt_hint": "결혼이 이루어질 때"},
+        {"position": 6, "name": "결혼 생활", "meaning": "결혼 후 생활의 모습", "prompt_hint": "결혼 생활의 특성"},
+        {"position": 7, "name": "경제적 측면", "meaning": "결혼 후 경제 상황", "prompt_hint": "재정적 안정성"},
+        {"position": 8, "name": "자녀운", "meaning": "자녀와 관련된 운", "prompt_hint": "자녀에 대한 전망"},
+        {"position": 9, "name": "주의점", "meaning": "결혼에서 주의할 점", "prompt_hint": "조심해야 할 부분"},
+        {"position": 10, "name": "조언", "meaning": "행복한 결혼을 위한 조언", "prompt_hint": "결혼에 대한 핵심 메시지"}
+      ]
+    },
+    "breakup": {
+      "id": "breakup",
+      "title": "이별",
+      "korean": "이별해야 할까",
+      "description": "현재 관계를 정리해야 하는지에 대한 답",
+      "card_count": 8,
+      "spread_name": "Should I Leave Spread",
+      "positions": [
+        {"position": 1, "name": "관계의 현재", "meaning": "현재 관계의 진짜 상태", "prompt_hint": "지금 관계의 실제 모습"},
+        {"position": 2, "name": "상대의 진심", "meaning": "상대가 진심으로 원하는 것", "prompt_hint": "파트너의 진정한 바람"},
+        {"position": 3, "name": "내 진심", "meaning": "내가 진심으로 원하는 것", "prompt_hint": "당신의 진정한 바람"},
+        {"position": 4, "name": "계속하면", "meaning": "관계를 유지했을 때의 미래", "prompt_hint": "함께 남았을 때의 결과"},
+        {"position": 5, "name": "끝내면", "meaning": "이별했을 때의 미래", "prompt_hint": "헤어졌을 때의 결과"},
+        {"position": 6, "name": "배워야 할 것", "meaning": "이 관계에서 배워야 할 교훈", "prompt_hint": "이 경험의 의미"},
+        {"position": 7, "name": "결정의 열쇠", "meaning": "결정을 내리는 데 중요한 요소", "prompt_hint": "핵심적으로 고려할 것"},
+        {"position": 8, "name": "우주의 답", "meaning": "우주가 주는 답", "prompt_hint": "더 높은 관점에서의 답"}
+      ]
+    },
+    "new_love": {
+      "id": "new_love",
+      "title": "새로운 인연",
+      "korean": "새로운 사랑은 언제",
+      "description": "새로운 연인을 만나는 시기와 특성",
+      "card_count": 8,
+      "spread_name": "New Love Spread",
+      "positions": [
+        {"position": 1, "name": "현재 연애 에너지", "meaning": "지금 나의 연애 에너지 상태", "prompt_hint": "사랑을 끌어당기는 현재 에너지"},
+        {"position": 2, "name": "인연 시기", "meaning": "새 인연을 만나는 시기", "prompt_hint": "사랑이 찾아올 때"},
+        {"position": 3, "name": "인연의 특성", "meaning": "새 인연의 성격과 특징", "prompt_hint": "다가올 사람의 특성"},
+        {"position": 4, "name": "만남 장소", "meaning": "어디서 만나게 되는지", "prompt_hint": "인연이 연결될 장소나 상황"},
+        {"position": 5, "name": "준비할 것", "meaning": "인연을 만나기 전 준비할 것", "prompt_hint": "사랑을 받아들이기 위해 필요한 것"},
+        {"position": 6, "name": "피할 것", "meaning": "인연을 막는 요소", "prompt_hint": "사랑을 방해하는 것"},
+        {"position": 7, "name": "관계의 성격", "meaning": "새 관계의 특성", "prompt_hint": "다가올 관계의 성격"},
+        {"position": 8, "name": "조언", "meaning": "새 사랑을 위한 조언", "prompt_hint": "사랑에 대한 핵심 메시지"}
+      ]
+    },
+    "cheating": {
+      "id": "cheating",
+      "title": "바람",
+      "korean": "상대가 바람피우는지",
+      "description": "연인의 외도나 다른 마음이 있는지",
+      "card_count": 7,
+      "spread_name": "Fidelity Check Spread",
+      "positions": [
+        {"position": 1, "name": "상대의 현재 마음", "meaning": "연인의 현재 마음 상태", "prompt_hint": "지금 파트너의 마음"},
+        {"position": 2, "name": "숨기는 것", "meaning": "당신에게 숨기고 있는 것", "prompt_hint": "감추고 있는 비밀"},
+        {"position": 3, "name": "다른 사람", "meaning": "다른 이성의 존재 여부", "prompt_hint": "제3자의 존재"},
+        {"position": 4, "name": "진실", "meaning": "상황의 진실", "prompt_hint": "실제 일어나고 있는 것"},
+        {"position": 5, "name": "당신이 느끼는 것", "meaning": "직감이 말해주는 것", "prompt_hint": "당신의 직감이 맞는지"},
+        {"position": 6, "name": "앞으로", "meaning": "이 상황이 어떻게 전개될지", "prompt_hint": "앞으로의 전개"},
+        {"position": 7, "name": "조언", "meaning": "이 상황에서 해야 할 것", "prompt_hint": "당신이 취해야 할 행동"}
+      ]
+    },
+    "soulmate": {
+      "id": "soulmate",
+      "title": "소울메이트",
+      "korean": "소울메이트 리딩",
+      "description": "운명적인 인연, 소울메이트에 대한 리딩",
+      "card_count": 10,
+      "spread_name": "Soulmate Spread",
+      "positions": [
+        {"position": 1, "name": "소울메이트 에너지", "meaning": "현재 소울메이트 연결 에너지", "prompt_hint": "운명적 인연과의 연결 상태"},
+        {"position": 2, "name": "이미 만났는지", "meaning": "소울메이트를 이미 만났는지", "prompt_hint": "이미 인연이 시작되었는지"},
+        {"position": 3, "name": "특징", "meaning": "소울메이트의 특징", "prompt_hint": "그 사람을 알아볼 수 있는 특징"},
+        {"position": 4, "name": "만남 시기", "meaning": "만나거나 알아보게 되는 시기", "prompt_hint": "인연이 드러나는 때"},
+        {"position": 5, "name": "인연의 목적", "meaning": "이 만남의 영적 목적", "prompt_hint": "함께하는 영혼의 목적"},
+        {"position": 6, "name": "과거생 연결", "meaning": "전생에서의 인연", "prompt_hint": "과거 생에서의 관계"},
+        {"position": 7, "name": "도전", "meaning": "함께 극복할 도전", "prompt_hint": "이 관계의 시련"},
+        {"position": 8, "name": "성장", "meaning": "함께 이룰 성장", "prompt_hint": "이 인연을 통한 영적 성장"},
+        {"position": 9, "name": "메시지", "meaning": "소울메이트가 보내는 메시지", "prompt_hint": "그 인연이 전하는 메시지"},
+        {"position": 10, "name": "조언", "meaning": "소울메이트를 만나기 위한 조언", "prompt_hint": "운명적 사랑을 위한 준비"}
+      ]
+    }
+  },
+  "narrative_templates": {
+    "opening": [
+      "자, 이제 {spread_name}을 통해 {topic}에 대해 살펴볼게요.",
+      "오늘은 {topic}에 대한 깊은 리딩을 해볼게요.",
+      "{card_count}장의 카드로 {topic}의 진실을 알아보겠습니다."
+    ],
+    "card_intro": [
+      "{position}번 카드, {meaning}을 나타내는 자리에 {card_name}이(가) 나왔어요.",
+      "{position}번째 자리는 {meaning}인데, 여기에 {card_name} {orientation}이(가) 나왔네요.",
+      "다음으로 {meaning}을 보여주는 {position}번 자리에는 {card_name}입니다."
+    ],
+    "transition": [
+      "그리고 다음 카드를 보면...",
+      "이어서 살펴볼게요.",
+      "자, 그 다음은요..."
+    ],
+    "closing": [
+      "전체적으로 보면, {summary}",
+      "이 리딩에서 가장 중요한 메시지는 {key_message}입니다.",
+      "결론적으로, {conclusion}"
+    ]
+  }
+}

@@ -27,7 +27,12 @@ export interface ShinsalHit {
     | '길성' | '흉성'
     | '지살' | '년살'
     | '도화' | '귀문관' | '현침' | '고신' | '괴강' | '양인' | '백호'
-    | '천을귀인' | '태극귀인' | '금여성' | '천문성' | '문창' | '문곡';
+    | '천을귀인' | '태극귀인' | '금여성' | '천문성' | '문창' | '문곡'
+    // 확장 신살
+    | '공망' | '천의성' | '학당귀인' | '홍염살' | '천라지망' | '원진'
+    | '천주귀인' | '암록' | '건록' | '제왕'
+    // 추가 신살
+    | '삼재' | '천덕귀인' | '월덕귀인';
   pillars: PillarKind[];
   target?: string;
   detail?: string;
@@ -96,15 +101,15 @@ function normalizeStemName(n: string): string {
 }
 
 /* ===== 12운성 ===== */
-/* 표 사이트 순서에 맞춰 재정의: 辛의 장생 출발지가 酉일 때 亥가 '목욕'이 되도록 시프트 */
+/* 정통 12운성 순서: 장생 → 목욕 → 관대 → 임관 → 왕지 → 쇠 → 병 → 사 → 묘 → 절 → 태 → 양 */
 const TWELVE_STAGE_ORDER: TwelveStage[] = [
-'장생','관대','목욕','임관','왕지','태','절','묘','병','사','쇠','양'
+  '장생', '목욕', '관대', '임관', '왕지', '쇠', '병', '사', '묘', '절', '태', '양'
 ];
 
-/* 일간별 장생 출발지 (표 사이트 기준) */
+/* 일간별 장생 출발지 (정통 명리학 기준) */
 const DAYMASTER_BIRTH_BRANCH: Record<string, string> = {
-  '甲':'亥','乙':'酉','丙':'寅','丁':'子','戊':'寅',
-  '己':'申','庚':'巳','辛':'酉','壬':'子','癸':'酉',
+  '甲': '亥', '乙': '午', '丙': '寅', '丁': '酉', '戊': '寅',
+  '己': '酉', '庚': '巳', '辛': '子', '壬': '申', '癸': '卯',
 };
 
 const BRANCH_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'] as const;
@@ -118,8 +123,6 @@ export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): T
   const targetIdx = (BRANCH_ORDER as readonly string[]).indexOf(branchName);
   if (startIdx < 0 || targetIdx < 0) return '묘';
   const diff = (targetIdx - startIdx + 12) % 12;
-  // 임시 확인 로그
-  console.log('[12운성]', { dayStemName, branchName, start, diff, stage: TWELVE_STAGE_ORDER[diff] });
   return TWELVE_STAGE_ORDER[diff];
 }
 export function getTwelveStagesForPillars(p: SajuPillarsLike, _basis: 'day' = 'day'): { [K in PillarKind]: TwelveStage } {
@@ -240,6 +243,143 @@ function isCheonMunSeong(branch: string): boolean { return branch === '子' || b
 function isMunChang(branch: string): boolean { return branch === '巳' || branch === '酉'; }
 function isMunGok(branch: string): boolean { return branch === '亥' || branch === '卯'; }
 
+/* ===== 확장 신살 테이블 ===== */
+
+// 공망(空亡): 일주의 순(旬)에서 빠진 두 지지
+// 갑자순 → 戌亥 공망, 갑술순 → 申酉 공망, ...
+const GONGMANG_BY_DAY_PILLAR: Record<string, string[]> = {
+  // 갑자순 (甲子~癸酉)
+  '甲子': ['戌','亥'], '乙丑': ['戌','亥'], '丙寅': ['戌','亥'], '丁卯': ['戌','亥'], '戊辰': ['戌','亥'],
+  '己巳': ['戌','亥'], '庚午': ['戌','亥'], '辛未': ['戌','亥'], '壬申': ['戌','亥'], '癸酉': ['戌','亥'],
+  // 갑술순 (甲戌~癸未)
+  '甲戌': ['申','酉'], '乙亥': ['申','酉'], '丙子': ['申','酉'], '丁丑': ['申','酉'], '戊寅': ['申','酉'],
+  '己卯': ['申','酉'], '庚辰': ['申','酉'], '辛巳': ['申','酉'], '壬午': ['申','酉'], '癸未': ['申','酉'],
+  // 갑신순 (甲申~癸巳)
+  '甲申': ['午','未'], '乙酉': ['午','未'], '丙戌': ['午','未'], '丁亥': ['午','未'], '戊子': ['午','未'],
+  '己丑': ['午','未'], '庚寅': ['午','未'], '辛卯': ['午','未'], '壬辰': ['午','未'], '癸巳': ['午','未'],
+  // 갑오순 (甲午~癸卯)
+  '甲午': ['辰','巳'], '乙未': ['辰','巳'], '丙申': ['辰','巳'], '丁酉': ['辰','巳'], '戊戌': ['辰','巳'],
+  '己亥': ['辰','巳'], '庚子': ['辰','巳'], '辛丑': ['辰','巳'], '壬寅': ['辰','巳'], '癸卯': ['辰','巳'],
+  // 갑진순 (甲辰~癸丑)
+  '甲辰': ['寅','卯'], '乙巳': ['寅','卯'], '丙午': ['寅','卯'], '丁未': ['寅','卯'], '戊申': ['寅','卯'],
+  '己酉': ['寅','卯'], '庚戌': ['寅','卯'], '辛亥': ['寅','卯'], '壬子': ['寅','卯'], '癸丑': ['寅','卯'],
+  // 갑인순 (甲寅~癸亥)
+  '甲寅': ['子','丑'], '乙卯': ['子','丑'], '丙辰': ['子','丑'], '丁巳': ['子','丑'], '戊午': ['子','丑'],
+  '己未': ['子','丑'], '庚申': ['子','丑'], '辛酉': ['子','丑'], '壬戌': ['子','丑'], '癸亥': ['子','丑'],
+};
+function getGongmang(dayStem: string, dayBranch: string): string[] {
+  return GONGMANG_BY_DAY_PILLAR[dayStem + dayBranch] || [];
+}
+
+// 천의성(天醫星): 월지 기준으로 다음 지지
+const CHEONUI_BY_MONTH_BRANCH: Record<string, string> = {
+  '子': '亥', '丑': '子', '寅': '丑', '卯': '寅', '辰': '卯', '巳': '辰',
+  '午': '巳', '未': '午', '申': '未', '酉': '申', '戌': '酉', '亥': '戌',
+};
+function isCheonuiseong(monthBranch: string, targetBranch: string): boolean {
+  return CHEONUI_BY_MONTH_BRANCH[monthBranch] === targetBranch;
+}
+
+// 학당귀인(學堂貴人): 일간 기준
+const HAKDANG_BY_DAY_STEM: Record<string, string> = {
+  '甲': '亥', '乙': '午', '丙': '寅', '丁': '酉', '戊': '寅',
+  '己': '酉', '庚': '巳', '辛': '子', '壬': '申', '癸': '卯',
+};
+function isHakdangGwiin(dayStem: string, targetBranch: string): boolean {
+  return HAKDANG_BY_DAY_STEM[dayStem] === targetBranch;
+}
+
+// 홍염살(紅艶殺): 일간 기준 - 이성/연애 관련
+const HONGYEOM_BY_DAY_STEM: Record<string, string> = {
+  '甲': '午', '乙': '午', '丙': '寅', '丁': '未', '戊': '辰',
+  '己': '辰', '庚': '戌', '辛': '酉', '壬': '子', '癸': '申',
+};
+function isHongyeomsal(dayStem: string, targetBranch: string): boolean {
+  return HONGYEOM_BY_DAY_STEM[dayStem] === targetBranch;
+}
+
+// 천라지망(天羅地網): 辰~巳는 천라, 戌~亥는 지망
+function isCheonraJimang(branch: string): '천라지망' | null {
+  if (['辰','巳','戌','亥'].includes(branch)) return '천라지망';
+  return null;
+}
+
+// 원진(元嗔): 6해 관계의 특수 형태
+const WONJIN_PAIRS: Record<string, string> = {
+  '子': '未', '丑': '午', '寅': '巳', '卯': '辰', '辰': '卯', '巳': '寅',
+  '午': '丑', '未': '子', '申': '亥', '酉': '戌', '戌': '酉', '亥': '申',
+};
+function isWonjin(dayBranch: string, targetBranch: string): boolean {
+  return WONJIN_PAIRS[dayBranch] === targetBranch;
+}
+
+// 천주귀인(天廚貴人): 일간 기준
+const CHEONJU_BY_DAY_STEM: Record<string, string> = {
+  '甲': '巳', '乙': '午', '丙': '巳', '丁': '午', '戊': '巳',
+  '己': '午', '庚': '亥', '辛': '子', '壬': '亥', '癸': '子',
+};
+function isCheonjuGwiin(dayStem: string, targetBranch: string): boolean {
+  return CHEONJU_BY_DAY_STEM[dayStem] === targetBranch;
+}
+
+// 암록(暗祿): 건록의 충(沖) 지지
+const AMNOK_BY_DAY_STEM: Record<string, string> = {
+  '甲': '酉', '乙': '申', '丙': '亥', '丁': '戌', '戊': '亥',
+  '己': '戌', '庚': '卯', '辛': '寅', '壬': '巳', '癸': '辰',
+};
+function isAmnok(dayStem: string, targetBranch: string): boolean {
+  return AMNOK_BY_DAY_STEM[dayStem] === targetBranch;
+}
+
+// 건록(建祿): 일간의 록지
+const GEONROK_BY_DAY_STEM: Record<string, string> = {
+  '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午', '戊': '巳',
+  '己': '午', '庚': '申', '辛': '酉', '壬': '亥', '癸': '子',
+};
+function isGeonrok(dayStem: string, targetBranch: string): boolean {
+  return GEONROK_BY_DAY_STEM[dayStem] === targetBranch;
+}
+
+// 제왕(帝旺): 12운성 중 왕지와 동일한 위치
+const JEWANG_BY_DAY_STEM: Record<string, string> = {
+  '甲': '卯', '乙': '寅', '丙': '午', '丁': '巳', '戊': '午',
+  '己': '巳', '庚': '酉', '辛': '申', '壬': '子', '癸': '亥',
+};
+function isJewang(dayStem: string, targetBranch: string): boolean {
+  return JEWANG_BY_DAY_STEM[dayStem] === targetBranch;
+}
+
+// 삼재(三災): 년지 기준으로 3년 주기의 불운
+// 寅午戌 → 申酉戌 삼재, 巳酉丑 → 寅卯辰 삼재, 申子辰 → 巳午未 삼재, 亥卯未 → 亥子丑 삼재
+const SAMJAE_BY_YEAR_BRANCH: Record<string, string[]> = {
+  '寅': ['申','酉','戌'], '午': ['申','酉','戌'], '戌': ['申','酉','戌'],
+  '巳': ['寅','卯','辰'], '酉': ['寅','卯','辰'], '丑': ['寅','卯','辰'],
+  '申': ['巳','午','未'], '子': ['巳','午','未'], '辰': ['巳','午','未'],
+  '亥': ['亥','子','丑'], '卯': ['亥','子','丑'], '未': ['亥','子','丑'],
+};
+function isSamjae(yearBranch: string, currentYearBranch: string): boolean {
+  const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[yearBranch];
+  return samjaeBranches?.includes(currentYearBranch) ?? false;
+}
+
+// 천덕귀인(天德貴人): 월지 기준
+const CHEONDEOK_BY_MONTH_BRANCH: Record<string, string> = {
+  '寅': '丁', '卯': '申', '辰': '壬', '巳': '辛', '午': '亥', '未': '甲',
+  '申': '癸', '酉': '寅', '戌': '丙', '亥': '乙', '子': '巳', '丑': '庚',
+};
+function isCheondeokGwiin(monthBranch: string, targetStem: string): boolean {
+  return CHEONDEOK_BY_MONTH_BRANCH[monthBranch] === targetStem;
+}
+
+// 월덕귀인(月德貴人): 월지 기준
+const WOLDEOK_BY_MONTH_BRANCH: Record<string, string> = {
+  '寅': '丙', '卯': '甲', '辰': '壬', '巳': '庚', '午': '丙', '未': '甲',
+  '申': '壬', '酉': '庚', '戌': '丙', '亥': '甲', '子': '壬', '丑': '庚',
+};
+function isWoldeokGwiin(monthBranch: string, targetStem: string): boolean {
+  return WOLDEOK_BY_MONTH_BRANCH[monthBranch] === targetStem;
+}
+
 /* ===== 예시 길/흉성(유지) ===== */
 const LUCKY_BRANCHES = new Set<string>(['寅','午','戌']);
 const UNLUCKY_BRANCHES = new Set<string>(['辰','戌']);
@@ -279,7 +419,6 @@ function pickTwelveSingle(dayBranch: string, targetBranch: string): ShinsalHit['
 
 /* your 룰 오버라이드 */
 function applyYourOverrides() {
-  console.log('[OVERRIDE] your rules applied');
   const row = TWELVE_SHINSAL_BY_DAY_BRANCH['未'];
   if (row) {
     row.장성 = '卯'; // 시지 장성
@@ -334,6 +473,9 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
 
   // 일반 신살/길성
   if (opt.includeGeneralShinsal || opt.includeLuckyDetails) {
+    // 공망 계산 (일주 기준)
+    const gongmangBranches = getGongmang(dayStem, dayBranch);
+
     for (const [kind, br] of pairs) {
       if (opt.includeGeneralShinsal) {
         if (getDohwaOn(br)) hits.push({ kind: '도화', pillars: [kind], target: br });
@@ -343,6 +485,12 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
         if (checkGwaegang(dayStem, dayBranch, br)) hits.push({ kind: '괴강', pillars: [kind], target: br });
         if (kind === 'day' && checkBaekho(dayStem, dayBranch)) hits.push({ kind: '백호', pillars: [kind], target: br });
         if (YANGIN_BY_DAY_STEM[dayStem] === br) hits.push({ kind: '양인', pillars: [kind], target: br });
+
+        // 확장 신살 (흉성 계열)
+        if (gongmangBranches.includes(br)) hits.push({ kind: '공망', pillars: [kind], target: br, detail: '일주(' + dayStem + dayBranch + ') 기준' });
+        if (isHongyeomsal(dayStem, br)) hits.push({ kind: '홍염살', pillars: [kind], target: br });
+        if (isCheonraJimang(br)) hits.push({ kind: '천라지망', pillars: [kind], target: br });
+        if (isWonjin(dayBranch, br)) hits.push({ kind: '원진', pillars: [kind], target: br });
       }
       if (opt.includeLuckyDetails) {
         const ce = CHEONEUL_BY_DAY_STEM[dayStem] || [];
@@ -353,8 +501,38 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
         if (isCheonMunSeong(br)) hits.push({ kind: '천문성', pillars: [kind], target: br });
         if (isMunChang(br)) hits.push({ kind: '문창', pillars: [kind], target: br });
         if (isMunGok(br)) hits.push({ kind: '문곡', pillars: [kind], target: br });
+
+        // 확장 신살 (길성 계열)
+        if (isCheonuiseong(monthBranch, br)) hits.push({ kind: '천의성', pillars: [kind], target: br });
+        if (isHakdangGwiin(dayStem, br)) hits.push({ kind: '학당귀인', pillars: [kind], target: br });
+        if (isCheonjuGwiin(dayStem, br)) hits.push({ kind: '천주귀인', pillars: [kind], target: br });
+        if (isAmnok(dayStem, br)) hits.push({ kind: '암록', pillars: [kind], target: br });
+        if (isGeonrok(dayStem, br)) hits.push({ kind: '건록', pillars: [kind], target: br });
+        if (isJewang(dayStem, br)) hits.push({ kind: '제왕', pillars: [kind], target: br });
       }
     }
+  }
+
+  // 천덕귀인/월덕귀인: 천간 기준으로 확인
+  if (opt.includeLuckyDetails) {
+    const stemPairs: Array<[PillarKind, string]> = [
+      ['year', normalizeStemName(p.year.heavenlyStem.name)],
+      ['month', normalizeStemName(p.month.heavenlyStem.name)],
+      ['day', normalizeStemName(p.day.heavenlyStem.name)],
+      ['time', normalizeStemName(p.time.heavenlyStem.name)],
+    ];
+    for (const [kind, stem] of stemPairs) {
+      if (isCheondeokGwiin(monthBranch, stem)) hits.push({ kind: '천덕귀인', pillars: [kind], target: stem, detail: '월지(' + monthBranch + ') 기준' });
+      if (isWoldeokGwiin(monthBranch, stem)) hits.push({ kind: '월덕귀인', pillars: [kind], target: stem, detail: '월지(' + monthBranch + ') 기준' });
+    }
+  }
+
+  // 삼재: 년지 기준 (현재 연도 기준으로 판단하려면 추가 파라미터 필요)
+  // 기본적으로 사주 내 년지만 표시 (실제 삼재 시기 판단은 운세 모듈에서)
+  const yearBranch = normalizeBranchName(p.year.earthlyBranch.name);
+  const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[yearBranch];
+  if (samjaeBranches && opt.includeGeneralShinsal) {
+    hits.push({ kind: '삼재', pillars: ['year'], target: samjaeBranches.join(','), detail: `${yearBranch}띠 삼재 지지: ${samjaeBranches.join(',')}` });
   }
 
   // 데모 길/흉성 옵션
@@ -390,12 +568,18 @@ export function annotateShinsal(p: SajuPillarsLike, options?: Partial<AnnotateOp
 
   for (const h of hits) {
     for (const k of h.pillars) {
+      // 12신살
       if (['겁살','재살','천살','지살','년살','월살','망신','장성','반안','역마','육해','화개'].includes(h.kind)) {
         if (!byPillar[k].twelveShinsal.includes(h.kind + '살')) byPillar[k].twelveShinsal.push(h.kind + '살');
-      } else if (['천을귀인','태극귀인','금여성','천문성','문창','문곡'].includes(h.kind)) {
+      }
+      // 길성 (기존 + 확장 + 추가)
+      else if (['천을귀인','태극귀인','금여성','천문성','문창','문곡','천의성','학당귀인','천주귀인','암록','건록','제왕','천덕귀인','월덕귀인'].includes(h.kind)) {
         if (!byPillar[k].lucky.includes(h.kind)) byPillar[k].lucky.push(h.kind);
-      } else if (['도화','귀문관','현침','고신','괴강','양인','백호'].includes(h.kind)) {
-        if (!byPillar[k].generalShinsal.includes(h.kind + '살')) byPillar[k].generalShinsal.push(h.kind + '살');
+      }
+      // 일반/흉성 신살 (기존 + 확장 + 추가)
+      else if (['도화','귀문관','현침','고신','괴강','양인','백호','공망','홍염살','천라지망','원진','삼재'].includes(h.kind)) {
+        const label = h.kind.endsWith('살') ? h.kind : h.kind + '살';
+        if (!byPillar[k].generalShinsal.includes(label)) byPillar[k].generalShinsal.push(label);
       }
     }
   }
@@ -485,8 +669,20 @@ export function getLuckySingleByPillar(p: SajuPillarsLike): { year: string; mont
 }
 
 /* ===== 지장간 텍스트 ===== */
+// 순서: 여기 → 중기 → 정기 (정기만 있는 지지는 하나만)
 export const JIJANGGAN_TEXT_BY_BRANCH: Record<string, string> = {
-  '子': '임계','丑': '계신기','寅': '무병갑','卯': '을','辰': '을계무','巳': '병무경','午': '정기','未': '정을기','申': '경임무','酉': '신','戌': '신정무','亥': '무갑임',
+  '子': '계',           // 정기만
+  '丑': '계신기',       // 여기(계) 중기(신) 정기(기)
+  '寅': '무병갑',       // 여기(무) 중기(병) 정기(갑)
+  '卯': '을',           // 정기만
+  '辰': '을계무',       // 여기(을) 중기(계) 정기(무)
+  '巳': '무경병',       // 여기(무) 중기(경) 정기(병)
+  '午': '기정',         // 여기(기) 정기(정) - 중기 없음
+  '未': '정을기',       // 여기(정) 중기(을) 정기(기)
+  '申': '무임경',       // 여기(무) 중기(임) 정기(경)
+  '酉': '신',           // 정기만
+  '戌': '신정무',       // 여기(신) 중기(정) 정기(무)
+  '亥': '무임',         // 여기(무) 정기(임) - 중기 없음
 };
 export function getJijangganText(branchNameRaw: string): string {
   const b = normalizeBranchName(branchNameRaw);

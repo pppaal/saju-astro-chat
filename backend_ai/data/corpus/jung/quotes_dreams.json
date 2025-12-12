@@ -1,0 +1,107 @@
+{
+  "concept": "dreams",
+  "concept_kr": "꿈",
+  "description": "Dreams are the royal road to the unconscious, revealing truths that consciousness cannot see",
+  "quotes": [
+    {
+      "id": "dream_001",
+      "en": "The dream shows the inner truth and reality of the patient as it really is: not as I conjecture it to be, and not as he would like it to be, but as it is.",
+      "kr": "꿈은 환자의 내면적 진실과 현실을 있는 그대로 보여준다: 내가 추측하는 것도 아니고, 그가 바라는 것도 아니며, 있는 그대로이다.",
+      "source": "The Practical Use of Dream Analysis",
+      "year": 1934,
+      "cw_volume": "CW 16",
+      "context": "On the objective nature of dreams",
+      "tags": ["dreams", "truth", "reality", "unconscious"]
+    },
+    {
+      "id": "dream_002",
+      "en": "Dreams are impartial, spontaneous products of the unconscious psyche, outside the control of the will. They are pure nature; they show us the unvarnished, natural truth.",
+      "kr": "꿈은 의지의 통제를 벗어난, 무의식적 정신의 공정하고 자발적인 산물이다. 꿈은 순수한 자연이다; 꿈은 우리에게 꾸밈없는 자연적 진실을 보여준다.",
+      "source": "The Meaning of Psychology for Modern Man",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On dreams as natural phenomena",
+      "tags": ["dreams", "nature", "truth", "unconscious"]
+    },
+    {
+      "id": "dream_003",
+      "en": "Your visions will become clear only when you can look into your own heart. Who looks outside, dreams; who looks inside, awakes.",
+      "kr": "당신의 비전은 자신의 마음속을 들여다볼 수 있을 때만 명확해진다. 밖을 바라보는 자는 꿈을 꾸고, 안을 들여다보는 자는 깨어난다.",
+      "source": "Letters Vol. I",
+      "year": 1945,
+      "cw_volume": "Letters",
+      "context": "On inner vision and awakening",
+      "tags": ["dreams", "vision", "introspection", "awakening"]
+    },
+    {
+      "id": "dream_004",
+      "en": "Nights through dreams tell the myths forgotten by the day.",
+      "kr": "밤은 꿈을 통해 낮이 잊어버린 신화를 이야기한다.",
+      "source": "Symbols of Transformation",
+      "year": 1912,
+      "cw_volume": "CW 5",
+      "context": "On dreams as carriers of mythic wisdom",
+      "tags": ["dreams", "myths", "night", "wisdom"]
+    },
+    {
+      "id": "dream_005",
+      "en": "The images of the unconscious place a great responsibility upon a man. Failure to understand them, or a shirking of ethical responsibility, deprives him of his wholeness and imposes a painful fragmentariness on his life.",
+      "kr": "무의식의 이미지들은 인간에게 큰 책임을 지운다. 그것들을 이해하지 못하거나 윤리적 책임을 회피하면, 그의 전체성을 빼앗기고 고통스러운 파편화를 그의 삶에 부과한다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the responsibility of understanding dreams",
+      "tags": ["dreams", "responsibility", "wholeness", "unconscious"]
+    },
+    {
+      "id": "dream_006",
+      "en": "To me dreams are part of nature, which harbors no intention to deceive but expresses something as best it can.",
+      "kr": "나에게 꿈은 자연의 일부이다. 자연은 속이려는 의도가 없으며 할 수 있는 한 최선을 다해 무언가를 표현한다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On the honest nature of dreams",
+      "tags": ["dreams", "nature", "expression", "honesty"]
+    },
+    {
+      "id": "dream_007",
+      "en": "In the end, the only events in my life worth telling are those when the imperishable world irrupted into this transitory one. That is why I speak chiefly of inner experiences, amongst which I include my dreams and visions.",
+      "kr": "결국, 내 삶에서 말할 가치가 있는 유일한 사건들은 불멸의 세계가 이 일시적인 세계로 침입했을 때이다. 그래서 나는 주로 내면의 경험들에 대해 말하며, 그 안에 나의 꿈과 비전을 포함시킨다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the importance of dreams in life",
+      "tags": ["dreams", "visions", "inner life", "meaning"]
+    },
+    {
+      "id": "dream_008",
+      "en": "A dream that is not understood remains a mere occurrence; understood it becomes a living experience.",
+      "kr": "이해되지 않은 꿈은 단순한 사건으로 남는다; 이해되면 살아있는 경험이 된다.",
+      "source": "The Practical Use of Dream Analysis",
+      "year": 1934,
+      "cw_volume": "CW 16",
+      "context": "On the value of understanding dreams",
+      "tags": ["dreams", "understanding", "experience", "meaning"]
+    },
+    {
+      "id": "dream_009",
+      "en": "The dream is a little hidden door in the innermost and most secret recesses of the soul, opening into that cosmic night which was psyche long before there was any ego consciousness.",
+      "kr": "꿈은 영혼의 가장 내밀하고 비밀스러운 곳에 있는 작은 숨겨진 문이며, 자아 의식이 있기 훨씬 전부터 정신이었던 그 우주적 밤으로 열린다.",
+      "source": "The Meaning of Psychology for Modern Man",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On dreams as gateway to the collective unconscious",
+      "tags": ["dreams", "soul", "unconscious", "cosmic"]
+    },
+    {
+      "id": "dream_010",
+      "en": "Dreams give information about the secrets of the inner life and reveal to the dreamer hidden factors of his personality.",
+      "kr": "꿈은 내면 생활의 비밀에 대한 정보를 제공하고 꿈꾸는 자에게 그의 성격의 숨겨진 요소들을 드러낸다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On dreams as self-knowledge",
+      "tags": ["dreams", "secrets", "personality", "revelation"]
+    }
+  ]
+}

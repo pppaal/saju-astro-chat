@@ -1,0 +1,171 @@
+{
+  "_meta": {
+    "theme": "daily",
+    "title": "오늘의 운세 타로 스프레드",
+    "description": "하루를 시작하거나 특정 상황을 위한 빠른 가이드"
+  },
+  "sub_topics": {
+    "morning_guidance": {
+      "id": "morning_guidance",
+      "title": "아침 가이드",
+      "korean": "오늘 하루 운세",
+      "description": "오늘 하루를 위한 가이드와 조언",
+      "card_count": 5,
+      "spread_name": "Morning Guidance Spread",
+      "positions": [
+        {"position": 1, "name": "오늘의 에너지", "meaning": "오늘 하루의 전반적 에너지", "prompt_hint": "오늘의 분위기"},
+        {"position": 2, "name": "집중할 것", "meaning": "오늘 집중해야 할 것", "prompt_hint": "우선순위"},
+        {"position": 3, "name": "주의할 것", "meaning": "오늘 주의해야 할 것", "prompt_hint": "조심할 점"},
+        {"position": 4, "name": "기회", "meaning": "오늘의 기회", "prompt_hint": "잡아야 할 기회"},
+        {"position": 5, "name": "하루 메시지", "meaning": "오늘을 위한 핵심 메시지", "prompt_hint": "오늘의 키워드"}
+      ]
+    },
+    "one_card": {
+      "id": "one_card",
+      "title": "원카드",
+      "korean": "원카드 리딩",
+      "description": "빠른 예/아니오 또는 간단한 가이드",
+      "card_count": 1,
+      "spread_name": "One Card Reading",
+      "positions": [
+        {"position": 1, "name": "답", "meaning": "질문에 대한 우주의 답", "prompt_hint": "핵심 메시지"}
+      ]
+    },
+    "three_card": {
+      "id": "three_card",
+      "title": "쓰리카드",
+      "korean": "과거-현재-미래",
+      "description": "상황의 흐름을 보여주는 기본 스프레드",
+      "card_count": 3,
+      "spread_name": "Three Card Spread",
+      "positions": [
+        {"position": 1, "name": "과거", "meaning": "이 상황의 과거/원인", "prompt_hint": "어떻게 시작되었는지"},
+        {"position": 2, "name": "현재", "meaning": "현재 상황/에너지", "prompt_hint": "지금 일어나는 것"},
+        {"position": 3, "name": "미래", "meaning": "앞으로의 전개/결과", "prompt_hint": "어떻게 될 것인지"}
+      ]
+    },
+    "yes_no": {
+      "id": "yes_no",
+      "title": "예/아니오",
+      "korean": "예 아니오 리딩",
+      "description": "명확한 예/아니오가 필요할 때",
+      "card_count": 3,
+      "spread_name": "Yes or No Spread",
+      "positions": [
+        {"position": 1, "name": "상황", "meaning": "현재 상황의 에너지", "prompt_hint": "상황의 본질"},
+        {"position": 2, "name": "요인", "meaning": "결과에 영향을 주는 요인", "prompt_hint": "영향을 주는 것"},
+        {"position": 3, "name": "결론", "meaning": "예/아니오 경향", "prompt_hint": "답의 방향"}
+      ]
+    },
+    "decision": {
+      "id": "decision",
+      "title": "결정",
+      "korean": "선택 도움",
+      "description": "두 가지 선택 중 결정할 때",
+      "card_count": 5,
+      "spread_name": "Decision Making Spread",
+      "positions": [
+        {"position": 1, "name": "현재 상황", "meaning": "결정을 앞둔 현재 상황", "prompt_hint": "지금 상황"},
+        {"position": 2, "name": "선택 A", "meaning": "첫 번째 선택지", "prompt_hint": "A를 선택하면"},
+        {"position": 3, "name": "선택 B", "meaning": "두 번째 선택지", "prompt_hint": "B를 선택하면"},
+        {"position": 4, "name": "고려 요소", "meaning": "결정 시 고려할 것", "prompt_hint": "중요한 요소"},
+        {"position": 5, "name": "조언", "meaning": "결정에 대한 조언", "prompt_hint": "어느 쪽으로"}
+      ]
+    },
+    "situation_advice": {
+      "id": "situation_advice",
+      "title": "상황 조언",
+      "korean": "이 상황 어떻게",
+      "description": "특정 상황에 대한 조언",
+      "card_count": 5,
+      "spread_name": "Situation Advice Spread",
+      "positions": [
+        {"position": 1, "name": "상황 본질", "meaning": "상황의 진짜 본질", "prompt_hint": "무슨 일인지"},
+        {"position": 2, "name": "보이지 않는 것", "meaning": "눈에 보이지 않는 측면", "prompt_hint": "숨겨진 것"},
+        {"position": 3, "name": "해야 할 것", "meaning": "취해야 할 행동", "prompt_hint": "할 일"},
+        {"position": 4, "name": "피해야 할 것", "meaning": "피해야 할 행동", "prompt_hint": "하지 말 것"},
+        {"position": 5, "name": "결과", "meaning": "상황의 전개", "prompt_hint": "어떻게 될지"}
+      ]
+    },
+    "mind_body_spirit": {
+      "id": "mind_body_spirit",
+      "title": "마음-몸-영",
+      "korean": "마음 몸 영혼 체크",
+      "description": "세 영역의 균형 체크",
+      "card_count": 3,
+      "spread_name": "Mind Body Spirit Spread",
+      "positions": [
+        {"position": 1, "name": "마음", "meaning": "정신/감정 상태", "prompt_hint": "마음의 상태"},
+        {"position": 2, "name": "몸", "meaning": "신체/물질 상태", "prompt_hint": "몸의 상태"},
+        {"position": 3, "name": "영", "meaning": "영적/에너지 상태", "prompt_hint": "영혼의 상태"}
+      ]
+    },
+    "obstacle_solution": {
+      "id": "obstacle_solution",
+      "title": "장애물 해결",
+      "korean": "문제 해결",
+      "description": "현재 장애물과 해결책",
+      "card_count": 4,
+      "spread_name": "Obstacle Solution Spread",
+      "positions": [
+        {"position": 1, "name": "장애물", "meaning": "현재 직면한 장애물", "prompt_hint": "막히는 것"},
+        {"position": 2, "name": "원인", "meaning": "장애물의 근본 원인", "prompt_hint": "왜 막혔는지"},
+        {"position": 3, "name": "해결책", "meaning": "장애물을 넘는 방법", "prompt_hint": "어떻게 극복할지"},
+        {"position": 4, "name": "극복 후", "meaning": "장애물 극복 후 모습", "prompt_hint": "넘어선 후"}
+      ]
+    },
+    "energy_check": {
+      "id": "energy_check",
+      "title": "에너지 체크",
+      "korean": "오늘 에너지 상태",
+      "description": "현재 에너지 상태 점검",
+      "card_count": 4,
+      "spread_name": "Energy Check Spread",
+      "positions": [
+        {"position": 1, "name": "전체 에너지", "meaning": "전반적 에너지 수준", "prompt_hint": "전체 에너지"},
+        {"position": 2, "name": "높은 에너지", "meaning": "에너지가 높은 영역", "prompt_hint": "활력 있는 부분"},
+        {"position": 3, "name": "낮은 에너지", "meaning": "에너지가 낮은 영역", "prompt_hint": "지친 부분"},
+        {"position": 4, "name": "균형 방법", "meaning": "에너지 균형 방법", "prompt_hint": "밸런스 맞추기"}
+      ]
+    },
+    "quick_love": {
+      "id": "quick_love",
+      "title": "빠른 연애 체크",
+      "korean": "오늘 연애운",
+      "description": "오늘 연애에 대한 빠른 체크",
+      "card_count": 3,
+      "spread_name": "Quick Love Check",
+      "positions": [
+        {"position": 1, "name": "연애 에너지", "meaning": "오늘의 연애 에너지", "prompt_hint": "사랑의 기운"},
+        {"position": 2, "name": "기회/주의", "meaning": "연애에서 기회나 주의점", "prompt_hint": "알아둘 것"},
+        {"position": 3, "name": "조언", "meaning": "연애에 대한 조언", "prompt_hint": "사랑의 팁"}
+      ]
+    },
+    "quick_money": {
+      "id": "quick_money",
+      "title": "빠른 재물 체크",
+      "korean": "오늘 재물운",
+      "description": "오늘 재물에 대한 빠른 체크",
+      "card_count": 3,
+      "spread_name": "Quick Money Check",
+      "positions": [
+        {"position": 1, "name": "재물 에너지", "meaning": "오늘의 재물 에너지", "prompt_hint": "돈의 기운"},
+        {"position": 2, "name": "기회/주의", "meaning": "재물에서 기회나 주의점", "prompt_hint": "알아둘 것"},
+        {"position": 3, "name": "조언", "meaning": "재물에 대한 조언", "prompt_hint": "돈의 팁"}
+      ]
+    },
+    "quick_work": {
+      "id": "quick_work",
+      "title": "빠른 직장 체크",
+      "korean": "오늘 직장운",
+      "description": "오늘 직장에 대한 빠른 체크",
+      "card_count": 3,
+      "spread_name": "Quick Work Check",
+      "positions": [
+        {"position": 1, "name": "직장 에너지", "meaning": "오늘의 직장 에너지", "prompt_hint": "일의 기운"},
+        {"position": 2, "name": "기회/주의", "meaning": "직장에서 기회나 주의점", "prompt_hint": "알아둘 것"},
+        {"position": 3, "name": "조언", "meaning": "직장에 대한 조언", "prompt_hint": "일의 팁"}
+      ]
+    }
+  }
+}

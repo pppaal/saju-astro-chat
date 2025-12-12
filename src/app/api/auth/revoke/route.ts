@@ -13,7 +13,7 @@ export async function POST() {
 
   const result = await revokeGoogleTokensForUser(session.user.id);
   const reason = 'reason' in result ? result.reason : undefined;
-  const status = result.cleared ? 200 : reason === 'no_account' ? 404 : 500;
+  const status = result.cleared ? 200 : (reason === 'no_account' ? 404 : 500);
 
   return NextResponse.json(
     {

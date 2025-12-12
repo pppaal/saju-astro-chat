@@ -1,0 +1,380 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/domains/wealth",
+  "$count": 84,
+  "$description": "재물, 풍요, 재정적 성공에 영향을 미치는 배치들의 도메인별 해석",
+  "$note": "Jupiter(12) + Venus(12) + Saturn(12) in signs, plus 2nd, 8th house placements, Part of Fortune",
+
+  "Jupiter_wealth": {
+    "Jupiter_in_Aries": {
+      "abundance_style": "대담한 행동으로 풍요 창출",
+      "money_beliefs": "위험을 감수하면 보상이 따른다",
+      "growth_areas": "스포츠, 리더십, 개척 사업",
+      "financial_luck": "새로운 시작에서 행운",
+      "wealth_shadow": "무모한 투자, 충동적 지출"
+    },
+    "Jupiter_in_Taurus": {
+      "abundance_style": "꾸준한 축적과 감각적 풍요",
+      "money_beliefs": "가치 있는 것에 투자하면 성장",
+      "growth_areas": "부동산, 예술, 음식, 럭셔리",
+      "financial_luck": "물질적 안정에서 행운",
+      "wealth_shadow": "과도한 물질주의, 탐욕"
+    },
+    "Jupiter_in_Gemini": {
+      "abundance_style": "아이디어와 소통으로 풍요",
+      "money_beliefs": "지식이 부의 원천",
+      "growth_areas": "미디어, 교육, 판매, 출판",
+      "financial_luck": "정보와 연결에서 행운",
+      "wealth_shadow": "분산 투자, 깊이 부족"
+    },
+    "Jupiter_in_Cancer": {
+      "abundance_style": "가정과 돌봄에서 풍요 발견",
+      "money_beliefs": "안전한 기반이 성장의 토대",
+      "growth_areas": "부동산, 요식업, 가족 사업",
+      "financial_luck": "가족과 집에서 행운",
+      "wealth_shadow": "과도한 보호, 감정적 지출"
+    },
+    "Jupiter_in_Leo": {
+      "abundance_style": "창의성과 자신감으로 풍요",
+      "money_beliefs": "빛나면 돈이 따라온다",
+      "growth_areas": "엔터테인먼트, 럭셔리, 투자",
+      "financial_luck": "주목받을 때 행운",
+      "wealth_shadow": "과시적 지출, 자만심"
+    },
+    "Jupiter_in_Virgo": {
+      "abundance_style": "봉사와 개선을 통한 풍요",
+      "money_beliefs": "세부사항에 신이 있다",
+      "growth_areas": "의료, 분석, 효율화",
+      "financial_luck": "건강과 봉사에서 행운",
+      "wealth_shadow": "과도한 분석, 기회 놓침"
+    },
+    "Jupiter_in_Libra": {
+      "abundance_style": "파트너십과 조화로 풍요",
+      "money_beliefs": "협력이 단독보다 낫다",
+      "growth_areas": "법률, 예술, 외교, 컨설팅",
+      "financial_luck": "관계에서 행운",
+      "wealth_shadow": "의존성, 불공정한 거래"
+    },
+    "Jupiter_in_Scorpio": {
+      "abundance_style": "깊은 통찰과 변형으로 풍요",
+      "money_beliefs": "위기가 기회를 만든다",
+      "growth_areas": "투자, 심리학, 연구, 유산",
+      "financial_luck": "공동 자원에서 행운",
+      "wealth_shadow": "권력 남용, 비밀 거래"
+    },
+    "Jupiter_in_Sagittarius": {
+      "abundance_style": "확장과 믿음으로 풍요",
+      "money_beliefs": "크게 생각하면 크게 얻는다",
+      "growth_areas": "교육, 여행, 출판, 철학",
+      "financial_luck": "해외와 교육에서 행운",
+      "wealth_shadow": "과도한 낙관, 과장된 계획"
+    },
+    "Jupiter_in_Capricorn": {
+      "abundance_style": "구조와 규율로 풍요 구축",
+      "money_beliefs": "장기 계획이 승리한다",
+      "growth_areas": "경영, 정치, 전통 산업",
+      "financial_luck": "노력의 결실, 늦은 성공",
+      "wealth_shadow": "너무 보수적, 기회 제한"
+    },
+    "Jupiter_in_Aquarius": {
+      "abundance_style": "혁신과 네트워크로 풍요",
+      "money_beliefs": "미래에 투자하라",
+      "growth_areas": "기술, 사회 사업, 인도주의",
+      "financial_luck": "그룹과 혁신에서 행운",
+      "wealth_shadow": "비현실적 아이디어, 분리"
+    },
+    "Jupiter_in_Pisces": {
+      "abundance_style": "믿음과 영감으로 풍요",
+      "money_beliefs": "우주가 공급한다",
+      "growth_areas": "예술, 영성, 치유, 자선",
+      "financial_luck": "직관과 영성에서 행운",
+      "wealth_shadow": "비현실적 기대, 경계 부족"
+    }
+  },
+
+  "Venus_wealth": {
+    "Venus_in_Aries": {
+      "value_system": "행동과 독립성에 가치 부여",
+      "spending_style": "충동적이고 빠른 구매",
+      "attracting_money": "대담한 시작으로 끌어당김",
+      "luxury_taste": "스포츠카, 최신 기기"
+    },
+    "Venus_in_Taurus": {
+      "value_system": "품질과 지속성에 가치 부여",
+      "spending_style": "신중하지만 럭셔리 선호",
+      "attracting_money": "안정적 자산 축적",
+      "luxury_taste": "고급 음식, 명품, 미술품"
+    },
+    "Venus_in_Gemini": {
+      "value_system": "다양성과 정보에 가치 부여",
+      "spending_style": "변덕스럽고 다양한",
+      "attracting_money": "소통과 연결로 끌어당김",
+      "luxury_taste": "책, 가젯, 여행"
+    },
+    "Venus_in_Cancer": {
+      "value_system": "가정과 안전에 가치 부여",
+      "spending_style": "가족과 집에 투자",
+      "attracting_money": "양육적 비즈니스로 끌어당김",
+      "luxury_taste": "인테리어, 주방용품, 가족 유산"
+    },
+    "Venus_in_Leo": {
+      "value_system": "특별함과 창의성에 가치 부여",
+      "spending_style": "관대하고 과시적",
+      "attracting_money": "카리스마로 끌어당김",
+      "luxury_taste": "주얼리, 디자이너 의류, 예술품"
+    },
+    "Venus_in_Virgo": {
+      "value_system": "실용성과 품질에 가치 부여",
+      "spending_style": "검소하고 분석적",
+      "attracting_money": "봉사와 효율로 끌어당김",
+      "luxury_taste": "건강 제품, 유기농, 공예품"
+    },
+    "Venus_in_Libra": {
+      "value_system": "아름다움과 조화에 가치 부여",
+      "spending_style": "균형 잡히고 우아한",
+      "attracting_money": "매력과 파트너십으로 끌어당김",
+      "luxury_taste": "미술, 패션, 인테리어 디자인"
+    },
+    "Venus_in_Scorpio": {
+      "value_system": "깊이와 진정성에 가치 부여",
+      "spending_style": "모 아니면 도, 집착적",
+      "attracting_money": "공동 자원으로 끌어당김",
+      "luxury_taste": "희귀품, 골동품, 파워 아이템"
+    },
+    "Venus_in_Sagittarius": {
+      "value_system": "경험과 자유에 가치 부여",
+      "spending_style": "관대하고 모험적",
+      "attracting_money": "확장과 교육으로 끌어당김",
+      "luxury_taste": "여행, 교육, 문화 경험"
+    },
+    "Venus_in_Capricorn": {
+      "value_system": "지위와 성취에 가치 부여",
+      "spending_style": "검소하지만 지위 상징 선호",
+      "attracting_money": "명성과 성취로 끌어당김",
+      "luxury_taste": "클래식 명품, 부동산, 앤티크"
+    },
+    "Venus_in_Aquarius": {
+      "value_system": "독특함과 혁신에 가치 부여",
+      "spending_style": "독특하고 비전통적",
+      "attracting_money": "네트워크와 혁신으로 끌어당김",
+      "luxury_taste": "첨단 기술, 독특한 예술품"
+    },
+    "Venus_in_Pisces": {
+      "value_system": "영성과 연민에 가치 부여",
+      "spending_style": "관대하고 경계 없는",
+      "attracting_money": "영감과 동정심으로 끌어당김",
+      "luxury_taste": "예술품, 영적 도구, 자선"
+    }
+  },
+
+  "Saturn_wealth": {
+    "Saturn_in_Aries": {
+      "financial_lessons": "주도권과 독립적 수입 배우기",
+      "money_fears": "시작하기, 혼자 벌기",
+      "wealth_mastery": "자기 사업, 리더십 수입",
+      "long_term_wealth": "중년 이후 독립적 성공"
+    },
+    "Saturn_in_Taurus": {
+      "financial_lessons": "가치와 자원 관리 배우기",
+      "money_fears": "물질적 부족, 자기 가치",
+      "wealth_mastery": "장기적 자산 구축",
+      "long_term_wealth": "느리지만 확실한 재산"
+    },
+    "Saturn_in_Gemini": {
+      "financial_lessons": "소통을 통한 수입 배우기",
+      "money_fears": "지적 능력, 정보 부족",
+      "wealth_mastery": "전문 지식으로 수입",
+      "long_term_wealth": "교육과 소통 사업"
+    },
+    "Saturn_in_Cancer": {
+      "financial_lessons": "감정과 재정 분리 배우기",
+      "money_fears": "가족 재정, 불안정",
+      "wealth_mastery": "부동산, 가족 사업",
+      "long_term_wealth": "안전한 기반 구축"
+    },
+    "Saturn_in_Leo": {
+      "financial_lessons": "자신감과 창의성으로 벌기",
+      "money_fears": "인정받지 못함, 빛나기",
+      "wealth_mastery": "창의적 리더십 수입",
+      "long_term_wealth": "자기 표현으로 성공"
+    },
+    "Saturn_in_Virgo": {
+      "financial_lessons": "효율과 봉사로 벌기",
+      "money_fears": "실수, 불완전함",
+      "wealth_mastery": "전문 기술, 분석 능력",
+      "long_term_wealth": "꼼꼼한 관리로 축적"
+    },
+    "Saturn_in_Libra": {
+      "financial_lessons": "파트너십과 균형으로 벌기",
+      "money_fears": "불공정, 갈등",
+      "wealth_mastery": "협력 사업, 중재",
+      "long_term_wealth": "파트너십을 통한 성공"
+    },
+    "Saturn_in_Scorpio": {
+      "financial_lessons": "공동 자원 다루기",
+      "money_fears": "권력 상실, 의존",
+      "wealth_mastery": "투자, 유산 관리",
+      "long_term_wealth": "깊은 변형을 통한 부"
+    },
+    "Saturn_in_Sagittarius": {
+      "financial_lessons": "믿음과 비전으로 벌기",
+      "money_fears": "희망 상실, 의미 부재",
+      "wealth_mastery": "교육, 출판, 해외 사업",
+      "long_term_wealth": "지혜를 통한 성공"
+    },
+    "Saturn_in_Capricorn": {
+      "financial_lessons": "책임과 구조로 벌기",
+      "money_fears": "실패, 평판 손상",
+      "wealth_mastery": "최고 수준의 성취",
+      "long_term_wealth": "정상에 오르는 부"
+    },
+    "Saturn_in_Aquarius": {
+      "financial_lessons": "혁신과 네트워크로 벌기",
+      "money_fears": "소외, 비정상성",
+      "wealth_mastery": "사회적 영향력, 기술",
+      "long_term_wealth": "시스템 변화로 성공"
+    },
+    "Saturn_in_Pisces": {
+      "financial_lessons": "경계와 현실화 배우기",
+      "money_fears": "통제 불능, 희생",
+      "wealth_mastery": "영적 서비스, 예술",
+      "long_term_wealth": "믿음을 통한 성공"
+    }
+  },
+
+  "wealth_houses": {
+    "2nd_house_wealth": {
+      "Jupiter_in_2nd": {
+        "earning_potential": "풍요로운 수입, 확장적",
+        "financial_blessings": "돈이 들어오는 행운",
+        "money_philosophy": "관대함이 더 많이 가져옴",
+        "wealth_growth": "자연스러운 재정 성장"
+      },
+      "Venus_in_2nd": {
+        "earning_potential": "아름다움과 가치로 수입",
+        "financial_blessings": "돈을 끌어당기는 매력",
+        "money_philosophy": "돈은 즐거움을 위해",
+        "wealth_growth": "즐거운 방식으로 축적"
+      },
+      "Saturn_in_2nd": {
+        "earning_potential": "느리지만 확실한 수입",
+        "financial_blessings": "장기적 안정, 늦은 풍요",
+        "money_philosophy": "검소와 규율이 부를 만듦",
+        "wealth_growth": "인내로 축적"
+      },
+      "Pluto_in_2nd": {
+        "earning_potential": "변형적인 수입 경험",
+        "financial_blessings": "위기 후 재생",
+        "money_philosophy": "돈은 권력과 변형의 도구",
+        "wealth_growth": "완전한 변화를 통해"
+      },
+      "Uranus_in_2nd": {
+        "earning_potential": "예측 불가한 수입",
+        "financial_blessings": "갑작스러운 횡재",
+        "money_philosophy": "자유가 돈보다 중요",
+        "wealth_growth": "혁신적 방식으로"
+      }
+    },
+    "8th_house_wealth": {
+      "Jupiter_in_8th": {
+        "shared_resources": "파트너/상속을 통한 풍요",
+        "financial_transformation": "위기가 성장으로",
+        "inheritance_luck": "유산, 보험 행운",
+        "deep_wealth": "타인의 자원 활용"
+      },
+      "Venus_in_8th": {
+        "shared_resources": "파트너를 통한 재정적 이득",
+        "financial_transformation": "사랑이 부를 가져옴",
+        "inheritance_luck": "매력적 상속, 선물",
+        "deep_wealth": "친밀함을 통한 풍요"
+      },
+      "Saturn_in_8th": {
+        "shared_resources": "공동 재정의 책임",
+        "financial_transformation": "어려운 교훈 후 성숙",
+        "inheritance_luck": "지연된 유산, 세금 문제",
+        "deep_wealth": "시간이 걸리는 공동 자원"
+      },
+      "Pluto_in_8th": {
+        "shared_resources": "강렬한 재정적 변형",
+        "financial_transformation": "완전한 재정적 재생",
+        "inheritance_luck": "복잡한 유산 문제",
+        "deep_wealth": "권력 역학을 통한 부"
+      }
+    }
+  },
+
+  "part_of_fortune": {
+    "PartOfFortune_in_Aries": {
+      "fortune_path": "대담한 시작과 리더십",
+      "luck_activation": "두려움 없이 행동할 때",
+      "joy_source": "독립적 성취, 개척",
+      "abundance_key": "용기와 주도권"
+    },
+    "PartOfFortune_in_Taurus": {
+      "fortune_path": "물질적 안정과 감각적 즐거움",
+      "luck_activation": "가치를 구축할 때",
+      "joy_source": "편안함, 아름다움, 자연",
+      "abundance_key": "인내와 꾸준함"
+    },
+    "PartOfFortune_in_Gemini": {
+      "fortune_path": "소통과 연결",
+      "luck_activation": "아이디어를 공유할 때",
+      "joy_source": "학습, 대화, 다양성",
+      "abundance_key": "호기심과 적응력"
+    },
+    "PartOfFortune_in_Cancer": {
+      "fortune_path": "가정과 감정적 연결",
+      "luck_activation": "돌봄을 제공할 때",
+      "joy_source": "가족, 집, 양육",
+      "abundance_key": "정서적 지혜"
+    },
+    "PartOfFortune_in_Leo": {
+      "fortune_path": "창의적 표현과 인정",
+      "luck_activation": "진정한 자신을 표현할 때",
+      "joy_source": "창조, 연기, 리더십",
+      "abundance_key": "자신감과 관대함"
+    },
+    "PartOfFortune_in_Virgo": {
+      "fortune_path": "봉사와 완벽한 수행",
+      "luck_activation": "도움을 줄 때",
+      "joy_source": "효율, 건강, 유용함",
+      "abundance_key": "세심함과 헌신"
+    },
+    "PartOfFortune_in_Libra": {
+      "fortune_path": "관계와 조화",
+      "luck_activation": "균형을 창출할 때",
+      "joy_source": "파트너십, 아름다움, 공정함",
+      "abundance_key": "협력과 외교"
+    },
+    "PartOfFortune_in_Scorpio": {
+      "fortune_path": "변형과 깊이",
+      "luck_activation": "두려움을 대면할 때",
+      "joy_source": "친밀감, 통찰, 재생",
+      "abundance_key": "용기와 진정성"
+    },
+    "PartOfFortune_in_Sagittarius": {
+      "fortune_path": "확장과 탐험",
+      "luck_activation": "시야를 넓힐 때",
+      "joy_source": "여행, 학습, 철학",
+      "abundance_key": "낙관과 믿음"
+    },
+    "PartOfFortune_in_Capricorn": {
+      "fortune_path": "성취와 구조",
+      "luck_activation": "책임을 질 때",
+      "joy_source": "목표 달성, 인정",
+      "abundance_key": "인내와 야망"
+    },
+    "PartOfFortune_in_Aquarius": {
+      "fortune_path": "혁신과 인류 기여",
+      "luck_activation": "독특함을 표현할 때",
+      "joy_source": "자유, 우정, 미래",
+      "abundance_key": "독창성과 비전"
+    },
+    "PartOfFortune_in_Pisces": {
+      "fortune_path": "영성과 연민",
+      "luck_activation": "무조건적으로 줄 때",
+      "joy_source": "예술, 영성, 치유",
+      "abundance_key": "믿음과 직관"
+    }
+  }
+}

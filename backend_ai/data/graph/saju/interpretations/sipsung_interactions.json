@@ -1,0 +1,1191 @@
+{
+  "meta": {
+    "type": "sipsung_interactions_detailed",
+    "description": "십성(十星) 상호작용 55조합 상세 해석",
+    "version": "2.0",
+    "total_combinations": 55
+  },
+  "concepts": {
+    "overview": "십성 상호작용은 사주 내에서 두 십성이 함께 있을 때 발생하는 화학 작용. 서로 강화하거나 약화시키거나 특수한 의미를 만들어냄",
+    "categories": {
+      "비겁류": ["비견", "겁재"],
+      "식상류": ["식신", "상관"],
+      "재성류": ["편재", "정재"],
+      "관성류": ["편관", "정관"],
+      "인성류": ["편인", "정인"]
+    },
+    "interaction_types": {
+      "생조": "생해주는 관계 (인성→비겁, 비겁→식상, 식상→재성, 재성→관성, 관성→인성)",
+      "극제": "극하는 관계 (비겁→재성, 식상→관성, 재성→인성, 관성→비겁, 인성→식상)",
+      "동류": "같은 류끼리의 관계 (강화 또는 경쟁)"
+    }
+  },
+  "interactions": {
+    "비견_비견": {
+      "name": "비견 + 비견 (群比格)",
+      "category": "동류조합",
+      "core_meaning": "자아가 매우 강함. 독립심과 경쟁심이 극대화",
+      "interpretation": {
+        "personality": {
+          "positive": "강한 자존심과 독립심. 어떤 어려움도 스스로 극복. 리더십",
+          "negative": "타협 불가. 고집이 세고 남의 말을 듣지 않음. 외로움"
+        },
+        "relationship": {
+          "general": "동등한 관계만 유지. 위아래가 불분명하면 갈등",
+          "marriage": "배우자와 대등해야 함. 내 주장이 강해 충돌 가능",
+          "business": "동업은 위험. 반드시 주도권 명확히"
+        },
+        "career": "독자적 사업, 프리랜서, 전문직에 유리. 조직 생활 힘듦",
+        "wealth": "재성이 약해지므로 재물 모으기 어려움. 벌어도 나감",
+        "advice": "인성(印星)이 있으면 기운이 순환됨. 재성을 보호해야 재물 보존"
+      },
+      "special_patterns": {
+        "군비쟁재": {
+          "condition": "비견이 많고 재성이 약할 때",
+          "meaning": "여러 명이 재물을 두고 경쟁",
+          "effect": "재물 손실, 형제간 다툼, 사업 분쟁"
+        }
+      }
+    },
+    "비견_겁재": {
+      "name": "비견 + 겁재",
+      "category": "동류조합",
+      "core_meaning": "비겁이 과다하여 자아 에너지 극대화. 재물 위험",
+      "interpretation": {
+        "personality": {
+          "positive": "행동력과 추진력이 뛰어남. 결단력 있음",
+          "negative": "충동적이고 공격적. 재물에 대한 욕심이 과해 손실"
+        },
+        "relationship": {
+          "general": "경쟁 의식이 강해 친구도 경쟁 상대로 봄",
+          "marriage": "배우자 재산 문제. 시댁/처가와 금전 갈등"
+        },
+        "career": "경쟁이 심한 업종. 스포츠, 영업, 주식 트레이딩",
+        "wealth": "들어오는 것보다 나가는 게 많음. 겁재가 재를 빼앗아감",
+        "advice": "관성(官星)으로 비겁을 제어해야 안정. 공무원, 법조계 유리"
+      }
+    },
+    "비견_식신": {
+      "name": "비견 + 식신",
+      "category": "생조관계",
+      "core_meaning": "비견이 식신을 생함. 자아가 표현력으로 발현",
+      "interpretation": {
+        "personality": {
+          "positive": "창의적이고 표현력 풍부. 재능이 많음",
+          "negative": "자기 표현에 집착. 남의 평가에 민감"
+        },
+        "relationship": {
+          "general": "대화를 좋아하고 유머 감각 있음",
+          "marriage": "자녀 복. 자녀가 건강하고 효도함"
+        },
+        "career": "예술, 요리, 글쓰기, 강연, 교육 분야 탁월",
+        "wealth": "재능으로 돈을 벌음. 식신생재(食神生財)로 이어지면 부자",
+        "advice": "식신이 제대로 작용하려면 비겁의 도움 필요. 좋은 조합"
+      }
+    },
+    "비견_상관": {
+      "name": "비견 + 상관",
+      "category": "생조관계",
+      "core_meaning": "자아가 날카로운 표현력으로 발현. 비평 정신",
+      "interpretation": {
+        "personality": {
+          "positive": "날카로운 분석력과 비평 능력. 혁신적 사고",
+          "negative": "독설가가 되기 쉬움. 권위에 반항"
+        },
+        "relationship": {
+          "general": "솔직하지만 상처 줄 수 있음",
+          "marriage": "여자는 남편운 주의. 상관견관이 되면 갈등"
+        },
+        "career": "비평가, 평론가, 개혁가, 벤처 창업자",
+        "wealth": "상관생재로 이어지면 재물 좋음. 기발한 아이디어로 수익",
+        "advice": "인성으로 상관을 제어하면 균형. 학문으로 승화 가능"
+      }
+    },
+    "비견_편재": {
+      "name": "비견 + 편재",
+      "category": "극제관계",
+      "core_meaning": "비견이 편재를 극함. 재물 경쟁",
+      "interpretation": {
+        "personality": {
+          "positive": "재물에 대한 의지 강함. 사업 수완",
+          "negative": "돈에 대한 집착. 형제나 친구와 금전 문제"
+        },
+        "relationship": {
+          "general": "돈 때문에 친구를 잃을 수 있음",
+          "marriage": "남자는 아버지나 여자 관계 복잡"
+        },
+        "career": "사업, 투기, 주식, 무역에 관심. 승부사 기질",
+        "wealth": "큰돈 벌고 큰돈 잃음. 투기적 성향",
+        "advice": "관성이 있어야 비겁 제어. 안정적 직장이 오히려 좋음"
+      }
+    },
+    "비견_정재": {
+      "name": "비견 + 정재",
+      "category": "극제관계",
+      "core_meaning": "비견이 정재를 극함. 안정된 재물에 위협",
+      "interpretation": {
+        "personality": {
+          "positive": "재물 관리에 관심. 저축 의지",
+          "negative": "돈을 모아도 뺏기는 느낌. 불안감"
+        },
+        "relationship": {
+          "marriage": "남자는 배우자(정재)가 비견에게 위협받음",
+          "family": "형제와 재산 분쟁 주의"
+        },
+        "career": "안정적 직장에서 경쟁자와 다툼",
+        "wealth": "정재가 있어도 비견이 빼앗아감. 공동 재산 주의",
+        "advice": "정재를 보호하려면 관성 필요. 혼자 관리보다 법적 보호"
+      }
+    },
+    "비견_편관": {
+      "name": "비견 + 편관",
+      "category": "상생상극",
+      "core_meaning": "편관이 비견을 극함. 강한 통제와 저항",
+      "interpretation": {
+        "personality": {
+          "positive": "규율 속에서 단련됨. 강인한 정신력",
+          "negative": "억압받는 느낌. 반항심 폭발 가능"
+        },
+        "relationship": {
+          "general": "권력 관계에서 갈등. 상하 관계 불편",
+          "marriage": "여자는 강한 남편. 통제받는 느낌"
+        },
+        "career": "군경, 법조, 무술에서 성공 가능. 규율이 맞으면 출세",
+        "wealth": "직장 월급으로 안정. 사업보다 취직이 유리",
+        "advice": "식신이 있으면 편관 제어(식신제살). 균형 잡힘"
+      }
+    },
+    "비견_정관": {
+      "name": "비견 + 정관",
+      "category": "상생상극",
+      "core_meaning": "정관이 비견을 극함. 사회적 규범과 자아",
+      "interpretation": {
+        "personality": {
+          "positive": "사회 규범을 존중. 책임감 있는 시민",
+          "negative": "자유로움과 책임 사이 갈등"
+        },
+        "relationship": {
+          "general": "예의 바르고 신뢰받음",
+          "marriage": "여자는 좋은 남편. 안정적 결혼"
+        },
+        "career": "공무원, 대기업 임직원, 법조계에서 출세",
+        "wealth": "안정된 수입. 급격한 부는 아니지만 꾸준함",
+        "advice": "비견이 있어도 정관이 있으면 통제되어 길함"
+      }
+    },
+    "비견_편인": {
+      "name": "비견 + 편인",
+      "category": "생조관계",
+      "core_meaning": "편인이 비견을 생함. 독창적 학문과 자아",
+      "interpretation": {
+        "personality": {
+          "positive": "독창적 사고. 예술적 재능. 직관력",
+          "negative": "고독하고 외골수. 사회 부적응 가능"
+        },
+        "relationship": {
+          "general": "깊이 있는 관계. 소수의 친구",
+          "family": "어머니가 독특하거나 양어머니 가능"
+        },
+        "career": "철학, 종교, 심리학, 예술, 연구직",
+        "wealth": "돈보다 지식이나 명예 추구. 재물운은 보통",
+        "advice": "재성이 있으면 편인 제어. 현실과 균형 필요"
+      }
+    },
+    "비견_정인": {
+      "name": "비견 + 정인",
+      "category": "생조관계",
+      "core_meaning": "정인이 비견을 생함. 학문과 자아의 조화",
+      "interpretation": {
+        "personality": {
+          "positive": "학문적 성취. 품위 있고 교양 있음",
+          "negative": "책만 좋아하고 실행력 부족"
+        },
+        "relationship": {
+          "general": "존경받는 관계. 멘토 역할",
+          "family": "어머니 복. 좋은 교육 환경"
+        },
+        "career": "교육, 학문, 공무원, 종교, 출판",
+        "wealth": "안정적이나 큰 부는 아님. 문서로 재물(계약)",
+        "advice": "인성이 비겁을 생하니 기운이 순환됨. 좋은 조합"
+      }
+    },
+    "겁재_겁재": {
+      "name": "겁재 + 겁재 (重劫)",
+      "category": "동류조합",
+      "core_meaning": "겁재가 중첩되어 재물 손실 극대화",
+      "interpretation": {
+        "personality": {
+          "positive": "과감하고 두려움이 없음. 도박사 기질",
+          "negative": "충동적이고 공격적. 재물에 무모함"
+        },
+        "relationship": {
+          "general": "경쟁심이 강해 친구도 적이 됨",
+          "marriage": "배우자 재산 갈등. 이혼 위험"
+        },
+        "career": "고위험 고수익 분야. 투기, 모험 사업",
+        "wealth": "재물이 들어와도 나감. 큰 손실 위험",
+        "advice": "강한 관성으로 제어 필수. 안정적 직장이 해법"
+      },
+      "warning": "군겁탈재(群劫奪財) - 여러 겁재가 재물을 빼앗아감"
+    },
+    "겁재_식신": {
+      "name": "겁재 + 식신",
+      "category": "생조관계",
+      "core_meaning": "겁재가 식신을 생함. 충동이 표현으로 승화",
+      "interpretation": {
+        "personality": {
+          "positive": "적극적이고 표현력 좋음. 행동파 예술가",
+          "negative": "참을성 없이 표현함. 감정 기복"
+        },
+        "relationship": {
+          "general": "솔직하고 활발. 인기 있음",
+          "marriage": "자녀에게 적극적. 과보호 가능"
+        },
+        "career": "엔터테인먼트, 스포츠, 요리, 강연",
+        "wealth": "식신생재로 이어지면 재물 좋음",
+        "advice": "식신이 겁재의 공격성을 순화시켜 좋은 조합"
+      }
+    },
+    "겁재_상관": {
+      "name": "겁재 + 상관",
+      "category": "생조관계",
+      "core_meaning": "겁재와 상관의 결합. 파괴적 혁신",
+      "interpretation": {
+        "personality": {
+          "positive": "기존 틀을 깨는 혁신가. 두려움 없는 비평",
+          "negative": "파괴적이고 반항적. 통제 불능"
+        },
+        "relationship": {
+          "general": "충돌이 많음. 권위에 반발",
+          "marriage": "여자는 남편과 심각한 갈등"
+        },
+        "career": "혁명가, 스타트업 창업자, 언론인",
+        "wealth": "상관생재로 성공하거나 모두 잃거나",
+        "advice": "인성으로 제어 필수. 학문이나 종교로 승화"
+      },
+      "warning": "상관견관 + 겁재 = 직장 문제, 법적 분쟁 주의"
+    },
+    "겁재_편재": {
+      "name": "겁재 + 편재",
+      "category": "극제관계",
+      "core_meaning": "겁재가 편재를 강하게 극함. 투기적 재물",
+      "interpretation": {
+        "personality": {
+          "positive": "대담한 투자자. 승부사",
+          "negative": "돈에 무모함. 도박 중독 위험"
+        },
+        "relationship": {
+          "general": "돈 때문에 관계가 파괴됨",
+          "marriage": "남자는 여자 관계 복잡. 바람기 주의"
+        },
+        "career": "주식, 선물, 카지노, 모험 사업",
+        "wealth": "대박 아니면 쪽박. 극단적 재물운",
+        "advice": "관성으로 겁재 제어 필수. 투기 자제"
+      },
+      "special_patterns": {
+        "겁재탈재": {
+          "meaning": "겁재가 편재를 빼앗아감",
+          "effect": "사기, 횡령, 도박 손실에 연루될 수 있음"
+        }
+      }
+    },
+    "겁재_정재": {
+      "name": "겁재 + 정재",
+      "category": "극제관계",
+      "core_meaning": "겁재가 정재를 극함. 안정된 재산 위협",
+      "interpretation": {
+        "personality": {
+          "positive": "재물에 적극적. 사업 의지",
+          "negative": "안정된 것을 잃을 위험"
+        },
+        "relationship": {
+          "marriage": "남자는 배우자 갈등. 재산 분쟁",
+          "family": "형제나 친구가 돈 빌려달라고 함"
+        },
+        "career": "직장에서 경쟁자에게 밀림",
+        "wealth": "저축해도 빠져나감. 보증 서지 말 것",
+        "advice": "정관이 있어야 겁재 제어. 법적 보호 필요"
+      }
+    },
+    "겁재_편관": {
+      "name": "겁재 + 편관",
+      "category": "극제관계",
+      "core_meaning": "편관이 겁재를 강하게 극함. 치열한 대립",
+      "interpretation": {
+        "personality": {
+          "positive": "강한 규율 속에서 성장. 군인 기질",
+          "negative": "억압받으면 폭발. 범법 위험"
+        },
+        "relationship": {
+          "general": "권력 투쟁. 이기거나 지거나",
+          "marriage": "여자는 강압적 남편"
+        },
+        "career": "군경, 무술, 경호, 법집행에서 성공",
+        "wealth": "직장이면 안정. 사업은 위험",
+        "advice": "식신으로 편관 제어(식신제살). 균형 잡으면 출세"
+      }
+    },
+    "겁재_정관": {
+      "name": "겁재 + 정관",
+      "category": "극제관계",
+      "core_meaning": "정관이 겁재를 극함. 사회적 통제",
+      "interpretation": {
+        "personality": {
+          "positive": "규율을 따르면서도 적극적",
+          "negative": "체제 내에서 불만. 갈등"
+        },
+        "relationship": {
+          "general": "사회적으로 적절히 행동",
+          "marriage": "여자는 안정적 남편"
+        },
+        "career": "공무원, 대기업에서 겁재 기질 순화",
+        "wealth": "안정된 월급. 투기 자제",
+        "advice": "정관이 겁재를 제어하니 좋은 조합"
+      }
+    },
+    "겁재_편인": {
+      "name": "겁재 + 편인",
+      "category": "생조관계",
+      "core_meaning": "편인이 겁재를 생함. 독창적 행동력",
+      "interpretation": {
+        "personality": {
+          "positive": "독창적이고 행동력 있음. 예술적 모험",
+          "negative": "기이한 행동. 사회 부적응"
+        },
+        "relationship": {
+          "general": "독특한 관계. 일반적 친구 아님"
+        },
+        "career": "모험적 예술, 극한 스포츠, 연구",
+        "wealth": "돈보다 자유 추구. 재물운 불안정",
+        "advice": "재성이 편인 제어하면 현실적이 됨"
+      }
+    },
+    "겁재_정인": {
+      "name": "겁재 + 정인",
+      "category": "생조관계",
+      "core_meaning": "정인이 겁재를 생함. 학문이 행동력 부여",
+      "interpretation": {
+        "personality": {
+          "positive": "배움을 실천으로 옮김. 교육자",
+          "negative": "지식을 무기로 공격"
+        },
+        "relationship": {
+          "general": "가르치려 드는 경향. 멘토 역할",
+          "family": "어머니 영향 큼"
+        },
+        "career": "교육, 훈련, 코칭 분야",
+        "wealth": "문서나 자격증으로 재물",
+        "advice": "인성이 겁재를 순화시켜 좋은 조합"
+      }
+    },
+    "식신_식신": {
+      "name": "식신 + 식신 (重食)",
+      "category": "동류조합",
+      "core_meaning": "식신 과다. 표현과 향유가 극대화",
+      "interpretation": {
+        "personality": {
+          "positive": "재능이 넘침. 다재다능. 미식가",
+          "negative": "게으르고 향락적. 과소비"
+        },
+        "relationship": {
+          "general": "즐거운 관계. 분위기 메이커",
+          "marriage": "자녀 복. 하지만 자녀에게 무관심할 수도"
+        },
+        "career": "예술, 요리, 엔터테인먼트, 레저 산업",
+        "wealth": "식신생재로 재물 좋지만 낭비 주의",
+        "advice": "편인이 오면 효신탈식(식신이 빼앗김) 주의"
+      }
+    },
+    "식신_상관": {
+      "name": "식신 + 상관",
+      "category": "동류조합",
+      "core_meaning": "식상 과다. 표현력 폭발",
+      "interpretation": {
+        "personality": {
+          "positive": "표현의 달인. 말과 글이 탁월",
+          "negative": "말이 많고 비판적. 입이 화근"
+        },
+        "relationship": {
+          "general": "재미있지만 상처 주기도",
+          "marriage": "여자는 남편 운 주의. 상관견관"
+        },
+        "career": "작가, 강연자, 평론가, 연예인",
+        "wealth": "재능으로 큰 돈. 하지만 기복",
+        "advice": "인성으로 식상 제어하면 깊이 생김"
+      }
+    },
+    "식신_편재": {
+      "name": "식신 + 편재",
+      "category": "생조관계",
+      "core_meaning": "식신이 편재를 생함. 재능이 재물로 연결",
+      "interpretation": {
+        "personality": {
+          "positive": "재능으로 돈 버는 능력. 사업 감각",
+          "negative": "돈에 대한 집착. 향락"
+        },
+        "relationship": {
+          "general": "풍요로운 관계. 베풀기 좋아함",
+          "marriage": "남자는 여자 인연 좋음"
+        },
+        "career": "요식업, 엔터테인먼트 사업, 무역",
+        "wealth": "식신생재(食神生財) - 최고의 재물운 조합 중 하나",
+        "advice": "편인이 오면 식신 빼앗김 주의"
+      },
+      "special_patterns": {
+        "식신생재": {
+          "meaning": "식신이 편재를 생해줌",
+          "effect": "재능과 창의력으로 큰 재물을 얻음"
+        }
+      }
+    },
+    "식신_정재": {
+      "name": "식신 + 정재",
+      "category": "생조관계",
+      "core_meaning": "식신이 정재를 생함. 안정적 재물 창출",
+      "interpretation": {
+        "personality": {
+          "positive": "착실하게 재능으로 돈 벌기",
+          "negative": "소소함에 만족. 큰 야망 없음"
+        },
+        "relationship": {
+          "general": "안정적이고 평화로운",
+          "marriage": "가정적. 행복한 결혼"
+        },
+        "career": "안정적 직장에서 재능 발휘",
+        "wealth": "꾸준한 수입. 큰 부는 아니지만 안정",
+        "advice": "가장 안정적인 재물 조합 중 하나"
+      }
+    },
+    "식신_편관": {
+      "name": "식신 + 편관",
+      "category": "극제관계",
+      "core_meaning": "식신이 편관을 극함. 식신제살(食神制殺)",
+      "interpretation": {
+        "personality": {
+          "positive": "권력을 지혜로 다스림. 유능한 지도자",
+          "negative": "권위에 도전하다 화를 입을 수 있음"
+        },
+        "relationship": {
+          "general": "윗사람과 잘 지냄. 존경받음",
+          "marriage": "여자는 남편을 잘 다스림"
+        },
+        "career": "정치, 경영, 법조에서 성공",
+        "wealth": "권력과 재물 동시에 가능",
+        "advice": "최고의 권력 조합. 편관의 흉함을 식신이 제어"
+      },
+      "special_patterns": {
+        "식신제살": {
+          "meaning": "식신이 편관(칠살)을 제어함",
+          "effect": "권력을 부드럽게 다스려 성공. 흉한 살이 길하게 변함"
+        }
+      }
+    },
+    "식신_정관": {
+      "name": "식신 + 정관",
+      "category": "극제관계",
+      "core_meaning": "식신이 정관을 극함. 창의성과 규율의 충돌",
+      "interpretation": {
+        "personality": {
+          "positive": "창의적이면서 책임감 있음",
+          "negative": "자유로움이 규율에 억눌림"
+        },
+        "relationship": {
+          "general": "예의 바르지만 개성 있음",
+          "marriage": "안정적이지만 약간의 갈등"
+        },
+        "career": "창의적 공무원, 예술 기관",
+        "wealth": "안정적 수입",
+        "advice": "정관이 약하면 식신에 상함. 균형 필요"
+      }
+    },
+    "식신_편인": {
+      "name": "식신 + 편인",
+      "category": "극제관계",
+      "core_meaning": "편인이 식신을 극함. 효신탈식(梟神奪食)",
+      "interpretation": {
+        "personality": {
+          "positive": "깊은 사고력. 철학적",
+          "negative": "표현이 막힘. 재능 발휘 어려움"
+        },
+        "relationship": {
+          "general": "소통 어려움. 오해받기 쉬움",
+          "marriage": "자녀 문제. 유산이나 건강 이상"
+        },
+        "career": "표현 직종에 불리. 연구직은 가능",
+        "wealth": "식신생재가 막혀 재물운 나빠짐",
+        "advice": "재성으로 편인 제어 필수. 아니면 흉함"
+      },
+      "special_patterns": {
+        "효신탈식": {
+          "meaning": "편인(효신)이 식신을 빼앗아감",
+          "effect": "재능 발휘 불가. 자녀 문제. 건강 이상. 대흉"
+        }
+      }
+    },
+    "식신_정인": {
+      "name": "식신 + 정인",
+      "category": "극제관계",
+      "core_meaning": "정인이 식신을 극함. 학문이 표현을 억제",
+      "interpretation": {
+        "personality": {
+          "positive": "사려 깊은 표현. 품격 있는 창작",
+          "negative": "너무 조심스러워 표현 못 함"
+        },
+        "relationship": {
+          "general": "신중하고 예의 바름",
+          "marriage": "조용한 가정"
+        },
+        "career": "학문적 글쓰기. 교육, 연구",
+        "wealth": "안정적이나 큰 재물은 아님",
+        "advice": "편인처럼 강하게 극하지 않아 나쁘지 않음"
+      }
+    },
+    "상관_상관": {
+      "name": "상관 + 상관 (重傷)",
+      "category": "동류조합",
+      "core_meaning": "상관 과다. 비판과 반항 극대화",
+      "interpretation": {
+        "personality": {
+          "positive": "천재적 창의력. 혁명가",
+          "negative": "모든 것에 불만. 파괴적"
+        },
+        "relationship": {
+          "general": "충돌이 많음. 친구를 잃기 쉬움",
+          "marriage": "여자는 남편과 심각한 갈등. 이혼 위험"
+        },
+        "career": "예술(전위예술), 혁명가, 비평가",
+        "wealth": "재능 있으나 안정 못함. 기복 심함",
+        "advice": "인성으로 상관 제어 필수. 학문으로 승화"
+      },
+      "warning": "여명(女命)에 상관 과다 = 상관견관, 남편운 흉"
+    },
+    "상관_편재": {
+      "name": "상관 + 편재",
+      "category": "생조관계",
+      "core_meaning": "상관이 편재를 생함. 혁신적 재물",
+      "interpretation": {
+        "personality": {
+          "positive": "기발한 아이디어로 돈 벌기",
+          "negative": "투기적이고 불안정"
+        },
+        "relationship": {
+          "general": "매력적이지만 변덕스러움",
+          "marriage": "남자는 바람기 주의"
+        },
+        "career": "스타트업, 투기, 연예, 광고",
+        "wealth": "상관생재로 큰돈 벌기도. 잃기도",
+        "advice": "편재의 불안정함에 상관의 충동 더해짐. 신중 필요"
+      }
+    },
+    "상관_정재": {
+      "name": "상관 + 정재",
+      "category": "생조관계",
+      "core_meaning": "상관이 정재를 생함. 창의성이 안정 재물로",
+      "interpretation": {
+        "personality": {
+          "positive": "창의력으로 착실히 벌기",
+          "negative": "충동적 지출"
+        },
+        "relationship": {
+          "general": "재미있고 능력 있음",
+          "marriage": "가정을 위해 노력"
+        },
+        "career": "창의적 직장인. 디자이너, 마케터",
+        "wealth": "상관생재로 안정적 수입",
+        "advice": "상관이 순화되어 좋은 조합"
+      }
+    },
+    "상관_편관": {
+      "name": "상관 + 편관",
+      "category": "극제관계",
+      "core_meaning": "상관이 편관을 극함. 권력과의 충돌",
+      "interpretation": {
+        "personality": {
+          "positive": "권력에 맞서는 용기. 혁명가",
+          "negative": "당국과 충돌. 법적 문제"
+        },
+        "relationship": {
+          "general": "권위자와 갈등",
+          "marriage": "여자는 남편과 심각한 충돌"
+        },
+        "career": "반체제 활동가, 언론인, 변호사",
+        "wealth": "불안정. 소송으로 잃을 수도",
+        "advice": "인성으로 상관 제어 필수. 아니면 화를 입음"
+      },
+      "warning": "상관견관(傷官見官) - 상관이 관성을 극하면 대흉"
+    },
+    "상관_정관": {
+      "name": "상관 + 정관",
+      "category": "극제관계",
+      "core_meaning": "상관이 정관을 극함. 상관견관(傷官見官)",
+      "interpretation": {
+        "personality": {
+          "positive": "비판 정신. 개혁 의지",
+          "negative": "권위와 충돌. 직장 문제"
+        },
+        "relationship": {
+          "general": "상사와 갈등",
+          "marriage": "여자는 남편과 갈등. 이혼 위험"
+        },
+        "career": "조직 생활 어려움. 독자 활동 필요",
+        "wealth": "직장에서 해고당하면 경제적 어려움",
+        "advice": "인성(印星)으로 상관 제어해야 함"
+      },
+      "special_patterns": {
+        "상관견관": {
+          "meaning": "상관이 정관을 만나 극함",
+          "effect": "관재, 직장 문제, 남편 문제(여자). 고전적 흉조합"
+        }
+      }
+    },
+    "상관_편인": {
+      "name": "상관 + 편인",
+      "category": "극제관계",
+      "core_meaning": "편인이 상관을 극함. 억눌린 표현",
+      "interpretation": {
+        "personality": {
+          "positive": "깊이 있는 사색. 철학적",
+          "negative": "표현이 막힘. 우울"
+        },
+        "relationship": {
+          "general": "소통 어려움. 고독",
+          "marriage": "갈등 내재화"
+        },
+        "career": "연구, 종교, 심리학",
+        "wealth": "재물운 평범",
+        "advice": "재성으로 편인 제어하면 표현력 회복"
+      }
+    },
+    "상관_정인": {
+      "name": "상관 + 정인",
+      "category": "극제관계",
+      "core_meaning": "정인이 상관을 극함. 상관패인(傷官佩印)",
+      "interpretation": {
+        "personality": {
+          "positive": "날카로움이 학문으로 순화. 비평적 학자",
+          "negative": "비판과 학문 사이에서 갈등"
+        },
+        "relationship": {
+          "general": "존경받으면서도 날카로움",
+          "marriage": "배우자가 순화시킴"
+        },
+        "career": "학자, 비평가, 교수, 연구원",
+        "wealth": "안정적. 학문으로 명예",
+        "advice": "상관패인은 길한 조합. 상관의 흉함을 인성이 제어"
+      },
+      "special_patterns": {
+        "상관패인": {
+          "meaning": "상관이 인성을 만나 제어됨",
+          "effect": "날카로운 비판력이 학문으로 승화. 대길"
+        }
+      }
+    },
+    "편재_편재": {
+      "name": "편재 + 편재 (重偏財)",
+      "category": "동류조합",
+      "core_meaning": "편재 과다. 재물욕과 바람기 극대화",
+      "interpretation": {
+        "personality": {
+          "positive": "사업 수완 좋음. 돈 버는 능력",
+          "negative": "투기적. 바람기. 아버지와 인연 약함"
+        },
+        "relationship": {
+          "general": "많은 인연. 가벼운 관계",
+          "marriage": "남자는 여자 인연 복잡. 바람"
+        },
+        "career": "사업, 무역, 투자, 유흥업",
+        "wealth": "들어오고 나감. 저축 어려움",
+        "advice": "관성으로 제어하면 안정. 결혼 후 안정되기도"
+      }
+    },
+    "편재_정재": {
+      "name": "편재 + 정재",
+      "category": "동류조합",
+      "core_meaning": "재성 과다. 재물 복 있으나 관리 어려움",
+      "interpretation": {
+        "personality": {
+          "positive": "재물 복. 다양한 수입원",
+          "negative": "돈에 대한 집착. 과로"
+        },
+        "relationship": {
+          "general": "풍요롭지만 바쁨",
+          "marriage": "남자는 여자 인연 복잡"
+        },
+        "career": "복수 사업. 투자자. 재테크",
+        "wealth": "돈은 많지만 나가는 것도 많음",
+        "advice": "관성이 있으면 더욱 좋음. 재생관(財生官)"
+      }
+    },
+    "편재_편관": {
+      "name": "편재 + 편관",
+      "category": "생조관계",
+      "core_meaning": "편재가 편관을 생함. 재물이 권력으로",
+      "interpretation": {
+        "personality": {
+          "positive": "재력으로 권력 획득. 정치적 수완",
+          "negative": "돈으로 권력을 사려함"
+        },
+        "relationship": {
+          "general": "실리적 관계",
+          "marriage": "여자는 재력 있는 남편"
+        },
+        "career": "정치, 사업, 권력 기관",
+        "wealth": "재물이 권력으로 이어짐",
+        "advice": "재생살(財生殺) - 재물이 흉한 살을 생하면 주의"
+      },
+      "special_patterns": {
+        "재생살": {
+          "meaning": "재성이 편관(살)을 생해줌",
+          "effect": "돈으로 권력을 사지만, 편관이 강해지면 반격당함"
+        }
+      }
+    },
+    "편재_정관": {
+      "name": "편재 + 정관",
+      "category": "생조관계",
+      "core_meaning": "편재가 정관을 생함. 재물이 명예로",
+      "interpretation": {
+        "personality": {
+          "positive": "재력과 명예 겸비. 사회적 성공",
+          "negative": "명예에 집착"
+        },
+        "relationship": {
+          "general": "존경받는 부자",
+          "marriage": "안정적이고 풍요로움"
+        },
+        "career": "사업가 겸 사회 명사",
+        "wealth": "재생관(財生官)으로 안정된 부와 명예",
+        "advice": "재물이 관성을 생하면 최고의 성공 조합"
+      }
+    },
+    "편재_편인": {
+      "name": "편재 + 편인",
+      "category": "극제관계",
+      "core_meaning": "편재가 편인을 극함. 재물이 학문을 방해",
+      "interpretation": {
+        "personality": {
+          "positive": "현실적 지혜. 실용 학문",
+          "negative": "돈 때문에 공부 못함"
+        },
+        "relationship": {
+          "general": "실리적",
+          "family": "어머니와 재물 갈등"
+        },
+        "career": "사업이 학문보다 우선",
+        "wealth": "재물은 있으나 지식은 부족",
+        "advice": "편인이 효신탈식을 일으키면 재성으로 제어 가능"
+      }
+    },
+    "편재_정인": {
+      "name": "편재 + 정인",
+      "category": "극제관계",
+      "core_meaning": "편재가 정인을 극함. 재물이 학문을 극",
+      "interpretation": {
+        "personality": {
+          "positive": "실용적 학문. 응용 능력",
+          "negative": "순수 학문 어려움. 돈에 끌림"
+        },
+        "relationship": {
+          "family": "어머니와 아버지 사이에서 갈등"
+        },
+        "career": "사업과 학문 사이에서 갈등",
+        "wealth": "재물에 집중하면 부자 가능",
+        "advice": "정인이 약하면 손상됨. 균형 필요"
+      }
+    },
+    "정재_정재": {
+      "name": "정재 + 정재 (重正財)",
+      "category": "동류조합",
+      "core_meaning": "정재 과다. 안정적 재물 축적",
+      "interpretation": {
+        "personality": {
+          "positive": "저축형. 알뜰살뜰. 경제관념",
+          "negative": "돈에 인색. 물질주의"
+        },
+        "relationship": {
+          "general": "믿음직함",
+          "marriage": "안정적 가정. 다만 남자는 여자 문제"
+        },
+        "career": "금융, 회계, 자산관리",
+        "wealth": "착실히 모음. 큰 부는 아니어도 안정",
+        "advice": "비겁이 많으면 재성이 위험. 관성으로 보호"
+      }
+    },
+    "정재_편관": {
+      "name": "정재 + 편관",
+      "category": "생조관계",
+      "core_meaning": "정재가 편관을 생함. 안정 재물이 권력으로",
+      "interpretation": {
+        "personality": {
+          "positive": "실력으로 권력 획득",
+          "negative": "권력에 집착"
+        },
+        "relationship": {
+          "general": "실력자로 인정받음",
+          "marriage": "여자는 능력 있는 남편"
+        },
+        "career": "공무원, 정치인, 기업 임원",
+        "wealth": "재물이 안정된 권력으로",
+        "advice": "안정적 성공 경로"
+      }
+    },
+    "정재_정관": {
+      "name": "정재 + 정관",
+      "category": "생조관계",
+      "core_meaning": "정재가 정관을 생함. 재생관(財生官)",
+      "interpretation": {
+        "personality": {
+          "positive": "모범적 성공인. 재물과 명예 겸비",
+          "negative": "너무 모범적이라 재미없음"
+        },
+        "relationship": {
+          "general": "존경받고 신뢰받음",
+          "marriage": "완벽한 가정"
+        },
+        "career": "대기업 임원, 고위 공무원",
+        "wealth": "재생관으로 최고의 안정과 성공",
+        "advice": "가장 이상적인 성공 조합"
+      },
+      "special_patterns": {
+        "재생관": {
+          "meaning": "재성이 정관을 생해줌",
+          "effect": "재물로 명예를 얻음. 가장 안정적인 성공"
+        }
+      }
+    },
+    "정재_편인": {
+      "name": "정재 + 편인",
+      "category": "극제관계",
+      "core_meaning": "정재가 편인을 극함. 현실이 독창성을 억제",
+      "interpretation": {
+        "personality": {
+          "positive": "현실적으로 변함. 실용 학문",
+          "negative": "예술성이 억눌림"
+        },
+        "relationship": {
+          "family": "어머니와 갈등. 재물 문제"
+        },
+        "career": "예술보다 사업",
+        "wealth": "재물에 집중하면 성공",
+        "advice": "편인의 부정적 면을 재성이 제어하기도"
+      }
+    },
+    "정재_정인": {
+      "name": "정재 + 정인",
+      "category": "극제관계",
+      "core_meaning": "정재가 정인을 극함. 재물과 학문의 균형",
+      "interpretation": {
+        "personality": {
+          "positive": "실용적 학문. 균형 있는 삶",
+          "negative": "양쪽 다 어중간"
+        },
+        "relationship": {
+          "family": "가정 내 균형"
+        },
+        "career": "학문과 사업 겸업",
+        "wealth": "적당한 재물과 교양",
+        "advice": "둘 다 강하면 갈등. 하나를 선택해야"
+      }
+    },
+    "편관_편관": {
+      "name": "편관 + 편관 (重殺)",
+      "category": "동류조합",
+      "core_meaning": "편관(칠살) 과다. 극도의 압박과 권력",
+      "interpretation": {
+        "personality": {
+          "positive": "강인함. 권력 지향. 생존력",
+          "negative": "폭력적. 범법. 질병"
+        },
+        "relationship": {
+          "general": "권력 투쟁. 적이 많음",
+          "marriage": "여자는 남편 문제 심각"
+        },
+        "career": "군경, 무술, 권력 기관 (제어되면)",
+        "wealth": "권력으로 재물. 아니면 빈곤",
+        "advice": "식신제살 필수. 인성으로 살인상생도 가능"
+      },
+      "warning": "칠살이 중첩되면 대흉. 제어하지 못하면 질병, 사고, 형옥"
+    },
+    "편관_정관": {
+      "name": "편관 + 정관",
+      "category": "동류조합",
+      "core_meaning": "관살혼잡(官殺混雜). 권력의 혼란",
+      "interpretation": {
+        "personality": {
+          "positive": "유연한 권력 감각",
+          "negative": "정체성 혼란. 이중성"
+        },
+        "relationship": {
+          "general": "여러 상사 사이에서 갈등",
+          "marriage": "여자는 두 남자 사이에서 갈등"
+        },
+        "career": "두 직장 사이 갈등. 이직 잦음",
+        "wealth": "불안정",
+        "advice": "식상으로 관살 제어하거나 하나를 합거해야"
+      },
+      "special_patterns": {
+        "관살혼잡": {
+          "meaning": "정관과 편관이 함께 있음",
+          "effect": "권력이 분산되어 혼란. 여자는 남편 문제"
+        }
+      }
+    },
+    "편관_편인": {
+      "name": "편관 + 편인",
+      "category": "생조관계",
+      "core_meaning": "편관이 편인을 생함. 살인상생(殺印相生)",
+      "interpretation": {
+        "personality": {
+          "positive": "권력이 지혜로 승화. 전략가",
+          "negative": "음모가. 권모술수"
+        },
+        "relationship": {
+          "general": "깊고 전략적인 관계"
+        },
+        "career": "군사전략가, 정치가, 검찰, 정보기관",
+        "wealth": "권력과 지혜로 성공",
+        "advice": "살인상생은 좋은 조합. 흉한 살이 인성을 생함"
+      },
+      "special_patterns": {
+        "살인상생": {
+          "meaning": "편관(살)이 인성을 생해줌",
+          "effect": "권력이 지혜로 변환. 대길"
+        }
+      }
+    },
+    "편관_정인": {
+      "name": "편관 + 정인",
+      "category": "생조관계",
+      "core_meaning": "편관이 정인을 생함. 권력이 학문으로",
+      "interpretation": {
+        "personality": {
+          "positive": "권력과 학문 겸비. 학자적 리더",
+          "negative": "학문을 권력에 이용"
+        },
+        "relationship": {
+          "general": "존경받는 권력자"
+        },
+        "career": "법학교수, 군사학자, 정책 연구",
+        "wealth": "안정적",
+        "advice": "관인상생(官印相生)은 최고의 조합"
+      }
+    },
+    "정관_정관": {
+      "name": "정관 + 정관 (重官)",
+      "category": "동류조합",
+      "core_meaning": "정관 과다. 관다신약(官多身弱)",
+      "interpretation": {
+        "personality": {
+          "positive": "책임감 과잉. 성실함",
+          "negative": "압박받음. 자유 없음. 스트레스"
+        },
+        "relationship": {
+          "general": "많은 책임. 의무에 시달림",
+          "marriage": "여자는 남자 인연 복잡"
+        },
+        "career": "관이 많으면 오히려 불안. 여러 상사",
+        "wealth": "안정적이나 자유 없음",
+        "advice": "관다신약이면 인성이나 비겁 필요"
+      }
+    },
+    "정관_편인": {
+      "name": "정관 + 편인",
+      "category": "생조관계",
+      "core_meaning": "정관이 편인을 생함. 권력이 독창성으로",
+      "interpretation": {
+        "personality": {
+          "positive": "독창적 관료. 창의적 공무원",
+          "negative": "틀에서 벗어나려는 갈등"
+        },
+        "relationship": {
+          "general": "공적이면서도 독특함"
+        },
+        "career": "연구직 공무원, 창의적 조직인",
+        "wealth": "안정적",
+        "advice": "좋은 조합. 관인상생"
+      }
+    },
+    "정관_정인": {
+      "name": "정관 + 정인",
+      "category": "생조관계",
+      "core_meaning": "정관이 정인을 생함. 관인상생(官印相生)",
+      "interpretation": {
+        "personality": {
+          "positive": "학자적 관료. 지식인 리더",
+          "negative": "융통성 부족"
+        },
+        "relationship": {
+          "general": "모범적 관계"
+        },
+        "career": "고위 관료, 교수, 법조인",
+        "wealth": "안정과 명예",
+        "advice": "관인상생은 최고의 성공 조합"
+      },
+      "special_patterns": {
+        "관인상생": {
+          "meaning": "관성이 인성을 생해줌",
+          "effect": "권력과 학문의 완벽한 조화. 출세와 명예"
+        }
+      }
+    },
+    "편인_편인": {
+      "name": "편인 + 편인 (重梟)",
+      "category": "동류조합",
+      "core_meaning": "편인 과다. 고독과 괴팍함",
+      "interpretation": {
+        "personality": {
+          "positive": "천재적 독창성. 심오한 사고",
+          "negative": "괴팍하고 고독. 사회 부적응"
+        },
+        "relationship": {
+          "general": "소통 어려움. 이해받지 못함",
+          "marriage": "어머니 문제. 양육 문제"
+        },
+        "career": "연구, 종교, 철학, 예술(난해한)",
+        "wealth": "재물욕 없음. 빈곤할 수도",
+        "advice": "재성으로 제어 필요. 현실 감각 키워야"
+      },
+      "warning": "효신탈식이 강해짐. 식신이 있으면 완전히 빼앗김"
+    },
+    "편인_정인": {
+      "name": "편인 + 정인",
+      "category": "동류조합",
+      "core_meaning": "인성 과다. 인다탈식(印多奪食)",
+      "interpretation": {
+        "personality": {
+          "positive": "학문적 깊이. 교양",
+          "negative": "생각만 많고 행동 없음. 실행력 부족"
+        },
+        "relationship": {
+          "general": "신뢰받지만 현실 감각 부족",
+          "family": "어머니 과보호"
+        },
+        "career": "학자, 연구원, 종교인",
+        "wealth": "재물보다 명예. 가난한 학자 가능",
+        "advice": "재성이나 식상이 필요. 실행력 키워야"
+      }
+    },
+    "정인_정인": {
+      "name": "정인 + 정인 (重印)",
+      "category": "동류조합",
+      "core_meaning": "정인 과다. 학문에 빠짐",
+      "interpretation": {
+        "personality": {
+          "positive": "학자적 품격. 깊은 교양",
+          "negative": "책만 읽고 행동 안 함. 수동적"
+        },
+        "relationship": {
+          "general": "존경받지만 현실 모름",
+          "family": "어머니 영향 과다"
+        },
+        "career": "교수, 학자, 종교인, 교육자",
+        "wealth": "재물 약함. 청빈한 학자",
+        "advice": "재성으로 인성 제어. 현실 균형 필요"
+      }
+    }
+  },
+  "category_interactions": {
+    "비겁류_식상류": {
+      "relationship": "생조 (비겁이 식상을 생함)",
+      "meaning": "자아가 표현으로 발현",
+      "effect": "재능 발휘, 창작, 표현력 향상"
+    },
+    "식상류_재성류": {
+      "relationship": "생조 (식상이 재성을 생함)",
+      "meaning": "표현이 재물로 변환",
+      "effect": "재능으로 돈 벌기. 식신생재"
+    },
+    "재성류_관성류": {
+      "relationship": "생조 (재성이 관성을 생함)",
+      "meaning": "재물이 권력/명예로 변환",
+      "effect": "재생관. 부와 명예"
+    },
+    "관성류_인성류": {
+      "relationship": "생조 (관성이 인성을 생함)",
+      "meaning": "권력이 지혜로 변환",
+      "effect": "관인상생. 권력과 학문"
+    },
+    "인성류_비겁류": {
+      "relationship": "생조 (인성이 비겁을 생함)",
+      "meaning": "지혜가 자아를 강화",
+      "effect": "학문으로 자신감. 귀인의 도움"
+    },
+    "비겁류_재성류": {
+      "relationship": "극제 (비겁이 재성을 극함)",
+      "meaning": "자아가 재물을 소모/위협",
+      "effect": "재물 손실. 경쟁으로 재산 분쟁"
+    },
+    "식상류_관성류": {
+      "relationship": "극제 (식상이 관성을 극함)",
+      "meaning": "표현이 권위를 공격",
+      "effect": "상관견관. 직장/남편 문제"
+    },
+    "재성류_인성류": {
+      "relationship": "극제 (재성이 인성을 극함)",
+      "meaning": "재물이 학문을 방해",
+      "effect": "돈 때문에 공부 못함. 어머니 갈등"
+    },
+    "관성류_비겁류": {
+      "relationship": "극제 (관성이 비겁을 극함)",
+      "meaning": "권력/사회가 자아를 억압",
+      "effect": "통제와 스트레스. 관다신약"
+    },
+    "인성류_식상류": {
+      "relationship": "극제 (인성이 식상을 극함)",
+      "meaning": "학문이 표현을 억제",
+      "effect": "효신탈식. 재능 억압. 자녀 문제"
+    }
+  },
+  "famous_patterns": {
+    "식신생재": {
+      "combination": "식신 + 재성",
+      "meaning": "재능으로 재물을 얻음",
+      "effect": "부자 사주의 전형. 예술가, 사업가 성공"
+    },
+    "식신제살": {
+      "combination": "식신 + 편관",
+      "meaning": "식신이 편관을 제어",
+      "effect": "흉한 권력이 길하게 변함. 권력자 성공"
+    },
+    "재생관": {
+      "combination": "재성 + 관성",
+      "meaning": "재물이 관성을 생함",
+      "effect": "재물로 명예/권력 획득. 안정된 성공"
+    },
+    "관인상생": {
+      "combination": "관성 + 인성",
+      "meaning": "관성이 인성을 생함",
+      "effect": "권력과 학문의 조화. 출세와 명예"
+    },
+    "살인상생": {
+      "combination": "편관 + 인성",
+      "meaning": "편관이 인성을 생함",
+      "effect": "흉살이 지혜로 변환. 전략가 성공"
+    },
+    "상관패인": {
+      "combination": "상관 + 인성",
+      "meaning": "인성이 상관을 제어",
+      "effect": "비판력이 학문으로 승화. 학자 성공"
+    },
+    "상관견관": {
+      "combination": "상관 + 관성",
+      "meaning": "상관이 관성을 극함",
+      "effect": "대흉. 직장/남편 문제. 관재구설"
+    },
+    "효신탈식": {
+      "combination": "편인 + 식신",
+      "meaning": "편인이 식신을 빼앗음",
+      "effect": "대흉. 재능 억압. 자녀 문제. 건강 문제"
+    },
+    "군비쟁재": {
+      "combination": "비견/겁재 다수 + 재성",
+      "meaning": "여러 비겁이 재물을 다툼",
+      "effect": "재물 손실. 형제/친구와 금전 분쟁"
+    },
+    "관살혼잡": {
+      "combination": "정관 + 편관",
+      "meaning": "두 관성이 혼재",
+      "effect": "권력 혼란. 여자는 남편 문제"
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "type": "johu_yongsin",
+    "description": "계절에 따른 오행별 조후용신 상세 해석",
+    "concept": "조후(調候)란 계절의 기후를 조절하여 사주의 균형을 맞추는 것"
+  },
+  "elements": {
+    "목": {
+      "name": "목",
+      "seasons": {
+        "춘": {
+          "season_name": "봄",
+          "johu_needed": "없음(왕성)",
+          "advice": "목이 봄에 왕성하니 조후가 급하지 않음",
+          "detailed_interpretation": "봄에 목(나무의 성장)은(는) 목이 봄에 왕성하니 조후가 급하지 않음. 조후용신으로 특별히 필요한 것이 없으나 균형 유지가 중요합니다."
+        },
+        "하": {
+          "season_name": "여름",
+          "johu_needed": "수",
+          "advice": "여름 목은 말라가니 물이 필요함",
+          "detailed_interpretation": "여름에 목(나무의 성장)은(는) 여름 목은 말라가니 물이 필요함. 조후용신으로 수"
+        },
+        "추": {
+          "season_name": "가을",
+          "johu_needed": "화",
+          "advice": "가을 금기에 목이 상하니 화로 금을 제압",
+          "detailed_interpretation": "가을에 목(나무의 성장)은(는) 가을 금기에 목이 상하니 화로 금을 제압. 조후용신으로 화"
+        },
+        "동": {
+          "season_name": "겨울",
+          "johu_needed": "화",
+          "advice": "겨울 추위에 목이 얼어붙으니 따뜻한 불이 필요",
+          "detailed_interpretation": "겨울에 목(나무의 성장)은(는) 겨울 추위에 목이 얼어붙으니 따뜻한 불이 필요. 조후용신으로 화"
+        }
+      }
+    },
+    "화": {
+      "name": "화",
+      "seasons": {
+        "춘": {
+          "season_name": "봄",
+          "johu_needed": "없음",
+          "advice": "목생화로 자연스럽게 힘을 얻음",
+          "detailed_interpretation": "봄에 화(불의 열정)은(는) 목생화로 자연스럽게 힘을 얻음. 조후용신으로 특별히 필요한 것이 없으나 균형 유지가 중요합니다."
+        },
+        "하": {
+          "season_name": "여름",
+          "johu_needed": "수",
+          "advice": "여름 화는 너무 뜨거우니 물로 조절",
+          "detailed_interpretation": "여름에 화(불의 열정)은(는) 여름 화는 너무 뜨거우니 물로 조절. 조후용신으로 수"
+        },
+        "추": {
+          "season_name": "가을",
+          "johu_needed": "목",
+          "advice": "가을에 화가 약해지니 나무로 불을 지핌",
+          "detailed_interpretation": "가을에 화(불의 열정)은(는) 가을에 화가 약해지니 나무로 불을 지핌. 조후용신으로 목"
+        },
+        "동": {
+          "season_name": "겨울",
+          "johu_needed": "목",
+          "advice": "겨울 한기에 화가 꺼지니 목으로 살려야",
+          "detailed_interpretation": "겨울에 화(불의 열정)은(는) 겨울 한기에 화가 꺼지니 목으로 살려야. 조후용신으로 목"
+        }
+      }
+    },
+    "토": {
+      "name": "토",
+      "seasons": {
+        "춘": {
+          "season_name": "봄",
+          "johu_needed": "화",
+          "advice": "봄에 목이 토를 극하니 화로 설기시켜 토를 도움",
+          "detailed_interpretation": "봄에 토(흙의 안정)은(는) 봄에 목이 토를 극하니 화로 설기시켜 토를 도움. 조후용신으로 화"
+        },
+        "하": {
+          "season_name": "여름",
+          "johu_needed": "수",
+          "advice": "여름 토는 화생토로 과다하니 수로 조절",
+          "detailed_interpretation": "여름에 토(흙의 안정)은(는) 여름 토는 화생토로 과다하니 수로 조절. 조후용신으로 수"
+        },
+        "추": {
+          "season_name": "가을",
+          "johu_needed": "화",
+          "advice": "가을에 토가 건조하니 적절한 조화 필요",
+          "detailed_interpretation": "가을에 토(흙의 안정)은(는) 가을에 토가 건조하니 적절한 조화 필요. 조후용신으로 화"
+        },
+        "동": {
+          "season_name": "겨울",
+          "johu_needed": "화",
+          "advice": "겨울 토는 얼어붙으니 화가 필수",
+          "detailed_interpretation": "겨울에 토(흙의 안정)은(는) 겨울 토는 얼어붙으니 화가 필수. 조후용신으로 화"
+        }
+      }
+    },
+    "금": {
+      "name": "금",
+      "seasons": {
+        "춘": {
+          "season_name": "봄",
+          "johu_needed": "토",
+          "advice": "봄에 금이 약하니 토로 생해줌",
+          "detailed_interpretation": "봄에 금(쇠의 결단)은(는) 봄에 금이 약하니 토로 생해줌. 조후용신으로 토"
+        },
+        "하": {
+          "season_name": "여름",
+          "johu_needed": "수",
+          "advice": "여름 화기에 금이 녹으니 수로 보호",
+          "detailed_interpretation": "여름에 금(쇠의 결단)은(는) 여름 화기에 금이 녹으니 수로 보호. 조후용신으로 수"
+        },
+        "추": {
+          "season_name": "가을",
+          "johu_needed": "없음(왕성)",
+          "advice": "금이 가을에 왕성하니 조후가 급하지 않음",
+          "detailed_interpretation": "가을에 금(쇠의 결단)은(는) 금이 가을에 왕성하니 조후가 급하지 않음. 조후용신으로 특별히 필요한 것이 없으나 균형 유지가 중요합니다."
+        },
+        "동": {
+          "season_name": "겨울",
+          "johu_needed": "화",
+          "advice": "겨울 금은 너무 차가우니 화로 따뜻하게",
+          "detailed_interpretation": "겨울에 금(쇠의 결단)은(는) 겨울 금은 너무 차가우니 화로 따뜻하게. 조후용신으로 화"
+        }
+      }
+    },
+    "수": {
+      "name": "수",
+      "seasons": {
+        "춘": {
+          "season_name": "봄",
+          "johu_needed": "금",
+          "advice": "봄에 수가 줄어드니 금으로 보충",
+          "detailed_interpretation": "봄에 수(물의 지혜)은(는) 봄에 수가 줄어드니 금으로 보충. 조후용신으로 금"
+        },
+        "하": {
+          "season_name": "여름",
+          "johu_needed": "금",
+          "advice": "여름 화기에 수가 증발하니 금의 도움 필요",
+          "detailed_interpretation": "여름에 수(물의 지혜)은(는) 여름 화기에 수가 증발하니 금의 도움 필요. 조후용신으로 금"
+        },
+        "추": {
+          "season_name": "가을",
+          "johu_needed": "없음",
+          "advice": "가을 금생수로 자연스럽게 힘을 얻음",
+          "detailed_interpretation": "가을에 수(물의 지혜)은(는) 가을 금생수로 자연스럽게 힘을 얻음. 조후용신으로 특별히 필요한 것이 없으나 균형 유지가 중요합니다."
+        },
+        "동": {
+          "season_name": "겨울",
+          "johu_needed": "화",
+          "advice": "겨울 수는 너무 차가우니 화로 따뜻하게",
+          "detailed_interpretation": "겨울에 수(물의 지혜)은(는) 겨울 수는 너무 차가우니 화로 따뜻하게. 조후용신으로 화"
+        }
+      }
+    }
+  }
+}

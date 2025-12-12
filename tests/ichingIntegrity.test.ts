@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { IChingData } from "@/lib/iChing/iChingData";
 
 describe("IChingData integrity", () => {

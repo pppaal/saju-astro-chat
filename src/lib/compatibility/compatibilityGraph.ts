@@ -3,7 +3,6 @@
  * 사주+점성학 관계를 그래프로 표현하고 패턴 분석
  */
 
-import { FiveElement } from '../Saju/types';
 import { SajuProfile, AstrologyProfile } from './cosmicCompatibility';
 
 // ============================================================
@@ -594,7 +593,7 @@ function findStrongestPaths(
 ): Path[] {
   const paths: Path[] = [];
   const person1Edges = graph.edges.filter(e => e.source === 'person1');
-  const person2Edges = graph.edges.filter(e => e.source === 'person2');
+  const _person2Edges = graph.edges.filter(e => e.source === 'person2');
 
   // Simple path finding: Person1 -> Intermediate -> Person2
   for (const e1 of person1Edges) {

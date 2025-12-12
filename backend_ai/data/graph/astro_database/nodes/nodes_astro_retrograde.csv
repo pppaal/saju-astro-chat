@@ -1,0 +1,9 @@
+﻿id,type,description
+Mercury_Rx,역행,Mercury 역행 상태
+Venus_Rx,역행,Venus 역행 상태
+Mars_Rx,역행,Mars 역행 상태
+Jupiter_Rx,역행,Jupiter 역행 상태
+Saturn_Rx,역행,Saturn 역행 상태
+Uranus_Rx,역행,Uranus 역행 상태
+Neptune_Rx,역행,Neptune 역행 상태
+Pluto_Rx,역행,Pluto 역행 상태

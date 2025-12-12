@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
+import { getUserTimezone } from '@/lib/Saju/timezone';
+import { saveUserProfile, getUserProfile } from '@/lib/userProfile';
 import styles from './destiny-map.module.css';
 
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
@@ -40,6 +42,28 @@ export default function DestinyMapPage() {
   const [selectedCity, setSelectedCity] = useState<CityHit | null>(null);
   const [openSug, setOpenSug] = useState(false);
   const [cityErr, setCityErr] = useState<string | null>(null);
+
+  // 사용자 현재 위치 타임존 (운세 날짜 계산용)
+  const userTimezone = useMemo(() => getUserTimezone(), []);
+
+  // Load saved profile on mount
+  useEffect(() => {
+    const profile = getUserProfile();
+    if (profile.name) setName(profile.name);
+    if (profile.birthDate) setBirthDate(profile.birthDate);
+    if (profile.birthTime) setBirthTime(profile.birthTime);
+    if (profile.birthCity) setCity(profile.birthCity);
+    if (profile.gender) setGender(profile.gender);
+    if (profile.latitude && profile.longitude && profile.birthCity) {
+      setSelectedCity({
+        name: profile.birthCity.split(',')[0] || profile.birthCity,
+        country: profile.birthCity.split(',')[1]?.trim() || '',
+        lat: profile.latitude,
+        lon: profile.longitude,
+        timezone: profile.timezone
+      });
+    }
+  }, []);
 
   // Particle animation
   useEffect(() => {
@@ -263,6 +287,19 @@ export default function DestinyMapPage() {
     params.set('latitude', lat);
     params.set('longitude', lon);
     if (tz) params.set('tz', tz);
+    params.set('userTz', userTimezone); // 사용자 현재 타임존 (운세 날짜용)
+
+    // Save user profile for reuse across services
+    saveUserProfile({
+      name: name || undefined,
+      birthDate: birthDate || undefined,
+      birthTime: birthTime || undefined,
+      birthCity: city || undefined,
+      gender: gender as 'Male' | 'Female' | 'Other' | 'Prefer not to say',
+      timezone: tz || undefined,
+      latitude: selectedCity?.lat,
+      longitude: selectedCity?.lon
+    });
 
     router.push(`/destiny-map/theme?${params.toString()}`);
   };

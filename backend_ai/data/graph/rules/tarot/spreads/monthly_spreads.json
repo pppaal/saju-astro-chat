@@ -1,0 +1,199 @@
+{
+  "_meta": {
+    "theme": "monthly",
+    "title": "이달의 운세 타로 스프레드",
+    "description": "한 달 전체 또는 주별 전략적 가이드"
+  },
+  "sub_topics": {
+    "monthly_overview": {
+      "id": "monthly_overview",
+      "title": "월간 전망",
+      "korean": "이번 달 운세",
+      "description": "이번 달 전체적인 흐름과 조언",
+      "card_count": 12,
+      "spread_name": "Monthly Overview Spread",
+      "positions": [
+        {"position": 1, "name": "월간 에너지", "meaning": "이번 달 전반적 에너지", "prompt_hint": "이달의 분위기"},
+        {"position": 2, "name": "1주차", "meaning": "첫째 주 에너지", "prompt_hint": "1-7일"},
+        {"position": 3, "name": "2주차", "meaning": "둘째 주 에너지", "prompt_hint": "8-14일"},
+        {"position": 4, "name": "3주차", "meaning": "셋째 주 에너지", "prompt_hint": "15-21일"},
+        {"position": 5, "name": "4주차", "meaning": "넷째 주 에너지", "prompt_hint": "22-월말"},
+        {"position": 6, "name": "기회", "meaning": "이달의 기회", "prompt_hint": "잡아야 할 것"},
+        {"position": 7, "name": "도전", "meaning": "이달의 도전", "prompt_hint": "극복할 것"},
+        {"position": 8, "name": "집중 영역", "meaning": "집중해야 할 영역", "prompt_hint": "에너지를 쏟을 곳"},
+        {"position": 9, "name": "피할 것", "meaning": "피해야 할 것", "prompt_hint": "하지 말 것"},
+        {"position": 10, "name": "숨겨진 축복", "meaning": "예상치 못한 축복", "prompt_hint": "뜻밖의 선물"},
+        {"position": 11, "name": "월말 결과", "meaning": "월말 예상 상태", "prompt_hint": "월말의 모습"},
+        {"position": 12, "name": "조언", "meaning": "이달을 위한 핵심 조언", "prompt_hint": "이달의 핵심"}
+      ]
+    },
+    "monthly_love": {
+      "id": "monthly_love",
+      "title": "월간 연애운",
+      "korean": "이번 달 연애운",
+      "description": "이번 달 연애와 관계 전망",
+      "card_count": 8,
+      "spread_name": "Monthly Love Spread",
+      "positions": [
+        {"position": 1, "name": "연애 에너지", "meaning": "이달 연애 전반", "prompt_hint": "연애 분위기"},
+        {"position": 2, "name": "초반", "meaning": "월 초반 연애운", "prompt_hint": "1-10일"},
+        {"position": 3, "name": "중반", "meaning": "월 중반 연애운", "prompt_hint": "11-20일"},
+        {"position": 4, "name": "후반", "meaning": "월 후반 연애운", "prompt_hint": "21-월말"},
+        {"position": 5, "name": "좋은 날", "meaning": "연애에 좋은 시기", "prompt_hint": "데이트하기 좋은 때"},
+        {"position": 6, "name": "주의할 때", "meaning": "조심할 시기", "prompt_hint": "주의할 때"},
+        {"position": 7, "name": "기회", "meaning": "연애 기회", "prompt_hint": "사랑의 기회"},
+        {"position": 8, "name": "조언", "meaning": "이달 연애 조언", "prompt_hint": "사랑의 핵심"}
+      ]
+    },
+    "monthly_career": {
+      "id": "monthly_career",
+      "title": "월간 직업운",
+      "korean": "이번 달 직장운",
+      "description": "이번 달 직장과 커리어 전망",
+      "card_count": 8,
+      "spread_name": "Monthly Career Spread",
+      "positions": [
+        {"position": 1, "name": "직장 에너지", "meaning": "이달 직장 전반", "prompt_hint": "일의 분위기"},
+        {"position": 2, "name": "초반", "meaning": "월 초반 직장운", "prompt_hint": "1-10일"},
+        {"position": 3, "name": "중반", "meaning": "월 중반 직장운", "prompt_hint": "11-20일"},
+        {"position": 4, "name": "후반", "meaning": "월 후반 직장운", "prompt_hint": "21-월말"},
+        {"position": 5, "name": "좋은 날", "meaning": "중요한 일 하기 좋은 때", "prompt_hint": "결정하기 좋은 때"},
+        {"position": 6, "name": "주의할 때", "meaning": "조심할 시기", "prompt_hint": "주의할 때"},
+        {"position": 7, "name": "기회", "meaning": "직업적 기회", "prompt_hint": "커리어 기회"},
+        {"position": 8, "name": "조언", "meaning": "이달 직장 조언", "prompt_hint": "일의 핵심"}
+      ]
+    },
+    "monthly_money": {
+      "id": "monthly_money",
+      "title": "월간 재물운",
+      "korean": "이번 달 재물운",
+      "description": "이번 달 재정과 돈 전망",
+      "card_count": 8,
+      "spread_name": "Monthly Money Spread",
+      "positions": [
+        {"position": 1, "name": "재물 에너지", "meaning": "이달 재물 전반", "prompt_hint": "돈의 분위기"},
+        {"position": 2, "name": "수입", "meaning": "이달 수입 운", "prompt_hint": "들어오는 돈"},
+        {"position": 3, "name": "지출", "meaning": "이달 지출 패턴", "prompt_hint": "나가는 돈"},
+        {"position": 4, "name": "투자", "meaning": "투자/재테크 운", "prompt_hint": "투자 운"},
+        {"position": 5, "name": "좋은 날", "meaning": "재정 결정에 좋은 때", "prompt_hint": "돈 관련 좋은 날"},
+        {"position": 6, "name": "주의할 때", "meaning": "지출 주의 시기", "prompt_hint": "돈 주의 때"},
+        {"position": 7, "name": "기회", "meaning": "재정적 기회", "prompt_hint": "돈이 되는 기회"},
+        {"position": 8, "name": "조언", "meaning": "이달 재물 조언", "prompt_hint": "돈의 핵심"}
+      ]
+    },
+    "monthly_health": {
+      "id": "monthly_health",
+      "title": "월간 건강운",
+      "korean": "이번 달 건강운",
+      "description": "이번 달 건강과 에너지 전망",
+      "card_count": 7,
+      "spread_name": "Monthly Health Spread",
+      "positions": [
+        {"position": 1, "name": "건강 에너지", "meaning": "이달 건강 전반", "prompt_hint": "건강 분위기"},
+        {"position": 2, "name": "신체", "meaning": "신체 건강 운", "prompt_hint": "몸 상태"},
+        {"position": 3, "name": "정신", "meaning": "정신 건강 운", "prompt_hint": "마음 상태"},
+        {"position": 4, "name": "에너지", "meaning": "활력 수준", "prompt_hint": "에너지 레벨"},
+        {"position": 5, "name": "주의 영역", "meaning": "신경 써야 할 부분", "prompt_hint": "조심할 곳"},
+        {"position": 6, "name": "좋은 습관", "meaning": "이달 좋은 건강 습관", "prompt_hint": "도움되는 것"},
+        {"position": 7, "name": "조언", "meaning": "이달 건강 조언", "prompt_hint": "건강의 핵심"}
+      ]
+    },
+    "new_month_intentions": {
+      "id": "new_month_intentions",
+      "title": "새달 의도",
+      "korean": "새달 목표 설정",
+      "description": "새로운 달을 위한 의도와 목표 설정",
+      "card_count": 7,
+      "spread_name": "New Month Intentions Spread",
+      "positions": [
+        {"position": 1, "name": "떠나보낼 것", "meaning": "지난 달에서 놓아줄 것", "prompt_hint": "흘려보낼 것"},
+        {"position": 2, "name": "가져올 것", "meaning": "지난 달에서 가져올 것", "prompt_hint": "유지할 것"},
+        {"position": 3, "name": "이달 테마", "meaning": "이번 달 주요 테마", "prompt_hint": "중심 주제"},
+        {"position": 4, "name": "집중 목표", "meaning": "집중할 목표", "prompt_hint": "이달 목표"},
+        {"position": 5, "name": "필요한 에너지", "meaning": "목표 달성에 필요한 에너지", "prompt_hint": "필요한 것"},
+        {"position": 6, "name": "도전", "meaning": "예상되는 도전", "prompt_hint": "어려울 것"},
+        {"position": 7, "name": "조언", "meaning": "새달을 위한 조언", "prompt_hint": "시작의 핵심"}
+      ]
+    },
+    "month_end_review": {
+      "id": "month_end_review",
+      "title": "월말 리뷰",
+      "korean": "지난 달 돌아보기",
+      "description": "지난 달을 돌아보고 교훈 얻기",
+      "card_count": 6,
+      "spread_name": "Month End Review Spread",
+      "positions": [
+        {"position": 1, "name": "성취", "meaning": "지난 달 주요 성취", "prompt_hint": "이룬 것"},
+        {"position": 2, "name": "도전", "meaning": "겪은 도전", "prompt_hint": "어려웠던 것"},
+        {"position": 3, "name": "배움", "meaning": "배운 교훈", "prompt_hint": "깨달은 것"},
+        {"position": 4, "name": "성장", "meaning": "성장한 영역", "prompt_hint": "발전한 곳"},
+        {"position": 5, "name": "감사", "meaning": "감사할 것", "prompt_hint": "고마운 것"},
+        {"position": 6, "name": "다음 달로", "meaning": "다음 달로 가져갈 것", "prompt_hint": "이어갈 것"}
+      ]
+    },
+    "quarterly_forecast": {
+      "id": "quarterly_forecast",
+      "title": "분기 전망",
+      "korean": "3개월 전망",
+      "description": "향후 3개월 전체 전망",
+      "card_count": 10,
+      "spread_name": "Quarterly Forecast Spread",
+      "positions": [
+        {"position": 1, "name": "분기 에너지", "meaning": "3개월 전반적 에너지", "prompt_hint": "분기 분위기"},
+        {"position": 2, "name": "1개월차", "meaning": "첫째 달 에너지", "prompt_hint": "첫 달"},
+        {"position": 3, "name": "2개월차", "meaning": "둘째 달 에너지", "prompt_hint": "두 번째 달"},
+        {"position": 4, "name": "3개월차", "meaning": "셋째 달 에너지", "prompt_hint": "세 번째 달"},
+        {"position": 5, "name": "기회", "meaning": "분기 내 기회", "prompt_hint": "잡을 기회"},
+        {"position": 6, "name": "도전", "meaning": "분기 내 도전", "prompt_hint": "극복할 것"},
+        {"position": 7, "name": "집중", "meaning": "집중해야 할 영역", "prompt_hint": "에너지 투자"},
+        {"position": 8, "name": "피할 것", "meaning": "피해야 할 것", "prompt_hint": "조심할 것"},
+        {"position": 9, "name": "분기말 결과", "meaning": "3개월 후 예상 상태", "prompt_hint": "분기말 모습"},
+        {"position": 10, "name": "조언", "meaning": "분기를 위한 핵심 조언", "prompt_hint": "3개월의 핵심"}
+      ]
+    },
+    "birthday_year": {
+      "id": "birthday_year",
+      "title": "생일 연간운",
+      "korean": "생일 기준 1년 운세",
+      "description": "생일부터 1년간의 전망",
+      "card_count": 12,
+      "spread_name": "Birthday Year Spread",
+      "positions": [
+        {"position": 1, "name": "연간 테마", "meaning": "올해의 주요 테마", "prompt_hint": "1년의 주제"},
+        {"position": 2, "name": "1-3개월", "meaning": "첫 분기 에너지", "prompt_hint": "첫 3개월"},
+        {"position": 3, "name": "4-6개월", "meaning": "둘째 분기 에너지", "prompt_hint": "두 번째 3개월"},
+        {"position": 4, "name": "7-9개월", "meaning": "셋째 분기 에너지", "prompt_hint": "세 번째 3개월"},
+        {"position": 5, "name": "10-12개월", "meaning": "넷째 분기 에너지", "prompt_hint": "마지막 3개월"},
+        {"position": 6, "name": "연애운", "meaning": "올해 연애 전망", "prompt_hint": "1년 연애"},
+        {"position": 7, "name": "직업운", "meaning": "올해 직업 전망", "prompt_hint": "1년 커리어"},
+        {"position": 8, "name": "재물운", "meaning": "올해 재물 전망", "prompt_hint": "1년 재정"},
+        {"position": 9, "name": "건강운", "meaning": "올해 건강 전망", "prompt_hint": "1년 건강"},
+        {"position": 10, "name": "행운", "meaning": "올해의 행운", "prompt_hint": "럭키 포인트"},
+        {"position": 11, "name": "성장", "meaning": "올해 성장 영역", "prompt_hint": "발전할 곳"},
+        {"position": 12, "name": "조언", "meaning": "올해를 위한 핵심 조언", "prompt_hint": "1년의 핵심"}
+      ]
+    },
+    "lunar_new_year": {
+      "id": "lunar_new_year",
+      "title": "새해 운세",
+      "korean": "새해 연간 운세",
+      "description": "새해 전체 전망 (음력/양력)",
+      "card_count": 12,
+      "spread_name": "New Year Spread",
+      "positions": [
+        {"position": 1, "name": "연간 에너지", "meaning": "올해 전체 에너지", "prompt_hint": "올해의 기운"},
+        {"position": 2, "name": "1월", "meaning": "1월 에너지", "prompt_hint": "새해 시작"},
+        {"position": 3, "name": "2-3월", "meaning": "2-3월 에너지", "prompt_hint": "봄 시작"},
+        {"position": 4, "name": "4-5월", "meaning": "4-5월 에너지", "prompt_hint": "봄"},
+        {"position": 5, "name": "6-7월", "meaning": "6-7월 에너지", "prompt_hint": "여름"},
+        {"position": 6, "name": "8-9월", "meaning": "8-9월 에너지", "prompt_hint": "가을 시작"},
+        {"position": 7, "name": "10-11월", "meaning": "10-11월 에너지", "prompt_hint": "가을"},
+        {"position": 8, "name": "12월", "meaning": "12월 에너지", "prompt_hint": "연말"},
+        {"position": 9, "name": "최고의 달", "meaning": "가장 좋은 시기", "prompt_hint": "행운의 때"},
+        {"position": 10, "name": "주의 시기", "meaning": "조심해야 할 시기", "prompt_hint": "주의할 때"},
+        {"position": 11, "name": "올해 과제", "meaning": "올해 집중할 과제", "prompt_hint": "해야 할 것"},
+        {"position": 12, "name": "올해 메시지", "meaning": "올해를 위한 핵심 메시지", "prompt_hint": "올해의 핵심"}
+      ]
+    }
+  }
+}

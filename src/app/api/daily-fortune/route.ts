@@ -7,6 +7,25 @@ import { sendNotification } from "@/lib/notifications/sse";
 export const dynamic = "force-dynamic";
 
 /**
+ * 타임존 기반 현재 날짜 헬퍼
+ */
+function getNowInTimezone(tz?: string) {
+  const now = new Date();
+  const effectiveTz = tz || 'Asia/Seoul';
+  try {
+    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, year: 'numeric' }).format(now));
+    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, month: '2-digit' }).format(now));
+    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, day: '2-digit' }).format(now));
+    return { year: y, month: m, day: d };
+  } catch {
+    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(now));
+    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', month: '2-digit' }).format(now));
+    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', day: '2-digit' }).format(now));
+    return { year: y, month: m, day: d };
+  }
+}
+
+/**
  * 오늘의 운세 점수 계산 (AI 없이 사주+점성학 기반)
  * POST /api/daily-fortune
  */
@@ -18,16 +37,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { birthDate, birthTime: _birthTime, latitude: _latitude, longitude: _longitude, sendEmail = false } = body;
+    const { birthDate, birthTime: _birthTime, latitude: _latitude, longitude: _longitude, sendEmail = false, userTimezone } = body;
 
     if (!birthDate) {
       return NextResponse.json({ error: "Birth date required" }, { status: 400 });
     }
 
     // ========================================
-    // 1️⃣ 오늘의 운세 점수 계산
+    // 1️⃣ 오늘의 운세 점수 계산 (사용자 타임존 기준)
     // ========================================
-    const fortune = calculateDailyFortune(birthDate, _birthTime, _latitude, _longitude);
+    const fortune = calculateDailyFortune(birthDate, _birthTime, _latitude, _longitude, userTimezone);
 
     // ========================================
     // 2️⃣ 데이터베이스에 저장
@@ -40,7 +59,7 @@ export async function POST(request: Request) {
       await prisma.dailyFortune.create({
         data: {
           userId: user.id,
-          date: new Date().toISOString().split("T")[0],
+          date: fortune.date, // 사용자 타임존 기준 날짜
           loveScore: fortune.love,
           careerScore: fortune.career,
           wealthScore: fortune.wealth,
@@ -92,9 +111,11 @@ function calculateDailyFortune(
   birthDate: string,
   _birthTime?: string,
   _latitude?: number,
-  _longitude?: number
+  _longitude?: number,
+  userTimezone?: string
 ) {
-  const today = new Date();
+  // 사용자 타임존 기준 현재 날짜
+  const userNow = getNowInTimezone(userTimezone);
   const birth = new Date(birthDate);
 
   // 사주 기반 계산
@@ -102,9 +123,9 @@ function calculateDailyFortune(
   const birthMonth = birth.getMonth() + 1;
   const birthDay = birth.getDate();
 
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
-  const currentDay = today.getDate();
+  const currentYear = userNow.year;
+  const currentMonth = userNow.month;
+  const currentDay = userNow.day;
 
   // 간단한 점수 계산 (실제로는 더 복잡한 사주 로직 사용 가능)
   const dayScore = (currentDay * 7 + birthDay * 3) % 100;
@@ -123,6 +144,9 @@ function calculateDailyFortune(
   const luckyColor = colors[currentDay % colors.length];
   const luckyNumber = (currentDay + birthDay) % 10;
 
+  // 분석 기준일 (사용자 타임존)
+  const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`;
+
   return {
     love,
     career,
@@ -131,7 +155,8 @@ function calculateDailyFortune(
     overall,
     luckyColor,
     luckyNumber,
-    date: today.toISOString().split("T")[0],
+    date: analysisDate,
+    userTimezone: userTimezone || 'Asia/Seoul',
   };
 }
 

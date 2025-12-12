@@ -27,9 +27,6 @@ export async function POST(_request: NextRequest) {
     }
 
     // TODO: Store subscription in database
-    // For now, we'll just log it
-    console.log("Push subscription received for user:", session.user.email);
-    console.log("Subscription:", JSON.stringify(subscription, null, 2));
 
     // In production, store in database:
     // await prisma.pushSubscription.upsert({
@@ -67,7 +64,6 @@ export async function DELETE(_request: NextRequest) {
 
   try {
     // TODO: Remove subscription from database
-    console.log("Removing push subscription for user:", session.user.email);
 
     // In production:
     // await prisma.pushSubscription.delete({

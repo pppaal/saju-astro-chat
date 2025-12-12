@@ -1,0 +1,241 @@
+{
+  "_meta": {
+    "title": "Tarot Meditation & Affirmations",
+    "description": "타로 카드 기반 명상 가이드와 확언 - 카드 에너지를 내면화하는 방법"
+  },
+  "major_arcana_meditations": {
+    "The Fool": {
+      "affirmation": "나는 두려움 없이 새로운 여정을 시작합니다",
+      "meditation_focus": "절벽 앞에 서 있지만 두려움 없는 자유로운 마음을 느껴보세요",
+      "breathing": "자유롭고 가벼운 호흡, 어깨의 긴장을 풀어보세요",
+      "visualization": "밝은 햇살 아래 꽃밭을 자유롭게 걷는 자신을 상상하세요",
+      "duration": "5-10분",
+      "crystal": "청금석(Lapis Lazuli), 터키석"
+    },
+    "The Magician": {
+      "affirmation": "나는 필요한 모든 도구를 이미 가지고 있습니다",
+      "meditation_focus": "네 원소의 도구들이 당신 앞에 있음을 느껴보세요",
+      "breathing": "의도를 담아 깊게 들이쉬고, 실현을 담아 내쉬세요",
+      "visualization": "손끝에서 빛이 나와 당신의 의도를 현실로 만드는 모습",
+      "duration": "10-15분",
+      "crystal": "시트린, 투명 수정"
+    },
+    "The High Priestess": {
+      "affirmation": "나는 내면의 지혜를 신뢰합니다",
+      "meditation_focus": "고요한 달빛 아래 물가에 앉아 있음을 상상하세요",
+      "breathing": "천천히, 달의 리듬에 맞춰 호흡하세요",
+      "visualization": "달빛이 당신의 제3의 눈을 비추고 직관이 열리는 모습",
+      "duration": "15-20분",
+      "crystal": "문스톤, 자수정"
+    },
+    "The Empress": {
+      "affirmation": "나는 풍요롭고 창조적인 존재입니다",
+      "meditation_focus": "푸른 정원 한가운데서 자연의 풍요로움을 느껴보세요",
+      "breathing": "대지의 에너지를 발로 흡수하며 호흡하세요",
+      "visualization": "당신 주변에서 꽃이 피어나고 과일이 맺히는 모습",
+      "duration": "10-15분",
+      "crystal": "로즈쿼츠, 에메랄드"
+    },
+    "The Emperor": {
+      "affirmation": "나는 내 삶의 주인이며 리더입니다",
+      "meditation_focus": "높은 산 정상에서 왕국을 내려다보는 모습을 상상하세요",
+      "breathing": "안정적이고 규칙적인 호흡, 척추를 바로 세우세요",
+      "visualization": "금빛 왕관이 당신의 머리 위에 놓이는 모습",
+      "duration": "10분",
+      "crystal": "레드 재스퍼, 호랑이 눈"
+    },
+    "The Hierophant": {
+      "affirmation": "나는 더 높은 지혜와 연결되어 있습니다",
+      "meditation_focus": "고대 신전 안에서 영적 가르침을 받는 모습",
+      "breathing": "OM 소리를 마음속으로 울리며 호흡하세요",
+      "visualization": "빛의 기둥이 하늘에서 내려와 당신을 감싸는 모습",
+      "duration": "15분",
+      "crystal": "라피스라줄리, 카이아나이트"
+    },
+    "The Lovers": {
+      "affirmation": "나는 사랑받을 자격이 있으며 현명하게 선택합니다",
+      "meditation_focus": "에덴동산 같은 아름다운 정원에서 사랑을 느껴보세요",
+      "breathing": "가슴을 열고 사랑의 에너지를 들이쉬세요",
+      "visualization": "당신의 가슴에서 분홍빛 사랑의 빛이 퍼지는 모습",
+      "duration": "10-15분",
+      "crystal": "로즈쿼츠, 로도나이트"
+    },
+    "The Chariot": {
+      "affirmation": "나는 어떤 장애물도 극복할 수 있습니다",
+      "meditation_focus": "전차를 타고 승리를 향해 달리는 자신을 느껴보세요",
+      "breathing": "힘차고 결단력 있는 호흡",
+      "visualization": "황금 전차를 타고 목표를 향해 나아가는 모습",
+      "duration": "10분",
+      "crystal": "카넬리안, 블랙 오닉스"
+    },
+    "Strength": {
+      "affirmation": "나의 진정한 힘은 내면에서 옵니다",
+      "meditation_focus": "사자와 평화롭게 함께 있는 자신을 상상하세요",
+      "breathing": "부드럽지만 강한 호흡, 내면의 힘을 느끼세요",
+      "visualization": "황금빛 에너지가 당신의 가슴에서 사자로 흘러가는 모습",
+      "duration": "15분",
+      "crystal": "호랑이 눈, 골든 토파즈"
+    },
+    "The Hermit": {
+      "affirmation": "고요함 속에서 나는 답을 찾습니다",
+      "meditation_focus": "산 정상에서 홀로 별빛 아래 서 있는 모습",
+      "breathing": "깊고 느린 호흡, 외부 세계를 차단하세요",
+      "visualization": "손에 든 등불이 당신의 길을 비추는 모습",
+      "duration": "20분",
+      "crystal": "자수정, 흑요석"
+    },
+    "Wheel of Fortune": {
+      "affirmation": "나는 변화의 흐름을 믿고 받아들입니다",
+      "meditation_focus": "거대한 운명의 바퀴가 천천히 도는 것을 바라보세요",
+      "breathing": "순환적 호흡, 들이쉬고 내쉬며 리듬을 타세요",
+      "visualization": "바퀴 중심에 서서 평화롭게 변화를 지켜보는 모습",
+      "duration": "10분",
+      "crystal": "라브라도라이트, 아벤츄린"
+    },
+    "Justice": {
+      "affirmation": "나는 진실을 말하고 공정하게 행동합니다",
+      "meditation_focus": "저울이 완벽하게 균형 잡힌 모습을 상상하세요",
+      "breathing": "균형 잡힌 호흡, 들숨과 날숨의 길이를 같게",
+      "visualization": "진실의 검이 불필요한 것들을 잘라내는 모습",
+      "duration": "10분",
+      "crystal": "에메랄드, 투명 수정"
+    },
+    "The Hanged Man": {
+      "affirmation": "새로운 관점이 새로운 답을 가져옵니다",
+      "meditation_focus": "세상을 거꾸로 보는 새로운 시각을 경험하세요",
+      "breathing": "포기의 호흡, 긴장을 완전히 풀어보세요",
+      "visualization": "모든 것을 내려놓고 평화롭게 매달려 있는 모습",
+      "duration": "15분",
+      "crystal": "아쿠아마린, 셀레나이트"
+    },
+    "Death": {
+      "affirmation": "나는 과거를 보내고 새로운 나로 다시 태어납니다",
+      "meditation_focus": "해가 지고 새로운 해가 뜨는 것을 느껴보세요",
+      "breathing": "오래된 것을 내쉬고, 새로운 것을 들이쉬세요",
+      "visualization": "불사조가 재에서 다시 태어나듯 당신도 재탄생하는 모습",
+      "duration": "15-20분",
+      "crystal": "흑요석, 스모키쿼츠"
+    },
+    "Temperance": {
+      "affirmation": "나는 조화와 균형 속에 살아갑니다",
+      "meditation_focus": "두 컵 사이로 물이 완벽하게 흐르는 것을 보세요",
+      "breathing": "조화로운 호흡, 평화로운 리듬을 찾으세요",
+      "visualization": "무지개 빛이 당신을 감싸며 치유하는 모습",
+      "duration": "15분",
+      "crystal": "아메트린, 플루오라이트"
+    },
+    "The Devil": {
+      "affirmation": "나는 나를 묶는 것들로부터 자유롭습니다",
+      "meditation_focus": "쇠사슬이 느슨해지고 풀리는 것을 느껴보세요",
+      "breathing": "해방의 호흡, 두려움을 내쉬세요",
+      "visualization": "어둠 속에서 빛을 찾아 걸어 나오는 모습",
+      "duration": "15분",
+      "crystal": "흑요석, 스모키쿼츠, 블랙 투르말린"
+    },
+    "The Tower": {
+      "affirmation": "무너지는 것은 새롭게 세워질 것입니다",
+      "meditation_focus": "폭풍이 지나간 후의 고요함을 느껴보세요",
+      "breathing": "충격 후 안정을 찾는 호흡",
+      "visualization": "무너진 탑 옆에 새로운 기반이 세워지는 모습",
+      "duration": "10분",
+      "crystal": "흑요석, 말라카이트"
+    },
+    "The Star": {
+      "affirmation": "희망은 항상 나와 함께합니다",
+      "meditation_focus": "밤하늘의 별들이 당신을 비추는 것을 느껴보세요",
+      "breathing": "치유의 호흡, 별빛 에너지를 들이쉬세요",
+      "visualization": "별빛이 당신의 상처를 치유하고 희망을 채우는 모습",
+      "duration": "15-20분",
+      "crystal": "아쿠아마린, 청금석, 셀레스타이트"
+    },
+    "The Moon": {
+      "affirmation": "나는 무의식의 메시지를 이해합니다",
+      "meditation_focus": "달빛 아래 고요한 물가에 앉아 있음을 상상하세요",
+      "breathing": "느리고 깊은 호흡, 꿈의 영역으로 들어가세요",
+      "visualization": "달빛이 숨겨진 진실을 비추는 모습",
+      "duration": "20분",
+      "crystal": "문스톤, 라브라도라이트"
+    },
+    "The Sun": {
+      "affirmation": "나는 기쁨과 성공으로 빛납니다",
+      "meditation_focus": "따스한 햇살이 온몸을 감싸는 것을 느껴보세요",
+      "breathing": "밝고 활기찬 호흡, 에너지를 충전하세요",
+      "visualization": "황금빛 태양 에너지가 당신의 몸 전체를 채우는 모습",
+      "duration": "10분",
+      "crystal": "시트린, 썬스톤, 호박"
+    },
+    "Judgement": {
+      "affirmation": "나는 나의 소명에 응답합니다",
+      "meditation_focus": "천상의 나팔 소리가 당신을 부르는 것을 들으세요",
+      "breathing": "깨어남의 호흡, 의식을 확장하세요",
+      "visualization": "새로운 자아로 부활하여 일어서는 모습",
+      "duration": "15분",
+      "crystal": "화이트 토파즈, 클리어쿼츠"
+    },
+    "The World": {
+      "affirmation": "나는 완전하며 모든 것과 연결되어 있습니다",
+      "meditation_focus": "우주의 중심에서 모든 것이 조화롭게 돌아가는 것을 느끼세요",
+      "breathing": "완성의 호흡, 깊은 만족감을 느끼세요",
+      "visualization": "우주와 하나가 되어 춤추는 자신의 모습",
+      "duration": "15-20분",
+      "crystal": "라피스라줄리, 오팔, 몰다바이트"
+    }
+  },
+  "suit_meditations": {
+    "wands": {
+      "element": "Fire",
+      "general_affirmation": "나는 열정적으로 행동합니다",
+      "meditation_theme": "내면의 불꽃, 창조적 에너지",
+      "breathing": "활기찬 호흡, 배에서 시작되는 불의 에너지",
+      "crystal": "카넬리안, 파이어 오팔"
+    },
+    "cups": {
+      "element": "Water",
+      "general_affirmation": "나는 감정을 건강하게 흘려보냅니다",
+      "meditation_theme": "흐르는 물, 감정의 치유",
+      "breathing": "물결치듯 부드러운 호흡",
+      "crystal": "로즈쿼츠, 아쿠아마린"
+    },
+    "swords": {
+      "element": "Air",
+      "general_affirmation": "나의 마음은 맑고 명확합니다",
+      "meditation_theme": "맑은 하늘, 생각의 정화",
+      "breathing": "상쾌한 공기를 들이쉬듯 맑은 호흡",
+      "crystal": "플루오라이트, 소달라이트"
+    },
+    "pentacles": {
+      "element": "Earth",
+      "general_affirmation": "나는 안정적이고 풍요롭습니다",
+      "meditation_theme": "대지에 뿌리내림, 물질적 안정",
+      "breathing": "땅으로 뿌리를 내리듯 안정적인 호흡",
+      "crystal": "모스 아게이트, 타이거아이"
+    }
+  },
+  "quick_affirmations": {
+    "for_love": [
+      "나는 사랑받을 자격이 있습니다",
+      "내 마음은 사랑으로 열려 있습니다",
+      "진정한 인연이 나를 찾아옵니다"
+    ],
+    "for_money": [
+      "풍요는 자연스럽게 나에게 흘러옵니다",
+      "나는 부를 창조하는 힘이 있습니다",
+      "내 가치는 물질로 보상받습니다"
+    ],
+    "for_career": [
+      "나는 성공할 운명입니다",
+      "내 재능은 세상에서 인정받습니다",
+      "올바른 기회가 나를 찾아옵니다"
+    ],
+    "for_healing": [
+      "나는 매일 더 건강해지고 있습니다",
+      "내 몸과 마음은 스스로 치유합니다",
+      "치유의 에너지가 나를 감쌉니다"
+    ],
+    "for_protection": [
+      "나는 빛으로 보호받고 있습니다",
+      "부정적인 에너지는 나를 지나칩니다",
+      "우주가 나를 안전하게 지켜줍니다"
+    ]
+  }
+}

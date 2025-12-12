@@ -1,0 +1,182 @@
+{
+  "$schema": "multimodal_integration_engine_v1",
+  "$description": "사주/점성술/타로/융 심리학 통합 해석 엔진",
+  "correlation_matrix": {
+    "saju_astro": {
+      "일간_sun": "핵심 자아, 의지",
+      "월주_moon": "감정, 내면",
+      "년주_ASC": "사회적 페르소나",
+      "시주_MC": "목표, 방향",
+      "비겁_fire_mars": "자아, 행동력",
+      "식상_mercury_venus": "표현, 창조",
+      "재성_venus_2nd": "가치, 재물",
+      "관성_saturn_10th": "권위, 책임",
+      "인성_moon_jupiter": "지혜, 돌봄"
+    },
+    "saju_tarot": {
+      "비견_emperor": "자기 권위",
+      "식신_empress_sun": "창조, 기쁨",
+      "상관_fool_tower": "혁신, 파괴",
+      "재성_pentacles": "물질, 안정",
+      "관성_justice_emperor": "권위, 구조",
+      "인성_high_priestess_hierophant": "지혜, 전통"
+    },
+    "astro_tarot": {
+      "sun_sun_card": "생명력, 기쁨",
+      "moon_moon_card": "무의식, 직관",
+      "saturn_world": "완성, 구조",
+      "pluto_death_tower": "변형, 재생",
+      "jupiter_wheel_star": "운명, 희망"
+    }
+  },
+  "question_router": {
+    "career": {
+      "saju_focus": [
+        "관성",
+        "재성",
+        "식상",
+        "격국"
+      ],
+      "astro_focus": [
+        "10th",
+        "6th",
+        "MC",
+        "saturn"
+      ],
+      "tarot_focus": [
+        "wands",
+        "pentacles",
+        "chariot",
+        "world"
+      ],
+      "jung_focus": [
+        "아버지 콤플렉스",
+        "사회적 페르소나"
+      ]
+    },
+    "relationship": {
+      "saju_focus": [
+        "일지",
+        "재성/관성",
+        "배우자궁"
+      ],
+      "astro_focus": [
+        "7th",
+        "5th",
+        "venus",
+        "mars"
+      ],
+      "tarot_focus": [
+        "cups",
+        "lovers",
+        "two_of_cups"
+      ],
+      "jung_focus": [
+        "아니마/아니무스",
+        "그림자 투사"
+      ]
+    },
+    "money": {
+      "saju_focus": [
+        "재성",
+        "식상생재",
+        "용신"
+      ],
+      "astro_focus": [
+        "2nd",
+        "8th",
+        "jupiter",
+        "venus"
+      ],
+      "tarot_focus": [
+        "pentacles",
+        "ace_pentacles",
+        "empress"
+      ],
+      "jung_focus": [
+        "자기 가치",
+        "풍요 의식"
+      ]
+    },
+    "health": {
+      "saju_focus": [
+        "오행 균형",
+        "일간 강약"
+      ],
+      "astro_focus": [
+        "6th",
+        "1st",
+        "sun",
+        "moon"
+      ],
+      "tarot_focus": [
+        "pentacles",
+        "strength",
+        "temperance"
+      ],
+      "jung_focus": [
+        "신체화",
+        "몸-마음 연결"
+      ]
+    },
+    "spiritual": {
+      "saju_focus": [
+        "인성",
+        "용신",
+        "격국 레벨"
+      ],
+      "astro_focus": [
+        "12th",
+        "9th",
+        "neptune",
+        "pluto"
+      ],
+      "tarot_focus": [
+        "major_arcana",
+        "hermit",
+        "star",
+        "world"
+      ],
+      "jung_focus": [
+        "개성화",
+        "자기(Self)",
+        "초월"
+      ]
+    }
+  },
+  "synthesis_template": {
+    "1_identify_question_type": "질문 유형 파악 (career/relationship/money/health/spiritual/timing)",
+    "2_gather_system_data": {
+      "saju": "원국 분석 + 대운/세운",
+      "astro": "네이탈 + 트랜짓",
+      "tarot": "스프레드 결과"
+    },
+    "3_find_correlations": "시스템 간 상관관계 식별",
+    "4_identify_patterns": "반복되는 주제/원형 파악",
+    "5_jung_integration": "심리학적 통찰 연결",
+    "6_synthesize_narrative": "통합 스토리텔링",
+    "7_therapeutic_direction": "성장 방향 및 조언",
+    "8_actionable_guidance": "구체적 행동 제안"
+  },
+  "response_guidelines": {
+    "structure": [
+      "1. 핵심 통찰 (1-2문장)",
+      "2. 시스템별 분석 (사주/점성/타로)",
+      "3. 통합 해석 (공통 주제)",
+      "4. 심리학적 통찰",
+      "5. 구체적 조언"
+    ],
+    "tone": {
+      "empowering": "운명론이 아닌 선택의 힘",
+      "nuanced": "같은 배치도 맥락에 따라 다름",
+      "practical": "추상적 상징 → 실생활 조언",
+      "compassionate": "판단 없이 이해"
+    },
+    "avoid": [
+      "단정적 예언",
+      "공포 조장",
+      "책임 회피 (별 탓, 팔자)",
+      "과도한 일반화"
+    ]
+  }
+}

@@ -1,0 +1,430 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Special number combinations and their meanings",
+    "usage": "Analyze relationships between numbers in a reading"
+  },
+  "compatibility": {
+    "1": {
+      "best": [3, 5, 7],
+      "good": [1, 2, 9],
+      "challenging": [4, 6, 8],
+      "ko": {
+        "3": "창의적 리더십 - 1의 추진력과 3의 창의성이 시너지를 냅니다.",
+        "5": "모험적 파트너십 - 둘 다 자유롭고 변화를 즐깁니다.",
+        "7": "지적 조합 - 1의 행동력과 7의 깊은 사고가 균형을 이룹니다.",
+        "4": "마찰 가능 - 1의 즉흥성과 4의 체계성이 충돌할 수 있습니다.",
+        "6": "책임 갈등 - 1의 독립성과 6의 헌신 사이 조율 필요."
+      },
+      "en": {
+        "3": "Creative leadership - 1's drive and 3's creativity create synergy.",
+        "5": "Adventurous partnership - Both enjoy freedom and change.",
+        "7": "Intellectual combination - 1's action and 7's deep thinking balance.",
+        "4": "Potential friction - 1's spontaneity may clash with 4's structure.",
+        "6": "Responsibility conflict - Balance needed between 1's independence and 6's devotion."
+      }
+    },
+    "2": {
+      "best": [4, 6, 8],
+      "good": [1, 2, 9],
+      "challenging": [5, 7],
+      "ko": {
+        "6": "조화로운 파트너십 - 둘 다 관계와 돌봄을 중시합니다.",
+        "8": "균형 잡힌 팀 - 2의 외교력과 8의 야망이 보완됩니다.",
+        "4": "안정적 조합 - 실용적이고 신뢰할 수 있는 관계.",
+        "5": "도전적 - 2의 안정 욕구와 5의 변화 욕구가 충돌.",
+        "7": "조율 필요 - 2의 친밀함과 7의 고독이 갈등할 수 있습니다."
+      },
+      "en": {
+        "6": "Harmonious partnership - Both value relationships and nurturing.",
+        "8": "Balanced team - 2's diplomacy complements 8's ambition.",
+        "4": "Stable combination - Practical and reliable relationship.",
+        "5": "Challenging - 2's stability needs conflict with 5's change needs.",
+        "7": "Adjustment needed - 2's intimacy may conflict with 7's solitude."
+      }
+    },
+    "3": {
+      "best": [5, 6, 9],
+      "good": [1, 3],
+      "challenging": [4, 7, 8],
+      "ko": {
+        "5": "즐거운 조합 - 둘 다 재미와 모험을 사랑합니다.",
+        "6": "창조적 가정 - 3의 창의성과 6의 돌봄이 따뜻한 가정을 만듭니다.",
+        "9": "예술적 파트너 - 둘 다 창조적이고 영감을 주고받습니다.",
+        "4": "리듬 차이 - 3의 자유로움과 4의 체계가 충돌할 수 있습니다.",
+        "8": "우선순위 차이 - 3의 창의성과 8의 물질주의 사이 갈등."
+      },
+      "en": {
+        "5": "Fun combination - Both love fun and adventure.",
+        "6": "Creative home - 3's creativity and 6's nurturing create a warm home.",
+        "9": "Artistic partners - Both creative and inspire each other.",
+        "4": "Rhythm difference - 3's freedom may clash with 4's structure.",
+        "8": "Priority difference - Conflict between 3's creativity and 8's materialism."
+      }
+    },
+    "4": {
+      "best": [2, 6, 8],
+      "good": [4, 7],
+      "challenging": [1, 3, 5],
+      "ko": {
+        "6": "안정적 가정 - 둘 다 가정과 책임을 중시합니다.",
+        "8": "비즈니스 파트너 - 실용적이고 목표 지향적인 조합.",
+        "2": "신뢰 관계 - 4의 안정성과 2의 협력이 조화롭습니다.",
+        "5": "심각한 마찰 - 4의 안정과 5의 변화가 정면충돌.",
+        "3": "가치 차이 - 4의 실용성과 3의 자유로움이 충돌."
+      },
+      "en": {
+        "6": "Stable home - Both value home and responsibility.",
+        "8": "Business partners - Practical and goal-oriented combination.",
+        "2": "Trust relationship - 4's stability and 2's cooperation harmonize.",
+        "5": "Serious friction - 4's stability and 5's change in direct conflict.",
+        "3": "Value difference - 4's practicality clashes with 3's freedom."
+      }
+    },
+    "5": {
+      "best": [1, 3, 7],
+      "good": [5, 9],
+      "challenging": [2, 4, 6],
+      "ko": {
+        "1": "역동적 듀오 - 둘 다 리더십과 모험을 즐깁니다.",
+        "3": "파티 커플 - 재미있고 사교적인 조합.",
+        "7": "흥미로운 대조 - 5의 활동성과 7의 깊이가 균형.",
+        "4": "근본적 차이 - 5의 자유와 4의 구조가 충돌.",
+        "6": "책임 갈등 - 5의 자유와 6의 헌신이 마찰."
+      },
+      "en": {
+        "1": "Dynamic duo - Both enjoy leadership and adventure.",
+        "3": "Party couple - Fun and social combination.",
+        "7": "Interesting contrast - 5's activity and 7's depth balance.",
+        "4": "Fundamental difference - 5's freedom clashes with 4's structure.",
+        "6": "Responsibility conflict - 5's freedom and 6's devotion create friction."
+      }
+    },
+    "6": {
+      "best": [2, 3, 4, 9],
+      "good": [6, 8],
+      "challenging": [1, 5, 7],
+      "ko": {
+        "2": "이상적 파트너 - 둘 다 조화와 관계를 중시합니다.",
+        "9": "자비로운 조합 - 둘 다 봉사와 사랑을 중시합니다.",
+        "4": "안정적 가정 - 실용적이고 안정적인 관계.",
+        "1": "독립 vs 헌신 - 균형이 필요한 조합.",
+        "5": "안정 vs 변화 - 6의 가정중심과 5의 자유가 충돌."
+      },
+      "en": {
+        "2": "Ideal partners - Both value harmony and relationships.",
+        "9": "Compassionate combination - Both value service and love.",
+        "4": "Stable home - Practical and stable relationship.",
+        "1": "Independence vs devotion - Balance needed.",
+        "5": "Stability vs change - 6's home focus conflicts with 5's freedom."
+      }
+    },
+    "7": {
+      "best": [1, 5],
+      "good": [4, 7, 9],
+      "challenging": [2, 3, 6, 8],
+      "ko": {
+        "1": "지적 리더십 - 1의 행동력과 7의 통찰력 조화.",
+        "5": "자유로운 탐구 - 둘 다 독립적이고 탐구적입니다.",
+        "9": "영적 연결 - 둘 다 깊은 사고와 의미를 추구합니다.",
+        "2": "친밀함 차이 - 7의 고독 필요와 2의 연결 욕구 충돌.",
+        "3": "깊이 vs 표면 - 7의 깊이와 3의 가벼움이 마찰."
+      },
+      "en": {
+        "1": "Intellectual leadership - 1's action and 7's insight harmonize.",
+        "5": "Free exploration - Both independent and exploratory.",
+        "9": "Spiritual connection - Both seek deep thought and meaning.",
+        "2": "Intimacy difference - 7's solitude needs conflict with 2's connection.",
+        "3": "Depth vs surface - 7's depth and 3's lightness create friction."
+      }
+    },
+    "8": {
+      "best": [2, 4, 6],
+      "good": [8],
+      "challenging": [1, 3, 5, 7, 9],
+      "ko": {
+        "4": "파워 커플 - 둘 다 성공과 안정을 추구합니다.",
+        "2": "균형 팀 - 8의 야망과 2의 지원이 조화.",
+        "6": "성공적 가정 - 8의 물질과 6의 돌봄이 균형.",
+        "9": "가치 충돌 - 8의 물질주의와 9의 이상주의 마찰.",
+        "7": "우선순위 차이 - 8의 외적 성공과 7의 내적 탐구 갈등."
+      },
+      "en": {
+        "4": "Power couple - Both pursue success and stability.",
+        "2": "Balanced team - 8's ambition and 2's support harmonize.",
+        "6": "Successful home - 8's material and 6's nurturing balance.",
+        "9": "Value clash - 8's materialism and 9's idealism friction.",
+        "7": "Priority difference - 8's external success and 7's inner search conflict."
+      }
+    },
+    "9": {
+      "best": [3, 6],
+      "good": [1, 2, 5, 7, 9],
+      "challenging": [4, 8],
+      "ko": {
+        "3": "창조적 인도주의 - 둘 다 예술과 영감을 중시합니다.",
+        "6": "봉사 파트너 - 둘 다 사랑과 돌봄을 중시합니다.",
+        "7": "영적 조합 - 둘 다 깊은 사고와 의미를 추구합니다.",
+        "8": "물질 vs 영성 - 9의 이상주의와 8의 물질주의 충돌.",
+        "4": "비전 vs 실용 - 9의 넓은 시야와 4의 세부 집중 마찰."
+      },
+      "en": {
+        "3": "Creative humanitarianism - Both value art and inspiration.",
+        "6": "Service partners - Both value love and nurturing.",
+        "7": "Spiritual combination - Both seek deep thought and meaning.",
+        "8": "Material vs spiritual - 9's idealism clashes with 8's materialism.",
+        "4": "Vision vs practical - 9's broad view and 4's detail focus friction."
+      }
+    }
+  },
+  "specialSequences": {
+    "repeating": {
+      "111": {
+        "ko": {
+          "name": "새로운 시작의 문",
+          "meaning": "우주가 새로운 시작을 축복합니다. 생각을 현실로 만들 준비가 됐습니다."
+        },
+        "en": {
+          "name": "Gateway of New Beginnings",
+          "meaning": "The universe blesses new starts. Your thoughts are ready to manifest."
+        }
+      },
+      "222": {
+        "ko": {
+          "name": "균형과 조화의 신호",
+          "meaning": "균형을 유지하세요. 모든 것이 제자리를 찾아가고 있습니다."
+        },
+        "en": {
+          "name": "Signal of Balance and Harmony",
+          "meaning": "Maintain balance. Everything is falling into place."
+        }
+      },
+      "333": {
+        "ko": {
+          "name": "마스터의 축복",
+          "meaning": "승천한 마스터들이 당신과 함께합니다. 창조하고 표현하세요."
+        },
+        "en": {
+          "name": "Master's Blessing",
+          "meaning": "Ascended masters are with you. Create and express."
+        }
+      },
+      "444": {
+        "ko": {
+          "name": "천사의 보호",
+          "meaning": "천사들이 당신을 둘러싸고 있습니다. 보호받고 있으니 안심하세요."
+        },
+        "en": {
+          "name": "Angel's Protection",
+          "meaning": "Angels surround you. You are protected, so rest assured."
+        }
+      },
+      "555": {
+        "ko": {
+          "name": "큰 변화의 바람",
+          "meaning": "대대적인 변화가 옵니다. 변화를 환영하세요."
+        },
+        "en": {
+          "name": "Winds of Great Change",
+          "meaning": "Major changes are coming. Welcome the transformation."
+        }
+      },
+      "666": {
+        "ko": {
+          "name": "균형 회복 필요",
+          "meaning": "물질과 영성의 균형을 점검하세요. 과도한 걱정을 내려놓으세요."
+        },
+        "en": {
+          "name": "Balance Restoration Needed",
+          "meaning": "Check balance between material and spiritual. Release excessive worry."
+        }
+      },
+      "777": {
+        "ko": {
+          "name": "영적 각성",
+          "meaning": "영적 성장의 정점입니다. 직관을 신뢰하세요."
+        },
+        "en": {
+          "name": "Spiritual Awakening",
+          "meaning": "Peak of spiritual growth. Trust your intuition."
+        }
+      },
+      "888": {
+        "ko": {
+          "name": "풍요의 흐름",
+          "meaning": "풍요가 당신에게 흐르고 있습니다. 감사하고 받으세요."
+        },
+        "en": {
+          "name": "Flow of Abundance",
+          "meaning": "Abundance is flowing to you. Be grateful and receive."
+        }
+      },
+      "999": {
+        "ko": {
+          "name": "완성과 졸업",
+          "meaning": "한 사이클이 완성됩니다. 과거를 놓아주고 새로운 시작을 준비하세요."
+        },
+        "en": {
+          "name": "Completion and Graduation",
+          "meaning": "A cycle is completing. Release the past and prepare for new beginnings."
+        }
+      }
+    },
+    "sequential": {
+      "123": {
+        "ko": {
+          "name": "성장의 단계",
+          "meaning": "순차적 성장이 진행 중입니다. 한 단계씩 나아가세요."
+        },
+        "en": {
+          "name": "Steps of Growth",
+          "meaning": "Sequential growth is underway. Take it one step at a time."
+        }
+      },
+      "234": {
+        "ko": {
+          "name": "기반 구축",
+          "meaning": "협력하며 기반을 다지세요. 팀워크가 중요합니다."
+        },
+        "en": {
+          "name": "Foundation Building",
+          "meaning": "Build foundations through cooperation. Teamwork is key."
+        }
+      },
+      "345": {
+        "ko": {
+          "name": "창조적 변화",
+          "meaning": "창의성으로 변화를 이끄세요. 새로운 방식을 시도하세요."
+        },
+        "en": {
+          "name": "Creative Change",
+          "meaning": "Lead change with creativity. Try new approaches."
+        }
+      },
+      "456": {
+        "ko": {
+          "name": "안정 속 변화",
+          "meaning": "안정적인 기반 위에서 변화를 추구하세요."
+        },
+        "en": {
+          "name": "Change Within Stability",
+          "meaning": "Pursue change on a stable foundation."
+        }
+      },
+      "567": {
+        "ko": {
+          "name": "자유로운 성장",
+          "meaning": "자유롭게 탐구하며 돌봄과 지혜를 키우세요."
+        },
+        "en": {
+          "name": "Free Growth",
+          "meaning": "Explore freely while nurturing wisdom."
+        }
+      },
+      "678": {
+        "ko": {
+          "name": "사랑에서 성공으로",
+          "meaning": "사랑과 지혜가 물질적 성공으로 이어집니다."
+        },
+        "en": {
+          "name": "From Love to Success",
+          "meaning": "Love and wisdom lead to material success."
+        }
+      },
+      "789": {
+        "ko": {
+          "name": "영적 완성",
+          "meaning": "깊은 탐구가 성취와 완성으로 이어집니다."
+        },
+        "en": {
+          "name": "Spiritual Completion",
+          "meaning": "Deep exploration leads to achievement and completion."
+        }
+      }
+    },
+    "mirror": {
+      "1221": {
+        "ko": {
+          "name": "리더십의 균형",
+          "meaning": "리더십에 협력을 더하세요. 혼자보다 함께가 강합니다."
+        },
+        "en": {
+          "name": "Balance of Leadership",
+          "meaning": "Add cooperation to leadership. Together is stronger than alone."
+        }
+      },
+      "3443": {
+        "ko": {
+          "name": "창조적 기반",
+          "meaning": "창의성에 구조를 더하면 지속 가능한 작품이 됩니다."
+        },
+        "en": {
+          "name": "Creative Foundation",
+          "meaning": "Adding structure to creativity creates lasting work."
+        }
+      },
+      "5665": {
+        "ko": {
+          "name": "자유로운 돌봄",
+          "meaning": "자유를 유지하면서 사랑하는 이들을 돌보세요."
+        },
+        "en": {
+          "name": "Free Nurturing",
+          "meaning": "Care for loved ones while maintaining freedom."
+        }
+      },
+      "7887": {
+        "ko": {
+          "name": "영적 풍요",
+          "meaning": "영적 지혜가 물질적 풍요로 이어집니다."
+        },
+        "en": {
+          "name": "Spiritual Abundance",
+          "meaning": "Spiritual wisdom leads to material abundance."
+        }
+      }
+    }
+  },
+  "lifePath_expression": {
+    "same": {
+      "ko": "생명 경로와 표현수가 같으면 당신의 삶의 목적과 재능이 완벽하게 정렬됩니다. 자연스럽게 사명을 수행할 수 있습니다.",
+      "en": "Same Life Path and Expression means your life purpose and talents are perfectly aligned. You can naturally fulfill your mission."
+    },
+    "complementary": {
+      "1_5": {
+        "ko": "리더십(1)과 변화(5)가 결합해 역동적인 개척자가 됩니다.",
+        "en": "Leadership (1) and change (5) combine to create a dynamic pioneer."
+      },
+      "2_6": {
+        "ko": "협력(2)과 돌봄(6)이 결합해 완벽한 중재자/양육자가 됩니다.",
+        "en": "Cooperation (2) and nurturing (6) combine to create a perfect mediator/nurturer."
+      },
+      "3_9": {
+        "ko": "창조성(3)과 인도주의(9)가 결합해 영감을 주는 예술가가 됩니다.",
+        "en": "Creativity (3) and humanitarianism (9) combine to create an inspiring artist."
+      },
+      "4_8": {
+        "ko": "체계(4)와 성취(8)가 결합해 성공적인 건축가가 됩니다.",
+        "en": "Structure (4) and achievement (8) combine to create a successful builder."
+      },
+      "7_11": {
+        "ko": "탐구(7)와 영감(11)이 결합해 신비로운 현자가 됩니다.",
+        "en": "Seeking (7) and inspiration (11) combine to create a mystical sage."
+      }
+    },
+    "challenging": {
+      "1_6": {
+        "ko": "독립(1)과 헌신(6) 사이에서 균형을 찾아야 합니다.",
+        "en": "Balance must be found between independence (1) and devotion (6)."
+      },
+      "3_4": {
+        "ko": "창조적 자유(3)와 체계적 접근(4) 사이에서 조화를 이루세요.",
+        "en": "Harmonize creative freedom (3) with structured approach (4)."
+      },
+      "5_8": {
+        "ko": "자유(5)와 물질적 성공(8) 사이에서 우선순위를 정하세요.",
+        "en": "Prioritize between freedom (5) and material success (8)."
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+[
+  {"id": 50, "name": "Ace of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Breakthrough", "Clarity", "Sharp mind", "Truth", "New idea"], "meaning": "A moment of breakthrough brings new clarity and understanding. This card represents a powerful new idea or the revelation of a core truth.", "advice": "Seize this moment of clarity. A breakthrough is here."},
+    "reversed": {"keywords": ["Confusion", "Miscommunication", "Lack of clarity", "Wrong decision", "Clouded judgment"], "meaning": "You are experiencing confusion or a lack of clarity. Miscommunication or clouded judgment may lead to making the wrong decision.", "advice": "Clear your mind before deciding. Avoid miscommunication."}
+  },
+  {"id": 51, "name": "Two of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Difficult choice", "Indecision", "Stalemate", "Blocked emotions", "A truce"], "meaning": "You are facing a difficult choice and are currently at a stalemate. You may be blocking your emotions to avoid making a painful decision.", "advice": "Face the difficult choice. Remove your blindfold."},
+    "reversed": {"keywords": ["Indecision", "Confusion", "Information overload", "Stuck in the middle", "Anxiety"], "meaning": "You are feeling overwhelmed and unable to make a decision. Information overload is leading to confusion and anxiety.", "advice": "Filter the noise. Find clarity amidst the chaos."}
+  },
+  {"id": 52, "name": "Three of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Heartbreak", "Sorrow", "Grief", "Painful truth", "Betrayal"], "meaning": "This card represents painful separation, heartbreak, or a sorrowful truth. While painful, this clarity is necessary for healing to begin.", "advice": "Allow yourself to grieve. Healing begins with acknowledgment."},
+    "reversed": {"keywords": ["Releasing pain", "Optimism", "Forgiveness", "Healing", "Overcoming sorrow"], "meaning": "You are beginning to recover from a painful experience. Forgiveness and letting go of sorrow are the first steps toward healing.", "advice": "Release the pain. Forgiveness sets you free."}
+  },
+  {"id": 53, "name": "Four of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Rest", "Recuperation", "Meditation", "Contemplation", "A necessary pause"], "meaning": "It is a time for rest and recovery after a challenging period. Take a break to meditate and recharge your mental and physical energy.", "advice": "Rest now. Recovery is essential for the next phase."},
+    "reversed": {"keywords": ["Exhaustion", "Burnout", "Stagnation", "Resuming activity", "Forced rest"], "meaning": "You are on the verge of burnout and are being forced to rest. Pushing yourself further will only lead to exhaustion.", "advice": "Stop pushing. Burnout is a warning sign."}
+  },
+  {"id": 54, "name": "Five of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Conflict", "Disagreement", "Competition", "Defeat", "A hollow victory"], "meaning": "This card represents a conflict where there are no true winners. It signifies a victory won at too high a cost, leading to bitterness and alienation.", "advice": "Consider if winning is worth the cost. Hollow victories hurt everyone."},
+    "reversed": {"keywords": ["Reconciliation", "Making amends", "Moving on", "Forgiveness", "Past resentment"], "meaning": "It is a time for reconciliation and making amends. Letting go of past resentments is necessary to move on from conflict.", "advice": "Make amends. Let go of old battles."}
+  },
+  {"id": 55, "name": "Six of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Transition", "Moving on", "Leaving behind", "A rite of passage", "Finding peace"], "meaning": "You are moving away from a difficult situation toward a calmer future. This transition may be sad, but it is a necessary journey to find peace.", "advice": "Move forward. Calmer waters await ahead."},
+    "reversed": {"keywords": ["Emotional baggage", "Unfinished business", "Resistance to change", "Feeling stuck", "Returning to trouble"], "meaning": "You are carrying emotional baggage that is preventing you from moving on. Resistance to change is keeping you stuck in a difficult place.", "advice": "Release your baggage. Resistance only prolongs suffering."}
+  },
+  {"id": 56, "name": "Seven of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Betrayal", "Deception", "Getting away with something", "Theft", "Strategy"], "meaning": "This card warns of deception or betrayal. Someone may be acting strategically behind your back, or you may be the one trying to get away with something.", "advice": "Be wary of deception. Consider if your strategy is ethical."},
+    "reversed": {"keywords": ["Confession", "Getting caught", "Conscience", "Facing the truth", "Returning stolen goods"], "meaning": "A secret is about to be revealed. It is a time for confession and facing the consequences of one's actions.", "advice": "The truth will out. Confess before being caught."}
+  },
+  {"id": 57, "name": "Eight of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Feeling trapped", "Imprisonment", "Limiting beliefs", "Victim mentality", "Restriction"], "meaning": "You feel trapped and restricted, but these limitations are self-imposed. Your own negative thoughts are holding you prisoner. You have the power to free yourself.", "advice": "Recognize self-imposed limitations. You can free yourself."},
+    "reversed": {"keywords": ["Breaking free", "Release", "Finding solutions", "New perspective", "Taking control"], "meaning": "You are beginning to see a way out of your perceived prison. By changing your perspective, you are releasing your limiting beliefs and taking control.", "advice": "You're breaking free! Keep changing your perspective."}
+  },
+  {"id": 58, "name": "Nine of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Anxiety", "Worry", "Fear", "Depression", "Nightmares"], "meaning": "This card represents deep anxiety, fear, and despair. Your worries are keeping you up at night, but these fears may be worse in your mind than in reality.", "advice": "Your fears are amplified. Seek help and perspective."},
+    "reversed": {"keywords": ["Hope", "Reaching out for help", "Recovery", "Facing fears", "Finding solutions"], "meaning": "You are beginning to find a way out of your despair. Reaching out for help and facing your fears is the first step toward recovery.", "advice": "Reach out for help. Recovery is beginning."}
+  },
+  {"id": 59, "name": "Ten of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Painful endings", "Betrayal", "Rock bottom", "Defeat", "Loss"], "meaning": "This card signifies a painful ending, betrayal, or hitting rock bottom. While devastating, this is the final blow, and the only way to go is up. Recovery can now begin.", "advice": "This is rock bottom. The only way now is up."},
+    "reversed": {"keywords": ["Recovery", "Resurrection", "Healing", "Resisting the end", "A close call"], "meaning": "You are slowly recovering from a devastating event. However, it can also mean you are resisting a necessary ending, only prolonging the pain.", "advice": "Recovery is possible. Don't resist necessary endings."}
+  },
+  {"id": 60, "name": "Page of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Curiosity", "New ideas", "Truthful", "Energetic", "A messenger"], "meaning": "Full of youthful energy and curiosity, you are eager to learn and share new ideas. This card represents a quest for knowledge and truth.", "advice": "Stay curious. Seek knowledge and truth actively."},
+    "reversed": {"keywords": ["Gossip", "Deception", "Scattered energy", "Sarcasm", "Thoughtless words"], "meaning": "Be wary of spreading gossip or speaking without thinking. Scattered energy can lead to a lack of focus and unproductive communication.", "advice": "Think before speaking. Avoid gossip and sarcasm."}
+  },
+  {"id": 61, "name": "Knight of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Ambitious", "Action-oriented", "Fast-thinking", "Assertive", "Driven"], "meaning": "This card represents a sharp, ambitious mind ready to charge into action. You are driven to pursue your goals with great speed and focus.", "advice": "Charge forward with focus. Your ambition drives success."},
+    "reversed": {"keywords": ["Reckless", "Hasty", "Arrogant", "Aggressive", "Thoughtless action"], "meaning": "You may be acting with haste and aggression, without fully thinking through the consequences. This reckless energy can lead to conflict.", "advice": "Slow down. Think before acting aggressively."}
+  },
+  {"id": 62, "name": "Queen of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Independent", "Unbiased judgment", "Clear boundaries", "Intelligent", "Honest"], "meaning": "This card represents an intelligent and independent person who relies on unbiased judgment. You have clear boundaries and value honesty above all.", "advice": "Judge fairly. Maintain clear boundaries and honesty."},
+    "reversed": {"keywords": ["Cold", "Bitter", "Cynical", "Cruel", "Overly critical"], "meaning": "You may be acting with a cold and bitter heart. Past pain can make one overly critical or cruel with their words.", "advice": "Soften your heart. Don't let past pain make you cruel."}
+  },
+  {"id": 63, "name": "King of Swords", "arcana": "minor", "suit": "swords",
+    "upright": {"keywords": ["Intellectual power", "Authority", "Truth", "Clarity", "Justice"], "meaning": "This card represents the authority of intellect and truth. You are a master of logic and can make decisions with clarity and fairness.", "advice": "Lead with logic and truth. Your clarity brings justice."},
+    "reversed": {"keywords": ["Manipulative", "Tyrannical", "Abuse of power", "Cruel", "Cold-hearted"], "meaning": "Be wary of someone who uses their intellect to manipulate and control. This abuse of power can be cruel and tyrannical.", "advice": "Don't abuse intellectual power. Avoid manipulation."}
+  }
+]

@@ -1,0 +1,88 @@
+{
+  "philosopher": "seneca",
+  "philosopher_kr": "세네카",
+  "title": "Roman Stoic Philosopher (4 BC - 65 AD)",
+  "main_work": "Letters from a Stoic",
+  "quotes": [
+    {
+      "id": "se_001",
+      "en": "We suffer more often in imagination than in reality.",
+      "kr": "우리는 현실보다 상상 속에서 더 자주 고통받는다.",
+      "source": "Letters",
+      "tags": [
+        "suffering",
+        "imagination"
+      ]
+    },
+    {
+      "id": "se_002",
+      "en": "Luck is what happens when preparation meets opportunity.",
+      "kr": "행운은 준비가 기회를 만났을 때 일어나는 것이다.",
+      "source": "Letters",
+      "tags": [
+        "luck",
+        "preparation"
+      ]
+    },
+    {
+      "id": "se_003",
+      "en": "It is not that we have a short time to live, but that we waste a lot of it.",
+      "kr": "우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.",
+      "source": "On the Shortness of Life",
+      "tags": [
+        "time",
+        "waste"
+      ]
+    },
+    {
+      "id": "se_004",
+      "en": "Difficulties strengthen the mind, as labor does the body.",
+      "kr": "어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.",
+      "source": "Letters",
+      "tags": [
+        "difficulty",
+        "strength"
+      ]
+    },
+    {
+      "id": "se_005",
+      "en": "True happiness is to enjoy the present, without anxious dependence upon the future.",
+      "kr": "진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.",
+      "source": "Letters",
+      "tags": [
+        "happiness",
+        "present"
+      ]
+    },
+    {
+      "id": "se_006",
+      "en": "As is a tale, so is life: not how long it is, but how good it is, is what matters.",
+      "kr": "이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.",
+      "source": "Letters",
+      "tags": [
+        "life",
+        "quality"
+      ]
+    },
+    {
+      "id": "se_007",
+      "en": "Begin at once to live, and count each separate day as a separate life.",
+      "kr": "지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.",
+      "source": "Letters",
+      "tags": [
+        "living",
+        "present"
+      ]
+    },
+    {
+      "id": "se_008",
+      "en": "The mind that is anxious about future events is miserable.",
+      "kr": "미래 사건에 대해 불안한 마음은 비참하다.",
+      "source": "Letters",
+      "tags": [
+        "anxiety",
+        "future"
+      ]
+    }
+  ]
+}

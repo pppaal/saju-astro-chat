@@ -1,0 +1,1617 @@
+{
+  "meta": {
+    "type": "dream_interpretation",
+    "description": "꿈 해몽 심층 해석 데이터 - 프리미엄",
+    "total_categories": 8,
+    "total_symbols": 89,
+    "total_combinations": 50,
+    "total_taemong": 25,
+    "total_lucky_mappings": 45
+  },
+  "categories": {
+    "animal": {
+      "name": "동물",
+      "symbols": {
+        "뱀": {
+          "positive_meaning": "지혜, 재물, 변화",
+          "negative_meaning": "배신, 위험, 유혹",
+          "advice": "변화의 시기, 현명한 판단 필요",
+          "detailed_interpretation": "꿈에서 뱀을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 지혜, 재물, 변화을(를), 부정적으로는 배신, 위험, 유혹을(를) 나타낼 수 있습니다. 변화의 시기, 현명한 판단 필요",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "호랑이": {
+          "positive_meaning": "권력, 성공, 보호",
+          "negative_meaning": "위험, 적, 두려움",
+          "advice": "용기를 내되 신중하게",
+          "detailed_interpretation": "꿈에서 호랑이을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 권력, 성공, 보호을(를), 부정적으로는 위험, 적, 두려움을(를) 나타낼 수 있습니다. 용기를 내되 신중하게",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "용": {
+          "positive_meaning": "출세, 성공, 권력",
+          "negative_meaning": "과욕, 실패",
+          "advice": "큰 기회가 오니 준비하세요",
+          "detailed_interpretation": "꿈에서 용을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 출세, 성공, 권력을(를), 부정적으로는 과욕, 실패을(를) 나타낼 수 있습니다. 큰 기회가 오니 준비하세요",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "개": {
+          "positive_meaning": "충성, 보호, 친구",
+          "negative_meaning": "배신, 공격",
+          "advice": "주변 사람을 살피세요",
+          "detailed_interpretation": "꿈에서 개을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 충성, 보호, 친구을(를), 부정적으로는 배신, 공격을(를) 나타낼 수 있습니다. 주변 사람을 살피세요",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "고양이": {
+          "positive_meaning": "독립, 직관, 신비",
+          "negative_meaning": "음모, 불운",
+          "advice": "직관을 믿으세요",
+          "detailed_interpretation": "꿈에서 고양이을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 독립, 직관, 신비을(를), 부정적으로는 음모, 불운을(를) 나타낼 수 있습니다. 직관을 믿으세요",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "물고기": {
+          "positive_meaning": "재물, 풍요, 다산",
+          "negative_meaning": "기회 놓침",
+          "advice": "재물운 상승",
+          "detailed_interpretation": "꿈에서 물고기을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 재물, 풍요, 다산을(를), 부정적으로는 기회 놓침을(를) 나타낼 수 있습니다. 재물운 상승",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "새": {
+          "positive_meaning": "자유, 소식, 희망",
+          "negative_meaning": "이별, 상실",
+          "advice": "좋은 소식이 올 수 있음",
+          "detailed_interpretation": "꿈에서 새을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 자유, 소식, 희망을(를), 부정적으로는 이별, 상실을(를) 나타낼 수 있습니다. 좋은 소식이 올 수 있음",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "돼지": {
+          "positive_meaning": "재물, 복, 풍요",
+          "negative_meaning": "탐욕, 게으름",
+          "advice": "재물운이 좋으나 욕심 조심",
+          "detailed_interpretation": "꿈에서 돼지을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 재물, 복, 풍요을(를), 부정적으로는 탐욕, 게으름을(를) 나타낼 수 있습니다. 재물운이 좋으나 욕심 조심",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "소": {
+          "positive_meaning": "재산, 근면, 성실",
+          "negative_meaning": "우둔함, 고집",
+          "advice": "꾸준한 노력이 결실",
+          "detailed_interpretation": "꿈에서 소을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 재산, 근면, 성실을(를), 부정적으로는 우둔함, 고집을(를) 나타낼 수 있습니다. 꾸준한 노력이 결실",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "말": {
+          "positive_meaning": "성공, 속도, 명예",
+          "negative_meaning": "성급함, 불안정",
+          "advice": "빠른 진전이 있을 것",
+          "detailed_interpretation": "꿈에서 말을(를) 보는 것은 동물 영역의 상징입니다. 긍정적으로는 성공, 속도, 명예을(를), 부정적으로는 성급함, 불안정을(를) 나타낼 수 있습니다. 빠른 진전이 있을 것",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        },
+        "나비": {
+          "positive_meaning": "변화, 아름다움, 자유",
+          "negative_meaning": "불안정, 덧없음",
+          "advice": "아름다운 변화가 다가옵니다",
+          "detailed_interpretation": "꿈에서 나비를 보는 것은 동물 영역의 상징입니다. 긍정적으로는 변화, 아름다움, 자유을(를), 부정적으로는 불안정, 덧없음을(를) 나타낼 수 있습니다. 아름다운 변화가 다가옵니다",
+          "related_life_areas": [
+            "본능",
+            "잠재의식",
+            "자연과의 연결"
+          ]
+        }
+      }
+    },
+    "nature": {
+      "name": "자연",
+      "symbols": {
+        "물": {
+          "positive_meaning": "정화, 감정, 풍요",
+          "negative_meaning": "위험, 감정 폭발",
+          "advice": "감정을 다스리세요",
+          "detailed_interpretation": "꿈에서 물을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 정화, 감정, 풍요을(를), 부정적으로는 위험, 감정 폭발을(를) 나타낼 수 있습니다. 감정을 다스리세요",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "불": {
+          "positive_meaning": "열정, 변화, 정화",
+          "negative_meaning": "파괴, 분노",
+          "advice": "열정을 건설적으로",
+          "detailed_interpretation": "꿈에서 불을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 열정, 변화, 정화을(를), 부정적으로는 파괴, 분노을(를) 나타낼 수 있습니다. 열정을 건설적으로",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "산": {
+          "positive_meaning": "목표, 장애 극복, 성취",
+          "negative_meaning": "어려움, 고난",
+          "advice": "인내하면 목표 달성",
+          "detailed_interpretation": "꿈에서 산을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 목표, 장애 극복, 성취을(를), 부정적으로는 어려움, 고난을(를) 나타낼 수 있습니다. 인내하면 목표 달성",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "바다": {
+          "positive_meaning": "무의식, 가능성, 풍요",
+          "negative_meaning": "두려움, 혼란",
+          "advice": "내면을 탐구하세요",
+          "detailed_interpretation": "꿈에서 바다을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 무의식, 가능성, 풍요을(를), 부정적으로는 두려움, 혼란을(를) 나타낼 수 있습니다. 내면을 탐구하세요",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "하늘": {
+          "positive_meaning": "희망, 자유, 영성",
+          "negative_meaning": "불안, 막막함",
+          "advice": "높은 이상을 품으세요",
+          "detailed_interpretation": "꿈에서 하늘을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 희망, 자유, 영성을(를), 부정적으로는 불안, 막막함을(를) 나타낼 수 있습니다. 높은 이상을 품으세요",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "비": {
+          "positive_meaning": "정화, 풍요, 축복",
+          "negative_meaning": "우울, 장애",
+          "advice": "새로운 시작의 징조",
+          "detailed_interpretation": "꿈에서 비을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 정화, 풍요, 축복을(를), 부정적으로는 우울, 장애을(를) 나타낼 수 있습니다. 새로운 시작의 징조",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "눈": {
+          "positive_meaning": "순수, 정화, 새출발",
+          "negative_meaning": "냉정함, 고립",
+          "advice": "깨끗한 마음으로",
+          "detailed_interpretation": "꿈에서 눈을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 순수, 정화, 새출발을(를), 부정적으로는 냉정함, 고립을(를) 나타낼 수 있습니다. 깨끗한 마음으로",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "꽃": {
+          "positive_meaning": "아름다움, 사랑, 성장",
+          "negative_meaning": "덧없음, 허영",
+          "advice": "아름다운 시기가 옵니다",
+          "detailed_interpretation": "꿈에서 꽃을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 아름다움, 사랑, 성장을(를), 부정적으로는 덧없음, 허영을(를) 나타낼 수 있습니다. 아름다운 시기가 옵니다",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "나무": {
+          "positive_meaning": "성장, 생명력, 근본",
+          "negative_meaning": "고착, 변화 거부",
+          "advice": "꾸준히 성장하세요",
+          "detailed_interpretation": "꿈에서 나무을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 성장, 생명력, 근본을(를), 부정적으로는 고착, 변화 거부을(를) 나타낼 수 있습니다. 꾸준히 성장하세요",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "달": {
+          "positive_meaning": "여성성, 직관, 변화",
+          "negative_meaning": "불안, 환상",
+          "advice": "직관을 믿으세요",
+          "detailed_interpretation": "꿈에서 달을(를) 보는 것은 자연 영역의 상징입니다. 긍정적으로는 여성성, 직관, 변화을(를), 부정적으로는 불안, 환상을(를) 나타낼 수 있습니다. 직관을 믿으세요",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "태양": {
+          "positive_meaning": "생명력, 성공, 밝음",
+          "negative_meaning": "과열, 소진",
+          "advice": "에너지가 충만합니다",
+          "detailed_interpretation": "꿈에서 태양을 보는 것은 자연 영역의 상징입니다. 긍정적으로는 생명력, 성공, 밝음을(를), 부정적으로는 과열, 소진을(를) 나타낼 수 있습니다. 에너지가 충만합니다",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        },
+        "별": {
+          "positive_meaning": "희망, 꿈, 안내",
+          "negative_meaning": "도달 불가, 외로움",
+          "advice": "높은 이상을 향해 나아가세요",
+          "detailed_interpretation": "꿈에서 별을 보는 것은 자연 영역의 상징입니다. 긍정적으로는 희망, 꿈, 안내을(를), 부정적으로는 도달 불가, 외로움을(를) 나타낼 수 있습니다. 높은 이상을 향해 나아가세요",
+          "related_life_areas": [
+            "감정",
+            "환경",
+            "내면 상태"
+          ]
+        }
+      }
+    },
+    "action": {
+      "name": "행동",
+      "symbols": {
+        "날기": {
+          "positive_meaning": "자유, 해방, 성공",
+          "negative_meaning": "현실 도피, 불안",
+          "advice": "높은 목표를 향해",
+          "detailed_interpretation": "꿈에서 날기을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 자유, 해방, 성공을(를), 부정적으로는 현실 도피, 불안을(를) 나타낼 수 있습니다. 높은 목표를 향해",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "떨어지기": {
+          "positive_meaning": "내려놓음, 변화",
+          "negative_meaning": "불안, 실패 두려움",
+          "advice": "변화를 받아들이세요",
+          "detailed_interpretation": "꿈에서 떨어지기을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 내려놓음, 변화을(를), 부정적으로는 불안, 실패 두려움을(를) 나타낼 수 있습니다. 변화를 받아들이세요",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "달리기": {
+          "positive_meaning": "진전, 노력, 열정",
+          "negative_meaning": "도피, 급함",
+          "advice": "목표를 향해 전진",
+          "detailed_interpretation": "꿈에서 달리기을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 진전, 노력, 열정을(를), 부정적으로는 도피, 급함을(를) 나타낼 수 있습니다. 목표를 향해 전진",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "수영": {
+          "positive_meaning": "감정 다스림, 적응",
+          "negative_meaning": "감정에 휩쓸림",
+          "advice": "감정을 잘 헤쳐나가세요",
+          "detailed_interpretation": "꿈에서 수영을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 감정 다스림, 적응을(를), 부정적으로는 감정에 휩쓸림을(를) 나타낼 수 있습니다. 감정을 잘 헤쳐나가세요",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "싸움": {
+          "positive_meaning": "갈등 해결, 힘",
+          "negative_meaning": "분노, 대립",
+          "advice": "내면의 갈등 직면",
+          "detailed_interpretation": "꿈에서 싸움을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 갈등 해결, 힘을(를), 부정적으로는 분노, 대립을(를) 나타낼 수 있습니다. 내면의 갈등 직면",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "죽음": {
+          "positive_meaning": "변화, 재탄생, 끝",
+          "negative_meaning": "두려움, 상실",
+          "advice": "한 단계가 끝나고 새로 시작",
+          "detailed_interpretation": "꿈에서 죽음을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 변화, 재탄생, 끝을(를), 부정적으로는 두려움, 상실을(를) 나타낼 수 있습니다. 한 단계가 끝나고 새로 시작",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "결혼": {
+          "positive_meaning": "결합, 약속, 전환",
+          "negative_meaning": "속박, 책임",
+          "advice": "중요한 결정이나 결합",
+          "detailed_interpretation": "꿈에서 결혼을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 결합, 약속, 전환을(를), 부정적으로는 속박, 책임을(를) 나타낼 수 있습니다. 중요한 결정이나 결합",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "출산": {
+          "positive_meaning": "창조, 새 시작, 성취",
+          "negative_meaning": "부담, 책임",
+          "advice": "새로운 것이 탄생",
+          "detailed_interpretation": "꿈에서 출산을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 창조, 새 시작, 성취을(를), 부정적으로는 부담, 책임을(를) 나타낼 수 있습니다. 새로운 것이 탄생",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "시험": {
+          "positive_meaning": "평가, 준비, 도전",
+          "negative_meaning": "불안, 자신감 부족",
+          "advice": "실력을 보여줄 때",
+          "detailed_interpretation": "꿈에서 시험을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 평가, 준비, 도전을(를), 부정적으로는 불안, 자신감 부족을(를) 나타낼 수 있습니다. 실력을 보여줄 때",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "길 잃음": {
+          "positive_meaning": "탐색, 새 방향",
+          "negative_meaning": "혼란, 방향 상실",
+          "advice": "인생의 방향을 재점검",
+          "detailed_interpretation": "꿈에서 길 잃음을(를) 보는 것은 행동 영역의 상징입니다. 긍정적으로는 탐색, 새 방향을(를), 부정적으로는 혼란, 방향 상실을(를) 나타낼 수 있습니다. 인생의 방향을 재점검",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        },
+        "여행": {
+          "positive_meaning": "모험, 성장, 발견",
+          "negative_meaning": "도피, 불안정",
+          "advice": "새로운 경험이 기다립니다",
+          "detailed_interpretation": "꿈에서 여행을 보는 것은 행동 영역의 상징입니다. 긍정적으로는 모험, 성장, 발견을(를), 부정적으로는 도피, 불안정을(를) 나타낼 수 있습니다. 새로운 경험이 기다립니다",
+          "related_life_areas": [
+            "의지",
+            "목표",
+            "현재 상황"
+          ]
+        }
+      }
+    },
+    "people": {
+      "name": "사람",
+      "symbols": {
+        "부모": {
+          "positive_meaning": "보호, 지지, 근원",
+          "negative_meaning": "갈등, 독립 필요",
+          "advice": "뿌리와 관계된 문제",
+          "detailed_interpretation": "꿈에서 부모을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 보호, 지지, 근원을(를), 부정적으로는 갈등, 독립 필요을(를) 나타낼 수 있습니다. 뿌리와 관계된 문제",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "연인": {
+          "positive_meaning": "사랑, 관계, 합일",
+          "negative_meaning": "갈등, 불안",
+          "advice": "관계에 집중하세요",
+          "detailed_interpretation": "꿈에서 연인을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 사랑, 관계, 합일을(를), 부정적으로는 갈등, 불안을(를) 나타낼 수 있습니다. 관계에 집중하세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "아이": {
+          "positive_meaning": "순수, 새 시작, 창의",
+          "negative_meaning": "미성숙, 책임 회피",
+          "advice": "내면의 아이를 돌보세요",
+          "detailed_interpretation": "꿈에서 아이을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 순수, 새 시작, 창의을(를), 부정적으로는 미성숙, 책임 회피을(를) 나타낼 수 있습니다. 내면의 아이를 돌보세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "낯선이": {
+          "positive_meaning": "새 가능성, 자아의 일부",
+          "negative_meaning": "두려움, 미지",
+          "advice": "새로운 측면을 탐구",
+          "detailed_interpretation": "꿈에서 낯선이을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 새 가능성, 자아의 일부을(를), 부정적으로는 두려움, 미지을(를) 나타낼 수 있습니다. 새로운 측면을 탐구",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "죽은자": {
+          "positive_meaning": "메시지, 추억, 연결",
+          "negative_meaning": "미련, 해결 안 된 것",
+          "advice": "과거를 정리하세요",
+          "detailed_interpretation": "꿈에서 죽은자을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 메시지, 추억, 연결을(를), 부정적으로는 미련, 해결 안 된 것을(를) 나타낼 수 있습니다. 과거를 정리하세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "유명인": {
+          "positive_meaning": "이상, 목표, 인정욕구",
+          "negative_meaning": "열등감, 비현실적",
+          "advice": "자신만의 가치를 찾으세요",
+          "detailed_interpretation": "꿈에서 유명인을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 이상, 목표, 인정욕구을(를), 부정적으로는 열등감, 비현실적을(를) 나타낼 수 있습니다. 자신만의 가치를 찾으세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "적": {
+          "positive_meaning": "그림자 직면, 성장",
+          "negative_meaning": "갈등, 위협",
+          "advice": "내면의 갈등 해결",
+          "detailed_interpretation": "꿈에서 적을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 그림자 직면, 성장을(를), 부정적으로는 갈등, 위협을(를) 나타낼 수 있습니다. 내면의 갈등 해결",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "친구": {
+          "positive_meaning": "지지, 사교, 즐거움",
+          "negative_meaning": "배신, 갈등",
+          "advice": "인간관계 점검",
+          "detailed_interpretation": "꿈에서 친구을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 지지, 사교, 즐거움을(를), 부정적으로는 배신, 갈등을(를) 나타낼 수 있습니다. 인간관계 점검",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "스승": {
+          "positive_meaning": "지혜, 안내, 성장",
+          "negative_meaning": "의존, 권위 문제",
+          "advice": "배움의 시기",
+          "detailed_interpretation": "꿈에서 스승을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 지혜, 안내, 성장을(를), 부정적으로는 의존, 권위 문제을(를) 나타낼 수 있습니다. 배움의 시기",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "군중": {
+          "positive_meaning": "소속감, 사회",
+          "negative_meaning": "개성 상실, 압박",
+          "advice": "사회적 역할 생각",
+          "detailed_interpretation": "꿈에서 군중을(를) 보는 것은 사람 영역의 상징입니다. 긍정적으로는 소속감, 사회을(를), 부정적으로는 개성 상실, 압박을(를) 나타낼 수 있습니다. 사회적 역할 생각",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "가족": {
+          "positive_meaning": "사랑, 지지, 유대감",
+          "negative_meaning": "갈등, 부담",
+          "advice": "가족 관계를 돌아보세요",
+          "detailed_interpretation": "꿈에서 가족을 보는 것은 사람 영역의 상징입니다. 긍정적으로는 사랑, 지지, 유대감을(를), 부정적으로는 갈등, 부담을(를) 나타낼 수 있습니다. 가족 관계를 돌아보세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "노인": {
+          "positive_meaning": "지혜, 경험, 안내",
+          "negative_meaning": "노화, 쇠퇴",
+          "advice": "지혜를 구하세요",
+          "detailed_interpretation": "꿈에서 노인을 보는 것은 사람 영역의 상징입니다. 긍정적으로는 지혜, 경험, 안내을(를), 부정적으로는 노화, 쇠퇴을(를) 나타낼 수 있습니다. 지혜를 구하세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        },
+        "의사": {
+          "positive_meaning": "치유, 도움, 권위",
+          "negative_meaning": "건강 걱정, 의존",
+          "advice": "건강에 신경 쓰세요",
+          "detailed_interpretation": "꿈에서 의사를 보는 것은 사람 영역의 상징입니다. 긍정적으로는 치유, 도움, 권위을(를), 부정적으로는 건강 걱정, 의존을(를) 나타낼 수 있습니다. 건강에 신경 쓰세요",
+          "related_life_areas": [
+            "관계",
+            "자아의 측면",
+            "사회"
+          ]
+        }
+      }
+    },
+    "object": {
+      "name": "사물",
+      "symbols": {
+        "돈": {
+          "positive_meaning": "가치, 풍요, 에너지",
+          "negative_meaning": "탐욕, 걱정",
+          "advice": "가치관 점검",
+          "detailed_interpretation": "꿈에서 돈을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 가치, 풍요, 에너지을(를), 부정적으로는 탐욕, 걱정을(를) 나타낼 수 있습니다. 가치관 점검",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "집": {
+          "positive_meaning": "자아, 안전, 가정",
+          "negative_meaning": "속박, 문제",
+          "advice": "내면의 상태 반영",
+          "detailed_interpretation": "꿈에서 집을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 자아, 안전, 가정을(를), 부정적으로는 속박, 문제을(를) 나타낼 수 있습니다. 내면의 상태 반영",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "차": {
+          "positive_meaning": "통제력, 방향, 진전",
+          "negative_meaning": "통제 상실",
+          "advice": "인생의 방향",
+          "detailed_interpretation": "꿈에서 차을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 통제력, 방향, 진전을(를), 부정적으로는 통제 상실을(를) 나타낼 수 있습니다. 인생의 방향",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "옷": {
+          "positive_meaning": "자아 표현, 역할",
+          "negative_meaning": "가면, 불안",
+          "advice": "자기 이미지 점검",
+          "detailed_interpretation": "꿈에서 옷을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 자아 표현, 역할을(를), 부정적으로는 가면, 불안을(를) 나타낼 수 있습니다. 자기 이미지 점검",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "음식": {
+          "positive_meaning": "양분, 만족, 풍요",
+          "negative_meaning": "결핍, 탐욕",
+          "advice": "무엇이 필요한지",
+          "detailed_interpretation": "꿈에서 음식을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 양분, 만족, 풍요을(를), 부정적으로는 결핍, 탐욕을(를) 나타낼 수 있습니다. 무엇이 필요한지",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "책": {
+          "positive_meaning": "지식, 지혜, 기록",
+          "negative_meaning": "현실 도피",
+          "advice": "배움과 성찰",
+          "detailed_interpretation": "꿈에서 책을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 지식, 지혜, 기록을(를), 부정적으로는 현실 도피을(를) 나타낼 수 있습니다. 배움과 성찰",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "거울": {
+          "positive_meaning": "자기 인식, 진실",
+          "negative_meaning": "자기 비판",
+          "advice": "자신을 직면",
+          "detailed_interpretation": "꿈에서 거울을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 자기 인식, 진실을(를), 부정적으로는 자기 비판을(를) 나타낼 수 있습니다. 자신을 직면",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "문": {
+          "positive_meaning": "기회, 전환, 선택",
+          "negative_meaning": "장벽, 닫힘",
+          "advice": "새 기회를 향해",
+          "detailed_interpretation": "꿈에서 문을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 기회, 전환, 선택을(를), 부정적으로는 장벽, 닫힘을(를) 나타낼 수 있습니다. 새 기회를 향해",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "열쇠": {
+          "positive_meaning": "해답, 접근, 해결",
+          "negative_meaning": "비밀, 닫힌 것",
+          "advice": "해결책을 찾을 것",
+          "detailed_interpretation": "꿈에서 열쇠을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 해답, 접근, 해결을(를), 부정적으로는 비밀, 닫힌 것을(를) 나타낼 수 있습니다. 해결책을 찾을 것",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "전화": {
+          "positive_meaning": "소통, 연결, 소식",
+          "negative_meaning": "단절, 놓친 것",
+          "advice": "소통에 주의",
+          "detailed_interpretation": "꿈에서 전화을(를) 보는 것은 사물 영역의 상징입니다. 긍정적으로는 소통, 연결, 소식을(를), 부정적으로는 단절, 놓친 것을(를) 나타낼 수 있습니다. 소통에 주의",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "반지": {
+          "positive_meaning": "약속, 헌신, 사랑",
+          "negative_meaning": "속박, 구속",
+          "advice": "중요한 약속이나 관계",
+          "detailed_interpretation": "꿈에서 반지를 보는 것은 사물 영역의 상징입니다. 긍정적으로는 약속, 헌신, 사랑을(를), 부정적으로는 속박, 구속을(를) 나타낼 수 있습니다. 중요한 약속이나 관계",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        },
+        "창문": {
+          "positive_meaning": "기회, 전망, 가능성",
+          "negative_meaning": "갇힘, 제한된 시야",
+          "advice": "새로운 관점을 찾으세요",
+          "detailed_interpretation": "꿈에서 창문을 보는 것은 사물 영역의 상징입니다. 긍정적으로는 기회, 전망, 가능성을(를), 부정적으로는 갇힘, 제한된 시야을(를) 나타낼 수 있습니다. 새로운 관점을 찾으세요",
+          "related_life_areas": [
+            "가치관",
+            "목표",
+            "일상"
+          ]
+        }
+      }
+    },
+    "places": {
+      "name": "장소",
+      "symbols": {
+        "집": {
+          "positive_meaning": "자아, 안전, 가정",
+          "negative_meaning": "속박, 문제",
+          "advice": "내면의 상태 반영",
+          "detailed_interpretation": "꿈에서 집을 보는 것은 장소 영역의 상징입니다. 긍정적으로는 자아, 안전, 가정을(를), 부정적으로는 속박, 문제을(를) 나타낼 수 있습니다. 내면의 상태 반영",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "학교": {
+          "positive_meaning": "배움, 성장, 시험",
+          "negative_meaning": "불안, 압박",
+          "advice": "배움과 성장의 시기",
+          "detailed_interpretation": "꿈에서 학교를 보는 것은 장소 영역의 상징입니다. 긍정적으로는 배움, 성장, 시험을(를), 부정적으로는 불안, 압박을(를) 나타낼 수 있습니다. 배움과 성장의 시기",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "병원": {
+          "positive_meaning": "치유, 회복, 돌봄",
+          "negative_meaning": "건강 걱정, 취약함",
+          "advice": "건강과 치유에 집중하세요",
+          "detailed_interpretation": "꿈에서 병원을 보는 것은 장소 영역의 상징입니다. 긍정적으로는 치유, 회복, 돌봄을(를), 부정적으로는 건강 걱정, 취약함을(를) 나타낼 수 있습니다. 건강과 치유에 집중하세요",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "길": {
+          "positive_meaning": "인생 여정, 방향, 선택",
+          "negative_meaning": "불확실함, 막힘",
+          "advice": "인생의 방향을 생각하세요",
+          "detailed_interpretation": "꿈에서 길을 보는 것은 장소 영역의 상징입니다. 긍정적으로는 인생 여정, 방향, 선택을(를), 부정적으로는 불확실함, 막힘을(를) 나타낼 수 있습니다. 인생의 방향을 생각하세요",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "다리": {
+          "positive_meaning": "전환, 연결, 극복",
+          "negative_meaning": "불안정, 위험",
+          "advice": "중요한 전환점입니다",
+          "detailed_interpretation": "꿈에서 다리를 보는 것은 장소 영역의 상징입니다. 긍정적으로는 전환, 연결, 극복을(를), 부정적으로는 불안정, 위험을(를) 나타낼 수 있습니다. 중요한 전환점입니다",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "숲": {
+          "positive_meaning": "무의식, 자연, 탐험",
+          "negative_meaning": "길 잃음, 두려움",
+          "advice": "내면을 탐험하세요",
+          "detailed_interpretation": "꿈에서 숲을 보는 것은 장소 영역의 상징입니다. 긍정적으로는 무의식, 자연, 탐험을(를), 부정적으로는 길 잃음, 두려움을(를) 나타낼 수 있습니다. 내면을 탐험하세요",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "동굴": {
+          "positive_meaning": "무의식, 보호, 피신처",
+          "negative_meaning": "은둔, 고립",
+          "advice": "내면 깊숙이 탐구하세요",
+          "detailed_interpretation": "꿈에서 동굴을 보는 것은 장소 영역의 상징입니다. 긍정적으로는 무의식, 보호, 피신처을(를), 부정적으로는 은둔, 고립을(를) 나타낼 수 있습니다. 내면 깊숙이 탐구하세요",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "하늘": {
+          "positive_meaning": "무한함, 자유, 영성",
+          "negative_meaning": "불안, 미지",
+          "advice": "높은 이상을 품으세요",
+          "detailed_interpretation": "꿈에서 하늘을 보는 것은 장소 영역의 상징입니다. 긍정적으로는 무한함, 자유, 영성을(를), 부정적으로는 불안, 미지을(를) 나타낼 수 있습니다. 높은 이상을 품으세요",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        },
+        "지하": {
+          "positive_meaning": "무의식, 숨겨진 것, 근본",
+          "negative_meaning": "억압, 어둠",
+          "advice": "억압된 것을 직면하세요",
+          "detailed_interpretation": "꿈에서 지하를 보는 것은 장소 영역의 상징입니다. 긍정적으로는 무의식, 숨겨진 것, 근본을(를), 부정적으로는 억압, 어둠을(를) 나타낼 수 있습니다. 억압된 것을 직면하세요",
+          "related_life_areas": [
+            "환경",
+            "심리 상태",
+            "삶의 영역"
+          ]
+        }
+      }
+    },
+    "colors": {
+      "name": "색상",
+      "symbols": {
+        "빨강": {
+          "positive_meaning": "열정, 에너지, 사랑",
+          "negative_meaning": "분노, 위험",
+          "advice": "강렬한 감정에 주의하세요",
+          "detailed_interpretation": "꿈에서 빨강을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 열정, 에너지, 사랑을(를), 부정적으로는 분노, 위험을(를) 나타낼 수 있습니다. 강렬한 감정에 주의하세요",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "파랑": {
+          "positive_meaning": "평화, 지혜, 신뢰",
+          "negative_meaning": "우울, 냉담",
+          "advice": "마음의 평화를 찾으세요",
+          "detailed_interpretation": "꿈에서 파랑을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 평화, 지혜, 신뢰을(를), 부정적으로는 우울, 냉담을(를) 나타낼 수 있습니다. 마음의 평화를 찾으세요",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "노랑": {
+          "positive_meaning": "기쁨, 지성, 활력",
+          "negative_meaning": "불안, 질투",
+          "advice": "밝은 에너지가 있습니다",
+          "detailed_interpretation": "꿈에서 노랑을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 기쁨, 지성, 활력을(를), 부정적으로는 불안, 질투을(를) 나타낼 수 있습니다. 밝은 에너지가 있습니다",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "초록": {
+          "positive_meaning": "성장, 치유, 조화",
+          "negative_meaning": "시기, 미성숙",
+          "advice": "성장과 치유의 시기입니다",
+          "detailed_interpretation": "꿈에서 초록을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 성장, 치유, 조화을(를), 부정적으로는 시기, 미성숙을(를) 나타낼 수 있습니다. 성장과 치유의 시기입니다",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "보라": {
+          "positive_meaning": "영성, 신비, 창의성",
+          "negative_meaning": "환상, 비현실",
+          "advice": "영적인 측면에 주목하세요",
+          "detailed_interpretation": "꿈에서 보라를 보는 것은 색상 영역의 상징입니다. 긍정적으로는 영성, 신비, 창의성을(를), 부정적으로는 환상, 비현실을(를) 나타낼 수 있습니다. 영적인 측면에 주목하세요",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "검정": {
+          "positive_meaning": "신비, 힘, 보호",
+          "negative_meaning": "두려움, 미지",
+          "advice": "무의식을 탐구하세요",
+          "detailed_interpretation": "꿈에서 검정을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 신비, 힘, 보호을(를), 부정적으로는 두려움, 미지을(를) 나타낼 수 있습니다. 무의식을 탐구하세요",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "하양": {
+          "positive_meaning": "순수, 새로움, 정화",
+          "negative_meaning": "공허함, 냉담",
+          "advice": "새로운 시작입니다",
+          "detailed_interpretation": "꿈에서 하양을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 순수, 새로움, 정화을(를), 부정적으로는 공허함, 냉담을(를) 나타낼 수 있습니다. 새로운 시작입니다",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "금색": {
+          "positive_meaning": "풍요, 성공, 고귀함",
+          "negative_meaning": "탐욕, 허영",
+          "advice": "풍요와 성공의 기운입니다",
+          "detailed_interpretation": "꿈에서 금색을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 풍요, 성공, 고귀함을(를), 부정적으로는 탐욕, 허영을(를) 나타낼 수 있습니다. 풍요와 성공의 기운입니다",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "은색": {
+          "positive_meaning": "직관, 반사, 균형",
+          "negative_meaning": "우유부단, 모호함",
+          "advice": "직관을 믿으세요",
+          "detailed_interpretation": "꿈에서 은색을 보는 것은 색상 영역의 상징입니다. 긍정적으로는 직관, 반사, 균형을(를), 부정적으로는 우유부단, 모호함을(를) 나타낼 수 있습니다. 직관을 믿으세요",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        },
+        "무지개": {
+          "positive_meaning": "희망, 약속, 조화",
+          "negative_meaning": "환상, 덧없음",
+          "advice": "희망이 있습니다",
+          "detailed_interpretation": "꿈에서 무지개를 보는 것은 색상 영역의 상징입니다. 긍정적으로는 희망, 약속, 조화을(를), 부정적으로는 환상, 덧없음을(를) 나타낼 수 있습니다. 희망이 있습니다",
+          "related_life_areas": [
+            "감정",
+            "에너지",
+            "기분 상태"
+          ]
+        }
+      }
+    },
+    "numbers": {
+      "name": "숫자",
+      "symbols": {
+        "1": {
+          "positive_meaning": "시작, 독립, 리더십",
+          "negative_meaning": "외로움, 고집",
+          "advice": "새로운 시작입니다",
+          "detailed_interpretation": "꿈에서 1을 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 시작, 독립, 리더십을(를), 부정적으로는 외로움, 고집을(를) 나타낼 수 있습니다. 새로운 시작입니다",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "2": {
+          "positive_meaning": "조화, 관계, 협력",
+          "negative_meaning": "의존, 갈등",
+          "advice": "관계에 집중하세요",
+          "detailed_interpretation": "꿈에서 2를 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 조화, 관계, 협력을(를), 부정적으로는 의존, 갈등을(를) 나타낼 수 있습니다. 관계에 집중하세요",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "3": {
+          "positive_meaning": "창조, 완성, 표현",
+          "negative_meaning": "산만함, 과잉",
+          "advice": "창의력을 발휘하세요",
+          "detailed_interpretation": "꿈에서 3을 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 창조, 완성, 표현을(를), 부정적으로는 산만함, 과잉을(를) 나타낼 수 있습니다. 창의력을 발휘하세요",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "4": {
+          "positive_meaning": "안정, 토대, 질서",
+          "negative_meaning": "경직, 제한",
+          "advice": "안정적인 기반을 다지세요",
+          "detailed_interpretation": "꿈에서 4를 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 안정, 토대, 질서을(를), 부정적으로는 경직, 제한을(를) 나타낼 수 있습니다. 안정적인 기반을 다지세요",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "5": {
+          "positive_meaning": "변화, 자유, 모험",
+          "negative_meaning": "불안정, 무절제",
+          "advice": "변화를 받아들이세요",
+          "detailed_interpretation": "꿈에서 5를 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 변화, 자유, 모험을(를), 부정적으로는 불안정, 무절제을(를) 나타낼 수 있습니다. 변화를 받아들이세요",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "6": {
+          "positive_meaning": "사랑, 가정, 책임",
+          "negative_meaning": "희생, 집착",
+          "advice": "가족과 사랑에 집중하세요",
+          "detailed_interpretation": "꿈에서 6을 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 사랑, 가정, 책임을(를), 부정적으로는 희생, 집착을(를) 나타낼 수 있습니다. 가족과 사랑에 집중하세요",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "7": {
+          "positive_meaning": "신비, 영성, 지혜",
+          "negative_meaning": "고립, 의심",
+          "advice": "영적 성장의 시기입니다",
+          "detailed_interpretation": "꿈에서 7을 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 신비, 영성, 지혜을(를), 부정적으로는 고립, 의심을(를) 나타낼 수 있습니다. 영적 성장의 시기입니다",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "8": {
+          "positive_meaning": "풍요, 성공, 권력",
+          "negative_meaning": "물질주의, 집착",
+          "advice": "풍요와 성공이 다가옵니다",
+          "detailed_interpretation": "꿈에서 8을 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 풍요, 성공, 권력을(를), 부정적으로는 물질주의, 집착을(를) 나타낼 수 있습니다. 풍요와 성공이 다가옵니다",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "9": {
+          "positive_meaning": "완성, 깨달음, 인도주의",
+          "negative_meaning": "상실, 끝",
+          "advice": "한 사이클이 완성됩니다",
+          "detailed_interpretation": "꿈에서 9를 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 완성, 깨달음, 인도주의을(를), 부정적으로는 상실, 끝을(를) 나타낼 수 있습니다. 한 사이클이 완성됩니다",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        },
+        "0": {
+          "positive_meaning": "무한, 순환, 가능성",
+          "negative_meaning": "공허함, 무",
+          "advice": "무한한 가능성이 열립니다",
+          "detailed_interpretation": "꿈에서 0을 보는 것은 숫자 영역의 상징입니다. 긍정적으로는 무한, 순환, 가능성을(를), 부정적으로는 공허함, 무을(를) 나타낼 수 있습니다. 무한한 가능성이 열립니다",
+          "related_life_areas": [
+            "운세",
+            "행운",
+            "숫자 상징"
+          ]
+        }
+      }
+    }
+  },
+  "symbol_combinations": {
+    "description": "심볼 조합 해석 - 두 개 이상의 심볼이 함께 나타날 때 특별한 의미",
+    "combinations": {
+      "뱀+물": {
+        "meaning": "큰 재물운",
+        "interpretation": "뱀과 물이 함께 나타나는 꿈은 재물과 풍요가 밀려온다는 강력한 길몽입니다. 특히 뱀이 물에서 나오거나 물 속에서 헤엄치면 횡재수가 있습니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 95
+      },
+      "돼지+금색": {
+        "meaning": "대박 재물운",
+        "interpretation": "금빛 돼지나 돼지와 금색이 함께 나오는 꿈은 최고의 재물운입니다. 사업 성공, 로또 당첨 등 큰 재물이 들어올 징조입니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 99
+      },
+      "용+하늘": {
+        "meaning": "출세와 성공",
+        "interpretation": "하늘로 올라가는 용의 꿈은 승진, 합격, 사업 성공 등 크게 출세할 징조입니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 98
+      },
+      "물고기+바다": {
+        "meaning": "풍요와 다산",
+        "interpretation": "바다에서 물고기를 보거나 잡는 꿈은 풍요와 다산의 상징입니다. 재물운과 건강운이 좋아집니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 88
+      },
+      "호랑이+산": {
+        "meaning": "권력과 명예",
+        "interpretation": "산에서 호랑이를 만나는 꿈은 높은 자리에 오르거나 권력을 얻게 될 징조입니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 90
+      },
+      "뱀+집": {
+        "meaning": "가정의 재물운",
+        "interpretation": "집에 뱀이 들어오는 꿈은 가정에 재물이 들어올 징조입니다. 단, 뱀을 쫓으면 재물이 나갑니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "아이+태양": {
+        "meaning": "귀한 자녀, 태몽",
+        "interpretation": "밝은 태양과 함께 아이가 나타나는 꿈은 귀한 자녀를 얻을 태몽입니다. 성공할 아이의 징조입니다.",
+        "fortune_type": "태몽",
+        "is_lucky": true,
+        "lucky_score": 96
+      },
+      "용+물": {
+        "meaning": "대성공과 권력",
+        "interpretation": "물에서 용이 나오는 꿈은 큰 성공과 출세를 예고합니다. 사업이나 시험에서 좋은 결과가 있습니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 97
+      },
+      "꽃+비": {
+        "meaning": "사랑과 결실",
+        "interpretation": "비를 맞으며 피어나는 꽃 꿈은 사랑이 결실을 맺거나 노력이 보상받을 징조입니다.",
+        "fortune_type": "사랑",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "새+하늘": {
+        "meaning": "자유와 좋은 소식",
+        "interpretation": "새가 하늘을 나는 꿈은 자유를 얻거나 좋은 소식이 올 징조입니다.",
+        "fortune_type": "소통",
+        "is_lucky": true,
+        "lucky_score": 82
+      },
+      "죽음+부활": {
+        "meaning": "재탄생과 새 시작",
+        "interpretation": "죽었다 살아나는 꿈은 인생의 큰 전환점입니다. 과거를 청산하고 새로운 삶이 시작됩니다.",
+        "fortune_type": "변화",
+        "is_lucky": true,
+        "lucky_score": 88
+      },
+      "돈+주움": {
+        "meaning": "예상치 못한 재물",
+        "interpretation": "돈을 줍는 꿈은 예상치 못한 곳에서 재물이 들어올 징조입니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 80
+      },
+      "열쇠+문": {
+        "meaning": "문제 해결, 기회",
+        "interpretation": "열쇠로 문을 여는 꿈은 막혔던 일이 풀리고 새로운 기회가 열릴 징조입니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "말+달리기": {
+        "meaning": "빠른 성공",
+        "interpretation": "말을 타고 달리는 꿈은 목표를 향해 빠르게 나아가고 있음을 의미합니다. 곧 성과가 있습니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 87
+      },
+      "나무+열매": {
+        "meaning": "노력의 결실",
+        "interpretation": "나무에 열매가 열리는 꿈은 오랜 노력이 결실을 맺을 징조입니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 86
+      },
+      "결혼+하양": {
+        "meaning": "행복한 결합",
+        "interpretation": "흰 옷을 입고 결혼하는 꿈은 순수한 사랑과 행복한 결합을 예고합니다.",
+        "fortune_type": "사랑",
+        "is_lucky": true,
+        "lucky_score": 90
+      },
+      "불+집": {
+        "meaning": "가정의 변화",
+        "interpretation": "집에 불이 나는 꿈은 역설적으로 길몽입니다. 가정에 큰 변화와 발전이 있을 징조입니다.",
+        "fortune_type": "변화",
+        "is_lucky": true,
+        "lucky_score": 78
+      },
+      "뱀+뱀": {
+        "meaning": "배가되는 재물",
+        "interpretation": "뱀이 여러 마리 나오는 꿈은 재물이 배가될 징조입니다. 숫자가 많을수록 좋습니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 92
+      },
+      "달+별": {
+        "meaning": "희망과 안내",
+        "interpretation": "달과 별이 함께 빛나는 꿈은 어두운 시기가 지나고 희망이 보인다는 의미입니다.",
+        "fortune_type": "희망",
+        "is_lucky": true,
+        "lucky_score": 84
+      },
+      "산+오르기": {
+        "meaning": "목표 달성",
+        "interpretation": "산을 오르는 꿈은 목표를 향해 나아가고 있음을 의미합니다. 정상에 오르면 목표 달성입니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "거울+자신": {
+        "meaning": "자기 성찰",
+        "interpretation": "거울에 비친 자신을 보는 꿈은 자기 성찰의 시간이 필요함을 알려줍니다.",
+        "fortune_type": "성장",
+        "is_lucky": true,
+        "lucky_score": 75
+      },
+      "물+맑음": {
+        "meaning": "정화와 치유",
+        "interpretation": "맑은 물 꿈은 마음의 정화와 치유를 의미합니다. 건강이 회복됩니다.",
+        "fortune_type": "건강",
+        "is_lucky": true,
+        "lucky_score": 88
+      },
+      "비+무지개": {
+        "meaning": "시련 후 희망",
+        "interpretation": "비 온 뒤 무지개 꿈은 시련이 끝나고 행복이 온다는 의미입니다.",
+        "fortune_type": "희망",
+        "is_lucky": true,
+        "lucky_score": 92
+      },
+      "개+충성": {
+        "meaning": "진실한 친구",
+        "interpretation": "충성스러운 개 꿈은 믿을 수 있는 친구나 조력자가 나타날 징조입니다.",
+        "fortune_type": "관계",
+        "is_lucky": true,
+        "lucky_score": 80
+      },
+      "나비+꽃": {
+        "meaning": "아름다운 변화",
+        "interpretation": "나비가 꽃 사이를 날아다니는 꿈은 아름다운 변화와 사랑의 시작을 의미합니다.",
+        "fortune_type": "사랑",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "뱀+물고기": {
+        "meaning": "복합 재물운",
+        "interpretation": "뱀과 물고기가 함께 나오는 꿈은 여러 방면에서 재물이 들어올 대길몽입니다.",
+        "fortune_type": "재물",
+        "is_lucky": true,
+        "lucky_score": 94
+      },
+      "태양+용": {
+        "meaning": "최고의 출세운",
+        "interpretation": "태양과 용이 함께 나오는 꿈은 최고의 자리에 오를 대길몽입니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 99
+      },
+      "물+흐림": {
+        "meaning": "감정 혼란 주의",
+        "interpretation": "흐린 물 꿈은 감정이 복잡하거나 판단이 흐려진 상태를 경고합니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 40
+      },
+      "떨어지기+깊음": {
+        "meaning": "불안감 주의",
+        "interpretation": "끝없이 떨어지는 꿈은 현재 큰 불안감이 있음을 나타냅니다. 안정이 필요합니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 35
+      },
+      "이빨+빠짐": {
+        "meaning": "가족 건강 주의",
+        "interpretation": "이빨이 빠지는 꿈은 가족의 건강이나 재정 문제를 경고합니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 30
+      },
+      "쫓김+도망": {
+        "meaning": "회피 경고",
+        "interpretation": "쫓기는 꿈은 현실에서 피하고 있는 문제가 있음을 경고합니다. 직면이 필요합니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 38
+      },
+      "죽은자+슬픔": {
+        "meaning": "미해결 감정",
+        "interpretation": "돌아가신 분이 슬프게 나타나면 아직 정리하지 못한 감정이 있습니다.",
+        "fortune_type": "치유",
+        "is_lucky": false,
+        "lucky_score": 45
+      },
+      "적+싸움": {
+        "meaning": "갈등 주의",
+        "interpretation": "적과 싸우는 꿈은 현실에서 갈등이 있거나 올 수 있음을 경고합니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 40
+      },
+      "검정+어둠": {
+        "meaning": "혼란의 시기",
+        "interpretation": "어둡고 검은 꿈은 현재 혼란스러운 시기임을 나타냅니다. 빛을 찾으세요.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 35
+      },
+      "길 잃음+숲": {
+        "meaning": "방향 상실",
+        "interpretation": "숲에서 길을 잃는 꿈은 인생의 방향을 다시 점검해야 함을 알려줍니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 42
+      },
+      "호랑이+물림": {
+        "meaning": "재물 손실 주의",
+        "interpretation": "호랑이에게 물리는 꿈은 재물 손실이나 배신을 경고합니다. 조심하세요.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 30
+      },
+      "뱀+물림": {
+        "meaning": "횡재 또는 경고",
+        "interpretation": "뱀에게 물리는 꿈은 역설적으로 횡재수이지만, 건강을 조심하라는 의미도 있습니다.",
+        "fortune_type": "혼합",
+        "is_lucky": true,
+        "lucky_score": 70
+      },
+      "물+빠짐": {
+        "meaning": "감정에 휩쓸림",
+        "interpretation": "물에 빠지는 꿈은 감정에 휩쓸리고 있음을 경고합니다. 냉정함이 필요합니다.",
+        "fortune_type": "경고",
+        "is_lucky": false,
+        "lucky_score": 40
+      },
+      "출산+쌍둥이": {
+        "meaning": "배가되는 기쁨",
+        "interpretation": "쌍둥이를 낳는 꿈은 기쁨이 배가 되거나 두 가지 좋은 일이 생길 징조입니다.",
+        "fortune_type": "행운",
+        "is_lucky": true,
+        "lucky_score": 90
+      },
+      "집+새집": {
+        "meaning": "새로운 시작",
+        "interpretation": "새 집으로 이사하는 꿈은 인생의 새로운 장이 시작됨을 의미합니다.",
+        "fortune_type": "변화",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "금색+모든것": {
+        "meaning": "대박 길몽",
+        "interpretation": "금빛으로 빛나는 꿈은 무엇이든 대길입니다. 최고의 행운이 다가옵니다.",
+        "fortune_type": "행운",
+        "is_lucky": true,
+        "lucky_score": 98
+      },
+      "학교+시험+성공": {
+        "meaning": "시험 합격",
+        "interpretation": "시험에 성공하는 꿈은 실제 시험이나 평가에서 좋은 결과를 예고합니다.",
+        "fortune_type": "성공",
+        "is_lucky": true,
+        "lucky_score": 85
+      },
+      "죽은자+웃음": {
+        "meaning": "조상의 축복",
+        "interpretation": "돌아가신 분이 웃으시는 꿈은 조상님의 축복과 보호를 의미합니다.",
+        "fortune_type": "축복",
+        "is_lucky": true,
+        "lucky_score": 88
+      },
+      "죽은자+선물": {
+        "meaning": "복을 전해주심",
+        "interpretation": "돌아가신 분이 선물을 주시는 꿈은 복이 들어올 대길몽입니다.",
+        "fortune_type": "행운",
+        "is_lucky": true,
+        "lucky_score": 92
+      },
+      "결혼+친구": {
+        "meaning": "관계 변화",
+        "interpretation": "친구가 결혼하는 꿈은 관계의 변화나 자신의 결혼 운을 예고합니다.",
+        "fortune_type": "관계",
+        "is_lucky": true,
+        "lucky_score": 78
+      },
+      "아기+웃음": {
+        "meaning": "행복과 순수",
+        "interpretation": "아기가 웃는 꿈은 행복과 순수한 기쁨이 올 징조입니다.",
+        "fortune_type": "행운",
+        "is_lucky": true,
+        "lucky_score": 88
+      },
+      "강아지+뛰놀기": {
+        "meaning": "즐거움과 우정",
+        "interpretation": "강아지와 노는 꿈은 즐거운 시간과 좋은 우정을 예고합니다.",
+        "fortune_type": "관계",
+        "is_lucky": true,
+        "lucky_score": 82
+      },
+      "연인+포옹": {
+        "meaning": "사랑의 결실",
+        "interpretation": "연인과 포옹하는 꿈은 관계가 깊어지고 사랑이 결실을 맺을 징조입니다.",
+        "fortune_type": "사랑",
+        "is_lucky": true,
+        "lucky_score": 88
+      },
+      "바다+맑음": {
+        "meaning": "마음의 평화",
+        "interpretation": "맑고 잔잔한 바다 꿈은 마음의 평화와 안정을 나타냅니다.",
+        "fortune_type": "평화",
+        "is_lucky": true,
+        "lucky_score": 85
+      }
+    }
+  },
+  "taemong": {
+    "description": "태몽 해석 - 임신과 태어날 아이에 관한 특별한 꿈 해석",
+    "symbols": {
+      "용": {
+        "child_trait": "대인물, 리더십",
+        "gender_hint": "남아",
+        "interpretation": "용 태몽은 큰 인물이 될 아이를 예고합니다. 특히 승천하는 용은 최고의 태몽입니다.",
+        "celebrity_examples": ["정치인", "CEO", "장군"],
+        "lucky_score": 99
+      },
+      "호랑이": {
+        "child_trait": "권력, 용맹함",
+        "gender_hint": "남아",
+        "interpretation": "호랑이 태몽은 용감하고 권력을 가진 아이를 예고합니다.",
+        "celebrity_examples": ["장군", "스포츠선수", "경찰"],
+        "lucky_score": 95
+      },
+      "금돼지": {
+        "child_trait": "부와 복",
+        "gender_hint": "남녀 모두",
+        "interpretation": "금빛 돼지 태몽은 부자가 될 아이를 예고합니다. 재복이 뛰어납니다.",
+        "celebrity_examples": ["사업가", "투자가"],
+        "lucky_score": 97
+      },
+      "잉어": {
+        "child_trait": "출세, 성공",
+        "gender_hint": "남녀 모두",
+        "interpretation": "잉어 태몽은 등용문을 통과할 아이입니다. 학업과 출세운이 좋습니다.",
+        "celebrity_examples": ["학자", "고위공무원"],
+        "lucky_score": 90
+      },
+      "봉황": {
+        "child_trait": "고귀함, 예술성",
+        "gender_hint": "여아",
+        "interpretation": "봉황 태몽은 고귀하고 예술적 재능이 뛰어난 여아를 예고합니다.",
+        "celebrity_examples": ["예술가", "왕비", "재벌"],
+        "lucky_score": 98
+      },
+      "해": {
+        "child_trait": "밝음, 리더십",
+        "gender_hint": "남아",
+        "interpretation": "해(태양) 태몽은 세상을 밝힐 리더가 될 아이입니다.",
+        "celebrity_examples": ["대통령", "종교지도자"],
+        "lucky_score": 99
+      },
+      "달": {
+        "child_trait": "아름다움, 지혜",
+        "gender_hint": "여아",
+        "interpretation": "달 태몽은 아름답고 지혜로운 여아를 예고합니다.",
+        "celebrity_examples": ["배우", "학자", "의사"],
+        "lucky_score": 93
+      },
+      "복숭아": {
+        "child_trait": "아름다움, 건강",
+        "gender_hint": "여아",
+        "interpretation": "복숭아 태몽은 아름답고 건강한 여아를 예고합니다.",
+        "celebrity_examples": ["모델", "배우"],
+        "lucky_score": 88
+      },
+      "사과": {
+        "child_trait": "지혜, 명석함",
+        "gender_hint": "남녀 모두",
+        "interpretation": "사과 태몽은 똑똒하고 명석한 아이를 예고합니다.",
+        "celebrity_examples": ["과학자", "의사", "변호사"],
+        "lucky_score": 87
+      },
+      "밤": {
+        "child_trait": "성실함, 재물복",
+        "gender_hint": "남아",
+        "interpretation": "밤 태몽은 성실하고 재물복이 있는 아이를 예고합니다.",
+        "celebrity_examples": ["사업가", "공무원"],
+        "lucky_score": 82
+      },
+      "구슬": {
+        "child_trait": "귀중함, 총명함",
+        "gender_hint": "남녀 모두",
+        "interpretation": "구슬 태몽은 귀중하고 총명한 아이를 예고합니다.",
+        "celebrity_examples": ["학자", "예술가"],
+        "lucky_score": 85
+      },
+      "금반지": {
+        "child_trait": "부와 명예",
+        "gender_hint": "여아",
+        "interpretation": "금반지 태몽은 부유하고 명예로운 삶을 살 여아를 예고합니다.",
+        "celebrity_examples": ["재벌", "명사"],
+        "lucky_score": 90
+      },
+      "뱀": {
+        "child_trait": "지혜, 재물운",
+        "gender_hint": "남녀 모두",
+        "interpretation": "뱀 태몽은 지혜롭고 재물운이 좋은 아이입니다. 특히 큰 뱀은 대인물.",
+        "celebrity_examples": ["사업가", "정치인"],
+        "lucky_score": 88
+      },
+      "물고기": {
+        "child_trait": "재물복, 다복",
+        "gender_hint": "남녀 모두",
+        "interpretation": "물고기 태몽은 재물복이 있고 복이 많은 아이를 예고합니다.",
+        "celebrity_examples": ["사업가", "금융인"],
+        "lucky_score": 85
+      },
+      "학": {
+        "child_trait": "장수, 고고함",
+        "gender_hint": "남아",
+        "interpretation": "학 태몽은 장수하고 고귀한 삶을 살 아이입니다.",
+        "celebrity_examples": ["학자", "예술가"],
+        "lucky_score": 88
+      },
+      "꽃": {
+        "child_trait": "아름다움, 매력",
+        "gender_hint": "여아",
+        "interpretation": "꽃 태몽은 아름답고 매력적인 여아를 예고합니다. 특히 활짝 핀 꽃은 대길.",
+        "celebrity_examples": ["연예인", "아나운서"],
+        "lucky_score": 85
+      },
+      "산": {
+        "child_trait": "든든함, 리더십",
+        "gender_hint": "남아",
+        "interpretation": "산 태몽은 든든하고 리더십 있는 아이를 예고합니다.",
+        "celebrity_examples": ["정치인", "기업인"],
+        "lucky_score": 87
+      },
+      "바다": {
+        "child_trait": "넓은 그릇, 포용력",
+        "gender_hint": "남녀 모두",
+        "interpretation": "바다 태몽은 그릇이 크고 포용력 있는 아이를 예고합니다.",
+        "celebrity_examples": ["리더", "종교인"],
+        "lucky_score": 86
+      },
+      "별": {
+        "child_trait": "스타성, 재능",
+        "gender_hint": "남녀 모두",
+        "interpretation": "별 태몽은 반짝이는 재능으로 스타가 될 아이를 예고합니다.",
+        "celebrity_examples": ["연예인", "운동선수"],
+        "lucky_score": 88
+      },
+      "거북이": {
+        "child_trait": "장수, 지혜",
+        "gender_hint": "남녀 모두",
+        "interpretation": "거북이 태몽은 장수하고 지혜로운 아이를 예고합니다.",
+        "celebrity_examples": ["학자", "장수인"],
+        "lucky_score": 85
+      },
+      "진주": {
+        "child_trait": "아름다움, 품위",
+        "gender_hint": "여아",
+        "interpretation": "진주 태몽은 아름답고 품위 있는 여아를 예고합니다.",
+        "celebrity_examples": ["배우", "재벌"],
+        "lucky_score": 89
+      },
+      "독수리": {
+        "child_trait": "야망, 성취",
+        "gender_hint": "남아",
+        "interpretation": "독수리 태몽은 높은 야망과 성취력을 가진 아이를 예고합니다.",
+        "celebrity_examples": ["사업가", "정치인"],
+        "lucky_score": 90
+      },
+      "소": {
+        "child_trait": "성실함, 재산",
+        "gender_hint": "남녀 모두",
+        "interpretation": "소 태몽은 성실하고 재산을 모을 아이를 예고합니다.",
+        "celebrity_examples": ["농업인", "사업가"],
+        "lucky_score": 83
+      },
+      "말": {
+        "child_trait": "활동적, 성공",
+        "gender_hint": "남아",
+        "interpretation": "말 태몽은 활동적이고 성공할 아이를 예고합니다. 특히 백마는 대길.",
+        "celebrity_examples": ["운동선수", "장군"],
+        "lucky_score": 87
+      },
+      "무지개": {
+        "child_trait": "행운, 희망",
+        "gender_hint": "남녀 모두",
+        "interpretation": "무지개 태몽은 행운과 희망을 가져오는 아이를 예고합니다.",
+        "celebrity_examples": ["예술가", "활동가"],
+        "lucky_score": 90
+      }
+    }
+  },
+  "lucky_numbers": {
+    "description": "꿈 심볼별 행운의 숫자 매핑 - 꿈 내용 기반 로또/행운 번호 추출용",
+    "symbol_mappings": {
+      "용": { "primary": [9, 18, 27, 36, 45], "secondary": [8, 17, 28], "element": "화" },
+      "뱀": { "primary": [6, 16, 26, 36], "secondary": [3, 13, 23], "element": "화" },
+      "돼지": { "primary": [3, 8, 12, 38, 43], "secondary": [18, 28], "element": "수" },
+      "호랑이": { "primary": [3, 13, 23, 33, 43], "secondary": [7, 17], "element": "목" },
+      "물고기": { "primary": [9, 19, 29, 39], "secondary": [3, 6], "element": "수" },
+      "말": { "primary": [7, 17, 27, 37], "secondary": [1, 11], "element": "화" },
+      "소": { "primary": [2, 12, 22, 32, 42], "secondary": [8, 18], "element": "토" },
+      "개": { "primary": [11, 21, 31, 41], "secondary": [1, 2], "element": "토" },
+      "새": { "primary": [4, 14, 24, 34, 44], "secondary": [5, 15], "element": "목" },
+      "물": { "primary": [1, 6, 11, 16, 21], "secondary": [36, 41], "element": "수" },
+      "불": { "primary": [2, 7, 12, 17, 27], "secondary": [32, 37], "element": "화" },
+      "산": { "primary": [5, 15, 25, 35, 45], "secondary": [8, 18], "element": "토" },
+      "바다": { "primary": [1, 11, 21, 31, 41], "secondary": [6, 16], "element": "수" },
+      "하늘": { "primary": [9, 19, 29, 39], "secondary": [7, 17], "element": "금" },
+      "태양": { "primary": [1, 9, 19, 28, 37], "secondary": [10, 20], "element": "화" },
+      "달": { "primary": [2, 12, 22, 32], "secondary": [6, 16], "element": "금" },
+      "별": { "primary": [7, 17, 27, 37], "secondary": [5, 15], "element": "금" },
+      "금": { "primary": [4, 14, 24, 34, 44], "secondary": [8, 18, 28], "element": "금" },
+      "돈": { "primary": [8, 18, 28, 38], "secondary": [3, 13], "element": "금" },
+      "집": { "primary": [4, 14, 24, 34], "secondary": [2, 12], "element": "토" },
+      "꽃": { "primary": [3, 13, 23, 33, 43], "secondary": [5, 15], "element": "목" },
+      "나무": { "primary": [3, 8, 13, 18, 38], "secondary": [4, 14], "element": "목" },
+      "비": { "primary": [1, 11, 21, 31], "secondary": [6, 16], "element": "수" },
+      "눈": { "primary": [1, 6, 11, 16, 21], "secondary": [26, 31], "element": "수" },
+      "결혼": { "primary": [2, 12, 22, 32], "secondary": [6, 16], "element": "화" },
+      "출산": { "primary": [3, 9, 13, 19, 39], "secondary": [1, 11], "element": "목" },
+      "죽음": { "primary": [4, 14, 24, 34, 44], "secondary": [9, 19], "element": "금" },
+      "시험": { "primary": [1, 5, 10, 15, 25], "secondary": [7, 17], "element": "목" },
+      "날기": { "primary": [9, 19, 29, 39], "secondary": [4, 14], "element": "목" },
+      "뛰기": { "primary": [7, 17, 27, 37], "secondary": [3, 13], "element": "화" },
+      "수영": { "primary": [1, 6, 16, 26, 36], "secondary": [11, 21], "element": "수" },
+      "무지개": { "primary": [7, 17, 27, 37, 45], "secondary": [1, 2, 3, 4, 5], "element": "화" },
+      "구름": { "primary": [5, 15, 25, 35], "secondary": [1, 11], "element": "수" },
+      "번개": { "primary": [7, 17, 27, 37], "secondary": [4, 14], "element": "화" },
+      "용왕": { "primary": [9, 19, 29, 39, 45], "secondary": [1, 6], "element": "수" },
+      "천사": { "primary": [7, 17, 27, 37], "secondary": [9, 19], "element": "금" },
+      "부처": { "primary": [8, 18, 28, 38], "secondary": [1, 9], "element": "금" },
+      "황금": { "primary": [8, 18, 28, 38, 45], "secondary": [4, 14], "element": "금" },
+      "보석": { "primary": [4, 14, 24, 34, 44], "secondary": [8, 18], "element": "금" },
+      "진주": { "primary": [1, 11, 21, 31], "secondary": [6, 16], "element": "수" },
+      "거북이": { "primary": [10, 20, 30, 40], "secondary": [1, 6], "element": "수" },
+      "학": { "primary": [1, 11, 21, 31, 41], "secondary": [9, 19], "element": "금" },
+      "봉황": { "primary": [9, 19, 29, 39, 45], "secondary": [5, 15], "element": "화" },
+      "기린": { "primary": [5, 15, 25, 35, 45], "secondary": [9, 19], "element": "토" },
+      "백호": { "primary": [4, 14, 24, 34, 44], "secondary": [7, 17], "element": "금" }
+    },
+    "number_generation_rules": {
+      "description": "꿈 내용에서 행운의 숫자를 생성하는 규칙",
+      "rules": [
+        "1. 주요 심볼의 primary 숫자에서 2-3개 선택",
+        "2. 보조 심볼의 secondary 숫자에서 1-2개 선택",
+        "3. 꿈에서 직접 나온 숫자가 있으면 우선 포함",
+        "4. 심볼 개수를 곱하거나 더해서 추가 숫자 생성",
+        "5. 오행 상생 관계의 숫자 조합 우선",
+        "6. 총 6개 숫자 생성 (로또 기준)"
+      ],
+      "element_compatibility": {
+        "목": ["화", "수"],
+        "화": ["토", "목"],
+        "토": ["금", "화"],
+        "금": ["수", "토"],
+        "수": ["목", "금"]
+      }
+    }
+  }
+}

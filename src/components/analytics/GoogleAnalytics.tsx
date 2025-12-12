@@ -3,13 +3,16 @@
 import Script from "next/script";
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useConsent } from "@/contexts/ConsentContext";
 
 export function GoogleAnalytics({ gaId }: { gaId: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { status } = useConsent();
+  const consentGranted = status === "granted";
 
   useEffect(() => {
-    if (!gaId) return;
+    if (!gaId || !consentGranted) return;
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
@@ -19,9 +22,24 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
         page_path: url,
       });
     }
-  }, [pathname, searchParams, gaId]);
+  }, [pathname, searchParams, gaId, consentGranted]);
 
-  if (!gaId) return null;
+  // Keep Google Consent Mode in sync with banner choice
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const gtag = (window as any).gtag;
+    if (!gtag) return;
+
+    const consentState = consentGranted ? "granted" : "denied";
+    gtag("consent", "update", {
+      ad_storage: consentState,
+      analytics_storage: consentState,
+      ad_user_data: consentState,
+      ad_personalization: consentState,
+    });
+  }, [consentGranted, status]);
+
+  if (!gaId || !consentGranted) return null;
 
   return (
     <>
@@ -36,6 +54,12 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'update', {
+              ad_storage: 'granted',
+              analytics_storage: 'granted',
+              ad_user_data: 'granted',
+              ad_personalization: 'granted',
+            });
             gtag('js', new Date());
 
             gtag('config', '${gaId}', {

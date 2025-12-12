@@ -35,28 +35,32 @@ model Session {
 }
 
 model User {
-  id                 String            @id @default(cuid())
-  name               String?
-  email              String?           @unique
-  emailVerified      DateTime?
-  image              String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  birthDate          String?
-  birthTime          String?
-  gender             String?
-  birthCity          String?
-  tzId               String?
-  passwordHash       String?
-  emailNotifications Boolean           @default(false)
-  accounts           Account[]
-  sessions           Session[]
-  readings           Reading[]
-  fortunes           Fortune[]
-  snapshots          DestinySnapshot[]
-  dailyFortunes      DailyFortune[]
-  interactions       UserInteraction[]
-  preferences        UserPreferences?
+  id                    String                  @id @default(cuid())
+  name                  String?
+  email                 String?                 @unique
+  emailVerified         DateTime?
+  image                 String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  birthDate             String?
+  birthTime             String?
+  gender                String?
+  birthCity             String?
+  tzId                  String?
+  passwordHash          String?
+  emailNotifications    Boolean                 @default(false)
+  accounts              Account[]
+  sessions              Session[]
+  readings              Reading[]
+  fortunes              Fortune[]
+  snapshots             DestinySnapshot[]
+  dailyFortunes         DailyFortune[]
+  interactions          UserInteraction[]
+  preferences           UserPreferences?
+  consultationHistory   ConsultationHistory[]
+  personaMemory         PersonaMemory?
+  subscriptions         Subscription[]
+  premiumContentAccess  PremiumContentAccess[]
 }
 
 model VerificationToken {
@@ -151,4 +155,155 @@ model UserPreferences {
   readingLength        String   @default("medium")
   tonePreference       String   @default("casual")
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 상담 기록 저장 - 프리미엄 사용자만 열람 가능
+model ConsultationHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  createdAt    DateTime @default(now())
+  theme        String   // love, career, life_path, etc.
+  summary      String   // 상담 요약 (1-2줄)
+  fullReport   String   @db.Text // 전체 리포트 내용
+  jungQuotes   Json?    // 사용된 Jung 인용문들
+  signals      Json?    // 점성술/사주 시그널
+  userQuestion String?  // 사용자 질문 (있을 경우)
+  locale       String   @default("ko")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, theme])
+}
+
+// 섹션별 피드백 - AI 품질 개선용
+model SectionFeedback {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  // 익명 식별자 (생년월일 해시)
+  userHash    String?
+
+  // 피드백 대상
+  service     String   // destiny-map, dream, tarot, etc.
+  theme       String   // focus_love, focus_career, etc.
+  sectionId   String   // personality, relationships, career, etc.
+
+  // 피드백 데이터
+  helpful     Boolean  // true = 👍, false = 👎
+
+  // 컨텍스트 (분석용)
+  dayMaster   String?  // 甲木, 乙木, etc.
+  sunSign     String?  // Aries, Taurus, etc.
+  locale      String   @default("ko")
+
+  @@index([service, theme])
+  @@index([sectionId, helpful])
+  @@index([dayMaster])
+  @@index([createdAt])
+}
+
+// 페르소나 기억 - 사용자별 맥락 정보 누적
+model PersonaMemory {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 핵심 맥락 정보
+  dominantThemes  Json?    // 자주 묻는 주제들 (예: ["love", "career"])
+  keyInsights     Json?    // 중요한 통찰들 (예: ["그림자 작업 필요", "아니마 투사 경향"])
+  emotionalTone   String?  // 전반적인 감정 톤 (예: "불안", "성장지향")
+  growthAreas     Json?    // 성장 영역 (예: ["관계", "자기표현"])
+
+  // 상담 맥락
+  lastTopics      Json?    // 최근 상담 주제들
+  recurringIssues Json?    // 반복되는 이슈들
+  sessionCount    Int      @default(0) // 총 상담 횟수
+
+  // 점성술/사주 핵심 정보 (캐싱)
+  birthChart      Json?    // 핵심 차트 정보
+  sajuProfile     Json?    // 사주 프로필
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 내 사람들 - 가족, 친구, 연인 정보 저장
+model SavedPerson {
+  id          String   @id @default(cuid())
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 기본 정보
+  name        String
+  relation    String   // family, friend, partner, colleague
+  birthDate   String?
+  birthTime   String?
+  gender      String?  // M, F, U
+  birthCity   String?
+  tzId        String?
+
+  // 메모
+  note        String?
+
+  @@index([userId])
+  @@index([userId, relation])
+}
+
+// 구독/결제 기록 - Stripe와 동기화
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Stripe 정보
+  stripeCustomerId     String?
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+
+  // 구독 상태
+  status               String    // active, trialing, past_due, canceled, unpaid
+  plan                 String    // free, basic, premium
+  billingCycle         String?   // monthly, annual
+
+  // 기간
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  canceledAt           DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+
+  // 결제 방법
+  paymentMethod        String?   // card, kakao, etc.
+
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([status])
+}
+
+// 프리미엄 콘텐츠 열람 기록
+model PremiumContentAccess {
+  id          String   @id @default(cuid())
+  userId      String
+  createdAt   DateTime @default(now())
+
+  // 콘텐츠 정보
+  service     String   // astrology, saju, tarot, dream, destiny-map
+  contentType String   // details, advanced, full_report, etc.
+  contentId   String?  // 특정 콘텐츠 ID (있는 경우)
+
+  // 접근 컨텍스트
+  locale      String   @default("ko")
+  metadata    Json?    // 추가 정보 (테마, 입력값 등)
+
+  // 비용 (크레딧 시스템 대비)
+  creditUsed  Int      @default(0)
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, service])
+  @@index([service, contentType])
 }

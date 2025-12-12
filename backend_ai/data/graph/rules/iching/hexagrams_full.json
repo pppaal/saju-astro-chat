@@ -1,0 +1,1038 @@
+{
+  "$schema": "Complete 64 Hexagrams Premium Data",
+  "$version": "1.0.0",
+  "hexagrams": {
+    "1": {
+      "number": 1,
+      "name_en": "Qian - The Creative",
+      "name_ko": "건괘(乾卦) - 하늘",
+      "name_hanja": "乾為天",
+      "symbol": "䷀",
+      "binary": "111111",
+      "trigram_upper": "heaven",
+      "trigram_lower": "heaven",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "순수한 양(陽)의 기운. 창조적 힘, 리더십, 강건함을 상징합니다. 하늘이 쉬지 않고 움직이듯, 끊임없는 자기 발전과 성장을 의미합니다.",
+        "en": "Pure yang energy. Symbolizes creative power, leadership, and strength. Like heaven moving ceaselessly, it represents continuous self-improvement and growth."
+      },
+      "judgment": {
+        "ko": "크게 형통하니, 바름을 굳게 지킴이 이롭다.",
+        "en": "Greatly successful. Perseverance is favorable."
+      },
+      "image": {
+        "ko": "하늘이 스스로 굳건하게 운행하니, 군자는 스스로 쉬지 않고 힘쓴다.",
+        "en": "Heaven moves with vigor. The superior person makes himself strong and untiring."
+      },
+      "themes": {
+        "career": {"ko": "리더십을 발휘할 때입니다. 새로운 프로젝트 시작이나 승진 기회가 있습니다.", "en": "Time to exercise leadership. Opportunities for new projects or promotion exist."},
+        "love": {"ko": "적극적으로 다가가면 좋은 인연을 만납니다. 주도적이되 상대 존중이 필요합니다.", "en": "Active approach leads to good relationships. Take initiative but respect your partner."},
+        "health": {"ko": "에너지가 넘치지만 과로 주의. 심장, 머리 관련 건강에 신경 쓰세요.", "en": "High energy but beware of overwork. Watch heart and head health."},
+        "wealth": {"ko": "재정적으로 좋은 흐름. 투자나 사업에서 이익 가능하나 탐욕 경계.", "en": "Favorable financial flow. Profits possible but guard against greed."},
+        "timing": {"ko": "봄과 여름에 특히 좋습니다. 오전 시간대 활동 권장.", "en": "Especially favorable in spring and summer. Morning activities recommended."}
+      }
+    },
+    "2": {
+      "number": 2,
+      "name_en": "Kun - The Receptive",
+      "name_ko": "곤괘(坤卦) - 땅",
+      "name_hanja": "坤為地",
+      "symbol": "䷁",
+      "binary": "000000",
+      "trigram_upper": "earth",
+      "trigram_lower": "earth",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "순수한 음(陰)의 기운. 수용성, 온유함, 지구력을 상징합니다. 땅이 만물을 품듯, 겸손하게 받아들이는 덕.",
+        "en": "Pure yin energy. Symbolizes receptivity, gentleness, and endurance. Like earth embracing all things."
+      },
+      "judgment": {
+        "ko": "크게 형통하니, 암말의 바름을 굳게 지킴이 이롭다.",
+        "en": "Greatly successful. Perseverance like that of a mare is favorable."
+      },
+      "image": {
+        "ko": "땅의 형세가 곤이니, 군자는 두터운 덕으로 만물을 싣는다.",
+        "en": "The earth's condition is receptive. The superior person carries all things with great virtue."
+      },
+      "themes": {
+        "career": {"ko": "주도하기보다 지원하는 역할이 좋습니다. 팀워크 중시, 인내심 필요.", "en": "Supportive role better than leading. Value teamwork, patience needed."},
+        "love": {"ko": "상대방을 받아들이고 이해하는 것이 중요합니다. 헌신이 보상받는 시기.", "en": "Accepting and understanding partner is important. Devotion will be rewarded."},
+        "health": {"ko": "소화기 계통에 신경 쓰세요. 충분한 휴식과 규칙적 식사 중요.", "en": "Pay attention to digestive system. Rest and regular meals important."},
+        "wealth": {"ko": "보수적 재정 관리 권장. 저축과 안정적 수입에 집중.", "en": "Conservative financial management recommended. Focus on savings."},
+        "timing": {"ko": "가을과 겨울에 특히 좋습니다. 오후 시간대 활동 권장.", "en": "Especially favorable in autumn and winter. Afternoon activities recommended."}
+      }
+    },
+    "3": {
+      "number": 3,
+      "name_en": "Zhun - Difficulty at the Beginning",
+      "name_ko": "준괘(屯卦) - 어려운 시작",
+      "name_hanja": "水雷屯",
+      "symbol": "䷂",
+      "binary": "010001",
+      "trigram_upper": "water",
+      "trigram_lower": "thunder",
+      "element": "water",
+      "core_meaning": {
+        "ko": "새싹이 땅을 뚫고 나오는 어려움. 시작은 힘들지만 인내하면 성장합니다. 도움을 구하는 것이 현명합니다.",
+        "en": "Difficulty of a sprout breaking through earth. Beginning is hard but perseverance leads to growth. Seeking help is wise."
+      },
+      "judgment": {
+        "ko": "크게 형통하고 바름이 이롭다. 경거망동하지 말고 제후를 세움이 이롭다.",
+        "en": "Greatly successful, perseverance favorable. Do not act rashly. It is favorable to appoint helpers."
+      },
+      "themes": {
+        "career": {"ko": "초기 어려움이 있지만 포기하지 마세요. 멘토나 조력자를 구하세요.", "en": "Initial difficulties exist but don't give up. Seek mentors or helpers."},
+        "love": {"ko": "시작이 어색하고 힘들 수 있습니다. 서두르지 말고 천천히 관계를 발전시키세요.", "en": "Beginning may be awkward. Don't rush, develop relationship slowly."},
+        "health": {"ko": "새로운 건강 루틴 시작시 어려움 예상. 꾸준함이 중요합니다.", "en": "Difficulties when starting new health routines. Consistency is key."},
+        "wealth": {"ko": "재정적 시작이 힘들 수 있습니다. 소규모로 시작해 점진적으로 확장.", "en": "Financial start may be difficult. Start small and expand gradually."},
+        "timing": {"ko": "봄에 해당. 새로운 시작의 시기이나 인내 필요.", "en": "Corresponds to spring. Time for new beginnings but patience needed."}
+      }
+    },
+    "4": {
+      "number": 4,
+      "name_en": "Meng - Youthful Folly",
+      "name_ko": "몽괘(蒙卦) - 어리석음",
+      "name_hanja": "山水蒙",
+      "symbol": "䷃",
+      "binary": "100010",
+      "trigram_upper": "mountain",
+      "trigram_lower": "water",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "어린아이의 무지함. 배움의 필요성을 나타냅니다. 겸손하게 가르침을 구하면 발전합니다.",
+        "en": "Youthful ignorance. Indicates need for learning. Humble seeking of teaching leads to progress."
+      },
+      "judgment": {
+        "ko": "형통하다. 내가 동몽을 구하는 것이 아니라 동몽이 나를 구한다.",
+        "en": "Success. It is not I who seek the young fool; the young fool seeks me."
+      },
+      "themes": {
+        "career": {"ko": "배움의 자세가 필요합니다. 선배나 전문가의 조언을 구하세요.", "en": "Learning attitude needed. Seek advice from seniors or experts."},
+        "love": {"ko": "관계에서 배울 점이 많습니다. 상대방에게 열린 마음을 가지세요.", "en": "Much to learn in relationships. Keep an open mind toward your partner."},
+        "health": {"ko": "건강 지식을 쌓으세요. 전문가 상담이 도움됩니다.", "en": "Build health knowledge. Professional consultation helps."},
+        "wealth": {"ko": "재정 교육이 필요합니다. 투자 전 충분히 공부하세요.", "en": "Financial education needed. Study thoroughly before investing."},
+        "timing": {"ko": "학습과 준비의 시기. 성급한 행동은 피하세요.", "en": "Time for learning and preparation. Avoid hasty actions."}
+      }
+    },
+    "5": {
+      "number": 5,
+      "name_en": "Xu - Waiting",
+      "name_ko": "수괘(需卦) - 기다림",
+      "name_hanja": "水天需",
+      "symbol": "䷄",
+      "binary": "010111",
+      "trigram_upper": "water",
+      "trigram_lower": "heaven",
+      "element": "water",
+      "core_meaning": {
+        "ko": "때를 기다리는 지혜. 조급함을 버리고 적절한 시기를 기다리면 성공합니다. 내면의 힘을 기르는 시간.",
+        "en": "Wisdom of waiting. Abandoning impatience and waiting for right timing leads to success. Time to cultivate inner strength."
+      },
+      "judgment": {
+        "ko": "성실하면 빛나고 형통하다. 바름이 길하니, 큰 물을 건넘이 이롭다.",
+        "en": "With sincerity, there is light and success. Perseverance brings good fortune. Favorable to cross great water."
+      },
+      "themes": {
+        "career": {"ko": "지금은 기다리는 시기입니다. 준비하면서 기회를 노리세요.", "en": "Now is time for waiting. Prepare while watching for opportunities."},
+        "love": {"ko": "조급하게 굴지 마세요. 자연스럽게 발전하도록 기다리세요.", "en": "Don't be impatient. Wait for natural development."},
+        "health": {"ko": "회복 기간입니다. 무리하지 말고 충분히 쉬세요.", "en": "Recovery period. Don't overdo it, rest sufficiently."},
+        "wealth": {"ko": "투자 시기가 아닙니다. 관망하며 자금을 축적하세요.", "en": "Not time for investment. Watch and accumulate funds."},
+        "timing": {"ko": "인내의 시기. 서두르면 실패, 기다리면 성공.", "en": "Time for patience. Rushing fails, waiting succeeds."}
+      }
+    },
+    "6": {
+      "number": 6,
+      "name_en": "Song - Conflict",
+      "name_ko": "송괘(訟卦) - 다툼",
+      "name_hanja": "天水訟",
+      "symbol": "䷅",
+      "binary": "111010",
+      "trigram_upper": "heaven",
+      "trigram_lower": "water",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "갈등과 분쟁의 상황. 끝까지 다투면 손해를 봅니다. 중재자를 찾고 타협하는 것이 현명합니다.",
+        "en": "Situation of conflict and dispute. Fighting to the end brings loss. Finding mediators and compromising is wise."
+      },
+      "judgment": {
+        "ko": "성실하면 막히니, 두려워하며 중도에 그치면 길하다.",
+        "en": "Sincerity is obstructed. Being cautious and stopping midway brings good fortune."
+      },
+      "themes": {
+        "career": {"ko": "직장에서 갈등이 있을 수 있습니다. 대립보다 타협을 선택하세요.", "en": "Conflicts may arise at work. Choose compromise over confrontation."},
+        "love": {"ko": "관계에 마찰이 있습니다. 양보와 이해로 해결하세요.", "en": "Friction in relationships. Resolve through concession and understanding."},
+        "health": {"ko": "스트레스로 인한 건강 문제 주의. 마음의 평화를 찾으세요.", "en": "Watch for stress-related health issues. Find peace of mind."},
+        "wealth": {"ko": "소송이나 분쟁은 피하세요. 재정적 손실 위험이 있습니다.", "en": "Avoid lawsuits or disputes. Risk of financial loss."},
+        "timing": {"ko": "분쟁을 피해야 할 시기. 무리한 추진은 후회를 부릅니다.", "en": "Time to avoid disputes. Forceful pushing leads to regret."}
+      }
+    },
+    "7": {
+      "number": 7,
+      "name_en": "Shi - The Army",
+      "name_ko": "사괘(師卦) - 군대",
+      "name_hanja": "地水師",
+      "symbol": "䷆",
+      "binary": "000010",
+      "trigram_upper": "earth",
+      "trigram_lower": "water",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "조직과 규율의 힘. 많은 사람을 이끌어 목표를 달성합니다. 경험 있는 지도자가 필요합니다.",
+        "en": "Power of organization and discipline. Leading many people to achieve goals. Experienced leader needed."
+      },
+      "judgment": {
+        "ko": "바름이 이롭다. 어른이 길하니, 허물이 없다.",
+        "en": "Perseverance is favorable. An experienced elder brings good fortune, no blame."
+      },
+      "themes": {
+        "career": {"ko": "팀을 이끌거나 대규모 프로젝트 관리에 적합합니다. 규율이 중요.", "en": "Suitable for leading teams or managing large projects. Discipline is key."},
+        "love": {"ko": "관계에서 리더십이 필요합니다. 책임감 있게 행동하세요.", "en": "Leadership needed in relationships. Act responsibly."},
+        "health": {"ko": "규칙적인 생활과 운동이 중요합니다. 자기 관리를 철저히.", "en": "Regular lifestyle and exercise important. Thorough self-management."},
+        "wealth": {"ko": "조직적인 재정 관리가 필요합니다. 계획적으로 움직이세요.", "en": "Organized financial management needed. Move systematically."},
+        "timing": {"ko": "조직적 행동이 필요한 시기. 혼자보다 함께가 좋습니다.", "en": "Time for organized action. Together better than alone."}
+      }
+    },
+    "8": {
+      "number": 8,
+      "name_en": "Bi - Holding Together",
+      "name_ko": "비괘(比卦) - 친밀함",
+      "name_hanja": "水地比",
+      "symbol": "䷇",
+      "binary": "010000",
+      "trigram_upper": "water",
+      "trigram_lower": "earth",
+      "element": "water",
+      "core_meaning": {
+        "ko": "단합과 유대의 중요성. 서로 돕고 협력하면 성공합니다. 중심이 되는 사람을 따르는 것이 좋습니다.",
+        "en": "Importance of unity and bonds. Mutual help and cooperation leads to success. Following a central figure is good."
+      },
+      "judgment": {
+        "ko": "길하다. 점을 다시 쳐서 크고 오래 바르면 허물이 없다.",
+        "en": "Good fortune. If upon inquiry one has sublimity, constancy, perseverance, no blame."
+      },
+      "themes": {
+        "career": {"ko": "협력과 네트워킹이 중요합니다. 좋은 파트너를 찾으세요.", "en": "Cooperation and networking important. Find good partners."},
+        "love": {"ko": "친밀한 관계를 발전시킬 좋은 시기입니다. 진심으로 다가가세요.", "en": "Good time to develop intimate relationships. Approach with sincerity."},
+        "health": {"ko": "지지 그룹이나 운동 파트너를 찾으면 좋습니다.", "en": "Finding support groups or exercise partners is beneficial."},
+        "wealth": {"ko": "공동 투자나 파트너십이 유리합니다.", "en": "Joint investment or partnership is favorable."},
+        "timing": {"ko": "협력의 시기. 뜻이 맞는 사람들과 함께하세요.", "en": "Time for cooperation. Unite with like-minded people."}
+      }
+    },
+    "9": {
+      "number": 9,
+      "name_en": "Xiao Chu - Small Taming",
+      "name_ko": "소축괘(小畜卦) - 작은 축적",
+      "name_hanja": "風天小畜",
+      "symbol": "䷈",
+      "binary": "110111",
+      "trigram_upper": "wind",
+      "trigram_lower": "heaven",
+      "element": "wood",
+      "core_meaning": {
+        "ko": "작은 것을 모아 큰 것을 이룹니다. 아직 때가 무르익지 않았으니 조금씩 준비하세요.",
+        "en": "Small things accumulate to become great. Time not yet ripe, so prepare little by little."
+      },
+      "judgment": {
+        "ko": "형통하다. 빽빽한 구름이 비를 내리지 않으니, 서쪽 교외에서 온다.",
+        "en": "Success. Dense clouds, no rain from our western region."
+      },
+      "themes": {
+        "career": {"ko": "큰 성공보다 작은 성과를 모으세요. 꾸준함이 중요합니다.", "en": "Gather small achievements rather than big success. Consistency matters."},
+        "love": {"ko": "작은 배려가 관계를 발전시킵니다. 거창한 것보다 일상의 관심.", "en": "Small considerations develop relationships. Daily attention over grand gestures."},
+        "health": {"ko": "작은 습관 개선부터 시작하세요. 점진적 변화가 효과적.", "en": "Start with small habit improvements. Gradual change is effective."},
+        "wealth": {"ko": "소액 저축을 꾸준히 하세요. 큰 투자보다 안정적 축적.", "en": "Save small amounts consistently. Stable accumulation over big investments."},
+        "timing": {"ko": "축적의 시기. 성급한 행동보다 준비와 저축.", "en": "Time for accumulation. Preparation and saving over hasty action."}
+      }
+    },
+    "10": {
+      "number": 10,
+      "name_en": "Lu - Treading",
+      "name_ko": "이괘(履卦) - 밟음",
+      "name_hanja": "天澤履",
+      "symbol": "䷉",
+      "binary": "111011",
+      "trigram_upper": "heaven",
+      "trigram_lower": "lake",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "호랑이 꼬리를 밟는 위험한 상황. 신중하게 행동하면 무사히 통과합니다. 예의와 절차가 중요.",
+        "en": "Dangerous situation like treading on tiger's tail. Careful action leads to safe passage. Etiquette and procedure important."
+      },
+      "judgment": {
+        "ko": "호랑이 꼬리를 밟아도 물지 않으니, 형통하다.",
+        "en": "Treading on the tiger's tail. It does not bite. Success."
+      },
+      "themes": {
+        "career": {"ko": "위험한 상황을 조심스럽게 다루세요. 예의를 갖추면 안전합니다.", "en": "Handle dangerous situations carefully. Politeness keeps you safe."},
+        "love": {"ko": "관계에서 경계를 존중하세요. 조심스럽게 접근하면 성공.", "en": "Respect boundaries in relationships. Careful approach succeeds."},
+        "health": {"ko": "무리한 운동이나 위험한 활동을 피하세요.", "en": "Avoid strenuous exercise or dangerous activities."},
+        "wealth": {"ko": "위험한 투자는 피하세요. 안전한 길을 선택하세요.", "en": "Avoid risky investments. Choose the safe path."},
+        "timing": {"ko": "조심의 시기. 과감한 행동보다 신중함이 필요.", "en": "Time for caution. Prudence over boldness needed."}
+      }
+    },
+    "11": {
+      "number": 11,
+      "name_en": "Tai - Peace",
+      "name_ko": "태괘(泰卦) - 평화",
+      "name_hanja": "地天泰",
+      "symbol": "䷊",
+      "binary": "000111",
+      "trigram_upper": "earth",
+      "trigram_lower": "heaven",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "하늘과 땅이 교류하여 만물이 화합합니다. 음양이 조화를 이루어 모든 것이 순조롭습니다. 최고의 길괘.",
+        "en": "Heaven and earth communicate, all things harmonize. Yin and yang balanced, everything proceeds smoothly. Most auspicious."
+      },
+      "judgment": {
+        "ko": "작은 것이 가고 큰 것이 오니, 길하고 형통하다.",
+        "en": "The small departs, the great approaches. Good fortune and success."
+      },
+      "themes": {
+        "career": {"ko": "모든 일이 순조롭습니다. 승진, 계약, 협력 모두 좋은 결과.", "en": "Everything proceeds smoothly. Promotion, contracts, cooperation all favorable."},
+        "love": {"ko": "사랑운이 최고조. 결혼에 좋은 시기, 상호 이해 활발.", "en": "Love fortune at peak. Good time for marriage, mutual understanding active."},
+        "health": {"ko": "신체적, 정신적으로 균형 잡힌 상태. 건강 양호.", "en": "Physically and mentally balanced. Health is good."},
+        "wealth": {"ko": "재정적으로 풍요로운 시기. 투자, 사업 모두 이익.", "en": "Financially abundant period. Investment, business all profitable."},
+        "timing": {"ko": "봄에 특히 좋습니다. 2-4월 최적기.", "en": "Especially favorable in spring. February-April optimal."}
+      }
+    },
+    "12": {
+      "number": 12,
+      "name_en": "Pi - Standstill",
+      "name_ko": "비괘(否卦) - 막힘",
+      "name_hanja": "天地否",
+      "symbol": "䷋",
+      "binary": "111000",
+      "trigram_upper": "heaven",
+      "trigram_lower": "earth",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "하늘과 땅이 교류하지 않아 막혀있습니다. 정체의 시기이나 막힘 뒤에는 반드시 열림이 옵니다.",
+        "en": "Heaven and earth do not communicate; blockage. Period of stagnation but opening always follows blockage."
+      },
+      "judgment": {
+        "ko": "사람의 도가 아니니, 군자의 바름이 이롭지 않다.",
+        "en": "It is not the way of humans. The perseverance of the superior person is not favorable."
+      },
+      "themes": {
+        "career": {"ko": "현재 정체기입니다. 무리하게 추진하지 말고 때를 기다리세요.", "en": "Currently stagnant. Don't push forcefully, wait for the right time."},
+        "love": {"ko": "소통이 어려운 시기. 오해가 생기기 쉬우니 대화에 신경 쓰세요.", "en": "Communication difficult. Misunderstandings easy, pay attention to dialogue."},
+        "health": {"ko": "기운이 막혀있습니다. 스트레스 관리와 순환 운동이 필요.", "en": "Energy is blocked. Stress management and circulation exercise needed."},
+        "wealth": {"ko": "재정적 흐름이 정체됩니다. 큰 투자는 피하세요.", "en": "Financial flow stagnates. Avoid big investments."},
+        "timing": {"ko": "겨울에 해당. 11-1월에 막힘이 강하고, 봄이 오면 풀립니다.", "en": "Corresponds to winter. Blockage strong in Nov-Jan, releases in spring."}
+      }
+    },
+    "13": {
+      "number": 13,
+      "name_en": "Tong Ren - Fellowship",
+      "name_ko": "동인괘(同人卦) - 동지",
+      "name_hanja": "天火同人",
+      "symbol": "䷌",
+      "binary": "111101",
+      "trigram_upper": "heaven",
+      "trigram_lower": "fire",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "같은 뜻을 가진 사람들과의 화합. 공개적이고 공정한 협력이 성공을 가져옵니다.",
+        "en": "Harmony with like-minded people. Open and fair cooperation brings success."
+      },
+      "judgment": {
+        "ko": "들에서 사람과 함께하니 형통하다. 대천을 건넘이 이롭다.",
+        "en": "Fellowship in the open. Success. Favorable to cross the great water."
+      },
+      "themes": {
+        "career": {"ko": "팀워크와 협력이 성공의 열쇠입니다. 공동 프로젝트에 유리.", "en": "Teamwork and cooperation key to success. Joint projects favorable."},
+        "love": {"ko": "같은 가치관을 가진 사람과의 만남이 좋습니다.", "en": "Meeting someone with same values is favorable."},
+        "health": {"ko": "운동 동호회나 그룹 활동이 건강에 도움됩니다.", "en": "Sports clubs or group activities help health."},
+        "wealth": {"ko": "파트너십이나 조합 투자가 유리합니다.", "en": "Partnership or joint investment is favorable."},
+        "timing": {"ko": "협력의 시기. 혼자보다 함께할 때 더 큰 성과.", "en": "Time for cooperation. Greater results together than alone."}
+      }
+    },
+    "14": {
+      "number": 14,
+      "name_en": "Da You - Great Possession",
+      "name_ko": "대유괘(大有卦) - 큰 소유",
+      "name_hanja": "火天大有",
+      "symbol": "䷍",
+      "binary": "101111",
+      "trigram_upper": "fire",
+      "trigram_lower": "heaven",
+      "element": "fire",
+      "core_meaning": {
+        "ko": "크게 소유함. 풍요와 번영의 시기입니다. 겸손함을 유지하면 복이 지속됩니다.",
+        "en": "Great possession. Period of abundance and prosperity. Maintaining humility continues blessings."
+      },
+      "judgment": {
+        "ko": "크게 형통하다.",
+        "en": "Supreme success."
+      },
+      "themes": {
+        "career": {"ko": "성공과 인정의 시기입니다. 겸손함을 잃지 마세요.", "en": "Time of success and recognition. Don't lose humility."},
+        "love": {"ko": "풍요로운 사랑을 경험합니다. 나눔의 정신이 중요.", "en": "Experience abundant love. Spirit of sharing important."},
+        "health": {"ko": "건강이 좋지만 과식이나 과음을 조심하세요.", "en": "Health is good but beware of overeating or drinking."},
+        "wealth": {"ko": "재물운이 매우 좋습니다. 번영의 시기이나 나눔도 실천하세요.", "en": "Wealth fortune very good. Time of prosperity but also practice giving."},
+        "timing": {"ko": "여름에 특히 좋습니다. 성공의 정점.", "en": "Especially favorable in summer. Peak of success."}
+      }
+    },
+    "15": {
+      "number": 15,
+      "name_en": "Qian - Modesty",
+      "name_ko": "겸괘(謙卦) - 겸손",
+      "name_hanja": "地山謙",
+      "symbol": "䷎",
+      "binary": "000100",
+      "trigram_upper": "earth",
+      "trigram_lower": "mountain",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "산이 땅 아래에 있는 겸손함. 자신을 낮추면 오히려 높아집니다. 덕이 있으면서도 드러내지 않음.",
+        "en": "Mountain below earth, modesty. Lowering oneself actually elevates. Having virtue but not displaying it."
+      },
+      "judgment": {
+        "ko": "형통하다. 군자는 끝마침이 있다.",
+        "en": "Success. The superior person carries things through."
+      },
+      "themes": {
+        "career": {"ko": "겸손한 태도가 인정받습니다. 자랑하지 말고 실력으로 보여주세요.", "en": "Modest attitude is recognized. Show through ability, not boasting."},
+        "love": {"ko": "겸손하고 배려하는 태도가 상대를 감동시킵니다.", "en": "Modest and considerate attitude moves your partner."},
+        "health": {"ko": "과욕을 부리지 않으면 건강이 유지됩니다.", "en": "Health maintained if not greedy."},
+        "wealth": {"ko": "분수에 맞게 생활하면 재물이 축적됩니다.", "en": "Living within means accumulates wealth."},
+        "timing": {"ko": "모든 시기에 좋은 덕목. 겸손함은 항상 이롭습니다.", "en": "Good virtue for all times. Modesty always benefits."}
+      }
+    },
+    "16": {
+      "number": 16,
+      "name_en": "Yu - Enthusiasm",
+      "name_ko": "예괘(豫卦) - 기쁨",
+      "name_hanja": "雷地豫",
+      "symbol": "䷏",
+      "binary": "001000",
+      "trigram_upper": "thunder",
+      "trigram_lower": "earth",
+      "element": "wood",
+      "core_meaning": {
+        "ko": "기쁨과 열정. 음악이 울려퍼지듯 모두가 함께 기뻐합니다. 준비된 행동이 성공을 가져옵니다.",
+        "en": "Joy and enthusiasm. Like music spreading, all rejoice together. Prepared action brings success."
+      },
+      "judgment": {
+        "ko": "제후를 세우고 군대를 동원함이 이롭다.",
+        "en": "Favorable to install helpers and set armies marching."
+      },
+      "themes": {
+        "career": {"ko": "열정을 가지고 일하면 좋은 결과가 옵니다. 팀의 사기를 높이세요.", "en": "Working with enthusiasm brings good results. Boost team morale."},
+        "love": {"ko": "즐겁고 활기찬 관계를 즐기세요. 함께 하는 활동이 좋습니다.", "en": "Enjoy joyful, energetic relationships. Shared activities are good."},
+        "health": {"ko": "즐거운 마음이 건강의 원천입니다. 좋아하는 운동을 하세요.", "en": "Joyful mind is source of health. Do exercises you enjoy."},
+        "wealth": {"ko": "열정적인 사업은 성공합니다. 그러나 충동적 소비는 주의.", "en": "Enthusiastic business succeeds. But watch impulsive spending."},
+        "timing": {"ko": "봄에 해당. 새로운 시작에 열정을 쏟기 좋은 시기.", "en": "Corresponds to spring. Good time to pour enthusiasm into new starts."}
+      }
+    },
+    "17": {
+      "number": 17,
+      "name_en": "Sui - Following",
+      "name_ko": "수괘(隨卦) - 따름",
+      "name_hanja": "澤雷隨",
+      "symbol": "䷐",
+      "binary": "011001",
+      "trigram_upper": "lake",
+      "trigram_lower": "thunder",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "때를 따르고 상황에 적응함. 유연하게 대처하면 성공합니다. 올바른 것을 따르는 것이 중요.",
+        "en": "Following the times and adapting to situations. Flexible response leads to success. Following what is right is important."
+      },
+      "judgment": {
+        "ko": "크게 형통하고 바름이 이로우니 허물이 없다.",
+        "en": "Supreme success. Perseverance favorable. No blame."
+      },
+      "themes": {
+        "career": {"ko": "시대 흐름을 따르세요. 유연하게 변화에 적응하면 성공.", "en": "Follow the trends. Adapt flexibly to changes for success."},
+        "love": {"ko": "상대방의 페이스에 맞추세요. 억지로 이끌려 하지 마세요.", "en": "Match your partner's pace. Don't try to force leading."},
+        "health": {"ko": "계절과 몸 상태에 맞는 건강 관리가 필요합니다.", "en": "Health management matching season and body condition needed."},
+        "wealth": {"ko": "시장 흐름을 따르는 투자가 유리합니다.", "en": "Investment following market trends is favorable."},
+        "timing": {"ko": "적응의 시기. 고집보다 유연함이 필요합니다.", "en": "Time for adaptation. Flexibility over stubbornness needed."}
+      }
+    },
+    "18": {
+      "number": 18,
+      "name_en": "Gu - Decay",
+      "name_ko": "고괘(蠱卦) - 부패",
+      "name_hanja": "山風蠱",
+      "symbol": "䷑",
+      "binary": "100110",
+      "trigram_upper": "mountain",
+      "trigram_lower": "wind",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "쌓인 문제를 바로잡음. 과거의 잘못을 고치고 새롭게 시작합니다. 개혁과 정화의 시기.",
+        "en": "Correcting accumulated problems. Fix past mistakes and start anew. Time for reform and purification."
+      },
+      "judgment": {
+        "ko": "크게 형통하니 대천을 건넘이 이롭다. 시작 전 3일, 시작 후 3일.",
+        "en": "Supreme success. Favorable to cross great water. Three days before and three days after."
+      },
+      "themes": {
+        "career": {"ko": "기존의 문제를 해결해야 합니다. 개혁이 필요한 시기.", "en": "Must solve existing problems. Time for reform."},
+        "love": {"ko": "관계의 문제점을 직시하고 고쳐야 합니다.", "en": "Must face and fix relationship problems."},
+        "health": {"ko": "오래된 건강 문제를 치료할 때입니다.", "en": "Time to treat longstanding health issues."},
+        "wealth": {"ko": "재정적 문제를 정리해야 합니다. 빚 청산이나 구조조정.", "en": "Must organize financial problems. Debt clearing or restructuring."},
+        "timing": {"ko": "정리와 개혁의 시기. 과거를 청산하고 새출발.", "en": "Time for organization and reform. Clear past and start fresh."}
+      }
+    },
+    "19": {
+      "number": 19,
+      "name_en": "Lin - Approach",
+      "name_ko": "임괘(臨卦) - 다가옴",
+      "name_hanja": "地澤臨",
+      "symbol": "䷒",
+      "binary": "000011",
+      "trigram_upper": "earth",
+      "trigram_lower": "lake",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "좋은 것이 다가옵니다. 기회가 오고 있으니 준비하세요. 그러나 언젠가 물러날 때도 옵니다.",
+        "en": "Good things approaching. Opportunity coming, so prepare. But time to retreat will also come."
+      },
+      "judgment": {
+        "ko": "크게 형통하고 바름이 이롭다. 8월에 이르면 흉이 있다.",
+        "en": "Supreme success. Perseverance favorable. When eighth month comes, misfortune."
+      },
+      "themes": {
+        "career": {"ko": "좋은 기회가 다가오고 있습니다. 적극적으로 잡으세요.", "en": "Good opportunity approaching. Seize it actively."},
+        "love": {"ko": "새로운 인연이 다가올 수 있습니다. 마음을 열어두세요.", "en": "New relationship may approach. Keep your heart open."},
+        "health": {"ko": "건강이 회복되는 시기입니다. 좋아지고 있습니다.", "en": "Health recovering period. Getting better."},
+        "wealth": {"ko": "재물이 모이는 시기. 적극적인 재테크가 유리.", "en": "Time when wealth gathers. Active financial planning favorable."},
+        "timing": {"ko": "초봄에 특히 좋습니다. 기회가 오는 시기.", "en": "Especially favorable in early spring. Opportunity coming."}
+      }
+    },
+    "20": {
+      "number": 20,
+      "name_en": "Guan - Contemplation",
+      "name_ko": "관괘(觀卦) - 관찰",
+      "name_hanja": "風地觀",
+      "symbol": "䷓",
+      "binary": "110000",
+      "trigram_upper": "wind",
+      "trigram_lower": "earth",
+      "element": "wood",
+      "core_meaning": {
+        "ko": "관찰하고 성찰함. 행동하기 전에 상황을 잘 살피세요. 자신을 돌아보는 시간도 필요합니다.",
+        "en": "Observing and reflecting. Look carefully at situations before acting. Time for self-reflection also needed."
+      },
+      "judgment": {
+        "ko": "손을 씻고 제사를 올리기 전이니, 진실함이 있어 우러러 본다.",
+        "en": "Ablution made, but not yet offering. Full of trust they look up."
+      },
+      "themes": {
+        "career": {"ko": "행동보다 관찰이 우선입니다. 상황을 파악하세요.", "en": "Observation before action. Understand the situation."},
+        "love": {"ko": "상대를 잘 관찰하세요. 급하게 결정하지 마세요.", "en": "Observe your partner well. Don't decide hastily."},
+        "health": {"ko": "자신의 몸 상태를 잘 살피세요. 정기 검진 권장.", "en": "Watch your body condition carefully. Regular checkups recommended."},
+        "wealth": {"ko": "시장을 관찰하세요. 충동적 투자는 금물.", "en": "Observe the market. Impulsive investment forbidden."},
+        "timing": {"ko": "관망의 시기. 섣불리 움직이지 마세요.", "en": "Time for watching. Don't move hastily."}
+      }
+    },
+    "21": {
+      "number": 21,
+      "name_en": "Shi He - Biting Through",
+      "name_ko": "서합괘(噬嗑卦) - 씹어서 합함",
+      "name_hanja": "火雷噬嗑",
+      "symbol": "䷔",
+      "binary": "101001",
+      "trigram_upper": "fire",
+      "trigram_lower": "thunder",
+      "element": "fire",
+      "core_meaning": {
+        "ko": "장애물을 깨물어 제거함. 단호하게 문제를 처리해야 합니다. 법과 규율의 적용.",
+        "en": "Biting through obstacles. Must handle problems decisively. Application of law and discipline."
+      },
+      "judgment": {
+        "ko": "형통하니, 옥사(소송)를 씀이 이롭다.",
+        "en": "Success. Favorable to use legal proceedings."
+      },
+      "themes": {
+        "career": {"ko": "장애물을 단호하게 제거하세요. 결단력이 필요합니다.", "en": "Remove obstacles decisively. Determination needed."},
+        "love": {"ko": "관계의 문제를 직면하고 해결하세요.", "en": "Face and resolve relationship problems."},
+        "health": {"ko": "치료가 필요하면 미루지 마세요. 단호한 조치가 필요.", "en": "Don't delay if treatment needed. Decisive action required."},
+        "wealth": {"ko": "채권 회수나 분쟁 해결에 유리합니다.", "en": "Favorable for debt collection or dispute resolution."},
+        "timing": {"ko": "결단의 시기. 우물쭈물하면 기회를 놓칩니다.", "en": "Time for decision. Hesitation loses opportunity."}
+      }
+    },
+    "22": {
+      "number": 22,
+      "name_en": "Bi - Grace",
+      "name_ko": "비괘(賁卦) - 꾸밈",
+      "name_hanja": "山火賁",
+      "symbol": "䷕",
+      "binary": "100101",
+      "trigram_upper": "mountain",
+      "trigram_lower": "fire",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "아름다움과 꾸밈. 외면의 아름다움도 중요하지만 내면이 더 중요합니다. 작은 일에 성공.",
+        "en": "Beauty and adornment. External beauty matters but inner beauty more important. Success in small matters."
+      },
+      "judgment": {
+        "ko": "형통하다. 작은 일에 가는 바가 있으면 이롭다.",
+        "en": "Success. In small matters, favorable to undertake something."
+      },
+      "themes": {
+        "career": {"ko": "외관과 이미지가 중요합니다. 프레젠테이션에 신경 쓰세요.", "en": "Appearance and image important. Pay attention to presentation."},
+        "love": {"ko": "외모 관리와 분위기 연출이 좋습니다.", "en": "Appearance management and atmosphere creation favorable."},
+        "health": {"ko": "외모 개선이나 미용에 좋은 시기.", "en": "Good time for appearance improvement or beauty."},
+        "wealth": {"ko": "작은 이익은 있으나 큰 투자는 피하세요.", "en": "Small profits possible but avoid big investments."},
+        "timing": {"ko": "작은 일의 시기. 큰 것보다 작은 것에 집중.", "en": "Time for small matters. Focus on small over big."}
+      }
+    },
+    "23": {
+      "number": 23,
+      "name_en": "Bo - Splitting Apart",
+      "name_ko": "박괘(剝卦) - 깎임",
+      "name_hanja": "山地剝",
+      "symbol": "䷖",
+      "binary": "100000",
+      "trigram_upper": "mountain",
+      "trigram_lower": "earth",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "쇠락과 붕괴의 시기. 움직이지 말고 기다리세요. 나쁜 시기도 지나갑니다.",
+        "en": "Time of decline and collapse. Don't move, wait. Bad times also pass."
+      },
+      "judgment": {
+        "ko": "가는 바가 이롭지 않다.",
+        "en": "Not favorable to go anywhere."
+      },
+      "themes": {
+        "career": {"ko": "하락의 시기입니다. 새로운 시도보다 현상 유지.", "en": "Time of decline. Maintain status quo rather than new attempts."},
+        "love": {"ko": "관계가 약해질 수 있습니다. 무리하게 붙잡지 마세요.", "en": "Relationship may weaken. Don't try to hold on forcefully."},
+        "health": {"ko": "건강이 약해질 수 있습니다. 무리하지 마세요.", "en": "Health may weaken. Don't overdo it."},
+        "wealth": {"ko": "손실의 위험이 있습니다. 보수적으로 관리하세요.", "en": "Risk of loss. Manage conservatively."},
+        "timing": {"ko": "가을에 해당. 물러날 때를 알아야 합니다.", "en": "Corresponds to autumn. Know when to retreat."}
+      }
+    },
+    "24": {
+      "number": 24,
+      "name_en": "Fu - Return",
+      "name_ko": "복괘(復卦) - 돌아옴",
+      "name_hanja": "地雷復",
+      "symbol": "䷗",
+      "binary": "000001",
+      "trigram_upper": "earth",
+      "trigram_lower": "thunder",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "어둠 속에서 빛이 돌아옴. 희망의 싹이 트기 시작합니다. 새로운 시작의 기운.",
+        "en": "Light returns from darkness. Seeds of hope begin to sprout. Energy of new beginning."
+      },
+      "judgment": {
+        "ko": "형통하다. 나가고 들어옴에 병이 없고, 벗이 오면 허물이 없다. 7일이면 돌아온다.",
+        "en": "Success. Going and coming without error. Friends come without blame. On seventh day, return."
+      },
+      "themes": {
+        "career": {"ko": "새로운 기회가 시작됩니다. 희망을 가지세요.", "en": "New opportunity begins. Have hope."},
+        "love": {"ko": "관계가 회복될 수 있습니다. 재회의 가능성.", "en": "Relationship may recover. Possibility of reunion."},
+        "health": {"ko": "건강이 회복되기 시작합니다.", "en": "Health begins to recover."},
+        "wealth": {"ko": "재물운이 돌아오기 시작합니다.", "en": "Wealth fortune begins to return."},
+        "timing": {"ko": "동지에 해당. 가장 어두운 때가 지나고 빛이 돌아옵니다.", "en": "Corresponds to winter solstice. Darkest time passed, light returns."}
+      }
+    },
+    "25": {
+      "number": 25,
+      "name_en": "Wu Wang - Innocence",
+      "name_ko": "무망괘(无妄卦) - 망령됨 없음",
+      "name_hanja": "天雷无妄",
+      "symbol": "䷘",
+      "binary": "111001",
+      "trigram_upper": "heaven",
+      "trigram_lower": "thunder",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "순수하고 진실함. 기교 없이 진심으로 행동하면 성공합니다. 자연의 순리를 따르세요.",
+        "en": "Pure and truthful. Acting sincerely without artifice succeeds. Follow natural order."
+      },
+      "judgment": {
+        "ko": "크게 형통하고 바름이 이롭다. 바르지 않으면 재앙이 있어 가는 바가 이롭지 않다.",
+        "en": "Supreme success. Perseverance favorable. If not as should be, misfortune; not favorable to go."
+      },
+      "themes": {
+        "career": {"ko": "진실하게 일하세요. 꼼수는 결국 실패합니다.", "en": "Work truthfully. Tricks eventually fail."},
+        "love": {"ko": "진심으로 대하세요. 가식 없는 관계가 좋습니다.", "en": "Treat with sincerity. Relationship without pretense is good."},
+        "health": {"ko": "자연치유력을 믿으세요. 과도한 약보다 자연요법.", "en": "Trust natural healing. Natural remedies over excessive medicine."},
+        "wealth": {"ko": "정직한 방법으로 돈을 버세요.", "en": "Earn money through honest methods."},
+        "timing": {"ko": "순리를 따르는 시기. 억지로 하면 실패합니다.", "en": "Time to follow natural order. Forcing leads to failure."}
+      }
+    },
+    "26": {
+      "number": 26,
+      "name_en": "Da Chu - Great Taming",
+      "name_ko": "대축괘(大畜卦) - 큰 축적",
+      "name_hanja": "山天大畜",
+      "symbol": "䷙",
+      "binary": "100111",
+      "trigram_upper": "mountain",
+      "trigram_lower": "heaven",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "큰 것을 모음. 힘과 덕을 축적하는 시기입니다. 내면의 수양이 중요합니다.",
+        "en": "Accumulating great things. Time to gather strength and virtue. Inner cultivation important."
+      },
+      "judgment": {
+        "ko": "바름이 이롭다. 집에서 먹지 않으면 길하니, 대천을 건넘이 이롭다.",
+        "en": "Perseverance favorable. Not eating at home brings fortune. Favorable to cross great water."
+      },
+      "themes": {
+        "career": {"ko": "실력을 쌓는 시기입니다. 배움에 투자하세요.", "en": "Time to build skills. Invest in learning."},
+        "love": {"ko": "관계의 깊이를 더하세요. 깊은 유대감을 형성하세요.", "en": "Deepen the relationship. Form deep bonds."},
+        "health": {"ko": "체력을 기르세요. 장기적인 건강 관리.", "en": "Build stamina. Long-term health management."},
+        "wealth": {"ko": "저축과 투자로 자산을 축적하세요.", "en": "Accumulate assets through savings and investment."},
+        "timing": {"ko": "축적의 시기. 소비보다 저축.", "en": "Time for accumulation. Saving over spending."}
+      }
+    },
+    "27": {
+      "number": 27,
+      "name_en": "Yi - Nourishment",
+      "name_ko": "이괘(頤卦) - 양육",
+      "name_hanja": "山雷頤",
+      "symbol": "䷚",
+      "binary": "100001",
+      "trigram_upper": "mountain",
+      "trigram_lower": "thunder",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "입을 통한 양육. 무엇을 먹고 무엇을 말하는지가 중요합니다. 절제가 필요합니다.",
+        "en": "Nourishment through the mouth. What you eat and say matters. Moderation needed."
+      },
+      "judgment": {
+        "ko": "바름이 길하다. 양육을 보고, 스스로 입에 채움을 구하라.",
+        "en": "Perseverance brings fortune. Observe nourishment and seek what fills your mouth."
+      },
+      "themes": {
+        "career": {"ko": "자기 계발에 투자하세요. 무엇을 배우고 경험하는지가 중요.", "en": "Invest in self-development. What you learn and experience matters."},
+        "love": {"ko": "상대방을 정서적으로 돌보세요.", "en": "Care for your partner emotionally."},
+        "health": {"ko": "식이요법에 신경 쓰세요. 먹는 것이 건강을 좌우합니다.", "en": "Pay attention to diet. What you eat determines health."},
+        "wealth": {"ko": "어떤 수입원을 추구하는지 중요합니다.", "en": "What income sources you pursue matters."},
+        "timing": {"ko": "양육과 성장의 시기. 자신과 타인을 돌보세요.", "en": "Time for nourishment and growth. Care for self and others."}
+      }
+    },
+    "28": {
+      "number": 28,
+      "name_en": "Da Guo - Great Exceeding",
+      "name_ko": "대과괘(大過卦) - 큰 넘침",
+      "name_hanja": "澤風大過",
+      "symbol": "䷛",
+      "binary": "011110",
+      "trigram_upper": "lake",
+      "trigram_lower": "wind",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "들보가 휘어질 정도의 과부하. 비상 상황에 과감한 조치가 필요합니다. 평범한 방법으로는 안 됩니다.",
+        "en": "Overload bending the beam. Bold measures needed in emergency. Ordinary methods won't work."
+      },
+      "judgment": {
+        "ko": "들보가 휘니, 가는 바가 있으면 이롭다. 형통하다.",
+        "en": "Beam sags to breaking. Favorable to have somewhere to go. Success."
+      },
+      "themes": {
+        "career": {"ko": "비상 상황입니다. 과감한 결단이 필요합니다.", "en": "Emergency situation. Bold decision needed."},
+        "love": {"ko": "관계에 위기가 있을 수 있습니다. 특별한 노력이 필요.", "en": "Crisis may be in relationship. Special effort needed."},
+        "health": {"ko": "건강에 무리가 가고 있습니다. 즉각적인 조치가 필요.", "en": "Health is strained. Immediate action needed."},
+        "wealth": {"ko": "재정적 과부하 주의. 긴급 조치가 필요할 수 있습니다.", "en": "Watch for financial overload. Emergency measures may be needed."},
+        "timing": {"ko": "비상의 시기. 평상시 방법은 통하지 않습니다.", "en": "Emergency time. Normal methods don't work."}
+      }
+    },
+    "29": {
+      "number": 29,
+      "name_en": "Kan - The Abysmal",
+      "name_ko": "감괘(坎卦) - 구덩이",
+      "name_hanja": "坎為水",
+      "symbol": "䷜",
+      "binary": "010010",
+      "trigram_upper": "water",
+      "trigram_lower": "water",
+      "element": "water",
+      "core_meaning": {
+        "ko": "거듭되는 위험. 어려움 속에서도 진심을 잃지 않으면 벗어날 수 있습니다.",
+        "en": "Repeated danger. Even in difficulties, keeping sincerity allows escape."
+      },
+      "judgment": {
+        "ko": "진심이 있으면 마음에 형통함이 있고, 행함에 상(賞)이 있다.",
+        "en": "With sincerity, success in heart and reward in action."
+      },
+      "themes": {
+        "career": {"ko": "어려운 상황이지만 포기하지 마세요. 진심으로 대하면 길이 열립니다.", "en": "Difficult situation but don't give up. Sincerity opens the way."},
+        "love": {"ko": "관계에 어려움이 있습니다. 진심으로 극복하세요.", "en": "Difficulties in relationship. Overcome with sincerity."},
+        "health": {"ko": "건강 위험에 주의하세요. 물 관련 사고 조심.", "en": "Watch health risks. Be careful of water-related accidents."},
+        "wealth": {"ko": "재정적 어려움이 있을 수 있습니다. 침착하게 대처하세요.", "en": "Financial difficulties may occur. Handle calmly."},
+        "timing": {"ko": "어려운 시기. 그러나 지나갑니다.", "en": "Difficult time. But it will pass."}
+      }
+    },
+    "30": {
+      "number": 30,
+      "name_en": "Li - The Clinging",
+      "name_ko": "리괘(離卦) - 붙음",
+      "name_hanja": "離為火",
+      "symbol": "䷝",
+      "binary": "101101",
+      "trigram_upper": "fire",
+      "trigram_lower": "fire",
+      "element": "fire",
+      "core_meaning": {
+        "ko": "밝음과 지혜. 올바른 것에 붙어 있으면 밝음이 지속됩니다. 의존의 필요성.",
+        "en": "Brightness and wisdom. Clinging to what is right sustains brightness. Necessity of dependence."
+      },
+      "judgment": {
+        "ko": "바름이 이롭다. 형통하다. 암소를 기르면 길하다.",
+        "en": "Perseverance favorable. Success. Caring for the cow brings fortune."
+      },
+      "themes": {
+        "career": {"ko": "밝은 지혜로 일하세요. 명확한 비전이 중요합니다.", "en": "Work with bright wisdom. Clear vision important."},
+        "love": {"ko": "따뜻하고 밝은 관계를 유지하세요.", "en": "Maintain warm and bright relationship."},
+        "health": {"ko": "눈 건강에 신경 쓰세요. 밝은 에너지 유지.", "en": "Pay attention to eye health. Maintain bright energy."},
+        "wealth": {"ko": "명확한 재정 계획이 필요합니다.", "en": "Clear financial planning needed."},
+        "timing": {"ko": "여름에 해당. 밝음의 시기.", "en": "Corresponds to summer. Time of brightness."}
+      }
+    },
+    "31": {
+      "number": 31,
+      "name_en": "Xian - Influence",
+      "name_ko": "함괘(咸卦) - 감응",
+      "name_hanja": "澤山咸",
+      "symbol": "䷞",
+      "binary": "011100",
+      "trigram_upper": "lake",
+      "trigram_lower": "mountain",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "마음과 마음의 감응. 진심 어린 교류가 있으면 좋은 결과가 옵니다. 결혼에 좋은 괘.",
+        "en": "Heart-to-heart influence. Sincere exchange brings good results. Favorable hexagram for marriage."
+      },
+      "judgment": {
+        "ko": "형통하고 바름이 이롭다. 여자를 취하면 길하다.",
+        "en": "Success. Perseverance favorable. Taking a maiden to wife brings fortune."
+      },
+      "themes": {
+        "career": {"ko": "인간관계가 성공의 열쇠입니다. 진심으로 소통하세요.", "en": "Human relations key to success. Communicate sincerely."},
+        "love": {"ko": "연애운이 매우 좋습니다. 결혼에 길한 시기.", "en": "Love fortune very good. Auspicious time for marriage."},
+        "health": {"ko": "마음의 건강이 몸의 건강에 영향을 줍니다.", "en": "Mental health affects physical health."},
+        "wealth": {"ko": "좋은 인연을 통한 재물 기회가 있습니다.", "en": "Wealth opportunity through good connections."},
+        "timing": {"ko": "교류의 시기. 마음을 열고 다가가세요.", "en": "Time for exchange. Open your heart and approach."}
+      }
+    },
+    "32": {
+      "number": 32,
+      "name_en": "Heng - Duration",
+      "name_ko": "항괘(恒卦) - 항상함",
+      "name_hanja": "雷風恒",
+      "symbol": "䷟",
+      "binary": "001110",
+      "trigram_upper": "thunder",
+      "trigram_lower": "wind",
+      "element": "wood",
+      "core_meaning": {
+        "ko": "변치 않는 지속. 꾸준함이 성공을 가져옵니다. 결혼과 장기적 관계에 좋습니다.",
+        "en": "Unchanging persistence. Steadiness brings success. Good for marriage and long-term relationships."
+      },
+      "judgment": {
+        "ko": "형통하고 허물이 없다. 바름이 이로우니 가는 바가 있으면 이롭다.",
+        "en": "Success, no blame. Perseverance favorable. Having somewhere to go is favorable."
+      },
+      "themes": {
+        "career": {"ko": "꾸준함이 성공의 비결입니다. 지속적으로 노력하세요.", "en": "Persistence is key to success. Continue to work steadily."},
+        "love": {"ko": "오래 지속되는 관계에 좋습니다. 변치 않는 사랑.", "en": "Good for lasting relationships. Unchanging love."},
+        "health": {"ko": "꾸준한 건강 관리가 중요합니다.", "en": "Consistent health management important."},
+        "wealth": {"ko": "장기 투자가 유리합니다.", "en": "Long-term investment favorable."},
+        "timing": {"ko": "지속의 시기. 변하지 않는 것이 중요합니다.", "en": "Time for duration. What doesn't change matters."}
+      }
+    },
+    "33": {
+      "number": 33,
+      "name_en": "Dun - Retreat",
+      "name_ko": "둔괘(遯卦) - 물러남",
+      "name_hanja": "天山遯",
+      "symbol": "䷠",
+      "binary": "111100",
+      "trigram_upper": "heaven",
+      "trigram_lower": "mountain",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "적절한 후퇴. 물러날 때를 알아야 합니다. 잠시 물러나 힘을 기르세요.",
+        "en": "Appropriate retreat. Know when to withdraw. Step back temporarily to gather strength."
+      },
+      "judgment": {
+        "ko": "형통하다. 작은 것에 바름이 이롭다.",
+        "en": "Success. In small matters, perseverance favorable."
+      },
+      "themes": {
+        "career": {"ko": "지금은 물러날 때입니다. 전략적 후퇴가 필요합니다.", "en": "Now is time to retreat. Strategic withdrawal needed."},
+        "love": {"ko": "거리를 두는 것이 좋을 수 있습니다.", "en": "Keeping distance may be good."},
+        "health": {"ko": "휴식이 필요합니다. 무리하지 마세요.", "en": "Rest needed. Don't overdo it."},
+        "wealth": {"ko": "투자 철수를 고려하세요. 손절도 용기입니다.", "en": "Consider withdrawing investments. Cutting losses is courage."},
+        "timing": {"ko": "물러남의 시기. 전진보다 후퇴가 현명합니다.", "en": "Time for retreat. Withdrawal wiser than advance."}
+      }
+    },
+    "34": {
+      "number": 34,
+      "name_en": "Da Zhuang - Great Power",
+      "name_ko": "대장괘(大壯卦) - 큰 힘",
+      "name_hanja": "雷天大壯",
+      "symbol": "䷡",
+      "binary": "001111",
+      "trigram_upper": "thunder",
+      "trigram_lower": "heaven",
+      "element": "wood",
+      "core_meaning": {
+        "ko": "강대한 힘. 힘이 충만하지만 바르게 사용해야 합니다. 과도한 힘은 화를 부릅니다.",
+        "en": "Great power. Strength is full but must be used rightly. Excessive force brings disaster."
+      },
+      "judgment": {
+        "ko": "바름이 이롭다.",
+        "en": "Perseverance favorable."
+      },
+      "themes": {
+        "career": {"ko": "힘이 있을 때 올바르게 사용하세요. 과시하지 마세요.", "en": "Use power rightly when you have it. Don't show off."},
+        "love": {"ko": "관계에서 힘을 남용하지 마세요.", "en": "Don't abuse power in relationships."},
+        "health": {"ko": "체력이 좋지만 과신하지 마세요.", "en": "Stamina is good but don't overestimate."},
+        "wealth": {"ko": "재정적 여유가 있지만 낭비하지 마세요.", "en": "Financial comfort exists but don't waste."},
+        "timing": {"ko": "힘의 시기. 그러나 절제가 필요합니다.", "en": "Time of power. But moderation needed."}
+      }
+    },
+    "35": {
+      "number": 35,
+      "name_en": "Jin - Progress",
+      "name_ko": "진괘(晉卦) - 나아감",
+      "name_hanja": "火地晉",
+      "symbol": "䷢",
+      "binary": "101000",
+      "trigram_upper": "fire",
+      "trigram_lower": "earth",
+      "element": "fire",
+      "core_meaning": {
+        "ko": "태양이 땅 위로 떠오르듯 전진함. 밝은 미래로 나아갑니다. 승진과 발전의 시기.",
+        "en": "Progress like sun rising over earth. Advancing toward bright future. Time for promotion and development."
+      },
+      "judgment": {
+        "ko": "강력한 제후는 말을 하사받고, 하루에 세 번 접견받는다.",
+        "en": "Powerful prince honored with horses, granted audience three times a day."
+      },
+      "themes": {
+        "career": {"ko": "승진과 발전의 좋은 시기입니다.", "en": "Good time for promotion and advancement."},
+        "love": {"ko": "관계가 발전합니다. 적극적으로 나아가세요.", "en": "Relationship progresses. Advance actively."},
+        "health": {"ko": "건강이 호전됩니다.", "en": "Health improves."},
+        "wealth": {"ko": "재물이 늘어나는 시기입니다.", "en": "Time when wealth increases."},
+        "timing": {"ko": "전진의 시기. 적극적으로 나아가세요.", "en": "Time to advance. Move forward actively."}
+      }
+    },
+    "36": {
+      "number": 36,
+      "name_en": "Ming Yi - Darkening of Light",
+      "name_ko": "명이괘(明夷卦) - 밝음의 상처",
+      "name_hanja": "地火明夷",
+      "symbol": "䷣",
+      "binary": "000101",
+      "trigram_upper": "earth",
+      "trigram_lower": "fire",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "밝음이 땅 아래로 가라앉음. 어려운 시기에 재능을 숨기고 인내하세요.",
+        "en": "Light sinks below earth. In difficult times, hide talent and endure."
+      },
+      "judgment": {
+        "ko": "어려움에서 바름이 이롭다.",
+        "en": "In adversity, perseverance favorable."
+      },
+      "themes": {
+        "career": {"ko": "재능을 드러내지 말고 때를 기다리세요.", "en": "Don't reveal talent, wait for the right time."},
+        "love": {"ko": "관계에서 어려움이 있을 수 있습니다. 인내하세요.", "en": "Difficulties may be in relationship. Be patient."},
+        "health": {"ko": "활력이 저하될 수 있습니다. 휴식이 필요합니다.", "en": "Vitality may decrease. Rest needed."},
+        "wealth": {"ko": "재정적 어려움이 있을 수 있습니다. 드러내지 말고 버티세요.", "en": "Financial difficulties possible. Don't reveal, endure."},
+        "timing": {"ko": "어둠의 시기. 빛을 감추고 기다리세요.", "en": "Time of darkness. Hide light and wait."}
+      }
+    },
+    "37": {"number": 37, "name_en": "Jia Ren - The Family", "name_ko": "가인괘(家人卦)", "name_hanja": "風火家人", "symbol": "䷤", "binary": "110101", "trigram_upper": "wind", "trigram_lower": "fire", "element": "wood", "core_meaning": {"ko": "가정의 화목. 가정에서의 역할과 질서가 중요합니다.", "en": "Family harmony. Roles and order in family important."}, "themes": {"career": {"ko": "가족 같은 팀워크가 중요합니다.", "en": "Family-like teamwork important."}, "love": {"ko": "가정을 이루기 좋은 시기입니다.", "en": "Good time to build family."}, "health": {"ko": "가족의 건강에도 신경 쓰세요.", "en": "Also care for family health."}, "wealth": {"ko": "가계 재정 관리가 중요합니다.", "en": "Household financial management important."}, "timing": {"ko": "가정에 집중할 시기.", "en": "Time to focus on family."}}},
+    "38": {"number": 38, "name_en": "Kui - Opposition", "name_ko": "규괘(睽卦)", "name_hanja": "火澤睽", "symbol": "䷥", "binary": "101011", "trigram_upper": "fire", "trigram_lower": "lake", "element": "fire", "core_meaning": {"ko": "대립과 다름. 다른 것도 화합할 수 있습니다.", "en": "Opposition and difference. Different things can also harmonize."}, "themes": {"career": {"ko": "의견 차이가 있지만 조화를 찾으세요.", "en": "Differences exist but find harmony."}, "love": {"ko": "다름을 인정하고 이해하세요.", "en": "Accept and understand differences."}, "health": {"ko": "몸과 마음의 균형을 찾으세요.", "en": "Find balance between body and mind."}, "wealth": {"ko": "다양한 투자 포트폴리오가 좋습니다.", "en": "Diverse investment portfolio good."}, "timing": {"ko": "대립의 시기. 화합을 모색하세요.", "en": "Time of opposition. Seek harmony."}}},
+    "39": {"number": 39, "name_en": "Jian - Obstruction", "name_ko": "건괘(蹇卦)", "name_hanja": "水山蹇", "symbol": "䷦", "binary": "010100", "trigram_upper": "water", "trigram_lower": "mountain", "element": "water", "core_meaning": {"ko": "앞길이 막혀 있음. 물러서서 도움을 구하세요.", "en": "Path blocked ahead. Step back and seek help."}, "themes": {"career": {"ko": "장애물이 있습니다. 우회하거나 도움을 구하세요.", "en": "Obstacles exist. Detour or seek help."}, "love": {"ko": "관계에 어려움이 있습니다.", "en": "Difficulties in relationship."}, "health": {"ko": "건강에 문제가 있을 수 있습니다.", "en": "Health problems may occur."}, "wealth": {"ko": "재정적 어려움에 대비하세요.", "en": "Prepare for financial difficulties."}, "timing": {"ko": "장애의 시기. 전문가의 도움을 구하세요.", "en": "Time of obstruction. Seek expert help."}}},
+    "40": {"number": 40, "name_en": "Xie - Deliverance", "name_ko": "해괘(解卦)", "name_hanja": "雷水解", "symbol": "䷧", "binary": "001010", "trigram_upper": "thunder", "trigram_lower": "water", "element": "wood", "core_meaning": {"ko": "어려움이 풀림. 봄비가 내린 후의 해방감.", "en": "Difficulties resolved. Relief like after spring rain."}, "themes": {"career": {"ko": "막혔던 일이 풀립니다.", "en": "Blocked matters resolve."}, "love": {"ko": "오해가 풀리고 관계가 회복됩니다.", "en": "Misunderstanding clears, relationship recovers."}, "health": {"ko": "병이 낫고 건강이 회복됩니다.", "en": "Illness heals, health recovers."}, "wealth": {"ko": "재정적 문제가 해결됩니다.", "en": "Financial problems resolve."}, "timing": {"ko": "해결의 시기. 빨리 처리하세요.", "en": "Time for resolution. Handle quickly."}}},
+    "41": {"number": 41, "name_en": "Sun - Decrease", "name_ko": "손괘(損卦)", "name_hanja": "山澤損", "symbol": "䷨", "binary": "100011", "trigram_upper": "mountain", "trigram_lower": "lake", "element": "earth", "core_meaning": {"ko": "덜어냄으로써 더함. 줄이는 것이 오히려 이득이 됩니다.", "en": "Gain through decrease. Reducing actually becomes gain."}, "themes": {"career": {"ko": "불필요한 것을 줄이세요.", "en": "Reduce unnecessary things."}, "love": {"ko": "과도한 기대를 줄이세요.", "en": "Reduce excessive expectations."}, "health": {"ko": "과식, 과음을 줄이세요.", "en": "Reduce overeating, overdrinking."}, "wealth": {"ko": "지출을 줄이는 것이 이익입니다.", "en": "Reducing spending is profitable."}, "timing": {"ko": "절제의 시기. 줄이는 것이 더하는 것.", "en": "Time for moderation. Decreasing is increasing."}}},
+    "42": {"number": 42, "name_en": "Yi - Increase", "name_ko": "익괘(益卦)", "name_hanja": "風雷益", "symbol": "䷩", "binary": "110001", "trigram_upper": "wind", "trigram_lower": "thunder", "element": "wood", "core_meaning": {"ko": "더해짐. 위에서 아래로 베푸니 모두가 이익.", "en": "Increase. Giving from above benefits all."}, "themes": {"career": {"ko": "발전과 성장의 좋은 시기입니다.", "en": "Good time for development and growth."}, "love": {"ko": "관계가 더욱 좋아집니다.", "en": "Relationship improves further."}, "health": {"ko": "건강이 좋아집니다.", "en": "Health improves."}, "wealth": {"ko": "재물이 늘어납니다.", "en": "Wealth increases."}, "timing": {"ko": "증가의 시기. 적극적으로 움직이세요.", "en": "Time of increase. Move actively."}}},
+    "43": {"number": 43, "name_en": "Guai - Breakthrough", "name_ko": "쾌괘(夬卦)", "name_hanja": "澤天夬", "symbol": "䷪", "binary": "011111", "trigram_upper": "lake", "trigram_lower": "heaven", "element": "metal", "core_meaning": {"ko": "결단하여 돌파함. 과감하게 나쁜 것을 제거하세요.", "en": "Decisive breakthrough. Boldly remove what is bad."}, "themes": {"career": {"ko": "과감한 결단이 필요합니다.", "en": "Bold decision needed."}, "love": {"ko": "불건전한 관계를 정리하세요.", "en": "Clean up unhealthy relationships."}, "health": {"ko": "나쁜 습관을 끊으세요.", "en": "Break bad habits."}, "wealth": {"ko": "손실을 과감히 처리하세요.", "en": "Boldly handle losses."}, "timing": {"ko": "결단의 시기. 우유부단하면 안 됩니다.", "en": "Time for decision. Don't be indecisive."}}},
+    "44": {"number": 44, "name_en": "Gou - Coming to Meet", "name_ko": "구괘(姤卦)", "name_hanja": "天風姤", "symbol": "䷫", "binary": "111110", "trigram_upper": "heaven", "trigram_lower": "wind", "element": "metal", "core_meaning": {"ko": "만남. 뜻밖의 만남에 주의하세요.", "en": "Meeting. Be careful of unexpected encounters."}, "themes": {"career": {"ko": "예상치 못한 만남이나 기회가 올 수 있습니다.", "en": "Unexpected meeting or opportunity may come."}, "love": {"ko": "새로운 만남이 있을 수 있으나 신중하세요.", "en": "New meeting possible but be cautious."}, "health": {"ko": "갑작스러운 건강 문제에 주의하세요.", "en": "Watch for sudden health issues."}, "wealth": {"ko": "예상치 못한 지출이 있을 수 있습니다.", "en": "Unexpected expenses possible."}, "timing": {"ko": "만남의 시기. 신중하게 대처하세요.", "en": "Time of meeting. Handle with care."}}},
+    "45": {"number": 45, "name_en": "Cui - Gathering", "name_ko": "췌괘(萃卦)", "name_hanja": "澤地萃", "symbol": "䷬", "binary": "011000", "trigram_upper": "lake", "trigram_lower": "earth", "element": "metal", "core_meaning": {"ko": "모임. 사람들이 모여 큰 힘을 이룹니다.", "en": "Gathering. People gather to form great strength."}, "themes": {"career": {"ko": "팀을 모으고 조직하세요.", "en": "Gather and organize team."}, "love": {"ko": "함께하는 시간이 중요합니다.", "en": "Time together important."}, "health": {"ko": "그룹 운동이나 모임 활동이 좋습니다.", "en": "Group exercise or activities good."}, "wealth": {"ko": "자금을 모으기 좋은 시기입니다.", "en": "Good time to gather funds."}, "timing": {"ko": "모임의 시기. 뜻을 같이 하는 사람들과 함께하세요.", "en": "Time of gathering. Unite with like-minded people."}}},
+    "46": {"number": 46, "name_en": "Sheng - Pushing Upward", "name_ko": "승괘(升卦)", "name_hanja": "地風升", "symbol": "䷭", "binary": "000110", "trigram_upper": "earth", "trigram_lower": "wind", "element": "earth", "core_meaning": {"ko": "점점 올라감. 꾸준히 노력하면 높이 오릅니다.", "en": "Gradually rising. Steady effort rises high."}, "themes": {"career": {"ko": "점진적인 승진과 발전이 있습니다.", "en": "Gradual promotion and development."}, "love": {"ko": "관계가 점점 좋아집니다.", "en": "Relationship gradually improves."}, "health": {"ko": "건강이 점점 회복됩니다.", "en": "Health gradually recovers."}, "wealth": {"ko": "재물이 점점 늘어납니다.", "en": "Wealth gradually increases."}, "timing": {"ko": "상승의 시기. 꾸준히 나아가세요.", "en": "Time of rising. Proceed steadily."}}},
+    "47": {"number": 47, "name_en": "Kun - Oppression", "name_ko": "곤괘(困卦)", "name_hanja": "澤水困", "symbol": "䷮", "binary": "011010", "trigram_upper": "lake", "trigram_lower": "water", "element": "metal", "core_meaning": {"ko": "궁핍과 곤란. 어려운 시기이나 뜻을 잃지 마세요.", "en": "Exhaustion and hardship. Difficult time but don't lose purpose."}, "themes": {"career": {"ko": "어려운 시기입니다. 인내하세요.", "en": "Difficult time. Be patient."}, "love": {"ko": "관계가 힘들 수 있습니다.", "en": "Relationship may be difficult."}, "health": {"ko": "체력이 떨어집니다. 무리하지 마세요.", "en": "Stamina drops. Don't overdo it."}, "wealth": {"ko": "재정적 어려움이 있습니다.", "en": "Financial difficulties exist."}, "timing": {"ko": "곤란의 시기. 버티면 지나갑니다.", "en": "Time of hardship. Endure and it will pass."}}},
+    "48": {"number": 48, "name_en": "Jing - The Well", "name_ko": "정괘(井卦)", "name_hanja": "水風井", "symbol": "䷯", "binary": "010110", "trigram_upper": "water", "trigram_lower": "wind", "element": "water", "core_meaning": {"ko": "우물. 변하지 않는 원천. 근본에 충실하세요.", "en": "The well. Unchanging source. Be true to fundamentals."}, "themes": {"career": {"ko": "기본에 충실하세요. 근본이 중요합니다.", "en": "Be true to basics. Fundamentals matter."}, "love": {"ko": "변치 않는 사랑이 중요합니다.", "en": "Unchanging love important."}, "health": {"ko": "기초 건강 관리가 중요합니다.", "en": "Basic health management important."}, "wealth": {"ko": "안정적인 수입원이 중요합니다.", "en": "Stable income source important."}, "timing": {"ko": "근본의 시기. 기본에 집중하세요.", "en": "Time for fundamentals. Focus on basics."}}},
+    "49": {"number": 49, "name_en": "Ge - Revolution", "name_ko": "혁괘(革卦)", "name_hanja": "澤火革", "symbol": "䷰", "binary": "011101", "trigram_upper": "lake", "trigram_lower": "fire", "element": "metal", "core_meaning": {"ko": "변혁. 때가 되면 바꿔야 합니다.", "en": "Revolution. When time comes, must change."}, "themes": {"career": {"ko": "변화가 필요합니다. 과감하게 혁신하세요.", "en": "Change needed. Innovate boldly."}, "love": {"ko": "관계를 새롭게 할 때입니다.", "en": "Time to renew relationship."}, "health": {"ko": "생활 습관을 바꾸세요.", "en": "Change lifestyle habits."}, "wealth": {"ko": "재정 구조를 혁신하세요.", "en": "Innovate financial structure."}, "timing": {"ko": "변혁의 시기. 변화를 두려워하지 마세요.", "en": "Time for revolution. Don't fear change."}}},
+    "50": {"number": 50, "name_en": "Ding - The Cauldron", "name_ko": "정괘(鼎卦)", "name_hanja": "火風鼎", "symbol": "䷱", "binary": "101110", "trigram_upper": "fire", "trigram_lower": "wind", "element": "fire", "core_meaning": {"ko": "솥. 새로운 것을 만들어냄. 창조와 양육.", "en": "The cauldron. Creating new things. Creation and nurturing."}, "themes": {"career": {"ko": "새로운 것을 창조하기 좋은 시기입니다.", "en": "Good time to create something new."}, "love": {"ko": "관계를 발전시키세요.", "en": "Develop the relationship."}, "health": {"ko": "영양 관리에 신경 쓰세요.", "en": "Pay attention to nutrition."}, "wealth": {"ko": "새로운 수입원을 만드세요.", "en": "Create new income sources."}, "timing": {"ko": "창조의 시기. 새로운 것을 시작하세요.", "en": "Time for creation. Start something new."}}},
+    "51": {"number": 51, "name_en": "Zhen - The Arousing", "name_ko": "진괘(震卦)", "name_hanja": "震為雷", "symbol": "䷲", "binary": "001001", "trigram_upper": "thunder", "trigram_lower": "thunder", "element": "wood", "core_meaning": {"ko": "우레. 충격과 각성. 놀라지만 결국 웃습니다.", "en": "Thunder. Shock and awakening. Startled but eventually laughing."}, "themes": {"career": {"ko": "갑작스러운 변화가 있을 수 있습니다.", "en": "Sudden changes may occur."}, "love": {"ko": "관계에 충격이 있을 수 있습니다.", "en": "Shock may be in relationship."}, "health": {"ko": "갑작스러운 건강 문제에 주의하세요.", "en": "Watch for sudden health issues."}, "wealth": {"ko": "갑작스러운 재정 변화에 대비하세요.", "en": "Prepare for sudden financial changes."}, "timing": {"ko": "각성의 시기. 긴장을 유지하세요.", "en": "Time of awakening. Stay alert."}}},
+    "52": {"number": 52, "name_en": "Gen - Keeping Still", "name_ko": "간괘(艮卦)", "name_hanja": "艮為山", "symbol": "䷳", "binary": "100100", "trigram_upper": "mountain", "trigram_lower": "mountain", "element": "earth", "core_meaning": {"ko": "산처럼 멈춤. 때로는 멈추는 것이 지혜입니다.", "en": "Stillness like mountain. Sometimes stopping is wisdom."}, "themes": {"career": {"ko": "지금은 움직이지 마세요. 멈추는 것이 좋습니다.", "en": "Don't move now. Stopping is good."}, "love": {"ko": "관계에서 한 발 물러서세요.", "en": "Step back in relationship."}, "health": {"ko": "명상과 휴식이 필요합니다.", "en": "Meditation and rest needed."}, "wealth": {"ko": "투자를 멈추고 관망하세요.", "en": "Stop investing and watch."}, "timing": {"ko": "멈춤의 시기. 움직이지 않는 것이 지혜.", "en": "Time for stillness. Not moving is wisdom."}}},
+    "53": {"number": 53, "name_en": "Jian - Development", "name_ko": "점괘(漸卦)", "name_hanja": "風山漸", "symbol": "䷴", "binary": "110100", "trigram_upper": "wind", "trigram_lower": "mountain", "element": "wood", "core_meaning": {"ko": "점진적 발전. 조금씩 나아가면 성공합니다.", "en": "Gradual development. Advancing little by little leads to success."}, "themes": {"career": {"ko": "점진적으로 발전합니다. 서두르지 마세요.", "en": "Developing gradually. Don't rush."}, "love": {"ko": "관계가 천천히 발전합니다.", "en": "Relationship develops slowly."}, "health": {"ko": "건강이 서서히 회복됩니다.", "en": "Health gradually recovers."}, "wealth": {"ko": "재물이 조금씩 늘어납니다.", "en": "Wealth increases bit by bit."}, "timing": {"ko": "점진의 시기. 조급함은 금물.", "en": "Time for gradual progress. No impatience."}}},
+    "54": {"number": 54, "name_en": "Gui Mei - Marrying Maiden", "name_ko": "귀매괘(歸妹卦)", "name_hanja": "雷澤歸妹", "symbol": "䷵", "binary": "001011", "trigram_upper": "thunder", "trigram_lower": "lake", "element": "wood", "core_meaning": {"ko": "시집가는 여자. 부수적인 위치에서 최선을 다함.", "en": "Marrying maiden. Doing best in secondary position."}, "themes": {"career": {"ko": "주연보다 조연의 역할이 좋습니다.", "en": "Supporting role better than lead."}, "love": {"ko": "관계에서 양보가 필요합니다.", "en": "Concession needed in relationship."}, "health": {"ko": "무리하지 말고 보조적인 치료를 받으세요.", "en": "Don't overdo, receive supportive treatment."}, "wealth": {"ko": "작은 이익에 만족하세요.", "en": "Be satisfied with small profits."}, "timing": {"ko": "겸손의 시기. 욕심을 줄이세요.", "en": "Time for humility. Reduce greed."}}},
+    "55": {"number": 55, "name_en": "Feng - Abundance", "name_ko": "풍괘(豊卦)", "name_hanja": "雷火豊", "symbol": "䷶", "binary": "001101", "trigram_upper": "thunder", "trigram_lower": "fire", "element": "wood", "core_meaning": {"ko": "풍요로움. 정점에 이르렀으니 오래가지 않습니다.", "en": "Abundance. Peak reached so won't last long."}, "themes": {"career": {"ko": "최고의 시기입니다. 그러나 영원하지 않습니다.", "en": "Peak time. But not eternal."}, "love": {"ko": "사랑이 풍요롭습니다.", "en": "Love is abundant."}, "health": {"ko": "건강이 좋습니다.", "en": "Health is good."}, "wealth": {"ko": "재물이 풍족합니다.", "en": "Wealth is abundant."}, "timing": {"ko": "절정의 시기. 슬프지 말고 정오의 태양처럼.", "en": "Peak time. Not sad, like midday sun."}}},
+    "56": {"number": 56, "name_en": "Lu - The Wanderer", "name_ko": "여괘(旅卦)", "name_hanja": "火山旅", "symbol": "䷷", "binary": "101100", "trigram_upper": "fire", "trigram_lower": "mountain", "element": "fire", "core_meaning": {"ko": "나그네. 낯선 곳에서 겸손하게 처신하세요.", "en": "The wanderer. Act humbly in unfamiliar places."}, "themes": {"career": {"ko": "새로운 환경에 적응해야 합니다.", "en": "Must adapt to new environment."}, "love": {"ko": "불안정한 관계일 수 있습니다.", "en": "Relationship may be unstable."}, "health": {"ko": "여행 중 건강에 주의하세요.", "en": "Watch health during travel."}, "wealth": {"ko": "이동 중 재물 관리에 주의하세요.", "en": "Watch finances during movement."}, "timing": {"ko": "이동의 시기. 정착보다 유동적.", "en": "Time of movement. Fluid rather than settled."}}},
+    "57": {"number": 57, "name_en": "Xun - The Gentle", "name_ko": "손괘(巽卦)", "name_hanja": "巽為風", "symbol": "䷸", "binary": "110110", "trigram_upper": "wind", "trigram_lower": "wind", "element": "wood", "core_meaning": {"ko": "바람처럼 부드러움. 은근하게 스며들어 영향을 미칩니다.", "en": "Gentle like wind. Subtly permeating and influencing."}, "themes": {"career": {"ko": "부드럽게 침투하세요. 강압적이지 않게.", "en": "Penetrate gently. Not forcefully."}, "love": {"ko": "부드러운 접근이 효과적입니다.", "en": "Gentle approach is effective."}, "health": {"ko": "호흡과 기의 흐름에 신경 쓰세요.", "en": "Pay attention to breathing and energy flow."}, "wealth": {"ko": "서서히 침투하는 전략이 좋습니다.", "en": "Gradual penetration strategy good."}, "timing": {"ko": "침투의 시기. 부드럽게 스며드세요.", "en": "Time for penetration. Permeate gently."}}},
+    "58": {"number": 58, "name_en": "Dui - The Joyous", "name_ko": "태괘(兌卦)", "name_hanja": "兌為澤", "symbol": "䷹", "binary": "011011", "trigram_upper": "lake", "trigram_lower": "lake", "element": "metal", "core_meaning": {"ko": "기쁨. 서로 나누는 기쁨이 진정한 기쁨입니다.", "en": "Joy. True joy is joy shared with others."}, "themes": {"career": {"ko": "즐겁게 일하세요. 기쁨이 성공을 부릅니다.", "en": "Work joyfully. Joy brings success."}, "love": {"ko": "기쁨을 나누는 관계가 좋습니다.", "en": "Relationship sharing joy is good."}, "health": {"ko": "기쁜 마음이 건강의 원천입니다.", "en": "Joyful mind is source of health."}, "wealth": {"ko": "즐거운 일이 돈을 벌게 합니다.", "en": "Enjoyable work makes money."}, "timing": {"ko": "기쁨의 시기. 즐기세요.", "en": "Time of joy. Enjoy."}}},
+    "59": {"number": 59, "name_en": "Huan - Dispersion", "name_ko": "환괘(渙卦)", "name_hanja": "風水渙", "symbol": "䷺", "binary": "110010", "trigram_upper": "wind", "trigram_lower": "water", "element": "wood", "core_meaning": {"ko": "흩어짐. 막힌 것이 흩어져 풀립니다.", "en": "Dispersion. What is blocked disperses and releases."}, "themes": {"career": {"ko": "막힌 것이 풀립니다. 유연하게 대처하세요.", "en": "Blockage clears. Handle flexibly."}, "love": {"ko": "오해가 풀립니다.", "en": "Misunderstanding clears."}, "health": {"ko": "정체된 기운이 풀립니다.", "en": "Stagnant energy disperses."}, "wealth": {"ko": "재정적 막힘이 풀립니다.", "en": "Financial blockage clears."}, "timing": {"ko": "해소의 시기. 막힌 것을 풀어주세요.", "en": "Time of release. Clear what is blocked."}}},
+    "60": {"number": 60, "name_en": "Jie - Limitation", "name_ko": "절괘(節卦)", "name_hanja": "水澤節", "symbol": "䷻", "binary": "010011", "trigram_upper": "water", "trigram_lower": "lake", "element": "water", "core_meaning": {"ko": "절제. 적당한 한계를 지키면 성공합니다.", "en": "Limitation. Keeping proper limits leads to success."}, "themes": {"career": {"ko": "절제가 필요합니다. 분수를 지키세요.", "en": "Moderation needed. Know your limits."}, "love": {"ko": "적당한 거리가 필요합니다.", "en": "Appropriate distance needed."}, "health": {"ko": "절제된 생활이 건강의 비결.", "en": "Moderate lifestyle is key to health."}, "wealth": {"ko": "지출을 절제하세요.", "en": "Control spending."}, "timing": {"ko": "절제의 시기. 과하지 않게.", "en": "Time for moderation. Not excessive."}}},
+    "61": {"number": 61, "name_en": "Zhong Fu - Inner Truth", "name_ko": "중부괘(中孚卦)", "name_hanja": "風澤中孚", "symbol": "䷼", "binary": "110011", "trigram_upper": "wind", "trigram_lower": "lake", "element": "wood", "core_meaning": {"ko": "마음속의 진실. 진심이 통하면 무엇이든 가능합니다.", "en": "Inner truth. When sincerity connects, anything is possible."}, "themes": {"career": {"ko": "진심으로 대하면 인정받습니다.", "en": "Sincerity brings recognition."}, "love": {"ko": "진심이 통하는 관계가 좋습니다.", "en": "Relationship with sincere connection is good."}, "health": {"ko": "마음의 평화가 건강을 좌우합니다.", "en": "Peace of mind determines health."}, "wealth": {"ko": "신뢰가 재물을 가져옵니다.", "en": "Trust brings wealth."}, "timing": {"ko": "진심의 시기. 진심으로 대하세요.", "en": "Time of sincerity. Treat with sincerity."}}},
+    "62": {"number": 62, "name_en": "Xiao Guo - Small Exceeding", "name_ko": "소과괘(小過卦)", "name_hanja": "雷山小過", "symbol": "䷽", "binary": "001100", "trigram_upper": "thunder", "trigram_lower": "mountain", "element": "wood", "core_meaning": {"ko": "작은 일에서 지나침. 큰일보다 작은 일에 집중하세요.", "en": "Exceeding in small things. Focus on small things over big."}, "themes": {"career": {"ko": "작은 일에 최선을 다하세요.", "en": "Do your best in small things."}, "love": {"ko": "작은 배려가 큰 감동을 줍니다.", "en": "Small consideration gives big impression."}, "health": {"ko": "작은 습관이 건강을 좌우합니다.", "en": "Small habits determine health."}, "wealth": {"ko": "작은 것을 아끼세요.", "en": "Save small things."}, "timing": {"ko": "작은 것의 시기. 소소한 것에 집중하세요.", "en": "Time for small things. Focus on minor matters."}}},
+    "63": {
+      "number": 63,
+      "name_en": "Ji Ji - After Completion",
+      "name_ko": "기제괘(旣濟卦) - 이미 건넘",
+      "name_hanja": "水火旣濟",
+      "symbol": "䷾",
+      "binary": "010101",
+      "trigram_upper": "water",
+      "trigram_lower": "fire",
+      "element": "water",
+      "core_meaning": {
+        "ko": "모든 효가 정위에 있어 완성. 그러나 완성은 쇠퇴의 시작이기도 합니다.",
+        "en": "All lines in proper positions, completion. But completion is also beginning of decline."
+      },
+      "judgment": {
+        "ko": "소사형통하니 바름이 이롭다. 처음에는 길하나 마침내 어지럽다.",
+        "en": "Success in small matters. Perseverance favorable. Fortune at beginning, disorder at end."
+      },
+      "themes": {
+        "career": {"ko": "목표가 완성되었습니다. 그러나 안주하지 말고 다음을 준비하세요.", "en": "Goal achieved. But don't rest, prepare for next."},
+        "love": {"ko": "관계가 안정기에 접어들었습니다. 권태를 주의하세요.", "en": "Relationship entered stable phase. Watch for boredom."},
+        "health": {"ko": "건강이 안정적입니다. 그러나 과신하지 마세요.", "en": "Health is stable. But don't overestimate."},
+        "wealth": {"ko": "재정이 안정되어 있습니다. 지키는 것이 중요합니다.", "en": "Finances are stable. Preservation is important."},
+        "timing": {"ko": "정점에 도달. 다음 단계를 준비하세요.", "en": "Peak reached. Prepare for next phase."}
+      }
+    },
+    "64": {
+      "number": 64,
+      "name_en": "Wei Ji - Before Completion",
+      "name_ko": "미제괘(未濟卦) - 아직 건너지 못함",
+      "name_hanja": "火水未濟",
+      "symbol": "䷿",
+      "binary": "101010",
+      "trigram_upper": "fire",
+      "trigram_lower": "water",
+      "element": "fire",
+      "core_meaning": {
+        "ko": "모든 효가 부정위에 있어 미완성. 그러나 미완성은 무한한 가능성. 끝은 새로운 시작.",
+        "en": "All lines out of position, incomplete. But incompletion holds infinite possibility. End is new beginning."
+      },
+      "judgment": {
+        "ko": "형통하나 여우가 거의 건너다 꼬리를 적시면 이로울 바 없다.",
+        "en": "Success. But if little fox nearly crossing gets tail wet, nothing favorable."
+      },
+      "themes": {
+        "career": {"ko": "아직 완성되지 않았지만 가능성이 있습니다. 마지막까지 방심하지 마세요.", "en": "Not complete yet but has potential. Don't let guard down until end."},
+        "love": {"ko": "관계가 형성 중입니다. 서두르지 마세요.", "en": "Relationship forming. Don't rush."},
+        "health": {"ko": "회복 중입니다. 꾸준한 노력이 필요합니다.", "en": "Recovering. Consistent effort needed."},
+        "wealth": {"ko": "아직 성과가 나오지 않았지만 기다리세요.", "en": "Results not yet but wait."},
+        "timing": {"ko": "과도기입니다. 새로운 사이클이 시작되려 합니다.", "en": "Transitional period. New cycle about to begin."}
+      }
+    }
+  },
+  "trigrams": {
+    "heaven": {"name_ko": "건(乾)", "name_en": "Qian", "meaning_ko": "하늘, 창조, 강건함", "meaning_en": "Heaven, creativity, strength", "element": "metal", "family": "father", "direction": "northwest", "season": "late_autumn"},
+    "earth": {"name_ko": "곤(坤)", "name_en": "Kun", "meaning_ko": "땅, 수용, 유순함", "meaning_en": "Earth, receptivity, yielding", "element": "earth", "family": "mother", "direction": "southwest", "season": "late_summer"},
+    "thunder": {"name_ko": "진(震)", "name_en": "Zhen", "meaning_ko": "우레, 움직임, 시작", "meaning_en": "Thunder, movement, beginning", "element": "wood", "family": "eldest_son", "direction": "east", "season": "spring"},
+    "water": {"name_ko": "감(坎)", "name_en": "Kan", "meaning_ko": "물, 위험, 지혜", "meaning_en": "Water, danger, wisdom", "element": "water", "family": "middle_son", "direction": "north", "season": "winter"},
+    "mountain": {"name_ko": "간(艮)", "name_en": "Gen", "meaning_ko": "산, 멈춤, 명상", "meaning_en": "Mountain, stillness, meditation", "element": "earth", "family": "youngest_son", "direction": "northeast", "season": "late_winter"},
+    "wind": {"name_ko": "손(巽)", "name_en": "Xun", "meaning_ko": "바람, 침투, 유연함", "meaning_en": "Wind, penetration, flexibility", "element": "wood", "family": "eldest_daughter", "direction": "southeast", "season": "late_spring"},
+    "fire": {"name_ko": "리(離)", "name_en": "Li", "meaning_ko": "불, 밝음, 집착", "meaning_en": "Fire, brightness, attachment", "element": "fire", "family": "middle_daughter", "direction": "south", "season": "summer"},
+    "lake": {"name_ko": "태(兌)", "name_en": "Dui", "meaning_ko": "연못, 기쁨, 소통", "meaning_en": "Lake, joy, communication", "element": "metal", "family": "youngest_daughter", "direction": "west", "season": "autumn"}
+  }
+}

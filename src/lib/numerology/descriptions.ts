@@ -1,22 +1,22 @@
 // src/lib/numerology/descriptions.ts
-// Human-readable texts for numerology readings. Logic untouched; only cleaned strings.
+// Human-readable texts for numerology readings. Logic untouched; strings cleaned to ASCII.
 import { reduceToCore } from "./utils";
 
-export type CoreKey = "lifePath" | "expression" | "soulUrge" | "personality";
+export type CoreKey = "lifePath" | "expression" | "soulUrge" | "personality" | "personalYear" | "personalMonth" | "personalDay";
 
 const base: Record<number, { title: string; tagline: string; aura: string }> = {
-  1: { title: "선도자", tagline: "앞장서서 개척하며 주도권을 쥡니다.", aura: "독립적, 결단력, 추진력" },
-  2: { title: "조율가", tagline: "협력과 조화를 중시하며 관계를 다룹니다.", aura: "배려, 조화, 섬세함" },
-  3: { title: "창조자", tagline: "표현력과 창의성을 통해 메시지를 전합니다.", aura: "창의, 낙천, 소통" },
-  4: { title: "안정가", tagline: "구조와 시스템을 만들며 신뢰를 줍니다.", aura: "근면, 실용, 책임" },
-  5: { title: "모험가", tagline: "변화와 자유를 추구하며 경험으로 성장합니다.", aura: "자유, 적응, 호기심" },
-  6: { title: "보호자", tagline: "돌봄과 조화를 추구하며 공동체를 챙깁니다.", aura: "헌신, 조화, 따뜻함" },
-  7: { title: "탐구자", tagline: "깊이 있는 분석과 통찰로 본질을 찾습니다.", aura: "분석, 직관, 사색" },
-  8: { title: "실행가", tagline: "목표 달성과 성취에 집중합니다.", aura: "야망, 조직, 영향력" },
-  9: { title: "인도자", tagline: "포용과 봉사로 큰 그림을 봅니다.", aura: "이타, 포용, 비전" },
-  11:{ title: "영감가", tagline: "직관과 영감을 통해 비전을 제시합니다.", aura: "직관, 영감, 카리스마" },
-  22:{ title: "마스터 빌더", tagline: "큰 비전을 현실로 구축합니다.", aura: "실행, 구조, 영향력" },
-  33:{ title: "마스터 치유자", tagline: "헌신과 치유로 큰 울림을 만듭니다.", aura: "헌신, 치유, 자비" },
+  1: { title: "Leader / Pioneer", tagline: "Takes initiative, sets direction, moves first when others hesitate.", aura: "Decisive, self-driven, assertive" },
+  2: { title: "Mediator / Partner", tagline: "Builds harmony, senses nuance, brings people to common ground.", aura: "Cooperative, diplomatic, steady" },
+  3: { title: "Communicator / Creator", tagline: "Expressive and playful; translates ideas into uplifting stories.", aura: "Artistic, social, optimistic" },
+  4: { title: "Builder / Steward", tagline: "Systematic and reliable; turns plans into consistent execution.", aura: "Grounded, methodical, dependable" },
+  5: { title: "Explorer / Catalyst", tagline: "Thrives on change; brings momentum and adaptive thinking.", aura: "Adventurous, curious, flexible" },
+  6: { title: "Guardian / Nurturer", tagline: "Protects and cares; creates warmth and responsibility for the group.", aura: "Caring, loyal, stabilizing" },
+  7: { title: "Seeker / Analyst", tagline: "Looks beneath the surface; seeks depth, truth, and pattern.", aura: "Introspective, discerning, insightful" },
+  8: { title: "Executor / Strategist", tagline: "Handles resources and power with focus on outcomes.", aura: "Ambitious, influential, results-oriented" },
+  9: { title: "Humanitarian / Visionary", tagline: "Broad perspective; channels compassion into impact.", aura: "Empathetic, inspiring, generous" },
+  11: { title: "Illuminator (Master 11)", tagline: "Heightened intuition and inspiration; bridges ideas and spirit.", aura: "Intuitive, visionary, catalytic" },
+  22: { title: "Master Builder (Master 22)", tagline: "Turns large visions into tangible systems; long-horizon planner.", aura: "Pragmatic, architecting, enduring" },
+  33: { title: "Master Healer (Master 33)", tagline: "Deep service and guidance; heals through wisdom and care.", aura: "Compassionate, integrative, mentoring" },
 };
 
 function safeBase(n: unknown) {
@@ -27,19 +27,31 @@ function safeBase(n: unknown) {
 const templates: Record<CoreKey, (n: number) => string> = {
   lifePath: (n) => {
     const b = safeBase(n);
-    return `당신의 라이프 패스는 ${b.title}입니다. ${b.tagline} ${b.aura} 에너지가 두드러집니다.`;
+    return `Your life path emphasizes ${b.title}. ${b.tagline} Aura highlights: ${b.aura}.`;
   },
   expression: (n) => {
     const b = safeBase(n);
-    return `표현/데스티니 넘버는 ${b.title}입니다. 타고난 재능과 잠재력이 ${b.aura} 성향으로 드러납니다.`;
+    return `Your expression number channels ${b.title}. ${b.tagline} Aura highlights: ${b.aura}.`;
   },
   soulUrge: (n) => {
     const b = safeBase(n);
-    return `소울 어지(Heart's Desire)는 ${b.title}입니다. 내면의 동기와 욕구가 ${b.tagline.toLowerCase()} 방향으로 흐릅니다.`;
+    return `Heart's Desire leans toward ${b.title}. ${b.tagline} Aura highlights: ${b.aura}.`;
   },
   personality: (n) => {
     const b = safeBase(n);
-    return `퍼스낼리티 넘버는 ${b.title}입니다. 외부에 비치는 인상은 ${b.aura} 성향이 강합니다.`;
+    return `Outward personality projects ${b.title}. ${b.tagline} Aura highlights: ${b.aura}.`;
+  },
+  personalYear: (n) => {
+    const b = safeBase(n);
+    return `This year carries ${b.title} energy. ${b.tagline}`;
+  },
+  personalMonth: (n) => {
+    const b = safeBase(n);
+    return `This month highlights ${b.title} themes. ${b.tagline}`;
+  },
+  personalDay: (n) => {
+    const b = safeBase(n);
+    return `Today resonates with ${b.title}. ${b.aura}.`;
   },
 };
 
@@ -48,7 +60,16 @@ export function describe(core: CoreKey, n: number) {
 }
 
 export const luckyTag: Record<number, string> = {
-  1: "주도·새로운 시작", 2: "협력·균형", 3: "창의·소통", 4: "안정·성실",
-  5: "변화·자유", 6: "돌봄·책임", 7: "통찰·연구", 8: "성취·권위",
-  9: "포용·완성", 11:"영감·직관", 22:"구축·리더십", 33:"헌신·치유",
+  1: "Initiative, independence",
+  2: "Partnership, balance",
+  3: "Expression, creativity",
+  4: "Stability, structure",
+  5: "Change, versatility",
+  6: "Care, responsibility",
+  7: "Insight, research",
+  8: "Power, execution",
+  9: "Compassion, legacy",
+  11: "Vision, inspiration",
+  22: "Execution at scale",
+  33: "Service, healing",
 };

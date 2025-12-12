@@ -6,6 +6,32 @@ import {
   findAspectsPlus,
   resolveOptions,
   type AstrologyChartFacts,
+  // Extra Points (Chiron, Lilith, Part of Fortune, Vertex)
+  calculateChiron,
+  calculateLilith,
+  calculatePartOfFortune,
+  calculateVertex,
+  extendChartWithExtraPoints,
+  calculateExtraPoints,
+  isNightChart,
+  // Progressions (Secondary, Solar Arc)
+  calculateSecondaryProgressions,
+  calculateSolarArcDirections,
+  getProgressedMoonPhase,
+  getProgressionSummary,
+  // Returns (Solar, Lunar)
+  calculateSolarReturn,
+  calculateLunarReturn,
+  getSolarReturnSummary,
+  getLunarReturnSummary,
+  // Types
+  type ExtraPoint,
+  type ExtendedChart,
+  type ReturnChart,
+  type ProgressedChart,
+  type ProgressionInput,
+  type SolarReturnInput,
+  type LunarReturnInput,
 } from "../astrology";
 
 import {
@@ -33,6 +59,7 @@ export interface CombinedInput {
   longitude: number;
   theme?: string;
   tz?: string;
+  userTimezone?: string; // 사용자 현재 위치 타임존 (트랜짓/운세 계산용)
 }
 
 export interface CombinedResult {
@@ -40,6 +67,35 @@ export interface CombinedResult {
   astrology: any;
   saju: any;
   summary: string;
+  // 사용자 현재 타임존 기준 날짜 (운세용)
+  userTimezone?: string;
+  analysisDate?: string; // YYYY-MM-DD 형식
+  // Advanced Astrology Data
+  extraPoints?: {
+    chiron?: ExtraPoint;
+    lilith?: ExtraPoint;
+    partOfFortune?: ExtraPoint;
+    vertex?: ExtraPoint;
+  };
+  solarReturn?: {
+    chart: ReturnChart;
+    summary: ReturnType<typeof getSolarReturnSummary>;
+  };
+  lunarReturn?: {
+    chart: ReturnChart;
+    summary: ReturnType<typeof getLunarReturnSummary>;
+  };
+  progressions?: {
+    secondary: {
+      chart: ProgressedChart;
+      moonPhase: ReturnType<typeof getProgressedMoonPhase>;
+      summary: ReturnType<typeof getProgressionSummary>;
+    };
+    solarArc?: {
+      chart: ProgressedChart;
+      summary: ReturnType<typeof getProgressionSummary>;
+    };
+  };
 }
 
 // ---------- Helpers ----------
@@ -61,6 +117,41 @@ function resolveTimezone(tz: string | undefined, latitude: number, longitude: nu
     return tzLookup(latitude, longitude);
   } catch {
     return "Asia/Seoul";
+  }
+}
+
+/**
+ * 사용자 타임존 기준 현재 날짜/시간 반환
+ */
+function getNowInTimezone(tz?: string): { year: number; month: number; day: number; hour: number; minute: number } {
+  const now = new Date();
+  if (!tz) {
+    return {
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      day: now.getUTCDate(),
+      hour: now.getUTCHours(),
+      minute: now.getUTCMinutes(),
+    };
+  }
+  try {
+    const fmt = (opt: Intl.DateTimeFormatOptions) =>
+      Number(new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opt }).format(now));
+    return {
+      year: fmt({ year: 'numeric' }),
+      month: fmt({ month: '2-digit' }),
+      day: fmt({ day: '2-digit' }),
+      hour: fmt({ hour: '2-digit', hour12: false }),
+      minute: fmt({ minute: '2-digit' }),
+    };
+  } catch {
+    return {
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      day: now.getUTCDate(),
+      hour: now.getUTCHours(),
+      minute: now.getUTCMinutes(),
+    };
   }
 }
 
@@ -181,7 +272,7 @@ function calcTransitsToLights(transitPlanets: any[], lights: { name: string; lon
 /* Main Engine */
 export async function computeDestinyMap(input: CombinedInput): Promise<CombinedResult> {
   try {
-    const { birthDate, birthTime, latitude, longitude, gender: rawGender, tz, name } = input;
+    const { birthDate, birthTime, latitude, longitude, gender: rawGender, tz, name, userTimezone } = input;
     if (enableDebugLogs) { console.log("[Engine] Input received"); }
 
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
@@ -219,14 +310,14 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     // Part of Fortune
     computePoF(planets as any[], houses as any[], ascendant);
 
-    // Transit aspects to lights (now, UTC)
-    const now = new Date();
+    // Transit aspects to lights (사용자 타임존 기준)
+    const userNow = getNowInTimezone(userTimezone);
     const transitRaw = await calculateNatalChart({
-      year: now.getUTCFullYear(),
-      month: now.getUTCMonth() + 1,
-      date: now.getUTCDate(),
-      hour: now.getUTCHours(),
-      minute: now.getUTCMinutes(),
+      year: userNow.year,
+      month: userNow.month,
+      date: userNow.day,
+      hour: userNow.hour,
+      minute: userNow.minute,
       latitude,
       longitude,
       timeZone: "UTC",
@@ -240,10 +331,105 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     ];
     const transits = calcTransitsToLights(transitPlanets, lights, 4);
 
+    // ---------- Advanced Astrology Features ----------
+    let extraPoints: CombinedResult['extraPoints'] = undefined;
+    let solarReturn: CombinedResult['solarReturn'] = undefined;
+    let lunarReturn: CombinedResult['lunarReturn'] = undefined;
+    let progressions: CombinedResult['progressions'] = undefined;
+
+    try {
+      const houseCusps = houses.map((h: any) => h.cusp);
+      const natalInput = {
+        year, month, date: day, hour, minute,
+        latitude, longitude, timeZone: resolvedTz
+      };
+
+      // Get Sun/Moon/ASC for calculations
+      const sunPlanet = planets.find((p: any) => p.name === "Sun");
+      const moonPlanet = planets.find((p: any) => p.name === "Moon");
+      const sunLon = sunPlanet?.longitude ?? 0;
+      const moonLon = moonPlanet?.longitude ?? 0;
+      const ascLon = (ascendant as any)?.longitude ?? 0;
+      const sunHouse = sunPlanet?.house ?? 1;
+      const nightChart = isNightChart(sunHouse);
+
+      // ===== Extra Points (Chiron, Lilith, Part of Fortune, Vertex) =====
+      try {
+        const chiron = calculateChiron(0, houseCusps);
+        const lilith = calculateLilith(0, houseCusps);
+        const partOfFortune = calculatePartOfFortune(ascLon, sunLon, moonLon, nightChart, houseCusps);
+        const vertex = calculateVertex(0, latitude, longitude, houseCusps);
+        extraPoints = { chiron, lilith, partOfFortune, vertex };
+      } catch (epErr) {
+        if (enableDebugLogs) console.warn("[Extra points calculation skipped]", epErr);
+      }
+
+      // ===== Solar Return (현재 연도 - 사용자 타임존 기준) =====
+      try {
+        const srChart = await calculateSolarReturn({ natal: natalInput, year: userNow.year });
+        const srSummary = getSolarReturnSummary(srChart);
+        solarReturn = { chart: srChart, summary: srSummary };
+      } catch (srErr) {
+        if (enableDebugLogs) console.warn("[Solar Return calculation skipped]", srErr);
+      }
+
+      // ===== Lunar Return (현재 월 - 사용자 타임존 기준) =====
+      try {
+        const lrChart = await calculateLunarReturn({
+          natal: natalInput,
+          month: userNow.month,
+          year: userNow.year,
+        });
+        const lrSummary = getLunarReturnSummary(lrChart);
+        lunarReturn = { chart: lrChart, summary: lrSummary };
+      } catch (lrErr) {
+        if (enableDebugLogs) console.warn("[Lunar Return calculation skipped]", lrErr);
+      }
+
+      // ===== Progressions (Secondary + Solar Arc - 사용자 타임존 기준) =====
+      try {
+        const today = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`;
+
+        // Secondary Progressions
+        const secProgChart = await calculateSecondaryProgressions({ natal: natalInput, targetDate: today });
+        const secProgSun = secProgChart.planets.find(p => p.name === "Sun");
+        const secProgMoon = secProgChart.planets.find(p => p.name === "Moon");
+        const secMoonPhase = secProgSun && secProgMoon
+          ? getProgressedMoonPhase(secProgSun.longitude, secProgMoon.longitude)
+          : { phase: "Unknown", angle: 0, description: "" };
+        const secProgSummary = getProgressionSummary(secProgChart);
+
+        // Solar Arc Directions
+        const solarArcChart = await calculateSolarArcDirections({ natal: natalInput, targetDate: today });
+        const solarArcSummary = getProgressionSummary(solarArcChart);
+
+        progressions = {
+          secondary: {
+            chart: secProgChart,
+            moonPhase: secMoonPhase,
+            summary: secProgSummary,
+          },
+          solarArc: {
+            chart: solarArcChart,
+            summary: solarArcSummary,
+          },
+        };
+      } catch (progErr) {
+        if (enableDebugLogs) console.warn("[Progressions calculation skipped]", progErr);
+      }
+
+    } catch (advErr) {
+      if (enableDebugLogs) console.warn("[Advanced astrology features skipped]", advErr);
+    }
+
     if (enableDebugLogs) {
       console.log("[Astrology finished]:", {
         sun: planets.find((p) => p.name === "Sun")?.sign,
         moon: planets.find((p) => p.name === "Moon")?.sign,
+        extraPoints: extraPoints ? Object.keys(extraPoints) : 'none',
+        solarReturn: solarReturn ? 'calculated' : 'none',
+        lunarReturn: lunarReturn ? 'calculated' : 'none',
+        progressions: progressions ? 'calculated' : 'none',
       });
     }
 
@@ -379,6 +565,11 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       },
       saju: { facts: sajuFacts, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal },
       summary,
+      // Advanced Astrology Data (all features)
+      extraPoints,
+      solarReturn,
+      lunarReturn,
+      progressions,
     };
   } catch (err: any) {
     console.error("[computeDestinyMap Error]", err);

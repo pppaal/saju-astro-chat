@@ -1,0 +1,191 @@
+{
+  "_meta": {
+    "theme": "spiritual",
+    "title": "Spiritual Growth 영적 성장",
+    "description": "Soul evolution, spiritual awakening, and higher consciousness through tarot"
+  },
+  "major_arcana_deep": {
+    "The Fool": {
+      "spiritual_meaning": "The soul's leap into incarnation. Beginning of a new spiritual journey. Trust the universe and take the leap of faith.",
+      "korean": "영혼의 화신으로의 도약. 새로운 영적 여정의 시작. 우주를 신뢰하고 믿음의 도약을 하세요.",
+      "soul_lesson": "Trust without proof. Faith in the unseen journey ahead.",
+      "practice": "Meditation on surrender and trust. Begin new spiritual practice.",
+      "shadow": "Spiritual bypassing or reckless spiritual seeking.",
+      "advice": "Your soul knows the way. Trust the journey, even when the path is unclear."
+    },
+    "The Magician": {
+      "spiritual_meaning": "As above, so below. You are a channel for divine will. Conscious creation through aligned intention.",
+      "korean": "위에서와 같이, 아래에서도. 당신은 신성한 의지의 통로입니다.",
+      "soul_lesson": "You are the bridge between heaven and earth.",
+      "practice": "Intentional manifestation work. Ritual magic. Prayer with purpose.",
+      "shadow": "Using spiritual power for ego gratification.",
+      "advice": "You are a conduit for divine energy. Channel it with pure intention."
+    },
+    "The High Priestess": {
+      "spiritual_meaning": "The guardian of mysteries. Deep intuition and inner knowing. The veil between worlds is thin.",
+      "korean": "신비의 수호자. 깊은 직관과 내면의 앎. 세계 사이의 베일이 얇습니다.",
+      "soul_lesson": "Wisdom comes from within. Trust your inner knowing above all else.",
+      "practice": "Silent meditation. Moon rituals. Dream work. Inner listening.",
+      "shadow": "Spiritual secrets used to control or exclude others.",
+      "advice": "The deepest spiritual truths are accessed in stillness and silence."
+    },
+    "The Empress": {
+      "spiritual_meaning": "The Divine Feminine. Creative life force. Spirit expressing through nature and physical form.",
+      "korean": "신성한 여성성. 창조적 생명력. 자연과 물리적 형태를 통해 표현되는 영혼.",
+      "soul_lesson": "Spirit is expressed through creation, beauty, and nurturing.",
+      "practice": "Nature communion. Creative expression as spiritual practice. Body as temple.",
+      "shadow": "Material attachment masquerading as spiritual abundance.",
+      "advice": "See the divine in all of creation. Spirit lives in the physical world."
+    },
+    "The Emperor": {
+      "spiritual_meaning": "Divine order and structure. Spiritual discipline. The Father aspect of divinity.",
+      "korean": "신성한 질서와 구조. 영적 규율. 신성의 아버지 측면.",
+      "soul_lesson": "Spirit requires structure and discipline to manifest effectively.",
+      "practice": "Disciplined spiritual practice. Building lasting spiritual foundations.",
+      "shadow": "Rigidity or authoritarianism in spiritual matters.",
+      "advice": "Build your spiritual life on a foundation of discipline and order."
+    },
+    "The Hierophant": {
+      "spiritual_meaning": "Spiritual tradition and teaching. The transmission of sacred knowledge. Finding your spiritual teacher.",
+      "korean": "영적 전통과 가르침. 신성한 지식의 전달. 영적 스승 찾기.",
+      "soul_lesson": "Learn from those who walked the path before you.",
+      "practice": "Study with teachers. Engage with spiritual traditions. Teach what you know.",
+      "shadow": "Dogma, religious rigidity, giving away spiritual authority.",
+      "advice": "Respect spiritual traditions while finding your own direct connection to Source."
+    },
+    "The Lovers": {
+      "spiritual_meaning": "Divine union. Integration of opposites. Choosing spiritual alignment over worldly temptation.",
+      "korean": "신성한 합일. 반대의 통합. 세속적 유혹보다 영적 정렬 선택.",
+      "soul_lesson": "Union with the Divine requires integrating all parts of yourself.",
+      "practice": "Sacred relationship work. Tantra. Integration practices.",
+      "shadow": "Seeking divine love outside yourself. Spiritual codependency.",
+      "advice": "The beloved you seek is within. Unite with your own divine nature."
+    },
+    "The Chariot": {
+      "spiritual_meaning": "Spiritual will in action. Mastering the vehicles of body, mind, and emotion.",
+      "korean": "행동하는 영적 의지. 몸, 마음, 감정의 수레를 마스터하기.",
+      "soul_lesson": "Direct your spiritual vehicles with conscious intention.",
+      "practice": "Willful spiritual practices. Overcoming spiritual obstacles.",
+      "shadow": "Spiritual ambition or ego-driven spiritual achievement.",
+      "advice": "Take the reins of your spiritual journey with focused determination."
+    },
+    "Strength": {
+      "spiritual_meaning": "Spiritual power through gentleness. Taming the inner beast with love. Courage of the heart.",
+      "korean": "부드러움을 통한 영적 힘. 사랑으로 내면의 야수 길들이기.",
+      "soul_lesson": "True spiritual power is gentle, patient, and compassionate.",
+      "practice": "Heart-centered practice. Working with shadow through love. Patience.",
+      "shadow": "Spiritual aggression or forcing growth.",
+      "advice": "The strongest spiritual force is love itself."
+    },
+    "The Hermit": {
+      "spiritual_meaning": "The inner light. Solitary spiritual seeking. The wisdom of withdrawal. Light in the darkness.",
+      "korean": "내면의 빛. 고독한 영적 추구. 은둔의 지혜. 어둠 속의 빛.",
+      "soul_lesson": "Find your own light within before trying to guide others.",
+      "practice": "Solitary retreat. Silent meditation. Inner illumination work.",
+      "shadow": "Spiritual isolation or superiority. Avoiding community.",
+      "advice": "Go within to find the light that can illuminate others' paths."
+    },
+    "Wheel of Fortune": {
+      "spiritual_meaning": "Karma and destiny. The wheel of reincarnation. Working with cycles and fate.",
+      "korean": "카르마와 운명. 환생의 바퀴. 순환과 운명과 함께 작업하기.",
+      "soul_lesson": "Understanding karma and the cycles of spiritual evolution.",
+      "practice": "Karma clearing. Working with life cycles. Acceptance practice.",
+      "shadow": "Fatalism or abdicating responsibility to 'karma.'",
+      "advice": "Understand the wheel of karma, but don't be passive. You create your destiny."
+    },
+    "Justice": {
+      "spiritual_meaning": "Divine justice. Karma balancing. Truth and spiritual accountability.",
+      "korean": "신성한 정의. 카르마 균형. 진실과 영적 책임.",
+      "soul_lesson": "Perfect justice exists at the soul level. All is balanced.",
+      "practice": "Truth-telling. Making amends. Karma work. Integrity.",
+      "shadow": "Spiritual judgment of others or self-righteousness.",
+      "advice": "Trust in divine justice while taking full responsibility for your choices."
+    },
+    "The Hanged Man": {
+      "spiritual_meaning": "Spiritual surrender. Seeing from a higher perspective. Sacred pause and sacrifice.",
+      "korean": "영적 항복. 더 높은 관점에서 보기. 신성한 일시정지와 희생.",
+      "soul_lesson": "Sometimes spiritual progress requires complete surrender.",
+      "practice": "Surrender practices. Hanging upside down (inversions). Waiting.",
+      "shadow": "Spiritual martyrdom or unnecessary suffering.",
+      "advice": "Surrender your limited perspective. The view from surrender is vast."
+    },
+    "Death": {
+      "spiritual_meaning": "Ego death and spiritual transformation. The gateway between worlds. Release and rebirth.",
+      "korean": "자아의 죽음과 영적 변화. 세계 사이의 관문. 해방과 재탄생.",
+      "soul_lesson": "What you cling to spiritually must die for you to be reborn.",
+      "practice": "Ego death work. Shamanic journey. Letting go practices. Grief work.",
+      "shadow": "Fear of spiritual transformation. Clinging to old spiritual identity.",
+      "advice": "Let your old spiritual self die. What emerges is more real."
+    },
+    "Temperance": {
+      "spiritual_meaning": "Spiritual alchemy. Blending heaven and earth. The guardian angel. Sacred balance.",
+      "korean": "영적 연금술. 천상과 지상의 조합. 수호천사. 신성한 균형.",
+      "soul_lesson": "True spirituality integrates all aspects of existence.",
+      "practice": "Alchemical work. Angel communication. Blending practices. Balance.",
+      "shadow": "Spiritual bypassing of difficult emotions or experiences.",
+      "advice": "Blend the spiritual and material into a golden whole."
+    },
+    "The Devil": {
+      "spiritual_meaning": "Shadow work. Facing spiritual bondage. The illusion of separation from Source.",
+      "korean": "그림자 작업. 영적 속박과 대면하기. 근원으로부터의 분리라는 환상.",
+      "soul_lesson": "What you deny spiritually controls you. Face your shadow.",
+      "practice": "Deep shadow work. Facing spiritual addictions. Breaking chains.",
+      "shadow": "Denial of shadow. Spiritual bypassing. False light.",
+      "advice": "Face your spiritual shadow. What you integrate liberates you."
+    },
+    "The Tower": {
+      "spiritual_meaning": "Spiritual awakening through destruction. Shattering of illusions. Kundalini rising.",
+      "korean": "파괴를 통한 영적 각성. 환상의 깨뜨림. 쿤달리니 상승.",
+      "soul_lesson": "Sometimes spiritual truth comes as a lightning bolt that destroys false structures.",
+      "practice": "Embrace spiritual crisis. Tower work. Rebuilding after destruction.",
+      "shadow": "Spiritual crisis misunderstood as failure.",
+      "advice": "What the spiritual lightning destroys needed to fall. Trust the process."
+    },
+    "The Star": {
+      "spiritual_meaning": "Divine hope and inspiration. Connection to higher self. Cosmic healing. Star seed consciousness.",
+      "korean": "신성한 희망과 영감. 고차원 자아와의 연결. 우주적 치유.",
+      "soul_lesson": "You are a star. Your light comes from the cosmos itself.",
+      "practice": "Star meditation. Cosmic connection. Healing work. Hope cultivation.",
+      "shadow": "Disconnection from star nature. Hopelessness.",
+      "advice": "You are made of stars. Let your cosmic nature shine."
+    },
+    "The Moon": {
+      "spiritual_meaning": "The unconscious depths. Psychic development. Illusion and revelation. Shadow work.",
+      "korean": "무의식의 깊이. 사이킥 개발. 환상과 계시. 그림자 작업.",
+      "soul_lesson": "Navigate the unconscious with intuition, not logic.",
+      "practice": "Dream work. Psychic development. Moon rituals. Shadow integration.",
+      "shadow": "Lost in illusion. Psychic overwhelm.",
+      "advice": "Trust your psychic nature to guide you through the dark night of the soul."
+    },
+    "The Sun": {
+      "spiritual_meaning": "Enlightenment. Divine child consciousness. Radiant spiritual joy. Solar consciousness.",
+      "korean": "깨달음. 신성한 아이 의식. 빛나는 영적 기쁨. 태양 의식.",
+      "soul_lesson": "Enlightenment is simple, joyful, and childlike.",
+      "practice": "Sun meditation. Celebrating spiritual joy. Inner child work. Radiance.",
+      "shadow": "Forced positivity. Denial of shadow in favor of 'light.'",
+      "advice": "Let your spiritual light shine simply and joyfully."
+    },
+    "Judgement": {
+      "spiritual_meaning": "Spiritual awakening and rebirth. The call of the higher self. Resurrection consciousness.",
+      "korean": "영적 각성과 재탄생. 고차원 자아의 부름. 부활 의식.",
+      "soul_lesson": "Answer the call of your higher self. Rise.",
+      "practice": "Answering the spiritual call. Past life work. Resurrection practice.",
+      "shadow": "Ignoring the spiritual call. Spiritual self-judgment.",
+      "advice": "Answer when Spirit calls. This is your moment of awakening."
+    },
+    "The World": {
+      "spiritual_meaning": "Cosmic consciousness. Unity with all. Completion of a spiritual cycle. Mastery.",
+      "korean": "우주 의식. 모든 것과의 합일. 영적 순환의 완성. 숙달.",
+      "soul_lesson": "You are one with everything. Separation was always an illusion.",
+      "practice": "Unity consciousness. Completion rituals. Celebration of wholeness.",
+      "shadow": "Spiritual arrogance. Thinking you've 'arrived.'",
+      "advice": "You are already whole and complete. Remember this."
+    }
+  },
+  "spiritual_paths": {
+    "meditation": "High Priestess, Hermit, and Hanged Man support deep meditation practice",
+    "devotion": "Hierophant and Empress support devotional paths",
+    "service": "Six of Pentacles and Empress support karma yoga",
+    "knowledge": "Magician and High Priestess support jnana yoga"
+  }
+}

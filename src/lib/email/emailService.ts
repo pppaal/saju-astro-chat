@@ -47,7 +47,7 @@ async function sendWithResend(options: EmailOptions): Promise<boolean> {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const { data, error } = await resend.emails.send({
-      from: options.from || process.env.EMAIL_FROM || "DestinyTracker <noreply@destinytracker.com>",
+      from: options.from || process.env.EMAIL_FROM || "DestinyPal <noreply@destinypal.com>",
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -80,7 +80,7 @@ async function sendWithSendGrid(options: EmailOptions): Promise<boolean> {
 
     const msg = {
       to: options.to,
-      from: options.from || process.env.EMAIL_FROM || "noreply@destinytracker.com",
+      from: options.from || process.env.EMAIL_FROM || "noreply@destinypal.com",
       subject: options.subject,
       html: options.html,
       text: options.text || options.html.replace(/<[^>]*>/g, ""),
@@ -116,7 +116,7 @@ async function sendWithNodemailer(options: EmailOptions): Promise<boolean> {
     });
 
     const info = await transporter.sendMail({
-      from: options.from || process.env.EMAIL_FROM || "noreply@destinytracker.com",
+      from: options.from || process.env.EMAIL_FROM || "noreply@destinypal.com",
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -191,7 +191,7 @@ export async function sendNotificationEmail(
  * Generate HTML for notification digest
  */
 function generateNotificationDigestHTML(data: NotificationEmailData): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinytracker.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
 
   const notificationRows = data.notifications
     .map((notif) => {
@@ -238,7 +238,7 @@ function generateNotificationDigestHTML(data: NotificationEmailData): string {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #7c5cff 0%, #6b4fd8 100%); padding: 32px 24px; border-radius: 12px 12px 0 0; text-align: center;">
           <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 800;">
-            🔔 DestinyTracker
+            🔔 DestinyPal
           </h1>
           <p style="margin: 8px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
             You have ${data.unreadCount} new notification${data.unreadCount > 1 ? "s" : ""}
@@ -287,7 +287,7 @@ function generateNotificationHTML(notification: {
   message: string;
   link: string;
 }): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinytracker.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
   const icon = getNotificationIcon(notification.type);
 
   return `
@@ -360,7 +360,7 @@ export async function sendWelcomeEmail(
   email: string,
   userName: string
 ): Promise<boolean> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinytracker.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
 
   const html = `
     <!DOCTYPE html>
@@ -368,13 +368,13 @@ export async function sendWelcomeEmail(
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to DestinyTracker</title>
+      <title>Welcome to DestinyPal</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f9fafb;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #7c5cff 0%, #6b4fd8 100%); padding: 48px 32px; border-radius: 12px; text-align: center;">
           <h1 style="margin: 0 0 16px 0; color: white; font-size: 36px; font-weight: 800;">
-            ✨ Welcome to DestinyTracker!
+            ✨ Welcome to DestinyPal!
           </h1>
           <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 18px; line-height: 1.6;">
             We're excited to help you chart the cosmos and navigate your destiny
@@ -387,7 +387,7 @@ export async function sendWelcomeEmail(
           </p>
 
           <p style="margin: 0 0 24px 0; font-size: 16px; color: #374151; line-height: 1.6;">
-            Thank you for joining DestinyTracker! You now have access to AI-powered astrology, Saju, Tarot, and I Ching readings.
+            Thank you for joining DestinyPal! You now have access to AI-powered astrology, Saju, Tarot, and I Ching readings.
           </p>
 
           <div style="margin: 32px 0; padding: 24px; background: #f9fafb; border-radius: 8px;">
@@ -423,7 +423,7 @@ export async function sendWelcomeEmail(
 
   return sendEmail({
     to: email,
-    subject: "Welcome to DestinyTracker! ✨",
+    subject: "Welcome to DestinyPal! ✨",
     html,
   });
 }

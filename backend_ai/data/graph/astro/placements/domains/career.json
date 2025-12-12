@@ -1,0 +1,368 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/domains/career",
+  "$count": 96,
+  "$description": "직업, 커리어, 사회적 지위에 영향을 미치는 배치들의 도메인별 해석",
+  "$note": "Sun, Saturn, Mars, MC × 12 signs + 2nd, 6th, 10th house placements",
+
+  "Sun_career": {
+    "Sun_in_Aries": {
+      "career_drive": "선구자적 리더십과 개척",
+      "ideal_fields": "스포츠, 군사, 기업가, 응급 서비스, 외과의사",
+      "leadership_style": "직접적이고 용감한 지휘관",
+      "success_path": "새로운 분야 개척, 경쟁에서 승리",
+      "career_shadow": "성급함, 타인 무시, 프로젝트 중도 포기"
+    },
+    "Sun_in_Taurus": {
+      "career_drive": "물질적 안정과 가치 창조",
+      "ideal_fields": "금융, 부동산, 농업, 예술, 요식업, 럭셔리",
+      "leadership_style": "안정적이고 신뢰할 수 있는",
+      "success_path": "꾸준한 축적, 장기 투자",
+      "career_shadow": "변화 거부, 완고함, 과도한 안전 추구"
+    },
+    "Sun_in_Gemini": {
+      "career_drive": "소통과 아이디어 전달",
+      "ideal_fields": "미디어, 저널리즘, 교육, 마케팅, 세일즈, IT",
+      "leadership_style": "다재다능하고 소통 중심",
+      "success_path": "네트워킹, 정보 중개, 다양한 프로젝트",
+      "career_shadow": "집중력 부족, 깊이 없음, 가십"
+    },
+    "Sun_in_Cancer": {
+      "career_drive": "양육과 보호",
+      "ideal_fields": "요식업, 부동산, 호텔, 보육, 역사, 가정 관련",
+      "leadership_style": "보살피고 보호하는",
+      "success_path": "정서적 연결, 가족적 문화 조성",
+      "career_shadow": "감정적 결정, 객관성 부족, 편애"
+    },
+    "Sun_in_Leo": {
+      "career_drive": "창조와 인정",
+      "ideal_fields": "엔터테인먼트, 정치, 럭셔리, 예술, 교육, CEO",
+      "leadership_style": "카리스마 있고 영감을 주는",
+      "success_path": "무대 중심, 창의적 표현, 리더십",
+      "career_shadow": "자존심, 타인 업적 인정 거부, 독재"
+    },
+    "Sun_in_Virgo": {
+      "career_drive": "봉사와 완벽한 수행",
+      "ideal_fields": "의료, 회계, 편집, 품질관리, 영양학, 분석",
+      "leadership_style": "세심하고 효율적인",
+      "success_path": "전문성 개발, 시스템 개선, 문제 해결",
+      "career_shadow": "과도한 비판, 세부사항 집착, 번아웃"
+    },
+    "Sun_in_Libra": {
+      "career_drive": "조화와 파트너십",
+      "ideal_fields": "법률, 외교, 디자인, PR, 미술, 결혼상담",
+      "leadership_style": "공정하고 협력적인",
+      "success_path": "파트너십, 중재, 미적 창조",
+      "career_shadow": "우유부단, 갈등 회피, 의존성"
+    },
+    "Sun_in_Scorpio": {
+      "career_drive": "변형과 깊이 있는 탐구",
+      "ideal_fields": "심리학, 수사, 금융, 연구, 의료, 장례",
+      "leadership_style": "강렬하고 통찰력 있는",
+      "success_path": "위기 관리, 변형 촉진, 비밀 파악",
+      "career_shadow": "통제욕, 비밀주의, 복수심"
+    },
+    "Sun_in_Sagittarius": {
+      "career_drive": "확장과 의미 추구",
+      "ideal_fields": "교육, 출판, 여행, 철학, 법률, 종교",
+      "leadership_style": "비전 있고 영감을 주는",
+      "success_path": "글로벌 확장, 교육, 지혜 전달",
+      "career_shadow": "비현실적 계획, 세부사항 무시, 과장"
+    },
+    "Sun_in_Capricorn": {
+      "career_drive": "성취와 권위 확립",
+      "ideal_fields": "경영, 정치, 건설, 금융, 전통 산업, CEO",
+      "leadership_style": "권위 있고 목표 지향적",
+      "success_path": "장기 계획, 인내, 구조 구축",
+      "career_shadow": "일중독, 냉담함, 수단방법 가리지 않음"
+    },
+    "Sun_in_Aquarius": {
+      "career_drive": "혁신과 인류 발전",
+      "ideal_fields": "기술, 과학, 사회운동, 항공우주, 네트워킹",
+      "leadership_style": "혁신적이고 민주적인",
+      "success_path": "미래 비전, 그룹 역학, 기술 혁신",
+      "career_shadow": "비실용적, 감정적 거리, 반항심"
+    },
+    "Sun_in_Pisces": {
+      "career_drive": "영감과 치유",
+      "ideal_fields": "예술, 음악, 영화, 의료, 영성, 자선",
+      "leadership_style": "영감적이고 직관적인",
+      "success_path": "창의적 비전, 치유, 영적 연결",
+      "career_shadow": "비현실적, 경계 부족, 도피"
+    }
+  },
+
+  "Saturn_career": {
+    "Saturn_in_Aries": {
+      "career_lessons": "리더십과 주도권에 대한 두려움 극복",
+      "career_challenges": "시작하는 것, 자기 주장",
+      "career_mastery": "용기 있는 결정, 독립적 행동",
+      "late_blooming": "40대 이후 리더십 발휘"
+    },
+    "Saturn_in_Taurus": {
+      "career_lessons": "재정적 안정과 자원 관리 배우기",
+      "career_challenges": "물질적 불안, 자기 가치",
+      "career_mastery": "장기적 재산 구축, 가치 창조",
+      "late_blooming": "중년 이후 재정적 안정 달성"
+    },
+    "Saturn_in_Gemini": {
+      "career_lessons": "소통과 학습에 대한 자신감 구축",
+      "career_challenges": "말하기/글쓰기 불안, 정보 과부하",
+      "career_mastery": "깊이 있는 전문 지식, 효과적 소통",
+      "late_blooming": "중년 이후 저술가, 교육자로 성공"
+    },
+    "Saturn_in_Cancer": {
+      "career_lessons": "감정과 일의 균형",
+      "career_challenges": "가정과 직장 갈등, 정서적 불안",
+      "career_mastery": "안전한 기반 구축, 양육적 리더십",
+      "late_blooming": "가정적 안정 후 커리어 성장"
+    },
+    "Saturn_in_Leo": {
+      "career_lessons": "인정과 창의적 표현에 대한 두려움 극복",
+      "career_challenges": "자신감 부족, 무대 공포",
+      "career_mastery": "진정한 권위, 창의적 리더십",
+      "late_blooming": "중년 이후 리더십과 창의성 발휘"
+    },
+    "Saturn_in_Virgo": {
+      "career_lessons": "완벽주의와 비판 극복",
+      "career_challenges": "자기 비판, 세부사항 집착",
+      "career_mastery": "효율적 시스템, 전문적 기술",
+      "late_blooming": "중년 이후 전문가로서 인정"
+    },
+    "Saturn_in_Libra": {
+      "career_lessons": "파트너십과 균형 배우기",
+      "career_challenges": "혼자 결정하기, 갈등 해결",
+      "career_mastery": "공정한 중재, 협력적 리더십",
+      "late_blooming": "파트너십을 통한 성공"
+    },
+    "Saturn_in_Scorpio": {
+      "career_lessons": "권력과 통제 다루기",
+      "career_challenges": "신뢰, 취약성, 공유",
+      "career_mastery": "위기 관리, 변형 촉진",
+      "late_blooming": "중년 이후 깊이 있는 권위"
+    },
+    "Saturn_in_Sagittarius": {
+      "career_lessons": "믿음과 비전 구축",
+      "career_challenges": "희망 상실, 의미 찾기",
+      "career_mastery": "지혜로운 교육자, 철학적 권위",
+      "late_blooming": "중년 이후 정신적 멘토"
+    },
+    "Saturn_in_Capricorn": {
+      "career_lessons": "책임과 권위 받아들이기",
+      "career_challenges": "과도한 부담, 목표 집착",
+      "career_mastery": "최고 수준의 성취, 지속적 유산",
+      "late_blooming": "정상에 오르는 CEO, 정치인"
+    },
+    "Saturn_in_Aquarius": {
+      "career_lessons": "그룹 역학과 혁신 다루기",
+      "career_challenges": "소외감, 반항과 순응 사이",
+      "career_mastery": "사회 변화, 혁신적 시스템",
+      "late_blooming": "중년 이후 사회 영향력"
+    },
+    "Saturn_in_Pisces": {
+      "career_lessons": "경계와 현실화 배우기",
+      "career_challenges": "도피, 경계 부족, 희생",
+      "career_mastery": "영적 권위, 치유 능력",
+      "late_blooming": "중년 이후 영적/예술적 성숙"
+    }
+  },
+
+  "MC_career": {
+    "MC_in_Aries": {
+      "public_image": "용감한 선구자, 개척자",
+      "career_calling": "리더십, 독립적 사업, 스포츠",
+      "reputation": "대담하고 행동력 있는 사람",
+      "legacy": "새로운 길을 연 사람"
+    },
+    "MC_in_Taurus": {
+      "public_image": "안정적이고 신뢰할 수 있는",
+      "career_calling": "금융, 예술, 건축, 자연",
+      "reputation": "가치를 창조하는 사람",
+      "legacy": "지속적인 가치와 아름다움"
+    },
+    "MC_in_Gemini": {
+      "public_image": "다재다능한 소통자",
+      "career_calling": "미디어, 교육, 저술, 마케팅",
+      "reputation": "아이디어를 연결하는 사람",
+      "legacy": "정보와 소통의 혁신"
+    },
+    "MC_in_Cancer": {
+      "public_image": "보살피는 양육자",
+      "career_calling": "요식업, 부동산, 보육, 역사",
+      "reputation": "사람들을 돌보는 사람",
+      "legacy": "가족적 문화와 전통"
+    },
+    "MC_in_Leo": {
+      "public_image": "빛나는 창조자",
+      "career_calling": "엔터테인먼트, 예술, 리더십, 교육",
+      "reputation": "영감을 주는 사람",
+      "legacy": "창의적 표현과 드라마"
+    },
+    "MC_in_Virgo": {
+      "public_image": "완벽한 전문가",
+      "career_calling": "의료, 분석, 편집, 품질관리",
+      "reputation": "세심하고 유능한 사람",
+      "legacy": "효율성과 개선"
+    },
+    "MC_in_Libra": {
+      "public_image": "우아한 중재자",
+      "career_calling": "법률, 외교, 디자인, 상담",
+      "reputation": "공정하고 조화로운 사람",
+      "legacy": "아름다움과 균형"
+    },
+    "MC_in_Scorpio": {
+      "public_image": "강렬한 변형자",
+      "career_calling": "심리학, 연구, 금융, 수사",
+      "reputation": "깊이 있는 통찰자",
+      "legacy": "변형과 재생"
+    },
+    "MC_in_Sagittarius": {
+      "public_image": "비전 있는 탐험가",
+      "career_calling": "교육, 여행, 출판, 철학",
+      "reputation": "지혜와 모험의 아이콘",
+      "legacy": "지식과 문화 확장"
+    },
+    "MC_in_Capricorn": {
+      "public_image": "권위 있는 성취자",
+      "career_calling": "경영, 정치, 건설, 전통 산업",
+      "reputation": "정상에 오른 사람",
+      "legacy": "지속적인 구조와 업적"
+    },
+    "MC_in_Aquarius": {
+      "public_image": "혁신적인 변화 촉진자",
+      "career_calling": "기술, 과학, 사회운동, 미래학",
+      "reputation": "시대를 앞서가는 사람",
+      "legacy": "사회 변화와 혁신"
+    },
+    "MC_in_Pisces": {
+      "public_image": "영감적인 몽상가",
+      "career_calling": "예술, 음악, 영성, 치유",
+      "reputation": "영혼을 치유하는 사람",
+      "legacy": "영적 영감과 예술"
+    }
+  },
+
+  "career_houses": {
+    "2nd_house": {
+      "Sun_in_2nd": {
+        "earning_style": "창의성과 리더십으로 수입 창출",
+        "money_identity": "자기 가치가 재정과 연결됨",
+        "financial_focus": "인정받는 분야에서 수입"
+      },
+      "Moon_in_2nd": {
+        "earning_style": "감정적 안전과 돌봄으로 수입",
+        "money_identity": "재정이 감정 상태에 영향",
+        "financial_focus": "양육, 가정 관련 분야"
+      },
+      "Mercury_in_2nd": {
+        "earning_style": "소통과 아이디어로 수입",
+        "money_identity": "지적 능력이 수입원",
+        "financial_focus": "글쓰기, 판매, 교육"
+      },
+      "Venus_in_2nd": {
+        "earning_style": "아름다움과 조화로 수입",
+        "money_identity": "돈에 대한 자연스러운 감각",
+        "financial_focus": "예술, 디자인, 럭셔리"
+      },
+      "Mars_in_2nd": {
+        "earning_style": "적극적인 추구로 수입",
+        "money_identity": "경쟁적으로 돈을 벌고 소비",
+        "financial_focus": "스포츠, 기계, 외과"
+      },
+      "Jupiter_in_2nd": {
+        "earning_style": "확장과 낙관으로 풍요",
+        "money_identity": "재정적 행운과 관대함",
+        "financial_focus": "교육, 출판, 해외"
+      },
+      "Saturn_in_2nd": {
+        "earning_style": "느리지만 꾸준한 축적",
+        "money_identity": "재정에 대한 두려움과 책임감",
+        "financial_focus": "장기 투자, 부동산"
+      }
+    },
+    "6th_house": {
+      "Sun_in_6th": {
+        "work_style": "봉사에서 빛나는 정체성",
+        "daily_routine": "일상 루틴이 자아의 핵심",
+        "job_focus": "건강, 서비스, 분석 분야"
+      },
+      "Moon_in_6th": {
+        "work_style": "감정이 일에 영향",
+        "daily_routine": "기분에 따른 생산성 변동",
+        "job_focus": "돌봄, 요식업, 가정 서비스"
+      },
+      "Mercury_in_6th": {
+        "work_style": "분석적이고 소통 중심",
+        "daily_routine": "효율적인 시스템 구축",
+        "job_focus": "문서, 데이터, 소통"
+      },
+      "Venus_in_6th": {
+        "work_style": "조화롭고 아름다운 작업 환경",
+        "daily_routine": "즐거운 일상 루틴",
+        "job_focus": "미용, 패션, 디자인"
+      },
+      "Mars_in_6th": {
+        "work_style": "에너지 넘치는 일꾼",
+        "daily_routine": "적극적이고 경쟁적인 업무",
+        "job_focus": "스포츠, 군사, 외과, 제조"
+      },
+      "Saturn_in_6th": {
+        "work_style": "책임감 있고 신뢰할 수 있는",
+        "daily_routine": "구조화된 규율 있는 일상",
+        "job_focus": "관리, 감독, 품질 관리"
+      }
+    },
+    "10th_house": {
+      "Sun_in_10th": {
+        "career_destiny": "공적 인정과 리더십이 운명",
+        "authority_style": "자연스러운 권위자",
+        "public_success": "빛나는 공적 이미지"
+      },
+      "Moon_in_10th": {
+        "career_destiny": "대중의 감정적 연결이 커리어",
+        "authority_style": "양육적 리더",
+        "public_success": "대중적 친밀감"
+      },
+      "Mercury_in_10th": {
+        "career_destiny": "소통과 아이디어가 커리어",
+        "authority_style": "지적인 권위자",
+        "public_success": "생각의 리더"
+      },
+      "Venus_in_10th": {
+        "career_destiny": "아름다움과 조화가 커리어",
+        "authority_style": "매력적인 리더",
+        "public_success": "사랑받는 공인"
+      },
+      "Mars_in_10th": {
+        "career_destiny": "행동과 주도력이 커리어",
+        "authority_style": "적극적인 리더",
+        "public_success": "경쟁에서 승리"
+      },
+      "Jupiter_in_10th": {
+        "career_destiny": "확장과 성장이 커리어",
+        "authority_style": "비전 있는 리더",
+        "public_success": "큰 규모의 성공"
+      },
+      "Saturn_in_10th": {
+        "career_destiny": "책임과 구조가 커리어",
+        "authority_style": "전통적 권위자",
+        "public_success": "느리지만 확실한 정상"
+      },
+      "Uranus_in_10th": {
+        "career_destiny": "혁신과 변화가 커리어",
+        "authority_style": "비전통적 리더",
+        "public_success": "예측 불가한 경력"
+      },
+      "Neptune_in_10th": {
+        "career_destiny": "영감과 이상이 커리어",
+        "authority_style": "영적 리더",
+        "public_success": "신비로운 이미지"
+      },
+      "Pluto_in_10th": {
+        "career_destiny": "권력과 변형이 커리어",
+        "authority_style": "강력한 권위자",
+        "public_success": "완전한 변형을 통한 성공"
+      }
+    }
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "advanced/patterns",
+  "$count": 30,
+  "$description": "출생 차트의 행성 분포 패턴 및 특수 배치",
+  "$note": "Marc Edmund Jones의 7가지 패턴 + 특수 배치",
+  "chart_patterns": {
+    "Bundle": {
+      "name_ko": "묶음형",
+      "definition": "모든 행성이 120° 이내에 집중",
+      "personality": {
+        "core": "고도로 집중된 삶, 전문화된 관심사",
+        "strengths": "전문성, 집중력, 깊이",
+        "challenges": "시야 좁음, 경험 제한, 융통성 부족",
+        "life_approach": "한 분야에서 탁월해지려는 경향"
+      },
+      "career": "전문가, 연구자, 특정 분야의 달인",
+      "relationships": "깊지만 제한된 관계, 같은 관심사 공유 필요",
+      "growth_path": "시야 넓히기, 다양한 경험 추구"
+    },
+    "Bowl": {
+      "name_ko": "그릇형",
+      "definition": "모든 행성이 180° 이내에 위치",
+      "personality": {
+        "core": "자급자족적, 내적 자원 활용",
+        "strengths": "자기 완결성, 집중된 에너지, 목적의식",
+        "challenges": "결핍감, 반대편 하우스 동경, 불균형",
+        "life_approach": "가진 것으로 최대한 활용"
+      },
+      "leading_planet": {
+        "role": "그릇의 앞쪽 행성이 삶의 방향 제시",
+        "interpretation": "이 행성이 인생의 추진력"
+      },
+      "empty_hemisphere": {
+        "meaning": "비어있는 반구에 대한 갈망과 탐구",
+        "growth": "비어있는 영역 통합하기"
+      }
+    },
+    "Bucket": {
+      "name_ko": "양동이형",
+      "definition": "Bowl 패턴 + 반대편에 1-2개 행성 (핸들)",
+      "personality": {
+        "core": "특정 방향으로 에너지 집중, 목표 지향적",
+        "strengths": "집중력, 방향성, 사명 의식",
+        "challenges": "핸들 행성에 과도한 의존, 집착",
+        "life_approach": "핸들 행성이 가리키는 방향으로 삶 전개"
+      },
+      "singleton": {
+        "role": "핸들 행성 (싱글턴)",
+        "interpretation": "삶의 주요 초점, 모든 에너지가 향하는 곳",
+        "importance": "이 행성의 건강한 표현이 매우 중요"
+      },
+      "gift": "명확한 인생 방향과 목적"
+    },
+    "Locomotive": {
+      "name_ko": "기관차형",
+      "definition": "연속으로 240° 내에 행성 분포, 120° 빈 공간",
+      "personality": {
+        "core": "강력한 추진력, 성취 지향적",
+        "strengths": "에너지, 야망, 목표 달성 능력",
+        "challenges": "쉬지 못함, 과로, 비어있는 영역 무시",
+        "life_approach": "계속 움직이며 성취하기"
+      },
+      "leading_planet": {
+        "role": "빈 공간 다음에 오는 첫 행성",
+        "interpretation": "기관차의 엔진, 삶의 주요 동력",
+        "expression": "이 행성이 전체 삶을 끌고 감"
+      },
+      "trailing_planet": {
+        "role": "빈 공간 직전의 마지막 행성",
+        "interpretation": "과거의 업적, 완료된 영역"
+      }
+    },
+    "Seesaw": {
+      "name_ko": "시소형",
+      "definition": "두 그룹으로 나뉘어 서로 대립",
+      "personality": {
+        "core": "대립과 균형, 양극단 사이 진동",
+        "strengths": "객관성, 양쪽 관점 이해, 중재 능력",
+        "challenges": "내면 갈등, 결정 어려움, 분열감",
+        "life_approach": "양극단 사이에서 균형 찾기"
+      },
+      "oppositions": {
+        "role": "두 그룹 간의 긴장",
+        "interpretation": "삶의 주요 테마와 갈등 영역",
+        "growth": "대립을 통합하여 균형 달성"
+      },
+      "gift": "다양한 관점 이해, 중재자 역할"
+    },
+    "Splash": {
+      "name_ko": "물보라형",
+      "definition": "행성이 차트 전체에 골고루 분포",
+      "personality": {
+        "core": "다재다능, 다양한 관심사",
+        "strengths": "적응력, 다양성, 넓은 시야",
+        "challenges": "집중력 부족, 산만함, 전문성 부족",
+        "life_approach": "모든 것에 관심, 다양한 경험"
+      },
+      "expression": "르네상스형 인물, 만물박사",
+      "gift": "넓은 경험과 다양한 연결",
+      "growth_path": "분산된 에너지 집중하기"
+    },
+    "Splay": {
+      "name_ko": "펼침형",
+      "definition": "3개 이상의 그룹으로 불규칙하게 분포",
+      "personality": {
+        "core": "개성적, 독립적, 비전통적",
+        "strengths": "독창성, 자기만의 길, 강한 의지",
+        "challenges": "타협 어려움, 고집, 반항",
+        "life_approach": "자기만의 방식으로 살기"
+      },
+      "stelliums": {
+        "role": "그룹 내 강조된 에너지",
+        "interpretation": "삶의 주요 테마들"
+      },
+      "gift": "독특한 개성, 비전통적 성공"
+    }
+  },
+  "special_configurations": {
+    "Grand_Trine": {
+      "name_ko": "대삼각형",
+      "definition": "세 행성이 각각 120° 간격으로 삼각형 형성",
+      "element_meaning": {
+        "Fire": "창조적 영감, 자신감, 행동력의 자연스러운 흐름",
+        "Earth": "물질적 능력, 실용성, 안정의 자연스러운 흐름",
+        "Air": "지적 능력, 소통, 아이디어의 자연스러운 흐름",
+        "Water": "감정적 지혜, 직관, 공감의 자연스러운 흐름"
+      },
+      "gifts": "타고난 재능, 자연스러운 능력",
+      "challenges": "노력 없이 얻음, 재능 활용 안 함",
+      "advice": "재능을 의식적으로 활용하고 발전시키기"
+    },
+    "Grand_Cross": {
+      "name_ko": "대십자",
+      "definition": "네 행성이 두 개의 대립을 형성하며 사각형",
+      "modality_meaning": {
+        "Cardinal": "시작과 주도권을 위한 지속적 긴장",
+        "Fixed": "변화와 안정 사이 지속적 긴장",
+        "Mutable": "방향과 적응 사이 지속적 긴장"
+      },
+      "challenges": "끊임없는 긴장, 에너지 분산, 압도감",
+      "gifts": "위기 대처 능력, 다양한 도전 극복",
+      "advice": "긴장을 동력으로 전환, 균형점 찾기"
+    },
+    "T_Square": {
+      "name_ko": "티스퀘어",
+      "definition": "두 행성 대립 + 한 행성이 둘 다와 스퀘어",
+      "focal_planet": {
+        "role": "정점(apex) 행성",
+        "interpretation": "모든 에너지가 집중되는 곳",
+        "expression": "삶의 주요 도전과 성장 영역"
+      },
+      "empty_leg": {
+        "role": "비어있는 네 번째 위치",
+        "interpretation": "해결책의 방향, 통합점",
+        "advice": "이 영역을 개발하면 긴장 해소"
+      },
+      "challenges": "지속적 긴장, 좌절, 장애물",
+      "gifts": "강한 동기, 성취 욕구, 회복력"
+    },
+    "Yod": {
+      "name_ko": "요드 (운명의 손가락)",
+      "definition": "두 행성 섹스타일 + 한 행성이 둘 다와 퀸컨스",
+      "apex_planet": {
+        "role": "정점 행성",
+        "interpretation": "특별한 사명, 운명적 임무",
+        "expression": "삶의 주요 목적, 때로 불편한 소명"
+      },
+      "meaning": "특별한 목적이나 사명이 있는 삶",
+      "challenges": "긴장, 방향 조정 필요, 불편한 성장",
+      "gifts": "독특한 재능, 특별한 목적",
+      "advice": "정점 행성의 에너지를 수용하고 표현하기"
+    },
+    "Stellium": {
+      "name_ko": "스텔리움",
+      "definition": "한 별자리나 하우스에 3-4개 이상 행성 집중",
+      "meaning": "삶의 특정 영역에 강렬한 집중",
+      "sign_stellium": "그 별자리 에너지가 성격을 지배",
+      "house_stellium": "그 하우스 영역이 삶을 지배",
+      "gifts": "특정 영역에서 탁월한 능력",
+      "challenges": "불균형, 다른 영역 소홀",
+      "advice": "집중된 에너지를 균형 있게 표현"
+    },
+    "Kite": {
+      "name_ko": "연형",
+      "definition": "대삼각형 + 한 행성이 대립과 두 개의 섹스타일",
+      "apex_planet": {
+        "role": "연의 꼬리",
+        "interpretation": "대삼각형 에너지를 외부로 표현하는 통로"
+      },
+      "meaning": "타고난 재능을 실제로 활용하는 능력",
+      "gifts": "재능의 실질적 표현, 성취",
+      "advantage": "대삼각형의 게으름 경향을 극복"
+    },
+    "Mystic_Rectangle": {
+      "name_ko": "신비의 직사각형",
+      "definition": "두 개의 대립 + 두 개의 트라인 + 두 개의 섹스타일",
+      "meaning": "창조적 긴장과 조화로운 해결의 결합",
+      "gifts": "실용적 신비주의, 균형 잡힌 창조성",
+      "expression": "대립을 건설적으로 통합하는 능력"
+    }
+  },
+  "singleton": {
+    "definition": "차트에서 유일하게 특정 특성을 가진 행성",
+    "types": {
+      "element_singleton": "유일한 불/흙/공기/물 원소",
+      "modality_singleton": "유일한 카디널/픽스드/뮤터블 모달리티",
+      "hemisphere_singleton": "반구의 유일한 행성"
+    },
+    "interpretation": "그 행성이 지나치게 강조되거나 억압됨",
+    "importance": "매우 중요한 심리적 포인트",
+    "advice": "이 행성의 건강한 통합이 핵심",
+    "description": "singleton: 이 행성의 건강한 통합이 핵심"
+  }
+}

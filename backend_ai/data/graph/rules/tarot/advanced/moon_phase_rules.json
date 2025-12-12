@@ -1,0 +1,205 @@
+{
+  "_meta": {
+    "title": "Moon Phase Rules for Tarot",
+    "description": "달의 위상에 따른 타로 리딩 가이드 - 최적의 리딩 시간과 에너지"
+  },
+  "moon_phases": {
+    "new_moon": {
+      "korean": "초승달 (새로운 달)",
+      "duration_days": "1-3일",
+      "energy": "새로운 시작, 설정, 의도",
+      "best_questions": [
+        "새로 시작하면 좋은 것은?",
+        "이번 달 나의 의도는?",
+        "무엇을 심어야 할까?",
+        "새로운 기회는?"
+      ],
+      "favorable_cards": ["The Fool", "Ace of Wands", "Ace of Cups", "Ace of Swords", "Ace of Pentacles", "The Magician"],
+      "challenging_cards": ["Ten of Swords", "The Tower", "Three of Swords"],
+      "reading_tip": "새로운 시작과 의도 설정에 관한 질문이 좋아요",
+      "ritual_suggestion": "의도를 적고 달에게 바치세요"
+    },
+    "waxing_crescent": {
+      "korean": "초승달 후 (차오르는 초승달)",
+      "duration_days": "4-7일",
+      "energy": "성장, 희망, 모멘텀 구축",
+      "best_questions": [
+        "목표를 향해 어떻게 나아갈까?",
+        "어떤 행동을 취해야 할까?",
+        "성장을 위해 필요한 것은?"
+      ],
+      "favorable_cards": ["Three of Wands", "Page of Wands", "The Star", "Eight of Pentacles"],
+      "reading_tip": "목표를 향한 구체적 행동에 대해 물어보세요"
+    },
+    "first_quarter": {
+      "korean": "상현달 (반달)",
+      "duration_days": "8-10일",
+      "energy": "도전, 결정, 행동",
+      "best_questions": [
+        "어떤 장애물을 극복해야 할까?",
+        "결정을 내려야 할 것은?",
+        "어떤 도전이 기다리고 있을까?"
+      ],
+      "favorable_cards": ["The Chariot", "Seven of Wands", "Strength", "Two of Wands"],
+      "challenging_cards": ["Four of Swords", "The Hanged Man"],
+      "reading_tip": "도전을 극복하는 방법에 대해 물어보세요"
+    },
+    "waxing_gibbous": {
+      "korean": "상현달 후 (차오르는 볼록달)",
+      "duration_days": "11-13일",
+      "energy": "조정, 인내, 세부 조율",
+      "best_questions": [
+        "무엇을 조정해야 할까?",
+        "놓치고 있는 것은?",
+        "어떻게 완성도를 높일까?"
+      ],
+      "favorable_cards": ["Temperance", "The Hermit", "Seven of Pentacles"],
+      "reading_tip": "계획을 점검하고 조정이 필요한 부분을 확인하세요"
+    },
+    "full_moon": {
+      "korean": "보름달",
+      "duration_days": "14-16일",
+      "energy": "절정, 완성, 계시, 감정 고조",
+      "best_questions": [
+        "무엇이 밝혀져야 할까?",
+        "완성된 것은 무엇인가?",
+        "감사해야 할 것은?",
+        "숨겨진 진실은?"
+      ],
+      "favorable_cards": ["The Moon", "The Sun", "The High Priestess", "Ten of Cups", "The World"],
+      "reading_tip": "감정이 고조되는 시기. 직관적 리딩에 최적입니다",
+      "ritual_suggestion": "크리스탈을 보름달 빛에 정화하세요",
+      "warning": "감정이 격해질 수 있으니 큰 결정은 하루 기다리세요"
+    },
+    "waning_gibbous": {
+      "korean": "보름달 후 (기우는 볼록달)",
+      "duration_days": "17-19일",
+      "energy": "감사, 공유, 내면화",
+      "best_questions": [
+        "무엇을 나눠야 할까?",
+        "배운 것은 무엇인가?",
+        "어떻게 다른 사람을 도울 수 있을까?"
+      ],
+      "favorable_cards": ["Six of Pentacles", "The Star", "Six of Cups"],
+      "reading_tip": "배움을 공유하고 감사하는 시간입니다"
+    },
+    "last_quarter": {
+      "korean": "하현달 (반달)",
+      "duration_days": "20-22일",
+      "energy": "놓아줌, 용서, 정리",
+      "best_questions": [
+        "무엇을 놓아줘야 할까?",
+        "누구를 용서해야 할까?",
+        "정리해야 할 것은?"
+      ],
+      "favorable_cards": ["Death", "Eight of Cups", "Six of Swords", "The Hanged Man"],
+      "reading_tip": "더 이상 필요 없는 것을 정리하세요"
+    },
+    "waning_crescent": {
+      "korean": "하현달 후 (기우는 초승달)",
+      "duration_days": "23-28일",
+      "energy": "휴식, 회복, 내면 성찰",
+      "best_questions": [
+        "어떻게 쉴 수 있을까?",
+        "내면에서 듣는 메시지는?",
+        "다음 사이클을 위해 준비할 것은?"
+      ],
+      "favorable_cards": ["Four of Swords", "The Hermit", "The High Priestess"],
+      "reading_tip": "에너지를 충전하고 내면의 소리에 귀 기울이세요",
+      "warning": "큰 시작은 새로운 달을 기다리세요"
+    }
+  },
+  "moon_in_zodiac": {
+    "description": "달이 머무는 별자리에 따른 리딩 에너지",
+    "aries": {
+      "korean": "양자리 달",
+      "energy": "행동, 시작, 열정",
+      "best_for": "새로운 프로젝트, 용기가 필요한 질문"
+    },
+    "taurus": {
+      "korean": "황소자리 달",
+      "energy": "안정, 물질, 감각",
+      "best_for": "재정, 관계 안정, 자기 가치"
+    },
+    "gemini": {
+      "korean": "쌍둥이자리 달",
+      "energy": "소통, 학습, 다양성",
+      "best_for": "계약, 대화, 선택"
+    },
+    "cancer": {
+      "korean": "게자리 달",
+      "energy": "감정, 가정, 양육",
+      "best_for": "가족, 감정 문제, 내면 작업"
+    },
+    "leo": {
+      "korean": "사자자리 달",
+      "energy": "창의력, 자기 표현, 리더십",
+      "best_for": "창작, 연애, 자신감"
+    },
+    "virgo": {
+      "korean": "처녀자리 달",
+      "energy": "분석, 건강, 봉사",
+      "best_for": "건강, 일상 개선, 세부 사항"
+    },
+    "libra": {
+      "korean": "천칭자리 달",
+      "energy": "균형, 관계, 조화",
+      "best_for": "파트너십, 계약, 미적 선택"
+    },
+    "scorpio": {
+      "korean": "전갈자리 달",
+      "energy": "변환, 심리, 깊이",
+      "best_for": "그림자 작업, 치유, 진실 찾기"
+    },
+    "sagittarius": {
+      "korean": "궁수자리 달",
+      "energy": "확장, 여행, 철학",
+      "best_for": "여행, 교육, 삶의 의미"
+    },
+    "capricorn": {
+      "korean": "염소자리 달",
+      "energy": "야망, 구조, 책임",
+      "best_for": "커리어, 장기 계획, 목표 설정"
+    },
+    "aquarius": {
+      "korean": "물병자리 달",
+      "energy": "혁신, 커뮤니티, 독창성",
+      "best_for": "그룹 역학, 혁신적 아이디어, 우정"
+    },
+    "pisces": {
+      "korean": "물고기자리 달",
+      "energy": "직관, 영성, 꿈",
+      "best_for": "영적 질문, 창의성, 치유"
+    }
+  },
+  "eclipse_readings": {
+    "solar_eclipse": {
+      "korean": "일식",
+      "energy": "강력한 새로운 시작, 운명적 변화",
+      "meaning": "6개월간 영향을 미치는 중요한 변화의 문",
+      "reading_tip": "큰 변화에 대해 물어보세요. 결과가 강렬할 수 있습니다",
+      "warning": "감정이 강하게 올라올 수 있으니 주의하세요"
+    },
+    "lunar_eclipse": {
+      "korean": "월식",
+      "energy": "강력한 놓아줌, 종결, 숨겨진 것의 계시",
+      "meaning": "과거의 종결과 새로운 방향의 시작",
+      "reading_tip": "무엇을 놓아줘야 하는지, 숨겨진 진실에 대해 물어보세요",
+      "warning": "예상치 못한 감정이 올라올 수 있습니다"
+    }
+  },
+  "void_of_course_moon": {
+    "korean": "보이드 오브 코스 (방향 없는 달)",
+    "description": "달이 다음 별자리로 이동하기 전 마지막 측면 후의 시간",
+    "duration": "몇 분에서 몇 시간까지 다양",
+    "advice": "새로운 시작 피하기, 명상과 내면 작업에 좋음",
+    "reading_tip": "내면의 지혜를 구하는 질문에 좋지만, 행동 조언은 주의"
+  },
+  "supermoon": {
+    "korean": "슈퍼문",
+    "description": "달이 지구에 가장 가까울 때의 보름달",
+    "energy": "증폭된 감정과 직관, 강력한 에너지",
+    "reading_tip": "직관적 리딩에 최적. 감정이 매우 강해질 수 있음",
+    "ritual_suggestion": "의도 설정과 매니페스테이션에 강력한 시간"
+  }
+}

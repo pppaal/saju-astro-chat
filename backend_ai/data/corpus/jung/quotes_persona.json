@@ -1,0 +1,62 @@
+{
+  "concept": "persona",
+  "concept_kr": "페르소나",
+  "description": "The Persona is the social mask we wear",
+  "quotes": [
+    {
+      "id": "persona_001",
+      "en": "The persona is a complicated system of relations between individual consciousness and society, a kind of mask.",
+      "kr": "페르소나는 개인 의식과 사회 사이의 복잡한 관계 체계이며, 일종의 가면이다.",
+      "source": "CW 7",
+      "year": 1928,
+      "tags": [
+        "persona",
+        "mask"
+      ]
+    },
+    {
+      "id": "persona_002",
+      "en": "The persona is that which in reality one is not, but which oneself as well as others think one is.",
+      "kr": "페르소나는 실제로 자신이 아닌 것이지만, 자신과 타인 모두가 자신이라고 생각하는 것이다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "persona",
+        "identity"
+      ]
+    },
+    {
+      "id": "persona_003",
+      "en": "A man cannot get rid of himself in favour of an artificial personality without punishment.",
+      "kr": "인간은 처벌 없이 인위적인 인격을 위해 자기 자신을 버릴 수 없다.",
+      "source": "CW 7",
+      "year": 1928,
+      "tags": [
+        "persona",
+        "authenticity"
+      ]
+    },
+    {
+      "id": "persona_004",
+      "en": "The persona is only a mask for the collective psyche, a mask that feigns individuality.",
+      "kr": "페르소나는 집단 심리를 위한 가면일 뿐이며, 개성을 가장하는 가면이다.",
+      "source": "CW 7",
+      "year": 1928,
+      "tags": [
+        "persona",
+        "collective"
+      ]
+    },
+    {
+      "id": "persona_005",
+      "en": "Every calling or profession has its own characteristic persona.",
+      "kr": "모든 소명이나 직업에는 고유한 페르소나가 있다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "persona",
+        "profession"
+      ]
+    }
+  ]
+}

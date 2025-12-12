@@ -1,0 +1,381 @@
+{
+  "_meta": {
+    "title": "Dream Astro Rules",
+    "description": "달의 위상과 행성 트랜짓이 꿈 해석에 미치는 영향",
+    "version": "1.0.0",
+    "category_count": 3
+  },
+
+  "moon_phase_dream_effects": {
+    "New Moon": {
+      "korean": "삭(朔)/새달",
+      "emoji": "🌑",
+      "dream_quality": "symbolic_seeds",
+      "interpretation_boost": {
+        "themes": ["새로운 시작", "잠재력", "무의식의 씨앗"],
+        "weight_modifier": 1.2
+      },
+      "dream_meaning": {
+        "ko": "새달의 꿈은 아직 드러나지 않은 가능성을 담고 있습니다. 꿈에서 본 상징들은 곧 싹트기 시작할 새로운 시작의 씨앗입니다.",
+        "en": "New Moon dreams contain unrevealed potential. The symbols you saw are seeds of new beginnings about to sprout."
+      },
+      "favorable_symbols": ["씨앗", "새싹", "알", "빛", "문"],
+      "intensified_symbols": ["어둠", "미지의 존재", "깊은 곳"],
+      "advice": {
+        "ko": "이 시기의 꿈은 새로운 의도를 설정하라는 메시지입니다. 꿈에서 받은 메시지를 적어두세요.",
+        "en": "Dreams during this phase are messages to set new intentions. Write down the messages you received."
+      }
+    },
+    "Waxing Crescent": {
+      "korean": "초승달",
+      "emoji": "🌒",
+      "dream_quality": "emerging_hopes",
+      "interpretation_boost": {
+        "themes": ["희망", "성장", "행동 계획"],
+        "weight_modifier": 1.1
+      },
+      "dream_meaning": {
+        "ko": "초승달의 꿈은 희망과 성장의 메시지입니다. 꿈에서 움직이는 것들, 자라나는 것들에 주목하세요.",
+        "en": "Waxing Crescent dreams carry messages of hope and growth. Pay attention to things moving or growing."
+      },
+      "favorable_symbols": ["계단 오르기", "성장하는 식물", "새벽"],
+      "advice": {
+        "ko": "꿈에서 본 방향으로 작은 행동을 시작해보세요.",
+        "en": "Start taking small actions in the direction shown in your dream."
+      }
+    },
+    "First Quarter": {
+      "korean": "상현달",
+      "emoji": "🌓",
+      "dream_quality": "action_dreams",
+      "interpretation_boost": {
+        "themes": ["도전", "결정", "장애물 극복"],
+        "weight_modifier": 1.15
+      },
+      "dream_meaning": {
+        "ko": "상현달의 꿈은 도전과 결정의 메시지입니다. 꿈에서 맞닥뜨린 장애물은 현실에서 극복해야 할 것을 상징합니다.",
+        "en": "First Quarter dreams are about challenges and decisions. Obstacles in dreams symbolize what you need to overcome in reality."
+      },
+      "favorable_symbols": ["싸움에서 이김", "산을 오름", "문을 열음"],
+      "warning_symbols": ["갈림길", "적대적 존재", "벽"],
+      "advice": {
+        "ko": "결단이 필요한 시기입니다. 꿈이 보여준 선택을 신뢰하세요.",
+        "en": "It's time for decision. Trust the choice your dream showed you."
+      }
+    },
+    "Waxing Gibbous": {
+      "korean": "상현망간",
+      "emoji": "🌔",
+      "dream_quality": "refinement_visions",
+      "interpretation_boost": {
+        "themes": ["조정", "완성", "세부 사항"],
+        "weight_modifier": 1.1
+      },
+      "dream_meaning": {
+        "ko": "상현망간의 꿈은 조정과 다듬기의 메시지입니다. 거의 완성된 것을 마무리하라는 신호입니다.",
+        "en": "Waxing Gibbous dreams are about refinement. They signal to finish what's almost complete."
+      },
+      "favorable_symbols": ["수리", "정리", "완성 직전의 작업"],
+      "advice": {
+        "ko": "꿈에서 본 세부 사항에 주목하세요. 놓친 것이 있을 수 있습니다.",
+        "en": "Pay attention to details in your dream. You may have missed something."
+      }
+    },
+    "Full Moon": {
+      "korean": "보름달",
+      "emoji": "🌕",
+      "dream_quality": "intense_revelations",
+      "interpretation_boost": {
+        "themes": ["계시", "감정 해방", "진실 드러남"],
+        "weight_modifier": 1.4
+      },
+      "dream_meaning": {
+        "ko": "보름달의 꿈은 가장 강력하고 예언적입니다. 숨겨진 진실이 드러나고, 감정이 정점에 달합니다. 꿈의 메시지를 문자 그대로 받아들이세요.",
+        "en": "Full Moon dreams are the most powerful and prophetic. Hidden truths are revealed and emotions peak. Take dream messages literally."
+      },
+      "favorable_symbols": ["빛", "원", "거울", "물", "축제"],
+      "intensified_symbols": ["모든 심볼의 강도 증가"],
+      "special_note": {
+        "ko": "보름달 밤의 꿈은 예지몽일 가능성이 높습니다. 디테일을 반드시 기록하세요.",
+        "en": "Full Moon dreams are likely to be prophetic. Make sure to record every detail."
+      },
+      "advice": {
+        "ko": "이 꿈은 중요한 계시를 담고 있습니다. 감정적으로 어려울 수 있지만, 진실을 직면할 용기를 가지세요.",
+        "en": "This dream contains important revelations. It may be emotionally difficult, but have courage to face the truth."
+      }
+    },
+    "Waning Gibbous": {
+      "korean": "하현망간",
+      "emoji": "🌖",
+      "dream_quality": "gratitude_reflection",
+      "interpretation_boost": {
+        "themes": ["감사", "공유", "가르침"],
+        "weight_modifier": 1.1
+      },
+      "dream_meaning": {
+        "ko": "하현망간의 꿈은 감사와 나눔의 메시지입니다. 꿈에서 받은 것을 다른 사람과 나눌 때입니다.",
+        "en": "Waning Gibbous dreams carry messages of gratitude and sharing. Time to share what you received in dreams with others."
+      },
+      "favorable_symbols": ["선물을 주는 것", "가르치는 것", "빛을 나누는 것"],
+      "advice": {
+        "ko": "꿈에서 배운 것을 누군가에게 전하세요.",
+        "en": "Pass on what you learned in your dream to someone."
+      }
+    },
+    "Last Quarter": {
+      "korean": "하현달",
+      "emoji": "🌗",
+      "dream_quality": "release_dreams",
+      "interpretation_boost": {
+        "themes": ["놓아줌", "용서", "끝"],
+        "weight_modifier": 1.15
+      },
+      "dream_meaning": {
+        "ko": "하현달의 꿈은 놓아줌의 메시지입니다. 꿈에서 사라지거나 떠나는 것들은 현실에서도 놓아주어야 할 것들입니다.",
+        "en": "Last Quarter dreams are about letting go. Things disappearing or leaving in dreams should be released in reality too."
+      },
+      "favorable_symbols": ["청소", "이별", "짐을 내려놓음"],
+      "warning_symbols": ["붙잡으려는 것", "놓지 못하는 것"],
+      "advice": {
+        "ko": "무엇을 놓아주어야 하는지 꿈이 말해주고 있습니다. 두려워하지 마세요.",
+        "en": "The dream is telling you what to let go. Don't be afraid."
+      }
+    },
+    "Waning Crescent": {
+      "korean": "그믐달",
+      "emoji": "🌘",
+      "dream_quality": "deep_rest_visions",
+      "interpretation_boost": {
+        "themes": ["휴식", "회복", "내면 성찰"],
+        "weight_modifier": 1.2
+      },
+      "dream_meaning": {
+        "ko": "그믐달의 꿈은 내면의 지혜와 연결됩니다. 이 시기의 꿈은 다음 사이클을 준비하는 무의식의 메시지입니다.",
+        "en": "Waning Crescent dreams connect with inner wisdom. Dreams now are unconscious messages preparing for the next cycle."
+      },
+      "favorable_symbols": ["조상", "죽은 사람", "영적 존재", "동굴", "지하"],
+      "special_note": {
+        "ko": "그믐달의 꿈에서 만난 조상이나 죽은 사람의 메시지는 특별한 의미가 있습니다.",
+        "en": "Messages from ancestors or deceased people in Waning Crescent dreams have special meaning."
+      },
+      "advice": {
+        "ko": "휴식하고, 내면의 소리에 귀 기울이세요. 큰 행동은 새로운 달을 기다리세요.",
+        "en": "Rest and listen to your inner voice. Wait for the New Moon for major actions."
+      }
+    }
+  },
+
+  "planet_transit_dream_effects": {
+    "mercury_retrograde": {
+      "korean": "수성 역행",
+      "emoji": "☿️℞",
+      "active": true,
+      "dream_effects": {
+        "themes": ["과거 회상", "미해결 소통", "옛 인연"],
+        "common_symbols": ["전 연인", "옛 친구", "오래된 장소", "길을 잃음", "언어 혼란"],
+        "interpretation_guide": {
+          "ko": "수성 역행 기간의 꿈은 과거의 미해결된 소통 문제를 다룹니다. 꿈에서 만난 과거의 사람들은 끝나지 않은 대화를 상징합니다.",
+          "en": "Mercury retrograde dreams deal with unresolved past communications. Past people in dreams symbolize unfinished conversations."
+        },
+        "advice": {
+          "ko": "과거를 돌아보되, 새로운 시작보다는 마무리에 집중하세요.",
+          "en": "Look back at the past, but focus on completing rather than starting new things."
+        }
+      }
+    },
+    "venus_retrograde": {
+      "korean": "금성 역행",
+      "emoji": "♀️℞",
+      "active": false,
+      "dream_effects": {
+        "themes": ["사랑 재평가", "자기 가치", "과거의 연인"],
+        "common_symbols": ["전 연인", "결혼식", "아름다운 물건", "거울"],
+        "interpretation_guide": {
+          "ko": "금성 역행 기간의 꿈은 사랑과 가치에 대한 재평가를 담고 있습니다. 과거의 연인이 나오는 꿈은 그 관계가 아닌, 당신의 가치관을 돌아보라는 메시지입니다.",
+          "en": "Venus retrograde dreams contain re-evaluation of love and values. Ex-partners in dreams are messages to review your values, not the relationship."
+        }
+      }
+    },
+    "mars_retrograde": {
+      "korean": "화성 역행",
+      "emoji": "♂️℞",
+      "active": false,
+      "dream_effects": {
+        "themes": ["분노 재방문", "억압된 에너지", "과거 갈등"],
+        "common_symbols": ["싸움", "추격전", "분노 폭발", "사고"],
+        "interpretation_guide": {
+          "ko": "화성 역행 기간의 꿈은 억압된 분노와 에너지를 다룹니다. 공격적인 꿈은 당신이 억누른 에너지가 출구를 찾고 있다는 신호입니다.",
+          "en": "Mars retrograde dreams deal with suppressed anger and energy. Aggressive dreams signal your suppressed energy is seeking an outlet."
+        },
+        "advice": {
+          "ko": "분노를 억압하지 말고 건설적으로 표현할 방법을 찾으세요.",
+          "en": "Don't suppress anger, find constructive ways to express it."
+        }
+      }
+    },
+    "jupiter_transit": {
+      "korean": "목성 트랜짓",
+      "emoji": "♃",
+      "dream_effects": {
+        "themes": ["확장", "풍요", "행운", "여행"],
+        "interpretation_guide": {
+          "ko": "목성이 주요 행성과 합이나 좋은 각도를 이룰 때, 꿈은 더 낙관적이고 확장적인 메시지를 담습니다. 큰 것, 많은 것, 여행이 나오면 기회의 신호입니다.",
+          "en": "When Jupiter makes conjunctions or favorable aspects, dreams carry more optimistic and expansive messages. Large things, abundance, travel are signs of opportunity."
+        },
+        "favorable_aspects": ["conjunction", "trine", "sextile"]
+      }
+    },
+    "saturn_transit": {
+      "korean": "토성 트랜짓",
+      "emoji": "♄",
+      "dream_effects": {
+        "themes": ["제한", "책임", "시험", "장애물"],
+        "interpretation_guide": {
+          "ko": "토성이 영향을 줄 때, 꿈은 시험과 제한의 메시지를 담습니다. 장애물, 권위자, 무거운 짐이 나오면 현실의 책임을 상기시키는 것입니다.",
+          "en": "When Saturn influences, dreams carry messages of tests and limitations. Obstacles, authority figures, heavy burdens remind you of real-life responsibilities."
+        },
+        "challenging_aspects": ["conjunction", "square", "opposition"]
+      }
+    },
+    "uranus_transit": {
+      "korean": "천왕성 트랜짓",
+      "emoji": "♅",
+      "dream_effects": {
+        "themes": ["갑작스러운 변화", "해방", "혁신", "각성"],
+        "common_symbols": ["번개", "지진", "비행", "UFO", "기술"],
+        "interpretation_guide": {
+          "ko": "천왕성의 영향 하에 꿈은 갑작스럽고 예측 불가합니다. 비행하는 꿈, 초자연적 경험은 각성과 해방의 메시지입니다.",
+          "en": "Under Uranus influence, dreams are sudden and unpredictable. Flying dreams, supernatural experiences are messages of awakening and liberation."
+        }
+      }
+    },
+    "neptune_transit": {
+      "korean": "해왕성 트랜짓",
+      "emoji": "♆",
+      "dream_effects": {
+        "themes": ["영성", "직관", "환상", "영감"],
+        "common_symbols": ["물", "바다", "안개", "영적 존재", "예술"],
+        "interpretation_guide": {
+          "ko": "해왕성의 영향은 꿈을 더 생생하고 예언적으로 만듭니다. 물, 바다, 영적 존재가 나오면 직관과 영성에 귀 기울이라는 메시지입니다.",
+          "en": "Neptune's influence makes dreams more vivid and prophetic. Water, ocean, spiritual beings are messages to listen to intuition and spirituality."
+        },
+        "special_note": {
+          "ko": "해왕성 트랜짓 기간에는 예지몽 가능성이 높아집니다.",
+          "en": "Prophetic dream likelihood increases during Neptune transits."
+        }
+      }
+    },
+    "pluto_transit": {
+      "korean": "명왕성 트랜짓",
+      "emoji": "♇",
+      "dream_effects": {
+        "themes": ["변형", "죽음과 재생", "심층 심리", "권력"],
+        "common_symbols": ["죽음", "폭발", "지하세계", "재탄생", "변신"],
+        "interpretation_guide": {
+          "ko": "명왕성의 영향 하에 꿈은 강렬하고 변혁적입니다. 죽음, 파괴의 꿈은 두렵지만 재탄생을 위한 필수 과정입니다.",
+          "en": "Under Pluto's influence, dreams are intense and transformative. Death, destruction dreams are scary but necessary for rebirth."
+        },
+        "advice": {
+          "ko": "변화에 저항하지 말고, 오래된 자아가 죽도록 허용하세요. 새로운 당신이 태어납니다.",
+          "en": "Don't resist change, allow the old self to die. A new you will be born."
+        }
+      }
+    },
+    "moon_sign_effect": {
+      "description": "현재 달이 머무는 별자리가 꿈에 미치는 영향",
+      "signs": {
+        "Aries": {
+          "ko": "양자리",
+          "dream_flavor": "행동적, 용감한, 새로운 시작",
+          "enhanced_symbols": ["불", "전투", "경쟁", "빨간색"]
+        },
+        "Taurus": {
+          "ko": "황소자리",
+          "dream_flavor": "감각적, 물질적, 안정",
+          "enhanced_symbols": ["음식", "돈", "자연", "초록색"]
+        },
+        "Gemini": {
+          "ko": "쌍둥이자리",
+          "dream_flavor": "소통, 이중성, 학습",
+          "enhanced_symbols": ["대화", "쌍둥이", "책", "노란색"]
+        },
+        "Cancer": {
+          "ko": "게자리",
+          "dream_flavor": "감정적, 가정적, 양육",
+          "enhanced_symbols": ["집", "어머니", "물", "하얀색"]
+        },
+        "Leo": {
+          "ko": "사자자리",
+          "dream_flavor": "창조적, 표현적, 리더십",
+          "enhanced_symbols": ["태양", "무대", "왕", "금색"]
+        },
+        "Virgo": {
+          "ko": "처녀자리",
+          "dream_flavor": "분석적, 건강, 정리",
+          "enhanced_symbols": ["치유", "정리", "일", "갈색"]
+        },
+        "Libra": {
+          "ko": "천칭자리",
+          "dream_flavor": "관계적, 균형, 조화",
+          "enhanced_symbols": ["결혼", "파트너", "저울", "분홍색"]
+        },
+        "Scorpio": {
+          "ko": "전갈자리",
+          "dream_flavor": "심층적, 변형적, 비밀",
+          "enhanced_symbols": ["죽음", "섹스", "비밀", "검은색"]
+        },
+        "Sagittarius": {
+          "ko": "궁수자리",
+          "dream_flavor": "탐험적, 철학적, 확장",
+          "enhanced_symbols": ["여행", "말", "화살", "보라색"]
+        },
+        "Capricorn": {
+          "ko": "염소자리",
+          "dream_flavor": "야망적, 구조적, 책임",
+          "enhanced_symbols": ["산", "직장", "노인", "회색"]
+        },
+        "Aquarius": {
+          "ko": "물병자리",
+          "dream_flavor": "혁신적, 집단적, 미래",
+          "enhanced_symbols": ["UFO", "친구들", "기술", "파란색"]
+        },
+        "Pisces": {
+          "ko": "물고기자리",
+          "dream_flavor": "영적, 직관적, 예언적",
+          "enhanced_symbols": ["물고기", "바다", "영혼", "청록색"],
+          "special_note": "물고기자리 달에서 꿈은 가장 예언적입니다"
+        }
+      }
+    }
+  },
+
+  "special_events": {
+    "supermoon": {
+      "korean": "슈퍼문",
+      "emoji": "🌝",
+      "effect_multiplier": 1.5,
+      "interpretation": {
+        "ko": "슈퍼문 밤의 꿈은 특별히 강렬하고 중요합니다. 감정이 증폭되고, 직관이 극대화됩니다.",
+        "en": "Supermoon night dreams are especially intense and significant. Emotions are amplified and intuition is maximized."
+      }
+    },
+    "lunar_eclipse": {
+      "korean": "월식",
+      "emoji": "🌒",
+      "effect_multiplier": 1.8,
+      "interpretation": {
+        "ko": "월식의 꿈은 종결과 계시를 담고 있습니다. 숨겨진 진실이 드러나고, 끝내야 할 것이 명확해집니다.",
+        "en": "Lunar eclipse dreams contain endings and revelations. Hidden truths emerge and what needs to end becomes clear."
+      }
+    },
+    "solar_eclipse": {
+      "korean": "일식",
+      "emoji": "🌑",
+      "effect_multiplier": 1.8,
+      "interpretation": {
+        "ko": "일식의 꿈은 운명적 새 시작을 담고 있습니다. 중요한 변화의 문이 열립니다.",
+        "en": "Solar eclipse dreams contain fated new beginnings. Important doors of change are opening."
+      }
+    }
+  }
+}

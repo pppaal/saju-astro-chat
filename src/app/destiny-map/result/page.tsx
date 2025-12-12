@@ -7,9 +7,190 @@ import { useState, useEffect } from "react";
 import styles from "./result.module.css";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
+import SuggestedQuestions from "@/components/destiny-map/SuggestedQuestions";
+import { useI18n } from "@/i18n/I18nProvider";
 // Import retained intentionally; disable unused lint because FortuneCharts is optional rendering
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import FortuneCharts from "@/components/destiny-map/FortuneCharts";
+
+// ============================================
+// Analyzing Loader Component with Progress Bar
+// ============================================
+function AnalyzingLoader() {
+  const { t } = useI18n();
+  const [progress, setProgress] = React.useState(0);
+  const [step, setStep] = React.useState(0);
+
+  const steps = [
+    { label: t("destinyMap.result.step1", "Calculating Four Pillars..."), icon: "☯" },
+    { label: t("destinyMap.result.step2", "Analyzing Astrology Chart..."), icon: "☉" },
+    { label: t("destinyMap.result.step3", "Generating AI Interpretation..."), icon: "✨" },
+    { label: t("destinyMap.result.step4", "Finalizing Report..."), icon: "📜" },
+  ];
+
+  React.useEffect(() => {
+    // Simulate progress: ~45 seconds total
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) return prev;
+        const increment = prev < 30 ? 3 : prev < 60 ? 2 : prev < 80 ? 1 : 0.5;
+        return Math.min(prev + increment, 95);
+      });
+    }, 500);
+
+    // Step progression
+    const stepInterval = setInterval(() => {
+      setStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(stepInterval);
+    };
+  }, [steps.length]);
+
+  return (
+    <main style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+      padding: 20,
+    }}>
+      <div style={{
+        maxWidth: 440,
+        width: "100%",
+        textAlign: "center",
+        padding: "48px 32px",
+        background: "rgba(15, 12, 41, 0.8)",
+        borderRadius: 24,
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(167, 139, 250, 0.2)",
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 60px rgba(167, 139, 250, 0.1)",
+      }}>
+        {/* Animated cosmic icon */}
+        <div style={{
+          fontSize: 72,
+          marginBottom: 28,
+          filter: "drop-shadow(0 0 20px rgba(167, 139, 250, 0.6))",
+        }}>
+          <span style={{
+            display: "inline-block",
+            animation: "spin 8s linear infinite",
+          }}>☯</span>
+        </div>
+
+        {/* Title */}
+        <h2 style={{
+          fontSize: 22,
+          fontWeight: 600,
+          color: "#fff",
+          marginBottom: 6,
+          letterSpacing: "-0.02em",
+        }}>
+          {t("destinyMap.result.analyzingTitle", "Analyzing Your Destiny")}
+        </h2>
+        <p style={{ color: "#a78bfa", fontSize: 13, marginBottom: 36, opacity: 0.8 }}>
+          {t("destinyMap.result.analyzingSubtitle", "Analyzing Your Destiny Chart")}
+        </p>
+
+        {/* Progress bar */}
+        <div style={{
+          background: "rgba(167, 139, 250, 0.1)",
+          borderRadius: 12,
+          height: 6,
+          overflow: "hidden",
+          marginBottom: 12,
+          border: "1px solid rgba(167, 139, 250, 0.2)",
+        }}>
+          <div style={{
+            width: `${progress}%`,
+            height: "100%",
+            background: "linear-gradient(90deg, #a78bfa, #818cf8, #6366f1)",
+            borderRadius: 12,
+            transition: "width 0.5s ease-out",
+            boxShadow: "0 0 20px rgba(167, 139, 250, 0.6)",
+          }} />
+        </div>
+
+        {/* Progress percentage */}
+        <div style={{
+          fontSize: 13,
+          color: "#a78bfa",
+          fontWeight: 600,
+          marginBottom: 28,
+        }}>
+          {Math.round(progress)}%
+        </div>
+
+        {/* Step indicators */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {steps.map((s, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "10px 16px",
+                borderRadius: 12,
+                background: i === step ? "rgba(167, 139, 250, 0.15)" : "transparent",
+                border: i === step ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
+                transition: "all 0.3s",
+              }}
+            >
+              <span style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: i < step ? 14 : 16,
+                background: i < step
+                  ? "linear-gradient(135deg, #a78bfa, #818cf8)"
+                  : i === step
+                    ? "rgba(167, 139, 250, 0.3)"
+                    : "rgba(255,255,255,0.05)",
+                color: i <= step ? "#fff" : "#6b7280",
+                boxShadow: i < step ? "0 0 12px rgba(167, 139, 250, 0.5)" : "none",
+              }}>
+                {i < step ? "✓" : s.icon}
+              </span>
+              <span style={{
+                fontSize: 14,
+                color: i <= step ? "#e5e7eb" : "#6b7280",
+                textAlign: "left",
+                fontWeight: i === step ? 500 : 400,
+              }}>
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Fun fact */}
+        <p style={{
+          marginTop: 32,
+          fontSize: 11,
+          color: "#6b7280",
+          fontStyle: "italic",
+        }}>
+          {t("destinyMap.result.dataNodes", "Analysis based on 71,000+ data nodes")}
+        </p>
+      </div>
+
+      {/* CSS animations */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </main>
+  );
+}
 
 // ✅ searchParams 타입 정의
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -19,6 +200,7 @@ export default function DestinyResultPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const { t } = useI18n();
   // ✅ Next.js 15 동적 API 규칙 — Promise 언래핑
   const sp = React.use(searchParams);
 
@@ -46,6 +228,7 @@ export default function DestinyResultPage({
       const lonStr =
         (Array.isArray(sp.lon) ? sp.lon[0] : sp.lon) ??
         (Array.isArray(sp.longitude) ? sp.longitude[0] : sp.longitude);
+      const userTz = (Array.isArray(sp.userTz) ? sp.userTz[0] : sp.userTz) ?? '';
 
       const latitude = latStr ? Number(latStr) : NaN;
       const longitude = lonStr ? Number(lonStr) : NaN;
@@ -53,7 +236,7 @@ export default function DestinyResultPage({
       setActiveTheme(themeParam);
 
       if (!birthDate || !birthTime || !city || isNaN(latitude) || isNaN(longitude)) {
-        setError("필수 입력값이 누락되었습니다. (birthDate, birthTime, city, latitude, longitude)");
+        setError(t("destinyMap.result.errorMissing", "Required fields are missing. (birthDate, birthTime, city, latitude, longitude)"));
         setLoading(false);
         return;
       }
@@ -71,6 +254,7 @@ export default function DestinyResultPage({
           longitude,
           lang: rawLang as any,
           themes: themesReq,
+          userTimezone: userTz || undefined,
         });
         setResult(res);
       } catch (err: any) {
@@ -80,19 +264,13 @@ export default function DestinyResultPage({
         setLoading(false);
       }
     })();
-  }, [sp]);
+  }, [sp, t]);
 
   // ------------------------------------------------------------ //
   // ⏳ 상태별 렌더링
   // ------------------------------------------------------------ //
   if (loading) {
-    return (
-      <main className={styles.page}>
-        <section className={styles.card}>
-          <div style={{ padding: 40, fontSize: 16, textAlign: 'center' }}>⏳ Analyzing your destiny chart...</div>
-        </section>
-      </main>
-    );
+    return <AnalyzingLoader />;
   }
 
   if (error) {
@@ -109,7 +287,7 @@ export default function DestinyResultPage({
     return (
       <main className={styles.page}>
         <section className={styles.card}>
-          <div style={{ padding: 40 }}>결과를 불러오지 못했습니다.</div>
+          <div style={{ padding: 40 }}>{t("destinyMap.result.errorNoResult", "Failed to load results.")}</div>
         </section>
       </main>
     );
@@ -121,9 +299,28 @@ export default function DestinyResultPage({
   const themeKeys = Object.keys(result?.themes || {});
   const lang: any = result?.lang ?? "ko";
 
+  // 분석 기준일 포맷팅
+  const analysisDateDisplay = result?.analysisDate || result?.userTimezone ? (
+    <div style={{
+      textAlign: 'center',
+      marginBottom: 16,
+      padding: '8px 16px',
+      background: 'rgba(167, 139, 250, 0.1)',
+      borderRadius: 8,
+      fontSize: 13,
+      color: '#a78bfa',
+    }}>
+      📅 {t("destinyMap.result.analysisDate", "Analysis Date")}: {result?.analysisDate || new Date().toISOString().slice(0, 10)}
+      {result?.userTimezone && <span style={{ marginLeft: 8, opacity: 0.7 }}>({result.userTimezone})</span>}
+    </div>
+  ) : null;
+
   return (
     <main className={styles.page}>
       <section className={styles.card}>
+        {/* 📅 분석 기준일 표시 */}
+        {analysisDateDisplay}
+
         {/* 🌗 테마 전환 버튼 */}
         {themeKeys.length > 1 && (
           <div
@@ -137,9 +334,9 @@ export default function DestinyResultPage({
           >
             {themeKeys.map((key) => {
               const presetLabels: Record<string, string> = {
-                focus_love: "사랑",
-                focus_career: "커리어",
-                focus_energy: "활력",
+                focus_love: t("destinyMap.result.themeLove", "Love"),
+                focus_career: t("destinyMap.result.themeCareer", "Career"),
+                focus_energy: t("destinyMap.result.themeEnergy", "Energy"),
               };
               const label = presetLabels[key] ?? key;
 
@@ -168,6 +365,13 @@ export default function DestinyResultPage({
 
         {/* 🧮 리포트 본문 렌더 */}
         <Display result={result} lang={lang} theme={activeTheme} reportType="core" />
+
+        {/* 💬 상담사 유도 질문 */}
+        <SuggestedQuestions
+          theme={activeTheme}
+          lang={lang}
+          saju={result?.saju}
+        />
       </section>
     </main>
   );

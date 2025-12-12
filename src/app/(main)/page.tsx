@@ -1,134 +1,29 @@
 "use client";
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import HeaderUser from "./HeaderUser";
-import ThemeToggle from "@/components/ui/ThemeToggle";
-import NotificationBell from "@/components/notifications/NotificationBell";
 import styles from "./main-page.module.css";
 import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
+import Card from "@/components/ui/Card";
+import Grid from "@/components/ui/Grid";
+import { SERVICE_LINKS, TAROT_DECK, type TarotCard } from "@/data/home";
 
-type Particle = {
-  x: number;
-  y: number;
-  size: number;
-  speedX: number;
-  speedY: number;
-  color: string;
-  update: () => void;
-  draw: () => void;
-};
+const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
+const WeeklyFortuneCard = dynamic(() => import("@/components/WeeklyFortuneCard"), {
+  loading: () => <div className={styles.weeklyCardSkeleton} />,
+});
 
-type TarotCard = {
-  name: string;
-  icon: string;
-  number: string;
-  suit?: string;
-};
-
-// Complete 78-card tarot deck
-const TAROT_DECK: TarotCard[] = [
-  // Major Arcana (22 cards)
-  { name: "THE FOOL", icon: "🃏", number: "0" },
-  { name: "THE MAGICIAN", icon: "🎩", number: "I" },
-  { name: "THE HIGH PRIESTESS", icon: "🌙", number: "II" },
-  { name: "THE EMPRESS", icon: "👑", number: "III" },
-  { name: "THE EMPEROR", icon: "⚔️", number: "IV" },
-  { name: "THE HIEROPHANT", icon: "📿", number: "V" },
-  { name: "THE LOVERS", icon: "💕", number: "VI" },
-  { name: "THE CHARIOT", icon: "🏇", number: "VII" },
-  { name: "STRENGTH", icon: "🦁", number: "VIII" },
-  { name: "THE HERMIT", icon: "🕯️", number: "IX" },
-  { name: "WHEEL OF FORTUNE", icon: "☸️", number: "X" },
-  { name: "JUSTICE", icon: "⚖️", number: "XI" },
-  { name: "THE HANGED MAN", icon: "🙃", number: "XII" },
-  { name: "DEATH", icon: "💀", number: "XIII" },
-  { name: "TEMPERANCE", icon: "🍶", number: "XIV" },
-  { name: "THE DEVIL", icon: "😈", number: "XV" },
-  { name: "THE TOWER", icon: "⚡", number: "XVI" },
-  { name: "THE STAR", icon: "⭐", number: "XVII" },
-  { name: "THE MOON", icon: "🌙", number: "XVIII" },
-  { name: "THE SUN", icon: "☀️", number: "XIX" },
-  { name: "JUDGEMENT", icon: "📯", number: "XX" },
-  { name: "THE WORLD", icon: "🌍", number: "XXI" },
-  // Minor Arcana - Wands (14 cards)
-  { name: "ACE OF WANDS", icon: "🔥", number: "A", suit: "WANDS" },
-  { name: "TWO OF WANDS", icon: "🔥", number: "II", suit: "WANDS" },
-  { name: "THREE OF WANDS", icon: "🔥", number: "III", suit: "WANDS" },
-  { name: "FOUR OF WANDS", icon: "🔥", number: "IV", suit: "WANDS" },
-  { name: "FIVE OF WANDS", icon: "🔥", number: "V", suit: "WANDS" },
-  { name: "SIX OF WANDS", icon: "🔥", number: "VI", suit: "WANDS" },
-  { name: "SEVEN OF WANDS", icon: "🔥", number: "VII", suit: "WANDS" },
-  { name: "EIGHT OF WANDS", icon: "🔥", number: "VIII", suit: "WANDS" },
-  { name: "NINE OF WANDS", icon: "🔥", number: "IX", suit: "WANDS" },
-  { name: "TEN OF WANDS", icon: "🔥", number: "X", suit: "WANDS" },
-  { name: "PAGE OF WANDS", icon: "🔥", number: "P", suit: "WANDS" },
-  { name: "KNIGHT OF WANDS", icon: "🔥", number: "Kn", suit: "WANDS" },
-  { name: "QUEEN OF WANDS", icon: "🔥", number: "Q", suit: "WANDS" },
-  { name: "KING OF WANDS", icon: "🔥", number: "K", suit: "WANDS" },
-  // Minor Arcana - Cups (14 cards)
-  { name: "ACE OF CUPS", icon: "💧", number: "A", suit: "CUPS" },
-  { name: "TWO OF CUPS", icon: "💧", number: "II", suit: "CUPS" },
-  { name: "THREE OF CUPS", icon: "💧", number: "III", suit: "CUPS" },
-  { name: "FOUR OF CUPS", icon: "💧", number: "IV", suit: "CUPS" },
-  { name: "FIVE OF CUPS", icon: "💧", number: "V", suit: "CUPS" },
-  { name: "SIX OF CUPS", icon: "💧", number: "VI", suit: "CUPS" },
-  { name: "SEVEN OF CUPS", icon: "💧", number: "VII", suit: "CUPS" },
-  { name: "EIGHT OF CUPS", icon: "💧", number: "VIII", suit: "CUPS" },
-  { name: "NINE OF CUPS", icon: "💧", number: "IX", suit: "CUPS" },
-  { name: "TEN OF CUPS", icon: "💧", number: "X", suit: "CUPS" },
-  { name: "PAGE OF CUPS", icon: "💧", number: "P", suit: "CUPS" },
-  { name: "KNIGHT OF CUPS", icon: "💧", number: "Kn", suit: "CUPS" },
-  { name: "QUEEN OF CUPS", icon: "💧", number: "Q", suit: "CUPS" },
-  { name: "KING OF CUPS", icon: "💧", number: "K", suit: "CUPS" },
-  // Minor Arcana - Swords (14 cards)
-  { name: "ACE OF SWORDS", icon: "⚔️", number: "A", suit: "SWORDS" },
-  { name: "TWO OF SWORDS", icon: "⚔️", number: "II", suit: "SWORDS" },
-  { name: "THREE OF SWORDS", icon: "⚔️", number: "III", suit: "SWORDS" },
-  { name: "FOUR OF SWORDS", icon: "⚔️", number: "IV", suit: "SWORDS" },
-  { name: "FIVE OF SWORDS", icon: "⚔️", number: "V", suit: "SWORDS" },
-  { name: "SIX OF SWORDS", icon: "⚔️", number: "VI", suit: "SWORDS" },
-  { name: "SEVEN OF SWORDS", icon: "⚔️", number: "VII", suit: "SWORDS" },
-  { name: "EIGHT OF SWORDS", icon: "⚔️", number: "VIII", suit: "SWORDS" },
-  { name: "NINE OF SWORDS", icon: "⚔️", number: "IX", suit: "SWORDS" },
-  { name: "TEN OF SWORDS", icon: "⚔️", number: "X", suit: "SWORDS" },
-  { name: "PAGE OF SWORDS", icon: "⚔️", number: "P", suit: "SWORDS" },
-  { name: "KNIGHT OF SWORDS", icon: "⚔️", number: "Kn", suit: "SWORDS" },
-  { name: "QUEEN OF SWORDS", icon: "⚔️", number: "Q", suit: "SWORDS" },
-  { name: "KING OF SWORDS", icon: "⚔️", number: "K", suit: "SWORDS" },
-  // Minor Arcana - Pentacles (14 cards)
-  { name: "ACE OF PENTACLES", icon: "🪙", number: "A", suit: "PENTACLES" },
-  { name: "TWO OF PENTACLES", icon: "🪙", number: "II", suit: "PENTACLES" },
-  { name: "THREE OF PENTACLES", icon: "🪙", number: "III", suit: "PENTACLES" },
-  { name: "FOUR OF PENTACLES", icon: "🪙", number: "IV", suit: "PENTACLES" },
-  { name: "FIVE OF PENTACLES", icon: "🪙", number: "V", suit: "PENTACLES" },
-  { name: "SIX OF PENTACLES", icon: "🪙", number: "VI", suit: "PENTACLES" },
-  { name: "SEVEN OF PENTACLES", icon: "🪙", number: "VII", suit: "PENTACLES" },
-  { name: "EIGHT OF PENTACLES", icon: "🪙", number: "VIII", suit: "PENTACLES" },
-  { name: "NINE OF PENTACLES", icon: "🪙", number: "IX", suit: "PENTACLES" },
-  { name: "TEN OF PENTACLES", icon: "🪙", number: "X", suit: "PENTACLES" },
-  { name: "PAGE OF PENTACLES", icon: "🪙", number: "P", suit: "PENTACLES" },
-  { name: "KNIGHT OF PENTACLES", icon: "🪙", number: "Kn", suit: "PENTACLES" },
-  { name: "QUEEN OF PENTACLES", icon: "🪙", number: "Q", suit: "PENTACLES" },
-  { name: "KING OF PENTACLES", icon: "🪙", number: "K", suit: "PENTACLES" },
-];
-
-const serviceLinks = [
-  { label: "Destiny Map", href: "/destiny-map" },
-  { label: "Astrology", href: "/astrology" },
-  { label: "Saju", href: "/saju" },
-  { label: "Tarot", href: "/tarot" },
-  { label: "I Ching", href: "/iching" },
-  { label: "Dream", href: "/dream" },
-  { label: "Numerology", href: "/numerology" },
-  { label: "Compatibility", href: "/compatibility" },
-  { label: "Personality", href: "/personality" },
-];
+const serviceLinksData = SERVICE_LINKS;
 
 export default function MainPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const router = useRouter();
   const { t } = useI18n();
   const translate = useCallback((key: string, fallback: string) => {
     const res = t(key);
@@ -140,22 +35,55 @@ export default function MainPage() {
     translate("landing.prompt1", "What do the stars say about my path today?")
   );
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [lifeQuestion, setLifeQuestion] = useState("");
+  const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
   const [totalVisitors, setTotalVisitors] = useState<number | null>(null);
   const [visitorError, setVisitorError] = useState<string | null>(null);
   const trackedOnce = useRef(false);
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
 
-  // Tarot card state
-  const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
-  const [selectedCards, setSelectedCards] = useState<TarotCard[]>([
-    TAROT_DECK[16], // THE TOWER (default)
-    TAROT_DECK[17], // THE STAR (default)
-    TAROT_DECK[18], // THE MOON (default)
-    TAROT_DECK[19], // THE SUN (default)
-  ]);
-  const [usedCardIndices, setUsedCardIndices] = useState<Set<number>>(new Set([16, 17, 18, 19]));
-  const [isDeckSpread, setIsDeckSpread] = useState(false);
+  // Tarot card state - consolidated to prevent multiple re-renders
+  type TarotState = {
+    flippedCards: boolean[];
+    selectedCards: TarotCard[];
+    usedCardIndices: Set<number>;
+    isDeckSpread: boolean;
+  };
+  type TarotAction =
+    | { type: 'FLIP_CARD'; index: number; newCard?: TarotCard; newUsedIndex?: number }
+    | { type: 'TOGGLE_DECK' }
+    | { type: 'RESET' };
+
+  const initialTarotState: TarotState = {
+    flippedCards: [false, false, false, false],
+    selectedCards: [TAROT_DECK[16], TAROT_DECK[17], TAROT_DECK[18], TAROT_DECK[19]],
+    usedCardIndices: new Set([16, 17, 18, 19]),
+    isDeckSpread: false,
+  };
+
+  function tarotReducer(state: TarotState, action: TarotAction): TarotState {
+    switch (action.type) {
+      case 'FLIP_CARD': {
+        const newFlipped = [...state.flippedCards];
+        newFlipped[action.index] = !newFlipped[action.index];
+        const newSelected = [...state.selectedCards];
+        if (action.newCard) newSelected[action.index] = action.newCard;
+        const newUsed = new Set(state.usedCardIndices);
+        if (action.newUsedIndex !== undefined) newUsed.add(action.newUsedIndex);
+        return { ...state, flippedCards: newFlipped, selectedCards: newSelected, usedCardIndices: newUsed };
+      }
+      case 'TOGGLE_DECK':
+        return { ...state, isDeckSpread: !state.isDeckSpread };
+      case 'RESET':
+        return initialTarotState;
+      default:
+        return state;
+    }
+  }
+
+  const [tarotState, dispatchTarot] = useReducer(tarotReducer, initialTarotState);
+  const { flippedCards, selectedCards, usedCardIndices, isDeckSpread } = tarotState;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -167,6 +95,52 @@ export default function MainPage() {
       setAnswer(next[Math.floor(Math.random() * next.length)]);
     }, 4200);
     return () => clearInterval(timer);
+  }, [translate]);
+
+  // Typing animation for placeholder
+  useEffect(() => {
+    const placeholders = [
+      translate("landing.hint1", "오늘의 운세가 궁금해요"),
+      translate("landing.hint2", "연애운이 어떨까요?"),
+      translate("landing.hint3", "이직해도 될까요?"),
+      translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?"),
+    ];
+
+    let currentIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      const currentText = placeholders[currentIndex];
+
+      if (isDeleting) {
+        setTypingPlaceholder(currentText.substring(0, charIndex - 1));
+        charIndex--;
+
+        if (charIndex === 0) {
+          isDeleting = false;
+          currentIndex = (currentIndex + 1) % placeholders.length;
+          timeoutId = setTimeout(type, 500);
+        } else {
+          timeoutId = setTimeout(type, 30);
+        }
+      } else {
+        setTypingPlaceholder(currentText.substring(0, charIndex + 1));
+        charIndex++;
+
+        if (charIndex === currentText.length) {
+          isDeleting = true;
+          timeoutId = setTimeout(type, 2000); // Pause before deleting
+        } else {
+          timeoutId = setTimeout(type, 80);
+        }
+      }
+    };
+
+    timeoutId = setTimeout(type, 1000);
+
+    return () => clearTimeout(timeoutId);
   }, [translate]);
 
   // Scroll-triggered animation for feature sections
@@ -219,53 +193,46 @@ export default function MainPage() {
     run();
   }, [metricsToken]);
 
-  // Tarot card click handlers
+  // Tarot card click handlers - single dispatch prevents multiple re-renders
   const handleCardClick = useCallback((index: number) => {
-    console.log('Card clicked:', index);
-    // Flip card and select random card from deck
-    const newFlippedCards = [...flippedCards];
-    newFlippedCards[index] = !newFlippedCards[index];
-    console.log('New flipped state:', newFlippedCards);
-    setFlippedCards(newFlippedCards);
-
-    // Select random card from deck (no duplicates)
     if (!flippedCards[index]) {
-      // Get available card indices (not yet used)
+      // Select random card from deck (no duplicates)
       const availableIndices = Array.from({ length: TAROT_DECK.length }, (_, i) => i)
         .filter(i => !usedCardIndices.has(i));
 
       if (availableIndices.length > 0) {
         const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-        const newSelectedCards = [...selectedCards];
-        newSelectedCards[index] = TAROT_DECK[randomIndex];
-        console.log('New selected card:', TAROT_DECK[randomIndex]);
-        setSelectedCards(newSelectedCards);
-
-        // Mark this card as used
-        const newUsedIndices = new Set(usedCardIndices);
-        newUsedIndices.add(randomIndex);
-        setUsedCardIndices(newUsedIndices);
+        dispatchTarot({ type: 'FLIP_CARD', index, newCard: TAROT_DECK[randomIndex], newUsedIndex: randomIndex });
+      } else {
+        dispatchTarot({ type: 'FLIP_CARD', index });
       }
+    } else {
+      dispatchTarot({ type: 'FLIP_CARD', index });
     }
-  }, [flippedCards, selectedCards, usedCardIndices]);
+  }, [flippedCards, usedCardIndices]);
 
   const handleDeckClick = useCallback(() => {
-    console.log('Deck clicked, current spread:', isDeckSpread);
-    const newSpreadState = !isDeckSpread;
-    setIsDeckSpread(newSpreadState);
-
-    // Reset all cards when closing the deck
-    if (!newSpreadState) {
-      setFlippedCards([false, false, false, false]);
-      setSelectedCards([
-        TAROT_DECK[16], // THE TOWER (default)
-        TAROT_DECK[17], // THE STAR (default)
-        TAROT_DECK[18], // THE MOON (default)
-        TAROT_DECK[19], // THE SUN (default)
-      ]);
-      setUsedCardIndices(new Set([16, 17, 18, 19]));
+    if (isDeckSpread) {
+      dispatchTarot({ type: 'RESET' });
+    } else {
+      dispatchTarot({ type: 'TOGGLE_DECK' });
     }
   }, [isDeckSpread]);
+
+  // Handle question submission - navigate to destiny-map with the question
+  const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (lifeQuestion.trim()) {
+      router.push(`/destiny-map?q=${encodeURIComponent(lifeQuestion.trim())}`);
+    } else {
+      router.push('/destiny-map');
+    }
+  }, [lifeQuestion, router]);
+
+  const handleHintClick = useCallback((hint: string) => {
+    setLifeQuestion(hint);
+    router.push(`/destiny-map?q=${encodeURIComponent(hint)}`);
+  }, [router]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -363,20 +330,52 @@ export default function MainPage() {
       }
     }
 
+    // Grid-based spatial partitioning for O(n) performance
+    const gridCellSize = MAX_LINK_DISTANCE;
     function connectParticles() {
-      for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
-          const dx = particlesArray[a].x - particlesArray[b].x;
-          const dy = particlesArray[a].y - particlesArray[b].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < MAX_LINK_DISTANCE) {
-            const opacity = 1 - distance / MAX_LINK_DISTANCE;
-            ctx.strokeStyle = `rgba(136, 179, 247, ${opacity})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
-            ctx.stroke();
+      // Build spatial grid
+      const grid: Map<string, Particle[]> = new Map();
+      for (const p of particlesArray) {
+        const cellX = Math.floor(p.x / gridCellSize);
+        const cellY = Math.floor(p.y / gridCellSize);
+        const key = `${cellX},${cellY}`;
+        if (!grid.has(key)) grid.set(key, []);
+        grid.get(key)!.push(p);
+      }
+
+      // Only check neighboring cells
+      const checked = new Set<string>();
+      for (const p of particlesArray) {
+        const cellX = Math.floor(p.x / gridCellSize);
+        const cellY = Math.floor(p.y / gridCellSize);
+
+        // Check 3x3 neighboring cells
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            const neighborKey = `${cellX + dx},${cellY + dy}`;
+            const neighbors = grid.get(neighborKey);
+            if (!neighbors) continue;
+
+            for (const neighbor of neighbors) {
+              if (p === neighbor) continue;
+              const pairKey = p.x < neighbor.x ? `${p.x},${p.y}-${neighbor.x},${neighbor.y}` : `${neighbor.x},${neighbor.y}-${p.x},${p.y}`;
+              if (checked.has(pairKey)) continue;
+              checked.add(pairKey);
+
+              const distX = p.x - neighbor.x;
+              const distY = p.y - neighbor.y;
+              const distSq = distX * distX + distY * distY;
+              if (distSq < MAX_LINK_DISTANCE * MAX_LINK_DISTANCE) {
+                const distance = Math.sqrt(distSq);
+                const opacity = 1 - distance / MAX_LINK_DISTANCE;
+                ctx.strokeStyle = `rgba(136, 179, 247, ${opacity})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(neighbor.x, neighbor.y);
+                ctx.stroke();
+              }
+            }
           }
         }
       }
@@ -409,10 +408,19 @@ export default function MainPage() {
 
       <header className={styles.topBar}>
         <div className={styles.brand}>
-          <span className={styles.brandDot} />
+          <Image
+            src="/logo/logo.png"
+            alt="DestinyPal Logo"
+            width={28}
+            height={28}
+            className={styles.brandLogo}
+          />
           <span>DestinyPal</span>
         </div>
         <nav className={styles.nav}>
+          <Link href="/about" className={styles.navLink}>
+            {translate("common.about", "About")}
+          </Link>
           <div
             className={styles.navItem}
             onMouseEnter={() => setActiveMenu("services")}
@@ -421,12 +429,23 @@ export default function MainPage() {
             <button className={styles.navButton}>{t("common.ourService")}</button>
             {activeMenu === "services" && (
               <div className={styles.dropdown}>
-                {serviceLinks.map((s) => (
-                  <Link key={s.href} href={s.href} className={styles.dropItem}>
-                    <span>{s.label}</span>
-                    <span>→</span>
-                  </Link>
-                ))}
+                <div className={styles.dropdownHeader}>
+                  <span className={styles.dropdownTitle}>{t("services.title")}</span>
+                  <span className={styles.dropdownSubtitle}>{t("services.subtitle")}</span>
+                </div>
+                <Grid className={styles.dropdownGrid} columns={3}>
+                  {serviceLinksData.map((s) => (
+                    <Card as={Link} key={s.href} href={s.href} className={styles.dropItem}>
+                      <div className={styles.dropItemLeft}>
+                        <span className={styles.dropItemIcon}>{s.icon}</span>
+                        <div className={styles.dropItemText}>
+                          <span className={styles.dropItemLabel}>{t(`services.${s.key}.label`)}</span>
+                          <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </Grid>
               </div>
             )}
           </div>
@@ -436,37 +455,86 @@ export default function MainPage() {
           <Link href="/community" className={styles.navLink}>
             {t("app.community")}
           </Link>
-          <Link href="/about" className={styles.navLink}>
-            {translate("common.about", "About")}
-          </Link>
-          <Link href="/destiny-match" className={styles.navLink}>
-            💫 Destiny Match
-          </Link>
         </nav>
         <div className={styles.headerLinks}>
           <HeaderUser />
           <NotificationBell />
-          <ThemeToggle />
           <LanguageSwitcher />
-          <Link href="/pricing" className={styles.ctaPrimary}>
+          <Link href="/destiny-map" className={styles.ctaPrimary}>
             {t("common.start")}
           </Link>
         </div>
       </header>
 
-      <div className={styles.content}>
-        <div className={styles.heroBanner}>
+      {/* Fullscreen Hero Section */}
+      <section className={styles.fullscreenHero}>
+        <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
-            {translate("landing.heroTitle", "AI guides your destiny map in one click.")}
+            {translate("landing.heroTitle", "Know yourself. Shape tomorrow.")}
           </h1>
           <p className={styles.heroSub}>
             {translate(
               "landing.heroSub",
-              "사주, 점성, 타로, 전통 리딩을 한 번에. 흐름을 읽고 오늘의 결정을 가볍게 만드세요."
+              "Where destiny, psychology, and spirituality meet"
             )}
           </p>
+
+          {/* Google-style Question Search Box */}
+          <div className={styles.questionSearchContainer}>
+            <form onSubmit={handleQuestionSubmit} className={styles.questionSearchForm}>
+              <div className={styles.questionSearchWrapper}>
+                <span className={styles.questionSearchIcon}>&#10024;</span>
+                <input
+                  type="text"
+                  className={styles.questionSearchInput}
+                  placeholder={typingPlaceholder || translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?")}
+                  value={lifeQuestion}
+                  onChange={(e) => setLifeQuestion(e.target.value)}
+                  autoComplete="off"
+                />
+                <button type="submit" className={styles.questionSearchBtn} aria-label="Search">
+                  &#10148;
+                </button>
+              </div>
+              <div className={styles.questionHints}>
+                <button
+                  type="button"
+                  className={styles.questionHint}
+                  onClick={() => handleHintClick(translate("landing.hint1", "오늘의 운세가 궁금해요"))}
+                >
+                  {translate("landing.hint1", "오늘의 운세가 궁금해요")}
+                </button>
+                <button
+                  type="button"
+                  className={styles.questionHint}
+                  onClick={() => handleHintClick(translate("landing.hint2", "연애운이 어떨까요?"))}
+                >
+                  {translate("landing.hint2", "연애운이 어떨까요?")}
+                </button>
+                <button
+                  type="button"
+                  className={styles.questionHint}
+                  onClick={() => handleHintClick(translate("landing.hint3", "이직해도 될까요?"))}
+                >
+                  {translate("landing.hint3", "이직해도 될까요?")}
+                </button>
+              </div>
+            </form>
+
+          </div>
         </div>
 
+        {/* Scroll Indicator */}
+        <div className={styles.scrollIndicator}>
+          <span className={styles.scrollText}>{translate("landing.scrollDown", "스크롤하여 더보기")}</span>
+          <div className={styles.scrollArrow}>
+            <span>↓</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section - Below Hero */}
+      <section className={styles.statsSection}>
         <div className={styles.statsBar}>
           <div className={styles.statItem}>
             <p className={styles.statLabel}>
@@ -480,56 +548,21 @@ export default function MainPage() {
             </p>
             <p className={styles.statValue}>{totalVisitors ?? "—"}</p>
             <p className={styles.statSince}>
-              {translate("landing.statsSince", "(Since Dec 2024)")}
+              {translate("landing.statsSince", "(Since Oct 2025)")}
             </p>
           </div>
           <div className={styles.statFootnote}>
             {visitorError ?? translate("landing.statsFootnote", "Visitors update in real time.")}
           </div>
         </div>
-      </div>
-
-      {/* How to Use - 3 Step Process */}
-      <section className={styles.howToUseSection}>
-        <h2 className={styles.howToUseTitle}>
-          {translate("landing.howToUseTitle", "3 Steps to Your Destiny")}
-        </h2>
-        <div className={styles.stepsContainer}>
-          <div className={styles.stepCard}>
-            <div className={styles.stepNumber}>1</div>
-            <div className={styles.stepIcon}>📝</div>
-            <h3 className={styles.stepTitle}>
-              {translate("landing.step1Title", "Enter Your Info")}
-            </h3>
-            <p className={styles.stepDesc}>
-              {translate("landing.step1Desc", "생년월일, 시간, 위치를 입력하세요")}
-            </p>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.stepCard}>
-            <div className={styles.stepNumber}>2</div>
-            <div className={styles.stepIcon}>💬</div>
-            <h3 className={styles.stepTitle}>
-              {translate("landing.step2Title", "Chat & Explore")}
-            </h3>
-            <p className={styles.stepDesc}>
-              {translate("landing.step2Desc", "AI와 대화하며 운명을 탐색하세요")}
-            </p>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.stepCard}>
-            <div className={styles.stepNumber}>3</div>
-            <div className={styles.stepIcon}>🎴</div>
-            <h3 className={styles.stepTitle}>
-              {translate("landing.step3Title", "Draw Tarot")}
-            </h3>
-            <p className={styles.stepDesc}>
-              {translate("landing.step3Desc", "타로 카드로 직관적 답을 얻으세요")}
-            </p>
-          </div>
-        </div>
       </section>
 
+      {/* Weekly Fortune Card */}
+      <section className={styles.weeklyFortuneSection}>
+        <WeeklyFortuneCard />
+      </section>
+
+      {/* AI Chat Demo Section */}
       <section className={styles.services}>
         <div className={styles.serviceHeaderCentered}>
           <div>
@@ -537,10 +570,10 @@ export default function MainPage() {
               {translate("landing.servicesEyebrow", "DestinyPal Services")}
             </p>
             <h2 className={styles.sectionTitle}>
-              {translate("landing.servicesTitle", "한눈에 보는 주요 리딩")}
+              {translate("landing.servicesTitle", "Your Destiny, Decoded.")}
             </h2>
             <p className={styles.sectionDesc}>
-              {translate("landing.servicesDesc", "카드에 올려보면 느낌이 미리 보여요.")}
+              {translate("landing.servicesDesc", "운명의 언어를 AI가 해석합니다")}
             </p>
           </div>
           <div className={styles.heroGlass}>
@@ -587,44 +620,6 @@ export default function MainPage() {
               </button>
             </div>
           </div>
-        </div>
-
-        <div className={styles.serviceGrid}>
-          <Link href="/astrology" className={`${styles.serviceCard} ${styles.orbit}`}>
-            <div className={styles.serviceIcon}>✦</div>
-            <div className={styles.serviceText}>
-              <h3>{translate("landing.astrologyTitle", "점성")}</h3>
-              <p>{translate("landing.astrologyDesc", "행성·하우스·어스펙트를 애니메이션으로 표시합니다.")}</p>
-            </div>
-            <span className={styles.serviceArrow}>→</span>
-          </Link>
-
-          <Link href="/destiny-map" className={`${styles.serviceCard} ${styles.float}`}>
-            <div className={styles.serviceIcon}>◎</div>
-            <div className={styles.serviceText}>
-              <h3>{translate("landing.destinyTitle", "Destiny Map")}</h3>
-              <p>{translate("landing.destinyDesc", "AI가 사주, 별자리 흐름, 타로 카드 풀을 하나의 맵으로 묶어 보여줍니다.")}</p>
-            </div>
-            <span className={styles.serviceArrow}>→</span>
-          </Link>
-
-          <Link href="/saju" className={`${styles.serviceCard} ${styles.pulse}`}>
-            <div className={styles.serviceIcon}>四柱</div>
-            <div className={styles.serviceText}>
-              <h3>{translate("landing.sajuTitle", "사주")}</h3>
-              <p>{translate("landing.sajuDesc", "오행 밸런스와 대운 흐름을 빛나는 그래픽으로 보여줍니다.")}</p>
-            </div>
-            <span className={styles.serviceArrow}>→</span>
-          </Link>
-
-          <Link href="/tarot" className={`${styles.serviceCard} ${styles.float}`}>
-            <div className={styles.serviceIcon}>♜</div>
-            <div className={styles.serviceText}>
-              <h3>{translate("landing.tarotTitle", "타로")}</h3>
-              <p>{translate("landing.tarotDesc", "카드 풀링 애니메이션으로 직관적인 스프레드를 제공합니다.")}</p>
-            </div>
-            <span className={styles.serviceArrow}>→</span>
-          </Link>
         </div>
       </section>
 
@@ -918,9 +913,6 @@ export default function MainPage() {
                 <div className={styles.cardPattern}>✦</div>
                 <div className={styles.cardPattern}>✦</div>
                 <div className={styles.cardPattern}>✦</div>
-                <div className={styles.cardCenter}>
-                  <span className={styles.cardCenterIcon}>🔮</span>
-                </div>
               </div>
               <div className={styles.cardFront}>
                 <div className={styles.cardHeader}>{selectedCards[index]?.name}</div>
@@ -959,6 +951,5 @@ export default function MainPage() {
     </main>
   );
 }
-
 
 

@@ -1,0 +1,192 @@
+{
+  "_meta": {
+    "theme": "health",
+    "title": "Health & Wellness 건강운",
+    "description": "Holistic wellness guidance through tarot - mind, body, and spirit balance",
+    "disclaimer": "For entertainment and self-reflection only. Always consult healthcare professionals for medical concerns."
+  },
+  "major_arcana_deep": {
+    "The Fool": {
+      "health_meaning": "Fresh start in health matters. New exercise routine, diet change, or lifestyle shift. Approach wellness with beginner's mind.",
+      "korean": "건강 문제에서 새로운 시작. 새로운 운동 루틴, 식단 변경, 또는 생활 방식 변화.",
+      "physical": "Try new forms of movement. Your body craves novelty and adventure.",
+      "mental": "Release old mental patterns. Fresh perspective on wellbeing.",
+      "energy": "High energy for new beginnings. Enthusiasm supports health goals.",
+      "advice": "Start fresh with your health. Don't let past failures hold you back."
+    },
+    "The Magician": {
+      "health_meaning": "You have the power to transform your health. Mind over matter. Your intention shapes your physical reality.",
+      "korean": "건강을 변화시킬 힘이 있습니다. 정신이 물질을 지배합니다.",
+      "physical": "Use your skills and knowledge for health improvement. You know what to do.",
+      "mental": "Mental discipline strengthens physical health. Visualize wellness.",
+      "energy": "Strong vital energy. Channel it productively.",
+      "advice": "You have all the tools for health. Use them with focused intention."
+    },
+    "The High Priestess": {
+      "health_meaning": "Listen to your body's wisdom. Intuition guides health choices. Hidden health matters may need attention.",
+      "korean": "몸의 지혜에 귀를 기울이세요. 직감이 건강 선택을 안내합니다.",
+      "physical": "Trust body signals. Subtle symptoms deserve attention.",
+      "mental": "Connect with subconscious patterns affecting health.",
+      "energy": "Tune into your energy cycles. Rest when needed.",
+      "advice": "Your body knows what it needs. Be still and listen."
+    },
+    "The Empress": {
+      "health_meaning": "Nurture yourself. Self-care is essential. Fertility and feminine health highlighted. Nature heals.",
+      "korean": "자신을 돌보세요. 자기 관리가 필수입니다. 출산력과 여성 건강이 강조됩니다.",
+      "physical": "Nourish your body with good food. Connect with nature for healing.",
+      "mental": "Practice self-compassion. Nurturing thoughts heal.",
+      "energy": "Abundance of life force. Creative energy flows.",
+      "advice": "Treat your body like a garden. Nurture it with love and care."
+    },
+    "The Emperor": {
+      "health_meaning": "Structure and discipline in health routines. Take control of your wellness. Establish healthy boundaries.",
+      "korean": "건강 루틴에서의 구조와 규율. 웰빙을 통제하세요. 건강한 경계를 설정하세요.",
+      "physical": "Structured exercise and diet plans work well now.",
+      "mental": "Mental discipline supports physical goals.",
+      "energy": "Strong, stable energy when disciplined.",
+      "advice": "Take charge of your health with structure and discipline."
+    },
+    "The Hierophant": {
+      "health_meaning": "Traditional medicine or established wellness practices. Seek professional guidance. Join health communities.",
+      "korean": "전통 의학 또는 확립된 웰빙 관행. 전문적인 지도를 구하세요.",
+      "physical": "Consult healthcare professionals. Follow established protocols.",
+      "mental": "Traditional therapies or counseling may help.",
+      "energy": "Group activities and community support wellness.",
+      "advice": "Seek guidance from health professionals and established practices."
+    },
+    "The Lovers": {
+      "health_meaning": "Mind-body harmony. Health choices that align with your values. Relationship health matters.",
+      "korean": "심신의 조화. 가치관에 맞는 건강 선택. 관계 건강 문제.",
+      "physical": "Choose health practices that feel right for YOU.",
+      "mental": "Align thoughts and actions for mental peace.",
+      "energy": "Balance between giving and receiving energy.",
+      "advice": "Choose health practices that align with your deepest values."
+    },
+    "The Chariot": {
+      "health_meaning": "Willpower drives health success. Overcome health challenges through determination. Mind conquers body.",
+      "korean": "의지력이 건강 성공을 이끕니다. 결단력으로 건강 문제를 극복하세요.",
+      "physical": "Push through physical challenges with determination.",
+      "mental": "Mental strength overcomes obstacles.",
+      "energy": "High drive. Channel energy productively.",
+      "advice": "Your willpower is your greatest health asset. Use it."
+    },
+    "Strength": {
+      "health_meaning": "Gentle, patient approach to health. Inner strength supports healing. Tame unhealthy habits with love, not force.",
+      "korean": "건강에 대한 부드럽고 인내심 있는 접근. 내면의 힘이 치유를 지원합니다.",
+      "physical": "Patient, consistent effort brings results. Gentle movement.",
+      "mental": "Calm, compassionate approach to mental health.",
+      "energy": "Steady, sustainable energy through self-care.",
+      "advice": "Heal with patience and self-compassion, not force."
+    },
+    "The Hermit": {
+      "health_meaning": "Solitude supports healing. Rest and reflection needed. Inner wisdom guides health choices.",
+      "korean": "고독이 치유를 지원합니다. 휴식과 성찰이 필요합니다.",
+      "physical": "Rest and recovery time needed. Slow down.",
+      "mental": "Introspection supports mental health. Quiet time heals.",
+      "energy": "Conserve energy. Recharge in solitude.",
+      "advice": "Sometimes healing requires stepping back and going inward."
+    },
+    "Wheel of Fortune": {
+      "health_meaning": "Health cycles are changing. What goes down will come up. Adapt to health changes.",
+      "korean": "건강 순환이 바뀌고 있습니다. 내려간 것은 올라갈 것입니다.",
+      "physical": "Health fluctuations are natural. Adapt to cycles.",
+      "mental": "Mental state shifts. This too shall pass.",
+      "energy": "Energy cycles. Flow with natural rhythms.",
+      "advice": "Health cycles. Trust that difficult phases will pass."
+    },
+    "Justice": {
+      "health_meaning": "Cause and effect in health. Past choices affect current wellness. Balance is needed.",
+      "korean": "건강에서의 원인과 결과. 과거 선택이 현재 웰빙에 영향을 미칩니다.",
+      "physical": "Body responds to how you treat it. Fair exchange.",
+      "mental": "Mental balance through right thinking and action.",
+      "energy": "Balance energy expenditure and recovery.",
+      "advice": "Your body responds to how you treat it. Choose wisely."
+    },
+    "The Hanged Man": {
+      "health_meaning": "Pause for health. See wellness from new perspective. Surrender to healing process.",
+      "korean": "건강을 위한 일시정지. 새로운 관점에서 웰빙을 보세요.",
+      "physical": "Forced rest may be needed. Surrender to body's needs.",
+      "mental": "New perspective on mental health. Let go of old views.",
+      "energy": "Energy in suspension. Wait for renewal.",
+      "advice": "Sometimes healing requires surrender, not action."
+    },
+    "Death": {
+      "health_meaning": "End of unhealthy patterns. Health transformation. Let go of what harms you.",
+      "korean": "건강하지 못한 패턴의 끝. 건강 변화. 해로운 것을 놓아주세요.",
+      "physical": "End unhealthy habits. Body transforms and renews.",
+      "mental": "Release old mental patterns that harm health.",
+      "energy": "Old energy patterns die. New vitality emerges.",
+      "advice": "Let unhealthy patterns die. Your health can be reborn."
+    },
+    "Temperance": {
+      "health_meaning": "Balance and moderation heal. Integrate different health approaches. Patience in recovery.",
+      "korean": "균형과 절제가 치유합니다. 다양한 건강 접근 방식을 통합하세요.",
+      "physical": "Moderation in all things. Balanced nutrition and exercise.",
+      "mental": "Emotional balance supports health. Integrate all aspects.",
+      "energy": "Steady, balanced energy through moderation.",
+      "advice": "Healing comes through balance, moderation, and integration."
+    },
+    "The Devil": {
+      "health_meaning": "Examine health addictions and bondage. Unhealthy attachments harm wellness. Break free.",
+      "korean": "건강 중독과 속박을 검토하세요. 건강하지 못한 집착이 웰빙을 해칩니다.",
+      "physical": "Address addictions - food, substances, behaviors.",
+      "mental": "Examine mental patterns that trap you in poor health.",
+      "energy": "Energy drained by unhealthy attachments.",
+      "advice": "Name what chains you to poor health. Freedom is possible."
+    },
+    "The Tower": {
+      "health_meaning": "Sudden health changes or revelations. Health crisis leads to awakening. Breakdown before breakthrough.",
+      "korean": "갑작스러운 건강 변화 또는 발견. 건강 위기가 각성으로 이어집니다.",
+      "physical": "Sudden physical changes or symptoms. Wake-up call.",
+      "mental": "Mental health crisis may precede transformation.",
+      "energy": "Energy disruption. Rebuild from ground up.",
+      "advice": "Health crises can be catalysts for profound positive change."
+    },
+    "The Star": {
+      "health_meaning": "Healing and hope. Recovery after illness. Body and spirit renew. Light returns.",
+      "korean": "치유와 희망. 질병 후 회복. 몸과 정신이 새로워집니다.",
+      "physical": "Physical healing progresses. Recovery is underway.",
+      "mental": "Mental peace and hope return.",
+      "energy": "Energy renews. Vitality returns.",
+      "advice": "Keep hope alive. Healing is happening, even when you can't see it."
+    },
+    "The Moon": {
+      "health_meaning": "Hidden health issues. Trust body intuition. Mental health and subconscious patterns.",
+      "korean": "숨겨진 건강 문제. 몸의 직감을 신뢰하세요. 정신 건강과 잠재의식 패턴.",
+      "physical": "Get symptoms checked. Hidden issues may exist.",
+      "mental": "Address anxiety, depression, or subconscious patterns.",
+      "energy": "Energy fluctuates with emotional tides.",
+      "advice": "Trust your body's signals, even when they're subtle."
+    },
+    "The Sun": {
+      "health_meaning": "Vitality and joy. Health thrives. Energy radiates. Celebrate wellbeing.",
+      "korean": "활력과 기쁨. 건강이 번창합니다. 에너지가 발산됩니다.",
+      "physical": "Physical health at a high point. Vitality shines.",
+      "mental": "Mental clarity and joy. Positive outlook.",
+      "energy": "Abundant, radiant energy.",
+      "advice": "Embrace and celebrate your health. Joy itself is medicine."
+    },
+    "Judgement": {
+      "health_meaning": "Health awakening. Answer the call to better wellness. Review past health choices.",
+      "korean": "건강 각성. 더 나은 웰빙에 대한 부름에 응답하세요.",
+      "physical": "Body calls for change. Answer with action.",
+      "mental": "Mental health awakening. Rise to a new level.",
+      "energy": "Energy resurrection. Renewed vitality.",
+      "advice": "Answer the call to transform your health. Rise."
+    },
+    "The World": {
+      "health_meaning": "Health wholeness and completion. Integrated wellness. Body, mind, spirit in harmony.",
+      "korean": "건강의 완전함과 완성. 통합된 웰빙. 몸, 마음, 정신의 조화.",
+      "physical": "Physical health goals achieved. Wholeness.",
+      "mental": "Mental peace and integration.",
+      "energy": "Complete, balanced energy. Full vitality.",
+      "advice": "You can achieve complete wellness. Wholeness is your birthright."
+    }
+  },
+  "body_systems": {
+    "wands_fire": "Nervous system, inflammation, energy levels, fever, blood",
+    "cups_water": "Emotions, lymphatic system, kidneys, reproductive, hydration",
+    "swords_air": "Lungs, breathing, nervous system, headaches, mental health",
+    "pentacles_earth": "Bones, muscles, skin, digestion, physical body, weight"
+  }
+}

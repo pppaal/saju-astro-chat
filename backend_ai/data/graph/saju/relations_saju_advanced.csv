@@ -1,0 +1,45 @@
+id,source,target,relation_type,weight,description
+adv-001,STR_신강,YS_용신,needs_balancing,0.9,신강한 사주는 설기나 극하는 오행이 용신이 됨
+adv-002,STR_극신강,YS_용신,needs_balancing,1.0,극신강 사주는 반드시 설기가 필요함
+adv-003,STR_신약,YS_용신,needs_support,0.9,신약한 사주는 생조하는 오행이 용신이 됨
+adv-004,STR_극신약,YS_용신,needs_support,1.0,극신약 사주는 반드시 인성이나 비겁이 필요함
+adv-005,STR_중화,YS_용신,minor_adjustment,0.5,중화 사주는 부족한 오행을 보충
+adv-006,STR_신강,SS_식신,favorable,0.8,신강 사주에게 식신은 좋은 설기
+adv-007,STR_신강,SS_상관,favorable,0.7,신강 사주에게 상관은 강한 설기
+adv-008,STR_신강,SS_편재,favorable,0.8,신강 사주에게 편재는 재물 추구에 유리
+adv-009,STR_신강,SS_정재,favorable,0.8,신강 사주에게 정재는 안정적 재물운
+adv-010,STR_신강,SS_편관,favorable,0.6,신강 사주에게 편관은 극제로 성장
+adv-011,STR_신강,SS_정관,favorable,0.7,신강 사주에게 정관은 명예와 출세
+adv-012,STR_신약,SS_편인,favorable,0.8,신약 사주에게 편인은 창의적 생조
+adv-013,STR_신약,SS_정인,favorable,0.9,신약 사주에게 정인은 안정적 생조
+adv-014,STR_신약,SS_비견,favorable,0.7,신약 사주에게 비견은 힘의 보충
+adv-015,STR_신약,SS_겁재,favorable,0.6,신약 사주에게 겁재는 경쟁적 힘 보충
+adv-016,GK_정관격,STR_신강,interpretation,0.8,정관격이 신강하면 관직운이 좋음
+adv-017,GK_정관격,STR_신약,interpretation,0.6,정관격이 신약하면 관의 압박을 받음
+adv-018,GK_편관격,STR_신강,interpretation,0.9,편관격이 신강하면 권력과 성취
+adv-019,GK_편관격,STR_신약,interpretation,0.4,편관격이 신약하면 위기와 도전
+adv-020,GK_정재격,STR_신강,interpretation,0.8,정재격이 신강하면 재물운이 좋음
+adv-021,GK_정재격,STR_신약,interpretation,0.5,정재격이 신약하면 재물에 압박
+adv-022,GK_편재격,STR_신강,interpretation,0.9,편재격이 신강하면 투자/사업운 좋음
+adv-023,GK_편재격,STR_신약,interpretation,0.4,편재격이 신약하면 재물 손실 주의
+adv-024,GK_정인격,STR_신강,interpretation,0.6,정인격이 신강하면 학문/지식 발전
+adv-025,GK_정인격,STR_신약,interpretation,0.8,정인격이 신약하면 인성이 용신
+adv-026,GK_편인격,STR_신강,interpretation,0.5,편인격이 신강하면 예술적 성취
+adv-027,GK_편인격,STR_신약,interpretation,0.7,편인격이 신약하면 창의력 필요
+adv-028,GK_식신격,STR_신강,interpretation,0.9,식신격이 신강하면 창작/생산 발휘
+adv-029,GK_식신격,STR_신약,interpretation,0.4,식신격이 신약하면 설기 조절 필요
+adv-030,GK_상관격,STR_신강,interpretation,0.8,상관격이 신강하면 표현력 발휘
+adv-031,GK_상관격,STR_신약,interpretation,0.3,상관격이 신약하면 건강 주의
+adv-032,GK_건록격,STR_신강,interpretation,0.9,건록격이 신강하면 자수성가
+adv-033,GK_양인격,STR_신강,interpretation,0.8,양인격이 신강하면 강한 추진력
+adv-034,GK_종왕격,EL_목,yongsin_follows,0.9,종왕격은 일간 오행을 따름 (GK_종왕격?EL_목 yongsin_follows)
+adv-035,GK_종왕격,EL_화,yongsin_follows,0.9,종왕격은 일간 오행을 따름 (GK_종왕격?EL_화 yongsin_follows)
+adv-036,GK_종왕격,EL_토,yongsin_follows,0.9,종왕격은 일간 오행을 따름 (GK_종왕격?EL_토 yongsin_follows)
+adv-037,GK_종왕격,EL_금,yongsin_follows,0.9,종왕격은 일간 오행을 따름 (GK_종왕격?EL_금 yongsin_follows)
+adv-038,GK_종왕격,EL_수,yongsin_follows,0.9,종왕격은 일간 오행을 따름 (GK_종왕격?EL_수 yongsin_follows)
+adv-039,GK_종재격,SS_편재,yongsin_follows,0.9,종재격은 재성을 따름 (GK_종재격?SS_편재 yongsin_follows)
+adv-040,GK_종재격,SS_정재,yongsin_follows,0.9,종재격은 재성을 따름 (GK_종재격?SS_정재 yongsin_follows)
+adv-041,GK_종살격,SS_편관,yongsin_follows,0.9,종살격은 관성을 따름 (GK_종살격?SS_편관 yongsin_follows)
+adv-042,GK_종살격,SS_정관,yongsin_follows,0.9,종살격은 관성을 따름 (GK_종살격?SS_정관 yongsin_follows)
+adv-043,GK_종아격,SS_식신,yongsin_follows,0.9,종아격은 식상을 따름 (GK_종아격?SS_식신 yongsin_follows)
+adv-044,GK_종아격,SS_상관,yongsin_follows,0.9,종아격은 식상을 따름 (GK_종아격?SS_상관 yongsin_follows)

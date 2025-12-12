@@ -1,0 +1,58 @@
+[
+  {"id": 64, "name": "Ace of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["New opportunity", "Prosperity", "Manifestation", "Abundance", "A new job"], "meaning": "A new opportunity for prosperity and abundance has arrived. This is a seed of manifestation that can grow into tangible success.", "advice": "Seize this opportunity. Plant the seed of prosperity now."},
+    "reversed": {"keywords": ["Lost opportunity", "Lack of planning", "Greed", "Financial instability", "Poor investment"], "meaning": "You may have missed a financial opportunity due to poor planning. Greed or a lack of foresight can lead to instability.", "advice": "Don't let greed blind you. Plan carefully for stability."}
+  },
+  {"id": 65, "name": "Two of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Balancing", "Adaptability", "Time management", "Prioritizing", "Juggling"], "meaning": "You are successfully juggling multiple priorities. This card represents the need for balance and adaptability in managing your time and resources.", "advice": "Keep juggling skillfully. Adaptability is your strength."},
+    "reversed": {"keywords": ["Overwhelmed", "Poor financial decisions", "Disorganization", "Losing balance", "Struggling"], "meaning": "You are feeling overwhelmed and struggling to keep everything in balance. Disorganization is leading to poor financial decisions.", "advice": "Prioritize ruthlessly. You can't do everything at once."}
+  },
+  {"id": 66, "name": "Three of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Teamwork", "Collaboration", "Learning", "Implementation", "Skill"], "meaning": "This card represents successful collaboration and teamwork. By combining your unique skills, you are creating something of high quality.", "advice": "Collaborate with others. Teamwork elevates your work."},
+    "reversed": {"keywords": ["Lack of teamwork", "Disharmony", "Poor quality work", "Competition", "Lack of skill"], "meaning": "A lack of teamwork or communication is leading to poor results. Competition among team members is creating disharmony.", "advice": "Improve team communication. Competition hurts collaboration."}
+  },
+  {"id": 67, "name": "Four of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Saving money", "Security", "Control", "Conservation", "Possessiveness"], "meaning": "You are holding on tightly to your possessions and security. While this brings stability, be careful not to become overly controlling or miserly.", "advice": "Save wisely but don't hoard. Security shouldn't become a prison."},
+    "reversed": {"keywords": ["Greed", "Materialism", "Letting go", "Generosity", "Financial loss"], "meaning": "You are either letting go of your attachment to material things or, conversely, acting with extreme greed. It can also signify an unexpected financial loss.", "advice": "Find balance between saving and generosity."}
+  },
+  {"id": 68, "name": "Five of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Financial loss", "Poverty", "Hard times", "Isolation", "Feeling left out"], "meaning": "You are going through a period of financial hardship and feeling isolated. Remember that help is often available, even if you don't see it at first.", "advice": "Seek help. You don't have to struggle alone."},
+    "reversed": {"keywords": ["Recovery", "Finding help", "Improved finances", "Hope", "End of hardship"], "meaning": "You are beginning to recover from a period of hardship. New opportunities or help from others is leading to financial improvement.", "advice": "Accept help graciously. Recovery is underway."}
+  },
+  {"id": 69, "name": "Six of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Generosity", "Charity", "Giving and receiving", "Sharing wealth", "Balance"], "meaning": "This card represents a cycle of giving and receiving. It signifies generosity, charity, and finding a healthy balance in your financial life.", "advice": "Give generously. The flow of giving and receiving benefits all."},
+    "reversed": {"keywords": ["Debt", "Selfishness", "One-sided charity", "Strings attached", "Abuse of generosity"], "meaning": "There is an imbalance in giving and receiving. Be wary of taking on debt or being taken advantage of for your generosity.", "advice": "Beware strings attached. Give without expectation."}
+  },
+  {"id": 70, "name": "Seven of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Patience", "Long-term view", "Sustainable results", "Investment", "Perseverance"], "meaning": "You have worked hard and planted your seeds. Now is a time for patience, to wait for your investments to grow. Assess your progress and plan for the long term.", "advice": "Be patient. Your investments will grow with time."},
+    "reversed": {"keywords": ["Impatience", "Lack of long-term vision", "Unwise investment", "Wasted effort", "Frustration"], "meaning": "You are feeling impatient with a lack of immediate results. Wasted effort on an unwise investment may be causing frustration.", "advice": "Reassess your investments. Is patience or pivot needed?"}
+  },
+  {"id": 71, "name": "Eight of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Apprenticeship", "Mastery", "Skill development", "Diligence", "Detail-oriented work"], "meaning": "You are dedicated to mastering your craft. Through diligent work and attention to detail, you are developing your skills and becoming an expert.", "advice": "Keep refining your skills. Mastery comes through practice."},
+    "reversed": {"keywords": ["Perfectionism", "Lack of ambition", "Mediocrity", "Repetitive work", "Lack of focus"], "meaning": "You may be stuck in perfectionism or, conversely, have a lack of ambition leading to mediocre work. A lack of focus is hindering your skill development.", "advice": "Balance perfectionism with progress. Don't settle for mediocrity."}
+  },
+  {"id": 72, "name": "Nine of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Abundance", "Luxury", "Self-sufficiency", "Financial independence", "Enjoying success"], "meaning": "You have achieved financial independence and can now enjoy the fruits of your labor. This card represents luxury, self-sufficiency, and well-deserved success.", "advice": "Enjoy your success. You've earned this abundance."},
+    "reversed": {"keywords": ["Financial dependency", "Superficiality", "Over-spending", "Living beyond means", "Hustling"], "meaning": "You may be living beyond your means or are financially dependent on others. Be wary of reckless spending or focusing only on superficial gains.", "advice": "Live within your means. True abundance is sustainable."}
+  },
+  {"id": 73, "name": "Ten of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Wealth", "Family", "Legacy", "Inheritance", "Long-term security"], "meaning": "This card represents the culmination of long-term success, often in the form of family wealth and a lasting legacy. It signifies stability and abundance for generations.", "advice": "Build a lasting legacy. Think generationally."},
+    "reversed": {"keywords": ["Family disputes", "Financial failure", "Loss of inheritance", "Instability", "Breaking tradition"], "meaning": "There may be disputes over family finances or inheritance. A sudden loss or financial failure is causing instability and breaking from tradition.", "advice": "Resolve family financial conflicts. Protect your legacy."}
+  },
+  {"id": 74, "name": "Page of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["New opportunity", "Manifestation", "Diligence", "Learning", "A student"], "meaning": "A new opportunity to manifest your goals in the material world is here. Approach it with the diligence of a student, eager to learn and build something tangible.", "advice": "Approach opportunities with eagerness to learn."},
+    "reversed": {"keywords": ["Lack of progress", "Procrastination", "Laziness", "Missed opportunity", "Poor planning"], "meaning": "Procrastination or a lack of planning is causing you to miss opportunities. You may be feeling lazy or unmotivated to put in the work.", "advice": "Stop procrastinating. Take practical action now."}
+  },
+  {"id": 75, "name": "Knight of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Hard work", "Responsibility", "Routine", "Diligence", "Methodical"], "meaning": "This card represents a diligent and methodical approach to achieving your goals. Through hard work and routine, you are making steady progress.", "advice": "Stay steady and methodical. Consistency brings results."},
+    "reversed": {"keywords": ["Boredom", "Stagnation", "Perfectionism", "Unadventurous", "Feeling stuck"], "meaning": "You are feeling bored or stuck in a monotonous routine. Perfectionism may be causing you to get bogged down in details and lose momentum.", "advice": "Break the monotony. Don't let perfectionism stop progress."}
+  },
+  {"id": 76, "name": "Queen of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Nurturing", "Practical", "Down-to-earth", "Financial security", "A working parent"], "meaning": "This card represents a nurturing and practical person who provides a secure and comfortable environment. You are skilled at managing both your home and your work.", "advice": "Balance home and work wisely. Nurture while staying practical."},
+    "reversed": {"keywords": ["Financial insecurity", "Smothering", "Work-life imbalance", "Materialistic", "Self-care issues"], "meaning": "You may be struggling with a work-life imbalance or feeling financially insecure. Be careful not to become overly materialistic or neglect your own self-care.", "advice": "Prioritize self-care. Address work-life imbalance."}
+  },
+  {"id": 77, "name": "King of Pentacles", "arcana": "minor", "suit": "pentacles",
+    "upright": {"keywords": ["Wealth", "Business", "Leadership", "Security", "Success"], "meaning": "This card represents an ambitious and successful leader who has mastered the material world. You have achieved wealth and security through your business acumen.", "advice": "Lead with business wisdom. Your success is well-earned."},
+    "reversed": {"keywords": ["Greed", "Materialistic", "Stubborn", "Overly cautious", "Ruthless"], "meaning": "You may be dealing with someone who is overly materialistic and stubborn. Greed and a ruthless focus on the bottom line can lead to poor leadership.", "advice": "Don't let greed corrupt your leadership. Balance profit with ethics."}
+  }
+]

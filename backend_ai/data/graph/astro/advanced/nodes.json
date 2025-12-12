@@ -1,0 +1,192 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "advanced/nodes",
+  "$count": 24,
+  "$description": "달의 노드 (노스노드/사우스노드) 축별 심층 해석",
+  "$note": "6개의 노드 축 × 상세 해석",
+  "node_basics": {
+    "NorthNode": {
+      "name_ko": "노스노드 (용의 머리, 라후)",
+      "meaning": "영혼의 성장 방향, 이번 생의 목적",
+      "energy": "불편하지만 성장하는 방향",
+      "approach": "의식적 노력이 필요한 영역"
+    },
+    "SouthNode": {
+      "name_ko": "사우스노드 (용의 꼬리, 케투)",
+      "meaning": "전생의 재능, 익숙한 패턴",
+      "energy": "편안하지만 정체하는 방향",
+      "approach": "자연스럽지만 집착하면 안 되는 영역"
+    },
+    "node_axis": {
+      "meaning": "두 노드는 항상 대립, 하나의 축으로 작용",
+      "interpretation": "과거에서 미래로의 성장 방향"
+    }
+  },
+  "Aries_Libra_axis": {
+    "NorthNode_in_Aries": {
+      "soul_purpose": "자기 주장, 독립성, 용기 개발",
+      "past_life": "관계 의존, 타인 배려 과잉, 우유부단",
+      "growth_direction": "자신을 먼저 생각하기, 리더십",
+      "comfort_zone_trap": "타인 눈치 보기, 갈등 회피",
+      "life_lessons": [
+        "자기 욕구 인식하고 표현하기",
+        "혼자 결정하는 용기",
+        "갈등을 두려워하지 않기",
+        "리더십 발휘하기"
+      ],
+      "career_direction": "독립적 사업, 리더십 역할, 개척 분야",
+      "relationship_lesson": "관계에서 자기 정체성 유지"
+    },
+    "SouthNode_in_Libra": {
+      "past_talents": "관계 조화, 외교, 공정성, 협력",
+      "karmic_baggage": "지나친 타협, 자기 상실, 의존성",
+      "trap": "평화를 위해 자기 희생",
+      "release": "타인 승인 없이도 괜찮다는 것 배우기",
+      "gifts_to_keep": "공정함, 타인 이해, 협력 능력"
+    }
+  },
+  "Taurus_Scorpio_axis": {
+    "NorthNode_in_Taurus": {
+      "soul_purpose": "안정, 단순함, 자기 가치 개발",
+      "past_life": "위기와 변화 속 생존, 깊은 변형, 권력 투쟁",
+      "growth_direction": "평화와 안정 수용, 물질적 안전",
+      "comfort_zone_trap": "위기 만들기, 드라마 중독",
+      "life_lessons": [
+        "단순함과 평화의 가치 발견",
+        "자기 가치 인정하기",
+        "안정적인 삶 구축하기",
+        "감각적 즐거움 허용하기"
+      ],
+      "career_direction": "안정적 직업, 예술, 재정 관리",
+      "relationship_lesson": "믿음과 안정 구축"
+    },
+    "SouthNode_in_Scorpio": {
+      "past_talents": "위기 대처, 변형, 심리적 통찰, 권력",
+      "karmic_baggage": "통제욕, 집착, 권력 투쟁, 불신",
+      "trap": "모든 것을 깊고 복잡하게 만들기",
+      "release": "통제 내려놓기, 단순함 수용",
+      "gifts_to_keep": "변형 능력, 깊은 통찰력"
+    }
+  },
+  "Gemini_Sagittarius_axis": {
+    "NorthNode_in_Gemini": {
+      "soul_purpose": "호기심, 소통, 열린 마음 개발",
+      "past_life": "독단적 신념, 설교, 절대적 진리 주장",
+      "growth_direction": "질문하기, 다양한 관점 듣기",
+      "comfort_zone_trap": "내가 옳다고 믿기, 가르치기만 하기",
+      "life_lessons": [
+        "듣기와 배우기",
+        "다양한 관점 수용하기",
+        "호기심으로 세상 탐구하기",
+        "지역 커뮤니티와 연결하기"
+      ],
+      "career_direction": "소통, 미디어, 교육, 네트워킹",
+      "relationship_lesson": "듣기와 대화의 균형"
+    },
+    "SouthNode_in_Sagittarius": {
+      "past_talents": "철학, 교육, 해외 경험, 비전",
+      "karmic_baggage": "독선, 과장, 설교, 세부사항 무시",
+      "trap": "큰 그림만 보고 세부사항 무시",
+      "release": "모든 답을 알고 있다는 환상 내려놓기",
+      "gifts_to_keep": "넓은 시야, 철학적 지혜"
+    }
+  },
+  "Cancer_Capricorn_axis": {
+    "NorthNode_in_Cancer": {
+      "soul_purpose": "감정, 양육, 가정, 취약성 개발",
+      "past_life": "성취와 야망, 냉담한 권위, 일중독",
+      "growth_direction": "감정 표현, 가정 구축, 돌봄",
+      "comfort_zone_trap": "일과 성취에만 집중",
+      "life_lessons": [
+        "감정의 가치 인정하기",
+        "취약해질 용기",
+        "가정과 가족 우선하기",
+        "돌봄 받기"
+      ],
+      "career_direction": "가정 관련, 양육, 요식업, 부동산",
+      "relationship_lesson": "감정적 친밀감 허용"
+    },
+    "SouthNode_in_Capricorn": {
+      "past_talents": "권위, 성취, 구조, 규율, 리더십",
+      "karmic_baggage": "냉담함, 일중독, 감정 억압",
+      "trap": "성공과 인정으로 가치 측정",
+      "release": "성취로 자기 가치 증명 필요성 내려놓기",
+      "gifts_to_keep": "책임감, 리더십, 구조화 능력"
+    }
+  },
+  "Leo_Aquarius_axis": {
+    "NorthNode_in_Leo": {
+      "soul_purpose": "자기 표현, 창조성, 인정 수용 개발",
+      "past_life": "그룹에 숨음, 개인성 포기, 분리",
+      "growth_direction": "무대 중심에 서기, 창조하기, 빛나기",
+      "comfort_zone_trap": "그룹에 녹아들어 개성 숨기기",
+      "life_lessons": [
+        "자신을 특별하게 여기기",
+        "창조적 자기 표현",
+        "인정받는 것 허용하기",
+        "진정한 자아 표현하기"
+      ],
+      "career_direction": "엔터테인먼트, 예술, 리더십, 교육",
+      "relationship_lesson": "주목받는 것 허용, 진정한 자아 표현"
+    },
+    "SouthNode_in_Aquarius": {
+      "past_talents": "그룹 역학, 혁신, 인도주의, 독립성",
+      "karmic_baggage": "감정적 분리, 차가움, 개인성 거부",
+      "trap": "그룹에만 속하고 개인으로 빛나지 않기",
+      "release": "다르기 위해 분리될 필요성 내려놓기",
+      "gifts_to_keep": "혁신, 집단 이해, 우정"
+    }
+  },
+  "Virgo_Pisces_axis": {
+    "NorthNode_in_Virgo": {
+      "soul_purpose": "봉사, 세부사항, 실용성, 건강 개발",
+      "past_life": "영적 도피, 희생자 의식, 경계 부족",
+      "growth_direction": "실용적 봉사, 건강 관리, 세부사항 주의",
+      "comfort_zone_trap": "환상과 도피, 희생자 역할",
+      "life_lessons": [
+        "현실에 발 딛기",
+        "일상적 봉사의 가치",
+        "건강한 경계 설정",
+        "분석적 사고 개발"
+      ],
+      "career_direction": "건강, 봉사, 분석, 품질 관리",
+      "relationship_lesson": "실용적 도움, 건강한 경계"
+    },
+    "SouthNode_in_Pisces": {
+      "past_talents": "영성, 직관, 연민, 예술, 치유",
+      "karmic_baggage": "도피, 경계 부족, 희생자 의식, 중독",
+      "trap": "현실에서 도피, 구원자 찾기",
+      "release": "영적 도피와 희생자 역할 내려놓기",
+      "gifts_to_keep": "직관, 연민, 영적 연결"
+    }
+  },
+  "nodes_in_houses": {
+    "interpretation": "노드의 하우스 위치도 중요한 의미",
+    "example": {
+      "NN_1st_SN_7th": "자아 개발 vs 관계 의존",
+      "NN_2nd_SN_8th": "자기 자원 vs 공동 자원",
+      "NN_3rd_SN_9th": "지역 소통 vs 해외/철학",
+      "NN_4th_SN_10th": "가정 vs 커리어",
+      "NN_5th_SN_11th": "창조/연애 vs 그룹/친구",
+      "NN_6th_SN_12th": "일상 봉사 vs 영적 도피"
+    }
+  },
+  "node_aspects": {
+    "conjunctions": {
+      "planet_conjunct_NN": "그 행성 에너지가 성장 방향과 연결",
+      "planet_conjunct_SN": "그 행성 에너지가 과거 패턴과 연결"
+    },
+    "squares": {
+      "planet_square_nodes": "스킵 스텝 (Skipped Step)",
+      "meaning": "과거 생에서 해결하지 못한 문제",
+      "interpretation": "이 행성 에너지가 노드 축 성장의 장애물/촉매"
+    }
+  },
+  "node_return": {
+    "cycle": "약 18.6년마다",
+    "ages": "0, 18-19, 37-38, 56-57, 75-76세",
+    "meaning": "영혼의 목적 재확인, 삶의 방향 조정",
+    "opposite_node_return": "약 9, 28, 47, 65세 - 과거 패턴 검토",
+    "description": "node_return: 영혼의 목적 재확인, 삶의 방향 조정"
+  }
+}

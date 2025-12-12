@@ -1,0 +1,79 @@
+{
+  "concept": "hero",
+  "concept_kr": "영웅",
+  "description": "The Hero archetype represents the ego's journey of transformation, facing trials and achieving self-realization",
+  "quotes": [
+    {
+      "id": "hero_001",
+      "en": "The hero's main feat is to overcome the monster of darkness: it is the long-hoped-for and expected triumph of consciousness over the unconscious.",
+      "kr": "영웅의 주요 업적은 어둠의 괴물을 물리치는 것이다. 그것은 무의식에 대한 의식의 오랫동안 바라고 기대했던 승리다.",
+      "source": "Symbols of Transformation",
+      "year": 1952,
+      "cw_volume": "CW 5",
+      "tags": ["hero", "consciousness", "transformation", "monster"]
+    },
+    {
+      "id": "hero_002",
+      "en": "The hero is the ideal masculine type: leaving the mother, the source of life, behind him, he is driven by an unconscious desire to find her again, to return to her womb.",
+      "kr": "영웅은 이상적인 남성 유형이다. 생명의 원천인 어머니를 뒤로 하고 떠나지만, 그녀를 다시 찾고 그녀의 자궁으로 돌아가려는 무의식적 욕망에 이끌린다.",
+      "source": "Symbols of Transformation",
+      "year": 1952,
+      "cw_volume": "CW 5",
+      "tags": ["hero", "mother", "return", "transformation"]
+    },
+    {
+      "id": "hero_003",
+      "en": "The hero symbolizes a man's unconscious self, and this manifests itself empirically as the sum total of all archetypes.",
+      "kr": "영웅은 인간의 무의식적 자기(Self)를 상징하며, 이것은 경험적으로 모든 원형의 총합으로 나타난다.",
+      "source": "The Archetypes and the Collective Unconscious",
+      "year": 1959,
+      "cw_volume": "CW 9i",
+      "tags": ["hero", "self", "archetypes", "symbol"]
+    },
+    {
+      "id": "hero_004",
+      "en": "The hero journey is always down into the unconscious, and what the hero brings back is the boon for the society.",
+      "kr": "영웅의 여정은 항상 무의식으로 내려가는 것이며, 영웅이 가져오는 것은 사회를 위한 선물이다.",
+      "source": "Psychology and Religion",
+      "year": 1938,
+      "cw_volume": "CW 11",
+      "tags": ["hero", "journey", "unconscious", "boon"]
+    },
+    {
+      "id": "hero_005",
+      "en": "The hero's birth and resurrection are the eternal cosmic events, which happen in the human soul as the death of the old and the birth of the new attitude.",
+      "kr": "영웅의 탄생과 부활은 영원한 우주적 사건이며, 이것은 인간 영혼에서 옛 태도의 죽음과 새로운 태도의 탄생으로 일어난다.",
+      "source": "Symbols of Transformation",
+      "year": 1952,
+      "cw_volume": "CW 5",
+      "tags": ["hero", "rebirth", "transformation", "cosmic"]
+    },
+    {
+      "id": "hero_006",
+      "en": "There is no coming to consciousness without pain. People will do anything, no matter how absurd, in order to avoid facing their own soul.",
+      "kr": "고통 없이는 의식으로 오는 것이 없다. 사람들은 자신의 영혼을 직면하는 것을 피하기 위해 아무리 터무니없는 일이라도 할 것이다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "tags": ["hero", "consciousness", "pain", "soul"]
+    },
+    {
+      "id": "hero_007",
+      "en": "The hero must encounter his shadow and integrate it, for it contains the very energies needed for his transformation.",
+      "kr": "영웅은 자신의 그림자를 만나 통합해야 한다. 그것이 변환에 필요한 바로 그 에너지를 담고 있기 때문이다.",
+      "source": "The Archetypes and the Collective Unconscious",
+      "year": 1959,
+      "cw_volume": "CW 9i",
+      "tags": ["hero", "shadow", "integration", "energy"]
+    },
+    {
+      "id": "hero_008",
+      "en": "The call to adventure signifies that destiny has summoned the hero and transferred his spiritual center of gravity from within the pale of society to a zone unknown.",
+      "kr": "모험의 부름은 운명이 영웅을 소환하여 그의 영적 중심을 사회의 울타리 안에서 미지의 영역으로 옮겼음을 의미한다.",
+      "source": "Symbols of Transformation",
+      "year": 1952,
+      "cw_volume": "CW 5",
+      "tags": ["hero", "adventure", "destiny", "unknown"]
+    }
+  ]
+}

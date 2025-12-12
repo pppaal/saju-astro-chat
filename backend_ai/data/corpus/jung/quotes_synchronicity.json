@@ -1,0 +1,127 @@
+{
+  "concept": "synchronicity",
+  "concept_kr": "동시성",
+  "description": "Jung's concept of meaningful coincidences - acausal connections between inner and outer events",
+  "quotes": [
+    {
+      "id": "sync_001",
+      "en": "Synchronicity is the coming together of inner and outer events in a way that cannot be explained by cause and effect and that is meaningful to the observer.",
+      "kr": "동시성은 인과 관계로 설명할 수 없으면서 관찰자에게 의미 있는 방식으로 내면과 외부 사건이 함께 일어나는 것이다.",
+      "source": "Synchronicity: An Acausal Connecting Principle",
+      "year": 1952,
+      "cw_volume": "CW 8",
+      "context": "Definition of synchronicity",
+      "tags": ["synchronicity", "meaning", "coincidence", "acausal"]
+    },
+    {
+      "id": "sync_002",
+      "en": "I am not superstitious but I am synchronistic.",
+      "kr": "나는 미신적이지 않지만 동시성적이다.",
+      "source": "Letters",
+      "year": 1949,
+      "cw_volume": "Letters",
+      "context": "On the distinction between superstition and synchronicity",
+      "tags": ["synchronicity", "superstition", "distinction", "meaning"]
+    },
+    {
+      "id": "sync_003",
+      "en": "Synchronicity is an ever present reality for those who have eyes to see.",
+      "kr": "동시성은 볼 눈이 있는 자들에게 항상 존재하는 현실이다.",
+      "source": "Synchronicity: An Acausal Connecting Principle",
+      "year": 1952,
+      "cw_volume": "CW 8",
+      "context": "On perceiving synchronicity",
+      "tags": ["synchronicity", "reality", "perception", "awareness"]
+    },
+    {
+      "id": "sync_004",
+      "en": "We are so captivated by and entangled in our subjective consciousness that we have forgotten the age-old fact that God speaks chiefly through dreams and visions.",
+      "kr": "우리는 주관적 의식에 너무 사로잡혀 있어서 신이 주로 꿈과 비전을 통해 말씀하신다는 오래된 사실을 잊어버렸다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On divine communication",
+      "tags": ["dreams", "visions", "God", "consciousness"]
+    },
+    {
+      "id": "sync_005",
+      "en": "The more one sees of human fate, the more one respects chance.",
+      "kr": "인간의 운명을 더 많이 볼수록, 우연을 더 존중하게 된다.",
+      "source": "Letters",
+      "year": 1951,
+      "cw_volume": "Letters",
+      "context": "On fate and chance",
+      "tags": ["fate", "chance", "respect", "observation"]
+    },
+    {
+      "id": "sync_006",
+      "en": "The meaningful coincidence can only be perceived by someone who is prepared to perceive it.",
+      "kr": "의미 있는 우연의 일치는 그것을 인식할 준비가 된 사람만이 인식할 수 있다.",
+      "source": "Synchronicity: An Acausal Connecting Principle",
+      "year": 1952,
+      "cw_volume": "CW 8",
+      "context": "On readiness for synchronicity",
+      "tags": ["synchronicity", "perception", "readiness", "meaning"]
+    },
+    {
+      "id": "sync_007",
+      "en": "What we call coincidence seems to be the chief means by which the universe expresses its intentions.",
+      "kr": "우리가 우연이라고 부르는 것이 우주가 그 의도를 표현하는 주요 수단인 것 같다.",
+      "source": "Letters",
+      "year": 1954,
+      "cw_volume": "Letters",
+      "context": "On cosmic intention",
+      "tags": ["coincidence", "universe", "intention", "expression"]
+    },
+    {
+      "id": "sync_008",
+      "en": "There is no linear evolution; there is only a circumambulation of the self.",
+      "kr": "선형적 진화란 없다; 오직 자기 주위를 도는 것만 있다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On circular nature of development",
+      "tags": ["evolution", "Self", "circumambulation", "development"]
+    },
+    {
+      "id": "sync_009",
+      "en": "The psychological rule says that when an inner situation is not made conscious, it happens outside, as fate.",
+      "kr": "심리학적 규칙은 내면의 상황이 의식화되지 않으면, 운명으로서 외부에서 일어난다고 말한다.",
+      "source": "Aion",
+      "year": 1951,
+      "cw_volume": "CW 9ii",
+      "context": "On unconscious becoming fate",
+      "tags": ["unconscious", "fate", "consciousness", "projection"]
+    },
+    {
+      "id": "sync_010",
+      "en": "Life is a luminous pause between two mysteries that are yet one.",
+      "kr": "삶은 하나인 두 신비 사이의 빛나는 정지이다.",
+      "source": "Letters",
+      "year": 1958,
+      "cw_volume": "Letters",
+      "context": "On the mystery of life",
+      "tags": ["life", "mystery", "pause", "unity"]
+    },
+    {
+      "id": "sync_011",
+      "en": "Until you make the unconscious conscious, it will direct your life and you will call it fate.",
+      "kr": "무의식을 의식화하기 전까지, 그것이 당신의 삶을 이끌 것이고 당신은 그것을 운명이라 부를 것이다.",
+      "source": "Aion",
+      "year": 1951,
+      "cw_volume": "CW 9ii",
+      "context": "On unconscious patterns and fate",
+      "tags": ["unconscious", "conscious", "fate", "life"]
+    },
+    {
+      "id": "sync_012",
+      "en": "In the history of the collective as in the history of the individual, everything depends on the development of consciousness.",
+      "kr": "개인의 역사에서와 마찬가지로 집단의 역사에서도, 모든 것은 의식의 발달에 달려 있다.",
+      "source": "The Undiscovered Self",
+      "year": 1957,
+      "cw_volume": "CW 10",
+      "context": "On the importance of consciousness development",
+      "tags": ["consciousness", "development", "collective", "individual"]
+    }
+  ]
+}

@@ -1,23 +1,19 @@
 "use client";
+
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "../policy.module.css";
 
-type Locale = "en" | "ko" | "zh" | "ar" | "es" | "fr" | "ja" | "ru";
 type Section = { title: string; body: string };
-
-function asLocale(l: string): Locale {
-  const list: Locale[] = ["en", "ko", "zh", "ar", "es", "fr", "ja", "ru"];
-  return (list as readonly string[]).includes(l) ? (l as Locale) : "en";
-}
 
 const CONTACT_EMAIL = "rheeco88@gmail.com";
 const OPERATOR = "Operator: Paul Rhee (individual)";
+const EFFECTIVE_DATE = "2025-12-12";
 
 const sections: Section[] = [
   {
     title: "1. Agreement to Terms",
-    body: "Welcome to DestinyPal. These Terms of Service ('Terms') constitute a legally binding agreement between you ('User', 'you', 'your') and Paul Rhee (individual) ('DestinyPal', 'we', 'us', 'our') governing your access to and use of our website, mobile applications, and services (collectively, the 'Service').\n\nBy accessing or using the Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, you must not access or use the Service.\n\nService Operator: Paul Rhee (individual)\nEmail: " + CONTACT_EMAIL + "\nEffective Date: 2025-01-01"
+    body: `Welcome to DestinyPal. These Terms of Service ('Terms') constitute a legally binding agreement between you ('User', 'you', 'your') and Paul Rhee (individual) ('DestinyPal', 'we', 'us', 'our') governing your access to and use of our website, mobile applications, and services (collectively, the 'Service').\n\nBy accessing or using the Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, you must not access or use the Service.\n\nService Operator: Paul Rhee (individual)\nEmail: ${CONTACT_EMAIL}\nEffective Date: ${EFFECTIVE_DATE}`
   },
   {
     title: "2. Definitions",
@@ -49,7 +45,7 @@ const sections: Section[] = [
   },
   {
     title: "9. Third-party Services and Integrations",
-    body: "Our Service integrates with third-party services including:\n\n- Stripe: Payment processing (https://stripe.com/legal)\n- Google: OAuth authentication and AdSense advertising (https://policies.google.com)\n- OpenAI: AI model for reading generation (https://openai.com/policies)\n- Supabase: Database and backend infrastructure\n\nThird-party Terms: Your use of these services is subject to their respective terms of service and privacy policies. We are not responsible for third-party services.\n\nGoogle AdSense: We display advertisements through Google AdSense. Google may use cookies and tracking technologies to serve personalized ads. You can opt out at https://www.google.com/settings/ads\n\nData Sharing: We may share necessary data with third-party processors as described in our Privacy Policy. We do not sell your personal information.\n\nExternal Links: The Service may contain links to external websites. We are not responsible for the content, accuracy, or practices of external sites."
+    body: "Our Service integrates with third-party services including:\n\n- Stripe: Payment processing (https://stripe.com/legal)\n- Google: OAuth authentication and AdSense advertising (https://policies.google.com)\n- OpenAI: AI model for reading generation (https://openai.com/policies)\n- Supabase: Database and backend infrastructure\n\nThird-party Terms: Your use of these services is subject to their respective terms of service and privacy policies. We are not responsible for third-party services.\n\nGoogle AdSense: We display advertisements through Google AdSense. Google may use cookies and tracking technologies to serve personalized ads. You can opt out at https://www.google.com/settings/ads. AdSense/Google Analytics are blocked until you provide consent via our CMP banner.\n\nAuthentication Tokens: OAuth access/refresh/id tokens from Google are revoked after login and scrubbed from storage (or encrypted in transit) and are not retained for reuse.\n\nData Sharing: We may share necessary data with third-party processors as described in our Privacy Policy. We do not sell your personal information.\n\nExternal Links: The Service may contain links to external websites. We are not responsible for the content, accuracy, or practices of external sites."
   },
   {
     title: "10. User Conduct and Community Guidelines",
@@ -61,7 +57,7 @@ const sections: Section[] = [
   },
   {
     title: "12. Termination and Account Deletion",
-    body: "Your Right to Terminate: You may delete your account at any time through account settings or by contacting " + CONTACT_EMAIL + "\n\nEffect of Termination:\n- Access to Paid Services ends immediately\n- No refunds for current billing period\n- User Content may be deleted (except as required by law)\n- Some information retained per legal obligations\n\nOur Right to Terminate: We may suspend or terminate your account immediately if:\n- You violate these Terms or applicable laws\n- You engage in fraudulent or abusive behavior\n- Required by law or legal process\n- Service is discontinued\n\nTermination Notice: We will provide advance notice when possible, except for immediate termination due to violations or legal requirements.\n\nSurvival: Sections regarding intellectual property, disclaimers, limitation of liability, and dispute resolution survive termination."
+    body: `Your Right to Terminate: You may delete your account at any time through account settings or by contacting ${CONTACT_EMAIL}\n\nEffect of Termination:\n- Access to Paid Services ends immediately\n- No refunds for current billing period\n- User Content may be deleted (except as required by law)\n- Some information retained per legal obligations\n\nOur Right to Terminate: We may suspend or terminate your account immediately if:\n- You violate these Terms or applicable laws\n- You engage in fraudulent or abusive behavior\n- Required by law or legal process\n- Service is discontinued\n\nTermination Notice: We will provide advance notice when possible, except for immediate termination due to violations or legal requirements.\n\nSurvival: Sections regarding intellectual property, disclaimers, limitation of liability, and dispute resolution survive termination.`
   },
   {
     title: "13. Modifications to Terms and Service",
@@ -69,7 +65,7 @@ const sections: Section[] = [
   },
   {
     title: "14. Dispute Resolution and Governing Law",
-    body: "Governing Law: These Terms are governed by the laws of the Republic of Korea, without regard to conflict of law principles.\n\nJurisdiction and Venue: Any disputes arising from these Terms or the Service shall be subject to the exclusive jurisdiction of the Seoul Central District Court, unless mandatory consumer protection laws specify otherwise.\n\nInformal Resolution: Before initiating formal proceedings, please contact us at " + CONTACT_EMAIL + " to attempt good-faith resolution.\n\nClass Action Waiver: To the extent permitted by law, disputes must be brought individually, not as part of class or representative actions.\n\nConsumer Protection: Nothing in these Terms limits your statutory consumer rights under mandatory local law. EU consumers may also bring disputes in their country of residence."
+    body: `Governing Law: These Terms are governed by the laws of the Republic of Korea, without regard to conflict of law principles.\n\nJurisdiction and Venue: Any disputes arising from these Terms or the Service shall be subject to the exclusive jurisdiction of the Seoul Central District Court, unless mandatory consumer protection laws specify otherwise.\n\nInformal Resolution: Before initiating formal proceedings, please contact us at ${CONTACT_EMAIL} to attempt good-faith resolution.\n\nClass Action Waiver: To the extent permitted by law, disputes must be brought individually, not as part of class or representative actions.\n\nConsumer Protection: Nothing in these Terms limits your statutory consumer rights under mandatory local law. EU consumers may also bring disputes in their country of residence.`
   },
   {
     title: "15. Indemnification",
@@ -77,31 +73,13 @@ const sections: Section[] = [
   },
   {
     title: "16. Miscellaneous Provisions",
-    body: "Entire Agreement: These Terms, together with the Privacy Policy and Refund Policy, constitute the entire agreement between you and DestinyPal.\n\nSeverability: If any provision is found unenforceable, the remaining provisions remain in full force.\n\nWaiver: Failure to enforce any right does not constitute waiver of that right.\n\nAssignment: You may not assign these Terms. We may assign our rights and obligations to any party without notice.\n\nNo Agency: These Terms do not create any partnership, joint venture, employment, or agency relationship.\n\nLanguage: These Terms are provided in multiple languages for convenience. The English version prevails in case of conflict.\n\nHeadings: Section headings are for convenience only and do not affect interpretation.\n\nContact: For questions about these Terms, contact " + CONTACT_EMAIL
+    body: `Entire Agreement: These Terms, together with the Privacy Policy and Refund Policy, constitute the entire agreement between you and DestinyPal.\n\nSeverability: If any provision is found unenforceable, the remaining provisions remain in full force.\n\nWaiver: Failure to enforce any right does not constitute waiver of that right.\n\nAssignment: You may not assign these Terms. We may assign our rights and obligations to any party without notice.\n\nNo Agency: These Terms do not create any partnership, joint venture, employment, or agency relationship.\n\nLanguage: These Terms are provided in multiple languages for convenience. The English version prevails in case of conflict.\n\nHeadings: Section headings are for convenience only and do not affect interpretation.\n\nContact: For questions about these Terms, contact ${CONTACT_EMAIL}`
   },
   {
     title: "17. Contact Information",
-    body: `Service Operator: ${OPERATOR}\nEmail: ${CONTACT_EMAIL}\nWebsite: https://destinypal.com\n\nFor specific inquiries:\n- Terms of Service questions: ${CONTACT_EMAIL}\n- Privacy concerns: ${CONTACT_EMAIL}\n- Billing issues: ${CONTACT_EMAIL}\n- Technical support: ${CONTACT_EMAIL}\n- Report abuse: ${CONTACT_EMAIL}\n\nResponse Time: We aim to respond to all inquiries within 48 hours (business days).\n\nMailing Address: Available upon request for legal purposes.\n\nLast Updated: 2025-01-01\n\nBy using DestinyPal, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.`
+    body: `Service Operator: ${OPERATOR}\nEmail: ${CONTACT_EMAIL}\nWebsite: https://destinypal.com\n\nFor specific inquiries:\n- Terms of Service questions: ${CONTACT_EMAIL}\n- Privacy concerns: ${CONTACT_EMAIL}\n- Billing issues: ${CONTACT_EMAIL}\n- Technical support: ${CONTACT_EMAIL}\n- Report abuse: ${CONTACT_EMAIL}\n\nResponse Time: We aim to respond to all inquiries within 48 hours (business days).\n\nMailing Address: Available upon request for legal purposes.\n\nLast Updated: ${EFFECTIVE_DATE}\n\nBy using DestinyPal, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.`
   },
 ];
-
-const base = {
-  title: "Terms of Service",
-  effective: "Effective date: 2025-01-01",
-  sections,
-  footer: "Addendum: Effective 2025-01-01",
-};
-
-const termsData: Record<Locale, typeof base> = {
-  en: base,
-  ko: base,
-  zh: base,
-  ar: base,
-  es: base,
-  fr: base,
-  ja: base,
-  ru: base,
-};
 
 function SectionView({ s }: { s: Section }) {
   return (
@@ -113,8 +91,8 @@ function SectionView({ s }: { s: Section }) {
 }
 
 export default function TermsPage() {
-  const { locale } = useI18n();
-  const L = termsData[asLocale(locale)];
+  const { t } = useI18n();
+
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -123,16 +101,20 @@ export default function TermsPage() {
         </div>
         <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.title}>{L.title}</h1>
-            <p className={styles.effectiveDate}>{L.effective}</p>
+            <h1 className={styles.title}>{t("policy.terms.title", "Terms of Service")}</h1>
+            <p className={styles.effectiveDate}>
+              {t("policy.terms.effective", "Effective date")}: {EFFECTIVE_DATE}
+            </p>
           </div>
           <div className={styles.content}>
-            {L.sections.map((s: Section, i: number) => (
+            {sections.map((s: Section, i: number) => (
               <SectionView key={`${s.title}-${i}`} s={s} />
             ))}
           </div>
           <div className={styles.footer}>
-            <p className={styles.footerText}>{L.footer}</p>
+            <p className={styles.footerText}>
+              {t("policy.terms.footer", "Addendum")}: {EFFECTIVE_DATE}
+            </p>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 """
-Lightweight signal extractor skeleton for astro/saju. Replace TODOs with real logic.
-This is non-breaking: it returns optional dicts that can be appended to the context.
+Lightweight but practical signal extractor for astro/saju.
+Returns small dicts to enrich the RAG context (career/wealth/love/health/fortune/meta).
 """
 from typing import Any, Dict, List, Tuple, Set
 
@@ -244,6 +244,25 @@ def _dignity(name: str, sign: str) -> List[str]:
     return tags
 
 
+def _element_for_sign(sign: str) -> str:
+    key = _sign_key(sign)
+    elements = {
+        "aries": "fire",
+        "leo": "fire",
+        "sagittarius": "fire",
+        "taurus": "earth",
+        "virgo": "earth",
+        "capricorn": "earth",
+        "gemini": "air",
+        "libra": "air",
+        "aquarius": "air",
+        "cancer": "water",
+        "scorpio": "water",
+        "pisces": "water",
+    }
+    return elements.get(key, "")
+
+
 def extract_astro_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
     astro = facts.get("astro") or {}
     planets = astro.get("planets") or []
@@ -278,6 +297,32 @@ def extract_astro_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
         transit_counts = _transit_aspects(transits, {"Sun", "Moon", "Ascendant", "MC"})
     dignities = {p.get("name"): _dignity(p.get("name"), p.get("sign")) for p in planets if p.get("name")}
 
+    angular_planets = []
+    benefics_on_angles = 0
+    malefics_on_angles = 0
+    for p in planets or []:
+        try:
+            h = int(p.get("house") or 0)
+        except Exception:
+            continue
+        if h in {1, 4, 7, 10}:
+            angular_planets.append((p.get("name"), h))
+            if p.get("name") in {"Jupiter", "Venus"}:
+                benefics_on_angles += 1
+            if p.get("name") in {"Mars", "Saturn"}:
+                malefics_on_angles += 1
+
+    element_counts: Dict[str, int] = {}
+    for p in planets or []:
+        el = _element_for_sign(p.get("sign", ""))
+        if el:
+            element_counts[el] = element_counts.get(el, 0) + 1
+    dominant_element = None
+    weakest_element = None
+    if element_counts:
+        dominant_element = max(element_counts, key=lambda k: element_counts[k])
+        weakest_element = min(element_counts, key=lambda k: element_counts[k])
+
     signals: Dict[str, Any] = {
         "career": {
           "planets_in_career_houses": career_hits,
@@ -301,6 +346,12 @@ def extract_astro_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
           "aspects_to_lights": aspect_counts,
           "transits_to_lights": transit_counts,
           "dignities": dignities,
+          "angular_planets": angular_planets,
+          "benefics_on_angles": benefics_on_angles,
+          "malefics_on_angles": malefics_on_angles,
+          "element_counts": element_counts,
+          "dominant_element": dominant_element,
+          "weakest_element": weakest_element,
         },
     }
     return signals
@@ -333,6 +384,12 @@ def extract_saju_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
             lucky_element = min(five_elements, key=lambda key: five_elements[key])
         except Exception:
             lucky_element = None
+    dominant_element = None
+    if five_elements:
+        try:
+            dominant_element = max(five_elements, key=lambda key: five_elements[key])
+        except Exception:
+            dominant_element = None
 
     # Career sample: check if month/day stem/branch sibsin include 관(정관/편관)
     def _sibsin_in_pillar(pillar: Dict[str, Any], target: List[str]):
@@ -366,8 +423,23 @@ def extract_saju_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     # Branch clash/simple harmony detection (among pillars)
-    def branch(pillar: Dict[str, Any]):
-        return (pillar or {}).get("earthlyBranch", {}).get("name") or ""
+    def branch(pillar):
+        """Extract earthly branch from pillar (handles both dict and string formats)."""
+        if pillar is None:
+            return ""
+        # If pillar is a string like "甲子", extract the second character (earthly branch)
+        if isinstance(pillar, str):
+            return pillar[1] if len(pillar) >= 2 else ""
+        # If pillar is a dict, use the standard nested structure
+        if isinstance(pillar, dict):
+            eb = pillar.get("earthlyBranch")
+            if isinstance(eb, dict):
+                return eb.get("name", "") or ""
+            if isinstance(eb, str):
+                return eb
+            # Fallback: try to get display or name directly
+            return pillar.get("display", pillar.get("name", "")) or ""
+        return ""
 
     branches = [branch(pillars.get(k)) for k in ["year", "month", "day", "time"] if pillars.get(k)]
     clash_pairs = {("子", "午"), ("午", "子"), ("卯", "酉"), ("酉", "卯"), ("辰", "戌"), ("戌", "辰"), ("丑", "未"), ("未", "丑"), ("寅", "申"), ("申", "寅"), ("巳", "亥"), ("亥", "巳")}
@@ -402,6 +474,8 @@ def extract_saju_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
             "sanhap": sanhap,
             "day_master": day_master.get("name"),
             "lucky_element": lucky_element,
+            "dominant_element": dominant_element,
+            "five_element_counts": five_elements,
         },
     }
     return signals

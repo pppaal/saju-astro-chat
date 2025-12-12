@@ -1,0 +1,65 @@
+# App Branding - Logo & Icons
+# App: DestinyPal
+# Style: Premium, mystical, recognizable
+
+================================================================================
+
+## 1. Main App Icon (메인 앱 아이콘)
+Filename: icon_main.jpg
+Prompt:
+premium app icon design, DestinyPal fortune app,
+mystical crystal ball with stars inside, purple glow,
+simple recognizable shape, rounded square format,
+deep purple gradient background, subtle gold accents,
+clean edges, app store ready, professional,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 2. Alternative Icon - Cosmic Eye (우주 눈)
+Filename: icon_eye.jpg
+Prompt:
+premium app icon design, mystical cosmic eye,
+elegant eye with galaxy iris, gold eyelashes,
+simple recognizable shape, rounded square format,
+deep indigo gradient background, subtle sparkles,
+clean edges, app store ready, professional,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 3. Alternative Icon - Moon & Stars (달과 별)
+Filename: icon_moon.jpg
+Prompt:
+premium app icon design, crescent moon with stars,
+elegant gold moon cradling three stars,
+simple recognizable shape, rounded square format,
+deep navy gradient background, subtle glow,
+clean edges, app store ready, professional,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 4. Logo Mark - Horizontal (가로 로고)
+Filename: logo_horizontal.jpg
+Prompt:
+premium logo design, mystical fortune brand mark,
+elegant crystal ball symbol with cosmic swirl,
+horizontal composition, space for text on right,
+transparent style on dark purple background,
+clean minimal design, professional branding,
+digital art, highly detailed, 8k --ar 3:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 5. Splash Screen Logo (스플래시 로고)
+Filename: logo_splash.jpg
+Prompt:
+premium splash screen design, centered logo composition,
+large mystical crystal ball with inner galaxy,
+surrounded by subtle sacred geometry and stars,
+deep purple to black gradient background,
+elegant premium feel, app launch screen ready,
+digital art, highly detailed, 8k --ar 9:16 --v 6.1 --s 400
+
+================================================================================

@@ -148,10 +148,10 @@ export function calculateFusionCompatibility(
 function generateAIInsights(
   compatibility: CompatibilityResult,
   graphAnalysis: GraphAnalysisResult,
-  p1Saju: SajuProfile,
-  p1Astro: AstrologyProfile,
-  p2Saju: SajuProfile,
-  p2Astro: AstrologyProfile
+  _p1Saju: SajuProfile,
+  _p1Astro: AstrologyProfile,
+  _p2Saju: SajuProfile,
+  _p2Astro: AstrologyProfile
 ): AIInsights {
   const hiddenPatterns: string[] = [];
   const synergySources: string[] = [];
@@ -171,7 +171,7 @@ function generateAIInsights(
   }
 
   // 음양과 오행 교차 분석
-  const yinYangDiff = p1Saju.dayMaster.yin_yang !== p2Saju.dayMaster.yin_yang;
+  const yinYangDiff = _p1Saju.dayMaster.yin_yang !== _p2Saju.dayMaster.yin_yang;
   const elementCompat = compatibility.breakdown.elementalHarmony;
 
   if (yinYangDiff && elementCompat > 70) {
@@ -281,7 +281,7 @@ function generateDeepAnalysis(
 function generateRecommendedActions(
   compatibility: CompatibilityResult,
   graphAnalysis: GraphAnalysisResult,
-  aiInsights: AIInsights
+  _aiInsights: AIInsights
 ): RecommendedAction[] {
   const actions: RecommendedAction[] = [];
 

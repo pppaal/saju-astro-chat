@@ -1,0 +1,235 @@
+{
+  "_meta": {
+    "theme": "career",
+    "title": "Career & Professional Growth 사업운/직업운",
+    "description": "Strategic insights for career advancement, business success, and professional development"
+  },
+  "major_arcana_deep": {
+    "The Fool": {
+      "career_meaning": "A bold new career beginning. Take a leap into a new field, start a business, or embrace an unconventional path. Risk leads to reward.",
+      "korean": "대담한 새로운 경력 시작. 새로운 분야로 뛰어들거나 사업을 시작하세요.",
+      "job_seeker": "Apply for positions outside your comfort zone. Unexpected opportunities await.",
+      "employed": "Consider a complete career change or innovative project. Think outside the box.",
+      "business": "Start that new venture. Your fresh perspective is your advantage.",
+      "timing": "New career opportunities within 1-3 months",
+      "industries": "Startups, innovation, travel, entertainment, unconventional fields",
+      "advice": "Don't let fear of the unknown stop you. The biggest career leaps require courage."
+    },
+    "The Magician": {
+      "career_meaning": "You have all the skills needed for success. Time to showcase your abilities and take initiative. Manifest your career goals through focused action.",
+      "korean": "성공에 필요한 모든 기술을 갖추고 있습니다. 능력을 보여주고 주도권을 잡을 시간입니다.",
+      "job_seeker": "Your interview skills are sharp. Present yourself confidently. You'll impress.",
+      "employed": "Take the lead on projects. Your initiative will be recognized and rewarded.",
+      "business": "You have everything needed to succeed. Execute your vision with confidence.",
+      "timing": "Career magic is possible now - act with intention",
+      "industries": "Technology, marketing, sales, consulting, entrepreneurship",
+      "advice": "Stop doubting yourself. You have the power to create the career you want."
+    },
+    "The High Priestess": {
+      "career_meaning": "Hidden opportunities exist. Trust your intuition about career moves. Behind-the-scenes knowledge gives you an advantage.",
+      "korean": "숨겨진 기회가 존재합니다. 경력 이동에 대한 직감을 신뢰하세요.",
+      "job_seeker": "Hidden job opportunities exist. Network quietly. Trust gut feelings about companies.",
+      "employed": "Information is power. Observe before acting. Hidden dynamics affect your career.",
+      "business": "Research before launching. Market intelligence is crucial now.",
+      "timing": "Wait for more information before major career decisions",
+      "industries": "Research, psychology, counseling, investigation, esoteric fields",
+      "advice": "Listen to your intuition about career matters. The hidden path may be the right one."
+    },
+    "The Empress": {
+      "career_meaning": "Creativity and abundance flow in your career. Nurture projects to fruition. Success through creative expression and care.",
+      "korean": "창의성과 풍요가 경력에 흐릅니다. 프로젝트를 결실까지 육성하세요.",
+      "job_seeker": "Creative fields favor you. Look for nurturing work environments.",
+      "employed": "Your projects will flourish. Nurture team relationships. Creative expression valued.",
+      "business": "Growth is organic and steady. Nurture your business like a garden.",
+      "timing": "Projects planted now will yield abundant results",
+      "industries": "Arts, design, beauty, hospitality, healthcare, childcare, agriculture",
+      "advice": "Create, nurture, and let your work grow organically. Abundance follows care."
+    },
+    "The Emperor": {
+      "career_meaning": "Authority, leadership, and structure. Time to take charge, build systems, and lead. Promotions and leadership opportunities arise.",
+      "korean": "권위, 리더십, 구조. 책임을 맡고, 시스템을 구축하고, 이끌 시간입니다.",
+      "job_seeker": "Target leadership positions. Your organizational skills are needed.",
+      "employed": "Promotion energy is strong. Step into leadership. Build lasting structures.",
+      "business": "Establish strong systems and processes. Lead with authority and fairness.",
+      "timing": "Leadership opportunities arise within 2-4 months",
+      "industries": "Management, construction, government, military, finance, executive roles",
+      "advice": "Take charge of your career. Build something that will last."
+    },
+    "The Hierophant": {
+      "career_meaning": "Traditional career paths, education, and mentorship. Learn from established institutions and respected mentors.",
+      "korean": "전통적인 경력 경로, 교육, 멘토십. 확립된 기관과 존경받는 멘토로부터 배우세요.",
+      "job_seeker": "Look at established companies, traditional industries. Get certifications.",
+      "employed": "Seek mentorship. Follow established protocols. Education advances your career.",
+      "business": "Partner with established institutions. Credibility through traditional channels.",
+      "timing": "Good for educational pursuits, certifications, formal training",
+      "industries": "Education, religion, law, medicine, counseling, traditional institutions",
+      "advice": "Respect the wisdom of those who came before. Learn the rules before breaking them."
+    },
+    "The Lovers": {
+      "career_meaning": "A major career choice that aligns with your values. Partnership opportunities. Work that you love.",
+      "korean": "가치관에 맞는 중요한 경력 선택. 파트너십 기회. 사랑하는 일.",
+      "job_seeker": "Choose a position that aligns with your core values, not just money.",
+      "employed": "A significant career choice approaches. Business partnerships highlighted.",
+      "business": "Partnership offers arrive. Choose collaborators who share your vision.",
+      "timing": "Major career decision within weeks - choose with heart and head",
+      "industries": "Any field where passion meets profession",
+      "advice": "Choose work you love. A soul-aligned career brings success and fulfillment."
+    },
+    "The Chariot": {
+      "career_meaning": "Victory through determination. Career advancement through focused drive. Overcome professional obstacles with willpower.",
+      "korean": "결단력을 통한 승리. 집중된 추진력으로 경력 발전. 의지력으로 전문적 장애물 극복.",
+      "job_seeker": "Push forward aggressively. Your determination wins the position.",
+      "employed": "Drive projects to completion. Overcome obstacles. Victory is within reach.",
+      "business": "Competitive advantage through focused effort. Outwork the competition.",
+      "timing": "Push hard now - career victory is close",
+      "industries": "Sales, sports, transportation, military, competitive fields",
+      "advice": "Take control of your career direction. Victory goes to the determined."
+    },
+    "Strength": {
+      "career_meaning": "Success through patience and inner confidence. Handle workplace challenges with grace. Gentle persistence wins.",
+      "korean": "인내와 내면의 자신감을 통한 성공. 우아하게 직장 문제를 처리하세요.",
+      "job_seeker": "Your calm confidence impresses. Persistence in job search pays off.",
+      "employed": "Handle difficult colleagues or projects with patience. Your composure is noticed.",
+      "business": "Steady, patient growth. Tame challenges with strategy, not force.",
+      "timing": "Long-term career success through persistent effort",
+      "industries": "Healthcare, animal care, counseling, management, any helping profession",
+      "advice": "Career success comes through patience and inner strength, not aggression."
+    },
+    "The Hermit": {
+      "career_meaning": "Specialized expertise and solitary work. Time for deep skill development. Consulting or independent work suits you.",
+      "korean": "전문화된 전문성과 독립적 작업. 깊은 기술 개발의 시간입니다.",
+      "job_seeker": "Seek positions that allow independent work. Your expertise is valuable.",
+      "employed": "Focus on deepening skills. Specialist roles suit you better than management.",
+      "business": "Consulting, coaching, or solo entrepreneurship favored.",
+      "timing": "Step back to develop expertise before advancing",
+      "industries": "Research, consulting, writing, programming, analysis, any specialist field",
+      "advice": "Develop deep expertise. The specialist is more valuable than the generalist."
+    },
+    "Wheel of Fortune": {
+      "career_meaning": "Major career changes are fated. Lucky breaks and sudden shifts. Adaptability is key to success.",
+      "korean": "주요 경력 변화가 운명되어 있습니다. 운 좋은 기회와 갑작스러운 변화.",
+      "job_seeker": "A lucky break is coming. Be ready to seize unexpected opportunities.",
+      "employed": "Major workplace changes. Reorganizations may benefit you. Stay adaptable.",
+      "business": "Market shifts favor you. Pivot when opportunity appears.",
+      "timing": "Career-changing opportunities within 1-3 months",
+      "industries": "Fields experiencing major change - technology, media, emerging markets",
+      "advice": "Fortune favors the prepared. Be ready when the wheel turns your way."
+    },
+    "Justice": {
+      "career_meaning": "Fair treatment and ethical decisions in career. Legal matters, contracts, and just outcomes. Karma in business.",
+      "korean": "경력에서의 공정한 대우와 윤리적 결정. 법적 문제, 계약, 정당한 결과.",
+      "job_seeker": "Fair hiring processes favor you. Negotiate contracts carefully.",
+      "employed": "Workplace justice issues may arise. Ethical behavior rewarded.",
+      "business": "Legal matters require attention. Fair dealing brings long-term success.",
+      "timing": "Contract negotiations, legal matters, performance reviews",
+      "industries": "Law, HR, compliance, government, advocacy, mediation",
+      "advice": "Act with integrity. In business, as in life, the scales always balance."
+    },
+    "The Hanged Man": {
+      "career_meaning": "Career pause or limbo. See your professional situation from a new angle. Sacrifice short-term gains for long-term growth.",
+      "korean": "경력 일시정지 또는 불확실함. 전문적 상황을 새로운 각도에서 보세요.",
+      "job_seeker": "The job search may stall. Use this time for reflection and skill-building.",
+      "employed": "Career feels stuck. Surrender old approaches. A new perspective is needed.",
+      "business": "Pause before major decisions. What seems like delay brings insight.",
+      "timing": "Not the time to push - wait for clarity",
+      "industries": "Transition periods, sabbaticals, career reinvention",
+      "advice": "Sometimes the best career move is to stop and see things differently."
+    },
+    "Death": {
+      "career_meaning": "Major career transformation. End of one professional chapter, beginning of another. Let go of what's not working.",
+      "korean": "주요 경력 변화. 한 전문적 장이 끝나고 다른 장이 시작됩니다.",
+      "job_seeker": "Your old career identity is dying. Embrace complete reinvention.",
+      "employed": "Major role or company changes. Layoffs may lead to better opportunities.",
+      "business": "Pivot or close what's not working. Transformation is necessary.",
+      "timing": "Significant career changes within 1-3 months",
+      "industries": "Career transitions, industry shifts, complete reinvention",
+      "advice": "Let the old career die gracefully. Something better is being born."
+    },
+    "Temperance": {
+      "career_meaning": "Balance and patience in career growth. Blend skills, find work-life harmony. Steady, integrated progress.",
+      "korean": "경력 성장에서의 균형과 인내. 기술을 조합하고 일과 삶의 조화를 찾으세요.",
+      "job_seeker": "Look for roles that offer balance. Don't rush the process.",
+      "employed": "Find work-life balance. Blend different skills and roles effectively.",
+      "business": "Grow steadily rather than explosively. Integration over expansion.",
+      "timing": "Patience yields best career results - don't rush",
+      "industries": "Health, wellness, mediation, integration, project management",
+      "advice": "Career success is a marathon, not a sprint. Find balance and blend your gifts."
+    },
+    "The Devil": {
+      "career_meaning": "Examine what keeps you trapped in your career. Unhealthy work dynamics, burnout, or golden handcuffs. Liberation is possible.",
+      "korean": "경력에서 당신을 가두는 것을 검토하세요. 건강하지 못한 업무 역학, 번아웃, 또는 황금 수갑.",
+      "job_seeker": "Don't take a job just for money. Avoid toxic workplaces.",
+      "employed": "Examine if you're trapped by salary, status, or fear. Break free if necessary.",
+      "business": "Address any unethical practices or unhealthy dependencies.",
+      "timing": "Face career shadows now - liberation follows",
+      "industries": "Warning about any field where you feel trapped",
+      "advice": "Don't sell your soul for a paycheck. Career freedom is possible."
+    },
+    "The Tower": {
+      "career_meaning": "Sudden career disruption. Job loss, company collapse, or unexpected change. From destruction comes opportunity.",
+      "korean": "갑작스러운 경력 붕괴. 실직, 회사 붕괴, 또는 예상치 못한 변화.",
+      "job_seeker": "Old job expectations shatter. Be open to completely different paths.",
+      "employed": "Sudden changes - layoffs, restructuring, or revelation of truth.",
+      "business": "Business model may collapse. Rebuild on stronger foundations.",
+      "timing": "Sudden career changes - be prepared for disruption",
+      "industries": "Disrupted industries, companies in crisis",
+      "advice": "When the tower falls, don't cling to the rubble. Build anew."
+    },
+    "The Star": {
+      "career_meaning": "Hope and inspiration return to your career. Dream jobs become possible. Healing after professional setbacks.",
+      "korean": "희망과 영감이 경력으로 돌아옵니다. 꿈의 직업이 가능해집니다.",
+      "job_seeker": "Your dream job is achievable. Stay hopeful and persistent.",
+      "employed": "Renewed inspiration at work. Recognition of your unique gifts.",
+      "business": "Vision and hope return. Inspire others with your mission.",
+      "timing": "Career hopes manifest - stay faithful to your vision",
+      "industries": "Creative fields, humanitarian work, innovation, healing professions",
+      "advice": "Keep your career dreams alive. Hope opens doors that cynicism cannot."
+    },
+    "The Moon": {
+      "career_meaning": "Career confusion or deception. Not all is as it seems at work. Trust intuition but verify facts.",
+      "korean": "경력 혼란 또는 속임. 직장에서 모든 것이 보이는 대로가 아닙니다.",
+      "job_seeker": "Company may not be as presented. Research thoroughly. Trust your gut.",
+      "employed": "Workplace politics, hidden agendas, or confusion. Tread carefully.",
+      "business": "Market illusions. Verify assumptions before major decisions.",
+      "timing": "Wait for clarity before major career moves",
+      "industries": "Be cautious in any field until truth emerges",
+      "advice": "Navigate career matters with intuition. The truth will eventually emerge."
+    },
+    "The Sun": {
+      "career_meaning": "Career success and recognition. Joy in your work. Everything becomes clear. Professional achievements shine.",
+      "korean": "경력 성공과 인정. 일에서의 기쁨. 모든 것이 명확해집니다.",
+      "job_seeker": "Success! The right position comes with clarity and joy.",
+      "employed": "Recognition, promotions, and joy at work. Your achievements are visible.",
+      "business": "Business thrives. Public success and recognition.",
+      "timing": "Career success peaks - excellent for launches and visibility",
+      "industries": "Any field where you can shine publicly",
+      "advice": "Step into the spotlight. Your career success is well-deserved."
+    },
+    "Judgement": {
+      "career_meaning": "Career calling and evaluation. Answer your professional purpose. Past work reviewed, leading to new opportunities.",
+      "korean": "경력 부름과 평가. 전문적 목적에 응답하세요.",
+      "job_seeker": "A calling to your true profession. Past experience is valued.",
+      "employed": "Performance reviews favor you. Promotions based on past achievements.",
+      "business": "Answer your entrepreneurial calling. Past efforts now pay off.",
+      "timing": "Career reviews, evaluations, and significant decisions",
+      "industries": "Vocational callings, purpose-driven work",
+      "advice": "Answer your career calling. Your past experience prepares you for this moment."
+    },
+    "The World": {
+      "career_meaning": "Career completion and mastery. Major professional achievement. Ready for the next level. International opportunities.",
+      "korean": "경력 완성과 숙달. 주요 전문적 성취. 다음 단계를 위한 준비.",
+      "job_seeker": "You've arrived. A significant career milestone is achieved.",
+      "employed": "Major career achievement completed. Ready for new challenges.",
+      "business": "Business reaches significant milestone. Expansion or completion.",
+      "timing": "Major career cycle completes - celebrate then prepare for what's next",
+      "industries": "International business, leadership, any field at mastery level",
+      "advice": "You've achieved career mastery. Celebrate, then set your sights on the next world."
+    }
+  },
+  "business_specific": {
+    "startup_phase": "Wands indicate action and initiative. The Magician, Ace of Wands, and Chariot are especially favorable.",
+    "growth_phase": "Empress and Three of Pentacles support steady expansion and team building.",
+    "pivot_decision": "Death and Tower indicate necessary transformation. Trust the process.",
+    "partnership": "Two of Cups and Three of Pentacles favor collaboration. Justice ensures fair contracts."
+  }
+}

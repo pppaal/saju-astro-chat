@@ -1,0 +1,252 @@
+{
+  "_meta": {
+    "title": "Tarot Astrological Correspondences",
+    "description": "타로 카드와 점성술의 상세 연결 - 황도대, 행성, 데칸"
+  },
+  "major_arcana_astrology": {
+    "The Fool": {
+      "planet": "Uranus",
+      "korean_planet": "천왕성",
+      "zodiac": null,
+      "element": "Air",
+      "meaning": "예측 불가능, 혁신, 자유, 갑작스러운 변화"
+    },
+    "The Magician": {
+      "planet": "Mercury",
+      "korean_planet": "수성",
+      "zodiac": null,
+      "element": "Air",
+      "meaning": "소통, 지성, 기술, 다재다능함"
+    },
+    "The High Priestess": {
+      "planet": "Moon",
+      "korean_planet": "달",
+      "zodiac": null,
+      "element": "Water",
+      "meaning": "직관, 무의식, 신비, 순환"
+    },
+    "The Empress": {
+      "planet": "Venus",
+      "korean_planet": "금성",
+      "zodiac": null,
+      "element": "Earth",
+      "meaning": "사랑, 아름다움, 풍요, 양육"
+    },
+    "The Emperor": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Aries",
+      "korean_zodiac": "양자리",
+      "element": "Fire",
+      "meaning": "리더십, 권위, 구조, 개척"
+    },
+    "The Hierophant": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Taurus",
+      "korean_zodiac": "황소자리",
+      "element": "Earth",
+      "meaning": "전통, 가르침, 안정, 가치"
+    },
+    "The Lovers": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Gemini",
+      "korean_zodiac": "쌍둥이자리",
+      "element": "Air",
+      "meaning": "선택, 소통, 이중성, 관계"
+    },
+    "The Chariot": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Cancer",
+      "korean_zodiac": "게자리",
+      "element": "Water",
+      "meaning": "감정적 의지, 보호, 전진"
+    },
+    "Strength": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Leo",
+      "korean_zodiac": "사자자리",
+      "element": "Fire",
+      "meaning": "용기, 자신감, 창의적 힘"
+    },
+    "The Hermit": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Virgo",
+      "korean_zodiac": "처녀자리",
+      "element": "Earth",
+      "meaning": "분석, 완벽주의, 봉사, 내면 탐구"
+    },
+    "Wheel of Fortune": {
+      "planet": "Jupiter",
+      "korean_planet": "목성",
+      "zodiac": null,
+      "element": "Fire",
+      "meaning": "행운, 확장, 기회, 운명의 전환"
+    },
+    "Justice": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Libra",
+      "korean_zodiac": "천칭자리",
+      "element": "Air",
+      "meaning": "균형, 공정, 파트너십, 결정"
+    },
+    "The Hanged Man": {
+      "planet": "Neptune",
+      "korean_planet": "해왕성",
+      "zodiac": null,
+      "element": "Water",
+      "meaning": "희생, 환상, 영적 성장, 새 관점"
+    },
+    "Death": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Scorpio",
+      "korean_zodiac": "전갈자리",
+      "element": "Water",
+      "meaning": "변환, 재탄생, 심리적 깊이"
+    },
+    "Temperance": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Sagittarius",
+      "korean_zodiac": "궁수자리",
+      "element": "Fire",
+      "meaning": "균형, 모험, 철학, 통합"
+    },
+    "The Devil": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Capricorn",
+      "korean_zodiac": "염소자리",
+      "element": "Earth",
+      "meaning": "야망, 물질, 속박, 그림자"
+    },
+    "The Tower": {
+      "planet": "Mars",
+      "korean_planet": "화성",
+      "zodiac": null,
+      "element": "Fire",
+      "meaning": "파괴, 갈등, 급격한 변화, 해방"
+    },
+    "The Star": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Aquarius",
+      "korean_zodiac": "물병자리",
+      "element": "Air",
+      "meaning": "희망, 혁신, 인류애, 비전"
+    },
+    "The Moon": {
+      "planet": null,
+      "korean_planet": null,
+      "zodiac": "Pisces",
+      "korean_zodiac": "물고기자리",
+      "element": "Water",
+      "meaning": "환상, 직관, 무의식, 영성"
+    },
+    "The Sun": {
+      "planet": "Sun",
+      "korean_planet": "태양",
+      "zodiac": null,
+      "element": "Fire",
+      "meaning": "기쁨, 성공, 활력, 자아 표현"
+    },
+    "Judgement": {
+      "planet": "Pluto",
+      "korean_planet": "명왕성",
+      "zodiac": null,
+      "element": "Fire",
+      "meaning": "변환, 재탄생, 부름, 카르마 청산"
+    },
+    "The World": {
+      "planet": "Saturn",
+      "korean_planet": "토성",
+      "zodiac": null,
+      "element": "Earth",
+      "meaning": "완성, 구조, 성취, 카르마 완수"
+    }
+  },
+  "minor_arcana_decans": {
+    "description": "마이너 아르카나 2-10은 황도대의 데칸(10도)에 해당",
+    "wands": {
+      "Two": {"zodiac": "Aries", "decan": 1, "dates": "3/21-3/30", "planet": "Mars"},
+      "Three": {"zodiac": "Aries", "decan": 2, "dates": "3/31-4/10", "planet": "Sun"},
+      "Four": {"zodiac": "Aries", "decan": 3, "dates": "4/11-4/20", "planet": "Venus"},
+      "Five": {"zodiac": "Leo", "decan": 1, "dates": "7/22-8/1", "planet": "Saturn"},
+      "Six": {"zodiac": "Leo", "decan": 2, "dates": "8/2-8/11", "planet": "Jupiter"},
+      "Seven": {"zodiac": "Leo", "decan": 3, "dates": "8/12-8/22", "planet": "Mars"},
+      "Eight": {"zodiac": "Sagittarius", "decan": 1, "dates": "11/23-12/2", "planet": "Mercury"},
+      "Nine": {"zodiac": "Sagittarius", "decan": 2, "dates": "12/3-12/12", "planet": "Moon"},
+      "Ten": {"zodiac": "Sagittarius", "decan": 3, "dates": "12/13-12/21", "planet": "Saturn"}
+    },
+    "cups": {
+      "Two": {"zodiac": "Cancer", "decan": 1, "dates": "6/21-7/1", "planet": "Venus"},
+      "Three": {"zodiac": "Cancer", "decan": 2, "dates": "7/2-7/11", "planet": "Mercury"},
+      "Four": {"zodiac": "Cancer", "decan": 3, "dates": "7/12-7/21", "planet": "Moon"},
+      "Five": {"zodiac": "Scorpio", "decan": 1, "dates": "10/23-11/1", "planet": "Mars"},
+      "Six": {"zodiac": "Scorpio", "decan": 2, "dates": "11/2-11/12", "planet": "Sun"},
+      "Seven": {"zodiac": "Scorpio", "decan": 3, "dates": "11/13-11/22", "planet": "Venus"},
+      "Eight": {"zodiac": "Pisces", "decan": 1, "dates": "2/19-2/28", "planet": "Saturn"},
+      "Nine": {"zodiac": "Pisces", "decan": 2, "dates": "3/1-3/10", "planet": "Jupiter"},
+      "Ten": {"zodiac": "Pisces", "decan": 3, "dates": "3/11-3/20", "planet": "Mars"}
+    },
+    "swords": {
+      "Two": {"zodiac": "Libra", "decan": 1, "dates": "9/23-10/2", "planet": "Moon"},
+      "Three": {"zodiac": "Libra", "decan": 2, "dates": "10/3-10/12", "planet": "Saturn"},
+      "Four": {"zodiac": "Libra", "decan": 3, "dates": "10/13-10/22", "planet": "Jupiter"},
+      "Five": {"zodiac": "Aquarius", "decan": 1, "dates": "1/20-1/29", "planet": "Venus"},
+      "Six": {"zodiac": "Aquarius", "decan": 2, "dates": "1/30-2/8", "planet": "Mercury"},
+      "Seven": {"zodiac": "Aquarius", "decan": 3, "dates": "2/9-2/18", "planet": "Moon"},
+      "Eight": {"zodiac": "Gemini", "decan": 1, "dates": "5/21-5/31", "planet": "Jupiter"},
+      "Nine": {"zodiac": "Gemini", "decan": 2, "dates": "6/1-6/10", "planet": "Mars"},
+      "Ten": {"zodiac": "Gemini", "decan": 3, "dates": "6/11-6/20", "planet": "Sun"}
+    },
+    "pentacles": {
+      "Two": {"zodiac": "Capricorn", "decan": 1, "dates": "12/22-12/30", "planet": "Jupiter"},
+      "Three": {"zodiac": "Capricorn", "decan": 2, "dates": "12/31-1/9", "planet": "Mars"},
+      "Four": {"zodiac": "Capricorn", "decan": 3, "dates": "1/10-1/19", "planet": "Sun"},
+      "Five": {"zodiac": "Taurus", "decan": 1, "dates": "4/21-4/30", "planet": "Mercury"},
+      "Six": {"zodiac": "Taurus", "decan": 2, "dates": "5/1-5/10", "planet": "Moon"},
+      "Seven": {"zodiac": "Taurus", "decan": 3, "dates": "5/11-5/20", "planet": "Saturn"},
+      "Eight": {"zodiac": "Virgo", "decan": 1, "dates": "8/23-9/1", "planet": "Sun"},
+      "Nine": {"zodiac": "Virgo", "decan": 2, "dates": "9/2-9/11", "planet": "Venus"},
+      "Ten": {"zodiac": "Virgo", "decan": 3, "dates": "9/12-9/22", "planet": "Mercury"}
+    }
+  },
+  "court_card_zodiac": {
+    "description": "궁정 카드의 황도대 연결",
+    "kings": {
+      "King of Wands": {"zodiac": ["Aries", "Leo", "Sagittarius"], "element": "Fire"},
+      "King of Cups": {"zodiac": ["Cancer", "Scorpio", "Pisces"], "element": "Water"},
+      "King of Swords": {"zodiac": ["Gemini", "Libra", "Aquarius"], "element": "Air"},
+      "King of Pentacles": {"zodiac": ["Taurus", "Virgo", "Capricorn"], "element": "Earth"}
+    },
+    "queens": {
+      "Queen of Wands": {"zodiac": ["Aries", "Leo", "Sagittarius"], "element": "Fire"},
+      "Queen of Cups": {"zodiac": ["Cancer", "Scorpio", "Pisces"], "element": "Water"},
+      "Queen of Swords": {"zodiac": ["Gemini", "Libra", "Aquarius"], "element": "Air"},
+      "Queen of Pentacles": {"zodiac": ["Taurus", "Virgo", "Capricorn"], "element": "Earth"}
+    }
+  },
+  "planetary_hours": {
+    "description": "행성 시간에 따른 리딩 최적 시간",
+    "sun_hour": "성공, 명예, 자아 관련 질문",
+    "moon_hour": "직관, 감정, 가정 관련 질문",
+    "mars_hour": "행동, 갈등, 에너지 관련 질문",
+    "mercury_hour": "소통, 계약, 여행 관련 질문",
+    "jupiter_hour": "행운, 확장, 법률 관련 질문",
+    "venus_hour": "사랑, 예술, 아름다움 관련 질문",
+    "saturn_hour": "커리어, 책임, 카르마 관련 질문"
+  },
+  "reading_timing_recommendation": {
+    "love_reading": "금요일 금성 시간이 최적",
+    "career_reading": "토요일 토성 시간이 최적",
+    "money_reading": "목요일 목성 시간이 최적",
+    "spiritual_reading": "월요일 달 시간 또는 일요일 태양 시간"
+  }
+}
