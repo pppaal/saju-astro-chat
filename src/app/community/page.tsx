@@ -985,13 +985,13 @@ export default function CommunityPage() {
                                 className={`${styles.commentActionBtn} ${!isLoggedIn ? styles.disabledBtn : ""} ${comment.likedBy.includes(session?.user?.email || session?.user?.name || "") ? styles.liked : ""}`}
                                 disabled={!isLoggedIn}
                               >
-                                {comment.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Liked" : "Like"} {comment.likes}
+                                {comment.likedBy.includes(session?.user?.email || session?.user?.name || "") ? t("community.liked", "Liked") : t("community.like", "Like")} {comment.likes}
                               </button>
                               <button
                                 onClick={() => setShowReplies(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
                                 className={styles.commentActionBtn}
                               >
-                                Reply ({comment.replies.length})
+                                {t("community.reply", "Reply")} ({comment.replies.length})
                               </button>
                             </div>
 {/* Replies */}
@@ -1027,7 +1027,7 @@ export default function CommunityPage() {
                                           className={`${styles.commentActionBtn} ${!isLoggedIn ? styles.disabledBtn : ""} ${reply.likedBy.includes(session?.user?.email || session?.user?.name || "") ? styles.liked : ""}`}
                                           disabled={!isLoggedIn}
                                         >
-                                          {reply.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Liked" : "Like"} {reply.likes}
+                                          {reply.likedBy.includes(session?.user?.email || session?.user?.name || "") ? t("community.liked", "Liked") : t("community.like", "Like")} {reply.likes}
                                         </button>
                                       </div>
                                     ))}
@@ -1040,7 +1040,7 @@ export default function CommunityPage() {
                                       className={styles.replyInput}
                                       value={replyTexts[comment.id] || ""}
                                       onChange={e => setReplyTexts(prev => ({ ...prev, [comment.id]: e.target.value }))}
-                                      placeholder={`Reply to ${comment.author}... (use @username to mention)`}
+                                      placeholder={t("community.replyPlaceholder", "Reply to {{author}}... (use @username to mention)").replace("{{author}}", comment.author)}
                                       onKeyPress={e => {
                                         if (e.key === "Enter") {
                                           addReply(p.id, comment.id);
@@ -1051,7 +1051,7 @@ export default function CommunityPage() {
                                       onClick={() => addReply(p.id, comment.id)}
                                       className={styles.replyBtn}
                                     >
-                                      Send
+                                      {t("community.send", "Send")}
                                     </button>
                                   </div>
                                 )}
