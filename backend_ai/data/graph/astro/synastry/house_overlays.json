@@ -1,0 +1,1020 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "synastry/house_overlays",
+  "$count": 120,
+  "$description": "A의 행성이 B의 하우스에 위치할 때의 해석 - 완전판",
+  "$note": "10개 주요 행성 × 12 하우스 = 120 조합",
+
+  "Sun_in_partners_house": {
+    "1st": {
+      "meaning": "태양인이 하우스인의 정체성에 빛을 비춤",
+      "effect": "하우스인은 태양인 곁에서 더 자신감을 느낌",
+      "attraction": "매우 강한 개인적 끌림",
+      "planet_person": "하우스인을 자신의 일부처럼 느낌",
+      "house_person": "태양인 곁에서 활기차고 자신감 있음",
+      "gift": "하우스인의 자아 강화, 상호 인정",
+      "challenge": "태양인이 하우스인을 압도할 수 있음"
+    },
+    "2nd": {
+      "meaning": "태양인이 하우스인의 자원과 가치에 관심",
+      "effect": "재정적 파트너십 가능",
+      "attraction": "물질적/가치 기반 끌림",
+      "planet_person": "하우스인의 가치관과 자원에 매력을 느낌",
+      "house_person": "태양인이 자신의 가치를 높여준다고 느낌",
+      "gift": "재정적 협력, 가치관 공유",
+      "challenge": "돈 문제로 갈등 가능"
+    },
+    "3rd": {
+      "meaning": "태양인이 하우스인의 소통에 관심",
+      "effect": "많은 대화, 지적 자극",
+      "attraction": "정신적 끌림",
+      "planet_person": "하우스인의 생각과 아이디어에 흥미",
+      "house_person": "태양인과 대화하면 영감을 받음",
+      "gift": "활발한 소통, 지적 파트너십",
+      "challenge": "가벼운 관계에 머무를 수 있음"
+    },
+    "4th": {
+      "meaning": "태양인이 하우스인의 가정에 중심이 됨",
+      "effect": "가정적 관계, 함께 집 만들기",
+      "attraction": "깊은 정서적 끌림",
+      "planet_person": "하우스인과 가정을 만들고 싶음",
+      "house_person": "태양인이 자신의 안식처가 됨",
+      "gift": "안정적인 가정, 정서적 연결",
+      "challenge": "태양인이 하우스인의 가족에 개입"
+    },
+    "5th": {
+      "meaning": "태양인이 하우스인의 로맨스와 창조성 활성화",
+      "effect": "재미있고 로맨틱한 관계",
+      "attraction": "매우 강한 로맨틱 끌림",
+      "planet_person": "하우스인과 함께 즐기고 싶음",
+      "house_person": "태양인과 함께하면 기쁨과 창조성이 솟구침",
+      "gift": "기쁨, 창조성, 로맨스, 자녀",
+      "challenge": "진지한 헌신으로 발전 어려울 수 있음"
+    },
+    "6th": {
+      "meaning": "태양인이 하우스인의 일상에 관심",
+      "effect": "함께 일하거나 건강 관리",
+      "attraction": "실용적 끌림",
+      "planet_person": "하우스인을 돕고 싶고 함께 일하고 싶음",
+      "house_person": "태양인이 일상을 개선해줌",
+      "gift": "상호 봉사와 도움, 건강 지원",
+      "challenge": "로맨스 부족, 일 같은 관계"
+    },
+    "7th": {
+      "meaning": "태양인이 하우스인의 이상적 파트너상에 부합",
+      "effect": "강력한 결혼/파트너십 지표",
+      "attraction": "매우 강한 파트너십 끌림",
+      "planet_person": "하우스인을 진정한 파트너로 봄",
+      "house_person": "태양인이 이상적 파트너라고 느낌",
+      "gift": "진지한 헌신적 관계, 결혼",
+      "challenge": "하우스인이 태양인에게 너무 많이 기대"
+    },
+    "8th": {
+      "meaning": "태양인이 하우스인의 깊은 변형 촉발",
+      "effect": "강렬하고 변형적인 관계",
+      "attraction": "깊고 성적인 끌림",
+      "planet_person": "하우스인과 깊이 융합하고 싶음",
+      "house_person": "태양인이 자신을 완전히 변화시킴",
+      "gift": "깊은 친밀감, 변형, 공유 자원",
+      "challenge": "집착, 권력 투쟁, 비밀"
+    },
+    "9th": {
+      "meaning": "태양인이 하우스인의 세계관 확장",
+      "effect": "함께 여행하거나 배우기",
+      "attraction": "철학적/교육적 끌림",
+      "planet_person": "하우스인과 함께 탐험하고 배우고 싶음",
+      "house_person": "태양인이 시야를 넓혀줌",
+      "gift": "성장, 확장, 모험, 철학적 대화",
+      "challenge": "안정 부족, 너무 멀리 감"
+    },
+    "10th": {
+      "meaning": "태양인이 하우스인의 커리어에 영향",
+      "effect": "공적 파트너십, 함께 성공",
+      "attraction": "야망/지위 기반 끌림",
+      "planet_person": "하우스인의 커리어와 명성에 관심",
+      "house_person": "태양인이 자신의 사회적 위치에 영향",
+      "gift": "사회적 성공, 공동 목표",
+      "challenge": "개인적 친밀감 부족"
+    },
+    "11th": {
+      "meaning": "태양인이 하우스인의 친구/그룹에 합류",
+      "effect": "친구에서 연인, 그룹 활동",
+      "attraction": "우정 기반 끌림",
+      "planet_person": "하우스인의 친구들과 비전에 관심",
+      "house_person": "태양인과 미래를 함께 그릴 수 있음",
+      "gift": "자유로운 파트너십, 공유 비전",
+      "challenge": "친구 이상으로 발전 어려울 수 있음"
+    },
+    "12th": {
+      "meaning": "태양인이 하우스인의 무의식 활성화",
+      "effect": "영적 연결, 숨겨진 관계",
+      "attraction": "신비로운, 설명하기 어려운 끌림",
+      "planet_person": "하우스인과의 깊은 영적 연결",
+      "house_person": "태양인이 숨겨진 부분을 드러냄",
+      "gift": "영적 깊이, 카르마적 연결, 치유",
+      "challenge": "비밀, 희생, 경계 부족"
+    }
+  },
+
+  "Moon_in_partners_house": {
+    "1st": {
+      "meaning": "달인이 하우스인을 양육하고 싶어함",
+      "effect": "깊은 정서적 연결",
+      "planet_person": "하우스인을 본능적으로 돌보고 싶음",
+      "house_person": "달인 곁에서 편안하고 보호받는 느낌",
+      "gift": "무조건적 돌봄, 정서적 지지",
+      "challenge": "과보호, 의존"
+    },
+    "2nd": {
+      "meaning": "달인이 하우스인의 안정에 기여",
+      "effect": "물질적/정서적 안정 공유",
+      "planet_person": "하우스인에게 안정감을 주고 싶음",
+      "house_person": "달인이 재정적/정서적 안정을 줌",
+      "gift": "공유된 안정, 편안함",
+      "challenge": "소유욕, 물질적 의존"
+    },
+    "3rd": {
+      "meaning": "달인이 하우스인과 감정적으로 소통",
+      "effect": "감정을 말로 나눔",
+      "planet_person": "하우스인과 마음을 터놓고 대화함",
+      "house_person": "달인과 감정적 대화가 편안함",
+      "gift": "정서적 소통, 이해",
+      "challenge": "감정적 과민 반응"
+    },
+    "4th": {
+      "meaning": "달인이 하우스인의 가정에서 편안함",
+      "effect": "강력한 가정 연결",
+      "planet_person": "하우스인과 가정을 만드는 것이 자연스러움",
+      "house_person": "달인과 함께 집이 따뜻해짐",
+      "gift": "정서적 안전, 가정, 가족",
+      "challenge": "과도한 가정 중심, 고립"
+    },
+    "5th": {
+      "meaning": "달인이 하우스인과 감정적 즐거움 공유",
+      "effect": "로맨틱하고 즐거운 감정",
+      "planet_person": "하우스인과 함께 놀고 즐기고 싶음",
+      "house_person": "달인과 함께하면 기분이 좋음",
+      "gift": "감정적 기쁨, 창조성, 로맨스",
+      "challenge": "감정 기복, 어린아이 같은 반응"
+    },
+    "6th": {
+      "meaning": "달인이 하우스인의 일상을 돌봄",
+      "effect": "실용적 돌봄과 지원",
+      "planet_person": "하우스인을 실질적으로 돕고 싶음",
+      "house_person": "달인이 일상을 편하게 해줌",
+      "gift": "봉사, 건강 케어, 일상 지원",
+      "challenge": "비판, 걱정 과다"
+    },
+    "7th": {
+      "meaning": "달인이 하우스인의 파트너상과 일치",
+      "effect": "결혼 지표",
+      "planet_person": "하우스인을 인생의 동반자로 봄",
+      "house_person": "달인과 결혼을 상상할 수 있음",
+      "gift": "정서적 헌신, 파트너십",
+      "challenge": "감정 의존, 분리 불안"
+    },
+    "8th": {
+      "meaning": "달인이 하우스인의 깊은 감정 터치",
+      "effect": "강렬한 정서적 친밀감",
+      "planet_person": "하우스인과 깊은 정서적 융합",
+      "house_person": "달인이 가장 깊은 곳을 건드림",
+      "gift": "깊은 감정적 유대, 치유",
+      "challenge": "감정적 조종, 집착"
+    },
+    "9th": {
+      "meaning": "달인이 하우스인의 탐험에 감정적 지지",
+      "effect": "함께 성장하고 배움",
+      "planet_person": "하우스인과 함께 세상을 탐험",
+      "house_person": "달인이 모험을 감정적으로 지지함",
+      "gift": "감정적 성장, 함께하는 여행",
+      "challenge": "안정 부족에 대한 불안"
+    },
+    "10th": {
+      "meaning": "달인이 하우스인의 커리어를 감정적으로 지지",
+      "effect": "공적 삶에 정서적 기반",
+      "planet_person": "하우스인의 성공을 응원함",
+      "house_person": "달인이 커리어를 정서적으로 뒷받침",
+      "gift": "감정적 지지, 공적 이미지",
+      "challenge": "커리어와 가정 갈등"
+    },
+    "11th": {
+      "meaning": "달인이 하우스인의 친구들과 편안함",
+      "effect": "우정과 감정의 조화",
+      "planet_person": "하우스인의 친구들을 가족처럼 느낌",
+      "house_person": "달인이 친구 그룹에 자연스럽게 섞임",
+      "gift": "따뜻한 우정, 공동체 감각",
+      "challenge": "개인 시간 부족"
+    },
+    "12th": {
+      "meaning": "달인이 하우스인의 무의식과 연결",
+      "effect": "영적, 직관적 연결",
+      "planet_person": "하우스인과 영혼 수준의 연결",
+      "house_person": "달인이 숨겨진 감정을 이해함",
+      "gift": "영적 돌봄, 치유, 직관적 이해",
+      "challenge": "경계 부족, 감정적 배수"
+    }
+  },
+
+  "Mercury_in_partners_house": {
+    "1st": {
+      "meaning": "수성인이 하우스인을 호기심을 가지고 관찰",
+      "effect": "활발한 대화, 지적 교류",
+      "planet_person": "하우스인이 흥미롭고 대화하고 싶음",
+      "house_person": "수성인과 대화가 자극적임",
+      "gift": "소통, 지적 자극, 재미",
+      "challenge": "과도한 분석, 가벼움"
+    },
+    "2nd": {
+      "meaning": "수성인이 하우스인의 재정/가치에 대해 대화",
+      "effect": "재정 계획, 가치관 토론",
+      "planet_person": "하우스인의 재정 관리에 관심",
+      "house_person": "수성인이 돈에 대한 조언을 줌",
+      "gift": "재정 소통, 가치관 공유",
+      "challenge": "돈 문제로 논쟁"
+    },
+    "3rd": {
+      "meaning": "수성인이 하우스인과 끊임없이 소통",
+      "effect": "매우 활발한 대화",
+      "planet_person": "하우스인과 대화가 끊이지 않음",
+      "house_person": "수성인과 지적으로 자극받음",
+      "gift": "훌륭한 소통, 학습 파트너",
+      "challenge": "수다, 깊이 부족"
+    },
+    "4th": {
+      "meaning": "수성인이 하우스인의 가정에서 대화",
+      "effect": "가정 내 소통 활성화",
+      "planet_person": "하우스인의 가정에서 편하게 대화",
+      "house_person": "수성인이 가정에 활기를 가져옴",
+      "gift": "가정 내 소통, 가족 대화",
+      "challenge": "가정에서 일 이야기"
+    },
+    "5th": {
+      "meaning": "수성인이 하우스인과 재미있게 소통",
+      "effect": "재미, 플러팅, 유머",
+      "planet_person": "하우스인과 장난치고 플러팅하고 싶음",
+      "house_person": "수성인과 대화가 즐거움",
+      "gift": "유머, 창조적 대화, 플러팅",
+      "challenge": "진지함 부족"
+    },
+    "6th": {
+      "meaning": "수성인이 하우스인의 일에 대해 논의",
+      "effect": "업무 협력, 건강 토론",
+      "planet_person": "하우스인과 일에 대해 이야기함",
+      "house_person": "수성인이 업무에 도움이 됨",
+      "gift": "업무 소통, 문제 해결",
+      "challenge": "비판, 걱정 대화"
+    },
+    "7th": {
+      "meaning": "수성인이 하우스인의 파트너로서 소통",
+      "effect": "대화하는 파트너십",
+      "planet_person": "하우스인과 진지하게 대화함",
+      "house_person": "수성인과 협상하고 합의함",
+      "gift": "좋은 소통의 파트너십",
+      "challenge": "말다툼"
+    },
+    "8th": {
+      "meaning": "수성인이 하우스인의 깊은 비밀에 관심",
+      "effect": "깊은 대화, 비밀 공유",
+      "planet_person": "하우스인의 숨겨진 것을 알고 싶음",
+      "house_person": "수성인에게 비밀을 털어놓게 됨",
+      "gift": "깊은 대화, 심리적 이해",
+      "challenge": "비밀 파헤치기, 불신"
+    },
+    "9th": {
+      "meaning": "수성인이 하우스인과 철학적 대화",
+      "effect": "학문적, 여행 관련 소통",
+      "planet_person": "하우스인과 큰 주제를 토론함",
+      "house_person": "수성인이 시야를 넓혀주는 대화",
+      "gift": "철학적 대화, 학습, 여행 계획",
+      "challenge": "신념 충돌"
+    },
+    "10th": {
+      "meaning": "수성인이 하우스인의 커리어에 대해 대화",
+      "effect": "직업적 조언, 네트워킹",
+      "planet_person": "하우스인의 커리어에 관심",
+      "house_person": "수성인이 커리어에 도움이 되는 정보 줌",
+      "gift": "커리어 소통, 네트워킹",
+      "challenge": "일 이야기만 함"
+    },
+    "11th": {
+      "meaning": "수성인이 하우스인의 친구들과 대화",
+      "effect": "그룹 활동, 네트워킹",
+      "planet_person": "하우스인의 친구들과 잘 어울림",
+      "house_person": "수성인이 사회생활에 활기를 줌",
+      "gift": "우정, 네트워킹, 그룹 소통",
+      "challenge": "깊은 관계보다 넓은 관계"
+    },
+    "12th": {
+      "meaning": "수성인이 하우스인의 무의식을 말로 표현",
+      "effect": "영적 대화, 직관적 소통",
+      "planet_person": "하우스인의 말 못할 것을 이해함",
+      "house_person": "수성인이 표현 못한 것을 말해줌",
+      "gift": "영적 소통, 치유적 대화",
+      "challenge": "혼란, 오해"
+    }
+  },
+
+  "Venus_in_partners_house": {
+    "1st": {
+      "meaning": "금성인이 하우스인을 아름답게 봄",
+      "effect": "강한 로맨틱 끌림",
+      "planet_person": "하우스인을 매우 매력적으로 봄",
+      "house_person": "금성인 곁에서 아름다움을 느낌",
+      "gift": "상호 찬미, 매력, 로맨스",
+      "challenge": "외모에 집중"
+    },
+    "2nd": {
+      "meaning": "금성인이 하우스인의 가치관에 공감",
+      "effect": "가치관과 자원 공유",
+      "planet_person": "하우스인의 취향과 가치관이 좋음",
+      "house_person": "금성인과 가치관이 맞음",
+      "gift": "공유된 가치, 재정적 조화",
+      "challenge": "사치, 과소비"
+    },
+    "3rd": {
+      "meaning": "금성인이 하우스인과 달콤한 대화",
+      "effect": "부드럽고 즐거운 소통",
+      "planet_person": "하우스인과 대화가 달콤함",
+      "house_person": "금성인의 말이 귀에 쏙 들어옴",
+      "gift": "달콤한 소통, 연애 편지",
+      "challenge": "진지한 대화 회피"
+    },
+    "4th": {
+      "meaning": "금성인이 하우스인의 가정을 아름답게 함",
+      "effect": "가정의 조화와 아름다움",
+      "planet_person": "하우스인의 가정에서 편안함",
+      "house_person": "금성인이 집을 아름답게 만듦",
+      "gift": "아름다운 가정, 정서적 조화",
+      "challenge": "지나친 편안함, 게으름"
+    },
+    "5th": {
+      "meaning": "금성인이 하우스인과 로맨스 즐김",
+      "effect": "매우 로맨틱한 관계",
+      "planet_person": "하우스인과 로맨틱하고 재미있음",
+      "house_person": "금성인과 사랑에 빠지기 쉬움",
+      "gift": "기쁨, 재미, 사랑, 창조성",
+      "challenge": "가벼울 수 있음"
+    },
+    "6th": {
+      "meaning": "금성인이 하우스인의 일상에 조화 가져옴",
+      "effect": "일상의 아름다움",
+      "planet_person": "하우스인과 함께 일하면 즐거움",
+      "house_person": "금성인이 일상을 아름답게 만듦",
+      "gift": "조화로운 일상, 봉사",
+      "challenge": "게으름, 일 회피"
+    },
+    "7th": {
+      "meaning": "금성인이 하우스인의 이상적 파트너",
+      "effect": "강력한 결혼 지표",
+      "planet_person": "하우스인을 진정으로 사랑함",
+      "house_person": "금성인이 꿈꾸던 파트너",
+      "gift": "조화로운 파트너십, 사랑",
+      "challenge": "갈등 회피"
+    },
+    "8th": {
+      "meaning": "금성인이 하우스인의 깊은 욕망 터치",
+      "effect": "강렬한 성적 끌림",
+      "planet_person": "하우스인에게 강렬하게 끌림",
+      "house_person": "금성인과 깊은 친밀감",
+      "gift": "변형적 사랑, 깊은 유대",
+      "challenge": "집착, 질투"
+    },
+    "9th": {
+      "meaning": "금성인이 하우스인과 함께 성장",
+      "effect": "사랑을 통한 확장",
+      "planet_person": "하우스인과 함께 세상을 탐험",
+      "house_person": "금성인과 함께 성장함",
+      "gift": "사랑의 모험, 철학적 연결",
+      "challenge": "안정 부족"
+    },
+    "10th": {
+      "meaning": "금성인이 하우스인의 사회적 위치에 조화",
+      "effect": "공적 이미지에 긍정적",
+      "planet_person": "하우스인의 성공에 기여",
+      "house_person": "금성인이 사회적으로 도움이 됨",
+      "gift": "사회적 조화, 공적 인정",
+      "challenge": "이미지에 집중"
+    },
+    "11th": {
+      "meaning": "금성인이 하우스인의 친구들과 어울림",
+      "effect": "우정에서 사랑으로",
+      "planet_person": "하우스인의 친구들을 좋아함",
+      "house_person": "금성인과 친구처럼 편안함",
+      "gift": "사랑하는 친구, 공유 비전",
+      "challenge": "친구인지 연인인지 모호"
+    },
+    "12th": {
+      "meaning": "금성인이 하우스인의 영혼을 사랑함",
+      "effect": "영적 사랑, 비밀 로맨스",
+      "planet_person": "하우스인과 영혼 수준의 사랑",
+      "house_person": "금성인이 숨겨진 나를 사랑함",
+      "gift": "영적 사랑, 무조건적 수용",
+      "challenge": "비밀, 희생"
+    }
+  },
+
+  "Mars_in_partners_house": {
+    "1st": {
+      "meaning": "화성인이 하우스인을 활성화",
+      "effect": "에너지와 열정",
+      "planet_person": "하우스인을 자극하고 싶음",
+      "house_person": "화성인 곁에서 에너지가 올라감",
+      "gift": "행동력 자극, 열정",
+      "challenge": "갈등, 경쟁"
+    },
+    "2nd": {
+      "meaning": "화성인이 하우스인의 재정을 활성화",
+      "effect": "재정적 행동력",
+      "planet_person": "하우스인과 돈을 벌고 싶음",
+      "house_person": "화성인이 재정적 행동을 자극함",
+      "gift": "재정적 동기부여",
+      "challenge": "돈 문제로 다툼"
+    },
+    "3rd": {
+      "meaning": "화성인이 하우스인과 열띤 대화",
+      "effect": "활발하고 때론 격렬한 소통",
+      "planet_person": "하우스인과 토론하고 싶음",
+      "house_person": "화성인이 말싸움을 유발할 수 있음",
+      "gift": "직접적 소통, 토론",
+      "challenge": "말다툼, 공격적 언어"
+    },
+    "4th": {
+      "meaning": "화성인이 하우스인의 가정에 에너지",
+      "effect": "가정 내 활동성",
+      "planet_person": "하우스인의 가정을 활성화함",
+      "house_person": "화성인이 가정에 에너지를 가져옴",
+      "gift": "가정 프로젝트, 보호",
+      "challenge": "가정 내 갈등"
+    },
+    "5th": {
+      "meaning": "화성인이 하우스인과 열정적 로맨스",
+      "effect": "성적 끌림, 열정",
+      "planet_person": "하우스인에게 강하게 끌림",
+      "house_person": "화성인과 열정적임",
+      "gift": "열정, 재미, 성적 끌림",
+      "challenge": "충동적 행동"
+    },
+    "6th": {
+      "meaning": "화성인이 하우스인의 일을 활성화",
+      "effect": "업무 협력, 건강 관련 활동",
+      "planet_person": "하우스인과 함께 일하고 싶음",
+      "house_person": "화성인이 일에 동기를 부여함",
+      "gift": "업무 에너지, 건강 개선",
+      "challenge": "업무 갈등"
+    },
+    "7th": {
+      "meaning": "화성인이 하우스인과 활발한 파트너십",
+      "effect": "열정적이지만 갈등적",
+      "planet_person": "하우스인과 적극적으로 파트너가 됨",
+      "house_person": "화성인이 관계에 열정을 가져옴",
+      "gift": "에너지 넘치는 관계, 열정",
+      "challenge": "싸움, 권력 투쟁"
+    },
+    "8th": {
+      "meaning": "화성인이 하우스인의 깊은 욕망 활성화",
+      "effect": "매우 강렬한 성적 끌림",
+      "planet_person": "하우스인과 깊은 열정",
+      "house_person": "화성인이 가장 깊은 욕망을 자극함",
+      "gift": "깊은 열정, 변형",
+      "challenge": "권력 투쟁, 위험"
+    },
+    "9th": {
+      "meaning": "화성인이 하우스인과 모험",
+      "effect": "함께 탐험하고 도전",
+      "planet_person": "하우스인과 모험하고 싶음",
+      "house_person": "화성인이 모험심을 자극함",
+      "gift": "모험, 성장, 탐험",
+      "challenge": "무모함"
+    },
+    "10th": {
+      "meaning": "화성인이 하우스인의 커리어를 활성화",
+      "effect": "야망과 경쟁",
+      "planet_person": "하우스인의 성공을 위해 행동함",
+      "house_person": "화성인이 커리어에 동기부여",
+      "gift": "커리어 동기, 리더십",
+      "challenge": "직업적 경쟁"
+    },
+    "11th": {
+      "meaning": "화성인이 하우스인의 그룹 활동에 에너지",
+      "effect": "그룹 리더십, 활동성",
+      "planet_person": "하우스인의 친구들과 활동함",
+      "house_person": "화성인이 사회생활에 활력",
+      "gift": "그룹 리더십, 행동",
+      "challenge": "그룹 내 갈등"
+    },
+    "12th": {
+      "meaning": "화성인이 하우스인의 무의식을 자극",
+      "effect": "숨겨진 열정, 카르마",
+      "planet_person": "하우스인과의 숨겨진 연결",
+      "house_person": "화성인이 억압된 분노를 자극할 수 있음",
+      "gift": "영적 전사, 카르마 해소",
+      "challenge": "숨겨진 갈등, 비밀 적"
+    }
+  },
+
+  "Jupiter_in_partners_house": {
+    "1st": {
+      "meaning": "목성인이 하우스인을 확장시킴",
+      "effect": "낙관과 성장",
+      "planet_person": "하우스인을 격려하고 확장시키고 싶음",
+      "house_person": "목성인 곁에서 자신감이 커짐",
+      "gift": "성장, 낙관, 행운",
+      "challenge": "과신, 과장"
+    },
+    "2nd": {
+      "meaning": "목성인이 하우스인의 재정을 확장",
+      "effect": "재정적 풍요",
+      "planet_person": "하우스인과 재정적으로 관대함",
+      "house_person": "목성인이 재정적 행운을 가져옴",
+      "gift": "재정적 축복, 풍요",
+      "challenge": "과소비, 낭비"
+    },
+    "3rd": {
+      "meaning": "목성인이 하우스인과 긍정적 소통",
+      "effect": "낙관적이고 고무적인 대화",
+      "planet_person": "하우스인과 대화가 고무적임",
+      "house_person": "목성인이 긍정적 시각을 줌",
+      "gift": "고무적 소통, 학습",
+      "challenge": "과장, 과한 약속"
+    },
+    "4th": {
+      "meaning": "목성인이 하우스인의 가정을 축복",
+      "effect": "가정의 확장과 풍요",
+      "planet_person": "하우스인의 가정에서 편안하고 행복함",
+      "house_person": "목성인이 가정에 축복을 가져옴",
+      "gift": "가정의 축복, 확장",
+      "challenge": "가정에서 과한 것"
+    },
+    "5th": {
+      "meaning": "목성인이 하우스인과 즐거운 로맨스",
+      "effect": "기쁨과 축복의 로맨스",
+      "planet_person": "하우스인과 함께 즐거움이 배가됨",
+      "house_person": "목성인과 함께하면 행복함",
+      "gift": "기쁨, 축복, 로맨스, 자녀 축복",
+      "challenge": "과도한 즐거움 추구"
+    },
+    "6th": {
+      "meaning": "목성인이 하우스인의 일상을 개선",
+      "effect": "건강과 일의 개선",
+      "planet_person": "하우스인의 일상에 도움을 주고 싶음",
+      "house_person": "목성인이 건강과 일에 도움",
+      "gift": "건강 개선, 업무 기회",
+      "challenge": "과한 일, 건강 방심"
+    },
+    "7th": {
+      "meaning": "목성인이 하우스인에게 축복의 파트너",
+      "effect": "행운의 파트너십",
+      "planet_person": "하우스인과의 파트너십에서 성장함",
+      "house_person": "목성인이 관계에 축복을 가져옴",
+      "gift": "성장하는 파트너십, 결혼 축복",
+      "challenge": "관계에서 과한 기대"
+    },
+    "8th": {
+      "meaning": "목성인이 하우스인의 변형을 축복",
+      "effect": "긍정적 변형, 공유 자원 확장",
+      "planet_person": "하우스인과 깊은 자원 공유",
+      "house_person": "목성인이 상속, 투자에 행운",
+      "gift": "재정적 축복, 깊은 성장",
+      "challenge": "타인 자원 남용"
+    },
+    "9th": {
+      "meaning": "목성인이 하우스인과 함께 탐험",
+      "effect": "철학적 성장, 여행",
+      "planet_person": "하우스인과 함께 세상을 배움",
+      "house_person": "목성인이 시야를 크게 넓혀줌",
+      "gift": "확장, 여행, 철학적 성장",
+      "challenge": "지나친 이상주의"
+    },
+    "10th": {
+      "meaning": "목성인이 하우스인의 커리어를 축복",
+      "effect": "직업적 성공과 명성",
+      "planet_person": "하우스인의 성공에 기여함",
+      "house_person": "목성인이 커리어에 행운을 가져옴",
+      "gift": "커리어 축복, 승진, 명성",
+      "challenge": "지위에 과한 집착"
+    },
+    "11th": {
+      "meaning": "목성인이 하우스인의 비전을 확장",
+      "effect": "친구와 미래의 확장",
+      "planet_person": "하우스인의 비전에 동참함",
+      "house_person": "목성인이 희망과 기회를 가져옴",
+      "gift": "확장된 비전, 풍요로운 친구",
+      "challenge": "비현실적 희망"
+    },
+    "12th": {
+      "meaning": "목성인이 하우스인의 영적 성장을 축복",
+      "effect": "영적 확장, 보호",
+      "planet_person": "하우스인을 영적으로 보호함",
+      "house_person": "목성인이 수호천사 같음",
+      "gift": "영적 축복, 보호, 치유",
+      "challenge": "현실 도피"
+    }
+  },
+
+  "Saturn_in_partners_house": {
+    "1st": {
+      "meaning": "토성인이 하우스인에게 책임감 가르침",
+      "effect": "진지한 관계",
+      "planet_person": "하우스인에게 책임감을 느낌",
+      "house_person": "토성인 곁에서 더 성숙해짐",
+      "gift": "성숙, 안정, 책임",
+      "challenge": "억압, 비판"
+    },
+    "2nd": {
+      "meaning": "토성인이 하우스인의 재정에 구조",
+      "effect": "재정적 책임과 안정",
+      "planet_person": "하우스인의 재정을 안정시키고 싶음",
+      "house_person": "토성인이 재정적 책임을 가르침",
+      "gift": "재정 안정, 장기적 보안",
+      "challenge": "재정적 제한, 인색함"
+    },
+    "3rd": {
+      "meaning": "토성인이 하우스인과 진지한 소통",
+      "effect": "신중하고 책임 있는 대화",
+      "planet_person": "하우스인과 진지하게 대화함",
+      "house_person": "토성인이 생각을 정리하게 함",
+      "gift": "신중한 소통, 진지한 학습",
+      "challenge": "의사소통 어려움, 비판"
+    },
+    "4th": {
+      "meaning": "토성인이 하우스인의 가정에 구조 가져옴",
+      "effect": "장기적 가정 구축",
+      "planet_person": "하우스인과 안정적 가정을 세우고 싶음",
+      "house_person": "토성인이 가정에 구조를 가져옴",
+      "gift": "안정, 보안, 가정의 기반",
+      "challenge": "냉담함, 제한"
+    },
+    "5th": {
+      "meaning": "토성인이 하우스인의 즐거움을 제한",
+      "effect": "진지한 로맨스",
+      "planet_person": "하우스인과 진지한 관계를 원함",
+      "house_person": "토성인이 즐거움에 책임을 더함",
+      "gift": "성숙한 로맨스, 책임 있는 부모됨",
+      "challenge": "재미 부족, 억압"
+    },
+    "6th": {
+      "meaning": "토성인이 하우스인의 일상에 규율",
+      "effect": "일과 건강의 구조화",
+      "planet_person": "하우스인과 일하면 책임감 생김",
+      "house_person": "토성인이 일상에 규율을 가져옴",
+      "gift": "일의 구조, 건강 규율",
+      "challenge": "일중독, 비판"
+    },
+    "7th": {
+      "meaning": "토성인이 하우스인에게 헌신 가르침",
+      "effect": "카르마적 파트너십, 진지한 헌신",
+      "planet_person": "하우스인에게 장기적 헌신을 느낌",
+      "house_person": "토성인과의 관계가 운명적으로 느껴짐",
+      "gift": "장기적 관계, 카르마 해소",
+      "challenge": "부담, 의무감, 제한"
+    },
+    "8th": {
+      "meaning": "토성인이 하우스인의 변형을 구조화",
+      "effect": "깊은 책임, 공유 자원 관리",
+      "planet_person": "하우스인과 깊은 책임을 공유함",
+      "house_person": "토성인이 공유 자원에 구조를 가져옴",
+      "gift": "재정적 책임, 성숙한 친밀감",
+      "challenge": "통제, 권력 이슈"
+    },
+    "9th": {
+      "meaning": "토성인이 하우스인의 신념에 구조",
+      "effect": "진지한 철학적 탐구",
+      "planet_person": "하우스인의 신념을 진지하게 봄",
+      "house_person": "토성인이 신념을 현실화하게 함",
+      "gift": "철학의 현실화, 진지한 학습",
+      "challenge": "신념 제한, 경직"
+    },
+    "10th": {
+      "meaning": "토성인이 하우스인의 커리어에 영향",
+      "effect": "사업 파트너십, 커리어 책임",
+      "planet_person": "하우스인의 성공에 책임을 느낌",
+      "house_person": "토성인이 커리어에 구조를 가져옴",
+      "gift": "구조, 성공, 커리어 안정",
+      "challenge": "일 같은 관계, 압박"
+    },
+    "11th": {
+      "meaning": "토성인이 하우스인의 비전을 현실화",
+      "effect": "희망의 구조화",
+      "planet_person": "하우스인의 비전을 현실로 돕고 싶음",
+      "house_person": "토성인이 희망을 현실로 만들어줌",
+      "gift": "비전의 현실화, 진지한 친구",
+      "challenge": "희망 제한"
+    },
+    "12th": {
+      "meaning": "토성인이 하우스인의 두려움을 자극",
+      "effect": "카르마적 책임",
+      "planet_person": "하우스인과의 깊은 카르마",
+      "house_person": "토성인이 숨겨진 두려움을 자극함",
+      "gift": "카르마 해소, 영적 성숙",
+      "challenge": "두려움, 고립, 우울"
+    }
+  },
+
+  "Uranus_in_partners_house": {
+    "1st": {
+      "meaning": "천왕성인이 하우스인을 각성시킴",
+      "effect": "흥분과 변화",
+      "planet_person": "하우스인을 깨우고 변화시키고 싶음",
+      "house_person": "천왕성인 곁에서 각성하고 변함",
+      "gift": "각성, 독립, 혁신",
+      "challenge": "불안정, 예측불허"
+    },
+    "2nd": {
+      "meaning": "천왕성인이 하우스인의 재정을 변화시킴",
+      "effect": "재정적 변동",
+      "planet_person": "하우스인의 재정 관념을 바꾸고 싶음",
+      "house_person": "천왕성인이 재정에 변화를 가져옴",
+      "gift": "독창적 수입원, 변화",
+      "challenge": "재정 불안정"
+    },
+    "3rd": {
+      "meaning": "천왕성인이 하우스인과 독특한 소통",
+      "effect": "독창적이고 자극적인 대화",
+      "planet_person": "하우스인과 독특한 아이디어 교환",
+      "house_person": "천왕성인이 사고방식을 변화시킴",
+      "gift": "혁신적 아이디어, 독창성",
+      "challenge": "소통 불안정, 예측불허"
+    },
+    "4th": {
+      "meaning": "천왕성인이 하우스인의 가정을 변화시킴",
+      "effect": "가정의 급격한 변화",
+      "planet_person": "하우스인의 가정에 변화를 가져옴",
+      "house_person": "천왕성인이 가정 패턴을 깨뜨림",
+      "gift": "독특한 가정, 자유",
+      "challenge": "가정 불안정"
+    },
+    "5th": {
+      "meaning": "천왕성인이 하우스인과 독특한 로맨스",
+      "effect": "흥분되지만 예측불허",
+      "planet_person": "하우스인과 비전통적 로맨스",
+      "house_person": "천왕성인과 흥분되고 색다름",
+      "gift": "흥분, 독창성, 자유로운 사랑",
+      "challenge": "불안정, 갑작스러운 변화"
+    },
+    "6th": {
+      "meaning": "천왕성인이 하우스인의 일상을 변화시킴",
+      "effect": "일상의 혁신",
+      "planet_person": "하우스인의 루틴을 바꾸고 싶음",
+      "house_person": "천왕성인이 일상에 변화를 가져옴",
+      "gift": "혁신적 업무, 건강 변화",
+      "challenge": "일상 불안정"
+    },
+    "7th": {
+      "meaning": "천왕성인이 하우스인과 독특한 파트너십",
+      "effect": "비전통적 관계",
+      "planet_person": "하우스인과 자유로운 관계를 원함",
+      "house_person": "천왕성인이 관계 패턴을 깨뜨림",
+      "gift": "자유로운 파트너십, 독창성",
+      "challenge": "관계 불안정, 갑작스러운 분리"
+    },
+    "8th": {
+      "meaning": "천왕성인이 하우스인의 깊은 변형 촉발",
+      "effect": "갑작스러운 변형",
+      "planet_person": "하우스인과 깊은 변화를 경험함",
+      "house_person": "천왕성인이 갑작스러운 변형을 가져옴",
+      "gift": "혁명적 변형, 각성",
+      "challenge": "갑작스러운 위기"
+    },
+    "9th": {
+      "meaning": "천왕성인이 하우스인의 세계관을 혁명",
+      "effect": "철학적 각성",
+      "planet_person": "하우스인과 새로운 관점 공유",
+      "house_person": "천왕성인이 세계관을 혁명시킴",
+      "gift": "철학적 혁명, 새로운 시각",
+      "challenge": "신념 불안정"
+    },
+    "10th": {
+      "meaning": "천왕성인이 하우스인의 커리어를 변화시킴",
+      "effect": "커리어 혁명",
+      "planet_person": "하우스인의 커리어에 혁신을 가져옴",
+      "house_person": "천왕성인이 직업적 변화를 촉발함",
+      "gift": "커리어 혁신, 독창적 성공",
+      "challenge": "커리어 불안정"
+    },
+    "11th": {
+      "meaning": "천왕성인이 하우스인의 비전을 혁명",
+      "effect": "비전과 친구의 변화",
+      "planet_person": "하우스인의 비전에 혁명을 가져옴",
+      "house_person": "천왕성인이 미래 관점을 바꿈",
+      "gift": "혁명적 비전, 독특한 친구",
+      "challenge": "비전 불안정"
+    },
+    "12th": {
+      "meaning": "천왕성인이 하우스인의 무의식을 각성",
+      "effect": "영적 각성",
+      "planet_person": "하우스인의 숨겨진 것을 각성시킴",
+      "house_person": "천왕성인이 무의식적 패턴을 깨뜨림",
+      "gift": "영적 각성, 해방",
+      "challenge": "심리적 불안정"
+    }
+  },
+
+  "Neptune_in_partners_house": {
+    "1st": {
+      "meaning": "해왕성인이 하우스인을 이상화함",
+      "effect": "꿈같은 끌림",
+      "planet_person": "하우스인을 이상적으로 봄",
+      "house_person": "해왕성인 곁에서 특별하게 느껴짐",
+      "gift": "영감, 이상화, 영적 연결",
+      "challenge": "환상, 실망"
+    },
+    "2nd": {
+      "meaning": "해왕성인이 하우스인의 가치에 영적 차원 추가",
+      "effect": "물질과 영성의 혼합",
+      "planet_person": "하우스인의 가치관에 영적 관점 추가",
+      "house_person": "해왕성인이 재정에 혼란 또는 영감",
+      "gift": "영적 가치, 관대함",
+      "challenge": "재정 혼란, 속임"
+    },
+    "3rd": {
+      "meaning": "해왕성인이 하우스인과 직관적 소통",
+      "effect": "말 없이 통하는 연결",
+      "planet_person": "하우스인과 직관적으로 소통함",
+      "house_person": "해왕성인과 텔레파시적 연결",
+      "gift": "직관적 소통, 영감",
+      "challenge": "오해, 혼란"
+    },
+    "4th": {
+      "meaning": "해왕성인이 하우스인의 가정을 영적으로 만듦",
+      "effect": "꿈같은 가정",
+      "planet_person": "하우스인의 가정에서 평화를 느낌",
+      "house_person": "해왕성인이 가정에 영적 분위기 가져옴",
+      "gift": "영적 가정, 평화",
+      "challenge": "경계 부족, 도피"
+    },
+    "5th": {
+      "meaning": "해왕성인이 하우스인과 이상적 로맨스",
+      "effect": "꿈같은 사랑",
+      "planet_person": "하우스인과 꿈같은 로맨스 경험",
+      "house_person": "해왕성인과 동화 같은 사랑",
+      "gift": "이상적 로맨스, 영감, 창조성",
+      "challenge": "환상, 실망"
+    },
+    "6th": {
+      "meaning": "해왕성인이 하우스인의 일상에 영성 추가",
+      "effect": "봉사와 영성",
+      "planet_person": "하우스인에게 영적 봉사를 함",
+      "house_person": "해왕성인이 일상에 의미를 추가함",
+      "gift": "영적 봉사, 치유",
+      "challenge": "경계 부족, 희생"
+    },
+    "7th": {
+      "meaning": "해왕성인이 하우스인의 이상적 파트너 이미지",
+      "effect": "영혼의 짝 느낌",
+      "planet_person": "하우스인을 영혼의 짝으로 느낌",
+      "house_person": "해왕성인이 꿈의 파트너 같음",
+      "gift": "영적 파트너십, 무조건적 사랑",
+      "challenge": "환상, 경계 부족"
+    },
+    "8th": {
+      "meaning": "해왕성인이 하우스인과 영적으로 융합",
+      "effect": "깊은 영적 친밀감",
+      "planet_person": "하우스인과 영혼 수준의 융합",
+      "house_person": "해왕성인과 깊은 영적 연결",
+      "gift": "영적 친밀감, 변형",
+      "challenge": "경계 상실, 혼란"
+    },
+    "9th": {
+      "meaning": "해왕성인이 하우스인의 영성을 확장",
+      "effect": "영적 여행",
+      "planet_person": "하우스인과 영적으로 성장함",
+      "house_person": "해왕성인이 영적 시야를 넓혀줌",
+      "gift": "영적 확장, 비전",
+      "challenge": "비현실적 신념"
+    },
+    "10th": {
+      "meaning": "해왕성인이 하우스인의 커리어에 영적 차원",
+      "effect": "예술/영성 커리어",
+      "planet_person": "하우스인의 커리어에 영감을 줌",
+      "house_person": "해왕성인이 커리어에 영적 의미 추가",
+      "gift": "영감받은 커리어, 예술",
+      "challenge": "커리어 혼란"
+    },
+    "11th": {
+      "meaning": "해왕성인이 하우스인의 비전을 영적으로 만듦",
+      "effect": "영적 비전 공유",
+      "planet_person": "하우스인과 영적 비전 공유함",
+      "house_person": "해왕성인이 꿈같은 미래 보여줌",
+      "gift": "영적 비전, 연민",
+      "challenge": "비현실적 희망"
+    },
+    "12th": {
+      "meaning": "해왕성인이 하우스인과 깊은 영적 연결",
+      "effect": "카르마적 영혼의 연결",
+      "planet_person": "하우스인과 전생의 연결 느낌",
+      "house_person": "해왕성인과 설명할 수 없는 연결",
+      "gift": "깊은 영적 유대, 치유",
+      "challenge": "경계 상실, 희생"
+    }
+  },
+
+  "Pluto_in_partners_house": {
+    "1st": {
+      "meaning": "명왕성인이 하우스인을 변형시킴",
+      "effect": "강렬하고 변형적인 끌림",
+      "planet_person": "하우스인을 완전히 변화시키고 싶음",
+      "house_person": "명왕성인 곁에서 완전히 변함",
+      "gift": "변형, 재탄생, 권력",
+      "challenge": "통제, 집착"
+    },
+    "2nd": {
+      "meaning": "명왕성인이 하우스인의 가치를 변형",
+      "effect": "재정과 가치의 변형",
+      "planet_person": "하우스인의 가치관을 바꾸고 싶음",
+      "house_person": "명왕성인이 재정과 가치에 깊은 변화",
+      "gift": "가치 변형, 재정 권력",
+      "challenge": "재정적 권력 투쟁"
+    },
+    "3rd": {
+      "meaning": "명왕성인이 하우스인의 사고를 변형",
+      "effect": "깊고 변형적인 대화",
+      "planet_person": "하우스인의 생각에 깊이 영향",
+      "house_person": "명왕성인이 사고방식을 변화시킴",
+      "gift": "깊은 통찰, 변형적 소통",
+      "challenge": "조종, 심리적 게임"
+    },
+    "4th": {
+      "meaning": "명왕성인이 하우스인의 가정을 변형",
+      "effect": "가정의 깊은 변화",
+      "planet_person": "하우스인의 가정 패턴을 변화시킴",
+      "house_person": "명왕성인이 가정 깊숙이 변화 가져옴",
+      "gift": "가정의 변형, 심리적 치유",
+      "challenge": "가정 내 권력 투쟁"
+    },
+    "5th": {
+      "meaning": "명왕성인이 하우스인과 강렬한 로맨스",
+      "effect": "집착적이고 변형적인 사랑",
+      "planet_person": "하우스인에게 강렬하게 끌림",
+      "house_person": "명왕성인과 깊고 강렬한 로맨스",
+      "gift": "변형적 사랑, 강렬한 창조성",
+      "challenge": "집착, 질투, 드라마"
+    },
+    "6th": {
+      "meaning": "명왕성인이 하우스인의 일상을 변형",
+      "effect": "일과 건강의 변형",
+      "planet_person": "하우스인의 일상을 재구성함",
+      "house_person": "명왕성인이 일과 건강에 깊은 변화",
+      "gift": "일의 변형, 건강 재탄생",
+      "challenge": "업무 권력 투쟁"
+    },
+    "7th": {
+      "meaning": "명왕성인이 하우스인과 강렬한 파트너십",
+      "effect": "카르마적이고 변형적인 관계",
+      "planet_person": "하우스인과 깊은 카르마",
+      "house_person": "명왕성인과의 관계가 운명적",
+      "gift": "변형적 파트너십, 재탄생",
+      "challenge": "권력 투쟁, 통제"
+    },
+    "8th": {
+      "meaning": "명왕성인이 하우스인의 깊은 곳을 변형",
+      "effect": "가장 깊은 변형",
+      "planet_person": "하우스인과 가장 깊은 융합",
+      "house_person": "명왕성인이 가장 깊은 곳을 건드림",
+      "gift": "깊은 변형, 완전한 재탄생",
+      "challenge": "권력 투쟁, 집착, 위기"
+    },
+    "9th": {
+      "meaning": "명왕성인이 하우스인의 세계관을 변형",
+      "effect": "철학의 변형",
+      "planet_person": "하우스인의 신념을 변화시킴",
+      "house_person": "명왕성인이 세계관을 완전히 바꿈",
+      "gift": "철학적 변형, 깊은 통찰",
+      "challenge": "신념 강요"
+    },
+    "10th": {
+      "meaning": "명왕성인이 하우스인의 커리어를 변형",
+      "effect": "커리어의 죽음과 재탄생",
+      "planet_person": "하우스인의 커리어에 깊은 영향",
+      "house_person": "명왕성인이 커리어를 완전히 변화시킴",
+      "gift": "커리어 변형, 권력",
+      "challenge": "커리어 권력 투쟁"
+    },
+    "11th": {
+      "meaning": "명왕성인이 하우스인의 비전을 변형",
+      "effect": "희망과 친구의 변형",
+      "planet_person": "하우스인의 비전을 변화시킴",
+      "house_person": "명왕성인이 미래 관점을 변형함",
+      "gift": "비전의 변형, 권력 있는 연결",
+      "challenge": "그룹 내 권력 투쟁"
+    },
+    "12th": {
+      "meaning": "명왕성인이 하우스인의 무의식을 변형",
+      "effect": "깊은 카르마적 변형",
+      "planet_person": "하우스인과 깊은 카르마 연결",
+      "house_person": "명왕성인이 가장 깊은 무의식을 건드림",
+      "gift": "카르마 해소, 영적 변형",
+      "challenge": "심리적 위기, 숨겨진 권력"
+    }
+  },
+
+  "key_overlays": {
+    "romantic": ["Sun in 5th", "Venus in 5th", "Mars in 5th", "Venus in 7th", "Sun in 7th", "Venus in 1st"],
+    "marriage": ["Sun in 7th", "Moon in 7th", "Venus in 7th", "Saturn in 7th", "Moon in 4th"],
+    "sexual": ["Mars in 8th", "Pluto in 8th", "Venus in 8th", "Mars in 5th", "Pluto in 5th"],
+    "karmic": ["Saturn in 7th", "Saturn in 12th", "Pluto in 12th", "Sun in 12th", "Saturn in 4th"],
+    "friendship": ["Sun in 11th", "Venus in 11th", "Moon in 11th", "Mercury in 11th"],
+    "business": ["Sun in 10th", "Saturn in 10th", "Jupiter in 10th", "Mercury in 10th"],
+    "spiritual": ["Neptune in 12th", "Jupiter in 12th", "Neptune in 9th", "Pluto in 12th"],
+    "domestic": ["Moon in 4th", "Venus in 4th", "Sun in 4th", "Saturn in 4th"]
+  }
+}

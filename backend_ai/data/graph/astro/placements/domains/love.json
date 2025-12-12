@@ -1,0 +1,384 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/domains/love",
+  "$count": 84,
+  "$description": "연애, 관계, 결혼에 영향을 미치는 배치들의 도메인별 해석",
+  "$note": "Venus(12) + Moon(12) + Mars(12) in signs, plus key house placements (5th, 7th, 8th × 7 planets = 21) + aspects",
+
+  "Venus_love": {
+    "Venus_in_Aries": {
+      "attraction_style": "직접적이고 열정적인 구애, 추격의 스릴을 즐김",
+      "love_language": "즉각적인 행동, 모험 공유, 열정적인 표현",
+      "relationship_needs": "흥분, 독립성, 정복감",
+      "shadow_in_love": "성급함, 쉽게 지루해함, 갈등을 즐김",
+      "ideal_partner": "자신감 있고, 독립적이며, 도전적인 사람",
+      "growth_in_love": "인내심과 지속적인 헌신 배우기"
+    },
+    "Venus_in_Taurus": {
+      "attraction_style": "느리고 감각적인 접근, 안정감으로 유혹",
+      "love_language": "물질적 선물, 신체적 애정, 맛있는 음식",
+      "relationship_needs": "안정성, 충성, 감각적 만족",
+      "shadow_in_love": "소유욕, 질투, 변화 거부",
+      "ideal_partner": "신뢰할 수 있고, 감각적이며, 재정적으로 안정된 사람",
+      "growth_in_love": "변화를 받아들이고 집착 내려놓기"
+    },
+    "Venus_in_Gemini": {
+      "attraction_style": "재치와 대화로 매력 발산, 지적 유희",
+      "love_language": "끊임없는 소통, 재미있는 문자, 다양한 경험",
+      "relationship_needs": "정신적 자극, 다양성, 자유로운 소통",
+      "shadow_in_love": "변덕, 깊이 부족, 두 마음",
+      "ideal_partner": "재치 있고, 호기심 많으며, 대화가 통하는 사람",
+      "growth_in_love": "감정적 깊이와 일관성 개발하기"
+    },
+    "Venus_in_Cancer": {
+      "attraction_style": "보살핌과 정서적 안전감으로 끌어당김",
+      "love_language": "집밥, 감정적 지지, 가정적인 분위기",
+      "relationship_needs": "정서적 안정, 가족 같은 유대, 보호받는 느낌",
+      "shadow_in_love": "과도한 감정 의존, 기분 변화, 과거 집착",
+      "ideal_partner": "정서적으로 성숙하고, 가정적이며, 보호본능이 있는 사람",
+      "growth_in_love": "독립성 유지하며 사랑하기"
+    },
+    "Venus_in_Leo": {
+      "attraction_style": "드라마틱하고 로맨틱한 제스처, 무대 같은 사랑",
+      "love_language": "공개적인 애정 표현, 칭찬, 특별한 대우",
+      "relationship_needs": "인정, 존경, 로맨틱한 드라마",
+      "shadow_in_love": "자기중심적, 관심 독점, 자존심 문제",
+      "ideal_partner": "자신을 빛나게 해주고, 충성스럽고, 관대한 사람",
+      "growth_in_love": "파트너에게도 스포트라이트 양보하기"
+    },
+    "Venus_in_Virgo": {
+      "attraction_style": "실용적인 도움과 세심한 배려로 사랑 표현",
+      "love_language": "봉사, 세부사항 기억, 건강 챙기기",
+      "relationship_needs": "질서, 개선, 실용적인 동반자 관계",
+      "shadow_in_love": "과도한 비판, 완벽주의, 감정 분석",
+      "ideal_partner": "성실하고, 청결하며, 자기 관리를 잘하는 사람",
+      "growth_in_love": "불완전함을 사랑하고 비판 줄이기"
+    },
+    "Venus_in_Libra": {
+      "attraction_style": "우아함, 조화, 아름다움으로 유혹",
+      "love_language": "파트너십, 공정한 대우, 아름다운 데이트",
+      "relationship_needs": "조화, 평등, 미적 공유",
+      "shadow_in_love": "우유부단, 갈등 회피, 자기 상실",
+      "ideal_partner": "세련되고, 공정하며, 관계 지향적인 사람",
+      "growth_in_love": "자신의 욕구도 주장하기"
+    },
+    "Venus_in_Scorpio": {
+      "attraction_style": "강렬하고 자기적인 매력, 깊은 눈빛",
+      "love_language": "완전한 헌신, 영혼의 결합, 변형적 친밀감",
+      "relationship_needs": "깊이, 충성, 감정적/성적 강렬함",
+      "shadow_in_love": "질투, 집착, 통제, 복수심",
+      "ideal_partner": "감정적 깊이가 있고, 충성스럽고, 비밀을 지킬 수 있는 사람",
+      "growth_in_love": "신뢰하고 통제 내려놓기"
+    },
+    "Venus_in_Sagittarius": {
+      "attraction_style": "모험과 자유로운 정신으로 끌어당김",
+      "love_language": "함께 여행, 철학적 대화, 웃음 공유",
+      "relationship_needs": "자유, 성장, 모험, 솔직함",
+      "shadow_in_love": "비현실적 기대, 헌신 회피, 무신경",
+      "ideal_partner": "개방적이고, 모험적이며, 성장 지향적인 사람",
+      "growth_in_love": "깊은 헌신의 가치 인정하기"
+    },
+    "Venus_in_Capricorn": {
+      "attraction_style": "안정감, 야망, 성숙함으로 매력 발산",
+      "love_language": "장기적 헌신, 책임감, 실질적 지원",
+      "relationship_needs": "안정성, 존경, 목표 공유",
+      "shadow_in_love": "냉담함, 일 우선, 감정 억압",
+      "ideal_partner": "야망 있고, 책임감 있으며, 성공 지향적인 사람",
+      "growth_in_love": "감정 표현과 부드러움 개발하기"
+    },
+    "Venus_in_Aquarius": {
+      "attraction_style": "독특함과 지적 자유로 끌어당김",
+      "love_language": "우정 기반 사랑, 독특한 경험, 공간 존중",
+      "relationship_needs": "자유, 평등, 지적 동반자 관계",
+      "shadow_in_love": "감정적 거리, 비전통적 관계, 예측 불가",
+      "ideal_partner": "독립적이고, 지적이며, 열린 마음을 가진 사람",
+      "growth_in_love": "감정적 친밀감도 중요하게 여기기"
+    },
+    "Venus_in_Pisces": {
+      "attraction_style": "로맨틱한 환상, 연민, 예술적 감성",
+      "love_language": "무조건적 사랑, 영적 연결, 희생",
+      "relationship_needs": "영혼의 연결, 로맨스, 영적 유대",
+      "shadow_in_love": "환상과 현실 혼동, 희생양 역할, 경계 부족",
+      "ideal_partner": "감성적이고, 예술적이며, 영적인 사람",
+      "growth_in_love": "건강한 경계 설정하기"
+    }
+  },
+
+  "Moon_love": {
+    "Moon_in_Aries": {
+      "emotional_needs": "독립성, 즉각적인 반응, 감정의 솔직한 표현",
+      "nurturing_style": "보호적이고 용감한 방식으로 돌봄",
+      "emotional_triggers": "무시당할 때, 제한받을 때",
+      "intimacy_style": "열정적이고 즉흥적",
+      "compatibility_needs": "자신의 독립성을 존중해주는 파트너"
+    },
+    "Moon_in_Taurus": {
+      "emotional_needs": "안정성, 예측 가능성, 신체적 편안함",
+      "nurturing_style": "음식, 접촉, 물질적 돌봄으로 표현",
+      "emotional_triggers": "갑작스러운 변화, 재정 불안",
+      "intimacy_style": "느리고 감각적",
+      "compatibility_needs": "일관되고 신뢰할 수 있는 파트너"
+    },
+    "Moon_in_Gemini": {
+      "emotional_needs": "소통, 다양성, 정신적 자극",
+      "nurturing_style": "대화와 정보 공유로 돌봄",
+      "emotional_triggers": "지루함, 소통 단절",
+      "intimacy_style": "말과 놀이가 중요",
+      "compatibility_needs": "대화가 통하고 다양성을 제공하는 파트너"
+    },
+    "Moon_in_Cancer": {
+      "emotional_needs": "정서적 안전, 가정, 소속감",
+      "nurturing_style": "본능적이고 모성적인 돌봄",
+      "emotional_triggers": "거부, 가정 문제",
+      "intimacy_style": "깊이 감정적이고 보호적",
+      "compatibility_needs": "정서적으로 안정되고 가정적인 파트너"
+    },
+    "Moon_in_Leo": {
+      "emotional_needs": "인정, 칭찬, 특별함",
+      "nurturing_style": "관대하고 드라마틱한 방식으로 돌봄",
+      "emotional_triggers": "무시당하거나 비판받을 때",
+      "intimacy_style": "로맨틱하고 열정적",
+      "compatibility_needs": "자신을 숭배하고 충성스러운 파트너"
+    },
+    "Moon_in_Virgo": {
+      "emotional_needs": "질서, 유용함, 개선",
+      "nurturing_style": "실용적인 도움과 세심한 배려",
+      "emotional_triggers": "혼란, 비효율, 비판",
+      "intimacy_style": "봉사적이고 세심한",
+      "compatibility_needs": "건강하고 성실한 파트너"
+    },
+    "Moon_in_Libra": {
+      "emotional_needs": "조화, 파트너십, 아름다움",
+      "nurturing_style": "공정하고 균형 잡힌 방식으로 돌봄",
+      "emotional_triggers": "갈등, 불공정",
+      "intimacy_style": "로맨틱하고 세련된",
+      "compatibility_needs": "조화롭고 세련된 파트너"
+    },
+    "Moon_in_Scorpio": {
+      "emotional_needs": "깊이, 진정성, 정서적 강렬함",
+      "nurturing_style": "강렬하고 보호적",
+      "emotional_triggers": "배신, 표면적인 관계",
+      "intimacy_style": "변형적이고 깊은",
+      "compatibility_needs": "정서적으로 정직하고 깊이 있는 파트너"
+    },
+    "Moon_in_Sagittarius": {
+      "emotional_needs": "자유, 모험, 의미",
+      "nurturing_style": "낙관적이고 교육적",
+      "emotional_triggers": "제한, 비관주의",
+      "intimacy_style": "재미있고 자유로운",
+      "compatibility_needs": "개방적이고 모험적인 파트너"
+    },
+    "Moon_in_Capricorn": {
+      "emotional_needs": "구조, 성취, 존경",
+      "nurturing_style": "책임감 있고 실용적",
+      "emotional_triggers": "실패, 통제력 상실",
+      "intimacy_style": "느리지만 깊은",
+      "compatibility_needs": "야망 있고 성숙한 파트너"
+    },
+    "Moon_in_Aquarius": {
+      "emotional_needs": "자유, 독립성, 지적 연결",
+      "nurturing_style": "친구 같은 방식, 공간 존중",
+      "emotional_triggers": "감정적 강요, 구속",
+      "intimacy_style": "우정 기반, 독특한",
+      "compatibility_needs": "독립적이고 지적인 파트너"
+    },
+    "Moon_in_Pisces": {
+      "emotional_needs": "연민, 영적 연결, 상상력",
+      "nurturing_style": "무조건적이고 직관적",
+      "emotional_triggers": "냉정함, 현실의 잔인함",
+      "intimacy_style": "영혼 수준의 연결",
+      "compatibility_needs": "감성적이고 영적인 파트너"
+    }
+  },
+
+  "Mars_love": {
+    "Mars_in_Aries": {
+      "pursuit_style": "직접적이고 적극적인 추격",
+      "passion_expression": "뜨겁고 즉각적",
+      "conflict_style": "폭발적이지만 빨리 잊음",
+      "physical_chemistry": "강렬하고 스포츠 같은",
+      "turn_ons": "도전, 자신감, 경쟁"
+    },
+    "Mars_in_Taurus": {
+      "pursuit_style": "느리고 꾸준한 접근",
+      "passion_expression": "감각적이고 지속적",
+      "conflict_style": "오래 참다가 폭발",
+      "physical_chemistry": "감각적이고 여유로운",
+      "turn_ons": "아름다움, 터치, 안정감"
+    },
+    "Mars_in_Gemini": {
+      "pursuit_style": "재치와 말로 유혹",
+      "passion_expression": "다양하고 실험적",
+      "conflict_style": "말싸움, 논쟁",
+      "physical_chemistry": "정신적 자극이 중요",
+      "turn_ons": "지적 대화, 재치, 다양성"
+    },
+    "Mars_in_Cancer": {
+      "pursuit_style": "간접적이고 보호적",
+      "passion_expression": "감정적으로 깊은",
+      "conflict_style": "수동공격적, 움츠러듦",
+      "physical_chemistry": "정서적 연결이 필수",
+      "turn_ons": "정서적 안전감, 가정적인 분위기"
+    },
+    "Mars_in_Leo": {
+      "pursuit_style": "드라마틱하고 자신감 있는",
+      "passion_expression": "연극적이고 관대한",
+      "conflict_style": "자존심 싸움",
+      "physical_chemistry": "열정적이고 자신감 있는",
+      "turn_ons": "칭찬, 존경, 로맨틱한 제스처"
+    },
+    "Mars_in_Virgo": {
+      "pursuit_style": "실용적이고 봉사적",
+      "passion_expression": "세심하고 기술적",
+      "conflict_style": "비판, 잔소리",
+      "physical_chemistry": "청결하고 세심한",
+      "turn_ons": "능력, 청결, 세부사항"
+    },
+    "Mars_in_Libra": {
+      "pursuit_style": "매력적이고 세련된",
+      "passion_expression": "로맨틱하고 균형 잡힌",
+      "conflict_style": "갈등 회피, 수동공격",
+      "physical_chemistry": "아름다움과 조화가 중요",
+      "turn_ons": "우아함, 공정함, 아름다움"
+    },
+    "Mars_in_Scorpio": {
+      "pursuit_style": "강렬하고 집중적",
+      "passion_expression": "변형적이고 완전한",
+      "conflict_style": "복수심, 냉담함",
+      "physical_chemistry": "강렬하고 깊은",
+      "turn_ons": "미스터리, 깊이, 충성"
+    },
+    "Mars_in_Sagittarius": {
+      "pursuit_style": "직접적이고 재미있는",
+      "passion_expression": "모험적이고 자유로운",
+      "conflict_style": "솔직하지만 빨리 잊음",
+      "physical_chemistry": "모험적이고 실험적",
+      "turn_ons": "모험, 유머, 자유로운 정신"
+    },
+    "Mars_in_Capricorn": {
+      "pursuit_style": "전략적이고 인내심 있는",
+      "passion_expression": "지속적이고 성취 지향적",
+      "conflict_style": "냉담하고 통제된",
+      "physical_chemistry": "강렬하고 지구력 있는",
+      "turn_ons": "성공, 지위, 능력"
+    },
+    "Mars_in_Aquarius": {
+      "pursuit_style": "독특하고 예측 불가",
+      "passion_expression": "실험적이고 자유로운",
+      "conflict_style": "감정적 거리, 냉소",
+      "physical_chemistry": "독특하고 친구 같은",
+      "turn_ons": "독창성, 지성, 자유"
+    },
+    "Mars_in_Pisces": {
+      "pursuit_style": "간접적이고 이상적",
+      "passion_expression": "환상적이고 영적",
+      "conflict_style": "도피, 희생양 역할",
+      "physical_chemistry": "영적이고 경계 없는",
+      "turn_ons": "로맨스, 영성, 예술"
+    }
+  },
+
+  "love_houses": {
+    "5th_house": {
+      "Sun_in_5th": {
+        "romance_style": "드라마틱하고 창의적인 연애",
+        "dating_life": "무대의 중심에서 빛나는 로맨스",
+        "love_expression": "자녀와 창작을 통해 사랑 표현"
+      },
+      "Moon_in_5th": {
+        "romance_style": "감정적으로 표현적인 연애",
+        "dating_life": "감정적 보살핌이 중심",
+        "love_expression": "양육과 창의성을 통해 사랑 표현"
+      },
+      "Venus_in_5th": {
+        "romance_style": "낭만적이고 즐거운 연애",
+        "dating_life": "사랑과 아름다움의 축제",
+        "love_expression": "예술과 기쁨을 통해 사랑 표현"
+      },
+      "Mars_in_5th": {
+        "romance_style": "열정적이고 경쟁적인 연애",
+        "dating_life": "모험과 게임 같은 로맨스",
+        "love_expression": "행동과 열정을 통해 사랑 표현"
+      },
+      "Jupiter_in_5th": {
+        "romance_style": "관대하고 낙관적인 연애",
+        "dating_life": "풍요롭고 행운이 따르는 로맨스",
+        "love_expression": "확장과 성장을 통해 사랑 표현"
+      },
+      "Saturn_in_5th": {
+        "romance_style": "진지하고 책임감 있는 연애",
+        "dating_life": "천천히 발전하는 깊은 로맨스",
+        "love_expression": "헌신과 구조를 통해 사랑 표현"
+      },
+      "Uranus_in_5th": {
+        "romance_style": "독특하고 예측 불가한 연애",
+        "dating_life": "전통을 깨는 자유로운 로맨스",
+        "love_expression": "독창성과 자유를 통해 사랑 표현"
+      }
+    },
+    "7th_house": {
+      "Sun_in_7th": {
+        "partnership_style": "파트너를 통해 정체성 발견",
+        "marriage_needs": "동등하고 빛나는 파트너십",
+        "relationship_karma": "관계에서 자아 찾기"
+      },
+      "Moon_in_7th": {
+        "partnership_style": "감정적 안전을 제공하는 관계",
+        "marriage_needs": "정서적으로 양육하는 파트너십",
+        "relationship_karma": "감정적 의존에서 균형 찾기"
+      },
+      "Venus_in_7th": {
+        "partnership_style": "조화롭고 아름다운 관계",
+        "marriage_needs": "사랑과 미를 공유하는 파트너십",
+        "relationship_karma": "완벽한 관계 창조"
+      },
+      "Mars_in_7th": {
+        "partnership_style": "열정적이고 때로 갈등적인 관계",
+        "marriage_needs": "도전적이고 자극적인 파트너십",
+        "relationship_karma": "관계에서 균형과 자기주장 배우기"
+      },
+      "Jupiter_in_7th": {
+        "partnership_style": "성장과 확장을 가져오는 관계",
+        "marriage_needs": "풍요와 지혜를 나누는 파트너십",
+        "relationship_karma": "관계에서 행운과 축복"
+      },
+      "Saturn_in_7th": {
+        "partnership_style": "진지하고 오래 지속되는 관계",
+        "marriage_needs": "책임감과 헌신이 있는 파트너십",
+        "relationship_karma": "관계에서 교훈과 성숙"
+      },
+      "Neptune_in_7th": {
+        "partnership_style": "이상적이고 영적인 관계",
+        "marriage_needs": "영혼의 연결을 추구하는 파트너십",
+        "relationship_karma": "환상과 현실의 균형 배우기"
+      }
+    },
+    "8th_house": {
+      "Sun_in_8th": {
+        "intimacy_style": "변형적이고 깊은 친밀감",
+        "shared_resources": "파트너의 자원을 통해 정체성 발견",
+        "sexual_expression": "강렬하고 변형적"
+      },
+      "Moon_in_8th": {
+        "intimacy_style": "감정적으로 강렬한 친밀감",
+        "shared_resources": "감정적 깊이가 재정적 결합에 영향",
+        "sexual_expression": "깊고 정서적으로 연결된"
+      },
+      "Venus_in_8th": {
+        "intimacy_style": "열정적이고 변형적인 사랑",
+        "shared_resources": "파트너를 통한 재정적 이득",
+        "sexual_expression": "관능적이고 깊은"
+      },
+      "Mars_in_8th": {
+        "intimacy_style": "강렬하고 지배적인 친밀감",
+        "shared_resources": "공동 자원에 대한 투쟁 가능",
+        "sexual_expression": "강렬하고 탐구적"
+      },
+      "Pluto_in_8th": {
+        "intimacy_style": "완전히 변형적인 친밀감",
+        "shared_resources": "권력 역학이 재정에 영향",
+        "sexual_expression": "심오하고 재생적"
+      }
+    }
+  }
+}

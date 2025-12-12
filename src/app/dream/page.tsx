@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, FormEvent } from 'react';
+import { useEffect, useMemo, useState, FormEvent, useCallback, useRef } from 'react';
 import tzLookup from 'tz-lookup';
 import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
@@ -11,12 +11,130 @@ import {
   DREAM_EMOTIONS,
   DREAM_THEMES,
   DREAM_CONTEXT,
-  generateDreamPrompt,
+  KOREAN_DREAM_TYPES,
+  KOREAN_LUCKY_SYMBOLS,
+  CHINESE_DREAM_SYMBOLS,
+  ISLAMIC_DREAM_TYPES,
+  ISLAMIC_BLESSED_SYMBOLS,
+  WESTERN_DREAM_ARCHETYPES,
+  HINDU_DREAM_SYMBOLS,
+  NATIVE_AMERICAN_SYMBOLS,
+  JAPANESE_DREAM_SYMBOLS,
   generateQuickDreamEntry,
 } from '@/lib/dream/dreamPrompts';
 import styles from './Dream.module.css';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
+
+// Types for recent dreams
+type RecentDream = {
+  id: string;
+  symbols: string[];
+  emotions: string[];
+  preview: string;
+  date: string;
+};
+
+// Symbol relationships for smart recommendations
+const SYMBOL_RELATIONSHIPS: Record<string, string[]> = {
+  'snake': ['forest', 'water', 'fear', 'transformation'],
+  'water': ['ocean', 'fish', 'rain', 'swimming', 'drowning'],
+  'flying': ['bird', 'sky', 'falling', 'freedom'],
+  'death': ['funeral', 'grave', 'rebirth', 'ancestor'],
+  'fire': ['destruction', 'passion', 'phoenix', 'light'],
+  'baby': ['birth', 'pregnancy', 'family', 'innocence'],
+  'house': ['home', 'family', 'rooms', 'building'],
+  'car': ['driving', 'journey', 'accident', 'speed'],
+  'teeth': ['falling', 'breaking', 'health', 'anxiety'],
+  'money': ['wealth', 'gold', 'treasure', 'loss'],
+  'dog': ['loyalty', 'protection', 'friend', 'chase'],
+  'cat': ['independence', 'mystery', 'intuition'],
+  'spider': ['web', 'fear', 'creativity', 'trap'],
+  'ocean': ['waves', 'depth', 'fish', 'drowning'],
+  'forest': ['trees', 'lost', 'nature', 'darkness'],
+};
+
+// Symbol meanings for tooltips
+const SYMBOL_MEANINGS: Record<string, string> = {
+  'snake': '변화, 치유, 또는 숨겨진 위협을 상징',
+  'water': '감정, 무의식, 정화를 나타냄',
+  'flying': '자유, 해방, 또는 현실 도피를 의미',
+  'death': '끝과 새로운 시작, 변화를 상징',
+  'fire': '열정, 분노, 또는 정화를 나타냄',
+  'baby': '새로운 시작, 순수함, 잠재력',
+  'house': '자아, 마음의 상태, 안정감',
+  'car': '인생의 방향, 통제력, 여정',
+  'teeth': '자신감, 건강, 의사소통',
+  'money': '가치, 자존감, 성공',
+  'dog': '충성, 우정, 본능',
+  'cat': '독립성, 직관, 여성성',
+  'spider': '창의성, 운명, 인내',
+  'ocean': '무의식, 감정의 깊이',
+  'forest': '무의식 탐험, 미지의 영역',
+};
+
+// Voice Recognition Hook
+function useVoiceRecognition() {
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [isSupported, setIsSupported] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      setIsSupported(!!SpeechRecognition);
+
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'ko-KR';
+
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+          setTranscript(finalTranscript);
+        };
+
+        recognition.onerror = () => {
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, []);
+
+  const startListening = useCallback(() => {
+    if (recognitionRef.current) {
+      setTranscript('');
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  }, []);
+
+  return { isListening, transcript, isSupported, startListening, stopListening, setTranscript };
+}
+
+// LocalStorage keys
+const STORAGE_KEYS = {
+  DRAFT: 'dream_draft',
+  RECENT: 'dream_recent',
+};
 
 type InsightResponse = {
   summary?: string;
@@ -25,11 +143,112 @@ type InsightResponse = {
   crossInsights?: string[];
   recommendations?: string[];
   themes?: { label: string; weight: number }[];
+  culturalNotes?: {
+    korean?: string;
+    chinese?: string;
+    islamic?: string;
+    western?: string;
+    hindu?: string;
+    japanese?: string;
+  };
+  luckyElements?: {
+    isLucky?: boolean;
+    luckyNumbers?: number[];
+    luckyColors?: string[];
+    advice?: string;
+    matchedSymbols?: string[];
+    elementAnalysis?: string;
+    confidence?: number;
+  };
+  premiumFeatures?: {
+    combinations?: {
+      combination: string;
+      meaning: string;
+      interpretation: string;
+      fortune_type: string;
+      is_lucky: boolean;
+      lucky_score: number;
+    }[] | null;
+    taemong?: {
+      is_taemong: boolean;
+      symbols: {
+        symbol: string;
+        child_trait: string;
+        gender_hint: string;
+        interpretation: string;
+        celebrity_examples: string[];
+        lucky_score: number;
+      }[];
+      primary_symbol: {
+        symbol: string;
+        child_trait: string;
+        gender_hint: string;
+        interpretation: string;
+        celebrity_examples: string[];
+        lucky_score: number;
+      } | null;
+    } | null;
+    lucky_numbers?: {
+      numbers: number[];
+      matched_symbols: string[];
+      dominant_element: string | null;
+      element_analysis: string | null;
+      confidence: number;
+    } | null;
+  };
+  celestial?: {
+    timestamp: string;
+    moon_phase: {
+      name: string;
+      korean: string;
+      emoji: string;
+      illumination: number;
+      age_days: number;
+      dream_quality: string;
+      dream_meaning: string;
+      favorable_symbols: string[];
+      intensified_symbols: string[];
+      advice: string;
+      weight_modifier: number;
+      enhanced_themes: string[];
+    };
+    moon_sign: {
+      sign: string;
+      korean: string;
+      dream_flavor: string;
+      enhanced_symbols: string[];
+    };
+    retrogrades: {
+      planet: string;
+      korean: string;
+      emoji?: string;
+      themes: string[];
+      common_symbols?: string[];
+      interpretation?: string;
+    }[];
+    significant_aspects: {
+      aspect: string;
+      themes: string[];
+      special_note?: string;
+      interpretation?: string;
+    }[];
+    planets: {
+      name: string;
+      name_ko: string;
+      sign: string;
+      sign_ko: string;
+      retrograde: boolean;
+    }[];
+    source: string;
+  } | null;
   raw?: any;
+  saved?: boolean; // Supabase에 저장되었는지 여부
   error?: string;
 };
 
 export default function DreamInsightPage() {
+  const { t } = useI18n();
+
   // Dream - Quick Select Mode
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
@@ -40,14 +259,26 @@ export default function DreamInsightPage() {
   const [detailedDream, setDetailedDream] = useState('');
   const [share, setShare] = useState(false);
 
+  // Cultural Dream Symbols
+  const [selectedKoreanTypes, setSelectedKoreanTypes] = useState<string[]>([]);
+  const [selectedKoreanLucky, setSelectedKoreanLucky] = useState<string[]>([]);
+  const [selectedChinese, setSelectedChinese] = useState<string[]>([]);
+  const [selectedIslamicTypes, setSelectedIslamicTypes] = useState<string[]>([]);
+  const [selectedIslamicBlessed, setSelectedIslamicBlessed] = useState<string[]>([]);
+  const [selectedWestern, setSelectedWestern] = useState<string[]>([]);
+  const [selectedHindu, setSelectedHindu] = useState<string[]>([]);
+  const [selectedNativeAmerican, setSelectedNativeAmerican] = useState<string[]>([]);
+  const [selectedJapanese, setSelectedJapanese] = useState<string[]>([]);
+
   // Birth data
   const [showBirthData, setShowBirthData] = useState(false);
+  const [showCulturalSymbols, setShowCulturalSymbols] = useState(false);
   const [date, setDate] = useState('1995-02-09');
   const [time, setTime] = useState('06:40');
   const [cityQuery, setCityQuery] = useState('Seoul, KR');
   const [latitude, setLatitude] = useState(37.5665);
   const [longitude, setLongitude] = useState(126.978);
-  const timezones = useMemo(() => getSupportedTimezones(), []);
+  const _timezones = useMemo(() => getSupportedTimezones(), []);
   const [timeZone, setTimeZone] = useState(getUserTimezone() || 'Asia/Seoul');
 
   // Autocomplete
@@ -60,6 +291,16 @@ export default function DreamInsightPage() {
   const [result, setResult] = useState<InsightResponse | null>(null);
   const [activeSymbolCategory, setActiveSymbolCategory] = useState<keyof typeof DREAM_SYMBOLS>('animals');
 
+  // NEW UX FEATURES STATE
+  const [searchQuery, setSearchQuery] = useState('');
+  const [recentDreams, setRecentDreams] = useState<RecentDream[]>([]);
+  const [showRecentDreams, setShowRecentDreams] = useState(false);
+  const [autoSaved, setAutoSaved] = useState(false);
+  const [draggedSymbol, setDraggedSymbol] = useState<string | null>(null);
+
+  // Voice recognition
+  const voice = useVoiceRecognition();
+
   // Autocomplete debounce
   useEffect(() => {
     const q = cityQuery.trim();
@@ -67,7 +308,7 @@ export default function DreamInsightPage() {
       setSuggestions([]);
       return;
     }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       try {
         const items = (await searchCities(q, { limit: 20 })) as CityItem[];
         setSuggestions(items);
@@ -76,8 +317,192 @@ export default function DreamInsightPage() {
         setSuggestions([]);
       }
     }, 150);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [cityQuery]);
+
+  // Load recent dreams from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.RECENT);
+      if (stored) {
+        setRecentDreams(JSON.parse(stored));
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    const draft = {
+      selectedSymbols,
+      selectedEmotions,
+      selectedThemes,
+      selectedContext,
+      additionalDetails,
+      detailedDream,
+      useDetailedMode,
+    };
+
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
+        setAutoSaved(true);
+        setTimeout(() => setAutoSaved(false), 2000);
+      } catch {
+        // Ignore storage errors
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [selectedSymbols, selectedEmotions, selectedThemes, selectedContext, additionalDetails, detailedDream, useDetailedMode]);
+
+  // Load draft on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.DRAFT);
+      if (stored) {
+        const draft = JSON.parse(stored);
+        if (draft.selectedSymbols) setSelectedSymbols(draft.selectedSymbols);
+        if (draft.selectedEmotions) setSelectedEmotions(draft.selectedEmotions);
+        if (draft.selectedThemes) setSelectedThemes(draft.selectedThemes);
+        if (draft.selectedContext) setSelectedContext(draft.selectedContext);
+        if (draft.additionalDetails) setAdditionalDetails(draft.additionalDetails);
+        if (draft.detailedDream) setDetailedDream(draft.detailedDream);
+        if (draft.useDetailedMode !== undefined) setUseDetailedMode(draft.useDetailedMode);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // Preview text (real-time generation)
+  const previewText = useMemo(() => {
+    if (useDetailedMode) return detailedDream;
+    return generateQuickDreamEntry({
+      symbols: selectedSymbols,
+      emotions: selectedEmotions,
+      additionalDetails,
+    });
+  }, [useDetailedMode, detailedDream, selectedSymbols, selectedEmotions, additionalDetails]);
+
+  // Progress calculation
+  const progress = useMemo(() => {
+    if (useDetailedMode) {
+      return Math.min(100, (detailedDream.length / 50) * 100);
+    }
+    let score = 0;
+    if (selectedSymbols.length > 0) score += 40;
+    if (selectedEmotions.length > 0) score += 30;
+    if (selectedThemes.length > 0) score += 15;
+    if (additionalDetails.trim()) score += 15;
+    return Math.min(100, score);
+  }, [useDetailedMode, detailedDream, selectedSymbols, selectedEmotions, selectedThemes, additionalDetails]);
+
+  // Smart recommendations based on selected symbols
+  const recommendations = useMemo(() => {
+    const allRelated = new Set<string>();
+    selectedSymbols.forEach(symbol => {
+      const key = symbol.toLowerCase();
+      const related = SYMBOL_RELATIONSHIPS[key] || [];
+      related.forEach(r => allRelated.add(r));
+    });
+    // Filter out already selected and return top 5
+    return Array.from(allRelated)
+      .filter(r => !selectedSymbols.map(s => s.toLowerCase()).includes(r))
+      .slice(0, 5);
+  }, [selectedSymbols]);
+
+  // Filter symbols by search query
+  const filteredSymbols = useMemo(() => {
+    if (!searchQuery.trim()) return DREAM_SYMBOLS[activeSymbolCategory];
+    const query = searchQuery.toLowerCase();
+    return DREAM_SYMBOLS[activeSymbolCategory].filter(
+      symbol =>
+        symbol.en.toLowerCase().includes(query) ||
+        symbol.ko.toLowerCase().includes(query)
+    );
+  }, [searchQuery, activeSymbolCategory]);
+
+  // Get tooltip for symbol
+  const getTooltip = (symbolEn: string) => {
+    return SYMBOL_MEANINGS[symbolEn.toLowerCase()] || '';
+  };
+
+  // Save to recent dreams
+  const saveToRecent = (dreamPreview: string) => {
+    const newDream: RecentDream = {
+      id: Date.now().toString(),
+      symbols: selectedSymbols,
+      emotions: selectedEmotions,
+      preview: dreamPreview.slice(0, 100),
+      date: new Date().toLocaleDateString('ko-KR'),
+    };
+    const updated = [newDream, ...recentDreams].slice(0, 10);
+    setRecentDreams(updated);
+    try {
+      localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  // Load from recent dream
+  const loadRecentDream = (dream: RecentDream) => {
+    setSelectedSymbols(dream.symbols);
+    setSelectedEmotions(dream.emotions);
+    setShowRecentDreams(false);
+  };
+
+  // Delete recent dream
+  const deleteRecentDream = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = recentDreams.filter(d => d.id !== id);
+    setRecentDreams(updated);
+    try {
+      localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (symbol: string) => {
+    setDraggedSymbol(symbol);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetSymbol: string) => {
+    e.preventDefault();
+    if (!draggedSymbol || draggedSymbol === targetSymbol) return;
+
+    const newSymbols = [...selectedSymbols];
+    const dragIndex = newSymbols.indexOf(draggedSymbol);
+    const targetIndex = newSymbols.indexOf(targetSymbol);
+
+    if (dragIndex !== -1 && targetIndex !== -1) {
+      newSymbols.splice(dragIndex, 1);
+      newSymbols.splice(targetIndex, 0, draggedSymbol);
+      setSelectedSymbols(newSymbols);
+    }
+    setDraggedSymbol(null);
+  };
+
+  // Use voice transcript
+  const useVoiceTranscript = () => {
+    if (voice.transcript) {
+      if (useDetailedMode) {
+        setDetailedDream(prev => prev + ' ' + voice.transcript);
+      } else {
+        setAdditionalDetails(prev => prev + ' ' + voice.transcript);
+      }
+      voice.setTranscript('');
+      voice.stopListening();
+    }
+  };
 
   const onPickCity = (item: CityItem) => {
     setCityQuery(`${item.name}, ${item.country}`);
@@ -117,6 +542,61 @@ export default function DreamInsightPage() {
     );
   };
 
+  // Cultural symbol toggle functions
+  const toggleKoreanType = (type: string) => {
+    setSelectedKoreanTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const toggleKoreanLucky = (symbol: string) => {
+    setSelectedKoreanLucky(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const toggleChinese = (symbol: string) => {
+    setSelectedChinese(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const toggleIslamicType = (type: string) => {
+    setSelectedIslamicTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const toggleIslamicBlessed = (symbol: string) => {
+    setSelectedIslamicBlessed(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const toggleWestern = (archetype: string) => {
+    setSelectedWestern(prev =>
+      prev.includes(archetype) ? prev.filter(a => a !== archetype) : [...prev, archetype]
+    );
+  };
+
+  const toggleHindu = (symbol: string) => {
+    setSelectedHindu(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const toggleNativeAmerican = (symbol: string) => {
+    setSelectedNativeAmerican(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const toggleJapanese = (symbol: string) => {
+    setSelectedJapanese(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -127,10 +607,15 @@ export default function DreamInsightPage() {
     let dreamText: string;
     if (useDetailedMode) {
       dreamText = detailedDream.trim();
+      if (dreamText.length < 10) {
+        setIsLoading(false);
+        setError(t('dream.errorMinLength'));
+        return;
+      }
     } else {
       if (selectedSymbols.length === 0 && selectedEmotions.length === 0 && !additionalDetails.trim()) {
         setIsLoading(false);
-        setError('Please select at least some symbols or emotions, or describe your dream.');
+        setError(t('dream.errorSelectSymbols'));
         return;
       }
       dreamText = generateQuickDreamEntry({
@@ -142,7 +627,7 @@ export default function DreamInsightPage() {
 
     if (!dreamText) {
       setIsLoading(false);
-      setError('Please enter your dream.');
+      setError(t('dream.errorEnterDream'));
       return;
     }
 
@@ -155,6 +640,16 @@ export default function DreamInsightPage() {
         context: selectedContext,
         share,
         birth: showBirthData ? { date, time, latitude, longitude, timeZone, city: cityQuery } : undefined,
+        // Cultural symbols
+        koreanTypes: selectedKoreanTypes,
+        koreanLucky: selectedKoreanLucky,
+        chinese: selectedChinese,
+        islamicTypes: selectedIslamicTypes,
+        islamicBlessed: selectedIslamicBlessed,
+        western: selectedWestern,
+        hindu: selectedHindu,
+        nativeAmerican: selectedNativeAmerican,
+        japanese: selectedJapanese,
       };
 
       const res = await fetch('/api/dream-insight', {
@@ -169,6 +664,10 @@ export default function DreamInsightPage() {
       }
 
       setResult(data);
+      // Save to recent dreams
+      saveToRecent(dreamText);
+      // Clear draft after successful submission
+      localStorage.removeItem(STORAGE_KEYS.DRAFT);
     } catch (err: any) {
       setError(err.message || 'Unknown error occurred.');
     } finally {
@@ -185,26 +684,36 @@ export default function DreamInsightPage() {
     setDetailedDream('');
     setResult(null);
     setError(null);
+    // Reset cultural symbols
+    setSelectedKoreanTypes([]);
+    setSelectedKoreanLucky([]);
+    setSelectedChinese([]);
+    setSelectedIslamicTypes([]);
+    setSelectedIslamicBlessed([]);
+    setSelectedWestern([]);
+    setSelectedHindu([]);
+    setSelectedNativeAmerican([]);
+    setSelectedJapanese([]);
   };
 
   return (
     <ServicePageLayout
       icon="🌙"
-      title="Dream Insight"
-      subtitle="Explore the deeper meaning of your dreams with astrological insights"
+      title={t("dream.title")}
+      subtitle={t("dream.subtitle")}
     >
       <main className={styles.page}>
-        {/* Background Stars */}
+        {/* Background Stars - using deterministic values to avoid hydration mismatch */}
         <div className={styles.stars}>
           {[...Array(30)].map((_, i) => (
             <div
               key={i}
               className={styles.star}
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 4}s`,
-                animationDuration: `${3 + Math.random() * 3}s`,
+                left: `${((i * 37 + 13) % 100)}%`,
+                top: `${((i * 53 + 7) % 100)}%`,
+                animationDelay: `${(i % 4) + (i * 0.13)}s`,
+                animationDuration: `${3 + (i % 3)}s`,
               }}
             />
           ))}
@@ -214,9 +723,124 @@ export default function DreamInsightPage() {
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             <div className={styles.formHeader}>
               <div className={styles.formIcon}>🌙</div>
-              <h1 className={styles.formTitle}>Dream Interpretation</h1>
-              <p className={styles.formSubtitle}>Select dream elements or write freely</p>
+              <h1 className={styles.formTitle}>{t("dream.title")}</h1>
+              <p className={styles.formSubtitle}>{t("dream.subtitle")}</p>
             </div>
+
+            {/* Progress Indicator */}
+            <div className={styles.progressContainer}>
+              <div className={styles.progressHeader}>
+                <span className={styles.progressLabel}>입력 완성도</span>
+                <span className={styles.progressPercent}>{Math.round(progress)}%</span>
+              </div>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+              </div>
+              <div className={styles.progressSteps}>
+                <span className={`${styles.progressStep} ${selectedSymbols.length > 0 ? styles.progressStepActive : ''}`}>심볼</span>
+                <span className={`${styles.progressStep} ${selectedEmotions.length > 0 ? styles.progressStepActive : ''}`}>감정</span>
+                <span className={`${styles.progressStep} ${selectedThemes.length > 0 ? styles.progressStepActive : ''}`}>테마</span>
+                <span className={`${styles.progressStep} ${additionalDetails.trim() ? styles.progressStepActive : ''}`}>상세</span>
+              </div>
+            </div>
+
+            {/* Toolbar Row */}
+            <div className={styles.toolbarRow}>
+              {/* Voice Input Button */}
+              {voice.isSupported && (
+                <button
+                  type="button"
+                  className={`${styles.voiceButton} ${voice.isListening ? styles.voiceButtonActive : ''}`}
+                  onClick={voice.isListening ? voice.stopListening : voice.startListening}
+                >
+                  {voice.isListening ? (
+                    <>
+                      <div className={styles.voiceWave}>
+                        <span /><span /><span /><span />
+                      </div>
+                      녹음 중...
+                    </>
+                  ) : (
+                    <>
+                      <span className={styles.voiceIcon}>🎤</span>
+                      음성 입력
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Auto-save indicator */}
+              {autoSaved && (
+                <div className={styles.autoSaveIndicator}>
+                  <span>✓</span> 자동 저장됨
+                </div>
+              )}
+            </div>
+
+            {/* Voice Panel (when listening) */}
+            {voice.isListening && (
+              <div className={styles.voicePanel}>
+                <div className={styles.voicePanelTitle}>
+                  <div className={styles.voiceWave}>
+                    <span /><span /><span /><span />
+                  </div>
+                  듣고 있어요...
+                </div>
+                <div className={styles.voiceTranscript}>
+                  {voice.transcript || '말씀해 주세요...'}
+                </div>
+                <div className={styles.voiceControls}>
+                  <button type="button" className={`${styles.voiceControlBtn} ${styles.voiceStopBtn}`} onClick={voice.stopListening}>
+                    중지
+                  </button>
+                  {voice.transcript && (
+                    <button type="button" className={`${styles.voiceControlBtn} ${styles.voiceUseBtn}`} onClick={useVoiceTranscript}>
+                      사용하기
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Dreams */}
+            {recentDreams.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  className={styles.recentDreamsToggle}
+                  onClick={() => setShowRecentDreams(!showRecentDreams)}
+                >
+                  <span>📚</span>
+                  <span>최근 꿈 기록 ({recentDreams.length})</span>
+                  <span style={{ marginLeft: 'auto' }}>{showRecentDreams ? '▼' : '▶'}</span>
+                </button>
+
+                {showRecentDreams && (
+                  <div className={styles.recentDreamsList}>
+                    {recentDreams.map(dream => (
+                      <div
+                        key={dream.id}
+                        className={styles.recentDreamItem}
+                        onClick={() => loadRecentDream(dream)}
+                      >
+                        <span className={styles.recentDreamIcon}>🌙</span>
+                        <div className={styles.recentDreamContent}>
+                          <div className={styles.recentDreamTitle}>{dream.preview || '꿈 기록'}</div>
+                          <div className={styles.recentDreamDate}>{dream.date}</div>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.recentDreamDelete}
+                          onClick={(e) => deleteRecentDream(dream.id, e)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
             <form onSubmit={handleSubmit}>
               {/* Mode Toggle */}
@@ -226,14 +850,14 @@ export default function DreamInsightPage() {
                   className={!useDetailedMode ? styles.modeActive : styles.modeInactive}
                   onClick={() => setUseDetailedMode(false)}
                 >
-                  Quick Select
+                  {t("dream.modeQuick")}
                 </button>
                 <button
                   type="button"
                   className={useDetailedMode ? styles.modeActive : styles.modeInactive}
                   onClick={() => setUseDetailedMode(true)}
                 >
-                  Write Freely
+                  {t("dream.modeWrite")}
                 </button>
               </div>
 
@@ -241,8 +865,83 @@ export default function DreamInsightPage() {
                 <>
                   {/* Dream Symbols - Quick Select */}
                   <div className={styles.section}>
-                    <label className={styles.sectionLabel}>Dream Symbols</label>
+                    <label className={styles.sectionLabel}>{t("dream.sectionSymbols")}</label>
                     <p className={styles.sectionHint}>Select what you saw in your dream</p>
+
+                    {/* Selected Symbols Bar (Drag & Drop) */}
+                    {selectedSymbols.length > 0 && (
+                      <div className={`${styles.selectedBar} ${draggedSymbol ? styles.selectedBarActive : ''}`}>
+                        {selectedSymbols.map(symbol => {
+                          const symbolData = Object.values(DREAM_SYMBOLS).flat().find(s => s.en === symbol);
+                          return (
+                            <div
+                              key={symbol}
+                              className={`${styles.selectedChip} ${draggedSymbol === symbol ? styles.selectedChipDragging : ''}`}
+                              draggable
+                              onDragStart={() => handleDragStart(symbol)}
+                              onDragOver={handleDragOver}
+                              onDrop={(e) => handleDrop(e, symbol)}
+                            >
+                              {symbolData?.emoji} {symbolData?.ko || symbol}
+                              <button
+                                type="button"
+                                className={styles.selectedChipRemove}
+                                onClick={() => toggleSymbol(symbol)}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Search Bar */}
+                    <div className={styles.searchContainer}>
+                      <span className={styles.searchIcon}>🔍</span>
+                      <input
+                        type="text"
+                        className={styles.searchInput}
+                        placeholder="심볼 검색... (예: 뱀, 물, 비행)"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          className={styles.searchClear}
+                          onClick={() => setSearchQuery('')}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Smart Recommendations */}
+                    {recommendations.length > 0 && (
+                      <div className={styles.recommendationsContainer}>
+                        <div className={styles.recommendationsTitle}>
+                          <span>💡</span> 관련 심볼 추천
+                        </div>
+                        <div className={styles.recommendationsGrid}>
+                          {recommendations.map(rec => (
+                            <button
+                              key={rec}
+                              type="button"
+                              className={styles.recommendChip}
+                              onClick={() => {
+                                const symbolData = Object.values(DREAM_SYMBOLS).flat().find(
+                                  s => s.en.toLowerCase() === rec.toLowerCase()
+                                );
+                                if (symbolData) toggleSymbol(symbolData.en);
+                              }}
+                            >
+                              + {rec}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Symbol Category Tabs */}
                     <div className={styles.categoryTabs}>
@@ -258,23 +957,33 @@ export default function DreamInsightPage() {
                       ))}
                     </div>
 
+                    {/* Filtered Symbols with Tooltips */}
                     <div className={styles.chipGrid}>
-                      {DREAM_SYMBOLS[activeSymbolCategory].map((symbol) => (
-                        <button
-                          key={symbol.en}
-                          type="button"
-                          className={selectedSymbols.includes(symbol.en) ? styles.chipSelected : styles.chip}
-                          onClick={() => toggleSymbol(symbol.en)}
-                        >
-                          {symbol.emoji} {symbol.ko}
-                        </button>
-                      ))}
+                      {filteredSymbols.length > 0 ? (
+                        filteredSymbols.map((symbol) => {
+                          const tooltip = getTooltip(symbol.en);
+                          return (
+                            <div key={symbol.en} className={tooltip ? styles.chipWithTooltip : ''}>
+                              <button
+                                type="button"
+                                className={selectedSymbols.includes(symbol.en) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleSymbol(symbol.en)}
+                              >
+                                {symbol.emoji} {symbol.ko}
+                              </button>
+                              {tooltip && <div className={styles.tooltip}>{tooltip}</div>}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className={styles.noResults}>검색 결과가 없습니다</div>
+                      )}
                     </div>
                   </div>
 
                   {/* Dream Emotions */}
                   <div className={styles.section}>
-                    <label className={styles.sectionLabel}>Emotions Felt</label>
+                    <label className={styles.sectionLabel}>{t("dream.sectionEmotions")}</label>
                     <p className={styles.sectionHint}>How did the dream make you feel?</p>
                     <div className={styles.chipGrid}>
                       {DREAM_EMOTIONS.map((emotion) => (
@@ -292,7 +1001,7 @@ export default function DreamInsightPage() {
 
                   {/* Dream Themes */}
                   <div className={styles.section}>
-                    <label className={styles.sectionLabel}>Dream Type (Optional)</label>
+                    <label className={styles.sectionLabel}>{t("dream.sectionTypes")}</label>
                     <p className={styles.sectionHint}>What kind of dream was it?</p>
                     <div className={styles.chipGrid}>
                       {DREAM_THEMES.map((theme) => (
@@ -310,7 +1019,7 @@ export default function DreamInsightPage() {
 
                   {/* Dream Context */}
                   <div className={styles.section}>
-                    <label className={styles.sectionLabel}>When/Context (Optional)</label>
+                    <label className={styles.sectionLabel}>{t("dream.sectionContext")}</label>
                     <p className={styles.sectionHint}>When did you have this dream?</p>
                     <div className={styles.chipGrid}>
                       {DREAM_CONTEXT.map((ctx) => (
@@ -326,31 +1035,205 @@ export default function DreamInsightPage() {
                     </div>
                   </div>
 
+                  {/* Cultural Dream Traditions (Collapsible) */}
+                  <div className={styles.collapsibleSection}>
+                    <button
+                      type="button"
+                      className={styles.collapsibleToggle}
+                      onClick={() => setShowCulturalSymbols(!showCulturalSymbols)}
+                    >
+                      {showCulturalSymbols ? '▼' : '▶'} Cultural Dream Symbols (Optional)
+                    </button>
+
+                    {showCulturalSymbols && (
+                      <div className={styles.culturalSection}>
+                        {/* Korean Traditional */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>🇰🇷 Korean Traditional (한국)</label>
+                          <p className={styles.sectionHint}>Korean dream types</p>
+                          <div className={styles.chipGrid}>
+                            {KOREAN_DREAM_TYPES.map((type) => (
+                              <button
+                                key={type.en}
+                                type="button"
+                                className={selectedKoreanTypes.includes(type.ko) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleKoreanType(type.ko)}
+                              >
+                                {type.emoji} {type.ko}
+                              </button>
+                            ))}
+                          </div>
+                          <p className={styles.sectionHint}>Lucky symbols</p>
+                          <div className={styles.chipGrid}>
+                            {KOREAN_LUCKY_SYMBOLS.map((symbol) => (
+                              <button
+                                key={symbol.en}
+                                type="button"
+                                className={selectedKoreanLucky.includes(symbol.ko) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleKoreanLucky(symbol.ko)}
+                              >
+                                {symbol.emoji} {symbol.ko}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Chinese */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>🇨🇳 Chinese (中国)</label>
+                          <div className={styles.chipGrid}>
+                            {CHINESE_DREAM_SYMBOLS.map((symbol) => (
+                              <button
+                                key={symbol.en}
+                                type="button"
+                                className={selectedChinese.includes(symbol.zh) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleChinese(symbol.zh)}
+                              >
+                                {symbol.emoji} {symbol.zh}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Islamic */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>☪️ Islamic (إسلامي)</label>
+                          <p className={styles.sectionHint}>Dream types</p>
+                          <div className={styles.chipGrid}>
+                            {ISLAMIC_DREAM_TYPES.map((type) => (
+                              <button
+                                key={type.en}
+                                type="button"
+                                className={selectedIslamicTypes.includes(type.ar) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleIslamicType(type.ar)}
+                              >
+                                {type.emoji} {type.ar}
+                              </button>
+                            ))}
+                          </div>
+                          <p className={styles.sectionHint}>Blessed symbols</p>
+                          <div className={styles.chipGrid}>
+                            {ISLAMIC_BLESSED_SYMBOLS.map((symbol) => (
+                              <button
+                                key={symbol.en}
+                                type="button"
+                                className={selectedIslamicBlessed.includes(symbol.ar) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleIslamicBlessed(symbol.ar)}
+                              >
+                                {symbol.emoji} {symbol.ar}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Western/Jungian */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>🌍 Western/Jungian</label>
+                          <div className={styles.chipGrid}>
+                            {WESTERN_DREAM_ARCHETYPES.map((archetype) => (
+                              <button
+                                key={archetype.en}
+                                type="button"
+                                className={selectedWestern.includes(archetype.en) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleWestern(archetype.en)}
+                              >
+                                {archetype.emoji} {archetype.en}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Hindu/Indian */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>🇮🇳 Hindu/Indian (हिन्दू)</label>
+                          <div className={styles.chipGrid}>
+                            {HINDU_DREAM_SYMBOLS.map((symbol) => (
+                              <button
+                                key={symbol.en}
+                                type="button"
+                                className={selectedHindu.includes(symbol.hi) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleHindu(symbol.hi)}
+                              >
+                                {symbol.emoji} {symbol.hi}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Native American */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>🦅 Native American</label>
+                          <div className={styles.chipGrid}>
+                            {NATIVE_AMERICAN_SYMBOLS.map((symbol) => (
+                              <button
+                                key={symbol.en}
+                                type="button"
+                                className={selectedNativeAmerican.includes(symbol.en) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleNativeAmerican(symbol.en)}
+                              >
+                                {symbol.emoji} {symbol.en}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Japanese */}
+                        <div className={styles.section}>
+                          <label className={styles.sectionLabel}>🇯🇵 Japanese (日本)</label>
+                          <div className={styles.chipGrid}>
+                            {JAPANESE_DREAM_SYMBOLS.map((symbol) => (
+                              <button
+                                key={symbol.en}
+                                type="button"
+                                className={selectedJapanese.includes(symbol.ja) ? styles.chipSelected : styles.chip}
+                                onClick={() => toggleJapanese(symbol.ja)}
+                              >
+                                {symbol.emoji} {symbol.ja}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Additional Details */}
                   <div className={styles.section}>
                     <label htmlFor="additionalDetails" className={styles.sectionLabel}>
-                      Additional Details (Optional)
+                      {t("dream.labelAdditional")}
                     </label>
                     <textarea
                       id="additionalDetails"
-                      placeholder="Add any other details about your dream..."
+                      placeholder={t("dream.placeholderAdditional")}
                       value={additionalDetails}
                       onChange={(e) => setAdditionalDetails(e.target.value)}
                       className={styles.textareaSmall}
                       rows={3}
                     />
                   </div>
+
+                  {/* Selection Preview */}
+                  {previewText && (
+                    <div className={styles.previewContainer}>
+                      <div className={styles.previewHeader}>
+                        <span className={styles.previewTitle}>
+                          <span>👁️</span> 분석될 내용 미리보기
+                        </span>
+                      </div>
+                      <div className={styles.previewText}>{previewText}</div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
                   {/* Detailed Dream Input */}
                   <div className={styles.section}>
                     <label htmlFor="detailedDream" className={styles.label}>
-                      Describe your dream in detail
+                      {t("dream.labelDetailed")}
                     </label>
                     <textarea
                       id="detailedDream"
-                      placeholder="Include key symbols, feelings, people, places, colors, and what happened..."
+                      placeholder={t("dream.placeholderDetailed")}
                       value={detailedDream}
                       onChange={(e) => setDetailedDream(e.target.value)}
                       className={styles.textarea}
@@ -368,7 +1251,7 @@ export default function DreamInsightPage() {
                   checked={share}
                   onChange={(e) => setShare(e.target.checked)}
                 />
-                <label htmlFor="share">Share anonymously to the Dreamer Map</label>
+                <label htmlFor="share">{t("dream.shareAnonymous")}</label>
               </div>
 
               {/* Birth Data (Collapsible) */}
@@ -378,14 +1261,14 @@ export default function DreamInsightPage() {
                   className={styles.collapsibleToggle}
                   onClick={() => setShowBirthData(!showBirthData)}
                 >
-                  {showBirthData ? '▼' : '▶'} Add Birth Data for Astrological Insights (Optional)
+                  {showBirthData ? '▼' : '▶'} {t("dream.birthOptional")}
                 </button>
 
                 {showBirthData && (
                   <div className={styles.birthDataSection}>
                     <div className={`${styles.grid} ${styles.gridTwo}`}>
                       <div>
-                        <label htmlFor="date" className={styles.label}>Date of Birth</label>
+                        <label htmlFor="date" className={styles.label}>{t("app.birthDate")}</label>
                         <input
                           id="date"
                           type="date"
@@ -395,7 +1278,7 @@ export default function DreamInsightPage() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="time" className={styles.label}>Time of Birth</label>
+                        <label htmlFor="time" className={styles.label}>{t("app.birthTime")}</label>
                         <input
                           id="time"
                           type="time"
@@ -407,7 +1290,7 @@ export default function DreamInsightPage() {
                     </div>
 
                     <div className={styles.relative}>
-                      <label htmlFor="city" className={styles.label}>City of Birth</label>
+                      <label htmlFor="city" className={styles.label}>{t("app.birthCity")}</label>
                       <input
                         id="city"
                         autoComplete="off"
@@ -438,7 +1321,7 @@ export default function DreamInsightPage() {
                     <input type="hidden" name="longitude" value={longitude} />
 
                     <div>
-                      <label htmlFor="timeZone" className={styles.label}>Time Zone</label>
+                      <label htmlFor="timeZone" className={styles.label}>{t("ui.timeZone")}</label>
                       <input
                         id="timeZone"
                         readOnly
@@ -463,10 +1346,10 @@ export default function DreamInsightPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Analyzing...
+                    {t("dream.buttonAnalyzing")}
                   </>
                 ) : (
-                  'Interpret My Dream'
+                  t("dream.buttonAnalyze")
                 )}
               </button>
 
@@ -482,21 +1365,178 @@ export default function DreamInsightPage() {
               onClick={resetForm}
               className={styles.resetButton}
             >
-              ← Interpret Another Dream
+              ← {t("dream.buttonReset")}
             </button>
+
+            {/* 클라우드 저장 알림 */}
+            {result.saved && (
+              <div className={styles.savedNotification}>
+                <span>☁️</span> 꿈 해석이 클라우드에 저장되었습니다
+              </div>
+            )}
 
             {result.summary && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0s' }}>
                 <div className={styles.resultCardGlow} />
-                <h2 className={styles.resultTitle}>Summary</h2>
+                <h2 className={styles.resultTitle}>{t("dream.resultSummary")}</h2>
                 <p className={styles.resultText}>{result.summary}</p>
+              </div>
+            )}
+
+            {/* Celestial Context Section - Moon Phase & Transits */}
+            {result.celestial && (
+              <div className={`${styles.resultCard} ${styles.celestialCard} ${styles.fadeIn}`} style={{ animationDelay: '0.05s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>🌙 천체 영향 분석</h3>
+
+                {/* Moon Phase */}
+                <div className={styles.moonPhaseSection}>
+                  <div className={styles.moonPhaseHeader}>
+                    <span className={styles.moonEmoji}>{result.celestial.moon_phase?.emoji || '🌙'}</span>
+                    <div className={styles.moonPhaseInfo}>
+                      <span className={styles.moonPhaseName}>
+                        {result.celestial.moon_phase?.korean || result.celestial.moon_phase?.name}
+                      </span>
+                      <span className={styles.moonIllumination}>
+                        밝기 {result.celestial.moon_phase?.illumination}% · 달령 {result.celestial.moon_phase?.age_days}일
+                      </span>
+                    </div>
+                    {result.celestial.moon_phase?.weight_modifier && result.celestial.moon_phase.weight_modifier > 1 && (
+                      <span className={styles.intensityBadge}>
+                        ✨ 강화 x{result.celestial.moon_phase.weight_modifier}
+                      </span>
+                    )}
+                  </div>
+
+                  {result.celestial.moon_phase?.dream_quality && (
+                    <div className={styles.dreamQuality}>
+                      <span className={styles.qualityLabel}>꿈의 성질:</span>
+                      <span className={styles.qualityValue}>{result.celestial.moon_phase.dream_quality}</span>
+                    </div>
+                  )}
+
+                  {result.celestial.moon_phase?.dream_meaning && (
+                    <p className={styles.moonMeaning}>{result.celestial.moon_phase.dream_meaning}</p>
+                  )}
+
+                  {result.celestial.moon_phase?.enhanced_themes && result.celestial.moon_phase.enhanced_themes.length > 0 && (
+                    <div className={styles.enhancedThemes}>
+                      <span className={styles.themesLabel}>강화된 테마:</span>
+                      <div className={styles.themeTags}>
+                        {result.celestial.moon_phase.enhanced_themes.map((theme, i) => (
+                          <span key={i} className={styles.themeTag}>{theme}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {result.celestial.moon_phase?.advice && (
+                    <div className={styles.moonAdvice}>
+                      <span className={styles.adviceIcon}>💡</span>
+                      <p>{result.celestial.moon_phase.advice}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Moon Sign */}
+                {result.celestial.moon_sign?.sign && (
+                  <div className={styles.moonSignSection}>
+                    <div className={styles.moonSignHeader}>
+                      <span className={styles.signIcon}>⭐</span>
+                      <span className={styles.signName}>
+                        달의 별자리: {result.celestial.moon_sign.korean || result.celestial.moon_sign.sign}
+                      </span>
+                    </div>
+                    {result.celestial.moon_sign.dream_flavor && (
+                      <p className={styles.signFlavor}>꿈의 맛: {result.celestial.moon_sign.dream_flavor}</p>
+                    )}
+                    {result.celestial.moon_sign.enhanced_symbols && result.celestial.moon_sign.enhanced_symbols.length > 0 && (
+                      <div className={styles.enhancedSymbols}>
+                        <span>강화된 심볼:</span>
+                        {result.celestial.moon_sign.enhanced_symbols.map((sym, i) => (
+                          <span key={i} className={styles.symbolTag}>{sym}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Retrograde Planets */}
+                {result.celestial.retrogrades && result.celestial.retrogrades.length > 0 && (
+                  <div className={styles.retrogradeSection}>
+                    <div className={styles.retrogradeHeader}>
+                      <span className={styles.retroIcon}>↺</span>
+                      <span>역행 행성 영향</span>
+                    </div>
+                    {result.celestial.retrogrades.map((retro, i) => (
+                      <div key={i} className={styles.retrogradeItem}>
+                        <span className={styles.retroPlanet}>
+                          {retro.emoji} {retro.korean || retro.planet}
+                        </span>
+                        {retro.themes && retro.themes.length > 0 && (
+                          <div className={styles.retroThemes}>
+                            {retro.themes.map((theme, j) => (
+                              <span key={j} className={styles.retroTheme}>{theme}</span>
+                            ))}
+                          </div>
+                        )}
+                        {retro.interpretation && (
+                          <p className={styles.retroInterpretation}>{retro.interpretation}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Significant Aspects */}
+                {result.celestial.significant_aspects && result.celestial.significant_aspects.length > 0 && (
+                  <div className={styles.aspectsSection}>
+                    <div className={styles.aspectsHeader}>
+                      <span className={styles.aspectIcon}>✧</span>
+                      <span>주요 행성 배치</span>
+                    </div>
+                    {result.celestial.significant_aspects.map((asp, i) => (
+                      <div key={i} className={styles.aspectItem}>
+                        <span className={styles.aspectName}>{asp.aspect}</span>
+                        {asp.themes && asp.themes.length > 0 && (
+                          <div className={styles.aspectThemes}>
+                            {asp.themes.map((theme, j) => (
+                              <span key={j} className={styles.aspectTheme}>{theme}</span>
+                            ))}
+                          </div>
+                        )}
+                        {asp.special_note && (
+                          <p className={styles.aspectNote}>📌 {asp.special_note}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Planet Positions */}
+                {result.celestial.planets && result.celestial.planets.length > 0 && (
+                  <div className={styles.planetsSection}>
+                    <details className={styles.planetsDetails}>
+                      <summary className={styles.planetsSummary}>🪐 현재 행성 위치 보기</summary>
+                      <div className={styles.planetsList}>
+                        {result.celestial.planets.map((planet, i) => (
+                          <div key={i} className={styles.planetItem}>
+                            <span className={styles.planetName}>{planet.name_ko || planet.name}</span>
+                            <span className={styles.planetSign}>{planet.sign_ko || planet.sign}</span>
+                            {planet.retrograde && <span className={styles.retroBadge}>℞</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  </div>
+                )}
               </div>
             )}
 
             {Array.isArray(result.themes) && result.themes.length > 0 && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.1s' }}>
                 <div className={styles.resultCardGlow} />
-                <h3 className={styles.resultTitle}>Themes</h3>
+                <h3 className={styles.resultTitle}>{t("dream.resultThemes")}</h3>
                 <div>
                   {result.themes.map((t, idx) => (
                     <div key={idx} className={styles.themeBar}>
@@ -522,7 +1562,7 @@ export default function DreamInsightPage() {
             {Array.isArray(result.dreamSymbols) && result.dreamSymbols.length > 0 && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.2s' }}>
                 <div className={styles.resultCardGlow} />
-                <h3 className={styles.resultTitle}>Key Symbols</h3>
+                <h3 className={styles.resultTitle}>{t("dream.resultSymbols")}</h3>
                 <ul className={styles.resultList}>
                   {result.dreamSymbols.map((s, i) => (
                     <li key={i}>
@@ -536,7 +1576,7 @@ export default function DreamInsightPage() {
             {result.astrology && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.3s' }}>
                 <div className={styles.resultCardGlow} />
-                <h3 className={styles.resultTitle}>Astrology Highlights</h3>
+                <h3 className={styles.resultTitle}>{t("dream.resultAstrology")}</h3>
                 <ul className={styles.resultList}>
                   {result.astrology.sun && <li>Sun: {result.astrology.sun}</li>}
                   {result.astrology.moon && <li>Moon: {result.astrology.moon}</li>}
@@ -550,7 +1590,7 @@ export default function DreamInsightPage() {
             {Array.isArray(result.crossInsights) && result.crossInsights.length > 0 && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.4s' }}>
                 <div className={styles.resultCardGlow} />
-                <h3 className={styles.resultTitle}>Cross-Insights</h3>
+                <h3 className={styles.resultTitle}>{t("dream.resultInsights")}</h3>
                 <ul className={styles.resultList}>
                   {result.crossInsights.map((c, i) => <li key={i}>{c}</li>)}
                 </ul>
@@ -560,10 +1600,197 @@ export default function DreamInsightPage() {
             {Array.isArray(result.recommendations) && result.recommendations.length > 0 && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.5s' }}>
                 <div className={styles.resultCardGlow} />
-                <h3 className={styles.resultTitle}>Next Steps</h3>
+                <h3 className={styles.resultTitle}>{t("dream.resultRecommendations")}</h3>
                 <ol className={styles.resultListOrdered}>
                   {result.recommendations.map((r, i) => <li key={i}>{r}</li>)}
                 </ol>
+              </div>
+            )}
+
+            {/* Cultural Notes Section */}
+            {result.culturalNotes && Object.values(result.culturalNotes).some(v => v) && (
+              <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.6s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>🌍 {t("dream.resultCulturalNotes") || "Cultural Interpretations"}</h3>
+                <div className={styles.culturalNotesGrid}>
+                  {result.culturalNotes.korean && (
+                    <div className={styles.culturalNote}>
+                      <span className={styles.culturalFlag}>🇰🇷</span>
+                      <div>
+                        <strong>한국 해몽</strong>
+                        <p>{result.culturalNotes.korean}</p>
+                      </div>
+                    </div>
+                  )}
+                  {result.culturalNotes.chinese && (
+                    <div className={styles.culturalNote}>
+                      <span className={styles.culturalFlag}>🇨🇳</span>
+                      <div>
+                        <strong>中国解梦</strong>
+                        <p>{result.culturalNotes.chinese}</p>
+                      </div>
+                    </div>
+                  )}
+                  {result.culturalNotes.islamic && (
+                    <div className={styles.culturalNote}>
+                      <span className={styles.culturalFlag}>☪️</span>
+                      <div>
+                        <strong>تفسير الأحلام</strong>
+                        <p>{result.culturalNotes.islamic}</p>
+                      </div>
+                    </div>
+                  )}
+                  {result.culturalNotes.western && (
+                    <div className={styles.culturalNote}>
+                      <span className={styles.culturalFlag}>🧠</span>
+                      <div>
+                        <strong>Jungian/Western</strong>
+                        <p>{result.culturalNotes.western}</p>
+                      </div>
+                    </div>
+                  )}
+                  {result.culturalNotes.hindu && (
+                    <div className={styles.culturalNote}>
+                      <span className={styles.culturalFlag}>🙏</span>
+                      <div>
+                        <strong>Hindu/Vedic</strong>
+                        <p>{result.culturalNotes.hindu}</p>
+                      </div>
+                    </div>
+                  )}
+                  {result.culturalNotes.japanese && (
+                    <div className={styles.culturalNote}>
+                      <span className={styles.culturalFlag}>🇯🇵</span>
+                      <div>
+                        <strong>日本の夢占い</strong>
+                        <p>{result.culturalNotes.japanese}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Lucky Elements Section */}
+            {result.luckyElements && (result.luckyElements.isLucky || result.luckyElements.luckyNumbers?.length || result.luckyElements.advice) && (
+              <div className={`${styles.resultCard} ${styles.luckyCard} ${styles.fadeIn}`} style={{ animationDelay: '0.7s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>🍀 {t("dream.resultLucky") || "Lucky Elements"}</h3>
+                <div className={styles.luckyContent}>
+                  {result.luckyElements.isLucky && (
+                    <div className={styles.luckyBadge}>
+                      ✨ 길몽 (Auspicious Dream) ✨
+                    </div>
+                  )}
+                  {result.luckyElements.luckyNumbers && result.luckyElements.luckyNumbers.length > 0 && (
+                    <div className={styles.luckyNumbers}>
+                      <strong>🎱 Lucky Numbers:</strong>
+                      <div className={styles.numberBalls}>
+                        {result.luckyElements.luckyNumbers.map((num, i) => (
+                          <span key={i} className={styles.numberBall}>{num}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.luckyElements.luckyColors && result.luckyElements.luckyColors.length > 0 && (
+                    <div className={styles.luckyColors}>
+                      <strong>🎨 Lucky Colors:</strong>
+                      <div className={styles.colorTags}>
+                        {result.luckyElements.luckyColors.map((color, i) => (
+                          <span key={i} className={styles.colorTag}>{color}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.luckyElements.advice && (
+                    <div className={styles.luckyAdvice}>
+                      <strong>💡 Advice:</strong>
+                      <p>{result.luckyElements.advice}</p>
+                    </div>
+                  )}
+                  {result.luckyElements.elementAnalysis && (
+                    <div className={styles.elementAnalysis}>
+                      <strong>☯️ 오행 분석:</strong>
+                      <p>{result.luckyElements.elementAnalysis}</p>
+                      {result.luckyElements.confidence !== undefined && (
+                        <div className={styles.confidenceBar}>
+                          <div
+                            className={styles.confidenceFill}
+                            style={{ width: `${result.luckyElements.confidence * 100}%` }}
+                          />
+                          <span>신뢰도: {Math.round(result.luckyElements.confidence * 100)}%</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Symbol Combinations Section */}
+            {result.premiumFeatures?.combinations && result.premiumFeatures.combinations.length > 0 && (
+              <div className={`${styles.resultCard} ${styles.combinationCard} ${styles.fadeIn}`} style={{ animationDelay: '0.8s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>🔮 심볼 조합 분석</h3>
+                <div className={styles.combinationList}>
+                  {result.premiumFeatures.combinations.map((combo, i) => (
+                    <div key={i} className={`${styles.combinationItem} ${combo.is_lucky ? styles.luckyCombo : styles.warningCombo}`}>
+                      <div className={styles.comboHeader}>
+                        <span className={styles.comboSymbols}>{combo.combination}</span>
+                        <span className={styles.comboScore}>
+                          {combo.is_lucky ? '🍀' : '⚠️'} {combo.lucky_score}점
+                        </span>
+                      </div>
+                      <div className={styles.comboMeaning}>{combo.meaning}</div>
+                      <p className={styles.comboInterpretation}>{combo.interpretation}</p>
+                      <span className={styles.fortuneType}>{combo.fortune_type}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Taemong (Conception Dream) Section */}
+            {result.premiumFeatures?.taemong && result.premiumFeatures.taemong.is_taemong && (
+              <div className={`${styles.resultCard} ${styles.taemongCard} ${styles.fadeIn}`} style={{ animationDelay: '0.9s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>👶 태몽 분석</h3>
+                {result.premiumFeatures.taemong.primary_symbol && (
+                  <div className={styles.taemongPrimary}>
+                    <div className={styles.taemongSymbol}>
+                      <span className={styles.symbolName}>{result.premiumFeatures.taemong.primary_symbol.symbol}</span>
+                      <span className={styles.luckyScore}>
+                        ⭐ {result.premiumFeatures.taemong.primary_symbol.lucky_score}점
+                      </span>
+                    </div>
+                    <div className={styles.taemongDetails}>
+                      <div className={styles.taemongTrait}>
+                        <strong>예상 특성:</strong> {result.premiumFeatures.taemong.primary_symbol.child_trait}
+                      </div>
+                      <div className={styles.taemongGender}>
+                        <strong>성별 암시:</strong> {result.premiumFeatures.taemong.primary_symbol.gender_hint}
+                      </div>
+                      <p className={styles.taemongInterp}>{result.premiumFeatures.taemong.primary_symbol.interpretation}</p>
+                      {result.premiumFeatures.taemong.primary_symbol.celebrity_examples.length > 0 && (
+                        <div className={styles.celebrityExamples}>
+                          <strong>유명 직업군:</strong> {result.premiumFeatures.taemong.primary_symbol.celebrity_examples.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {result.premiumFeatures.taemong.symbols.length > 1 && (
+                  <div className={styles.taemongOthers}>
+                    <strong>기타 태몽 심볼:</strong>
+                    <div className={styles.taemongSymbolList}>
+                      {result.premiumFeatures.taemong.symbols.slice(1).map((sym, i) => (
+                        <span key={i} className={styles.taemongTag}>
+                          {sym.symbol} ({sym.gender_hint})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

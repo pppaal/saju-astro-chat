@@ -1,0 +1,259 @@
+{
+  "_meta": {
+    "description": "꿈 심볼 완전 사전 - 동물, 자연, 사물, 행동, 사람, 색깔, 숫자",
+    "version": "1.0.0",
+    "last_updated": "2024-12"
+  },
+
+  "animals_dog": {
+    "when": ["dog", "개", "강아지", "puppy"],
+    "text": "개는 충성, 우정, 보호의 상징입니다. 친근한 개=충실한 친구나 자신의 충성스러운 측면, 공격적인 개=배신당한 느낌이나 억압된 분노, 잃어버린 개=우정의 상실. 개가 짖으면 경고 메시지입니다.",
+    "weight": 7,
+    "category": "animals"
+  },
+
+  "animals_cat": {
+    "when": ["cat", "고양이", "kitten", "새끼 고양이"],
+    "text": "고양이는 독립, 직관, 신비, 여성성의 상징입니다. 부드러운 고양이=편안함과 자기 돌봄, 야생 고양이=길들여지지 않은 본능, 검은 고양이=문화에 따라 행운 또는 불길함. 고양이의 우아함은 자기 확신을 나타냅니다.",
+    "weight": 7,
+    "category": "animals"
+  },
+
+  "animals_horse": {
+    "when": ["horse", "말", "stallion", "mare", "pony"],
+    "text": "말은 자유, 힘, 열정, 이동의 상징입니다. 말을 탐=상황을 통제함, 말에서 떨어짐=통제력 상실, 야생마=길들여지지 않은 본능, 날개 달린 말=영적 상승과 해방. 한국에서 백마는 귀한 꿈입니다.",
+    "weight": 8,
+    "category": "animals"
+  },
+
+  "animals_bird": {
+    "when": ["bird", "새", "flying bird", "crow", "까마귀", "dove", "비둘기"],
+    "text": "새는 자유, 영혼, 메시지, 초월의 상징입니다. 나는 새=자유에 대한 갈망, 새장의 새=갇힌 느낌, 까마귀=변화/죽음의 메시지, 비둘기=평화/희망, 올빼미=지혜/숨겨진 지식. 새가 집에 들어오면 소식이 옵니다.",
+    "weight": 8,
+    "category": "animals"
+  },
+
+  "animals_spider": {
+    "when": ["spider", "거미", "web", "거미줄"],
+    "text": "거미는 창조성, 운명의 직조, 연결의 상징입니다. 거미줄=삶의 복잡한 연결망, 거미에 물림=창조적 각성, 거미 죽임=기회 파괴. 원주민 전통에서 거미는 창조의 이야기꾼입니다.",
+    "weight": 7,
+    "category": "animals"
+  },
+
+  "animals_butterfly": {
+    "when": ["butterfly", "나비", "caterpillar", "애벌레", "cocoon", "고치"],
+    "text": "나비는 변화, 재탄생, 영혼의 상징입니다. 애벌레=변화 전, 고치=변화 중, 나비=완성된 변화. 많은 문화에서 영혼의 화신으로 여깁니다. 아름다운 나비는 긍정적 변화의 완성을 나타냅니다.",
+    "weight": 8,
+    "category": "animals"
+  },
+
+  "animals_fish_detailed": {
+    "when": ["fish", "물고기", "goldfish", "금붕어", "whale", "고래", "dolphin", "돌고래"],
+    "text": "물고기는 무의식의 내용물, 풍요, 영성의 상징입니다. 금붕어=행운, 고래=거대한 무의식/감정, 돌고래=지성과 유희, 물고기 잡음=무의식에서 통찰 끌어올림. 썩은 물고기=놓친 기회.",
+    "weight": 8,
+    "category": "animals"
+  },
+
+  "animals_insect": {
+    "when": ["insect", "벌레", "bee", "벌", "ant", "개미", "fly", "파리"],
+    "text": "곤충은 종류에 따라 다릅니다. 벌=근면/공동체/달콤한 보상, 개미=근면/협동/작은 것의 힘, 파리=성가심/부정적 생각, 바퀴벌레=제거해야 할 것. 벌에 쏘이면 '깨우침'입니다.",
+    "weight": 6,
+    "category": "animals"
+  },
+
+  "nature_tree": {
+    "when": ["tree", "나무", "forest", "숲", "branch", "가지", "root", "뿌리"],
+    "text": "나무는 생명, 성장, 가계도의 상징입니다. 뿌리=과거/기원/무의식, 줄기=현재의 자아, 가지=가능성/관계, 열매=결실/성과. 넘어진 나무=손실, 새싹=새 시작, 고목=지혜.",
+    "weight": 8,
+    "category": "nature"
+  },
+
+  "nature_flower": {
+    "when": ["flower", "꽃", "rose", "장미", "lotus", "연꽃", "bloom", "피다"],
+    "text": "꽃은 아름다움, 성장, 일시성의 상징입니다. 장미=사랑(가시는 그 고통), 연꽃=영적 각성, 시든 꽃=끝남/애도. 꽃이 피면 성장, 꽃봉오리=잠재력, 꽃을 받음=사랑/인정.",
+    "weight": 8,
+    "category": "nature"
+  },
+
+  "nature_sky": {
+    "when": ["sky", "하늘", "cloud", "구름", "rainbow", "무지개", "star", "별"],
+    "text": "하늘은 무한한 가능성, 영적 영역, 의식의 상징입니다. 맑은 하늘=명료함/희망, 흐린 하늘=불확실성, 무지개=희망/약속/축복, 별=목표/영감.",
+    "weight": 7,
+    "category": "nature"
+  },
+
+  "nature_earth": {
+    "when": ["earth", "땅", "ground", "흙", "dirt", "mud", "진흙"],
+    "text": "땅은 현실, 안정, 근거의 상징입니다. 단단한 땅=안정감, 흔들리는 땅=불안정, 흙을 파는 것=무의식 탐색, 진흙=혼란/치유(머드팩처럼).",
+    "weight": 7,
+    "category": "nature"
+  },
+
+  "objects_key": {
+    "when": ["key", "열쇠", "lock", "자물쇠", "unlock", "열다"],
+    "text": "열쇠는 해결책, 접근, 비밀의 상징입니다. 열쇠를 찾음=해결책 발견, 열쇠를 잃음=기회 상실, 문을 열음=새로운 기회, 잠긴 문=막힌 상황.",
+    "weight": 8,
+    "category": "objects"
+  },
+
+  "objects_book": {
+    "when": ["book", "책", "reading", "읽다", "library", "도서관"],
+    "text": "책은 지식, 삶의 기록, 배움의 상징입니다. 책을 읽음=지식 습득/자기 탐색, 빈 책=새 시작, 도서관=집단 지식/무의식. 책 제목이나 내용이 중요합니다.",
+    "weight": 7,
+    "category": "objects"
+  },
+
+  "objects_ring": {
+    "when": ["ring", "반지", "jewelry", "보석", "diamond", "다이아몬드"],
+    "text": "반지는 약속, 헌신, 완전함의 상징입니다. 결혼반지=관계의 헌신, 반지를 받음=인정/약속, 반지를 잃음=관계 불안. 보석의 종류도 의미가 있습니다.",
+    "weight": 8,
+    "category": "objects"
+  },
+
+  "objects_clothes": {
+    "when": ["clothes", "옷", "dress", "드레스", "suit", "정장", "naked", "벗은"],
+    "text": "옷은 페르소나(사회적 자아), 역할, 정체성의 상징입니다. 새 옷=새로운 역할/정체성, 헐벗음=취약함/진정한 자아 노출, 남의 옷=다른 정체성 시도.",
+    "weight": 7,
+    "category": "objects"
+  },
+
+  "objects_weapon": {
+    "when": ["weapon", "무기", "sword", "칼", "gun", "총", "knife", "칼"],
+    "text": "무기는 공격성, 방어, 힘의 상징입니다. 칼=결단력/분리, 총=멀리서의 공격/거리, 무기를 듦=힘의 느낌, 무기에 위협받음=위협감. 무기 사용법이 중요합니다.",
+    "weight": 7,
+    "category": "objects"
+  },
+
+  "objects_money_detailed": {
+    "when": ["wallet", "지갑", "coins", "동전", "bills", "지폐", "bank", "은행"],
+    "text": "지갑/돈은 자기 가치, 자원, 안정의 상징입니다. 지갑을 잃음=정체성/가치 위기, 돈을 세는 것=자원 점검, 은행=축적된 자원/잠재력.",
+    "weight": 8,
+    "category": "objects"
+  },
+
+  "actions_running": {
+    "when": ["running", "달리다", "escape", "도망", "pursuit", "추격"],
+    "text": "달리기는 삶의 속도, 도피, 또는 목표를 향한 움직임입니다. 도망=회피, 쫓아감=목표 추구, 느린 달리기=좌절감, 마라톤=인내가 필요한 여정.",
+    "weight": 7,
+    "category": "actions"
+  },
+
+  "actions_climbing": {
+    "when": ["climbing", "오르다", "ladder", "사다리", "stairs", "계단"],
+    "text": "오르는 것은 상승, 발전, 목표 달성의 상징입니다. 계단=단계적 발전, 사다리=기회, 정상 도달=목표 달성, 오르다 떨어짐=좌절.",
+    "weight": 8,
+    "category": "actions"
+  },
+
+  "actions_swimming": {
+    "when": ["swimming", "수영", "floating", "떠있다", "sinking", "가라앉다"],
+    "text": "수영은 감정을 다루는 능력입니다. 잘 수영함=감정 통제력, 익사할 뻔함=감정에 압도됨, 떠있음=감정과 평화롭게 공존, 물 위를 걸음=초월적 능력.",
+    "weight": 8,
+    "category": "actions"
+  },
+
+  "actions_eating": {
+    "when": ["eating", "먹다", "food", "음식", "drinking", "마시다"],
+    "text": "먹는 것은 정보/에너지/경험의 섭취입니다. 맛있게 먹음=만족스러운 경험, 못 먹음=결핍, 과식=탐욕/과잉, 썩은 음식=해로운 것 섭취. 무엇을 먹는지가 중요합니다.",
+    "weight": 7,
+    "category": "actions"
+  },
+
+  "people_stranger": {
+    "when": ["stranger", "낯선 사람", "unknown person", "모르는 사람"],
+    "text": "낯선 사람은 자신의 알려지지 않은 측면입니다. 친절한 낯선이=긍정적 잠재력, 위협적인 낯선이=그림자, 매력적인 낯선이=아니마/아니무스. 그 사람의 특성이 당신 안에 있습니다.",
+    "weight": 8,
+    "category": "people"
+  },
+
+  "people_family": {
+    "when": ["family", "가족", "mother", "어머니", "father", "아버지", "sibling", "형제"],
+    "text": "가족은 실제 가족 또는 그들이 상징하는 원형입니다. 어머니=양육/대모 원형, 아버지=권위/구조, 형제=동등한 관계. 가족과의 꿈은 현재 관계를 반영하거나 과거 패턴을 나타냅니다.",
+    "weight": 8,
+    "category": "people"
+  },
+
+  "people_child_symbol": {
+    "when": ["child", "아이", "baby", "아기", "infant", "유아"],
+    "text": "아이는 순수함, 새 시작, 내면의 아이(inner child)입니다. 행복한 아이=희망/가능성, 우는 아이=돌봄이 필요한 내면, 버려진 아이=무시된 측면. 아이를 돌봄=새 프로젝트/자기 돌봄.",
+    "weight": 8,
+    "category": "people"
+  },
+
+  "colors_red": {
+    "when": ["red", "빨간색", "빨강", "scarlet"],
+    "text": "빨간색은 열정, 분노, 사랑, 생명력의 상징입니다. 밝은 빨강=활력/열정, 어두운 빨강=분노/위험, 피=생명력/희생. 중국에서는 행운, 서양에서는 사랑/분노입니다.",
+    "weight": 7,
+    "category": "colors"
+  },
+
+  "colors_blue": {
+    "when": ["blue", "파란색", "파랑", "azure"],
+    "text": "파란색은 평화, 지성, 영성, 우울의 상징입니다. 하늘색=희망/영성, 깊은 파랑=깊은 감정/우울, 맑은 파랑=명료함.",
+    "weight": 7,
+    "category": "colors"
+  },
+
+  "colors_white": {
+    "when": ["white", "흰색", "하양", "pure white"],
+    "text": "흰색은 순수, 시작, 비움의 상징입니다. 서양에서는 순수/결혼, 동양에서는 죽음/상복. 빛나는 흰색=영적 순수함, 탁한 흰색=순수의 오염.",
+    "weight": 7,
+    "category": "colors"
+  },
+
+  "colors_black": {
+    "when": ["black", "검은색", "검정", "darkness"],
+    "text": "검은색은 무의식, 미지, 죽음과 재탄생의 상징입니다. 두려운 검정=알 수 없는 것에 대한 두려움, 편안한 검정=무의식과의 평화, 빛 속 검정=그림자 원형.",
+    "weight": 7,
+    "category": "colors"
+  },
+
+  "colors_gold": {
+    "when": ["gold", "금색", "황금색", "golden"],
+    "text": "금색은 가치, 신성, 성취의 상징입니다. 금빛 물건=귀한 것, 금빛 빛=신성한 존재, 금을 찾음=자기 가치 발견. 모든 문화에서 최고의 가치입니다.",
+    "weight": 9,
+    "category": "colors"
+  },
+
+  "numbers_one": {
+    "when": ["one", "1", "하나", "single", "alone"],
+    "text": "1은 시작, 독립, 창조의 원리, 자아의 상징입니다. 새로운 시작, 개인의 힘, 독창성을 나타냅니다. 홀로 있으면 자립 또는 고독입니다.",
+    "weight": 6,
+    "category": "numbers"
+  },
+
+  "numbers_two": {
+    "when": ["two", "2", "둘", "pair", "couple"],
+    "text": "2는 이원성, 관계, 균형, 선택의 상징입니다. 두 선택지, 파트너십, 대립과 조화를 나타냅니다. 결정의 순간을 의미할 수 있습니다.",
+    "weight": 6,
+    "category": "numbers"
+  },
+
+  "numbers_three": {
+    "when": ["three", "3", "셋", "triple", "trinity"],
+    "text": "3은 창조, 완성, 신성(삼위일체)의 상징입니다. 시작-중간-끝, 몸-마음-영혼, 과거-현재-미래의 통합. 창조적 표현과 성장을 나타냅니다.",
+    "weight": 7,
+    "category": "numbers"
+  },
+
+  "numbers_four": {
+    "when": ["four", "4", "넷", "square", "사각"],
+    "text": "4는 안정, 기초, 완전함(4방향, 4계절, 4원소)의 상징입니다. 실제적인 것, 땅, 물질 세계를 나타냅니다. 튼튼한 기반이 필요함을 의미합니다.",
+    "weight": 6,
+    "category": "numbers"
+  },
+
+  "numbers_seven": {
+    "when": ["seven", "7", "일곱"],
+    "text": "7은 영성, 완성, 신비의 숫자입니다. 7일, 7대죄, 7개 차크라. 영적 탐구와 내면의 지혜를 나타냅니다. 행운과 신비로움의 상징입니다.",
+    "weight": 7,
+    "category": "numbers"
+  },
+
+  "numbers_eight": {
+    "when": ["eight", "8", "여덟", "infinity"],
+    "text": "8은 풍요, 무한(∞), 균형의 상징입니다. 특히 중국에서 가장 행운의 숫자입니다. 물질적 성공과 영적 성장의 균형을 나타냅니다.",
+    "weight": 8,
+    "category": "numbers"
+  }
+}

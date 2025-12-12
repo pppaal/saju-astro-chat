@@ -1,0 +1,418 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "placements/lunar_mansions",
+  "$count": 28,
+  "$description": "28 달의 저택 (낙샤트라/마나질) - 달의 궤도를 28등분한 고대 시스템",
+
+  "overview": {
+    "origin": "베다/아랍 점성술에서 유래 - 달이 황도대를 한 바퀴 도는 약 27.3일을 28로 나눔",
+    "each_mansion_span": "약 12도 51분 (360/28)",
+    "usage": "달의 위치에 따른 일상적 길흉, 시작하기 좋은 일, 피해야 할 일 판단",
+    "systems": ["Nakshatras (인도)", "Manzil (아랍)", "Xiu (중국)"],
+    "moon_significance": "달이 위치한 저택은 그 날/시기의 에너지를 결정"
+  },
+
+  "mansions": {
+    "1": {
+      "name": "Al-Sharatain / Ashwini",
+      "meaning": "두 표시 / 쌍둥이 기마",
+      "degrees": "0° - 12°51' 양자리",
+      "nature": "유리함",
+      "ruling_planet": "화성/케투",
+      "element": "불",
+      "symbol": "말 머리",
+      "favorable_activities": ["여행 시작", "치료", "새로운 시작", "약 복용", "분쟁 해결"],
+      "unfavorable_activities": ["결혼", "계약", "새 집 입주"],
+      "character_if_born": "빠른 행동력, 치유 능력, 개척 정신",
+      "health": "두통, 발열에 주의"
+    },
+
+    "2": {
+      "name": "Al-Butain / Bharani",
+      "meaning": "작은 배 / 베어내는 자",
+      "degrees": "12°51' - 25°42' 양자리",
+      "nature": "중립",
+      "ruling_planet": "금성",
+      "element": "흙",
+      "symbol": "자궁/요니",
+      "favorable_activities": ["농사", "재정 거래", "가축 관리"],
+      "unfavorable_activities": ["여행", "결혼", "소송"],
+      "character_if_born": "창조력, 변형력, 강한 의지",
+      "health": "생식기, 목에 주의"
+    },
+
+    "3": {
+      "name": "Al-Thurayya / Krittika",
+      "meaning": "플레이아데스 / 절단자",
+      "degrees": "25°42' 양자리 - 8°33' 황소",
+      "nature": "불리함 (칼날)",
+      "ruling_planet": "태양",
+      "element": "불",
+      "symbol": "칼/불",
+      "favorable_activities": ["정복", "군사 행동", "수술", "잡초 제거"],
+      "unfavorable_activities": ["결혼", "파트너십", "평화적 시작"],
+      "character_if_born": "날카로운 지성, 정화 능력, 리더십",
+      "health": "염증, 발열에 주의"
+    },
+
+    "4": {
+      "name": "Al-Dabaran / Rohini",
+      "meaning": "따르는 자 / 붉은 자",
+      "degrees": "8°33' - 21°24' 황소",
+      "nature": "매우 유리함",
+      "ruling_planet": "달",
+      "element": "흙",
+      "symbol": "수레/붉은 소",
+      "favorable_activities": ["결혼", "농사", "건축", "새 시작", "모든 좋은 일"],
+      "unfavorable_activities": ["전쟁", "분쟁"],
+      "character_if_born": "아름다움, 창조성, 물질적 풍요",
+      "health": "목, 갑상선에 주의"
+    },
+
+    "5": {
+      "name": "Al-Haqah / Mrigashira",
+      "meaning": "표시 / 사슴 머리",
+      "degrees": "21°24' 황소 - 4°15' 쌍둥이",
+      "nature": "유리함",
+      "ruling_planet": "화성",
+      "element": "공기",
+      "symbol": "사슴",
+      "favorable_activities": ["학습", "여행", "약 복용", "장신구", "옷 만들기"],
+      "unfavorable_activities": ["결혼", "중요한 결정"],
+      "character_if_born": "탐구심, 호기심, 지적 능력",
+      "health": "호흡기, 어깨에 주의"
+    },
+
+    "6": {
+      "name": "Al-Hanah / Ardra",
+      "meaning": "표시 / 촉촉한 자",
+      "degrees": "4°15' - 17°6' 쌍둥이",
+      "nature": "불리함 (폭풍)",
+      "ruling_planet": "라후",
+      "element": "물",
+      "symbol": "눈물/다이아몬드",
+      "favorable_activities": ["파괴적 행위", "분리", "청소"],
+      "unfavorable_activities": ["결혼", "건축", "새 시작"],
+      "character_if_born": "강렬함, 변형력, 지적 깊이",
+      "health": "신경계, 폐에 주의"
+    },
+
+    "7": {
+      "name": "Al-Dhira / Punarvasu",
+      "meaning": "팔 / 다시 좋아지는",
+      "degrees": "17°6' 쌍둥이 - 29°57' 쌍둥이",
+      "nature": "매우 유리함",
+      "ruling_planet": "목성",
+      "element": "공기",
+      "symbol": "화살통/집",
+      "favorable_activities": ["결혼", "학습", "여행 시작", "치료", "화해"],
+      "unfavorable_activities": ["전쟁"],
+      "character_if_born": "낙관, 회복력, 지혜",
+      "health": "순환에 좋음"
+    },
+
+    "8": {
+      "name": "Al-Nathrah / Pushya",
+      "meaning": "코 / 영양",
+      "degrees": "29°57' 쌍둥이 - 12°48' 게",
+      "nature": "가장 유리함",
+      "ruling_planet": "토성",
+      "element": "물",
+      "symbol": "꽃/젖소 젖꼭지",
+      "favorable_activities": ["모든 좋은 일", "관혼상제", "사업", "투자", "치료"],
+      "unfavorable_activities": ["결혼만 피함 (일부 전통)"],
+      "character_if_born": "양육력, 영적 성장, 풍요",
+      "health": "가슴, 위에 주의"
+    },
+
+    "9": {
+      "name": "Al-Tarf / Ashlesha",
+      "meaning": "눈 / 포옹하는 자",
+      "degrees": "12°48' - 25°39' 게",
+      "nature": "불리함 (독)",
+      "ruling_planet": "수성",
+      "element": "물",
+      "symbol": "뱀",
+      "favorable_activities": ["비밀 활동", "신비 작업", "분리"],
+      "unfavorable_activities": ["결혼", "파트너십", "여행"],
+      "character_if_born": "통찰력, 신비로움, 치유력 (뱀 에너지)",
+      "health": "신경계, 소화에 주의"
+    },
+
+    "10": {
+      "name": "Al-Jabhah / Magha",
+      "meaning": "이마 / 위대한 자",
+      "degrees": "25°39' 게 - 8°30' 사자",
+      "nature": "유리함",
+      "ruling_planet": "케투",
+      "element": "불",
+      "symbol": "왕좌/왕관",
+      "favorable_activities": ["공식 행사", "리더십", "조상 의례", "정부 관련"],
+      "unfavorable_activities": ["겸손한 일"],
+      "character_if_born": "권위, 리더십, 조상 연결",
+      "health": "심장, 등에 주의"
+    },
+
+    "11": {
+      "name": "Al-Zubrah / Purva Phalguni",
+      "meaning": "갈기 / 첫 번째 붉은 자",
+      "degrees": "8°30' - 21°21' 사자",
+      "nature": "유리함 (쾌락)",
+      "ruling_planet": "금성",
+      "element": "불",
+      "symbol": "해먹/침대",
+      "favorable_activities": ["결혼", "쾌락", "예술", "로맨스", "휴식"],
+      "unfavorable_activities": ["힘든 일", "갈등"],
+      "character_if_born": "창조력, 사랑, 예술적 재능",
+      "health": "심장, 등에 주의"
+    },
+
+    "12": {
+      "name": "Al-Sarfah / Uttara Phalguni",
+      "meaning": "변화 / 두 번째 붉은 자",
+      "degrees": "21°21' 사자 - 4°12' 처녀",
+      "nature": "매우 유리함",
+      "ruling_planet": "태양",
+      "element": "불",
+      "symbol": "침대의 뒷다리",
+      "favorable_activities": ["결혼", "계약", "파트너십", "건축", "정착"],
+      "unfavorable_activities": ["단기 활동"],
+      "character_if_born": "헌신, 관대함, 지속적 사랑",
+      "health": "소화, 장에 주의"
+    },
+
+    "13": {
+      "name": "Al-Awwa / Hasta",
+      "meaning": "짖는 자 / 손",
+      "degrees": "4°12' - 17°3' 처녀",
+      "nature": "유리함",
+      "ruling_planet": "달",
+      "element": "흙",
+      "symbol": "손/손바닥",
+      "favorable_activities": ["수공예", "치료", "거래", "교육", "약 만들기"],
+      "unfavorable_activities": ["장거리 여행"],
+      "character_if_born": "손재주, 치유력, 유머",
+      "health": "손, 신경에 주의"
+    },
+
+    "14": {
+      "name": "Al-Simak / Chitra",
+      "meaning": "높은 자 / 빛나는 자",
+      "degrees": "17°3' - 29°54' 처녀",
+      "nature": "중립",
+      "ruling_planet": "화성",
+      "element": "불",
+      "symbol": "진주/빛나는 보석",
+      "favorable_activities": ["장식", "보석 세공", "예술", "건축"],
+      "unfavorable_activities": ["결혼", "여행"],
+      "character_if_born": "창조력, 아름다움 추구, 카리스마",
+      "health": "복부, 신장에 주의"
+    },
+
+    "15": {
+      "name": "Al-Ghafr / Swati",
+      "meaning": "덮개 / 검",
+      "degrees": "29°54' 처녀 - 12°45' 천칭",
+      "nature": "중립 (바람)",
+      "ruling_planet": "라후",
+      "element": "공기",
+      "symbol": "산호/새싹",
+      "favorable_activities": ["상업", "여행", "학습", "사교"],
+      "unfavorable_activities": ["결혼", "안정적 시작"],
+      "character_if_born": "독립성, 적응력, 외교 능력",
+      "health": "피부, 신장에 주의"
+    },
+
+    "16": {
+      "name": "Al-Zubana / Vishakha",
+      "meaning": "집게발 / 분기된 가지",
+      "degrees": "12°45' - 25°36' 천칭",
+      "nature": "불리함 (분열)",
+      "ruling_planet": "목성",
+      "element": "불",
+      "symbol": "승리의 아치/포터의 바퀴",
+      "favorable_activities": ["경쟁", "정치", "목표 추구"],
+      "unfavorable_activities": ["결혼", "파트너십"],
+      "character_if_born": "목표 지향, 결단력, 성공",
+      "health": "허리, 신장에 주의"
+    },
+
+    "17": {
+      "name": "Al-Iklil / Anuradha",
+      "meaning": "왕관 / 라다를 따르는",
+      "degrees": "25°36' 천칭 - 8°27' 전갈",
+      "nature": "유리함",
+      "ruling_planet": "토성",
+      "element": "물",
+      "symbol": "연꽃",
+      "favorable_activities": ["우정", "단체 활동", "조직", "치유"],
+      "unfavorable_activities": ["개인적 시작"],
+      "character_if_born": "헌신, 우정, 조직력",
+      "health": "가슴, 유방에 주의"
+    },
+
+    "18": {
+      "name": "Al-Qalb / Jyeshtha",
+      "meaning": "심장 / 장남",
+      "degrees": "8°27' - 21°18' 전갈",
+      "nature": "불리함 (강렬함)",
+      "ruling_planet": "수성",
+      "element": "공기",
+      "symbol": "우산/귀걸이",
+      "favorable_activities": ["권위 주장", "비밀 작업", "승진"],
+      "unfavorable_activities": ["결혼", "파트너십"],
+      "character_if_born": "리더십, 권위, 보호 능력",
+      "health": "심장, 생식기에 주의"
+    },
+
+    "19": {
+      "name": "Al-Shaulah / Mula",
+      "meaning": "쏘는 자 / 뿌리",
+      "degrees": "21°18' 전갈 - 4°9' 사수",
+      "nature": "매우 불리함 (파괴)",
+      "ruling_planet": "케투",
+      "element": "공기",
+      "symbol": "뿌리 묶음/사자 꼬리",
+      "favorable_activities": ["파괴", "끝내기", "뿌리 작업"],
+      "unfavorable_activities": ["거의 모든 새 시작"],
+      "character_if_born": "변형력, 탐구심, 뿌리 찾기",
+      "health": "엉덩이, 허벅지에 주의"
+    },
+
+    "20": {
+      "name": "Al-Naaim / Purva Ashadha",
+      "meaning": "타조 / 이전의 무적자",
+      "degrees": "4°9' - 17°0' 사수",
+      "nature": "유리함",
+      "ruling_planet": "금성",
+      "element": "물",
+      "symbol": "부채/키/코끼리 엄니",
+      "favorable_activities": ["수상 활동", "정화", "의식", "승리 추구"],
+      "unfavorable_activities": ["결혼"],
+      "character_if_born": "승리, 정화력, 인내",
+      "health": "허벅지, 간에 주의"
+    },
+
+    "21": {
+      "name": "Al-Baldah / Uttara Ashadha",
+      "meaning": "도시 / 나중의 무적자",
+      "degrees": "17°0' - 29°51' 사수",
+      "nature": "유리함",
+      "ruling_planet": "태양",
+      "element": "공기",
+      "symbol": "코끼리 엄니/작은 침대",
+      "favorable_activities": ["시작", "리더십", "영구적 일", "정부 관련"],
+      "unfavorable_activities": ["일시적 일"],
+      "character_if_born": "리더십, 책임감, 지속적 성공",
+      "health": "허벅지에 주의"
+    },
+
+    "22": {
+      "name": "Al-Saad Al-Dhabih / Shravana",
+      "meaning": "도살자의 행운 / 듣는 자",
+      "degrees": "29°51' 사수 - 12°42' 염소",
+      "nature": "매우 유리함",
+      "ruling_planet": "달",
+      "element": "공기",
+      "symbol": "귀/세 발자국",
+      "favorable_activities": ["학습", "치료", "여행", "음악", "영적 활동"],
+      "unfavorable_activities": ["공격적 행동"],
+      "character_if_born": "경청 능력, 학습 능력, 영적 성장",
+      "health": "무릎, 귀에 주의"
+    },
+
+    "23": {
+      "name": "Al-Saad Al-Bula / Dhanishtha",
+      "meaning": "삼키는 자의 행운 / 부유한 자",
+      "degrees": "12°42' - 25°33' 염소",
+      "nature": "유리함",
+      "ruling_planet": "화성",
+      "element": "흙",
+      "symbol": "북/플루트",
+      "favorable_activities": ["음악", "축제", "부 획득", "명성"],
+      "unfavorable_activities": ["결혼"],
+      "character_if_born": "음악적 재능, 부, 명성",
+      "health": "무릎, 발목에 주의"
+    },
+
+    "24": {
+      "name": "Al-Saad Al-Suud / Shatabhisha",
+      "meaning": "행운의 행운 / 백 명의 의사",
+      "degrees": "25°33' 염소 - 8°24' 물병",
+      "nature": "유리함 (치유)",
+      "ruling_planet": "라후",
+      "element": "공기",
+      "symbol": "빈 원/천 개의 꽃",
+      "favorable_activities": ["치유", "의학", "비밀 활동", "연구"],
+      "unfavorable_activities": ["결혼", "파트너십"],
+      "character_if_born": "치유력, 비밀 지식, 독립성",
+      "health": "발목, 순환에 주의"
+    },
+
+    "25": {
+      "name": "Al-Saad Al-Akhbiya / Purva Bhadrapada",
+      "meaning": "숨는 장소의 행운 / 축복받은 발의 앞",
+      "degrees": "8°24' - 21°15' 물병",
+      "nature": "불리함 (격렬)",
+      "ruling_planet": "목성",
+      "element": "공기",
+      "symbol": "검/장례 침대의 앞다리",
+      "favorable_activities": ["금속 작업", "분리", "연구"],
+      "unfavorable_activities": ["결혼", "여행"],
+      "character_if_born": "강렬함, 영적 전사, 변형력",
+      "health": "발목, 종아리에 주의"
+    },
+
+    "26": {
+      "name": "Al-Fargh Al-Awwal / Uttara Bhadrapada",
+      "meaning": "첫 번째 빈 공간 / 축복받은 발의 뒤",
+      "degrees": "21°15' 물병 - 4°6' 물고기",
+      "nature": "유리함",
+      "ruling_planet": "토성",
+      "element": "흙",
+      "symbol": "장례 침대의 뒷다리/쌍둥이",
+      "favorable_activities": ["결혼", "영적 활동", "치유", "자선"],
+      "unfavorable_activities": ["공격적 행동"],
+      "character_if_born": "영적 깊이, 지혜, 헌신",
+      "health": "발, 발목에 주의"
+    },
+
+    "27": {
+      "name": "Al-Fargh Al-Thani / Revati",
+      "meaning": "두 번째 빈 공간 / 풍요로운 자",
+      "degrees": "4°6' - 16°57' 물고기",
+      "nature": "유리함",
+      "ruling_planet": "수성",
+      "element": "공기",
+      "symbol": "북/물고기",
+      "favorable_activities": ["여행", "동물 관련", "치유", "예술"],
+      "unfavorable_activities": ["공격적 행동"],
+      "character_if_born": "양육력, 여행, 보호 능력",
+      "health": "발, 림프에 주의"
+    },
+
+    "28": {
+      "name": "Batn Al-Hut / Uttara Revati",
+      "meaning": "물고기의 배 / 안드로메다",
+      "degrees": "16°57' - 29°48' 물고기",
+      "nature": "중립 (완료)",
+      "ruling_planet": "목성",
+      "element": "물",
+      "symbol": "물고기/사슬",
+      "favorable_activities": ["완료", "끝내기", "영적 마무리"],
+      "unfavorable_activities": ["새 시작"],
+      "character_if_born": "완결력, 영적 성숙, 해방",
+      "health": "발, 면역계에 주의"
+    }
+  },
+
+  "moon_transit_guide": {
+    "favorable_mansions": [1, 4, 7, 8, 10, 11, 12, 13, 17, 20, 21, 22, 23, 24, 26, 27],
+    "unfavorable_mansions": [3, 6, 9, 16, 18, 19, 25],
+    "neutral_mansions": [2, 5, 14, 15, 28],
+    "best_for_marriage": [4, 7, 8, 11, 12, 13, 26],
+    "best_for_travel": [1, 4, 5, 7, 13, 15, 22, 27],
+    "best_for_healing": [1, 7, 8, 13, 22, 24],
+    "avoid_for_important_starts": [6, 9, 18, 19]
+  }
+}

@@ -1,0 +1,325 @@
+﻿id,label,name,desc,category,element,description
+hero_positive,Hero (positive),Hero - Positive,Hero 원형의 positive 측면,jung_archetype_variant,air,Hero - Positive:
+hero_negative,Hero (negative),Hero - Negative,Hero 원형의 negative 측면,jung_archetype_variant,air,Hero - Negative:
+hero_integrated,Hero (integrated),Hero - Integrated,Hero 원형의 integrated 측면,jung_archetype_variant,air,Hero - Integrated:
+hero_shadow,Hero (shadow),Hero - Shadow,Hero 원형의 shadow 측면,jung_archetype_variant,air,Hero - Shadow:
+hero_projected,Hero (projected),Hero - Projected,Hero 원형의 projected 측면,jung_archetype_variant,air,Hero - Projected:
+mother_positive,Mother (positive),Mother - Positive,Mother 원형의 positive 측면,jung_archetype_variant,air,Mother - Positive:
+mother_negative,Mother (negative),Mother - Negative,Mother 원형의 negative 측면,jung_archetype_variant,air,Mother - Negative:
+mother_integrated,Mother (integrated),Mother - Integrated,Mother 원형의 integrated 측면,jung_archetype_variant,air,Mother - Integrated:
+mother_shadow,Mother (shadow),Mother - Shadow,Mother 원형의 shadow 측면,jung_archetype_variant,air,Mother - Shadow:
+mother_projected,Mother (projected),Mother - Projected,Mother 원형의 projected 측면,jung_archetype_variant,air,Mother - Projected:
+father_positive,Father (positive),Father - Positive,Father 원형의 positive 측면,jung_archetype_variant,air,Father - Positive:
+father_negative,Father (negative),Father - Negative,Father 원형의 negative 측면,jung_archetype_variant,air,Father - Negative:
+father_integrated,Father (integrated),Father - Integrated,Father 원형의 integrated 측면,jung_archetype_variant,air,Father - Integrated:
+father_shadow,Father (shadow),Father - Shadow,Father 원형의 shadow 측면,jung_archetype_variant,air,Father - Shadow:
+father_projected,Father (projected),Father - Projected,Father 원형의 projected 측면,jung_archetype_variant,air,Father - Projected:
+wise_old_man_positive,Wise Old Man (positive),Wise Old Man - Positive,Wise Old Man 원형의 positive 측면,jung_archetype_variant,air,Wise Old Man - Positive:
+wise_old_man_negative,Wise Old Man (negative),Wise Old Man - Negative,Wise Old Man 원형의 negative 측면,jung_archetype_variant,air,Wise Old Man - Negative:
+wise_old_man_integrated,Wise Old Man (integrated),Wise Old Man - Integrated,Wise Old Man 원형의 integrated 측면,jung_archetype_variant,air,Wise Old Man - Integrated:
+wise_old_man_shadow,Wise Old Man (shadow),Wise Old Man - Shadow,Wise Old Man 원형의 shadow 측면,jung_archetype_variant,air,Wise Old Man - Shadow:
+wise_old_man_projected,Wise Old Man (projected),Wise Old Man - Projected,Wise Old Man 원형의 projected 측면,jung_archetype_variant,air,Wise Old Man - Projected:
+trickster_positive,Trickster (positive),Trickster - Positive,Trickster 원형의 positive 측면,jung_archetype_variant,air,Trickster - Positive:
+trickster_negative,Trickster (negative),Trickster - Negative,Trickster 원형의 negative 측면,jung_archetype_variant,air,Trickster - Negative:
+trickster_integrated,Trickster (integrated),Trickster - Integrated,Trickster 원형의 integrated 측면,jung_archetype_variant,air,Trickster - Integrated:
+trickster_shadow,Trickster (shadow),Trickster - Shadow,Trickster 원형의 shadow 측면,jung_archetype_variant,air,Trickster - Shadow:
+trickster_projected,Trickster (projected),Trickster - Projected,Trickster 원형의 projected 측면,jung_archetype_variant,air,Trickster - Projected:
+anima_positive,Anima (positive),Anima - Positive,Anima 원형의 positive 측면,jung_archetype_variant,air,Anima - Positive:
+anima_negative,Anima (negative),Anima - Negative,Anima 원형의 negative 측면,jung_archetype_variant,air,Anima - Negative:
+anima_integrated,Anima (integrated),Anima - Integrated,Anima 원형의 integrated 측면,jung_archetype_variant,air,Anima - Integrated:
+anima_shadow,Anima (shadow),Anima - Shadow,Anima 원형의 shadow 측면,jung_archetype_variant,air,Anima - Shadow:
+anima_projected,Anima (projected),Anima - Projected,Anima 원형의 projected 측면,jung_archetype_variant,air,Anima - Projected:
+animus_positive,Animus (positive),Animus - Positive,Animus 원형의 positive 측면,jung_archetype_variant,air,Animus - Positive:
+animus_negative,Animus (negative),Animus - Negative,Animus 원형의 negative 측면,jung_archetype_variant,air,Animus - Negative:
+animus_integrated,Animus (integrated),Animus - Integrated,Animus 원형의 integrated 측면,jung_archetype_variant,air,Animus - Integrated:
+animus_shadow,Animus (shadow),Animus - Shadow,Animus 원형의 shadow 측면,jung_archetype_variant,air,Animus - Shadow:
+animus_projected,Animus (projected),Animus - Projected,Animus 원형의 projected 측면,jung_archetype_variant,air,Animus - Projected:
+shadow_positive,Shadow (positive),Shadow - Positive,Shadow 원형의 positive 측면,jung_archetype_variant,air,Shadow - Positive:
+shadow_negative,Shadow (negative),Shadow - Negative,Shadow 원형의 negative 측면,jung_archetype_variant,air,Shadow - Negative:
+shadow_integrated,Shadow (integrated),Shadow - Integrated,Shadow 원형의 integrated 측면,jung_archetype_variant,air,Shadow - Integrated:
+shadow_shadow,Shadow (shadow),Shadow - Shadow,Shadow 원형의 shadow 측면,jung_archetype_variant,air,Shadow - Shadow:
+shadow_projected,Shadow (projected),Shadow - Projected,Shadow 원형의 projected 측면,jung_archetype_variant,air,Shadow - Projected:
+self_positive,Self (positive),Self - Positive,Self 원형의 positive 측면,jung_archetype_variant,air,Self - Positive:
+self_negative,Self (negative),Self - Negative,Self 원형의 negative 측면,jung_archetype_variant,air,Self - Negative:
+self_integrated,Self (integrated),Self - Integrated,Self 원형의 integrated 측면,jung_archetype_variant,air,Self - Integrated:
+self_shadow,Self (shadow),Self - Shadow,Self 원형의 shadow 측면,jung_archetype_variant,air,Self - Shadow:
+self_projected,Self (projected),Self - Projected,Self 원형의 projected 측면,jung_archetype_variant,air,Self - Projected:
+persona_positive,Persona (positive),Persona - Positive,Persona 원형의 positive 측면,jung_archetype_variant,air,Persona - Positive:
+persona_negative,Persona (negative),Persona - Negative,Persona 원형의 negative 측면,jung_archetype_variant,air,Persona - Negative:
+persona_integrated,Persona (integrated),Persona - Integrated,Persona 원형의 integrated 측면,jung_archetype_variant,air,Persona - Integrated:
+persona_shadow,Persona (shadow),Persona - Shadow,Persona 원형의 shadow 측면,jung_archetype_variant,air,Persona - Shadow:
+persona_projected,Persona (projected),Persona - Projected,Persona 원형의 projected 측면,jung_archetype_variant,air,Persona - Projected:
+child_positive,Child (positive),Child - Positive,Child 원형의 positive 측면,jung_archetype_variant,air,Child - Positive:
+child_negative,Child (negative),Child - Negative,Child 원형의 negative 측면,jung_archetype_variant,air,Child - Negative:
+child_integrated,Child (integrated),Child - Integrated,Child 원형의 integrated 측면,jung_archetype_variant,air,Child - Integrated:
+child_shadow,Child (shadow),Child - Shadow,Child 원형의 shadow 측면,jung_archetype_variant,air,Child - Shadow:
+child_projected,Child (projected),Child - Projected,Child 원형의 projected 측면,jung_archetype_variant,air,Child - Projected:
+maiden_positive,Maiden (positive),Maiden - Positive,Maiden 원형의 positive 측면,jung_archetype_variant,air,Maiden - Positive:
+maiden_negative,Maiden (negative),Maiden - Negative,Maiden 원형의 negative 측면,jung_archetype_variant,air,Maiden - Negative:
+maiden_integrated,Maiden (integrated),Maiden - Integrated,Maiden 원형의 integrated 측면,jung_archetype_variant,air,Maiden - Integrated:
+maiden_shadow,Maiden (shadow),Maiden - Shadow,Maiden 원형의 shadow 측면,jung_archetype_variant,air,Maiden - Shadow:
+maiden_projected,Maiden (projected),Maiden - Projected,Maiden 원형의 projected 측면,jung_archetype_variant,air,Maiden - Projected:
+hero_sun,Hero in Sun,Hero 원형 - Sun 표현,Sun을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Sun 표현:
+hero_moon,Hero in Moon,Hero 원형 - Moon 표현,Moon을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Moon 표현:
+hero_mercury,Hero in Mercury,Hero 원형 - Mercury 표현,Mercury을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Mercury 표현:
+hero_venus,Hero in Venus,Hero 원형 - Venus 표현,Venus을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Venus 표현:
+hero_mars,Hero in Mars,Hero 원형 - Mars 표현,Mars을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Mars 표현:
+hero_jupiter,Hero in Jupiter,Hero 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Jupiter 표현:
+hero_saturn,Hero in Saturn,Hero 원형 - Saturn 표현,Saturn을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Saturn 표현:
+hero_uranus,Hero in Uranus,Hero 원형 - Uranus 표현,Uranus을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Uranus 표현:
+hero_neptune,Hero in Neptune,Hero 원형 - Neptune 표현,Neptune을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Neptune 표현:
+hero_pluto,Hero in Pluto,Hero 원형 - Pluto 표현,Pluto을 통해 표현되는 Hero 원형,jung_planet_archetype,fire,Hero 원형 - Pluto 표현:
+mother_sun,Mother in Sun,Mother 원형 - Sun 표현,Sun을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Sun 표현:
+mother_moon,Mother in Moon,Mother 원형 - Moon 표현,Moon을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Moon 표현:
+mother_mercury,Mother in Mercury,Mother 원형 - Mercury 표현,Mercury을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Mercury 표현:
+mother_venus,Mother in Venus,Mother 원형 - Venus 표현,Venus을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Venus 표현:
+mother_mars,Mother in Mars,Mother 원형 - Mars 표현,Mars을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Mars 표현:
+mother_jupiter,Mother in Jupiter,Mother 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Jupiter 표현:
+mother_saturn,Mother in Saturn,Mother 원형 - Saturn 표현,Saturn을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Saturn 표현:
+mother_uranus,Mother in Uranus,Mother 원형 - Uranus 표현,Uranus을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Uranus 표현:
+mother_neptune,Mother in Neptune,Mother 원형 - Neptune 표현,Neptune을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Neptune 표현:
+mother_pluto,Mother in Pluto,Mother 원형 - Pluto 표현,Pluto을 통해 표현되는 Mother 원형,jung_planet_archetype,fire,Mother 원형 - Pluto 표현:
+father_sun,Father in Sun,Father 원형 - Sun 표현,Sun을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Sun 표현:
+father_moon,Father in Moon,Father 원형 - Moon 표현,Moon을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Moon 표현:
+father_mercury,Father in Mercury,Father 원형 - Mercury 표현,Mercury을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Mercury 표현:
+father_venus,Father in Venus,Father 원형 - Venus 표현,Venus을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Venus 표현:
+father_mars,Father in Mars,Father 원형 - Mars 표현,Mars을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Mars 표현:
+father_jupiter,Father in Jupiter,Father 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Jupiter 표현:
+father_saturn,Father in Saturn,Father 원형 - Saturn 표현,Saturn을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Saturn 표현:
+father_uranus,Father in Uranus,Father 원형 - Uranus 표현,Uranus을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Uranus 표현:
+father_neptune,Father in Neptune,Father 원형 - Neptune 표현,Neptune을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Neptune 표현:
+father_pluto,Father in Pluto,Father 원형 - Pluto 표현,Pluto을 통해 표현되는 Father 원형,jung_planet_archetype,fire,Father 원형 - Pluto 표현:
+wise_old_man_sun,Wise Old Man in Sun,Wise Old Man 원형 - Sun 표현,Sun을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Sun 표현:
+wise_old_man_moon,Wise Old Man in Moon,Wise Old Man 원형 - Moon 표현,Moon을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Moon 표현:
+wise_old_man_mercury,Wise Old Man in Mercury,Wise Old Man 원형 - Mercury 표현,Mercury을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Mercury 표현:
+wise_old_man_venus,Wise Old Man in Venus,Wise Old Man 원형 - Venus 표현,Venus을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Venus 표현:
+wise_old_man_mars,Wise Old Man in Mars,Wise Old Man 원형 - Mars 표현,Mars을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Mars 표현:
+wise_old_man_jupiter,Wise Old Man in Jupiter,Wise Old Man 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Jupiter 표현:
+wise_old_man_saturn,Wise Old Man in Saturn,Wise Old Man 원형 - Saturn 표현,Saturn을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Saturn 표현:
+wise_old_man_uranus,Wise Old Man in Uranus,Wise Old Man 원형 - Uranus 표현,Uranus을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Uranus 표현:
+wise_old_man_neptune,Wise Old Man in Neptune,Wise Old Man 원형 - Neptune 표현,Neptune을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Neptune 표현:
+wise_old_man_pluto,Wise Old Man in Pluto,Wise Old Man 원형 - Pluto 표현,Pluto을 통해 표현되는 Wise Old Man 원형,jung_planet_archetype,fire,Wise Old Man 원형 - Pluto 표현:
+trickster_sun,Trickster in Sun,Trickster 원형 - Sun 표현,Sun을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Sun 표현:
+trickster_moon,Trickster in Moon,Trickster 원형 - Moon 표현,Moon을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Moon 표현:
+trickster_mercury,Trickster in Mercury,Trickster 원형 - Mercury 표현,Mercury을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Mercury 표현:
+trickster_venus,Trickster in Venus,Trickster 원형 - Venus 표현,Venus을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Venus 표현:
+trickster_mars,Trickster in Mars,Trickster 원형 - Mars 표현,Mars을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Mars 표현:
+trickster_jupiter,Trickster in Jupiter,Trickster 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Jupiter 표현:
+trickster_saturn,Trickster in Saturn,Trickster 원형 - Saturn 표현,Saturn을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Saturn 표현:
+trickster_uranus,Trickster in Uranus,Trickster 원형 - Uranus 표현,Uranus을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Uranus 표현:
+trickster_neptune,Trickster in Neptune,Trickster 원형 - Neptune 표현,Neptune을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Neptune 표현:
+trickster_pluto,Trickster in Pluto,Trickster 원형 - Pluto 표현,Pluto을 통해 표현되는 Trickster 원형,jung_planet_archetype,fire,Trickster 원형 - Pluto 표현:
+anima_sun,Anima in Sun,Anima 원형 - Sun 표현,Sun을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Sun 표현:
+anima_moon,Anima in Moon,Anima 원형 - Moon 표현,Moon을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Moon 표현:
+anima_mercury,Anima in Mercury,Anima 원형 - Mercury 표현,Mercury을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Mercury 표현:
+anima_venus,Anima in Venus,Anima 원형 - Venus 표현,Venus을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Venus 표현:
+anima_mars,Anima in Mars,Anima 원형 - Mars 표현,Mars을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Mars 표현:
+anima_jupiter,Anima in Jupiter,Anima 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Jupiter 표현:
+anima_saturn,Anima in Saturn,Anima 원형 - Saturn 표현,Saturn을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Saturn 표현:
+anima_uranus,Anima in Uranus,Anima 원형 - Uranus 표현,Uranus을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Uranus 표현:
+anima_neptune,Anima in Neptune,Anima 원형 - Neptune 표현,Neptune을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Neptune 표현:
+anima_pluto,Anima in Pluto,Anima 원형 - Pluto 표현,Pluto을 통해 표현되는 Anima 원형,jung_planet_archetype,fire,Anima 원형 - Pluto 표현:
+animus_sun,Animus in Sun,Animus 원형 - Sun 표현,Sun을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Sun 표현:
+animus_moon,Animus in Moon,Animus 원형 - Moon 표현,Moon을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Moon 표현:
+animus_mercury,Animus in Mercury,Animus 원형 - Mercury 표현,Mercury을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Mercury 표현:
+animus_venus,Animus in Venus,Animus 원형 - Venus 표현,Venus을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Venus 표현:
+animus_mars,Animus in Mars,Animus 원형 - Mars 표현,Mars을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Mars 표현:
+animus_jupiter,Animus in Jupiter,Animus 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Jupiter 표현:
+animus_saturn,Animus in Saturn,Animus 원형 - Saturn 표현,Saturn을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Saturn 표현:
+animus_uranus,Animus in Uranus,Animus 원형 - Uranus 표현,Uranus을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Uranus 표현:
+animus_neptune,Animus in Neptune,Animus 원형 - Neptune 표현,Neptune을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Neptune 표현:
+animus_pluto,Animus in Pluto,Animus 원형 - Pluto 표현,Pluto을 통해 표현되는 Animus 원형,jung_planet_archetype,fire,Animus 원형 - Pluto 표현:
+shadow_sun,Shadow in Sun,Shadow 원형 - Sun 표현,Sun을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Sun 표현:
+shadow_moon,Shadow in Moon,Shadow 원형 - Moon 표현,Moon을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Moon 표현:
+shadow_mercury,Shadow in Mercury,Shadow 원형 - Mercury 표현,Mercury을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Mercury 표현:
+shadow_venus,Shadow in Venus,Shadow 원형 - Venus 표현,Venus을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Venus 표현:
+shadow_mars,Shadow in Mars,Shadow 원형 - Mars 표현,Mars을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Mars 표현:
+shadow_jupiter,Shadow in Jupiter,Shadow 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Jupiter 표현:
+shadow_saturn,Shadow in Saturn,Shadow 원형 - Saturn 표현,Saturn을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Saturn 표현:
+shadow_uranus,Shadow in Uranus,Shadow 원형 - Uranus 표현,Uranus을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Uranus 표현:
+shadow_neptune,Shadow in Neptune,Shadow 원형 - Neptune 표현,Neptune을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Neptune 표현:
+shadow_pluto,Shadow in Pluto,Shadow 원형 - Pluto 표현,Pluto을 통해 표현되는 Shadow 원형,jung_planet_archetype,fire,Shadow 원형 - Pluto 표현:
+self_sun,Self in Sun,Self 원형 - Sun 표현,Sun을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Sun 표현:
+self_moon,Self in Moon,Self 원형 - Moon 표현,Moon을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Moon 표현:
+self_mercury,Self in Mercury,Self 원형 - Mercury 표현,Mercury을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Mercury 표현:
+self_venus,Self in Venus,Self 원형 - Venus 표현,Venus을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Venus 표현:
+self_mars,Self in Mars,Self 원형 - Mars 표현,Mars을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Mars 표현:
+self_jupiter,Self in Jupiter,Self 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Jupiter 표현:
+self_saturn,Self in Saturn,Self 원형 - Saturn 표현,Saturn을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Saturn 표현:
+self_uranus,Self in Uranus,Self 원형 - Uranus 표현,Uranus을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Uranus 표현:
+self_neptune,Self in Neptune,Self 원형 - Neptune 표현,Neptune을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Neptune 표현:
+self_pluto,Self in Pluto,Self 원형 - Pluto 표현,Pluto을 통해 표현되는 Self 원형,jung_planet_archetype,fire,Self 원형 - Pluto 표현:
+persona_sun,Persona in Sun,Persona 원형 - Sun 표현,Sun을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Sun 표현:
+persona_moon,Persona in Moon,Persona 원형 - Moon 표현,Moon을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Moon 표현:
+persona_mercury,Persona in Mercury,Persona 원형 - Mercury 표현,Mercury을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Mercury 표현:
+persona_venus,Persona in Venus,Persona 원형 - Venus 표현,Venus을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Venus 표현:
+persona_mars,Persona in Mars,Persona 원형 - Mars 표현,Mars을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Mars 표현:
+persona_jupiter,Persona in Jupiter,Persona 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Jupiter 표현:
+persona_saturn,Persona in Saturn,Persona 원형 - Saturn 표현,Saturn을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Saturn 표현:
+persona_uranus,Persona in Uranus,Persona 원형 - Uranus 표현,Uranus을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Uranus 표현:
+persona_neptune,Persona in Neptune,Persona 원형 - Neptune 표현,Neptune을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Neptune 표현:
+persona_pluto,Persona in Pluto,Persona 원형 - Pluto 표현,Pluto을 통해 표현되는 Persona 원형,jung_planet_archetype,fire,Persona 원형 - Pluto 표현:
+child_sun,Child in Sun,Child 원형 - Sun 표현,Sun을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Sun 표현:
+child_moon,Child in Moon,Child 원형 - Moon 표현,Moon을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Moon 표현:
+child_mercury,Child in Mercury,Child 원형 - Mercury 표현,Mercury을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Mercury 표현:
+child_venus,Child in Venus,Child 원형 - Venus 표현,Venus을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Venus 표현:
+child_mars,Child in Mars,Child 원형 - Mars 표현,Mars을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Mars 표현:
+child_jupiter,Child in Jupiter,Child 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Jupiter 표현:
+child_saturn,Child in Saturn,Child 원형 - Saturn 표현,Saturn을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Saturn 표현:
+child_uranus,Child in Uranus,Child 원형 - Uranus 표현,Uranus을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Uranus 표현:
+child_neptune,Child in Neptune,Child 원형 - Neptune 표현,Neptune을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Neptune 표현:
+child_pluto,Child in Pluto,Child 원형 - Pluto 표현,Pluto을 통해 표현되는 Child 원형,jung_planet_archetype,fire,Child 원형 - Pluto 표현:
+maiden_sun,Maiden in Sun,Maiden 원형 - Sun 표현,Sun을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Sun 표현:
+maiden_moon,Maiden in Moon,Maiden 원형 - Moon 표현,Moon을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Moon 표현:
+maiden_mercury,Maiden in Mercury,Maiden 원형 - Mercury 표현,Mercury을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Mercury 표현:
+maiden_venus,Maiden in Venus,Maiden 원형 - Venus 표현,Venus을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Venus 표현:
+maiden_mars,Maiden in Mars,Maiden 원형 - Mars 표현,Mars을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Mars 표현:
+maiden_jupiter,Maiden in Jupiter,Maiden 원형 - Jupiter 표현,Jupiter을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Jupiter 표현:
+maiden_saturn,Maiden in Saturn,Maiden 원형 - Saturn 표현,Saturn을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Saturn 표현:
+maiden_uranus,Maiden in Uranus,Maiden 원형 - Uranus 표현,Uranus을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Uranus 표현:
+maiden_neptune,Maiden in Neptune,Maiden 원형 - Neptune 표현,Neptune을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Neptune 표현:
+maiden_pluto,Maiden in Pluto,Maiden 원형 - Pluto 표현,Pluto을 통해 표현되는 Maiden 원형,jung_planet_archetype,fire,Maiden 원형 - Pluto 표현:
+hero_aries,Hero in Aries,Hero in Aries,Aries 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Aries:
+hero_taurus,Hero in Taurus,Hero in Taurus,Taurus 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Taurus:
+hero_gemini,Hero in Gemini,Hero in Gemini,Gemini 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Gemini:
+hero_cancer,Hero in Cancer,Hero in Cancer,Cancer 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Cancer:
+hero_leo,Hero in Leo,Hero in Leo,Leo 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Leo:
+hero_virgo,Hero in Virgo,Hero in Virgo,Virgo 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Virgo:
+hero_libra,Hero in Libra,Hero in Libra,Libra 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Libra:
+hero_scorpio,Hero in Scorpio,Hero in Scorpio,Scorpio 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Scorpio:
+hero_sagittarius,Hero in Sagittarius,Hero in Sagittarius,Sagittarius 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Sagittarius:
+hero_capricorn,Hero in Capricorn,Hero in Capricorn,Capricorn 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Capricorn:
+hero_aquarius,Hero in Aquarius,Hero in Aquarius,Aquarius 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Aquarius:
+hero_pisces,Hero in Pisces,Hero in Pisces,Pisces 에너지로 표현되는 Hero,jung_sign_archetype,water,Hero in Pisces:
+mother_aries,Mother in Aries,Mother in Aries,Aries 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Aries:
+mother_taurus,Mother in Taurus,Mother in Taurus,Taurus 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Taurus:
+mother_gemini,Mother in Gemini,Mother in Gemini,Gemini 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Gemini:
+mother_cancer,Mother in Cancer,Mother in Cancer,Cancer 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Cancer:
+mother_leo,Mother in Leo,Mother in Leo,Leo 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Leo:
+mother_virgo,Mother in Virgo,Mother in Virgo,Virgo 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Virgo:
+mother_libra,Mother in Libra,Mother in Libra,Libra 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Libra:
+mother_scorpio,Mother in Scorpio,Mother in Scorpio,Scorpio 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Scorpio:
+mother_sagittarius,Mother in Sagittarius,Mother in Sagittarius,Sagittarius 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Sagittarius:
+mother_capricorn,Mother in Capricorn,Mother in Capricorn,Capricorn 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Capricorn:
+mother_aquarius,Mother in Aquarius,Mother in Aquarius,Aquarius 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Aquarius:
+mother_pisces,Mother in Pisces,Mother in Pisces,Pisces 에너지로 표현되는 Mother,jung_sign_archetype,water,Mother in Pisces:
+father_aries,Father in Aries,Father in Aries,Aries 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Aries:
+father_taurus,Father in Taurus,Father in Taurus,Taurus 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Taurus:
+father_gemini,Father in Gemini,Father in Gemini,Gemini 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Gemini:
+father_cancer,Father in Cancer,Father in Cancer,Cancer 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Cancer:
+father_leo,Father in Leo,Father in Leo,Leo 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Leo:
+father_virgo,Father in Virgo,Father in Virgo,Virgo 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Virgo:
+father_libra,Father in Libra,Father in Libra,Libra 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Libra:
+father_scorpio,Father in Scorpio,Father in Scorpio,Scorpio 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Scorpio:
+father_sagittarius,Father in Sagittarius,Father in Sagittarius,Sagittarius 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Sagittarius:
+father_capricorn,Father in Capricorn,Father in Capricorn,Capricorn 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Capricorn:
+father_aquarius,Father in Aquarius,Father in Aquarius,Aquarius 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Aquarius:
+father_pisces,Father in Pisces,Father in Pisces,Pisces 에너지로 표현되는 Father,jung_sign_archetype,water,Father in Pisces:
+wise_old_man_aries,Wise Old Man in Aries,Wise Old Man in Aries,Aries 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Aries:
+wise_old_man_taurus,Wise Old Man in Taurus,Wise Old Man in Taurus,Taurus 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Taurus:
+wise_old_man_gemini,Wise Old Man in Gemini,Wise Old Man in Gemini,Gemini 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Gemini:
+wise_old_man_cancer,Wise Old Man in Cancer,Wise Old Man in Cancer,Cancer 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Cancer:
+wise_old_man_leo,Wise Old Man in Leo,Wise Old Man in Leo,Leo 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Leo:
+wise_old_man_virgo,Wise Old Man in Virgo,Wise Old Man in Virgo,Virgo 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Virgo:
+wise_old_man_libra,Wise Old Man in Libra,Wise Old Man in Libra,Libra 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Libra:
+wise_old_man_scorpio,Wise Old Man in Scorpio,Wise Old Man in Scorpio,Scorpio 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Scorpio:
+wise_old_man_sagittarius,Wise Old Man in Sagittarius,Wise Old Man in Sagittarius,Sagittarius 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Sagittarius:
+wise_old_man_capricorn,Wise Old Man in Capricorn,Wise Old Man in Capricorn,Capricorn 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Capricorn:
+wise_old_man_aquarius,Wise Old Man in Aquarius,Wise Old Man in Aquarius,Aquarius 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Aquarius:
+wise_old_man_pisces,Wise Old Man in Pisces,Wise Old Man in Pisces,Pisces 에너지로 표현되는 Wise Old Man,jung_sign_archetype,water,Wise Old Man in Pisces:
+trickster_aries,Trickster in Aries,Trickster in Aries,Aries 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Aries:
+trickster_taurus,Trickster in Taurus,Trickster in Taurus,Taurus 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Taurus:
+trickster_gemini,Trickster in Gemini,Trickster in Gemini,Gemini 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Gemini:
+trickster_cancer,Trickster in Cancer,Trickster in Cancer,Cancer 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Cancer:
+trickster_leo,Trickster in Leo,Trickster in Leo,Leo 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Leo:
+trickster_virgo,Trickster in Virgo,Trickster in Virgo,Virgo 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Virgo:
+trickster_libra,Trickster in Libra,Trickster in Libra,Libra 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Libra:
+trickster_scorpio,Trickster in Scorpio,Trickster in Scorpio,Scorpio 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Scorpio:
+trickster_sagittarius,Trickster in Sagittarius,Trickster in Sagittarius,Sagittarius 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Sagittarius:
+trickster_capricorn,Trickster in Capricorn,Trickster in Capricorn,Capricorn 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Capricorn:
+trickster_aquarius,Trickster in Aquarius,Trickster in Aquarius,Aquarius 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Aquarius:
+trickster_pisces,Trickster in Pisces,Trickster in Pisces,Pisces 에너지로 표현되는 Trickster,jung_sign_archetype,water,Trickster in Pisces:
+anima_aries,Anima in Aries,Anima in Aries,Aries 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Aries:
+anima_taurus,Anima in Taurus,Anima in Taurus,Taurus 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Taurus:
+anima_gemini,Anima in Gemini,Anima in Gemini,Gemini 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Gemini:
+anima_cancer,Anima in Cancer,Anima in Cancer,Cancer 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Cancer:
+anima_leo,Anima in Leo,Anima in Leo,Leo 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Leo:
+anima_virgo,Anima in Virgo,Anima in Virgo,Virgo 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Virgo:
+anima_libra,Anima in Libra,Anima in Libra,Libra 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Libra:
+anima_scorpio,Anima in Scorpio,Anima in Scorpio,Scorpio 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Scorpio:
+anima_sagittarius,Anima in Sagittarius,Anima in Sagittarius,Sagittarius 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Sagittarius:
+anima_capricorn,Anima in Capricorn,Anima in Capricorn,Capricorn 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Capricorn:
+anima_aquarius,Anima in Aquarius,Anima in Aquarius,Aquarius 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Aquarius:
+anima_pisces,Anima in Pisces,Anima in Pisces,Pisces 에너지로 표현되는 Anima,jung_sign_archetype,water,Anima in Pisces:
+animus_aries,Animus in Aries,Animus in Aries,Aries 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Aries:
+animus_taurus,Animus in Taurus,Animus in Taurus,Taurus 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Taurus:
+animus_gemini,Animus in Gemini,Animus in Gemini,Gemini 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Gemini:
+animus_cancer,Animus in Cancer,Animus in Cancer,Cancer 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Cancer:
+animus_leo,Animus in Leo,Animus in Leo,Leo 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Leo:
+animus_virgo,Animus in Virgo,Animus in Virgo,Virgo 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Virgo:
+animus_libra,Animus in Libra,Animus in Libra,Libra 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Libra:
+animus_scorpio,Animus in Scorpio,Animus in Scorpio,Scorpio 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Scorpio:
+animus_sagittarius,Animus in Sagittarius,Animus in Sagittarius,Sagittarius 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Sagittarius:
+animus_capricorn,Animus in Capricorn,Animus in Capricorn,Capricorn 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Capricorn:
+animus_aquarius,Animus in Aquarius,Animus in Aquarius,Aquarius 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Aquarius:
+animus_pisces,Animus in Pisces,Animus in Pisces,Pisces 에너지로 표현되는 Animus,jung_sign_archetype,water,Animus in Pisces:
+shadow_aries,Shadow in Aries,Shadow in Aries,Aries 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Aries:
+shadow_taurus,Shadow in Taurus,Shadow in Taurus,Taurus 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Taurus:
+shadow_gemini,Shadow in Gemini,Shadow in Gemini,Gemini 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Gemini:
+shadow_cancer,Shadow in Cancer,Shadow in Cancer,Cancer 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Cancer:
+shadow_leo,Shadow in Leo,Shadow in Leo,Leo 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Leo:
+shadow_virgo,Shadow in Virgo,Shadow in Virgo,Virgo 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Virgo:
+shadow_libra,Shadow in Libra,Shadow in Libra,Libra 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Libra:
+shadow_scorpio,Shadow in Scorpio,Shadow in Scorpio,Scorpio 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Scorpio:
+shadow_sagittarius,Shadow in Sagittarius,Shadow in Sagittarius,Sagittarius 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Sagittarius:
+shadow_capricorn,Shadow in Capricorn,Shadow in Capricorn,Capricorn 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Capricorn:
+shadow_aquarius,Shadow in Aquarius,Shadow in Aquarius,Aquarius 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Aquarius:
+shadow_pisces,Shadow in Pisces,Shadow in Pisces,Pisces 에너지로 표현되는 Shadow,jung_sign_archetype,water,Shadow in Pisces:
+self_aries,Self in Aries,Self in Aries,Aries 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Aries:
+self_taurus,Self in Taurus,Self in Taurus,Taurus 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Taurus:
+self_gemini,Self in Gemini,Self in Gemini,Gemini 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Gemini:
+self_cancer,Self in Cancer,Self in Cancer,Cancer 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Cancer:
+self_leo,Self in Leo,Self in Leo,Leo 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Leo:
+self_virgo,Self in Virgo,Self in Virgo,Virgo 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Virgo:
+self_libra,Self in Libra,Self in Libra,Libra 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Libra:
+self_scorpio,Self in Scorpio,Self in Scorpio,Scorpio 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Scorpio:
+self_sagittarius,Self in Sagittarius,Self in Sagittarius,Sagittarius 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Sagittarius:
+self_capricorn,Self in Capricorn,Self in Capricorn,Capricorn 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Capricorn:
+self_aquarius,Self in Aquarius,Self in Aquarius,Aquarius 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Aquarius:
+self_pisces,Self in Pisces,Self in Pisces,Pisces 에너지로 표현되는 Self,jung_sign_archetype,water,Self in Pisces:
+persona_aries,Persona in Aries,Persona in Aries,Aries 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Aries:
+persona_taurus,Persona in Taurus,Persona in Taurus,Taurus 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Taurus:
+persona_gemini,Persona in Gemini,Persona in Gemini,Gemini 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Gemini:
+persona_cancer,Persona in Cancer,Persona in Cancer,Cancer 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Cancer:
+persona_leo,Persona in Leo,Persona in Leo,Leo 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Leo:
+persona_virgo,Persona in Virgo,Persona in Virgo,Virgo 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Virgo:
+persona_libra,Persona in Libra,Persona in Libra,Libra 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Libra:
+persona_scorpio,Persona in Scorpio,Persona in Scorpio,Scorpio 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Scorpio:
+persona_sagittarius,Persona in Sagittarius,Persona in Sagittarius,Sagittarius 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Sagittarius:
+persona_capricorn,Persona in Capricorn,Persona in Capricorn,Capricorn 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Capricorn:
+persona_aquarius,Persona in Aquarius,Persona in Aquarius,Aquarius 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Aquarius:
+persona_pisces,Persona in Pisces,Persona in Pisces,Pisces 에너지로 표현되는 Persona,jung_sign_archetype,water,Persona in Pisces:
+child_aries,Child in Aries,Child in Aries,Aries 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Aries:
+child_taurus,Child in Taurus,Child in Taurus,Taurus 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Taurus:
+child_gemini,Child in Gemini,Child in Gemini,Gemini 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Gemini:
+child_cancer,Child in Cancer,Child in Cancer,Cancer 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Cancer:
+child_leo,Child in Leo,Child in Leo,Leo 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Leo:
+child_virgo,Child in Virgo,Child in Virgo,Virgo 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Virgo:
+child_libra,Child in Libra,Child in Libra,Libra 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Libra:
+child_scorpio,Child in Scorpio,Child in Scorpio,Scorpio 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Scorpio:
+child_sagittarius,Child in Sagittarius,Child in Sagittarius,Sagittarius 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Sagittarius:
+child_capricorn,Child in Capricorn,Child in Capricorn,Capricorn 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Capricorn:
+child_aquarius,Child in Aquarius,Child in Aquarius,Aquarius 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Aquarius:
+child_pisces,Child in Pisces,Child in Pisces,Pisces 에너지로 표현되는 Child,jung_sign_archetype,water,Child in Pisces:
+maiden_aries,Maiden in Aries,Maiden in Aries,Aries 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Aries:
+maiden_taurus,Maiden in Taurus,Maiden in Taurus,Taurus 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Taurus:
+maiden_gemini,Maiden in Gemini,Maiden in Gemini,Gemini 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Gemini:
+maiden_cancer,Maiden in Cancer,Maiden in Cancer,Cancer 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Cancer:
+maiden_leo,Maiden in Leo,Maiden in Leo,Leo 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Leo:
+maiden_virgo,Maiden in Virgo,Maiden in Virgo,Virgo 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Virgo:
+maiden_libra,Maiden in Libra,Maiden in Libra,Libra 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Libra:
+maiden_scorpio,Maiden in Scorpio,Maiden in Scorpio,Scorpio 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Scorpio:
+maiden_sagittarius,Maiden in Sagittarius,Maiden in Sagittarius,Sagittarius 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Sagittarius:
+maiden_capricorn,Maiden in Capricorn,Maiden in Capricorn,Capricorn 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Capricorn:
+maiden_aquarius,Maiden in Aquarius,Maiden in Aquarius,Aquarius 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Aquarius:
+maiden_pisces,Maiden in Pisces,Maiden in Pisces,Pisces 에너지로 표현되는 Maiden,jung_sign_archetype,water,Maiden in Pisces:

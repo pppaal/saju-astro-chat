@@ -1,0 +1,21 @@
+﻿id,label,name,desc,category,element,description
+dichotomy_of_control,통제이분법,Dichotomy of Control,통제할 수 있는 것과 없는 것의 구분,stoic_principle,earth,Dichotomy of Control - 통제할 수 있는 것과 없는 것의 구분 (카테고리: stoic_principle) 원소: earth
+virtue,덕,Virtue,스토아의 최고 선 - 지혜/용기/절제/정의,stoic_principle,fire,Virtue - 스토아의 최고 선 - 지혜/용기/절제/정의 (카테고리: stoic_principle) 원소: fire
+wisdom,지혜,Wisdom,올바른 판단과 이해,stoic_virtue,air,Wisdom - 올바른 판단과 이해 (카테고리: stoic_virtue) 원소: air
+courage,용기,Courage,두려움 속에서도 올바르게 행동하기,stoic_virtue,fire,Courage - 두려움 속에서도 올바르게 행동하기 (카테고리: stoic_virtue) 원소: fire
+temperance,절제,Temperance,욕망과 감정의 조절,stoic_virtue,water,Temperance - 욕망과 감정의 조절 (카테고리: stoic_virtue) 원소: water
+justice,정의,Justice,타인에 대한 올바른 행위,stoic_virtue,earth,Justice - 타인에 대한 올바른 행위 (카테고리: stoic_virtue) 원소: earth
+memento_mori,메멘토모리,Memento Mori,죽음을 기억하고 현재를 살기,stoic_practice,earth,Memento Mori - 죽음을 기억하고 현재를 살기 (카테고리: stoic_practice) 원소: earth
+amor_fati,아모르파티,Amor Fati,운명을 사랑하고 받아들이기,stoic_practice,water,Amor Fati - 운명을 사랑하고 받아들이기 (카테고리: stoic_practice) 원소: water
+premeditatio_malorum,프레메디타티오말로룸,Premeditatio Malorum,최악의 상황을 미리 명상하기,stoic_practice,air,Premeditatio Malorum - 최악의 상황을 미리 명상하기 (카테고리: stoic_practice) 원소: air
+negative_visualization,네거티브비주얼라이제이션,Negative Visualization,가진 것을 잃었다고 상상하여 감사하기,stoic_practice,water,Negative Visualization - 가진 것을 잃었다고 상상하여 감사하기 (카테고리: stoic_practice) 원소: water
+inner_citadel,내면의성채,Inner Citadel,외부에 흔들리지 않는 내면의 요새,stoic_concept,earth,Inner Citadel - 외부에 흔들리지 않는 내면의 요새 (카테고리: stoic_concept) 원소: earth
+logos,로고스,Logos,우주를 지배하는 이성과 질서,stoic_concept,air,Logos - 우주를 지배하는 이성과 질서 (카테고리: stoic_concept) 원소: air
+apatheia,아파테이아,Apatheia,파괴적 감정으로부터의 자유,stoic_concept,water,Apatheia - 파괴적 감정으로부터의 자유 (카테고리: stoic_concept) 원소: water
+oikeiosis,오이케이오시스,Oikeiosis,자기 자신에서 전 인류로 확장되는 관심,stoic_concept,air,Oikeiosis - 자기 자신에서 전 인류로 확장되는 관심 (카테고리: stoic_concept) 원소: air
+preferred_indifferent,선호되는무차별,Preferred Indifferent,선은 아니지만 선호할 수 있는 것들,stoic_concept,earth,Preferred Indifferent - 선은 아니지만 선호할 수 있는 것들 (카테고리: stoic_concept) 원소: earth
+obstacle_is_way,장애물이길,The Obstacle is the Way,장애물을 성장의 기회로 전환,stoic_principle,fire,The Obstacle is the Way - 장애물을 성장의 기회로 전환 (카테고리: stoic_principle) 원소: fire
+view_from_above,위에서바라보기,View from Above,큰 관점에서 문제를 바라보기,stoic_practice,air,View from Above - 큰 관점에서 문제를 바라보기 (카테고리: stoic_practice) 원소: air
+live_according_to_nature,자연에따라살기,Live According to Nature,본성과 우주의 질서에 순응하기,stoic_principle,earth,Live According to Nature - 본성과 우주의 질서에 순응하기 (카테고리: stoic_principle) 원소: earth
+equanimity,평정심,Equanimity,외부 상황에 흔들리지 않는 마음의 평온,stoic_goal,water,Equanimity - 외부 상황에 흔들리지 않는 마음의 평온 (카테고리: stoic_goal) 원소: water
+eudaimonia,에우다이모니아,Eudaimonia,덕에 따라 사는 것으로 얻는 행복,stoic_goal,fire,Eudaimonia - 덕에 따라 사는 것으로 얻는 행복 (카테고리: stoic_goal) 원소: fire

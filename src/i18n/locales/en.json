@@ -1,0 +1,725 @@
+{
+  "app": {
+    "title": "destinypal",
+    "subtitle": "AI unfolds your destiny map.",
+    "visitors": "Visitors Today",
+    "myJourney": "My Journey",
+    "community": "Community",
+    "back": "Back",
+    "name": "Name",
+    "namePh": "Enter your name",
+    "birthDate": "Birth Date",
+    "birthTime": "Birth Time",
+    "birthCity": "Birth City",
+    "cityPh": "Seoul",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "preferNot": "Prefer not to say",
+    "analyze": "Analyze"
+  },
+  "ui": {
+    "tipChooseCity": "Selecting a city automatically sets the time zone.",
+    "timeZone": "Time Zone",
+    "changeManually": "Change Manually",
+    "generate": "Generate Chart",
+    "analyzing": "Analyzing...",
+    "titleAstrology": "AI Birth Chart",
+    "subtitleAstrology": "Discover your cosmic map based on your birth info.",
+    "datePlaceholder": "yyyy-mm-dd",
+    "timePlaceholder": "--:--"
+  },
+  "error": {
+    "dateRequired": "Please enter a valid birth date (YYYY-MM-DD).",
+    "timeRequired": "Please enter a valid birth time (HH:MM).",
+    "cityRequired": "Please search and select a birth city.",
+    "timezoneRequired": "Please select a time zone.",
+    "noData": "No analysis data received from server.",
+    "unknown": "An unknown error occurred."
+  },
+  "menu": {
+    "destinyMap": "Destiny Map",
+    "saju": "Saju",
+    "astrology": "Astrology",
+    "iching": "I Ching",
+    "tarot": "Tarot",
+    "dream": "Dream",
+    "numerology": "Numerology",
+    "compatibility": "Compatibility",
+    "personality": "Personality"
+  },
+  "landing": {
+    "heroTitle": "Know yourself. Shape tomorrow.",
+    "heroSub": "Where destiny, psychology, and spirituality meet",
+    "statsToday": "Today",
+    "statsTotal": "Total",
+    "statsSince": "(Since Oct 2025)",
+    "statsFootnote": "Visitors update in real time",
+    "servicesEyebrow": "DestinyPal Services",
+    "servicesTitle": "Your Destiny, Decoded.",
+    "servicesDesc": "AI interprets the language of fate",
+    "prompt1": "How is my fortune today?",
+    "prompt2": "I need to make an important decision.",
+    "prompt3": "I want to see my love fortune.",
+    "chatInputPlaceholder": "Ask about your destiny...",
+    "aiResponse": "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.",
+    "astrologyTitle": "Astrology",
+    "astrologyDesc": "Planets, houses, and aspects animated.",
+    "destinyTitle": "Destiny Map",
+    "destinyDesc": "Integrates Saju, star transits, and tarot in one map.",
+    "sajuTitle": "Saju",
+    "sajuDesc": "Visualizes five elements balance and fortune cycles.",
+    "tarotTitle": "Tarot",
+    "tarotDesc": "Intuitive spreads with card pulling animation.",
+    "astrologySectionTitle": "Your Day, Astrologically",
+    "astrologySectionSubtitle": "See how planetary positions influence your destiny in real time",
+    "sajuSectionTitle": "Five Elements Balance with Saju",
+    "sajuSectionSubtitle": "Check your five element energy distribution and find balance",
+    "tarotSectionTitle": "Today's Tarot Reading",
+    "tarotSectionSubtitle": "Listen to the message the cards have for you",
+    "tarotDeckLabel": "78 tarot cards",
+    "tarotPast": "Past",
+    "tarotPresent": "Present",
+    "tarotFuture": "Future",
+    "tarotAdvice": "Advice",
+    "ctaTitle": "Make Better Decisions",
+    "ctaSubtitle": "AI reads your destiny and guides you to the best choice",
+    "ctaButton": "Start Now",
+    "aiChatDemo": "AI Chat Demo",
+    "ascendant": "Ascendant",
+    "sun": "Sun",
+    "moon": "Moon",
+    "hourPillar": "Hour Pillar",
+    "dayPillar": "Day Pillar",
+    "monthPillar": "Month Pillar",
+    "yearPillar": "Year Pillar",
+    "greatFortune": "Great Fortune",
+    "elementWood": "Wood",
+    "elementFire": "Fire",
+    "elementEarth": "Earth",
+    "elementMetal": "Metal",
+    "elementWater": "Water",
+    "elementWoodEn": "Wood",
+    "elementFireEn": "Fire",
+    "elementEarthEn": "Earth",
+    "elementMetalEn": "Metal",
+    "elementWaterEn": "Water",
+    "aquarius": "Aquarius",
+    "scorpio": "Scorpio",
+    "pisces": "Pisces",
+    "ageUnit": " yrs",
+    "todayMessage": "Today is favorable for new beginnings. Your creativity will shine.",
+    "searchPlaceholder": "What would you like to know today?",
+    "hint1": "How is my fortune today?",
+    "hint2": "How is my love luck?",
+    "hint3": "Should I change jobs?",
+    "scrollDown": "Scroll to see more",
+    "questionPlaceholder": "Enter your life question...",
+    "questionHint1": "What is my life direction?",
+    "questionHint2": "How will my year be?",
+    "questionHint3": "What career suits me?",
+    "elementCombo": {
+      "earthEarth": "Earth-Earth",
+      "metalMetal": "Metal-Metal",
+      "waterEarth": "Water-Earth",
+      "waterWater": "Water-Water",
+      "woodWater": "Wood-Water",
+      "woodEarth": "Wood-Earth"
+    },
+    "shinsal": {
+      "heavenlyNoble": "Heavenly Noble",
+      "heavenlyNobleDesc": "Guardian energy",
+      "postHorse": "Post Horse",
+      "postHorseDesc": "Travel & movement",
+      "peachBlossom": "Peach Blossom",
+      "peachBlossomDesc": "Charm & romance"
+    }
+  },
+  "common": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refunds": "Refund Policy",
+    "ourService": "Services",
+    "start": "Start",
+    "about": "About"
+  },
+  "services": {
+    "title": "Services",
+    "subtitle": "Explore your destiny",
+    "destinyMap": {
+      "label": "Destiny Map",
+      "desc": "AI Fortune Analysis"
+    },
+    "astrology": {
+      "label": "Astrology",
+      "desc": "Western Astrology"
+    },
+    "saju": {
+      "label": "Saju",
+      "desc": "Four Pillars of Destiny"
+    },
+    "tarot": {
+      "label": "Tarot",
+      "desc": "Tarot Cards"
+    },
+    "iching": {
+      "label": "I Ching",
+      "desc": "Book of Changes"
+    },
+    "dream": {
+      "label": "Dream",
+      "desc": "Dream Interpretation"
+    },
+    "numerology": {
+      "label": "Numerology",
+      "desc": "Number Analysis"
+    },
+    "compatibility": {
+      "label": "Compatibility",
+      "desc": "Compatibility Analysis"
+    },
+    "personality": {
+      "label": "Personality",
+      "desc": "Personality Analysis"
+    }
+  },
+  "tarot": {
+    "home": {
+      "title": "Mystical Tarot Reading",
+      "subtitle": "Gaze into the crystal ball and let the cards reveal your destiny",
+      "tapCrystal": "Tap the crystal ball to begin your journey",
+      "chooseTheme": "Choose your reading theme"
+    },
+    "spread": {
+      "chooseSpread": "Choose a spread",
+      "backToHome": "Back to Tarot Home"
+    },
+    "reading": {
+      "preparing": "Preparing cards...",
+      "invalidAccess": "Invalid access",
+      "backToHome": "Back to Home",
+      "choose": "Choose",
+      "cards": "cards",
+      "revealing": "Selection complete! Revealing your fate..."
+    },
+    "results": {
+      "subtitle": "The cards speak",
+      "reversed": "Reversed",
+      "askAnother": "Ask another question"
+    }
+  },
+  "dream": {
+    "title": "Dream Interpretation",
+    "subtitle": "Explore the deeper meanings of your dreams with astrological insights",
+    "modeQuick": "Quick Select",
+    "modeWrite": "Write Freely",
+    "sectionSymbols": "Dream Symbols",
+    "sectionEmotions": "Emotions Felt",
+    "sectionTypes": "Dream Type (Optional)",
+    "sectionContext": "Timing/Context (Optional)",
+    "labelAdditional": "Additional Details (Optional)",
+    "placeholderAdditional": "Add other details about your dream...",
+    "labelDetailed": "Describe your dream",
+    "placeholderDetailed": "Include key symbols, feelings, people, places, colors, and what happened...",
+    "shareAnonymous": "Share anonymously to dream map",
+    "birthOptional": "Birth Info (Optional - for deeper insights)",
+    "buttonAnalyze": "Interpret Dream",
+    "buttonAnalyzing": "Analyzing your dream...",
+    "buttonReset": "Reset",
+    "resultSummary": "Summary",
+    "resultThemes": "Themes",
+    "resultSymbols": "Key Symbols",
+    "resultAstrology": "Astrology Highlights",
+    "resultInsights": "Cross Insights",
+    "resultRecommendations": "Next Steps",
+    "errorMinLength": "Please describe your dream in at least 10 characters.",
+    "errorSelectSymbols": "Please select symbols or emotions, or describe your dream.",
+    "errorEnterDream": "Please enter your dream."
+  },
+  "emoji": {
+    "sparkles": "sparkles"
+  },
+  "about": {
+    "heroTitle1": "Diagnose with Fate.",
+    "heroTitle2": "Analyze with Psychology.",
+    "heroTitle3": "Heal with Spirituality.",
+    "heroSub": "Fate speaks. AI listens. You decide.",
+    "heroSubtitle": "Fate speaks. AI listens. You decide.",
+    "tryDestinyMap": "Start Destiny Map",
+    "seeFeatures": "See Features",
+    "visualTitle": "Your destiny navigation, in a way the world loves",
+    "visualDesc": "Clean interface with reliable calculation logic. Properly reflects time zones, seasons, and DST, translating results into easy-to-understand language.",
+    "servicesEyebrow": "DestinyPal Services",
+    "servicesTitle": "9 Destiny Readings",
+    "servicesDesc": "Explore your destiny from multiple perspectives with each unique service",
+    "discoverTitle": "Four Frameworks We Offer",
+    "discoverSubtitle": "Choose by your question or use together to cross-verify timing and themes.",
+    "sajuTitle": "Saju (Four Pillars)",
+    "sajuDesc": "Interprets year, month, day, hour using heavenly stems and earthly branches for five element balance and long-term cycles.",
+    "sajuStrength": "Strength: Long-term theme transitions, energy balance",
+    "sajuAccuracy": "Accuracy: Birth time and solar term correction",
+    "sajuDetailTitle": "Details",
+    "sajuDetail": "Hour pillar changes can affect personality and timing. Solar term boundaries and local time corrections are important.",
+    "sajuLink": "Go to Saju",
+    "astroTitle": "Astrology",
+    "astroDesc": "Reads planets, signs, houses, and aspects in birth charts, with transits/returns for timing.",
+    "astroStrength": "Strength: House-specific details, psychological/relationship patterns",
+    "astroAccuracy": "Accuracy: Time, timezone/DST, house system",
+    "astroDetailTitle": "Details",
+    "astroDetail": "Even 5-15 minute errors can change ASC/houses. Hospital records + DST reflection recommended.",
+    "astroLink": "Go to Astrology",
+    "ichingTitle": "I Ching",
+    "ichingDesc": "Captures current flow and transition points with 64 hexagram symbolic language.",
+    "ichingStrength": "Strength: Directional hints at decision crossroads",
+    "ichingAccuracy": "Accuracy: Question quality and context clarity",
+    "ichingDetailTitle": "Details",
+    "ichingDetail": "Open questions yield clearer advice than 'yes/no' questions.",
+    "ichingLink": "Go to I Ching",
+    "tarotTitle": "Tarot",
+    "tarotDesc": "Reveals current psychological and relationship patterns with symbolic cards, providing immediate action guidance.",
+    "tarotStrength": "Strength: Quick insights, coaching-friendly",
+    "tarotAccuracy": "Accuracy: Question specificity, spread, reroll strategy",
+    "tarotDetailTitle": "Details",
+    "tarotDetail": "Same card can mean different things by context/position. View with action scenarios.",
+    "tarotLink": "Go to Tarot",
+    "philosophyTitle": "Our Philosophy",
+    "philosophy": {
+      "accurate": {
+        "title": "Accurate Calculation",
+        "desc": "Reliable calculations reflecting time zones, seasons, and DST"
+      },
+      "ethical": {
+        "title": "Ethical Guidance",
+        "desc": "Practical hints to help choices, not absolute predictions"
+      },
+      "ui": {
+        "title": "Intuitive UI",
+        "desc": "Beautiful interface that makes complex information easy"
+      },
+      "ai": {
+        "title": "AI Integration",
+        "desc": "AI-powered integration of multiple divination systems"
+      }
+    },
+    "service": {
+      "astrology": {
+        "title": "Astrology",
+        "desc": "Read your personality and destiny through planetary positions and houses"
+      },
+      "saju": {
+        "title": "Saju",
+        "desc": "Analyze five elements balance and fortune cycles through Four Pillars"
+      },
+      "tarot": {
+        "title": "Tarot",
+        "desc": "Explore current situations and future possibilities through 78 cards"
+      },
+      "iching": {
+        "title": "I Ching",
+        "desc": "Wisdom of 64 hexagrams guides current situation and direction of change"
+      },
+      "dream": {
+        "title": "Dream",
+        "desc": "Interpret dream symbols and messages from your subconscious"
+      },
+      "numerology": {
+        "title": "Numerology",
+        "desc": "Discover your life path and potential through birth date numbers"
+      },
+      "compatibility": {
+        "title": "Compatibility",
+        "desc": "Analyze harmony and relationship dynamics between two people"
+      },
+      "personality": {
+        "title": "Personality",
+        "desc": "Deep analysis of your personality traits, strengths, and weaknesses"
+      }
+    },
+    "ctaTitle": "Start Now",
+    "ctaSub": "Explore your destiny map with AI",
+    "ctaPrimary": "Start Destiny Map",
+    "ctaSecondary": "Go Home"
+  },
+  "community": {
+    "title": "Community",
+    "subtitle": "Connect with readings, insights, and fellow seekers",
+    "new": "New",
+    "top": "Top",
+    "login": "Login",
+    "logout": "Logout",
+    "categories": "Categories",
+    "createPost": "Create Post",
+    "postGuide": "Share your insights, readings, or questions with the community",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Write a clear title",
+    "mediaType": "Media Type",
+    "image": "Image",
+    "video": "Video",
+    "imageUrl": "Image URL (optional)",
+    "videoUrl": "Video URL (YouTube/Vimeo)",
+    "body": "Description",
+    "bodyPlaceholder": "Share your thoughts and insights",
+    "tags": "Tags",
+    "post": "Post",
+    "loginRequired": "Please login to perform this action",
+    "loginToPost": "Login to create posts and join discussions",
+    "noPosts": "No posts yet. Be the first to share!",
+    "loginToLike": "Login to like",
+    "report": "Report",
+    "hide": "Hide",
+    "confirmReport": "Report this post?",
+    "addComment": "Add a comment...",
+    "send": "Send",
+    "loginToComment": "Login to comment"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "Choose the plan that's right for you",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "save": "Save 20%",
+    "free": {
+      "name": "Free",
+      "price": "0",
+      "description": "Start with basic features",
+      "features": [
+        "1 daily tarot reading",
+        "Basic Saju analysis",
+        "Community access"
+      ],
+      "button": "Get Started"
+    },
+    "basic": {
+      "name": "Basic",
+      "price": "9.99",
+      "description": "For those seeking deeper insights",
+      "features": [
+        "Unlimited tarot readings",
+        "Detailed Saju analysis",
+        "AI chat consultation",
+        "Compatibility analysis"
+      ],
+      "button": "Choose Basic"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "19.99",
+      "description": "Unlimited access to all features",
+      "features": [
+        "All Basic features",
+        "Personal AI counselor",
+        "Priority support",
+        "Early access to new features"
+      ],
+      "button": "Choose Premium"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": "Can I cancel anytime?",
+      "a1": "Yes, you can cancel your subscription anytime. You'll continue to have access until the end of your billing period.",
+      "q2": "What's the refund policy?",
+      "a2": "We offer a full refund if requested within 7 days of payment.",
+      "q3": "Can I change plans?",
+      "a3": "Yes, you can upgrade or downgrade your plan anytime."
+    },
+    "guarantee": {
+      "title": "7-Day Money Back Guarantee",
+      "description": "Not satisfied? Get a full refund within 7 days."
+    }
+  },
+  "destinyMap": {
+    "title": "Destiny Map",
+    "subtitle": "Your AI-analyzed fortune journey",
+    "inputPlaceholder": "Enter your question...",
+    "analyzing": "Analyzing...",
+    "newChat": "New Chat",
+    "history": "History",
+    "result": {
+      "analyzingTitle": "Analyzing Your Destiny",
+      "analyzingSubtitle": "Analyzing Your Destiny Chart",
+      "step1": "Calculating Four Pillars...",
+      "step2": "Analyzing Astrology Chart...",
+      "step3": "Generating AI Interpretation...",
+      "step4": "Finalizing Report...",
+      "dataNodes": "Analysis based on 71,000+ data nodes",
+      "errorMissing": "Required fields are missing. (birthDate, birthTime, city, latitude, longitude)",
+      "errorNoResult": "Failed to load results.",
+      "analysisDate": "Analysis Date",
+      "themeLove": "Love",
+      "themeCareer": "Career",
+      "themeEnergy": "Energy"
+    },
+    "counselor": {
+      "title": "DestinyPal Counselor",
+      "online": "Online",
+      "voiceComingSoon": "Voice (Coming Soon)",
+      "loading1": "Connecting with your counselor...",
+      "loading2": "Analyzing your birth chart...",
+      "loading3": "Reading celestial energies...",
+      "loading4": "Preparing personalized guidance..."
+    },
+    "visualizer": {
+      "dominantElement": "Dominant element",
+      "planets": "Planets",
+      "currentCycles": "Current cycles"
+    }
+  },
+  "policy": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "effective": "Effective date",
+      "footer": "Addendum"
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "effective": "Effective date",
+      "footer": "Addendum"
+    },
+    "refund": {
+      "title": "Refunds and Billing Policy",
+      "effective": "Effective date",
+      "footer": "Addendum"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to common questions below",
+    "footer": "Still have questions? Contact us through the Contact page.",
+    "q1": "What is DestinyPal?",
+    "a1": "DestinyPal is an AI-powered platform that combines multiple divination systems including Astrology, Saju (Four Pillars), Tarot, I Ching, Dream Interpretation, and Numerology to provide personalized insights.",
+    "q2": "Is DestinyPal free to use?",
+    "a2": "Yes! Basic features are free to use. Premium features like detailed AI consultations and unlimited readings are available through our subscription plans.",
+    "q3": "How accurate are the readings?",
+    "a3": "Our readings use traditional divination principles combined with AI analysis. They are for entertainment and self-reflection purposes, not professional advice. Accuracy depends on the quality of input information.",
+    "q4": "Do I need to know my birth time?",
+    "a4": "For Saju and detailed Astrology readings, knowing your exact birth time gives more accurate results. However, many features work without it.",
+    "q5": "Is my data secure?",
+    "a5": "Yes. We use industry-standard encryption and security measures. We do not sell your personal information. See our Privacy Policy for details.",
+    "q6": "Can I cancel my subscription anytime?",
+    "a6": "Yes, you can cancel your subscription anytime from your account settings. You'll continue to have access until the end of your billing period.",
+    "q7": "What languages are supported?",
+    "a7": "Currently we support Korean and English."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We'd love to hear from you",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "How can we help?",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Tell us more...",
+    "submit": "Send Message",
+    "sending": "Sending...",
+    "success": "Message sent successfully!",
+    "error": "Failed to send message. Please try again.",
+    "info": "For billing inquiries, please include your account email and transaction ID."
+  },
+  "personality": {
+    "title": "Nova Persona",
+    "heroTitle": "Discover Your True Aura",
+    "heroSubtitle": "A next-generation personality test that goes beyond the basics",
+    "startButton": "Start the Free Discovery Test",
+    "typeCode": "Type Code",
+    "consistency": "Consistency",
+    "consistencyLabel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "keyMotivations": "Key Motivations",
+    "axes": "Personality Spectrum",
+    "axis": {
+      "energy": "Energy",
+      "grounded": "Grounded",
+      "radiant": "Radiant",
+      "cognition": "Cognition",
+      "structured": "Structured",
+      "visionary": "Visionary",
+      "decision": "Decision",
+      "empathic": "Empathic",
+      "logic": "Logic",
+      "rhythm": "Rhythm",
+      "anchor": "Anchor",
+      "flow": "Flow"
+    },
+    "strengthsAndChallenges": "Strengths & Watchouts",
+    "strengths": "Strengths",
+    "challenges": "Growth Areas",
+    "roles": "Ideal Roles",
+    "career": "Career Focus",
+    "compatibility": "Compatibility",
+    "guidance": "Guidance",
+    "tuneTitle": "Fine-tune your answers",
+    "tuneDesc": "Adjust responses to see how your persona evolves.",
+    "download": "Download JSON",
+    "share": "Share Result",
+    "retake": "Retake Quiz",
+    "yourNovaPersona": "Your Nova Persona",
+    "questions": {
+      "q1_energy_network": {
+        "text": "After a day full of people and meetings, you:",
+        "options": { "A": "Feel charged and want to keep going.", "B": "Need quiet space to reset.", "C": "Depends on my mood that day." }
+      },
+      "q2_energy_weekend": {
+        "text": "On a long weekend, you prefer to:",
+        "options": { "A": "Pack the calendar with plans.", "B": "Leave generous open blocks.", "C": "Mix of both - some plans, some free time." }
+      },
+      "q3_energy_spontaneous": {
+        "text": "When invited to a sudden gathering, you usually:",
+        "options": { "A": "Say 'let's go' without much hesitation.", "B": "Pause and decide after some thought.", "C": "Check who else is going first." }
+      },
+      "q4_energy_transit": {
+        "text": "During travel/wait times, you tend to:",
+        "options": { "A": "Chat and engage with people around you.", "B": "Use headphones and stay in your own zone.", "C": "Read or browse casually." }
+      },
+      "q5_energy_idealday": {
+        "text": "Your ideal day looks like:",
+        "options": { "A": "Many activities/people in one day.", "B": "A few set activities + ample solo time.", "C": "Flexible flow without strict plans." }
+      },
+      "q21_energy_focus": {
+        "text": "In long work sessions, you recharge more by:",
+        "options": { "A": "Quick chats/interaction between tasks.", "B": "Staying in your own lane with minimal breaks.", "C": "Taking walks or physical breaks." }
+      },
+      "q22_energy_solo_group": {
+        "text": "You do your best thinking:",
+        "options": { "A": "In group brainstorming energy.", "B": "Alone, refining quietly.", "C": "Writing or journaling ideas." }
+      },
+      "q23_energy_interruptions": {
+        "text": "Frequent pings/interruptions feel:",
+        "options": { "A": "Invigorating; you like the buzz.", "B": "Draining; you prefer uninterrupted blocks.", "C": "Fine if scheduled, annoying if random." }
+      },
+      "q24_energy_events": {
+        "text": "At large events, you tend to:",
+        "options": { "A": "Work the room and meet many.", "B": "Stay with a few or observe quietly.", "C": "Focus on the event content itself." }
+      },
+      "q25_energy_noise": {
+        "text": "Background noise while working:",
+        "options": { "A": "Helps—music/cafe hum boosts you.", "B": "Hurts—you need quiet to focus.", "C": "White noise or instrumental only." }
+      },
+      "q6_cog_problem": {
+        "text": "Facing a new problem, you first:",
+        "options": { "A": "Spot patterns and possible models.", "B": "List requirements and a checklist.", "C": "Research what others have done." }
+      },
+      "q7_cog_explain": {
+        "text": "When learning, you prefer explanations that start with:",
+        "options": { "A": "The big picture then examples.", "B": "Concrete examples then the principle.", "C": "Hands-on practice first." }
+      },
+      "q8_cog_evaluate": {
+        "text": "Evaluating an idea, you lean toward:",
+        "options": { "A": "Novelty and potential impact.", "B": "Feasibility and risks.", "C": "Team alignment and buy-in." }
+      },
+      "q9_cog_basis": {
+        "text": "Decisions feel solid when they are built on:",
+        "options": { "A": "'Why' and future scenarios.", "B": "'What/when/who' and process.", "C": "Gut feeling backed by experience." }
+      },
+      "q10_cog_constraints": {
+        "text": "When new constraints appear, you:",
+        "options": { "A": "Retool the concept to fit the future.", "B": "Re-sequence the plan to fit realities.", "C": "Negotiate to remove the constraint." }
+      },
+      "q26_cog_detail_bigpicture": {
+        "text": "You are more satisfied when work outputs are:",
+        "options": { "A": "Visionary narratives or prototypes.", "B": "Detailed specs or checklists.", "C": "Working demos users can try." }
+      },
+      "q27_cog_rule_break": {
+        "text": "If a process slows you down, you:",
+        "options": { "A": "Find a new pattern or shortcut.", "B": "Refine existing steps within the rules.", "C": "Propose changes to the process officially." }
+      },
+      "q28_cog_metrics_story": {
+        "text": "Persuasion works best on you via:",
+        "options": { "A": "Story/analogy of future possibilities.", "B": "Metrics and viability evidence.", "C": "Social proof and testimonials." }
+      },
+      "q29_cog_timehorizon": {
+        "text": "You naturally think more about:",
+        "options": { "A": "Long-term arcs and emerging trends.", "B": "Near-term execution and milestones.", "C": "Present moment opportunities." }
+      },
+      "q30_cog_changecomfort": {
+        "text": "When requirements change midstream, you feel:",
+        "options": { "A": "Energized by reimagining the solution.", "B": "Prefer to lock scope and avoid churn.", "C": "Accept it as part of the process." }
+      },
+      "q11_decision_conflict": {
+        "text": "In a team conflict, you focus first on:",
+        "options": { "A": "Principles and performance.", "B": "Relationships and emotions.", "C": "Finding a compromise everyone accepts." }
+      },
+      "q12_decision_feedback": {
+        "text": "Your feedback style is usually:",
+        "options": { "A": "Direct and fact-focused.", "B": "Contextual with cushioning.", "C": "Written to allow processing time." }
+      },
+      "q13_decision_resources": {
+        "text": "When allocating resources, you prioritize:",
+        "options": { "A": "ROI and clear priorities.", "B": "Team morale and learning.", "C": "Fairness and equal distribution." }
+      },
+      "q14_decision_rules": {
+        "text": "Catching a rule break, you believe:",
+        "options": { "A": "Consistency is fairness.", "B": "Contextual flexibility is fairness.", "C": "Depends on intent behind the action." }
+      },
+      "q15_decision_delay": {
+        "text": "If you postpone a decision, it is usually because:",
+        "options": { "A": "Data/arguments feel insufficient.", "B": "People/feelings need more alignment.", "C": "Waiting for external factors to clarify." }
+      },
+      "q31_decision_dataemotion": {
+        "text": "To reach a decision, you weigh more:",
+        "options": { "A": "Data, trade-offs, objective impact.", "B": "Team pulse, stakeholder emotions.", "C": "Past precedents and patterns." }
+      },
+      "q32_decision_feedback_tone": {
+        "text": "When receiving blunt feedback, you:",
+        "options": { "A": "Appreciate the directness.", "B": "Prefer it softened with context.", "C": "Need time to process privately." }
+      },
+      "q33_decision_risk": {
+        "text": "Faced with a bold bet:",
+        "options": { "A": "Take it if logic checks out.", "B": "Consider people impact first.", "C": "Sleep on it before deciding." }
+      },
+      "q34_decision_delegate": {
+        "text": "Delegating tough calls, you:",
+        "options": { "A": "Seek the most competent owner.", "B": "Consider who is most affected.", "C": "Keep it yourself if stakes are high." }
+      },
+      "q35_decision_conflict_speed": {
+        "text": "In heated debates, you:",
+        "options": { "A": "Drive to a fast, logical resolution.", "B": "Slow down to cool emotions and align.", "C": "Step back and revisit later." }
+      },
+      "q16_rhythm_deadline": {
+        "text": "On deadlines, you tend to:",
+        "options": { "A": "Front-load work and finish early.", "B": "Surge near the end under pressure.", "C": "Work steadily at consistent pace." }
+      },
+      "q17_rhythm_change": {
+        "text": "When plans change last-minute, you:",
+        "options": { "A": "Pivot and adjust quickly.", "B": "Stabilize and replan deliberately.", "C": "Go with the flow, see what happens." }
+      },
+      "q18_rhythm_workstyle": {
+        "text": "Your workstyle is more:",
+        "options": { "A": "Multi-track in parallel.", "B": "One track at a time.", "C": "Switching based on energy levels." }
+      },
+      "q19_rhythm_holiday": {
+        "text": "On holidays, you prefer:",
+        "options": { "A": "Spontaneous outings/activities.", "B": "Planned routines/reservations.", "C": "Relaxing without any agenda." }
+      },
+      "q20_rhythm_feeling": {
+        "text": "When plans break, you mostly feel:",
+        "options": { "A": "Curious/energized by new options.", "B": "Unsettled and wanting predictability.", "C": "Neutral - adapt and move on." }
+      },
+      "q36_rhythm_morning_evening": {
+        "text": "Your natural peak focus is:",
+        "options": { "A": "Early day; you like to start strong.", "B": "Later day; you ramp up gradually.", "C": "Varies by day, no fixed pattern." }
+      },
+      "q37_rhythm_planslack": {
+        "text": "On daily planning, you:",
+        "options": { "A": "Overbook slightly; momentum matters.", "B": "Leave slack; adaptability matters.", "C": "Don't plan much, react to priorities." }
+      },
+      "q38_rhythm_batching": {
+        "text": "You prefer to handle tasks:",
+        "options": { "A": "In batches/sprints, then rest.", "B": "In steady, even pacing.", "C": "As they come, real-time." }
+      },
+      "q39_rhythm_contextswitch": {
+        "text": "Context switching often feels:",
+        "options": { "A": "Stimulating; keeps you engaged.", "B": "Costly; you minimize switches.", "C": "Unavoidable, just deal with it." }
+      },
+      "q40_rhythm_deadtime": {
+        "text": "With unexpected downtime, you:",
+        "options": { "A": "Jump into spontaneous tasks/ideas.", "B": "Use it to rest or tidy planned work.", "C": "Scroll or browse without direction." }
+      }
+    }
+  }
+}

@@ -1,4 +1,9 @@
-﻿id,type,name,description
-Asc,Point,Ascendant,출발·외적표현
-MC,Point,Midheaven,사회적 목표·직업 방향
-Node,Point,Lunar Node,영혼의 방향 과제
+id,type,name,description
+Asc,Point,Ascendant,상승점·자아표현·첫인상·접근방식
+MC,Point,Midheaven,천정·사회적목표·직업방향·명성
+Node,Point,Lunar Node,달의교점·인생목적·카르마적방향·영혼성장
+NorthNode,Point,North Node,북교점·영혼목적·성장방향·현생과제
+SouthNode,Point,South Node,남교점·과거카르마·타고난재능·놓아줄것
+Chiron,Point,Chiron,키론·상처치유자·핵심상처·치유능력
+Vertex,Point,Vertex,버텍스·운명적만남·카르마적사건
+PartOfFortune,Point,Part of Fortune,행운점·물질적축복·성공영역

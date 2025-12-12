@@ -1,0 +1,198 @@
+{
+  "_meta": {
+    "theme": "spiritual",
+    "title": "영적 성장 타로 스프레드",
+    "description": "영혼의 여정, 영적 각성, 내면 탐구에 관한 스프레드"
+  },
+  "sub_topics": {
+    "spiritual_path": {
+      "id": "spiritual_path",
+      "title": "영적 경로",
+      "korean": "나의 영적 여정",
+      "description": "현재 영적 위치와 성장 방향",
+      "card_count": 10,
+      "spread_name": "Spiritual Path Spread",
+      "positions": [
+        {"position": 1, "name": "현재 영적 상태", "meaning": "지금 영적 발달 단계", "prompt_hint": "영혼의 현재 위치"},
+        {"position": 2, "name": "영적 강점", "meaning": "영적 강점과 재능", "prompt_hint": "영적으로 뛰어난 부분"},
+        {"position": 3, "name": "성장 영역", "meaning": "발전이 필요한 영역", "prompt_hint": "키워야 할 부분"},
+        {"position": 4, "name": "영적 블록", "meaning": "성장을 막는 것", "prompt_hint": "영적 장애물"},
+        {"position": 5, "name": "영혼의 목적", "meaning": "이번 생의 영적 목적", "prompt_hint": "존재 이유"},
+        {"position": 6, "name": "가이드 메시지", "meaning": "영적 가이드의 메시지", "prompt_hint": "높은 존재의 조언"},
+        {"position": 7, "name": "필요한 수련", "meaning": "도움이 되는 수련법", "prompt_hint": "영적 수행"},
+        {"position": 8, "name": "다음 단계", "meaning": "영적 성장의 다음 단계", "prompt_hint": "다가올 배움"},
+        {"position": 9, "name": "통합", "meaning": "일상에 통합할 것", "prompt_hint": "실천할 것"},
+        {"position": 10, "name": "조언", "meaning": "영적 여정에 대한 조언", "prompt_hint": "영적 성장의 핵심"}
+      ]
+    },
+    "past_life": {
+      "id": "past_life",
+      "title": "전생",
+      "korean": "전생 리딩",
+      "description": "전생의 영향과 카르마적 연결",
+      "card_count": 10,
+      "spread_name": "Past Life Spread",
+      "positions": [
+        {"position": 1, "name": "주요 전생", "meaning": "가장 영향을 주는 전생", "prompt_hint": "중요한 과거 생"},
+        {"position": 2, "name": "그때의 역할", "meaning": "전생에서의 역할/직업", "prompt_hint": "무엇을 했는지"},
+        {"position": 3, "name": "전생 관계", "meaning": "현재까지 이어진 관계", "prompt_hint": "카르마적 인연"},
+        {"position": 4, "name": "미완의 과제", "meaning": "마무리하지 못한 것", "prompt_hint": "완료해야 할 것"},
+        {"position": 5, "name": "가져온 재능", "meaning": "전생에서 가져온 재능", "prompt_hint": "타고난 능력의 근원"},
+        {"position": 6, "name": "가져온 상처", "meaning": "전생에서 가져온 상처", "prompt_hint": "카르마적 상처"},
+        {"position": 7, "name": "치유 방법", "meaning": "전생 상처 치유법", "prompt_hint": "과거 해소 방법"},
+        {"position": 8, "name": "이번 생의 목적", "meaning": "전생과 연결된 이번 생의 목적", "prompt_hint": "이번 생에서 할 것"},
+        {"position": 9, "name": "카르마 완료", "meaning": "카르마가 완료되는 방법", "prompt_hint": "업을 끝내는 법"},
+        {"position": 10, "name": "조언", "meaning": "전생 카르마에 대한 조언", "prompt_hint": "영혼의 역사"}
+      ]
+    },
+    "shadow_work": {
+      "id": "shadow_work",
+      "title": "그림자 작업",
+      "korean": "그림자 자아 탐구",
+      "description": "억압된 자아와 그림자 통합",
+      "card_count": 8,
+      "spread_name": "Shadow Work Spread",
+      "positions": [
+        {"position": 1, "name": "의식적 자아", "meaning": "의식적으로 보여주는 자아", "prompt_hint": "인정하는 나"},
+        {"position": 2, "name": "그림자 자아", "meaning": "억압된 그림자 측면", "prompt_hint": "숨기는 나"},
+        {"position": 3, "name": "억압 원인", "meaning": "그림자가 형성된 이유", "prompt_hint": "왜 숨겼는지"},
+        {"position": 4, "name": "투사", "meaning": "타인에게 투사하는 것", "prompt_hint": "남에게서 보는 나"},
+        {"position": 5, "name": "선물", "meaning": "그림자 속 숨겨진 선물", "prompt_hint": "그림자의 긍정적 측면"},
+        {"position": 6, "name": "통합 방법", "meaning": "그림자를 통합하는 방법", "prompt_hint": "어둠을 받아들이는 법"},
+        {"position": 7, "name": "통합 후", "meaning": "통합 후의 변화", "prompt_hint": "온전해진 후"},
+        {"position": 8, "name": "조언", "meaning": "그림자 작업에 대한 조언", "prompt_hint": "어둠과의 화해"}
+      ]
+    },
+    "higher_self": {
+      "id": "higher_self",
+      "title": "하이어 셀프",
+      "korean": "높은 자아와의 연결",
+      "description": "상위 자아와의 소통과 안내",
+      "card_count": 8,
+      "spread_name": "Higher Self Spread",
+      "positions": [
+        {"position": 1, "name": "연결 상태", "meaning": "하이어 셀프와의 현재 연결", "prompt_hint": "높은 자아와의 연결"},
+        {"position": 2, "name": "메시지", "meaning": "하이어 셀프가 전하는 메시지", "prompt_hint": "높은 자아의 말"},
+        {"position": 3, "name": "인도 방향", "meaning": "인도받고 있는 방향", "prompt_hint": "이끌림의 방향"},
+        {"position": 4, "name": "신뢰 부족", "meaning": "신뢰가 부족한 영역", "prompt_hint": "믿지 못하는 부분"},
+        {"position": 5, "name": "연결 강화", "meaning": "연결을 강화하는 방법", "prompt_hint": "더 가까워지는 법"},
+        {"position": 6, "name": "직관 개발", "meaning": "직관을 개발하는 방법", "prompt_hint": "내면의 목소리 듣기"},
+        {"position": 7, "name": "일상 적용", "meaning": "일상에서 연결하는 방법", "prompt_hint": "매일의 연결"},
+        {"position": 8, "name": "조언", "meaning": "하이어 셀프의 조언", "prompt_hint": "높은 자아의 핵심 메시지"}
+      ]
+    },
+    "chakra": {
+      "id": "chakra",
+      "title": "차크라",
+      "korean": "차크라 균형",
+      "description": "7개 차크라의 상태와 균형",
+      "card_count": 10,
+      "spread_name": "Chakra Balance Spread",
+      "positions": [
+        {"position": 1, "name": "루트 차크라", "meaning": "생존, 안정, 기반 (빨강)", "prompt_hint": "1번 차크라 상태"},
+        {"position": 2, "name": "천골 차크라", "meaning": "창조성, 감정, 성 (주황)", "prompt_hint": "2번 차크라 상태"},
+        {"position": 3, "name": "태양신경총", "meaning": "자아, 힘, 의지 (노랑)", "prompt_hint": "3번 차크라 상태"},
+        {"position": 4, "name": "심장 차크라", "meaning": "사랑, 치유, 연결 (초록)", "prompt_hint": "4번 차크라 상태"},
+        {"position": 5, "name": "목 차크라", "meaning": "표현, 진실, 소통 (파랑)", "prompt_hint": "5번 차크라 상태"},
+        {"position": 6, "name": "제3의 눈", "meaning": "직관, 통찰, 지혜 (남색)", "prompt_hint": "6번 차크라 상태"},
+        {"position": 7, "name": "크라운 차크라", "meaning": "영성, 연결, 깨달음 (보라)", "prompt_hint": "7번 차크라 상태"},
+        {"position": 8, "name": "가장 강한 곳", "meaning": "가장 활성화된 차크라", "prompt_hint": "강점 차크라"},
+        {"position": 9, "name": "치유 필요", "meaning": "치유가 필요한 차크라", "prompt_hint": "막힌 곳"},
+        {"position": 10, "name": "균형 방법", "meaning": "전체 균형 맞추는 방법", "prompt_hint": "차크라 균형법"}
+      ]
+    },
+    "spirit_guides": {
+      "id": "spirit_guides",
+      "title": "영적 가이드",
+      "korean": "수호천사/가이드",
+      "description": "영적 가이드와의 소통",
+      "card_count": 8,
+      "spread_name": "Spirit Guide Spread",
+      "positions": [
+        {"position": 1, "name": "가이드 존재", "meaning": "현재 함께하는 가이드", "prompt_hint": "함께하는 존재"},
+        {"position": 2, "name": "가이드 메시지", "meaning": "가이드가 전하는 메시지", "prompt_hint": "가이드의 말"},
+        {"position": 3, "name": "도움 방식", "meaning": "가이드가 돕는 방식", "prompt_hint": "어떻게 돕는지"},
+        {"position": 4, "name": "신호", "meaning": "가이드가 보내는 신호", "prompt_hint": "알아차릴 징조"},
+        {"position": 5, "name": "요청", "meaning": "가이드에게 요청할 것", "prompt_hint": "도움 요청"},
+        {"position": 6, "name": "연결 강화", "meaning": "가이드와 더 연결되는 법", "prompt_hint": "관계 강화"},
+        {"position": 7, "name": "신뢰", "meaning": "더 신뢰해야 할 것", "prompt_hint": "믿어야 할 것"},
+        {"position": 8, "name": "조언", "meaning": "가이드의 최종 조언", "prompt_hint": "영적 안내"}
+      ]
+    },
+    "life_purpose": {
+      "id": "life_purpose",
+      "title": "삶의 목적",
+      "korean": "인생의 목적",
+      "description": "영혼의 사명과 이번 생의 목적",
+      "card_count": 10,
+      "spread_name": "Life Purpose Spread",
+      "positions": [
+        {"position": 1, "name": "영혼의 씨앗", "meaning": "영혼이 가지고 온 씨앗", "prompt_hint": "타고난 본질"},
+        {"position": 2, "name": "핵심 사명", "meaning": "이번 생의 핵심 사명", "prompt_hint": "주된 목적"},
+        {"position": 3, "name": "재능", "meaning": "목적 수행을 위한 재능", "prompt_hint": "사명을 위한 능력"},
+        {"position": 4, "name": "도전", "meaning": "목적을 위한 도전 과제", "prompt_hint": "극복할 것"},
+        {"position": 5, "name": "현재 정렬", "meaning": "목적과 현재 삶의 정렬", "prompt_hint": "얼마나 맞는지"},
+        {"position": 6, "name": "방해 요소", "meaning": "목적에서 벗어나게 하는 것", "prompt_hint": "길을 잃게 하는 것"},
+        {"position": 7, "name": "다음 단계", "meaning": "목적을 향한 다음 단계", "prompt_hint": "지금 해야 할 것"},
+        {"position": 8, "name": "봉사 방식", "meaning": "세상에 기여하는 방식", "prompt_hint": "어떻게 줄 것인지"},
+        {"position": 9, "name": "완수 시 모습", "meaning": "목적을 완수했을 때", "prompt_hint": "이루었을 때"},
+        {"position": 10, "name": "조언", "meaning": "삶의 목적에 대한 조언", "prompt_hint": "사명의 핵심"}
+      ]
+    },
+    "meditation": {
+      "id": "meditation",
+      "title": "명상/수련",
+      "korean": "영적 수련",
+      "description": "명상과 영적 수련에 대한 안내",
+      "card_count": 7,
+      "spread_name": "Spiritual Practice Spread",
+      "positions": [
+        {"position": 1, "name": "현재 수련", "meaning": "현재 영적 수련 상태", "prompt_hint": "지금 수행 상태"},
+        {"position": 2, "name": "적합한 수련", "meaning": "나에게 맞는 수련법", "prompt_hint": "어울리는 수행"},
+        {"position": 3, "name": "장애물", "meaning": "수련을 방해하는 것", "prompt_hint": "수행의 장애"},
+        {"position": 4, "name": "심화 방법", "meaning": "수련을 깊게 하는 법", "prompt_hint": "더 깊이 가는 법"},
+        {"position": 5, "name": "일상 통합", "meaning": "일상에 수련을 녹이는 법", "prompt_hint": "매일 수행"},
+        {"position": 6, "name": "열매", "meaning": "수련의 결실", "prompt_hint": "수행의 결과"},
+        {"position": 7, "name": "조언", "meaning": "영적 수련에 대한 조언", "prompt_hint": "수행의 핵심"}
+      ]
+    },
+    "intuition": {
+      "id": "intuition",
+      "title": "직관",
+      "korean": "직관력 개발",
+      "description": "직관과 육감 능력 개발",
+      "card_count": 8,
+      "spread_name": "Intuition Development Spread",
+      "positions": [
+        {"position": 1, "name": "현재 직관", "meaning": "현재 직관력 상태", "prompt_hint": "직관의 수준"},
+        {"position": 2, "name": "강한 채널", "meaning": "가장 강한 직관 채널", "prompt_hint": "직관이 오는 방식"},
+        {"position": 3, "name": "막힌 곳", "meaning": "직관을 막는 것", "prompt_hint": "직관의 장애물"},
+        {"position": 4, "name": "개발 방법", "meaning": "직관을 키우는 방법", "prompt_hint": "직관 개발법"},
+        {"position": 5, "name": "신뢰", "meaning": "직관을 더 신뢰하는 법", "prompt_hint": "내면 믿기"},
+        {"position": 6, "name": "활용", "meaning": "직관을 활용하는 법", "prompt_hint": "실생활에 적용"},
+        {"position": 7, "name": "보호", "meaning": "에너지 보호 방법", "prompt_hint": "자신을 지키는 법"},
+        {"position": 8, "name": "조언", "meaning": "직관 개발에 대한 조언", "prompt_hint": "육감의 핵심"}
+      ]
+    },
+    "soul_healing": {
+      "id": "soul_healing",
+      "title": "영혼 치유",
+      "korean": "영혼의 상처 치유",
+      "description": "영혼 수준의 상처와 치유",
+      "card_count": 10,
+      "spread_name": "Soul Healing Spread",
+      "positions": [
+        {"position": 1, "name": "영혼 상태", "meaning": "현재 영혼의 상태", "prompt_hint": "영혼의 컨디션"},
+        {"position": 2, "name": "주요 상처", "meaning": "치유가 필요한 주요 상처", "prompt_hint": "영혼의 상처"},
+        {"position": 3, "name": "상처의 근원", "meaning": "상처가 생긴 근원", "prompt_hint": "상처의 시작"},
+        {"position": 4, "name": "영향", "meaning": "상처가 삶에 미치는 영향", "prompt_hint": "상처의 결과"},
+        {"position": 5, "name": "치유 준비", "meaning": "치유할 준비 상태", "prompt_hint": "회복 의지"},
+        {"position": 6, "name": "치유 방법", "meaning": "치유의 방법", "prompt_hint": "어떻게 치유할지"},
+        {"position": 7, "name": "도움", "meaning": "치유를 돕는 자원", "prompt_hint": "지지와 도움"},
+        {"position": 8, "name": "용서", "meaning": "용서가 필요한 것", "prompt_hint": "놓아줄 것"},
+        {"position": 9, "name": "치유 후", "meaning": "치유된 후의 모습", "prompt_hint": "회복 후"},
+        {"position": 10, "name": "조언", "meaning": "영혼 치유에 대한 조언", "prompt_hint": "영혼 회복의 핵심"}
+      ]
+    }
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "landing": {
+    "heroTitle": "自分を知り、明日を創る。",
+    "heroSub": "運命・心理・スピリチュアルの交差点",
+    "statsToday": "今日",
+    "statsTotal": "累計",
+    "statsSince": "(2025年10月以降)",
+    "statsFootnote": "リアルタイム訪問者数",
+    "servicesEyebrow": "DestinyPal Services",
+    "servicesTitle": "主要リーディング一覧",
+    "servicesDesc": "カードにカーソルを合わせると、感覚がプレビューできます。",
+    "prompt1": "今日の運勢が気になります。",
+    "prompt2": "重要な決断を下す必要があります。",
+    "prompt3": "恋愛運を見たいです。",
+    "chatInputPlaceholder": "運勢について質問してください...",
+    "aiResponse": "今日のあなたの占星術チャートを見ると、惑星の配置が非常に有利です。四柱推命の五行バランスが優れており、特にビジネス運と金運が強く表れています。月の位置は感情的な明晰さを示唆し、木星の影響で成長の機会が拡大します。",
+    "astrologyTitle": "占星術",
+    "astrologyDesc": "惑星・ハウス・アスペクトをアニメーションで。",
+    "destinyTitle": "Destiny Map",
+    "destinyDesc": "四柱・星座の流れ・タロットを一つの地図に統合。",
+    "sajuTitle": "四柱推命",
+    "sajuDesc": "五行バランスと大運の流れを視覚化。",
+    "tarotTitle": "タロット",
+    "tarotDesc": "カード引きアニメーションで直感的スプレッド。",
+    "astrologySectionTitle": "今日のあなた、占星術的に",
+    "astrologySectionSubtitle": "惑星の配置があなたの運命にどう影響するかリアルタイムで確認",
+    "sajuSectionTitle": "四柱で見る五行バランス",
+    "sajuSectionSubtitle": "あなたの五行エネルギー分布を確認してバランスを整えましょう",
+    "tarotSectionTitle": "今日のタロットリーディング",
+    "tarotSectionSubtitle": "カードが伝えるメッセージに耳を傾けてください",
+    "tarotDeckLabel": "78枚のタロットカード",
+    "tarotPast": "過去",
+    "tarotPresent": "現在",
+    "tarotFuture": "未来",
+    "tarotAdvice": "アドバイス",
+    "ctaTitle": "より良い決断を",
+    "ctaSubtitle": "AIがあなたの運命を読み、最善の選択へ導きます",
+    "ctaButton": "今すぐ始める →",
+    "aiChatDemo": "AIチャットデモ",
+    "ascendant": "アセンダント",
+    "sun": "太陽",
+    "moon": "月",
+    "hourPillar": "時柱",
+    "dayPillar": "日柱",
+    "monthPillar": "月柱",
+    "yearPillar": "年柱",
+    "greatFortune": "大運",
+    "elementWood": "木",
+    "elementFire": "火",
+    "elementEarth": "土",
+    "elementMetal": "金",
+    "elementWater": "水",
+    "elementWoodEn": "Wood",
+    "elementFireEn": "Fire",
+    "elementEarthEn": "Earth",
+    "elementMetalEn": "Metal",
+    "elementWaterEn": "Water",
+    "aquarius": "水瓶座",
+    "scorpio": "蠍座",
+    "pisces": "魚座",
+    "ageUnit": "歳",
+    "todayMessage": "今日は新しい始まりに有利な日です。創造性が輝くでしょう。",
+    "searchPlaceholder": "今日は何が気になりますか？",
+    "hint1": "今日の運勢が知りたい",
+    "hint2": "恋愛運はどうですか？",
+    "hint3": "転職してもいいですか？",
+    "scrollDown": "スクロールして続きを見る",
+    "questionPlaceholder": "人生の質問を入力してください...",
+    "questionHint1": "私の人生の方向は？",
+    "questionHint2": "今年の運勢は？",
+    "questionHint3": "私に合った職業は？",
+    "elementCombo": {
+      "earthEarth": "土-土",
+      "metalMetal": "金-金",
+      "waterEarth": "水-土",
+      "waterWater": "水-水",
+      "woodWater": "木-水",
+      "woodEarth": "木-土"
+    },
+    "shinsal": {
+      "heavenlyNoble": "天乙貴人",
+      "heavenlyNobleDesc": "守護のエネルギー",
+      "postHorse": "駅馬",
+      "postHorseDesc": "移動・変化",
+      "peachBlossom": "桃花",
+      "peachBlossomDesc": "魅力・恋愛"
+    }
+  },
+  "common": {
+    "start": "始める",
+    "about": "概要",
+    "ourService": "サービス",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "refunds": "返金規定"
+  },
+  "app": {
+    "myJourney": "マイジャーニー",
+    "community": "コミュニティ"
+  },
+  "about": {
+    "heroTitle1": "運命で診断し、",
+    "heroTitle2": "心理で分析し、",
+    "heroTitle3": "霊性で癒す。",
+    "heroSub": "運命が語り、AIが聴き、あなたが決める。",
+    "heroSubtitle": "運命が語り、AIが聴き、あなたが決める。",
+    "tryDestinyMap": "Destiny Mapを始める",
+    "seeFeatures": "機能を見る",
+    "visualTitle": "世界が愛する方法で、あなただけの運勢ナビゲーション",
+    "visualDesc": "シンプルなインターフェースと信頼できる計算ロジック。タイムゾーン・節気・DSTを正しく反映し、結果を分かりやすい言葉で翻訳します。",
+    "servicesEyebrow": "DestinyPal サービス",
+    "servicesTitle": "8つの運命リーディング",
+    "servicesDesc": "各サービスで多角的に運命を探求してください",
+    "discoverTitle": "4つのフレームワーク",
+    "discoverSubtitle": "質問に合わせて選ぶか、一緒に使ってタイミングとテーマを交差検証してください。",
+    "sajuTitle": "四柱推命",
+    "sajuDesc": "年・月・日・時を天干地支で読み解き、五行バランスと長期サイクルを解釈します。",
+    "sajuStrength": "強み: 長期的なテーマ転換、エネルギーバランス",
+    "sajuAccuracy": "精度: 出生時間・節気補正の正確さ",
+    "sajuDetailTitle": "詳細",
+    "sajuDetail": "時柱が変わると性格・タイミングが変わることがあります。節気境界/地域暦補正が重要です。",
+    "sajuLink": "四柱推命へ",
+    "astroTitle": "占星術",
+    "astroDesc": "出生図の惑星・サイン・ハウス・角度を読み、トランジット/リターンでタイミングを見ます。",
+    "astroStrength": "強み: ハウス別詳細、心理・関係パターン",
+    "astroAccuracy": "精度: 時間・タイムゾーン/DST・ハウスシステム",
+    "astroDetailTitle": "詳細",
+    "astroDetail": "5〜15分の誤差でもASC/ハウスが変わる可能性があります。病院記録+DST反映推奨。",
+    "astroLink": "占星術へ",
+    "ichingTitle": "易経",
+    "ichingDesc": "64卦の象徴言語で現在の流れと転換点を捉えます。",
+    "ichingStrength": "強み: 選択の分岐点での方向性ヒント",
+    "ichingAccuracy": "精度: 質問の質と文脈の整理",
+    "ichingDetailTitle": "詳細",
+    "ichingDetail": "「はい/いいえ」より開かれた質問がより明確なアドバイスを引き出します。",
+    "ichingLink": "易経へ",
+    "tarotTitle": "タロット",
+    "tarotDesc": "象徴カードで現在の心理・関係パターンを明らかにし、即座の行動ガイドを提供します。",
+    "tarotStrength": "強み: 素早いインサイト、コーチング向き",
+    "tarotAccuracy": "精度: 質問の具体性・スプレッド・リロール戦略",
+    "tarotDetailTitle": "詳細",
+    "tarotDetail": "同じカードでも文脈/位置によってメッセージが異なります。行動シナリオと一緒に見てください。",
+    "tarotLink": "タロットへ",
+    "philosophyTitle": "私たちの哲学",
+    "philosophy": {
+      "accurate": {
+        "title": "正確な計算",
+        "desc": "タイムゾーン、節気、DSTを反映した信頼性の高い計算"
+      },
+      "ethical": {
+        "title": "倫理的なガイダンス",
+        "desc": "絶対的な予測ではなく、選択を助ける実用的なヒント"
+      },
+      "ui": {
+        "title": "直感的なUI",
+        "desc": "複雑な情報を分かりやすくする美しいインターフェース"
+      },
+      "ai": {
+        "title": "AI統合",
+        "desc": "複数の占いシステムをAIで統合"
+      }
+    },
+    "service": {
+      "astrology": {
+        "title": "占星術",
+        "desc": "惑星の位置とハウスであなたの性格と運命を読み解く"
+      },
+      "saju": {
+        "title": "四柱推命",
+        "desc": "四柱で五行バランスと運勢サイクルを分析"
+      },
+      "tarot": {
+        "title": "タロット",
+        "desc": "78枚のカードで現在と未来の可能性を探る"
+      },
+      "iching": {
+        "title": "易経",
+        "desc": "64卦の知恵で現在の状況と変化の方向を導く"
+      },
+      "dream": {
+        "title": "夢占い",
+        "desc": "夢の象徴と無意識からのメッセージを解釈"
+      },
+      "numerology": {
+        "title": "数秘術",
+        "desc": "生年月日の数字で人生の道と可能性を発見"
+      },
+      "compatibility": {
+        "title": "相性",
+        "desc": "二人の調和と関係性のダイナミクスを分析"
+      },
+      "personality": {
+        "title": "性格分析",
+        "desc": "あなたの性格特性、長所、短所を深く分析"
+      }
+    },
+    "ctaTitle": "今すぐ始める",
+    "ctaSub": "AIで運命の地図を探索",
+    "ctaPrimary": "Destiny Mapを始める",
+    "ctaSecondary": "ホームへ"
+  }
+}

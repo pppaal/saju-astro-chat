@@ -8,6 +8,7 @@ import { apiGuard } from "@/lib/apiGuard";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 import { sendNotification } from "@/lib/notifications/sse";
+import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
       theme = "life",
       lang = "ko",
       prompt,
+      userTimezone,
     } = body;
 
     if (!birthDate || !birthTime || !latitude || !longitude) {
@@ -83,6 +85,7 @@ export async function POST(request: Request) {
       theme,
       lang,
       extraPrompt: prompt,
+      userTimezone, // 사용자 현재 타임존 (운세 날짜용)
     });
     recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });
     recordCounter("destiny.report.success", 1, { theme, lang });
@@ -92,9 +95,11 @@ export async function POST(request: Request) {
     }
 
     // Notify user via SSE if logged in
+    let userId: string | undefined;
     try {
       const session = await getServerSession(authOptions);
       if (session?.user?.email) {
+        userId = session.user.id;
         sendNotification(session.user.email, {
           type: "system",
           title: "Destiny Map Ready!",
@@ -112,11 +117,38 @@ export async function POST(request: Request) {
       }
     }
 
-    // Five element fallback values
+    // 로그인 사용자의 경우 상담 기록 자동 저장
+    if (userId && report?.report) {
+      try {
+        const fullReport = cleanseText(report.report);
+        const summary = extractSummary(fullReport);
+        await saveConsultation({
+          userId,
+          theme,
+          summary,
+          fullReport,
+          signals: {
+            saju: report.raw?.raw?.saju,
+            astrology: report.raw?.raw?.astrology,
+          },
+          userQuestion: prompt || null,
+          locale: lang,
+        });
+        if (enableDebugLogs) {
+          console.log("[API] Consultation saved for user");
+        }
+      } catch (saveErr) {
+        if (enableDebugLogs) {
+          console.warn("[API] Consultation save failed:", saveErr);
+        }
+      }
+    }
+
+    // Five element fallback values - access from report.raw.saju (not report.raw.raw.saju)
     const dynamicFiveElements =
-      report?.raw?.raw?.saju?.fiveElements &&
-      Object.keys(report.raw.raw.saju.fiveElements).length > 0
-        ? report.raw.raw.saju.fiveElements
+      report?.raw?.saju?.fiveElements &&
+      Object.keys(report.raw.saju.fiveElements).length > 0
+        ? report.raw.saju.fiveElements
         : undefined;
 
     const fiveElements = dynamicFiveElements ?? {
@@ -128,13 +160,13 @@ export async function POST(request: Request) {
     };
 
     const saju: SajuResult = {
-      dayMaster: report.raw?.raw?.saju?.dayMaster ?? { name: "Unknown Day Master", element: "unknown" },
+      dayMaster: report.raw?.saju?.dayMaster ?? { name: "Unknown Day Master", element: "unknown" },
       fiveElements,
-      pillars: report.raw?.raw?.saju?.pillars,
-      unse: report.raw?.raw?.saju?.unse,
+      pillars: report.raw?.saju?.pillars,
+      unse: report.raw?.saju?.unse,
     };
 
-    const astrology: AstrologyResult = report.raw?.raw?.astrology ?? { facts: {} };
+    const astrology: AstrologyResult = report.raw?.astrology ?? { facts: {} };
 
     // Persist logs for debugging (consider disabling or masking in production)
     if (enableDebugLogs) {
@@ -180,6 +212,9 @@ export async function POST(request: Request) {
       saju,
       astrology,
       safety: false,
+      // 분석 기준 날짜 정보 (사용자 타임존 기준)
+      analysisDate: report.raw?.analysisDate,
+      userTimezone: report.raw?.userTimezone,
     });
   } catch (err: any) {
     console.error("[DestinyMap API Error]:", err);

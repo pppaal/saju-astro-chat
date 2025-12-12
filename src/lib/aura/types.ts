@@ -48,6 +48,8 @@ export interface AuraAnalysis {
   typeCode: string;
   personaName: string;
   axes: Record<AuraAxisKey, AuraAxisResult>;
+  consistencyScore?: number;
+  consistencyLabel?: string;
 
   // Colors + highlights
   primaryColor: string;

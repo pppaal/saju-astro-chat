@@ -1,0 +1,134 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "composite/aspects",
+  "$count": 50,
+  "$description": "합성 차트 내 애스펙트 해석 - 관계의 역학",
+
+  "overview": {
+    "description": "합성 차트 내 행성 간 애스펙트는 관계의 내적 역학을 보여줍니다.",
+    "importance": "합성 차트의 애스펙트가 긴장할수록 관계에 노력이 필요합니다."
+  },
+
+  "sun_aspects": {
+    "Sun_conjunct_Moon": {
+      "harmony": "매우 조화로움",
+      "meaning": "관계의 목적과 감정적 니즈가 일치",
+      "experience": "자연스럽게 조화로운 관계, 서로를 이해함",
+      "gift": "깊은 이해, 자연스러운 균형"
+    },
+    "Sun_square_Moon": {
+      "harmony": "도전적",
+      "meaning": "관계의 목적과 감정적 니즈 사이 긴장",
+      "experience": "목표와 감정이 충돌할 수 있음",
+      "challenge": "이해를 위한 노력 필요"
+    },
+    "Sun_conjunct_Venus": {
+      "harmony": "매우 조화로움",
+      "meaning": "관계의 목적이 사랑과 조화",
+      "experience": "서로를 사랑하고 인정하는 관계",
+      "gift": "자연스러운 애정, 조화"
+    },
+    "Sun_square_Saturn": {
+      "harmony": "도전적",
+      "meaning": "관계에 제한이나 책임감이 무겁게 느껴짐",
+      "experience": "함께 있으면 부담스럽거나 제한된 느낌",
+      "challenge": "구조와 자유의 균형"
+    },
+    "Sun_conjunct_Jupiter": {
+      "harmony": "매우 조화로움",
+      "meaning": "함께 있으면 확장되고 성장함",
+      "experience": "낙관적이고 풍요로운 관계",
+      "gift": "상호 성장, 행운"
+    }
+  },
+
+  "moon_aspects": {
+    "Moon_conjunct_Venus": {
+      "harmony": "매우 조화로움",
+      "meaning": "감정적 니즈와 사랑이 일치",
+      "experience": "편안하고 사랑이 넘치는 관계",
+      "gift": "정서적 안정, 따뜻함"
+    },
+    "Moon_square_Mars": {
+      "harmony": "도전적",
+      "meaning": "감정과 행동 사이 긴장",
+      "experience": "감정적 충돌, 열정적이지만 휘발성",
+      "challenge": "분노 관리, 감정 표현"
+    },
+    "Moon_opposite_Saturn": {
+      "harmony": "도전적",
+      "meaning": "감정 표현이 제한됨",
+      "experience": "차갑게 느껴질 수 있음",
+      "challenge": "감정적 따뜻함 유지"
+    },
+    "Moon_trine_Jupiter": {
+      "harmony": "조화로움",
+      "meaning": "감정적 풍요와 낙관",
+      "experience": "함께 있으면 감정적으로 풍요로움",
+      "gift": "관대함, 감정적 지지"
+    }
+  },
+
+  "venus_aspects": {
+    "Venus_conjunct_Mars": {
+      "harmony": "열정적",
+      "meaning": "사랑과 욕망이 결합",
+      "experience": "강한 성적 끌림과 열정",
+      "gift": "열정, 성적 화학"
+    },
+    "Venus_square_Saturn": {
+      "harmony": "도전적",
+      "meaning": "사랑 표현에 제한",
+      "experience": "애정 표현이 어렵거나 차가움",
+      "challenge": "사랑을 표현하는 법 배우기"
+    },
+    "Venus_trine_Jupiter": {
+      "harmony": "매우 조화로움",
+      "meaning": "풍요로운 사랑과 행운",
+      "experience": "관대하고 즐거운 관계",
+      "gift": "풍요, 관대함, 즐거움"
+    },
+    "Venus_opposite_Pluto": {
+      "harmony": "강렬함",
+      "meaning": "깊고 변형적인 사랑",
+      "experience": "집착적일 수 있지만 깊은 연결",
+      "challenge": "집착과 통제 극복"
+    }
+  },
+
+  "challenging_aspects": {
+    "Mars_square_Saturn": {
+      "meaning": "행동에 대한 좌절과 제한",
+      "experience": "함께 무언가를 하려고 하면 막힘",
+      "advice": "인내와 현실적 목표 설정"
+    },
+    "Saturn_square_Uranus": {
+      "meaning": "안정과 자유 사이 긴장",
+      "experience": "헌신과 독립 사이 갈등",
+      "advice": "양쪽 니즈를 존중하는 균형"
+    },
+    "Sun_opposite_Pluto": {
+      "meaning": "권력 투쟁",
+      "experience": "누가 통제하는가에 대한 갈등",
+      "advice": "통제를 내려놓고 신뢰 구축"
+    }
+  },
+
+  "supportive_aspects": {
+    "Sun_trine_Moon": {
+      "meaning": "자연스러운 조화",
+      "experience": "서로를 쉽게 이해하고 지지함",
+      "gift": "균형과 이해"
+    },
+    "Venus_sextile_Mars": {
+      "meaning": "균형 잡힌 끌림",
+      "experience": "로맨틱하고 열정적이지만 안정적",
+      "gift": "건강한 성적 끌림"
+    },
+    "Jupiter_trine_Saturn": {
+      "meaning": "현실적 성장",
+      "experience": "함께 안정적으로 성장",
+      "gift": "지속 가능한 확장"
+    }
+  }
+}

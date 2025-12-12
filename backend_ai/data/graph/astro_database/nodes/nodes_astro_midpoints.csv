@@ -1,0 +1,29 @@
+﻿id,type,description
+MP_Sun_Moon,미드포인트,Sun/Moon 미드포인트 - 영혼의 점
+MP_Venus_Mars,미드포인트,Venus/Mars 미드포인트 - 열정의 점
+MP_Mercury_Venus,미드포인트,Mercury/Venus 미드포인트 - 사랑 언어의 점
+MP_Sun_Venus,미드포인트,Sun/Venus 미드포인트 - 매력의 점
+MP_Sun_Mars,미드포인트,Sun/Mars 미드포인트 - 의지력의 점
+MP_Moon_Venus,미드포인트,Moon/Venus 미드포인트 - 감정적 사랑의 점
+MP_Moon_Mars,미드포인트,Moon/Mars 미드포인트 - 감정적 행동의 점
+MP_Jupiter_Saturn,미드포인트,Jupiter/Saturn 미드포인트 - 성공의 점
+MP_Sun_Jupiter,미드포인트,Sun/Jupiter 미드포인트 - 행운의 점
+MP_Mars_Jupiter,미드포인트,Mars/Jupiter 미드포인트 - 행동적 성공의 점
+MP_Mercury_Jupiter,미드포인트,Mercury/Jupiter 미드포인트 - 지적 성공의 점
+MP_Venus_Jupiter,미드포인트,Venus/Jupiter 미드포인트 - 풍요의 점
+MP_Mars_Saturn,미드포인트,Mars/Saturn 미드포인트 - 절제된 행동의 점
+MP_Sun_Saturn,미드포인트,Sun/Saturn 미드포인트 - 성숙의 점
+MP_Moon_Saturn,미드포인트,Moon/Saturn 미드포인트 - 감정적 성숙의 점
+MP_Venus_Saturn,미드포인트,Venus/Saturn 미드포인트 - 사랑의 시험의 점
+MP_Sun_Pluto,미드포인트,Sun/Pluto 미드포인트 - 권력과 변형의 점
+MP_Moon_Pluto,미드포인트,Moon/Pluto 미드포인트 - 감정적 변형의 점
+MP_Venus_Pluto,미드포인트,Venus/Pluto 미드포인트 - 변형적 사랑의 점
+MP_Mars_Pluto,미드포인트,Mars/Pluto 미드포인트 - 권력 의지의 점
+MP_Sun_Uranus,미드포인트,Sun/Uranus 미드포인트 - 각성의 점
+MP_Moon_Uranus,미드포인트,Moon/Uranus 미드포인트 - 감정적 독립의 점
+MP_Venus_Uranus,미드포인트,Venus/Uranus 미드포인트 - 자유로운 사랑의 점
+MP_Mars_Uranus,미드포인트,Mars/Uranus 미드포인트 - 혁명적 행동의 점
+MP_Sun_Neptune,미드포인트,Sun/Neptune 미드포인트 - 영적 자아의 점
+MP_Moon_Neptune,미드포인트,Moon/Neptune 미드포인트 - 직관의 점
+MP_Venus_Neptune,미드포인트,Venus/Neptune 미드포인트 - 이상적 사랑의 점
+MP_Jupiter_Neptune,미드포인트,Jupiter/Neptune 미드포인트 - 확장된 영성의 점

@@ -1,0 +1,2357 @@
+{
+  "meta": {
+    "generated_at": "2025-12-09T20:14:41.327981",
+    "version": "1.0",
+    "total_hexagrams": 64
+  },
+  "hexagrams": [
+    {
+      "number": 1,
+      "hanja": "乾",
+      "korean_name": "건",
+      "full_name": "중천건",
+      "binary": "111111",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "창조",
+        "하늘",
+        "강건함"
+      ],
+      "judgment": "건은 창조, 하늘, 강건함을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 창조을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "건괘는 창조, 하늘, 강건함을 나타냅니다.",
+        "love": "관계에서 창조의 에너지가 작용합니다.",
+        "career": "직업/사업에서 창조을 고려하세요.",
+        "advice": "창조, 하늘, 강건함의 지혜를 따르세요."
+      },
+      "changing_to": [
+        2,
+        3,
+        5,
+        9,
+        17,
+        33
+      ]
+    },
+    {
+      "number": 2,
+      "hanja": "坤",
+      "korean_name": "곤",
+      "full_name": "중지곤",
+      "binary": "000000",
+      "upper_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "수용",
+        "땅",
+        "유순함"
+      ],
+      "judgment": "곤은 수용, 땅, 유순함을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 수용을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "곤괘는 수용, 땅, 유순함을 나타냅니다.",
+        "love": "관계에서 수용의 에너지가 작용합니다.",
+        "career": "직업/사업에서 수용을 고려하세요.",
+        "advice": "수용, 땅, 유순함의 지혜를 따르세요."
+      },
+      "changing_to": [
+        1,
+        4,
+        6,
+        10,
+        18,
+        34
+      ]
+    },
+    {
+      "number": 3,
+      "hanja": "屯",
+      "korean_name": "둔",
+      "full_name": "수뢰둔",
+      "binary": "010001",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "어려움의 시작",
+        "인내"
+      ],
+      "judgment": "둔은 어려움의 시작, 인내을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 어려움의 시작을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "둔괘는 어려움의 시작, 인내을 나타냅니다.",
+        "love": "관계에서 어려움의 시작의 에너지가 작용합니다.",
+        "career": "직업/사업에서 어려움의 시작을 고려하세요.",
+        "advice": "어려움의 시작, 인내의 지혜를 따르세요."
+      },
+      "changing_to": [
+        4,
+        1,
+        7,
+        11,
+        19,
+        35
+      ]
+    },
+    {
+      "number": 4,
+      "hanja": "蒙",
+      "korean_name": "몽",
+      "full_name": "산수몽",
+      "binary": "100010",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "어리석음",
+        "배움"
+      ],
+      "judgment": "몽은 어리석음, 배움을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 어리석음을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "몽괘는 어리석음, 배움을 나타냅니다.",
+        "love": "관계에서 어리석음의 에너지가 작용합니다.",
+        "career": "직업/사업에서 어리석음을 고려하세요.",
+        "advice": "어리석음, 배움의 지혜를 따르세요."
+      },
+      "changing_to": [
+        3,
+        2,
+        8,
+        12,
+        20,
+        36
+      ]
+    },
+    {
+      "number": 5,
+      "hanja": "需",
+      "korean_name": "수",
+      "full_name": "수천수",
+      "binary": "010111",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "기다림",
+        "인내"
+      ],
+      "judgment": "수은 기다림, 인내을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 기다림을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "수괘는 기다림, 인내을 나타냅니다.",
+        "love": "관계에서 기다림의 에너지가 작용합니다.",
+        "career": "직업/사업에서 기다림을 고려하세요.",
+        "advice": "기다림, 인내의 지혜를 따르세요."
+      },
+      "changing_to": [
+        6,
+        7,
+        1,
+        13,
+        21,
+        37
+      ]
+    },
+    {
+      "number": 6,
+      "hanja": "訟",
+      "korean_name": "송",
+      "full_name": "천수송",
+      "binary": "111010",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "다툼",
+        "갈등"
+      ],
+      "judgment": "송은 다툼, 갈등을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 다툼을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "송괘는 다툼, 갈등을 나타냅니다.",
+        "love": "관계에서 다툼의 에너지가 작용합니다.",
+        "career": "직업/사업에서 다툼을 고려하세요.",
+        "advice": "다툼, 갈등의 지혜를 따르세요."
+      },
+      "changing_to": [
+        5,
+        8,
+        2,
+        14,
+        22,
+        38
+      ]
+    },
+    {
+      "number": 7,
+      "hanja": "師",
+      "korean_name": "사",
+      "full_name": "지수사",
+      "binary": "000010",
+      "upper_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "군대",
+        "지도력"
+      ],
+      "judgment": "사은 군대, 지도력을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 군대을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "사괘는 군대, 지도력을 나타냅니다.",
+        "love": "관계에서 군대의 에너지가 작용합니다.",
+        "career": "직업/사업에서 군대을 고려하세요.",
+        "advice": "군대, 지도력의 지혜를 따르세요."
+      },
+      "changing_to": [
+        8,
+        5,
+        3,
+        15,
+        23,
+        39
+      ]
+    },
+    {
+      "number": 8,
+      "hanja": "比",
+      "korean_name": "비",
+      "full_name": "수지비",
+      "binary": "010000",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "친밀함",
+        "협력"
+      ],
+      "judgment": "비은 친밀함, 협력을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 친밀함을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "비괘는 친밀함, 협력을 나타냅니다.",
+        "love": "관계에서 친밀함의 에너지가 작용합니다.",
+        "career": "직업/사업에서 친밀함을 고려하세요.",
+        "advice": "친밀함, 협력의 지혜를 따르세요."
+      },
+      "changing_to": [
+        7,
+        6,
+        4,
+        16,
+        24,
+        40
+      ]
+    },
+    {
+      "number": 9,
+      "hanja": "小畜",
+      "korean_name": "소축",
+      "full_name": "풍천소축",
+      "binary": "110111",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "작은 축적",
+        "절제"
+      ],
+      "judgment": "소축은 작은 축적, 절제을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 작은 축적을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "소축괘는 작은 축적, 절제을 나타냅니다.",
+        "love": "관계에서 작은 축적의 에너지가 작용합니다.",
+        "career": "직업/사업에서 작은 축적을 고려하세요.",
+        "advice": "작은 축적, 절제의 지혜를 따르세요."
+      },
+      "changing_to": [
+        10,
+        11,
+        13,
+        1,
+        25,
+        41
+      ]
+    },
+    {
+      "number": 10,
+      "hanja": "履",
+      "korean_name": "리",
+      "full_name": "천택리",
+      "binary": "111011",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "예절",
+        "신중함"
+      ],
+      "judgment": "리은 예절, 신중함을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 예절을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "리괘는 예절, 신중함을 나타냅니다.",
+        "love": "관계에서 예절의 에너지가 작용합니다.",
+        "career": "직업/사업에서 예절을 고려하세요.",
+        "advice": "예절, 신중함의 지혜를 따르세요."
+      },
+      "changing_to": [
+        9,
+        12,
+        14,
+        2,
+        26,
+        42
+      ]
+    },
+    {
+      "number": 11,
+      "hanja": "괘11",
+      "korean_name": "제11괘",
+      "full_name": "육십사괘 제11",
+      "binary": "001010",
+      "upper_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제11괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제11괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        12,
+        9,
+        15,
+        3,
+        27,
+        43
+      ]
+    },
+    {
+      "number": 12,
+      "hanja": "괘12",
+      "korean_name": "제12괘",
+      "full_name": "육십사괘 제12",
+      "binary": "001011",
+      "upper_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제12괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제12괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        11,
+        10,
+        16,
+        4,
+        28,
+        44
+      ]
+    },
+    {
+      "number": 13,
+      "hanja": "괘13",
+      "korean_name": "제13괘",
+      "full_name": "육십사괘 제13",
+      "binary": "001100",
+      "upper_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제13괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제13괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        14,
+        15,
+        9,
+        5,
+        29,
+        45
+      ]
+    },
+    {
+      "number": 14,
+      "hanja": "괘14",
+      "korean_name": "제14괘",
+      "full_name": "육십사괘 제14",
+      "binary": "001101",
+      "upper_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제14괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제14괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        13,
+        16,
+        10,
+        6,
+        30,
+        46
+      ]
+    },
+    {
+      "number": 15,
+      "hanja": "괘15",
+      "korean_name": "제15괘",
+      "full_name": "육십사괘 제15",
+      "binary": "001110",
+      "upper_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제15괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제15괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        16,
+        13,
+        11,
+        7,
+        31,
+        47
+      ]
+    },
+    {
+      "number": 16,
+      "hanja": "괘16",
+      "korean_name": "제16괘",
+      "full_name": "육십사괘 제16",
+      "binary": "001111",
+      "upper_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제16괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제16괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        15,
+        14,
+        12,
+        8,
+        32,
+        48
+      ]
+    },
+    {
+      "number": 17,
+      "hanja": "괘17",
+      "korean_name": "제17괘",
+      "full_name": "육십사괘 제17",
+      "binary": "010000",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제17괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제17괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        18,
+        19,
+        21,
+        25,
+        1,
+        49
+      ]
+    },
+    {
+      "number": 18,
+      "hanja": "괘18",
+      "korean_name": "제18괘",
+      "full_name": "육십사괘 제18",
+      "binary": "010001",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제18괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제18괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        17,
+        20,
+        22,
+        26,
+        2,
+        50
+      ]
+    },
+    {
+      "number": 19,
+      "hanja": "괘19",
+      "korean_name": "제19괘",
+      "full_name": "육십사괘 제19",
+      "binary": "010010",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제19괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제19괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        20,
+        17,
+        23,
+        27,
+        3,
+        51
+      ]
+    },
+    {
+      "number": 20,
+      "hanja": "괘20",
+      "korean_name": "제20괘",
+      "full_name": "육십사괘 제20",
+      "binary": "010011",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제20괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제20괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        19,
+        18,
+        24,
+        28,
+        4,
+        52
+      ]
+    },
+    {
+      "number": 21,
+      "hanja": "괘21",
+      "korean_name": "제21괘",
+      "full_name": "육십사괘 제21",
+      "binary": "010100",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제21괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제21괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        22,
+        23,
+        17,
+        29,
+        5,
+        53
+      ]
+    },
+    {
+      "number": 22,
+      "hanja": "괘22",
+      "korean_name": "제22괘",
+      "full_name": "육십사괘 제22",
+      "binary": "010101",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제22괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제22괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        21,
+        24,
+        18,
+        30,
+        6,
+        54
+      ]
+    },
+    {
+      "number": 23,
+      "hanja": "괘23",
+      "korean_name": "제23괘",
+      "full_name": "육십사괘 제23",
+      "binary": "010110",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제23괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제23괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        24,
+        21,
+        19,
+        31,
+        7,
+        55
+      ]
+    },
+    {
+      "number": 24,
+      "hanja": "괘24",
+      "korean_name": "제24괘",
+      "full_name": "육십사괘 제24",
+      "binary": "010111",
+      "upper_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제24괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제24괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        23,
+        22,
+        20,
+        32,
+        8,
+        56
+      ]
+    },
+    {
+      "number": 25,
+      "hanja": "괘25",
+      "korean_name": "제25괘",
+      "full_name": "육십사괘 제25",
+      "binary": "011000",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제25괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제25괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        26,
+        27,
+        29,
+        17,
+        9,
+        57
+      ]
+    },
+    {
+      "number": 26,
+      "hanja": "괘26",
+      "korean_name": "제26괘",
+      "full_name": "육십사괘 제26",
+      "binary": "011001",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제26괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제26괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        25,
+        28,
+        30,
+        18,
+        10,
+        58
+      ]
+    },
+    {
+      "number": 27,
+      "hanja": "괘27",
+      "korean_name": "제27괘",
+      "full_name": "육십사괘 제27",
+      "binary": "011010",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제27괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제27괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        28,
+        25,
+        31,
+        19,
+        11,
+        59
+      ]
+    },
+    {
+      "number": 28,
+      "hanja": "괘28",
+      "korean_name": "제28괘",
+      "full_name": "육십사괘 제28",
+      "binary": "011011",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제28괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제28괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        27,
+        26,
+        32,
+        20,
+        12,
+        60
+      ]
+    },
+    {
+      "number": 29,
+      "hanja": "괘29",
+      "korean_name": "제29괘",
+      "full_name": "육십사괘 제29",
+      "binary": "011100",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제29괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제29괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        30,
+        31,
+        25,
+        21,
+        13,
+        61
+      ]
+    },
+    {
+      "number": 30,
+      "hanja": "괘30",
+      "korean_name": "제30괘",
+      "full_name": "육십사괘 제30",
+      "binary": "011101",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제30괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제30괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        29,
+        32,
+        26,
+        22,
+        14,
+        62
+      ]
+    },
+    {
+      "number": 31,
+      "hanja": "괘31",
+      "korean_name": "제31괘",
+      "full_name": "육십사괘 제31",
+      "binary": "011110",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제31괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제31괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        32,
+        29,
+        27,
+        23,
+        15,
+        63
+      ]
+    },
+    {
+      "number": 32,
+      "hanja": "괘32",
+      "korean_name": "제32괘",
+      "full_name": "육십사괘 제32",
+      "binary": "011111",
+      "upper_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제32괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제32괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        31,
+        30,
+        28,
+        24,
+        16,
+        64
+      ]
+    },
+    {
+      "number": 33,
+      "hanja": "괘33",
+      "korean_name": "제33괘",
+      "full_name": "육십사괘 제33",
+      "binary": "100000",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제33괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제33괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        34,
+        35,
+        37,
+        41,
+        49,
+        1
+      ]
+    },
+    {
+      "number": 34,
+      "hanja": "괘34",
+      "korean_name": "제34괘",
+      "full_name": "육십사괘 제34",
+      "binary": "100001",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제34괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제34괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        33,
+        36,
+        38,
+        42,
+        50,
+        2
+      ]
+    },
+    {
+      "number": 35,
+      "hanja": "괘35",
+      "korean_name": "제35괘",
+      "full_name": "육십사괘 제35",
+      "binary": "100010",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제35괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제35괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        36,
+        33,
+        39,
+        43,
+        51,
+        3
+      ]
+    },
+    {
+      "number": 36,
+      "hanja": "괘36",
+      "korean_name": "제36괘",
+      "full_name": "육십사괘 제36",
+      "binary": "100011",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제36괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제36괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        35,
+        34,
+        40,
+        44,
+        52,
+        4
+      ]
+    },
+    {
+      "number": 37,
+      "hanja": "괘37",
+      "korean_name": "제37괘",
+      "full_name": "육십사괘 제37",
+      "binary": "100100",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제37괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제37괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        38,
+        39,
+        33,
+        45,
+        53,
+        5
+      ]
+    },
+    {
+      "number": 38,
+      "hanja": "괘38",
+      "korean_name": "제38괘",
+      "full_name": "육십사괘 제38",
+      "binary": "100101",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제38괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제38괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        37,
+        40,
+        34,
+        46,
+        54,
+        6
+      ]
+    },
+    {
+      "number": 39,
+      "hanja": "괘39",
+      "korean_name": "제39괘",
+      "full_name": "육십사괘 제39",
+      "binary": "100110",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제39괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제39괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        40,
+        37,
+        35,
+        47,
+        55,
+        7
+      ]
+    },
+    {
+      "number": 40,
+      "hanja": "괘40",
+      "korean_name": "제40괘",
+      "full_name": "육십사괘 제40",
+      "binary": "100111",
+      "upper_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제40괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제40괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        39,
+        38,
+        36,
+        48,
+        56,
+        8
+      ]
+    },
+    {
+      "number": 41,
+      "hanja": "괘41",
+      "korean_name": "제41괘",
+      "full_name": "육십사괘 제41",
+      "binary": "101000",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제41괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제41괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        42,
+        43,
+        45,
+        33,
+        57,
+        9
+      ]
+    },
+    {
+      "number": 42,
+      "hanja": "괘42",
+      "korean_name": "제42괘",
+      "full_name": "육십사괘 제42",
+      "binary": "101001",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제42괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제42괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        41,
+        44,
+        46,
+        34,
+        58,
+        10
+      ]
+    },
+    {
+      "number": 43,
+      "hanja": "괘43",
+      "korean_name": "제43괘",
+      "full_name": "육십사괘 제43",
+      "binary": "101010",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제43괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제43괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        44,
+        41,
+        47,
+        35,
+        59,
+        11
+      ]
+    },
+    {
+      "number": 44,
+      "hanja": "괘44",
+      "korean_name": "제44괘",
+      "full_name": "육십사괘 제44",
+      "binary": "101011",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제44괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제44괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        43,
+        42,
+        48,
+        36,
+        60,
+        12
+      ]
+    },
+    {
+      "number": 45,
+      "hanja": "괘45",
+      "korean_name": "제45괘",
+      "full_name": "육십사괘 제45",
+      "binary": "101100",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제45괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제45괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        46,
+        47,
+        41,
+        37,
+        61,
+        13
+      ]
+    },
+    {
+      "number": 46,
+      "hanja": "괘46",
+      "korean_name": "제46괘",
+      "full_name": "육십사괘 제46",
+      "binary": "101101",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제46괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제46괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        45,
+        48,
+        42,
+        38,
+        62,
+        14
+      ]
+    },
+    {
+      "number": 47,
+      "hanja": "괘47",
+      "korean_name": "제47괘",
+      "full_name": "육십사괘 제47",
+      "binary": "101110",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제47괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제47괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        48,
+        45,
+        43,
+        39,
+        63,
+        15
+      ]
+    },
+    {
+      "number": 48,
+      "hanja": "괘48",
+      "korean_name": "제48괘",
+      "full_name": "육십사괘 제48",
+      "binary": "101111",
+      "upper_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제48괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제48괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        47,
+        46,
+        44,
+        40,
+        64,
+        16
+      ]
+    },
+    {
+      "number": 49,
+      "hanja": "괘49",
+      "korean_name": "제49괘",
+      "full_name": "육십사괘 제49",
+      "binary": "110000",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제49괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제49괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        50,
+        51,
+        53,
+        57,
+        33,
+        17
+      ]
+    },
+    {
+      "number": 50,
+      "hanja": "괘50",
+      "korean_name": "제50괘",
+      "full_name": "육십사괘 제50",
+      "binary": "110001",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제50괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제50괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        49,
+        52,
+        54,
+        58,
+        34,
+        18
+      ]
+    },
+    {
+      "number": 51,
+      "hanja": "괘51",
+      "korean_name": "제51괘",
+      "full_name": "육십사괘 제51",
+      "binary": "110010",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제51괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제51괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        52,
+        49,
+        55,
+        59,
+        35,
+        19
+      ]
+    },
+    {
+      "number": 52,
+      "hanja": "괘52",
+      "korean_name": "제52괘",
+      "full_name": "육십사괘 제52",
+      "binary": "110011",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제52괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제52괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        51,
+        50,
+        56,
+        60,
+        36,
+        20
+      ]
+    },
+    {
+      "number": 53,
+      "hanja": "괘53",
+      "korean_name": "제53괘",
+      "full_name": "육십사괘 제53",
+      "binary": "110100",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제53괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제53괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        54,
+        55,
+        49,
+        61,
+        37,
+        21
+      ]
+    },
+    {
+      "number": 54,
+      "hanja": "괘54",
+      "korean_name": "제54괘",
+      "full_name": "육십사괘 제54",
+      "binary": "110101",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제54괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제54괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        53,
+        56,
+        50,
+        62,
+        38,
+        22
+      ]
+    },
+    {
+      "number": 55,
+      "hanja": "괘55",
+      "korean_name": "제55괘",
+      "full_name": "육십사괘 제55",
+      "binary": "110110",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제55괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제55괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        56,
+        53,
+        51,
+        63,
+        39,
+        23
+      ]
+    },
+    {
+      "number": 56,
+      "hanja": "괘56",
+      "korean_name": "제56괘",
+      "full_name": "육십사괘 제56",
+      "binary": "110111",
+      "upper_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제56괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제56괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        55,
+        54,
+        52,
+        64,
+        40,
+        24
+      ]
+    },
+    {
+      "number": 57,
+      "hanja": "괘57",
+      "korean_name": "제57괘",
+      "full_name": "육십사괘 제57",
+      "binary": "111000",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "곤",
+        "element": "땅",
+        "nature": "유순"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제57괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제57괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        58,
+        59,
+        61,
+        49,
+        41,
+        25
+      ]
+    },
+    {
+      "number": 58,
+      "hanja": "괘58",
+      "korean_name": "제58괘",
+      "full_name": "육십사괘 제58",
+      "binary": "111001",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "간",
+        "element": "산",
+        "nature": "그침"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제58괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제58괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        57,
+        60,
+        62,
+        50,
+        42,
+        26
+      ]
+    },
+    {
+      "number": 59,
+      "hanja": "괘59",
+      "korean_name": "제59괘",
+      "full_name": "육십사괘 제59",
+      "binary": "111010",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "감",
+        "element": "물",
+        "nature": "험난"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제59괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제59괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        60,
+        57,
+        63,
+        51,
+        43,
+        27
+      ]
+    },
+    {
+      "number": 60,
+      "hanja": "괘60",
+      "korean_name": "제60괘",
+      "full_name": "육십사괘 제60",
+      "binary": "111011",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "리",
+        "element": "불",
+        "nature": "밝음"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제60괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제60괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        59,
+        58,
+        64,
+        52,
+        44,
+        28
+      ]
+    },
+    {
+      "number": 61,
+      "hanja": "괘61",
+      "korean_name": "제61괘",
+      "full_name": "육십사괘 제61",
+      "binary": "111100",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "진",
+        "element": "우레",
+        "nature": "움직임"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제61괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제61괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        62,
+        63,
+        57,
+        53,
+        45,
+        29
+      ]
+    },
+    {
+      "number": 62,
+      "hanja": "괘62",
+      "korean_name": "제62괘",
+      "full_name": "육십사괘 제62",
+      "binary": "111101",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "태",
+        "element": "연못",
+        "nature": "기쁨"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제62괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제62괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        61,
+        64,
+        58,
+        54,
+        46,
+        30
+      ]
+    },
+    {
+      "number": 63,
+      "hanja": "괘63",
+      "korean_name": "제63괘",
+      "full_name": "육십사괘 제63",
+      "binary": "111110",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "손",
+        "element": "바람",
+        "nature": "들어감"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제63괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제63괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        64,
+        61,
+        59,
+        55,
+        47,
+        31
+      ]
+    },
+    {
+      "number": 64,
+      "hanja": "괘64",
+      "korean_name": "제64괘",
+      "full_name": "육십사괘 제64",
+      "binary": "111111",
+      "upper_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "lower_trigram": {
+        "name": "건",
+        "element": "하늘",
+        "nature": "강건"
+      },
+      "keywords": [
+        "괘의 의미"
+      ],
+      "judgment": "제64괘은 괘의 의미을 나타내니, 올바름을 지키면 이롭다.",
+      "image": "상에서 괘의 의미을 보여주니, 군자는 이를 본받아 스스로를 닦는다.",
+      "interpretation": {
+        "general": "제64괘괘는 괘의 의미을 나타냅니다.",
+        "love": "관계에서 괘의 의미의 에너지가 작용합니다.",
+        "career": "직업/사업에서 괘의 의미을 고려하세요.",
+        "advice": "괘의 의미의 지혜를 따르세요."
+      },
+      "changing_to": [
+        63,
+        62,
+        60,
+        56,
+        48,
+        32
+      ]
+    }
+  ],
+  "changing_lines": {
+    "position_1": {
+      "name": "초효",
+      "meaning": "시작, 기초, 근본",
+      "advice": "아직 때가 이르니 신중하게"
+    },
+    "position_2": {
+      "name": "이효",
+      "meaning": "내면, 중심, 균형",
+      "advice": "중용을 지키며 내면을 닦으세요"
+    },
+    "position_3": {
+      "name": "삼효",
+      "meaning": "전환점, 위험, 경계",
+      "advice": "조심하되 두려워하지 마세요"
+    },
+    "position_4": {
+      "name": "사효",
+      "meaning": "외부와의 접점, 신중함",
+      "advice": "상황을 잘 살피고 행동하세요"
+    },
+    "position_5": {
+      "name": "오효",
+      "meaning": "중심, 지도자, 성공",
+      "advice": "덕을 쌓고 바르게 이끄세요"
+    },
+    "position_6": {
+      "name": "상효",
+      "meaning": "완성, 극단, 전환",
+      "advice": "물러날 때를 알고 겸손하세요"
+    }
+  }
+}

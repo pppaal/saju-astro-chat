@@ -1,0 +1,653 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "core/signs",
+  "$count": 12,
+  "Aries": {
+    "id": "Aries",
+    "name_ko": "양자리",
+    "name_en": "Aries",
+    "symbol": "Ram",
+    "glyph": "♈",
+    "dates": "3월 21일 ~ 4월 19일",
+    "element": "Fire",
+    "modality": "Cardinal",
+    "polarity": "Positive",
+    "ruler": "Mars",
+    "detriment": "Venus",
+    "exaltation": "Sun",
+    "fall": "Saturn",
+    "keywords": [
+      "시작",
+      "용기",
+      "개척",
+      "독립",
+      "열정",
+      "충동",
+      "리더십"
+    ],
+    "archetype": "전사, 개척자, 선구자",
+    "body_part": "머리, 얼굴, 뇌",
+    "color": "빨강",
+    "metal": "철",
+    "stone": "다이아몬드, 루비",
+    "core": {
+      "essence": "양자리는 황도대의 첫 번째 사인으로, 순수한 시작의 에너지를 상징합니다. 봄의 시작점에서 탄생하는 이 사인은 삶을 향한 원초적인 돌진력을 가지고 있습니다. 양자리는 두려움 없이 미지의 영역에 뛰어들고, 새로운 것을 시작하는 데 천부적인 재능을 가집니다. '나는 존재한다'는 선언이 양자리의 본질입니다.",
+      "light": "용기, 솔직함, 열정, 리더십, 독립심, 결단력, 순수함, 낙관주의",
+      "shadow": "충동성, 이기주의, 조급함, 공격성, 인내 부족, 무모함",
+      "motivation": "새로운 것을 정복하고, 자신의 존재를 증명하며, 1등이 되려는 욕구",
+      "fear": "무시당함, 통제당함, 뒤처짐, 나약해 보이는 것",
+      "growth": "인내를 배우고, 타인의 관점을 존중하며, 협력의 가치를 인식하기"
+    },
+    "compatibility": {
+      "best": [
+        "Leo",
+        "Sagittarius",
+        "Gemini",
+        "Aquarius"
+      ],
+      "good": [
+        "Libra",
+        "Aries"
+      ],
+      "challenging": [
+        "Cancer",
+        "Capricorn"
+      ]
+    },
+    "description": "Aries: {'essence': \"양자리는 황도대의 첫 번째 사인으로, 순수한 시작의 에너지를 상징합니다. 봄의 시작점에서 탄생하는 이 사인은 삶을 향한 원초적인 돌진력을 가지고 있습니다. 양자리는 두려움 없이 미지의 영역에 뛰어들고, 새로운 것을 시작하는 데 천부적인 재능을 가"
+  },
+  "Taurus": {
+    "id": "Taurus",
+    "name_ko": "황소자리",
+    "name_en": "Taurus",
+    "symbol": "Bull",
+    "glyph": "♉",
+    "dates": "4월 20일 ~ 5월 20일",
+    "element": "Earth",
+    "modality": "Fixed",
+    "polarity": "Negative",
+    "ruler": "Venus",
+    "detriment": "Mars, Pluto",
+    "exaltation": "Moon",
+    "fall": "Uranus",
+    "keywords": [
+      "안정",
+      "감각",
+      "소유",
+      "인내",
+      "아름다움",
+      "가치",
+      "지속성"
+    ],
+    "archetype": "정원사, 건축가, 예술가",
+    "body_part": "목, 목구멍, 갑상선",
+    "color": "초록, 분홍",
+    "metal": "구리",
+    "stone": "에메랄드, 사파이어",
+    "core": {
+      "essence": "황소자리는 물질 세계와의 깊은 연결을 상징합니다. 양자리가 시작한 것을 황소자리가 굳건히 세웁니다. 이 사인은 오감을 통해 세상을 경험하며, 아름다움, 쾌락, 그리고 물질적 안정에 높은 가치를 둡니다. 황소자리의 힘은 그 흔들리지 않는 인내와 지속성에 있습니다.",
+      "light": "신뢰감, 인내, 감각적 아름다움 감상, 충성심, 실용성, 관대함",
+      "shadow": "고집, 소유욕, 변화 저항, 탐욕, 나태, 질투",
+      "motivation": "안정과 안전, 물질적 풍요, 감각적 쾌락, 아름다운 것의 소유",
+      "fear": "불안정, 변화, 가진 것을 잃음, 물질적 결핍",
+      "growth": "변화를 두려워하지 않고, 물질적 집착을 내려놓으며, 유연성 기르기"
+    },
+    "compatibility": {
+      "best": [
+        "Virgo",
+        "Capricorn",
+        "Cancer",
+        "Pisces"
+      ],
+      "good": [
+        "Scorpio",
+        "Taurus"
+      ],
+      "challenging": [
+        "Leo",
+        "Aquarius"
+      ]
+    },
+    "description": "Taurus: {'essence': '황소자리는 물질 세계와의 깊은 연결을 상징합니다. 양자리가 시작한 것을 황소자리가 굳건히 세웁니다. 이 사인은 오감을 통해 세상을 경험하며, 아름다움, 쾌락, 그리고 물질적 안정에 높은 가치를 둡니다. 황소자리의 힘은 그 흔들리지 않는 인내와 지"
+  },
+  "Gemini": {
+    "id": "Gemini",
+    "name_ko": "쌍둥이자리",
+    "name_en": "Gemini",
+    "symbol": "Twins",
+    "glyph": "♊",
+    "dates": "5월 21일 ~ 6월 20일",
+    "element": "Air",
+    "modality": "Mutable",
+    "polarity": "Positive",
+    "ruler": "Mercury",
+    "detriment": "Jupiter",
+    "exaltation": "N/A (논쟁 중)",
+    "fall": "N/A",
+    "keywords": [
+      "소통",
+      "호기심",
+      "다양성",
+      "지성",
+      "적응",
+      "정보",
+      "이중성"
+    ],
+    "archetype": "메신저, 작가, 언론인, 상인",
+    "body_part": "손, 팔, 폐, 신경계",
+    "color": "노랑, 하늘색",
+    "metal": "수은",
+    "stone": "마노, 호랑이눈",
+    "core": {
+      "essence": "쌍둥이자리는 정신의 나비입니다. 끊임없이 움직이며 아이디어에서 아이디어로, 사람에서 사람으로 날아다닙니다. 이 사인은 세상을 이해하려는 끝없는 호기심으로 가득 차 있으며, 소통과 연결을 통해 살아갑니다. 쌍둥이자리의 이중성은 모순이 아니라 다양한 관점을 동시에 볼 수 있는 능력입니다.",
+      "light": "지적 민첩성, 소통 능력, 유머, 적응력, 다재다능, 영원한 젊음",
+      "shadow": "산만함, 표면적 사고, 일관성 부족, 이중성, 신경질, 약속 불이행",
+      "motivation": "정보 수집, 아이디어 교환, 연결, 지루함 회피",
+      "fear": "갇힘, 지루함, 단조로움, 소통 단절",
+      "growth": "깊이를 추구하고, 한 가지에 집중하며, 말과 행동을 일치시키기"
+    },
+    "compatibility": {
+      "best": [
+        "Libra",
+        "Aquarius",
+        "Aries",
+        "Leo"
+      ],
+      "good": [
+        "Sagittarius",
+        "Gemini"
+      ],
+      "challenging": [
+        "Virgo",
+        "Pisces"
+      ]
+    },
+    "description": "Gemini: {'essence': '쌍둥이자리는 정신의 나비입니다. 끊임없이 움직이며 아이디어에서 아이디어로, 사람에서 사람으로 날아다닙니다. 이 사인은 세상을 이해하려는 끝없는 호기심으로 가득 차 있으며, 소통과 연결을 통해 살아갑니다. 쌍둥이자리의 이중성은 모순이 아니라 다양한"
+  },
+  "Cancer": {
+    "id": "Cancer",
+    "name_ko": "게자리",
+    "name_en": "Cancer",
+    "symbol": "Crab",
+    "glyph": "♋",
+    "dates": "6월 21일 ~ 7월 22일",
+    "element": "Water",
+    "modality": "Cardinal",
+    "polarity": "Negative",
+    "ruler": "Moon",
+    "detriment": "Saturn",
+    "exaltation": "Jupiter",
+    "fall": "Mars",
+    "keywords": [
+      "가정",
+      "감정",
+      "양육",
+      "보호",
+      "기억",
+      "가족",
+      "안전"
+    ],
+    "archetype": "어머니, 양육자, 수호자",
+    "body_part": "가슴, 위장, 자궁",
+    "color": "은색, 흰색, 연한 파랑",
+    "metal": "은",
+    "stone": "진주, 문스톤",
+    "core": {
+      "essence": "게자리는 감정의 대양이자 보호의 껍질입니다. 이 사인은 가정, 가족, 그리고 정서적 유대에 가장 깊이 연결되어 있습니다. 게자리의 단단한 껍질 아래에는 가장 부드럽고 민감한 내면이 숨어 있습니다. 과거의 기억을 간직하고, 사랑하는 이들을 돌보며, 안전한 둥지를 만드는 것이 게자리의 사명입니다.",
+      "light": "깊은 공감, 양육 본능, 충성심, 직관, 보호 본능, 감정적 지혜",
+      "shadow": "과민함, 집착, 변덕, 수동공격, 과거 집착, 의존성",
+      "motivation": "정서적 안전, 가족 유대, 소속감, 돌봄과 돌봄 받음",
+      "fear": "거부, 버림받음, 정서적 상처, 집의 상실",
+      "growth": "지나친 방어 내려놓기, 과거 놓아주기, 독립성 기르기"
+    },
+    "compatibility": {
+      "best": [
+        "Scorpio",
+        "Pisces",
+        "Taurus",
+        "Virgo"
+      ],
+      "good": [
+        "Capricorn",
+        "Cancer"
+      ],
+      "challenging": [
+        "Aries",
+        "Libra"
+      ]
+    },
+    "description": "Cancer: {'essence': '게자리는 감정의 대양이자 보호의 껍질입니다. 이 사인은 가정, 가족, 그리고 정서적 유대에 가장 깊이 연결되어 있습니다. 게자리의 단단한 껍질 아래에는 가장 부드럽고 민감한 내면이 숨어 있습니다. 과거의 기억을 간직하고, 사랑하는 이들을 돌보며,"
+  },
+  "Leo": {
+    "id": "Leo",
+    "name_ko": "사자자리",
+    "name_en": "Leo",
+    "symbol": "Lion",
+    "glyph": "♌",
+    "dates": "7월 23일 ~ 8월 22일",
+    "element": "Fire",
+    "modality": "Fixed",
+    "polarity": "Positive",
+    "ruler": "Sun",
+    "detriment": "Saturn, Uranus",
+    "exaltation": "Neptune (일부 주장)",
+    "fall": "N/A",
+    "keywords": [
+      "창조",
+      "자기표현",
+      "리더십",
+      "관대함",
+      "드라마",
+      "자부심",
+      "놀이"
+    ],
+    "archetype": "왕/여왕, 배우, 창조자",
+    "body_part": "심장, 척추, 등",
+    "color": "금색, 주황",
+    "metal": "금",
+    "stone": "루비, 호박",
+    "core": {
+      "essence": "사자자리는 황도대의 왕입니다. 태양을 지배성으로 가진 이 사인은 내면에 빛나는 불꽃을 품고 있으며, 그 빛을 세상에 표현하고자 합니다. 사자자리는 창조적 자기표현, 관대함, 그리고 삶을 축제로 만드는 능력을 상징합니다. 무대의 중심에 서서 빛나되, 그 빛으로 다른 이들도 따뜻하게 하는 것이 사자자리의 진정한 위엄입니다.",
+      "light": "관대함, 창조성, 따뜻함, 충성심, 리더십, 자신감, 열정",
+      "shadow": "자만심, 인정욕구, 독선, 드라마 퀸/킹, 완고함, 지배욕",
+      "motivation": "인정과 찬사, 창조적 표현, 사랑 주고받음, 특별함 느낌",
+      "fear": "무시당함, 평범해짐, 사랑받지 못함, 중요하지 않음",
+      "growth": "타인도 빛날 공간 만들기, 외부 인정 없이 자기 가치 인식하기"
+    },
+    "compatibility": {
+      "best": [
+        "Aries",
+        "Sagittarius",
+        "Gemini",
+        "Libra"
+      ],
+      "good": [
+        "Aquarius",
+        "Leo"
+      ],
+      "challenging": [
+        "Taurus",
+        "Scorpio"
+      ]
+    },
+    "description": "Leo: {'essence': '사자자리는 황도대의 왕입니다. 태양을 지배성으로 가진 이 사인은 내면에 빛나는 불꽃을 품고 있으며, 그 빛을 세상에 표현하고자 합니다. 사자자리는 창조적 자기표현, 관대함, 그리고 삶을 축제로 만드는 능력을 상징합니다. 무대의 중심에 서서 빛나되"
+  },
+  "Virgo": {
+    "id": "Virgo",
+    "name_ko": "처녀자리",
+    "name_en": "Virgo",
+    "symbol": "Virgin/Maiden",
+    "glyph": "♍",
+    "dates": "8월 23일 ~ 9월 22일",
+    "element": "Earth",
+    "modality": "Mutable",
+    "polarity": "Negative",
+    "ruler": "Mercury",
+    "detriment": "Jupiter, Neptune",
+    "exaltation": "Mercury",
+    "fall": "Venus",
+    "keywords": [
+      "분석",
+      "봉사",
+      "완벽",
+      "건강",
+      "세부",
+      "실용",
+      "겸손"
+    ],
+    "archetype": "치유자, 장인, 분석가, 봉사자",
+    "body_part": "소화기관, 장, 췌장",
+    "color": "베이지, 네이비",
+    "metal": "백금",
+    "stone": "사파이어, 재스퍼",
+    "core": {
+      "essence": "처녀자리는 완벽을 향한 끊임없는 정제의 사인입니다. 세부 사항을 꿰뚫어보는 날카로운 눈과 봉사하려는 깊은 욕구를 가지고 있습니다. 처녀자리는 혼돈에서 질서를 만들고, 문제를 해결하며, 모든 것을 더 좋게 만들고자 합니다. 이 사인의 겸손함 뒤에는 깊은 지혜와 실용적 지성이 숨어 있습니다.",
+      "light": "분석력, 봉사 정신, 겸손, 실용성, 세심함, 건강 의식, 신뢰성",
+      "shadow": "과도한 비판, 완벽주의, 걱정, 소심함, 융통성 부족, 자기비하",
+      "motivation": "개선, 유용함, 질서, 건강, 순수함, 완벽함",
+      "fear": "혼란, 무능함, 비판받음, 불완전함",
+      "growth": "완벽하지 않아도 괜찮다는 것 받아들이기, 큰 그림 보기"
+    },
+    "compatibility": {
+      "best": [
+        "Taurus",
+        "Capricorn",
+        "Cancer",
+        "Scorpio"
+      ],
+      "good": [
+        "Pisces",
+        "Virgo"
+      ],
+      "challenging": [
+        "Gemini",
+        "Sagittarius"
+      ]
+    },
+    "description": "Virgo: {'essence': '처녀자리는 완벽을 향한 끊임없는 정제의 사인입니다. 세부 사항을 꿰뚫어보는 날카로운 눈과 봉사하려는 깊은 욕구를 가지고 있습니다. 처녀자리는 혼돈에서 질서를 만들고, 문제를 해결하며, 모든 것을 더 좋게 만들고자 합니다. 이 사인의 겸손함 뒤에는"
+  },
+  "Libra": {
+    "id": "Libra",
+    "name_ko": "천칭자리",
+    "name_en": "Libra",
+    "symbol": "Scales",
+    "glyph": "♎",
+    "dates": "9월 23일 ~ 10월 22일",
+    "element": "Air",
+    "modality": "Cardinal",
+    "polarity": "Positive",
+    "ruler": "Venus",
+    "detriment": "Mars",
+    "exaltation": "Saturn",
+    "fall": "Sun",
+    "keywords": [
+      "균형",
+      "관계",
+      "조화",
+      "정의",
+      "아름다움",
+      "외교",
+      "협력"
+    ],
+    "archetype": "외교관, 예술가, 연인, 중재자",
+    "body_part": "신장, 허리, 피부",
+    "color": "파스텔톤, 핑크, 하늘색",
+    "metal": "구리",
+    "stone": "오팔, 라피스라줄리",
+    "core": {
+      "essence": "천칭자리는 조화와 균형의 추구입니다. 황도대에서 유일하게 무생물(저울)을 상징으로 가진 이 사인은 관계, 정의, 그리고 아름다움에 대한 깊은 관심을 나타냅니다. 천칭자리는 혼자보다 함께 할 때 완전해지며, 삶의 모든 영역에서 균형을 찾고자 합니다.",
+      "light": "외교력, 공정함, 매력, 예술적 감각, 협력, 우아함, 평화 추구",
+      "shadow": "우유부단, 의존성, 갈등 회피, 피상적, 조작, 자기희생",
+      "motivation": "조화로운 관계, 아름다움, 공정함, 파트너십, 평화",
+      "fear": "갈등, 불공정, 홀로됨, 추함, 불균형",
+      "growth": "결정을 내리는 용기, 건강한 갈등 수용, 자기 목소리 찾기"
+    },
+    "compatibility": {
+      "best": [
+        "Gemini",
+        "Aquarius",
+        "Leo",
+        "Sagittarius"
+      ],
+      "good": [
+        "Aries",
+        "Libra"
+      ],
+      "challenging": [
+        "Cancer",
+        "Capricorn"
+      ]
+    },
+    "description": "Libra: {'essence': '천칭자리는 조화와 균형의 추구입니다. 황도대에서 유일하게 무생물(저울)을 상징으로 가진 이 사인은 관계, 정의, 그리고 아름다움에 대한 깊은 관심을 나타냅니다. 천칭자리는 혼자보다 함께 할 때 완전해지며, 삶의 모든 영역에서 균형을 찾고자 합니다"
+  },
+  "Scorpio": {
+    "id": "Scorpio",
+    "name_ko": "전갈자리",
+    "name_en": "Scorpio",
+    "symbol": "Scorpion/Eagle/Phoenix",
+    "glyph": "♏",
+    "dates": "10월 23일 ~ 11월 21일",
+    "element": "Water",
+    "modality": "Fixed",
+    "polarity": "Negative",
+    "ruler": "Pluto, (전통적으로 Mars)",
+    "detriment": "Venus",
+    "exaltation": "Uranus (일부 주장)",
+    "fall": "Moon",
+    "keywords": [
+      "변형",
+      "깊이",
+      "비밀",
+      "열정",
+      "권력",
+      "재생",
+      "심리"
+    ],
+    "archetype": "탐정, 연금술사, 심리학자, 불사조",
+    "body_part": "생식기, 배설기관",
+    "color": "검정, 진한 빨강, 자주",
+    "metal": "철, 플루토늄",
+    "stone": "흑요석, 가넷, 토파즈",
+    "core": {
+      "essence": "전갈자리는 가장 깊은 물의 사인입니다. 표면 아래로 잠수하여 숨겨진 진실, 금기, 그리고 삶과 죽음의 신비를 탐구합니다. 전갈자리는 강렬함, 변형, 그리고 완전한 재탄생의 능력을 상징합니다. 이 사인은 피상적인 것에 만족하지 못하며, 모든 것의 핵심까지 파고듭니다.",
+      "light": "깊이, 충성심, 열정, 통찰력, 재생 능력, 용기, 진실 추구",
+      "shadow": "집착, 질투, 복수심, 비밀주의, 조작, 파괴성, 의심",
+      "motivation": "깊은 연결, 진실 발견, 변형, 권력, 통제",
+      "fear": "배신, 취약함 노출, 통제력 상실, 표면적 삶",
+      "growth": "신뢰하는 법 배우기, 통제 내려놓기, 용서의 힘 발견하기"
+    },
+    "compatibility": {
+      "best": [
+        "Cancer",
+        "Pisces",
+        "Virgo",
+        "Capricorn"
+      ],
+      "good": [
+        "Taurus",
+        "Scorpio"
+      ],
+      "challenging": [
+        "Leo",
+        "Aquarius"
+      ]
+    },
+    "description": "Scorpio: {'essence': '전갈자리는 가장 깊은 물의 사인입니다. 표면 아래로 잠수하여 숨겨진 진실, 금기, 그리고 삶과 죽음의 신비를 탐구합니다. 전갈자리는 강렬함, 변형, 그리고 완전한 재탄생의 능력을 상징합니다. 이 사인은 피상적인 것에 만족하지 못하며, 모든 것의 "
+  },
+  "Sagittarius": {
+    "id": "Sagittarius",
+    "name_ko": "궁수자리",
+    "name_en": "Sagittarius",
+    "symbol": "Archer/Centaur",
+    "glyph": "♐",
+    "dates": "11월 22일 ~ 12월 21일",
+    "element": "Fire",
+    "modality": "Mutable",
+    "polarity": "Positive",
+    "ruler": "Jupiter",
+    "detriment": "Mercury",
+    "exaltation": "N/A",
+    "fall": "N/A",
+    "keywords": [
+      "자유",
+      "탐험",
+      "철학",
+      "낙관",
+      "모험",
+      "진실",
+      "확장"
+    ],
+    "archetype": "탐험가, 철학자, 현자, 모험가",
+    "body_part": "엉덩이, 허벅지, 간",
+    "color": "보라, 터키색",
+    "metal": "주석",
+    "stone": "터키석, 청금석",
+    "core": {
+      "essence": "궁수자리는 끝없는 지평선을 향해 화살을 쏘는 사인입니다. 물질적 세계와 정신적 세계를 모두 탐험하며, 삶의 의미와 진리를 찾아 떠나는 영원한 탐구자입니다. 궁수자리는 자유, 모험, 그리고 더 높은 지식을 향한 열망을 상징합니다. 이 사인은 삶을 그랜드 어드벤처로 만듭니다.",
+      "light": "낙관주의, 유머, 정직함, 관대함, 모험심, 철학적 지혜, 자유 정신",
+      "shadow": "무책임, 과잉 약속, 설교, 무모함, 헌신 회피, 과장",
+      "motivation": "자유, 의미 찾기, 모험, 진리 탐구, 확장",
+      "fear": "갇힘, 무의미함, 루틴, 제한",
+      "growth": "약속 지키기, 깊이 추구하기, 현재에 머무르기"
+    },
+    "compatibility": {
+      "best": [
+        "Aries",
+        "Leo",
+        "Libra",
+        "Aquarius"
+      ],
+      "good": [
+        "Gemini",
+        "Sagittarius"
+      ],
+      "challenging": [
+        "Virgo",
+        "Pisces"
+      ]
+    },
+    "description": "Sagittarius: {'essence': '궁수자리는 끝없는 지평선을 향해 화살을 쏘는 사인입니다. 물질적 세계와 정신적 세계를 모두 탐험하며, 삶의 의미와 진리를 찾아 떠나는 영원한 탐구자입니다. 궁수자리는 자유, 모험, 그리고 더 높은 지식을 향한 열망을 상징합니다. 이 사인은 삶을 "
+  },
+  "Capricorn": {
+    "id": "Capricorn",
+    "name_ko": "염소자리",
+    "name_en": "Capricorn",
+    "symbol": "Sea-Goat",
+    "glyph": "♑",
+    "dates": "12월 22일 ~ 1월 19일",
+    "element": "Earth",
+    "modality": "Cardinal",
+    "polarity": "Negative",
+    "ruler": "Saturn",
+    "detriment": "Moon",
+    "exaltation": "Mars",
+    "fall": "Jupiter",
+    "keywords": [
+      "야망",
+      "구조",
+      "책임",
+      "성취",
+      "전통",
+      "인내",
+      "권위"
+    ],
+    "archetype": "CEO, 아버지, 건축가, 현자",
+    "body_part": "무릎, 뼈, 치아, 피부",
+    "color": "검정, 갈색, 회색",
+    "metal": "납",
+    "stone": "가넷, 오닉스",
+    "core": {
+      "essence": "염소자리는 산의 정상을 향해 꾸준히 오르는 사인입니다. 장기적 목표, 구조, 그리고 실질적 성취를 추구합니다. 이 사인은 시간의 가치를 알며, 인내와 규율을 통해 어떤 정상도 정복합니다. 염소자리는 사회적 성공, 권위, 그리고 지속되는 유산을 만드는 것을 목표로 합니다.",
+      "light": "야망, 책임감, 인내, 실용성, 규율, 지혜, 신뢰성",
+      "shadow": "냉담함, 비관주의, 일중독, 경직성, 지위 집착, 감정 억압",
+      "motivation": "성공, 존경, 안정, 유산, 통제, 능력 증명",
+      "fear": "실패, 무능함, 무질서, 존경받지 못함",
+      "growth": "유연성 기르기, 감정 표현하기, 과정도 즐기기"
+    },
+    "compatibility": {
+      "best": [
+        "Taurus",
+        "Virgo",
+        "Scorpio",
+        "Pisces"
+      ],
+      "good": [
+        "Cancer",
+        "Capricorn"
+      ],
+      "challenging": [
+        "Aries",
+        "Libra"
+      ]
+    },
+    "description": "Capricorn: {'essence': '염소자리는 산의 정상을 향해 꾸준히 오르는 사인입니다. 장기적 목표, 구조, 그리고 실질적 성취를 추구합니다. 이 사인은 시간의 가치를 알며, 인내와 규율을 통해 어떤 정상도 정복합니다. 염소자리는 사회적 성공, 권위, 그리고 지속되는 유산을 만"
+  },
+  "Aquarius": {
+    "id": "Aquarius",
+    "name_ko": "물병자리",
+    "name_en": "Aquarius",
+    "symbol": "Water Bearer",
+    "glyph": "♒",
+    "dates": "1월 20일 ~ 2월 18일",
+    "element": "Air",
+    "modality": "Fixed",
+    "polarity": "Positive",
+    "ruler": "Uranus, (전통적으로 Saturn)",
+    "detriment": "Sun",
+    "exaltation": "N/A (일부는 Mercury 주장)",
+    "fall": "N/A",
+    "keywords": [
+      "혁신",
+      "인류애",
+      "독립",
+      "미래",
+      "반항",
+      "독창성",
+      "우정"
+    ],
+    "archetype": "혁명가, 발명가, 인도주의자, 비전가",
+    "body_part": "발목, 순환계, 신경계",
+    "color": "전기 파랑, 은색",
+    "metal": "알루미늄, 우라늄",
+    "stone": "자수정, 청금석",
+    "core": {
+      "essence": "물병자리는 미래를 현재로 가져오는 사인입니다. 집단 의식, 인류애, 그리고 진보를 위해 헌신합니다. 물병자리는 개인보다 집단의 이익을 생각하며, 사회를 더 나은 방향으로 변화시키고자 합니다. 이 사인은 독립적 사고, 독창성, 그리고 기존 질서에 대한 도전을 상징합니다.",
+      "light": "독창성, 인도주의, 객관성, 우정, 진보적 사고, 지적 독립",
+      "shadow": "냉정함, 고집, 반항심, 감정 회피, 괴짜 기질, 예측 불가",
+      "motivation": "자유, 진보, 인류 발전, 독창적 표현, 평등",
+      "fear": "순응, 평범함, 감정적 친밀감, 자유 제한",
+      "growth": "개인적 감정 연결 허용하기, 공감 능력 키우기"
+    },
+    "compatibility": {
+      "best": [
+        "Gemini",
+        "Libra",
+        "Aries",
+        "Sagittarius"
+      ],
+      "good": [
+        "Leo",
+        "Aquarius"
+      ],
+      "challenging": [
+        "Taurus",
+        "Scorpio"
+      ]
+    },
+    "description": "Aquarius: {'essence': '물병자리는 미래를 현재로 가져오는 사인입니다. 집단 의식, 인류애, 그리고 진보를 위해 헌신합니다. 물병자리는 개인보다 집단의 이익을 생각하며, 사회를 더 나은 방향으로 변화시키고자 합니다. 이 사인은 독립적 사고, 독창성, 그리고 기존 질서에 "
+  },
+  "Pisces": {
+    "id": "Pisces",
+    "name_ko": "물고기자리",
+    "name_en": "Pisces",
+    "symbol": "Two Fish",
+    "glyph": "♓",
+    "dates": "2월 19일 ~ 3월 20일",
+    "element": "Water",
+    "modality": "Mutable",
+    "polarity": "Negative",
+    "ruler": "Neptune, (전통적으로 Jupiter)",
+    "detriment": "Mercury",
+    "exaltation": "Venus",
+    "fall": "Mercury",
+    "keywords": [
+      "영성",
+      "상상",
+      "연민",
+      "직관",
+      "초월",
+      "예술",
+      "희생"
+    ],
+    "archetype": "신비가, 예술가, 치유자, 몽상가",
+    "body_part": "발, 림프계, 송과선",
+    "color": "바다색, 라벤더, 해양 그린",
+    "metal": "백금",
+    "stone": "아쿠아마린, 문스톤",
+    "core": {
+      "essence": "물고기자리는 황도대의 마지막 사인으로, 모든 것을 통합하고 초월합니다. 물질 세계와 영적 세계의 경계가 녹아드는 곳에 물고기자리가 있습니다. 이 사인은 무한한 상상력, 깊은 연민, 그리고 우주와 하나 되려는 갈망을 상징합니다. 물고기자리는 꿈을 통해 현실을 만들고, 예술과 영성으로 치유합니다.",
+      "light": "연민, 직관, 예술적 천재성, 영적 깊이, 상상력, 수용성, 치유력",
+      "shadow": "현실 도피, 자기희생, 경계 부족, 환상, 중독, 순교자 콤플렉스",
+      "motivation": "초월, 연결, 영적 체험, 창조적 표현, 고통 완화",
+      "fear": "거친 현실, 분리, 영적 공허, 비판",
+      "growth": "건강한 경계 세우기, 현실과 균형 찾기, 자기 보호하기"
+    },
+    "compatibility": {
+      "best": [
+        "Cancer",
+        "Scorpio",
+        "Taurus",
+        "Capricorn"
+      ],
+      "good": [
+        "Virgo",
+        "Pisces"
+      ],
+      "challenging": [
+        "Gemini",
+        "Sagittarius"
+      ]
+    },
+    "description": "Pisces: {'essence': '물고기자리는 황도대의 마지막 사인으로, 모든 것을 통합하고 초월합니다. 물질 세계와 영적 세계의 경계가 녹아드는 곳에 물고기자리가 있습니다. 이 사인은 무한한 상상력, 깊은 연민, 그리고 우주와 하나 되려는 갈망을 상징합니다. 물고기자리는 꿈을 "
+  }
+}

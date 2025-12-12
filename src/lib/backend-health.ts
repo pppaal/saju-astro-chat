@@ -45,6 +45,9 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        ...(process.env.ADMIN_API_TOKEN
+          ? { Authorization: `Bearer ${process.env.ADMIN_API_TOKEN}` }
+          : {}),
       },
     });
 

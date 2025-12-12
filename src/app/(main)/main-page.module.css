@@ -22,6 +22,112 @@
   z-index: 0;
 }
 
+/* ====================================
+   FULLSCREEN HERO SECTION
+   ==================================== */
+.fullscreenHero {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 1.5rem;
+  margin-top: -6rem;
+  padding-top: 6rem;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 800px;
+  animation: fadeInUp 1s ease-out;
+}
+
+.heroContent .heroTitle {
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 900;
+  margin: 0 0 1.5rem 0;
+  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.heroContent .heroSub {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 3rem 0;
+  max-width: 600px;
+  line-height: 1.7;
+}
+
+/* Scroll Indicator */
+.scrollIndicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn 1s ease-out 1s backwards;
+}
+
+.scrollText {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.scrollArrow {
+  width: 30px;
+  height: 50px;
+  border: 2px solid rgba(99, 210, 255, 0.4);
+  border-radius: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.scrollArrow span {
+  font-size: 1rem;
+  color: rgba(99, 210, 255, 0.8);
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(12px); opacity: 0.5; }
+}
+
+/* Stats Section */
+.statsSection {
+  width: 100%;
+  max-width: 1180px;
+  padding: 0 1.5rem;
+  z-index: 1;
+}
+
+/* Typing Placeholder Animation */
+.typingPlaceholder::placeholder {
+  animation: typingFade 4s ease-in-out infinite;
+}
+
+@keyframes typingFade {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
 .topBar {
   position: fixed;
   top: 0;
@@ -54,6 +160,13 @@
   box-shadow: 0 0 12px var(--accent);
 }
 
+.brandLogo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -84,58 +197,215 @@
 
 .dropdown {
   position: absolute;
-  top: 44px;
-  left: 0;
-  min-width: 260px;
-  padding: 14px;
-  background: rgba(12, 14, 30, 0.92);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-  backdrop-filter: blur(12px);
-  display: grid;
-  gap: 10px;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 720px;
+  padding: 0;
+  background: linear-gradient(160deg, rgba(8, 12, 28, 0.98), rgba(15, 20, 45, 0.96));
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.6),
+              0 0 60px rgba(99, 210, 255, 0.12),
+              0 0 120px rgba(124, 242, 156, 0.05),
+              inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(24px);
   z-index: 30;
-  animation: dropdownSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: dropdownSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-origin: top center;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 210, 255, 0.15), transparent 50%),
+              radial-gradient(ellipse 60% 40% at 80% 100%, rgba(124, 242, 156, 0.08), transparent 50%);
+  pointer-events: none;
+}
+
+.dropdownHeader {
+  grid-column: 1 / -1;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  background: linear-gradient(180deg, rgba(99, 210, 255, 0.05), transparent);
+}
+
+.dropdownTitle {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dropdownSubtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.5px;
+}
+
+.dropdownGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+
+.dropdown > .dropdownHeader ~ .dropItem {
+  margin: 0;
+}
+
+.dropdown .dropItem:first-of-type {
+  margin-top: 0;
 }
 
 .dropItem {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  border-radius: 12px;
+  justify-content: center;
+  padding: 16px 12px;
+  margin: 4px;
+  border-radius: 16px;
   color: var(--text-color);
   text-decoration: none;
   background: rgba(255,255,255,0.02);
   border: 1px solid transparent;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  text-align: center;
+  min-width: 0;
+}
+
+.dropdown > :last-child {
+  margin-bottom: 0;
+}
+
+.dropItemLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
+}
+
+.dropItemIcon {
+  font-size: 28px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.15), rgba(124, 242, 156, 0.08));
+  border-radius: 14px;
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.dropItemText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dropItemLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+
+.dropItemDesc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  transition: all 0.3s ease;
+}
+
+.dropItemArrow {
+  display: none;
 }
 
 .dropItem::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 3px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  transform: scaleY(0);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 70%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.dropItem::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(99, 210, 255, 0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 .dropItem:hover {
-  border-color: rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.05);
-  transform: translateX(8px);
-  box-shadow: 0 4px 12px rgba(99, 210, 255, 0.15);
+  border-color: rgba(99, 210, 255, 0.3);
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.12), rgba(124, 242, 156, 0.06));
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(99, 210, 255, 0.25),
+              0 0 24px rgba(99, 210, 255, 0.1),
+              inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.dropItem:hover .dropItemIcon {
+  transform: scale(1.1) rotate(-5deg);
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.25), rgba(124, 242, 156, 0.15));
+  border-color: rgba(99, 210, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(99, 210, 255, 0.3);
+}
+
+.dropItem:hover .dropItemLabel {
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(99, 210, 255, 0.5);
+}
+
+.dropItem:hover .dropItemDesc {
+  color: rgba(99, 210, 255, 0.8);
+}
+
+.dropItem:hover .dropItemArrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .dropItem:hover::before {
-  transform: scaleY(1);
+  transform: translateX(-50%) scaleX(1);
+}
+
+.dropItem:hover::after {
+  opacity: 1;
 }
 
 .navLink {
@@ -214,11 +484,16 @@
   background: linear-gradient(145deg, rgba(9, 15, 30, 0.8), rgba(7, 23, 42, 0.75));
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 28px;
-  padding: 2.2rem;
+  padding: 3rem 2.5rem;
   box-shadow: 0 18px 60px rgba(0,0,0,0.35);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 380px;
 }
 
 .heroBanner::before {
@@ -246,10 +521,257 @@
 }
 
 .heroSub {
-  margin: 0;
+  margin: 0 0 2rem 0;
   color: var(--muted);
   position: relative;
   z-index: 1;
+  max-width: 600px;
+}
+
+/* Google-style Question Search Box */
+.questionSearchContainer {
+  width: 100%;
+  max-width: 680px;
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+}
+
+.questionSearchForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.questionSearchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.questionSearchIcon {
+  position: absolute;
+  left: 20px;
+  font-size: 1.5rem;
+  color: var(--accent);
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(99, 210, 255, 0.5));
+}
+
+.questionSearchInput {
+  width: 100%;
+  padding: 20px 60px 20px 56px;
+  font-size: 1.15rem;
+  font-weight: 500;
+  border: 2px solid rgba(99, 210, 255, 0.3);
+  border-radius: 60px;
+  background: rgba(5, 10, 25, 0.8);
+  color: var(--text-color);
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.questionSearchInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+}
+
+.questionSearchInput:focus {
+  border-color: var(--accent);
+  background: rgba(5, 10, 25, 0.95);
+  box-shadow: 0 8px 40px rgba(99, 210, 255, 0.25),
+              0 0 0 4px rgba(99, 210, 255, 0.1),
+              inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.questionSearchBtn {
+  position: absolute;
+  right: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: none;
+  color: #041018;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(99, 210, 255, 0.4);
+}
+
+.questionSearchBtn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(99, 210, 255, 0.6);
+}
+
+.questionSearchBtn:active {
+  transform: scale(0.95);
+}
+
+.questionHints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.questionHint {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.questionHint:hover {
+  background: rgba(99, 210, 255, 0.1);
+  border-color: rgba(99, 210, 255, 0.3);
+  color: var(--text-color);
+  transform: translateY(-2px);
+}
+
+/* Destiny Map Hero Card - Prominent Display */
+.destinyMapHero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2rem;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, rgba(255, 165, 0, 0.15), rgba(255, 100, 50, 0.1), rgba(255, 200, 100, 0.08));
+  border: 2px solid rgba(255, 165, 0, 0.5);
+  border-radius: 20px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 32px rgba(255, 165, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.destinyMapHero:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 165, 0, 0.8);
+  box-shadow: 0 16px 48px rgba(255, 165, 0, 0.35),
+              0 0 0 4px rgba(255, 165, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.destinyMapGlow {
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(from 0deg, transparent, rgba(255, 165, 0, 0.2), transparent 30%);
+  animation: rotate360 6s linear infinite;
+  pointer-events: none;
+}
+
+.destinyMapContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.destinyMapIcon {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffa500, #ff6b35, #ffc107);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 8px rgba(255, 165, 0, 0.6));
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.destinyMapInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.destinyMapTitle {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.destinyMapFormula {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 200, 100, 0.9);
+}
+
+.destinyMapFormula span {
+  text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+}
+
+.destinyPlus {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 300;
+}
+
+.destinyEquals {
+  color: rgba(255, 200, 100, 0.7);
+  font-weight: 700;
+}
+
+.destinyResult {
+  font-weight: 900;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #ffa500, #ff6b35);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.destinyMapArrow {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: rgba(255, 165, 0, 0.8);
+  transition: all 0.3s ease;
+}
+
+.destinyMapHero:hover .destinyMapArrow {
+  transform: translateX(6px);
+  color: rgba(255, 200, 100, 1);
+}
+
+@media (max-width: 640px) {
+  .destinyMapHero {
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .destinyMapIcon {
+    font-size: 2rem;
+  }
+
+  .destinyMapTitle {
+    font-size: 1.1rem;
+  }
+
+  .destinyMapFormula {
+    font-size: 0.85rem;
+    gap: 5px;
+  }
 }
 
 .statsBar {
@@ -710,8 +1232,22 @@
 
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
+  contain: layout style;
+}
+
+@media (max-width: 1000px) {
+  .serviceGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .serviceGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
 }
 
 .serviceCard {
@@ -725,9 +1261,11 @@
   text-decoration: none;
   display: grid;
   gap: 10px;
+  height: 150px;
   min-height: 150px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  contain: layout style;
 }
 
 .serviceCard:hover {
@@ -782,6 +1320,46 @@
   opacity: 0.5;
   z-index: 1;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Destiny Map Formula Style */
+.destinyCard {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.08), rgba(124, 242, 156, 0.05));
+}
+
+.destinyFormula {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.formulaItem {
+  font-weight: 700;
+  color: rgba(99, 210, 255, 0.9);
+  text-shadow: 0 0 8px rgba(99, 210, 255, 0.5);
+}
+
+.formulaPlus {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
+}
+
+.formulaEquals {
+  color: rgba(124, 242, 156, 0.8);
+  font-weight: 700;
+  margin: 0 2px;
+}
+
+.formulaResult {
+  font-weight: 900;
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, #63d2ff, #7cf29c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: pulseGlow 2s ease-in-out infinite;
 }
 
 .serviceCard:hover .serviceArrow {
@@ -868,11 +1446,56 @@
 @keyframes dropdownSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.95);
+    transform: translateX(-50%) translateY(-15px) scale(0.92);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Stagger animation for dropdown items */
+.dropdownHeader {
+  opacity: 0;
+  animation: dropHeaderFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes dropHeaderFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown .dropItem {
+  opacity: 0;
+  animation: dropItemFadeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.dropdown .dropItem:nth-of-type(1) { animation-delay: 0.08s; }
+.dropdown .dropItem:nth-of-type(2) { animation-delay: 0.12s; }
+.dropdown .dropItem:nth-of-type(3) { animation-delay: 0.16s; }
+.dropdown .dropItem:nth-of-type(4) { animation-delay: 0.20s; }
+.dropdown .dropItem:nth-of-type(5) { animation-delay: 0.24s; }
+.dropdown .dropItem:nth-of-type(6) { animation-delay: 0.28s; }
+.dropdown .dropItem:nth-of-type(7) { animation-delay: 0.32s; }
+.dropdown .dropItem:nth-of-type(8) { animation-delay: 0.36s; }
+.dropdown .dropItem:nth-of-type(9) { animation-delay: 0.40s; }
+
+@keyframes dropItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-15px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -1438,11 +2061,13 @@ to { opacity: 1; transform: translateY(0); }
 .tarotCards {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   gap: 2rem;
   margin-top: 3rem;
   flex-wrap: wrap;
   padding: 0 1rem;
+  perspective: 1000px;
+  min-height: 260px;
 }
 
 .tarotCard {
@@ -1459,10 +2084,10 @@ to { opacity: 1; transform: translateY(0); }
 /* Animation rules moved below to use :not(.flipped) selector */
 
 .tarotCard:hover:not(.flipped) {
-  transform: translateY(-15px);
+  box-shadow: 0 15px 40px rgba(138, 43, 226, 0.4);
 }
 
-.tarotCard:active {
+.tarotCard:active:not(.flipped) {
   transform: scale(0.98);
 }
 
@@ -1471,7 +2096,7 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 .tarotCard.flipped:hover {
-  transform: rotateY(180deg) translateY(-15px);
+  box-shadow: 0 15px 40px rgba(139, 105, 20, 0.4);
 }
 
 .cardFront,
@@ -1718,10 +2343,55 @@ to { opacity: 1; transform: translateY(0); }
   .topBar { flex-direction: column; gap: 10px; position: fixed; }
   .nav { width: 100%; flex-wrap: wrap; justify-content: center; }
   .content { padding: 1.8rem; margin-top: 120px; }
+
+  .dropdown {
+    min-width: calc(100vw - 32px);
+    max-width: 400px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+  }
+
+  .dropdownGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .dropdownHeader {
+    padding: 14px 16px 10px;
+  }
+
+  .dropItem {
+    padding: 10px 8px;
+    margin: 2px;
+    border-radius: 12px;
+  }
+
+  .dropItemIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 10px;
+  }
+
+  .dropItemLabel {
+    font-size: 11px;
+  }
+
+  .dropItemDesc {
+    font-size: 9px;
+  }
   .title { font-size: 2.2rem; }
   .services { gap: 1rem; }
   .serviceHeader { flex-direction: column; }
-  .serviceGrid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .serviceGrid { grid-template-columns: 1fr; }
+
+  .fullscreenHero { min-height: 100svh; padding-top: 8rem; margin-top: -4rem; }
+  .heroContent .heroTitle { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+  .heroContent .heroSub { font-size: 1rem; margin-bottom: 2rem; }
+  .scrollIndicator { bottom: 20px; }
+  .scrollArrow { width: 24px; height: 40px; }
 
   .featureSection { margin: 3rem auto; padding: 2rem 1rem; }
 
@@ -1948,4 +2618,37 @@ to { opacity: 1; transform: translateY(0); }
   .previewCardContent {
     font-size: 0.9rem;
   }
+}
+
+/* Weekly Fortune Section */
+.weeklyFortuneSection {
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem 1rem;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.weeklyCardSkeleton {
+  width: 100%;
+  min-height: 220px;
+  border-radius: var(--dp-radius-lg);
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+  border: 1px solid var(--dp-border);
+}
+
+.iconSkeleton {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: inline-block;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

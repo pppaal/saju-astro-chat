@@ -4,16 +4,11 @@ import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "../policy.module.css";
 
-type Locale = "en" | "ko" | "zh" | "ar" | "es" | "fr" | "ja" | "ru";
 type Section = { title: string; body: string };
-
-function asLocale(l: string): Locale {
-  const list: Locale[] = ["en", "ko", "zh", "ar", "es", "fr", "ja", "ru"];
-  return (list as readonly string[]).includes(l) ? (l as Locale) : "en";
-}
 
 const CONTROLLER_NAME = "Paul Rhee (individual)";
 const CONTACT_EMAIL = "rheeco88@gmail.com";
+const EFFECTIVE_DATE = "2025-12-12";
 
 const sections: Section[] = [
   {
@@ -22,16 +17,15 @@ const sections: Section[] = [
   },
   {
     title: "2. Information We Collect",
-    body:
-      "Account Information: Email address, password (encrypted), display name, profile picture\n\nAuthentication Data: Social login profile data (Google OAuth) within your consent\n\nPayment Information: Transaction identifiers and billing information processed securely through Stripe. We never store full credit card numbers on our servers\n\nService Usage Data: Birth date, birth time, birth location, and other information you provide for astrology, Saju, tarot, and other divination services\n\nTechnical Data: IP address, browser type, device information, operating system, cookies, log files\n\nCommunication Data: Support inquiries, feedback, correspondence with us",
+    body: "Account Information: Email address, password (encrypted), display name, profile picture\n\nAuthentication Data: Social login profile data (Google OAuth) within your consent. OAuth access/refresh/id tokens are revoked after login and scrubbed (or encrypted in transit) so they are not stored for reuse\n\nPayment Information: Transaction identifiers and billing information processed securely through Stripe. We never store full credit card numbers on our servers\n\nService Usage Data: Birth date, birth time, birth location, and other information you provide for astrology, Saju, tarot, and other divination services\n\nTechnical Data: IP address, browser type, device information, operating system, cookies, log files\n\nCommunication Data: Support inquiries, feedback, correspondence with us",
   },
   {
     title: "3. How We Collect Information",
-    body: "Direct Input: Information you provide when creating an account, making purchases, or using our services\n\nAutomatic Collection: Cookies, web beacons, analytics tools track usage patterns and technical information\n\nThird-party Services: Payment processors (Stripe), authentication providers (Google OAuth), analytics services, and advertising networks (Google AdSense)"
+    body: "Direct Input: Information you provide when creating an account, making purchases, or using our services\n\nAutomatic Collection: Cookies, web beacons, analytics tools track usage patterns and technical information (disabled until you grant consent)\n\nThird-party Services: Payment processors (Stripe), authentication providers (Google OAuth), analytics services, and advertising networks (Google AdSense). We block Google Analytics/AdSense until consent is granted via our CMP banner"
   },
   {
     title: "4. How We Use Your Information",
-    body: "Service Delivery: Provide astrology readings, Saju analysis, tarot readings, and other divination services\n\nAccount Management: Authenticate users, manage subscriptions, process payments\n\nCommunication: Send service updates, promotional materials (with consent), support responses\n\nImprovement: Analyze usage patterns to enhance features and user experience\n\nLegal Compliance: Comply with applicable laws, prevent fraud, enforce our Terms of Service\n\nAdvertising: Display personalized advertisements through Google AdSense based on your interests and usage patterns",
+    body: "Service Delivery: Provide astrology readings, Saju analysis, tarot readings, and other divination services\n\nAccount Management: Authenticate users, manage subscriptions, process payments\n\nCommunication: Send service updates, promotional materials (with consent), support responses\n\nImprovement: Analyze usage patterns to enhance features and user experience (only after consent to analytics)\n\nLegal Compliance: Comply with applicable laws, prevent fraud, enforce our Terms of Service\n\nAdvertising: Display personalized advertisements through Google AdSense based on your interests and usage patterns (ads/gtag are blocked until consent is granted)",
   },
   {
     title: "5. Data Retention",
@@ -51,7 +45,7 @@ const sections: Section[] = [
   },
   {
     title: "9. Cookies and Tracking Technologies",
-    body: "We use cookies and similar technologies for:\n\nEssential Cookies: Required for login, session management, security\nAnalytical Cookies: Understand usage patterns and improve services\nAdvertising Cookies: Google AdSense uses cookies to serve personalized ads based on your interests\nPreference Cookies: Remember your language and display preferences\n\nYou can control cookies through your browser settings. Note that disabling cookies may limit service functionality.\n\nThird-party Advertising: Google AdSense may use cookies and web beacons to collect information about your browsing activities. Learn more at https://policies.google.com/technologies/ads"
+    body: "We use cookies and similar technologies for:\n\nEssential Cookies: Required for login, session management, security\nAnalytical Cookies: Understand usage patterns and improve services (loaded only after consent)\nAdvertising Cookies: Google AdSense uses cookies to serve personalized ads based on your interests (blocked until consent)\nPreference Cookies: Remember your language and display preferences\n\nYou can control cookies through your browser settings. Note that disabling cookies may limit service functionality.\n\nThird-party Advertising: Google AdSense may use cookies and web beacons to collect information about your browsing activities. Learn more at https://policies.google.com/technologies/ads\n\nConsent Banner: Our CMP defaults to no analytics/ads until you choose Accept; rejecting keeps gtag/AdSense disabled"
   },
   {
     title: "10. Data Security",
@@ -59,7 +53,7 @@ const sections: Section[] = [
   },
   {
     title: "11. Children's Privacy",
-    body: "Our services are not intended for children under 14 years of age (or 16 in EU, or other applicable age of consent). We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us immediately at " + CONTACT_EMAIL + " and we will take steps to delete such information."
+    body: `Our services are not intended for children under 14 years of age (or 16 in EU, or other applicable age of consent). We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us immediately at ${CONTACT_EMAIL} and we will take steps to delete such information.`
   },
   {
     title: "12. Data Controller and Contact",
@@ -67,31 +61,13 @@ const sections: Section[] = [
   },
   {
     title: "13. Google AdSense",
-    body: "We use Google AdSense to display advertisements on our service. Google uses cookies and other tracking technologies to:\n\n- Serve ads based on your interests and prior visits to our website\n- Measure ad effectiveness and engagement\n- Prevent fraudulent clicks and impressions\n\nGoogle's use of advertising cookies enables it and its partners to serve ads based on your visit to our site and/or other sites on the Internet.\n\nYou may opt out of personalized advertising by visiting Google Ads Settings: https://www.google.com/settings/ads\n\nFor more information about Google's privacy practices, visit: https://policies.google.com/privacy"
+    body: "We use Google AdSense to display advertisements on our service. Google uses cookies and other tracking technologies to:\n\n- Serve ads based on your interests and prior visits to our website\n- Measure ad effectiveness and engagement\n- Prevent fraudulent clicks and impressions\n\nGoogle's use of advertising cookies enables it and its partners to serve ads based on your visit to our site and/or other sites on the Internet.\n\nConsent First: AdSense and Google Analytics scripts are blocked by default and only load after you accept in the consent banner. Rejecting keeps ads/analytics disabled.\n\nYou may opt out of personalized advertising by visiting Google Ads Settings: https://www.google.com/settings/ads\n\nFor more information about Google's privacy practices, visit: https://policies.google.com/privacy"
   },
   {
     title: "14. Changes to Privacy Policy",
-    body: "We may update this Privacy Policy periodically to reflect changes in our practices or applicable laws. Material changes will be announced with at least 7 days' notice (30 days for significant changes affecting your rights).\n\nContinued use of our services after policy changes constitutes acceptance of the updated policy.\n\nLast Updated: 2025-01-01"
+    body: `We may update this Privacy Policy periodically to reflect changes in our practices or applicable laws. Material changes will be announced with at least 7 days' notice (30 days for significant changes affecting your rights).\n\nContinued use of our services after policy changes constitutes acceptance of the updated policy.\n\nLast Updated: ${EFFECTIVE_DATE}`
   },
 ];
-
-const base = {
-  title: "Privacy Policy",
-  effective: "Effective date: 2025-01-01",
-  sections,
-  footer: "Addendum: Effective 2025-01-01",
-};
-
-const privacyData: Record<Locale, typeof base> = {
-  en: base,
-  ko: base,
-  zh: base,
-  ar: base,
-  es: base,
-  fr: base,
-  ja: base,
-  ru: base,
-};
 
 function SectionView({ s }: { s: Section }) {
   return (
@@ -103,8 +79,8 @@ function SectionView({ s }: { s: Section }) {
 }
 
 export default function PrivacyPage() {
-  const { locale } = useI18n();
-  const L = privacyData[asLocale(locale)];
+  const { t } = useI18n();
+
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -113,16 +89,20 @@ export default function PrivacyPage() {
         </div>
         <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.title}>{L.title}</h1>
-            <p className={styles.effectiveDate}>{L.effective}</p>
+            <h1 className={styles.title}>{t("policy.privacy.title", "Privacy Policy")}</h1>
+            <p className={styles.effectiveDate}>
+              {t("policy.privacy.effective", "Effective date")}: {EFFECTIVE_DATE}
+            </p>
           </div>
           <div className={styles.content}>
-            {L.sections.map((s: Section, i: number) => (
+            {sections.map((s: Section, i: number) => (
               <SectionView key={`${s.title}-${i}`} s={s} />
             ))}
           </div>
           <div className={styles.footer}>
-            <p className={styles.footerText}>{L.footer}</p>
+            <p className={styles.footerText}>
+              {t("policy.privacy.footer", "Addendum")}: {EFFECTIVE_DATE}
+            </p>
           </div>
         </div>
       </div>

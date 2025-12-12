@@ -1,0 +1,442 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/domains/spiritual",
+  "$count": 96,
+  "$description": "영성, 직관, 카르마, 영적 성장에 영향을 미치는 배치들의 도메인별 해석",
+  "$note": "Neptune(12) + Pluto(12) + NorthNode(12) + Chiron(12) in signs, plus 9th, 12th house placements",
+
+  "Neptune_spiritual": {
+    "Neptune_in_Aries": {
+      "spiritual_quest": "영적 전사, 새로운 의식 개척",
+      "divine_connection": "행동을 통한 영적 연결",
+      "illusion_danger": "자기중심적 영성, 영적 전쟁",
+      "transcendence_path": "용기 있는 믿음, 선구자적 비전",
+      "mystical_gift": "새로운 영적 운동 시작 능력"
+    },
+    "Neptune_in_Taurus": {
+      "spiritual_quest": "물질과 영성의 통합",
+      "divine_connection": "자연과 감각을 통해",
+      "illusion_danger": "물질주의, 영적 게으름",
+      "transcendence_path": "지구와의 연결, 감각적 명상",
+      "mystical_gift": "물질에서 신성을 보는 능력"
+    },
+    "Neptune_in_Gemini": {
+      "spiritual_quest": "지식과 영성의 연결",
+      "divine_connection": "말, 글, 생각을 통해",
+      "illusion_danger": "영적 혼란, 가짜 가르침",
+      "transcendence_path": "신성한 지식 추구",
+      "mystical_gift": "영적 메시지 전달 능력"
+    },
+    "Neptune_in_Cancer": {
+      "spiritual_quest": "감정적 치유와 모성적 신성",
+      "divine_connection": "가정과 조상을 통해",
+      "illusion_danger": "감정적 망상, 과거 집착",
+      "transcendence_path": "감정적 치유, 조상 연결",
+      "mystical_gift": "집단 무의식 접근 능력"
+    },
+    "Neptune_in_Leo": {
+      "spiritual_quest": "창조적 자아 표현의 신성",
+      "divine_connection": "창조와 연기를 통해",
+      "illusion_danger": "영적 자만, 메시아 콤플렉스",
+      "transcendence_path": "신성한 창조력 발휘",
+      "mystical_gift": "영감을 통한 창조 능력"
+    },
+    "Neptune_in_Virgo": {
+      "spiritual_quest": "봉사와 치유의 신성",
+      "divine_connection": "일상적 봉사를 통해",
+      "illusion_danger": "영적 비판, 완벽주의",
+      "transcendence_path": "겸손한 봉사, 치유의 길",
+      "mystical_gift": "실용적 치유 능력"
+    },
+    "Neptune_in_Libra": {
+      "spiritual_quest": "관계와 조화의 신성",
+      "divine_connection": "파트너십과 아름다움 통해",
+      "illusion_danger": "관계 망상, 경계 상실",
+      "transcendence_path": "신성한 사랑, 예술적 영성",
+      "mystical_gift": "영적 조화 창조 능력"
+    },
+    "Neptune_in_Scorpio": {
+      "spiritual_quest": "변형과 죽음/재생의 신비",
+      "divine_connection": "깊은 변형을 통해",
+      "illusion_danger": "어둠에 대한 집착, 오컬트 남용",
+      "transcendence_path": "그림자 통합, 죽음과 재생",
+      "mystical_gift": "영적 변형 촉진 능력"
+    },
+    "Neptune_in_Sagittarius": {
+      "spiritual_quest": "진리와 지혜 추구",
+      "divine_connection": "철학과 여행을 통해",
+      "illusion_danger": "영적 과장, 광신",
+      "transcendence_path": "지혜 추구, 문화 간 영성",
+      "mystical_gift": "영적 진리 인식 능력"
+    },
+    "Neptune_in_Capricorn": {
+      "spiritual_quest": "구조와 영성의 통합",
+      "divine_connection": "책임과 규율을 통해",
+      "illusion_danger": "영적 냉소, 물질만능주의",
+      "transcendence_path": "실용적 영성, 지혜로운 장로",
+      "mystical_gift": "영적 구조 구축 능력"
+    },
+    "Neptune_in_Aquarius": {
+      "spiritual_quest": "집단 의식과 미래 비전",
+      "divine_connection": "인류와 기술을 통해",
+      "illusion_danger": "유토피아 망상, 비인간화",
+      "transcendence_path": "집단 각성, 기술적 영성",
+      "mystical_gift": "미래 비전 능력"
+    },
+    "Neptune_in_Pisces": {
+      "spiritual_quest": "무한한 연민과 신성한 합일",
+      "divine_connection": "모든 것을 통해, 경계 없음",
+      "illusion_danger": "현실 도피, 중독, 자기 상실",
+      "transcendence_path": "무조건적 사랑, 완전한 항복",
+      "mystical_gift": "신비적 합일 경험 능력"
+    }
+  },
+
+  "Pluto_spiritual": {
+    "Pluto_in_Aries": {
+      "soul_evolution": "자아와 의지의 변형",
+      "power_lesson": "건설적 리더십 사용",
+      "shadow_integration": "분노와 공격성 변형",
+      "rebirth_theme": "새로운 정체성으로 재탄생",
+      "collective_karma": "집단적 전사 의식 변형"
+    },
+    "Pluto_in_Taurus": {
+      "soul_evolution": "가치와 물질의 변형",
+      "power_lesson": "자원의 윤리적 사용",
+      "shadow_integration": "탐욕과 소유욕 변형",
+      "rebirth_theme": "진정한 가치관으로 재탄생",
+      "collective_karma": "경제 시스템 변형"
+    },
+    "Pluto_in_Gemini": {
+      "soul_evolution": "생각과 소통의 변형",
+      "power_lesson": "진실의 힘 사용",
+      "shadow_integration": "조작과 거짓 변형",
+      "rebirth_theme": "새로운 사고방식으로 재탄생",
+      "collective_karma": "정보와 미디어 변형"
+    },
+    "Pluto_in_Cancer": {
+      "soul_evolution": "감정과 가족의 변형",
+      "power_lesson": "정서적 힘의 건설적 사용",
+      "shadow_integration": "감정 조작 변형",
+      "rebirth_theme": "새로운 가족 역학으로 재탄생",
+      "collective_karma": "가정과 모성 개념 변형"
+    },
+    "Pluto_in_Leo": {
+      "soul_evolution": "창조성과 자아의 변형",
+      "power_lesson": "창조적 힘의 겸손한 사용",
+      "shadow_integration": "오만과 독재 변형",
+      "rebirth_theme": "진정한 자기 표현으로 재탄생",
+      "collective_karma": "권위와 자기 표현 변형"
+    },
+    "Pluto_in_Virgo": {
+      "soul_evolution": "봉사와 건강의 변형",
+      "power_lesson": "치유 능력의 윤리적 사용",
+      "shadow_integration": "비판과 완벽주의 변형",
+      "rebirth_theme": "진정한 봉사로 재탄생",
+      "collective_karma": "건강과 노동 시스템 변형"
+    },
+    "Pluto_in_Libra": {
+      "soul_evolution": "관계와 정의의 변형",
+      "power_lesson": "관계에서 균형 잡힌 힘",
+      "shadow_integration": "조종적 관계 패턴 변형",
+      "rebirth_theme": "진정한 파트너십으로 재탄생",
+      "collective_karma": "관계와 결혼 개념 변형"
+    },
+    "Pluto_in_Scorpio": {
+      "soul_evolution": "가장 깊은 변형과 재생",
+      "power_lesson": "진정한 힘은 내면에서",
+      "shadow_integration": "가장 어두운 그림자 대면",
+      "rebirth_theme": "완전한 변형으로 재탄생",
+      "collective_karma": "죽음, 섹슈얼리티, 권력 변형"
+    },
+    "Pluto_in_Sagittarius": {
+      "soul_evolution": "신념과 진리의 변형",
+      "power_lesson": "진리의 힘 책임감 있게 사용",
+      "shadow_integration": "독선과 광신 변형",
+      "rebirth_theme": "새로운 세계관으로 재탄생",
+      "collective_karma": "종교와 교육 시스템 변형"
+    },
+    "Pluto_in_Capricorn": {
+      "soul_evolution": "구조와 권위의 변형",
+      "power_lesson": "진정한 권위 확립",
+      "shadow_integration": "통제욕과 야망 변형",
+      "rebirth_theme": "새로운 사회 구조로 재탄생",
+      "collective_karma": "정부와 기업 구조 변형"
+    },
+    "Pluto_in_Aquarius": {
+      "soul_evolution": "집단 의식과 혁신의 변형",
+      "power_lesson": "기술과 집단 힘의 윤리적 사용",
+      "shadow_integration": "소외와 비인간성 변형",
+      "rebirth_theme": "새로운 사회로 재탄생",
+      "collective_karma": "기술과 사회 구조 대변형"
+    },
+    "Pluto_in_Pisces": {
+      "soul_evolution": "영성과 무의식의 변형",
+      "power_lesson": "영적 힘의 자비로운 사용",
+      "shadow_integration": "도피와 희생자 의식 변형",
+      "rebirth_theme": "영적 각성으로 재탄생",
+      "collective_karma": "영성과 연민의 집단적 진화"
+    }
+  },
+
+  "NorthNode_spiritual": {
+    "NorthNode_in_Aries": {
+      "soul_direction": "독립성과 용기 개발",
+      "karmic_past": "타인에게 의존, 우유부단 (SouthNode Libra)",
+      "growth_challenge": "자기 주장, 리더십 배우기",
+      "spiritual_gift": "개척자적 용기",
+      "life_purpose": "새로운 길을 여는 선구자"
+    },
+    "NorthNode_in_Taurus": {
+      "soul_direction": "안정과 자기 가치 개발",
+      "karmic_past": "위기와 변화에 의존 (SouthNode Scorpio)",
+      "growth_challenge": "평화와 안정 수용",
+      "spiritual_gift": "지속적인 가치 창조",
+      "life_purpose": "물질과 영성의 통합"
+    },
+    "NorthNode_in_Gemini": {
+      "soul_direction": "소통과 호기심 개발",
+      "karmic_past": "독단적 신념 (SouthNode Sagittarius)",
+      "growth_challenge": "열린 마음으로 듣기",
+      "spiritual_gift": "아이디어 연결 능력",
+      "life_purpose": "지식과 정보의 중개자"
+    },
+    "NorthNode_in_Cancer": {
+      "soul_direction": "정서적 친밀감 개발",
+      "karmic_past": "냉담한 성취 (SouthNode Capricorn)",
+      "growth_challenge": "취약성 허용, 돌봄 받기",
+      "spiritual_gift": "양육과 치유",
+      "life_purpose": "감정적 안전 공간 창조"
+    },
+    "NorthNode_in_Leo": {
+      "soul_direction": "자기 표현과 창조성 개발",
+      "karmic_past": "그룹에 숨음 (SouthNode Aquarius)",
+      "growth_challenge": "중심에 서기, 빛나기",
+      "spiritual_gift": "창조적 영감",
+      "life_purpose": "진정한 자기 표현"
+    },
+    "NorthNode_in_Virgo": {
+      "soul_direction": "봉사와 세심함 개발",
+      "karmic_past": "혼란과 도피 (SouthNode Pisces)",
+      "growth_challenge": "일상적 헌신, 실용성",
+      "spiritual_gift": "치유와 개선",
+      "life_purpose": "겸손한 봉사자"
+    },
+    "NorthNode_in_Libra": {
+      "soul_direction": "관계와 협력 개발",
+      "karmic_past": "지나친 독립 (SouthNode Aries)",
+      "growth_challenge": "파트너십, 타협 배우기",
+      "spiritual_gift": "조화와 중재",
+      "life_purpose": "관계에서 균형 찾기"
+    },
+    "NorthNode_in_Scorpio": {
+      "soul_direction": "깊이와 변형 개발",
+      "karmic_past": "표면적 안락 (SouthNode Taurus)",
+      "growth_challenge": "변화 수용, 깊이 탐구",
+      "spiritual_gift": "변형과 재생",
+      "life_purpose": "그림자 통합 전문가"
+    },
+    "NorthNode_in_Sagittarius": {
+      "soul_direction": "믿음과 비전 개발",
+      "karmic_past": "세부사항 집착 (SouthNode Gemini)",
+      "growth_challenge": "큰 그림 보기, 믿음 갖기",
+      "spiritual_gift": "지혜와 비전",
+      "life_purpose": "진리의 탐구자"
+    },
+    "NorthNode_in_Capricorn": {
+      "soul_direction": "책임과 권위 개발",
+      "karmic_past": "감정 의존 (SouthNode Cancer)",
+      "growth_challenge": "성숙과 책임감",
+      "spiritual_gift": "지혜로운 리더십",
+      "life_purpose": "사회적 구조 구축"
+    },
+    "NorthNode_in_Aquarius": {
+      "soul_direction": "독립성과 집단 기여 개발",
+      "karmic_past": "개인적 인정 욕구 (SouthNode Leo)",
+      "growth_challenge": "더 큰 목적을 위해 봉사",
+      "spiritual_gift": "혁신과 집단 비전",
+      "life_purpose": "인류 진화 기여"
+    },
+    "NorthNode_in_Pisces": {
+      "soul_direction": "영성과 연민 개발",
+      "karmic_past": "과도한 분석과 비판 (SouthNode Virgo)",
+      "growth_challenge": "흘러가게 두기, 신뢰",
+      "spiritual_gift": "무조건적 사랑",
+      "life_purpose": "영적 치유자"
+    }
+  },
+
+  "Chiron_spiritual": {
+    "Chiron_in_Aries": {
+      "core_wound": "존재 자체, 정체성의 상처",
+      "healing_journey": "자기 가치와 존재 이유 발견",
+      "wisdom_gift": "정체성 문제를 가진 타인 치유",
+      "spiritual_teaching": "있는 그대로 완전함",
+      "integration_path": "용기를 통한 치유"
+    },
+    "Chiron_in_Taurus": {
+      "core_wound": "자기 가치와 물질적 안정의 상처",
+      "healing_journey": "내면의 가치 발견",
+      "wisdom_gift": "자기 가치 문제 치유",
+      "spiritual_teaching": "진정한 풍요는 내면에",
+      "integration_path": "감각을 통한 치유"
+    },
+    "Chiron_in_Gemini": {
+      "core_wound": "소통과 지식의 상처",
+      "healing_journey": "자신의 목소리 찾기",
+      "wisdom_gift": "학습 장애, 소통 문제 치유",
+      "spiritual_teaching": "모든 관점에 가치 있음",
+      "integration_path": "말과 글을 통한 치유"
+    },
+    "Chiron_in_Cancer": {
+      "core_wound": "소속감과 양육의 상처",
+      "healing_journey": "내면의 가정 만들기",
+      "wisdom_gift": "가족 상처 치유",
+      "spiritual_teaching": "자신이 자신의 부모 되기",
+      "integration_path": "돌봄을 통한 치유"
+    },
+    "Chiron_in_Leo": {
+      "core_wound": "인정과 자기 표현의 상처",
+      "healing_journey": "내면의 빛 발견",
+      "wisdom_gift": "창의성 막힘 치유",
+      "spiritual_teaching": "빛은 내면에서 온다",
+      "integration_path": "창조를 통한 치유"
+    },
+    "Chiron_in_Virgo": {
+      "core_wound": "완벽함과 유용성의 상처",
+      "healing_journey": "불완전함 수용",
+      "wisdom_gift": "건강과 자기비판 치유",
+      "spiritual_teaching": "완벽함은 환상",
+      "integration_path": "봉사를 통한 치유"
+    },
+    "Chiron_in_Libra": {
+      "core_wound": "관계와 균형의 상처",
+      "healing_journey": "자기 내면의 균형 찾기",
+      "wisdom_gift": "관계 문제 치유",
+      "spiritual_teaching": "먼저 자신과 조화",
+      "integration_path": "관계를 통한 치유"
+    },
+    "Chiron_in_Scorpio": {
+      "core_wound": "신뢰와 친밀감의 상처",
+      "healing_journey": "그림자 대면과 통합",
+      "wisdom_gift": "트라우마와 배신 치유",
+      "spiritual_teaching": "어둠에서 빛 찾기",
+      "integration_path": "변형을 통한 치유"
+    },
+    "Chiron_in_Sagittarius": {
+      "core_wound": "의미와 믿음의 상처",
+      "healing_journey": "개인적 진리 발견",
+      "wisdom_gift": "신앙 위기 치유",
+      "spiritual_teaching": "모든 길에 진리 있음",
+      "integration_path": "탐구를 통한 치유"
+    },
+    "Chiron_in_Capricorn": {
+      "core_wound": "성취와 권위의 상처",
+      "healing_journey": "내면의 권위 확립",
+      "wisdom_gift": "권위 문제와 실패 치유",
+      "spiritual_teaching": "진정한 성공은 내면에",
+      "integration_path": "책임을 통한 치유"
+    },
+    "Chiron_in_Aquarius": {
+      "core_wound": "소외와 다름의 상처",
+      "healing_journey": "독특함 수용",
+      "wisdom_gift": "소외감과 다름 치유",
+      "spiritual_teaching": "다름이 선물",
+      "integration_path": "혁신을 통한 치유"
+    },
+    "Chiron_in_Pisces": {
+      "core_wound": "영적 연결과 믿음의 상처",
+      "healing_journey": "신성과의 직접 연결",
+      "wisdom_gift": "영적 상처와 중독 치유",
+      "spiritual_teaching": "이미 하나임",
+      "integration_path": "영성을 통한 치유"
+    }
+  },
+
+  "spiritual_houses": {
+    "9th_house": {
+      "Sun_in_9th": {
+        "spiritual_identity": "진리 탐구자로서의 정체성",
+        "wisdom_path": "철학과 고등 교육",
+        "spiritual_expression": "가르침과 출판"
+      },
+      "Moon_in_9th": {
+        "spiritual_identity": "믿음에서 정서적 안정",
+        "wisdom_path": "직관적 지혜",
+        "spiritual_expression": "문화 간 돌봄"
+      },
+      "Jupiter_in_9th": {
+        "spiritual_identity": "타고난 철학자",
+        "wisdom_path": "확장과 탐험",
+        "spiritual_expression": "지혜 전달자"
+      },
+      "Saturn_in_9th": {
+        "spiritual_identity": "진지한 진리 추구자",
+        "wisdom_path": "규율 있는 학습",
+        "spiritual_expression": "전통 지혜의 수호자"
+      },
+      "Neptune_in_9th": {
+        "spiritual_identity": "신비적 탐구자",
+        "wisdom_path": "영적 비전",
+        "spiritual_expression": "영감적 교사"
+      },
+      "Pluto_in_9th": {
+        "spiritual_identity": "변형적 진리 추구자",
+        "wisdom_path": "깊은 신념 변화",
+        "spiritual_expression": "권력 있는 교육자"
+      }
+    },
+    "12th_house": {
+      "Sun_in_12th": {
+        "spiritual_depth": "숨겨진 빛, 영적 정체성",
+        "unconscious_patterns": "자아 초월의 길",
+        "transcendence_gift": "영적 리더십"
+      },
+      "Moon_in_12th": {
+        "spiritual_depth": "깊은 감정적 직관",
+        "unconscious_patterns": "과거 생 감정 기억",
+        "transcendence_gift": "심리적 치유 능력"
+      },
+      "Mercury_in_12th": {
+        "spiritual_depth": "무의식과 소통",
+        "unconscious_patterns": "숨겨진 생각과 두려움",
+        "transcendence_gift": "채널링, 영감적 글쓰기"
+      },
+      "Venus_in_12th": {
+        "spiritual_depth": "비밀스러운 사랑",
+        "unconscious_patterns": "숨겨진 관계 패턴",
+        "transcendence_gift": "무조건적 사랑"
+      },
+      "Mars_in_12th": {
+        "spiritual_depth": "영적 전사",
+        "unconscious_patterns": "억압된 분노와 욕구",
+        "transcendence_gift": "영적 행동력"
+      },
+      "Jupiter_in_12th": {
+        "spiritual_depth": "숨겨진 보호자",
+        "unconscious_patterns": "과거 생 축복",
+        "transcendence_gift": "영적 풍요"
+      },
+      "Saturn_in_12th": {
+        "spiritual_depth": "카르마적 책임",
+        "unconscious_patterns": "숨겨진 두려움과 제한",
+        "transcendence_gift": "영적 성숙"
+      },
+      "Uranus_in_12th": {
+        "spiritual_depth": "갑작스러운 영적 각성",
+        "unconscious_patterns": "억압된 독창성",
+        "transcendence_gift": "천재적 직관"
+      },
+      "Neptune_in_12th": {
+        "spiritual_depth": "가장 깊은 영적 연결",
+        "unconscious_patterns": "경계 없는 의식",
+        "transcendence_gift": "신비적 합일"
+      },
+      "Pluto_in_12th": {
+        "spiritual_depth": "집단 무의식 접근",
+        "unconscious_patterns": "깊은 변형적 힘",
+        "transcendence_gift": "영적 재생"
+      }
+    }
+  }
+}

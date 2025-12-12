@@ -1,0 +1,450 @@
+{
+  "$schema": "Premium I Ching Hexagram Interpretations - Gemini Level",
+  "$description": "64 hexagrams with deep Korean/English interpretations, theme-specific readings, and Five Element analysis",
+  "hexagrams": {
+    "1": {
+      "number": 1,
+      "name_en": "Qian - The Creative",
+      "name_ko": "건괘(乾卦) - 하늘",
+      "name_hanja": "乾為天",
+      "symbol": "䷀",
+      "binary": "111111",
+      "trigram_upper": "heaven",
+      "trigram_lower": "heaven",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "순수한 양(陽)의 기운. 창조적 힘, 리더십, 강건함을 상징합니다. 하늘이 쉬지 않고 움직이듯, 끊임없는 자기 발전과 성장을 의미합니다.",
+        "en": "Pure yang energy. Symbolizes creative power, leadership, and strength. Like heaven moving ceaselessly, it represents continuous self-improvement and growth."
+      },
+      "judgment": {
+        "ko": "크게 형통하니, 바름을 굳게 지킴이 이롭다. 하늘의 도는 변화를 주재하여 만물을 바르게 하니, 대인(大人)을 만남이 이롭다.",
+        "en": "Greatly successful. Perseverance is favorable. The way of heaven governs change and corrects all things. It is favorable to meet the great person."
+      },
+      "image": {
+        "ko": "하늘이 스스로 굳건하게 운행하니, 군자는 이를 본받아 스스로 쉬지 않고 힘써야 한다 (天行健 君子以自強不息).",
+        "en": "Heaven moves with vigor. The superior person, in correspondence with this, makes himself strong and untiring."
+      },
+      "themes": {
+        "career": {
+          "ko": "지금은 리더십을 발휘할 때입니다. 새로운 프로젝트를 시작하거나 승진의 기회가 있습니다. 그러나 독단적이지 말고 동료들과 협력하세요. 창업이나 사업 확장에 좋은 시기입니다.",
+          "en": "This is the time to exercise leadership. Opportunities for new projects or promotion exist. However, avoid being autocratic and cooperate with colleagues. Good timing for starting a business or expansion."
+        },
+        "love": {
+          "ko": "연애운이 활발합니다. 적극적으로 다가가면 좋은 인연을 만날 수 있습니다. 기존 관계에서는 주도적 역할이 필요하지만, 상대방을 존중하는 것이 중요합니다.",
+          "en": "Love energy is active. Approaching actively can lead to good relationships. In existing relationships, taking initiative is needed, but respecting your partner is crucial."
+        },
+        "health": {
+          "ko": "에너지가 넘치는 시기입니다. 그러나 과로를 주의하세요. 심장, 머리 관련 질환에 신경 쓰고, 규칙적인 운동으로 양기를 순환시키세요.",
+          "en": "A period of high energy. However, beware of overwork. Pay attention to heart and head-related issues, and circulate yang energy through regular exercise."
+        },
+        "wealth": {
+          "ko": "재정적으로 좋은 흐름입니다. 투자나 사업에서 이익을 볼 수 있습니다. 그러나 탐욕을 경계하고, 장기적 관점에서 결정하세요.",
+          "en": "Favorable financial flow. Profits possible from investments or business. However, guard against greed and make decisions from a long-term perspective."
+        },
+        "timing": {
+          "ko": "봄과 여름에 특히 좋습니다. 오전 시간대가 활동하기 좋고, 양력 3-5월이 최적기입니다.",
+          "en": "Especially favorable in spring and summer. Morning hours are good for activities, and March-May is optimal timing."
+        }
+      },
+      "lines": {
+        "1": {
+          "text_ko": "초구(初九): 잠룡(潛龍)이니, 쓰지 말라. 아직 때가 아니니 잠복하여 때를 기다려라.",
+          "text_en": "First line: Hidden dragon. Do not act. The time is not yet ripe; remain concealed and wait.",
+          "meaning_ko": "아직 준비 단계입니다. 서두르지 말고 실력을 쌓으세요.",
+          "meaning_en": "Still in preparation. Don't rush; build your capabilities."
+        },
+        "2": {
+          "text_ko": "구이(九二): 나타난 용이 밭에 있으니, 대인을 만남이 이롭다.",
+          "text_en": "Second line: Dragon appearing in the field. It is favorable to see the great person.",
+          "meaning_ko": "능력이 드러나기 시작합니다. 멘토나 조력자를 만나세요.",
+          "meaning_en": "Your abilities begin to show. Seek a mentor or supporter."
+        },
+        "3": {
+          "text_ko": "구삼(九三): 군자가 종일 건건하고 저녁에도 조심하니, 위태로우나 허물이 없다.",
+          "text_en": "Third line: The superior person is active all day and cautious in the evening. Danger, but no blame.",
+          "meaning_ko": "열심히 일하되 항상 경계하세요. 방심하면 위험합니다.",
+          "meaning_en": "Work diligently but stay vigilant. Complacency brings danger."
+        },
+        "4": {
+          "text_ko": "구사(九四): 혹은 뛰어 연못에 있으니, 허물이 없다.",
+          "text_en": "Fourth line: Wavering flight over the depths. No blame.",
+          "meaning_ko": "도약의 시기입니다. 과감하게 도전해도 됩니다.",
+          "meaning_en": "Time for a leap. Bold challenges are acceptable."
+        },
+        "5": {
+          "text_ko": "구오(九五): 나는 용이 하늘에 있으니, 대인을 만남이 이롭다.",
+          "text_en": "Fifth line: Flying dragon in the heavens. It is favorable to see the great person.",
+          "meaning_ko": "최고의 위치에 도달했습니다. 영향력을 발휘할 때입니다.",
+          "meaning_en": "You have reached the highest position. Time to exert influence."
+        },
+        "6": {
+          "text_ko": "상구(上九): 항룡(亢龍)이니 후회가 있으리라.",
+          "text_en": "Sixth line: Arrogant dragon. There will be regret.",
+          "meaning_ko": "지나친 것은 모자람만 못합니다. 겸손을 유지하세요.",
+          "meaning_en": "Excess is worse than deficiency. Maintain humility."
+        }
+      },
+      "saju_connection": {
+        "favorable_pillars": ["甲", "乙", "壬", "癸"],
+        "element_harmony": "금(金) 기운이 강하므로, 수(水) 일간에게 특히 좋습니다.",
+        "day_master_advice": {
+          "wood": "리더십을 발휘하되, 유연성을 잃지 마세요.",
+          "fire": "열정을 조절하세요. 과도한 추진력은 소진을 부릅니다.",
+          "earth": "안정을 추구하면서도 변화를 두려워하지 마세요.",
+          "metal": "본래 기질과 잘 맞습니다. 결단력을 발휘하세요.",
+          "water": "창의력을 발휘할 좋은 시기입니다."
+        }
+      }
+    },
+    "2": {
+      "number": 2,
+      "name_en": "Kun - The Receptive",
+      "name_ko": "곤괘(坤卦) - 땅",
+      "name_hanja": "坤為地",
+      "symbol": "䷁",
+      "binary": "000000",
+      "trigram_upper": "earth",
+      "trigram_lower": "earth",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "순수한 음(陰)의 기운. 수용성, 온유함, 지구력을 상징합니다. 땅이 만물을 품듯, 겸손하게 받아들이고 양육하는 덕을 나타냅니다.",
+        "en": "Pure yin energy. Symbolizes receptivity, gentleness, and endurance. Like earth embracing all things, it represents the virtue of humble acceptance and nurturing."
+      },
+      "judgment": {
+        "ko": "크게 형통하니, 암말의 바름을 굳게 지킴이 이롭다. 군자가 갈 바가 있으면 처음에는 미혹되나 뒤에는 주인을 얻는다.",
+        "en": "Greatly successful. Perseverance like that of a mare is favorable. If the superior person undertakes something and tries to lead, they go astray; but if they follow, they find guidance."
+      },
+      "image": {
+        "ko": "땅의 형세가 곤이니, 군자는 이를 본받아 두터운 덕으로 만물을 싣는다 (地勢坤 君子以厚德載物).",
+        "en": "The earth's condition is receptive. The superior person, in correspondence with this, carries all things with his great virtue."
+      },
+      "themes": {
+        "career": {
+          "ko": "지금은 주도하기보다 지원하는 역할이 좋습니다. 팀워크를 중시하고, 상사나 동료를 보조하세요. 인내심을 갖고 기다리면 인정받게 됩니다.",
+          "en": "Now is the time for a supportive role rather than leading. Value teamwork and assist supervisors or colleagues. With patience, you will be recognized."
+        },
+        "love": {
+          "ko": "상대방을 받아들이고 이해하는 것이 중요합니다. 적극적으로 밀어붙이기보다 상대의 페이스에 맞추세요. 기존 관계에서는 헌신이 보상받는 시기입니다.",
+          "en": "Accepting and understanding your partner is important. Match their pace rather than pushing. In existing relationships, devotion will be rewarded."
+        },
+        "health": {
+          "ko": "소화기 계통에 신경 쓰세요. 충분한 휴식과 규칙적인 식사가 중요합니다. 과로를 피하고 몸의 신호에 귀 기울이세요.",
+          "en": "Pay attention to the digestive system. Sufficient rest and regular meals are important. Avoid overwork and listen to your body's signals."
+        },
+        "wealth": {
+          "ko": "보수적인 재정 관리가 좋습니다. 큰 투자보다는 저축과 안정적인 수입에 집중하세요. 부동산 관련 기회가 있을 수 있습니다.",
+          "en": "Conservative financial management is favorable. Focus on savings and stable income rather than big investments. Real estate opportunities may arise."
+        },
+        "timing": {
+          "ko": "가을과 겨울에 특히 좋습니다. 오후 시간대가 활동하기 좋고, 양력 9-11월이 최적기입니다.",
+          "en": "Especially favorable in autumn and winter. Afternoon hours are good for activities, and September-November is optimal timing."
+        }
+      },
+      "lines": {
+        "1": {
+          "text_ko": "초육(初六): 서리를 밟으면 단단한 얼음이 이른다.",
+          "text_en": "First line: When you tread on hoarfrost, solid ice is not far away.",
+          "meaning_ko": "작은 징조를 무시하지 마세요. 미리 대비하세요.",
+          "meaning_en": "Don't ignore small signs. Prepare in advance."
+        },
+        "2": {
+          "text_ko": "육이(六二): 곧고 방정하고 크니, 익히지 않아도 이롭지 않음이 없다.",
+          "text_en": "Second line: Straight, square, great. Without practice, everything is favorable.",
+          "meaning_ko": "자연스럽게 흘러가세요. 억지로 하지 않아도 됩니다.",
+          "meaning_en": "Go with the flow naturally. No need to force things."
+        },
+        "3": {
+          "text_ko": "육삼(六三): 아름다움을 품고 있으니, 혹 왕의 일에 종사하면 이루지 못해도 끝마칠 수 있다.",
+          "text_en": "Third line: Hidden beauty. If serving the king, seek no success but bring the work to a conclusion.",
+          "meaning_ko": "공을 세우기보다 완수하는 것에 집중하세요.",
+          "meaning_en": "Focus on completion rather than taking credit."
+        },
+        "4": {
+          "text_ko": "육사(六四): 주머니를 묶으니, 허물도 없고 칭찬도 없다.",
+          "text_en": "Fourth line: A tied-up sack. No blame, no praise.",
+          "meaning_ko": "신중하게 행동하세요. 조용히 때를 기다리세요.",
+          "meaning_en": "Act with caution. Wait quietly for the right time."
+        },
+        "5": {
+          "text_ko": "육오(六五): 황색 치마이니, 크게 길하다.",
+          "text_en": "Fifth line: A yellow lower garment. Supreme good fortune.",
+          "meaning_ko": "중용의 덕으로 큰 성공을 거둡니다.",
+          "meaning_en": "Great success through the virtue of moderation."
+        },
+        "6": {
+          "text_ko": "상육(上六): 용이 들에서 싸우니, 그 피가 검고 누렇다.",
+          "text_en": "Sixth line: Dragons fight in the meadow. Their blood is black and yellow.",
+          "meaning_ko": "극단으로 치달으면 충돌이 생깁니다. 균형을 유지하세요.",
+          "meaning_en": "Extremes lead to conflict. Maintain balance."
+        }
+      },
+      "saju_connection": {
+        "favorable_pillars": ["戊", "己", "丙", "丁"],
+        "element_harmony": "토(土) 기운이 강하므로, 화(火) 일간에게 특히 좋습니다.",
+        "day_master_advice": {
+          "wood": "인내심을 기르세요. 지금은 성장의 준비 기간입니다.",
+          "fire": "에너지를 안정시키고 내실을 다지세요.",
+          "earth": "본래 기질과 잘 맞습니다. 꾸준함이 성공의 열쇠입니다.",
+          "metal": "유연성을 기르세요. 강함만이 능사가 아닙니다.",
+          "water": "기반을 단단히 하세요. 흔들리지 않는 토대가 필요합니다."
+        }
+      }
+    },
+    "11": {
+      "number": 11,
+      "name_en": "Tai - Peace",
+      "name_ko": "태괘(泰卦) - 평화",
+      "name_hanja": "地天泰",
+      "symbol": "䷊",
+      "binary": "000111",
+      "trigram_upper": "earth",
+      "trigram_lower": "heaven",
+      "element": "earth",
+      "core_meaning": {
+        "ko": "하늘과 땅이 교류하여 만물이 화합합니다. 음양이 조화를 이루어 모든 것이 순조롭게 진행됩니다. 최고의 길괘(吉卦) 중 하나입니다.",
+        "en": "Heaven and earth communicate, and all things harmonize. Yin and yang are in balance, and everything proceeds smoothly. One of the most auspicious hexagrams."
+      },
+      "judgment": {
+        "ko": "작은 것이 가고 큰 것이 오니, 길하고 형통하다.",
+        "en": "The small departs, the great approaches. Good fortune and success."
+      },
+      "image": {
+        "ko": "천지가 교류하는 것이 태이니, 왕은 천지의 도를 재단하고 백성을 돕는다.",
+        "en": "Heaven and earth unite. The ruler fashions and completes the way of heaven and earth, and assists the people."
+      },
+      "themes": {
+        "career": {
+          "ko": "모든 일이 순조롭습니다. 승진, 계약, 협력 모두 좋은 결과를 얻습니다. 새로운 시작에 최적의 시기입니다. 그러나 안주하지 말고 준비하세요.",
+          "en": "Everything proceeds smoothly. Promotion, contracts, and cooperation all yield good results. Optimal timing for new beginnings. However, don't rest on laurels; stay prepared."
+        },
+        "love": {
+          "ko": "사랑운이 최고조입니다. 새로운 만남이든 기존 관계든 조화롭게 발전합니다. 결혼에 좋은 시기입니다. 상호 이해와 소통이 활발합니다.",
+          "en": "Love fortune is at its peak. Whether new meetings or existing relationships, they develop harmoniously. Good timing for marriage. Mutual understanding and communication flourish."
+        },
+        "health": {
+          "ko": "신체적, 정신적으로 균형 잡힌 상태입니다. 건강이 좋고 활력이 넘칩니다. 이 좋은 상태를 유지하기 위해 규칙적인 생활을 하세요.",
+          "en": "Physically and mentally balanced. Health is good and vitality is high. Maintain regular habits to preserve this good condition."
+        },
+        "wealth": {
+          "ko": "재정적으로 풍요로운 시기입니다. 투자, 사업, 거래 모두 이익을 봅니다. 그러나 지나친 욕심은 금물입니다. 나눔을 실천하면 더 큰 복이 옵니다.",
+          "en": "A financially abundant period. Investments, business, and transactions all bring profit. However, avoid excessive greed. Practicing generosity brings greater blessings."
+        },
+        "timing": {
+          "ko": "봄에 특히 좋습니다. 양력 2-4월이 최적기이며, 아침 시간대가 활동하기 좋습니다.",
+          "en": "Especially favorable in spring. February-April is optimal, and morning hours are good for activities."
+        }
+      },
+      "saju_connection": {
+        "favorable_pillars": ["甲", "乙", "戊", "己"],
+        "element_harmony": "목(木)과 토(土)가 조화를 이루므로, 균형 잡힌 오행 구성에 좋습니다.",
+        "day_master_advice": {
+          "wood": "성장의 에너지가 충만합니다. 적극적으로 행동하세요.",
+          "fire": "열정을 현실화할 좋은 시기입니다.",
+          "earth": "안정과 발전이 공존합니다. 기회를 잡으세요.",
+          "metal": "유연하게 대처하면 좋은 결과를 얻습니다.",
+          "water": "흐름에 맡기되 방향을 잃지 마세요."
+        }
+      }
+    },
+    "12": {
+      "number": 12,
+      "name_en": "Pi - Standstill",
+      "name_ko": "비괘(否卦) - 막힘",
+      "name_hanja": "天地否",
+      "symbol": "䷋",
+      "binary": "111000",
+      "trigram_upper": "heaven",
+      "trigram_lower": "earth",
+      "element": "metal",
+      "core_meaning": {
+        "ko": "하늘과 땅이 교류하지 않아 막혀있습니다. 음양이 소통하지 못하여 정체의 시기입니다. 그러나 막힘 뒤에는 반드시 열림이 옵니다.",
+        "en": "Heaven and earth do not communicate; blockage. Yin and yang cannot interact; a period of stagnation. However, after blockage, opening always comes."
+      },
+      "judgment": {
+        "ko": "비인불이(否人不利) - 사람의 도가 아니니, 군자의 바름을 굳게 지킴이 이롭지 않다. 큰 것이 가고 작은 것이 온다.",
+        "en": "It is not the way of humans. The perseverance of the superior person is not favorable. The great departs; the small approaches."
+      },
+      "themes": {
+        "career": {
+          "ko": "현재 정체기입니다. 무리하게 추진하지 말고 때를 기다리세요. 내부 역량 강화에 집중하고, 인내심을 가지세요. 상황이 바뀔 때까지 현상 유지가 최선입니다.",
+          "en": "Currently in a stagnant period. Don't push forcefully; wait for the right time. Focus on internal capacity building and have patience. Maintaining status quo is best until things change."
+        },
+        "love": {
+          "ko": "소통이 어려운 시기입니다. 오해가 생기기 쉬우니 대화에 신경 쓰세요. 새로운 만남보다는 기존 관계를 돌보세요. 감정을 솔직하게 표현하는 것이 중요합니다.",
+          "en": "Communication is difficult. Misunderstandings can easily arise, so pay attention to dialogue. Care for existing relationships rather than seeking new ones. Expressing feelings honestly is important."
+        },
+        "health": {
+          "ko": "기운이 막혀있을 수 있습니다. 스트레스 관리에 신경 쓰고, 순환을 돕는 운동을 하세요. 소화기 문제나 우울감에 주의하세요.",
+          "en": "Energy may be blocked. Focus on stress management and exercise that aids circulation. Watch out for digestive issues or depression."
+        },
+        "wealth": {
+          "ko": "재정적 흐름이 정체됩니다. 큰 투자나 도박은 피하세요. 지출을 줄이고 저축에 힘쓰세요. 이 시기를 버티면 다시 좋아집니다.",
+          "en": "Financial flow stagnates. Avoid big investments or gambling. Reduce spending and focus on saving. Enduring this period will lead to improvement."
+        },
+        "timing": {
+          "ko": "겨울에 해당합니다. 양력 11-1월에 막힘이 강하고, 봄이 오면 풀립니다.",
+          "en": "Corresponds to winter. Blockage is strong in November-January; it releases when spring comes."
+        }
+      },
+      "saju_connection": {
+        "favorable_pillars": ["庚", "辛", "壬", "癸"],
+        "element_harmony": "금(金)과 수(水)가 지나치면 막힘이 심해집니다. 화(火)로 균형을 맞추세요.",
+        "day_master_advice": {
+          "wood": "어려운 시기지만, 내면의 힘을 기르세요.",
+          "fire": "당신의 열정이 막힘을 녹일 수 있습니다.",
+          "earth": "인내하세요. 땅이 하늘을 지탱하듯 버티세요.",
+          "metal": "내려놓을 것은 내려놓으세요.",
+          "water": "흐름이 막혀도 결국 길을 찾습니다."
+        }
+      }
+    },
+    "63": {
+      "number": 63,
+      "name_en": "Ji Ji - After Completion",
+      "name_ko": "기제괘(旣濟卦) - 이미 건넘",
+      "name_hanja": "水火旣濟",
+      "symbol": "䷾",
+      "binary": "010101",
+      "trigram_upper": "water",
+      "trigram_lower": "fire",
+      "element": "water",
+      "core_meaning": {
+        "ko": "모든 효가 정위(正位)에 있어 완성을 상징합니다. 그러나 완성은 동시에 쇠퇴의 시작이기도 합니다. 성공 후에도 경계를 늦추지 마세요.",
+        "en": "All lines are in their proper positions, symbolizing completion. However, completion is also the beginning of decline. Don't let your guard down even after success."
+      },
+      "judgment": {
+        "ko": "소사형통하니, 바름을 굳게 지킴이 이롭다. 처음에는 길하나 마침내 어지럽다.",
+        "en": "Success in small matters. Perseverance is favorable. Good fortune at the beginning, disorder at the end."
+      },
+      "themes": {
+        "career": {
+          "ko": "프로젝트나 목표가 완성되었습니다. 그러나 성공에 안주하지 말고 다음을 준비하세요. 마무리를 잘 하고 새로운 목표를 설정하세요.",
+          "en": "Project or goal has been completed. However, don't rest on success; prepare for what's next. Finish well and set new goals."
+        },
+        "love": {
+          "ko": "관계가 안정기에 접어들었습니다. 그러나 권태가 올 수 있으니 새로운 시도를 하세요. 일상 속 작은 로맨스를 잊지 마세요.",
+          "en": "Relationship has entered a stable phase. However, boredom may come, so try new things. Don't forget small romances in daily life."
+        },
+        "health": {
+          "ko": "전반적으로 안정적이지만, 건강을 과신하지 마세요. 정기 검진을 받고 예방에 힘쓰세요.",
+          "en": "Generally stable, but don't overestimate your health. Get regular checkups and focus on prevention."
+        },
+        "wealth": {
+          "ko": "재정적으로 안정되어 있습니다. 이제는 지키는 것이 중요합니다. 모험적인 투자보다 안정적인 관리에 집중하세요.",
+          "en": "Financially stable. Now preservation is important. Focus on stable management rather than adventurous investments."
+        },
+        "timing": {
+          "ko": "정점에 도달한 상태입니다. 현 상태를 유지하면서 다음 단계를 준비하세요.",
+          "en": "You have reached the peak. Maintain the current state while preparing for the next phase."
+        }
+      }
+    },
+    "64": {
+      "number": 64,
+      "name_en": "Wei Ji - Before Completion",
+      "name_ko": "미제괘(未濟卦) - 아직 건너지 못함",
+      "name_hanja": "火水未濟",
+      "symbol": "䷿",
+      "binary": "101010",
+      "trigram_upper": "fire",
+      "trigram_lower": "water",
+      "element": "fire",
+      "core_meaning": {
+        "ko": "모든 효가 부정위(不正位)에 있어 미완성을 상징합니다. 그러나 미완성은 무한한 가능성을 품고 있습니다. 끝은 새로운 시작입니다.",
+        "en": "All lines are out of position, symbolizing incompletion. However, incompletion holds infinite possibilities. The end is a new beginning."
+      },
+      "judgment": {
+        "ko": "형통하나 여우가 거의 건너다 꼬리를 적시면 이로울 바가 없다. 조심하라.",
+        "en": "Success. But if the little fox, after nearly completing the crossing, gets his tail in the water, there is nothing favorable."
+      },
+      "themes": {
+        "career": {
+          "ko": "아직 완성되지 않았지만 가능성이 있습니다. 마지막까지 방심하지 말고, 신중하게 마무리하세요. 새로운 도전을 준비할 시기입니다.",
+          "en": "Not yet complete, but there is potential. Don't let your guard down until the end; finish carefully. Time to prepare for new challenges."
+        },
+        "love": {
+          "ko": "관계가 형성 중입니다. 서두르지 말고 자연스럽게 발전시키세요. 미래 지향적인 관계를 위해 투자하세요.",
+          "en": "Relationship is forming. Don't rush; let it develop naturally. Invest in a future-oriented relationship."
+        },
+        "health": {
+          "ko": "회복 중이거나 관리가 필요합니다. 꾸준한 노력으로 건강을 개선하세요.",
+          "en": "Recovering or needs management. Improve health through consistent effort."
+        },
+        "wealth": {
+          "ko": "아직 성과가 나오지 않았지만 기다리세요. 조급함은 금물이며, 과정을 믿고 진행하세요.",
+          "en": "Results haven't appeared yet, but wait. Avoid impatience and trust the process."
+        },
+        "timing": {
+          "ko": "과도기입니다. 새로운 사이클이 시작되려 합니다. 준비하세요.",
+          "en": "A transitional period. A new cycle is about to begin. Prepare."
+        }
+      }
+    }
+  },
+  "trigrams": {
+    "heaven": {
+      "name_ko": "건(乾)",
+      "name_en": "Qian",
+      "meaning_ko": "하늘, 창조, 강건함",
+      "meaning_en": "Heaven, creativity, strength",
+      "element": "metal",
+      "family": "father"
+    },
+    "earth": {
+      "name_ko": "곤(坤)",
+      "name_en": "Kun",
+      "meaning_ko": "땅, 수용, 유순함",
+      "meaning_en": "Earth, receptivity, yielding",
+      "element": "earth",
+      "family": "mother"
+    },
+    "thunder": {
+      "name_ko": "진(震)",
+      "name_en": "Zhen",
+      "meaning_ko": "우레, 움직임, 시작",
+      "meaning_en": "Thunder, movement, beginning",
+      "element": "wood",
+      "family": "eldest_son"
+    },
+    "water": {
+      "name_ko": "감(坎)",
+      "name_en": "Kan",
+      "meaning_ko": "물, 위험, 지혜",
+      "meaning_en": "Water, danger, wisdom",
+      "element": "water",
+      "family": "middle_son"
+    },
+    "mountain": {
+      "name_ko": "간(艮)",
+      "name_en": "Gen",
+      "meaning_ko": "산, 멈춤, 명상",
+      "meaning_en": "Mountain, stillness, meditation",
+      "element": "earth",
+      "family": "youngest_son"
+    },
+    "wind": {
+      "name_ko": "손(巽)",
+      "name_en": "Xun",
+      "meaning_ko": "바람, 침투, 유연함",
+      "meaning_en": "Wind, penetration, flexibility",
+      "element": "wood",
+      "family": "eldest_daughter"
+    },
+    "fire": {
+      "name_ko": "리(離)",
+      "name_en": "Li",
+      "meaning_ko": "불, 밝음, 집착",
+      "meaning_en": "Fire, brightness, attachment",
+      "element": "fire",
+      "family": "middle_daughter"
+    },
+    "lake": {
+      "name_ko": "태(兌)",
+      "name_en": "Dui",
+      "meaning_ko": "연못, 기쁨, 소통",
+      "meaning_en": "Lake, joy, communication",
+      "element": "metal",
+      "family": "youngest_daughter"
+    }
+  }
+}

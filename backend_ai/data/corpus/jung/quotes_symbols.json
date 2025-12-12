@@ -1,0 +1,157 @@
+{
+  "concept": "symbols",
+  "concept_kr": "상징",
+  "description": "Man and His Symbols - Jung's accessible work on dreams, symbols, and the unconscious for general readers",
+  "quotes": [
+    {
+      "id": "sym_001",
+      "en": "We are so captivated by and entangled in our subjective consciousness that we have forgotten the age-old fact that God speaks chiefly through dreams and visions.",
+      "kr": "우리는 주관적 의식에 너무 사로잡혀 얽혀 있어서 신이 주로 꿈과 비전을 통해 말씀하신다는 오래된 사실을 잊어버렸다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the divine nature of dreams",
+      "tags": ["dreams", "god", "visions", "consciousness"]
+    },
+    {
+      "id": "sym_002",
+      "en": "The main source, then, is dreams, which have the advantage of being involuntary, spontaneous products of nature not falsified by any conscious purpose.",
+      "kr": "그러므로 주요 원천은 꿈이다. 꿈은 어떤 의식적 목적에 의해 왜곡되지 않은, 자연의 비자발적이고 자발적인 산물이라는 장점을 가진다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On dreams as authentic products of the unconscious",
+      "tags": ["dreams", "nature", "unconscious", "spontaneous"]
+    },
+    {
+      "id": "sym_003",
+      "en": "There is no difference in principle between organic and psychic growth. As a plant produces its flower, so the psyche creates its symbols. Every dream is evidence of this process.",
+      "kr": "유기적 성장과 정신적 성장 사이에는 원칙적으로 차이가 없다. 식물이 꽃을 피우듯이, 정신은 상징을 창조한다. 모든 꿈은 이 과정의 증거이다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the natural growth of symbols",
+      "tags": ["symbols", "growth", "psyche", "dreams", "nature"]
+    },
+    {
+      "id": "sym_004",
+      "en": "The general function of dreams is to try to restore our psychological balance by producing dream material that reestablishes, in a subtle way, the total psychic equilibrium.",
+      "kr": "꿈의 일반적 기능은 미묘한 방식으로 전체 정신적 균형을 재확립하는 꿈 내용을 생산함으로써 심리적 균형을 회복하려고 시도하는 것이다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the compensatory function of dreams",
+      "tags": ["dreams", "balance", "equilibrium", "psychology"]
+    },
+    {
+      "id": "sym_005",
+      "en": "It is plain foolishness to believe in ready-made systematic guides to dream interpretation, as if one could simply buy a reference book and look up a particular symbol.",
+      "kr": "기성품 꿈 해석 안내서를 믿는 것은 명백한 어리석음이다, 마치 참고서를 사서 특정 상징을 찾아보기만 하면 되는 것처럼.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the individual nature of dream symbols",
+      "tags": ["dreams", "interpretation", "symbols", "individual"]
+    },
+    {
+      "id": "sym_006",
+      "en": "Archetypes, in spite of their conservative nature, are not static but in a continuous dramatic flux. Thus the self as a monad or continuous unit would be dead.",
+      "kr": "원형은 보수적 성격에도 불구하고 정적이지 않고 지속적인 극적 유동 상태에 있다. 따라서 단자나 연속적 단위로서의 자기는 죽은 것이 될 것이다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the dynamic nature of archetypes",
+      "tags": ["archetypes", "flux", "self", "dynamic"]
+    },
+    {
+      "id": "sym_007",
+      "en": "All ages before ours believed in gods in some form or other. Only an unparalleled impoverishment in symbolism could enable us to rediscover the gods as psychic factors, which is to say, as archetypes of the unconscious.",
+      "kr": "우리 시대 이전의 모든 시대는 어떤 형태로든 신을 믿었다. 오직 상징주의의 전례 없는 빈곤만이 우리가 신들을 정신적 요소로, 즉 무의식의 원형으로 재발견할 수 있게 했다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On gods as psychological archetypes",
+      "tags": ["gods", "archetypes", "symbols", "unconscious"]
+    },
+    {
+      "id": "sym_008",
+      "en": "The mere use of words is futile when you do not know what they stand for. This is particularly true in psychology, where we speak of archetypes like the anima and animus, the wise man, the great mother, and so on.",
+      "kr": "그것이 무엇을 의미하는지 모르면서 단어만 사용하는 것은 무의미하다. 이것은 특히 심리학에서 그러하다. 심리학에서 우리는 아니마와 아니무스, 현자, 위대한 어머니 등과 같은 원형에 대해 말한다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On understanding archetypal terms",
+      "tags": ["archetypes", "words", "meaning", "understanding"]
+    },
+    {
+      "id": "sym_009",
+      "en": "What we call civilized consciousness has steadily separated itself from the basic instincts. But these instincts have not disappeared. They have merely lost their contact with our consciousness and are thus forced to assert themselves in an indirect fashion.",
+      "kr": "우리가 문명화된 의식이라고 부르는 것은 기본 본능에서 꾸준히 분리되어 왔다. 그러나 이 본능들은 사라지지 않았다. 그들은 단지 의식과의 접촉을 잃었고 따라서 간접적인 방식으로 자신을 주장하도록 강요받는다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the split between consciousness and instinct",
+      "tags": ["consciousness", "instinct", "civilization", "split"]
+    },
+    {
+      "id": "sym_010",
+      "en": "The sad truth is that man's real life consists of a complex of inexorable opposites—day and night, birth and death, happiness and misery, good and evil. We are not even sure that one will prevail against the other... Life is a battleground.",
+      "kr": "슬픈 진실은 인간의 실제 삶이 불가피한 대립물들의 복합체—낮과 밤, 탄생과 죽음, 행복과 비참, 선과 악—로 구성되어 있다는 것이다. 우리는 하나가 다른 것을 이길 것이라고 확신조차 할 수 없다... 삶은 전쟁터이다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the fundamental opposites of life",
+      "tags": ["opposites", "life", "battle", "duality"]
+    },
+    {
+      "id": "sym_011",
+      "en": "A symbol always stands for something more than its obvious and immediate meaning. Symbols, moreover, are natural and spontaneous products.",
+      "kr": "상징은 항상 그것의 명백하고 즉각적인 의미 이상의 것을 나타낸다. 더욱이 상징은 자연스럽고 자발적인 산물이다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the nature of symbols",
+      "tags": ["symbols", "meaning", "natural", "spontaneous"]
+    },
+    {
+      "id": "sym_012",
+      "en": "As scientific understanding has grown, so our world has become dehumanized. Man feels himself isolated in the cosmos, because he is no longer involved in nature.",
+      "kr": "과학적 이해가 성장함에 따라 우리 세계는 비인간화되었다. 인간은 더 이상 자연에 관여하지 않기 때문에 우주에서 고립되었다고 느낀다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On modern alienation from nature",
+      "tags": ["science", "nature", "isolation", "cosmos", "modern"]
+    },
+    {
+      "id": "sym_013",
+      "en": "The psychological rule says that when an inner situation is not made conscious, it happens outside, as fate.",
+      "kr": "심리학적 규칙은 내면의 상황이 의식화되지 않으면 그것이 운명으로서 외부에서 일어난다고 말한다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On unconscious contents becoming fate",
+      "tags": ["consciousness", "fate", "inner", "outer", "projection"]
+    },
+    {
+      "id": "sym_014",
+      "en": "Every period has its bias, its particular prejudice, and its psychic malaise. An epoch is like an individual; it has its own limitations of conscious outlook.",
+      "kr": "모든 시대에는 편향, 특유의 편견, 정신적 불안이 있다. 시대는 개인과 같다; 의식적 관점의 한계를 가지고 있다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On the collective psychology of eras",
+      "tags": ["epoch", "bias", "consciousness", "collective"]
+    },
+    {
+      "id": "sym_015",
+      "en": "The dream is a spontaneous self-portrayal, in symbolic form, of the actual situation in the unconscious.",
+      "kr": "꿈은 무의식의 실제 상황을 상징적 형태로 보여주는 자발적인 자기 묘사이다.",
+      "source": "Man and His Symbols",
+      "year": 1964,
+      "cw_volume": "Man and His Symbols",
+      "context": "On dreams as self-portraits of the unconscious",
+      "tags": ["dreams", "self", "symbols", "unconscious"]
+    }
+  ]
+}

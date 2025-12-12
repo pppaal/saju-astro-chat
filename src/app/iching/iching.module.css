@@ -1,0 +1,503 @@
+/* ===== Main Container ===== */
+.container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+}
+
+/* ===== Hexagram Symbol ===== */
+.hexagramContainer {
+  position: relative;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+.orbRing, .orbRing2 {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  animation: orbPulse 4s ease-in-out infinite;
+}
+
+.orbRing {
+  width: 160px;
+  height: 160px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.orbRing2 {
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: 2s;
+}
+
+.hexagramSymbol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  animation: float 6s ease-in-out infinite;
+  padding: 30px;
+  background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.3), rgba(138, 43, 226, 0.1));
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(138, 43, 226, 0.4),
+              0 0 80px rgba(138, 43, 226, 0.2),
+              inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.hexLine {
+  width: 60px;
+  height: 6px;
+  background: linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff, rgba(197, 166, 255, 0.9));
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.hexLine.broken {
+  position: relative;
+  background: transparent;
+}
+
+.hexLine.broken::before,
+.hexLine.broken::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 6px;
+  background: linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.hexLine.broken::before { left: 0; }
+.hexLine.broken::after { right: 0; }
+
+/* ===== Title Section ===== */
+.titleSection {
+  text-align: center;
+  margin-bottom: 2rem;
+  z-index: 10;
+}
+
+.title {
+  font-family: var(--font-merriweather), serif;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 20px rgba(138, 43, 226, 0.6), 0 0 40px rgba(138, 43, 226, 0.3);
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: rgba(197, 166, 255, 0.9);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ===== Main Card ===== */
+.mainCard {
+  background: rgba(30, 30, 45, 0.6);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 24px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 600px;
+  z-index: 10;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.mainCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 24px;
+  background: radial-gradient(circle at 50% 0%, rgba(138, 43, 226, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* ===== Divination Area ===== */
+.divinationArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.linesContainer {
+  width: 120px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.lineWrapper {
+  animation: lineAppear 0.5s ease-out forwards;
+}
+
+@keyframes lineAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.promptText {
+  font-size: 1.1rem;
+  color: rgba(224, 224, 255, 0.9);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ===== Cast Button ===== */
+.castButton {
+  position: relative;
+  background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+  border: 2px solid rgba(138, 43, 226, 0.5);
+  color: #ffffff;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+}
+
+.castButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.castButton:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 40px rgba(138, 43, 226, 0.6);
+  border-color: rgba(197, 166, 255, 0.7);
+}
+
+.castButton:hover::before {
+  left: 100%;
+}
+
+.castButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Status Text ===== */
+.statusText {
+  font-size: 1.2rem;
+  color: rgba(197, 166, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statusDot {
+  width: 10px;
+  height: 10px;
+  background: #a78bfa;
+  border-radius: 50%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ===== Result Section ===== */
+.resultSection {
+  width: 100%;
+  max-width: 700px;
+  z-index: 10;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.resultCard {
+  background: rgba(30, 30, 45, 0.6);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.resultCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8e2de2, #4a00e0, #8e2de2);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.resultIcon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(75, 0, 130, 0.3));
+  border-radius: 16px;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+.resultTitle {
+  font-family: var(--font-merriweather), serif;
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin: 0;
+}
+
+.resultSubtitle {
+  font-size: 0.95rem;
+  color: rgba(197, 166, 255, 0.8);
+  margin-top: 0.25rem;
+}
+
+.resultDivider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(138, 43, 226, 0.4), transparent);
+  margin: 1.5rem 0;
+}
+
+.resultLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(138, 43, 226, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resultText {
+  font-size: 1.05rem;
+  color: rgba(224, 224, 255, 0.95);
+  line-height: 1.7;
+}
+
+/* ===== Changing Lines ===== */
+.changingLinesSection {
+  background: rgba(255, 200, 0, 0.05);
+  border: 1px solid rgba(255, 200, 0, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.changingLineItem {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 200, 0, 0.1);
+  color: rgba(255, 220, 100, 0.95);
+}
+
+.changingLineItem:last-child {
+  border-bottom: none;
+}
+
+/* ===== Resulting Hexagram ===== */
+.resultingSection {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(75, 0, 130, 0.1));
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.resultingHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.resultingIcon {
+  font-size: 1.5rem;
+}
+
+.resultingTitle {
+  font-family: var(--font-merriweather), serif;
+  font-size: 1.25rem;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* ===== Reset Button ===== */
+.resetButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(30, 30, 45, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  color: rgba(197, 166, 255, 0.9);
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.resetButton:hover {
+  background: rgba(138, 43, 226, 0.2);
+  border-color: rgba(138, 43, 226, 0.5);
+  transform: translateX(-5px);
+}
+
+/* ===== Animations ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes orbPulse {
+  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .mainCard {
+    padding: 1.5rem;
+  }
+
+  .hexagramSymbol {
+    padding: 20px;
+  }
+
+  .hexLine {
+    width: 50px;
+    height: 5px;
+  }
+
+  .hexLine.broken::before,
+  .hexLine.broken::after {
+    width: 20px;
+    height: 5px;
+  }
+
+  .orbRing {
+    width: 130px;
+    height: 130px;
+  }
+
+  .orbRing2 {
+    width: 170px;
+    height: 170px;
+  }
+
+  .castButton {
+    padding: 0.9rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  .resultCard {
+    padding: 1.5rem;
+  }
+
+  .resultTitle {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem 0.75rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .mainCard {
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
+
+  .linesContainer {
+    width: 100px;
+    min-height: 150px;
+  }
+
+  .castButton {
+    padding: 0.85rem 1.75rem;
+    font-size: 1rem;
+  }
+}

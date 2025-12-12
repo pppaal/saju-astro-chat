@@ -1,0 +1,181 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "timing/returns",
+  "$count": 40,
+  "$description": "태양 리턴, 달 리턴 등 행성 리턴 해석",
+  "$note": "생일 차트, 월간 예측 등에 사용",
+
+  "solar_return": {
+    "overview": {
+      "meaning": "생일에 태양이 출생 위치로 돌아오는 차트",
+      "duration": "생일부터 다음 생일까지 1년",
+      "usage": "1년의 주요 테마와 초점 예측"
+    },
+    "Ascendant_sign": {
+      "Aries": "새로운 시작, 독립성, 용기가 필요한 해",
+      "Taurus": "안정 구축, 재정 집중, 감각적 즐거움의 해",
+      "Gemini": "소통, 학습, 다양한 경험의 해",
+      "Cancer": "가정, 가족, 감정적 안전에 집중하는 해",
+      "Leo": "자기 표현, 창조성, 인정받는 해",
+      "Virgo": "건강, 봉사, 개선에 집중하는 해",
+      "Libra": "관계, 파트너십, 균형을 찾는 해",
+      "Scorpio": "변형, 깊이, 재생의 해",
+      "Sagittarius": "확장, 여행, 학습, 모험의 해",
+      "Capricorn": "커리어, 성취, 책임에 집중하는 해",
+      "Aquarius": "자유, 친구, 그룹, 혁신의 해",
+      "Pisces": "영성, 창의성, 은둔, 치유의 해"
+    },
+    "Sun_in_house": {
+      "1st": "자아 중심의 해, 새로운 시작, 개인적 성장",
+      "2nd": "재정과 자기 가치에 집중하는 해",
+      "3rd": "소통, 학습, 이웃/형제 관계의 해",
+      "4th": "가정, 가족, 뿌리에 집중하는 해",
+      "5th": "창조성, 로맨스, 자녀, 기쁨의 해",
+      "6th": "건강, 일, 봉사에 집중하는 해",
+      "7th": "관계와 파트너십이 중심인 해",
+      "8th": "변형, 공유 자원, 친밀감의 해",
+      "9th": "여행, 교육, 철학, 확장의 해",
+      "10th": "커리어와 공적 이미지의 해",
+      "11th": "친구, 그룹, 희망, 목표의 해",
+      "12th": "은둔, 영성, 완료, 휴식의 해"
+    },
+    "Moon_in_house": {
+      "1st": "감정적 변화가 많은 해",
+      "4th": "가정과 가족에 감정적 집중",
+      "7th": "관계에서 감정적 성장",
+      "10th": "커리어에서 감정적 만족 추구"
+    },
+    "key_planets": {
+      "Saturn_prominent": "책임, 제한, 성숙의 해",
+      "Jupiter_prominent": "확장, 행운, 성장의 해",
+      "Uranus_prominent": "예측 불가, 변화, 각성의 해",
+      "Neptune_prominent": "영감, 혼란, 영적 성장의 해",
+      "Pluto_prominent": "변형, 권력, 재생의 해"
+    }
+  },
+
+  "lunar_return": {
+    "overview": {
+      "meaning": "달이 출생 위치로 돌아오는 차트",
+      "duration": "약 27.5일 (한 달)",
+      "usage": "월간 감정적 테마와 초점"
+    },
+    "Moon_in_house": {
+      "1st": "자기 자신에게 집중하는 달",
+      "2nd": "재정과 가치에 집중하는 달",
+      "3rd": "소통과 학습의 달",
+      "4th": "가정과 가족에 집중하는 달",
+      "5th": "창조성과 즐거움의 달",
+      "6th": "건강과 일에 집중하는 달",
+      "7th": "관계에 집중하는 달",
+      "8th": "깊은 감정과 변형의 달",
+      "9th": "확장과 모험의 달",
+      "10th": "커리어와 목표의 달",
+      "11th": "친구와 그룹의 달",
+      "12th": "휴식과 성찰의 달"
+    },
+    "aspects_to_natal": {
+      "Moon_conjunct_Venus": "사랑과 조화로운 달",
+      "Moon_conjunct_Mars": "에너지와 열정의 달",
+      "Moon_conjunct_Saturn": "진지하고 책임감 있는 달",
+      "Moon_square_Pluto": "강렬한 감정 변화의 달"
+    }
+  },
+
+  "Venus_return": {
+    "overview": {
+      "meaning": "금성이 출생 위치로 돌아오는 차트",
+      "duration": "약 1년",
+      "usage": "연간 사랑과 재정 테마"
+    },
+    "Venus_in_house": {
+      "1st": "매력이 빛나는 해",
+      "2nd": "재정적 풍요의 해",
+      "5th": "로맨스의 해",
+      "7th": "관계 발전의 해"
+    }
+  },
+
+  "Mars_return": {
+    "overview": {
+      "meaning": "화성이 출생 위치로 돌아오는 차트",
+      "duration": "약 2년",
+      "usage": "에너지와 행동 주기"
+    },
+    "Mars_in_house": {
+      "1st": "개인적 추진력의 주기",
+      "6th": "일에 에너지 집중",
+      "10th": "커리어 야망의 주기"
+    }
+  },
+
+  "profections": {
+    "overview": {
+      "meaning": "매년 생일에 한 하우스씩 이동",
+      "cycle": "12년 주기",
+      "usage": "연간 테마와 시기 군주 (time lord) 결정"
+    },
+    "annual_profections": {
+      "age_1_13_25_37_49_61": {
+        "house": "1st",
+        "theme": "자아, 정체성, 새로운 시작",
+        "time_lord": "Ascendant 룰러"
+      },
+      "age_2_14_26_38_50_62": {
+        "house": "2nd",
+        "theme": "재정, 가치, 자원",
+        "time_lord": "2nd house 룰러"
+      },
+      "age_3_15_27_39_51_63": {
+        "house": "3rd",
+        "theme": "소통, 학습, 형제",
+        "time_lord": "3rd house 룰러"
+      },
+      "age_4_16_28_40_52_64": {
+        "house": "4th",
+        "theme": "가정, 가족, 뿌리",
+        "time_lord": "4th house 룰러"
+      },
+      "age_5_17_29_41_53_65": {
+        "house": "5th",
+        "theme": "창조성, 로맨스, 자녀",
+        "time_lord": "5th house 룰러"
+      },
+      "age_6_18_30_42_54_66": {
+        "house": "6th",
+        "theme": "건강, 일, 봉사",
+        "time_lord": "6th house 룰러"
+      },
+      "age_7_19_31_43_55_67": {
+        "house": "7th",
+        "theme": "관계, 파트너십",
+        "time_lord": "7th house 룰러"
+      },
+      "age_8_20_32_44_56_68": {
+        "house": "8th",
+        "theme": "변형, 공유 자원, 위기",
+        "time_lord": "8th house 룰러"
+      },
+      "age_9_21_33_45_57_69": {
+        "house": "9th",
+        "theme": "여행, 교육, 철학",
+        "time_lord": "9th house 룰러"
+      },
+      "age_10_22_34_46_58_70": {
+        "house": "10th",
+        "theme": "커리어, 공적 이미지",
+        "time_lord": "10th house 룰러"
+      },
+      "age_11_23_35_47_59_71": {
+        "house": "11th",
+        "theme": "친구, 그룹, 희망",
+        "time_lord": "11th house 룰러"
+      },
+      "age_12_24_36_48_60_72": {
+        "house": "12th",
+        "theme": "은둔, 영성, 완료",
+        "time_lord": "12th house 룰러"
+      }
+    }
+  }
+}

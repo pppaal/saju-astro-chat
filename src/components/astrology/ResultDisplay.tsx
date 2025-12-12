@@ -1,9 +1,72 @@
 // src/components/astrology/ResultDisplay.tsx
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { NatalChartData } from '@/lib/astrology';
+
+// 행성 이미지 매핑
+const PLANET_IMAGES: Record<string, string> = {
+  Sun: '/images/planets/sun.png',
+  Moon: '/images/planets/moon.png',
+  Mercury: '/images/planets/mercury.png',
+  Venus: '/images/planets/venus.png',
+  Mars: '/images/planets/mars.png',
+  Jupiter: '/images/planets/jupiter.png',
+  Saturn: '/images/planets/saturn.png',
+  Uranus: '/images/planets/uranus.png',
+  Neptune: '/images/planets/neptune.png',
+  Pluto: '/images/planets/pluto.png',
+  'True Node': '/images/planets/node.png',
+  Chiron: '/images/planets/node.png',
+  'Lilith(True)': '/images/planets/pluto.png',
+  'Lilith(Mean)': '/images/planets/pluto.png',
+  Fortune: '/images/planets/node.png',
+};
+
+// 영문 행성명으로 이미지 찾기
+function getPlanetImage(planetName: string): string | null {
+  // 직접 매칭
+  if (PLANET_IMAGES[planetName]) return PLANET_IMAGES[planetName];
+
+  // 한글/다국어 이름을 영문으로 변환해서 찾기
+  const nameMap: Record<string, string> = {
+    '태양': 'Sun', '달': 'Moon', '수성': 'Mercury', '금성': 'Venus',
+    '화성': 'Mars', '목성': 'Jupiter', '토성': 'Saturn', '천왕성': 'Uranus',
+    '해왕성': 'Neptune', '명왕성': 'Pluto', '진월교점': 'True Node',
+    '키론': 'Chiron', '행운점': 'Fortune',
+    // 중국어
+    '太阳': 'Sun', '月亮': 'Moon', '水星': 'Mercury', '金星': 'Venus',
+    '火星': 'Mars', '木星': 'Jupiter', '土星': 'Saturn', '天王星': 'Uranus',
+    '海王星': 'Neptune', '冥王星': 'Pluto',
+  };
+
+  const englishName = nameMap[planetName];
+  if (englishName && PLANET_IMAGES[englishName]) {
+    return PLANET_IMAGES[englishName];
+  }
+
+  return null;
+}
+
+// 콘텐츠 열람 기록 저장
+async function logContentAccess(params: {
+  service: string;
+  contentType: string;
+  locale: string;
+  metadata?: Record<string, any>;
+}) {
+  try {
+    await fetch('/api/content-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+  } catch {
+    // 열람 기록 실패해도 무시
+  }
+}
 
 const LABELS = {
   en: {
@@ -35,10 +98,6 @@ const LABELS = {
     pof: 'Part of Fortune',
     extraOnly: 'Points (Extra only)',
     noData: 'No data available.',
-    shinsal: 'Shinsal',
-    relationships: 'Relationships',
-    scope: 'Scope',
-    note: 'Note',
   },
   ko: {
     title: '기본 천궁도 요약',
@@ -69,10 +128,6 @@ const LABELS = {
     pof: '행운점',
     extraOnly: '추가 포인트만',
     noData: '데이터가 없습니다.',
-    shinsal: '신살',
-    relationships: '관계',
-    scope: '범위',
-    note: '비고',
   },
   zh: {
     title: '本命盘摘要',
@@ -103,10 +158,6 @@ const LABELS = {
     pof: '福点',
     extraOnly: '仅显示额外点',
     noData: '暂无数据。',
-    shinsal: '神煞',
-    relationships: '关系',
-    scope: '范围',
-    note: '备注',
   },
   ar: {
     title: 'ملخص الخريطة الفلكية',
@@ -137,10 +188,6 @@ const LABELS = {
     pof: 'نقطة الحظ',
     extraOnly: 'النقاط الإضافية فقط',
     noData: 'لا توجد بيانات.',
-    shinsal: 'Shinsal',
-    relationships: 'العلاقات',
-    scope: 'النطاق',
-    note: 'ملاحظة',
   },
   es: {
     title: 'Resumen de Carta Natal',
@@ -171,10 +218,6 @@ const LABELS = {
     pof: 'Parte de la Fortuna',
     extraOnly: 'Puntos (solo extra)',
     noData: 'No hay datos.',
-    shinsal: 'Shinsal',
-    relationships: 'Relaciones',
-    scope: 'Ámbito',
-    note: 'Nota',
   },
 } as const;
 
@@ -267,24 +310,57 @@ interface ResultDisplayProps {
     points?: any[];
     aspectsPlus?: any[];
   } | null;
-
-  // 추가: 신살, 관계(옵션)
-  shinsal?: {
-    name: string;
-    scope?: string;
-    from?: string;
-    to?: string;
-    note?: string;
-  }[] | null;
-
-  relations?: {
-    type?: string;
-    from?: string;
-    to?: string;
-    score?: number;
-    note?: string;
-  }[] | null;
+  isLoggedIn?: boolean;
+  isPremium?: boolean;
 }
+
+const PAYWALL_LABELS = {
+  en: {
+    loginRequired: 'Login Required',
+    loginDesc: 'Sign in to view detailed chart analysis',
+    loginBtn: 'Sign In',
+    premiumRequired: 'Premium Feature',
+    premiumDesc: 'Upgrade to Premium to unlock detailed planetary positions, houses, and aspect analysis',
+    premiumBtn: 'Upgrade to Premium',
+    advancedPremiumDesc: 'Get advanced analysis including extra celestial points, engine details, and in-depth interpretations',
+  },
+  ko: {
+    loginRequired: '로그인이 필요합니다',
+    loginDesc: '상세 차트 분석을 보려면 로그인하세요',
+    loginBtn: '로그인',
+    premiumRequired: '프리미엄 전용',
+    premiumDesc: '행성 위치, 하우스, 위상 분석을 확인하려면 프리미엄으로 업그레이드하세요',
+    premiumBtn: '프리미엄 업그레이드',
+    advancedPremiumDesc: '추가 천체 포인트, 엔진 상세 정보, 심층 해석을 확인하세요',
+  },
+  zh: {
+    loginRequired: '需要登录',
+    loginDesc: '登录以查看详细星盘分析',
+    loginBtn: '登录',
+    premiumRequired: '高级功能',
+    premiumDesc: '升级到高级版以解锁行星位置、宫位和相位分析',
+    premiumBtn: '升级到高级版',
+    advancedPremiumDesc: '获取高级分析，包括额外天体点、引擎详情和深度解读',
+  },
+  ar: {
+    loginRequired: 'تسجيل الدخول مطلوب',
+    loginDesc: 'سجّل الدخول لعرض تحليل الخريطة المفصل',
+    loginBtn: 'تسجيل الدخول',
+    premiumRequired: 'ميزة مميزة',
+    premiumDesc: 'قم بالترقية إلى Premium لفتح مواضع الكواكب والبيوت وتحليل الزوايا',
+    premiumBtn: 'الترقية إلى Premium',
+    advancedPremiumDesc: 'احصل على تحليل متقدم يشمل نقاط سماوية إضافية وتفاصيل المحرك والتفسيرات المعمقة',
+  },
+  es: {
+    loginRequired: 'Inicio de sesión requerido',
+    loginDesc: 'Inicia sesión para ver el análisis detallado de la carta',
+    loginBtn: 'Iniciar sesión',
+    premiumRequired: 'Función Premium',
+    premiumDesc: 'Actualiza a Premium para desbloquear posiciones planetarias, casas y análisis de aspectos',
+    premiumBtn: 'Actualizar a Premium',
+    advancedPremiumDesc: 'Obtén análisis avanzado incluyendo puntos celestes adicionales, detalles del motor e interpretaciones en profundidad',
+  },
+} as const;
 
 export default function ResultDisplay({
   interpretation,
@@ -293,12 +369,104 @@ export default function ResultDisplay({
   chartData,
   aspects,
   advanced,
-  shinsal,
-  relations,
+  isLoggedIn = false,
+  isPremium = false,
 }: ResultDisplayProps) {
   const { locale, dir } = useI18n?.() || { locale: 'en', dir: 'ltr' };
   const locKey = normalizeLocale(locale);
   const L = LABELS[locKey];
+  const PL = PAYWALL_LABELS[locKey] || PAYWALL_LABELS.en;
+
+  // 잠금 UI 컴포넌트
+  const PaywallOverlay: React.FC<{ type: 'login' | 'premium'; description?: string }> = ({ type, description }) => (
+    <div className="relative">
+      {/* 블러 처리된 미리보기 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/60 to-gray-900/90 backdrop-blur-sm rounded-xl z-10" />
+
+      {/* 잠금 메시지 */}
+      <div className="absolute inset-0 flex items-center justify-center z-20">
+        <div className="text-center p-6 max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-400/30 flex items-center justify-center">
+            {type === 'login' ? (
+              <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            ) : (
+              <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            )}
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            {type === 'login' ? PL.loginRequired : PL.premiumRequired}
+          </h3>
+          <p className="text-white/70 text-sm mb-4">
+            {description || (type === 'login' ? PL.loginDesc : PL.premiumDesc)}
+          </p>
+          <a
+            href={type === 'login' ? '/api/auth/signin' : '/pricing'}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all ${
+              type === 'login'
+                ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white'
+            }`}
+          >
+            {type === 'login' ? PL.loginBtn : PL.premiumBtn}
+          </a>
+        </div>
+      </div>
+
+      {/* 더미 콘텐츠 (블러 배경용) */}
+      <div className="opacity-30 pointer-events-none select-none p-4 min-h-[200px]">
+        <div className="space-y-3">
+          <div className="h-4 bg-white/10 rounded w-3/4" />
+          <div className="h-4 bg-white/10 rounded w-1/2" />
+          <div className="h-4 bg-white/10 rounded w-5/6" />
+          <div className="h-4 bg-white/10 rounded w-2/3" />
+          <div className="h-4 bg-white/10 rounded w-4/5" />
+        </div>
+      </div>
+    </div>
+  );
+
+  // 프리미엄 콘텐츠 접근 가능 여부
+  const canAccessPremium = isLoggedIn && isPremium;
+
+  // 열람 기록 중복 방지
+  const detailsLoggedRef = useRef(false);
+  const advancedLoggedRef = useRef(false);
+
+  // Details 열람 기록
+  const handleDetailsToggle = useCallback((e: React.SyntheticEvent<HTMLDetailsElement>) => {
+    const isOpen = (e.target as HTMLDetailsElement).open;
+    if (isOpen && canAccessPremium && !detailsLoggedRef.current) {
+      detailsLoggedRef.current = true;
+      logContentAccess({
+        service: 'astrology',
+        contentType: 'details',
+        locale: locKey,
+        metadata: {
+          hasChartData: !!chartData,
+          hasAspects: !!aspects?.length,
+        },
+      });
+    }
+  }, [canAccessPremium, locKey, chartData, aspects]);
+
+  // Advanced 열람 기록
+  const handleAdvancedToggle = useCallback((isOpen: boolean) => {
+    if (isOpen && canAccessPremium && !advancedLoggedRef.current) {
+      advancedLoggedRef.current = true;
+      logContentAccess({
+        service: 'astrology',
+        contentType: 'advanced',
+        locale: locKey,
+        metadata: {
+          hasAdvanced: !!advanced,
+        },
+      });
+    }
+  }, [canAccessPremium, locKey, advanced]);
 
   const prettyInterpretation = useMemo(() => {
     if (!interpretation) return null;
@@ -382,52 +550,112 @@ export default function ResultDisplay({
 
   if (!prettyInterpretation) return null;
 
+  // 고급스러운 카드 컴포넌트
   const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <div
-      className="w-full mt-8 rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-md p-6 md:p-8 text-white shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)]"
+      className="w-full mt-8 relative group"
       dir={dir}
     >
-      {children}
+      {/* 외곽 글로우 효과 */}
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-indigo-500/20 rounded-3xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+
+      {/* 메인 카드 */}
+      <div className="relative rounded-3xl border border-amber-200/20 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-indigo-950/90 backdrop-blur-xl p-8 md:p-10 text-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+        {/* 상단 장식 라인 */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-0.5 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+
+        {/* 코너 장식 */}
+        <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-amber-400/30 rounded-tl-lg" />
+        <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-amber-400/30 rounded-tr-lg" />
+        <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-amber-400/30 rounded-bl-lg" />
+        <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-amber-400/30 rounded-br-lg" />
+
+        {/* 배경 별 장식 */}
+        <div className="absolute top-6 right-12 text-amber-400/20 text-2xl">✦</div>
+        <div className="absolute bottom-8 left-10 text-indigo-400/20 text-xl">✧</div>
+
+        {children}
+      </div>
     </div>
   );
 
   const PlanetsTable = () => {
     if (!viewChart?.planets?.length) return null;
+
+    // 원래 영문 행성명 찾기 (이미지 매핑용)
+    const getOriginalPlanetName = (localizedName: string): string => {
+      // 역방향 검색: 현지화된 이름에서 영문 이름 찾기
+      for (const [_locale, labels] of Object.entries(PLANET_LABELS)) {
+        for (const [key, value] of Object.entries(labels)) {
+          if (value === localizedName) return key;
+        }
+      }
+      return localizedName;
+    };
+
     return (
-      <div className="mt-5 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-white/60 border-b border-white/10">
-              <th className="py-2 pr-4">{L.planet}</th>
-              <th className="py-2 pr-4">{L.position}</th>
-              <th className="py-2 pr-4">{L.house}</th>
-              <th className="py-2 pr-4">{L.speed}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {viewChart.planets.map((p: any, idx: number) => (
-              <tr key={`${p.name}-${idx}`} className="border-b border-white/10">
-                <td className="py-2 pr-4">
-                  <span className="font-medium">{p.name}</span>
-                  {p.retrograde ? (
-                    <span
-                      className="ml-2 align-middle text-[10px] px-1.5 py-0.5 rounded bg-yellow-400/15 border border-yellow-400/40 text-yellow-200"
-                      title={L.retrograde}
-                      aria-label={L.retrograde}
-                    >
-                      R
-                    </span>
-                  ) : null}
-                </td>
-                <td className="py-2 pr-4 text-white/90">{p.formatted}</td>
-                <td className="py-2 pr-4 text-white/80">{`${L.house} ${p.house}`}</td>
-                <td className="py-2 pr-4 text-white/70">
-                  {typeof p.speed === 'number' ? `${p.speed.toFixed(3)}°/day` : '−'}
-                </td>
+      <div className="mt-6">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-amber-200/90 mb-4">
+          <span className="text-amber-400/50">◈</span>
+          {L.planetPositions}
+        </h3>
+        <div className="overflow-x-auto rounded-xl border border-amber-400/10 bg-gradient-to-br from-slate-800/50 to-indigo-900/30">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-left text-amber-200/70 border-b border-amber-400/15 bg-gradient-to-r from-amber-900/20 to-transparent">
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.planet}</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.position}</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.house}</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.speed}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {viewChart.planets.map((p: any, idx: number) => {
+                const originalName = getOriginalPlanetName(p.name);
+                const planetImage = getPlanetImage(originalName);
+                return (
+                  <tr
+                    key={`${p.name}-${idx}`}
+                    className="border-b border-white/5 hover:bg-amber-400/5 transition-colors"
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        {planetImage && (
+                          <div className="relative w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden border border-amber-400/20 bg-black/30">
+                            <Image
+                              src={planetImage}
+                              alt={p.name}
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-medium text-white/95">{p.name}</span>
+                          {p.retrograde ? (
+                            <span
+                              className="ml-2 align-middle text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/40 text-amber-200 font-bold"
+                              title={L.retrograde}
+                              aria-label={L.retrograde}
+                            >
+                              R
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-white/90 font-medium">{p.formatted}</td>
+                    <td className="py-3 px-4 text-amber-100/70">{`${L.house} ${p.house}`}</td>
+                    <td className="py-3 px-4 text-white/60 font-mono text-xs">
+                      {typeof p.speed === 'number' ? `${p.speed.toFixed(3)}°/day` : '−'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
@@ -435,61 +663,97 @@ export default function ResultDisplay({
   const HousesTable = () => {
     if (!viewChart?.houses?.length) return null;
     return (
-      <div className="mt-5 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-white/60 border-b border-white/10">
-              <th className="py-2 pr-4">{L.house}</th>
-              <th className="py-2 pr-4">{L.position}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {viewChart.houses.map((h: any, idx: number) => (
-              <tr key={`house-${idx + 1}`} className="border-b border-white/10">
-                <td className="py-2 pr-4 text-white/80">{`${L.house} ${idx + 1}`}</td>
-                <td className="py-2 pr-4 text-white/90">{h.formatted}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mt-6">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-amber-200/90 mb-4">
+          <span className="text-amber-400/50">⌂</span>
+          Houses
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {viewChart.houses.map((h: any, idx: number) => (
+            <div
+              key={`house-${idx + 1}`}
+              className="rounded-lg border border-amber-400/10 bg-gradient-to-br from-slate-800/40 to-indigo-900/20 p-3 hover:border-amber-400/25 transition-colors"
+            >
+              <div className="text-amber-300/60 text-xs font-semibold mb-1 tracking-wider uppercase">
+                {`${L.house} ${idx + 1}`}
+              </div>
+              <div className="text-white/90 font-medium">{h.formatted}</div>
+            </div>
+          ))}
+        </div>
       </div>
     );
+  };
+
+  // 위상(Aspect) 유형별 색상
+  const getAspectColor = (type: string) => {
+    const t = type.toLowerCase();
+    if (t === 'conjunction') return 'text-amber-300 bg-amber-500/10 border-amber-500/30';
+    if (t === 'trine') return 'text-emerald-300 bg-emerald-500/10 border-emerald-500/30';
+    if (t === 'sextile') return 'text-blue-300 bg-blue-500/10 border-blue-500/30';
+    if (t === 'square') return 'text-red-300 bg-red-500/10 border-red-500/30';
+    if (t === 'opposition') return 'text-orange-300 bg-orange-500/10 border-orange-500/30';
+    return 'text-purple-300 bg-purple-500/10 border-purple-500/30';
   };
 
   const AspectsTable = () => {
     if (!aspects?.length) return null;
     return (
-      <div className="mt-5 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-white/60 border-b border-white/10">
-              <th className="py-2 pr-4">{L.aspect}</th>
-              <th className="py-2 pr-4">{L.from}</th>
-              <th className="py-2 pr-4">{L.to}</th>
-              <th className="py-2 pr-4">orb</th>
-              <th className="py-2 pr-4">score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {aspects.slice(0, 100).map((a: any, i: number) => {
-              const fromName = localizePlanetLabel(String(a?.from?.name || a?.from || ''), locKey);
-              const toName = localizePlanetLabel(String(a?.to?.name || a?.to || ''), locKey);
-              return (
-                <tr key={`asp-${i}`} className="border-b border-white/10">
-                  <td className="py-2 pr-4">{localizeAspectType(a.type, locKey)}</td>
-                  <td className="py-2 pr-4">{fromName}</td>
-                  <td className="py-2 pr-4">{toName}</td>
-                  <td className="py-2 pr-4">
-                    {typeof a.orb === 'number' ? a.orb.toFixed(2) : '-'}
-                  </td>
-                  <td className="py-2 pr-4">
-                    {typeof a.score === 'number' ? a.score.toFixed(3) : '-'}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="mt-6">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-amber-200/90 mb-4">
+          <span className="text-amber-400/50">◇</span>
+          {L.aspect}
+        </h3>
+        <div className="overflow-x-auto rounded-xl border border-amber-400/10 bg-gradient-to-br from-slate-800/50 to-indigo-900/30">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-left text-amber-200/70 border-b border-amber-400/15 bg-gradient-to-r from-amber-900/20 to-transparent">
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.aspect}</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.from}</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">{L.to}</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">Orb</th>
+                <th className="py-3 px-4 font-semibold tracking-wide">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {aspects.slice(0, 100).map((a: any, i: number) => {
+                const fromName = localizePlanetLabel(String(a?.from?.name || a?.from || ''), locKey);
+                const toName = localizePlanetLabel(String(a?.to?.name || a?.to || ''), locKey);
+                const colorClass = getAspectColor(a.type);
+                return (
+                  <tr
+                    key={`asp-${i}`}
+                    className="border-b border-white/5 hover:bg-amber-400/5 transition-colors"
+                  >
+                    <td className="py-3 px-4">
+                      <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${colorClass}`}>
+                        {localizeAspectType(a.type, locKey)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-white/90 font-medium">{fromName}</td>
+                    <td className="py-3 px-4 text-white/90 font-medium">{toName}</td>
+                    <td className="py-3 px-4 text-white/60 font-mono text-xs">
+                      {typeof a.orb === 'number' ? `${a.orb.toFixed(2)}°` : '-'}
+                    </td>
+                    <td className="py-3 px-4">
+                      {typeof a.score === 'number' ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 rounded-full bg-slate-700/50 overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full"
+                              style={{ width: `${Math.min(Math.abs(a.score) * 100, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-white/50 text-xs font-mono">{a.score.toFixed(2)}</span>
+                        </div>
+                      ) : '-'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
@@ -514,77 +778,116 @@ export default function ResultDisplay({
     const isRx = (p: any) =>
       Boolean(p?.rx || (typeof p?.speed === 'number' && p.speed < 0));
 
+    const handleToggle = () => {
+      const newOpen = !open;
+      setOpen(newOpen);
+      if (newOpen) {
+        handleAdvancedToggle(true);
+      }
+    };
+
     return (
-      <section className="mt-6">
+      <section className="mt-8">
+        {/* 구분선 */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-purple-400/20 to-transparent" />
+          <span className="text-purple-400/40 text-xs">✧</span>
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-purple-400/20 to-transparent" />
+        </div>
+
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="w-full flex items-center justify-between bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg px-4 py-3"
+          onClick={handleToggle}
+          className="w-full flex items-center justify-between bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-purple-500/10 hover:from-purple-500/15 hover:via-indigo-500/15 hover:to-purple-500/15 border border-purple-400/20 hover:border-purple-400/40 rounded-xl px-5 py-4 transition-all"
         >
-          <span className="font-semibold">{L.advanced}</span>
-          <span>{open ? '−' : '+'}</span>
+          <span className="flex items-center gap-2 font-semibold text-purple-200">
+            <span className="text-purple-400/60">⚙</span>
+            {L.advanced}
+          </span>
+          <span className="text-purple-400/60 text-lg transition-transform duration-300" style={{ transform: open ? 'rotate(45deg)' : 'none' }}>+</span>
         </button>
 
         {open && (
-          <div className="mt-4 space-y-8">
+          <div className="mt-5 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+            {/* Engine & Options */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Engine & Options</h3>
-              <div className="grid md:grid-cols-2 gap-4 text-sm text-white/90">
-                <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                  <div><b>{L.engine}:</b> {meta.engine || '—'}</div>
-                  <div><b>{L.se}:</b> {meta.seVersion || meta.sweVersion || '—'}</div>
-                  <div><b>{L.nodeType}:</b> {meta.nodeType || opts.nodeType || '—'}</div>
-                  <div><b>{L.houseSystem}:</b> {meta.houseSystem || opts.houseSystem || '—'}</div>
-                  <div><b>{L.theme}:</b> {opts.theme || '—'}</div>
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-purple-200/90 mb-4">
+                <span className="text-purple-400/50">⚡</span>
+                Engine & Options
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div className="rounded-xl bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-400/15 p-4 space-y-2">
+                  <div className="flex justify-between"><span className="text-white/50">{L.engine}</span><span className="text-white/90 font-medium">{meta.engine || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-white/50">{L.se}</span><span className="text-white/90 font-medium">{meta.seVersion || meta.sweVersion || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-white/50">{L.nodeType}</span><span className="text-white/90 font-medium">{meta.nodeType || opts.nodeType || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-white/50">{L.houseSystem}</span><span className="text-white/90 font-medium">{meta.houseSystem || opts.houseSystem || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-white/50">{L.theme}</span><span className="text-white/90 font-medium">{opts.theme || '—'}</span></div>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                  <div><b>{L.includeMinor}:</b> {String(!!(opts.includeMinorAspects ?? meta.includeMinorAspects))}</div>
-                  <div><b>{L.enable}:</b></div>
-                  <ul className="list-disc ml-5">
-                    <li>{L.chiron}: {String(!!opts.enable?.chiron)}</li>
-                    <li>{L.lilith}: {String(opts.enable?.lilith)}</li>
-                    <li>{L.pof}: {String(!!opts.enable?.pof)}</li>
-                  </ul>
+                <div className="rounded-xl bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-400/15 p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-white/50">{L.includeMinor}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${(opts.includeMinorAspects ?? meta.includeMinorAspects) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-500/20 text-slate-400'}`}>
+                      {String(!!(opts.includeMinorAspects ?? meta.includeMinorAspects))}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-white/5">
+                    <div className="text-white/50 mb-2">{L.enable}</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className={`text-center px-2 py-1.5 rounded-lg text-xs ${opts.enable?.chiron ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'bg-slate-800/50 text-slate-500'}`}>
+                        {L.chiron}
+                      </div>
+                      <div className={`text-center px-2 py-1.5 rounded-lg text-xs ${opts.enable?.lilith ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30' : 'bg-slate-800/50 text-slate-500'}`}>
+                        {L.lilith}
+                      </div>
+                      <div className={`text-center px-2 py-1.5 rounded-lg text-xs ${opts.enable?.pof ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800/50 text-slate-500'}`}>
+                        {L.pof}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Extra Points */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">{L.extraOnly}</h3>
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-purple-200/90 mb-4">
+                <span className="text-purple-400/50">★</span>
+                {L.extraOnly}
+              </h3>
               {extraPoints.length === 0 ? (
-                <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-white/80">
+                <div className="rounded-xl border border-purple-400/10 bg-purple-900/10 p-4 text-sm text-white/60 text-center">
                   {L.noData}
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-white/10">
+                <div className="overflow-x-auto rounded-xl border border-purple-400/10 bg-gradient-to-br from-slate-800/50 to-purple-900/20">
                   <table className="min-w-full text-sm">
-                    <thead className="bg-white/10">
-                      <tr>
-                        <th className="text-left px-3 py-2">{L.planet}</th>
-                        <th className="text-left px-3 py-2">{L.position}</th>
-                        <th className="text-left px-3 py-2">{L.house}</th>
-                        <th className="text-left px-3 py-2">{L.speed}</th>
+                    <thead>
+                      <tr className="text-left text-purple-200/70 border-b border-purple-400/15 bg-gradient-to-r from-purple-900/30 to-transparent">
+                        <th className="py-3 px-4 font-semibold">{L.planet}</th>
+                        <th className="py-3 px-4 font-semibold">{L.position}</th>
+                        <th className="py-3 px-4 font-semibold">{L.house}</th>
+                        <th className="py-3 px-4 font-semibold">{L.speed}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {extraPoints.map((p: any, i: number) => (
-                        <tr key={`extra-${i}`} className="border-b border-white/10">
-                          <td className="px-3 py-2">
-                            <span className="font-medium">
+                        <tr key={`extra-${i}`} className="border-b border-white/5 hover:bg-purple-400/5 transition-colors">
+                          <td className="py-3 px-4">
+                            <span className="font-medium text-white/95">
                               {localizePlanetLabel(String(p.name || p.key || ''), locKey)}
                             </span>
                             {isRx(p) && (
                               <span
-                                className="ml-2 align-middle text-[10px] px-1.5 py-0.5 rounded bg-yellow-400/15 border border-yellow-400/40 text-yellow-200"
+                                className="ml-2 align-middle text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/40 text-amber-200 font-bold"
                                 title={L.retrograde}
                               >
                                 R
                               </span>
                             )}
                           </td>
-                          <td className="px-3 py-2">{p.formatted || '−'}</td>
-                          <td className="px-3 py-2">{p.house ?? '−'}</td>
-                          <td className="px-3 py-2">
+                          <td className="py-3 px-4 text-white/90 font-medium">{p.formatted || '−'}</td>
+                          <td className="py-3 px-4 text-purple-100/70">{p.house ?? '−'}</td>
+                          <td className="py-3 px-4 text-white/60 font-mono text-xs">
                             {typeof p.speed === 'number' ? `${p.speed.toFixed(3)}°/day` : '−'}
                           </td>
                         </tr>
@@ -600,129 +903,143 @@ export default function ResultDisplay({
     );
   };
 
-  // 신살 섹션
-  const ShinsalSection = () => {
-    const items = Array.isArray(shinsal) ? shinsal : [];
-    return (
-      <section className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">{L.shinsal}</h3>
-        {items.length === 0 ? (
-          <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-white/80">
-            {L.noData}
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {items.map((s, idx) => (
-              <div
-                key={`shinsal-${idx}`}
-                className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm"
-              >
-                <div className="font-semibold text-white/90">{s.name}</div>
-                {s.scope ? (
-                  <div className="text-white/70 mt-1">{L.scope}: {s.scope}</div>
-                ) : null}
-                {(s.from || s.to) ? (
-                  <div className="text-white/70 mt-1">
-                    {s.from ? `${L.from}: ${s.from}` : ''} {s.to ? `→ ${L.to}: ${s.to}` : ''}
-                  </div>
-                ) : null}
-                {s.note ? (
-                  <div className="text-white/60 mt-1">{L.note}: {s.note}</div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-    );
-  };
-
-  // 관계 섹션
-  const RelationsSection = () => {
-    const items = Array.isArray(relations) ? relations : [];
-    return (
-      <section className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">{L.relationships}</h3>
-        {items.length === 0 ? (
-          <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-white/80">
-            {L.noData}
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-white/10">
-            <table className="min-w-full text-sm">
-              <thead className="bg-white/10">
-                <tr>
-                  <th className="text-left px-3 py-2">{L.from}</th>
-                  <th className="text-left px-3 py-2">{L.to}</th>
-                  <th className="text-left px-3 py-2">type</th>
-                  <th className="text-left px-3 py-2">score</th>
-                  <th className="text-left px-3 py-2">{L.note}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((r, i) => (
-                  <tr key={`rel-${i}`} className="border-b border-white/10">
-                    <td className="px-3 py-2">{r.from ?? '—'}</td>
-                    <td className="px-3 py-2">{r.to ?? '—'}</td>
-                    <td className="px-3 py-2">{r.type ?? '—'}</td>
-                    <td className="px-3 py-2">
-                      {typeof r.score === 'number' ? r.score.toFixed(3) : '—'}
-                    </td>
-                    <td className="px-3 py-2">{r.note ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    );
-  };
+  // 해석 텍스트는 행성 카드에서 시각적으로 표시되므로 별도 렌더링하지 않음
 
   return (
     <Card>
-      <pre
-        className="whitespace-pre-wrap leading-relaxed text-white/90 text-[15px]"
-        lang={locKey}
-        dir={dir}
-      >
-        {prettyInterpretation}
-      </pre>
+      {/* 제목 섹션 */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-3 mb-4">
+          <span className="text-amber-400/60">✧</span>
+          <h2 className="font-serif text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent tracking-wide">
+            {L.title}
+          </h2>
+          <span className="text-amber-400/60">✧</span>
+        </div>
+        <div className="w-24 h-px mx-auto bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+      </div>
+
+      {/* 행성 이미지 그리드 - 3열, 큰 사이즈 */}
+      {viewChart?.planets?.length > 0 && (
+        <div className="mb-6">
+          <div className="grid grid-cols-3 gap-3 sm:gap-5">
+            {viewChart.planets.map((p: any, idx: number) => {
+              // 영문 행성명 찾기
+              let englishName = p.name;
+              for (const labels of Object.values(PLANET_LABELS)) {
+                for (const [key, value] of Object.entries(labels)) {
+                  if (value === p.name) {
+                    englishName = key;
+                    break;
+                  }
+                }
+              }
+              const planetImage = getPlanetImage(englishName);
+
+              return (
+                <div
+                  key={`planet-card-${idx}`}
+                  className="group relative flex flex-col items-center p-3 sm:p-5 rounded-xl border border-amber-400/20 bg-gradient-to-br from-slate-800/70 to-indigo-900/50 hover:border-amber-400/50 hover:from-slate-800/90 hover:to-indigo-900/70 transition-all duration-300"
+                >
+                  {/* 행성 이미지 - 크게 */}
+                  {planetImage && (
+                    <div className="relative w-[72px] h-[72px] sm:w-28 sm:h-28 mb-2 sm:mb-4 rounded-xl overflow-hidden border-2 border-amber-400/40 bg-black/50 shadow-xl group-hover:border-amber-400/60 transition-colors">
+                      <Image
+                        src={planetImage}
+                        alt={p.name}
+                        fill
+                        className="object-cover"
+                        sizes="112px"
+                      />
+                    </div>
+                  )}
+                  {/* 행성명 - 크게 */}
+                  <span className="text-base sm:text-lg font-bold text-white text-center">
+                    {p.name}
+                  </span>
+                  {/* 위치 - 크게 */}
+                  <span className="text-sm sm:text-base text-amber-200/80 text-center mt-1 font-medium">
+                    {p.formatted}
+                  </span>
+                  {/* 역행 표시 */}
+                  {p.retrograde && (
+                    <span className="absolute top-2 right-2 text-xs px-2 py-1 rounded-full bg-gradient-to-r from-amber-500/40 to-orange-500/40 border border-amber-400/60 text-amber-100 font-bold shadow-lg">
+                      R
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 하단 장식 구분선 */}
+      <div className="flex items-center justify-center gap-4 my-8">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+        <span className="text-amber-400/40 text-sm">✦</span>
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+      </div>
 
       {viewChart ? (
-        <details className="mt-6 group">
-          <summary className="cursor-pointer select-none text-indigo-300 font-semibold flex items-center gap-2">
-            <span>{L.details}</span>
-            <span className="ml-1 text-indigo-400 group-open:rotate-180 inline-block transition-transform">
-              ▾
+        <details className="group" onToggle={handleDetailsToggle}>
+          <summary className="cursor-pointer select-none flex items-center justify-center gap-3 py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-400/20 hover:border-amber-400/40 transition-all group-open:rounded-b-none">
+            <span className="text-amber-200 font-semibold tracking-wide">{L.details}</span>
+            {!canAccessPremium && (
+              <span className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-200 border border-amber-400/40 font-semibold">
+                Premium
+              </span>
+            )}
+            <span className="text-amber-400/60 group-open:rotate-180 inline-block transition-transform duration-300">
+              ▼
             </span>
           </summary>
 
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.05] p-4 md:p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="rounded-xl border border-white/15 bg-white/[0.08] p-4">
-                <div className="text-white/60 text-xs mb-1">{L.ascendant}</div>
-                <div className="text-lg font-semibold text-white/95">
-                  {(viewChart as any).ascendant?.formatted}
+          <div className="rounded-b-xl border border-t-0 border-amber-400/20 bg-gradient-to-br from-slate-900/80 to-indigo-950/60 p-6 md:p-8">
+            {/* 로그인 안 됨 - 로그인 필요 */}
+            {!isLoggedIn && (
+              <PaywallOverlay type="login" />
+            )}
+
+            {/* 로그인 됨 but 프리미엄 아님 - 결제 필요 */}
+            {isLoggedIn && !isPremium && (
+              <PaywallOverlay type="premium" />
+            )}
+
+            {/* 프리미엄 사용자 - 전체 콘텐츠 표시 */}
+            {canAccessPremium && (
+              <>
+                {/* ASC / MC 카드 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                  <div className="relative overflow-hidden rounded-xl border border-amber-400/20 bg-gradient-to-br from-amber-900/20 via-slate-800/50 to-indigo-900/30 p-5 group/card hover:border-amber-400/40 transition-colors">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full" />
+                    <div className="text-amber-300/70 text-xs font-semibold mb-2 tracking-wider uppercase flex items-center gap-2">
+                      <span className="text-amber-400/50">↑</span>
+                      {L.ascendant}
+                    </div>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-amber-100 to-amber-200 bg-clip-text text-transparent">
+                      {(viewChart as any).ascendant?.formatted}
+                    </div>
+                  </div>
+                  <div className="relative overflow-hidden rounded-xl border border-indigo-400/20 bg-gradient-to-br from-indigo-900/20 via-slate-800/50 to-purple-900/30 p-5 group/card hover:border-indigo-400/40 transition-colors">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-indigo-500/10 to-transparent rounded-bl-full" />
+                    <div className="text-indigo-300/70 text-xs font-semibold mb-2 tracking-wider uppercase flex items-center gap-2">
+                      <span className="text-indigo-400/50">◎</span>
+                      MC (Midheaven)
+                    </div>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-indigo-100 to-indigo-200 bg-clip-text text-transparent">
+                      {(viewChart as any).mc?.formatted}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="rounded-xl border border-white/15 bg-white/[0.08] p-4">
-                <div className="text-white/60 text-xs mb-1">MC</div>
-                <div className="text-lg font-semibold text-white/95">
-                  {(viewChart as any).mc?.formatted}
-                </div>
-              </div>
-            </div>
 
-            <PlanetsTable />
-            <HousesTable />
-            <AspectsTable />
+                <PlanetsTable />
+                <HousesTable />
+                <AspectsTable />
 
-            <AdvancedPanel />
-
-            {/* 여기에 신살/관계 섹션 추가 */}
-            <ShinsalSection />
-            <RelationsSection />
+                <AdvancedPanel />
+              </>
+            )}
           </div>
         </details>
       ) : null}

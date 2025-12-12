@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { targetUserId, title, message, url, icon } = await request.json();
+    const { targetUserId, title, message, url: _url, icon: _icon } = await request.json();
 
     if (!targetUserId || !title || !message) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Check VAPID keys are configured
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-    const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@destinytracker.com";
+    const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@destinypal.com";
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       return NextResponse.json(
@@ -62,8 +62,6 @@ export async function POST(request: NextRequest) {
 
     // TODO: Retrieve user's push subscription from database
     // For now, return a placeholder response
-    console.log("Would send push notification to:", targetUserId);
-    console.log("Notification:", { title, message, url, icon });
 
     // In production:
     // const subscription = await prisma.pushSubscription.findUnique({

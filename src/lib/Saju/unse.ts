@@ -43,8 +43,7 @@ function normalizeBirthToUTC(birthDate: Date, timezone: string): Date {
   const isoLocal = `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   try {
     // date-fns-tz: 문자열을 timezone 로컬 시각으로 해석해 UTC Date 반환
-    // @ts-ignore: 일부 타입 정의 이슈 회피
-    return toDate(isoLocal, { timeZone: timezone });
+    return toDate(isoLocal, { timeZone: timezone } as Parameters<typeof toDate>[1]);
   } catch {
     // 폴백: 최소한 호스트 타임존 영향 없이 UTC로 동일 숫자 시각 구성
     return utcDate(y, m, d, hh, mi, ss, 0);
@@ -157,36 +156,86 @@ export function getAnnualCycles(startYear: number, count: number, dayMaster: Day
   return cycles;
 }
 
-export function getMonthlyCycles(year: number, dayMaster: DayMaster): WolunData[] {
-  const cycles: WolunData[] = [];
+// 절기(월) → 지지 매핑: 절기월 2=寅, 3=卯, ... 12=子, 1=丑
+const SOLAR_TERM_MONTH_TO_BRANCH: Record<number, string> = {
+  2: '寅', 3: '卯', 4: '辰', 5: '巳', 6: '午', 7: '未',
+  8: '申', 9: '酉', 10: '戌', 11: '亥', 12: '子', 1: '丑'
+};
+
+export interface WolunDataExtended extends WolunData {
+  solarTermStart?: Date;   // 절입일 (절기 시작)
+  solarTermEnd?: Date;     // 다음 절입일 전까지
+}
+
+export function getMonthlyCycles(year: number, dayMaster: DayMaster, options?: { useSolarTerms?: boolean }): WolunDataExtended[] {
+  const cycles: WolunDataExtended[] = [];
+  const useSolarTerms = options?.useSolarTerms ?? false;
+
+  // 해당 연도의 년간 찾기 (입춘 기준, 간편화: 양력 연도 사용)
   const year_gapja_index = (year - 4 + 6000) % 60;
   const yearStemName = STEMS[year_gapja_index % 10]?.name;
   if (!yearStemName) return [];
 
   const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName]; // 寅월의 월간
   const firstMonthStemIndex = STEMS.findIndex(s => s.name === firstMonthStemName);
-
-  // 양력월→월지 매핑: 1=丑, 2=寅, 3=卯, ... 11=亥, 12=子 (간편화)
-  const G_BRANCH: ReadonlyArray<string> = ['丑','寅','卯','辰','巳','午','未','申','酉','戌','亥','子'];
   const TIGER_INDEX = BRANCHES.findIndex(b => b.name === '寅');
 
-  for (let i = 0; i < 12; i++) {
-    const month = i + 1;
-    const branchName = G_BRANCH[i];
-    const branchIndex = BRANCHES.findIndex(b => b.name === branchName);
+  // 절기 기반: 월 2~12, 다음해 1 (입춘~소한)
+  // 양력 기준: 월 1~12 (간편화 모드)
+  if (useSolarTerms) {
+    // 절기 기반 정밀 모드: 절기월 2(입춘)~1(소한) 순환
+    const solarMonths = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1];
 
-    const offsetFromTiger = (branchIndex - TIGER_INDEX + 12) % 12;
-    const stem = STEMS[(firstMonthStemIndex + offsetFromTiger) % 10];
-    const branch = BRANCHES[branchIndex];
+    for (let i = 0; i < 12; i++) {
+      const solarMonth = solarMonths[i];
+      const isNextYear = solarMonth === 1; // 1월(소한)은 다음해에 속함
+      const actualYear = isNextYear ? year + 1 : year;
 
-    cycles.push({
-      year,
-      month,
-      heavenlyStem: stem.name,
-      earthlyBranch: branch.name,
-      sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, branch) },
-    });
+      const branchName = SOLAR_TERM_MONTH_TO_BRANCH[solarMonth];
+      const branchIndex = BRANCHES.findIndex(b => b.name === branchName);
+      const offsetFromTiger = (branchIndex - TIGER_INDEX + 12) % 12;
+      const stem = STEMS[(firstMonthStemIndex + offsetFromTiger) % 10];
+      const branch = BRANCHES[branchIndex];
+
+      // 절입일 계산
+      const termStart = getSolarTermKST(actualYear, solarMonth);
+      const nextSolarMonth = solarMonths[(i + 1) % 12];
+      const nextActualYear = nextSolarMonth <= solarMonth && nextSolarMonth !== 1 ? actualYear + 1 :
+                             (nextSolarMonth === 1 && solarMonth !== 12 ? actualYear + 1 : actualYear);
+      const termEnd = getSolarTermKST(nextActualYear, nextSolarMonth);
+
+      cycles.push({
+        year: actualYear,
+        month: solarMonth,
+        heavenlyStem: stem.name,
+        earthlyBranch: branch.name,
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, branch) },
+        solarTermStart: termStart ?? undefined,
+        solarTermEnd: termEnd ?? undefined,
+      });
+    }
+  } else {
+    // 간편 모드: 양력월 1~12 → 지지 丑~子 순서
+    const G_BRANCH: ReadonlyArray<string> = ['丑','寅','卯','辰','巳','午','未','申','酉','戌','亥','子'];
+
+    for (let i = 0; i < 12; i++) {
+      const month = i + 1;
+      const branchName = G_BRANCH[i];
+      const branchIndex = BRANCHES.findIndex(b => b.name === branchName);
+      const offsetFromTiger = (branchIndex - TIGER_INDEX + 12) % 12;
+      const stem = STEMS[(firstMonthStemIndex + offsetFromTiger) % 10];
+      const branch = BRANCHES[branchIndex];
+
+      cycles.push({
+        year,
+        month,
+        heavenlyStem: stem.name,
+        earthlyBranch: branch.name,
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, branch) },
+      });
+    }
   }
+
   return cycles.sort((a, b) => a.month - b.month);
 }
 

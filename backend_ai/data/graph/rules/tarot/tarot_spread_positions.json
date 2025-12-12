@@ -1,0 +1,249 @@
+{
+  "meta": {
+    "type": "tarot_spread_positions",
+    "description": "타로 스프레드별 위치 의미와 해석 가이드",
+    "total_spreads": 5
+  },
+  "spreads": {
+    "celtic_cross": {
+      "name": "켈틱 크로스",
+      "total_positions": 10,
+      "positions": {
+        "1": {
+          "name": "현재 상황",
+          "description": "질문자의 현재 상태와 핵심 이슈"
+        },
+        "2": {
+          "name": "장애물/도움",
+          "description": "현재 상황에 영향을 미치는 요소"
+        },
+        "3": {
+          "name": "목표/이상",
+          "description": "의식적으로 원하는 것, 목표"
+        },
+        "4": {
+          "name": "뿌리/과거",
+          "description": "상황의 근본 원인, 과거의 영향"
+        },
+        "5": {
+          "name": "최근 과거",
+          "description": "최근에 일어난 일, 지나가는 영향"
+        },
+        "6": {
+          "name": "가까운 미래",
+          "description": "곧 일어날 일, 다가오는 영향"
+        },
+        "7": {
+          "name": "자신",
+          "description": "질문자의 태도, 현재 위치"
+        },
+        "8": {
+          "name": "환경",
+          "description": "주변 상황, 타인의 영향"
+        },
+        "9": {
+          "name": "희망/두려움",
+          "description": "내면의 기대와 걱정"
+        },
+        "10": {
+          "name": "결과",
+          "description": "최종 결과, 상황의 귀결"
+        }
+      },
+      "reading_guide": {
+        "intro": "켈틱 크로스는 10장의 카드를 사용하는 스프레드입니다.",
+        "best_for": [
+          "복잡한 상황 분석",
+          "전체적인 인생 흐름",
+          "깊이 있는 통찰"
+        ],
+        "reading_order": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "interpretation_tips": "각 위치의 의미를 카드와 연결하여 해석합니다. 카드 간의 관계도 살펴보세요."
+      }
+    },
+    "three_card": {
+      "name": "쓰리 카드",
+      "total_positions": 3,
+      "positions": {
+        "1": {
+          "name": "과거",
+          "description": "현재 상황에 영향을 준 과거"
+        },
+        "2": {
+          "name": "현재",
+          "description": "지금 현재의 상황"
+        },
+        "3": {
+          "name": "미래",
+          "description": "앞으로 펼쳐질 가능성"
+        }
+      },
+      "reading_guide": {
+        "intro": "쓰리 카드는 3장의 카드를 사용하는 스프레드입니다.",
+        "best_for": [
+          "간단한 질문",
+          "시간의 흐름 파악",
+          "빠른 조언"
+        ],
+        "reading_order": [
+          1,
+          2,
+          3
+        ],
+        "interpretation_tips": "각 위치의 의미를 카드와 연결하여 해석합니다. 카드 간의 관계도 살펴보세요."
+      }
+    },
+    "horseshoe": {
+      "name": "호스슈",
+      "total_positions": 7,
+      "positions": {
+        "1": {
+          "name": "과거",
+          "description": "과거의 영향"
+        },
+        "2": {
+          "name": "현재",
+          "description": "현재 상황"
+        },
+        "3": {
+          "name": "숨겨진 영향",
+          "description": "알지 못하는 영향력"
+        },
+        "4": {
+          "name": "장애물",
+          "description": "극복해야 할 것"
+        },
+        "5": {
+          "name": "주변 환경",
+          "description": "외부 상황"
+        },
+        "6": {
+          "name": "조언",
+          "description": "취해야 할 행동"
+        },
+        "7": {
+          "name": "결과",
+          "description": "예상되는 결과"
+        }
+      },
+      "reading_guide": {
+        "intro": "호스슈는 7장의 카드를 사용하는 스프레드입니다.",
+        "best_for": [
+          "중간 복잡도의 상황",
+          "장애물과 조언",
+          "구체적 결과 예측"
+        ],
+        "reading_order": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "interpretation_tips": "각 위치의 의미를 카드와 연결하여 해석합니다. 카드 간의 관계도 살펴보세요."
+      }
+    },
+    "relationship": {
+      "name": "관계 스프레드",
+      "total_positions": 6,
+      "positions": {
+        "1": {
+          "name": "나의 현재",
+          "description": "질문자의 현재 상태"
+        },
+        "2": {
+          "name": "상대의 현재",
+          "description": "상대방의 현재 상태"
+        },
+        "3": {
+          "name": "관계의 핵심",
+          "description": "두 사람 사이의 핵심 역동"
+        },
+        "4": {
+          "name": "나의 과제",
+          "description": "질문자가 해야 할 것"
+        },
+        "5": {
+          "name": "상대의 과제",
+          "description": "상대방이 해야 할 것"
+        },
+        "6": {
+          "name": "관계의 미래",
+          "description": "관계의 발전 방향"
+        }
+      },
+      "reading_guide": {
+        "intro": "관계 스프레드는 6장의 카드를 사용하는 스프레드입니다.",
+        "best_for": [
+          "연애 관계",
+          "대인 관계",
+          "파트너십"
+        ],
+        "reading_order": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "interpretation_tips": "각 위치의 의미를 카드와 연결하여 해석합니다. 카드 간의 관계도 살펴보세요."
+      }
+    },
+    "career": {
+      "name": "커리어 스프레드",
+      "total_positions": 5,
+      "positions": {
+        "1": {
+          "name": "현재 직업 상태",
+          "description": "현재 커리어 상황"
+        },
+        "2": {
+          "name": "강점",
+          "description": "활용할 수 있는 강점"
+        },
+        "3": {
+          "name": "도전",
+          "description": "극복해야 할 과제"
+        },
+        "4": {
+          "name": "조언",
+          "description": "나아갈 방향"
+        },
+        "5": {
+          "name": "결과",
+          "description": "커리어 전망"
+        }
+      },
+      "reading_guide": {
+        "intro": "커리어 스프레드는 5장의 카드를 사용하는 스프레드입니다.",
+        "best_for": [
+          "직업 고민",
+          "진로 결정",
+          "사업 전망"
+        ],
+        "reading_order": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "interpretation_tips": "각 위치의 의미를 카드와 연결하여 해석합니다. 카드 간의 관계도 살펴보세요."
+      }
+    }
+  }
+}

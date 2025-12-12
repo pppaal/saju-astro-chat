@@ -1,0 +1,364 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/domains/health",
+  "$count": 72,
+  "$description": "신체 건강, 정신 건강, 웰빙에 영향을 미치는 배치들의 도메인별 해석",
+  "$note": "Sun, Moon, Mars × 12 signs health focus + 1st, 6th, 12th house health placements",
+
+  "Sun_health": {
+    "Sun_in_Aries": {
+      "vitality": "강렬하고 폭발적인 에너지, 빠른 회복력",
+      "vulnerable_areas": "머리, 얼굴, 혈압, 염증",
+      "health_shadow": "무모함, 과도한 활동으로 인한 부상",
+      "wellness_approach": "경쟁적 스포츠, 격렬한 운동",
+      "stress_response": "분노 폭발, 두통",
+      "healing_path": "인내심과 휴식의 가치 인정"
+    },
+    "Sun_in_Taurus": {
+      "vitality": "느리고 꾸준한 에너지, 지구력",
+      "vulnerable_areas": "목, 갑상선, 성대, 체중",
+      "health_shadow": "과식, 운동 부족, 완고함",
+      "wellness_approach": "감각적 즐거움과 자연 속 휴식",
+      "stress_response": "과식, 물질적 탐닉",
+      "healing_path": "균형 있는 감각적 만족"
+    },
+    "Sun_in_Gemini": {
+      "vitality": "신경질적이고 활기찬, 정신적 에너지",
+      "vulnerable_areas": "폐, 호흡기, 손, 팔, 신경",
+      "health_shadow": "불안, 과도한 사고, 수면 문제",
+      "wellness_approach": "다양한 운동, 정신 활동",
+      "stress_response": "불안, 과도한 말, 불면",
+      "healing_path": "마음 진정과 집중력 개발"
+    },
+    "Sun_in_Cancer": {
+      "vitality": "감정에 따라 변동하는 에너지",
+      "vulnerable_areas": "위, 가슴, 소화기, 수분 균형",
+      "health_shadow": "감정적 과식, 소화 문제",
+      "wellness_approach": "가정적인 편안함, 요리, 수영",
+      "stress_response": "과식, 움츠러듦, 위장 문제",
+      "healing_path": "감정적 건강이 신체 건강의 핵심"
+    },
+    "Sun_in_Leo": {
+      "vitality": "강력하고 생명력 넘치는, 회복력",
+      "vulnerable_areas": "심장, 척추, 등, 혈액 순환",
+      "health_shadow": "과시적 무리, 자존심으로 인한 스트레스",
+      "wellness_approach": "드라마틱한 운동, 댄스, 태양광 노출",
+      "stress_response": "심장 두근거림, 허리 통증",
+      "healing_path": "자기 사랑과 기쁨의 표현"
+    },
+    "Sun_in_Virgo": {
+      "vitality": "신경질적이고 세심한, 건강 의식적",
+      "vulnerable_areas": "소화기, 장, 신경계, 피부",
+      "health_shadow": "건강 불안, 과도한 분석, 완벽주의",
+      "wellness_approach": "규칙적인 루틴, 건강식, 요가",
+      "stress_response": "소화 문제, 피부 발진, 불안",
+      "healing_path": "완벽함 내려놓고 자연스러운 균형"
+    },
+    "Sun_in_Libra": {
+      "vitality": "균형 잡힌 에너지, 조화로운 체질",
+      "vulnerable_areas": "신장, 요추, 피부, 호르몬 균형",
+      "health_shadow": "우유부단함으로 인한 스트레스, 갈등 회피",
+      "wellness_approach": "파트너와 함께하는 운동, 미적 환경",
+      "stress_response": "신장 문제, 피부 트러블",
+      "healing_path": "내면의 균형과 결단력"
+    },
+    "Sun_in_Scorpio": {
+      "vitality": "강렬하고 재생적인, 위기 시 강함",
+      "vulnerable_areas": "생식기, 배설기, 호르몬",
+      "health_shadow": "억압된 감정, 집착, 극단적 습관",
+      "wellness_approach": "변형적 치유, 심리치료",
+      "stress_response": "감정 억압, 중독적 행동",
+      "healing_path": "감정 정화와 재생"
+    },
+    "Sun_in_Sagittarius": {
+      "vitality": "낙관적이고 활력 넘치는, 모험적",
+      "vulnerable_areas": "간, 엉덩이, 허벅지, 좌골신경",
+      "health_shadow": "과도함, 무절제, 부상 위험",
+      "wellness_approach": "야외 활동, 여행, 스포츠",
+      "stress_response": "좌불안석, 과식, 간 문제",
+      "healing_path": "균형과 절제"
+    },
+    "Sun_in_Capricorn": {
+      "vitality": "느리고 지속적인, 나이 들수록 강해짐",
+      "vulnerable_areas": "뼈, 관절, 무릎, 피부, 치아",
+      "health_shadow": "우울, 과로, 감정 억압",
+      "wellness_approach": "등산, 구조화된 운동, 규율",
+      "stress_response": "관절 문제, 피부 건조, 우울",
+      "healing_path": "휴식과 기쁨의 균형"
+    },
+    "Sun_in_Aquarius": {
+      "vitality": "불규칙하고 독특한 에너지 패턴",
+      "vulnerable_areas": "순환계, 발목, 신경계",
+      "health_shadow": "감정적 단절, 극단적 실험",
+      "wellness_approach": "그룹 스포츠, 혁신적 치유법",
+      "stress_response": "순환 문제, 발목 부상",
+      "healing_path": "몸과 감정 연결하기"
+    },
+    "Sun_in_Pisces": {
+      "vitality": "민감하고 흡수적인, 환경에 반응",
+      "vulnerable_areas": "발, 림프, 면역계, 중독 성향",
+      "health_shadow": "경계 부족, 중독, 회피",
+      "wellness_approach": "수영, 명상, 예술 치료",
+      "stress_response": "도피, 물질 의존, 피로",
+      "healing_path": "건강한 경계와 현실 접지"
+    }
+  },
+
+  "Moon_health": {
+    "Moon_in_Aries": {
+      "emotional_health": "감정이 빠르게 점화되고 빠르게 소진",
+      "eating_patterns": "충동적인 식사, 빠른 먹기",
+      "sleep_patterns": "잠들기 어려움, 짧은 수면",
+      "emotional_triggers": "무시, 제한, 지루함",
+      "self_care_needs": "즉각적인 신체 활동, 독립적 시간"
+    },
+    "Moon_in_Taurus": {
+      "emotional_health": "느리지만 안정적인 감정 처리",
+      "eating_patterns": "음식으로 위안, 안정된 식사 패턴",
+      "sleep_patterns": "깊고 긴 수면, 편안한 환경 필요",
+      "emotional_triggers": "갑작스러운 변화, 불안정",
+      "self_care_needs": "감각적 안락함, 자연, 맛있는 음식"
+    },
+    "Moon_in_Gemini": {
+      "emotional_health": "감정이 생각과 연결, 분석적",
+      "eating_patterns": "분산된 식사, 여러 가지 조금씩",
+      "sleep_patterns": "불규칙, 마음이 쉬지 않음",
+      "emotional_triggers": "고립, 지루함, 소통 단절",
+      "self_care_needs": "대화, 다양한 활동, 정신적 자극"
+    },
+    "Moon_in_Cancer": {
+      "emotional_health": "깊은 감정적 경험, 과거와 연결",
+      "eating_patterns": "감정적 식사, 집밥 선호",
+      "sleep_patterns": "달의 주기에 영향, 꿈 활발",
+      "emotional_triggers": "거부, 집 떠남, 가족 문제",
+      "self_care_needs": "가정적 안락함, 가족, 요리"
+    },
+    "Moon_in_Leo": {
+      "emotional_health": "인정이 필요한 따뜻한 심장",
+      "eating_patterns": "풍성하고 드라마틱한 식사",
+      "sleep_patterns": "충분한 수면 필요, 왕처럼 자기",
+      "emotional_triggers": "무시, 비판, 자존심 상함",
+      "self_care_needs": "창의적 표현, 칭찬, 즐거움"
+    },
+    "Moon_in_Virgo": {
+      "emotional_health": "감정을 분석하고 개선하려 함",
+      "eating_patterns": "건강에 집중, 때로 제한적",
+      "sleep_patterns": "걱정으로 불면, 완벽한 조건 필요",
+      "emotional_triggers": "혼란, 비판, 불완전함",
+      "self_care_needs": "질서, 유용함, 봉사"
+    },
+    "Moon_in_Libra": {
+      "emotional_health": "균형과 조화가 필수",
+      "eating_patterns": "아름다운 환경에서 우아한 식사",
+      "sleep_patterns": "파트너와 함께, 조화로운 환경",
+      "emotional_triggers": "갈등, 불공정, 고립",
+      "self_care_needs": "파트너십, 아름다움, 사회적 연결"
+    },
+    "Moon_in_Scorpio": {
+      "emotional_health": "강렬하고 깊은 감정 경험",
+      "eating_patterns": "모 아니면 도, 감정적 집착",
+      "sleep_patterns": "깊지만 강렬한 꿈",
+      "emotional_triggers": "배신, 표면성, 통제력 상실",
+      "self_care_needs": "깊은 친밀감, 진정성, 변형"
+    },
+    "Moon_in_Sagittarius": {
+      "emotional_health": "낙관적이고 자유를 필요로 함",
+      "eating_patterns": "다양한 문화 음식, 모험적",
+      "sleep_patterns": "불규칙, 여행 중에도 잠",
+      "emotional_triggers": "제한, 비관주의, 갇힌 느낌",
+      "self_care_needs": "모험, 학습, 의미 추구"
+    },
+    "Moon_in_Capricorn": {
+      "emotional_health": "감정 억제, 성취로 안정",
+      "eating_patterns": "규칙적이고 검소한",
+      "sleep_patterns": "적은 수면, 일 걱정",
+      "emotional_triggers": "실패, 통제력 상실, 의존",
+      "self_care_needs": "성취, 존경, 구조"
+    },
+    "Moon_in_Aquarius": {
+      "emotional_health": "감정적 거리 두기, 지적 처리",
+      "eating_patterns": "독특하고 예측 불가",
+      "sleep_patterns": "불규칙, 생각으로 깸",
+      "emotional_triggers": "강요, 정상성 요구, 따분함",
+      "self_care_needs": "자유, 독특함, 그룹 소속"
+    },
+    "Moon_in_Pisces": {
+      "emotional_health": "경계 없는 흡수, 극도로 민감",
+      "eating_patterns": "분위기에 따라, 과식 또는 잊음",
+      "sleep_patterns": "많은 수면 필요, 생생한 꿈",
+      "emotional_triggers": "비정함, 현실의 거침",
+      "self_care_needs": "도피, 영적 연결, 예술"
+    }
+  },
+
+  "Mars_health": {
+    "Mars_in_Aries": {
+      "physical_energy": "폭발적이고 빠른, 빨리 소진",
+      "exercise_style": "경쟁적 스포츠, 격렬한 운동",
+      "injury_prone": "머리 부상, 화상, 절단상",
+      "healing_speed": "빠른 회복력",
+      "energy_management": "폭발적 분출 후 휴식 필요"
+    },
+    "Mars_in_Taurus": {
+      "physical_energy": "느리고 지속적인, 지구력",
+      "exercise_style": "꾸준한 운동, 자연 속 활동",
+      "injury_prone": "목, 성대 문제",
+      "healing_speed": "느리지만 완전한",
+      "energy_management": "일정한 페이스 유지"
+    },
+    "Mars_in_Gemini": {
+      "physical_energy": "신경질적이고 분산된",
+      "exercise_style": "다양한 운동, 라켓 스포츠",
+      "injury_prone": "손, 팔, 신경 문제",
+      "healing_speed": "관심 따라 변동",
+      "energy_management": "다양성으로 지속"
+    },
+    "Mars_in_Cancer": {
+      "physical_energy": "감정에 따라 변동",
+      "exercise_style": "수영, 가정에서 운동",
+      "injury_prone": "위, 가슴 문제",
+      "healing_speed": "안전할 때 빠름",
+      "energy_management": "감정적 안전이 핵심"
+    },
+    "Mars_in_Leo": {
+      "physical_energy": "강력하고 지속적인",
+      "exercise_style": "드라마틱한 운동, 댄스, 무대",
+      "injury_prone": "심장, 등, 척추",
+      "healing_speed": "자존심이 회복 촉진",
+      "energy_management": "인정받으면 무한 에너지"
+    },
+    "Mars_in_Virgo": {
+      "physical_energy": "효율적이고 세심한",
+      "exercise_style": "정확한 폼, 분석적 접근",
+      "injury_prone": "소화기, 장",
+      "healing_speed": "건강 관리로 빠름",
+      "energy_management": "루틴이 핵심"
+    },
+    "Mars_in_Libra": {
+      "physical_energy": "균형 잡힌, 때로 우유부단",
+      "exercise_style": "파트너 운동, 우아한 스포츠",
+      "injury_prone": "신장, 요추",
+      "healing_speed": "파트너 지원 시 빠름",
+      "energy_management": "함께할 때 에너지"
+    },
+    "Mars_in_Scorpio": {
+      "physical_energy": "강렬하고 지속적인, 위기 시 강함",
+      "exercise_style": "격렬한 운동, 마샬 아트",
+      "injury_prone": "생식기, 배설기",
+      "healing_speed": "놀라운 재생력",
+      "energy_management": "열정이 연료"
+    },
+    "Mars_in_Sagittarius": {
+      "physical_energy": "풍부하고 모험적인",
+      "exercise_style": "야외 스포츠, 여행, 탐험",
+      "injury_prone": "엉덩이, 허벅지, 간",
+      "healing_speed": "낙관주의가 치유 촉진",
+      "energy_management": "자유와 목표가 필요"
+    },
+    "Mars_in_Capricorn": {
+      "physical_energy": "지속적이고 효율적인",
+      "exercise_style": "등산, 전략적 운동",
+      "injury_prone": "무릎, 뼈, 관절",
+      "healing_speed": "규율로 빠름",
+      "energy_management": "목표 지향으로 지속"
+    },
+    "Mars_in_Aquarius": {
+      "physical_energy": "불규칙하고 독특한",
+      "exercise_style": "그룹 스포츠, 혁신적 운동",
+      "injury_prone": "발목, 순환계",
+      "healing_speed": "독특한 방법으로",
+      "energy_management": "독창성이 동기"
+    },
+    "Mars_in_Pisces": {
+      "physical_energy": "흐르는 듯한, 경계 없는",
+      "exercise_style": "수영, 댄스, 영적 수련",
+      "injury_prone": "발, 림프, 면역",
+      "healing_speed": "영적 접근 필요",
+      "energy_management": "영감이 에너지원"
+    }
+  },
+
+  "health_houses": {
+    "1st_house": {
+      "Sun_in_1st": {
+        "constitutional_health": "강한 생명력과 체질",
+        "physical_appearance": "활력 넘치는 외모",
+        "health_identity": "건강이 정체성의 핵심"
+      },
+      "Moon_in_1st": {
+        "constitutional_health": "감정에 따라 변동하는 체질",
+        "physical_appearance": "감정이 얼굴에 드러남",
+        "health_identity": "기분이 건강에 직접 영향"
+      },
+      "Mars_in_1st": {
+        "constitutional_health": "강렬하고 활동적인 체질",
+        "physical_appearance": "근육질이거나 운동형",
+        "health_identity": "활동이 건강의 핵심"
+      },
+      "Saturn_in_1st": {
+        "constitutional_health": "나이 들수록 강해지는 체질",
+        "physical_appearance": "마르고 뼈대가 드러남",
+        "health_identity": "건강에 대한 책임감"
+      },
+      "Pluto_in_1st": {
+        "constitutional_health": "재생력이 강한 체질",
+        "physical_appearance": "강렬한 눈빛, 변형적 존재감",
+        "health_identity": "위기를 통해 재생"
+      }
+    },
+    "6th_house": {
+      "Sun_in_6th": {
+        "daily_health": "건강이 일상 루틴의 중심",
+        "work_health": "일과 건강의 밀접한 연결",
+        "healing_focus": "봉사를 통한 치유"
+      },
+      "Moon_in_6th": {
+        "daily_health": "감정이 소화와 건강에 영향",
+        "work_health": "직장에서 감정적 돌봄 필요",
+        "healing_focus": "정서적 안정이 건강의 핵심"
+      },
+      "Mars_in_6th": {
+        "daily_health": "에너지 넘치는 일상 활동",
+        "work_health": "적극적인 업무 스타일",
+        "healing_focus": "운동과 활동적 치유"
+      },
+      "Saturn_in_6th": {
+        "daily_health": "엄격한 건강 루틴",
+        "work_health": "과로 경향, 규율",
+        "healing_focus": "구조와 규칙을 통한 건강 관리"
+      },
+      "Neptune_in_6th": {
+        "daily_health": "민감한 체질, 환경에 반응",
+        "work_health": "경계 필요한 봉사 환경",
+        "healing_focus": "영적, 대체 치유법"
+      }
+    },
+    "12th_house": {
+      "Sun_in_12th": {
+        "hidden_health": "숨겨진 에너지 소모",
+        "psychic_health": "영적 재충전 필요",
+        "healing_needs": "고독과 명상"
+      },
+      "Moon_in_12th": {
+        "hidden_health": "무의식적 감정 패턴",
+        "psychic_health": "극도로 민감하고 흡수적",
+        "healing_needs": "수면과 꿈 작업"
+      },
+      "Mars_in_12th": {
+        "hidden_health": "억압된 분노와 에너지",
+        "psychic_health": "무의식적 행동 패턴",
+        "healing_needs": "분노 해소, 영적 전사"
+      },
+      "Saturn_in_12th": {
+        "hidden_health": "숨겨진 두려움과 제한",
+        "psychic_health": "무의식적 책임감",
+        "healing_needs": "두려움 대면, 명상"
+      },
+      "Neptune_in_12th": {
+        "hidden_health": "경계 없는 민감성",
+        "psychic_health": "영적 깊이와 취약성",
+        "healing_needs": "영적 실천, 건강한 도피"
+      }
+    }
+  }
+}

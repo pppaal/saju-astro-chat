@@ -1,0 +1,518 @@
+{
+  "$schema": "saju_interpretation_principles_v1",
+  "$description": "사주 해석 원칙 - 무한한 질문에 깊이 있는 맞춤 답변을 위한 프레임워크",
+
+  "sipsin_interpretation_matrix": {
+    "$description": "십신별 상황 맥락 해석 원칙",
+
+    "비견": {
+      "archetype": "동료/경쟁자/자기 분신",
+      "core_energy": "독립, 자존심, 경쟁, 동등한 관계",
+      "when_career": {
+        "strength": "독립적 업무, 프리랜서, 창업, 경쟁 환경에서 빛남",
+        "weakness": "협업 어려움, 타인 의견 수용 부족, 독단적",
+        "advice": "동료를 경쟁자가 아닌 협력자로 보는 시야 필요",
+        "suitable_roles": ["창업자", "독립 컨설턴트", "영업", "스포츠 선수", "1인 크리에이터"]
+      },
+      "when_relationship": {
+        "strength": "대등한 관계, 존중, 독립성 유지",
+        "weakness": "양보 어려움, 자기 방식 고집, 거리감",
+        "advice": "관계에서 '우리'보다 '나'가 강하면 외로워진다",
+        "pattern": "비슷한 사람과 끌리지만 충돌도 잦음"
+      },
+      "when_money": {
+        "strength": "자수성가, 남에게 의존 않음",
+        "weakness": "재물 나눔 어려움, 투자보다 저축",
+        "advice": "혼자 버는 것의 한계를 인식하라",
+        "pattern": "돈보다 체면/자존심을 중시"
+      },
+      "when_health": {
+        "pattern": "과로, 스트레스성 질환, 경쟁 압박",
+        "risk": "혼자 감당하려다 번아웃",
+        "advice": "도움 요청은 약함이 아니다"
+      },
+      "when_family": {
+        "pattern": "형제와 경쟁 또는 소원, 독립 욕구 강함",
+        "advice": "가족도 '내 편'이 될 수 있다"
+      },
+      "therapeutic_insight": "비견이 강하면 '나는 혼자서도 할 수 있다'는 믿음이 강하다. 이것이 강점이지만, 때로는 연결의 필요성을 인정하는 것이 진정한 강함이다."
+    },
+
+    "겁재": {
+      "archetype": "야망/탐욕/행동력/약탈자",
+      "core_energy": "적극적 쟁취, 과감한 행동, 위험 감수",
+      "when_career": {
+        "strength": "추진력, 결단력, 위기 대응, 영업/협상",
+        "weakness": "조급함, 무리한 확장, 타인 공 가로챔",
+        "advice": "속도보다 방향이 중요하다",
+        "suitable_roles": ["영업 관리자", "투자자", "사업 개발", "위기 관리", "스타트업"]
+      },
+      "when_relationship": {
+        "strength": "적극적 어프로치, 열정적",
+        "weakness": "소유욕, 질투, 상대를 통제하려 함",
+        "advice": "사람은 소유할 수 없다. 사랑은 자유 안에서 자란다",
+        "pattern": "빠르게 시작하고 빠르게 식을 수 있음"
+      },
+      "when_money": {
+        "strength": "과감한 투자, 기회 포착",
+        "weakness": "투기적, 빚을 내서라도 기회 잡으려 함",
+        "advice": "모든 기회가 당신의 것은 아니다",
+        "pattern": "큰 돈을 벌고 큰 돈을 잃는 롤러코스터"
+      },
+      "when_health": {
+        "pattern": "사고, 부상, 과격한 운동으로 인한 손상",
+        "risk": "무모한 행동, 충동적 결정",
+        "advice": "멈추는 것도 용기다"
+      },
+      "therapeutic_insight": "겁재는 '충분하지 않다'는 두려움에서 온다. 이미 가진 것의 풍요로움을 인식할 때, 빼앗으려는 충동이 줄어든다."
+    },
+
+    "식신": {
+      "archetype": "내면 아이/창조성/즐거움/표현",
+      "core_energy": "자기 표현, 창작, 먹고 즐기기, 여유",
+      "when_career": {
+        "strength": "창의적 직업, 예술, 요식업, 교육",
+        "weakness": "경쟁적 환경 부적합, 압박에 약함",
+        "advice": "좋아하는 일을 하면 일이 아니다",
+        "suitable_roles": ["셰프", "아티스트", "작가", "교사", "콘텐츠 크리에이터", "힐러"]
+      },
+      "when_relationship": {
+        "strength": "따뜻함, 돌봄, 편안함 제공",
+        "weakness": "지나친 헌신, 자기 희생",
+        "advice": "주는 것도 좋지만 받을 줄도 알아야 한다",
+        "pattern": "모성적/부성적 사랑, 상대를 먹이고 돌봄"
+      },
+      "when_money": {
+        "strength": "창작으로 수입, 즐기면서 벌기",
+        "weakness": "돈에 무관심, 낭비 경향",
+        "advice": "즐거움과 재정 균형을 찾아라",
+        "pattern": "버는 것보다 쓰는 것에 관심"
+      },
+      "when_health": {
+        "pattern": "소화기, 과식, 비만, 당뇨 주의",
+        "strength": "스트레스 적음, 심리적 안정",
+        "advice": "절제가 더 오래 즐길 수 있게 한다"
+      },
+      "therapeutic_insight": "식신은 내면 아이의 에너지다. 억압되면 삶의 기쁨이 사라진다. 놀이와 창조를 죄책감 없이 허용하라."
+    },
+
+    "상관": {
+      "archetype": "반항자/창조적 파괴자/날카로운 지성",
+      "core_energy": "비판, 개혁, 기존 질서 거부, 독창성",
+      "when_career": {
+        "strength": "혁신, 비평, 창의적 문제 해결, 변호",
+        "weakness": "상사와 충돌, 규칙 무시, 조직 부적응",
+        "advice": "파괴 후에는 건설이 따라야 한다",
+        "suitable_roles": ["비평가", "변호사", "혁신가", "디자이너", "기자", "스타트업 파괴자"]
+      },
+      "when_relationship": {
+        "strength": "솔직함, 가식 없음, 지적 자극",
+        "weakness": "비판으로 상처 줌, 권위자 남편/아내와 충돌",
+        "advice": "모든 진실이 말해져야 하는 것은 아니다",
+        "pattern": "상관견관 - 남편/권위자와 갈등 패턴"
+      },
+      "when_money": {
+        "strength": "독창적 아이디어로 수익",
+        "weakness": "안정적 수입 어려움, 일관성 부족",
+        "advice": "재능을 수익화하는 시스템을 만들어라",
+        "pattern": "조직 월급보다 자유로운 수입 선호"
+      },
+      "when_health": {
+        "pattern": "신경계, 언어 기관, 스트레스성 질환",
+        "risk": "분노 억압 시 폭발",
+        "advice": "창조적 출구로 에너지를 방출하라"
+      },
+      "therapeutic_insight": "상관은 '인정받지 못한 천재'의 상처를 품고 있다. 파괴 충동 아래에는 '내 독창성을 알아봐 달라'는 외침이 있다."
+    },
+
+    "편재": {
+      "archetype": "모험가/투기꾼/자유로운 영혼",
+      "core_energy": "유동적 재물, 기회 포착, 위험 감수, 자유",
+      "when_career": {
+        "strength": "무역, 투자, 영업, 변화 많은 직종",
+        "weakness": "안정적 직장 부적합, 지루함에 약함",
+        "advice": "변화 자체가 당신의 안정이다",
+        "suitable_roles": ["트레이더", "무역상", "벤처 투자자", "여행 가이드", "이벤트 기획"]
+      },
+      "when_relationship": {
+        "strength": "다양한 경험, 새로움 제공",
+        "weakness": "한 곳에 정착 어려움, 바람기 오해",
+        "advice": "자유와 헌신은 양립할 수 있다",
+        "pattern": "다양한 만남, 국제 연애, 비전통적 관계"
+      },
+      "when_money": {
+        "strength": "빠른 기회 포착, 순발력",
+        "weakness": "들어오는 대로 나감, 저축 어려움",
+        "advice": "흐르는 물도 일부는 담아둬야 한다",
+        "pattern": "큰 돈이 왔다 갔다, 변동성 큼"
+      },
+      "when_health": {
+        "pattern": "과로, 불규칙한 생활, 간 기능 주의",
+        "advice": "자유롭게 살되 몸의 리듬은 지켜라"
+      },
+      "therapeutic_insight": "편재는 '속박에 대한 두려움'을 반영한다. 진정한 자유는 외부 조건이 아니라 내면의 평화에서 온다."
+    },
+
+    "정재": {
+      "archetype": "관리자/수호자/안정의 추구자",
+      "core_energy": "안정적 재물, 관리, 절약, 책임",
+      "when_career": {
+        "strength": "재무, 회계, 관리직, 안정적 대기업",
+        "weakness": "창의적 직종 부적합, 변화 대응 느림",
+        "advice": "안정 안에서도 성장은 필요하다",
+        "suitable_roles": ["회계사", "재무 관리자", "은행원", "공무원", "자산 관리사"]
+      },
+      "when_relationship": {
+        "strength": "헌신, 책임감, 믿음직함",
+        "weakness": "융통성 부족, 물질로 사랑 표현",
+        "advice": "돈으로 살 수 없는 것들이 있다",
+        "pattern": "결혼 중시, 가정적, 전통적 관계관"
+      },
+      "when_money": {
+        "strength": "꾸준한 저축, 안정적 증식",
+        "weakness": "지나친 절약으로 삶의 질 저하",
+        "advice": "돈은 쓰여질 때 의미가 있다",
+        "pattern": "천천히 모아서 부자 되는 타입"
+      },
+      "when_health": {
+        "pattern": "스트레스성 소화 장애, 걱정으로 인한 불면",
+        "advice": "모든 것을 통제할 수는 없다"
+      },
+      "therapeutic_insight": "정재는 '통제에 대한 욕구'를 반영한다. 안전감은 외부 자원이 아니라 내면의 신뢰에서 온다."
+    },
+
+    "편관": {
+      "archetype": "전사/도전자/통제되지 않는 권위",
+      "core_energy": "압박, 도전, 극복해야 할 권위, 스트레스",
+      "when_career": {
+        "strength": "위기 대응, 경쟁 환경, 군/경/검찰",
+        "weakness": "평화로운 환경에서 무력감",
+        "advice": "싸울 적이 없으면 자신과 싸우게 된다",
+        "suitable_roles": ["군인", "경찰", "검사", "외과 의사", "위기 관리자", "운동 선수"]
+      },
+      "when_relationship": {
+        "strength": "보호 본능, 강한 책임감",
+        "weakness": "통제적, 권위적, 감정 표현 서툼",
+        "advice": "힘으로 얻은 사랑은 두려움일 뿐이다",
+        "pattern": "강한 사람에게 끌림, 권력 관계가 되기 쉬움"
+      },
+      "when_money": {
+        "strength": "압박 속에서 성과",
+        "weakness": "스트레스성 지출, 권위 유지 비용",
+        "advice": "증명할 필요 없이도 가치 있다",
+        "pattern": "돈보다 권력/지위에 관심"
+      },
+      "when_health": {
+        "pattern": "고혈압, 사고, 수술, 급성 질환",
+        "risk": "항상 긴장 상태, 이완 어려움",
+        "advice": "통제를 내려놓는 연습을 하라"
+      },
+      "therapeutic_insight": "편관은 '아버지 콤플렉스'와 연결된다. 권위와의 관계를 치유하면 외부의 적이 아닌 내면의 힘을 발견한다."
+    },
+
+    "정관": {
+      "archetype": "질서/규범/올바른 권위/사회적 지위",
+      "core_energy": "책임, 명예, 사회적 인정, 규칙 준수",
+      "when_career": {
+        "strength": "조직 내 승진, 관리직, 공직",
+        "weakness": "혁신 부족, 관료주의적",
+        "advice": "규칙을 지키되 규칙에 갇히지 마라",
+        "suitable_roles": ["공무원", "대기업 관리자", "판사", "교수", "의사", "CEO"]
+      },
+      "when_relationship": {
+        "strength": "책임감, 믿음직함, 결혼 중시",
+        "weakness": "형식 중시, 감정 표현 서툼",
+        "advice": "완벽한 남편/아내보다 진실한 파트너가 되라",
+        "pattern": "사회적으로 인정받는 관계 중시"
+      },
+      "when_money": {
+        "strength": "정당한 방법으로 안정적 수입",
+        "weakness": "위험 회피로 기회 놓침",
+        "advice": "정도를 걸으면 늦더라도 도착한다",
+        "pattern": "명예와 돈 중 명예 선택"
+      },
+      "when_health": {
+        "pattern": "과로, 책임감으로 인한 스트레스",
+        "advice": "완벽하지 않아도 된다"
+      },
+      "therapeutic_insight": "정관은 '초자아의 비대화'를 반영한다. 규칙에 대한 집착 아래에는 인정받고 싶은 욕구가 있다."
+    },
+
+    "편인": {
+      "archetype": "이단자/신비주의자/고독한 지혜",
+      "core_energy": "비전통적 지식, 직관, 영성, 고독",
+      "when_career": {
+        "strength": "연구, 철학, 대체 의학, 예술, IT",
+        "weakness": "주류와 어울리기 어려움",
+        "advice": "다른 것은 틀린 것이 아니다",
+        "suitable_roles": ["연구원", "철학자", "점술가", "심리치료사", "프로그래머", "작가"]
+      },
+      "when_relationship": {
+        "strength": "깊은 정신적 교류",
+        "weakness": "감정적 친밀감 어려움, 고독 선호",
+        "advice": "혼자 있음과 외로움은 다르다",
+        "pattern": "비전통적 관계, 나이 차이, 거리 두기"
+      },
+      "when_money": {
+        "strength": "독특한 분야에서 수입",
+        "weakness": "물질에 무관심, 현실 감각 부족",
+        "advice": "영혼도 밥을 먹어야 산다",
+        "pattern": "돈보다 지식/경험 중시"
+      },
+      "when_health": {
+        "pattern": "정신 건강, 우울, 수면 장애, 의약 부작용",
+        "advice": "몸과 영혼 모두 돌봐라"
+      },
+      "therapeutic_insight": "편인은 '어머니와의 불완전한 연결'을 반영한다. 세상에 속하지 못한다는 느낌 아래에는 조건 없이 받아들여지고 싶은 갈망이 있다."
+    },
+
+    "정인": {
+      "archetype": "어머니/수호자/지혜로운 돌봄",
+      "core_energy": "보호, 학습, 전통 지식, 명예",
+      "when_career": {
+        "strength": "교육, 의료, 상담, 학문",
+        "weakness": "실용적 비즈니스 부적합",
+        "advice": "가르치는 것이 가장 큰 배움이다",
+        "suitable_roles": ["교사", "교수", "의사", "상담사", "사서", "연구원"]
+      },
+      "when_relationship": {
+        "strength": "돌봄, 지지, 정서적 안정 제공",
+        "weakness": "지나친 보호, 의존 관계",
+        "advice": "사랑하는 사람을 놓아줄 때 더 가까워진다",
+        "pattern": "부모 같은 역할, 가르치는 관계"
+      },
+      "when_money": {
+        "strength": "학문/교육으로 안정적 수입",
+        "weakness": "적극적 투자 어려움",
+        "advice": "지식도 자산이다",
+        "pattern": "돈보다 명예, 물질보다 정신"
+      },
+      "when_health": {
+        "pattern": "체력 저하, 소화기, 과보호로 면역력 약화",
+        "advice": "스스로를 돌보는 것이 남을 돌보는 첫걸음"
+      },
+      "therapeutic_insight": "정인은 '어머니 콤플렉스'와 연결된다. 지나친 돌봄은 의존을 낳고, 의존은 성장을 막는다."
+    }
+  },
+
+  "element_context_interpretation": {
+    "$description": "오행별 맥락 해석 원칙",
+
+    "wood_excess": {
+      "pattern": "목 과다",
+      "career_manifestation": "계획만 많고 실행 부족, 분노로 관계 손상",
+      "relationship_manifestation": "지나친 기대, 성장 압박",
+      "health_manifestation": "간 질환, 눈 질환, 근육 경직",
+      "therapeutic_direction": "분노를 창조로 전환, 유연성 기르기"
+    },
+    "wood_deficiency": {
+      "pattern": "목 부족",
+      "career_manifestation": "비전 없음, 성장 정체",
+      "relationship_manifestation": "활력 없는 관계",
+      "health_manifestation": "우울, 무기력",
+      "therapeutic_direction": "새로운 시작, 봄의 에너지 받아들이기"
+    },
+    "fire_excess": {
+      "pattern": "화 과다",
+      "career_manifestation": "번아웃, 과대망상, 지속성 부족",
+      "relationship_manifestation": "질투, 집착, 격렬한 감정",
+      "health_manifestation": "심장, 혈압, 불안",
+      "therapeutic_direction": "지속 가능한 열정, 쉼의 중요성"
+    },
+    "fire_deficiency": {
+      "pattern": "화 부족",
+      "career_manifestation": "동기 부족, 무기력, 명확성 결여",
+      "relationship_manifestation": "냉담, 열정 부재",
+      "health_manifestation": "순환 장애, 냉증",
+      "therapeutic_direction": "작은 기쁨 찾기, 열정의 씨앗 심기"
+    },
+    "earth_excess": {
+      "pattern": "토 과다",
+      "career_manifestation": "변화 거부, 정체, 과도한 걱정",
+      "relationship_manifestation": "집착, 통제, 질식시키는 돌봄",
+      "health_manifestation": "소화기, 비만, 당뇨",
+      "therapeutic_direction": "변화 수용, 놓아주기 연습"
+    },
+    "earth_deficiency": {
+      "pattern": "토 부족",
+      "career_manifestation": "안정감 없음, 뿌리 없음",
+      "relationship_manifestation": "신뢰 부족, 불안정한 관계",
+      "health_manifestation": "소화 불량, 면역 저하",
+      "therapeutic_direction": "중심 잡기, 내면의 안정 찾기"
+    },
+    "metal_excess": {
+      "pattern": "금 과다",
+      "career_manifestation": "완벽주의, 지나친 비판, 고집",
+      "relationship_manifestation": "차가움, 거리감, 기준이 너무 높음",
+      "health_manifestation": "호흡기, 피부, 우울",
+      "therapeutic_direction": "불완전함 수용, 자비 연습"
+    },
+    "metal_deficiency": {
+      "pattern": "금 부족",
+      "career_manifestation": "결단력 부족, 우유부단",
+      "relationship_manifestation": "경계 부족, 자기 희생",
+      "health_manifestation": "호흡기 약함, 면역 저하",
+      "therapeutic_direction": "경계 세우기, 결단력 기르기"
+    },
+    "water_excess": {
+      "pattern": "수 과다",
+      "career_manifestation": "지나친 생각, 두려움으로 행동 못함",
+      "relationship_manifestation": "의심, 고립, 감정에 빠짐",
+      "health_manifestation": "신장, 방광, 우울",
+      "therapeutic_direction": "두려움 직면, 흐름에 맡기기"
+    },
+    "water_deficiency": {
+      "pattern": "수 부족",
+      "career_manifestation": "지혜 부족, 깊이 없음",
+      "relationship_manifestation": "피상적 관계, 감정 접촉 어려움",
+      "health_manifestation": "탈수, 신장 기능 저하",
+      "therapeutic_direction": "내면의 깊이 탐험, 명상"
+    }
+  },
+
+  "dynamic_period_interpretation": {
+    "$description": "대운/세운 시기별 해석 원칙",
+
+    "yongsin_arrival": {
+      "pattern": "용신 대운/세운 도래",
+      "general": "기다리던 기회의 시기, 본질적 필요가 충족됨",
+      "career_context": "승진, 전환점, 인정받는 시기",
+      "relationship_context": "인연 만남, 관계 성숙",
+      "health_context": "회복, 체력 상승",
+      "action_advice": "적극적으로 움직일 때, 기회를 잡아라",
+      "caution": "과신하지 말 것, 용신도 과하면 독이 됨"
+    },
+    "gishin_arrival": {
+      "pattern": "기신 대운/세운 도래",
+      "general": "도전과 시련의 시기, 성장을 위한 연마",
+      "career_context": "장애물, 경쟁, 압박 증가",
+      "relationship_context": "갈등, 이별, 시험",
+      "health_context": "질병 주의, 스트레스 관리",
+      "action_advice": "수비적으로, 무리하지 말 것",
+      "therapeutic_perspective": "시련은 성장의 조건이다. 무엇을 배울 것인가?"
+    },
+    "chung_period": {
+      "pattern": "충(冲) 작용 시기",
+      "general": "급격한 변화, 분리, 이동",
+      "career_context": "직장 변화, 이직, 해고 또는 승진",
+      "relationship_context": "이별, 갈등 폭발, 또는 관계 재정의",
+      "health_context": "사고, 급성 질환 주의",
+      "action_advice": "변화에 저항하지 말고 방향을 잡아라",
+      "therapeutic_perspective": "충은 정체된 에너지를 깨운다. 무엇이 깨져야 하는가?"
+    },
+    "hap_period": {
+      "pattern": "합(合) 작용 시기",
+      "general": "결합, 통합, 새로운 관계 형성",
+      "career_context": "협력, 계약, 파트너십",
+      "relationship_context": "만남, 결혼, 깊어지는 관계",
+      "health_context": "안정, 회복",
+      "action_advice": "협력과 통합의 에너지를 활용하라",
+      "caution": "합도 변화다. 기존 것이 녹아내림을 의미할 수 있음"
+    },
+    "hyeong_period": {
+      "pattern": "형(刑) 작용 시기",
+      "general": "처벌적 에너지, 자기 성찰 필요",
+      "career_context": "법적 문제, 징계, 구조 조정",
+      "relationship_context": "관계 내 상처, 원망, 갈등",
+      "health_context": "수술, 사고, 만성 질환 악화",
+      "action_advice": "자기 점검, 잘못된 것 바로잡기",
+      "therapeutic_perspective": "형은 카르마의 청산이다. 무엇을 바로잡아야 하는가?"
+    }
+  },
+
+  "complex_pattern_interpretation": {
+    "$description": "복합 패턴 해석 원칙",
+
+    "sangwan_gyeongwan": {
+      "pattern": "상관견관 (傷官見官)",
+      "core_meaning": "권위와의 충돌, 남편/상사와 갈등",
+      "when_career": "상사와 마찰, 조직 부적응, 그러나 창의적 분야에서 빛남",
+      "when_relationship": "남편/권위자와 지속적 갈등, 대등한 관계 필요",
+      "therapeutic_insight": "상관견관은 '인정받지 못한 천재'의 상처다. 당신의 독창성을 알아보는 곳을 찾아라.",
+      "mitigation": "식신으로 상관 설기, 인성으로 상관 제어, 재성으로 통관"
+    },
+    "jaedasinag": {
+      "pattern": "재다신약 (財多身弱)",
+      "core_meaning": "재물/욕망이 많으나 감당할 힘 부족",
+      "when_career": "기회는 많으나 잡을 체력/능력 부족",
+      "when_money": "돈은 들어오나 지키지 못함, 건강 악화",
+      "therapeutic_insight": "모든 기회가 당신의 것은 아니다. 선택과 집중이 필요하다.",
+      "mitigation": "비겁 운에서 힘 회복, 인성으로 신강 보완"
+    },
+    "gwansaldajung": {
+      "pattern": "관살다중 (官殺多重)",
+      "core_meaning": "압박과 스트레스 과다, 외부 통제",
+      "when_career": "과도한 책임, 여러 상사, 업무 과부하",
+      "when_health": "만성 스트레스, 고혈압, 심장 질환 주의",
+      "therapeutic_insight": "모든 짐을 질 필요 없다. 무엇이 진짜 당신의 것인가?",
+      "mitigation": "식상으로 관살 제어, 인성으로 관살 화해"
+    },
+    "insung_excess_pattern": {
+      "pattern": "인성 과다",
+      "core_meaning": "지나친 보호, 의존성, 행동력 부족",
+      "when_career": "준비만 하고 실행 못함, 학위만 쌓음",
+      "when_relationship": "어머니 콤플렉스, 과보호 또는 의존",
+      "therapeutic_insight": "알아도 행동하지 않으면 무의미하다. 완벽한 준비란 없다.",
+      "mitigation": "재성으로 인성 제어, 식상으로 에너지 방출"
+    }
+  },
+
+  "question_type_routing": {
+    "$description": "질문 유형별 해석 우선순위",
+
+    "career_question": {
+      "primary_focus": ["관성", "식상", "재성", "십신 직업 매핑"],
+      "secondary_focus": ["월주", "대운", "용신"],
+      "therapeutic_angle": "직업은 자기 표현의 한 형태. 무엇을 표현하고 싶은가?"
+    },
+    "relationship_question": {
+      "primary_focus": ["일지", "시지", "재성/관성", "배우자궁"],
+      "secondary_focus": ["합/충/형", "대운", "연애궁"],
+      "therapeutic_angle": "관계는 거울이다. 상대에게서 무엇을 보는가?"
+    },
+    "money_question": {
+      "primary_focus": ["재성", "식상생재", "재성 위치"],
+      "secondary_focus": ["용신", "대운", "세운"],
+      "therapeutic_angle": "돈은 에너지의 흐름이다. 무엇을 주고받고 있는가?"
+    },
+    "health_question": {
+      "primary_focus": ["오행 균형", "억부", "장부 배속"],
+      "secondary_focus": ["기신", "충형", "대운"],
+      "therapeutic_angle": "몸은 마음의 지도다. 어디가 아픈가?"
+    },
+    "life_direction_question": {
+      "primary_focus": ["일간", "용신", "격국", "대운 흐름"],
+      "secondary_focus": ["년주~시주 전체 구조", "공망"],
+      "therapeutic_angle": "당신은 이미 답을 알고 있다. 무엇이 막고 있는가?"
+    },
+    "timing_question": {
+      "primary_focus": ["대운", "세운", "월운", "충합 시점"],
+      "secondary_focus": ["용신 도래 시기", "기신 회피 시기"],
+      "therapeutic_angle": "때를 기다리는 것도 행동이다. 무엇을 준비할 것인가?"
+    }
+  },
+
+  "llm_synthesis_guidelines": {
+    "$description": "LLM이 해석을 종합할 때 따라야 할 원칙",
+
+    "interpretation_layers": [
+      "1. 패턴 인식: 사주 원국에서 핵심 패턴 식별 (격국, 용신, 과다/부족)",
+      "2. 맥락 적용: 질문 유형에 따른 해석 우선순위 적용",
+      "3. 시기 분석: 대운/세운의 현재 영향 분석",
+      "4. 통합 해석: 여러 요소를 종합하여 일관된 스토리 구성",
+      "5. 치료적 통찰: 단순 예측이 아닌 성장 방향 제시"
+    ],
+    "tone_guidelines": {
+      "empathetic": "판단하지 않고 이해하는 톤",
+      "empowering": "운명론이 아닌 선택의 힘 강조",
+      "practical": "추상적 조언이 아닌 구체적 행동 제안",
+      "hopeful": "어려운 해석도 성장의 관점에서"
+    },
+    "avoid": [
+      "단정적 예언 (반드시 ~할 것이다)",
+      "공포 조장 (큰 재앙이 닥칠 것이다)",
+      "책임 회피 (운명이니 어쩔 수 없다)",
+      "피상적 긍정 (다 잘 될 것이다)"
+    ]
+  }
+}

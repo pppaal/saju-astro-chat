@@ -1,8 +1,29 @@
-﻿// src/components/destiny-map/Chat.tsx
+// src/components/destiny-map/Chat.tsx
 
 "use client";
 
 import React from "react";
+import styles from "./Chat.module.css";
+
+// PDF parsing utility
+async function extractTextFromPDF(file: File): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  let fullText = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map((item: any) => item.str)
+      .join(" ");
+    fullText += pageText + "\n";
+  }
+  return fullText.trim();
+}
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
@@ -15,98 +36,178 @@ type Copy = {
   fallbackNote: string;
   safetyNote: string;
   noResponse: string;
+  uploadCv: string;
+  attached: string;
+  parsingPdf: string;
+  recording: string;
+  stopRecording: string;
+  tarotPrompt: string;
+  tarotButton: string;
+  tarotDesc: string;
 };
 
 const I18N: Record<LangKey, Copy> = {
   en: {
     placeholder: "Ask precisely (when/why/what)",
     send: "Send",
-    thinking: "Analyzing...",
+    thinking: "Analyzing your cosmic path...",
     empty: "Ask in the chosen theme for more precise answers.",
     error: "An error occurred. Please try again.",
     fallbackNote: "Using backup response (AI temporarily unavailable).",
     safetyNote: "Response limited due to policy restrictions.",
     noResponse: "No response received. Try again later.",
+    uploadCv: "Upload CV",
+    attached: "Attached:",
+    parsingPdf: "Reading PDF...",
+    recording: "Recording...",
+    stopRecording: "Stop",
+    tarotPrompt: "Want deeper insights?",
+    tarotButton: "Try Tarot Reading",
+    tarotDesc: "Combine your astrology & saju with tarot for guidance on your current concern",
   },
   ko: {
-    placeholder: "\uc5b8\uc81c/\uc65c/\ubb34\uc5c7\uc744 \uad6c\uccb4\uc801\uc73c\ub85c \uc785\ub825\ud574 \uc8fc\uc138\uc694.",
-    send: "\ubcf4\ub0b4\uae30",
-    thinking: "\ubd84\uc11d \uc911...",
-    empty: "\uc120\ud0dd\ud55c \uc8fc\uc81c\uc5d0 \ub9de\ucdb0 \uc9c8\ubb38\ud558\uba74 \ub354 \uc815\ud655\ud558\uac8c \ub2f5\ubcc0\ud569\ub2c8\ub2e4.",
-    error: "\uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
-    fallbackNote: "\ubc31\uc5c5 \uc751\ub2f5\uc73c\ub85c \ub300\uc2e0\ud569\ub2c8\ub2e4 (AI \uc77c\uc2dc \ubd88\uac00).",
-    safetyNote: "\uc815\ucc45\uc0c1 \uc81c\ud55c\ub41c \ub2f5\ubcc0\uc785\ub2c8\ub2e4.",
-    noResponse: "\uc751\ub2f5\uc744 \ubc1b\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uc7a0\uc2dc \ud6c4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
+    placeholder: "언제/왜/무엇을 구체적으로 입력해 주세요.",
+    send: "보내기",
+    thinking: "우주의 길을 분석하고 있습니다...",
+    empty: "선택한 주제에 맞춰 질문하면 더 정확하게 답변합니다.",
+    error: "오류가 발생했습니다. 다시 시도해 주세요.",
+    fallbackNote: "백업 응답으로 대신합니다 (AI 일시 불가).",
+    safetyNote: "정책상 제한된 답변입니다.",
+    noResponse: "응답을 받을 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    uploadCv: "이력서 업로드",
+    attached: "첨부됨:",
+    parsingPdf: "PDF 읽는 중...",
+    recording: "녹음 중...",
+    stopRecording: "중지",
+    tarotPrompt: "더 깊은 통찰을 원하시나요?",
+    tarotButton: "타로 리딩 받기",
+    tarotDesc: "점성술과 사주를 타로와 결합하여 현재 고민에 대한 지침을 받아보세요",
   },
   ja: {
-    placeholder: "\u3044\u3064/\u306a\u305c/\u4f55\u3092\u3001\u3067\u304d\u308b\u3060\u3051\u5177\u4f53\u7684\u306b",
-    send: "\u9001\u4fe1",
-    thinking: "\u5206\u6790\u4e2d\u2026",
-    empty: "\u9078\u3093\u3060\u30c6\u30fc\u30de\u3067\u805e\u304f\u3068\u3001\u3088\u308a\u6b63\u78ba\u306a\u7b54\u3048\u306b\u306a\u308a\u307e\u3059\u3002",
-    error: "\u30a8\u30e9\u30fc\u304c\u767a\u751f\u3057\u307e\u3057\u305f\u3002\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
-    fallbackNote: "\u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u306e\u5fdc\u7b54\u3092\u8fd4\u3057\u307e\u3057\u305f\uff08AI\u4e00\u6642\u505c\u6b62\u4e2d\uff09\u3002",
-    safetyNote: "\u30dd\u30ea\u30b7\u30fc\u4e0a\u3001\u56de\u7b54\u304c\u5236\u9650\u3055\u308c\u307e\u3059\u3002",
-    noResponse: "\u5fdc\u7b54\u304c\u3042\u308a\u307e\u305b\u3093\u3002\u3057\u3070\u3089\u304f\u3057\u3066\u304b\u3089\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+    placeholder: "いつ/なぜ/何を、できるだけ具体的に",
+    send: "送信",
+    thinking: "宇宙の道を分析中...",
+    empty: "選んだテーマで聞くと、より正確な答えになります。",
+    error: "エラーが発生しました。もう一度お試しください。",
+    fallbackNote: "バックアップの応答を返しました（AI一時停止中）。",
+    safetyNote: "ポリシー上、回答が制限されます。",
+    noResponse: "応答がありません。しばらくしてからお試しください。",
+    uploadCv: "履歴書アップロード",
+    attached: "添付済み:",
+    parsingPdf: "PDFを読み込み中...",
+    recording: "録音中...",
+    stopRecording: "停止",
+    tarotPrompt: "より深い洞察を求めますか？",
+    tarotButton: "タロットリーディング",
+    tarotDesc: "占星術と四柱推命をタロットと組み合わせて、今の悩みへの指針を得ましょう",
   },
   zh: {
-    placeholder: "\u8bf7\u5177\u4f53\u8bf4\u660e\uff08\u4f55\u65f6/\u539f\u56e0/\u5185\u5bb9\uff09",
-    send: "\u53d1\u9001",
-    thinking: "\u5206\u6790\u4e2d\u2026",
-    empty: "\u5728\u9009\u5b9a\u4e3b\u9898\u4e0b\u63d0\u95ee\uff0c\u4f1a\u66f4\u7cbe\u51c6\u3002",
-    error: "\u53d1\u751f\u9519\u8bef\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5\u3002",
-    fallbackNote: "\u8fd4\u56de\u4e86\u5907\u7528\u56de\u7b54\uff08AI\u6682\u4e0d\u53ef\u7528\uff09\u3002",
-    safetyNote: "\u56e0\u7b56\u7565\u9650\u5236\uff0c\u56de\u7b54\u53d7\u9650\u3002",
-    noResponse: "\u6682\u65e0\u56de\u590d\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002",
+    placeholder: "请具体说明（何时/原因/内容）",
+    send: "发送",
+    thinking: "正在分析您的宇宙之路...",
+    empty: "在选定主题下提问，会更精准。",
+    error: "发生错误，请稍后重试。",
+    fallbackNote: "返回了备用回答（AI暂不可用）。",
+    safetyNote: "因策略限制，回答受限。",
+    noResponse: "暂无回复，请稍后再试。",
+    uploadCv: "上传简历",
+    attached: "已附加:",
+    parsingPdf: "正在读取PDF...",
+    recording: "录音中...",
+    stopRecording: "停止",
+    tarotPrompt: "想要更深入的洞察吗？",
+    tarotButton: "塔罗牌占卜",
+    tarotDesc: "结合占星术和四柱，用塔罗牌为您当前的困惑提供指引",
   },
   es: {
     placeholder: "Pregunta concreta (cuando/por que/que)",
     send: "Enviar",
-    thinking: "Analizando...",
+    thinking: "Analizando tu camino cósmico...",
     empty: "Pregunta en el tema seleccionado para respuestas mas precisas.",
     error: "Ocurrio un error. Intentalo de nuevo.",
     fallbackNote: "Se uso respuesta de respaldo (IA temporalmente no disponible).",
     safetyNote: "Respuesta limitada por politica.",
     noResponse: "Sin respuesta. Intentalo mas tarde.",
+    uploadCv: "Subir CV",
+    attached: "Adjunto:",
+    parsingPdf: "Leyendo PDF...",
+    recording: "Grabando...",
+    stopRecording: "Detener",
+    tarotPrompt: "¿Quieres percepciones más profundas?",
+    tarotButton: "Lectura de Tarot",
+    tarotDesc: "Combina tu astrología y saju con el tarot para guiarte en tu preocupación actual",
   },
   fr: {
     placeholder: "Pose une question precise (quand/pourquoi/quoi)",
     send: "Envoyer",
-    thinking: "Analyse...",
+    thinking: "Analyse de votre chemin cosmique...",
     empty: "Pose ta question dans le theme choisi pour plus de precision.",
     error: "Une erreur s'est produite. Reessaie.",
-    fallbackNote: "Reponse de secours utilisee (IA momentaneamente indisponible).",
+    fallbackNote: "Reponse de secours utilisee (IA momentaneamento indisponible).",
     safetyNote: "Reponse limitee par la politique.",
     noResponse: "Pas de reponse. Reessaie plus tard.",
+    uploadCv: "Télécharger CV",
+    attached: "Joint:",
+    parsingPdf: "Lecture du PDF...",
+    recording: "Enregistrement...",
+    stopRecording: "Arrêter",
+    tarotPrompt: "Voulez-vous des aperçus plus profonds?",
+    tarotButton: "Tirage de Tarot",
+    tarotDesc: "Combinez votre astrologie et saju avec le tarot pour des conseils sur votre préoccupation actuelle",
   },
   de: {
     placeholder: "Frag prazise (wann/warum/was)",
     send: "Senden",
-    thinking: "Analysiere...",
+    thinking: "Analysiere deinen kosmischen Pfad...",
     empty: "Frage im gewahlten Thema fuer genauere Antworten.",
     error: "Es ist ein Fehler aufgetreten. Bitte erneut versuchen.",
     fallbackNote: "Backup-Antwort verwendet (KI voruebergehend nicht verfuegbar).",
     safetyNote: "Antwort aus Richtliniengruenden eingeschraenkt.",
     noResponse: "Keine Antwort erhalten. Spaeter erneut versuchen.",
+    uploadCv: "Lebenslauf hochladen",
+    attached: "Angehängt:",
+    parsingPdf: "PDF lesen...",
+    recording: "Aufnahme...",
+    stopRecording: "Stoppen",
+    tarotPrompt: "Möchten Sie tiefere Einblicke?",
+    tarotButton: "Tarot-Lesung",
+    tarotDesc: "Kombinieren Sie Ihre Astrologie und Saju mit Tarot für Anleitungen zu Ihrem aktuellen Anliegen",
   },
   pt: {
     placeholder: "Pergunte de forma precisa (quando/por que/o que)",
     send: "Enviar",
-    thinking: "Analisando...",
+    thinking: "Analisando seu caminho cósmico...",
     empty: "Pergunte no tema escolhido para respostas mais precisas.",
     error: "Ocorreu um erro. Tente novamente.",
     fallbackNote: "Usando resposta de backup (IA temporariamente indisponivel).",
     safetyNote: "Resposta limitada por politica.",
     noResponse: "Nenhuma resposta. Tente novamente mais tarde.",
+    uploadCv: "Enviar CV",
+    attached: "Anexado:",
+    parsingPdf: "Lendo PDF...",
+    recording: "Gravando...",
+    stopRecording: "Parar",
+    tarotPrompt: "Quer insights mais profundos?",
+    tarotButton: "Leitura de Tarô",
+    tarotDesc: "Combine sua astrologia e saju com tarô para orientação sobre sua preocupação atual",
   },
   ru: {
-    placeholder: "\u0421\u0444\u043e\u0440\u043c\u0443\u043b\u0438\u0440\u0443\u0439\u0442\u0435 \u0442\u043e\u0447\u043d\u043e (\u043a\u043e\u0433\u0434\u0430/\u043f\u043e\u0447\u0435\u043c\u0443/\u0447\u0442\u043e)",
-    send: "\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c",
-    thinking: "\u0410\u043d\u0430\u043b\u0438\u0437...",
-    empty: "\u0421\u043f\u0440\u0430\u0448\u0438\u0432\u0430\u0439\u0442\u0435 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u0442\u0435\u043c\u0435 \u0434\u043b\u044f \u0431\u043e\u043b\u0435\u0435 \u0442\u043e\u0447\u043d\u044b\u0445 \u043e\u0442\u0432\u0435\u0442\u043e\u0432.",
-    error: "\u041f\u0440\u043e\u0438\u0437\u043e\u0448\u043b\u0430 \u043e\u0448\u0438\u0431\u043a\u0430. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u043f\u043e\u0437\u0436\u0435.",
-    fallbackNote: "\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d \u0440\u0435\u0437\u0435\u0440\u0432\u043d\u044b\u0439 \u043e\u0442\u0432\u0435\u0442 (\u0418\u0418 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d).",
-    safetyNote: "\u041e\u0442\u0432\u0435\u0442 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d \u043f\u0440\u0430\u0432\u0438\u043b\u0430\u043c\u0438.",
-    noResponse: "\u041d\u0435\u0442 \u043e\u0442\u0432\u0435\u0442\u0430. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u043f\u043e\u0437\u0436\u0435.",
+    placeholder: "Сформулируйте точно (когда/почему/что)",
+    send: "Отправить",
+    thinking: "Анализируем ваш космический путь...",
+    empty: "Спрашивайте в выбранной теме для более точных ответов.",
+    error: "Произошла ошибка. Попробуйте позже.",
+    fallbackNote: "Использован резервный ответ (ИИ временно недоступен).",
+    safetyNote: "Ответ ограничен правилами.",
+    noResponse: "Нет ответа. Попробуйте позже.",
+    uploadCv: "Загрузить резюме",
+    attached: "Прикреплено:",
+    parsingPdf: "Чтение PDF...",
+    recording: "Запись...",
+    stopRecording: "Стоп",
+    tarotPrompt: "Хотите более глубокие озарения?",
+    tarotButton: "Чтение Таро",
+    tarotDesc: "Объедините свою астрологию и саджу с таро для руководства по текущей проблеме",
   },
 };
 
@@ -164,6 +265,39 @@ export default function Chat({
   const [cvName, setCvName] = React.useState("");
   const [notice, setNotice] = React.useState<string | null>(null);
   const [usedFallback, setUsedFallback] = React.useState(false);
+  const [parsingPdf, setParsingPdf] = React.useState(false);
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [showTarotPrompt, setShowTarotPrompt] = React.useState(false);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const recognitionRef = React.useRef<any>(null);
+
+  // Show tarot prompt after 2+ assistant responses
+  React.useEffect(() => {
+    const assistantMessages = messages.filter((m) => m.role === "assistant");
+    if (assistantMessages.length >= 2 && !showTarotPrompt) {
+      setShowTarotPrompt(true);
+    }
+  }, [messages, showTarotPrompt]);
+
+  // Navigate to tarot with context
+  const goToTarot = () => {
+    // Extract conversation summary for tarot context
+    const userMessages = messages.filter((m) => m.role === "user").map((m) => m.content);
+    const concern = userMessages.slice(-2).join(" ").slice(0, 200);
+
+    // Store context in sessionStorage for tarot page
+    const tarotContext = {
+      profile,
+      theme,
+      concern,
+      fromCounselor: true,
+      timestamp: Date.now(),
+    };
+    sessionStorage.setItem("tarotContext", JSON.stringify(tarotContext));
+
+    // Navigate to tarot page
+    window.location.href = `/tarot?from=counselor&theme=${encodeURIComponent(theme)}`;
+  };
 
   React.useEffect(() => {
     const onSeed = (e: any) => {
@@ -174,6 +308,88 @@ export default function Chat({
     window.addEventListener(seedEvent, onSeed);
     return () => window.removeEventListener(seedEvent, onSeed);
   }, [seedEvent]);
+
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  // Voice recognition setup
+  const startRecording = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setNotice("Speech recognition not supported in this browser");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setInput((prev) => prev + transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("[Voice] error:", event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsRecording(false);
+  };
+
+  // File upload handler (PDF + text)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCvName(file.name);
+
+    if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+      setParsingPdf(true);
+      try {
+        const text = await extractTextFromPDF(file);
+        setCvText(text.slice(0, 6000));
+      } catch (err) {
+        console.error("[PDF] parse error:", err);
+        setCvText("");
+        setNotice("PDF parsing failed");
+      } finally {
+        setParsingPdf(false);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = typeof reader.result === "string" ? reader.result : "";
+        setCvText(text.slice(0, 6000));
+      };
+      reader.onerror = () => {
+        console.error("[FileReader] error:", reader.error);
+        setCvText("");
+        setCvName("");
+        setNotice("File reading failed. Please try again.");
+      };
+      reader.readAsText(file);
+    }
+  };
 
   async function handleSend() {
     const text = input.trim();
@@ -236,153 +452,167 @@ export default function Chat({
     }
   }
 
-  const colors = {
-    bgPanel: "var(--bg-elev, #0E1526)",
-    border: "var(--border, #263043)",
-    text: "var(--text, #E5E7EB)",
-    assistantBg: "rgba(99, 102, 241, 0.16)",
-    userBg: "transparent",
-    inputBg: "var(--input-bg, #0B1220)",
-    inputText: "var(--input-text, #E5E7EB)",
-    buttonBg: "var(--btn, #2563EB)",
-    buttonBgDisabled: "#1F2937",
-    buttonText: "var(--btn-text, #FFFFFF)",
-    thinkingBg: "rgba(148,163,184,0.12)",
-    noticeBg: "rgba(251, 191, 36, 0.12)",
-    noticeBorder: "rgba(251, 191, 36, 0.6)",
-  };
+  const visibleMessages = messages.filter((m) => m.role !== "system");
 
   return (
-    <div>
-      <div
-        style={{
-          border: `1px solid ${colors.border}`,
-          borderRadius: 10,
-          padding: 12,
-          maxHeight: 300,
-          overflowY: "auto",
-          background: colors.bgPanel,
-          color: colors.text,
-        }}
-      >
+    <div className={styles.chatContainer}>
+      {/* Messages Panel */}
+      <div className={styles.messagesPanel}>
         {notice && (
-          <div
-            style={{
-              padding: "8px 10px",
-              marginBottom: 8,
-              borderRadius: 8,
-              background: colors.noticeBg,
-              border: `1px solid ${colors.noticeBorder}`,
-              fontSize: 13,
-            }}
-          >
-            {notice}
+          <div className={styles.noticeBar}>
+            <span className={styles.noticeIcon}>⚠️</span>
+            <span>{notice}</span>
           </div>
         )}
 
-        {messages.length === 0 && (
-          <div style={{ opacity: 0.7, fontSize: 14, padding: 4 }}>{tr.empty}</div>
+        {visibleMessages.length === 0 && !loading && (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔮</div>
+            <p className={styles.emptyText}>{tr.empty}</p>
+          </div>
         )}
 
-        {messages.map((m, i) => (
+        {visibleMessages.map((m, i) => (
           <div
             key={i}
-            style={{
-              padding: "8px 10px",
-              marginBottom: 8,
-              borderRadius: 8,
-              background: m.role === "assistant" ? colors.assistantBg : colors.userBg,
-              border: m.role === "user" ? `1px dashed ${colors.border}` : "none",
-              whiteSpace: "pre-wrap",
-              fontSize: 14,
-            }}
+            className={`${styles.messageRow} ${
+              m.role === "assistant" ? styles.assistantRow : styles.userRow
+            }`}
+            style={{ animationDelay: `${i * 0.1}s` }}
           >
-            {m.content}
+            {m.role === "assistant" && (
+              <div className={styles.counselorAvatar} />
+            )}
+            <div className={styles.messageBubble}>
+              <div
+                className={
+                  m.role === "assistant"
+                    ? styles.assistantMessage
+                    : styles.userMessage
+                }
+              >
+                {m.content}
+              </div>
+            </div>
+            {m.role === "user" && (
+              <div className={styles.avatar}>
+                <span className={styles.avatarIcon}>👤</span>
+              </div>
+            )}
           </div>
         ))}
 
         {loading && (
-          <div
-            style={{
-              padding: "8px 10px",
-              marginTop: 6,
-              borderRadius: 8,
-              background: colors.thinkingBg,
-              fontSize: 14,
-            }}
-          >
-            {tr.thinking}
+          <div className={`${styles.messageRow} ${styles.assistantRow}`}>
+            <div className={`${styles.counselorAvatar} ${styles.counselorThinking}`} />
+            <div className={styles.messageBubble}>
+              <div className={styles.thinkingMessage}>
+                <div className={styles.typingDots}>
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                </div>
+                <span className={styles.thinkingText}>{tr.thinking}</span>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Tarot Transition Card */}
+        {showTarotPrompt && !loading && (
+          <div className={styles.tarotPromptCard}>
+            <div className={styles.tarotPromptIcon}>🃏</div>
+            <div className={styles.tarotPromptContent}>
+              <h4 className={styles.tarotPromptTitle}>{tr.tarotPrompt}</h4>
+              <p className={styles.tarotPromptDesc}>{tr.tarotDesc}</p>
+            </div>
+            <button
+              type="button"
+              onClick={goToTarot}
+              className={styles.tarotPromptButton}
+            >
+              <span>✨</span>
+              <span>{tr.tarotButton}</span>
+            </button>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "stretch" }}>
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder={tr.placeholder}
-          rows={2}
-          style={{
-            flex: 1,
-            resize: "vertical",
-            border: `1px solid ${colors.border}`,
-            borderRadius: 10,
-            padding: "10px 12px",
-            fontSize: 14,
-            background: colors.inputBg,
-            color: colors.inputText,
-            outline: "none",
-          }}
-        />
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={loading || !input.trim()}
-          style={{
-            minWidth: 96,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 10,
-            padding: "0 14px",
-            background: loading || !input.trim() ? colors.buttonBgDisabled : colors.buttonBg,
-            color: colors.buttonText,
-            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-            fontWeight: 600,
-          }}
-        >
-          {tr.send}
-        </button>
-      </div>
-
-      {usedFallback && (
-        <div style={{ marginTop: 6, fontSize: 12, color: colors.text, opacity: 0.8 }}>
-          {tr.fallbackNote}
-        </div>
-      )}
-
-      <div style={{ marginTop: 8, fontSize: 12, color: colors.text, opacity: 0.8 }}>
-        <label
-          style={{ display: "inline-block", padding: "6px 10px", border: `1px solid ${colors.border}`, borderRadius: 8, cursor: "pointer" }}
-        >
-          Upload CV (.txt)
-          <input
-            type="file"
-            accept=".txt,.md,.csv"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setCvName(file.name);
-              const reader = new FileReader();
-              reader.onload = () => {
-                const text = typeof reader.result === "string" ? reader.result : "";
-                setCvText(text.slice(0, 4000));
-              };
-              reader.readAsText(file);
-            }}
+      {/* Input Area */}
+      <div className={styles.inputArea}>
+        <div className={styles.inputRow}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={tr.placeholder}
+            rows={2}
+            className={styles.textarea}
+            disabled={loading}
           />
-        </label>
-        {cvName && <span style={{ marginLeft: 8 }}>Attached: {cvName}</span>}
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className={styles.sendButton}
+          >
+            <span className={styles.sendIcon}>✨</span>
+            <span className={styles.sendText}>{tr.send}</span>
+          </button>
+        </div>
+
+        {/* File Upload & Voice */}
+        <div className={styles.fileUploadArea}>
+          <label className={styles.fileLabel}>
+            <span className={styles.fileLabelIcon}>📎</span>
+            <span>{tr.uploadCv}</span>
+            <input
+              type="file"
+              accept=".txt,.md,.csv,.pdf"
+              className={styles.fileInput}
+              onChange={handleFileUpload}
+            />
+          </label>
+          {parsingPdf && (
+            <span className={styles.fileName}>
+              <span className={styles.loadingSpinner} />
+              {tr.parsingPdf}
+            </span>
+          )}
+          {cvName && !parsingPdf && (
+            <span className={styles.fileName}>
+              <span className={styles.fileIcon}>✓</span>
+              {tr.attached} {cvName}
+            </span>
+          )}
+          {/* Voice Recording Button */}
+          <button
+            type="button"
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`${styles.voiceButton} ${isRecording ? styles.recording : ""}`}
+            disabled={loading}
+          >
+            {isRecording ? (
+              <>
+                <span className={styles.recordingDot} />
+                <span>{tr.stopRecording}</span>
+              </>
+            ) : (
+              <>
+                <span className={styles.micIcon}>🎤</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {usedFallback && (
+          <div className={styles.fallbackNote}>
+            <span className={styles.fallbackIcon}>ℹ️</span>
+            {tr.fallbackNote}
+          </div>
+        )}
       </div>
     </div>
   );

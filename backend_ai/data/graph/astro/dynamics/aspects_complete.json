@@ -1,0 +1,395 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "dynamics/aspects_complete",
+  "$count": 450,
+  "$description": "모든 행성 쌍의 주요 애스펙트 완전판 해석",
+
+  "overview": {
+    "principle": "애스펙트는 행성 에너지들이 상호작용하는 방식을 보여줍니다.",
+    "jung_connection": "콤플렉스의 역학 - 심리적 에너지의 흐름과 갈등",
+    "aspect_types": {
+      "conjunction": "융합 - 에너지의 결합과 강화",
+      "opposition": "대립 - 인식과 통합의 과제",
+      "square": "긴장 - 행동을 유발하는 갈등",
+      "trine": "흐름 - 자연스러운 재능",
+      "sextile": "기회 - 개발 가능한 잠재력"
+    }
+  },
+
+  "Sun_aspects": {
+    "Sun_Moon": {
+      "conjunction": {
+        "meaning": "자아와 감정의 완전한 통합",
+        "gift": "내적 일관성, 강한 정체성",
+        "challenge": "객관성 부족, 자기중심",
+        "psychology": "의식과 무의식이 같은 방향",
+        "relationship": "같은 별자리의 새로운 시작 에너지"
+      },
+      "opposition": {
+        "meaning": "자아와 감정의 긴장 - 내면 vs 외면",
+        "gift": "양면을 인식, 타인을 통한 자기 발견",
+        "challenge": "내적 분열, 결정 어려움",
+        "psychology": "의식과 무의식의 대면, 투영 위험",
+        "relationship": "보름달 에너지 - 완성과 긴장"
+      },
+      "square": {
+        "meaning": "정체성과 정서적 니즈의 갈등",
+        "gift": "내적 긴장이 성장 동력",
+        "challenge": "자기 의심, 부모간 갈등 반영",
+        "psychology": "에고와 감정의 싸움"
+      },
+      "trine": {
+        "meaning": "자아와 감정의 자연스러운 조화",
+        "gift": "내적 평화, 자기 수용",
+        "challenge": "성장 동기 부족할 수 있음"
+      },
+      "sextile": {
+        "meaning": "정체성과 감정 통합의 기회",
+        "gift": "의식적 노력으로 내적 조화 가능"
+      }
+    },
+    "Sun_Mercury": {
+      "conjunction": {
+        "meaning": "마음과 자아의 융합 (항상 17도 이내)",
+        "gift": "명확한 자기표현, 지적 정체성",
+        "challenge": "객관성 어려움",
+        "note": "태양과 수성은 항상 가깝기 때문에 이 애스펙트만 가능"
+      }
+    },
+    "Sun_Venus": {
+      "conjunction": {
+        "meaning": "사랑과 자아의 통합",
+        "gift": "매력, 예술적 재능, 조화로운 자기표현",
+        "challenge": "허영, 인정 욕구",
+        "note": "태양과 금성은 48도 이내로만 떨어짐"
+      }
+    },
+    "Sun_Mars": {
+      "conjunction": {
+        "meaning": "의지력과 에너지의 융합",
+        "gift": "강한 추진력, 용기, 리더십",
+        "challenge": "공격성, 조급함, 지배욕"
+      },
+      "opposition": {
+        "meaning": "자아와 행동의 대립",
+        "gift": "타인을 통해 힘을 인식",
+        "challenge": "권력 투쟁, 갈등 유발"
+      },
+      "square": {
+        "meaning": "정체성과 행동 사이 좌절",
+        "gift": "장애물 극복 능력",
+        "challenge": "분노, 성급함, 자기 파괴"
+      },
+      "trine": {
+        "meaning": "자아와 에너지의 자연스러운 흐름",
+        "gift": "건강한 자기주장, 신체적 활력"
+      },
+      "sextile": {
+        "meaning": "의지와 행동 통합의 기회",
+        "gift": "노력으로 자신감 구축"
+      }
+    },
+    "Sun_Jupiter": {
+      "conjunction": {
+        "meaning": "확장된 자아",
+        "gift": "낙관주의, 관대함, 행운",
+        "challenge": "과대망상, 과잉"
+      },
+      "opposition": {
+        "meaning": "자아와 신념의 대립",
+        "gift": "다양한 관점 인식",
+        "challenge": "약속 과잉, 판단 오류"
+      },
+      "square": {
+        "meaning": "정체성과 성장 사이 긴장",
+        "gift": "도전을 통한 확장",
+        "challenge": "과도한 낙관, 무책임"
+      },
+      "trine": {
+        "meaning": "자연스러운 행운과 성공",
+        "gift": "기회를 끌어당김, 신뢰받음"
+      },
+      "sextile": {
+        "meaning": "성장 기회",
+        "gift": "노력하면 확장"
+      }
+    },
+    "Sun_Saturn": {
+      "conjunction": {
+        "meaning": "자아에 대한 제한과 책임",
+        "gift": "성숙함, 인내, 장기적 성공",
+        "challenge": "자기 의심, 우울, 억압"
+      },
+      "opposition": {
+        "meaning": "자아와 권위의 대면",
+        "gift": "외부 구조를 통한 자기 정의",
+        "challenge": "권위와 갈등, 인정 욕구"
+      },
+      "square": {
+        "meaning": "정체성과 현실의 충돌",
+        "gift": "장애물 극복 후 강해짐",
+        "challenge": "좌절, 자기비판, 두려움"
+      },
+      "trine": {
+        "meaning": "자아와 구조의 자연스러운 통합",
+        "gift": "책임감, 현실적 자신감"
+      },
+      "sextile": {
+        "meaning": "성숙의 기회",
+        "gift": "노력으로 신뢰성 구축"
+      }
+    },
+    "Sun_Uranus": {
+      "conjunction": {
+        "meaning": "혁명적 정체성",
+        "gift": "독창성, 자유정신, 혁신",
+        "challenge": "반항, 예측불가, 고립"
+      },
+      "opposition": {
+        "meaning": "자아와 자유의 대립",
+        "gift": "타인의 자유를 통해 배움",
+        "challenge": "관계 불안정, 갑작스러운 분리"
+      },
+      "square": {
+        "meaning": "정체성과 변화의 긴장",
+        "gift": "위기에서 혁신",
+        "challenge": "불안정, 반항적 행동"
+      },
+      "trine": {
+        "meaning": "자연스러운 독창성",
+        "gift": "개성 표현이 쉬움"
+      },
+      "sextile": {
+        "meaning": "혁신의 기회",
+        "gift": "변화를 수용하는 능력"
+      }
+    },
+    "Sun_Neptune": {
+      "conjunction": {
+        "meaning": "영적/예술적 정체성",
+        "gift": "직관, 상상력, 연민",
+        "challenge": "정체성 혼란, 자기기만"
+      },
+      "opposition": {
+        "meaning": "자아와 이상의 대립",
+        "gift": "영적 현실 인식",
+        "challenge": "환상 투영, 기만당함"
+      },
+      "square": {
+        "meaning": "정체성과 환상의 갈등",
+        "gift": "영적 위기를 통한 성장",
+        "challenge": "혼란, 중독, 자기기만"
+      },
+      "trine": {
+        "meaning": "자연스러운 영적 연결",
+        "gift": "예술적 재능, 직관"
+      },
+      "sextile": {
+        "meaning": "영감의 기회",
+        "gift": "창조적 상상력 개발"
+      }
+    },
+    "Sun_Pluto": {
+      "conjunction": {
+        "meaning": "강렬한 변형적 자아",
+        "gift": "깊은 힘, 재생 능력, 카리스마",
+        "challenge": "권력욕, 집착, 조종"
+      },
+      "opposition": {
+        "meaning": "자아와 권력의 대면",
+        "gift": "타인을 통해 자신의 힘 인식",
+        "challenge": "권력 투쟁, 투영"
+      },
+      "square": {
+        "meaning": "정체성과 변형의 긴장",
+        "gift": "위기에서 재탄생",
+        "challenge": "통제욕, 자기파괴"
+      },
+      "trine": {
+        "meaning": "자연스러운 변형력",
+        "gift": "깊은 심리적 힘"
+      },
+      "sextile": {
+        "meaning": "변형의 기회",
+        "gift": "의식적 재탄생 능력"
+      }
+    }
+  },
+
+  "Moon_aspects": {
+    "Moon_Mercury": {
+      "conjunction": {"meaning": "감정과 사고의 융합", "gift": "감정을 말로 표현", "challenge": "감정적 합리화"},
+      "opposition": {"meaning": "감정과 이성의 대립", "gift": "양면 인식", "challenge": "감정 vs 논리 갈등"},
+      "square": {"meaning": "감정과 사고의 긴장", "gift": "감정적 지성 개발", "challenge": "불안, 과민반응"},
+      "trine": {"meaning": "자연스러운 감정 표현", "gift": "공감적 소통"},
+      "sextile": {"meaning": "감정 소통 기회", "gift": "감정적 지능 개발"}
+    },
+    "Moon_Venus": {
+      "conjunction": {"meaning": "감정과 사랑의 융합", "gift": "따뜻함, 애정, 예술적 감성", "challenge": "의존성"},
+      "opposition": {"meaning": "감정적 니즈와 관계 니즈의 대립", "gift": "균형 찾기", "challenge": "관계에서 감정 충돌"},
+      "square": {"meaning": "사랑과 안전의 긴장", "gift": "사랑을 통한 성장", "challenge": "자기 가치 문제"},
+      "trine": {"meaning": "자연스러운 애정", "gift": "관계에서 편안함"},
+      "sextile": {"meaning": "사랑과 감정 통합 기회"}
+    },
+    "Moon_Mars": {
+      "conjunction": {"meaning": "감정이 행동으로 직결", "gift": "감정적 용기", "challenge": "폭발적 반응"},
+      "opposition": {"meaning": "감정과 행동의 대립", "gift": "균형 학습", "challenge": "관계에서 갈등"},
+      "square": {"meaning": "감정과 분노의 긴장", "gift": "강한 의지", "challenge": "분노 조절 어려움"},
+      "trine": {"meaning": "자연스러운 감정적 행동", "gift": "건강한 자기주장"},
+      "sextile": {"meaning": "감정과 행동 통합 기회"}
+    },
+    "Moon_Jupiter": {
+      "conjunction": {"meaning": "감정적 낙관주의", "gift": "관대함, 풍요로운 감정", "challenge": "감정적 과잉"},
+      "opposition": {"meaning": "감정과 확장의 대립", "gift": "균형 잡힌 낙관", "challenge": "과도한 약속"},
+      "square": {"meaning": "감정과 성장의 긴장", "gift": "도전을 통한 확장", "challenge": "무절제"},
+      "trine": {"meaning": "자연스러운 감정적 풍요", "gift": "행운, 보호"},
+      "sextile": {"meaning": "감정적 성장 기회"}
+    },
+    "Moon_Saturn": {
+      "conjunction": {"meaning": "감정의 억제", "gift": "감정적 성숙, 책임감", "challenge": "우울, 감정 억압"},
+      "opposition": {"meaning": "감정과 의무의 대립", "gift": "균형 학습", "challenge": "냉담함, 거리감"},
+      "square": {"meaning": "감정과 제한의 충돌", "gift": "인내 개발", "challenge": "두려움, 자기비판"},
+      "trine": {"meaning": "자연스러운 감정 절제", "gift": "현실적 감정 관리"},
+      "sextile": {"meaning": "감정적 성숙 기회"}
+    },
+    "Moon_Uranus": {
+      "conjunction": {"meaning": "예측 불가능한 감정", "gift": "감정적 자유, 독창성", "challenge": "불안정, 변덕"},
+      "opposition": {"meaning": "감정과 자유의 대립", "gift": "독립적 감정", "challenge": "관계 불안정"},
+      "square": {"meaning": "감정과 변화의 긴장", "gift": "적응력", "challenge": "정서 불안"},
+      "trine": {"meaning": "자연스러운 감정적 독립", "gift": "직관"},
+      "sextile": {"meaning": "감정적 자유 기회"}
+    },
+    "Moon_Neptune": {
+      "conjunction": {"meaning": "감정과 영성의 융합", "gift": "직관, 공감, 예술성", "challenge": "경계 상실, 혼란"},
+      "opposition": {"meaning": "감정과 환상의 대립", "gift": "영적 성장", "challenge": "자기기만, 중독"},
+      "square": {"meaning": "감정과 환상의 긴장", "gift": "직관 개발", "challenge": "혼란, 우울"},
+      "trine": {"meaning": "자연스러운 직관", "gift": "영적 감수성"},
+      "sextile": {"meaning": "영적 감성 기회"}
+    },
+    "Moon_Pluto": {
+      "conjunction": {"meaning": "깊고 강렬한 감정", "gift": "심리적 깊이, 변형력", "challenge": "집착, 조종"},
+      "opposition": {"meaning": "감정과 권력의 대면", "gift": "깊은 자기 인식", "challenge": "정서적 투쟁"},
+      "square": {"meaning": "감정과 변형의 긴장", "gift": "위기에서 재탄생", "challenge": "강박, 통제욕"},
+      "trine": {"meaning": "자연스러운 심리적 깊이", "gift": "치유 능력"},
+      "sextile": {"meaning": "감정적 변형 기회"}
+    }
+  },
+
+  "Venus_aspects": {
+    "Venus_Mars": {
+      "conjunction": {"meaning": "사랑과 욕망의 융합", "gift": "열정, 성적 매력", "challenge": "충동적 관계"},
+      "opposition": {"meaning": "사랑과 욕망의 대립", "gift": "관계에서 배움", "challenge": "끌림과 갈등"},
+      "square": {"meaning": "사랑과 욕망의 긴장", "gift": "열정적 성장", "challenge": "관계 갈등"},
+      "trine": {"meaning": "자연스러운 열정", "gift": "조화로운 성적 표현"},
+      "sextile": {"meaning": "열정 통합 기회"}
+    },
+    "Venus_Jupiter": {
+      "conjunction": {"meaning": "풍요로운 사랑", "gift": "관대함, 매력, 행운", "challenge": "탐닉"},
+      "opposition": {"meaning": "사랑과 확장의 대립", "gift": "균형 잡힌 가치", "challenge": "과잉"},
+      "square": {"meaning": "사랑과 성장의 긴장", "gift": "가치 확장", "challenge": "무절제"},
+      "trine": {"meaning": "자연스러운 행운", "gift": "사랑받음", "best_aspect": true},
+      "sextile": {"meaning": "사회적 성공 기회"}
+    },
+    "Venus_Saturn": {
+      "conjunction": {"meaning": "진지한 사랑", "gift": "충실함, 지속적 관계", "challenge": "냉담, 자기 가치 부족"},
+      "opposition": {"meaning": "사랑과 의무의 대립", "gift": "성숙한 관계", "challenge": "감정 억압"},
+      "square": {"meaning": "사랑과 제한의 충돌", "gift": "진정한 가치 발견", "challenge": "자기 가치 문제"},
+      "trine": {"meaning": "안정적 사랑", "gift": "장기적 관계 능력"},
+      "sextile": {"meaning": "성숙한 사랑 기회"}
+    },
+    "Venus_Uranus": {
+      "conjunction": {"meaning": "독특한 사랑", "gift": "매력, 예술성", "challenge": "불안정한 관계"},
+      "opposition": {"meaning": "사랑과 자유의 대립", "gift": "독립적 관계", "challenge": "갑작스러운 이별"},
+      "square": {"meaning": "사랑과 변화의 긴장", "gift": "관계 혁신", "challenge": "불안정"},
+      "trine": {"meaning": "자연스러운 독창적 사랑"},
+      "sextile": {"meaning": "독특한 매력 기회"}
+    },
+    "Venus_Neptune": {
+      "conjunction": {"meaning": "이상적 사랑", "gift": "로맨틱, 예술적, 영적", "challenge": "환상, 기만"},
+      "opposition": {"meaning": "사랑과 이상의 대립", "gift": "영적 사랑", "challenge": "환멸"},
+      "square": {"meaning": "사랑과 환상의 긴장", "gift": "예술적 재능", "challenge": "불륜, 기만"},
+      "trine": {"meaning": "자연스러운 예술적 사랑"},
+      "sextile": {"meaning": "영감받는 사랑 기회"}
+    },
+    "Venus_Pluto": {
+      "conjunction": {"meaning": "강렬하고 변형적인 사랑", "gift": "깊은 열정", "challenge": "집착, 질투"},
+      "opposition": {"meaning": "사랑과 권력의 대면", "gift": "변형적 관계", "challenge": "권력 투쟁"},
+      "square": {"meaning": "사랑과 통제의 긴장", "gift": "열정적 변형", "challenge": "집착, 조종"},
+      "trine": {"meaning": "자연스러운 깊은 사랑"},
+      "sextile": {"meaning": "변형적 사랑 기회"}
+    }
+  },
+
+  "Mars_aspects": {
+    "Mars_Jupiter": {
+      "conjunction": {"meaning": "확장된 행동력", "gift": "열정, 모험심, 성공", "challenge": "무모함"},
+      "opposition": {"meaning": "행동과 신념의 대립", "gift": "균형 잡힌 행동", "challenge": "과잉 행동"},
+      "square": {"meaning": "행동과 성장의 긴장", "gift": "도전적 성공", "challenge": "무절제한 행동"},
+      "trine": {"meaning": "자연스러운 성공적 행동", "gift": "운이 따르는 행동"},
+      "sextile": {"meaning": "행운의 행동 기회"}
+    },
+    "Mars_Saturn": {
+      "conjunction": {"meaning": "절제된 행동", "gift": "인내, 지구력", "challenge": "좌절, 억압된 분노"},
+      "opposition": {"meaning": "행동과 제한의 대립", "gift": "현실적 행동", "challenge": "장애물"},
+      "square": {"meaning": "행동과 제한의 충돌", "gift": "극복 능력", "challenge": "분노, 좌절"},
+      "trine": {"meaning": "자연스러운 훈련된 행동"},
+      "sextile": {"meaning": "절제된 행동 기회"}
+    },
+    "Mars_Uranus": {
+      "conjunction": {"meaning": "폭발적 행동", "gift": "혁신, 용기", "challenge": "충동, 사고"},
+      "opposition": {"meaning": "행동과 자유의 대립", "gift": "독립적 행동", "challenge": "갑작스러운 갈등"},
+      "square": {"meaning": "행동과 변화의 긴장", "gift": "혁명적 힘", "challenge": "사고 위험"},
+      "trine": {"meaning": "자연스러운 혁신적 행동"},
+      "sextile": {"meaning": "독창적 행동 기회"}
+    },
+    "Mars_Neptune": {
+      "conjunction": {"meaning": "영감받는 행동", "gift": "예술적 행동, 이상 추구", "challenge": "방향 상실"},
+      "opposition": {"meaning": "행동과 이상의 대립", "gift": "영적 행동", "challenge": "속임, 혼란"},
+      "square": {"meaning": "행동과 환상의 긴장", "gift": "창조적 에너지", "challenge": "기만, 무기력"},
+      "trine": {"meaning": "자연스러운 영감받는 행동"},
+      "sextile": {"meaning": "창조적 행동 기회"}
+    },
+    "Mars_Pluto": {
+      "conjunction": {"meaning": "강력한 의지력", "gift": "불굴의 힘", "challenge": "파괴성, 폭력"},
+      "opposition": {"meaning": "행동과 권력의 대면", "gift": "변형적 힘", "challenge": "권력 투쟁"},
+      "square": {"meaning": "행동과 통제의 긴장", "gift": "극복 능력", "challenge": "강박, 분노"},
+      "trine": {"meaning": "자연스러운 변형력"},
+      "sextile": {"meaning": "강력한 행동 기회"}
+    }
+  },
+
+  "outer_planet_aspects": {
+    "Jupiter_Saturn": {
+      "conjunction": {"meaning": "확장과 제한의 융합 (20년 주기)", "gift": "현실적 성장", "challenge": "내적 갈등"},
+      "opposition": {"meaning": "낙관과 현실의 대면", "gift": "균형 잡힌 판단", "challenge": "결정 어려움"},
+      "square": {"meaning": "성장과 제한의 긴장", "gift": "장애물 극복", "challenge": "좌절"}
+    },
+    "Saturn_Uranus": {
+      "conjunction": {"meaning": "구조와 혁명의 융합", "gift": "혁신적 구조화", "challenge": "긴장"},
+      "opposition": {"meaning": "안정과 변화의 대면", "gift": "점진적 변화", "challenge": "분열"},
+      "square": {"meaning": "전통과 혁신의 충돌", "gift": "창조적 긴장", "challenge": "불안정"}
+    },
+    "Saturn_Neptune": {
+      "conjunction": {"meaning": "현실과 이상의 융합", "gift": "영적 구조화", "challenge": "환멸"},
+      "opposition": {"meaning": "현실과 환상의 대면", "gift": "균형 잡힌 이상", "challenge": "혼란"},
+      "square": {"meaning": "구조와 해체의 긴장", "gift": "영적 성숙", "challenge": "두려움"}
+    },
+    "Saturn_Pluto": {
+      "conjunction": {"meaning": "구조의 변형 (33년 주기)", "gift": "심오한 재건", "challenge": "파괴"},
+      "opposition": {"meaning": "권위와 권력의 대면", "gift": "변형", "challenge": "투쟁"},
+      "square": {"meaning": "구조와 변형의 충돌", "gift": "재탄생", "challenge": "위기"}
+    },
+    "Uranus_Neptune": {
+      "conjunction": {"meaning": "집단적 영적 각성 (171년 주기)", "gift": "비전", "generational": true},
+      "square": {"meaning": "혁신과 환상의 긴장"}
+    },
+    "Uranus_Pluto": {
+      "conjunction": {"meaning": "혁명적 변형 (127년 주기)", "gift": "심오한 변화", "generational": true},
+      "square": {"meaning": "혁명과 변형의 긴장"}
+    },
+    "Neptune_Pluto": {
+      "conjunction": {"meaning": "집단 무의식의 변형 (492년 주기)", "generational": true},
+      "sextile": {"meaning": "영적 진화 (1940년대부터 현재)", "note": "현재 세대 모두에게 적용"}
+    }
+  }
+}

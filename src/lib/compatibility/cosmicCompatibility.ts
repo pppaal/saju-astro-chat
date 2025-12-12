@@ -564,8 +564,8 @@ function deriveStrengthsAndChallenges(
 
 function generateAdvice(
   score: number,
-  strengths: string[],
-  challenges: string[]
+  _strengths: string[],
+  _challenges: string[]
 ): string {
   if (score >= 85) {
     return '천생연분입니다! 사주와 점성학 모두에서 뛰어난 궁합을 보입니다. 서로를 믿고 함께 성장하세요.';

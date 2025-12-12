@@ -1,0 +1,125 @@
+# SNS Content - Social Media Images
+# App: DestinyPal
+# Style: Eye-catching, shareable, branded
+
+================================================================================
+
+## 1. Instagram Post - Daily Fortune (오늘의 운세)
+Filename: sns_ig_daily.jpg
+Prompt:
+instagram post design, daily fortune theme,
+mystical sunrise with cosmic elements, hopeful mood,
+space for text overlay, eye-catching composition,
+purple and gold color scheme, sparkles and stars,
+social media ready, engaging visual,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 450
+
+--------------------------------------------------------------------------------
+
+## 2. Instagram Post - Tarot Reading (타로 리딩)
+Filename: sns_ig_tarot.jpg
+Prompt:
+instagram post design, tarot reading theme,
+three mystical tarot cards floating in cosmic space,
+space for text overlay, mysterious mood,
+deep purple and gold color scheme, magical glow,
+social media ready, engaging visual,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 450
+
+--------------------------------------------------------------------------------
+
+## 3. Instagram Post - Zodiac (별자리)
+Filename: sns_ig_zodiac.jpg
+Prompt:
+instagram post design, zodiac astrology theme,
+constellation wheel with zodiac symbols glowing,
+space for text overlay, celestial mood,
+navy blue and silver color scheme, stars,
+social media ready, engaging visual,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 450
+
+--------------------------------------------------------------------------------
+
+## 4. Instagram Story - Question (질문 스토리)
+Filename: sns_story_question.jpg
+Prompt:
+instagram story design, interactive question theme,
+mystical question mark made of stars,
+large space for text, engaging layout,
+gradient purple background, sparkle effects,
+social media story ready, vertical format,
+digital art, highly detailed, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 5. Instagram Story - Result Share (결과 공유)
+Filename: sns_story_result.jpg
+Prompt:
+instagram story design, fortune result share theme,
+elegant frame with cosmic decorations,
+large center space for result text,
+purple and gold luxury feel, celebration sparkles,
+social media story ready, vertical format,
+digital art, highly detailed, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 6. YouTube Thumbnail - Tarot (타로 썸네일)
+Filename: sns_yt_tarot.jpg
+Prompt:
+youtube thumbnail design, tarot reading video,
+dramatic mystical hands revealing tarot card,
+bold composition, eye-catching colors,
+deep purple background with golden light rays,
+thumbnail ready, high contrast, attention grabbing,
+digital art, highly detailed, 8k --ar 16:9 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 7. YouTube Thumbnail - Fortune (운세 썸네일)
+Filename: sns_yt_fortune.jpg
+Prompt:
+youtube thumbnail design, fortune telling video,
+mystical crystal ball with swirling energy inside,
+bold composition, eye-catching colors,
+cosmic purple and pink background with sparkles,
+thumbnail ready, high contrast, attention grabbing,
+digital art, highly detailed, 8k --ar 16:9 --v 6.1 --s 500
+
+--------------------------------------------------------------------------------
+
+## 8. Facebook Cover (페이스북 커버)
+Filename: sns_fb_cover.jpg
+Prompt:
+facebook cover photo design, fortune app brand,
+wide mystical cosmic landscape, stars and nebula,
+space for logo on left, elegant composition,
+purple and gold gradient, premium feel,
+facebook cover dimensions, professional,
+digital art, highly detailed, 8k --ar 205:78 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 9. Twitter/X Header (트위터 헤더)
+Filename: sns_twitter_header.jpg
+Prompt:
+twitter header design, mystical fortune brand,
+wide cosmic banner with subtle sacred geometry,
+centered composition, space for profile overlap,
+deep purple gradient with gold accents,
+twitter header dimensions, clean design,
+digital art, highly detailed, 8k --ar 3:1 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 10. TikTok Profile (틱톡 프로필)
+Filename: sns_tiktok_profile.jpg
+Prompt:
+tiktok profile background, fortune content creator,
+vertical mystical cosmic design, energetic feel,
+bold purple and pink gradient, floating cards,
+young trendy vibe, sparkles and magic effects,
+tiktok ready, eye-catching vertical format,
+digital art, highly detailed, 8k --ar 9:16 --v 6.1 --s 450
+
+================================================================================

@@ -1,0 +1,163 @@
+{
+  "_meta": {
+    "title": "Tarot Color Symbolism",
+    "description": "타로 카드의 색상 상징 - 색상이 전달하는 에너지와 의미"
+  },
+  "primary_colors": {
+    "red": {
+      "korean": "빨강",
+      "energy": "열정, 에너지, 행동",
+      "positive": ["열정", "용기", "생명력", "사랑", "힘"],
+      "negative": ["분노", "공격성", "위험", "충동"],
+      "chakra": "뿌리 차크라 (Root)",
+      "element": "Fire",
+      "cards_prominent": ["The Emperor", "Strength", "The Tower"],
+      "reading_hint": "빨간색이 눈에 띄면 행동력과 열정이 필요한 시기예요",
+      "lucky_day": "화요일",
+      "planet": "화성 (Mars)"
+    },
+    "blue": {
+      "korean": "파랑",
+      "energy": "평화, 직관, 소통",
+      "positive": ["평화", "진실", "지혜", "충성", "직관"],
+      "negative": ["우울", "냉담", "거리감"],
+      "chakra": "목 차크라 (Throat)",
+      "element": "Water",
+      "cards_prominent": ["The High Priestess", "The Star", "Temperance"],
+      "reading_hint": "파란색이 강하면 직관을 믿고 내면의 소리를 들을 때예요",
+      "lucky_day": "금요일",
+      "planet": "금성/해왕성"
+    },
+    "yellow": {
+      "korean": "노랑",
+      "energy": "지성, 기쁨, 낙관",
+      "positive": ["지성", "기쁨", "창의력", "명료함", "자신감"],
+      "negative": ["비겁", "배신", "불안"],
+      "chakra": "태양신경총 차크라 (Solar Plexus)",
+      "element": "Air",
+      "cards_prominent": ["The Sun", "The Fool", "The Magician"],
+      "reading_hint": "노란색은 밝은 에너지! 낙관적으로 나아가도 좋아요",
+      "lucky_day": "일요일",
+      "planet": "태양 (Sun)"
+    },
+    "green": {
+      "korean": "초록",
+      "energy": "성장, 치유, 풍요",
+      "positive": ["성장", "치유", "풍요", "균형", "재생"],
+      "negative": ["질투", "탐욕", "미성숙"],
+      "chakra": "가슴 차크라 (Heart)",
+      "element": "Earth",
+      "cards_prominent": ["The Empress", "Seven of Pentacles", "Ace of Pentacles"],
+      "reading_hint": "초록색은 성장의 신호! 무언가 자라나고 있어요",
+      "lucky_day": "금요일",
+      "planet": "금성 (Venus)"
+    }
+  },
+  "secondary_colors": {
+    "orange": {
+      "korean": "주황",
+      "energy": "창의력, 열정, 사교성",
+      "positive": ["창의력", "열정", "즐거움", "사교성", "모험"],
+      "negative": ["과시", "산만함", "불안정"],
+      "chakra": "천골 차크라 (Sacral)",
+      "cards_prominent": ["Ace of Wands", "Knight of Wands"],
+      "reading_hint": "주황색은 창조적 에너지! 새로운 시도를 해보세요"
+    },
+    "purple": {
+      "korean": "보라",
+      "energy": "영성, 직관, 신비",
+      "positive": ["영성", "지혜", "고귀함", "신비", "변환"],
+      "negative": ["환상", "교만", "현실 도피"],
+      "chakra": "제3의 눈 차크라 (Third Eye)",
+      "cards_prominent": ["The High Priestess", "The Moon", "Wheel of Fortune"],
+      "reading_hint": "보라색은 영적 메시지! 직관에 귀 기울이세요"
+    },
+    "pink": {
+      "korean": "분홍",
+      "energy": "사랑, 부드러움, 치유",
+      "positive": ["사랑", "로맨스", "부드러움", "공감", "양육"],
+      "negative": ["나약함", "미성숙", "의존"],
+      "chakra": "하트 차크라 (Heart)",
+      "cards_prominent": ["The Empress", "Two of Cups", "The Lovers"],
+      "reading_hint": "분홍색은 사랑의 에너지! 마음을 열어보세요"
+    }
+  },
+  "neutral_colors": {
+    "white": {
+      "korean": "흰색",
+      "energy": "순수, 새 시작, 영성",
+      "positive": ["순수", "진실", "새 시작", "보호", "깨달음"],
+      "negative": ["공허", "차가움", "무감각"],
+      "chakra": "크라운 차크라 (Crown)",
+      "cards_prominent": ["The Fool", "The Star", "The World"],
+      "reading_hint": "흰색은 순수한 시작! 깨끗한 마음으로 나아가세요"
+    },
+    "black": {
+      "korean": "검정",
+      "energy": "신비, 보호, 미지",
+      "positive": ["신비", "보호", "깊이", "잠재력", "변환"],
+      "negative": ["두려움", "우울", "숨김", "부정"],
+      "chakra": "뿌리/미지",
+      "cards_prominent": ["Death", "The Tower", "The Devil"],
+      "reading_hint": "검정은 미지의 영역! 두려워 말고 깊이 들어가보세요"
+    },
+    "gray": {
+      "korean": "회색",
+      "energy": "중립, 지혜, 균형",
+      "positive": ["중립", "지혜", "성숙", "균형"],
+      "negative": ["우유부단", "무기력", "우울"],
+      "cards_prominent": ["The Hermit", "Justice"],
+      "reading_hint": "회색은 중립의 시간! 판단을 보류하고 관찰하세요"
+    },
+    "gold": {
+      "korean": "금색",
+      "energy": "풍요, 성공, 신성",
+      "positive": ["풍요", "성공", "지혜", "신성", "승리"],
+      "negative": ["탐욕", "과시", "물질주의"],
+      "chakra": "태양신경총/크라운",
+      "cards_prominent": ["The Sun", "The Chariot", "Ace of Pentacles"],
+      "reading_hint": "금색은 성공의 신호! 풍요가 다가오고 있어요"
+    },
+    "silver": {
+      "korean": "은색",
+      "energy": "직관, 달, 여성성",
+      "positive": ["직관", "달의 에너지", "반영", "신비", "순환"],
+      "negative": ["변덕", "환상", "불안정"],
+      "chakra": "제3의 눈",
+      "cards_prominent": ["The Moon", "The High Priestess"],
+      "reading_hint": "은색은 달의 메시지! 직관과 꿈에 주목하세요"
+    }
+  },
+  "color_combinations": {
+    "red_and_white": {
+      "meaning": "순수한 열정, 새로운 사랑",
+      "message": "순수한 마음으로 열정을 따르세요"
+    },
+    "blue_and_gold": {
+      "meaning": "지혜로운 성공, 영적 풍요",
+      "message": "지혜와 물질적 성공이 함께 옵니다"
+    },
+    "black_and_white": {
+      "meaning": "이중성, 균형, 선택",
+      "message": "대립되는 것들 사이에서 균형을 찾으세요"
+    },
+    "green_and_gold": {
+      "meaning": "물질적 풍요, 재정적 성장",
+      "message": "재정적으로 좋은 시기가 다가오고 있어요"
+    },
+    "purple_and_silver": {
+      "meaning": "깊은 영적 통찰, 직관의 정점",
+      "message": "영적 메시지에 특히 주의를 기울이세요"
+    }
+  },
+  "reading_color_analysis": {
+    "dominant_color_meaning": {
+      "description": "리딩에서 특정 색이 자주 보일 때",
+      "interpretation": "그 색의 에너지가 현재 당신의 삶에서 중요한 역할을 하고 있어요"
+    },
+    "missing_color_meaning": {
+      "description": "리딩에서 특정 색이 없을 때",
+      "interpretation": "그 색의 에너지가 현재 부족하거나 억압되어 있을 수 있어요"
+    }
+  }
+}

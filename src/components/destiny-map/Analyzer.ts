@@ -11,8 +11,9 @@ export type DestinyInput = {
   longitude: number;
   gender: string;
   lang?: LangKey;
-  theme?: string;     // 단일 테마 (사용자 선택)
-  themes?: string[];  // 멀티 테마 (옵션)
+  theme?: string;        // 단일 테마 (사용자 선택)
+  themes?: string[];     // 멀티 테마 (옵션)
+  userTimezone?: string; // 사용자 현재 위치 타임존 (운세 날짜 계산용)
 };
 
 export type ThemedBlock = {
@@ -77,9 +78,8 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
       lang,
       theme: activeTheme,   // ✅ 사용자 지정 테마 반영!
       themes,
+      userTimezone: input.userTimezone, // 사용자 현재 타임존 (운세 날짜용)
     };
-
-    console.log("[Analyzer] Sending payload to API:", payload);
 
     const response = await fetch(`${baseUrl}/api/destiny-map`, {
       method: "POST",

@@ -1,29 +1,29 @@
-﻿id,label,type,element,yinyang
-HIDDEN_자_계,계,지장간,수,음
-HIDDEN_축_기,기,지장간,토,음
-HIDDEN_축_계,계,지장간,수,음
-HIDDEN_축_신,신,지장간,금,음
-HIDDEN_인_병,병,지장간,화,양
-HIDDEN_인_갑,갑,지장간,목,양
-HIDDEN_인_무,무,지장간,토,양
-HIDDEN_묘_을,을,지장간,목,음
-HIDDEN_진_무,무,지장간,토,양
-HIDDEN_진_을,을,지장간,목,음
-HIDDEN_진_계,계,지장간,수,음
-HIDDEN_사_병,병,지장간,화,양
-HIDDEN_사_무,무,지장간,토,양
-HIDDEN_사_경,경,지장간,금,양
-HIDDEN_오_정,정,지장간,화,음
-HIDDEN_오_기,기,지장간,토,음
-HIDDEN_미_기,기,지장간,토,음
-HIDDEN_미_을,을,지장간,목,음
-HIDDEN_미_정,정,지장간,화,음
-HIDDEN_신_경,경,지장간,금,양
-HIDDEN_신_임,임,지장간,수,양
-HIDDEN_신_무,무,지장간,토,양
-HIDDEN_유_신,신,지장간,금,음
-HIDDEN_술_무,무,지장간,토,양
-HIDDEN_술_신,신,지장간,금,음
-HIDDEN_술_정,정,지장간,화,음
-HIDDEN_해_임,임,지장간,수,양
-HIDDEN_해_갑,갑,지장간,목,양
+﻿id,label,type,element,yinyang,description
+HIDDEN_자_계,계,지장간,수,음,계: Astro interpretation data.
+HIDDEN_축_기,기,지장간,토,음,기: Astro interpretation data.
+HIDDEN_축_계,계,지장간,수,음,계: Astro interpretation data.
+HIDDEN_축_신,신,지장간,금,음,신: Astro interpretation data.
+HIDDEN_인_병,병,지장간,화,양,병: Astro interpretation data.
+HIDDEN_인_갑,갑,지장간,목,양,갑: Astro interpretation data.
+HIDDEN_인_무,무,지장간,토,양,무: Astro interpretation data.
+HIDDEN_묘_을,을,지장간,목,음,을: Astro interpretation data.
+HIDDEN_진_무,무,지장간,토,양,무: Astro interpretation data.
+HIDDEN_진_을,을,지장간,목,음,을: Astro interpretation data.
+HIDDEN_진_계,계,지장간,수,음,계: Astro interpretation data.
+HIDDEN_사_병,병,지장간,화,양,병: Astro interpretation data.
+HIDDEN_사_무,무,지장간,토,양,무: Astro interpretation data.
+HIDDEN_사_경,경,지장간,금,양,경: Astro interpretation data.
+HIDDEN_오_정,정,지장간,화,음,정: Astro interpretation data.
+HIDDEN_오_기,기,지장간,토,음,기: Astro interpretation data.
+HIDDEN_미_기,기,지장간,토,음,기: Astro interpretation data.
+HIDDEN_미_을,을,지장간,목,음,을: Astro interpretation data.
+HIDDEN_미_정,정,지장간,화,음,정: Astro interpretation data.
+HIDDEN_신_경,경,지장간,금,양,경: Astro interpretation data.
+HIDDEN_신_임,임,지장간,수,양,임: Astro interpretation data.
+HIDDEN_신_무,무,지장간,토,양,무: Astro interpretation data.
+HIDDEN_유_신,신,지장간,금,음,신: Astro interpretation data.
+HIDDEN_술_무,무,지장간,토,양,무: Astro interpretation data.
+HIDDEN_술_신,신,지장간,금,음,신: Astro interpretation data.
+HIDDEN_술_정,정,지장간,화,음,정: Astro interpretation data.
+HIDDEN_해_임,임,지장간,수,양,임: Astro interpretation data.
+HIDDEN_해_갑,갑,지장간,목,양,갑: Astro interpretation data.

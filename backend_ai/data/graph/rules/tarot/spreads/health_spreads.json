@@ -1,0 +1,191 @@
+{
+  "_meta": {
+    "theme": "health",
+    "title": "건강운 타로 스프레드",
+    "description": "신체, 정신, 영적 건강에 관한 다양한 스프레드"
+  },
+  "disclaimer": "타로 리딩은 의료 조언을 대체할 수 없습니다. 건강 문제는 반드시 전문 의료인과 상담하세요.",
+  "sub_topics": {
+    "general_health": {
+      "id": "general_health",
+      "title": "전반적 건강",
+      "korean": "올해 건강운",
+      "description": "전반적인 건강 상태와 에너지 흐름",
+      "card_count": 10,
+      "spread_name": "General Health Spread",
+      "positions": [
+        {"position": 1, "name": "현재 건강", "meaning": "현재 전반적인 건강 에너지", "prompt_hint": "지금 몸과 마음의 상태"},
+        {"position": 2, "name": "신체 에너지", "meaning": "육체적 건강 상태", "prompt_hint": "몸의 에너지 수준"},
+        {"position": 3, "name": "정신 에너지", "meaning": "정신적/감정적 건강", "prompt_hint": "마음의 상태"},
+        {"position": 4, "name": "스트레스", "meaning": "스트레스 수준", "prompt_hint": "스트레스가 미치는 영향"},
+        {"position": 5, "name": "취약 부분", "meaning": "주의가 필요한 부분", "prompt_hint": "신경 써야 할 건강 영역"},
+        {"position": 6, "name": "강점", "meaning": "건강의 강점", "prompt_hint": "튼튼한 부분"},
+        {"position": 7, "name": "필요한 것", "meaning": "건강을 위해 필요한 것", "prompt_hint": "보충해야 할 것"},
+        {"position": 8, "name": "생활 습관", "meaning": "개선할 생활 습관", "prompt_hint": "바꿔야 할 습관"},
+        {"position": 9, "name": "6개월 전망", "meaning": "6개월 후 건강 상태", "prompt_hint": "반년 후 건강"},
+        {"position": 10, "name": "조언", "meaning": "건강을 위한 조언", "prompt_hint": "건강 관리의 핵심"}
+      ]
+    },
+    "mental_health": {
+      "id": "mental_health",
+      "title": "정신 건강",
+      "korean": "마음의 건강",
+      "description": "정신적, 감정적 웰빙 상태",
+      "card_count": 8,
+      "spread_name": "Mental Wellness Spread",
+      "positions": [
+        {"position": 1, "name": "현재 마음", "meaning": "현재 정신적 상태", "prompt_hint": "지금 마음의 상태"},
+        {"position": 2, "name": "감정 흐름", "meaning": "감정의 흐름", "prompt_hint": "감정 에너지"},
+        {"position": 3, "name": "스트레스 원인", "meaning": "주요 스트레스 원인", "prompt_hint": "마음을 힘들게 하는 것"},
+        {"position": 4, "name": "내면의 강점", "meaning": "정신적 강점", "prompt_hint": "마음의 힘"},
+        {"position": 5, "name": "필요한 치유", "meaning": "치유가 필요한 부분", "prompt_hint": "회복이 필요한 곳"},
+        {"position": 6, "name": "지지 자원", "meaning": "도움을 받을 수 있는 자원", "prompt_hint": "의지할 수 있는 것"},
+        {"position": 7, "name": "회복 방법", "meaning": "정신 건강 회복 방법", "prompt_hint": "마음을 치유하는 법"},
+        {"position": 8, "name": "조언", "meaning": "정신 건강을 위한 조언", "prompt_hint": "마음 건강의 열쇠"}
+      ]
+    },
+    "energy_vitality": {
+      "id": "energy_vitality",
+      "title": "활력",
+      "korean": "에너지/활력",
+      "description": "에너지 수준과 활력 회복",
+      "card_count": 7,
+      "spread_name": "Vitality Spread",
+      "positions": [
+        {"position": 1, "name": "현재 에너지", "meaning": "현재 에너지 수준", "prompt_hint": "지금 활력 상태"},
+        {"position": 2, "name": "에너지 소모", "meaning": "에너지를 소모하는 것", "prompt_hint": "활력을 빼앗는 것"},
+        {"position": 3, "name": "에너지 충전", "meaning": "에너지를 주는 것", "prompt_hint": "활력을 주는 것"},
+        {"position": 4, "name": "균형", "meaning": "일과 휴식의 균형", "prompt_hint": "균형 상태"},
+        {"position": 5, "name": "회복 방법", "meaning": "활력을 회복하는 방법", "prompt_hint": "에너지 충전법"},
+        {"position": 6, "name": "장기 에너지", "meaning": "장기적 에너지 관리", "prompt_hint": "지속가능한 활력"},
+        {"position": 7, "name": "조언", "meaning": "활력을 위한 조언", "prompt_hint": "에너지의 핵심"}
+      ]
+    },
+    "healing_recovery": {
+      "id": "healing_recovery",
+      "title": "회복",
+      "korean": "치유와 회복",
+      "description": "질병이나 상처로부터의 회복",
+      "card_count": 8,
+      "spread_name": "Healing Journey Spread",
+      "positions": [
+        {"position": 1, "name": "현재 상태", "meaning": "지금 회복 단계", "prompt_hint": "회복의 현재 위치"},
+        {"position": 2, "name": "치유 에너지", "meaning": "치유 에너지의 흐름", "prompt_hint": "회복을 돕는 에너지"},
+        {"position": 3, "name": "회복 속도", "meaning": "예상되는 회복 속도", "prompt_hint": "얼마나 빨리 나을지"},
+        {"position": 4, "name": "필요한 것", "meaning": "회복에 필요한 것", "prompt_hint": "치유를 위해 필요한 것"},
+        {"position": 5, "name": "장애물", "meaning": "회복을 방해하는 것", "prompt_hint": "치유를 막는 것"},
+        {"position": 6, "name": "도움", "meaning": "받을 수 있는 도움", "prompt_hint": "지지와 도움"},
+        {"position": 7, "name": "배움", "meaning": "이 경험에서 배울 것", "prompt_hint": "치유의 의미"},
+        {"position": 8, "name": "조언", "meaning": "회복을 위한 조언", "prompt_hint": "치유 여정의 핵심"}
+      ]
+    },
+    "lifestyle_change": {
+      "id": "lifestyle_change",
+      "title": "생활 변화",
+      "korean": "건강한 생활 습관",
+      "description": "생활 습관 개선과 건강한 변화",
+      "card_count": 8,
+      "spread_name": "Lifestyle Change Spread",
+      "positions": [
+        {"position": 1, "name": "현재 습관", "meaning": "현재 생활 습관 에너지", "prompt_hint": "지금 생활 패턴"},
+        {"position": 2, "name": "바꿀 습관", "meaning": "바꿔야 할 습관", "prompt_hint": "개선이 필요한 것"},
+        {"position": 3, "name": "가장 중요한 변화", "meaning": "가장 시급한 변화", "prompt_hint": "우선순위"},
+        {"position": 4, "name": "변화의 동력", "meaning": "변화를 이끄는 힘", "prompt_hint": "동기 부여"},
+        {"position": 5, "name": "저항", "meaning": "변화에 대한 저항", "prompt_hint": "바꾸기 어려운 이유"},
+        {"position": 6, "name": "작은 시작", "meaning": "시작할 수 있는 작은 변화", "prompt_hint": "첫 걸음"},
+        {"position": 7, "name": "3개월 후", "meaning": "변화 후 3개월 모습", "prompt_hint": "변화의 결과"},
+        {"position": 8, "name": "조언", "meaning": "생활 변화를 위한 조언", "prompt_hint": "건강한 습관의 열쇠"}
+      ]
+    },
+    "sleep_rest": {
+      "id": "sleep_rest",
+      "title": "수면/휴식",
+      "korean": "수면과 휴식",
+      "description": "수면의 질과 휴식 패턴",
+      "card_count": 7,
+      "spread_name": "Sleep & Rest Spread",
+      "positions": [
+        {"position": 1, "name": "수면 에너지", "meaning": "현재 수면 상태", "prompt_hint": "잠의 질"},
+        {"position": 2, "name": "방해 요소", "meaning": "수면을 방해하는 것", "prompt_hint": "잠을 못 자게 하는 것"},
+        {"position": 3, "name": "무의식", "meaning": "수면 중 무의식 상태", "prompt_hint": "꿈과 무의식"},
+        {"position": 4, "name": "휴식 패턴", "meaning": "휴식을 취하는 방식", "prompt_hint": "쉬는 방법"},
+        {"position": 5, "name": "개선 방법", "meaning": "수면 개선 방법", "prompt_hint": "더 잘 자는 법"},
+        {"position": 6, "name": "이상적인 패턴", "meaning": "나에게 맞는 수면 패턴", "prompt_hint": "최적의 수면"},
+        {"position": 7, "name": "조언", "meaning": "수면과 휴식에 대한 조언", "prompt_hint": "숙면의 열쇠"}
+      ]
+    },
+    "stress_management": {
+      "id": "stress_management",
+      "title": "스트레스 관리",
+      "korean": "스트레스 해소",
+      "description": "스트레스 원인과 관리 방법",
+      "card_count": 8,
+      "spread_name": "Stress Management Spread",
+      "positions": [
+        {"position": 1, "name": "스트레스 수준", "meaning": "현재 스트레스 정도", "prompt_hint": "스트레스의 강도"},
+        {"position": 2, "name": "주요 원인", "meaning": "가장 큰 스트레스 원인", "prompt_hint": "무엇이 힘든지"},
+        {"position": 3, "name": "몸의 반응", "meaning": "스트레스가 몸에 미치는 영향", "prompt_hint": "신체 증상"},
+        {"position": 4, "name": "마음의 반응", "meaning": "스트레스가 마음에 미치는 영향", "prompt_hint": "감정적 반응"},
+        {"position": 5, "name": "대처 방식", "meaning": "현재 대처 방식", "prompt_hint": "지금 다루는 방법"},
+        {"position": 6, "name": "효과적인 방법", "meaning": "더 효과적인 해소법", "prompt_hint": "더 나은 대처"},
+        {"position": 7, "name": "즉시 할 것", "meaning": "지금 당장 할 수 있는 것", "prompt_hint": "즉각적인 해소"},
+        {"position": 8, "name": "조언", "meaning": "스트레스 관리 조언", "prompt_hint": "평화의 열쇠"}
+      ]
+    },
+    "body_image": {
+      "id": "body_image",
+      "title": "신체 이미지",
+      "korean": "몸에 대한 인식",
+      "description": "자신의 몸에 대한 이미지와 관계",
+      "card_count": 7,
+      "spread_name": "Body Image Spread",
+      "positions": [
+        {"position": 1, "name": "현재 관계", "meaning": "현재 몸과의 관계", "prompt_hint": "자기 몸을 보는 시선"},
+        {"position": 2, "name": "무의식적 믿음", "meaning": "몸에 대한 무의식적 믿음", "prompt_hint": "숨겨진 인식"},
+        {"position": 3, "name": "외부 영향", "meaning": "외부에서 받는 영향", "prompt_hint": "사회/미디어 영향"},
+        {"position": 4, "name": "치유할 부분", "meaning": "치유가 필요한 인식", "prompt_hint": "바꿔야 할 생각"},
+        {"position": 5, "name": "감사할 것", "meaning": "몸에 감사할 것", "prompt_hint": "몸의 장점"},
+        {"position": 6, "name": "자기 사랑", "meaning": "자기 사랑의 방법", "prompt_hint": "몸을 사랑하는 법"},
+        {"position": 7, "name": "조언", "meaning": "신체 이미지에 대한 조언", "prompt_hint": "자기 수용의 열쇠"}
+      ]
+    },
+    "addiction_habit": {
+      "id": "addiction_habit",
+      "title": "나쁜 습관",
+      "korean": "중독/나쁜 습관 끊기",
+      "description": "해로운 습관이나 중독에서 벗어나기",
+      "card_count": 10,
+      "spread_name": "Breaking Habits Spread",
+      "positions": [
+        {"position": 1, "name": "현재 상태", "meaning": "현재 습관/중독 상태", "prompt_hint": "중독의 현재 상태"},
+        {"position": 2, "name": "근본 원인", "meaning": "습관이 시작된 근본 원인", "prompt_hint": "왜 시작되었는지"},
+        {"position": 3, "name": "채워주는 것", "meaning": "이 습관이 채워주는 것", "prompt_hint": "무엇을 충족시키는지"},
+        {"position": 4, "name": "끊을 준비", "meaning": "변화할 준비 상태", "prompt_hint": "변화 의지"},
+        {"position": 5, "name": "가장 큰 도전", "meaning": "가장 어려운 부분", "prompt_hint": "극복해야 할 것"},
+        {"position": 6, "name": "도움 자원", "meaning": "도움을 받을 수 있는 것", "prompt_hint": "지지와 자원"},
+        {"position": 7, "name": "대체 행동", "meaning": "대신할 건강한 행동", "prompt_hint": "건강한 대안"},
+        {"position": 8, "name": "1개월 후", "meaning": "노력 후 1개월 모습", "prompt_hint": "단기 결과"},
+        {"position": 9, "name": "6개월 후", "meaning": "6개월 후 모습", "prompt_hint": "장기 결과"},
+        {"position": 10, "name": "조언", "meaning": "습관 극복을 위한 조언", "prompt_hint": "자유의 열쇠"}
+      ]
+    },
+    "weight_fitness": {
+      "id": "weight_fitness",
+      "title": "체중/운동",
+      "korean": "다이어트/운동",
+      "description": "체중 관리와 운동 습관",
+      "card_count": 8,
+      "spread_name": "Fitness Journey Spread",
+      "positions": [
+        {"position": 1, "name": "현재 상태", "meaning": "현재 체력/체중 상태", "prompt_hint": "지금 피트니스 수준"},
+        {"position": 2, "name": "동기", "meaning": "변화의 진정한 동기", "prompt_hint": "왜 바꾸고 싶은지"},
+        {"position": 3, "name": "적합한 운동", "meaning": "나에게 맞는 운동 유형", "prompt_hint": "어울리는 운동"},
+        {"position": 4, "name": "식습관", "meaning": "개선할 식습관", "prompt_hint": "먹는 것의 변화"},
+        {"position": 5, "name": "장애물", "meaning": "목표 달성을 막는 것", "prompt_hint": "방해 요소"},
+        {"position": 6, "name": "성공 열쇠", "meaning": "성공을 위한 핵심 요소", "prompt_hint": "목표 달성의 열쇠"},
+        {"position": 7, "name": "3개월 전망", "meaning": "3개월 후 변화", "prompt_hint": "단기 결과"},
+        {"position": 8, "name": "조언", "meaning": "피트니스 여정 조언", "prompt_hint": "건강한 몸의 열쇠"}
+      ]
+    }
+  }
+}

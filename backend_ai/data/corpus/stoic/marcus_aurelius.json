@@ -1,0 +1,108 @@
+{
+  "philosopher": "marcus_aurelius",
+  "philosopher_kr": "마르쿠스 아우렐리우스",
+  "title": "Roman Emperor & Philosopher (121-180 AD)",
+  "main_work": "Meditations",
+  "quotes": [
+    {
+      "id": "ma_001",
+      "en": "You have power over your mind - not outside events. Realize this, and you will find strength.",
+      "kr": "당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.",
+      "source": "Meditations",
+      "tags": [
+        "control",
+        "mind"
+      ]
+    },
+    {
+      "id": "ma_002",
+      "en": "The happiness of your life depends upon the quality of your thoughts.",
+      "kr": "삶의 행복은 생각의 질에 달려 있다.",
+      "source": "Meditations",
+      "tags": [
+        "happiness",
+        "thoughts"
+      ]
+    },
+    {
+      "id": "ma_003",
+      "en": "Waste no more time arguing about what a good man should be. Be one.",
+      "kr": "좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.",
+      "source": "Meditations",
+      "tags": [
+        "action",
+        "virtue"
+      ]
+    },
+    {
+      "id": "ma_004",
+      "en": "The obstacle is the way.",
+      "kr": "장애물이 곧 길이다.",
+      "source": "Meditations",
+      "tags": [
+        "obstacle",
+        "growth"
+      ]
+    },
+    {
+      "id": "ma_005",
+      "en": "Very little is needed to make a happy life; it is all within yourself.",
+      "kr": "행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.",
+      "source": "Meditations",
+      "tags": [
+        "happiness",
+        "inner"
+      ]
+    },
+    {
+      "id": "ma_006",
+      "en": "When you arise in the morning, think of what a privilege it is to be alive.",
+      "kr": "아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.",
+      "source": "Meditations",
+      "tags": [
+        "gratitude",
+        "morning"
+      ]
+    },
+    {
+      "id": "ma_007",
+      "en": "Never value anything as profitable that compels you to break your promise, lose your self-respect.",
+      "kr": "약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.",
+      "source": "Meditations",
+      "tags": [
+        "integrity",
+        "values"
+      ]
+    },
+    {
+      "id": "ma_008",
+      "en": "Accept the things to which fate binds you, and love the people with whom fate brings you together.",
+      "kr": "운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.",
+      "source": "Meditations",
+      "tags": [
+        "fate",
+        "amor fati"
+      ]
+    },
+    {
+      "id": "ma_009",
+      "en": "It is not death that a man should fear, but he should fear never beginning to live.",
+      "kr": "사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.",
+      "source": "Meditations",
+      "tags": [
+        "death",
+        "life"
+      ]
+    },
+    {
+      "id": "ma_010",
+      "en": "Dwell on the beauty of life. Watch the stars, and see yourself running with them.",
+      "kr": "삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.",
+      "source": "Meditations",
+      "tags": [
+        "beauty",
+        "cosmos"
+      ]
+    }
+  ]
+}

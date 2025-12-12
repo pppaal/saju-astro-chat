@@ -1,0 +1,199 @@
+{
+  "_meta": {
+    "theme": "family",
+    "title": "가정운 타로 스프레드",
+    "description": "가족 관계, 가정 생활, 세대 간 역학에 관한 스프레드"
+  },
+  "sub_topics": {
+    "family_harmony": {
+      "id": "family_harmony",
+      "title": "가족 화합",
+      "korean": "가족 관계 전반",
+      "description": "가족 간의 전반적인 관계와 화합",
+      "card_count": 10,
+      "spread_name": "Family Harmony Spread",
+      "positions": [
+        {"position": 1, "name": "가족 에너지", "meaning": "현재 가족의 전반적 에너지", "prompt_hint": "가정의 분위기"},
+        {"position": 2, "name": "강점", "meaning": "가족의 강점", "prompt_hint": "가족의 좋은 점"},
+        {"position": 3, "name": "갈등 요소", "meaning": "현재 갈등이나 긴장", "prompt_hint": "해결해야 할 문제"},
+        {"position": 4, "name": "소통", "meaning": "가족 간 소통 상태", "prompt_hint": "대화의 질"},
+        {"position": 5, "name": "숨겨진 감정", "meaning": "표현되지 않은 감정", "prompt_hint": "말하지 못한 것"},
+        {"position": 6, "name": "치유 필요", "meaning": "치유가 필요한 관계", "prompt_hint": "회복이 필요한 부분"},
+        {"position": 7, "name": "내 역할", "meaning": "가족 내 나의 역할", "prompt_hint": "내가 해야 할 것"},
+        {"position": 8, "name": "화합 방법", "meaning": "더 화합하는 방법", "prompt_hint": "관계 개선 방법"},
+        {"position": 9, "name": "미래 전망", "meaning": "가족 관계의 미래", "prompt_hint": "앞으로의 관계"},
+        {"position": 10, "name": "조언", "meaning": "가족 화합을 위한 조언", "prompt_hint": "가정의 평화"}
+      ]
+    },
+    "parent_relationship": {
+      "id": "parent_relationship",
+      "title": "부모와의 관계",
+      "korean": "부모님과의 관계",
+      "description": "부모와의 관계 개선과 이해",
+      "card_count": 10,
+      "spread_name": "Parent Relationship Spread",
+      "positions": [
+        {"position": 1, "name": "현재 관계", "meaning": "현재 부모와의 관계 상태", "prompt_hint": "지금 관계의 모습"},
+        {"position": 2, "name": "부모의 마음", "meaning": "부모님이 나에게 느끼는 감정", "prompt_hint": "부모님의 속마음"},
+        {"position": 3, "name": "나의 마음", "meaning": "내가 부모님께 느끼는 감정", "prompt_hint": "내 속마음"},
+        {"position": 4, "name": "미해결 이슈", "meaning": "해결되지 않은 문제", "prompt_hint": "풀어야 할 것"},
+        {"position": 5, "name": "세대 차이", "meaning": "세대 간 갈등의 근원", "prompt_hint": "이해의 간극"},
+        {"position": 6, "name": "치유 방법", "meaning": "관계를 치유하는 방법", "prompt_hint": "관계 회복법"},
+        {"position": 7, "name": "소통 방법", "meaning": "더 나은 소통 방법", "prompt_hint": "대화하는 법"},
+        {"position": 8, "name": "용서", "meaning": "용서가 필요한 부분", "prompt_hint": "놓아줘야 할 것"},
+        {"position": 9, "name": "감사", "meaning": "감사해야 할 것", "prompt_hint": "고마운 것"},
+        {"position": 10, "name": "조언", "meaning": "부모 관계에 대한 조언", "prompt_hint": "부모님과의 관계 핵심"}
+      ]
+    },
+    "sibling_relationship": {
+      "id": "sibling_relationship",
+      "title": "형제자매 관계",
+      "korean": "형제자매와의 관계",
+      "description": "형제자매와의 관계 이해와 개선",
+      "card_count": 8,
+      "spread_name": "Sibling Relationship Spread",
+      "positions": [
+        {"position": 1, "name": "현재 관계", "meaning": "현재 형제자매와의 관계", "prompt_hint": "지금 관계 상태"},
+        {"position": 2, "name": "상대의 관점", "meaning": "형제자매가 나를 보는 시선", "prompt_hint": "상대방의 관점"},
+        {"position": 3, "name": "경쟁/질투", "meaning": "경쟁심이나 질투의 존재", "prompt_hint": "비교와 경쟁"},
+        {"position": 4, "name": "유대", "meaning": "형제자매 간 유대", "prompt_hint": "연결과 끈"},
+        {"position": 5, "name": "갈등 원인", "meaning": "갈등의 근본 원인", "prompt_hint": "불화의 이유"},
+        {"position": 6, "name": "개선 방법", "meaning": "관계 개선 방법", "prompt_hint": "더 가까워지는 법"},
+        {"position": 7, "name": "미래", "meaning": "관계의 미래", "prompt_hint": "앞으로의 관계"},
+        {"position": 8, "name": "조언", "meaning": "형제자매 관계 조언", "prompt_hint": "형제자매와의 핵심"}
+      ]
+    },
+    "child_parenting": {
+      "id": "child_parenting",
+      "title": "자녀/육아",
+      "korean": "자녀와의 관계",
+      "description": "자녀와의 관계와 양육에 대한 조언",
+      "card_count": 10,
+      "spread_name": "Parenting Spread",
+      "positions": [
+        {"position": 1, "name": "자녀 에너지", "meaning": "자녀의 현재 에너지 상태", "prompt_hint": "아이의 상태"},
+        {"position": 2, "name": "자녀의 필요", "meaning": "자녀가 필요로 하는 것", "prompt_hint": "아이가 원하는 것"},
+        {"position": 3, "name": "현재 관계", "meaning": "자녀와의 현재 관계", "prompt_hint": "지금 관계 상태"},
+        {"position": 4, "name": "소통", "meaning": "자녀와의 소통 상태", "prompt_hint": "대화의 질"},
+        {"position": 5, "name": "양육 스타일", "meaning": "나의 양육 스타일", "prompt_hint": "부모로서의 방식"},
+        {"position": 6, "name": "개선점", "meaning": "양육에서 개선할 점", "prompt_hint": "바꿔야 할 것"},
+        {"position": 7, "name": "자녀의 강점", "meaning": "자녀의 재능과 강점", "prompt_hint": "아이의 잠재력"},
+        {"position": 8, "name": "지원 방법", "meaning": "자녀를 지원하는 방법", "prompt_hint": "도움주는 법"},
+        {"position": 9, "name": "미래", "meaning": "자녀와의 관계 미래", "prompt_hint": "앞으로의 관계"},
+        {"position": 10, "name": "조언", "meaning": "양육에 대한 조언", "prompt_hint": "부모로서의 핵심"}
+      ]
+    },
+    "marriage_spouse": {
+      "id": "marriage_spouse",
+      "title": "배우자 관계",
+      "korean": "배우자와의 관계",
+      "description": "결혼 생활과 배우자와의 관계",
+      "card_count": 10,
+      "spread_name": "Marriage Relationship Spread",
+      "positions": [
+        {"position": 1, "name": "결혼 에너지", "meaning": "현재 결혼 생활의 에너지", "prompt_hint": "결혼의 현재 상태"},
+        {"position": 2, "name": "배우자의 마음", "meaning": "배우자의 현재 감정", "prompt_hint": "배우자의 속마음"},
+        {"position": 3, "name": "나의 마음", "meaning": "내가 느끼는 감정", "prompt_hint": "나의 속마음"},
+        {"position": 4, "name": "강점", "meaning": "부부 관계의 강점", "prompt_hint": "잘되는 부분"},
+        {"position": 5, "name": "갈등", "meaning": "현재 갈등이나 문제", "prompt_hint": "해결할 문제"},
+        {"position": 6, "name": "소통", "meaning": "부부 간 소통 상태", "prompt_hint": "대화의 질"},
+        {"position": 7, "name": "친밀감", "meaning": "정서적/육체적 친밀감", "prompt_hint": "가까움의 정도"},
+        {"position": 8, "name": "개선 방법", "meaning": "관계 개선 방법", "prompt_hint": "더 좋아지는 법"},
+        {"position": 9, "name": "미래", "meaning": "부부 관계의 미래", "prompt_hint": "앞으로의 결혼"},
+        {"position": 10, "name": "조언", "meaning": "결혼 생활 조언", "prompt_hint": "행복한 결혼의 핵심"}
+      ]
+    },
+    "inlaws": {
+      "id": "inlaws",
+      "title": "시댁/처가",
+      "korean": "시댁/처가 관계",
+      "description": "시부모/장인장모와의 관계",
+      "card_count": 8,
+      "spread_name": "In-Laws Spread",
+      "positions": [
+        {"position": 1, "name": "현재 관계", "meaning": "현재 인척과의 관계", "prompt_hint": "지금 관계 상태"},
+        {"position": 2, "name": "상대의 시선", "meaning": "시부모/장인장모가 나를 보는 시선", "prompt_hint": "상대방의 관점"},
+        {"position": 3, "name": "갈등 요소", "meaning": "갈등의 원인", "prompt_hint": "불화의 이유"},
+        {"position": 4, "name": "배우자 역할", "meaning": "배우자의 중재 역할", "prompt_hint": "배우자의 위치"},
+        {"position": 5, "name": "경계", "meaning": "필요한 경계 설정", "prompt_hint": "선을 그을 곳"},
+        {"position": 6, "name": "개선 방법", "meaning": "관계 개선 방법", "prompt_hint": "나아지는 법"},
+        {"position": 7, "name": "기대 조절", "meaning": "현실적인 기대", "prompt_hint": "바랄 수 있는 것"},
+        {"position": 8, "name": "조언", "meaning": "인척 관계 조언", "prompt_hint": "시댁/처가와의 핵심"}
+      ]
+    },
+    "home_moving": {
+      "id": "home_moving",
+      "title": "이사/거주",
+      "korean": "이사/새 집",
+      "description": "이사와 주거 변화에 대한 조언",
+      "card_count": 8,
+      "spread_name": "Home Moving Spread",
+      "positions": [
+        {"position": 1, "name": "현재 거주", "meaning": "현재 주거 에너지", "prompt_hint": "지금 집의 에너지"},
+        {"position": 2, "name": "이사 필요성", "meaning": "이사가 필요한지", "prompt_hint": "옮겨야 하는지"},
+        {"position": 3, "name": "이사 시기", "meaning": "이사하기 좋은 시기", "prompt_hint": "언제 옮기면 좋은지"},
+        {"position": 4, "name": "새 집 방향", "meaning": "좋은 방향/지역", "prompt_hint": "어디로 가면 좋은지"},
+        {"position": 5, "name": "새 집 에너지", "meaning": "새 집의 예상 에너지", "prompt_hint": "이사 후 분위기"},
+        {"position": 6, "name": "주의점", "meaning": "이사 시 주의할 점", "prompt_hint": "조심할 것"},
+        {"position": 7, "name": "가족 적응", "meaning": "가족의 적응", "prompt_hint": "식구들의 적응"},
+        {"position": 8, "name": "조언", "meaning": "이사에 대한 조언", "prompt_hint": "주거 변화의 핵심"}
+      ]
+    },
+    "family_conflict": {
+      "id": "family_conflict",
+      "title": "가족 갈등",
+      "korean": "가족 간 갈등 해결",
+      "description": "가족 내 갈등 해결과 화해",
+      "card_count": 10,
+      "spread_name": "Family Conflict Spread",
+      "positions": [
+        {"position": 1, "name": "갈등 에너지", "meaning": "현재 갈등의 에너지", "prompt_hint": "갈등의 상태"},
+        {"position": 2, "name": "표면적 원인", "meaning": "겉으로 보이는 갈등 원인", "prompt_hint": "눈에 보이는 이유"},
+        {"position": 3, "name": "근본 원인", "meaning": "진짜 갈등의 근원", "prompt_hint": "깊은 이유"},
+        {"position": 4, "name": "상대 관점", "meaning": "상대방의 입장", "prompt_hint": "상대가 보는 것"},
+        {"position": 5, "name": "나의 역할", "meaning": "갈등에서 나의 역할", "prompt_hint": "내가 기여한 부분"},
+        {"position": 6, "name": "감정 해소", "meaning": "해소해야 할 감정", "prompt_hint": "풀어야 할 마음"},
+        {"position": 7, "name": "화해 방법", "meaning": "화해로 가는 길", "prompt_hint": "화해하는 방법"},
+        {"position": 8, "name": "먼저 할 것", "meaning": "내가 먼저 해야 할 것", "prompt_hint": "첫 걸음"},
+        {"position": 9, "name": "화해 후", "meaning": "화해 후 관계", "prompt_hint": "해결 후 모습"},
+        {"position": 10, "name": "조언", "meaning": "갈등 해결 조언", "prompt_hint": "화해의 핵심"}
+      ]
+    },
+    "ancestral_patterns": {
+      "id": "ancestral_patterns",
+      "title": "가족 패턴",
+      "korean": "세대 간 패턴",
+      "description": "대물림되는 가족 패턴과 끊어야 할 것",
+      "card_count": 8,
+      "spread_name": "Ancestral Patterns Spread",
+      "positions": [
+        {"position": 1, "name": "가족 패턴", "meaning": "대물림되는 패턴", "prompt_hint": "반복되는 것"},
+        {"position": 2, "name": "긍정적 유산", "meaning": "물려받은 좋은 것", "prompt_hint": "이어가야 할 것"},
+        {"position": 3, "name": "부정적 유산", "meaning": "끊어야 할 패턴", "prompt_hint": "멈춰야 할 것"},
+        {"position": 4, "name": "나에게 미치는 영향", "meaning": "이 패턴이 나에게 미치는 영향", "prompt_hint": "내 삶에 끼친 영향"},
+        {"position": 5, "name": "끊는 방법", "meaning": "패턴을 끊는 방법", "prompt_hint": "악순환 멈추기"},
+        {"position": 6, "name": "치유", "meaning": "치유가 필요한 부분", "prompt_hint": "회복할 것"},
+        {"position": 7, "name": "새로운 유산", "meaning": "만들어갈 새로운 패턴", "prompt_hint": "물려줄 것"},
+        {"position": 8, "name": "조언", "meaning": "가족 패턴에 대한 조언", "prompt_hint": "세대 치유의 핵심"}
+      ]
+    },
+    "fertility": {
+      "id": "fertility",
+      "title": "임신/출산",
+      "korean": "임신과 출산",
+      "description": "임신 가능성과 아이에 대한 조언",
+      "card_count": 8,
+      "spread_name": "Fertility Spread",
+      "positions": [
+        {"position": 1, "name": "현재 에너지", "meaning": "현재 생식 에너지", "prompt_hint": "임신 관련 에너지"},
+        {"position": 2, "name": "몸 상태", "meaning": "신체적 준비 상태", "prompt_hint": "몸의 준비"},
+        {"position": 3, "name": "마음 상태", "meaning": "정서적 준비 상태", "prompt_hint": "마음의 준비"},
+        {"position": 4, "name": "가능성", "meaning": "임신 가능성", "prompt_hint": "아이를 가질 가능성"},
+        {"position": 5, "name": "시기", "meaning": "좋은 시기", "prompt_hint": "임신하기 좋은 때"},
+        {"position": 6, "name": "도움", "meaning": "도움이 되는 것", "prompt_hint": "임신을 돕는 것"},
+        {"position": 7, "name": "장애물", "meaning": "주의할 점", "prompt_hint": "조심할 것"},
+        {"position": 8, "name": "조언", "meaning": "임신/출산에 대한 조언", "prompt_hint": "새 생명의 핵심"}
+      ]
+    }
+  }
+}

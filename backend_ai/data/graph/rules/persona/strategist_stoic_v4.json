@@ -1,0 +1,4326 @@
+{
+  "meta": {
+    "persona": "Strategist",
+    "count": 480
+  },
+  "rule_1": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 1"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n태양이 1하우스(자아)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_2": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 2"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n태양이 2하우스(가치)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_3": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 3"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n태양이 3하우스(소통)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_4": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 4"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n태양이 4하우스(가정)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_5": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 5"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n태양이 5하우스(창조)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_6": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 6"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n태양이 6하우스(일상)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_7": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 7"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n태양이 7하우스(파트너십)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_8": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n태양이 8하우스(변환)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_9": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 9"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n태양이 9하우스(철학)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_10": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 10"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n태양이 10하우스(커리어)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_11": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 11"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n태양이 11하우스(공동체)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_12": {
+    "when": [
+      "wisdom",
+      "sun",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n태양이 12하우스(무의식)에서 Wisdom를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_13": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 1"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n달이 1하우스(자아)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_14": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 2"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n달이 2하우스(가치)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_15": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 3"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n달이 3하우스(소통)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_16": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 4"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n달이 4하우스(가정)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_17": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 5"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n달이 5하우스(창조)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_18": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 6"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n달이 6하우스(일상)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_19": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 7"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n달이 7하우스(파트너십)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_20": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n달이 8하우스(변환)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_21": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 9"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n달이 9하우스(철학)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_22": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 10"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n달이 10하우스(커리어)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_23": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 11"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n달이 11하우스(공동체)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_24": {
+    "when": [
+      "wisdom",
+      "moon",
+      "house 12"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n달이 12하우스(무의식)에서 Wisdom를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_25": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 1"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n수성이 1하우스(자아)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_26": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 2"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n수성이 2하우스(가치)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_27": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 3"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n수성이 3하우스(소통)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_28": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 4"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n수성이 4하우스(가정)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_29": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 5"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n수성이 5하우스(창조)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_30": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 6"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n수성이 6하우스(일상)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_31": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 7"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n수성이 7하우스(파트너십)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_32": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 8"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n수성이 8하우스(변환)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_33": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 9"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n수성이 9하우스(철학)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_34": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 10"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n수성이 10하우스(커리어)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_35": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 11"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n수성이 11하우스(공동체)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_36": {
+    "when": [
+      "wisdom",
+      "mercury",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n수성이 12하우스(무의식)에서 Wisdom를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_37": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 1"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n금성이 1하우스(자아)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_38": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 2"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n금성이 2하우스(가치)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_39": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 3"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n금성이 3하우스(소통)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_40": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 4"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n금성이 4하우스(가정)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_41": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 5"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n금성이 5하우스(창조)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_42": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 6"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n금성이 6하우스(일상)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_43": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 7"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n금성이 7하우스(파트너십)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_44": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 8"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n금성이 8하우스(변환)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_45": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 9"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n금성이 9하우스(철학)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_46": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 10"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n금성이 10하우스(커리어)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_47": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 11"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n금성이 11하우스(공동체)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_48": {
+    "when": [
+      "wisdom",
+      "venus",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n금성이 12하우스(무의식)에서 Wisdom를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_49": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 1"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n화성이 1하우스(자아)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_50": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 2"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n화성이 2하우스(가치)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_51": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 3"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n화성이 3하우스(소통)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_52": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 4"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n화성이 4하우스(가정)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_53": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 5"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n화성이 5하우스(창조)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_54": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 6"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n화성이 6하우스(일상)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_55": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 7"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n화성이 7하우스(파트너십)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_56": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n화성이 8하우스(변환)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_57": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 9"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n화성이 9하우스(철학)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_58": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n화성이 10하우스(커리어)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_59": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 11"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n화성이 11하우스(공동체)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_60": {
+    "when": [
+      "wisdom",
+      "mars",
+      "house 12"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n화성이 12하우스(무의식)에서 Wisdom를 요청. 용기",
+    "weight": 4
+  },
+  "rule_61": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 1"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n목성이 1하우스(자아)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_62": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 2"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n목성이 2하우스(가치)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_63": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 3"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n목성이 3하우스(소통)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_64": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 4"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n목성이 4하우스(가정)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_65": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 5"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n목성이 5하우스(창조)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_66": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 6"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n목성이 6하우스(일상)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_67": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 7"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n목성이 7하우스(파트너십)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_68": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 8"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n목성이 8하우스(변환)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_69": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 9"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n목성이 9하우스(철학)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_70": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 10"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n목성이 10하우스(커리어)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_71": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 11"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n목성이 11하우스(공동체)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_72": {
+    "when": [
+      "wisdom",
+      "jupiter",
+      "house 12"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n목성이 12하우스(무의식)에서 Wisdom를 요청. 만족",
+    "weight": 4
+  },
+  "rule_73": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 1"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n토성이 1하우스(자아)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_74": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 2"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n토성이 2하우스(가치)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_75": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 3"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n토성이 3하우스(소통)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_76": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 4"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n토성이 4하우스(가정)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_77": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 5"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n토성이 5하우스(창조)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_78": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 6"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n토성이 6하우스(일상)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_79": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 7"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n토성이 7하우스(파트너십)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_80": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 8"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n토성이 8하우스(변환)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_81": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 9"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n토성이 9하우스(철학)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_82": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 10"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n토성이 10하우스(커리어)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_83": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 11"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n토성이 11하우스(공동체)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_84": {
+    "when": [
+      "wisdom",
+      "saturn",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n토성이 12하우스(무의식)에서 Wisdom를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_85": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 1"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n천왕성이 1하우스(자아)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_86": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 2"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n천왕성이 2하우스(가치)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_87": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 3"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n천왕성이 3하우스(소통)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_88": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 4"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n천왕성이 4하우스(가정)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_89": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 5"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n천왕성이 5하우스(창조)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_90": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 6"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n천왕성이 6하우스(일상)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_91": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 7"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n천왕성이 7하우스(파트너십)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_92": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 8"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n천왕성이 8하우스(변환)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_93": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 9"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n천왕성이 9하우스(철학)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_94": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 10"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n천왕성이 10하우스(커리어)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_95": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 11"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n천왕성이 11하우스(공동체)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_96": {
+    "when": [
+      "wisdom",
+      "uranus",
+      "house 12"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n천왕성이 12하우스(무의식)에서 Wisdom를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_97": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 1"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n해왕성이 1하우스(자아)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_98": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 2"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n해왕성이 2하우스(가치)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_99": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 3"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n해왕성이 3하우스(소통)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_100": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 4"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n해왕성이 4하우스(가정)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_101": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 5"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n해왕성이 5하우스(창조)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_102": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 6"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n해왕성이 6하우스(일상)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_103": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 7"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n해왕성이 7하우스(파트너십)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_104": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 8"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n해왕성이 8하우스(변환)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_105": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 9"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n해왕성이 9하우스(철학)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_106": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 10"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n해왕성이 10하우스(커리어)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_107": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 11"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n해왕성이 11하우스(공동체)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_108": {
+    "when": [
+      "wisdom",
+      "neptune",
+      "house 12"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n해왕성이 12하우스(무의식)에서 Wisdom를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_109": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 1"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n명왕성이 1하우스(자아)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_110": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 2"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n명왕성이 2하우스(가치)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_111": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 3"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n명왕성이 3하우스(소통)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_112": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 4"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n명왕성이 4하우스(가정)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_113": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 5"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n명왕성이 5하우스(창조)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_114": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 6"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n명왕성이 6하우스(일상)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_115": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 7"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n명왕성이 7하우스(파트너십)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_116": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 8"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n명왕성이 8하우스(변환)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_117": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 9"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n명왕성이 9하우스(철학)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_118": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n명왕성이 10하우스(커리어)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_119": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 11"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n명왕성이 11하우스(공동체)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_120": {
+    "when": [
+      "wisdom",
+      "pluto",
+      "house 12"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n명왕성이 12하우스(무의식)에서 Wisdom를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_121": {
+    "when": [
+      "courage",
+      "sun",
+      "house 1"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n태양이 1하우스(자아)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_122": {
+    "when": [
+      "courage",
+      "sun",
+      "house 2"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n태양이 2하우스(가치)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_123": {
+    "when": [
+      "courage",
+      "sun",
+      "house 3"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n태양이 3하우스(소통)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_124": {
+    "when": [
+      "courage",
+      "sun",
+      "house 4"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n태양이 4하우스(가정)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_125": {
+    "when": [
+      "courage",
+      "sun",
+      "house 5"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n태양이 5하우스(창조)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_126": {
+    "when": [
+      "courage",
+      "sun",
+      "house 6"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n태양이 6하우스(일상)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_127": {
+    "when": [
+      "courage",
+      "sun",
+      "house 7"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n태양이 7하우스(파트너십)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_128": {
+    "when": [
+      "courage",
+      "sun",
+      "house 8"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n태양이 8하우스(변환)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_129": {
+    "when": [
+      "courage",
+      "sun",
+      "house 9"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n태양이 9하우스(철학)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_130": {
+    "when": [
+      "courage",
+      "sun",
+      "house 10"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n태양이 10하우스(커리어)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_131": {
+    "when": [
+      "courage",
+      "sun",
+      "house 11"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n태양이 11하우스(공동체)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_132": {
+    "when": [
+      "courage",
+      "sun",
+      "house 12"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n태양이 12하우스(무의식)에서 Courage를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_133": {
+    "when": [
+      "courage",
+      "moon",
+      "house 1"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n달이 1하우스(자아)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_134": {
+    "when": [
+      "courage",
+      "moon",
+      "house 2"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n달이 2하우스(가치)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_135": {
+    "when": [
+      "courage",
+      "moon",
+      "house 3"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n달이 3하우스(소통)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_136": {
+    "when": [
+      "courage",
+      "moon",
+      "house 4"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n달이 4하우스(가정)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_137": {
+    "when": [
+      "courage",
+      "moon",
+      "house 5"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n달이 5하우스(창조)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_138": {
+    "when": [
+      "courage",
+      "moon",
+      "house 6"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n달이 6하우스(일상)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_139": {
+    "when": [
+      "courage",
+      "moon",
+      "house 7"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n달이 7하우스(파트너십)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_140": {
+    "when": [
+      "courage",
+      "moon",
+      "house 8"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n달이 8하우스(변환)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_141": {
+    "when": [
+      "courage",
+      "moon",
+      "house 9"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n달이 9하우스(철학)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_142": {
+    "when": [
+      "courage",
+      "moon",
+      "house 10"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n달이 10하우스(커리어)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_143": {
+    "when": [
+      "courage",
+      "moon",
+      "house 11"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n달이 11하우스(공동체)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_144": {
+    "when": [
+      "courage",
+      "moon",
+      "house 12"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n달이 12하우스(무의식)에서 Courage를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_145": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 1"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n수성이 1하우스(자아)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_146": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 2"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n수성이 2하우스(가치)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_147": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 3"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n수성이 3하우스(소통)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_148": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 4"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n수성이 4하우스(가정)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_149": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 5"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n수성이 5하우스(창조)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_150": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 6"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n수성이 6하우스(일상)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_151": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 7"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n수성이 7하우스(파트너십)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_152": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 8"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n수성이 8하우스(변환)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_153": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 9"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n수성이 9하우스(철학)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_154": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 10"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n수성이 10하우스(커리어)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_155": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 11"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n수성이 11하우스(공동체)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_156": {
+    "when": [
+      "courage",
+      "mercury",
+      "house 12"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n수성이 12하우스(무의식)에서 Courage를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_157": {
+    "when": [
+      "courage",
+      "venus",
+      "house 1"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n금성이 1하우스(자아)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_158": {
+    "when": [
+      "courage",
+      "venus",
+      "house 2"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n금성이 2하우스(가치)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_159": {
+    "when": [
+      "courage",
+      "venus",
+      "house 3"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n금성이 3하우스(소통)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_160": {
+    "when": [
+      "courage",
+      "venus",
+      "house 4"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n금성이 4하우스(가정)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_161": {
+    "when": [
+      "courage",
+      "venus",
+      "house 5"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n금성이 5하우스(창조)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_162": {
+    "when": [
+      "courage",
+      "venus",
+      "house 6"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n금성이 6하우스(일상)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_163": {
+    "when": [
+      "courage",
+      "venus",
+      "house 7"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n금성이 7하우스(파트너십)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_164": {
+    "when": [
+      "courage",
+      "venus",
+      "house 8"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n금성이 8하우스(변환)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_165": {
+    "when": [
+      "courage",
+      "venus",
+      "house 9"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n금성이 9하우스(철학)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_166": {
+    "when": [
+      "courage",
+      "venus",
+      "house 10"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n금성이 10하우스(커리어)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_167": {
+    "when": [
+      "courage",
+      "venus",
+      "house 11"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n금성이 11하우스(공동체)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_168": {
+    "when": [
+      "courage",
+      "venus",
+      "house 12"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n금성이 12하우스(무의식)에서 Courage를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_169": {
+    "when": [
+      "courage",
+      "mars",
+      "house 1"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n화성이 1하우스(자아)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_170": {
+    "when": [
+      "courage",
+      "mars",
+      "house 2"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n화성이 2하우스(가치)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_171": {
+    "when": [
+      "courage",
+      "mars",
+      "house 3"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n화성이 3하우스(소통)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_172": {
+    "when": [
+      "courage",
+      "mars",
+      "house 4"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n화성이 4하우스(가정)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_173": {
+    "when": [
+      "courage",
+      "mars",
+      "house 5"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n화성이 5하우스(창조)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_174": {
+    "when": [
+      "courage",
+      "mars",
+      "house 6"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n화성이 6하우스(일상)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_175": {
+    "when": [
+      "courage",
+      "mars",
+      "house 7"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n화성이 7하우스(파트너십)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_176": {
+    "when": [
+      "courage",
+      "mars",
+      "house 8"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n화성이 8하우스(변환)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_177": {
+    "when": [
+      "courage",
+      "mars",
+      "house 9"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n화성이 9하우스(철학)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_178": {
+    "when": [
+      "courage",
+      "mars",
+      "house 10"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n화성이 10하우스(커리어)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_179": {
+    "when": [
+      "courage",
+      "mars",
+      "house 11"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n화성이 11하우스(공동체)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_180": {
+    "when": [
+      "courage",
+      "mars",
+      "house 12"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n화성이 12하우스(무의식)에서 Courage를 요청. 용기",
+    "weight": 4
+  },
+  "rule_181": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 1"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n목성이 1하우스(자아)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_182": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 2"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n목성이 2하우스(가치)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_183": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 3"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n목성이 3하우스(소통)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_184": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 4"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n목성이 4하우스(가정)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_185": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 5"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n목성이 5하우스(창조)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_186": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 6"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n목성이 6하우스(일상)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_187": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 7"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n목성이 7하우스(파트너십)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_188": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 8"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n목성이 8하우스(변환)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_189": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 9"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n목성이 9하우스(철학)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_190": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 10"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n목성이 10하우스(커리어)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_191": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 11"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n목성이 11하우스(공동체)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_192": {
+    "when": [
+      "courage",
+      "jupiter",
+      "house 12"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n목성이 12하우스(무의식)에서 Courage를 요청. 만족",
+    "weight": 4
+  },
+  "rule_193": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 1"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n토성이 1하우스(자아)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_194": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 2"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n토성이 2하우스(가치)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_195": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 3"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n토성이 3하우스(소통)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_196": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 4"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n토성이 4하우스(가정)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_197": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 5"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n토성이 5하우스(창조)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_198": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 6"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n토성이 6하우스(일상)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_199": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 7"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n토성이 7하우스(파트너십)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_200": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 8"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n토성이 8하우스(변환)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_201": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 9"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n토성이 9하우스(철학)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_202": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 10"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n토성이 10하우스(커리어)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_203": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 11"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n토성이 11하우스(공동체)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_204": {
+    "when": [
+      "courage",
+      "saturn",
+      "house 12"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n토성이 12하우스(무의식)에서 Courage를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_205": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 1"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n천왕성이 1하우스(자아)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_206": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 2"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n천왕성이 2하우스(가치)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_207": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 3"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n천왕성이 3하우스(소통)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_208": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 4"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n천왕성이 4하우스(가정)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_209": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 5"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n천왕성이 5하우스(창조)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_210": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 6"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n천왕성이 6하우스(일상)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_211": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 7"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n천왕성이 7하우스(파트너십)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_212": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 8"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n천왕성이 8하우스(변환)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_213": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 9"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n천왕성이 9하우스(철학)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_214": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 10"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n천왕성이 10하우스(커리어)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_215": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 11"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n천왕성이 11하우스(공동체)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_216": {
+    "when": [
+      "courage",
+      "uranus",
+      "house 12"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n천왕성이 12하우스(무의식)에서 Courage를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_217": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 1"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n해왕성이 1하우스(자아)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_218": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 2"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n해왕성이 2하우스(가치)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_219": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 3"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n해왕성이 3하우스(소통)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_220": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 4"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n해왕성이 4하우스(가정)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_221": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 5"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n해왕성이 5하우스(창조)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_222": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 6"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n해왕성이 6하우스(일상)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_223": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 7"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n해왕성이 7하우스(파트너십)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_224": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 8"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n해왕성이 8하우스(변환)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_225": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 9"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n해왕성이 9하우스(철학)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_226": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 10"
+    ],
+    "text": "스토아: \"이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.\" (Letters)\n\n해왕성이 10하우스(커리어)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_227": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 11"
+    ],
+    "text": "스토아: \"우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.\" (On the Shortness of Life)\n\n해왕성이 11하우스(공동체)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_228": {
+    "when": [
+      "courage",
+      "neptune",
+      "house 12"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n해왕성이 12하우스(무의식)에서 Courage를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_229": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 1"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n명왕성이 1하우스(자아)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_230": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 2"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n명왕성이 2하우스(가치)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_231": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 3"
+    ],
+    "text": "스토아: \"어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.\" (Letters)\n\n명왕성이 3하우스(소통)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_232": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 4"
+    ],
+    "text": "스토아: \"행운은 준비가 기회를 만났을 때 일어나는 것이다.\" (Letters)\n\n명왕성이 4하우스(가정)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_233": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 5"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n명왕성이 5하우스(창조)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_234": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 6"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n명왕성이 6하우스(일상)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_235": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 7"
+    ],
+    "text": "스토아: \"우리는 현실보다 상상 속에서 더 자주 고통받는다.\" (Letters)\n\n명왕성이 7하우스(파트너십)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_236": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 8"
+    ],
+    "text": "스토아: \"지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.\" (Letters)\n\n명왕성이 8하우스(변환)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_237": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 9"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n명왕성이 9하우스(철학)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_238": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 10"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n명왕성이 10하우스(커리어)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_239": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 11"
+    ],
+    "text": "스토아: \"진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.\" (Letters)\n\n명왕성이 11하우스(공동체)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_240": {
+    "when": [
+      "courage",
+      "pluto",
+      "house 12"
+    ],
+    "text": "스토아: \"미래 사건에 대해 불안한 마음은 비참하다.\" (Letters)\n\n명왕성이 12하우스(무의식)에서 Courage를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_241": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 1"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n태양이 1하우스(자아)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_242": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 2"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n태양이 2하우스(가치)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_243": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 3"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n태양이 3하우스(소통)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_244": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 4"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n태양이 4하우스(가정)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_245": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 5"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n태양이 5하우스(창조)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_246": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 6"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n태양이 6하우스(일상)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_247": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 7"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n태양이 7하우스(파트너십)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_248": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 8"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n태양이 8하우스(변환)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_249": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 9"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n태양이 9하우스(철학)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_250": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 10"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n태양이 10하우스(커리어)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_251": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 11"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n태양이 11하우스(공동체)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_252": {
+    "when": [
+      "temperance",
+      "sun",
+      "house 12"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n태양이 12하우스(무의식)에서 Temperance를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_253": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 1"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n달이 1하우스(자아)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_254": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 2"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n달이 2하우스(가치)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_255": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 3"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n달이 3하우스(소통)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_256": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 4"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n달이 4하우스(가정)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_257": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 5"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n달이 5하우스(창조)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_258": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 6"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n달이 6하우스(일상)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_259": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 7"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n달이 7하우스(파트너십)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_260": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 8"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n달이 8하우스(변환)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_261": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 9"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n달이 9하우스(철학)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_262": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 10"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n달이 10하우스(커리어)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_263": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 11"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n달이 11하우스(공동체)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_264": {
+    "when": [
+      "temperance",
+      "moon",
+      "house 12"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n달이 12하우스(무의식)에서 Temperance를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_265": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 1"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n수성이 1하우스(자아)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_266": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 2"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 2하우스(가치)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_267": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 3"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n수성이 3하우스(소통)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_268": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 4"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n수성이 4하우스(가정)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_269": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 5"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 5하우스(창조)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_270": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 6"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 6하우스(일상)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_271": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 7"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 7하우스(파트너십)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_272": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 8"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 8하우스(변환)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_273": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 9"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 9하우스(철학)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_274": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 10"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n수성이 10하우스(커리어)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_275": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 11"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n수성이 11하우스(공동체)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_276": {
+    "when": [
+      "temperance",
+      "mercury",
+      "house 12"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n수성이 12하우스(무의식)에서 Temperance를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_277": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 1"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n금성이 1하우스(자아)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_278": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 2"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n금성이 2하우스(가치)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_279": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 3"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n금성이 3하우스(소통)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_280": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 4"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n금성이 4하우스(가정)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_281": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 5"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n금성이 5하우스(창조)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_282": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 6"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n금성이 6하우스(일상)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_283": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 7"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n금성이 7하우스(파트너십)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_284": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 8"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n금성이 8하우스(변환)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_285": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 9"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n금성이 9하우스(철학)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_286": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 10"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n금성이 10하우스(커리어)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_287": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 11"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n금성이 11하우스(공동체)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_288": {
+    "when": [
+      "temperance",
+      "venus",
+      "house 12"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n금성이 12하우스(무의식)에서 Temperance를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_289": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 1"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n화성이 1하우스(자아)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_290": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 2"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n화성이 2하우스(가치)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_291": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 3"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n화성이 3하우스(소통)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_292": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 4"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n화성이 4하우스(가정)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_293": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 5"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n화성이 5하우스(창조)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_294": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 6"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n화성이 6하우스(일상)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_295": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 7"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n화성이 7하우스(파트너십)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_296": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 8"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n화성이 8하우스(변환)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_297": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 9"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n화성이 9하우스(철학)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_298": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 10"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n화성이 10하우스(커리어)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_299": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 11"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n화성이 11하우스(공동체)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_300": {
+    "when": [
+      "temperance",
+      "mars",
+      "house 12"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n화성이 12하우스(무의식)에서 Temperance를 요청. 용기",
+    "weight": 4
+  },
+  "rule_301": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 1"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n목성이 1하우스(자아)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_302": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 2"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n목성이 2하우스(가치)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_303": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 3"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n목성이 3하우스(소통)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_304": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 4"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n목성이 4하우스(가정)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_305": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 5"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n목성이 5하우스(창조)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_306": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 6"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n목성이 6하우스(일상)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_307": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 7"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n목성이 7하우스(파트너십)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_308": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 8"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n목성이 8하우스(변환)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_309": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 9"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n목성이 9하우스(철학)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_310": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 10"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n목성이 10하우스(커리어)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_311": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 11"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n목성이 11하우스(공동체)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_312": {
+    "when": [
+      "temperance",
+      "jupiter",
+      "house 12"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n목성이 12하우스(무의식)에서 Temperance를 요청. 만족",
+    "weight": 4
+  },
+  "rule_313": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 1"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n토성이 1하우스(자아)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_314": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 2"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n토성이 2하우스(가치)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_315": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 3"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n토성이 3하우스(소통)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_316": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 4"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n토성이 4하우스(가정)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_317": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 5"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n토성이 5하우스(창조)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_318": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 6"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n토성이 6하우스(일상)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_319": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 7"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n토성이 7하우스(파트너십)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_320": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 8"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n토성이 8하우스(변환)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_321": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 9"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n토성이 9하우스(철학)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_322": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 10"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n토성이 10하우스(커리어)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_323": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 11"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n토성이 11하우스(공동체)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_324": {
+    "when": [
+      "temperance",
+      "saturn",
+      "house 12"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n토성이 12하우스(무의식)에서 Temperance를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_325": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 1"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n천왕성이 1하우스(자아)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_326": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 2"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n천왕성이 2하우스(가치)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_327": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 3"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n천왕성이 3하우스(소통)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_328": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 4"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n천왕성이 4하우스(가정)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_329": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 5"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n천왕성이 5하우스(창조)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_330": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 6"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n천왕성이 6하우스(일상)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_331": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 7"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n천왕성이 7하우스(파트너십)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_332": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 8"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n천왕성이 8하우스(변환)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_333": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 9"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n천왕성이 9하우스(철학)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_334": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 10"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n천왕성이 10하우스(커리어)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_335": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 11"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n천왕성이 11하우스(공동체)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_336": {
+    "when": [
+      "temperance",
+      "uranus",
+      "house 12"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n천왕성이 12하우스(무의식)에서 Temperance를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_337": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 1"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n해왕성이 1하우스(자아)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_338": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 2"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n해왕성이 2하우스(가치)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_339": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 3"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n해왕성이 3하우스(소통)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_340": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 4"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n해왕성이 4하우스(가정)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_341": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 5"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n해왕성이 5하우스(창조)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_342": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 6"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n해왕성이 6하우스(일상)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_343": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 7"
+    ],
+    "text": "스토아: \"자기 자신의 주인이 아닌 사람은 자유롭지 않다.\" (Discourses)\n\n해왕성이 7하우스(파트너십)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_344": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 8"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n해왕성이 8하우스(변환)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_345": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 9"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n해왕성이 9하우스(철학)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_346": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 10"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n해왕성이 10하우스(커리어)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_347": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 11"
+    ],
+    "text": "스토아: \"부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.\" (Discourses)\n\n해왕성이 11하우스(공동체)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_348": {
+    "when": [
+      "temperance",
+      "neptune",
+      "house 12"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n해왕성이 12하우스(무의식)에서 Temperance를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_349": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 1"
+    ],
+    "text": "스토아: \"당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.\" (Discourses)\n\n명왕성이 1하우스(자아)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_350": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 2"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n명왕성이 2하우스(가치)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_351": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 3"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n명왕성이 3하우스(소통)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_352": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 4"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n명왕성이 4하우스(가정)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_353": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 5"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n명왕성이 5하우스(창조)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_354": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 6"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n명왕성이 6하우스(일상)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_355": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 7"
+    ],
+    "text": "스토아: \"중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.\" (Enchiridion)\n\n명왕성이 7하우스(파트너십)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_356": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 8"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n명왕성이 8하우스(변환)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_357": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 9"
+    ],
+    "text": "스토아: \"환경이 사람을 만드는 것이 아니라, 그를 드러낸다.\" (Discourses)\n\n명왕성이 9하우스(철학)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_358": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 10"
+    ],
+    "text": "스토아: \"발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.\" (Enchiridion)\n\n명왕성이 10하우스(커리어)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_359": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 11"
+    ],
+    "text": "스토아: \"외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.\" (Enchiridion)\n\n명왕성이 11하우스(공동체)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_360": {
+    "when": [
+      "temperance",
+      "pluto",
+      "house 12"
+    ],
+    "text": "스토아: \"먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.\" (Discourses)\n\n명왕성이 12하우스(무의식)에서 Temperance를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_361": {
+    "when": [
+      "justice",
+      "sun",
+      "house 1"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n태양이 1하우스(자아)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_362": {
+    "when": [
+      "justice",
+      "sun",
+      "house 2"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n태양이 2하우스(가치)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_363": {
+    "when": [
+      "justice",
+      "sun",
+      "house 3"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n태양이 3하우스(소통)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_364": {
+    "when": [
+      "justice",
+      "sun",
+      "house 4"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n태양이 4하우스(가정)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_365": {
+    "when": [
+      "justice",
+      "sun",
+      "house 5"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n태양이 5하우스(창조)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_366": {
+    "when": [
+      "justice",
+      "sun",
+      "house 6"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n태양이 6하우스(일상)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_367": {
+    "when": [
+      "justice",
+      "sun",
+      "house 7"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n태양이 7하우스(파트너십)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_368": {
+    "when": [
+      "justice",
+      "sun",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n태양이 8하우스(변환)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_369": {
+    "when": [
+      "justice",
+      "sun",
+      "house 9"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n태양이 9하우스(철학)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_370": {
+    "when": [
+      "justice",
+      "sun",
+      "house 10"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n태양이 10하우스(커리어)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_371": {
+    "when": [
+      "justice",
+      "sun",
+      "house 11"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n태양이 11하우스(공동체)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_372": {
+    "when": [
+      "justice",
+      "sun",
+      "house 12"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n태양이 12하우스(무의식)에서 Justice를 요청. 이성의 불꽃",
+    "weight": 4
+  },
+  "rule_373": {
+    "when": [
+      "justice",
+      "moon",
+      "house 1"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n달이 1하우스(자아)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_374": {
+    "when": [
+      "justice",
+      "moon",
+      "house 2"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n달이 2하우스(가치)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_375": {
+    "when": [
+      "justice",
+      "moon",
+      "house 3"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n달이 3하우스(소통)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_376": {
+    "when": [
+      "justice",
+      "moon",
+      "house 4"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n달이 4하우스(가정)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_377": {
+    "when": [
+      "justice",
+      "moon",
+      "house 5"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n달이 5하우스(창조)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_378": {
+    "when": [
+      "justice",
+      "moon",
+      "house 6"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n달이 6하우스(일상)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_379": {
+    "when": [
+      "justice",
+      "moon",
+      "house 7"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n달이 7하우스(파트너십)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_380": {
+    "when": [
+      "justice",
+      "moon",
+      "house 8"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n달이 8하우스(변환)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_381": {
+    "when": [
+      "justice",
+      "moon",
+      "house 9"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n달이 9하우스(철학)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_382": {
+    "when": [
+      "justice",
+      "moon",
+      "house 10"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n달이 10하우스(커리어)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_383": {
+    "when": [
+      "justice",
+      "moon",
+      "house 11"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n달이 11하우스(공동체)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_384": {
+    "when": [
+      "justice",
+      "moon",
+      "house 12"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n달이 12하우스(무의식)에서 Justice를 요청. 감정 관찰",
+    "weight": 4
+  },
+  "rule_385": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 1"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n수성이 1하우스(자아)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_386": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 2"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n수성이 2하우스(가치)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_387": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 3"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n수성이 3하우스(소통)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_388": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 4"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n수성이 4하우스(가정)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_389": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 5"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n수성이 5하우스(창조)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_390": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 6"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n수성이 6하우스(일상)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_391": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 7"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n수성이 7하우스(파트너십)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_392": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 8"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n수성이 8하우스(변환)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_393": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 9"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n수성이 9하우스(철학)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_394": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n수성이 10하우스(커리어)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_395": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 11"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n수성이 11하우스(공동체)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_396": {
+    "when": [
+      "justice",
+      "mercury",
+      "house 12"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n수성이 12하우스(무의식)에서 Justice를 요청. 분별력",
+    "weight": 4
+  },
+  "rule_397": {
+    "when": [
+      "justice",
+      "venus",
+      "house 1"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n금성이 1하우스(자아)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_398": {
+    "when": [
+      "justice",
+      "venus",
+      "house 2"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n금성이 2하우스(가치)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_399": {
+    "when": [
+      "justice",
+      "venus",
+      "house 3"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n금성이 3하우스(소통)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_400": {
+    "when": [
+      "justice",
+      "venus",
+      "house 4"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n금성이 4하우스(가정)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_401": {
+    "when": [
+      "justice",
+      "venus",
+      "house 5"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n금성이 5하우스(창조)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_402": {
+    "when": [
+      "justice",
+      "venus",
+      "house 6"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n금성이 6하우스(일상)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_403": {
+    "when": [
+      "justice",
+      "venus",
+      "house 7"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n금성이 7하우스(파트너십)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_404": {
+    "when": [
+      "justice",
+      "venus",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n금성이 8하우스(변환)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_405": {
+    "when": [
+      "justice",
+      "venus",
+      "house 9"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n금성이 9하우스(철학)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_406": {
+    "when": [
+      "justice",
+      "venus",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n금성이 10하우스(커리어)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_407": {
+    "when": [
+      "justice",
+      "venus",
+      "house 11"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n금성이 11하우스(공동체)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_408": {
+    "when": [
+      "justice",
+      "venus",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n금성이 12하우스(무의식)에서 Justice를 요청. 내적 아름다움",
+    "weight": 4
+  },
+  "rule_409": {
+    "when": [
+      "justice",
+      "mars",
+      "house 1"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n화성이 1하우스(자아)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_410": {
+    "when": [
+      "justice",
+      "mars",
+      "house 2"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n화성이 2하우스(가치)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_411": {
+    "when": [
+      "justice",
+      "mars",
+      "house 3"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n화성이 3하우스(소통)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_412": {
+    "when": [
+      "justice",
+      "mars",
+      "house 4"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n화성이 4하우스(가정)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_413": {
+    "when": [
+      "justice",
+      "mars",
+      "house 5"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n화성이 5하우스(창조)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_414": {
+    "when": [
+      "justice",
+      "mars",
+      "house 6"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n화성이 6하우스(일상)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_415": {
+    "when": [
+      "justice",
+      "mars",
+      "house 7"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n화성이 7하우스(파트너십)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_416": {
+    "when": [
+      "justice",
+      "mars",
+      "house 8"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n화성이 8하우스(변환)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_417": {
+    "when": [
+      "justice",
+      "mars",
+      "house 9"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n화성이 9하우스(철학)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_418": {
+    "when": [
+      "justice",
+      "mars",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n화성이 10하우스(커리어)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_419": {
+    "when": [
+      "justice",
+      "mars",
+      "house 11"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n화성이 11하우스(공동체)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_420": {
+    "when": [
+      "justice",
+      "mars",
+      "house 12"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n화성이 12하우스(무의식)에서 Justice를 요청. 용기",
+    "weight": 4
+  },
+  "rule_421": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 1"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n목성이 1하우스(자아)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_422": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 2"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n목성이 2하우스(가치)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_423": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 3"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n목성이 3하우스(소통)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_424": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 4"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n목성이 4하우스(가정)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_425": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 5"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n목성이 5하우스(창조)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_426": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 6"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n목성이 6하우스(일상)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_427": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 7"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n목성이 7하우스(파트너십)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_428": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 8"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n목성이 8하우스(변환)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_429": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 9"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n목성이 9하우스(철학)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_430": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 10"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n목성이 10하우스(커리어)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_431": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 11"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n목성이 11하우스(공동체)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_432": {
+    "when": [
+      "justice",
+      "jupiter",
+      "house 12"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n목성이 12하우스(무의식)에서 Justice를 요청. 만족",
+    "weight": 4
+  },
+  "rule_433": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 1"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n토성이 1하우스(자아)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_434": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 2"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n토성이 2하우스(가치)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_435": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 3"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n토성이 3하우스(소통)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_436": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 4"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n토성이 4하우스(가정)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_437": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 5"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n토성이 5하우스(창조)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_438": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 6"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n토성이 6하우스(일상)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_439": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 7"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n토성이 7하우스(파트너십)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_440": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n토성이 8하우스(변환)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_441": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 9"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n토성이 9하우스(철학)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_442": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 10"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n토성이 10하우스(커리어)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_443": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 11"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n토성이 11하우스(공동체)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_444": {
+    "when": [
+      "justice",
+      "saturn",
+      "house 12"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n토성이 12하우스(무의식)에서 Justice를 요청. 메멘토 모리",
+    "weight": 4
+  },
+  "rule_445": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 1"
+    ],
+    "text": "스토아: \"사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.\" (Meditations)\n\n천왕성이 1하우스(자아)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_446": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 2"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n천왕성이 2하우스(가치)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_447": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 3"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n천왕성이 3하우스(소통)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_448": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 4"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n천왕성이 4하우스(가정)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_449": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 5"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n천왕성이 5하우스(창조)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_450": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 6"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n천왕성이 6하우스(일상)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_451": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 7"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n천왕성이 7하우스(파트너십)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_452": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 8"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n천왕성이 8하우스(변환)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_453": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 9"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n천왕성이 9하우스(철학)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_454": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n천왕성이 10하우스(커리어)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_455": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 11"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n천왕성이 11하우스(공동체)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_456": {
+    "when": [
+      "justice",
+      "uranus",
+      "house 12"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n천왕성이 12하우스(무의식)에서 Justice를 요청. 유연성",
+    "weight": 4
+  },
+  "rule_457": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 1"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n해왕성이 1하우스(자아)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_458": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 2"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n해왕성이 2하우스(가치)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_459": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 3"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n해왕성이 3하우스(소통)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_460": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 4"
+    ],
+    "text": "스토아: \"장애물이 곧 길이다.\" (Meditations)\n\n해왕성이 4하우스(가정)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_461": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 5"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n해왕성이 5하우스(창조)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_462": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 6"
+    ],
+    "text": "스토아: \"당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.\" (Meditations)\n\n해왕성이 6하우스(일상)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_463": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 7"
+    ],
+    "text": "스토아: \"운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.\" (Meditations)\n\n해왕성이 7하우스(파트너십)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_464": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 8"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n해왕성이 8하우스(변환)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_465": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 9"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n해왕성이 9하우스(철학)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_466": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 10"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n해왕성이 10하우스(커리어)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_467": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 11"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n해왕성이 11하우스(공동체)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_468": {
+    "when": [
+      "justice",
+      "neptune",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n해왕성이 12하우스(무의식)에서 Justice를 요청. 환상 경계",
+    "weight": 4
+  },
+  "rule_469": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 1"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n명왕성이 1하우스(자아)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_470": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 2"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n명왕성이 2하우스(가치)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_471": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 3"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n명왕성이 3하우스(소통)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_472": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 4"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n명왕성이 4하우스(가정)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_473": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 5"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n명왕성이 5하우스(창조)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_474": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 6"
+    ],
+    "text": "스토아: \"좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.\" (Meditations)\n\n명왕성이 6하우스(일상)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_475": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 7"
+    ],
+    "text": "스토아: \"아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.\" (Meditations)\n\n명왕성이 7하우스(파트너십)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_476": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 8"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n명왕성이 8하우스(변환)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_477": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 9"
+    ],
+    "text": "스토아: \"약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.\" (Meditations)\n\n명왕성이 9하우스(철학)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_478": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 10"
+    ],
+    "text": "스토아: \"삶의 행복은 생각의 질에 달려 있다.\" (Meditations)\n\n명왕성이 10하우스(커리어)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_479": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 11"
+    ],
+    "text": "스토아: \"삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.\" (Meditations)\n\n명왕성이 11하우스(공동체)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  },
+  "rule_480": {
+    "when": [
+      "justice",
+      "pluto",
+      "house 12"
+    ],
+    "text": "스토아: \"행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.\" (Meditations)\n\n명왕성이 12하우스(무의식)에서 Justice를 요청. 변화 수용",
+    "weight": 4
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "composite/placements",
+  "$count": 240,
+  "$description": "합성 차트 행성 배치 해석 - 관계의 본질",
+
+  "overview": {
+    "name_ko": "합성 차트 (컴포짓 차트)",
+    "name_en": "Composite Chart",
+    "principle": "두 사람의 같은 행성 위치의 중간점으로 만든 가상의 차트",
+    "significance": "두 사람이 함께 있을 때 만들어지는 제3의 에너지, 관계 자체의 차트",
+    "key_points": [
+      "관계의 목적과 본질을 보여줌",
+      "함께 경험하는 삶의 영역",
+      "관계의 강점과 도전",
+      "시너스트리와 함께 사용하면 완전한 그림"
+    ]
+  },
+
+  "composite_sun_in_house": {
+    "1": {
+      "relationship_essence": "정체성 중심의 관계",
+      "theme": "이 관계는 두 사람 모두의 정체성 형성에 중심적입니다.",
+      "experience": "함께 있을 때 서로가 더 '자기 자신'이 됩니다.",
+      "gift": "상호 자아 발견, 개인 성장 촉진",
+      "challenge": "자기중심성, 경쟁"
+    },
+    "2": {
+      "relationship_essence": "가치와 자원 중심의 관계",
+      "theme": "물질적 안정과 가치 공유가 관계의 핵심입니다.",
+      "experience": "함께 자원을 축적하고 가치를 공유합니다.",
+      "gift": "재정적 협력, 공유된 가치관",
+      "challenge": "물질적 이슈, 소유욕"
+    },
+    "3": {
+      "relationship_essence": "소통 중심의 관계",
+      "theme": "대화와 지적 교류가 관계의 생명선입니다.",
+      "experience": "끊임없이 대화하고 아이디어를 나눕니다.",
+      "gift": "뛰어난 소통, 지적 자극",
+      "challenge": "피상적일 수 있음, 감정적 깊이 부족"
+    },
+    "4": {
+      "relationship_essence": "가정 중심의 관계",
+      "theme": "함께 '집'을 만드는 것이 관계의 목적입니다.",
+      "experience": "정서적 안전과 가정이 중심입니다.",
+      "gift": "깊은 정서적 유대, 가정 형성",
+      "challenge": "가족 이슈, 과거 집착"
+    },
+    "5": {
+      "relationship_essence": "창조와 기쁨의 관계",
+      "theme": "즐거움, 창조성, 로맨스가 관계의 핵심입니다.",
+      "experience": "함께 있으면 즐겁고 창조적입니다.",
+      "gift": "기쁨, 놀이, 창조적 협력",
+      "challenge": "진지함 부족, 쾌락 추구"
+    },
+    "6": {
+      "relationship_essence": "봉사와 일상의 관계",
+      "theme": "함께 일하고 서로를 돌보는 관계입니다.",
+      "experience": "일상을 공유하고 서로의 건강을 돌봅니다.",
+      "gift": "실용적 협력, 상호 돌봄",
+      "challenge": "비판, 일 중심적"
+    },
+    "7": {
+      "relationship_essence": "파트너십 자체가 목적",
+      "theme": "이상적인 파트너십 위치. 관계 자체가 삶의 중심입니다.",
+      "experience": "함께 있는 것 자체가 완성감을 줍니다.",
+      "gift": "균형, 조화, 진정한 파트너십",
+      "challenge": "서로에게 과도한 의존"
+    },
+    "8": {
+      "relationship_essence": "변형과 깊이의 관계",
+      "theme": "깊은 친밀감과 변형이 관계의 핵심입니다.",
+      "experience": "함께 있으면 서로가 변합니다.",
+      "gift": "깊은 친밀감, 상호 변형",
+      "challenge": "권력 투쟁, 집착"
+    },
+    "9": {
+      "relationship_essence": "확장과 탐험의 관계",
+      "theme": "함께 성장하고 세계를 탐험하는 관계입니다.",
+      "experience": "여행, 학습, 철학적 탐구를 함께합니다.",
+      "gift": "상호 성장, 시야 확장",
+      "challenge": "안주하지 못함, 책임 회피"
+    },
+    "10": {
+      "relationship_essence": "사회적 목적의 관계",
+      "theme": "사회에서 함께 성취하는 것이 관계의 목적입니다.",
+      "experience": "함께 커리어나 사회적 목표를 추구합니다.",
+      "gift": "공동 성취, 사회적 인정",
+      "challenge": "일-관계 불균형"
+    },
+    "11": {
+      "relationship_essence": "우정과 비전의 관계",
+      "theme": "친구로서 비전을 공유하는 관계입니다.",
+      "experience": "깊은 우정과 공유된 이상이 있습니다.",
+      "gift": "진정한 우정, 공유된 비전",
+      "challenge": "감정적 거리감"
+    },
+    "12": {
+      "relationship_essence": "영적/카르마적 관계",
+      "theme": "깊은 영적 연결 또는 카르마적 목적이 있습니다.",
+      "experience": "말없이 통하는 깊은 연결.",
+      "gift": "영적 유대, 무조건적 사랑",
+      "challenge": "숨겨진 이슈, 명확성 부족"
+    }
+  },
+
+  "composite_moon_in_house": {
+    "1": {"emotional_style": "감정을 개방적으로 표현하는 관계"},
+    "2": {"emotional_style": "안정감과 편안함을 추구하는 관계"},
+    "3": {"emotional_style": "감정을 말로 표현하는 관계"},
+    "4": {"emotional_style": "깊은 정서적 유대와 가정 중심"},
+    "5": {"emotional_style": "기쁨과 놀이가 감정적 충족을 줌"},
+    "6": {"emotional_style": "일상적 돌봄으로 감정을 표현"},
+    "7": {"emotional_style": "관계 자체에서 감정적 충족"},
+    "8": {"emotional_style": "깊고 강렬한 감정적 연결"},
+    "9": {"emotional_style": "모험과 탐험에서 감정적 충족"},
+    "10": {"emotional_style": "공동 목표에서 감정적 연결"},
+    "11": {"emotional_style": "우정 속에서 감정적 안전"},
+    "12": {"emotional_style": "말없이 느끼는 깊은 감정적 유대"}
+  },
+
+  "composite_venus_in_house": {
+    "1": {"love_expression": "서로에게 끌림이 눈에 띄게 드러남"},
+    "2": {"love_expression": "물질적 것을 공유하며 사랑 표현"},
+    "3": {"love_expression": "대화와 소통이 사랑의 언어"},
+    "4": {"love_expression": "가정에서 사랑을 키움"},
+    "5": {"love_expression": "로맨틱하고 놀이 가득한 사랑"},
+    "6": {"love_expression": "일상적 봉사로 사랑 표현"},
+    "7": {"love_expression": "이상적인 파트너십 위치"},
+    "8": {"love_expression": "깊고 열정적인 사랑"},
+    "9": {"love_expression": "함께 성장하며 사랑 키움"},
+    "10": {"love_expression": "공적으로 인정받는 관계"},
+    "11": {"love_expression": "친구로서의 사랑, 자유로운 관계"},
+    "12": {"love_expression": "숨겨진 깊은 사랑"}
+  },
+
+  "composite_mars_in_house": {
+    "1": {"energy_dynamic": "활동적이고 에너지 넘치는 관계"},
+    "2": {"energy_dynamic": "자원 확보를 위해 함께 행동"},
+    "3": {"energy_dynamic": "열정적인 대화와 논쟁"},
+    "4": {"energy_dynamic": "가정 내에서 에너지 집중"},
+    "5": {"energy_dynamic": "함께 놀고 경쟁하는 관계"},
+    "6": {"energy_dynamic": "함께 일하고 건강 관리"},
+    "7": {"energy_dynamic": "관계 내 갈등 가능성, 열정"},
+    "8": {"energy_dynamic": "강렬한 성적 에너지"},
+    "9": {"energy_dynamic": "모험과 탐험에 에너지 투입"},
+    "10": {"energy_dynamic": "목표를 향해 함께 행동"},
+    "11": {"energy_dynamic": "사회적 활동에 에너지"},
+    "12": {"energy_dynamic": "숨겨진 에너지, 영적 활동"}
+  },
+
+  "composite_saturn_in_house": {
+    "1": {"structure": "관계의 구조와 책임이 명확함"},
+    "2": {"structure": "재정적 책임과 안정 추구"},
+    "3": {"structure": "소통에 제한 또는 진지함"},
+    "4": {"structure": "가정에 대한 책임감"},
+    "5": {"structure": "즐거움에 제한, 진지한 창조"},
+    "6": {"structure": "일과 건강에 대한 공동 책임"},
+    "7": {"structure": "파트너십에 대한 진지한 약속"},
+    "8": {"structure": "깊은 헌신과 공유 자원의 책임"},
+    "9": {"structure": "공유된 신념과 성장의 책임"},
+    "10": {"structure": "사회적 목표에 대한 공동 책임"},
+    "11": {"structure": "우정과 그룹 내 책임"},
+    "12": {"structure": "카르마적 책임, 영적 의무"}
+  }
+}

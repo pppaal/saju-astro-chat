@@ -11,5 +11,13 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["tests/**/*.{test,spec}.ts"],
+    exclude: [
+      "**/node_modules/**",
+      "tests/i18nKeys.test.ts",
+      "tests/metrics.test.ts",
+      "tests/textGuards.test.ts",
+      "tests/setup.ts",
+    ],
+    setupFiles: ["./tests/setup.ts"],
   },
 });

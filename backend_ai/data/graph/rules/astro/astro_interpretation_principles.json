@@ -1,0 +1,516 @@
+{
+  "$schema": "astro_interpretation_principles_v1",
+  "$description": "점성술 해석 원칙 - 무한한 질문에 깊이 있는 맞춤 답변을 위한 프레임워크",
+
+  "planet_interpretation_matrix": {
+    "$description": "행성별 상황 맥락 해석 원칙",
+
+    "sun": {
+      "archetype": "자아/정체성/의지/빛",
+      "core_energy": "핵심 자아, 생명력, 창조성, 영웅의 여정",
+      "when_career": {
+        "strong": "리더십, 창조적 직업, 무대 중심, 자기 표현",
+        "weak": "자신감 부족, 방향 상실, 인정 갈망",
+        "advice": "진정한 나를 표현할 수 있는 일을 찾아라",
+        "suitable_roles": ["CEO", "예술가", "배우", "정치인", "기업가"]
+      },
+      "when_relationship": {
+        "theme": "빛나고 싶은 욕구, 인정받고 싶음",
+        "challenge": "자기중심적, 상대의 빛을 가림",
+        "advice": "파트너도 빛날 수 있게 공간을 줘라"
+      },
+      "when_health": {
+        "body_part": "심장, 척추, 순환계",
+        "pattern": "생명력, 활력, 자아 표현과 연결",
+        "advice": "자기를 표현하지 못하면 심장이 아프다"
+      },
+      "transit_meaning": "정체성 재정의, 새로운 시작, 각성",
+      "therapeutic_insight": "태양은 '진정한 나'의 상징. 태양이 억압되면 삶의 의미를 잃는다."
+    },
+
+    "moon": {
+      "archetype": "감정/무의식/어머니/내면 아이",
+      "core_energy": "정서적 필요, 안전감, 본능, 과거",
+      "when_career": {
+        "strong": "돌봄, 음식, 가정, 감정 노동, 대중 상대",
+        "weak": "감정 기복, 안정 욕구로 변화 거부",
+        "advice": "감정적 만족이 커리어 성공의 기반",
+        "suitable_roles": ["요리사", "간호사", "심리상담사", "호텔리어", "육아 전문가"]
+      },
+      "when_relationship": {
+        "theme": "정서적 친밀감, 안전감, 돌봄",
+        "challenge": "의존성, 감정적 반응성, 퇴행",
+        "advice": "파트너에게서 어머니/아버지를 찾지 마라"
+      },
+      "when_health": {
+        "body_part": "위장, 유방, 체액, 림프",
+        "pattern": "감정이 소화와 연결, 스트레스성 위장 장애",
+        "advice": "감정을 소화하지 못하면 음식도 소화 못한다"
+      },
+      "transit_meaning": "감정적 전환, 과거 청산, 안전감 재설정",
+      "therapeutic_insight": "달은 어머니 콤플렉스의 핵심. 어머니와의 관계가 모든 친밀 관계의 원형."
+    },
+
+    "mercury": {
+      "archetype": "소통/지성/연결/트릭스터",
+      "core_energy": "사고, 학습, 의사소통, 이동",
+      "when_career": {
+        "strong": "글쓰기, 교육, 판매, 중개, 언론, IT",
+        "weak": "소통 어려움, 우유부단, 정보 과부하",
+        "advice": "생각을 말과 글로 표현하는 것이 힘이다",
+        "suitable_roles": ["작가", "기자", "교사", "마케터", "프로그래머", "통역사"]
+      },
+      "when_relationship": {
+        "theme": "지적 교류, 대화, 이해",
+        "challenge": "머리로만 연결, 감정 회피, 분석 마비",
+        "advice": "말하는 것보다 듣는 것이 소통의 시작"
+      },
+      "when_health": {
+        "body_part": "신경계, 손, 폐, 호흡기",
+        "pattern": "과도한 생각이 신경 소모로 연결",
+        "advice": "생각의 속도를 늦춰라"
+      },
+      "retrograde_meaning": "재검토, 재소통, 과거 연결 복구",
+      "therapeutic_insight": "수성 역행은 '다시 생각하라'는 우주의 신호. 서두르지 마라."
+    },
+
+    "venus": {
+      "archetype": "사랑/아름다움/가치/쾌락",
+      "core_energy": "관계, 조화, 심미적 감각, 자기 가치",
+      "when_career": {
+        "strong": "예술, 패션, 뷰티, 외교, 금융, 럭셔리",
+        "weak": "자기 가치 낮음, 돈에 대한 불안",
+        "advice": "아름다움을 창조하거나 중개하는 일",
+        "suitable_roles": ["디자이너", "아티스트", "외교관", "금융인", "뷰티 전문가"]
+      },
+      "when_relationship": {
+        "theme": "사랑, 매력, 조화, 파트너십",
+        "primary_focus": true,
+        "challenge": "의존, 허영, 표면적 매력에 집착",
+        "advice": "사랑받기 전에 스스로를 사랑하라"
+      },
+      "when_money": {
+        "theme": "자기 가치가 수입에 반영됨",
+        "pattern": "금성이 강하면 돈이 자연스럽게 들어옴",
+        "advice": "자신의 가치를 알아야 그만큼 받는다"
+      },
+      "when_health": {
+        "body_part": "신장, 요추, 목, 피부",
+        "pattern": "관계 스트레스가 신장으로",
+        "advice": "아름다움을 즐기는 것이 건강이다"
+      },
+      "therapeutic_insight": "금성은 자기 가치감의 핵심. 사랑받지 못한다고 느끼면 금성이 아프다."
+    },
+
+    "mars": {
+      "archetype": "행동/욕망/전투/분노",
+      "core_energy": "추진력, 성욕, 경쟁, 용기",
+      "when_career": {
+        "strong": "경쟁, 스포츠, 군/경/검, 수술, 기계",
+        "weak": "수동적, 행동력 부족, 좌절된 분노",
+        "advice": "에너지를 건설적으로 사용하라",
+        "suitable_roles": ["운동선수", "군인", "외과의사", "엔지니어", "기업가"]
+      },
+      "when_relationship": {
+        "theme": "열정, 성적 에너지, 추구",
+        "challenge": "공격성, 싸움, 성급함",
+        "advice": "분노는 표현하되 파괴하지 마라"
+      },
+      "when_health": {
+        "body_part": "근육, 혈액, 두부, 부신",
+        "pattern": "억압된 분노가 두통, 고혈압으로",
+        "advice": "분노를 움직임으로 방출하라"
+      },
+      "transit_meaning": "행동 촉발, 갈등, 새로운 시작을 위한 에너지",
+      "therapeutic_insight": "화성은 '내가 원하는 것을 위해 싸울 수 있는가?'의 질문. 건강한 공격성이 필요하다."
+    },
+
+    "jupiter": {
+      "archetype": "확장/행운/의미/현자",
+      "core_energy": "성장, 풍요, 지혜, 낙관, 믿음",
+      "when_career": {
+        "strong": "교육, 법률, 종교, 철학, 출판, 국제 업무",
+        "weak": "과잉 확장, 과대망상, 무책임",
+        "advice": "비전을 현실로 만드는 것이 과제",
+        "suitable_roles": ["교수", "판사", "성직자", "출판인", "철학자", "해외 사업가"]
+      },
+      "when_relationship": {
+        "theme": "성장, 공유된 비전, 모험",
+        "challenge": "자유 추구로 헌신 어려움, 과장",
+        "advice": "관계 안에서도 성장할 수 있다"
+      },
+      "when_money": {
+        "theme": "풍요 의식, 기회 포착",
+        "pattern": "목성이 강하면 기회가 찾아옴",
+        "advice": "기회가 왔을 때 잡아라, 영원하지 않다"
+      },
+      "when_health": {
+        "body_part": "간, 대퇴부, 엉덩이",
+        "pattern": "과잉이 간에 부담",
+        "advice": "좋은 것도 과하면 독이다"
+      },
+      "transit_meaning": "행운의 기회, 확장, 성장의 문이 열림",
+      "therapeutic_insight": "목성은 삶의 의미를 찾는 욕구. 의미가 없으면 아무리 많아도 공허하다."
+    },
+
+    "saturn": {
+      "archetype": "한계/책임/시간/아버지",
+      "core_energy": "구조, 규율, 성숙, 카르마",
+      "when_career": {
+        "strong": "관리, 조직, 건축, 정치, 전통 분야",
+        "weak": "두려움으로 인한 제약, 과도한 책임감",
+        "advice": "천천히 가되 멈추지 마라",
+        "suitable_roles": ["CEO", "건축가", "정치인", "공무원", "엔지니어", "역사학자"]
+      },
+      "when_relationship": {
+        "theme": "헌신, 책임, 장기적 관계",
+        "challenge": "냉담, 거리감, 두려움",
+        "advice": "사랑에도 시간과 노력이 필요하다"
+      },
+      "when_health": {
+        "body_part": "뼈, 관절, 피부, 치아",
+        "pattern": "만성 질환, 노화 관련 문제",
+        "advice": "지름길은 없다, 꾸준한 관리가 답이다"
+      },
+      "return_meaning": {
+        "age_29_30": "첫 번째 성인기 진입, 진정한 책임의 시작",
+        "age_58_60": "두 번째 지혜기 진입, 인생 총결산"
+      },
+      "transit_meaning": "시험, 구조 재정비, 성숙의 압력",
+      "therapeutic_insight": "토성은 아버지 콤플렉스의 핵심. 권위와의 관계를 치유해야 자기 권위가 선다."
+    },
+
+    "uranus": {
+      "archetype": "해방/혁명/개성/각성",
+      "core_energy": "자유, 독창성, 돌파, 불예측",
+      "when_career": {
+        "strong": "기술, 혁신, 과학, 점성술, 사회 운동",
+        "weak": "불안정, 갑작스러운 변화, 적응 어려움",
+        "advice": "평범함을 거부하라, 그것이 당신의 힘이다",
+        "suitable_roles": ["과학자", "발명가", "IT 전문가", "사회 운동가", "점성술사"]
+      },
+      "when_relationship": {
+        "theme": "자유, 독립, 비전통적 관계",
+        "challenge": "헌신 어려움, 갑작스러운 이별",
+        "advice": "자유와 친밀감의 균형을 찾아라"
+      },
+      "when_health": {
+        "body_part": "신경계, 발목, 전기적 임펄스",
+        "pattern": "갑작스러운 증상, 신경 관련",
+        "advice": "예상치 못한 것에 대비하라"
+      },
+      "opposition_meaning": {
+        "age_40_42": "중년 위기, 억압된 자기 해방"
+      },
+      "transit_meaning": "갑작스러운 변화, 해방, 각성",
+      "therapeutic_insight": "천왕성은 '진정한 나'로 돌아오라는 부름. 사회적 기대를 넘어서라."
+    },
+
+    "neptune": {
+      "archetype": "꿈/환상/영성/용해",
+      "core_energy": "직관, 상상력, 초월, 연민",
+      "when_career": {
+        "strong": "예술, 음악, 영화, 영성, 치유, 봉사",
+        "weak": "현실 회피, 중독, 자기기만",
+        "advice": "꿈을 현실에 정착시키는 것이 과제",
+        "suitable_roles": ["음악가", "영화감독", "시인", "영적 치유사", "간호사", "사회복지사"]
+      },
+      "when_relationship": {
+        "theme": "영혼의 연결, 무조건적 사랑",
+        "challenge": "이상화, 환멸, 희생자/구원자 역할",
+        "advice": "인간을 사랑하되 신으로 만들지 마라"
+      },
+      "when_health": {
+        "body_part": "림프계, 발, 송과선",
+        "pattern": "미스터리한 증상, 약물 민감성",
+        "advice": "경계가 건강의 시작이다"
+      },
+      "transit_meaning": "환상과 현실의 경계 용해, 영적 각성 또는 혼란",
+      "therapeutic_insight": "해왕성은 '모든 것은 연결되어 있다'를 깨닫게 하나, 경계 상실의 위험도 있다."
+    },
+
+    "pluto": {
+      "archetype": "변형/죽음과 재생/권력/그림자",
+      "core_energy": "심층 변화, 파괴와 재건, 강박",
+      "when_career": {
+        "strong": "심리학, 조사, 금융권력, 의료, 장례",
+        "weak": "권력 투쟁, 집착, 파괴적 행동",
+        "advice": "권력을 위한 권력이 아닌 변형을 위한 권력",
+        "suitable_roles": ["심리치료사", "형사", "외과의사", "투자가", "위기관리 전문가"]
+      },
+      "when_relationship": {
+        "theme": "심층적 결합, 변형적 관계",
+        "challenge": "집착, 질투, 권력 게임, 독점",
+        "advice": "소유하려 하면 잃는다. 놓아줘야 변형된다"
+      },
+      "when_health": {
+        "body_part": "생식기, 배설계, 재생 기관",
+        "pattern": "깊은 치유 또는 중증 질환",
+        "advice": "가장 어두운 곳에서 가장 큰 치유가 일어난다"
+      },
+      "transit_meaning": "근본적 변형, 죽음과 재생, 그림자 직면",
+      "therapeutic_insight": "명왕성은 그림자의 신. 회피하면 투사되고, 직면하면 권능이 된다."
+    },
+
+    "chiron": {
+      "archetype": "상처받은 치유자",
+      "core_energy": "핵심 상처, 치유의 여정, 가르침",
+      "when_career": {
+        "theme": "상처가 직업이 된다",
+        "advice": "당신의 상처가 다른 이를 치유하는 약이 된다",
+        "suitable_roles": ["치료사", "상담사", "교사", "멘토", "치유자"]
+      },
+      "when_relationship": {
+        "theme": "상처 패턴의 반복 또는 치유",
+        "advice": "관계는 상처를 드러내는 거울"
+      },
+      "when_health": {
+        "pattern": "치유되지 않는 만성 문제가 가르침이 됨"
+      },
+      "return_meaning": {
+        "age_50_51": "상처를 선물로 전환하는 시기"
+      },
+      "therapeutic_insight": "키론은 '완전한 치유는 불가능하나, 상처와 함께 사는 지혜를 얻는다'를 가르친다."
+    }
+  },
+
+  "house_interpretation_matrix": {
+    "$description": "하우스별 상황 맥락 해석 원칙",
+
+    "1st_house": {
+      "theme": "자아, 외모, 첫인상, 몸",
+      "when_career": "개인 브랜딩, 자기 표현, 이미지 관련",
+      "when_relationship": "자기 표현이 관계에 어떤 영향",
+      "when_health": "신체 전반, 활력, 외모",
+      "therapeutic_theme": "페르소나 vs 진정한 자아"
+    },
+    "2nd_house": {
+      "theme": "자원, 재물, 자기 가치, 소유",
+      "when_career": "수입, 재정적 성공, 자기 가치 실현",
+      "when_money": "돈을 벌고 쓰는 방식, 가치관",
+      "when_relationship": "물질적 안정이 관계에 미치는 영향",
+      "therapeutic_theme": "자기 가치감, 소유로 정체성 증명"
+    },
+    "3rd_house": {
+      "theme": "소통, 학습, 형제, 단거리 이동",
+      "when_career": "글쓰기, 교육, 마케팅, 세일즈",
+      "when_relationship": "일상적 소통 방식",
+      "therapeutic_theme": "어떻게 생각하고 표현하는가"
+    },
+    "4th_house": {
+      "theme": "가정, 뿌리, 어머니, 정서적 기반",
+      "when_career": "재택 근무, 부동산, 가정 관련",
+      "when_relationship": "가족 패턴이 관계에 미치는 영향",
+      "when_family": "가정 환경, 부모와의 관계",
+      "therapeutic_theme": "어머니 콤플렉스, 정서적 안전감의 뿌리"
+    },
+    "5th_house": {
+      "theme": "창조성, 로맨스, 자녀, 즐거움",
+      "when_career": "창조적 직업, 엔터테인먼트, 교육",
+      "when_relationship": "연애 스타일, 초기 로맨스",
+      "when_children": "자녀와의 관계, 창조적 산물",
+      "therapeutic_theme": "내면 아이, 순수한 자기 표현"
+    },
+    "6th_house": {
+      "theme": "건강, 일상, 봉사, 습관",
+      "when_career": "일상 업무, 직장 환경, 동료 관계",
+      "when_health": "일상 건강 관리, 질병 패턴",
+      "therapeutic_theme": "완벽주의, 신체화, 몸-마음 연결"
+    },
+    "7th_house": {
+      "theme": "파트너십, 결혼, 계약, 적",
+      "when_career": "파트너십, 계약, 협상",
+      "when_relationship": "결혼, 장기 파트너십, 관계 패턴",
+      "therapeutic_theme": "아니마/아니무스 투사, 그림자 투사"
+    },
+    "8th_house": {
+      "theme": "변형, 죽음/재생, 공유 자원, 심층 심리",
+      "when_career": "타인의 돈/자원 관리, 심리학, 조사",
+      "when_money": "상속, 투자, 부채, 공유 재정",
+      "when_relationship": "심층적 친밀감, 성, 신뢰",
+      "therapeutic_theme": "그림자, 트라우마, 변형의 과정"
+    },
+    "9th_house": {
+      "theme": "철학, 여행, 고등교육, 신앙",
+      "when_career": "학문, 법률, 출판, 해외, 종교",
+      "when_relationship": "공유된 믿음과 가치관",
+      "therapeutic_theme": "삶의 의미, 더 큰 그림"
+    },
+    "10th_house": {
+      "theme": "경력, 명성, 사회적 지위, 아버지",
+      "when_career": "직업적 성취, 사회적 인정, 리더십",
+      "when_relationship": "커리어가 관계에 미치는 영향",
+      "therapeutic_theme": "아버지 콤플렉스, 사회적 정체성"
+    },
+    "11th_house": {
+      "theme": "친구, 그룹, 희망, 사회적 이상",
+      "when_career": "네트워킹, 그룹 프로젝트, 사회 운동",
+      "when_relationship": "우정이 사랑으로, 공동체 내 관계",
+      "therapeutic_theme": "소속감, 집단과의 연결"
+    },
+    "12th_house": {
+      "theme": "무의식, 고립, 영성, 자기 파괴",
+      "when_career": "은둔 작업, 영적 직업, 병원/감옥 관련",
+      "when_relationship": "숨겨진 관계, 카르마적 연결",
+      "when_health": "만성 질환, 정신 건강, 중독",
+      "therapeutic_theme": "개인 무의식, 자기 파괴 패턴, 영적 각성"
+    }
+  },
+
+  "aspect_interpretation_principles": {
+    "$description": "애스펙트 해석 원칙",
+
+    "conjunction": {
+      "meaning": "융합, 에너지 증폭",
+      "interpretation": "두 행성 에너지가 하나로 합쳐짐. 긍정/부정 모두 강화",
+      "when_harmonious": "강력한 시너지, 집중된 힘",
+      "when_challenging": "에너지 과잉, 구분 어려움",
+      "therapeutic_approach": "이 두 에너지를 어떻게 통합할 것인가?"
+    },
+    "opposition": {
+      "meaning": "대립, 투사, 균형의 필요",
+      "interpretation": "두 에너지가 팽팽히 맞섬. 외부에 투사되기 쉬움",
+      "when_harmonious": "보완, 균형, 완전성",
+      "when_challenging": "갈등, 시소 관계, 양자택일 강요",
+      "therapeutic_approach": "반대편에서 무엇을 보는가? 그것이 당신의 그림자"
+    },
+    "square": {
+      "meaning": "긴장, 내적 갈등, 성장 압력",
+      "interpretation": "두 에너지가 90도로 마찰. 행동을 강제함",
+      "when_harmonious": "동기 부여, 성취, 극복",
+      "when_challenging": "좌절, 장애물, 내적 갈등",
+      "therapeutic_approach": "이 긴장이 당신을 어디로 밀고 있는가?"
+    },
+    "trine": {
+      "meaning": "조화, 자연스러운 흐름, 재능",
+      "interpretation": "두 에너지가 120도로 조화. 노력 없이 흐름",
+      "strength": "타고난 재능, 쉬운 성공",
+      "weakness": "당연시하여 개발 안 함, 게으름",
+      "therapeutic_approach": "이 재능을 어떻게 활용하고 있는가?"
+    },
+    "sextile": {
+      "meaning": "기회, 잠재력, 협력",
+      "interpretation": "두 에너지가 60도로 기회 제공. 노력 필요",
+      "interpretation_note": "트라인보다 약하지만, 노력하면 활성화됨",
+      "therapeutic_approach": "이 기회를 잡기 위해 무엇을 하고 있는가?"
+    }
+  },
+
+  "transit_interpretation_principles": {
+    "$description": "트랜짓 해석 원칙",
+
+    "inner_planet_transits": {
+      "duration": "짧음 (며칠~몇 주)",
+      "impact": "일상적 변화, 기분, 단기 이벤트",
+      "interpretation_weight": "가벼움, 그러나 누적 효과 있음"
+    },
+    "social_planet_transits": {
+      "planets": ["jupiter", "saturn"],
+      "duration": "중간 (몇 개월~1-2년)",
+      "impact": "사회적 역할, 구조 변화, 성장/제한",
+      "interpretation_weight": "중요한 인생 전환점 형성"
+    },
+    "outer_planet_transits": {
+      "planets": ["uranus", "neptune", "pluto"],
+      "duration": "김 (몇 년)",
+      "impact": "근본적 변형, 세대적 영향, 존재적 변화",
+      "interpretation_weight": "삶을 바꾸는 전환점"
+    },
+    "return_cycles": {
+      "saturn_return": {
+        "timing": "29-30세, 58-60세",
+        "theme": "성숙, 책임, 아버지 콤플렉스 직면",
+        "advice": "진짜 어른이 되는 통과의례"
+      },
+      "jupiter_return": {
+        "timing": "매 12년",
+        "theme": "확장, 기회, 철학적 성장",
+        "advice": "비전을 재점검하라"
+      },
+      "chiron_return": {
+        "timing": "50-51세",
+        "theme": "상처가 지혜가 되는 시기",
+        "advice": "상처받은 치유자로 거듭나라"
+      },
+      "uranus_opposition": {
+        "timing": "40-42세",
+        "theme": "중년 위기, 개성화 압력",
+        "advice": "억압된 자기를 해방하라"
+      }
+    },
+    "eclipse_interpretation": {
+      "theme": "시작과 끝, 운명적 전환점",
+      "solar_eclipse": "새로운 시작, 에고 재탄생",
+      "lunar_eclipse": "감정적 정화, 과거 청산",
+      "advice": "이클립스 근처의 결정은 장기적 영향"
+    }
+  },
+
+  "question_type_routing": {
+    "$description": "질문 유형별 해석 우선순위",
+
+    "career_question": {
+      "primary_focus": ["10th_house", "MC", "saturn", "jupiter", "sun"],
+      "secondary_focus": ["6th_house", "2nd_house", "mars"],
+      "transit_focus": ["saturn_transit_10th", "jupiter_transit_10th"],
+      "therapeutic_angle": "직업은 당신이 세상에 기여하는 방식. 무엇을 남기고 싶은가?"
+    },
+    "relationship_question": {
+      "primary_focus": ["7th_house", "venus", "moon", "descendant"],
+      "secondary_focus": ["5th_house", "8th_house", "mars"],
+      "transit_focus": ["venus_transit", "jupiter_transit_7th"],
+      "therapeutic_angle": "관계는 자기 자신을 비추는 거울. 파트너에게서 무엇을 보는가?"
+    },
+    "money_question": {
+      "primary_focus": ["2nd_house", "8th_house", "venus", "jupiter"],
+      "secondary_focus": ["10th_house", "6th_house"],
+      "transit_focus": ["jupiter_transit_2nd", "saturn_transit_2nd"],
+      "therapeutic_angle": "돈은 가치의 물질적 표현. 자신을 얼마나 가치있게 여기는가?"
+    },
+    "health_question": {
+      "primary_focus": ["6th_house", "ASC", "sun", "moon"],
+      "secondary_focus": ["8th_house", "12th_house"],
+      "transit_focus": ["saturn_transit", "pluto_transit"],
+      "therapeutic_angle": "몸은 마음의 메신저. 어디가 아픈가는 무엇을 말하는가?"
+    },
+    "life_direction_question": {
+      "primary_focus": ["north_node", "sun", "MC", "jupiter"],
+      "secondary_focus": ["saturn", "pluto", "chiron"],
+      "transit_focus": ["outer_planet_transits"],
+      "therapeutic_angle": "삶의 방향은 당신이 되어가는 존재. 노스 노드가 가리키는 곳은?"
+    },
+    "timing_question": {
+      "primary_focus": ["transits", "progressions", "returns"],
+      "analysis": "적절한 시기는 에너지의 흐름을 읽는 것",
+      "therapeutic_angle": "우주적 타이밍을 따르되, 결정은 당신의 것"
+    }
+  },
+
+  "llm_synthesis_guidelines": {
+    "$description": "LLM이 해석을 종합할 때 따라야 할 원칙",
+
+    "interpretation_layers": [
+      "1. 차트 핵심 파악: 태양/달/상승점 + 지배성 행성",
+      "2. 질문 관련 하우스 및 행성 분석",
+      "3. 현재 트랜짓/프로그레션 영향 분석",
+      "4. 생애 주기 (토성 리턴 등) 맥락 고려",
+      "5. 통합 스토리텔링: 원형적 여정으로 해석"
+    ],
+    "tone_guidelines": {
+      "empowering": "별이 강제하지 않고, 경향성을 보여줄 뿐",
+      "nuanced": "같은 배치도 맥락에 따라 다르게 발현",
+      "practical": "추상적 상징을 실생활 조언으로 연결",
+      "hopeful": "어려운 배치도 성장의 기회로 프레이밍"
+    },
+    "avoid": [
+      "운명론적 단정 (반드시 ~할 것이다)",
+      "공포 유발 (명왕성이니 재앙이다)",
+      "과도한 일반화 (물고기자리는 다 ~하다)",
+      "책임 회피 (별 탓이니 어쩔 수 없다)"
+    ],
+    "integration_with_other_systems": {
+      "with_saju": "태양 = 일간, 달 = 감정/본능, 상승점 = 페르소나",
+      "with_jung": "행성 = 원형, 하우스 = 삶의 영역, 애스펙트 = 내적 역동"
+    }
+  }
+}

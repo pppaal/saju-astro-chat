@@ -1,110 +1,183 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
-import ServicePageLayout from "@/components/ui/ServicePageLayout";
+import BackButton from "@/components/ui/BackButton";
+import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import styles from "./tarot-home.module.css";
 
-const topics = [
-  {
-    id: "general-insight",
+// 테마별 아이콘과 그라데이션
+const themeStyles: Record<string, { icon: string; gradient: string }> = {
+  "general-insight": {
     icon: "🔮",
-    titleKey: "tarot.topics.generalInsight",
-    titleDefault: "General Insight",
-    descKey: "tarot.topics.generalInsightDesc",
-    descDefault: "Explore the overall energy surrounding you.",
     gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
   },
-  {
-    id: "love-relationships",
+  "love-relationships": {
     icon: "💕",
-    titleKey: "tarot.topics.loveRelationships",
-    titleDefault: "Love & Relationships",
-    descKey: "tarot.topics.loveRelationshipsDesc",
-    descDefault: "Uncover the mysteries of your heart.",
     gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
   },
-  {
-    id: "career-work",
+  "career-work": {
     icon: "💼",
-    titleKey: "tarot.topics.careerWork",
-    titleDefault: "Career & Work",
-    descKey: "tarot.topics.careerWorkDesc",
-    descDefault: "Find clarity on your professional journey.",
     gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
   },
-  {
-    id: "money-finance",
+  "money-finance": {
     icon: "💰",
-    titleKey: "tarot.topics.moneyFinance",
-    titleDefault: "Money & Finance",
-    descKey: "tarot.topics.moneyFinanceDesc",
-    descDefault: "Seek guidance on your financial situation.",
     gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
   },
-  {
-    id: "well-being-health",
+  "well-being-health": {
     icon: "🌿",
-    titleKey: "tarot.topics.wellbeingHealth",
-    titleDefault: "Well-being & Health",
-    descKey: "tarot.topics.wellbeingHealthDesc",
-    descDefault: "Listen to the whispers of your body and mind.",
     gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
   },
-  {
-    id: "spiritual-growth",
+  "spiritual-growth": {
     icon: "✨",
-    titleKey: "tarot.topics.spiritualGrowth",
-    titleDefault: "Spiritual Growth",
-    descKey: "tarot.topics.spiritualGrowthDesc",
-    descDefault: "Connect with your higher self.",
     gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)"
   },
-  {
-    id: "daily-reading",
+  "decisions-crossroads": {
+    icon: "⚖️",
+    gradient: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)"
+  },
+  "self-discovery": {
+    icon: "🪞",
+    gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)"
+  },
+  "daily-reading": {
     icon: "☀️",
-    titleKey: "tarot.topics.dailyReading",
-    titleDefault: "Daily Reading",
-    descKey: "tarot.topics.dailyReadingDesc",
-    descDefault: "A quick look at the energies of your day.",
     gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
   }
-];
+};
+
+// 카드 개수별 아이콘
+function getCardIcon(count: number): string {
+  if (count === 1) return "🃏";
+  if (count === 2) return "🃏🃏";
+  if (count === 3) return "🃏🃏🃏";
+  if (count <= 5) return "🃏×" + count;
+  return "🃏×" + count;
+}
 
 export default function TarotHomePage() {
   const { translate } = useI18n();
+  const [activeTheme, setActiveTheme] = useState(tarotThemes[0]?.id || "general-insight");
+
+  const currentTheme = useMemo(() => {
+    return tarotThemes.find((t) => t.id === activeTheme) || tarotThemes[0];
+  }, [activeTheme]);
+
+  const themeStyle = themeStyles[activeTheme] || themeStyles["general-insight"];
 
   return (
-    <ServicePageLayout
-      icon="🔮"
-      title={translate("tarot.home.title", "What is your question?")}
-      subtitle={translate("tarot.home.subtitle", "Choose a topic to begin your reading")}
-      particleColor="#a78bfa"
-    >
-      <div className={styles.topicGrid}>
-        {topics.map((topic, index) => (
+    <div className={styles.container}>
+      <div className={styles.backButtonContainer}>
+        <BackButton />
+      </div>
+
+      {/* Crystal Ball */}
+      <div className={styles.crystalBallContainer}>
+        <div className={styles.orbRing}></div>
+        <div className={styles.orbRing2}></div>
+        <div className={styles.crystalBall}>
+          <div className={styles.innerGlow}></div>
+          <div className={styles.sparkle} style={{ top: "25%", left: "35%" }}>✦</div>
+          <div className={styles.sparkle} style={{ top: "55%", right: "30%" }}>✦</div>
+        </div>
+        <div className={styles.crystalBallBase}>
+          <div className={styles.baseTop}></div>
+          <div className={styles.baseMiddle}></div>
+        </div>
+      </div>
+
+      {/* Title */}
+      <h1 className={styles.title}>
+        {translate("tarot.home.title", "What is your question?")}
+      </h1>
+      <p className={styles.subtitle}>
+        {translate("tarot.home.subtitle", "Choose a topic to begin your reading")}
+      </p>
+
+      {/* Theme Selector Pills */}
+      <div className={styles.themeSelector}>
+        {tarotThemes.map((theme) => {
+          const style = themeStyles[theme.id];
+          return (
+            <button
+              key={theme.id}
+              className={`${styles.themeButton} ${theme.id === activeTheme ? styles.active : ""}`}
+              onClick={() => setActiveTheme(theme.id)}
+              style={theme.id === activeTheme ? {
+                background: style?.gradient || "rgba(138, 43, 226, 0.4)"
+              } : undefined}
+            >
+              <span className={styles.themeIcon}>{style?.icon || "🔮"}</span>
+              <span className={styles.themeName}>{theme.category}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Current Theme Info */}
+      <div className={styles.themeHeader}>
+        <div
+          className={styles.themeIconLarge}
+          style={{ background: themeStyle.gradient }}
+        >
+          {themeStyle.icon}
+        </div>
+        <div className={styles.themeInfo}>
+          <h2 className={styles.themeTitleLarge}>{currentTheme?.category}</h2>
+          <p className={styles.themeDescription}>{currentTheme?.description}</p>
+        </div>
+      </div>
+
+      {/* Spread Cards Grid */}
+      <div className={styles.spreadGrid}>
+        {currentTheme?.spreads.map((spread, i) => (
           <Link
-            key={topic.id}
-            href={`/tarot/${topic.id}`}
-            className={styles.topicCard}
+            key={spread.id}
+            href={`/tarot/${activeTheme}/${spread.id}`}
+            className={styles.spreadCard}
             style={{
-              animationDelay: `${index * 0.1}s`,
-              "--gradient": topic.gradient
+              animationDelay: `${i * 0.1}s`,
+              "--gradient": themeStyle.gradient
             } as React.CSSProperties}
           >
-            <div className={styles.cardIcon}>{topic.icon}</div>
-            <div className={styles.cardContent}>
-              <h2 className={styles.topicTitle}>
-                {translate(topic.titleKey, topic.titleDefault)}
-              </h2>
-              <p className={styles.topicDescription}>
-                {translate(topic.descKey, topic.descDefault)}
-              </p>
+            <div className={styles.spreadCardIcon}>
+              {getCardIcon(spread.cardCount)}
             </div>
-            <div className={styles.cardArrow}>→</div>
+            <div className={styles.spreadCardContent}>
+              <h3 className={styles.spreadTitle}>{spread.title}</h3>
+              <span className={styles.spreadCardCount}>
+                {spread.cardCount} {translate("tarot.spread.cards", "cards")}
+              </span>
+              <p className={styles.spreadDescription}>{spread.description}</p>
+            </div>
+            <div className={styles.spreadPositions}>
+              {spread.positions.slice(0, 3).map((pos, idx) => (
+                <span key={idx} className={styles.positionTag}>
+                  {pos.title}
+                </span>
+              ))}
+              {spread.positions.length > 3 && (
+                <span className={styles.positionMore}>
+                  +{spread.positions.length - 3}
+                </span>
+              )}
+            </div>
+            <div className={styles.spreadCardArrow}>→</div>
           </Link>
         ))}
       </div>
-    </ServicePageLayout>
+
+      {/* Quick Tip */}
+      <div className={styles.tipContainer}>
+        <div className={styles.tipIcon}>💡</div>
+        <p className={styles.tipText}>
+          {translate(
+            "tarot.home.tip",
+            "Clear your mind and focus on your question before selecting cards"
+          )}
+        </p>
+      </div>
+    </div>
   );
 }

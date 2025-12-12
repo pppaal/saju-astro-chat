@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "theme": "family",
+    "title": "Family & Home Life 가정운",
+    "description": "Family dynamics, home harmony, and generational wisdom through tarot"
+  },
+  "major_arcana_deep": {
+    "The Fool": {
+      "family_meaning": "New beginnings in family life. Fresh start in household dynamics. Welcome new family members or move.",
+      "korean": "가정생활에서의 새로운 시작. 가정 역학에서 새로운 시작. 새 가족 구성원을 환영하거나 이사.",
+      "parents": "Fresh perspective on parental relationships.",
+      "children": "New adventures with children. Support their exploration.",
+      "home": "Consider a new home or fresh start in current space.",
+      "advice": "Approach family with fresh eyes. Let go of old family patterns."
+    },
+    "The Magician": {
+      "family_meaning": "Take initiative in family matters. You have the skills to improve home life. Communication creates change.",
+      "korean": "가족 문제에서 주도권을 잡으세요. 가정 생활을 개선할 기술이 있습니다.",
+      "parents": "Use your skills to bridge generational gaps.",
+      "children": "Teach and empower your children with your abilities.",
+      "home": "Create the home environment you want through action.",
+      "advice": "You have the power to transform your family dynamics."
+    },
+    "The High Priestess": {
+      "family_meaning": "Family secrets may surface. Trust intuition about family matters. Hidden family history affects present.",
+      "korean": "가족 비밀이 드러날 수 있습니다. 가족 문제에 대한 직감을 신뢰하세요.",
+      "parents": "Unspoken family history influences present dynamics.",
+      "children": "Listen to what children don't say. Intuition matters.",
+      "home": "The home holds hidden memories and energies.",
+      "advice": "Trust your intuition about family matters. Listen to what's unsaid."
+    },
+    "The Empress": {
+      "family_meaning": "Nurturing energy fills the home. Fertility and motherhood highlighted. Create a beautiful, abundant home.",
+      "korean": "양육 에너지가 집을 채웁니다. 출산과 모성이 강조됩니다.",
+      "parents": "Mother figures are especially important now.",
+      "children": "Nurture children with abundance of love and care.",
+      "home": "Create beauty and comfort in your home. Abundance flows.",
+      "advice": "Let your home be a garden of love and nurturing."
+    },
+    "The Emperor": {
+      "family_meaning": "Structure and authority in family. Father figure energy. Set rules and boundaries. Provide stability.",
+      "korean": "가족에서의 구조와 권위. 아버지 상 에너지. 규칙과 경계 설정. 안정성 제공.",
+      "parents": "Father figures are important. Authority balanced with care.",
+      "children": "Provide structure and guidance for children.",
+      "home": "Establish order and security in the household.",
+      "advice": "Lead your family with fair authority and protective love."
+    },
+    "The Hierophant": {
+      "family_meaning": "Family traditions and values. Respect elders. Religious or cultural family practices. Seek family wisdom.",
+      "korean": "가족 전통과 가치. 어른을 공경하세요. 종교적 또는 문화적 가족 관행.",
+      "parents": "Honor parental wisdom and traditions.",
+      "children": "Teach children family values and heritage.",
+      "home": "Home as a place of tradition and shared values.",
+      "advice": "Honor family traditions while creating your own meaningful rituals."
+    },
+    "The Lovers": {
+      "family_meaning": "Important family decisions. Choices affect the whole family. Partnership and family harmony.",
+      "korean": "중요한 가족 결정. 선택이 온 가족에게 영향을 미칩니다.",
+      "parents": "Parents' relationship affects family harmony.",
+      "children": "Model healthy relationships for children.",
+      "home": "Home where love and harmony flourish.",
+      "advice": "Family decisions work best when made in harmony with loved ones."
+    },
+    "The Chariot": {
+      "family_meaning": "Determination moves family forward. Overcome family challenges. Family works toward common goals.",
+      "korean": "결단력이 가족을 앞으로 이동시킵니다. 가족 문제 극복.",
+      "parents": "Drive family progress while honoring different needs.",
+      "children": "Encourage children's determination and focus.",
+      "home": "Family moving forward together toward goals.",
+      "advice": "Lead your family with determination toward shared goals."
+    },
+    "Strength": {
+      "family_meaning": "Patience with family. Handle conflicts with gentleness. Inner strength supports family harmony.",
+      "korean": "가족에 대한 인내. 갈등을 부드럽게 처리하세요.",
+      "parents": "Patient understanding bridges generational gaps.",
+      "children": "Gentle firmness with children. Compassionate boundaries.",
+      "home": "Peaceful home through strength of character.",
+      "advice": "The strongest families are built on patience and compassion."
+    },
+    "The Hermit": {
+      "family_meaning": "Need space from family. Wisdom from solitude. Family elder wisdom. Privacy at home.",
+      "korean": "가족으로부터 공간이 필요합니다. 고독에서 오는 지혜.",
+      "parents": "Elderly family members hold wisdom.",
+      "children": "Allow children privacy and independent growth.",
+      "home": "Create quiet, reflective spaces at home.",
+      "advice": "Sometimes family members need space to find themselves."
+    },
+    "Wheel of Fortune": {
+      "family_meaning": "Family circumstances changing. Generational cycles turn. Accept family changes as part of life's flow.",
+      "korean": "가족 상황이 변하고 있습니다. 세대 순환이 돌아갑니다.",
+      "parents": "Generational patterns are shifting.",
+      "children": "Children's phases change rapidly. Adapt.",
+      "home": "Home circumstances shifting. Flow with changes.",
+      "advice": "Family life moves in cycles. Trust the changes."
+    },
+    "Justice": {
+      "family_meaning": "Fairness in family matters. Inheritance and family responsibilities. Balance family duties.",
+      "korean": "가족 문제에서의 공정함. 상속과 가족 책임. 가족 의무 균형.",
+      "parents": "Fair treatment of and by parents.",
+      "children": "Equal treatment of children. Fairness teaches values.",
+      "home": "Balanced responsibilities in household.",
+      "advice": "Treat all family members fairly. Justice creates harmony."
+    },
+    "The Hanged Man": {
+      "family_meaning": "Pause in family matters. See family from new perspective. Sacrifice for family good.",
+      "korean": "가족 문제에서의 일시정지. 새로운 관점에서 가족을 보세요.",
+      "parents": "See parents differently. Understand their perspective.",
+      "children": "Pause before reacting to children. New viewpoint needed.",
+      "home": "Home life in suspension. Wait for clarity.",
+      "advice": "Sometimes you need to see your family with completely new eyes."
+    },
+    "Death": {
+      "family_meaning": "Family transformation. End of one family phase, beginning of another. Let go of old family dynamics.",
+      "korean": "가족 변화. 한 가족 단계의 끝, 다른 단계의 시작.",
+      "parents": "Relationship with parents transforms.",
+      "children": "Children growing up, roles changing.",
+      "home": "Household going through major transition.",
+      "advice": "Family roles must transform as people grow. Let change happen."
+    },
+    "Temperance": {
+      "family_meaning": "Balance in family life. Harmony between work and family. Blend different family member needs.",
+      "korean": "가정생활에서의 균형. 일과 가족 사이의 조화.",
+      "parents": "Patient, balanced approach to parent relationships.",
+      "children": "Balance children's needs with other responsibilities.",
+      "home": "Harmonious, balanced household.",
+      "advice": "Family harmony comes through patient balancing of everyone's needs."
+    },
+    "The Devil": {
+      "family_meaning": "Unhealthy family patterns. Codependency or toxic dynamics. Breaking generational chains.",
+      "korean": "건강하지 못한 가족 패턴. 공동의존 또는 독성 역학. 세대 간 사슬 끊기.",
+      "parents": "Examine inherited negative patterns from parents.",
+      "children": "Don't pass on unhealthy patterns to children.",
+      "home": "Address toxic dynamics in household.",
+      "advice": "Name the unhealthy family patterns. You can break the chain."
+    },
+    "The Tower": {
+      "family_meaning": "Sudden family upheaval. Family secrets revealed. Crisis leads to truth.",
+      "korean": "갑작스러운 가족 격변. 가족 비밀 폭로. 위기가 진실로 이어집니다.",
+      "parents": "Relationship with parents shaken or revealed.",
+      "children": "Children may face sudden changes. Support them.",
+      "home": "Household disruption. Home may literally change.",
+      "advice": "Family crises reveal truth. Rebuild on authentic foundations."
+    },
+    "The Star": {
+      "family_meaning": "Hope for family. Healing of family wounds. Renewed faith in family bonds.",
+      "korean": "가족에 대한 희망. 가족 상처의 치유. 가족 유대에 대한 새로운 믿음.",
+      "parents": "Healing relationship with parents possible.",
+      "children": "Hope for children's future. Inspire them.",
+      "home": "Home filled with hope and healing energy.",
+      "advice": "Keep hope for your family. Healing is happening."
+    },
+    "The Moon": {
+      "family_meaning": "Family confusion or hidden issues. Trust intuition about family. Subconscious family patterns.",
+      "korean": "가족 혼란 또는 숨겨진 문제. 가족에 대한 직감을 신뢰하세요.",
+      "parents": "Unclear dynamics with parents. Hidden feelings.",
+      "children": "Children's fears or unspoken needs. Listen deeply.",
+      "home": "Home has hidden emotional currents.",
+      "advice": "Navigate family confusion with intuition. Truth will emerge."
+    },
+    "The Sun": {
+      "family_meaning": "Family joy and celebration. Happy home. Children thrive. Success in family life.",
+      "korean": "가족의 기쁨과 축하. 행복한 가정. 자녀 번창. 가정생활의 성공.",
+      "parents": "Joyful relations with parents.",
+      "children": "Children happy and thriving.",
+      "home": "Warm, bright, happy home.",
+      "advice": "Celebrate your family. Joy is the best medicine for home life."
+    },
+    "Judgement": {
+      "family_meaning": "Family reckoning. Ancestral healing. Answer the call to heal family patterns.",
+      "korean": "가족 결산. 조상 치유. 가족 패턴을 치유하라는 부름에 응답하세요.",
+      "parents": "Past family karma resolves. Ancestral healing.",
+      "children": "Raise children to a higher standard.",
+      "home": "Home transforms to higher purpose.",
+      "advice": "Answer the call to heal your family lineage."
+    },
+    "The World": {
+      "family_meaning": "Family fulfillment. Generational legacy complete. Whole, harmonious family.",
+      "korean": "가족 성취. 세대 유산 완성. 온전하고 조화로운 가족.",
+      "parents": "Relationship with parents reaches completion.",
+      "children": "Children launched successfully into the world.",
+      "home": "Home is a complete, fulfilled space.",
+      "advice": "Celebrate family achievements. You've built something beautiful."
+    }
+  },
+  "generational_patterns": {
+    "ancestral_healing": "Major Arcana often indicate generational patterns that can be healed",
+    "inherited_traits": "Court cards may represent family members or inherited personality traits",
+    "family_karma": "Justice and Judgement often point to family karma requiring attention"
+  }
+}

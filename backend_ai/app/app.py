@@ -1,7 +1,15 @@
-import logging
+import sys
 import os
+
+# Add project root to Python path for standalone execution
+_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+import logging
 import time
 from collections import defaultdict
+from datetime import datetime
 from typing import Optional, Tuple
 from uuid import uuid4
 
@@ -11,13 +19,96 @@ from flask_cors import CORS
 from backend_ai.app.astro_parser import calculate_astrology_data
 from backend_ai.app.fusion_logic import interpret_with_ai
 from backend_ai.app.saju_parser import calculate_saju_data
+from backend_ai.app.dream_logic import interpret_dream
 from backend_ai.app.redis_cache import get_cache
+from backend_ai.model.fusion_generate import (
+    _generate_with_together,
+    refine_with_gpt5mini,
+)
 from backend_ai.app.performance_optimizer import (
     track_performance,
     get_performance_stats,
     get_cache_health,
     suggest_optimizations,
 )
+
+# Gemini-level features
+try:
+    from backend_ai.app.realtime_astro import get_current_transits, get_transit_interpretation
+    HAS_REALTIME = True
+except ImportError:
+    HAS_REALTIME = False
+
+try:
+    from backend_ai.app.chart_generator import (
+        generate_saju_table_svg,
+        generate_natal_chart_svg,
+        generate_full_chart_html,
+        svg_to_base64,
+    )
+    HAS_CHARTS = True
+except ImportError:
+    HAS_CHARTS = False
+
+try:
+    from backend_ai.app.user_memory import get_user_memory, generate_user_id
+    HAS_USER_MEMORY = True
+except ImportError:
+    HAS_USER_MEMORY = False
+
+try:
+    from backend_ai.app.iching_rag import (
+        cast_hexagram,
+        get_hexagram_interpretation,
+        perform_iching_reading,
+        search_iching_wisdom,
+        get_all_hexagrams_summary,
+    )
+    HAS_ICHING = True
+except ImportError:
+    HAS_ICHING = False
+
+try:
+    from backend_ai.app.persona_embeddings import get_persona_embed_rag
+    HAS_PERSONA_EMBED = True
+except ImportError:
+    HAS_PERSONA_EMBED = False
+
+try:
+    from backend_ai.app.tarot_hybrid_rag import get_tarot_hybrid_rag
+    HAS_TAROT = True
+except ImportError:
+    HAS_TAROT = False
+
+# RLHF Feedback Learning System
+try:
+    from backend_ai.app.feedback_learning import get_feedback_learning
+    HAS_RLHF = True
+except ImportError:
+    HAS_RLHF = False
+
+# Badge System
+try:
+    from backend_ai.app.badge_system import get_badge_system, get_midjourney_prompts
+    HAS_BADGES = True
+except ImportError:
+    HAS_BADGES = False
+
+# Agentic RAG System (Next Level Features)
+try:
+    from backend_ai.app.agentic_rag import (
+        agentic_query,
+        get_agent_orchestrator,
+        get_entity_extractor,
+        get_deep_traversal,
+        EntityExtractor,
+        DeepGraphTraversal,
+        AgentOrchestrator,
+    )
+    HAS_AGENTIC = True
+except ImportError:
+    HAS_AGENTIC = False
+    print("[app.py] Agentic RAG not available")
 
 # Flask Application
 app = Flask(__name__)
@@ -212,6 +303,76 @@ def calc_astro():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# Dream interpretation endpoint
+@app.route("/dream", methods=["POST"])
+def dream_interpret():
+    """
+    Dream interpretation endpoint.
+    Accepts dream text, symbols, emotions, themes, and cultural context.
+    """
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[DREAM] id={g.request_id} Processing dream interpretation")
+
+        # Extract dream data
+        birth_data = data.get("birth") or {}
+        locale = data.get("locale", "en")
+        facts = {
+            "dream": data.get("dream", ""),
+            "symbols": data.get("symbols", []),
+            "emotions": data.get("emotions", []),
+            "themes": data.get("themes", []),
+            "context": data.get("context", []),
+            "locale": locale,
+            # Cultural symbols
+            "koreanTypes": data.get("koreanTypes", []),
+            "koreanLucky": data.get("koreanLucky", []),
+            "chinese": data.get("chinese", []),
+            "islamicTypes": data.get("islamicTypes", []),
+            "islamicBlessed": data.get("islamicBlessed", []),
+            "western": data.get("western", []),
+            "hindu": data.get("hindu", []),
+            "nativeAmerican": data.get("nativeAmerican", []),
+            "japanese": data.get("japanese", []),
+            # Optional birth data
+            "birth": birth_data,
+        }
+
+        start_time = time.time()
+        result = interpret_dream(facts)
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        logger.info(f"[DREAM] id={g.request_id} completed in {duration_ms}ms")
+
+        if isinstance(result, dict):
+            result["performance"] = {"duration_ms": duration_ms}
+
+        # 💾 Save to user memory (MOAT)
+        if HAS_USER_MEMORY and birth_data:
+            try:
+                user_id = generate_user_id(birth_data)
+                memory = get_user_memory(user_id)
+                interpretation = result.get("interpretation", "") if isinstance(result, dict) else str(result)
+                record_id = memory.save_consultation(
+                    theme="dream",
+                    locale=locale,
+                    birth_data=birth_data,
+                    fusion_result=interpretation,
+                    service_type="dream",
+                )
+                result["user_id"] = user_id
+                result["record_id"] = record_id
+                logger.info(f"[DREAM] Saved to memory: {record_id}")
+            except Exception as mem_e:
+                logger.warning(f"[DREAM] Memory save failed: {mem_e}")
+
+        return jsonify({"status": "success", "data": result})
+
+    except Exception as e:
+        logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /dream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # Cache stats and management
 @app.route("/cache/stats", methods=["GET"])
 def cache_stats():
@@ -295,7 +456,1389 @@ def full_health_check():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# ===============================================================
+# GEMINI-LEVEL ENDPOINTS
+# ===============================================================
+
+# Real-time transit data
+@app.route("/transits", methods=["GET"])
+def get_transits():
+    """Get current planetary transits (real-time)."""
+    if not HAS_REALTIME:
+        return jsonify({"status": "error", "message": "Realtime astro not available"}), 501
+
+    try:
+        locale = request.args.get("locale", "en")
+        transits = get_current_transits()
+        interpretation = get_transit_interpretation(transits, locale)
+
+        return jsonify({
+            "status": "success",
+            "transits": transits,
+            "interpretation": interpretation,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /transits failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# Chart generation
+@app.route("/charts/saju", methods=["POST"])
+def generate_saju_chart():
+    """Generate Saju Paljja table SVG."""
+    if not HAS_CHARTS:
+        return jsonify({"status": "error", "message": "Chart generator not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        pillars = data.get("pillars", {})
+        day_master = data.get("dayMaster", {})
+        five_elements = data.get("fiveElements", {})
+
+        svg = generate_saju_table_svg(pillars, day_master, five_elements)
+
+        return jsonify({
+            "status": "success",
+            "svg": svg,
+            "base64": svg_to_base64(svg),
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /charts/saju failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/charts/natal", methods=["POST"])
+def generate_natal_chart():
+    """Generate natal chart wheel SVG."""
+    if not HAS_CHARTS:
+        return jsonify({"status": "error", "message": "Chart generator not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        planets = data.get("planets", [])
+        ascendant = data.get("ascendant", 0)
+        size = data.get("size", 400)
+
+        svg = generate_natal_chart_svg(planets, ascendant=ascendant, size=size)
+
+        return jsonify({
+            "status": "success",
+            "svg": svg,
+            "base64": svg_to_base64(svg),
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /charts/natal failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/charts/full", methods=["POST"])
+def generate_full_charts():
+    """Generate complete HTML with all charts."""
+    if not HAS_CHARTS:
+        return jsonify({"status": "error", "message": "Chart generator not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+        locale = data.get("locale", "en")
+
+        html = generate_full_chart_html(saju_data, astro_data, locale)
+
+        return jsonify({
+            "status": "success",
+            "html": html,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /charts/full failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# User memory endpoints
+@app.route("/memory/save", methods=["POST"])
+def save_consultation():
+    """Save consultation to user memory."""
+    if not HAS_USER_MEMORY:
+        return jsonify({"status": "error", "message": "User memory not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_data = data.get("birth", {})
+        theme = data.get("theme", "")
+        locale = data.get("locale", "en")
+        result = data.get("result", "")
+
+        user_id = generate_user_id(birth_data)
+        memory = get_user_memory(user_id)
+
+        record_id = memory.save_consultation(
+            theme=theme,
+            locale=locale,
+            birth_data=birth_data,
+            fusion_result=result,
+        )
+
+        return jsonify({
+            "status": "success",
+            "user_id": user_id,
+            "record_id": record_id,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /memory/save failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/memory/context", methods=["POST"])
+def get_memory_context():
+    """Get user context for personalized readings."""
+    if not HAS_USER_MEMORY:
+        return jsonify({"status": "error", "message": "User memory not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_data = data.get("birth", {})
+        theme = data.get("theme", "life_path")
+        locale = data.get("locale", "en")
+
+        user_id = generate_user_id(birth_data)
+        memory = get_user_memory(user_id)
+
+        context = memory.build_context_for_llm(theme, locale)
+        profile = memory.get_profile()
+        history = memory.get_history(limit=5)
+
+        return jsonify({
+            "status": "success",
+            "user_id": user_id,
+            "context": context,
+            "profile": profile.__dict__ if profile else None,
+            "history": history,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /memory/context failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/memory/feedback", methods=["POST"])
+def save_feedback():
+    """Save user feedback for a consultation (MOAT - improves recommendations)."""
+    if not HAS_USER_MEMORY:
+        return jsonify({"status": "error", "message": "User memory not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_data = data.get("birth", {})
+        record_id = data.get("record_id", "")
+        feedback = data.get("feedback", "")  # Text feedback
+        rating = data.get("rating")  # 1-5 stars or thumbs up/down (1 or 5)
+
+        if not record_id:
+            return jsonify({"status": "error", "message": "record_id required"}), 400
+
+        user_id = generate_user_id(birth_data)
+        memory = get_user_memory(user_id)
+        memory.save_feedback(record_id, feedback, rating)
+
+        return jsonify({
+            "status": "success",
+            "user_id": user_id,
+            "record_id": record_id,
+            "message": "Feedback saved successfully",
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /memory/feedback failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/memory/history", methods=["POST"])
+def get_history():
+    """Get user consultation history."""
+    if not HAS_USER_MEMORY:
+        return jsonify({"status": "error", "message": "User memory not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_data = data.get("birth", {})
+        limit = data.get("limit", 10)
+
+        user_id = generate_user_id(birth_data)
+        memory = get_user_memory(user_id)
+        history = memory.get_history(limit=limit)
+        profile = memory.get_profile()
+
+        return jsonify({
+            "status": "success",
+            "user_id": user_id,
+            "history": history,
+            "consultation_count": profile.consultation_count if profile else 0,
+            "dominant_themes": profile.dominant_themes if profile else [],
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /memory/history failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# I CHING (PREMIUM) ENDPOINTS
+# ===============================================================
+
+@app.route("/iching/cast", methods=["POST"])
+def iching_cast():
+    """Cast I Ching hexagram (premium)."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        result = cast_hexagram()
+        return jsonify({
+            "status": "success",
+            "cast": result,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/cast failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/iching/interpret", methods=["POST"])
+def iching_interpret():
+    """Get hexagram interpretation (premium)."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        hexagram_num = data.get("hexagram", 1)
+        theme = data.get("theme", "general")
+        locale = data.get("locale", "ko")
+        changing_lines = data.get("changingLines", [])
+        saju_element = data.get("sajuElement")
+
+        interp = get_hexagram_interpretation(
+            hexagram_num=hexagram_num,
+            theme=theme,
+            locale=locale,
+            changing_lines=changing_lines,
+            saju_element=saju_element,
+        )
+
+        return jsonify({
+            "status": "success",
+            "interpretation": interp,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/interpret failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/iching/reading", methods=["POST"])
+def iching_reading():
+    """Perform complete I Ching reading (premium)."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        question = data.get("question", "")
+        theme = data.get("theme", "general")
+        locale = data.get("locale", "ko")
+        saju_element = data.get("sajuElement")
+        birth_data = data.get("birth") or {}
+
+        reading = perform_iching_reading(
+            question=question,
+            theme=theme,
+            locale=locale,
+            saju_element=saju_element,
+        )
+
+        # 💾 Save to user memory (MOAT)
+        if HAS_USER_MEMORY and birth_data:
+            try:
+                user_id = generate_user_id(birth_data)
+                memory = get_user_memory(user_id)
+                # Extract interpretation text
+                interpretation = reading.get("combined_interpretation", "") if isinstance(reading, dict) else str(reading)
+                hexagram_name = reading.get("hexagram", {}).get("korean_name", "") if isinstance(reading, dict) else ""
+                record_id = memory.save_consultation(
+                    theme=f"iching:{theme}",
+                    locale=locale,
+                    birth_data=birth_data,
+                    fusion_result=f"[{hexagram_name}] {interpretation}",
+                    key_insights=[question] if question else [],
+                    service_type="iching",
+                )
+                reading["user_id"] = user_id
+                reading["record_id"] = record_id
+                logger.info(f"[ICHING] Saved to memory: {record_id}")
+            except Exception as mem_e:
+                logger.warning(f"[ICHING] Memory save failed: {mem_e}")
+
+        return jsonify({
+            "status": "success",
+            "reading": reading,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/reading failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/iching/search", methods=["GET"])
+def iching_search():
+    """Search I Ching wisdom."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        query = request.args.get("q", "")
+        top_k = int(request.args.get("top_k", 5))
+
+        results = search_iching_wisdom(query, top_k=top_k)
+
+        return jsonify({
+            "status": "success",
+            "results": results,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/search failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/iching/hexagrams", methods=["GET"])
+def iching_hexagrams():
+    """Get all 64 hexagrams summary."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        locale = request.args.get("locale", "ko")
+        summaries = get_all_hexagrams_summary(locale=locale)
+
+        return jsonify({
+            "status": "success",
+            "hexagrams": summaries,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/hexagrams failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# TAROT (PREMIUM) ENDPOINTS
+# ===============================================================
+
+# Theme mapping: Frontend IDs → Backend theme names
+TAROT_THEME_MAPPING = {
+    # Direct matches
+    "love": "love",
+    "career": "career",
+    "health": "health",
+    "spiritual": "spiritual",
+    "daily": "daily",
+    "monthly": "monthly",
+    "life_path": "life_path",
+    "family": "family",
+
+    # Frontend uses hyphens, backend uses underscores/different names
+    "love-relationships": "love",
+    "career-work": "career",
+    "money-finance": "wealth",  # Key mapping: frontend uses money-finance, backend uses wealth
+    "well-being-health": "health",
+    "spiritual-growth": "spiritual",
+    "daily-reading": "daily",
+    "general-insight": "life_path",  # General maps to life_path
+    "decisions-crossroads": "life_path",  # Maps to life_path (contains crossroads sub_topic)
+    "self-discovery": "life_path",  # Maps to life_path (contains true_self sub_topic)
+}
+
+# Sub-topic mapping for themes that use different sub_topic names
+TAROT_SUBTOPIC_MAPPING = {
+    # decisions-crossroads spreads → life_path sub_topics
+    ("decisions-crossroads", "simple-choice"): ("life_path", "crossroads"),
+    ("decisions-crossroads", "decision-cross"): ("life_path", "major_decision"),
+    ("decisions-crossroads", "path-ahead"): ("life_path", "life_direction"),
+
+    # self-discovery spreads → life_path sub_topics
+    ("self-discovery", "inner-self"): ("life_path", "true_self"),
+    ("self-discovery", "personal-growth"): ("life_path", "life_lessons"),
+
+    # general-insight spreads → various themes
+    ("general-insight", "quick-reading"): ("daily", "one_card"),
+    ("general-insight", "past-present-future"): ("daily", "three_card"),
+    ("general-insight", "celtic-cross"): ("life_path", "life_direction"),
+}
+
+
+def _map_tarot_theme(category: str, spread_id: str) -> tuple:
+    """Map frontend theme/spread to backend theme/sub_topic"""
+    # Check specific mapping first
+    key = (category, spread_id)
+    if key in TAROT_SUBTOPIC_MAPPING:
+        return TAROT_SUBTOPIC_MAPPING[key]
+
+    # Fall back to theme-only mapping
+    mapped_theme = TAROT_THEME_MAPPING.get(category, category)
+    return (mapped_theme, spread_id)
+
+
+@app.route("/api/tarot/interpret", methods=["POST"])
+def tarot_interpret():
+    """
+    Premium tarot interpretation using Hybrid RAG + Gemini.
+    Supports optional saju/astrology context for enhanced readings.
+    """
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[TAROT] id={g.request_id} Interpreting tarot reading")
+
+        category = data.get("category", "general")
+        spread_id = data.get("spread_id", "three_card")
+        spread_title = data.get("spread_title", "Three Card Spread")
+        cards = data.get("cards", [])
+        user_question = data.get("user_question", "")
+        language = data.get("language", "ko")
+
+        # Optional context for enhanced readings (from destiny-map)
+        saju_context = data.get("saju_context")  # e.g., day_master, five_elements
+        astro_context = data.get("astro_context")  # e.g., sun_sign, moon_sign
+
+        # Premium personalization (Tier 4-6)
+        birthdate = data.get("birthdate")  # User's birthdate 'YYYY-MM-DD' for birth card
+        moon_phase = data.get("moon_phase")  # Current moon phase for realtime context
+
+        if not cards:
+            return jsonify({"status": "error", "message": "No cards provided"}), 400
+
+        start_time = time.time()
+        hybrid_rag = get_tarot_hybrid_rag()
+
+        # Convert cards to expected format
+        drawn_cards = [
+            {"name": c.get("name", ""), "isReversed": c.get("is_reversed", False)}
+            for c in cards
+        ]
+
+        # Build enhanced context if saju/astro data is available
+        enhanced_question = user_question
+        if saju_context or astro_context:
+            context_parts = []
+            if saju_context:
+                day_master = saju_context.get("day_master", {})
+                if day_master:
+                    context_parts.append(f"일간: {day_master.get('element', '')} {day_master.get('stem', '')}")
+                five_elements = saju_context.get("five_elements", {})
+                if five_elements:
+                    dominant = max(five_elements.items(), key=lambda x: x[1])[0] if five_elements else None
+                    if dominant:
+                        context_parts.append(f"주요 오행: {dominant}")
+
+            if astro_context:
+                sun_sign = astro_context.get("sun_sign", "")
+                moon_sign = astro_context.get("moon_sign", "")
+                if sun_sign:
+                    context_parts.append(f"태양 별자리: {sun_sign}")
+                if moon_sign:
+                    context_parts.append(f"달 별자리: {moon_sign}")
+
+            if context_parts:
+                enhanced_question = f"[배경: {', '.join(context_parts)}] {user_question}"
+
+        # Generate reading using Together AI + GPT pattern (same as destiny-map)
+        # Apply theme/spread mapping (frontend IDs → backend names)
+        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
+        logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
+
+        # Step 1: Build RAG context from hybrid_rag (use premium context if birthdate available)
+        if birthdate:
+            rag_context = hybrid_rag.build_premium_reading_context(
+                theme=mapped_theme,
+                sub_topic=mapped_spread,
+                drawn_cards=drawn_cards,
+                question=enhanced_question,
+                birthdate=birthdate,
+                moon_phase=moon_phase
+            )
+            logger.info(f"[TAROT] Using premium context with birthdate={birthdate}")
+        else:
+            rag_context = hybrid_rag.build_reading_context(
+                theme=mapped_theme,
+                sub_topic=mapped_spread,
+                drawn_cards=drawn_cards,
+                question=enhanced_question
+            )
+
+        # Step 2: Build premium tarot prompt with current date context
+        is_korean = language == "ko"
+        cards_str = ", ".join([
+            f"{c.get('name', '')}{'(역방향)' if c.get('isReversed') else ''}"
+            for c in drawn_cards
+        ])
+
+        # Current date info for time-relevant advice
+        now = datetime.now()
+        weekday_names_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        weekday_names_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        month_names_ko = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
+
+        if is_korean:
+            date_str = f"{now.year}년 {now.month}월 {now.day}일 ({weekday_names_ko[now.weekday()]})"
+            season = "봄" if now.month in [3, 4, 5] else "여름" if now.month in [6, 7, 8] else "가을" if now.month in [9, 10, 11] else "겨울"
+        else:
+            date_str = now.strftime("%B %d, %Y (%A)")
+            season = "Spring" if now.month in [3, 4, 5] else "Summer" if now.month in [6, 7, 8] else "Fall" if now.month in [9, 10, 11] else "Winter"
+
+        # Try to get moon phase from advanced rules
+        moon_phase_hint = ""
+        try:
+            moon_guidance = hybrid_rag.advanced_rules.get_current_moon_advice("waxing_crescent")  # placeholder
+            if moon_guidance:
+                moon_phase_hint = f"\n- 달 위상 에너지: {moon_guidance.get('energy', '')}"
+        except Exception:
+            pass
+
+        tarot_prompt = f"""당신은 프리미엄 타로 마스터입니다. 깊이 있는 통찰과 영적 지혜로 해석해주세요.
+
+## 현재 시간 정보
+- 오늘 날짜: {date_str}
+- 계절: {season}{moon_phase_hint}
+
+## 리딩 정보
+- 카테고리: {category}
+- 스프레드: {spread_title}
+- 뽑힌 카드: {cards_str}
+- 질문: {enhanced_question or "일반 운세"}
+
+## RAG 컨텍스트 (카드 의미, 조합, 규칙)
+{rag_context}
+
+## 응답 지침
+1. 각 카드의 위치별 의미를 깊이 있게 해석
+2. 카드 간의 상호작용과 시너지 설명
+3. 실질적이고 실천 가능한 조언 제공
+4. {('한국어로 자연스럽게 작성' if is_korean else 'Write in English')}
+5. 800-1200자 분량으로 작성
+
+전문적이면서도 따뜻한 어조로 해석해주세요."""
+
+        # Step 3: Generate with Together Llama 3.3 70B
+        try:
+            raw_reading = _generate_with_together(tarot_prompt, max_tokens=2000, temperature=0.2)
+        except Exception as llm_e:
+            logger.warning(f"[TAROT] Together AI failed: {llm_e}, using fallback")
+            raw_reading = f"카드 해석: {cards_str}. {rag_context[:500]}"
+
+        # Step 4: Polish with GPT-4o-mini
+        try:
+            reading_text = refine_with_gpt5mini(raw_reading, f"tarot_{category}", language)
+        except Exception as polish_e:
+            logger.warning(f"[TAROT] GPT polish failed: {polish_e}")
+            reading_text = raw_reading
+
+        # Get card insights
+        card_insights = []
+        for i, card in enumerate(drawn_cards):
+            card_name = card.get("name", "")
+            is_reversed = card.get("isReversed", False)
+            position = cards[i].get("position", f"Card {i+1}") if i < len(cards) else f"Card {i+1}"
+
+            insights = hybrid_rag.get_card_insights(card_name)
+
+            card_insight = {
+                "position": position,
+                "card_name": card_name,
+                "is_reversed": is_reversed,
+                "interpretation": reading_text[:300] if i == 0 else "",  # Just first part for first card
+                "spirit_animal": insights.get("spirit_animal"),
+                "chakra": None,
+                "element": None,
+                "shadow": insights.get("shadow_work")
+            }
+
+            # Extract chakra
+            chakras = insights.get("chakras", [])
+            if chakras:
+                first_chakra = chakras[0]
+                card_insight["chakra"] = {
+                    "name": first_chakra.get("korean", first_chakra.get("name", "")),
+                    "color": first_chakra.get("color", "#8a2be2"),
+                    "guidance": first_chakra.get("healing_affirmation", "")
+                }
+
+            # Extract element from astrology
+            astro = insights.get("astrology", {})
+            if astro:
+                card_insight["element"] = astro.get("element")
+
+            card_insights.append(card_insight)
+
+        # Get advanced analysis
+        advanced = hybrid_rag.get_advanced_analysis(drawn_cards)
+
+        # Build response
+        result = {
+            "overall_message": reading_text,
+            "card_insights": card_insights,
+            "guidance": advanced.get("elemental_analysis", {}).get("dominant_advice", "카드의 지혜에 귀 기울이세요."),
+            "affirmation": "나는 우주의 지혜를 신뢰합니다.",
+            "combinations": [],
+            "followup_questions": hybrid_rag.advanced_rules.get_followup_questions(category, "neutral") if hasattr(hybrid_rag, 'advanced_rules') else []
+        }
+
+        # Add combination if found
+        combo = advanced.get("special_combination")
+        if combo:
+            result["combinations"].append({
+                "cards": combo.get("cards", []),
+                "meaning": combo.get("korean", combo.get("meaning", ""))
+            })
+
+        # Add premium personalization if birthdate provided
+        logger.info(f"[TAROT] Checking birthdate for personalization: birthdate={birthdate}")
+        if birthdate:
+            logger.info(f"[TAROT] Starting personalization with birthdate={birthdate}")
+            try:
+                birth_card = hybrid_rag.get_birth_card(birthdate)
+                logger.info(f"[TAROT] Got birth_card: {birth_card.get('primary_card', 'NONE')}")
+                year_card = hybrid_rag.get_year_card(birthdate)
+                logger.info(f"[TAROT] Got year_card: {year_card.get('year_card', 'NONE')}")
+                personalization = hybrid_rag.get_personalized_reading(drawn_cards, birthdate)
+                narrative = hybrid_rag.get_reading_narrative(drawn_cards, mapped_theme)
+
+                result["personalization"] = {
+                    "birth_card": {
+                        "name": birth_card.get("primary_card"),
+                        "korean": birth_card.get("korean"),
+                        "traits": birth_card.get("traits", [])
+                    },
+                    "year_card": {
+                        "name": year_card.get("year_card"),
+                        "korean": year_card.get("year_card_korean"),
+                        "theme": year_card.get("korean"),
+                        "advice": year_card.get("advice")
+                    },
+                    "personal_connections": personalization.get("personal_connections", [])
+                }
+
+                result["narrative"] = {
+                    "opening_hook": narrative.get("opening_hook"),
+                    "tone": narrative.get("tone", {}).get("mood"),
+                    "resolution": narrative.get("resolution"),
+                    "card_connections": hybrid_rag.get_card_connections(drawn_cards)[:5]
+                }
+            except Exception as pers_e:
+                logger.warning(f"[TAROT] Personalization failed: {pers_e}")
+
+        duration_ms = int((time.time() - start_time) * 1000)
+        logger.info(f"[TAROT] id={g.request_id} completed in {duration_ms}ms")
+        result["performance"] = {"duration_ms": duration_ms}
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/interpret failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/tarot/chat", methods=["POST"])
+def tarot_chat():
+    """
+    Tarot chat consultation - follow-up questions about a reading.
+    """
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[TAROT_CHAT] id={g.request_id} Processing chat message")
+
+        messages = data.get("messages", [])
+        context = data.get("context", {})
+        language = data.get("language", "ko")
+
+        if not messages:
+            return jsonify({"status": "error", "message": "No messages provided"}), 400
+
+        start_time = time.time()
+        hybrid_rag = get_tarot_hybrid_rag()
+
+        # Build context string from reading
+        spread_title = context.get("spread_title", "")
+        cards = context.get("cards", [])
+        overall_message = context.get("overall_message", "")
+        guidance = context.get("guidance", "")
+
+        cards_str = ", ".join([
+            f"{c.get('name', '')}{'(역방향)' if c.get('is_reversed') else ''}"
+            for c in cards
+        ])
+
+        # Build conversation for Gemini
+        conversation_history = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            conversation_history.append(f"{'사용자' if role == 'user' else 'AI'}: {content}")
+
+        last_user_message = messages[-1].get("content", "") if messages else ""
+
+        # Check for specific intents
+        wants_more_cards = any(kw in last_user_message.lower() for kw in ["더 뽑", "추가", "more card", "draw more"])
+        asks_about_timing = any(kw in last_user_message.lower() for kw in ["언제", "시기", "when", "timing"])
+
+        # Current date for contextual responses
+        now = datetime.now()
+        is_korean = language == "ko"
+        weekday_names_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        if is_korean:
+            date_str = f"{now.year}년 {now.month}월 {now.day}일 ({weekday_names_ko[now.weekday()]})"
+        else:
+            date_str = now.strftime("%B %d, %Y (%A)")
+
+        # Generate response using Together AI + GPT pattern (same as destiny-map)
+        chat_prompt = f"""당신은 전문 타로 상담사입니다. 사용자의 질문에 친근하고 통찰력 있게 답변하세요.
+
+## 오늘 날짜: {date_str}
+
+## 현재 리딩 정보
+- 스프레드: {spread_title}
+- 뽑힌 카드: {cards_str}
+- 전체 메시지: {overall_message[:500]}
+- 조언: {guidance}
+
+## 대화 기록
+{chr(10).join(conversation_history[-6:])}
+
+## 현재 질문
+{last_user_message}
+
+{'사용자가 카드를 더 뽑고 싶어합니다. 현재 리딩에 집중하도록 안내하면서, 필요하다면 새 리딩을 시작하도록 권유하세요.' if wants_more_cards else ''}
+{'타이밍에 대한 질문입니다. 카드에서 읽을 수 있는 시기적 힌트를 제공하세요.' if asks_about_timing else ''}
+
+친근하게 2-3문장으로 답변하세요."""
+
+        try:
+            # Step 1: Generate with Together Llama 3.3 70B
+            raw_reply = _generate_with_together(chat_prompt, max_tokens=500, temperature=0.3)
+            # Step 2: Light polish with GPT-4o-mini
+            reply = refine_with_gpt5mini(raw_reply, "tarot_chat", language)
+        except Exception as llm_e:
+            logger.warning(f"[TAROT_CHAT] Together/GPT failed: {llm_e}")
+            reply = f"현재 리딩에서 {cards_str}이(가) 나왔습니다. {guidance}"
+
+        duration_ms = int((time.time() - start_time) * 1000)
+        logger.info(f"[TAROT_CHAT] id={g.request_id} completed in {duration_ms}ms")
+
+        return jsonify({
+            "reply": reply,
+            "performance": {"duration_ms": duration_ms}
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/chat failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/tarot/themes", methods=["GET"])
+def tarot_themes():
+    """Get available tarot themes and spreads."""
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        hybrid_rag = get_tarot_hybrid_rag()
+        themes = hybrid_rag.get_available_themes()
+
+        result = []
+        for theme in themes:
+            sub_topics = hybrid_rag.get_sub_topics(theme)
+            result.append({
+                "id": theme,
+                "sub_topics": sub_topics
+            })
+
+        return jsonify({
+            "status": "success",
+            "themes": result
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/themes failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/tarot/search", methods=["GET"])
+def tarot_search():
+    """Semantic search across tarot knowledge."""
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        query = request.args.get("q", "")
+        top_k = int(request.args.get("top_k", 5))
+        category = request.args.get("category")
+
+        hybrid_rag = get_tarot_hybrid_rag()
+        results = hybrid_rag.search_advanced_rules(query, top_k=top_k, category=category)
+
+        return jsonify({
+            "status": "success",
+            "results": results
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/search failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# RLHF FEEDBACK LEARNING ENDPOINTS
+# ===============================================================
+
+@app.route("/rlhf/stats", methods=["GET"])
+def rlhf_stats():
+    """Get RLHF feedback statistics."""
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        fl = get_feedback_learning()
+        stats = fl.get_stats()
+
+        return jsonify({
+            "status": "success",
+            "stats": stats,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/stats failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/analyze", methods=["GET"])
+def rlhf_analyze():
+    """Analyze feedback patterns to identify improvement areas."""
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        theme = request.args.get("theme")
+        days = int(request.args.get("days", 30))
+
+        fl = get_feedback_learning()
+        analysis = fl.analyze_feedback_patterns(theme=theme, days=days)
+
+        return jsonify({
+            "status": "success",
+            "analysis": analysis,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/analyze failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/suggestions", methods=["GET"])
+def rlhf_suggestions():
+    """Get improvement suggestions based on feedback analysis."""
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        fl = get_feedback_learning()
+        suggestions = fl.get_improvement_suggestions()
+
+        return jsonify({
+            "status": "success",
+            "suggestions": suggestions,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/suggestions failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/fewshot", methods=["GET"])
+def rlhf_fewshot():
+    """Get Few-shot examples for a theme."""
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        theme = request.args.get("theme", "life_path")
+        locale = request.args.get("locale", "ko")
+        top_k = int(request.args.get("top_k", 3))
+
+        fl = get_feedback_learning()
+        examples = fl.get_fewshot_examples(theme, locale, top_k)
+        formatted = fl.format_fewshot_prompt(theme, locale, top_k)
+
+        return jsonify({
+            "status": "success",
+            "examples": examples,
+            "formatted_prompt": formatted,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/fewshot failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/export", methods=["GET"])
+def rlhf_export():
+    """Export training data for fine-tuning."""
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        min_rating = int(request.args.get("min_rating", 4))
+        limit = int(request.args.get("limit", 500))
+
+        fl = get_feedback_learning()
+        training_data = fl.export_training_data(min_rating=min_rating, limit=limit)
+
+        return jsonify({
+            "status": "success",
+            "count": len(training_data),
+            "training_data": training_data,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/export failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/feedback", methods=["POST"])
+def rlhf_record_feedback():
+    """
+    Record feedback directly to RLHF system with full consultation context.
+
+    This is the enhanced version of /memory/feedback that captures
+    more context for learning.
+    """
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+
+        record_id = data.get("record_id", "")
+        user_id = data.get("user_id", "anonymous")
+        rating = data.get("rating")
+        feedback_text = data.get("feedback", "")
+
+        # Full consultation context for learning
+        consultation_data = {
+            "theme": data.get("theme", "unknown"),
+            "locale": data.get("locale", "ko"),
+            "service_type": data.get("service_type", "fusion"),
+            "summary": data.get("summary", ""),
+            "key_insights": data.get("key_insights", []),
+            "prompt": data.get("user_question", ""),
+            "context": data.get("context", ""),
+        }
+
+        if not record_id or rating is None:
+            return jsonify({
+                "status": "error",
+                "message": "record_id and rating are required"
+            }), 400
+
+        fl = get_feedback_learning()
+        result = fl.record_feedback(
+            record_id=record_id,
+            user_id=user_id,
+            rating=rating,
+            feedback_text=feedback_text,
+            consultation_data=consultation_data,
+        )
+
+        # Handle return value (may include badges)
+        if isinstance(result, tuple):
+            feedback_id, new_badges = result
+        else:
+            feedback_id = result
+            new_badges = []
+
+        # Also update rule weights if rules were used
+        rules_used = data.get("rules_used", [])
+        if rules_used and rating:
+            fl.adjust_rule_weights(
+                theme=consultation_data["theme"],
+                rules_used=rules_used,
+                rating=rating,
+            )
+
+        logger.info(f"[RLHF] Recorded feedback {feedback_id}: rating={rating}, theme={consultation_data['theme']}")
+
+        # Build response with badge info
+        response = {
+            "status": "success",
+            "feedback_id": feedback_id,
+            "message": "Feedback recorded for RLHF learning",
+        }
+
+        # Include new badges if any were earned
+        if new_badges:
+            locale = data.get("locale", "ko")
+            response["new_badges"] = [
+                {
+                    "id": b.id,
+                    "name": b.name_ko if locale == "ko" else b.name_en,
+                    "description": b.description_ko if locale == "ko" else b.description_en,
+                    "rarity": b.rarity.value,
+                    "image_path": b.image_path,
+                    "points": b.points,
+                }
+                for b in new_badges
+            ]
+            response["badges_earned_count"] = len(new_badges)
+
+        return jsonify(response)
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/feedback failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/weights", methods=["GET"])
+def rlhf_weights():
+    """Get adjusted rule weights for a theme."""
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        theme = request.args.get("theme")
+
+        fl = get_feedback_learning()
+        weights = fl.get_rule_weights(theme)
+
+        return jsonify({
+            "status": "success",
+            "theme": theme,
+            "weights": weights,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/weights failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# BADGE SYSTEM ENDPOINTS
+# ===============================================================
+
+@app.route("/badges/all", methods=["GET"])
+def badges_all():
+    """Get all available badges."""
+    if not HAS_BADGES:
+        return jsonify({"status": "error", "message": "Badge system not available"}), 501
+
+    try:
+        locale = request.args.get("locale", "ko")
+        badge_system = get_badge_system()
+        badges = badge_system.get_all_badges(locale)
+
+        return jsonify({
+            "status": "success",
+            "badges": badges,
+            "total": len(badges),
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /badges/all failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/badges/user", methods=["POST"])
+def badges_user():
+    """Get user's badge summary."""
+    if not HAS_BADGES:
+        return jsonify({"status": "error", "message": "Badge system not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        user_id = data.get("user_id", "")
+        locale = data.get("locale", "ko")
+
+        # Can also generate user_id from birth data
+        if not user_id and data.get("birth"):
+            from backend_ai.app.user_memory import generate_user_id
+            user_id = generate_user_id(data["birth"])
+
+        if not user_id:
+            return jsonify({"status": "error", "message": "user_id or birth data required"}), 400
+
+        badge_system = get_badge_system()
+        summary = badge_system.get_user_badge_summary(user_id, locale)
+
+        return jsonify({
+            "status": "success",
+            **summary,
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /badges/user failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/badges/midjourney-prompts", methods=["GET"])
+def badges_midjourney():
+    """Get Midjourney prompts for badge images."""
+    if not HAS_BADGES:
+        return jsonify({"status": "error", "message": "Badge system not available"}), 501
+
+    try:
+        prompts = get_midjourney_prompts()
+
+        return jsonify({
+            "status": "success",
+            "prompts": prompts,
+            "count": len(prompts),
+            "usage": "Copy each prompt to Midjourney to generate badge images. Save as /public/badges/{badge_id}.png",
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /badges/midjourney-prompts failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# AGENTIC RAG ENDPOINTS (Next Level Features)
+# ===============================================================
+
+@app.route("/agentic/query", methods=["POST"])
+def agentic_rag_query():
+    """
+    Execute agentic RAG query with all next-level features:
+    - Entity Extraction (NER)
+    - Deep Graph Traversal (Multi-hop)
+    - Agentic Workflow (LangGraph-style)
+
+    Request body:
+    {
+        "query": "목성이 사수자리에 있을 때 9하우스의 영향은?",
+        "facts": {...},  // Optional: Saju/Astro facts
+        "locale": "ko",
+        "theme": "life_path"
+    }
+    """
+    if not HAS_AGENTIC:
+        return jsonify({"status": "error", "message": "Agentic RAG module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+
+        query = data.get("query", "")
+        facts = data.get("facts", {})
+        locale = data.get("locale", "ko")
+        theme = data.get("theme", "life_path")
+
+        if not query:
+            return jsonify({"status": "error", "message": "query is required"}), 400
+
+        result = agentic_query(
+            query=query,
+            facts=facts,
+            locale=locale,
+            theme=theme,
+        )
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /agentic/query failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/agentic/extract-entities", methods=["POST"])
+def agentic_extract_entities():
+    """
+    Extract entities from text using NER.
+
+    Request body:
+    {
+        "text": "Jupiter in Sagittarius in the 9th house"
+    }
+    """
+    if not HAS_AGENTIC:
+        return jsonify({"status": "error", "message": "Agentic RAG module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        text = data.get("text", "")
+
+        if not text:
+            return jsonify({"status": "error", "message": "text is required"}), 400
+
+        extractor = get_entity_extractor()
+        entities = extractor.extract(text)
+        relations = extractor.extract_relations(text)
+
+        return jsonify({
+            "status": "success",
+            "entities": [
+                {
+                    "text": e.text,
+                    "type": e.type.value,
+                    "normalized": e.normalized,
+                    "confidence": e.confidence,
+                }
+                for e in entities
+            ],
+            "relations": [
+                {
+                    "source": r[0].normalized,
+                    "relation": r[1],
+                    "target": r[2].normalized,
+                }
+                for r in relations
+            ],
+            "stats": {
+                "entities_count": len(entities),
+                "relations_count": len(relations),
+                "entity_types": list(set(e.type.value for e in entities)),
+            },
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /agentic/extract-entities failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/agentic/deep-traverse", methods=["POST"])
+def agentic_deep_traverse():
+    """
+    Perform multi-hop graph traversal.
+
+    Request body:
+    {
+        "start_entities": ["Jupiter", "Sagittarius"],
+        "max_depth": 3,
+        "max_paths": 5
+    }
+    """
+    if not HAS_AGENTIC:
+        return jsonify({"status": "error", "message": "Agentic RAG module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+
+        start_entities = data.get("start_entities", [])
+        max_depth = data.get("max_depth", 3)
+        max_paths = data.get("max_paths", 10)
+
+        if not start_entities:
+            return jsonify({"status": "error", "message": "start_entities is required"}), 400
+
+        traversal = get_deep_traversal()
+        if not traversal:
+            return jsonify({"status": "error", "message": "Graph not available for traversal"}), 501
+
+        paths = traversal.traverse(
+            start_entities=start_entities,
+            max_depth=max_depth,
+            max_paths=max_paths,
+        )
+
+        return jsonify({
+            "status": "success",
+            "paths": [
+                {
+                    "nodes": p.nodes,
+                    "edges": p.edges,
+                    "context": p.context,
+                    "weight": p.total_weight,
+                }
+                for p in paths
+            ],
+            "stats": {
+                "paths_count": len(paths),
+                "max_path_length": max(len(p.nodes) for p in paths) if paths else 0,
+                "start_entities": start_entities,
+            },
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /agentic/deep-traverse failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/agentic/find-connections", methods=["POST"])
+def agentic_find_connections():
+    """
+    Find all paths connecting two entities.
+
+    Example: Find how Jupiter connects to Philosophy
+    Jupiter → Sagittarius → 9th House → Philosophy
+
+    Request body:
+    {
+        "entity1": "Jupiter",
+        "entity2": "Philosophy",
+        "max_depth": 4
+    }
+    """
+    if not HAS_AGENTIC:
+        return jsonify({"status": "error", "message": "Agentic RAG module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+
+        entity1 = data.get("entity1", "")
+        entity2 = data.get("entity2", "")
+        max_depth = data.get("max_depth", 4)
+
+        if not entity1 or not entity2:
+            return jsonify({"status": "error", "message": "entity1 and entity2 are required"}), 400
+
+        traversal = get_deep_traversal()
+        if not traversal:
+            return jsonify({"status": "error", "message": "Graph not available for traversal"}), 501
+
+        paths = traversal.find_connections(
+            entity1=entity1,
+            entity2=entity2,
+            max_depth=max_depth,
+        )
+
+        return jsonify({
+            "status": "success",
+            "entity1": entity1,
+            "entity2": entity2,
+            "paths": [
+                {
+                    "nodes": p.nodes,
+                    "edges": p.edges,
+                    "context": p.context,
+                    "weight": p.total_weight,
+                    "path_string": " → ".join(p.nodes),
+                }
+                for p in paths
+            ],
+            "connections_found": len(paths),
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /agentic/find-connections failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# System capabilities
+@app.route("/capabilities", methods=["GET"])
+def get_capabilities():
+    """Get system capabilities (what's enabled)."""
+    return jsonify({
+        "status": "success",
+        "capabilities": {
+            "realtime_transits": HAS_REALTIME,
+            "chart_generation": HAS_CHARTS,
+            "user_memory": HAS_USER_MEMORY,
+            "iching_premium": HAS_ICHING,
+            "persona_embeddings": HAS_PERSONA_EMBED,
+            "tarot_premium": HAS_TAROT,
+            "rlhf_learning": HAS_RLHF,
+            "badge_system": HAS_BADGES,
+            "agentic_rag": HAS_AGENTIC,
+            "hybrid_rag": True,
+        },
+        "version": "3.0.0-agentic",
+    })
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     logger.info(f"Flask server starting on http://127.0.0.1:{port}")
+    logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}")
     app.run(host="0.0.0.0", port=port, debug=True)

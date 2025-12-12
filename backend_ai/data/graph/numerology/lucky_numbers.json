@@ -1,0 +1,1497 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Lucky number meanings for 1-45 (Korean Lotto range)",
+    "usage": "Direct interpretation for generated lucky numbers"
+  },
+  "numbers": {
+    "1": {
+      "ko": {
+        "title": "Number of Beginnings",
+        "energy": "New starts, independence, leadership",
+        "advice": "Great day to initiate something new. Take the lead.",
+        "lucky_for": [
+          "Starting business",
+          "First meetings",
+          "Contracts"
+        ],
+        "avoid": [
+          "Dependency",
+          "Indecision"
+        ]
+      },
+      "en": {
+        "title": "Number of Beginnings",
+        "energy": "New starts, independence, leadership",
+        "advice": "Great day to initiate something new. Take the lead.",
+        "lucky_for": [
+          "Starting business",
+          "First meetings",
+          "Contracts"
+        ],
+        "avoid": [
+          "Dependency",
+          "Indecision"
+        ]
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "red"
+    },
+    "2": {
+      "ko": {
+        "title": "Number of Harmony",
+        "energy": "Cooperation, balance, partnership",
+        "advice": "Collaboration shines today. Listen and mediate.",
+        "lucky_for": [
+          "Partnerships",
+          "Negotiations",
+          "Reconciliation"
+        ],
+        "avoid": [
+          "Unilateral decisions",
+          "Provoking conflict"
+        ]
+      },
+      "en": {
+        "title": "Number of Harmony",
+        "energy": "Cooperation, balance, partnership",
+        "advice": "Collaboration shines today. Listen and mediate.",
+        "lucky_for": [
+          "Partnerships",
+          "Negotiations",
+          "Reconciliation"
+        ],
+        "avoid": [
+          "Unilateral decisions",
+          "Provoking conflict"
+        ]
+      },
+      "element": "water",
+      "planet": "Moon",
+      "color": "silver"
+    },
+    "3": {
+      "ko": {
+        "title": "Number of Creation",
+        "energy": "Expression, creativity, communication",
+        "advice": "Express your ideas and focus on creative activities.",
+        "lucky_for": [
+          "Artistic work",
+          "Presentations",
+          "Social gatherings"
+        ],
+        "avoid": [
+          "Suppressing expression",
+          "Pessimism"
+        ]
+      },
+      "en": {
+        "title": "Number of Creation",
+        "energy": "Expression, creativity, communication",
+        "advice": "Express your ideas and focus on creative activities.",
+        "lucky_for": [
+          "Artistic work",
+          "Presentations",
+          "Social gatherings"
+        ],
+        "avoid": [
+          "Suppressing expression",
+          "Pessimism"
+        ]
+      },
+      "element": "fire",
+      "planet": "Jupiter",
+      "color": "yellow"
+    },
+    "4": {
+      "ko": {
+        "title": "Number of Stability",
+        "energy": "Foundation, structure, security",
+        "advice": "Build foundations and plan systematically.",
+        "lucky_for": [
+          "Real estate",
+          "Long-term planning",
+          "Health management"
+        ],
+        "avoid": [
+          "Hasty changes",
+          "Ignoring basics"
+        ]
+      },
+      "en": {
+        "title": "Number of Stability",
+        "energy": "Foundation, structure, security",
+        "advice": "Build foundations and plan systematically.",
+        "lucky_for": [
+          "Real estate",
+          "Long-term planning",
+          "Health management"
+        ],
+        "avoid": [
+          "Hasty changes",
+          "Ignoring basics"
+        ]
+      },
+      "element": "earth",
+      "planet": "Uranus",
+      "color": "green"
+    },
+    "5": {
+      "ko": {
+        "title": "Number of Change",
+        "energy": "Freedom, adventure, adaptability",
+        "advice": "Don't fear change. New experiences bring luck.",
+        "lucky_for": [
+          "Travel",
+          "Career change",
+          "New hobbies"
+        ],
+        "avoid": [
+          "Excessive comfort seeking",
+          "Resisting change"
+        ]
+      },
+      "en": {
+        "title": "Number of Change",
+        "energy": "Freedom, adventure, adaptability",
+        "advice": "Don't fear change. New experiences bring luck.",
+        "lucky_for": [
+          "Travel",
+          "Career change",
+          "New hobbies"
+        ],
+        "avoid": [
+          "Excessive comfort seeking",
+          "Resisting change"
+        ]
+      },
+      "element": "air",
+      "planet": "Mercury",
+      "color": "turquoise"
+    },
+    "6": {
+      "ko": {
+        "title": "Number of Care",
+        "energy": "Home, responsibility, love",
+        "advice": "Focus on family and loved ones. Caring brings blessings.",
+        "lucky_for": [
+          "Family events",
+          "Marriage",
+          "Home matters"
+        ],
+        "avoid": [
+          "Neglecting family",
+          "Excessive interference"
+        ]
+      },
+      "en": {
+        "title": "Number of Care",
+        "energy": "Home, responsibility, love",
+        "advice": "Focus on family and loved ones. Caring brings blessings.",
+        "lucky_for": [
+          "Family events",
+          "Marriage",
+          "Home matters"
+        ],
+        "avoid": [
+          "Neglecting family",
+          "Excessive interference"
+        ]
+      },
+      "element": "earth",
+      "planet": "Venus",
+      "color": "blue"
+    },
+    "7": {
+      "ko": {
+        "title": "Number of Seeking",
+        "energy": "Wisdom, introspection, analysis",
+        "advice": "Think deeply and listen to your inner voice.",
+        "lucky_for": [
+          "Research",
+          "Meditation",
+          "Learning"
+        ],
+        "avoid": [
+          "Superficial approach",
+          "Ignoring intuition"
+        ]
+      },
+      "en": {
+        "title": "Number of Seeking",
+        "energy": "Wisdom, introspection, analysis",
+        "advice": "Think deeply and listen to your inner voice.",
+        "lucky_for": [
+          "Research",
+          "Meditation",
+          "Learning"
+        ],
+        "avoid": [
+          "Superficial approach",
+          "Ignoring intuition"
+        ]
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "purple"
+    },
+    "8": {
+      "ko": {
+        "title": "Number of Abundance",
+        "energy": "Wealth, power, achievement",
+        "advice": "Move actively toward material goals.",
+        "lucky_for": [
+          "Investments",
+          "Promotions",
+          "Business expansion"
+        ],
+        "avoid": [
+          "Greed",
+          "Ethical violations"
+        ]
+      },
+      "en": {
+        "title": "Number of Abundance",
+        "energy": "Wealth, power, achievement",
+        "advice": "Move actively toward material goals.",
+        "lucky_for": [
+          "Investments",
+          "Promotions",
+          "Business expansion"
+        ],
+        "avoid": [
+          "Greed",
+          "Ethical violations"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "gold"
+    },
+    "9": {
+      "ko": {
+        "title": "Number of Completion",
+        "energy": "Fulfillment, compassion, universal love",
+        "advice": "Giving and sharing will bring greater returns.",
+        "lucky_for": [
+          "Donations",
+          "Volunteering",
+          "Completing projects"
+        ],
+        "avoid": [
+          "Selfishness",
+          "Leaving things unfinished"
+        ]
+      },
+      "en": {
+        "title": "Number of Completion",
+        "energy": "Fulfillment, compassion, universal love",
+        "advice": "Giving and sharing will bring greater returns.",
+        "lucky_for": [
+          "Donations",
+          "Volunteering",
+          "Completing projects"
+        ],
+        "avoid": [
+          "Selfishness",
+          "Leaving things unfinished"
+        ]
+      },
+      "element": "fire",
+      "planet": "Mars",
+      "color": "bronze"
+    },
+    "10": {
+      "ko": {
+        "title": "Number of Restart",
+        "energy": "New cycle, perfect beginning, potential",
+        "advice": "Clear the past and start a new cycle.",
+        "lucky_for": [
+          "Reset",
+          "New plans",
+          "Independence"
+        ],
+        "avoid": [
+          "Clinging to past",
+          "Fear of starting"
+        ]
+      },
+      "en": {
+        "title": "Number of Restart",
+        "energy": "New cycle, perfect beginning, potential",
+        "advice": "Clear the past and start a new cycle.",
+        "lucky_for": [
+          "Reset",
+          "New plans",
+          "Independence"
+        ],
+        "avoid": [
+          "Clinging to past",
+          "Fear of starting"
+        ]
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "white"
+    },
+    "11": {
+      "ko": {
+        "title": "Master Number of Inspiration",
+        "energy": "Intuition, spiritual awakening, revelation",
+        "advice": "Trust your intuition. Spiritual messages may come.",
+        "lucky_for": [
+          "Spiritual activities",
+          "Intuitive decisions",
+          "Creation"
+        ],
+        "avoid": [
+          "Ignoring intuition",
+          "Reality avoidance"
+        ]
+      },
+      "en": {
+        "title": "Master Number of Inspiration",
+        "energy": "Intuition, spiritual awakening, revelation",
+        "advice": "Trust your intuition. Spiritual messages may come.",
+        "lucky_for": [
+          "Spiritual activities",
+          "Intuitive decisions",
+          "Creation"
+        ],
+        "avoid": [
+          "Ignoring intuition",
+          "Reality avoidance"
+        ]
+      },
+      "element": "air",
+      "planet": "Uranus",
+      "color": "silver",
+      "master": true
+    },
+    "12": {
+      "ko": {
+        "title": "Number of Sacrifice",
+        "energy": "Sacrifice, transformation, new perspective",
+        "advice": "Look at situations from a different angle. It's transition, not giving up.",
+        "lucky_for": [
+          "Perspective shift",
+          "Compromise",
+          "Meditation"
+        ],
+        "avoid": [
+          "Stubbornness",
+          "One-sided thinking"
+        ]
+      },
+      "en": {
+        "title": "Number of Sacrifice",
+        "energy": "Sacrifice, transformation, new perspective",
+        "advice": "Look at situations from a different angle. It's transition, not giving up.",
+        "lucky_for": [
+          "Perspective shift",
+          "Compromise",
+          "Meditation"
+        ],
+        "avoid": [
+          "Stubbornness",
+          "One-sided thinking"
+        ]
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "blue"
+    },
+    "13": {
+      "ko": {
+        "title": "Number of Transformation",
+        "energy": "Transformation, rebirth, new beginning",
+        "advice": "Endings are new beginnings. Embrace change.",
+        "lucky_for": [
+          "Major changes",
+          "Decluttering",
+          "Fresh starts"
+        ],
+        "avoid": [
+          "Fear of change",
+          "Past attachment"
+        ]
+      },
+      "en": {
+        "title": "Number of Transformation",
+        "energy": "Transformation, rebirth, new beginning",
+        "advice": "Endings are new beginnings. Embrace change.",
+        "lucky_for": [
+          "Major changes",
+          "Decluttering",
+          "Fresh starts"
+        ],
+        "avoid": [
+          "Fear of change",
+          "Past attachment"
+        ]
+      },
+      "element": "water",
+      "planet": "Pluto",
+      "color": "black"
+    },
+    "14": {
+      "ko": {
+        "title": "Number of Balance",
+        "energy": "Temperance, balance, harmony",
+        "advice": "Avoid extremes and walk the middle path.",
+        "lucky_for": [
+          "Health management",
+          "Finding balance",
+          "Moderation"
+        ],
+        "avoid": [
+          "Extremes",
+          "Excess"
+        ]
+      },
+      "en": {
+        "title": "Number of Balance",
+        "energy": "Temperance, balance, harmony",
+        "advice": "Avoid extremes and walk the middle path.",
+        "lucky_for": [
+          "Health management",
+          "Finding balance",
+          "Moderation"
+        ],
+        "avoid": [
+          "Extremes",
+          "Excess"
+        ]
+      },
+      "element": "fire",
+      "planet": "Jupiter",
+      "color": "orange"
+    },
+    "15": {
+      "ko": {
+        "title": "Number of Charm",
+        "energy": "Attraction, temptation, material",
+        "advice": "Be wary of material desires, but use your charisma.",
+        "lucky_for": [
+          "Sales",
+          "Marketing",
+          "Networking"
+        ],
+        "avoid": [
+          "Greed",
+          "Falling for temptation"
+        ]
+      },
+      "en": {
+        "title": "Number of Charm",
+        "energy": "Attraction, temptation, material",
+        "advice": "Be wary of material desires, but use your charisma.",
+        "lucky_for": [
+          "Sales",
+          "Marketing",
+          "Networking"
+        ],
+        "avoid": [
+          "Greed",
+          "Falling for temptation"
+        ]
+      },
+      "element": "earth",
+      "planet": "Venus",
+      "color": "dark_red"
+    },
+    "16": {
+      "ko": {
+        "title": "Number of Awakening",
+        "energy": "Awakening, rebuilding after collapse, ego destruction",
+        "advice": "Old must fall for new to rise. Stay humble.",
+        "lucky_for": [
+          "Self-reflection",
+          "Rebuilding",
+          "Humility"
+        ],
+        "avoid": [
+          "Arrogance",
+          "Resisting change"
+        ]
+      },
+      "en": {
+        "title": "Number of Awakening",
+        "energy": "Awakening, rebuilding after collapse, ego destruction",
+        "advice": "Old must fall for new to rise. Stay humble.",
+        "lucky_for": [
+          "Self-reflection",
+          "Rebuilding",
+          "Humility"
+        ],
+        "avoid": [
+          "Arrogance",
+          "Resisting change"
+        ]
+      },
+      "element": "fire",
+      "planet": "Mars",
+      "color": "red"
+    },
+    "17": {
+      "ko": {
+        "title": "Number of Hope",
+        "energy": "Hope, inspiration, bright future",
+        "advice": "Don't lose hope. The stars guide you.",
+        "lucky_for": [
+          "New hope",
+          "Inspiration",
+          "Art"
+        ],
+        "avoid": [
+          "Despair",
+          "Negative thinking"
+        ]
+      },
+      "en": {
+        "title": "Number of Hope",
+        "energy": "Hope, inspiration, bright future",
+        "advice": "Don't lose hope. The stars guide you.",
+        "lucky_for": [
+          "New hope",
+          "Inspiration",
+          "Art"
+        ],
+        "avoid": [
+          "Despair",
+          "Negative thinking"
+        ]
+      },
+      "element": "air",
+      "planet": "Uranus",
+      "color": "light_blue"
+    },
+    "18": {
+      "ko": {
+        "title": "Number of Intuition",
+        "energy": "Intuition, dreams, subconscious",
+        "advice": "Pay attention to dreams and intuition. Hidden messages await.",
+        "lucky_for": [
+          "Dream interpretation",
+          "Intuitive decisions",
+          "Psychology"
+        ],
+        "avoid": [
+          "Ignoring intuition",
+          "Lost in illusion"
+        ]
+      },
+      "en": {
+        "title": "Number of Intuition",
+        "energy": "Intuition, dreams, subconscious",
+        "advice": "Pay attention to dreams and intuition. Hidden messages await.",
+        "lucky_for": [
+          "Dream interpretation",
+          "Intuitive decisions",
+          "Psychology"
+        ],
+        "avoid": [
+          "Ignoring intuition",
+          "Lost in illusion"
+        ]
+      },
+      "element": "water",
+      "planet": "Moon",
+      "color": "silver"
+    },
+    "19": {
+      "ko": {
+        "title": "Number of Success",
+        "energy": "Success, vitality, joy",
+        "advice": "Move toward goals with bright energy. Success is near.",
+        "lucky_for": [
+          "Goal achievement",
+          "New beginnings",
+          "Confidence"
+        ],
+        "avoid": [
+          "Complacency",
+          "Laziness"
+        ]
+      },
+      "en": {
+        "title": "Number of Success",
+        "energy": "Success, vitality, joy",
+        "advice": "Move toward goals with bright energy. Success is near.",
+        "lucky_for": [
+          "Goal achievement",
+          "New beginnings",
+          "Confidence"
+        ],
+        "avoid": [
+          "Complacency",
+          "Laziness"
+        ]
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "gold"
+    },
+    "20": {
+      "ko": {
+        "title": "Number of Resurrection",
+        "energy": "Judgment, resurrection, new opportunity",
+        "advice": "Look back at the past and embrace new opportunities.",
+        "lucky_for": [
+          "Reevaluation",
+          "Forgiveness",
+          "New chances"
+        ],
+        "avoid": [
+          "Past obsession",
+          "Self-blame"
+        ]
+      },
+      "en": {
+        "title": "Number of Resurrection",
+        "energy": "Judgment, resurrection, new opportunity",
+        "advice": "Look back at the past and embrace new opportunities.",
+        "lucky_for": [
+          "Reevaluation",
+          "Forgiveness",
+          "New chances"
+        ],
+        "avoid": [
+          "Past obsession",
+          "Self-blame"
+        ]
+      },
+      "element": "fire",
+      "planet": "Pluto",
+      "color": "orange"
+    },
+    "21": {
+      "ko": {
+        "title": "Number of Completion",
+        "energy": "Completion, world, integration",
+        "advice": "Everything comes together. Celebrate your achievements.",
+        "lucky_for": [
+          "Project completion",
+          "Goal achievement",
+          "Celebration"
+        ],
+        "avoid": [
+          "Leaving incomplete",
+          "Fear of new starts"
+        ]
+      },
+      "en": {
+        "title": "Number of Completion",
+        "energy": "Completion, world, integration",
+        "advice": "Everything comes together. Celebrate your achievements.",
+        "lucky_for": [
+          "Project completion",
+          "Goal achievement",
+          "Celebration"
+        ],
+        "avoid": [
+          "Leaving incomplete",
+          "Fear of new starts"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "violet"
+    },
+    "22": {
+      "ko": {
+        "title": "Master Builder Number",
+        "energy": "Master builder, grand vision, manifestation",
+        "advice": "A day to make big dreams reality. Approach systematically.",
+        "lucky_for": [
+          "Large projects",
+          "Long-term planning",
+          "Building organizations"
+        ],
+        "avoid": [
+          "Thinking small",
+          "Unstructured approach"
+        ]
+      },
+      "en": {
+        "title": "Master Builder Number",
+        "energy": "Master builder, grand vision, manifestation",
+        "advice": "A day to make big dreams reality. Approach systematically.",
+        "lucky_for": [
+          "Large projects",
+          "Long-term planning",
+          "Building organizations"
+        ],
+        "avoid": [
+          "Thinking small",
+          "Unstructured approach"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "brown",
+      "master": true
+    },
+    "23": {
+      "ko": {
+        "title": "Royal Star",
+        "energy": "Fortune, success, protection",
+        "advice": "The universe protects you. Move boldly.",
+        "lucky_for": [
+          "Challenges",
+          "Leadership",
+          "Investment"
+        ],
+        "avoid": [
+          "Missing opportunities",
+          "Passive attitude"
+        ]
+      },
+      "en": {
+        "title": "Royal Star",
+        "energy": "Fortune, success, protection",
+        "advice": "The universe protects you. Move boldly.",
+        "lucky_for": [
+          "Challenges",
+          "Leadership",
+          "Investment"
+        ],
+        "avoid": [
+          "Missing opportunities",
+          "Passive attitude"
+        ]
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "gold"
+    },
+    "24": {
+      "ko": {
+        "title": "Number of Home",
+        "energy": "Home, harmony, love",
+        "advice": "Time with family brings blessings.",
+        "lucky_for": [
+          "Family gatherings",
+          "Home matters",
+          "Caring"
+        ],
+        "avoid": [
+          "Neglecting family",
+          "Workaholism"
+        ]
+      },
+      "en": {
+        "title": "Number of Home",
+        "energy": "Home, harmony, love",
+        "advice": "Time with family brings blessings.",
+        "lucky_for": [
+          "Family gatherings",
+          "Home matters",
+          "Caring"
+        ],
+        "avoid": [
+          "Neglecting family",
+          "Workaholism"
+        ]
+      },
+      "element": "earth",
+      "planet": "Venus",
+      "color": "pink"
+    },
+    "25": {
+      "ko": {
+        "title": "Number of Wisdom",
+        "energy": "Wisdom, insight, research",
+        "advice": "Dig deeper to find gems. Research thoroughly.",
+        "lucky_for": [
+          "Learning",
+          "Research",
+          "Analysis"
+        ],
+        "avoid": [
+          "Superficial approach",
+          "Hasty conclusions"
+        ]
+      },
+      "en": {
+        "title": "Number of Wisdom",
+        "energy": "Wisdom, insight, research",
+        "advice": "Dig deeper to find gems. Research thoroughly.",
+        "lucky_for": [
+          "Learning",
+          "Research",
+          "Analysis"
+        ],
+        "avoid": [
+          "Superficial approach",
+          "Hasty conclusions"
+        ]
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "indigo"
+    },
+    "26": {
+      "ko": {
+        "title": "Number of Partnership",
+        "energy": "Cooperation, business partnership",
+        "advice": "Achieve more together than alone.",
+        "lucky_for": [
+          "Business partnerships",
+          "Collaboration",
+          "Contracts"
+        ],
+        "avoid": [
+          "Going alone",
+          "Lack of trust"
+        ]
+      },
+      "en": {
+        "title": "Number of Partnership",
+        "energy": "Cooperation, business partnership",
+        "advice": "Achieve more together than alone.",
+        "lucky_for": [
+          "Business partnerships",
+          "Collaboration",
+          "Contracts"
+        ],
+        "avoid": [
+          "Going alone",
+          "Lack of trust"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "navy"
+    },
+    "27": {
+      "ko": {
+        "title": "Number of Compassion",
+        "energy": "Compassion, spiritual wisdom, service",
+        "advice": "Receive more by giving. Practice compassion.",
+        "lucky_for": [
+          "Service",
+          "Healing",
+          "Spiritual growth"
+        ],
+        "avoid": [
+          "Selfishness",
+          "Spiritual indifference"
+        ]
+      },
+      "en": {
+        "title": "Number of Compassion",
+        "energy": "Compassion, spiritual wisdom, service",
+        "advice": "Receive more by giving. Practice compassion.",
+        "lucky_for": [
+          "Service",
+          "Healing",
+          "Spiritual growth"
+        ],
+        "avoid": [
+          "Selfishness",
+          "Spiritual indifference"
+        ]
+      },
+      "element": "water",
+      "planet": "Mars",
+      "color": "burgundy"
+    },
+    "28": {
+      "ko": {
+        "title": "Number of Independence",
+        "energy": "Independence, self-reliance, new start",
+        "advice": "Stand on your own feet. You can do it.",
+        "lucky_for": [
+          "Independence",
+          "Entrepreneurship",
+          "Self-determination"
+        ],
+        "avoid": [
+          "Dependency",
+          "Blaming others"
+        ]
+      },
+      "en": {
+        "title": "Number of Independence",
+        "energy": "Independence, self-reliance, new start",
+        "advice": "Stand on your own feet. You can do it.",
+        "lucky_for": [
+          "Independence",
+          "Entrepreneurship",
+          "Self-determination"
+        ],
+        "avoid": [
+          "Dependency",
+          "Blaming others"
+        ]
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "orange"
+    },
+    "29": {
+      "ko": {
+        "title": "Number of Spiritual Leadership",
+        "energy": "Spiritual leadership, vision, insight",
+        "advice": "Guide others with your inner light.",
+        "lucky_for": [
+          "Leadership",
+          "Mentoring",
+          "Spiritual teaching"
+        ],
+        "avoid": [
+          "Arrogance",
+          "Isolation"
+        ]
+      },
+      "en": {
+        "title": "Number of Spiritual Leadership",
+        "energy": "Spiritual leadership, vision, insight",
+        "advice": "Guide others with your inner light.",
+        "lucky_for": [
+          "Leadership",
+          "Mentoring",
+          "Spiritual teaching"
+        ],
+        "avoid": [
+          "Arrogance",
+          "Isolation"
+        ]
+      },
+      "element": "air",
+      "planet": "Uranus",
+      "color": "white"
+    },
+    "30": {
+      "ko": {
+        "title": "Number of Expression",
+        "energy": "Creative expression, art, communication",
+        "advice": "Let the world hear your voice. Express yourself.",
+        "lucky_for": [
+          "Art",
+          "Presentations",
+          "Writing"
+        ],
+        "avoid": [
+          "Silence",
+          "Self-censorship"
+        ]
+      },
+      "en": {
+        "title": "Number of Expression",
+        "energy": "Creative expression, art, communication",
+        "advice": "Let the world hear your voice. Express yourself.",
+        "lucky_for": [
+          "Art",
+          "Presentations",
+          "Writing"
+        ],
+        "avoid": [
+          "Silence",
+          "Self-censorship"
+        ]
+      },
+      "element": "fire",
+      "planet": "Jupiter",
+      "color": "yellow"
+    },
+    "31": {
+      "ko": {
+        "title": "Number of Solitary Genius",
+        "energy": "Originality, focus, expertise",
+        "advice": "Alone time brings out your genius.",
+        "lucky_for": [
+          "Research",
+          "Specialized work",
+          "Deep learning"
+        ],
+        "avoid": [
+          "Distraction",
+          "Shallow knowledge"
+        ]
+      },
+      "en": {
+        "title": "Number of Solitary Genius",
+        "energy": "Originality, focus, expertise",
+        "advice": "Alone time brings out your genius.",
+        "lucky_for": [
+          "Research",
+          "Specialized work",
+          "Deep learning"
+        ],
+        "avoid": [
+          "Distraction",
+          "Shallow knowledge"
+        ]
+      },
+      "element": "earth",
+      "planet": "Uranus",
+      "color": "grey"
+    },
+    "32": {
+      "ko": {
+        "title": "Number of Communication",
+        "energy": "Communication, networking, influence",
+        "advice": "Influence the world through words.",
+        "lucky_for": [
+          "Networking",
+          "Marketing",
+          "Negotiation"
+        ],
+        "avoid": [
+          "Isolation",
+          "Communication breakdown"
+        ]
+      },
+      "en": {
+        "title": "Number of Communication",
+        "energy": "Communication, networking, influence",
+        "advice": "Influence the world through words.",
+        "lucky_for": [
+          "Networking",
+          "Marketing",
+          "Negotiation"
+        ],
+        "avoid": [
+          "Isolation",
+          "Communication breakdown"
+        ]
+      },
+      "element": "air",
+      "planet": "Mercury",
+      "color": "cyan"
+    },
+    "33": {
+      "ko": {
+        "title": "Master Healer Number",
+        "energy": "Master healer, service, compassion",
+        "advice": "Your love heals the world. Serve others.",
+        "lucky_for": [
+          "Healing",
+          "Service",
+          "Teaching"
+        ],
+        "avoid": [
+          "Over-sacrifice",
+          "No boundaries"
+        ]
+      },
+      "en": {
+        "title": "Master Healer Number",
+        "energy": "Master healer, service, compassion",
+        "advice": "Your love heals the world. Serve others.",
+        "lucky_for": [
+          "Healing",
+          "Service",
+          "Teaching"
+        ],
+        "avoid": [
+          "Over-sacrifice",
+          "No boundaries"
+        ]
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "violet",
+      "master": true
+    },
+    "34": {
+      "ko": {
+        "title": "Number of Creative Foundation",
+        "energy": "Creative foundation, artistic structure",
+        "advice": "Add structure to creativity for masterpieces.",
+        "lucky_for": [
+          "Art business",
+          "Creative projects",
+          "Design"
+        ],
+        "avoid": [
+          "Unplanned creation",
+          "Groundless imagination"
+        ]
+      },
+      "en": {
+        "title": "Number of Creative Foundation",
+        "energy": "Creative foundation, artistic structure",
+        "advice": "Add structure to creativity for masterpieces.",
+        "lucky_for": [
+          "Art business",
+          "Creative projects",
+          "Design"
+        ],
+        "avoid": [
+          "Unplanned creation",
+          "Groundless imagination"
+        ]
+      },
+      "element": "earth",
+      "planet": "Venus",
+      "color": "forest_green"
+    },
+    "35": {
+      "ko": {
+        "title": "Number of Free Change",
+        "energy": "Freedom, change, adaptation",
+        "advice": "Ride the winds of change. Freedom leads you.",
+        "lucky_for": [
+          "Travel",
+          "Career change",
+          "Free choices"
+        ],
+        "avoid": [
+          "Constraints",
+          "Resisting change"
+        ]
+      },
+      "en": {
+        "title": "Number of Free Change",
+        "energy": "Freedom, change, adaptation",
+        "advice": "Ride the winds of change. Freedom leads you.",
+        "lucky_for": [
+          "Travel",
+          "Career change",
+          "Free choices"
+        ],
+        "avoid": [
+          "Constraints",
+          "Resisting change"
+        ]
+      },
+      "element": "air",
+      "planet": "Mercury",
+      "color": "sky_blue"
+    },
+    "36": {
+      "ko": {
+        "title": "Number of Creative Care",
+        "energy": "Creative love, artistic nurturing",
+        "advice": "Create with love, spread love through creation.",
+        "lucky_for": [
+          "Home arts",
+          "Cooking",
+          "Handmade"
+        ],
+        "avoid": [
+          "Cold creation",
+          "Emotionless work"
+        ]
+      },
+      "en": {
+        "title": "Number of Creative Care",
+        "energy": "Creative love, artistic nurturing",
+        "advice": "Create with love, spread love through creation.",
+        "lucky_for": [
+          "Home arts",
+          "Cooking",
+          "Handmade"
+        ],
+        "avoid": [
+          "Cold creation",
+          "Emotionless work"
+        ]
+      },
+      "element": "water",
+      "planet": "Venus",
+      "color": "rose"
+    },
+    "37": {
+      "ko": {
+        "title": "Number of Spiritual Quest",
+        "energy": "Spiritual quest, mystical insight",
+        "advice": "Explore mystical realms. Answers await.",
+        "lucky_for": [
+          "Meditation",
+          "Divination",
+          "Spiritual learning"
+        ],
+        "avoid": [
+          "Materialism",
+          "Spiritual indifference"
+        ]
+      },
+      "en": {
+        "title": "Number of Spiritual Quest",
+        "energy": "Spiritual quest, mystical insight",
+        "advice": "Explore mystical realms. Answers await.",
+        "lucky_for": [
+          "Meditation",
+          "Divination",
+          "Spiritual learning"
+        ],
+        "avoid": [
+          "Materialism",
+          "Spiritual indifference"
+        ]
+      },
+      "element": "water",
+      "planet": "Neptune",
+      "color": "deep_purple"
+    },
+    "38": {
+      "ko": {
+        "title": "Number of Material Success",
+        "energy": "Creative wealth, artistic success",
+        "advice": "Create wealth through creativity. Art becomes money.",
+        "lucky_for": [
+          "Art sales",
+          "Monetizing creativity",
+          "Investment"
+        ],
+        "avoid": [
+          "Undervaluing art",
+          "Giving up creation"
+        ]
+      },
+      "en": {
+        "title": "Number of Material Success",
+        "energy": "Creative wealth, artistic success",
+        "advice": "Create wealth through creativity. Art becomes money.",
+        "lucky_for": [
+          "Art sales",
+          "Monetizing creativity",
+          "Investment"
+        ],
+        "avoid": [
+          "Undervaluing art",
+          "Giving up creation"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "gold"
+    },
+    "39": {
+      "ko": {
+        "title": "Number of Creative Completion",
+        "energy": "Artistic completion, creative compassion",
+        "advice": "Share your creations with the world. Completion is sharing.",
+        "lucky_for": [
+          "Publishing",
+          "Sharing",
+          "Celebrating completion"
+        ],
+        "avoid": [
+          "Hiding",
+          "Perfectionism"
+        ]
+      },
+      "en": {
+        "title": "Number of Creative Completion",
+        "energy": "Artistic completion, creative compassion",
+        "advice": "Share your creations with the world. Completion is sharing.",
+        "lucky_for": [
+          "Publishing",
+          "Sharing",
+          "Celebrating completion"
+        ],
+        "avoid": [
+          "Hiding",
+          "Perfectionism"
+        ]
+      },
+      "element": "fire",
+      "planet": "Jupiter",
+      "color": "bronze"
+    },
+    "40": {
+      "ko": {
+        "title": "Number of Stable Foundation",
+        "energy": "Perfect stability, solid foundation",
+        "advice": "Your foundation is solid. Build anything on it.",
+        "lucky_for": [
+          "Foundation work",
+          "Real estate",
+          "Long-term investment"
+        ],
+        "avoid": [
+          "Unstable choices",
+          "Ignoring foundations"
+        ]
+      },
+      "en": {
+        "title": "Number of Stable Foundation",
+        "energy": "Perfect stability, solid foundation",
+        "advice": "Your foundation is solid. Build anything on it.",
+        "lucky_for": [
+          "Foundation work",
+          "Real estate",
+          "Long-term investment"
+        ],
+        "avoid": [
+          "Unstable choices",
+          "Ignoring foundations"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "brown"
+    },
+    "41": {
+      "ko": {
+        "title": "Number of New Stability",
+        "energy": "New foundation, independent stability",
+        "advice": "Build your own foundation. Independence is stability.",
+        "lucky_for": [
+          "Self-reliance",
+          "Building new base",
+          "Independence"
+        ],
+        "avoid": [
+          "Dependency",
+          "Relying on others' foundation"
+        ]
+      },
+      "en": {
+        "title": "Number of New Stability",
+        "energy": "New foundation, independent stability",
+        "advice": "Build your own foundation. Independence is stability.",
+        "lucky_for": [
+          "Self-reliance",
+          "Building new base",
+          "Independence"
+        ],
+        "avoid": [
+          "Dependency",
+          "Relying on others' foundation"
+        ]
+      },
+      "element": "fire",
+      "planet": "Sun",
+      "color": "orange"
+    },
+    "42": {
+      "ko": {
+        "title": "Number of Cooperative Growth",
+        "energy": "Partnership growth, cooperative building",
+        "advice": "Grow together. Cooperation accelerates growth.",
+        "lucky_for": [
+          "Joint ventures",
+          "Team projects",
+          "Cooperation"
+        ],
+        "avoid": [
+          "Unilateral action",
+          "Ignoring team"
+        ]
+      },
+      "en": {
+        "title": "Number of Cooperative Growth",
+        "energy": "Partnership growth, cooperative building",
+        "advice": "Grow together. Cooperation accelerates growth.",
+        "lucky_for": [
+          "Joint ventures",
+          "Team projects",
+          "Cooperation"
+        ],
+        "avoid": [
+          "Unilateral action",
+          "Ignoring team"
+        ]
+      },
+      "element": "water",
+      "planet": "Moon",
+      "color": "blue"
+    },
+    "43": {
+      "ko": {
+        "title": "Number of Creative Structure",
+        "energy": "Creative organization, artistic system",
+        "advice": "Add system to creativity. It becomes art business.",
+        "lucky_for": [
+          "Creative business",
+          "Art organization",
+          "Systematization"
+        ],
+        "avoid": [
+          "Chaotic creation",
+          "Ignoring structure"
+        ]
+      },
+      "en": {
+        "title": "Number of Creative Structure",
+        "energy": "Creative organization, artistic system",
+        "advice": "Add system to creativity. It becomes art business.",
+        "lucky_for": [
+          "Creative business",
+          "Art organization",
+          "Systematization"
+        ],
+        "avoid": [
+          "Chaotic creation",
+          "Ignoring structure"
+        ]
+      },
+      "element": "fire",
+      "planet": "Jupiter",
+      "color": "yellow"
+    },
+    "44": {
+      "ko": {
+        "title": "Master Stability Number",
+        "energy": "Master-level stability, perfect foundation",
+        "advice": "Your foundation is already perfect. Expand it.",
+        "lucky_for": [
+          "Large-scale expansion",
+          "Empire building",
+          "Stable growth"
+        ],
+        "avoid": [
+          "Over-expansion",
+          "Weakening foundation"
+        ]
+      },
+      "en": {
+        "title": "Master Stability Number",
+        "energy": "Master-level stability, perfect foundation",
+        "advice": "Your foundation is already perfect. Expand it.",
+        "lucky_for": [
+          "Large-scale expansion",
+          "Empire building",
+          "Stable growth"
+        ],
+        "avoid": [
+          "Over-expansion",
+          "Weakening foundation"
+        ]
+      },
+      "element": "earth",
+      "planet": "Saturn",
+      "color": "dark_brown"
+    },
+    "45": {
+      "ko": {
+        "title": "Number of Complete Change",
+        "energy": "Complete transformation, ultimate freedom",
+        "advice": "Everything can change. Soar freely.",
+        "lucky_for": [
+          "Major changes",
+          "Complete reset",
+          "New beginning"
+        ],
+        "avoid": [
+          "Fear of change",
+          "Past attachment"
+        ]
+      },
+      "en": {
+        "title": "Number of Complete Change",
+        "energy": "Complete transformation, ultimate freedom",
+        "advice": "Everything can change. Soar freely.",
+        "lucky_for": [
+          "Major changes",
+          "Complete reset",
+          "New beginning"
+        ],
+        "avoid": [
+          "Fear of change",
+          "Past attachment"
+        ]
+      },
+      "element": "air",
+      "planet": "Mercury",
+      "color": "turquoise"
+    }
+  }
+}

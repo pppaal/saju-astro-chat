@@ -1,0 +1,399 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "synastry/aspects_extended",
+  "$count": 300,
+  "$description": "시너스트리 애스펙트 확장판 - 모든 주요 행성 조합의 상세 해석",
+
+  "overview": {
+    "principle": "두 사람의 행성이 형성하는 애스펙트는 관계의 역동을 보여줍니다.",
+    "jung_connection": "투영과 아니마/아니무스 역학 - 타인을 통한 자기 발견",
+    "key_points": [
+      "한 사람의 행성이 다른 사람의 행성에 영향",
+      "양방향 해석 필요 (A→B와 B→A가 다름)",
+      "타이트한 오브일수록 강한 영향",
+      "합과 대립이 가장 강력, 스퀘어가 도전적"
+    ]
+  },
+
+  "luminaries_cross": {
+    "Sun_to_Sun": {
+      "conjunction": {
+        "attraction": "즉각적 인식, 유사성",
+        "dynamic": "서로의 정체성을 강화하거나 경쟁",
+        "gift": "상호 이해, 비슷한 목표",
+        "challenge": "경쟁, 에고 충돌",
+        "long_term": "함께 빛나거나 그림자가 됨"
+      },
+      "opposition": {
+        "attraction": "자석 같은 끌림, 완성감",
+        "dynamic": "보완하거나 대립",
+        "gift": "균형, 서로에게서 배움",
+        "challenge": "근본적 차이, 권력 투쟁"
+      },
+      "square": {
+        "attraction": "긴장감 있는 끌림",
+        "dynamic": "자극과 갈등",
+        "gift": "성장을 촉진",
+        "challenge": "지속적 마찰"
+      },
+      "trine": {
+        "attraction": "자연스러운 조화",
+        "dynamic": "쉬운 이해",
+        "gift": "편안함, 지지",
+        "challenge": "성장 동기 부족"
+      }
+    },
+    "Sun_to_Moon": {
+      "conjunction": {
+        "attraction": "깊은 유대감, '아는' 느낌",
+        "dynamic": "태양 사람이 리드, 달 사람이 지지",
+        "gift": "상호 보완, 가정을 이룸",
+        "challenge": "달 사람의 정체성 상실 위험",
+        "classic_indicator": "전통적 결혼 지표 중 하나"
+      },
+      "opposition": {
+        "attraction": "자석 같은 끌림",
+        "dynamic": "보완하지만 긴장",
+        "gift": "균형 잡힌 파트너십",
+        "challenge": "욕구와 표현 방식 차이"
+      },
+      "square": {
+        "attraction": "자극적",
+        "dynamic": "감정적 충돌",
+        "gift": "성장 촉진",
+        "challenge": "이해 어려움"
+      },
+      "trine": {
+        "attraction": "자연스러운 편안함",
+        "dynamic": "조화로운 흐름",
+        "gift": "정서적 지지",
+        "classic_indicator": "행복한 관계의 지표"
+      }
+    },
+    "Moon_to_Moon": {
+      "conjunction": {
+        "attraction": "감정적 동기화",
+        "dynamic": "같은 방식으로 느낌",
+        "gift": "깊은 공감, 정서적 이해",
+        "challenge": "함께 기분 변화"
+      },
+      "opposition": {
+        "attraction": "감정적 자석",
+        "dynamic": "다른 방식으로 돌봄",
+        "gift": "감정적 균형",
+        "challenge": "니즈의 충돌"
+      },
+      "square": {
+        "attraction": "감정적 긴장",
+        "dynamic": "다른 안전 니즈",
+        "gift": "감정적 성장",
+        "challenge": "서로 상처 줌"
+      },
+      "trine": {
+        "attraction": "감정적 조화",
+        "dynamic": "자연스러운 돌봄",
+        "gift": "정서적 안정",
+        "note": "같은 원소의 달은 자연스럽게 이해"
+      }
+    }
+  },
+
+  "venus_mars_dynamics": {
+    "Venus_to_Mars": {
+      "conjunction": {
+        "attraction": "강렬한 화학 반응",
+        "dynamic": "금성 사람이 매력, 화성 사람이 추구",
+        "gift": "열정, 성적 끌림",
+        "challenge": "화성의 공격성이 금성을 압도",
+        "sexuality": "강한 성적 끌림",
+        "classic_indicator": "로맨틱/성적 끌림의 핵심 지표"
+      },
+      "opposition": {
+        "attraction": "자석 같은 성적 끌림",
+        "dynamic": "밀고 당기기",
+        "gift": "열정적 긴장감",
+        "challenge": "갈등 후 화해 패턴"
+      },
+      "square": {
+        "attraction": "긴장감 있는 끌림",
+        "dynamic": "사랑과 욕망의 충돌",
+        "gift": "열정",
+        "challenge": "타이밍 불일치, 상처"
+      },
+      "trine": {
+        "attraction": "자연스러운 끌림",
+        "dynamic": "쉬운 로맨스",
+        "gift": "조화로운 성생활"
+      },
+      "sextile": {
+        "attraction": "우호적 끌림",
+        "dynamic": "발전 가능한 로맨스",
+        "gift": "친구에서 연인으로"
+      }
+    },
+    "Venus_to_Venus": {
+      "conjunction": {
+        "attraction": "같은 것을 사랑함",
+        "dynamic": "취향 공유",
+        "gift": "조화로운 가치관",
+        "challenge": "같은 것을 경쟁"
+      },
+      "opposition": {
+        "attraction": "다른 아름다움에 끌림",
+        "dynamic": "보완적 취향",
+        "gift": "균형",
+        "challenge": "가치관 차이"
+      },
+      "square": {
+        "attraction": "긴장",
+        "dynamic": "취향 충돌",
+        "gift": "가치 확장",
+        "challenge": "돈/사랑 갈등"
+      },
+      "trine": {
+        "attraction": "자연스러운 조화",
+        "dynamic": "쉬운 사랑",
+        "gift": "같은 사랑의 언어"
+      }
+    },
+    "Mars_to_Mars": {
+      "conjunction": {
+        "attraction": "에너지 융합",
+        "dynamic": "함께 행동하거나 충돌",
+        "gift": "동반자적 행동",
+        "challenge": "경쟁, 권력 투쟁",
+        "sexuality": "열정적이지만 공격적일 수 있음"
+      },
+      "opposition": {
+        "attraction": "적대적 끌림",
+        "dynamic": "대립",
+        "gift": "균형 잡힌 행동",
+        "challenge": "갈등"
+      },
+      "square": {
+        "attraction": "도전적",
+        "dynamic": "마찰",
+        "gift": "성장 촉진",
+        "challenge": "싸움"
+      },
+      "trine": {
+        "attraction": "자연스러운 협력",
+        "dynamic": "함께 행동",
+        "gift": "팀워크"
+      }
+    }
+  },
+
+  "personal_to_outer": {
+    "Sun_to_Pluto": {
+      "conjunction": {
+        "attraction": "운명적, 강렬함",
+        "dynamic": "명왕성이 태양을 변형시킴",
+        "gift": "깊은 변형, 권력 부여",
+        "challenge": "통제, 집착",
+        "psychology": "명왕성 사람이 태양 사람의 그림자를 건드림"
+      },
+      "opposition": {
+        "attraction": "자석 같은 강렬함",
+        "dynamic": "권력 대면",
+        "gift": "자기 인식",
+        "challenge": "권력 투쟁"
+      },
+      "square": {
+        "attraction": "강렬한 긴장",
+        "dynamic": "변형적 갈등",
+        "gift": "성장",
+        "challenge": "통제 이슈"
+      }
+    },
+    "Moon_to_Pluto": {
+      "conjunction": {
+        "attraction": "깊은 감정적 끌림",
+        "dynamic": "명왕성이 달의 감정을 변형",
+        "gift": "깊은 감정적 유대",
+        "challenge": "집착, 조종",
+        "psychology": "가장 강렬한 감정적 연결 중 하나"
+      },
+      "opposition": {
+        "attraction": "감정적 자석",
+        "dynamic": "감정적 권력 투쟁",
+        "gift": "깊은 이해",
+        "challenge": "조종"
+      },
+      "square": {
+        "attraction": "불편한 끌림",
+        "dynamic": "감정적 긴장",
+        "gift": "치유 가능",
+        "challenge": "트라우마 유발"
+      }
+    },
+    "Venus_to_Neptune": {
+      "conjunction": {
+        "attraction": "꿈같은 로맨스",
+        "dynamic": "해왕성이 금성을 이상화",
+        "gift": "영적 사랑, 예술적 연결",
+        "challenge": "환상, 기만",
+        "psychology": "아니마/아니무스 투영의 극치"
+      },
+      "opposition": {
+        "attraction": "이상화된 끌림",
+        "dynamic": "현실 vs 환상",
+        "gift": "영적 성장",
+        "challenge": "환멸"
+      },
+      "square": {
+        "attraction": "혼란스러운 끌림",
+        "dynamic": "사랑의 환상",
+        "gift": "창조적 영감",
+        "challenge": "기만, 실망"
+      }
+    },
+    "Venus_to_Uranus": {
+      "conjunction": {
+        "attraction": "전기적 끌림",
+        "dynamic": "천왕성이 금성을 깨움",
+        "gift": "흥분, 독특한 사랑",
+        "challenge": "불안정, 갑작스러운 변화"
+      },
+      "opposition": {
+        "attraction": "자유와 사랑의 긴장",
+        "dynamic": "끌림과 거리",
+        "gift": "독립적 사랑",
+        "challenge": "불안정"
+      },
+      "square": {
+        "attraction": "불안정한 끌림",
+        "dynamic": "자유 vs 안정",
+        "gift": "흥분",
+        "challenge": "갑작스러운 이별"
+      }
+    },
+    "Mars_to_Pluto": {
+      "conjunction": {
+        "attraction": "강렬한 성적 끌림",
+        "dynamic": "권력 융합",
+        "gift": "강력한 힘",
+        "challenge": "폭력, 통제",
+        "sexuality": "가장 강렬한 성적 애스펙트 중 하나"
+      },
+      "opposition": {
+        "attraction": "권력 투쟁",
+        "dynamic": "대립",
+        "gift": "변형",
+        "challenge": "갈등"
+      },
+      "square": {
+        "attraction": "위험한 끌림",
+        "dynamic": "권력 갈등",
+        "gift": "강해짐",
+        "challenge": "폭력 위험"
+      }
+    }
+  },
+
+  "saturn_aspects": {
+    "Sun_to_Saturn": {
+      "conjunction": {
+        "dynamic": "토성이 태양에게 책임 부여",
+        "gift": "안정, 성숙, 장기적 관계",
+        "challenge": "제한, 비판, 억압",
+        "note": "어려운 애스펙트지만 장기 관계에 안정성"
+      },
+      "opposition": {
+        "dynamic": "권위의 대면",
+        "gift": "현실적 파트너십",
+        "challenge": "냉담, 거리감"
+      },
+      "square": {
+        "dynamic": "제한과 자아의 충돌",
+        "gift": "성장 촉진",
+        "challenge": "좌절, 비판"
+      },
+      "trine": {
+        "dynamic": "지지적 구조",
+        "gift": "안정적 관계",
+        "note": "장기 관계에 좋음"
+      }
+    },
+    "Moon_to_Saturn": {
+      "conjunction": {
+        "dynamic": "토성이 달의 감정을 억제",
+        "gift": "감정적 안정, 성숙",
+        "challenge": "냉담, 감정 억압",
+        "note": "달 사람이 힘들어함"
+      },
+      "opposition": {
+        "dynamic": "감정과 책임의 대면",
+        "gift": "성숙한 감정",
+        "challenge": "거리감"
+      },
+      "square": {
+        "dynamic": "감정과 제한의 충돌",
+        "gift": "감정적 성장",
+        "challenge": "두려움, 불안"
+      }
+    },
+    "Venus_to_Saturn": {
+      "conjunction": {
+        "dynamic": "진지한 사랑",
+        "gift": "충실함, 지속적 관계",
+        "challenge": "사랑의 제한",
+        "note": "나이 차이 관계에서 자주 보임"
+      },
+      "square": {
+        "dynamic": "사랑과 의무의 갈등",
+        "gift": "진정한 가치 발견",
+        "challenge": "자기 가치 문제"
+      }
+    }
+  },
+
+  "nodes_synastry": {
+    "Sun_to_North_Node": {
+      "conjunction": {
+        "meaning": "운명적 연결",
+        "dynamic": "태양 사람이 노드 사람의 성장을 도움",
+        "gift": "영혼의 성장 촉진",
+        "karmic": "중요한 카르마적 연결"
+      }
+    },
+    "Moon_to_North_Node": {
+      "conjunction": {
+        "meaning": "감정적 운명",
+        "dynamic": "깊은 감정적 인연",
+        "gift": "정서적 성장 지원",
+        "karmic": "전생의 가족일 수 있음"
+      }
+    },
+    "Venus_to_North_Node": {
+      "conjunction": {
+        "meaning": "사랑의 운명",
+        "dynamic": "관계를 통한 성장",
+        "gift": "가치관 진화",
+        "karmic": "중요한 연인 관계"
+      }
+    },
+    "Saturn_to_North_Node": {
+      "conjunction": {
+        "meaning": "카르마적 책임",
+        "dynamic": "토성 사람이 카르마적 스승",
+        "gift": "성숙을 통한 성장",
+        "karmic": "전생의 권위자일 수 있음",
+        "challenge": "무거운 느낌"
+      }
+    },
+    "Pluto_to_North_Node": {
+      "conjunction": {
+        "meaning": "변형적 운명",
+        "dynamic": "깊은 변형을 이끔",
+        "gift": "영혼의 진화",
+        "karmic": "강렬한 카르마적 연결"
+      }
+    }
+  },
+
+  "composite_chart_note": {
+    "description": "시너스트리는 두 사람 '사이'의 역학을, 컴포짓 차트는 '관계 자체'의 성격을 보여줍니다.",
+    "usage": "시너스트리로 끌림과 도전을, 컴포짓으로 관계의 목적을 봅니다."
+  }
+}

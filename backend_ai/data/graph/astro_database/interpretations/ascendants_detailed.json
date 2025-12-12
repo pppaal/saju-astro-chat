@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "type": "ascendants",
+    "count": 12
+  },
+  "interpretations": [
+    {
+      "id": "ASC_Aries",
+      "sign": {
+        "en": "Aries",
+        "ko": "양자리"
+      },
+      "element": "Fire",
+      "ruler": "Mars",
+      "first_impression": "에너지 넘치고 직접적이며 용감해 보입니다. 리더 같은 인상을 줍니다.",
+      "approach_to_life": "개척의 에너지로 세상을 마주하며, Fire 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "날카로운 이목구비, 운동선수 같은 체형",
+      "life_path": "차트의 지배성 화성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Taurus",
+      "sign": {
+        "en": "Taurus",
+        "ko": "황소자리"
+      },
+      "element": "Earth",
+      "ruler": "Venus",
+      "first_impression": "안정적이고 신뢰할 수 있어 보입니다. 차분하고 감각적인 매력이 있습니다.",
+      "approach_to_life": "안정의 에너지로 세상을 마주하며, Earth 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "둥근 얼굴, 감각적인 입술, 튼튼한 체형",
+      "life_path": "차트의 지배성 금성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Gemini",
+      "sign": {
+        "en": "Gemini",
+        "ko": "쌍둥이자리"
+      },
+      "element": "Air",
+      "ruler": "Mercury",
+      "first_impression": "재치 있고 호기심 많아 보입니다. 대화하기 쉽고 다재다능해 보입니다.",
+      "approach_to_life": "소통의 에너지로 세상을 마주하며, Air 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "날렵한 체형, 표정이 풍부한 얼굴",
+      "life_path": "차트의 지배성 수성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Cancer",
+      "sign": {
+        "en": "Cancer",
+        "ko": "게자리"
+      },
+      "element": "Water",
+      "ruler": "Moon",
+      "first_impression": "따뜻하고 친근해 보입니다. 보호적이고 배려심 있는 인상을 줍니다.",
+      "approach_to_life": "보호의 에너지로 세상을 마주하며, Water 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "둥근 얼굴, 부드러운 눈빛, 보호색의 옷차림",
+      "life_path": "차트의 지배성 달의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Leo",
+      "sign": {
+        "en": "Leo",
+        "ko": "사자자리"
+      },
+      "element": "Fire",
+      "ruler": "Sun",
+      "first_impression": "당당하고 자신감 있어 보입니다. 화려하고 주목을 끄는 매력이 있습니다.",
+      "approach_to_life": "자부심의 에너지로 세상을 마주하며, Fire 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "풍성한 머리카락, 당당한 자세, 화려한 스타일",
+      "life_path": "차트의 지배성 태양의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Virgo",
+      "sign": {
+        "en": "Virgo",
+        "ko": "처녀자리"
+      },
+      "element": "Earth",
+      "ruler": "Mercury",
+      "first_impression": "깔끔하고 지적으로 보입니다. 세심하고 실용적인 인상을 줍니다.",
+      "approach_to_life": "분석의 에너지로 세상을 마주하며, Earth 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "깔끔한 외모, 단정한 차림, 세련된 스타일",
+      "life_path": "차트의 지배성 수성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Libra",
+      "sign": {
+        "en": "Libra",
+        "ko": "천칭자리"
+      },
+      "element": "Air",
+      "ruler": "Venus",
+      "first_impression": "매력적이고 우아해 보입니다. 외교적이고 균형 잡힌 인상을 줍니다.",
+      "approach_to_life": "균형의 에너지로 세상을 마주하며, Air 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "균형 잡힌 이목구비, 매력적인 미소, 우아한 스타일",
+      "life_path": "차트의 지배성 금성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Scorpio",
+      "sign": {
+        "en": "Scorpio",
+        "ko": "전갈자리"
+      },
+      "element": "Water",
+      "ruler": "Pluto",
+      "first_impression": "강렬하고 신비로워 보입니다. 깊이 있고 통찰력 있는 인상을 줍니다.",
+      "approach_to_life": "심층의 에너지로 세상을 마주하며, Water 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "강렬한 눈빛, 날카로운 이목구비, 신비로운 분위기",
+      "life_path": "차트의 지배성 명왕성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Sagittarius",
+      "sign": {
+        "en": "Sagittarius",
+        "ko": "사수자리"
+      },
+      "element": "Fire",
+      "ruler": "Jupiter",
+      "first_impression": "활기차고 낙관적으로 보입니다. 자유롭고 모험적인 인상을 줍니다.",
+      "approach_to_life": "탐험의 에너지로 세상을 마주하며, Fire 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "긴 체형, 밝은 표정, 캐주얼한 스타일",
+      "life_path": "차트의 지배성 목성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Capricorn",
+      "sign": {
+        "en": "Capricorn",
+        "ko": "염소자리"
+      },
+      "element": "Earth",
+      "ruler": "Saturn",
+      "first_impression": "성숙하고 책임감 있어 보입니다. 권위 있고 신뢰할 수 있는 인상을 줍니다.",
+      "approach_to_life": "야망의 에너지로 세상을 마주하며, Earth 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "뼈대 있는 얼굴, 성숙한 분위기, 클래식한 스타일",
+      "life_path": "차트의 지배성 토성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Aquarius",
+      "sign": {
+        "en": "Aquarius",
+        "ko": "물병자리"
+      },
+      "element": "Air",
+      "ruler": "Uranus",
+      "first_impression": "독특하고 독립적으로 보입니다. 진보적이고 개성 있는 인상을 줍니다.",
+      "approach_to_life": "혁신의 에너지로 세상을 마주하며, Air 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "독특한 특징, 개성 있는 스타일, 현대적인 분위기",
+      "life_path": "차트의 지배성 천왕성의 위치가 인생의 방향을 크게 좌우합니다."
+    },
+    {
+      "id": "ASC_Pisces",
+      "sign": {
+        "en": "Pisces",
+        "ko": "물고기자리"
+      },
+      "element": "Water",
+      "ruler": "Neptune",
+      "first_impression": "부드럽고 예술적으로 보입니다. 공감적이고 직관적인 인상을 줍니다.",
+      "approach_to_life": "직관의 에너지로 세상을 마주하며, Water 원소의 방식으로 삶에 접근합니다.",
+      "physical_appearance": "부드러운 눈빛, 몽환적인 분위기, 예술적인 스타일",
+      "life_path": "차트의 지배성 해왕성의 위치가 인생의 방향을 크게 좌우합니다."
+    }
+  ]
+}

@@ -1,10 +1,10 @@
-﻿id,angle,category,label,description
-conjunction,0,Major,합,통합·집중
-sextile,60,Major,육분,기회의 조화
-square,90,Major,사각,도전 긴장
-trine,120,Major,삼합,자연스러운 조화
-opposition,180,Major,대립,극적 균형
-quincunx,150,Minor,퀸컨크스,조율 불균형
-semi_sextile,30,Minor,반육분,약한 연결
-sesqui_quadrate,135,Minor,세스퀴사각,압박 조정
-quintile,72,Minor,퀸타일,창조적 연결
+id,angle,category,label,description
+conjunction,0,Major,합,에너지융합·강화·시작점·새로운주기
+sextile,60,Major,육분,기회·협력·재능활용·조화로운흐름
+square,90,Major,사각,긴장·도전·성장동력·행동유발
+trine,120,Major,삼합,자연스러운흐름·재능·행운·조화
+opposition,180,Major,대립,인식·균형필요·타인투사·통합과제
+quincunx,150,Minor,퀸컨크스,조정필요·불편함·건강주의·적응
+semi_sextile,30,Minor,반육분,미세한연결·잠재적기회·성장단계
+sesqui_quadrate,135,Minor,세스퀴사각,긴장·좌절감·필요한조정
+quintile,72,Minor,퀸타일,창조성·재능·독창적표현·예술적능력

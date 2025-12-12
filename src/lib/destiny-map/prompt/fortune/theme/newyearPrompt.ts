@@ -1,16 +1,22 @@
 import { buildAllDataPrompt } from "../base/baseAllDataPrompt";
 import { buildTonePrompt } from "../base/toneStyle";
+import { buildStructuredFortunePrompt } from "../base/structuredPrompt";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 
-export function buildNewyearPrompt(lang: string, data: CombinedResult) {
+export function buildNewyearPrompt(lang: string, data: CombinedResult, useStructured = true) {
+  if (useStructured) {
+    return buildStructuredFortunePrompt(lang, "newyear", data);
+  }
+
+  // Legacy format fallback
   const theme = "newyear";
   const info = buildAllDataPrompt(lang, theme, data);
   const tone = buildTonePrompt(lang, theme);
-  const now = new Date();
-  const dateText = now.toISOString().slice(0, 10);
+  const dateText = data.analysisDate ?? new Date().toISOString().slice(0, 10);
+  const tzInfo = data.userTimezone ? ` (${data.userTimezone})` : '';
 
   return [
-    `Date: ${dateText}`,
+    `Date: ${dateText}${tzInfo}`,
     `Locale: ${lang}`,
     "Task: Write a fresh-start / new-year style outlook using the snapshot below. Respond in the target locale.",
     "Guidelines:",

@@ -1,0 +1,127 @@
+{
+  "concept": "transformation",
+  "concept_kr": "변환과 치유",
+  "description": "Jung's insights on psychological transformation, healing, and personal growth",
+  "quotes": [
+    {
+      "id": "trans_001",
+      "en": "The privilege of a lifetime is to become who you truly are.",
+      "kr": "평생의 특권은 진정한 자신이 되는 것이다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On authentic self-realization",
+      "tags": ["authenticity", "self", "becoming", "privilege"]
+    },
+    {
+      "id": "trans_002",
+      "en": "I am not what happened to me, I am what I choose to become.",
+      "kr": "나는 나에게 일어난 일이 아니라, 내가 선택한 것이다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On choice and identity",
+      "tags": ["choice", "becoming", "identity", "past"]
+    },
+    {
+      "id": "trans_003",
+      "en": "What you resist, persists.",
+      "kr": "저항하는 것은 지속된다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On resistance and persistence",
+      "tags": ["resistance", "persistence", "shadow", "acceptance"]
+    },
+    {
+      "id": "trans_004",
+      "en": "There is no coming to consciousness without pain.",
+      "kr": "고통 없이 의식에 도달하는 것은 없다.",
+      "source": "Contributions to Analytical Psychology",
+      "year": 1928,
+      "cw_volume": "CW 17",
+      "context": "On the necessity of pain for growth",
+      "tags": ["consciousness", "pain", "growth", "awakening"]
+    },
+    {
+      "id": "trans_005",
+      "en": "The pendulum of the mind oscillates between sense and nonsense, not between right and wrong.",
+      "kr": "마음의 추는 옳고 그름 사이가 아니라, 의미와 무의미 사이에서 흔들린다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the nature of the mind",
+      "tags": ["mind", "sense", "nonsense", "oscillation"]
+    },
+    {
+      "id": "trans_006",
+      "en": "The creation of something new is not accomplished by the intellect but by the play instinct.",
+      "kr": "새로운 것의 창조는 지성이 아니라 놀이 본능에 의해 이루어진다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On creativity and play",
+      "tags": ["creation", "play", "intellect", "instinct"]
+    },
+    {
+      "id": "trans_007",
+      "en": "To ask the right question is already half the solution of a problem.",
+      "kr": "올바른 질문을 하는 것은 이미 문제 해결의 절반이다.",
+      "source": "The Archetypes and the Collective Unconscious",
+      "year": 1959,
+      "cw_volume": "CW 9i",
+      "context": "On the importance of questions",
+      "tags": ["question", "solution", "problem", "inquiry"]
+    },
+    {
+      "id": "trans_008",
+      "en": "The healthy man does not torture others – generally it is the tortured who turn into torturers.",
+      "kr": "건강한 사람은 다른 사람을 고문하지 않는다 – 일반적으로 고문당한 자가 고문하는 자가 된다.",
+      "source": "Return to the Simple Life",
+      "year": 1941,
+      "cw_volume": "CW 18",
+      "context": "On the cycle of harm",
+      "tags": ["health", "torture", "cycle", "harm"]
+    },
+    {
+      "id": "trans_009",
+      "en": "Loneliness does not come from having no people about one, but from being unable to communicate the things that seem important to oneself.",
+      "kr": "외로움은 주위에 사람이 없어서가 아니라, 자신에게 중요해 보이는 것들을 전달할 수 없는 것에서 온다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the nature of loneliness",
+      "tags": ["loneliness", "communication", "importance", "connection"]
+    },
+    {
+      "id": "trans_010",
+      "en": "The world will ask you who you are, and if you don't know, the world will tell you.",
+      "kr": "세상은 당신이 누구인지 물을 것이고, 당신이 모르면 세상이 당신에게 말할 것이다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On self-knowledge and identity",
+      "tags": ["identity", "self-knowledge", "world", "definition"]
+    },
+    {
+      "id": "trans_011",
+      "en": "No tree, it is said, can grow to heaven unless its roots reach down to hell.",
+      "kr": "어떤 나무도 그 뿌리가 지옥까지 내려가지 않으면 하늘까지 자랄 수 없다고 한다.",
+      "source": "Aion",
+      "year": 1951,
+      "cw_volume": "CW 9ii",
+      "context": "On the necessity of depth for height",
+      "tags": ["tree", "heaven", "hell", "roots", "growth"]
+    },
+    {
+      "id": "trans_012",
+      "en": "Healing may not be so much about getting better, as about letting go of everything that isn't you – all of the expectations, all of the beliefs – and becoming who you are.",
+      "kr": "치유는 더 나아지는 것이 아니라, 당신이 아닌 모든 것 – 모든 기대, 모든 신념 – 을 놓아주고 당신 자신이 되는 것일 수 있다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On the nature of healing",
+      "tags": ["healing", "letting go", "expectations", "becoming"]
+    }
+  ]
+}

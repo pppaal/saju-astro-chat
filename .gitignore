@@ -27,6 +27,12 @@ final_data.db
 .VSCodeCounter/
 .vs/
 *.db
+*.pt
+*.pyo
+*.log
+.pytest_cache/
+**/.pytest_cache/
+**/__pycache__/
 
 # debug
 npm-debug.log*
@@ -42,14 +48,15 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+tsconfig.tsbuildinfo
 next-env.d.ts
 
 # prisma
 /src/generated/prisma
 
 # python virtual environment
-venv/
-__pycache__/
+/venv/
+/backend_ai/venv/
 *.pyc
 
 # Windows reserved filename that can appear as phantom entry

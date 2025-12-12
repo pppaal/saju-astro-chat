@@ -1,29 +1,29 @@
-﻿id,label,element,yinyang,rank,role,weight
-HIDDEN_자_계,계,수,음,1,본기,100
-HIDDEN_축_기,기,토,음,1,본기,70
-HIDDEN_축_계,계,수,음,2,중기,20
-HIDDEN_축_신,신,금,음,3,소기,10
-HIDDEN_인_갑,갑,목,양,1,본기,70
-HIDDEN_인_병,병,화,양,2,중기,20
-HIDDEN_인_무,무,토,양,3,소기,10
-HIDDEN_묘_을,을,목,음,1,본기,100
-HIDDEN_진_무,무,토,양,1,본기,70
-HIDDEN_진_을,을,목,음,2,중기,20
-HIDDEN_진_계,계,수,음,3,소기,10
-HIDDEN_사_병,병,화,양,1,본기,70
-HIDDEN_사_무,무,토,양,2,중기,20
-HIDDEN_사_경,경,금,양,3,소기,10
-HIDDEN_오_정,정,화,음,1,본기,70
-HIDDEN_오_기,기,토,음,2,중기,30
-HIDDEN_미_기,기,토,음,1,본기,70
-HIDDEN_미_을,을,목,음,2,중기,20
-HIDDEN_미_정,정,화,음,3,소기,10
-HIDDEN_신_경,경,금,양,1,본기,70
-HIDDEN_신_임,임,수,양,2,중기,20
-HIDDEN_신_무,무,토,양,3,소기,10
-HIDDEN_유_신,신,금,음,1,본기,100
-HIDDEN_술_무,무,토,양,1,본기,70
-HIDDEN_술_신,신,금,음,2,중기,20
-HIDDEN_술_정,정,화,음,3,소기,10
-HIDDEN_해_임,임,수,양,1,본기,70
-HIDDEN_해_갑,갑,목,양,2,중기,30
+﻿id,label,element,yinyang,rank,role,weight,description
+HIDDEN_자_계,계,수,음,1,본기,100,계: Astro interpretation data.
+HIDDEN_축_기,기,토,음,1,본기,70,기: Astro interpretation data.
+HIDDEN_축_계,계,수,음,2,중기,20,계: Astro interpretation data.
+HIDDEN_축_신,신,금,음,3,소기,10,신: Astro interpretation data.
+HIDDEN_인_갑,갑,목,양,1,본기,70,갑: Astro interpretation data.
+HIDDEN_인_병,병,화,양,2,중기,20,병: Astro interpretation data.
+HIDDEN_인_무,무,토,양,3,소기,10,무: Astro interpretation data.
+HIDDEN_묘_을,을,목,음,1,본기,100,을: Astro interpretation data.
+HIDDEN_진_무,무,토,양,1,본기,70,무: Astro interpretation data.
+HIDDEN_진_을,을,목,음,2,중기,20,을: Astro interpretation data.
+HIDDEN_진_계,계,수,음,3,소기,10,계: Astro interpretation data.
+HIDDEN_사_병,병,화,양,1,본기,70,병: Astro interpretation data.
+HIDDEN_사_무,무,토,양,2,중기,20,무: Astro interpretation data.
+HIDDEN_사_경,경,금,양,3,소기,10,경: Astro interpretation data.
+HIDDEN_오_정,정,화,음,1,본기,70,정: Astro interpretation data.
+HIDDEN_오_기,기,토,음,2,중기,30,기: Astro interpretation data.
+HIDDEN_미_기,기,토,음,1,본기,70,기: Astro interpretation data.
+HIDDEN_미_을,을,목,음,2,중기,20,을: Astro interpretation data.
+HIDDEN_미_정,정,화,음,3,소기,10,정: Astro interpretation data.
+HIDDEN_신_경,경,금,양,1,본기,70,경: Astro interpretation data.
+HIDDEN_신_임,임,수,양,2,중기,20,임: Astro interpretation data.
+HIDDEN_신_무,무,토,양,3,소기,10,무: Astro interpretation data.
+HIDDEN_유_신,신,금,음,1,본기,100,신: Astro interpretation data.
+HIDDEN_술_무,무,토,양,1,본기,70,무: Astro interpretation data.
+HIDDEN_술_신,신,금,음,2,중기,20,신: Astro interpretation data.
+HIDDEN_술_정,정,화,음,3,소기,10,정: Astro interpretation data.
+HIDDEN_해_임,임,수,양,1,본기,70,임: Astro interpretation data.
+HIDDEN_해_갑,갑,목,양,2,중기,30,갑: Astro interpretation data.

@@ -1,0 +1,58 @@
+[
+  {"id": 22, "name": "Ace of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Inspiration", "New opportunities", "Growth", "Potential", "Creation"], "meaning": "A spark of inspiration or a new opportunity has arrived. This is a moment of pure potential and creative energy. Seize this chance for growth.", "advice": "Act on your inspiration now. This is the seed of something great."},
+    "reversed": {"keywords": ["Lack of energy", "Lack of passion", "Delays", "Creative blocks", "Missed opportunity"], "meaning": "You may be feeling uninspired or facing delays. A creative block is preventing you from moving forward on a new idea.", "advice": "Find what reignites your passion. Don't let opportunities pass."}
+  },
+  {"id": 23, "name": "Two of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Future planning", "Making decisions", "Leaving home", "Partnership", "Progress"], "meaning": "You are at a point where you need to plan for the future. A choice must be made between staying in your comfort zone and exploring new territories.", "advice": "Plan boldly. Step outside your comfort zone."},
+    "reversed": {"keywords": ["Fear of change", "Playing it safe", "Lack of planning", "Indecision", "Cancelled plans"], "meaning": "Fear of the unknown is keeping you from moving forward. A lack of planning may lead to indecision or cancelled travel.", "advice": "Overcome your fear of the unknown. Make a plan and commit."}
+  },
+  {"id": 24, "name": "Three of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Expansion", "Foresight", "Overseas opportunities", "Growth", "Adventure"], "meaning": "Your plans are in motion and you are beginning to see the first signs of success. This is a time of expansion and looking toward the future with anticipation.", "advice": "Expand your horizons. Your efforts are paying off."},
+    "reversed": {"keywords": ["Delays", "Obstacles", "Lack of foresight", "Frustration", "Disappointment"], "meaning": "You are facing unexpected delays and obstacles. A lack of foresight may have led to your plans not working out as expected.", "advice": "Reassess your plans. Learn from delays and adjust."}
+  },
+  {"id": 25, "name": "Four of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Celebration", "Harmony", "Marriage", "Home", "Community"], "meaning": "This is a card of joyful celebration, harmony, and stability. It often signifies a happy event like a wedding or a welcoming home.", "advice": "Celebrate your achievements. Create a harmonious home."},
+    "reversed": {"keywords": ["Lack of support", "Instability", "Feeling unwelcome", "Family issues", "Disharmony"], "meaning": "There may be a lack of harmony in your home or community. You might feel unstable or unwelcome in your current environment.", "advice": "Work to restore harmony. Address family tensions."}
+  },
+  {"id": 26, "name": "Five of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Conflict", "Competition", "Disagreements", "Tension", "Rivalry"], "meaning": "You are in the midst of conflict or competition. While there is tension, this struggle can lead to growth and a better outcome if handled constructively.", "advice": "Embrace healthy competition. Channel conflict productively."},
+    "reversed": {"keywords": ["Avoiding conflict", "Internal conflict", "Finding common ground", "Peace", "Resolution"], "meaning": "You are either avoiding a necessary conflict or have found a way to resolve disagreements. It can signify finding peace after a period of tension.", "advice": "Seek resolution. Find common ground with others."}
+  },
+  {"id": 27, "name": "Six of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Success", "Public recognition", "Victory", "Praise", "Confidence"], "meaning": "You have achieved a significant victory and are receiving public recognition for your efforts. Enjoy this moment of success and praise.", "advice": "Accept recognition gracefully. You've earned this success."},
+    "reversed": {"keywords": ["Egotism", "Lack of recognition", "Failure", "Disappointment", "Arrogance"], "meaning": "You may be feeling a lack of recognition or have experienced a recent failure. Be wary of arrogance or letting a small success go to your head.", "advice": "Stay humble. Don't let ego overshadow your achievements."}
+  },
+  {"id": 28, "name": "Seven of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Challenge", "Competition", "Perseverance", "Defensiveness", "Standing your ground"], "meaning": "You are in a position of strength but must defend it against challenges. Stand your ground and persevere, for you have the advantage.", "advice": "Stand firm. Defend your position with confidence."},
+    "reversed": {"keywords": ["Giving up", "Overwhelmed", "Exhaustion", "Being attacked", "Losing ground"], "meaning": "You feel overwhelmed and are on the verge of giving up. You may be losing ground in a battle due to exhaustion or feeling attacked.", "advice": "Reassess if this battle is worth fighting. Restore your energy."}
+  },
+  {"id": 29, "name": "Eight of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Speed", "Action", "Air travel", "Movement", "Swift change"], "meaning": "Events are moving forward with great speed. This card indicates rapid progress, communication, or even travel. Be ready for swift changes.", "advice": "Ride the momentum. Act quickly while energy is high."},
+    "reversed": {"keywords": ["Delays", "Frustration", "Slowing down", "Miscommunication", "Resisting change"], "meaning": "You are experiencing frustrating delays and a loss of momentum. Things are slowing down, possibly due to miscommunication.", "advice": "Be patient with delays. Clear up miscommunications."}
+  },
+  {"id": 30, "name": "Nine of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Resilience", "Courage", "Persistence", "Last stand", "Boundaries"], "meaning": "You are weary from battle but still standing. This card represents resilience and the courage to face one final challenge before reaching your goal.", "advice": "Push through. You're almost there. Stay resilient."},
+    "reversed": {"keywords": ["Paranoia", "Giving up", "Fatigue", "Defensiveness", "Lack of boundaries"], "meaning": "You are exhausted and on the verge of giving up. Paranoia and defensiveness may be causing you to push others away.", "advice": "Rest before you break. Set healthy boundaries."}
+  },
+  {"id": 31, "name": "Ten of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Burden", "Responsibility", "Hard work", "Stress", "Overwhelmed"], "meaning": "You have taken on too much responsibility and are now feeling the burden. While you are close to the finish line, you are overwhelmed by the weight.", "advice": "Delegate some responsibilities. You don't have to carry everything."},
+    "reversed": {"keywords": ["Letting go", "Delegating", "Release", "Sharing the burden", "Avoiding responsibility"], "meaning": "You are learning to delegate or release some of your burdens. However, it could also mean you are avoiding your responsibilities entirely.", "advice": "Share your load wisely. Don't avoid all responsibility."}
+  },
+  {"id": 32, "name": "Page of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Enthusiasm", "Exploration", "Discovery", "Free spirit", "New ideas"], "meaning": "This card represents a burst of creative energy and enthusiasm. You are ready to explore new ideas and embark on a passionate new adventure.", "advice": "Explore with enthusiasm. Follow your creative spark."},
+    "reversed": {"keywords": ["Creative blocks", "Lack of direction", "Haste", "Feeling uninspired", "Boredom"], "meaning": "You may be feeling uninspired or have lost your direction. Hasty decisions could lead to creative blocks or a sense of boredom.", "advice": "Reconnect with your passion. Find what excites you again."}
+  },
+  {"id": 33, "name": "Knight of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Energy", "Passion", "Adventure", "Impulsiveness", "Action"], "meaning": "Full of energy and passion, you are ready to charge forward. This card represents taking swift action and embracing adventure, though sometimes impulsively.", "advice": "Channel your passion into action. Adventure awaits!"},
+    "reversed": {"keywords": ["Recklessness", "Delays", "Frustration", "Lack of energy", "Haste"], "meaning": "You may be acting with recklessness or feeling frustrated by delays. A lack of energy is preventing you from taking action.", "advice": "Slow down before acting. Recklessness leads to mistakes."}
+  },
+  {"id": 34, "name": "Queen of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Courage", "Confidence", "Independence", "Social butterfly", "Determination"], "meaning": "This card represents a confident, courageous, and independent person. You are determined and have a vibrant social energy that attracts others.", "advice": "Lead with confidence. Your charisma draws others to you."},
+    "reversed": {"keywords": ["Selfishness", "Jealousy", "Insecurity", "Demanding", "Lack of confidence"], "meaning": "You may be feeling insecure or acting out of jealousy. A lack of confidence can make one demanding or overly aggressive.", "advice": "Address your insecurities. Don't let jealousy control you."}
+  },
+  {"id": 35, "name": "King of Wands", "arcana": "minor", "suit": "wands",
+    "upright": {"keywords": ["Natural-born leader", "Vision", "Entrepreneur", "Honor", "Charisma"], "meaning": "This card represents a visionary leader who is charismatic and honorable. You have a clear vision and the ability to inspire others to follow you.", "advice": "Lead with vision and honor. Inspire others with your passion."},
+    "reversed": {"keywords": ["Arrogance", "Impulsiveness", "Ruthlessness", "High expectations", "Tyranny"], "meaning": "You may be dealing with someone who is arrogant and impulsive. High expectations and a ruthless nature can lead to tyrannical behavior.", "advice": "Check your ego. Lead with humility, not tyranny."}
+  }
+]

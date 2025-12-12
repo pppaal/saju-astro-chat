@@ -7,14 +7,15 @@ import styles from "./about.module.css";
 
 const services = [
   {
-    id: "destiny-map",
-    icon: "◎",
+    id: "destinyMap",
+    icon: "🗺️",
     title: "Destiny Map",
-    titleKo: "데스티니 맵",
-    description: "AI가 사주, 점성술, 타로를 융합해 당신의 운명 지도를 한눈에 보여줍니다",
-    descriptionEn: "AI combines Saju, Astrology, and Tarot to reveal your complete destiny map",
+    titleKo: "운명 지도",
+    description: "사주·점성술·타로를 AI가 통합 분석하여 맞춤형 운세를 제공합니다",
+    descriptionEn: "AI integrates Saju, Astrology, and Tarot for personalized fortune reading",
     href: "/destiny-map",
     gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    featured: true,
   },
   {
     id: "astrology",
@@ -99,7 +100,8 @@ const services = [
 ];
 
 export default function AboutPage() {
-  const { translate } = useI18n();
+  const { translate, locale } = useI18n();
+  const isKo = locale === "ko";
 
   return (
     <div className={styles.page}>
@@ -111,12 +113,12 @@ export default function AboutPage() {
         <section className={styles.hero}>
           <div className={styles.stars} aria-hidden />
           <h1 className={styles.heroTitle}>
-            {translate("about.heroTitle1", "Read the stars and energy,")}
-            <br />
-            {translate("about.heroTitle2", "Make smarter choices.")}
+            <span className={styles.heroLine}>{translate("about.heroTitle1", "Diagnose with Fate.")}</span>
+            <span className={styles.heroLine}>{translate("about.heroTitle2", "Analyze with Psychology.")}</span>
+            <span className={styles.heroLine}>{translate("about.heroTitle3", "Heal with Spirituality.")}</span>
           </h1>
           <p className={styles.heroSub}>
-            {translate("about.heroSub", "Combine Saju, Astrology, I Ching, and Tarot in one place with precise data and ethical guidance. We provide practical hints, not absolute predictions.")}
+            {translate("about.heroSubtitle", "Fate speaks. AI listens. You decide.")}
           </p>
         </section>
 
@@ -147,10 +149,10 @@ export default function AboutPage() {
                 <div className={styles.cardContent}>
                   <div className={styles.serviceIcon}>{service.icon}</div>
                   <h3 className={styles.serviceTitle}>
-                    {translate(`about.service.${service.id}.title`, service.title)}
+                    {isKo ? service.titleKo : service.title}
                   </h3>
                   <p className={styles.serviceDesc}>
-                    {translate(`about.service.${service.id}.desc`, service.descriptionEn)}
+                    {isKo ? service.description : service.descriptionEn}
                   </p>
                   <span className={styles.serviceArrow}>→</span>
                 </div>

@@ -1,0 +1,367 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "advanced/decans",
+  "$count": 36,
+  "$description": "각 별자리의 세 데칸 (10도씩) 해석",
+  "$note": "12 signs × 3 decans = 36 combinations",
+
+  "Aries": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Mars (자체 룰러)",
+      "tarot": "2 of Wands",
+      "personality": "순수한 양자리 에너지, 가장 충동적이고 용감함",
+      "expression": "개척자, 선구자, 전사",
+      "gift": "즉각적인 행동력, 순수한 용기",
+      "challenge": "극도의 조급함, 분노"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Sun (Leo)",
+      "tarot": "3 of Wands",
+      "personality": "사자자리의 창조성과 드라마가 더해짐",
+      "expression": "리더, 창조자, 영감을 주는 자",
+      "gift": "카리스마, 창의적 리더십",
+      "challenge": "자존심, 인정 욕구"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Jupiter (Sagittarius)",
+      "tarot": "4 of Wands",
+      "personality": "궁수자리의 철학과 확장성이 더해짐",
+      "expression": "탐험가, 철학자, 교사",
+      "gift": "비전, 열정, 지혜",
+      "challenge": "과장, 무모함"
+    }
+  },
+
+  "Taurus": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Venus (자체 룰러)",
+      "tarot": "5 of Pentacles",
+      "personality": "순수한 황소자리 에너지, 가장 감각적이고 안정적",
+      "expression": "예술가, 감각주의자, 구축자",
+      "gift": "미적 감각, 지속성",
+      "challenge": "물질주의, 완고함"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Mercury (Virgo)",
+      "tarot": "6 of Pentacles",
+      "personality": "처녀자리의 분석력과 봉사가 더해짐",
+      "expression": "실용적 예술가, 세심한 건설자",
+      "gift": "세부사항 주의, 효율성",
+      "challenge": "비판적, 걱정"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Saturn (Capricorn)",
+      "tarot": "7 of Pentacles",
+      "personality": "염소자리의 야망과 구조가 더해짐",
+      "expression": "야망적 구축자, 장기 투자자",
+      "gift": "인내, 장기적 비전",
+      "challenge": "냉담함, 일중독"
+    }
+  },
+
+  "Gemini": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Mercury (자체 룰러)",
+      "tarot": "8 of Swords",
+      "personality": "순수한 쌍둥이자리 에너지, 가장 다재다능함",
+      "expression": "소통자, 정보 수집가, 연결자",
+      "gift": "빠른 사고, 적응력",
+      "challenge": "변덕, 표면성"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Venus (Libra)",
+      "tarot": "9 of Swords",
+      "personality": "천칭자리의 조화와 관계 감각이 더해짐",
+      "expression": "외교관, 매력적인 소통자",
+      "gift": "사회적 매력, 협상력",
+      "challenge": "갈등 회피, 의존성"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Uranus/Saturn (Aquarius)",
+      "tarot": "10 of Swords",
+      "personality": "물병자리의 혁신과 독립성이 더해짐",
+      "expression": "혁신적 사상가, 미래학자",
+      "gift": "독창성, 진보적 사고",
+      "challenge": "소외감, 반항"
+    }
+  },
+
+  "Cancer": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Moon (자체 룰러)",
+      "tarot": "2 of Cups",
+      "personality": "순수한 게자리 에너지, 가장 양육적이고 감정적",
+      "expression": "양육자, 보호자, 가정의 수호자",
+      "gift": "깊은 공감, 직관",
+      "challenge": "과민함, 기분 변화"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Pluto/Mars (Scorpio)",
+      "tarot": "3 of Cups",
+      "personality": "전갈자리의 강렬함과 깊이가 더해짐",
+      "expression": "강렬한 보호자, 심리학자",
+      "gift": "심리적 통찰, 변형력",
+      "challenge": "집착, 조종"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Neptune/Jupiter (Pisces)",
+      "tarot": "4 of Cups",
+      "personality": "물고기자리의 영성과 연민이 더해짐",
+      "expression": "영적 양육자, 치유자",
+      "gift": "무조건적 사랑, 영성",
+      "challenge": "경계 부족, 희생"
+    }
+  },
+
+  "Leo": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Sun (자체 룰러)",
+      "tarot": "5 of Wands",
+      "personality": "순수한 사자자리 에너지, 가장 드라마틱하고 창조적",
+      "expression": "왕/여왕, 배우, 창조자",
+      "gift": "카리스마, 자기 표현",
+      "challenge": "자기중심, 오만"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Jupiter (Sagittarius)",
+      "tarot": "6 of Wands",
+      "personality": "궁수자리의 철학과 확장이 더해짐",
+      "expression": "영감적 리더, 교사",
+      "gift": "비전, 관대함",
+      "challenge": "과장, 독선"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Mars (Aries)",
+      "tarot": "7 of Wands",
+      "personality": "양자리의 용기와 행동력이 더해짐",
+      "expression": "전사 왕/여왕, 모험가",
+      "gift": "용기, 결단력",
+      "challenge": "공격성, 지배욕"
+    }
+  },
+
+  "Virgo": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Mercury (자체 룰러)",
+      "tarot": "8 of Pentacles",
+      "personality": "순수한 처녀자리 에너지, 가장 분석적이고 봉사 지향적",
+      "expression": "분석가, 치유자, 완벽주의자",
+      "gift": "정밀함, 봉사",
+      "challenge": "비판, 걱정"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Saturn (Capricorn)",
+      "tarot": "9 of Pentacles",
+      "personality": "염소자리의 야망과 구조가 더해짐",
+      "expression": "야망적 전문가, 관리자",
+      "gift": "규율, 성취",
+      "challenge": "냉담함, 완벽주의"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Venus (Taurus)",
+      "tarot": "10 of Pentacles",
+      "personality": "황소자리의 감각과 아름다움이 더해짐",
+      "expression": "실용적 예술가, 장인",
+      "gift": "미적 봉사, 물질 창조",
+      "challenge": "물질 집착"
+    }
+  },
+
+  "Libra": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Venus (자체 룰러)",
+      "tarot": "2 of Swords",
+      "personality": "순수한 천칭자리 에너지, 가장 조화롭고 공정함",
+      "expression": "외교관, 예술가, 중재자",
+      "gift": "균형, 아름다움",
+      "challenge": "우유부단, 의존"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Uranus/Saturn (Aquarius)",
+      "tarot": "3 of Swords",
+      "personality": "물병자리의 독립성과 혁신이 더해짐",
+      "expression": "사회 개혁가, 독립적 예술가",
+      "gift": "진보적 사고, 독창성",
+      "challenge": "감정적 거리"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Mercury (Gemini)",
+      "tarot": "4 of Swords",
+      "personality": "쌍둥이자리의 소통과 다양성이 더해짐",
+      "expression": "소통하는 조화자, 작가",
+      "gift": "다재다능함, 중재력",
+      "challenge": "산만함"
+    }
+  },
+
+  "Scorpio": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Pluto/Mars (자체 룰러)",
+      "tarot": "5 of Cups",
+      "personality": "순수한 전갈자리 에너지, 가장 강렬하고 변형적",
+      "expression": "변형자, 심리학자, 탐정",
+      "gift": "깊이, 재생력",
+      "challenge": "집착, 복수"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Neptune/Jupiter (Pisces)",
+      "tarot": "6 of Cups",
+      "personality": "물고기자리의 영성과 연민이 더해짐",
+      "expression": "영적 변형자, 치유자",
+      "gift": "직관, 무조건적 사랑",
+      "challenge": "환상, 도피"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Moon (Cancer)",
+      "tarot": "7 of Cups",
+      "personality": "게자리의 양육과 감정이 더해짐",
+      "expression": "보호적 변형자, 정서적 깊이",
+      "gift": "감정적 통찰",
+      "challenge": "감정적 조종"
+    }
+  },
+
+  "Sagittarius": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Jupiter (자체 룰러)",
+      "tarot": "8 of Wands",
+      "personality": "순수한 궁수자리 에너지, 가장 모험적이고 철학적",
+      "expression": "탐험가, 철학자, 교사",
+      "gift": "낙관주의, 비전",
+      "challenge": "과장, 무절제"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Mars (Aries)",
+      "tarot": "9 of Wands",
+      "personality": "양자리의 용기와 행동력이 더해짐",
+      "expression": "전사 철학자, 개척자",
+      "gift": "용기, 추진력",
+      "challenge": "성급함, 무모함"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Sun (Leo)",
+      "tarot": "10 of Wands",
+      "personality": "사자자리의 창조성과 리더십이 더해짐",
+      "expression": "창조적 비전가, 영감적 리더",
+      "gift": "카리스마, 창의적 비전",
+      "challenge": "자만, 과도한 책임"
+    }
+  },
+
+  "Capricorn": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Saturn (자체 룰러)",
+      "tarot": "2 of Pentacles",
+      "personality": "순수한 염소자리 에너지, 가장 야망적이고 규율적",
+      "expression": "CEO, 건축가, 정치인",
+      "gift": "인내, 구조",
+      "challenge": "냉담함, 일중독"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Venus (Taurus)",
+      "tarot": "3 of Pentacles",
+      "personality": "황소자리의 감각과 가치가 더해짐",
+      "expression": "실용적 예술가, 장인적 사업가",
+      "gift": "아름다운 구조, 가치 창조",
+      "challenge": "물질 집착"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Mercury (Virgo)",
+      "tarot": "4 of Pentacles",
+      "personality": "처녀자리의 분석력과 봉사가 더해짐",
+      "expression": "분석적 리더, 효율적 관리자",
+      "gift": "세부사항 주의, 효율성",
+      "challenge": "비판, 완벽주의"
+    }
+  },
+
+  "Aquarius": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Uranus/Saturn (자체 룰러)",
+      "tarot": "5 of Swords",
+      "personality": "순수한 물병자리 에너지, 가장 혁신적이고 독립적",
+      "expression": "혁명가, 발명가, 인도주의자",
+      "gift": "독창성, 자유로운 사고",
+      "challenge": "반항, 소외"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Mercury (Gemini)",
+      "tarot": "6 of Swords",
+      "personality": "쌍둥이자리의 소통과 다양성이 더해짐",
+      "expression": "소통하는 혁신가, 미디어 운동가",
+      "gift": "다재다능함, 연결력",
+      "challenge": "산만함, 표면성"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Venus (Libra)",
+      "tarot": "7 of Swords",
+      "personality": "천칭자리의 조화와 관계 감각이 더해짐",
+      "expression": "사회적 혁신가, 예술적 운동가",
+      "gift": "매력적 반란자",
+      "challenge": "갈등 회피, 의존"
+    }
+  },
+
+  "Pisces": {
+    "first_decan": {
+      "degrees": "0-10°",
+      "ruler": "Neptune/Jupiter (자체 룰러)",
+      "tarot": "8 of Cups",
+      "personality": "순수한 물고기자리 에너지, 가장 영적이고 연민적",
+      "expression": "몽상가, 신비주의자, 예술가",
+      "gift": "무조건적 사랑, 영성",
+      "challenge": "현실 도피, 경계 부족"
+    },
+    "second_decan": {
+      "degrees": "10-20°",
+      "ruler": "Moon (Cancer)",
+      "tarot": "9 of Cups",
+      "personality": "게자리의 양육과 감정이 더해짐",
+      "expression": "영적 양육자, 치유자",
+      "gift": "감정적 직관, 보살핌",
+      "challenge": "감정 의존"
+    },
+    "third_decan": {
+      "degrees": "20-30°",
+      "ruler": "Pluto/Mars (Scorpio)",
+      "tarot": "10 of Cups",
+      "personality": "전갈자리의 강렬함과 변형력이 더해짐",
+      "expression": "변형적 치유자, 깊은 신비주의자",
+      "gift": "깊이, 재생력",
+      "challenge": "집착, 어둠"
+    }
+  }
+}

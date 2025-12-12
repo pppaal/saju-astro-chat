@@ -6,7 +6,7 @@
   justify-content: flex-start;
   align-items: center;
   padding: 6rem 2rem 4rem;
-  background: linear-gradient(135deg, #0a0a1a 0%, #1a0b2e 50%, #16213e 100%);
+  background: linear-gradient(135deg, #0a0a1a 0%, #0d1f2d 50%, #16213e 100%);
   position: relative;
   overflow-x: hidden;
 }
@@ -18,8 +18,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 40%, rgba(138, 43, 226, 0.12) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(75, 0, 130, 0.12) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 40%, rgba(99, 210, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(124, 242, 156, 0.1) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -37,22 +37,22 @@
   align-items: center;
   height: 100vh;
   font-size: 1.5rem;
-  font-family: var(--font-lora), serif;
-  color: #e0d8f0;
-  background: linear-gradient(135deg, #0a0a1a 0%, #1a0b2e 50%, #16213e 100%);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #e0f0ff;
+  background: linear-gradient(135deg, #0a0a1a 0%, #0d1f2d 50%, #16213e 100%);
   gap: 1.5rem;
 }
 
 .errorLink {
-  color: #a885d8;
+  color: #63d2ff;
   text-decoration: none;
   font-size: 1.2rem;
   transition: all 0.3s ease;
 }
 
 .errorLink:hover {
-  color: #c5a6ff;
-  text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+  color: #7cf29c;
+  text-shadow: 0 0 10px rgba(99, 210, 255, 0.5);
 }
 
 /* ===== Theme Selector ===== */
@@ -68,13 +68,13 @@
 }
 
 .themeButton {
-  font-family: var(--font-roboto), sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.9rem;
   padding: 0.65rem 1.25rem;
   background: rgba(30, 30, 45, 0.4);
   backdrop-filter: blur(10px);
   color: rgba(224, 224, 255, 0.9);
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(99, 210, 255, 0.3);
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,19 +83,19 @@
 }
 
 .themeButton:hover {
-  background: rgba(138, 43, 226, 0.2);
-  border-color: rgba(138, 43, 226, 0.6);
+  background: rgba(99, 210, 255, 0.2);
+  border-color: rgba(99, 210, 255, 0.6);
   opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 210, 255, 0.3);
 }
 
 .themeButton.active {
-  background: rgba(138, 43, 226, 0.4);
-  color: #ffffff;
+  background: rgba(99, 210, 255, 0.3);
+  color: #7cf29c;
   font-weight: 600;
-  border-color: rgba(138, 43, 226, 0.8);
-  box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+  border-color: rgba(124, 242, 156, 0.6);
+  box-shadow: 0 0 20px rgba(99, 210, 255, 0.4);
   opacity: 1;
 }
 
@@ -112,7 +112,7 @@
 .orbRing, .orbRing2 {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(138, 43, 226, 0.25);
+  border: 2px solid rgba(99, 210, 255, 0.25);
   animation: orbPulse 4s ease-in-out infinite;
 }
 
@@ -136,11 +136,11 @@
 .crystalBall {
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle at 35% 35%, #ffffff, #f0eaff, #d9cfff, #b8a6ff, #8e78ff 70%);
+  background: radial-gradient(circle at 35% 35%, #ffffff, #e0f7ff, #b8e8ff, #63d2ff, #4aa8d4 70%);
   border-radius: 50%;
   position: relative;
-  box-shadow: 0 0 35px rgba(138, 43, 226, 0.5),
-              0 0 70px rgba(138, 43, 226, 0.25),
+  box-shadow: 0 0 35px rgba(99, 210, 255, 0.5),
+              0 0 70px rgba(99, 210, 255, 0.25),
               inset 0 0 18px rgba(255, 255, 255, 0.75);
   animation: float 6s ease-in-out infinite, shimmer 3s ease-in-out infinite;
 }
@@ -172,7 +172,7 @@
 .crystalBallBase {
   width: 85px;
   height: 28px;
-  background: linear-gradient(180deg, #3d2963 0%, #221c3b 100%);
+  background: linear-gradient(180deg, #1a3a4a 0%, #0d1f2d 100%);
   border-radius: 0 0 8px 8px;
   margin-top: -14px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
@@ -183,26 +183,30 @@
 .baseTop {
   width: 100%;
   height: 5px;
-  background: linear-gradient(90deg, transparent, rgba(138, 43, 226, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(99, 210, 255, 0.5), transparent);
   border-radius: 8px 8px 0 0;
 }
 
 .baseMiddle {
   width: 80%;
   height: 7px;
-  background: rgba(138, 43, 226, 0.2);
+  background: rgba(99, 210, 255, 0.2);
   margin: 3px auto;
   border-radius: 4px;
 }
 
 /* ===== Header Text ===== */
 .headerText {
-  font-family: var(--font-merriweather), serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 2.75rem;
+  font-weight: 700;
   margin-bottom: 0.75rem;
-  text-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+  text-shadow: 0 0 20px rgba(99, 210, 255, 0.6);
   text-align: center;
-  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   z-index: 10;
   position: relative;
 }
@@ -212,7 +216,7 @@
   margin-bottom: 3rem;
   opacity: 0.9;
   text-align: center;
-  color: rgba(197, 166, 255, 0.9);
+  color: rgba(99, 210, 255, 0.9);
   z-index: 10;
   position: relative;
 }
@@ -235,7 +239,7 @@
   max-width: 320px;
   background: rgba(30, 30, 45, 0.5);
   backdrop-filter: blur(15px);
-  border: 2px solid rgba(138, 43, 226, 0.3);
+  border: 2px solid rgba(99, 210, 255, 0.3);
   border-radius: 20px;
   padding: 2rem 1.75rem;
   text-decoration: none;
@@ -258,16 +262,16 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(75, 0, 130, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.1) 0%, rgba(124, 242, 156, 0.1) 100%);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
 
 .spreadCard:hover {
   transform: translateY(-10px) scale(1.03);
-  border-color: rgba(138, 43, 226, 0.7);
-  box-shadow: 0 20px 50px rgba(138, 43, 226, 0.35),
-              0 0 80px rgba(138, 43, 226, 0.2);
+  border-color: rgba(99, 210, 255, 0.7);
+  box-shadow: 0 20px 50px rgba(99, 210, 255, 0.35),
+              0 0 80px rgba(99, 210, 255, 0.2);
 }
 
 .spreadCard:hover::before {
@@ -301,21 +305,21 @@
 }
 
 .spreadTitle {
-  font-family: var(--font-merriweather), serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
-  color: #ffffff;
+  color: #7cf29c;
 }
 
 .spreadCardCount {
   font-size: 0.95rem;
   font-weight: 600;
-  color: rgba(138, 43, 226, 0.9);
-  background: rgba(138, 43, 226, 0.15);
+  color: rgba(99, 210, 255, 0.9);
+  background: rgba(99, 210, 255, 0.15);
   padding: 0.35rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(99, 210, 255, 0.3);
 }
 
 .spreadDescription {
@@ -330,7 +334,7 @@
 .spreadCardArrow {
   font-size: 1.5rem;
   transition: all 0.3s ease;
-  color: rgba(138, 43, 226, 0.7);
+  color: rgba(99, 210, 255, 0.7);
   opacity: 0.5;
   margin-top: auto;
 }

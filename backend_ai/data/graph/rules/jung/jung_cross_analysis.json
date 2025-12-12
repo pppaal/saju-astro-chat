@@ -1,0 +1,217 @@
+{
+  "$schema": "jung_cross_analysis_v1",
+  "$description": "융 심리학 ↔ 사주/점성술/타로 교차 분석 규칙",
+
+  "saju_psychology_rules": {
+    "pillar_analysis": {
+      "year_pillar": {
+        "jung_meaning": "집단 무의식과의 연결, 조상의 원형",
+        "psychological_theme": "사회적 페르소나, 외부에 보이는 자아",
+        "shadow_aspect": "가문의 그림자, 대물림되는 콤플렉스"
+      },
+      "month_pillar": {
+        "jung_meaning": "부모 콤플렉스의 핵심",
+        "psychological_theme": "사회적 성취, 직업적 정체성",
+        "shadow_aspect": "부모 기대와 진정한 자기의 갈등"
+      },
+      "day_pillar": {
+        "jung_meaning": "핵심 자기(Self)의 표현",
+        "psychological_theme": "본질적 정체성, 배우자/파트너 관계",
+        "shadow_aspect": "인정하기 싫은 본성"
+      },
+      "hour_pillar": {
+        "jung_meaning": "내면 아이, 잠재적 자기",
+        "psychological_theme": "창조성, 자녀, 말년의 성숙",
+        "shadow_aspect": "억압된 꿈, 미완의 가능성"
+      }
+    },
+
+    "element_psychology": {
+      "wood": {
+        "healthy": "성장, 계획, 비전, 인내",
+        "shadow": "분노, 좌절, 경직",
+        "archetype": "영웅의 시작, 봄의 생명력",
+        "therapeutic_focus": "분노를 창조적 에너지로 전환"
+      },
+      "fire": {
+        "healthy": "열정, 기쁨, 명확성, 카리스마",
+        "shadow": "조급함, 소진, 과대망상",
+        "archetype": "영웅의 절정, 빛과 의식",
+        "therapeutic_focus": "지속가능한 열정, 번아웃 예방"
+      },
+      "earth": {
+        "healthy": "안정, 돌봄, 신뢰, 중용",
+        "shadow": "집착, 걱정, 정체",
+        "archetype": "태모, 중심, 연결",
+        "therapeutic_focus": "변화 수용, 과도한 통제 내려놓기"
+      },
+      "metal": {
+        "healthy": "정의, 결단, 명예, 순수",
+        "shadow": "냉담, 비판, 슬픔",
+        "archetype": "현자의 칼, 분별",
+        "therapeutic_focus": "완벽주의와 자기 비판 완화"
+      },
+      "water": {
+        "healthy": "지혜, 유연, 직관, 깊이",
+        "shadow": "두려움, 고립, 우울",
+        "archetype": "집단 무의식, 죽음과 재생",
+        "therapeutic_focus": "두려움 직면, 흐름에 맡기기"
+      }
+    },
+
+    "sipsin_complexes": {
+      "bigyeon_excess": {
+        "name": "비견 과다",
+        "complex": "나르시시즘, 경쟁 콤플렉스",
+        "pattern": "항상 비교, 타인을 경쟁자로 봄, 협력 어려움",
+        "therapeutic_approach": "타인과의 공통점 찾기, '우리'의 경험"
+      },
+      "geopjae_excess": {
+        "name": "겁재 과다",
+        "complex": "박탈 콤플렉스",
+        "pattern": "충분하지 않다는 느낌, 빼앗길 거라는 두려움",
+        "therapeutic_approach": "풍요의 재정의, 주는 연습"
+      },
+      "siksin_suppressed": {
+        "name": "식신 억압",
+        "complex": "내면 아이 상처",
+        "pattern": "자기 표현 억제, 즐거움에 죄책감",
+        "therapeutic_approach": "놀이와 창조적 표현 회복"
+      },
+      "sanggwan_excess": {
+        "name": "상관 과다",
+        "complex": "반항 콤플렉스",
+        "pattern": "권위 거부, 구조 파괴, 인정 갈망",
+        "therapeutic_approach": "창조적 파괴와 건설의 균형"
+      },
+      "pyeongwan_excess": {
+        "name": "편관 과다",
+        "complex": "아버지 콤플렉스 (부정적)",
+        "pattern": "권위에 압도됨, 통제 욕구, 공격성",
+        "therapeutic_approach": "아버지 상과 화해, 내면 권위 확립"
+      },
+      "jeonggwan_excess": {
+        "name": "정관 과다",
+        "complex": "초자아 비대",
+        "pattern": "과도한 책임감, 자기 억압, 규칙 집착",
+        "therapeutic_approach": "자기 욕구 허용, 완벽주의 완화"
+      },
+      "insung_excess": {
+        "name": "인성 과다",
+        "complex": "어머니 콤플렉스",
+        "pattern": "의존성, 수동성, 독립 두려움",
+        "therapeutic_approach": "심리적 분리 독립, 자기 돌봄"
+      }
+    }
+  },
+
+  "astro_psychology_rules": {
+    "house_psychology": {
+      "1st": "페르소나와 자아상",
+      "2nd": "자기 가치와 안전감",
+      "3rd": "커뮤니케이션 패턴",
+      "4th": "어머니 콤플렉스, 정서적 기반",
+      "5th": "내면 아이, 창조성",
+      "6th": "완벽주의, 신체화",
+      "7th": "아니마/아니무스 투사",
+      "8th": "그림자, 심층 무의식",
+      "9th": "의미 추구, 현자 원형",
+      "10th": "아버지 콤플렉스, 사회적 정체성",
+      "11th": "집단 무의식과의 연결",
+      "12th": "개인 무의식, 자기 파괴 패턴"
+    },
+
+    "aspect_psychology": {
+      "conjunction": "융합, 에너지 증폭 (긍정/부정 모두)",
+      "opposition": "그림자 투사, 타인에게서 보는 내 모습",
+      "square": "내적 갈등, 성장 압력",
+      "trine": "자연스러운 재능, 무의식적 자원",
+      "sextile": "개발 가능한 잠재력"
+    },
+
+    "transit_psychology": {
+      "saturn_return": {
+        "age": "29-30, 58-60",
+        "theme": "성숙, 책임, 아버지 콤플렉스 직면",
+        "therapeutic_focus": "진정한 어른 되기, 구조 재설정"
+      },
+      "uranus_opposition": {
+        "age": "40-42",
+        "theme": "중년 위기, 개성화 압력",
+        "therapeutic_focus": "억압된 자기 측면 해방"
+      },
+      "chiron_return": {
+        "age": "50-51",
+        "theme": "상처받은 치유자 되기",
+        "therapeutic_focus": "상처를 선물로 전환"
+      },
+      "pluto_transit": {
+        "any_age": true,
+        "theme": "죽음과 재생, 그림자 통합",
+        "therapeutic_focus": "완전한 변형, 놓아주기"
+      }
+    }
+  },
+
+  "tarot_psychology_rules": {
+    "reading_as_therapy": {
+      "principle": "타로는 무의식의 거울. 뽑힌 카드는 우연이 아니라 동시성.",
+      "approach": [
+        "카드에서 가장 먼저 눈에 들어오는 것은?",
+        "이 카드가 당신의 어떤 부분을 보여주나요?",
+        "이 카드의 인물이라면 무슨 말을 할까요?",
+        "그림자 측면은 무엇인가요?"
+      ]
+    },
+
+    "card_as_mirror": {
+      "devil": {
+        "shadow_work": "당신을 묶고 있는 것은 무엇인가요? 정말 벗어날 수 없나요?",
+        "projection": "중독이나 집착의 대상에 무엇을 투사하고 있나요?"
+      },
+      "tower": {
+        "shadow_work": "무너져야 할 것이 무엇인가요? 왜 그것을 지키려 하나요?",
+        "therapeutic": "파괴는 재건의 시작입니다."
+      },
+      "moon": {
+        "shadow_work": "두려워하는 것을 직면하면 어떻게 되나요?",
+        "therapeutic": "달빛 아래서만 보이는 진실이 있습니다."
+      },
+      "hanged_man": {
+        "shadow_work": "무엇을 포기할 수 없나요? 놓으면 어떻게 되나요?",
+        "therapeutic": "때로는 포기가 가장 큰 행동입니다."
+      }
+    }
+  },
+
+  "integrated_interpretation_template": {
+    "description": "사주+점성술+타로+융 통합 해석 템플릿",
+    "structure": {
+      "1_core_pattern": {
+        "title": "핵심 심리 패턴",
+        "sources": ["일간+태양 분석", "주요 원형 식별"],
+        "question": "당신의 핵심 자기(Self)는 무엇을 추구하는가?"
+      },
+      "2_shadow_analysis": {
+        "title": "그림자 분석",
+        "sources": ["억압된 오행", "8하우스/12하우스", "역위 카드"],
+        "question": "무엇을 부정하고 있는가? 투사하는 것은?"
+      },
+      "3_complex_identification": {
+        "title": "콤플렉스 식별",
+        "sources": ["부모궁 분석", "4/10하우스", "황제/여황제 카드"],
+        "question": "부모 콤플렉스가 어떻게 작동하는가?"
+      },
+      "4_individuation_path": {
+        "title": "개성화 과제",
+        "sources": ["용신 분석", "노드 축", "세계 카드로의 여정"],
+        "question": "지금 통합해야 할 것은 무엇인가?"
+      },
+      "5_therapeutic_direction": {
+        "title": "치유 방향",
+        "sources": ["키론", "대운/세운", "조언 카드"],
+        "question": "상처가 어떻게 선물이 되는가?"
+      }
+    }
+  }
+}

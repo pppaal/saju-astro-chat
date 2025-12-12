@@ -4,6 +4,7 @@
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import Link from "next/link";
 import styles from "./notifications.module.css";
 
@@ -13,29 +14,30 @@ export default function NotificationsPage() {
   const { data: session } = useSession();
   const { notifications, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
   const [filter, setFilter] = useState<FilterType>("all");
+  const { t } = useI18n();
 
   const filtered = useMemo(() => {
     let list = notifications;
 
     if (filter === "unread") {
-      list = list.filter(n => !n.read);
+      list = list.filter((n) => !n.read);
     } else if (filter !== "all") {
-      list = list.filter(n => n.type === filter);
+      list = list.filter((n) => n.type === filter);
     }
 
     return list.sort((a, b) => b.createdAt - a.createdAt);
   }, [notifications, filter]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   if (!session) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>≡ƒöö</span>
-          <h2>Please sign in to view notifications</h2>
+          <span className={styles.emptyIcon}>🔔</span>
+          <h2>{t("notifications.authRequired", "Please sign in to view notifications")}</h2>
           <Link href="/" className={styles.backLink}>
-            Go to Home
+            {t("common.start", "Go to Home")}
           </Link>
         </div>
       </div>
@@ -49,21 +51,27 @@ export default function NotificationsPage() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
+    if (minutes < 1) return t("notifications.time.justNow", "Just now");
+    if (minutes < 60) return t("notifications.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(minutes));
+    if (hours < 24) return t("notifications.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours));
+    if (days < 7) return t("notifications.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days));
     return new Date(timestamp).toLocaleDateString();
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "like": return "Γ¥ñ∩╕Å";
-      case "comment": return "≡ƒÆ¼";
-      case "reply": return "Γå⌐∩╕Å";
-      case "mention": return "≡ƒôó";
-      case "system": return "≡ƒöö";
-      default: return "≡ƒöö";
+      case "like":
+        return "❤️";
+      case "comment":
+        return "💬";
+      case "reply":
+        return "↩️";
+      case "mention":
+        return "📢";
+      case "system":
+        return "🔔";
+      default:
+        return "🔔";
     }
   };
 
@@ -72,18 +80,18 @@ export default function NotificationsPage() {
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.title}>
-            Notifications
+            {t("notifications.title", "Notifications")}
             {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
           </h1>
           <div className={styles.actions}>
             {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className={styles.actionBtn}>
-                Mark all as read
+              <button onClick={markAllAsRead} className={styles.actionBtn} type="button">
+                {t("notifications.markAll", "Mark all as read")}
               </button>
             )}
             {notifications.length > 0 && (
-              <button onClick={clearAll} className={styles.actionBtn}>
-                Clear all
+              <button onClick={clearAll} className={styles.actionBtn} type="button">
+                {t("notifications.clearAll", "Clear all")}
               </button>
             )}
           </div>
@@ -93,44 +101,51 @@ export default function NotificationsPage() {
           <button
             className={`${styles.filterBtn} ${filter === "all" ? styles.active : ""}`}
             onClick={() => setFilter("all")}
+            type="button"
           >
-            All {notifications.length > 0 && `(${notifications.length})`}
+            {t("notifications.filter.all", "All")} {notifications.length > 0 && `(${notifications.length})`}
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "unread" ? styles.active : ""}`}
             onClick={() => setFilter("unread")}
+            type="button"
           >
-            Unread {unreadCount > 0 && `(${unreadCount})`}
+            {t("notifications.filter.unread", "Unread")} {unreadCount > 0 && `(${unreadCount})`}
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "like" ? styles.active : ""}`}
             onClick={() => setFilter("like")}
+            type="button"
           >
-            Γ¥ñ∩╕Å Likes
+            ❤️ {t("notifications.filter.like", "Likes")}
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "comment" ? styles.active : ""}`}
             onClick={() => setFilter("comment")}
+            type="button"
           >
-            ≡ƒÆ¼ Comments
+            💬 {t("notifications.filter.comment", "Comments")}
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "reply" ? styles.active : ""}`}
             onClick={() => setFilter("reply")}
+            type="button"
           >
-            Γå⌐∩╕Å Replies
+            ↩️ {t("notifications.filter.reply", "Replies")}
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "mention" ? styles.active : ""}`}
             onClick={() => setFilter("mention")}
+            type="button"
           >
-            ≡ƒôó Mentions
+            📢 {t("notifications.filter.mention", "Mentions")}
           </button>
           <button
             className={`${styles.filterBtn} ${filter === "system" ? styles.active : ""}`}
             onClick={() => setFilter("system")}
+            type="button"
           >
-            ≡ƒöö System
+            🔔 {t("notifications.filter.system", "System")}
           </button>
         </div>
       </header>
@@ -139,17 +154,17 @@ export default function NotificationsPage() {
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>
-              {filter === "unread" ? "Γ£à" : "≡ƒöö"}
+              {filter === "unread" ? "✅" : "🔔"}
             </span>
             <h2>
               {filter === "unread"
-                ? "All caught up!"
-                : "No notifications yet"}
+                ? t("notifications.empty.unreadTitle", "All caught up!")
+                : t("notifications.empty.noneTitle", "No notifications yet")}
             </h2>
             <p>
               {filter === "unread"
-                ? "You've read all your notifications"
-                : "We'll notify you when something happens"}
+                ? t("notifications.empty.unreadDesc", "You've read all your notifications")
+                : t("notifications.empty.noneDesc", "We'll notify you when something happens")}
             </p>
           </div>
         ) : (
@@ -194,8 +209,9 @@ export default function NotificationsPage() {
                     deleteNotification(notif.id);
                   }}
                   aria-label="Delete notification"
+                  type="button"
                 >
-                  ├ù
+                  ×
                 </button>
               </div>
             ))}
@@ -205,4 +221,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-

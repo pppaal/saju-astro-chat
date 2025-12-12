@@ -1,0 +1,241 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "meta/jung_mapping",
+  "$description": "칼 융 분석심리학과 점성술 요소의 매핑 - 심리학적 깊이 통합",
+
+  "overview": {
+    "principle": "융의 분석심리학은 점성술과 깊은 연관이 있으며, 융 자신도 환자들의 차트를 분석했습니다.",
+    "jung_quote": "점성술은 수천 년의 심리학적 경험의 총합이다.",
+    "integration_method": "각 점성술 요소를 융의 심리학적 개념과 연결하여 더 깊은 통찰 제공"
+  },
+
+  "planets_to_archetypes": {
+    "Sun": {
+      "jung_concept": "Self (자기)",
+      "archetype": "영웅, 왕, 신성한 아이",
+      "psychological_function": "의식의 중심, 개성화의 목표",
+      "shadow_aspect": "팽창된 자아, 나르시시즘",
+      "individuation_role": "의식적 정체성의 핵심, 전체성을 향한 중심",
+      "corpus_refs": ["quotes_self.json", "quotes_hero.json"],
+      "key_quote": "자기(Self)는 의식과 무의식 모두를 포함하는 전체 인격의 중심이다."
+    },
+    "Moon": {
+      "jung_concept": "Personal Unconscious (개인 무의식)",
+      "archetype": "어머니, 여신, 내면의 아이",
+      "psychological_function": "감정적 반응, 습관, 기억",
+      "shadow_aspect": "감정적 의존, 퇴행",
+      "individuation_role": "감정의 인식과 통합",
+      "corpus_refs": ["quotes_mother.json", "quotes_complexes.json"],
+      "key_quote": "어머니 원형은 소위 어머니 콤플렉스의 토대를 형성한다."
+    },
+    "Mercury": {
+      "jung_concept": "Mercurius (메르쿠리우스)",
+      "archetype": "트릭스터, 전령, 연금술적 변형자",
+      "psychological_function": "의식과 무의식 사이의 다리",
+      "shadow_aspect": "과도한 합리화, 속임",
+      "individuation_role": "대립물의 통합을 매개",
+      "corpus_refs": ["quotes_alchemy.json", "quotes_child_trickster.json"],
+      "key_quote": "메르쿠리우스는 연금술에서 변형의 핵심 원리를 상징한다."
+    },
+    "Venus": {
+      "jung_concept": "Anima (남성의 경우) / Eros",
+      "archetype": "연인, 뮤즈, 미의 여신",
+      "psychological_function": "관계 형성, 가치 평가, 사랑",
+      "shadow_aspect": "유혹, 허영, 의존",
+      "individuation_role": "아니마/아니무스 통합의 매개",
+      "corpus_refs": ["quotes_anima_animus.json"],
+      "key_quote": "아니마는 남성 안의 여성적 요소로, 관계와 감정의 매개자이다."
+    },
+    "Mars": {
+      "jung_concept": "Animus (여성의 경우) / Aggression Drive",
+      "archetype": "전사, 정복자, 개척자",
+      "psychological_function": "의지력, 자기주장, 경쟁",
+      "shadow_aspect": "파괴성, 분노, 폭력",
+      "individuation_role": "건강한 공격성의 통합",
+      "corpus_refs": ["quotes_anima_animus.json", "quotes_shadow.json"],
+      "key_quote": "아니무스는 여성 안의 남성적 요소로, 의지와 행동의 원리이다."
+    },
+    "Jupiter": {
+      "jung_concept": "Wise Old Man (현자)",
+      "archetype": "왕, 현자, 스승",
+      "psychological_function": "의미 추구, 확장, 신념",
+      "shadow_aspect": "독선, 과대망상",
+      "individuation_role": "삶의 의미와 목적 발견",
+      "corpus_refs": ["quotes_father_wise.json", "quotes_spirituality.json"],
+      "key_quote": "현자 원형은 먼저 아버지에게서 나타나며, 의미와 정신의 의인화이다."
+    },
+    "Saturn": {
+      "jung_concept": "Senex (노인) / Shadow Father",
+      "archetype": "노인, 심판관, 시간의 신",
+      "psychological_function": "제한, 구조, 현실 원리",
+      "shadow_aspect": "경직성, 우울, 억압",
+      "individuation_role": "자아의 한계 인식, 성숙",
+      "corpus_refs": ["quotes_shadow.json", "quotes_father_wise.json"],
+      "key_quote": "토성적 제한은 개성화 과정에서 필수적인 현실 원리를 제공한다."
+    },
+    "Uranus": {
+      "jung_concept": "Collective Unconscious Irruption",
+      "archetype": "프로메테우스, 혁명가, 깨우는 자",
+      "psychological_function": "집단 무의식으로부터의 돌파",
+      "shadow_aspect": "광기, 극단주의",
+      "individuation_role": "의식의 갑작스러운 확장",
+      "corpus_refs": ["quotes_collective_unconscious.json"],
+      "key_quote": "집단 무의식의 내용이 의식에 침입할 때, 그것은 종종 혁명적 변화로 경험된다."
+    },
+    "Neptune": {
+      "jung_concept": "Collective Unconscious / Participation Mystique",
+      "archetype": "신비가, 구원자, 희생양",
+      "psychological_function": "경계 해체, 초월적 경험",
+      "shadow_aspect": "환상, 중독, 자기기만",
+      "individuation_role": "에고 초월, 영적 연결",
+      "corpus_refs": ["quotes_spirituality.json", "quotes_dreams.json"],
+      "key_quote": "신비적 참여는 주체와 객체 사이의 경계가 녹는 원시적 심리 상태이다."
+    },
+    "Pluto": {
+      "jung_concept": "Shadow / Death-Rebirth",
+      "archetype": "저승의 왕, 변형자, 불사조",
+      "psychological_function": "심층 변형, 죽음과 재생",
+      "shadow_aspect": "파괴성, 권력욕, 집착",
+      "individuation_role": "그림자 대면과 통합",
+      "corpus_refs": ["quotes_shadow.json", "quotes_crisis_suffering.json"],
+      "key_quote": "어둠을 의식화함으로써 깨달음을 얻는다."
+    },
+    "Chiron": {
+      "jung_concept": "Wounded Healer",
+      "archetype": "상처 입은 치유자, 멘토",
+      "psychological_function": "상처를 통한 치유 능력 개발",
+      "shadow_aspect": "치유되지 않는 고통에 집착",
+      "individuation_role": "상처의 변형과 지혜화",
+      "corpus_refs": ["quotes_crisis_suffering.json"],
+      "key_quote": "상처 입은 의사만이 치유할 수 있다."
+    },
+    "NorthNode": {
+      "jung_concept": "Individuation Direction",
+      "archetype": "운명의 부름",
+      "psychological_function": "영혼의 성장 방향",
+      "shadow_aspect": "익숙함에 안주 (남쪽 노드)",
+      "individuation_role": "자기실현의 방향",
+      "corpus_refs": ["quotes_individuation.json"],
+      "key_quote": "개성화는 자기(Self)가 되는 것, 즉 자신만의 고유한 전체성을 실현하는 것이다."
+    }
+  },
+
+  "houses_to_psychology": {
+    "H1": {
+      "jung_concept": "Persona",
+      "meaning": "세상에 보여주는 가면, 사회적 정체성",
+      "shadow_work": "페르소나와 진정한 자아 구분하기",
+      "corpus_ref": "quotes_persona.json"
+    },
+    "H4": {
+      "jung_concept": "Personal Unconscious Root",
+      "meaning": "어린 시절 각인, 가족 콤플렉스",
+      "shadow_work": "가족 패턴 인식과 변형",
+      "corpus_ref": "quotes_complexes.json"
+    },
+    "H7": {
+      "jung_concept": "Projection / Anima-Animus",
+      "meaning": "타인에게 투영하는 무의식적 내용",
+      "shadow_work": "관계에서 보는 것이 자신의 일부임을 인식",
+      "corpus_ref": "quotes_anima_animus.json"
+    },
+    "H8": {
+      "jung_concept": "Shadow / Transformation",
+      "meaning": "억압된 내용, 심층 변형",
+      "shadow_work": "가장 깊은 그림자 대면",
+      "corpus_ref": "quotes_shadow.json"
+    },
+    "H12": {
+      "jung_concept": "Collective Unconscious",
+      "meaning": "집단 무의식, 전생적 패턴",
+      "shadow_work": "집단적 그림자 인식",
+      "corpus_ref": "quotes_collective_unconscious.json"
+    }
+  },
+
+  "signs_to_psychology": {
+    "Aries": {"archetype": "영웅/전사", "shadow": "파괴적 분노"},
+    "Taurus": {"archetype": "대지모신", "shadow": "물질집착"},
+    "Gemini": {"archetype": "트릭스터/쌍둥이", "shadow": "분열"},
+    "Cancer": {"archetype": "대모", "shadow": "과보호/퇴행"},
+    "Leo": {"archetype": "왕/신성한아이", "shadow": "나르시시즘"},
+    "Virgo": {"archetype": "처녀/봉사자", "shadow": "강박/비판"},
+    "Libra": {"archetype": "중재자", "shadow": "우유부단/자기상실"},
+    "Scorpio": {"archetype": "마법사/변형자", "shadow": "파괴/집착"},
+    "Sagittarius": {"archetype": "현자/탐험가", "shadow": "독선/무책임"},
+    "Capricorn": {"archetype": "노현자", "shadow": "냉담/경직"},
+    "Aquarius": {"archetype": "프로메테우스", "shadow": "소외/광기"},
+    "Pisces": {"archetype": "구원자/신비가", "shadow": "순교/환상"}
+  },
+
+  "aspects_to_psychology": {
+    "conjunction": {
+      "jung_concept": "융합/동일시",
+      "meaning": "두 심리적 기능의 완전한 결합",
+      "challenge": "구분 없이 작동하므로 무의식적일 수 있음"
+    },
+    "opposition": {
+      "jung_concept": "대립물의 긴장 (Enantiodromia)",
+      "meaning": "의식과 그림자의 대면",
+      "challenge": "투영의 위험, 통합의 기회"
+    },
+    "square": {
+      "jung_concept": "내적 갈등/콤플렉스",
+      "meaning": "억압된 에너지가 표출을 요구",
+      "challenge": "긴장을 통한 성장"
+    },
+    "trine": {
+      "jung_concept": "자연스러운 흐름",
+      "meaning": "통합된 심리 기능",
+      "challenge": "무의식적이라 개발 안 할 수 있음"
+    },
+    "sextile": {
+      "jung_concept": "잠재적 통합",
+      "meaning": "의식적 노력으로 활성화되는 재능",
+      "challenge": "적극적 개발 필요"
+    }
+  },
+
+  "individuation_process": {
+    "description": "개성화는 자기(Self) 실현을 향한 평생의 여정입니다. 점성술 차트는 이 여정의 지도입니다.",
+    "stages": {
+      "persona_work": {
+        "planets": ["Ascendant", "Sun"],
+        "task": "가면과 진정한 자아 구분",
+        "challenge": "페르소나 동일시에서 벗어나기"
+      },
+      "shadow_integration": {
+        "planets": ["Pluto", "Mars", "Saturn"],
+        "houses": ["H8", "H12"],
+        "task": "억압된 내용 인식과 통합",
+        "challenge": "투영 거두기, 어둠 껴안기"
+      },
+      "anima_animus_work": {
+        "planets": ["Venus", "Mars", "Moon"],
+        "houses": ["H7"],
+        "task": "내면의 이성 요소 통합",
+        "challenge": "관계에서의 투영 인식"
+      },
+      "self_realization": {
+        "planets": ["Sun", "Moon", "NorthNode"],
+        "task": "의식과 무의식의 통합",
+        "challenge": "전체성 실현"
+      }
+    }
+  },
+
+  "therapeutic_applications": {
+    "shadow_work_by_planet": {
+      "Sun_shadow": "자만심, 인정욕구 → 진정한 자기가치 발견",
+      "Moon_shadow": "감정 의존, 퇴행 → 자기 돌봄 능력 개발",
+      "Mercury_shadow": "과도한 합리화 → 직관과 감정 통합",
+      "Venus_shadow": "의존, 허영 → 자기 사랑 개발",
+      "Mars_shadow": "파괴적 분노 → 건강한 자기주장",
+      "Jupiter_shadow": "과대망상 → 겸손한 지혜",
+      "Saturn_shadow": "두려움, 경직 → 현실적 자신감",
+      "Uranus_shadow": "소외, 반항 → 진정한 개성",
+      "Neptune_shadow": "환상, 중독 → 영적 현실 감각",
+      "Pluto_shadow": "권력욕, 집착 → 변형적 힘"
+    }
+  }
+}

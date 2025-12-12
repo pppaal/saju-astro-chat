@@ -43,13 +43,19 @@ function buildChatPrompt(lang: string, theme: string, snapshot: string, history:
     .join("\n\n");
 }
 
+// 이메일 형식 검증 (Stripe 쿼리 인젝션 방지)
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
 async function checkStripeActive(email?: string) {
   if (!process.env.REQUIRE_PAID_CHAT || process.env.REQUIRE_PAID_CHAT === "false") return true;
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !email) return false;
+  if (!key || !email || !isValidEmail(email)) return false;
   const stripe = new Stripe(key, { apiVersion: "2024-12-18.acacia" as any });
   const customers = await stripe.customers.search({
-    query: `email:'${email.replace(/'/g, "")}'`,
+    query: `email:'${email}'`,
     limit: 3,
   });
   for (const c of customers.data) {

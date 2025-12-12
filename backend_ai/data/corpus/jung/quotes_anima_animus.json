@@ -1,0 +1,73 @@
+{
+  "concept": "anima_animus",
+  "concept_kr": "아니마/아니무스",
+  "description": "Anima is the feminine aspect in men, Animus is the masculine aspect in women",
+  "quotes": [
+    {
+      "id": "anima_001",
+      "en": "The anima is the archetype of life itself.",
+      "kr": "아니마는 삶 그 자체의 원형이다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "anima",
+        "life"
+      ]
+    },
+    {
+      "id": "anima_002",
+      "en": "Every man carries within him the eternal image of woman.",
+      "kr": "모든 남성은 자신 안에 여성의 영원한 이미지를 지니고 있다.",
+      "source": "CW 17",
+      "year": 1934,
+      "tags": [
+        "anima",
+        "feminine"
+      ]
+    },
+    {
+      "id": "anima_003",
+      "en": "The animus is the deposit of all woman's ancestral experiences of man.",
+      "kr": "아니무스는 여성의 모든 조상적 남성 경험의 퇴적물이다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "animus",
+        "masculine"
+      ]
+    },
+    {
+      "id": "anima_004",
+      "en": "When animus and anima meet, the animus draws his sword of power and the anima ejects her poison of illusion.",
+      "kr": "아니무스와 아니마가 만나면, 아니무스는 권력의 검을 빼들고 아니마는 환상의 독을 뿜는다.",
+      "source": "Aion",
+      "year": 1951,
+      "tags": [
+        "anima",
+        "animus"
+      ]
+    },
+    {
+      "id": "anima_005",
+      "en": "The persona is what a man should appear to be, while the anima is what he really is.",
+      "kr": "페르소나는 남자가 어떻게 보여야 하는가이고, 아니마는 그가 실제로 어떤 사람인가이다.",
+      "source": "CW 7",
+      "year": 1928,
+      "tags": [
+        "anima",
+        "persona"
+      ]
+    },
+    {
+      "id": "anima_006",
+      "en": "The anima is a factor of the utmost importance wherever emotions and affects are at work.",
+      "kr": "아니마는 감정과 정서가 작용하는 곳에서 가장 중요한 요소다.",
+      "source": "CW 9i",
+      "year": 1959,
+      "tags": [
+        "anima",
+        "emotion"
+      ]
+    }
+  ]
+}

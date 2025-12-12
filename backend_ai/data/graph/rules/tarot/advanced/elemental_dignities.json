@@ -1,0 +1,241 @@
+{
+  "_meta": {
+    "title": "Elemental Dignities",
+    "description": "타로 카드 원소 상호작용 규칙 - 카드들이 함께 나왔을 때 에너지가 강화/약화되는 원리"
+  },
+  "elements": {
+    "fire": {
+      "korean": "불 (Fire)",
+      "suits": ["Wands"],
+      "qualities": ["열정", "에너지", "행동", "창의력", "의지"],
+      "positive": "동기부여, 영감, 열정, 추진력",
+      "negative": "분노, 충동, 공격성, 소진",
+      "direction": "남쪽",
+      "season": "여름",
+      "tarot_energy": "행동과 창조의 에너지"
+    },
+    "water": {
+      "korean": "물 (Water)",
+      "suits": ["Cups"],
+      "qualities": ["감정", "직관", "관계", "무의식", "치유"],
+      "positive": "사랑, 공감, 창의성, 직관",
+      "negative": "감정 기복, 환상, 집착, 우울",
+      "direction": "서쪽",
+      "season": "가을",
+      "tarot_energy": "감정과 관계의 에너지"
+    },
+    "air": {
+      "korean": "공기 (Air)",
+      "suits": ["Swords"],
+      "qualities": ["사고", "소통", "논리", "진실", "갈등"],
+      "positive": "명료함, 지성, 소통, 진실",
+      "negative": "냉정함, 비판, 갈등, 걱정",
+      "direction": "동쪽",
+      "season": "봄",
+      "tarot_energy": "생각과 소통의 에너지"
+    },
+    "earth": {
+      "korean": "땅 (Earth)",
+      "suits": ["Pentacles"],
+      "qualities": ["물질", "안정", "실용", "신체", "현실"],
+      "positive": "안정, 풍요, 실용성, 건강",
+      "negative": "고집, 물질주의, 느림, 집착",
+      "direction": "북쪽",
+      "season": "겨울",
+      "tarot_energy": "물질과 현실의 에너지"
+    }
+  },
+  "element_interactions": {
+    "friendly": {
+      "description": "서로 강화하는 원소 조합",
+      "pairs": [
+        {
+          "elements": ["fire", "air"],
+          "korean": "불 + 공기",
+          "effect": "강력한 강화",
+          "meaning": "불은 공기로 더 활활 타오른다",
+          "interpretation": "생각(공기)이 행동(불)을 촉진. 아이디어가 실현되고, 열정이 표현됨.",
+          "reading_hint": "계획이 빠르게 실행으로 옮겨집니다. 말과 행동이 일치하는 시기."
+        },
+        {
+          "elements": ["water", "earth"],
+          "korean": "물 + 땅",
+          "effect": "강력한 강화",
+          "meaning": "물은 땅을 비옥하게 한다",
+          "interpretation": "감정(물)이 현실(땅)에 뿌리내림. 사랑이 안정되고, 꿈이 현실이 됨.",
+          "reading_hint": "감정이 구체적인 결과로 나타납니다. 관계가 안정되고 풍요로워져요."
+        }
+      ]
+    },
+    "neutral": {
+      "description": "서로 영향이 적은 원소 조합",
+      "pairs": [
+        {
+          "elements": ["fire", "earth"],
+          "korean": "불 + 땅",
+          "effect": "중립/온건",
+          "meaning": "불은 땅을 데우거나 태울 수 있다",
+          "interpretation": "행동(불)이 현실(땅)에 영향. 결과는 균형에 달림.",
+          "reading_hint": "열정과 현실 사이의 균형이 필요해요. 너무 급하면 안 돼요."
+        },
+        {
+          "elements": ["water", "air"],
+          "korean": "물 + 공기",
+          "effect": "중립/온건",
+          "meaning": "공기는 물을 움직이거나 증발시킨다",
+          "interpretation": "생각(공기)과 감정(물)의 상호작용. 소통이 감정에 영향.",
+          "reading_hint": "생각과 감정을 분리해서 판단하세요. 둘 다 중요해요."
+        }
+      ]
+    },
+    "opposing": {
+      "description": "서로 약화시키는 원소 조합",
+      "pairs": [
+        {
+          "elements": ["fire", "water"],
+          "korean": "불 + 물",
+          "effect": "약화/갈등",
+          "meaning": "물은 불을 끄고, 불은 물을 증발시킨다",
+          "interpretation": "열정(불)과 감정(물)이 충돌. 행동과 감정이 맞지 않음.",
+          "reading_hint": "마음이 원하는 것과 행동이 다를 수 있어요. 내면의 갈등을 해결하세요.",
+          "resolution": "균형을 찾으면 '스팀'처럼 강력한 에너지가 됩니다."
+        },
+        {
+          "elements": ["air", "earth"],
+          "korean": "공기 + 땅",
+          "effect": "약화/갈등",
+          "meaning": "공기는 땅을 건조시키고, 땅은 공기를 무겁게 한다",
+          "interpretation": "이론(공기)과 현실(땅)이 충돌. 생각과 실제가 다름.",
+          "reading_hint": "이론과 현실의 갭을 인식하세요. 계획을 현실에 맞게 조정하세요.",
+          "resolution": "실용적인 아이디어로 발전시키면 성공합니다."
+        }
+      ]
+    }
+  },
+  "reading_rules": {
+    "three_card_interaction": {
+      "description": "3장 이상일 때 중앙 카드의 역할",
+      "rule": "중앙 카드가 주인공, 양옆 카드가 영향을 줌",
+      "examples": [
+        {
+          "layout": "[Cups] - [Wands] - [Cups]",
+          "korean": "컵 - 완드 - 컵",
+          "interpretation": "완드의 행동 에너지가 양쪽 컵의 물에 의해 약화됨",
+          "meaning": "열정이나 행동이 감정에 의해 억제될 수 있어요"
+        },
+        {
+          "layout": "[Swords] - [Pentacles] - [Swords]",
+          "korean": "소드 - 펜타클 - 소드",
+          "interpretation": "펜타클의 현실 에너지가 양쪽 소드의 공기에 의해 약화됨",
+          "meaning": "물질적/실용적 계획이 걱정이나 분석에 의해 방해받을 수 있어요"
+        },
+        {
+          "layout": "[Wands] - [Swords] - [Wands]",
+          "korean": "완드 - 소드 - 완드",
+          "interpretation": "소드의 생각이 양쪽 완드의 불에 의해 강화됨",
+          "meaning": "결정이나 계획이 강한 행동력으로 뒷받침돼요"
+        }
+      ]
+    },
+    "dominant_element": {
+      "description": "리딩에서 한 원소가 많을 때",
+      "rules": [
+        {
+          "condition": "완드가 많음 (3장 이상)",
+          "meaning": "에너지가 넘치고 행동 중심. 열정은 있지만 감정이나 계획 부족할 수 있음.",
+          "advice": "잠시 멈추고 생각하는 시간도 필요해요."
+        },
+        {
+          "condition": "컵이 많음 (3장 이상)",
+          "meaning": "감정이 중심. 관계와 느낌에 집중하지만 행동력 부족할 수 있음.",
+          "advice": "감정에만 빠지지 말고 실제 행동도 하세요."
+        },
+        {
+          "condition": "소드가 많음 (3장 이상)",
+          "meaning": "생각이 많음. 분석은 잘 하지만 과도한 걱정이나 갈등 가능.",
+          "advice": "생각을 줄이고 마음의 소리를 들어보세요."
+        },
+        {
+          "condition": "펜타클이 많음 (3장 이상)",
+          "meaning": "현실 중심. 실용적이지만 감정이나 영적 측면 소홀할 수 있음.",
+          "advice": "물질만이 전부가 아니에요. 마음의 풍요도 챙기세요."
+        }
+      ]
+    },
+    "missing_element": {
+      "description": "리딩에서 한 원소가 없을 때",
+      "rules": [
+        {
+          "condition": "완드 없음",
+          "meaning": "열정, 동기, 행동력이 부족함을 암시",
+          "advice": "무엇이 당신에게 열정을 주는지 찾아보세요."
+        },
+        {
+          "condition": "컵 없음",
+          "meaning": "감정적 연결, 직관, 사랑이 부족함을 암시",
+          "advice": "감정을 무시하고 있진 않나요? 마음을 들여다보세요."
+        },
+        {
+          "condition": "소드 없음",
+          "meaning": "명확한 사고, 소통, 결정력이 부족함을 암시",
+          "advice": "상황을 객관적으로 분석해보세요."
+        },
+        {
+          "condition": "펜타클 없음",
+          "meaning": "현실적 기반, 실용성, 안정이 부족함을 암시",
+          "advice": "꿈을 현실로 만들 구체적 계획이 필요해요."
+        }
+      ]
+    }
+  },
+  "major_arcana_elements": {
+    "description": "메이저 아르카나 카드의 원소 배정",
+    "cards": {
+      "The Fool": {"element": "air", "note": "새로운 시작, 자유로운 생각"},
+      "The Magician": {"element": "air", "note": "소통과 의지의 힘"},
+      "The High Priestess": {"element": "water", "note": "직관과 무의식"},
+      "The Empress": {"element": "earth", "note": "풍요와 양육"},
+      "The Emperor": {"element": "fire", "note": "권위와 구조"},
+      "The Hierophant": {"element": "earth", "note": "전통과 가르침"},
+      "The Lovers": {"element": "air", "note": "선택과 관계"},
+      "The Chariot": {"element": "water", "note": "감정적 의지력"},
+      "Strength": {"element": "fire", "note": "용기와 힘"},
+      "The Hermit": {"element": "earth", "note": "내면 탐구"},
+      "Wheel of Fortune": {"element": "fire", "note": "운명의 변화"},
+      "Justice": {"element": "air", "note": "균형과 진실"},
+      "The Hanged Man": {"element": "water", "note": "희생과 새 관점"},
+      "Death": {"element": "water", "note": "변화와 재생"},
+      "Temperance": {"element": "fire", "note": "균형과 연금술"},
+      "The Devil": {"element": "earth", "note": "물질적 속박"},
+      "The Tower": {"element": "fire", "note": "파괴적 변화"},
+      "The Star": {"element": "air", "note": "희망과 영감"},
+      "The Moon": {"element": "water", "note": "환상과 무의식"},
+      "The Sun": {"element": "fire", "note": "기쁨과 성공"},
+      "Judgement": {"element": "fire", "note": "재탄생과 부름"},
+      "The World": {"element": "earth", "note": "완성과 통합"}
+    }
+  },
+  "practical_examples": {
+    "love_reading": {
+      "scenario": "연애 질문에서 소드가 많이 나왔을 때",
+      "cards": ["Three of Swords", "King of Swords", "Ace of Swords"],
+      "element_analysis": "공기 원소 과다 - 생각과 분석이 감정을 압도",
+      "interpretation": "머리로 너무 많이 따지고 있어요. 사랑은 계산이 아닙니다.",
+      "advice": "컵 에너지를 찾으세요 - 직관을 믿고 마음을 열어보세요."
+    },
+    "career_reading": {
+      "scenario": "커리어 질문에서 컵만 나왔을 때",
+      "cards": ["Ten of Cups", "Page of Cups", "Queen of Cups"],
+      "element_analysis": "물 원소만 - 감정은 충만하지만 행동력 부족",
+      "interpretation": "일에 대한 감정은 좋지만 실제 행동이 부족해요.",
+      "advice": "완드 에너지를 찾으세요 - 꿈을 행동으로 옮기세요."
+    },
+    "money_reading": {
+      "scenario": "재정 질문에서 완드가 많을 때",
+      "cards": ["Knight of Wands", "Three of Wands", "Ace of Wands"],
+      "element_analysis": "불 원소 과다 - 열정은 넘치지만 현실성 부족",
+      "interpretation": "아이디어와 열정은 있지만 구체적 계획이 필요해요.",
+      "advice": "펜타클 에너지를 찾으세요 - 실용적인 계획을 세우세요."
+    }
+  }
+}

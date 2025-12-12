@@ -1,0 +1,167 @@
+{
+  "_meta": {
+    "title": "Yes/No Decision Logic",
+    "description": "타로 카드로 예/아니오 답변을 결정하는 로직"
+  },
+  "card_values": {
+    "strong_yes": {
+      "cards": [
+        "The Sun", "The Star", "The World", "Ace of Cups", "Ace of Wands",
+        "Six of Wands", "Ten of Cups", "Ten of Pentacles", "Nine of Cups",
+        "The Empress", "The Chariot", "Wheel of Fortune"
+      ],
+      "value": 2,
+      "meaning": "강한 긍정 에너지"
+    },
+    "yes": {
+      "cards": [
+        "The Magician", "Strength", "Temperance", "The Lovers", "Justice",
+        "Three of Cups", "Four of Wands", "Six of Cups", "Nine of Pentacles",
+        "Page of Cups", "Knight of Wands", "Queen of Pentacles", "King of Cups",
+        "Two of Cups", "Three of Pentacles", "Eight of Wands", "Ace of Swords", "Ace of Pentacles"
+      ],
+      "value": 1,
+      "meaning": "긍정적 에너지"
+    },
+    "neutral": {
+      "cards": [
+        "The High Priestess", "The Hermit", "The Hanged Man", "Two of Swords",
+        "Four of Cups", "Seven of Pentacles", "Page of Swords", "Page of Pentacles",
+        "Four of Swords", "Two of Wands", "Six of Swords"
+      ],
+      "value": 0,
+      "meaning": "중립 - 더 많은 정보 필요, 타이밍 아님"
+    },
+    "no": {
+      "cards": [
+        "Five of Cups", "Five of Pentacles", "Five of Swords", "Seven of Swords",
+        "Eight of Cups", "Nine of Swords", "The Devil", "The Moon",
+        "Four of Pentacles", "Three of Swords", "Knight of Swords"
+      ],
+      "value": -1,
+      "meaning": "부정적 에너지"
+    },
+    "strong_no": {
+      "cards": [
+        "The Tower", "Ten of Swords", "Five of Wands", "Eight of Swords",
+        "Death"
+      ],
+      "value": -2,
+      "meaning": "강한 부정 에너지 (단, Death는 변화 필요를 의미할 수도)"
+    }
+  },
+  "reversal_modifier": {
+    "description": "역방향 카드는 값이 반전되거나 약화됨",
+    "rules": {
+      "strong_yes_reversed": "yes로 약화 (value: 1)",
+      "yes_reversed": "neutral 또는 no로 변경 (value: -0.5)",
+      "neutral_reversed": "약간 부정적 (value: -0.5)",
+      "no_reversed": "neutral 또는 상황 개선 암시 (value: 0)",
+      "strong_no_reversed": "no로 약화 - 최악은 지나감 (value: -1)"
+    }
+  },
+  "calculation_method": {
+    "single_card": {
+      "description": "원카드 리딩",
+      "method": "카드 값 그대로 적용",
+      "threshold": {
+        "yes": "value >= 1",
+        "maybe": "value == 0",
+        "no": "value <= -1"
+      }
+    },
+    "three_card": {
+      "description": "쓰리카드 리딩",
+      "method": "세 카드 값의 합계",
+      "threshold": {
+        "strong_yes": "sum >= 4",
+        "yes": "sum >= 2",
+        "maybe": "sum == 0 or sum == 1",
+        "no": "sum <= -1",
+        "strong_no": "sum <= -3"
+      }
+    },
+    "celtic_cross": {
+      "description": "10카드 스프레드",
+      "method": "outcome 포지션(10번) 중심 + 전체 균형 고려",
+      "weight": {
+        "outcome_position": 2.0,
+        "hopes_fears": 1.5,
+        "environment": 1.0,
+        "others": 0.5
+      }
+    }
+  },
+  "special_combinations": {
+    "definite_yes": [
+      {
+        "combo": ["The Sun", "The Star"],
+        "meaning": "확실한 YES - 밝은 미래가 보장됨"
+      },
+      {
+        "combo": ["The Lovers", "Two of Cups"],
+        "meaning": "확실한 YES (연애) - 상호 감정이 있음"
+      },
+      {
+        "combo": ["Ace of Pentacles", "Ten of Pentacles"],
+        "meaning": "확실한 YES (재정) - 재정적 성공"
+      }
+    ],
+    "definite_no": [
+      {
+        "combo": ["The Tower", "Ten of Swords"],
+        "meaning": "확실한 NO - 이 길은 피하세요"
+      },
+      {
+        "combo": ["Three of Swords", "Five of Cups"],
+        "meaning": "확실한 NO (연애) - 아픔이 예상됨"
+      },
+      {
+        "combo": ["The Devil", "Eight of Swords"],
+        "meaning": "확실한 NO - 속박과 제한"
+      }
+    ],
+    "timing_not_right": [
+      {
+        "combo": ["The Hanged Man", "Four of Swords"],
+        "meaning": "지금은 아님 - 기다려야 함"
+      },
+      {
+        "combo": ["The High Priestess", "The Moon"],
+        "meaning": "숨겨진 것이 있음 - 더 알아봐야 함"
+      }
+    ]
+  },
+  "answer_templates": {
+    "strong_yes": {
+      "korean": "확실히 YES입니다!",
+      "confidence": "90%+",
+      "advice": "자신감을 가지고 진행하세요"
+    },
+    "yes": {
+      "korean": "YES 쪽으로 기울어져 있어요",
+      "confidence": "70-89%",
+      "advice": "긍정적으로 보지만 세부사항 확인 필요"
+    },
+    "maybe": {
+      "korean": "지금은 확실하지 않아요",
+      "confidence": "40-60%",
+      "advice": "더 많은 정보가 필요하거나 타이밍을 기다리세요"
+    },
+    "no": {
+      "korean": "NO 쪽으로 기울어져 있어요",
+      "confidence": "70-89%",
+      "advice": "신중하게 재고하세요"
+    },
+    "strong_no": {
+      "korean": "이건 NO입니다",
+      "confidence": "90%+",
+      "advice": "다른 방향을 찾아보세요"
+    }
+  },
+  "important_notes": {
+    "free_will": "타로는 절대적인 답이 아니라 현재 에너지 흐름을 보여줍니다. 최종 결정은 당신의 몫입니다.",
+    "timing": "NO가 '영원히 안 됨'을 의미하지 않습니다. '지금은 아님'일 수 있어요.",
+    "context": "같은 카드도 질문에 따라 다르게 해석될 수 있습니다."
+  }
+}

@@ -1,0 +1,137 @@
+# Seasonal Themes - 12 Months
+# App: DestinyPal
+# Style: Monthly themed backgrounds matching Korean seasons
+
+================================================================================
+
+## 1. January (1월) - 새해, 희망
+Filename: season_01_january.jpg
+Prompt:
+mystical seasonal background, January new year theme,
+first sunrise of year over snowy mountains,
+golden sun rays, fresh snow, new beginnings,
+soft gold and white gradient, hopeful atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 2. February (2월) - 설날, 복
+Filename: season_02_february.jpg
+Prompt:
+mystical seasonal background, February lunar new year,
+traditional Korean fortune symbols, red and gold,
+subtle bokbok patterns, plum blossoms starting,
+warm red and gold gradient, festive atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 3. March (3월) - 봄의 시작
+Filename: season_03_march.jpg
+Prompt:
+mystical seasonal background, March early spring,
+cherry blossom buds starting to bloom, soft pink,
+gentle spring breeze feeling, renewal energy,
+soft pink and lavender gradient, fresh atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 4. April (4월) - 벚꽃
+Filename: season_04_april.jpg
+Prompt:
+mystical seasonal background, April cherry blossom,
+full bloom sakura petals floating magically,
+romantic spring feeling, pink flower rain,
+soft pink and white gradient, romantic atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 5. May (5월) - 푸른 봄
+Filename: season_05_may.jpg
+Prompt:
+mystical seasonal background, May green spring,
+lush green leaves and flowers in full bloom,
+vibrant growth energy, nature awakening,
+fresh green and yellow gradient, vital atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 6. June (6월) - 초여름
+Filename: season_06_june.jpg
+Prompt:
+mystical seasonal background, June early summer,
+hydrangea flowers with soft rain drops,
+gentle summer rain feeling, cleansing energy,
+soft blue and purple gradient, refreshing atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 7. July (7월) - 한여름
+Filename: season_07_july.jpg
+Prompt:
+mystical seasonal background, July midsummer,
+bright summer sun and ocean waves,
+peak summer energy, vibrant and bold,
+bright blue and orange gradient, energetic atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 8. August (8월) - 은하수
+Filename: season_08_august.jpg
+Prompt:
+mystical seasonal background, August milky way,
+stunning summer night sky with galaxy visible,
+Chilseok star festival feeling, romantic stars,
+deep navy and purple gradient, cosmic atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 9. September (9월) - 초가을
+Filename: season_09_september.jpg
+Prompt:
+mystical seasonal background, September early autumn,
+first autumn leaves starting to change color,
+harvest moon rising, chuseok feeling,
+warm orange and gold gradient, thankful atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 10. October (10월) - 단풍
+Filename: season_10_october.jpg
+Prompt:
+mystical seasonal background, October autumn foliage,
+brilliant red and gold maple leaves falling,
+peak autumn beauty, crisp air feeling,
+rich red and orange gradient, romantic atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 11. November (11월) - 늦가을
+Filename: season_11_november.jpg
+Prompt:
+mystical seasonal background, November late autumn,
+bare tree branches with last golden leaves,
+contemplative mood, peaceful transition,
+muted brown and purple gradient, serene atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+--------------------------------------------------------------------------------
+
+## 12. December (12월) - 겨울, 연말
+Filename: season_12_december.jpg
+Prompt:
+mystical seasonal background, December winter holiday,
+gentle snowfall with warm lights in distance,
+cozy winter feeling, year end reflection,
+deep blue and warm gold gradient, magical atmosphere,
+mobile app background, dreamy, 8k --ar 9:16 --v 6.1 --s 400
+
+================================================================================

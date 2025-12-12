@@ -1,0 +1,189 @@
+# Saju Elements - 오행 (5) + 천간 (10) = 15 Images
+# App: DestinyPal
+# Style: Cute kawaii matching zodiac style
+
+================================================================================
+# SECTION 1: 오행 (Five Elements)
+================================================================================
+
+## 1. 목 (Wood / 나무)
+Filename: element_01_wood.jpg
+Prompt:
+cute kawaii five elements illustration, Wood element,
+adorable green tree spirit character, leaves and branches,
+fresh spring energy, growth and vitality,
+soft pastel green background, sparkles and nature,
+chibi style, Korean traditional cute, dreamy soft lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 2. 화 (Fire / 불)
+Filename: element_02_fire.jpg
+Prompt:
+cute kawaii five elements illustration, Fire element,
+adorable red flame spirit character, warm dancing flames,
+passionate summer energy, warmth and brightness,
+soft pastel orange background, sparkles and embers,
+chibi style, Korean traditional cute, dreamy soft lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 3. 토 (Earth / 흙)
+Filename: element_03_earth.jpg
+Prompt:
+cute kawaii five elements illustration, Earth element,
+adorable brown mountain spirit character, gentle hills,
+stable grounding energy, nurturing and supportive,
+soft pastel yellow brown background, sparkles and stones,
+chibi style, Korean traditional cute, dreamy soft lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 4. 금 (Metal / 쇠)
+Filename: element_04_metal.jpg
+Prompt:
+cute kawaii five elements illustration, Metal element,
+adorable silver crystal spirit character, shining gems,
+precise autumn energy, clarity and strength,
+soft pastel white silver background, sparkles and shine,
+chibi style, Korean traditional cute, dreamy soft lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 5. 수 (Water / 물)
+Filename: element_05_water.jpg
+Prompt:
+cute kawaii five elements illustration, Water element,
+adorable blue water drop spirit character, flowing waves,
+flowing winter energy, wisdom and adaptability,
+soft pastel blue background, sparkles and bubbles,
+chibi style, Korean traditional cute, dreamy soft lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+================================================================================
+# SECTION 2: 천간 (Ten Heavenly Stems)
+================================================================================
+
+## 6. 갑 (甲, Gap) - 양목
+Filename: chungan_01_gap.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Gap 甲 character,
+adorable big tree spirit, strong tall trunk, yang wood energy,
+leadership and growth, spring dawn feeling,
+soft pastel green background with golden sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 7. 을 (乙, Eul) - 음목
+Filename: chungan_02_eul.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Eul 乙 character,
+adorable flower and vine spirit, flexible gentle, yin wood energy,
+adaptability and elegance, soft spring feeling,
+soft pastel light green background with sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 8. 병 (丙, Byeong) - 양화
+Filename: chungan_03_byeong.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Byeong 丙 character,
+adorable bright sun spirit, radiant warm light, yang fire energy,
+passion and vitality, summer noon feeling,
+soft pastel orange red background with golden sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 9. 정 (丁, Jeong) - 음화
+Filename: chungan_04_jeong.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Jeong 丁 character,
+adorable candle flame spirit, gentle warm glow, yin fire energy,
+warmth and care, evening lamp feeling,
+soft pastel pink orange background with sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 10. 무 (戊, Mu) - 양토
+Filename: chungan_05_mu.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Mu 戊 character,
+adorable big mountain spirit, solid and stable, yang earth energy,
+reliability and strength, grand mountain feeling,
+soft pastel brown yellow background with golden sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 11. 기 (己, Gi) - 음토
+Filename: chungan_06_gi.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Gi 己 character,
+adorable garden soil spirit, fertile and nurturing, yin earth energy,
+cultivation and care, gentle field feeling,
+soft pastel warm brown background with sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 12. 경 (庚, Gyeong) - 양금
+Filename: chungan_07_gyeong.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Gyeong 庚 character,
+adorable sword and axe spirit, sharp and strong, yang metal energy,
+justice and decisiveness, bright autumn feeling,
+soft pastel silver white background with golden sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 13. 신 (辛, Shin) - 음금
+Filename: chungan_08_shin.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Shin 辛 character,
+adorable jewelry gem spirit, delicate and precious, yin metal energy,
+refinement and beauty, elegant accessory feeling,
+soft pastel pearl pink background with sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 14. 임 (壬, Im) - 양수
+Filename: chungan_09_im.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Im 壬 character,
+adorable ocean wave spirit, vast and powerful, yang water energy,
+wisdom and depth, great sea feeling,
+soft pastel deep blue background with golden sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+--------------------------------------------------------------------------------
+
+## 15. 계 (癸, Gye) - 음수
+Filename: chungan_10_gye.jpg
+Prompt:
+cute kawaii heavenly stem illustration, Gye 癸 character,
+adorable rain drop spirit, gentle and nourishing, yin water energy,
+intuition and flow, soft rain feeling,
+soft pastel light blue background with sparkles,
+chibi style, Korean traditional cute, dreamy lighting,
+digital art, highly detailed, 8k --ar 1:1 --v 6.1 --s 250
+
+================================================================================

@@ -1,0 +1,387 @@
+.container {
+  min-height: 100vh;
+  padding: 60px 20px 100px;
+  background: linear-gradient(180deg, var(--bg-color) 0%, var(--bg-secondary) 100%);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #fff 0%, var(--glow-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.billingToggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.billingOption {
+  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.billingOption.active {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.toggleSwitch {
+  width: 56px;
+  height: 28px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggleSwitch.annual {
+  background: rgba(168, 153, 255, 0.3);
+  border-color: var(--glow-color);
+}
+
+.toggleKnob {
+  width: 22px;
+  height: 22px;
+  background: var(--glow-color);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(168, 153, 255, 0.4);
+}
+
+.toggleSwitch.annual .toggleKnob {
+  transform: translateX(28px);
+}
+
+.saveBadge {
+  background: linear-gradient(135deg, #7cf29c 0%, #4ade80 100%);
+  color: #0a2010;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.planCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 32px 24px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.planCard:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.planCard.featured {
+  border-color: var(--glow-color);
+  background: linear-gradient(180deg, rgba(168, 153, 255, 0.1) 0%, var(--card-bg) 100%);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--glow-color) 0%, #8b5cf6 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.planIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.planIcon.free {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.2) 0%, rgba(99, 210, 255, 0.1) 100%);
+}
+
+.planIcon.basic {
+  background: linear-gradient(135deg, rgba(124, 242, 156, 0.2) 0%, rgba(124, 242, 156, 0.1) 100%);
+}
+
+.planIcon.premium {
+  background: linear-gradient(135deg, rgba(168, 153, 255, 0.3) 0%, rgba(168, 153, 255, 0.1) 100%);
+}
+
+.planName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.planDescription {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.priceContainer {
+  margin-bottom: 24px;
+}
+
+.price {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.currency {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  vertical-align: top;
+  margin-right: 4px;
+}
+
+.period {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+.originalPrice {
+  font-size: 1rem;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px 0;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.featureIcon.included {
+  background: rgba(124, 242, 156, 0.2);
+  color: #7cf29c;
+}
+
+.featureIcon.excluded {
+  background: rgba(255, 100, 100, 0.1);
+  color: rgba(255, 100, 100, 0.5);
+}
+
+.selectButton {
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.selectButton.free {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+}
+
+.selectButton.free:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.selectButton.basic {
+  background: linear-gradient(135deg, #7cf29c 0%, #4ade80 100%);
+  color: #0a2010;
+}
+
+.selectButton.basic:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(124, 242, 156, 0.3);
+}
+
+.selectButton.premium {
+  background: linear-gradient(135deg, var(--glow-color) 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.selectButton.premium:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(168, 153, 255, 0.4);
+}
+
+.faqSection {
+  max-width: 720px;
+  margin: 80px auto 0;
+}
+
+.faqTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.faqItem {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.faqQuestion {
+  width: 100%;
+  padding: 18px 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faqQuestion:hover {
+  color: var(--glow-color);
+}
+
+.faqArrow {
+  transition: transform 0.3s ease;
+}
+
+.faqArrow.open {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  padding: 0 20px 18px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.guaranteeSection {
+  text-align: center;
+  margin-top: 48px;
+  padding: 32px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.guaranteeIcon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.guaranteeTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.guaranteeText {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 40px 16px 80px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .plansGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .planCard {
+    padding: 24px 20px;
+  }
+
+  .price {
+    font-size: 2rem;
+  }
+}

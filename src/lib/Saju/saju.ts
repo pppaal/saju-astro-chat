@@ -226,7 +226,7 @@ export function calculateSajuData(
     (['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const).forEach(name => {
       const p = pillars[name];
       const j = JIJANGGAN[p.branch.name];
-      const chogiName = j?.초기;
+      const chogiName = j?.여기;  // 여기(餘氣) = 잔여기운
       const junggiName = j?.중기;
       const jeonggiName = j?.정기;
       const mainStem = getBranchMainStem(p.branch.name);

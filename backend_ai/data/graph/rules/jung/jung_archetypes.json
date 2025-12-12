@@ -1,0 +1,393 @@
+{
+  "$schema": "jung_psychology_v1",
+  "$description": "칼 융 분석심리학 원형 및 개념 - 사주/점성술/타로 매핑 포함",
+
+  "archetypes": {
+    "shadow": {
+      "name_ko": "그림자",
+      "name_en": "Shadow",
+      "category": "primary_archetype",
+      "core": "억압된 자아의 어두운 측면. 인정하기 싫은 욕망, 분노, 질투, 성적 충동 등이 그림자에 속함.",
+      "light": "그림자를 통합하면 엄청난 창조적 에너지가 됨. 예술가, 치유자, 변혁가의 원천.",
+      "shadow": "부정하면 타인에게 투사됨. '저 사람이 싫다'는 감정의 80%는 자기 그림자.",
+      "therapeutic_insight": "당신이 가장 싫어하는 사람의 특성을 적어보라. 그것이 당신의 그림자다.",
+      "integration_path": "1) 인식 2) 수용 3) 대화 4) 통합",
+      "saju_mapping": {
+        "primary": ["편관", "상관", "겁재"],
+        "interpretation": "편관(七殺)은 통제 불가능한 외부 힘으로 경험되는 그림자. 상관은 파괴적 창조성. 겁재는 탐욕과 경쟁심."
+      },
+      "astro_mapping": {
+        "primary": ["pluto", "8th_house", "scorpio", "12th_house"],
+        "interpretation": "명왕성과 8하우스는 죽음-재생의 그림자 영역. 12하우스는 숨겨진 적, 자기 파괴 패턴."
+      },
+      "tarot_mapping": {
+        "primary": ["the_devil", "the_moon", "the_tower"],
+        "interpretation": "악마는 속박된 그림자, 달은 무의식의 두려움, 탑은 억압의 붕괴."
+      },
+      "dream_symbols": ["괴물", "추격자", "어둠", "지하실", "그림자 인물", "검은 개/늑대"]
+    },
+
+    "anima": {
+      "name_ko": "아니마",
+      "name_en": "Anima",
+      "category": "contrasexual_archetype",
+      "core": "남성 무의식 속의 여성적 원형. 감정, 직관, 관계성, 생명력을 담당.",
+      "stages": [
+        {"level": 1, "name": "이브", "desc": "생물학적 여성, 성적 대상"},
+        {"level": 2, "name": "헬렌", "desc": "낭만적 사랑, 미의 여신"},
+        {"level": 3, "name": "마리아", "desc": "영적 헌신, 성모"},
+        {"level": 4, "name": "소피아", "desc": "지혜, 영혼의 안내자"}
+      ],
+      "light": "성숙한 아니마는 창의성, 직관, 영혼과의 연결을 가져옴.",
+      "shadow": "미성숙하면 변덕, 감정 폭발, 여성에 대한 이상화/평가절하.",
+      "therapeutic_insight": "꿈에 나타나는 여성 이미지를 관찰하라. 그녀가 당신에게 무엇을 원하는가?",
+      "saju_mapping": {
+        "primary": ["정인", "편인", "정재"],
+        "interpretation": "정인은 어머니적 돌봄의 아니마, 편인은 신비롭고 직관적인 아니마, 정재는 안정적 파트너로서의 아니마."
+      },
+      "astro_mapping": {
+        "primary": ["moon", "venus", "neptune", "4th_house", "cancer", "pisces"],
+        "interpretation": "달은 감정적 아니마, 금성은 사랑의 아니마, 해왕성은 영적 아니마."
+      },
+      "tarot_mapping": {
+        "primary": ["high_priestess", "empress", "star"],
+        "interpretation": "여사제는 신비로운 아니마, 여황제는 풍요로운 아니마, 별은 희망의 아니마."
+      },
+      "dream_symbols": ["낯선 여인", "여신", "요정", "바다", "달", "꽃", "동굴"]
+    },
+
+    "animus": {
+      "name_ko": "아니무스",
+      "name_en": "Animus",
+      "category": "contrasexual_archetype",
+      "core": "여성 무의식 속의 남성적 원형. 의지, 판단, 행동력, 로고스(이성)를 담당.",
+      "stages": [
+        {"level": 1, "name": "타잔", "desc": "원초적 남성성, 힘"},
+        {"level": 2, "name": "로맨틱 히어로", "desc": "낭만적 영웅, 계획하는 자"},
+        {"level": 3, "name": "교수", "desc": "지식인, 말의 힘"},
+        {"level": 4, "name": "헤르메스", "desc": "영적 안내자, 의미의 중재자"}
+      ],
+      "light": "성숙한 아니무스는 명확한 판단, 용기, 영적 추구를 가져옴.",
+      "shadow": "미성숙하면 독단적 의견, 파괴적 비판, '해야 한다'의 폭정.",
+      "therapeutic_insight": "내면의 비판적 목소리는 누구의 것인가? 아버지? 선생? 그 목소리와 대화하라.",
+      "saju_mapping": {
+        "primary": ["편관", "정관", "비견"],
+        "interpretation": "편관은 권위적 아니무스, 정관은 질서의 아니무스, 비견은 경쟁적 아니무스."
+      },
+      "astro_mapping": {
+        "primary": ["sun", "mars", "saturn", "10th_house", "aries", "capricorn"],
+        "interpretation": "태양은 영웅적 아니무스, 화성은 전사 아니무스, 토성은 현자 아니무스."
+      },
+      "tarot_mapping": {
+        "primary": ["emperor", "chariot", "hermit"],
+        "interpretation": "황제는 권위의 아니무스, 전차는 의지의 아니무스, 은둔자는 지혜의 아니무스."
+      },
+      "dream_symbols": ["낯선 남자", "영웅", "왕", "아버지 같은 인물", "칼", "산"]
+    },
+
+    "persona": {
+      "name_ko": "페르소나",
+      "name_en": "Persona",
+      "category": "social_archetype",
+      "core": "사회적 가면. 외부 세계에 보여주는 자아상. 라틴어로 '배우의 가면'.",
+      "light": "적절한 페르소나는 사회적 적응과 보호를 제공. 직업적 역할 수행에 필수.",
+      "shadow": "과도하면 진정한 자기를 잃음. 가면이 얼굴이 되어버림. 번아웃, 공허함.",
+      "therapeutic_insight": "완전히 혼자 있을 때 당신은 누구인가? 아무도 보지 않을 때 무엇을 하는가?",
+      "saju_mapping": {
+        "primary": ["비견", "겁재", "식신"],
+        "interpretation": "비견은 사회적 자아, 겁재는 경쟁적 이미지, 식신은 친화적 표현."
+      },
+      "astro_mapping": {
+        "primary": ["ascendant", "1st_house", "sun_sign"],
+        "interpretation": "상승점은 세상에 보이는 첫인상, 1하우스는 자기 제시 방식."
+      },
+      "tarot_mapping": {
+        "primary": ["magician", "7_of_cups"],
+        "interpretation": "마법사는 기술적 페르소나, 컵7은 환상에 빠진 페르소나."
+      }
+    },
+
+    "self": {
+      "name_ko": "자기",
+      "name_en": "Self",
+      "category": "central_archetype",
+      "core": "의식과 무의식의 총체. 개성화의 최종 목표. 전체성(wholeness)의 원형.",
+      "symbols": ["만다라", "원", "4위일체", "신성한 결혼", "철학자의 돌", "황금꽃"],
+      "light": "자기 실현은 완전한 인간이 되는 것. 모든 대립물의 통합.",
+      "shadow": "에고가 자기와 동일시하면 인플레이션(거대자기). 메시아 콤플렉스.",
+      "therapeutic_insight": "당신은 이미 완전합니다. 다만 그것을 발견하는 여정 중일 뿐입니다.",
+      "saju_mapping": {
+        "primary": ["일간", "용신", "희신"],
+        "interpretation": "일간의 완전한 발현이 자기. 용신과 희신의 조화가 개성화."
+      },
+      "astro_mapping": {
+        "primary": ["sun_moon_conjunction", "mc_ic_axis", "chart_ruler"],
+        "interpretation": "태양+달 통합은 자기의 상징. 차트 전체의 통합이 자기 실현."
+      },
+      "tarot_mapping": {
+        "primary": ["world", "sun", "wheel_of_fortune"],
+        "interpretation": "세계는 완성된 자기, 태양은 의식화된 자기, 운명의 수레바퀴는 자기의 순환."
+      }
+    },
+
+    "hero": {
+      "name_ko": "영웅",
+      "name_en": "Hero",
+      "category": "transformation_archetype",
+      "core": "모험을 떠나 시련을 극복하고 보물을 가져오는 원형. 자아 강화와 성장의 상징.",
+      "journey_stages": [
+        "일상 세계",
+        "모험에의 부름",
+        "부름의 거부",
+        "스승과의 만남",
+        "첫 관문 통과",
+        "시험/동맹/적",
+        "가장 깊은 동굴 접근",
+        "시련",
+        "보상",
+        "귀환의 길",
+        "부활",
+        "영약과 함께 귀환"
+      ],
+      "light": "용기, 희생, 변혁. 두려움을 넘어 성장.",
+      "shadow": "영웅 콤플렉스 - 항상 구원자가 되려 함. 자기 한계 부정.",
+      "therapeutic_insight": "지금 당신의 영웅 여정은 어느 단계인가? 무엇을 거부하고 있는가?",
+      "saju_mapping": {
+        "primary": ["비겁", "식상", "관성"],
+        "interpretation": "비겁의 강함이 영웅의 자아, 식상이 모험, 관성이 시련."
+      },
+      "astro_mapping": {
+        "primary": ["sun", "mars", "leo", "aries", "1st_house", "10th_house"],
+        "interpretation": "태양은 영웅의 핵심, 화성은 전사 에너지, 사자자리는 영웅적 표현."
+      },
+      "tarot_mapping": {
+        "primary": ["fool", "chariot", "strength", "sun"],
+        "interpretation": "바보가 여정 시작, 전차가 의지, 힘이 내면의 용, 태양이 승리."
+      }
+    },
+
+    "great_mother": {
+      "name_ko": "태모/위대한 어머니",
+      "name_en": "Great Mother",
+      "category": "parental_archetype",
+      "core": "생명을 주고 빼앗는 양면적 어머니 원형. 돌봄과 삼킴의 이중성.",
+      "aspects": {
+        "positive": ["양육", "보호", "풍요", "지혜", "자연"],
+        "negative": ["삼킴", "질식", "속박", "죽음", "심연"]
+      },
+      "light": "무조건적 사랑, 생명의 원천, 대지의 풍요.",
+      "shadow": "삼키는 어머니 - 자녀의 독립 방해, 죄책감으로 조종, 과잉보호.",
+      "therapeutic_insight": "어머니로부터 심리적으로 독립했는가? 아직도 승인을 구하는가?",
+      "saju_mapping": {
+        "primary": ["정인", "편인"],
+        "interpretation": "정인은 돌봄의 어머니, 편인은 질식시키는 어머니 또는 영적 어머니."
+      },
+      "astro_mapping": {
+        "primary": ["moon", "cancer", "4th_house", "ceres"],
+        "interpretation": "달과 게자리는 어머니 원형의 핵심. 4하우스는 어머니 경험."
+      },
+      "tarot_mapping": {
+        "primary": ["empress", "moon", "queen_of_cups"],
+        "interpretation": "여황제는 풍요로운 어머니, 달은 어두운 어머니, 컵 여왕은 감정적 어머니."
+      }
+    },
+
+    "father": {
+      "name_ko": "아버지",
+      "name_en": "Father",
+      "category": "parental_archetype",
+      "core": "권위, 질서, 보호, 법의 원형. 세상과의 관계를 형성하는 첫 남성상.",
+      "aspects": {
+        "positive": ["보호", "안내", "질서", "지혜", "힘"],
+        "negative": ["폭군", "부재", "비판", "억압", "냉담"]
+      },
+      "light": "올바른 아버지 - 안전한 경계 제공, 세상으로 안내, 자신감 부여.",
+      "shadow": "폭군 아버지 - 통제, 비판, 공포. 부재 아버지 - 방향 상실, 권위 문제.",
+      "therapeutic_insight": "아버지와의 관계가 당신의 권위/성공/세상과의 관계를 형성했다.",
+      "saju_mapping": {
+        "primary": ["편관", "정관", "편재"],
+        "interpretation": "편관은 엄격한 아버지, 정관은 올바른 아버지, 편재는 자유로운 아버지."
+      },
+      "astro_mapping": {
+        "primary": ["sun", "saturn", "10th_house", "capricorn"],
+        "interpretation": "태양은 아버지 원형, 토성은 권위와 제한, 10하우스는 아버지 경험."
+      },
+      "tarot_mapping": {
+        "primary": ["emperor", "hierophant", "king_of_swords"],
+        "interpretation": "황제는 세속 권위, 교황은 영적 권위, 검의 왕은 지적 권위."
+      }
+    },
+
+    "wise_old_man": {
+      "name_ko": "현자/노현자",
+      "name_en": "Wise Old Man",
+      "category": "spiritual_archetype",
+      "core": "지혜, 통찰, 의미의 원형. 위기의 순간 나타나 조언하는 내면의 안내자.",
+      "manifestations": ["마법사", "선생", "의사", "성직자", "멘토", "노인"],
+      "light": "심오한 지혜, 영적 안내, 의미 발견, 초월적 통찰.",
+      "shadow": "가짜 현자 - 지식으로 통제, 카리스마로 조종. 또는 지혜 회피.",
+      "therapeutic_insight": "당신 안에 답이 있다. 고요히 앉아 내면의 현자에게 물으라.",
+      "saju_mapping": {
+        "primary": ["정인", "편인"],
+        "interpretation": "정인의 성숙한 형태가 현자. 인성의 깊은 지혜."
+      },
+      "astro_mapping": {
+        "primary": ["saturn", "jupiter", "9th_house", "sagittarius", "chiron"],
+        "interpretation": "토성은 시간의 지혜, 목성은 의미, 키론은 상처받은 치유자."
+      },
+      "tarot_mapping": {
+        "primary": ["hermit", "hierophant", "magician"],
+        "interpretation": "은둔자는 내면의 빛, 교황은 전승된 지혜, 마법사는 실천하는 지혜."
+      }
+    },
+
+    "trickster": {
+      "name_ko": "트릭스터/광대",
+      "name_en": "Trickster",
+      "category": "transformation_archetype",
+      "core": "규칙 파괴자, 경계 허무는 자. 혼란 속에서 창조를 이끄는 원형.",
+      "manifestations": ["광대", "조커", "코요테", "헤르메스", "로키", "손오공"],
+      "light": "창의성, 유머, 변화의 촉매, 진실 폭로, 겸손 가르침.",
+      "shadow": "무책임, 사기, 혼란만 만들고 도망, 성숙 거부.",
+      "therapeutic_insight": "삶이 너무 무거운가? 트릭스터를 초대하라. 웃음은 치유다.",
+      "saju_mapping": {
+        "primary": ["상관", "식신", "겁재"],
+        "interpretation": "상관은 기존 질서 조롱, 식신은 유머러스한 표현, 겁재는 규칙 무시."
+      },
+      "astro_mapping": {
+        "primary": ["mercury", "uranus", "gemini", "aquarius"],
+        "interpretation": "수성은 말장난, 천왕성은 예측불가, 쌍둥이는 이중성, 물병은 반항."
+      },
+      "tarot_mapping": {
+        "primary": ["fool", "magician", "7_of_swords"],
+        "interpretation": "바보는 순수한 트릭스터, 마법사는 기술적 트릭스터, 검7은 교활함."
+      }
+    },
+
+    "divine_child": {
+      "name_ko": "신성한 아이",
+      "name_en": "Divine Child",
+      "category": "renewal_archetype",
+      "core": "순수함, 잠재력, 새로운 시작의 원형. 미래의 가능성.",
+      "aspects": {
+        "divine": ["순수", "경이", "창의", "가능성", "재생"],
+        "wounded": ["버려짐", "취약함", "의존", "상처", "트라우마"]
+      },
+      "light": "무한한 가능성, 놀이 정신, 현재 순간, 경이로움.",
+      "shadow": "영원한 소년/소녀(Puer/Puella) - 성장 거부, 책임 회피, 의존성.",
+      "therapeutic_insight": "내면 아이에게 무엇이 필요한가? 그가 원하는 것을 들어주라.",
+      "saju_mapping": {
+        "primary": ["식신", "비견"],
+        "interpretation": "식신은 순수한 표현의 아이, 비견은 원초적 자아로서의 아이."
+      },
+      "astro_mapping": {
+        "primary": ["sun", "5th_house", "leo"],
+        "interpretation": "태양은 핵심 정체성, 5하우스는 창조와 놀이, 사자자리는 자기표현."
+      },
+      "tarot_mapping": {
+        "primary": ["sun", "fool", "star", "6_of_cups"],
+        "interpretation": "태양은 기쁨의 아이, 바보는 순수, 별은 희망, 컵6은 과거의 순수."
+      }
+    }
+  },
+
+  "complexes": {
+    "mother_complex": {
+      "name_ko": "어머니 콤플렉스",
+      "description": "어머니 원형에 의해 지배받는 무의식적 패턴",
+      "positive_manifestation": "돌봄 능력, 공감, 양육",
+      "negative_manifestation": "의존성, 모성에 갇힘, 여성 이상화/평가절하",
+      "in_men": "어머니에게 묶임, 파트너에게 어머니 역할 기대, 독립 어려움",
+      "in_women": "어머니와의 경쟁, 어머니 역할 거부 또는 과잉 동일시",
+      "saju_correlation": "인성(印星) 과다, 특히 편인이 강할 때",
+      "astro_correlation": "달-명왕성 애스펙트, 4하우스 문제, 게자리 강조"
+    },
+    "father_complex": {
+      "name_ko": "아버지 콤플렉스",
+      "description": "아버지 원형에 의해 지배받는 무의식적 패턴",
+      "positive_manifestation": "리더십, 권위와 건강한 관계, 목표 지향",
+      "negative_manifestation": "권위에 대한 반항/복종, 성취 강박, 인정 욕구",
+      "in_men": "아버지 증명/초월 욕구, 권위 문제",
+      "in_women": "나이든 남성에게 끌림, 파트너에게 아버지 역할 기대",
+      "saju_correlation": "관성(官星) 과다, 특히 편관이 강할 때",
+      "astro_correlation": "태양-토성 애스펙트, 10하우스 문제, 염소자리 강조"
+    },
+    "inferiority_complex": {
+      "name_ko": "열등 콤플렉스",
+      "description": "아들러가 명명, 융이 확장. 열등감에 의해 지배받는 패턴",
+      "core": "자기 가치에 대한 근본적 의심",
+      "compensation": "우월 콤플렉스로 보상 - 과시, 오만, 완벽주의",
+      "saju_correlation": "비겁(比劫) 약함, 관살(官殺) 과다로 억압",
+      "astro_correlation": "태양 약함, 토성-태양 하드 애스펙트, 12하우스 태양"
+    },
+    "savior_complex": {
+      "name_ko": "구원자 콤플렉스",
+      "description": "타인을 구원해야 한다는 무의식적 충동",
+      "core": "자신의 상처를 타인 구원으로 회피, 자기 가치를 구원 행위에서 얻음",
+      "danger": "경계 상실, 번아웃, 공동의존",
+      "saju_correlation": "인성 과다, 특히 정인이 상관을 만날 때",
+      "astro_correlation": "해왕성 강조, 12하우스, 물고기자리, 키론"
+    }
+  },
+
+  "key_concepts": {
+    "individuation": {
+      "name_ko": "개성화",
+      "name_en": "Individuation",
+      "definition": "자기(Self) 실현의 과정. 의식과 무의식의 통합을 통해 완전한 인간이 되어가는 여정.",
+      "stages": [
+        "페르소나 인식 - 가면 뒤의 진짜 나",
+        "그림자 대면 - 어두운 면 통합",
+        "아니마/아니무스 통합 - 내면의 이성",
+        "자기 실현 - 전체성의 경험"
+      ],
+      "saju_parallel": "일간(日干)이 자신의 본성을 완전히 발현하고, 용신과 조화를 이루는 것",
+      "not_individualism": "개인주의가 아님! 집단과의 관계 속에서 고유한 자기 되기"
+    },
+    "synchronicity": {
+      "name_ko": "동시성",
+      "name_en": "Synchronicity",
+      "definition": "의미 있는 우연의 일치. 인과관계 없이 내적 상태와 외적 사건이 연결되는 현상.",
+      "examples": [
+        "누군가 생각하는데 그 사람에게서 연락이 옴",
+        "꿈에서 본 상징이 다음날 현실에 나타남",
+        "중요한 결정 시점에 '우연히' 필요한 정보를 만남"
+      ],
+      "saju_parallel": "대운/세운과 개인 경험의 일치. 특정 운에서 특정 사건이 일어나는 것.",
+      "astro_parallel": "트랜짓이 네이탈을 자극할 때 동기화된 사건 발생"
+    },
+    "collective_unconscious": {
+      "name_ko": "집단 무의식",
+      "name_en": "Collective Unconscious",
+      "definition": "개인을 넘어 인류 전체가 공유하는 무의식의 층. 원형이 존재하는 영역.",
+      "evidence": [
+        "전 세계 신화의 유사성",
+        "꿈의 보편적 상징",
+        "원형적 이미지의 자발적 출현"
+      ],
+      "saju_parallel": "오행과 십신은 집단 무의식의 원형적 에너지 패턴",
+      "astro_parallel": "황도대 상징은 집단 무의식에서 온 원형"
+    },
+    "projection": {
+      "name_ko": "투사",
+      "name_en": "Projection",
+      "definition": "자신의 무의식적 내용을 타인이나 외부에 귀속시키는 방어기제",
+      "shadow_projection": "싫어하는 사람에게서 보는 것은 나의 그림자",
+      "anima_projection": "이상화하는 여성에게 아니마 투사 (남성)",
+      "animus_projection": "이상화하는 남성에게 아니무스 투사 (여성)",
+      "therapeutic_use": "강한 감정 반응이 있는 곳에 투사가 있다"
+    },
+    "active_imagination": {
+      "name_ko": "적극적 상상",
+      "name_en": "Active Imagination",
+      "definition": "무의식과 의식적으로 대화하는 융의 기법",
+      "method": [
+        "이완 상태에서 내면 이미지에 집중",
+        "이미지가 자율적으로 움직이도록 허용",
+        "이미지와 대화하거나 상호작용",
+        "경험을 기록하고 의미 성찰"
+      ],
+      "applications": "꿈 이미지 확장, 증상과 대화, 창조적 표현"
+    }
+  }
+}

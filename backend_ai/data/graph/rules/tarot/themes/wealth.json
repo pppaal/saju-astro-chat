@@ -1,0 +1,212 @@
+{
+  "_meta": {
+    "theme": "wealth",
+    "title": "Wealth & Finance 재물운",
+    "description": "Financial guidance, abundance mindset, and practical money wisdom through tarot"
+  },
+  "major_arcana_deep": {
+    "The Fool": {
+      "wealth_meaning": "New financial beginnings. Taking a risk on a new income source. Don't let fear of financial insecurity stop new ventures.",
+      "korean": "새로운 재정적 시작. 새로운 수입원에 대한 위험 감수. 재정적 불안에 대한 두려움이 새로운 벤처를 막지 않게 하세요.",
+      "investment": "Consider new, unconventional investments. Fresh opportunities ahead.",
+      "income": "New income streams appear from unexpected sources.",
+      "spending": "Be open to spending on new experiences that lead to growth.",
+      "timing": "New financial opportunities within 1-3 months",
+      "advice": "Sometimes the biggest financial gains require the biggest leaps of faith."
+    },
+    "The Magician": {
+      "wealth_meaning": "You have all the skills to create wealth. Manifest financial goals through focused action. Your talents are monetizable.",
+      "korean": "부를 창출할 모든 기술을 갖추고 있습니다. 집중된 행동으로 재정 목표를 실현하세요.",
+      "investment": "Use your knowledge to make smart investment choices.",
+      "income": "Multiple income streams possible. Monetize your skills.",
+      "spending": "Invest in tools and education that increase your earning power.",
+      "timing": "Financial manifestation power is high - act now",
+      "advice": "You have the power to create the wealth you desire. Use all your resources."
+    },
+    "The High Priestess": {
+      "wealth_meaning": "Hidden financial opportunities exist. Trust your intuition about money matters. Information is your advantage.",
+      "korean": "숨겨진 재정적 기회가 존재합니다. 돈 문제에 대한 직감을 신뢰하세요.",
+      "investment": "Research before investing. Hidden information affects outcomes.",
+      "income": "Undisclosed income opportunities may appear. Stay alert.",
+      "spending": "Trust gut feelings about major purchases.",
+      "timing": "Wait for more financial clarity before major decisions",
+      "advice": "Your intuition about money is stronger than you think. Listen to it."
+    },
+    "The Empress": {
+      "wealth_meaning": "Abundance flows freely. Financial growth through nurturing investments. Prosperity through creativity and patience.",
+      "korean": "풍요가 자유롭게 흐릅니다. 투자를 육성하여 재정적 성장. 창의성과 인내를 통한 번영.",
+      "investment": "Growth investments flourish. Real estate, nature-based businesses favored.",
+      "income": "Income grows organically. Creative endeavors pay off.",
+      "spending": "Invest in comfort, beauty, and quality of life.",
+      "timing": "Steady financial growth period - plant seeds for long-term abundance",
+      "advice": "Nurture your finances like a garden. Abundance grows where attention goes."
+    },
+    "The Emperor": {
+      "wealth_meaning": "Financial structure and control. Build stable wealth through discipline. Long-term security through systematic approach.",
+      "korean": "재정적 구조와 통제. 규율을 통해 안정적인 부를 구축하세요.",
+      "investment": "Conservative, structured investments. Blue-chip stocks, bonds.",
+      "income": "Increase income through leadership and authority positions.",
+      "spending": "Budget strictly. Control expenses with discipline.",
+      "timing": "Time to establish long-term financial structures",
+      "advice": "Build your financial empire on a foundation of discipline and structure."
+    },
+    "The Hierophant": {
+      "wealth_meaning": "Traditional financial wisdom applies. Seek advice from financial professionals. Conventional investments favored.",
+      "korean": "전통적인 재정 지혜가 적용됩니다. 재정 전문가의 조언을 구하세요.",
+      "investment": "Traditional investment vehicles - mutual funds, retirement accounts.",
+      "income": "Established industries provide stable income.",
+      "spending": "Follow conventional financial wisdom. Avoid get-rich-quick schemes.",
+      "timing": "Good for traditional financial planning and professional advice",
+      "advice": "Sometimes the traditional path to wealth is the most reliable."
+    },
+    "The Lovers": {
+      "wealth_meaning": "Important financial decisions require heart and head alignment. Partnerships affect finances. Choose investments you believe in.",
+      "korean": "중요한 재정적 결정은 가슴과 머리의 조화가 필요합니다. 파트너십이 재정에 영향을 미칩니다.",
+      "investment": "Invest in companies whose values align with yours.",
+      "income": "Financial partnerships or joint ventures are highlighted.",
+      "spending": "Shared finances with partners need attention.",
+      "timing": "Major financial choices approaching - choose wisely",
+      "advice": "The best financial decisions align with your deepest values."
+    },
+    "The Chariot": {
+      "wealth_meaning": "Aggressive pursuit of wealth pays off. Overcome financial obstacles through determination. Victory in financial competitions.",
+      "korean": "부의 적극적인 추구가 성과를 냅니다. 결단력으로 재정적 장애물을 극복하세요.",
+      "investment": "Active investment strategies outperform passive ones now.",
+      "income": "Push for raises, new clients, or better deals. Your determination wins.",
+      "spending": "Invest in things that help you move forward faster.",
+      "timing": "Push hard for financial goals - victory is within reach",
+      "advice": "Drive toward your financial goals with unwavering determination."
+    },
+    "Strength": {
+      "wealth_meaning": "Financial success through patience. Long-term wealth building beats quick gains. Steady discipline yields results.",
+      "korean": "인내를 통한 재정적 성공. 장기 부 축적이 빠른 이익을 이깁니다.",
+      "investment": "Patient, long-term investment strategies. Compounding works for you.",
+      "income": "Steady income growth through persistent effort.",
+      "spending": "Self-control with spending pays off long-term.",
+      "timing": "Focus on long-term financial strength over quick wins",
+      "advice": "True wealth is built through patient, consistent effort over time."
+    },
+    "The Hermit": {
+      "wealth_meaning": "Financial wisdom through careful analysis. Independent financial decisions. Simple living may increase wealth.",
+      "korean": "신중한 분석을 통한 재정적 지혜. 독립적인 재정 결정.",
+      "investment": "Research deeply before investing. Contrarian strategies may work.",
+      "income": "Solo or consulting income. Expert fees for specialized knowledge.",
+      "spending": "Minimalist approach to spending. Value over quantity.",
+      "timing": "Time for financial reflection and research",
+      "advice": "Sometimes the path to wealth is through simplicity and wisdom, not accumulation."
+    },
+    "Wheel of Fortune": {
+      "wealth_meaning": "Financial luck is changing. Major money shifts are destined. Be ready for sudden financial opportunities.",
+      "korean": "재정적 운이 바뀌고 있습니다. 주요 돈 변화가 운명되어 있습니다.",
+      "investment": "Luck favors prepared investors. Unexpected opportunities arise.",
+      "income": "Sudden income changes - windfalls or unexpected expenses.",
+      "spending": "Adapt spending as circumstances change.",
+      "timing": "Major financial shifts within 1-3 months",
+      "advice": "Fortune is turning. Be ready to act when opportunity appears."
+    },
+    "Justice": {
+      "wealth_meaning": "Financial karma balances. Fair financial dealings bring rewards. Legal money matters highlighted.",
+      "korean": "재정적 카르마가 균형을 이룹니다. 공정한 재정 거래가 보상을 가져옵니다.",
+      "investment": "Ethical investments perform well. ESG considerations matter.",
+      "income": "Fair compensation for your work. Contract negotiations.",
+      "spending": "Balanced budgets. Pay debts and receive what's owed.",
+      "timing": "Financial contracts, legal matters, tax considerations",
+      "advice": "Financial karma is real. Fair dealing creates lasting wealth."
+    },
+    "The Hanged Man": {
+      "wealth_meaning": "Financial pause or sacrifice. Short-term loss for long-term gain. See money from a different perspective.",
+      "korean": "재정적 일시정지 또는 희생. 장기적 이익을 위한 단기적 손실.",
+      "investment": "Hold positions despite short-term losses. Perspective matters.",
+      "income": "Income may pause. Use time to restructure approach.",
+      "spending": "Pause major purchases. Wait for clarity.",
+      "timing": "Not the time to push for financial gains - wait",
+      "advice": "Sometimes the best financial move is to wait and see things differently."
+    },
+    "Death": {
+      "wealth_meaning": "Financial transformation. Old income sources end, new ones begin. Let go of what's not working financially.",
+      "korean": "재정적 변화. 오래된 수입원이 끝나고 새로운 것이 시작됩니다.",
+      "investment": "Time to exit positions that aren't performing. Portfolio restructuring.",
+      "income": "Old income streams die. New ones are being born.",
+      "spending": "End wasteful spending habits. Financial renewal.",
+      "timing": "Significant financial changes within 1-3 months",
+      "advice": "Financial rebirth requires letting go of what no longer serves you."
+    },
+    "Temperance": {
+      "wealth_meaning": "Balanced finances through moderation. Steady wealth building. Patient financial approach works best.",
+      "korean": "절제를 통한 균형 잡힌 재정. 꾸준한 부 축적. 인내심 있는 재정 접근이 최선입니다.",
+      "investment": "Balanced portfolio. Diversification. Moderate risk tolerance.",
+      "income": "Steady income growth through balanced effort.",
+      "spending": "Moderate spending. Balance needs and wants.",
+      "timing": "Patient financial approach yields best results",
+      "advice": "Financial balance creates lasting wealth. Avoid extremes."
+    },
+    "The Devil": {
+      "wealth_meaning": "Examine unhealthy money attachments. Greed, debt slavery, or financial obsession. Break free from money fears.",
+      "korean": "건강하지 못한 돈 집착을 검토하세요. 탐욕, 부채 노예, 또는 재정적 집착.",
+      "investment": "Beware of investments driven by greed or fear. Avoid traps.",
+      "income": "Are you enslaved to your income? Consider if the trade-off is worth it.",
+      "spending": "Address addictive or unconscious spending patterns.",
+      "timing": "Face financial shadows and unhealthy patterns now",
+      "advice": "Money is a tool, not a master. Break free from financial bondage."
+    },
+    "The Tower": {
+      "wealth_meaning": "Sudden financial upheaval. Market crashes, job loss, or unexpected expenses. From financial chaos, rebuild better.",
+      "korean": "갑작스러운 재정적 격변. 시장 붕괴, 실직, 또는 예상치 못한 비용.",
+      "investment": "Sudden market changes. Be prepared for volatility.",
+      "income": "Unexpected income disruption. Emergency funds matter.",
+      "spending": "Unexpected major expenses may arise.",
+      "timing": "Sudden financial changes - be prepared",
+      "advice": "Financial towers may fall, but you can rebuild on stronger foundations."
+    },
+    "The Star": {
+      "wealth_meaning": "Hope for financial future. Recovery after loss. Dream of abundance becomes reality. Generosity attracts more.",
+      "korean": "재정적 미래에 대한 희망. 손실 후 회복. 풍요의 꿈이 현실이 됩니다.",
+      "investment": "Invest in your dreams. Hope-based rather than fear-based decisions.",
+      "income": "Income recovery after difficulties. New sources of abundance.",
+      "spending": "Generous spending creates positive financial karma.",
+      "timing": "Financial recovery and hope manifest now",
+      "advice": "Keep faith in financial abundance. Hope attracts prosperity."
+    },
+    "The Moon": {
+      "wealth_meaning": "Financial confusion or hidden matters. Investments may not be as they seem. Trust intuition, but verify facts.",
+      "korean": "재정적 혼란 또는 숨겨진 문제. 투자가 보이는 대로가 아닐 수 있습니다.",
+      "investment": "Hidden risks in investments. Due diligence essential.",
+      "income": "Unclear income situation. Hidden costs or earnings.",
+      "spending": "Beware of impulse spending based on emotion.",
+      "timing": "Wait for financial clarity before major decisions",
+      "advice": "In financial fog, move slowly and trust your instincts."
+    },
+    "The Sun": {
+      "wealth_meaning": "Financial success and abundance. Clear financial path. Prosperity shines. Joyful relationship with money.",
+      "korean": "재정적 성공과 풍요. 명확한 재정 경로. 번영이 빛납니다.",
+      "investment": "Successful investments. Clear returns. Confidence in choices.",
+      "income": "Abundant income. Financial clarity and success.",
+      "spending": "Enjoy spending on what brings genuine joy.",
+      "timing": "Excellent period for financial success and growth",
+      "advice": "Financial abundance is your birthright. Enjoy prosperity with gratitude."
+    },
+    "Judgement": {
+      "wealth_meaning": "Financial evaluation and reckoning. Past financial decisions reviewed. Answer the call to financial responsibility.",
+      "korean": "재정적 평가와 결산. 과거 재정 결정 검토. 재정적 책임에 대한 부름에 응답하세요.",
+      "investment": "Review and judge investment performance. Make adjustments.",
+      "income": "Past efforts pay off. Financial karma returns.",
+      "spending": "Evaluate spending habits. Time for financial reckoning.",
+      "timing": "Financial audits, reviews, and significant evaluations",
+      "advice": "Your financial past leads to your financial future. Learn and adjust."
+    },
+    "The World": {
+      "wealth_meaning": "Financial completion and fulfillment. Major financial goals achieved. Abundance and security. Ready for next level.",
+      "korean": "재정적 완성과 성취. 주요 재정 목표 달성. 풍요와 안정.",
+      "investment": "Investment goals reached. Time to set new targets.",
+      "income": "Financial goals achieved. Celebrate success.",
+      "spending": "Enjoy the fruits of your financial labor.",
+      "timing": "Major financial milestone achieved",
+      "advice": "You've achieved financial success. Celebrate, then set new horizons."
+    }
+  },
+  "pentacles_emphasis": {
+    "note": "Pentacles suit is especially significant for wealth readings",
+    "ace": "New financial opportunity",
+    "ten": "Generational wealth, inheritance, long-term security"
+  }
+}

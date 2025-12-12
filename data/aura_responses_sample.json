@@ -1,0 +1,56 @@
+[
+  {
+    "respondent_id": "r001",
+    "answers": {
+      "q1_energy_network": "A",
+      "q2_energy_weekend": "A",
+      "q3_energy_spontaneous": "A",
+      "q4_energy_transit": "A",
+      "q5_energy_idealday": "A",
+      "q6_cog_problem": "A",
+      "q7_cog_explain": "A",
+      "q8_cog_evaluate": "A",
+      "q9_cog_basis": "A",
+      "q10_cog_constraints": "A",
+      "q11_decision_conflict": "A",
+      "q12_decision_feedback": "A",
+      "q13_decision_resources": "A",
+      "q14_decision_rules": "A",
+      "q15_decision_delay": "A",
+      "q16_rhythm_deadline": "A",
+      "q17_rhythm_change": "A",
+      "q18_rhythm_workstyle": "A",
+      "q19_rhythm_holiday": "A",
+      "q20_rhythm_feeling": "A"
+    },
+    "typeCode": "RVLA",
+    "consistencyScore": 100
+  },
+  {
+    "respondent_id": "r002",
+    "answers": {
+      "q1_energy_network": "B",
+      "q2_energy_weekend": "B",
+      "q3_energy_spontaneous": "B",
+      "q4_energy_transit": "B",
+      "q5_energy_idealday": "B",
+      "q6_cog_problem": "B",
+      "q7_cog_explain": "B",
+      "q8_cog_evaluate": "B",
+      "q9_cog_basis": "B",
+      "q10_cog_constraints": "B",
+      "q11_decision_conflict": "B",
+      "q12_decision_feedback": "B",
+      "q13_decision_resources": "B",
+      "q14_decision_rules": "B",
+      "q15_decision_delay": "B",
+      "q16_rhythm_deadline": "B",
+      "q17_rhythm_change": "B",
+      "q18_rhythm_workstyle": "B",
+      "q19_rhythm_holiday": "B",
+      "q20_rhythm_feeling": "B"
+    },
+    "typeCode": "GSHA",
+    "consistencyScore": 100
+  }
+]

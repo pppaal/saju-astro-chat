@@ -1,0 +1,577 @@
+{
+  "$schema": "../../_schema.json",
+  "$category": "placements/synthesis/asteroids",
+  "$count": 576,
+  "$description": "주요 소행성 4개(세레스, 팔라스, 주노, 베스타) Sign×House 통합 해석",
+
+  "overview": {
+    "asteroids": ["Ceres (세레스)", "Pallas (팔라스)", "Juno (주노)", "Vesta (베스타)"],
+    "discovery": "1801-1807년 사이 발견된 첫 4개 소행성",
+    "significance": "여성 원형과 관련 - 달/금성을 보완하는 여성 에너지의 다양한 측면",
+    "jung_connection": "아니마의 분화된 측면 - 어머니, 전사, 아내, 여사제 원형"
+  },
+
+  "Ceres": {
+    "$description": "세레스 - 양육, 돌봄, 음식, 상실과 재결합",
+    "$archetype": "어머니 원형 - 데메테르/세레스 신화",
+    "$themes": ["양육", "음식", "자녀", "상실", "계절적 순환", "돌봄 방식"],
+
+    "Aries_Ceres": {
+      "nurturing_style": "독립성을 키워주는 양육 - 자립 격려",
+      "H1": {"expression": "독립적 돌봄자 정체성", "need": "자기 돌봄의 자율성"},
+      "H2": {"expression": "자원을 통한 자립 양육", "need": "물질적 독립 제공"},
+      "H3": {"expression": "용기 있는 소통으로 양육", "need": "직접적 격려"},
+      "H4": {"expression": "강하고 독립적인 가정 (강조)", "need": "자립심 있는 가정"},
+      "H5": {"expression": "창조적 자기표현 격려", "need": "독창성 양육"},
+      "H6": {"expression": "건강한 자립 가르침", "need": "스스로 돌봄 배우기"},
+      "H7": {"expression": "관계에서 독립 유지", "need": "파트너 자율성 존중"},
+      "H8": {"expression": "위기에서 강해지기", "need": "변형을 통한 성장"},
+      "H9": {"expression": "탐험 정신 양육", "need": "모험 격려"},
+      "H10": {"expression": "리더십 양육", "need": "성취 격려"},
+      "H11": {"expression": "집단에서 개인성 양육", "need": "그룹 내 자율성"},
+      "H12": {"expression": "영적 독립 양육", "need": "내면 힘 발견"}
+    },
+
+    "Taurus_Ceres": {
+      "nurturing_style": "물질적 안전과 감각적 편안함을 통한 양육",
+      "H1": {"expression": "안정적이고 신체적 돌봄", "need": "신체적 안전"},
+      "H2": {"expression": "풍요로운 물질적 양육 (강조)", "need": "충분한 자원"},
+      "H3": {"expression": "실용적 지혜 전달", "need": "감각적 학습"},
+      "H4": {"expression": "안전하고 편안한 가정", "need": "물질적 안정"},
+      "H5": {"expression": "감각적 창조 격려", "need": "예술적 영양"},
+      "H6": {"expression": "건강한 음식과 루틴", "need": "신체적 돌봄"},
+      "H7": {"expression": "충실하고 안정적 파트너십", "need": "관계 안전"},
+      "H8": {"expression": "물질적 안전을 통한 변형", "need": "경제적 공유"},
+      "H9": {"expression": "실용적 철학 양육", "need": "체현된 지혜"},
+      "H10": {"expression": "지속 가능한 성공 양육", "need": "안정적 커리어"},
+      "H11": {"expression": "실용적 공동체 양육", "need": "물질적 나눔"},
+      "H12": {"expression": "체현된 영성 양육", "need": "신체 통한 초월"}
+    },
+
+    "Gemini_Ceres": {
+      "nurturing_style": "소통과 지적 자극을 통한 양육",
+      "H1": {"expression": "소통하는 돌봄자", "need": "대화로 연결"},
+      "H2": {"expression": "지적 가치 양육", "need": "학습 자원"},
+      "H3": {"expression": "풍부한 소통 양육 (강조)", "need": "지적 자극"},
+      "H4": {"expression": "대화하는 가정", "need": "가족 소통"},
+      "H5": {"expression": "창의적 학습 격려", "need": "다양한 관심"},
+      "H6": {"expression": "정보로 건강 관리", "need": "건강 지식"},
+      "H7": {"expression": "소통하는 파트너십", "need": "지적 교류"},
+      "H8": {"expression": "대화를 통한 치유", "need": "심층 소통"},
+      "H9": {"expression": "호기심 양육", "need": "학습 격려"},
+      "H10": {"expression": "소통 능력 양육", "need": "표현력 개발"},
+      "H11": {"expression": "네트워크 양육", "need": "사회적 연결"},
+      "H12": {"expression": "명상적 소통 양육", "need": "내면 대화"}
+    },
+
+    "Cancer_Ceres": {
+      "nurturing_style": "감정적 돌봄과 가정적 보호 (본궁 에너지)",
+      "H1": {"expression": "자연스러운 양육자 정체성", "need": "감정적 안전"},
+      "H2": {"expression": "감정적 안전이 가치", "need": "정서적 풍요"},
+      "H3": {"expression": "감정적 소통 양육", "need": "공감적 대화"},
+      "H4": {"expression": "완벽한 가정 양육 (본궁, 최강조)", "need": "가족 돌봄"},
+      "H5": {"expression": "사랑으로 창조 격려", "need": "정서적 표현"},
+      "H6": {"expression": "돌봄으로 건강 관리", "need": "감정적 웰빙"},
+      "H7": {"expression": "돌봄 기반 파트너십", "need": "정서적 친밀"},
+      "H8": {"expression": "감정적 치유 제공", "need": "깊은 돌봄"},
+      "H9": {"expression": "전통 지혜 양육", "need": "조상 연결"},
+      "H10": {"expression": "돌봄 커리어", "need": "양육적 성공"},
+      "H11": {"expression": "공동체 돌봄", "need": "집단 양육"},
+      "H12": {"expression": "영적 양육", "need": "무의식적 돌봄"}
+    },
+
+    "Leo_Ceres": {
+      "nurturing_style": "인정과 격려를 통한 양육",
+      "H1": {"expression": "카리스마 있는 돌봄자", "need": "빛나는 양육"},
+      "H2": {"expression": "관대한 물질적 양육", "need": "풍요로운 제공"},
+      "H3": {"expression": "드라마틱 격려", "need": "표현력 개발"},
+      "H4": {"expression": "왕족적 가정", "need": "특별한 가족"},
+      "H5": {"expression": "창조성 격려 (강조)", "need": "예술적 발달"},
+      "H6": {"expression": "자부심 있는 봉사", "need": "인정받는 돌봄"},
+      "H7": {"expression": "로맨틱 돌봄", "need": "특별한 관계"},
+      "H8": {"expression": "열정적 변형 지원", "need": "극적 성장"},
+      "H9": {"expression": "영감을 주는 가르침", "need": "비전 양육"},
+      "H10": {"expression": "리더십 양육", "need": "성공 격려"},
+      "H11": {"expression": "그룹에서 빛남 격려", "need": "개성 존중"},
+      "H12": {"expression": "내면의 빛 양육", "need": "숨은 재능 발견"}
+    },
+
+    "Virgo_Ceres": {
+      "nurturing_style": "실용적 봉사와 건강 관리를 통한 양육",
+      "H1": {"expression": "세심한 돌봄자", "need": "완벽한 양육"},
+      "H2": {"expression": "실용적 자원 관리", "need": "효율적 제공"},
+      "H3": {"expression": "정확한 정보 전달", "need": "학습 지원"},
+      "H4": {"expression": "질서 있는 가정", "need": "체계적 돌봄"},
+      "H5": {"expression": "기술 개발 격려", "need": "장인정신 양육"},
+      "H6": {"expression": "건강 중심 양육 (강조)", "need": "웰빙 관리"},
+      "H7": {"expression": "헌신적 봉사 파트너십", "need": "실용적 도움"},
+      "H8": {"expression": "분석적 치유", "need": "정밀한 변형"},
+      "H9": {"expression": "실용적 지혜 양육", "need": "적용 가능한 학습"},
+      "H10": {"expression": "전문성 양육", "need": "기술 개발"},
+      "H11": {"expression": "봉사 공동체 양육", "need": "실용적 기여"},
+      "H12": {"expression": "치유 봉사 양육", "need": "건강한 경계"}
+    },
+
+    "Libra_Ceres": {
+      "nurturing_style": "조화와 아름다움을 통한 양육",
+      "H1": {"expression": "우아한 돌봄자", "need": "조화로운 양육"},
+      "H2": {"expression": "미적 가치 양육", "need": "아름다운 환경"},
+      "H3": {"expression": "외교적 소통 양육", "need": "조화로운 대화"},
+      "H4": {"expression": "아름다운 가정", "need": "평화로운 환경"},
+      "H5": {"expression": "예술적 표현 격려", "need": "미적 발달"},
+      "H6": {"expression": "균형 잡힌 건강", "need": "조화로운 루틴"},
+      "H7": {"expression": "파트너십 중심 양육 (강조)", "need": "관계 조화"},
+      "H8": {"expression": "공정한 공유", "need": "균형 잡힌 친밀"},
+      "H9": {"expression": "공정한 철학 양육", "need": "정의 교육"},
+      "H10": {"expression": "협력적 성공 양육", "need": "파트너십 커리어"},
+      "H11": {"expression": "조화로운 그룹 양육", "need": "사회적 균형"},
+      "H12": {"expression": "내면 평화 양육", "need": "영적 조화"}
+    },
+
+    "Scorpio_Ceres": {
+      "nurturing_style": "깊은 변형과 감정적 치유를 통한 양육",
+      "H1": {"expression": "강렬한 돌봄자", "need": "깊은 양육"},
+      "H2": {"expression": "변형적 자원 관리", "need": "공유 자원"},
+      "H3": {"expression": "심층적 소통", "need": "비밀 공유"},
+      "H4": {"expression": "감정적 깊이 있는 가정", "need": "트라우마 치유"},
+      "H5": {"expression": "열정적 창조 격려", "need": "강렬한 표현"},
+      "H6": {"expression": "치유적 건강 관리", "need": "변형적 웰빙"},
+      "H7": {"expression": "친밀한 파트너십", "need": "깊은 유대"},
+      "H8": {"expression": "변형 지원 (강조)", "need": "죽음과 재탄생"},
+      "H9": {"expression": "신비적 지혜 양육", "need": "깊은 진리"},
+      "H10": {"expression": "권력 있는 양육", "need": "변형적 성공"},
+      "H11": {"expression": "집단 변형 양육", "need": "그룹 치유"},
+      "H12": {"expression": "무의식 치유 양육", "need": "영적 변형"}
+    },
+
+    "Sagittarius_Ceres": {
+      "nurturing_style": "자유와 탐험을 통한 양육",
+      "H1": {"expression": "자유로운 돌봄자", "need": "모험적 양육"},
+      "H2": {"expression": "풍요로운 관대함", "need": "물질적 자유"},
+      "H3": {"expression": "지혜 전달", "need": "학습 여행"},
+      "H4": {"expression": "다문화 가정", "need": "자유로운 환경"},
+      "H5": {"expression": "모험적 창조 격려", "need": "탐험 지원"},
+      "H6": {"expression": "의미 있는 건강 관리", "need": "전체론적 웰빙"},
+      "H7": {"expression": "성장하는 파트너십", "need": "함께 탐험"},
+      "H8": {"expression": "철학적 변형 지원", "need": "의미 있는 변화"},
+      "H9": {"expression": "진리 탐구 양육 (강조)", "need": "영적 여행"},
+      "H10": {"expression": "비전 있는 성공 양육", "need": "의미 있는 커리어"},
+      "H11": {"expression": "이상주의 공동체 양육", "need": "비전 공유"},
+      "H12": {"expression": "영적 자유 양육", "need": "내면 탐험"}
+    },
+
+    "Capricorn_Ceres": {
+      "nurturing_style": "구조와 규율을 통한 양육",
+      "H1": {"expression": "책임감 있는 돌봄자", "need": "성숙한 양육"},
+      "H2": {"expression": "재정적 안전 제공", "need": "물질적 안정"},
+      "H3": {"expression": "실용적 지식 전달", "need": "유용한 학습"},
+      "H4": {"expression": "전통적 가정", "need": "구조화된 환경"},
+      "H5": {"expression": "규율 있는 창조 격려", "need": "진지한 예술"},
+      "H6": {"expression": "체계적 건강 관리", "need": "루틴 확립"},
+      "H7": {"expression": "헌신적 파트너십", "need": "장기적 관계"},
+      "H8": {"expression": "구조화된 변형", "need": "계획된 변화"},
+      "H9": {"expression": "현실적 철학 양육", "need": "실용적 지혜"},
+      "H10": {"expression": "성공 양육 (강조)", "need": "커리어 지원"},
+      "H11": {"expression": "조직화된 공동체 양육", "need": "구조적 소속"},
+      "H12": {"expression": "카르마적 양육", "need": "영적 규율"}
+    },
+
+    "Aquarius_Ceres": {
+      "nurturing_style": "독특함과 자유를 존중하는 양육",
+      "H1": {"expression": "비전통적 돌봄자", "need": "독특한 양육"},
+      "H2": {"expression": "혁신적 자원 공유", "need": "공유 경제"},
+      "H3": {"expression": "혁신적 소통 양육", "need": "새로운 학습"},
+      "H4": {"expression": "대안 가정", "need": "자유로운 환경"},
+      "H5": {"expression": "독창성 격려", "need": "혁신적 창조"},
+      "H6": {"expression": "대안 건강 관리", "need": "혁신적 웰빙"},
+      "H7": {"expression": "자유로운 파트너십", "need": "비전통적 관계"},
+      "H8": {"expression": "집단적 변형 지원", "need": "그룹 변화"},
+      "H9": {"expression": "진보적 철학 양육", "need": "미래 비전"},
+      "H10": {"expression": "혁신적 성공 양육", "need": "독특한 커리어"},
+      "H11": {"expression": "집단 양육 (강조)", "need": "공동체 돌봄"},
+      "H12": {"expression": "인류애적 양육", "need": "보편적 연결"}
+    },
+
+    "Pisces_Ceres": {
+      "nurturing_style": "무조건적 사랑과 영적 돌봄",
+      "H1": {"expression": "연민 있는 돌봄자", "need": "영적 양육"},
+      "H2": {"expression": "영적 풍요 제공", "need": "물질 초월"},
+      "H3": {"expression": "직관적 소통 양육", "need": "시적 표현"},
+      "H4": {"expression": "영적 가정", "need": "신성한 환경"},
+      "H5": {"expression": "영감받은 창조 격려", "need": "예술적 영성"},
+      "H6": {"expression": "치유적 봉사", "need": "전체론적 건강"},
+      "H7": {"expression": "영혼의 파트너십", "need": "무조건적 사랑"},
+      "H8": {"expression": "영적 변형 지원", "need": "초월적 치유"},
+      "H9": {"expression": "보편적 진리 양육", "need": "영적 학습"},
+      "H10": {"expression": "영감을 주는 성공 양육", "need": "영적 사명"},
+      "H11": {"expression": "연민의 공동체 양육", "need": "보편적 돌봄"},
+      "H12": {"expression": "무조건적 양육 (강조)", "need": "영적 어머니"}
+    }
+  },
+
+  "Pallas": {
+    "$description": "팔라스 아테나 - 지혜, 전략, 창조적 지성, 패턴 인식",
+    "$archetype": "전사 여성/지혜의 여신 원형",
+    "$themes": ["지혜", "전략", "패턴 인식", "창조적 지성", "정의", "아버지와의 관계"],
+
+    "Aries_Pallas": {
+      "wisdom_style": "직접적이고 용감한 전략 - 선제적 지혜",
+      "H1": "용감한 전략가 정체성",
+      "H2": "공격적 자원 전략",
+      "H3": "직접적 소통 지혜",
+      "H4": "가정 보호 전략",
+      "H5": "창조적 전투",
+      "H6": "효율적 문제 해결",
+      "H7": "관계에서 직접적 접근",
+      "H8": "변형적 전략 (강조)",
+      "H9": "철학적 전사",
+      "H10": "리더십 전략",
+      "H11": "집단 행동 전략",
+      "H12": "영적 전사"
+    },
+
+    "Taurus_Pallas": {
+      "wisdom_style": "실용적이고 지속 가능한 전략",
+      "H1": "실용적 지혜 정체성",
+      "H2": "물질적 전략 (강조)",
+      "H3": "실용적 학습",
+      "H4": "안정적 가정 전략",
+      "H5": "감각적 창조 지혜",
+      "H6": "실용적 건강 전략",
+      "H7": "안정적 관계 전략",
+      "H8": "물질적 변형 전략",
+      "H9": "체현된 철학",
+      "H10": "지속 가능한 성공 전략",
+      "H11": "물질적 공동체 전략",
+      "H12": "자연과의 연결 지혜"
+    },
+
+    "Gemini_Pallas": {
+      "wisdom_style": "소통과 정보 기반 전략",
+      "H1": "다재다능한 전략가",
+      "H2": "정보 기반 재정 전략",
+      "H3": "소통 지혜 (강조)",
+      "H4": "가족 소통 전략",
+      "H5": "다양한 창조 전략",
+      "H6": "효율적 업무 전략",
+      "H7": "소통 기반 관계 전략",
+      "H8": "정보 공유 전략",
+      "H9": "학습 전략",
+      "H10": "네트워킹 전략",
+      "H11": "집단 소통 전략",
+      "H12": "내면 대화 지혜"
+    },
+
+    "Cancer_Pallas": {
+      "wisdom_style": "감정적 지능과 보호 전략",
+      "H1": "감정 지능 정체성",
+      "H2": "감정적 안전 전략",
+      "H3": "공감적 소통",
+      "H4": "가정 보호 전략 (강조)",
+      "H5": "양육적 창조",
+      "H6": "돌봄 업무 전략",
+      "H7": "정서적 관계 전략",
+      "H8": "감정적 치유 전략",
+      "H9": "전통적 지혜",
+      "H10": "돌봄 커리어 전략",
+      "H11": "공동체 돌봄 전략",
+      "H12": "조상 지혜"
+    },
+
+    "Leo_Pallas": {
+      "wisdom_style": "창조적이고 드라마틱한 전략",
+      "H1": "카리스마 있는 전략가",
+      "H2": "관대한 자원 전략",
+      "H3": "드라마틱 소통",
+      "H4": "왕족적 가정 전략",
+      "H5": "창조적 지혜 (강조)",
+      "H6": "창조적 문제 해결",
+      "H7": "로맨틱 관계 전략",
+      "H8": "열정적 변형 전략",
+      "H9": "영감을 주는 철학",
+      "H10": "리더십 전략",
+      "H11": "그룹 리더 전략",
+      "H12": "내면의 빛 지혜"
+    },
+
+    "Virgo_Pallas": {
+      "wisdom_style": "분석적이고 정밀한 전략",
+      "H1": "분석적 전략가",
+      "H2": "효율적 자원 관리",
+      "H3": "정밀한 소통",
+      "H4": "체계적 가정 전략",
+      "H5": "기술적 창조",
+      "H6": "효율적 업무 전략 (강조)",
+      "H7": "실용적 관계 전략",
+      "H8": "분석적 변형 전략",
+      "H9": "실용적 철학",
+      "H10": "전문적 성공 전략",
+      "H11": "봉사 그룹 전략",
+      "H12": "치유 지혜"
+    },
+
+    "Libra_Pallas": {
+      "wisdom_style": "외교적이고 조화로운 전략",
+      "H1": "외교적 전략가",
+      "H2": "공정한 자원 분배",
+      "H3": "중재 능력",
+      "H4": "조화로운 가정 전략",
+      "H5": "예술적 창조",
+      "H6": "협력적 업무 전략",
+      "H7": "파트너십 전략 (강조)",
+      "H8": "공정한 공유 전략",
+      "H9": "정의로운 철학",
+      "H10": "협력적 성공 전략",
+      "H11": "사회 정의 전략",
+      "H12": "내면 균형 지혜"
+    },
+
+    "Scorpio_Pallas": {
+      "wisdom_style": "심리적 통찰과 전략적 깊이",
+      "H1": "심리 전략가",
+      "H2": "변형적 재정 전략",
+      "H3": "심층 소통",
+      "H4": "가족 심리 전략",
+      "H5": "강렬한 창조 전략",
+      "H6": "치유 업무 전략",
+      "H7": "친밀한 관계 전략",
+      "H8": "심층 변형 전략 (강조)",
+      "H9": "신비적 지혜",
+      "H10": "권력 전략",
+      "H11": "집단 변형 전략",
+      "H12": "무의식 지혜"
+    },
+
+    "Sagittarius_Pallas": {
+      "wisdom_style": "비전적이고 확장적 전략",
+      "H1": "비전 있는 전략가",
+      "H2": "풍요로운 자원 전략",
+      "H3": "가르치는 지혜",
+      "H4": "다문화 가정 전략",
+      "H5": "모험적 창조",
+      "H6": "의미 있는 업무 전략",
+      "H7": "성장하는 관계 전략",
+      "H8": "철학적 변형 전략",
+      "H9": "진리 탐구 전략 (강조)",
+      "H10": "비전 있는 성공 전략",
+      "H11": "이상주의 그룹 전략",
+      "H12": "영적 탐험 지혜"
+    },
+
+    "Capricorn_Pallas": {
+      "wisdom_style": "장기적이고 구조화된 전략",
+      "H1": "전략적 권위자",
+      "H2": "장기 재정 전략",
+      "H3": "전략적 소통",
+      "H4": "전통적 가정 전략",
+      "H5": "규율 있는 창조",
+      "H6": "효율적 업무 시스템",
+      "H7": "장기적 관계 전략",
+      "H8": "구조화된 변형 전략",
+      "H9": "현실적 철학",
+      "H10": "성공 마스터 전략 (강조)",
+      "H11": "조직적 그룹 전략",
+      "H12": "카르마적 지혜"
+    },
+
+    "Aquarius_Pallas": {
+      "wisdom_style": "혁신적이고 비전통적 전략",
+      "H1": "혁신적 전략가",
+      "H2": "미래 자원 전략",
+      "H3": "혁신적 소통",
+      "H4": "대안 가정 전략",
+      "H5": "독창적 창조",
+      "H6": "혁신적 업무 전략",
+      "H7": "자유로운 관계 전략",
+      "H8": "집단 변형 전략",
+      "H9": "진보적 철학",
+      "H10": "혁신적 성공 전략",
+      "H11": "집단 지성 전략 (강조)",
+      "H12": "인류애적 지혜"
+    },
+
+    "Pisces_Pallas": {
+      "wisdom_style": "직관적이고 영적인 전략",
+      "H1": "직관적 전략가",
+      "H2": "영적 풍요 전략",
+      "H3": "직관적 소통",
+      "H4": "영적 가정 전략",
+      "H5": "영감받은 창조",
+      "H6": "치유적 봉사 전략",
+      "H7": "영혼의 관계 전략",
+      "H8": "영적 변형 전략",
+      "H9": "신비적 철학",
+      "H10": "영감을 주는 성공 전략",
+      "H11": "연민의 그룹 전략",
+      "H12": "초월적 지혜 (강조)"
+    }
+  },
+
+  "Juno": {
+    "$description": "주노 - 헌신적 파트너십, 결혼, 평등, 질투",
+    "$archetype": "아내/여왕 원형 - 헤라/주노 신화",
+    "$themes": ["결혼", "파트너십", "평등", "헌신", "질투", "권리"],
+
+    "Aries_Juno": {
+      "partnership_style": "독립적이고 열정적인 파트너십",
+      "needs_in_partner": "용기, 직접성, 독립성",
+      "shadow": "지배, 경쟁",
+      "H7": "독립적 파트너십 추구"
+    },
+
+    "Taurus_Juno": {
+      "partnership_style": "안정적이고 감각적인 파트너십",
+      "needs_in_partner": "안정성, 충실함, 물질적 안전",
+      "shadow": "소유욕, 질투",
+      "H7": "안정적 파트너십 추구 (강조)"
+    },
+
+    "Gemini_Juno": {
+      "partnership_style": "소통 기반의 다양한 파트너십",
+      "needs_in_partner": "지적 자극, 대화, 다양성",
+      "shadow": "변덕, 불충실",
+      "H7": "소통하는 파트너십 추구"
+    },
+
+    "Cancer_Juno": {
+      "partnership_style": "돌봄과 감정적 친밀함의 파트너십",
+      "needs_in_partner": "감정적 안전, 돌봄, 가정성",
+      "shadow": "의존, 과보호",
+      "H7": "가정적 파트너십 추구"
+    },
+
+    "Leo_Juno": {
+      "partnership_style": "로맨틱하고 드라마틱한 파트너십",
+      "needs_in_partner": "인정, 충성, 열정",
+      "shadow": "자기중심, 드라마",
+      "H7": "로맨틱 파트너십 추구"
+    },
+
+    "Virgo_Juno": {
+      "partnership_style": "실용적이고 봉사 기반 파트너십",
+      "needs_in_partner": "신뢰성, 헌신, 실용성",
+      "shadow": "비판, 완벽주의",
+      "H7": "헌신적 파트너십 추구"
+    },
+
+    "Libra_Juno": {
+      "partnership_style": "조화롭고 균형 잡힌 파트너십 (본궁 에너지)",
+      "needs_in_partner": "조화, 공정함, 아름다움",
+      "shadow": "우유부단, 의존",
+      "H7": "조화로운 파트너십 추구 (본궁, 최강조)"
+    },
+
+    "Scorpio_Juno": {
+      "partnership_style": "깊고 변형적인 파트너십",
+      "needs_in_partner": "깊이, 친밀함, 충성",
+      "shadow": "질투, 통제",
+      "H7": "강렬한 파트너십 추구"
+    },
+
+    "Sagittarius_Juno": {
+      "partnership_style": "자유롭고 성장 지향적 파트너십",
+      "needs_in_partner": "자유, 모험, 성장",
+      "shadow": "불안정, 헌신 회피",
+      "H7": "성장하는 파트너십 추구"
+    },
+
+    "Capricorn_Juno": {
+      "partnership_style": "전통적이고 장기적 파트너십",
+      "needs_in_partner": "안정성, 야망, 성숙함",
+      "shadow": "냉담, 권위주의",
+      "H7": "헌신적 파트너십 추구"
+    },
+
+    "Aquarius_Juno": {
+      "partnership_style": "비전통적이고 자유로운 파트너십",
+      "needs_in_partner": "독특함, 지적 자극, 자유",
+      "shadow": "감정적 거리, 무관심",
+      "H7": "자유로운 파트너십 추구"
+    },
+
+    "Pisces_Juno": {
+      "partnership_style": "영적이고 희생적인 파트너십",
+      "needs_in_partner": "영적 연결, 연민, 창조성",
+      "shadow": "희생자 역할, 경계 혼란",
+      "H7": "영혼의 파트너십 추구"
+    }
+  },
+
+  "Vesta": {
+    "$description": "베스타 - 헌신, 집중, 신성한 불, 섹슈얼리티와 영성",
+    "$archetype": "여사제/처녀 원형 - 베스타 신화",
+    "$themes": ["헌신", "집중", "신성한 봉사", "섹슈얼리티와 영성", "정화"],
+
+    "Aries_Vesta": {
+      "devotion_style": "열정적이고 개인적인 헌신",
+      "sacred_focus": "자기 자신, 개인적 사명",
+      "H6": "열정적 일 헌신"
+    },
+
+    "Taurus_Vesta": {
+      "devotion_style": "지속적이고 물질적인 헌신",
+      "sacred_focus": "자연, 물질적 아름다움",
+      "H6": "지속적 일 헌신"
+    },
+
+    "Gemini_Vesta": {
+      "devotion_style": "지적이고 소통적인 헌신",
+      "sacred_focus": "학습, 소통, 정보",
+      "H6": "지적 일 헌신"
+    },
+
+    "Cancer_Vesta": {
+      "devotion_style": "돌봄과 양육에 대한 헌신",
+      "sacred_focus": "가정, 가족, 조상",
+      "H6": "돌봄 일 헌신"
+    },
+
+    "Leo_Vesta": {
+      "devotion_style": "창조적이고 드라마틱한 헌신",
+      "sacred_focus": "창조성, 자기표현, 예술",
+      "H6": "창조적 일 헌신"
+    },
+
+    "Virgo_Vesta": {
+      "devotion_style": "완벽하고 봉사적인 헌신 (본궁 에너지)",
+      "sacred_focus": "봉사, 치유, 완벽",
+      "H6": "완벽한 일 헌신 (본궁, 최강조)"
+    },
+
+    "Libra_Vesta": {
+      "devotion_style": "조화롭고 균형 잡힌 헌신",
+      "sacred_focus": "관계, 아름다움, 정의",
+      "H6": "조화로운 일 헌신"
+    },
+
+    "Scorpio_Vesta": {
+      "devotion_style": "강렬하고 변형적인 헌신",
+      "sacred_focus": "변형, 신비, 심층 진리",
+      "H6": "변형적 일 헌신"
+    },
+
+    "Sagittarius_Vesta": {
+      "devotion_style": "비전적이고 철학적인 헌신",
+      "sacred_focus": "진리, 가르침, 탐험",
+      "H6": "비전적 일 헌신"
+    },
+
+    "Capricorn_Vesta": {
+      "devotion_style": "구조적이고 장기적인 헌신",
+      "sacred_focus": "전통, 성취, 책임",
+      "H6": "구조적 일 헌신"
+    },
+
+    "Aquarius_Vesta": {
+      "devotion_style": "인류애적이고 혁신적인 헌신",
+      "sacred_focus": "인류, 혁신, 미래",
+      "H6": "인류애적 일 헌신"
+    },
+
+    "Pisces_Vesta": {
+      "devotion_style": "영적이고 희생적인 헌신",
+      "sacred_focus": "영성, 연민, 초월",
+      "H6": "영적 일 헌신"
+    }
+  }
+}

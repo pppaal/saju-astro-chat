@@ -1,0 +1,947 @@
+{
+  "$schema": "astro-literary-database-v1.0",
+  "$version": "1.0.0",
+  "$description": "완벽한 점성학 해석 데이터베이스 스키마 - 9,600개 해석",
+  "$created": "2024",
+  "$immutable": true,
+  "=== 통계 ===": {
+    "total_interpretations": 9600,
+    "categories": 13,
+    "files": 32
+  },
+  "=== 기본 요소 정의 ===": {
+    "planets": {
+      "main": [
+        "Sun",
+        "Moon",
+        "Mercury",
+        "Venus",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Uranus",
+        "Neptune",
+        "Pluto"
+      ],
+      "nodes": [
+        "NorthNode",
+        "SouthNode"
+      ],
+      "points": [
+        "Chiron",
+        "Lilith",
+        "PartOfFortune"
+      ],
+      "angles": [
+        "Ascendant",
+        "MC",
+        "Descendant",
+        "IC"
+      ],
+      "total": 18
+    },
+    "signs": {
+      "fire": [
+        "Aries",
+        "Leo",
+        "Sagittarius"
+      ],
+      "earth": [
+        "Taurus",
+        "Virgo",
+        "Capricorn"
+      ],
+      "air": [
+        "Gemini",
+        "Libra",
+        "Aquarius"
+      ],
+      "water": [
+        "Cancer",
+        "Scorpio",
+        "Pisces"
+      ],
+      "total": 12
+    },
+    "houses": {
+      "angular": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "succedent": [
+        2,
+        5,
+        8,
+        11
+      ],
+      "cadent": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "total": 12
+    },
+    "aspects": {
+      "major": [
+        "conjunction",
+        "sextile",
+        "square",
+        "trine",
+        "opposition"
+      ],
+      "minor": [
+        "semisextile",
+        "quincunx",
+        "quintile",
+        "biquintile"
+      ],
+      "total": 9
+    },
+    "domains": [
+      "love",
+      "career",
+      "health",
+      "wealth",
+      "spiritual"
+    ]
+  },
+  "=== 파일 구조 및 해석 수 ===": {
+    "core/": {
+      "planets.json": {
+        "description": "18개 행성/포인트 기본 정의",
+        "count": 180,
+        "structure": {
+          "[planet_id]": {
+            "id": "string - 영문 ID (Sun, Moon, etc.)",
+            "name_ko": "string - 한글명",
+            "name_en": "string - 영문명",
+            "symbol": "string - 점성학 기호",
+            "keywords": "string[] - 핵심 키워드 5-7개",
+            "archetype": "string - 원형 설명",
+            "mythology": "string - 신화적 배경",
+            "element": "string - 연관 원소",
+            "rules": "string - 지배 사인",
+            "exalts": "string - 고양 사인",
+            "detriment": "string - 손상 사인",
+            "fall": "string - 추락 사인",
+            "orbital_period": "string - 공전 주기",
+            "core": {
+              "essence": "string - 본질 설명 (200자+)",
+              "light": "string - 긍정적 표현",
+              "shadow": "string - 부정적 표현",
+              "lesson": "string - 영혼의 교훈",
+              "gift": "string - 타고난 재능"
+            }
+          }
+        }
+      },
+      "signs.json": {
+        "description": "12개 별자리 상세 정의",
+        "count": 180,
+        "structure": {
+          "[sign_id]": {
+            "id": "string - 영문 ID",
+            "name_ko": "string - 한글명",
+            "name_en": "string - 영문명",
+            "symbol": "string - 기호",
+            "glyph": "string - 유니코드 기호",
+            "dates": "string - 대략적 날짜 범위",
+            "element": "Fire | Earth | Air | Water",
+            "modality": "Cardinal | Fixed | Mutable",
+            "polarity": "Positive | Negative",
+            "ruler": "string - 지배 행성",
+            "detriment": "string - 손상 행성",
+            "exaltation": "string - 고양 행성",
+            "fall": "string - 추락 행성",
+            "keywords": "string[] - 핵심 키워드",
+            "archetype": "string - 원형",
+            "body_part": "string - 신체 부위",
+            "color": "string - 연관 색상",
+            "metal": "string - 연관 금속",
+            "stone": "string - 연관 보석",
+            "core": {
+              "essence": "string - 본질 (200자+)",
+              "light": "string - 긍정적 특성",
+              "shadow": "string - 부정적 특성",
+              "motivation": "string - 핵심 동기",
+              "fear": "string - 근본 두려움",
+              "growth": "string - 성장 방향"
+            },
+            "compatibility": {
+              "best": "string[] - 최고 궁합 사인",
+              "good": "string[] - 좋은 궁합 사인",
+              "challenging": "string[] - 도전적 궁합 사인"
+            }
+          }
+        }
+      },
+      "houses.json": {
+        "description": "12개 하우스 상세 정의",
+        "count": 180,
+        "structure": {
+          "[house_number]": {
+            "id": "number - 1-12",
+            "name_ko": "string - 한글명",
+            "name_en": "string - 영문명 (First House, etc.)",
+            "latin": "string - 라틴명 (Vita, etc.)",
+            "keywords": "string[] - 핵심 키워드",
+            "life_area": "string - 삶의 영역",
+            "natural_sign": "string - 자연 지배 사인",
+            "natural_ruler": "string - 자연 지배 행성",
+            "type": "Angular | Succedent | Cadent",
+            "element": "Fire | Earth | Air | Water",
+            "polarity": "Personal | Social | Universal",
+            "axis_partner": "number - 맞은편 하우스",
+            "core": {
+              "essence": "string - 본질 (200자+)",
+              "questions": "string[] - 이 하우스가 던지는 질문들",
+              "mastery": "string - 숙달 시 모습",
+              "challenge": "string - 도전 과제",
+              "empty_house": "string - 빈 하우스일 때 의미"
+            }
+          }
+        }
+      },
+      "aspects_types.json": {
+        "description": "9개 애스펙트 유형 정의",
+        "count": 45,
+        "structure": {
+          "[aspect_id]": {
+            "id": "string - conjunction, sextile, etc.",
+            "name_ko": "string - 한글명",
+            "name_en": "string - 영문명",
+            "symbol": "string - 기호",
+            "angle": "number - 각도 (0, 60, 90, etc.)",
+            "orb": "number - 허용 오브",
+            "type": "Major | Minor",
+            "nature": "Harmonious | Challenging | Neutral",
+            "keywords": "string[] - 핵심 키워드",
+            "core": {
+              "essence": "string - 본질 (150자+)",
+              "energy_flow": "string - 에너지 흐름 설명",
+              "gift": "string - 이 애스펙트의 선물",
+              "challenge": "string - 이 애스펙트의 도전"
+            }
+          }
+        }
+      }
+    },
+    "placements/": {
+      "planet_in_sign.json": {
+        "description": "행성-사인 배치 해석",
+        "count": 1296,
+        "calculation": "18 planets × 12 signs × 6 fields",
+        "structure": {
+          "[planet]_in_[sign]": {
+            "planet": "string",
+            "sign": "string",
+            "dignity": "Domicile | Exaltation | Detriment | Fall | Peregrine",
+            "core": "string - 핵심 해석 (200자+)",
+            "light": "string - 긍정적 표현",
+            "shadow": "string - 부정적 표현",
+            "growth": "string - 성장 포인트",
+            "karma": "string - 카르마/전생 주제",
+            "gift": "string - 타고난 재능"
+          }
+        }
+      },
+      "planet_in_house.json": {
+        "description": "행성-하우스 배치 해석",
+        "count": 1296,
+        "calculation": "18 planets × 12 houses × 6 fields",
+        "structure": {
+          "[planet]_in_H[number]": {
+            "planet": "string",
+            "house": "number",
+            "core": "string - 핵심 해석 (200자+)",
+            "light": "string - 긍정적 표현",
+            "shadow": "string - 부정적 표현",
+            "life_area": "string - 영향받는 삶의 영역",
+            "growth": "string - 성장 포인트",
+            "advice": "string - 실용적 조언"
+          }
+        }
+      },
+      "domains/": {
+        "love.json": {
+          "description": "연애/관계 도메인 해석",
+          "count": 432,
+          "calculation": "216 sign placements + 216 house placements",
+          "structure": {
+            "[planet]_in_[sign/house]_love": {
+              "placement": "string",
+              "attraction": "string - 끌리는 타입",
+              "expression": "string - 사랑 표현 방식",
+              "needs": "string - 관계에서 필요한 것",
+              "challenges": "string - 관계의 도전",
+              "growth": "string - 관계를 통한 성장"
+            }
+          }
+        },
+        "career.json": {
+          "description": "직업/사회적 역할 도메인 해석",
+          "count": 432,
+          "structure": {
+            "[planet]_in_[sign/house]_career": {
+              "placement": "string",
+              "talents": "string - 직업적 재능",
+              "ideal_roles": "string - 이상적인 역할",
+              "work_style": "string - 업무 스타일",
+              "challenges": "string - 직업적 도전",
+              "success_path": "string - 성공 경로"
+            }
+          }
+        },
+        "health.json": {
+          "description": "건강/신체 도메인 해석",
+          "count": 432,
+          "structure": {
+            "[planet]_in_[sign/house]_health": {
+              "placement": "string",
+              "vitality": "string - 활력/체력 특성",
+              "vulnerabilities": "string - 취약 부위/경향",
+              "stress_response": "string - 스트레스 반응",
+              "healing": "string - 치유 방법",
+              "prevention": "string - 예방 조언"
+            }
+          }
+        },
+        "wealth.json": {
+          "description": "재물/물질적 자원 도메인 해석",
+          "count": 432,
+          "structure": {
+            "[planet]_in_[sign/house]_wealth": {
+              "placement": "string",
+              "earning_style": "string - 수입 스타일",
+              "spending_pattern": "string - 지출 패턴",
+              "investment": "string - 투자 성향",
+              "abundance_block": "string - 풍요 차단 요인",
+              "prosperity_path": "string - 번영 경로"
+            }
+          }
+        },
+        "spiritual.json": {
+          "description": "영성/내면 성장 도메인 해석",
+          "count": 432,
+          "structure": {
+            "[planet]_in_[sign/house]_spiritual": {
+              "placement": "string",
+              "soul_purpose": "string - 영혼의 목적",
+              "spiritual_gifts": "string - 영적 재능",
+              "karmic_lesson": "string - 카르마 교훈",
+              "meditation_style": "string - 명상/수행 스타일",
+              "transcendence": "string - 초월 경로"
+            }
+          }
+        }
+      }
+    },
+    "dynamics/": {
+      "natal_aspects.json": {
+        "description": "네이탈 차트 내 행성간 애스펙트",
+        "count": 495,
+        "calculation": "55 planet pairs × 9 aspect types",
+        "structure": {
+          "[planet1]_[aspect]_[planet2]": {
+            "planet1": "string",
+            "planet2": "string",
+            "aspect": "string",
+            "core": "string - 핵심 해석 (200자+)",
+            "energy": "string - 에너지 역학",
+            "gift": "string - 이 조합의 선물",
+            "challenge": "string - 이 조합의 도전",
+            "integration": "string - 통합 방법",
+            "famous_examples": "string[] - 유명인 예시"
+          }
+        }
+      },
+      "transits.json": {
+        "description": "트랜짓 행성이 네이탈 행성에 미치는 영향",
+        "count": 900,
+        "calculation": "10 transit planets × 18 natal points × 5 major aspects",
+        "structure": {
+          "TR_[transit_planet]_[aspect]_[natal_point]": {
+            "transit_planet": "string",
+            "natal_point": "string",
+            "aspect": "string",
+            "duration": "string - 대략적 지속 기간",
+            "theme": "string - 주요 테마",
+            "core": "string - 핵심 해석",
+            "opportunity": "string - 기회",
+            "challenge": "string - 도전",
+            "advice": "string - 조언"
+          }
+        }
+      },
+      "retrogrades.json": {
+        "description": "역행 행성 해석",
+        "count": 48,
+        "calculation": "8 retrograde planets × 6 fields",
+        "planets_that_retrograde": [
+          "Mercury",
+          "Venus",
+          "Mars",
+          "Jupiter",
+          "Saturn",
+          "Uranus",
+          "Neptune",
+          "Pluto"
+        ],
+        "structure": {
+          "[planet]_retrograde": {
+            "planet": "string",
+            "frequency": "string - 역행 빈도",
+            "duration": "string - 평균 역행 기간",
+            "natal": {
+              "core": "string - 네이탈 역행 의미",
+              "karma": "string - 카르마적 의미",
+              "gift": "string - 숨겨진 재능",
+              "challenge": "string - 도전 과제"
+            },
+            "transit": {
+              "general": "string - 일반적 트랜짓 역행 영향",
+              "do": "string - 해야 할 것",
+              "avoid": "string - 피해야 할 것"
+            }
+          }
+        }
+      }
+    },
+    "advanced/": {
+      "house_rulers.json": {
+        "description": "하우스 룰러가 다른 하우스에 있을 때",
+        "count": 144,
+        "calculation": "12 houses × 12 houses",
+        "structure": {
+          "ruler_H[X]_in_H[Y]": {
+            "ruling_house": "number",
+            "placed_house": "number",
+            "core": "string - 핵심 해석 (150자+)",
+            "life_connection": "string - 삶의 영역 연결",
+            "expression": "string - 표현 방식",
+            "advice": "string - 조언"
+          }
+        }
+      },
+      "decans.json": {
+        "description": "데칸 (각 사인의 10도 구분)",
+        "count": 180,
+        "calculation": "36 decans × 5 fields",
+        "structure": {
+          "[sign]_decan_[1/2/3]": {
+            "sign": "string",
+            "decan": "number - 1, 2, or 3",
+            "degrees": "string - 0-10, 10-20, or 20-30",
+            "sub_ruler": "string - 데칸 지배 행성",
+            "tarot_card": "string - 연관 타로 카드",
+            "core": "string - 데칸 특성",
+            "flavor": "string - 기본 사인에 더해지는 색채",
+            "famous_examples": "string[] - 유명인 예시"
+          }
+        }
+      },
+      "dignities.json": {
+        "description": "행성 디그니티 상세",
+        "count": 50,
+        "structure": {
+          "dignity_types": {
+            "domicile": {
+              "name_ko": "본위치",
+              "description": "string - 설명",
+              "strength": "number - 강도 점수"
+            },
+            "exaltation": {
+              "name_ko": "고양",
+              "description": "string",
+              "strength": "number"
+            },
+            "detriment": {
+              "name_ko": "손상",
+              "description": "string",
+              "strength": "number"
+            },
+            "fall": {
+              "name_ko": "추락",
+              "description": "string",
+              "strength": "number"
+            },
+            "peregrine": {
+              "name_ko": "방랑",
+              "description": "string",
+              "strength": "number"
+            }
+          },
+          "planet_dignities": {
+            "[planet]": {
+              "domicile": "string[] - 사인",
+              "exaltation": "string - 사인 + 특정 도수",
+              "detriment": "string[] - 사인",
+              "fall": "string - 사인"
+            }
+          }
+        }
+      },
+      "patterns.json": {
+        "description": "차트 패턴 (행성 분포)",
+        "count": 60,
+        "calculation": "12 patterns × 5 fields",
+        "patterns": [
+          "Bowl",
+          "Bucket",
+          "Bundle",
+          "Locomotive",
+          "Seesaw",
+          "Splash",
+          "Splay",
+          "Tripod",
+          "Fan",
+          "Kite",
+          "Grand_Cross",
+          "T_Square"
+        ],
+        "structure": {
+          "[pattern_name]": {
+            "name_ko": "string",
+            "visual": "string - 시각적 설명",
+            "core": "string - 핵심 의미",
+            "psychology": "string - 심리적 특성",
+            "life_approach": "string - 삶에 대한 접근",
+            "challenge": "string - 도전",
+            "famous_examples": "string[]"
+          }
+        }
+      },
+      "configurations.json": {
+        "description": "특수 애스펙트 구조",
+        "count": 40,
+        "calculation": "8 configurations × 5 fields",
+        "configurations": [
+          "Grand_Trine",
+          "T_Square",
+          "Grand_Cross",
+          "Yod",
+          "Mystic_Rectangle",
+          "Kite",
+          "Stellium",
+          "Grand_Sextile"
+        ],
+        "structure": {
+          "[config_name]": {
+            "name_ko": "string",
+            "required_aspects": "string[] - 필요한 애스펙트",
+            "planets_needed": "number - 필요한 행성 수",
+            "core": "string - 핵심 의미",
+            "gift": "string - 재능",
+            "challenge": "string - 도전",
+            "activation": "string - 활성화 방법"
+          }
+        }
+      },
+      "nodes.json": {
+        "description": "달의 노드 축 해석",
+        "count": 60,
+        "structure": {
+          "node_axis_H[X]_H[Y]": {
+            "north_node_house": "number",
+            "south_node_house": "number",
+            "life_direction": "string - 인생 방향",
+            "past_life": "string - 전생 주제",
+            "soul_growth": "string - 영혼 성장 방향",
+            "comfort_zone": "string - 편안하지만 벗어나야 할 것",
+            "destiny_call": "string - 운명의 부름"
+          },
+          "node_in_sign": {
+            "[sign]": {
+              "north_node": "string - 북쪽 노드 해석",
+              "south_node": "string - 남쪽 노드 해석"
+            }
+          }
+        }
+      }
+    },
+    "synastry/": {
+      "planet_aspects.json": {
+        "description": "궁합: A의 행성-B의 행성 애스펙트",
+        "count": 900,
+        "calculation": "10 planets × 10 planets × 9 aspects",
+        "structure": {
+          "SYN_[planetA]_[aspect]_[planetB]": {
+            "person_a_planet": "string",
+            "person_b_planet": "string",
+            "aspect": "string",
+            "attraction": "string - 끌림의 성질",
+            "core": "string - 관계 역학",
+            "gift": "string - 관계의 선물",
+            "challenge": "string - 관계의 도전",
+            "longevity": "string - 장기적 전망",
+            "advice": "string - 조언"
+          }
+        }
+      },
+      "house_overlays.json": {
+        "description": "궁합: A의 행성이 B의 하우스에 떨어질 때",
+        "count": 120,
+        "calculation": "10 planets × 12 houses",
+        "structure": {
+          "OVERLAY_[planet]_in_partner_H[X]": {
+            "planet": "string",
+            "house": "number",
+            "core": "string - 이 영역에서 느끼는 영향",
+            "planet_person_feels": "string - 행성 소유자가 느끼는 것",
+            "house_person_feels": "string - 하우스 소유자가 느끼는 것",
+            "gift": "string - 관계의 선물",
+            "challenge": "string - 주의점"
+          }
+        }
+      },
+      "special_points.json": {
+        "description": "궁합: 특수 포인트 연결",
+        "count": 50,
+        "points": [
+          "Vertex",
+          "Anti-Vertex",
+          "North_Node",
+          "South_Node",
+          "Part_of_Fortune",
+          "Chiron"
+        ],
+        "structure": {
+          "SYN_[pointA]_[aspect]_[pointB]": {
+            "point_a": "string",
+            "point_b": "string",
+            "aspect": "string",
+            "karmic_significance": "string - 카르마적 의미",
+            "core": "string - 핵심 해석",
+            "soul_contract": "string - 영혼 계약 주제"
+          }
+        }
+      }
+    },
+    "composite/": {
+      "placements.json": {
+        "description": "합성 차트 행성 배치",
+        "count": 240,
+        "calculation": "10 planets × 12 houses × 2 (house + sign)",
+        "structure": {
+          "COMP_[planet]_in_H[X]": {
+            "planet": "string",
+            "house": "number",
+            "core": "string - 관계의 본질",
+            "relationship_theme": "string - 관계 테마",
+            "shared_experience": "string - 공유 경험",
+            "growth_area": "string - 함께 성장할 영역"
+          }
+        }
+      },
+      "aspects.json": {
+        "description": "합성 차트 내 애스펙트",
+        "count": 50,
+        "structure": {
+          "COMP_[planet1]_[aspect]_[planet2]": {
+            "planets": "string[]",
+            "aspect": "string",
+            "relationship_dynamic": "string - 관계 역학",
+            "strength": "string - 관계의 강점",
+            "challenge": "string - 관계의 도전"
+          }
+        }
+      }
+    },
+    "returns/": {
+      "solar_return.json": {
+        "description": "솔라 리턴 (생일 차트) 해석",
+        "count": 170,
+        "structure": {
+          "SR_[planet]_in_H[X]": {
+            "planet": "string",
+            "house": "number",
+            "year_theme": "string - 올해의 테마",
+            "focus_area": "string - 집중 영역",
+            "opportunity": "string - 기회",
+            "challenge": "string - 도전"
+          },
+          "SR_ASC_in_[sign]": {
+            "sign": "string",
+            "year_persona": "string - 올해의 페르소나",
+            "approach": "string - 삶에 대한 접근"
+          }
+        }
+      },
+      "lunar_return.json": {
+        "description": "루나 리턴 (월간 차트) 해석",
+        "count": 120,
+        "structure": {
+          "LR_Moon_in_H[X]": {
+            "house": "number",
+            "month_theme": "string - 이달의 테마",
+            "emotional_focus": "string - 감정적 초점",
+            "needs": "string - 이달의 니즈"
+          }
+        }
+      }
+    },
+    "progressions/": {
+      "secondary.json": {
+        "description": "세컨더리 프로그레션 해석",
+        "count": 150,
+        "structure": {
+          "SP_[planet]_enters_[sign]": {
+            "planet": "string",
+            "sign": "string",
+            "life_phase": "string - 인생 단계 변화",
+            "duration": "string - 대략적 기간",
+            "theme": "string - 주요 테마",
+            "inner_shift": "string - 내면 변화"
+          },
+          "SP_[planet]_enters_H[X]": {
+            "planet": "string",
+            "house": "number",
+            "life_focus": "string - 삶의 초점 이동",
+            "new_development": "string - 새로운 발전"
+          }
+        }
+      },
+      "solar_arc.json": {
+        "description": "솔라 아크 프로그레션 해석",
+        "count": 150,
+        "structure": {
+          "SA_[planet]_[aspect]_[natal_point]": {
+            "progressed_planet": "string",
+            "natal_point": "string",
+            "aspect": "string",
+            "timing": "string - 트리거 시점",
+            "life_event": "string - 가능한 인생 사건",
+            "inner_meaning": "string - 내면적 의미"
+          }
+        }
+      }
+    },
+    "eclipses/": {
+      "solar_eclipse.json": {
+        "description": "일식 해석",
+        "count": 60,
+        "structure": {
+          "SOLAR_ECLIPSE_in_H[X]": {
+            "house": "number",
+            "theme": "string - 6개월 테마",
+            "new_beginning": "string - 새로운 시작 영역",
+            "release": "string - 놓아야 할 것",
+            "eclipse_season": "string - 이클립스 시즌 조언"
+          },
+          "SOLAR_ECLIPSE_in_[sign]": {
+            "sign": "string",
+            "collective_theme": "string - 집단적 테마",
+            "personal_impact": "string - 개인적 영향"
+          }
+        }
+      },
+      "lunar_eclipse.json": {
+        "description": "월식 해석",
+        "count": 60,
+        "structure": {
+          "LUNAR_ECLIPSE_in_H[X]": {
+            "house": "number",
+            "emotional_culmination": "string - 감정적 정점",
+            "revelation": "string - 드러나는 것",
+            "release": "string - 감정적 해방"
+          }
+        }
+      }
+    },
+    "fixed_stars/": {
+      "stars.json": {
+        "description": "주요 항성 해석",
+        "count": 200,
+        "stars": [
+          "Regulus",
+          "Spica",
+          "Algol",
+          "Aldebaran",
+          "Antares",
+          "Fomalhaut",
+          "Sirius",
+          "Canopus",
+          "Vega",
+          "Capella",
+          "Rigel",
+          "Betelgeuse",
+          "Polaris",
+          "Deneb",
+          "Altair"
+        ],
+        "structure": {
+          "[star_name]": {
+            "name": "string",
+            "constellation": "string - 별자리",
+            "magnitude": "number - 등급",
+            "longitude": "string - 황경 위치",
+            "nature": "string - 행성적 성질 (Mars/Jupiter 등)",
+            "keywords": "string[]",
+            "core": "string - 핵심 의미",
+            "conjunct_planets": {
+              "[planet]": "string - 해당 행성과 합일 때 의미"
+            },
+            "fame_factor": "string - 명성/성공 관련",
+            "warning": "string - 주의점 (있는 경우)"
+          }
+        }
+      }
+    },
+    "electional/": {
+      "timing.json": {
+        "description": "선택 점성학 - 좋은 타이밍",
+        "count": 60,
+        "structure": {
+          "best_timing_for_[activity]": {
+            "activity": "string - 활동 종류",
+            "moon_phase": "string - 최적 달 위상",
+            "moon_sign": "string[] - 좋은 달 사인",
+            "avoid_moon_sign": "string[] - 피할 달 사인",
+            "helpful_aspects": "string[] - 도움되는 애스펙트",
+            "avoid_aspects": "string[] - 피할 애스펙트",
+            "void_of_course": "string - 보이드 오브 코스 주의",
+            "retrograde_warning": "string - 역행 주의"
+          },
+          "activities": [
+            "marriage",
+            "business_start",
+            "job_interview",
+            "surgery",
+            "travel",
+            "moving",
+            "signing_contract",
+            "first_date",
+            "launch_product",
+            "ask_for_raise",
+            "buy_property",
+            "haircut"
+          ]
+        }
+      }
+    },
+    "meta/": {
+      "elements.json": {
+        "description": "4원소 상세",
+        "count": 20,
+        "structure": {
+          "[element]": {
+            "name_ko": "string",
+            "signs": "string[]",
+            "keywords": "string[]",
+            "psychology": "string - 심리적 특성",
+            "excess": "string - 과다 시",
+            "deficiency": "string - 부족 시",
+            "balance": "string - 균형 방법"
+          }
+        }
+      },
+      "modalities.json": {
+        "description": "3가지 모달리티",
+        "count": 15,
+        "structure": {
+          "[modality]": {
+            "name_ko": "string",
+            "signs": "string[]",
+            "season": "string - 계절적 위치",
+            "keywords": "string[]",
+            "action_style": "string - 행동 스타일",
+            "strength": "string - 강점",
+            "weakness": "string - 약점"
+          }
+        }
+      },
+      "polarities.json": {
+        "description": "음양 극성",
+        "count": 10,
+        "structure": {
+          "[polarity]": {
+            "name_ko": "string",
+            "alternative_names": "string[]",
+            "signs": "string[]",
+            "energy_direction": "string - 에너지 방향",
+            "characteristics": "string - 특성"
+          }
+        }
+      }
+    }
+  },
+  "=== 총계 검증 ===": {
+    "core": {
+      "planets": 180,
+      "signs": 180,
+      "houses": 180,
+      "aspects_types": 45,
+      "subtotal": 585
+    },
+    "placements": {
+      "planet_in_sign": 1296,
+      "planet_in_house": 1296,
+      "domains_love": 432,
+      "domains_career": 432,
+      "domains_health": 432,
+      "domains_wealth": 432,
+      "domains_spiritual": 432,
+      "subtotal": 4752
+    },
+    "dynamics": {
+      "natal_aspects": 495,
+      "transits": 900,
+      "retrogrades": 48,
+      "subtotal": 1443
+    },
+    "advanced": {
+      "house_rulers": 144,
+      "decans": 180,
+      "dignities": 50,
+      "patterns": 60,
+      "configurations": 40,
+      "nodes": 60,
+      "subtotal": 534
+    },
+    "synastry": {
+      "planet_aspects": 900,
+      "house_overlays": 120,
+      "special_points": 50,
+      "subtotal": 1070
+    },
+    "composite": {
+      "placements": 240,
+      "aspects": 50,
+      "subtotal": 290
+    },
+    "returns": {
+      "solar_return": 170,
+      "lunar_return": 120,
+      "subtotal": 290
+    },
+    "progressions": {
+      "secondary": 150,
+      "solar_arc": 150,
+      "subtotal": 300
+    },
+    "eclipses": {
+      "solar_eclipse": 60,
+      "lunar_eclipse": 60,
+      "subtotal": 120
+    },
+    "fixed_stars": {
+      "stars": 200,
+      "subtotal": 200
+    },
+    "electional": {
+      "timing": 60,
+      "subtotal": 60
+    },
+    "meta": {
+      "elements": 20,
+      "modalities": 15,
+      "polarities": 10,
+      "subtotal": 45
+    },
+    "GRAND_TOTAL": 9689,
+    "description": "=== 총계 검증 ===: {'planets': 180, 'signs': 180, 'houses': 180, 'aspects_types': 45, 'subtotal': 585}"
+  }
+}

@@ -1,0 +1,1555 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "synastry/aspects",
+  "$count": 200,
+  "$description": "두 사람 간의 행성 애스펙트 궁합 해석 - 완전판",
+  "$note": "주요 행성 조합 × 5개 애스펙트 + 외행성/카르마 포인트",
+
+  "Sun_aspects": {
+    "Sun_Sun": {
+      "conjunction": {
+        "harmony": 8,
+        "chemistry": "동일한 생일 또는 같은 별자리",
+        "dynamic": "서로를 거울처럼 반영, 강한 동질감",
+        "gift": "깊은 이해, 같은 목표",
+        "challenge": "경쟁, 같은 약점 공유",
+        "growth": "서로의 빛을 키워주기"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "호환되는 원소",
+        "dynamic": "자연스러운 지지와 격려",
+        "gift": "상호 존중, 공동 성장",
+        "challenge": "너무 쉬워서 노력 부족",
+        "growth": "함께 목표를 추구하기"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "같은 원소 (불-불, 땅-땅 등)",
+        "dynamic": "자연스러운 조화와 지지",
+        "gift": "쉬운 상호 이해, 공동 목표",
+        "challenge": "너무 비슷해서 성장 부족",
+        "growth": "서로의 성장 격려하기"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "같은 모달리티 (카디널-카디널 등)",
+        "dynamic": "긴장과 갈등, 하지만 끌림",
+        "gift": "성장 자극, 도전",
+        "challenge": "의지 충돌, 권력 투쟁",
+        "growth": "서로의 다름 존중하기"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "대립 별자리 (양-천칭 등)",
+        "dynamic": "자석처럼 끌림, 보완적",
+        "gift": "균형, 새로운 관점",
+        "challenge": "근본적 차이, 대립",
+        "growth": "대립을 통한 성장"
+      }
+    },
+
+    "Sun_Moon": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "태양인의 빛이 달인의 감정을 비춤",
+        "dynamic": "깊은 정서적 연결, 보호와 지지",
+        "gift": "결혼 지표, 강력한 유대",
+        "challenge": "태양인 지배 경향",
+        "growth": "감정과 의지의 균형"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 감정적 조화",
+        "dynamic": "자연스러운 돌봄과 지지",
+        "gift": "상호 이해, 편안함",
+        "challenge": "깊이 부족 가능",
+        "growth": "감정적 연결 심화"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 감정적 조화",
+        "dynamic": "편안한 동반자 관계",
+        "gift": "정서적 안정, 상호 이해",
+        "challenge": "너무 편안해서 열정 부족",
+        "growth": "깊이 추구하기"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "의지와 감정의 충돌",
+        "dynamic": "오해와 좌절, 하지만 성장",
+        "gift": "서로 다른 관점",
+        "challenge": "감정적 불일치",
+        "growth": "소통 개선"
+      },
+      "opposition": {
+        "harmony": 7,
+        "chemistry": "강한 끌림, 보름달 에너지",
+        "dynamic": "자석처럼 끌리지만 긴장",
+        "gift": "균형, 완전한 결합",
+        "challenge": "감정 vs 의지",
+        "growth": "상호 보완성 인정"
+      }
+    },
+
+    "Sun_Mercury": {
+      "conjunction": {
+        "harmony": 8,
+        "chemistry": "지적 연결, 소통",
+        "dynamic": "태양인이 수성인의 아이디어에 영감",
+        "gift": "쉬운 대화, 지적 자극",
+        "challenge": "수성인이 태양인에게 맞추려 함",
+        "growth": "동등한 지적 교류"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 지적 조화",
+        "dynamic": "자연스러운 대화",
+        "gift": "상호 이해, 아이디어 공유",
+        "challenge": "깊이 부족",
+        "growth": "더 깊은 대화"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 소통",
+        "dynamic": "쉬운 의사소통",
+        "gift": "지적 조화, 이해",
+        "challenge": "너무 비슷한 생각",
+        "growth": "다양한 관점 탐구"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "지적 긴장",
+        "dynamic": "다른 사고방식",
+        "gift": "새로운 관점",
+        "challenge": "오해, 논쟁",
+        "growth": "경청 연습"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "다른 관점에서 배움",
+        "dynamic": "밀고 당기기",
+        "gift": "균형 잡힌 관점",
+        "challenge": "의견 충돌",
+        "growth": "상호 학습"
+      }
+    },
+
+    "Sun_Venus": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "사랑과 존경의 결합",
+        "dynamic": "금성인이 태양인을 숭배",
+        "gift": "로맨스, 상호 존경",
+        "challenge": "금성인의 과도한 양보",
+        "growth": "동등한 파트너십"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 애정",
+        "dynamic": "자연스러운 호감",
+        "gift": "쉬운 애정 표현",
+        "challenge": "깊이 부족",
+        "growth": "사랑 심화"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 애정",
+        "dynamic": "쉬운 로맨스, 조화",
+        "gift": "아름다운 관계",
+        "challenge": "열정 부족 가능",
+        "growth": "깊이 추가하기"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "끌림과 좌절",
+        "dynamic": "가치관 차이",
+        "gift": "성장 자극",
+        "challenge": "사랑 표현 불일치",
+        "growth": "사랑의 언어 배우기"
+      },
+      "opposition": {
+        "harmony": 7,
+        "chemistry": "강한 끌림",
+        "dynamic": "자석 같은 매력",
+        "gift": "상호 보완",
+        "challenge": "가치관 대립",
+        "growth": "균형 찾기"
+      }
+    },
+
+    "Sun_Mars": {
+      "conjunction": {
+        "harmony": 6,
+        "chemistry": "에너지와 열정의 폭발",
+        "dynamic": "강렬한 끌림, 성적 에너지",
+        "gift": "열정, 행동력",
+        "challenge": "경쟁, 분노, 충돌",
+        "growth": "에너지를 건설적으로 사용"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "건설적 에너지",
+        "dynamic": "상호 자극",
+        "gift": "함께 행동, 성취",
+        "challenge": "에너지 분산",
+        "growth": "공동 목표 추구"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 에너지 흐름",
+        "dynamic": "쉬운 협력",
+        "gift": "함께 성취, 열정",
+        "challenge": "도전 부족",
+        "growth": "더 큰 목표"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "뜨거운 긴장, 성적 끌림",
+        "dynamic": "싸움과 화해의 반복",
+        "gift": "열정, 성장 자극",
+        "challenge": "분노, 권력 투쟁",
+        "growth": "건강한 갈등 해결"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "강렬한 끌림과 대립",
+        "dynamic": "밀고 당기기",
+        "gift": "균형, 상호 자극",
+        "challenge": "지속적 대립",
+        "growth": "대립을 협력으로"
+      }
+    },
+
+    "Sun_Jupiter": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "낙관과 확장",
+        "dynamic": "목성인이 태양인의 자신감 증폭",
+        "gift": "성장, 행운, 모험",
+        "challenge": "과대망상, 과도한 낙관",
+        "growth": "현실적 비전"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "자연스러운 성장",
+        "dynamic": "상호 격려",
+        "gift": "기회, 확장",
+        "challenge": "노력 부족",
+        "growth": "함께 성장"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "쉬운 성장과 행운",
+        "dynamic": "자연스러운 확장",
+        "gift": "풍요, 낙관, 지지",
+        "challenge": "안주",
+        "growth": "비전 확장"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "과도한 확장",
+        "dynamic": "판단 차이",
+        "gift": "성장 자극",
+        "challenge": "과장, 무모함",
+        "growth": "현실적 균형"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "다른 철학",
+        "dynamic": "상호 확장",
+        "gift": "새로운 관점",
+        "challenge": "신념 충돌",
+        "growth": "다양성 수용"
+      }
+    },
+
+    "Sun_Saturn": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "토성인이 태양인에게 교훈",
+        "dynamic": "멘토-제자 또는 제한적",
+        "gift": "성숙, 안정, 구조",
+        "challenge": "억압, 비판, 부담",
+        "growth": "건설적 가르침"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "안정적 지지",
+        "dynamic": "실용적 협력",
+        "gift": "구조, 인내, 성취",
+        "challenge": "보수적 경향",
+        "growth": "함께 성장"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "안정적 지지",
+        "dynamic": "건설적인 구조",
+        "gift": "장기적 안정",
+        "challenge": "보수적 경향",
+        "growth": "함께 성장"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "책임과 자유의 갈등",
+        "dynamic": "제한과 좌절",
+        "gift": "성장의 기회",
+        "challenge": "억압, 비판",
+        "growth": "인내와 존중"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "자유 vs 책임",
+        "dynamic": "균형 추구",
+        "gift": "성숙, 안정",
+        "challenge": "제한, 비판",
+        "growth": "균형 찾기"
+      }
+    }
+  },
+
+  "Moon_aspects": {
+    "Moon_Moon": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "감정적 쌍둥이",
+        "dynamic": "깊은 정서적 이해",
+        "gift": "같은 방식으로 느끼고 돌봄",
+        "challenge": "기분이 동시에 나빠짐",
+        "growth": "서로 다른 대처법 배우기"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 감정적 조화",
+        "dynamic": "자연스러운 돌봄",
+        "gift": "상호 이해, 편안함",
+        "challenge": "깊이 부족",
+        "growth": "감정적 연결 심화"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 감정 조화",
+        "dynamic": "편안한 감정적 연결",
+        "gift": "정서적 안전, 이해",
+        "challenge": "너무 편안함",
+        "growth": "깊이 추구"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "감정적 불일치",
+        "dynamic": "다른 정서적 욕구",
+        "gift": "다른 관점",
+        "challenge": "오해, 상처",
+        "growth": "감정적 소통 배우기"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "보완적 감정",
+        "dynamic": "밀고 당기기",
+        "gift": "균형, 완전함",
+        "challenge": "정서적 대립",
+        "growth": "차이 수용"
+      }
+    },
+
+    "Moon_Mercury": {
+      "conjunction": {
+        "harmony": 8,
+        "chemistry": "감정과 사고의 연결",
+        "dynamic": "수성인이 달인의 감정을 이해",
+        "gift": "감정적 소통, 이해",
+        "challenge": "감정의 지성화",
+        "growth": "감정과 논리의 균형"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 소통",
+        "dynamic": "자연스러운 대화",
+        "gift": "감정 표현, 이해",
+        "challenge": "깊이 부족",
+        "growth": "더 깊은 대화"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "쉬운 감정적 소통",
+        "dynamic": "자연스러운 이해",
+        "gift": "감정 표현, 공감",
+        "challenge": "너무 쉬움",
+        "growth": "깊이 추구"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "감정 vs 논리",
+        "dynamic": "오해 가능",
+        "gift": "다른 관점",
+        "challenge": "소통 장애",
+        "growth": "경청과 이해"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "다른 표현 방식",
+        "dynamic": "상호 보완",
+        "gift": "균형 잡힌 소통",
+        "challenge": "오해",
+        "growth": "상호 학습"
+      }
+    },
+
+    "Moon_Venus": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "따뜻하고 애정 넘치는",
+        "dynamic": "자연스러운 애정 표현",
+        "gift": "편안한 사랑, 돌봄",
+        "challenge": "과도한 의존",
+        "growth": "건강한 경계"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 애정",
+        "dynamic": "자연스러운 돌봄",
+        "gift": "편안한 사랑",
+        "challenge": "깊이 부족",
+        "growth": "사랑 심화"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "조화로운 감정과 사랑",
+        "dynamic": "쉬운 애정 표현",
+        "gift": "아름다운 유대",
+        "challenge": "갈등 회피",
+        "growth": "진실된 소통"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "감정과 가치관 불일치",
+        "dynamic": "다른 사랑 표현",
+        "gift": "성장 기회",
+        "challenge": "상처, 오해",
+        "growth": "사랑의 언어 배우기"
+      },
+      "opposition": {
+        "harmony": 7,
+        "chemistry": "강한 끌림",
+        "dynamic": "상호 보완",
+        "gift": "균형 잡힌 사랑",
+        "challenge": "감정 충돌",
+        "growth": "차이 수용"
+      }
+    },
+
+    "Moon_Mars": {
+      "conjunction": {
+        "harmony": 6,
+        "chemistry": "감정과 열정의 결합",
+        "dynamic": "강렬한 감정적 반응",
+        "gift": "보호 본능, 열정",
+        "challenge": "감정적 폭발",
+        "growth": "분노 관리"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "건설적 열정",
+        "dynamic": "감정적 동기 부여",
+        "gift": "행동력, 보호",
+        "challenge": "에너지 조절",
+        "growth": "감정적 지혜"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 열정",
+        "dynamic": "감정적 에너지 흐름",
+        "gift": "보호, 행동력",
+        "challenge": "도전 부족",
+        "growth": "건강한 표현"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "감정적 긴장",
+        "dynamic": "상처와 분노",
+        "gift": "성장 자극",
+        "challenge": "감정적 전쟁",
+        "growth": "안전한 감정 표현"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "강렬한 끌림과 갈등",
+        "dynamic": "밀고 당기기",
+        "gift": "열정, 균형",
+        "challenge": "감정적 대립",
+        "growth": "건강한 갈등 해결"
+      }
+    },
+
+    "Moon_Jupiter": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "감정적 풍요",
+        "dynamic": "목성인이 달인에게 안정 제공",
+        "gift": "감정적 성장, 낙관",
+        "challenge": "감정적 과잉",
+        "growth": "감정적 지혜"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 정서적 성장",
+        "dynamic": "상호 지지",
+        "gift": "낙관, 안정",
+        "challenge": "노력 부족",
+        "growth": "함께 성장"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 감정적 풍요",
+        "dynamic": "쉬운 정서적 지지",
+        "gift": "행복, 낙관, 안정",
+        "challenge": "안주",
+        "growth": "감정적 깊이"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "감정적 과잉",
+        "dynamic": "다른 정서적 욕구",
+        "gift": "성장 자극",
+        "challenge": "감정 기복",
+        "growth": "감정적 균형"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "다른 정서적 접근",
+        "dynamic": "상호 확장",
+        "gift": "새로운 관점",
+        "challenge": "감정 충돌",
+        "growth": "다양성 수용"
+      }
+    },
+
+    "Moon_Saturn": {
+      "conjunction": {
+        "harmony": 4,
+        "chemistry": "감정적 제한",
+        "dynamic": "토성인이 달인을 진지하게 만듦",
+        "gift": "정서적 안정, 성숙",
+        "challenge": "냉담함, 억압",
+        "growth": "안전한 감정 표현"
+      },
+      "sextile": {
+        "harmony": 6,
+        "chemistry": "안정적 정서",
+        "dynamic": "실용적 돌봄",
+        "gift": "성숙, 안정",
+        "challenge": "보수적 경향",
+        "growth": "감정적 성장"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "안정적 감정적 지지",
+        "dynamic": "성숙한 돌봄",
+        "gift": "정서적 안정, 헌신",
+        "challenge": "감정 억압",
+        "growth": "건강한 감정 표현"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "감정적 억압",
+        "dynamic": "냉담함, 거리감",
+        "gift": "성숙 기회",
+        "challenge": "정서적 상처",
+        "growth": "안전한 감정 표현"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "감정 vs 책임",
+        "dynamic": "거리감",
+        "gift": "성숙, 안정",
+        "challenge": "정서적 냉담",
+        "growth": "균형 찾기"
+      }
+    }
+  },
+
+  "Mercury_aspects": {
+    "Mercury_Mercury": {
+      "conjunction": {
+        "harmony": 8,
+        "chemistry": "같은 사고방식",
+        "dynamic": "쉬운 소통, 이해",
+        "gift": "지적 동반자",
+        "challenge": "같은 맹점",
+        "growth": "다양한 관점 탐구"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "호환되는 사고",
+        "dynamic": "부드러운 대화",
+        "gift": "상호 이해, 학습",
+        "challenge": "깊이 부족",
+        "growth": "더 깊은 탐구"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 지적 조화",
+        "dynamic": "쉬운 의사소통",
+        "gift": "지적 연결, 이해",
+        "challenge": "도전 부족",
+        "growth": "새로운 아이디어"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "다른 사고방식",
+        "dynamic": "논쟁, 오해",
+        "gift": "새로운 관점",
+        "challenge": "소통 어려움",
+        "growth": "경청 연습"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "대립적 관점",
+        "dynamic": "다른 시각",
+        "gift": "균형 잡힌 관점",
+        "challenge": "의견 충돌",
+        "growth": "상호 학습"
+      }
+    },
+
+    "Mercury_Venus": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "사랑의 언어",
+        "dynamic": "감미로운 대화",
+        "gift": "로맨틱 소통, 예술",
+        "challenge": "피상적일 수 있음",
+        "growth": "깊이 있는 대화"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 대화",
+        "dynamic": "자연스러운 애정 표현",
+        "gift": "쉬운 소통",
+        "challenge": "깊이 부족",
+        "growth": "사랑 심화"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "조화로운 소통과 사랑",
+        "dynamic": "쉬운 애정 표현",
+        "gift": "아름다운 대화",
+        "challenge": "너무 쉬움",
+        "growth": "깊이 추구"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "소통 스타일 차이",
+        "dynamic": "오해 가능",
+        "gift": "다른 관점",
+        "challenge": "사랑 표현 불일치",
+        "growth": "경청과 이해"
+      },
+      "opposition": {
+        "harmony": 7,
+        "chemistry": "다른 소통 스타일",
+        "dynamic": "상호 보완",
+        "gift": "균형 잡힌 표현",
+        "challenge": "오해",
+        "growth": "상호 학습"
+      }
+    },
+
+    "Mercury_Mars": {
+      "conjunction": {
+        "harmony": 6,
+        "chemistry": "활발한 토론",
+        "dynamic": "날카로운 대화",
+        "gift": "지적 자극, 결단력",
+        "challenge": "논쟁, 공격적 소통",
+        "growth": "건설적 토론"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "건설적 토론",
+        "dynamic": "활발한 아이디어 교환",
+        "gift": "행동력, 결단",
+        "challenge": "성급함",
+        "growth": "사려 깊은 행동"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 지적 에너지",
+        "dynamic": "쉬운 행동력",
+        "gift": "결단력, 추진력",
+        "challenge": "도전 부족",
+        "growth": "전략적 사고"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "지적 갈등",
+        "dynamic": "날카로운 논쟁",
+        "gift": "사고 자극",
+        "challenge": "분노, 공격성",
+        "growth": "인내와 경청"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "대립적 아이디어",
+        "dynamic": "토론과 갈등",
+        "gift": "다른 관점",
+        "challenge": "논쟁",
+        "growth": "건설적 토론"
+      }
+    },
+
+    "Mercury_Jupiter": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "지적 확장",
+        "dynamic": "풍부한 아이디어 교환",
+        "gift": "학습, 철학, 여행",
+        "challenge": "과장, 산만함",
+        "growth": "집중과 깊이"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 지적 성장",
+        "dynamic": "자연스러운 학습",
+        "gift": "지식 확장",
+        "challenge": "노력 부족",
+        "growth": "깊이 있는 학습"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 지적 조화",
+        "dynamic": "쉬운 학습과 소통",
+        "gift": "지혜, 철학, 여행",
+        "challenge": "안주",
+        "growth": "지식 공유"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "과도한 정보",
+        "dynamic": "다른 관점",
+        "gift": "지적 자극",
+        "challenge": "과장, 오해",
+        "growth": "경청과 집중"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "다른 철학",
+        "dynamic": "관점 확장",
+        "gift": "새로운 시각",
+        "challenge": "신념 충돌",
+        "growth": "다양성 수용"
+      }
+    },
+
+    "Mercury_Saturn": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "진지한 대화",
+        "dynamic": "토성인이 수성인을 진지하게 만듦",
+        "gift": "깊은 사고, 구조",
+        "challenge": "비관, 비판",
+        "growth": "균형 잡힌 사고"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "안정적 소통",
+        "dynamic": "실용적 대화",
+        "gift": "구조적 사고",
+        "challenge": "보수적 경향",
+        "growth": "창의성 추가"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "안정적 지적 연결",
+        "dynamic": "진지한 대화",
+        "gift": "깊은 사고, 계획",
+        "challenge": "유연성 부족",
+        "growth": "열린 마음"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "비판적 소통",
+        "dynamic": "제한된 대화",
+        "gift": "구조적 사고",
+        "challenge": "비관, 비판",
+        "growth": "긍정적 소통"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "사고 스타일 차이",
+        "dynamic": "진지함 vs 유연함",
+        "gift": "균형 잡힌 사고",
+        "challenge": "소통 어려움",
+        "growth": "상호 존중"
+      }
+    }
+  },
+
+  "Venus_aspects": {
+    "Venus_Venus": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "같은 사랑 언어",
+        "dynamic": "가치관과 취향 공유",
+        "gift": "조화로운 사랑",
+        "challenge": "같은 약점",
+        "growth": "성장 함께하기"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "호환되는 가치관",
+        "dynamic": "부드러운 애정",
+        "gift": "쉬운 사랑",
+        "challenge": "깊이 부족",
+        "growth": "사랑 심화"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 조화",
+        "dynamic": "쉬운 애정 교환",
+        "gift": "아름다운 관계",
+        "challenge": "너무 쉬움",
+        "growth": "깊이 추가"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "다른 가치관",
+        "dynamic": "취향 충돌",
+        "gift": "새로운 관점",
+        "challenge": "가치 갈등",
+        "growth": "존중 배우기"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "대립적 가치관",
+        "dynamic": "밀고 당기기",
+        "gift": "균형, 보완",
+        "challenge": "취향 충돌",
+        "growth": "차이 수용"
+      }
+    },
+
+    "Venus_Mars": {
+      "conjunction": {
+        "harmony": 8,
+        "chemistry": "강력한 성적 끌림",
+        "dynamic": "사랑과 열정의 완벽한 결합",
+        "gift": "로맨틱하고 열정적",
+        "challenge": "육체적 끌림에 치우침",
+        "growth": "감정적 깊이 추가"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 열정",
+        "dynamic": "자연스러운 로맨스",
+        "gift": "조화로운 사랑과 열정",
+        "challenge": "깊이 부족",
+        "growth": "관계 심화"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 성적/로맨틱 조화",
+        "dynamic": "쉬운 육체적 표현",
+        "gift": "만족스러운 관계",
+        "challenge": "도전 부족",
+        "growth": "깊이 추구"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "뜨거운 긴장, 강한 끌림",
+        "dynamic": "푸시-풀 역학",
+        "gift": "열정, 흥분",
+        "challenge": "좌절, 타이밍 불일치",
+        "growth": "인내와 소통"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "자석 같은 끌림",
+        "dynamic": "남성/여성 에너지 대립",
+        "gift": "보완적 에너지",
+        "challenge": "역할 갈등",
+        "growth": "균형 찾기"
+      }
+    },
+
+    "Venus_Jupiter": {
+      "conjunction": {
+        "harmony": 9,
+        "chemistry": "풍요로운 사랑",
+        "dynamic": "낙관적 관계",
+        "gift": "행운, 풍요, 성장",
+        "challenge": "과도한 방종",
+        "growth": "절제된 풍요"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "부드러운 성장",
+        "dynamic": "자연스러운 풍요",
+        "gift": "사랑과 행운",
+        "challenge": "노력 부족",
+        "growth": "감사 표현"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 풍요와 사랑",
+        "dynamic": "쉬운 행복",
+        "gift": "행운, 조화, 아름다움",
+        "challenge": "안주",
+        "growth": "나눔"
+      },
+      "square": {
+        "harmony": 6,
+        "chemistry": "과도한 쾌락",
+        "dynamic": "가치관 차이",
+        "gift": "성장 자극",
+        "challenge": "과소비, 방종",
+        "growth": "절제"
+      },
+      "opposition": {
+        "harmony": 7,
+        "chemistry": "다른 가치관",
+        "dynamic": "상호 확장",
+        "gift": "균형, 성장",
+        "challenge": "과도함",
+        "growth": "균형 찾기"
+      }
+    },
+
+    "Venus_Saturn": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "진지하고 헌신적인 사랑",
+        "dynamic": "토성인이 금성인을 진지하게 만듦",
+        "gift": "장기적 헌신, 충성",
+        "challenge": "냉담함, 제한, 비판",
+        "growth": "따뜻함과 구조의 균형"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "안정적 사랑",
+        "dynamic": "실용적 헌신",
+        "gift": "충성, 안정",
+        "challenge": "보수적 경향",
+        "growth": "로맨스 추가"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "안정적 관계",
+        "dynamic": "성숙한 사랑",
+        "gift": "장기적 헌신",
+        "challenge": "열정 부족",
+        "growth": "스파크 유지"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "사랑과 책임의 갈등",
+        "dynamic": "제한된 사랑 표현",
+        "gift": "성숙한 사랑 배우기",
+        "challenge": "냉담함, 거부감",
+        "growth": "인내와 따뜻함"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "사랑 vs 책임",
+        "dynamic": "균형 추구",
+        "gift": "성숙, 헌신",
+        "challenge": "냉담함",
+        "growth": "균형 찾기"
+      }
+    }
+  },
+
+  "Mars_aspects": {
+    "Mars_Mars": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "강렬한 에너지",
+        "dynamic": "경쟁 또는 협력",
+        "gift": "같은 행동 스타일",
+        "challenge": "권력 투쟁, 경쟁",
+        "growth": "협력 학습"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "건설적 에너지",
+        "dynamic": "상호 자극",
+        "gift": "함께 행동",
+        "challenge": "에너지 분산",
+        "growth": "공동 목표"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 에너지 흐름",
+        "dynamic": "쉬운 협력",
+        "gift": "함께 성취",
+        "challenge": "도전 부족",
+        "growth": "더 큰 목표"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "뜨거운 갈등",
+        "dynamic": "경쟁, 싸움",
+        "gift": "성장 자극",
+        "challenge": "분노, 폭력",
+        "growth": "건강한 갈등 해결"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "대립적 에너지",
+        "dynamic": "밀고 당기기",
+        "gift": "균형, 상호 자극",
+        "challenge": "지속적 대립",
+        "growth": "협력 학습"
+      }
+    },
+
+    "Mars_Jupiter": {
+      "conjunction": {
+        "harmony": 8,
+        "chemistry": "확장된 에너지",
+        "dynamic": "대담한 행동",
+        "gift": "성공, 모험, 용기",
+        "challenge": "무모함",
+        "growth": "지혜로운 행동"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "건설적 에너지",
+        "dynamic": "낙관적 행동",
+        "gift": "성취, 기회",
+        "challenge": "노력 부족",
+        "growth": "꾸준한 행동"
+      },
+      "trine": {
+        "harmony": 9,
+        "chemistry": "자연스러운 성공",
+        "dynamic": "쉬운 성취",
+        "gift": "행운, 에너지, 성공",
+        "challenge": "안주",
+        "growth": "더 큰 목표"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "과도한 에너지",
+        "dynamic": "무모한 행동",
+        "gift": "성장 자극",
+        "challenge": "충동, 과신",
+        "growth": "신중함"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "다른 행동 스타일",
+        "dynamic": "상호 확장",
+        "gift": "균형, 성장",
+        "challenge": "충돌",
+        "growth": "협력"
+      }
+    },
+
+    "Mars_Saturn": {
+      "conjunction": {
+        "harmony": 4,
+        "chemistry": "억제된 에너지",
+        "dynamic": "토성인이 화성인을 제한",
+        "gift": "규율, 인내, 지구력",
+        "challenge": "좌절, 분노 억압",
+        "growth": "건설적 에너지"
+      },
+      "sextile": {
+        "harmony": 6,
+        "chemistry": "규율된 에너지",
+        "dynamic": "실용적 행동",
+        "gift": "인내, 성취",
+        "challenge": "느린 진전",
+        "growth": "꾸준한 노력"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "안정적 에너지",
+        "dynamic": "규율된 행동",
+        "gift": "지구력, 성취",
+        "challenge": "느린 속도",
+        "growth": "장기적 성공"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "좌절된 에너지",
+        "dynamic": "억압과 폭발",
+        "gift": "인내 학습",
+        "challenge": "분노, 좌절",
+        "growth": "건강한 분노 표현"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "행동 vs 제한",
+        "dynamic": "균형 추구",
+        "gift": "규율, 인내",
+        "challenge": "좌절",
+        "growth": "균형 찾기"
+      }
+    }
+  },
+
+  "outer_planet_aspects": {
+    "Pluto_Sun": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "강렬하고 변형적",
+        "dynamic": "플루토인이 태양인을 변형시킴",
+        "gift": "깊은 변형, 권력",
+        "challenge": "통제, 집착, 권력 투쟁",
+        "growth": "건강한 권력 역학"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "강렬한 긴장",
+        "dynamic": "권력 투쟁",
+        "gift": "변형 기회",
+        "challenge": "통제, 조종",
+        "growth": "건강한 권력"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "강렬한 끌림과 대립",
+        "dynamic": "권력 역학",
+        "gift": "깊은 변형",
+        "challenge": "통제, 대립",
+        "growth": "균형 찾기"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "자연스러운 변형",
+        "dynamic": "깊은 연결",
+        "gift": "권력, 변형",
+        "challenge": "조종 경향",
+        "growth": "지혜로운 권력 사용"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "변형 기회",
+        "dynamic": "건설적 깊이",
+        "gift": "심층적 연결",
+        "challenge": "변화 저항",
+        "growth": "변형 수용"
+      }
+    },
+
+    "Pluto_Moon": {
+      "conjunction": {
+        "harmony": 4,
+        "chemistry": "강렬한 감정적 연결",
+        "dynamic": "플루토인이 달인의 감정을 변형",
+        "gift": "깊은 치유, 통찰",
+        "challenge": "감정적 조종, 집착",
+        "growth": "건강한 감정적 경계"
+      },
+      "square": {
+        "harmony": 3,
+        "chemistry": "감정적 위기",
+        "dynamic": "강렬한 감정",
+        "gift": "치유 기회",
+        "challenge": "조종, 집착",
+        "growth": "감정적 경계"
+      },
+      "opposition": {
+        "harmony": 4,
+        "chemistry": "강렬한 정서적 끌림",
+        "dynamic": "감정적 권력 역학",
+        "gift": "깊은 연결",
+        "challenge": "감정적 조종",
+        "growth": "건강한 경계"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "자연스러운 감정적 깊이",
+        "dynamic": "깊은 정서적 연결",
+        "gift": "치유, 직관",
+        "challenge": "의존 경향",
+        "growth": "감정적 지혜"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "감정적 변형 기회",
+        "dynamic": "건설적 깊이",
+        "gift": "치유, 통찰",
+        "challenge": "변화 저항",
+        "growth": "감정적 성장"
+      }
+    },
+
+    "Pluto_Venus": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "매우 강렬한 끌림",
+        "dynamic": "집착적이고 변형적인 사랑",
+        "gift": "깊은 친밀감, 완전한 헌신",
+        "challenge": "질투, 집착, 통제",
+        "growth": "건강한 사랑 배우기"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "강렬하고 어려운 끌림",
+        "dynamic": "질투와 집착",
+        "gift": "변형적 사랑",
+        "challenge": "통제, 조종",
+        "growth": "집착 내려놓기"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "자석 같은 끌림",
+        "dynamic": "권력 역학",
+        "gift": "깊은 변형",
+        "challenge": "질투, 통제",
+        "growth": "건강한 관계 역학"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 깊은 끌림",
+        "dynamic": "깊은 사랑",
+        "gift": "변형적 관계",
+        "challenge": "의존 경향",
+        "growth": "균형 잡힌 사랑"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "깊은 끌림 기회",
+        "dynamic": "건설적 깊이",
+        "gift": "친밀감, 변형",
+        "challenge": "변화 저항",
+        "growth": "관계 심화"
+      }
+    },
+
+    "Neptune_Venus": {
+      "conjunction": {
+        "harmony": 7,
+        "chemistry": "영혼의 사랑, 이상적",
+        "dynamic": "로맨틱하고 영적",
+        "gift": "무조건적 사랑, 영적 연결",
+        "challenge": "환상, 실망, 희생",
+        "growth": "현실적 기대"
+      },
+      "square": {
+        "harmony": 5,
+        "chemistry": "환상적 끌림",
+        "dynamic": "이상화와 실망",
+        "gift": "영적 사랑 배우기",
+        "challenge": "환상, 속임",
+        "growth": "현실적 사랑"
+      },
+      "opposition": {
+        "harmony": 6,
+        "chemistry": "로맨틱한 환상",
+        "dynamic": "이상 투사",
+        "gift": "영적 연결",
+        "challenge": "실망, 환멸",
+        "growth": "있는 그대로 보기"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 영적 사랑",
+        "dynamic": "로맨틱하고 영감적",
+        "gift": "아름다운 사랑",
+        "challenge": "비현실성",
+        "growth": "현실에 발 딛기"
+      },
+      "sextile": {
+        "harmony": 8,
+        "chemistry": "영적 사랑 기회",
+        "dynamic": "부드러운 로맨스",
+        "gift": "영감, 예술",
+        "challenge": "환상 경향",
+        "growth": "균형 잡힌 사랑"
+      }
+    },
+
+    "Uranus_Venus": {
+      "conjunction": {
+        "harmony": 6,
+        "chemistry": "전기적, 갑작스러운 끌림",
+        "dynamic": "예측 불가, 흥미로운",
+        "gift": "자유로운 사랑, 독특함",
+        "challenge": "불안정, 갑작스러운 분리",
+        "growth": "자유와 헌신의 균형"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "불안정한 끌림",
+        "dynamic": "갑작스러운 변화",
+        "gift": "흥분, 자유",
+        "challenge": "불안정, 분리",
+        "growth": "안정과 자유의 균형"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "자석 같은 불안정한 끌림",
+        "dynamic": "밀고 당기기",
+        "gift": "자유, 흥분",
+        "challenge": "불안정",
+        "growth": "균형 찾기"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 자유로운 사랑",
+        "dynamic": "흥미롭고 독특한",
+        "gift": "창의성, 자유",
+        "challenge": "안정 부족",
+        "growth": "지속적 흥분 유지"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "흥미로운 끌림 기회",
+        "dynamic": "부드러운 혁신",
+        "gift": "자유, 독특함",
+        "challenge": "변화 저항",
+        "growth": "관계 혁신"
+      }
+    },
+
+    "Neptune_Moon": {
+      "conjunction": {
+        "harmony": 7,
+        "chemistry": "깊은 영적 감정 연결",
+        "dynamic": "직관적이고 공감적",
+        "gift": "영적 유대, 직관",
+        "challenge": "경계 부족, 의존",
+        "growth": "건강한 경계"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "감정적 혼란",
+        "dynamic": "환상과 실망",
+        "gift": "영적 성장",
+        "challenge": "혼란, 의존",
+        "growth": "현실 직시"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 영적 감수성",
+        "dynamic": "직관적 연결",
+        "gift": "공감, 돌봄",
+        "challenge": "경계 부족",
+        "growth": "균형 잡힌 돌봄"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "감정 투사",
+        "dynamic": "이상화",
+        "gift": "영적 연결",
+        "challenge": "혼란, 실망",
+        "growth": "현실적 기대"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "영적 감정 기회",
+        "dynamic": "부드러운 직관",
+        "gift": "공감, 이해",
+        "challenge": "환상 경향",
+        "growth": "직관 발달"
+      }
+    },
+
+    "Uranus_Moon": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "흥미롭고 불안정한 감정",
+        "dynamic": "예측 불가한 정서적 연결",
+        "gift": "자유, 흥분, 각성",
+        "challenge": "감정적 불안정",
+        "growth": "변화 속 안정"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "감정적 혼란",
+        "dynamic": "갑작스러운 변화",
+        "gift": "각성 기회",
+        "challenge": "불안정, 불안",
+        "growth": "유연성"
+      },
+      "trine": {
+        "harmony": 7,
+        "chemistry": "자연스러운 감정적 자유",
+        "dynamic": "흥미로운 정서적 연결",
+        "gift": "직관, 자유",
+        "challenge": "안정 부족",
+        "growth": "건강한 자유"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "감정적 밀고 당기기",
+        "dynamic": "불안정한 연결",
+        "gift": "각성, 성장",
+        "challenge": "혼란",
+        "growth": "균형 찾기"
+      },
+      "sextile": {
+        "harmony": 7,
+        "chemistry": "감정적 혁신 기회",
+        "dynamic": "부드러운 변화",
+        "gift": "직관, 자유",
+        "challenge": "변화 저항",
+        "growth": "감정적 성장"
+      }
+    }
+  },
+
+  "karmic_aspects": {
+    "South_Node_conjunctions": {
+      "SN_Sun": {
+        "harmony": 7,
+        "chemistry": "과거 생 연결, 익숙한 에너지",
+        "dynamic": "편안하지만 과거에 묶임",
+        "gift": "깊은 이해",
+        "challenge": "성장 부족, 반복",
+        "growth": "새로운 패턴 배우기"
+      },
+      "SN_Moon": {
+        "harmony": 7,
+        "chemistry": "깊은 과거 생 감정 연결",
+        "dynamic": "돌아온 가족 같은 느낌",
+        "gift": "즉각적 친밀감",
+        "challenge": "과거 패턴에 갇힘",
+        "growth": "새로운 감정 패턴"
+      },
+      "SN_Venus": {
+        "harmony": 8,
+        "chemistry": "과거 생 연인",
+        "dynamic": "카르마적 사랑",
+        "gift": "깊은 끌림",
+        "challenge": "미해결 카르마",
+        "growth": "카르마 해소"
+      },
+      "SN_Mars": {
+        "harmony": 5,
+        "chemistry": "과거 생 전쟁/갈등",
+        "dynamic": "해결 필요",
+        "gift": "성장 기회",
+        "challenge": "반복되는 갈등",
+        "growth": "갈등 해결 학습"
+      }
+    },
+    "North_Node_conjunctions": {
+      "NN_Sun": {
+        "harmony": 9,
+        "chemistry": "미래를 위한 연결",
+        "dynamic": "성장 파트너",
+        "gift": "함께 성장",
+        "challenge": "불편할 수 있음",
+        "growth": "새로운 방향"
+      },
+      "NN_Moon": {
+        "harmony": 8,
+        "chemistry": "감정적 성장 파트너",
+        "dynamic": "정서적 진화",
+        "gift": "감정적 성장",
+        "challenge": "불편한 성장",
+        "growth": "새로운 감정 패턴"
+      },
+      "NN_Venus": {
+        "harmony": 9,
+        "chemistry": "영혼 계약",
+        "dynamic": "서로를 위한 만남",
+        "gift": "사랑을 통한 성장",
+        "challenge": "성장통",
+        "growth": "진정한 사랑"
+      },
+      "NN_Mars": {
+        "harmony": 7,
+        "chemistry": "함께 행동하는 운명",
+        "dynamic": "공동 미션",
+        "gift": "함께 성취",
+        "challenge": "에너지 조율",
+        "growth": "협력적 행동"
+      }
+    }
+  },
+
+  "Chiron_aspects": {
+    "Chiron_Sun": {
+      "conjunction": {
+        "harmony": 6,
+        "chemistry": "치유적 연결",
+        "dynamic": "키론인이 태양인의 상처를 비춤",
+        "gift": "상호 치유",
+        "challenge": "상처 자극",
+        "growth": "치유를 통한 성장"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "상처 자극",
+        "dynamic": "아픈 성장",
+        "gift": "치유 기회",
+        "challenge": "고통",
+        "growth": "상처 수용"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 치유",
+        "dynamic": "상호 치유",
+        "gift": "지혜, 치유",
+        "challenge": "상처 회피",
+        "growth": "치유 심화"
+      },
+      "opposition": {
+        "harmony": 5,
+        "chemistry": "상처 투사",
+        "dynamic": "서로의 상처 비춤",
+        "gift": "인식, 치유",
+        "challenge": "고통",
+        "growth": "균형 잡힌 치유"
+      }
+    },
+    "Chiron_Venus": {
+      "conjunction": {
+        "harmony": 6,
+        "chemistry": "사랑의 상처와 치유",
+        "dynamic": "관계를 통한 치유",
+        "gift": "깊은 사랑, 치유",
+        "challenge": "상처, 취약함",
+        "growth": "취약함 수용"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "사랑의 상처",
+        "dynamic": "아픈 사랑",
+        "gift": "치유 기회",
+        "challenge": "고통, 거부",
+        "growth": "자기 사랑"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 사랑 치유",
+        "dynamic": "치유적 관계",
+        "gift": "따뜻함, 치유",
+        "challenge": "상처 회피",
+        "growth": "깊은 사랑"
+      }
+    },
+    "Chiron_Moon": {
+      "conjunction": {
+        "harmony": 5,
+        "chemistry": "감정적 상처와 치유",
+        "dynamic": "정서적 치유 기회",
+        "gift": "깊은 공감, 치유",
+        "challenge": "감정적 상처 자극",
+        "growth": "감정적 치유"
+      },
+      "square": {
+        "harmony": 4,
+        "chemistry": "감정적 상처",
+        "dynamic": "아픈 감정",
+        "gift": "치유 기회",
+        "challenge": "감정적 고통",
+        "growth": "자기 돌봄"
+      },
+      "trine": {
+        "harmony": 8,
+        "chemistry": "자연스러운 감정적 치유",
+        "dynamic": "치유적 돌봄",
+        "gift": "공감, 치유",
+        "challenge": "상처 회피",
+        "growth": "감정적 지혜"
+      }
+    }
+  }
+}

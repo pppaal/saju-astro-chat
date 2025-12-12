@@ -1,0 +1,26 @@
+id,src,dst,relation,desc,weight,description
+persona-001,shadow,integration,requires,그림자를 통합해야 온전한 자기가 됨,5,Entry: Astro interpretation data.
+persona-002,anima,integration,requires,아니마/아니무스 통합이 개성화의 핵심,5,Entry: Astro interpretation data.
+persona-003,animus,integration,requires,아니마/아니무스 통합이 개성화의 핵심,5,Entry: Astro interpretation data.
+persona-004,integration,individuation,leads_to,통합 작업이 개성화로 이어짐,5,Entry: Astro interpretation data.
+persona-005,persona,shadow,opposes,페르소나는 그림자의 반대,3,Entry: Astro interpretation data.
+persona-006,collective_unconscious,archetype,contains,집단 무의식은 원형들을 포함,5,Entry: Astro interpretation data.
+persona-007,archetype,synchronicity,manifests_in,원형은 공시성으로 나타남,4,Entry: Astro interpretation data.
+persona-008,ego,self,evolves_to,자아가 확장되어 자기가 됨,5,Entry: Astro interpretation data.
+persona-009,dream_analysis,collective_unconscious,accesses,꿈 분석으로 집단 무의식에 접근,4,Entry: Astro interpretation data.
+persona-010,active_imagination,shadow,confronts,능동적 상상으로 그림자를 대면,4,Entry: Astro interpretation data.
+persona-011,dichotomy_of_control,virtue,supports,통제 이분법이 덕을 실천하게 함,5,Entry: Astro interpretation data.
+persona-012,wisdom,courage,supports,지혜가 용기를 가능하게 함,4,Entry: Astro interpretation data.
+persona-013,courage,temperance,balances,용기와 절제가 균형을 이룸,4,Entry: Astro interpretation data.
+persona-014,temperance,justice,enables,절제가 정의를 가능하게 함,4,Entry: Astro interpretation data.
+persona-015,memento_mori,inner_citadel,strengthens,죽음을 기억하면 내면이 강해짐,5,Entry: Astro interpretation data.
+persona-016,amor_fati,equanimity,leads_to,운명을 사랑하면 평정심을 얻음,5,Entry: Astro interpretation data.
+persona-017,premeditatio_malorum,apatheia,cultivates,최악 명상이 감정적 자유를 기름,4,Entry: Astro interpretation data.
+persona-018,negative_visualization,premeditatio_malorum,similar_to,네거티브 비주얼라이제이션은 최악 명상과 유사,3,Entry: Astro interpretation data.
+persona-019,obstacle_is_way,virtue,practice_of,장애물을 길로 삼는 것이 덕의 실천,5,Entry: Astro interpretation data.
+persona-020,view_from_above,logos,aligns_with,위에서 보기는 로고스와 일치,4,Entry: Astro interpretation data.
+persona-021,live_according_to_nature,logos,follows,자연에 따라 사는 것은 로고스를 따름,5,Entry: Astro interpretation data.
+persona-022,dichotomy_of_control,inner_citadel,protects,통제 이분법이 내면의 성채를 지킴,5,Entry: Astro interpretation data.
+persona-023,virtue,eudaimonia,leads_to,덕이 에우다이모니아로 이어짐,5,Entry: Astro interpretation data.
+persona-024,equanimity,eudaimonia,component_of,평정심은 에우다이모니아의 일부,4,Entry: Astro interpretation data.
+persona-025,oikeiosis,justice,expands_to,오이케이오시스가 정의로 확장됨,4,Entry: Astro interpretation data.

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { useI18n } from '@/i18n/I18nProvider';
 import styles from './DestinyVisualizer.module.css';
 
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine';
@@ -50,6 +51,7 @@ const auraColors: { [key: string]: number } = { Wood: 0x4caf50, Fire: 0xf44336, 
 const auraHex: { [key: string]: string } = { Wood: '#4caf50', Fire: '#f44336', Earth: '#ffeb3b', Metal: '#9e9e9e', Water: '#2196f3' };
 
 export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) => {
+  const { t } = useI18n();
   const mountRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState({
     visible: false,
@@ -296,8 +298,8 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
     return (
       <div className={styles.fallback}>
         <div className={styles.fallbackRow}>
-          <span className={styles.chip}>Dominant element: {dominantElement}</span>
-          <span className={styles.chip}>Planets: {astrologyData?.facts?.planets?.length ?? 0}</span>
+          <span className={styles.chip}>{t("destinyMap.visualizer.dominantElement", "Dominant element")}: {dominantElement}</span>
+          <span className={styles.chip}>{t("destinyMap.visualizer.planets", "Planets")}: {astrologyData?.facts?.planets?.length ?? 0}</span>
         </div>
         <div className={styles.fallbackRow}>
           {(astrologyData?.facts?.planets || []).slice(0, 8).map((p) => (
@@ -306,7 +308,7 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
         </div>
         {daeun.length > 0 && (
           <div>
-            <strong>Current cycles</strong>
+            <strong>{t("destinyMap.visualizer.currentCycles", "Current cycles")}</strong>
             <div className={styles.fallbackRow}>
               {daeun.slice(0, 4).map((d) => (
                 <span key={d.startYear} className={styles.chip}>

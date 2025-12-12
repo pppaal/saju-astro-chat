@@ -1,0 +1,553 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "dynamics/natal_aspects",
+  "$count": 180,
+  "$description": "출생 차트 내 행성 간 주요 애스펙트 해석",
+  "$note": "주요 행성 쌍 × 5개 애스펙트 (conjunction, sextile, square, trine, opposition)",
+
+  "Sun_Moon": {
+    "conjunction": {
+      "energy": "자아와 감정의 융합, 새 달 출생",
+      "gift": "통합된 성격, 강한 자기 인식",
+      "challenge": "객관성 부족, 감정과 의지 구분 어려움",
+      "expression": "본능적으로 행동하는 일관된 성격"
+    },
+    "sextile": {
+      "energy": "자아와 감정의 조화로운 협력",
+      "gift": "감정 지능, 자연스러운 자기 표현",
+      "challenge": "안주하기 쉬움",
+      "expression": "편안한 자기 인식과 표현"
+    },
+    "square": {
+      "energy": "내면의 갈등, 의지와 감정 충돌",
+      "gift": "성장 동력, 자기 이해 깊이",
+      "challenge": "부모 갈등 내면화, 불안정",
+      "expression": "긴장감 있는 창조적 역동성"
+    },
+    "trine": {
+      "energy": "자아와 감정의 자연스러운 흐름",
+      "gift": "내면의 평화, 자기 수용",
+      "challenge": "동기 부족, 편안함에 안주",
+      "expression": "조화롭고 균형 잡힌 성격"
+    },
+    "opposition": {
+      "energy": "보름달 출생, 자아와 감정 대립",
+      "gift": "객관성, 관계에서 배움",
+      "challenge": "내면 분열, 타인 투사",
+      "expression": "관계를 통해 자신을 발견"
+    }
+  },
+
+  "Sun_Mercury": {
+    "conjunction": {
+      "energy": "정체성과 소통의 융합 (유일하게 가능한 애스펙트)",
+      "gift": "명확한 자기 표현, 지적 정체성",
+      "challenge": "주관적 사고, 객관적 분석 어려움",
+      "expression": "말과 글이 곧 자신의 표현"
+    }
+  },
+
+  "Sun_Venus": {
+    "conjunction": {
+      "energy": "매력과 정체성 융합",
+      "gift": "자연스러운 매력, 예술적 감각",
+      "challenge": "허영심, 갈등 회피",
+      "expression": "사랑받고 싶은 강한 욕구"
+    }
+  },
+
+  "Sun_Mars": {
+    "conjunction": {
+      "energy": "의지력과 행동력의 강력한 결합",
+      "gift": "용기, 리더십, 에너지",
+      "challenge": "공격성, 조급함, 분노",
+      "expression": "행동하는 리더, 전사적 정체성"
+    },
+    "sextile": {
+      "energy": "건설적인 에너지 사용",
+      "gift": "건강한 자기 주장, 효율성",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "균형 잡힌 행동력"
+    },
+    "square": {
+      "energy": "좌절과 분노의 내면 갈등",
+      "gift": "강한 동기, 장애물 극복",
+      "challenge": "분노 조절, 충돌",
+      "expression": "긴장감 있는 강력한 추진력"
+    },
+    "trine": {
+      "energy": "자연스러운 자기 주장과 용기",
+      "gift": "건강한 경쟁심, 체력",
+      "challenge": "도전 부족 시 게으름",
+      "expression": "조화로운 행동력"
+    },
+    "opposition": {
+      "energy": "타인과의 의지 대립",
+      "gift": "갈등에서 배우는 자기 이해",
+      "challenge": "외부 적, 투사",
+      "expression": "관계에서 힘의 균형 배움"
+    }
+  },
+
+  "Sun_Jupiter": {
+    "conjunction": {
+      "energy": "확장과 낙관주의의 정체성",
+      "gift": "자신감, 관대함, 행운",
+      "challenge": "과신, 과장, 태만",
+      "expression": "크게 생각하는 낙관주의자"
+    },
+    "sextile": {
+      "energy": "기회를 만드는 긍정적 태도",
+      "gift": "좋은 판단력, 기회 인식",
+      "challenge": "기회 활용 부족",
+      "expression": "균형 잡힌 성장"
+    },
+    "square": {
+      "energy": "과도한 확장 욕구와 갈등",
+      "gift": "위험 감수, 큰 목표",
+      "challenge": "과도함, 비현실적 기대",
+      "expression": "성장통을 통한 지혜"
+    },
+    "trine": {
+      "energy": "자연스러운 행운과 성장",
+      "gift": "풍요, 자신감, 보호받는 느낌",
+      "challenge": "노력 없이 기대",
+      "expression": "타고난 낙천주의자"
+    },
+    "opposition": {
+      "energy": "확장과 자아의 균형 찾기",
+      "gift": "타인을 통한 성장",
+      "challenge": "과도한 약속, 균형 상실",
+      "expression": "관계에서 풍요 발견"
+    }
+  },
+
+  "Sun_Saturn": {
+    "conjunction": {
+      "energy": "책임감과 규율의 정체성",
+      "gift": "권위, 구조, 인내, 성숙함",
+      "challenge": "자기 비판, 우울, 제한",
+      "expression": "진지하고 책임감 있는 존재"
+    },
+    "sextile": {
+      "energy": "구조적 자기 표현",
+      "gift": "규율, 계획성, 신뢰성",
+      "challenge": "너무 조심스러움",
+      "expression": "균형 잡힌 책임감"
+    },
+    "square": {
+      "energy": "권위와 자아의 갈등",
+      "gift": "역경 극복, 늦은 성공",
+      "challenge": "아버지 문제, 자기 의심",
+      "expression": "도전을 통한 성장"
+    },
+    "trine": {
+      "energy": "자연스러운 권위와 책임",
+      "gift": "인내, 지혜, 신뢰성",
+      "challenge": "보수적 성향",
+      "expression": "조화로운 리더십"
+    },
+    "opposition": {
+      "energy": "자유와 책임 사이 균형",
+      "gift": "타인에게 구조 제공",
+      "challenge": "외부 제한, 권위 갈등",
+      "expression": "관계에서 책임 배움"
+    }
+  },
+
+  "Sun_Uranus": {
+    "conjunction": {
+      "energy": "혁신적이고 독특한 정체성",
+      "gift": "독창성, 천재성, 자유",
+      "challenge": "반항, 예측 불가, 불안정",
+      "expression": "시대를 앞서가는 혁신가"
+    },
+    "sextile": {
+      "energy": "창조적 독창성",
+      "gift": "혁신적 아이디어, 적응력",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "균형 잡힌 독창성"
+    },
+    "square": {
+      "energy": "자유와 안정 사이 갈등",
+      "gift": "돌파구, 변화 촉진",
+      "challenge": "갑작스러운 변화, 반항",
+      "expression": "긴장감 있는 혁신"
+    },
+    "trine": {
+      "energy": "자연스러운 독창성과 자유",
+      "gift": "직관, 창의성, 수용성",
+      "challenge": "에너지 분산",
+      "expression": "조화로운 혁신가"
+    },
+    "opposition": {
+      "energy": "타인과의 자유 갈등",
+      "gift": "관계에서 혁신 배움",
+      "challenge": "예측 불가한 관계",
+      "expression": "함께하는 혁신"
+    }
+  },
+
+  "Sun_Neptune": {
+    "conjunction": {
+      "energy": "영감적이고 이상적인 정체성",
+      "gift": "창의성, 연민, 영성",
+      "challenge": "환상, 자기 기만, 경계 부족",
+      "expression": "몽상가, 예술가, 치유자"
+    },
+    "sextile": {
+      "energy": "건설적인 상상력",
+      "gift": "직관, 예술적 감각",
+      "challenge": "현실 도피 유혹",
+      "expression": "영감 있는 창조자"
+    },
+    "square": {
+      "energy": "현실과 이상 사이 갈등",
+      "gift": "예술적 깊이, 영적 추구",
+      "challenge": "자기 기만, 혼란",
+      "expression": "창조적 긴장"
+    },
+    "trine": {
+      "energy": "자연스러운 영감과 직관",
+      "gift": "예술성, 연민, 영성",
+      "challenge": "현실 도피",
+      "expression": "조화로운 몽상가"
+    },
+    "opposition": {
+      "energy": "타인에게 투사되는 이상",
+      "gift": "관계에서 영성 발견",
+      "challenge": "파트너 이상화",
+      "expression": "관계에서 영감 발견"
+    }
+  },
+
+  "Sun_Pluto": {
+    "conjunction": {
+      "energy": "강렬하고 변형적인 정체성",
+      "gift": "권력, 재생력, 깊이",
+      "challenge": "통제욕, 강박, 권력 남용",
+      "expression": "변형을 촉진하는 존재"
+    },
+    "sextile": {
+      "energy": "건설적인 변형 능력",
+      "gift": "심리적 통찰, 재생력",
+      "challenge": "깊이 활용 부족",
+      "expression": "균형 잡힌 권력"
+    },
+    "square": {
+      "energy": "권력과 자아의 갈등",
+      "gift": "위기 극복, 재탄생",
+      "challenge": "권력 투쟁, 집착",
+      "expression": "변형적 긴장"
+    },
+    "trine": {
+      "energy": "자연스러운 권력과 재생",
+      "gift": "심리적 깊이, 영향력",
+      "challenge": "권력 남용 유혹",
+      "expression": "조화로운 변형자"
+    },
+    "opposition": {
+      "energy": "타인과의 권력 대립",
+      "gift": "관계에서 변형 배움",
+      "challenge": "권력 투쟁",
+      "expression": "관계에서 깊이 발견"
+    }
+  },
+
+  "Moon_Mercury": {
+    "conjunction": {
+      "energy": "감정과 사고의 융합",
+      "gift": "감정 표현, 공감적 소통",
+      "challenge": "주관적 사고, 기분에 따른 판단",
+      "expression": "감정을 말로 표현하는 능력"
+    },
+    "sextile": {
+      "energy": "감정과 이성의 협력",
+      "gift": "감정 지능, 소통 능력",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "균형 잡힌 표현"
+    },
+    "square": {
+      "energy": "마음과 머리의 갈등",
+      "gift": "깊은 자기 이해 추구",
+      "challenge": "걱정, 불안, 소통 오해",
+      "expression": "긴장감 있는 내면 대화"
+    },
+    "trine": {
+      "energy": "자연스러운 감정 표현",
+      "gift": "공감, 글쓰기, 상담 능력",
+      "challenge": "너무 쉬움",
+      "expression": "조화로운 소통"
+    },
+    "opposition": {
+      "energy": "감정과 논리 사이 균형",
+      "gift": "객관적 자기 관찰",
+      "challenge": "내면 분열",
+      "expression": "두 관점의 통합"
+    }
+  },
+
+  "Moon_Venus": {
+    "conjunction": {
+      "energy": "감정과 사랑의 융합",
+      "gift": "매력, 친절, 예술적 감각",
+      "challenge": "과도한 의존, 갈등 회피",
+      "expression": "사랑받기 원하는 부드러운 영혼"
+    },
+    "sextile": {
+      "energy": "감정과 관계의 조화",
+      "gift": "인기, 매력, 조화 능력",
+      "challenge": "너무 쉬움",
+      "expression": "자연스러운 친화력"
+    },
+    "square": {
+      "energy": "사랑과 안전 사이 갈등",
+      "gift": "관계에서 성장 동기",
+      "challenge": "불안정한 관계, 자기 가치 문제",
+      "expression": "사랑에서 배우는 교훈"
+    },
+    "trine": {
+      "energy": "자연스러운 애정과 조화",
+      "gift": "예술성, 인기, 평화",
+      "challenge": "갈등 회피",
+      "expression": "조화롭고 매력적"
+    },
+    "opposition": {
+      "energy": "필요와 원함 사이 균형",
+      "gift": "관계에서 자기 발견",
+      "challenge": "파트너에게 투사",
+      "expression": "관계를 통한 성장"
+    }
+  },
+
+  "Moon_Mars": {
+    "conjunction": {
+      "energy": "감정과 행동의 강렬한 결합",
+      "gift": "감정적 용기, 보호 본능",
+      "challenge": "감정적 반응, 분노",
+      "expression": "열정적이고 보호적"
+    },
+    "sextile": {
+      "energy": "건설적인 감정적 행동",
+      "gift": "용기, 추진력, 보호 능력",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "균형 잡힌 행동력"
+    },
+    "square": {
+      "energy": "감정과 분노의 갈등",
+      "gift": "강한 동기, 보호 본능",
+      "challenge": "분노 문제, 충동적 반응",
+      "expression": "긴장감 있는 에너지"
+    },
+    "trine": {
+      "energy": "자연스러운 감정적 용기",
+      "gift": "건강한 자기 주장, 보호력",
+      "challenge": "도전 부족",
+      "expression": "조화로운 행동력"
+    },
+    "opposition": {
+      "energy": "감정과 행동 사이 균형",
+      "gift": "갈등에서 배우는 균형",
+      "challenge": "파트너와 갈등",
+      "expression": "관계에서 힘 배움"
+    }
+  },
+
+  "Moon_Jupiter": {
+    "conjunction": {
+      "energy": "감정적 풍요와 낙관주의",
+      "gift": "관대함, 정서적 안정, 행운",
+      "challenge": "과도함, 감정적 과잉",
+      "expression": "따뜻하고 관대한 영혼"
+    },
+    "sextile": {
+      "energy": "건설적인 감정적 성장",
+      "gift": "정서적 지혜, 기회 인식",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "균형 잡힌 낙관주의"
+    },
+    "square": {
+      "energy": "감정과 확장 사이 갈등",
+      "gift": "성장 동기, 넓은 시야",
+      "challenge": "과도함, 무절제",
+      "expression": "성장통을 통한 지혜"
+    },
+    "trine": {
+      "energy": "자연스러운 정서적 풍요",
+      "gift": "행운, 관대함, 보호",
+      "challenge": "노력 없이 기대",
+      "expression": "타고난 낙천주의"
+    },
+    "opposition": {
+      "energy": "내면과 외부 성장 균형",
+      "gift": "타인을 통한 정서적 성장",
+      "challenge": "과도한 약속",
+      "expression": "관계에서 풍요 발견"
+    }
+  },
+
+  "Moon_Saturn": {
+    "conjunction": {
+      "energy": "감정과 책임의 무거운 결합",
+      "gift": "정서적 성숙, 신뢰성, 인내",
+      "challenge": "우울, 감정 억압, 외로움",
+      "expression": "진지하고 책임감 있는 영혼"
+    },
+    "sextile": {
+      "energy": "건설적인 정서적 규율",
+      "gift": "정서적 안정, 실용성",
+      "challenge": "너무 조심스러움",
+      "expression": "균형 잡힌 성숙함"
+    },
+    "square": {
+      "energy": "안전과 책임 사이 갈등",
+      "gift": "역경 극복, 정서적 강함",
+      "challenge": "어머니 문제, 우울",
+      "expression": "도전을 통한 성숙"
+    },
+    "trine": {
+      "energy": "자연스러운 정서적 안정",
+      "gift": "신뢰성, 지혜, 인내",
+      "challenge": "보수적 성향",
+      "expression": "조화로운 성숙함"
+    },
+    "opposition": {
+      "energy": "안전과 책임 사이 균형",
+      "gift": "관계에서 책임 배움",
+      "challenge": "파트너에게 부모 역할 기대",
+      "expression": "관계에서 성숙함 발견"
+    }
+  },
+
+  "Venus_Mars": {
+    "conjunction": {
+      "energy": "사랑과 열정의 강렬한 결합",
+      "gift": "매력, 성적 자기력, 창조력",
+      "challenge": "충동적 관계, 과도한 욕구",
+      "expression": "열정적인 연인"
+    },
+    "sextile": {
+      "energy": "건설적인 로맨스",
+      "gift": "균형 잡힌 매력, 건강한 관계",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "조화로운 사랑"
+    },
+    "square": {
+      "energy": "사랑과 욕망 사이 갈등",
+      "gift": "열정, 창조적 긴장",
+      "challenge": "관계 갈등, 좌절",
+      "expression": "도전적인 로맨스"
+    },
+    "trine": {
+      "energy": "자연스러운 사랑과 열정",
+      "gift": "매력, 인기, 예술성",
+      "challenge": "도전 부족",
+      "expression": "조화로운 연인"
+    },
+    "opposition": {
+      "energy": "주고받음 사이 균형",
+      "gift": "관계에서 균형 배움",
+      "challenge": "파트너와 역할 갈등",
+      "expression": "관계에서 열정 발견"
+    }
+  },
+
+  "Mars_Saturn": {
+    "conjunction": {
+      "energy": "행동과 규율의 결합",
+      "gift": "인내, 전략적 행동, 지구력",
+      "challenge": "좌절, 억압된 분노, 냉정함",
+      "expression": "규율 있는 전사"
+    },
+    "sextile": {
+      "energy": "건설적인 규율 있는 행동",
+      "gift": "계획적 실행, 인내",
+      "challenge": "너무 조심스러움",
+      "expression": "균형 잡힌 행동력"
+    },
+    "square": {
+      "energy": "행동과 제한 사이 갈등",
+      "gift": "역경 극복, 결단력",
+      "challenge": "좌절, 분노, 권위 갈등",
+      "expression": "도전을 통한 강함"
+    },
+    "trine": {
+      "energy": "자연스러운 규율과 행동",
+      "gift": "지구력, 전략, 인내",
+      "challenge": "너무 보수적",
+      "expression": "조화로운 실행력"
+    },
+    "opposition": {
+      "energy": "행동과 책임 사이 균형",
+      "gift": "타인과 협력하여 성취",
+      "challenge": "권위와 충돌",
+      "expression": "관계에서 규율 배움"
+    }
+  },
+
+  "Jupiter_Saturn": {
+    "conjunction": {
+      "energy": "확장과 수축의 주기적 결합",
+      "gift": "현실적 낙관주의, 지혜",
+      "challenge": "확장과 제한 사이 갈등",
+      "expression": "균형 잡힌 성장"
+    },
+    "sextile": {
+      "energy": "건설적인 성장과 구조",
+      "gift": "실용적 지혜, 균형 잡힌 확장",
+      "challenge": "충분히 활용하지 않음",
+      "expression": "조화로운 발전"
+    },
+    "square": {
+      "energy": "믿음과 두려움 사이 갈등",
+      "gift": "장애물을 통한 성장",
+      "challenge": "비관과 낙관 사이 진동",
+      "expression": "도전적 성장"
+    },
+    "trine": {
+      "energy": "자연스러운 균형 잡힌 성장",
+      "gift": "지혜, 성공, 신뢰성",
+      "challenge": "안주 경향",
+      "expression": "조화로운 성취"
+    },
+    "opposition": {
+      "energy": "확장과 수축 사이 균형",
+      "gift": "타인을 통한 균형 발견",
+      "challenge": "외부 제한",
+      "expression": "관계에서 지혜 발견"
+    }
+  },
+
+  "outer_planets": {
+    "Uranus_Neptune": {
+      "conjunction": {
+        "era": "1993년경 - 집단적 영적 각성",
+        "gift": "영적 혁신, 직관적 천재성",
+        "challenge": "혼란, 비현실적 이상",
+        "expression": "새로운 의식 시대의 선구자"
+      }
+    },
+    "Uranus_Pluto": {
+      "conjunction": {
+        "era": "1965-66년 - 사회 혁명",
+        "gift": "변형적 혁신, 급진적 변화",
+        "challenge": "파괴적 반란, 극단주의",
+        "expression": "사회 변형의 촉매"
+      },
+      "square": {
+        "era": "2012-15년 - 구조적 변화",
+        "gift": "시스템 재구성",
+        "challenge": "불안정, 갈등",
+        "expression": "변화의 긴장"
+      }
+    },
+    "Neptune_Pluto": {
+      "sextile": {
+        "era": "1950년대 이후 지속 - 문화 변형",
+        "gift": "집단 무의식 진화",
+        "challenge": "서서히 진행되는 변화",
+        "expression": "세대적 영적 성장"
+      }
+    }
+  }
+}

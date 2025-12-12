@@ -1,0 +1,613 @@
+/* Result Page - Premium Design */
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f23 100%);
+  color: #fff;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated Background Gradient */
+.bgGradient {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(168, 237, 234, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(254, 214, 227, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Stars Background */
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  background: radial-gradient(circle, rgba(168, 237, 234, 1), rgba(168, 237, 234, 0));
+  border-radius: 50%;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1.5rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(168, 237, 234, 0.2);
+  border-top-color: #a8edea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  gap: 1rem;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.emptyState h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.emptyState p {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.ctaButton {
+  margin-top: 1rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.ctaButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(168, 237, 234, 0.4);
+}
+
+/* Hero Section */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 0 2rem;
+  gap: 2rem;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.personaOrb {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 4s ease-in-out infinite, float 6s ease-in-out infinite;
+  position: relative;
+}
+
+.personaOrb::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+  animation: rotate 8s linear infinite;
+}
+
+@keyframes rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.orbIcon {
+  font-size: 3rem;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.5);
+}
+
+.heroContent {
+  max-width: 600px;
+}
+
+.preTitle {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #a8edea;
+  margin: 0 0 0.5rem;
+}
+
+.personaName {
+  font-family: "Cinzel", serif;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #a8edea 0%, #fff 50%, #fed6e3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+
+.summary {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.badges {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.typeCodeBadge, .consistencyBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.typeCodeValue {
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #a8edea;
+  letter-spacing: 0.1em;
+}
+
+.typeCodeLabel, .consistencyLabel {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.25rem;
+}
+
+.consistencyValue {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fed6e3;
+}
+
+/* Section Title */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1.25rem;
+  color: #fff;
+}
+
+.sectionIcon {
+  font-size: 1.5rem;
+}
+
+/* Motivations Section */
+.motivationsSection {
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.motivationCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.motivationCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.motivationCard:hover {
+  background: rgba(168, 237, 234, 0.05);
+  border-color: rgba(168, 237, 234, 0.2);
+  transform: translateY(-4px);
+}
+
+.motivationNumber {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #1a1a1a;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.motivationCard p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Axes Section */
+.axesSection {
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.axesCard {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(8px);
+}
+
+.axisBar {
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.axisBar:last-child {
+  margin-bottom: 0;
+}
+
+.axisHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.axisLabel {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.axisPercent {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #a8edea;
+}
+
+.axisTrack {
+  position: relative;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.axisFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #a8edea, #fed6e3);
+  border-radius: 5px;
+  animation: fillBar 1s ease-out both;
+}
+
+@keyframes fillBar {
+  from { width: 0 !important; }
+}
+
+.axisMarker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(-50%);
+}
+
+.axisPoles {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Traits Grid */
+.traitsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+@media (max-width: 640px) {
+  .traitsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.traitCard {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.traitCard:hover {
+  border-color: rgba(168, 237, 234, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.traitHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.traitIcon {
+  font-size: 1.5rem;
+}
+
+.traitHeader h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+.traitTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tagStrength, .tagChallenge, .tagRole {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tagStrength {
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #34d399;
+}
+
+.tagChallenge {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+}
+
+.tagRole {
+  background: rgba(96, 165, 250, 0.15);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #60a5fa;
+}
+
+.traitText {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Insights Section */
+.insightsSection {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.5s both;
+}
+
+@media (max-width: 640px) {
+  .insightsSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+.insightCard {
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.08), rgba(254, 214, 227, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 1.75rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.insightCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(168, 237, 234, 0.1);
+}
+
+.insightIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.insightCard h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: #a8edea;
+}
+
+.insightCard p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.shareButton, .downloadButton, .retakeButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.shareButton {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  border: none;
+  color: #1a1a1a;
+}
+
+.shareButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(168, 237, 234, 0.4);
+}
+
+.downloadButton {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.downloadButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(168, 237, 234, 0.4);
+}
+
+.retakeButton {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.retakeButton:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .personaOrb {
+    width: 100px;
+    height: 100px;
+  }
+
+  .orbIcon {
+    font-size: 2rem;
+  }
+
+  .axesCard {
+    padding: 1.5rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shareButton, .downloadButton, .retakeButton {
+    justify-content: center;
+  }
+}

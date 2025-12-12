@@ -1,0 +1,37 @@
+﻿id,label,name,desc,category,element,description
+hero_positive,Hero (positive),Hero - Positive,Hero 원형의 positive 측면,jung_archetype,air,Hero - Positive:
+hero_negative,Hero (negative),Hero - Negative,Hero 원형의 negative 측면,jung_archetype,air,Hero - Negative:
+hero_integrated,Hero (integrated),Hero - Integrated,Hero 원형의 integrated 측면,jung_archetype,air,Hero - Integrated:
+mother_positive,Mother (positive),Mother - Positive,Mother 원형의 positive 측면,jung_archetype,air,Mother - Positive:
+mother_negative,Mother (negative),Mother - Negative,Mother 원형의 negative 측면,jung_archetype,air,Mother - Negative:
+mother_integrated,Mother (integrated),Mother - Integrated,Mother 원형의 integrated 측면,jung_archetype,air,Mother - Integrated:
+father_positive,Father (positive),Father - Positive,Father 원형의 positive 측면,jung_archetype,air,Father - Positive:
+father_negative,Father (negative),Father - Negative,Father 원형의 negative 측면,jung_archetype,air,Father - Negative:
+father_integrated,Father (integrated),Father - Integrated,Father 원형의 integrated 측면,jung_archetype,air,Father - Integrated:
+wise_old_man_positive,Wise Old Man (positive),Wise Old Man - Positive,Wise Old Man 원형의 positive 측면,jung_archetype,air,Wise Old Man - Positive:
+wise_old_man_negative,Wise Old Man (negative),Wise Old Man - Negative,Wise Old Man 원형의 negative 측면,jung_archetype,air,Wise Old Man - Negative:
+wise_old_man_integrated,Wise Old Man (integrated),Wise Old Man - Integrated,Wise Old Man 원형의 integrated 측면,jung_archetype,air,Wise Old Man - Integrated:
+trickster_positive,Trickster (positive),Trickster - Positive,Trickster 원형의 positive 측면,jung_archetype,air,Trickster - Positive:
+trickster_negative,Trickster (negative),Trickster - Negative,Trickster 원형의 negative 측면,jung_archetype,air,Trickster - Negative:
+trickster_integrated,Trickster (integrated),Trickster - Integrated,Trickster 원형의 integrated 측면,jung_archetype,air,Trickster - Integrated:
+anima_positive,Anima (positive),Anima - Positive,Anima 원형의 positive 측면,jung_archetype,air,Anima - Positive:
+anima_negative,Anima (negative),Anima - Negative,Anima 원형의 negative 측면,jung_archetype,air,Anima - Negative:
+anima_integrated,Anima (integrated),Anima - Integrated,Anima 원형의 integrated 측면,jung_archetype,air,Anima - Integrated:
+animus_positive,Animus (positive),Animus - Positive,Animus 원형의 positive 측면,jung_archetype,air,Animus - Positive:
+animus_negative,Animus (negative),Animus - Negative,Animus 원형의 negative 측면,jung_archetype,air,Animus - Negative:
+animus_integrated,Animus (integrated),Animus - Integrated,Animus 원형의 integrated 측면,jung_archetype,air,Animus - Integrated:
+shadow_positive,Shadow (positive),Shadow - Positive,Shadow 원형의 positive 측면,jung_archetype,air,Shadow - Positive:
+shadow_negative,Shadow (negative),Shadow - Negative,Shadow 원형의 negative 측면,jung_archetype,air,Shadow - Negative:
+shadow_integrated,Shadow (integrated),Shadow - Integrated,Shadow 원형의 integrated 측면,jung_archetype,air,Shadow - Integrated:
+self_positive,Self (positive),Self - Positive,Self 원형의 positive 측면,jung_archetype,air,Self - Positive:
+self_negative,Self (negative),Self - Negative,Self 원형의 negative 측면,jung_archetype,air,Self - Negative:
+self_integrated,Self (integrated),Self - Integrated,Self 원형의 integrated 측면,jung_archetype,air,Self - Integrated:
+persona_positive,Persona (positive),Persona - Positive,Persona 원형의 positive 측면,jung_archetype,air,Persona - Positive:
+persona_negative,Persona (negative),Persona - Negative,Persona 원형의 negative 측면,jung_archetype,air,Persona - Negative:
+persona_integrated,Persona (integrated),Persona - Integrated,Persona 원형의 integrated 측면,jung_archetype,air,Persona - Integrated:
+child_positive,Child (positive),Child - Positive,Child 원형의 positive 측면,jung_archetype,air,Child - Positive:
+child_negative,Child (negative),Child - Negative,Child 원형의 negative 측면,jung_archetype,air,Child - Negative:
+child_integrated,Child (integrated),Child - Integrated,Child 원형의 integrated 측면,jung_archetype,air,Child - Integrated:
+maiden_positive,Maiden (positive),Maiden - Positive,Maiden 원형의 positive 측면,jung_archetype,air,Maiden - Positive:
+maiden_negative,Maiden (negative),Maiden - Negative,Maiden 원형의 negative 측면,jung_archetype,air,Maiden - Negative:
+maiden_integrated,Maiden (integrated),Maiden - Integrated,Maiden 원형의 integrated 측면,jung_archetype,air,Maiden - Integrated:

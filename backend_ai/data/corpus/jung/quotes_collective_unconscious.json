@@ -1,0 +1,107 @@
+{
+  "concept": "collective_unconscious",
+  "concept_kr": "집단 무의식",
+  "description": "The collective unconscious is the inherited psychic structure shared by all humanity, containing universal archetypes",
+  "quotes": [
+    {
+      "id": "coll_001",
+      "en": "A more or less superficial layer of the unconscious is undoubtedly personal. I call it the 'personal unconscious'. But this personal layer rests upon a deeper layer, which does not derive from personal experience and is not a personal acquisition but is inborn. This deeper layer I call the 'collective unconscious'.",
+      "kr": "무의식의 다소 피상적인 층은 의심할 여지없이 개인적이다. 나는 그것을 '개인 무의식'이라고 부른다. 그러나 이 개인적인 층은 더 깊은 층 위에 놓여 있는데, 이것은 개인적 경험에서 유래하지 않고 개인적 획득물도 아니며 타고난 것이다. 이 더 깊은 층을 나는 '집단 무의식'이라고 부른다.",
+      "source": "The Archetypes and the Collective Unconscious",
+      "year": 1959,
+      "cw_volume": "CW 9i",
+      "context": "On the definition of collective unconscious",
+      "tags": ["collective unconscious", "personal unconscious", "inborn", "inheritance"]
+    },
+    {
+      "id": "coll_002",
+      "en": "The collective unconscious contains the whole spiritual heritage of mankind's evolution, born anew in the brain structure of every individual.",
+      "kr": "집단 무의식은 인류 진화의 모든 영적 유산을 담고 있으며, 모든 개인의 뇌 구조에서 새롭게 태어난다.",
+      "source": "The Structure of the Psyche",
+      "year": 1927,
+      "cw_volume": "CW 8",
+      "context": "On the content of collective unconscious",
+      "tags": ["collective unconscious", "spiritual heritage", "evolution", "brain"]
+    },
+    {
+      "id": "coll_003",
+      "en": "I have chosen the term 'collective' because this part of the unconscious is not individual but universal; in contrast to the personal psyche, it has contents and modes of behavior that are more or less the same everywhere and in all individuals.",
+      "kr": "나는 '집단'이라는 용어를 선택했다. 무의식의 이 부분은 개인적인 것이 아니라 보편적이기 때문이다; 개인적 정신과 대조적으로, 그것은 어디서나 그리고 모든 개인에게서 다소 동일한 내용과 행동 양식을 가지고 있다.",
+      "source": "The Archetypes and the Collective Unconscious",
+      "year": 1959,
+      "cw_volume": "CW 9i",
+      "context": "On why it's called 'collective'",
+      "tags": ["collective unconscious", "universal", "archetype", "behavior"]
+    },
+    {
+      "id": "coll_004",
+      "en": "Our personal psychology is just a thin skin, a ripple on the ocean of collective psychology. The powerful factor, the factor which changes our whole life, which changes the surface of our known world, which makes history, is collective psychology.",
+      "kr": "우리의 개인 심리는 집단 심리의 바다 위의 얇은 껍질, 잔물결에 불과하다. 우리 전체 삶을 바꾸고, 알려진 세계의 표면을 바꾸고, 역사를 만드는 강력한 요소는 집단 심리이다.",
+      "source": "The Tavistock Lectures",
+      "year": 1935,
+      "cw_volume": "CW 18",
+      "context": "On the power of collective psychology",
+      "tags": ["collective unconscious", "history", "psychology", "power"]
+    },
+    {
+      "id": "coll_005",
+      "en": "The great decisions of human life have as a rule far more to do with the instincts and other mysterious unconscious factors than with conscious will and well-meaning reasonableness.",
+      "kr": "인간 삶의 중대한 결정들은 대체로 의식적 의지와 선의의 합리성보다 본능과 다른 신비로운 무의식적 요소들과 훨씬 더 관련이 있다.",
+      "source": "The Relations Between the Ego and the Unconscious",
+      "year": 1928,
+      "cw_volume": "CW 7",
+      "context": "On unconscious influence on decisions",
+      "tags": ["collective unconscious", "instinct", "decision", "will"]
+    },
+    {
+      "id": "coll_006",
+      "en": "In each of us there is another whom we do not know. He speaks to us in dreams and tells us how differently he sees us from the way we see ourselves.",
+      "kr": "우리 각자 안에는 우리가 알지 못하는 또 다른 존재가 있다. 그는 꿈속에서 우리에게 말하며, 우리가 자신을 보는 방식과 얼마나 다르게 그가 우리를 보는지 말해준다.",
+      "source": "Civilization in Transition",
+      "year": 1945,
+      "cw_volume": "CW 10",
+      "context": "On the unknown self within",
+      "tags": ["collective unconscious", "dreams", "self-knowledge", "other"]
+    },
+    {
+      "id": "coll_007",
+      "en": "Masses are always breeding grounds of psychic epidemics.",
+      "kr": "대중은 항상 정신적 전염병의 번식지이다.",
+      "source": "Psychology and Religion",
+      "year": 1938,
+      "cw_volume": "CW 11",
+      "context": "On mass psychology",
+      "tags": ["collective unconscious", "mass psychology", "epidemic", "society"]
+    },
+    {
+      "id": "coll_008",
+      "en": "We need more psychology. We need more understanding of human nature, because the only real danger that exists is man himself.",
+      "kr": "우리는 더 많은 심리학이 필요하다. 우리는 인간 본성에 대한 더 많은 이해가 필요하다. 존재하는 유일한 진정한 위험은 인간 자신이기 때문이다.",
+      "source": "BBC Interview",
+      "year": 1959,
+      "cw_volume": "Interview",
+      "context": "On the importance of understanding human nature",
+      "tags": ["collective unconscious", "psychology", "human nature", "danger"]
+    },
+    {
+      "id": "coll_009",
+      "en": "The unconscious is the only available source of religious experience. This in certainly not to say that what we call the unconscious is identical with God or is set up in his place. It is simply the medium from which religious experience seems to flow.",
+      "kr": "무의식은 종교적 경험의 유일하게 이용 가능한 원천이다. 이것은 확실히 우리가 무의식이라고 부르는 것이 신과 동일하거나 신의 자리에 세워진다는 것을 말하는 것이 아니다. 그것은 단순히 종교적 경험이 흘러나오는 것처럼 보이는 매개체일 뿐이다.",
+      "source": "Psychology and Religion",
+      "year": 1938,
+      "cw_volume": "CW 11",
+      "context": "On religious experience and the unconscious",
+      "tags": ["collective unconscious", "religion", "spirituality", "experience"]
+    },
+    {
+      "id": "coll_010",
+      "en": "Man's task is to become conscious of the contents that press upward from the unconscious.",
+      "kr": "인간의 과제는 무의식에서 위로 밀어올리는 내용들을 의식화하는 것이다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On the task of consciousness",
+      "tags": ["collective unconscious", "consciousness", "task", "awareness"]
+    }
+  ]
+}

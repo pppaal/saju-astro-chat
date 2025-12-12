@@ -84,7 +84,7 @@ export async function GET(_request: NextRequest) {
   const sent = await sendNotificationEmail(session.user.email, {
     type: "system",
     title: "Test Email Notification",
-    message: "This is a test email from DestinyTracker. If you're seeing this, email notifications are working!",
+    message: "This is a test email from DestinyPal. If you're seeing this, email notifications are working!",
     link: "/notifications",
   });
 

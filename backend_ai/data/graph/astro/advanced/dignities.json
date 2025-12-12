@@ -1,0 +1,365 @@
+{
+  "$schema": "../_schema.json",
+  "$category": "advanced/dignities",
+  "$count": 100,
+  "$description": "행성 품위 (디그니티) 시스템 - 본위치, 고양, 함락, 실추",
+  "$note": "Essential dignities and debilities for each planet",
+  "dignity_types": {
+    "domicile": {
+      "name_ko": "본위치 (Domicile/Rulership)",
+      "meaning": "행성이 자신의 집에 있음",
+      "strength": 5,
+      "expression": "가장 자연스럽고 강력한 표현",
+      "analogy": "자기 집에서 편안하게 행동하는 것처럼"
+    },
+    "exaltation": {
+      "name_ko": "고양 (Exaltation)",
+      "meaning": "행성이 가장 높이 올라간 상태",
+      "strength": 4,
+      "expression": "최고의 표현, 정제된 형태",
+      "analogy": "VIP 손님으로 대접받는 것처럼"
+    },
+    "detriment": {
+      "name_ko": "함락 (Detriment)",
+      "meaning": "행성이 본위치의 반대 별자리에 있음",
+      "strength": -5,
+      "expression": "불편하고 약화된 표현",
+      "analogy": "적대적인 환경에 있는 것처럼"
+    },
+    "fall": {
+      "name_ko": "실추 (Fall)",
+      "meaning": "행성이 고양의 반대 별자리에 있음",
+      "strength": -4,
+      "expression": "가장 약화되고 어려운 표현",
+      "analogy": "추락한 왕자/공주처럼"
+    },
+    "peregrine": {
+      "name_ko": "이방인 (Peregrine)",
+      "meaning": "어떤 특별한 품위도 없음",
+      "strength": 0,
+      "expression": "중립적 표현",
+      "analogy": "낯선 땅의 여행자처럼"
+    }
+  },
+  "Sun": {
+    "domicile": {
+      "sign": "Leo",
+      "expression": "빛나는 창조성과 리더십",
+      "gift": "자연스러운 권위와 카리스마",
+      "life_theme": "자기 표현과 인정"
+    },
+    "exaltation": {
+      "sign": "Aries",
+      "degree": "19°",
+      "expression": "용기 있는 리더십과 개척",
+      "gift": "대담한 자기 주장",
+      "life_theme": "새로운 시작과 용기"
+    },
+    "detriment": {
+      "sign": "Aquarius",
+      "expression": "개성과 집단 사이 긴장",
+      "challenge": "자아를 찾기 위한 노력",
+      "growth": "그룹 속에서 개성 유지 배우기"
+    },
+    "fall": {
+      "sign": "Libra",
+      "expression": "타인에게 빛을 양보함",
+      "challenge": "자기 주장 어려움",
+      "growth": "관계 속에서 자아 유지 배우기"
+    }
+  },
+  "Moon": {
+    "domicile": {
+      "sign": "Cancer",
+      "expression": "깊은 양육과 정서적 안정",
+      "gift": "강한 직관과 보호 본능",
+      "life_theme": "가정과 감정적 안전"
+    },
+    "exaltation": {
+      "sign": "Taurus",
+      "degree": "3°",
+      "expression": "안정적이고 평화로운 감정",
+      "gift": "물질적 안정을 통한 정서적 안정",
+      "life_theme": "감각적 만족과 평화"
+    },
+    "detriment": {
+      "sign": "Capricorn",
+      "expression": "감정과 책임 사이 긴장",
+      "challenge": "감정 표현 억제",
+      "growth": "성숙한 감정 표현 배우기"
+    },
+    "fall": {
+      "sign": "Scorpio",
+      "expression": "강렬하고 복잡한 감정",
+      "challenge": "감정적 폭풍과 집착",
+      "growth": "감정적 깊이를 힘으로 변환"
+    }
+  },
+  "Mercury": {
+    "domicile": {
+      "signs": [
+        "Gemini",
+        "Virgo"
+      ],
+      "Gemini": "빠른 소통과 다양한 관심사",
+      "Virgo": "분석적이고 정밀한 사고",
+      "gift": "명확한 소통과 지적 능력"
+    },
+    "exaltation": {
+      "sign": "Virgo",
+      "degree": "15°",
+      "expression": "완벽한 분석과 정밀함",
+      "gift": "세부사항에 대한 뛰어난 주의력"
+    },
+    "detriment": {
+      "signs": [
+        "Sagittarius",
+        "Pisces"
+      ],
+      "Sagittarius": "세부사항보다 큰 그림",
+      "Pisces": "논리보다 직관",
+      "challenge": "명확한 소통 어려움",
+      "growth": "다른 형태의 지혜 인정"
+    },
+    "fall": {
+      "sign": "Pisces",
+      "expression": "경계 없는 사고, 직관적 지식",
+      "challenge": "논리적 명확성 부족",
+      "growth": "직관을 언어로 표현 배우기"
+    }
+  },
+  "Venus": {
+    "domicile": {
+      "signs": [
+        "Taurus",
+        "Libra"
+      ],
+      "Taurus": "감각적 아름다움과 가치",
+      "Libra": "관계의 조화와 균형",
+      "gift": "자연스러운 매력과 사랑 능력"
+    },
+    "exaltation": {
+      "sign": "Pisces",
+      "degree": "27°",
+      "expression": "무조건적 사랑과 영적 아름다움",
+      "gift": "가장 높은 형태의 사랑"
+    },
+    "detriment": {
+      "signs": [
+        "Scorpio",
+        "Aries"
+      ],
+      "Scorpio": "강렬하고 복잡한 사랑",
+      "Aries": "충동적이고 독립적인 사랑",
+      "challenge": "조화로운 관계 어려움",
+      "growth": "다른 형태의 사랑 배우기"
+    },
+    "fall": {
+      "sign": "Virgo",
+      "expression": "비판적이고 실용적인 사랑",
+      "challenge": "완벽한 사랑 추구",
+      "growth": "불완전함 수용 배우기"
+    }
+  },
+  "Mars": {
+    "domicile": {
+      "signs": [
+        "Aries",
+        "Scorpio"
+      ],
+      "Aries": "직접적이고 용감한 행동",
+      "Scorpio": "전략적이고 강렬한 힘",
+      "gift": "강한 추진력과 용기"
+    },
+    "exaltation": {
+      "sign": "Capricorn",
+      "degree": "28°",
+      "expression": "규율 있고 전략적인 행동",
+      "gift": "인내심 있는 지속적 노력"
+    },
+    "detriment": {
+      "signs": [
+        "Libra",
+        "Taurus"
+      ],
+      "Libra": "갈등 회피, 우유부단",
+      "Taurus": "느리고 완고한 행동",
+      "challenge": "자기 주장 어려움",
+      "growth": "조화로운 행동 배우기"
+    },
+    "fall": {
+      "sign": "Cancer",
+      "expression": "감정에 의해 행동이 영향받음",
+      "challenge": "방어적이고 간접적인 행동",
+      "growth": "감정적 용기 개발"
+    }
+  },
+  "Jupiter": {
+    "domicile": {
+      "signs": [
+        "Sagittarius",
+        "Pisces"
+      ],
+      "Sagittarius": "철학적 탐구와 확장",
+      "Pisces": "영적 지혜와 연민",
+      "gift": "자연스러운 낙관주의와 성장"
+    },
+    "exaltation": {
+      "sign": "Cancer",
+      "degree": "15°",
+      "expression": "정서적 풍요와 양육적 성장",
+      "gift": "감정을 통한 지혜"
+    },
+    "detriment": {
+      "signs": [
+        "Gemini",
+        "Virgo"
+      ],
+      "Gemini": "너무 많은 정보, 깊이 부족",
+      "Virgo": "세부사항에 갇힌 비전",
+      "challenge": "큰 그림 보기 어려움",
+      "growth": "세부사항 속에서 의미 찾기"
+    },
+    "fall": {
+      "sign": "Capricorn",
+      "expression": "제한된 확장, 보수적 성장",
+      "challenge": "낙관주의 억제",
+      "growth": "현실적 낙관주의 개발"
+    }
+  },
+  "Saturn": {
+    "domicile": {
+      "signs": [
+        "Capricorn",
+        "Aquarius"
+      ],
+      "Capricorn": "전통과 책임, 권위",
+      "Aquarius": "사회 구조와 혁신",
+      "gift": "자연스러운 규율과 인내"
+    },
+    "exaltation": {
+      "sign": "Libra",
+      "degree": "21°",
+      "expression": "공정한 구조와 균형 잡힌 권위",
+      "gift": "정의로운 리더십"
+    },
+    "detriment": {
+      "signs": [
+        "Cancer",
+        "Leo"
+      ],
+      "Cancer": "감정과 책임 사이 갈등",
+      "Leo": "창조성과 제한 사이 갈등",
+      "challenge": "구조와 표현 사이 균형",
+      "growth": "따뜻한 권위 개발"
+    },
+    "fall": {
+      "sign": "Aries",
+      "expression": "충동과 규율 사이 갈등",
+      "challenge": "인내심 부족",
+      "growth": "행동과 인내의 균형"
+    }
+  },
+  "Uranus": {
+    "domicile": {
+      "sign": "Aquarius",
+      "expression": "혁신과 독립성",
+      "gift": "시대를 앞서가는 비전"
+    },
+    "exaltation": {
+      "sign": "Scorpio",
+      "expression": "변형적 혁신",
+      "gift": "깊은 변화 촉진"
+    },
+    "detriment": {
+      "sign": "Leo",
+      "expression": "개인과 집단 사이 긴장",
+      "challenge": "자아와 그룹 균형"
+    },
+    "fall": {
+      "sign": "Taurus",
+      "expression": "변화와 안정 사이 갈등",
+      "challenge": "급진적 변화 어려움"
+    }
+  },
+  "Neptune": {
+    "domicile": {
+      "sign": "Pisces",
+      "expression": "영성과 무한한 연민",
+      "gift": "신비적 연결"
+    },
+    "exaltation": {
+      "sign": "Cancer (or Leo)",
+      "expression": "감정적/창조적 영감",
+      "gift": "영감적 양육"
+    },
+    "detriment": {
+      "sign": "Virgo",
+      "expression": "분석과 직관 사이 갈등",
+      "challenge": "영적 비전 현실화"
+    },
+    "fall": {
+      "sign": "Capricorn (or Aquarius)",
+      "expression": "영성과 물질 사이 갈등",
+      "challenge": "이상 현실화"
+    }
+  },
+  "Pluto": {
+    "domicile": {
+      "sign": "Scorpio",
+      "expression": "깊은 변형과 재생",
+      "gift": "권력과 변형 능력"
+    },
+    "exaltation": {
+      "sign": "Leo (or Aries)",
+      "expression": "창조적/행동적 권력",
+      "gift": "변형적 리더십"
+    },
+    "detriment": {
+      "sign": "Taurus",
+      "expression": "변형과 안정 사이 갈등",
+      "challenge": "내려놓기 어려움"
+    },
+    "fall": {
+      "sign": "Aquarius (or Libra)",
+      "expression": "집단/관계에서 권력 갈등",
+      "challenge": "개인 권력과 집단 균형"
+    }
+  },
+  "mutual_reception": {
+    "meaning": "두 행성이 서로의 별자리에 있음",
+    "example": "Sun in Aries, Mars in Leo",
+    "effect": "두 행성이 서로를 강화함",
+    "interpretation": "마치 두 행성이 협력하는 것처럼 작용",
+    "description": "mutual_reception: 두 행성이 서로의 별자리에 있음"
+  },
+  "accidental_dignities": {
+    "angular_houses": {
+      "houses": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "strength": "가장 강력한 표현"
+    },
+    "succedent_houses": {
+      "houses": [
+        2,
+        5,
+        8,
+        11
+      ],
+      "strength": "중간 수준의 표현"
+    },
+    "cadent_houses": {
+      "houses": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "strength": "가장 약한 표현, 내면화"
+    }
+  }
+}

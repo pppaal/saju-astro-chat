@@ -1,0 +1,219 @@
+{
+  "_meta": {
+    "theme": "career",
+    "title": "직업/사업 타로 스프레드",
+    "description": "취업, 이직, 승진, 사업 등 직업 관련 다양한 질문 유형별 스프레드"
+  },
+  "sub_topics": {
+    "job_search": {
+      "id": "job_search",
+      "title": "취업",
+      "korean": "취업은 언제",
+      "description": "취업 시기와 어떤 직장이 좋을지",
+      "card_count": 10,
+      "spread_name": "Job Search Spread",
+      "positions": [
+        {"position": 1, "name": "현재 취업 에너지", "meaning": "지금 취업에 대한 전반적인 운", "prompt_hint": "현재 구직 에너지 상태"},
+        {"position": 2, "name": "취업 시기", "meaning": "언제 취업이 될지", "prompt_hint": "합격 소식을 들을 시기"},
+        {"position": 3, "name": "적합한 직종", "meaning": "어떤 분야가 잘 맞는지", "prompt_hint": "가장 적합한 직업 분야"},
+        {"position": 4, "name": "회사 유형", "meaning": "어떤 규모/유형의 회사가 좋은지", "prompt_hint": "대기업/중소기업/스타트업 등"},
+        {"position": 5, "name": "현재 장애물", "meaning": "취업을 방해하는 요소", "prompt_hint": "합격을 막는 것"},
+        {"position": 6, "name": "강점", "meaning": "면접에서 어필해야 할 강점", "prompt_hint": "채용 담당자가 좋아할 포인트"},
+        {"position": 7, "name": "보완점", "meaning": "개선해야 할 부분", "prompt_hint": "부족한 부분과 보완 방법"},
+        {"position": 8, "name": "경쟁자", "meaning": "경쟁 상황", "prompt_hint": "다른 지원자와의 경쟁력"},
+        {"position": 9, "name": "면접 결과", "meaning": "면접 결과 예측", "prompt_hint": "다가올 면접의 결과"},
+        {"position": 10, "name": "조언", "meaning": "취업 성공을 위한 조언", "prompt_hint": "합격을 위해 필요한 것"}
+      ]
+    },
+    "interview": {
+      "id": "interview",
+      "title": "면접",
+      "korean": "면접 결과",
+      "description": "예정된 면접의 결과와 준비 방법",
+      "card_count": 8,
+      "spread_name": "Interview Spread",
+      "positions": [
+        {"position": 1, "name": "면접관 에너지", "meaning": "면접관의 현재 인상/태도", "prompt_hint": "면접관이 당신을 어떻게 볼지"},
+        {"position": 2, "name": "첫인상", "meaning": "당신이 줄 첫인상", "prompt_hint": "처음 보여줄 이미지"},
+        {"position": 3, "name": "강점 어필", "meaning": "가장 어필될 강점", "prompt_hint": "면접에서 빛날 부분"},
+        {"position": 4, "name": "주의할 질문", "meaning": "조심해야 할 질문이나 상황", "prompt_hint": "당황할 수 있는 순간"},
+        {"position": 5, "name": "경쟁자 대비", "meaning": "다른 지원자와 비교", "prompt_hint": "경쟁에서의 위치"},
+        {"position": 6, "name": "면접 분위기", "meaning": "전체적인 면접 분위기", "prompt_hint": "면접장의 에너지"},
+        {"position": 7, "name": "결과", "meaning": "면접 결과 예측", "prompt_hint": "합격 가능성"},
+        {"position": 8, "name": "조언", "meaning": "면접 성공을 위한 조언", "prompt_hint": "면접 전 기억할 것"}
+      ]
+    },
+    "job_change": {
+      "id": "job_change",
+      "title": "이직",
+      "korean": "이직해야 할까",
+      "description": "이직 결정과 시기에 대한 조언",
+      "card_count": 10,
+      "spread_name": "Career Change Spread",
+      "positions": [
+        {"position": 1, "name": "현재 직장", "meaning": "현재 직장의 에너지", "prompt_hint": "지금 직장의 진짜 모습"},
+        {"position": 2, "name": "불만족 원인", "meaning": "이직을 고려하는 진짜 이유", "prompt_hint": "떠나고 싶은 근본 원인"},
+        {"position": 3, "name": "남으면", "meaning": "현재 직장에 남았을 때", "prompt_hint": "계속 다녔을 때의 미래"},
+        {"position": 4, "name": "떠나면", "meaning": "이직했을 때", "prompt_hint": "새 직장으로 갔을 때의 미래"},
+        {"position": 5, "name": "이직 시기", "meaning": "이직하기 좋은 시기", "prompt_hint": "움직이기 좋은 타이밍"},
+        {"position": 6, "name": "새 직장 특성", "meaning": "다음 직장의 특성", "prompt_hint": "가게 될 곳의 성격"},
+        {"position": 7, "name": "연봉", "meaning": "이직 시 연봉 변화", "prompt_hint": "급여 변화 예상"},
+        {"position": 8, "name": "주의점", "meaning": "이직 시 주의할 점", "prompt_hint": "조심해야 할 것"},
+        {"position": 9, "name": "준비할 것", "meaning": "이직 전 준비할 것", "prompt_hint": "미리 갖춰야 할 것"},
+        {"position": 10, "name": "최종 조언", "meaning": "이직에 대한 조언", "prompt_hint": "커리어 결정에 대한 메시지"}
+      ]
+    },
+    "promotion": {
+      "id": "promotion",
+      "title": "승진",
+      "korean": "승진 가능성",
+      "description": "승진 시기와 가능성",
+      "card_count": 8,
+      "spread_name": "Promotion Spread",
+      "positions": [
+        {"position": 1, "name": "현재 평가", "meaning": "상사가 나를 어떻게 평가하는지", "prompt_hint": "위에서 보는 당신"},
+        {"position": 2, "name": "강점", "meaning": "승진에 유리한 점", "prompt_hint": "인정받는 부분"},
+        {"position": 3, "name": "약점", "meaning": "승진에 불리한 점", "prompt_hint": "보완해야 할 부분"},
+        {"position": 4, "name": "경쟁자", "meaning": "승진 경쟁 상황", "prompt_hint": "다른 후보들과의 경쟁"},
+        {"position": 5, "name": "승진 시기", "meaning": "언제 승진할 수 있는지", "prompt_hint": "승진 발표 시기"},
+        {"position": 6, "name": "가능성", "meaning": "승진 확률", "prompt_hint": "승진 가능성"},
+        {"position": 7, "name": "해야 할 것", "meaning": "승진을 위해 해야 할 것", "prompt_hint": "승진을 앞당기는 행동"},
+        {"position": 8, "name": "조언", "meaning": "커리어 성장을 위한 조언", "prompt_hint": "승진과 성장에 대한 메시지"}
+      ]
+    },
+    "business": {
+      "id": "business",
+      "title": "사업",
+      "korean": "사업 시작/확장",
+      "description": "사업 시작이나 확장에 대한 조언",
+      "card_count": 12,
+      "spread_name": "Business Venture Spread",
+      "positions": [
+        {"position": 1, "name": "사업 에너지", "meaning": "현재 사업/창업 에너지", "prompt_hint": "사업 시작에 대한 전반적 운"},
+        {"position": 2, "name": "적합성", "meaning": "이 사업이 나에게 맞는지", "prompt_hint": "사업과의 적합성"},
+        {"position": 3, "name": "시작 시기", "meaning": "사업 시작 적기", "prompt_hint": "창업하기 좋은 때"},
+        {"position": 4, "name": "초기 상황", "meaning": "사업 초기 상황", "prompt_hint": "시작 단계의 모습"},
+        {"position": 5, "name": "자금", "meaning": "자금 관련 운", "prompt_hint": "투자/자금 상황"},
+        {"position": 6, "name": "동업자", "meaning": "동업/파트너십", "prompt_hint": "함께할 사람에 대한 운"},
+        {"position": 7, "name": "경쟁", "meaning": "시장/경쟁 상황", "prompt_hint": "경쟁 환경"},
+        {"position": 8, "name": "6개월 후", "meaning": "6개월 후의 사업 상황", "prompt_hint": "단기 전망"},
+        {"position": 9, "name": "1년 후", "meaning": "1년 후의 사업 상황", "prompt_hint": "중기 전망"},
+        {"position": 10, "name": "주의점", "meaning": "사업에서 조심할 점", "prompt_hint": "위험 요소"},
+        {"position": 11, "name": "성공 열쇠", "meaning": "성공의 핵심 요소", "prompt_hint": "성공을 위해 필요한 것"},
+        {"position": 12, "name": "조언", "meaning": "사업에 대한 조언", "prompt_hint": "사업가로서의 메시지"}
+      ]
+    },
+    "side_hustle": {
+      "id": "side_hustle",
+      "title": "부업",
+      "korean": "부업/투잡",
+      "description": "부업이나 투잡에 대한 조언",
+      "card_count": 7,
+      "spread_name": "Side Hustle Spread",
+      "positions": [
+        {"position": 1, "name": "부업 적합성", "meaning": "부업을 해도 되는 상황인지", "prompt_hint": "현재 부업 시작 여건"},
+        {"position": 2, "name": "적합한 부업", "meaning": "어떤 종류의 부업이 좋은지", "prompt_hint": "맞는 부업 유형"},
+        {"position": 3, "name": "수입", "meaning": "부업으로 얻을 수입", "prompt_hint": "기대할 수 있는 수입"},
+        {"position": 4, "name": "본업 영향", "meaning": "본업에 미치는 영향", "prompt_hint": "메인 직장과의 균형"},
+        {"position": 5, "name": "시간 관리", "meaning": "시간 배분 조언", "prompt_hint": "시간 관리 방법"},
+        {"position": 6, "name": "주의점", "meaning": "부업 시 주의할 점", "prompt_hint": "조심해야 할 것"},
+        {"position": 7, "name": "조언", "meaning": "부업에 대한 조언", "prompt_hint": "추가 수입에 대한 메시지"}
+      ]
+    },
+    "career_path": {
+      "id": "career_path",
+      "title": "진로",
+      "korean": "나에게 맞는 직업",
+      "description": "적성에 맞는 직업과 진로 방향",
+      "card_count": 10,
+      "spread_name": "Career Path Spread",
+      "positions": [
+        {"position": 1, "name": "현재 에너지", "meaning": "현재 커리어 에너지", "prompt_hint": "지금 직업적 상태"},
+        {"position": 2, "name": "타고난 재능", "meaning": "타고난 직업적 재능", "prompt_hint": "직업에서 발휘할 천부적 능력"},
+        {"position": 3, "name": "숨은 재능", "meaning": "아직 발견하지 못한 재능", "prompt_hint": "개발하면 좋을 잠재력"},
+        {"position": 4, "name": "열정", "meaning": "진정으로 하고 싶은 일", "prompt_hint": "마음이 끌리는 방향"},
+        {"position": 5, "name": "적합 직종", "meaning": "가장 잘 맞는 직업/분야", "prompt_hint": "적성에 맞는 커리어"},
+        {"position": 6, "name": "피할 것", "meaning": "피해야 할 직업/환경", "prompt_hint": "맞지 않는 방향"},
+        {"position": 7, "name": "성장 방향", "meaning": "성장을 위해 가야 할 방향", "prompt_hint": "커리어 발전 방향"},
+        {"position": 8, "name": "5년 후", "meaning": "5년 후의 커리어 모습", "prompt_hint": "장기적 커리어 전망"},
+        {"position": 9, "name": "성공 열쇠", "meaning": "직업적 성공의 열쇠", "prompt_hint": "성공에 필요한 것"},
+        {"position": 10, "name": "조언", "meaning": "진로에 대한 조언", "prompt_hint": "커리어에 대한 핵심 메시지"}
+      ]
+    },
+    "workplace": {
+      "id": "workplace",
+      "title": "직장생활",
+      "korean": "직장 내 관계/상황",
+      "description": "현재 직장에서의 관계와 상황",
+      "card_count": 8,
+      "spread_name": "Workplace Spread",
+      "positions": [
+        {"position": 1, "name": "직장 에너지", "meaning": "현재 직장의 전반적 에너지", "prompt_hint": "직장의 현재 분위기"},
+        {"position": 2, "name": "상사 관계", "meaning": "상사와의 관계", "prompt_hint": "윗사람과의 관계 상태"},
+        {"position": 3, "name": "동료 관계", "meaning": "동료와의 관계", "prompt_hint": "함께 일하는 사람들과의 관계"},
+        {"position": 4, "name": "숨은 적", "meaning": "경계해야 할 사람", "prompt_hint": "조심해야 할 인물"},
+        {"position": 5, "name": "기회", "meaning": "다가오는 기회", "prompt_hint": "직장 내 기회"},
+        {"position": 6, "name": "도전", "meaning": "직면할 도전", "prompt_hint": "극복해야 할 것"},
+        {"position": 7, "name": "3개월 전망", "meaning": "3개월 후 직장 상황", "prompt_hint": "가까운 미래의 직장"},
+        {"position": 8, "name": "조언", "meaning": "직장생활 조언", "prompt_hint": "직장에서의 처세"}
+      ]
+    },
+    "salary": {
+      "id": "salary",
+      "title": "연봉",
+      "korean": "연봉 협상/인상",
+      "description": "연봉 협상과 인상 가능성",
+      "card_count": 7,
+      "spread_name": "Salary Spread",
+      "positions": [
+        {"position": 1, "name": "현재 가치", "meaning": "현재 나의 시장 가치", "prompt_hint": "객관적인 당신의 가치"},
+        {"position": 2, "name": "회사 상황", "meaning": "회사의 재정/상황", "prompt_hint": "인상 여력이 있는지"},
+        {"position": 3, "name": "인상 가능성", "meaning": "연봉 인상 가능성", "prompt_hint": "올해 연봉 인상 확률"},
+        {"position": 4, "name": "인상폭", "meaning": "예상 인상폭", "prompt_hint": "기대할 수 있는 인상률"},
+        {"position": 5, "name": "협상 전략", "meaning": "협상에서 중요한 점", "prompt_hint": "협상 시 포인트"},
+        {"position": 6, "name": "타이밍", "meaning": "협상하기 좋은 시기", "prompt_hint": "말을 꺼내기 좋은 때"},
+        {"position": 7, "name": "조언", "meaning": "연봉 협상 조언", "prompt_hint": "돈에 대한 메시지"}
+      ]
+    },
+    "project": {
+      "id": "project",
+      "title": "프로젝트",
+      "korean": "프로젝트 성공",
+      "description": "현재 진행 중인 프로젝트의 결과",
+      "card_count": 8,
+      "spread_name": "Project Success Spread",
+      "positions": [
+        {"position": 1, "name": "프로젝트 에너지", "meaning": "프로젝트의 현재 에너지", "prompt_hint": "프로젝트의 현재 상태"},
+        {"position": 2, "name": "팀 역학", "meaning": "팀원들과의 협력", "prompt_hint": "팀 내 협업 상태"},
+        {"position": 3, "name": "장애물", "meaning": "프로젝트를 방해하는 요소", "prompt_hint": "극복해야 할 것"},
+        {"position": 4, "name": "나의 역할", "meaning": "내가 해야 할 역할", "prompt_hint": "프로젝트에서 당신의 역할"},
+        {"position": 5, "name": "핵심 성공 요소", "meaning": "성공을 위해 가장 중요한 것", "prompt_hint": "성공의 열쇠"},
+        {"position": 6, "name": "결과", "meaning": "프로젝트 결과 예측", "prompt_hint": "프로젝트의 최종 결과"},
+        {"position": 7, "name": "평가", "meaning": "프로젝트 후 나에 대한 평가", "prompt_hint": "끝난 후 받게 될 평가"},
+        {"position": 8, "name": "조언", "meaning": "프로젝트 성공을 위한 조언", "prompt_hint": "프로젝트에 대한 메시지"}
+      ]
+    }
+  },
+  "narrative_templates": {
+    "opening": [
+      "자, {spread_name}으로 {topic}에 대해 자세히 살펴볼게요.",
+      "오늘은 {topic}에 대한 심층 리딩을 해드릴게요.",
+      "{card_count}장의 카드가 {topic}의 답을 알려줄 거예요."
+    ],
+    "card_intro": [
+      "{position}번 카드는 {meaning}을 나타내는데, 여기에 {card_name}이(가) 왔네요.",
+      "{meaning}을 보여주는 자리에 {card_name} {orientation}이(가) 등장했습니다.",
+      "다음으로 {position}번, {meaning}의 자리입니다. {card_name}이(가) 나왔어요."
+    ],
+    "transition": [
+      "이어서 다음 카드를 보면요...",
+      "그리고 중요한 건...",
+      "다음으로 살펴볼 것은..."
+    ],
+    "closing": [
+      "종합하면, {summary}",
+      "이 리딩의 핵심 메시지는 {key_message}입니다.",
+      "결론적으로 {conclusion}"
+    ]
+  }
+}

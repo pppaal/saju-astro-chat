@@ -1,0 +1,354 @@
+[
+  {
+    "id": 0,
+    "name": "The Fool",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Beginnings", "Innocence", "Spontaneity", "A free spirit", "Adventure"],
+      "meaning": "A new journey is beginning. Step forward with a pure heart and without fear of the unknown. Infinite possibilities are open to you.",
+      "advice": "Take a leap of faith. Trust the universe and embrace new beginnings with an open heart."
+    },
+    "reversed": {
+      "keywords": ["Recklessness", "Folly", "Being taken advantage of", "Inconsideration", "Risk-taking"],
+      "meaning": "You may be acting recklessly without enough preparation. A plan based on fantasy without facing reality could lead to dangerous outcomes. Pause and review your plans.",
+      "advice": "Slow down and think things through. Ground your dreams in practical planning."
+    }
+  },
+  {
+    "id": 1,
+    "name": "The Magician",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Manifestation", "Resourcefulness", "Power", "Inspired action", "Skill"],
+      "meaning": "You have all the talents and abilities to make your desires a reality. Now is the time to turn your ideas into action. Begin with confidence.",
+      "advice": "Use your skills and resources wisely. You have everything you need to succeed."
+    },
+    "reversed": {
+      "keywords": ["Manipulation", "Poor planning", "Untapped talents", "Deception", "Lack of confidence"],
+      "meaning": "You might be using your talents in the wrong places or trying to deceive others. Alternatively, a lack of confidence might be preventing you from starting anything.",
+      "advice": "Be honest with yourself and others. Reconnect with your true abilities."
+    }
+  },
+  {
+    "id": 2,
+    "name": "The High Priestess",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Intuition", "Sacred knowledge", "Divine feminine", "The subconscious mind", "Wisdom"],
+      "meaning": "Listen to your intuition and inner voice. There are things happening beneath the surface that are not yet clear. The answers you seek are within you.",
+      "advice": "Trust your intuition. Be still and listen to your inner wisdom."
+    },
+    "reversed": {
+      "keywords": ["Secrets", "Disconnected from intuition", "Withdrawal and silence", "Hidden agendas"],
+      "meaning": "You may be ignoring your intuition or there may be secrets being kept from you. It's a time to be cautious of hidden information or gossip.",
+      "advice": "Reconnect with your inner voice. Be wary of hidden agendas around you."
+    }
+  },
+  {
+    "id": 3,
+    "name": "The Empress",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Femininity", "Beauty", "Nature", "Nurturing", "Abundance"],
+      "meaning": "This card represents abundance, creativity, and maternal care. It is a time of growth and prosperity. Embrace the beauty and pleasure life has to offer.",
+      "advice": "Nurture yourself and others. Embrace creativity and connect with nature."
+    },
+    "reversed": {
+      "keywords": ["Creative block", "Dependence on others", "Smothering", "Emptiness", "Insecurity"],
+      "meaning": "You may feel creatively stifled or overly dependent on others. Be mindful of smothering those you care for or feeling a sense of emptiness.",
+      "advice": "Find balance in nurturing. Don't neglect your own creative needs."
+    }
+  },
+  {
+    "id": 4,
+    "name": "The Emperor",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Authority", "Establishment", "Structure", "A father figure", "Leadership"],
+      "meaning": "This card signifies structure, stability, and authority. It is a time for disciplined action and taking control of the situation with a clear plan.",
+      "advice": "Take charge with clear boundaries. Create structure and lead with wisdom."
+    },
+    "reversed": {
+      "keywords": ["Domination", "Excessive control", "Lack of discipline", "Rigidity", "Tyranny"],
+      "meaning": "You may be dealing with someone who is overly controlling, or you yourself may be too rigid. A lack of self-control can lead to chaos.",
+      "advice": "Examine your relationship with power. Find balance between control and flexibility."
+    }
+  },
+  {
+    "id": 5,
+    "name": "The Hierophant",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Spiritual wisdom", "Religious beliefs", "Conformity", "Tradition", "Institutions"],
+      "meaning": "This card represents tradition, established institutions, and shared beliefs. It may be time to follow a conventional path or seek guidance from a trusted mentor.",
+      "advice": "Seek wisdom from established traditions. Consider working with a mentor."
+    },
+    "reversed": {
+      "keywords": ["Personal beliefs", "Freedom", "Challenging the status quo", "Non-conformity"],
+      "meaning": "It is time to question traditions and think for yourself. Break free from old rules and find your own path and beliefs.",
+      "advice": "Trust your own spiritual journey. Don't be afraid to question traditions."
+    }
+  },
+  {
+    "id": 6,
+    "name": "The Lovers",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Love", "Harmony", "Relationships", "Values alignment", "Choices"],
+      "meaning": "This card represents a beautiful connection, harmony, and a choice that must be made. Your values are aligning, leading to a significant relationship or decision.",
+      "advice": "Follow your heart in matters of love. Align your choices with your values."
+    },
+    "reversed": {
+      "keywords": ["Disharmony", "Imbalance", "Misalignment of values", "Relationship issues"],
+      "meaning": "There may be a conflict in your relationships or a misalignment of personal values. A difficult choice may be causing internal or external strife.",
+      "advice": "Examine your values and relationships. Address imbalances honestly."
+    }
+  },
+  {
+    "id": 7,
+    "name": "The Chariot",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Control", "Willpower", "Victory", "Assertion", "Determination"],
+      "meaning": "With determination and willpower, you will overcome obstacles and achieve victory. Stay focused and maintain control to steer your life in the right direction.",
+      "advice": "Stay focused on your goals. Use your willpower to overcome challenges."
+    },
+    "reversed": {
+      "keywords": ["Lack of control", "Lack of direction", "Aggression", "Obstacles", "Self-discipline"],
+      "meaning": "You may be losing direction or acting with aggression instead of control. Obstacles may seem overwhelming due to a lack of self-discipline.",
+      "advice": "Regain your focus. Channel your energy constructively, not aggressively."
+    }
+  },
+  {
+    "id": 8,
+    "name": "Strength",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Strength", "Courage", "Patience", "Control", "Compassion"],
+      "meaning": "This card represents inner strength, courage, and compassion. You can overcome challenges not with brute force, but with gentle persuasion and patience.",
+      "advice": "Lead with compassion, not force. Your inner strength will guide you through."
+    },
+    "reversed": {
+      "keywords": ["Inner turmoil", "Weakness", "Self-doubt", "Lack of self-control", "Insecurity"],
+      "meaning": "You may be experiencing self-doubt or a lack of inner strength. Fear and insecurity are holding you back from achieving your potential.",
+      "advice": "Build your inner confidence. Face your fears with gentle courage."
+    }
+  },
+  {
+    "id": 9,
+    "name": "The Hermit",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Soul-searching", "Introspection", "Being alone", "Inner guidance", "Wisdom"],
+      "meaning": "It is a time for introspection and seeking wisdom from within. Step back from the busy world to find your inner light and guidance.",
+      "advice": "Take time for solitude and reflection. The answers you seek are within."
+    },
+    "reversed": {
+      "keywords": ["Isolation", "Loneliness", "Withdrawal", "Paranoia", "Being anti-social"],
+      "meaning": "You may be feeling isolated or lonely. Be careful not to withdraw too much from the world, as it could lead to sadness or paranoia.",
+      "advice": "Balance solitude with connection. Don't isolate yourself too much."
+    }
+  },
+  {
+    "id": 10,
+    "name": "Wheel of Fortune",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Good luck", "Karma", "Life cycles", "Destiny", "A turning point"],
+      "meaning": "The wheel is turning in your favor. Expect a positive change in luck or a significant turning point in your life. What goes around, comes around.",
+      "advice": "Embrace change. This is a fortunate turning point in your journey."
+    },
+    "reversed": {
+      "keywords": ["Bad luck", "Resistance to change", "Breaking cycles", "Negative external forces"],
+      "meaning": "You may be experiencing a period of bad luck or resisting an inevitable change. External forces may be working against you.",
+      "advice": "Accept that change is inevitable. Work to break negative cycles."
+    }
+  },
+  {
+    "id": 11,
+    "name": "Justice",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Justice", "Fairness", "Truth", "Cause and effect", "Law"],
+      "meaning": "This card represents fairness, truth, and the consequences of your actions. A decision will be made justly. Be accountable for your choices.",
+      "advice": "Act with integrity. The truth will prevail. Take responsibility."
+    },
+    "reversed": {
+      "keywords": ["Unfairness", "Lack of accountability", "Dishonesty", "Injustice", "Legal disputes"],
+      "meaning": "You may be facing an unfair situation or avoiding responsibility for your actions. Dishonesty could lead to negative consequences.",
+      "advice": "Face the consequences honestly. Seek fairness and take accountability."
+    }
+  },
+  {
+    "id": 12,
+    "name": "The Hanged Man",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Pause", "Surrender", "Letting go", "New perspectives", "Sacrifice"],
+      "meaning": "It is a time to pause and see things from a new perspective. Surrender to the situation and let go of control to gain new insights.",
+      "advice": "Surrender and trust the process. A new perspective awaits."
+    },
+    "reversed": {
+      "keywords": ["Delays", "Resistance", "Stalling", "Indecision", "Martyrdom"],
+      "meaning": "You are resisting a necessary pause, leading to delays and stagnation. Avoid making a needless sacrifice or playing the victim.",
+      "advice": "Stop resisting the pause. Release the need for control."
+    }
+  },
+  {
+    "id": 13,
+    "name": "Death",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Endings", "Change", "Transformation", "Transition", "Letting go"],
+      "meaning": "This card signifies a major ending to make way for a new beginning. Embrace this transformation, as it is a necessary part of your life's cycle.",
+      "advice": "Let go of what no longer serves you. Transformation brings rebirth."
+    },
+    "reversed": {
+      "keywords": ["Resistance to change", "Holding on", "Stagnation", "Fear of change", "Decay"],
+      "meaning": "You are resisting a necessary ending, which is causing stagnation and preventing new growth. Fear of change is holding you in the past.",
+      "advice": "Release your fear of change. Holding on only prolongs suffering."
+    }
+  },
+  {
+    "id": 14,
+    "name": "Temperance",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Balance", "Moderation", "Patience", "Purpose", "Harmony"],
+      "meaning": "This card calls for balance, patience, and moderation in all things. By finding harmony and purpose, you can navigate life with a calm and steady hand.",
+      "advice": "Find balance and moderation. Patience will bring harmony."
+    },
+    "reversed": {
+      "keywords": ["Imbalance", "Extremes", "Excess", "Lack of harmony", "Recklessness"],
+      "meaning": "You may be experiencing imbalance or going to extremes. A lack of moderation is causing conflict and discord in your life.",
+      "advice": "Restore balance. Avoid extremes and practice moderation."
+    }
+  },
+  {
+    "id": 15,
+    "name": "The Devil",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Addiction", "Bondage", "Materialism", "Ignorance", "Negative patterns"],
+      "meaning": "You may be trapped by addiction, negative thinking, or materialism. You have the power to break free, but first, you must acknowledge your chains.",
+      "advice": "Recognize what binds you. You have the power to break free."
+    },
+    "reversed": {
+      "keywords": ["Breaking free", "Detachment", "Releasing limiting beliefs", "Reclaiming power"],
+      "meaning": "You are beginning to break free from negative patterns and attachments. By releasing what holds you back, you are reclaiming your personal power.",
+      "advice": "Celebrate your freedom from old patterns. Keep releasing."
+    }
+  },
+  {
+    "id": 16,
+    "name": "The Tower",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Sudden change", "Upheaval", "Chaos", "Revelation", "Awakening"],
+      "meaning": "A sudden, dramatic change is about to occur. While it may be chaotic, this upheaval is necessary to destroy a false reality and lead to a spiritual awakening.",
+      "advice": "Embrace the upheaval. What falls away needed to go."
+    },
+    "reversed": {
+      "keywords": ["Fear of change", "Avoiding disaster", "Delaying the inevitable", "Resisting destruction"],
+      "meaning": "You are trying to avoid a necessary change, but this only delays the inevitable. Resisting this transformation will only prolong the suffering.",
+      "advice": "Stop avoiding the inevitable. Face necessary changes head-on."
+    }
+  },
+  {
+    "id": 17,
+    "name": "The Star",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Hope", "Faith", "Purpose", "Renewal", "Spirituality"],
+      "meaning": "After a period of darkness, hope is renewed. This card brings a sense of peace, inspiration, and purpose. Have faith in the future.",
+      "advice": "Keep faith alive. Healing and hope are coming your way."
+    },
+    "reversed": {
+      "keywords": ["Lack of faith", "Despair", "Discouragement", "Disconnection", "Insecurity"],
+      "meaning": "You may be feeling hopeless or disconnected from your purpose. Do not give in to despair; the light is still there, even if you cannot see it.",
+      "advice": "Don't lose hope. Reconnect with your inner light and purpose."
+    }
+  },
+  {
+    "id": 18,
+    "name": "The Moon",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Illusion", "Fear", "Anxiety", "Subconscious", "Intuition"],
+      "meaning": "Things may not be as they seem. This card represents illusion and the fears that arise from the subconscious. Trust your intuition to guide you through the darkness.",
+      "advice": "Trust your intuition through uncertainty. Not everything is as it seems."
+    },
+    "reversed": {
+      "keywords": ["Release of fear", "Repressed emotion", "Inner confusion", "Truth revealed"],
+      "meaning": "You are beginning to release your fears and see the truth behind illusions. Repressed emotions may be coming to the surface to be healed.",
+      "advice": "Face your fears. The truth is emerging from the shadows."
+    }
+  },
+  {
+    "id": 19,
+    "name": "The Sun",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Positivity", "Fun", "Warmth", "Success", "Vitality"],
+      "meaning": "This is a card of pure joy, success, and optimism. Embrace the warmth and positivity that surrounds you. It is a time of celebration and vitality.",
+      "advice": "Celebrate life! Joy, success, and vitality are yours."
+    },
+    "reversed": {
+      "keywords": ["Inner child", "Feeling down", "Overly optimistic", "Lack of success", "Pessimism"],
+      "meaning": "You may be feeling temporarily sad or your optimism might be unrealistic. Don't let a temporary setback dim your inner light.",
+      "advice": "Reconnect with your inner joy. This setback is temporary."
+    }
+  },
+  {
+    "id": 20,
+    "name": "Judgement",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Judgement", "Rebirth", "Inner calling", "Absolution", "Awakening"],
+      "meaning": "This card represents a moment of awakening and rebirth. You are called to make a significant judgment, forgive the past, and embrace a new level of consciousness.",
+      "advice": "Answer your calling. This is a time for rebirth and awakening."
+    },
+    "reversed": {
+      "keywords": ["Self-doubt", "Inner critic", "Ignoring the call", "Indecisiveness", "Guilt"],
+      "meaning": "You may be plagued by self-doubt or an overly harsh inner critic. Ignoring your inner calling will only lead to regret.",
+      "advice": "Silence your inner critic. Don't ignore your higher calling."
+    }
+  },
+  {
+    "id": 21,
+    "name": "The World",
+    "arcana": "major",
+    "suit": "major",
+    "upright": {
+      "keywords": ["Completion", "Integration", "Accomplishment", "Travel", "Fulfillment"],
+      "meaning": "This card signifies the successful completion of a cycle. You have achieved your goals and reached a state of fulfillment and integration. Celebrate your success.",
+      "advice": "Celebrate your achievements! A cycle is complete. Wholeness is yours."
+    },
+    "reversed": {
+      "keywords": ["Lack of completion", "Lack of closure", "Shortcuts", "Emptiness", "Unfinished business"],
+      "meaning": "You may be feeling a lack of closure or have taken shortcuts that left things unfinished. A sense of emptiness comes from not completing what you started.",
+      "advice": "Complete what you've started. Avoid shortcuts. Seek proper closure."
+    }
+  }
+]

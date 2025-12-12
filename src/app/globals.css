@@ -1,3 +1,5 @@
+@import "../styles/tokens.css";
+
 /* ============ Fonts ============ */
 /* Fonts are now loaded via Next.js font optimization in layout.tsx */
 /* CSS variables are available:
@@ -130,41 +132,6 @@ select:focus-visible,
   --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Light mode */
-[data-theme="light"] {
-  --bg-color: #f5f7fa;
-  --text-color: #1a1a2e;
-  --glow-color: #6366f1;
-  --muted: rgba(30, 30, 50, 0.7);
-  --accent: #3b82f6;
-  --accent-2: #10b981;
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(0, 0, 0, 0.08);
-
-  --card-bg-color: rgba(255, 255, 255, 0.95);
-  --card-border-color: rgba(100, 102, 241, 0.15);
-  --card-hover-border-color: rgba(100, 102, 241, 0.6);
-
-  --panel: #ffffff;
-  --panel-border: rgba(100, 102, 241, 0.12);
-  --input-bg: #f9fafb;
-  --input-border: rgba(100, 102, 241, 0.18);
-
-  --shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
-  --glow: 0 0 36px rgba(99, 102, 241, 0.08);
-
-  --gold-1: #f59e0b;
-  --gold-2: #f97316;
-
-  --button-bg-color: transparent;
-  --button-active-bg-color: #6366f1;
-}
-
-[data-theme="light"] body {
-  background-color: #f5f7fa;
-  color: #1a1a2e;
-}
-
 /* ============ Base ============ */
 * {
   box-sizing: border-box;
@@ -175,6 +142,8 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  color-scheme: dark;
+  background-color: #050714;
 }
 
 body {
@@ -637,4 +606,71 @@ body {
 
 #main-content {
   flex: 1;
+}
+
+/* ============ Aura Ring Visual Styles ============ */
+.aura-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.aura-ring {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.4;
+  filter: blur(80px);
+  animation: aura-pulse 8s ease-in-out infinite;
+}
+
+.aura-ring.aura-c1 {
+  width: 600px;
+  height: 600px;
+  background: var(--aura-c1, hsl(220, 90%, 65%));
+  animation-delay: 0s;
+}
+
+.aura-ring.aura-c2 {
+  width: 500px;
+  height: 500px;
+  background: var(--aura-c2, hsl(300, 90%, 65%));
+  animation-delay: 2s;
+}
+
+.aura-ring.aura-c3 {
+  width: 400px;
+  height: 400px;
+  background: var(--aura-c3, hsl(180, 90%, 65%));
+  animation-delay: 4s;
+}
+
+@keyframes aura-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.6;
+  }
+}
+
+/* Aura fade-in animation */
+.aura-fade-in {
+  animation: aura-fade-in 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes aura-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

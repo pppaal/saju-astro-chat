@@ -1,0 +1,203 @@
+{
+  "_meta": {
+    "title": "Tarot Card Combinations",
+    "description": "특별한 의미를 가진 카드 조합들 - 두 장 이상의 카드가 함께 나왔을 때의 해석"
+  },
+  "powerful_pairs": {
+    "love_indicators": [
+      {
+        "cards": ["The Lovers", "Two of Cups"],
+        "meaning": "소울메이트 연결. 운명적인 만남. 깊은 영적 유대.",
+        "korean": "소울메이트를 만날 강력한 신호입니다. 두 영혼이 하나가 되는 인연이에요."
+      },
+      {
+        "cards": ["The Empress", "Ace of Cups"],
+        "meaning": "사랑의 시작과 풍요. 새로운 로맨스가 꽃피움.",
+        "korean": "사랑이 풍성하게 시작됩니다. 감정적으로 충만한 새 관계예요."
+      },
+      {
+        "cards": ["Ten of Cups", "The Sun"],
+        "meaning": "완벽한 행복. 가정의 기쁨. 이상적인 관계.",
+        "korean": "동화 같은 해피엔딩이에요. 가장 행복한 결말을 암시합니다."
+      },
+      {
+        "cards": ["Knight of Cups", "Page of Cups"],
+        "meaning": "로맨틱한 제안이 온다. 사랑 고백. 달콤한 시작.",
+        "korean": "누군가 마음을 고백할 거예요. 로맨틱한 제안이 다가옵니다."
+      },
+      {
+        "cards": ["The Star", "The Lovers"],
+        "meaning": "희망찬 사랑. 치유되는 관계. 믿음이 이루어짐.",
+        "korean": "진정한 사랑을 찾게 됩니다. 상처가 치유되는 관계예요."
+      }
+    ],
+    "breakup_warning": [
+      {
+        "cards": ["Three of Swords", "Ten of Swords"],
+        "meaning": "관계의 고통스러운 종말. 배신이나 상실.",
+        "korean": "아픈 이별을 암시해요. 하지만 끝은 새로운 시작이기도 합니다."
+      },
+      {
+        "cards": ["The Tower", "Three of Swords"],
+        "meaning": "갑작스러운 관계 파탄. 충격적인 진실 발견.",
+        "korean": "갑작스러운 변화나 충격적인 진실이 드러날 수 있어요."
+      },
+      {
+        "cards": ["Five of Cups", "Eight of Cups"],
+        "meaning": "관계를 떠나야 할 때. 슬픔 속 전진.",
+        "korean": "아쉽지만 떠나야 할 때입니다. 더 나은 것을 향해 가세요."
+      }
+    ],
+    "career_success": [
+      {
+        "cards": ["The Chariot", "Ace of Wands"],
+        "meaning": "새 사업의 승리. 강력한 시작과 성공.",
+        "korean": "새로운 시작이 큰 성공으로 이어집니다. 자신감 있게 밀어붙이세요."
+      },
+      {
+        "cards": ["The Emperor", "King of Pentacles"],
+        "meaning": "사업적 성공. 리더십과 재정적 안정.",
+        "korean": "리더로서의 성공과 재정적 풍요가 함께 옵니다."
+      },
+      {
+        "cards": ["The World", "Ten of Pentacles"],
+        "meaning": "커리어의 정점. 완전한 성취와 유산.",
+        "korean": "커리어의 완성입니다. 모든 것이 이루어지는 순간이에요."
+      },
+      {
+        "cards": ["Three of Wands", "Eight of Pentacles"],
+        "meaning": "노력이 확장으로. 기술이 인정받음.",
+        "korean": "열심히 갈고닦은 실력이 드디어 빛을 발합니다."
+      }
+    ],
+    "money_luck": [
+      {
+        "cards": ["Ace of Pentacles", "Nine of Pentacles"],
+        "meaning": "재정적 기회가 풍요로. 투자 성공.",
+        "korean": "새로운 재정 기회가 큰 풍요로 이어집니다."
+      },
+      {
+        "cards": ["The Wheel of Fortune", "Ace of Pentacles"],
+        "meaning": "운이 좋은 재정 기회. 횡재 가능성.",
+        "korean": "행운의 바람이 재물을 가져옵니다. 예상치 못한 돈이 올 수 있어요."
+      },
+      {
+        "cards": ["Six of Pentacles", "Ten of Pentacles"],
+        "meaning": "나눔이 더 큰 풍요로. 세대를 넘는 부.",
+        "korean": "베푸는 만큼 더 큰 복으로 돌아옵니다."
+      }
+    ],
+    "spiritual_awakening": [
+      {
+        "cards": ["The High Priestess", "The Moon"],
+        "meaning": "강력한 직관 각성. 숨겨진 진실 발견.",
+        "korean": "직관이 극대화되는 시기예요. 내면의 목소리를 따르세요."
+      },
+      {
+        "cards": ["The Hermit", "The Star"],
+        "meaning": "고독 속 깨달음. 영적 치유와 희망.",
+        "korean": "혼자만의 시간이 큰 깨달음을 가져옵니다."
+      },
+      {
+        "cards": ["Judgement", "The World"],
+        "meaning": "영적 완성. 카르마 해소. 새 차원으로.",
+        "korean": "한 사이클이 완성되고 새로운 차원으로 올라갑니다."
+      }
+    ],
+    "warning_combinations": [
+      {
+        "cards": ["The Tower", "Ten of Swords"],
+        "meaning": "큰 붕괴와 종말. 모든 것이 무너질 수 있음.",
+        "korean": "큰 변화가 옵니다. 무너지는 것은 재건을 위한 과정이에요.",
+        "advice": "저항하지 말고 흐름에 맡기세요. 새로운 시작을 준비하세요."
+      },
+      {
+        "cards": ["The Devil", "Seven of Swords"],
+        "meaning": "속임수와 중독. 불건전한 관계나 상황.",
+        "korean": "무언가에 묶여 있거나 속고 있을 수 있어요. 진실을 직면하세요.",
+        "advice": "스스로 만든 감옥에서 벗어나세요."
+      },
+      {
+        "cards": ["Five of Pentacles", "Ten of Swords"],
+        "meaning": "경제적 어려움의 극한. 힘든 시기.",
+        "korean": "힘든 시기지만, 바닥을 찍으면 올라갈 일만 남습니다.",
+        "advice": "도움을 구하세요. 혼자 감당하지 마세요."
+      }
+    ],
+    "timing_indicators": [
+      {
+        "cards": ["The Chariot", "Eight of Wands"],
+        "meaning": "빠른 진전. 일이 급속도로 진행됨.",
+        "korean": "일이 아주 빠르게 진행됩니다. 몇 주 내로 결과가 나올 거예요."
+      },
+      {
+        "cards": ["The Hanged Man", "Four of Swords"],
+        "meaning": "지연과 휴식 필요. 기다려야 할 때.",
+        "korean": "지금은 기다려야 해요. 3개월 정도 여유를 가지세요."
+      },
+      {
+        "cards": ["The Fool", "The Magician"],
+        "meaning": "새 시작의 완벽한 타이밍. 지금 행동하라.",
+        "korean": "지금이 바로 그때예요! 망설이지 말고 시작하세요."
+      }
+    ]
+  },
+  "triple_combinations": {
+    "ultimate_love": {
+      "cards": ["The Lovers", "Two of Cups", "Ten of Cups"],
+      "meaning": "완벽한 사랑의 여정. 만남에서 행복한 가정까지.",
+      "korean": "사랑의 완전한 성취예요. 만남, 결합, 행복한 가정 모두를 암시합니다."
+    },
+    "career_triumph": {
+      "cards": ["The Chariot", "The World", "Ten of Pentacles"],
+      "meaning": "커리어의 완전한 성공. 모든 목표 달성.",
+      "korean": "커리어에서 완전한 승리를 거둡니다. 성공과 풍요가 함께해요."
+    },
+    "spiritual_mastery": {
+      "cards": ["The High Priestess", "The Hermit", "The World"],
+      "meaning": "영적 마스터리. 깨달음의 완성.",
+      "korean": "영적 여정의 정점에 도달합니다. 완전한 깨달음이에요."
+    },
+    "new_chapter": {
+      "cards": ["Death", "The Star", "The Sun"],
+      "meaning": "어둠 후 빛. 고통 후 희망과 기쁨.",
+      "korean": "힘든 시간이 지나면 빛나는 미래가 기다리고 있어요."
+    },
+    "major_transformation": {
+      "cards": ["The Tower", "Death", "The Star"],
+      "meaning": "파괴적 변화 후 완전한 재탄생.",
+      "korean": "완전히 무너지고 다시 태어납니다. 피닉스처럼 부활해요."
+    }
+  },
+  "court_card_pairs": {
+    "romantic_pairs": [
+      {
+        "cards": ["King of Cups", "Queen of Cups"],
+        "meaning": "감정적으로 성숙한 커플. 깊은 정서적 유대.",
+        "korean": "서로를 깊이 이해하는 성숙한 커플이에요."
+      },
+      {
+        "cards": ["Knight of Cups", "Queen of Wands"],
+        "meaning": "열정과 로맨스의 만남. 화끈한 연애.",
+        "korean": "열정적이고 흥미진진한 연애가 시작됩니다."
+      },
+      {
+        "cards": ["King of Pentacles", "Queen of Pentacles"],
+        "meaning": "안정적이고 풍요로운 파트너십.",
+        "korean": "실용적이고 안정적인 관계. 함께 풍요를 만들어요."
+      }
+    ],
+    "conflict_pairs": [
+      {
+        "cards": ["King of Swords", "Queen of Wands"],
+        "meaning": "논리와 열정의 충돌. 갈등 가능성.",
+        "korean": "서로 다른 스타일로 충돌할 수 있어요. 이해가 필요합니다."
+      },
+      {
+        "cards": ["Knight of Swords", "Knight of Wands"],
+        "meaning": "두 강한 에고의 충돌. 경쟁이나 갈등.",
+        "korean": "둘 다 강해서 부딪힐 수 있어요. 양보가 필요해요."
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+[
+  {"id": 36, "name": "Ace of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Love", "Compassion", "Creativity", "Overwhelming emotion", "New relationship"], "meaning": "A new wave of emotion, creativity, and love is flowing into your life. This is the start of a new relationship or a deeper connection to your feelings.", "advice": "Open your heart to new love and emotional beginnings."},
+    "reversed": {"keywords": ["Blocked emotions", "Repressed feelings", "Emptiness", "Sadness", "Creative block"], "meaning": "You may be blocking or repressing your emotions. This can lead to a sense of emptiness or creative stagnation.", "advice": "Release blocked emotions. Let yourself feel deeply."}
+  },
+  {"id": 37, "name": "Two of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Unified love", "Partnership", "Mutual attraction", "Connection", "Harmony"], "meaning": "This card represents a deep connection and partnership based on mutual love and respect. It signifies harmony and a strong bond between two people.", "advice": "Nurture your partnership. Honor mutual respect and love."},
+    "reversed": {"keywords": ["Break-up", "Disharmony", "Distrust", "Relationship troubles", "Misalignment"], "meaning": "There is a sense of disharmony or imbalance in a relationship. Distrust or a misalignment of values can lead to conflict.", "advice": "Address relationship imbalances. Rebuild trust if possible."}
+  },
+  {"id": 38, "name": "Three of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Celebration", "Friendship", "Creativity", "Community", "Reunion"], "meaning": "This is a card of joyful celebration with friends and community. It signifies a happy reunion or a successful collaboration.", "advice": "Celebrate with friends. Embrace community and connection."},
+    "reversed": {"keywords": ["Gossip", "Isolation", "Overindulgence", "Third-party interference", "Cancelled celebration"], "meaning": "You may be feeling isolated or dealing with gossip within your social circle. Overindulgence or a third party could be causing problems.", "advice": "Address social conflicts. Beware of gossip and overindulgence."}
+  },
+  {"id": 39, "name": "Four of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Apathy", "Contemplation", "Disconnection", "Re-evaluation", "Missed opportunity"], "meaning": "You are feeling apathetic or disconnected, causing you to miss opportunities being offered. It is a time for contemplation and re-evaluating what truly matters.", "advice": "Look at what's being offered. Don't let apathy blind you."},
+    "reversed": {"keywords": ["Sudden awareness", "Choosing happiness", "Accepting help", "New motivation", "Seizing an opportunity"], "meaning": "You are coming out of a period of apathy and are now ready to seize new opportunities. A newfound motivation is leading you to choose happiness.", "advice": "Seize the opportunity before you. Choose happiness now."}
+  },
+  {"id": 40, "name": "Five of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Loss", "Regret", "Disappointment", "Sadness", "Grief"], "meaning": "You are focusing on past losses and disappointments, which is preventing you from seeing the positive things that still remain. It is a time of grief and regret.", "advice": "Acknowledge your grief, but see what still stands. Not all is lost."},
+    "reversed": {"keywords": ["Moving on", "Acceptance", "Forgiveness", "Finding peace", "Healing"], "meaning": "You are beginning to accept your losses and are ready to move on. Forgiveness and healing are possible once you let go of regret.", "advice": "Let go of regret. Healing and peace await you."}
+  },
+  {"id": 41, "name": "Six of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Nostalgia", "Childhood memories", "Reunion", "Innocence", "Kindness"], "meaning": "This card represents a return to happy memories from the past. It can signify a reunion with someone from your childhood or a feeling of innocent joy.", "advice": "Embrace fond memories. Reconnect with innocent joy."},
+    "reversed": {"keywords": ["Stuck in the past", "Moving on", "Leaving home", "Rose-tinted glasses", "Letting go of childhood"], "meaning": "You may be living too much in the past and idealizing it. It is time to let go of old memories and focus on the present and future.", "advice": "Let go of the past. Focus on the present moment."}
+  },
+  {"id": 42, "name": "Seven of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Choices", "Illusion", "Fantasy", "Wishful thinking", "Opportunities"], "meaning": "You are faced with many choices, but some may be illusions or fantasies. Be careful of wishful thinking and evaluate your options realistically.", "advice": "Evaluate options realistically. Not all that glitters is gold."},
+    "reversed": {"keywords": ["Clarity", "Making a decision", "Reality check", "Choosing a path", "Focus"], "meaning": "After a period of confusion, you are gaining clarity and are ready to make a firm decision. A reality check has helped you choose a clear path.", "advice": "Make a clear decision. Focus on what's real and attainable."}
+  },
+  {"id": 43, "name": "Eight of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Abandonment", "Walking away", "Disappointment", "Seeking something more", "Moving on"], "meaning": "You are choosing to walk away from a situation that is no longer emotionally fulfilling. It is a journey of seeking deeper meaning and purpose.", "advice": "Walk away from what no longer serves you. Seek deeper meaning."},
+    "reversed": {"keywords": ["Fear of change", "Staying in a bad situation", "Stagnation", "Indecision", "Return"], "meaning": "You are afraid to leave a situation that is making you unhappy. This fear of the unknown is causing you to feel stuck and stagnant.", "advice": "Face your fear of leaving. Staying stuck causes more pain."}
+  },
+  {"id": 44, "name": "Nine of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Wishes fulfilled", "Contentment", "Satisfaction", "Gratitude", "Success"], "meaning": "This is the 'wish card,' representing contentment, pleasure, and emotional fulfillment. Your wishes are coming true, and it is a time to feel satisfied.", "advice": "Enjoy your wishes coming true. Practice gratitude."},
+    "reversed": {"keywords": ["Dissatisfaction", "Unfulfilled wishes", "Materialism", "Greed", "Smugness"], "meaning": "You are feeling dissatisfied despite having much. Materialism or greed may be preventing you from finding true happiness.", "advice": "Look beyond material satisfaction. True joy is internal."}
+  },
+  {"id": 45, "name": "Ten of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Divine love", "Happy family", "Harmony", "Fulfillment", "Joy"], "meaning": "This card represents ultimate emotional fulfillment, often in the form of a happy and harmonious family life. It is a picture of lasting joy and divine love.", "advice": "Cherish your loved ones. This is deep emotional fulfillment."},
+    "reversed": {"keywords": ["Broken family", "Disharmony", "Unhappiness", "Misaligned values", "Relationship issues"], "meaning": "There may be conflict or disharmony within your family or close relationships. A breakdown in connection is causing unhappiness.", "advice": "Work to heal family rifts. Address underlying conflicts."}
+  },
+  {"id": 46, "name": "Page of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Creative opportunities", "Intuition", "Curiosity", "Imagination", "A messenger of love"], "meaning": "A new creative or emotional opportunity is presenting itself. Listen to your intuition and approach this new beginning with curiosity and an open heart.", "advice": "Follow your intuition. Creative and romantic news arrives."},
+    "reversed": {"keywords": ["Creative blocks", "Emotional immaturity", "Escapism", "Insecurity", "Sad news"], "meaning": "You may be feeling creatively blocked or acting with emotional immaturity. Escapism or insecurity is preventing you from facing your feelings.", "advice": "Face your emotions maturely. Don't escape into fantasy."}
+  },
+  {"id": 47, "name": "Knight of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Romance", "Charming", "Imagination", "An offer", "A romantic dreamer"], "meaning": "This card often represents a romantic proposal or the arrival of a charming and imaginative person. It is a time for following your heart.", "advice": "Follow your heart. Romance and creativity beckon."},
+    "reversed": {"keywords": ["Unrealistic", "Jealousy", "Moodiness", "Disappointment in love", "Emotional manipulation"], "meaning": "You may be dealing with someone who is emotionally manipulative or unrealistic. Be wary of jealousy and moodiness in relationships.", "advice": "Beware of emotional manipulation. Stay grounded in reality."}
+  },
+  {"id": 48, "name": "Queen of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Compassion", "Calm", "Intuitive", "Nurturing", "Emotional stability"], "meaning": "This card represents a compassionate and intuitive person who is in control of their emotions. It signifies emotional maturity and a nurturing presence.", "advice": "Lead with compassion and intuition. Be emotionally nurturing."},
+    "reversed": {"keywords": ["Emotional insecurity", "Co-dependency", "Overly emotional", "Needy", "Martyrdom"], "meaning": "You may be feeling emotionally insecure or needy. A tendency to be overly emotional or co-dependent can cause relationship problems.", "advice": "Build emotional independence. Don't sacrifice yourself for others."}
+  },
+  {"id": 49, "name": "King of Cups", "arcana": "minor", "suit": "cups",
+    "upright": {"keywords": ["Emotional balance", "Compassion", "Diplomacy", "Control", "Generosity"], "meaning": "This card represents a person who has mastered their emotions. He is a compassionate and diplomatic leader who offers calm and wise counsel.", "advice": "Master your emotions. Lead with balanced compassion."},
+    "reversed": {"keywords": ["Emotional manipulation", "Moodiness", "Volatility", "Coldness", "Untrustworthy"], "meaning": "Be wary of someone who uses emotional manipulation to control others. This person may be moody, cold, and untrustworthy.", "advice": "Beware of emotional manipulation. Seek trustworthy counsel."}
+  }
+]

@@ -1,0 +1,343 @@
+{
+  "$schema": "tarot_multidimensional_matrix_v2",
+  "$description": "타로 다차원 해석 매트릭스 - 자동 생성",
+  "major_arcana_journey": {
+    "fool": {
+      "archetype": "신성한 바보/시작",
+      "jung": "무의식적 전체성, 순수",
+      "upright": "새로운 시작, 순수한 가능성, 믿음의 도약",
+      "reversed": "무모함, 어리석음, 방향 상실",
+      "therapeutic_question": "두려움 없이 시작할 수 있는가?"
+    },
+    "magician": {
+      "archetype": "창조자/연금술사",
+      "jung": "의지력, 자아",
+      "upright": "의지력, 창조력, 자원 활용",
+      "reversed": "조작, 능력 낭비, 속임",
+      "therapeutic_question": "당신의 도구를 어떻게 사용하고 있는가?"
+    },
+    "high_priestess": {
+      "archetype": "직관/무의식",
+      "jung": "아니마, 집단 무의식의 문",
+      "upright": "직관, 숨겨진 지식, 내면의 목소리",
+      "reversed": "직관 무시, 비밀, 표면적 지식",
+      "therapeutic_question": "내면의 목소리에 귀 기울이고 있는가?"
+    },
+    "empress": {
+      "archetype": "어머니/풍요",
+      "jung": "태모, 창조적 여성성",
+      "upright": "풍요, 돌봄, 창조, 자연",
+      "reversed": "의존, 과보호, 창조적 막힘",
+      "therapeutic_question": "무엇을 낳고 키우고 있는가?"
+    },
+    "emperor": {
+      "archetype": "아버지/권위",
+      "jung": "아니무스, 아버지 원형",
+      "upright": "권위, 구조, 통제, 안정",
+      "reversed": "독재, 경직, 권위 남용",
+      "therapeutic_question": "당신의 내면 권위는 건강한가?"
+    },
+    "hierophant": {
+      "archetype": "교사/전통",
+      "jung": "현자, 초자아",
+      "upright": "전통, 교육, 영적 지도, 규범",
+      "reversed": "맹목적 추종, 독단, 새로운 길 거부",
+      "therapeutic_question": "어떤 가르침을 따르고 있는가?"
+    },
+    "lovers": {
+      "archetype": "선택/연합",
+      "jung": "아니마-아니무스 통합",
+      "upright": "사랑, 선택, 가치 정렬, 조화",
+      "reversed": "불화, 잘못된 선택, 가치 혼란",
+      "therapeutic_question": "무엇을 선택하고 있는가?"
+    },
+    "chariot": {
+      "archetype": "의지/승리",
+      "jung": "에고의 통합적 제어",
+      "upright": "의지력, 결단, 승리, 전진",
+      "reversed": "통제 상실, 방향 없음, 공격성",
+      "therapeutic_question": "어디로 향하고 있는가?"
+    },
+    "strength": {
+      "archetype": "내면의 힘",
+      "jung": "본능과 의식의 조화",
+      "upright": "내면의 힘, 인내, 용기, 연민",
+      "reversed": "자기 의심, 통제 욕구, 약함",
+      "therapeutic_question": "진정한 힘이란 무엇인가?"
+    },
+    "hermit": {
+      "archetype": "내면의 빛",
+      "jung": "현자, 내면 안내자",
+      "upright": "성찰, 고독, 내면의 지혜, 안내",
+      "reversed": "고립, 외로움, 지혜 거부",
+      "therapeutic_question": "홀로 있을 때 무엇을 발견하는가?"
+    },
+    "wheel": {
+      "archetype": "운명의 수레바퀴",
+      "jung": "동시성, 카르마",
+      "upright": "변화, 순환, 운명, 기회",
+      "reversed": "저항, 나쁜 운, 통제 집착",
+      "therapeutic_question": "삶의 순환을 어떻게 받아들이는가?"
+    },
+    "justice": {
+      "archetype": "균형/진실",
+      "jung": "자기 정직, 내면의 심판자",
+      "upright": "정의, 균형, 진실, 책임",
+      "reversed": "불공정, 회피, 정직하지 못함",
+      "therapeutic_question": "진실과 마주할 준비가 되었는가?"
+    },
+    "hanged_man": {
+      "archetype": "희생/새로운 관점",
+      "jung": "에고의 포기, 초월",
+      "upright": "포기, 새로운 관점, 희생, 기다림",
+      "reversed": "무의미한 희생, 지연, 저항",
+      "therapeutic_question": "무엇을 놓아야 하는가?"
+    },
+    "death": {
+      "archetype": "변형/종료",
+      "jung": "에고의 죽음, 재탄생",
+      "upright": "변형, 종료, 새로운 시작, 전환",
+      "reversed": "변화 저항, 정체, 두려움",
+      "therapeutic_question": "무엇이 끝나야 새것이 오는가?"
+    },
+    "temperance": {
+      "archetype": "균형/통합",
+      "jung": "대립의 통합, 중용",
+      "upright": "균형, 인내, 조절, 통합",
+      "reversed": "불균형, 과잉, 극단",
+      "therapeutic_question": "중용을 찾고 있는가?"
+    },
+    "devil": {
+      "archetype": "그림자/속박",
+      "jung": "그림자, 억압된 욕망",
+      "upright": "속박, 중독, 물질주의, 그림자",
+      "reversed": "해방, 각성, 회복",
+      "therapeutic_question": "무엇에 묶여 있는가? 정말 벗어날 수 없는가?"
+    },
+    "tower": {
+      "archetype": "파괴/각성",
+      "jung": "에고 구조의 붕괴",
+      "upright": "갑작스러운 변화, 파괴, 각성, 해방",
+      "reversed": "두려움, 변화 회피, 서서히 무너짐",
+      "therapeutic_question": "무너져야 할 것이 무엇인가?"
+    },
+    "star": {
+      "archetype": "희망/치유",
+      "jung": "자기(Self)의 빛",
+      "upright": "희망, 영감, 치유, 갱신",
+      "reversed": "절망, 믿음 상실, 낙담",
+      "therapeutic_question": "당신의 별은 어디에 있는가?"
+    },
+    "moon": {
+      "archetype": "환상/무의식",
+      "jung": "무의식의 어둠, 그림자",
+      "upright": "환상, 두려움, 직관, 무의식",
+      "reversed": "혼란 해소, 두려움 직면",
+      "therapeutic_question": "두려워하는 것을 직면하면 어떻게 되는가?"
+    },
+    "sun": {
+      "archetype": "빛/기쁨",
+      "jung": "의식화, 자기 실현",
+      "upright": "기쁨, 성공, 활력, 명확성",
+      "reversed": "내면 아이 억압, 과도한 낙관",
+      "therapeutic_question": "진정한 기쁨은 어디서 오는가?"
+    },
+    "judgement": {
+      "archetype": "부활/각성",
+      "jung": "높은 부름, 자기 평가",
+      "upright": "갱신, 부름에 응답, 자기 평가, 해방",
+      "reversed": "자기 의심, 부름 거부, 판단 회피",
+      "therapeutic_question": "당신의 부름은 무엇인가?"
+    },
+    "world": {
+      "archetype": "완성/통합",
+      "jung": "개성화 완성, 자기(Self) 실현",
+      "upright": "완성, 통합, 성취, 전체성",
+      "reversed": "미완성, 지연, 성취 실패",
+      "therapeutic_question": "당신은 이미 완전하다는 것을 아는가?"
+    }
+  },
+  "suit_meanings": {
+    "wands": {
+      "element": "화",
+      "theme": "열정, 창조성, 의지, 영감",
+      "life_area": "직업, 야망, 에너지",
+      "saju_correlation": "식신, 상관 (표현력)",
+      "astro_correlation": "화성, 태양"
+    },
+    "cups": {
+      "element": "수",
+      "theme": "감정, 관계, 직관, 사랑",
+      "life_area": "관계, 감정, 창의성",
+      "saju_correlation": "정인, 편인 (감정)",
+      "astro_correlation": "달, 금성, 해왕성"
+    },
+    "swords": {
+      "element": "공기",
+      "theme": "사고, 갈등, 진실, 결단",
+      "life_area": "생각, 소통, 갈등",
+      "saju_correlation": "편관, 정관 (권위/갈등)",
+      "astro_correlation": "수성, 화성, 토성"
+    },
+    "pentacles": {
+      "element": "토",
+      "theme": "물질, 몸, 일, 안정",
+      "life_area": "재정, 건강, 물질적 성취",
+      "saju_correlation": "정재, 편재 (재물)",
+      "astro_correlation": "금성, 토성"
+    }
+  },
+  "number_meanings": {
+    "1": {
+      "theme": "시작, 잠재력, 씨앗",
+      "energy": "순수한 원소 에너지"
+    },
+    "2": {
+      "theme": "균형, 선택, 이원성",
+      "energy": "관계, 협력 또는 갈등"
+    },
+    "3": {
+      "theme": "창조, 표현, 성장",
+      "energy": "첫 결실, 확장"
+    },
+    "4": {
+      "theme": "안정, 구조, 기반",
+      "energy": "견고함, 때로는 정체"
+    },
+    "5": {
+      "theme": "변화, 갈등, 불안정",
+      "energy": "위기, 도전, 성장통"
+    },
+    "6": {
+      "theme": "조화, 균형 회복, 교류",
+      "energy": "주고받음, 치유"
+    },
+    "7": {
+      "theme": "내면 탐색, 평가, 깊이",
+      "energy": "성찰, 재평가"
+    },
+    "8": {
+      "theme": "힘, 숙달, 움직임",
+      "energy": "빠른 변화, 권력"
+    },
+    "9": {
+      "theme": "완성 직전, 지혜, 고독",
+      "energy": "거의 끝, 성취 또는 걱정"
+    },
+    "10": {
+      "theme": "완성, 순환 종료, 과잉",
+      "energy": "끝과 새로운 시작"
+    }
+  },
+  "spread_positions": {
+    "past_present_future": {
+      "1": "과거 - 형성된 패턴, 배경",
+      "2": "현재 - 지금의 에너지, 도전",
+      "3": "미래 - 가능한 방향, 조언"
+    },
+    "celtic_cross": {
+      "1": "현재 상황",
+      "2": "즉각적 도전",
+      "3": "의식적 목표",
+      "4": "무의식적 기반",
+      "5": "최근 과거",
+      "6": "가까운 미래",
+      "7": "자기 자신",
+      "8": "환경/타인",
+      "9": "희망과 두려움",
+      "10": "최종 결과"
+    }
+  },
+  "question_interpretation": {
+    "career": {
+      "key_suits": [
+        "wands",
+        "pentacles"
+      ],
+      "key_majors": [
+        "magician",
+        "emperor",
+        "chariot",
+        "wheel",
+        "world"
+      ],
+      "focus": "능력 발휘, 방향, 성취"
+    },
+    "relationship": {
+      "key_suits": [
+        "cups",
+        "swords"
+      ],
+      "key_majors": [
+        "lovers",
+        "empress",
+        "emperor",
+        "devil",
+        "star"
+      ],
+      "focus": "감정, 연결, 패턴"
+    },
+    "money": {
+      "key_suits": [
+        "pentacles",
+        "wands"
+      ],
+      "key_majors": [
+        "empress",
+        "wheel",
+        "devil",
+        "sun",
+        "world"
+      ],
+      "focus": "자원, 가치, 안정"
+    },
+    "health": {
+      "key_suits": [
+        "pentacles",
+        "cups"
+      ],
+      "key_majors": [
+        "strength",
+        "temperance",
+        "star",
+        "sun"
+      ],
+      "focus": "몸-마음 균형, 치유"
+    },
+    "spiritual": {
+      "key_suits": [
+        "cups",
+        "swords"
+      ],
+      "key_majors": [
+        "high_priestess",
+        "hermit",
+        "star",
+        "moon",
+        "judgement",
+        "world"
+      ],
+      "focus": "의미, 성장, 깨달음"
+    }
+  },
+  "therapeutic_approach": {
+    "principle": "타로는 무의식의 거울. 카드는 우연이 아니라 동시성.",
+    "questions_to_ask": [
+      "이 카드에서 가장 먼저 눈에 들어오는 것은?",
+      "이 이미지가 당신의 어떤 부분을 반영하는가?",
+      "이 카드의 인물이라면 무슨 말을 할까?",
+      "역방향일 때 무엇이 억압되어 있는가?"
+    ]
+  },
+  "interpretation_algorithm": {
+    "step_1": "질문의 핵심 파악",
+    "step_2": "스프레드 내 위치별 의미 분석",
+    "step_3": "메이저/마이너 비율로 영향력 평가",
+    "step_4": "슈트 분포로 에너지 흐름 파악",
+    "step_5": "숫자 패턴으로 진행 단계 이해",
+    "step_6": "카드 간 관계 (인접, 대각) 분석",
+    "step_7": "융 심리학적 원형 연결",
+    "step_8": "사주/점성술과 교차 분석",
+    "step_9": "치료적 질문과 통합 조언"
+  }
+}

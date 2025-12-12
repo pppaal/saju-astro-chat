@@ -1,0 +1,257 @@
+{
+  "concept": "red_book",
+  "concept_kr": "레드북 (리베르 노부스)",
+  "description": "The Red Book (Liber Novus) - Jung's most personal and mystical work, documenting his confrontation with the unconscious",
+  "quotes": [
+    {
+      "id": "red_001",
+      "en": "Give me your hand, my almost forgotten soul. How warm the joy at seeing you again, you long disavowed soul. Life has led me back to you. Let us thank the life I have lived for all the happy and all the sad hours, for every joy, for every sadness.",
+      "kr": "나에게 손을 내밀어다오, 거의 잊혀진 나의 영혼이여. 너를 다시 만나는 기쁨이 얼마나 따뜻한가, 오랫동안 부인당한 영혼이여. 삶이 나를 너에게 다시 이끌었다. 내가 살아온 삶에 감사하자, 행복한 시간과 슬픈 시간 모두, 모든 기쁨과 모든 슬픔에.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "Jung's reunion with his soul at the beginning of his inner journey",
+      "tags": ["soul", "journey", "gratitude", "reunion"]
+    },
+    {
+      "id": "red_002",
+      "en": "You should carry the monastery in yourself. The desert is within you.",
+      "kr": "너는 수도원을 네 안에 지니고 다녀야 한다. 사막은 네 안에 있다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On finding spiritual solitude within oneself",
+      "tags": ["solitude", "inner world", "spirituality", "desert"]
+    },
+    {
+      "id": "red_003",
+      "en": "If you go to thinking, take your heart with you. If you go to love, take your head with you. Love is empty without thinking, thinking hollow without love.",
+      "kr": "생각으로 가려거든 마음을 함께 가져가라. 사랑으로 가려거든 머리를 함께 가져가라. 사랑은 생각 없이는 공허하고, 생각은 사랑 없이는 텅 빈다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the integration of thinking and feeling",
+      "tags": ["love", "thinking", "integration", "heart", "mind"]
+    },
+    {
+      "id": "red_004",
+      "en": "If you marry the ordered to the chaos, you produce the divine child, the supreme meaning beyond meaning and meaninglessness.",
+      "kr": "질서와 혼돈을 결합하면, 신성한 아이, 의미와 무의미를 넘어선 최고의 의미가 탄생한다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the union of opposites creating transcendent meaning",
+      "tags": ["chaos", "order", "divine child", "meaning", "opposites"]
+    },
+    {
+      "id": "red_005",
+      "en": "Whoever speaks in primordial images speaks with a thousand voices; he enthralls and overpowers... he transmutes our personal destiny into the destiny of mankind.",
+      "kr": "원초적 이미지로 말하는 자는 천 개의 목소리로 말한다; 그는 매혹하고 압도한다... 그는 우리의 개인적 운명을 인류의 운명으로 변환한다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the power of archetypal imagery",
+      "tags": ["primordial images", "archetype", "collective", "destiny"]
+    },
+    {
+      "id": "red_006",
+      "en": "We had forgotten that God is terrible... Christ taught: God is love. But you should know that love is also terrible.",
+      "kr": "우리는 신이 무서운 존재라는 것을 잊었다... 그리스도는 가르쳤다: 신은 사랑이라고. 그러나 너는 알아야 한다, 사랑 또한 무섭다는 것을.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the terrible aspect of the divine and love",
+      "tags": ["god", "love", "terrible", "divine", "shadow"]
+    },
+    {
+      "id": "red_007",
+      "en": "You wanted to accept everything. So accept madness too. Let the light of your madness shine, and it will suddenly dawn on you. Madness is not to be despised and not to be feared, but instead you should give it life.",
+      "kr": "너는 모든 것을 받아들이고 싶었다. 그러니 광기도 받아들여라. 네 광기의 빛이 빛나게 하라, 그러면 갑자기 동이 틀 것이다. 광기는 경멸받을 것도 두려워할 것도 아니다, 오히려 너는 그것에 생명을 불어넣어야 한다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On accepting and integrating the irrational",
+      "tags": ["madness", "acceptance", "light", "integration"]
+    },
+    {
+      "id": "red_008",
+      "en": "Madness is a special form of the spirit and clings to all teachings and philosophies, but even more to daily life, since life itself is full of craziness and at bottom utterly illogical.",
+      "kr": "광기는 정신의 특별한 형태이며 모든 가르침과 철학에 달라붙어 있지만, 일상 생활에는 더욱 그러하다. 삶 자체가 미침으로 가득 차 있고 근본적으로 완전히 비논리적이기 때문이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the irrational nature of life itself",
+      "tags": ["madness", "life", "irrational", "philosophy"]
+    },
+    {
+      "id": "red_009",
+      "en": "Life itself has no rules. That is its mystery and its unknown law.",
+      "kr": "삶 자체에는 규칙이 없다. 그것이 삶의 신비이자 알려지지 않은 법칙이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the mystery of life beyond rules",
+      "tags": ["life", "mystery", "law", "rules"]
+    },
+    {
+      "id": "red_010",
+      "en": "To live oneself means to be one's own task. Never say that it is a pleasure to live oneself. It will be no joy but a long suffering, since you must become your own creator.",
+      "kr": "자신을 산다는 것은 자신이 자신의 과제가 된다는 것이다. 자신을 사는 것이 즐거움이라고 절대 말하지 마라. 그것은 기쁨이 아니라 긴 고통이 될 것이다. 왜냐하면 너는 너 자신의 창조자가 되어야 하기 때문이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the burden and responsibility of self-creation",
+      "tags": ["self", "creation", "suffering", "task", "individuation"]
+    },
+    {
+      "id": "red_011",
+      "en": "But hunger makes the soul into a beast that devours the unbearable and is poisoned by it. My friends, it is wise to nourish the soul, otherwise you will breed dragons and devils in your heart.",
+      "kr": "그러나 굶주림은 영혼을 견딜 수 없는 것을 삼키고 그것에 중독되는 짐승으로 만든다. 친구들이여, 영혼을 기르는 것이 현명하다. 그렇지 않으면 너희 마음에 용과 악마를 기르게 될 것이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the importance of nourishing the soul",
+      "tags": ["soul", "hunger", "dragons", "nourishment"]
+    },
+    {
+      "id": "red_012",
+      "en": "The spirit of the depths took my understanding and all my knowledge and placed them at the service of the inexplicable and the paradoxical.",
+      "kr": "심연의 정신이 나의 이해력과 모든 지식을 취해 설명할 수 없는 것과 역설적인 것에 봉사하게 했다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On surrendering rational knowledge to deeper wisdom",
+      "tags": ["spirit", "depths", "paradox", "knowledge", "surrender"]
+    },
+    {
+      "id": "red_013",
+      "en": "I wandered into the desert of my soul. I was alone, and had begun to sink into the abyss of my own depths.",
+      "kr": "나는 내 영혼의 사막으로 방황해 들어갔다. 나는 혼자였고, 나 자신의 깊이의 심연으로 가라앉기 시작했다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the descent into the unconscious",
+      "tags": ["desert", "soul", "abyss", "depths", "solitude"]
+    },
+    {
+      "id": "red_014",
+      "en": "Be silent and listen: have you recognized your madness and do you admit it? Have you noticed that all your foundations are completely mired in madness?",
+      "kr": "조용히 하고 들어라: 너는 네 광기를 인식했는가? 그것을 인정하는가? 너의 모든 기반이 완전히 광기에 빠져 있다는 것을 알아차렸는가?",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On recognizing the madness within",
+      "tags": ["madness", "recognition", "foundation", "listening"]
+    },
+    {
+      "id": "red_015",
+      "en": "Your soul is your own worst enemy. She forces you to do what you do not want to do.",
+      "kr": "네 영혼은 네 최악의 적이다. 그녀는 네가 하고 싶지 않은 것을 하도록 강요한다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the challenging nature of the soul",
+      "tags": ["soul", "enemy", "challenge", "will"]
+    },
+    {
+      "id": "red_016",
+      "en": "The new God laughs at imitation and discipleship. He needs no pupil. He hates the humble. He does not want the one who follows, but the one who goes his own way.",
+      "kr": "새로운 신은 모방과 제자됨을 비웃는다. 그는 제자가 필요 없다. 그는 겸손한 자를 싫어한다. 그는 따르는 자가 아니라 자신의 길을 가는 자를 원한다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On individuality over imitation",
+      "tags": ["god", "individuality", "path", "following"]
+    },
+    {
+      "id": "red_017",
+      "en": "I must catch up with a piece of the Middle Ages within myself. We have only finished the Middle Ages of others. I must begin early, in that period when the weights of mortality were still being played with.",
+      "kr": "나는 내 안의 중세의 한 조각을 따라잡아야 한다. 우리는 다른 사람들의 중세만 끝냈다. 나는 일찍 시작해야 한다, 죽음의 무게가 아직 가지고 놀아지던 그 시기에.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On integrating historical layers of the psyche",
+      "tags": ["history", "psyche", "middle ages", "integration"]
+    },
+    {
+      "id": "red_018",
+      "en": "The depths are the inexhaustible source of renewal.",
+      "kr": "깊이는 갱신의 무한한 원천이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the regenerative power of the unconscious",
+      "tags": ["depths", "renewal", "source", "unconscious"]
+    },
+    {
+      "id": "red_019",
+      "en": "My soul, where are you? Do you hear me? I speak, I call you—are you there? I have returned, I am here again. I have shaken the dust of all the lands from my feet, and I have come to you.",
+      "kr": "나의 영혼이여, 너는 어디 있느냐? 내 말이 들리느냐? 나는 말하고, 너를 부른다—거기 있느냐? 나는 돌아왔다, 다시 여기 있다. 나는 모든 땅의 먼지를 발에서 털어냈고, 너에게 왔다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "Jung's calling to his soul",
+      "tags": ["soul", "calling", "return", "journey"]
+    },
+    {
+      "id": "red_020",
+      "en": "I am no longer alone with myself, and I can only artificially recall the frightful loneliness and stillness of those days.",
+      "kr": "나는 더 이상 나 자신과 홀로 있지 않다. 그리고 나는 그 시절의 무시무시한 고독과 고요함을 인위적으로만 회상할 수 있을 뿐이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On emerging from the depths of isolation",
+      "tags": ["loneliness", "stillness", "emergence", "transformation"]
+    },
+    {
+      "id": "red_021",
+      "en": "What is my God? A dead God, a son of matter, a slain image, a thought without substance, a word that I speak with my mouth but that is not alive within me.",
+      "kr": "나의 신은 무엇인가? 죽은 신, 물질의 아들, 살해된 이미지, 실체 없는 생각, 입으로는 말하지만 내 안에서 살아 있지 않은 말.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the death of the old god-image",
+      "tags": ["god", "death", "matter", "renewal"]
+    },
+    {
+      "id": "red_022",
+      "en": "Only the serpent shows me the way, the serpent, the despised, the misunderstood, the great dragon of whom all are afraid.",
+      "kr": "오직 뱀만이 나에게 길을 보여준다, 뱀, 경멸받는 자, 오해받는 자, 모두가 두려워하는 위대한 용.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the serpent as guide to transformation",
+      "tags": ["serpent", "dragon", "guide", "transformation", "fear"]
+    },
+    {
+      "id": "red_023",
+      "en": "I must learn that the dregs of my thought, my dreams, are the speech of my soul.",
+      "kr": "나는 배워야 한다, 내 생각의 찌꺼기, 내 꿈이 내 영혼의 말이라는 것을.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On dreams as the language of the soul",
+      "tags": ["dreams", "soul", "speech", "thought"]
+    },
+    {
+      "id": "red_024",
+      "en": "Truly, I am the one who has created gods and the kingdom of souls, created and overcome them.",
+      "kr": "진정으로, 나는 신들과 영혼의 왕국을 창조하고 그들을 극복한 자이다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On the creative power of the psyche",
+      "tags": ["creation", "gods", "soul", "overcoming"]
+    },
+    {
+      "id": "red_025",
+      "en": "If I want to understand myself, I must first understand my dreams. If I want to understand my dreams, I must enter into them.",
+      "kr": "내 자신을 이해하고 싶다면, 먼저 내 꿈을 이해해야 한다. 내 꿈을 이해하고 싶다면, 그 안으로 들어가야 한다.",
+      "source": "The Red Book: Liber Novus",
+      "year": 2009,
+      "cw_volume": "Red Book",
+      "context": "On active engagement with dreams",
+      "tags": ["dreams", "understanding", "self", "entry"]
+    }
+  ]
+}

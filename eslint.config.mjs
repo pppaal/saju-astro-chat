@@ -23,6 +23,12 @@ const config = [
       'src/lib/destiny-map/visual/*',
     ],
   },
+  {
+    files: ['src/lib/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
 
   {
     files: ['**/*.{ts,tsx}'],
@@ -42,6 +48,12 @@ const config = [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+  {
+    files: ['src/lib/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 ];

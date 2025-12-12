@@ -1,0 +1,157 @@
+{
+  "concept": "crisis_suffering",
+  "concept_kr": "위기와 고통",
+  "description": "Quotes on crisis, suffering, and finding meaning in difficult times - from Answer to Job and other works",
+  "quotes": [
+    {
+      "id": "crisis_001",
+      "en": "The greatest and most important problems of life are all fundamentally insoluble. They can never be solved but only outgrown.",
+      "kr": "삶의 가장 크고 중요한 문제들은 모두 근본적으로 해결할 수 없다. 그것들은 결코 해결될 수 없고 오직 성장함으로써 벗어날 수 있다.",
+      "source": "Commentary on The Secret of the Golden Flower",
+      "year": 1929,
+      "cw_volume": "CW 13",
+      "context": "On outgrowing rather than solving problems",
+      "tags": ["problems", "growth", "life", "solution"]
+    },
+    {
+      "id": "crisis_002",
+      "en": "The shoe that fits one person pinches another; there is no recipe for living that suits all cases.",
+      "kr": "한 사람에게 맞는 신발이 다른 사람에게는 조인다; 모든 경우에 맞는 삶의 처방은 없다.",
+      "source": "Modern Man in Search of a Soul",
+      "year": 1933,
+      "cw_volume": "CW 10",
+      "context": "On the individuality of life paths",
+      "tags": ["individual", "life", "path", "unique"]
+    },
+    {
+      "id": "crisis_003",
+      "en": "Even a happy life cannot be without a measure of darkness, and the word happy would lose its meaning if it were not balanced by sadness.",
+      "kr": "행복한 삶도 어느 정도의 어둠 없이는 있을 수 없다. 그리고 행복이라는 말은 슬픔으로 균형을 이루지 않으면 의미를 잃을 것이다.",
+      "source": "Interview",
+      "year": 1960,
+      "cw_volume": "Interview",
+      "context": "On the necessity of darkness for meaning",
+      "tags": ["happiness", "darkness", "balance", "meaning"]
+    },
+    {
+      "id": "crisis_004",
+      "en": "Neurosis is always a substitute for legitimate suffering.",
+      "kr": "신경증은 항상 정당한 고통의 대체물이다.",
+      "source": "Psychology and Religion",
+      "year": 1938,
+      "cw_volume": "CW 11",
+      "context": "On avoiding necessary suffering",
+      "tags": ["neurosis", "suffering", "avoidance", "psychology"]
+    },
+    {
+      "id": "crisis_005",
+      "en": "Where wisdom reigns, there is no conflict between thinking and feeling.",
+      "kr": "지혜가 지배하는 곳에서는 생각과 감정 사이에 갈등이 없다.",
+      "source": "Psychological Types",
+      "year": 1921,
+      "cw_volume": "CW 6",
+      "context": "On the integration of thinking and feeling",
+      "tags": ["wisdom", "thinking", "feeling", "integration"]
+    },
+    {
+      "id": "crisis_006",
+      "en": "Man needs difficulties; they are necessary for health. What concerns us here is only an excessive amount of them.",
+      "kr": "인간에게는 어려움이 필요하다; 그것은 건강에 필수적이다. 여기서 우리가 우려하는 것은 오직 과도한 양이다.",
+      "source": "The Transcendent Function",
+      "year": 1916,
+      "cw_volume": "CW 8",
+      "context": "On the necessity of challenges",
+      "tags": ["difficulties", "health", "necessity", "growth"]
+    },
+    {
+      "id": "crisis_007",
+      "en": "The word 'happiness' would lose its meaning if it were not balanced by sadness. It is far better to take things as they come along with patience and equanimity.",
+      "kr": "행복이라는 말은 슬픔으로 균형을 이루지 않으면 의미를 잃을 것이다. 인내와 평정심으로 일들을 있는 그대로 받아들이는 것이 훨씬 낫다.",
+      "source": "Jung on Elementary Psychology",
+      "year": 1936,
+      "cw_volume": "CW 18",
+      "context": "On acceptance and equanimity",
+      "tags": ["happiness", "sadness", "patience", "equanimity"]
+    },
+    {
+      "id": "crisis_008",
+      "en": "The most terrifying thing is to accept oneself completely.",
+      "kr": "가장 두려운 것은 자기 자신을 완전히 받아들이는 것이다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On complete self-acceptance",
+      "tags": ["self", "acceptance", "fear", "wholeness"]
+    },
+    {
+      "id": "crisis_009",
+      "en": "People will do anything, no matter how absurd, to avoid facing their own souls. One does not become enlightened by imagining figures of light, but by making the darkness conscious.",
+      "kr": "사람들은 자신의 영혼을 마주하는 것을 피하기 위해 아무리 터무니없는 일이라도 할 것이다. 빛의 형상을 상상한다고 깨달음을 얻는 것이 아니라, 어둠을 의식화함으로써 깨달음을 얻는다.",
+      "source": "Psychology and Alchemy",
+      "year": 1944,
+      "cw_volume": "CW 12",
+      "context": "On facing darkness for enlightenment",
+      "tags": ["soul", "darkness", "enlightenment", "avoidance"]
+    },
+    {
+      "id": "crisis_010",
+      "en": "When an inner situation is not made conscious, it appears outside as fate.",
+      "kr": "내면의 상황이 의식화되지 않으면, 그것은 운명으로서 외부에 나타난다.",
+      "source": "Aion",
+      "year": 1951,
+      "cw_volume": "CW 9ii",
+      "context": "On unconscious contents becoming fate",
+      "tags": ["fate", "consciousness", "inner", "outer"]
+    },
+    {
+      "id": "crisis_011",
+      "en": "In all chaos there is a cosmos, in all disorder a secret order.",
+      "kr": "모든 혼돈에는 우주가 있고, 모든 무질서에는 비밀스러운 질서가 있다.",
+      "source": "Archetypes of the Collective Unconscious",
+      "year": 1934,
+      "cw_volume": "CW 9i",
+      "context": "On hidden order in chaos",
+      "tags": ["chaos", "cosmos", "order", "disorder"]
+    },
+    {
+      "id": "crisis_012",
+      "en": "The foundation of all mental illness is the unwillingness to experience legitimate suffering.",
+      "kr": "모든 정신 질환의 기초는 정당한 고통을 경험하려는 의지의 부재이다.",
+      "source": "Attributed",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On suffering and mental health",
+      "tags": ["suffering", "mental illness", "avoidance", "experience"]
+    },
+    {
+      "id": "crisis_013",
+      "en": "Every crisis contains both danger and opportunity. The Chinese word for crisis is composed of two characters – one meaning danger, the other meaning opportunity.",
+      "kr": "모든 위기에는 위험과 기회가 모두 포함되어 있다. 위기를 뜻하는 중국어는 두 글자로 구성되어 있다 – 하나는 위험을, 다른 하나는 기회를 의미한다.",
+      "source": "Attributed discussion",
+      "year": 1960,
+      "cw_volume": "Various",
+      "context": "On crisis as opportunity",
+      "tags": ["crisis", "danger", "opportunity", "change"]
+    },
+    {
+      "id": "crisis_014",
+      "en": "We do not become enlightened by imagining figures of light, but by making the darkness conscious. This is disagreeable and therefore not popular.",
+      "kr": "우리는 빛의 형상을 상상한다고 깨달음을 얻는 것이 아니라, 어둠을 의식화함으로써 깨달음을 얻는다. 이것은 불쾌하고 따라서 인기가 없다.",
+      "source": "The Philosophical Tree",
+      "year": 1945,
+      "cw_volume": "CW 13",
+      "context": "On the unpopular path of shadow work",
+      "tags": ["enlightenment", "darkness", "shadow", "consciousness"]
+    },
+    {
+      "id": "crisis_015",
+      "en": "A man who has not passed through the inferno of his passions has never overcome them.",
+      "kr": "자신의 열정의 지옥을 통과하지 않은 사람은 결코 그것을 극복한 적이 없다.",
+      "source": "Memories, Dreams, Reflections",
+      "year": 1961,
+      "cw_volume": "MDR",
+      "context": "On transformation through passion",
+      "tags": ["passion", "inferno", "overcoming", "transformation"]
+    }
+  ]
+}

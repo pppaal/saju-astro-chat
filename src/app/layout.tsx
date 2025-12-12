@@ -12,7 +12,6 @@ import { ToastProvider } from "@/components/ui/Toast";
 // import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { ConsentProvider } from "@/contexts/ConsentContext";
 import { ConsentBanner } from "@/components/consent/ConsentBanner";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { generateJsonLd } from "@/components/seo/SEO";
@@ -83,18 +82,16 @@ export const metadata: Metadata = {
   },
   description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.",
   keywords: [
-    "mental wellness",
-    "self-discovery",
-    "astrology",
-    "saju",
-    "tarot",
-    "psychology",
-    "mindfulness",
-    "spiritual care",
-    "사주",
-    "심리",
-    "명상",
-    "자기이해",
+    // 한국어 검색량 높은 키워드
+    "무료 사주", "사주 보기", "오늘의 운세", "2025 운세",
+    "무료 타로", "타로 점", "타로 카드", "궁합 보기", "궁합 테스트",
+    "띠별 운세", "별자리 운세", "꿈해몽", "꿈 해석",
+    "수비학", "생년월일 운세", "신년 운세",
+    // English keywords
+    "free tarot reading", "tarot online", "horoscope today",
+    "astrology chart", "numerology", "birth chart",
+    "compatibility test", "dream interpretation",
+    "saju", "korean fortune telling",
   ],
   authors: [{ name: "DestinyPal" }],
   creator: "DestinyPal",
@@ -152,7 +149,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   });
 
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" style={{ colorScheme: 'dark', backgroundColor: '#050714' }}>
       <head>
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />
@@ -182,19 +179,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </Suspense>
 
           <AuthProvider>
-            <ThemeProvider>
-              <I18nProvider>
-                <ToastProvider>
-                  <NotificationProvider>
-                    <PushNotificationPrompt />
-                    <StarrySky />
-                    <BackButtonInLayout />
-                    <main id="main-content">{children}</main>
-                    <Footer />
-                  </NotificationProvider>
-                </ToastProvider>
-              </I18nProvider>
-            </ThemeProvider>
+            <I18nProvider>
+              <ToastProvider>
+                <NotificationProvider>
+                  <PushNotificationPrompt />
+                  <StarrySky />
+                  <BackButtonInLayout />
+                  <main id="main-content">{children}</main>
+                  <Footer />
+                </NotificationProvider>
+              </ToastProvider>
+            </I18nProvider>
           </AuthProvider>
 
           <ConsentBanner />

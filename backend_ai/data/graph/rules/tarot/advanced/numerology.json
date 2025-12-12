@@ -1,0 +1,210 @@
+{
+  "_meta": {
+    "title": "Tarot Numerology",
+    "description": "타로 카드의 숫자학 - 숫자가 가진 영적 의미와 해석"
+  },
+  "number_meanings": {
+    "0": {
+      "name": "Zero / The Void",
+      "korean": "공(空) / 무한한 가능성",
+      "cards": ["The Fool"],
+      "meaning": "무한한 가능성, 새로운 시작 전의 순수한 상태",
+      "energy": "시작 전의 잠재력, 제로 포인트",
+      "life_lesson": "모든 것을 내려놓고 새롭게 시작할 용기",
+      "shadow": "방향 없음, 무책임"
+    },
+    "1": {
+      "name": "One / Unity",
+      "korean": "일(一) / 시작과 의지",
+      "cards": ["The Magician", "Ace of Wands", "Ace of Cups", "Ace of Swords", "Ace of Pentacles"],
+      "meaning": "새로운 시작, 독립, 창조, 리더십",
+      "energy": "시작의 에너지, 개척자 정신",
+      "life_lesson": "자신만의 길을 개척하라",
+      "shadow": "이기심, 고립",
+      "timing": "새로운 사이클의 시작점"
+    },
+    "2": {
+      "name": "Two / Duality",
+      "korean": "이(二) / 균형과 선택",
+      "cards": ["The High Priestess", "Two of Wands", "Two of Cups", "Two of Swords", "Two of Pentacles"],
+      "meaning": "균형, 파트너십, 선택, 이중성",
+      "energy": "조화와 균형의 에너지",
+      "life_lesson": "대립되는 것들 사이에서 균형을 찾아라",
+      "shadow": "우유부단, 의존성",
+      "timing": "결정을 내려야 할 때"
+    },
+    "3": {
+      "name": "Three / Creation",
+      "korean": "삼(三) / 창조와 표현",
+      "cards": ["The Empress", "Three of Wands", "Three of Cups", "Three of Swords", "Three of Pentacles"],
+      "meaning": "창조, 표현, 성장, 확장",
+      "energy": "창조적 에너지, 삼위일체",
+      "life_lesson": "창조적으로 자신을 표현하라",
+      "shadow": "산만함, 피상적",
+      "timing": "첫 결실이 맺히는 때"
+    },
+    "4": {
+      "name": "Four / Foundation",
+      "korean": "사(四) / 안정과 기반",
+      "cards": ["The Emperor", "Four of Wands", "Four of Cups", "Four of Swords", "Four of Pentacles"],
+      "meaning": "안정, 구조, 기반, 질서",
+      "energy": "안정화 에너지, 사방위",
+      "life_lesson": "튼튼한 기반을 세워라",
+      "shadow": "경직됨, 제한",
+      "timing": "안정을 찾을 때, 휴식이 필요할 때"
+    },
+    "5": {
+      "name": "Five / Change",
+      "korean": "오(五) / 변화와 도전",
+      "cards": ["The Hierophant", "Five of Wands", "Five of Cups", "Five of Swords", "Five of Pentacles"],
+      "meaning": "변화, 도전, 갈등, 불안정",
+      "energy": "변화의 에너지, 오행",
+      "life_lesson": "변화를 두려워하지 말고 받아들여라",
+      "shadow": "불안정, 갈등",
+      "timing": "전환점, 중간 지점"
+    },
+    "6": {
+      "name": "Six / Harmony",
+      "korean": "육(六) / 조화와 책임",
+      "cards": ["The Lovers", "Six of Wands", "Six of Cups", "Six of Swords", "Six of Pentacles"],
+      "meaning": "조화, 사랑, 책임, 선택",
+      "energy": "조화와 균형의 에너지",
+      "life_lesson": "사랑과 책임의 균형을 찾아라",
+      "shadow": "자기희생, 완벽주의",
+      "timing": "조화를 찾는 때, 관계의 시기"
+    },
+    "7": {
+      "name": "Seven / Wisdom",
+      "korean": "칠(七) / 지혜와 내면",
+      "cards": ["The Chariot", "Seven of Wands", "Seven of Cups", "Seven of Swords", "Seven of Pentacles"],
+      "meaning": "내면 탐구, 지혜, 영성, 분석",
+      "energy": "영적 탐구의 에너지, 칠성",
+      "life_lesson": "내면의 지혜를 신뢰하라",
+      "shadow": "고립, 의심",
+      "timing": "평가와 성찰의 때"
+    },
+    "8": {
+      "name": "Eight / Power",
+      "korean": "팔(八) / 힘과 풍요",
+      "cards": ["Strength", "Eight of Wands", "Eight of Cups", "Eight of Swords", "Eight of Pentacles"],
+      "meaning": "힘, 풍요, 성취, 카르마",
+      "energy": "풍요와 힘의 에너지, 무한대(∞)",
+      "life_lesson": "내면의 힘으로 현실을 창조하라",
+      "shadow": "탐욕, 권력 남용",
+      "timing": "빠른 진전, 움직임의 때"
+    },
+    "9": {
+      "name": "Nine / Completion",
+      "korean": "구(九) / 완성 직전",
+      "cards": ["The Hermit", "Nine of Wands", "Nine of Cups", "Nine of Swords", "Nine of Pentacles"],
+      "meaning": "완성 직전, 지혜, 성취, 통합",
+      "energy": "완성 에너지, 최고의 수",
+      "life_lesson": "여정의 끝에서 지혜를 얻어라",
+      "shadow": "고립, 완벽주의",
+      "timing": "거의 다 왔다, 마무리 단계"
+    },
+    "10": {
+      "name": "Ten / Completion & New Cycle",
+      "korean": "십(十) / 완성과 새로운 시작",
+      "cards": ["Wheel of Fortune", "Ten of Wands", "Ten of Cups", "Ten of Swords", "Ten of Pentacles"],
+      "meaning": "사이클 완성, 새 시작 준비, 전환",
+      "energy": "완성과 재시작의 에너지",
+      "life_lesson": "한 사이클을 마치고 다음으로 나아가라",
+      "shadow": "집착, 놓지 못함",
+      "timing": "한 사이클의 끝, 새 시작 직전"
+    }
+  },
+  "master_numbers": {
+    "11": {
+      "name": "Master Number 11",
+      "korean": "마스터 넘버 11 / 영적 통찰",
+      "cards": ["Justice"],
+      "meaning": "영적 깨달음, 직관, 영감",
+      "energy": "고차원 에너지, 영적 메신저",
+      "life_lesson": "직관을 믿고 높은 목적을 따르라"
+    },
+    "12": {
+      "name": "Master Number 12",
+      "korean": "마스터 넘버 12 / 희생과 변환",
+      "cards": ["The Hanged Man"],
+      "meaning": "희생, 새 관점, 영적 변환",
+      "energy": "변환의 에너지, 12별자리",
+      "life_lesson": "포기함으로써 얻는 것을 배워라"
+    },
+    "13": {
+      "name": "Master Number 13",
+      "korean": "마스터 넘버 13 / 변환",
+      "cards": ["Death"],
+      "meaning": "변환, 재탄생, 끝과 시작",
+      "energy": "죽음과 재탄생의 에너지",
+      "life_lesson": "끝은 새로운 시작이다"
+    },
+    "21": {
+      "name": "Master Number 21",
+      "korean": "마스터 넘버 21 / 완성",
+      "cards": ["The World"],
+      "meaning": "완전한 완성, 통합, 성취",
+      "energy": "우주적 완성의 에너지",
+      "life_lesson": "모든 것이 하나로 통합된다"
+    },
+    "22": {
+      "name": "Master Number 22",
+      "korean": "마스터 넘버 22 / 마스터 빌더",
+      "cards": ["The Fool (as 22)"],
+      "meaning": "꿈을 현실로, 마스터 빌더",
+      "energy": "현실 창조의 최고 에너지",
+      "life_lesson": "큰 비전을 현실로 만들어라"
+    }
+  },
+  "number_patterns": {
+    "repeating_numbers": {
+      "description": "같은 숫자가 여러 번 나올 때",
+      "111": {
+        "meaning": "새로운 시작의 강력한 신호",
+        "message": "우주가 새 시작을 강력히 지지합니다"
+      },
+      "222": {
+        "meaning": "균형과 파트너십 강조",
+        "message": "관계와 협력에 집중하세요"
+      },
+      "333": {
+        "meaning": "창조적 에너지 폭발",
+        "message": "자신을 표현할 때입니다"
+      },
+      "444": {
+        "meaning": "안정의 기반이 필요함",
+        "message": "기반을 다지는 데 집중하세요"
+      },
+      "555": {
+        "meaning": "큰 변화가 오고 있음",
+        "message": "변화를 받아들일 준비를 하세요"
+      }
+    },
+    "sequential_numbers": {
+      "ascending": {
+        "pattern": "1-2-3 or 3-4-5",
+        "meaning": "진전과 성장의 흐름",
+        "message": "일이 순조롭게 발전하고 있어요"
+      },
+      "descending": {
+        "pattern": "5-4-3 or 9-8-7",
+        "meaning": "마무리와 정리의 흐름",
+        "message": "한 사이클을 마무리하고 있어요"
+      }
+    }
+  },
+  "birth_card_calculation": {
+    "description": "생년월일로 타로 생명카드 계산하기",
+    "method": "생년월일 숫자를 모두 더해서 22 이하가 될 때까지 축소",
+    "example": {
+      "birthdate": "1990-05-15",
+      "calculation": "1+9+9+0+0+5+1+5 = 30 → 3+0 = 3",
+      "birth_card": "The Empress (III)"
+    },
+    "personality_year": {
+      "description": "올해의 개인 연도 카드",
+      "method": "생일 + 현재 연도",
+      "interpretation": "올해의 주요 테마와 레슨"
+    }
+  }
+}
