@@ -7,7 +7,7 @@ type PriceEntry = {
   billingCycle: BillingCycle
 }
 
-const priceEntries: PriceEntry[] = [
+const priceEntries = ([
   {
     id: process.env.STRIPE_PRICE_PREMIUM_MONTHLY || process.env.NEXT_PUBLIC_PRICE_MONTHLY || '',
     plan: 'premium',
@@ -28,7 +28,7 @@ const priceEntries: PriceEntry[] = [
     plan: 'basic',
     billingCycle: 'annual',
   },
-].filter((p) => p.id)
+].filter((p) => p.id)) as PriceEntry[]
 
 export function getPriceId(plan: PlanKey, billingCycle: BillingCycle): string | null {
   const found = priceEntries.find((p) => p.plan === plan && p.billingCycle === billingCycle)
