@@ -9,8 +9,6 @@ import type { Configuration } from 'webpack';
 const nextConfig = {
   // 이 옵션은 swisseph가 node_modules를 참조할 수 있도록 도와줍니다.
   outputFileTracingRoot: path.join(__dirname),
-  eslint: { ignoreDuringBuilds: true },
-
   // Performance optimizations
   poweredByHeader: false, // Remove X-Powered-By header
   compress: true, // Enable gzip compression
@@ -21,6 +19,9 @@ const nextConfig = {
     optimizeCss: true, // CSS optimization
     scrollRestoration: true, // Remember scroll position
   },
+
+  // Empty turbopack config to silence Next.js 16 warning
+  turbopack: {},
 
   // Cache headers for static assets
   async headers() {

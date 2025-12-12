@@ -13,13 +13,6 @@ import {
   DREAM_CONTEXT,
   KOREAN_DREAM_TYPES,
   KOREAN_LUCKY_SYMBOLS,
-  CHINESE_DREAM_SYMBOLS,
-  ISLAMIC_DREAM_TYPES,
-  ISLAMIC_BLESSED_SYMBOLS,
-  WESTERN_DREAM_ARCHETYPES,
-  HINDU_DREAM_SYMBOLS,
-  NATIVE_AMERICAN_SYMBOLS,
-  JAPANESE_DREAM_SYMBOLS,
   generateQuickDreamEntry,
 } from '@/lib/dream/dreamPrompts';
 import styles from './Dream.module.css';
@@ -145,11 +138,6 @@ type InsightResponse = {
   themes?: { label: string; weight: number }[];
   culturalNotes?: {
     korean?: string;
-    chinese?: string;
-    islamic?: string;
-    western?: string;
-    hindu?: string;
-    japanese?: string;
   };
   luckyElements?: {
     isLucky?: boolean;
@@ -259,16 +247,9 @@ export default function DreamInsightPage() {
   const [detailedDream, setDetailedDream] = useState('');
   const [share, setShare] = useState(false);
 
-  // Cultural Dream Symbols
+  // Cultural Dream Symbols (Korean only)
   const [selectedKoreanTypes, setSelectedKoreanTypes] = useState<string[]>([]);
   const [selectedKoreanLucky, setSelectedKoreanLucky] = useState<string[]>([]);
-  const [selectedChinese, setSelectedChinese] = useState<string[]>([]);
-  const [selectedIslamicTypes, setSelectedIslamicTypes] = useState<string[]>([]);
-  const [selectedIslamicBlessed, setSelectedIslamicBlessed] = useState<string[]>([]);
-  const [selectedWestern, setSelectedWestern] = useState<string[]>([]);
-  const [selectedHindu, setSelectedHindu] = useState<string[]>([]);
-  const [selectedNativeAmerican, setSelectedNativeAmerican] = useState<string[]>([]);
-  const [selectedJapanese, setSelectedJapanese] = useState<string[]>([]);
 
   // Birth data
   const [showBirthData, setShowBirthData] = useState(false);
@@ -555,48 +536,6 @@ export default function DreamInsightPage() {
     );
   };
 
-  const toggleChinese = (symbol: string) => {
-    setSelectedChinese(prev =>
-      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
-    );
-  };
-
-  const toggleIslamicType = (type: string) => {
-    setSelectedIslamicTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
-  const toggleIslamicBlessed = (symbol: string) => {
-    setSelectedIslamicBlessed(prev =>
-      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
-    );
-  };
-
-  const toggleWestern = (archetype: string) => {
-    setSelectedWestern(prev =>
-      prev.includes(archetype) ? prev.filter(a => a !== archetype) : [...prev, archetype]
-    );
-  };
-
-  const toggleHindu = (symbol: string) => {
-    setSelectedHindu(prev =>
-      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
-    );
-  };
-
-  const toggleNativeAmerican = (symbol: string) => {
-    setSelectedNativeAmerican(prev =>
-      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
-    );
-  };
-
-  const toggleJapanese = (symbol: string) => {
-    setSelectedJapanese(prev =>
-      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
-    );
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -640,16 +579,9 @@ export default function DreamInsightPage() {
         context: selectedContext,
         share,
         birth: showBirthData ? { date, time, latitude, longitude, timeZone, city: cityQuery } : undefined,
-        // Cultural symbols
+        // Korean cultural symbols
         koreanTypes: selectedKoreanTypes,
         koreanLucky: selectedKoreanLucky,
-        chinese: selectedChinese,
-        islamicTypes: selectedIslamicTypes,
-        islamicBlessed: selectedIslamicBlessed,
-        western: selectedWestern,
-        hindu: selectedHindu,
-        nativeAmerican: selectedNativeAmerican,
-        japanese: selectedJapanese,
       };
 
       const res = await fetch('/api/dream-insight', {
@@ -684,16 +616,9 @@ export default function DreamInsightPage() {
     setDetailedDream('');
     setResult(null);
     setError(null);
-    // Reset cultural symbols
+    // Reset Korean cultural symbols
     setSelectedKoreanTypes([]);
     setSelectedKoreanLucky([]);
-    setSelectedChinese([]);
-    setSelectedIslamicTypes([]);
-    setSelectedIslamicBlessed([]);
-    setSelectedWestern([]);
-    setSelectedHindu([]);
-    setSelectedNativeAmerican([]);
-    setSelectedJapanese([]);
   };
 
   return (
@@ -1035,22 +960,21 @@ export default function DreamInsightPage() {
                     </div>
                   </div>
 
-                  {/* Cultural Dream Traditions (Collapsible) */}
+                  {/* Korean Dream Traditions (Collapsible) */}
                   <div className={styles.collapsibleSection}>
                     <button
                       type="button"
                       className={styles.collapsibleToggle}
                       onClick={() => setShowCulturalSymbols(!showCulturalSymbols)}
                     >
-                      {showCulturalSymbols ? '▼' : '▶'} Cultural Dream Symbols (Optional)
+                      {showCulturalSymbols ? '▼' : '▶'} 한국 전통 해몽 (선택)
                     </button>
 
                     {showCulturalSymbols && (
                       <div className={styles.culturalSection}>
                         {/* Korean Traditional */}
                         <div className={styles.section}>
-                          <label className={styles.sectionLabel}>🇰🇷 Korean Traditional (한국)</label>
-                          <p className={styles.sectionHint}>Korean dream types</p>
+                          <label className={styles.sectionLabel}>🇰🇷 꿈의 종류</label>
                           <div className={styles.chipGrid}>
                             {KOREAN_DREAM_TYPES.map((type) => (
                               <button
@@ -1063,7 +987,7 @@ export default function DreamInsightPage() {
                               </button>
                             ))}
                           </div>
-                          <p className={styles.sectionHint}>Lucky symbols</p>
+                          <p className={styles.sectionHint}>길몽 상징</p>
                           <div className={styles.chipGrid}>
                             {KOREAN_LUCKY_SYMBOLS.map((symbol) => (
                               <button
@@ -1073,122 +997,6 @@ export default function DreamInsightPage() {
                                 onClick={() => toggleKoreanLucky(symbol.ko)}
                               >
                                 {symbol.emoji} {symbol.ko}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Chinese */}
-                        <div className={styles.section}>
-                          <label className={styles.sectionLabel}>🇨🇳 Chinese (中国)</label>
-                          <div className={styles.chipGrid}>
-                            {CHINESE_DREAM_SYMBOLS.map((symbol) => (
-                              <button
-                                key={symbol.en}
-                                type="button"
-                                className={selectedChinese.includes(symbol.zh) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleChinese(symbol.zh)}
-                              >
-                                {symbol.emoji} {symbol.zh}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Islamic */}
-                        <div className={styles.section}>
-                          <label className={styles.sectionLabel}>☪️ Islamic (إسلامي)</label>
-                          <p className={styles.sectionHint}>Dream types</p>
-                          <div className={styles.chipGrid}>
-                            {ISLAMIC_DREAM_TYPES.map((type) => (
-                              <button
-                                key={type.en}
-                                type="button"
-                                className={selectedIslamicTypes.includes(type.ar) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleIslamicType(type.ar)}
-                              >
-                                {type.emoji} {type.ar}
-                              </button>
-                            ))}
-                          </div>
-                          <p className={styles.sectionHint}>Blessed symbols</p>
-                          <div className={styles.chipGrid}>
-                            {ISLAMIC_BLESSED_SYMBOLS.map((symbol) => (
-                              <button
-                                key={symbol.en}
-                                type="button"
-                                className={selectedIslamicBlessed.includes(symbol.ar) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleIslamicBlessed(symbol.ar)}
-                              >
-                                {symbol.emoji} {symbol.ar}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Western/Jungian */}
-                        <div className={styles.section}>
-                          <label className={styles.sectionLabel}>🌍 Western/Jungian</label>
-                          <div className={styles.chipGrid}>
-                            {WESTERN_DREAM_ARCHETYPES.map((archetype) => (
-                              <button
-                                key={archetype.en}
-                                type="button"
-                                className={selectedWestern.includes(archetype.en) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleWestern(archetype.en)}
-                              >
-                                {archetype.emoji} {archetype.en}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Hindu/Indian */}
-                        <div className={styles.section}>
-                          <label className={styles.sectionLabel}>🇮🇳 Hindu/Indian (हिन्दू)</label>
-                          <div className={styles.chipGrid}>
-                            {HINDU_DREAM_SYMBOLS.map((symbol) => (
-                              <button
-                                key={symbol.en}
-                                type="button"
-                                className={selectedHindu.includes(symbol.hi) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleHindu(symbol.hi)}
-                              >
-                                {symbol.emoji} {symbol.hi}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Native American */}
-                        <div className={styles.section}>
-                          <label className={styles.sectionLabel}>🦅 Native American</label>
-                          <div className={styles.chipGrid}>
-                            {NATIVE_AMERICAN_SYMBOLS.map((symbol) => (
-                              <button
-                                key={symbol.en}
-                                type="button"
-                                className={selectedNativeAmerican.includes(symbol.en) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleNativeAmerican(symbol.en)}
-                              >
-                                {symbol.emoji} {symbol.en}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Japanese */}
-                        <div className={styles.section}>
-                          <label className={styles.sectionLabel}>🇯🇵 Japanese (日本)</label>
-                          <div className={styles.chipGrid}>
-                            {JAPANESE_DREAM_SYMBOLS.map((symbol) => (
-                              <button
-                                key={symbol.en}
-                                type="button"
-                                className={selectedJapanese.includes(symbol.ja) ? styles.chipSelected : styles.chip}
-                                onClick={() => toggleJapanese(symbol.ja)}
-                              >
-                                {symbol.emoji} {symbol.ja}
                               </button>
                             ))}
                           </div>
@@ -1607,66 +1415,19 @@ export default function DreamInsightPage() {
               </div>
             )}
 
-            {/* Cultural Notes Section */}
-            {result.culturalNotes && Object.values(result.culturalNotes).some(v => v) && (
+            {/* Korean Cultural Notes Section */}
+            {result.culturalNotes?.korean && (
               <div className={`${styles.resultCard} ${styles.fadeIn}`} style={{ animationDelay: '0.6s' }}>
                 <div className={styles.resultCardGlow} />
-                <h3 className={styles.resultTitle}>🌍 {t("dream.resultCulturalNotes") || "Cultural Interpretations"}</h3>
+                <h3 className={styles.resultTitle}>🇰🇷 한국 전통 해몽</h3>
                 <div className={styles.culturalNotesGrid}>
-                  {result.culturalNotes.korean && (
-                    <div className={styles.culturalNote}>
-                      <span className={styles.culturalFlag}>🇰🇷</span>
-                      <div>
-                        <strong>한국 해몽</strong>
-                        <p>{result.culturalNotes.korean}</p>
-                      </div>
+                  <div className={styles.culturalNote}>
+                    <span className={styles.culturalFlag}>🇰🇷</span>
+                    <div>
+                      <strong>한국 해몽</strong>
+                      <p>{result.culturalNotes.korean}</p>
                     </div>
-                  )}
-                  {result.culturalNotes.chinese && (
-                    <div className={styles.culturalNote}>
-                      <span className={styles.culturalFlag}>🇨🇳</span>
-                      <div>
-                        <strong>中国解梦</strong>
-                        <p>{result.culturalNotes.chinese}</p>
-                      </div>
-                    </div>
-                  )}
-                  {result.culturalNotes.islamic && (
-                    <div className={styles.culturalNote}>
-                      <span className={styles.culturalFlag}>☪️</span>
-                      <div>
-                        <strong>تفسير الأحلام</strong>
-                        <p>{result.culturalNotes.islamic}</p>
-                      </div>
-                    </div>
-                  )}
-                  {result.culturalNotes.western && (
-                    <div className={styles.culturalNote}>
-                      <span className={styles.culturalFlag}>🧠</span>
-                      <div>
-                        <strong>Jungian/Western</strong>
-                        <p>{result.culturalNotes.western}</p>
-                      </div>
-                    </div>
-                  )}
-                  {result.culturalNotes.hindu && (
-                    <div className={styles.culturalNote}>
-                      <span className={styles.culturalFlag}>🙏</span>
-                      <div>
-                        <strong>Hindu/Vedic</strong>
-                        <p>{result.culturalNotes.hindu}</p>
-                      </div>
-                    </div>
-                  )}
-                  {result.culturalNotes.japanese && (
-                    <div className={styles.culturalNote}>
-                      <span className={styles.culturalFlag}>🇯🇵</span>
-                      <div>
-                        <strong>日本の夢占い</strong>
-                        <p>{result.culturalNotes.japanese}</p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}

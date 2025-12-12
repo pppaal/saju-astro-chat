@@ -30,8 +30,8 @@ export default function Footer() {
             {translate("footer.refund", "Refund")}
           </Link>
         </div>
-        <div className={styles.copyright}>
-          © {new Date().getFullYear()} DestinyPal. {translate("footer.rights", "All rights reserved.")}
+        <div className={styles.copyright} suppressHydrationWarning>
+          © {new Date().getFullYear()} DestinyPal. All rights reserved.
         </div>
       </div>
     </footer>

@@ -149,7 +149,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   });
 
   return (
-    <html lang="en" data-theme="dark" style={{ colorScheme: 'dark', backgroundColor: '#050714' }}>
+    <html lang="en" data-theme="dark" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
       <head>
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />

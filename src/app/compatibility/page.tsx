@@ -5,6 +5,7 @@ import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
+import { useI18n } from '@/i18n/I18nProvider';
 import styles from './Compatibility.module.css';
 
 type Relation = 'friend' | 'lover' | 'other';
@@ -45,6 +46,7 @@ const relationIcons: Record<Relation, string> = {
 };
 
 export default function CompatPage() {
+  const { t } = useI18n();
   const [count, setCount] = useState<number>(2);
   const timezones = useMemo(() => getSupportedTimezones(), []);
 
@@ -118,15 +120,15 @@ export default function CompatPage() {
   };
 
   const validate = () => {
-    if (count < 2 || count > 4) return 'Add between 2 and 4 people.';
+    if (count < 2 || count > 4) return t('compatibilityPage.errorAddPeople', 'Add between 2 and 4 people.');
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i];
-      if (!p.date || !p.time) return `${i + 1}: date and time are required.`;
-      if (p.lat == null || p.lon == null) return `${i + 1}: select a city from suggestions.`;
-      if (!p.timeZone) return `${i + 1}: timezone is required.`;
-      if (i > 0 && !p.relation) return `${i + 1}: relation to Person 1 is required.`;
+      if (!p.date || !p.time) return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;
+      if (p.lat == null || p.lon == null) return `${i + 1}: ${t('compatibilityPage.errorSelectCity', 'select a city from suggestions.')}`;
+      if (!p.timeZone) return `${i + 1}: ${t('compatibilityPage.errorTimezoneRequired', 'timezone is required.')}`;
+      if (i > 0 && !p.relation) return `${i + 1}: ${t('compatibilityPage.errorRelationRequired', 'relation to Person 1 is required.')}`;
       if (i > 0 && p.relation === 'other' && !p.relationNote?.trim()) {
-        return `${i + 1}: add a note for relation 'other'.`;
+        return `${i + 1}: ${t('compatibilityPage.errorOtherNote', "add a note for relation 'other'.")}`;
       }
     }
     return null;
@@ -177,21 +179,21 @@ export default function CompatPage() {
   return (
     <ServicePageLayout
       icon="💕"
-      title="Compatibility Analysis"
-      subtitle="Discover relationship compatibility through astrological birth data"
+      title={t('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
+      subtitle={t('compatibilityPage.analysisSubtitle', 'Discover relationship compatibility through astrological birth data')}
     >
       <main className={styles.page}>
-        {/* Background Hearts */}
+        {/* Background Hearts - deterministic positions to avoid hydration mismatch */}
         <div className={styles.hearts}>
           {[...Array(20)].map((_, i) => (
             <div
               key={i}
               className={styles.heart}
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 8}s`,
-                animationDuration: `${6 + Math.random() * 4}s`,
+                left: `${(i * 37 + 13) % 100}%`,
+                top: `${(i * 53 + 7) % 100}%`,
+                animationDelay: `${(i * 0.4) % 8}s`,
+                animationDuration: `${6 + (i % 4)}s`,
               }}
             >
               💖
@@ -203,9 +205,9 @@ export default function CompatPage() {
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             <div className={styles.formHeader}>
               <div className={styles.formIcon}>💕</div>
-              <h1 className={styles.formTitle}>Relationship Compatibility</h1>
+              <h1 className={styles.formTitle}>{t('compatibilityPage.title', 'Relationship Compatibility')}</h1>
               <p className={styles.formSubtitle}>
-                Explore the cosmic connections between hearts
+                {t('compatibilityPage.subtitle', 'Explore the cosmic connections between hearts')}
               </p>
             </div>
 
@@ -213,7 +215,7 @@ export default function CompatPage() {
               {/* Count Selector */}
               <div className={styles.countSelector}>
                 <label htmlFor="count" className={styles.countLabel}>
-                  Number of People (2-4)
+                  {t('compatibilityPage.numberOfPeople', 'Number of People (2-4)')}
                 </label>
                 <input
                   id="count"
@@ -226,7 +228,8 @@ export default function CompatPage() {
                 />
               </div>
 
-              {/* Person Cards */}
+              {/* Person Cards - 2x2 Grid */}
+              <div className={styles.personCardsGrid}>
               {persons.map((p, idx) => (
                 <div
                   key={idx}
@@ -238,20 +241,20 @@ export default function CompatPage() {
                     <span className={styles.personIcon}>
                       {idx === 0 ? '👤' : relationIcons[p.relation || 'friend']}
                     </span>
-                    Person {idx + 1}
+                    {t('compatibilityPage.person', 'Person')} {idx + 1}
                   </h3>
 
                   <div className={styles.grid}>
                     {/* Name */}
                     <div>
                       <label htmlFor={`name-${idx}`} className={styles.label}>
-                        Name
+                        {t('compatibilityPage.name', 'Name')}
                       </label>
                       <input
                         id={`name-${idx}`}
                         value={p.name}
                         onChange={(e) => update(idx, 'name', e.target.value)}
-                        placeholder="Name"
+                        placeholder={t('compatibilityPage.namePlaceholder', 'Name')}
                         className={styles.input}
                       />
                     </div>
@@ -260,7 +263,7 @@ export default function CompatPage() {
                     <div className={`${styles.grid} ${styles.gridTwo}`}>
                       <div>
                         <label htmlFor={`date-${idx}`} className={styles.label}>
-                          Date of Birth
+                          {t('compatibilityPage.dateOfBirth', 'Date of Birth')}
                         </label>
                         <input
                           id={`date-${idx}`}
@@ -272,7 +275,7 @@ export default function CompatPage() {
                       </div>
                       <div>
                         <label htmlFor={`time-${idx}`} className={styles.label}>
-                          Time of Birth
+                          {t('compatibilityPage.timeOfBirth', 'Time of Birth')}
                         </label>
                         <input
                           id={`time-${idx}`}
@@ -287,7 +290,7 @@ export default function CompatPage() {
                     {/* City Autocomplete */}
                     <div className={styles.relative}>
                       <label htmlFor={`city-${idx}`} className={styles.label}>
-                        City of Birth
+                        {t('compatibilityPage.cityOfBirth', 'City of Birth')}
                       </label>
                       <input
                         id={`city-${idx}`}
@@ -296,7 +299,7 @@ export default function CompatPage() {
                         onChange={(e) => update(idx, 'cityQuery', e.target.value)}
                         onFocus={() => update(idx, 'showDropdown', true)}
                         onBlur={() => setTimeout(() => update(idx, 'showDropdown', false), 200)}
-                        placeholder='e.g., "Seoul, KR"'
+                        placeholder={t('compatibilityPage.cityPlaceholder', 'e.g., Seoul, KR')}
                         className={styles.input}
                       />
                       {p.suggestions.length > 0 && p.showDropdown && (
@@ -320,7 +323,7 @@ export default function CompatPage() {
                     {/* Timezone */}
                     <div>
                       <label htmlFor={`tz-${idx}`} className={styles.label}>
-                        Time Zone
+                        {t('compatibilityPage.timeZone', 'Time Zone')}
                       </label>
                       <select
                         id={`tz-${idx}`}
@@ -328,9 +331,9 @@ export default function CompatPage() {
                         onChange={(e) => update(idx, 'timeZone', e.target.value)}
                         className={styles.select}
                       >
-                        {timezones.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
+                        {timezones.map((tz) => (
+                          <option key={tz} value={tz}>
+                            {tz}
                           </option>
                         ))}
                       </select>
@@ -341,7 +344,7 @@ export default function CompatPage() {
                       <div className={`${styles.grid} ${styles.gridTwo}`}>
                         <div>
                           <label htmlFor={`rel-${idx}`} className={styles.label}>
-                            Relation to Person 1
+                            {t('compatibilityPage.relationToPerson1', 'Relation to Person 1')}
                           </label>
                           <select
                             id={`rel-${idx}`}
@@ -349,21 +352,21 @@ export default function CompatPage() {
                             onChange={(e) => update(idx, 'relation', e.target.value as Relation)}
                             className={styles.select}
                           >
-                            <option value="">Select relation</option>
-                            <option value="lover">Partner / Lover 💕</option>
-                            <option value="friend">Friend 🤝</option>
-                            <option value="other">Other ✨</option>
+                            <option value="">{t('compatibilityPage.selectRelation', 'Select relation')}</option>
+                            <option value="lover">{t('compatibilityPage.partnerLover', 'Partner / Lover 💕')}</option>
+                            <option value="friend">{t('compatibilityPage.friend', 'Friend 🤝')}</option>
+                            <option value="other">{t('compatibilityPage.other', 'Other ✨')}</option>
                           </select>
                         </div>
                         <div>
                           <label htmlFor={`note-${idx}`} className={styles.label}>
-                            Relation Note
+                            {t('compatibilityPage.relationNote', 'Relation Note')}
                           </label>
                           <input
                             id={`note-${idx}`}
                             value={p.relationNote ?? ''}
                             onChange={(e) => update(idx, 'relationNote', e.target.value)}
-                            placeholder="Short note"
+                            placeholder={t('compatibilityPage.shortNote', 'Short note')}
                             disabled={p.relation !== 'other'}
                             className={styles.input}
                           />
@@ -373,6 +376,7 @@ export default function CompatPage() {
                   </div>
                 </div>
               ))}
+              </div>
 
               {/* Submit Button */}
               <button
@@ -403,10 +407,10 @@ export default function CompatPage() {
                         d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Calculating...
+                    {t('compatibilityPage.calculating', 'Calculating...')}
                   </>
                 ) : (
-                  'Analyze Compatibility'
+                  t('compatibilityPage.analyzeCompatibility', 'Analyze Compatibility')
                 )}
               </button>
 

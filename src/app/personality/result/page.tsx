@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { AuraAnalysis, AuraQuizAnswers } from '@/lib/aura/types';
 import { analyzeAura } from '@/lib/aura/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -43,6 +44,7 @@ export default function ResultPage() {
   const { t } = useI18n();
   const [answers, setAnswers] = useState<AuraQuizAnswers>({});
   const [mounted, setMounted] = useState(false);
+  const [gender, setGender] = useState<'M' | 'F'>('M');
 
   useEffect(() => {
     setMounted(true);
@@ -52,10 +54,19 @@ export default function ResultPage() {
         const parsed = JSON.parse(raw);
         setAnswers(parsed);
       }
+      const savedGender = localStorage.getItem('personaGender') as 'M' | 'F' | null;
+      if (savedGender) {
+        setGender(savedGender);
+      }
     } catch {
       // noop
     }
   }, []);
+
+  const handleGenderChange = (newGender: 'M' | 'F') => {
+    setGender(newGender);
+    localStorage.setItem('personaGender', newGender);
+  };
 
   const analysis: AuraAnalysis | null = useMemo(() => {
     const hasAnswers = Object.keys(answers).length > 0;
@@ -66,6 +77,8 @@ export default function ResultPage() {
       return null;
     }
   }, [answers]);
+
+  const avatarSrc = analysis ? `/images/persona/${analysis.typeCode}_${gender}.gif` : null;
 
   const handleDownload = () => {
     if (!analysis) return;
@@ -149,14 +162,34 @@ export default function ResultPage() {
       <div className={styles.container}>
         {/* Hero Section */}
         <section className={styles.hero}>
-          <div
-            className={styles.personaOrb}
-            style={{
-              background: `radial-gradient(circle at 30% 30%, ${analysis.primaryColor}, ${analysis.secondaryColor})`,
-              boxShadow: `0 0 60px ${analysis.primaryColor}40, 0 0 120px ${analysis.secondaryColor}20`
-            }}
-          >
-            <span className={styles.orbIcon}>✦</span>
+          {/* Avatar */}
+          <div className={styles.avatarSection}>
+            {avatarSrc && (
+              <div className={styles.avatarWrapper}>
+                <Image
+                  src={avatarSrc}
+                  alt={analysis.personaName}
+                  width={280}
+                  height={420}
+                  className={styles.avatar}
+                  unoptimized
+                />
+              </div>
+            )}
+            <div className={styles.genderToggle}>
+              <button
+                className={`${styles.genderBtn} ${gender === 'M' ? styles.active : ''}`}
+                onClick={() => handleGenderChange('M')}
+              >
+                {t('personality.male', 'Male')}
+              </button>
+              <button
+                className={`${styles.genderBtn} ${gender === 'F' ? styles.active : ''}`}
+                onClick={() => handleGenderChange('F')}
+              >
+                {t('personality.female', 'Female')}
+              </button>
+            </div>
           </div>
 
           <div className={styles.heroContent}>

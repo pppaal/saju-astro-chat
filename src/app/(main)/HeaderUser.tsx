@@ -26,8 +26,20 @@ export default function HeaderUser() {
     return () => { mounted = false }
   }, [])
 
-  // Loading state - show nothing
-  if (loading) return null
+  // Loading state - show skeleton placeholder to prevent layout shift
+  if (loading) {
+    return (
+      <div
+        style={{
+          marginLeft: 8,
+          width: 70,
+          height: 32,
+          borderRadius: 20,
+          background: "rgba(138,164,255,0.1)",
+        }}
+      />
+    )
+  }
 
   // Not logged in - show Login button
   if (!name) {
