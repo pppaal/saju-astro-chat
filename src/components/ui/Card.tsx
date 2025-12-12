@@ -15,6 +15,6 @@ export default function Card<T extends ElementType = "div">({
 }: CardProps<T>) {
   const Component = (as || "div") as ElementType;
   const merged = className ? `${styles.card} ${className}` : styles.card;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <Component className={merged} {...(rest as any)}>{children}</Component>;
+  const componentProps = rest as ComponentPropsWithoutRef<T>;
+  return <Component className={merged} {...componentProps}>{children}</Component>;
 }

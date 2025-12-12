@@ -630,7 +630,7 @@ export default function CommunityPage() {
       <div className={styles.container}>
         {/* Back Button */}
         <div className={styles.backButtonContainer}>
-          <Link href="/" className={styles.backButton}>{"< Back"}</Link>
+          <Link href="/" className={styles.backButton}>{"< "}{t("app.back", "Back")}</Link>
         </div>
 
         {/* Header */}
@@ -698,7 +698,7 @@ export default function CommunityPage() {
               <div className={styles.communityInfo}>
                 <div className={styles.communityName}>{community.name}</div>
                 <div className={styles.communityPlatform}>{community.platform}</div>
-                <div className={styles.communityMembers}>{community.members} members</div>
+                <div className={styles.communityMembers}>{community.members} {t("community.members", "members")}</div>
               </div>
               <div className={styles.communityArrow}>{"->"}</div>
             </a>
@@ -923,7 +923,7 @@ export default function CommunityPage() {
                     disabled={!isLoggedIn}
                     title={isLoggedIn ? (p.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Unlike" : "Like") : t("community.loginToLike", "Log in to like")}
                   >
-                    {p.likedBy.includes(session?.user?.email || session?.user?.name || "") ? "Liked" : "Like"} {p.likes}
+                    {p.likedBy.includes(session?.user?.email || session?.user?.name || "") ? t("community.liked", "Liked") : t("community.like", "Like")} {p.likes}
                   </button>
                   <button
                     onClick={() => setShowComments(prev => ({ ...prev, [p.id]: !prev[p.id] }))}

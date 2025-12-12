@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import AuraQuiz from '@/components/aura/AuraQuiz';
 import type { AuraQuizAnswers } from '@/lib/aura/types';
 import { TOTAL_QUESTIONS } from '@/lib/aura/questions';
+import { useI18n } from '@/i18n/I18nProvider';
 import styles from '../Personality.module.css';
 
 export default function QuizPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [answers, setAnswers] = useState<AuraQuizAnswers>({});
   const progress = Object.keys(answers).length;
@@ -44,14 +46,14 @@ export default function QuizPage() {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.icon}>✨</div>
-          <h1 className={styles.title}>Aura Discovery</h1>
-          <p className={styles.subtitle}>Answer honestly to reveal your inner landscape.</p>
+          <h1 className={styles.title}>{t('personality.auraDiscovery', 'Aura Discovery')}</h1>
+          <p className={styles.subtitle}>{t('personality.answerHonestly', 'Answer honestly to reveal your inner landscape.')}</p>
         </div>
 
         {/* Progress Bar */}
         <div className={styles.progressContainer}>
           <div className={styles.progressHeader}>
-            <span className={styles.progressLabel}>Progress</span>
+            <span className={styles.progressLabel}>{t('personality.progress', 'Progress')}</span>
             <span className={styles.progressPercent}>{progress} / {TOTAL_QUESTIONS}</span>
           </div>
           <div className={styles.progressTrack}>
@@ -65,7 +67,7 @@ export default function QuizPage() {
         {/* Submit Button */}
         {isQuizComplete && (
           <button onClick={handleViewResults} className={styles.submitButton}>
-            Calculate My Aura
+            {t('personality.calculateMyAura', 'Calculate My Aura')}
           </button>
         )}
       </div>
