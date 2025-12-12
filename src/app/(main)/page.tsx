@@ -15,6 +15,17 @@ import Grid from "@/components/ui/Grid";
 import { SERVICE_LINKS, TAROT_DECK, type TarotCard } from "@/data/home";
 
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
+
+interface Particle {
+  x: number;
+  y: number;
+  size: number;
+  speedX: number;
+  speedY: number;
+  color: string;
+  update(): void;
+  draw(): void;
+}
 const WeeklyFortuneCard = dynamic(() => import("@/components/WeeklyFortuneCard"), {
   loading: () => <div className={styles.weeklyCardSkeleton} />,
 });
