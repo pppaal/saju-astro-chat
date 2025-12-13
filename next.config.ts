@@ -1,5 +1,5 @@
-// Temporarily disable Sentry for debugging
-// import {withSentryConfig} from '@sentry/nextjs';
+// Sentry error monitoring - re-enabled
+import {withSentryConfig} from '@sentry/nextjs';
 // 파일 경로: next.config.ts
 
 import path from 'path';
@@ -106,10 +106,7 @@ const nextConfig = {
   },
 };
 
-// Temporarily disable Sentry wrapper for debugging
-export default nextConfig;
-
-/*
+// Sentry wrapper enabled for production error monitoring
 export default withSentryConfig(nextConfig, {
   org: "destinypal",
   project: "javascript-nextjs",
@@ -119,4 +116,3 @@ export default withSentryConfig(nextConfig, {
   disableLogger: true,
   automaticVercelMonitors: true,
 });
-*/

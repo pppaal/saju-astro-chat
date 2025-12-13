@@ -95,9 +95,12 @@ class GraphRAG:
     """
     Graph-based RAG for Saju + Astrology.
     Uses NetworkX for node/edge relationships.
+    Now with pre-computed embedding cache for fast startup.
     """
 
-    def __init__(self, base_dir: str = None):
+    CACHE_FILE = "graph_rag_embeds.pt"
+
+    def __init__(self, base_dir: str = None, use_cache: bool = True):
         if base_dir is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             base_dir = os.path.join(base_dir, "data")
@@ -107,6 +110,9 @@ class GraphRAG:
             self.graph_dir = base_dir
         else:
             self.graph_dir = os.path.join(base_dir, "graph")
+
+        # Cache path
+        self.cache_path = os.path.join(self.graph_dir, self.CACHE_FILE)
 
         # Rules directory
         preferred_rules = os.path.join(self.graph_dir, "rules")
@@ -125,7 +131,7 @@ class GraphRAG:
             raise FileNotFoundError(f"[GraphRAG] Graph folder not found: {self.graph_dir}")
 
         self._load_all()
-        self._prepare_embeddings()
+        self._prepare_embeddings(use_cache=use_cache)
 
     def _load_all(self):
         """Load all CSV nodes/edges and JSON rules."""
@@ -193,8 +199,8 @@ class GraphRAG:
                 weight = row.get("weight") or "1"
                 self.graph.add_edge(src, dst, relation=rel, desc=desc, weight=weight)
 
-    def _prepare_embeddings(self):
-        """Prepare node embeddings."""
+    def _prepare_embeddings(self, use_cache: bool = True):
+        """Prepare node embeddings with optional caching."""
         texts = []
         ids = []
         for n, d in self.graph.nodes(data=True):
@@ -214,12 +220,37 @@ class GraphRAG:
             print("[GraphRAG] No node texts for embeddings")
             return
 
+        # Try loading from cache
+        if use_cache and os.path.exists(self.cache_path):
+            try:
+                cache = torch.load(self.cache_path, map_location="cpu")
+                if cache.get("count") == len(texts):
+                    self.node_embeds = cache["embeddings"]
+                    print(f"[GraphRAG] Loaded {self.node_embeds.size(0)} embeddings from cache")
+                    return
+                else:
+                    print(f"[GraphRAG] Cache stale (count mismatch), regenerating...")
+            except Exception as e:
+                print(f"[GraphRAG] Cache load failed: {e}")
+
+        # Compute embeddings
         self.node_embeds = self.embed_model.encode(
             texts,
             convert_to_tensor=True,
             normalize_embeddings=True,
         )
         print(f"[GraphRAG] Created {self.node_embeds.size(0)} node embeddings")
+
+        # Save to cache
+        if use_cache:
+            try:
+                torch.save({
+                    "embeddings": self.node_embeds,
+                    "count": len(texts),
+                }, self.cache_path)
+                print(f"[GraphRAG] Saved embeddings to cache: {self.cache_path}")
+            except Exception as e:
+                print(f"[GraphRAG] Cache save failed: {e}")
 
     def query(self, facts: dict, top_k: int = 8, domain_priority: str = "saju") -> Dict:
         """Query graph with facts dict."""
