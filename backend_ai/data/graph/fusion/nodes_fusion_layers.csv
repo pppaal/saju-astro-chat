@@ -1,0 +1,31 @@
+id,layer,category,saju_element,astro_element,title_ko,title_en,description,insight_template,emoji
+LAYER1_ELEMENT_FIRE,1,element,火,Fire,불의 기운,Fire Energy,기본 오행-원소 매칭,"당신의 {saju}(은)는 점성술의 {astro}와 공명합니다. 열정과 추진력의 에너지가 흐릅니다.",🔥
+LAYER1_ELEMENT_WATER,1,element,水,Water,물의 기운,Water Energy,기본 오행-원소 매칭,"당신의 {saju}(은)는 점성술의 {astro}와 공명합니다. 직관과 깊이의 에너지가 흐릅니다.",💧
+LAYER1_ELEMENT_WOOD,1,element,木,Earth,나무의 기운,Wood Energy,기본 오행-원소 매칭,"당신의 {saju}(은)는 점성술의 {astro}와 공명합니다. 성장과 확장의 에너지가 흐릅니다.",🌳
+LAYER1_ELEMENT_METAL,1,element,金,Air,금의 기운,Metal Energy,기본 오행-원소 매칭,"당신의 {saju}(은)는 점성술의 {astro}와 공명합니다. 결단과 명확함의 에너지가 흐릅니다.",⚔️
+LAYER1_ELEMENT_EARTH,1,element,土,Earth,토의 기운,Earth Energy,기본 오행-원소 매칭,"당신의 {saju}(은)는 점성술의 {astro}와 공명합니다. 안정과 중심의 에너지가 흐릅니다.",🏔️
+LAYER1_STEM_SUN,1,stem,甲,Sun,갑목-태양,Wood-Sun,천간-행성 매칭,"리더십의 {saju}이 태양의 빛과 만나 세상을 밝힙니다.",☀️
+LAYER1_STEM_MOON,1,stem,乙,Moon,을목-달,Wood-Moon,천간-행성 매칭,"유연함의 {saju}이 달의 감성과 어우러져 공감력이 빛납니다.",🌙
+LAYER1_STEM_MARS,1,stem,丙,Mars,병화-화성,Fire-Mars,천간-행성 매칭,"열정의 {saju}이 화성의 행동력과 합쳐져 돌파력이 됩니다.",🔴
+LAYER1_STEM_VENUS,1,stem,辛,Venus,신금-금성,Metal-Venus,천간-행성 매칭,"순수함의 {saju}이 금성의 미감과 만나 예술적 재능이 빛납니다.",💎
+LAYER1_BRANCH_SIGN,1,branch,子,Aquarius,자수-물병,Rat-Aquarius,지지-사인 매칭,"지혜로운 {saju}가 혁신의 물병자리와 만나 독창성이 폭발합니다.",♒
+LAYER2_SIBSIN_PLANET,2,sibsin,정관,Saturn,정관-토성,Authority-Saturn,십신-행성 심층 매칭,"당신의 정관(正官)은 토성의 책임감과 공명합니다. 사회적 질서와 규율을 통해 성장하는 유형입니다. 권위에 대한 존중이 있으면서도 스스로 그 위치에 오르고자 하는 야망이 있습니다.",🏛️
+LAYER2_SIBSIN_PLANET2,2,sibsin,편관,Mars,편관-화성,Power-Mars,십신-행성 심층 매칭,"당신의 편관(偏官)은 화성의 전투력과 공명합니다. 도전과 경쟁 속에서 빛나는 유형으로, 압박이 오히려 동기부여가 됩니다.",⚔️
+LAYER2_SIBSIN_PLANET3,2,sibsin,식신,Moon,식신-달,Expression-Moon,십신-행성 심층 매칭,"당신의 식신(食神)은 달의 감성과 공명합니다. 창작과 표현, 먹고 즐기는 것에서 행복을 찾으며, 사람들에게 편안함을 줍니다.",🌙
+LAYER2_SIBSIN_PLANET4,2,sibsin,상관,Uranus,상관-천왕성,Rebel-Uranus,십신-행성 심층 매칭,"당신의 상관(傷官)은 천왕성의 파격과 공명합니다. 기존 질서를 뒤집고 새로운 것을 창조하는 혁명가 기질이 있습니다.",⚡
+LAYER2_SIBSIN_PLANET5,2,sibsin,정재,Venus,정재-금성,Wealth-Venus,십신-행성 심층 매칭,"당신의 정재(正財)는 금성의 가치와 공명합니다. 안정적인 수입과 아름다운 것에 대한 감각이 뛰어납니다.",💰
+LAYER2_SIBSIN_PLANET6,2,sibsin,편재,Jupiter,편재-목성,Fortune-Jupiter,십신-행성 심층 매칭,"당신의 편재(偏財)는 목성의 확장과 공명합니다. 투기와 모험을 통한 큰 재물운이 있으며, 사업가 기질이 있습니다.",🎰
+LAYER2_SIBSIN_PLANET7,2,sibsin,정인,Neptune,정인-해왕성,Wisdom-Neptune,십신-행성 심층 매칭,"당신의 정인(正印)은 해왕성의 영성과 공명합니다. 학문과 지혜를 통한 성장이 있으며, 직관력이 뛰어납니다.",📚
+LAYER2_SIBSIN_PLANET8,2,sibsin,편인,Pluto,편인-명왕성,Mystery-Pluto,십신-행성 심층 매칭,"당신의 편인(偏印)은 명왕성의 변환과 공명합니다. 비밀스러운 지식과 심층 심리에 대한 통찰력이 있습니다.",🔮
+LAYER2_ASPECT_RELATION,2,aspect,삼합,Trine,삼합-트라인,Harmony-Trine,관계-애스펙트 매칭,"사주의 삼합(三合)은 점성술의 트라인(120°)과 같습니다. 자연스러운 재능의 흐름이 있어 노력 없이도 빛나는 영역입니다.",✨
+LAYER2_ASPECT_RELATION2,2,aspect,육충,Opposition,육충-오포지션,Tension-Opposition,관계-애스펙트 매칭,"사주의 충(沖)은 점성술의 오포지션(180°)과 같습니다. 내면의 양극단이 서로 당기며 긴장을 만들지만, 통합하면 강력한 힘이 됩니다.",⚖️
+LAYER2_ASPECT_RELATION3,2,aspect,형,Square,형-스퀘어,Challenge-Square,관계-애스펙트 매칭,"사주의 형(刑)은 점성술의 스퀘어(90°)와 같습니다. 마찰과 도전이 있지만, 이를 극복하면 성장의 발판이 됩니다.",🔺
+LAYER3_KARMA_NODE,3,karma,공망,South Node,공망-남교점,Void-Karma,카르마/전생 심층,"공망(空亡)의 에너지가 남교점(South Node)과 만납니다. 전생에서 비워둔 영역이 이번 생의 과제가 됩니다. 이 영역을 채우는 것이 영혼의 성장입니다.",🌀
+LAYER3_KARMA_NODE2,3,karma,역마,North Node,역마-북교점,Travel-Destiny,카르마/전생 심층,"역마살(驛馬煞)이 북교점(North Node)과 만납니다. 이동과 변화를 통해 운명을 개척하는 사람입니다. 한 곳에 머무르지 말고 세상으로 나아가세요.",🚀
+LAYER3_CHIRON_WOUND,3,healing,상관견관,Chiron,상처받은 치유자,Wounded Healer,상처/치유 심층,"상관견관(傷官見官)의 갈등이 키론(Chiron)과 공명합니다. 권위와의 충돌로 받은 상처가 있지만, 이를 극복하면 다른 사람의 상처를 치유하는 능력이 됩니다.",💊
+LAYER3_LILITH_SHADOW,3,shadow,겁재,Lilith,억압된 욕망,Hidden Desire,그림자/욕망 심층,"겁재(劫財)의 에너지가 블랙문 릴리스(Lilith)와 공명합니다. 억압된 욕망과 그림자가 있으며, 이를 인정하고 통합하면 강력한 힘이 됩니다.",🌑
+LAYER3_FORTUNE_VERTEX,3,fortune,일록,Fortune,행운의 포인트,Lucky Point,행운/운명 심층,"일록(日祿)이 파트 오브 포춘(Part of Fortune)과 만납니다. 물질적 행운과 성취의 포인트가 여기에 있습니다.",🍀
+LAYER3_PATTERN_YOD,3,pattern,암록격,Yod,신의 손가락,Finger of God,특수패턴 심층,"암록격(暗祿格)이 요드(Yod/신의 손가락)와 공명합니다. 숨겨진 재능이 운명적인 순간에 폭발합니다. 평범해 보이지만 결정적 순간에 빛나는 사람입니다.",☝️
+LAYER3_PATTERN_GRAND,3,pattern,삼합국,Grand Trine,대조화,Great Harmony,특수패턴 심층,"삼합국(三合局) 완성이 그랜드 트라인과 공명합니다. 재능이 자연스럽게 흐르는 영역이 있으며, 이 분야에서는 노력 없이도 성과가 납니다.",🔯
+LAYER3_MYTH_HERO,3,archetype,甲,Hercules,헤라클레스 원형,Hero Archetype,신화원형 심층,"갑목(甲木) 일간의 당신은 헤라클레스의 원형을 가지고 있습니다. 12가지 시련을 극복하고 영웅이 되는 서사가 당신의 인생입니다.",🦁
+LAYER3_MYTH_ORACLE,3,archetype,癸,Oracle,오라클 원형,Oracle Archetype,신화원형 심층,"계수(癸水) 일간의 당신은 오라클(신탁자)의 원형을 가지고 있습니다. 깊은 직관과 예언적 통찰로 사람들을 인도하는 사명이 있습니다.",🔮

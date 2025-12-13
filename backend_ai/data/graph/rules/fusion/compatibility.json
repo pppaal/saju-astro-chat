@@ -1,0 +1,212 @@
+{
+  "$description": "궁합 전용 교차 분석 규칙 - 사주와 점성술 융합",
+  "$version": "1.0",
+
+  "daymaster_cross_rules": {
+    "rule_dm_fire_fire": {
+      "when": ["dayMaster.element", "火", "partner.sunElement", "fire"],
+      "text": "이중 불 에너지! 두 사람 모두 火/Fire 기운으로 열정이 넘치지만, 주도권 경쟁에 주의하세요.",
+      "score_modifier": 10,
+      "timing_advice": "봄에 함께 새로운 프로젝트 시작하면 좋아요"
+    },
+    "rule_dm_water_water": {
+      "when": ["dayMaster.element", "水", "partner.sunElement", "water"],
+      "text": "이중 물 에너지! 깊은 감정적 연결이 가능하지만, 현실 감각 유지가 중요해요.",
+      "score_modifier": 10,
+      "timing_advice": "겨울에 깊은 대화와 내면 탐구에 좋아요"
+    },
+    "rule_dm_wood_fire": {
+      "when": ["dayMaster.element", "木", "partner.sunElement", "fire"],
+      "text": "木生火! 당신의 목 기운이 상대의 불을 살려줘요. 서로를 성장시키는 관계!",
+      "score_modifier": 15,
+      "timing_advice": "봄~여름이 함께하기 가장 좋은 시기"
+    },
+    "rule_dm_fire_earth": {
+      "when": ["dayMaster.element", "火", "partner.sunElement", "earth"],
+      "text": "火生土! 당신의 열정이 상대에게 안정적 기반을 만들어줘요.",
+      "score_modifier": 12,
+      "timing_advice": "환절기에 중요한 결정하기 좋아요"
+    },
+    "rule_dm_earth_metal": {
+      "when": ["dayMaster.element", "土", "partner.sunElement", "air"],
+      "text": "土生金! 당신의 안정감이 상대의 결단력을 지원해요.",
+      "score_modifier": 12,
+      "timing_advice": "가을에 함께 목표 설정하면 성과 좋아요"
+    },
+    "rule_dm_metal_water": {
+      "when": ["dayMaster.element", "金", "partner.sunElement", "water"],
+      "text": "金生水! 당신의 날카로움이 상대의 지혜를 깨워줘요.",
+      "score_modifier": 12,
+      "timing_advice": "가을~겨울에 협력 프로젝트 유리"
+    },
+    "rule_dm_water_wood": {
+      "when": ["dayMaster.element", "水", "partner.sunElement", "air"],
+      "text": "水生木! 당신의 적응력이 상대의 성장을 도와요.",
+      "score_modifier": 12,
+      "timing_advice": "겨울~봄에 새로운 시작 유리"
+    }
+  },
+
+  "conflict_cross_rules": {
+    "rule_fire_water_conflict": {
+      "when": ["dayMaster.element", "火", "partner.sunElement", "water"],
+      "text": "火水 충돌! 열정과 감정이 부딪힐 수 있어요. 서로의 방식 존중이 핵심!",
+      "score_modifier": -10,
+      "growth_point": "감정 표현 방식의 차이를 인정하고, 중재하는 연습이 필요해요",
+      "good_timing": "토 에너지가 강한 환절기에 대화하면 완충 역할"
+    },
+    "rule_wood_metal_conflict": {
+      "when": ["dayMaster.element", "木", "partner.sunElement", "earth"],
+      "text": "金克木! 상대의 비판이 날카롭게 느껴질 수 있어요.",
+      "score_modifier": -8,
+      "growth_point": "비판을 성장의 기회로, 서로 격려하는 말 습관 들이기",
+      "good_timing": "水 에너지가 강한 겨울에 오해 풀기 좋아요"
+    }
+  },
+
+  "branch_cross_rules": {
+    "rule_samhap_fire_trine": {
+      "when": ["branch.samhap", "인오술", "partner.element_ratio.fire", ">30"],
+      "text": "삼합 화국 + Fire Grand Trine! 두 체계 모두 불의 조화를 보여줘요.",
+      "score_modifier": 20,
+      "best_activities": ["창업", "여행", "스포츠", "모험"]
+    },
+    "rule_samhap_water_trine": {
+      "when": ["branch.samhap", "신자진", "partner.element_ratio.water", ">30"],
+      "text": "삼합 수국 + Water Grand Trine! 깊은 감정적 교감과 직관적 이해가 가능해요.",
+      "score_modifier": 20,
+      "best_activities": ["명상", "예술", "심리 탐구", "영적 활동"]
+    },
+    "rule_yukhap_earth": {
+      "when": ["branch.yukhap", "자축", "partner.sunSign", ["Taurus", "Virgo", "Capricorn"]],
+      "text": "육합 + Earth Sign! 안정적이고 신뢰로운 관계의 기반이 단단해요.",
+      "score_modifier": 15,
+      "best_activities": ["재정 계획", "부동산", "장기 프로젝트"]
+    }
+  },
+
+  "timing_rules": {
+    "rule_timing_daeun_support": {
+      "when": ["person1.daeun.element", "supports", "person2.yongsin"],
+      "text": "대운 시너지! 현재 A의 대운이 B의 용신을 지원해요. 장기적 협력에 유리!",
+      "period": "current_daeun",
+      "timing_type": "long_term"
+    },
+    "rule_timing_seun_harmony": {
+      "when": ["seun.element", "harmonizes", "both_daymasters"],
+      "text": "올해의 세운이 두 분 모두에게 조화로워요. 중요한 결정 내리기 좋은 해!",
+      "period": "current_year",
+      "timing_type": "annual"
+    },
+    "rule_timing_wolun_action": {
+      "when": ["wolun.element", "activates", "shared_strength"],
+      "text": "이번 달 월운이 두 분의 공통 강점을 활성화해요. 함께 행동하기 좋은 달!",
+      "period": "current_month",
+      "timing_type": "monthly"
+    }
+  },
+
+  "monthly_guide_templates": {
+    "fire_months": {
+      "months": ["巳", "午", "未"],
+      "solar_months": [5, 6, 7],
+      "activities": ["새로운 시작", "리더십 발휘", "열정적 데이트", "스포츠"],
+      "caution": ["과열", "다툼", "성급한 결정"],
+      "best_for": ["fire_dominant_couples", "wood_fire_couples"]
+    },
+    "earth_months": {
+      "months": ["辰", "戌", "丑", "未"],
+      "solar_months": [3, 6, 9, 12],
+      "activities": ["계획 세우기", "재정 논의", "가족 행사", "안정화"],
+      "caution": ["답답함", "변화 거부"],
+      "best_for": ["earth_dominant_couples", "fire_earth_couples"]
+    },
+    "metal_months": {
+      "months": ["申", "酉"],
+      "solar_months": [8, 9],
+      "activities": ["결단", "정리", "마무리", "수확"],
+      "caution": ["비판", "냉정함"],
+      "best_for": ["metal_dominant_couples", "earth_metal_couples"]
+    },
+    "water_months": {
+      "months": ["亥", "子"],
+      "solar_months": [11, 12],
+      "activities": ["깊은 대화", "내면 탐구", "명상", "여행"],
+      "caution": ["감정 과잉", "우울"],
+      "best_for": ["water_dominant_couples", "metal_water_couples"]
+    },
+    "wood_months": {
+      "months": ["寅", "卯"],
+      "solar_months": [2, 3],
+      "activities": ["새 프로젝트", "성장", "학습", "운동"],
+      "caution": ["조급함", "과욕"],
+      "best_for": ["wood_dominant_couples", "water_wood_couples"]
+    }
+  },
+
+  "action_items_by_element": {
+    "fire_couple": {
+      "strengths": ["열정", "추진력", "리더십"],
+      "growth_actions": [
+        "서로의 주도권을 인정하는 영역 나누기",
+        "함께 운동이나 모험 활동하기",
+        "화날 때 10초 멈추기 약속"
+      ],
+      "date_ideas": ["번지점프", "맛집 탐방", "댄스 클래스"]
+    },
+    "earth_couple": {
+      "strengths": ["안정", "신뢰", "실속"],
+      "growth_actions": [
+        "월 1회 새로운 것 시도하기",
+        "감정 표현 연습하기",
+        "서프라이즈 이벤트 계획"
+      ],
+      "date_ideas": ["요리 클래스", "정원 가꾸기", "와인 시음"]
+    },
+    "water_couple": {
+      "strengths": ["공감", "직관", "깊이"],
+      "growth_actions": [
+        "현실적 목표 함께 세우기",
+        "각자 독립 시간 갖기",
+        "감정일기 공유하기"
+      ],
+      "date_ideas": ["미술관", "영화", "스파", "명상 클래스"]
+    },
+    "air_couple": {
+      "strengths": ["소통", "아이디어", "자유"],
+      "growth_actions": [
+        "감정적 연결 의식적으로 만들기",
+        "깊은 대화 시간 정하기",
+        "함께 봉사활동"
+      ],
+      "date_ideas": ["토론 카페", "전시회", "여행", "독서 모임"]
+    },
+    "complementary_couple": {
+      "strengths": ["균형", "상호 보완", "성장"],
+      "growth_actions": [
+        "상대의 다른 점을 배움으로 받아들이기",
+        "서로의 방식 존중하기",
+        "중간 지점 찾는 연습"
+      ],
+      "date_ideas": ["번갈아 데이트 코스 정하기", "새로운 공통 취미 찾기"]
+    }
+  },
+
+  "relationship_phase_guidance": {
+    "new_relationship": {
+      "focus": ["서로 알아가기", "경계 존중", "소통 패턴 만들기"],
+      "best_timing": "木/Air 에너지 강한 달",
+      "caution": "너무 빨리 진행하지 않기"
+    },
+    "committed_relationship": {
+      "focus": ["신뢰 구축", "갈등 해결 패턴", "공동 목표"],
+      "best_timing": "土/Earth 에너지 강한 달",
+      "caution": "일상에 묻히지 않기"
+    },
+    "long_term": {
+      "focus": ["성장 함께하기", "개인 공간 존중", "새로운 활력"],
+      "best_timing": "火/Fire 에너지 강한 달",
+      "caution": "당연시하지 않기"
+    }
+  }
+}
