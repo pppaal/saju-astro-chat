@@ -197,6 +197,7 @@ ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
 RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
 RATE_WINDOW_SECONDS = 60
 _rate_state = defaultdict(list)  # ip -> timestamps
+UNPROTECTED_PATHS = {"/", "/health", "/health/full"}
 
 
 def _client_id() -> str:
@@ -222,6 +223,9 @@ def _check_rate() -> Tuple[bool, Optional[float]]:
 
 def _require_auth() -> Optional[Tuple[dict, int]]:
     if not ADMIN_TOKEN:
+        return None
+    # Allow unauthenticated access to health endpoints for load balancers
+    if request.path in UNPROTECTED_PATHS or request.method == "OPTIONS":
         return None
     auth_header = request.headers.get("Authorization", "")
     token = None
