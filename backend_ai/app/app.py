@@ -22,7 +22,7 @@ from backend_ai.app.saju_parser import calculate_saju_data
 from backend_ai.app.dream_logic import interpret_dream
 from backend_ai.app.redis_cache import get_cache
 from backend_ai.model.fusion_generate import (
-    _generate_with_together,
+    _generate_with_gpt4,
     refine_with_gpt5mini,
 )
 from backend_ai.app.performance_optimizer import (
@@ -110,9 +110,73 @@ except ImportError:
     HAS_AGENTIC = False
     print("[app.py] Agentic RAG not available")
 
+# Jungian Counseling Engine
+try:
+    from backend_ai.app.counseling_engine import get_counseling_engine, CrisisDetector
+    HAS_COUNSELING = True
+except ImportError:
+    HAS_COUNSELING = False
+    print("[app.py] Counseling engine not available")
+
+# Prediction Engine (v5.0)
+try:
+    from backend_ai.app.prediction_engine import (
+        get_prediction_engine,
+        predict_luck,
+        find_best_date,
+        get_full_forecast,
+        EventType,
+    )
+    HAS_PREDICTION = True
+except ImportError:
+    HAS_PREDICTION = False
+    print("[app.py] Prediction engine not available")
+
+# Theme Cross-Reference Filter (v5.1)
+try:
+    from backend_ai.app.theme_cross_filter import (
+        get_theme_filter,
+        filter_data_by_theme,
+        get_theme_prompt_context,
+    )
+    HAS_THEME_FILTER = True
+except ImportError:
+    HAS_THEME_FILTER = False
+    print("[app.py] Theme cross filter not available")
+
+# Fortune Score Engine (v1.0) - Real-time saju+astrology scoring
+try:
+    from backend_ai.app.fortune_score_engine import (
+        get_fortune_score_engine,
+        calculate_fortune_score,
+    )
+    HAS_FORTUNE_SCORE = True
+except ImportError:
+    HAS_FORTUNE_SCORE = False
+    print("[app.py] Fortune score engine not available")
+
 # Flask Application
 app = Flask(__name__)
-CORS(app)  # allow cross-origin (Next.js)
+
+# CORS configuration - restrict to specific origins for security
+CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://destinypal.com",
+    "https://www.destinypal.com",
+]
+# Allow custom origins from environment variable
+if os.getenv("CORS_ALLOWED_ORIGINS"):
+    CORS_ORIGINS.extend(os.getenv("CORS_ALLOWED_ORIGINS").split(","))
+
+CORS(
+    app,
+    origins=CORS_ORIGINS,
+    allow_headers=["Content-Type", "Authorization", "X-API-KEY", "X-Request-ID"],
+    methods=["GET", "POST", "OPTIONS"],
+    supports_credentials=True,
+    max_age=3600,
+)
 
 # Basic logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -417,6 +481,12 @@ def performance_stats():
     except Exception as e:
         logger.exception(f"[ERROR] /performance/stats failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    """Simple health check for Railway/load balancer."""
+    return jsonify({"status": "ok"})
 
 
 @app.route("/health/full", methods=["GET"])
@@ -945,7 +1015,7 @@ def tarot_interpret():
             if context_parts:
                 enhanced_question = f"[배경: {', '.join(context_parts)}] {user_question}"
 
-        # Generate reading using Together AI + GPT pattern (same as destiny-map)
+        # Generate reading using GPT-4 (same as destiny-map)
         # Apply theme/spread mapping (frontend IDs → backend names)
         mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
         logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
@@ -1022,11 +1092,11 @@ def tarot_interpret():
 
 전문적이면서도 따뜻한 어조로 해석해주세요."""
 
-        # Step 3: Generate with Together Llama 3.3 70B
+        # Step 3: Generate with GPT-4
         try:
-            raw_reading = _generate_with_together(tarot_prompt, max_tokens=2000, temperature=0.2)
+            raw_reading = _generate_with_gpt4(tarot_prompt, max_tokens=2000, temperature=0.2)
         except Exception as llm_e:
-            logger.warning(f"[TAROT] Together AI failed: {llm_e}, using fallback")
+            logger.warning(f"[TAROT] GPT-4 failed: {llm_e}, using fallback")
             raw_reading = f"카드 해석: {cards_str}. {rag_context[:500]}"
 
         # Step 4: Polish with GPT-4o-mini
@@ -1196,7 +1266,7 @@ def tarot_chat():
         else:
             date_str = now.strftime("%B %d, %Y (%A)")
 
-        # Generate response using Together AI + GPT pattern (same as destiny-map)
+        # Generate response using GPT-4 (same as destiny-map)
         chat_prompt = f"""당신은 전문 타로 상담사입니다. 사용자의 질문에 친근하고 통찰력 있게 답변하세요.
 
 ## 오늘 날짜: {date_str}
@@ -1219,12 +1289,12 @@ def tarot_chat():
 친근하게 2-3문장으로 답변하세요."""
 
         try:
-            # Step 1: Generate with Together Llama 3.3 70B
-            raw_reply = _generate_with_together(chat_prompt, max_tokens=500, temperature=0.3)
+            # Step 1: Generate with GPT-4
+            raw_reply = _generate_with_gpt4(chat_prompt, max_tokens=500, temperature=0.3)
             # Step 2: Light polish with GPT-4o-mini
             reply = refine_with_gpt5mini(raw_reply, "tarot_chat", language)
         except Exception as llm_e:
-            logger.warning(f"[TAROT_CHAT] Together/GPT failed: {llm_e}")
+            logger.warning(f"[TAROT_CHAT] GPT-4 failed: {llm_e}")
             reply = f"현재 리딩에서 {cards_str}이(가) 나왔습니다. {guidance}"
 
         duration_ms = int((time.time() - start_time) * 1000)
@@ -1289,6 +1359,219 @@ def tarot_search():
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/tarot/search failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# JUNGIAN COUNSELING ENDPOINTS (심리상담)
+# ===============================================================
+
+@app.route("/api/counseling/session", methods=["POST"])
+def counseling_session():
+    """
+    Create or continue a counseling session.
+    융 심리학 기반 통합 심리상담 세션.
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        message = data.get("message", "")
+        session_id = data.get("session_id")
+        divination_context = data.get("divination_context")  # 사주/점성/타로 컨텍스트
+
+        if not message:
+            return jsonify({"status": "error", "message": "Message is required"}), 400
+
+        engine = get_counseling_engine()
+
+        # 세션 가져오기 또는 생성
+        session = None
+        if session_id:
+            session = engine.get_session(session_id)
+
+        # 메시지 처리
+        result = engine.process_message(
+            user_message=message,
+            session=session,
+            divination_context=divination_context
+        )
+
+        return jsonify({
+            "status": "success",
+            "response": result["response"],
+            "session_id": result["session_id"],
+            "phase": result.get("phase", "opening"),
+            "crisis_detected": result.get("crisis_detected", False),
+            "severity": result.get("severity"),
+            "should_continue": result.get("should_continue", True)
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/session failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/crisis-check", methods=["POST"])
+def counseling_crisis_check():
+    """
+    Check text for crisis indicators.
+    위기 신호 감지 (자살/자해 등).
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        text = data.get("text", "")
+
+        if not text:
+            return jsonify({"status": "error", "message": "Text is required"}), 400
+
+        result = CrisisDetector.detect_crisis(text)
+
+        response_data = {
+            "status": "success",
+            "is_crisis": result["is_crisis"],
+            "max_severity": result["max_severity"],
+            "requires_immediate_action": result["requires_immediate_action"]
+        }
+
+        # 위기 상황이면 리소스 정보 추가
+        if result["is_crisis"]:
+            response_data["resources"] = CrisisDetector.EMERGENCY_RESOURCES.get("ko", {})
+            response_data["crisis_response"] = CrisisDetector.get_crisis_response(
+                result["max_severity"]
+            )
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/crisis-check failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/therapeutic-question", methods=["GET"])
+def counseling_therapeutic_question():
+    """
+    Get a therapeutic question.
+    치료적 질문 가져오기.
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling module not available"}), 501
+
+    try:
+        theme = request.args.get("theme")  # love, career, identity, etc.
+        archetype = request.args.get("archetype")  # shadow, anima, persona, etc.
+        question_type = request.args.get("type", "deepening")  # deepening, challenging, shadow, etc.
+
+        engine = get_counseling_engine()
+        question = engine.get_therapeutic_question(
+            theme=theme,
+            archetype=archetype,
+            question_type=question_type
+        )
+
+        return jsonify({
+            "status": "success",
+            "question": question,
+            "theme": theme,
+            "archetype": archetype,
+            "type": question_type
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/therapeutic-question failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/emotional-response", methods=["POST"])
+def counseling_emotional_response():
+    """
+    Get an emotional/empathic response.
+    감동적인 공감 응답 생성.
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        emotion = data.get("emotion", "")
+        situation = data.get("situation", "")
+
+        if not emotion:
+            return jsonify({"status": "error", "message": "Emotion is required"}), 400
+
+        engine = get_counseling_engine()
+        response = engine.get_emotional_response(emotion, situation)
+
+        return jsonify({
+            "status": "success",
+            "responses": response
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/emotional-response failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/integrated", methods=["POST"])
+def counseling_integrated():
+    """
+    Integrated counseling with saju/astrology/tarot context.
+    사주+점성+타로 통합 심리상담.
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        message = data.get("message", "")
+        session_id = data.get("session_id")
+
+        # 점술 데이터
+        saju_data = data.get("saju")
+        astro_data = data.get("astro")
+        tarot_data = data.get("tarot")
+
+        if not message:
+            return jsonify({"status": "error", "message": "Message is required"}), 400
+
+        engine = get_counseling_engine()
+
+        # 세션 가져오기 또는 생성
+        session = None
+        if session_id:
+            session = engine.get_session(session_id)
+
+        # 점술 컨텍스트 구성
+        divination_context = {}
+        if saju_data:
+            divination_context["saju"] = str(saju_data)
+        if astro_data:
+            divination_context["astrology"] = str(astro_data)
+        if tarot_data:
+            divination_context["tarot"] = str(tarot_data)
+
+        # 메시지 처리
+        result = engine.process_message(
+            user_message=message,
+            session=session,
+            divination_context=divination_context if divination_context else None
+        )
+
+        return jsonify({
+            "status": "success",
+            "response": result["response"],
+            "session_id": result["session_id"],
+            "phase": result.get("phase", "opening"),
+            "crisis_detected": result.get("crisis_detected", False),
+            "should_continue": result.get("should_continue", True)
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/integrated failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -1815,6 +2098,576 @@ def agentic_find_connections():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# ===============================================================
+# PREDICTION ENGINE ENDPOINTS (v5.0)
+# 대운/세운 + 트랜짓 기반 예측 시스템
+# ===============================================================
+
+@app.route("/api/prediction/luck", methods=["POST"])
+def prediction_luck():
+    """
+    대운/세운 기반 운세 예측.
+    향후 N년간의 운세 흐름 분석.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_info = {
+            "year": data.get("year"),
+            "month": data.get("month"),
+            "day": data.get("day", 15),
+            "hour": data.get("hour", 12),
+            "gender": data.get("gender", "unknown")
+        }
+        years_ahead = data.get("years_ahead", 5)
+
+        if not birth_info.get("year") or not birth_info.get("month"):
+            return jsonify({"status": "error", "message": "year and month are required"}), 400
+
+        forecasts = predict_luck(birth_info, years_ahead)
+
+        return jsonify({
+            "status": "success",
+            "birth_info": birth_info,
+            "years_ahead": years_ahead,
+            "forecasts": forecasts
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/prediction/luck failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/prediction/timing", methods=["POST"])
+def prediction_timing():
+    """
+    '언제가 좋을까?' 질문에 답변.
+    최적의 날짜/시기 추천.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        question = data.get("question", "")
+
+        if not question:
+            return jsonify({"status": "error", "message": "question is required"}), 400
+
+        # 생년월일 정보 (선택)
+        birth_info = None
+        if data.get("year") and data.get("month"):
+            birth_info = {
+                "year": data.get("year"),
+                "month": data.get("month"),
+                "day": data.get("day", 15),
+                "hour": data.get("hour", 12),
+                "gender": data.get("gender", "unknown")
+            }
+
+        result = find_best_date(question, birth_info)
+
+        return jsonify({
+            "status": "success",
+            **result
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/prediction/timing failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/prediction/forecast", methods=["POST"])
+def prediction_forecast():
+    """
+    종합 예측 - 대운/세운/트랜짓 통합 분석.
+    AI 해석 포함.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_info = {
+            "year": data.get("year"),
+            "month": data.get("month"),
+            "day": data.get("day", 15),
+            "hour": data.get("hour", 12),
+            "gender": data.get("gender", "unknown")
+        }
+        question = data.get("question")
+        include_timing = data.get("include_timing", True)
+
+        if not birth_info.get("year") or not birth_info.get("month"):
+            return jsonify({"status": "error", "message": "year and month are required"}), 400
+
+        result = get_full_forecast(birth_info, question)
+
+        return jsonify({
+            "status": "success",
+            **result
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/prediction/forecast failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/prediction/daeun", methods=["POST"])
+def prediction_daeun():
+    """
+    현재 대운 상세 정보.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_info = {
+            "year": data.get("year"),
+            "month": data.get("month"),
+            "day": data.get("day", 15),
+            "hour": data.get("hour", 12),
+            "gender": data.get("gender", "unknown")
+        }
+        target_year = data.get("target_year")
+
+        if not birth_info.get("year") or not birth_info.get("month"):
+            return jsonify({"status": "error", "message": "year and month are required"}), 400
+
+        engine = get_prediction_engine()
+        daeun = engine.luck_predictor.calculate_daeun(
+            birth_info["year"],
+            birth_info["month"],
+            birth_info["day"],
+            birth_info["hour"],
+            birth_info["gender"],
+            target_year
+        )
+
+        return jsonify({
+            "status": "success",
+            "daeun": {
+                "period_type": daeun.period_type,
+                "start_year": daeun.start_year,
+                "end_year": daeun.end_year,
+                "dominant_god": daeun.dominant_god,
+                "element": daeun.element,
+                "polarity": daeun.polarity,
+                "overall_rating": round(daeun.overall_rating, 1),
+                "themes": daeun.themes,
+                "opportunities": daeun.opportunities,
+                "challenges": daeun.challenges
+            }
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/prediction/daeun failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/prediction/seun", methods=["POST"])
+def prediction_seun():
+    """
+    특정 연도의 세운 정보.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_year = data.get("year")
+        birth_month = data.get("month")
+        target_year = data.get("target_year")
+
+        if not birth_year or not birth_month:
+            return jsonify({"status": "error", "message": "year and month are required"}), 400
+
+        engine = get_prediction_engine()
+        seun = engine.luck_predictor.calculate_seun(
+            birth_year,
+            birth_month,
+            target_year
+        )
+
+        return jsonify({
+            "status": "success",
+            "seun": {
+                "period_type": seun.period_type,
+                "year": seun.start_year,
+                "dominant_god": seun.dominant_god,
+                "element": seun.element,
+                "polarity": seun.polarity,
+                "overall_rating": round(seun.overall_rating, 1),
+                "themes": seun.themes,
+                "opportunities": seun.opportunities,
+                "challenges": seun.challenges
+            }
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/prediction/seun failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/prediction/event-types", methods=["GET"])
+def prediction_event_types():
+    """
+    사용 가능한 이벤트 유형 목록.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    event_types = [
+        {"id": "career", "name_ko": "직업/사업", "name_en": "Career/Business"},
+        {"id": "relationship", "name_ko": "연애/결혼", "name_en": "Love/Marriage"},
+        {"id": "finance", "name_ko": "재물/투자", "name_en": "Finance/Investment"},
+        {"id": "health", "name_ko": "건강", "name_en": "Health"},
+        {"id": "education", "name_ko": "학업/시험", "name_en": "Education/Exam"},
+        {"id": "travel", "name_ko": "여행/이사", "name_en": "Travel/Moving"},
+        {"id": "contract", "name_ko": "계약/협상", "name_en": "Contract/Negotiation"},
+        {"id": "general", "name_ko": "일반", "name_en": "General"}
+    ]
+
+    return jsonify({
+        "status": "success",
+        "event_types": event_types
+    })
+
+
+# ===============================================================
+# THEME CROSS-REFERENCE FILTER ENDPOINTS (v5.1)
+# 테마별 사주+점성 교차점 분석
+# ===============================================================
+
+@app.route("/api/theme/filter", methods=["POST"])
+def theme_filter():
+    """
+    테마별 사주+점성 교차점 필터링.
+    테마에 맞는 데이터만 추출하여 반환.
+    """
+    if not HAS_THEME_FILTER:
+        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        theme = data.get("theme", "overall")
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+
+        result = filter_data_by_theme(theme, saju_data, astro_data)
+
+        return jsonify({
+            "status": "success",
+            **result
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/theme/filter failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/theme/cross-points", methods=["POST"])
+def theme_cross_points():
+    """
+    테마별 사주-점성 교차점 상세 분석.
+    교차점, 중요 날짜, 하이라이트 포함.
+    """
+    if not HAS_THEME_FILTER:
+        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        theme = data.get("theme", "overall")
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+
+        theme_filter_engine = get_theme_filter()
+        summary = theme_filter_engine.get_theme_summary(theme, saju_data, astro_data)
+
+        return jsonify({
+            "status": "success",
+            "theme": theme,
+            "relevance_score": summary.get("relevance_score", 0),
+            "highlights": summary.get("highlights", []),
+            "intersections": summary.get("intersections", []),
+            "important_dates": summary.get("important_dates", []),
+            "saju_factors": summary.get("saju_factors", []),
+            "astro_factors": summary.get("astro_factors", [])
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/theme/cross-points failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/theme/prompt-context", methods=["POST"])
+def theme_prompt_context():
+    """
+    AI 프롬프트용 테마별 컨텍스트 생성.
+    필터링된 데이터를 프롬프트에 사용할 수 있는 형식으로 반환.
+    """
+    if not HAS_THEME_FILTER:
+        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        theme = data.get("theme", "overall")
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+
+        context = get_theme_prompt_context(theme, saju_data, astro_data)
+
+        return jsonify({
+            "status": "success",
+            "theme": theme,
+            "prompt_context": context
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/theme/prompt-context failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/theme/important-dates", methods=["POST"])
+def theme_important_dates():
+    """
+    테마별 중요 날짜만 반환.
+    """
+    if not HAS_THEME_FILTER:
+        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        theme = data.get("theme", "overall")
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+
+        theme_filter_engine = get_theme_filter()
+        summary = theme_filter_engine.get_theme_summary(theme, saju_data, astro_data)
+
+        # 날짜만 추출
+        dates = summary.get("important_dates", [])
+
+        # 좋은 날짜와 주의 날짜 분리
+        auspicious = [d for d in dates if d.get("is_auspicious", True)]
+        caution = [d for d in dates if not d.get("is_auspicious", True)]
+
+        return jsonify({
+            "status": "success",
+            "theme": theme,
+            "auspicious_dates": auspicious,
+            "caution_dates": caution,
+            "total_count": len(dates)
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/theme/important-dates failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/theme/available", methods=["GET"])
+def theme_available():
+    """
+    사용 가능한 테마 목록.
+    """
+    themes = [
+        {"id": "love", "name_ko": "연애/결혼", "name_en": "Love/Marriage", "icon": "💕"},
+        {"id": "career", "name_ko": "직업/사업", "name_en": "Career/Business", "icon": "💼"},
+        {"id": "wealth", "name_ko": "재물/투자", "name_en": "Wealth/Finance", "icon": "💰"},
+        {"id": "health", "name_ko": "건강", "name_en": "Health", "icon": "🏥"},
+        {"id": "family", "name_ko": "가족/관계", "name_en": "Family/Relations", "icon": "👨‍👩‍👧‍👦"},
+        {"id": "education", "name_ko": "학업/시험", "name_en": "Education/Exam", "icon": "📚"},
+        {"id": "overall", "name_ko": "전체 운세", "name_en": "Overall Fortune", "icon": "🔮"},
+        {"id": "monthly", "name_ko": "월운", "name_en": "Monthly Fortune", "icon": "📅"},
+        {"id": "yearly", "name_ko": "연운", "name_en": "Yearly Fortune", "icon": "🗓️"},
+        {"id": "daily", "name_ko": "일운", "name_en": "Daily Fortune", "icon": "☀️"}
+    ]
+
+    return jsonify({
+        "status": "success",
+        "themes": themes
+    })
+
+
+# =============================================================================
+# FORTUNE SCORE API (v1.0) - Real-time Saju+Astrology Unified Score
+# =============================================================================
+
+@app.route("/api/fortune/score", methods=["POST"])
+def fortune_score():
+    """
+    실시간 통합 운세 점수 계산.
+    사주 + 점성학 모든 데이터를 교차 분석하여 0-100 점수 산출.
+
+    Request body:
+    {
+        "saju": { full saju data },
+        "astro": { full astrology data }
+    }
+
+    Response:
+    {
+        "status": "success",
+        "score": {
+            "total": 87,
+            "saju": { "total": 45, "iljin": 12, ... },
+            "astro": { "total": 42, "transit": 15, ... },
+            "cross_bonus": 3,
+            "alerts": [...]
+        }
+    }
+    """
+    if not HAS_FORTUNE_SCORE:
+        return jsonify({"status": "error", "message": "Fortune score engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+
+        if not saju_data and not astro_data:
+            return jsonify({
+                "status": "error",
+                "message": "At least one of saju or astro data is required"
+            }), 400
+
+        start_time = time.time()
+        score_result = calculate_fortune_score(saju_data, astro_data)
+        elapsed = time.time() - start_time
+
+        logger.info(f"[FORTUNE] id={g.request_id} Score calculated: {score_result['total']}/100 in {elapsed:.3f}s")
+
+        return jsonify({
+            "status": "success",
+            "score": score_result,
+            "timestamp": datetime.utcnow().isoformat(),
+            "processing_time_ms": round(elapsed * 1000, 2)
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/fortune/score failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/fortune/score/breakdown", methods=["POST"])
+def fortune_score_breakdown():
+    """
+    상세 점수 내역과 함께 점수 계산.
+    각 항목별 가중치와 계산 로직을 포함.
+    """
+    if not HAS_FORTUNE_SCORE:
+        return jsonify({"status": "error", "message": "Fortune score engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        saju_data = data.get("saju", {})
+        astro_data = data.get("astro", {})
+
+        engine = get_fortune_score_engine()
+        breakdown = engine.calculate_score(saju_data, astro_data)
+
+        # Add detailed breakdown info
+        result = breakdown.to_dict()
+        result["weights"] = {
+            "saju_max": 50,
+            "astro_max": 50,
+            "cross_bonus_range": [-10, 10],
+            "components": {
+                "saju": {
+                    "iljin": {"max": 12, "desc": "일진 궁합"},
+                    "wolun": {"max": 10, "desc": "월운 흐름"},
+                    "yongsin": {"max": 10, "desc": "용신 활성"},
+                    "geokguk": {"max": 8, "desc": "격국 에너지"},
+                    "sibsin": {"max": 5, "desc": "십신 균형"},
+                    "hyeongchung": {"range": [-5, 5], "desc": "형충회합"},
+                },
+                "astro": {
+                    "transit": {"range": [-10, 15], "desc": "주요 트랜짓"},
+                    "moon": {"max": 10, "desc": "달 위상/사인"},
+                    "planetary_hour": {"max": 8, "desc": "행성시"},
+                    "voc": {"range": [-5, 0], "desc": "VOC 공허시간"},
+                    "retrograde": {"range": [-5, 0], "desc": "역행 영향"},
+                    "aspects": {"range": [-5, 10], "desc": "현재 aspects"},
+                    "progression": {"max": 7, "desc": "progressions"},
+                },
+            },
+        }
+
+        return jsonify({
+            "status": "success",
+            "breakdown": result,
+            "timestamp": datetime.utcnow().isoformat(),
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/fortune/score/breakdown failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/fortune/daily", methods=["POST"])
+def fortune_daily():
+    """
+    일일 운세 점수 (간단한 버전).
+    생년월일만으로 빠르게 점수 계산.
+    """
+    if not HAS_FORTUNE_SCORE:
+        return jsonify({"status": "error", "message": "Fortune score engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        birth_date = data.get("birthDate")  # YYYY-MM-DD
+        birth_time = data.get("birthTime")  # HH:MM (optional)
+
+        if not birth_date:
+            return jsonify({"status": "error", "message": "birthDate is required"}), 400
+
+        # Calculate saju data from birth info
+        saju_data = calculate_saju_data({
+            "birthDate": birth_date,
+            "birthTime": birth_time or "12:00",
+        })
+
+        # Simple astro data (minimal for daily fortune)
+        astro_data = {
+            "electional": {
+                "moonPhase": {"phase": "Waxing Gibbous"},  # Would be calculated in real impl
+                "planetaryHour": {"planet": "Sun"},
+                "voidOfCourse": {"isVoid": False},
+                "retrograde": [],
+            }
+        }
+
+        score_result = calculate_fortune_score(saju_data, astro_data)
+
+        # Add lucky items based on score
+        total_score = score_result["total"]
+        lucky_colors = ["Red", "Blue", "Green", "Yellow", "Purple", "Orange", "White", "Black"]
+        lucky_color = lucky_colors[total_score % len(lucky_colors)]
+        lucky_number = (total_score % 9) + 1
+
+        return jsonify({
+            "status": "success",
+            "fortune": {
+                "overall": total_score,
+                "love": min(100, max(0, total_score + (hash(birth_date + "love") % 20) - 10)),
+                "career": min(100, max(0, total_score + (hash(birth_date + "career") % 20) - 10)),
+                "wealth": min(100, max(0, total_score + (hash(birth_date + "wealth") % 20) - 10)),
+                "health": min(100, max(0, total_score + (hash(birth_date + "health") % 20) - 10)),
+                "luckyColor": lucky_color,
+                "luckyNumber": lucky_number,
+            },
+            "alerts": score_result.get("alerts", []),
+            "timestamp": datetime.utcnow().isoformat(),
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/fortune/daily failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # System capabilities
 @app.route("/capabilities", methods=["GET"])
 def get_capabilities():
@@ -1831,14 +2684,18 @@ def get_capabilities():
             "rlhf_learning": HAS_RLHF,
             "badge_system": HAS_BADGES,
             "agentic_rag": HAS_AGENTIC,
+            "jungian_counseling": HAS_COUNSELING,
+            "prediction_engine": HAS_PREDICTION,
+            "theme_cross_filter": HAS_THEME_FILTER,
+            "fortune_score": HAS_FORTUNE_SCORE,
             "hybrid_rag": True,
         },
-        "version": "3.0.0-agentic",
+        "version": "5.2.0-fortune-score",
     })
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     logger.info(f"Flask server starting on http://127.0.0.1:{port}")
-    logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}")
+    logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}, prediction={HAS_PREDICTION}, theme_filter={HAS_THEME_FILTER}, fortune_score={HAS_FORTUNE_SCORE}")
     app.run(host="0.0.0.0", port=port, debug=True)
