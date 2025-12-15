@@ -4,6 +4,8 @@ flask-cors>=4.0.0
 gunicorn>=21.0.0
 
 # --- AI/ML Core ---
+# CPU-only PyTorch (much smaller than full torch with CUDA)
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch>=2.0.0
 sentence-transformers>=2.2.0
 networkx>=3.0

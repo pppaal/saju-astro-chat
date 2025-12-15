@@ -2,14 +2,22 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
+# Disable torch CUDA checks (CPU-only)
+ENV TORCH_CUDA_ARCH_LIST=""
+ENV USE_CUDA=0
+
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Copy requirements first for caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Python deps with optimizations
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Create backend_ai folder structure to match import paths
 # (app.py uses "from backend_ai.app.xxx import yyy")
