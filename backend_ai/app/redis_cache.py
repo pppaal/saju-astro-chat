@@ -23,7 +23,7 @@ class RedisCache:
         self.enabled = False
         self.client = None
         self.memory_cache = {}  # Fallback
-        self.ttl = int(os.getenv("CACHE_TTL", "900"))  # 15 minutes default
+        self.ttl = int(os.getenv("CACHE_TTL", "86400"))  # 24 hours default (was 15 min)
 
         if REDIS_AVAILABLE:
             self._init_redis()

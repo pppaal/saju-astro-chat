@@ -6,10 +6,11 @@ import json
 import traceback
 from datetime import datetime
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.append(os.path.dirname(__file__))
 
-from saju_astro_rag import GraphRAG
+from saju_astro_rag import GraphRAG, get_graph_rag
 from rule_engine import RuleEngine
 from signal_extractor import extract_signals
 from signal_summary import summarize_signals
@@ -49,6 +50,14 @@ try:
 except ImportError:
     HAS_AGENTIC = False
     print("[fusion_logic] Agentic RAG not available")
+
+# Theme-based Cross-Reference Filter (v5.1)
+try:
+    from theme_cross_filter import get_theme_filter, get_theme_prompt_context
+    HAS_THEME_FILTER = True
+except ImportError:
+    HAS_THEME_FILTER = False
+    print("[fusion_logic] Theme cross filter not available")
 
 # Simple in-memory stats for average length per theme
 report_memory: dict[str, dict] = {}
@@ -327,18 +336,98 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
 
 # ===============================================================
+#  PARALLEL PREPROCESSING HELPERS (v5.2 - Performance Optimization)
+# ===============================================================
+def _parallel_rag_query(rag, facts_data, domain):
+    """Thread-safe RAG query."""
+    try:
+        return rag.query(facts_data, domain_priority=domain)
+    except Exception as e:
+        print(f"[Parallel] RAG {domain} error: {e}")
+        return {}
+
+def _parallel_jung_quotes(theme, locale):
+    """Thread-safe Jung quotes retrieval."""
+    try:
+        corpus_rag = get_corpus_rag()
+        theme_queries = {
+            "love": "anima animus relationship projection love",
+            "career": "persona individuation achievement work",
+            "life_path": "individuation self wholeness becoming",
+            "health": "shadow integration body psyche",
+            "family": "mother father archetype complex family",
+            "spiritual": "self collective unconscious transcendence",
+            "daily": "consciousness awareness present moment",
+            "monthly": "transformation change growth cycle",
+            "wealth": "shadow projection value meaning",
+        }
+        search_query = theme_queries.get(theme, "individuation self shadow integration")
+        _, formatted_quotes = corpus_rag.get_quotes_for_interpretation(
+            query=search_query, locale=locale, top_k=2
+        )
+        return formatted_quotes or ""
+    except Exception as e:
+        print(f"[Parallel] Jung quotes error: {e}")
+        return ""
+
+def _parallel_user_memory(birth_data, theme, locale):
+    """Thread-safe user memory retrieval."""
+    if not HAS_USER_MEMORY or not birth_data:
+        return "", None
+    try:
+        user_id = generate_user_id(birth_data)
+        memory = get_user_memory(user_id)
+        context = memory.build_context_for_llm(theme, locale, service_type="fusion")
+        return context or "", user_id
+    except Exception as e:
+        print(f"[Parallel] User memory error: {e}")
+        return "", None
+
+def _parallel_rlhf_fewshot(theme, locale):
+    """Thread-safe RLHF few-shot retrieval."""
+    if not HAS_RLHF:
+        return "", {}
+    try:
+        fl = get_feedback_learning()
+        fewshot = fl.format_fewshot_prompt(theme, locale, top_k=2)
+        weights = fl.get_rule_weights(theme)
+        return fewshot or "", weights or {}
+    except Exception as e:
+        print(f"[Parallel] RLHF error: {e}")
+        return "", {}
+
+def _parallel_persona_semantic(user_prompt):
+    """Thread-safe persona semantic search."""
+    if not HAS_PERSONA_EMBED or not user_prompt:
+        return ""
+    try:
+        persona_rag = get_persona_embed_rag()
+        semantic_context = persona_rag.get_persona_context(user_prompt, top_k=2)
+        parts = []
+        if semantic_context.get("jung_insights"):
+            parts.append("[Jung 분석가]\n" + "\n".join(semantic_context["jung_insights"][:2]))
+        if semantic_context.get("stoic_insights"):
+            parts.append("[Stoic 전략가]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
+        return "\n\n".join(parts) if parts else ""
+    except Exception as e:
+        print(f"[Parallel] Persona semantic error: {e}")
+        return ""
+
+
+# ===============================================================
 #  MAIN INTERPRETER (Fusion Controller)
 # ===============================================================
 @track_performance
 def interpret_with_ai(facts: dict):
     """
     saju + astro + graph + rules + LLM
+    Optimized with parallel preprocessing (v5.2)
     """
     load_dotenv()
     try:
-        api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("LLM API key is missing.")
+            raise ValueError("OPENAI_API_KEY is missing.")
 
         locale = facts.get("locale", "en")
         user_prompt = facts.get("prompt") or ""
@@ -360,12 +449,41 @@ def interpret_with_ai(facts: dict):
             return cached
 
         base_dir = os.path.dirname(os.path.dirname(__file__))  # .../backend_ai
-        data_base = os.path.join(base_dir, "data")
-        rag = GraphRAG(data_base)
+        rag = get_graph_rag()  # 🚀 Use singleton instead of creating new instance
+
+        # 🚀 PARALLEL PREPROCESSING - Run independent tasks concurrently
+        birth_data = facts.get("saju", {}).get("facts", {})
+        parallel_results = {}
+
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            futures = {
+                executor.submit(_parallel_rag_query, rag, facts.get("saju", {}), "saju"): "rag_saju",
+                executor.submit(_parallel_rag_query, rag, facts.get("astro", {}), "astro"): "rag_astro",
+                executor.submit(_parallel_jung_quotes, theme, locale): "jung_quotes",
+                executor.submit(_parallel_user_memory, birth_data, theme, locale): "user_memory",
+                executor.submit(_parallel_rlhf_fewshot, theme, locale): "rlhf",
+                executor.submit(_parallel_persona_semantic, user_prompt): "persona_semantic",
+            }
+
+            for future in as_completed(futures):
+                key = futures[future]
+                try:
+                    parallel_results[key] = future.result()
+                except Exception as e:
+                    print(f"[Parallel] {key} failed: {e}")
+                    parallel_results[key] = None
+
+        # Unpack parallel results
         linked = {
-            "saju": rag.query(facts.get("saju", {}), domain_priority="saju"),
-            "astro": rag.query(facts.get("astro", {}), domain_priority="astro"),
+            "saju": parallel_results.get("rag_saju") or {},
+            "astro": parallel_results.get("rag_astro") or {},
         }
+        jung_quotes_formatted = parallel_results.get("jung_quotes") or ""
+        user_history_context, user_id = parallel_results.get("user_memory") or ("", None)
+        rlhf_fewshot_context, rlhf_rule_weights = parallel_results.get("rlhf") or ("", {})
+        persona_semantic_text = parallel_results.get("persona_semantic") or ""
+
+        print(f"[Parallel] Completed 6 tasks concurrently")
 
         # rules under backend_ai/data/graph/rules/fusion
         rules_base = os.path.join(base_dir, "data", "graph", "rules")
@@ -404,73 +522,12 @@ def interpret_with_ai(facts: dict):
             f"[Signal highlights]\n{signal_summary}\n\n" if signal_summary else ""
         )
 
-        # 📚 Get user consultation history for personalization (MOAT)
-        user_history_context = ""
-        user_id = None
-        birth_data = facts.get("saju", {}).get("facts", {})
-        if HAS_USER_MEMORY and birth_data:
-            try:
-                user_id = generate_user_id(birth_data)
-                memory = get_user_memory(user_id)
-                user_history_context = memory.build_context_for_llm(theme, locale, service_type="fusion")
-                if user_history_context:
-                    print(f"[UserMemory] Loaded history for user {user_id[:8]}...")
-            except Exception as e:
-                print(f"[UserMemory] Error loading history: {e}")
+        # 📚 User memory & Jung quotes - already fetched in parallel above
+        jung_quotes_context = f"\n\n[Authentic Jung Quotes - Use these for interpretation]\n{jung_quotes_formatted}" if jung_quotes_formatted else ""
 
-        # 🧠 Get authentic Jung quotes based on theme and signals
-        jung_quotes_context = ""
-        try:
-            corpus_rag = get_corpus_rag()
-
-            # Build search query from theme and key signals
-            theme_queries = {
-                "love": "anima animus relationship projection love",
-                "career": "persona individuation achievement work",
-                "life_path": "individuation self wholeness becoming",
-                "health": "shadow integration body psyche",
-                "family": "mother father archetype complex family",
-                "spiritual": "self collective unconscious transcendence",
-                "daily": "consciousness awareness present moment",
-                "monthly": "transformation change growth cycle",
-                "wealth": "shadow projection value meaning",
-            }
-            search_query = theme_queries.get(theme, "individuation self shadow integration")
-
-            # Search for relevant Jung quotes
-            jung_quotes, formatted_quotes = corpus_rag.get_quotes_for_interpretation(
-                query=search_query,
-                locale=locale,
-                top_k=2
-            )
-
-            if formatted_quotes:
-                jung_quotes_context = f"\n\n[Authentic Jung Quotes - Use these for interpretation]\n{formatted_quotes}"
-        except Exception as e:
-            print(f"[interpret_with_ai] Jung quotes retrieval error: {e}")
-
-        # ===============================================================
-        # 🧠 RLHF: Dynamic Few-shot Examples from High-Rated Consultations
-        # ===============================================================
-        rlhf_fewshot_context = ""
-        rlhf_rule_weights = {}
-        if HAS_RLHF:
-            try:
-                fl = get_feedback_learning()
-
-                # Get high-rated examples for this theme
-                fewshot_prompt = fl.format_fewshot_prompt(theme, locale, top_k=2)
-                if fewshot_prompt:
-                    rlhf_fewshot_context = f"\n\n{fewshot_prompt}"
-                    print(f"[RLHF] Injected Few-shot examples for {theme}/{locale}")
-
-                # Get adjusted rule weights
-                rlhf_rule_weights = fl.get_rule_weights(theme)
-                if rlhf_rule_weights and len(rlhf_rule_weights) > 1:
-                    print(f"[RLHF] Using {len(rlhf_rule_weights)} adjusted rule weights")
-
-            except Exception as e:
-                print(f"[RLHF] Error getting Few-shot/weights: {e}")
+        # 🧠 RLHF - already fetched in parallel above
+        if rlhf_fewshot_context:
+            rlhf_fewshot_context = f"\n\n{rlhf_fewshot_context}"
 
         # ===============================================================
         # 🚀 AGENTIC RAG: Deep Graph Traversal & Entity Extraction
@@ -525,6 +582,30 @@ def interpret_with_ai(facts: dict):
             except Exception as e:
                 print(f"[Agentic] Error: {e}")
 
+        # ===============================================================
+        # 🎯 THEME CROSS-REFERENCE FILTER: 테마별 사주+점성 교차점
+        # ===============================================================
+        theme_cross_context = ""
+        theme_cross_summary = {}
+        if HAS_THEME_FILTER:
+            try:
+                theme_filter = get_theme_filter()
+                theme_cross_context = get_theme_prompt_context(
+                    theme,
+                    facts.get("saju", {}),
+                    facts.get("astro", {})
+                )
+                theme_cross_summary = theme_filter.get_theme_summary(
+                    theme,
+                    facts.get("saju", {}),
+                    facts.get("astro", {})
+                )
+                if theme_cross_context:
+                    theme_cross_context = f"\n\n[🎯 테마 교차점 분석 - {theme.upper()}]\n{theme_cross_context}"
+                    print(f"[ThemeFilter] Generated cross-reference for {theme}: score={theme_cross_summary.get('relevance_score', 0)}")
+            except Exception as e:
+                print(f"[ThemeFilter] Error: {e}")
+
         # 🎭 Format persona insights (Jung/Stoic)
         persona_context = ""
 
@@ -533,23 +614,9 @@ def interpret_with_ai(facts: dict):
             persona_texts = persona_eval["matched_rules"][:3]
             persona_context = f"\n\n[Persona Insights - Rule Based]\n" + "\n---\n".join(persona_texts)
 
-        # Method 2: Semantic search (from PersonaEmbedRAG) - when user asks a question
-        if HAS_PERSONA_EMBED and user_prompt:
-            try:
-                persona_rag = get_persona_embed_rag()
-                semantic_context = persona_rag.get_persona_context(user_prompt, top_k=2)
-
-                semantic_parts = []
-                if semantic_context.get("jung_insights"):
-                    semantic_parts.append("[Jung 분석가]\n" + "\n".join(semantic_context["jung_insights"][:2]))
-                if semantic_context.get("stoic_insights"):
-                    semantic_parts.append("[Stoic 전략가]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
-
-                if semantic_parts:
-                    persona_context += f"\n\n[Persona Insights - Semantic Match]\n" + "\n\n".join(semantic_parts)
-                    print(f"[Persona Semantic] Found {semantic_context.get('total_matched', 0)} insights")
-            except Exception as e:
-                print(f"[Persona Semantic] Error: {e}")
+        # Method 2: Semantic search - already fetched in parallel above
+        if persona_semantic_text:
+            persona_context += f"\n\n[Persona Insights - Semantic Match]\n{persona_semantic_text}"
 
         base_context = (
             f"[Graph/Rule matches]\n"
@@ -561,6 +628,7 @@ def interpret_with_ai(facts: dict):
             f"{signal_highlights}"
             f"[Fusion inputs]\n"
             f"[SAJU] {saju_text}\n[ASTRO] {astro_text}\n[TAROT] {tarot_text}"
+            f"{theme_cross_context}"  # 🎯 테마별 교차점 분석 (v5.1)
             f"{jung_quotes_context}"
             f"{persona_context}"
             f"{user_history_context}"
@@ -630,7 +698,15 @@ def interpret_with_ai(facts: dict):
                 "agentic_entities_count": agentic_stats.get("entities_count", 0),
                 "agentic_paths_count": agentic_stats.get("paths_count", 0),
                 "agentic_context_injected": bool(agentic_context),
+                # Theme Cross-Reference Filter stats (v5.1)
+                "theme_filter_enabled": HAS_THEME_FILTER,
+                "theme_cross_context_injected": bool(theme_cross_context),
+                "theme_relevance_score": theme_cross_summary.get("relevance_score", 0),
+                "theme_intersections_count": theme_cross_summary.get("summary", {}).get("cross_count", 0),
+                "theme_important_dates_count": theme_cross_summary.get("summary", {}).get("dates_count", 0),
             },
+            # 🎯 Theme cross-reference summary for frontend
+            "theme_cross": theme_cross_summary if theme_cross_summary else None,
         }
 
         # 💾 Auto-save to user memory (MOAT - builds personalization data + RLHF learning)

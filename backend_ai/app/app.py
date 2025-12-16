@@ -192,6 +192,55 @@ try:
 except Exception as e:  # pragma: no cover
     logger.warning(f"Sentry init skipped: {e}")
 
+
+# ===============================================================
+# 🚀 MODEL WARMUP - Preload models on startup for faster first request
+# ===============================================================
+def warmup_models():
+    """Preload all singleton models and caches on startup."""
+    logger.info("🔥 Starting model warmup...")
+    start = time.time()
+
+    try:
+        # 1. SentenceTransformer model
+        from backend_ai.app.saju_astro_rag import get_model, get_graph_rag
+        model = get_model()
+        logger.info(f"  ✅ SentenceTransformer loaded: {model.get_sentence_embedding_dimension()}d")
+
+        # 2. GraphRAG with embeddings
+        rag = get_graph_rag()
+        logger.info(f"  ✅ GraphRAG loaded: {len(rag.graph.nodes())} nodes")
+
+        # 3. Corpus RAG (Jung quotes)
+        from backend_ai.app.corpus_rag import get_corpus_rag
+        corpus = get_corpus_rag()
+        logger.info(f"  ✅ CorpusRAG loaded")
+
+        # 4. Persona embeddings (if available)
+        if HAS_PERSONA_EMBED:
+            persona = get_persona_embed_rag()
+            logger.info(f"  ✅ PersonaEmbedRAG loaded")
+
+        # 5. Tarot RAG (if available)
+        if HAS_TAROT:
+            tarot = get_tarot_hybrid_rag()
+            logger.info(f"  ✅ TarotHybridRAG loaded")
+
+        # 6. Redis cache connection
+        cache = get_cache()
+        logger.info(f"  ✅ Redis cache: {'connected' if cache.enabled else 'memory fallback'}")
+
+        elapsed = time.time() - start
+        logger.info(f"🔥 Model warmup completed in {elapsed:.2f}s")
+
+    except Exception as e:
+        logger.warning(f"⚠️ Warmup error (non-fatal): {e}")
+
+
+# Auto-warmup on import if WARMUP_ON_START is set (for Gunicorn/production)
+if os.getenv("WARMUP_ON_START", "").lower() in ("1", "true", "yes"):
+    warmup_models()
+
 # Simple token gate + rate limiting
 ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
 RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
@@ -2702,4 +2751,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     logger.info(f"Flask server starting on http://127.0.0.1:{port}")
     logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}, prediction={HAS_PREDICTION}, theme_filter={HAS_THEME_FILTER}, fortune_score={HAS_FORTUNE_SCORE}")
+
+    # 🚀 Warmup models before accepting requests
+    warmup_models()
+
     app.run(host="0.0.0.0", port=port, debug=True)

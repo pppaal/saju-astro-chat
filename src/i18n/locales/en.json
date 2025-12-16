@@ -53,9 +53,10 @@
     "heroTitle": "Know yourself. Shape tomorrow.",
     "heroSub": "Where destiny, psychology, and spirituality meet",
     "statsToday": "Today",
-    "statsTotal": "Total",
+    "statsTotal": "Total Visitors",
+    "statsMembers": "Members",
     "statsSince": "(Since Oct 2025)",
-    "statsFootnote": "Visitors update in real time",
+    "statsFootnote": "Live stats",
     "servicesEyebrow": "DestinyPal Services",
     "servicesTitle": "Your Destiny, Decoded.",
     "servicesDesc": "AI interprets the language of fate",
@@ -78,7 +79,8 @@
     "sajuSectionSubtitle": "Check your five element energy distribution and find balance",
     "tarotSectionTitle": "Today's Tarot Reading",
     "tarotSectionSubtitle": "Listen to the message the cards have for you",
-    "tarotDeckLabel": "78 tarot cards",
+    "tarotDeckLabel": "Click to draw cards",
+    "tarotDeckReset": "Draw again",
     "tarotPast": "Past",
     "tarotPresent": "Present",
     "tarotFuture": "Future",
@@ -86,6 +88,7 @@
     "ctaTitle": "Make Better Decisions",
     "ctaSubtitle": "AI reads your destiny and guides you to the best choice",
     "ctaButton": "Start Now",
+    "scrollToTop": "Back to Top",
     "aiChatDemo": "AI Chat Demo",
     "ascendant": "Ascendant",
     "sun": "Sun",
@@ -142,7 +145,64 @@
     "refunds": "Refund Policy",
     "ourService": "Services",
     "start": "Start",
-    "about": "About"
+    "about": "About",
+    "pricing": "Pricing",
+    "comingSoon": "Coming Soon",
+    "loggedIn": "Logged in"
+  },
+  "calendar": {
+    "title": "Destiny Calendar",
+    "subtitle": "Cross-analyzing Saju and Astrology to reveal your important dates",
+    "bijeon": "Day of Bijeon (Companion)",
+    "bijeonDesc": "A day when your personal strength is amplified. Great for leadership and taking initiative.",
+    "inseong": "Day of Inseong (Support)",
+    "inseongDesc": "A favorable day for learning and growth. Ideal for gaining new knowledge or seeking advice.",
+    "jaeseong": "Day of Jaeseong (Wealth)",
+    "jaeseongDesc": "A day when wealth luck rises. Favorable for financial transactions and investment decisions.",
+    "siksang": "Day of Siksang (Expression)",
+    "siksangDesc": "A day when creativity and expression shine. Great for romance and artistic activities.",
+    "gwansal": "Day of Gwansal (Authority)",
+    "gwansalDesc": "A day when external pressure may arise. Make important decisions carefully.",
+    "samhap": "Day of Samhap (Triple Harmony)",
+    "samhapDesc": "A day when three energies harmoniously combine. Perfect for starting major endeavors.",
+    "yukhap": "Day of Yukhap (Union)",
+    "yukhapDesc": "A day strong in harmony and connection energy. Great for meetings and collaborations.",
+    "chung": "Day of Chung (Clash)",
+    "chungDesc": "A day when energy clashes may occur. Plan travel or movement carefully.",
+    "bestDay": "Best Day",
+    "bestDayDesc": "A special day where both Saju and Astrology indicate positive energies converging.",
+    "goodDay": "Good Day",
+    "goodDayDesc": "A day with generally positive energy flowing.",
+    "cautionDay": "Caution Day",
+    "cautionDayDesc": "A day with energy to be cautious of. Consider postponing important matters.",
+    "categories": {
+      "wealth": "Wealth",
+      "career": "Career",
+      "love": "Love",
+      "health": "Health",
+      "travel": "Travel",
+      "study": "Study",
+      "general": "General"
+    },
+    "factors": {
+      "sajuStem": "The daily stem has a {{relation}} relationship with your day master",
+      "sajuBranch": "The daily branch forms a {{relation}}",
+      "astroTransit": "Transit Sun is in {{sign}}, strengthening {{element}} energy",
+      "crossVerified": "Saju and Astrology analyses align"
+    },
+    "recommendations": {
+      "business": "Suitable for business contracts or important meetings",
+      "study": "Good for starting new studies or taking exams",
+      "finance": "Favorable for investment or financial decisions",
+      "love": "A good day for confessions or dates",
+      "rest": "Take sufficient rest"
+    },
+    "warnings": {
+      "conflict": "Conflicts may arise in relationships",
+      "finance": "Avoid major financial transactions",
+      "travel": "Make long-distance travel decisions carefully",
+      "health": "Pay attention to health management"
+    }
   },
   "services": {
     "title": "Services",
@@ -150,6 +210,10 @@
     "destinyMap": {
       "label": "Destiny Map",
       "desc": "AI Fortune Analysis"
+    },
+    "calendar": {
+      "label": "Destiny Calendar",
+      "desc": "Important Dates"
     },
     "astrology": {
       "label": "Astrology",
@@ -182,7 +246,146 @@
     "personality": {
       "label": "Personality",
       "desc": "Personality Analysis"
+    },
+    "destinyMatch": {
+      "label": "Destiny Match",
+      "desc": "AI Soulmate Matching"
+    },
+    "pastLife": {
+      "label": "Past Life",
+      "desc": "Discover your past lives"
+    },
+    "community": {
+      "label": "Community",
+      "desc": "Connect with others"
     }
+  },
+  "numerology": {
+    "title": "Complete Numerology Reading",
+    "subtitle": "Professional-grade numerology analysis with 20+ calculations",
+    "formTitle": "Complete Numerology Reading",
+    "formSubtitle": "Enter your details for a comprehensive analysis",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "English or Korean name",
+    "nameHint": "Korean names are fully supported",
+    "birthdateLabel": "Birthdate",
+    "birthtimeLabel": "Time of Birth",
+    "birthtimeHint": "If exact time is unknown, approximate is OK.",
+    "autoTimezone": "Timezone",
+    "birthCityLabel": "Birth city",
+    "birthCityPlaceholder": "e.g., Seoul, KR",
+    "currentCityLabel": "Current city",
+    "currentCityPlaceholder": "e.g., Tokyo, JP",
+    "currentCityHint": "Used for personalized lucky numbers",
+    "luckyDrawLabel": "Lucky Number Draw",
+    "countLabel": "Count",
+    "minPlaceholder": "Min",
+    "maxPlaceholder": "Max",
+    "advancedOptions": "Advanced Options",
+    "seedLabel": "Seed (reproducibility)",
+    "seedOptionNameBirth": "Name + Birthdate",
+    "seedOptionNameBirthCityTime": "Name + Birth + Cities + Time",
+    "seedOptionRandom": "Pure random",
+    "seedHint": "Determines how your lucky numbers are generated",
+    "moreOptions": "More Options",
+    "moreOptionsHint": "Time, location for more accuracy",
+    "buttonCalculate": "Generate Complete Reading",
+    "dropdownLoading": "Searching...",
+    "reset": "New Reading",
+    "resultsTitle": "Complete Numerology Profile",
+    "errors": {
+      "birthdate": "Please enter your birth date.",
+      "name": "Please enter your name for an accurate reading.",
+      "range": "Check the range: minimum must be less than maximum.",
+      "countExceedsRange": "Count cannot exceed the number range size.",
+      "generate": "An error occurred while generating numbers."
+    },
+    "sections": {
+      "core": "Core Numbers",
+      "advanced": "Advanced",
+      "name": "Name Analysis",
+      "karmic": "Karmic",
+      "cycles": "Life Cycles",
+      "timing": "Timing",
+      "lucky": "Lucky Numbers",
+      "more": "More"
+    },
+    "sectionDesc": {
+      "core": "The foundation of your numerological profile",
+      "advanced": "Deeper insights into your potential and growth",
+      "name": "What your name reveals about you",
+      "karmic": "Past life influences and lessons to learn",
+      "cycles": "Major life phases and challenges",
+      "timing": "Your personal and universal cycles right now",
+      "lucky": "Numbers aligned with your energy"
+    },
+    "coreNumbers": {
+      "lifePath": "Life Path",
+      "expression": "Expression",
+      "soulUrge": "Soul Urge",
+      "personality": "Personality",
+      "birthday": "Birthday"
+    },
+    "advancedNumbers": {
+      "maturity": "Maturity Number",
+      "maturitySubtitle": "Who you become",
+      "balance": "Balance Number",
+      "balanceSubtitle": "Crisis response",
+      "rationalThought": "Rational Thought",
+      "rationalThoughtSubtitle": "Logic style"
+    },
+    "nameAnalysis": {
+      "title": "Name Analysis",
+      "cornerstone": "Cornerstone",
+      "cornerstoneDesc": "How you start",
+      "capstone": "Capstone",
+      "capstoneDesc": "How you finish",
+      "firstVowel": "First Vowel",
+      "firstVowelDesc": "First reaction",
+      "hiddenPassion": "Hidden Passion",
+      "hiddenPassionDesc": "Inner drive",
+      "subconscious": "Subconscious Self",
+      "nameEnergyBreakdown": "Name Energy Breakdown"
+    },
+    "karmicSection": {
+      "debtTitle": "Karmic Debt Numbers",
+      "noDebt": "No Karmic Debt",
+      "noDebtDesc": "Your chart shows no karmic debt numbers. You start this life without specific past-life burdens to resolve.",
+      "lessonsTitle": "Karmic Lessons (Missing Numbers)",
+      "lessonsIntro": "Numbers missing from your name indicate areas for growth:"
+    },
+    "cyclesSection": {
+      "pinnaclesTitle": "Pinnacles (Life Themes)",
+      "challengesTitle": "Challenges (Obstacles to Overcome)",
+      "challenge": "Challenge"
+    },
+    "timingSection": {
+      "personalCycles": "Personal Cycles",
+      "universalCycles": "Universal Cycles (Everyone)",
+      "personalYear": "Personal Year",
+      "personalMonth": "Personal Month",
+      "personalDay": "Personal Day",
+      "universalYear": "Universal Year",
+      "universalMonth": "Universal Month",
+      "universalDay": "Universal Day"
+    },
+    "luckySection": {
+      "todayTitle": "Today's Lucky Numbers",
+      "todayNote": "These change daily based on your birth data",
+      "permanentTitle": "Permanent Lucky Numbers",
+      "permanentNote": "Calculated from your name, birthdate, and location - they never change.",
+      "adjustHint": "Try adjusting the options and calculate again."
+    },
+    "inputSummary": {
+      "title": "Input Summary",
+      "name": "Name",
+      "korean": "(Korean)",
+      "birth": "Birth",
+      "current": "Current"
+    },
+    "shareTitle": "My Numerology Profile",
+    "shareText": "Check out my numerology reading on DestinyPal!",
+    "shareLabel": "Share"
   },
   "compatibilityPage": {
     "title": "Relationship Compatibility",
@@ -192,7 +395,7 @@
     "numberOfPeople": "Number of People (2-4)",
     "person": "Person",
     "name": "Name",
-    "namePlaceholder": "Name",
+    "namePlaceholder": "Enter your name",
     "dateOfBirth": "Date of Birth",
     "timeOfBirth": "Time of Birth",
     "cityOfBirth": "City of Birth",
@@ -212,18 +415,54 @@
     "errorSelectCity": "select a city from suggestions.",
     "errorTimezoneRequired": "timezone is required.",
     "errorRelationRequired": "relation to Person 1 is required.",
-    "errorOtherNote": "add a note for relation 'other'."
+    "errorOtherNote": "add a note for relation 'other'.",
+    "backToForm": "Back",
+    "resultTitle": "Compatibility Analysis",
+    "overallCompatibility": "Overall Compatibility",
+    "score": "Score",
+    "shareTitle": "Our Compatibility Result",
+    "timezoneAutoSet": "Automatically set based on city"
+  },
+  "iching": {
+    "title": "Wisdom of the I Ching",
+    "subtitle": "Receive ancient wisdom through the oracle of changes",
+    "prompt": "Calm your mind and press the button to receive guidance.",
+    "start": "Begin Reading",
+    "cast": "Cast Hexagram",
+    "casting": "Casting the lines",
+    "castAgain": "Cast Again",
+    "back": "Back",
+    "enterBirthInfo": "Enter Your Birth Information",
+    "question": "Your Question (Optional)",
+    "questionPlaceholder": "What guidance do you seek?",
+    "birthDate": "Birth Date",
+    "birthTime": "Birth Time",
+    "birthCity": "Birth City",
+    "cityPlaceholder": "e.g., Seoul, KR",
+    "timezone": "Time Zone",
+    "yourHexagram": "Your Hexagram",
+    "today": "Today's Hexagram",
+    "judgment": "Judgment",
+    "image": "Image",
+    "changingLines": "Changing Lines",
+    "resulting": "Resulting Hexagram",
+    "save": "Save Reading",
+    "saved": "Reading Saved",
+    "saveError": "Failed to save reading",
+    "loginToSave": "Please log in to save readings"
   },
   "tarot": {
     "home": {
       "title": "Mystical Tarot Reading",
       "subtitle": "Gaze into the crystal ball and let the cards reveal your destiny",
       "tapCrystal": "Tap the crystal ball to begin your journey",
-      "chooseTheme": "Choose your reading theme"
+      "chooseTheme": "Choose your reading theme",
+      "tip": "Clear your mind and focus on your question before selecting cards"
     },
     "spread": {
       "chooseSpread": "Choose a spread",
-      "backToHome": "Back to Tarot Home"
+      "backToHome": "Back to Tarot Home",
+      "cards": "cards"
     },
     "reading": {
       "preparing": "Preparing cards...",
@@ -231,12 +470,130 @@
       "backToHome": "Back to Home",
       "choose": "Choose",
       "cards": "cards",
-      "revealing": "Selection complete! Revealing your fate..."
+      "revealing": "Selection complete! Revealing your fate...",
+      "interpreting": "The cards are speaking...",
+      "interpretingDesc": "AI is analyzing your cards...",
+      "pleaseWait": "This may take 20-30 seconds",
+      "redirecting": "Redirecting to Tarot..."
     },
     "results": {
+      "title": "Results",
       "subtitle": "The cards speak",
       "reversed": "Reversed",
-      "askAnother": "Ask another question"
+      "askAnother": "New Reading",
+      "startChat": "Start AI Consultation",
+      "clickToExpand": "▼ Click for more insights",
+      "clickToCollapse": "▲ Click to collapse",
+      "clickToReveal": "Click to reveal",
+      "detailedReadings": "Detailed Readings",
+      "card": "Card",
+      "defaultMessage": "The cards have revealed their wisdom to you.",
+      "defaultGuidance": "Trust your intuition as you reflect on these cards.",
+      "defaultAffirmation": "I am open to the wisdom of the universe."
+    },
+    "premium": {
+      "title": "Premium AI Tarot Consultation",
+      "desc": "Get personalized insights from our AI tarot master. Ask follow-up questions, explore deeper meanings, and receive guidance tailored just for you."
+    },
+    "insights": {
+      "aiInterpretation": "Deep Insight",
+      "spiritAnimal": "Spirit Animal",
+      "chakra": "Chakra Connection",
+      "shadowWork": "Shadow Work",
+      "combinations": "Card Combinations",
+      "guidance": "Guidance",
+      "affirmation": "Affirmation",
+      "followup": "Questions for Reflection",
+      "deepInsight": "Deep Insight",
+      "element": "Element"
+    },
+    "elements": {
+      "fire": "Fire",
+      "water": "Water",
+      "air": "Air",
+      "earth": "Earth"
+    },
+    "chat": {
+      "title": "Tarot Consultation",
+      "backToResults": "Back to Cards",
+      "placeholder": "Ask more about your cards...",
+      "send": "Send",
+      "thinking": "Interpreting the card's message...",
+      "empty": "Ask anything about your cards. E.g., 'What does this combination mean for my love life?'",
+      "error": "An error occurred. Please try again.",
+      "suggestedQuestions": "Suggested Questions",
+      "drawMore": "Draw More Cards",
+      "differentView": "Different View"
+    },
+    "deckSelect": {
+      "title": "Choose Your Deck Style",
+      "subtitle": "Select the aesthetic that resonates with your spirit"
+    },
+    "colorSelect": {
+      "start": "Begin Reading"
+    },
+    "card": {
+      "reversed": "Reversed",
+      "clickMore": "▼ Click for more",
+      "clickCollapse": "▲ Click to collapse"
+    },
+    "categories": {
+      "general-insight": "General Insight",
+      "love-relationships": "Love & Relationships",
+      "career-work": "Career & Work",
+      "money-finance": "Money & Finance",
+      "well-being-health": "Well-being & Health",
+      "spiritual-growth": "Spiritual Growth",
+      "decisions-crossroads": "Decisions & Crossroads",
+      "self-discovery": "Self-Discovery",
+      "daily-reading": "Daily Reading"
+    },
+    "spreads": {
+      "quick-reading": "Quick Reading",
+      "past-present-future": "Past, Present, Future",
+      "celtic-cross": "The Celtic Cross",
+      "relationship-check-in": "Relationship Check-in",
+      "relationship-cross": "Relationship Cross",
+      "finding-a-partner": "Finding a Partner",
+      "quick-guidance": "Quick Guidance",
+      "career-path": "Career Path",
+      "work-life-balance": "Work-Life Balance",
+      "financial-snapshot": "Financial Snapshot",
+      "abundance-path": "Abundance Path",
+      "career-money": "Career & Money",
+      "mind-body-scan": "Mind, Body, Spirit",
+      "healing-path": "Healing Path",
+      "energy-balance": "Energy Balance",
+      "inner-voice": "Inner Voice",
+      "shadow-work": "Shadow Work",
+      "path-of-growth": "Path of Growth",
+      "two-paths": "Two Paths",
+      "yes-no-why": "Yes/No + Why",
+      "timing-window": "Timing Window",
+      "identity-core": "Identity Core",
+      "shadow-integration": "Shadow Integration",
+      "day-card": "Day Card",
+      "three-times": "Three Times"
+    },
+    "positions": {
+      "core-insight": "Core Insight",
+      "the-past": "The Past",
+      "the-present": "The Present",
+      "the-future": "The Future",
+      "the-challenge": "The Challenge",
+      "above-conscious": "Above (Conscious)",
+      "below-subconscious": "Below (Subconscious)",
+      "advice": "Advice",
+      "external-influences": "External Influences",
+      "hopes-and-fears": "Hopes and Fears",
+      "the-outcome": "The Outcome",
+      "your-energy": "Your Energy",
+      "partners-energy": "Partner's Energy",
+      "the-connection": "The Connection",
+      "what-you-seek": "What You Seek",
+      "what-blocks-you": "What Blocks You",
+      "how-to-attract": "How to Attract",
+      "potential-partner": "Potential Partner"
     }
   },
   "dream": {
@@ -276,6 +633,7 @@
     "heroTitle3": "Heal with Spirituality.",
     "heroSub": "Fate speaks. AI listens. You decide.",
     "heroSubtitle": "Fate speaks. AI listens. You decide.",
+    "tagline": "Understand your patterns. Change your outcomes.",
     "tryDestinyMap": "Start Destiny Map",
     "seeFeatures": "See Features",
     "visualTitle": "Your destiny navigation, in a way the world loves",
@@ -472,7 +830,7 @@
       "step2": "Analyzing Astrology Chart...",
       "step3": "Generating AI Interpretation...",
       "step4": "Finalizing Report...",
-      "dataNodes": "Analysis based on 71,000+ data nodes",
+      "dataNodes": "Where Eastern and Western wisdom unite",
       "errorMissing": "Required fields are missing. (birthDate, birthTime, city, latitude, longitude)",
       "errorNoResult": "Failed to load results.",
       "analysisDate": "Analysis Date",
@@ -550,17 +908,23 @@
   },
   "personality": {
     "title": "Nova Persona",
-    "heroTitle": "Discover Your True Aura",
+    "heroTitle": "Discover Your True Persona",
     "heroSubtitle": "A next-generation personality test that goes beyond the basics",
     "startButton": "Start the Free Discovery Test",
     "loading": "Loading your persona...",
+    "analyzingAura": "Analyzing your cosmic persona...",
     "noResults": "No Results Yet",
     "noResultsDesc": "Complete the personality quiz to discover your Nova Persona",
     "startQuiz": "Start Quiz",
-    "auraDiscovery": "Aura Discovery",
+    "auraDiscovery": "Persona Discovery",
     "answerHonestly": "Answer honestly to reveal your inner landscape.",
     "progress": "Progress",
-    "calculateMyAura": "Calculate My Aura",
+    "page": "Page",
+    "pageOf": "Page {{current}} of {{total}}",
+    "questionsRange": "Questions {{start}}-{{end}}",
+    "previous": "Previous",
+    "next": "Next",
+    "calculateMyAura": "Calculate My Persona",
     "typeCode": "Type Code",
     "consistency": "Consistency",
     "consistencyLabel": {
@@ -596,6 +960,11 @@
     "download": "Download JSON",
     "share": "Share Result",
     "retake": "Retake Quiz",
+    "copiedToClipboard": "Copied to clipboard!",
+    "save": "Save Result",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "loginToSave": "Login to Save",
     "yourNovaPersona": "Your Nova Persona",
     "questions": {
       "q1_energy_network": {
@@ -759,5 +1128,113 @@
         "options": { "A": "Jump into spontaneous tasks/ideas.", "B": "Use it to rest or tidy planned work.", "C": "Scroll or browse without direction." }
       }
     }
+  },
+  "share": {
+    "shareResult": "Share Result",
+    "shareTitle": "Check out my result!",
+    "imageSaved": "Image saved! Link copied to clipboard.",
+    "copyFailed": "Could not copy to clipboard",
+    "generating": "Generating image..."
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "heroTitle": "Pricing for Your Destiny",
+    "heroSub": "AI-powered Saju, Tarot, and Astrology at reasonable prices",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "mostPopular": "Most Popular",
+    "readingsPerMonth": "readings/mo",
+    "perYear": "/year",
+    "perMonth": "/mo",
+    "free": "Free",
+    "getStarted": "Get Started",
+    "subscribe": "Subscribe",
+    "creditPacks": "Credit Packs",
+    "creditPacksDesc": "Buy more when you need extra readings",
+    "readings": "readings",
+    "perReading": "per reading",
+    "buyNow": "Buy Now",
+    "howItWorks": "How Readings Work",
+    "oneReading": "1 Reading",
+    "oneReadingDesc": "1 AI analysis: Saju, Tarot, Compatibility, I Ching",
+    "freeFeature": "Free",
+    "freeFeatureDesc": "Daily fortune check is always free",
+    "monthlyReset": "Monthly Reset",
+    "monthlyResetDesc": "Readings reset on the 1st of each month",
+    "faq": "FAQ",
+    "guarantee": "7-Day Money Back Guarantee",
+    "guaranteeDesc": "If you're not satisfied, get a full refund within 7 days.",
+    "ctaTitle": "Start Today",
+    "ctaSub": "Start free, upgrade when you're ready",
+    "startFree": "Start Free",
+    "learnMore": "Learn More",
+    "paymentError": "Payment service temporarily unavailable",
+    "plans": {
+      "free": "Free",
+      "starter": "Starter",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "features": {
+      "aiReadings": "{count} AI readings/month",
+      "aiReadings1": "1 AI reading/month",
+      "aiReadings10": "10 AI readings/month",
+      "aiReadings30": "30 AI readings/month",
+      "aiReadings50": "50 AI readings/month",
+      "basicSaju": "Basic Saju analysis",
+      "detailedSaju": "Detailed Saju analysis",
+      "fullSaju": "Full Saju report",
+      "sajuFortune": "Detailed Saju + Fortune cycles",
+      "oneCardTarot": "1-card Tarot",
+      "threeCardTarot": "3-card Tarot spread",
+      "allTarotSpreads": "All Tarot spreads",
+      "dailyFortune": "Daily fortune",
+      "history7": "7-day history",
+      "history30": "30-day history",
+      "history90": "90-day history",
+      "history1year": "1-year history",
+      "compatibility": "Compatibility analysis",
+      "compatibilityCount": "{count} compatibility/month",
+      "compatibilityCount2": "2 compatibility/month",
+      "compatibilityCount5": "5 compatibility/month",
+      "compatibilityCount10": "10 compatibility/month",
+      "followUp": "Follow-up questions",
+      "followUpCount": "{count} follow-up questions",
+      "followUpCount2": "2 follow-up questions",
+      "followUpCount5": "5 follow-up questions",
+      "followUpCount10": "10 follow-up questions",
+      "adFree": "Ad-free experience",
+      "pdfReport": "PDF reports",
+      "pdfDownload": "PDF report download",
+      "priority": "Priority response"
+    },
+    "creditPackNames": {
+      "mini": "Mini Pack",
+      "standard": "Standard Pack",
+      "plus": "Plus Pack",
+      "mega": "Mega Pack",
+      "ultimate": "Ultimate Pack"
+    },
+    "bestValue": "Best Value",
+    "faqs": {
+      "q1": "How is 1 AI reading counted?",
+      "a1": "1 reading is deducted each time you use any AI-powered service like Saju, Tarot, Compatibility, or I Ching. Daily fortune check is free.",
+      "q2": "Do unused readings roll over?",
+      "a2": "No, monthly readings reset each billing cycle. If you need more, purchase credit packs.",
+      "q3": "Can I cancel anytime?",
+      "a3": "Yes, cancel anytime. You'll retain access until the end of your billing period.",
+      "q4": "Do credit packs expire?",
+      "a4": "Credit packs are valid for 1 year from purchase date.",
+      "q5": "Can I get a refund?",
+      "a5": "Full refund available within 7 days of subscription. Credit packs are refundable if unused."
+    }
+  },
+  "success": {
+    "title": "Payment Successful!",
+    "message": "Thank you for your purchase. Your account has been upgraded and you're ready to explore your destiny.",
+    "orderRef": "Order Reference",
+    "startReading": "Start Your Reading",
+    "goHome": "Go to Home",
+    "emailNote": "A confirmation email has been sent to your registered email address."
   }
 }

@@ -6,6 +6,7 @@ import { computeDestinyMap } from "./astrologyengine";
 import { buildPromptByTheme } from "@/lib/destiny-map/prompt/fortune";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
+import { cacheGet, cacheSet, makeCacheKey } from "@/lib/redis-cache";
 
 /**
  * DestinyMap Report Service - Fusion backend version
@@ -88,6 +89,25 @@ export async function generateReport({
   extraPrompt?: string;
   userTimezone?: string;
 }): Promise<ReportOutput> {
+  // 🔥 Cache check - return cached result if available (TTL: 24h)
+  const analysisDate = getDateInTimezone(userTimezone);
+  const cacheKey = makeCacheKey("destiny", {
+    birthDate,
+    birthTime,
+    lat: latitude.toFixed(2),
+    lon: longitude.toFixed(2),
+    theme,
+    lang,
+    date: analysisDate, // 같은 날에만 캐시 유효
+  });
+
+  const cached = await cacheGet<ReportOutput>(cacheKey);
+  if (cached) {
+    console.log("[DestinyMap] Cache HIT:", cacheKey);
+    return cached;
+  }
+  console.log("[DestinyMap] Cache MISS:", cacheKey);
+
   const safeExtra = extraPrompt ? guardText(extraPrompt, 2000) : "";
   if (extraPrompt && containsForbidden(extraPrompt)) {
     const msg = safetyMessage(lang);
@@ -121,7 +141,7 @@ export async function generateReport({
 
   // 사용자 타임존 기준 분석 날짜 추가
   result.userTimezone = userTimezone;
-  result.analysisDate = getDateInTimezone(userTimezone);
+  result.analysisDate = analysisDate; // 이미 위에서 계산됨
 
   // 2) Build theme prompt
   const themePrompt = buildPromptByTheme(theme, lang, result);
@@ -156,6 +176,21 @@ export async function generateReport({
         saju: result.saju,
         astro: result.astrology,
         locale: lang,  // Pass language to backend for proper translation
+        // 고급 사주 분석 데이터
+        advancedSaju: result.saju?.advancedAnalysis,
+        // 고급 점성학 데이터 (기본)
+        extraPoints: result.extraPoints,
+        solarReturn: result.solarReturn,
+        lunarReturn: result.lunarReturn,
+        progressions: result.progressions,
+        // 고급 점성학 데이터 (확장)
+        draconic: result.draconic,           // 🐉 드라코닉 (영혼 차트)
+        harmonics: result.harmonics,         // 🎵 하모닉
+        asteroids: result.asteroids,         // ☄️ 소행성
+        fixedStars: result.fixedStars,       // ⭐ 항성
+        eclipses: result.eclipses,           // 🌑 일/월식
+        electional: result.electional,       // 📅 택일
+        midpoints: result.midpoints,         // ⚡ 미드포인트
       }),
       signal: controller.signal,
     });
@@ -194,7 +229,7 @@ export async function generateReport({
   }
 
   // 4) Assemble response
-  return {
+  const output: ReportOutput = {
     meta: {
       generator: "DestinyMap_Report_via_Fusion",
       generatedAt: new Date().toISOString(),
@@ -208,4 +243,12 @@ export async function generateReport({
     report: cleanseText(aiText),
     raw: { ...result, saju: result.saju ?? extractElements(aiText) },
   };
+
+  // 🔥 Save to cache (24h TTL) - only if we got a real response
+  if (modelUsed !== "error-fallback") {
+    cacheSet(cacheKey, output, 86400).catch(() => {});
+    console.log("[DestinyMap] Cached result:", cacheKey);
+  }
+
+  return output;
 }
