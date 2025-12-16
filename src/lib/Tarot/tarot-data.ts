@@ -419,13 +419,17 @@ export const tarotDeck: Card[] = [
       keywords: ['Illusion', 'Fear', 'Anxiety', 'Subconscious', 'Intuition'],
       keywordsKo: ['환상', '두려움', '불안', '잠재의식', '직관'],
       meaning: 'The Moon rises over a mysterious landscape where nothing is quite what it seems. This card speaks of illusion, the unconscious mind, and the fears that lurk in shadow. You may be experiencing confusion, anxiety, or deception—either from others or from your own mind\'s projections. The path ahead is unclear, illuminated only by moonlight that can be as deceptive as it is beautiful. Dreams, intuitions, and deep emotions are heightened now. Pay attention to what your subconscious is trying to tell you through symbols, dreams, and gut feelings. In relationships, there may be hidden truths or miscommunications. In career, not all information has been revealed. The Moon asks you to navigate carefully through this uncertain time, trusting your intuition while remaining aware that fear can distort perception. What you fear in the darkness may be less threatening in daylight.',
-      meaningKo: '달이 아무것도 보이는 그대로가 아닌 신비로운 풍경 위로 뜹니다. 이 카드는 환상, 무의식, 그리고 그림자 속에 숨어 있는 두려움에 대해 말합니다. 혼란, 불안, 또는 속임—타인에게서든 자신의 마음의 투사에서든—을 경험하고 있을 수 있습니다. 앞의 길은 불분명하며, 아름다우면서도 기만적일 수 있는 달빛으로만 비춰집니다. 꿈, 직관, 깊은 감정이 지금 고조되어 있습니다. 잠재의식이 상징, 꿈, 직감을 통해 무엇을 말하려 하는지 주의를 기울이세요. 관계에서 숨겨진 진실이나 오해가 있을 수 있습니다. 직업에서 모든 정보가 드러나지 않았습니다. 달은 두려움이 인식을 왜곡할 수 있음을 인식하면서도 직관을 믿고 이 불확실한 시간을 조심스럽게 헤쳐나가라고 요청합니다. 어둠 속에서 두려워하는 것이 대낮에는 덜 위협적일 수 있습니다.'
+      meaningKo: '달이 아무것도 보이는 그대로가 아닌 신비로운 풍경 위로 뜹니다. 이 카드는 환상, 무의식, 그리고 그림자 속에 숨어 있는 두려움에 대해 말합니다. 혼란, 불안, 또는 속임—타인에게서든 자신의 마음의 투사에서든—을 경험하고 있을 수 있습니다. 앞의 길은 불분명하며, 아름다우면서도 기만적일 수 있는 달빛으로만 비춰집니다. 꿈, 직관, 깊은 감정이 지금 고조되어 있습니다. 잠재의식이 상징, 꿈, 직감을 통해 무엇을 말하려 하는지 주의를 기울이세요. 관계에서 숨겨진 진실이나 오해가 있을 수 있습니다. 직업에서 모든 정보가 드러나지 않았습니다. 달은 두려움이 인식을 왜곡할 수 있음을 인식하면서도 직관을 믿고 이 불확실한 시간을 조심스럽게 헤쳐나가라고 요청합니다. 어둠 속에서 두려워하는 것이 대낮에는 덜 위협적일 수 있습니다.',
+      advice: 'Trust your intuition through uncertainty. Not everything is as it seems.',
+      adviceKo: '불확실함 속에서 직관을 믿으세요. 모든 것이 보이는 대로가 아닙니다.'
     },
     reversed: {
       keywords: ['Release of fear', 'Repressed emotion', 'Inner confusion', 'Truth revealed'],
       keywordsKo: ['두려움 해소', '억압된 감정', '내적 혼란', '진실 드러남'],
       meaning: 'The reversed Moon signals that illusions are beginning to clear and truth is emerging from the shadows. Fears that once paralyzed you are losing their power as you begin to see them for what they really are—often much smaller than they seemed in the dark. Repressed emotions are rising to the surface, seeking acknowledgment and healing. This can be uncomfortable but ultimately liberating. Deceptions may be revealed; secrets come to light. In relationships, honest conversations can finally happen. In career, clarity is returning after a period of confusion. The reversed Moon suggests that your intuition is becoming more reliable as you clear away the fog of anxiety. Trust that the truth, even if painful, is preferable to living in illusion. The night is ending; dawn approaches.',
-      meaningKo: '역방향 달은 환상이 걷히기 시작하고 진실이 그림자에서 나오고 있음을 신호합니다. 한때 당신을 마비시켰던 두려움이 실제로 무엇인지—종종 어둠 속에서 보였던 것보다 훨씬 작은—보기 시작하면서 힘을 잃고 있습니다. 억압된 감정이 인정과 치유를 구하며 표면으로 떠오르고 있습니다. 이것은 불편할 수 있지만 궁극적으로 해방적입니다. 속임이 드러날 수 있습니다; 비밀이 밝혀집니다. 관계에서 마침내 정직한 대화가 일어날 수 있습니다. 직업에서 혼란의 시기 후에 명료함이 돌아오고 있습니다. 역방향 달은 불안의 안개를 걷어내면서 직관이 더 신뢰할 수 있게 되고 있음을 암시합니다. 아무리 고통스러워도 진실이 환상 속에 사는 것보다 낫다는 것을 믿으세요. 밤이 끝나가고 있습니다; 새벽이 다가옵니다.'
+      meaningKo: '역방향 달은 환상이 걷히기 시작하고 진실이 그림자에서 나오고 있음을 신호합니다. 한때 당신을 마비시켰던 두려움이 실제로 무엇인지—종종 어둠 속에서 보였던 것보다 훨씬 작은—보기 시작하면서 힘을 잃고 있습니다. 억압된 감정이 인정과 치유를 구하며 표면으로 떠오르고 있습니다. 이것은 불편할 수 있지만 궁극적으로 해방적입니다. 속임이 드러날 수 있습니다; 비밀이 밝혀집니다. 관계에서 마침내 정직한 대화가 일어날 수 있습니다. 직업에서 혼란의 시기 후에 명료함이 돌아오고 있습니다. 역방향 달은 불안의 안개를 걷어내면서 직관이 더 신뢰할 수 있게 되고 있음을 암시합니다. 아무리 고통스러워도 진실이 환상 속에 사는 것보다 낫다는 것을 믿으세요. 밤이 끝나가고 있습니다; 새벽이 다가옵니다.',
+      advice: 'Face your fears. The truth is emerging from the shadows.',
+      adviceKo: '두려움에 맞서세요. 진실이 그림자에서 드러나고 있습니다.'
     }
   },
   {
@@ -1692,6 +1696,8 @@ export const tarotDeck: Card[] = [
     reversed: {
       keywords: ['Boredom', 'Stagnation', 'Perfectionism', 'Unadventurous', 'Feeling stuck'],
       keywordsKo: ['지루함', '정체', '완벽주의', '모험 부족', '갇힌 느낌'],
+      advice: 'Break the monotony. Don\'t let perfectionism stop progress.',
+      adviceKo: '단조로움을 깨세요. 완벽주의가 진전을 막지 않게 하세요.',
       meaning: 'The reversed Knight of Pentacles shows the methodical approach becoming stagnation—the knight has stopped moving entirely, the routine has become a rut, the careful planning has become paralysis. Perhaps you\'re so focused on getting things perfect that you never finish anything. Maybe the steady work has become boring drudgery that you\'re going through the motions of without real engagement. The reliability that serves so well can become inability to adapt, resistance to any risk, or stubborn refusal to change course even when it\'s clearly needed. You may be feeling stuck in a job that offers security but no growth, a relationship that\'s stable but lifeless. Alternatively, this reversal may indicate someone who lacks follow-through, who starts practical projects but never completes them, or who is unreliable despite appearing dependable. In love, the relationship may have become routine without passion. In career, you\'re either stuck in an unfulfilling position or struggling to maintain the consistency your work requires. The message: examine whether your careful approach is building something or just marking time.',
       meaningKo: '역방향 펜타클 기사는 체계적 접근이 정체가 되는 것을 보여줍니다—기사가 완전히 움직임을 멈추었고, 루틴이 구렁이 되었고, 신중한 계획이 마비가 되었습니다. 아마도 완벽하게 하는 데 너무 집중해서 아무것도 끝내지 못할 것입니다. 아마도 꾸준한 작업이 진정한 참여 없이 형식만 따르는 지루한 노역이 되었을 것입니다. 그렇게 잘 봉사하는 신뢰성이 적응하지 못하거나, 어떤 위험도 저항하거나, 명확히 필요할 때도 방향을 바꾸기를 완고하게 거부하는 것이 될 수 있습니다. 안정은 제공하지만 성장이 없는 직장, 안정적이지만 활기 없는 관계에 갇혀 있다고 느낄 수 있습니다. 또는 이 역방향은 후속 조치가 부족하거나, 실용적 프로젝트를 시작하지만 결코 완료하지 않거나, 신뢰할 수 있어 보이지만 신뢰할 수 없는 사람을 나타낼 수 있습니다. 사랑에서 관계가 열정 없이 루틴이 되었을 수 있습니다. 직업에서 불만족스러운 자리에 갇혀 있거나 일이 요구하는 일관성을 유지하기 위해 애쓰고 있습니다. 메시지: 신중한 접근이 무언가를 쌓고 있는지 아니면 그냥 시간을 때우고 있는지 검토하세요.'
     }
@@ -1700,16 +1706,22 @@ export const tarotDeck: Card[] = [
     id: 76,
     name: 'Queen of Pentacles',
     nameKo: '펜타클 여왕',
+    arcana: 'minor',
+    suit: 'pentacles',
     image: '/cards/76.jpg',
     upright: {
       keywords: ['Nurturing', 'Practical', 'Down-to-earth', 'Financial security', 'A working parent'],
       keywordsKo: ['양육', '실용적', '현실적', '재정적 안정', '워킹맘/워킹대디'],
+      advice: 'Balance home and work wisely. Nurture while staying practical.',
+      adviceKo: '가정과 일의 균형을 현명하게 맞추세요. 실용적이면서 돌보세요.',
       meaning: 'The Queen of Pentacles sits on a throne surrounded by abundance—flowers, fruit, a rabbit at her feet—holding a pentacle on her lap as if it were a child. She represents the nurturing provider, the person who creates both material security and emotional warmth, the parent or partner who makes a house into a home. This queen understands that practical care is love in action: preparing meals, managing finances, creating beautiful spaces, ensuring everyone\'s needs are met. She doesn\'t choose between career and home—she manages both with graceful competence. When this card appears, it celebrates groundedness, domestic skill, and the ability to create abundance that nourishes everyone around you. You may be embodying this nurturing energy or benefiting from someone who does. In love, this represents partnership built on practical support and shared domestic life. Comfort and security are expressions of love. In career, your ability to blend productivity with care for people serves you well; you may be drawn to work that nurtures others or creates tangible comfort. The message: there is profound wisdom in practical care, and creating security for others is a form of love.',
       meaningKo: '펜타클 여왕은 풍요로 둘러싸인 왕좌에 앉아 있습니다—꽃, 과일, 발 아래 토끼—마치 아이처럼 펜타클을 무릎에 안고 있습니다. 그녀는 양육하는 제공자를 나타냅니다, 물질적 안정과 감정적 따뜻함을 모두 만드는 사람, 집을 가정으로 만드는 부모나 파트너. 이 여왕은 실용적 돌봄이 행동하는 사랑이라는 것을 이해합니다: 식사 준비, 재정 관리, 아름다운 공간 만들기, 모든 사람의 필요 충족 보장. 그녀는 직업과 가정 사이에서 선택하지 않습니다—우아한 능력으로 둘 다 관리합니다. 이 카드가 나타나면 현실감, 가정 기술, 주변 모든 사람을 양육하는 풍요를 만드는 능력을 축하합니다. 이 양육하는 에너지를 체현하거나 그런 사람의 혜택을 받고 있을 수 있습니다. 사랑에서 이것은 실용적 지원과 공유된 가정 생활에 기반한 파트너십을 나타냅니다. 편안함과 안정이 사랑의 표현입니다. 직업에서 생산성과 사람에 대한 돌봄을 조화시키는 능력이 도움이 됩니다; 다른 사람을 양육하거나 실질적 편안함을 만드는 일에 끌릴 수 있습니다. 메시지: 실용적 돌봄에는 심오한 지혜가 있고, 다른 사람을 위한 안정을 만드는 것은 사랑의 형태입니다.'
     },
     reversed: {
       keywords: ['Financial insecurity', 'Smothering', 'Work-life imbalance', 'Materialistic', 'Self-care issues'],
       keywordsKo: ['재정 불안', '과보호', '일-삶 불균형', '물질주의', '자기 관리 문제'],
+      advice: 'Prioritize self-care. Address work-life imbalance.',
+      adviceKo: '자기 관리를 우선시하세요. 일-삶 불균형을 해결하세요.',
       meaning: 'The reversed Queen of Pentacles shows the nurturing energy becoming problematic—either through excess or deficiency. Perhaps you\'re so focused on providing for others that you\'ve neglected your own needs; self-care has fallen by the wayside in the effort to care for everyone else. Or the nurturing has become smothering, controlling what you provide because you want to control those you provide for. The work-life balance has collapsed: you\'re either all work, unable to create the home life you want, or so consumed by domestic responsibilities that your own growth has stalled. Financial insecurity may be creating stress that undermines your ability to provide the stability you want to offer. Alternatively, material comfort may have become the only measure of care—you\'ve become materialistic, valuing things over relationships. In love, codependency or financial stress is straining the relationship. You may be giving too much or receiving too little. In career, work-life balance is suffering, or your nurturing nature is being exploited. The message: examine how you\'re caring for yourself while caring for others. Both matter.',
       meaningKo: '역방향 펜타클 여왕은 양육 에너지가 문제가 되는 것을 보여줍니다—과잉이나 부족을 통해. 아마도 다른 사람을 위해 제공하는 데 너무 집중해서 자신의 필요를 소홀히 했을 것입니다; 다른 모든 사람을 돌보려는 노력에서 자기 관리가 뒷전이 되었습니다. 또는 양육이 과보호가 되어, 제공받는 사람을 통제하고 싶어 제공하는 것을 통제합니다. 일-삶 균형이 무너졌습니다: 원하는 가정 생활을 만들 수 없어 온통 일이거나, 가정 책임에 너무 빠져 자신의 성장이 정체되었습니다. 재정적 불안정이 제공하고 싶은 안정을 훼손하는 스트레스를 만들고 있을 수 있습니다. 또는 물질적 편안함이 돌봄의 유일한 척도가 되었을 수 있습니다—물질주의적이 되어 관계보다 물건을 가치 있게 여깁니다. 사랑에서 상호 의존이나 재정적 스트레스가 관계에 긴장을 주고 있습니다. 너무 많이 주거나 너무 적게 받고 있을 수 있습니다. 직업에서 일-삶 균형이 고통받고 있거나, 양육하는 본성이 이용당하고 있습니다. 메시지: 다른 사람을 돌보면서 자신을 어떻게 돌보고 있는지 검토하세요. 둘 다 중요합니다.'
     }
@@ -1718,16 +1730,22 @@ export const tarotDeck: Card[] = [
     id: 77,
     name: 'King of Pentacles',
     nameKo: '펜타클 왕',
+    arcana: 'minor',
+    suit: 'pentacles',
     image: '/cards/77.jpg',
     upright: {
       keywords: ['Wealth', 'Business', 'Leadership', 'Security', 'Success'],
       keywordsKo: ['부', '사업', '리더십', '안정', '성공'],
+      advice: 'Lead with business wisdom. Your success is well-earned.',
+      adviceKo: '사업적 지혜로 이끄세요. 당신의 성공은 정당합니다.',
       meaning: 'The King of Pentacles sits on a throne carved with bull heads, robed in grapes and vines, his castle visible behind him, a golden pentacle on his lap—the ultimate embodiment of material mastery. This king has built an empire through practical intelligence, disciplined effort, and wise investment. He doesn\'t just have wealth; he knows how to create, maintain, and grow it. His leadership style is grounded and reliable: he leads by example, values results over words, and provides stable security for those in his domain. When this king appears, he represents the successful business person, the wise investor, the leader who understands that true power is built through sustained practical achievement. In love, this suggests a partner who provides security and stability, who shows love through practical support and reliable presence. The relationship may not be full of drama, but it\'s built on solid ground. In career, business success, financial mastery, and leadership that creates real value are indicated. You may be embodying these qualities or seeking guidance from someone who does. The message: material mastery is achieved through patience, discipline, and the wisdom to build something that lasts.',
       meaningKo: '펜타클 왕은 황소 머리가 조각된 왕좌에 앉아 있고, 포도와 덩굴로 장식된 로브를 입고, 뒤에 성이 보이며, 무릎에 황금 펜타클을 두고 있습니다—물질적 숙련의 궁극적 구현입니다. 이 왕은 실용적 지성, 규율된 노력, 현명한 투자를 통해 제국을 세웠습니다. 그는 단순히 부를 가진 것이 아닙니다; 그것을 만들고, 유지하고, 성장시키는 방법을 알고 있습니다. 그의 리더십 스타일은 현실적이고 신뢰할 수 있습니다: 그는 모범으로 이끌고, 말보다 결과를 가치 있게 여기며, 자신의 영역에 있는 사람들에게 안정적인 안전을 제공합니다. 이 왕이 나타나면 성공한 사업가, 현명한 투자자, 진정한 힘이 지속적인 실질적 성취를 통해 세워진다는 것을 이해하는 리더를 나타냅니다. 사랑에서 이것은 안정과 안전을 제공하고, 실용적 지원과 신뢰할 수 있는 존재를 통해 사랑을 보여주는 파트너를 시사합니다. 관계에 드라마가 가득하지 않을 수 있지만, 단단한 땅 위에 세워져 있습니다. 직업에서 사업 성공, 재정적 숙련, 그리고 진정한 가치를 만드는 리더십이 나타납니다. 이런 자질을 체현하거나 그런 사람에게 지도를 구하고 있을 수 있습니다. 메시지: 물질적 숙련은 인내, 규율, 그리고 지속되는 것을 쌓는 지혜를 통해 달성됩니다.'
     },
     reversed: {
       keywords: ['Greed', 'Materialistic', 'Stubborn', 'Overly cautious', 'Ruthless'],
       keywordsKo: ['탐욕', '물질적', '완고함', '지나친 신중', '무자비'],
+      advice: 'Don\'t let greed corrupt your leadership. Balance profit with ethics.',
+      adviceKo: '탐욕이 리더십을 부패시키지 않게 하세요. 이익과 윤리의 균형을 맞추세요.',
       meaning: 'The reversed King of Pentacles shows material mastery becoming materialism, wise leadership becoming stubborn tyranny, wealth-building becoming greed. This king has lost his way: the empire exists only for the empire\'s sake, not for the people it should serve. Money has become the only measure of worth. He may be so cautious that opportunities pass him by, or so ruthless that he destroys relationships in pursuit of profit. The stability he offers comes with control; the security comes at the price of freedom. You may be dealing with someone whose financial success has corrupted their character, or you may be examining your own relationship with material success. Has the pursuit of security become an end in itself? Have you become what you set out to escape? In love, material concerns are overshadowing emotional connection. Someone may be controlling through money, or financial stress is revealing unflattering aspects of character. In career, greed, corruption, or being stuck in outdated approaches threatens success. The message: examine whether your material pursuits are serving your life or consuming it.',
       meaningKo: '역방향 펜타클 왕은 물질적 숙련이 물질주의가 되고, 현명한 리더십이 완고한 폭정이 되고, 부 쌓기가 탐욕이 되는 것을 보여줍니다. 이 왕은 길을 잃었습니다: 제국이 봉사해야 할 사람들을 위해서가 아니라 제국 자체를 위해서만 존재합니다. 돈이 가치의 유일한 척도가 되었습니다. 그는 너무 신중해서 기회가 지나가거나, 이익을 추구하며 관계를 파괴할 정도로 무자비할 수 있습니다. 그가 제공하는 안정에는 통제가 따르고; 안전에는 자유의 대가가 따릅니다. 재정적 성공이 성격을 부패시킨 사람을 상대하고 있거나, 물질적 성공과의 자신의 관계를 검토하고 있을 수 있습니다. 안정 추구가 그 자체로 목적이 되었는가? 피하려고 했던 것이 되었는가? 사랑에서 물질적 우려가 감정적 연결을 가리고 있습니다. 누군가 돈을 통해 통제하거나, 재정적 스트레스가 성격의 불리한 면을 드러내고 있을 수 있습니다. 직업에서 탐욕, 부패, 또는 구식 접근에 갇혀 있는 것이 성공을 위협합니다. 메시지: 물질적 추구가 삶에 봉사하고 있는지 아니면 소비하고 있는지 검토하세요.'
     }
