@@ -80,6 +80,13 @@
   overflow: hidden;
 }
 
+.creditBadgeWrapper {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
 @keyframes fadeInScale {
   from {
     opacity: 0;

@@ -1,0 +1,366 @@
+{
+  "$schema": "cross_geokguk_house_v1",
+  "$description": "23 격국 ↔ 하우스/차트 패턴 완전 매핑",
+
+  "junggyeok_8types": {
+    "description": "정격 8종 - 십신이 투출되어 격을 이룸",
+
+    "정관격": {
+      "geokguk": "正官格",
+      "condition": "월지 정기에서 정관이 투출",
+      "character": "책임감, 명예, 안정, 규율",
+      "astro_parallel": {
+        "primary": "Saturn in 10th House",
+        "secondary": "Sun-Saturn positive aspect",
+        "pattern": "Career-oriented cardinal T-square",
+        "MC_sign": "Capricorn MC preferred"
+      },
+      "house_emphasis": [10, 6, 2],
+      "planet_emphasis": ["Saturn", "Sun"],
+      "life_expression": "공무원, 대기업, 관리직, 전문직",
+      "chart_signature": "강한 토성, 10하우스 활성화, 책임의 축"
+    },
+    "편관격": {
+      "geokguk": "偏官格 (七殺格)",
+      "condition": "월지 정기에서 편관이 투출",
+      "character": "권력, 투쟁, 돌파력, 카리스마",
+      "astro_parallel": {
+        "primary": "Mars in 10th House",
+        "secondary": "Pluto-Sun aspect",
+        "pattern": "Power T-square (Mars-Pluto-Sun)",
+        "MC_sign": "Scorpio or Aries MC"
+      },
+      "house_emphasis": [10, 8, 1],
+      "planet_emphasis": ["Mars", "Pluto"],
+      "life_expression": "군인, 경찰, 외과의사, CEO, 정치인",
+      "chart_signature": "강한 화성/명왕성, 8하우스와 10하우스 연결"
+    },
+    "정인격": {
+      "geokguk": "正印格",
+      "condition": "월지 정기에서 정인이 투출",
+      "character": "학문, 자격증, 모성, 보호",
+      "astro_parallel": {
+        "primary": "Moon in 9th House",
+        "secondary": "Neptune-Moon positive aspect",
+        "pattern": "Grand Trine in Water",
+        "MC_sign": "Pisces or Cancer MC"
+      },
+      "house_emphasis": [9, 4, 12],
+      "planet_emphasis": ["Moon", "Neptune"],
+      "life_expression": "교수, 연구원, 종교인, 상담사",
+      "chart_signature": "강한 달/해왕성, 물 원소 우세"
+    },
+    "편인격": {
+      "geokguk": "偏印格 (梟神格)",
+      "condition": "월지 정기에서 편인이 투출",
+      "character": "특수 학문, 비주류, 심층 연구",
+      "astro_parallel": {
+        "primary": "Pluto in 9th House",
+        "secondary": "Uranus-Mercury aspect",
+        "pattern": "12th house stellium",
+        "MC_sign": "Scorpio or Aquarius MC"
+      },
+      "house_emphasis": [12, 8, 9],
+      "planet_emphasis": ["Pluto", "Neptune", "Uranus"],
+      "life_expression": "심리학자, 점술가, 연구원, 해커",
+      "chart_signature": "외행성 강조, 12하우스 활성화"
+    },
+    "식신격": {
+      "geokguk": "食神格",
+      "condition": "월지 정기에서 식신이 투출",
+      "character": "표현, 창작, 식복, 재능",
+      "astro_parallel": {
+        "primary": "Moon in 5th House",
+        "secondary": "Venus-Moon conjunction",
+        "pattern": "5th house stellium",
+        "MC_sign": "Leo or Taurus MC"
+      },
+      "house_emphasis": [5, 2, 11],
+      "planet_emphasis": ["Moon", "Venus"],
+      "life_expression": "예술가, 요리사, 교사, 연예인",
+      "chart_signature": "금성/달 조화, 5하우스 강조"
+    },
+    "상관격": {
+      "geokguk": "傷官格",
+      "condition": "월지 정기에서 상관이 투출",
+      "character": "반항, 창의, 혁신, 독창",
+      "astro_parallel": {
+        "primary": "Uranus in 5th House",
+        "secondary": "Mercury-Uranus aspect",
+        "pattern": "Aquarius stellium or strong 11th",
+        "MC_sign": "Aquarius MC"
+      },
+      "house_emphasis": [5, 11, 3],
+      "planet_emphasis": ["Uranus", "Mercury"],
+      "life_expression": "발명가, 혁신가, 비평가, 프리랜서",
+      "chart_signature": "천왕성 강조, 독특한 배치"
+    },
+    "정재격": {
+      "geokguk": "正財格",
+      "condition": "월지 정기에서 정재가 투출",
+      "character": "안정적 재물, 저축, 실속",
+      "astro_parallel": {
+        "primary": "Venus in 2nd House",
+        "secondary": "Saturn-Venus positive aspect",
+        "pattern": "Taurus stellium",
+        "MC_sign": "Taurus or Virgo MC"
+      },
+      "house_emphasis": [2, 6, 10],
+      "planet_emphasis": ["Venus", "Saturn"],
+      "life_expression": "금융인, 회계사, 부동산, 안정 직장",
+      "chart_signature": "2하우스 강조, 토 원소 안정"
+    },
+    "편재격": {
+      "geokguk": "偏財格",
+      "condition": "월지 정기에서 편재가 투출",
+      "character": "투기, 사업, 넓은 재물",
+      "astro_parallel": {
+        "primary": "Jupiter in 2nd or 8th House",
+        "secondary": "Jupiter-Pluto aspect",
+        "pattern": "8th house activation",
+        "MC_sign": "Sagittarius MC"
+      },
+      "house_emphasis": [8, 2, 5],
+      "planet_emphasis": ["Jupiter", "Pluto"],
+      "life_expression": "사업가, 투자자, 무역상",
+      "chart_signature": "목성 강조, 8하우스 재물"
+    }
+  },
+
+  "jonggyeok_5types": {
+    "description": "종격 5종 - 일간이 극도로 약하여 따르는 격",
+
+    "종관격": {
+      "geokguk": "從官格",
+      "condition": "일간 극약, 관성만 강함",
+      "character": "권위에 순응, 조직인",
+      "astro_parallel": {
+        "primary": "Capricorn stellium",
+        "secondary": "Weak Sun, strong Saturn",
+        "pattern": "Saturn dominant chart"
+      },
+      "house_emphasis": [10, 6],
+      "chart_signature": "태양 약함, 토성 지배"
+    },
+    "종재격": {
+      "geokguk": "從財格",
+      "condition": "일간 극약, 재성만 강함",
+      "character": "재물 추구, 현실적",
+      "astro_parallel": {
+        "primary": "Taurus/2nd house stellium",
+        "secondary": "Venus dominant",
+        "pattern": "Material focus chart"
+      },
+      "house_emphasis": [2, 8],
+      "chart_signature": "금성 지배, 물질 강조"
+    },
+    "종살격": {
+      "geokguk": "從殺格",
+      "condition": "일간 극약, 편관만 강함",
+      "character": "강자를 따름, 실행력",
+      "astro_parallel": {
+        "primary": "Scorpio stellium",
+        "secondary": "Pluto/Mars dominant",
+        "pattern": "Power-focused chart"
+      },
+      "house_emphasis": [8, 10],
+      "chart_signature": "명왕성/화성 지배"
+    },
+    "종아격": {
+      "geokguk": "從兒格",
+      "condition": "일간 극약, 식상만 강함",
+      "character": "표현 위주, 예술적",
+      "astro_parallel": {
+        "primary": "5th house stellium",
+        "secondary": "Creative grand trine",
+        "pattern": "Artistic configuration"
+      },
+      "house_emphasis": [5, 3],
+      "chart_signature": "창조적 배치, 자기 표현 강조"
+    },
+    "종강격": {
+      "geokguk": "從强格",
+      "condition": "일간 극강, 비겁인성만 있음",
+      "character": "독립적, 자기 중심",
+      "astro_parallel": {
+        "primary": "1st house stellium",
+        "secondary": "Sun conjunct ASC",
+        "pattern": "Self-focused chart"
+      },
+      "house_emphasis": [1, 9],
+      "chart_signature": "태양/ASC 강조"
+    }
+  },
+
+  "hwagi_geokguk_5types": {
+    "description": "화기격국 5종 - 합화 성립 시",
+
+    "화목격": {
+      "geokguk": "化木格",
+      "condition": "갑기합 → 목으로 화함",
+      "character": "성장, 인자함",
+      "astro_parallel": {
+        "primary": "Jupiter-Venus conjunction",
+        "pattern": "Fire/Air grand trine"
+      },
+      "element_expression": "목(木) 기운 = Jupiter expansion"
+    },
+    "화화격": {
+      "geokguk": "化火格",
+      "condition": "을경합 → 화로 화함",
+      "character": "열정, 문명",
+      "astro_parallel": {
+        "primary": "Sun-Mars conjunction",
+        "pattern": "Fire grand trine"
+      },
+      "element_expression": "화(火) 기운 = Mars/Sun fire"
+    },
+    "화토격": {
+      "geokguk": "化土格",
+      "condition": "병신합 → 토로 화함",
+      "character": "안정, 신뢰",
+      "astro_parallel": {
+        "primary": "Saturn-Venus conjunction",
+        "pattern": "Earth grand trine"
+      },
+      "element_expression": "토(土) 기운 = Saturn stability"
+    },
+    "화금격": {
+      "geokguk": "化金格",
+      "condition": "정임합 → 금으로 화함",
+      "character": "결단, 정의",
+      "astro_parallel": {
+        "primary": "Venus-Saturn positive aspect",
+        "pattern": "Air grand trine"
+      },
+      "element_expression": "금(金) 기운 = Venus refinement"
+    },
+    "화수격": {
+      "geokguk": "化水格",
+      "condition": "무계합 → 수로 화함",
+      "character": "지혜, 유연",
+      "astro_parallel": {
+        "primary": "Moon-Neptune conjunction",
+        "pattern": "Water grand trine"
+      },
+      "element_expression": "수(水) 기운 = Neptune depth"
+    }
+  },
+
+  "special_geokguk_5types": {
+    "description": "특수격국 5종",
+
+    "건록격": {
+      "geokguk": "建祿格",
+      "condition": "월지가 일간의 건록지",
+      "character": "자수성가, 독립",
+      "astro_parallel": {
+        "primary": "Sun in own sign (Leo)",
+        "secondary": "1st house Sun",
+        "pattern": "Dignified Sun placement"
+      },
+      "house_emphasis": [1, 10],
+      "chart_signature": "태양 본위치, 자기 힘"
+    },
+    "월인격": {
+      "geokguk": "月刃格",
+      "condition": "월지가 일간의 양인지",
+      "character": "결단력, 날카로움",
+      "astro_parallel": {
+        "primary": "Mars in Aries/Scorpio",
+        "secondary": "Mars conjunct ASC",
+        "pattern": "Combative configuration"
+      },
+      "house_emphasis": [1, 8],
+      "chart_signature": "화성 강세, 전투적 배치"
+    },
+    "잡기격": {
+      "geokguk": "雜氣格",
+      "condition": "진술축미월 출생, 잡기 투출",
+      "character": "다재다능, 변화",
+      "astro_parallel": {
+        "primary": "Mutable sign stellium",
+        "secondary": "Mercury emphasis",
+        "pattern": "Versatile chart"
+      },
+      "house_emphasis": [3, 6, 9, 12],
+      "chart_signature": "변통궁 강조, 적응력"
+    },
+    "암록격": {
+      "geokguk": "暗祿格",
+      "condition": "암장된 록이 작용",
+      "character": "숨겨진 복, 대기만성",
+      "astro_parallel": {
+        "primary": "Jupiter in 12th house",
+        "secondary": "Hidden benefic pattern (YOD apex)",
+        "pattern": "Yod configuration"
+      },
+      "house_emphasis": [12, 8],
+      "chart_signature": "숨겨진 행운, YOD 패턴"
+    },
+    "양신성상격": {
+      "geokguk": "兩神成象格",
+      "condition": "두 오행만 있어 균형",
+      "character": "극과 극의 조화",
+      "astro_parallel": {
+        "primary": "Bucket pattern",
+        "secondary": "See-saw pattern",
+        "pattern": "Polarized chart"
+      },
+      "house_emphasis": "대립 하우스 활성 (1-7, 4-10)",
+      "chart_signature": "양극 배치, 균형 추구"
+    }
+  },
+
+  "chart_pattern_mapping": {
+    "description": "점성술 차트 패턴 ↔ 사주 격국 대응",
+
+    "grand_trine": {
+      "pattern": "Grand Trine (대삼각형)",
+      "saju_parallel": "삼합국 완성",
+      "meaning": "자연스러운 재능의 흐름",
+      "element_variants": {
+        "fire": "화국 삼합 - 열정과 추진력",
+        "earth": "토국 - 안정과 물질",
+        "air": "금국 - 지적 능력",
+        "water": "수국 - 직관과 감정"
+      }
+    },
+    "t_square": {
+      "pattern": "T-Square",
+      "saju_parallel": "충+형 복합",
+      "meaning": "긴장과 성취 동력",
+      "apex_importance": "꼭지점 행성이 해결책"
+    },
+    "grand_cross": {
+      "pattern": "Grand Cross",
+      "saju_parallel": "다중 충 (2개 이상)",
+      "meaning": "극심한 긴장, 대성취 가능"
+    },
+    "yod": {
+      "pattern": "Yod (신의 손가락)",
+      "saju_parallel": "암록격",
+      "meaning": "숨겨진 운명, 결정적 순간"
+    },
+    "stellium": {
+      "pattern": "Stellium (3개 이상 합)",
+      "saju_parallel": "특정 오행 과다",
+      "meaning": "해당 영역 집중"
+    },
+    "bucket": {
+      "pattern": "Bucket (양동이)",
+      "saju_parallel": "양신성상격 유사",
+      "meaning": "핸들 행성이 출구"
+    },
+    "bowl": {
+      "pattern": "Bowl (그릇)",
+      "saju_parallel": "한쪽 집중 사주",
+      "meaning": "절반 영역 강조"
+    },
+    "seesaw": {
+      "pattern": "See-saw (시소)",
+      "saju_parallel": "양신성상격",
+      "meaning": "양극 사이 균형"
+    }
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "$schema": "advanced_progressions_v1",
+  "$description": "고급 진행법 - Secondary 이외의 진행 기법들",
+
+  "progression_types_overview": {
+    "primary_directions": {
+      "type": "Direction",
+      "rate": "1° = 1 year (MC/ASC 기준)",
+      "origin": "가장 오래된 예측 기법, 프톨레마이오스"
+    },
+    "secondary_progressions": {
+      "type": "Progression",
+      "rate": "1 day = 1 year",
+      "principle": "solar-lunar cycle",
+      "note": "가장 널리 사용됨 (기존 구현됨)"
+    },
+    "tertiary_progressions": {
+      "type": "Progression",
+      "rate": "1 day = 1 lunar month",
+      "principle": "lunar cycle refined"
+    },
+    "minor_progressions": {
+      "type": "Progression",
+      "rate": "1 lunar month = 1 year",
+      "principle": "lunar return cycle"
+    },
+    "solar_arc_directions": {
+      "type": "Direction",
+      "rate": "progressed Sun movement = all planet movement",
+      "principle": "태양 중심 동기화"
+    }
+  },
+
+  "tertiary_progressions": {
+    "description": "3차 진행법 - 1일 = 1음력월 (약 27.3일)",
+    "calculation": {
+      "method": "출생 후 N일 = 인생의 N번째 음력월",
+      "example": {
+        "birth": "2000-01-01",
+        "age_30": "30년 = 360 음력월",
+        "tertiary_date": "2000-01-01 + 360일 = 2000-12-26"
+      }
+    },
+    "characteristics": {
+      "speed": "Secondary보다 약 13배 빠름",
+      "focus": "감정적, 직관적 발달",
+      "best_for": "달의 진행, 내면 변화, 감정 패턴"
+    },
+    "key_events": {
+      "tertiary_moon_aspects": {
+        "description": "3차 달이 출생 차트 행성에 애스펙트 형성",
+        "effect": "감정적 촉발, 기분 변화, 직관적 통찰",
+        "timing": "약 2-3주간 영향"
+      },
+      "tertiary_sun_aspects": {
+        "description": "3차 태양이 출생 차트 행성에 애스펙트 형성",
+        "effect": "정체성, 의지력, 생명력 관련 변화",
+        "timing": "약 1개월간 영향"
+      },
+      "tertiary_angles": {
+        "description": "3차 ASC/MC가 행성에 컨정션",
+        "effect": "자아 표현(ASC) 또는 커리어(MC) 변화",
+        "timing": "중요 전환점"
+      }
+    },
+    "saju_parallel": {
+      "concept": "월운(月運)",
+      "description": "사주의 월운 분석과 유사. 월 단위의 세부 변화 패턴.",
+      "correlation": "3차 달 진행 ≈ 유월(流月) 분석"
+    },
+    "interpretation_guide": {
+      "with_secondary": "Secondary는 연간 테마, Tertiary는 월간 구체화",
+      "priority": "Secondary 이벤트가 있는 시기에 Tertiary로 정확한 타이밍 파악",
+      "example": "Secondary progressed Sun square Saturn (2024년 테마) + Tertiary Moon conjunct Saturn (2024년 3월 정점)"
+    }
+  },
+
+  "minor_progressions": {
+    "description": "소 진행법 - 1음력월 = 1년",
+    "calculation": {
+      "method": "출생 후 N번째 음력 회귀 = N세",
+      "lunar_month": "약 27.3일 (sidereal)",
+      "example": {
+        "age_30": "30 × 27.3일 = 819일 후의 차트"
+      }
+    },
+    "characteristics": {
+      "speed": "Secondary와 Tertiary 사이",
+      "focus": "습관적 패턴, 무의식적 반응",
+      "best_for": "감정 습관, 본능적 반응 패턴 분석"
+    },
+    "key_applications": {
+      "moon_by_sign": "소 진행 달의 사인 변화 = 감정적 모드 전환",
+      "moon_aspects": "소 진행 달의 애스펙트 = 특정 영역의 감정 활성화",
+      "with_transits": "트랜짓과 결합하여 정서적 영향 평가"
+    },
+    "saju_parallel": {
+      "concept": "세운(歲運) 중 감정 흐름",
+      "description": "1년 단위의 감정/직관 테마"
+    }
+  },
+
+  "solar_arc_directions": {
+    "description": "태양 호 방향법 - 모든 행성이 진행 태양과 같은 거리 이동",
+    "calculation": {
+      "method": "진행 태양의 이동 거리를 모든 행성에 적용",
+      "average_rate": "약 1° per year (0.9856°)",
+      "example": {
+        "age": 30,
+        "arc": "약 29.5°",
+        "application": "모든 출생 행성 위치 + 29.5°"
+      }
+    },
+    "characteristics": {
+      "uniformity": "모든 행성이 같은 속도로 이동",
+      "focus": "자아 발달과 동기화된 전체 발전",
+      "best_for": "주요 생애 이벤트, 커리어 전환, 관계 변화"
+    },
+    "key_events": {
+      "SA_sun_conjunct_MC": {
+        "description": "태양 호 태양이 출생 MC에 컨정션",
+        "meaning": "커리어 정점, 공적 인정, 성취",
+        "timing": "정확한 도수에서 ±1년"
+      },
+      "SA_sun_conjunct_ASC": {
+        "description": "태양 호 태양이 출생 ASC에 컨정션",
+        "meaning": "자아 재정의, 새로운 정체성, 중요한 시작",
+        "timing": "정확한 도수에서 ±1년"
+      },
+      "SA_moon_conjunct_sun": {
+        "description": "태양 호 달이 출생 태양에 컨정션",
+        "meaning": "감정과 의지의 통합, 내적 균형",
+        "timing": "정확한 도수에서 ±6개월"
+      },
+      "SA_saturn_square_sun": {
+        "description": "태양 호 토성이 출생 태양에 스퀘어",
+        "meaning": "구조적 도전, 책임 증가, 성숙 요구",
+        "timing": "정확한 도수에서 ±1년"
+      },
+      "SA_planet_to_angle": {
+        "description": "아무 행성이든 ASC/MC/DSC/IC에 정확히 도달",
+        "meaning": "해당 행성 테마가 외적으로 표현됨",
+        "examples": {
+          "venus_ASC": "관계, 아름다움이 자아 표현의 핵심",
+          "mars_MC": "야망, 경쟁이 커리어에서 전면",
+          "jupiter_IC": "가정 확장, 이사, 가족 성장"
+        }
+      }
+    },
+    "saju_parallel": {
+      "concept": "대운(大運)",
+      "description": "10년 단위 대운과 유사한 주요 생애 전환점 표시",
+      "correlation": {
+        "SA_30deg": "약 30년 = 3개 대운 완료",
+        "alignment": "대운 전환과 SA 주요 이벤트가 겹칠 때 강력한 변화"
+      }
+    },
+    "practical_applications": {
+      "event_timing": {
+        "method": "중요 SA 애스펙트 시점 계산",
+        "steps": [
+          "출생 차트에서 주요 포인트 간 거리 측정",
+          "거리 ÷ 0.9856 = 이벤트 예상 나이",
+          "예: 태양과 MC 거리 25° → 약 25세"
+        ]
+      },
+      "life_planning": {
+        "career_peaks": "SA Sun/Jupiter to MC",
+        "relationship_milestones": "SA Venus to DSC/Sun/Moon",
+        "challenges": "SA Saturn/Pluto to angles",
+        "breakthroughs": "SA Uranus to Sun/ASC"
+      }
+    },
+    "interpretation_rules": {
+      "orb": "1° (약 1년 전후)",
+      "hard_aspects": ["conjunction", "square", "opposition"],
+      "soft_aspects": ["trine", "sextile (less common)"],
+      "priority": "Angles (ASC/MC) > Lights (Sun/Moon) > Other planets"
+    }
+  },
+
+  "converse_directions": {
+    "description": "역방향 진행 - 출생 전 시간으로 진행",
+    "types": {
+      "converse_secondary": {
+        "method": "출생 전 N일 = N세",
+        "interpretation": "과거에서 오는 카르마, 전생 패턴"
+      },
+      "converse_solar_arc": {
+        "method": "출생 행성 위치 - 태양 호 거리",
+        "interpretation": "잠재의식 패턴, 뿌리 깊은 경향"
+      }
+    },
+    "saju_parallel": {
+      "concept": "역운(逆運)",
+      "description": "과거 방향의 분석, 전생/카르마적 요소"
+    },
+    "when_to_use": {
+      "karmic_themes": "반복되는 패턴의 뿌리 탐색",
+      "psychological_depth": "심층 심리 분석",
+      "with_direct": "Direct와 Converse가 동시에 같은 포인트 활성화 시 강력"
+    }
+  },
+
+  "primary_directions": {
+    "description": "1차 방향법 - 가장 오래된 기법",
+    "calculation": {
+      "principle": "지구 자전에 기반, MC 이동",
+      "rate": "MC 1° = 약 1년 (Naibod rate)",
+      "variations": {
+        "ptolemy": "1° = 1년 (단순)",
+        "naibod": "0.9856° = 1년 (태양 평균 이동)",
+        "symbolic": "다양한 비율 가능"
+      }
+    },
+    "characteristics": {
+      "accuracy": "정확한 출생 시간 필수",
+      "focus": "운명적 이벤트, 외적 사건",
+      "tradition": "전통 점성술의 핵심 예측 기법"
+    },
+    "key_directions": {
+      "MC_to_sun": "커리어 정점, 공적 성취",
+      "ASC_to_moon": "개인적 변화, 감정적 전환",
+      "MC_to_saturn": "책임, 제한, 구조화",
+      "ASC_to_jupiter": "확장, 기회, 성장"
+    },
+    "saju_parallel": {
+      "concept": "세운+대운 복합 분석",
+      "description": "외적 사건의 타이밍 예측"
+    }
+  },
+
+  "combined_progression_analysis": {
+    "description": "여러 진행법을 통합 분석하는 방법",
+    "layered_approach": {
+      "level1_primary_SA": {
+        "methods": ["Primary Directions", "Solar Arc"],
+        "shows": "주요 생애 이벤트의 타이밍, 외적 변화"
+      },
+      "level2_secondary": {
+        "method": "Secondary Progressions",
+        "shows": "연간 테마, 내면 발달"
+      },
+      "level3_tertiary_minor": {
+        "methods": ["Tertiary", "Minor"],
+        "shows": "월간 세부 타이밍, 감정 패턴"
+      },
+      "level4_transits": {
+        "method": "Transits",
+        "shows": "즉각적 촉발, 일일 에너지"
+      }
+    },
+    "convergence_principle": {
+      "description": "여러 기법이 같은 포인트를 동시에 활성화할 때 이벤트 발생",
+      "example": {
+        "SA_sun_conjunct_MC": true,
+        "secondary_moon_conjunct_MC": true,
+        "transit_jupiter_conjunct_MC": true,
+        "result": "커리어에서 매우 중요한 성취/전환점"
+      }
+    },
+    "saju_integration": {
+      "method": "점성술 진행과 사주 운을 함께 분석",
+      "check_points": [
+        "대운 전환과 SA 주요 이벤트 동기화",
+        "세운 천간과 Secondary 태양 사인",
+        "월운과 Tertiary 달 애스펙트",
+        "일진과 Transit"
+      ],
+      "convergence": "양 시스템이 같은 테마를 가리킬 때 확신도 상승"
+    }
+  },
+
+  "practical_guide": {
+    "timing_chart_events": {
+      "step1": "Secondary로 연간 테마 파악",
+      "step2": "Solar Arc로 주요 생애 이벤트 확인",
+      "step3": "Tertiary로 월간 타이밍 세분화",
+      "step4": "Transit으로 정확한 촉발 시점",
+      "step5": "사주 대운/세운과 교차 검증"
+    },
+    "software_recommendations": {
+      "solar_fire": "모든 진행법 지원",
+      "astro_com": "기본 진행법 무료",
+      "time_passages": "모바일 친화적"
+    },
+    "common_mistakes": {
+      "over_reliance": "하나의 기법에만 의존하지 말 것",
+      "orb_too_wide": "진행법 오브는 좁게 (1° 이내)",
+      "ignoring_natal": "항상 출생 차트의 약속을 먼저 확인"
+    }
+  }
+}

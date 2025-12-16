@@ -1,0 +1,308 @@
+{
+  "$schema": "harmonic_analysis_v1",
+  "$description": "하모닉 점성학 - 숨겨진 패턴과 잠재력 분석",
+
+  "fundamentals": {
+    "description": "하모닉 차트는 출생 차트의 모든 위치를 N배 확대하여 숨겨진 패턴을 드러냄",
+    "calculation": "각 행성 위치 × N (그 후 360으로 나눈 나머지)",
+    "principle": "특정 숫자의 공명을 보여주며, 그 숫자와 관련된 생의 영역을 밝힘",
+    "saju_connection": {
+      "concept": "사주의 숨겨진 지지(暗支), 납음(納音), 신살(神煞)과 유사한 심층 분석",
+      "parallel": "겉으로 보이지 않는 내면의 패턴과 잠재력 발견"
+    }
+  },
+
+  "primary_harmonics": {
+    "H1": {
+      "name": "Radical Chart (기본 차트)",
+      "number": 1,
+      "meaning": "출생 차트 그 자체, 모든 잠재력의 원천",
+      "life_area": "전체적 자아, 현실화된 운명",
+      "saju_parallel": {
+        "concept": "원국(原局)",
+        "description": "기본 사주 명식, 모든 운명의 출발점"
+      }
+    },
+    "H2": {
+      "name": "Second Harmonic (이중성)",
+      "number": 2,
+      "meaning": "삶의 이원성, 대극, 관계에서의 패턴",
+      "life_area": "파트너십, 양극성, 통합해야 할 대립",
+      "aspects_emphasized": "Opposition (180°)",
+      "saju_parallel": {
+        "concept": "충(沖)",
+        "description": "지지 충의 에너지, 대립과 긴장, 동적 균형"
+      },
+      "interpretation": {
+        "strong_H2": "관계에서 강한 에너지, 파트너십 중시, 투사 경향",
+        "weak_H2": "독립적 성향, 타인과 융합 어려움"
+      }
+    },
+    "H3": {
+      "name": "Third Harmonic (창조성)",
+      "number": 3,
+      "meaning": "기쁨, 창조성, 자기 표현",
+      "life_area": "예술, 즐거움, 생산적 창조",
+      "aspects_emphasized": "Trine (120°)",
+      "saju_parallel": {
+        "concept": "삼합(三合)",
+        "description": "지지 삼합의 자연스러운 흐름, 재능의 합류점"
+      },
+      "interpretation": {
+        "strong_H3": "타고난 창조적 재능, 기쁨을 주는 활동 발견 용이",
+        "weak_H3": "창조성 개발에 노력 필요"
+      }
+    },
+    "H4": {
+      "name": "Fourth Harmonic (노력과 성취)",
+      "number": 4,
+      "meaning": "도전, 노력, 물질적 성취",
+      "life_area": "커리어, 야망, 극복해야 할 장애물",
+      "aspects_emphasized": "Square (90°), Opposition (180°)",
+      "saju_parallel": {
+        "concept": "형(刑)",
+        "description": "형살의 마찰 에너지, 성장을 위한 자극"
+      },
+      "interpretation": {
+        "strong_H4": "강한 성취욕, 장애물 극복 능력, 커리어 집중",
+        "weak_H4": "도전에 대한 낮은 내성, 편안함 추구"
+      }
+    },
+    "H5": {
+      "name": "Fifth Harmonic (스타일과 개성)",
+      "number": 5,
+      "meaning": "개인적 스타일, 힘의 사용, 창조와 파괴",
+      "life_area": "권력, 개성 표현, 인생의 질서 부여",
+      "aspects_emphasized": "Quintile (72°), Biquintile (144°)",
+      "saju_parallel": {
+        "concept": "오행(五行)",
+        "description": "5원소의 순환, 개인적 에너지 사용 방식"
+      },
+      "interpretation": {
+        "strong_H5": "독특한 스타일, 영향력 행사 능력, 질서 창조",
+        "weak_H5": "개성 표현 어려움, 타인 스타일 모방"
+      }
+    },
+    "H7": {
+      "name": "Seventh Harmonic (영감과 신비)",
+      "number": 7,
+      "meaning": "영감, 신비적 체험, 직관적 통찰",
+      "life_area": "영성, 예술적 영감, 비범한 재능",
+      "aspects_emphasized": "Septile (51.43°)",
+      "saju_parallel": {
+        "concept": "칠살(七殺) / 편관",
+        "description": "숨겨진 힘, 비정통적 경로의 성취"
+      },
+      "interpretation": {
+        "strong_H7": "강한 직관, 예언적 능력, 영적 연결",
+        "weak_H7": "논리적 접근 선호, 신비 체험 적음"
+      }
+    },
+    "H8": {
+      "name": "Eighth Harmonic (변형)",
+      "number": 8,
+      "meaning": "깊은 변형, 죽음과 재생, 심층 심리",
+      "life_area": "위기, 변혁, 심리적 치유",
+      "aspects_emphasized": "Semisquare (45°), Sesquiquadrate (135°)",
+      "saju_parallel": {
+        "concept": "육친의 변화, 팔자(八字)",
+        "description": "8글자 사주의 완전한 변형 가능성"
+      },
+      "interpretation": {
+        "strong_H8": "위기를 통한 성장 능력, 심층 변화 경험",
+        "weak_H8": "표면적 변화 선호, 깊은 변형 회피"
+      }
+    },
+    "H9": {
+      "name": "Ninth Harmonic (지혜와 완성)",
+      "number": 9,
+      "meaning": "지혜, 완성, 기쁨의 절정",
+      "life_area": "철학, 여행, 고등 교육, 영적 완성",
+      "aspects_emphasized": "Novile (40°)",
+      "saju_parallel": {
+        "concept": "구궁(九宮), 기문둔갑",
+        "description": "9궁의 완성, 동양 신비학의 완결수"
+      },
+      "interpretation": {
+        "strong_H9": "깊은 지혜, 완성의 기쁨, 영적 성취감",
+        "weak_H9": "완성보다 과정에 집중, 지혜 습득에 시간 필요"
+      }
+    },
+    "H12": {
+      "name": "Twelfth Harmonic (희생과 초월)",
+      "number": 12,
+      "meaning": "희생, 봉사, 초월, 카르마 완성",
+      "life_area": "치유, 봉사, 영적 성장, 은둔",
+      "aspects_emphasized": "Semisextile (30°), Quincunx (150°)",
+      "saju_parallel": {
+        "concept": "십이운성(十二運星), 12지지",
+        "description": "12궁의 순환, 완전한 생의 사이클"
+      },
+      "interpretation": {
+        "strong_H12": "봉사 정신, 치유 능력, 카르마 의식",
+        "weak_H12": "세속적 집중, 초월적 경험 드묾"
+      }
+    }
+  },
+
+  "age_harmonics": {
+    "description": "나이와 같은 숫자의 하모닉 차트 - 그 해의 테마를 보여줌",
+    "principle": "태어난 후 N년이 되면 H(N) 차트가 활성화",
+    "examples": {
+      "H21": {
+        "age": 21,
+        "themes": "성인 진입, 3×7의 완성, 영감과 창조의 합류",
+        "saju_parallel": "대운 전환점과 겹칠 가능성"
+      },
+      "H29": {
+        "age": 29,
+        "themes": "토성 회귀 전야, 성숙 압력",
+        "saju_parallel": "소운 전환, 책임감 상승"
+      },
+      "H36": {
+        "age": 36,
+        "themes": "4×9, 노력과 지혜의 결합",
+        "saju_parallel": "대운 전환 (10년 주기)"
+      },
+      "H42": {
+        "age": 42,
+        "themes": "6×7, 책임과 영감, 천왕성 대좌",
+        "saju_parallel": "중년 전환점"
+      },
+      "H49": {
+        "age": 49,
+        "themes": "7×7, 영감의 절정",
+        "saju_parallel": "키론 회귀 접근"
+      },
+      "H60": {
+        "age": 60,
+        "themes": "완전한 순환, 5×12, 환갑",
+        "saju_parallel": "환갑(還甲), 간지 1회전 완료"
+      }
+    },
+    "calculation_note": "생일 기준, 해당 나이가 되는 해 전체에 적용"
+  },
+
+  "aspect_harmonics": {
+    "description": "특정 애스펙트를 강조하여 보는 하모닉",
+    "quintile_series_H5": {
+      "aspects": ["Quintile 72°", "Biquintile 144°"],
+      "meaning": "숨겨진 재능, 창조적 힘, 개인적 스타일",
+      "interpretation": "컨정션으로 변환되어 강조됨"
+    },
+    "septile_series_H7": {
+      "aspects": ["Septile 51.43°", "Biseptile 102.86°", "Triseptile 154.29°"],
+      "meaning": "운명적 연결, 신비적 재능, 영감의 원천",
+      "interpretation": "드문 재능과 운명적 경로 발견"
+    },
+    "novile_series_H9": {
+      "aspects": ["Novile 40°", "Binovile 80°", "Quadnovile 160°"],
+      "meaning": "완성의 기쁨, 지혜, 영적 성취",
+      "interpretation": "기쁨과 성취감의 원천"
+    }
+  },
+
+  "harmonic_patterns": {
+    "grand_cross_in_H4": {
+      "pattern": "H4에서 그랜드 크로스",
+      "meaning": "강력한 성취 동력, 커리어 집중, 도전 지향",
+      "saju_parallel": "형살 다중, 강한 추진력"
+    },
+    "grand_trine_in_H9": {
+      "pattern": "H9에서 그랜드 트라인",
+      "meaning": "지혜의 자연스러운 흐름, 영적 재능",
+      "saju_parallel": "삼합국과 인성 조화"
+    },
+    "stellium_in_H5": {
+      "pattern": "H5에서 스텔리움",
+      "meaning": "강력한 개성, 독특한 스타일, 영향력",
+      "saju_parallel": "특정 오행 집중"
+    },
+    "yod_in_H7": {
+      "pattern": "H7에서 요드",
+      "meaning": "운명적 사명, 신비한 재능의 집중점",
+      "saju_parallel": "암록격의 숨겨진 힘"
+    }
+  },
+
+  "saju_harmonic_fusion": {
+    "description": "하모닉과 사주 요소의 통합 분석",
+    "mappings": {
+      "H3_samhap": {
+        "harmonic": "H3 (삼각형, 창조)",
+        "saju": "삼합(三合)",
+        "fusion_insight": "삼합이 있는 사주는 H3가 강할 가능성 높음. 자연스러운 재능의 흐름이 있는 영역.",
+        "analysis_method": "삼합 오행과 H3 스텔리움/컨정션 위치 비교"
+      },
+      "H4_hyung": {
+        "harmonic": "H4 (사각형, 도전)",
+        "saju": "형(刑)",
+        "fusion_insight": "형살이 많은 사주는 H4가 강할 가능성. 도전을 통한 성장 패턴.",
+        "analysis_method": "형살 관계와 H4 텐션 패턴 비교"
+      },
+      "H2_chung": {
+        "harmonic": "H2 (대립, 관계)",
+        "saju": "충(沖)",
+        "fusion_insight": "충이 있는 사주는 H2 긴장. 관계에서의 역동성과 투사.",
+        "analysis_method": "충 관계와 H2 오포지션 비교"
+      },
+      "H7_pyeongwan": {
+        "harmonic": "H7 (영감, 신비)",
+        "saju": "편관(偏官) / 칠살",
+        "fusion_insight": "편관이 강한 사주는 H7 강조. 비정통적 경로의 성취.",
+        "analysis_method": "편관 강도와 H7 패턴 비교"
+      },
+      "H9_gungwiseong": {
+        "harmonic": "H9 (지혜, 완성)",
+        "saju": "십이운성 관대/제왕",
+        "fusion_insight": "관대/제왕 운성이 있는 사주는 H9 활성. 지혜와 완성의 잠재력.",
+        "analysis_method": "운성 위치와 H9 강조점 비교"
+      },
+      "H12_sipijiseonhwan": {
+        "harmonic": "H12 (순환, 초월)",
+        "saju": "십이지지 완전 순환",
+        "fusion_insight": "12지지와 12하모닉의 완전한 대응. 생의 전체 사이클 이해.",
+        "analysis_method": "지지 배치와 H12 하우스 위치 비교"
+      }
+    }
+  },
+
+  "interpretation_template": {
+    "personal_harmonic_profile": {
+      "step1_strongest_harmonic": {
+        "description": "어떤 하모닉에서 가장 많은 컨정션/스텔리움이 있는가?",
+        "interpretation": "그 숫자의 테마가 인생의 핵심 영역"
+      },
+      "step2_weakest_harmonic": {
+        "description": "어떤 하모닉이 가장 분산되어 있는가?",
+        "interpretation": "개발이 필요한 영역, 의식적 노력 필요"
+      },
+      "step3_age_harmonic_current": {
+        "description": "현재 나이의 하모닉 차트 분석",
+        "interpretation": "올해의 핵심 테마와 잠재력"
+      },
+      "step4_saju_cross_check": {
+        "description": "사주 요소와 하모닉 패턴 교차 확인",
+        "interpretation": "동서양 시스템의 일치점 = 강력한 운명적 포인트"
+      }
+    },
+    "sample_reading": {
+      "intro": "당신의 하모닉 프로필 분석",
+      "h3_strong": "H3(창조)가 강하여 예술적 재능이 자연스럽게 흐릅니다.",
+      "h4_moderate": "H4(도전)가 적절하여 커리어에서 균형 잡힌 노력을 합니다.",
+      "h7_weak": "H7(영감)이 약하여 직관보다 논리적 접근을 선호합니다.",
+      "age_harmonic": "현재 35세로 H35(5×7)가 활성화. 개성(5)과 영감(7)의 조화를 찾는 해입니다.",
+      "saju_link": "삼합목국이 있어 H3의 창조 에너지가 목(木) 영역(성장, 계획, 비전)에서 특히 발현됩니다."
+    }
+  },
+
+  "calculation_reference": {
+    "formula": "H(N) position = (Natal position × N) mod 360",
+    "example": {
+      "natal_sun": "15° Aries = 15°",
+      "H5_calculation": "15 × 5 = 75°",
+      "H5_sun_position": "75° = 15° Gemini"
+    },
+    "software_note": "대부분의 점성술 소프트웨어에서 자동 계산 가능 (Solar Fire, Astro.com 등)"
+  }
+}

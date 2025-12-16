@@ -57,7 +57,8 @@ function getCardIcon(count: number): string {
 }
 
 export default function TarotHomePage() {
-  const { translate } = useI18n();
+  const { translate, language } = useI18n();
+  const isKo = language === 'ko';
   const [activeTheme, setActiveTheme] = useState(tarotThemes[0]?.id || "general-insight");
 
   const currentTheme = useMemo(() => {
@@ -109,7 +110,7 @@ export default function TarotHomePage() {
               } : undefined}
             >
               <span className={styles.themeIcon}>{style?.icon || "🔮"}</span>
-              <span className={styles.themeName}>{theme.category}</span>
+              <span className={styles.themeName}>{isKo ? theme.categoryKo || theme.category : theme.category}</span>
             </button>
           );
         })}
@@ -124,8 +125,8 @@ export default function TarotHomePage() {
           {themeStyle.icon}
         </div>
         <div className={styles.themeInfo}>
-          <h2 className={styles.themeTitleLarge}>{currentTheme?.category}</h2>
-          <p className={styles.themeDescription}>{currentTheme?.description}</p>
+          <h2 className={styles.themeTitleLarge}>{isKo ? currentTheme?.categoryKo || currentTheme?.category : currentTheme?.category}</h2>
+          <p className={styles.themeDescription}>{isKo ? currentTheme?.descriptionKo || currentTheme?.description : currentTheme?.description}</p>
         </div>
       </div>
 
@@ -145,16 +146,16 @@ export default function TarotHomePage() {
               {getCardIcon(spread.cardCount)}
             </div>
             <div className={styles.spreadCardContent}>
-              <h3 className={styles.spreadTitle}>{spread.title}</h3>
+              <h3 className={styles.spreadTitle}>{isKo ? spread.titleKo || spread.title : spread.title}</h3>
               <span className={styles.spreadCardCount}>
                 {spread.cardCount} {translate("tarot.spread.cards", "cards")}
               </span>
-              <p className={styles.spreadDescription}>{spread.description}</p>
+              <p className={styles.spreadDescription}>{isKo ? spread.descriptionKo || spread.description : spread.description}</p>
             </div>
             <div className={styles.spreadPositions}>
               {spread.positions.slice(0, 3).map((pos, idx) => (
                 <span key={idx} className={styles.positionTag}>
-                  {pos.title}
+                  {isKo ? pos.titleKo || pos.title : pos.title}
                 </span>
               ))}
               {spread.positions.length > 3 && (

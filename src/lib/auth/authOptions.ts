@@ -5,6 +5,7 @@ import KakaoProvider from 'next-auth/providers/kakao'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from '@/lib/db/prisma'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
+import { encryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 
 // ============================================
 // OAuth providers (Google, Kakao)
@@ -18,8 +19,26 @@ const ALLOWED_ACCOUNT_FIELDS = new Set([
   'scope', 'id_token', 'session_state',
 ])
 
+function ensureEncryptionKey() {
+  if (hasTokenEncryptionKey()) return
+  const msg = 'TOKEN_ENCRYPTION_KEY is required to store OAuth tokens securely'
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(msg)
+  }
+  console.warn(`[auth] ${msg} (development only: tokens will remain plaintext)`)
+}
+
+function encryptAccountTokens(account: AdapterAccount) {
+  const copy = { ...account }
+  if (copy.refresh_token) copy.refresh_token = encryptToken(copy.refresh_token) ?? undefined
+  if (copy.access_token) copy.access_token = encryptToken(copy.access_token) ?? undefined
+  if (copy.id_token) copy.id_token = encryptToken(copy.id_token) ?? undefined
+  return copy
+}
+
 // Custom adapter that filters out unknown account fields before saving
 function createFilteredPrismaAdapter(): Adapter {
+  ensureEncryptionKey()
   const baseAdapter = PrismaAdapter(prisma)
 
   return {
@@ -31,7 +50,8 @@ function createFilteredPrismaAdapter(): Adapter {
           filteredAccount[key] = value
         }
       }
-      return baseAdapter.linkAccount?.(filteredAccount as AdapterAccount)
+      const securedAccount = encryptAccountTokens(filteredAccount as AdapterAccount)
+      return baseAdapter.linkAccount?.(securedAccount)
     },
   }
 }

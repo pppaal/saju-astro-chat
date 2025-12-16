@@ -117,9 +117,36 @@ export const analytics = {
   filterCategory: (category: string) =>
     trackEvent("filter_category", { category }),
 
-  // Conversion
+  // Conversion funnel
   viewPricing: () =>
     trackEvent("view_pricing"),
   startTrial: () =>
     trackEvent("begin_checkout"),
+
+  // Purchase events (for GA4 conversion tracking)
+  purchase: (params: {
+    transaction_id: string;
+    value: number;
+    currency: string;
+    plan: string;
+  }) =>
+    trackEvent("purchase", {
+      transaction_id: params.transaction_id,
+      value: params.value,
+      currency: params.currency,
+      items: [{ item_name: params.plan, price: params.value }],
+    }),
+
+  subscribe: (plan: string, value: number, currency: string = "KRW") =>
+    trackEvent("subscribe", { plan, value, currency }),
+
+  cancelSubscription: (plan: string) =>
+    trackEvent("cancel_subscription", { plan }),
+
+  // Key conversion points
+  completeReading: (service: string) =>
+    trackEvent("complete_reading", { service }),
+
+  signupComplete: () =>
+    trackEvent("sign_up_complete"),
 };

@@ -1,37 +1,34 @@
 // src/lib/astrology/foundation/extraPoints.ts
 // Chiron, Part of Fortune, Vertex, Lilith 계산
 
-import path from "path";
-const swisseph = require("swisseph");
-
 import { ExtraPoint, ExtendedChart, Chart, NatalInput } from "./types";
 import { formatLongitude, normalize360 } from "./utils";
 import { inferHouseOf } from "./houses";
+import { getSwisseph } from "./ephe";
 
 // Swiss Ephemeris 추가 천체 ID
-const EXTRA_BODIES = {
-  Chiron: swisseph.SE_CHIRON,
-  Lilith: swisseph.SE_MEAN_APOG,  // Mean Black Moon Lilith
-  TrueLilith: swisseph.SE_OSCU_APOG,  // Osculating/True Lilith
-};
-
-const SW_FLAGS = swisseph.SEFLG_SPEED;
-
-let EPHE_PATH_SET = false;
-function ensureEphePath() {
-  if (!EPHE_PATH_SET) {
-    const ephePath = path.join(process.cwd(), "public", "ephe");
-    swisseph.swe_set_ephe_path(ephePath);
-    EPHE_PATH_SET = true;
-  }
-}
+const getExtraBodies = (() => {
+  let cache: Record<string, number> | null = null;
+  return () => {
+    if (cache) return cache;
+    const swisseph = getSwisseph();
+    cache = {
+      Chiron: swisseph.SE_CHIRON,
+      Lilith: swisseph.SE_MEAN_APOG,  // Mean Black Moon Lilith
+      TrueLilith: swisseph.SE_OSCU_APOG,  // Osculating/True Lilith
+    };
+    return cache;
+  };
+})();
 
 /**
  * Chiron 계산
  * 상처와 치유의 소행성
  */
 export function calculateChiron(ut_jd: number, houseCusps: number[]): ExtraPoint {
-  ensureEphePath();
+  const swisseph = getSwisseph();
+  const EXTRA_BODIES = getExtraBodies();
+  const SW_FLAGS = swisseph.SEFLG_SPEED;
 
   const res = swisseph.swe_calc_ut(ut_jd, EXTRA_BODIES.Chiron, SW_FLAGS);
   if ("error" in res) throw new Error(`Chiron calculation error: ${res.error}`);
@@ -57,7 +54,9 @@ export function calculateChiron(ut_jd: number, houseCusps: number[]): ExtraPoint
  * 억압된 여성성, 그림자 자아
  */
 export function calculateLilith(ut_jd: number, houseCusps: number[]): ExtraPoint {
-  ensureEphePath();
+  const swisseph = getSwisseph();
+  const EXTRA_BODIES = getExtraBodies();
+  const SW_FLAGS = swisseph.SEFLG_SPEED;
 
   const res = swisseph.swe_calc_ut(ut_jd, EXTRA_BODIES.Lilith, SW_FLAGS);
   if ("error" in res) throw new Error(`Lilith calculation error: ${res.error}`);
@@ -126,7 +125,7 @@ export function calculateVertex(
   longitude: number,
   houseCusps: number[]
 ): ExtraPoint {
-  ensureEphePath();
+  const swisseph = getSwisseph();
 
   // Vertex는 일반적으로 ASC의 반대편 (180도)에서 약간 벗어난 위치
   // 정밀 계산: ARMC + 90도 지점의 황도 교점

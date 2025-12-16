@@ -24,14 +24,23 @@ from sentence_transformers import SentenceTransformer, util
 # ===============================================================
 # SHARED MODEL (Singleton)
 # ===============================================================
-# Lighter model for faster load/encode; swap to a heavier one if quality requires.
-_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+# Multilingual model for Korean/English mixed content
+# Fallback to English-only model if multilingual fails to load
+_MODEL_NAME_MULTILINGUAL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+_MODEL_NAME_ENGLISH = "sentence-transformers/all-MiniLM-L6-v2"
 _MODEL = None
+_MODEL_TYPE = None  # "multilingual" or "english"
 
 
-def get_model() -> SentenceTransformer:
-    """Get or create singleton SentenceTransformer model."""
-    global _MODEL
+def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
+    """
+    Get or create singleton SentenceTransformer model.
+
+    Args:
+        prefer_multilingual: If True, try to load multilingual model first.
+                            Supports Korean, English, Chinese, Japanese, etc.
+    """
+    global _MODEL, _MODEL_TYPE
     if _MODEL is None:
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
         device_pref = os.getenv("RAG_DEVICE", "auto").lower()
@@ -51,11 +60,40 @@ def get_model() -> SentenceTransformer:
             torch.set_num_threads(int(os.getenv("RAG_CPU_THREADS", "4")))
         except Exception:
             torch.set_num_threads(4)
-        print(f"[SajuAstroRAG] Loading model: {_MODEL_NAME}")
-        print(f"[SajuAstroRAG] Using device: {device}")
-        _MODEL = SentenceTransformer(_MODEL_NAME, device=device)
-        print("[SajuAstroRAG] Model loaded successfully")
+
+        # Check environment override
+        model_override = os.getenv("RAG_MODEL", "").lower()
+        use_multilingual = prefer_multilingual and model_override != "english"
+
+        if use_multilingual:
+            try:
+                model_name = _MODEL_NAME_MULTILINGUAL
+                print(f"[SajuAstroRAG] Loading multilingual model: {model_name}")
+                print(f"[SajuAstroRAG] Using device: {device}")
+                _MODEL = SentenceTransformer(model_name, device=device)
+                _MODEL_TYPE = "multilingual"
+                print("[SajuAstroRAG] Multilingual model loaded (ko/en/zh/ja support)")
+            except Exception as e:
+                print(f"[SajuAstroRAG] Multilingual model failed: {e}, falling back to English")
+                use_multilingual = False
+
+        if not use_multilingual or _MODEL is None:
+            model_name = _MODEL_NAME_ENGLISH
+            print(f"[SajuAstroRAG] Loading English model: {model_name}")
+            print(f"[SajuAstroRAG] Using device: {device}")
+            _MODEL = SentenceTransformer(model_name, device=device)
+            _MODEL_TYPE = "english"
+            print("[SajuAstroRAG] English model loaded successfully")
+
     return _MODEL
+
+
+def get_model_type() -> str:
+    """Get the type of loaded model (multilingual or english)."""
+    global _MODEL_TYPE
+    if _MODEL_TYPE is None:
+        get_model()  # Initialize if not yet loaded
+    return _MODEL_TYPE or "unknown"
 
 
 # ===============================================================

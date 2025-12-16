@@ -1,0 +1,296 @@
+{
+  "$schema": "jung_psychological_types_v1",
+  "$description": "융 심리유형론 - 8가지 인지기능과 사주/점성술/타로 매핑",
+
+  "attitudes": {
+    "extraversion": {
+      "name_ko": "외향",
+      "name_en": "Extraversion",
+      "core": "리비도가 외부 객체로 향함. 객관적 사실과 외부 환경에 관심.",
+      "characteristics": ["활동적", "사교적", "넓은 관계", "행동 먼저", "자극 추구"],
+      "shadow": "내면 세계 소홀, 피상적 관계, 혼자 있으면 불안",
+      "saju_correlation": ["식신", "상관", "편재", "겁재"],
+      "astro_correlation": ["사자자리", "쌍둥이자리", "양자리", "1하우스/10하우스 강조"]
+    },
+    "introversion": {
+      "name_ko": "내향",
+      "name_en": "Introversion",
+      "core": "리비도가 내적 주관으로 향함. 주관적 경험과 내면 세계에 관심.",
+      "characteristics": ["성찰적", "깊은 관계", "생각 먼저", "에너지 보존", "의미 추구"],
+      "shadow": "고립, 현실 적응 어려움, 타인 이해 부족",
+      "saju_correlation": ["정인", "편인", "정재", "정관"],
+      "astro_correlation": ["전갈자리", "물고기자리", "처녀자리", "4하우스/12하우스 강조"]
+    }
+  },
+
+  "functions": {
+    "thinking": {
+      "name_ko": "사고",
+      "name_en": "Thinking",
+      "axis": "판단 기능",
+      "opposite": "feeling",
+      "core": "논리와 원칙에 따라 판단. 인과관계, 분석, 객관적 진리 추구.",
+      "keywords": ["분석", "논리", "원칙", "비판", "체계", "객관성"]
+    },
+    "feeling": {
+      "name_ko": "감정",
+      "name_en": "Feeling",
+      "axis": "판단 기능",
+      "opposite": "thinking",
+      "core": "가치와 조화에 따라 판단. 관계, 공감, 주관적 가치 추구.",
+      "keywords": ["가치", "조화", "공감", "관계", "도덕", "주관성"]
+    },
+    "sensation": {
+      "name_ko": "감각",
+      "name_en": "Sensation",
+      "axis": "인식 기능",
+      "opposite": "intuition",
+      "core": "오감을 통한 현실 인식. 구체적 사실, 현재, 세부사항에 주목.",
+      "keywords": ["현실", "구체", "세부", "경험", "실용", "현재"]
+    },
+    "intuition": {
+      "name_ko": "직관",
+      "name_en": "Intuition",
+      "axis": "인식 기능",
+      "opposite": "sensation",
+      "core": "무의식적 패턴 인식. 가능성, 미래, 전체 그림에 주목.",
+      "keywords": ["가능성", "패턴", "미래", "통찰", "상징", "전체"]
+    }
+  },
+
+  "eight_cognitive_functions": {
+    "Se": {
+      "name_ko": "외향 감각",
+      "name_en": "Extraverted Sensation",
+      "code": "Se",
+      "description": "현재 순간의 감각적 경험에 완전히 몰입. 물리적 현실과의 직접적 연결.",
+      "strengths": ["현재에 충실", "행동력", "감각적 즐거움", "위기 대응", "현실 파악"],
+      "challenges": ["미래 계획 소홀", "깊이 부족", "충동성", "과잉 자극 추구"],
+      "growth_direction": "Ni(내향 직관) 개발 - 의미와 장기적 비전 탐색",
+      "saju_mapping": {
+        "primary": ["편재", "식신"],
+        "interpretation": "편재의 현실적 기회 포착, 식신의 감각적 향유"
+      },
+      "astro_mapping": {
+        "primary": ["황소자리", "사자자리", "2하우스", "금성-화성"],
+        "interpretation": "황소의 감각적 향유, 사자의 현재 순간 표현"
+      },
+      "tarot_mapping": {
+        "primary": ["pentacles_suit", "strength", "empress"],
+        "interpretation": "펜타클의 물질 세계, 힘의 본능적 에너지"
+      }
+    },
+    "Si": {
+      "name_ko": "내향 감각",
+      "name_en": "Introverted Sensation",
+      "code": "Si",
+      "description": "과거 경험과 비교하여 현재를 인식. 기억, 전통, 세부사항의 내면화.",
+      "strengths": ["기억력", "신뢰성", "세부 주의", "전통 존중", "실용적 지혜"],
+      "challenges": ["변화 저항", "과거 집착", "새로움 거부", "비교 피로"],
+      "growth_direction": "Ne(외향 직관) 개발 - 새로운 가능성과 변화 수용",
+      "saju_mapping": {
+        "primary": ["정재", "정인"],
+        "interpretation": "정재의 안정 추구, 정인의 경험적 학습"
+      },
+      "astro_mapping": {
+        "primary": ["처녀자리", "염소자리", "6하우스", "토성"],
+        "interpretation": "처녀의 세부 주의, 염소의 전통과 구조"
+      },
+      "tarot_mapping": {
+        "primary": ["hierophant", "4_of_pentacles", "6_of_cups"],
+        "interpretation": "교황의 전통, 펜타클4의 보존, 컵6의 과거 기억"
+      }
+    },
+    "Ne": {
+      "name_ko": "외향 직관",
+      "name_en": "Extraverted Intuition",
+      "code": "Ne",
+      "description": "외부 세계에서 패턴과 가능성을 탐색. 아이디어 연결, 브레인스토밍.",
+      "strengths": ["창의성", "가능성 탐색", "연결 능력", "적응력", "영감"],
+      "challenges": ["완성 어려움", "산만함", "현실 이탈", "깊이 부족"],
+      "growth_direction": "Si(내향 감각) 개발 - 구체적 실행과 완성",
+      "saju_mapping": {
+        "primary": ["상관", "편인"],
+        "interpretation": "상관의 창의적 파괴, 편인의 비전통적 통찰"
+      },
+      "astro_mapping": {
+        "primary": ["쌍둥이자리", "물병자리", "3하우스", "천왕성", "수성"],
+        "interpretation": "쌍둥이의 다양한 관심, 물병의 혁신적 비전"
+      },
+      "tarot_mapping": {
+        "primary": ["fool", "wheel_of_fortune", "7_of_wands"],
+        "interpretation": "바보의 무한 가능성, 운명의 수레바퀴의 변화"
+      }
+    },
+    "Ni": {
+      "name_ko": "내향 직관",
+      "name_en": "Introverted Intuition",
+      "code": "Ni",
+      "description": "내면에서 떠오르는 통찰과 비전. 무의식적 패턴의 수렴, 예지적 이해.",
+      "strengths": ["통찰력", "비전", "상징 이해", "미래 예측", "의미 파악"],
+      "challenges": ["현실과 괴리", "설명 어려움", "고립", "과도한 확신"],
+      "growth_direction": "Se(외향 감각) 개발 - 현재에 몰입하고 행동하기",
+      "saju_mapping": {
+        "primary": ["편인", "정관"],
+        "interpretation": "편인의 신비로운 통찰, 정관의 장기적 비전"
+      },
+      "astro_mapping": {
+        "primary": ["전갈자리", "물고기자리", "8하우스", "해왕성", "명왕성"],
+        "interpretation": "전갈의 심층 통찰, 물고기의 영적 비전"
+      },
+      "tarot_mapping": {
+        "primary": ["high_priestess", "hermit", "moon"],
+        "interpretation": "여사제의 신비로운 앎, 은둔자의 내면 탐색"
+      }
+    },
+    "Te": {
+      "name_ko": "외향 사고",
+      "name_en": "Extraverted Thinking",
+      "code": "Te",
+      "description": "외부 세계를 논리적으로 조직화. 효율성, 시스템, 객관적 기준 적용.",
+      "strengths": ["조직력", "효율성", "목표 달성", "논리적 설득", "시스템 구축"],
+      "challenges": ["감정 무시", "냉정함", "과도한 통제", "유연성 부족"],
+      "growth_direction": "Fi(내향 감정) 개발 - 개인적 가치와 감정 인정",
+      "saju_mapping": {
+        "primary": ["편관", "정재"],
+        "interpretation": "편관의 외부 통제력, 정재의 체계적 관리"
+      },
+      "astro_mapping": {
+        "primary": ["염소자리", "처녀자리", "10하우스", "토성", "수성"],
+        "interpretation": "염소의 목표 지향, 처녀의 효율적 분석"
+      },
+      "tarot_mapping": {
+        "primary": ["emperor", "justice", "king_of_swords"],
+        "interpretation": "황제의 구조와 권위, 정의의 객관적 판단"
+      }
+    },
+    "Ti": {
+      "name_ko": "내향 사고",
+      "name_en": "Introverted Thinking",
+      "code": "Ti",
+      "description": "내적 논리 체계 구축. 원칙 분석, 모델 만들기, 일관성 추구.",
+      "strengths": ["분석력", "정확성", "독립적 사고", "원리 이해", "일관성"],
+      "challenges": ["소통 어려움", "지나친 분석", "현실 적용 부족", "고집"],
+      "growth_direction": "Fe(외향 감정) 개발 - 타인과의 조화와 소통",
+      "saju_mapping": {
+        "primary": ["정인", "비견"],
+        "interpretation": "정인의 원리 학습, 비견의 독립적 판단"
+      },
+      "astro_mapping": {
+        "primary": ["물병자리", "천칭자리", "11하우스", "천왕성", "토성"],
+        "interpretation": "물병의 독립적 사고, 천칭의 균형 분석"
+      },
+      "tarot_mapping": {
+        "primary": ["hermit", "magician", "ace_of_swords"],
+        "interpretation": "은둔자의 내면 탐구, 마법사의 원리 이해"
+      }
+    },
+    "Fe": {
+      "name_ko": "외향 감정",
+      "name_en": "Extraverted Feeling",
+      "code": "Fe",
+      "description": "외부 세계의 사회적 가치와 조화. 집단 감정, 관계 조율, 공감.",
+      "strengths": ["공감력", "조화 추구", "사회적 능숙", "돌봄", "갈등 해결"],
+      "challenges": ["자기 상실", "눈치 과잉", "갈등 회피", "의존성"],
+      "growth_direction": "Ti(내향 사고) 개발 - 독립적 판단과 논리적 분석",
+      "saju_mapping": {
+        "primary": ["정인", "식신"],
+        "interpretation": "정인의 돌봄, 식신의 친화적 표현"
+      },
+      "astro_mapping": {
+        "primary": ["천칭자리", "게자리", "7하우스", "금성", "달"],
+        "interpretation": "천칭의 관계 조화, 게의 정서적 돌봄"
+      },
+      "tarot_mapping": {
+        "primary": ["empress", "lovers", "2_of_cups"],
+        "interpretation": "여황제의 돌봄, 연인의 관계, 컵2의 조화"
+      }
+    },
+    "Fi": {
+      "name_ko": "내향 감정",
+      "name_en": "Introverted Feeling",
+      "code": "Fi",
+      "description": "내면의 깊은 가치 체계. 진정성, 개인적 도덕, 정체성에 대한 충실함.",
+      "strengths": ["진정성", "깊은 공감", "가치 충실", "예술적 감수성", "정체성"],
+      "challenges": ["표현 어려움", "오해받음", "감정 억압", "관계 어려움"],
+      "growth_direction": "Te(외향 사고) 개발 - 가치를 외부에서 실현하기",
+      "saju_mapping": {
+        "primary": ["정재", "비견"],
+        "interpretation": "정재의 내면 가치, 비견의 정체성 충실"
+      },
+      "astro_mapping": {
+        "primary": ["물고기자리", "전갈자리", "12하우스", "해왕성", "금성"],
+        "interpretation": "물고기의 깊은 감수성, 전갈의 정서적 진정성"
+      },
+      "tarot_mapping": {
+        "primary": ["star", "temperance", "queen_of_cups"],
+        "interpretation": "별의 내면의 빛, 절제의 내적 조화"
+      }
+    }
+  },
+
+  "type_dynamics": {
+    "dominant_auxiliary": {
+      "description": "주기능과 부기능의 관계 - 균형 잡힌 성격 발달",
+      "rule": "주기능이 판단(T/F)이면 부기능은 인식(S/N), 그 반대도 마찬가지",
+      "example": "Te 주기능 → Ni 또는 Si 부기능"
+    },
+    "tertiary_inferior": {
+      "description": "3차 기능과 열등 기능 - 그림자와 성장의 영역",
+      "rule": "열등 기능은 주기능의 반대",
+      "therapeutic_insight": "열등 기능은 그림자의 관문. 스트레스 시 폭발적으로 나타남."
+    },
+    "function_stack_examples": {
+      "INTJ": {
+        "stack": ["Ni", "Te", "Fi", "Se"],
+        "description": "내향 직관 주도 - 비전을 체계적으로 실현",
+        "shadow_grip": "Se 열등 - 스트레스 시 과식, 과음, 감각적 탐닉"
+      },
+      "ENFP": {
+        "stack": ["Ne", "Fi", "Te", "Si"],
+        "description": "외향 직관 주도 - 가능성을 가치와 연결",
+        "shadow_grip": "Si 열등 - 스트레스 시 과거 실패에 집착, 건강 염려증"
+      },
+      "ISTJ": {
+        "stack": ["Si", "Te", "Fi", "Ne"],
+        "description": "내향 감각 주도 - 경험을 체계적으로 적용",
+        "shadow_grip": "Ne 열등 - 스트레스 시 재앙적 상상, 최악의 가능성 걱정"
+      },
+      "ESFP": {
+        "stack": ["Se", "Fi", "Te", "Ni"],
+        "description": "외향 감각 주도 - 현재 순간을 가치 있게",
+        "shadow_grip": "Ni 열등 - 스트레스 시 미래에 대한 암울한 비전"
+      }
+    }
+  },
+
+  "personality_test_integration": {
+    "description": "사용자 personality 테스트 결과와의 통합 방법",
+    "mapping_structure": {
+      "test_result_to_functions": {
+        "method": "테스트 점수를 8가지 기능 강도로 변환",
+        "example": {
+          "if_high_E_and_S": "Se 또는 Si 점수 증가",
+          "if_high_N_and_T": "Ti 또는 Te 점수 증가"
+        }
+      },
+      "functions_to_saju": {
+        "method": "인지기능 프로필을 십신 패턴과 비교",
+        "synergy_analysis": "사주 십신과 심리유형의 일치/불일치 분석"
+      },
+      "functions_to_astro": {
+        "method": "인지기능을 행성/별자리 에너지와 매핑",
+        "validation": "차트의 강조점과 유형의 일치 확인"
+      }
+    },
+    "cross_validation": {
+      "description": "다중 소스 교차 검증으로 신뢰도 향상",
+      "sources": ["personality_test", "saju_analysis", "astro_chart"],
+      "output": "통합 심리 프로필 + 일치/불일치 인사이트"
+    },
+    "therapeutic_application": {
+      "growth_recommendations": "열등 기능 + 사주 기신 + 차트 약점 = 통합 성장 과제",
+      "strength_leverage": "주기능 + 사주 용신 + 차트 강점 = 핵심 자원"
+    }
+  }
+}

@@ -50,7 +50,9 @@ export default function MainPage() {
   const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
   const [totalVisitors, setTotalVisitors] = useState<number | null>(null);
+  const [totalMembers, setTotalMembers] = useState<number | null>(null);
   const [visitorError, setVisitorError] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const trackedOnce = useRef(false);
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
 
@@ -62,30 +64,34 @@ export default function MainPage() {
     isDeckSpread: boolean;
   };
   type TarotAction =
-    | { type: 'FLIP_CARD'; index: number; newCard?: TarotCard; newUsedIndex?: number }
-    | { type: 'TOGGLE_DECK' }
+    | { type: 'FLIP_CARD'; index: number }
+    | { type: 'DRAW_ALL_CARDS'; cards: TarotCard[]; usedIndices: number[] }
     | { type: 'RESET' };
 
   const initialTarotState: TarotState = {
     flippedCards: [false, false, false, false],
-    selectedCards: [TAROT_DECK[16], TAROT_DECK[17], TAROT_DECK[18], TAROT_DECK[19]],
-    usedCardIndices: new Set([16, 17, 18, 19]),
+    selectedCards: [],
+    usedCardIndices: new Set(),
     isDeckSpread: false,
   };
 
   function tarotReducer(state: TarotState, action: TarotAction): TarotState {
     switch (action.type) {
       case 'FLIP_CARD': {
+        if (state.selectedCards.length === 0) return state;
         const newFlipped = [...state.flippedCards];
         newFlipped[action.index] = !newFlipped[action.index];
-        const newSelected = [...state.selectedCards];
-        if (action.newCard) newSelected[action.index] = action.newCard;
-        const newUsed = new Set(state.usedCardIndices);
-        if (action.newUsedIndex !== undefined) newUsed.add(action.newUsedIndex);
-        return { ...state, flippedCards: newFlipped, selectedCards: newSelected, usedCardIndices: newUsed };
+        return { ...state, flippedCards: newFlipped };
       }
-      case 'TOGGLE_DECK':
-        return { ...state, isDeckSpread: !state.isDeckSpread };
+      case 'DRAW_ALL_CARDS': {
+        return {
+          ...state,
+          selectedCards: action.cards,
+          usedCardIndices: new Set(action.usedIndices),
+          flippedCards: [false, false, false, false],
+          isDeckSpread: true,
+        };
+      }
       case 'RESET':
         return initialTarotState;
       default:
@@ -178,6 +184,16 @@ export default function MainPage() {
     };
   }, []);
 
+  // Scroll to top button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   useEffect(() => {
     if (trackedOnce.current) return;
     trackedOnce.current = true;
@@ -187,46 +203,47 @@ export default function MainPage() {
 
     async function run() {
       try {
+        // Fetch visitor stats
         await fetch("/api/visitors-today", { method: "POST", headers });
-        const res = await fetch("/api/visitors-today", { headers });
-        if (!res.ok) {
-          setVisitorError("Could not load visitor stats.");
-          return;
+        const visitorRes = await fetch("/api/visitors-today", { headers });
+        if (visitorRes.ok) {
+          const data = await visitorRes.json();
+          setTodayVisitors(typeof data.count === "number" ? data.count : 0);
+          setTotalVisitors(typeof data.total === "number" ? data.total : 0);
         }
-        const data = await res.json();
-        setTodayVisitors(typeof data.count === "number" ? data.count : 0);
-        setTotalVisitors(typeof data.total === "number" ? data.total : 0);
+
+        // Fetch member stats
+        const statsRes = await fetch("/api/stats");
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setTotalMembers(typeof statsData.users === "number" ? statsData.users : 0);
+        }
       } catch {
-        setVisitorError("Could not load visitor stats.");
+        setVisitorError("Could not load stats.");
       }
     }
 
     run();
   }, [metricsToken]);
 
-  // Tarot card click handlers - single dispatch prevents multiple re-renders
+  // Tarot card click handler - just flip the card
   const handleCardClick = useCallback((index: number) => {
-    if (!flippedCards[index]) {
-      // Select random card from deck (no duplicates)
-      const availableIndices = Array.from({ length: TAROT_DECK.length }, (_, i) => i)
-        .filter(i => !usedCardIndices.has(i));
-
-      if (availableIndices.length > 0) {
-        const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-        dispatchTarot({ type: 'FLIP_CARD', index, newCard: TAROT_DECK[randomIndex], newUsedIndex: randomIndex });
-      } else {
-        dispatchTarot({ type: 'FLIP_CARD', index });
-      }
-    } else {
+    if (selectedCards.length > 0) {
       dispatchTarot({ type: 'FLIP_CARD', index });
     }
-  }, [flippedCards, usedCardIndices]);
+  }, [selectedCards.length]);
 
+  // Deck click handler - draw 4 random cards or reset
   const handleDeckClick = useCallback(() => {
     if (isDeckSpread) {
       dispatchTarot({ type: 'RESET' });
     } else {
-      dispatchTarot({ type: 'TOGGLE_DECK' });
+      // Draw 4 random cards from deck
+      const availableIndices = Array.from({ length: TAROT_DECK.length }, (_, i) => i);
+      const shuffled = availableIndices.sort(() => Math.random() - 0.5);
+      const selectedIndices = shuffled.slice(0, 4);
+      const cards = selectedIndices.map(i => TAROT_DECK[i]);
+      dispatchTarot({ type: 'DRAW_ALL_CARDS', cards, usedIndices: selectedIndices });
     }
   }, [isDeckSpread]);
 
@@ -244,6 +261,11 @@ export default function MainPage() {
     setLifeQuestion(hint);
     router.push(`/destiny-map?q=${encodeURIComponent(hint)}`);
   }, [router]);
+
+  // Scroll to top handler
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -446,26 +468,45 @@ export default function MainPage() {
                 </div>
                 <Grid className={styles.dropdownGrid} columns={3}>
                   {serviceLinksData.map((s) => (
-                    <Card as={Link} key={s.href} href={s.href} className={styles.dropItem}>
-                      <div className={styles.dropItemLeft}>
-                        <span className={styles.dropItemIcon}>{s.icon}</span>
-                        <div className={styles.dropItemText}>
-                          <span className={styles.dropItemLabel}>{t(`services.${s.key}.label`)}</span>
-                          <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
+                    s.comingSoon ? (
+                      <Card key={s.href} className={`${styles.dropItem} ${styles.dropItemDisabled}`}>
+                        <div className={styles.dropItemLeft}>
+                          <span className={styles.dropItemIcon}>{s.icon}</span>
+                          <div className={styles.dropItemText}>
+                            <span className={styles.dropItemLabel}>
+                              {t(`services.${s.key}.label`)}
+                              <span className={styles.comingSoonBadge}>{t("common.comingSoon")}</span>
+                            </span>
+                            <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
+                      </Card>
+                    ) : (
+                      <Card as={Link} key={s.href} href={s.href} className={styles.dropItem}>
+                        <div className={styles.dropItemLeft}>
+                          <span className={styles.dropItemIcon}>{s.icon}</span>
+                          <div className={styles.dropItemText}>
+                            <span className={styles.dropItemLabel}>{t(`services.${s.key}.label`)}</span>
+                            <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
+                          </div>
+                        </div>
+                      </Card>
+                    )
                   ))}
                 </Grid>
               </div>
             )}
           </div>
+          <Link href="/pricing" className={styles.navLink}>
+            {translate("common.pricing", "Pricing")}
+          </Link>
           <Link href="/myjourney" className={styles.navLink}>
             {t("app.myJourney")}
           </Link>
-          <Link href="/community" className={styles.navLink}>
+          <span className={`${styles.navLink} ${styles.navLinkDisabled}`}>
             {t("app.community")}
-          </Link>
+            <span className={styles.comingSoonBadgeSmall}>{t("common.comingSoon")}</span>
+          </span>
         </nav>
         <div className={styles.headerLinks}>
           <HeaderUser />
@@ -548,22 +589,34 @@ export default function MainPage() {
       <section className={styles.statsSection}>
         <div className={styles.statsBar}>
           <div className={styles.statItem}>
+            <span className={styles.statIcon}>👁️</span>
             <p className={styles.statLabel}>
               {translate("landing.statsToday", "Today")}
             </p>
-            <p className={styles.statValue}>{todayVisitors ?? "—"}</p>
+            <p className={styles.statValue}>
+              {todayVisitors?.toLocaleString() ?? "—"}
+            </p>
           </div>
           <div className={styles.statItem}>
+            <span className={styles.statIcon}>🌟</span>
             <p className={styles.statLabel}>
-              {translate("landing.statsTotal", "Total")}
+              {translate("landing.statsTotal", "Total Visitors")}
             </p>
-            <p className={styles.statValue}>{totalVisitors ?? "—"}</p>
-            <p className={styles.statSince}>
-              {translate("landing.statsSince", "(Since Oct 2025)")}
+            <p className={styles.statValue}>
+              {totalVisitors?.toLocaleString() ?? "—"}
+            </p>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statIcon}>✨</span>
+            <p className={styles.statLabel}>
+              {translate("landing.statsMembers", "Members")}
+            </p>
+            <p className={styles.statValue}>
+              {totalMembers?.toLocaleString() ?? "—"}
             </p>
           </div>
           <div className={styles.statFootnote}>
-            {visitorError ?? translate("landing.statsFootnote", "Visitors update in real time.")}
+            {visitorError ?? translate("landing.statsFootnote", "Live stats")}
           </div>
         </div>
       </section>
@@ -907,40 +960,46 @@ export default function MainPage() {
               />
             ))}
           </div>
-          <p className={styles.deckLabel}>
-            {translate("landing.tarotDeckLabel", "78장의 타로 카드")}
+          <p className={styles.deckLabel} suppressHydrationWarning>
+            {isDeckSpread
+              ? translate("landing.tarotDeckReset", "Draw again")
+              : translate("landing.tarotDeckLabel", "Click to draw cards")}
           </p>
         </div>
-        {/* Selected Cards */}
-        <div className={styles.tarotCards}>
-          {[0, 1, 2, 3].map((index) => (
-            <div
-              key={index}
-              className={`${styles.tarotCard} ${flippedCards[index] ? styles.flipped : ''}`}
-              onClick={() => handleCardClick(index)}
-            >
-              <div className={styles.cardBack}>
-                <div className={styles.cardPattern}>✦</div>
-                <div className={styles.cardPattern}>✦</div>
-                <div className={styles.cardPattern}>✦</div>
-                <div className={styles.cardPattern}>✦</div>
-              </div>
-              <div className={styles.cardFront}>
-                <div className={styles.cardHeader}>{selectedCards[index]?.name}</div>
-                <div className={styles.cardMainIcon}>{selectedCards[index]?.icon}</div>
-                <div className={styles.cardFooter}>
-                  {selectedCards[index]?.suit || selectedCards[index]?.number}
+        {/* Selected Cards - only show when cards are drawn */}
+        {selectedCards.length > 0 && (
+          <>
+            <div className={styles.tarotCards}>
+              {[0, 1, 2, 3].map((index) => (
+                <div
+                  key={index}
+                  className={`${styles.tarotCard} ${flippedCards[index] ? styles.flipped : ''}`}
+                  onClick={() => handleCardClick(index)}
+                >
+                  <div className={styles.cardBack}>
+                    <div className={styles.cardPattern}>✦</div>
+                    <div className={styles.cardPattern}>✦</div>
+                    <div className={styles.cardPattern}>✦</div>
+                    <div className={styles.cardPattern}>✦</div>
+                  </div>
+                  <div className={styles.cardFront}>
+                    <div className={styles.cardHeader}>{selectedCards[index]?.name}</div>
+                    <div className={styles.cardMainIcon}>{selectedCards[index]?.icon}</div>
+                    <div className={styles.cardFooter}>
+                      {selectedCards[index]?.suit || selectedCards[index]?.number}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className={styles.tarotLabels}>
-          <span>{translate("landing.tarotPast", "과거")}</span>
-          <span>{translate("landing.tarotPresent", "현재")}</span>
-          <span>{translate("landing.tarotFuture", "미래")}</span>
-          <span>{translate("landing.tarotAdvice", "조언")}</span>
-        </div>
+            <div className={styles.tarotLabels}>
+              <span>{translate("landing.tarotPast", "과거")}</span>
+              <span>{translate("landing.tarotPresent", "현재")}</span>
+              <span>{translate("landing.tarotFuture", "미래")}</span>
+              <span>{translate("landing.tarotAdvice", "조언")}</span>
+            </div>
+          </>
+        )}
       </section>
 
       {/* CTA Section */}
@@ -957,6 +1016,18 @@ export default function MainPage() {
           </Link>
         </div>
       </section>
+
+      {/* Scroll to Top Button */}
+      <button
+        className={`${styles.scrollToTop} ${showScrollTop ? styles.visible : ""}`}
+        onClick={scrollToTop}
+        aria-label={translate("landing.scrollToTop", "Back to Top")}
+      >
+        <span className={styles.scrollToTopIcon}>↑</span>
+        <span className={styles.scrollToTopText}>
+          {translate("landing.scrollToTop", "Back to Top")}
+        </span>
+      </button>
 
       <SpeedInsights />
     </main>

@@ -5,7 +5,7 @@ import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
  * Kept intentionally short to reduce token usage while giving solid anchors.
  */
 export function buildAllDataPrompt(lang: string, theme: string, data: CombinedResult) {
-  const { astrology = {}, saju = {} } = data ?? {};
+  const { astrology = {}, saju } = data ?? {};
   const {
     planets = [],
     houses = {},
@@ -15,8 +15,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     facts,
     meta,
     options,
-  } = astrology;
-  const { pillars, dayMaster, unse, sinsal } = saju;
+  } = astrology as any;
+  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = saju ?? {} as any;
 
   const planetLines = planets
     .slice(0, 8)
@@ -40,11 +40,18 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     .map(([k, v]) => `${k}:${(v as number).toFixed?.(2) ?? v}`)
     .join(", ");
 
+  // Pillars now have heavenlyStem/earthlyBranch format
+  const formatPillar = (p: any) => {
+    if (!p) return null;
+    const stem = p.heavenlyStem?.name || p.ganji?.split?.('')?.[0] || '';
+    const branch = p.earthlyBranch?.name || p.ganji?.split?.('')?.[1] || '';
+    return stem && branch ? `${stem}${branch}` : null;
+  };
   const pillarParts = [
-    pillars?.year?.ganji,
-    pillars?.month?.ganji,
-    pillars?.day?.ganji,
-    pillars?.time?.ganji,
+    formatPillar(pillars?.year),
+    formatPillar(pillars?.month),
+    formatPillar(pillars?.day),
+    formatPillar(pillars?.time),
   ].filter(Boolean);
   const pillarText = pillarParts.join(" / ") || "-";
 
@@ -63,8 +70,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     .map((u: any) => `${u.year}-${String(u.month).padStart(2, "0")}:${u.element ?? "-"}`)
     .join("; ");
 
-  const lucky = (sinsal?.luckyList ?? []).map((x: any) => x.name).join(", ");
-  const unlucky = (sinsal?.unluckyList ?? []).map((x: any) => x.name).join(", ");
+  const lucky = ((sinsal as any)?.luckyList ?? []).map((x: any) => x.name).join(", ");
+  const unlucky = ((sinsal as any)?.unluckyList ?? []).map((x: any) => x.name).join(", ");
 
   return [
     `[DATA SNAPSHOT - ${theme}]`,

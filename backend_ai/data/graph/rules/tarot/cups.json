@@ -1,58 +1,324 @@
 [
-  {"id": 36, "name": "Ace of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Love", "Compassion", "Creativity", "Overwhelming emotion", "New relationship"], "meaning": "A new wave of emotion, creativity, and love is flowing into your life. This is the start of a new relationship or a deeper connection to your feelings.", "advice": "Open your heart to new love and emotional beginnings."},
-    "reversed": {"keywords": ["Blocked emotions", "Repressed feelings", "Emptiness", "Sadness", "Creative block"], "meaning": "You may be blocking or repressing your emotions. This can lead to a sense of emptiness or creative stagnation.", "advice": "Release blocked emotions. Let yourself feel deeply."}
+  {
+    "id": 36,
+    "name": "Ace of Cups",
+    "nameKo": "컵 에이스",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Love", "Compassion", "Creativity", "Overwhelming emotion", "New relationship"],
+      "keywordsKo": ["사랑", "연민", "창의성", "벅찬 감정", "새로운 관계"],
+      "meaning": "A new wave of emotion, creativity, and love is flowing into your life. This is the start of a new relationship or a deeper connection to your feelings.",
+      "meaningKo": "새로운 감정, 창의성, 사랑의 물결이 삶에 흘러들고 있습니다. 새로운 관계나 감정과의 더 깊은 연결의 시작입니다.",
+      "advice": "Open your heart to new emotional experiences.",
+      "adviceKo": "새로운 감정적 경험에 마음을 여세요."
+    },
+    "reversed": {
+      "keywords": ["Blocked emotions", "Repressed feelings", "Emptiness", "Sadness", "Creative block"],
+      "keywordsKo": ["감정 차단", "억압된 감정", "공허", "슬픔", "창작 막힘"],
+      "meaning": "You may be blocking or repressing your emotions. This can lead to a sense of emptiness or creative stagnation.",
+      "meaningKo": "감정을 차단하거나 억압하고 있을 수 있습니다. 이것은 공허함이나 창작 정체로 이어질 수 있습니다.",
+      "advice": "Reconnect with your emotions. Let love flow freely.",
+      "adviceKo": "감정과 다시 연결하세요. 사랑이 자유롭게 흐르게 하세요."
+    }
   },
-  {"id": 37, "name": "Two of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Unified love", "Partnership", "Mutual attraction", "Connection", "Harmony"], "meaning": "This card represents a deep connection and partnership based on mutual love and respect. It signifies harmony and a strong bond between two people.", "advice": "Nurture your partnership. Honor mutual respect and love."},
-    "reversed": {"keywords": ["Break-up", "Disharmony", "Distrust", "Relationship troubles", "Misalignment"], "meaning": "There is a sense of disharmony or imbalance in a relationship. Distrust or a misalignment of values can lead to conflict.", "advice": "Address relationship imbalances. Rebuild trust if possible."}
+  {
+    "id": 37,
+    "name": "Two of Cups",
+    "nameKo": "컵 2",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Unified love", "Partnership", "Mutual attraction", "Connection", "Harmony"],
+      "keywordsKo": ["통합된 사랑", "파트너십", "상호 끌림", "연결", "조화"],
+      "meaning": "This card represents a deep connection and partnership based on mutual love and respect. It signifies harmony and a strong bond between two people.",
+      "meaningKo": "이 카드는 상호 사랑과 존중에 기반한 깊은 연결과 파트너십을 나타냅니다. 두 사람 사이의 조화와 강한 유대를 의미합니다.",
+      "advice": "Nurture meaningful connections. Partnership brings harmony.",
+      "adviceKo": "의미 있는 연결을 키우세요. 파트너십이 조화를 가져옵니다."
+    },
+    "reversed": {
+      "keywords": ["Break-up", "Disharmony", "Distrust", "Relationship troubles", "Misalignment"],
+      "keywordsKo": ["이별", "불화", "불신", "관계 문제", "불일치"],
+      "meaning": "There is a sense of disharmony or imbalance in a relationship. Distrust or a misalignment of values can lead to conflict.",
+      "meaningKo": "관계에 불화나 불균형이 있습니다. 불신이나 가치관 불일치가 갈등으로 이어질 수 있습니다.",
+      "advice": "Address relationship imbalances. Restore mutual respect.",
+      "adviceKo": "관계의 불균형을 해결하세요. 상호 존중을 회복하세요."
+    }
   },
-  {"id": 38, "name": "Three of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Celebration", "Friendship", "Creativity", "Community", "Reunion"], "meaning": "This is a card of joyful celebration with friends and community. It signifies a happy reunion or a successful collaboration.", "advice": "Celebrate with friends. Embrace community and connection."},
-    "reversed": {"keywords": ["Gossip", "Isolation", "Overindulgence", "Third-party interference", "Cancelled celebration"], "meaning": "You may be feeling isolated or dealing with gossip within your social circle. Overindulgence or a third party could be causing problems.", "advice": "Address social conflicts. Beware of gossip and overindulgence."}
+  {
+    "id": 38,
+    "name": "Three of Cups",
+    "nameKo": "컵 3",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Celebration", "Friendship", "Creativity", "Community", "Reunion"],
+      "keywordsKo": ["축하", "우정", "창의성", "공동체", "재회"],
+      "meaning": "This is a card of joyful celebration with friends and community. It signifies a happy reunion or a successful collaboration.",
+      "meaningKo": "친구와 공동체와의 기쁜 축하의 카드입니다. 행복한 재회나 성공적인 협력을 의미합니다.",
+      "advice": "Celebrate with friends. Joy multiplies when shared.",
+      "adviceKo": "친구들과 축하하세요. 기쁨은 나눌 때 배가됩니다."
+    },
+    "reversed": {
+      "keywords": ["Gossip", "Isolation", "Overindulgence", "Third-party interference", "Cancelled celebration"],
+      "keywordsKo": ["험담", "고립", "과잉", "제3자 간섭", "취소된 축하"],
+      "meaning": "You may be feeling isolated or dealing with gossip within your social circle. Overindulgence or a third party could be causing problems.",
+      "meaningKo": "고립감을 느끼거나 사회적 모임 내 험담을 다루고 있을 수 있습니다. 과잉이나 제3자가 문제를 일으킬 수 있습니다.",
+      "advice": "Reconnect with your community. Don't isolate yourself.",
+      "adviceKo": "공동체와 다시 연결하세요. 고립되지 마세요."
+    }
   },
-  {"id": 39, "name": "Four of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Apathy", "Contemplation", "Disconnection", "Re-evaluation", "Missed opportunity"], "meaning": "You are feeling apathetic or disconnected, causing you to miss opportunities being offered. It is a time for contemplation and re-evaluating what truly matters.", "advice": "Look at what's being offered. Don't let apathy blind you."},
-    "reversed": {"keywords": ["Sudden awareness", "Choosing happiness", "Accepting help", "New motivation", "Seizing an opportunity"], "meaning": "You are coming out of a period of apathy and are now ready to seize new opportunities. A newfound motivation is leading you to choose happiness.", "advice": "Seize the opportunity before you. Choose happiness now."}
+  {
+    "id": 39,
+    "name": "Four of Cups",
+    "nameKo": "컵 4",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Apathy", "Contemplation", "Disconnection", "Re-evaluation", "Missed opportunity"],
+      "keywordsKo": ["무관심", "사색", "단절", "재평가", "놓친 기회"],
+      "meaning": "You are feeling apathetic or disconnected, causing you to miss opportunities being offered. It is a time for contemplation and re-evaluating what truly matters.",
+      "meaningKo": "무관심하거나 단절되어 제공되는 기회를 놓치고 있습니다. 사색하고 진정으로 중요한 것을 재평가할 때입니다.",
+      "advice": "Look around you. New opportunities are closer than you think.",
+      "adviceKo": "주변을 둘러보세요. 새로운 기회가 생각보다 가깝습니다."
+    },
+    "reversed": {
+      "keywords": ["Sudden awareness", "Choosing happiness", "Accepting help", "New motivation", "Seizing an opportunity"],
+      "keywordsKo": ["갑작스런 자각", "행복 선택", "도움 수용", "새로운 동기", "기회 포착"],
+      "meaning": "You are coming out of a period of apathy and are now ready to seize new opportunities. A newfound motivation is leading you to choose happiness.",
+      "meaningKo": "무관심의 시기에서 벗어나 새로운 기회를 잡을 준비가 되었습니다. 새로운 동기가 행복을 선택하도록 이끌고 있습니다.",
+      "advice": "Re-engage with life. Break free from apathy.",
+      "adviceKo": "삶에 다시 참여하세요. 무관심에서 벗어나세요."
+    }
   },
-  {"id": 40, "name": "Five of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Loss", "Regret", "Disappointment", "Sadness", "Grief"], "meaning": "You are focusing on past losses and disappointments, which is preventing you from seeing the positive things that still remain. It is a time of grief and regret.", "advice": "Acknowledge your grief, but see what still stands. Not all is lost."},
-    "reversed": {"keywords": ["Moving on", "Acceptance", "Forgiveness", "Finding peace", "Healing"], "meaning": "You are beginning to accept your losses and are ready to move on. Forgiveness and healing are possible once you let go of regret.", "advice": "Let go of regret. Healing and peace await you."}
+  {
+    "id": 40,
+    "name": "Five of Cups",
+    "nameKo": "컵 5",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Loss", "Regret", "Disappointment", "Sadness", "Grief"],
+      "keywordsKo": ["상실", "후회", "실망", "슬픔", "애도"],
+      "meaning": "You are focusing on past losses and disappointments, which is preventing you from seeing the positive things that still remain. It is a time of grief and regret.",
+      "meaningKo": "과거의 상실과 실망에 집중하여 여전히 남아있는 긍정적인 것을 보지 못하고 있습니다. 애도와 후회의 시간입니다.",
+      "advice": "Honor your grief, but don't forget what remains.",
+      "adviceKo": "슬픔을 존중하되, 남은 것을 잊지 마세요."
+    },
+    "reversed": {
+      "keywords": ["Moving on", "Acceptance", "Forgiveness", "Finding peace", "Healing"],
+      "keywordsKo": ["앞으로 나아감", "수용", "용서", "평화 찾기", "치유"],
+      "meaning": "You are beginning to accept your losses and are ready to move on. Forgiveness and healing are possible once you let go of regret.",
+      "meaningKo": "상실을 받아들이기 시작하고 앞으로 나아갈 준비가 되었습니다. 후회를 놓으면 용서와 치유가 가능합니다.",
+      "advice": "Begin healing. Turn your focus to new possibilities.",
+      "adviceKo": "치유를 시작하세요. 새로운 가능성에 집중하세요."
+    }
   },
-  {"id": 41, "name": "Six of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Nostalgia", "Childhood memories", "Reunion", "Innocence", "Kindness"], "meaning": "This card represents a return to happy memories from the past. It can signify a reunion with someone from your childhood or a feeling of innocent joy.", "advice": "Embrace fond memories. Reconnect with innocent joy."},
-    "reversed": {"keywords": ["Stuck in the past", "Moving on", "Leaving home", "Rose-tinted glasses", "Letting go of childhood"], "meaning": "You may be living too much in the past and idealizing it. It is time to let go of old memories and focus on the present and future.", "advice": "Let go of the past. Focus on the present moment."}
+  {
+    "id": 41,
+    "name": "Six of Cups",
+    "nameKo": "컵 6",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Nostalgia", "Childhood memories", "Reunion", "Innocence", "Kindness"],
+      "keywordsKo": ["향수", "어린 시절 추억", "재회", "순수함", "친절"],
+      "meaning": "This card represents a return to happy memories from the past. It can signify a reunion with someone from your childhood or a feeling of innocent joy.",
+      "meaningKo": "이 카드는 과거의 행복한 추억으로의 회귀를 나타냅니다. 어린 시절 누군가와의 재회나 순수한 기쁨의 감정을 의미할 수 있습니다.",
+      "advice": "Honor sweet memories. Reconnect with innocence.",
+      "adviceKo": "달콤한 추억을 소중히 하세요. 순수함과 다시 연결하세요."
+    },
+    "reversed": {
+      "keywords": ["Stuck in the past", "Moving on", "Leaving home", "Rose-tinted glasses", "Letting go of childhood"],
+      "keywordsKo": ["과거에 갇힘", "앞으로 나아감", "고향 떠남", "장밋빛 안경", "어린 시절 놓아줌"],
+      "meaning": "You may be living too much in the past and idealizing it. It is time to let go of old memories and focus on the present and future.",
+      "meaningKo": "과거에 너무 살면서 이상화하고 있을 수 있습니다. 오래된 추억을 놓고 현재와 미래에 집중할 때입니다.",
+      "advice": "Live in the present. Don't dwell too much on the past.",
+      "adviceKo": "현재를 살아가세요. 과거에 너무 머물지 마세요."
+    }
   },
-  {"id": 42, "name": "Seven of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Choices", "Illusion", "Fantasy", "Wishful thinking", "Opportunities"], "meaning": "You are faced with many choices, but some may be illusions or fantasies. Be careful of wishful thinking and evaluate your options realistically.", "advice": "Evaluate options realistically. Not all that glitters is gold."},
-    "reversed": {"keywords": ["Clarity", "Making a decision", "Reality check", "Choosing a path", "Focus"], "meaning": "After a period of confusion, you are gaining clarity and are ready to make a firm decision. A reality check has helped you choose a clear path.", "advice": "Make a clear decision. Focus on what's real and attainable."}
+  {
+    "id": 42,
+    "name": "Seven of Cups",
+    "nameKo": "컵 7",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Choices", "Illusion", "Fantasy", "Wishful thinking", "Opportunities"],
+      "keywordsKo": ["선택", "환상", "공상", "희망사항", "기회"],
+      "meaning": "You are faced with many choices, but some may be illusions or fantasies. Be careful of wishful thinking and evaluate your options realistically.",
+      "meaningKo": "많은 선택에 직면해 있지만 일부는 환상이나 공상일 수 있습니다. 희망사항을 주의하고 선택지를 현실적으로 평가하세요.",
+      "advice": "Get clear on what you truly want. Focus your dreams.",
+      "adviceKo": "진정 원하는 것을 명확히 하세요. 꿈에 집중하세요."
+    },
+    "reversed": {
+      "keywords": ["Clarity", "Making a decision", "Reality check", "Choosing a path", "Focus"],
+      "keywordsKo": ["명확함", "결정 내림", "현실 확인", "길 선택", "집중"],
+      "meaning": "After a period of confusion, you are gaining clarity and are ready to make a firm decision. A reality check has helped you choose a clear path.",
+      "meaningKo": "혼란의 시기 후 명확함을 얻고 확고한 결정을 내릴 준비가 되었습니다. 현실 확인이 명확한 길을 선택하도록 도왔습니다.",
+      "advice": "Make a decision and commit. Stop daydreaming, start doing.",
+      "adviceKo": "결정하고 실행하세요. 공상을 멈추고 행동하세요."
+    }
   },
-  {"id": 43, "name": "Eight of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Abandonment", "Walking away", "Disappointment", "Seeking something more", "Moving on"], "meaning": "You are choosing to walk away from a situation that is no longer emotionally fulfilling. It is a journey of seeking deeper meaning and purpose.", "advice": "Walk away from what no longer serves you. Seek deeper meaning."},
-    "reversed": {"keywords": ["Fear of change", "Staying in a bad situation", "Stagnation", "Indecision", "Return"], "meaning": "You are afraid to leave a situation that is making you unhappy. This fear of the unknown is causing you to feel stuck and stagnant.", "advice": "Face your fear of leaving. Staying stuck causes more pain."}
+  {
+    "id": 43,
+    "name": "Eight of Cups",
+    "nameKo": "컵 8",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Abandonment", "Walking away", "Disappointment", "Seeking something more", "Moving on"],
+      "keywordsKo": ["포기", "떠남", "실망", "더 나은 것 추구", "앞으로 나아감"],
+      "meaning": "You are choosing to walk away from a situation that is no longer emotionally fulfilling. It is a journey of seeking deeper meaning and purpose.",
+      "meaningKo": "더 이상 감정적으로 충족되지 않는 상황에서 떠나기로 선택하고 있습니다. 더 깊은 의미와 목적을 찾는 여정입니다.",
+      "advice": "Have the courage to walk away from what no longer serves you.",
+      "adviceKo": "더 이상 도움이 되지 않는 것에서 떠날 용기를 가지세요."
+    },
+    "reversed": {
+      "keywords": ["Fear of change", "Staying in a bad situation", "Stagnation", "Indecision", "Return"],
+      "keywordsKo": ["변화 두려움", "나쁜 상황에 머묾", "정체", "우유부단", "복귀"],
+      "meaning": "You are afraid to leave a situation that is making you unhappy. This fear of the unknown is causing you to feel stuck and stagnant.",
+      "meaningKo": "불행하게 만드는 상황을 떠나기 두려워합니다. 미지에 대한 두려움이 갇히고 정체된 느낌을 주고 있습니다.",
+      "advice": "Examine what you're running from. Face your emotions.",
+      "adviceKo": "무엇에서 도망치는지 살펴보세요. 감정에 맞서세요."
+    }
   },
-  {"id": 44, "name": "Nine of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Wishes fulfilled", "Contentment", "Satisfaction", "Gratitude", "Success"], "meaning": "This is the 'wish card,' representing contentment, pleasure, and emotional fulfillment. Your wishes are coming true, and it is a time to feel satisfied.", "advice": "Enjoy your wishes coming true. Practice gratitude."},
-    "reversed": {"keywords": ["Dissatisfaction", "Unfulfilled wishes", "Materialism", "Greed", "Smugness"], "meaning": "You are feeling dissatisfied despite having much. Materialism or greed may be preventing you from finding true happiness.", "advice": "Look beyond material satisfaction. True joy is internal."}
+  {
+    "id": 44,
+    "name": "Nine of Cups",
+    "nameKo": "컵 9",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Wishes fulfilled", "Contentment", "Satisfaction", "Gratitude", "Success"],
+      "keywordsKo": ["소원 성취", "만족", "충족", "감사", "성공"],
+      "meaning": "This is the 'wish card,' representing contentment, pleasure, and emotional fulfillment. Your wishes are coming true, and it is a time to feel satisfied.",
+      "meaningKo": "이것은 '소원 카드'로, 만족, 기쁨, 감정적 충족을 나타냅니다. 소원이 이루어지고 있으며 만족을 느낄 시간입니다.",
+      "advice": "Enjoy your blessings. You deserve this happiness.",
+      "adviceKo": "축복을 누리세요. 이 행복을 누릴 자격이 있습니다."
+    },
+    "reversed": {
+      "keywords": ["Dissatisfaction", "Unfulfilled wishes", "Materialism", "Greed", "Smugness"],
+      "keywordsKo": ["불만족", "이루어지지 않은 소원", "물질주의", "탐욕", "자만"],
+      "meaning": "You are feeling dissatisfied despite having much. Materialism or greed may be preventing you from finding true happiness.",
+      "meaningKo": "많은 것을 가지고도 불만족을 느끼고 있습니다. 물질주의나 탐욕이 진정한 행복을 찾는 것을 막고 있을 수 있습니다.",
+      "advice": "Find true fulfillment beyond material wishes.",
+      "adviceKo": "물질적 소망 너머의 진정한 충족을 찾으세요."
+    }
   },
-  {"id": 45, "name": "Ten of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Divine love", "Happy family", "Harmony", "Fulfillment", "Joy"], "meaning": "This card represents ultimate emotional fulfillment, often in the form of a happy and harmonious family life. It is a picture of lasting joy and divine love.", "advice": "Cherish your loved ones. This is deep emotional fulfillment."},
-    "reversed": {"keywords": ["Broken family", "Disharmony", "Unhappiness", "Misaligned values", "Relationship issues"], "meaning": "There may be conflict or disharmony within your family or close relationships. A breakdown in connection is causing unhappiness.", "advice": "Work to heal family rifts. Address underlying conflicts."}
+  {
+    "id": 45,
+    "name": "Ten of Cups",
+    "nameKo": "컵 10",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Divine love", "Happy family", "Harmony", "Fulfillment", "Joy"],
+      "keywordsKo": ["신성한 사랑", "행복한 가정", "조화", "충족", "기쁨"],
+      "meaning": "This card represents ultimate emotional fulfillment, often in the form of a happy and harmonious family life. It is a picture of lasting joy and divine love.",
+      "meaningKo": "이 카드는 종종 행복하고 조화로운 가정생활 형태의 궁극적인 감정적 충족을 나타냅니다. 지속적인 기쁨과 신성한 사랑의 그림입니다.",
+      "advice": "Cherish your loved ones. Emotional fulfillment is yours.",
+      "adviceKo": "사랑하는 사람들을 소중히 하세요. 감정적 충족이 당신의 것입니다."
+    },
+    "reversed": {
+      "keywords": ["Broken family", "Disharmony", "Unhappiness", "Misaligned values", "Relationship issues"],
+      "keywordsKo": ["깨진 가정", "불화", "불행", "가치관 불일치", "관계 문제"],
+      "meaning": "There may be conflict or disharmony within your family or close relationships. A breakdown in connection is causing unhappiness.",
+      "meaningKo": "가족이나 가까운 관계에 갈등이나 불화가 있을 수 있습니다. 연결의 단절이 불행을 야기하고 있습니다.",
+      "advice": "Work toward family harmony. Address emotional needs.",
+      "adviceKo": "가족 화합을 향해 노력하세요. 감정적 필요를 해결하세요."
+    }
   },
-  {"id": 46, "name": "Page of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Creative opportunities", "Intuition", "Curiosity", "Imagination", "A messenger of love"], "meaning": "A new creative or emotional opportunity is presenting itself. Listen to your intuition and approach this new beginning with curiosity and an open heart.", "advice": "Follow your intuition. Creative and romantic news arrives."},
-    "reversed": {"keywords": ["Creative blocks", "Emotional immaturity", "Escapism", "Insecurity", "Sad news"], "meaning": "You may be feeling creatively blocked or acting with emotional immaturity. Escapism or insecurity is preventing you from facing your feelings.", "advice": "Face your emotions maturely. Don't escape into fantasy."}
+  {
+    "id": 46,
+    "name": "Page of Cups",
+    "nameKo": "컵 시종",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Creative opportunities", "Intuition", "Curiosity", "Imagination", "A messenger of love"],
+      "keywordsKo": ["창의적 기회", "직관", "호기심", "상상력", "사랑의 전령"],
+      "meaning": "A new creative or emotional opportunity is presenting itself. Listen to your intuition and approach this new beginning with curiosity and an open heart.",
+      "meaningKo": "새로운 창의적 또는 감정적 기회가 나타나고 있습니다. 직관에 귀 기울이고 호기심과 열린 마음으로 이 새로운 시작에 접근하세요.",
+      "advice": "Stay open to creative inspiration. Follow your heart.",
+      "adviceKo": "창의적 영감에 열려 있으세요. 마음을 따르세요."
+    },
+    "reversed": {
+      "keywords": ["Creative blocks", "Emotional immaturity", "Escapism", "Insecurity", "Sad news"],
+      "keywordsKo": ["창작 막힘", "감정적 미성숙", "도피", "불안감", "슬픈 소식"],
+      "meaning": "You may be feeling creatively blocked or acting with emotional immaturity. Escapism or insecurity is preventing you from facing your feelings.",
+      "meaningKo": "창작이 막히거나 감정적으로 미성숙하게 행동하고 있을 수 있습니다. 도피나 불안감이 감정에 직면하는 것을 막고 있습니다.",
+      "advice": "Reconnect with your creative side. Don't suppress emotions.",
+      "adviceKo": "창의적인 면과 다시 연결하세요. 감정을 억누르지 마세요."
+    }
   },
-  {"id": 47, "name": "Knight of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Romance", "Charming", "Imagination", "An offer", "A romantic dreamer"], "meaning": "This card often represents a romantic proposal or the arrival of a charming and imaginative person. It is a time for following your heart.", "advice": "Follow your heart. Romance and creativity beckon."},
-    "reversed": {"keywords": ["Unrealistic", "Jealousy", "Moodiness", "Disappointment in love", "Emotional manipulation"], "meaning": "You may be dealing with someone who is emotionally manipulative or unrealistic. Be wary of jealousy and moodiness in relationships.", "advice": "Beware of emotional manipulation. Stay grounded in reality."}
+  {
+    "id": 47,
+    "name": "Knight of Cups",
+    "nameKo": "컵 기사",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Romance", "Charming", "Imagination", "An offer", "A romantic dreamer"],
+      "keywordsKo": ["로맨스", "매력적", "상상력", "제안", "낭만적 꿈꾸는 자"],
+      "meaning": "This card often represents a romantic proposal or the arrival of a charming and imaginative person. It is a time for following your heart.",
+      "meaningKo": "이 카드는 종종 로맨틱한 제안이나 매력적이고 상상력 풍부한 사람의 등장을 나타냅니다. 마음을 따를 시간입니다.",
+      "advice": "Follow your heart's calling. Romance and creativity beckon.",
+      "adviceKo": "마음의 부름을 따르세요. 로맨스와 창의성이 손짓합니다."
+    },
+    "reversed": {
+      "keywords": ["Unrealistic", "Jealousy", "Moodiness", "Disappointment in love", "Emotional manipulation"],
+      "keywordsKo": ["비현실적", "질투", "변덕", "사랑의 실망", "감정적 조종"],
+      "meaning": "You may be dealing with someone who is emotionally manipulative or unrealistic. Be wary of jealousy and moodiness in relationships.",
+      "meaningKo": "감정적으로 조종적이거나 비현실적인 사람을 대하고 있을 수 있습니다. 관계에서 질투와 변덕을 경계하세요.",
+      "advice": "Balance romance with reality. Don't lose yourself in fantasy.",
+      "adviceKo": "로맨스와 현실의 균형을 맞추세요. 환상에 빠지지 마세요."
+    }
   },
-  {"id": 48, "name": "Queen of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Compassion", "Calm", "Intuitive", "Nurturing", "Emotional stability"], "meaning": "This card represents a compassionate and intuitive person who is in control of their emotions. It signifies emotional maturity and a nurturing presence.", "advice": "Lead with compassion and intuition. Be emotionally nurturing."},
-    "reversed": {"keywords": ["Emotional insecurity", "Co-dependency", "Overly emotional", "Needy", "Martyrdom"], "meaning": "You may be feeling emotionally insecure or needy. A tendency to be overly emotional or co-dependent can cause relationship problems.", "advice": "Build emotional independence. Don't sacrifice yourself for others."}
+  {
+    "id": 48,
+    "name": "Queen of Cups",
+    "nameKo": "컵 여왕",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Compassion", "Calm", "Intuitive", "Nurturing", "Emotional stability"],
+      "keywordsKo": ["연민", "차분함", "직관적", "양육적", "감정적 안정"],
+      "meaning": "This card represents a compassionate and intuitive person who is in control of their emotions. It signifies emotional maturity and a nurturing presence.",
+      "meaningKo": "이 카드는 감정을 통제하는 연민 있고 직관적인 사람을 나타냅니다. 감정적 성숙함과 양육적 존재를 의미합니다.",
+      "advice": "Trust your emotional intelligence. Nurture with compassion.",
+      "adviceKo": "감성 지능을 믿으세요. 연민으로 돌보세요."
+    },
+    "reversed": {
+      "keywords": ["Emotional insecurity", "Co-dependency", "Overly emotional", "Needy", "Martyrdom"],
+      "keywordsKo": ["감정적 불안", "상호 의존", "지나치게 감정적", "의존적", "순교자 행세"],
+      "meaning": "You may be feeling emotionally insecure or needy. A tendency to be overly emotional or co-dependent can cause relationship problems.",
+      "meaningKo": "감정적으로 불안하거나 의존적일 수 있습니다. 지나치게 감정적이거나 상호 의존적인 경향이 관계 문제를 일으킬 수 있습니다.",
+      "advice": "Set emotional boundaries. Don't absorb others' pain.",
+      "adviceKo": "감정적 경계를 설정하세요. 타인의 고통을 흡수하지 마세요."
+    }
   },
-  {"id": 49, "name": "King of Cups", "arcana": "minor", "suit": "cups",
-    "upright": {"keywords": ["Emotional balance", "Compassion", "Diplomacy", "Control", "Generosity"], "meaning": "This card represents a person who has mastered their emotions. He is a compassionate and diplomatic leader who offers calm and wise counsel.", "advice": "Master your emotions. Lead with balanced compassion."},
-    "reversed": {"keywords": ["Emotional manipulation", "Moodiness", "Volatility", "Coldness", "Untrustworthy"], "meaning": "Be wary of someone who uses emotional manipulation to control others. This person may be moody, cold, and untrustworthy.", "advice": "Beware of emotional manipulation. Seek trustworthy counsel."}
+  {
+    "id": 49,
+    "name": "King of Cups",
+    "nameKo": "컵 왕",
+    "arcana": "minor",
+    "suit": "cups",
+    "upright": {
+      "keywords": ["Emotional balance", "Compassion", "Diplomacy", "Control", "Generosity"],
+      "keywordsKo": ["감정적 균형", "연민", "외교", "통제", "관대함"],
+      "meaning": "This card represents a person who has mastered their emotions. He is a compassionate and diplomatic leader who offers calm and wise counsel.",
+      "meaningKo": "이 카드는 감정을 통달한 사람을 나타냅니다. 차분하고 현명한 조언을 제공하는 연민 있고 외교적인 리더입니다.",
+      "advice": "Lead with emotional wisdom. Balance heart and mind.",
+      "adviceKo": "감정적 지혜로 이끄세요. 마음과 이성의 균형을 맞추세요."
+    },
+    "reversed": {
+      "keywords": ["Emotional manipulation", "Moodiness", "Volatility", "Coldness", "Untrustworthy"],
+      "keywordsKo": ["감정적 조종", "변덕", "불안정", "냉정함", "신뢰할 수 없음"],
+      "meaning": "Be wary of someone who uses emotional manipulation to control others. This person may be moody, cold, and untrustworthy.",
+      "meaningKo": "다른 사람을 통제하기 위해 감정적 조종을 사용하는 사람을 경계하세요. 이 사람은 변덕스럽고 차갑고 신뢰할 수 없을 수 있습니다.",
+      "advice": "Address emotional suppression. Don't let feelings overwhelm you.",
+      "adviceKo": "감정 억압을 해결하세요. 감정에 압도되지 마세요."
+    }
   }
 ]

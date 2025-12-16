@@ -518,6 +518,44 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* Fortune Alerts */
+.fortuneAlerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.alertItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.alertWarning {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.alertPositive {
+  background: rgba(124, 242, 156, 0.1);
+  border: 1px solid rgba(124, 242, 156, 0.2);
+  color: #7cf29c;
+}
+
+.alertInfo {
+  background: rgba(99, 210, 255, 0.1);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  color: #63d2ff;
+}
+
 .fortuneSetup {
   text-align: center;
   padding: 2rem 1rem;

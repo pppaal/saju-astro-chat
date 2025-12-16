@@ -1,0 +1,395 @@
+{
+  "$schema": "cross_shinsal_asteroids_v1",
+  "$description": "38 신살 ↔ 소행성/포인트 완전 매핑",
+
+  "major_shinsal_mapping": {
+    "천을귀인": {
+      "shinsal": "天乙貴人",
+      "meaning": "하늘의 귀한 도움, 귀인의 도움",
+      "effect": "위기 시 도움, 귀인 출현, 명예",
+      "astro_parallel": {
+        "primary": "Part of Fortune",
+        "secondary": "Jupiter",
+        "asteroid": "Fortuna (19)"
+      },
+      "reasoning": "행운의 포인트, 물질적/영적 복",
+      "house_activation": [1, 9, 10],
+      "sign_strength": ["Leo", "Cancer", "Pisces"]
+    },
+    "천덕귀인": {
+      "shinsal": "天德貴人",
+      "meaning": "하늘의 덕, 큰 복",
+      "effect": "재앙 회피, 덕으로 문제 해결",
+      "astro_parallel": {
+        "primary": "Jupiter",
+        "secondary": "North Node",
+        "asteroid": "Themis (24)"
+      },
+      "reasoning": "목성의 보호, 운명적 축복",
+      "house_activation": [9, 11, 12],
+      "sign_strength": ["Sagittarius", "Pisces"]
+    },
+    "월덕귀인": {
+      "shinsal": "月德貴人",
+      "meaning": "달의 덕, 온화한 복",
+      "effect": "일상의 행운, 부드러운 보호",
+      "astro_parallel": {
+        "primary": "Moon",
+        "secondary": "Ceres",
+        "asteroid": "Ceres (1)"
+      },
+      "reasoning": "달의 양육, 세레스의 보살핌",
+      "house_activation": [4, 6],
+      "sign_strength": ["Cancer", "Taurus", "Virgo"]
+    },
+    "문창귀인": {
+      "shinsal": "文昌貴人",
+      "meaning": "학문과 문서의 별",
+      "effect": "학업 성취, 시험 합격, 문서 길함",
+      "astro_parallel": {
+        "primary": "Mercury",
+        "secondary": "Pallas Athena",
+        "asteroid": "Pallas (2)"
+      },
+      "reasoning": "팔라스의 지혜, 수성의 학문",
+      "house_activation": [3, 9],
+      "sign_strength": ["Gemini", "Virgo", "Aquarius"]
+    },
+    "학당귀인": {
+      "shinsal": "學堂貴人",
+      "meaning": "배움의 전당",
+      "effect": "학업 재능, 교육 기회",
+      "astro_parallel": {
+        "primary": "Mercury",
+        "asteroid": "Urania (30)"
+      },
+      "reasoning": "우라니아(천문의 뮤즈), 학문",
+      "house_activation": [3, 9],
+      "sign_strength": ["Gemini", "Sagittarius"]
+    },
+    "역마살": {
+      "shinsal": "驛馬殺",
+      "meaning": "말의 에너지, 이동",
+      "effect": "이동, 여행, 변화, 외국 인연",
+      "astro_parallel": {
+        "primary": "North Node",
+        "secondary": "Jupiter",
+        "asteroid": "Icarus (1566)"
+      },
+      "reasoning": "북교점의 운명적 이동, 이카루스의 비행",
+      "house_activation": [3, 9, 12],
+      "sign_strength": ["Sagittarius", "Gemini", "Aquarius"]
+    },
+    "도화살": {
+      "shinsal": "桃花殺",
+      "meaning": "복숭아꽃, 매력",
+      "effect": "이성 인연, 매력, 예술, 바람기",
+      "astro_parallel": {
+        "primary": "Venus",
+        "secondary": "Eros",
+        "asteroid": "Eros (433)"
+      },
+      "reasoning": "에로스의 매력, 금성의 사랑",
+      "house_activation": [5, 7, 8],
+      "sign_strength": ["Libra", "Taurus", "Pisces", "Scorpio"]
+    },
+    "홍염살": {
+      "shinsal": "紅艶殺",
+      "meaning": "붉은 요염함",
+      "effect": "강렬한 매력, 성적 끌림, 유혹",
+      "astro_parallel": {
+        "primary": "Lilith (Black Moon)",
+        "secondary": "Mars",
+        "asteroid": "Lilith (1181)"
+      },
+      "reasoning": "릴리스의 유혹, 억압된 욕망",
+      "house_activation": [5, 8],
+      "sign_strength": ["Scorpio", "Aries", "Leo"]
+    },
+    "화개살": {
+      "shinsal": "華蓋殺",
+      "meaning": "화려한 덮개, 고독의 별",
+      "effect": "예술성, 종교성, 고독, 영적 추구",
+      "astro_parallel": {
+        "primary": "Neptune",
+        "secondary": "Vesta",
+        "asteroid": "Vesta (4)"
+      },
+      "reasoning": "베스타의 헌신, 해왕성의 영성",
+      "house_activation": [9, 12],
+      "sign_strength": ["Pisces", "Virgo", "Scorpio"]
+    },
+    "양인살": {
+      "shinsal": "羊刃殺",
+      "meaning": "양의 칼날",
+      "effect": "날카로움, 결단, 수술, 사고",
+      "astro_parallel": {
+        "primary": "Mars",
+        "secondary": "Pluto",
+        "asteroid": "Bellona (28)"
+      },
+      "reasoning": "벨로나(전쟁의 여신), 화성의 공격성",
+      "house_activation": [1, 6, 8],
+      "sign_strength": ["Aries", "Scorpio", "Capricorn"]
+    },
+    "겁살": {
+      "shinsal": "劫殺",
+      "meaning": "빼앗는 살",
+      "effect": "도난, 손실, 배신",
+      "astro_parallel": {
+        "primary": "Pluto",
+        "secondary": "Mars",
+        "asteroid": "Nessus (7066)"
+      },
+      "reasoning": "네소스(카르마적 손실), 명왕성의 상실",
+      "house_activation": [2, 8],
+      "sign_strength": ["Scorpio", "Aries"]
+    },
+    "백호살": {
+      "shinsal": "白虎殺",
+      "meaning": "흰 호랑이, 피의 별",
+      "effect": "사고, 수술, 피를 봄, 폭력",
+      "astro_parallel": {
+        "primary": "Mars",
+        "asteroid": "Hephaistos (2212)"
+      },
+      "reasoning": "헤파이스토스(불과 대장장이), 화성의 상해",
+      "house_activation": [1, 6, 8],
+      "sign_strength": ["Aries", "Scorpio"]
+    },
+    "괴강살": {
+      "shinsal": "魁罡殺",
+      "meaning": "북두칠성의 첫 별",
+      "effect": "강한 개성, 권력, 독재적",
+      "astro_parallel": {
+        "primary": "Pluto",
+        "secondary": "Sun",
+        "asteroid": "Pholus (5145)"
+      },
+      "reasoning": "폴루스(촉매적 변화), 명왕성의 권력",
+      "house_activation": [1, 10],
+      "sign_strength": ["Scorpio", "Leo", "Capricorn"]
+    },
+    "천라지망": {
+      "shinsal": "天羅地網",
+      "meaning": "하늘 그물, 땅 그물",
+      "effect": "갇힘, 구속, 한계",
+      "astro_parallel": {
+        "primary": "Saturn",
+        "secondary": "South Node",
+        "asteroid": "Sisyphus (1866)"
+      },
+      "reasoning": "시시포스(반복되는 제한), 토성의 구속",
+      "house_activation": [12, 6],
+      "sign_strength": ["Capricorn", "Pisces"]
+    },
+    "공망": {
+      "shinsal": "空亡",
+      "meaning": "비어있음, 허공",
+      "effect": "비어있는 영역, 노력이 헛됨",
+      "astro_parallel": {
+        "primary": "South Node",
+        "secondary": "12th House cusp",
+        "asteroid": "Ophelia (171)"
+      },
+      "reasoning": "남교점의 비움, 오필리아의 공허",
+      "house_activation": [12],
+      "sign_strength": ["Pisces"]
+    },
+    "원진살": {
+      "shinsal": "怨嗔殺",
+      "meaning": "원망과 성냄",
+      "effect": "미묘한 갈등, 은근한 적대",
+      "astro_parallel": {
+        "primary": "Chiron",
+        "asteroid": "Dejanira (157)"
+      },
+      "reasoning": "데자니라(피해자 원형), 키론의 상처",
+      "house_activation": [7, 12],
+      "sign_strength": ["Scorpio", "Virgo"]
+    },
+    "육해살": {
+      "shinsal": "六害殺",
+      "meaning": "여섯 가지 해로움",
+      "effect": "예상치 못한 해, 뒤통수",
+      "astro_parallel": {
+        "asteroid": "Atropos (273)"
+      },
+      "reasoning": "아트로포스(운명의 실을 끊는 자)",
+      "house_activation": [6, 8],
+      "sign_strength": ["Scorpio", "Virgo"]
+    },
+    "삼재": {
+      "shinsal": "三災",
+      "meaning": "3년간의 재앙 주기",
+      "effect": "특정 3년간 주의 필요",
+      "astro_parallel": {
+        "primary": "Saturn square natal Saturn",
+        "reasoning": "토성 스퀘어 주기 (7년마다)"
+      },
+      "timing": "12년 주기 중 3년",
+      "sign_pattern": "화국(寅午戌)/수국(申子辰)/목국(亥卯未)/금국(巳酉丑)"
+    }
+  },
+
+  "additional_shinsal": {
+    "천의성": {
+      "shinsal": "天醫星",
+      "meaning": "하늘의 의사",
+      "effect": "치유 능력, 의료 인연",
+      "astro_parallel": {"asteroid": "Hygiea (10)", "reasoning": "히게이아(건강의 여신)"}
+    },
+    "천주성": {
+      "shinsal": "天廚星",
+      "meaning": "하늘의 부엌",
+      "effect": "식복, 요리 재능",
+      "astro_parallel": {"asteroid": "Ceres (1)", "reasoning": "세레스(풍요의 여신)"}
+    },
+    "삼기성": {
+      "shinsal": "三奇星",
+      "meaning": "세 가지 기이한 별",
+      "effect": "특별한 재능, 비범함",
+      "astro_parallel": {"asteroid": "Psyche (16)", "reasoning": "프시케(영혼)"}
+    },
+    "천관성": {
+      "shinsal": "天官星",
+      "meaning": "하늘의 관직",
+      "effect": "관직, 공직 인연",
+      "astro_parallel": {"primary": "Saturn", "asteroid": "Juno (3)"}
+    },
+    "천복성": {
+      "shinsal": "天福星",
+      "meaning": "하늘의 복",
+      "effect": "타고난 복, 행운",
+      "astro_parallel": {"primary": "Jupiter", "asteroid": "Fortuna (19)"}
+    },
+    "천인성": {
+      "shinsal": "天印星",
+      "meaning": "하늘의 도장",
+      "effect": "권위, 인정",
+      "astro_parallel": {"primary": "Sun", "asteroid": "Vesta (4)"}
+    },
+    "고진살": {
+      "shinsal": "孤辰殺",
+      "meaning": "외로운 새벽",
+      "effect": "고독, 독신",
+      "astro_parallel": {"primary": "Saturn", "asteroid": "Chiron"}
+    },
+    "과숙살": {
+      "shinsal": "寡宿殺",
+      "meaning": "과부의 숙소",
+      "effect": "배우자 인연 약함",
+      "astro_parallel": {"asteroid": "Pandora (55)", "reasoning": "판도라(예기치 못한 결과)"}
+    },
+    "망신살": {
+      "shinsal": "亡身殺",
+      "meaning": "몸을 망침",
+      "effect": "건강 주의, 자기 파괴",
+      "astro_parallel": {"asteroid": "Icarus (1566)", "reasoning": "이카루스(자기 파괴)"}
+    },
+    "탕화살": {
+      "shinsal": "湯火殺",
+      "meaning": "뜨거운 물과 불",
+      "effect": "화상, 열 관련 사고",
+      "astro_parallel": {"primary": "Mars", "asteroid": "Prometheus (1809)"}
+    },
+    "수액살": {
+      "shinsal": "水厄殺",
+      "meaning": "물의 재앙",
+      "effect": "익사, 수해 주의",
+      "astro_parallel": {"primary": "Neptune", "asteroid": "Poseidon"}
+    },
+    "혈인살": {
+      "shinsal": "血刃殺",
+      "meaning": "피의 칼날",
+      "effect": "수술, 출혈",
+      "astro_parallel": {"primary": "Mars", "asteroid": "Bellona (28)"}
+    },
+    "반안살": {
+      "shinsal": "攀鞍殺",
+      "meaning": "안장에 오름",
+      "effect": "승진, 이동 기회",
+      "astro_parallel": {"primary": "Jupiter", "asteroid": "Icarus (1566)"}
+    },
+    "천살": {
+      "shinsal": "天殺",
+      "meaning": "하늘의 살",
+      "effect": "자연재해, 불가항력",
+      "astro_parallel": {"primary": "Uranus", "asteroid": "Chaos (19521)"}
+    },
+    "지살": {
+      "shinsal": "地殺",
+      "meaning": "땅의 살",
+      "effect": "부동산 문제, 토지 재앙",
+      "astro_parallel": {"primary": "Saturn", "asteroid": "Gaea"}
+    },
+    "년살": {
+      "shinsal": "年殺",
+      "meaning": "해의 살",
+      "effect": "그 해 특별히 주의",
+      "astro_parallel": {"primary": "Solar Return", "secondary": "Transiting Saturn"}
+    },
+    "월살": {
+      "shinsal": "月殺",
+      "meaning": "달의 살",
+      "effect": "그 달 주의",
+      "astro_parallel": {"primary": "Lunar Return", "secondary": "Transiting Mars"}
+    },
+    "일살": {
+      "shinsal": "日殺",
+      "meaning": "날의 살",
+      "effect": "그 날 주의",
+      "astro_parallel": {"primary": "Transiting Moon aspects"}
+    },
+    "시살": {
+      "shinsal": "時殺",
+      "meaning": "시간의 살",
+      "effect": "그 시간대 주의",
+      "astro_parallel": {"primary": "Planetary Hours"}
+    },
+    "장성": {
+      "shinsal": "將星",
+      "meaning": "장군의 별",
+      "effect": "리더십, 통솔력",
+      "astro_parallel": {"primary": "Mars", "asteroid": "Pallas (2)"}
+    },
+    "천살귀인": {
+      "shinsal": "天赦貴人",
+      "meaning": "하늘의 용서",
+      "effect": "사면, 용서받음",
+      "astro_parallel": {"primary": "Neptune", "asteroid": "Pax (679)"}
+    }
+  },
+
+  "asteroid_number_reference": {
+    "description": "점성술 소행성 번호 참조",
+    "major_asteroids": {
+      "Ceres": 1,
+      "Pallas": 2,
+      "Juno": 3,
+      "Vesta": 4
+    },
+    "commonly_used": {
+      "Hygiea": 10,
+      "Psyche": 16,
+      "Fortuna": 19,
+      "Themis": 24,
+      "Bellona": 28,
+      "Urania": 30,
+      "Pandora": 55,
+      "Ophelia": 171,
+      "Dejanira": 157,
+      "Atropos": 273,
+      "Eros": 433,
+      "Pax": 679,
+      "Lilith": 1181,
+      "Icarus": 1566,
+      "Sisyphus": 1866,
+      "Prometheus": 1809,
+      "Hephaistos": 2212,
+      "Pholus": 5145,
+      "Nessus": 7066,
+      "Chaos": 19521
+    }
+  }
+}

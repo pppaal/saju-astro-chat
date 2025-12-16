@@ -214,12 +214,65 @@ export async function POST(request: Request) {
       aspectsPlus,
     };
 
+    // ======== AI 백엔드 호출 (GPT) ========
+    let aiInterpretation = '';
+    let aiModelUsed = '';
+    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      const apiToken = process.env.ADMIN_API_TOKEN;
+      if (apiToken) {
+        headers['X-API-KEY'] = apiToken;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+      // Build prompt for astrology interpretation
+      const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`;
+
+      const aiResponse = await fetch(`${backendUrl}/ask`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          theme: 'astrology',
+          prompt: astroPrompt,
+          astro: {
+            ascendant: (natal as any).ascendant,
+            mc: (natal as any).mc,
+            planets: (natal as any).planets,
+            houses,
+            aspects: aspectsPlus,
+          },
+          locale: locKey,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        aiInterpretation = aiData?.data?.fusion_layer || aiData?.data?.report || '';
+        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      }
+    } catch (aiErr) {
+      console.warn('[Astrology API] AI backend call failed:', aiErr);
+      aiInterpretation = '';
+      aiModelUsed = 'error-fallback';
+    }
+
     const res = NextResponse.json(
       {
         chartData: natal,
         chartMeta,
         aspects: aspectsPlus,
-        interpretation,
+        interpretation: aiInterpretation || interpretation,
+        aiInterpretation,
+        aiModelUsed,
         advanced,
         debug: { locale: locKey, opts },
       },

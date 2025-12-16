@@ -1,10 +1,12 @@
-﻿type Labels = Record<string, string | number | boolean>;
+type Labels = Record<string, string | number | boolean>;
 
 type CounterSample = { name: string; labels?: Labels; value: number };
 type TimingSample = { name: string; labels?: Labels; count: number; sum: number; max: number };
+type GaugeSample = { name: string; labels?: Labels; value: number };
 
 const counters: Record<string, CounterSample> = {};
 const timings: Record<string, TimingSample> = {};
+const gauges: Record<string, GaugeSample> = {};
 
 const labelStr = (labels?: Labels) =>
   labels
@@ -39,9 +41,19 @@ export function recordTiming(name: string, ms: number, labels?: Labels) {
   }
 }
 
+// Gauges represent the latest value (not cumulative)
+export function recordGauge(name: string, value: number, labels?: Labels) {
+  const key = makeKey(name, labels);
+  gauges[key] = { name, labels, value };
+  if (process.env.NODE_ENV !== "production") {
+    console.debug(`[metric] gauge ${name}=${value}`, labels ?? {});
+  }
+}
+
 export function getMetricsSnapshot() {
   return {
     counters: Object.values(counters),
+    gauges: Object.values(gauges),
     timings: Object.values(timings).map((t) => ({
       ...t,
       avg: t.count ? t.sum / t.count : 0,
@@ -52,6 +64,7 @@ export function getMetricsSnapshot() {
 export function resetMetrics() {
   Object.keys(counters).forEach((k) => delete counters[k]);
   Object.keys(timings).forEach((k) => delete timings[k]);
+  Object.keys(gauges).forEach((k) => delete gauges[k]);
 }
 
 export function toPrometheus() {
@@ -60,6 +73,12 @@ export function toPrometheus() {
     const suffix = labelStr(sample.labels);
     const labelsFmt = suffix ? `{${suffix}}` : "";
     lines.push(`# TYPE ${sample.name} counter`);
+    lines.push(`${sample.name}${labelsFmt} ${sample.value}`);
+  }
+  for (const sample of Object.values(gauges)) {
+    const suffix = labelStr(sample.labels);
+    const labelsFmt = suffix ? `{${suffix}}` : "";
+    lines.push(`# TYPE ${sample.name} gauge`);
     lines.push(`${sample.name}${labelsFmt} ${sample.value}`);
   }
   for (const sample of Object.values(timings)) {
@@ -96,6 +115,12 @@ export function toOtlp() {
                 sum_ms: t.sum,
                 max_ms: t.max,
                 labels: t.labels ?? {},
+              })),
+              ...Object.values(gauges).map((g) => ({
+                name: g.name,
+                type: "gauge",
+                value: g.value,
+                labels: g.labels ?? {},
               })),
             ],
           },

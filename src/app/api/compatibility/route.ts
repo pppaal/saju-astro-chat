@@ -110,11 +110,65 @@ export async function POST(req: NextRequest) {
     });
     lines.push('');
     lines.push(`Average: ${avg}/100`);
-    lines.push('');
-    lines.push('Note: This is a playful heuristic score, not professional guidance.');
+
+    // ======== AI 백엔드 호출 (GPT) ========
+    let aiInterpretation = '';
+    let aiModelUsed = '';
+    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      const apiToken = process.env.ADMIN_API_TOKEN;
+      if (apiToken) {
+        headers['X-API-KEY'] = apiToken;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+      // Build prompt for compatibility analysis
+      const compatPrompt = `Analyze the compatibility between these ${persons.length} people:\n\n${lines.join('\n')}\n\nProvide detailed insights on their relationship dynamics, strengths, and areas to work on.`;
+
+      const aiResponse = await fetch(`${backendUrl}/api/compatibility`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          persons: persons.map((p, i) => ({
+            name: names[i],
+            birthDate: p.date,
+            birthTime: p.time,
+            latitude: p.latitude,
+            longitude: p.longitude,
+            timeZone: p.timeZone,
+            relation: i > 0 ? p.relationToP1 : undefined,
+          })),
+          prompt: compatPrompt,
+          locale: body?.locale || 'ko',
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        aiInterpretation = aiData?.data?.report || aiData?.interpretation || '';
+        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      }
+    } catch (aiErr) {
+      console.warn('[Compatibility API] AI backend call failed:', aiErr);
+      aiInterpretation = '';
+      aiModelUsed = 'error-fallback';
+    }
+
+    const fallbackInterpretation = lines.join('\n') + '\n\nNote: This is a playful heuristic score, not professional guidance.';
 
     const res = NextResponse.json({
-      interpretation: lines.join('\n'),
+      interpretation: aiInterpretation || fallbackInterpretation,
+      aiInterpretation,
+      aiModelUsed,
       pairs: scores,
       average: avg,
     });

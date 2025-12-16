@@ -1,43 +1,40 @@
 // src/lib/astrology/foundation/transit.ts
-import path from "path";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc); dayjs.extend(timezone);
 
-const swisseph = require("swisseph");
-
 import { Chart, TransitInput, HouseSystem } from "./types";
 import { formatLongitude } from "./utils";
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from "./houses";
+import { getSwisseph } from "./ephe";
 
-const PLANET_LIST = {
-  Sun: swisseph.SE_SUN,
-  Moon: swisseph.SE_MOON,
-  Mercury: swisseph.SE_MERCURY,
-  Venus: swisseph.SE_VENUS,
-  Mars: swisseph.SE_MARS,
-  Jupiter: swisseph.SE_JUPITER,
-  Saturn: swisseph.SE_SATURN,
-  Uranus: swisseph.SE_URANUS,
-  Neptune: swisseph.SE_NEPTUNE,
-  Pluto: swisseph.SE_PLUTO,
-  "True Node": swisseph.SE_TRUE_NODE,
-};
-
-const SW_FLAGS = swisseph.SEFLG_SPEED;
-
-let EPHE_PATH_SET = false;
-function ensureEphePath() {
-  if (!EPHE_PATH_SET) {
-    const ephePath = path.join(process.cwd(), "public", "ephe");
-    swisseph.swe_set_ephe_path(ephePath);
-    EPHE_PATH_SET = true;
-  }
-}
+const getPlanetList = (() => {
+  let cache: Record<string, number> | null = null;
+  return () => {
+    if (cache) return cache;
+    const sw = getSwisseph();
+    cache = {
+      Sun: sw.SE_SUN,
+      Moon: sw.SE_MOON,
+      Mercury: sw.SE_MERCURY,
+      Venus: sw.SE_VENUS,
+      Mars: sw.SE_MARS,
+      Jupiter: sw.SE_JUPITER,
+      Saturn: sw.SE_SATURN,
+      Uranus: sw.SE_URANUS,
+      Neptune: sw.SE_NEPTUNE,
+      Pluto: sw.SE_PLUTO,
+      "True Node": sw.SE_TRUE_NODE,
+    };
+    return cache;
+  };
+})();
 
 export async function calculateTransitChart(input: TransitInput, system: HouseSystem = "Placidus"): Promise<Chart> {
-  ensureEphePath();
+  const swisseph = getSwisseph();
+  const PLANET_LIST = getPlanetList();
+  const SW_FLAGS = swisseph.SEFLG_SPEED;
 
   const local = dayjs.tz(input.iso, input.timeZone);
   if (!local.isValid()) throw new Error("Invalid ISO datetime");

@@ -9,8 +9,13 @@ import { Card, DrawnCard } from "@/lib/Tarot/tarot.types";
 import { tarotDeck } from "@/lib/Tarot/tarot-data";
 
 function drawCards(count: number): DrawnCard[] {
-  const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count).map((card: Card) => ({
+  const deck = [...tarotDeck];
+  // Fisher-Yates 셔플 - 완벽한 랜덤 분포
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck.slice(0, count).map((card: Card) => ({
     card,
     isReversed: Math.random() < 0.5,
   }));

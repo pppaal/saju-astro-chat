@@ -9,6 +9,7 @@ export type ServiceLink = {
   key: string;
   href: string;
   icon: string;
+  comingSoon?: boolean;
 };
 
 const MAJOR_ICON = "★";
@@ -109,6 +110,7 @@ export const TAROT_DECK: TarotCard[] = [
 
 export const SERVICE_LINKS: ServiceLink[] = [
   { key: "destinyMap", href: "/destiny-map", icon: "🗺️" },
+  { key: "calendar", href: "/calendar", icon: "🗓️" },
   { key: "astrology", href: "/astrology", icon: "✨" },
   { key: "saju", href: "/saju", icon: "☯️" },
   { key: "tarot", href: "/tarot", icon: "🔮" },
@@ -117,4 +119,6 @@ export const SERVICE_LINKS: ServiceLink[] = [
   { key: "numerology", href: "/numerology", icon: "🔢" },
   { key: "compatibility", href: "/compatibility", icon: "❤️" },
   { key: "personality", href: "/personality", icon: "🌈" },
+  { key: "destinyMatch", href: "/destiny-match", icon: "💫", comingSoon: true },
+  { key: "pastLife", href: "/past-life", icon: "🔄", comingSoon: true },
 ];

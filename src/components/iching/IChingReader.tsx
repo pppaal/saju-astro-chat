@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { IChingData } from "@/lib/iChing/iChingData";
+import { IChingDataKo } from "@/lib/iChing/iChingData.ko";
 import HexagramLine from "./HexagramLine";
 import ResultDisplay from "@/components/iching/ResultDisplay";
 import { IChingResult } from "@/components/iching/types";
@@ -14,16 +16,22 @@ type DivinationStatus = "idle" | "drawing" | "finished";
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const IChingReader: React.FC = () => {
-  const { translate } = useI18n();
+  const { translate, locale } = useI18n();
+  const { data: session } = useSession();
   const [result, setResult] = useState<IChingResult | null>(null);
   const [status, setStatus] = useState<DivinationStatus>("idle");
   const [drawnLines, setDrawnLines] = useState<LineResult[]>([]);
+  const [question, setQuestion] = useState("");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // Select data based on current locale
+  const currentData = locale === 'ko' ? IChingDataKo : IChingData;
 
   const hexByBinary = useMemo(() => {
     const map = new Map<string, IChingResult["primaryHexagram"]>();
-    IChingData.forEach((h) => map.set(h.binary, h));
+    currentData.forEach((h) => map.set(h.binary, h));
     return map;
-  }, []);
+  }, [currentData]);
 
   const handleDivination = async () => {
     setStatus("drawing");
@@ -98,6 +106,53 @@ const IChingReader: React.FC = () => {
     setStatus("idle");
     setResult(null);
     setDrawnLines([]);
+    setQuestion("");
+    setSaveStatus("idle");
+  };
+
+  const handleSave = async () => {
+    if (!session || !result || !result.primaryHexagram) return;
+
+    setSaveStatus("saving");
+    try {
+      const content = JSON.stringify({
+        question,
+        primaryHexagram: {
+          number: result.primaryHexagram.number,
+          name: result.primaryHexagram.name,
+          symbol: result.primaryHexagram.symbol,
+          judgment: result.primaryHexagram.judgment,
+          image: result.primaryHexagram.image,
+        },
+        changingLines: result.changingLines,
+        resultingHexagram: result.resultingHexagram ? {
+          number: result.resultingHexagram.number,
+          name: result.resultingHexagram.name,
+          symbol: result.resultingHexagram.symbol,
+          judgment: result.resultingHexagram.judgment,
+        } : null,
+        locale,
+        timestamp: new Date().toISOString(),
+      });
+
+      const res = await fetch("/api/readings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "iching",
+          title: `${result.primaryHexagram.name} ${result.primaryHexagram.symbol}`,
+          content,
+        }),
+      });
+
+      if (res.ok) {
+        setSaveStatus("saved");
+      } else {
+        setSaveStatus("error");
+      }
+    } catch {
+      setSaveStatus("error");
+    }
   };
 
   return (
@@ -124,6 +179,18 @@ const IChingReader: React.FC = () => {
               "Calm your mind and press the button to receive guidance."
             )}
           </p>
+          <div className={styles.questionSection}>
+            <label className={styles.questionLabel}>
+              {translate("iching.question", "Your Question (Optional)")}
+            </label>
+            <textarea
+              className={styles.questionInput}
+              placeholder={translate("iching.questionPlaceholder", "What guidance do you seek?")}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              rows={3}
+            />
+          </div>
           <button onClick={handleDivination} className={styles.castButton}>
             {translate("iching.cast", "Cast Hexagram")}
           </button>
@@ -147,10 +214,34 @@ const IChingReader: React.FC = () => {
       {/* Finished State */}
       {status === "finished" && (
         <>
+          {question && (
+            <div className={styles.questionDisplay}>
+              <span className={styles.questionIcon}>❓</span>
+              <p className={styles.questionText}>{question}</p>
+            </div>
+          )}
           <ResultDisplay result={result} />
-          <button onClick={reset} className={styles.resetButton}>
-            {translate("iching.castAgain", "Cast Again")}
-          </button>
+          <div className={styles.buttonGroup}>
+            {session ? (
+              <button
+                onClick={handleSave}
+                className={`${styles.saveButton} ${saveStatus === "saved" ? styles.saved : ""}`}
+                disabled={saveStatus === "saving" || saveStatus === "saved"}
+              >
+                {saveStatus === "saving" ? "..." :
+                 saveStatus === "saved" ? translate("iching.saved", "Reading Saved") :
+                 saveStatus === "error" ? translate("iching.saveError", "Failed to save") :
+                 translate("iching.save", "Save Reading")}
+              </button>
+            ) : (
+              <p className={styles.loginHint}>
+                {translate("iching.loginToSave", "Please log in to save readings")}
+              </p>
+            )}
+            <button onClick={reset} className={styles.resetButton}>
+              {translate("iching.castAgain", "Cast Again")}
+            </button>
+          </div>
         </>
       )}
     </div>

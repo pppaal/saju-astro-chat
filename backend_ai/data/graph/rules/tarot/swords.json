@@ -1,58 +1,324 @@
 [
-  {"id": 50, "name": "Ace of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Breakthrough", "Clarity", "Sharp mind", "Truth", "New idea"], "meaning": "A moment of breakthrough brings new clarity and understanding. This card represents a powerful new idea or the revelation of a core truth.", "advice": "Seize this moment of clarity. A breakthrough is here."},
-    "reversed": {"keywords": ["Confusion", "Miscommunication", "Lack of clarity", "Wrong decision", "Clouded judgment"], "meaning": "You are experiencing confusion or a lack of clarity. Miscommunication or clouded judgment may lead to making the wrong decision.", "advice": "Clear your mind before deciding. Avoid miscommunication."}
+  {
+    "id": 50,
+    "name": "Ace of Swords",
+    "nameKo": "소드 에이스",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Breakthrough", "Clarity", "Sharp mind", "Truth", "New idea"],
+      "keywordsKo": ["돌파구", "명확함", "날카로운 정신", "진실", "새 아이디어"],
+      "meaning": "A moment of breakthrough brings new clarity and understanding. This card represents a powerful new idea or the revelation of a core truth.",
+      "meaningKo": "돌파구의 순간이 새로운 명확함과 이해를 가져옵니다. 이 카드는 강력한 새 아이디어나 핵심 진실의 계시를 나타냅니다.",
+      "advice": "Embrace clarity and truth. Cut through confusion with insight.",
+      "adviceKo": "명확함과 진실을 받아들이세요. 통찰력으로 혼란을 뚫으세요."
+    },
+    "reversed": {
+      "keywords": ["Confusion", "Miscommunication", "Lack of clarity", "Wrong decision", "Clouded judgment"],
+      "keywordsKo": ["혼란", "오해", "명확함 부족", "잘못된 결정", "흐린 판단"],
+      "meaning": "You are experiencing confusion or a lack of clarity. Miscommunication or clouded judgment may lead to making the wrong decision.",
+      "meaningKo": "혼란이나 명확함 부족을 경험하고 있습니다. 오해나 흐린 판단이 잘못된 결정으로 이어질 수 있습니다.",
+      "advice": "Clear mental fog. Seek truth before acting.",
+      "adviceKo": "정신적 안개를 걷으세요. 행동 전에 진실을 찾으세요."
+    }
   },
-  {"id": 51, "name": "Two of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Difficult choice", "Indecision", "Stalemate", "Blocked emotions", "A truce"], "meaning": "You are facing a difficult choice and are currently at a stalemate. You may be blocking your emotions to avoid making a painful decision.", "advice": "Face the difficult choice. Remove your blindfold."},
-    "reversed": {"keywords": ["Indecision", "Confusion", "Information overload", "Stuck in the middle", "Anxiety"], "meaning": "You are feeling overwhelmed and unable to make a decision. Information overload is leading to confusion and anxiety.", "advice": "Filter the noise. Find clarity amidst the chaos."}
+  {
+    "id": 51,
+    "name": "Two of Swords",
+    "nameKo": "소드 2",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Difficult choice", "Indecision", "Stalemate", "Blocked emotions", "A truce"],
+      "keywordsKo": ["어려운 선택", "우유부단", "교착상태", "감정 차단", "휴전"],
+      "meaning": "You are facing a difficult choice and are currently at a stalemate. You may be blocking your emotions to avoid making a painful decision.",
+      "meaningKo": "어려운 선택에 직면해 현재 교착상태에 있습니다. 고통스러운 결정을 피하기 위해 감정을 차단하고 있을 수 있습니다.",
+      "advice": "Face the difficult choice. Avoiding it only delays resolution.",
+      "adviceKo": "어려운 선택에 맞서세요. 피하면 해결만 늦어집니다."
+    },
+    "reversed": {
+      "keywords": ["Indecision", "Confusion", "Information overload", "Stuck in the middle", "Anxiety"],
+      "keywordsKo": ["우유부단", "혼란", "정보 과부하", "중간에 갇힘", "불안"],
+      "meaning": "You are feeling overwhelmed and unable to make a decision. Information overload is leading to confusion and anxiety.",
+      "meaningKo": "압도당하고 결정을 내릴 수 없습니다. 정보 과부하가 혼란과 불안으로 이어지고 있습니다.",
+      "advice": "Open your eyes to the truth. Make the decision you've been avoiding.",
+      "adviceKo": "진실에 눈을 뜨세요. 피해왔던 결정을 내리세요."
+    }
   },
-  {"id": 52, "name": "Three of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Heartbreak", "Sorrow", "Grief", "Painful truth", "Betrayal"], "meaning": "This card represents painful separation, heartbreak, or a sorrowful truth. While painful, this clarity is necessary for healing to begin.", "advice": "Allow yourself to grieve. Healing begins with acknowledgment."},
-    "reversed": {"keywords": ["Releasing pain", "Optimism", "Forgiveness", "Healing", "Overcoming sorrow"], "meaning": "You are beginning to recover from a painful experience. Forgiveness and letting go of sorrow are the first steps toward healing.", "advice": "Release the pain. Forgiveness sets you free."}
+  {
+    "id": 52,
+    "name": "Three of Swords",
+    "nameKo": "소드 3",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Heartbreak", "Sorrow", "Grief", "Painful truth", "Betrayal"],
+      "keywordsKo": ["마음의 상처", "슬픔", "애도", "고통스러운 진실", "배신"],
+      "meaning": "This card represents painful separation, heartbreak, or a sorrowful truth. While painful, this clarity is necessary for healing to begin.",
+      "meaningKo": "이 카드는 고통스러운 이별, 마음의 상처, 또는 슬픈 진실을 나타냅니다. 고통스럽지만 치유가 시작되려면 이 명확함이 필요합니다.",
+      "advice": "Allow yourself to grieve. Healing begins with acknowledgment.",
+      "adviceKo": "슬픔을 허용하세요. 치유는 인정에서 시작됩니다."
+    },
+    "reversed": {
+      "keywords": ["Releasing pain", "Optimism", "Forgiveness", "Healing", "Overcoming sorrow"],
+      "keywordsKo": ["고통 해방", "낙관", "용서", "치유", "슬픔 극복"],
+      "meaning": "You are beginning to recover from a painful experience. Forgiveness and letting go of sorrow are the first steps toward healing.",
+      "meaningKo": "고통스러운 경험에서 회복하기 시작하고 있습니다. 용서와 슬픔을 놓는 것이 치유의 첫 걸음입니다.",
+      "advice": "Begin releasing old pain. Recovery is possible.",
+      "adviceKo": "오래된 고통을 놓기 시작하세요. 회복은 가능합니다."
+    }
   },
-  {"id": 53, "name": "Four of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Rest", "Recuperation", "Meditation", "Contemplation", "A necessary pause"], "meaning": "It is a time for rest and recovery after a challenging period. Take a break to meditate and recharge your mental and physical energy.", "advice": "Rest now. Recovery is essential for the next phase."},
-    "reversed": {"keywords": ["Exhaustion", "Burnout", "Stagnation", "Resuming activity", "Forced rest"], "meaning": "You are on the verge of burnout and are being forced to rest. Pushing yourself further will only lead to exhaustion.", "advice": "Stop pushing. Burnout is a warning sign."}
+  {
+    "id": 53,
+    "name": "Four of Swords",
+    "nameKo": "소드 4",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Rest", "Recuperation", "Meditation", "Contemplation", "A necessary pause"],
+      "keywordsKo": ["휴식", "회복", "명상", "사색", "필요한 멈춤"],
+      "meaning": "It is a time for rest and recovery after a challenging period. Take a break to meditate and recharge your mental and physical energy.",
+      "meaningKo": "도전적인 시기 후 휴식과 회복의 시간입니다. 명상하고 정신적, 육체적 에너지를 재충전할 휴식을 취하세요.",
+      "advice": "Rest and recuperate. Your mind needs peace.",
+      "adviceKo": "쉬고 회복하세요. 마음에 평화가 필요합니다."
+    },
+    "reversed": {
+      "keywords": ["Exhaustion", "Burnout", "Stagnation", "Resuming activity", "Forced rest"],
+      "keywordsKo": ["탈진", "번아웃", "정체", "활동 재개", "강제 휴식"],
+      "meaning": "You are on the verge of burnout and are being forced to rest. Pushing yourself further will only lead to exhaustion.",
+      "meaningKo": "번아웃 직전이며 강제로 쉬어야 합니다. 더 밀어붙이면 탈진만 있을 뿐입니다.",
+      "advice": "Don't ignore the need for rest. Burnout is avoidable.",
+      "adviceKo": "휴식의 필요를 무시하지 마세요. 번아웃은 피할 수 있습니다."
+    }
   },
-  {"id": 54, "name": "Five of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Conflict", "Disagreement", "Competition", "Defeat", "A hollow victory"], "meaning": "This card represents a conflict where there are no true winners. It signifies a victory won at too high a cost, leading to bitterness and alienation.", "advice": "Consider if winning is worth the cost. Hollow victories hurt everyone."},
-    "reversed": {"keywords": ["Reconciliation", "Making amends", "Moving on", "Forgiveness", "Past resentment"], "meaning": "It is a time for reconciliation and making amends. Letting go of past resentments is necessary to move on from conflict.", "advice": "Make amends. Let go of old battles."}
+  {
+    "id": 54,
+    "name": "Five of Swords",
+    "nameKo": "소드 5",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Conflict", "Disagreement", "Competition", "Defeat", "A hollow victory"],
+      "keywordsKo": ["갈등", "의견 불일치", "경쟁", "패배", "공허한 승리"],
+      "meaning": "This card represents a conflict where there are no true winners. It signifies a victory won at too high a cost, leading to bitterness and alienation.",
+      "meaningKo": "이 카드는 진정한 승자가 없는 갈등을 나타냅니다. 너무 높은 대가를 치르고 얻은 승리로, 쓴맛과 소외로 이어집니다.",
+      "advice": "Choose your battles wisely. Not every fight is worth winning.",
+      "adviceKo": "싸움을 현명하게 선택하세요. 모든 싸움이 이길 가치가 있진 않습니다."
+    },
+    "reversed": {
+      "keywords": ["Reconciliation", "Making amends", "Moving on", "Forgiveness", "Past resentment"],
+      "keywordsKo": ["화해", "보상", "앞으로 나아감", "용서", "과거 원한"],
+      "meaning": "It is a time for reconciliation and making amends. Letting go of past resentments is necessary to move on from conflict.",
+      "meaningKo": "화해하고 보상할 시간입니다. 갈등에서 벗어나려면 과거 원한을 놓아야 합니다.",
+      "advice": "Seek reconciliation. Let go of the need to be right.",
+      "adviceKo": "화해를 추구하세요. 옳아야 한다는 필요를 놓으세요."
+    }
   },
-  {"id": 55, "name": "Six of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Transition", "Moving on", "Leaving behind", "A rite of passage", "Finding peace"], "meaning": "You are moving away from a difficult situation toward a calmer future. This transition may be sad, but it is a necessary journey to find peace.", "advice": "Move forward. Calmer waters await ahead."},
-    "reversed": {"keywords": ["Emotional baggage", "Unfinished business", "Resistance to change", "Feeling stuck", "Returning to trouble"], "meaning": "You are carrying emotional baggage that is preventing you from moving on. Resistance to change is keeping you stuck in a difficult place.", "advice": "Release your baggage. Resistance only prolongs suffering."}
+  {
+    "id": 55,
+    "name": "Six of Swords",
+    "nameKo": "소드 6",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Transition", "Moving on", "Leaving behind", "A rite of passage", "Finding peace"],
+      "keywordsKo": ["전환", "앞으로 나아감", "뒤에 남김", "통과 의례", "평화 찾기"],
+      "meaning": "You are moving away from a difficult situation toward a calmer future. This transition may be sad, but it is a necessary journey to find peace.",
+      "meaningKo": "어려운 상황에서 더 평온한 미래로 이동하고 있습니다. 이 전환이 슬플 수 있지만 평화를 찾기 위한 필요한 여정입니다.",
+      "advice": "Trust the transition. Calmer waters await.",
+      "adviceKo": "전환을 믿으세요. 잔잔한 물이 기다리고 있습니다."
+    },
+    "reversed": {
+      "keywords": ["Emotional baggage", "Unfinished business", "Resistance to change", "Feeling stuck", "Returning to trouble"],
+      "keywordsKo": ["감정적 짐", "미해결 과제", "변화 저항", "갇힌 느낌", "문제로 복귀"],
+      "meaning": "You are carrying emotional baggage that is preventing you from moving on. Resistance to change is keeping you stuck in a difficult place.",
+      "meaningKo": "감정적 짐을 들고 있어 앞으로 나아가지 못합니다. 변화에 대한 저항이 어려운 곳에 갇혀있게 합니다.",
+      "advice": "Face what you're running from. Healing requires confrontation.",
+      "adviceKo": "도망치는 것에 맞서세요. 치유에는 직면이 필요합니다."
+    }
   },
-  {"id": 56, "name": "Seven of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Betrayal", "Deception", "Getting away with something", "Theft", "Strategy"], "meaning": "This card warns of deception or betrayal. Someone may be acting strategically behind your back, or you may be the one trying to get away with something.", "advice": "Be wary of deception. Consider if your strategy is ethical."},
-    "reversed": {"keywords": ["Confession", "Getting caught", "Conscience", "Facing the truth", "Returning stolen goods"], "meaning": "A secret is about to be revealed. It is a time for confession and facing the consequences of one's actions.", "advice": "The truth will out. Confess before being caught."}
+  {
+    "id": 56,
+    "name": "Seven of Swords",
+    "nameKo": "소드 7",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Betrayal", "Deception", "Getting away with something", "Theft", "Strategy"],
+      "keywordsKo": ["배신", "기만", "빠져나감", "절도", "전략"],
+      "meaning": "This card warns of deception or betrayal. Someone may be acting strategically behind your back, or you may be the one trying to get away with something.",
+      "meaningKo": "이 카드는 기만이나 배신에 대해 경고합니다. 누군가가 뒤에서 전략적으로 행동하거나, 당신이 무언가에서 빠져나가려 할 수 있습니다.",
+      "advice": "Be strategic, but stay ethical. Check your intentions.",
+      "adviceKo": "전략적이되, 윤리적으로 하세요. 의도를 점검하세요."
+    },
+    "reversed": {
+      "keywords": ["Confession", "Getting caught", "Conscience", "Facing the truth", "Returning stolen goods"],
+      "keywordsKo": ["고백", "발각", "양심", "진실 직면", "훔친 것 반환"],
+      "meaning": "A secret is about to be revealed. It is a time for confession and facing the consequences of one's actions.",
+      "meaningKo": "비밀이 밝혀지려 합니다. 고백하고 행동의 결과에 직면할 시간입니다.",
+      "advice": "Come clean. Honesty is the best policy now.",
+      "adviceKo": "솔직해지세요. 지금은 정직이 최선입니다."
+    }
   },
-  {"id": 57, "name": "Eight of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Feeling trapped", "Imprisonment", "Limiting beliefs", "Victim mentality", "Restriction"], "meaning": "You feel trapped and restricted, but these limitations are self-imposed. Your own negative thoughts are holding you prisoner. You have the power to free yourself.", "advice": "Recognize self-imposed limitations. You can free yourself."},
-    "reversed": {"keywords": ["Breaking free", "Release", "Finding solutions", "New perspective", "Taking control"], "meaning": "You are beginning to see a way out of your perceived prison. By changing your perspective, you are releasing your limiting beliefs and taking control.", "advice": "You're breaking free! Keep changing your perspective."}
+  {
+    "id": 57,
+    "name": "Eight of Swords",
+    "nameKo": "소드 8",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Feeling trapped", "Imprisonment", "Limiting beliefs", "Victim mentality", "Restriction"],
+      "keywordsKo": ["갇힌 느낌", "감금", "제한적 신념", "피해자 심리", "제한"],
+      "meaning": "You feel trapped and restricted, but these limitations are self-imposed. Your own negative thoughts are holding you prisoner. You have the power to free yourself.",
+      "meaningKo": "갇히고 제한된 느낌이지만 이 제약은 자초한 것입니다. 자신의 부정적 생각이 당신을 가두고 있습니다. 스스로 해방할 힘이 있습니다.",
+      "advice": "Recognize your mental prison is self-imposed. Freedom is possible.",
+      "adviceKo": "정신적 감옥이 자초한 것임을 인식하세요. 자유는 가능합니다."
+    },
+    "reversed": {
+      "keywords": ["Breaking free", "Release", "Finding solutions", "New perspective", "Taking control"],
+      "keywordsKo": ["벗어남", "해방", "해결책 찾기", "새 관점", "통제권 획득"],
+      "meaning": "You are beginning to see a way out of your perceived prison. By changing your perspective, you are releasing your limiting beliefs and taking control.",
+      "meaningKo": "인식된 감옥에서 벗어나는 길이 보이기 시작합니다. 관점을 바꿈으로써 제한적 신념을 놓고 통제권을 갖고 있습니다.",
+      "advice": "Begin removing your blindfold. Take one small step toward freedom.",
+      "adviceKo": "눈가리개를 벗기 시작하세요. 자유를 향해 작은 한 걸음을 내딛으세요."
+    }
   },
-  {"id": 58, "name": "Nine of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Anxiety", "Worry", "Fear", "Depression", "Nightmares"], "meaning": "This card represents deep anxiety, fear, and despair. Your worries are keeping you up at night, but these fears may be worse in your mind than in reality.", "advice": "Your fears are amplified. Seek help and perspective."},
-    "reversed": {"keywords": ["Hope", "Reaching out for help", "Recovery", "Facing fears", "Finding solutions"], "meaning": "You are beginning to find a way out of your despair. Reaching out for help and facing your fears is the first step toward recovery.", "advice": "Reach out for help. Recovery is beginning."}
+  {
+    "id": 58,
+    "name": "Nine of Swords",
+    "nameKo": "소드 9",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Anxiety", "Worry", "Fear", "Depression", "Nightmares"],
+      "keywordsKo": ["불안", "걱정", "두려움", "우울", "악몽"],
+      "meaning": "This card represents deep anxiety, fear, and despair. Your worries are keeping you up at night, but these fears may be worse in your mind than in reality.",
+      "meaningKo": "이 카드는 깊은 불안, 두려움, 절망을 나타냅니다. 걱정이 밤을 새우게 하지만, 이 두려움은 현실보다 마음속에서 더 나쁠 수 있습니다.",
+      "advice": "Share your worries. You don't have to face anxiety alone.",
+      "adviceKo": "걱정을 나누세요. 불안에 혼자 맞설 필요 없습니다."
+    },
+    "reversed": {
+      "keywords": ["Hope", "Reaching out for help", "Recovery", "Facing fears", "Finding solutions"],
+      "keywordsKo": ["희망", "도움 요청", "회복", "두려움 직면", "해결책 찾기"],
+      "meaning": "You are beginning to find a way out of your despair. Reaching out for help and facing your fears is the first step toward recovery.",
+      "meaningKo": "절망에서 벗어나는 길을 찾기 시작하고 있습니다. 도움을 요청하고 두려움에 직면하는 것이 회복의 첫 걸음입니다.",
+      "advice": "Your fears are often worse than reality. Seek perspective.",
+      "adviceKo": "두려움은 대개 현실보다 과장됩니다. 관점을 찾으세요."
+    }
   },
-  {"id": 59, "name": "Ten of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Painful endings", "Betrayal", "Rock bottom", "Defeat", "Loss"], "meaning": "This card signifies a painful ending, betrayal, or hitting rock bottom. While devastating, this is the final blow, and the only way to go is up. Recovery can now begin.", "advice": "This is rock bottom. The only way now is up."},
-    "reversed": {"keywords": ["Recovery", "Resurrection", "Healing", "Resisting the end", "A close call"], "meaning": "You are slowly recovering from a devastating event. However, it can also mean you are resisting a necessary ending, only prolonging the pain.", "advice": "Recovery is possible. Don't resist necessary endings."}
+  {
+    "id": 59,
+    "name": "Ten of Swords",
+    "nameKo": "소드 10",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Painful endings", "Betrayal", "Rock bottom", "Defeat", "Loss"],
+      "keywordsKo": ["고통스러운 끝", "배신", "바닥", "패배", "상실"],
+      "meaning": "This card signifies a painful ending, betrayal, or hitting rock bottom. While devastating, this is the final blow, and the only way to go is up. Recovery can now begin.",
+      "meaningKo": "이 카드는 고통스러운 끝, 배신, 또는 바닥을 의미합니다. 파괴적이지만 이것이 마지막 일격이며 이제 올라갈 길뿐입니다. 회복이 시작될 수 있습니다.",
+      "advice": "Accept the ending. From rock bottom, the only way is up.",
+      "adviceKo": "끝을 받아들이세요. 바닥에서는 올라가는 길뿐입니다."
+    },
+    "reversed": {
+      "keywords": ["Recovery", "Resurrection", "Healing", "Resisting the end", "A close call"],
+      "keywordsKo": ["회복", "부활", "치유", "끝에 저항", "아슬아슬"],
+      "meaning": "You are slowly recovering from a devastating event. However, it can also mean you are resisting a necessary ending, only prolonging the pain.",
+      "meaningKo": "파괴적인 사건에서 천천히 회복하고 있습니다. 그러나 필요한 끝에 저항하여 고통을 연장하는 것일 수도 있습니다.",
+      "advice": "Resist playing the victim. Recovery and renewal begin now.",
+      "adviceKo": "피해자 역할을 그만두세요. 회복과 갱신이 지금 시작됩니다."
+    }
   },
-  {"id": 60, "name": "Page of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Curiosity", "New ideas", "Truthful", "Energetic", "A messenger"], "meaning": "Full of youthful energy and curiosity, you are eager to learn and share new ideas. This card represents a quest for knowledge and truth.", "advice": "Stay curious. Seek knowledge and truth actively."},
-    "reversed": {"keywords": ["Gossip", "Deception", "Scattered energy", "Sarcasm", "Thoughtless words"], "meaning": "Be wary of spreading gossip or speaking without thinking. Scattered energy can lead to a lack of focus and unproductive communication.", "advice": "Think before speaking. Avoid gossip and sarcasm."}
+  {
+    "id": 60,
+    "name": "Page of Swords",
+    "nameKo": "소드 시종",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Curiosity", "New ideas", "Truthful", "Energetic", "A messenger"],
+      "keywordsKo": ["호기심", "새 아이디어", "진실함", "활기참", "전령"],
+      "meaning": "Full of youthful energy and curiosity, you are eager to learn and share new ideas. This card represents a quest for knowledge and truth.",
+      "meaningKo": "젊은 에너지와 호기심으로 가득하여 배우고 새 아이디어를 공유하기를 열망합니다. 이 카드는 지식과 진실 추구를 나타냅니다.",
+      "advice": "Stay curious and alert. Use your mind to solve problems.",
+      "adviceKo": "호기심과 경계심을 유지하세요. 문제 해결에 지성을 사용하세요."
+    },
+    "reversed": {
+      "keywords": ["Gossip", "Deception", "Scattered energy", "Sarcasm", "Thoughtless words"],
+      "keywordsKo": ["험담", "기만", "산만한 에너지", "빈정거림", "무심한 말"],
+      "meaning": "Be wary of spreading gossip or speaking without thinking. Scattered energy can lead to a lack of focus and unproductive communication.",
+      "meaningKo": "험담을 퍼뜨리거나 생각 없이 말하는 것을 경계하세요. 산만한 에너지가 집중력 부족과 비생산적 소통으로 이어질 수 있습니다.",
+      "advice": "Think before you speak. Avoid gossip and hasty conclusions.",
+      "adviceKo": "말하기 전에 생각하세요. 험담과 성급한 결론을 피하세요."
+    }
   },
-  {"id": 61, "name": "Knight of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Ambitious", "Action-oriented", "Fast-thinking", "Assertive", "Driven"], "meaning": "This card represents a sharp, ambitious mind ready to charge into action. You are driven to pursue your goals with great speed and focus.", "advice": "Charge forward with focus. Your ambition drives success."},
-    "reversed": {"keywords": ["Reckless", "Hasty", "Arrogant", "Aggressive", "Thoughtless action"], "meaning": "You may be acting with haste and aggression, without fully thinking through the consequences. This reckless energy can lead to conflict.", "advice": "Slow down. Think before acting aggressively."}
+  {
+    "id": 61,
+    "name": "Knight of Swords",
+    "nameKo": "소드 기사",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Ambitious", "Action-oriented", "Fast-thinking", "Assertive", "Driven"],
+      "keywordsKo": ["야심찬", "행동 지향적", "빠른 사고", "단호한", "추진력 있는"],
+      "meaning": "This card represents a sharp, ambitious mind ready to charge into action. You are driven to pursue your goals with great speed and focus.",
+      "meaningKo": "이 카드는 행동에 돌진할 준비가 된 날카롭고 야심찬 정신을 나타냅니다. 큰 속도와 집중력으로 목표를 추구하도록 몰리고 있습니다.",
+      "advice": "Act decisively when you're certain. Speed can be an advantage.",
+      "adviceKo": "확신이 있을 때 단호하게 행동하세요. 속도가 이점이 될 수 있습니다."
+    },
+    "reversed": {
+      "keywords": ["Reckless", "Hasty", "Arrogant", "Aggressive", "Thoughtless action"],
+      "keywordsKo": ["무모한", "성급한", "오만한", "공격적", "무분별한 행동"],
+      "meaning": "You may be acting with haste and aggression, without fully thinking through the consequences. This reckless energy can lead to conflict.",
+      "meaningKo": "결과를 충분히 생각하지 않고 성급하고 공격적으로 행동하고 있을 수 있습니다. 이 무모한 에너지가 갈등으로 이어질 수 있습니다.",
+      "advice": "Slow down. Rushing leads to unnecessary conflict.",
+      "adviceKo": "속도를 늦추세요. 서두름은 불필요한 갈등을 낳습니다."
+    }
   },
-  {"id": 62, "name": "Queen of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Independent", "Unbiased judgment", "Clear boundaries", "Intelligent", "Honest"], "meaning": "This card represents an intelligent and independent person who relies on unbiased judgment. You have clear boundaries and value honesty above all.", "advice": "Judge fairly. Maintain clear boundaries and honesty."},
-    "reversed": {"keywords": ["Cold", "Bitter", "Cynical", "Cruel", "Overly critical"], "meaning": "You may be acting with a cold and bitter heart. Past pain can make one overly critical or cruel with their words.", "advice": "Soften your heart. Don't let past pain make you cruel."}
+  {
+    "id": 62,
+    "name": "Queen of Swords",
+    "nameKo": "소드 여왕",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Independent", "Unbiased judgment", "Clear boundaries", "Intelligent", "Honest"],
+      "keywordsKo": ["독립적", "공정한 판단", "명확한 경계", "지적인", "정직한"],
+      "meaning": "This card represents an intelligent and independent person who relies on unbiased judgment. You have clear boundaries and value honesty above all.",
+      "meaningKo": "이 카드는 공정한 판단에 의존하는 지적이고 독립적인 사람을 나타냅니다. 명확한 경계를 가지고 무엇보다 정직을 중시합니다.",
+      "advice": "Speak your truth with clarity. Set clear boundaries.",
+      "adviceKo": "명확하게 진실을 말하세요. 분명한 경계를 설정하세요."
+    },
+    "reversed": {
+      "keywords": ["Cold", "Bitter", "Cynical", "Cruel", "Overly critical"],
+      "keywordsKo": ["차가운", "쓴", "냉소적", "잔인한", "지나치게 비판적"],
+      "meaning": "You may be acting with a cold and bitter heart. Past pain can make one overly critical or cruel with their words.",
+      "meaningKo": "차갑고 쓴 마음으로 행동하고 있을 수 있습니다. 과거의 고통이 말에 지나치게 비판적이거나 잔인하게 만들 수 있습니다.",
+      "advice": "Balance intellect with compassion. Don't be too harsh.",
+      "adviceKo": "지성과 연민의 균형을 맞추세요. 너무 가혹하지 마세요."
+    }
   },
-  {"id": 63, "name": "King of Swords", "arcana": "minor", "suit": "swords",
-    "upright": {"keywords": ["Intellectual power", "Authority", "Truth", "Clarity", "Justice"], "meaning": "This card represents the authority of intellect and truth. You are a master of logic and can make decisions with clarity and fairness.", "advice": "Lead with logic and truth. Your clarity brings justice."},
-    "reversed": {"keywords": ["Manipulative", "Tyrannical", "Abuse of power", "Cruel", "Cold-hearted"], "meaning": "Be wary of someone who uses their intellect to manipulate and control. This abuse of power can be cruel and tyrannical.", "advice": "Don't abuse intellectual power. Avoid manipulation."}
+  {
+    "id": 63,
+    "name": "King of Swords",
+    "nameKo": "소드 왕",
+    "arcana": "minor",
+    "suit": "swords",
+    "upright": {
+      "keywords": ["Intellectual power", "Authority", "Truth", "Clarity", "Justice"],
+      "keywordsKo": ["지적 힘", "권위", "진실", "명확함", "정의"],
+      "meaning": "This card represents the authority of intellect and truth. You are a master of logic and can make decisions with clarity and fairness.",
+      "meaningKo": "이 카드는 지성과 진실의 권위를 나타냅니다. 논리의 달인이며 명확함과 공정함으로 결정을 내릴 수 있습니다.",
+      "advice": "Make decisions with logic and fairness. Be objective.",
+      "adviceKo": "논리와 공정함으로 결정하세요. 객관적이 되세요."
+    },
+    "reversed": {
+      "keywords": ["Manipulative", "Tyrannical", "Abuse of power", "Cruel", "Cold-hearted"],
+      "keywordsKo": ["조종적", "폭군적", "권력 남용", "잔인한", "냉정한"],
+      "meaning": "Be wary of someone who uses their intellect to manipulate and control. This abuse of power can be cruel and tyrannical.",
+      "meaningKo": "지성을 사용해 조종하고 통제하는 사람을 경계하세요. 이 권력 남용은 잔인하고 폭군적일 수 있습니다.",
+      "advice": "Don't let intellectual superiority become coldness. Consider others' feelings.",
+      "adviceKo": "지적 우월감이 냉정함이 되지 않게 하세요. 타인의 감정을 고려하세요."
+    }
   }
 ]

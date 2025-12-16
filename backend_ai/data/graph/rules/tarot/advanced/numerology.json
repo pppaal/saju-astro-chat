@@ -1,7 +1,8 @@
 {
   "_meta": {
-    "title": "Tarot Numerology",
-    "description": "타로 카드의 숫자학 - 숫자가 가진 영적 의미와 해석"
+    "title": "Tarot Numerology - Extended",
+    "description": "타로 카드의 완전한 숫자학 시스템 - 숫자가 가진 영적 의미, 생명카드, 개인연도, 영혼계약까지",
+    "version": "2.0"
   },
   "number_meanings": {
     "0": {
@@ -11,7 +12,9 @@
       "meaning": "무한한 가능성, 새로운 시작 전의 순수한 상태",
       "energy": "시작 전의 잠재력, 제로 포인트",
       "life_lesson": "모든 것을 내려놓고 새롭게 시작할 용기",
-      "shadow": "방향 없음, 무책임"
+      "shadow": "방향 없음, 무책임",
+      "keywords": ["순수", "가능성", "공허", "시작 전", "잠재력"],
+      "spiritual_meaning": "모든 것의 근원, 비움을 통한 채움"
     },
     "1": {
       "name": "One / Unity",
@@ -20,8 +23,10 @@
       "meaning": "새로운 시작, 독립, 창조, 리더십",
       "energy": "시작의 에너지, 개척자 정신",
       "life_lesson": "자신만의 길을 개척하라",
-      "shadow": "이기심, 고립",
-      "timing": "새로운 사이클의 시작점"
+      "shadow": "이기심, 고립, 독단",
+      "timing": "새로운 사이클의 시작점",
+      "keywords": ["시작", "리더십", "독립", "창조", "개인"],
+      "spiritual_meaning": "신성한 의지, 우주와 개인의 연결"
     },
     "2": {
       "name": "Two / Duality",
@@ -30,88 +35,106 @@
       "meaning": "균형, 파트너십, 선택, 이중성",
       "energy": "조화와 균형의 에너지",
       "life_lesson": "대립되는 것들 사이에서 균형을 찾아라",
-      "shadow": "우유부단, 의존성",
-      "timing": "결정을 내려야 할 때"
+      "shadow": "우유부단, 의존성, 분열",
+      "timing": "결정을 내려야 할 때",
+      "keywords": ["균형", "선택", "파트너십", "이중성", "협력"],
+      "spiritual_meaning": "음양의 조화, 내면과 외면의 균형"
     },
     "3": {
       "name": "Three / Creation",
       "korean": "삼(三) / 창조와 표현",
       "cards": ["The Empress", "Three of Wands", "Three of Cups", "Three of Swords", "Three of Pentacles"],
-      "meaning": "창조, 표현, 성장, 확장",
+      "meaning": "창조, 표현, 성장, 확장, 결실",
       "energy": "창조적 에너지, 삼위일체",
       "life_lesson": "창조적으로 자신을 표현하라",
-      "shadow": "산만함, 피상적",
-      "timing": "첫 결실이 맺히는 때"
+      "shadow": "산만함, 피상적, 과시",
+      "timing": "첫 결실이 맺히는 때",
+      "keywords": ["창조", "표현", "성장", "기쁨", "확장"],
+      "spiritual_meaning": "신성한 창조력, 사고-말-행동의 합일"
     },
     "4": {
       "name": "Four / Foundation",
       "korean": "사(四) / 안정과 기반",
       "cards": ["The Emperor", "Four of Wands", "Four of Cups", "Four of Swords", "Four of Pentacles"],
-      "meaning": "안정, 구조, 기반, 질서",
+      "meaning": "안정, 구조, 기반, 질서, 휴식",
       "energy": "안정화 에너지, 사방위",
       "life_lesson": "튼튼한 기반을 세워라",
-      "shadow": "경직됨, 제한",
-      "timing": "안정을 찾을 때, 휴식이 필요할 때"
+      "shadow": "경직됨, 제한, 완고함",
+      "timing": "안정을 찾을 때, 휴식이 필요할 때",
+      "keywords": ["안정", "구조", "기반", "질서", "보안"],
+      "spiritual_meaning": "물질 세계의 기반, 사원소의 균형"
     },
     "5": {
       "name": "Five / Change",
       "korean": "오(五) / 변화와 도전",
       "cards": ["The Hierophant", "Five of Wands", "Five of Cups", "Five of Swords", "Five of Pentacles"],
-      "meaning": "변화, 도전, 갈등, 불안정",
+      "meaning": "변화, 도전, 갈등, 불안정, 교훈",
       "energy": "변화의 에너지, 오행",
       "life_lesson": "변화를 두려워하지 말고 받아들여라",
-      "shadow": "불안정, 갈등",
-      "timing": "전환점, 중간 지점"
+      "shadow": "불안정, 갈등, 혼란",
+      "timing": "전환점, 중간 지점",
+      "keywords": ["변화", "도전", "갈등", "배움", "전환"],
+      "spiritual_meaning": "인간 경험의 중심, 오감을 통한 학습"
     },
     "6": {
       "name": "Six / Harmony",
       "korean": "육(六) / 조화와 책임",
       "cards": ["The Lovers", "Six of Wands", "Six of Cups", "Six of Swords", "Six of Pentacles"],
-      "meaning": "조화, 사랑, 책임, 선택",
+      "meaning": "조화, 사랑, 책임, 선택, 균형",
       "energy": "조화와 균형의 에너지",
       "life_lesson": "사랑과 책임의 균형을 찾아라",
-      "shadow": "자기희생, 완벽주의",
-      "timing": "조화를 찾는 때, 관계의 시기"
+      "shadow": "자기희생, 완벽주의, 의존",
+      "timing": "조화를 찾는 때, 관계의 시기",
+      "keywords": ["조화", "사랑", "책임", "치유", "균형"],
+      "spiritual_meaning": "무조건적 사랑, 위아래의 조화"
     },
     "7": {
       "name": "Seven / Wisdom",
       "korean": "칠(七) / 지혜와 내면",
       "cards": ["The Chariot", "Seven of Wands", "Seven of Cups", "Seven of Swords", "Seven of Pentacles"],
-      "meaning": "내면 탐구, 지혜, 영성, 분석",
+      "meaning": "내면 탐구, 지혜, 영성, 분석, 평가",
       "energy": "영적 탐구의 에너지, 칠성",
       "life_lesson": "내면의 지혜를 신뢰하라",
-      "shadow": "고립, 의심",
-      "timing": "평가와 성찰의 때"
+      "shadow": "고립, 의심, 비밀주의",
+      "timing": "평가와 성찰의 때",
+      "keywords": ["지혜", "영성", "분석", "내면", "신비"],
+      "spiritual_meaning": "신성한 수, 일곱 차크라, 영적 완성"
     },
     "8": {
       "name": "Eight / Power",
       "korean": "팔(八) / 힘과 풍요",
       "cards": ["Strength", "Eight of Wands", "Eight of Cups", "Eight of Swords", "Eight of Pentacles"],
-      "meaning": "힘, 풍요, 성취, 카르마",
+      "meaning": "힘, 풍요, 성취, 카르마, 무한",
       "energy": "풍요와 힘의 에너지, 무한대(∞)",
       "life_lesson": "내면의 힘으로 현실을 창조하라",
-      "shadow": "탐욕, 권력 남용",
-      "timing": "빠른 진전, 움직임의 때"
+      "shadow": "탐욕, 권력 남용, 과로",
+      "timing": "빠른 진전, 움직임의 때",
+      "keywords": ["힘", "풍요", "카르마", "성취", "균형"],
+      "spiritual_meaning": "우주적 균형, 인과응보, 무한한 가능성"
     },
     "9": {
       "name": "Nine / Completion",
       "korean": "구(九) / 완성 직전",
       "cards": ["The Hermit", "Nine of Wands", "Nine of Cups", "Nine of Swords", "Nine of Pentacles"],
-      "meaning": "완성 직전, 지혜, 성취, 통합",
+      "meaning": "완성 직전, 지혜, 성취, 통합, 인도주의",
       "energy": "완성 에너지, 최고의 수",
       "life_lesson": "여정의 끝에서 지혜를 얻어라",
-      "shadow": "고립, 완벽주의",
-      "timing": "거의 다 왔다, 마무리 단계"
+      "shadow": "고립, 완벽주의, 과도한 자기 의존",
+      "timing": "거의 다 왔다, 마무리 단계",
+      "keywords": ["완성", "지혜", "봉사", "통합", "성취"],
+      "spiritual_meaning": "영적 완성, 마스터 에너지"
     },
     "10": {
       "name": "Ten / Completion & New Cycle",
       "korean": "십(十) / 완성과 새로운 시작",
       "cards": ["Wheel of Fortune", "Ten of Wands", "Ten of Cups", "Ten of Swords", "Ten of Pentacles"],
-      "meaning": "사이클 완성, 새 시작 준비, 전환",
-      "energy": "완성과 재시작의 에너지",
+      "meaning": "사이클 완성, 새 시작 준비, 전환, 유산",
+      "energy": "완성과 재시작의 에너지 (10 = 1+0 = 1)",
       "life_lesson": "한 사이클을 마치고 다음으로 나아가라",
-      "shadow": "집착, 놓지 못함",
-      "timing": "한 사이클의 끝, 새 시작 직전"
+      "shadow": "집착, 놓지 못함, 과도한 짐",
+      "timing": "한 사이클의 끝, 새 시작 직전",
+      "keywords": ["완성", "전환", "유산", "사이클", "재시작"],
+      "spiritual_meaning": "완전한 사이클, 다음 레벨로의 상승"
     }
   },
   "master_numbers": {
@@ -119,41 +142,51 @@
       "name": "Master Number 11",
       "korean": "마스터 넘버 11 / 영적 통찰",
       "cards": ["Justice"],
-      "meaning": "영적 깨달음, 직관, 영감",
+      "meaning": "영적 깨달음, 직관, 영감, 영적 메신저",
       "energy": "고차원 에너지, 영적 메신저",
-      "life_lesson": "직관을 믿고 높은 목적을 따르라"
+      "life_lesson": "직관을 믿고 높은 목적을 따르라",
+      "challenge": "높은 이상과 현실의 균형",
+      "keywords": ["직관", "영감", "메신저", "깨달음", "비전"]
     },
     "12": {
       "name": "Master Number 12",
       "korean": "마스터 넘버 12 / 희생과 변환",
       "cards": ["The Hanged Man"],
-      "meaning": "희생, 새 관점, 영적 변환",
-      "energy": "변환의 에너지, 12별자리",
-      "life_lesson": "포기함으로써 얻는 것을 배워라"
+      "meaning": "희생, 새 관점, 영적 변환, 완전한 사이클",
+      "energy": "변환의 에너지, 12별자리, 12시간",
+      "life_lesson": "포기함으로써 얻는 것을 배워라",
+      "challenge": "희생과 자기 보존의 균형",
+      "keywords": ["희생", "관점", "변환", "완전성", "주기"]
     },
     "13": {
       "name": "Master Number 13",
       "korean": "마스터 넘버 13 / 변환",
       "cards": ["Death"],
-      "meaning": "변환, 재탄생, 끝과 시작",
+      "meaning": "변환, 재탄생, 끝과 시작, 카르마 청산",
       "energy": "죽음과 재탄생의 에너지",
-      "life_lesson": "끝은 새로운 시작이다"
+      "life_lesson": "끝은 새로운 시작이다",
+      "challenge": "변화에 대한 두려움 극복",
+      "keywords": ["변환", "재탄생", "해방", "카르마", "정화"]
     },
     "21": {
       "name": "Master Number 21",
       "korean": "마스터 넘버 21 / 완성",
       "cards": ["The World"],
-      "meaning": "완전한 완성, 통합, 성취",
+      "meaning": "완전한 완성, 통합, 성취, 우주적 의식",
       "energy": "우주적 완성의 에너지",
-      "life_lesson": "모든 것이 하나로 통합된다"
+      "life_lesson": "모든 것이 하나로 통합된다",
+      "challenge": "완성 후의 새로운 방향 찾기",
+      "keywords": ["완성", "통합", "성취", "우주", "합일"]
     },
     "22": {
       "name": "Master Number 22",
       "korean": "마스터 넘버 22 / 마스터 빌더",
       "cards": ["The Fool (as 22)"],
-      "meaning": "꿈을 현실로, 마스터 빌더",
+      "meaning": "꿈을 현실로, 마스터 빌더, 무한한 잠재력",
       "energy": "현실 창조의 최고 에너지",
-      "life_lesson": "큰 비전을 현실로 만들어라"
+      "life_lesson": "큰 비전을 현실로 만들어라",
+      "challenge": "원대한 비전 실현의 압박감",
+      "keywords": ["마스터 빌더", "현실 창조", "비전", "무한", "가능성"]
     }
   },
   "number_patterns": {
@@ -161,23 +194,48 @@
       "description": "같은 숫자가 여러 번 나올 때",
       "111": {
         "meaning": "새로운 시작의 강력한 신호",
-        "message": "우주가 새 시작을 강력히 지지합니다"
+        "message": "우주가 새 시작을 강력히 지지합니다",
+        "action": "새로운 것을 시작하세요"
       },
       "222": {
         "meaning": "균형과 파트너십 강조",
-        "message": "관계와 협력에 집중하세요"
+        "message": "관계와 협력에 집중하세요",
+        "action": "파트너를 찾거나 협력하세요"
       },
       "333": {
         "meaning": "창조적 에너지 폭발",
-        "message": "자신을 표현할 때입니다"
+        "message": "자신을 표현할 때입니다",
+        "action": "창조하고 표현하세요"
       },
       "444": {
         "meaning": "안정의 기반이 필요함",
-        "message": "기반을 다지는 데 집중하세요"
+        "message": "기반을 다지는 데 집중하세요",
+        "action": "안정적인 기반을 세우세요"
       },
       "555": {
         "meaning": "큰 변화가 오고 있음",
-        "message": "변화를 받아들일 준비를 하세요"
+        "message": "변화를 받아들일 준비를 하세요",
+        "action": "변화에 유연하게 대응하세요"
+      },
+      "666": {
+        "meaning": "균형 회복 필요",
+        "message": "물질과 영성의 균형을 찾으세요",
+        "action": "지나친 물질주의에서 벗어나세요"
+      },
+      "777": {
+        "meaning": "영적 각성과 행운",
+        "message": "영적 성장의 시기입니다",
+        "action": "내면에 집중하세요"
+      },
+      "888": {
+        "meaning": "풍요와 성취",
+        "message": "풍요가 다가오고 있어요",
+        "action": "받을 준비를 하세요"
+      },
+      "999": {
+        "meaning": "완성과 종결",
+        "message": "한 사이클이 끝나고 있어요",
+        "action": "마무리하고 놓아주세요"
       }
     },
     "sequential_numbers": {
@@ -191,6 +249,24 @@
         "meaning": "마무리와 정리의 흐름",
         "message": "한 사이클을 마무리하고 있어요"
       }
+    },
+    "number_pairs": {
+      "1_and_9": {
+        "meaning": "시작과 끝의 연결",
+        "message": "새로운 시작을 위한 마무리가 필요해요"
+      },
+      "2_and_7": {
+        "meaning": "관계와 지혜",
+        "message": "관계에서 깊은 지혜를 배워요"
+      },
+      "3_and_6": {
+        "meaning": "창조와 조화",
+        "message": "창조적이면서도 조화로운 접근이 필요해요"
+      },
+      "4_and_5": {
+        "meaning": "안정과 변화의 긴장",
+        "message": "변화 속에서 안정을 유지하세요"
+      }
     }
   },
   "birth_card_calculation": {
@@ -201,10 +277,209 @@
       "calculation": "1+9+9+0+0+5+1+5 = 30 → 3+0 = 3",
       "birth_card": "The Empress (III)"
     },
-    "personality_year": {
-      "description": "올해의 개인 연도 카드",
-      "method": "생일 + 현재 연도",
-      "interpretation": "올해의 주요 테마와 레슨"
+    "birth_card_meanings": {
+      "1": {
+        "card": "The Magician",
+        "korean": "마법사 - 창조자, 의지력",
+        "life_theme": "창조와 현실화",
+        "strength": "강한 의지력, 커뮤니케이션 능력",
+        "challenge": "과도한 조종, 속임"
+      },
+      "2": {
+        "card": "The High Priestess",
+        "korean": "여사제 - 직관, 내면 지혜",
+        "life_theme": "직관과 영적 지식",
+        "strength": "강한 직관, 영적 연결",
+        "challenge": "고립, 비밀주의"
+      },
+      "3": {
+        "card": "The Empress",
+        "korean": "여황제 - 풍요, 창조",
+        "life_theme": "창조와 양육",
+        "strength": "창의력, 풍요, 아름다움",
+        "challenge": "과도한 의존, 탐닉"
+      },
+      "4": {
+        "card": "The Emperor",
+        "korean": "황제 - 권위, 안정",
+        "life_theme": "구조와 리더십",
+        "strength": "리더십, 조직력, 안정",
+        "challenge": "경직됨, 독재"
+      },
+      "5": {
+        "card": "The Hierophant",
+        "korean": "교황 - 전통, 가르침",
+        "life_theme": "가르침과 전통",
+        "strength": "지혜 전달, 영적 가이드",
+        "challenge": "완고함, 교조주의"
+      },
+      "6": {
+        "card": "The Lovers",
+        "korean": "연인 - 선택, 관계",
+        "life_theme": "관계와 선택",
+        "strength": "조화, 사랑, 결정력",
+        "challenge": "우유부단, 관계 의존"
+      },
+      "7": {
+        "card": "The Chariot",
+        "korean": "전차 - 의지, 승리",
+        "life_theme": "결단과 성취",
+        "strength": "강한 의지, 자기 통제",
+        "challenge": "과도한 통제, 공격성"
+      },
+      "8": {
+        "card": "Strength",
+        "korean": "힘 - 내면의 힘",
+        "life_theme": "내면 힘과 인내",
+        "strength": "용기, 인내, 연민",
+        "challenge": "자기 의심, 과도한 희생"
+      },
+      "9": {
+        "card": "The Hermit",
+        "korean": "은둔자 - 지혜, 고독",
+        "life_theme": "내면 탐구와 지혜",
+        "strength": "깊은 지혜, 영적 추구",
+        "challenge": "고립, 세상과의 단절"
+      },
+      "10": {
+        "card": "Wheel of Fortune",
+        "korean": "운명의 수레바퀴 - 변화, 운명",
+        "life_theme": "변화와 순환",
+        "strength": "적응력, 낙관주의",
+        "challenge": "불안정, 운에 의존"
+      },
+      "11": {
+        "card": "Justice",
+        "korean": "정의 - 균형, 진실",
+        "life_theme": "정의와 균형",
+        "strength": "공정함, 명확한 판단",
+        "challenge": "비판적, 융통성 부족"
+      },
+      "12": {
+        "card": "The Hanged Man",
+        "korean": "매달린 남자 - 희생, 관점",
+        "life_theme": "희생과 깨달음",
+        "strength": "새로운 관점, 영적 통찰",
+        "challenge": "수동성, 자기 희생"
+      },
+      "13": {
+        "card": "Death",
+        "korean": "죽음 - 변화, 재탄생",
+        "life_theme": "변화와 재탄생",
+        "strength": "변화 수용, 재생력",
+        "challenge": "집착, 변화 두려움"
+      },
+      "14": {
+        "card": "Temperance",
+        "korean": "절제 - 균형, 조화",
+        "life_theme": "균형과 통합",
+        "strength": "인내, 중재, 치유",
+        "challenge": "지나친 타협, 우유부단"
+      },
+      "15": {
+        "card": "The Devil",
+        "korean": "악마 - 속박, 욕망",
+        "life_theme": "그림자와 해방",
+        "strength": "현실 인식, 물질적 성공",
+        "challenge": "중독, 물질주의"
+      },
+      "16": {
+        "card": "The Tower",
+        "korean": "탑 - 붕괴, 해방",
+        "life_theme": "파괴와 재건",
+        "strength": "진실 직면, 해방",
+        "challenge": "갑작스러운 변화, 불안정"
+      },
+      "17": {
+        "card": "The Star",
+        "korean": "별 - 희망, 영감",
+        "life_theme": "희망과 치유",
+        "strength": "낙관, 영감, 치유력",
+        "challenge": "비현실적 기대"
+      },
+      "18": {
+        "card": "The Moon",
+        "korean": "달 - 직관, 환상",
+        "life_theme": "직관과 무의식",
+        "strength": "강한 직관, 예술성",
+        "challenge": "환상, 불안, 착각"
+      },
+      "19": {
+        "card": "The Sun",
+        "korean": "태양 - 성공, 기쁨",
+        "life_theme": "기쁨과 성공",
+        "strength": "긍정, 활력, 성공",
+        "challenge": "과시, 나르시시즘"
+      },
+      "20": {
+        "card": "Judgement",
+        "korean": "심판 - 재탄생, 소명",
+        "life_theme": "소명과 각성",
+        "strength": "자기 성찰, 소명 인식",
+        "challenge": "자기 비판, 죄책감"
+      },
+      "21": {
+        "card": "The World",
+        "korean": "세계 - 완성, 통합",
+        "life_theme": "완성과 통합",
+        "strength": "성취, 완전함, 통합",
+        "challenge": "새로운 도전 회피"
+      },
+      "22": {
+        "card": "The Fool",
+        "korean": "바보 - 새 시작, 자유",
+        "life_theme": "자유와 모험",
+        "strength": "순수함, 용기, 자유",
+        "challenge": "무책임, 방향 없음"
+      }
     }
+  },
+  "personal_year_calculation": {
+    "description": "올해의 개인 연도 카드",
+    "method": "생일(월/일) + 현재 연도",
+    "example": {
+      "birthday": "5월 15일",
+      "current_year": "2024",
+      "calculation": "5+1+5+2+0+2+4 = 19",
+      "personal_year_card": "The Sun (XIX)"
+    },
+    "interpretation": "올해의 주요 테마와 레슨",
+    "year_themes": {
+      "1": "새로운 시작, 리더십 발휘",
+      "2": "관계, 협력, 균형 찾기",
+      "3": "창조적 표현, 기쁨, 성장",
+      "4": "기반 구축, 열심히 일함",
+      "5": "변화, 자유, 모험",
+      "6": "관계, 가정, 책임",
+      "7": "내면 탐구, 휴식, 지혜",
+      "8": "성취, 풍요, 권력",
+      "9": "완성, 마무리, 봉사"
+    }
+  },
+  "soul_contract_numbers": {
+    "description": "이름에서 계산하는 영혼 계약 숫자",
+    "soul_number": {
+      "description": "모음에서 계산 - 내면의 욕구",
+      "meaning": "당신 영혼이 진정으로 원하는 것"
+    },
+    "personality_number": {
+      "description": "자음에서 계산 - 외면의 인상",
+      "meaning": "세상이 당신을 어떻게 보는가"
+    },
+    "destiny_number": {
+      "description": "전체 이름에서 계산 - 삶의 목적",
+      "meaning": "이 생에서의 사명"
+    }
+  },
+  "number_compatibility": {
+    "1": {"compatible": [1, 3, 5, 7], "challenging": [4, 8]},
+    "2": {"compatible": [2, 4, 6, 8], "challenging": [5, 7]},
+    "3": {"compatible": [1, 3, 5, 9], "challenging": [4, 6]},
+    "4": {"compatible": [2, 4, 6, 8], "challenging": [1, 5]},
+    "5": {"compatible": [1, 3, 5, 7, 9], "challenging": [2, 4]},
+    "6": {"compatible": [2, 4, 6, 9], "challenging": [3, 5]},
+    "7": {"compatible": [1, 5, 7], "challenging": [2, 4, 8]},
+    "8": {"compatible": [2, 4, 6, 8], "challenging": [1, 7]},
+    "9": {"compatible": [3, 6, 9], "challenging": [4, 8]}
   }
 }

@@ -1,14 +1,14 @@
 // src/lib/astrology/foundation/returns.ts
 // Solar Return & Lunar Return 계산
 
-import path from "path";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const swisseph = require("swisseph");
+import { getSwisseph } from "./ephe";
+const swisseph = getSwisseph();
 
 import {
   ReturnChart,
@@ -36,13 +36,8 @@ const PLANET_LIST = {
 
 const SW_FLAGS = swisseph.SEFLG_SPEED;
 
-let EPHE_PATH_SET = false;
 function ensureEphePath() {
-  if (!EPHE_PATH_SET) {
-    const ephePath = path.join(process.cwd(), "public", "ephe");
-    swisseph.swe_set_ephe_path(ephePath);
-    EPHE_PATH_SET = true;
-  }
+  // Path is set via getSwisseph()
 }
 
 /**

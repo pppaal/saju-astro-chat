@@ -1,0 +1,318 @@
+{
+  "$schema": "cross_branch_house_v1",
+  "$description": "12지지 ↔ 12하우스 완전 매핑",
+
+  "mapping_principle": {
+    "description": "지지는 시간/계절/방향, 하우스는 삶의 영역을 나타냄",
+    "correlation_basis": "에너지 성질과 삶의 테마 유사성",
+    "note": "완벽한 1:1 대응은 아니나, 에너지 공명 관계"
+  },
+
+  "branch_house_mapping": {
+    "자": {
+      "branch": "子",
+      "korean": "자 (쥐)",
+      "element": "水",
+      "season": "한겨울 (동지)",
+      "time": "23:00-01:00",
+      "direction": "정북",
+      "primary_house": 4,
+      "secondary_house": 8,
+      "house_reasoning": {
+        "4th": "밤의 시작, 가장 깊은 내면, 뿌리, 가정의 기반",
+        "8th": "심층 무의식, 숨겨진 것, 변형"
+      },
+      "sign_parallel": "Capricorn/Aquarius (토성/천왕성 지배)",
+      "life_themes": {
+        "saju": "지혜, 시작점, 생명의 씨앗, 은밀함",
+        "astro": "가정, 뿌리, 정서적 기반, 부모"
+      },
+      "shared_energy": "깊이, 근원, 숨겨진 잠재력",
+      "body_part": "신장, 방광, 귀",
+      "personality": "지혜롭고 영리하나 의심 많음"
+    },
+    "축": {
+      "branch": "丑",
+      "korean": "축 (소)",
+      "element": "土",
+      "season": "늦겨울",
+      "time": "01:00-03:00",
+      "direction": "북북동",
+      "primary_house": 2,
+      "secondary_house": 6,
+      "house_reasoning": {
+        "2nd": "소의 근면함, 재물 축적, 가치",
+        "6th": "노동, 봉사, 건강 관리"
+      },
+      "sign_parallel": "Capricorn/Aquarius",
+      "life_themes": {
+        "saju": "근면, 인내, 축적, 신중함",
+        "astro": "재물, 가치관, 소유물"
+      },
+      "shared_energy": "안정, 축적, 물질적 기반",
+      "body_part": "비장, 위장",
+      "personality": "성실하고 인내심 강하나 고집"
+    },
+    "인": {
+      "branch": "寅",
+      "korean": "인 (호랑이)",
+      "element": "木",
+      "season": "초봄 (입춘)",
+      "time": "03:00-05:00",
+      "direction": "동북동",
+      "primary_house": 1,
+      "secondary_house": 9,
+      "house_reasoning": {
+        "1st": "새벽, 새로운 시작, 자아의 탄생",
+        "9th": "확장, 탐험, 모험 정신"
+      },
+      "sign_parallel": "Aquarius/Pisces → Aries energy",
+      "life_themes": {
+        "saju": "시작, 용맹, 추진력, 야망",
+        "astro": "자아, 정체성, 외모, 첫인상"
+      },
+      "shared_energy": "시작, 주도성, 생명력",
+      "body_part": "간, 담, 신경",
+      "personality": "용감하고 리더십 있으나 급함"
+    },
+    "묘": {
+      "branch": "卯",
+      "korean": "묘 (토끼)",
+      "element": "木",
+      "season": "봄 (춘분)",
+      "time": "05:00-07:00",
+      "direction": "정동",
+      "primary_house": 3,
+      "secondary_house": 7,
+      "house_reasoning": {
+        "3rd": "소통, 이동, 형제, 가까운 환경",
+        "7th": "관계의 조화, 파트너십"
+      },
+      "sign_parallel": "Pisces/Aries → Libra connection",
+      "life_themes": {
+        "saju": "온화함, 예술성, 부드러움",
+        "astro": "소통, 학습, 짧은 여행, 형제"
+      },
+      "shared_energy": "연결, 소통, 조화",
+      "body_part": "간, 손가락",
+      "personality": "온화하고 예술적이나 소심함"
+    },
+    "진": {
+      "branch": "辰",
+      "korean": "진 (용)",
+      "element": "土",
+      "season": "늦봄",
+      "time": "07:00-09:00",
+      "direction": "동남동",
+      "primary_house": 10,
+      "secondary_house": 1,
+      "house_reasoning": {
+        "10th": "용의 상승, 사회적 지위, 명예, 커리어",
+        "1st": "강력한 자아, 존재감"
+      },
+      "sign_parallel": "Aries/Taurus → Capricorn MC energy",
+      "life_themes": {
+        "saju": "변화, 권위, 야망, 신비",
+        "astro": "커리어, 사회적 위치, 명성"
+      },
+      "shared_energy": "야망, 성취, 권위",
+      "body_part": "위, 피부, 척추",
+      "personality": "야망 있고 카리스마 있으나 독선적"
+    },
+    "사": {
+      "branch": "巳",
+      "korean": "사 (뱀)",
+      "element": "火",
+      "season": "초여름 (입하)",
+      "time": "09:00-11:00",
+      "direction": "남남동",
+      "primary_house": 8,
+      "secondary_house": 12,
+      "house_reasoning": {
+        "8th": "뱀의 탈피, 변형, 심층, 비밀",
+        "12th": "숨겨진 것, 무의식, 신비"
+      },
+      "sign_parallel": "Taurus/Gemini → Scorpio energy",
+      "life_themes": {
+        "saju": "지혜, 신비, 변형, 직관",
+        "astro": "심층 변화, 타인의 자원, 죽음과 재생"
+      },
+      "shared_energy": "변형, 깊이, 비밀",
+      "body_part": "심장, 혈액",
+      "personality": "지혜롭고 직관적이나 의심 많음"
+    },
+    "오": {
+      "branch": "午",
+      "korean": "오 (말)",
+      "element": "火",
+      "season": "한여름 (하지)",
+      "time": "11:00-13:00",
+      "direction": "정남",
+      "primary_house": 5,
+      "secondary_house": 9,
+      "house_reasoning": {
+        "5th": "정오의 밝음, 창조, 기쁨, 자녀",
+        "9th": "자유로운 말, 확장, 여행"
+      },
+      "sign_parallel": "Gemini/Cancer → Leo energy",
+      "life_themes": {
+        "saju": "열정, 활력, 명예, 빠름",
+        "astro": "창조, 연애, 자녀, 즐거움"
+      },
+      "shared_energy": "열정, 표현, 창조",
+      "body_part": "심장, 눈, 혀",
+      "personality": "열정적이고 활발하나 조급함"
+    },
+    "미": {
+      "branch": "未",
+      "korean": "미 (양)",
+      "element": "土",
+      "season": "늦여름",
+      "time": "13:00-15:00",
+      "direction": "남남서",
+      "primary_house": 6,
+      "secondary_house": 4,
+      "house_reasoning": {
+        "6th": "양의 순함, 봉사, 일상, 건강",
+        "4th": "양떼의 평화, 가정의 온기"
+      },
+      "sign_parallel": "Cancer/Leo → Virgo energy",
+      "life_themes": {
+        "saju": "온순함, 예술성, 종교, 의존",
+        "astro": "건강, 일상, 봉사, 직원"
+      },
+      "shared_energy": "봉사, 돌봄, 세심함",
+      "body_part": "비위, 복부",
+      "personality": "온순하고 예술적이나 우유부단"
+    },
+    "신": {
+      "branch": "申",
+      "korean": "신 (원숭이)",
+      "element": "金",
+      "season": "초가을 (입추)",
+      "time": "15:00-17:00",
+      "direction": "서남서",
+      "primary_house": 3,
+      "secondary_house": 11,
+      "house_reasoning": {
+        "3rd": "원숭이의 재치, 소통, 기민함",
+        "11th": "사회적 연결, 친구, 집단"
+      },
+      "sign_parallel": "Leo/Virgo → Gemini/Aquarius energy",
+      "life_themes": {
+        "saju": "재치, 영리함, 기민함, 변덕",
+        "astro": "소통, 학습, 네트워킹"
+      },
+      "shared_energy": "지적 기민함, 소통, 연결",
+      "body_part": "폐, 대장, 어깨",
+      "personality": "영리하고 재치 있으나 간사함"
+    },
+    "유": {
+      "branch": "酉",
+      "korean": "유 (닭)",
+      "element": "金",
+      "season": "가을 (추분)",
+      "time": "17:00-19:00",
+      "direction": "정서",
+      "primary_house": 7,
+      "secondary_house": 2,
+      "house_reasoning": {
+        "7th": "닭의 짝짓기, 파트너십, 관계",
+        "2nd": "금의 가치, 재물, 수확"
+      },
+      "sign_parallel": "Virgo/Libra",
+      "life_themes": {
+        "saju": "날카로움, 결단, 정확, 미적 감각",
+        "astro": "파트너십, 결혼, 계약, 타인"
+      },
+      "shared_energy": "관계, 균형, 가치",
+      "body_part": "폐, 피부, 코",
+      "personality": "정확하고 미적이나 비판적"
+    },
+    "술": {
+      "branch": "戌",
+      "korean": "술 (개)",
+      "element": "土",
+      "season": "늦가을",
+      "time": "19:00-21:00",
+      "direction": "서북서",
+      "primary_house": 11,
+      "secondary_house": 7,
+      "house_reasoning": {
+        "11th": "개의 충성, 친구, 집단, 희망",
+        "7th": "충실한 파트너십"
+      },
+      "sign_parallel": "Libra/Scorpio → Aquarius energy",
+      "life_themes": {
+        "saju": "충성, 정의, 수호, 고집",
+        "astro": "친구, 희망, 집단, 인류애"
+      },
+      "shared_energy": "충성, 우정, 보호",
+      "body_part": "위, 다리",
+      "personality": "충성스럽고 정의로우나 고집"
+    },
+    "해": {
+      "branch": "亥",
+      "korean": "해 (돼지)",
+      "element": "水",
+      "season": "초겨울 (입동)",
+      "time": "21:00-23:00",
+      "direction": "북북서",
+      "primary_house": 12,
+      "secondary_house": 4,
+      "house_reasoning": {
+        "12th": "밤의 끝, 무의식, 은둔, 완성",
+        "4th": "돼지의 편안함, 가정, 휴식"
+      },
+      "sign_parallel": "Scorpio/Sagittarius → Pisces energy",
+      "life_themes": {
+        "saju": "복, 여유, 지혜, 마무리",
+        "astro": "무의식, 영성, 은둔, 희생"
+      },
+      "shared_energy": "완성, 깊이, 휴식",
+      "body_part": "신장, 방광, 발",
+      "personality": "복있고 여유로우나 게으름"
+    }
+  },
+
+  "house_branch_reverse_lookup": {
+    "1st_house": {"primary": "인(寅)", "secondary": "진(辰)", "theme": "자아, 시작"},
+    "2nd_house": {"primary": "축(丑)", "secondary": "유(酉)", "theme": "재물, 가치"},
+    "3rd_house": {"primary": "묘(卯)", "secondary": "신(申)", "theme": "소통, 이동"},
+    "4th_house": {"primary": "자(子)", "secondary": "해(亥)", "theme": "가정, 뿌리"},
+    "5th_house": {"primary": "오(午)", "secondary": "사(巳)", "theme": "창조, 기쁨"},
+    "6th_house": {"primary": "미(未)", "secondary": "축(丑)", "theme": "건강, 봉사"},
+    "7th_house": {"primary": "유(酉)", "secondary": "묘(卯)", "theme": "관계, 파트너"},
+    "8th_house": {"primary": "사(巳)", "secondary": "자(子)", "theme": "변형, 심층"},
+    "9th_house": {"primary": "오(午)", "secondary": "인(寅)", "theme": "확장, 철학"},
+    "10th_house": {"primary": "진(辰)", "secondary": "술(戌)", "theme": "커리어, 명예"},
+    "11th_house": {"primary": "술(戌)", "secondary": "신(申)", "theme": "친구, 희망"},
+    "12th_house": {"primary": "해(亥)", "secondary": "사(巳)", "theme": "무의식, 영성"}
+  },
+
+  "pillar_house_correlation": {
+    "description": "사주 사주(四柱)와 하우스 영역 대응",
+    "mappings": {
+      "년주": {
+        "houses": [9, 10, 11, 12],
+        "theme": "조상, 사회, 외부 세계",
+        "astro_equivalent": "외부 하우스들 (사회적 영역)"
+      },
+      "월주": {
+        "houses": [4, 5, 6, 10],
+        "theme": "부모, 직장, 사회적 성취",
+        "astro_equivalent": "앵귤러 하우스들 (행동 영역)"
+      },
+      "일주": {
+        "houses": [1, 7],
+        "theme": "자기 자신, 배우자",
+        "astro_equivalent": "ASC-DSC 축 (정체성-관계)"
+      },
+      "시주": {
+        "houses": [4, 5, 8],
+        "theme": "자녀, 말년, 내면",
+        "astro_equivalent": "물 하우스들 (감정/영혼)"
+      }
+    }
+  }
+}

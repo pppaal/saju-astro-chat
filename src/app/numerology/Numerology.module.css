@@ -123,6 +123,25 @@
   .two {
     grid-template-columns: 1fr 1fr;
   }
+  .three {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.luckyDrawSection {
+  background: rgba(255, 209, 102, 0.08);
+  border: 1px solid rgba(255, 209, 102, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.subLabel {
+  display: block;
+  color: #aaa;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
 }
 
 .inputLabel {
@@ -652,7 +671,382 @@
   line-height: 1.5;
 }
 
+/* Tab Navigation */
+.tabNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tabButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tabActive {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.2), rgba(255, 123, 95, 0.2)) !important;
+  color: #ffd166 !important;
+  border: 1px solid rgba(255, 209, 102, 0.3);
+}
+
+.tabIcon {
+  font-size: 1.1rem;
+}
+
+.tabLabel {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .tabLabel {
+    display: inline;
+  }
+}
+
+/* Section Styles */
+.section {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.sectionTitle {
+  font-family: "Cinzel", serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffd166;
+  margin: 0 0 0.5rem;
+}
+
+.sectionDesc {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  margin: 0 0 2rem;
+}
+
+/* Result Card Subtitle */
+.resultSubtitle {
+  color: rgba(255, 209, 102, 0.8);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+/* Mini Cards (Name Analysis) */
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.miniCard {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.miniCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 209, 102, 0.3);
+}
+
+.miniValue {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffd166, #ff9a56);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.25rem;
+}
+
+.miniChar {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 0.25rem;
+}
+
+.miniLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.miniDesc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Analysis Box */
+.analysisBox {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.analysisBox h4 {
+  color: #ffd166;
+  font-size: 1rem;
+  margin: 0 0 1rem;
+}
+
+.analysisBox p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(255, 209, 102, 0.3);
+}
+
+.analysisBox p:last-child {
+  margin-bottom: 0;
+}
+
+/* Karmic Section */
+.karmicBox {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.karmicBox h4 {
+  color: #ffd166;
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+}
+
+.karmicBox p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.karmicNumbers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.karmicDebt {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+}
+
+.karmicValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ef4444;
+  min-width: 2.5rem;
+}
+
+.karmicDesc {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.karmicIntro {
+  margin-bottom: 1rem !important;
+}
+
+.lessonList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lessonItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 10px;
+}
+
+.lessonNumber {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fbbf24;
+  min-width: 1.5rem;
+}
+
+.lessonText {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Cycle Section */
+.cycleSection {
+  margin-bottom: 2rem;
+}
+
+.cycleSection h4 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+}
+
+/* Pinnacle Grid */
+.pinnacleGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.pinnacleCard {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.pinnacleCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(52, 211, 153, 0.2);
+}
+
+.pinnacleAge {
+  font-size: 0.75rem;
+  color: #34d399;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.pinnacleNumber {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #34d399;
+  margin-bottom: 0.25rem;
+}
+
+.pinnacleTitle {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.pinnacleDesc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+}
+
+/* Challenge Grid */
+.challengeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.challengeCard {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.challengeCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+}
+
+.challengeLabel {
+  font-size: 0.75rem;
+  color: #f87171;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.challengeNumber {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f87171;
+  margin-bottom: 0.5rem;
+}
+
+.challengeDesc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+}
+
+/* Timing Section */
+.timingSection {
+  margin-bottom: 2rem;
+}
+
+.timingSection h4 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+}
+
+.universal {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.universal .cycleNumber {
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+  .pinnacleGrid,
+  .challengeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .formContainer {
     padding: 2rem 1.5rem;
@@ -682,4 +1076,326 @@
   .howGrid {
     grid-template-columns: 1fr;
   }
+
+  .pinnacleGrid,
+  .challengeGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tabNav {
+    justify-content: center;
+  }
+
+  .sectionTitle {
+    font-size: 1.4rem;
+  }
+}
+
+/* Advanced Options Section */
+.advancedSection {
+  margin-bottom: 1.5rem;
+}
+
+.advancedToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.advancedToggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.advancedIcon {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.advancedContent {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Validation Styles */
+.inputError {
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.inputError:focus {
+  border-color: rgba(239, 68, 68, 0.8) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.fieldError {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+/* Loading Spinner */
+.loadingSpinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 209, 102, 0.3);
+  border-top-color: #ffd166;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Action Buttons Container */
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.shareBtn {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(99, 102, 241, 0.8));
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shareBtn:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(99, 102, 241, 1));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+}
+
+/* More Options Section (Form) */
+.moreOptionsSection {
+  margin-bottom: 1.5rem;
+}
+
+.moreOptionsToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.9rem 1.25rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.moreOptionsToggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 209, 102, 0.3);
+}
+
+.moreOptionsIcon {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.moreOptionsHint {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.moreOptionsContent {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Summary Card (Results) */
+.summaryCard {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(255, 123, 95, 0.08));
+  border: 1px solid rgba(255, 209, 102, 0.25);
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.summaryMain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.summaryLifePath {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.summaryLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.summaryNumber {
+  font-size: 4rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffd166, #ff9a56);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.summaryTitle {
+  font-size: 1rem;
+  color: rgba(255, 209, 102, 0.9);
+  font-weight: 600;
+}
+
+.summaryLucky {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-left: 3rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summaryLuckyNumbers {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.summaryLuckyNum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.2));
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  border-radius: 12px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.summaryMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .summaryMain {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .summaryLucky {
+    padding-left: 0;
+    border-left: none;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* More Tabs Dropdown */
+.moreTabsWrapper {
+  position: relative;
+}
+
+.moreTabsButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.moreTabsArrow {
+  font-size: 0.65rem;
+  margin-left: 0.25rem;
+  transition: transform 0.2s ease;
+}
+
+.moreTabsDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  min-width: 180px;
+  background: rgba(10, 10, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.5rem;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: dropdownSlide 0.2s ease-out;
+}
+
+.moreTabItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.moreTabItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 1);
+}
+
+.moreTabActive {
+  background: rgba(255, 209, 102, 0.15) !important;
+  color: #ffd166 !important;
 }

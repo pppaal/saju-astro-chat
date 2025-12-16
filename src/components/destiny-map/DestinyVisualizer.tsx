@@ -14,7 +14,7 @@ import type { CombinedResult } from '@/lib/destiny-map/astrologyengine';
 
 interface SajuFacts {
   fiveElements: { [key: string]: number };
-  tenGods: { [key: string]: any };
+  tenGods: { [key: string]: string };
 }
 
 interface DaeunCycle {
@@ -25,7 +25,7 @@ interface DaeunCycle {
 }
 
 interface SajuData {
-  facts: SajuFacts;
+  facts: SajuFacts | Record<string, unknown>;
   unse: {
     daeun: DaeunCycle[];
   };
@@ -35,12 +35,9 @@ interface AstrologyPlanet {
   name: string;
 }
 
-interface AstrologyFacts {
-  planets: AstrologyPlanet[];
-}
-
 interface AstrologyData {
-  facts: AstrologyFacts;
+  planets: AstrologyPlanet[];
+  facts?: Record<string, unknown>;
 }
 
 interface DestinyVisualizerProps {
@@ -73,8 +70,8 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
     animationFrameId?: number,
   }>({});
 
-  const sajuData = result.saju as SajuData;
-  const astrologyData = result.astrology as AstrologyData;
+  const sajuData = result.saju as unknown as SajuData;
+  const astrologyData = result.astrology as unknown as AstrologyData;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -87,12 +84,13 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
 
   useEffect(() => {
     if (prefersReducedMotion) return;
-    if (!mountRef.current || !sajuData?.facts || !astrologyData?.facts) return;
+    if (!mountRef.current || !sajuData?.facts || !astrologyData?.planets) return;
 
     const container = mountRef.current;
     const currentThree = threeRef.current;
 
-    const fiveElements = sajuData.facts.fiveElements ?? { Wood: 0.2, Fire: 0.2, Earth: 0.2, Metal: 0.2, Water: 0.2 };
+    const facts = sajuData.facts as SajuFacts | undefined;
+    const fiveElements = facts?.fiveElements ?? { Wood: 0.2, Fire: 0.2, Earth: 0.2, Metal: 0.2, Water: 0.2 };
     const dominantElement = Object.entries(fiveElements).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Earth';
     const colorValue = auraColors[dominantElement];
     const auraColor = new THREE.Color(colorValue);
@@ -149,9 +147,9 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
     scene.add(coreGroup);
 
     const nodes: THREE.Mesh[] = [];
-    const planetList = astrologyData.facts.planets.map((p: AstrologyPlanet) => ({ name: p.name, type: 'Planet' }));
+    const planetList = (astrologyData.planets ?? []).map((p: AstrologyPlanet) => ({ name: p.name, type: 'Planet' }));
     const elementList = Object.keys(fiveElements).map(e => ({ name: e, type: 'Element' }));
-    const tenGodList = Object.keys(sajuData.facts.tenGods ?? {}).map(tg => ({ name: tg, type: 'TenGod' }));
+    const tenGodList = Object.keys(facts?.tenGods ?? {}).map(tg => ({ name: tg, type: 'TenGod' }));
 
     interface DestinyNodeItem { name: string; type: string; }
     interface NodeGroup {
@@ -220,11 +218,13 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
           const newIntersected = intersects[0].object;
           if (currentThree.INTERSECTED !== newIntersected) {
             if (currentThree.INTERSECTED) {
-              (currentThree.INTERSECTED as any).material.emissive.setHex(currentThree.INTERSECTED.userData.originalEmissive);
+              const mesh = currentThree.INTERSECTED as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+              mesh.material.emissive.setHex(currentThree.INTERSECTED.userData.originalEmissive);
               currentThree.INTERSECTED.scale.set(1, 1, 1);
             }
             currentThree.INTERSECTED = newIntersected;
-            (currentThree.INTERSECTED as any).material.emissive.setHex(0xffffff);
+            const newMesh = currentThree.INTERSECTED as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+            newMesh.material.emissive.setHex(0xffffff);
             currentThree.INTERSECTED.scale.set(1.5, 1.5, 1.5);
 
             setTooltip({
@@ -236,7 +236,8 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
           }
         } else {
           if (currentThree.INTERSECTED) {
-            (currentThree.INTERSECTED as any).material.emissive.setHex(currentThree.INTERSECTED.userData.originalEmissive);
+            const mesh = currentThree.INTERSECTED as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+            mesh.material.emissive.setHex(currentThree.INTERSECTED.userData.originalEmissive);
             currentThree.INTERSECTED.scale.set(1, 1, 1);
           }
           currentThree.INTERSECTED = null;
@@ -290,8 +291,9 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
 
   const currentYear = new Date().getFullYear();
   const daeun = sajuData?.unse?.daeun ?? [];
-  const fiveElements = sajuData?.facts?.fiveElements ?? {};
-  const dominantElement = Object.keys(fiveElements).length > 0 ? Object.entries(fiveElements).sort((a, b) => b[1] - a[1])[0][0] : 'Earth';
+  const sajuFacts = sajuData?.facts as SajuFacts | undefined;
+  const fiveElementsData = sajuFacts?.fiveElements ?? {};
+  const dominantElement = Object.keys(fiveElementsData).length > 0 ? Object.entries(fiveElementsData).sort((a, b) => b[1] - a[1])[0][0] : 'Earth';
   const activeColor = auraHex[dominantElement] || '#ffeb3b';
 
   if (prefersReducedMotion) {
@@ -299,10 +301,10 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
       <div className={styles.fallback}>
         <div className={styles.fallbackRow}>
           <span className={styles.chip}>{t("destinyMap.visualizer.dominantElement", "Dominant element")}: {dominantElement}</span>
-          <span className={styles.chip}>{t("destinyMap.visualizer.planets", "Planets")}: {astrologyData?.facts?.planets?.length ?? 0}</span>
+          <span className={styles.chip}>{t("destinyMap.visualizer.planets", "Planets")}: {astrologyData?.planets?.length ?? 0}</span>
         </div>
         <div className={styles.fallbackRow}>
-          {(astrologyData?.facts?.planets || []).slice(0, 8).map((p) => (
+          {(astrologyData?.planets || []).slice(0, 8).map((p) => (
             <span key={p.name} className={styles.chip}>{p.name}</span>
           ))}
         </div>
@@ -332,7 +334,7 @@ export const DestinyVisualizer: React.FC<DestinyVisualizerProps> = ({ result }) 
           const isCurrent = currentYear >= d.startYear && currentYear <= d.endYear;
           const nodeStyle: React.CSSProperties = {
             border: isCurrent ? `1.5px solid ${activeColor}` : undefined,
-            backgroundColor: isCurrent ? `color-mix(in srgb, ${activeColor} 20%, rgba(30,30,30,0.6))` as any : undefined,
+            backgroundColor: isCurrent ? `color-mix(in srgb, ${activeColor} 20%, rgba(30,30,30,0.6))` : undefined,
             transform: isCurrent ? 'scale(1.05)' : 'scale(1)',
           };
           return (

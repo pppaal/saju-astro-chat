@@ -17,7 +17,7 @@ function json(data: any, status = 200, headers?: Headers) {
 
 function authorize(req: Request) {
   const token = process.env.ADMIN_API_TOKEN;
-  if (!token) return true; // no token configured, allow (development)
+  if (!token) return false;
   return req.headers.get('x-admin-token') === token;
 }
 
@@ -31,11 +31,9 @@ export async function GET(req: Request) {
     const dbUrl = process.env.DATABASE_URL;
     const ca = process.env.DB_CA_PEM;
 
-    if (!dbUrl) {
-      return json({ ok: false, error: 'Missing env: DATABASE_URL' }, 500, limit.headers);
-    }
-    if (!ca) {
-      return json({ ok: false, error: 'Missing env: DB_CA_PEM' }, 500, limit.headers);
+    if (!dbUrl || !ca) {
+      // Fail closed when required secrets are not provided
+      return json({ ok: false, error: 'Service not configured' }, 503, limit.headers);
     }
 
     const client = new Client({

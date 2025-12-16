@@ -61,6 +61,7 @@ model User {
   personaMemory         PersonaMemory?
   subscriptions         Subscription[]
   premiumContentAccess  PremiumContentAccess[]
+  credits               UserCredits?
 }
 
 model VerificationToken {
@@ -306,4 +307,40 @@ model PremiumContentAccess {
   @@index([userId, createdAt])
   @@index([userId, service])
   @@index([service, contentType])
+}
+
+// 유저 크레딧 관리 - 플랜별 사용량 추적
+model UserCredits {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 현재 플랜
+  plan              String   @default("free") // free, starter, pro, premium
+
+  // 월간 크레딧 (리딩 횟수)
+  monthlyCredits    Int      @default(1)  // 플랜별 월간 한도
+  usedCredits       Int      @default(0)  // 이번 달 사용량
+  bonusCredits      Int      @default(0)  // 보너스/구매 크레딧 (리셋 안됨)
+
+  // 기능별 사용량 (월간)
+  compatibilityUsed Int      @default(0)  // 궁합 분석 사용 횟수
+  followUpUsed      Int      @default(0)  // 후속질문 사용 횟수
+
+  // 플랜별 한도
+  compatibilityLimit Int     @default(0)  // 궁합 한도 (free:0, starter:2, pro:5, premium:10)
+  followUpLimit      Int     @default(0)  // 후속질문 한도
+
+  // 기간 추적
+  periodStart       DateTime @default(now()) // 현재 월간 기간 시작
+  periodEnd         DateTime?                // 현재 월간 기간 종료
+
+  // 히스토리 보관 기간 (일)
+  historyRetention  Int      @default(7)  // free:7, starter:30, pro:90, premium:365
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([plan])
+  @@index([periodEnd])
 }

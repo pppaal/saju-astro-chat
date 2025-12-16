@@ -1,0 +1,423 @@
+{
+  "$schema": "major_asteroids_v1",
+  "$description": "4대 소행성 (Ceres, Pallas, Juno, Vesta) 해석 데이터",
+
+  "ceres": {
+    "name": "Ceres",
+    "korean": "세레스",
+    "symbol": "⚳",
+    "mythology": "로마 농업의 여신, 그리스 데메테르",
+    "themes": ["양육", "돌봄", "음식", "모성", "상실과 재회", "계절 순환"],
+    "saju_parallel": {
+      "element": "土",
+      "sipsin": "정인",
+      "description": "양육과 돌봄의 에너지가 정인(正印)과 공명"
+    },
+    "sign_placements": {
+      "Aries": {
+        "nurturing_style": "독립적 양육, 자립심 강조",
+        "food_relationship": "빠르게 먹음, 에너지 음식 선호",
+        "wound_pattern": "버림받음의 두려움 → 과도한 독립",
+        "healing": "도움 요청해도 괜찮다는 것 배우기"
+      },
+      "Taurus": {
+        "nurturing_style": "물질적 안정 제공, 감각적 돌봄",
+        "food_relationship": "미식가, 요리 재능, 음식으로 사랑 표현",
+        "wound_pattern": "소유욕으로 변질된 사랑",
+        "healing": "사랑과 물질의 분리"
+      },
+      "Gemini": {
+        "nurturing_style": "대화와 정보로 돌봄, 지적 자극",
+        "food_relationship": "먹으면서 대화, 다양한 음식 시도",
+        "wound_pattern": "감정보다 논리로 접근",
+        "healing": "감정적 연결 허용하기"
+      },
+      "Cancer": {
+        "nurturing_style": "전통적 모성, 가정 중심, 감정적 돌봄",
+        "food_relationship": "집밥, 가족 식사, 음식 = 사랑",
+        "wound_pattern": "과보호, 분리 불안",
+        "healing": "건강한 경계 설정"
+      },
+      "Leo": {
+        "nurturing_style": "칭찬과 인정으로 돌봄, 창조적 양육",
+        "food_relationship": "화려한 식사, 파티 음식, 축하",
+        "wound_pattern": "관심 중심이어야 돌봄 느낌",
+        "healing": "조용한 사랑도 사랑임을 배움"
+      },
+      "Virgo": {
+        "nurturing_style": "실용적 돌봄, 건강과 루틴 관리",
+        "food_relationship": "건강식, 영양 분석, 식단 관리",
+        "wound_pattern": "비판으로 변질된 돌봄",
+        "healing": "완벽하지 않아도 충분함"
+      },
+      "Libra": {
+        "nurturing_style": "공정하고 균형잡힌 돌봄, 미적 환경",
+        "food_relationship": "아름다운 테이블 세팅, 함께 먹기",
+        "wound_pattern": "자기 희생적 돌봄",
+        "healing": "자기 돌봄 우선순위"
+      },
+      "Scorpio": {
+        "nurturing_style": "깊은 정서적 유대, 변형적 돌봄",
+        "food_relationship": "음식과 감정 연결, 위안 음식",
+        "wound_pattern": "통제로 변질된 사랑",
+        "healing": "신뢰와 놓아주기"
+      },
+      "Sagittarius": {
+        "nurturing_style": "자유와 탐험 격려, 철학적 가르침",
+        "food_relationship": "세계 음식, 문화 체험",
+        "wound_pattern": "책임 회피로 보일 수 있음",
+        "healing": "현재에 머무르는 돌봄"
+      },
+      "Capricorn": {
+        "nurturing_style": "구조와 규율 제공, 성취 지원",
+        "food_relationship": "절제된 식사, 전통 음식",
+        "wound_pattern": "감정 억압된 돌봄",
+        "healing": "부드러움 허용"
+      },
+      "Aquarius": {
+        "nurturing_style": "독특한 양육, 개성 존중, 커뮤니티",
+        "food_relationship": "실험적 음식, 사회적 식사",
+        "wound_pattern": "거리두기로 느껴질 수 있음",
+        "healing": "개인적 친밀함 연습"
+      },
+      "Pisces": {
+        "nurturing_style": "무조건적 사랑, 영적 돌봄",
+        "food_relationship": "직관적 식사, 위안 음식",
+        "wound_pattern": "경계 없는 희생",
+        "healing": "건강한 경계 = 사랑"
+      }
+    },
+    "house_placements": {
+      "1st": "자기 돌봄이 정체성, 양육자 이미지",
+      "2nd": "음식/자원으로 안정감, 물질적 돌봄",
+      "3rd": "형제 양육, 소통으로 돌봄",
+      "4th": "가정의 어머니 역할, 뿌리 돌봄",
+      "5th": "자녀 양육, 창조적 돌봄",
+      "6th": "건강으로 돌봄, 일상 루틴",
+      "7th": "파트너 돌봄, 관계에서 양육",
+      "8th": "깊은 변형적 돌봄, 위기 시 양육",
+      "9th": "교육으로 돌봄, 세계관 양육",
+      "10th": "사회에서 양육자 역할, 커리어",
+      "11th": "커뮤니티 돌봄, 친구 양육",
+      "12th": "무의식적 양육, 영적 돌봄"
+    }
+  },
+
+  "pallas": {
+    "name": "Pallas Athena",
+    "korean": "팔라스 아테나",
+    "symbol": "⚴",
+    "mythology": "지혜와 전략의 여신, 제우스 머리에서 탄생",
+    "themes": ["지혜", "전략", "패턴 인식", "창조적 지성", "정의", "치유 예술"],
+    "saju_parallel": {
+      "element": "金",
+      "sipsin": "상관",
+      "shinsal": "문창귀인",
+      "description": "날카로운 지성과 전략이 상관/문창과 공명"
+    },
+    "sign_placements": {
+      "Aries": {
+        "intelligence_style": "빠른 전략, 선제 공격",
+        "pattern_recognition": "즉각적 패턴 파악",
+        "creative_expression": "개척적 예술",
+        "justice_style": "직접 행동"
+      },
+      "Taurus": {
+        "intelligence_style": "실용적 지혜, 점진적 전략",
+        "pattern_recognition": "물질적 패턴, 가치 분석",
+        "creative_expression": "공예, 촉각 예술",
+        "justice_style": "자원 공정 분배"
+      },
+      "Gemini": {
+        "intelligence_style": "언어 전략, 다각도 분석",
+        "pattern_recognition": "언어/소통 패턴",
+        "creative_expression": "글쓰기, 디자인",
+        "justice_style": "논리적 토론"
+      },
+      "Cancer": {
+        "intelligence_style": "감정 지능, 보호 전략",
+        "pattern_recognition": "감정/가족 패턴",
+        "creative_expression": "가정 예술",
+        "justice_style": "돌봄 정의"
+      },
+      "Leo": {
+        "intelligence_style": "창조적 전략, 드라마틱 지혜",
+        "pattern_recognition": "자기 표현 패턴",
+        "creative_expression": "공연 예술",
+        "justice_style": "공정한 인정"
+      },
+      "Virgo": {
+        "intelligence_style": "분석적 지혜, 세부 전략",
+        "pattern_recognition": "시스템/건강 패턴",
+        "creative_expression": "치유 예술, 공예",
+        "justice_style": "실용적 해결"
+      },
+      "Libra": {
+        "intelligence_style": "외교 전략, 균형 지혜",
+        "pattern_recognition": "관계/조화 패턴",
+        "creative_expression": "미술, 디자인",
+        "justice_style": "법적 정의"
+      },
+      "Scorpio": {
+        "intelligence_style": "심층 전략, 심리 지혜",
+        "pattern_recognition": "숨겨진 패턴, 동기",
+        "creative_expression": "변형 예술",
+        "justice_style": "근본 변혁"
+      },
+      "Sagittarius": {
+        "intelligence_style": "철학적 지혜, 큰 그림",
+        "pattern_recognition": "의미/진실 패턴",
+        "creative_expression": "교육 예술",
+        "justice_style": "도덕적 정의"
+      },
+      "Capricorn": {
+        "intelligence_style": "구조적 전략, 장기 계획",
+        "pattern_recognition": "권력/체계 패턴",
+        "creative_expression": "건축, 조직",
+        "justice_style": "제도적 정의"
+      },
+      "Aquarius": {
+        "intelligence_style": "혁신 전략, 미래 지혜",
+        "pattern_recognition": "사회/기술 패턴",
+        "creative_expression": "첨단 예술",
+        "justice_style": "사회 정의"
+      },
+      "Pisces": {
+        "intelligence_style": "직관 지혜, 영적 전략",
+        "pattern_recognition": "영적/상징 패턴",
+        "creative_expression": "영감 예술",
+        "justice_style": "연민 정의"
+      }
+    }
+  },
+
+  "juno": {
+    "name": "Juno",
+    "korean": "주노",
+    "symbol": "⚵",
+    "mythology": "결혼과 헌신의 여신, 제우스의 아내 헤라",
+    "themes": ["결혼", "헌신", "파트너십", "평등", "질투", "계약"],
+    "saju_parallel": {
+      "element": "土/金",
+      "sipsin": "정관",
+      "gung": "배우자궁",
+      "description": "결혼과 헌신이 정관/배우자궁과 공명"
+    },
+    "sign_placements": {
+      "Aries": {
+        "partner_need": "독립적이고 활동적인 파트너",
+        "commitment_style": "열정적, 선구적",
+        "shadow": "경쟁, 주도권 다툼",
+        "ideal_relationship": "함께 모험하는 관계"
+      },
+      "Taurus": {
+        "partner_need": "안정적이고 감각적인 파트너",
+        "commitment_style": "충실하고 지속적",
+        "shadow": "소유욕, 변화 거부",
+        "ideal_relationship": "물질적 안정 공유"
+      },
+      "Gemini": {
+        "partner_need": "지적이고 소통 잘하는 파트너",
+        "commitment_style": "유연하고 다양",
+        "shadow": "가벼움, 불안정",
+        "ideal_relationship": "끊임없는 대화"
+      },
+      "Cancer": {
+        "partner_need": "돌봐주고 가정적인 파트너",
+        "commitment_style": "보호적, 감정적",
+        "shadow": "의존, 과거 집착",
+        "ideal_relationship": "가정 중심 파트너십"
+      },
+      "Leo": {
+        "partner_need": "존경해주고 빛나게 해주는 파트너",
+        "commitment_style": "로맨틱, 드라마틱",
+        "shadow": "관심 경쟁",
+        "ideal_relationship": "서로 빛나게 함"
+      },
+      "Virgo": {
+        "partner_need": "실용적이고 성장 지향적 파트너",
+        "commitment_style": "헌신적, 서비스 지향",
+        "shadow": "비판, 완벽주의",
+        "ideal_relationship": "함께 성장"
+      },
+      "Libra": {
+        "partner_need": "균형잡히고 공정한 파트너",
+        "commitment_style": "조화롭고 우아",
+        "shadow": "우유부단, 갈등 회피",
+        "ideal_relationship": "평등한 파트너십"
+      },
+      "Scorpio": {
+        "partner_need": "깊이 있고 변형적인 파트너",
+        "commitment_style": "강렬하고 충성스러움",
+        "shadow": "질투, 통제",
+        "ideal_relationship": "영혼 수준의 결합"
+      },
+      "Sagittarius": {
+        "partner_need": "자유롭고 철학적인 파트너",
+        "commitment_style": "모험적, 성장 지향",
+        "shadow": "속박 거부, 비현실",
+        "ideal_relationship": "함께 성장하는 여정"
+      },
+      "Capricorn": {
+        "partner_need": "야망 있고 책임감 있는 파트너",
+        "commitment_style": "전통적, 장기적",
+        "shadow": "일 우선, 감정 억압",
+        "ideal_relationship": "파워 커플"
+      },
+      "Aquarius": {
+        "partner_need": "독특하고 친구 같은 파트너",
+        "commitment_style": "비전통적, 자유로움",
+        "shadow": "거리두기, 감정 회피",
+        "ideal_relationship": "우정 기반 결합"
+      },
+      "Pisces": {
+        "partner_need": "영적이고 연민 깊은 파트너",
+        "commitment_style": "무조건적, 영적",
+        "shadow": "환상, 경계 상실",
+        "ideal_relationship": "영혼의 합일"
+      }
+    }
+  },
+
+  "vesta": {
+    "name": "Vesta",
+    "korean": "베스타",
+    "symbol": "⚶",
+    "mythology": "화로와 성스러운 불의 여신, 헤스티아",
+    "themes": ["헌신", "집중", "순수성", "성스러움", "일", "독신"],
+    "saju_parallel": {
+      "element": "火",
+      "sipsin": "식신",
+      "shinsal": "화개살",
+      "description": "집중과 헌신이 식신/화개와 공명"
+    },
+    "sign_placements": {
+      "Aries": {
+        "devotion_focus": "선구적 프로젝트, 새로운 시작",
+        "sacred_fire": "행동의 열정",
+        "work_style": "독립적, 개척적",
+        "shadow": "소진, 자기 희생"
+      },
+      "Taurus": {
+        "devotion_focus": "물질적 안정, 자연",
+        "sacred_fire": "감각적 즐거움",
+        "work_style": "꾸준하고 실용적",
+        "shadow": "과도한 물질 집착"
+      },
+      "Gemini": {
+        "devotion_focus": "학습, 소통, 글쓰기",
+        "sacred_fire": "지적 호기심",
+        "work_style": "다재다능, 유연",
+        "shadow": "분산, 깊이 부족"
+      },
+      "Cancer": {
+        "devotion_focus": "가정, 가족 돌봄",
+        "sacred_fire": "가정의 온기",
+        "work_style": "보호적, 양육적",
+        "shadow": "자기 희생"
+      },
+      "Leo": {
+        "devotion_focus": "창조적 표현, 자녀",
+        "sacred_fire": "창조의 빛",
+        "work_style": "열정적, 드라마틱",
+        "shadow": "관심 필요"
+      },
+      "Virgo": {
+        "devotion_focus": "서비스, 치유, 완벽",
+        "sacred_fire": "치유의 불",
+        "work_style": "세심하고 헌신적",
+        "shadow": "완벽주의 소진"
+      },
+      "Libra": {
+        "devotion_focus": "관계, 아름다움, 정의",
+        "sacred_fire": "조화의 불",
+        "work_style": "협력적, 외교적",
+        "shadow": "자기 상실"
+      },
+      "Scorpio": {
+        "devotion_focus": "변형, 치유, 신비",
+        "sacred_fire": "변형의 불",
+        "work_style": "강렬하고 깊이 있음",
+        "shadow": "집착, 통제"
+      },
+      "Sagittarius": {
+        "devotion_focus": "진실, 탐험, 교육",
+        "sacred_fire": "진실의 불",
+        "work_style": "열정적, 이상주의",
+        "shadow": "현실 도피"
+      },
+      "Capricorn": {
+        "devotion_focus": "커리어, 전통, 구조",
+        "sacred_fire": "성취의 불",
+        "work_style": "근면하고 책임감",
+        "shadow": "일 중독"
+      },
+      "Aquarius": {
+        "devotion_focus": "인류, 혁신, 커뮤니티",
+        "sacred_fire": "혁명의 불",
+        "work_style": "독특하고 진보적",
+        "shadow": "개인 관계 소홀"
+      },
+      "Pisces": {
+        "devotion_focus": "영성, 예술, 자비",
+        "sacred_fire": "영적 불",
+        "work_style": "직관적, 창조적",
+        "shadow": "경계 상실"
+      }
+    }
+  },
+
+  "asteroid_aspects": {
+    "description": "소행성 애스펙트 해석",
+    "ceres_aspects": {
+      "sun": "정체성 = 양육자, 돌봄이 핵심 가치",
+      "moon": "감정적 양육 욕구 강화",
+      "venus": "사랑 = 돌봄, 음식으로 사랑 표현",
+      "mars": "적극적 돌봄, 보호 본능"
+    },
+    "pallas_aspects": {
+      "sun": "지혜가 정체성, 전략가",
+      "mercury": "천재적 패턴 인식, 분석력",
+      "mars": "전사 전략가, 전술적",
+      "jupiter": "철학적 지혜 확장"
+    },
+    "juno_aspects": {
+      "sun": "관계가 정체성, 파트너십 중심",
+      "venus": "결혼/사랑 조화, 아름다운 관계",
+      "saturn": "전통적 결혼관, 의무감",
+      "pluto": "깊은 변형적 결합"
+    },
+    "vesta_aspects": {
+      "sun": "헌신이 정체성, 일 중심",
+      "moon": "감정적 헌신, 가정 봉사",
+      "saturn": "구조화된 헌신, 직업 윤리",
+      "neptune": "영적 헌신, 희생"
+    }
+  },
+
+  "saju_asteroid_fusion": {
+    "description": "소행성과 사주 융합 해석",
+    "mappings": {
+      "ceres_insung": {
+        "condition": "Ceres 강함 + 인성 강함",
+        "interpretation": "타고난 양육자, 교육/돌봄 분야 적합",
+        "timing": "Ceres 트랜짓 + 인성운 = 양육/교육 기회"
+      },
+      "pallas_sangwan": {
+        "condition": "Pallas 강함 + 상관 강함",
+        "interpretation": "전략적 혁신가, 패턴 파괴자",
+        "timing": "Pallas 트랜짓 + 식상운 = 창조적 돌파구"
+      },
+      "juno_baewuza": {
+        "condition": "Juno 강함 + 배우자궁 활성",
+        "interpretation": "결혼 운명 강함, 파트너십 중심 인생",
+        "timing": "Juno 트랜짓 + 정관운 = 결혼/계약 시기"
+      },
+      "vesta_siksin": {
+        "condition": "Vesta 강함 + 식신 강함",
+        "interpretation": "깊은 헌신과 집중력, 전문가형",
+        "timing": "Vesta 트랜짓 + 인성운 = 전문성 심화"
+      }
+    }
+  }
+}

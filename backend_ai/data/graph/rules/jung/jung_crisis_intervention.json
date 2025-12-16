@@ -1,0 +1,265 @@
+{
+  "$schema": "jung_crisis_intervention_v1",
+  "$description": "심리적 위기 상황 대응 가이드 - AI 상담 시 안전 프로토콜",
+
+  "crisis_detection": {
+    "description": "위기 상황 감지 키워드 및 패턴",
+
+    "high_risk_keywords": {
+      "suicidal": {
+        "keywords": ["죽고 싶", "자살", "끝내고 싶", "사라지고 싶", "없어지고 싶", "더 이상 못 살", "삶을 끝", "죽는 게 나을"],
+        "severity": "critical",
+        "action": "immediate_safety_check"
+      },
+      "self_harm": {
+        "keywords": ["자해", "손목", "칼로", "피", "스스로 다치", "아프게 하고 싶"],
+        "severity": "high",
+        "action": "safety_assessment"
+      },
+      "harm_to_others": {
+        "keywords": ["죽이고 싶", "해치고 싶", "복수", "폭력"],
+        "severity": "high",
+        "action": "safety_assessment"
+      },
+      "psychotic_symptoms": {
+        "keywords": ["목소리가 들려", "누가 나를 조종", "감시당하고", "아무도 믿을 수 없", "내가 신이"],
+        "severity": "high",
+        "action": "reality_check_and_referral"
+      },
+      "severe_dissociation": {
+        "keywords": ["내가 나 같지 않", "몸이 내 것 같지 않", "현실 같지 않", "꿈속 같", "영혼이 빠져나간"],
+        "severity": "medium_high",
+        "action": "grounding_and_assessment"
+      }
+    },
+
+    "context_patterns": {
+      "recent_loss": ["최근 사별", "이혼 직후", "해고", "큰 실패"],
+      "isolation": ["아무도 없", "혼자", "연락할 사람이 없"],
+      "hopelessness": ["희망이 없", "나아질 게 없", "어차피", "소용없"],
+      "giving_away": ["정리하고 있", "유서", "물건을 나눠주"],
+      "sudden_calm": ["갑자기 평화로워", "결정했", "이제 다 끝났"]
+    }
+  },
+
+  "response_protocols": {
+    "suicidal_ideation": {
+      "severity": "critical",
+      "immediate_response": {
+        "step_1": {
+          "action": "직접 질문",
+          "script": "지금 많이 힘드시네요. 혹시 스스로를 해치거나 죽고 싶은 생각이 드시나요?"
+        },
+        "step_2": {
+          "action": "경청과 공감",
+          "script": "그런 생각이 들 정도로 힘드셨군요. 말씀해주셔서 감사합니다."
+        },
+        "step_3": {
+          "action": "안전 확인",
+          "script": "지금 안전한 곳에 계신가요? 주변에 도움을 요청할 수 있는 분이 계신가요?"
+        },
+        "step_4": {
+          "action": "전문 자원 연결",
+          "script": "지금 느끼시는 것들은 전문 상담이 꼭 필요합니다. 자살예방상담전화 1393에 연락하시거나, 정신건강위기상담전화 1577-0199로 전화해주세요."
+        }
+      },
+      "do_not": [
+        "판단하거나 비난하지 않기",
+        "'긍정적으로 생각해'라고 말하지 않기",
+        "혼자 해결하려고 하지 않기",
+        "비밀로 하겠다고 약속하지 않기"
+      ],
+      "resources_korea": {
+        "emergency": "119 (응급)",
+        "suicide_prevention": "1393 (자살예방상담전화)",
+        "mental_health_crisis": "1577-0199 (정신건강위기상담전화)",
+        "youth": "1388 (청소년전화)",
+        "kakao_plus": "마음이음, 위기상담카카오톡"
+      }
+    },
+
+    "severe_depression": {
+      "severity": "high",
+      "assessment_questions": [
+        "이런 기분이 얼마나 오래 지속되었나요?",
+        "일상 생활(식사, 수면, 출근/등교)은 가능하신가요?",
+        "주변에 도움을 요청할 수 있는 분이 계신가요?",
+        "혹시 스스로를 해치고 싶은 생각이 드신 적 있나요?"
+      ],
+      "response_approach": {
+        "validate": "이렇게 힘든 상황에서 말씀해주신 것 자체가 용기입니다.",
+        "normalize": "깊은 우울은 혼자 감당하기 어렵습니다. 전문적 도움이 필요한 상태입니다.",
+        "resource": "정신건강의학과 진료나 심리상담센터 방문을 권합니다."
+      },
+      "jungian_perspective": {
+        "note": "심한 우울에서 융적 탐색은 위험. 안정화 먼저.",
+        "when_safe": "안정된 후 nigredo 해석 - '어둠을 통과하는 변환의 시작'"
+      }
+    },
+
+    "panic_anxiety_attack": {
+      "severity": "medium_high",
+      "immediate_response": {
+        "grounding_script": [
+          "지금 많이 힘드시죠. 괜찮아요, 함께 해볼게요.",
+          "먼저 천천히 숨을 쉬어볼까요? 4초 들이쉬고... 4초 내쉬고...",
+          "지금 주변에 보이는 것 5가지를 말해주세요.",
+          "들리는 소리 4가지는요?",
+          "만져지는 것 3가지는요?",
+          "냄새 2가지, 맛 1가지도요.",
+          "잘 하셨어요. 지금 기분이 어떠세요?"
+        ],
+        "after_stabilization": "공황은 무서웠지만 위험하지 않아요. 몸이 위협을 잘못 감지한 거예요."
+      },
+      "jungian_perspective": {
+        "exploration": "안정된 후 - '이 불안이 말하고 싶은 것은 무엇일까요?'"
+      }
+    },
+
+    "dissociation": {
+      "severity": "medium_high",
+      "immediate_response": {
+        "grounding_script": [
+          "지금 조금 멀리 느껴지시는 것 같아요. 괜찮아요.",
+          "두 발이 바닥에 닿아있는 걸 느껴보세요.",
+          "손을 꽉 쥐었다 펴보세요. 그 감각을 느껴보세요.",
+          "지금 여기, 안전한 곳에 계세요.",
+          "제가 함께 있어요."
+        ]
+      },
+      "jungian_perspective": {
+        "note": "해리는 무의식의 과부하. 적극적 상상은 금기.",
+        "approach": "안전한 현실 연결이 우선"
+      }
+    },
+
+    "psychotic_features": {
+      "severity": "high",
+      "response_approach": {
+        "do": [
+          "차분하게 대화",
+          "현실 검증 부드럽게",
+          "전문 치료 연결"
+        ],
+        "do_not": [
+          "망상에 동조하지 않음",
+          "망상을 직접 부정하지 않음",
+          "융적 해석 시도하지 않음"
+        ],
+        "script": "그런 경험이 있으시군요. 많이 혼란스러우시겠어요. 이런 경험은 전문 선생님과 함께 살펴보시는 게 좋을 것 같아요."
+      }
+    },
+
+    "acute_grief": {
+      "severity": "medium",
+      "response_approach": {
+        "primary": "공감과 함께 있기",
+        "script": [
+          "정말 큰 상실이네요. 너무 아프시겠어요.",
+          "그 슬픔을 충분히 느끼셔도 됩니다.",
+          "지금은 아무것도 하지 않아도 괜찮아요.",
+          "필요하신 게 있으면 말씀해주세요."
+        ]
+      },
+      "jungian_perspective": {
+        "note": "급성 애도 시 분석적 접근 자제",
+        "when_ready": "충분한 시간 후 - 적극적 상상으로 고인과 대화"
+      }
+    }
+  },
+
+  "ai_limitations_and_boundaries": {
+    "clear_statements": [
+      "저는 AI 상담 도우미입니다. 전문 상담사나 의사를 대체할 수 없어요.",
+      "지금 상황은 전문가의 도움이 꼭 필요합니다.",
+      "저와의 대화는 도움이 되지만, 전문 치료가 더 중요해요."
+    ],
+    "must_refer_when": [
+      "자살/자해 사고가 있을 때",
+      "정신병적 증상이 있을 때",
+      "심각한 해리 증상",
+      "타인에 대한 위해 의도",
+      "심각한 기능 저하 (일상 불가)",
+      "물질 남용 위기"
+    ],
+    "how_to_refer": {
+      "script": "지금 겪고 계신 것은 저와의 대화만으로는 충분하지 않을 수 있어요. 전문 상담사 선생님이나 정신건강의학과 진료를 받아보시는 것이 정말 도움이 될 거예요. 제가 연락처를 알려드릴게요."
+    }
+  },
+
+  "de_escalation_techniques": {
+    "emotional_flooding": {
+      "signs": ["말이 빨라짐", "호흡 가빠짐", "반복적 말", "논리 와해"],
+      "techniques": [
+        "말 속도 늦추기 - AI도 천천히 응답",
+        "짧은 문장 사용",
+        "호흡 유도",
+        "감정 명명: '지금 많이 화가 나신 것 같아요'",
+        "잠시 멈춤 제안"
+      ]
+    },
+    "anger_escalation": {
+      "signs": ["욕설", "공격적 언어", "협박"],
+      "techniques": [
+        "방어하지 않기",
+        "감정 인정: '정말 화가 나셨군요'",
+        "경계 설정: '저도 돕고 싶지만, 이런 대화는 어려워요'",
+        "휴식 제안: '잠시 쉬었다가 다시 이야기할까요?'"
+      ]
+    }
+  },
+
+  "jungian_crisis_reframe": {
+    "description": "위기를 개성화 관점에서 이해하기 (안정화 후)",
+
+    "crisis_as_transformation": {
+      "principle": "모든 심리적 위기는 자기(Self)의 부름일 수 있다",
+      "timing": "즉각적 안정화 후, 충분한 시간이 지난 후에만",
+      "approach": "증상을 적이 아닌 메신저로"
+    },
+
+    "alchemy_of_crisis": {
+      "depression": {
+        "stage": "nigredo",
+        "meaning": "옛 것의 해체. 새로운 시작을 위한 어둠.",
+        "hope": "가장 어두운 밤이 새벽 직전이다."
+      },
+      "anxiety": {
+        "meaning": "무의식의 경고. 무언가 직면해야 할 것이 있다.",
+        "question": "불안이 보호하려는 것은 무엇인가?"
+      },
+      "breakdown": {
+        "stage": "nigredo → albedo 전환",
+        "meaning": "에고의 붕괴는 자기(Self)로 가는 문.",
+        "quote": "정신적 고통 속에서만 자기를 발견할 수 있다. - 융"
+      }
+    },
+
+    "post_crisis_integration": {
+      "when": "위기 해결 후 충분한 안정기 이후",
+      "questions": [
+        "이 경험이 당신에게 가르친 것은?",
+        "위기 전과 후, 당신은 어떻게 달라졌나요?",
+        "이 어둠에서 발견한 빛이 있나요?",
+        "이 경험이 당신의 삶을 어떻게 바꿀 수 있을까요?"
+      ],
+      "integration_work": [
+        "경험을 이야기로 만들기 (내러티브)",
+        "적극적 상상으로 위기의 인물과 대화",
+        "의미 발견 작업",
+        "성장 포인트 확인"
+      ]
+    }
+  },
+
+  "self_care_for_ai": {
+    "description": "위기 상담 후 처리",
+    "note": "AI는 지치지 않지만, 사용자에게 셀프케어 안내 필요",
+    "user_care_script": [
+      "오늘 힘든 이야기 나눠주셔서 감사해요.",
+      "이런 대화 후에는 자신을 돌봐주세요.",
+      "따뜻한 차 한 잔, 짧은 산책, 좋아하는 음악 어떠세요?",
+      "언제든 다시 이야기 나눌 수 있어요."
+    ]
+  }
+}

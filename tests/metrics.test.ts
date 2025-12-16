@@ -1,6 +1,6 @@
 ﻿const test = require("node:test");
 const assert = require("node:assert/strict");
-const { recordCounter, recordTiming, getMetricsSnapshot, resetMetrics, toPrometheus } = require("../src/lib/metrics");
+const { recordCounter, recordTiming, recordGauge, getMetricsSnapshot, resetMetrics, toPrometheus } = require("../src/lib/metrics");
 
 test("prometheus output renders labels", () => {
   resetMetrics();
@@ -14,9 +14,12 @@ test("prometheus output renders labels", () => {
 test("snapshot returns structured samples", () => {
   resetMetrics();
   recordCounter("sample_counter", 1, { tag: "a" });
+  recordGauge("connections", 3, { kind: "sse" });
   const snap = getMetricsSnapshot();
   assert.equal(Array.isArray(snap.counters), true);
   assert.equal(snap.counters[0].name, "sample_counter");
   assert.equal(snap.counters[0].value, 1);
   assert.equal(snap.counters[0].labels.tag, "a");
+  assert.equal(snap.gauges[0].name, "connections");
+  assert.equal(snap.gauges[0].value, 3);
 });

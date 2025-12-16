@@ -42,6 +42,7 @@ export type {
   HouseSystem,       // 하우스 시스템
   AspectType,        // 위상 타입
   ChartMeta,         // 메타 정보 구조
+  ZodiacKo,          // 별자리 한글 타입
 } from "./foundation/types";
 
 // ======================================================
@@ -193,3 +194,113 @@ export type {
 
 // ✨ 핵심: 엔진에서 사용하는 구조체 타입
 export type { AstrologyChartFacts } from "./foundation/types";
+
+// ======================================================
+// 🐉 Draconic Chart (드라코닉 - 영혼 차트)
+// ======================================================
+export {
+  calculateDraconicChart,
+  compareDraconicToNatal,
+  findDraconicAspects,
+  calculateDraconicSynastry,
+  findDraconicTransits,
+  getDraconicPlanetMeaning,
+} from "./foundation/draconic";
+
+export type {
+  DraconicChart,
+  DraconicComparison,
+  DraconicAlignment,
+  DraconicTension,
+  DraconicSummary,
+} from "./foundation/draconic";
+
+// ======================================================
+// 📅 Electional Astrology (택일 점성학)
+// ======================================================
+export {
+  getMoonPhase,
+  getMoonPhaseName,
+  checkVoidOfCourse,
+  calculatePlanetaryHour,
+  getRetrogradePlanets,
+  classifyAspects,
+  analyzeElection,
+  findBestDates,
+  getElectionalGuidelines,
+} from "./foundation/electional";
+
+export type {
+  MoonPhase,
+  ElectionalEventType,
+  VoidOfCourseInfo,
+  PlanetaryHour,
+  ElectionalScore,
+  ElectionalAnalysis,
+} from "./foundation/electional";
+
+// ======================================================
+// 🎵 Harmonic Analysis (하모닉 분석)
+// ======================================================
+export {
+  calculateHarmonicChart,
+  findHarmonicConjunctions,
+  findHarmonicPatterns,
+  analyzeHarmonic,
+  analyzeAgeHarmonic,
+  generateHarmonicProfile,
+  analyzeAspectSeriesHarmonic,
+  getHarmonicMeaning,
+} from "./foundation/harmonics";
+
+export type {
+  HarmonicChart,
+  HarmonicAnalysis,
+  HarmonicConjunction,
+  HarmonicPattern,
+  HarmonicProfile,
+} from "./foundation/harmonics";
+
+// ======================================================
+// ☄️ Major Asteroids (4대 소행성)
+// ======================================================
+export {
+  calculateAsteroid,
+  calculateAllAsteroids,
+  extendChartWithAsteroids,
+  interpretAsteroid,
+  findAsteroidAspects,
+  findAllAsteroidAspects,
+  getAsteroidInfo,
+  analyzeAsteroidSynastry,
+  analyzeAsteroidTransit,
+} from "./foundation/asteroids";
+
+export type {
+  AsteroidName,
+  Asteroid,
+  AsteroidInterpretation,
+  ExtendedChartWithAsteroids,
+} from "./foundation/asteroids";
+
+// ======================================================
+// 🔧 Rectification (출생 시간 교정)
+// ======================================================
+export {
+  estimateAscendantByAppearance,
+  generateTimeRangeCandidates,
+  evaluateRectificationCandidates,
+  performRectification,
+  getAscendantAppearance,
+  getSajuHourRange,
+  getEventSignature,
+  generateRectificationGuide,
+} from "./foundation/rectification";
+
+export type {
+  LifeEvent,
+  LifeEventType,
+  RectificationCandidate,
+  RectificationResult,
+  PhysicalAppearanceProfile,
+} from "./foundation/rectification";

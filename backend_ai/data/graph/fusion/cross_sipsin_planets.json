@@ -1,0 +1,204 @@
+{
+  "$schema": "cross_sipsin_planets_v1",
+  "$description": "십신(10神) ↔ 행성 완전 매핑 (100%)",
+
+  "sipsin_planet_mapping": {
+    "비견": {
+      "planet": "Sun",
+      "secondary": "Mars",
+      "korean": "비견 (比肩)",
+      "meaning_saju": "나와 같은 오행, 동등한 존재, 형제자매, 경쟁자",
+      "meaning_astro": "태양 - 자아, 정체성, 생명력 / 화성 - 경쟁, 동등한 힘",
+      "psychological_theme": "자아 정체성, 독립성, 경쟁 의식",
+      "harmony_score": 75,
+      "life_areas": {
+        "career": "독립 사업, 프리랜서, 경쟁적 환경",
+        "relationship": "대등한 파트너십, 친구같은 관계",
+        "wealth": "자수성가, 직접 벌이",
+        "health": "활력, 근육, 심장"
+      },
+      "positive_expression": "건강한 자존감, 독립심, 리더십",
+      "negative_expression": "고집, 아집, 과도한 경쟁심",
+      "transit_effect": "자아 강화 시기, 독립 욕구 증가"
+    },
+    "겁재": {
+      "planet": "Mars",
+      "secondary": "Pluto",
+      "asteroid": "Lilith",
+      "korean": "겁재 (劫財)",
+      "meaning_saju": "나와 같은 오행이나 음양 다름, 빼앗는 자, 경쟁자",
+      "meaning_astro": "화성 - 공격성, 경쟁 / 명왕성 - 극단적 변형 / 릴리스 - 억압된 욕망",
+      "psychological_theme": "그림자 자아, 억압된 욕망, 경쟁 본능",
+      "harmony_score": 60,
+      "life_areas": {
+        "career": "고위험 고수익, 투기, 경쟁 산업",
+        "relationship": "삼각관계 위험, 강렬한 끌림",
+        "wealth": "급격한 재물 변동, 도박성",
+        "health": "사고, 수술, 급성 질환"
+      },
+      "positive_expression": "결단력, 추진력, 돌파력",
+      "negative_expression": "폭력성, 탐욕, 배신",
+      "transit_effect": "재물 손실 주의, 경쟁 격화"
+    },
+    "식신": {
+      "planet": "Moon",
+      "secondary": "Venus",
+      "korean": "식신 (食神)",
+      "meaning_saju": "내가 생하는 오행 (같은 음양), 표현, 창작, 먹는 것",
+      "meaning_astro": "달 - 감정, 양육, 본능 / 금성 - 즐거움, 감각",
+      "psychological_theme": "내면 아이, 창조적 표현, 감정 표출",
+      "harmony_score": 85,
+      "life_areas": {
+        "career": "예술, 요리, 교육, 창작",
+        "relationship": "편안한 관계, 돌봄",
+        "wealth": "안정적 수입, 기술로 벌이",
+        "health": "소화기, 정서 건강"
+      },
+      "positive_expression": "창의력, 즐거움, 표현력",
+      "negative_expression": "나태, 과식, 방종",
+      "transit_effect": "창작 활동 활성화, 즐거움 추구"
+    },
+    "상관": {
+      "planet": "Uranus",
+      "secondary": "Mercury",
+      "korean": "상관 (傷官)",
+      "meaning_saju": "내가 생하는 오행 (다른 음양), 반항, 파격, 창의",
+      "meaning_astro": "천왕성 - 혁명, 파격, 독창 / 수성 - 지적 표현",
+      "psychological_theme": "반항아 원형, 기존 질서 파괴, 혁신",
+      "harmony_score": 70,
+      "life_areas": {
+        "career": "혁신가, 예술가, 발명가, 비평가",
+        "relationship": "권위와 충돌, 자유로운 관계",
+        "wealth": "불규칙하나 큰 수익 가능",
+        "health": "신경계, 스트레스성 질환"
+      },
+      "positive_expression": "독창성, 혁신, 예술적 천재성",
+      "negative_expression": "반항, 비판, 권위 거부",
+      "transit_effect": "기존 구조 붕괴, 새로운 시도"
+    },
+    "편재": {
+      "planet": "Jupiter",
+      "secondary": "Venus",
+      "korean": "편재 (偏財)",
+      "meaning_saju": "내가 극하는 오행 (같은 음양), 투기재, 아버지, 여자(남자에게)",
+      "meaning_astro": "목성 - 확장, 행운, 도박 / 금성 - 가치, 돈",
+      "psychological_theme": "풍요 추구, 모험적 재물관",
+      "harmony_score": 80,
+      "life_areas": {
+        "career": "사업가, 투자자, 무역",
+        "relationship": "넓은 인맥, 바람기 가능성",
+        "wealth": "투기, 큰돈, 변동성",
+        "health": "간, 비만, 과잉"
+      },
+      "positive_expression": "사업 수완, 베풂, 풍요",
+      "negative_expression": "도박, 낭비, 바람",
+      "transit_effect": "재물 기회, 투자 시기"
+    },
+    "정재": {
+      "planet": "Venus",
+      "secondary": "Saturn",
+      "korean": "정재 (正財)",
+      "meaning_saju": "내가 극하는 오행 (다른 음양), 정당한 재물, 아내(남자에게)",
+      "meaning_astro": "금성 - 가치, 안정적 재물 / 토성 - 구조, 저축",
+      "psychological_theme": "안정적 가치관, 검소함",
+      "harmony_score": 85,
+      "life_areas": {
+        "career": "회계, 금융, 안정적 직장",
+        "relationship": "안정적 결혼, 헌신",
+        "wealth": "저축, 월급, 안정 수입",
+        "health": "신장, 대사"
+      },
+      "positive_expression": "검소, 저축, 안정",
+      "negative_expression": "인색, 물질집착",
+      "transit_effect": "안정적 수입, 재물 관리"
+    },
+    "편관": {
+      "planet": "Mars",
+      "secondary": "Pluto",
+      "korean": "편관 (偏官) / 칠살",
+      "meaning_saju": "나를 극하는 오행 (같은 음양), 압력, 권력, 남편(여자에게)",
+      "meaning_astro": "화성 - 공격, 전투 / 명왕성 - 권력, 변형",
+      "psychological_theme": "아버지 콤플렉스, 권위와의 갈등",
+      "harmony_score": 65,
+      "life_areas": {
+        "career": "군인, 경찰, 검찰, 권력직",
+        "relationship": "강한 남성, 통제적 관계",
+        "wealth": "권력으로 얻는 재물",
+        "health": "사고, 수술, 급성"
+      },
+      "positive_expression": "결단력, 리더십, 추진력",
+      "negative_expression": "폭력성, 통제욕, 공격성",
+      "transit_effect": "압력 시기, 도전과 성장"
+    },
+    "정관": {
+      "planet": "Saturn",
+      "secondary": "Jupiter",
+      "korean": "정관 (正官)",
+      "meaning_saju": "나를 극하는 오행 (다른 음양), 직장, 명예, 남편(여자에게)",
+      "meaning_astro": "토성 - 책임, 구조, 권위 / 목성 - 사회적 성공",
+      "psychological_theme": "초자아, 사회적 책임, 권위",
+      "harmony_score": 80,
+      "life_areas": {
+        "career": "공무원, 대기업, 관리직",
+        "relationship": "안정적 결혼, 책임감",
+        "wealth": "월급, 직장 수입",
+        "health": "뼈, 관절, 만성"
+      },
+      "positive_expression": "책임감, 신뢰, 명예",
+      "negative_expression": "경직, 권위주의",
+      "transit_effect": "책임 증가, 승진, 사회적 인정"
+    },
+    "편인": {
+      "planet": "Pluto",
+      "secondary": "Neptune",
+      "korean": "편인 (偏印) / 효신",
+      "meaning_saju": "나를 생하는 오행 (같은 음양), 비정통 학문, 고독",
+      "meaning_astro": "명왕성 - 심층, 변형 / 해왕성 - 신비, 직관",
+      "psychological_theme": "비밀스러운 지식, 심층 심리",
+      "harmony_score": 70,
+      "life_areas": {
+        "career": "철학, 심리학, 오컬트, 연구",
+        "relationship": "고독, 정신적 연결",
+        "wealth": "특수 기술로 수입",
+        "health": "정신건강, 면역"
+      },
+      "positive_expression": "직관, 통찰, 심층 지식",
+      "negative_expression": "고립, 음모, 의심",
+      "transit_effect": "심층 학습, 변형의 시기"
+    },
+    "정인": {
+      "planet": "Neptune",
+      "secondary": "Moon",
+      "korean": "정인 (正印)",
+      "meaning_saju": "나를 생하는 오행 (다른 음양), 어머니, 학문, 자격증",
+      "meaning_astro": "해왕성 - 영성, 직관 / 달 - 어머니, 양육",
+      "psychological_theme": "어머니 콤플렉스, 학습, 보호",
+      "harmony_score": 85,
+      "life_areas": {
+        "career": "교육, 종교, 의료, 학문",
+        "relationship": "모성적, 돌봄",
+        "wealth": "자격증, 지식으로 수입",
+        "health": "면역, 회복력"
+      },
+      "positive_expression": "지혜, 학문, 자비",
+      "negative_expression": "의존, 수동성",
+      "transit_effect": "학습 기회, 자격 취득"
+    }
+  },
+
+  "summary_table": {
+    "description": "십신-행성 요약표",
+    "mappings": [
+      {"sipsin": "비견", "primary": "Sun", "secondary": "Mars", "theme": "자아/경쟁"},
+      {"sipsin": "겁재", "primary": "Mars", "secondary": "Pluto/Lilith", "theme": "그림자/탈취"},
+      {"sipsin": "식신", "primary": "Moon", "secondary": "Venus", "theme": "표현/양육"},
+      {"sipsin": "상관", "primary": "Uranus", "secondary": "Mercury", "theme": "혁신/반항"},
+      {"sipsin": "편재", "primary": "Jupiter", "secondary": "Venus", "theme": "투기/확장"},
+      {"sipsin": "정재", "primary": "Venus", "secondary": "Saturn", "theme": "안정/저축"},
+      {"sipsin": "편관", "primary": "Mars", "secondary": "Pluto", "theme": "권력/압력"},
+      {"sipsin": "정관", "primary": "Saturn", "secondary": "Jupiter", "theme": "책임/명예"},
+      {"sipsin": "편인", "primary": "Pluto", "secondary": "Neptune", "theme": "심층/신비"},
+      {"sipsin": "정인", "primary": "Neptune", "secondary": "Moon", "theme": "지혜/양육"}
+    ]
+  }
+}

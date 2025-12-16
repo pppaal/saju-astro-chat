@@ -1,78 +1,124 @@
 {
   "_meta": {
-    "title": "Soulmate & Relationship Indicators",
-    "description": "타로 카드로 소울메이트, 트윈플레임, 카르마 인연 판별"
+    "title": "Soulmate & Relationship Indicators - Extended",
+    "description": "타로 카드로 소울메이트, 트윈플레임, 카르마 인연을 완전히 판별하는 시스템",
+    "version": "2.0"
   },
   "connection_types": {
     "soulmate": {
       "korean": "소울메이트",
+      "english": "Soulmate",
       "description": "깊은 영적 연결, 편안함과 성장",
       "characteristics": [
         "자연스러운 편안함",
         "서로를 통해 성장",
         "타이밍이 맞음",
-        "상호 존중과 지지"
-      ]
+        "상호 존중과 지지",
+        "말하지 않아도 이해함",
+        "함께 있으면 평화로움"
+      ],
+      "feeling": "처음 만났는데 오래 알던 것 같음",
+      "relationship_type": "여러 형태 가능 (연인, 친구, 가족)",
+      "duration": "장기적, 평생"
     },
     "twin_flame": {
       "korean": "트윈플레임 (쌍둥이 불꽃)",
+      "english": "Twin Flame",
       "description": "강렬한 연결, 거울 같은 반영, 도전과 변화",
       "characteristics": [
         "강렬하고 즉각적인 끌림",
         "서로의 거울이 됨",
         "분리와 재회의 사이클",
-        "영적 각성을 촉발"
-      ]
+        "영적 각성을 촉발",
+        "서로의 그림자를 드러냄",
+        "변화 없이는 함께 있기 어려움"
+      ],
+      "feeling": "강렬하지만 힘든, 중독 같은",
+      "relationship_type": "보통 로맨틱",
+      "duration": "사이클로 진행, 최종 합일 가능"
     },
     "karmic": {
       "korean": "카르마 인연",
+      "english": "Karmic Relationship",
       "description": "전생의 업을 청산하기 위한 만남, 배움이 끝나면 떠남",
       "characteristics": [
         "강한 끌림과 익숙함",
         "반복되는 패턴",
         "고통스러운 교훈",
-        "해결 후 관계 종료 가능"
-      ]
+        "해결 후 관계 종료 가능",
+        "도망치려 해도 끌려감",
+        "같은 문제 반복"
+      ],
+      "feeling": "피할 수 없는 끌림, 하지만 건강하지 않음",
+      "relationship_type": "다양함",
+      "duration": "교훈을 배울 때까지"
     },
     "kindred_spirit": {
       "korean": "영혼의 동반자",
+      "english": "Kindred Spirit",
       "description": "비슷한 영혼의 주파수, 깊은 우정",
       "characteristics": [
         "깊은 이해",
         "에너지 공유",
         "함께 하면 고양됨",
-        "반드시 로맨틱하지 않음"
-      ]
+        "반드시 로맨틱하지 않음",
+        "같은 관심사와 가치관",
+        "멀어져도 다시 연결됨"
+      ],
+      "feeling": "편안한 공명, 영감을 주고받음",
+      "relationship_type": "보통 우정",
+      "duration": "평생, 가끔 연락해도 유지"
+    },
+    "catalyst": {
+      "korean": "촉매 인연",
+      "english": "Catalyst",
+      "description": "짧지만 강렬하게 변화를 일으키는 만남",
+      "characteristics": [
+        "갑작스럽게 나타남",
+        "삶의 방향을 바꿈",
+        "빠르게 사라짐",
+        "강한 영향을 남김"
+      ],
+      "feeling": "운명 같지만 짧음",
+      "relationship_type": "짧은 만남",
+      "duration": "짧음, 하지만 영향은 영구적"
     }
   },
   "soulmate_card_indicators": {
     "strong_soulmate": {
       "cards": [
         "The Lovers", "Two of Cups", "Ten of Cups", "The Sun",
-        "Ace of Cups", "Six of Cups", "The Star", "The Empress"
+        "Ace of Cups", "Six of Cups", "The Star", "The Empress",
+        "Temperance", "Four of Wands"
       ],
-      "meaning": "강한 소울메이트 에너지"
+      "meaning": "강한 소울메이트 에너지",
+      "korean": "깊은 영혼의 연결이 있어요"
     },
     "twin_flame": {
       "cards": [
         "The Tower", "The Fool", "Death", "Judgement",
-        "Two of Wands", "The Magician", "The High Priestess"
+        "Two of Wands", "The Magician", "The High Priestess",
+        "The Hanged Man", "Wheel of Fortune"
       ],
-      "meaning": "트윈플레임 역동성 - 변화와 각성"
+      "meaning": "트윈플레임 역동성 - 변화와 각성",
+      "korean": "강렬한 변화를 가져오는 연결이에요"
     },
     "karmic": {
       "cards": [
         "Justice", "Wheel of Fortune", "The Devil", "Eight of Swords",
-        "Five of Cups", "Three of Swords", "The Hanged Man"
+        "Five of Cups", "Three of Swords", "The Hanged Man",
+        "The Moon", "Seven of Swords"
       ],
-      "meaning": "카르마 인연 - 배움과 정리"
+      "meaning": "카르마 인연 - 배움과 정리",
+      "korean": "과거생에서 이어진 인연이에요"
     },
     "past_life": {
       "cards": [
         "Six of Cups", "The High Priestess", "The Moon", "Judgement",
-        "Wheel of Fortune", "The Hermit"
+        "Wheel of Fortune", "The Hermit", "The World"
       ],
-      "meaning": "전생 연결 가능성"
+      "meaning": "전생 연결 가능성",
+      "korean": "전생에서 만났던 인연일 수 있어요"
     }
   },
   "card_combinations_for_love": {
@@ -80,51 +126,140 @@
       {
         "combo": ["The Lovers", "Two of Cups"],
         "meaning": "확실한 소울메이트 연결",
-        "korean": "이 사람과 깊은 영혼의 연결이 있어요. 운명적 만남입니다."
+        "korean": "이 사람과 깊은 영혼의 연결이 있어요. 운명적 만남입니다.",
+        "confidence": "95%+"
       },
       {
         "combo": ["Ten of Cups", "The Star"],
         "meaning": "꿈꾸던 행복한 관계",
-        "korean": "꿈에 그리던 사랑이에요. 진정한 행복을 찾을 수 있습니다."
+        "korean": "꿈에 그리던 사랑이에요. 진정한 행복을 찾을 수 있습니다.",
+        "confidence": "95%+"
       },
       {
         "combo": ["The Sun", "Ace of Cups"],
         "meaning": "기쁨 가득한 새로운 사랑",
-        "korean": "순수하고 기쁨 가득한 새 사랑이 시작되고 있어요."
+        "korean": "순수하고 기쁨 가득한 새 사랑이 시작되고 있어요.",
+        "confidence": "90%+"
+      },
+      {
+        "combo": ["Four of Wands", "Ten of Cups"],
+        "meaning": "결혼과 행복한 가정",
+        "korean": "결혼으로 이어질 행복한 인연이에요.",
+        "confidence": "95%+"
+      },
+      {
+        "combo": ["The Empress", "The Emperor"],
+        "meaning": "완벽한 파트너십",
+        "korean": "서로를 완벽하게 보완하는 인연이에요.",
+        "confidence": "90%+"
+      },
+      {
+        "combo": ["Two of Cups", "Four of Wands"],
+        "meaning": "결혼 가능성 높음",
+        "korean": "이 관계는 결혼으로 발전할 가능성이 높아요.",
+        "confidence": "90%+"
+      },
+      {
+        "combo": ["Six of Cups", "The Lovers"],
+        "meaning": "전생부터 이어진 소울메이트",
+        "korean": "전생에서도 함께했던 영혼이에요.",
+        "confidence": "95%+"
       }
     ],
     "twin_flame_signs": [
       {
         "combo": ["The Tower", "The Lovers"],
         "meaning": "트윈플레임 각성",
-        "korean": "강렬한 변화를 가져오는 연결이에요. 트윈플레임일 수 있습니다."
+        "korean": "강렬한 변화를 가져오는 연결이에요. 트윈플레임일 수 있습니다.",
+        "note": "힘들지만 성장을 가져옴"
       },
       {
         "combo": ["The Fool", "Judgement"],
         "meaning": "영적 재탄생을 통한 만남",
-        "korean": "이 만남이 당신을 완전히 새롭게 만들 거예요."
+        "korean": "이 만남이 당신을 완전히 새롭게 만들 거예요.",
+        "note": "새 시작과 소명"
       },
       {
         "combo": ["Death", "Two of Cups"],
         "meaning": "변화 후 깊은 연결",
-        "korean": "끝남을 통해 진정한 연결이 시작됩니다."
+        "korean": "끝남을 통해 진정한 연결이 시작됩니다.",
+        "note": "변화를 받아들여야 함"
+      },
+      {
+        "combo": ["The Magician", "The High Priestess"],
+        "meaning": "완벽한 남성/여성 에너지 균형",
+        "korean": "서로 완벽하게 균형을 이루는 트윈플레임이에요.",
+        "note": "의식과 무의식의 합일"
+      },
+      {
+        "combo": ["Wheel of Fortune", "The Hanged Man"],
+        "meaning": "트윈플레임 분리 단계",
+        "korean": "지금은 분리되어 있지만, 다시 만날 거예요.",
+        "note": "각자의 성장이 필요한 시기"
+      },
+      {
+        "combo": ["The Tower", "The Star"],
+        "meaning": "파괴 후 희망",
+        "korean": "힘든 시기를 지나 아름다운 합일이 기다려요.",
+        "note": "트윈플레임 여정의 끝"
       }
     ],
     "karmic_lesson": [
       {
         "combo": ["Justice", "The Devil"],
         "meaning": "카르마 청산 중",
-        "korean": "이 관계에서 배워야 할 교훈이 있어요. 카르마 인연입니다."
+        "korean": "이 관계에서 배워야 할 교훈이 있어요. 카르마 인연입니다.",
+        "lesson": "속박에서 벗어나는 법 배우기"
       },
       {
         "combo": ["Five of Cups", "Wheel of Fortune"],
         "meaning": "슬픔을 통한 성장",
-        "korean": "아픔이 있지만, 이것이 당신을 성장시킬 거예요."
+        "korean": "아픔이 있지만, 이것이 당신을 성장시킬 거예요.",
+        "lesson": "상실을 받아들이기"
       },
       {
         "combo": ["Eight of Swords", "The Hanged Man"],
         "meaning": "묶여 있는 관계",
-        "korean": "이 관계가 당신을 붙잡고 있어요. 놓아주는 것을 배워야 합니다."
+        "korean": "이 관계가 당신을 붙잡고 있어요. 놓아주는 것을 배워야 합니다.",
+        "lesson": "자유를 위해 희생하기"
+      },
+      {
+        "combo": ["The Moon", "Seven of Swords"],
+        "meaning": "숨겨진 교훈",
+        "korean": "속임수 속에서 진실을 보는 법을 배워야 해요.",
+        "lesson": "직관을 믿기"
+      },
+      {
+        "combo": ["Three of Swords", "Six of Cups"],
+        "meaning": "과거의 상처 치유",
+        "korean": "과거의 아픔을 치유해야 할 인연이에요.",
+        "lesson": "용서와 치유"
+      }
+    ],
+    "not_meant_to_be": [
+      {
+        "combo": ["The Tower", "Ten of Swords"],
+        "meaning": "관계의 종말",
+        "korean": "이 관계는 끝나야 할 운명이에요.",
+        "advice": "놓아주세요"
+      },
+      {
+        "combo": ["Three of Swords", "Eight of Cups"],
+        "meaning": "떠나야 할 때",
+        "korean": "상처받기 전에 떠나는 것이 좋아요.",
+        "advice": "마음을 보호하세요"
+      },
+      {
+        "combo": ["The Devil", "Five of Cups"],
+        "meaning": "독성 관계",
+        "korean": "이 관계는 당신에게 해로워요.",
+        "advice": "벗어나세요"
+      },
+      {
+        "combo": ["Seven of Swords", "Five of Swords"],
+        "meaning": "속임수와 갈등",
+        "korean": "신뢰할 수 없는 관계예요.",
+        "advice": "진실을 직면하세요"
       }
     ]
   },
@@ -132,32 +267,44 @@
     "new_beginning": {
       "cards": ["Ace of Cups", "The Fool", "Page of Cups", "Ace of Wands"],
       "korean": "새로운 시작 단계",
-      "description": "관계가 막 시작되었거나 새로운 국면에 접어들었어요"
+      "description": "관계가 막 시작되었거나 새로운 국면에 접어들었어요",
+      "advice": "호기심을 유지하고 열린 마음으로 다가가세요"
     },
     "deepening": {
       "cards": ["Two of Cups", "Three of Cups", "The Lovers", "Four of Wands"],
       "korean": "깊어지는 단계",
-      "description": "관계가 점점 깊어지고 있어요. 서로를 알아가는 중"
+      "description": "관계가 점점 깊어지고 있어요. 서로를 알아가는 중",
+      "advice": "진정성 있게 자신을 보여주세요"
     },
     "commitment": {
       "cards": ["Four of Wands", "Ten of Cups", "The Hierophant", "Ten of Pentacles"],
       "korean": "약속/헌신 단계",
-      "description": "결혼이나 동거 등 더 깊은 약속을 고려할 때"
+      "description": "결혼이나 동거 등 더 깊은 약속을 고려할 때",
+      "advice": "진지하게 미래를 논의하세요"
     },
     "challenge": {
       "cards": ["Five of Cups", "Three of Swords", "The Tower", "Seven of Swords"],
       "korean": "시련 단계",
-      "description": "관계가 시험받고 있어요. 극복하면 더 강해질 수 있습니다"
+      "description": "관계가 시험받고 있어요. 극복하면 더 강해질 수 있습니다",
+      "advice": "소통하고 인내하세요"
     },
     "renewal": {
       "cards": ["Judgement", "The Star", "Six of Cups", "Temperance"],
       "korean": "재생/갱신 단계",
-      "description": "관계가 새로운 모습으로 다시 태어나고 있어요"
+      "description": "관계가 새로운 모습으로 다시 태어나고 있어요",
+      "advice": "과거를 용서하고 새 시작을 받아들이세요"
     },
     "completion": {
       "cards": ["The World", "Ten of Cups", "Ten of Pentacles", "The Sun"],
       "korean": "완성 단계",
-      "description": "관계가 성숙하고 안정된 상태. 함께 꿈을 이루는 중"
+      "description": "관계가 성숙하고 안정된 상태. 함께 꿈을 이루는 중",
+      "advice": "감사하고 함께 미래를 설계하세요"
+    },
+    "ending": {
+      "cards": ["Death", "Ten of Swords", "Eight of Cups", "The Tower"],
+      "korean": "종결 단계",
+      "description": "관계가 끝나가거나 큰 변화를 앞두고 있어요",
+      "advice": "건강하게 마무리하거나 변화를 받아들이세요"
     }
   },
   "red_flags": {
@@ -165,57 +312,184 @@
       {
         "card": "Seven of Swords",
         "meaning": "속임수나 불성실 가능성",
-        "advice": "상대방의 행동을 잘 살펴보세요"
+        "advice": "상대방의 행동을 잘 살펴보세요",
+        "korean": "뭔가 숨기고 있을 수 있어요"
       },
       {
         "card": "The Devil (reversed)",
         "meaning": "중독적인 관계, 건강하지 않은 집착",
-        "advice": "이 관계가 당신에게 이로운지 생각해보세요"
+        "advice": "이 관계가 당신에게 이로운지 생각해보세요",
+        "korean": "집착에서 벗어나려 하고 있지만 아직..."
       },
       {
         "card": "Five of Swords",
         "meaning": "승패가 있는 관계, 갈등",
-        "advice": "이기려 하지 말고 함께 해결책을 찾으세요"
+        "advice": "이기려 하지 말고 함께 해결책을 찾으세요",
+        "korean": "이 관계에서 이기려는 싸움이 있어요"
       },
       {
         "card": "Three of Swords",
         "meaning": "마음의 상처, 배신 가능성",
-        "advice": "감정을 솔직하게 대화하세요"
+        "advice": "감정을 솔직하게 대화하세요",
+        "korean": "상처가 예상돼요"
+      },
+      {
+        "card": "The Moon",
+        "meaning": "착각, 환상, 숨겨진 것",
+        "advice": "현실을 직면하세요",
+        "korean": "모든 것이 보이는 대로가 아니에요"
+      },
+      {
+        "card": "Knight of Swords",
+        "meaning": "성급한 관계, 갑작스러운 변화",
+        "advice": "너무 빠르게 가지 마세요",
+        "korean": "급하게 진행되고 있어요"
       }
     ],
     "toxic_combinations": [
       {
         "combo": ["The Devil", "Eight of Swords"],
         "meaning": "독성 관계 - 속박과 통제",
-        "korean": "이 관계가 당신을 가두고 있어요. 탈출구를 찾으세요."
+        "korean": "이 관계가 당신을 가두고 있어요. 탈출구를 찾으세요.",
+        "urgency": "높음"
       },
       {
         "combo": ["Seven of Swords", "The Moon"],
         "meaning": "숨겨진 속임수",
-        "korean": "뭔가 숨기고 있는 것 같아요. 진실을 찾아야 합니다."
+        "korean": "뭔가 숨기고 있는 것 같아요. 진실을 찾아야 합니다.",
+        "urgency": "중간"
+      },
+      {
+        "combo": ["Five of Cups", "Eight of Cups"],
+        "meaning": "끝나가는 관계",
+        "korean": "슬프지만 떠날 때가 된 것 같아요.",
+        "urgency": "중간"
+      },
+      {
+        "combo": ["The Tower", "Three of Swords"],
+        "meaning": "파괴적인 발견",
+        "korean": "충격적인 진실이 드러날 수 있어요.",
+        "urgency": "높음"
+      },
+      {
+        "combo": ["The Devil", "Nine of Swords"],
+        "meaning": "불안과 집착",
+        "korean": "이 관계가 정신 건강을 해치고 있어요.",
+        "urgency": "매우 높음"
+      }
+    ],
+    "narcissist_signs": [
+      {
+        "cards": ["The Devil", "King of Swords (R)", "Seven of Swords"],
+        "meaning": "자기애적 파트너 가능성",
+        "korean": "조종과 통제의 패턴이 보여요",
+        "advice": "전문가의 도움을 받으세요"
       }
     ]
   },
   "timeline_for_love": {
     "immediate": {
-      "cards": ["Eight of Wands", "Ace of Wands", "The Chariot"],
+      "cards": ["Eight of Wands", "Ace of Wands", "The Chariot", "Knight of Wands"],
       "korean": "곧 (1-3개월)",
-      "meaning": "빠른 진전이 예상됩니다"
+      "meaning": "빠른 진전이 예상됩니다",
+      "advice": "준비하세요, 곧 일어날 거예요"
     },
     "soon": {
-      "cards": ["Three of Wands", "Knight of Wands", "Page of Cups"],
+      "cards": ["Three of Wands", "Knight of Wands", "Page of Cups", "Two of Wands"],
       "korean": "조만간 (3-6개월)",
-      "meaning": "조금 기다리면 좋은 소식이 있어요"
+      "meaning": "조금 기다리면 좋은 소식이 있어요",
+      "advice": "인내심을 가지고 준비하세요"
     },
     "patient_waiting": {
-      "cards": ["The Star", "The Hermit", "Four of Swords"],
+      "cards": ["The Star", "The Hermit", "Four of Swords", "Seven of Pentacles"],
       "korean": "인내가 필요 (6개월-1년)",
-      "meaning": "시간이 필요해요. 그동안 자기 자신에게 집중하세요"
+      "meaning": "시간이 필요해요. 그동안 자기 자신에게 집중하세요",
+      "advice": "자기 성장에 집중하세요"
     },
     "divine_timing": {
-      "cards": ["Wheel of Fortune", "The World", "Temperance"],
+      "cards": ["Wheel of Fortune", "The World", "Temperance", "The High Priestess"],
       "korean": "신성한 타이밍",
-      "meaning": "우주의 타이밍을 믿으세요. 적절한 때가 올 거예요"
+      "meaning": "우주의 타이밍을 믿으세요. 적절한 때가 올 거예요",
+      "advice": "통제하려 하지 말고 흐름에 맡기세요"
+    },
+    "already_here": {
+      "cards": ["Two of Cups", "The Sun", "Ace of Cups", "Ten of Cups"],
+      "korean": "이미 여기 있음",
+      "meaning": "소울메이트가 이미 당신 곁에 있을 수 있어요",
+      "advice": "주변을 다시 살펴보세요"
     }
+  },
+  "compatibility_indicators": {
+    "high_compatibility": {
+      "cards": ["Two of Cups", "The Lovers", "Temperance", "Ten of Cups"],
+      "meaning": "높은 궁합",
+      "korean": "아주 잘 맞는 인연이에요",
+      "percentage": "80-100%"
+    },
+    "good_compatibility": {
+      "cards": ["Three of Cups", "Six of Cups", "Four of Wands", "The Sun"],
+      "meaning": "좋은 궁합",
+      "korean": "좋은 관계가 될 수 있어요",
+      "percentage": "60-80%"
+    },
+    "needs_work": {
+      "cards": ["Five of Wands", "Seven of Wands", "Two of Swords", "The Hanged Man"],
+      "meaning": "노력 필요",
+      "korean": "노력하면 잘 될 수 있어요",
+      "percentage": "40-60%"
+    },
+    "challenging": {
+      "cards": ["Five of Swords", "Three of Swords", "The Tower", "Five of Cups"],
+      "meaning": "도전적인 궁합",
+      "korean": "많은 도전이 있을 거예요",
+      "percentage": "20-40%"
+    },
+    "low_compatibility": {
+      "cards": ["Ten of Swords", "The Devil", "Seven of Swords", "Eight of Swords"],
+      "meaning": "낮은 궁합",
+      "korean": "이 관계는 힘들 수 있어요",
+      "percentage": "0-20%"
+    }
+  },
+  "their_feelings": {
+    "positive_feelings": {
+      "strong_love": ["The Lovers", "Two of Cups", "Ace of Cups", "Ten of Cups"],
+      "attracted": ["Knight of Wands", "Knight of Cups", "The Sun", "Three of Wands"],
+      "committed": ["Four of Wands", "The Hierophant", "Ten of Pentacles", "King of Cups"],
+      "protective": ["The Emperor", "King of Pentacles", "Nine of Wands"],
+      "nurturing": ["The Empress", "Queen of Cups", "Queen of Pentacles", "Six of Cups"]
+    },
+    "mixed_feelings": {
+      "confused": ["Two of Swords", "The Moon", "Seven of Cups"],
+      "interested_but_hesitant": ["Page of Cups", "The Hanged Man", "Four of Cups"],
+      "attracted_but_scared": ["The Star", "Eight of Cups", "Knight of Cups (R)"]
+    },
+    "negative_feelings": {
+      "not_interested": ["Five of Cups", "Four of Cups", "Eight of Cups"],
+      "angry": ["Five of Wands", "Five of Swords", "Knight of Swords"],
+      "using_you": ["Seven of Swords", "The Devil", "Five of Swords"],
+      "moving_on": ["Eight of Cups", "Six of Swords", "Death"]
+    }
+  },
+  "reunion_indicators": {
+    "likely_reunion": [
+      {
+        "cards": ["Six of Cups", "Judgement", "The Star"],
+        "meaning": "재회 가능성 높음",
+        "korean": "과거의 인연이 돌아올 수 있어요"
+      },
+      {
+        "cards": ["The Wheel of Fortune", "Two of Cups"],
+        "meaning": "운명적 재회",
+        "korean": "운명이 다시 합쳐놓을 거예요"
+      }
+    ],
+    "better_to_move_on": [
+      {
+        "cards": ["Death", "The Tower", "Ten of Swords"],
+        "meaning": "새 시작이 필요",
+        "korean": "과거는 보내고 새 출발을 하세요"
+      }
+    ]
   }
 }

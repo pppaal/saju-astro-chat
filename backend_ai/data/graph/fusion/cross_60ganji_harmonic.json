@@ -1,0 +1,442 @@
+{
+  "$schema": "cross_60ganji_harmonic_v1",
+  "$description": "60갑자 ↔ 하모닉/납음 완전 매핑",
+
+  "naeum_30_types": {
+    "description": "60갑자는 30개의 납음(納音)으로 분류됨. 각 납음은 2개의 갑자를 포함",
+
+    "해중금": {
+      "naeum": "海中金",
+      "english": "Gold in the Sea",
+      "ganji": ["갑자(甲子)", "을축(乙丑)"],
+      "element": "金",
+      "nature": "바다 속 금 - 아직 발견되지 않은 보물",
+      "harmonic_parallel": {
+        "primary": "H12",
+        "reasoning": "숨겨진 잠재력, 무의식 속 가치",
+        "sign_affinity": "Pisces (깊은 바다)"
+      },
+      "personality": "내면에 큰 가치를 품고 있으나 쉽게 드러내지 않음",
+      "life_theme": "때가 되면 빛나는 숨겨진 재능"
+    },
+    "노중화": {
+      "naeum": "爐中火",
+      "english": "Fire in the Furnace",
+      "ganji": ["병인(丙寅)", "정묘(丁卯)"],
+      "element": "火",
+      "nature": "화덕 속 불 - 통제된 열정, 제련의 불",
+      "harmonic_parallel": {
+        "primary": "H4",
+        "reasoning": "노력과 성취, 단련을 통한 완성",
+        "sign_affinity": "Aries (시작의 열정)"
+      },
+      "personality": "내면의 열정을 절제하며 목표를 향해 나아감",
+      "life_theme": "인내와 노력으로 성취"
+    },
+    "대림목": {
+      "naeum": "大林木",
+      "english": "Wood of the Great Forest",
+      "ganji": ["무진(戊辰)", "기사(己巳)"],
+      "element": "木",
+      "nature": "큰 숲의 나무 - 웅장함, 집단, 보호",
+      "harmonic_parallel": {
+        "primary": "H3",
+        "reasoning": "창조적 성장, 자연스러운 재능",
+        "sign_affinity": "Sagittarius (확장과 성장)"
+      },
+      "personality": "크게 성장하여 많은 이에게 그늘을 제공",
+      "life_theme": "대기만성, 큰 그릇"
+    },
+    "노방토": {
+      "naeum": "路傍土",
+      "english": "Earth by the Roadside",
+      "ganji": ["경오(庚午)", "신미(辛未)"],
+      "element": "土",
+      "nature": "길가의 흙 - 밟히면서도 견디는 인내",
+      "harmonic_parallel": {
+        "primary": "H6",
+        "reasoning": "봉사, 겸손, 실용성",
+        "sign_affinity": "Virgo (봉사와 실용)"
+      },
+      "personality": "겸손하게 자신의 자리를 지키며 인내",
+      "life_theme": "묵묵히 역할 수행"
+    },
+    "검봉금": {
+      "naeum": "劍鋒金",
+      "english": "Gold of the Sword Edge",
+      "ganji": ["임신(壬申)", "계유(癸酉)"],
+      "element": "金",
+      "nature": "칼날의 금 - 날카로움, 결단력",
+      "harmonic_parallel": {
+        "primary": "H5",
+        "reasoning": "개성, 힘의 사용, 스타일",
+        "sign_affinity": "Scorpio (날카로운 통찰)"
+      },
+      "personality": "날카로운 결단력과 실행력",
+      "life_theme": "결정적 순간에 빛나는 결단"
+    },
+    "산하화": {
+      "naeum": "山下火",
+      "english": "Fire at the Foot of the Mountain",
+      "ganji": ["병신(丙申)", "정유(丁酉)"],
+      "element": "火",
+      "nature": "산 아래 불 - 내면의 열정, 잠재된 힘",
+      "harmonic_parallel": {
+        "primary": "H8",
+        "reasoning": "변형, 숨겨진 힘, 재생",
+        "sign_affinity": "Capricorn (내면의 야망)"
+      },
+      "personality": "겉으로 드러나지 않는 강한 내면의 불꽃",
+      "life_theme": "때를 기다리는 잠재력"
+    },
+    "평지목": {
+      "naeum": "平地木",
+      "english": "Wood of the Plains",
+      "ganji": ["무술(戊戌)", "기해(己亥)"],
+      "element": "木",
+      "nature": "평지의 나무 - 안정적 성장, 평화",
+      "harmonic_parallel": {
+        "primary": "H2",
+        "reasoning": "관계, 균형, 파트너십",
+        "sign_affinity": "Libra (조화와 균형)"
+      },
+      "personality": "평화롭게 성장하며 주변과 조화",
+      "life_theme": "안정 속 성장"
+    },
+    "벽상토": {
+      "naeum": "壁上土",
+      "english": "Earth on the Wall",
+      "ganji": ["경자(庚子)", "신축(辛丑)"],
+      "element": "土",
+      "nature": "담장의 흙 - 보호, 경계, 안정",
+      "harmonic_parallel": {
+        "primary": "H4",
+        "reasoning": "구조, 경계, 성취",
+        "sign_affinity": "Cancer (보호와 안전)"
+      },
+      "personality": "경계를 지키며 안정을 추구",
+      "life_theme": "보호와 수호"
+    },
+    "금박금": {
+      "naeum": "金箔金",
+      "english": "Gold Leaf",
+      "ganji": ["임인(壬寅)", "계묘(癸卯)"],
+      "element": "金",
+      "nature": "금박 - 섬세함, 아름다움, 장식",
+      "harmonic_parallel": {
+        "primary": "H5",
+        "reasoning": "스타일, 미적 감각, 개성",
+        "sign_affinity": "Leo (빛나는 존재감)"
+      },
+      "personality": "섬세하고 아름다운 것을 추구",
+      "life_theme": "세련된 아름다움"
+    },
+    "복등화": {
+      "naeum": "覆燈火",
+      "english": "Lamp Fire",
+      "ganji": ["갑진(甲辰)", "을사(乙巳)"],
+      "element": "火",
+      "nature": "등불 - 어둠을 밝히는 지혜",
+      "harmonic_parallel": {
+        "primary": "H7",
+        "reasoning": "영감, 직관, 신비",
+        "sign_affinity": "Aquarius (계몽과 혁신)"
+      },
+      "personality": "어둠 속에서 길을 비추는 역할",
+      "life_theme": "지혜로 사람들을 인도"
+    },
+    "천하수": {
+      "naeum": "天河水",
+      "english": "Water of the Milky Way",
+      "ganji": ["병오(丙午)", "정미(丁未)"],
+      "element": "水",
+      "nature": "은하수 - 끝없는 가능성, 신비",
+      "harmonic_parallel": {
+        "primary": "H9",
+        "reasoning": "지혜, 완성, 영적 성취",
+        "sign_affinity": "Pisces (우주적 연결)"
+      },
+      "personality": "무한한 가능성과 신비로움",
+      "life_theme": "초월적 비전"
+    },
+    "대역토": {
+      "naeum": "大驛土",
+      "english": "Earth of the Highway",
+      "ganji": ["무신(戊申)", "기유(己酉)"],
+      "element": "土",
+      "nature": "큰 길의 흙 - 이동, 연결, 교류",
+      "harmonic_parallel": {
+        "primary": "H3",
+        "reasoning": "소통, 창조, 연결",
+        "sign_affinity": "Gemini (소통과 이동)"
+      },
+      "personality": "많은 사람과 교류하며 연결고리 역할",
+      "life_theme": "사람을 연결하는 가교"
+    },
+    "차천금": {
+      "naeum": "釵釧金",
+      "english": "Ornamental Gold",
+      "ganji": ["경술(庚戌)", "신해(辛亥)"],
+      "element": "金",
+      "nature": "장식용 금 - 아름다움, 가치, 품위",
+      "harmonic_parallel": {
+        "primary": "H5",
+        "reasoning": "개성, 스타일, 표현",
+        "sign_affinity": "Taurus (아름다움과 가치)"
+      },
+      "personality": "품위 있고 세련된 외모",
+      "life_theme": "내면의 가치를 빛나게"
+    },
+    "상자목": {
+      "naeum": "桑柘木",
+      "english": "Mulberry Wood",
+      "ganji": ["임자(壬子)", "계축(癸丑)"],
+      "element": "木",
+      "nature": "뽕나무 - 실용성, 양잠, 생산",
+      "harmonic_parallel": {
+        "primary": "H6",
+        "reasoning": "봉사, 실용, 건강",
+        "sign_affinity": "Virgo (실용과 봉사)"
+      },
+      "personality": "실용적이고 생산적인 삶",
+      "life_theme": "실속 있는 성과"
+    },
+    "대계수": {
+      "naeum": "大溪水",
+      "english": "Water of the Great Stream",
+      "ganji": ["갑인(甲寅)", "을묘(乙卯)"],
+      "element": "水",
+      "nature": "큰 시냇물 - 흐름, 생명력, 지속",
+      "harmonic_parallel": {
+        "primary": "H3",
+        "reasoning": "자연스러운 창조, 흐름",
+        "sign_affinity": "Cancer (감정의 흐름)"
+      },
+      "personality": "끊임없이 흘러가는 생명력",
+      "life_theme": "지속적인 성장"
+    },
+    "사중토": {
+      "naeum": "砂中土",
+      "english": "Earth in Sand",
+      "ganji": ["병진(丙辰)", "정사(丁巳)"],
+      "element": "土",
+      "nature": "모래 속 흙 - 유연함, 적응력",
+      "harmonic_parallel": {
+        "primary": "H2",
+        "reasoning": "관계, 유연성, 적응",
+        "sign_affinity": "Gemini (적응력)"
+      },
+      "personality": "환경에 유연하게 적응",
+      "life_theme": "변화 속 안정"
+    },
+    "천상화": {
+      "naeum": "天上火",
+      "english": "Fire in the Sky",
+      "ganji": ["무오(戊午)", "기미(己未)"],
+      "element": "火",
+      "nature": "하늘의 불 - 태양, 빛, 영광",
+      "harmonic_parallel": {
+        "primary": "H1",
+        "reasoning": "근본 자아, 핵심 정체성",
+        "sign_affinity": "Leo (태양, 영광)"
+      },
+      "personality": "빛나는 존재감과 리더십",
+      "life_theme": "세상을 밝히는 빛"
+    },
+    "석류목": {
+      "naeum": "石榴木",
+      "english": "Pomegranate Wood",
+      "ganji": ["경신(庚申)", "신유(辛酉)"],
+      "element": "木",
+      "nature": "석류나무 - 풍요, 다산, 번영",
+      "harmonic_parallel": {
+        "primary": "H5",
+        "reasoning": "창조, 생산, 개성",
+        "sign_affinity": "Scorpio (풍요와 재생)"
+      },
+      "personality": "풍성한 결실을 맺는 삶",
+      "life_theme": "다양한 성과"
+    },
+    "대해수": {
+      "naeum": "大海水",
+      "english": "Water of the Great Sea",
+      "ganji": ["임술(壬戌)", "계해(癸亥)"],
+      "element": "水",
+      "nature": "큰 바다 - 무한함, 포용, 깊이",
+      "harmonic_parallel": {
+        "primary": "H12",
+        "reasoning": "초월, 무의식, 완성",
+        "sign_affinity": "Pisces (무한한 바다)"
+      },
+      "personality": "모든 것을 품는 포용력",
+      "life_theme": "큰 그릇, 포용"
+    },
+    "사중금": {
+      "naeum": "砂中金",
+      "english": "Gold in Sand",
+      "ganji": ["갑오(甲午)", "을미(乙未)"],
+      "element": "金",
+      "nature": "모래 속 금 - 발굴되어야 할 가치",
+      "harmonic_parallel": {
+        "primary": "H8",
+        "reasoning": "변형, 발굴, 심층",
+        "sign_affinity": "Virgo (발굴과 분석)"
+      },
+      "personality": "숨겨진 가치를 발견해야 함",
+      "life_theme": "자기 발견의 여정"
+    },
+    "산두화": {
+      "naeum": "山頭火",
+      "english": "Fire on the Mountain Peak",
+      "ganji": ["갑술(甲戌)", "을해(乙亥)"],
+      "element": "火",
+      "nature": "산 정상의 불 - 높은 이상, 영감",
+      "harmonic_parallel": {
+        "primary": "H7",
+        "reasoning": "영감, 신비, 직관",
+        "sign_affinity": "Sagittarius (높은 이상)"
+      },
+      "personality": "높은 곳을 향한 열망",
+      "life_theme": "정상을 향한 여정"
+    },
+    "간하수": {
+      "naeum": "澗下水",
+      "english": "Water under the Mountain",
+      "ganji": ["병자(丙子)", "정축(丁丑)"],
+      "element": "水",
+      "nature": "산 아래 물 - 깨끗함, 순수, 치유",
+      "harmonic_parallel": {
+        "primary": "H9",
+        "reasoning": "지혜, 정화, 완성",
+        "sign_affinity": "Capricorn (깊은 지혜)"
+      },
+      "personality": "맑고 순수한 성품",
+      "life_theme": "정화와 치유"
+    },
+    "성두토": {
+      "naeum": "城頭土",
+      "english": "Earth of the City Wall",
+      "ganji": ["무인(戊寅)", "기묘(己卯)"],
+      "element": "土",
+      "nature": "성벽의 흙 - 수호, 방어, 견고함",
+      "harmonic_parallel": {
+        "primary": "H4",
+        "reasoning": "구조, 보호, 성취",
+        "sign_affinity": "Aries (수호와 방어)"
+      },
+      "personality": "굳건하게 지키는 수호자",
+      "life_theme": "보호와 방어"
+    },
+    "백랍금": {
+      "naeum": "白蠟金",
+      "english": "White Wax Gold",
+      "ganji": ["경진(庚辰)", "신사(辛巳)"],
+      "element": "金",
+      "nature": "백랍처럼 정제된 금 - 순수함, 정제",
+      "harmonic_parallel": {
+        "primary": "H9",
+        "reasoning": "완성, 순수, 지혜",
+        "sign_affinity": "Taurus (정제된 가치)"
+      },
+      "personality": "순수하고 정제된 품성",
+      "life_theme": "정화와 순수"
+    },
+    "양류목": {
+      "naeum": "楊柳木",
+      "english": "Willow Wood",
+      "ganji": ["임오(壬午)", "계미(癸未)"],
+      "element": "木",
+      "nature": "버드나무 - 유연함, 우아함, 회복력",
+      "harmonic_parallel": {
+        "primary": "H2",
+        "reasoning": "관계, 유연성, 조화",
+        "sign_affinity": "Pisces (유연함)"
+      },
+      "personality": "유연하게 구부러져도 꺾이지 않음",
+      "life_theme": "유연한 강함"
+    },
+    "천중수": {
+      "naeum": "泉中水",
+      "english": "Water from the Spring",
+      "ganji": ["갑신(甲申)", "을유(乙酉)"],
+      "element": "水",
+      "nature": "샘물 - 순수, 시작, 새로움",
+      "harmonic_parallel": {
+        "primary": "H1",
+        "reasoning": "시작, 근원, 본질",
+        "sign_affinity": "Aquarius (새로운 시작)"
+      },
+      "personality": "순수하고 새로운 에너지",
+      "life_theme": "끊임없는 새로움"
+    },
+    "옥상토": {
+      "naeum": "屋上土",
+      "english": "Earth on the Rooftop",
+      "ganji": ["병술(丙戌)", "정해(丁亥)"],
+      "element": "土",
+      "nature": "지붕 위의 흙 - 완성, 보호, 마무리",
+      "harmonic_parallel": {
+        "primary": "H12",
+        "reasoning": "완성, 보호, 초월",
+        "sign_affinity": "Scorpio (완성과 변형)"
+      },
+      "personality": "모든 것을 마무리하는 역할",
+      "life_theme": "완성과 보호"
+    },
+    "벽력화": {
+      "naeum": "霹靂火",
+      "english": "Thunderbolt Fire",
+      "ganji": ["무자(戊子)", "기축(己丑)"],
+      "element": "火",
+      "nature": "번개불 - 갑작스러움, 깨달음, 충격",
+      "harmonic_parallel": {
+        "primary": "H7",
+        "reasoning": "영감, 갑작스러운 통찰",
+        "sign_affinity": "Aquarius (번개같은 혁신)"
+      },
+      "personality": "갑작스럽고 강렬한 영향력",
+      "life_theme": "순간적 깨달음"
+    },
+    "송백목": {
+      "naeum": "松柏木",
+      "english": "Pine and Cypress Wood",
+      "ganji": ["경인(庚寅)", "신묘(辛卯)"],
+      "element": "木",
+      "nature": "소나무/측백나무 - 절개, 장수, 불변",
+      "harmonic_parallel": {
+        "primary": "H4",
+        "reasoning": "인내, 성취, 구조",
+        "sign_affinity": "Capricorn (절개와 인내)"
+      },
+      "personality": "변치 않는 절개와 지조",
+      "life_theme": "한결같은 삶"
+    },
+    "장류수": {
+      "naeum": "長流水",
+      "english": "Long-flowing Water",
+      "ganji": ["임진(壬辰)", "계사(癸巳)"],
+      "element": "水",
+      "nature": "장강 같은 긴 물줄기 - 지속, 흐름, 영원",
+      "harmonic_parallel": {
+        "primary": "H3",
+        "reasoning": "창조, 지속적 흐름",
+        "sign_affinity": "Cancer (끊임없는 흐름)"
+      },
+      "personality": "끊이지 않는 지속력",
+      "life_theme": "영원한 흐름"
+    }
+  },
+
+  "harmonic_naeum_summary": {
+    "H1": ["천상화", "천중수"],
+    "H2": ["평지목", "사중토", "양류목"],
+    "H3": ["대림목", "대역토", "대계수", "장류수"],
+    "H4": ["노중화", "벽상토", "성두토", "송백목"],
+    "H5": ["검봉금", "금박금", "차천금", "석류목"],
+    "H6": ["노방토", "상자목"],
+    "H7": ["복등화", "산두화", "벽력화"],
+    "H8": ["산하화", "사중금"],
+    "H9": ["천하수", "간하수", "백랍금"],
+    "H12": ["해중금", "대해수", "옥상토"]
+  }
+}

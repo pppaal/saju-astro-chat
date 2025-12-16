@@ -10,11 +10,11 @@ from dotenv import load_dotenv
 from backend_ai.app.saju_astro_rag import search_graphs
 
 """
-Fusion Generator - Gemini-Level Quality
-========================================
+Fusion Generator - GPT-4 Powered
+================================
 Production Setup:
-1) Together Llama 3.3 70B (Draft) - $0.88/1M tokens
-2) GPT-4o-mini (Polish) - $0.15/1M tokens
+1) GPT-4o (Main Generation) - High quality output
+2) GPT-4o-mini (Polish/Refine) - Fast polish step
 
 Enhanced Features:
 - Hybrid RAG context (Vector + BM25 + Graph + Reranking)
@@ -23,7 +23,6 @@ Enhanced Features:
 """
 
 load_dotenv()
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MAX_OUTPUT_TOKENS = 3500
 
@@ -43,15 +42,8 @@ except ImportError:
 
 
 # ===============================================================
-# LLM CLIENTS (Legacy fallback)
+# LLM CLIENT (GPT-4 Only)
 # ===============================================================
-def get_together_llm():
-    if not TOGETHER_API_KEY:
-        raise ValueError("TOGETHER_API_KEY is missing.")
-    from together import Together
-    return Together(api_key=TOGETHER_API_KEY)
-
-
 def get_openai_llm():
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY is missing.")
@@ -60,11 +52,8 @@ def get_openai_llm():
 
 
 def get_llm():
-    """Default LLM for fusion generation; fallback to OpenAI if Together key is missing."""
-    try:
-        return get_together_llm()
-    except Exception:
-        return get_openai_llm()
+    """Default LLM for fusion generation - GPT-4."""
+    return get_openai_llm()
 
 
 def _chat_with_retry(client, model: str, messages, max_tokens: int, temperature: float = 0.1, top_p: float = 0.9, retries: int = 2):
@@ -93,17 +82,23 @@ def _chat_with_retry(client, model: str, messages, max_tokens: int, temperature:
     raise last_err
 
 
-def _generate_with_together(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15) -> str:
-    """Generate using Together Llama 3.3 70B (production setup)."""
-    client = get_llm()
+def _generate_with_gpt4(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15) -> str:
+    """Generate using GPT-4o (quality production setup)."""
+    client = get_openai_llm()
     resp = _chat_with_retry(
         client,
-        model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        model="gpt-4o",  # Quality: best results
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
         temperature=temperature,
     )
     return resp.choices[0].message.content
+
+
+# Backward compatibility alias
+def _generate_with_together(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15) -> str:
+    """Deprecated: Use _generate_with_gpt4 instead."""
+    return _generate_with_gpt4(prompt, max_tokens, temperature)
 
 
 # ===============================================================
@@ -414,15 +409,15 @@ def generate_fusion_report(
     user_prompt: str = "",
     dataset_text: str = "",
     tarot_text: str = "",
-    fast_mode: bool = False,  # GPT polish enabled for quality (default)
+    fast_mode: bool = True,  # Skip polish for speed (default)
 ):
-    """Blend saju + astro + graph + rules with Llama draft then GPT mini polish.
+    """Blend saju + astro + graph + rules with GPT-4o-mini.
 
     Args:
-        fast_mode: If True, skip Step2 GPT polishing (saves ~15-20s). Default False for quality.
+        fast_mode: If True, skip Step2 GPT polishing (saves ~15-20s). Default True for speed.
     """
     try:
-        print("[FusionGenerate] Step1: Together LLM request start")
+        print("[FusionGenerate] Step1: GPT-4 request start")
 
         query_parts = [saju_text, astro_text]
         if tarot_text:
@@ -676,10 +671,10 @@ Use this date to provide time-relevant advice:
 Do NOT mix languages. Do NOT write in English unless locale is 'en'.
 """
 
-        print("[FusionGenerate] Step1: Together Llama 3.3 70B generation...")
+        print("[FusionGenerate] Step1: GPT-4 generation...")
 
-        # Use Together Llama 3.3 70B (stable production setup)
-        llama_report = _generate_with_together(comprehensive_prompt.strip(), MAX_OUTPUT_TOKENS, 0.15)
+        # Use GPT-4o (production setup)
+        llama_report = _generate_with_gpt4(comprehensive_prompt.strip(), MAX_OUTPUT_TOKENS, 0.15)
         llama_report = re.sub(r"\n{3,}", "\n\n", llama_report)
 
         # Step 2: Optional GPT polishing (skip in fast_mode for ~15-20s speedup)

@@ -1,5 +1,5 @@
 // Lightweight rate limiter using Upstash REST API.
-// If Upstash envs are missing, the limiter is a no-op (always allowed).
+// In production, missing Redis credentials blocks requests; in dev, it allows all.
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -50,7 +50,6 @@ export async function rateLimit(
   headers.set("X-RateLimit-Limit", String(limit));
 
   if (!UPSTASH_URL || !UPSTASH_TOKEN) {
-    // 운영환경에서는 레이트리밋 필수 - 설정 누락 시 차단
     if (process.env.NODE_ENV === "production") {
       console.error("[SECURITY] Rate limiting not configured in production (UPSTASH_REDIS_REST_URL/TOKEN missing)");
       headers.set("X-RateLimit-Policy", "enforced-no-backend");
@@ -58,7 +57,7 @@ export async function rateLimit(
       headers.set("X-RateLimit-Reset", "0");
       return { allowed: false, limit, remaining: 0, reset: 0, headers };
     }
-    // 개발환경에서만 무제한 허용
+    // Dev mode: allow all if Redis is not configured.
     headers.set("X-RateLimit-Policy", "disabled-dev");
     headers.set("X-RateLimit-Remaining", "unlimited");
     headers.set("X-RateLimit-Reset", "0");
@@ -71,7 +70,7 @@ export async function rateLimit(
   try {
     const count = await incrementCounter(key, windowSeconds);
     if (count === null) {
-      // Redis 통신 실패 시
+      // Redis unavailable: fail closed in prod, open in dev.
       if (process.env.NODE_ENV === "production") {
         console.error("[SECURITY] Rate limit check failed - blocking request in production");
         headers.set("X-RateLimit-Policy", "error-blocked");
@@ -93,7 +92,7 @@ export async function rateLimit(
       headers,
     };
   } catch {
-    // 예외 발생 시
+    // Unexpected error: fail closed in prod, open in dev.
     if (process.env.NODE_ENV === "production") {
       console.error("[SECURITY] Rate limit exception - blocking request in production");
       headers.set("X-RateLimit-Policy", "exception-blocked");

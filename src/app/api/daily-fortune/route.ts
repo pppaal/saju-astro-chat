@@ -44,9 +44,108 @@ export async function POST(request: Request) {
     }
 
     // ========================================
-    // 1️⃣ 오늘의 운세 점수 계산 (사용자 타임존 기준)
+    // 1️⃣ 오늘의 운세 점수 계산 (백엔드 Fortune Score Engine 사용)
     // ========================================
-    const fortune = calculateDailyFortune(birthDate, _birthTime, _latitude, _longitude, userTimezone);
+    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+    let fortune;
+
+    try {
+      // Try to use the new comprehensive fortune score engine
+      const scoreResponse = await fetch(`${backendUrl}/api/fortune/daily`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          birthDate,
+          birthTime: _birthTime,
+        }),
+      });
+
+      if (scoreResponse.ok) {
+        const scoreData = await scoreResponse.json();
+        if (scoreData.status === 'success' && scoreData.fortune) {
+          const userNow = getNowInTimezone(userTimezone);
+          fortune = {
+            ...scoreData.fortune,
+            date: `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`,
+            userTimezone: userTimezone || 'Asia/Seoul',
+            alerts: scoreData.alerts || [],
+            source: 'backend-engine',
+          };
+        } else {
+          throw new Error('Invalid response from fortune engine');
+        }
+      } else {
+        throw new Error('Fortune engine unavailable');
+      }
+    } catch (backendErr) {
+      console.warn('[Daily Fortune API] Backend fortune engine failed, using fallback:', backendErr);
+      // Fallback to simple calculation
+      fortune = calculateDailyFortune(birthDate, _birthTime, _latitude, _longitude, userTimezone);
+    }
+
+    // ========================================
+    // 1.5️⃣ AI 백엔드 호출 (GPT로 운세 해석)
+    // ========================================
+    let aiInterpretation = '';
+    let aiModelUsed = '';
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      const apiToken = process.env.ADMIN_API_TOKEN;
+      if (apiToken) {
+        headers['X-API-KEY'] = apiToken;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      // Build prompt for daily fortune
+      const fortunePrompt = `오늘의 운세를 분석해주세요:
+날짜: ${fortune.date}
+생년월일: ${birthDate}
+
+운세 점수:
+- 연애운: ${fortune.love}/100
+- 직업운: ${fortune.career}/100
+- 재물운: ${fortune.wealth}/100
+- 건강운: ${fortune.health}/100
+- 종합운: ${fortune.overall}/100
+
+행운의 색상: ${fortune.luckyColor}
+행운의 숫자: ${fortune.luckyNumber}
+
+각 분야별 상세 해석과 오늘의 조언을 제공해주세요.`;
+
+      const aiResponse = await fetch(`${backendUrl}/ask`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          theme: 'daily-fortune',
+          prompt: fortunePrompt,
+          saju: {
+            birthDate,
+            birthTime: _birthTime,
+          },
+          locale: body.locale || 'ko',
+          fortune,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        aiInterpretation = aiData?.data?.fusion_layer || aiData?.data?.report || '';
+        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      }
+    } catch (aiErr) {
+      console.warn('[Daily Fortune API] AI backend call failed:', aiErr);
+      aiInterpretation = '';
+      aiModelUsed = 'error-fallback';
+    }
 
     // ========================================
     // 2️⃣ 데이터베이스에 저장
@@ -93,6 +192,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       fortune,
+      aiInterpretation,
+      aiModelUsed,
       message: sendEmail ? "Fortune sent to your email!" : "Fortune calculated!",
     });
   } catch (error: any) {

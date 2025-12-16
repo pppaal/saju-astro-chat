@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from backend_ai.app.rule_engine import RuleEngine
 from backend_ai.app.redis_cache import get_cache
 from backend_ai.app.dream_embeddings import get_dream_embed_rag
-from backend_ai.model.fusion_generate import _generate_with_together, refine_with_gpt5mini
+from backend_ai.model.fusion_generate import _generate_with_gpt4, refine_with_gpt5mini
 from backend_ai.app.realtime_astro import get_current_transits
 
 
@@ -809,9 +809,9 @@ def interpret_dream(facts: dict) -> dict:
             cached_result["cached"] = True
             return cached_result
 
-        api_key = os.getenv("TOGETHER_API_KEY") or os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("LLM API key is missing")
+            raise ValueError("OPENAI_API_KEY is missing")
 
         locale = facts.get("locale", "en")
         dream_text = facts.get("dream", "")
@@ -915,11 +915,11 @@ def interpret_dream(facts: dict) -> dict:
             celestial_context=celestial_context
         )
 
-        # Call LLM using Together API
+        # Call LLM using GPT-4
         system_instruction = "You are an expert dream interpreter. Always respond with valid JSON only."
         full_prompt = f"[SYSTEM]\n{system_instruction}\n\n[USER]\n{prompt}"
 
-        response_text = _generate_with_together(full_prompt, max_tokens=2000, temperature=0.2)
+        response_text = _generate_with_gpt4(full_prompt, max_tokens=2000, temperature=0.2)
 
         # Parse JSON from response
         # Try to extract JSON from markdown code blocks

@@ -1,9 +1,9 @@
-import { questions, TOTAL_QUESTIONS } from "@/lib/aura/questions";
-import { EFFECTS } from "@/lib/aura/analysis";
-import type { AuraAxisKey, AuraPole } from "@/lib/aura/types";
+import { questions, TOTAL_QUESTIONS } from "@/lib/persona/questions";
+import { EFFECTS } from "@/lib/persona/analysis";
+import type { PersonaAxisKey, PersonaPole } from "@/lib/persona/types";
 
-const AXES: AuraAxisKey[] = ["energy", "cognition", "decision", "rhythm"];
-const POLES: AuraPole[] = [
+const AXES: PersonaAxisKey[] = ["energy", "cognition", "decision", "rhythm"];
+const POLES: PersonaPole[] = [
   "radiant",
   "grounded",
   "visionary",
@@ -14,20 +14,21 @@ const POLES: AuraPole[] = [
   "anchor",
 ];
 
-describe("Aura question/effects integrity", () => {
+describe("Persona question/effects integrity", () => {
   it("TOTAL_QUESTIONS matches question list", () => {
     expect(questions.length).toBe(TOTAL_QUESTIONS);
   });
 
-  it("every question has effects mapping and only A/B answers", () => {
+  it("every question has effects mapping and valid answers (A/B or A/B/C)", () => {
     const ids = new Set(questions.map((q) => q.id));
     expect(Object.keys(EFFECTS).length).toBe(ids.size);
 
     for (const q of questions) {
       expect(EFFECTS[q.id]).toBeDefined();
       const answers = EFFECTS[q.id];
-      const keys = Object.keys(answers);
-      expect(keys.sort()).toEqual(["A", "B"]);
+      const keys = Object.keys(answers).sort();
+      // Allow both binary (A/B) and ternary (A/B/C) question formats
+      expect(keys).toEqual(["A", "B", "C"]);
     }
   });
 

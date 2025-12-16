@@ -1,0 +1,243 @@
+{
+  "$schema": "cross_relations_aspects_v1",
+  "$description": "사주 관계 ↔ 점성술 애스펙트 완전 매핑 (100%)",
+
+  "major_aspects": {
+    "conjunction_0": {
+      "aspect": "Conjunction (0°)",
+      "saju_equivalents": {
+        "primary": "천간합 (天干合)",
+        "secondary": "지지육합 (地支六合)",
+        "tertiary": "암합 (暗合)"
+      },
+      "description_astro": "두 행성이 같은 위치, 에너지 융합",
+      "description_saju": "두 글자가 합쳐져 새로운 오행 생성",
+      "nature": "중립 (관련 행성에 따라 길흉)",
+      "effect": {
+        "positive": "시너지, 강화, 통합",
+        "negative": "과잉, 집착, 분별력 상실"
+      },
+      "cheongan_hap_details": {
+        "갑기합": {"result": "土", "meaning": "리더십+유연성=안정"},
+        "을경합": {"result": "金", "meaning": "부드러움+강함=결단"},
+        "병신합": {"result": "水", "meaning": "열정+순수=지혜"},
+        "정임합": {"result": "木", "meaning": "따뜻함+지혜=성장"},
+        "무계합": {"result": "火", "meaning": "안정+깊이=열정"}
+      },
+      "jiji_yukhap_details": {
+        "자축합": {"result": "土", "meaning": "지혜+신중=안정"},
+        "인해합": {"result": "木", "meaning": "활력+지혜=성장"},
+        "묘술합": {"result": "火", "meaning": "온화+충성=열정"},
+        "진유합": {"result": "金", "meaning": "변화+결단=실행"},
+        "사신합": {"result": "水", "meaning": "지혜+기민=통찰"},
+        "오미합": {"result": "火/土", "meaning": "열정+수용=조화"}
+      },
+      "orb": "8-10°",
+      "strength": "가장 강력"
+    },
+
+    "sextile_60": {
+      "aspect": "Sextile (60°)",
+      "saju_equivalents": {
+        "primary": "생 (生) 관계",
+        "secondary": "반합 (半合)"
+      },
+      "description_astro": "조화로운 기회, 노력 시 결과",
+      "description_saju": "상생 관계, 서로 도움",
+      "nature": "길 (吉)",
+      "effect": {
+        "positive": "기회, 재능 개발, 협력",
+        "negative": "노력 없이 낭비 가능"
+      },
+      "saeng_relations": {
+        "목생화": {"meaning": "성장이 열정을 낳음"},
+        "화생토": {"meaning": "열정이 안정을 낳음"},
+        "토생금": {"meaning": "안정이 결단을 낳음"},
+        "금생수": {"meaning": "결단이 지혜를 낳음"},
+        "수생목": {"meaning": "지혜가 성장을 낳음"}
+      },
+      "banhap_examples": {
+        "인오_반합": "火 기운 50% 형성",
+        "해묘_반합": "木 기운 50% 형성",
+        "신자_반합": "水 기운 50% 형성"
+      },
+      "orb": "4-6°",
+      "strength": "중간"
+    },
+
+    "square_90": {
+      "aspect": "Square (90°)",
+      "saju_equivalents": {
+        "primary": "형 (刑)",
+        "secondary": "파 (破)"
+      },
+      "description_astro": "긴장, 마찰, 도전, 성장 동력",
+      "description_saju": "형벌, 자기 파괴적 패턴",
+      "nature": "흉 (凶) - 성장 가능",
+      "effect": {
+        "positive": "성장 동기, 극복 시 강해짐",
+        "negative": "갈등, 좌절, 자기 파괴"
+      },
+      "hyung_types": {
+        "자형": {
+          "members": ["인사신 (寅巳申)", "축술미 (丑戌未)", "자묘 (子卯)", "진진/오오/유유/해해 (自刑)"],
+          "descriptions": {
+            "인사신": "무은지형 - 은혜를 모름, 배신",
+            "축술미": "지세지형 - 권력 다툼",
+            "자묘": "무례지형 - 예의 없음",
+            "자형": "자기 파괴적 패턴"
+          }
+        }
+      },
+      "pa_relations": {
+        "자유파": "지혜와 결단의 충돌",
+        "묘오파": "온화와 열정의 충돌",
+        "인해파": "활력과 지혜의 충돌",
+        "축진파": "신중과 변화의 충돌",
+        "사신파": "지혜와 기민의 충돌",
+        "술미파": "충성과 수용의 충돌"
+      },
+      "orb": "6-8°",
+      "strength": "강력"
+    },
+
+    "trine_120": {
+      "aspect": "Trine (120°)",
+      "saju_equivalents": {
+        "primary": "삼합 (三合)",
+        "secondary": "방합 (方合)"
+      },
+      "description_astro": "자연스러운 조화, 재능, 행운",
+      "description_saju": "세 지지가 모여 강력한 오행 형성",
+      "nature": "대길 (大吉)",
+      "effect": {
+        "positive": "타고난 재능, 행운, 순조로움",
+        "negative": "노력 없이 낭비, 게으름"
+      },
+      "samhap_details": {
+        "인오술": {"result": "火局", "meaning": "열정과 추진력의 완성"},
+        "해묘미": {"result": "木局", "meaning": "성장과 발전의 완성"},
+        "신자진": {"result": "水局", "meaning": "지혜와 유연성의 완성"},
+        "사유축": {"result": "金局", "meaning": "결단과 실행의 완성"}
+      },
+      "banghap_details": {
+        "인묘진": {"result": "東方木", "meaning": "봄 에너지, 시작"},
+        "사오미": {"result": "南方火", "meaning": "여름 에너지, 정점"},
+        "신유술": {"result": "西方金", "meaning": "가을 에너지, 수확"},
+        "해자축": {"result": "北方水", "meaning": "겨울 에너지, 저장"}
+      },
+      "orb": "8-10°",
+      "strength": "강력"
+    },
+
+    "opposition_180": {
+      "aspect": "Opposition (180°)",
+      "saju_equivalents": {
+        "primary": "충 (沖)",
+        "secondary": "천간충 (天干沖)"
+      },
+      "description_astro": "대립, 긴장, 투사, 균형 필요",
+      "description_saju": "정반대 에너지의 충돌",
+      "nature": "흉 (凶) - 통합 가능",
+      "effect": {
+        "positive": "인식 확장, 균형, 통합",
+        "negative": "갈등, 분열, 투사"
+      },
+      "jiji_chung_details": {
+        "자오충": {"meaning": "지혜(水)↔열정(火), 감정 vs 의지"},
+        "축미충": {"meaning": "신중(土)↔수용(土), 내부 갈등"},
+        "인신충": {"meaning": "활력(木)↔결단(金), 시작 vs 완성"},
+        "묘유충": {"meaning": "온화(木)↔날카로움(金), 부드러움 vs 강함"},
+        "진술충": {"meaning": "변화(土)↔충성(土), 혁신 vs 전통"},
+        "사해충": {"meaning": "밝음(火)↔깊이(水), 드러냄 vs 숨김"}
+      },
+      "cheongan_chung_details": {
+        "갑경충": "리더십 충돌",
+        "을신충": "유연성 vs 순수성",
+        "병임충": "열정 vs 지혜",
+        "정계충": "따뜻함 vs 차가움",
+        "무_극토없음": "토는 충 없음 (중앙)"
+      },
+      "orb": "8-10°",
+      "strength": "강력"
+    }
+  },
+
+  "minor_aspects": {
+    "quincunx_150": {
+      "aspect": "Quincunx / Inconjunct (150°)",
+      "saju_equivalent": "해 (害) / 원진 (怨嗔)",
+      "description_astro": "조정 필요, 불편한 연결",
+      "description_saju": "서로 미워하는 관계, 은근한 갈등",
+      "nature": "흉 (凶) - 미묘함",
+      "hae_relations": {
+        "자미해": "자(지혜)가 미(수용)를 해침",
+        "축오해": "축(신중)이 오(열정)를 해침",
+        "인사해": "인(활력)이 사(밝음)를 해침",
+        "묘진해": "묘(온화)가 진(변화)을 해침",
+        "신해해": "신(결단)이 해(깊이)를 해침",
+        "유술해": "유(날카로움)가 술(충성)을 해침"
+      },
+      "orb": "2-3°"
+    },
+
+    "semi_sextile_30": {
+      "aspect": "Semi-sextile (30°)",
+      "saju_equivalent": "인접 지지 관계",
+      "description_astro": "미약한 연결, 잠재적 협력",
+      "description_saju": "이웃한 지지, 점진적 변화",
+      "nature": "약한 길",
+      "examples": {
+        "자축": "물이 얼어 토가 됨",
+        "축인": "토에서 목이 자람",
+        "인묘": "목이 성장",
+        "묘진": "목에서 토로",
+        "진사": "토에서 화로",
+        "사오": "화가 성장"
+      },
+      "orb": "2-3°"
+    },
+
+    "quintile_72": {
+      "aspect": "Quintile (72°)",
+      "saju_equivalent": "오행 순환 (五行)",
+      "description_astro": "창조적 재능, 스타일",
+      "description_saju": "5원소의 자연스러운 흐름",
+      "nature": "창조적 길",
+      "orb": "2°"
+    },
+
+    "septile_51": {
+      "aspect": "Septile (51.43°)",
+      "saju_equivalent": "칠살 (七殺) 리듬",
+      "description_astro": "운명적 연결, 영감",
+      "description_saju": "7의 신비적 주기",
+      "nature": "신비적",
+      "orb": "1-2°"
+    },
+
+    "novile_40": {
+      "aspect": "Novile (40°)",
+      "saju_equivalent": "구궁 (九宮) 연결",
+      "description_astro": "영적 완성, 지혜",
+      "description_saju": "9궁의 순환, 기문둔갑",
+      "nature": "영적 길",
+      "orb": "1-2°"
+    }
+  },
+
+  "relationship_strength_comparison": {
+    "description": "관계 강도 비교표",
+    "ranking": [
+      {"rank": 1, "saju": "삼합 완성", "astro": "Grand Trine", "strength": "최강 길"},
+      {"rank": 2, "saju": "충 (沖)", "astro": "Opposition", "strength": "강한 흉/동력"},
+      {"rank": 3, "saju": "천간합", "astro": "Conjunction", "strength": "강한 융합"},
+      {"rank": 4, "saju": "형 (刑)", "astro": "Square", "strength": "강한 마찰"},
+      {"rank": 5, "saju": "육합", "astro": "Conjunction (soft)", "strength": "중간 융합"},
+      {"rank": 6, "saju": "반합", "astro": "Sextile", "strength": "중간 길"},
+      {"rank": 7, "saju": "파 (破)", "astro": "Square (minor)", "strength": "중간 흉"},
+      {"rank": 8, "saju": "해 (害)", "astro": "Quincunx", "strength": "약한 흉"},
+      {"rank": 9, "saju": "원진", "astro": "Semi-square", "strength": "미약한 흉"}
+    ]
+  }
+}

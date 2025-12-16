@@ -14,6 +14,10 @@ const nextConfig = {
   compress: true, // Enable gzip compression
   reactStrictMode: true,
 
+  // Native Node.js modules that should not be bundled
+  // This is required for Turbopack compatibility with native modules like swisseph
+  serverExternalPackages: ['swisseph'],
+
   // Experimental performance features
   experimental: {
     optimizeCss: true, // CSS optimization
@@ -23,9 +27,37 @@ const nextConfig = {
   // Empty turbopack config to silence Next.js 16 warning
   turbopack: {},
 
-  // Cache headers for static assets
+  // Security and cache headers
   async headers() {
+    // Security headers for all routes
+    const securityHeaders = [
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'X-XSS-Protection', value: '1; mode=block' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+      {
+        key: 'Content-Security-Policy',
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' https://fonts.gstatic.com",
+          "img-src 'self' data: blob: https: http:",
+          "connect-src 'self' http://localhost:5000 http://127.0.0.1:5000 https://api.destinypal.com https://*.sentry.io https://www.google-analytics.com https://www.clarity.ms wss:",
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+        ].join('; '),
+      },
+    ];
+
     return [
+      {
+        // Apply security headers to all routes
+        source: '/:path*',
+        headers: securityHeaders,
+      },
       {
         source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
         headers: [

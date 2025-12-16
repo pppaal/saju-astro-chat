@@ -5,12 +5,28 @@
 import { useRouter } from "next/navigation";
 import styles from "./BackButton.module.css";
 
-export default function BackButton() {
+type BackButtonProps = {
+  onClick?: () => void;
+  label?: string;
+  className?: string;
+};
+
+export default function BackButton({ onClick, label = "< Back", className }: BackButtonProps) {
   const router = useRouter();
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
+    router.back();
+  };
+
+  const cls = className ? `${styles.button} ${className}` : styles.button;
+
   return (
-    <button onClick={() => router.back()} aria-label="Go back" className={styles.button}>
-      {"< Back"}
+    <button onClick={handleClick} aria-label="Go back" className={cls}>
+      {label}
     </button>
   );
 }

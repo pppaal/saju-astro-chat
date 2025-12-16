@@ -11,6 +11,10 @@ import {
   calculateNatalChart,
   toChart,
   type AspectRules,
+  type NatalChartData,
+  type PlanetData,
+  type Chart,
+  type ChartMeta,
   resolveOptions,
   findNatalAspectsPlus,
   buildEngineMeta,
@@ -58,7 +62,7 @@ function pickLabels(locale?: string) {
 
 function normalizeLocale(l?: string): LocaleKey {
   const k = (l || "en").split("-")[0] as LocaleKey;
-  return (SIGNS as any)[k] ? k : "en";
+  return k in SIGNS ? k : "en";
 }
 
 function splitSignAndDegree(text: string) {
@@ -90,15 +94,21 @@ function localizeSignLabel(inputSign: string, target: LocaleKey): string {
   return inputSign;
 }
 
+type PlanetLabelKey = keyof typeof PLANET_LABELS.en;
+type PlanetLabelsMap = Record<string, string> | null;
+
 function localizePlanetLabel(inputName: string, target: LocaleKey): string {
-  const enKeys = Object.keys(PLANET_LABELS.en) as (keyof typeof PLANET_LABELS.en)[];
-  if (enKeys.includes(inputName as any)) {
-    return PLANET_LABELS[target]?.[inputName as keyof typeof PLANET_LABELS.en] || String(inputName);
+  const enKeys = Object.keys(PLANET_LABELS.en) as PlanetLabelKey[];
+  if (enKeys.includes(inputName as PlanetLabelKey)) {
+    const targetLabels = PLANET_LABELS[target] as PlanetLabelsMap;
+    return targetLabels?.[inputName] || String(inputName);
   }
-  for (const labels of Object.values(PLANET_LABELS).filter(Boolean) as any[]) {
+  const labelEntries = Object.values(PLANET_LABELS).filter((v) => v !== null) as Record<string, string>[];
+  for (const labels of labelEntries) {
     for (const enKey of enKeys) {
       if (labels[enKey] === inputName) {
-        return (PLANET_LABELS as any)[target]?.[enKey] || (PLANET_LABELS as any).en[enKey];
+        const targetLabels = PLANET_LABELS[target] as PlanetLabelsMap;
+        return targetLabels?.[enKey] || PLANET_LABELS.en[enKey];
       }
     }
   }
@@ -171,8 +181,8 @@ export async function POST(request: Request) {
       timeZone: String(timeZone),
     });
 
-    const ascFmt = String((natal as any).ascendant?.formatted || "");
-    const mcFmt  = String((natal as any).mc?.formatted || "");
+    const ascFmt = String(natal.ascendant?.formatted || "");
+    const mcFmt  = String(natal.mc?.formatted || "");
 
     const ascSplit = splitSignAndDegree(ascFmt);
     const mcSplit  = splitSignAndDegree(mcFmt);
@@ -180,7 +190,7 @@ export async function POST(request: Request) {
     const ascStr = `${localizeSignLabel(ascSplit.signPart, locKey)} ${ascSplit.degreePart}`.trim();
     const mcStr  = `${localizeSignLabel(mcSplit.signPart, locKey)} ${mcSplit.degreePart}`.trim();
 
-    const planetLines = ((natal as any).planets || []).map((p: any) => {
+    const planetLines = (natal.planets || []).map((p: PlanetData) => {
       const name = localizePlanetLabel(String(p.name || ""), locKey);
       const { signPart, degreePart } = splitSignAndDegree(String(p.formatted || ""));
       const sign = localizeSignLabel(signPart, locKey);
@@ -191,20 +201,28 @@ export async function POST(request: Request) {
     const interpretation =
       `${L?.title ?? "Natal Chart Summary"}\n${basics}\n\n${L?.planetPositions ?? "Planet Positions"}\n${planetLines}\n\n${L?.notice ?? ""}`;
 
-    const chart = toChart(natal as any);
+    const chart = toChart(natal);
     const aspectRules: AspectRules = {
       includeMinor: opts.includeMinorAspects,
       maxResults: 120,
       scoring: { weights: { orb: 0.55, aspect: 0.4, speed: 0.05 } },
     };
-    const aspectsPlus = findNatalAspectsPlus(chart as any, aspectRules, opts);
+    const aspectsPlus = findNatalAspectsPlus(chart, aspectRules, opts);
 
-    const chartMeta = buildEngineMeta(((natal as any).meta ?? {}) as any, opts);
+    const defaultMeta: ChartMeta = {
+      jdUT: 0,
+      isoUTC: "",
+      timeZone: String(timeZone),
+      latitude,
+      longitude,
+      houseSystem: "Placidus",
+    };
+    const chartMeta = buildEngineMeta(chart.meta ?? defaultMeta, opts);
 
-    const houses = (chart as any).houses || (natal as any).houses || [];
-    const pointsRaw = (chart as any).points || (natal as any).planets || [];
-    const points = pointsRaw.map((p: any) => ({
-      key: p.key || p.name,
+    const houses = chart.houses || natal.houses || [];
+    const pointsRaw = chart.planets || natal.planets || [];
+    const points = pointsRaw.map((p) => ({
+      key: p.name,
       name: p.name,
       formatted: p.formatted,
       sign: p.sign,
@@ -212,7 +230,7 @@ export async function POST(request: Request) {
       minute: p.minute,
       house: p.house,
       speed: p.speed,
-      rx: typeof p.speed === "number" ? p.speed < 0 : !!p.rx,
+      rx: typeof p.speed === "number" ? p.speed < 0 : false,
     }));
 
     const advanced = {
@@ -235,8 +253,9 @@ export async function POST(request: Request) {
     );
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
-  } catch (error: any) {
+  } catch (error) {
     captureServerError(error, { route: "/api/astrology/details" });
-    return NextResponse.json({ error: error?.message || "Unexpected server error." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unexpected server error.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable react/no-unescaped-entities */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,6 +10,7 @@ import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
 import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImagePath } from '@/lib/Tarot/tarot.types';
 import TarotChat from '@/components/tarot/TarotChat';
 import { getStoredBirthDate } from '@/lib/userProfile';
+import CreditBadge from '@/components/ui/CreditBadge';
 import styles from './tarot-reading.module.css';
 
 // Card back color options - now linked to deck styles
@@ -71,6 +72,42 @@ export default function TarotReadingPage() {
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [revealedCards, setRevealedCards] = useState<number[]>([]);
+  const detailedSectionRef = useRef<HTMLDivElement>(null);
+
+  // Custom smooth scroll function for elegant animation
+  const smoothScrollTo = (element: HTMLElement, duration: number = 2000) => {
+    const targetPosition = element.getBoundingClientRect().top + window.pageYOffset - 80;
+    const startPosition = window.pageYOffset;
+    const distance = targetPosition - startPosition;
+    let startTime: number | null = null;
+
+    const easeInOutCubic = (t: number): number => {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
+    const animation = (currentTime: number) => {
+      if (startTime === null) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      const easedProgress = easeInOutCubic(progress);
+
+      window.scrollTo(0, startPosition + distance * easedProgress);
+
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animation);
+      }
+    };
+
+    requestAnimationFrame(animation);
+  };
+
+  // Scroll to detailed section when button is clicked
+  const scrollToDetails = () => {
+    if (detailedSectionRef.current) {
+      smoothScrollTo(detailedSectionRef.current, 800);
+    }
+  };
 
   useEffect(() => {
     const theme = tarotThemes.find((t) => t.id === categoryName);
@@ -189,6 +226,18 @@ export default function TarotReadingPage() {
     setExpandedCard(expandedCard === index ? null : index);
   };
 
+  // Handle card reveal - only allow revealing in order
+  const handleCardReveal = (index: number) => {
+    // Only allow revealing the next card in sequence
+    const nextToReveal = revealedCards.length;
+    if (index === nextToReveal && !revealedCards.includes(index)) {
+      setRevealedCards(prev => [...prev, index]);
+    }
+  };
+
+  const isCardRevealed = (index: number) => revealedCards.includes(index);
+  const canRevealCard = (index: number) => index === revealedCards.length;
+
   // Loading state
   if (gameState === 'loading') {
     return (
@@ -215,6 +264,9 @@ export default function TarotReadingPage() {
   if (gameState === 'color-select') {
     return (
       <div className={styles.colorSelectContainer}>
+        <div className={styles.creditBadgeWrapper}>
+          <CreditBadge variant="compact" />
+        </div>
         <div className={styles.colorSelectHeader}>
           <h1 className={styles.colorSelectTitle}>
             {translate('tarot.deckSelect.title', 'Choose Your Deck Style')}
@@ -255,7 +307,7 @@ export default function TarotReadingPage() {
         </div>
 
         <div className={styles.spreadPreview}>
-          <h3 className={styles.spreadPreviewTitle}>{spreadInfo.title}</h3>
+          <h3 className={styles.spreadPreviewTitle}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</h3>
           <p className={styles.spreadPreviewDesc}>{spreadInfo.cardCount} {translate('tarot.spread.cards', 'cards')}</p>
         </div>
 
@@ -306,9 +358,12 @@ export default function TarotReadingPage() {
 
     return (
       <div className={styles.resultsContainer}>
+        <div className={styles.creditBadgeWrapper}>
+          <CreditBadge variant="compact" />
+        </div>
         {/* Header */}
         <div className={styles.resultsHeader}>
-          <h1 className={styles.resultsTitle}>{readingResult.spread.title}</h1>
+          <h1 className={styles.resultsTitle}>{language === 'ko' ? readingResult.spread.titleKo || readingResult.spread.title : readingResult.spread.title}</h1>
           <p className={styles.resultsSubtitle}>
             {translate('tarot.results.subtitle', 'Your cards have spoken')}
           </p>
@@ -322,113 +377,205 @@ export default function TarotReadingPage() {
           </div>
         )}
 
-        {/* Cards Grid */}
-        <div className={styles.resultsGrid}>
+        {/* Cards Grid - Horizontal */}
+        <div className={styles.resultsGridHorizontal}>
           {readingResult.drawnCards.map((drawnCard, index) => {
             const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright;
-            const positionTitle = readingResult.spread.positions[index]?.title || `Card ${index + 1}`;
-            const cardInsight = insight?.card_insights?.[index];
-            const isExpanded = expandedCard === index;
+            const position = readingResult.spread.positions[index];
+            const positionTitle = (language === 'ko' ? position?.titleKo || position?.title : position?.title) || (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`);
+            const revealed = isCardRevealed(index);
+            const canReveal = canRevealCard(index);
 
             return (
               <div
                 key={index}
-                className={`${styles.resultCardSlot} ${isExpanded ? styles.expanded : ''}`}
+                className={`${styles.resultCardHorizontal} ${revealed ? styles.revealed : ''} ${canReveal ? styles.canReveal : ''}`}
                 style={{ animationDelay: `${index * 0.15}s` } as React.CSSProperties}
-                onClick={() => toggleCardExpand(index)}
+                onClick={() => !revealed && canReveal && handleCardReveal(index)}
               >
-                <div className={styles.positionBadge}>{positionTitle}</div>
+                <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
 
-                <div className={`${styles.imageContainer} ${drawnCard.isReversed ? styles.reversedContainer : ''}`}>
-                  <Image
-                    src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)}
-                    alt={drawnCard.card.name}
-                    width={220}
-                    height={385}
-                    className={`${styles.resultCardImage} ${drawnCard.isReversed ? styles.reversed : ''}`}
-                  />
-                  {drawnCard.isReversed && (
-                    <div className={styles.reversedLabel}>
-                      {translate('tarot.results.reversed', 'Reversed')}
+                <div className={styles.cardContainerLarge}>
+                  {revealed ? (
+                    <div
+                      className={styles.cardFlipInnerSlow}
+                    >
+                      <div className={styles.cardBackResultLarge}></div>
+                      <div className={styles.cardFrontLarge}>
+                        <Image
+                          src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)}
+                          alt={drawnCard.card.name}
+                          width={180}
+                          height={315}
+                          className={styles.resultCardImageLarge}
+                        />
+                        {drawnCard.isReversed && (
+                          <div className={styles.reversedLabelLarge}>
+                            {translate('tarot.results.reversed', 'Reversed')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`${styles.cardBackLarge} ${canReveal ? styles.clickable : styles.locked}`}>
+                      <div className={styles.cardBackImageLarge}></div>
+                      {canReveal && (
+                        <div className={styles.clickPrompt}>
+                          {translate('tarot.results.clickToReveal', '클릭하세요')}
+                        </div>
+                      )}
+                      {!canReveal && (
+                        <div className={styles.lockIcon}>🔒</div>
+                      )}
                     </div>
                   )}
                 </div>
 
-                <div className={styles.cardInfo}>
-                  <h3 className={styles.cardName}>{drawnCard.card.name}</h3>
-
-                  <div className={styles.keywords}>
-                    {meaning.keywords.map((keyword, i) => (
-                      <span key={i} className={styles.keywordTag}>
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-
-                  <p className={styles.meaning}>{meaning.meaning}</p>
-
-                  {/* Premium Insights (expandable) */}
-                  {isExpanded && cardInsight && (
-                    <div className={styles.premiumInsights}>
-                      {cardInsight.interpretation && cardInsight.interpretation !== meaning.meaning && (
-                        <div className={styles.insightSection}>
-                          <h4 className={styles.insightTitle}>🔮 {translate('tarot.insights.aiInterpretation', 'Deep Insight')}</h4>
-                          <p className={styles.insightText}>{cardInsight.interpretation}</p>
-                        </div>
-                      )}
-
-                      {cardInsight.spirit_animal && (
-                        <div className={styles.insightSection}>
-                          <h4 className={styles.insightTitle}>🦋 {translate('tarot.insights.spiritAnimal', 'Spirit Animal')}</h4>
-                          <div className={styles.spiritAnimal}>
-                            <span className={styles.animalName}>{cardInsight.spirit_animal.name}</span>
-                            <p className={styles.animalMeaning}>{cardInsight.spirit_animal.meaning}</p>
-                            <p className={styles.animalMessage}>"{cardInsight.spirit_animal.message}"</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {cardInsight.chakra && (
-                        <div className={styles.insightSection}>
-                          <h4 className={styles.insightTitle}>🧘 {translate('tarot.insights.chakra', 'Chakra Connection')}</h4>
-                          <div className={styles.chakraInfo}>
-                            <span className={styles.chakraDot} style={{ backgroundColor: cardInsight.chakra.color }}></span>
-                            <span className={styles.chakraName}>{cardInsight.chakra.name}</span>
-                            <p className={styles.chakraGuidance}>{cardInsight.chakra.guidance}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {cardInsight.shadow && (
-                        <div className={styles.insightSection}>
-                          <h4 className={styles.insightTitle}>🌙 {translate('tarot.insights.shadowWork', 'Shadow Work')}</h4>
-                          <p className={styles.shadowPrompt}>{cardInsight.shadow.prompt}</p>
-                          <p className={styles.shadowAffirmation}>💫 {cardInsight.shadow.affirmation}</p>
-                        </div>
-                      )}
-
-                      {cardInsight.element && (
-                        <div className={styles.elementTag}>
-                          {cardInsight.element === 'Fire' && '🔥'}
-                          {cardInsight.element === 'Water' && '💧'}
-                          {cardInsight.element === 'Air' && '🌬️'}
-                          {cardInsight.element === 'Earth' && '🌍'}
-                          {cardInsight.element}
-                        </div>
-                      )}
+                {revealed && (
+                  <div className={styles.cardInfoCompact}>
+                    <h3 className={styles.cardNameCompact}>
+                      {language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}
+                    </h3>
+                    <div className={styles.keywordsCompact}>
+                      {(language === 'ko' ? meaning.keywordsKo || meaning.keywords : meaning.keywords).slice(0, 2).map((keyword, i) => (
+                        <span key={i} className={styles.keywordTagCompact}>
+                          {keyword}
+                        </span>
+                      ))}
                     </div>
-                  )}
-
-                  <div className={styles.expandHint}>
-                    {isExpanded
-                      ? translate('tarot.results.clickToCollapse', '▲ Click to collapse')
-                      : translate('tarot.results.clickToExpand', '▼ Click for more insights')}
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
         </div>
+
+        {/* Scroll to Details Button - shown after all cards revealed */}
+        {revealedCards.length === readingResult.drawnCards.length && (
+          <button className={styles.scrollToDetailsButton} onClick={scrollToDetails}>
+            {translate('tarot.results.viewDetails', '상세 해석 보기')} ↓
+          </button>
+        )}
+
+        {/* Detailed Card Info - shown after all cards revealed */}
+        {revealedCards.length === readingResult.drawnCards.length && (
+          <div className={styles.detailedCardsSection} ref={detailedSectionRef}>
+            <h2 className={styles.detailedSectionTitle}>
+              {translate('tarot.results.detailedReadings', '상세 해석')}
+            </h2>
+            <div className={styles.resultsGrid}>
+              {readingResult.drawnCards.map((drawnCard, index) => {
+                const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright;
+                const position = readingResult.spread.positions[index];
+                const positionTitle = (language === 'ko' ? position?.titleKo || position?.title : position?.title) || (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`);
+                const cardInsight = insight?.card_insights?.[index];
+                const isExpanded = expandedCard === index;
+
+                return (
+                  <div
+                    key={index}
+                    className={`${styles.resultCardSlot} ${isExpanded ? styles.expanded : ''}`}
+                    style={{ '--card-index': index } as React.CSSProperties}
+                    onClick={() => toggleCardExpand(index)}
+                  >
+                    <div className={styles.positionBadge}>{positionTitle}</div>
+
+                    <div className={styles.imageContainer}>
+                      <Image
+                        src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)}
+                        alt={drawnCard.card.name}
+                        width={180}
+                        height={315}
+                        className={styles.resultCardImage}
+                      />
+                      {drawnCard.isReversed && (
+                        <div className={styles.reversedLabel}>
+                          {translate('tarot.results.reversed', 'Reversed')}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.cardInfo}>
+                      <h3 className={styles.cardName}>
+                        {language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}
+                      </h3>
+
+                      <div className={styles.keywords}>
+                        {(language === 'ko' ? meaning.keywordsKo || meaning.keywords : meaning.keywords).map((keyword, i) => (
+                          <span key={i} className={styles.keywordTag}>
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+
+                      <p className={styles.meaning}>
+                        {language === 'ko' ? meaning.meaningKo || meaning.meaning : meaning.meaning}
+                      </p>
+
+                      {/* Premium Insights (expandable) */}
+                      {isExpanded && cardInsight && (
+                        <div className={styles.premiumInsights}>
+                          {cardInsight.interpretation && cardInsight.interpretation !== meaning.meaning && (
+                            <div className={styles.insightSection}>
+                              <h4 className={styles.insightTitle}>🔮 {translate('tarot.insights.aiInterpretation', 'Deep Insight')}</h4>
+                              <p className={styles.insightText}>{cardInsight.interpretation}</p>
+                            </div>
+                          )}
+
+                          {cardInsight.spirit_animal && (
+                            <div className={styles.insightSection}>
+                              <h4 className={styles.insightTitle}>🦋 {translate('tarot.insights.spiritAnimal', 'Spirit Animal')}</h4>
+                              <div className={styles.spiritAnimal}>
+                                <span className={styles.animalName}>{cardInsight.spirit_animal.name}</span>
+                                <p className={styles.animalMeaning}>{cardInsight.spirit_animal.meaning}</p>
+                                <p className={styles.animalMessage}>"{cardInsight.spirit_animal.message}"</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {cardInsight.chakra && (
+                            <div className={styles.insightSection}>
+                              <h4 className={styles.insightTitle}>🧘 {translate('tarot.insights.chakra', 'Chakra Connection')}</h4>
+                              <div className={styles.chakraInfo}>
+                                <span className={styles.chakraDot} style={{ backgroundColor: cardInsight.chakra.color }}></span>
+                                <span className={styles.chakraName}>{cardInsight.chakra.name}</span>
+                                <p className={styles.chakraGuidance}>{cardInsight.chakra.guidance}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {cardInsight.shadow && (
+                            <div className={styles.insightSection}>
+                              <h4 className={styles.insightTitle}>🌙 {translate('tarot.insights.shadowWork', 'Shadow Work')}</h4>
+                              <p className={styles.shadowPrompt}>{cardInsight.shadow.prompt}</p>
+                              <p className={styles.shadowAffirmation}>💫 {cardInsight.shadow.affirmation}</p>
+                            </div>
+                          )}
+
+                          {cardInsight.element && (
+                            <div className={styles.elementTag}>
+                              {cardInsight.element === 'Fire' && '🔥'}
+                              {cardInsight.element === 'Water' && '💧'}
+                              {cardInsight.element === 'Air' && '🌬️'}
+                              {cardInsight.element === 'Earth' && '🌍'}
+                              {cardInsight.element}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className={styles.expandHint}>
+                        {isExpanded
+                          ? translate('tarot.results.clickToCollapse', '▲ Click to collapse')
+                          : translate('tarot.results.clickToExpand', '▼ Click for more insights')}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Card Combinations */}
         {insight?.combinations && insight.combinations.length > 0 && (
@@ -449,15 +596,31 @@ export default function TarotReadingPage() {
         <div className={styles.guidanceSection}>
           {insight?.guidance && (
             <div className={styles.guidanceBox}>
-              <h3 className={styles.guidanceTitle}>💡 {translate('tarot.insights.guidance', 'Guidance')}</h3>
+              <div className={styles.guidanceIcon}>
+                <span className={styles.iconGlow}>🔮</span>
+              </div>
+              <h3 className={styles.guidanceTitle}>
+                {translate('tarot.insights.guidance', '카드의 속삭임')}
+              </h3>
               <p className={styles.guidanceText}>{insight.guidance}</p>
+              <div className={styles.guidanceFooter}>
+                <span className={styles.starDecor}>✦</span>
+                <span className={styles.footerText}>{translate('tarot.insights.guidanceFooter', '운명의 흐름을 따라가세요')}</span>
+                <span className={styles.starDecor}>✦</span>
+              </div>
             </div>
           )}
 
           {insight?.affirmation && (
             <div className={styles.affirmationBox}>
-              <h3 className={styles.affirmationTitle}>🌟 {translate('tarot.insights.affirmation', 'Affirmation')}</h3>
+              <div className={styles.affirmationIcon}>
+                <span className={styles.iconPulse}>✨</span>
+              </div>
+              <h3 className={styles.affirmationTitle}>
+                {translate('tarot.insights.affirmation', '오늘의 주문')}
+              </h3>
               <p className={styles.affirmationText}>"{insight.affirmation}"</p>
+              <div className={styles.affirmationMoon}>🌙</div>
             </div>
           )}
         </div>
@@ -491,7 +654,7 @@ export default function TarotReadingPage() {
   return (
     <div className={styles.readingContainer}>
       <div className={styles.instructions}>
-        <h1 className={styles.instructionTitle}>{spreadInfo.title}</h1>
+        <h1 className={styles.instructionTitle}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</h1>
         <div className={styles.instructionContent}>
           {gameState === 'revealing' ? (
             <>

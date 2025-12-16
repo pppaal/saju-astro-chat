@@ -12,7 +12,7 @@ export default function PersonalityHomePage() {
 
   const handleStart = () => {
     if (gender) {
-      localStorage.setItem('auraGender', gender);
+      localStorage.setItem('personaGender', gender);
       router.push('/personality/quiz');
     }
   };

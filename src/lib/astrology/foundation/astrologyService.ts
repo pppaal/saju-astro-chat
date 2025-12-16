@@ -1,18 +1,16 @@
 // src/lib/astrology/foundation/astrologyService.ts
-import path from "path";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const swisseph = require("swisseph");
-
 import { Chart } from "./types";
 import { formatLongitude } from "./utils";
 import { calcHouses, inferHouseOf } from "./houses";
+import { getSwisseph } from "./ephe";
 
-// --- 기존 public API 타입(하위호환 유지) ---
+// --- И,°Нн' public API ---
 export interface NatalChartInput {
   year: number;
   month: number;
@@ -43,37 +41,33 @@ export interface NatalChartData {
   houses: { cusp: number; formatted: string }[];
 }
 
-// --- 상수 정의 ---
-const PLANET_LIST = {
-  Sun: swisseph.SE_SUN,
-  Moon: swisseph.SE_MOON,
-  Mercury: swisseph.SE_MERCURY,
-  Venus: swisseph.SE_VENUS,
-  Mars: swisseph.SE_MARS,
-  Jupiter: swisseph.SE_JUPITER,
-  Saturn: swisseph.SE_SATURN,
-  Uranus: swisseph.SE_URANUS,
-  Neptune: swisseph.SE_NEPTUNE,
-  Pluto: swisseph.SE_PLUTO,
-  "True Node": swisseph.SE_TRUE_NODE,
-};
+const getPlanetList = (() => {
+  let cache: Record<string, number> | null = null;
+  return () => {
+    if (cache) return cache;
+    const sw = getSwisseph();
+    cache = {
+      Sun: sw.SE_SUN,
+      Moon: sw.SE_MOON,
+      Mercury: sw.SE_MERCURY,
+      Venus: sw.SE_VENUS,
+      Mars: sw.SE_MARS,
+      Jupiter: sw.SE_JUPITER,
+      Saturn: sw.SE_SATURN,
+      Uranus: sw.SE_URANUS,
+      Neptune: sw.SE_NEPTUNE,
+      Pluto: sw.SE_PLUTO,
+      "True Node": sw.SE_TRUE_NODE,
+    };
+    return cache;
+  };
+})();
 
-// 내부 공통 플래그: 속도 포함
-const SW_FLAGS = swisseph.SEFLG_SPEED;
-
-// 모듈 로드 시 1회 ephe 경로 지정(서버리스에서도 콜드스타트 1회)
-let EPHE_PATH_SET = false;
-function ensureEphePath() {
-  if (!EPHE_PATH_SET) {
-    const ephePath = path.join(process.cwd(), "public", "ephe");
-    swisseph.swe_set_ephe_path(ephePath);
-    EPHE_PATH_SET = true;
-  }
-}
-
-// --- 핵심 로직 함수 ---
+// --- 메인 차트 계산 ---
 export async function calculateNatalChart(input: NatalChartInput): Promise<NatalChartData> {
-  ensureEphePath();
+  const swisseph = getSwisseph();
+  const PLANET_LIST = getPlanetList();
+  const SW_FLAGS = swisseph.SEFLG_SPEED;
 
   const pad = (v: number) => String(v).padStart(2, "0");
   const local = dayjs.tz(
@@ -97,7 +91,7 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
   }
   const ut_jd = jdResult.julianDayUT;
 
-  // 하우스/ASC/MC
+  // Houses / ASC / MC
   const housesRes = calcHouses(ut_jd, input.latitude, input.longitude, "Placidus");
   const ascendantInfo = formatLongitude(housesRes.ascendant);
   const mcInfo = formatLongitude(housesRes.mc);
@@ -115,7 +109,7 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
     house: 10,
   };
 
-  // 행성 계산
+  // Planets
   const planets: PlanetData[] = Object.entries(PLANET_LIST).map(([name, planetId]) => {
     const res = swisseph.swe_calc_ut(ut_jd, planetId, SW_FLAGS);
     if ("error" in res) throw new Error(`Swiss Ephemeris Error (swe_calc_ut for ${name}): ${res.error}`);
@@ -138,7 +132,7 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
   };
 }
 
-// 옵션: 공통 Chart 형태로 변환하는 헬퍼 (다른 모듈에서 재사용 가능)
+// 차트 포맷 변환
 export function toChart(n: NatalChartData): Chart {
   return {
     planets: n.planets.map(p => ({

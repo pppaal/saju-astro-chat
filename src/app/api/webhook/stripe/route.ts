@@ -4,6 +4,9 @@ import Stripe from "stripe"
 import { prisma } from "@/lib/db/prisma"
 import { getPlanFromPriceId } from "@/lib/payments/prices"
 import { getClientIp } from "@/lib/request-ip"
+import { captureServerError } from "@/lib/telemetry"
+import { recordCounter } from "@/lib/metrics"
+import { upgradePlan, type PlanType } from "@/lib/credits/creditService"
 
 export const dynamic = "force-dynamic"
 
@@ -22,6 +25,8 @@ async function findUserByEmail(email: string) {
 export async function POST(request: Request) {
   if (!webhookSecret) {
     console.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
+    captureServerError(new Error("STRIPE_WEBHOOK_SECRET missing"), { route: "/api/webhook/stripe", stage: "config" })
+    recordCounter("stripe_webhook_config_error", 1, { reason: "missing_secret" })
     return NextResponse.json(
       { error: "Webhook secret not configured" },
       { status: 500 }
@@ -34,6 +39,8 @@ export async function POST(request: Request) {
   const ip = getClientIp(headersList as unknown as Headers)
 
   if (!signature) {
+    recordCounter("stripe_webhook_auth_error", 1, { reason: "missing_signature" })
+    captureServerError(new Error("stripe-signature header missing"), { route: "/api/webhook/stripe", ip })
     return NextResponse.json(
       { error: "Missing stripe-signature header" },
       { status: 400 }
@@ -46,6 +53,8 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err: any) {
     console.error("[Stripe Webhook] Signature verification failed:", err.message)
+    recordCounter("stripe_webhook_auth_error", 1, { reason: "verify_failed" })
+    captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip })
     return NextResponse.json(
       { error: `Webhook signature verification failed: ${err.message}` },
       { status: 400 }
@@ -88,6 +97,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true })
   } catch (err: any) {
     console.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
+    recordCounter("stripe_webhook_handler_error", 1, { event: event.type })
+    captureServerError(err, { route: "/api/webhook/stripe", event: event.type })
     return NextResponse.json(
       { error: err.message ?? "Internal Server Error" },
       { status: 500 }
@@ -153,6 +164,14 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     },
   })
 
+  // 크레딧 시스템 업그레이드
+  try {
+    await upgradePlan(user.id, plan as PlanType)
+    console.log(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
+  } catch (creditErr) {
+    console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
+  }
+
   console.log(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
 }
 
@@ -190,6 +209,16 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     },
   })
 
+  // 플랜 변경 시 크레딧 업그레이드
+  if (existing.plan !== plan && subscription.status === "active") {
+    try {
+      await upgradePlan(existing.userId, plan as PlanType)
+      console.log(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
+    } catch (creditErr) {
+      console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
+    }
+  }
+
   console.log(`[Stripe Webhook] Subscription updated: ${subscription.id} -> ${subscription.status}`)
 }
 
@@ -210,6 +239,14 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       canceledAt: new Date(),
     },
   })
+
+  // 구독 취소 시 free 플랜으로 다운그레이드
+  try {
+    await upgradePlan(existing.userId, "free")
+    console.log(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
+  } catch (creditErr) {
+    console.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
+  }
 
   console.log(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
 }

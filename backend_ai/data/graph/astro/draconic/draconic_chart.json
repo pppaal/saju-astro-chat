@@ -1,0 +1,333 @@
+{
+  "$schema": "draconic_chart_v1",
+  "$description": "드라코닉 차트 - 영혼 차트, 전생과 카르마 분석",
+
+  "fundamentals": {
+    "definition": "드라코닉 차트는 북교점(North Node)을 0° 양자리로 설정하고 모든 행성을 재배치한 차트",
+    "etymology": "Draco(용) - 노드 축이 '용의 머리(북교점)'와 '용의 꼬리(남교점)'로 불리던 것에서 유래",
+    "calculation": {
+      "method": "각 행성 위치 - 북교점 위치",
+      "example": {
+        "north_node": "15° Leo",
+        "natal_sun": "20° Scorpio",
+        "draconic_sun": "20° Scorpio - 15° Leo = 5° Aries + 90° = 5° Cancer"
+      },
+      "simplified": "모든 행성에서 북교점 위치를 빼면 됨"
+    },
+    "principle": {
+      "natal_chart": "이번 생에서 발현되는 자아",
+      "draconic_chart": "영혼의 본질, 전생에서 가져온 에너지",
+      "relationship": "드라코닉은 영혼의 청사진, 출생 차트는 그것의 현실화"
+    }
+  },
+
+  "interpretation_principles": {
+    "draconic_vs_natal": {
+      "alignment": {
+        "description": "드라코닉 위치가 출생 위치와 비슷할 때",
+        "meaning": "영혼의 의도와 현재 삶이 일치",
+        "effect": "자연스러운 자기 표현, 진정성"
+      },
+      "tension": {
+        "description": "드라코닉과 출생 차트가 긴장 애스펙트 형성",
+        "meaning": "영혼의 의도와 현실 사이의 갈등",
+        "effect": "성장 압력, 자기 발견의 여정"
+      }
+    },
+    "key_points": {
+      "draconic_sun": {
+        "meaning": "영혼의 핵심 정체성, 전생에서 추구했던 자아",
+        "sign": "영혼이 공명하는 원형적 에너지",
+        "house": "영혼이 자연스럽게 표현되는 영역"
+      },
+      "draconic_moon": {
+        "meaning": "영혼의 감정 패턴, 전생의 정서적 기억",
+        "sign": "깊은 감정적 욕구, 본능적 반응의 원천",
+        "house": "정서적 안전감을 느끼는 영역"
+      },
+      "draconic_ascendant": {
+        "meaning": "영혼이 세상에 자신을 나타내고자 하는 방식",
+        "sign": "진정한 자기 표현의 스타일",
+        "vs_natal_ASC": "출생 ASC는 학습된 가면, 드라코닉 ASC는 진짜 얼굴"
+      },
+      "draconic_MC": {
+        "meaning": "영혼의 사명, 전생에서 이어진 커리어 테마",
+        "sign": "영혼이 성취하고자 하는 것",
+        "vs_natal_MC": "출생 MC는 사회적 역할, 드라코닉 MC는 영혼의 소명"
+      }
+    }
+  },
+
+  "draconic_planets": {
+    "sun": {
+      "natal_parallel": "이번 생의 자아",
+      "draconic_meaning": "영혼의 본질적 정체성",
+      "integration": "드라코닉 태양 에너지를 출생 차트로 가져오면 진정성 증가"
+    },
+    "moon": {
+      "natal_parallel": "이번 생의 감정 반응",
+      "draconic_meaning": "전생의 감정 패턴, 영혼의 기억",
+      "integration": "드라코닉 달을 의식하면 깊은 정서적 치유 가능"
+    },
+    "mercury": {
+      "natal_parallel": "현재의 사고방식",
+      "draconic_meaning": "영혼의 학습 스타일, 전생 지식",
+      "integration": "드라코닉 수성 영역에서 직관적 이해가 빠름"
+    },
+    "venus": {
+      "natal_parallel": "현재의 사랑/가치관",
+      "draconic_meaning": "영혼이 추구하는 사랑의 형태, 전생 관계 패턴",
+      "integration": "드라코닉 금성 테마의 관계에서 영혼적 연결감"
+    },
+    "mars": {
+      "natal_parallel": "현재의 행동 방식",
+      "draconic_meaning": "영혼의 원동력, 전생의 투쟁 패턴",
+      "integration": "드라코닉 화성 영역에서 자연스러운 용기"
+    },
+    "jupiter": {
+      "natal_parallel": "현재의 성장 경로",
+      "draconic_meaning": "영혼의 확장 방향, 전생의 지혜",
+      "integration": "드라코닉 목성 영역에서 행운과 성장"
+    },
+    "saturn": {
+      "natal_parallel": "현재의 제한/책임",
+      "draconic_meaning": "전생 카르마, 영혼이 배워야 할 교훈",
+      "integration": "드라코닉 토성 영역의 성숙 = 카르마 청산"
+    },
+    "uranus": {
+      "natal_parallel": "현재의 독창성",
+      "draconic_meaning": "영혼의 혁신 에너지, 전생의 각성 경험",
+      "integration": "드라코닉 천왕성 영역에서 천재성 발현"
+    },
+    "neptune": {
+      "natal_parallel": "현재의 영성/환상",
+      "draconic_meaning": "영혼의 신비적 연결, 전생의 영적 경험",
+      "integration": "드라코닉 해왕성 영역에서 직관과 예술적 영감"
+    },
+    "pluto": {
+      "natal_parallel": "현재의 변형 경험",
+      "draconic_meaning": "영혼의 심층 변형, 전생의 죽음/재생 경험",
+      "integration": "드라코닉 명왕성 영역에서 깊은 치유력"
+    }
+  },
+
+  "draconic_synastry": {
+    "description": "두 사람의 드라코닉 차트 비교 - 영혼 수준의 연결",
+    "applications": {
+      "draconic_to_draconic": {
+        "description": "두 사람의 드라코닉 차트끼리 비교",
+        "meaning": "전생에서 알던 영혼들인지, 영혼 계약의 존재",
+        "strong_connections": "컨정션, 트라인 = 전생 인연",
+        "challenging": "스퀘어, 오포지션 = 카르마 청산 관계"
+      },
+      "draconic_to_natal": {
+        "description": "한 사람의 드라코닉과 다른 사람의 출생 차트 비교",
+        "meaning": "한 사람이 다른 사람의 영혼 성장을 어떻게 돕는가",
+        "example": {
+          "A_draconic_sun_conjunct_B_natal_moon": "A의 영혼 본질이 B의 감정을 깨움",
+          "interpretation": "A는 B에게 영혼적 안전감을 줌"
+        }
+      }
+    },
+    "soulmate_indicators": {
+      "sun_moon_connections": "드라코닉 태양-달 컨정션 = 강한 영혼 연결",
+      "venus_mars_connections": "드라코닉 금성-화성 = 전생 연인",
+      "saturn_connections": "드라코닉 토성 연결 = 카르마 부채/학습 관계",
+      "node_connections": "드라코닉 노드 연결 = 운명적 만남"
+    }
+  },
+
+  "saju_draconic_fusion": {
+    "description": "드라코닉 차트와 사주의 전생/카르마 요소 통합",
+    "parallel_concepts": {
+      "draconic_chart": {
+        "astro": "북교점 기준 재배치",
+        "meaning": "영혼의 청사진"
+      },
+      "saju_karma": {
+        "saju_concept": "공망(空亡)",
+        "meaning": "전생에서 비워둔 영역, 이번 생 과제"
+      }
+    },
+    "integration_rules": {
+      "draconic_sun_sign": {
+        "cross_reference": "드라코닉 태양 사인 → 해당 오행 확인",
+        "interpretation": "영혼이 공명하는 오행 에너지",
+        "example": {
+          "draconic_sun_aries": "火 에너지",
+          "saju_check": "사주에 火가 용신이면 영혼과 현실 일치"
+        }
+      },
+      "draconic_saturn_house": {
+        "cross_reference": "드라코닉 토성 하우스 → 사주 육친 대응",
+        "interpretation": "전생 카르마가 작용하는 삶의 영역",
+        "mapping": {
+          "1st": "자아/비견",
+          "4th": "가정/정인",
+          "7th": "배우자/정재",
+          "10th": "사회/정관"
+        }
+      },
+      "gongmang_draconic": {
+        "description": "공망 지지와 드라코닉 행성 위치 교차 분석",
+        "method": "공망에 해당하는 사인에 드라코닉 행성이 있으면?",
+        "interpretation": "전생에서 비운 영역이 이번 생 영혼 과제와 연결"
+      }
+    },
+    "combined_reading": {
+      "step1": "드라코닉 차트 계산",
+      "step2": "드라코닉 태양/달/ASC 사인 확인",
+      "step3": "해당 사인의 오행과 사주 용신 비교",
+      "step4": "드라코닉 토성 하우스와 사주 기신 영역 비교",
+      "step5": "일치하면 영혼-현실 조화, 불일치하면 성장 과제"
+    }
+  },
+
+  "draconic_transits": {
+    "description": "트랜짓 행성이 드라코닉 차트의 포인트를 건드릴 때",
+    "interpretation": {
+      "vs_natal_transits": "출생 차트 트랜짓 = 현실적 이벤트, 드라코닉 트랜짓 = 영혼 수준 각성",
+      "effect": "깊은 의미를 느끼는 경험, '운명적' 느낌의 만남",
+      "examples": {
+        "jupiter_conjunct_draconic_sun": "영혼 정체성의 확장, 진정한 자기를 찾는 여정",
+        "saturn_conjunct_draconic_moon": "영혼의 감정 패턴과 대면, 전생 상처 치유 기회",
+        "pluto_conjunct_draconic_venus": "영혼 수준의 사랑 변형, 전생 관계 카르마 청산"
+      }
+    },
+    "timing": {
+      "major_transits": "외행성(목/토/천/해/명) 트랜짓이 드라코닉 포인트에 컨정션할 때 주요",
+      "trigger": "내행성 트랜짓이 트리거 역할"
+    }
+  },
+
+  "practical_applications": {
+    "self_discovery": {
+      "question": "나의 영혼은 무엇을 원하는가?",
+      "method": "드라코닉 태양/달/ASC 분석",
+      "insight": "출생 차트와 다른 부분 = 아직 발현되지 않은 진정한 자아"
+    },
+    "relationship_analysis": {
+      "question": "이 관계는 왜 특별하게/힘들게 느껴지는가?",
+      "method": "드라코닉 시나스트리 분석",
+      "insight": "전생 연결의 존재 여부, 영혼 계약"
+    },
+    "life_purpose": {
+      "question": "내 영혼의 사명은 무엇인가?",
+      "method": "드라코닉 MC, 북교점, 태양 분석",
+      "insight": "드라코닉 MC 사인 = 영혼이 이루고자 하는 것"
+    },
+    "karma_clearing": {
+      "question": "어떤 카르마를 청산해야 하는가?",
+      "method": "드라코닉 토성, 남교점, 12하우스 분석",
+      "insight": "이 영역에서의 성숙 = 영혼 성장"
+    }
+  },
+
+  "interpretation_template": {
+    "draconic_profile": {
+      "section1_soul_identity": {
+        "points": ["드라코닉 Sun", "드라코닉 ASC"],
+        "question": "나의 영혼은 본질적으로 어떤 존재인가?"
+      },
+      "section2_soul_needs": {
+        "points": ["드라코닉 Moon", "드라코닉 IC"],
+        "question": "내 영혼이 진정으로 필요로 하는 것은?"
+      },
+      "section3_soul_purpose": {
+        "points": ["드라코닉 MC", "드라코닉 North Node (0° Aries)"],
+        "question": "내 영혼이 이번 생에서 이루고자 하는 것은?"
+      },
+      "section4_karmic_lessons": {
+        "points": ["드라코닉 Saturn", "드라코닉 Pluto"],
+        "question": "어떤 교훈을 통해 성장해야 하는가?"
+      },
+      "section5_natal_alignment": {
+        "method": "드라코닉과 출생 차트 비교",
+        "question": "영혼의 의도와 현재 삶은 얼마나 일치하는가?"
+      }
+    },
+    "sample_reading": {
+      "intro": "당신의 드라코닉(영혼) 차트 분석",
+      "soul_sun": "드라코닉 태양이 물고기자리에 있어, 당신의 영혼은 근본적으로 영적이고 공감적입니다.",
+      "soul_moon": "드라코닉 달이 처녀자리에 있어, 영혼은 질서와 봉사에서 안정감을 느낍니다.",
+      "soul_purpose": "드라코닉 MC가 전갈자리에 있어, 깊은 변형과 치유가 영혼의 사명입니다.",
+      "natal_comparison": "출생 태양이 사자자리인데 드라코닉 태양이 물고기자리이므로, 표면의 자신감 아래 깊은 감수성이 있습니다.",
+      "saju_link": "사주에 수(水)가 용신인데 드라코닉 태양이 물고기자리(水)이므로, 영혼과 현실이 잘 조화됩니다."
+    }
+  },
+
+  "zodiac_soul_meanings": {
+    "Aries": {
+      "soul_archetype": "개척자 영혼",
+      "past_life_theme": "전사, 지도자, 독립적 모험가",
+      "soul_needs": "자율성, 시작, 용기 표현",
+      "saju_element": "火"
+    },
+    "Taurus": {
+      "soul_archetype": "건설자 영혼",
+      "past_life_theme": "예술가, 농부, 자원 관리자",
+      "soul_needs": "안정, 감각적 즐거움, 물질적 안전",
+      "saju_element": "土"
+    },
+    "Gemini": {
+      "soul_archetype": "메신저 영혼",
+      "past_life_theme": "상인, 작가, 여행자",
+      "soul_needs": "소통, 학습, 다양한 경험",
+      "saju_element": "木(風)"
+    },
+    "Cancer": {
+      "soul_archetype": "양육자 영혼",
+      "past_life_theme": "어머니, 치유자, 가정 수호자",
+      "soul_needs": "정서적 연결, 돌봄, 뿌리",
+      "saju_element": "水"
+    },
+    "Leo": {
+      "soul_archetype": "창조자 영혼",
+      "past_life_theme": "왕, 예술가, 연예인",
+      "soul_needs": "인정, 창조적 표현, 사랑",
+      "saju_element": "火"
+    },
+    "Virgo": {
+      "soul_archetype": "치유자 영혼",
+      "past_life_theme": "의사, 장인, 봉사자",
+      "soul_needs": "유용함, 질서, 개선",
+      "saju_element": "土"
+    },
+    "Libra": {
+      "soul_archetype": "조화자 영혼",
+      "past_life_theme": "외교관, 예술가, 파트너",
+      "soul_needs": "관계, 균형, 아름다움",
+      "saju_element": "金(風)"
+    },
+    "Scorpio": {
+      "soul_archetype": "변형자 영혼",
+      "past_life_theme": "샤먼, 심리학자, 비밀 수호자",
+      "soul_needs": "깊이, 진실, 변형",
+      "saju_element": "水"
+    },
+    "Sagittarius": {
+      "soul_archetype": "탐험가 영혼",
+      "past_life_theme": "철학자, 교사, 탐험가",
+      "soul_needs": "의미, 자유, 확장",
+      "saju_element": "火"
+    },
+    "Capricorn": {
+      "soul_archetype": "성취자 영혼",
+      "past_life_theme": "통치자, 건축가, 원로",
+      "soul_needs": "성취, 책임, 유산",
+      "saju_element": "土"
+    },
+    "Aquarius": {
+      "soul_archetype": "혁신가 영혼",
+      "past_life_theme": "과학자, 혁명가, 인도주의자",
+      "soul_needs": "독창성, 공동체, 진보",
+      "saju_element": "金(風)"
+    },
+    "Pisces": {
+      "soul_archetype": "신비주의자 영혼",
+      "past_life_theme": "영매, 예술가, 치유자",
+      "soul_needs": "영적 연결, 공감, 초월",
+      "saju_element": "水"
+    }
+  }
+}

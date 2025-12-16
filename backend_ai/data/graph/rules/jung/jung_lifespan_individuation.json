@@ -1,0 +1,363 @@
+{
+  "$schema": "jung_lifespan_individuation_v1",
+  "$description": "생애 발달 단계별 개성화 과제 - 사주/점성술 대운과 연동",
+
+  "life_stages": {
+    "childhood": {
+      "age_range": "0-12",
+      "name_ko": "아동기",
+      "psychological_tasks": [
+        "기본 신뢰감 형성",
+        "자아(ego)의 초기 발달",
+        "부모 원형 내면화",
+        "상상력과 놀이를 통한 무의식 접촉"
+      ],
+      "archetypal_themes": {
+        "primary": ["divine_child", "great_mother", "father"],
+        "description": "부모 원형이 지배적. 내면 아이가 형성되는 시기."
+      },
+      "shadow_formation": [
+        "부모/사회가 거부한 부분이 그림자가 됨",
+        "'착한 아이'가 되면서 '나쁜 부분' 억압",
+        "성별 역할 학습으로 반대 성 특성 억압"
+      ],
+      "saju_parallel": {
+        "운": "초년운 (년주, 월주 영향)",
+        "theme": "조상과 부모의 영향이 강한 시기",
+        "key_elements": "인성의 영향, 관성(부모 권위)의 경험"
+      },
+      "astro_parallel": {
+        "transits": ["목성 1차 리턴 (12세)", "토성 1차 스퀘어 (7세)"],
+        "theme": "IC/4하우스와 달이 중요. 정서적 기반 형성."
+      },
+      "parenting_guidance": [
+        "상상력과 놀이를 허용하라",
+        "감정 표현을 억압하지 말라",
+        "완벽함을 요구하지 말라 - 그림자 형성"
+      ]
+    },
+
+    "adolescence": {
+      "age_range": "13-22",
+      "name_ko": "청소년기",
+      "psychological_tasks": [
+        "부모로부터 심리적 분리",
+        "또래 집단에서 정체성 탐색",
+        "페르소나 형성 - 사회적 역할 학습",
+        "성적 정체성과 아니마/아니무스 첫 만남"
+      ],
+      "archetypal_themes": {
+        "primary": ["hero", "persona", "anima_animus"],
+        "description": "영웅 여정의 시작. 집을 떠나 세상으로."
+      },
+      "developmental_crises": [
+        "정체성 위기 - '나는 누구인가?'",
+        "부모와의 갈등 - 독립 욕구",
+        "또래 압력과 진정한 자기 사이 갈등",
+        "첫 사랑의 투사 - 아니마/아니무스 투사"
+      ],
+      "shadow_challenges": [
+        "그림자가 또래 집단에서 나타남 ('걔는 싫어')",
+        "반항으로 표현되는 억압된 에너지",
+        "성적 충동과 공격성의 통합 과제"
+      ],
+      "saju_parallel": {
+        "운": "초년운 후반 ~ 중년운 시작",
+        "theme": "식상/재성 에너지 활성화, 자기 표현 욕구",
+        "key_elements": "비겁(정체성), 식상(자기표현), 재성(세상과의 관계)"
+      },
+      "astro_parallel": {
+        "transits": ["목성 2차 리턴 (24세 전)", "토성 오포지션 (14-15세)", "천왕성 1차 스퀘어 (21세)"],
+        "theme": "1하우스/상승점 활성화. MC로의 여정 시작."
+      },
+      "guidance": [
+        "반항은 건강한 분리 과정임을 이해",
+        "첫 사랑의 투사적 성격 이해시키기",
+        "영웅 에너지의 건강한 출구 제공"
+      ]
+    },
+
+    "early_adulthood": {
+      "age_range": "23-35",
+      "name_ko": "성인 초기",
+      "psychological_tasks": [
+        "친밀한 관계 형성 (아니마/아니무스 투사와 철회)",
+        "직업적 정체성 확립",
+        "사회적 페르소나 강화",
+        "가정 형성 - 부모 역할 시작"
+      ],
+      "archetypal_themes": {
+        "primary": ["hero", "persona", "anima_animus", "great_mother", "father"],
+        "description": "영웅 여정의 절정. 세상에서 자리 잡기."
+      },
+      "developmental_crises": [
+        "친밀감 vs 고립",
+        "직업적 성공 압박",
+        "결혼과 육아의 도전",
+        "페르소나와 진정한 자기의 괴리 시작"
+      ],
+      "shadow_manifestations": [
+        "파트너에게 그림자 투사 ('네가 문제야')",
+        "경쟁자에 대한 질투",
+        "직장에서의 권력 게임",
+        "부모가 되면서 자신의 부모 그림자 대면"
+      ],
+      "relationship_dynamics": {
+        "anima_animus_projection": [
+          "1단계: 이상화 - '완벽한 사람을 만났다'",
+          "2단계: 환멸 - '이 사람이 아니었어'",
+          "3단계: 투사 철회 - '내 안의 문제였구나'",
+          "4단계: 성숙한 사랑 - 실제 타자 만남"
+        ],
+        "therapeutic_insight": "관계 문제의 80%는 투사. 상대에게서 보는 것은 나의 것."
+      },
+      "saju_parallel": {
+        "운": "중년운 초반",
+        "theme": "관성(직업/사회), 재성(경제적 기반), 인성(학습/자녀)",
+        "key_transit": "첫 번째 대운 전환 - 삶의 방향 재설정"
+      },
+      "astro_parallel": {
+        "transits": ["토성 리턴 (29-30세)", "목성 3차 리턴 (36세 전)", "프로그레스드 달 사이클"],
+        "theme": "토성 리턴은 '진정한 성인 되기'. 10하우스 활성화."
+      },
+      "saturn_return_guidance": {
+        "theme": "삶의 구조 재평가",
+        "questions": [
+          "이것이 내가 원한 삶인가?",
+          "부모/사회의 기대를 살고 있는가, 나의 삶을 살고 있는가?",
+          "이 직업/관계가 진정한 나에게 맞는가?"
+        ],
+        "outcomes": ["구조 강화", "방향 전환", "책임 수용"]
+      }
+    },
+
+    "midlife": {
+      "age_range": "36-55",
+      "name_ko": "중년기",
+      "psychological_tasks": [
+        "중년 전환 - 삶의 정오에서 오후로",
+        "그림자 통합의 본격적 시작",
+        "억압된 자기 측면 재발견",
+        "의미와 영성에 대한 질문",
+        "부모 세대 돌봄과 자녀 독립"
+      ],
+      "archetypal_themes": {
+        "primary": ["shadow", "anima_animus", "wise_old_man", "self"],
+        "description": "삶의 전환점. 외적 성취에서 내적 성찰로."
+      },
+      "midlife_crisis": {
+        "nature": "에고의 한계 직면. '이것이 전부인가?'",
+        "manifestations": [
+          "공허함, 무의미",
+          "우울, 불안",
+          "외도, 이직 충동",
+          "건강 문제",
+          "죽음에 대한 인식"
+        ],
+        "jungian_view": "위기가 아니라 개성화의 부름. 삶의 후반을 위한 전환.",
+        "therapeutic_approach": "증상을 없애려 하지 말고 메시지를 들으라"
+      },
+      "shadow_integration": {
+        "theme": "억압한 것들이 돌아온다",
+        "examples": [
+          "성공한 사람이 실패에 대한 두려움 대면",
+          "돌보는 사람이 자신의 욕구 인정",
+          "이성적인 사람이 감정의 깊이 발견",
+          "외향적 사람이 고독의 가치 발견"
+        ]
+      },
+      "anima_animus_development": {
+        "theme": "반대 성 에너지 통합",
+        "in_men": "감정, 관계성, 직관 개발. 아니마의 성숙.",
+        "in_women": "자기 주장, 독립적 판단, 행동력. 아니무스의 성숙."
+      },
+      "saju_parallel": {
+        "운": "중년운 중후반",
+        "theme": "대운 전환이 중년 전환과 겹치면 강렬한 변화",
+        "key_patterns": [
+          "비겁운에서 식상운으로 - 표현의 시기",
+          "관성운에서 인성운으로 - 성찰의 시기",
+          "재성운에서 비겁운으로 - 정체성 재정립"
+        ]
+      },
+      "astro_parallel": {
+        "transits": [
+          "천왕성 오포지션 (40-42세) - 중년 위기의 핵심",
+          "명왕성 스퀘어 (36-38세)",
+          "해왕성 스퀘어 (40-42세)",
+          "카이론 오포지션 (40세경)"
+        ],
+        "theme": "외행성들의 도전. 삶의 근본적 재평가."
+      },
+      "uranus_opposition_guidance": {
+        "theme": "억압된 자유와 개성의 폭발",
+        "healthy_expression": [
+          "새로운 관심사 탐색",
+          "관계 재정의",
+          "직업적 변화 고려",
+          "창의성 회복"
+        ],
+        "shadow_expression": [
+          "무모한 결정",
+          "외도",
+          "갑작스러운 이직/이혼",
+          "청소년적 퇴행"
+        ]
+      }
+    },
+
+    "mature_adulthood": {
+      "age_range": "56-70",
+      "name_ko": "장년기",
+      "psychological_tasks": [
+        "인생 전반부 성찰과 통합",
+        "지혜의 전달 - 멘토 역할",
+        "죽음 수용 준비",
+        "창조성의 새로운 표현",
+        "부모 상실 애도"
+      ],
+      "archetypal_themes": {
+        "primary": ["wise_old_man", "great_mother", "self"],
+        "description": "현자 원형 활성화. 경험의 지혜화."
+      },
+      "generativity": {
+        "theme": "다음 세대를 위한 기여",
+        "expressions": [
+          "멘토링",
+          "예술/창작",
+          "봉사",
+          "지혜 전달",
+          "유산 남기기"
+        ],
+        "shadow": "정체 - 자기 몰입, 절망"
+      },
+      "second_saturn_return": {
+        "age": "58-60세",
+        "theme": "삶의 마지막 구조화",
+        "questions": [
+          "나의 유산은 무엇인가?",
+          "죽음을 어떻게 맞이할 것인가?",
+          "완성하지 못한 것은?",
+          "화해해야 할 관계는?"
+        ]
+      },
+      "saju_parallel": {
+        "운": "말년운 초반",
+        "theme": "대운의 마지막 사이클. 삶의 총정리.",
+        "key_insight": "시주(時柱)의 에너지 활성화 - 내면 아이/잠재력의 성숙"
+      },
+      "astro_parallel": {
+        "transits": ["토성 2차 리턴", "카이론 리턴 (50-51세)", "목성 5차 리턴"],
+        "theme": "카이론 리턴 - 상처받은 치유자로서의 성숙."
+      }
+    },
+
+    "elder": {
+      "age_range": "71+",
+      "name_ko": "노년기",
+      "psychological_tasks": [
+        "자아 통합 vs 절망",
+        "죽음과의 대화",
+        "삶의 의미 확인",
+        "초월적 경험에 열림",
+        "놓아주기"
+      ],
+      "archetypal_themes": {
+        "primary": ["self", "wise_old_man", "divine_child"],
+        "description": "원환의 완성. 신성한 아이와 현자가 만남."
+      },
+      "ego_integrity": {
+        "erikson_parallel": "자아 통합 vs 절망",
+        "integration_markers": [
+          "삶을 있는 그대로 수용",
+          "후회 없이 죽음 맞이",
+          "다음 세대에 대한 신뢰",
+          "존재의 연속성 느낌"
+        ],
+        "despair_markers": [
+          "삶에 대한 후회",
+          "죽음에 대한 공포",
+          "쓴맛과 분노",
+          "의미 상실"
+        ]
+      },
+      "death_and_self": {
+        "jungian_view": "죽음은 삶의 목표. 자기(Self) 실현의 완성.",
+        "preparation": [
+          "삶의 이야기 완성하기",
+          "용서와 화해",
+          "유언과 유산",
+          "영적 준비"
+        ],
+        "dreams_in_late_life": "죽음 전 꿈에서 자기(Self) 상징이 자주 나타남 - 만다라, 빛, 안내자"
+      },
+      "return_to_child": {
+        "theme": "노인과 아이의 원형적 연결",
+        "features": [
+          "시간 초월",
+          "현재 순간",
+          "경이로움",
+          "놀이 정신",
+          "단순함"
+        ]
+      },
+      "saju_parallel": {
+        "운": "말년운",
+        "theme": "원국으로의 귀환. 순환의 완성.",
+        "insight": "태어난 사주로 돌아가며 삶을 정리"
+      },
+      "astro_parallel": {
+        "theme": "트랜짓보다 프로그레스가 중요. 내면 시간.",
+        "saturn_insight": "3차 토성 리턴(87-88세)까지 도달한다면 - 완전한 성숙"
+      }
+    }
+  },
+
+  "cross_cutting_themes": {
+    "complexes_across_life": {
+      "mother_complex": {
+        "childhood": "형성기 - 어머니와의 원초적 관계",
+        "adolescence": "분리 투쟁 - 독립 vs 의존",
+        "adulthood": "파트너 선택에 영향, 육아에서 재활성화",
+        "midlife": "어머니 이미지 재평가",
+        "elder": "어머니 원형과의 화해"
+      },
+      "father_complex": {
+        "childhood": "형성기 - 세상과의 첫 연결",
+        "adolescence": "권위 투쟁",
+        "adulthood": "직업/권위와의 관계",
+        "midlife": "내면 권위 확립",
+        "elder": "아버지 원형과의 화해, 현자 되기"
+      }
+    },
+
+    "shadow_evolution": {
+      "childhood": "그림자 형성 - 부모/사회의 거부한 것",
+      "adolescence": "그림자 투사 - '나쁜 애들'에게",
+      "adulthood": "그림자 투사 - 경쟁자/파트너에게",
+      "midlife": "그림자 대면 - 부인할 수 없음",
+      "elder": "그림자 통합 - 전체성"
+    },
+
+    "persona_development": {
+      "childhood": "페르소나 맹아 - '착한 아이'",
+      "adolescence": "페르소나 실험 - 다양한 가면",
+      "adulthood": "페르소나 고착 - 직업/사회적 역할",
+      "midlife": "페르소나 위기 - '이것이 진짜 나인가?'",
+      "elder": "페르소나 유연화 - 역할에서 존재로"
+    }
+  },
+
+  "therapeutic_applications": {
+    "age_appropriate_work": {
+      "youth": "에고 강화, 건강한 페르소나 형성",
+      "adult": "관계 투사 작업, 직업적 의미",
+      "midlife": "그림자 통합, 의미 찾기",
+      "elder": "삶의 통합, 죽음 준비"
+    },
+    "timing_wisdom": {
+      "principle": "인생 전반부는 에고 확립, 후반부는 자기(Self) 실현",
+      "mistake": "청년에게 에고 해체 요구, 중년에게 더 열심히 하라는 것"
+    }
+  }
+}

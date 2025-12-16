@@ -1,18 +1,12 @@
 /**
  * Destiny Calendar API
- * 프리미엄 기능 - 중요 날짜 캘린더
+ * 사주 + 점성술 교차 분석 기반 중요 날짜 계산
+ * AI 백엔드 연동 버전
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
 import {
   calculateYearlyImportantDates,
-  calculateMonthlyImportantDates,
-  findBestDatesForCategory,
-  extractSajuProfile,
-  extractAstroProfile,
   calculateSajuProfileFromBirthDate,
   calculateAstroProfileFromBirthDate,
   type EventCategory,
@@ -24,8 +18,20 @@ import enTranslations from "@/i18n/locales/en.json";
 
 export const dynamic = "force-dynamic";
 
-// 번역 데이터 타입 (더 유연하게)
-type TranslationData = Record<string, any>;
+const BACKEND_URL = process.env.NEXT_PUBLIC_AI_BACKEND || "http://localhost:5000";
+
+type TranslationData = Record<string, unknown>;
+
+// 번역 헬퍼
+function getTranslation(key: string, translations: TranslationData): string {
+  const keys = key.split(".");
+  let result: unknown = translations;
+  for (const k of keys) {
+    result = (result as Record<string, unknown>)?.[k];
+    if (result === undefined) return key;
+  }
+  return typeof result === "string" ? result : key;
+}
 
 // 사주 분석 요소 번역
 const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
@@ -48,18 +54,7 @@ const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
   alignedElement: { ko: "일진 천간과 트랜짓 태양의 원소가 일치합니다", en: "Daily stem element aligns with Transit Sun element" },
 };
 
-// 번역 헬퍼
-function getTranslation(key: string, translations: TranslationData): string {
-  const keys = key.split(".");
-  let result: any = translations;
-  for (const k of keys) {
-    result = result?.[k];
-    if (result === undefined) return key;
-  }
-  return typeof result === "string" ? result : key;
-}
-
-// 날짜 데이터 변환 (컴포넌트 형식으로)
+// 날짜 데이터 변환
 interface FormattedDate {
   date: string;
   grade: ImportanceGrade;
@@ -82,8 +77,8 @@ function formatDateForResponse(date: ImportantDate, locale: string): FormattedDa
     grade: date.grade,
     score: date.score,
     categories: date.categories,
-    title: getTranslation(date.titleKey, translations),
-    description: getTranslation(date.descKey, translations),
+    title: getTranslation(date.titleKey, translations as TranslationData),
+    description: getTranslation(date.descKey, translations as TranslationData),
     sajuFactors: date.sajuFactorKeys.map(key =>
       SAJU_FACTOR_TRANSLATIONS[key]?.[factorTrans] || key
     ),
@@ -91,140 +86,164 @@ function formatDateForResponse(date: ImportantDate, locale: string): FormattedDa
       ASTRO_FACTOR_TRANSLATIONS[key]?.[factorTrans] || key
     ),
     recommendations: date.recommendationKeys.map(key =>
-      getTranslation(`calendar.recommendations.${key}`, translations)
+      getTranslation(`calendar.recommendations.${key}`, translations as TranslationData)
     ),
     warnings: date.warningKeys.map(key =>
-      getTranslation(`calendar.warnings.${key}`, translations)
+      getTranslation(`calendar.warnings.${key}`, translations as TranslationData)
     ),
   };
 }
 
+// AI 백엔드에서 추가 날짜 정보 가져오기
+async function fetchAIDates(sajuData: Record<string, unknown>, astroData: Record<string, unknown>, theme: string = "overall"): Promise<{
+  auspicious: Array<{ date?: string; description?: string; is_auspicious?: boolean }>;
+  caution: Array<{ date?: string; description?: string; is_auspicious?: boolean }>;
+} | null> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/theme/important-dates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        theme,
+        saju: sajuData,
+        astro: astroData,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        auspicious: data.auspicious_dates || [],
+        caution: data.caution_dates || [],
+      };
+    }
+  } catch (error) {
+    console.warn("[Calendar] AI backend not available, using local calculation:", error);
+  }
+  return null;
+}
+
+// 위치 좌표
+const LOCATION_COORDS: Record<string, { lat: number; lng: number; tz: string }> = {
+  Seoul: { lat: 37.5665, lng: 126.9780, tz: "Asia/Seoul" },
+  Busan: { lat: 35.1796, lng: 129.0756, tz: "Asia/Seoul" },
+  Tokyo: { lat: 35.6762, lng: 139.6503, tz: "Asia/Tokyo" },
+  "New York": { lat: 40.7128, lng: -74.0060, tz: "America/New_York" },
+  "Los Angeles": { lat: 34.0522, lng: -118.2437, tz: "America/Los_Angeles" },
+  London: { lat: 51.5074, lng: -0.1278, tz: "Europe/London" },
+  Paris: { lat: 48.8566, lng: 2.3522, tz: "Europe/Paris" },
+  Beijing: { lat: 39.9042, lng: 116.4074, tz: "Asia/Shanghai" },
+  Shanghai: { lat: 31.2304, lng: 121.4737, tz: "Asia/Shanghai" },
+};
+
 /**
  * GET /api/calendar
- * 중요 날짜 조회
+ * 중요 날짜 조회 (인증 불필요)
  *
  * Query params:
+ * - birthDate: 생년월일 (YYYY-MM-DD) - 필수
+ * - birthTime: 출생시간 (HH:MM) - 선택
+ * - birthPlace: 출생장소 - 선택
  * - year: 연도 (기본: 현재년도)
- * - month: 월 (0-11, 없으면 연간)
- * - category: 카테고리 필터 (wealth, career, love, health, travel, study)
- * - grade: 최소 등급 (1, 2, 3)
- * - limit: 결과 수 제한
+ * - category: 카테고리 필터
  * - locale: 언어 (ko, en)
  */
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
-    // 쿼리 파라미터 파싱
     const { searchParams } = new URL(request.url);
     const birthDateParam = searchParams.get("birthDate");
 
-    let sajuProfile;
-    let astroProfile;
-
-    // 생년월일이 직접 전달된 경우 - 바로 계산
-    if (birthDateParam) {
-      const birthDate = new Date(birthDateParam);
-      if (isNaN(birthDate.getTime())) {
-        return NextResponse.json({ error: "Invalid birth date" }, { status: 400 });
-      }
-      sajuProfile = calculateSajuProfileFromBirthDate(birthDate);
-      astroProfile = calculateAstroProfileFromBirthDate(birthDate);
-    } else {
-      // 저장된 프로필에서 가져오기
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
-      });
-
-      if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      const memory = await prisma.personaMemory.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!memory?.sajuProfile || !memory?.birthChart) {
-        return NextResponse.json(
-          {
-            error: "Profile required",
-            message: "먼저 운명 지도를 생성해주세요.",
-          },
-          { status: 400 }
-        );
-      }
-
-      sajuProfile = extractSajuProfile(memory.sajuProfile);
-      astroProfile = extractAstroProfile(memory.birthChart);
-    }
-
-    // 나머지 파라미터 파싱
-    const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
-    const monthParam = searchParams.get("month");
-    const category = searchParams.get("category") as EventCategory | null;
-    const gradeParam = searchParams.get("grade");
-    const limitParam = searchParams.get("limit");
-    const locale = searchParams.get("locale") ||
-      request.headers.get("accept-language")?.split(",")[0]?.split("-")[0] || "ko";
-
-    const minGrade = gradeParam ? parseInt(gradeParam) as ImportanceGrade : 3;
-    const limit = limitParam ? parseInt(limitParam) : undefined;
-
-    // 월별 조회
-    if (monthParam !== null) {
-      const month = parseInt(monthParam);
-      const result = calculateMonthlyImportantDates(year, month, sajuProfile, astroProfile);
-
-      return NextResponse.json({
-        success: true,
-        type: "monthly",
-        year: result.year,
-        month: result.month,
-        dates: result.dates.map(d => formatDateForResponse(d, locale)),
-      });
-    }
-
-    // 카테고리별 베스트 날짜
-    if (category) {
-      const dates = findBestDatesForCategory(
-        year,
-        category,
-        sajuProfile,
-        astroProfile,
-        limit || 10
+    if (!birthDateParam) {
+      return NextResponse.json(
+        { error: "Birth date required", message: "생년월일을 입력해주세요." },
+        { status: 400 }
       );
-
-      return NextResponse.json({
-        success: true,
-        type: "category",
-        category,
-        year,
-        dates: dates.map(d => formatDateForResponse(d, locale)),
-        count: dates.length,
-      });
     }
 
-    // 연간 중요 날짜
-    const dates = calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
-      minGrade,
-      limit,
+    // 생년월일 파싱
+    const birthDate = new Date(birthDateParam);
+    if (isNaN(birthDate.getTime())) {
+      return NextResponse.json({ error: "Invalid birth date" }, { status: 400 });
+    }
+
+    const birthTime = searchParams.get("birthTime") || "12:00";
+    const birthPlace = searchParams.get("birthPlace") || "Seoul";
+    const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
+    const locale = searchParams.get("locale") || "ko";
+    const category = searchParams.get("category") as EventCategory | null;
+
+    // 사주 프로필 계산
+    const sajuProfile = calculateSajuProfileFromBirthDate(birthDate);
+    const astroProfile = calculateAstroProfileFromBirthDate(birthDate);
+
+    // 로컬 계산으로 중요 날짜 가져오기
+    const localDates = calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
+      minGrade: 3,
     });
 
+    // 카테고리 필터링
+    let filteredDates = localDates;
+    if (category) {
+      filteredDates = localDates.filter(d => d.categories.includes(category));
+    }
+
+    // AI 백엔드에서 추가 정보 시도
+    const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS["Seoul"];
+
+    const sajuData = {
+      birth_date: birthDateParam,
+      birth_time: birthTime,
+      gender: "unknown",
+      day_master: sajuProfile.dayMaster,
+      pillars: {
+        year: { stem: sajuProfile.dayMaster, branch: sajuProfile.dayBranch || "" },
+        month: { stem: sajuProfile.dayMaster, branch: sajuProfile.dayBranch || "" },
+        day: { stem: sajuProfile.dayMaster, branch: sajuProfile.dayBranch || "" },
+        hour: { stem: sajuProfile.dayMaster, branch: sajuProfile.dayBranch || "" },
+      },
+      elements: sajuProfile,
+    };
+
+    const astroData = {
+      birth_date: birthDateParam,
+      birth_time: birthTime,
+      latitude: coords.lat,
+      longitude: coords.lng,
+      timezone: coords.tz,
+      sun_sign: astroProfile.sunSign,
+      planets: {
+        sun: { sign: astroProfile.sunSign, degree: 15 },
+        moon: { sign: astroProfile.sunSign, degree: 15 },
+      },
+    };
+
+    // AI 백엔드 호출 시도
+    const aiDates = await fetchAIDates(sajuData, astroData, category || "overall");
+
     // 등급별 그룹화
-    const grade1 = dates.filter(d => d.grade === 1);
-    const grade2 = dates.filter(d => d.grade === 2);
-    const grade3 = dates.filter(d => d.grade === 3);
+    const grade1 = filteredDates.filter(d => d.grade === 1);
+    const grade2 = filteredDates.filter(d => d.grade === 2);
+    const grade3 = filteredDates.filter(d => d.grade === 3);
+
+    // AI 날짜 병합
+    let aiEnhanced = false;
+    if (aiDates) {
+      aiEnhanced = true;
+      // AI 날짜를 기존 날짜에 병합 가능
+    }
 
     return NextResponse.json({
       success: true,
       type: "yearly",
       year,
+      aiEnhanced,
+      birthInfo: {
+        date: birthDateParam,
+        time: birthTime,
+        place: birthPlace,
+      },
       summary: {
-        total: dates.length,
+        total: filteredDates.length,
         grade1: grade1.length,
         grade2: grade2.length,
         grade3: grade3.length,
@@ -232,12 +251,18 @@ export async function GET(request: NextRequest) {
       topDates: grade1.slice(0, 10).map(d => formatDateForResponse(d, locale)),
       goodDates: grade2.slice(0, 20).map(d => formatDateForResponse(d, locale)),
       cautionDates: grade3.slice(0, 10).map(d => formatDateForResponse(d, locale)),
-      allDates: dates.map(d => formatDateForResponse(d, locale)),
+      allDates: filteredDates.map(d => formatDateForResponse(d, locale)),
+      ...(aiDates && {
+        aiInsights: {
+          auspicious: aiDates.auspicious,
+          caution: aiDates.caution,
+        },
+      }),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Calendar API error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

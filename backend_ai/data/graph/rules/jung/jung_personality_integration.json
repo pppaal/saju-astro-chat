@@ -1,0 +1,450 @@
+{
+  "$schema": "jung_personality_integration_v1",
+  "$description": "Aura Quiz 결과와 사주/점성술/타로/융 통합 분석 구조",
+
+  "aura_quiz_schema": {
+    "description": "Nova Persona Aura Quiz 결과 형식",
+    "axes": {
+      "energy": {
+        "poles": ["radiant", "grounded"],
+        "letters": {"radiant": "R", "grounded": "G"},
+        "description": "에너지 방향: 외부 발산(R) vs 내부 집중(G)",
+        "mbti_parallel": "E/I"
+      },
+      "cognition": {
+        "poles": ["visionary", "structured"],
+        "letters": {"visionary": "V", "structured": "S"},
+        "description": "인식 방식: 가능성/패턴(V) vs 구체/사실(S)",
+        "mbti_parallel": "N/S"
+      },
+      "decision": {
+        "poles": ["logic", "empathic"],
+        "letters": {"logic": "L", "empathic": "H"},
+        "description": "판단 기준: 논리/객관(L) vs 공감/가치(H)",
+        "mbti_parallel": "T/F"
+      },
+      "rhythm": {
+        "poles": ["flow", "anchor"],
+        "letters": {"flow": "F", "anchor": "A"},
+        "description": "생활 리듬: 유연/즉흥(F) vs 계획/구조(A)",
+        "mbti_parallel": "P/J"
+      }
+    },
+    "input_format": {
+      "typeCode": "RVLA",
+      "personaName": "Starforge Navigator",
+      "axes": {
+        "energy": {"pole": "radiant", "score": 72},
+        "cognition": {"pole": "visionary", "score": 85},
+        "decision": {"pole": "logic", "score": 65},
+        "rhythm": {"pole": "anchor", "score": 58}
+      },
+      "profile": {
+        "openness": 85,
+        "conscientiousness": 58,
+        "extraversion": 72,
+        "agreeableness": 35,
+        "neuroticism": 50,
+        "introversion": 28,
+        "intuition": 85,
+        "thinking": 65,
+        "perceiving": 42
+      },
+      "consistencyScore": 75
+    }
+  },
+
+  "aura_to_cognitive_functions": {
+    "description": "Aura 축 조합 → 8가지 인지기능 추론",
+    "mapping_rules": {
+      "dominant_function": {
+        "RV": {"high_score": "Ne", "description": "외향 직관 - 가능성 탐색"},
+        "GV": {"high_score": "Ni", "description": "내향 직관 - 내면 통찰"},
+        "RS": {"high_score": "Se", "description": "외향 감각 - 현재 순간"},
+        "GS": {"high_score": "Si", "description": "내향 감각 - 경험 축적"},
+        "RL": {"high_score": "Te", "description": "외향 사고 - 체계적 조직"},
+        "GL": {"high_score": "Ti", "description": "내향 사고 - 논리 분석"},
+        "RH": {"high_score": "Fe", "description": "외향 감정 - 관계 조화"},
+        "GH": {"high_score": "Fi", "description": "내향 감정 - 내면 가치"}
+      },
+      "function_stack_inference": {
+        "RVLF": {"stack": ["Ne", "Ti", "Fe", "Si"], "similar_mbti": "ENTP"},
+        "RVLA": {"stack": ["Ne", "Te", "Fi", "Si"], "similar_mbti": "ENTJ-Ne"},
+        "RVHF": {"stack": ["Ne", "Fi", "Te", "Si"], "similar_mbti": "ENFP"},
+        "RVHA": {"stack": ["Ne", "Fe", "Ti", "Si"], "similar_mbti": "ENFJ-Ne"},
+        "GVLF": {"stack": ["Ni", "Ti", "Fe", "Se"], "similar_mbti": "INTP-Ni"},
+        "GVLA": {"stack": ["Ni", "Te", "Fi", "Se"], "similar_mbti": "INTJ"},
+        "GVHF": {"stack": ["Ni", "Fi", "Te", "Se"], "similar_mbti": "INFP-Ni"},
+        "GVHA": {"stack": ["Ni", "Fe", "Ti", "Se"], "similar_mbti": "INFJ"},
+        "RSLF": {"stack": ["Se", "Ti", "Fe", "Ni"], "similar_mbti": "ESTP"},
+        "RSLA": {"stack": ["Se", "Te", "Fi", "Ni"], "similar_mbti": "ESTJ-Se"},
+        "RSHF": {"stack": ["Se", "Fi", "Te", "Ni"], "similar_mbti": "ESFP"},
+        "RSHA": {"stack": ["Se", "Fe", "Ti", "Ni"], "similar_mbti": "ESFJ-Se"},
+        "GSLF": {"stack": ["Si", "Ti", "Fe", "Ne"], "similar_mbti": "ISTP-Si"},
+        "GSLA": {"stack": ["Si", "Te", "Fi", "Ne"], "similar_mbti": "ISTJ"},
+        "GSHF": {"stack": ["Si", "Fi", "Te", "Ne"], "similar_mbti": "ISFP-Si"},
+        "GSHA": {"stack": ["Si", "Fe", "Ti", "Ne"], "similar_mbti": "ISFJ"}
+      }
+    }
+  },
+
+  "aura_to_saju_mapping": {
+    "description": "Aura 축 → 십신 에너지 매핑",
+    "axis_mappings": {
+      "energy": {
+        "radiant": {
+          "primary_sipsin": ["식신", "상관", "편재"],
+          "energy": "발산, 표현, 활동",
+          "saju_synergy": "식상/재성 강하면 Radiant 성향 강화",
+          "saju_conflict": "인성 과다면 Radiant 억압"
+        },
+        "grounded": {
+          "primary_sipsin": ["정인", "편인", "비견"],
+          "energy": "내면, 성찰, 축적",
+          "saju_synergy": "인성/비겁 강하면 Grounded 성향 강화",
+          "saju_conflict": "재성 과다면 Grounded 억압"
+        }
+      },
+      "cognition": {
+        "visionary": {
+          "primary_sipsin": ["편인", "상관"],
+          "energy": "직관, 가능성, 창의",
+          "saju_synergy": "편인/상관 강하면 Visionary 성향 강화",
+          "saju_conflict": "정관 과다면 Visionary 억압"
+        },
+        "structured": {
+          "primary_sipsin": ["정인", "정재", "정관"],
+          "energy": "체계, 사실, 경험",
+          "saju_synergy": "정관/정재 강하면 Structured 성향 강화",
+          "saju_conflict": "상관 과다면 Structured 불안정"
+        }
+      },
+      "decision": {
+        "logic": {
+          "primary_sipsin": ["편관", "정관", "편재"],
+          "energy": "객관, 효율, 성과",
+          "saju_synergy": "관성/재성 강하면 Logic 성향 강화",
+          "saju_conflict": "인성 과다면 Logic 약화"
+        },
+        "empathic": {
+          "primary_sipsin": ["정인", "식신"],
+          "energy": "관계, 돌봄, 조화",
+          "saju_synergy": "인성/식신 강하면 Empathic 성향 강화",
+          "saju_conflict": "편관 과다면 Empathic 억압"
+        }
+      },
+      "rhythm": {
+        "flow": {
+          "primary_sipsin": ["식신", "상관", "편재"],
+          "energy": "유연, 적응, 즉흥",
+          "saju_synergy": "식상 강하면 Flow 성향 강화",
+          "saju_conflict": "정관 과다면 Flow 억압"
+        },
+        "anchor": {
+          "primary_sipsin": ["정관", "정재", "정인"],
+          "energy": "계획, 구조, 안정",
+          "saju_synergy": "정관/정재 강하면 Anchor 성향 강화",
+          "saju_conflict": "상관 과다면 Anchor 불안정"
+        }
+      }
+    }
+  },
+
+  "aura_to_astro_mapping": {
+    "description": "Aura 축 → 점성술 에너지 매핑",
+    "axis_mappings": {
+      "energy": {
+        "radiant": {
+          "planets": ["태양", "화성", "목성"],
+          "signs": ["사자자리", "양자리", "쌍둥이자리"],
+          "houses": ["1하우스", "5하우스", "10하우스"],
+          "aspects": "태양-화성 조화, 1하우스 강조"
+        },
+        "grounded": {
+          "planets": ["달", "토성", "해왕성"],
+          "signs": ["게자리", "처녀자리", "염소자리"],
+          "houses": ["4하우스", "6하우스", "12하우스"],
+          "aspects": "달-토성 연결, 4하우스 강조"
+        }
+      },
+      "cognition": {
+        "visionary": {
+          "planets": ["천왕성", "해왕성", "목성"],
+          "signs": ["물병자리", "물고기자리", "사수자리"],
+          "houses": ["9하우스", "11하우스", "12하우스"],
+          "aspects": "수성-천왕성 연결, 해왕성 강조"
+        },
+        "structured": {
+          "planets": ["토성", "수성", "달"],
+          "signs": ["처녀자리", "염소자리", "황소자리"],
+          "houses": ["2하우스", "6하우스", "10하우스"],
+          "aspects": "토성-수성 연결, 지구 사인 강조"
+        }
+      },
+      "decision": {
+        "logic": {
+          "planets": ["토성", "화성", "수성"],
+          "signs": ["염소자리", "처녀자리", "천칭자리"],
+          "houses": ["3하우스", "6하우스", "10하우스"],
+          "aspects": "토성-화성 연결, 수성 강조"
+        },
+        "empathic": {
+          "planets": ["금성", "달", "해왕성"],
+          "signs": ["천칭자리", "게자리", "물고기자리"],
+          "houses": ["4하우스", "7하우스", "12하우스"],
+          "aspects": "달-금성 조화, 물 사인 강조"
+        }
+      },
+      "rhythm": {
+        "flow": {
+          "planets": ["목성", "천왕성", "수성"],
+          "signs": ["사수자리", "쌍둥이자리", "물고기자리"],
+          "houses": ["3하우스", "9하우스", "11하우스"],
+          "aspects": "목성-천왕성 연결, 뮤터블 사인 강조"
+        },
+        "anchor": {
+          "planets": ["토성", "태양", "달"],
+          "signs": ["염소자리", "황소자리", "사자자리"],
+          "houses": ["4하우스", "10하우스", "2하우스"],
+          "aspects": "토성-태양 연결, 픽스드 사인 강조"
+        }
+      }
+    }
+  },
+
+  "aura_to_jung_archetype": {
+    "description": "Aura 유형 → 융 원형 매핑",
+    "type_archetypes": {
+      "RV_types": {
+        "dominant_archetype": "hero",
+        "secondary": "trickster",
+        "shadow": "자기 과시, 현실 회피",
+        "individuation_theme": "비전을 현실로 가져오기"
+      },
+      "GV_types": {
+        "dominant_archetype": "wise_old_man",
+        "secondary": "anima_animus",
+        "shadow": "고립, 현실 괴리",
+        "individuation_theme": "통찰을 세상과 나누기"
+      },
+      "RS_types": {
+        "dominant_archetype": "divine_child",
+        "secondary": "hero",
+        "shadow": "충동성, 깊이 부족",
+        "individuation_theme": "순간을 의미와 연결하기"
+      },
+      "GS_types": {
+        "dominant_archetype": "great_mother",
+        "secondary": "persona",
+        "shadow": "변화 저항, 과거 집착",
+        "individuation_theme": "새로운 경험에 열리기"
+      },
+      "L_axis": {
+        "archetype_tendency": "father",
+        "shadow": "냉정함, 공감 부족",
+        "growth": "감정 지능 개발"
+      },
+      "H_axis": {
+        "archetype_tendency": "great_mother",
+        "shadow": "경계 부족, 자기 상실",
+        "growth": "건강한 경계 설정"
+      },
+      "F_axis": {
+        "archetype_tendency": "trickster",
+        "shadow": "무책임, 완성 어려움",
+        "growth": "헌신과 지속 연습"
+      },
+      "A_axis": {
+        "archetype_tendency": "father",
+        "shadow": "경직, 자발성 부족",
+        "growth": "유연성과 놀이 허용"
+      }
+    }
+  },
+
+  "cross_validation": {
+    "description": "Aura + 사주 + 점성술 교차 검증",
+    "validation_rules": {
+      "energy_axis": {
+        "aura_radiant_saju_check": ["식상 강도", "재성 강도", "비겁 약세"],
+        "aura_grounded_saju_check": ["인성 강도", "비겁 강도", "식상 약세"],
+        "aura_radiant_astro_check": ["태양/화성 강조", "1/5하우스", "불/바람 사인"],
+        "aura_grounded_astro_check": ["달/토성 강조", "4/12하우스", "물/땅 사인"]
+      },
+      "congruence_scoring": {
+        "all_match": {
+          "score": "A",
+          "interpretation": "타고난 성향이 명확. 자기 이해 정확.",
+          "action": "강점 더 활용"
+        },
+        "two_match": {
+          "score": "B",
+          "interpretation": "주요 성향 일치. 한 소스에서 보완점.",
+          "action": "불일치 소스 탐색 - 발달 or 억압"
+        },
+        "no_match": {
+          "score": "C",
+          "interpretation": "복잡한 내면. 환경 적응 강함.",
+          "action": "어떤 것이 '진짜 나'인지 탐색 필요"
+        }
+      }
+    },
+    "conflict_insights": {
+      "aura_radiant_saju_grounded": {
+        "pattern": "외향 테스트 결과 but 내향 사주",
+        "insight": "후천적으로 외향성 개발. 근본은 내향. 혼자 있는 시간 필요.",
+        "therapeutic": "진짜 에너지 충전 방식은 어디서 오나요?"
+      },
+      "aura_visionary_saju_structured": {
+        "pattern": "직관형 테스트 but 감각형 사주",
+        "insight": "상상력 개발했으나 근본은 현실적. 실행력이 강점.",
+        "therapeutic": "아이디어와 실행 사이 균형은?"
+      },
+      "aura_logic_saju_empathic": {
+        "pattern": "논리형 테스트 but 감정형 사주",
+        "insight": "감정 억압 가능성. 논리로 방어.",
+        "therapeutic": "감정을 허용하면 어떤 일이 일어날까요?"
+      }
+    }
+  },
+
+  "integrated_profile_output": {
+    "description": "통합 프로필 생성 템플릿",
+    "template": {
+      "core_identity": {
+        "aura": "{typeCode} - {personaName}",
+        "saju": "{일간} 일간, {용신} 용신",
+        "astro": "{태양 사인} 태양, {상승 사인} 상승",
+        "synthesis": "당신은 {aura_summary}이면서, 사주적으로 {saju_summary}, 점성술적으로 {astro_summary}입니다."
+      },
+      "strength_convergence": {
+        "title": "수렴 강점",
+        "method": "세 소스가 동시에 가리키는 강점",
+        "example": "Aura Visionary + 편인 강 + 해왕성 강조 = '심층 직관과 통찰'이 핵심 강점"
+      },
+      "shadow_convergence": {
+        "title": "수렴 그림자",
+        "method": "세 소스가 동시에 가리키는 약점/그림자",
+        "example": "Aura Grounded + 식신 약 + 5하우스 비어있음 = '자기 표현과 놀이'가 그림자"
+      },
+      "growth_path": {
+        "title": "성장 방향",
+        "method": "열등 극 + 기신 + 차트 약점 통합",
+        "therapeutic_focus": "개성화 과제 도출"
+      }
+    },
+    "prompt_for_ai": {
+      "system": "당신은 융 심리학 기반 통합 분석가입니다. Aura Quiz, 사주, 점성술 데이터를 종합하여 깊이 있는 심리 프로필을 제공합니다. 세 소스의 일치점은 확신 있게, 불일치점은 탐색적으로 제시하세요.",
+      "user_template": "다음 데이터를 통합 분석해주세요:\n\n[Aura Quiz]\nType: {typeCode}\nAxes: Energy {energy.pole}({energy.score}%), Cognition {cognition.pole}({cognition.score}%), Decision {decision.pole}({decision.score}%), Rhythm {rhythm.pole}({rhythm.score}%)\n\n[사주]\n{saju_summary}\n\n[점성술]\n{astro_summary}\n\n통합 프로필을 작성해주세요."
+    }
+  },
+
+  "api_integration": {
+    "description": "기존 /api/personality와 연동",
+    "data_flow": {
+      "step_1": "사용자가 Aura Quiz 완료 → /api/personality POST",
+      "step_2": "저장된 데이터: typeCode, personaName, axes scores, profile",
+      "step_3": "통합 분석 요청 시 사주/점성술 데이터와 조합",
+      "step_4": "이 파일의 매핑 규칙 적용하여 통합 프로필 생성"
+    },
+    "prisma_schema_reference": {
+      "model": "PersonalityResult",
+      "fields": ["typeCode", "personaName", "energyScore", "cognitionScore", "decisionScore", "rhythmScore", "consistencyScore", "analysisData"]
+    }
+  },
+
+  "existing_cross_references": {
+    "description": "기존 사주↔점성술 교차 데이터 활용 - 이미 만들어진 규칙들",
+    "primary_sources": {
+      "saju_astro_fusion": {
+        "path": "rules/fusion/compatibility.json",
+        "provides": [
+          "daymaster_cross_rules - 일간↔행성 교차",
+          "branch_cross_rules - 지지↔사인 교차",
+          "element_fusion - 오행↔엘리먼트 통합",
+          "삼합↔트라인 매핑",
+          "운세 타이밍 통합 규칙"
+        ],
+        "usage": "사주와 점성술 결과 교차 검증 시 참조"
+      },
+      "multimodal_engine": {
+        "path": "rules/integration/multimodal_integration_engine.json",
+        "provides": [
+          "correlation_matrix - 사주↔점성술↔타로 상관관계",
+          "question_router - 질문 유형별 분석 소스 선택",
+          "synthesis_template - 통합 응답 템플릿",
+          "conflict_resolution - 소스 간 충돌 처리"
+        ],
+        "usage": "멀티모달 통합 분석 시 엔진으로 활용"
+      },
+      "jung_cross_analysis": {
+        "path": "rules/jung/jung_cross_analysis.json",
+        "provides": [
+          "sipsin_archetype_map - 십신↔융 원형 매핑",
+          "planet_archetype_map - 행성↔융 원형 매핑",
+          "integrated_shadow_work - 통합 그림자 작업"
+        ],
+        "usage": "융 심리학적 해석 레이어 적용"
+      }
+    },
+    "integration_flow": {
+      "step_1": {
+        "action": "Aura Quiz 결과 수신",
+        "data": "typeCode, axes scores, profile"
+      },
+      "step_2": {
+        "action": "기존 교차 규칙으로 사주/점성 데이터 매핑",
+        "source": "compatibility.json의 element_fusion 활용",
+        "mapping": {
+          "aura_energy_radiant": "compatibility의 fire/air 요소 강조",
+          "aura_energy_grounded": "compatibility의 earth/water 요소 강조",
+          "aura_cognition_visionary": "compatibility의 mutable/water 사인 강조",
+          "aura_cognition_structured": "compatibility의 fixed/earth 사인 강조"
+        }
+      },
+      "step_3": {
+        "action": "multimodal_engine의 correlation_matrix로 삼중 검증",
+        "validation": "Aura + 사주 + 점성 일치도 점수화"
+      },
+      "step_4": {
+        "action": "jung_cross_analysis로 심리학적 해석 레이어 추가",
+        "output": "원형, 그림자, 개성화 과제 도출"
+      }
+    },
+    "element_mapping_bridge": {
+      "description": "Aura 축 ↔ 기존 오행/엘리먼트 규칙 연결",
+      "radiant_elements": {
+        "aura_meaning": "외향, 발산, 활동",
+        "saju_wuxing": ["화(火)", "목(木)"],
+        "astro_elements": ["Fire", "Air"],
+        "compatibility_json_key": "fire_air_synergy"
+      },
+      "grounded_elements": {
+        "aura_meaning": "내향, 수렴, 안정",
+        "saju_wuxing": ["수(水)", "토(土)"],
+        "astro_elements": ["Water", "Earth"],
+        "compatibility_json_key": "water_earth_synergy"
+      },
+      "visionary_elements": {
+        "aura_meaning": "직관, 가능성",
+        "saju_wuxing": ["수(水)", "목(木)"],
+        "astro_elements": ["Water", "Air"],
+        "compatibility_json_key": "intuitive_blend"
+      },
+      "structured_elements": {
+        "aura_meaning": "감각, 현실",
+        "saju_wuxing": ["토(土)", "금(金)"],
+        "astro_elements": ["Earth", "Fixed signs"],
+        "compatibility_json_key": "practical_blend"
+      }
+    },
+    "timing_integration": {
+      "description": "기존 운세 타이밍 규칙과 Aura 결합",
+      "source": "compatibility.json의 timing_rules",
+      "application": {
+        "aura_flow_type": "변화/기회에 빠르게 반응 → daeun 전환기 강조",
+        "aura_anchor_type": "안정 추구 → 장기 대운 흐름 강조"
+      }
+    }
+  }
+}

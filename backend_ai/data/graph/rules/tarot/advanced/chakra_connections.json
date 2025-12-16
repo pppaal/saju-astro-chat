@@ -1,7 +1,8 @@
 {
   "_meta": {
-    "title": "Tarot Chakra Connections",
-    "description": "타로 카드와 차크라의 연결 - 에너지 치유와 균형을 위한 가이드"
+    "title": "Tarot Chakra Connections - Extended",
+    "description": "타로 카드와 차크라의 완전한 연결 시스템 - 78장 전체 매핑과 에너지 치유 가이드",
+    "version": "2.0"
   },
   "chakras": {
     "root": {
@@ -11,13 +12,25 @@
       "location": "척추 기저부",
       "color": "빨강",
       "element": "Earth",
+      "frequency": "396 Hz",
       "theme": "생존, 안정, 기반, 물질적 안전",
       "balanced": "안정감, 안전함, 현실에 뿌리내림",
       "blocked": "불안, 두려움, 재정 걱정, 생존 위협감",
       "overactive": "탐욕, 물질주의, 변화 거부",
-      "cards": ["The Emperor", "Four of Pentacles", "Ten of Pentacles", "Ace of Pentacles", "King of Pentacles"],
+      "physical_symptoms_blocked": ["다리 문제", "요통", "면역력 저하", "피로"],
+      "physical_symptoms_overactive": ["비만", "과식", "변비"],
+      "cards": {
+        "major": ["The Emperor", "The World"],
+        "minor": ["Ace of Pentacles", "Four of Pentacles", "Ten of Pentacles", "King of Pentacles", "Queen of Pentacles"]
+      },
       "healing_affirmation": "나는 안전하고 이 땅에 뿌리내리고 있습니다",
-      "healing_activity": "자연 속 산책, 맨발 걷기, 빨간색 음식 섭취"
+      "healing_affirmation_english": "I am safe and grounded on this earth",
+      "healing_activity": ["자연 속 산책", "맨발 걷기", "빨간색 음식 섭취", "정원 가꾸기", "요리"],
+      "crystals": ["레드 재스퍼", "블랙 투르말린", "헤마타이트", "가넷"],
+      "essential_oils": ["패출리", "베티버", "시다우드"],
+      "yoga_poses": ["산 자세", "전사 자세", "나무 자세"],
+      "foods": ["뿌리 채소", "단백질", "빨간 과일"],
+      "mantra": "LAM"
     },
     "sacral": {
       "number": 2,
@@ -26,13 +39,25 @@
       "location": "하복부",
       "color": "주황",
       "element": "Water",
-      "theme": "감정, 창의력, 섹슈얼리티, 즐거움",
+      "frequency": "417 Hz",
+      "theme": "감정, 창의력, 섹슈얼리티, 즐거움, 관계",
       "balanced": "창의적, 열정적, 감정 표현 자유로움",
       "blocked": "감정 억압, 창의성 막힘, 친밀감 두려움",
       "overactive": "감정 기복, 중독, 과도한 쾌락 추구",
-      "cards": ["The Empress", "Ace of Cups", "Two of Cups", "Page of Cups", "Queen of Cups"],
+      "physical_symptoms_blocked": ["생식기 문제", "요통", "비뇨기 문제"],
+      "physical_symptoms_overactive": ["성 중독", "감정 폭발", "과민함"],
+      "cards": {
+        "major": ["The Empress", "The Moon"],
+        "minor": ["Ace of Cups", "Two of Cups", "Three of Cups", "Page of Cups", "Queen of Cups", "Knight of Cups"]
+      },
       "healing_affirmation": "나는 삶의 즐거움을 자유롭게 느낍니다",
-      "healing_activity": "춤, 물가 산책, 창작 활동, 주황색 음식"
+      "healing_affirmation_english": "I freely feel the pleasures of life",
+      "healing_activity": ["춤", "물가 산책", "창작 활동", "주황색 음식", "수영"],
+      "crystals": ["카넬리안", "오렌지 칼사이트", "문스톤"],
+      "essential_oils": ["일랑일랑", "샌달우드", "오렌지"],
+      "yoga_poses": ["고양이-소 자세", "골반 열기", "나비 자세"],
+      "foods": ["오렌지", "당근", "망고", "살구"],
+      "mantra": "VAM"
     },
     "solar_plexus": {
       "number": 3,
@@ -41,13 +66,25 @@
       "location": "상복부/명치",
       "color": "노랑",
       "element": "Fire",
-      "theme": "자신감, 의지력, 개인의 힘, 자아",
+      "frequency": "528 Hz",
+      "theme": "자신감, 의지력, 개인의 힘, 자아, 정체성",
       "balanced": "자신감, 결단력, 건강한 자존감",
       "blocked": "낮은 자존감, 우유부단, 무력감",
       "overactive": "지배욕, 공격성, 완벽주의",
-      "cards": ["The Sun", "The Chariot", "Strength", "Three of Wands", "King of Wands"],
+      "physical_symptoms_blocked": ["소화 문제", "위장 장애", "피로"],
+      "physical_symptoms_overactive": ["위궤양", "당뇨", "과도한 스트레스"],
+      "cards": {
+        "major": ["The Sun", "The Chariot", "Strength", "The Magician"],
+        "minor": ["Ace of Wands", "Three of Wands", "Six of Wands", "King of Wands", "Knight of Wands"]
+      },
       "healing_affirmation": "나는 내 삶의 주인이며 힘이 있습니다",
-      "healing_activity": "코어 운동, 햇빛 쬐기, 노란색 음식"
+      "healing_affirmation_english": "I am the master of my life and I have power",
+      "healing_activity": ["코어 운동", "햇빛 쬐기", "노란색 음식", "목표 설정", "성취 축하"],
+      "crystals": ["시트린", "타이거아이", "황철석"],
+      "essential_oils": ["레몬", "로즈마리", "생강"],
+      "yoga_poses": ["보트 자세", "전사 자세 III", "플랭크"],
+      "foods": ["바나나", "옥수수", "레몬", "생강"],
+      "mantra": "RAM"
     },
     "heart": {
       "number": 4,
@@ -56,13 +93,25 @@
       "location": "가슴 중앙",
       "color": "초록/분홍",
       "element": "Air",
-      "theme": "사랑, 연민, 용서, 관계",
-      "balanced": "무조건적 사랑, 공감, 자기 사랑",
+      "frequency": "639 Hz",
+      "theme": "사랑, 연민, 용서, 관계, 자기 사랑",
+      "balanced": "무조건적 사랑, 공감, 자기 사랑, 연민",
       "blocked": "외로움, 질투, 사랑받지 못함, 원한",
       "overactive": "경계 부족, 자기 희생, 의존",
-      "cards": ["The Lovers", "The Empress", "Six of Cups", "Ten of Cups", "Queen of Cups"],
+      "physical_symptoms_blocked": ["심장 문제", "폐 문제", "순환 장애"],
+      "physical_symptoms_overactive": ["심장 두근거림", "불안", "과호흡"],
+      "cards": {
+        "major": ["The Lovers", "The Empress", "The Star", "Temperance"],
+        "minor": ["Two of Cups", "Three of Cups", "Six of Cups", "Ten of Cups", "Queen of Cups", "King of Cups"]
+      },
       "healing_affirmation": "나는 사랑을 주고받을 자격이 있습니다",
-      "healing_activity": "봉사, 자연 속 시간, 초록색 음식, 가슴 열기 요가"
+      "healing_affirmation_english": "I am worthy of giving and receiving love",
+      "healing_activity": ["봉사", "자연 속 시간", "초록색 음식", "가슴 열기 요가", "용서 명상"],
+      "crystals": ["로즈쿼츠", "그린 어벤츄린", "에메랄드", "말라카이트"],
+      "essential_oils": ["로즈", "제라늄", "유칼립투스"],
+      "yoga_poses": ["코브라 자세", "낙타 자세", "물고기 자세"],
+      "foods": ["시금치", "케일", "브로콜리", "녹차"],
+      "mantra": "YAM"
     },
     "throat": {
       "number": 5,
@@ -71,13 +120,25 @@
       "location": "목",
       "color": "파랑",
       "element": "Ether/Sound",
+      "frequency": "741 Hz",
       "theme": "소통, 진실, 자기 표현, 경청",
       "balanced": "명확한 소통, 진실 말하기, 창의적 표현",
       "blocked": "말 못함, 거짓말, 표현 두려움",
       "overactive": "수다, 험담, 듣지 않음",
-      "cards": ["The Magician", "Justice", "King of Swords", "Ace of Swords", "Page of Swords"],
+      "physical_symptoms_blocked": ["목 통증", "갑상선 문제", "목소리 문제"],
+      "physical_symptoms_overactive": ["인후통", "과도한 말", "목 긴장"],
+      "cards": {
+        "major": ["The Magician", "Justice", "The Hierophant"],
+        "minor": ["Ace of Swords", "King of Swords", "Queen of Swords", "Page of Swords", "Eight of Wands"]
+      },
       "healing_affirmation": "나는 진실을 말하고 나의 목소리를 냅니다",
-      "healing_activity": "노래, 글쓰기, 대화, 파란색 보석 착용"
+      "healing_affirmation_english": "I speak my truth and express my voice",
+      "healing_activity": ["노래", "글쓰기", "대화", "파란색 보석 착용", "일기 쓰기"],
+      "crystals": ["라피스라줄리", "아쿠아마린", "터키석", "블루레이스 아게이트"],
+      "essential_oils": ["유칼립투스", "페퍼민트", "카모마일"],
+      "yoga_poses": ["어깨 서기", "물고기 자세", "사자 자세"],
+      "foods": ["블루베리", "자두", "해조류"],
+      "mantra": "HAM"
     },
     "third_eye": {
       "number": 6,
@@ -86,61 +147,387 @@
       "location": "미간",
       "color": "남색/보라",
       "element": "Light",
-      "theme": "직관, 통찰, 지혜, 영적 인식",
+      "frequency": "852 Hz",
+      "theme": "직관, 통찰, 지혜, 영적 인식, 비전",
       "balanced": "강한 직관, 명확한 비전, 내면 지혜 접근",
       "blocked": "직관 무시, 판단력 흐림, 환상에 빠짐",
       "overactive": "망상, 악몽, 과도한 생각",
-      "cards": ["The High Priestess", "The Moon", "The Hermit", "Seven of Cups", "Queen of Swords"],
+      "physical_symptoms_blocked": ["두통", "눈 문제", "수면 장애"],
+      "physical_symptoms_overactive": ["환각", "집중력 문제", "현기증"],
+      "cards": {
+        "major": ["The High Priestess", "The Moon", "The Hermit", "The Hanged Man"],
+        "minor": ["Seven of Cups", "Queen of Swords", "Page of Swords", "Two of Swords"]
+      },
       "healing_affirmation": "나는 내면의 지혜를 신뢰합니다",
-      "healing_activity": "명상, 꿈 기록, 시각화, 보라색 음식"
+      "healing_affirmation_english": "I trust my inner wisdom",
+      "healing_activity": ["명상", "꿈 기록", "시각화", "보라색 음식", "별 관찰"],
+      "crystals": ["아메시스트", "라피스라줄리", "플루오라이트", "소달라이트"],
+      "essential_oils": ["라벤더", "프랑킨센스", "클라리세이지"],
+      "yoga_poses": ["아이 자세", "앞으로 굽히기", "역전 자세"],
+      "foods": ["보라색 포도", "가지", "블루베리"],
+      "mantra": "OM/AUM"
     },
     "crown": {
       "number": 7,
       "sanskrit": "Sahasrara",
       "korean": "크라운 차크라 (Crown)",
       "location": "정수리",
-      "color": "보라/흰색",
+      "color": "보라/흰색/금색",
       "element": "Thought/Cosmos",
-      "theme": "영성, 깨달음, 우주 연결, 통합",
+      "frequency": "963 Hz",
+      "theme": "영성, 깨달음, 우주 연결, 통합, 신성",
       "balanced": "영적 연결, 내면 평화, 삶의 의미",
       "blocked": "영적 단절, 삶의 의미 상실, 고립",
       "overactive": "현실 도피, 영적 우월감",
-      "cards": ["The World", "The Star", "Judgement", "The Fool", "Ace of Swords"],
+      "physical_symptoms_blocked": ["우울증", "의미 상실", "무기력"],
+      "physical_symptoms_overactive": ["현실 감각 상실", "해리", "영적 중독"],
+      "cards": {
+        "major": ["The World", "The Star", "Judgement", "The Fool"],
+        "minor": ["Ace of Swords", "Ten of Cups", "Ten of Pentacles"]
+      },
       "healing_affirmation": "나는 우주와 연결되어 있습니다",
-      "healing_activity": "명상, 기도, 침묵, 단식"
+      "healing_affirmation_english": "I am connected to the universe",
+      "healing_activity": ["명상", "기도", "침묵", "단식", "우주 관조"],
+      "crystals": ["클리어쿼츠", "아메시스트", "셀레나이트", "다이아몬드"],
+      "essential_oils": ["프랑킨센스", "미르", "네롤리"],
+      "yoga_poses": ["머리 서기", "사바사나", "연꽃 자세"],
+      "foods": ["단식", "순수한 물", "보라색 음식"],
+      "mantra": "OM/Silence"
     }
   },
   "card_chakra_mapping": {
     "major_arcana": {
-      "The Fool": ["crown", "root"],
-      "The Magician": ["throat", "solar_plexus"],
-      "The High Priestess": ["third_eye", "crown"],
-      "The Empress": ["heart", "sacral"],
-      "The Emperor": ["root", "solar_plexus"],
-      "The Hierophant": ["throat", "crown"],
-      "The Lovers": ["heart"],
-      "The Chariot": ["solar_plexus"],
-      "Strength": ["heart", "solar_plexus"],
-      "The Hermit": ["third_eye", "crown"],
-      "Wheel of Fortune": ["all"],
-      "Justice": ["throat", "third_eye"],
-      "The Hanged Man": ["third_eye", "crown"],
-      "Death": ["root", "sacral"],
-      "Temperance": ["heart", "throat"],
-      "The Devil": ["root", "sacral"],
-      "The Tower": ["all"],
-      "The Star": ["crown", "throat"],
-      "The Moon": ["third_eye", "sacral"],
-      "The Sun": ["solar_plexus", "heart"],
-      "Judgement": ["throat", "crown"],
-      "The World": ["all"]
+      "The Fool": {
+        "primary": "crown",
+        "secondary": "root",
+        "meaning": "순수한 영적 시작과 현실의 첫 발"
+      },
+      "The Magician": {
+        "primary": "throat",
+        "secondary": "solar_plexus",
+        "meaning": "창조적 표현과 개인의 힘"
+      },
+      "The High Priestess": {
+        "primary": "third_eye",
+        "secondary": "crown",
+        "meaning": "직관과 영적 지혜"
+      },
+      "The Empress": {
+        "primary": "heart",
+        "secondary": "sacral",
+        "meaning": "사랑과 창조성"
+      },
+      "The Emperor": {
+        "primary": "root",
+        "secondary": "solar_plexus",
+        "meaning": "안정과 권위"
+      },
+      "The Hierophant": {
+        "primary": "throat",
+        "secondary": "crown",
+        "meaning": "가르침과 영적 전통"
+      },
+      "The Lovers": {
+        "primary": "heart",
+        "secondary": "sacral",
+        "meaning": "사랑과 연결"
+      },
+      "The Chariot": {
+        "primary": "solar_plexus",
+        "secondary": "root",
+        "meaning": "의지력과 결단"
+      },
+      "Strength": {
+        "primary": "heart",
+        "secondary": "solar_plexus",
+        "meaning": "내면의 힘과 연민"
+      },
+      "The Hermit": {
+        "primary": "third_eye",
+        "secondary": "crown",
+        "meaning": "내면 탐구와 지혜"
+      },
+      "Wheel of Fortune": {
+        "primary": "all",
+        "secondary": null,
+        "meaning": "모든 차크라의 순환"
+      },
+      "Justice": {
+        "primary": "throat",
+        "secondary": "third_eye",
+        "meaning": "진실과 명확한 판단"
+      },
+      "The Hanged Man": {
+        "primary": "third_eye",
+        "secondary": "crown",
+        "meaning": "관점 전환과 영적 희생"
+      },
+      "Death": {
+        "primary": "root",
+        "secondary": "sacral",
+        "meaning": "변화와 재탄생"
+      },
+      "Temperance": {
+        "primary": "heart",
+        "secondary": "throat",
+        "meaning": "균형과 조화로운 표현"
+      },
+      "The Devil": {
+        "primary": "root",
+        "secondary": "sacral",
+        "meaning": "물질적 집착과 욕망"
+      },
+      "The Tower": {
+        "primary": "all",
+        "secondary": null,
+        "meaning": "모든 차크라의 급격한 재정렬"
+      },
+      "The Star": {
+        "primary": "crown",
+        "secondary": "heart",
+        "meaning": "영적 치유와 희망"
+      },
+      "The Moon": {
+        "primary": "third_eye",
+        "secondary": "sacral",
+        "meaning": "직관과 감정의 깊이"
+      },
+      "The Sun": {
+        "primary": "solar_plexus",
+        "secondary": "heart",
+        "meaning": "자신감과 기쁨"
+      },
+      "Judgement": {
+        "primary": "throat",
+        "secondary": "crown",
+        "meaning": "소명과 영적 각성"
+      },
+      "The World": {
+        "primary": "all",
+        "secondary": null,
+        "meaning": "모든 차크라의 완전한 통합"
+      }
+    },
+    "wands": {
+      "Ace of Wands": {"primary": "solar_plexus", "secondary": "sacral"},
+      "Two of Wands": {"primary": "third_eye", "secondary": "solar_plexus"},
+      "Three of Wands": {"primary": "solar_plexus", "secondary": "third_eye"},
+      "Four of Wands": {"primary": "heart", "secondary": "root"},
+      "Five of Wands": {"primary": "solar_plexus", "secondary": "throat"},
+      "Six of Wands": {"primary": "solar_plexus", "secondary": "heart"},
+      "Seven of Wands": {"primary": "solar_plexus", "secondary": "throat"},
+      "Eight of Wands": {"primary": "throat", "secondary": "solar_plexus"},
+      "Nine of Wands": {"primary": "solar_plexus", "secondary": "root"},
+      "Ten of Wands": {"primary": "root", "secondary": "solar_plexus"},
+      "Page of Wands": {"primary": "sacral", "secondary": "solar_plexus"},
+      "Knight of Wands": {"primary": "solar_plexus", "secondary": "sacral"},
+      "Queen of Wands": {"primary": "solar_plexus", "secondary": "heart"},
+      "King of Wands": {"primary": "solar_plexus", "secondary": "crown"}
+    },
+    "cups": {
+      "Ace of Cups": {"primary": "heart", "secondary": "sacral"},
+      "Two of Cups": {"primary": "heart", "secondary": "sacral"},
+      "Three of Cups": {"primary": "heart", "secondary": "sacral"},
+      "Four of Cups": {"primary": "third_eye", "secondary": "heart"},
+      "Five of Cups": {"primary": "heart", "secondary": "sacral"},
+      "Six of Cups": {"primary": "heart", "secondary": "third_eye"},
+      "Seven of Cups": {"primary": "third_eye", "secondary": "sacral"},
+      "Eight of Cups": {"primary": "heart", "secondary": "third_eye"},
+      "Nine of Cups": {"primary": "solar_plexus", "secondary": "heart"},
+      "Ten of Cups": {"primary": "heart", "secondary": "crown"},
+      "Page of Cups": {"primary": "sacral", "secondary": "heart"},
+      "Knight of Cups": {"primary": "heart", "secondary": "sacral"},
+      "Queen of Cups": {"primary": "heart", "secondary": "third_eye"},
+      "King of Cups": {"primary": "heart", "secondary": "crown"}
+    },
+    "swords": {
+      "Ace of Swords": {"primary": "throat", "secondary": "crown"},
+      "Two of Swords": {"primary": "third_eye", "secondary": "heart"},
+      "Three of Swords": {"primary": "heart", "secondary": "throat"},
+      "Four of Swords": {"primary": "third_eye", "secondary": "crown"},
+      "Five of Swords": {"primary": "throat", "secondary": "solar_plexus"},
+      "Six of Swords": {"primary": "third_eye", "secondary": "heart"},
+      "Seven of Swords": {"primary": "throat", "secondary": "solar_plexus"},
+      "Eight of Swords": {"primary": "third_eye", "secondary": "throat"},
+      "Nine of Swords": {"primary": "third_eye", "secondary": "heart"},
+      "Ten of Swords": {"primary": "root", "secondary": "heart"},
+      "Page of Swords": {"primary": "throat", "secondary": "third_eye"},
+      "Knight of Swords": {"primary": "throat", "secondary": "solar_plexus"},
+      "Queen of Swords": {"primary": "third_eye", "secondary": "throat"},
+      "King of Swords": {"primary": "throat", "secondary": "crown"}
+    },
+    "pentacles": {
+      "Ace of Pentacles": {"primary": "root", "secondary": "heart"},
+      "Two of Pentacles": {"primary": "root", "secondary": "sacral"},
+      "Three of Pentacles": {"primary": "root", "secondary": "solar_plexus"},
+      "Four of Pentacles": {"primary": "root", "secondary": "solar_plexus"},
+      "Five of Pentacles": {"primary": "root", "secondary": "heart"},
+      "Six of Pentacles": {"primary": "heart", "secondary": "root"},
+      "Seven of Pentacles": {"primary": "root", "secondary": "third_eye"},
+      "Eight of Pentacles": {"primary": "root", "secondary": "solar_plexus"},
+      "Nine of Pentacles": {"primary": "root", "secondary": "heart"},
+      "Ten of Pentacles": {"primary": "root", "secondary": "crown"},
+      "Page of Pentacles": {"primary": "root", "secondary": "third_eye"},
+      "Knight of Pentacles": {"primary": "root", "secondary": "solar_plexus"},
+      "Queen of Pentacles": {"primary": "root", "secondary": "heart"},
+      "King of Pentacles": {"primary": "root", "secondary": "crown"}
     }
   },
   "reading_chakra_analysis": {
     "description": "리딩 결과로 차크라 균형 분석하기",
     "method": "뽑힌 카드들의 차크라 연결을 분석하여 현재 에너지 상태 파악",
-    "dominant_chakra": "가장 많이 나타난 차크라 = 현재 집중해야 할 영역",
-    "missing_chakra": "나타나지 않은 차크라 = 관심이 필요한 영역",
-    "blocked_indicators": ["역방향 카드", "Five 카드들", "어려운 조합"]
+    "interpretation_rules": {
+      "dominant_chakra": {
+        "description": "가장 많이 나타난 차크라 = 현재 집중해야 할 영역",
+        "korean": "이 에너지가 지금 당신 삶에서 가장 활발해요"
+      },
+      "missing_chakra": {
+        "description": "나타나지 않은 차크라 = 관심이 필요한 영역",
+        "korean": "이 영역에 에너지를 더 쏟아야 해요"
+      },
+      "blocked_indicators": {
+        "cards": ["역방향 카드", "Five 카드들", "어려운 조합"],
+        "korean": "이 차크라가 막혀있을 수 있어요"
+      },
+      "overactive_indicators": {
+        "cards": ["같은 차크라 카드 3장 이상"],
+        "korean": "이 차크라가 과활성화되어 있을 수 있어요"
+      }
+    },
+    "chakra_flow_patterns": {
+      "ascending": {
+        "pattern": "root → sacral → solar_plexus → heart → throat → third_eye → crown",
+        "meaning": "에너지가 상승하고 있음 - 물질에서 영성으로",
+        "korean": "영적 성장의 시기예요"
+      },
+      "descending": {
+        "pattern": "crown → third_eye → throat → heart → solar_plexus → sacral → root",
+        "meaning": "에너지가 하강하고 있음 - 영적 통찰을 현실로",
+        "korean": "영감을 현실에 적용하는 시기예요"
+      },
+      "heart_centered": {
+        "pattern": "heart가 중심",
+        "meaning": "사랑과 관계가 핵심",
+        "korean": "마음의 문제가 가장 중요해요"
+      }
+    }
+  },
+  "healing_recommendations": {
+    "root_healing": {
+      "when_blocked": {
+        "symptoms": ["불안", "재정 걱정", "불안정함"],
+        "cards_indicating": ["Five of Pentacles", "Ten of Swords", "The Tower"],
+        "recommendations": [
+          "매일 맨발로 땅을 밟으세요",
+          "빨간색 음식을 먹으세요",
+          "규칙적인 운동을 하세요",
+          "재정 계획을 세우세요",
+          "집을 정리하세요"
+        ],
+        "affirmation": "나는 안전합니다. 나는 우주의 지지를 받고 있습니다."
+      }
+    },
+    "sacral_healing": {
+      "when_blocked": {
+        "symptoms": ["감정 억압", "창의성 막힘", "관계 어려움"],
+        "cards_indicating": ["Four of Cups", "Eight of Cups", "The Moon (R)"],
+        "recommendations": [
+          "물가에서 시간을 보내세요",
+          "춤을 추세요",
+          "창작 활동을 하세요",
+          "감정을 일기에 쓰세요",
+          "주황색을 입으세요"
+        ],
+        "affirmation": "나는 감정을 자유롭게 느끼고 표현합니다."
+      }
+    },
+    "solar_plexus_healing": {
+      "when_blocked": {
+        "symptoms": ["자신감 부족", "결정 어려움", "무력감"],
+        "cards_indicating": ["Seven of Cups", "Two of Swords", "The Hanged Man"],
+        "recommendations": [
+          "햇빛을 쬐세요",
+          "작은 목표를 세우고 달성하세요",
+          "노란색을 입으세요",
+          "코어 운동을 하세요",
+          "경계를 설정하세요"
+        ],
+        "affirmation": "나는 힘이 있습니다. 나는 내 삶을 통제합니다."
+      }
+    },
+    "heart_healing": {
+      "when_blocked": {
+        "symptoms": ["외로움", "용서 어려움", "사랑 두려움"],
+        "cards_indicating": ["Three of Swords", "Five of Cups", "The Hermit (R)"],
+        "recommendations": [
+          "자연 속에서 시간을 보내세요",
+          "봉사활동을 하세요",
+          "자기 사랑 명상을 하세요",
+          "초록색 음식을 먹으세요",
+          "용서 명상을 하세요"
+        ],
+        "affirmation": "나는 사랑을 주고받을 자격이 있습니다."
+      }
+    },
+    "throat_healing": {
+      "when_blocked": {
+        "symptoms": ["표현 어려움", "소통 문제", "진실 말하기 두려움"],
+        "cards_indicating": ["Eight of Swords", "Seven of Swords", "The Moon"],
+        "recommendations": [
+          "노래를 부르세요",
+          "일기를 쓰세요",
+          "진실된 대화를 나누세요",
+          "파란색을 입으세요",
+          "목을 스트레칭하세요"
+        ],
+        "affirmation": "나는 진실을 말합니다. 내 목소리는 가치가 있습니다."
+      }
+    },
+    "third_eye_healing": {
+      "when_blocked": {
+        "symptoms": ["직관 무시", "혼란", "결정 어려움"],
+        "cards_indicating": ["Two of Swords", "The Moon", "Seven of Cups"],
+        "recommendations": [
+          "명상을 하세요",
+          "꿈을 기록하세요",
+          "직관을 따라보세요",
+          "보라색을 입으세요",
+          "제3의 눈 명상을 하세요"
+        ],
+        "affirmation": "나는 내면의 지혜를 신뢰합니다."
+      }
+    },
+    "crown_healing": {
+      "when_blocked": {
+        "symptoms": ["삶의 의미 상실", "영적 단절", "무의미함"],
+        "cards_indicating": ["The Hermit (R)", "Four of Cups", "The Tower"],
+        "recommendations": [
+          "명상을 하세요",
+          "자연 속에서 침묵하세요",
+          "영적 텍스트를 읽으세요",
+          "감사 일기를 쓰세요",
+          "별을 관찰하세요"
+        ],
+        "affirmation": "나는 우주와 연결되어 있습니다. 모든 것은 의미가 있습니다."
+      }
+    }
+  },
+  "chakra_spread": {
+    "name": "차크라 스프레드",
+    "korean": "7장 차크라 리딩",
+    "positions": {
+      "1": {"chakra": "root", "question": "나의 기반은 어떤가?"},
+      "2": {"chakra": "sacral", "question": "나의 감정/창의성은?"},
+      "3": {"chakra": "solar_plexus", "question": "나의 자신감/힘은?"},
+      "4": {"chakra": "heart", "question": "나의 사랑/관계는?"},
+      "5": {"chakra": "throat", "question": "나의 표현/소통은?"},
+      "6": {"chakra": "third_eye", "question": "나의 직관/비전은?"},
+      "7": {"chakra": "crown", "question": "나의 영적 연결은?"}
+    },
+    "interpretation_guide": {
+      "upright_positive": "이 차크라가 균형 잡혀 있음",
+      "upright_challenging": "이 차크라에 작업이 필요함",
+      "reversed": "이 차크라가 막혀 있거나 과활성화됨"
+    }
   }
 }

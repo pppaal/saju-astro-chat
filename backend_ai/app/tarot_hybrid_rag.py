@@ -4,7 +4,7 @@ Tarot Hybrid RAG System (Premium YouTube-Level)
 ================================================
 Combines:
 - Structured tarot card data & spreads (RAG)
-- Gemini LLM for rich narrative interpretation
+- OpenAI GPT for rich narrative interpretation
 - Position-based deep readings
 - Streaming support for real-time delivery
 - Advanced rules: combinations, timing, court cards, elemental dignities
@@ -26,12 +26,12 @@ import random
 from typing import List, Dict, Optional, Generator, Any, Tuple
 
 try:
-    import google.generativeai as genai
-    GENAI_AVAILABLE = True
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
 except ImportError:
-    genai = None
-    GENAI_AVAILABLE = False
-    print("[TarotHybridRAG] google-generativeai not installed. LLM features disabled.")
+    OpenAI = None
+    OPENAI_AVAILABLE = False
+    print("[TarotHybridRAG] openai not installed. LLM features disabled.")
 
 try:
     from backend_ai.app.tarot_rag import get_tarot_rag, TarotRAG, SUIT_MEANINGS
@@ -849,10 +849,10 @@ class SpreadLoader:
 
 
 # ===============================================================
-# GEMINI PROMPT BUILDER
+# GPT PROMPT BUILDER
 # ===============================================================
 class TarotPromptBuilder:
-    """Build prompts for Gemini based on spread and cards"""
+    """Build prompts for GPT based on spread and cards"""
 
     SYSTEM_PROMPT = """당신은 전문 타로 리더입니다. 유튜브에서 활동하는 인기 타로 리더처럼 친근하면서도 통찰력 있는 해석을 제공합니다.
 
@@ -1045,28 +1045,28 @@ class TarotPromptBuilder:
 class TarotHybridRAG:
     """
     Premium Tarot Reading System
-    - Combines structured data with Gemini LLM
+    - Combines structured data with OpenAI GPT
     - Supports streaming for real-time delivery
     - YouTube-level depth and narrative
     - Advanced rules: combinations, timing, court cards, elemental dignities
     """
 
     def __init__(self, api_key: str = None):
-        # Initialize Gemini
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        self.model = None
+        # Initialize OpenAI
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.client = None
+        self.model_name = "gpt-4o-mini"  # Cost-effective, fast
 
-        if GENAI_AVAILABLE and self.api_key:
+        if OPENAI_AVAILABLE and self.api_key:
             try:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-2.0-flash')
-                print("[TarotHybridRAG] Gemini model initialized")
+                self.client = OpenAI(api_key=self.api_key)
+                print(f"[TarotHybridRAG] OpenAI client initialized (model: {self.model_name})")
             except Exception as e:
-                print(f"[TarotHybridRAG] Failed to initialize Gemini: {e}")
-        elif not GENAI_AVAILABLE:
-            print("[TarotHybridRAG] google-generativeai not installed")
+                print(f"[TarotHybridRAG] Failed to initialize OpenAI: {e}")
+        elif not OPENAI_AVAILABLE:
+            print("[TarotHybridRAG] openai not installed")
         else:
-            print("[TarotHybridRAG] No Gemini API key provided")
+            print("[TarotHybridRAG] No OpenAI API key provided")
 
         # Initialize components
         self.tarot_rag = get_tarot_rag()
@@ -1169,53 +1169,51 @@ class TarotHybridRAG:
             advanced_rules=self.advanced_rules
         )
 
-        if not self.model:
-            return "Gemini API가 설정되지 않았습니다."
+        if not self.client:
+            return "OpenAI API가 설정되지 않았습니다."
 
-        # Generate with Gemini
+        # Generate with GPT
         try:
             if stream:
                 return self._stream_response(prompt)
             else:
-                config = {}
-                if GENAI_AVAILABLE:
-                    config = genai.GenerationConfig(
-                        temperature=0.8,
-                        top_p=0.95,
-                        max_output_tokens=4096,
-                    )
-                response = self.model.generate_content(
-                    prompt,
-                    generation_config=config,
-                    system_instruction=TarotPromptBuilder.SYSTEM_PROMPT
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {"role": "system", "content": TarotPromptBuilder.SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.8,
+                    top_p=0.95,
+                    max_tokens=4096,
                 )
-                return response.text
+                return response.choices[0].message.content
 
         except Exception as e:
             return f"리딩 생성 중 오류 발생: {str(e)}"
 
     def _stream_response(self, prompt: str) -> Generator[str, None, None]:
-        """Stream response from Gemini"""
-        if not GENAI_AVAILABLE or not self.model:
-            yield "Gemini API가 설정되지 않았습니다."
+        """Stream response from GPT"""
+        if not OPENAI_AVAILABLE or not self.client:
+            yield "OpenAI API가 설정되지 않았습니다."
             return
 
         try:
-            config = genai.GenerationConfig(
+            stream = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": TarotPromptBuilder.SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
                 temperature=0.8,
                 top_p=0.95,
-                max_output_tokens=4096,
-            )
-            response = self.model.generate_content(
-                prompt,
-                generation_config=config,
-                system_instruction=TarotPromptBuilder.SYSTEM_PROMPT,
+                max_tokens=4096,
                 stream=True
             )
 
-            for chunk in response:
-                if chunk.text:
-                    yield chunk.text
+            for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
 
         except Exception as e:
             yield f"스트리밍 오류: {str(e)}"
@@ -1228,7 +1226,7 @@ class TarotHybridRAG:
     ) -> str:
         """Generate quick single card reading"""
 
-        if not self.model:
+        if not self.client:
             # Fallback to RAG only
             card_data = self.tarot_rag.search_for_card(
                 card_name,
@@ -1261,17 +1259,15 @@ class TarotHybridRAG:
 """
 
         try:
-            config = {}
-            if GENAI_AVAILABLE:
-                config = genai.GenerationConfig(
-                    temperature=0.7,
-                    max_output_tokens=500,
-                )
-            response = self.model.generate_content(
-                prompt,
-                generation_config=config
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=500,
             )
-            return response.text
+            return response.choices[0].message.content
         except Exception as e:
             return f"오류: {str(e)}"
 
@@ -1283,7 +1279,7 @@ class TarotHybridRAG:
         question: str = ""
     ) -> str:
         """
-        Build RAG context string for LLM prompt (used by Together AI + GPT pattern)
+        Build RAG context string for LLM prompt (used by GPT-4)
 
         Args:
             theme: Theme (love, career, etc.)
@@ -1813,7 +1809,7 @@ if __name__ == "__main__":
         print(f"  Cards: {len(context.get('card_interpretations', []))}")
 
     # Test reading generation (if API key available)
-    if hybrid_rag.model:
+    if hybrid_rag.client:
         print("\n[Generating Reading...]")
         reading = hybrid_rag.generate_reading(
             theme='love',

@@ -10,6 +10,8 @@ interface ServicePageLayoutProps {
   icon?: string;
   children: ReactNode;
   particleColor?: string;
+  onBack?: () => void;
+  backLabel?: string;
 }
 
 type Particle = {
@@ -29,6 +31,8 @@ export default function ServicePageLayout({
   icon,
   children,
   particleColor = "#88b3f7",
+  onBack,
+  backLabel,
 }: ServicePageLayoutProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
@@ -176,7 +180,7 @@ export default function ServicePageLayout({
   return (
     <div className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
-      <BackButton />
+      <BackButton onClick={onBack} label={backLabel} />
       <div className={styles.content}>
         <header className={styles.header}>
           {icon && (

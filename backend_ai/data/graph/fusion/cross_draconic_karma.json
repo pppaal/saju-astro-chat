@@ -1,0 +1,221 @@
+{
+  "$schema": "cross_draconic_karma_v1",
+  "$description": "드라코닉 차트 ↔ 사주 전생/공망/카르마 완전 교차 매핑",
+
+  "soul_chart_comparison": {
+    "draconic_chart": {
+      "name": "드라코닉 차트",
+      "calculation": "북교점을 0° 양자리로 설정 후 재배치",
+      "meaning": "영혼의 청사진, 전생 기억, 진정한 자아"
+    },
+    "saju_soul_elements": {
+      "name": "사주 영혼 요소",
+      "components": ["공망(空亡)", "납음(納音)", "전생 신살", "일주 심층"],
+      "meaning": "전생의 흔적, 카르마, 영혼의 과제"
+    }
+  },
+
+  "gongmang_south_node": {
+    "description": "공망 ↔ 남교점(South Node) 교차",
+
+    "gongmang": {
+      "korean": "공망 (空亡)",
+      "meaning": "비어있는 공간, 전생에서 채우지 못한 영역",
+      "calculation": "일주 기준 60갑자 중 비어있는 2개 지지"
+    },
+    "south_node": {
+      "meaning": "전생의 익숙함, 놓아야 할 것, 카르마 부채",
+      "expression": "자연스럽지만 성장을 막는 패턴"
+    },
+
+    "cross_mapping": {
+      "gongmang_as_void": {
+        "saju_interpretation": "공망된 지지 영역은 노력해도 결과가 적음",
+        "draconic_parallel": "남교점 하우스/사인은 과거에 과하게 발달",
+        "integration": "공망 = 전생에서 비움, 남교점 = 전생에서 과잉 → 둘 다 현생 과제"
+      },
+      "branch_house_void": {
+        "자(子)_공망": {"house": "4th/8th", "theme": "가정/심층 영역 비움", "draconic": "IC/8th house South Node"},
+        "축(丑)_공망": {"house": "2nd/6th", "theme": "재물/건강 영역 비움", "draconic": "2nd house South Node"},
+        "인(寅)_공망": {"house": "1st/9th", "theme": "자아/확장 영역 비움", "draconic": "ASC/9th South Node"},
+        "묘(卯)_공망": {"house": "3rd/7th", "theme": "소통/관계 영역 비움", "draconic": "3rd/DSC South Node"},
+        "진(辰)_공망": {"house": "10th/1st", "theme": "커리어/자아 비움", "draconic": "MC South Node"},
+        "사(巳)_공망": {"house": "8th/12th", "theme": "변형/영성 비움", "draconic": "8th/12th South Node"},
+        "오(午)_공망": {"house": "5th/9th", "theme": "창조/철학 비움", "draconic": "5th house South Node"},
+        "미(未)_공망": {"house": "6th/4th", "theme": "봉사/가정 비움", "draconic": "6th/IC South Node"},
+        "신(申)_공망": {"house": "3rd/11th", "theme": "소통/친구 비움", "draconic": "3rd/11th South Node"},
+        "유(酉)_공망": {"house": "7th/2nd", "theme": "관계/가치 비움", "draconic": "DSC/2nd South Node"},
+        "술(戌)_공망": {"house": "11th/7th", "theme": "희망/관계 비움", "draconic": "11th/7th South Node"},
+        "해(亥)_공망": {"house": "12th/4th", "theme": "영성/뿌리 비움", "draconic": "12th house South Node"}
+      }
+    },
+
+    "karmic_interpretation": {
+      "both_activated": {
+        "condition": "공망 지지와 남교점 하우스가 일치",
+        "meaning": "전생 과제가 매우 강조됨",
+        "advice": "이 영역을 의식적으로 채워야 함"
+      }
+    }
+  },
+
+  "yeokma_north_node": {
+    "description": "역마살 ↔ 북교점(North Node) 교차",
+
+    "yeokma": {
+      "korean": "역마살 (驛馬殺)",
+      "meaning": "이동, 변화, 외국 인연, 확장",
+      "activation": "역마 방향으로 나아갈 때 운명 전개"
+    },
+    "north_node": {
+      "meaning": "이번 생 목적지, 성장 방향, 운명의 경로",
+      "expression": "어색하지만 추구해야 할 것"
+    },
+
+    "cross_mapping": {
+      "direction_destiny": {
+        "saju": "역마가 있는 방향으로 가면 기회",
+        "draconic": "북교점 하우스/사인이 영혼의 성장 방향",
+        "integration": "역마 = 물리적 이동과 확장, 북교점 = 영적 성장 방향"
+      },
+      "combined_reading": {
+        "yeokma_sign": "역마 지지의 사인 성격",
+        "north_node_sign": "북교점 사인",
+        "match": "둘이 같은 원소면 물리적+영적 방향 일치"
+      }
+    }
+  },
+
+  "naeum_draconic_soul": {
+    "description": "납음 ↔ 드라코닉 태양 교차",
+
+    "naeum": {
+      "korean": "납음 (納音)",
+      "meaning": "60갑자의 소리/물질 분류, 영혼의 질감",
+      "types": "해중금, 노중화, 대림목 등 30종"
+    },
+    "draconic_sun": {
+      "meaning": "영혼의 핵심 정체성",
+      "expression": "진정한 자아, 전생에서 추구했던 것"
+    },
+
+    "cross_mapping": {
+      "naeum_element_draconic_element": {
+        "금_납음": {
+          "types": ["해중금", "검봉금", "사중금", "금박금", "백랍금", "차천금"],
+          "draconic_affinity": ["Libra", "Aquarius", "Gemini"],
+          "soul_theme": "가치, 정제, 분별"
+        },
+        "목_납음": {
+          "types": ["대림목", "양류목", "송백목", "평지목", "상자목", "석류목"],
+          "draconic_affinity": ["Aries", "Leo", "Sagittarius"],
+          "soul_theme": "성장, 확장, 생명력"
+        },
+        "수_납음": {
+          "types": ["대해수", "천하수", "간하수", "장류수", "대계수", "천중수"],
+          "draconic_affinity": ["Cancer", "Scorpio", "Pisces"],
+          "soul_theme": "깊이, 직관, 흐름"
+        },
+        "화_납음": {
+          "types": ["노중화", "산하화", "복등화", "천상화", "벽력화", "산두화"],
+          "draconic_affinity": ["Aries", "Leo", "Sagittarius"],
+          "soul_theme": "열정, 빛, 변형"
+        },
+        "토_납음": {
+          "types": ["노방토", "성두토", "벽상토", "대역토", "사중토", "옥상토"],
+          "draconic_affinity": ["Taurus", "Virgo", "Capricorn"],
+          "soul_theme": "안정, 구조, 보호"
+        }
+      }
+    }
+  },
+
+  "jeongsaeng_shinsal_draconic": {
+    "description": "전생 관련 신살 ↔ 드라코닉 요소",
+
+    "shinsal_mappings": {
+      "천을귀인": {
+        "saju_meaning": "전생의 덕으로 얻는 귀인",
+        "draconic_parallel": "Draconic Jupiter well-placed",
+        "karma": "전생에 베풀어 이번 생에 돌아옴"
+      },
+      "화개살": {
+        "saju_meaning": "고독의 별, 종교/예술 인연",
+        "draconic_parallel": "Draconic Neptune/12th house emphasis",
+        "karma": "전생의 영적 수행이 이어짐"
+      },
+      "천라지망": {
+        "saju_meaning": "갇힌 운명, 제약",
+        "draconic_parallel": "Draconic Saturn square angles",
+        "karma": "전생의 카르마 부채"
+      },
+      "원진살": {
+        "saju_meaning": "전생의 원한 관계",
+        "draconic_parallel": "Draconic Chiron hard aspects",
+        "karma": "전생에서 해결 못한 관계"
+      },
+      "도화살": {
+        "saju_meaning": "전생의 애정 인연",
+        "draconic_parallel": "Draconic Venus prominent",
+        "karma": "전생의 사랑이 현생에 연결"
+      }
+    }
+  },
+
+  "pillar_draconic_mapping": {
+    "description": "사주 사주(四柱) ↔ 드라코닉 차트 영역",
+
+    "year_pillar": {
+      "saju": "년주 - 조상, 사회, 외부",
+      "draconic": "Draconic MC/10th, 11th house",
+      "karma": "가문의 카르마, 사회적 전생"
+    },
+    "month_pillar": {
+      "saju": "월주 - 부모, 직장",
+      "draconic": "Draconic IC/4th, 10th house",
+      "karma": "부모와의 전생 인연"
+    },
+    "day_pillar": {
+      "saju": "일주 - 자기 자신, 배우자",
+      "draconic": "Draconic Sun, Moon, ASC",
+      "karma": "핵심 영혼 정체성, 전생 배우자"
+    },
+    "hour_pillar": {
+      "saju": "시주 - 자녀, 말년, 내면",
+      "draconic": "Draconic 5th house, IC",
+      "karma": "자녀와의 전생 인연, 영혼의 소망"
+    }
+  },
+
+  "past_life_reading_integration": {
+    "combined_method": {
+      "step1": "사주에서 공망 확인 → 전생에서 비운 영역",
+      "step2": "납음 확인 → 영혼의 질감/스타일",
+      "step3": "전생 신살 확인 → 카르마 패턴",
+      "step4": "드라코닉 차트 계산",
+      "step5": "드라코닉 태양/달/ASC 확인 → 영혼 정체성",
+      "step6": "남교점/북교점 확인 → 전생 습관 / 현생 목적",
+      "step7": "교차 분석 → 사주와 드라코닉이 같은 테마 가리키면 강조"
+    },
+
+    "example_reading": {
+      "saju_data": {
+        "gongmang": "인묘(寅卯) 공망",
+        "naeum": "대해수",
+        "shinsal": ["화개살", "천을귀인"]
+      },
+      "draconic_data": {
+        "draconic_sun": "Pisces",
+        "draconic_moon": "Cancer",
+        "south_node": "Virgo",
+        "north_node": "Pisces"
+      },
+      "integrated_interpretation": {
+        "soul_identity": "대해수 납음 + 드라코닉 태양 물고기 = 깊은 영적 영혼",
+        "past_life": "화개살 + 남교점 처녀 = 전생에 봉사/분석에 과몰입",
+        "current_task": "인묘 공망 + 북교점 물고기 = 시작/행동 영역을 채우며 영성 발달",
+        "guidance": "전생의 완벽주의를 내려놓고 직관과 흐름을 따르세요"
+      }
+    }
+  }
+}

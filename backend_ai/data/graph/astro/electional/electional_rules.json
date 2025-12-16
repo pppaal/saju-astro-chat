@@ -1,0 +1,600 @@
+{
+  "$schema": "electional_astrology_rules_v1",
+  "$description": "택일 점성학 - 최적의 시간 선택을 위한 규칙 엔진",
+
+  "fundamental_rules": {
+    "moon_rules": {
+      "void_of_course": {
+        "definition": "달이 현재 사인을 떠나기 전 마지막 주요 애스펙트 이후 시간",
+        "effect": "시작한 일이 결과를 맺지 못함, 예상대로 흘러가지 않음",
+        "avoid_for": ["계약", "사업시작", "결혼", "수술", "중요한 구매"],
+        "good_for": ["명상", "휴식", "루틴 작업", "정리정돈"],
+        "saju_parallel": {
+          "concept": "공망(空亡)",
+          "similarity": "비어있는 기운, 시작하기 부적합"
+        }
+      },
+      "moon_sign_qualities": {
+        "cardinal": {
+          "signs": ["Aries", "Cancer", "Libra", "Capricorn"],
+          "quality": "시작에 적합, 새로운 프로젝트",
+          "saju_parallel": "역마살 에너지, 활동적"
+        },
+        "fixed": {
+          "signs": ["Taurus", "Leo", "Scorpio", "Aquarius"],
+          "quality": "지속성이 필요한 일, 장기 계획",
+          "saju_parallel": "화개살 에너지, 안정적"
+        },
+        "mutable": {
+          "signs": ["Gemini", "Virgo", "Sagittarius", "Pisces"],
+          "quality": "유연성이 필요한 일, 변화",
+          "saju_parallel": "도화살 에너지, 적응적"
+        }
+      },
+      "moon_phase_elections": {
+        "new_moon": {
+          "phase": "0-3.5일",
+          "best_for": ["새 시작", "계획 수립", "씨앗 심기", "의도 설정"],
+          "avoid": ["마무리 작업", "공개 발표"],
+          "saju_parallel": "월건(月建) 시작"
+        },
+        "waxing_crescent": {
+          "phase": "3.5-7일",
+          "best_for": ["계획 실행", "자원 모으기", "기반 다지기"],
+          "avoid": ["큰 결단"],
+          "saju_parallel": "기운 상승기"
+        },
+        "first_quarter": {
+          "phase": "7-10.5일",
+          "best_for": ["결단", "장애물 극복", "방향 조정"],
+          "avoid": ["휴식", "포기"],
+          "saju_parallel": "도전 시점"
+        },
+        "waxing_gibbous": {
+          "phase": "10.5-14일",
+          "best_for": ["세부 조정", "완성도 높이기", "협력"],
+          "avoid": ["새 시작"],
+          "saju_parallel": "성장 가속기"
+        },
+        "full_moon": {
+          "phase": "14-17.5일",
+          "best_for": ["정점", "공개", "발표", "수확", "결과 확인"],
+          "avoid": ["비밀 유지가 필요한 일"],
+          "saju_parallel": "만개(滿開), 양기 최고조"
+        },
+        "waning_gibbous": {
+          "phase": "17.5-21일",
+          "best_for": ["나눔", "감사", "가르침", "배포"],
+          "avoid": ["새 프로젝트"],
+          "saju_parallel": "결실 나눔"
+        },
+        "last_quarter": {
+          "phase": "21-24.5일",
+          "best_for": ["정리", "마무리", "반성", "습관 버리기"],
+          "avoid": ["시작"],
+          "saju_parallel": "정리 시점"
+        },
+        "waning_crescent": {
+          "phase": "24.5-29.5일",
+          "best_for": ["휴식", "명상", "내면 작업", "완료"],
+          "avoid": ["외부 활동", "중요 결정"],
+          "saju_parallel": "음기 준비, 다음 순환 대기"
+        }
+      }
+    },
+
+    "planetary_aspects": {
+      "benefic_aspects": {
+        "trine_120": {
+          "quality": "최상의 조화, 자연스러운 흐름",
+          "use_for": "모든 긍정적 시작에 적합",
+          "saju_parallel": "삼합(三合)"
+        },
+        "sextile_60": {
+          "quality": "기회, 노력 시 결과",
+          "use_for": "학습, 네트워킹, 기회 활용",
+          "saju_parallel": "육합(六合)"
+        },
+        "conjunction_positive": {
+          "planets": ["Jupiter", "Venus", "Sun", "Mercury_direct"],
+          "quality": "에너지 증폭",
+          "use_for": "해당 행성 영역 강화"
+        }
+      },
+      "malefic_aspects": {
+        "square_90": {
+          "quality": "긴장, 장애물, 갈등",
+          "avoid_for": "평화로운 결과가 필요한 일",
+          "can_use_for": "경쟁, 도전, 돌파가 필요한 상황",
+          "saju_parallel": "형(刑)"
+        },
+        "opposition_180": {
+          "quality": "대립, 양극단, 균형 필요",
+          "avoid_for": "협력, 합의가 필요한 일",
+          "can_use_for": "객관적 시각이 필요한 결정",
+          "saju_parallel": "충(沖)"
+        },
+        "conjunction_negative": {
+          "planets": ["Saturn", "Mars", "Uranus", "Neptune", "Pluto"],
+          "quality": "도전적 에너지 증폭",
+          "careful_use": true
+        }
+      }
+    },
+
+    "retrograde_rules": {
+      "mercury_retrograde": {
+        "avoid": ["계약 서명", "전자기기 구매", "새 프로젝트 시작", "여행 예약", "중요 커뮤니케이션"],
+        "good_for": ["복습", "재검토", "옛 친구 재회", "과거 프로젝트 완료", "연구"],
+        "saju_parallel": {
+          "concept": "역행하는 기운",
+          "similar_to": "천간 충극"
+        }
+      },
+      "venus_retrograde": {
+        "avoid": ["결혼", "약혼", "성형수술", "고가품 구매", "새 관계 시작"],
+        "good_for": ["과거 관계 정리", "가치관 재검토", "자기 사랑", "예술적 수정"],
+        "saju_parallel": "도화살 역행, 과거 인연 재등장"
+      },
+      "mars_retrograde": {
+        "avoid": ["수술", "새 운동 시작", "분쟁", "공격적 행동", "새 사업"],
+        "good_for": ["전략 수정", "분노 해소", "에너지 재충전", "내면 힘 키우기"],
+        "saju_parallel": "겁재 역전, 내부 갈등"
+      },
+      "jupiter_retrograde": {
+        "avoid": ["큰 투자", "법적 문제 시작", "해외 확장"],
+        "good_for": ["내면 성장", "철학적 탐구", "과거 기회 재검토"],
+        "saju_parallel": "정인 역행, 내면 지혜"
+      },
+      "saturn_retrograde": {
+        "avoid": ["새 책임 부담", "장기 계약"],
+        "good_for": ["구조 재검토", "책임 재정의", "카르마 정산"],
+        "saju_parallel": "정관 역행, 권위 재검토"
+      }
+    }
+  },
+
+  "event_specific_elections": {
+    "business": {
+      "starting_business": {
+        "best_aspects": ["Jupiter trine Sun", "Venus trine Jupiter", "Mercury sextile Jupiter"],
+        "moon_sign": ["Taurus", "Leo", "Capricorn"],
+        "moon_phase": "waxing (초승-상현)",
+        "avoid": ["Mercury retrograde", "Saturn square Sun", "Mars afflicted"],
+        "best_day": ["Thursday (Jupiter)", "Sunday (Sun)"],
+        "best_hour": "Jupiter hour or Sun hour",
+        "saju_cross_reference": {
+          "good_days": ["천덕일", "월덕일", "일록일"],
+          "avoid_days": ["파일", "사절일", "양공일"],
+          "stem_branch_check": "천간합이 있는 날 선호"
+        }
+      },
+      "signing_contracts": {
+        "best_aspects": ["Mercury well-aspected", "Saturn trine Mercury", "Jupiter sextile Mercury"],
+        "moon_sign": ["Gemini", "Virgo", "Libra", "Capricorn"],
+        "avoid": ["Mercury retrograde", "Neptune square Mercury", "Moon void"],
+        "best_day": "Wednesday (Mercury)",
+        "saju_cross_reference": {
+          "good_days": ["개일", "성일"],
+          "avoid_days": ["폐일", "파일"],
+          "check": "일간과 계약 상대방 용신 조화"
+        }
+      },
+      "important_meetings": {
+        "best_aspects": ["Mercury trine Sun", "Venus well-aspected"],
+        "moon_sign": ["Libra", "Gemini", "Sagittarius"],
+        "avoid": ["Mars square Mercury", "Neptune aspects"],
+        "saju_cross_reference": {
+          "good_days": ["만일", "성일"],
+          "check": "참석자들 일간 상생 관계"
+        }
+      },
+      "product_launch": {
+        "best_aspects": ["Sun trine Jupiter", "Mars sextile Jupiter", "Venus conjunct Moon"],
+        "moon_phase": "full moon +/- 3 days",
+        "moon_sign": ["Leo", "Sagittarius", "Aries"],
+        "avoid": ["Saturn opposite Sun", "Eclipse season"],
+        "saju_cross_reference": {
+          "best": "제품 속성과 당일 오행 조화",
+          "timing": "상승 대운과 동기화"
+        }
+      }
+    },
+
+    "relationships": {
+      "marriage": {
+        "best_aspects": ["Venus trine Jupiter", "Moon trine Venus", "Sun sextile Moon"],
+        "moon_sign": ["Taurus", "Cancer", "Libra", "Pisces"],
+        "moon_phase": "first quarter to full",
+        "avoid": ["Venus retrograde", "Mars square Venus", "Saturn afflicting Venus", "Eclipse"],
+        "best_day": ["Friday (Venus)", "Monday (Moon)"],
+        "saju_cross_reference": {
+          "essential": "쌍방 궁합 확인",
+          "good_days": ["천희일", "천은일", "합일"],
+          "avoid_days": ["충일", "파일", "절일"],
+          "check": ["신랑 일간과 신부 일간 관계", "결혼일과 양가 납음 관계"]
+        }
+      },
+      "engagement": {
+        "best_aspects": ["Venus trine Moon", "Jupiter aspects Venus"],
+        "moon_sign": ["Libra", "Taurus", "Leo"],
+        "avoid": ["Venus retrograde", "Mercury retrograde"],
+        "saju_cross_reference": {
+          "good_days": ["성일", "개일", "합신일"],
+          "avoid_days": ["충일", "삼살일"]
+        }
+      },
+      "first_date": {
+        "best_aspects": ["Venus trine Mars", "Moon in Venus-ruled sign"],
+        "moon_sign": ["Taurus", "Libra", "Leo", "Pisces"],
+        "moon_phase": "waxing",
+        "avoid": ["Moon square Mars", "Saturn aspects"],
+        "saju_cross_reference": {
+          "check": "상대방 도화살 위치와 조화"
+        }
+      }
+    },
+
+    "health_medical": {
+      "surgery": {
+        "best_aspects": ["Mars well-aspected", "Moon not afflicted"],
+        "moon_sign_avoid": "해당 신체 부위 지배 사인 (예: 눈 수술 시 Aries 피함)",
+        "moon_phase": "waning (하현 이후) - 출혈/부기 감소",
+        "absolutely_avoid": ["Mars retrograde", "Mercury retrograde (communication errors)", "Moon void"],
+        "best_day": ["Tuesday (Mars) - 외과적", "Saturday (Saturn) - 뼈/치과"],
+        "saju_cross_reference": {
+          "avoid_days": ["충일 (특히 해당 부위 지지 충)", "파일", "천살일"],
+          "good_days": ["성일", "개일"],
+          "check": "수술 부위와 관련된 오행 상생 확인"
+        },
+        "body_part_signs": {
+          "Aries": "머리, 얼굴",
+          "Taurus": "목, 갑상선",
+          "Gemini": "팔, 손, 폐",
+          "Cancer": "가슴, 위",
+          "Leo": "심장, 척추",
+          "Virgo": "소화기, 장",
+          "Libra": "신장, 허리",
+          "Scorpio": "생식기, 직장",
+          "Sagittarius": "엉덩이, 대퇴부",
+          "Capricorn": "무릎, 뼈, 피부",
+          "Aquarius": "발목, 순환계",
+          "Pisces": "발, 림프"
+        }
+      },
+      "starting_treatment": {
+        "best_aspects": ["Jupiter trine Sun", "Moon well-aspected"],
+        "moon_phase": "new to first quarter (시작/성장)",
+        "avoid": ["Saturn afflicting treatment planet"],
+        "saju_cross_reference": {
+          "check": "치료 시작일과 환자 용신 조화"
+        }
+      },
+      "dental_work": {
+        "best_aspects": ["Saturn well-aspected", "Mars not afflicted"],
+        "moon_sign_avoid": ["Taurus", "Aries"],
+        "moon_phase": "waning",
+        "best_day": "Saturday (Saturn)",
+        "saju_cross_reference": {
+          "good_days": ["금기운 강한 날"],
+          "avoid": "목 기운 과다한 날 (금극목)"
+        }
+      }
+    },
+
+    "travel": {
+      "long_journey": {
+        "best_aspects": ["Jupiter well-aspected", "Mercury trine Jupiter", "9th house active"],
+        "moon_sign": ["Sagittarius", "Gemini", "Aquarius"],
+        "avoid": ["Mercury retrograde", "Mars afflicted", "Neptune square Mercury"],
+        "saju_cross_reference": {
+          "good_days": ["역마일", "천마일"],
+          "avoid_days": ["귀문관살일", "양공일"],
+          "check": "역마 방향과 실제 여행 방향 조화"
+        }
+      },
+      "moving_house": {
+        "best_aspects": ["Moon trine Venus", "4th house ruler well-aspected"],
+        "moon_sign": ["Cancer", "Taurus", "Virgo"],
+        "moon_phase": "waxing for new beginning, waning to leave old behind",
+        "avoid": ["Mercury retrograde", "Moon void", "4th house afflicted"],
+        "saju_cross_reference": {
+          "essential": "이사 방향과 기문둔갑 길방 확인",
+          "good_days": ["천사일", "개일", "성일"],
+          "avoid_days": ["살방향으로의 이동", "세파일"]
+        }
+      }
+    },
+
+    "financial": {
+      "investments": {
+        "best_aspects": ["Jupiter trine Venus", "2nd house well-aspected", "8th house stable"],
+        "moon_sign": ["Taurus", "Capricorn", "Scorpio"],
+        "avoid": ["Neptune aspects to 2nd/8th", "Mercury retrograde", "Saturn afflicted"],
+        "best_day": "Thursday (Jupiter)",
+        "saju_cross_reference": {
+          "good_days": ["재성 강한 날", "일록일"],
+          "avoid_days": ["겁재 과다일", "공망일"],
+          "check": "투자자 재성 운과 동기화"
+        }
+      },
+      "buying_property": {
+        "best_aspects": ["4th house ruler well-aspected", "Saturn trine Moon", "Jupiter in 4th"],
+        "moon_sign": ["Taurus", "Cancer", "Capricorn"],
+        "avoid": ["Mercury retrograde", "Venus retrograde", "4th house afflicted"],
+        "saju_cross_reference": {
+          "good_days": ["토기운 안정일", "성일"],
+          "avoid_days": ["파일", "절일"],
+          "check": "부동산 방향과 풍수 길방"
+        }
+      },
+      "major_purchases": {
+        "best_aspects": ["Venus well-aspected", "Moon trine Venus"],
+        "moon_sign": ["Taurus", "Leo", "Libra"],
+        "avoid": ["Venus retrograde", "Mercury retrograde", "Moon void"],
+        "saju_cross_reference": {
+          "good_days": ["개일", "성일", "만일"],
+          "avoid_days": ["파일", "폐일"]
+        }
+      }
+    },
+
+    "creative_projects": {
+      "starting_creative_work": {
+        "best_aspects": ["Neptune trine Venus", "Moon trine Neptune", "5th house active"],
+        "moon_sign": ["Pisces", "Leo", "Libra", "Aquarius"],
+        "moon_phase": "new moon to first quarter",
+        "best_day": ["Friday (Venus)", "Monday (Moon) for intuitive work"],
+        "saju_cross_reference": {
+          "good_days": ["식신 강한 날", "화개살 활성일"],
+          "check": "창작 분야와 일간 오행 조화"
+        }
+      },
+      "publishing_releasing": {
+        "best_aspects": ["Mercury trine Jupiter", "Sun well-aspected", "9th house active"],
+        "moon_phase": "full moon +/- 5 days",
+        "moon_sign": ["Sagittarius", "Leo", "Gemini"],
+        "avoid": ["Mercury retrograde", "Neptune afflictions"],
+        "saju_cross_reference": {
+          "good_days": ["성일", "개일", "상관 활성일"],
+          "best": "작품 속성과 당일 기운 조화"
+        }
+      }
+    },
+
+    "education": {
+      "starting_studies": {
+        "best_aspects": ["Mercury trine Jupiter", "9th house active", "3rd house well-aspected"],
+        "moon_sign": ["Gemini", "Virgo", "Sagittarius", "Aquarius"],
+        "moon_phase": "waxing",
+        "best_day": "Wednesday (Mercury)",
+        "saju_cross_reference": {
+          "good_days": ["문창귀인일", "인성 강한 날"],
+          "check": "학문 분야와 용신 오행 조화"
+        }
+      },
+      "taking_exams": {
+        "best_aspects": ["Mercury well-aspected", "Moon stable", "Jupiter supporting"],
+        "moon_sign_avoid": ["Pisces (confusion)", "Scorpio (pressure)"],
+        "avoid": ["Mercury retrograde", "Mercury square Neptune", "Moon void"],
+        "saju_cross_reference": {
+          "good_days": ["인성 강한 날", "식신 활성일"],
+          "avoid_days": ["공망일", "천라지망일"],
+          "check": "시험 시간과 수험자 시주 조화"
+        }
+      }
+    },
+
+    "legal": {
+      "filing_lawsuit": {
+        "best_aspects": ["Mars trine Jupiter", "9th house active", "Saturn supporting"],
+        "moon_sign": ["Aries", "Libra", "Capricorn"],
+        "avoid": ["Mercury retrograde", "Jupiter retrograde", "7th house afflicted"],
+        "saju_cross_reference": {
+          "good_days": ["편관 강한 날", "정관 활성일"],
+          "check": "상대방과의 오행 관계"
+        }
+      },
+      "court_appearance": {
+        "best_aspects": ["Mercury well-aspected", "Jupiter supporting", "10th house stable"],
+        "avoid": ["Mercury retrograde", "Neptune aspects (confusion)", "Moon void"],
+        "saju_cross_reference": {
+          "good_days": ["정관 강한 날"],
+          "avoid_days": ["충일", "파일"]
+        }
+      }
+    }
+  },
+
+  "planetary_hours": {
+    "description": "일출부터 일몰까지를 12등분, 일몰부터 일출까지를 12등분하여 행성 배정",
+    "day_rulers": {
+      "Sunday": "Sun",
+      "Monday": "Moon",
+      "Tuesday": "Mars",
+      "Wednesday": "Mercury",
+      "Thursday": "Jupiter",
+      "Friday": "Venus",
+      "Saturday": "Saturn"
+    },
+    "hour_sequence": ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"],
+    "hour_applications": {
+      "Sun_hour": {
+        "good_for": ["리더십", "권위 관련", "아버지 관련", "성공", "명예"],
+        "saju_parallel": "갑목/병화 기운 강화"
+      },
+      "Moon_hour": {
+        "good_for": ["가정", "여성/어머니 관련", "직관", "대중", "부동산"],
+        "saju_parallel": "계수/을목 기운 강화"
+      },
+      "Mercury_hour": {
+        "good_for": ["커뮤니케이션", "문서", "학습", "여행", "거래"],
+        "saju_parallel": "식신/상관 기운 강화"
+      },
+      "Venus_hour": {
+        "good_for": ["사랑", "예술", "아름다움", "돈", "쾌락"],
+        "saju_parallel": "정재 기운 강화"
+      },
+      "Mars_hour": {
+        "good_for": ["경쟁", "운동", "수술", "분쟁", "용기가 필요한 일"],
+        "saju_parallel": "편관/겁재 기운 강화"
+      },
+      "Jupiter_hour": {
+        "good_for": ["확장", "교육", "법률", "종교", "해외", "재물 증식"],
+        "saju_parallel": "정인/편재 기운 강화"
+      },
+      "Saturn_hour": {
+        "good_for": ["구조화", "장기 계획", "부동산", "노인 관련", "제한 설정"],
+        "saju_parallel": "정관 기운 강화"
+      }
+    }
+  },
+
+  "eclipse_rules": {
+    "solar_eclipse": {
+      "effect": "새로운 시작의 강력한 전환점, 예측 불가능성",
+      "avoid": ["모든 중요한 시작 (결과 예측 어려움)", "계약", "결혼"],
+      "timing": "이클립스 전후 1주일",
+      "saju_parallel": "일식 = 양기 차단, 주요 전환점"
+    },
+    "lunar_eclipse": {
+      "effect": "감정적 정점, 숨겨진 것의 노출, 관계 전환",
+      "avoid": ["비밀 유지 필요한 일", "감정적 결정"],
+      "timing": "이클립스 전후 1주일",
+      "saju_parallel": "월식 = 음기 차단, 감정적 청산"
+    },
+    "eclipse_return": {
+      "description": "이클립스 도수로 행성/포인트가 돌아올 때 활성화",
+      "effect": "이클립스 테마의 재발현"
+    }
+  },
+
+  "saju_twelve_daily_cycles": {
+    "description": "십이건제(十二建除) - 사주 택일의 12일 순환",
+    "cycles": {
+      "건일(建日)": {
+        "meaning": "세우는 날",
+        "good_for": ["상량", "부임", "결혼", "개업"],
+        "avoid": ["소송", "치료"],
+        "astro_parallel": "New Moon energy"
+      },
+      "제일(除日)": {
+        "meaning": "제거하는 날",
+        "good_for": ["청소", "해충 퇴치", "의료", "장례"],
+        "avoid": ["결혼", "개업"],
+        "astro_parallel": "Waning energy"
+      },
+      "만일(滿日)": {
+        "meaning": "가득 찬 날",
+        "good_for": ["결혼", "개업", "이사", "잔치"],
+        "avoid": ["약 복용", "소송"],
+        "astro_parallel": "Full Moon energy"
+      },
+      "평일(平日)": {
+        "meaning": "평평한 날",
+        "good_for": ["도로 공사", "일반 작업"],
+        "neutral": true,
+        "astro_parallel": "Quarter Moon energy"
+      },
+      "정일(定日)": {
+        "meaning": "정하는 날",
+        "good_for": ["계약", "약속", "소송 시작", "취직"],
+        "avoid": ["이사", "여행"],
+        "astro_parallel": "Fixed sign Moon"
+      },
+      "집일(執日)": {
+        "meaning": "잡는 날",
+        "good_for": ["건축", "채권 회수", "사냥"],
+        "avoid": ["이사", "결혼"],
+        "astro_parallel": "Cardinal sign Moon"
+      },
+      "파일(破日)": {
+        "meaning": "깨지는 날",
+        "good_for": ["철거", "치료", "못된 습관 버리기"],
+        "avoid": ["결혼", "계약", "개업", "모든 시작"],
+        "astro_parallel": "Hard aspect Moon (square)"
+      },
+      "위일(危日)": {
+        "meaning": "위험한 날",
+        "good_for": ["도박 (고위험 고수익)", "모험"],
+        "avoid": ["건축", "결혼", "안정 필요한 일"],
+        "astro_parallel": "Mars-Uranus energy"
+      },
+      "성일(成日)": {
+        "meaning": "이루는 날",
+        "good_for": ["결혼", "개업", "계약", "입학", "취직"],
+        "best_day": true,
+        "astro_parallel": "Jupiter trine Sun"
+      },
+      "수일(收日)": {
+        "meaning": "거두는 날",
+        "good_for": ["채권 회수", "수확", "저축", "장례"],
+        "avoid": ["시작"],
+        "astro_parallel": "Saturn energy, harvest"
+      },
+      "개일(開日)": {
+        "meaning": "여는 날",
+        "good_for": ["개업", "결혼", "이사", "취직", "모든 시작"],
+        "best_day": true,
+        "astro_parallel": "Jupiter conjunct Sun"
+      },
+      "폐일(閉日)": {
+        "meaning": "닫는 날",
+        "good_for": ["저장", "장례", "마무리"],
+        "avoid": ["시작", "개업", "결혼"],
+        "astro_parallel": "Saturn square/opposition"
+      }
+    }
+  },
+
+  "combined_scoring_system": {
+    "description": "택일 점수 산출 시스템 (점성술 + 사주)",
+    "max_score": 100,
+    "categories": {
+      "moon_factors": {
+        "weight": 25,
+        "items": {
+          "moon_phase_appropriate": 10,
+          "moon_sign_appropriate": 10,
+          "moon_not_void": 5
+        }
+      },
+      "planetary_aspects": {
+        "weight": 25,
+        "items": {
+          "benefic_aspects_present": 15,
+          "no_major_afflictions": 10
+        }
+      },
+      "no_retrograde_issues": {
+        "weight": 15,
+        "items": {
+          "mercury_direct": 7,
+          "other_planets_direct": 8
+        }
+      },
+      "saju_factors": {
+        "weight": 25,
+        "items": {
+          "good_daily_cycle": 10,
+          "no_conflict_with_birth_chart": 10,
+          "auspicious_day_type": 5
+        }
+      },
+      "special_considerations": {
+        "weight": 10,
+        "items": {
+          "planetary_hour_match": 5,
+          "no_eclipse": 5
+        }
+      }
+    },
+    "interpretation": {
+      "90-100": "최적의 택일 - 적극 추천",
+      "75-89": "좋은 택일 - 추천",
+      "60-74": "무난한 택일 - 가능",
+      "45-59": "주의 필요 - 대안 검토 권장",
+      "below_45": "비추천 - 다른 날짜 선택 권장"
+    }
+  }
+}

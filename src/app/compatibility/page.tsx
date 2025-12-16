@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
+import { useEffect, useState } from 'react';
+import { getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
+import ShareButton from '@/components/share/ShareButton';
+import { generateCompatibilityCard, CompatibilityData } from '@/components/share/cards/CompatibilityCard';
+import { useRouter } from 'next/navigation';
 import styles from './Compatibility.module.css';
 
 type Relation = 'friend' | 'lover' | 'other';
@@ -28,11 +31,11 @@ type PersonForm = {
 
 const makeEmptyPerson = (defaults?: Partial<PersonForm>): PersonForm => ({
   name: '',
-  date: '1995-02-09',
-  time: '06:40',
-  cityQuery: 'Seoul, KR',
-  lat: 37.5665,
-  lon: 126.978,
+  date: '',
+  time: '',
+  cityQuery: '',
+  lat: null,
+  lon: null,
   timeZone: getUserTimezone() || 'Asia/Seoul',
   suggestions: [],
   showDropdown: false,
@@ -45,26 +48,140 @@ const relationIcons: Record<Relation, string> = {
   other: '✨',
 };
 
+// Parse result text into sections for beautiful display
+function parseResultSections(text: string): { title: string; icon: string; content: string }[] {
+  const sections: { title: string; icon: string; content: string }[] = [];
+
+  // Common section patterns with icons
+  const sectionPatterns = [
+    { pattern: /(?:^|\n)#+\s*(?:Overall|총합|종합|전체)\s*(?:Score|점수|Compatibility|궁합)/i, icon: '💫', title: 'Overall Score' },
+    { pattern: /(?:^|\n)#+\s*(?:Saju|사주|Four Pillars)/i, icon: '☯️', title: 'Saju Analysis' },
+    { pattern: /(?:^|\n)#+\s*(?:Astrology|점성술|별자리|Zodiac)/i, icon: '✨', title: 'Astrology Analysis' },
+    { pattern: /(?:^|\n)#+\s*(?:Element|오행|五行)/i, icon: '🔮', title: 'Element Harmony' },
+    { pattern: /(?:^|\n)#+\s*(?:Love|사랑|연애|Romance)/i, icon: '💕', title: 'Love Compatibility' },
+    { pattern: /(?:^|\n)#+\s*(?:Communication|소통|대화)/i, icon: '💬', title: 'Communication' },
+    { pattern: /(?:^|\n)#+\s*(?:Emotion|감정|Feeling)/i, icon: '💗', title: 'Emotional Connection' },
+    { pattern: /(?:^|\n)#+\s*(?:Strength|강점|장점)/i, icon: '💪', title: 'Strengths' },
+    { pattern: /(?:^|\n)#+\s*(?:Challenge|도전|과제|주의)/i, icon: '⚡', title: 'Challenges' },
+    { pattern: /(?:^|\n)#+\s*(?:Advice|조언|충고)/i, icon: '💡', title: 'Advice' },
+    { pattern: /(?:^|\n)#+\s*(?:Summary|요약|결론)/i, icon: '📝', title: 'Summary' },
+    { pattern: /(?:^|\n)#+\s*(?:Sun|태양)/i, icon: '☀️', title: 'Sun Sign' },
+    { pattern: /(?:^|\n)#+\s*(?:Moon|달|월)/i, icon: '🌙', title: 'Moon Sign' },
+    { pattern: /(?:^|\n)#+\s*(?:Venus|금성)/i, icon: '💖', title: 'Venus Aspect' },
+    { pattern: /(?:^|\n)#+\s*(?:Mars|화성)/i, icon: '🔥', title: 'Mars Aspect' },
+  ];
+
+  // Split by common section markers
+  const lines = text.split('\n');
+  let currentSection: { title: string; icon: string; content: string[] } | null = null;
+
+  for (const line of lines) {
+    let foundSection = false;
+
+    for (const { pattern, icon, title } of sectionPatterns) {
+      if (pattern.test(line)) {
+        if (currentSection && currentSection.content.length > 0) {
+          sections.push({
+            title: currentSection.title,
+            icon: currentSection.icon,
+            content: currentSection.content.join('\n').trim(),
+          });
+        }
+        currentSection = { title, icon, content: [] };
+        foundSection = true;
+        break;
+      }
+    }
+
+    if (!foundSection && line.match(/^#{1,3}\s+.+/)) {
+      // Generic heading
+      if (currentSection && currentSection.content.length > 0) {
+        sections.push({
+          title: currentSection.title,
+          icon: currentSection.icon,
+          content: currentSection.content.join('\n').trim(),
+        });
+      }
+      const headingText = line.replace(/^#+\s*/, '').trim();
+      currentSection = { title: headingText, icon: '✨', content: [] };
+    } else if (currentSection) {
+      currentSection.content.push(line);
+    } else if (line.trim()) {
+      // Content before any section header
+      if (!currentSection) {
+        currentSection = { title: 'Overview', icon: '💫', content: [] };
+      }
+      currentSection.content.push(line);
+    }
+  }
+
+  // Add last section
+  if (currentSection && currentSection.content.length > 0) {
+    sections.push({
+      title: currentSection.title,
+      icon: currentSection.icon,
+      content: currentSection.content.join('\n').trim(),
+    });
+  }
+
+  return sections;
+}
+
+// Extract score from text
+function extractScore(text: string): number | null {
+  const patterns = [
+    /(\d{1,3})(?:\s*)?(?:%|점|\/100|out of 100)/i,
+    /(?:score|점수|compatibility|궁합)[\s:]*(\d{1,3})/i,
+    /(\d{1,3})(?:\s*)?(?:percent|퍼센트)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const score = parseInt(match[1], 10);
+      if (score >= 0 && score <= 100) return score;
+    }
+  }
+  return null;
+}
+
 export default function CompatPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [count, setCount] = useState<number>(2);
-  const timezones = useMemo(() => getSupportedTimezones(), []);
 
   const [persons, setPersons] = useState<PersonForm[]>([
-    makeEmptyPerson({ name: 'Person 1' }),
-    makeEmptyPerson({ name: 'Person 2', relation: 'lover' }),
+    makeEmptyPerson({ name: '' }),
+    makeEmptyPerson({ name: '', relation: 'lover' }),
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultText, setResultText] = useState<string | null>(null);
 
+  // NEW: Timing and Action Items from fusion system
+  type TimingData = {
+    current_month?: {
+      branch: string;
+      element: string;
+      analysis: string;
+    };
+    good_days?: Array<{
+      type: string;
+      days: string;
+      activities: string[];
+      reason: string;
+    }>;
+  };
+  const [timing, setTiming] = useState<TimingData | null>(null);
+  const [actionItems, setActionItems] = useState<string[]>([]);
+
   useEffect(() => {
     setPersons((prev) => {
       const next = [...prev];
       if (count > prev.length) {
         for (let i = prev.length; i < count; i++) {
-          next.push(makeEmptyPerson({ name: `Person ${i + 1}`, relation: 'friend' }));
+          next.push(makeEmptyPerson({ name: '', relation: 'friend' }));
         }
       } else if (count < prev.length) {
         next.length = count;
@@ -81,27 +198,46 @@ export default function CompatPage() {
     });
   };
 
+  // Extract cityQuery values to avoid re-triggering when suggestions change
+  // Also track if city is already selected (has lat/lon)
+  const cityQueries = persons.map((p) => p.cityQuery);
+  const citySelected = persons.map((p) => p.lat !== null && p.lon !== null);
+
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
-    persons.forEach((p, idx) => {
-      const q = p.cityQuery.trim();
-      if (q.length < 2) {
-        if (p.suggestions.length) update(idx, 'suggestions', []);
+    cityQueries.forEach((query, idx) => {
+      const q = query.trim();
+      // Skip if city already selected or query too short
+      if (citySelected[idx] || q.length < 2) {
+        setPersons((prev) => {
+          if (prev[idx].suggestions.length === 0) return prev;
+          const next = [...prev];
+          next[idx] = { ...next[idx], suggestions: [], showDropdown: false };
+          return next;
+        });
         return;
       }
       const t = setTimeout(async () => {
         try {
           const items = (await searchCities(q, { limit: 20 })) as CityItem[];
-          update(idx, 'suggestions', items);
-          update(idx, 'showDropdown', true);
+          setPersons((prev) => {
+            const next = [...prev];
+            next[idx] = { ...next[idx], suggestions: items, showDropdown: true };
+            return next;
+          });
         } catch {
-          update(idx, 'suggestions', []);
+          setPersons((prev) => {
+            const next = [...prev];
+            next[idx] = { ...next[idx], suggestions: [] };
+            return next;
+          });
         }
       }, 150);
       timers.push(t);
     });
     return () => timers.forEach(clearTimeout);
-  }, [persons]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityQueries.join('|'), citySelected.join('|')]);
 
   const onPickCity = (i: number, item: CityItem) => {
     update(i, 'cityQuery', `${item.name}, ${item.country}`);
@@ -169,18 +305,44 @@ export default function CompatPage() {
       const data = await res.json();
       if (!res.ok || data?.error) throw new Error(data?.error || 'Server error');
       setResultText(data.interpretation || JSON.stringify(data, null, 2));
-    } catch (e: any) {
-      setError(e?.message || 'Failed to fetch compatibility.');
+
+      // NEW: Set timing and action items from fusion system
+      if (data.timing) {
+        setTiming(data.timing);
+      }
+      if (data.action_items && Array.isArray(data.action_items)) {
+        setActionItems(data.action_items);
+      }
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleBack = () => {
+    if (resultText) {
+      setResultText(null);
+      setError(null);
+      setTiming(null);
+      setActionItems([]);
+    } else {
+      router.back();
+    }
+  };
+
+  // Parse results for beautiful display
+  const sections = resultText ? parseResultSections(resultText) : [];
+  const overallScore = resultText ? extractScore(resultText) : null;
 
   return (
     <ServicePageLayout
       icon="💕"
       title={t('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
       subtitle={t('compatibilityPage.analysisSubtitle', 'Discover relationship compatibility through astrological birth data')}
+      onBack={handleBack}
+      backLabel={t('compatibilityPage.backToForm', 'Back')}
     >
       <main className={styles.page}>
         {/* Background Hearts - deterministic positions to avoid hydration mismatch */}
@@ -296,8 +458,17 @@ export default function CompatPage() {
                         id={`city-${idx}`}
                         autoComplete="off"
                         value={p.cityQuery}
-                        onChange={(e) => update(idx, 'cityQuery', e.target.value)}
-                        onFocus={() => update(idx, 'showDropdown', true)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPersons((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null };
+                            return next;
+                          });
+                        }}
+                        onFocus={() => {
+                          if (p.lat === null) update(idx, 'showDropdown', true);
+                        }}
                         onBlur={() => setTimeout(() => update(idx, 'showDropdown', false), 200)}
                         placeholder={t('compatibilityPage.cityPlaceholder', 'e.g., Seoul, KR')}
                         className={styles.input}
@@ -320,23 +491,19 @@ export default function CompatPage() {
                       )}
                     </div>
 
-                    {/* Timezone */}
+                    {/* Timezone (auto-set, readonly) */}
                     <div>
                       <label htmlFor={`tz-${idx}`} className={styles.label}>
                         {t('compatibilityPage.timeZone', 'Time Zone')}
                       </label>
-                      <select
+                      <input
                         id={`tz-${idx}`}
+                        type="text"
                         value={p.timeZone}
-                        onChange={(e) => update(idx, 'timeZone', e.target.value)}
-                        className={styles.select}
-                      >
-                        {timezones.map((tz) => (
-                          <option key={tz} value={tz}>
-                            {tz}
-                          </option>
-                        ))}
-                      </select>
+                        readOnly
+                        className={`${styles.input} ${styles.inputReadonly}`}
+                        title={t('compatibilityPage.timezoneAutoSet', 'Automatically set based on city')}
+                      />
                     </div>
 
                     {/* Relation (for Person 2+) */}
@@ -421,10 +588,174 @@ export default function CompatPage() {
 
         {/* Results */}
         {resultText && (
-          <div className={styles.resultsContainer}>
-            <div className={`${styles.resultCard} ${styles.fadeIn}`}>
-              <div className={styles.resultCardGlow} />
-              {resultText}
+          <div className={`${styles.resultsContainer} ${styles.fadeIn}`}>
+            {/* Result Header */}
+            <div className={styles.resultHeader}>
+              <div className={styles.resultIcon}>💕</div>
+              <h1 className={styles.resultTitle}>
+                {t('compatibilityPage.resultTitle', 'Compatibility Analysis')}
+              </h1>
+              <p className={styles.resultSubtitle}>
+                {persons.map(p => p.name || 'Person').join(' & ')}
+              </p>
+            </div>
+
+            {/* Overall Score Circle */}
+            {overallScore !== null && (
+              <div className={styles.scoreSection}>
+                <div className={styles.scoreCircle}>
+                  <div className={styles.scoreCircleBg} />
+                  <div
+                    className={styles.scoreCircleProgress}
+                    style={{ '--progress': `${overallScore}%` } as React.CSSProperties}
+                  />
+                  <span className={styles.scoreValue}>{overallScore}</span>
+                </div>
+                <span className={styles.scoreLabel}>
+                  {t('compatibilityPage.overallCompatibility', 'Overall Compatibility')}
+                </span>
+              </div>
+            )}
+
+            {/* Parsed Sections */}
+            {sections.length > 0 ? (
+              <div className={styles.resultSections}>
+                {sections.map((section, idx) => (
+                  <div
+                    key={idx}
+                    className={`${styles.resultCard} ${section.content.length > 300 ? styles.resultCardFullWidth : ''}`}
+                  >
+                    <div className={styles.resultCardGlow} />
+                    <div className={styles.resultCardHeader}>
+                      <span className={styles.resultCardIcon}>{section.icon}</span>
+                      <h3 className={styles.resultCardTitle}>{section.title}</h3>
+                    </div>
+                    <div className={styles.resultCardContent}>
+                      {section.content.split('\n').map((line, i) => {
+                        // Check if line contains a score/percentage
+                        const scoreMatch = line.match(/(\d{1,3})(?:\s*)?(?:%|점|\/100)/);
+                        if (scoreMatch) {
+                          const lineScore = parseInt(scoreMatch[1], 10);
+                          if (lineScore >= 0 && lineScore <= 100) {
+                            return (
+                              <div key={i}>
+                                <p>{line.replace(scoreMatch[0], '').trim()}</p>
+                                <div className={styles.scoreBar}>
+                                  <div className={styles.scoreBarHeader}>
+                                    <span>{t('compatibilityPage.score', 'Score')}</span>
+                                    <span>{lineScore}%</span>
+                                  </div>
+                                  <div className={styles.scoreBarTrack}>
+                                    <div
+                                      className={styles.scoreBarFill}
+                                      style={{ width: `${lineScore}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
+                        }
+                        // Regular paragraph
+                        if (line.trim()) {
+                          return <p key={i}>{line}</p>;
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Fallback: plain text display with beautiful styling
+              <div className={styles.interpretationText}>
+                {resultText}
+              </div>
+            )}
+
+            {/* Timing Guide Section */}
+            {timing && (
+              <div className={styles.timingSection}>
+                <div className={styles.resultCard}>
+                  <div className={styles.resultCardGlow} />
+                  <div className={styles.resultCardHeader}>
+                    <span className={styles.resultCardIcon}>📅</span>
+                    <h3 className={styles.resultCardTitle}>
+                      {t('compatibilityPage.timingGuide', 'Timing Guide')}
+                    </h3>
+                  </div>
+                  <div className={styles.resultCardContent}>
+                    {timing.current_month && (
+                      <div className={styles.timingItem}>
+                        <h4>🌙 {t('compatibilityPage.thisMonth', 'This Month')}</h4>
+                        <p className={styles.timingBranch}>
+                          {timing.current_month.branch} ({timing.current_month.element})
+                        </p>
+                        <p>{timing.current_month.analysis}</p>
+                      </div>
+                    )}
+                    {timing.good_days && timing.good_days.length > 0 && (
+                      <div className={styles.goodDays}>
+                        <h4>✨ {t('compatibilityPage.recommendedDays', 'Recommended Days')}</h4>
+                        {timing.good_days.map((day, idx) => (
+                          <div key={idx} className={styles.dayItem}>
+                            <span className={styles.dayLabel}>{day.days}</span>
+                            <span className={styles.dayActivities}>
+                              {day.activities.join(', ')}
+                            </span>
+                            <span className={styles.dayReason}>{day.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Items Section */}
+            {actionItems.length > 0 && (
+              <div className={styles.actionSection}>
+                <div className={styles.resultCard}>
+                  <div className={styles.resultCardGlow} />
+                  <div className={styles.resultCardHeader}>
+                    <span className={styles.resultCardIcon}>💪</span>
+                    <h3 className={styles.resultCardTitle}>
+                      {t('compatibilityPage.growthActions', 'Growth Actions')}
+                    </h3>
+                  </div>
+                  <div className={styles.resultCardContent}>
+                    <ul className={styles.actionList}>
+                      {actionItems.map((item, idx) => (
+                        <li key={idx} className={styles.actionItem}>
+                          <span className={styles.actionNumber}>{idx + 1}</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Share Button */}
+            <div className={styles.shareSection}>
+              <ShareButton
+                generateCard={() => {
+                  const shareData: CompatibilityData = {
+                    person1Name: persons[0]?.name || 'Person 1',
+                    person2Name: persons[1]?.name || 'Person 2',
+                    score: overallScore ?? 75,
+                    relation: (persons[1]?.relation as 'lover' | 'friend' | 'other') || 'lover',
+                    highlights: sections.slice(0, 2).map(s => s.content.split('\n')[0]?.slice(0, 80)),
+                  };
+                  return generateCompatibilityCard(shareData, 'og');
+                }}
+                filename="compatibility-result.png"
+                shareTitle={t('compatibilityPage.shareTitle', 'Our Compatibility Result')}
+                shareText={`${persons[0]?.name || 'Person 1'} & ${persons[1]?.name || 'Person 2'}: ${overallScore ?? '?'}% compatible! Check yours at destinypal.me/compatibility`}
+                label={t('share.shareResult', 'Share Result')}
+              />
             </div>
           </div>
         )}

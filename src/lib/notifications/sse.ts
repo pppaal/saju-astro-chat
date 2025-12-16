@@ -3,6 +3,8 @@
  * Manages SSE connections and sends real-time notifications
  */
 
+import { recordCounter, recordGauge } from "@/lib/metrics";
+
 // Store active connections
 const clients = new Map<string, ReadableStreamDefaultController>();
 
@@ -22,6 +24,8 @@ export function registerClient(
   controller: ReadableStreamDefaultController
 ): void {
   clients.set(userId, controller);
+  recordCounter("sse_client_connect", 1, { user: "masked" });
+  recordGauge("sse_active_connections", clients.size);
 }
 
 /**
@@ -29,6 +33,8 @@ export function registerClient(
  */
 export function unregisterClient(userId: string): void {
   clients.delete(userId);
+  recordCounter("sse_client_disconnect", 1, { user: "masked" });
+  recordGauge("sse_active_connections", clients.size);
 }
 
 /**

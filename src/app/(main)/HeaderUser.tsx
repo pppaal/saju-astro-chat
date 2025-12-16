@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { signIn } from "next-auth/react"
-import Link from "next/link"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function HeaderUser() {
@@ -32,10 +31,13 @@ export default function HeaderUser() {
       <div
         style={{
           marginLeft: 8,
-          width: 70,
-          height: 32,
+          minWidth: 80,
+          height: 34,
           borderRadius: 20,
           background: "rgba(138,164,255,0.1)",
+          border: "1px solid transparent",
+          padding: "6px 14px",
+          boxSizing: "border-box",
         }}
       />
     )
@@ -73,30 +75,24 @@ export default function HeaderUser() {
     )
   }
 
-  // Logged in - show user info + My Journey link
+  // Logged in - show login status with name (non-clickable)
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <Link
-        href="/myjourney"
+      <span
         style={{
           color: "#A8C8FF",
           fontSize: 14,
           whiteSpace: "nowrap",
-          textDecoration: "none",
-          padding: "6px 12px",
-          borderRadius: 16,
-          background: "rgba(138,164,255,0.1)",
-          transition: "all 0.2s ease",
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.background = "rgba(138,164,255,0.2)"
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.background = "rgba(138,164,255,0.1)"
+          padding: "6px 14px",
+          borderRadius: 20,
+          background: "rgba(138,164,255,0.15)",
+          border: "1px solid rgba(138,164,255,0.25)",
+          backdropFilter: "blur(6px)",
+          cursor: "default",
         }}
       >
-        {t("nav.myJourney") || "My Journey"}
-      </Link>
+        {t("common.loggedIn") || "로그인되어있음"}
+      </span>
       <span style={{
         color: "#EAE6FF",
         opacity: 0.9,

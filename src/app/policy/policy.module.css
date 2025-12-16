@@ -182,9 +182,8 @@
   scroll-behavior: smooth;
 }
 
-/* Highlight important sections */
-.section:has(.sectionTitle:contains("NO REFUND")),
-.section:has(.sectionTitle:contains("NOT PROFESSIONAL ADVICE")) {
+/* Highlight important sections - apply .highlightedSection class to sections that need emphasis */
+.highlightedSection {
   background: rgba(138, 43, 226, 0.05);
   border-radius: 12px;
   padding: 1.5rem;

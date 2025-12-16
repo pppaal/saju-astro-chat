@@ -1,0 +1,519 @@
+{
+  "$schema": "tcm_ohaeng_mapping_v1",
+  "$description": "한의학(TCM) 오행 매핑 - 사주/점성술과 건강/양생 통합",
+
+  "ohaeng_tcm_fundamentals": {
+    "description": "오행(五行)은 한의학의 기본 체계로, 사주와 동일한 분류를 사용",
+    "principle": "사주의 오행 균형 = 신체/정신 건강의 균형",
+    "application": "사주 분석을 통한 체질 진단 및 양생 가이드"
+  },
+
+  "wood_element": {
+    "ohaeng": "木",
+    "organ_pair": {
+      "yin_organ": {
+        "name": "간(肝)",
+        "english": "Liver",
+        "functions": ["혈액 저장", "기(氣) 소통", "근육/힘줄 관장"],
+        "emotion_connection": "분노(怒)를 저장"
+      },
+      "yang_organ": {
+        "name": "담(膽)",
+        "english": "Gallbladder",
+        "functions": ["담즙 저장", "결단력", "용기"],
+        "emotion_connection": "결단력과 용기"
+      }
+    },
+    "body_parts": ["눈", "힘줄", "손톱", "옆구리"],
+    "sense": "시각",
+    "emotion": {
+      "balanced": "창조적 분노, 결단력, 계획력",
+      "excess": "폭발적 분노, 두통, 고혈압",
+      "deficient": "우울, 결단력 부족, 눈 피로"
+    },
+    "season": "봄",
+    "climate": "풍(風)",
+    "taste": "신맛(酸)",
+    "color": "청색/녹색",
+    "direction": "동",
+    "time": "01:00-03:00 (간), 23:00-01:00 (담)",
+    "saju_indicators": {
+      "excess_wood": ["갑을목 과다", "인묘진 과다", "비견겁재 과다 (목 일간)"],
+      "deficient_wood": ["갑을목 없음", "인묘진 없음", "금 과다로 극목"]
+    },
+    "health_guidance": {
+      "excess_symptoms": ["두통", "어지러움", "눈 충혈", "옆구리 통증", "불면"],
+      "deficient_symptoms": ["시력 저하", "근육 경련", "손톱 갈라짐", "무기력"],
+      "balancing_foods": {
+        "reduce_excess": ["시원한 채소", "셀러리", "민들레", "녹차"],
+        "tonify_deficient": ["구기자", "결명자", "당근", "녹색 채소"]
+      },
+      "lifestyle": {
+        "exercise": "부드러운 스트레칭, 태극권, 요가",
+        "emotional": "분노 표현 연습, 창조적 활동",
+        "timing": "봄에 간 케어 집중"
+      }
+    },
+    "astro_parallel": {
+      "planets": ["Jupiter", "Mercury (in growth aspect)"],
+      "signs": ["Sagittarius (확장)", "Virgo (성장)"],
+      "houses": ["9th (확장)", "3rd (커뮤니케이션)"]
+    }
+  },
+
+  "fire_element": {
+    "ohaeng": "火",
+    "organ_pair": {
+      "yin_organ": {
+        "name": "심(心)",
+        "english": "Heart",
+        "functions": ["혈액 순환", "신명(神明) 주관", "의식/정신"],
+        "emotion_connection": "기쁨(喜)을 저장"
+      },
+      "yang_organ": {
+        "name": "소장(小腸)",
+        "english": "Small Intestine",
+        "functions": ["영양 흡수", "맑고 탁한 것 분리"],
+        "emotion_connection": "분별력"
+      },
+      "secondary_pair": {
+        "pericardium": {
+          "name": "심포(心包)",
+          "english": "Pericardium",
+          "functions": ["심장 보호", "감정 완충"]
+        },
+        "triple_warmer": {
+          "name": "삼초(三焦)",
+          "english": "Triple Warmer",
+          "functions": ["전신 기(氣) 조절", "수분 대사"]
+        }
+      }
+    },
+    "body_parts": ["혀", "혈관", "얼굴색"],
+    "sense": "미각",
+    "emotion": {
+      "balanced": "적절한 기쁨, 열정, 카리스마",
+      "excess": "과잉 흥분, 불안, 불면, 조증",
+      "deficient": "무기력, 냉담, 우울, 기쁨 상실"
+    },
+    "season": "여름",
+    "climate": "열(熱)",
+    "taste": "쓴맛(苦)",
+    "color": "적색",
+    "direction": "남",
+    "time": "11:00-13:00 (심), 13:00-15:00 (소장)",
+    "saju_indicators": {
+      "excess_fire": ["병정화 과다", "사오미 과다", "상관식신 과다 (화 일간)"],
+      "deficient_fire": ["병정화 없음", "사오미 없음", "수 과다로 극화"]
+    },
+    "health_guidance": {
+      "excess_symptoms": ["심계항진", "불면", "혀 갈라짐", "구내염", "얼굴 홍조"],
+      "deficient_symptoms": ["손발 차가움", "무기력", "우울", "얼굴 창백"],
+      "balancing_foods": {
+        "reduce_excess": ["수박", "녹두", "쓴 채소", "연근"],
+        "tonify_deficient": ["대추", "계피", "생강", "적색 음식"]
+      },
+      "lifestyle": {
+        "exercise": "적당한 유산소, 춤, 사회적 활동",
+        "emotional": "기쁨 표현, 과잉 흥분 조절",
+        "timing": "여름에 심장 케어, 낮잠 권장"
+      }
+    },
+    "astro_parallel": {
+      "planets": ["Sun", "Mars"],
+      "signs": ["Leo (심장)", "Aries (에너지)"],
+      "houses": ["5th (기쁨)", "1st (생명력)"]
+    }
+  },
+
+  "earth_element": {
+    "ohaeng": "土",
+    "organ_pair": {
+      "yin_organ": {
+        "name": "비(脾)",
+        "english": "Spleen",
+        "functions": ["소화 흡수", "기혈 생성", "근육 관장"],
+        "emotion_connection": "사려(思)를 저장"
+      },
+      "yang_organ": {
+        "name": "위(胃)",
+        "english": "Stomach",
+        "functions": ["음식 수납", "소화 시작"],
+        "emotion_connection": "만족감"
+      }
+    },
+    "body_parts": ["입", "입술", "근육", "사지"],
+    "sense": "촉각",
+    "emotion": {
+      "balanced": "깊은 사고, 배려, 중심 잡힘",
+      "excess": "과잉 걱정, 강박적 사고, 소화 불량",
+      "deficient": "집중력 저하, 기억력 감퇴, 무감각"
+    },
+    "season": "늦여름/환절기",
+    "climate": "습(濕)",
+    "taste": "단맛(甘)",
+    "color": "황색",
+    "direction": "중앙",
+    "time": "07:00-09:00 (위), 09:00-11:00 (비)",
+    "saju_indicators": {
+      "excess_earth": ["무기토 과다", "진술축미 과다", "인성 과다 (토 일간)"],
+      "deficient_earth": ["무기토 없음", "진술축미 없음", "목 과다로 극토"]
+    },
+    "health_guidance": {
+      "excess_symptoms": ["소화 불량", "복부 팽만", "무거움", "부종", "과잉 사고"],
+      "deficient_symptoms": ["식욕 부진", "피로", "근육 약화", "출혈 경향"],
+      "balancing_foods": {
+        "reduce_excess": ["무", "율무", "팥", "가벼운 음식"],
+        "tonify_deficient": ["인삼", "황기", "대추", "찹쌀"]
+      },
+      "lifestyle": {
+        "exercise": "규칙적 식사, 씹기 충분히, 걷기",
+        "emotional": "걱정 해소, 명상, 현재 집중",
+        "timing": "환절기 소화기 케어"
+      }
+    },
+    "astro_parallel": {
+      "planets": ["Saturn (안정)", "Moon (양육)"],
+      "signs": ["Taurus (안정)", "Virgo (소화)", "Capricorn (구조)"],
+      "houses": ["2nd (자원)", "6th (건강)", "4th (기반)"]
+    }
+  },
+
+  "metal_element": {
+    "ohaeng": "金",
+    "organ_pair": {
+      "yin_organ": {
+        "name": "폐(肺)",
+        "english": "Lung",
+        "functions": ["호흡", "기(氣) 조절", "피부 관장"],
+        "emotion_connection": "비애(悲)를 저장"
+      },
+      "yang_organ": {
+        "name": "대장(大腸)",
+        "english": "Large Intestine",
+        "functions": ["배설", "정화", "놓아주기"],
+        "emotion_connection": "해방, 놓아주기"
+      }
+    },
+    "body_parts": ["코", "피부", "체모", "대장"],
+    "sense": "후각",
+    "emotion": {
+      "balanced": "적절한 슬픔, 명예감, 경계",
+      "excess": "과잉 슬픔, 냉담, 비판적",
+      "deficient": "피부 문제, 호흡기 약함, 면역 저하"
+    },
+    "season": "가을",
+    "climate": "조(燥)",
+    "taste": "매운맛(辛)",
+    "color": "백색",
+    "direction": "서",
+    "time": "03:00-05:00 (폐), 05:00-07:00 (대장)",
+    "saju_indicators": {
+      "excess_metal": ["경신금 과다", "신유술 과다", "정관편관 과다 (금 일간)"],
+      "deficient_metal": ["경신금 없음", "신유술 없음", "화 과다로 극금"]
+    },
+    "health_guidance": {
+      "excess_symptoms": ["피부 건조", "변비", "비판적 성향", "슬픔"],
+      "deficient_symptoms": ["잦은 감기", "피부 문제", "호흡 곤란", "면역 저하"],
+      "balancing_foods": {
+        "reduce_excess": ["배", "은행", "백합뿌리", "촉촉한 음식"],
+        "tonify_deficient": ["도라지", "더덕", "마", "흰색 음식"]
+      },
+      "lifestyle": {
+        "exercise": "호흡 운동, 기공, 산책",
+        "emotional": "슬픔 해소, 놓아주기 연습",
+        "timing": "가을에 폐 케어, 건조함 주의"
+      }
+    },
+    "astro_parallel": {
+      "planets": ["Venus (가치)", "Saturn (제한)"],
+      "signs": ["Libra (균형)", "Aquarius (분리)"],
+      "houses": ["7th (관계 경계)", "11th (객관성)"]
+    }
+  },
+
+  "water_element": {
+    "ohaeng": "水",
+    "organ_pair": {
+      "yin_organ": {
+        "name": "신(腎)",
+        "english": "Kidney",
+        "functions": ["정(精) 저장", "뼈/골수 관장", "생식/성장"],
+        "emotion_connection": "공포(恐)를 저장"
+      },
+      "yang_organ": {
+        "name": "방광(膀胱)",
+        "english": "Bladder",
+        "functions": ["수분 대사", "소변 배출"],
+        "emotion_connection": "두려움 해소"
+      }
+    },
+    "body_parts": ["귀", "뼈", "머리카락", "치아"],
+    "sense": "청각",
+    "emotion": {
+      "balanced": "적절한 두려움 (경계), 지혜, 의지력",
+      "excess": "과잉 공포, 불안, 고립",
+      "deficient": "무모함, 뼈 약화, 청력 저하, 노화 촉진"
+    },
+    "season": "겨울",
+    "climate": "한(寒)",
+    "taste": "짠맛(鹹)",
+    "color": "흑색/남색",
+    "direction": "북",
+    "time": "17:00-19:00 (신), 15:00-17:00 (방광)",
+    "saju_indicators": {
+      "excess_water": ["임계수 과다", "해자축 과다", "인성 과다 (수 일간)"],
+      "deficient_water": ["임계수 없음", "해자축 없음", "토 과다로 극수"]
+    },
+    "health_guidance": {
+      "excess_symptoms": ["부종", "두려움", "냉증", "요통"],
+      "deficient_symptoms": ["노화 촉진", "청력 감퇴", "뼈 약화", "생식 문제"],
+      "balancing_foods": {
+        "reduce_excess": ["팥", "옥수수수염", "수분 조절"],
+        "tonify_deficient": ["검은깨", "검은콩", "호두", "해산물"]
+      },
+      "lifestyle": {
+        "exercise": "수영, 걷기, 과로 금지",
+        "emotional": "두려움 직면, 휴식 충분히",
+        "timing": "겨울에 신장 케어, 따뜻하게"
+      }
+    },
+    "astro_parallel": {
+      "planets": ["Neptune (심층)", "Pluto (변형)", "Moon (정서)"],
+      "signs": ["Cancer (감정)", "Scorpio (깊이)", "Pisces (직관)"],
+      "houses": ["8th (심층)", "12th (무의식)", "4th (뿌리)"]
+    }
+  },
+
+  "ohaeng_relationships_health": {
+    "generating_cycle": {
+      "name": "상생(相生)",
+      "description": "지원하는 오행이 부족한 오행을 보충",
+      "examples": {
+        "water_generates_wood": {
+          "situation": "간이 약할 때 (木 부족)",
+          "treatment": "신장(水)을 먼저 보강하면 간이 좋아짐",
+          "foods": "검은 음식 → 녹색 음식"
+        },
+        "wood_generates_fire": {
+          "situation": "심장이 약할 때 (火 부족)",
+          "treatment": "간(木)을 보강하면 심장 개선",
+          "foods": "녹색 음식 → 적색 음식"
+        },
+        "fire_generates_earth": {
+          "situation": "소화기가 약할 때 (土 부족)",
+          "treatment": "심장(火)을 따뜻하게 하면 소화 개선",
+          "foods": "따뜻한 음식, 적색 → 황색"
+        },
+        "earth_generates_metal": {
+          "situation": "폐가 약할 때 (金 부족)",
+          "treatment": "비위(土)를 보강하면 폐 개선",
+          "foods": "소화 잘 되는 음식 → 흰색 음식"
+        },
+        "metal_generates_water": {
+          "situation": "신장이 약할 때 (水 부족)",
+          "treatment": "폐(金)를 보강하면 신장 개선",
+          "foods": "폐 윤택 음식 → 검은 음식"
+        }
+      }
+    },
+    "controlling_cycle": {
+      "name": "상극(相剋)",
+      "description": "한 오행이 다른 오행을 과도하게 억제",
+      "pathological_examples": {
+        "wood_overacts_earth": {
+          "situation": "간화가 성해서 위장 공격",
+          "symptoms": "스트레스성 위염, 역류성 식도염",
+          "treatment": "간 진정, 토 보강"
+        },
+        "earth_overacts_water": {
+          "situation": "비습이 많아 신장 기능 방해",
+          "symptoms": "부종, 수분 정체",
+          "treatment": "습 제거, 수 소통"
+        },
+        "water_overacts_fire": {
+          "situation": "신수가 심화를 과도하게 억제",
+          "symptoms": "심장 냉증, 우울, 무기력",
+          "treatment": "심화 보강, 신수 조절"
+        },
+        "fire_overacts_metal": {
+          "situation": "심화가 폐금을 과도하게 억제",
+          "symptoms": "피부 건조, 호흡 곤란, 열감",
+          "treatment": "화 진정, 금 윤택"
+        },
+        "metal_overacts_wood": {
+          "situation": "폐금이 간목을 과도하게 억제",
+          "symptoms": "근육 경직, 우울, 소화 장애",
+          "treatment": "금 완화, 목 소통"
+        }
+      }
+    }
+  },
+
+  "saju_health_profile": {
+    "analysis_method": {
+      "step1": "일간(日干) 오행 확인 → 주체 장기",
+      "step2": "전체 오행 균형 분석",
+      "step3": "가장 강한 오행 → 과잉 가능성",
+      "step4": "가장 약한 오행 → 결핍 가능성",
+      "step5": "용신(用神) 오행 → 건강에 좋은 요소"
+    },
+    "daymaster_health": {
+      "갑목": {
+        "organ_focus": "간, 담",
+        "common_issues": "눈 문제, 근육 경련, 두통",
+        "wellness_focus": "스트레스 관리, 시력 보호"
+      },
+      "을목": {
+        "organ_focus": "간, 담 (더 유연)",
+        "common_issues": "저혈압, 피로, 유연성 과다",
+        "wellness_focus": "규칙적 운동, 혈압 관리"
+      },
+      "병화": {
+        "organ_focus": "심장, 소장",
+        "common_issues": "심계항진, 불면, 열성 질환",
+        "wellness_focus": "심장 건강, 수면 관리"
+      },
+      "정화": {
+        "organ_focus": "심장, 소장 (더 내면적)",
+        "common_issues": "불안, 정서 불안정",
+        "wellness_focus": "정서 안정, 명상"
+      },
+      "무토": {
+        "organ_focus": "비위",
+        "common_issues": "소화 불량, 비만 경향",
+        "wellness_focus": "규칙적 식사, 체중 관리"
+      },
+      "기토": {
+        "organ_focus": "비위 (더 유연)",
+        "common_issues": "식욕 문제, 걱정 과다",
+        "wellness_focus": "스트레스 해소, 소화 관리"
+      },
+      "경금": {
+        "organ_focus": "폐, 대장",
+        "common_issues": "호흡기, 피부 문제",
+        "wellness_focus": "호흡 운동, 피부 케어"
+      },
+      "신금": {
+        "organ_focus": "폐, 대장 (더 섬세)",
+        "common_issues": "알레르기, 감정적 호흡 문제",
+        "wellness_focus": "정서적 해방, 면역 강화"
+      },
+      "임수": {
+        "organ_focus": "신장, 방광",
+        "common_issues": "부종, 요통, 생식 문제",
+        "wellness_focus": "충분한 휴식, 신장 보호"
+      },
+      "계수": {
+        "organ_focus": "신장, 방광 (더 유연)",
+        "common_issues": "두려움, 냉증",
+        "wellness_focus": "따뜻함 유지, 두려움 해소"
+      }
+    }
+  },
+
+  "astro_tcm_integration": {
+    "sun_sign_health": {
+      "fire_signs": {
+        "signs": ["Aries", "Leo", "Sagittarius"],
+        "tcm_tendency": "화(火) 과다 경향",
+        "watch_for": "열성 질환, 염증, 심장",
+        "balance_with": "수(水) 음식, 냉정함"
+      },
+      "earth_signs": {
+        "signs": ["Taurus", "Virgo", "Capricorn"],
+        "tcm_tendency": "토(土) 과다 경향",
+        "watch_for": "소화기, 걱정, 정체",
+        "balance_with": "목(木) 운동, 변화"
+      },
+      "air_signs": {
+        "signs": ["Gemini", "Libra", "Aquarius"],
+        "tcm_tendency": "금(金)/풍 경향",
+        "watch_for": "호흡기, 신경계, 피부",
+        "balance_with": "화(火) 따뜻함, 접지"
+      },
+      "water_signs": {
+        "signs": ["Cancer", "Scorpio", "Pisces"],
+        "tcm_tendency": "수(水) 과다 경향",
+        "watch_for": "부종, 정서적 문제, 신장",
+        "balance_with": "토(土) 안정, 건조함"
+      }
+    },
+    "planetary_health": {
+      "mars_afflicted": {
+        "tcm_link": "화(火) 과잉, 간화 상승",
+        "symptoms": "두통, 분노, 염증",
+        "treatment": "간 진정, 화 해소"
+      },
+      "saturn_afflicted": {
+        "tcm_link": "토(土)/금(金) 과잉",
+        "symptoms": "뼈 문제, 피부, 우울",
+        "treatment": "따뜻함, 순환 촉진"
+      },
+      "moon_afflicted": {
+        "tcm_link": "수(水) 불균형",
+        "symptoms": "정서 불안, 부종, 월경 문제",
+        "treatment": "비위 강화, 수분 대사 조절"
+      },
+      "jupiter_afflicted": {
+        "tcm_link": "간(木) 과잉 또는 습담",
+        "symptoms": "비만, 지방간, 과잉",
+        "treatment": "절제, 간 청소"
+      }
+    }
+  },
+
+  "seasonal_wellness": {
+    "spring": {
+      "ohaeng": "木",
+      "organ": "간, 담",
+      "focus": "간 청소, 분노 해소",
+      "foods": ["녹색 채소", "새싹", "신맛 적당히"],
+      "exercise": "스트레칭, 등산",
+      "avoid": "과음, 과로, 분노 억제",
+      "saju_check": "목 과다자는 더 주의"
+    },
+    "summer": {
+      "ohaeng": "火",
+      "organ": "심장, 소장",
+      "focus": "심장 보호, 열 해소",
+      "foods": ["수박", "녹두", "쓴 채소"],
+      "exercise": "아침/저녁 운동, 낮잠",
+      "avoid": "과격한 운동, 뜨거운 음식",
+      "saju_check": "화 과다자는 더 주의"
+    },
+    "late_summer": {
+      "ohaeng": "土",
+      "organ": "비위",
+      "focus": "소화기 강화",
+      "foods": ["황색 음식", "곡물", "따뜻한 음식"],
+      "exercise": "가벼운 걷기",
+      "avoid": "찬 음식, 과식",
+      "saju_check": "토 과다자는 더 주의"
+    },
+    "autumn": {
+      "ohaeng": "金",
+      "organ": "폐, 대장",
+      "focus": "폐 윤택, 면역 강화",
+      "foods": ["배", "흰 음식", "도라지"],
+      "exercise": "호흡 운동, 산책",
+      "avoid": "건조함, 슬픔 억제",
+      "saju_check": "금 과다자는 더 주의"
+    },
+    "winter": {
+      "ohaeng": "水",
+      "organ": "신장, 방광",
+      "focus": "신장 보호, 휴식",
+      "foods": ["검은 음식", "따뜻한 음식", "해산물"],
+      "exercise": "가벼운 운동, 수면 충분히",
+      "avoid": "과로, 냉기 노출",
+      "saju_check": "수 과다자는 더 주의"
+    }
+  },
+
+  "warning": {
+    "disclaimer": "이 정보는 교육 목적이며, 실제 의료 조언을 대체하지 않습니다.",
+    "recommendation": "건강 문제가 있을 경우 반드시 전문 의료인과 상담하세요.",
+    "integration_note": "한의학과 사주/점성술의 통합은 전체적 웰빙 이해를 위한 것입니다."
+  }
+}

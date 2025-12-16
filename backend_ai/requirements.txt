@@ -14,10 +14,19 @@ networkx>=3.0
 openai>=1.50.0
 anthropic>=0.18.0
 
+# --- Retrieval/Agent (optional but recommended for full features) ---
+rank-bm25>=0.2.2
+langgraph>=0.2.36,<1.0
+tiktoken>=0.7.0
+transformers>=4.44.0
+
 # --- Caching & Performance (Optional) ---
 # Redis is optional - system falls back to in-memory cache if unavailable
 redis>=5.0.0
 hiredis>=2.2.0
+
+# --- Real-time astronomy (optional; required if enabling Swiss ephemeris path) ---
+pyswisseph>=2.10.3
 
 # --- Image generation (Optional) ---
 pillow>=10.0.0
@@ -28,6 +37,9 @@ requests>=2.32.0
 
 # --- Monitoring ---
 sentry-sdk>=1.40.0
+
+# --- Testing/QA ---
+pytest>=7.4.0
 
 # --- Notes ---
 # LangGraph is NOT required - custom orchestration is used instead

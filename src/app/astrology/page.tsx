@@ -10,12 +10,14 @@ import tzLookup from 'tz-lookup';
 import { useI18n } from '@/i18n/I18nProvider';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import styles from './Astrology.module.css';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
 
 export default function Home() {
   const { locale, t } = useI18n();
+  const router = useRouter();
   const { status } = useSession();
 
   const [date, setDate] = useState('');
@@ -170,12 +172,26 @@ export default function Home() {
     }
   };
 
+  const handleBack = () => {
+    if (interpretation) {
+      setInterpretation(null);
+      setChartData(null);
+      setAspects(null);
+      setAdvanced(null);
+      setError(null);
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <ServicePageLayout
       icon="✧"
       title={t('ui.titleAstrology') || 'AI Natal Chart'}
       subtitle={t('ui.subtitleAstrology') || 'Discover your cosmic map based on your birth information.'}
       particleColor="#ffd782"
+      onBack={handleBack}
+      backLabel={t('app.back') || 'Back'}
     >
       <main className={styles.page}>
         {/* Background Stars */}
@@ -329,19 +345,6 @@ export default function Home() {
 
         {interpretation && (
           <div className={styles.resultsContainer}>
-            <button
-              onClick={() => {
-                setInterpretation(null);
-                setChartData(null);
-                setAspects(null);
-                setAdvanced(null);
-                setError(null);
-              }}
-              className={styles.backButton}
-            >
-              {t('app.back') || 'Back'}
-            </button>
-
             <ResultDisplay
               isLoading={isLoading}
               error={error}

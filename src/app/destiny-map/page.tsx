@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import { getUserTimezone } from '@/lib/Saju/timezone';
 import { saveUserProfile, getUserProfile } from '@/lib/userProfile';
+import CreditBadge from '@/components/ui/CreditBadge';
 import styles from './destiny-map.module.css';
 
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
@@ -35,7 +36,7 @@ export default function DestinyMapPage() {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('');
-  const [city, setCity] = useState('Seoul, KR');
+  const [city, setCity] = useState('');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other' | 'Prefer not to say'>('Male');
 
   const [suggestions, setSuggestions] = useState<CityHit[]>([]);
@@ -43,8 +44,12 @@ export default function DestinyMapPage() {
   const [openSug, setOpenSug] = useState(false);
   const [cityErr, setCityErr] = useState<string | null>(null);
 
-  // 사용자 현재 위치 타임존 (운세 날짜 계산용)
-  const userTimezone = useMemo(() => getUserTimezone(), []);
+  // 사용자 현재 위치 타임존 (운세 날짜 계산용) - client-side only
+  const [userTimezone, setUserTimezone] = useState('Asia/Seoul');
+  useEffect(() => {
+    // Detect timezone on client side only (SSR에서 서버 타임존 방지)
+    setUserTimezone(getUserTimezone() || 'Asia/Seoul');
+  }, []);
 
   // Load saved profile on mount
   useEffect(() => {
@@ -52,17 +57,19 @@ export default function DestinyMapPage() {
     if (profile.name) setName(profile.name);
     if (profile.birthDate) setBirthDate(profile.birthDate);
     if (profile.birthTime) setBirthTime(profile.birthTime);
-    if (profile.birthCity) setCity(profile.birthCity);
+    // Don't auto-fill city - let user enter fresh each time
+    // if (profile.birthCity) setCity(profile.birthCity);
     if (profile.gender) setGender(profile.gender);
-    if (profile.latitude && profile.longitude && profile.birthCity) {
-      setSelectedCity({
-        name: profile.birthCity.split(',')[0] || profile.birthCity,
-        country: profile.birthCity.split(',')[1]?.trim() || '',
-        lat: profile.latitude,
-        lon: profile.longitude,
-        timezone: profile.timezone
-      });
-    }
+    // Don't auto-fill city coordinates - let user select fresh
+    // if (profile.latitude && profile.longitude && profile.birthCity) {
+    //   setSelectedCity({
+    //     name: profile.birthCity.split(',')[0] || profile.birthCity,
+    //     country: profile.birthCity.split(',')[1]?.trim() || '',
+    //     lat: profile.latitude,
+    //     lon: profile.longitude,
+    //     timezone: profile.timezone
+    //   });
+    // }
   }, []);
 
   // Particle animation
@@ -212,6 +219,9 @@ export default function DestinyMapPage() {
     })();
   }, []);
 
+  // Track if user is actively typing (to avoid auto-opening dropdown on page load)
+  const [isUserTyping, setIsUserTyping] = useState(false);
+
   useEffect(() => {
     const raw = city.trim();
     const q = extractCityPart(raw);
@@ -223,13 +233,16 @@ export default function DestinyMapPage() {
       try {
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
         setSuggestions(hits);
-        setOpenSug(hits.length > 0);
+        // Only open dropdown if user is actively typing
+        if (isUserTyping) {
+          setOpenSug(hits.length > 0);
+        }
       } catch {
         setSuggestions([]);
       }
     }, 120);
     return () => clearTimeout(t);
-  }, [city]);
+  }, [city, isUserTyping]);
 
   useEffect(() => {
     const tryFindCity = async () => {
@@ -308,17 +321,11 @@ export default function DestinyMapPage() {
     <div className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
 
-      <button
-        onClick={() => router.back()}
-        className={styles.backButton}
-        aria-label={t('app.back') || 'Back'}
-        type="button"
-      >
-        ←
-      </button>
-
       <main className={styles.main}>
         <div className={styles.card}>
+          <div className={styles.creditBadgeWrapper}>
+            <CreditBadge variant="compact" />
+          </div>
           <div className={styles.header}>
             <div className={styles.iconWrapper}>
               <span className={styles.icon}>🗺️</span>
@@ -380,14 +387,18 @@ export default function DestinyMapPage() {
                 </label>
                 <input
                   className={styles.input}
-                  placeholder={t('app.cityPh') || 'Seoul, KR'}
+                  placeholder={t('app.cityPh') || 'Enter your city'}
                   value={city}
                   onChange={(e) => {
                     setCity(e.target.value);
+                    setIsUserTyping(true);
                     setOpenSug(true);
                   }}
-                  onBlur={() => setTimeout(() => setOpenSug(false), 150)}
-                  onFocus={() => city && setOpenSug(suggestions.length > 0)}
+                  onBlur={() => {
+                    setTimeout(() => setOpenSug(false), 150);
+                    setIsUserTyping(false);
+                  }}
+                  onFocus={() => city && suggestions.length > 0 && setOpenSug(true)}
                   required
                 />
                 {openSug && suggestions.length > 0 && (

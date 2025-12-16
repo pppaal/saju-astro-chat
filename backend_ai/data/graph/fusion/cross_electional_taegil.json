@@ -1,0 +1,334 @@
+{
+  "$schema": "cross_electional_taegil_v1",
+  "$description": "택일 점성학 ↔ 사주 십이건제/택일 완전 교차 매핑",
+
+  "date_selection_systems": {
+    "astro_electional": {
+      "name": "Electional Astrology (택일 점성학)",
+      "method": "행성 배치, 달 상태, 애스펙트로 최적 시간 선택",
+      "key_factors": ["Moon sign/phase", "Void of Course", "Retrogrades", "Aspects"]
+    },
+    "saju_taegil": {
+      "name": "사주 택일 (四柱 擇日)",
+      "method": "십이건제, 길일/흉일, 개인 사주와 조화",
+      "key_factors": ["십이건제", "천덕/월덕", "삼살방", "개인 용신"]
+    }
+  },
+
+  "twelve_cycle_aspects": {
+    "description": "십이건제 ↔ 점성술 에너지 완전 매핑",
+
+    "건일": {
+      "korean": "建日",
+      "meaning": "세우는 날",
+      "good_for": ["상량", "부임", "개업", "결혼"],
+      "avoid": ["소송", "치료"],
+      "astro_parallel": {
+        "moon_phase": "New Moon (초승달)",
+        "moon_sign": "Cardinal signs (Aries, Cancer, Libra, Capricorn)",
+        "energy": "새로운 시작, 기반 세우기",
+        "aspects": "Sun-Moon conjunction"
+      },
+      "combined_best": "건일 + New Moon + Cardinal Moon = 최적의 시작일"
+    },
+    "제일": {
+      "korean": "除日",
+      "meaning": "제거하는 날",
+      "good_for": ["청소", "해충퇴치", "치료", "장례"],
+      "avoid": ["결혼", "개업"],
+      "astro_parallel": {
+        "moon_phase": "Waning Crescent",
+        "moon_sign": "Virgo, Scorpio",
+        "energy": "정화, 제거",
+        "aspects": "Moon-Pluto aspects"
+      },
+      "combined_best": "제일 + Waning Moon + Scorpio Moon = 최적의 정화일"
+    },
+    "만일": {
+      "korean": "滿日",
+      "meaning": "가득 찬 날",
+      "good_for": ["결혼", "개업", "이사", "잔치"],
+      "avoid": ["약 복용", "소송"],
+      "astro_parallel": {
+        "moon_phase": "Full Moon (보름달)",
+        "moon_sign": "Taurus, Leo, Sagittarius",
+        "energy": "풍요, 완성, 수확",
+        "aspects": "Sun-Moon opposition (Full Moon)"
+      },
+      "combined_best": "만일 + Full Moon + Taurus Moon = 최적의 축하일"
+    },
+    "평일": {
+      "korean": "平日",
+      "meaning": "평평한 날",
+      "good_for": ["일반 작업", "도로 공사"],
+      "neutral": true,
+      "astro_parallel": {
+        "moon_phase": "Quarter Moon",
+        "moon_sign": "Mutable signs",
+        "energy": "균형, 일상",
+        "aspects": "Few major aspects"
+      },
+      "combined_best": "평일 + Mutable Moon = 무난한 일상 업무"
+    },
+    "정일": {
+      "korean": "定日",
+      "meaning": "정하는 날",
+      "good_for": ["계약", "약속", "취직", "소송 시작"],
+      "avoid": ["이사", "여행"],
+      "astro_parallel": {
+        "moon_phase": "First Quarter",
+        "moon_sign": "Fixed signs (Taurus, Leo, Scorpio, Aquarius)",
+        "energy": "결정, 고정",
+        "aspects": "Saturn positive aspects"
+      },
+      "combined_best": "정일 + Fixed Moon + Saturn trine = 최적의 계약일"
+    },
+    "집일": {
+      "korean": "執日",
+      "meaning": "잡는 날",
+      "good_for": ["건축", "채권 회수", "사냥"],
+      "avoid": ["이사", "결혼"],
+      "astro_parallel": {
+        "moon_phase": "Waxing Gibbous",
+        "moon_sign": "Capricorn, Virgo",
+        "energy": "집중, 획득",
+        "aspects": "Mars-Saturn positive"
+      },
+      "combined_best": "집일 + Capricorn Moon = 실행과 획득"
+    },
+    "파일": {
+      "korean": "破日",
+      "meaning": "깨지는 날",
+      "good_for": ["철거", "치료", "나쁜 습관 버리기"],
+      "avoid": ["결혼", "계약", "개업", "모든 시작"],
+      "astro_parallel": {
+        "moon_phase": "Last Quarter",
+        "moon_sign": "Aries (impulsive breaking)",
+        "energy": "파괴, 해체",
+        "aspects": "Mars square, Uranus aspects"
+      },
+      "combined_best": "파일 + Waning Moon = 끊어야 할 것 끊기"
+    },
+    "위일": {
+      "korean": "危日",
+      "meaning": "위험한 날",
+      "good_for": ["도박 (고위험)", "모험"],
+      "avoid": ["건축", "결혼", "안정 필요한 일"],
+      "astro_parallel": {
+        "moon_phase": "Any",
+        "moon_sign": "Scorpio, Aries",
+        "energy": "위험, 변동",
+        "aspects": "Mars-Uranus, Moon-Pluto hard"
+      },
+      "combined_best": "위일은 조심, 점성술로도 hard aspects 있으면 피함"
+    },
+    "성일": {
+      "korean": "成日",
+      "meaning": "이루는 날",
+      "good_for": ["결혼", "개업", "계약", "입학", "취직"],
+      "best_day": true,
+      "astro_parallel": {
+        "moon_phase": "Waxing Gibbous to Full",
+        "moon_sign": "Taurus, Leo, Sagittarius",
+        "energy": "성취, 완성",
+        "aspects": "Jupiter trine Sun/Moon, Venus well-aspected"
+      },
+      "combined_best": "성일 + Jupiter trine + Venus good = 최고의 성취일"
+    },
+    "수일": {
+      "korean": "收日",
+      "meaning": "거두는 날",
+      "good_for": ["채권 회수", "수확", "저축", "장례"],
+      "avoid": ["시작"],
+      "astro_parallel": {
+        "moon_phase": "Waning Gibbous",
+        "moon_sign": "Taurus, Virgo, Capricorn",
+        "energy": "수확, 저장",
+        "aspects": "Saturn-Venus positive"
+      },
+      "combined_best": "수일 + Earth Moon = 수확과 저장"
+    },
+    "개일": {
+      "korean": "開日",
+      "meaning": "여는 날",
+      "good_for": ["개업", "결혼", "이사", "취직", "모든 시작"],
+      "best_day": true,
+      "astro_parallel": {
+        "moon_phase": "New Moon to First Quarter",
+        "moon_sign": "Aries, Leo, Sagittarius",
+        "energy": "시작, 개방, 확장",
+        "aspects": "Jupiter conjunct/trine Moon/Sun"
+      },
+      "combined_best": "개일 + New Moon + Fire Moon = 최고의 시작일"
+    },
+    "폐일": {
+      "korean": "閉日",
+      "meaning": "닫는 날",
+      "good_for": ["저장", "장례", "마무리"],
+      "avoid": ["시작", "개업", "결혼"],
+      "astro_parallel": {
+        "moon_phase": "Dark Moon (Balsamic)",
+        "moon_sign": "Pisces, Scorpio",
+        "energy": "종료, 폐쇄",
+        "aspects": "Saturn conjunct/square"
+      },
+      "combined_best": "폐일 + Balsamic Moon = 마무리와 휴식"
+    }
+  },
+
+  "moon_phase_integration": {
+    "description": "달 위상 ↔ 사주 택일 통합",
+
+    "new_moon": {
+      "phase": "초승달 (0-3.5일)",
+      "saju_equivalent": ["건일", "개일"],
+      "best_for": ["새 시작", "계획", "의도 설정"],
+      "energy": "씨앗 심기"
+    },
+    "waxing_crescent": {
+      "phase": "초승 후 (3.5-7일)",
+      "saju_equivalent": ["개일", "평일"],
+      "best_for": ["계획 실행", "자원 모으기"],
+      "energy": "성장 시작"
+    },
+    "first_quarter": {
+      "phase": "상현달 (7-10.5일)",
+      "saju_equivalent": ["정일", "집일"],
+      "best_for": ["결단", "장애물 극복"],
+      "energy": "도전과 결정"
+    },
+    "waxing_gibbous": {
+      "phase": "상현 후 (10.5-14일)",
+      "saju_equivalent": ["성일"],
+      "best_for": ["세부 조정", "완성도 높이기"],
+      "energy": "성취 접근"
+    },
+    "full_moon": {
+      "phase": "보름달 (14-17.5일)",
+      "saju_equivalent": ["만일", "성일"],
+      "best_for": ["정점", "공개", "수확"],
+      "energy": "최고조, 완성"
+    },
+    "waning_gibbous": {
+      "phase": "보름 후 (17.5-21일)",
+      "saju_equivalent": ["수일"],
+      "best_for": ["나눔", "감사", "가르침"],
+      "energy": "배포"
+    },
+    "last_quarter": {
+      "phase": "하현달 (21-24.5일)",
+      "saju_equivalent": ["파일", "제일"],
+      "best_for": ["정리", "마무리", "버리기"],
+      "energy": "해체"
+    },
+    "waning_crescent": {
+      "phase": "그믐달 (24.5-29.5일)",
+      "saju_equivalent": ["폐일"],
+      "best_for": ["휴식", "명상", "완료"],
+      "energy": "완전한 마무리"
+    }
+  },
+
+  "void_gongmang_parallel": {
+    "description": "Void of Course Moon ↔ 공망/양공일",
+
+    "void_of_course": {
+      "definition": "달이 현재 사인에서 마지막 애스펙트 후 사인을 떠나기 전",
+      "effect": "시작한 일이 예상대로 안 됨"
+    },
+    "saju_parallel": {
+      "gongmang_day": "공망에 해당하는 날",
+      "yanggong_il": "양공일 - 하늘과 땅이 비는 날"
+    },
+    "combined_avoid": "Void Moon + 양공일 = 절대 중요한 일 시작 금지"
+  },
+
+  "retrograde_yeokhaeng": {
+    "description": "역행 ↔ 역방향 에너지",
+
+    "mercury_retrograde": {
+      "avoid": ["계약", "전자기기", "중요 커뮤니케이션"],
+      "saju_parallel": "역마 충이 있는 날과 유사 효과"
+    },
+    "venus_retrograde": {
+      "avoid": ["결혼", "성형", "고가품"],
+      "saju_parallel": "도화 충이 있는 날"
+    },
+    "mars_retrograde": {
+      "avoid": ["수술", "새 운동", "분쟁"],
+      "saju_parallel": "양인 충이 있는 날"
+    }
+  },
+
+  "event_specific_cross": {
+    "결혼": {
+      "saju_best": ["성일", "개일", "만일", "천희일", "합일"],
+      "saju_avoid": ["파일", "충일", "절일"],
+      "astro_best": ["Venus trine Jupiter", "Moon in Taurus/Libra", "No Venus retrograde"],
+      "astro_avoid": ["Saturn square Venus", "Mars afflicted", "Void Moon"],
+      "combined_ideal": "성일 + Full Moon + Venus-Jupiter trine + 쌍방 사주 합일"
+    },
+    "개업": {
+      "saju_best": ["개일", "성일", "만일", "천덕일"],
+      "saju_avoid": ["파일", "폐일", "삼살일"],
+      "astro_best": ["Jupiter in 10th aspect", "Mercury direct", "Moon waxing"],
+      "astro_avoid": ["Mercury retrograde", "Saturn afflicting MC"],
+      "combined_ideal": "개일 + New Moon + Jupiter trine MC"
+    },
+    "이사": {
+      "saju_best": ["개일", "성일", "만일", "천사일"],
+      "saju_avoid": ["파일", "살방향"],
+      "astro_best": ["Moon in Cancer/Taurus", "4th house benefics"],
+      "astro_avoid": ["Mars in 4th", "Uranus aspects to IC"],
+      "combined_ideal": "개일 + Cancer Moon + 길방향"
+    },
+    "수술": {
+      "saju_best": ["성일", "개일"],
+      "saju_avoid": ["충일", "파일", "천살일"],
+      "astro_best": ["Moon not in surgery body part sign", "Waning Moon", "Mars not afflicted"],
+      "astro_avoid": ["Mars retrograde", "Full Moon", "Moon in surgery area"],
+      "combined_ideal": "성일 + Waning Moon + Mars well-aspected"
+    },
+    "계약": {
+      "saju_best": ["정일", "성일", "개일"],
+      "saju_avoid": ["파일", "폐일"],
+      "astro_best": ["Mercury well-aspected", "Saturn trine", "No Void Moon"],
+      "astro_avoid": ["Mercury retrograde", "Neptune square Mercury"],
+      "combined_ideal": "정일 + Mercury trine Saturn + Capricorn Moon"
+    }
+  },
+
+  "combined_scoring_formula": {
+    "description": "통합 택일 점수 계산",
+    "max_score": 100,
+
+    "saju_factors": {
+      "weight": 50,
+      "items": {
+        "sibgeonje_good": 20,
+        "no_samsal": 10,
+        "cheondeok_woldeok": 10,
+        "personal_yongsin_match": 10
+      }
+    },
+    "astro_factors": {
+      "weight": 50,
+      "items": {
+        "moon_phase_appropriate": 15,
+        "moon_sign_appropriate": 10,
+        "no_void_moon": 10,
+        "no_retrograde_issue": 10,
+        "benefic_aspects": 5
+      }
+    },
+
+    "interpretation": {
+      "90-100": "최적의 날 - 적극 추천",
+      "80-89": "매우 좋은 날 - 추천",
+      "70-79": "좋은 날 - 진행 가능",
+      "60-69": "보통 - 가능하나 주의",
+      "50-59": "주의 필요 - 대안 검토",
+      "below_50": "비추천 - 다른 날 선택"
+    }
+  }
+}

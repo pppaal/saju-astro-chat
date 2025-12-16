@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "../styles/mobile-touch.css";
 import StarrySky from "@/components/ui/StarrySky";
-import BackButton from "@/components/ui/BackButton";
+import BackButtonWrapper from "@/components/ui/BackButtonWrapper";
 import Footer from "@/components/ui/Footer";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -66,13 +66,6 @@ const merriweather = Merriweather({
   variable: "--font-merriweather",
 });
 
-function BackButtonInLayout() {
-  "use client";
-  const { usePathname } = require("next/navigation");
-  const pathname = usePathname?.() ?? "/";
-  if (pathname === "/") return null;
-  return <BackButton />;
-}
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com"),
@@ -82,16 +75,10 @@ export const metadata: Metadata = {
   },
   description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.",
   keywords: [
-    // 한국어 검색량 높은 키워드
-    "무료 사주", "사주 보기", "오늘의 운세", "2025 운세",
-    "무료 타로", "타로 점", "타로 카드", "궁합 보기", "궁합 테스트",
-    "띠별 운세", "별자리 운세", "꿈해몽", "꿈 해석",
-    "수비학", "생년월일 운세", "신년 운세",
+    // Korean keywords (cleaned)
+    "사주", "사주풀이", "사주팔자", "오늘의 운세", "무료 운세", "타로", "타로 점보기", "떡별 운세", "별자리 운세", "궁합", "궁합 테스트", "꿈해몬", "해몬", "명리학",
     // English keywords
-    "free tarot reading", "tarot online", "horoscope today",
-    "astrology chart", "numerology", "birth chart",
-    "compatibility test", "dream interpretation",
-    "saju", "korean fortune telling",
+    "free tarot reading", "tarot online", "horoscope today", "astrology chart", "numerology", "birth chart", "compatibility test", "dream interpretation", "saju", "korean fortune telling",
   ],
   authors: [{ name: "DestinyPal" }],
   creator: "DestinyPal",
@@ -184,7 +171,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <NotificationProvider>
                   <PushNotificationPrompt />
                   <StarrySky />
-                  <BackButtonInLayout />
+                  <BackButtonWrapper />
                   <main id="main-content">{children}</main>
                   <Footer />
                 </NotificationProvider>

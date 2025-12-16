@@ -1,36 +1,46 @@
 {
   "_meta": {
-    "title": "Tarot Timing Rules",
-    "description": "타로 카드의 시간적 의미 - 계절, 조디악, 달의 위상과 연결된 타이밍 해석"
+    "title": "Tarot Timing Rules - Extended",
+    "description": "타로 카드의 시간적 의미 - 계절, 조디악, 달의 위상, 요일, 시간대, 행성 역행과 연결된 완전한 타이밍 해석",
+    "version": "2.0",
+    "last_updated": "2024"
   },
   "seasonal_timing": {
     "spring": {
       "months": ["March", "April", "May"],
       "korean": "봄 (3-5월)",
-      "cards": ["The Fool", "Ace of Wands", "Page of Wands", "The Empress"],
+      "cards": ["The Fool", "Ace of Wands", "Page of Wands", "The Empress", "Queen of Wands", "Three of Wands"],
       "energy": "새로운 시작, 성장, 재탄생",
-      "meaning": "일이 시작되거나 씨앗이 뿌려지는 시기"
+      "meaning": "일이 시작되거나 씨앗이 뿌려지는 시기",
+      "best_for": ["새 프로젝트 시작", "첫 만남", "이직", "창업", "다이어트 시작"],
+      "avoid": ["마무리 작업", "결산", "정리"]
     },
     "summer": {
       "months": ["June", "July", "August"],
       "korean": "여름 (6-8월)",
-      "cards": ["The Sun", "Ace of Wands", "Knight of Wands", "Strength"],
+      "cards": ["The Sun", "Ace of Wands", "Knight of Wands", "Strength", "Six of Wands", "King of Wands"],
       "energy": "활력, 성장의 정점, 풍요",
-      "meaning": "일이 절정에 달하고 결실이 무르익는 시기"
+      "meaning": "일이 절정에 달하고 결실이 무르익는 시기",
+      "best_for": ["사회적 활동", "발표", "승진", "결혼", "여행"],
+      "avoid": ["은둔", "내면 작업", "숨기"]
     },
     "autumn": {
       "months": ["September", "October", "November"],
       "korean": "가을 (9-11월)",
-      "cards": ["Justice", "The Hermit", "Death", "Ten of Pentacles"],
+      "cards": ["Justice", "The Hermit", "Death", "Ten of Pentacles", "Nine of Pentacles", "King of Pentacles"],
       "energy": "수확, 균형, 정리",
-      "meaning": "결과를 거두고 정리하는 시기"
+      "meaning": "결과를 거두고 정리하는 시기",
+      "best_for": ["수확", "정리", "결산", "중요 결정", "재테크"],
+      "avoid": ["무모한 시작", "충동적 결정"]
     },
     "winter": {
       "months": ["December", "January", "February"],
       "korean": "겨울 (12-2월)",
-      "cards": ["The Moon", "The High Priestess", "Four of Swords", "The Star"],
+      "cards": ["The Moon", "The High Priestess", "Four of Swords", "The Star", "The Hermit", "Eight of Cups"],
       "energy": "휴식, 내면 성찰, 재충전",
-      "meaning": "휴식하며 내면을 돌보고 새 시작을 준비하는 시기"
+      "meaning": "휴식하며 내면을 돌보고 새 시작을 준비하는 시기",
+      "best_for": ["휴식", "명상", "학습", "계획 수립", "내면 치유"],
+      "avoid": ["대규모 론칭", "공개 발표", "사회적 활동"]
     }
   },
   "zodiac_timing": {
@@ -40,7 +50,10 @@
       "card": "The Emperor",
       "element": "Fire",
       "timing_meaning": "새로운 시작에 좋은 시기. 적극적 행동이 결과를 가져옴.",
-      "weeks": "약 4주 내"
+      "weeks": "약 4주 내",
+      "speed": "빠름",
+      "best_for": ["리더십 발휘", "새 시작", "경쟁", "스포츠"],
+      "challenges": ["인내 부족", "충동적 결정"]
     },
     "taurus": {
       "period": "4/20 - 5/20",
@@ -48,7 +61,10 @@
       "card": "The Hierophant",
       "element": "Earth",
       "timing_meaning": "안정적으로 구축하기 좋은 시기. 천천히 확실하게.",
-      "weeks": "약 5-6주 소요"
+      "weeks": "약 5-6주 소요",
+      "speed": "느림",
+      "best_for": ["재정 관리", "부동산", "장기 계획", "감각적 즐거움"],
+      "challenges": ["고집", "변화 거부"]
     },
     "gemini": {
       "period": "5/21 - 6/20",
@@ -56,7 +72,10 @@
       "card": "The Lovers",
       "element": "Air",
       "timing_meaning": "소통과 선택의 시기. 다양한 옵션이 열림.",
-      "weeks": "약 2-3주 내"
+      "weeks": "약 2-3주 내",
+      "speed": "빠름",
+      "best_for": ["네트워킹", "학습", "커뮤니케이션", "짧은 여행"],
+      "challenges": ["산만함", "결정 어려움"]
     },
     "cancer": {
       "period": "6/21 - 7/22",
@@ -64,7 +83,10 @@
       "card": "The Chariot",
       "element": "Water",
       "timing_meaning": "감정적 결정의 시기. 집과 가족 관련 일에 좋음.",
-      "weeks": "약 4주 내"
+      "weeks": "약 4주 내",
+      "speed": "중간",
+      "best_for": ["가족 행사", "부동산", "감정적 치유", "가정 꾸미기"],
+      "challenges": ["과도한 감정", "방어적 태도"]
     },
     "leo": {
       "period": "7/23 - 8/22",
@@ -72,7 +94,10 @@
       "card": "Strength",
       "element": "Fire",
       "timing_meaning": "자신감 있게 나아가야 할 때. 리더십 발휘의 시기.",
-      "weeks": "약 3-4주 내"
+      "weeks": "약 3-4주 내",
+      "speed": "빠름",
+      "best_for": ["공개 발표", "창작 활동", "로맨스", "자기 PR"],
+      "challenges": ["자만심", "독선"]
     },
     "virgo": {
       "period": "8/23 - 9/22",
@@ -80,7 +105,10 @@
       "card": "The Hermit",
       "element": "Earth",
       "timing_meaning": "분석과 계획의 시기. 세부사항에 집중하라.",
-      "weeks": "약 6-8주 소요"
+      "weeks": "약 6-8주 소요",
+      "speed": "느림",
+      "best_for": ["건강 관리", "조직화", "분석", "기술 향상"],
+      "challenges": ["완벽주의", "자기 비판"]
     },
     "libra": {
       "period": "9/23 - 10/22",
@@ -88,7 +116,10 @@
       "card": "Justice",
       "element": "Air",
       "timing_meaning": "균형과 결정의 시기. 공정한 결과가 나옴.",
-      "weeks": "약 4주 내"
+      "weeks": "약 4주 내",
+      "speed": "중간",
+      "best_for": ["계약", "협상", "파트너십", "법적 문제", "결혼"],
+      "challenges": ["우유부단", "갈등 회피"]
     },
     "scorpio": {
       "period": "10/23 - 11/21",
@@ -96,7 +127,10 @@
       "card": "Death",
       "element": "Water",
       "timing_meaning": "변화와 재탄생의 시기. 깊은 변화가 일어남.",
-      "weeks": "약 8주 소요"
+      "weeks": "약 8주 소요",
+      "speed": "느림 (깊음)",
+      "best_for": ["변화", "심층 치유", "투자", "연구", "친밀한 관계"],
+      "challenges": ["집착", "비밀주의"]
     },
     "sagittarius": {
       "period": "11/22 - 12/21",
@@ -104,7 +138,10 @@
       "card": "Temperance",
       "element": "Fire",
       "timing_meaning": "확장과 모험의 시기. 새로운 기회를 잡아라.",
-      "weeks": "약 3주 내"
+      "weeks": "약 3주 내",
+      "speed": "빠름",
+      "best_for": ["해외 여행", "교육", "출판", "철학적 탐구", "모험"],
+      "challenges": ["과도한 낙관", "약속 불이행"]
     },
     "capricorn": {
       "period": "12/22 - 1/19",
@@ -112,7 +149,10 @@
       "card": "The Devil",
       "element": "Earth",
       "timing_meaning": "야망 실현의 시기. 꾸준한 노력이 보상받음.",
-      "weeks": "약 2-3개월 소요"
+      "weeks": "약 2-3개월 소요",
+      "speed": "매우 느림",
+      "best_for": ["사업", "커리어", "장기 목표", "구조화", "책임"],
+      "challenges": ["과로", "냉정함"]
     },
     "aquarius": {
       "period": "1/20 - 2/18",
@@ -120,7 +160,10 @@
       "card": "The Star",
       "element": "Air",
       "timing_meaning": "혁신과 희망의 시기. 예상치 못한 방식으로 일이 풀림.",
-      "weeks": "약 4-6주 내"
+      "weeks": "약 4-6주 내",
+      "speed": "예측 불가",
+      "best_for": ["혁신", "기술", "사회 활동", "그룹 프로젝트", "인도주의"],
+      "challenges": ["반항", "비현실적"]
     },
     "pisces": {
       "period": "2/19 - 3/20",
@@ -128,7 +171,10 @@
       "card": "The Moon",
       "element": "Water",
       "timing_meaning": "직관을 따라야 할 때. 꿈과 예감에 주의.",
-      "weeks": "시기 불확실, 흐름에 맡겨라"
+      "weeks": "시기 불확실, 흐름에 맡겨라",
+      "speed": "매우 느림/불확실",
+      "best_for": ["예술", "영성", "치유", "상상력", "자비"],
+      "challenges": ["현실 도피", "경계 부족"]
     }
   },
   "moon_phases": {
@@ -137,88 +183,385 @@
       "cards": ["The High Priestess", "The Moon", "Ace cards"],
       "energy": "새로운 시작, 의도 설정",
       "timing": "새로운 일을 시작하기 좋은 때",
-      "advice": "새로운 프로젝트, 관계, 시작에 씨앗을 뿌리세요."
+      "advice": "새로운 프로젝트, 관계, 시작에 씨앗을 뿌리세요.",
+      "duration": "1-3일",
+      "rituals": ["의도 설정", "명상", "새로운 시작 선언"],
+      "avoid": ["수확", "결과 기대", "마무리"]
     },
     "waxing_crescent": {
       "korean": "초승달",
       "cards": ["Page cards", "Two of Wands", "Three of Wands"],
       "energy": "성장, 계획",
       "timing": "계획을 세우고 첫 발을 내딛을 때",
-      "advice": "의도를 행동으로 옮기기 시작하세요."
+      "advice": "의도를 행동으로 옮기기 시작하세요.",
+      "duration": "3-7일",
+      "rituals": ["계획 수립", "첫 행동", "학습"],
+      "avoid": ["성급한 결정", "포기"]
     },
     "first_quarter": {
       "korean": "상현달",
       "cards": ["Knight cards", "Five cards", "Seven of Wands"],
       "energy": "도전, 행동",
       "timing": "장애물을 극복하고 밀어붙일 때",
-      "advice": "도전에 맞서 적극적으로 행동하세요."
+      "advice": "도전에 맞서 적극적으로 행동하세요.",
+      "duration": "7-10일",
+      "rituals": ["문제 해결", "장애물 극복", "결단"],
+      "avoid": ["회피", "포기", "변명"]
     },
     "waxing_gibbous": {
       "korean": "철망월",
       "cards": ["Eight cards", "Nine cards", "Strength"],
       "energy": "정제, 조정",
       "timing": "세부사항을 다듬고 조정할 때",
-      "advice": "거의 다 왔습니다. 마지막 조정을 하세요."
+      "advice": "거의 다 왔습니다. 마지막 조정을 하세요.",
+      "duration": "10-14일",
+      "rituals": ["검토", "수정", "완성 준비"],
+      "avoid": ["새 시작", "방향 전환"]
     },
     "full_moon": {
       "korean": "보름달",
       "cards": ["The Sun", "The World", "Ten cards"],
       "energy": "완성, 절정, 계시",
       "timing": "결과가 나타나고 진실이 드러날 때",
-      "advice": "수확의 시간입니다. 결과를 받아들이세요."
+      "advice": "수확의 시간입니다. 결과를 받아들이세요.",
+      "duration": "1-3일",
+      "rituals": ["수확 감사", "축하", "방출"],
+      "avoid": ["새 시작", "숨기기"]
     },
     "waning_gibbous": {
       "korean": "하현달 가는 중",
       "cards": ["Six of Cups", "Four of Swords", "The Hermit"],
       "energy": "감사, 나눔",
       "timing": "받은 것에 감사하고 나눌 때",
-      "advice": "얻은 것을 다른 이들과 나누세요."
+      "advice": "얻은 것을 다른 이들과 나누세요.",
+      "duration": "14-18일",
+      "rituals": ["감사", "가르침", "봉사"],
+      "avoid": ["탐욕", "독점"]
     },
     "last_quarter": {
       "korean": "하현달",
       "cards": ["Death", "Eight of Cups", "Five of Cups"],
       "energy": "정리, 방출",
       "timing": "더 이상 필요 없는 것을 놓아줄 때",
-      "advice": "과거를 정리하고 놓아주세요."
+      "advice": "과거를 정리하고 놓아주세요.",
+      "duration": "18-22일",
+      "rituals": ["정리", "용서", "방출"],
+      "avoid": ["집착", "새 시작"]
     },
     "waning_crescent": {
       "korean": "그믐달",
       "cards": ["Four of Swords", "The Hanged Man", "The High Priestess"],
       "energy": "휴식, 회복",
       "timing": "쉬면서 다음 사이클을 준비할 때",
-      "advice": "휴식을 취하고 내면의 목소리에 귀 기울이세요."
+      "advice": "휴식을 취하고 내면의 목소리에 귀 기울이세요.",
+      "duration": "22-29일",
+      "rituals": ["휴식", "꿈 작업", "명상"],
+      "avoid": ["활동적 추진", "새 프로젝트"]
+    }
+  },
+  "day_of_week_timing": {
+    "sunday": {
+      "korean": "일요일",
+      "ruling_planet": "Sun (태양)",
+      "energy": "활력, 성공, 자아 표현",
+      "cards": ["The Sun", "Ace of Wands", "Six of Wands"],
+      "best_for": ["자기 PR", "창의적 프로젝트", "건강 관련", "리더십"],
+      "color": "금색, 노랑",
+      "avoid": ["숨기기", "소극적 활동"]
+    },
+    "monday": {
+      "korean": "월요일",
+      "ruling_planet": "Moon (달)",
+      "energy": "감정, 직관, 가정",
+      "cards": ["The Moon", "The High Priestess", "Ace of Cups"],
+      "best_for": ["가정 관련", "감정적 대화", "직관 개발", "여성 관련"],
+      "color": "은색, 흰색",
+      "avoid": ["중요한 사업 결정", "논리적 토론"]
+    },
+    "tuesday": {
+      "korean": "화요일",
+      "ruling_planet": "Mars (화성)",
+      "energy": "행동, 용기, 경쟁",
+      "cards": ["The Tower", "The Chariot", "Knight of Swords"],
+      "best_for": ["적극적 행동", "경쟁", "운동", "용기 있는 결정"],
+      "color": "빨강",
+      "avoid": ["평화로운 협상", "휴식"]
+    },
+    "wednesday": {
+      "korean": "수요일",
+      "ruling_planet": "Mercury (수성)",
+      "energy": "소통, 학습, 여행",
+      "cards": ["The Magician", "Eight of Wands", "Page of Swords"],
+      "best_for": ["계약", "대화", "공부", "짧은 여행", "글쓰기"],
+      "color": "노랑, 주황",
+      "avoid": ["장기 계획", "감정적 문제"]
+    },
+    "thursday": {
+      "korean": "목요일",
+      "ruling_planet": "Jupiter (목성)",
+      "energy": "행운, 확장, 지혜",
+      "cards": ["Wheel of Fortune", "The Emperor", "Nine of Cups"],
+      "best_for": ["사업 확장", "법적 문제", "교육", "해외 관련"],
+      "color": "보라, 파랑",
+      "avoid": ["축소", "인색함"]
+    },
+    "friday": {
+      "korean": "금요일",
+      "ruling_planet": "Venus (금성)",
+      "energy": "사랑, 미, 풍요",
+      "cards": ["The Empress", "The Lovers", "Two of Cups"],
+      "best_for": ["데이트", "예술", "쇼핑", "미용", "화해"],
+      "color": "분홍, 초록",
+      "avoid": ["갈등", "힘든 대화"]
+    },
+    "saturday": {
+      "korean": "토요일",
+      "ruling_planet": "Saturn (토성)",
+      "energy": "구조, 제한, 카르마",
+      "cards": ["The World", "Justice", "Ten of Pentacles"],
+      "best_for": ["장기 계획", "구조화", "책임 이행", "부동산"],
+      "color": "검정, 갈색",
+      "avoid": ["무책임한 행동", "과소비"]
+    }
+  },
+  "time_of_day": {
+    "dawn": {
+      "korean": "새벽 (4-7시)",
+      "energy": "새로운 시작, 희망",
+      "cards": ["The Fool", "The Star", "Ace cards"],
+      "best_for": ["명상", "의도 설정", "새 시작 선언"],
+      "elements": ["Air (공기)"]
+    },
+    "morning": {
+      "korean": "오전 (7-12시)",
+      "energy": "활력, 성장, 행동",
+      "cards": ["The Sun", "Knight cards", "Three of Wands"],
+      "best_for": ["중요한 회의", "시작", "활동적인 일"],
+      "elements": ["Fire (불)"]
+    },
+    "afternoon": {
+      "korean": "오후 (12-17시)",
+      "energy": "완성, 사회적 활동",
+      "cards": ["Six of Wands", "The World", "Ten cards"],
+      "best_for": ["마무리", "발표", "사교"],
+      "elements": ["Earth (땅)"]
+    },
+    "evening": {
+      "korean": "저녁 (17-21시)",
+      "energy": "휴식, 관계, 성찰",
+      "cards": ["The Empress", "Four of Wands", "Two of Cups"],
+      "best_for": ["데이트", "가족 시간", "휴식"],
+      "elements": ["Water (물)"]
+    },
+    "night": {
+      "korean": "밤 (21-4시)",
+      "energy": "내면, 꿈, 무의식",
+      "cards": ["The Moon", "The High Priestess", "The Hermit"],
+      "best_for": ["명상", "꿈 작업", "심층 성찰"],
+      "elements": ["Spirit (영)"]
+    }
+  },
+  "planetary_retrograde": {
+    "mercury_retrograde": {
+      "korean": "수성 역행",
+      "frequency": "연 3-4회, 각 약 3주",
+      "cards": ["The Magician (R)", "Eight of Wands (R)", "Three of Swords"],
+      "effects": {
+        "communication": "오해, 지연, 혼란",
+        "technology": "기기 고장, 데이터 손실",
+        "travel": "일정 변경, 지연",
+        "contracts": "재검토 필요, 숨겨진 조항"
+      },
+      "do": ["과거 관계 정리", "재검토", "재연결", "백업"],
+      "avoid": ["새 계약", "중요한 결정", "새 기기 구매", "여행"],
+      "duration": "약 3주 + 섀도우 기간",
+      "advice": "RE- 접두사가 붙는 일에 집중: 재검토, 재연결, 재평가"
+    },
+    "venus_retrograde": {
+      "korean": "금성 역행",
+      "frequency": "약 18개월마다, 약 6주",
+      "cards": ["The Empress (R)", "The Lovers (R)", "Two of Cups (R)"],
+      "effects": {
+        "love": "전 애인 재등장, 관계 재평가",
+        "money": "재정 재검토 필요",
+        "values": "가치관 재고",
+        "beauty": "미용 시술 결과 불만족"
+      },
+      "do": ["관계 되돌아보기", "자기 가치 재발견", "예술 활동"],
+      "avoid": ["새 관계 시작", "결혼", "성형", "큰 쇼핑"],
+      "duration": "약 40일",
+      "advice": "사랑과 돈에 관해 재평가의 시간"
+    },
+    "mars_retrograde": {
+      "korean": "화성 역행",
+      "frequency": "약 2년마다, 약 2.5개월",
+      "cards": ["The Chariot (R)", "Knight of Wands (R)", "Five of Wands"],
+      "effects": {
+        "energy": "피로, 의욕 저하",
+        "action": "행동 지연, 좌절",
+        "anger": "억눌린 분노 표출",
+        "sex": "성적 에너지 변화"
+      },
+      "do": ["휴식", "내면 점검", "과거 프로젝트 마무리"],
+      "avoid": ["새 사업 시작", "분쟁", "수술", "격렬한 운동"],
+      "duration": "약 70일",
+      "advice": "에너지를 재충전하고 방향을 재정비하는 시간"
+    },
+    "jupiter_retrograde": {
+      "korean": "목성 역행",
+      "frequency": "연 1회, 약 4개월",
+      "cards": ["Wheel of Fortune (R)", "Nine of Cups (R)"],
+      "effects": {
+        "growth": "외적 확장보다 내적 성장",
+        "luck": "행운이 내면에서 옴",
+        "wisdom": "기존 지식 재검토"
+      },
+      "do": ["내면 성장", "철학적 성찰", "과거 성공 돌아보기"],
+      "avoid": ["과도한 확장", "큰 도박", "과식"],
+      "duration": "약 4개월",
+      "advice": "외부가 아닌 내면에서 풍요를 찾는 시간"
+    },
+    "saturn_retrograde": {
+      "korean": "토성 역행",
+      "frequency": "연 1회, 약 4.5개월",
+      "cards": ["The World (R)", "Justice (R)", "Ten of Pentacles (R)"],
+      "effects": {
+        "structure": "기존 구조 재검토",
+        "karma": "과거 카르마 처리",
+        "responsibility": "책임 재평가"
+      },
+      "do": ["구조 재정비", "카르마 청산", "장기 계획 재검토"],
+      "avoid": ["새 장기 계획", "큰 책임 추가"],
+      "duration": "약 140일",
+      "advice": "삶의 기반을 재점검하는 시간"
+    }
+  },
+  "special_dates": {
+    "new_year": {
+      "korean": "새해 (1월 1일)",
+      "cards": ["The Fool", "Ace of Wands", "The World"],
+      "energy": "새로운 시작, 결심",
+      "best_for": ["의도 설정", "새해 결심", "연간 계획"],
+      "reading_focus": "올해의 전망과 테마"
+    },
+    "lunar_new_year": {
+      "korean": "설날",
+      "cards": ["The Emperor", "Ten of Pentacles", "Six of Cups"],
+      "energy": "가족, 전통, 새 시작",
+      "best_for": ["가족 화합", "조상 연결", "전통 존중"],
+      "reading_focus": "가족운과 조상의 메시지"
+    },
+    "spring_equinox": {
+      "korean": "춘분 (3월 20-21일)",
+      "cards": ["The Fool", "The Empress", "Ace of Wands"],
+      "energy": "균형, 새 시작, 재탄생",
+      "best_for": ["새 프로젝트 시작", "균형 회복", "봄맞이 정리"],
+      "reading_focus": "새로운 성장의 방향"
+    },
+    "summer_solstice": {
+      "korean": "하지 (6월 21일)",
+      "cards": ["The Sun", "Strength", "Six of Wands"],
+      "energy": "절정, 빛, 축하",
+      "best_for": ["성취 축하", "에너지 충전", "활력 넘치는 활동"],
+      "reading_focus": "성취와 빛나는 순간"
+    },
+    "autumn_equinox": {
+      "korean": "추분 (9월 22-23일)",
+      "cards": ["Justice", "The Hermit", "Ten of Pentacles"],
+      "energy": "균형, 수확, 감사",
+      "best_for": ["감사 의식", "수확 축하", "균형 점검"],
+      "reading_focus": "올해 수확과 감사할 것"
+    },
+    "winter_solstice": {
+      "korean": "동지 (12월 21일)",
+      "cards": ["The Star", "The High Priestess", "Four of Swords"],
+      "energy": "내면의 빛, 희망, 재탄생",
+      "best_for": ["내면 작업", "명상", "다음 해 준비"],
+      "reading_focus": "어둠 속 빛과 내년 준비"
+    },
+    "birthday": {
+      "korean": "생일",
+      "cards": ["The Wheel of Fortune", "The Sun", "The World"],
+      "energy": "개인 새해, 새 사이클",
+      "best_for": ["연간 리딩", "개인 계획", "축하"],
+      "reading_focus": "다음 1년의 전망"
+    },
+    "eclipse": {
+      "korean": "일식/월식",
+      "cards": ["The Moon", "The Sun", "The Tower"],
+      "energy": "강력한 변화, 운명적 사건",
+      "best_for": ["관찰", "수용", "중요 결정 보류"],
+      "reading_focus": "다가오는 변화와 운명",
+      "warning": "예측 불가능한 에너지 - 중요 결정 피하기"
     }
   },
   "card_timing_meanings": {
     "immediate": {
       "timeframe": "즉시 - 며칠 내",
-      "cards": ["Ace of Wands", "Eight of Wands", "The Chariot", "Knight of Swords", "The Magician"],
-      "korean": "빠른 전개"
+      "timeframe_detail": {
+        "days": "1-7일",
+        "feeling": "급박함, 빠른 에너지"
+      },
+      "cards": ["Ace of Wands", "Eight of Wands", "The Chariot", "Knight of Swords", "The Magician", "Knight of Wands"],
+      "korean": "빠른 전개",
+      "indicators": ["Wands suit 우세", "Knight cards", "8 숫자 카드"]
     },
     "short_term": {
       "timeframe": "1-4주",
-      "cards": ["Knight cards", "Page cards", "Three of Wands", "Six of Wands"],
-      "korean": "가까운 시일 내"
+      "timeframe_detail": {
+        "weeks": "1-4주",
+        "feeling": "곧 다가옴"
+      },
+      "cards": ["Knight cards", "Page cards", "Three of Wands", "Six of Wands", "Two of Wands"],
+      "korean": "가까운 시일 내",
+      "indicators": ["Page cards", "3 숫자 카드", "Wands 원소"]
     },
     "medium_term": {
       "timeframe": "1-3개월",
-      "cards": ["The Wheel of Fortune", "Justice", "The Hanged Man", "Eight cards"],
-      "korean": "중기적"
+      "timeframe_detail": {
+        "months": "1-3개월",
+        "feeling": "적당한 시간 필요"
+      },
+      "cards": ["The Wheel of Fortune", "Justice", "The Hanged Man", "Eight cards", "Temperance"],
+      "korean": "중기적",
+      "indicators": ["Queen cards", "중간 숫자(5-7)", "Air 원소"]
     },
     "long_term": {
       "timeframe": "3-6개월 이상",
-      "cards": ["The World", "Ten of Pentacles", "The Hermit", "Nine of Pentacles"],
-      "korean": "장기적"
+      "timeframe_detail": {
+        "months": "3-12개월",
+        "feeling": "천천히, 확실하게"
+      },
+      "cards": ["The World", "Ten of Pentacles", "The Hermit", "Nine of Pentacles", "King cards"],
+      "korean": "장기적",
+      "indicators": ["King cards", "Pentacles 우세", "9-10 숫자"]
     },
     "uncertain": {
       "timeframe": "불확실 - 흐름에 맡겨라",
-      "cards": ["The Moon", "The High Priestess", "Two of Swords", "Seven of Cups"],
-      "korean": "시기 불명확"
+      "timeframe_detail": {
+        "feeling": "우주의 타이밍을 믿어라"
+      },
+      "cards": ["The Moon", "The High Priestess", "Two of Swords", "Seven of Cups", "The Hanged Man"],
+      "korean": "시기 불명확",
+      "indicators": ["Moon card", "Cups 우세", "2, 7 숫자"]
     },
     "delayed": {
       "timeframe": "지연됨 - 인내 필요",
-      "cards": ["The Hanged Man", "Four of Swords", "Seven of Pentacles", "Four of Cups"],
-      "korean": "지연/대기"
+      "timeframe_detail": {
+        "feeling": "예상보다 오래 걸림"
+      },
+      "cards": ["The Hanged Man", "Four of Swords", "Seven of Pentacles", "Four of Cups", "The Hermit"],
+      "korean": "지연/대기",
+      "indicators": ["4 숫자 카드", "역방향 카드 다수", "Hanged Man"]
+    },
+    "cyclical": {
+      "timeframe": "순환적 - 패턴으로 반복",
+      "timeframe_detail": {
+        "feeling": "사이클로 돌아옴"
+      },
+      "cards": ["Wheel of Fortune", "The Moon", "Eight of Cups", "Six of Cups"],
+      "korean": "반복/순환",
+      "indicators": ["Wheel of Fortune", "6 숫자", "Cups 우세"]
     }
   },
   "suit_timing": {
@@ -227,40 +570,131 @@
       "speed": "빠름",
       "timeframe": "일/주 단위",
       "korean": "완드는 빠른 전개를 의미해요",
-      "seasons": ["Spring", "Summer"]
+      "seasons": ["Spring", "Summer"],
+      "timing_keywords": ["즉시", "빠르게", "열정적으로"],
+      "typical_days": "1-14일"
     },
     "cups": {
       "element": "Water",
       "speed": "느림",
       "timeframe": "주/월 단위",
       "korean": "컵은 감정의 흐름에 따라 천천히 진행돼요",
-      "seasons": ["Summer", "Autumn"]
+      "seasons": ["Summer", "Autumn"],
+      "timing_keywords": ["감정이 준비될 때", "자연스럽게", "흐름에 따라"],
+      "typical_days": "14-60일"
     },
     "swords": {
       "element": "Air",
       "speed": "중간-빠름",
       "timeframe": "일/주 단위",
       "korean": "소드는 생각과 결정의 속도로 진행돼요",
-      "seasons": ["Autumn", "Winter"]
+      "seasons": ["Autumn", "Winter"],
+      "timing_keywords": ["결정 후 즉시", "생각이 정리되면", "소통 후"],
+      "typical_days": "7-30일"
     },
     "pentacles": {
       "element": "Earth",
       "speed": "느림",
       "timeframe": "월/년 단위",
       "korean": "펜타클은 물질적 결과라 시간이 걸려요",
-      "seasons": ["Winter", "Spring"]
+      "seasons": ["Winter", "Spring"],
+      "timing_keywords": ["꾸준히", "장기적으로", "천천히 확실하게"],
+      "typical_days": "30-365일"
     }
   },
   "number_timing": {
-    "aces": "새로운 시작점 - 지금 바로",
-    "twos": "결정 시점 - 조만간",
-    "threes": "초기 성장 - 곧",
-    "fours": "안정/휴식 - 잠시 후",
-    "fives": "도전/변화 - 예상보다 빨리",
-    "sixes": "균형/조화 - 적당한 때에",
-    "sevens": "평가/선택 - 상황에 따라",
-    "eights": "진전/움직임 - 곧 빠르게",
-    "nines": "거의 완성 - 곧 결과",
-    "tens": "완성/사이클 끝 - 완료됨"
+    "aces": {
+      "meaning": "새로운 시작점 - 지금 바로",
+      "timing": "즉시-1주",
+      "energy": "씨앗이 뿌려짐"
+    },
+    "twos": {
+      "meaning": "결정 시점 - 조만간",
+      "timing": "1-2주",
+      "energy": "선택의 순간"
+    },
+    "threes": {
+      "meaning": "초기 성장 - 곧",
+      "timing": "2-3주",
+      "energy": "첫 결과 나타남"
+    },
+    "fours": {
+      "meaning": "안정/휴식 - 잠시 후",
+      "timing": "3-4주",
+      "energy": "기반 다지기"
+    },
+    "fives": {
+      "meaning": "도전/변화 - 예상보다 빨리",
+      "timing": "즉시-5주",
+      "energy": "예측 불가한 변화"
+    },
+    "sixes": {
+      "meaning": "균형/조화 - 적당한 때에",
+      "timing": "6주 내외",
+      "energy": "조화 달성"
+    },
+    "sevens": {
+      "meaning": "평가/선택 - 상황에 따라",
+      "timing": "7주 또는 상황 의존",
+      "energy": "관망과 결정"
+    },
+    "eights": {
+      "meaning": "진전/움직임 - 곧 빠르게",
+      "timing": "8일-8주",
+      "energy": "급진전"
+    },
+    "nines": {
+      "meaning": "거의 완성 - 곧 결과",
+      "timing": "9일-9주",
+      "energy": "마무리 단계"
+    },
+    "tens": {
+      "meaning": "완성/사이클 끝 - 완료됨",
+      "timing": "10주 또는 사이클 완료",
+      "energy": "한 장 마무리"
+    }
+  },
+  "timing_spread_positions": {
+    "celtic_cross": {
+      "position_6": {
+        "name": "근미래",
+        "timeframe": "1-3개월 내",
+        "korean": "곧 다가올 일"
+      },
+      "position_10": {
+        "name": "최종 결과",
+        "timeframe": "3-12개월",
+        "korean": "궁극적 결과"
+      }
+    },
+    "three_card": {
+      "past": {
+        "timeframe": "지난 1-3개월"
+      },
+      "present": {
+        "timeframe": "현재-2주"
+      },
+      "future": {
+        "timeframe": "1-3개월 앞"
+      }
+    }
+  },
+  "timing_modifiers": {
+    "reversed_cards": {
+      "effect": "지연 또는 내면화",
+      "modifier": "예상 시간 x 1.5-2배"
+    },
+    "multiple_wands": {
+      "effect": "가속",
+      "modifier": "예상 시간 / 2"
+    },
+    "multiple_pentacles": {
+      "effect": "감속",
+      "modifier": "예상 시간 x 2"
+    },
+    "major_arcana_heavy": {
+      "effect": "운명적 타이밍",
+      "modifier": "우주 타이밍에 맡김"
+    }
   }
 }

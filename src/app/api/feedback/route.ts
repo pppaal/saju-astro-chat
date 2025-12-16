@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -15,6 +17,13 @@ export async function POST(req: NextRequest) {
       sunSign,
       locale = "ko",
       userHash,
+      // Extended fields for RLHF
+      recordId,
+      rating,
+      feedbackText,
+      userQuestion,
+      consultationSummary,
+      contextUsed,
     } = body;
 
     // Validation
@@ -25,7 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save to database
+    // Save to local database
     const feedback = await prisma.sectionFeedback.create({
       data: {
         service,
@@ -39,9 +48,47 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Also send to backend RLHF system for AI improvement
+    let rlhfResult = null;
+    try {
+      const rlhfRating = rating ?? (helpful ? 5 : 1); // Convert boolean to rating if not provided
+      const rlhfPayload = {
+        consultation_data: {
+          record_id: recordId || feedback.id,
+          theme: theme,
+          locale: locale,
+          user_prompt: userQuestion || "",
+          consultation_summary: consultationSummary || sectionId,
+          context_used: contextUsed || "",
+        },
+        rating: rlhfRating,
+        feedback: feedbackText || (helpful ? "Helpful" : "Not helpful"),
+        user_id: userHash || "anonymous",
+      };
+
+      const rlhfResponse = await fetch(`${BACKEND_URL}/rlhf/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": process.env.ADMIN_API_TOKEN || "",
+        },
+        body: JSON.stringify(rlhfPayload),
+      });
+
+      if (rlhfResponse.ok) {
+        rlhfResult = await rlhfResponse.json();
+        console.log("[Feedback] RLHF recorded:", rlhfResult.feedback_id);
+      }
+    } catch (rlhfErr) {
+      // RLHF is optional - don't fail the whole request
+      console.warn("[Feedback] RLHF backend not available:", rlhfErr);
+    }
+
     return NextResponse.json({
       success: true,
       id: feedback.id,
+      rlhfId: rlhfResult?.feedback_id,
+      badges: rlhfResult?.new_badges || [],
     });
   } catch (error: any) {
     console.error("[Feedback API Error]:", error);

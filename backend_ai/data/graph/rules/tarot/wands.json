@@ -1,58 +1,324 @@
 [
-  {"id": 22, "name": "Ace of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Inspiration", "New opportunities", "Growth", "Potential", "Creation"], "meaning": "A spark of inspiration or a new opportunity has arrived. This is a moment of pure potential and creative energy. Seize this chance for growth.", "advice": "Act on your inspiration now. This is the seed of something great."},
-    "reversed": {"keywords": ["Lack of energy", "Lack of passion", "Delays", "Creative blocks", "Missed opportunity"], "meaning": "You may be feeling uninspired or facing delays. A creative block is preventing you from moving forward on a new idea.", "advice": "Find what reignites your passion. Don't let opportunities pass."}
+  {
+    "id": 22,
+    "name": "Ace of Wands",
+    "nameKo": "완드 에이스",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Inspiration", "New opportunities", "Growth", "Potential", "Creation"],
+      "keywordsKo": ["영감", "새로운 기회", "성장", "잠재력", "창조"],
+      "meaning": "A spark of inspiration or a new opportunity has arrived. This is a moment of pure potential and creative energy. Seize this chance for growth.",
+      "meaningKo": "영감의 불꽃이나 새로운 기회가 도착했습니다. 순수한 잠재력과 창조적 에너지의 순간입니다. 성장의 기회를 잡으세요.",
+      "advice": "Act on your inspiration now. This is the seed of something great.",
+      "adviceKo": "영감에 지금 행동하세요. 위대한 것의 씨앗입니다."
+    },
+    "reversed": {
+      "keywords": ["Lack of energy", "Lack of passion", "Delays", "Creative blocks", "Missed opportunity"],
+      "keywordsKo": ["에너지 부족", "열정 부족", "지연", "창작 막힘", "기회 놓침"],
+      "meaning": "You may be feeling uninspired or facing delays. A creative block is preventing you from moving forward on a new idea.",
+      "meaningKo": "영감이 없거나 지연에 직면해 있을 수 있습니다. 창작 막힘이 새 아이디어를 진행하는 것을 막고 있습니다.",
+      "advice": "Find what reignites your passion. Don't let opportunities pass.",
+      "adviceKo": "열정을 다시 불태울 것을 찾으세요. 기회를 놓치지 마세요."
+    }
   },
-  {"id": 23, "name": "Two of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Future planning", "Making decisions", "Leaving home", "Partnership", "Progress"], "meaning": "You are at a point where you need to plan for the future. A choice must be made between staying in your comfort zone and exploring new territories.", "advice": "Plan boldly. Step outside your comfort zone."},
-    "reversed": {"keywords": ["Fear of change", "Playing it safe", "Lack of planning", "Indecision", "Cancelled plans"], "meaning": "Fear of the unknown is keeping you from moving forward. A lack of planning may lead to indecision or cancelled travel.", "advice": "Overcome your fear of the unknown. Make a plan and commit."}
+  {
+    "id": 23,
+    "name": "Two of Wands",
+    "nameKo": "완드 2",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Future planning", "Making decisions", "Leaving home", "Partnership", "Progress"],
+      "keywordsKo": ["미래 계획", "결정", "고향 떠남", "파트너십", "진전"],
+      "meaning": "You are at a point where you need to plan for the future. A choice must be made between staying in your comfort zone and exploring new territories.",
+      "meaningKo": "미래를 계획해야 할 시점에 있습니다. 안전지대에 머물 것인지 새로운 영역을 탐험할 것인지 선택해야 합니다.",
+      "advice": "Plan boldly. Step outside your comfort zone.",
+      "adviceKo": "대담하게 계획하세요. 안전지대를 벗어나세요."
+    },
+    "reversed": {
+      "keywords": ["Fear of change", "Playing it safe", "Lack of planning", "Indecision", "Cancelled plans"],
+      "keywordsKo": ["변화 두려움", "안전 추구", "계획 부족", "우유부단", "계획 취소"],
+      "meaning": "Fear of the unknown is keeping you from moving forward. A lack of planning may lead to indecision or cancelled travel.",
+      "meaningKo": "미지에 대한 두려움이 앞으로 나아가는 것을 막고 있습니다. 계획 부족이 우유부단이나 여행 취소로 이어질 수 있습니다.",
+      "advice": "Overcome your fear of the unknown. Make a plan and commit.",
+      "adviceKo": "미지에 대한 두려움을 극복하세요. 계획을 세우고 실행하세요."
+    }
   },
-  {"id": 24, "name": "Three of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Expansion", "Foresight", "Overseas opportunities", "Growth", "Adventure"], "meaning": "Your plans are in motion and you are beginning to see the first signs of success. This is a time of expansion and looking toward the future with anticipation.", "advice": "Expand your horizons. Your efforts are paying off."},
-    "reversed": {"keywords": ["Delays", "Obstacles", "Lack of foresight", "Frustration", "Disappointment"], "meaning": "You are facing unexpected delays and obstacles. A lack of foresight may have led to your plans not working out as expected.", "advice": "Reassess your plans. Learn from delays and adjust."}
+  {
+    "id": 24,
+    "name": "Three of Wands",
+    "nameKo": "완드 3",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Expansion", "Foresight", "Overseas opportunities", "Growth", "Adventure"],
+      "keywordsKo": ["확장", "선견지명", "해외 기회", "성장", "모험"],
+      "meaning": "Your plans are in motion and you are beginning to see the first signs of success. This is a time of expansion and looking toward the future with anticipation.",
+      "meaningKo": "계획이 진행 중이고 성공의 첫 징후가 보이기 시작합니다. 확장의 시기이며 기대감으로 미래를 바라보고 있습니다.",
+      "advice": "Expand your horizons. Your efforts are paying off.",
+      "adviceKo": "시야를 넓히세요. 노력이 결실을 맺고 있습니다."
+    },
+    "reversed": {
+      "keywords": ["Delays", "Obstacles", "Lack of foresight", "Frustration", "Disappointment"],
+      "keywordsKo": ["지연", "장애물", "선견지명 부족", "좌절", "실망"],
+      "meaning": "You are facing unexpected delays and obstacles. A lack of foresight may have led to your plans not working out as expected.",
+      "meaningKo": "예상치 못한 지연과 장애물에 직면해 있습니다. 선견지명 부족으로 계획이 예상대로 되지 않았을 수 있습니다.",
+      "advice": "Reassess your plans. Learn from delays and adjust.",
+      "adviceKo": "계획을 재평가하세요. 지연에서 배우고 조정하세요."
+    }
   },
-  {"id": 25, "name": "Four of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Celebration", "Harmony", "Marriage", "Home", "Community"], "meaning": "This is a card of joyful celebration, harmony, and stability. It often signifies a happy event like a wedding or a welcoming home.", "advice": "Celebrate your achievements. Create a harmonious home."},
-    "reversed": {"keywords": ["Lack of support", "Instability", "Feeling unwelcome", "Family issues", "Disharmony"], "meaning": "There may be a lack of harmony in your home or community. You might feel unstable or unwelcome in your current environment.", "advice": "Work to restore harmony. Address family tensions."}
+  {
+    "id": 25,
+    "name": "Four of Wands",
+    "nameKo": "완드 4",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Celebration", "Harmony", "Marriage", "Home", "Community"],
+      "keywordsKo": ["축하", "조화", "결혼", "가정", "공동체"],
+      "meaning": "This is a card of joyful celebration, harmony, and stability. It often signifies a happy event like a wedding or a welcoming home.",
+      "meaningKo": "기쁜 축하, 조화, 안정의 카드입니다. 결혼이나 환영하는 가정 같은 행복한 행사를 의미하는 경우가 많습니다.",
+      "advice": "Celebrate your achievements. Create a harmonious home.",
+      "adviceKo": "성취를 축하하세요. 조화로운 가정을 만드세요."
+    },
+    "reversed": {
+      "keywords": ["Lack of support", "Instability", "Feeling unwelcome", "Family issues", "Disharmony"],
+      "keywordsKo": ["지지 부족", "불안정", "환영받지 못함", "가족 문제", "불화"],
+      "meaning": "There may be a lack of harmony in your home or community. You might feel unstable or unwelcome in your current environment.",
+      "meaningKo": "가정이나 공동체에 조화가 부족할 수 있습니다. 현재 환경에서 불안정하거나 환영받지 못한다고 느낄 수 있습니다.",
+      "advice": "Work to restore harmony. Address family tensions.",
+      "adviceKo": "조화를 회복하도록 노력하세요. 가족 갈등을 해결하세요."
+    }
   },
-  {"id": 26, "name": "Five of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Conflict", "Competition", "Disagreements", "Tension", "Rivalry"], "meaning": "You are in the midst of conflict or competition. While there is tension, this struggle can lead to growth and a better outcome if handled constructively.", "advice": "Embrace healthy competition. Channel conflict productively."},
-    "reversed": {"keywords": ["Avoiding conflict", "Internal conflict", "Finding common ground", "Peace", "Resolution"], "meaning": "You are either avoiding a necessary conflict or have found a way to resolve disagreements. It can signify finding peace after a period of tension.", "advice": "Seek resolution. Find common ground with others."}
+  {
+    "id": 26,
+    "name": "Five of Wands",
+    "nameKo": "완드 5",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Conflict", "Competition", "Disagreements", "Tension", "Rivalry"],
+      "keywordsKo": ["갈등", "경쟁", "의견 불일치", "긴장", "경쟁관계"],
+      "meaning": "You are in the midst of conflict or competition. While there is tension, this struggle can lead to growth and a better outcome if handled constructively.",
+      "meaningKo": "갈등이나 경쟁의 한가운데 있습니다. 긴장이 있지만, 건설적으로 처리하면 이 투쟁이 성장과 더 나은 결과로 이어질 수 있습니다.",
+      "advice": "Embrace healthy competition. Channel conflict productively.",
+      "adviceKo": "건강한 경쟁을 받아들이세요. 갈등을 생산적으로 활용하세요."
+    },
+    "reversed": {
+      "keywords": ["Avoiding conflict", "Internal conflict", "Finding common ground", "Peace", "Resolution"],
+      "keywordsKo": ["갈등 회피", "내적 갈등", "공통점 찾기", "평화", "해결"],
+      "meaning": "You are either avoiding a necessary conflict or have found a way to resolve disagreements. It can signify finding peace after a period of tension.",
+      "meaningKo": "필요한 갈등을 피하거나 의견 불일치를 해결할 방법을 찾았습니다. 긴장의 시기 후에 평화를 찾음을 의미할 수 있습니다.",
+      "advice": "Seek resolution. Find common ground with others.",
+      "adviceKo": "해결책을 찾으세요. 타인과 공통점을 찾으세요."
+    }
   },
-  {"id": 27, "name": "Six of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Success", "Public recognition", "Victory", "Praise", "Confidence"], "meaning": "You have achieved a significant victory and are receiving public recognition for your efforts. Enjoy this moment of success and praise.", "advice": "Accept recognition gracefully. You've earned this success."},
-    "reversed": {"keywords": ["Egotism", "Lack of recognition", "Failure", "Disappointment", "Arrogance"], "meaning": "You may be feeling a lack of recognition or have experienced a recent failure. Be wary of arrogance or letting a small success go to your head.", "advice": "Stay humble. Don't let ego overshadow your achievements."}
+  {
+    "id": 27,
+    "name": "Six of Wands",
+    "nameKo": "완드 6",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Success", "Public recognition", "Victory", "Praise", "Confidence"],
+      "keywordsKo": ["성공", "대중의 인정", "승리", "찬사", "자신감"],
+      "meaning": "You have achieved a significant victory and are receiving public recognition for your efforts. Enjoy this moment of success and praise.",
+      "meaningKo": "중요한 승리를 거두었고 노력에 대한 대중의 인정을 받고 있습니다. 이 성공과 찬사의 순간을 즐기세요.",
+      "advice": "Accept recognition gracefully. You've earned this success.",
+      "adviceKo": "인정을 겸손히 받으세요. 이 성공을 얻을 자격이 있습니다."
+    },
+    "reversed": {
+      "keywords": ["Egotism", "Lack of recognition", "Failure", "Disappointment", "Arrogance"],
+      "keywordsKo": ["자만", "인정 부족", "실패", "실망", "오만"],
+      "meaning": "You may be feeling a lack of recognition or have experienced a recent failure. Be wary of arrogance or letting a small success go to your head.",
+      "meaningKo": "인정 부족을 느끼거나 최근 실패를 경험했을 수 있습니다. 오만하거나 작은 성공에 우쭐해지지 않도록 주의하세요.",
+      "advice": "Stay humble. Don't let ego overshadow your achievements.",
+      "adviceKo": "겸손하세요. 자만심이 성취를 가리지 않게 하세요."
+    }
   },
-  {"id": 28, "name": "Seven of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Challenge", "Competition", "Perseverance", "Defensiveness", "Standing your ground"], "meaning": "You are in a position of strength but must defend it against challenges. Stand your ground and persevere, for you have the advantage.", "advice": "Stand firm. Defend your position with confidence."},
-    "reversed": {"keywords": ["Giving up", "Overwhelmed", "Exhaustion", "Being attacked", "Losing ground"], "meaning": "You feel overwhelmed and are on the verge of giving up. You may be losing ground in a battle due to exhaustion or feeling attacked.", "advice": "Reassess if this battle is worth fighting. Restore your energy."}
+  {
+    "id": 28,
+    "name": "Seven of Wands",
+    "nameKo": "완드 7",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Challenge", "Competition", "Perseverance", "Defensiveness", "Standing your ground"],
+      "keywordsKo": ["도전", "경쟁", "인내", "방어적", "입장 고수"],
+      "meaning": "You are in a position of strength but must defend it against challenges. Stand your ground and persevere, for you have the advantage.",
+      "meaningKo": "강한 위치에 있지만 도전에 맞서 방어해야 합니다. 이점이 있으니 입장을 고수하고 인내하세요.",
+      "advice": "Stand firm. Defend your position with confidence.",
+      "adviceKo": "굳건히 서세요. 자신감 있게 입장을 지키세요."
+    },
+    "reversed": {
+      "keywords": ["Giving up", "Overwhelmed", "Exhaustion", "Being attacked", "Losing ground"],
+      "keywordsKo": ["포기", "압도당함", "탈진", "공격받음", "입지 상실"],
+      "meaning": "You feel overwhelmed and are on the verge of giving up. You may be losing ground in a battle due to exhaustion or feeling attacked.",
+      "meaningKo": "압도당하고 포기 직전입니다. 탈진이나 공격받는 느낌으로 전투에서 입지를 잃고 있을 수 있습니다.",
+      "advice": "Reassess if this battle is worth fighting. Restore your energy.",
+      "adviceKo": "이 싸움이 가치 있는지 재평가하세요. 에너지를 회복하세요."
+    }
   },
-  {"id": 29, "name": "Eight of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Speed", "Action", "Air travel", "Movement", "Swift change"], "meaning": "Events are moving forward with great speed. This card indicates rapid progress, communication, or even travel. Be ready for swift changes.", "advice": "Ride the momentum. Act quickly while energy is high."},
-    "reversed": {"keywords": ["Delays", "Frustration", "Slowing down", "Miscommunication", "Resisting change"], "meaning": "You are experiencing frustrating delays and a loss of momentum. Things are slowing down, possibly due to miscommunication.", "advice": "Be patient with delays. Clear up miscommunications."}
+  {
+    "id": 29,
+    "name": "Eight of Wands",
+    "nameKo": "완드 8",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Speed", "Action", "Air travel", "Movement", "Swift change"],
+      "keywordsKo": ["속도", "행동", "항공 여행", "움직임", "빠른 변화"],
+      "meaning": "Events are moving forward with great speed. This card indicates rapid progress, communication, or even travel. Be ready for swift changes.",
+      "meaningKo": "사건이 빠른 속도로 진행되고 있습니다. 이 카드는 빠른 진전, 소통, 심지어 여행을 나타냅니다. 빠른 변화에 대비하세요.",
+      "advice": "Ride the momentum. Act quickly while energy is high.",
+      "adviceKo": "추진력을 타세요. 에너지가 높을 때 빠르게 행동하세요."
+    },
+    "reversed": {
+      "keywords": ["Delays", "Frustration", "Slowing down", "Miscommunication", "Resisting change"],
+      "keywordsKo": ["지연", "좌절", "속도 저하", "오해", "변화 저항"],
+      "meaning": "You are experiencing frustrating delays and a loss of momentum. Things are slowing down, possibly due to miscommunication.",
+      "meaningKo": "좌절스러운 지연과 추진력 상실을 경험하고 있습니다. 오해 때문에 일이 느려지고 있을 수 있습니다.",
+      "advice": "Be patient with delays. Clear up miscommunications.",
+      "adviceKo": "지연에 인내하세요. 오해를 해소하세요."
+    }
   },
-  {"id": 30, "name": "Nine of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Resilience", "Courage", "Persistence", "Last stand", "Boundaries"], "meaning": "You are weary from battle but still standing. This card represents resilience and the courage to face one final challenge before reaching your goal.", "advice": "Push through. You're almost there. Stay resilient."},
-    "reversed": {"keywords": ["Paranoia", "Giving up", "Fatigue", "Defensiveness", "Lack of boundaries"], "meaning": "You are exhausted and on the verge of giving up. Paranoia and defensiveness may be causing you to push others away.", "advice": "Rest before you break. Set healthy boundaries."}
+  {
+    "id": 30,
+    "name": "Nine of Wands",
+    "nameKo": "완드 9",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Resilience", "Courage", "Persistence", "Last stand", "Boundaries"],
+      "keywordsKo": ["회복력", "용기", "끈기", "최후의 저항", "경계"],
+      "meaning": "You are weary from battle but still standing. This card represents resilience and the courage to face one final challenge before reaching your goal.",
+      "meaningKo": "전투로 지쳤지만 여전히 서 있습니다. 이 카드는 목표 도달 전 마지막 도전에 맞설 회복력과 용기를 나타냅니다.",
+      "advice": "Push through. You're almost there. Stay resilient.",
+      "adviceKo": "밀고 나가세요. 거의 다 왔습니다. 회복력을 유지하세요."
+    },
+    "reversed": {
+      "keywords": ["Paranoia", "Giving up", "Fatigue", "Defensiveness", "Lack of boundaries"],
+      "keywordsKo": ["편집증", "포기", "피로", "방어적", "경계 부족"],
+      "meaning": "You are exhausted and on the verge of giving up. Paranoia and defensiveness may be causing you to push others away.",
+      "meaningKo": "탈진 상태로 포기 직전입니다. 편집증과 방어적 태도로 다른 사람들을 밀어내고 있을 수 있습니다.",
+      "advice": "Rest before you break. Set healthy boundaries.",
+      "adviceKo": "무너지기 전에 쉬세요. 건강한 경계를 설정하세요."
+    }
   },
-  {"id": 31, "name": "Ten of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Burden", "Responsibility", "Hard work", "Stress", "Overwhelmed"], "meaning": "You have taken on too much responsibility and are now feeling the burden. While you are close to the finish line, you are overwhelmed by the weight.", "advice": "Delegate some responsibilities. You don't have to carry everything."},
-    "reversed": {"keywords": ["Letting go", "Delegating", "Release", "Sharing the burden", "Avoiding responsibility"], "meaning": "You are learning to delegate or release some of your burdens. However, it could also mean you are avoiding your responsibilities entirely.", "advice": "Share your load wisely. Don't avoid all responsibility."}
+  {
+    "id": 31,
+    "name": "Ten of Wands",
+    "nameKo": "완드 10",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Burden", "Responsibility", "Hard work", "Stress", "Overwhelmed"],
+      "keywordsKo": ["짐", "책임", "고된 일", "스트레스", "압도당함"],
+      "meaning": "You have taken on too much responsibility and are now feeling the burden. While you are close to the finish line, you are overwhelmed by the weight.",
+      "meaningKo": "너무 많은 책임을 짊어져 지금 부담을 느끼고 있습니다. 결승선에 가깝지만 무게에 압도당하고 있습니다.",
+      "advice": "Delegate some responsibilities. You don't have to carry everything.",
+      "adviceKo": "책임 일부를 위임하세요. 모든 것을 짊어질 필요 없습니다."
+    },
+    "reversed": {
+      "keywords": ["Letting go", "Delegating", "Release", "Sharing the burden", "Avoiding responsibility"],
+      "keywordsKo": ["놓아줌", "위임", "해방", "짐 나눔", "책임 회피"],
+      "meaning": "You are learning to delegate or release some of your burdens. However, it could also mean you are avoiding your responsibilities entirely.",
+      "meaningKo": "짐의 일부를 위임하거나 놓는 법을 배우고 있습니다. 그러나 책임을 완전히 회피하고 있을 수도 있습니다.",
+      "advice": "Share your load wisely. Don't avoid all responsibility.",
+      "adviceKo": "짐을 현명하게 나누세요. 모든 책임을 회피하지 마세요."
+    }
   },
-  {"id": 32, "name": "Page of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Enthusiasm", "Exploration", "Discovery", "Free spirit", "New ideas"], "meaning": "This card represents a burst of creative energy and enthusiasm. You are ready to explore new ideas and embark on a passionate new adventure.", "advice": "Explore with enthusiasm. Follow your creative spark."},
-    "reversed": {"keywords": ["Creative blocks", "Lack of direction", "Haste", "Feeling uninspired", "Boredom"], "meaning": "You may be feeling uninspired or have lost your direction. Hasty decisions could lead to creative blocks or a sense of boredom.", "advice": "Reconnect with your passion. Find what excites you again."}
+  {
+    "id": 32,
+    "name": "Page of Wands",
+    "nameKo": "완드 시종",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Enthusiasm", "Exploration", "Discovery", "Free spirit", "New ideas"],
+      "keywordsKo": ["열정", "탐험", "발견", "자유로운 영혼", "새 아이디어"],
+      "meaning": "This card represents a burst of creative energy and enthusiasm. You are ready to explore new ideas and embark on a passionate new adventure.",
+      "meaningKo": "이 카드는 창조적 에너지와 열정의 폭발을 나타냅니다. 새 아이디어를 탐험하고 열정적인 새 모험을 시작할 준비가 되었습니다.",
+      "advice": "Explore with enthusiasm. Follow your creative spark.",
+      "adviceKo": "열정으로 탐험하세요. 창의적 영감을 따르세요."
+    },
+    "reversed": {
+      "keywords": ["Creative blocks", "Lack of direction", "Haste", "Feeling uninspired", "Boredom"],
+      "keywordsKo": ["창작 막힘", "방향 부족", "성급함", "영감 없음", "지루함"],
+      "meaning": "You may be feeling uninspired or have lost your direction. Hasty decisions could lead to creative blocks or a sense of boredom.",
+      "meaningKo": "영감이 없거나 방향을 잃었을 수 있습니다. 성급한 결정이 창작 막힘이나 지루함으로 이어질 수 있습니다.",
+      "advice": "Reconnect with your passion. Find what excites you again.",
+      "adviceKo": "열정과 다시 연결하세요. 다시 흥분시키는 것을 찾으세요."
+    }
   },
-  {"id": 33, "name": "Knight of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Energy", "Passion", "Adventure", "Impulsiveness", "Action"], "meaning": "Full of energy and passion, you are ready to charge forward. This card represents taking swift action and embracing adventure, though sometimes impulsively.", "advice": "Channel your passion into action. Adventure awaits!"},
-    "reversed": {"keywords": ["Recklessness", "Delays", "Frustration", "Lack of energy", "Haste"], "meaning": "You may be acting with recklessness or feeling frustrated by delays. A lack of energy is preventing you from taking action.", "advice": "Slow down before acting. Recklessness leads to mistakes."}
+  {
+    "id": 33,
+    "name": "Knight of Wands",
+    "nameKo": "완드 기사",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Energy", "Passion", "Adventure", "Impulsiveness", "Action"],
+      "keywordsKo": ["에너지", "열정", "모험", "충동", "행동"],
+      "meaning": "Full of energy and passion, you are ready to charge forward. This card represents taking swift action and embracing adventure, though sometimes impulsively.",
+      "meaningKo": "에너지와 열정이 가득하여 돌진할 준비가 되었습니다. 이 카드는 때로 충동적이지만 빠른 행동과 모험 수용을 나타냅니다.",
+      "advice": "Channel your passion into action. Adventure awaits!",
+      "adviceKo": "열정을 행동으로 옮기세요. 모험이 기다립니다!"
+    },
+    "reversed": {
+      "keywords": ["Recklessness", "Delays", "Frustration", "Lack of energy", "Haste"],
+      "keywordsKo": ["무모함", "지연", "좌절", "에너지 부족", "성급함"],
+      "meaning": "You may be acting with recklessness or feeling frustrated by delays. A lack of energy is preventing you from taking action.",
+      "meaningKo": "무모하게 행동하거나 지연으로 좌절하고 있을 수 있습니다. 에너지 부족이 행동을 막고 있습니다.",
+      "advice": "Slow down before acting. Recklessness leads to mistakes.",
+      "adviceKo": "행동 전에 속도를 늦추세요. 무모함은 실수를 부릅니다."
+    }
   },
-  {"id": 34, "name": "Queen of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Courage", "Confidence", "Independence", "Social butterfly", "Determination"], "meaning": "This card represents a confident, courageous, and independent person. You are determined and have a vibrant social energy that attracts others.", "advice": "Lead with confidence. Your charisma draws others to you."},
-    "reversed": {"keywords": ["Selfishness", "Jealousy", "Insecurity", "Demanding", "Lack of confidence"], "meaning": "You may be feeling insecure or acting out of jealousy. A lack of confidence can make one demanding or overly aggressive.", "advice": "Address your insecurities. Don't let jealousy control you."}
+  {
+    "id": 34,
+    "name": "Queen of Wands",
+    "nameKo": "완드 여왕",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Courage", "Confidence", "Independence", "Social butterfly", "Determination"],
+      "keywordsKo": ["용기", "자신감", "독립", "사교적", "결단력"],
+      "meaning": "This card represents a confident, courageous, and independent person. You are determined and have a vibrant social energy that attracts others.",
+      "meaningKo": "이 카드는 자신감 있고 용감하며 독립적인 사람을 나타냅니다. 결단력이 있고 다른 사람을 끌어당기는 활기찬 사교적 에너지가 있습니다.",
+      "advice": "Lead with confidence. Your charisma draws others to you.",
+      "adviceKo": "자신감 있게 이끄세요. 카리스마가 다른 이들을 끌어당깁니다."
+    },
+    "reversed": {
+      "keywords": ["Selfishness", "Jealousy", "Insecurity", "Demanding", "Lack of confidence"],
+      "keywordsKo": ["이기심", "질투", "불안감", "까다로움", "자신감 부족"],
+      "meaning": "You may be feeling insecure or acting out of jealousy. A lack of confidence can make one demanding or overly aggressive.",
+      "meaningKo": "불안하거나 질투로 행동하고 있을 수 있습니다. 자신감 부족이 까다롭거나 지나치게 공격적으로 만들 수 있습니다.",
+      "advice": "Address your insecurities. Don't let jealousy control you.",
+      "adviceKo": "불안감을 해결하세요. 질투가 당신을 지배하지 않게 하세요."
+    }
   },
-  {"id": 35, "name": "King of Wands", "arcana": "minor", "suit": "wands",
-    "upright": {"keywords": ["Natural-born leader", "Vision", "Entrepreneur", "Honor", "Charisma"], "meaning": "This card represents a visionary leader who is charismatic and honorable. You have a clear vision and the ability to inspire others to follow you.", "advice": "Lead with vision and honor. Inspire others with your passion."},
-    "reversed": {"keywords": ["Arrogance", "Impulsiveness", "Ruthlessness", "High expectations", "Tyranny"], "meaning": "You may be dealing with someone who is arrogant and impulsive. High expectations and a ruthless nature can lead to tyrannical behavior.", "advice": "Check your ego. Lead with humility, not tyranny."}
+  {
+    "id": 35,
+    "name": "King of Wands",
+    "nameKo": "완드 왕",
+    "arcana": "minor",
+    "suit": "wands",
+    "upright": {
+      "keywords": ["Natural-born leader", "Vision", "Entrepreneur", "Honor", "Charisma"],
+      "keywordsKo": ["타고난 리더", "비전", "기업가", "명예", "카리스마"],
+      "meaning": "This card represents a visionary leader who is charismatic and honorable. You have a clear vision and the ability to inspire others to follow you.",
+      "meaningKo": "이 카드는 카리스마 있고 명예로운 비전 있는 리더를 나타냅니다. 명확한 비전과 다른 이들에게 따르도록 영감을 줄 능력이 있습니다.",
+      "advice": "Lead with vision and honor. Inspire others with your passion.",
+      "adviceKo": "비전과 명예로 이끄세요. 열정으로 다른 이들에게 영감을 주세요."
+    },
+    "reversed": {
+      "keywords": ["Arrogance", "Impulsiveness", "Ruthlessness", "High expectations", "Tyranny"],
+      "keywordsKo": ["오만", "충동", "무자비", "높은 기대", "폭정"],
+      "meaning": "You may be dealing with someone who is arrogant and impulsive. High expectations and a ruthless nature can lead to tyrannical behavior.",
+      "meaningKo": "오만하고 충동적인 사람을 대하고 있을 수 있습니다. 높은 기대와 무자비한 성격이 폭정적 행동으로 이어질 수 있습니다.",
+      "advice": "Check your ego. Lead with humility, not tyranny.",
+      "adviceKo": "자만심을 점검하세요. 폭정이 아닌 겸손으로 이끄세요."
+    }
   }
 ]

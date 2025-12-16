@@ -15,6 +15,12 @@ type Profile = {
   gender?: string | null;
 };
 
+type FortuneAlert = {
+  type: "warning" | "positive" | "info";
+  msg: string;
+  icon?: string;
+};
+
 type Fortune = {
   overall: number;
   love: number;
@@ -23,6 +29,8 @@ type Fortune = {
   health: number;
   luckyColor: string;
   luckyNumber: number;
+  alerts?: FortuneAlert[];
+  source?: string;
 };
 
 export default function MyJourneyClient() {
@@ -281,6 +289,20 @@ function MyJourneyPage() {
                       <span>🎨 {fortune.luckyColor}</span>
                       <span>🔢 {fortune.luckyNumber}</span>
                     </div>
+                    {/* Fortune Alerts */}
+                    {fortune.alerts && fortune.alerts.length > 0 && (
+                      <div className={styles.fortuneAlerts}>
+                        {fortune.alerts.slice(0, 2).map((alert, idx) => (
+                          <div
+                            key={idx}
+                            className={`${styles.alertItem} ${styles[`alert${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}`]}`}
+                          >
+                            <span>{alert.icon || (alert.type === "warning" ? "⚠️" : alert.type === "positive" ? "✨" : "ℹ️")}</span>
+                            <span>{alert.msg}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </>
                 ) : !profile.birthDate ? (
                   <div className={styles.fortuneSetup}>

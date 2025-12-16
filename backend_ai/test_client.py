@@ -1,27 +1,49 @@
-# backend_ai/test_client.py
-from backend_ai.model.fusion_generate import generate_fusion_report
-from backend_ai.model.llm_connect import get_llm
+"""
+Lightweight manual smoke test for the fusion generator.
+Requires OPENAI_API_KEY to be set; uses the real LLM and graph search.
+"""
 
-def main():
-    # 1️⃣ LLM 초기화
-    model = get_llm()
+import os
+import sys
 
-    # 2️⃣ 테스트 데이터
-    saju_text = "일주: 甲午, 월지: 丁巳, 시지: 己未 — 불의 기운이 강하고 추진력이 강함."
-    astro_text = "Sun: Leo, Moon: Scorpio, Asc: Virgo — 리더십과 예민한 감정의 조화."
-    theme = "life_path"
+from backend_ai.model.fusion_generate import generate_fusion_report, get_llm
 
-    # 3️⃣ Fusion 리포트 생성
-    result = generate_fusion_report(model, saju_text, astro_text, theme)
 
-    # 4️⃣ 그래프 컨텍스트 출력
-    print("\n--- 그래프 맥락 ---")
-    for node in result["graph_context"]:
-        print(f"{node['source']} | {node['label']} ({node['type']}) : {node['description']}")
+def main() -> int:
+    if not os.getenv("OPENAI_API_KEY"):
+        print("Set OPENAI_API_KEY before running this sample.")
+        return 1
 
-    # 5️⃣ Fusion 결과 출력
-    print("\n--- Fusion 결과 (요약) ---")
-    print(result["fusion_layer"][:1000])
+    client = get_llm()
+
+    saju_text = "Day Master: strong Wood; favorable Water; balanced Fire."
+    astro_text = "Sun in Leo, Moon in Scorpio, Asc Virgo; Mars trine Jupiter."
+
+    result = generate_fusion_report(
+        client,
+        saju_text=saju_text,
+        astro_text=astro_text,
+        theme="life_path",
+        locale="en",
+        user_prompt="Keep it concise and encouraging.",
+        fast_mode=True,
+    )
+
+    print("\n--- Fusion Result (truncated) ---")
+    fusion_text = result.get("fusion_layer") if isinstance(result, dict) else str(result)
+    print((fusion_text or "")[:1200])
+
+    graph_ctx = result.get("graph_context") if isinstance(result, dict) else None
+    if graph_ctx:
+        print("\n--- Graph Context (first 5) ---")
+        for node in graph_ctx[:5]:
+            print(
+                f"{node.get('source','?')} | {node.get('label','?')} "
+                f"({node.get('type','?')}): {node.get('description','')}"
+            )
+
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

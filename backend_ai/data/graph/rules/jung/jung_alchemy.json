@@ -1,0 +1,269 @@
+{
+  "$schema": "jung_alchemy_v1",
+  "$description": "융 연금술 심리학 - 변환 과정과 상징 해석",
+
+  "opus_magnum": {
+    "description": "위대한 작업(Opus Magnum) - 개성화의 연금술적 비유",
+    "stages": {
+      "nigredo": {
+        "name_ko": "흑화",
+        "name_en": "Nigredo (Blackening)",
+        "order": 1,
+        "color": "black",
+        "meaning": "죽음, 부패, 해체. 옛 자아의 분해.",
+        "psychological_parallel": "그림자 대면, 우울, 자아 붕괴, 어두운 밤",
+        "symptoms": ["절망", "무의미", "혼란", "상실", "분열"],
+        "therapeutic_guidance": [
+          "이 어둠은 필요한 과정입니다. 피하지 마세요.",
+          "옛 것이 죽어야 새 것이 태어납니다.",
+          "이 단계를 서두르지 마세요. 완전한 해체가 필요합니다."
+        ],
+        "saju_parallel": {
+          "triggers": ["대운 충", "세운 형", "공망 시기"],
+          "interpretation": "기존 구조의 해체기. 용신이 억압되는 시기."
+        },
+        "astro_parallel": {
+          "triggers": ["명왕성 트랜짓", "토성 리턴", "8하우스 활성화"],
+          "interpretation": "심층 변환의 시작. 죽음과 재생의 과정."
+        },
+        "tarot_parallel": {
+          "cards": ["death", "tower", "10_of_swords"],
+          "interpretation": "죽음은 변환, 탑은 강제 해체, 검10은 최악의 끝."
+        },
+        "dream_symbols": ["죽음", "썩음", "검은색", "까마귀", "해골", "지하"],
+        "alchemical_operations": ["mortificatio", "putrefactio", "calcinatio"]
+      },
+
+      "albedo": {
+        "name_ko": "백화",
+        "name_en": "Albedo (Whitening)",
+        "order": 2,
+        "color": "white",
+        "meaning": "정화, 세척, 영혼의 분리. 순수한 본질의 출현.",
+        "psychological_parallel": "자기 성찰, 통찰, 아니마/아니무스 만남, 내면의 빛",
+        "symptoms": ["명료함", "평화", "통찰", "꿈의 증가", "영적 각성"],
+        "therapeutic_guidance": [
+          "내면의 대화를 시작하세요.",
+          "꿈을 기록하고 상징을 탐구하세요.",
+          "반대 성(아니마/아니무스)과 만나세요."
+        ],
+        "saju_parallel": {
+          "triggers": ["인성운", "정관운", "용신이 힘을 얻는 시기"],
+          "interpretation": "성찰과 학습의 시기. 내면의 지혜가 열림."
+        },
+        "astro_parallel": {
+          "triggers": ["달 트랜짓", "해왕성 트랜짓", "12하우스→1하우스 전환"],
+          "interpretation": "무의식의 정화. 영적 세척과 통찰."
+        },
+        "tarot_parallel": {
+          "cards": ["star", "high_priestess", "temperance"],
+          "interpretation": "별의 희망과 정화, 여사제의 내면 지혜."
+        },
+        "dream_symbols": ["달", "흰색", "물", "세례", "여신", "거울"],
+        "alchemical_operations": ["ablutio", "separatio", "sublimatio"]
+      },
+
+      "citrinitas": {
+        "name_ko": "황화",
+        "name_en": "Citrinitas (Yellowing)",
+        "order": 3,
+        "color": "yellow",
+        "meaning": "태양의 여명, 새로운 의식의 탄생. 지혜의 빛.",
+        "psychological_parallel": "자기 발견, 새로운 정체성, 의식의 확장",
+        "symptoms": ["희망", "에너지", "새로운 관점", "창의성", "자신감"],
+        "therapeutic_guidance": [
+          "새로운 가능성을 탐색하세요.",
+          "발견한 통찰을 삶에 적용하세요.",
+          "아직 완성이 아닙니다. 겸손을 유지하세요."
+        ],
+        "saju_parallel": {
+          "triggers": ["식상운", "재성운의 시작"],
+          "interpretation": "창조와 표현의 시기. 새로운 가능성이 열림."
+        },
+        "astro_parallel": {
+          "triggers": ["태양 트랜짓", "목성 트랜짓", "5하우스 활성화"],
+          "interpretation": "의식의 확장. 새로운 자기 표현의 시작."
+        },
+        "tarot_parallel": {
+          "cards": ["sun", "ace_of_wands", "magician"],
+          "interpretation": "태양의 새로운 의식, 완드 에이스의 새 시작."
+        },
+        "dream_symbols": ["해돋이", "황금색", "새", "아이", "봄"],
+        "alchemical_operations": ["fermentatio", "illuminatio"]
+      },
+
+      "rubedo": {
+        "name_ko": "적화",
+        "name_en": "Rubedo (Reddening)",
+        "order": 4,
+        "color": "red",
+        "meaning": "완성, 통합, 철학자의 돌. 대립물의 결합(coniunctio).",
+        "psychological_parallel": "개성화 완성, 자기 실현, 전체성",
+        "symptoms": ["충만함", "평화", "수용", "창조력", "사랑의 능력"],
+        "therapeutic_guidance": [
+          "대립물을 통합하세요 - 빛과 그림자, 남성과 여성.",
+          "완성은 끝이 아니라 새로운 순환의 시작입니다.",
+          "이 상태를 세상과 나누세요."
+        ],
+        "saju_parallel": {
+          "triggers": ["용신과 희신의 조화", "대운과 원국의 균형"],
+          "interpretation": "조화와 완성의 시기. 모든 오행이 균형을 이룸."
+        },
+        "astro_parallel": {
+          "triggers": ["태양-달 조화", "트랜짓 대합주기 완성"],
+          "interpretation": "의식과 무의식의 결혼. 완전한 통합."
+        },
+        "tarot_parallel": {
+          "cards": ["world", "lovers", "judgement"],
+          "interpretation": "세계의 완성, 연인의 결합, 심판의 부활."
+        },
+        "dream_symbols": ["결혼", "붉은색", "왕과 여왕", "아이 탄생", "만다라"],
+        "alchemical_operations": ["coniunctio", "multiplicatio", "projectio"]
+      }
+    }
+  },
+
+  "alchemical_symbols": {
+    "prima_materia": {
+      "name_ko": "원질료",
+      "meaning": "작업의 출발점. 미분화된 무의식, 혼돈, 잠재력.",
+      "psychological": "그림자, 억압된 내용, 원초적 자기",
+      "therapeutic_question": "당신의 원질료는 무엇입니까? 변환되기를 기다리는 것은?"
+    },
+    "philosophers_stone": {
+      "name_ko": "철학자의 돌",
+      "meaning": "모든 것을 금으로 바꾸는 완성된 물질. 자기(Self)의 상징.",
+      "psychological": "개성화된 자기, 전체성, 치유 능력",
+      "therapeutic_question": "당신 안의 철학자의 돌은 무엇입니까? 치유의 원천은?"
+    },
+    "mercurius": {
+      "name_ko": "메르쿠리우스",
+      "meaning": "변환의 매개자. 모든 대립물을 담고 있는 역설적 존재.",
+      "psychological": "무의식 자체, 트릭스터, 영혼의 안내자",
+      "aspects": ["살아있음과 죽음", "선과 악", "남성과 여성", "독과 약"],
+      "therapeutic_question": "당신 안의 메르쿠리우스는? 역설을 담고 있는 것은?"
+    },
+    "sulphur": {
+      "name_ko": "유황",
+      "meaning": "뜨거움, 능동적 원리, 영혼(soul).",
+      "psychological": "감정, 열정, 욕망, 동기",
+      "saju_parallel": "화(火) 오행, 식상과 관성의 에너지"
+    },
+    "salt": {
+      "name_ko": "소금",
+      "meaning": "고정, 육체, 물질화된 정신.",
+      "psychological": "육체, 현실, 구체화된 경험",
+      "saju_parallel": "토(土) 오행, 재성의 물질적 측면"
+    },
+    "ouroboros": {
+      "name_ko": "우로보로스",
+      "meaning": "꼬리를 삼키는 뱀. 순환, 영원, 자기 갱신.",
+      "psychological": "무의식의 전체성, 끊임없는 변환, 자기 참조",
+      "therapeutic_insight": "끝은 새로운 시작입니다. 당신은 항상 변화 중입니다."
+    },
+    "hermaphrodite": {
+      "name_ko": "양성구유체",
+      "meaning": "남성과 여성의 결합. 대립물의 통합.",
+      "psychological": "아니마/아니무스 통합, 완전한 자기",
+      "saju_parallel": "음양의 조화, 일간과 배우자궁의 균형"
+    },
+    "king_queen": {
+      "name_ko": "왕과 여왕",
+      "meaning": "태양(의식)과 달(무의식)의 결혼.",
+      "psychological": "의식과 무의식의 대화, 자아와 아니마/아니무스",
+      "astro_parallel": "태양-달 애스펙트, 시작자리-끝자리 축"
+    },
+    "dragon": {
+      "name_ko": "용",
+      "meaning": "원초적 에너지, 혼돈, 변환의 대상.",
+      "psychological": "본능, 그림자, 무의식의 힘",
+      "variations": {
+        "winged_dragon": "영혼화된 본능, 승화",
+        "wingless_dragon": "원초적 본능, 물질"
+      }
+    }
+  },
+
+  "alchemical_operations": {
+    "calcinatio": {
+      "name_ko": "소성(燒成)",
+      "element": "fire",
+      "meaning": "불로 태워 재로 만듦. 에고의 소각.",
+      "psychological": "분노 작업, 열정의 정화, 조급함 태우기",
+      "trigger_emotions": ["분노", "좌절", "열정", "조급함"],
+      "therapeutic_approach": "억압된 분노를 인정하고 건강하게 표현하기"
+    },
+    "solutio": {
+      "name_ko": "용해",
+      "element": "water",
+      "meaning": "물에 녹임. 경직된 것의 해체.",
+      "psychological": "감정 작업, 눈물, 통제 내려놓기",
+      "trigger_emotions": ["슬픔", "상실", "그리움", "연민"],
+      "therapeutic_approach": "감정에 잠기기, 눈물 흘리기, 부드러워지기"
+    },
+    "coagulatio": {
+      "name_ko": "응고",
+      "element": "earth",
+      "meaning": "고체화, 현실화, 구체화.",
+      "psychological": "통찰의 현실 적용, 꿈을 행동으로",
+      "trigger_themes": ["현실화", "구체화", "책임", "한계"],
+      "therapeutic_approach": "아이디어를 행동으로 옮기기, 경계 설정"
+    },
+    "sublimatio": {
+      "name_ko": "승화",
+      "element": "air",
+      "meaning": "고체가 기체로. 정신화, 고양.",
+      "psychological": "통찰, 이해, 관점 상승, 의미 부여",
+      "trigger_themes": ["이해", "패턴 인식", "초월", "영성"],
+      "therapeutic_approach": "경험에 의미 부여, 높은 관점에서 보기"
+    },
+    "mortificatio": {
+      "name_ko": "죽임",
+      "meaning": "옛 것의 죽음. 에고 죽음의 경험.",
+      "psychological": "놓아주기, 에고 죽음, 항복",
+      "therapeutic_approach": "통제를 내려놓기, 에고의 한계 인정하기"
+    },
+    "separatio": {
+      "name_ko": "분리",
+      "meaning": "요소들을 분리하여 구별.",
+      "psychological": "분별력, 투사 철회, 나와 남의 구분",
+      "therapeutic_approach": "무엇이 나의 것이고 무엇이 타인의 것인가?"
+    },
+    "coniunctio": {
+      "name_ko": "결합",
+      "meaning": "분리된 것들의 재결합. 대립물의 통합.",
+      "psychological": "통합, 전체성, 신성한 결혼",
+      "therapeutic_approach": "대립되는 부분들을 하나로 품기"
+    }
+  },
+
+  "practical_applications": {
+    "dream_alchemy": {
+      "description": "꿈에서 연금술 상징 발견하기",
+      "questions": [
+        "꿈의 색은 무엇인가? (흑/백/황/적)",
+        "꿈에 변환이 있는가? 무엇이 무엇으로 변하는가?",
+        "꿈의 원소는? (불/물/흙/공기)",
+        "결합이나 분리가 있는가?"
+      ]
+    },
+    "life_stage_alchemy": {
+      "description": "인생 단계를 연금술 과정으로 보기",
+      "applications": [
+        {"stage": "위기/상실", "parallel": "nigredo"},
+        {"stage": "치료/성찰", "parallel": "albedo"},
+        {"stage": "새출발", "parallel": "citrinitas"},
+        {"stage": "성숙/통합", "parallel": "rubedo"}
+      ]
+    },
+    "emotion_alchemy": {
+      "description": "감정을 연금술 작업으로 변환",
+      "examples": [
+        {"emotion": "분노", "operation": "calcinatio", "outcome": "열정/추진력"},
+        {"emotion": "슬픔", "operation": "solutio", "outcome": "연민/깊이"},
+        {"emotion": "불안", "operation": "sublimatio", "outcome": "경각심/통찰"},
+        {"emotion": "우울", "operation": "nigredo", "outcome": "변환의 시작"}
+      ]
+    }
+  }
+}

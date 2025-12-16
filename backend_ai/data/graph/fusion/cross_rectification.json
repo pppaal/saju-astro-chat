@@ -1,0 +1,303 @@
+{
+  "$schema": "cross_rectification_v1",
+  "$description": "출생 시간 교정 - 점성술 Rectification ↔ 사주 시주 교정 통합",
+
+  "rectification_overview": {
+    "astro_method": {
+      "name": "Rectification (렉티피케이션)",
+      "goal": "정확한 ASC/MC 결정",
+      "methods": ["Primary Directions", "Solar Arc", "Transits", "외모/성격 대조"]
+    },
+    "saju_method": {
+      "name": "시주(時柱) 교정",
+      "goal": "정확한 시진(時辰) 결정",
+      "methods": ["생애 사건 대조", "자녀 관계", "말년 패턴", "성격 대조"]
+    }
+  },
+
+  "time_system_comparison": {
+    "astro_sensitivity": {
+      "asc_change": "약 4분마다 1도 변화",
+      "mc_change": "약 4분마다 1도 변화",
+      "moon_change": "약 2시간마다 1도",
+      "precision_needed": "분 단위까지 중요"
+    },
+    "saju_sensitivity": {
+      "siju_change": "2시간마다 시주 변화",
+      "boundary_times": ["23:00", "01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00"],
+      "precision_needed": "2시간 단위, 경계 시간 주의"
+    }
+  },
+
+  "siju_asc_correlation": {
+    "description": "시진(時辰) ↔ ASC 사인 성격 대응",
+
+    "correlations": {
+      "자시_23_01": {
+        "saju_siju": "子時",
+        "element": "水",
+        "personality": "지혜롭고 영리, 은밀함, 밤의 에너지",
+        "asc_affinity": ["Scorpio", "Pisces", "Capricorn"],
+        "reasoning": "깊이, 신비, 내면적"
+      },
+      "축시_01_03": {
+        "saju_siju": "丑時",
+        "element": "土",
+        "personality": "근면, 인내, 신중, 느림",
+        "asc_affinity": ["Taurus", "Capricorn", "Virgo"],
+        "reasoning": "안정, 실용, 끈기"
+      },
+      "인시_03_05": {
+        "saju_siju": "寅時",
+        "element": "木",
+        "personality": "용맹, 리더십, 야망, 시작",
+        "asc_affinity": ["Aries", "Leo", "Sagittarius"],
+        "reasoning": "시작, 추진력, 활력"
+      },
+      "묘시_05_07": {
+        "saju_siju": "卯時",
+        "element": "木",
+        "personality": "온화, 부드러움, 예술성",
+        "asc_affinity": ["Libra", "Pisces", "Taurus"],
+        "reasoning": "조화, 아름다움, 평화"
+      },
+      "진시_07_09": {
+        "saju_siju": "辰時",
+        "element": "土",
+        "personality": "변화, 야망, 카리스마, 권위",
+        "asc_affinity": ["Leo", "Scorpio", "Capricorn"],
+        "reasoning": "존재감, 권력, 변형"
+      },
+      "사시_09_11": {
+        "saju_siju": "巳時",
+        "element": "火",
+        "personality": "지혜, 신비, 직관, 내면적",
+        "asc_affinity": ["Scorpio", "Virgo", "Capricorn"],
+        "reasoning": "깊이, 분석, 신비"
+      },
+      "오시_11_13": {
+        "saju_siju": "午時",
+        "element": "火",
+        "personality": "열정, 활발, 명예, 외향적",
+        "asc_affinity": ["Leo", "Aries", "Sagittarius"],
+        "reasoning": "빛, 에너지, 표현"
+      },
+      "미시_13_15": {
+        "saju_siju": "未時",
+        "element": "土",
+        "personality": "온순, 예술적, 부드러움",
+        "asc_affinity": ["Cancer", "Pisces", "Libra"],
+        "reasoning": "돌봄, 감성, 예술"
+      },
+      "신시_15_17": {
+        "saju_siju": "申時",
+        "element": "金",
+        "personality": "재치, 영리, 기민, 소통",
+        "asc_affinity": ["Gemini", "Aquarius", "Virgo"],
+        "reasoning": "지적, 기민, 소통"
+      },
+      "유시_17_19": {
+        "saju_siju": "酉時",
+        "element": "金",
+        "personality": "날카로움, 미적 감각, 정확",
+        "asc_affinity": ["Libra", "Virgo", "Aquarius"],
+        "reasoning": "미, 정확, 분별"
+      },
+      "술시_19_21": {
+        "saju_siju": "戌時",
+        "element": "土",
+        "personality": "충성, 정의, 수호, 고집",
+        "asc_affinity": ["Leo", "Aquarius", "Scorpio"],
+        "reasoning": "충성, 보호, 원칙"
+      },
+      "해시_21_23": {
+        "saju_siju": "亥時",
+        "element": "水",
+        "personality": "복, 여유, 깊이, 직관",
+        "asc_affinity": ["Pisces", "Cancer", "Sagittarius"],
+        "reasoning": "풍요, 직관, 영성"
+      }
+    }
+  },
+
+  "life_event_cross_validation": {
+    "description": "생애 사건으로 시간 교정 - 양 시스템 교차",
+
+    "event_types": {
+      "marriage": {
+        "saju_indicators": {
+          "daeun": "정재/정관 대운 (남/여)",
+          "seun": "배우자궁 활성화",
+          "siju_factor": "시주가 배우자궁과 합"
+        },
+        "astro_indicators": {
+          "progression": "Progressed Venus/Mars to angles",
+          "solar_arc": "SA Venus to DSC",
+          "transit": "Jupiter/Saturn to 7th house"
+        },
+        "cross_check": "사주 시기와 점성술 시기가 일치하는 출생 시간 선택"
+      },
+      "career_change": {
+        "saju_indicators": {
+          "daeun": "관성 대운",
+          "seun": "월주(직장궁) 활성화",
+          "siju_factor": "시주 천간이 관성과 관계"
+        },
+        "astro_indicators": {
+          "progression": "Progressed Sun/MC aspects",
+          "solar_arc": "SA planet to MC",
+          "transit": "Saturn/Jupiter to 10th"
+        },
+        "cross_check": "두 시스템의 커리어 시기가 일치하는 시간"
+      },
+      "childbirth": {
+        "saju_indicators": {
+          "daeun": "식상 대운",
+          "siju_factor": "시주 = 자녀궁",
+          "check": "시주 십신이 자녀 성별/수와 일치"
+        },
+        "astro_indicators": {
+          "progression": "Progressed Moon through 5th",
+          "solar_arc": "SA planet to 5th house",
+          "transit": "Jupiter to 5th house"
+        },
+        "cross_check": "자녀 출생 시기와 양 시스템 일치 확인"
+      },
+      "major_accident": {
+        "saju_indicators": {
+          "daeun": "겁재/편관 대운",
+          "shinsal": "백호살/양인살 활성화",
+          "siju_factor": "시주 관계 확인"
+        },
+        "astro_indicators": {
+          "progression": "Hard aspects to Mars/Uranus",
+          "solar_arc": "SA Mars/Uranus to angles",
+          "transit": "Mars/Uranus hard aspects"
+        },
+        "cross_check": "사고 시기와 양 시스템 일치"
+      }
+    }
+  },
+
+  "child_pattern_verification": {
+    "description": "자녀 관계로 시주 검증",
+
+    "saju_method": {
+      "principle": "시주의 십신이 자녀 패턴 표시",
+      "examples": {
+        "siksin_siju_male": "아들: 상관, 딸: 식신 → 시주가 식신이면 딸 먼저 가능성",
+        "siksin_siju_female": "아들: 정관, 딸: 정재(또는 식상) → 십신 확인"
+      },
+      "no_child": "시주가 공망이거나 충이 심하면 자녀 어려움"
+    },
+    "astro_method": {
+      "principle": "5th house 상태가 자녀 패턴",
+      "examples": {
+        "5th_planets": "5하우스 행성이 자녀 성격",
+        "5th_ruler": "5하우스 룰러 상태가 자녀운"
+      }
+    },
+    "cross_validation": {
+      "match": "시주 십신과 5하우스 상태가 일치하면 시간 확정",
+      "example": "시주 식신 + 5하우스 달 = 양육적 자녀, 시간 확정"
+    }
+  },
+
+  "personality_appearance_cross": {
+    "description": "외모/성격으로 교차 검증",
+
+    "saju_factors": {
+      "siju_cheongan": "시주 천간의 성격적 영향",
+      "siju_jiji": "시주 지지의 내면/말년 성격"
+    },
+    "astro_factors": {
+      "asc_sign": "ASC 사인 = 외모와 첫인상",
+      "asc_ruler": "ASC 룰러 위치"
+    },
+    "matching_table": {
+      "fire_siju_fire_asc": {
+        "siju": "병정화 시간 (사시, 오시)",
+        "asc": "Aries, Leo, Sagittarius ASC",
+        "match": "열정적, 활발, 따뜻한 인상"
+      },
+      "earth_siju_earth_asc": {
+        "siju": "무기토 시간 (축시, 진시, 미시, 술시)",
+        "asc": "Taurus, Virgo, Capricorn ASC",
+        "match": "안정적, 실용적, 신뢰감"
+      },
+      "metal_siju_air_asc": {
+        "siju": "경신금 시간 (신시, 유시)",
+        "asc": "Gemini, Libra, Aquarius ASC",
+        "match": "날카로운, 지적, 세련된"
+      },
+      "water_siju_water_asc": {
+        "siju": "임계수 시간 (자시, 해시)",
+        "asc": "Cancer, Scorpio, Pisces ASC",
+        "match": "깊은, 직관적, 감성적"
+      },
+      "wood_siju_fire_asc": {
+        "siju": "갑을목 시간 (인시, 묘시)",
+        "asc": "Aries, Leo, Sagittarius (or Pisces)",
+        "match": "성장 지향, 활력, 이상주의"
+      }
+    }
+  },
+
+  "integrated_rectification_process": {
+    "step1_gather": {
+      "saju": "대략 시간, 년월일",
+      "astro": "년월일, 출생지"
+    },
+    "step2_narrow": {
+      "saju": "성격으로 시진 범위 좁히기 (6시간 → 2시간)",
+      "astro": "외모/성격으로 ASC 후보 좁히기 (3-4개)"
+    },
+    "step3_event_test": {
+      "saju": "주요 사건과 대운/세운 대조",
+      "astro": "주요 사건과 SA/Transit 대조"
+    },
+    "step4_cross_validate": {
+      "method": "사주 시진과 점성술 ASC가 일관되는지 확인",
+      "check": "오행-원소 일치, 성격 일치"
+    },
+    "step5_fine_tune": {
+      "saju": "경계 시간(예: 10:58 vs 11:02) 양쪽 테스트",
+      "astro": "분 단위 조정으로 SA/Direction 정확도 확인"
+    },
+    "step6_confirm": {
+      "criteria": "최소 3개 사건 일치 + 성격 일치 + 양 시스템 일관성"
+    }
+  },
+
+  "confidence_scoring": {
+    "high_90_plus": {
+      "criteria": "5개+ 사건 일치, 양 시스템 일관, 성격 일치",
+      "action": "확정 가능"
+    },
+    "medium_70_89": {
+      "criteria": "3-4개 사건 일치, 대부분 일관",
+      "action": "추가 검증 권장"
+    },
+    "low_50_69": {
+      "criteria": "1-2개 사건 일치",
+      "action": "더 많은 사건 정보 필요"
+    },
+    "uncertain_below_50": {
+      "criteria": "일치 패턴 없음",
+      "action": "전문가 상담 또는 Noon chart 사용"
+    }
+  },
+
+  "when_time_unknown": {
+    "saju_approach": {
+      "method": "시주 제외하고 년월일주만 해석",
+      "limitation": "자녀운, 말년운 정보 제한"
+    },
+    "astro_approach": {
+      "noon_chart": "12:00 정오 사용, 하우스 무시",
+      "solar_sign_house": "태양 사인을 1하우스로",
+      "limitation": "ASC/MC 해석 불가"
+    },
+    "combined": "년월일주 + 행성 사인만으로 70% 해석 가능"
+  }
+}

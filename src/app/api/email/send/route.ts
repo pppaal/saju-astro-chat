@@ -6,6 +6,8 @@ import {
   sendNotificationEmail,
   sendNotificationDigest,
 } from "@/lib/email/emailService";
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/request-ip";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,12 @@ export async function POST(_request: NextRequest) {
   }
 
   try {
+    const ip = getClientIp(_request.headers);
+    const limit = await rateLimit(`email:${session.user.id ?? session.user.email}:${ip}`, { limit: 10, windowSeconds: 300 });
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+    }
+
     const body = await _request.json();
     const { type, targetEmail, notification, digest } = body;
 
@@ -28,6 +36,13 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json(
         { error: "Target email is required" },
         { status: 400 }
+      );
+    }
+
+    if (targetEmail !== session.user.email) {
+      return NextResponse.json(
+        { error: "Forbidden: can only send to your own email" },
+        { status: 403, headers: limit.headers }
       );
     }
 
@@ -59,7 +74,7 @@ export async function POST(_request: NextRequest) {
     return NextResponse.json({
       success: sent,
       message: sent ? "Email sent successfully" : "Failed to send email",
-    });
+    }, { headers: limit.headers });
   } catch (error) {
     console.error("Error sending email:", error);
     return NextResponse.json(
@@ -80,6 +95,12 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ip = getClientIp(_request.headers);
+  const limit = await rateLimit(`email:test:${session.user.id ?? session.user.email}:${ip}`, { limit: 5, windowSeconds: 300 });
+  if (!limit.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+  }
+
   // Send test email
   const sent = await sendNotificationEmail(session.user.email, {
     type: "system",
@@ -93,5 +114,5 @@ export async function GET(_request: NextRequest) {
     message: sent
       ? "Test email sent successfully"
       : "Failed to send test email. Check your email configuration.",
-  });
+  }, { headers: limit.headers });
 }

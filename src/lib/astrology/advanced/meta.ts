@@ -1,8 +1,7 @@
 // src/lib/astrology/advanced/meta.ts
 import type { ChartMeta } from "../foundation/types";
 import type { AstroOptions } from "./options";
-
-const swisseph = require("swisseph");
+import { getSwisseph } from "../foundation/ephe";
 
 export type EngineMeta = {
   engine: "Swiss Ephemeris";
@@ -13,6 +12,7 @@ export type EngineMeta = {
 export type ExtendedMeta = ChartMeta & EngineMeta;
 
 export function buildEngineMeta(meta: ChartMeta, opts: Required<AstroOptions>): ExtendedMeta {
+  const swisseph = getSwisseph();
   const seVersion = typeof swisseph.swe_version === "function" ? swisseph.swe_version() : "unknown";
   return {
     ...meta,

@@ -120,6 +120,9 @@ export default function AboutPage() {
           <p className={styles.heroSub}>
             {translate("about.heroSubtitle", "Fate speaks. AI listens. You decide.")}
           </p>
+          <p className={styles.tagline}>
+            {translate("about.tagline", "Understand your patterns. Change your outcomes.")}
+          </p>
         </section>
 
         <section className={styles.servicesSection}>

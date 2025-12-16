@@ -1,0 +1,311 @@
+{
+  "$schema": "cross_luck_progression_v1",
+  "$description": "대운/세운/월운/일운 ↔ Progressions/Transits 완전 매핑",
+
+  "timing_system_comparison": {
+    "overview": {
+      "saju": "대운(10년) → 세운(1년) → 월운(1달) → 일운(1일)",
+      "astro": "Progressions(장기) → Transits(단기) → Returns(주기)"
+    }
+  },
+
+  "daeun_progression_mapping": {
+    "daeun": {
+      "korean": "대운 (大運)",
+      "cycle": "10년 단위",
+      "calculation": "월주에서 순행/역행",
+      "meaning": "인생의 큰 흐름, 시대적 테마"
+    },
+    "astro_equivalents": {
+      "primary": {
+        "name": "Secondary Progressions",
+        "cycle": "1일 = 1년",
+        "focus": "내면 발달, 연간 테마",
+        "key_indicators": ["Progressed Sun sign change", "Progressed Moon house/sign"]
+      },
+      "secondary": {
+        "name": "Solar Arc Directions",
+        "cycle": "약 1도 = 1년",
+        "focus": "외적 사건, 주요 전환점",
+        "key_indicators": ["SA planet to angles", "SA planet to natal planets"]
+      },
+      "tertiary": {
+        "name": "Saturn Cycle",
+        "periods": {
+          "saturn_return_1": {"age": "29-30", "theme": "첫 번째 성숙, 어른 되기"},
+          "saturn_square_1": {"age": "7", "theme": "첫 번째 도전"},
+          "saturn_opposition": {"age": "14-15", "theme": "정체성 형성"},
+          "saturn_square_2": {"age": "21-22", "theme": "독립 준비"},
+          "saturn_return_2": {"age": "58-60", "theme": "두 번째 성숙, 지혜"}
+        }
+      }
+    },
+    "correlation_table": {
+      "대운_1기": {
+        "saju_age": "1-10세 또는 시작 대운",
+        "astro_parallel": "Progressed Sun in natal sign, forming personality"
+      },
+      "대운_2기": {
+        "saju_age": "11-20세",
+        "astro_parallel": "First Saturn square (7), opposition (14)"
+      },
+      "대운_3기": {
+        "saju_age": "21-30세",
+        "astro_parallel": "Saturn return (29-30), major life structuring"
+      },
+      "대운_4기": {
+        "saju_age": "31-40세",
+        "astro_parallel": "Progressed Sun 30° from natal, career building"
+      },
+      "대운_5기": {
+        "saju_age": "41-50세",
+        "astro_parallel": "Uranus opposition (42), midlife awakening"
+      },
+      "대운_6기": {
+        "saju_age": "51-60세",
+        "astro_parallel": "Chiron return (50-51), second Saturn return"
+      }
+    },
+    "sipsin_daeun_astro": {
+      "비견운": {
+        "saju_theme": "자아 강화, 독립, 경쟁",
+        "astro_parallel": "Progressed Sun conjunct natal Sun aspects, strong 1st house transits"
+      },
+      "겁재운": {
+        "saju_theme": "재물 변동, 경쟁 심화",
+        "astro_parallel": "Mars/Pluto transits to 2nd/8th, Uranus aspects"
+      },
+      "식신운": {
+        "saju_theme": "표현, 창작, 식복",
+        "astro_parallel": "Venus/Moon transits to 5th, Jupiter in creative houses"
+      },
+      "상관운": {
+        "saju_theme": "혁신, 반항, 변화",
+        "astro_parallel": "Uranus transits, Progressed Mercury aspects"
+      },
+      "편재운": {
+        "saju_theme": "투기, 사업, 재물 기회",
+        "astro_parallel": "Jupiter transit 2nd/8th, Pluto aspects to Venus"
+      },
+      "정재운": {
+        "saju_theme": "안정 수입, 저축",
+        "astro_parallel": "Saturn transit 2nd, Venus-Saturn progressions"
+      },
+      "편관운": {
+        "saju_theme": "압력, 도전, 권력",
+        "astro_parallel": "Pluto/Mars transits to angles, Saturn square"
+      },
+      "정관운": {
+        "saju_theme": "승진, 책임, 명예",
+        "astro_parallel": "Saturn transit 10th, Jupiter conjunct MC"
+      },
+      "편인운": {
+        "saju_theme": "특수 학문, 고독, 변화",
+        "astro_parallel": "Neptune/Pluto transits, 12th house activation"
+      },
+      "정인운": {
+        "saju_theme": "학업, 자격증, 보호",
+        "astro_parallel": "Jupiter transit 9th, Neptune positive aspects"
+      }
+    }
+  },
+
+  "seun_transit_mapping": {
+    "seun": {
+      "korean": "세운 (歲運)",
+      "cycle": "1년 단위",
+      "calculation": "그 해의 년주 간지",
+      "meaning": "1년의 테마와 운세"
+    },
+    "astro_equivalents": {
+      "primary": {
+        "name": "Solar Return",
+        "cycle": "1년 (생일 기준)",
+        "focus": "그 해의 테마, 하우스 강조점",
+        "key_indicators": ["SR Sun house", "SR Ascendant", "SR Moon"]
+      },
+      "secondary": {
+        "name": "Annual Profections",
+        "cycle": "1년 = 1하우스 이동",
+        "calculation": "나이 mod 12 = 활성화 하우스",
+        "example": {
+          "age_1": "1st house",
+          "age_12": "12th house",
+          "age_13": "1st house again"
+        }
+      },
+      "tertiary": {
+        "name": "Jupiter Return/Transit",
+        "cycle": "12년",
+        "meaning": "확장, 기회, 성장의 해"
+      }
+    },
+    "yearly_transit_themes": {
+      "jupiter_transit": {
+        "cycle": "12년 순환",
+        "effect": "해당 하우스 영역 확장/기회",
+        "saju_parallel": "세운 천간이 정인/편재일 때 유사"
+      },
+      "saturn_transit": {
+        "cycle": "29.5년 순환",
+        "effect": "해당 하우스 구조화/책임",
+        "saju_parallel": "세운 천간이 정관/편관일 때 유사"
+      },
+      "eclipse_years": {
+        "effect": "노드 축 활성화, 운명적 전환점",
+        "saju_parallel": "공망/역마 활성화 시기"
+      }
+    },
+    "seun_cheongan_astro": {
+      "갑년": {"theme": "시작, 리더십", "astro": "Sun transits emphasized, new cycles"},
+      "을년": {"theme": "유연함, 성장", "astro": "Venus/Jupiter transits, harmonious"},
+      "병년": {"theme": "열정, 확장", "astro": "Mars/Sun transits, energetic year"},
+      "정년": {"theme": "내면, 정제", "astro": "Moon/Neptune emphasized, emotional"},
+      "무년": {"theme": "안정, 중심", "astro": "Saturn emphasized, grounding year"},
+      "기년": {"theme": "수용, 변화", "astro": "Mutable energy, adaptable year"},
+      "경년": {"theme": "결단, 실행", "astro": "Mars/Saturn aspects, action year"},
+      "신년": {"theme": "순수, 정리", "astro": "Venus/Mercury, refinement year"},
+      "임년": {"theme": "지혜, 흐름", "astro": "Neptune/Moon, intuitive year"},
+      "계년": {"theme": "완성, 깊이", "astro": "Pluto/Neptune, transformative year"}
+    }
+  },
+
+  "wolun_monthly_mapping": {
+    "wolun": {
+      "korean": "월운 (月運)",
+      "cycle": "1개월 단위",
+      "calculation": "그 달의 월주 간지",
+      "meaning": "월별 운세와 타이밍"
+    },
+    "astro_equivalents": {
+      "primary": {
+        "name": "Lunar Return",
+        "cycle": "약 27.3일",
+        "focus": "감정, 일상, 단기 테마"
+      },
+      "secondary": {
+        "name": "Monthly Transits",
+        "key_transits": [
+          "Sun sign change (매월)",
+          "Mercury aspects (커뮤니케이션)",
+          "Venus aspects (관계/재물)",
+          "Mars aspects (에너지/갈등)"
+        ]
+      },
+      "tertiary": {
+        "name": "Tertiary Progressions",
+        "cycle": "1일 = 1 lunar month",
+        "focus": "감정적 세부 타이밍"
+      }
+    },
+    "monthly_cycle_comparison": {
+      "description": "월별 간지와 점성술 태양 사인 비교",
+      "mapping": {
+        "인월(寅月)": {"period": "2월 초~3월 초", "astro": "Aquarius→Pisces", "theme": "새 시작"},
+        "묘월(卯月)": {"period": "3월 초~4월 초", "astro": "Pisces→Aries", "theme": "성장"},
+        "진월(辰月)": {"period": "4월 초~5월 초", "astro": "Aries→Taurus", "theme": "변화"},
+        "사월(巳月)": {"period": "5월 초~6월 초", "astro": "Taurus→Gemini", "theme": "활동"},
+        "오월(午月)": {"period": "6월 초~7월 초", "astro": "Gemini→Cancer", "theme": "정점"},
+        "미월(未月)": {"period": "7월 초~8월 초", "astro": "Cancer→Leo", "theme": "열매"},
+        "신월(申月)": {"period": "8월 초~9월 초", "astro": "Leo→Virgo", "theme": "수확"},
+        "유월(酉月)": {"period": "9월 초~10월 초", "astro": "Virgo→Libra", "theme": "정리"},
+        "술월(戌月)": {"period": "10월 초~11월 초", "astro": "Libra→Scorpio", "theme": "저장"},
+        "해월(亥月)": {"period": "11월 초~12월 초", "astro": "Scorpio→Sagittarius", "theme": "휴식"},
+        "자월(子月)": {"period": "12월 초~1월 초", "astro": "Sagittarius→Capricorn", "theme": "시작"},
+        "축월(丑月)": {"period": "1월 초~2월 초", "astro": "Capricorn→Aquarius", "theme": "준비"}
+      }
+    }
+  },
+
+  "ilun_daily_mapping": {
+    "ilun": {
+      "korean": "일운 (日運) / 일진 (日辰)",
+      "cycle": "1일 단위",
+      "calculation": "그 날의 일주 간지",
+      "meaning": "하루의 에너지와 길흉"
+    },
+    "astro_equivalents": {
+      "primary": {
+        "name": "Daily Transits",
+        "key_factors": [
+          "Moon sign (2.5일 주기)",
+          "Moon aspects to natal planets",
+          "Mercury/Venus/Mars daily aspects"
+        ]
+      },
+      "secondary": {
+        "name": "Planetary Hours",
+        "cycle": "24시간 내 행성 시간대",
+        "application": "특정 활동에 적합한 시간"
+      },
+      "tertiary": {
+        "name": "Void of Course Moon",
+        "effect": "달이 보이드일 때 시작 피함",
+        "saju_parallel": "공망일과 유사"
+      }
+    },
+    "daily_energy_comparison": {
+      "갑일": {"theme": "시작, 리더십", "moon_energy": "Aries Moon days"},
+      "을일": {"theme": "유연, 협력", "moon_energy": "Taurus/Libra Moon days"},
+      "병일": {"theme": "열정, 활동", "moon_energy": "Leo/Aries Moon days"},
+      "정일": {"theme": "내면, 직관", "moon_energy": "Cancer/Pisces Moon days"},
+      "무일": {"theme": "안정, 중심", "moon_energy": "Taurus/Capricorn Moon days"},
+      "기일": {"theme": "변화, 적응", "moon_energy": "Virgo/Gemini Moon days"},
+      "경일": {"theme": "결단, 실행", "moon_energy": "Aries/Capricorn Moon days"},
+      "신일": {"theme": "정리, 마무리", "moon_energy": "Virgo/Libra Moon days"},
+      "임일": {"theme": "지혜, 흐름", "moon_energy": "Pisces/Scorpio Moon days"},
+      "계일": {"theme": "완성, 정화", "moon_energy": "Pisces/Cancer Moon days"}
+    }
+  },
+
+  "siun_hourly_mapping": {
+    "siun": {
+      "korean": "시운 (時運)",
+      "cycle": "2시간 단위 (12시진)",
+      "meaning": "시간대별 에너지"
+    },
+    "astro_equivalent": {
+      "name": "Planetary Hours",
+      "calculation": "일출-일몰 12등분, 일몰-일출 12등분",
+      "application": "특정 행성 에너지 활용"
+    },
+    "siju_planetary_hour": {
+      "자시(23-01)": {"planet": "varies by day", "energy": "水, 깊이, 휴식"},
+      "축시(01-03)": {"planet": "varies", "energy": "土, 안정, 저장"},
+      "인시(03-05)": {"planet": "varies", "energy": "木, 시작, 준비"},
+      "묘시(05-07)": {"planet": "varies", "energy": "木, 성장, 활동"},
+      "진시(07-09)": {"planet": "varies", "energy": "土, 변화, 전환"},
+      "사시(09-11)": {"planet": "varies", "energy": "火, 활동, 정점"},
+      "오시(11-13)": {"planet": "varies", "energy": "火, 최고조, 빛"},
+      "미시(13-15)": {"planet": "varies", "energy": "土, 소화, 전환"},
+      "신시(15-17)": {"planet": "varies", "energy": "金, 수확, 결단"},
+      "유시(17-19)": {"planet": "varies", "energy": "金, 마무리, 정리"},
+      "술시(19-21)": {"planet": "varies", "energy": "土, 저장, 휴식준비"},
+      "해시(21-23)": {"planet": "varies", "energy": "水, 휴식, 재충전"}
+    }
+  },
+
+  "integrated_timing_guide": {
+    "major_life_events": {
+      "best_timing_checklist": [
+        "대운이 용신 십신인가?",
+        "세운이 대운과 충돌하지 않는가?",
+        "월운이 해당 활동에 적합한가?",
+        "일진이 길한가? (성일, 개일 등)",
+        "Progressed Sun/Moon 상태가 좋은가?",
+        "주요 트랜짓이 지지하는가?",
+        "달이 보이드가 아닌가?",
+        "수성/금성 역행이 아닌가?"
+      ]
+    },
+    "convergence_principle": {
+      "description": "사주와 점성술 타이밍이 일치할 때 가장 강력",
+      "example": {
+        "대운": "정관운 (승진 가능)",
+        "세운": "정인 (도움)",
+        "astro": "Jupiter transit 10th + Saturn sextile MC",
+        "result": "매우 강력한 커리어 상승 시기"
+      }
+    }
+  }
+}

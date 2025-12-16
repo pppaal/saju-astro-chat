@@ -1,9 +1,10 @@
 // src/lib/astrology/foundation/houses.ts
-const swisseph = require("swisseph");
 import { HouseSystem } from "./types";
 import { formatLongitude, normalize360 } from "./utils";
+import { getSwisseph } from "./ephe";
 
 export function calcHouses(ut_jd: number, lat: number, lon: number, system: HouseSystem = "Placidus") {
+  const swisseph = getSwisseph();
   if (system === "Placidus") {
     const res = swisseph.swe_houses(ut_jd, lat, lon, "P");
     if ("error" in res) throw new Error(res.error);

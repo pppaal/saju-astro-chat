@@ -11,6 +11,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js",
     "test": "vitest run",
     "test:e2e": "vitest run tests/integration",
+    "test:e2e:api": "vitest run tests/e2e",
     "test:unit": "set TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\",\"jsx\":\"react-jsx\"}&& node -r ts-node/register --test tests/*.test.ts",
     "dev:astro": "ts-node -P tsconfig.scripts.json -r tsconfig-paths/register scripts/dev-astro.ts",
     "check:env": "node scripts/validate-env.js"

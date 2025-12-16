@@ -1,0 +1,208 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.badge:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.badgeMinimal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.badgeMinimal:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.compact {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.login {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.login:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+}
+
+.loginText {
+  font-weight: 500;
+}
+
+.loading {
+  min-width: 80px;
+  justify-content: center;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  opacity: 0.6;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.creditInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.creditIcon {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.creditText {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.creditText strong {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.divider {
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+.total {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.creditCount {
+  font-weight: 600;
+}
+
+.planBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: flex-start;
+  margin-bottom: 2px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* Color states */
+.good .creditIcon,
+.good .creditText strong {
+  color: #7cf29c;
+}
+
+.good .progressFill {
+  background: linear-gradient(90deg, #7cf29c 0%, #4ade80 100%);
+}
+
+.warning .creditIcon,
+.warning .creditText strong {
+  color: #fbbf24;
+}
+
+.warning .progressFill {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.low .creditIcon,
+.low .creditText strong {
+  color: #f87171;
+}
+
+.low .progressFill {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+}
+
+.low .badge,
+.low.badge {
+  border-color: rgba(248, 113, 113, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.2);
+  }
+}
+
+.icon {
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .badge {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .creditText strong {
+    font-size: 14px;
+  }
+}

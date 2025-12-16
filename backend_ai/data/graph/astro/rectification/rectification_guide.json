@@ -1,0 +1,333 @@
+{
+  "$schema": "rectification_guide_v1",
+  "$description": "출생 시간 교정(Rectification) 가이드 - 사주/점성술 통합 접근",
+
+  "what_is_rectification": {
+    "definition": "알려진 생애 사건들을 역추적하여 정확한 출생 시간을 찾아내는 과정",
+    "importance": {
+      "astrology": "ASC, MC, 하우스 시스템은 정확한 시간에 의존",
+      "saju": "시주(時柱)가 결정되어 전체 사주 해석에 영향"
+    },
+    "when_needed": [
+      "출생 시간을 모를 때",
+      "출생 시간이 '대략' 또는 반올림되어 있을 때",
+      "출생 기록의 시간이 의심스러울 때",
+      "차트와 성격/사건이 맞지 않을 때"
+    ]
+  },
+
+  "preliminary_steps": {
+    "gather_information": {
+      "birth_data": {
+        "date": "정확한 생년월일 필수",
+        "location": "정확한 출생 장소 (위도/경도)",
+        "approximate_time": "대략적인 시간대라도 범위 축소에 도움"
+      },
+      "family_information": {
+        "mother_recollection": "어머니의 기억 (가장 신뢰성 높음)",
+        "hospital_records": "가능하면 병원 기록 확인",
+        "family_stories": "'해 뜰 때', '점심 때' 등의 단서"
+      },
+      "life_events": {
+        "major_events": "결혼, 이혼, 직장 변화, 이사, 사고, 수술 등",
+        "dates": "가능한 정확한 날짜 필요",
+        "nature": "이벤트의 성격 (긍정/부정, 어떤 삶의 영역)"
+      }
+    },
+    "narrow_time_range": {
+      "known_time": {
+        "method": "알려진 시간 ±30분 테스트",
+        "steps": ["10분 단위로 차트 생성", "각 차트의 ASC/MC 사인 확인"]
+      },
+      "unknown_time": {
+        "method": "24시간을 4-6시간 구간으로 나누어 테스트",
+        "first_check": "ASC 사인이 성격과 맞는지"
+      }
+    }
+  },
+
+  "rectification_methods": {
+    "primary_directions_method": {
+      "description": "가장 전통적이고 정확한 방법",
+      "principle": "MC/ASC의 Primary Direction이 주요 사건과 일치하는지 확인",
+      "key_events_to_use": {
+        "marriage": "MC 또는 7th house ruler direction",
+        "career_peak": "MC 또는 Sun direction",
+        "birth_of_child": "5th house ruler direction",
+        "death_of_parent": "4th (모) 또는 10th (부) house ruler direction"
+      },
+      "process": [
+        "주요 생애 사건 3-5개 수집",
+        "각 사건에 해당하는 방향 계산",
+        "일치하는 출생 시간 역산"
+      ],
+      "accuracy": "매우 높음, 전문가 수준 필요"
+    },
+
+    "solar_arc_method": {
+      "description": "Solar Arc Direction을 이용한 교정",
+      "principle": "SA 행성이 앵글(ASC/MC/DSC/IC)에 컨정션되는 시점과 사건 대조",
+      "key_patterns": {
+        "SA_sun_to_MC": "커리어 정점, 공적 인정",
+        "SA_sun_to_ASC": "자아 재정의, 새로운 시작",
+        "SA_mars_to_MC": "경쟁적 성취, 갈등",
+        "SA_saturn_to_angles": "책임, 제한, 구조 변화"
+      },
+      "process": [
+        "주요 사건 연도 확인",
+        "예상 시간에서 SA 계산",
+        "앵글과의 접촉 시점 조정"
+      ],
+      "accuracy": "높음, 1도 = 약 1년 (시간 조정으로 미세 조율)"
+    },
+
+    "transit_method": {
+      "description": "주요 트랜짓과 앵글의 관계 확인",
+      "principle": "외행성 트랜짓이 앵글에 접촉할 때 주요 사건 발생",
+      "key_transits": {
+        "saturn_conjunct_MC": "커리어 구조화, 책임 증가",
+        "uranus_conjunct_ASC": "갑작스러운 자아 변화, 혁신",
+        "pluto_conjunct_MC": "커리어 근본 변형",
+        "jupiter_conjunct_ASC": "확장, 기회, 성장"
+      },
+      "process": [
+        "주요 사건 시 트랜짓 확인",
+        "앵글 위치 조정하여 트랜짓 접촉 확인"
+      ],
+      "accuracy": "중간, 다른 방법과 병행 권장"
+    },
+
+    "progressed_moon_method": {
+      "description": "Progressed Moon의 하우스 변화와 사건 대조",
+      "principle": "P.Moon이 새 하우스로 진입할 때 해당 영역의 변화",
+      "house_entries": {
+        "1st": "새로운 시작, 자아 변화",
+        "4th": "가정 변화, 이사",
+        "7th": "관계 시작/종료",
+        "10th": "커리어 변화"
+      },
+      "timing": "P.Moon은 약 2.5년마다 사인/하우스 변화",
+      "accuracy": "중간, 시간 범위 축소에 유용"
+    },
+
+    "physical_appearance_method": {
+      "description": "ASC 사인과 외모의 일치도 확인",
+      "principle": "ASC 사인은 외모와 첫인상에 영향",
+      "sign_characteristics": {
+        "Aries": "각진 얼굴, 날카로운 눈, 빠른 움직임",
+        "Taurus": "목이 굵거나 두드러짐, 편안한 인상, 느긋함",
+        "Gemini": "날씬함, 활발한 표정, 젊어 보임",
+        "Cancer": "둥근 얼굴, 부드러운 인상, 모성적",
+        "Leo": "당당한 자세, 풍성한 머리, 따뜻한 미소",
+        "Virgo": "단정함, 세련됨, 분석적 눈빛",
+        "Libra": "균형 잡힌 이목구비, 매력적, 우아함",
+        "Scorpio": "깊은 눈빛, 강렬한 인상, 미스터리",
+        "Sagittarius": "활기찬, 큰 동작, 밝은 표정",
+        "Capricorn": "진지함, 뼈대가 두드러짐, 어른스러움",
+        "Aquarius": "독특한 스타일, 개성적, 친근함",
+        "Pisces": "몽환적, 부드러운 눈, 감수성"
+      },
+      "accuracy": "낮음, 초기 선별용"
+    },
+
+    "personality_method": {
+      "description": "ASC/1st house와 성격 특성 대조",
+      "principle": "ASC는 자기 표현 방식과 타인이 보는 첫인상",
+      "process": [
+        "후보 ASC 사인들의 특성 나열",
+        "본인 또는 가까운 사람에게 확인",
+        "가장 일치하는 ASC 선택"
+      ],
+      "accuracy": "중간, 주관적 요소 있음"
+    }
+  },
+
+  "saju_rectification": {
+    "description": "사주를 이용한 출생 시간 교정",
+    "hour_pillar_importance": {
+      "sijoo": "시주(時柱)는 말년운, 자녀운, 내면세계를 나타냄",
+      "impact": "시간이 다르면 전체 사주 균형이 변함"
+    },
+    "methods": {
+      "life_pattern_matching": {
+        "description": "생애 패턴과 시주 특성 대조",
+        "examples": {
+          "정관_시주": "말년에 안정, 사회적 인정",
+          "상관_시주": "창의적 말년, 자녀와 갈등 가능",
+          "편인_시주": "고독한 말년, 학문/종교 심화",
+          "겁재_시주": "재물 변동, 경쟁적 말년"
+        }
+      },
+      "child_relationship": {
+        "description": "자녀 수, 성별, 관계와 시주 대조",
+        "examples": {
+          "식신_시주_남자": "딸이 있을 가능성",
+          "편관_시주_여자": "아들이 있을 가능성",
+          "공망_시주": "자녀 없거나 관계 약함"
+        }
+      },
+      "daewoon_sijoo": {
+        "description": "대운이 시주에 영향줄 때의 사건 확인",
+        "method": [
+          "시주 천간/지지 확인",
+          "해당 글자가 대운에서 등장하는 시기 확인",
+          "그 시기의 실제 사건 대조"
+        ]
+      }
+    },
+    "two_hour_rule": {
+      "description": "사주에서 시간은 2시간 단위(時辰)로 변함",
+      "times": {
+        "자시": "23:00-01:00",
+        "축시": "01:00-03:00",
+        "인시": "03:00-05:00",
+        "묘시": "05:00-07:00",
+        "진시": "07:00-09:00",
+        "사시": "09:00-11:00",
+        "오시": "11:00-13:00",
+        "미시": "13:00-15:00",
+        "신시": "15:00-17:00",
+        "유시": "17:00-19:00",
+        "술시": "19:00-21:00",
+        "해시": "21:00-23:00"
+      },
+      "boundary_cases": "경계 시간대(예: 10:55 vs 11:05)는 양쪽 모두 테스트"
+    }
+  },
+
+  "cross_validation_astro_saju": {
+    "description": "점성술과 사주 동시 교정으로 정확도 향상",
+    "method": {
+      "step1": "점성술로 ASC 사인 범위 축소",
+      "step2": "해당 시간대의 사주 시주 확인",
+      "step3": "양 시스템에서 모두 일치하는 시간 선택"
+    },
+    "convergence_signs": {
+      "asc_sign_and_sijoo": {
+        "example": "ASC 사자자리 + 시주 병화 = 일치도 높음",
+        "interpretation": "양 시스템이 같은 에너지 지목 시 신뢰도 상승"
+      }
+    },
+    "element_correlation": {
+      "fire_ASC": ["Aries", "Leo", "Sagittarius"],
+      "fire_sijoo": ["丙", "丁", "巳", "午"],
+      "match_indication": "양쪽 모두 화 에너지면 시간 범위 유력"
+    }
+  },
+
+  "practical_workflow": {
+    "step1_collect": {
+      "action": "정보 수집",
+      "details": ["대략적 시간", "5-10개 주요 생애 사건 (정확한 날짜)", "외모/성격 특성"]
+    },
+    "step2_narrow": {
+      "action": "범위 축소",
+      "details": ["외모/성격으로 ASC 후보 선정", "사주 시진 범위 확인"]
+    },
+    "step3_test": {
+      "action": "후보 시간 테스트",
+      "details": ["각 후보에 대해 SA/Transit/Direction 계산", "생애 사건과 대조"]
+    },
+    "step4_verify": {
+      "action": "검증",
+      "details": ["최소 3-5개 사건이 일치해야 함", "사주와 점성술 양쪽에서 확인"]
+    },
+    "step5_refine": {
+      "action": "미세 조정",
+      "details": ["분 단위로 조정하여 최적 시간 결정", "추가 사건으로 검증"]
+    }
+  },
+
+  "common_pitfalls": {
+    "confirmation_bias": {
+      "description": "원하는 결과에 맞추려는 경향",
+      "prevention": "여러 사건으로 교차 검증, 객관적 접근"
+    },
+    "single_event_reliance": {
+      "description": "하나의 사건만으로 판단",
+      "prevention": "최소 3-5개 사건 사용"
+    },
+    "ignoring_minor_events": {
+      "description": "작은 사건 무시",
+      "prevention": "작은 사건들도 패턴 확인에 유용"
+    },
+    "wrong_event_dates": {
+      "description": "사건 날짜 오류",
+      "prevention": "가능하면 문서로 확인된 날짜 사용"
+    }
+  },
+
+  "tools_and_software": {
+    "astrology_software": {
+      "solar_fire": "가장 포괄적인 교정 도구",
+      "jigsaw": "교정 전문 소프트웨어",
+      "astro_com": "기본 무료 차트"
+    },
+    "saju_tools": {
+      "만세력": "정확한 간지 계산",
+      "사주_앱": "시주 변환 확인"
+    },
+    "documentation": {
+      "spreadsheet": "후보 시간과 사건 대조 기록",
+      "notes": "각 테스트 결과 문서화"
+    }
+  },
+
+  "confidence_levels": {
+    "high_confidence": {
+      "criteria": "5개 이상 사건 일치, SA/Direction/Transit 모두 일치, 사주도 일치",
+      "certainty": "90%+"
+    },
+    "medium_confidence": {
+      "criteria": "3-4개 사건 일치, 대부분 방법 일치",
+      "certainty": "70-90%"
+    },
+    "low_confidence": {
+      "criteria": "2개 이하 사건 일치, 일부 방법만 일치",
+      "certainty": "50-70%",
+      "recommendation": "추가 사건 필요"
+    },
+    "uncertain": {
+      "criteria": "일치하는 패턴 없음",
+      "certainty": "50% 이하",
+      "recommendation": "전문가 상담 권장"
+    }
+  },
+
+  "when_time_remains_unknown": {
+    "options": {
+      "noon_chart": {
+        "method": "12:00 정오로 설정",
+        "use_case": "달 위치 최대 오차 ±6도로 제한",
+        "limitation": "하우스 무시해야 함"
+      },
+      "sunrise_chart": {
+        "method": "일출 시간으로 설정",
+        "use_case": "태양이 ASC에, 자연스러운 시작",
+        "limitation": "실제 ASC와 다름"
+      },
+      "whole_sign_houses": {
+        "method": "태양 사인을 1하우스로",
+        "use_case": "하우스 시스템 단순화",
+        "limitation": "앵글 해석 불가"
+      },
+      "saju_only": {
+        "method": "사주는 시주 제외하고 해석",
+        "use_case": "년월일주만으로도 상당한 정보",
+        "limitation": "시주 관련 정보 누락"
+      }
+    }
+  },
+
+  "professional_guidance": {
+    "when_to_seek": [
+      "여러 시도에도 일치 패턴 없을 때",
+      "중요한 결정에 정확한 시간 필요할 때",
+      "복잡한 생애 사건 패턴이 있을 때"
+    ],
+    "finding_expert": {
+      "qualifications": ["경험 있는 점성가", "교정 전문 훈련", "사주 전문가 (동양권)"],
+      "process": "일반적으로 몇 시간의 작업 필요"
+    }
+  }
+}

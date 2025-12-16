@@ -1,0 +1,549 @@
+{
+  "$schema": "saju_astro_advanced_cross_v1",
+  "$description": "사주-점성술 확장 교차분석 데이터 (일간×사인 전체, 십이운성, 나음, 신살)",
+  "$version": "1.0",
+
+  "daymaster_sun_complete": {
+    "$description": "10 일간 × 12 태양사인 = 120개 완전한 조합",
+
+    "甲": {
+      "element": "木",
+      "character": "큰 나무, 선구자, 리더십",
+      "sun_signs": {
+        "Aries": {"harmony": 85, "insight": "甲木의 선구자 정신 + Aries 개척자 = 이중 리더십", "best_for": ["사업 시작", "새 프로젝트"], "caution": "주도권 경쟁"},
+        "Taurus": {"harmony": 72, "insight": "甲木의 성장 + Taurus 안정 = 느리지만 확실한 성장", "best_for": ["장기 계획", "부동산"], "caution": "고집 충돌"},
+        "Gemini": {"harmony": 80, "insight": "甲木 + Air 지성 = 아이디어가 뿌리내림", "best_for": ["학습", "커뮤니케이션"], "caution": "산만함"},
+        "Cancer": {"harmony": 78, "insight": "水生木 - Cancer가 甲을 키워줌", "best_for": ["가정", "양육"], "caution": "감정 의존"},
+        "Leo": {"harmony": 82, "insight": "木生火 - 甲이 Leo 열정의 연료", "best_for": ["창작", "무대"], "caution": "에너지 소모"},
+        "Virgo": {"harmony": 70, "insight": "甲木의 큰 그림 vs Virgo 디테일", "best_for": ["분석", "개선"], "caution": "비판에 예민"},
+        "Libra": {"harmony": 78, "insight": "甲木 + Air 균형 = 정의로운 리더", "best_for": ["협상", "파트너십"], "caution": "우유부단"},
+        "Scorpio": {"harmony": 75, "insight": "水生木이지만 깊은 변형", "best_for": ["연구", "심리학"], "caution": "권력 투쟁"},
+        "Sagittarius": {"harmony": 83, "insight": "木生火 + 확장 = 함께 성장하는 모험", "best_for": ["여행", "철학"], "caution": "현실 감각"},
+        "Capricorn": {"harmony": 68, "insight": "土克木 긴장, 하지만 구조 제공", "best_for": ["장기 목표", "커리어"], "caution": "억압감"},
+        "Aquarius": {"harmony": 80, "insight": "甲木 + Air 혁신 = 미래지향적 리더", "best_for": ["혁신", "사회 활동"], "caution": "감정 소홀"},
+        "Pisces": {"harmony": 85, "insight": "水生木 완벽 - 영적 성장의 나무", "best_for": ["예술", "영성"], "caution": "현실 도피"}
+      }
+    },
+
+    "乙": {
+      "element": "木",
+      "character": "풀, 덩굴, 유연함, 적응력",
+      "sun_signs": {
+        "Aries": {"harmony": 70, "insight": "부드러운 乙 vs 공격적 Aries", "best_for": ["새로운 적응"], "caution": "압도당함"},
+        "Taurus": {"harmony": 82, "insight": "乙木 유연함 + Taurus 감각 = 자연스러운 조화", "best_for": ["예술", "정원"], "caution": "변화 거부"},
+        "Gemini": {"harmony": 78, "insight": "유연한 소통, 다양한 관심사", "best_for": ["글쓰기", "네트워킹"], "caution": "깊이 부족"},
+        "Cancer": {"harmony": 85, "insight": "水生木 + 돌봄 = 서로 키워주는 관계", "best_for": ["가정", "보살핌"], "caution": "의존성"},
+        "Leo": {"harmony": 75, "insight": "乙이 Leo를 부드럽게 지지", "best_for": ["뒷받침 역할"], "caution": "그늘에 가려짐"},
+        "Virgo": {"harmony": 80, "insight": "둘 다 섬세함, 디테일에 강함", "best_for": ["분석", "서비스"], "caution": "완벽주의"},
+        "Libra": {"harmony": 82, "insight": "우아함과 균형의 조화", "best_for": ["예술", "외교"], "caution": "결정 장애"},
+        "Scorpio": {"harmony": 78, "insight": "水生木 + 깊이 = 변형적 성장", "best_for": ["심리", "치유"], "caution": "집착"},
+        "Sagittarius": {"harmony": 72, "insight": "乙의 적응력이 Sag 모험 따라감", "best_for": ["여행", "학습"], "caution": "뿌리 없음"},
+        "Capricorn": {"harmony": 65, "insight": "土克木, 乙이 눌릴 수 있음", "best_for": ["인내가 필요한 일"], "caution": "억압"},
+        "Aquarius": {"harmony": 75, "insight": "유연하게 혁신에 적응", "best_for": ["새로운 아이디어"], "caution": "방향 상실"},
+        "Pisces": {"harmony": 88, "insight": "水生木 최고조 - 꿈같은 연결", "best_for": ["예술", "영성", "치유"], "caution": "현실 감각"}
+      }
+    },
+
+    "丙": {
+      "element": "火",
+      "character": "태양, 빛, 열정, 카리스마",
+      "sun_signs": {
+        "Aries": {"harmony": 90, "insight": "火+Fire 최강! 불꽃같은 에너지", "best_for": ["리더십", "스포츠", "모험"], "caution": "충동, 소진"},
+        "Taurus": {"harmony": 68, "insight": "丙의 열정 vs Taurus 안정", "best_for": ["예술적 창작"], "caution": "템포 차이"},
+        "Gemini": {"harmony": 82, "insight": "火가 Air를 밝힘, 아이디어 확산", "best_for": ["마케팅", "교육"], "caution": "깊이 부족"},
+        "Cancer": {"harmony": 70, "insight": "火克水 긴장, 하지만 따뜻함", "best_for": ["가정에 활력"], "caution": "감정 충돌"},
+        "Leo": {"harmony": 92, "insight": "이중 태양! 화려함의 극치", "best_for": ["무대", "리더십", "창작"], "caution": "스포트라이트 경쟁"},
+        "Virgo": {"harmony": 72, "insight": "丙의 큰 불꽃 vs Virgo 디테일", "best_for": ["실행력 있는 계획"], "caution": "비판에 상처"},
+        "Libra": {"harmony": 78, "insight": "火가 Air에 따뜻함 더함", "best_for": ["사교", "예술"], "caution": "일관성 부족"},
+        "Scorpio": {"harmony": 72, "insight": "火克水 + 변형 = 극적인 관계", "best_for": ["변화", "재생"], "caution": "권력 투쟁"},
+        "Sagittarius": {"harmony": 88, "insight": "火+Fire 모험! 세계를 정복", "best_for": ["여행", "철학", "교육"], "caution": "과잉 낙관"},
+        "Capricorn": {"harmony": 70, "insight": "土克火 아님, 하지만 차가움", "best_for": ["목표 달성"], "caution": "열정 식음"},
+        "Aquarius": {"harmony": 80, "insight": "火가 Air 혁신에 에너지", "best_for": ["사회 운동", "혁신"], "caution": "지속성"},
+        "Pisces": {"harmony": 68, "insight": "火克水, 꿈을 태울 수 있음", "best_for": ["영감 제공"], "caution": "감정 증발"}
+      }
+    },
+
+    "丁": {
+      "element": "火",
+      "character": "촛불, 따뜻함, 섬세함, 지혜",
+      "sun_signs": {
+        "Aries": {"harmony": 78, "insight": "丁의 섬세함이 Aries 열정 정제", "best_for": ["전략적 행동"], "caution": "압도당함"},
+        "Taurus": {"harmony": 75, "insight": "따뜻한 가정의 불꽃", "best_for": ["요리", "공예"], "caution": "답답함"},
+        "Gemini": {"harmony": 80, "insight": "丁의 지혜 + Gemini 소통", "best_for": ["글쓰기", "교육"], "caution": "산만"},
+        "Cancer": {"harmony": 78, "insight": "火克水지만 따뜻한 돌봄", "best_for": ["가정", "치유"], "caution": "감정 기복"},
+        "Leo": {"harmony": 82, "insight": "丁이 Leo에게 지혜로운 빛", "best_for": ["조언자 역할"], "caution": "그늘"},
+        "Virgo": {"harmony": 82, "insight": "둘 다 섬세하고 분석적", "best_for": ["연구", "치유"], "caution": "걱정 과다"},
+        "Libra": {"harmony": 80, "insight": "우아한 빛과 균형", "best_for": ["예술", "관계"], "caution": "결정 장애"},
+        "Scorpio": {"harmony": 75, "insight": "火克水 + 깊이 = 변형의 불꽃", "best_for": ["심리", "영성"], "caution": "강렬함"},
+        "Sagittarius": {"harmony": 80, "insight": "丁의 지혜 + Sag 탐구", "best_for": ["철학", "교육"], "caution": "방향 상실"},
+        "Capricorn": {"harmony": 72, "insight": "꾸준히 타오르는 목표", "best_for": ["장기 계획"], "caution": "차가움"},
+        "Aquarius": {"harmony": 78, "insight": "지혜로운 혁신의 불꽃", "best_for": ["새로운 아이디어"], "caution": "감정 소홀"},
+        "Pisces": {"harmony": 80, "insight": "火克水지만 영적 빛", "best_for": ["명상", "예술"], "caution": "경계 불명확"}
+      }
+    },
+
+    "戊": {
+      "element": "土",
+      "character": "산, 대지, 안정, 신뢰",
+      "sun_signs": {
+        "Aries": {"harmony": 70, "insight": "戊의 안정 vs Aries 충동", "best_for": ["기반 위 행동"], "caution": "답답함"},
+        "Taurus": {"harmony": 90, "insight": "土+Earth 완벽! 반석 같은 관계", "best_for": ["재정", "부동산", "장기 계획"], "caution": "변화 거부"},
+        "Gemini": {"harmony": 68, "insight": "戊 안정 vs Gemini 변화", "best_for": ["아이디어에 기반"], "caution": "지루함"},
+        "Cancer": {"harmony": 78, "insight": "안정적 가정의 기반", "best_for": ["가족", "돌봄"], "caution": "감정 억압"},
+        "Leo": {"harmony": 75, "insight": "火生土 - Leo가 戊에 활력", "best_for": ["창작의 기반"], "caution": "에너지 차이"},
+        "Virgo": {"harmony": 88, "insight": "土+Earth 실용! 완벽한 팀", "best_for": ["사업", "분석"], "caution": "융통성 부족"},
+        "Libra": {"harmony": 72, "insight": "균형 잡힌 안정", "best_for": ["파트너십"], "caution": "결정 지연"},
+        "Scorpio": {"harmony": 75, "insight": "土克水 긴장, 하지만 깊이 있음", "best_for": ["변형적 안정"], "caution": "권력 문제"},
+        "Sagittarius": {"harmony": 70, "insight": "戊 안정 vs Sag 자유", "best_for": ["기반 있는 탐험"], "caution": "속박감"},
+        "Capricorn": {"harmony": 92, "insight": "土+Earth 최강! 야망의 산", "best_for": ["커리어", "목표 달성"], "caution": "일 중독"},
+        "Aquarius": {"harmony": 68, "insight": "戊 전통 vs Aquarius 혁신", "best_for": ["새로운 구조"], "caution": "충돌"},
+        "Pisces": {"harmony": 70, "insight": "土克水, 꿈에 현실 부여", "best_for": ["창작 실현"], "caution": "꿈 억압"}
+      }
+    },
+
+    "己": {
+      "element": "土",
+      "character": "밭, 정원, 양육, 섬세함",
+      "sun_signs": {
+        "Aries": {"harmony": 68, "insight": "己의 부드러움 vs Aries 강함", "best_for": ["부드러운 시작"], "caution": "눌림"},
+        "Taurus": {"harmony": 85, "insight": "정원의 조화, 감각적 즐거움", "best_for": ["요리", "원예", "예술"], "caution": "안주"},
+        "Gemini": {"harmony": 72, "insight": "己가 아이디어에 양분 제공", "best_for": ["교육", "글쓰기"], "caution": "산만"},
+        "Cancer": {"harmony": 88, "insight": "土+Water 양육! 최고의 돌봄", "best_for": ["가정", "육아", "치유"], "caution": "과보호"},
+        "Leo": {"harmony": 78, "insight": "火生土 - 따뜻한 성장", "best_for": ["창작 지원"], "caution": "그늘"},
+        "Virgo": {"harmony": 88, "insight": "土+Earth 섬세함! 완벽한 조화", "best_for": ["서비스", "건강"], "caution": "비판적"},
+        "Libra": {"harmony": 78, "insight": "부드러운 균형과 조화", "best_for": ["관계", "예술"], "caution": "결정 어려움"},
+        "Scorpio": {"harmony": 72, "insight": "土克水 + 변형 = 깊은 양육", "best_for": ["치유", "변화"], "caution": "집착"},
+        "Sagittarius": {"harmony": 70, "insight": "己가 Sag에게 뿌리 제공", "best_for": ["성장의 기반"], "caution": "속박"},
+        "Capricorn": {"harmony": 85, "insight": "土+Earth 실속! 견실한 파트너", "best_for": ["사업", "장기 계획"], "caution": "감정 소홀"},
+        "Aquarius": {"harmony": 68, "insight": "己 전통 vs Aquarius 혁신", "best_for": ["새로운 양육법"], "caution": "가치 충돌"},
+        "Pisces": {"harmony": 75, "insight": "土克水지만 부드러운 돌봄", "best_for": ["예술", "영성"], "caution": "경계 문제"}
+      }
+    },
+
+    "庚": {
+      "element": "金",
+      "character": "도끼, 칼, 결단, 정의",
+      "sun_signs": {
+        "Aries": {"harmony": 78, "insight": "火克金 긴장, 하지만 전사 에너지", "best_for": ["경쟁", "스포츠"], "caution": "충돌"},
+        "Taurus": {"harmony": 82, "insight": "土生金 - 견고한 지원", "best_for": ["재정", "사업"], "caution": "고집"},
+        "Gemini": {"harmony": 78, "insight": "庚의 결단 + Gemini 아이디어", "best_for": ["전략", "협상"], "caution": "냉정함"},
+        "Cancer": {"harmony": 68, "insight": "金克木 관계 없지만 감정 차이", "best_for": ["보호"], "caution": "감정 억압"},
+        "Leo": {"harmony": 70, "insight": "火克金, 庚이 녹을 수 있음", "best_for": ["변화"], "caution": "자존심 상함"},
+        "Virgo": {"harmony": 85, "insight": "土生金 + 분석 = 정밀한 결단", "best_for": ["분석", "법률"], "caution": "비판적"},
+        "Libra": {"harmony": 90, "insight": "庚金+Libra = 완벽한 정의의 칼", "best_for": ["법률", "공정한 판단"], "caution": "냉정함"},
+        "Scorpio": {"harmony": 75, "insight": "金生水 - 庚이 Scorpio에게 구조", "best_for": ["연구", "변형"], "caution": "권력 경쟁"},
+        "Sagittarius": {"harmony": 72, "insight": "火克金 긴장 있지만 행동적", "best_for": ["모험 결단"], "caution": "무모함"},
+        "Capricorn": {"harmony": 88, "insight": "土生金 + 야망 = 성공의 칼날", "best_for": ["커리어", "목표"], "caution": "일 중독"},
+        "Aquarius": {"harmony": 82, "insight": "金生水 + 혁신 = 새로운 구조", "best_for": ["시스템 개혁"], "caution": "감정 소홀"},
+        "Pisces": {"harmony": 72, "insight": "金生水, 庚이 Pisces에 구조 제공", "best_for": ["창작 실현"], "caution": "꿈 자르기"}
+      }
+    },
+
+    "辛": {
+      "element": "金",
+      "character": "보석, 바늘, 정교함, 순수",
+      "sun_signs": {
+        "Aries": {"harmony": 68, "insight": "火克金, 辛이 손상될 수 있음", "best_for": ["정제된 행동"], "caution": "예민함"},
+        "Taurus": {"harmony": 85, "insight": "土生金 + 감각 = 아름다운 보석", "best_for": ["예술", "패션"], "caution": "물질주의"},
+        "Gemini": {"harmony": 78, "insight": "辛의 정교함 + Gemini 지성", "best_for": ["글쓰기", "분석"], "caution": "날카로움"},
+        "Cancer": {"harmony": 70, "insight": "辛의 차가움 vs Cancer 따뜻함", "best_for": ["보호된 보석"], "caution": "거리감"},
+        "Leo": {"harmony": 68, "insight": "火克金, 하지만 빛나고 싶은 욕구", "best_for": ["무대의 보석"], "caution": "상처"},
+        "Virgo": {"harmony": 88, "insight": "土生金 + 완벽 = 정교함의 극치", "best_for": ["기술", "공예"], "caution": "비판적"},
+        "Libra": {"harmony": 90, "insight": "辛金+Libra = 아름다움과 균형", "best_for": ["예술", "미학"], "caution": "표면적"},
+        "Scorpio": {"harmony": 78, "insight": "金生水 - 깊이 있는 빛", "best_for": ["연구", "심리"], "caution": "집착"},
+        "Sagittarius": {"harmony": 70, "insight": "火克金 긴장, 자유 vs 정교", "best_for": ["정제된 탐험"], "caution": "제한"},
+        "Capricorn": {"harmony": 85, "insight": "土生金 + 목표 = 성공의 보석", "best_for": ["커리어"], "caution": "차가움"},
+        "Aquarius": {"harmony": 85, "insight": "金生水 + 독특함 = 혁신적 아름다움", "best_for": ["디자인", "기술"], "caution": "감정 거리"},
+        "Pisces": {"harmony": 78, "insight": "金生水, 辛이 Pisces에 형태 부여", "best_for": ["예술", "영성"], "caution": "꿈 제한"}
+      }
+    },
+
+    "壬": {
+      "element": "水",
+      "character": "바다, 큰 강, 지혜, 흐름",
+      "sun_signs": {
+        "Aries": {"harmony": 70, "insight": "水克火 - 壬이 Aries 불 끔", "best_for": ["냉철한 행동"], "caution": "열정 억제"},
+        "Taurus": {"harmony": 75, "insight": "물이 땅을 촉촉하게", "best_for": ["성장", "재정"], "caution": "정체"},
+        "Gemini": {"harmony": 78, "insight": "水生木 관계 유사, 아이디어 흐름", "best_for": ["커뮤니케이션"], "caution": "깊이 부족"},
+        "Cancer": {"harmony": 90, "insight": "水+Water 완벽! 감정의 바다", "best_for": ["가정", "직관"], "caution": "감정 과잉"},
+        "Leo": {"harmony": 68, "insight": "水克火, 壬이 Leo 빛 가림", "best_for": ["균형"], "caution": "충돌"},
+        "Virgo": {"harmony": 75, "insight": "흐르는 물 + 분석 = 적응적 지혜", "best_for": ["연구"], "caution": "걱정"},
+        "Libra": {"harmony": 78, "insight": "물의 흐름 + 균형", "best_for": ["협상", "조화"], "caution": "우유부단"},
+        "Scorpio": {"harmony": 95, "insight": "水+Water 최강! 가장 깊은 연결", "best_for": ["변형", "심리", "영성"], "caution": "빠져나오기 어려움"},
+        "Sagittarius": {"harmony": 70, "insight": "水克火 긴장, 하지만 탐험", "best_for": ["지혜로운 여행"], "caution": "열정 억제"},
+        "Capricorn": {"harmony": 72, "insight": "물이 산 주변을 흐름", "best_for": ["목표를 향한 흐름"], "caution": "냉정함"},
+        "Aquarius": {"harmony": 85, "insight": "壬水+Aquarius = 흐르는 혁신", "best_for": ["새로운 아이디어"], "caution": "감정 거리"},
+        "Pisces": {"harmony": 92, "insight": "水+Water 영적! 끝없는 바다", "best_for": ["예술", "명상", "치유"], "caution": "현실 도피"}
+      }
+    },
+
+    "癸": {
+      "element": "水",
+      "character": "이슬, 비, 직관, 신비",
+      "sun_signs": {
+        "Aries": {"harmony": 68, "insight": "水克火, 癸가 Aries 불 식힘", "best_for": ["직관적 행동"], "caution": "의지 약화"},
+        "Taurus": {"harmony": 78, "insight": "이슬이 땅을 촉촉하게", "best_for": ["성장", "감각"], "caution": "정체"},
+        "Gemini": {"harmony": 75, "insight": "癸의 직관 + Gemini 지성", "best_for": ["직관적 소통"], "caution": "산만"},
+        "Cancer": {"harmony": 88, "insight": "水+Water 부드러움! 서로 녹아듦", "best_for": ["가정", "돌봄"], "caution": "경계 불명확"},
+        "Leo": {"harmony": 65, "insight": "水克火, 癸가 Leo 빛 가림", "best_for": ["부드러운 지원"], "caution": "충돌"},
+        "Virgo": {"harmony": 78, "insight": "섬세한 물 + 분석", "best_for": ["연구", "치유"], "caution": "걱정 과다"},
+        "Libra": {"harmony": 78, "insight": "부드러운 균형과 조화", "best_for": ["관계", "예술"], "caution": "결정 어려움"},
+        "Scorpio": {"harmony": 88, "insight": "水+Water 깊이! 신비로운 연결", "best_for": ["심리", "신비"], "caution": "집착"},
+        "Sagittarius": {"harmony": 68, "insight": "水克火, 하지만 직관적 탐험", "best_for": ["영적 여행"], "caution": "열정 부족"},
+        "Capricorn": {"harmony": 72, "insight": "이슬이 산을 적심", "best_for": ["꾸준한 진행"], "caution": "냉정함"},
+        "Aquarius": {"harmony": 82, "insight": "癸水+Aquarius = 직관적 혁신", "best_for": ["새로운 비전"], "caution": "감정 거리"},
+        "Pisces": {"harmony": 95, "insight": "水+Water 최고! 영적 합일", "best_for": ["명상", "예술", "신비"], "caution": "현실 상실"}
+      }
+    }
+  },
+
+  "twelve_stages_dignity": {
+    "$description": "십이운성(十二運星)과 행성 품위(Planetary Dignity)의 교차 매핑",
+
+    "parallel_concept": {
+      "saju": "십이운성 - 일간의 12단계 에너지 상태",
+      "astro": "행성 품위 - 행성이 사인에서의 힘의 상태",
+      "mapping_principle": "에너지의 강약과 발현 방식의 대응"
+    },
+
+    "mappings": {
+      "장생": {
+        "dignity_equivalent": "Domicile (본좌위)",
+        "energy_level": 95,
+        "description": "새로운 시작의 힘, 행성이 자기 집에 있는 것처럼 자연스러움",
+        "timing_advice": "새로운 시작, 탄생, 계획 수립에 최적",
+        "career": "창업, 새 프로젝트, 이직",
+        "relationship": "새로운 만남, 첫 데이트",
+        "cross_insight": "사주의 장생운과 행성이 본좌위에 있을 때 - 이중으로 강력한 시작의 에너지"
+      },
+      "목욕": {
+        "dignity_equivalent": "Detriment (손상위) 초기",
+        "energy_level": 60,
+        "description": "정화와 변화의 시기, 불안정하지만 성장 중",
+        "timing_advice": "학습, 자기 정화, 내면 작업",
+        "career": "교육, 연수, 재충전",
+        "relationship": "관계 재정립, 소통 개선",
+        "cross_insight": "외부적 불안정 속 내면 성장의 시기"
+      },
+      "관대": {
+        "dignity_equivalent": "Exaltation (고양위)",
+        "energy_level": 90,
+        "description": "성인이 되어 세상에 나가는 힘, 행성이 최고로 빛나는 상태",
+        "timing_advice": "사회 진출, 공식 발표, 승진",
+        "career": "승진, 대외 활동, 발표",
+        "relationship": "공개 연애, 약혼, 결혼 발표",
+        "cross_insight": "사주 관대운 + 행성 고양위 = 세상에 자신을 드러내는 최적기"
+      },
+      "건록": {
+        "dignity_equivalent": "Domicile (본좌위) 강화",
+        "energy_level": 98,
+        "description": "전성기의 힘, 가장 강력하고 안정적인 에너지",
+        "timing_advice": "중요한 결정, 큰 계약, 주도적 행동",
+        "career": "대형 계약, 리더십, 핵심 역할",
+        "relationship": "결혼, 중요한 약속",
+        "cross_insight": "최고의 에너지 상태 - 모든 것이 자연스럽게 흘러감"
+      },
+      "제왕": {
+        "dignity_equivalent": "Exaltation 최고점",
+        "energy_level": 100,
+        "description": "절정의 힘이지만 곧 하락할 운명",
+        "timing_advice": "최고점에서 다음을 준비, 과욕 금지",
+        "career": "정점의 성취, 하지만 후계 준비",
+        "relationship": "관계의 정점, 다음 단계 준비",
+        "cross_insight": "최고점 인식 - 겸손과 다음 단계 준비가 핵심"
+      },
+      "쇠": {
+        "dignity_equivalent": "Fall (실추위) 시작",
+        "energy_level": 70,
+        "description": "서서히 내려가는 에너지, 수확과 정리의 시기",
+        "timing_advice": "정리, 수확, 보존",
+        "career": "성과 정리, 문서화, 후임 양성",
+        "relationship": "관계 점검, 안정화",
+        "cross_insight": "하강기 인식 - 쌓은 것을 정리하고 보존"
+      },
+      "병": {
+        "dignity_equivalent": "Detriment (손상위)",
+        "energy_level": 45,
+        "description": "에너지 저하, 행성이 불리한 사인에 있는 상태",
+        "timing_advice": "휴식, 회복, 내면 집중",
+        "career": "재충전, 학습, 건강 관리",
+        "relationship": "개인 시간, 관계 쉼",
+        "cross_insight": "낮은 에너지 시기 - 무리하지 않고 회복에 집중"
+      },
+      "사": {
+        "dignity_equivalent": "Fall (실추위) 깊은 단계",
+        "energy_level": 30,
+        "description": "죽음 직전의 고요함, 변형의 준비",
+        "timing_advice": "명상, 내면 작업, 큰 변화 준비",
+        "career": "방향 전환 준비, 재정비",
+        "relationship": "관계 본질 점검",
+        "cross_insight": "변형 직전의 고요함 - 깊은 내면 작업의 시기"
+      },
+      "묘": {
+        "dignity_equivalent": "Via Combusta (불타는 길)",
+        "energy_level": 20,
+        "description": "에너지가 숨어있는 상태, 잠재력은 있지만 드러나지 않음",
+        "timing_advice": "잠복, 숨김, 비밀 프로젝트",
+        "career": "비밀 계획, 내부 작업",
+        "relationship": "개인 공간, 혼자만의 시간",
+        "cross_insight": "잠재력이 숨어있는 시기 - 때를 기다림"
+      },
+      "절": {
+        "dignity_equivalent": "Combust (연소위)",
+        "energy_level": 10,
+        "description": "완전한 단절, 이전 것의 소멸",
+        "timing_advice": "과거 청산, 완전한 끝, 새 시작 준비",
+        "career": "퇴사, 사업 정리, 완전한 방향 전환",
+        "relationship": "이별, 관계 청산",
+        "cross_insight": "완전한 끝 - 새로운 시작을 위한 청산의 시기"
+      },
+      "태": {
+        "dignity_equivalent": "Under the Beams (광선 아래)",
+        "energy_level": 35,
+        "description": "새로운 것이 잉태되는 시기, 아직 보이지 않음",
+        "timing_advice": "계획 구상, 아이디어 배양",
+        "career": "새 아이디어, 계획 수립",
+        "relationship": "새로운 가능성, 조용한 시작",
+        "cross_insight": "잉태의 시기 - 새로운 것이 형성되기 시작"
+      },
+      "양": {
+        "dignity_equivalent": "Cazimi (왕심)",
+        "energy_level": 50,
+        "description": "성장하고 있지만 아직 연약함, 보호가 필요",
+        "timing_advice": "양육, 보호, 조심스러운 성장",
+        "career": "신규 프로젝트 양육, 멘토링",
+        "relationship": "새 관계 키우기, 조심스러운 발전",
+        "cross_insight": "양육의 시기 - 새로 시작한 것을 조심스럽게 키움"
+      }
+    }
+  },
+
+  "naeum_sabian": {
+    "$description": "납음(納音)과 사비안 심볼(Sabian Symbols)의 교차 매핑",
+
+    "parallel_concept": {
+      "saju": "납음 - 60갑자의 숨겨진 소리/에너지",
+      "astro": "사비안 심볼 - 360도 각 도수별 상징 이미지",
+      "mapping_principle": "둘 다 숨겨진 깊은 의미와 상징을 담고 있음"
+    },
+
+    "naeum_categories": {
+      "해중금": {
+        "meaning": "바다 속의 금 - 숨겨진 보물",
+        "sabian_parallel": "Pisces/Scorpio 도수들의 심해 이미지",
+        "life_theme": "깊이 숨겨진 가치, 발견되기를 기다리는 재능",
+        "advice": "내면의 보물을 발견하고 세상에 드러내라",
+        "best_timing": "Water 사인 트랜짓 시 활성화"
+      },
+      "노중화": {
+        "meaning": "화로 속의 불 - 집중된 열정",
+        "sabian_parallel": "Leo/Aries 도수들의 불꽃 이미지",
+        "life_theme": "내면에서 타오르는 열정, 통제된 에너지",
+        "advice": "열정을 올바른 방향으로 집중하라",
+        "best_timing": "Fire 사인 트랜짓 시 활성화"
+      },
+      "대림목": {
+        "meaning": "큰 숲의 나무 - 거대한 성장",
+        "sabian_parallel": "Sagittarius/Taurus 도수들의 자연 이미지",
+        "life_theme": "광활한 성장, 큰 비전, 자연과의 연결",
+        "advice": "뿌리를 깊이 내리고 하늘 높이 자라라",
+        "best_timing": "Jupiter/Venus 트랜짓 시 활성화"
+      },
+      "노방토": {
+        "meaning": "길가의 흙 - 여정과 변화",
+        "sabian_parallel": "Gemini/Sagittarius 도수들의 여행 이미지",
+        "life_theme": "인생의 여정, 변화 속 안정, 적응력",
+        "advice": "여정을 즐기고 변화에 유연하라",
+        "best_timing": "Mercury 트랜짓 시 활성화"
+      },
+      "검봉금": {
+        "meaning": "칼끝의 금속 - 날카로운 결단",
+        "sabian_parallel": "Aries/Scorpio 도수들의 전사 이미지",
+        "life_theme": "날카로운 지성, 결단력, 정의",
+        "advice": "결단의 순간을 두려워하지 마라",
+        "best_timing": "Mars 트랜짓 시 활성화"
+      },
+      "산하화": {
+        "meaning": "산 아래 불 - 내면의 열정",
+        "sabian_parallel": "Capricorn/Leo 도수들의 변형 이미지",
+        "life_theme": "겉으로 드러나지 않는 내면의 열정",
+        "advice": "때가 되면 내면의 불을 드러내라",
+        "best_timing": "Saturn-Mars 트랜짓 시 활성화"
+      },
+      "천하수": {
+        "meaning": "하늘에서 내리는 물 - 축복의 비",
+        "sabian_parallel": "Aquarius/Cancer 도수들의 물 이미지",
+        "life_theme": "하늘의 축복, 영감, 정화",
+        "advice": "영감을 받아들이고 다른 이에게 전하라",
+        "best_timing": "Moon/Neptune 트랜짓 시 활성화"
+      },
+      "벽상토": {
+        "meaning": "벽 위의 흙 - 구축된 안정",
+        "sabian_parallel": "Taurus/Capricorn 도수들의 건축 이미지",
+        "life_theme": "견고한 기반, 쌓아올린 것, 보호",
+        "advice": "튼튼한 기반 위에 꿈을 쌓아라",
+        "best_timing": "Saturn 트랜짓 시 활성화"
+      },
+      "금박금": {
+        "meaning": "금박 - 화려한 외면, 섬세한 아름다움",
+        "sabian_parallel": "Libra/Leo 도수들의 아름다움 이미지",
+        "life_theme": "세련됨, 예술적 감각, 표면의 빛",
+        "advice": "아름다움을 추구하되 본질을 잃지 마라",
+        "best_timing": "Venus 트랜짓 시 활성화"
+      },
+      "대해수": {
+        "meaning": "큰 바다의 물 - 무한한 깊이",
+        "sabian_parallel": "Pisces/Scorpio 도수들의 대양 이미지",
+        "life_theme": "무한한 잠재력, 깊은 감정, 영적 깊이",
+        "advice": "깊이를 두려워하지 말고 탐험하라",
+        "best_timing": "Neptune/Pluto 트랜짓 시 활성화"
+      }
+    },
+
+    "cross_reading": {
+      "description": "납음과 출생 차트의 사비안 심볼을 함께 읽으면 더 깊은 통찰",
+      "method": [
+        "1. 일주 납음 확인 (예: 갑자 - 해중금)",
+        "2. 태양/달/ASC의 사비안 심볼 확인",
+        "3. 공통 주제와 이미지 찾기",
+        "4. 통합적 인생 테마 도출"
+      ],
+      "example": {
+        "naeum": "해중금 (바다 속 금)",
+        "sun_sabian": "Pisces 15° - 군중 속의 장교 (숨겨진 리더십)",
+        "integration": "깊이 숨겨진 리더십과 가치가 있으며, 때가 되면 세상에 드러날 것"
+      }
+    }
+  },
+
+  "shinsal_asteroids": {
+    "$description": "신살(神煞)과 소행성/민감점의 상세 교차 매핑",
+
+    "mappings": {
+      "천을귀인": {
+        "asteroid_equivalent": ["Jupiter", "Part of Fortune"],
+        "description": "하늘이 내린 귀인 ↔ 목성의 축복, 행운점",
+        "cross_activation": "목성이 네이탈 행운점을 트라인할 때 천을귀인 효과 극대화",
+        "timing": "목성 트랜짓이 개인 행성을 지날 때",
+        "interpretation": "두 체계 모두 외부로부터 오는 도움과 행운을 나타냄"
+      },
+      "천덕귀인": {
+        "asteroid_equivalent": ["Jupiter", "North Node"],
+        "description": "하늘의 덕 ↔ 북교점의 운명적 방향",
+        "cross_activation": "목성이 북교점과 합일 때 천덕귀인 효과 활성화",
+        "timing": "북교점 트랜짓, 목성 리턴 시기",
+        "interpretation": "자연스럽게 복이 따르는 운명적 방향성"
+      },
+      "문창귀인": {
+        "asteroid_equivalent": ["Mercury", "Pallas Athena"],
+        "description": "학문의 별 ↔ 수성의 지성, 팔라스의 지혜",
+        "cross_activation": "수성이 강하고 팔라스가 두드러질 때",
+        "timing": "수성 순행기, 수성-목성 조화 시",
+        "interpretation": "지적 능력과 학문적 성취"
+      },
+      "역마살": {
+        "asteroid_equivalent": ["Uranus", "9th House emphasis"],
+        "description": "이동의 별 ↔ 천왕성의 변화, 9하우스의 여행",
+        "cross_activation": "천왕성 트랜짓이 개인 행성을 자극할 때",
+        "timing": "천왕성 트랜짓, 9하우스 활성화 시",
+        "interpretation": "급격한 이동, 해외 인연, 변화의 에너지"
+      },
+      "도화살": {
+        "asteroid_equivalent": ["Venus", "Eros", "5th House"],
+        "description": "매력의 별 ↔ 금성의 아름다움, 에로스의 끌림",
+        "cross_activation": "금성이 강하고 에로스가 개인 행성과 접촉할 때",
+        "timing": "금성 트랜짓, 5하우스 활성화 시",
+        "interpretation": "이성적 매력, 예술적 감각, 로맨스"
+      },
+      "화개살": {
+        "asteroid_equivalent": ["Neptune", "12th House", "Chiron"],
+        "description": "예술/종교의 별 ↔ 해왕성의 영성, 12하우스의 신비",
+        "cross_activation": "해왕성이 강하고 12하우스가 활성화될 때",
+        "timing": "해왕성 트랜짓, 키론 리턴",
+        "interpretation": "예술적 재능, 영적 추구, 고독 속 창조"
+      },
+      "양인살": {
+        "asteroid_equivalent": ["Mars", "Pluto", "Lilith"],
+        "description": "칼날의 별 ↔ 화성의 공격성, 명왕성의 파괴력",
+        "cross_activation": "화성-명왕성 조화/긴장 시, 릴리스 활성화",
+        "timing": "화성 트랜짓, 명왕성 스퀘어/오포지션",
+        "interpretation": "강력한 에너지, 결단력, 하지만 파괴 위험"
+      },
+      "겁살": {
+        "asteroid_equivalent": ["Saturn", "Pluto", "South Node"],
+        "description": "두려움의 별 ↔ 토성의 제한, 남교점의 카르마",
+        "cross_activation": "토성-명왕성 긴장 시, 남교점 활성화",
+        "timing": "토성 트랜짓, 남교점 이클립스",
+        "interpretation": "과거 카르마, 손실의 두려움, 하지만 성장 기회"
+      },
+      "백호살": {
+        "asteroid_equivalent": ["Mars", "Chiron"],
+        "description": "피를 보는 별 ↔ 화성의 상처, 키론의 치유되지 않는 상처",
+        "cross_activation": "화성-키론 조화/긴장 시",
+        "timing": "화성 트랜짓이 키론을 건드릴 때",
+        "interpretation": "수술, 상처, 하지만 치유자가 될 가능성"
+      },
+      "괴강살": {
+        "asteroid_equivalent": ["Pluto", "Uranus", "Vertex"],
+        "description": "극단의 별 ↔ 명왕성의 변형, 천왕성의 돌변, 버텍스의 운명",
+        "cross_activation": "명왕성-천왕성 트랜짓이 개인 차트에 영향",
+        "timing": "명왕성/천왕성 트랜짓, 버텍스 활성화",
+        "interpretation": "극적인 운명, 대성공 또는 대실패"
+      },
+      "홍염살": {
+        "asteroid_equivalent": ["Venus", "Mars", "Eros", "Psyche"],
+        "description": "불꽃 같은 연애 ↔ 금성-화성의 열정, 에로스-프시케의 영혼 연결",
+        "cross_activation": "금성-화성 조화 시, 에로스-프시케 합",
+        "timing": "금성-화성 트랜짓, 에로스 트랜짓",
+        "interpretation": "강렬한 로맨스, 운명적 연애, 하지만 소진 위험"
+      }
+    },
+
+    "combined_interpretation_guide": {
+      "description": "신살과 소행성을 함께 읽는 방법",
+      "steps": [
+        "1. 사주에서 주요 신살 확인",
+        "2. 출생 차트에서 대응하는 소행성/행성의 상태 확인",
+        "3. 두 체계의 공통 주제 도출",
+        "4. 현재 트랜짓으로 활성화 시기 판단"
+      ],
+      "example": {
+        "shinsal": "도화살 (亥卯未 기준)",
+        "natal_chart": "Venus in Libra, Eros conjunct ASC",
+        "integration": "사주의 도화살이 출생 차트의 강한 금성-에로스와 공명. 타고난 매력과 예술적 재능이 있으며, 이를 긍정적으로 활용하면 예술/연예/서비스 분야에서 성공"
+      }
+    }
+  },
+
+  "timing_cross_reference": {
+    "$description": "시기 판단을 위한 사주-점성 교차 규칙",
+
+    "lucky_timing": {
+      "description": "두 체계가 모두 좋다고 할 때",
+      "conditions": [
+        "사주: 용신운 + 삼합/육합 + 길신",
+        "점성: 목성 트라인 + 금성 합 + 좋은 달 위상"
+      ],
+      "recommendation": "중요한 결정, 새로운 시작, 계약에 최적",
+      "score_boost": 25
+    },
+    "caution_timing": {
+      "description": "두 체계가 모두 주의하라고 할 때",
+      "conditions": [
+        "사주: 기신운 + 충/형/파 + 흉신",
+        "점성: 토성 스퀘어 + 화성 오포지션 + 이클립스"
+      ],
+      "recommendation": "새로운 시작 피하고, 기존 것 보존, 건강 관리",
+      "score_penalty": -25
+    },
+    "mixed_timing": {
+      "description": "한 체계는 좋고 다른 체계는 나쁠 때",
+      "conditions": [
+        "사주 좋음 + 점성 나쁨: 내면은 준비됐지만 외부 환경 불리",
+        "사주 나쁨 + 점성 좋음: 외부 기회 있지만 내면 준비 부족"
+      ],
+      "recommendation": "신중하게 진행, 양쪽의 조언을 모두 참고",
+      "score_modifier": 0
+    }
+  }
+}

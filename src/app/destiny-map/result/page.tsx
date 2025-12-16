@@ -9,6 +9,8 @@ import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
 import SuggestedQuestions from "@/components/destiny-map/SuggestedQuestions";
 import { useI18n } from "@/i18n/I18nProvider";
+import BackButton from "@/components/ui/BackButton";
+import CreditBadge from "@/components/ui/CreditBadge";
 // Import retained intentionally; disable unused lint because FortuneCharts is optional rendering
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import FortuneCharts from "@/components/destiny-map/FortuneCharts";
@@ -21,7 +23,7 @@ function AnalyzingLoader() {
   const [progress, setProgress] = React.useState(0);
   const [step, setStep] = React.useState(0);
 
-  const steps = [
+  const steps: { label: string; icon: string }[] = [
     { label: t("destinyMap.result.step1", "Calculating Four Pillars..."), icon: "☯" },
     { label: t("destinyMap.result.step2", "Analyzing Astrology Chart..."), icon: "☉" },
     { label: t("destinyMap.result.step3", "Generating AI Interpretation..."), icon: "✨" },
@@ -58,6 +60,7 @@ function AnalyzingLoader() {
       background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
       padding: 20,
     }}>
+      <BackButton />
       <div style={{
         maxWidth: 440,
         width: "100%",
@@ -276,6 +279,7 @@ export default function DestinyResultPage({
   if (error) {
     return (
       <main className={styles.page}>
+        <BackButton />
         <section className={styles.card}>
           <div style={{ padding: 40, color: "crimson" }}>⚠️ {error}</div>
         </section>
@@ -286,6 +290,7 @@ export default function DestinyResultPage({
   if (!result) {
     return (
       <main className={styles.page}>
+        <BackButton />
         <section className={styles.card}>
           <div style={{ padding: 40 }}>{t("destinyMap.result.errorNoResult", "Failed to load results.")}</div>
         </section>
@@ -299,27 +304,50 @@ export default function DestinyResultPage({
   const themeKeys = Object.keys(result?.themes || {});
   const lang: any = result?.lang ?? "ko";
 
-  // 분석 기준일 포맷팅
-  const analysisDateDisplay = result?.analysisDate || result?.userTimezone ? (
+  // 분석 기준일 포맷팅 - 사용자 위치(도시) 기준으로 표시
+  const userCity = result?.profile?.city || "";
+  const analysisDate = result?.analysisDate || new Date().toISOString().slice(0, 10);
+
+  const analysisDateDisplay = (
     <div style={{
       textAlign: 'center',
-      marginBottom: 16,
-      padding: '8px 16px',
+      marginBottom: 20,
+      padding: '10px 20px',
       background: 'rgba(167, 139, 250, 0.1)',
-      borderRadius: 8,
-      fontSize: 13,
+      borderRadius: 12,
+      fontSize: 14,
       color: '#a78bfa',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 8,
+      margin: '0 auto 20px',
     }}>
-      📅 {t("destinyMap.result.analysisDate", "Analysis Date")}: {result?.analysisDate || new Date().toISOString().slice(0, 10)}
-      {result?.userTimezone && <span style={{ marginLeft: 8, opacity: 0.7 }}>({result.userTimezone})</span>}
+      <span>📅</span>
+      <span>{t("destinyMap.result.analysisDate", "분석 기준")}: {analysisDate}</span>
+      {userCity && (
+        <span style={{
+          opacity: 0.8,
+          borderLeft: '1px solid rgba(167, 139, 250, 0.3)',
+          paddingLeft: 8,
+          marginLeft: 4,
+        }}>
+          📍 {userCity}
+        </span>
+      )}
     </div>
-  ) : null;
+  );
 
   return (
     <main className={styles.page}>
+      <BackButton />
+      <div className={styles.creditBadgeWrapper}>
+        <CreditBadge variant="compact" />
+      </div>
       <section className={styles.card}>
         {/* 📅 분석 기준일 표시 */}
-        {analysisDateDisplay}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          {analysisDateDisplay}
+        </div>
 
         {/* 🌗 테마 전환 버튼 */}
         {themeKeys.length > 1 && (

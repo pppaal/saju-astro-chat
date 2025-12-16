@@ -494,13 +494,16 @@ const dicts = {
 } as const;
 
 const ICHING_OVERRIDES: Partial<Record<string, any>> = {
-  ko: koDict,
+  ko: koDict.iching,
 };
 
 for (const [loc, strings] of Object.entries(ICHING_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as any)[key].iching = strings;
+    (dicts as any)[key].iching = {
+      ...(dicts as any)[key].iching,
+      ...strings,
+    };
   }
 }
 
@@ -618,6 +621,28 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
       if (!target.services) target.services = {};
       Object.assign(target.services, jsonData.services);
     }
+    if (jsonData.calendar) {
+      if (!target.calendar) target.calendar = {};
+      Object.assign(target.calendar, jsonData.calendar);
+    }
+    // Merge tarot translations from JSON
+    if (jsonData.tarot) {
+      if (!target.tarot) target.tarot = {};
+      // Deep merge tarot object
+      for (const [key, value] of Object.entries(jsonData.tarot)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          if (!target.tarot[key]) target.tarot[key] = {};
+          Object.assign(target.tarot[key], value);
+        } else {
+          target.tarot[key] = value;
+        }
+      }
+    }
+    // Merge iching translations from JSON
+    if (jsonData.iching) {
+      if (!target.iching) target.iching = {};
+      Object.assign(target.iching, jsonData.iching);
+    }
   }
 }
 
@@ -647,8 +672,12 @@ const isRtl = (_l: Locale) => false; // No RTL languages supported
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>("en");
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    // Mark as hydrated first to prevent flash
+    setIsHydrated(true);
+
     try {
       const stored = localStorage.getItem("locale") as Locale | null;
       if (stored && SUPPORTED_LOCALES.includes(stored)) {

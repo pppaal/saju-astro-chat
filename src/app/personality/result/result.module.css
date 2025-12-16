@@ -191,47 +191,35 @@
 
 .avatarWrapper {
   position: relative;
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 237, 234, 0.15);
-  border: 2px solid rgba(168, 237, 234, 0.2);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(168, 237, 234, 0.2),
+    0 0 120px rgba(254, 214, 227, 0.1);
+  border: 3px solid rgba(168, 237, 234, 0.3);
+  animation: avatarGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes avatarGlow {
+  0% {
+    box-shadow:
+      0 25px 80px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(168, 237, 234, 0.2),
+      0 0 120px rgba(254, 214, 227, 0.1);
+  }
+  100% {
+    box-shadow:
+      0 30px 100px rgba(0, 0, 0, 0.6),
+      0 0 80px rgba(168, 237, 234, 0.3),
+      0 0 150px rgba(254, 214, 227, 0.15);
+  }
 }
 
 .avatar {
   display: block;
   object-fit: cover;
-  border-radius: 18px;
-}
-
-.genderToggle {
-  display: flex;
-  gap: 0.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.25rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.genderBtn {
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.genderBtn:hover {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.genderBtn.active {
-  background: linear-gradient(135deg, #a8edea, #fed6e3);
-  color: #1a1a1a;
-  font-weight: 600;
+  border-radius: 21px;
 }
 
 .preTitle {
@@ -281,10 +269,10 @@
 
 .typeCodeValue {
   font-family: monospace;
-  font-size: 1.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: #a8edea;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
 }
 
 .typeCodeLabel, .consistencyLabel {
@@ -590,7 +578,7 @@
   animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
-.shareButton, .downloadButton, .retakeButton {
+.saveButton, .shareButton, .downloadButton, .retakeButton {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -601,6 +589,26 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-decoration: none;
+}
+
+.saveButton {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: #fff;
+}
+
+.saveButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+}
+
+.saveButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.saveButton.saved {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
 }
 
 .shareButton {
@@ -636,6 +644,184 @@
   color: #fff;
 }
 
+/* ===== BACK BUTTON ===== */
+.backButton {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+}
+
+/* ===== CONFETTI CELEBRATION ===== */
+.confettiContainer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -20px;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+  transform-origin: center center;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* ===== COSMIC LOADER ===== */
+.cosmicLoader {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cosmicRing {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: cosmicSpin linear infinite;
+}
+
+.cosmicRing:nth-child(1) {
+  width: 100%;
+  height: 100%;
+  border-top-color: #a8edea;
+  border-right-color: rgba(168, 237, 234, 0.3);
+  animation-duration: 2s;
+}
+
+.cosmicRing:nth-child(2) {
+  width: 75%;
+  height: 75%;
+  border-top-color: #fed6e3;
+  border-left-color: rgba(254, 214, 227, 0.3);
+  animation-duration: 2.5s;
+  animation-direction: reverse;
+}
+
+.cosmicRing:nth-child(3) {
+  width: 50%;
+  height: 50%;
+  border-bottom-color: #ffd700;
+  border-right-color: rgba(255, 215, 0, 0.3);
+  animation-duration: 1.5s;
+}
+
+@keyframes cosmicSpin {
+  to { transform: rotate(360deg); }
+}
+
+.cosmicCore {
+  font-size: 2rem;
+  animation: cosmicPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes cosmicPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  }
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+  }
+}
+
+.loadingText {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  color: #fff;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.loadingSubtext {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(168, 237, 234, 0.8);
+  animation: fadeInOut 2s ease-in-out infinite 0.5s;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ===== AURA RINGS ===== */
+.auraRings {
+  position: absolute;
+  inset: -30px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.auraRing1, .auraRing2, .auraRing3 {
+  position: absolute;
+  border-radius: 30px;
+  border: 2px solid transparent;
+  animation: auraRotate linear infinite;
+}
+
+.auraRing1 {
+  inset: -10px;
+  border-color: rgba(168, 237, 234, 0.4);
+  box-shadow:
+    0 0 20px rgba(168, 237, 234, 0.3),
+    inset 0 0 20px rgba(168, 237, 234, 0.1);
+  animation-duration: 8s;
+}
+
+.auraRing2 {
+  inset: -20px;
+  border-color: rgba(254, 214, 227, 0.3);
+  box-shadow:
+    0 0 30px rgba(254, 214, 227, 0.2),
+    inset 0 0 30px rgba(254, 214, 227, 0.1);
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+
+.auraRing3 {
+  inset: -30px;
+  border-color: rgba(255, 215, 0, 0.2);
+  box-shadow:
+    0 0 40px rgba(255, 215, 0, 0.15),
+    inset 0 0 40px rgba(255, 215, 0, 0.05);
+  animation-duration: 16s;
+}
+
+@keyframes auraRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.8;
+  }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .container {
@@ -651,6 +837,15 @@
     font-size: 2rem;
   }
 
+  .avatarWrapper {
+    border-radius: 20px;
+    border-width: 2px;
+  }
+
+  .avatar {
+    border-radius: 18px;
+  }
+
   .axesCard {
     padding: 1.5rem;
   }
@@ -660,7 +855,36 @@
     align-items: stretch;
   }
 
-  .shareButton, .downloadButton, .retakeButton {
+  .saveButton, .shareButton, .downloadButton, .retakeButton {
     justify-content: center;
+  }
+
+  .cosmicLoader {
+    width: 100px;
+    height: 100px;
+  }
+
+  .cosmicCore {
+    font-size: 1.5rem;
+  }
+
+  .loadingText {
+    font-size: 1rem;
+  }
+
+  .auraRings {
+    inset: -20px;
+  }
+
+  .auraRing1 {
+    inset: -5px;
+  }
+
+  .auraRing2 {
+    inset: -12px;
+  }
+
+  .auraRing3 {
+    inset: -20px;
   }
 }

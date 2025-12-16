@@ -135,7 +135,12 @@ async function sendWithNodemailer(options: EmailOptions): Promise<boolean> {
  * Send email using configured provider
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  const provider = (process.env.EMAIL_PROVIDER || "resend") as EmailProvider;
+  const provider = (process.env.EMAIL_PROVIDER || "none") as EmailProvider | "none";
+
+  if (provider === "none") {
+    console.warn("[email] EMAIL_PROVIDER=none, skipping send");
+    return false;
+  }
 
   switch (provider) {
     case "resend":
@@ -238,7 +243,7 @@ function generateNotificationDigestHTML(data: NotificationEmailData): string {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #7c5cff 0%, #6b4fd8 100%); padding: 32px 24px; border-radius: 12px 12px 0 0; text-align: center;">
           <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 800;">
-            🔔 DestinyPal
+            DestinyPal Notifications
           </h1>
           <p style="margin: 8px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
             You have ${data.unreadCount} new notification${data.unreadCount > 1 ? "s" : ""}
@@ -374,7 +379,7 @@ export async function sendWelcomeEmail(
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #7c5cff 0%, #6b4fd8 100%); padding: 48px 32px; border-radius: 12px; text-align: center;">
           <h1 style="margin: 0 0 16px 0; color: white; font-size: 36px; font-weight: 800;">
-            ✨ Welcome to DestinyPal!
+            Welcome to DestinyPal!
           </h1>
           <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 18px; line-height: 1.6;">
             We're excited to help you chart the cosmos and navigate your destiny
@@ -392,7 +397,7 @@ export async function sendWelcomeEmail(
 
           <div style="margin: 32px 0; padding: 24px; background: #f9fafb; border-radius: 8px;">
             <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #111827;">
-              🚀 Get Started
+              Get Started
             </h3>
             <ul style="margin: 0; padding-left: 20px; color: #374151; line-height: 1.8;">
               <li>Generate your personalized Destiny Map</li>
@@ -423,7 +428,7 @@ export async function sendWelcomeEmail(
 
   return sendEmail({
     to: email,
-    subject: "Welcome to DestinyPal! ✨",
+    subject: "Welcome to DestinyPal!",
     html,
   });
 }

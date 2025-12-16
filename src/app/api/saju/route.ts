@@ -8,6 +8,8 @@ import Stripe from 'stripe';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
+import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
+import { getCreditBalance } from '@/lib/credits/creditService';
 
 // simple in-memory cache to reduce repeated Stripe lookups per runtime
 const premiumCache = new Map<string, { value: boolean; expires: number }>();
@@ -311,11 +313,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 
-    // 프리미엄 상태 확인 (로그인 + Stripe 구독)
+    // 세션 및 크레딧 확인
     const session = await getServerSession(authOptions);
-    const isPremium = session?.user?.email
-      ? await checkPremiumStatus(session.user.email, ip)
-      : false;
+
+    // 크레딧 시스템으로 프리미엄 체크 (새로운 방식)
+    let isPremium = false;
+    let creditBalance = null;
+
+    if (session?.user?.id) {
+      // 크레딧 체크 및 소비
+      const creditResult = await checkAndConsumeCredits("reading", 1);
+      if (!creditResult.allowed) {
+        return creditErrorResponse(creditResult);
+      }
+
+      // 플랜 기반 프리미엄 체크
+      creditBalance = await getCreditBalance(session.user.id);
+      isPremium = creditBalance.plan !== "free";
+    } else {
+      // 비로그인 사용자: 기존 Stripe 체크 (호환성)
+      isPremium = session?.user?.email
+        ? await checkPremiumStatus(session.user.email, ip)
+        : false;
+    }
 
     // 사용자 현재 위치 타임존 (운세 계산용) - 없으면 출생 타임존 사용
     const effectiveUserTz = userTimezone || timezone;
@@ -681,6 +701,58 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       interpretations,
     };
 
+    // ======== AI 백엔드 호출 (GPT) ========
+    let aiInterpretation = '';
+    let aiModelUsed = '';
+    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      const apiToken = process.env.ADMIN_API_TOKEN;
+      if (apiToken) {
+        headers['X-API-KEY'] = apiToken;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+      const aiResponse = await fetch(`${backendUrl}/ask`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          theme: 'saju',
+          prompt: gptPrompt,
+          saju: {
+            dayMaster: sajuResult.dayMaster,
+            fiveElements: sajuResult.fiveElements,
+            pillars: simplePillars,
+            daeun: daeunInfo,
+            yeonun,
+            wolun,
+          },
+          locale: body.locale || 'ko',
+          advancedSaju: isPremium ? fullAdvancedAnalysis : null,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        aiInterpretation = aiData?.data?.fusion_layer || aiData?.data?.report || '';
+        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      }
+    } catch (aiErr) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[Saju API] AI backend call failed:', aiErr);
+      }
+      aiInterpretation = '';
+      aiModelUsed = 'error-fallback';
+    }
+
     return NextResponse.json({
       // 프리미엄 상태 플래그
       isPremium,
@@ -729,6 +801,10 @@ const rawShinsal = getShinsalHits(sajuPillars, {
 
       relations,
       gptPrompt,
+
+      // ======== AI 해석 결과 (GPT) ========
+      aiInterpretation,
+      aiModelUsed,
 
       // ======== 고급 분석 결과 (프리미엄 여부에 따라 분기) ========
       advancedAnalysis: isPremium ? fullAdvancedAnalysis : freePreview,

@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 import Link from "next/link";
+import BackButton from "@/components/ui/BackButton";
 import styles from "./notifications.module.css";
 
 type FilterType = "all" | "unread" | "like" | "comment" | "reply" | "mention" | "system";
@@ -33,6 +34,7 @@ export default function NotificationsPage() {
   if (!session) {
     return (
       <div className={styles.container}>
+        <BackButton />
         <div className={styles.emptyState}>
           <span className={styles.emptyIcon}>🔔</span>
           <h2>{t("notifications.authRequired", "Please sign in to view notifications")}</h2>
@@ -77,6 +79,7 @@ export default function NotificationsPage() {
 
   return (
     <div className={styles.container}>
+      <BackButton />
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.title}>
