@@ -8,6 +8,7 @@ import BackButtonWrapper from "@/components/ui/BackButtonWrapper";
 import Footer from "@/components/ui/Footer";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { ToastProvider } from "@/components/ui/Toast";
+import { CreditModalProvider } from "@/contexts/CreditModalContext";
 // ErrorBoundary temporarily disabled - Next.js 15 compatibility issue
 // import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { ConsentProvider } from "@/contexts/ConsentContext";
@@ -168,13 +169,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AuthProvider>
             <I18nProvider>
               <ToastProvider>
-                <NotificationProvider>
-                  <PushNotificationPrompt />
-                  <StarrySky />
-                  <BackButtonWrapper />
-                  <main id="main-content">{children}</main>
-                  <Footer />
-                </NotificationProvider>
+                <CreditModalProvider>
+                  <NotificationProvider>
+                    <PushNotificationPrompt />
+                    <StarrySky />
+                    <BackButtonWrapper />
+                    <main id="main-content">{children}</main>
+                    <Footer />
+                  </NotificationProvider>
+                </CreditModalProvider>
               </ToastProvider>
             </I18nProvider>
           </AuthProvider>

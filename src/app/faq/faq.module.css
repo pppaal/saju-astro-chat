@@ -1,0 +1,80 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.backButtonContainer {
+  margin-bottom: 24px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #8da2ff;
+  text-decoration: none;
+  border: 1px solid rgba(141, 162, 255, 0.4);
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: rgba(141, 162, 255, 0.1);
+  border-color: rgba(141, 162, 255, 0.7);
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  color: #8da2ff;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0;
+}
+
+.subtitle {
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.faqGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.question {
+  margin: 0 0 8px;
+  color: #e5e7eb;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.answer {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.5;
+}

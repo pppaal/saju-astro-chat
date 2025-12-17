@@ -46,7 +46,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
       headers: {
         'Content-Type': 'application/json',
         ...(process.env.ADMIN_API_TOKEN
-          ? { Authorization: `Bearer ${process.env.ADMIN_API_TOKEN}` }
+          ? { 'X-API-KEY': process.env.ADMIN_API_TOKEN }
           : {}),
       },
     });
@@ -108,7 +108,7 @@ export async function callBackendWithFallback<T>(
       headers: {
         'Content-Type': 'application/json',
         ...(process.env.ADMIN_API_TOKEN
-          ? { Authorization: `Bearer ${process.env.ADMIN_API_TOKEN}` }
+          ? { 'X-API-KEY': process.env.ADMIN_API_TOKEN }
           : {}),
       },
       body: JSON.stringify(body),

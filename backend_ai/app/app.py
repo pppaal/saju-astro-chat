@@ -1,5 +1,11 @@
 import sys
 import os
+import json
+
+# Load environment variables from backend_ai/.env file (explicit path with override)
+from dotenv import load_dotenv
+_backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(_backend_root, ".env"), override=True)
 
 # Add project root to Python path for standalone execution
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -9,12 +15,14 @@ if _project_root not in sys.path:
 import logging
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Optional, Tuple
 from uuid import uuid4
 
-from flask import Flask, jsonify, g, request
+from flask import Flask, jsonify, g, request, Response, stream_with_context
 from flask_cors import CORS
+from flask_compress import Compress
 
 from backend_ai.app.astro_parser import calculate_astrology_data
 from backend_ai.app.fusion_logic import interpret_with_ai
@@ -155,8 +163,36 @@ except ImportError:
     HAS_FORTUNE_SCORE = False
     print("[app.py] Fortune score engine not available")
 
+# GraphRAG System
+try:
+    from backend_ai.app.saju_astro_rag import get_graph_rag, get_model
+    HAS_GRAPH_RAG = True
+except ImportError:
+    HAS_GRAPH_RAG = False
+    get_graph_rag = None
+    get_model = None
+    print("[app.py] GraphRAG not available")
+
+# CorpusRAG System
+try:
+    from backend_ai.app.corpus_rag import get_corpus_rag
+    HAS_CORPUS_RAG = True
+except ImportError:
+    HAS_CORPUS_RAG = False
+    get_corpus_rag = None
+    print("[app.py] CorpusRAG not available")
+
 # Flask Application
 app = Flask(__name__)
+
+# Gzip compression - reduces response size by 30-50%
+Compress(app)
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html', 'text/css', 'text/xml', 'text/plain',
+    'application/json', 'application/javascript', 'application/xml'
+]
+app.config['COMPRESS_LEVEL'] = 6  # Balance between compression ratio and CPU usage
+app.config['COMPRESS_MIN_SIZE'] = 500  # Only compress responses > 500 bytes
 
 # CORS configuration - restrict to specific origins for security
 CORS_ORIGINS = [
@@ -194,6 +230,380 @@ except Exception as e:  # pragma: no cover
 
 
 # ===============================================================
+# 🚀 CROSS-ANALYSIS CACHE - Pre-loaded for instant lookups
+# ===============================================================
+_CROSS_ANALYSIS_CACHE = {}
+
+def _load_cross_analysis_cache():
+    """Load cross-analysis JSON files for instant lookups (no embedding search)."""
+    global _CROSS_ANALYSIS_CACHE
+    if _CROSS_ANALYSIS_CACHE:
+        return _CROSS_ANALYSIS_CACHE
+
+    import json
+    fusion_dir = os.path.join(os.path.dirname(__file__), "..", "data", "graph", "fusion")
+    fusion_dir = os.path.abspath(fusion_dir)
+
+    if not os.path.exists(fusion_dir):
+        logger.warning(f"[CROSS-CACHE] Fusion dir not found: {fusion_dir}")
+        return {}
+
+    for fname in os.listdir(fusion_dir):
+        if fname.endswith(".json") and "cross" in fname.lower():
+            try:
+                with open(os.path.join(fusion_dir, fname), "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    key = fname.replace(".json", "")
+                    _CROSS_ANALYSIS_CACHE[key] = data
+                    logger.info(f"  ✅ Loaded cross-analysis: {fname}")
+            except Exception as e:
+                logger.warning(f"  ⚠️ Failed to load {fname}: {e}")
+
+    logger.info(f"[CROSS-CACHE] Loaded {len(_CROSS_ANALYSIS_CACHE)} cross-analysis files")
+    return _CROSS_ANALYSIS_CACHE
+
+
+def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str = "chat") -> str:
+    """
+    Get instant cross-analysis based on user's chart data.
+    Uses: 1) Cross-analysis cache (daymaster×sun), 2) GraphRAG theme rules (keyword match).
+    No embedding search - all instant lookups.
+    """
+    cache = _load_cross_analysis_cache()
+    results = []
+
+    # Get chart elements
+    daymaster = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
+    dm_element = saju_data.get("dayMaster", {}).get("element", "")
+    sun_sign = astro_data.get("sun", {}).get("sign", "")
+    moon_sign = astro_data.get("moon", {}).get("sign", "")
+    dominant = saju_data.get("dominantElement", "")
+
+    # Map Korean sign names to English
+    sign_map = {
+        "양자리": "Aries", "황소자리": "Taurus", "쌍둥이자리": "Gemini",
+        "게자리": "Cancer", "사자자리": "Leo", "처녀자리": "Virgo",
+        "천칭자리": "Libra", "전갈자리": "Scorpio", "궁수자리": "Sagittarius",
+        "염소자리": "Capricorn", "물병자리": "Aquarius", "물고기자리": "Pisces",
+    }
+    sun_sign_en = sign_map.get(sun_sign, sun_sign)
+    moon_sign_en = sign_map.get(moon_sign, moon_sign)
+
+    # 1. Cross-analysis cache lookup (daymaster × sun sign) - INSTANT
+    if cache:
+        advanced_cross = cache.get("saju_astro_advanced_cross", {})
+        dm_data = advanced_cross.get("daymaster_sun_complete", {}).get(daymaster, {})
+        if dm_data:
+            sun_combo = dm_data.get("sun_signs", {}).get(sun_sign_en, {})
+            if sun_combo:
+                results.append(f"[{daymaster}+{sun_sign_en}] {sun_combo.get('insight', '')} | 추천: {', '.join(sun_combo.get('best_for', []))} | 주의: {sun_combo.get('caution', '')}")
+
+            # Moon cross-analysis
+            if moon_sign_en and moon_sign_en != sun_sign_en:
+                moon_combo = dm_data.get("sun_signs", {}).get(moon_sign_en, {})
+                if moon_combo:
+                    results.append(f"[{daymaster}+달:{moon_sign_en}] 감정: {moon_combo.get('insight', '')[:80]}")
+
+    # 2. GraphRAG theme rules (keyword match, no embedding) - INSTANT
+    if HAS_GRAPH_RAG:
+        try:
+            graph_rag = get_graph_rag()
+
+            # Map themes to rule domains
+            theme_map = {
+                "chat": ["career", "love", "health"],
+                "focus_career": ["career"], "career": ["career"],
+                "focus_love": ["love"], "love": ["love"],
+                "focus_health": ["health"], "health": ["health"],
+                "focus_wealth": ["wealth"], "wealth": ["wealth"],
+                "focus_family": ["family"], "family": ["family"],
+                "life": ["life_path"], "life_path": ["life_path"],
+            }
+            domains = theme_map.get(theme, ["career", "love"])
+
+            # Build facts string for rule matching
+            facts_parts = [theme, daymaster, dm_element, dominant]
+            if sun_sign_en:
+                facts_parts.append(sun_sign_en.lower())
+            if moon_sign_en:
+                facts_parts.append(moon_sign_en.lower())
+
+            # Add planets in houses
+            for planet in ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"]:
+                p_data = astro_data.get(planet, {})
+                house = p_data.get("house")
+                if house:
+                    facts_parts.extend([planet, str(house), f"{planet} {house}"])
+
+            facts_str = " ".join(filter(None, facts_parts))
+
+            # Apply rules from each domain (instant keyword match)
+            for domain in domains:
+                if hasattr(graph_rag, '_apply_rules'):
+                    matched = graph_rag._apply_rules(domain, facts_str)
+                    if matched:
+                        results.extend(matched[:2])
+
+        except Exception as e:
+            logger.warning(f"[CROSS-ANALYSIS] GraphRAG rules failed: {e}")
+
+    return "\n".join(results[:5]) if results else ""
+
+
+# ===============================================================
+# 🚀 SESSION RAG CACHE - Pre-computed RAG data for fast chat
+# ===============================================================
+import threading
+from datetime import datetime, timedelta
+
+# In-memory session cache: session_id -> {data, created_at, last_accessed}
+_SESSION_RAG_CACHE = {}
+_SESSION_CACHE_LOCK = threading.Lock()
+SESSION_CACHE_TTL_MINUTES = 60  # Session data expires after 60 minutes
+SESSION_CACHE_MAX_SIZE = 50  # Max number of sessions to cache (LRU eviction)
+
+
+def _cleanup_expired_sessions():
+    """Remove expired session data."""
+    now = datetime.now()
+    expired = []
+    with _SESSION_CACHE_LOCK:
+        for sid, data in _SESSION_RAG_CACHE.items():
+            if now - data.get("created_at", now) > timedelta(minutes=SESSION_CACHE_TTL_MINUTES):
+                expired.append(sid)
+        for sid in expired:
+            del _SESSION_RAG_CACHE[sid]
+    if expired:
+        logger.info(f"[SESSION-CACHE] Cleaned up {len(expired)} expired sessions")
+
+
+def _evict_lru_sessions(keep_count: int = SESSION_CACHE_MAX_SIZE):
+    """Evict least recently used sessions to maintain cache size."""
+    with _SESSION_CACHE_LOCK:
+        if len(_SESSION_RAG_CACHE) <= keep_count:
+            return
+        # Sort by last_accessed time (oldest first)
+        sorted_sessions = sorted(
+            _SESSION_RAG_CACHE.items(),
+            key=lambda x: x[1].get("last_accessed", x[1].get("created_at", datetime.min))
+        )
+        # Evict oldest sessions until we're under the limit
+        evict_count = len(_SESSION_RAG_CACHE) - keep_count
+        for sid, _ in sorted_sessions[:evict_count]:
+            del _SESSION_RAG_CACHE[sid]
+        logger.info(f"[SESSION-CACHE] LRU evicted {evict_count} sessions, {len(_SESSION_RAG_CACHE)} remaining")
+
+
+def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat") -> dict:
+    """
+    Pre-fetch relevant data from ALL RAG systems for a user's chart.
+    Uses parallel execution for ~2-3x speedup.
+
+    Returns:
+        Dict with all pre-fetched RAG data
+    """
+    start_time = time.time()
+    result = {
+        "graph_nodes": [],
+        "graph_context": "",
+        "corpus_quotes": [],
+        "persona_context": {},
+        "cross_analysis": "",
+    }
+
+    # Build query from chart data
+    daymaster = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
+    dm_element = saju_data.get("dayMaster", {}).get("element", "")
+    sun_sign = astro_data.get("sun", {}).get("sign", "")
+    moon_sign = astro_data.get("moon", {}).get("sign", "")
+    dominant = saju_data.get("dominantElement", "")
+
+    # Build comprehensive query for embedding search
+    query_parts = [theme, daymaster, dm_element, dominant]
+    if sun_sign:
+        query_parts.append(sun_sign)
+    if moon_sign:
+        query_parts.append(moon_sign)
+
+    # Add planets and houses
+    for planet in ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"]:
+        p_data = astro_data.get(planet, {})
+        if p_data.get("sign"):
+            query_parts.append(p_data["sign"])
+        if p_data.get("house"):
+            query_parts.append(f"{planet} {p_data['house']}하우스")
+
+    query = " ".join(filter(None, query_parts))
+    logger.info(f"[PREFETCH] Query: {query[:100]}...")
+
+    # Build facts dict for graph query (shared across tasks)
+    facts = {
+        "daymaster": daymaster,
+        "element": dm_element,
+        "sun_sign": sun_sign,
+        "moon_sign": moon_sign,
+        "theme": theme,
+    }
+
+    # Theme concepts for Jung quotes
+    theme_concepts = {
+        "career": "vocation calling work purpose self-realization 소명 직업 자아실현",
+        "love": "anima animus relationship shadow projection 아니마 아니무스 그림자 투사",
+        "health": "psyche wholeness integration healing 치유 통합 전체성",
+        "life_path": "individuation self persona shadow 개성화 자아 페르소나",
+        "wealth": "abundance value meaning purpose 가치 의미 목적",
+        "family": "complex archetype mother father 콤플렉스 원형 부모",
+    }
+
+    # --- Define individual RAG fetch functions ---
+    def fetch_graph_rag():
+        if not HAS_GRAPH_RAG:
+            return {"key": "graph", "data": None}
+        try:
+            graph_rag = get_graph_rag()
+            graph_result = graph_rag.query(
+                facts, top_k=20,
+                domain_priority=theme if theme in graph_rag.rules else "career"
+            )
+            return {
+                "key": "graph",
+                "data": {
+                    "nodes": graph_result.get("matched_nodes", [])[:15],
+                    "context": graph_result.get("context_text", "")[:2000],
+                    "rules": graph_result.get("rule_summary", [])[:5],
+                }
+            }
+        except Exception as e:
+            logger.warning(f"[PREFETCH] GraphRAG failed: {e}")
+            return {"key": "graph", "data": None}
+
+    def fetch_corpus_rag():
+        if not HAS_CORPUS_RAG:
+            return {"key": "corpus", "data": None}
+        try:
+            corpus_rag = get_corpus_rag()
+            jung_query_parts = [theme_concepts.get(theme, theme), query[:100]]
+            jung_query = " ".join(jung_query_parts)
+            quotes = corpus_rag.search(jung_query, top_k=5, min_score=0.15)
+            return {
+                "key": "corpus",
+                "data": [
+                    {
+                        "text_ko": q.get("quote_kr", ""),
+                        "text_en": q.get("quote_en", ""),
+                        "source": q.get("source", ""),
+                        "concept": q.get("concept", ""),
+                        "score": q.get("score", 0)
+                    }
+                    for q in quotes
+                ]
+            }
+        except Exception as e:
+            logger.warning(f"[PREFETCH] CorpusRAG failed: {e}")
+            return {"key": "corpus", "data": None}
+
+    def fetch_persona_rag():
+        if not HAS_PERSONA_EMBED:
+            return {"key": "persona", "data": None}
+        try:
+            persona_rag = get_persona_embed_rag()
+            persona_result = persona_rag.get_persona_context(query, top_k=5)
+            return {
+                "key": "persona",
+                "data": {
+                    "jung": persona_result.get("jung_insights", [])[:5],
+                    "stoic": persona_result.get("stoic_insights", [])[:5],
+                    "total": persona_result.get("total_matched", 0),
+                }
+            }
+        except Exception as e:
+            logger.warning(f"[PREFETCH] PersonaEmbedRAG failed: {e}")
+            return {"key": "persona", "data": None}
+
+    def fetch_cross_analysis():
+        try:
+            return {
+                "key": "cross",
+                "data": get_cross_analysis_for_chart(saju_data, astro_data, theme)
+            }
+        except Exception as e:
+            logger.warning(f"[PREFETCH] Cross-analysis failed: {e}")
+            return {"key": "cross", "data": None}
+
+    # --- Execute all RAG fetches in parallel ---
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [
+            executor.submit(fetch_graph_rag),
+            executor.submit(fetch_corpus_rag),
+            executor.submit(fetch_persona_rag),
+            executor.submit(fetch_cross_analysis),
+        ]
+
+        for future in as_completed(futures):
+            try:
+                res = future.result(timeout=30)
+                key = res["key"]
+                data = res["data"]
+
+                if key == "graph" and data:
+                    result["graph_nodes"] = data["nodes"]
+                    result["graph_context"] = data["context"]
+                    if data.get("rules"):
+                        result["graph_rules"] = data["rules"]
+                    logger.info(f"[PREFETCH] GraphRAG: {len(data['nodes'])} nodes")
+                elif key == "corpus" and data:
+                    result["corpus_quotes"] = data
+                    logger.info(f"[PREFETCH] CorpusRAG: {len(data)} quotes")
+                elif key == "persona" and data:
+                    result["persona_context"] = {
+                        "jung": data["jung"],
+                        "stoic": data["stoic"],
+                    }
+                    logger.info(f"[PREFETCH] PersonaEmbedRAG: {data['total']} matches")
+                elif key == "cross" and data:
+                    result["cross_analysis"] = data
+
+            except Exception as e:
+                logger.warning(f"[PREFETCH] Future failed: {e}")
+
+    elapsed = time.time() - start_time
+    logger.info(f"[PREFETCH] All RAG data prefetched in {elapsed:.2f}s (parallel)")
+    result["prefetch_time_ms"] = int(elapsed * 1000)
+
+    return result
+
+
+def get_session_rag_cache(session_id: str) -> dict:
+    """Get cached RAG data for a session. Updates last_accessed for LRU."""
+    with _SESSION_CACHE_LOCK:
+        cache_entry = _SESSION_RAG_CACHE.get(session_id)
+        if cache_entry:
+            # Check if expired
+            if datetime.now() - cache_entry.get("created_at", datetime.now()) > timedelta(minutes=SESSION_CACHE_TTL_MINUTES):
+                del _SESSION_RAG_CACHE[session_id]
+                return None
+            # Update last_accessed for LRU tracking
+            cache_entry["last_accessed"] = datetime.now()
+            return cache_entry.get("data")
+    return None
+
+
+def set_session_rag_cache(session_id: str, data: dict):
+    """Store RAG data in session cache with LRU eviction."""
+    now = datetime.now()
+    with _SESSION_CACHE_LOCK:
+        _SESSION_RAG_CACHE[session_id] = {
+            "data": data,
+            "created_at": now,
+            "last_accessed": now,
+        }
+    # LRU eviction if cache is too large
+    if len(_SESSION_RAG_CACHE) > SESSION_CACHE_MAX_SIZE:
+        _cleanup_expired_sessions()  # First remove expired
+        _evict_lru_sessions()  # Then evict LRU if still over limit
+
+
+# ===============================================================
 # 🚀 MODEL WARMUP - Preload models on startup for faster first request
 # ===============================================================
 def warmup_models():
@@ -202,19 +612,22 @@ def warmup_models():
     start = time.time()
 
     try:
-        # 1. SentenceTransformer model
-        from backend_ai.app.saju_astro_rag import get_model, get_graph_rag
-        model = get_model()
-        logger.info(f"  ✅ SentenceTransformer loaded: {model.get_sentence_embedding_dimension()}d")
+        # 0. Cross-analysis cache (instant, no ML)
+        _load_cross_analysis_cache()
 
-        # 2. GraphRAG with embeddings
-        rag = get_graph_rag()
-        logger.info(f"  ✅ GraphRAG loaded: {len(rag.graph.nodes())} nodes")
+        # 1. SentenceTransformer model + GraphRAG
+        if HAS_GRAPH_RAG:
+            model = get_model()
+            logger.info(f"  ✅ SentenceTransformer loaded: {model.get_sentence_embedding_dimension()}d")
+
+            # 2. GraphRAG with embeddings
+            rag = get_graph_rag()
+            logger.info(f"  ✅ GraphRAG loaded: {len(rag.graph.nodes())} nodes")
 
         # 3. Corpus RAG (Jung quotes)
-        from backend_ai.app.corpus_rag import get_corpus_rag
-        corpus = get_corpus_rag()
-        logger.info(f"  ✅ CorpusRAG loaded")
+        if HAS_CORPUS_RAG:
+            corpus = get_corpus_rag()
+            logger.info(f"  ✅ CorpusRAG loaded")
 
         # 4. Persona embeddings (if available)
         if HAS_PERSONA_EMBED:
@@ -271,7 +684,9 @@ def _check_rate() -> Tuple[bool, Optional[float]]:
 
 
 def _require_auth() -> Optional[Tuple[dict, int]]:
-    if not ADMIN_TOKEN:
+    # Read token at request time to handle dotenv race conditions
+    admin_token = os.getenv("ADMIN_API_TOKEN") or ADMIN_TOKEN
+    if not admin_token:
         return None
     # Allow unauthenticated access to health endpoints for load balancers
     if request.path in UNPROTECTED_PATHS or request.method == "OPTIONS":
@@ -281,7 +696,7 @@ def _require_auth() -> Optional[Tuple[dict, int]]:
     if auth_header.lower().startswith("bearer "):
         token = auth_header[7:].strip()
     token = token or request.headers.get("X-API-KEY") or request.args.get("token")
-    if token != ADMIN_TOKEN:
+    if token != admin_token:
         return {"status": "error", "message": "unauthorized"}, 401
     return None
 
@@ -328,6 +743,125 @@ def after_request(response):
     return response
 
 
+# Helper functions for building chart context
+def _build_saju_summary(saju_data: dict) -> str:
+    """Build concise saju summary for chat context."""
+    if not saju_data:
+        return ""
+    parts = []
+    if saju_data.get("dayMaster"):
+        dm = saju_data["dayMaster"]
+        parts.append(f"Day Master: {dm.get('heavenlyStem', '')} ({dm.get('element', '')})")
+    if saju_data.get("yearPillar"):
+        yp = saju_data["yearPillar"]
+        parts.append(f"Year: {yp.get('heavenlyStem', '')}{yp.get('earthlyBranch', '')}")
+    if saju_data.get("monthPillar"):
+        mp = saju_data["monthPillar"]
+        parts.append(f"Month: {mp.get('heavenlyStem', '')}{mp.get('earthlyBranch', '')}")
+    if saju_data.get("dominantElement"):
+        parts.append(f"Dominant: {saju_data['dominantElement']}")
+    return "SAJU: " + " | ".join(parts) if parts else ""
+
+
+def _build_astro_summary(astro_data: dict) -> str:
+    """Build concise astro summary for chat context."""
+    if not astro_data:
+        return ""
+    parts = []
+    if astro_data.get("sun"):
+        parts.append(f"Sun: {astro_data['sun'].get('sign', '')}")
+    if astro_data.get("moon"):
+        parts.append(f"Moon: {astro_data['moon'].get('sign', '')}")
+    if astro_data.get("ascendant"):
+        parts.append(f"Rising: {astro_data['ascendant'].get('sign', '')}")
+    return "ASTRO: " + " | ".join(parts) if parts else ""
+
+
+def _build_detailed_saju(saju_data: dict) -> str:
+    """Build detailed saju context for personalized responses."""
+    if not saju_data:
+        return "사주 정보 없음"
+
+    lines = []
+
+    # Four Pillars
+    if saju_data.get("yearPillar"):
+        yp = saju_data["yearPillar"]
+        lines.append(f"년주: {yp.get('heavenlyStem', '')}{yp.get('earthlyBranch', '')} ({yp.get('element', '')})")
+    if saju_data.get("monthPillar"):
+        mp = saju_data["monthPillar"]
+        lines.append(f"월주: {mp.get('heavenlyStem', '')}{mp.get('earthlyBranch', '')} ({mp.get('element', '')})")
+    if saju_data.get("dayPillar"):
+        dp = saju_data["dayPillar"]
+        lines.append(f"일주: {dp.get('heavenlyStem', '')}{dp.get('earthlyBranch', '')} ({dp.get('element', '')})")
+    if saju_data.get("hourPillar"):
+        hp = saju_data["hourPillar"]
+        lines.append(f"시주: {hp.get('heavenlyStem', '')}{hp.get('earthlyBranch', '')} ({hp.get('element', '')})")
+
+    # Day Master (most important)
+    if saju_data.get("dayMaster"):
+        dm = saju_data["dayMaster"]
+        lines.append(f"일간(본인): {dm.get('heavenlyStem', '')} - {dm.get('element', '')}의 기운")
+
+    # Five Elements balance
+    if saju_data.get("fiveElements"):
+        fe = saju_data["fiveElements"]
+        elements = [f"{k}({v})" for k, v in fe.items() if v]
+        if elements:
+            lines.append(f"오행 분포: {', '.join(elements)}")
+
+    # Dominant element
+    if saju_data.get("dominantElement"):
+        lines.append(f"주요 기운: {saju_data['dominantElement']}")
+
+    # Ten Gods (if available)
+    if saju_data.get("tenGods"):
+        tg = saju_data["tenGods"]
+        if isinstance(tg, dict):
+            gods = [f"{k}: {v}" for k, v in list(tg.items())[:4]]
+            if gods:
+                lines.append(f"십신: {', '.join(gods)}")
+
+    return "\n".join(lines) if lines else "사주 정보 부족"
+
+
+def _build_detailed_astro(astro_data: dict) -> str:
+    """Build detailed astrology context for personalized responses."""
+    if not astro_data:
+        return "점성술 정보 없음"
+
+    lines = []
+
+    # Big Three
+    if astro_data.get("sun"):
+        sun = astro_data["sun"]
+        lines.append(f"태양(자아): {sun.get('sign', '')} {sun.get('degree', '')}°")
+    if astro_data.get("moon"):
+        moon = astro_data["moon"]
+        lines.append(f"달(감정): {moon.get('sign', '')} {moon.get('degree', '')}°")
+    if astro_data.get("ascendant"):
+        asc = astro_data["ascendant"]
+        lines.append(f"상승(외적): {asc.get('sign', '')} {asc.get('degree', '')}°")
+
+    # Other planets
+    for planet in ["mercury", "venus", "mars", "jupiter", "saturn"]:
+        if astro_data.get(planet):
+            p = astro_data[planet]
+            names = {"mercury": "수성(소통)", "venus": "금성(사랑)", "mars": "화성(에너지)",
+                     "jupiter": "목성(행운)", "saturn": "토성(시련)"}
+            lines.append(f"{names.get(planet, planet)}: {p.get('sign', '')}")
+
+    # Houses (if available)
+    if astro_data.get("houses"):
+        h = astro_data["houses"]
+        if h.get("10"):
+            lines.append(f"10하우스(직업): {h['10'].get('sign', '')}")
+        if h.get("7"):
+            lines.append(f"7하우스(관계): {h['7'].get('sign', '')}")
+
+    return "\n".join(lines) if lines else "점성술 정보 부족"
+
+
 # Health check
 @app.route("/", methods=["GET"])
 def index():
@@ -348,9 +882,21 @@ def ask():
         tarot_data = data.get("tarot") or {}
         theme = data.get("theme", "daily")
         locale = data.get("locale", "en")
-        prompt = (data.get("prompt") or "")[:500]  # clamp extra instructions
+        raw_prompt = data.get("prompt") or ""
+        # Detect structured JSON prompts from frontend (these contain format instructions)
+        is_structured_prompt = (
+            "You MUST return a valid JSON object" in raw_prompt or
+            '"lifeTimeline"' in raw_prompt or
+            '"categoryAnalysis"' in raw_prompt
+        )
+        # Allow full prompt for structured requests, otherwise clamp to 500 chars
+        prompt = raw_prompt if is_structured_prompt else raw_prompt[:500]
+        if is_structured_prompt:
+            logger.info(f"[ASK] Detected STRUCTURED JSON prompt (len={len(raw_prompt)})")
 
-        logger.info(f"[ASK] id={g.request_id} theme={theme} locale={locale}")
+        # render_mode: "template" (AI 없이 즉시) or "gpt" (AI 사용)
+        render_mode = data.get("render_mode", "gpt")
+        logger.info(f"[ASK] id={g.request_id} theme={theme} locale={locale} render_mode={render_mode}")
 
         facts = {
             "theme": theme,
@@ -359,6 +905,7 @@ def ask():
             "tarot": tarot_data,
             "prompt": prompt,
             "locale": locale,
+            "render_mode": render_mode,  # 🔥 템플릿/AI 모드 구분
         }
 
         # Performance monitoring
@@ -379,6 +926,282 @@ def ask():
 
     except Exception as e:
         logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /ask failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/ask-stream", methods=["POST"])
+def ask_stream():
+    """
+    Streaming version of /ask for real-time chat responses.
+    Uses Server-Sent Events (SSE) for instant first-token response.
+
+    If session_id is provided (from /counselor/init), uses pre-fetched RAG data
+    for richer responses with all embedded knowledge.
+    """
+    try:
+        # Ensure UTF-8 encoding for request data (Windows encoding fix)
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        saju_data = data.get("saju") or {}
+        astro_data = data.get("astro") or {}
+        birth_data = data.get("birth") or {}
+        theme = data.get("theme", "chat")
+        locale = data.get("locale", "en")
+        prompt = (data.get("prompt") or "")[:1500]  # Chat prompt limit
+        session_id = data.get("session_id")  # Optional: use pre-fetched RAG data
+
+        logger.info(f"[ASK-STREAM] id={g.request_id} theme={theme} locale={locale} session={session_id or 'none'}")
+        logger.info(f"[ASK-STREAM] saju dayMaster: {saju_data.get('dayMaster', {})}")
+
+        # Check for pre-fetched RAG data from session
+        session_cache = None
+        rag_context = ""
+        if session_id:
+            session_cache = get_session_rag_cache(session_id)
+            if session_cache:
+                logger.info(f"[ASK-STREAM] Using pre-fetched session data for {session_id}")
+                # Use cached saju/astro if not provided in request
+                if not saju_data:
+                    saju_data = session_cache.get("saju_data", {})
+                if not astro_data:
+                    astro_data = session_cache.get("astro_data", {})
+
+                # Build rich RAG context from pre-fetched data
+                rag_data = session_cache.get("rag_data", {})
+
+                # GraphRAG context
+                if rag_data.get("graph_nodes"):
+                    rag_context += "\n[📊 관련 지식 그래프]\n"
+                    rag_context += "\n".join(rag_data["graph_nodes"][:8])
+
+                # Jung quotes
+                if rag_data.get("corpus_quotes"):
+                    rag_context += "\n\n[📚 관련 융 심리학 인용]\n"
+                    for q in rag_data["corpus_quotes"][:3]:
+                        rag_context += f"• {q.get('text_ko', q.get('text_en', ''))} ({q.get('source', '')})\n"
+
+                # Persona insights
+                persona = rag_data.get("persona_context", {})
+                if persona.get("jung"):
+                    rag_context += "\n[🧠 분석가 관점]\n"
+                    rag_context += "\n".join(f"• {i}" for i in persona["jung"][:3])
+                if persona.get("stoic"):
+                    rag_context += "\n\n[⚔️ 스토아 철학 관점]\n"
+                    rag_context += "\n".join(f"• {i}" for i in persona["stoic"][:3])
+
+                logger.info(f"[ASK-STREAM] RAG context from session: {len(rag_context)} chars")
+            else:
+                logger.warning(f"[ASK-STREAM] Session {session_id} not found or expired")
+
+        # If saju/astro not provided but birth info is, compute minimal data
+        if not saju_data and birth_data.get("date") and birth_data.get("time"):
+            try:
+                saju_data = calculate_saju_data(
+                    birth_data["date"],
+                    birth_data["time"],
+                    birth_data.get("gender", "male")
+                )
+            except Exception as e:
+                logger.warning(f"[ASK-STREAM] Failed to compute saju: {e}")
+
+        if not astro_data and birth_data.get("date") and birth_data.get("time"):
+            try:
+                lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
+                lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
+                # calculate_astrology_data expects a dict with year/month/day/hour/minute
+                date_parts = birth_data["date"].split("-")  # "YYYY-MM-DD"
+                time_parts = birth_data["time"].split(":")  # "HH:MM"
+                astro_data = calculate_astrology_data({
+                    "year": int(date_parts[0]),
+                    "month": int(date_parts[1]),
+                    "day": int(date_parts[2]),
+                    "hour": int(time_parts[0]),
+                    "minute": int(time_parts[1]) if len(time_parts) > 1 else 0,
+                    "latitude": lat,
+                    "longitude": lon,
+                })
+            except Exception as e:
+                logger.warning(f"[ASK-STREAM] Failed to compute astro: {e}")
+
+        # Build DETAILED chart context (not just summary)
+        saju_detail = _build_detailed_saju(saju_data)
+        astro_detail = _build_detailed_astro(astro_data)
+        logger.info(f"[ASK-STREAM] saju_detail length: {len(saju_detail)}")
+        logger.info(f"[ASK-STREAM] astro_detail length: {len(astro_detail)}")
+
+        # Get cross-analysis (from session or instant lookup)
+        cross_rules = ""
+        if session_cache and session_cache.get("rag_data", {}).get("cross_analysis"):
+            cross_rules = session_cache["rag_data"]["cross_analysis"]
+        else:
+            try:
+                cross_rules = get_cross_analysis_for_chart(saju_data, astro_data, theme)
+                if cross_rules:
+                    logger.info(f"[ASK-STREAM] Instant cross-analysis: {len(cross_rules)} chars, theme={theme}")
+            except Exception as e:
+                logger.warning(f"[ASK-STREAM] Cross-analysis lookup failed: {e}")
+
+        # Build cross-analysis section
+        cross_section = ""
+        if cross_rules:
+            cross_section = f"\n[사주+점성 교차 해석 규칙]\n{cross_rules}\n"
+
+        # Current date for time-relevant advice
+        from datetime import datetime
+        now = datetime.now()
+        weekdays_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        current_date_str = f"오늘: {now.year}년 {now.month}월 {now.day}일 ({weekdays_ko[now.weekday()]})"
+
+        # Build system prompt - with or without RAG context
+        if rag_context:
+            # RICH prompt with all RAG data
+            system_prompt = f"""사주+점성+심리학 교차분석 전문 상담사. 두 시스템을 통합하여 하나의 해석으로 답변하세요.
+
+⚠️ {current_date_str} - 과거 날짜를 미래처럼 말하지 마세요
+
+[사주] {saju_detail}
+[점성] {astro_detail}
+{cross_section}
+{rag_context}
+
+[응답 방식]
+사주와 점성을 교차 분석하여 자연스럽게 엮어서 해석하세요.
+❌ 나쁜 예: "사주에서는 금입니다. 점성에서는 염소자리입니다." (따로따로)
+✅ 좋은 예: "일간 금(辛)과 태양 염소자리가 만나 실용적이고 야심찬 성향이 강합니다. 10하우스에 태양이 있어 커리어 성공 가능성이 높고, 2026년 봄 목 기운이 들어올 때 기회가 열립니다."
+
+위 지식 그래프와 심리학 인용구도 자연스럽게 활용하세요.
+100-150단어, {locale}로 답변"""
+        else:
+            # Standard prompt (no session data)
+            system_prompt = f"""사주+점성 교차분석 전문 상담사. 두 시스템을 통합하여 하나의 해석으로 답변하세요.
+
+⚠️ {current_date_str} - 과거 날짜를 미래처럼 말하지 마세요
+
+[사주] {saju_detail}
+[점성] {astro_detail}
+{cross_section}
+[응답 방식]
+사주와 점성을 교차 분석하여 자연스럽게 엮어서 해석하세요.
+❌ 나쁜 예: "사주에서는 금입니다. 점성에서는 염소자리입니다." (따로따로)
+✅ 좋은 예: "일간 금(辛)과 태양 염소자리가 만나 실용적이고 야심찬 성향이 강합니다. 10하우스에 태양이 있어 커리어 성공 가능성이 높고, 2026년 봄 목 기운이 들어올 때 기회가 열립니다."
+
+80-100단어, {locale}로 답변"""
+        def generate():
+            """SSE generator for streaming response."""
+            try:
+                from openai import OpenAI
+                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+                stream = client.chat.completions.create(
+                    model="gpt-4o-mini",  # Fast model for chat
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=350,  # Detailed responses (80-120 words)
+                    temperature=0.7,
+                    stream=True
+                )
+
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        text = chunk.choices[0].delta.content
+                        # SSE format: data: <content>\n\n
+                        yield f"data: {text}\n\n"
+
+                # Signal end of stream
+                yield "data: [DONE]\n\n"
+
+            except Exception as e:
+                logger.error(f"[ASK-STREAM] Streaming error: {e}")
+                yield f"data: [ERROR] {str(e)}\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",  # Disable nginx buffering
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /ask-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/counselor/init", methods=["POST"])
+def counselor_init():
+    """
+    Initialize counselor session with pre-fetched RAG data.
+    Call this ONCE when user enters counselor chat (before first message).
+
+    This pre-computes all relevant RAG data (~10-20s) so subsequent
+    chat messages are instant.
+
+    Request body:
+        {
+            "saju": {...},      # User's saju data
+            "astro": {...},     # User's astrology data
+            "theme": "career",  # Optional theme (default: "chat")
+        }
+
+    Response:
+        {
+            "status": "success",
+            "session_id": "abc123",
+            "prefetch_time_ms": 15234,
+            "data_summary": {
+                "graph_nodes": 15,
+                "corpus_quotes": 5,
+                "persona_insights": 10
+            }
+        }
+    """
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        saju_data = data.get("saju") or {}
+        astro_data = data.get("astro") or {}
+        theme = data.get("theme", "chat")
+
+        logger.info(f"[COUNSELOR-INIT] id={g.request_id} theme={theme}")
+        logger.info(f"[COUNSELOR-INIT] saju dayMaster: {saju_data.get('dayMaster', {})}")
+
+        # Generate session ID
+        session_id = str(uuid4())[:12]
+
+        # Pre-fetch ALL RAG data (this is slow but only happens once)
+        rag_data = prefetch_all_rag_data(saju_data, astro_data, theme)
+
+        # Store in session cache
+        set_session_rag_cache(session_id, {
+            "rag_data": rag_data,
+            "saju_data": saju_data,
+            "astro_data": astro_data,
+            "theme": theme,
+        })
+
+        return jsonify({
+            "status": "success",
+            "session_id": session_id,
+            "prefetch_time_ms": rag_data.get("prefetch_time_ms", 0),
+            "data_summary": {
+                "graph_nodes": len(rag_data.get("graph_nodes", [])),
+                "corpus_quotes": len(rag_data.get("corpus_quotes", [])),
+                "persona_insights": len(rag_data.get("persona_context", {}).get("jung", [])) +
+                                   len(rag_data.get("persona_context", {}).get("stoic", [])),
+                "has_cross_analysis": bool(rag_data.get("cross_analysis")),
+            }
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /counselor/init failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -1412,6 +2235,378 @@ def tarot_search():
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/tarot/search failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ===============================================================
+# TAROT TOPIC DETECTION (채팅 기반 타로 주제 자동 감지)
+# ===============================================================
+
+# Sub-topic keyword mappings for each theme
+_TAROT_TOPIC_KEYWORDS = {
+    "career": {
+        "job_search": {
+            "keywords": ["취업", "구직", "일자리", "직장 구하", "취직", "입사", "신입", "첫 직장", "job", "employment"],
+            "korean": "취업은 언제",
+            "priority": 10
+        },
+        "interview": {
+            "keywords": ["면접", "인터뷰", "합격", "불합격", "서류", "채용", "interview"],
+            "korean": "면접 결과",
+            "priority": 9
+        },
+        "job_change": {
+            "keywords": ["이직", "퇴사", "직장 옮기", "회사 바꾸", "전직", "새 직장", "career change"],
+            "korean": "이직해야 할까",
+            "priority": 10
+        },
+        "promotion": {
+            "keywords": ["승진", "진급", "승급", "임원", "팀장", "과장", "부장", "promotion"],
+            "korean": "승진 가능성",
+            "priority": 8
+        },
+        "business": {
+            "keywords": ["사업", "창업", "스타트업", "자영업", "개업", "사장", "CEO", "business", "startup"],
+            "korean": "사업 시작/확장",
+            "priority": 9
+        },
+        "side_hustle": {
+            "keywords": ["부업", "투잡", "알바", "아르바이트", "부수입", "side job"],
+            "korean": "부업/투잡",
+            "priority": 7
+        },
+        "career_path": {
+            "keywords": ["진로", "적성", "어떤 직업", "무슨 일", "적합한 직업", "맞는 직업", "career path", "aptitude"],
+            "korean": "나에게 맞는 직업",
+            "priority": 8
+        },
+        "workplace": {
+            "keywords": ["직장 생활", "회사 생활", "동료", "상사", "직장 내", "사내", "workplace"],
+            "korean": "직장 내 관계/상황",
+            "priority": 6
+        },
+        "salary": {
+            "keywords": ["연봉", "급여", "월급", "임금", "돈", "인상", "협상", "salary"],
+            "korean": "연봉 협상/인상",
+            "priority": 7
+        },
+        "project": {
+            "keywords": ["프로젝트", "업무", "과제", "일 잘", "성과", "project"],
+            "korean": "프로젝트 성공",
+            "priority": 6
+        }
+    },
+    "love": {
+        "secret_admirer": {
+            "keywords": ["나를 좋아하는", "날 좋아하는", "관심 있는 사람", "누가 좋아", "secret admirer"],
+            "korean": "나를 좋아하는 인연",
+            "priority": 8
+        },
+        "current_partner": {
+            "keywords": ["연인", "남친", "여친", "남자친구", "여자친구", "애인", "partner"],
+            "korean": "지금 연인의 속마음",
+            "priority": 9
+        },
+        "crush": {
+            "keywords": ["짝사랑", "좋아하는 사람", "마음에 드는", "고백", "crush"],
+            "korean": "짝사랑 상대의 마음",
+            "priority": 8
+        },
+        "reconciliation": {
+            "keywords": ["재회", "다시 만나", "헤어진", "전 남친", "전 여친", "돌아올", "reconciliation", "ex"],
+            "korean": "헤어진 연인과의 재회",
+            "priority": 9
+        },
+        "situationship": {
+            "keywords": ["썸", "썸타는", "밀당", "관계 진전", "situationship"],
+            "korean": "썸타는 상대",
+            "priority": 8
+        },
+        "marriage": {
+            "keywords": ["결혼", "결혼운", "배우자", "신랑", "신부", "혼인", "웨딩", "marriage", "wedding"],
+            "korean": "결혼운",
+            "priority": 10
+        },
+        "breakup": {
+            "keywords": ["이별", "헤어질", "헤어져야", "끝내야", "그만 만나", "breakup"],
+            "korean": "이별해야 할까",
+            "priority": 9
+        },
+        "new_love": {
+            "keywords": ["새로운 인연", "새 사랑", "언제 연애", "인연이 언제", "new love"],
+            "korean": "새로운 사랑은 언제",
+            "priority": 8
+        },
+        "cheating": {
+            "keywords": ["바람", "외도", "불륜", "양다리", "cheating", "affair", "바람피"],
+            "korean": "상대가 바람피우는지",
+            "priority": 11
+        },
+        "soulmate": {
+            "keywords": ["소울메이트", "운명", "진정한 사랑", "soulmate", "destiny"],
+            "korean": "소울메이트 리딩",
+            "priority": 7
+        }
+    },
+    "wealth": {
+        "money_luck": {
+            "keywords": ["재물운", "금전운", "돈 운", "부자", "wealth", "money luck"],
+            "korean": "재물운",
+            "priority": 9
+        },
+        "investment": {
+            "keywords": ["투자", "주식", "코인", "부동산", "펀드", "investment", "stock"],
+            "korean": "투자 결정",
+            "priority": 9
+        },
+        "debt": {
+            "keywords": ["빚", "대출", "부채", "갚", "loan", "debt"],
+            "korean": "빚/대출",
+            "priority": 8
+        },
+        "windfall": {
+            "keywords": ["복권", "로또", "횡재", "lottery", "windfall"],
+            "korean": "횡재운",
+            "priority": 7
+        }
+    },
+    "health": {
+        "general_health": {
+            "keywords": ["건강", "건강운", "몸", "아프", "병", "health"],
+            "korean": "건강운",
+            "priority": 9
+        },
+        "mental_health": {
+            "keywords": ["정신 건강", "스트레스", "우울", "불안", "mental health"],
+            "korean": "정신 건강",
+            "priority": 8
+        },
+        "recovery": {
+            "keywords": ["회복", "치료", "완치", "recovery"],
+            "korean": "회복",
+            "priority": 8
+        }
+    },
+    "family": {
+        "parent": {
+            "keywords": ["부모", "엄마", "아빠", "어머니", "아버지", "parent"],
+            "korean": "부모님과의 관계",
+            "priority": 8
+        },
+        "children": {
+            "keywords": ["자녀", "아이", "아들", "딸", "임신", "children", "pregnancy"],
+            "korean": "자녀운",
+            "priority": 9
+        },
+        "sibling": {
+            "keywords": ["형제", "자매", "오빠", "언니", "동생", "sibling"],
+            "korean": "형제/자매 관계",
+            "priority": 7
+        }
+    },
+    "spiritual": {
+        "life_purpose": {
+            "keywords": ["삶의 목적", "인생의 의미", "왜 사는", "purpose"],
+            "korean": "삶의 목적",
+            "priority": 8
+        },
+        "karma": {
+            "keywords": ["전생", "카르마", "업", "karma", "past life"],
+            "korean": "전생/카르마",
+            "priority": 7
+        },
+        "spiritual_growth": {
+            "keywords": ["영적 성장", "깨달음", "명상", "spiritual"],
+            "korean": "영적 성장",
+            "priority": 7
+        }
+    },
+    "life_path": {
+        "general": {
+            "keywords": ["인생", "앞으로", "미래", "운세", "전반적", "life", "future"],
+            "korean": "인생 전반",
+            "priority": 5
+        },
+        "decision": {
+            "keywords": ["결정", "선택", "어떻게 해야", "뭘 해야", "decision"],
+            "korean": "결정/선택",
+            "priority": 6
+        }
+    }
+}
+
+# Cache for spread configurations (loaded once)
+_SPREAD_CONFIG_CACHE = {}
+
+def _load_spread_config(theme: str) -> dict:
+    """Load and cache spread configuration for a theme."""
+    if theme in _SPREAD_CONFIG_CACHE:
+        return _SPREAD_CONFIG_CACHE[theme]
+
+    spread_file = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "data", "graph", "rules", "tarot", "spreads",
+        f"{theme}_spreads.json"
+    )
+
+    try:
+        if os.path.exists(spread_file):
+            with open(spread_file, "r", encoding="utf-8") as f:
+                _SPREAD_CONFIG_CACHE[theme] = json.load(f)
+                return _SPREAD_CONFIG_CACHE[theme]
+    except Exception as e:
+        logger.warning(f"Could not load spread file {spread_file}: {e}")
+
+    return {}
+
+
+def detect_tarot_topic(text: str) -> dict:
+    """
+    Analyze chat text and detect the most relevant tarot theme and sub-topic.
+
+    Args:
+        text: Chat message or conversation text to analyze
+
+    Returns:
+        {
+            "theme": "career",
+            "sub_topic": "job_search",
+            "korean": "취업은 언제",
+            "confidence": 0.85,
+            "card_count": 10,
+            "matched_keywords": ["취업", "직장"]
+        }
+    """
+    text_lower = text.lower()
+
+    # Collect all matches with scores
+    all_matches = []
+
+    # Score each theme and sub-topic
+    for theme, sub_topics in _TAROT_TOPIC_KEYWORDS.items():
+        for sub_topic_id, sub_topic_data in sub_topics.items():
+            matched = []
+            for keyword in sub_topic_data["keywords"]:
+                if keyword.lower() in text_lower or keyword in text:
+                    matched.append(keyword)
+
+            if matched:
+                # Calculate raw score (not capped) for comparison
+                # - Base priority score (0.1 per priority point)
+                # - Keyword matches (0.2 per match)
+                # - Specificity bonus: longer keywords are more specific
+                priority_score = sub_topic_data["priority"] * 0.1
+                match_score = len(matched) * 0.2
+                avg_keyword_len = sum(len(k) for k in matched) / len(matched)
+                specificity_bonus = min(avg_keyword_len * 0.02, 0.2)
+
+                raw_score = priority_score + match_score + specificity_bonus
+
+                all_matches.append({
+                    "theme": theme,
+                    "sub_topic": sub_topic_id,
+                    "korean": sub_topic_data["korean"],
+                    "confidence": round(min(raw_score, 1.0), 2),
+                    "_raw_score": raw_score,  # Internal, removed before return
+                    "_priority": sub_topic_data["priority"],  # Internal
+                    "matched_keywords": matched,
+                })
+
+    # Sort by raw_score (desc), then by priority (desc) for tie-breaking
+    all_matches.sort(key=lambda x: (x["_raw_score"], x["_priority"]), reverse=True)
+
+    if all_matches:
+        best_match = all_matches[0]
+        # Remove internal fields
+        del best_match["_raw_score"]
+        del best_match["_priority"]
+    else:
+        best_match = {
+            "theme": "life_path",
+            "sub_topic": "general",
+            "korean": "인생 전반",
+            "confidence": 0.0,
+            "matched_keywords": []
+        }
+
+    # Load spread configuration to get card count (cached)
+    spread_data = _load_spread_config(best_match["theme"])
+    sub_topic_config = spread_data.get("sub_topics", {}).get(best_match["sub_topic"], {})
+
+    best_match["card_count"] = sub_topic_config.get("card_count", 3)
+    best_match["spread_name"] = sub_topic_config.get("spread_name", "")
+    best_match["positions"] = sub_topic_config.get("positions", [])
+
+    return best_match
+
+
+@app.route("/api/tarot/detect-topic", methods=["POST"])
+def tarot_detect_topic():
+    """
+    Detect tarot theme and sub-topic from chat conversation.
+    Used when user clicks "타로 리딩 받기" from destiny-map counselor chat.
+
+    Request body:
+        {
+            "messages": [
+                {"role": "user", "content": "언제 취업할 수 있을까요?"},
+                {"role": "assistant", "content": "..."}
+            ]
+        }
+        OR
+        {
+            "text": "언제 취업할 수 있을까요?"
+        }
+
+    Response:
+        {
+            "status": "success",
+            "detected": {
+                "theme": "career",
+                "sub_topic": "job_search",
+                "korean": "취업은 언제",
+                "confidence": 0.85,
+                "card_count": 10,
+                "spread_name": "Job Search Spread",
+                "positions": [...],
+                "matched_keywords": ["취업"]
+            }
+        }
+    """
+    try:
+        data = request.get_json(force=True)
+
+        # Support both message list and plain text
+        if "messages" in data:
+            # Combine recent user messages for analysis
+            user_messages = [
+                m.get("content", "")
+                for m in data["messages"]
+                if m.get("role") == "user"
+            ]
+            # Focus on last 3 user messages
+            text = " ".join(user_messages[-3:])
+        else:
+            text = data.get("text", "")
+
+        if not text:
+            return jsonify({
+                "status": "error",
+                "message": "No text provided for analysis"
+            }), 400
+
+        detected = detect_tarot_topic(text)
+
+        logger.info(f"[TAROT-DETECT] Detected {detected['theme']}/{detected['sub_topic']} "
+                   f"(confidence: {detected['confidence']}) from: {text[:100]}...")
+
+        return jsonify({
+            "status": "success",
+            "detected": detected
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/detect-topic failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 

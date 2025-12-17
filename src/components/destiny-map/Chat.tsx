@@ -227,6 +227,8 @@ type ChatProps = {
   lang?: LangKey;
   theme?: string;
   seedEvent?: string;
+  saju?: any;
+  astro?: any;
 };
 
 type ChatRequest = {
@@ -248,6 +250,8 @@ export default function Chat({
   lang = "ko",
   theme = "focus_career",
   seedEvent = "chat:seed",
+  saju,
+  astro,
 }: ChatProps) {
   const tr = I18N[lang] ?? I18N.en;
   const sessionIdRef = React.useRef<string>(
@@ -402,45 +406,98 @@ export default function Chat({
     setNotice(null);
     setUsedFallback(false);
 
-    const payload: ChatRequest = {
-      profile,
+    const payload = {
+      name: profile.name,
+      birthDate: profile.birthDate,
+      birthTime: profile.birthTime,
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+      gender: profile.gender,
+      city: profile.city,
       theme,
       lang,
       messages: nextMessages,
+      cvText,
+      // Pass pre-computed chart data for instant responses
+      saju,
+      astro,
     };
 
     try {
-      const res = await fetch("/api/destiny-map/chat", {
+      // Use streaming endpoint for instant response
+      const startTime = performance.now();
+      console.log("[Chat] Request started");
+
+      const res = await fetch("/api/destiny-map/chat-stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-session-id": sessionIdRef.current,
         },
-        body: JSON.stringify({
-          ...payload,
-          name: profile.name,
-          birthDate: profile.birthDate,
-          birthTime: profile.birthTime,
-          latitude: profile.latitude,
-          longitude: profile.longitude,
-          gender: profile.gender,
-          city: profile.city,
-          cvText,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log(`[Chat] Response received: ${(performance.now() - startTime).toFixed(0)}ms`);
+
       if (!res.ok) throw new Error(await res.text());
-      const data: ApiResponse = await res.json();
+      if (!res.body) throw new Error("No response body");
 
-      const reply: string = data?.reply || tr.noResponse;
-      if (data?.safety) setNotice(tr.safetyNote);
-      setUsedFallback(Boolean(data?.fallback));
+      // Add empty assistant message that we'll stream into
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      setLoading(false); // Show message immediately
 
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      // Read SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      let firstChunk = true;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              // Stream complete
+              break;
+            } else if (data.startsWith("[ERROR]")) {
+              setNotice(tr.error);
+              break;
+            } else {
+              // Append text to message
+              accumulated += data;
+              setMessages((prev) => {
+                const updated = [...prev];
+                const lastIdx = updated.length - 1;
+                if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
+                  updated[lastIdx] = { ...updated[lastIdx], content: accumulated };
+                }
+                return updated;
+              });
+            }
+          }
+        }
+      }
+
+      // If no content received, show error
+      if (!accumulated) {
+        setMessages((prev) => {
+          const updated = [...prev];
+          const lastIdx = updated.length - 1;
+          if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
+            updated[lastIdx] = { ...updated[lastIdx], content: tr.noResponse };
+          }
+          return updated;
+        });
+      }
     } catch (e) {
       console.error("[Chat] send error:", e);
       setMessages((prev) => [...prev, { role: "assistant", content: tr.error }]);
-    } finally {
       setLoading(false);
     }
   }

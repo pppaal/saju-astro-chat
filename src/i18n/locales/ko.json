@@ -909,9 +909,16 @@
       "errorMissing": "필수 입력값이 누락되었습니다. (birthDate, birthTime, city, latitude, longitude)",
       "errorNoResult": "결과를 불러오지 못했습니다.",
       "analysisDate": "분석 기준",
-      "themeLove": "사랑",
+      "themeLove": "연애",
       "themeCareer": "커리어",
-      "themeEnergy": "활력"
+      "themeEnergy": "활력",
+      "themeOverall": "종합 운세",
+      "themeHealth": "건강",
+      "themeFamily": "가족",
+      "themeNewYear": "신년 운세",
+      "themeNextYear": "내년 운세",
+      "themeMonthly": "월운",
+      "themeToday": "오늘의 운세"
     },
     "counselor": {
       "title": "DestinyPal 상담사",

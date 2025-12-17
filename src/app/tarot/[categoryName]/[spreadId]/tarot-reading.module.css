@@ -169,10 +169,10 @@
 .cardBack {
   width: 100%;
   height: 100%;
-  background-image: url('/images/tarot/card-back.webp');
+  background-image: var(--card-back-image, url('/images/tarot/card-back.webp'));
   background-size: cover;
   background-position: center;
-  border: 2px solid rgba(212, 175, 55, 0.6);
+  border: 2px solid var(--card-border, rgba(212, 175, 55, 0.6));
   border-radius: 10px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6),
               0 0 20px rgba(212, 175, 55, 0.2);
@@ -1194,9 +1194,9 @@
 
 .colorGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
-  max-width: 800px;
+  max-width: 1100px;
   width: 100%;
   z-index: 10;
 }
@@ -1205,8 +1205,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
   background: rgba(30, 30, 45, 0.5);
   backdrop-filter: blur(10px);
   border: 3px solid rgba(99, 210, 255, 0.3);
@@ -1232,6 +1232,26 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.deckBackImage {
+  width: 130px;
+  height: 200px;
+  border-radius: 10px;
+  border: 3px solid var(--card-border, rgba(99, 210, 255, 0.6));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+  object-fit: cover;
+}
+
+.colorOption:hover .deckBackImage {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.colorOption.colorSelected .deckBackImage {
+  border-color: rgba(124, 242, 156, 0.9);
+  box-shadow: 0 10px 35px rgba(124, 242, 156, 0.4);
 }
 
 .colorCardBack {
@@ -1318,19 +1338,24 @@
 
 .colorName {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1rem;
-  color: rgba(224, 224, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(224, 224, 255, 0.95);
   text-align: center;
   margin: 0;
 }
 
 .colorDescription {
-  font-size: 0.75rem;
-  color: rgba(200, 200, 220, 0.7);
+  font-size: 0.85rem;
+  color: rgba(200, 200, 220, 0.75);
   text-align: center;
-  margin-top: 0.25rem;
-  line-height: 1.3;
-  max-width: 120px;
+  margin: 0;
+  line-height: 1.4;
+  max-width: 160px;
+  min-height: 2.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .colorOption.selected .colorName {
@@ -1532,27 +1557,45 @@
 }
 
 /* ===== Color Selection Responsive ===== */
+@media (max-width: 900px) {
+  .colorGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .deckBackImage {
+    width: 110px;
+    height: 170px;
+  }
+}
+
 @media (max-width: 768px) {
   .colorSelectTitle {
     font-size: 2rem;
   }
 
   .colorGrid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
 
   .colorOption {
-    padding: 1rem;
+    padding: 1rem 0.75rem;
   }
 
-  .colorPreview {
-    width: 70px;
-    height: 110px;
+  .deckBackImage {
+    width: 100px;
+    height: 155px;
   }
 
   .colorName {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .colorDescription {
+    font-size: 0.75rem;
+    max-width: 120px;
+    min-height: 2.5em;
   }
 }
 
@@ -1566,22 +1609,28 @@
   }
 
   .colorGrid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
 
   .colorOption {
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem;
     gap: 0.5rem;
   }
 
-  .colorPreview {
-    width: 60px;
-    height: 95px;
+  .deckBackImage {
+    width: 90px;
+    height: 140px;
   }
 
   .colorName {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .colorDescription {
+    font-size: 0.7rem;
+    max-width: 110px;
+    min-height: 2.4em;
   }
 
   .confirmColorButton {
@@ -1716,11 +1765,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/images/tarot/card-back.webp');
+  background-image: var(--card-back-image, url('/images/tarot/card-back.webp'));
   background-size: cover;
   background-position: center;
   border-radius: 12px;
-  border: 2px solid rgba(212, 175, 55, 0.6);
+  border: 2px solid var(--card-border, rgba(212, 175, 55, 0.6));
 }
 
 .clickPrompt {
@@ -1774,10 +1823,10 @@
   height: 100%;
   backface-visibility: hidden;
   border-radius: 12px;
-  background-image: url('/images/tarot/card-back.webp');
+  background-image: var(--card-back-image, url('/images/tarot/card-back.webp'));
   background-size: cover;
   background-position: center;
-  border: 2px solid rgba(212, 175, 55, 0.6);
+  border: 2px solid var(--card-border, rgba(212, 175, 55, 0.6));
 }
 
 .cardFrontLarge {

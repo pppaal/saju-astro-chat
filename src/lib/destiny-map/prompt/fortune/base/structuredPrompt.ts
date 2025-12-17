@@ -506,64 +506,115 @@ IMPORTANT ANALYSIS GUIDELINES:
 You MUST return a valid JSON object with this exact structure:
 
 {
-  "sections": [
-    {
-      "id": "unique-id",
-      "title": "Section Title in ${lang}",
-      "icon": "emoji",
-      "content": "Main content text (2-3 sentences). Use simple, accessible language.",
-      "reasoning": "Brief explanation of WHY this is relevant based on the data above (reference specific data points)",
-      "terminology": [
-        { "term": "Technical term", "explanation": "Simple explanation in ${lang}" }
-      ]
-    }
-  ],
-  "dateRecommendations": {
-    "lucky": [
+  "lifeTimeline": {
+    "description": "Overview of life journey based on saju+astrology cross-analysis in ${lang}",
+    "importantYears": [
       {
-        "date": "YYYY-MM-DD",
-        "reason": "Why this date is favorable in ${lang}",
-        "sajuFactor": "e.g., 월운의 오행이 용신과 일치",
-        "astroFactor": "e.g., Jupiter trine natal Sun, Moon not void",
-        "rating": 5
+        "year": 2025,
+        "age": 30,
+        "rating": 5,
+        "title": "Major turning point title in ${lang}",
+        "sajuReason": "대운/세운 교체, 용신 기운 강화 등",
+        "astroReason": "Jupiter return, Saturn trine natal Sun 등",
+        "advice": "Specific advice for this year in ${lang}"
       }
-    ],
-    "caution": [
-      {
-        "date": "YYYY-MM-DD or date range",
-        "reason": "Why to be cautious",
-        "sajuFactor": "e.g., 충 관계, 기신 기운",
-        "astroFactor": "e.g., Saturn square Moon, Mercury retrograde"
-      }
-    ],
-    "bestPeriod": {
-      "start": "YYYY-MM-DD",
-      "end": "YYYY-MM-DD",
-      "reason": "Why this period is optimal (cross-reference saju and astro)"
+    ]
+  },
+  "categoryAnalysis": {
+    "personality": {
+      "icon": "🧠",
+      "title": "성격 / Personality",
+      "sajuAnalysis": "일간, 격국, 십신 분포 기반 성격 분석",
+      "astroAnalysis": "Sun/Moon/Ascendant 기반 성격 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 핵심 성격 특징",
+      "keywords": ["키워드1", "키워드2", "키워드3"]
+    },
+    "appearance": {
+      "icon": "✨",
+      "title": "외모/인상 / Appearance",
+      "sajuAnalysis": "일주, 오행 균형 기반 외모/인상 분석",
+      "astroAnalysis": "Ascendant, Venus, 1st house 기반 외모 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 외모/인상 특징",
+      "keywords": ["키워드1", "키워드2"]
+    },
+    "love": {
+      "icon": "💕",
+      "title": "연애/결혼 / Love",
+      "sajuAnalysis": "일지 배우자궁, 관성/재성 기반 연애운 분석",
+      "astroAnalysis": "Venus, 7th house, Juno 기반 연애운 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 연애/결혼 특징",
+      "idealPartner": "이상적인 파트너 특징",
+      "timing": "결혼/연애 좋은 시기"
+    },
+    "family": {
+      "icon": "👨‍👩‍👧‍👦",
+      "title": "가족 / Family",
+      "sajuAnalysis": "년주(조상), 월주(부모), 시주(자녀) 기반 가족운 분석",
+      "astroAnalysis": "4th house, Moon, IC 기반 가족운 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 가족관계 특징"
+    },
+    "friends": {
+      "icon": "🤝",
+      "title": "친구/대인관계 / Social",
+      "sajuAnalysis": "비겁, 식상 기반 대인관계 분석",
+      "astroAnalysis": "11th house, Mercury, 3rd house 기반 대인관계 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 대인관계 특징"
+    },
+    "career": {
+      "icon": "💼",
+      "title": "직업/사업 / Career",
+      "sajuAnalysis": "관성, 격국, 용신 기반 직업 적성 분석",
+      "astroAnalysis": "MC, 10th house, Saturn 기반 직업 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 직업/사업 특징",
+      "suitableCareers": ["적합 직업1", "적합 직업2", "적합 직업3"],
+      "timing": "사업/이직 좋은 시기"
+    },
+    "wealth": {
+      "icon": "💰",
+      "title": "재물/금전 / Wealth",
+      "sajuAnalysis": "재성, 식상생재 기반 재물운 분석",
+      "astroAnalysis": "2nd house, 8th house, Jupiter 기반 재물 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 재물운 특징",
+      "wealthType": "부의 유형 (급여형/사업형/투자형 등)"
+    },
+    "health": {
+      "icon": "🏥",
+      "title": "건강 / Health",
+      "sajuAnalysis": "오행 과불급, 일간 강약 기반 건강 분석",
+      "astroAnalysis": "6th house, Mars, Chiron 기반 건강 분석",
+      "crossInsight": "사주+점성 교차 분석으로 도출된 건강 특징",
+      "vulnerabilities": ["취약 부위1", "취약 부위2"],
+      "advice": "건강 관리 조언"
     }
   },
   "keyInsights": [
     {
       "type": "strength",
       "text": "Key strength based on 격국/용신/natal chart in ${lang}",
-      "icon": "emoji"
+      "icon": "💪"
     },
     {
       "type": "opportunity",
-      "text": "Opportunity from transits/progressions/월운",
-      "icon": "emoji"
+      "text": "Current opportunity from transits/대운/세운",
+      "icon": "🚀"
     },
     {
       "type": "caution",
       "text": "What to watch based on 충/형/difficult aspects",
-      "icon": "emoji"
+      "icon": "⚠️"
     },
     {
       "type": "advice",
       "text": "Actionable advice synthesizing both systems",
-      "icon": "emoji"
+      "icon": "💡"
     }
   ],
+  "luckyElements": {
+    "colors": ["행운의 색상1", "색상2"],
+    "directions": ["행운의 방향"],
+    "numbers": [3, 8],
+    "items": ["행운의 아이템1", "아이템2"]
+  },
   "sajuHighlight": {
     "pillar": "e.g., 일주 甲子",
     "element": "e.g., 목(木) - 용신",
@@ -576,13 +627,15 @@ You MUST return a valid JSON object with this exact structure:
   }
 }
 
-IMPORTANT GUIDELINES:
-1. Cross-analyze SAJU + ASTROLOGY for date recommendations
-2. Explain terminology in simple terms - no jargon without explanation
-3. Give reasoning based on SPECIFIC data points from above
-4. Reference advanced features (격국, 용신, progressions, draconic) in your analysis
-5. All text should be in ${lang}
-6. Return ONLY the JSON object, no markdown formatting
+CRITICAL REQUIREMENTS:
+1. lifeTimeline.importantYears: List 8-12 most significant years from birth to age 90
+   - Rate importance 1-5 stars based on BOTH saju (대운/세운 교체점) AND astrology (major transits)
+   - Include specific reasons from BOTH systems
+2. categoryAnalysis: MUST include ALL 8 categories with CROSS-ANALYSIS
+   - Each category must have sajuAnalysis, astroAnalysis, AND crossInsight
+   - crossInsight should synthesize BOTH systems, not just repeat
+3. All text in ${lang}
+4. Return ONLY valid JSON, no markdown
 
 Respond in ${lang} for all text content.
 `.trim();

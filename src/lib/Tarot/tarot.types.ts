@@ -1,7 +1,7 @@
 // Clean, human-readable types for Tarot logic.
 
 // Deck style options
-export const DECK_STYLES = ['mystic', 'nouveau', 'modern'] as const;
+export const DECK_STYLES = ['celestial', 'classic', 'cyber', 'egyptian', 'elegant', 'ethereal', 'mystic'] as const;
 export type DeckStyle = typeof DECK_STYLES[number];
 
 export interface DeckStyleInfo {
@@ -12,35 +12,79 @@ export interface DeckStyleInfo {
   descriptionKo: string;
   gradient: string;
   accent: string;
+  backImage: string;
 }
 
 export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
-  mystic: {
-    id: 'mystic',
-    name: 'Mystic Ethereal',
-    nameKo: '미스틱 에테리얼',
-    description: 'Cosmic purple & gold, ethereal and mysterious',
-    descriptionKo: '우주적 보라색과 금색, 신비롭고 몽환적인',
-    gradient: 'linear-gradient(135deg, #1a0533 0%, #2d1b4e 50%, #0f0a1a 100%)',
-    accent: '#d4af37',
+  celestial: {
+    id: 'celestial',
+    name: 'Celestial',
+    nameKo: '천체의 빛',
+    description: 'Golden sun and moon, cosmic harmony',
+    descriptionKo: '황금빛 태양과 달, 우주의 조화',
+    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%)',
+    accent: '#f4d03f',
+    backImage: '/images/tarot/backs/celestial.png',
   },
-  nouveau: {
-    id: 'nouveau',
-    name: 'Art Nouveau',
-    nameKo: '아르누보',
-    description: 'Elegant curves, classic artistic style',
-    descriptionKo: '우아한 곡선, 클래식 예술 스타일',
+  classic: {
+    id: 'classic',
+    name: 'Classic',
+    nameKo: '클래식',
+    description: 'Traditional timeless elegance',
+    descriptionKo: '전통적인 시대를 초월한 우아함',
     gradient: 'linear-gradient(135deg, #2c1810 0%, #4a3728 50%, #1a0f0a 100%)',
     accent: '#c9a959',
+    backImage: '/images/tarot/backs/classic.png',
   },
-  modern: {
-    id: 'modern',
-    name: 'Minimal Modern',
-    nameKo: '미니멀 모던',
-    description: 'Clean lines, contemporary minimalist design',
-    descriptionKo: '깔끔한 선, 현대적 미니멀 디자인',
-    gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f0f1a 100%)',
-    accent: '#ffffff',
+  cyber: {
+    id: 'cyber',
+    name: 'Cyber Mystic',
+    nameKo: '사이버 미스틱',
+    description: 'Futuristic digital mysticism',
+    descriptionKo: '미래적인 디지털 신비주의',
+    gradient: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0f0f2a 100%)',
+    accent: '#00ffff',
+    backImage: '/images/tarot/backs/cyber.png',
+  },
+  egyptian: {
+    id: 'egyptian',
+    name: 'Egyptian',
+    nameKo: '이집트',
+    description: 'Ancient Eye of Horus wisdom',
+    descriptionKo: '고대 호루스의 눈, 지혜의 상징',
+    gradient: 'linear-gradient(135deg, #1a1005 0%, #3d2914 50%, #0f0a05 100%)',
+    accent: '#d4af37',
+    backImage: '/images/tarot/backs/egyptian.png',
+  },
+  elegant: {
+    id: 'elegant',
+    name: 'Elegant',
+    nameKo: '엘레강스',
+    description: 'Refined sophistication',
+    descriptionKo: '세련된 품격',
+    gradient: 'linear-gradient(135deg, #1a0533 0%, #2d1b4e 50%, #0f0a1a 100%)',
+    accent: '#e8d5b7',
+    backImage: '/images/tarot/backs/elegant.png',
+  },
+  ethereal: {
+    id: 'ethereal',
+    name: 'Ethereal',
+    nameKo: '에테리얼',
+    description: 'Dreamy watercolor softness',
+    descriptionKo: '몽환적인 수채화의 부드러움',
+    gradient: 'linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 50%, #d4c4b0 100%)',
+    accent: '#8b7355',
+    backImage: '/images/tarot/backs/ethereal.png',
+  },
+  mystic: {
+    id: 'mystic',
+    name: 'Mystic',
+    nameKo: '미스틱',
+    description: 'Mystical and enchanting',
+    descriptionKo: '신비롭고 매혹적인',
+    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+    accent: '#a78bfa',
+    backImage: '/images/tarot/backs/mystic.png',
   },
 };
 

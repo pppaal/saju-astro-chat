@@ -12,6 +12,7 @@ from backend_ai.app.redis_cache import get_cache
 from backend_ai.app.dream_embeddings import get_dream_embed_rag
 from backend_ai.model.fusion_generate import _generate_with_gpt4, refine_with_gpt5mini
 from backend_ai.app.realtime_astro import get_current_transits
+from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
 
 
 # ===============================================================
@@ -814,7 +815,16 @@ def interpret_dream(facts: dict) -> dict:
             raise ValueError("OPENAI_API_KEY is missing")
 
         locale = facts.get("locale", "en")
-        dream_text = facts.get("dream", "")
+        raw_dream = facts.get("dream", "")
+        dream_text = sanitize_dream_text(raw_dream, max_length=2000)
+
+        # Log suspicious inputs for security monitoring
+        if is_suspicious_input(raw_dream):
+            import logging
+            logging.getLogger("backend_ai.security").warning(
+                "[Security] Suspicious input detected in dream request"
+            )
+
         symbols = facts.get("symbols", [])
         emotions = facts.get("emotions", [])
         themes = facts.get("themes", [])

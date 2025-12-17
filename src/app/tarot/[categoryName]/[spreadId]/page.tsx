@@ -23,7 +23,115 @@ const CARD_COLORS = DECK_STYLES.map(style => ({
   gradient: DECK_STYLE_INFO[style].gradient,
   border: `${DECK_STYLE_INFO[style].accent}99`,
   accent: DECK_STYLE_INFO[style].accent,
+  backImage: DECK_STYLE_INFO[style].backImage,
 }));
+
+// Theme-specific titles and icons for guidance/affirmation sections
+const THEME_DISPLAY_INFO: Record<string, {
+  guidanceIcon: string;
+  guidanceTitle: string;
+  guidanceTitleKo: string;
+  guidanceFooter: string;
+  guidanceFooterKo: string;
+  affirmationIcon: string;
+  affirmationTitle: string;
+  affirmationTitleKo: string;
+}> = {
+  'general-insight': {
+    guidanceIcon: '🔮',
+    guidanceTitle: 'Guiding Light',
+    guidanceTitleKo: '길잡이',
+    guidanceFooter: 'Trust the flow of destiny',
+    guidanceFooterKo: '운명의 흐름을 따라가세요',
+    affirmationIcon: '✨',
+    affirmationTitle: 'Soul Affirmation',
+    affirmationTitleKo: '영혼의 다짐',
+  },
+  'love-relationships': {
+    guidanceIcon: '💕',
+    guidanceTitle: 'Heart\'s Whisper',
+    guidanceTitleKo: '사랑의 속삭임',
+    guidanceFooter: 'Let love guide your heart',
+    guidanceFooterKo: '사랑이 마음을 이끌게 하세요',
+    affirmationIcon: '❤️',
+    affirmationTitle: 'Love\'s Promise',
+    affirmationTitleKo: '사랑의 다짐',
+  },
+  'career-work': {
+    guidanceIcon: '⚡',
+    guidanceTitle: 'Path Forward',
+    guidanceTitleKo: '성공의 나침반',
+    guidanceFooter: 'Your potential is limitless',
+    guidanceFooterKo: '당신의 가능성은 무한합니다',
+    affirmationIcon: '🎯',
+    affirmationTitle: 'Career Mantra',
+    affirmationTitleKo: '성공의 주문',
+  },
+  'money-finance': {
+    guidanceIcon: '💎',
+    guidanceTitle: 'Abundance Guide',
+    guidanceTitleKo: '풍요의 길잡이',
+    guidanceFooter: 'Prosperity flows to you',
+    guidanceFooterKo: '번영이 당신에게 흐릅니다',
+    affirmationIcon: '🌟',
+    affirmationTitle: 'Wealth Affirmation',
+    affirmationTitleKo: '풍요의 다짐',
+  },
+  'well-being-health': {
+    guidanceIcon: '🌿',
+    guidanceTitle: 'Healing Wisdom',
+    guidanceTitleKo: '치유의 지혜',
+    guidanceFooter: 'Your body knows the way',
+    guidanceFooterKo: '몸이 길을 알고 있습니다',
+    affirmationIcon: '🙏',
+    affirmationTitle: 'Wellness Vow',
+    affirmationTitleKo: '건강의 서약',
+  },
+  'spiritual-growth': {
+    guidanceIcon: '🕯️',
+    guidanceTitle: 'Inner Light',
+    guidanceTitleKo: '내면의 빛',
+    guidanceFooter: 'Your soul knows the truth',
+    guidanceFooterKo: '영혼이 진실을 알고 있습니다',
+    affirmationIcon: '🦋',
+    affirmationTitle: 'Spirit\'s Call',
+    affirmationTitleKo: '영혼의 부름',
+  },
+  'decisions-crossroads': {
+    guidanceIcon: '🧭',
+    guidanceTitle: 'Crossroads Wisdom',
+    guidanceTitleKo: '기로의 지혜',
+    guidanceFooter: 'Trust your inner compass',
+    guidanceFooterKo: '내면의 나침반을 믿으세요',
+    affirmationIcon: '🔑',
+    affirmationTitle: 'Choice Affirmation',
+    affirmationTitleKo: '선택의 다짐',
+  },
+  'self-discovery': {
+    guidanceIcon: '🪞',
+    guidanceTitle: 'Mirror of Truth',
+    guidanceTitleKo: '진실의 거울',
+    guidanceFooter: 'Embrace your true self',
+    guidanceFooterKo: '진정한 자신을 받아들이세요',
+    affirmationIcon: '💫',
+    affirmationTitle: 'Self Affirmation',
+    affirmationTitleKo: '자아의 다짐',
+  },
+  'daily-reading': {
+    guidanceIcon: '☀️',
+    guidanceTitle: 'Daily Insight',
+    guidanceTitleKo: '오늘의 메시지',
+    guidanceFooter: 'Make today meaningful',
+    guidanceFooterKo: '오늘을 의미있게 보내세요',
+    affirmationIcon: '🌈',
+    affirmationTitle: 'Today\'s Mantra',
+    affirmationTitleKo: '오늘의 주문',
+  },
+};
+
+const getThemeDisplayInfo = (categoryId: string | undefined) => {
+  return THEME_DISPLAY_INFO[categoryId || ''] || THEME_DISPLAY_INFO['general-insight'];
+};
 
 interface CardInsight {
   position: string;
@@ -65,7 +173,7 @@ export default function TarotReadingPage() {
 
   const [gameState, setGameState] = useState<GameState>('loading');
   const [spreadInfo, setSpreadInfo] = useState<Spread | null>(null);
-  const [selectedDeckStyle, setSelectedDeckStyle] = useState<DeckStyle>('mystic');
+  const [selectedDeckStyle, setSelectedDeckStyle] = useState<DeckStyle>('celestial');
   const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null);
@@ -288,10 +396,13 @@ export default function TarotReadingPage() {
               } as React.CSSProperties}
             >
               <div className={styles.colorCardPreview}>
-                <div className={styles.colorCardBack}>
-                  <div className={styles.colorCardPattern}></div>
-                  <div className={styles.colorCardIcon}>✦</div>
-                </div>
+                <Image
+                  src={deck.backImage}
+                  alt={deck.name}
+                  width={130}
+                  height={200}
+                  className={styles.deckBackImage}
+                />
               </div>
               <span className={styles.colorName}>
                 {language === 'ko' ? deck.nameKo : deck.name}
@@ -390,7 +501,11 @@ export default function TarotReadingPage() {
               <div
                 key={index}
                 className={`${styles.resultCardHorizontal} ${revealed ? styles.revealed : ''} ${canReveal ? styles.canReveal : ''}`}
-                style={{ animationDelay: `${index * 0.15}s` } as React.CSSProperties}
+                style={{
+                  animationDelay: `${index * 0.15}s`,
+                  '--card-back-image': `url(${selectedColor.backImage})`,
+                  '--card-border': selectedColor.border,
+                } as React.CSSProperties}
                 onClick={() => !revealed && canReveal && handleCardReveal(index)}
               >
                 <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
@@ -593,37 +708,44 @@ export default function TarotReadingPage() {
         )}
 
         {/* Guidance & Affirmation */}
-        <div className={styles.guidanceSection}>
-          {insight?.guidance && (
-            <div className={styles.guidanceBox}>
-              <div className={styles.guidanceIcon}>
-                <span className={styles.iconGlow}>🔮</span>
-              </div>
-              <h3 className={styles.guidanceTitle}>
-                {translate('tarot.insights.guidance', '카드의 속삭임')}
-              </h3>
-              <p className={styles.guidanceText}>{insight.guidance}</p>
-              <div className={styles.guidanceFooter}>
-                <span className={styles.starDecor}>✦</span>
-                <span className={styles.footerText}>{translate('tarot.insights.guidanceFooter', '운명의 흐름을 따라가세요')}</span>
-                <span className={styles.starDecor}>✦</span>
-              </div>
-            </div>
-          )}
+        {(() => {
+          const themeInfo = getThemeDisplayInfo(categoryName);
+          return (
+            <div className={styles.guidanceSection}>
+              {insight?.guidance && (
+                <div className={styles.guidanceBox}>
+                  <div className={styles.guidanceIcon}>
+                    <span className={styles.iconGlow}>{themeInfo.guidanceIcon}</span>
+                  </div>
+                  <h3 className={styles.guidanceTitle}>
+                    {language === 'ko' ? themeInfo.guidanceTitleKo : themeInfo.guidanceTitle}
+                  </h3>
+                  <p className={styles.guidanceText}>{insight.guidance}</p>
+                  <div className={styles.guidanceFooter}>
+                    <span className={styles.starDecor}>✦</span>
+                    <span className={styles.footerText}>
+                      {language === 'ko' ? themeInfo.guidanceFooterKo : themeInfo.guidanceFooter}
+                    </span>
+                    <span className={styles.starDecor}>✦</span>
+                  </div>
+                </div>
+              )}
 
-          {insight?.affirmation && (
-            <div className={styles.affirmationBox}>
-              <div className={styles.affirmationIcon}>
-                <span className={styles.iconPulse}>✨</span>
-              </div>
-              <h3 className={styles.affirmationTitle}>
-                {translate('tarot.insights.affirmation', '오늘의 주문')}
-              </h3>
-              <p className={styles.affirmationText}>"{insight.affirmation}"</p>
-              <div className={styles.affirmationMoon}>🌙</div>
+              {insight?.affirmation && (
+                <div className={styles.affirmationBox}>
+                  <div className={styles.affirmationIcon}>
+                    <span className={styles.iconPulse}>{themeInfo.affirmationIcon}</span>
+                  </div>
+                  <h3 className={styles.affirmationTitle}>
+                    {language === 'ko' ? themeInfo.affirmationTitleKo : themeInfo.affirmationTitle}
+                  </h3>
+                  <p className={styles.affirmationText}>"{insight.affirmation}"</p>
+                  <div className={styles.affirmationMoon}>🌙</div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* Follow-up Questions */}
         {insight?.followup_questions && insight.followup_questions.length > 0 && (
@@ -684,17 +806,19 @@ export default function TarotReadingPage() {
 
       <div className={styles.cardSpreadContainer}>
         {Array.from({ length: 78 }).map((_, index) => {
-          const isSelected = selectedIndices.includes(index);
-          const selectionOrder = selectedIndices.indexOf(index);
+          const selectionIndex = selectedIndices.indexOf(index);
+          const isSelected = selectionIndex !== -1;
+          const displayNumber = isSelected ? selectionIndex + 1 : 0;
           return (
             <div
-              key={index}
+              key={`card-${index}`}
               className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''}`}
               style={{
-                '--selection-order': selectionOrder + 1,
+                '--selection-order': displayNumber,
                 '--i': index,
                 '--card-gradient': selectedColor.gradient,
                 '--card-border': selectedColor.border,
+                '--card-back-image': `url(${selectedColor.backImage})`,
               } as React.CSSProperties}
               onClick={() => handleCardClick(index)}
             >
@@ -703,7 +827,7 @@ export default function TarotReadingPage() {
                 <div className={styles.cardCenterIcon}>✦</div>
               </div>
               {isSelected && (
-                <div className={styles.selectionNumber}>{selectionOrder + 1}</div>
+                <div className={styles.selectionNumber}>{displayNumber}</div>
               )}
             </div>
           );

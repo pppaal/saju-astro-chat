@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import BackButton from "@/components/ui/BackButton";
 import Chat from "@/components/destiny-map/Chat";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./counselor.module.css";
@@ -21,6 +22,7 @@ export default function CounselorPage({
   const [isLoading, setIsLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [chartData, setChartData] = useState<{ saju?: any; astro?: any } | null>(null);
 
   // Parse search params
   const name = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? "";
@@ -48,6 +50,22 @@ export default function CounselorPage({
     t("destinyMap.counselor.loading3", "Reading celestial energies..."),
     t("destinyMap.counselor.loading4", "Preparing personalized guidance..."),
   ];
+
+  // Load pre-computed chart data from sessionStorage
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("destinyChartData");
+      if (stored) {
+        const data = JSON.parse(stored);
+        // Only use if data is fresh (within 1 hour)
+        if (data.timestamp && Date.now() - data.timestamp < 3600000) {
+          setChartData({ saju: data.saju, astro: data.astro });
+        }
+      }
+    } catch (e) {
+      console.warn("[CounselorPage] Failed to load chart data:", e);
+    }
+  }, []);
 
   // Loading animation
   useEffect(() => {
@@ -127,20 +145,7 @@ export default function CounselorPage({
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ""}`}>
       {/* Header */}
       <header className={styles.header}>
-        <button onClick={() => router.back()} className={styles.backButton}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+        <BackButton onClick={() => router.back()} className={styles.headerBackButton} />
 
         <div className={styles.headerInfo}>
           <div className={styles.counselorBadge}>
@@ -183,6 +188,8 @@ export default function CounselorPage({
           theme={theme}
           initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ""}
           seedEvent="counselor:seed"
+          saju={chartData?.saju}
+          astro={chartData?.astro}
         />
       </div>
 

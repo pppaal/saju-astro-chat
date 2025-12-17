@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
 
 export const dynamic = "force-dynamic";
 
 // GET: 저장된 성격 유형 조회
+// TODO: PersonalityResult 모델이 Prisma 스키마에 추가되면 DB 연동 활성화
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -13,29 +13,8 @@ export async function GET() {
       return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
     }
 
-    const result = await prisma.personalityResult.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!result) {
-      return NextResponse.json({ saved: false });
-    }
-
-    return NextResponse.json({
-      saved: true,
-      data: {
-        typeCode: result.typeCode,
-        personaName: result.personaName,
-        avatarGender: result.avatarGender,
-        energyScore: result.energyScore,
-        cognitionScore: result.cognitionScore,
-        decisionScore: result.decisionScore,
-        rhythmScore: result.rhythmScore,
-        consistencyScore: result.consistencyScore,
-        analysisData: result.analysisData,
-        updatedAt: result.updatedAt,
-      },
-    });
+    // PersonalityResult 모델이 없어서 임시로 false 반환
+    return NextResponse.json({ saved: false });
   } catch (error) {
     console.error("GET /api/personality error:", error);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
@@ -43,6 +22,7 @@ export async function GET() {
 }
 
 // POST: 성격 유형 저장 (로그인 필요)
+// TODO: PersonalityResult 모델이 Prisma 스키마에 추가되면 DB 연동 활성화
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -51,55 +31,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const {
-      typeCode,
-      personaName,
-      avatarGender,
-      energyScore,
-      cognitionScore,
-      decisionScore,
-      rhythmScore,
-      consistencyScore,
-      analysisData,
-    } = body;
+    const { typeCode, personaName } = body;
 
     // 필수 필드 검증
     if (!typeCode || !personaName) {
       return NextResponse.json({ error: "missing_fields" }, { status: 400 });
     }
 
-    // upsert: 있으면 업데이트, 없으면 생성
-    const result = await prisma.personalityResult.upsert({
-      where: { userId: session.user.id },
-      update: {
-        typeCode,
-        personaName,
-        avatarGender: avatarGender || "M",
-        energyScore: energyScore ?? 50,
-        cognitionScore: cognitionScore ?? 50,
-        decisionScore: decisionScore ?? 50,
-        rhythmScore: rhythmScore ?? 50,
-        consistencyScore: consistencyScore ?? null,
-        analysisData: analysisData ?? null,
-      },
-      create: {
-        userId: session.user.id,
-        typeCode,
-        personaName,
-        avatarGender: avatarGender || "M",
-        energyScore: energyScore ?? 50,
-        cognitionScore: cognitionScore ?? 50,
-        decisionScore: decisionScore ?? 50,
-        rhythmScore: rhythmScore ?? 50,
-        consistencyScore: consistencyScore ?? null,
-        analysisData: analysisData ?? null,
-      },
-    });
-
+    // PersonalityResult 모델이 없어서 임시 응답
     return NextResponse.json({
       success: true,
-      typeCode: result.typeCode,
-      personaName: result.personaName,
+      typeCode,
+      personaName,
+      message: "Personality result storage not yet available",
     });
   } catch (error) {
     console.error("POST /api/personality error:", error);

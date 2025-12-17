@@ -1,4 +1,4 @@
-# backend_ai/model/fusion_generate.py
+﻿# backend_ai/model/fusion_generate.py
 
 import os
 import re
@@ -24,7 +24,36 @@ Enhanced Features:
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-MAX_OUTPUT_TOKENS = 3500
+
+# Token budget configuration - configurable via environment
+DEFAULT_MAX_TOKENS = int(os.getenv("FUSION_MAX_TOKENS", "3500"))
+MAX_OUTPUT_TOKENS = DEFAULT_MAX_TOKENS  # Alias for backward compatibility
+
+# Theme-specific token budgets (optimized for content length requirements)
+THEME_TOKEN_BUDGETS = {
+    # Short-form content (concise, actionable)
+    "daily": 800,           # Daily fortune: 2-3 paragraphs
+    "monthly": 1500,        # Monthly overview: week-by-week
+
+    # Medium-form content (balanced depth)
+    "career": 2500,         # Career guidance
+    "relationship": 2500,   # Relationship insights
+    "love": 2500,           # Romance/marriage
+    "health": 2000,         # Health (shorter for safety)
+    "family": 2500,         # Family dynamics
+
+    # Long-form content (comprehensive analysis)
+    "life_path": 3500,      # Life path: in-depth
+    "new_year": 4000,       # Annual forecast: comprehensive
+    "next_year": 3500,      # Next year preview
+
+    # Default fallback
+    "default": DEFAULT_MAX_TOKENS,
+}
+
+def get_token_budget(theme: str) -> int:
+    """Get optimal token budget for theme."""
+    return THEME_TOKEN_BUDGETS.get(theme, THEME_TOKEN_BUDGETS["default"])
 
 # Try to use Hybrid RAG
 try:
@@ -82,12 +111,17 @@ def _chat_with_retry(client, model: str, messages, max_tokens: int, temperature:
     raise last_err
 
 
-def _generate_with_gpt4(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15) -> str:
-    """Generate using GPT-4o (quality production setup)."""
+def _generate_with_gpt4(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15, use_mini: bool = False) -> str:
+    """Generate using GPT-4o or GPT-4o-mini.
+
+    Args:
+        use_mini: If True, use gpt-4o-mini (3x faster, good for chat). Default False.
+    """
     client = get_openai_llm()
+    model = "gpt-4o-mini" if use_mini else "gpt-4o"
     resp = _chat_with_retry(
         client,
-        model="gpt-4o",  # Quality: best results
+        model=model,
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
         temperature=temperature,
@@ -102,7 +136,30 @@ def _generate_with_together(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, te
 
 
 # ===============================================================
+# UNIFIED PERSONA - Core identity across all themes
+# ===============================================================
+UNIFIED_PERSONA = """
+[CORE IDENTITY: 운명의 안내자 / Destiny Guide]
+You are a wise, warm, and insightful advisor who blends Eastern wisdom (사주, 명리학)
+with Western astrology. Your role is to guide, not to predict fate deterministically.
+
+VOICE PRINCIPLES:
+• Empathetic yet objective - validate feelings while offering balanced perspective
+• Hopeful yet realistic - inspire without making false promises
+• Knowledgeable yet accessible - explain complex concepts simply
+• Respectful of free will - empower choices rather than dictate outcomes
+
+CONSISTENCY RULES:
+• Always maintain this core warmth regardless of theme
+• Never be cold, judgmental, or fatalistic
+• Balance mystical insight with practical wisdom
+• Use inclusive language (we, let's) to create connection
+• Acknowledge both opportunities AND challenges
+"""
+
+# ===============================================================
 # PRESETS (theme tone) - Detailed guidance for each theme
+# Inherits from UNIFIED_PERSONA as the base
 # ===============================================================
 PRESETS = {
     "life_path": """
@@ -190,16 +247,25 @@ FOCUS: Multi-generational harmony, domestic peace, family legacy
 """,
 
     "daily": """
-[THEME: Daily Guidance 오늘의 운세]
-TONE: Friendly morning advisor. Concise, actionable, motivating.
-STRUCTURE:
-- 2-3 sentences on today's overall energy
-- One specific opportunity to watch for
-- One caution or thing to be mindful of
-- Lucky elements/colors/directions for today
-- Brief closing encouragement
-FORMAT: Keep under 200 words. Direct and immediately useful.
-FOCUS: What can they do TODAY to maximize positive energy?
+[THEME: Daily Guidance (사주+점성 교채 전용)]
+TONE: 찮근한 아침 코치. 짧고 실천 가능한 말투.
+RULES: 모든 내용은 사주+점성 교채 근거만 사용(타 출처 금지). 각 섹션은 2~3줄 이내.
+SECTIONS (이 순서로 모두 포함):
+- 오늘 한줄요약: 핵심 메시지 2~3줄
+- 좋은 시간대 / 피할 시간대: 예) 좋은 시간 09–11, 19–21 / 피할 시간 13–15 (근거 1줄)
+- 오늘 행동 가이드: 해야 할 것 2개 / 피해야 할 것 2개 (불릿, 각 1줄)
+- 주요 영역 카드:
+  • 커리어: 한줄 + 액션(예: “메일은 오전에, 미팅은 오후 짧게”)
+  • 관계/친구: 한줄 + 액션(“점심 약속 OK, 저녁 감정 대화는 미룸”)
+  • 사랑: 한줄 + 액션(“칭찬 먼저, 계획은 단순하게”)
+  • 건강/에너지: 한줄 + 액션(“수분·가버운 스트레칭, 야식 금지”)
+  • 장감: 한줄 + 액션(“지출 기록, 신규 투자 보류”)
+- 운 흐름 메모: 상승/보통/주의, 이유 1줄
+- 교채 하이라이트: 사주+점성 교채 포인트 2~3개 (signals/cross_summary 활용, 근거 한줄씩)
+- 위험/주의: 최대 2개 (트리거·피해야 할 사항, 근거 한줄)
+- 오늘의 리마인더: 짧은 마무리 문장 1개
+FORMAT: 섹션 헤더를 명확히 표기하고 불릿은 2~3개로 제한. 전체 250~300단어 이내.
+FOCUS: 오늘 당장 실천 가능한 행동과 시간대 중심 조언.
 """,
 
     "monthly": """
@@ -379,6 +445,9 @@ def refine_with_gpt5mini(raw_text: str, theme: str, locale: str = "en") -> str:
         system_prompt = prompts["system"]
         user_prompt = prompts["user"].format(theme=theme, raw_text=raw_text)
 
+        # Use theme-aware token budget for refine step
+        token_budget = get_token_budget(theme) if theme in THEME_TOKEN_BUDGETS else DEFAULT_MAX_TOKENS
+
         resp = _chat_with_retry(
             gpt,
             model="gpt-4o-mini",
@@ -386,7 +455,7 @@ def refine_with_gpt5mini(raw_text: str, theme: str, locale: str = "en") -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=MAX_OUTPUT_TOKENS,
+            max_tokens=token_budget,
             temperature=0.2,
             top_p=0.9,
         )
@@ -428,7 +497,16 @@ def generate_fusion_report(
 
         preset_text = PRESETS.get(theme, PRESETS["life_path"])
         safe_user_prompt = (user_prompt or "").strip()
-        if len(safe_user_prompt) > 1200:
+
+        # Check if the prompt requests structured JSON output (from frontend structuredPrompt.ts)
+        is_structured_json_request = (
+            "You MUST return a valid JSON object" in safe_user_prompt or
+            '"lifeTimeline"' in safe_user_prompt or
+            '"categoryAnalysis"' in safe_user_prompt
+        )
+
+        # For structured JSON requests, don't truncate the prompt - it contains critical instructions
+        if not is_structured_json_request and len(safe_user_prompt) > 1200:
             safe_user_prompt = safe_user_prompt[:1200] + "\n...[truncated]"
         dataset_summary = f"\n\n[Dataset context]\n{dataset_text.strip()}\n" if dataset_text else ""
         extra_user = (
@@ -592,6 +670,8 @@ def generate_fusion_report(
                 print(f"[FusionGenerate] Hybrid RAG error: {e}")
 
         comprehensive_prompt = f"""
+{UNIFIED_PERSONA}
+
 {preset_text}
 
 {locale_instruction}
@@ -673,13 +753,56 @@ Do NOT mix languages. Do NOT write in English unless locale is 'en'.
 
         print("[FusionGenerate] Step1: GPT-4 generation...")
 
-        # Use GPT-4o (production setup)
-        llama_report = _generate_with_gpt4(comprehensive_prompt.strip(), MAX_OUTPUT_TOKENS, 0.15)
+        # Use theme-specific token budget (optimizes cost & response time)
+        token_budget = get_token_budget(theme)
+        print(f"[FusionGenerate] Token budget for '{theme}': {token_budget}")
+
+        # For structured JSON requests, use the frontend's prompt directly
+        # This preserves the JSON format instructions from structuredPrompt.ts
+        if is_structured_json_request:
+            print("[FusionGenerate] Using STRUCTURED JSON prompt from frontend")
+            # Increase token budget for JSON output (needs more tokens for structured data)
+            token_budget = max(token_budget, 6000)
+            # Use the frontend's prompt with added context
+            structured_prompt = f"""
+{safe_user_prompt}
+
+[ADDITIONAL CONTEXT FROM BACKEND]
+
+[SAJU 사주 분석 데이터]
+{saju_text}
+
+[ASTRO 점성술 분석 데이터]
+{astro_text}
+
+[KNOWLEDGE GRAPH 참조 지식]
+{graph_context}
+
+{dataset_summary}
+
+CRITICAL OUTPUT REQUIREMENTS:
+1. Return ONLY a valid JSON object starting with {{ and ending with }}
+2. Do NOT wrap in markdown code blocks (no ```json)
+3. Do NOT add any text before or after the JSON
+4. The JSON must be parseable by JSON.parse()
+5. Use proper JSON syntax: double quotes for keys and strings, commas between items, colons between key-value pairs
+"""
+            llama_report = _generate_with_gpt4(structured_prompt.strip(), token_budget, 0.1)
+        else:
+            # Detect chat mode: user asked a question (not structured JSON request)
+            # Chat uses gpt-4o-mini for speed (3x faster)
+            is_chat_mode = bool(safe_user_prompt) and not is_structured_json_request
+            if is_chat_mode:
+                print("[FusionGenerate] CHAT MODE: Using gpt-4o-mini for faster response")
+            llama_report = _generate_with_gpt4(comprehensive_prompt.strip(), token_budget, 0.15, use_mini=is_chat_mode)
         llama_report = re.sub(r"\n{3,}", "\n\n", llama_report)
 
-        # Step 2: Optional GPT polishing (skip in fast_mode for ~15-20s speedup)
-        if fast_mode:
-            print("[FusionGenerate] FAST_MODE: Skipping GPT polish step")
+        # Step 2: Optional GPT polishing (skip in fast_mode or for JSON requests)
+        if fast_mode or is_structured_json_request:
+            if is_structured_json_request:
+                print("[FusionGenerate] Skipping polish for STRUCTURED JSON output")
+            else:
+                print("[FusionGenerate] FAST_MODE: Skipping GPT polish step")
             refined_report = llama_report
         else:
             print("[FusionGenerate] Step2: GPT-mini polishing")

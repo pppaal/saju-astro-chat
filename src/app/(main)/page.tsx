@@ -12,7 +12,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
 import Card from "@/components/ui/Card";
 import Grid from "@/components/ui/Grid";
-import { SERVICE_LINKS, TAROT_DECK, type TarotCard } from "@/data/home";
+import { SERVICE_LINKS, TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from "@/data/home";
 
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
 
@@ -35,7 +35,7 @@ const serviceLinksData = SERVICE_LINKS;
 export default function MainPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const translate = useCallback((key: string, fallback: string) => {
     const res = t(key);
     const last = key.split(".").pop() || key;
@@ -233,19 +233,29 @@ export default function MainPage() {
     }
   }, [selectedCards.length]);
 
+  // Fisher-Yates shuffle for uniform randomness
+  const fisherYatesShuffle = useCallback(<T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, []);
+
   // Deck click handler - draw 4 random cards or reset
   const handleDeckClick = useCallback(() => {
     if (isDeckSpread) {
       dispatchTarot({ type: 'RESET' });
     } else {
-      // Draw 4 random cards from deck
-      const availableIndices = Array.from({ length: TAROT_DECK.length }, (_, i) => i);
-      const shuffled = availableIndices.sort(() => Math.random() - 0.5);
+      // Fisher-Yates shuffle for truly uniform randomness
+      const indices = Array.from({ length: TAROT_DECK.length }, (_, i) => i);
+      const shuffled = fisherYatesShuffle(indices);
       const selectedIndices = shuffled.slice(0, 4);
       const cards = selectedIndices.map(i => TAROT_DECK[i]);
       dispatchTarot({ type: 'DRAW_ALL_CARDS', cards, usedIndices: selectedIndices });
     }
-  }, [isDeckSpread]);
+  }, [isDeckSpread, fisherYatesShuffle]);
 
   // Handle question submission - navigate to destiny-map with the question
   const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
@@ -941,8 +951,8 @@ export default function MainPage() {
             className={`${styles.tarotDeck} ${isDeckSpread ? styles.deckSpread : ''}`}
             onClick={handleDeckClick}
             style={{
-              width: isDeckSpread ? '400px' : '120px',
-              height: isDeckSpread ? '200px' : '200px',
+              width: isDeckSpread ? '280px' : '100px',
+              height: isDeckSpread ? '160px' : '150px',
               transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)'
             }}
           >
@@ -952,12 +962,16 @@ export default function MainPage() {
                 className={styles.deckCard}
                 style={{
                   transform: isDeckSpread
-                    ? `translateX(${(i - 7) * 25}px) translateY(${Math.abs(i - 7) * 15}px) rotate(${(i - 7) * 5}deg)`
-                    : `translateX(${i * 0.5}px) translateY(${i * 0.5}px) rotate(${(i - 7) * 2}deg)`,
+                    ? `translateX(${(i - 7) * 14}px) translateY(${Math.abs(i - 7) * 5}px) rotate(${(i - 7) * 2}deg)`
+                    : `translateX(${i * 0.2}px) translateY(${i * 0.2}px) rotate(${(i - 7) * 0.5}deg)`,
                   zIndex: 15 - i,
-                  transition: `all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.06}s`
+                  transition: `all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.02}s`
                 }}
-              />
+              >
+                <div className={styles.deckCardDesign}>
+                  <span className={styles.deckCardIcon}>✦</span>
+                </div>
+              </div>
             ))}
           </div>
           <p className={styles.deckLabel} suppressHydrationWarning>
@@ -976,17 +990,22 @@ export default function MainPage() {
                   className={`${styles.tarotCard} ${flippedCards[index] ? styles.flipped : ''}`}
                   onClick={() => handleCardClick(index)}
                 >
-                  <div className={styles.cardBack}>
-                    <div className={styles.cardPattern}>✦</div>
-                    <div className={styles.cardPattern}>✦</div>
-                    <div className={styles.cardPattern}>✦</div>
-                    <div className={styles.cardPattern}>✦</div>
-                  </div>
-                  <div className={styles.cardFront}>
-                    <div className={styles.cardHeader}>{selectedCards[index]?.name}</div>
-                    <div className={styles.cardMainIcon}>{selectedCards[index]?.icon}</div>
-                    <div className={styles.cardFooter}>
-                      {selectedCards[index]?.suit || selectedCards[index]?.number}
+                  <div className={styles.cardInner}>
+                    <div className={styles.cardBack}>
+                      <div className={styles.cardBackDesign}>
+                        <div className={styles.cardBackBorder}>
+                          <span className={styles.cardBackIcon}>✦</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.cardFront}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedCards[index]?.image || TAROT_CARD_BACK}
+                        alt={selectedCards[index]?.name || 'Tarot Card'}
+                        className={styles.cardImage}
+                      />
+                      <div className={styles.cardName}>{locale === 'ko' ? selectedCards[index]?.nameKo : selectedCards[index]?.name}</div>
                     </div>
                   </div>
                 </div>

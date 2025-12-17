@@ -85,12 +85,10 @@ export {
   findProgressedToNatalAspects,
   findProgressedInternalAspects,
   findProgressedMoonAspects,
-  getProgressedAspectKeywords,
+  findProgressedAspectKeywords,
 } from "./foundation/progressions";
 
-export type {
-  ProgressedAspect,
-} from "./foundation/progressions";
+// Note: ProgressedAspect type removed - not exported from progressions module
 
 export type {
   ProgressionInput,

@@ -260,6 +260,19 @@ export default function DestinyResultPage({
           userTimezone: userTz || undefined,
         });
         setResult(res);
+
+        // Store saju/astro for counselor chat (avoids re-computation)
+        if (res?.saju || res?.astro) {
+          try {
+            sessionStorage.setItem("destinyChartData", JSON.stringify({
+              saju: res.saju || {},
+              astro: res.astro || {},
+              timestamp: Date.now(),
+            }));
+          } catch (e) {
+            console.warn("[ResultPage] Failed to store chart data:", e);
+          }
+        }
       } catch (err: any) {
         console.error("[ResultPage] analyzeDestiny error:", err);
         setError(err?.message || String(err));
@@ -361,23 +374,34 @@ export default function DestinyResultPage({
             }}
           >
             {themeKeys.map((key) => {
+              const normalizedKey = key.toLowerCase();
               const presetLabels: Record<string, string> = {
+                // Focus themes
                 focus_love: t("destinyMap.result.themeLove", "Love"),
                 focus_career: t("destinyMap.result.themeCareer", "Career"),
                 focus_energy: t("destinyMap.result.themeEnergy", "Energy"),
+                focus_overall: t("destinyMap.result.themeOverall", "Overall"),
+                focus_health: t("destinyMap.result.themeHealth", "Health"),
+                focus_family: t("destinyMap.result.themeFamily", "Family"),
+                // Fortune themes
+                fortune_new_year: t("destinyMap.result.themeNewYear", "New Year"),
+                fortune_next_year: t("destinyMap.result.themeNextYear", "Next Year"),
+                fortune_monthly: t("destinyMap.result.themeMonthly", "Monthly"),
+                fortune_today: t("destinyMap.result.themeToday", "Today"),
               };
-              const label = presetLabels[key] ?? key;
+              const label = presetLabels[normalizedKey] ?? key;
+              const isActive = activeTheme.toLowerCase() === normalizedKey;
 
               return (
                 <button
                   key={key}
                   onClick={() => setActiveTheme(key)}
-                  aria-pressed={activeTheme === key}
+                  aria-pressed={isActive}
                   className={styles.badge}
                   style={{
-                    background: activeTheme === key ? "#2563eb" : "transparent",
-                    color: activeTheme === key ? "#fff" : "inherit",
-                    border: `1px solid ${activeTheme === key ? "#2563eb" : "#4b5563"}`,
+                    background: isActive ? "#2563eb" : "transparent",
+                    color: isActive ? "#fff" : "inherit",
+                    border: `1px solid ${isActive ? "#2563eb" : "#4b5563"}`,
                     padding: "6px 12px",
                     borderRadius: 8,
                     cursor: "pointer",

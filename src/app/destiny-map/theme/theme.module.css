@@ -319,3 +319,73 @@
   background: rgba(167, 139, 250, 0.3);
   color: #ffffff;
 }
+
+/* ========== Mode Toggle (Quick/Detailed) ========== */
+.modeToggle {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+  animation: fadeInDown 0.6s ease-out 0.3s both;
+}
+
+.modeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 32px;
+  border-radius: 16px;
+  border: 2px solid rgba(167, 139, 250, 0.2);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 140px;
+}
+
+.modeButton:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateY(-2px);
+}
+
+.modeActive {
+  background: rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(167, 139, 250, 0.6) !important;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.modeIcon {
+  font-size: 24px;
+}
+
+.modeLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.modeTime {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 480px) {
+  .modeToggle {
+    gap: 8px;
+  }
+
+  .modeButton {
+    padding: 12px 20px;
+    min-width: 120px;
+  }
+
+  .modeIcon {
+    font-size: 20px;
+  }
+
+  .modeLabel {
+    font-size: 0.85rem;
+  }
+}

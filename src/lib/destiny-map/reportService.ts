@@ -3,7 +3,6 @@
 'use server';
 
 import { computeDestinyMap } from "./astrologyengine";
-import { buildPromptByTheme } from "@/lib/destiny-map/prompt/fortune";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { cacheGet, cacheSet, makeCacheKey } from "@/lib/redis-cache";
@@ -21,6 +20,8 @@ export interface ReportOutput {
     name?: string;
     gender?: string;
     modelUsed?: string;
+    validationWarnings?: string[];
+    validationPassed?: boolean;
   };
   summary: string;
   report: string;
@@ -35,17 +36,87 @@ function extractElements(_text: string) {
 }
 
 // Basic cleansing to remove HTML/script/style directives
+// IMPORTANT: Preserve JSON structure (curly braces) for structured responses
 function cleanseText(raw: string) {
   if (!raw) return "";
+
+  // Check if this is a JSON response (starts with { or contains lifeTimeline/categoryAnalysis)
+  const isJsonResponse = raw.trim().startsWith("{") ||
+                          raw.includes('"lifeTimeline"') ||
+                          raw.includes('"categoryAnalysis"');
+
+  if (isJsonResponse) {
+    // For JSON responses, only clean dangerous content but preserve structure
+    return raw
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+      .replace(/on\w+\s*=/gi, "")  // Remove event handlers like onclick=
+      .trim();
+  }
+
+  // For non-JSON (markdown/text) responses, do full cleansing
   return raw
     .replace(/<\/?[^>]+(>|$)/g, "")
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
     .replace(/@import.*?;/gi, "")
     .replace(/(html|body|svg|button|form|document\.write|style|font\-family|background)/gi, "")
     .replace(/&nbsp;/g, " ")
-    .replace(/[{}<>]/g, "")
+    .replace(/[<>]/g, "")  // Only remove angle brackets, NOT curly braces
     .replace(/\s{2,}/g, " ")
     .trim();
+}
+
+// 최소 섹션 검증: 프론트 파서/QA용 (재요청 대신 경고 플래그)
+const REQUIRED_SECTIONS: Record<string, string[]> = {
+  today: ["오늘 한줄요약", "좋은 시간대", "행동 가이드", "교차 하이라이트", "리마인더"],
+  career: ["한줄요약", "타이밍", "액션", "교차 하이라이트", "포커스"],
+  love: ["한줄요약", "타이밍", "소통", "행동 가이드", "교차 하이라이트", "리마인더"],
+  health: ["한줄요약", "루틴", "피로", "회복", "교차 하이라이트", "리마인더"],
+  life: ["핵심 정체성", "현재 흐름", "향후", "강점", "도전", "교차 하이라이트", "다음 스텝", "리마인더"],
+  family: ["한줄요약", "소통", "협력", "리스크", "교차 하이라이트", "리마인더"],
+  month: ["월간 한줄테마", "핵심 주", "영역 카드", "교차 하이라이트", "리마인더"],
+  year: ["연간 한줄테마", "분기", "전환", "영역 포커스", "교차 하이라이트", "리마인더"],
+  newyear: ["새해 한줄테마", "분기", "준비", "기회", "리스크", "교차 하이라이트", "리마인더"],
+};
+
+function validateSections(theme: string, text: string): string[] {
+  // Check if this is a structured JSON response
+  const isJsonResponse = text.trim().startsWith("{") ||
+                          text.includes('"lifeTimeline"') ||
+                          text.includes('"categoryAnalysis"');
+
+  // For JSON responses, validate JSON structure instead of text markers
+  if (isJsonResponse) {
+    const warnings: string[] = [];
+    if (theme === "life" || theme === "focus_overall") {
+      if (!text.includes('"lifeTimeline"')) {
+        warnings.push("JSON 구조 누락: lifeTimeline");
+      }
+      if (!text.includes('"categoryAnalysis"')) {
+        warnings.push("JSON 구조 누락: categoryAnalysis");
+      }
+      if (!text.includes('"keyInsights"')) {
+        warnings.push("JSON 구조 누락: keyInsights");
+      }
+    }
+    return warnings;
+  }
+
+  // For text/markdown responses, use traditional validation
+  const required = REQUIRED_SECTIONS[theme] || [];
+  const warnings: string[] = [];
+  for (const marker of required) {
+    if (!text.includes(marker)) {
+      warnings.push(`섹션 누락: ${marker}`);
+    }
+  }
+  // 교차 근거 체크: 사주/점성 언급이 거의 없으면 경고
+  const hasSaju = /사주|오행|십신|대운/.test(text);
+  const hasAstro = /점성|행성|하우스|트랜짓|별자리/.test(text);
+  if (!hasSaju || !hasAstro) {
+    warnings.push("교차 근거 부족: 사주/점성 언급을 모두 포함해야 함");
+  }
+  return warnings;
 }
 
 /**
@@ -99,6 +170,7 @@ export async function generateReport({
     theme,
     lang,
     date: analysisDate, // 같은 날에만 캐시 유효
+    mode: "template_v1", // 템플릿 모드 (AI 없이 즉시 생성)
   });
 
   const cached = await cacheGet<ReportOutput>(cacheKey);
@@ -143,9 +215,9 @@ export async function generateReport({
   result.userTimezone = userTimezone;
   result.analysisDate = analysisDate; // 이미 위에서 계산됨
 
-  // 2) Build theme prompt
-  const themePrompt = buildPromptByTheme(theme, lang, result);
-  const fullPrompt = safeExtra ? `${themePrompt}\n\n${safeExtra}` : themePrompt;
+  // 2) 템플릿 모드 - AI 없이 계산 데이터로 즉시 리포트 생성
+  // extraPrompt가 있으면 상담사 모드로 AI 사용
+  const useAI = Boolean(safeExtra);
 
   // 3) Call fusion backend
   const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
@@ -165,17 +237,20 @@ export async function generateReport({
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (AI generation takes 40-50s)
+    // 템플릿 모드: 30초, AI 모드: 180초
+    const timeoutMs = useAI ? 180000 : 30000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const response = await fetch(`${backendUrl}/ask`, {
       method: "POST",
       headers,
       body: JSON.stringify({
         theme,
-        prompt: fullPrompt,
+        prompt: safeExtra || "", // 상담사 질문이 있을 때만 프롬프트 전달
         saju: result.saju,
         astro: result.astrology,
-        locale: lang,  // Pass language to backend for proper translation
+        locale: lang,
+        render_mode: useAI ? "gpt" : "template", // 🔥 템플릿 모드 (AI 없이 즉시)
         // 고급 사주 분석 데이터
         advancedSaju: result.saju?.advancedAnalysis,
         // 고급 점성학 데이터 (기본)
@@ -228,6 +303,11 @@ export async function generateReport({
     modelUsed = "error-fallback";
   }
 
+  // 3.5) Validate required sections / cross evidence
+  // Skip validation for error-fallback responses to allow graceful degradation
+  const validationWarnings = modelUsed === "error-fallback" ? [] : validateSections(theme, aiText);
+  const validationPassed = modelUsed === "error-fallback" ? true : validationWarnings.length === 0;
+
   // 4) Assemble response
   const output: ReportOutput = {
     meta: {
@@ -238,6 +318,8 @@ export async function generateReport({
       name,
       gender,
       modelUsed,
+      validationWarnings,
+      validationPassed,
     },
     summary: result.summary,
     report: cleanseText(aiText),

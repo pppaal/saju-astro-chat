@@ -4,6 +4,7 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BackButton from "@/components/ui/BackButton";
 import styles from "./history.module.css";
 
 type ServiceRecord = {
@@ -104,9 +105,7 @@ function HistoryContent() {
   return (
     <main className={styles.container}>
       <div className={styles.header}>
-        <Link href="/myjourney" className={styles.backButton}>
-          ←
-        </Link>
+        <BackButton onClick={() => router.back()} />
         <div className={styles.headerContent}>
           <h1 className={styles.title}>My Destiny</h1>
           <p className={styles.subtitle}>{totalRecords} readings saved</p>

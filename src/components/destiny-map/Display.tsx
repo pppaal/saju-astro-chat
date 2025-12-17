@@ -2,18 +2,77 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import DOMPurify from "dompurify";
 import type { DestinyResult } from "./Analyzer";
 import Chat from "./Chat";
 import styles from "@/app/destiny-map/result/result.module.css";
 
+// Structured fortune response types
+interface ImportantYear {
+  year: number;
+  age: number;
+  rating: 1 | 2 | 3 | 4 | 5;
+  title: string;
+  sajuReason: string;
+  astroReason: string;
+  advice?: string;
+}
+
+interface CategoryAnalysis {
+  icon: string;
+  title: string;
+  sajuAnalysis: string;
+  astroAnalysis: string;
+  crossInsight: string;
+  keywords?: string[];
+  idealPartner?: string;
+  timing?: string;
+  suitableCareers?: string[];
+  wealthType?: string;
+  vulnerabilities?: string[];
+  advice?: string;
+}
+
+interface KeyInsight {
+  type: "strength" | "opportunity" | "caution" | "advice";
+  text: string;
+  icon?: string;
+}
+
+interface LuckyElements {
+  colors?: string[];
+  directions?: string[];
+  numbers?: number[];
+  items?: string[];
+}
+
+interface StructuredFortune {
+  lifeTimeline?: {
+    description?: string;
+    importantYears?: ImportantYear[];
+  };
+  categoryAnalysis?: Record<string, CategoryAnalysis>;
+  keyInsights?: KeyInsight[];
+  luckyElements?: LuckyElements;
+  sajuHighlight?: { pillar: string; element: string; meaning: string };
+  astroHighlight?: { planet: string; sign: string; meaning: string };
+  // Legacy format support
+  sections?: {
+    id: string;
+    title: string;
+    icon?: string;
+    content: string;
+  }[];
+}
+
 type LangKey = "en" | "ko" | "ja" | "zh" | "es";
 type ReportType = "core" | "timing" | "compat";
 
 // Theme translations
 const THEME_LABELS: Record<string, Record<LangKey, string>> = {
+  // Focus themes
   focus_overall: { ko: "종합 운세", en: "Overall Fortune", ja: "総合運勢", zh: "综合运势", es: "Fortuna General" },
   focus_love: { ko: "연애운", en: "Love & Romance", ja: "恋愛運", zh: "爱情运", es: "Amor" },
   focus_career: { ko: "직업운", en: "Career & Work", ja: "仕事運", zh: "事业运", es: "Carrera" },
@@ -22,11 +81,287 @@ const THEME_LABELS: Record<string, Record<LangKey, string>> = {
   focus_energy: { ko: "기운/에너지", en: "Energy & Vitality", ja: "エネルギー", zh: "能量", es: "Energía" },
   focus_family: { ko: "가정운", en: "Family & Home", ja: "家庭運", zh: "家庭运", es: "Familia" },
   focus_social: { ko: "대인관계", en: "Social & Relationships", ja: "対人運", zh: "人际关系", es: "Social" },
+  // Fortune themes
+  fortune_new_year: { ko: "신년 운세", en: "New Year Fortune", ja: "新年運勢", zh: "新年运势", es: "Fortuna de Año Nuevo" },
+  fortune_next_year: { ko: "내년 운세", en: "Next Year Fortune", ja: "来年運勢", zh: "明年运势", es: "Fortuna del Próximo Año" },
+  fortune_monthly: { ko: "월운", en: "Monthly Fortune", ja: "月運", zh: "月运", es: "Fortuna Mensual" },
+  fortune_today: { ko: "오늘의 운세", en: "Today's Fortune", ja: "今日の運勢", zh: "今日运势", es: "Fortuna de Hoy" },
 };
 
 const getThemeLabel = (themeKey: string, lang: LangKey): string => {
-  return THEME_LABELS[themeKey]?.[lang] || THEME_LABELS[themeKey]?.en || themeKey;
+  // Normalize to lowercase for consistent lookup
+  const normalizedKey = themeKey?.toLowerCase?.() || themeKey;
+  return THEME_LABELS[normalizedKey]?.[lang] || THEME_LABELS[normalizedKey]?.en || themeKey;
 };
+
+// Try to parse JSON from interpretation text
+function tryParseStructured(text: string): StructuredFortune | null {
+  if (!text) return null;
+
+  // Clean the text first
+  let cleanText = text
+    .replace(/```json\s*/gi, '')  // Remove markdown code blocks
+    .replace(/```\s*/g, '')
+    .trim();
+
+  try {
+    // Try direct JSON parse first
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.lifeTimeline || parsed.categoryAnalysis || parsed.keyInsights) {
+        return parsed as StructuredFortune;
+      }
+    }
+
+    // If no outer braces, try wrapping the content
+    if (cleanText.includes('"lifeTimeline"') || cleanText.includes('"categoryAnalysis"')) {
+      // Add outer braces if missing
+      if (!cleanText.startsWith('{')) {
+        cleanText = '{' + cleanText;
+      }
+      if (!cleanText.endsWith('}')) {
+        cleanText = cleanText + '}';
+      }
+
+      try {
+        const parsed = JSON.parse(cleanText);
+        if (parsed.lifeTimeline || parsed.categoryAnalysis || parsed.keyInsights) {
+          return parsed as StructuredFortune;
+        }
+      } catch {
+        // Continue to fallback
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Star rating component
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <span style={{ color: "#ffd166", letterSpacing: 2 }}>
+      {"★".repeat(rating)}{"☆".repeat(5 - rating)}
+    </span>
+  );
+}
+
+// Life Timeline component (인생 타임라인)
+function LifeTimelineSection({
+  data,
+  lang
+}: {
+  data: StructuredFortune["lifeTimeline"];
+  lang: LangKey;
+}) {
+  if (!data?.importantYears?.length) return null;
+
+  const labels: Record<LangKey, { title: string; age: string; saju: string; astro: string }> = {
+    ko: { title: "📅 인생 주요 시점", age: "세", saju: "사주", astro: "점성" },
+    en: { title: "📅 Life Timeline", age: "years old", saju: "Saju", astro: "Astro" },
+    ja: { title: "📅 人生のタイムライン", age: "歳", saju: "四柱", astro: "占星" },
+    zh: { title: "📅 人生时间线", age: "岁", saju: "四柱", astro: "占星" },
+    es: { title: "📅 Línea de Vida", age: "años", saju: "Saju", astro: "Astro" },
+  };
+  const t = labels[lang] || labels.en;
+
+  return (
+    <div className={styles.timelineSection}>
+      <h3 className={styles.sectionTitle}>{t.title}</h3>
+      {data.description && <p className={styles.timelineDesc}>{data.description}</p>}
+      <div className={styles.timeline}>
+        {data.importantYears.map((year, i) => (
+          <div key={i} className={styles.timelineItem}>
+            <div className={styles.timelineYear}>
+              <span className={styles.yearValue}>{year.year}</span>
+              <span className={styles.yearAge}>({year.age}{t.age})</span>
+              <StarRating rating={year.rating} />
+            </div>
+            <div className={styles.timelineContent}>
+              <h4 className={styles.timelineTitle}>{year.title}</h4>
+              <div className={styles.timelineReasons}>
+                <div className={styles.reasonRow}>
+                  <span className={styles.sajuTag}>{t.saju}</span>
+                  <span>{year.sajuReason}</span>
+                </div>
+                <div className={styles.reasonRow}>
+                  <span className={styles.astroTag}>{t.astro}</span>
+                  <span>{year.astroReason}</span>
+                </div>
+              </div>
+              {year.advice && <p className={styles.timelineAdvice}>💡 {year.advice}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Category Analysis component (카테고리별 분석)
+function CategoryAnalysisSection({
+  categories,
+  lang
+}: {
+  categories: Record<string, CategoryAnalysis>;
+  lang: LangKey;
+}) {
+  if (!categories || Object.keys(categories).length === 0) return null;
+
+  const labels: Record<LangKey, { saju: string; astro: string; cross: string }> = {
+    ko: { saju: "사주 분석", astro: "점성 분석", cross: "교차 인사이트" },
+    en: { saju: "Saju Analysis", astro: "Astro Analysis", cross: "Cross Insight" },
+    ja: { saju: "四柱分析", astro: "占星分析", cross: "クロス分析" },
+    zh: { saju: "四柱分析", astro: "占星分析", cross: "交叉洞察" },
+    es: { saju: "Análisis Saju", astro: "Análisis Astro", cross: "Insight Cruzado" },
+  };
+  const t = labels[lang] || labels.en;
+
+  const categoryOrder = ["personality", "appearance", "love", "family", "friends", "career", "wealth", "health"];
+  const sortedCategories = categoryOrder
+    .filter(key => categories[key])
+    .map(key => ({ key, ...categories[key] }));
+
+  return (
+    <div className={styles.categorySection}>
+      {sortedCategories.map((cat) => (
+        <div key={cat.key} className={styles.categoryCard}>
+          <h3 className={styles.categoryTitle}>
+            <span className={styles.categoryIcon}>{cat.icon}</span>
+            {cat.title}
+          </h3>
+
+          <div className={styles.analysisGrid}>
+            <div className={styles.analysisBox}>
+              <span className={styles.analysisLabel}>{t.saju}</span>
+              <p>{cat.sajuAnalysis}</p>
+            </div>
+            <div className={styles.analysisBox}>
+              <span className={styles.analysisLabel}>{t.astro}</span>
+              <p>{cat.astroAnalysis}</p>
+            </div>
+          </div>
+
+          <div className={styles.crossInsight}>
+            <span className={styles.crossLabel}>✨ {t.cross}</span>
+            <p>{cat.crossInsight}</p>
+          </div>
+
+          {cat.keywords && cat.keywords.length > 0 && (
+            <div className={styles.keywords}>
+              {cat.keywords.map((kw, i) => (
+                <span key={i} className={styles.keyword}>{kw}</span>
+              ))}
+            </div>
+          )}
+
+          {cat.suitableCareers && cat.suitableCareers.length > 0 && (
+            <div className={styles.careerList}>
+              <strong>💼</strong> {cat.suitableCareers.join(", ")}
+            </div>
+          )}
+
+          {cat.timing && <p className={styles.timing}>⏰ {cat.timing}</p>}
+          {cat.idealPartner && <p className={styles.partner}>💕 {cat.idealPartner}</p>}
+          {cat.wealthType && <p className={styles.wealthType}>💰 {cat.wealthType}</p>}
+          {cat.advice && <p className={styles.catAdvice}>💡 {cat.advice}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Lucky Elements component (행운의 요소)
+function LuckyElementsSection({
+  data,
+  lang
+}: {
+  data: LuckyElements;
+  lang: LangKey;
+}) {
+  if (!data) return null;
+
+  const labels: Record<LangKey, { title: string; colors: string; directions: string; numbers: string; items: string }> = {
+    ko: { title: "🍀 행운의 요소", colors: "색상", directions: "방향", numbers: "숫자", items: "아이템" },
+    en: { title: "🍀 Lucky Elements", colors: "Colors", directions: "Directions", numbers: "Numbers", items: "Items" },
+    ja: { title: "🍀 ラッキー要素", colors: "色", directions: "方角", numbers: "数字", items: "アイテム" },
+    zh: { title: "🍀 幸运元素", colors: "颜色", directions: "方向", numbers: "数字", items: "物品" },
+    es: { title: "🍀 Elementos de Suerte", colors: "Colores", directions: "Direcciones", numbers: "Números", items: "Artículos" },
+  };
+  const t = labels[lang] || labels.en;
+
+  return (
+    <div className={styles.luckySection}>
+      <h4>{t.title}</h4>
+      <div className={styles.luckyGrid}>
+        {data.colors?.length && (
+          <div className={styles.luckyItem}>
+            <span className={styles.luckyLabel}>🎨 {t.colors}</span>
+            <span>{data.colors.join(", ")}</span>
+          </div>
+        )}
+        {data.directions?.length && (
+          <div className={styles.luckyItem}>
+            <span className={styles.luckyLabel}>🧭 {t.directions}</span>
+            <span>{data.directions.join(", ")}</span>
+          </div>
+        )}
+        {data.numbers?.length && (
+          <div className={styles.luckyItem}>
+            <span className={styles.luckyLabel}>🔢 {t.numbers}</span>
+            <span>{data.numbers.join(", ")}</span>
+          </div>
+        )}
+        {data.items?.length && (
+          <div className={styles.luckyItem}>
+            <span className={styles.luckyLabel}>✨ {t.items}</span>
+            <span>{data.items.join(", ")}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Key insights component
+function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: LangKey }) {
+  // Filter out insights without actual text content
+  const validInsights = insights?.filter(i => i.text && i.text.trim().length > 0);
+  if (!validInsights || validInsights.length === 0) return null;
+
+  const typeIcons: Record<string, string> = {
+    strength: "💪",
+    opportunity: "🚀",
+    caution: "⚠️",
+    advice: "💡",
+  };
+
+  const typeLabels: Record<LangKey, Record<string, string>> = {
+    ko: { strength: "강점", opportunity: "기회", caution: "주의", advice: "조언" },
+    en: { strength: "Strength", opportunity: "Opportunity", caution: "Caution", advice: "Advice" },
+    ja: { strength: "強み", opportunity: "機会", caution: "注意", advice: "アドバイス" },
+    zh: { strength: "优势", opportunity: "机会", caution: "注意", advice: "建议" },
+    es: { strength: "Fortaleza", opportunity: "Oportunidad", caution: "Precaución", advice: "Consejo" },
+  };
+  const t = typeLabels[lang] || typeLabels.en;
+
+  return (
+    <div className={styles.insightsSection}>
+      {validInsights.map((insight, i) => (
+        <div key={i} className={`${styles.insightCard} ${styles[`insight_${insight.type}`]}`}>
+          <span className={styles.insightIcon}>{insight.icon || typeIcons[insight.type] || "✦"}</span>
+          <div>
+            <span className={styles.insightType}>{t[insight.type] || insight.type}</span>
+            <p className={styles.insightText}>{insight.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const I18N: Record<LangKey, {
   userFallback: string;
@@ -72,6 +407,18 @@ const I18N: Record<LangKey, {
   },
 };
 
+// Helper to find theme data with case-insensitive key matching
+const findThemeData = (themes: Record<string, any> | undefined, themeKey: string) => {
+  if (!themes || !themeKey) return undefined;
+  // Try exact match first
+  if (themes[themeKey]) return { key: themeKey, data: themes[themeKey] };
+  // Try case-insensitive match
+  const normalizedKey = themeKey.toLowerCase();
+  const matchingKey = Object.keys(themes).find(k => k.toLowerCase() === normalizedKey);
+  if (matchingKey) return { key: matchingKey, data: themes[matchingKey] };
+  return undefined;
+};
+
 export default function Display({
   result,
   lang = "ko",
@@ -97,14 +444,44 @@ export default function Display({
     );
   }
 
-  const themed = result?.themes?.[activeTheme];
+  // Find theme data with case-insensitive matching
+  const themeMatch = findThemeData(result?.themes, activeTheme);
+  const themed = themeMatch?.data;
   const name = result?.profile?.name?.trim() || tr.userFallback;
 
-  const fixedText =
-    typeof themed?.interpretation === "string"
-      ? themed.interpretation
-          .replace(/##+\s*/g, "## ")
-      : tr.analysisFallback;
+  // Try to parse structured JSON from interpretation
+  const structuredData = useMemo(() => {
+    if (typeof themed?.interpretation === "string") {
+      return tryParseStructured(themed.interpretation);
+    }
+    return null;
+  }, [themed?.interpretation]);
+
+  // Check if we have complete structured data (lifeTimeline + categoryAnalysis)
+  const hasFullStructuredData = useMemo(() => {
+    return structuredData?.lifeTimeline?.importantYears?.length ||
+           (structuredData?.categoryAnalysis && Object.keys(structuredData.categoryAnalysis).length > 0);
+  }, [structuredData]);
+
+  // Get plain text for markdown rendering (remove JSON if present)
+  const fixedText = useMemo(() => {
+    if (typeof themed?.interpretation !== "string") return tr.analysisFallback;
+
+    // If we have full structured data, don't show markdown content
+    if (hasFullStructuredData) {
+      return ""; // Will be handled by structured components
+    }
+
+    let text = themed.interpretation;
+    // If structured data exists with sections, extract sections content for display
+    if (structuredData?.sections) {
+      return structuredData.sections
+        .map(s => `## ${s.icon || "✦"} ${s.title}\n\n${s.content}`)
+        .join("\n\n---\n\n");
+    }
+    // Otherwise clean up the raw text (remove JSON from display)
+    return text.replace(/##+\s*/g, "## ").replace(/\{[\s\S]*\}/g, "").trim() || tr.analysisFallback;
+  }, [themed?.interpretation, structuredData, hasFullStructuredData, tr.analysisFallback]);
 
   return (
     <div>
@@ -152,24 +529,81 @@ export default function Display({
         </div>
       </div>
 
-      <div className={styles.summary}>
-        <ReactMarkdown
-          skipHtml={true}
-          components={{
-            h1: (props) => <h2 className={styles.h2} {...props} />,
-            h2: (props) => <h3 className={styles.h2} {...props} />,
-            ul: (props) => <ul style={{ marginLeft: 20, lineHeight: 1.7 }} {...props} />,
-            li: (props) => <li style={{ marginBottom: 6 }} {...props} />,
-            p: (props) => <p style={{ marginBottom: 12 }} {...props} />,
-          }}
-        >
-          {DOMPurify.sanitize(fixedText, {
-            ALLOWED_TAGS: [],
-            ALLOWED_ATTR: [],
-            USE_PROFILES: { html: false },
-          })}
-        </ReactMarkdown>
-      </div>
+      {/* Key Insights - Top summary */}
+      {structuredData?.keyInsights && (
+        <div className={styles.section}>
+          <KeyInsightsSection insights={structuredData.keyInsights} lang={lang} />
+        </div>
+      )}
+
+      {/* Lucky Elements */}
+      {structuredData?.luckyElements && (
+        <LuckyElementsSection data={structuredData.luckyElements} lang={lang} />
+      )}
+
+      {/* Life Timeline (인생 주요 시점) */}
+      {structuredData?.lifeTimeline && (
+        <LifeTimelineSection data={structuredData.lifeTimeline} lang={lang} />
+      )}
+
+      {/* Category Analysis (카테고리별 분석) */}
+      {structuredData?.categoryAnalysis && (
+        <CategoryAnalysisSection categories={structuredData.categoryAnalysis} lang={lang} />
+      )}
+
+      {/* Saju & Astro Highlights */}
+      {(structuredData?.sajuHighlight || structuredData?.astroHighlight) && (
+        <div className={styles.highlightsRow}>
+          {structuredData.sajuHighlight && (
+            <div className={styles.highlightCard}>
+              <span className={styles.highlightIcon}>☯️</span>
+              <div>
+                <div className={styles.highlightTitle}>{structuredData.sajuHighlight.pillar}</div>
+                <div className={styles.highlightElement}>{structuredData.sajuHighlight.element}</div>
+                <p>{structuredData.sajuHighlight.meaning}</p>
+              </div>
+            </div>
+          )}
+          {structuredData.astroHighlight && (
+            <div className={styles.highlightCard}>
+              <span className={styles.highlightIcon}>✨</span>
+              <div>
+                <div className={styles.highlightTitle}>{structuredData.astroHighlight.planet}</div>
+                <div className={styles.highlightElement}>{structuredData.astroHighlight.sign}</div>
+                <p>{structuredData.astroHighlight.meaning}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Main Content - Only show if there's text to display (no structured data) */}
+      {fixedText && fixedText.trim() && (
+        <div className={styles.summary}>
+          <ReactMarkdown
+            skipHtml={true}
+            components={{
+              h1: (props) => <h2 className={styles.sectionTitle} {...props} />,
+              h2: (props) => <h3 className={styles.sectionTitle} {...props} />,
+              h3: (props) => <h4 className={styles.subTitle} {...props} />,
+              h4: (props) => <h5 className={styles.subTitle} {...props} />,
+              ul: (props) => <ul className={styles.list} {...props} />,
+              li: (props) => <li className={styles.listItem} {...props} />,
+              p: (props) => <p className={styles.paragraph} {...props} />,
+              strong: (props) => <strong className={styles.strong} {...props} />,
+              em: (props) => <em className={styles.emphasis} {...props} />,
+              hr: () => <hr className={styles.divider} />,
+              blockquote: (props) => <blockquote className={styles.blockquote} {...props} />,
+            }}
+          >
+            {DOMPurify.sanitize(fixedText, {
+              ALLOWED_TAGS: [],
+              ALLOWED_ATTR: [],
+              USE_PROFILES: { html: false },
+            })}
+          </ReactMarkdown>
+        </div>
+      )}
 
       <div className={styles.section}>
         <h3 className={styles.h2}>{tr.followup}</h3>

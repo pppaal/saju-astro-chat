@@ -1,26 +1,43 @@
 import { NextResponse } from "next/server";
 import { generateReport } from "@/lib/destiny-map/reportService";
 import type { SajuResult, AstrologyResult } from "@/lib/destiny-map/types";
-import fs from "fs";
-import path from "path";
 import { recordCounter, recordTiming } from "@/lib/metrics";
 import { apiGuard } from "@/lib/apiGuard";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 import { sendNotification } from "@/lib/notifications/sse";
 import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 180;
 const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === "true";
 
 // Basic HTML/script stripping to keep responses safe for UI rendering
+// IMPORTANT: Preserve JSON structure (curly braces) for structured responses
 function cleanseText(raw: string) {
   if (!raw) return "";
+
+  // Check if this is a JSON response (starts with { or contains structured keys)
+  const isJsonResponse = raw.trim().startsWith("{") ||
+                          raw.includes('"lifeTimeline"') ||
+                          raw.includes('"categoryAnalysis"');
+
+  if (isJsonResponse) {
+    // For JSON responses, only clean dangerous content but preserve structure
+    return raw
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+      .replace(/on\w+\s*=/gi, "")  // Remove event handlers like onclick=
+      .trim();
+  }
+
+  // For non-JSON (markdown/text) responses, do full cleansing
   return raw
     .replace(/<\/?[^>]+(>|$)/g, "")
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/[{}<>]/g, "")
+    .replace(/[<>]/g, "")  // Only remove angle brackets, NOT curly braces
     .replace(/\s{2,}/g, " ")
     .trim();
 }
@@ -76,6 +93,7 @@ export async function POST(request: Request) {
 
     const start = Date.now();
     const report = await generateReport({
+      // require cross-evidence; downstream will warn if missing
       name,
       birthDate,
       birthTime,
@@ -87,6 +105,20 @@ export async function POST(request: Request) {
       extraPrompt: prompt,
       userTimezone, // 사용자 현재 타임존 (운세 날짜용)
     });
+    // cross-section validation for destiny-map
+    if (report.meta?.validationPassed === false) {
+      recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });
+      recordCounter("destiny.report.validation_fail", 1, { theme, lang });
+      return NextResponse.json(
+        {
+          error: "cross_validation_failed",
+          message: "??+?? ?? ??? ?????? ??? ?????. ?? ??????.",
+          warnings: report.meta?.validationWarnings ?? [],
+          report,
+        },
+        { status: 502 }
+      );
+    }
     recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });
     recordCounter("destiny.report.success", 1, { theme, lang });
 

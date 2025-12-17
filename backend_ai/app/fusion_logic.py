@@ -1,4 +1,4 @@
-# backend_ai/app/fusion_logic.py
+﻿# backend_ai/app/fusion_logic.py
 
 import os
 import sys
@@ -13,11 +13,13 @@ sys.path.append(os.path.dirname(__file__))
 from saju_astro_rag import GraphRAG, get_graph_rag
 from rule_engine import RuleEngine
 from signal_extractor import extract_signals
-from signal_summary import summarize_signals
+from signal_summary import summarize_signals, summarize_cross_signals
 from corpus_rag import get_corpus_rag
 from backend_ai.model.fusion_generate import get_llm, generate_fusion_report
 from redis_cache import get_cache
 from performance_optimizer import track_performance
+from sanitizer import sanitize_user_input, sanitize_name, is_suspicious_input, validate_birth_data
+from template_renderer import render_template_report
 
 # Persona semantic search (Jung/Stoic V4)
 try:
@@ -67,38 +69,38 @@ report_memory: dict[str, dict] = {}
 # ELEMENT & INTERPRETATION HELPERS
 # ===============================================================
 ELEMENT_TRAITS = {
-    "木": {"name": "Wood/목", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
-    "火": {"name": "Fire/화", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
-    "土": {"name": "Earth/토", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
-    "金": {"name": "Metal/금", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
-    "水": {"name": "Water/수", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
-    "wood": {"name": "Wood/목", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
-    "fire": {"name": "Fire/화", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
-    "earth": {"name": "Earth/토", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
-    "metal": {"name": "Metal/금", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
-    "water": {"name": "Water/수", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
+    "µ£¿": {"name": "Wood/δ¬⌐", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
+    "τü½": {"name": "Fire/φÖö", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
+    "σ£ƒ": {"name": "Earth/φåá", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
+    "Θçæ": {"name": "Metal/Ω╕ê", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
+    "µ░┤": {"name": "Water/∞êÿ", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
+    "wood": {"name": "Wood/δ¬⌐", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
+    "fire": {"name": "Fire/φÖö", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
+    "earth": {"name": "Earth/φåá", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
+    "metal": {"name": "Metal/Ω╕ê", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
+    "water": {"name": "Water/∞êÿ", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
 }
 
 TEN_GODS_MEANING = {
-    "비견": "Peer/Competitor - independence, rivalry, partnership",
-    "겁재": "Rob Wealth - boldness, risk-taking, competition",
-    "식신": "Eating God - creativity, expression, enjoyment",
-    "상관": "Hurting Officer - rebellion, innovation, critique",
-    "편재": "Indirect Wealth - speculation, windfall, entrepreneurship",
-    "정재": "Direct Wealth - stable income, savings, reliability",
-    "편관": "Indirect Authority - pressure, challenge, discipline",
-    "정관": "Direct Authority - status, law, organization",
-    "편인": "Indirect Resource - unconventional learning, intuition",
-    "정인": "Direct Resource - knowledge, nurturing, tradition",
+    "δ╣äΩ▓¼": "Peer/Competitor - independence, rivalry, partnership",
+    "Ω▓ü∞₧¼": "Rob Wealth - boldness, risk-taking, competition",
+    "∞ï¥∞ïá": "Eating God - creativity, expression, enjoyment",
+    "∞âüΩ┤Ç": "Hurting Officer - rebellion, innovation, critique",
+    "φÄ╕∞₧¼": "Indirect Wealth - speculation, windfall, entrepreneurship",
+    "∞áò∞₧¼": "Direct Wealth - stable income, savings, reliability",
+    "φÄ╕Ω┤Ç": "Indirect Authority - pressure, challenge, discipline",
+    "∞áòΩ┤Ç": "Direct Authority - status, law, organization",
+    "φÄ╕∞¥╕": "Indirect Resource - unconventional learning, intuition",
+    "∞áò∞¥╕": "Direct Resource - knowledge, nurturing, tradition",
 }
 
 ASPECT_MEANINGS = {
-    "conjunction": "融合 - powerful blend, intensification of energies",
-    "opposition": "對沖 - tension, awareness, potential for integration",
-    "trine": "三合 - harmony, natural flow, gifts",
-    "square": "刑 - friction, challenge, growth through effort",
-    "sextile": "六合 - opportunity, cooperation, gentle support",
-    "quincunx": "不調 - adjustment needed, blind spots",
+    "conjunction": "Φ₧ìσÉê - powerful blend, intensification of energies",
+    "opposition": "σ░ìµ▓û - tension, awareness, potential for integration",
+    "trine": "Σ╕ëσÉê - harmony, natural flow, gifts",
+    "square": "σêæ - friction, challenge, growth through effort",
+    "sextile": "σà¡σÉê - opportunity, cooperation, gentle support",
+    "quincunx": "Σ╕ìΦ¬┐ - adjustment needed, blind spots",
 }
 
 
@@ -118,18 +120,18 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
     # Four Pillars with meaning
     if pillars:
-        s_parts.append("【사주팔자 四柱八字】")
+        s_parts.append("πÇÉ∞é¼∞ú╝φîö∞₧É σ¢¢µƒ▒σà½σ¡ùπÇæ")
         s_parts.append(
-            f"  • 년주(Year Pillar): {pillars.get('year')} — ancestral energy, social persona, outer world"
+            f"  ΓÇó δàä∞ú╝(Year Pillar): {pillars.get('year')} ΓÇö ancestral energy, social persona, outer world"
         )
         s_parts.append(
-            f"  • 월주(Month Pillar): {pillars.get('month')} — parents, career path, life structure"
+            f"  ΓÇó ∞¢ö∞ú╝(Month Pillar): {pillars.get('month')} ΓÇö parents, career path, life structure"
         )
         s_parts.append(
-            f"  • 일주(Day Pillar): {pillars.get('day')} — core self, spouse relationship, inner nature"
+            f"  ΓÇó ∞¥╝∞ú╝(Day Pillar): {pillars.get('day')} ΓÇö core self, spouse relationship, inner nature"
         )
         s_parts.append(
-            f"  • 시주(Hour Pillar): {pillars.get('time')} — children, later years, creative output"
+            f"  ΓÇó ∞ï£∞ú╝(Hour Pillar): {pillars.get('time')} ΓÇö children, later years, creative output"
         )
 
     # Day Master with interpretive context
@@ -140,19 +142,19 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
             dm_strength = day_master.get('strength', 'moderate')
             element_info = ELEMENT_TRAITS.get(dm_element, {})
 
-            s_parts.append(f"\n【일간 日干 (Day Master)】")
-            s_parts.append(f"  • Core Identity: {dm_name} ({element_info.get('name', dm_element)})")
-            s_parts.append(f"  • Natural Traits: {element_info.get('traits', 'unique characteristics')}")
-            s_parts.append(f"  • Strength: {dm_strength} — {'strong self-reliance' if dm_strength == 'strong' else 'benefits from support' if dm_strength == 'weak' else 'balanced energy'}")
+            s_parts.append(f"\nπÇÉ∞¥╝Ω░ä µùÑσ╣▓ (Day Master)πÇæ")
+            s_parts.append(f"  ΓÇó Core Identity: {dm_name} ({element_info.get('name', dm_element)})")
+            s_parts.append(f"  ΓÇó Natural Traits: {element_info.get('traits', 'unique characteristics')}")
+            s_parts.append(f"  ΓÇó Strength: {dm_strength} ΓÇö {'strong self-reliance' if dm_strength == 'strong' else 'benefits from support' if dm_strength == 'weak' else 'balanced energy'}")
             if element_info.get('organ'):
-                s_parts.append(f"  • Body Association: {element_info.get('organ')} (wellness focus area)")
+                s_parts.append(f"  ΓÇó Body Association: {element_info.get('organ')} (wellness focus area)")
         else:
-            s_parts.append(f"\n【일간 日干】Day master: {day_master}")
+            s_parts.append(f"\nπÇÉ∞¥╝Ω░ä µùÑσ╣▓πÇæDay master: {day_master}")
 
     # Five Elements Balance with interpretation
     if isinstance(facts.get("fiveElements"), dict):
         fe = facts["fiveElements"]
-        s_parts.append(f"\n【오행 균형 Five Elements Balance】")
+        s_parts.append(f"\nπÇÉ∞ÿñφûë Ω╖áφÿò Five Elements BalanceπÇæ")
 
         # Find dominant and weak elements
         sorted_elements = sorted(fe.items(), key=lambda x: x[1], reverse=True)
@@ -161,62 +163,62 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
         for elem, count in fe.items():
             elem_info = ELEMENT_TRAITS.get(elem, {})
-            status = "dominant ★" if dominant and elem == dominant[0] and count > 2 else ""
-            status = "deficient ○" if weakest and elem == weakest[0] and count == 0 else status
-            s_parts.append(f"  • {elem_info.get('name', elem)}: {count} {status}")
+            status = "dominant Γÿà" if dominant and elem == dominant[0] and count > 2 else ""
+            status = "deficient Γùï" if weakest and elem == weakest[0] and count == 0 else status
+            s_parts.append(f"  ΓÇó {elem_info.get('name', elem)}: {count} {status}")
 
         if dominant and dominant[1] > 3:
-            s_parts.append(f"  → Dominant {ELEMENT_TRAITS.get(dominant[0], {}).get('name', dominant[0])}: amplified {ELEMENT_TRAITS.get(dominant[0], {}).get('traits', 'energy')}")
+            s_parts.append(f"  ΓåÆ Dominant {ELEMENT_TRAITS.get(dominant[0], {}).get('name', dominant[0])}: amplified {ELEMENT_TRAITS.get(dominant[0], {}).get('traits', 'energy')}")
         if weakest and weakest[1] == 0:
-            s_parts.append(f"  → Missing {ELEMENT_TRAITS.get(weakest[0], {}).get('name', weakest[0])}: area for conscious development")
+            s_parts.append(f"  ΓåÆ Missing {ELEMENT_TRAITS.get(weakest[0], {}).get('name', weakest[0])}: area for conscious development")
 
     # Ten Gods with meanings
     if "tenGods" in facts:
         ten_gods = facts['tenGods']
-        s_parts.append(f"\n【십성 十神 (Ten Gods)】")
+        s_parts.append(f"\nπÇÉ∞ï¡∞ä▒ σìüτÑ₧ (Ten Gods)πÇæ")
         if isinstance(ten_gods, dict):
             for god, info in ten_gods.items():
                 meaning = TEN_GODS_MEANING.get(god, "special influence")
-                s_parts.append(f"  • {god}: {meaning}")
+                s_parts.append(f"  ΓÇó {god}: {meaning}")
         else:
             s_parts.append(f"  {ten_gods}")
 
     # Power Balance
     if "powerBalance" in facts:
         pb = facts['powerBalance']
-        s_parts.append(f"\n【신강신약 Power Balance】")
+        s_parts.append(f"\nπÇÉ∞ïáΩ░ò∞ïá∞ò╜ Power BalanceπÇæ")
         if isinstance(pb, dict):
             balance_type = pb.get('type', 'balanced')
-            s_parts.append(f"  • Type: {balance_type}")
-            if balance_type in ['신강', 'strong']:
-                s_parts.append("  → Self-sufficient, leadership potential, may need to consider others")
-            elif balance_type in ['신약', 'weak']:
-                s_parts.append("  → Collaborative nature, benefits from support, adaptable")
+            s_parts.append(f"  ΓÇó Type: {balance_type}")
+            if balance_type in ['∞ïáΩ░ò', 'strong']:
+                s_parts.append("  ΓåÆ Self-sufficient, leadership potential, may need to consider others")
+            elif balance_type in ['∞ïá∞ò╜', 'weak']:
+                s_parts.append("  ΓåÆ Collaborative nature, benefits from support, adaptable")
         else:
             s_parts.append(f"  {pb}")
 
     # Luck Cycles with context
     cycle_labels = {
-        "daeun": ("대운 大運 (Great Luck)", "10-year cycle, major life phases"),
-        "annual": ("세운 歲運 (Annual Luck)", "yearly energy, current year themes"),
-        "monthly": ("월운 月運 (Monthly)", "monthly focus, timing for actions"),
-        "iljin": ("일진 日辰 (Daily)", "daily energy, immediate timing"),
+        "daeun": ("δîÇ∞Ü┤ σñºΘüï (Great Luck)", "10-year cycle, major life phases"),
+        "annual": ("∞ä╕∞Ü┤ µ¡▓Θüï (Annual Luck)", "yearly energy, current year themes"),
+        "monthly": ("∞¢ö∞Ü┤ µ£êΘüï (Monthly)", "monthly focus, timing for actions"),
+        "iljin": ("∞¥╝∞ºä µùÑΦ╛░ (Daily)", "daily energy, immediate timing"),
     }
     for key, (label, desc) in cycle_labels.items():
         cycles = unse.get(key, [])
         if cycles:
             names = [c.get("name") or str(c) for c in cycles[:6]]
-            s_parts.append(f"\n【{label}】({desc})")
+            s_parts.append(f"\nπÇÉ{label}πÇæ({desc})")
             s_parts.append(f"  Current/Upcoming: {', '.join(names)}")
 
     # Sinsal (Special Stars) with interpretation
     if sinsal and sinsal.get("hits"):
-        s_parts.append(f"\n【신살 神煞 (Special Stars)】")
+        s_parts.append(f"\nπÇÉ∞ïá∞é┤ τÑ₧τà₧ (Special Stars)πÇæ")
         for h in sinsal["hits"][:10]:
             name = h.get("name", "")
             desc = h.get("description", h.get("meaning", "unique influence"))
             if name:
-                s_parts.append(f"  • {name}: {desc[:80]}")
+                s_parts.append(f"  ΓÇó {name}: {desc[:80]}")
 
     saju_text = "\n".join(s_parts) or "No saju facts."
 
@@ -231,17 +233,17 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
     # Key Angles
     if asc or mc:
-        a_parts.append("【주요 앵글 Key Angles】")
+        a_parts.append("πÇÉ∞ú╝∞Üö ∞ò╡Ω╕Ç Key AnglesπÇæ")
         if asc:
             asc_sign = asc.get('sign') if isinstance(asc, dict) else asc
-            a_parts.append(f"  • Ascendant (ASC): {asc_sign} — first impression, physical presence, life approach")
+            a_parts.append(f"  ΓÇó Ascendant (ASC): {asc_sign} ΓÇö first impression, physical presence, life approach")
         if mc:
             mc_sign = mc.get('sign') if isinstance(mc, dict) else mc
-            a_parts.append(f"  • Midheaven (MC): {mc_sign} — career path, public image, life direction")
+            a_parts.append(f"  ΓÇó Midheaven (MC): {mc_sign} ΓÇö career path, public image, life direction")
 
     # Planets with interpretive context
     if planets:
-        a_parts.append(f"\n【행성 배치 Planetary Positions】")
+        a_parts.append(f"\nπÇÉφûë∞ä▒ δ░░∞╣ÿ Planetary PositionsπÇæ")
         planet_meanings = {
             "Sun": "core identity, vitality, ego",
             "Moon": "emotions, instincts, inner needs",
@@ -261,30 +263,30 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
                 house = p.get('house', '')
                 degree = p.get('degree', '')
                 meaning = planet_meanings.get(name, 'influence')
-                degree_str = f" at {degree}°" if degree else ""
-                a_parts.append(f"  • {name} in {sign}{degree_str} (House {house}): {meaning}")
+                degree_str = f" at {degree}┬░" if degree else ""
+                a_parts.append(f"  ΓÇó {name} in {sign}{degree_str} (House {house}): {meaning}")
 
     # Aspects with meanings
     if aspects:
-        a_parts.append(f"\n【행성 상호작용 Major Aspects】")
+        a_parts.append(f"\nπÇÉφûë∞ä▒ ∞âüφÿ╕∞₧æ∞Ü⌐ Major AspectsπÇæ")
         for a in aspects[:12]:
             asp_type = a.get('aspect', '')
             p1 = a.get('planet1', '')
             p2 = a.get('planet2', '')
             orb = a.get('orb', '')
             meaning = ASPECT_MEANINGS.get(asp_type.lower(), 'connection')
-            orb_str = f" (orb: {orb}°)" if orb else ""
-            a_parts.append(f"  • {p1} {asp_type} {p2}{orb_str}: {meaning}")
+            orb_str = f" (orb: {orb}┬░)" if orb else ""
+            a_parts.append(f"  ΓÇó {p1} {asp_type} {p2}{orb_str}: {meaning}")
 
     # Element Ratios with interpretation
     if facts.get("elementRatios"):
         er = facts["elementRatios"]
-        a_parts.append(f"\n【원소 분포 Element Distribution】")
+        a_parts.append(f"\nπÇÉ∞¢É∞åî δ╢äφÅ¼ Element DistributionπÇæ")
         sorted_er = sorted(er.items(), key=lambda x: x[1], reverse=True)
         for elem, ratio in sorted_er:
             pct = round(ratio * 100) if ratio <= 1 else round(ratio)
-            status = "★ dominant" if pct > 35 else "○ low" if pct < 10 else ""
-            a_parts.append(f"  • {elem}: {pct}% {status}")
+            status = "Γÿà dominant" if pct > 35 else "Γùï low" if pct < 10 else ""
+            a_parts.append(f"  ΓÇó {elem}: {pct}% {status}")
 
     astro_text = "\n".join(a_parts) or "No astrology facts."
 
@@ -295,19 +297,19 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
     category = tarot.get("category") or tarot.get("theme")
 
     if category or spread:
-        t_parts.append("【타로 리딩 Tarot Reading】")
+        t_parts.append("πÇÉφâÇδí£ δª¼δö⌐ Tarot ReadingπÇæ")
         if category:
             t_parts.append(f"  Theme: {category}")
         if spread:
             t_parts.append(f"  Spread: {spread.get('title') or spread.get('id')} ({spread.get('cardCount', len(drawn_cards))} cards)")
 
     if isinstance(drawn_cards, list) and drawn_cards:
-        t_parts.append(f"\n【카드 해석 Card Interpretations】")
+        t_parts.append(f"\nπÇÉ∞╣┤δô£ φò┤∞ä¥ Card InterpretationsπÇæ")
         for idx, dc in enumerate(drawn_cards[:8]):
             card = dc.get("card") if isinstance(dc, dict) else None
             name = card.get("name") if isinstance(card, dict) else dc.get("name")
             is_reversed = dc.get("isReversed", False) if isinstance(dc, dict) else False
-            orientation = "역방향 Reversed" if is_reversed else "정방향 Upright"
+            orientation = "∞ù¡δ░⌐φûÑ Reversed" if is_reversed else "∞áòδ░⌐φûÑ Upright"
 
             keywords = []
             description = ""
@@ -405,9 +407,9 @@ def _parallel_persona_semantic(user_prompt):
         semantic_context = persona_rag.get_persona_context(user_prompt, top_k=2)
         parts = []
         if semantic_context.get("jung_insights"):
-            parts.append("[Jung 분석가]\n" + "\n".join(semantic_context["jung_insights"][:2]))
+            parts.append("[Jung δ╢ä∞ä¥Ω░Ç]\n" + "\n".join(semantic_context["jung_insights"][:2]))
         if semantic_context.get("stoic_insights"):
-            parts.append("[Stoic 전략가]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
+            parts.append("[Stoic ∞áäδ₧╡Ω░Ç]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
         return "\n\n".join(parts) if parts else ""
     except Exception as e:
         print(f"[Parallel] Persona semantic error: {e}")
@@ -425,15 +427,60 @@ def interpret_with_ai(facts: dict):
     """
     load_dotenv()
     try:
+        render_mode = facts.get("render_mode", "gpt")  # "gpt" (default) or "template"
         api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY is missing.")
+        if render_mode != "template" and not api_key:
+            # Fallback to template mode if no API key
+            render_mode = "template"
 
         locale = facts.get("locale", "en")
-        user_prompt = facts.get("prompt") or ""
+        raw_prompt = facts.get("prompt") or ""
+
+        # Check if this is a structured JSON request from frontend (not user input)
+        # These prompts contain schema instructions and should not be truncated
+        is_structured_prompt = (
+            "You MUST return a valid JSON object" in raw_prompt or
+            '"lifeTimeline"' in raw_prompt or
+            '"categoryAnalysis"' in raw_prompt
+        )
+
+        if is_structured_prompt:
+            # For structured prompts from frontend, allow full length (no truncation)
+            user_prompt = sanitize_user_input(raw_prompt, max_length=50000, allow_newlines=True)
+            print(f"[FusionLogic] Structured JSON prompt detected (len={len(raw_prompt)})")
+        else:
+            # Normal user input - apply strict sanitization
+            user_prompt = sanitize_user_input(raw_prompt)
+
         theme = facts.get("theme", "life_path")
 
-        # 🚀 Check Redis cache first
+        # Lightweight monitoring (does not block request)
+        if is_suspicious_input(raw_prompt):
+            import logging
+
+            logging.getLogger("backend_ai.security").warning(
+                f"[Security] Suspicious input detected in fusion request"
+            )
+
+        # Validate birth data shape early (non-blocking)
+        birth_data = facts.get("saju", {}).get("facts", {})
+        birth_date = birth_data.get("birth_date") or birth_data.get("birthDate")
+        birth_time = birth_data.get("birth_time") or birth_data.get("birthTime")
+        birth_year = birth_data.get("birth_year") or birth_data.get("birthYear")
+
+        if birth_date or birth_time or birth_year:
+            is_valid, validation_error = validate_birth_data(
+                birth_date, birth_time, birth_year
+            )
+            if not is_valid:
+                import logging
+
+                logging.getLogger("backend_ai.validation").warning(
+                    f"[Validation] Invalid birth data: {validation_error}"
+                )
+                # Continue anyway with available data
+
+        # Check Redis cache first
         cache = get_cache()
         cache_data = {
             "theme": theme,
@@ -442,6 +489,7 @@ def interpret_with_ai(facts: dict):
             "saju": facts.get("saju", {}),
             "astro": facts.get("astro", {}),
             "tarot": facts.get("tarot", {}),
+            "render_mode": render_mode,  # 🔥 템플릿/GPT 모드 구분 캐시
         }
         cached = cache.get("fusion", cache_data)
         if cached:
@@ -449,10 +497,9 @@ def interpret_with_ai(facts: dict):
             return cached
 
         base_dir = os.path.dirname(os.path.dirname(__file__))  # .../backend_ai
-        rag = get_graph_rag()  # 🚀 Use singleton instead of creating new instance
+        rag = get_graph_rag()  # Use singleton instead of creating new instance
 
-        # 🚀 PARALLEL PREPROCESSING - Run independent tasks concurrently
-        birth_data = facts.get("saju", {}).get("facts", {})
+        # PARALLEL PREPROCESSING - Run independent tasks concurrently
         parallel_results = {}
 
         with ThreadPoolExecutor(max_workers=6) as executor:
@@ -489,7 +536,7 @@ def interpret_with_ai(facts: dict):
         rules_base = os.path.join(base_dir, "data", "graph", "rules")
         rule_engine = RuleEngine(os.path.join(rules_base, "fusion"))
 
-        # 🧠 Apply RLHF weights to RuleEngine before evaluation
+        # Apply RLHF weights to RuleEngine before evaluation
         if HAS_RLHF:
             try:
                 fl = get_feedback_learning()
@@ -501,7 +548,7 @@ def interpret_with_ai(facts: dict):
 
         rule_eval = rule_engine.evaluate(facts)
 
-        # 🎭 Persona rules (Jung/Stoic V4) - separate for modularity
+        # Persona rules (Jung/Stoic V4) - separate for modularity
         persona_eval = {"matched_rules": [], "matched_count": 0}
         persona_rules_path = os.path.join(rules_base, "persona")
         if os.path.exists(persona_rules_path):
@@ -521,16 +568,20 @@ def interpret_with_ai(facts: dict):
         signal_highlights = (
             f"[Signal highlights]\n{signal_summary}\n\n" if signal_summary else ""
         )
+        cross_summary = summarize_cross_signals(signals)
+        cross_highlights = (
+            f"[Saju-Astro cross]\n{cross_summary}\n\n" if cross_summary else ""
+        )
 
-        # 📚 User memory & Jung quotes - already fetched in parallel above
+        # User memory & Jung quotes - already fetched in parallel above
         jung_quotes_context = f"\n\n[Authentic Jung Quotes - Use these for interpretation]\n{jung_quotes_formatted}" if jung_quotes_formatted else ""
 
-        # 🧠 RLHF - already fetched in parallel above
+        # RLHF - already fetched in parallel above
         if rlhf_fewshot_context:
             rlhf_fewshot_context = f"\n\n{rlhf_fewshot_context}"
 
         # ===============================================================
-        # 🚀 AGENTIC RAG: Deep Graph Traversal & Entity Extraction
+        # AGENTIC RAG: Deep Graph Traversal & Entity Extraction
         # ===============================================================
         agentic_context = ""
         agentic_stats = {}
@@ -560,7 +611,7 @@ def interpret_with_ai(facts: dict):
                         path_strs = []
                         for p in paths[:3]:
                             if p.get("nodes"):
-                                path_strs.append(" → ".join(p["nodes"][:6]))
+                                path_strs.append(" ΓåÆ ".join(p["nodes"][:6]))
                         if path_strs:
                             agentic_context += f"\n\n[Deep Graph Paths - Multi-hop]\n" + "\n".join(path_strs)
 
@@ -572,7 +623,7 @@ def interpret_with_ai(facts: dict):
                             label = r.get("label", "")
                             desc = r.get("description", "")[:150]
                             if label and desc:
-                                graph_context_parts.append(f"• {label}: {desc}")
+                                graph_context_parts.append(f"ΓÇó {label}: {desc}")
                         if graph_context_parts:
                             agentic_context += f"\n\n[Enhanced Graph Context]\n" + "\n".join(graph_context_parts)
 
@@ -583,7 +634,7 @@ def interpret_with_ai(facts: dict):
                 print(f"[Agentic] Error: {e}")
 
         # ===============================================================
-        # 🎯 THEME CROSS-REFERENCE FILTER: 테마별 사주+점성 교차점
+        # THEME CROSS-REFERENCE FILTER: saju + astro cross intersections
         # ===============================================================
         theme_cross_context = ""
         theme_cross_summary = {}
@@ -601,12 +652,12 @@ def interpret_with_ai(facts: dict):
                     facts.get("astro", {})
                 )
                 if theme_cross_context:
-                    theme_cross_context = f"\n\n[🎯 테마 교차점 분석 - {theme.upper()}]\n{theme_cross_context}"
+                    theme_cross_context = f"\n\n[Theme cross-reference - {theme.upper()}]\n{theme_cross_context}"
                     print(f"[ThemeFilter] Generated cross-reference for {theme}: score={theme_cross_summary.get('relevance_score', 0)}")
             except Exception as e:
                 print(f"[ThemeFilter] Error: {e}")
 
-        # 🎭 Format persona insights (Jung/Stoic)
+        # Format persona insights (Jung/Stoic)
         persona_context = ""
 
         # Method 1: Rule-based matching (from RuleEngine)
@@ -626,9 +677,10 @@ def interpret_with_ai(facts: dict):
             f"[Signals]\n"
             f"{json.dumps(signals, ensure_ascii=False, indent=2)}\n"
             f"{signal_highlights}"
+            f"{cross_highlights}"
             f"[Fusion inputs]\n"
             f"[SAJU] {saju_text}\n[ASTRO] {astro_text}\n[TAROT] {tarot_text}"
-            f"{theme_cross_context}"  # 🎯 테마별 교차점 분석 (v5.1)
+            f"{theme_cross_context}"  # Theme cross-reference context (v5.1)
             f"{jung_quotes_context}"
             f"{persona_context}"
             f"{user_history_context}"
@@ -636,6 +688,39 @@ def interpret_with_ai(facts: dict):
             f"{agentic_context}"  # Agentic RAG: NER + Deep Graph Traversal
         )
         theme = facts.get("theme", "life_path")
+
+        # Template-only rendering (no LLM) for fast/non-GPT mode
+        if render_mode == "template":
+            fusion_text = render_template_report(
+                facts, signals, cross_summary, theme_cross_summary
+            )
+            context_text = (
+                f"[Graph/Rule matches]\n{json.dumps(linked, ensure_ascii=False, indent=2)}\n\n"
+                f"[Signals]\n{json.dumps(signals, ensure_ascii=False, indent=2)}\n"
+                f"{signal_highlights}"
+                f"{cross_highlights}"
+                f"{theme_cross_context}"
+            )
+            result = {
+                "status": "success",
+                "timestamp": datetime.utcnow().isoformat(),
+                "theme": theme,
+                "fusion_layer": fusion_text,
+                "context": context_text,
+                "cached": False,
+                "matched_rule_ids": rule_eval.get("matched_rule_ids", []),
+                "user_prompt": user_prompt,
+                "stats": {
+                    "template_mode": True,
+                    "persona_rule_matched": persona_eval.get("matched_count", 0),
+                    "rlhf_enabled": HAS_RLHF,
+                },
+                "theme_cross": theme_cross_summary if theme_cross_summary else None,
+                "cross_summary": cross_summary if cross_summary else None,
+                "render_mode": "template",
+            }
+            cache.set("fusion", cache_data, result)
+            return result
 
         model = get_llm()
         meta = report_memory.get(theme, {"avg_len": 4800, "calls": 0})
@@ -705,11 +790,12 @@ def interpret_with_ai(facts: dict):
                 "theme_intersections_count": theme_cross_summary.get("summary", {}).get("cross_count", 0),
                 "theme_important_dates_count": theme_cross_summary.get("summary", {}).get("dates_count", 0),
             },
-            # 🎯 Theme cross-reference summary for frontend
+            # Theme cross-reference summary for frontend
             "theme_cross": theme_cross_summary if theme_cross_summary else None,
+            "cross_summary": cross_summary if cross_summary else None,
         }
 
-        # 💾 Auto-save to user memory (MOAT - builds personalization data + RLHF learning)
+        # Auto-save to user memory (MOAT - builds personalization data + RLHF learning)
         if HAS_USER_MEMORY and user_id and birth_data:
             try:
                 memory = get_user_memory(user_id)
@@ -730,7 +816,7 @@ def interpret_with_ai(facts: dict):
             except Exception as e:
                 print(f"[UserMemory] Error saving consultation: {e}")
 
-        # 🚀 Store in Redis cache
+        # Store in Redis cache
         cache.set("fusion", cache_data, result)
         return result
 

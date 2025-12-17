@@ -836,7 +836,14 @@
       "analysisDate": "Analysis Date",
       "themeLove": "Love",
       "themeCareer": "Career",
-      "themeEnergy": "Energy"
+      "themeEnergy": "Energy",
+      "themeOverall": "Overall Fortune",
+      "themeHealth": "Health",
+      "themeFamily": "Family",
+      "themeNewYear": "New Year",
+      "themeNextYear": "Next Year",
+      "themeMonthly": "Monthly",
+      "themeToday": "Today"
     },
     "counselor": {
       "title": "DestinyPal Counselor",

@@ -3,7 +3,7 @@
 import { SessionProvider, useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import BackButton from "@/components/ui/BackButton";
 import styles from "./profile.module.css";
 
 export default function ProfilePage() {
@@ -136,9 +136,7 @@ function ProfileContent() {
   return (
     <main className={styles.container}>
       <div className={styles.header}>
-        <Link href="/myjourney" className={styles.backButton}>
-          ←
-        </Link>
+        <BackButton onClick={() => router.back()} />
         <h1 className={styles.title}>My Profile</h1>
       </div>
 

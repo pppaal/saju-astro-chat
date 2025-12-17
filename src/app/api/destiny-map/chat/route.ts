@@ -78,14 +78,21 @@ export async function POST(request: Request) {
     // Lazy-load heavy astro engine to avoid resolving swisseph during build/deploy
     const { computeDestinyMap } = await import("@/lib/destiny-map/astrologyengine");
 
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
-    }
+    // DEV MODE: Skip auth check for local development
+    const isDev = process.env.NODE_ENV === "development";
 
-    const paid = await checkStripeActive(session.user.email);
-    if (!paid) {
-      return NextResponse.json({ error: "payment_required" }, { status: 402 });
+    let userEmail: string | undefined;
+    if (!isDev) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.email) {
+        return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      }
+      userEmail = session.user.email;
+
+      const paid = await checkStripeActive(userEmail);
+      if (!paid) {
+        return NextResponse.json({ error: "payment_required" }, { status: 402 });
+      }
     }
 
     const body = await request.json();

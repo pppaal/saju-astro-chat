@@ -7,7 +7,7 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-import { ProgressedChart, ProgressionInput, NatalInput, PlanetBase, House } from "./types";
+import { Chart, ProgressedChart, ProgressionInput, NatalInput, PlanetBase, House } from "./types";
 import { formatLongitude, normalize360 } from "./utils";
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from "./houses";
 import { getSwisseph } from "./ephe";

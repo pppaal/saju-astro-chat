@@ -4,6 +4,7 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BackButton from "@/components/ui/BackButton";
 import styles from "./circle.module.css";
 
 type Person = {
@@ -148,9 +149,7 @@ function CircleContent() {
   return (
     <main className={styles.container}>
       <div className={styles.header}>
-        <Link href="/myjourney" className={styles.backButton}>
-          ←
-        </Link>
+        <BackButton onClick={() => router.back()} />
         <h1 className={styles.title}>My Circle</h1>
         <button
           className={styles.addButton}

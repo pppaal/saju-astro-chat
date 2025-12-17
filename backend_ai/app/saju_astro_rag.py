@@ -344,20 +344,37 @@ class GraphRAG:
         }
 
     def _apply_rules(self, domain: str, facts_str: str) -> Optional[List[str]]:
-        """Apply rules from JSON."""
+        """Apply rules from JSON based on keyword matching."""
         rulebook = self.rules.get(domain)
         if not rulebook:
             return None
+
+        facts_lower = facts_str.lower()
         descs = []
+
         for key, rule in rulebook.items():
             if isinstance(rule, dict):
                 cond = rule.get("when")
                 msg = rule.get("text")
-                if cond and cond in facts_str and msg:
+                if not msg:
+                    continue
+
+                # Handle different condition formats
+                if isinstance(cond, list):
+                    # Check if ALL conditions in the list are in facts_str
+                    if all(str(c).lower() in facts_lower for c in cond):
+                        descs.append(msg)
+                elif isinstance(cond, str):
+                    if cond.lower() in facts_lower:
+                        descs.append(msg)
+                elif cond is None:
+                    # No condition = always apply
                     descs.append(msg)
+
             elif isinstance(rule, str):
-                if key in facts_str:
+                if key.lower() in facts_lower:
                     descs.append(rule)
+
         return descs[:5] if descs else None
 
 

@@ -204,20 +204,12 @@ export default function ThemeSelectClient() {
     router.push(`/destiny-map/result?${params.toString()}`);
   };
 
-  const onBack = () => {
-    const lang = sp?.get('lang') || 'ko';
-    router.push(`/destiny-map?lang=${lang}`);
-  };
-
   return (
     <main className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
 
       <section className={styles.card}>
         <header className={styles.header}>
-          <button onClick={onBack} aria-label="Back" className={styles.backButton}>
-            ←
-          </button>
           <div className={styles.headerContent}>
             <h1 className={styles.title}>분석 테마 선택</h1>
             <p className={styles.subtitle}>

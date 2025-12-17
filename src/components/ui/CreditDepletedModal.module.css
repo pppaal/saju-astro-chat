@@ -1,0 +1,377 @@
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  transition: all 0.3s ease-out;
+  padding: 20px;
+}
+
+.overlayVisible {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+/* Modal */
+.modal {
+  position: relative;
+  background: linear-gradient(145deg, rgba(30, 25, 50, 0.98), rgba(20, 15, 40, 0.98));
+  border-radius: 24px;
+  padding: 40px 32px 32px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow:
+    0 0 60px rgba(139, 92, 246, 0.2),
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: scale(0.8) translateY(20px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modalVisible {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Animated Icon Container */
+.iconContainer {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 24px;
+}
+
+.iconRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.ring1 {
+  border-color: rgba(139, 92, 246, 0.5);
+  animation: pulse1 2s ease-in-out infinite;
+}
+
+.ring2 {
+  inset: 8px;
+  border-color: rgba(167, 139, 250, 0.4);
+  animation: pulse2 2s ease-in-out infinite 0.3s;
+}
+
+.ring3 {
+  inset: 16px;
+  border-color: rgba(196, 181, 253, 0.3);
+  animation: pulse3 2s ease-in-out infinite 0.6s;
+}
+
+@keyframes pulse1 {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse2 {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.6;
+  }
+}
+
+@keyframes pulse3 {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+.iconInner {
+  position: absolute;
+  inset: 24px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.3));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+  }
+}
+
+.emptyIcon {
+  font-size: 32px;
+  color: #a78bfa;
+  opacity: 0.5;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.warningIcon {
+  font-size: 32px;
+  color: #fbbf24;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+/* Title */
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f5f3ff;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+/* Description */
+.description {
+  font-size: 14px;
+  color: #a5a3c7;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+/* Credit Display */
+.creditDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  padding: 16px 24px;
+  margin-bottom: 28px;
+}
+
+.creditIcon {
+  font-size: 28px;
+  color: #a78bfa;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+    opacity: 0.8;
+  }
+}
+
+.creditInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.creditLabel {
+  font-size: 12px;
+  color: #8b8aa3;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.creditValue {
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.creditValue.empty {
+  color: #f87171;
+}
+
+.creditValue.low {
+  color: #fbbf24;
+}
+
+.creditUnit {
+  font-size: 14px;
+  font-weight: 500;
+  color: #8b8aa3;
+}
+
+/* Buttons */
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.purchaseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+}
+
+.purchaseButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+  background: linear-gradient(135deg, #9f75ff, #7c7fff);
+}
+
+.purchaseButton:active {
+  transform: translateY(0);
+}
+
+.buttonIcon {
+  font-size: 18px;
+}
+
+.laterButton {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #a5a3c7;
+  background: transparent;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.laterButton:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #d4d2f0;
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  color: #8b8aa3;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .modal {
+    padding: 32px 24px 24px;
+    margin: 16px;
+    border-radius: 20px;
+  }
+
+  .iconContainer {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+  }
+
+  .iconInner {
+    inset: 18px;
+  }
+
+  .emptyIcon,
+  .warningIcon {
+    font-size: 26px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .description {
+    font-size: 13px;
+  }
+
+  .creditDisplay {
+    padding: 14px 20px;
+  }
+
+  .creditIcon {
+    font-size: 24px;
+  }
+
+  .creditValue {
+    font-size: 24px;
+  }
+
+  .purchaseButton {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .laterButton {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+}

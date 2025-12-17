@@ -614,7 +614,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         progressions = {
           secondary: {
             chart: secProgChart,
-            moonPhase: secMoonPhase,
+            moonPhase: secMoonPhase as any,
             summary: secProgSummary,
           },
           solarArc: {

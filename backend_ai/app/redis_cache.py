@@ -19,14 +19,30 @@ except ImportError:
 class RedisCache:
     """Redis-based distributed cache with fallback to memory."""
 
+    # TTL presets for different data types (in seconds)
+    TTL_PRESETS = {
+        "astro": 6 * 3600,      # 6 hours - transits change frequently
+        "saju": 48 * 3600,      # 48 hours - static birth data
+        "tarot": 24 * 3600,     # 24 hours - daily readings
+        "dream": 24 * 3600,     # 24 hours
+        "iching": 24 * 3600,    # 24 hours
+        "fusion": 12 * 3600,    # 12 hours - combined analysis
+        "static": 48 * 3600,    # 48 hours - static interpretations
+        "default": 24 * 3600,   # 24 hours - default fallback
+    }
+
     def __init__(self):
         self.enabled = False
         self.client = None
         self.memory_cache = {}  # Fallback
-        self.ttl = int(os.getenv("CACHE_TTL", "86400"))  # 24 hours default (was 15 min)
+        self.default_ttl = int(os.getenv("CACHE_TTL", "86400"))  # 24 hours default
 
         if REDIS_AVAILABLE:
             self._init_redis()
+
+    def get_ttl(self, cache_type: str = "default") -> int:
+        """Get TTL for a specific cache type."""
+        return self.TTL_PRESETS.get(cache_type, self.default_ttl)
 
     def _init_redis(self):
         """Initialize Redis connection."""
@@ -77,19 +93,21 @@ class RedisCache:
         logger.info(f"❌ Cache MISS: {key}")
         return None
 
-    def set(self, prefix: str, data: dict, result: dict) -> bool:
-        """Store result in cache."""
+    def set(self, prefix: str, data: dict, result: dict, cache_type: str = None) -> bool:
+        """Store result in cache with type-specific TTL."""
         key = self._make_key(prefix, data)
+        # Use cache_type if provided, otherwise infer from prefix
+        ttl = self.get_ttl(cache_type or prefix)
 
         # Try Redis first
         if self.enabled and self.client:
             try:
                 self.client.setex(
                     key,
-                    self.ttl,
+                    ttl,
                     json.dumps(result)
                 )
-                logger.info(f"✅ Redis cache SET: {key} (TTL={self.ttl}s)")
+                logger.info(f"✅ Redis cache SET: {key} (TTL={ttl}s / {ttl//3600}h)")
                 return True
             except Exception as e:
                 logger.warning(f"⚠️ Redis SET error: {e}")
@@ -126,7 +144,8 @@ class RedisCache:
             "enabled": self.enabled,
             "backend": "redis" if self.enabled else "memory",
             "memory_entries": len(self.memory_cache),
-            "ttl": self.ttl,
+            "default_ttl": self.default_ttl,
+            "ttl_presets": self.TTL_PRESETS,
         }
 
         if self.enabled and self.client:
