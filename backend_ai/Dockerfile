@@ -1,8 +1,5 @@
 FROM python:3.10-slim
 
-# Build arg to allow flexible context (default assumes build context already at backend_ai/)
-ARG SERVICE_PATH=.
-
 # Disable torch CUDA checks (CPU-only)
 ENV TORCH_CUDA_ARCH_LIST=""
 ENV USE_CUDA=0
@@ -13,25 +10,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Set working dir to the backend service root
+# Assume build context is backend_ai/ (Railway default when Dockerfile path is backend_ai/Dockerfile)
 WORKDIR /app
-WORKDIR ${SERVICE_PATH}
 
-# Copy only backend_ai requirements for better caching.
-COPY ${SERVICE_PATH}/requirements.txt ./requirements.txt
+# Copy only requirements for caching
+COPY requirements.txt ./requirements.txt
 
-# Install Python deps with optimizations
+# Install Python deps
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Copy backend_ai source
-COPY ${SERVICE_PATH}/ .
+# Copy source
+COPY . .
 
-# Expose port (platforms like Cloud Run/Railway set PORT, default to 8080)
+# Expose port
 EXPOSE 8080
 
-# Set PYTHONPATH so imports work in both contexts
-ENV PYTHONPATH=/app/${SERVICE_PATH}
+# Set PYTHONPATH for imports
+ENV PYTHONPATH=/app
 
-# Start command; bind to provided PORT or fallback to 8080
+# Start command
 CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
