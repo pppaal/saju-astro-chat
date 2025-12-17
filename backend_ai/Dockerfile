@@ -29,5 +29,5 @@ EXPOSE 8080
 # Set PYTHONPATH for imports
 ENV PYTHONPATH=/app
 
-# Start command
+# Start command (default to 8080 if PORT is not provided)
 CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
