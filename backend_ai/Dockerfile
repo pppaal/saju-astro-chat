@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
-# Build arg to allow flexible context (default: current folder / backend_ai on Railway)
-ARG SERVICE_PATH=.
+# Build arg to allow flexible context (default assumes repo root context with backend_ai/ folder)
+ARG SERVICE_PATH=backend_ai
 
 # Disable torch CUDA checks (CPU-only)
 ENV TORCH_CUDA_ARCH_LIST=""
