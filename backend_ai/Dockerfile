@@ -33,4 +33,4 @@ EXPOSE 8080
 ENV PYTHONPATH=/app
 
 # Start command (default to 8080 if PORT is not provided)
-CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
+CMD ["sh", "-c", "gunicorn app.app:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
