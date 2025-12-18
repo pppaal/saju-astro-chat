@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy source
 COPY . .
 
+# Provide backend_ai module path (backend_ai -> /app) for imports like backend_ai.app.x
+RUN ln -s /app /app/backend_ai
+
 # Expose port
 EXPOSE 8080
 
