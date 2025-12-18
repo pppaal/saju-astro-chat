@@ -3,7 +3,8 @@
   "build": {
     "builder": "DOCKERFILE",
     "dockerfilePath": "backend_ai/Dockerfile",
-    "context": "backend_ai"
+    "context": "backend_ai",
+    "clearCache": true
   },
   "deploy": {
     "command": "gunicorn main:app --bind 0.0.0.0:8080 --workers 2 --timeout 120",
