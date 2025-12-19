@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import styles from "./about.module.css";
 
 const services = [
@@ -217,6 +218,7 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
+      <ScrollToTop label={isKo ? "맨 위로" : "Top"} />
     </div>
   );
 }

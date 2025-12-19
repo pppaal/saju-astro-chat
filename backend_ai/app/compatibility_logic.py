@@ -672,32 +672,27 @@ def interpret_compatibility(
         client = get_openai_client()
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": """You are a FUSION compatibility expert who integrates TWO systems:
-1. Korean Saju (四柱命理): 천간, 지지, 오행, 십성, 합/충/형/해
-2. Western Astrology: sun signs, moon signs, elements, synastry aspects
+                    "content": """당신은 따뜻하고 공감 능력이 뛰어난 궁합 상담사입니다.
+사주(四柱)와 점성학을 융합하여 두 사람의 관계를 분석해주세요.
 
-🔥 CRITICAL RULE: Never analyze Saju and Astrology separately!
-Always find CROSS-CONNECTIONS between the two systems:
-- Map 오행(五行) to astrological elements (木↔Air, 火↔Fire, 土↔Earth, 金↔Metal, 水↔Water)
-- Find where both systems point to the same insight
-- Identify complementary patterns across systems
-- Example: "Person A's 丙火 Day Master + Person B's Leo Sun = Double fire energy, passionate but potentially competing for spotlight"
+분석 원칙:
+- 사주 오행과 점성학 원소를 교차 분석 (木↔Air, 火↔Fire, 土↔Earth, 金↔Metal, 水↔Water)
+- 두 시스템이 같은 인사이트를 가리키는 부분 찾기
+- 관계의 강점을 먼저 언급하고, 보완점은 건설적으로
 
-Include TIMING GUIDE at the end:
-- Best months for major decisions
-- Current month analysis
-- Recommended activities for this period
-
-Provide INTEGRATED insights that show how saju and astrology TOGETHER reveal relationship dynamics."""
+상담 스타일:
+- 따뜻하고 공감하는 말투 ("~하시는군요", "~하실 수 있어요")
+- 단정적 판단 대신 가능성과 성장 방향 제시
+- 실질적인 타이밍 조언 포함"""
                 },
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=3000,
-            temperature=0.4,
+            max_tokens=2000,
+            temperature=0.5,
         )
 
         interpretation = response.choices[0].message.content.strip()
@@ -715,7 +710,7 @@ Provide INTEGRATED insights that show how saju and astrology TOGETHER reveal rel
             "overall_score": overall_score,
             "interpretation": interpretation,
             "people_count": len(people),
-            "model": "gpt-4o",
+            "model": "gpt-4o-mini",
             # NEW: Timing and Action Items
             "timing": timing_analysis,
             "action_items": action_items,
@@ -819,27 +814,27 @@ def interpret_compatibility_group(
         client = get_openai_client()
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": """You are a FUSION GROUP DYNAMICS expert who integrates TWO systems:
-1. Korean Saju (四柱命理): 천간, 지지, 오행, 십성, 합/충/형/해
-2. Western Astrology: sun signs, moon signs, elements, synastry aspects
+                    "content": """당신은 따뜻하고 공감 능력이 뛰어난 그룹 궁합 상담사입니다.
+사주(四柱)와 점성학을 융합하여 그룹 역학을 분석해주세요.
 
-🔥 CRITICAL RULE: Never analyze Saju and Astrology separately!
-For GROUP analysis, you must:
-- Map each person's 오행(五行) to astrological elements (木↔Air, 火↔Fire, 土↔Earth, 金↔Metal, 水↔Water)
-- Analyze the group's collective elemental balance from BOTH systems
-- Find CROSS-CONNECTIONS between members using both frameworks
-- Example: "A's 丙火 Day Master + B's Leo Sun + C's Fire-dominant chart = Fire-heavy group, high energy but needs Water/Earth for grounding"
+분석 원칙:
+- 각 구성원의 오행을 점성학 원소와 매핑 (木↔Air, 火↔Fire, 土↔Earth, 金↔Metal, 水↔Water)
+- 그룹 전체의 원소 균형 분석
+- 구성원 간 시너지와 보완 관계 찾기
 
-Provide INTEGRATED group insights that show how saju and astrology TOGETHER reveal group dynamics and interpersonal relationships."""
+상담 스타일:
+- 그룹의 강점을 먼저 강조
+- 따뜻하고 공감하는 말투
+- 실질적인 그룹 활동 조언 포함"""
                 },
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=3000,
-            temperature=0.4,
+            max_tokens=2000,
+            temperature=0.5,
         )
 
         interpretation = response.choices[0].message.content.strip()
@@ -856,7 +851,7 @@ Provide INTEGRATED group insights that show how saju and astrology TOGETHER reve
             "overall_score": overall_score,
             "interpretation": interpretation,
             "people_count": len(people),
-            "model": "gpt-4o",
+            "model": "gpt-4o-mini",
             "is_group": True,
         }
 

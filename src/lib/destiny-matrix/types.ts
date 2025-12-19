@@ -232,6 +232,22 @@ export interface DestinyFusionMatrix {
   summary: MatrixSummary;
 }
 
+// Computed matrix for a specific user/context (sparse cells only)
+export interface DestinyFusionMatrixComputed {
+  layer1_elementCore: Record<string, MatrixCell>;
+  layer2_sibsinPlanet: Record<string, MatrixCell>;
+  layer3_sibsinHouse: Record<string, MatrixCell>;
+  layer4_timing: Record<string, MatrixCell>;
+  layer5_relationAspect: Record<string, MatrixCell>;
+  layer6_stageHouse: Record<string, MatrixCell>;
+  layer7_advanced: Record<string, MatrixCell>;
+  layer8_shinsalPlanet: Record<string, MatrixCell>;
+  layer9_asteroidHouse: Record<string, MatrixCell>;
+  layer10_extraPointElement: Record<string, MatrixCell>;
+
+  summary: MatrixSummary;
+}
+
 export interface MatrixSummary {
   totalScore: number;
   strengthPoints: MatrixHighlight[];

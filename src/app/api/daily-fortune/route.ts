@@ -6,6 +6,20 @@ import { sendNotification } from "@/lib/notifications/sse";
 
 export const dynamic = "force-dynamic";
 
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    "http://127.0.0.1:5000";
+  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
+    console.warn("[daily-fortune] Using non-HTTPS AI backend in production");
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn("[daily-fortune] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+  }
+  return url;
+}
+
 /**
  * 타임존 기반 현재 날짜 헬퍼
  */
@@ -46,10 +60,13 @@ export async function POST(request: Request) {
     // ========================================
     // 1️⃣ 오늘의 운세 점수 계산 (백엔드 Fortune Score Engine 사용)
     // ========================================
-    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+    const backendUrl = pickBackendUrl();
     let fortune;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
       // Try to use the new comprehensive fortune score engine
       const scoreResponse = await fetch(`${backendUrl}/api/fortune/daily`, {
         method: 'POST',
@@ -58,7 +75,11 @@ export async function POST(request: Request) {
           birthDate,
           birthTime: _birthTime,
         }),
+        signal: controller.signal,
+        cache: 'no-store',
       });
+
+      clearTimeout(timeoutId);
 
       if (scoreResponse.ok) {
         const scoreData = await scoreResponse.json();

@@ -27,7 +27,7 @@ export type PersonaPole =
 
 export interface PersonaAxisResult {
   pole: PersonaPole;
-  score: number; // 0-100 toward the dominant pole
+  score: number; // 0-100 position on spectrum (0=left/grounded/structured/empathic/anchor, 100=right/radiant/visionary/logic/flow)
 }
 
 export interface PersonaArchetype {

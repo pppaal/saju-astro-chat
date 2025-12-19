@@ -13,6 +13,20 @@ function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
 }
 
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    "http://127.0.0.1:5000";
+  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
+    console.warn("[destiny-map chat-stream] Using non-HTTPS AI backend in production");
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn("[destiny-map chat-stream] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+  }
+  return url;
+}
+
 export async function POST(request: Request) {
   try {
     const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
@@ -43,6 +57,8 @@ export async function POST(request: Request) {
       messages = [],
       saju,
       astro,
+      userContext, // Premium: persona memory + recent session summaries
+      cvText, // CV/Resume text for career consultations
     } = body;
 
     if (!birthDate || !birthTime) {
@@ -91,6 +107,8 @@ export async function POST(request: Request) {
       `Birth: ${birthDate} ${birthTime}`,
       `Gender: ${gender}`,
       `Theme: ${theme}`,
+      // Include CV summary if provided (for career consultations)
+      cvText ? `\nCV/Resume:\n${guardText(cvText, 3000)}` : "",
       historyText ? `\nConversation:\n${historyText}` : "",
       `\nQuestion: ${userQuestion}`,
     ]
@@ -98,8 +116,14 @@ export async function POST(request: Request) {
       .join("\n");
 
     // Call backend streaming endpoint IMMEDIATELY (no heavy computation)
-    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+    const backendUrl = pickBackendUrl();
     const apiKey = process.env.ADMIN_API_TOKEN || "";
+
+    // Get session_id from header for RAG cache
+    const sessionId = request.headers.get("x-session-id") || undefined;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const backendResponse = await fetch(`${backendUrl}/ask-stream`, {
       method: "POST",
@@ -116,8 +140,19 @@ export async function POST(request: Request) {
         astro: astro || undefined,
         // Fallback: Pass birth info for backend to compute if needed
         birth: { date: birthDate, time: birthTime, gender, lat: latitude, lon: longitude },
+        // Conversation history for context-aware responses
+        history: trimmedHistory.filter((m) => m.role !== "system"),
+        // Session ID for RAG cache
+        session_id: sessionId,
+        // Premium: user context for returning users
+        user_context: userContext || undefined,
+        // CV/Resume text for career-related questions
+        cv_text: cvText || undefined,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!backendResponse.ok || !backendResponse.body) {
       const encoder = new TextEncoder();

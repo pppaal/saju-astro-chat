@@ -1,6 +1,12 @@
 // src/lib/destiny-matrix/data/layer4-timing-overlay.ts
-// Layer 4: Timing Overlay Matrix (타이밍 오버레이 매트릭스) - 확장판
-// 대운/세운/월운/일운 ↔ 트랜짓 주기 + 역행 효과
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 4: Timing Overlay Matrix (타이밍 매트릭스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { TimingOverlayMatrix, InteractionCode, TimingCycleRow, TransitCycle } from '../types';
 

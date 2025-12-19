@@ -787,14 +787,10 @@ CRITICAL OUTPUT REQUIREMENTS:
 4. The JSON must be parseable by JSON.parse()
 5. Use proper JSON syntax: double quotes for keys and strings, commas between items, colons between key-value pairs
 """
-            llama_report = _generate_with_gpt4(structured_prompt.strip(), token_budget, 0.1)
+            llama_report = _generate_with_gpt4(structured_prompt.strip(), token_budget, 0.1, use_mini=True)
         else:
-            # Detect chat mode: user asked a question (not structured JSON request)
-            # Chat uses gpt-4o-mini for speed (3x faster)
-            is_chat_mode = bool(safe_user_prompt) and not is_structured_json_request
-            if is_chat_mode:
-                print("[FusionGenerate] CHAT MODE: Using gpt-4o-mini for faster response")
-            llama_report = _generate_with_gpt4(comprehensive_prompt.strip(), token_budget, 0.15, use_mini=is_chat_mode)
+            # Always use gpt-4o-mini for faster response
+            llama_report = _generate_with_gpt4(comprehensive_prompt.strip(), token_budget, 0.15, use_mini=True)
         llama_report = re.sub(r"\n{3,}", "\n\n", llama_report)
 
         # Step 2: Optional GPT polishing (skip in fast_mode or for JSON requests)

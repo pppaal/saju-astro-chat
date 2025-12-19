@@ -1,8 +1,36 @@
 // src/lib/destiny-matrix/index.ts
-// Destiny Fusion Matrix™ - Main Export
-// 특허 가능 시스템: 동양 사주 × 서양 점성술 다층 융합 매트릭스
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Main Export
+ * ============================================================================
+ *
+ * © 2024 All Rights Reserved.
+ *
+ * PROPRIETARY AND CONFIDENTIAL
+ *
+ * This source code and all associated data structures, algorithms, and
+ * methodologies are the exclusive intellectual property of the copyright holder.
+ *
+ * PROHIBITED ACTIVITIES:
+ * - Unauthorized copying, reproduction, or distribution
+ * - Reverse engineering or decompilation
+ * - Automated data extraction or scraping
+ * - Commercial use without explicit written permission
+ *
+ * LEGAL NOTICE:
+ * Violation of these terms may result in civil and criminal penalties
+ * under applicable intellectual property laws.
+ *
+ * Patent Pending: Multi-layer fusion matrix system for Eastern-Western
+ * astrological interpretation (10-layer, 1,206-cell cross-reference system)
+ * ============================================================================
+ */
 
 export * from './types';
 export * from './engine';
 export * from './data';
 export * from './interpreter';
+export * from './validation';
+export * from './errors';
+export * from './performance';
+export * from './ai-report';

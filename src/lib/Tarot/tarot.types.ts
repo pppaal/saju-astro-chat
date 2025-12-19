@@ -1,7 +1,7 @@
 // Clean, human-readable types for Tarot logic.
 
 // Deck style options
-export const DECK_STYLES = ['celestial', 'classic', 'cyber', 'egyptian', 'elegant', 'ethereal', 'mystic'] as const;
+export const DECK_STYLES = ['celestial', 'classic', 'cyber', 'egyptian', 'elegant', 'ethereal', 'sacred', 'minimal'] as const;
 export type DeckStyle = typeof DECK_STYLES[number];
 
 export interface DeckStyleInfo {
@@ -76,15 +76,25 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     accent: '#8b7355',
     backImage: '/images/tarot/backs/ethereal.png',
   },
-  mystic: {
-    id: 'mystic',
-    name: 'Mystic',
-    nameKo: '미스틱',
-    description: 'Mystical and enchanting',
-    descriptionKo: '신비롭고 매혹적인',
-    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-    accent: '#a78bfa',
-    backImage: '/images/tarot/backs/mystic.png',
+  sacred: {
+    id: 'sacred',
+    name: 'Sacred Geometry',
+    nameKo: '신성한 기하학',
+    description: 'Mandala patterns, cosmic balance',
+    descriptionKo: '만다라 패턴, 우주적 균형',
+    gradient: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b69 50%, #0f0a1a 100%)',
+    accent: '#9f7aea',
+    backImage: '/images/tarot/backs/sacred.png',
+  },
+  minimal: {
+    id: 'minimal',
+    name: 'Minimal Modern',
+    nameKo: '미니멀 모던',
+    description: 'Clean geometric mysticism',
+    descriptionKo: '깔끔한 기하학적 신비주의',
+    gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)',
+    accent: '#e0e0e0',
+    backImage: '/images/tarot/backs/minimal.png',
   },
 };
 
@@ -120,7 +130,7 @@ const CARD_FILENAMES: Record<number, string> = {
 };
 
 // Helper function to get card image path
-export function getCardImagePath(cardId: number, _style: DeckStyle = 'mystic'): string {
+export function getCardImagePath(cardId: number, _style: DeckStyle = 'celestial'): string {
   const filename = CARD_FILENAMES[cardId];
   if (!filename) {
     return '/images/tarot/card-back.webp';

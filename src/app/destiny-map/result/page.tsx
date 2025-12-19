@@ -11,6 +11,7 @@ import SuggestedQuestions from "@/components/destiny-map/SuggestedQuestions";
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
+import ShareButton from "@/components/ui/ShareButton";
 // Import retained intentionally; disable unused lint because FortuneCharts is optional rendering
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import FortuneCharts from "@/components/destiny-map/FortuneCharts";
@@ -273,6 +274,13 @@ export default function DestinyResultPage({
             console.warn("[ResultPage] Failed to store chart data:", e);
           }
         }
+
+        // Trigger referral reward claim (if user was referred)
+        try {
+          fetch("/api/referral/claim", { method: "POST" }).catch(() => {});
+        } catch (e) {
+          // Silent fail - not critical
+        }
       } catch (err: any) {
         console.error("[ResultPage] analyzeDestiny error:", err);
         setError(err?.message || String(err));
@@ -355,6 +363,7 @@ export default function DestinyResultPage({
       <BackButton />
       <div className={styles.creditBadgeWrapper}>
         <CreditBadge variant="compact" />
+        <ShareButton variant="compact" />
       </div>
       <section className={styles.card}>
         {/* 📅 분석 기준일 표시 */}

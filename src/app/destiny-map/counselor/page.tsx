@@ -1,14 +1,29 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import BackButton from "@/components/ui/BackButton";
 import Chat from "@/components/destiny-map/Chat";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./counselor.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
+
+// User context type for returning users
+type UserContext = {
+  persona?: {
+    sessionCount?: number;
+    lastTopics?: string[];
+    emotionalTone?: string;
+    recurringIssues?: string[];
+  };
+  recentSessions?: Array<{
+    id: string;
+    summary?: string;
+    keyTopics?: string[];
+    lastMessageAt?: string;
+  }>;
+};
 
 export default function CounselorPage({
   searchParams,
@@ -23,6 +38,17 @@ export default function CounselorPage({
   const [showChat, setShowChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [chartData, setChartData] = useState<{ saju?: any; astro?: any } | null>(null);
+  const [prefetchStatus, setPrefetchStatus] = useState<{
+    done: boolean;
+    timeMs?: number;
+    graphNodes?: number;
+    corpusQuotes?: number;
+  }>({ done: false });
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Premium: User context and chat session for returning users
+  const [userContext, setUserContext] = useState<UserContext | undefined>(undefined);
+  const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
 
   // Parse search params
   const name = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? "";
@@ -51,21 +77,142 @@ export default function CounselorPage({
     t("destinyMap.counselor.loading4", "Preparing personalized guidance..."),
   ];
 
-  // Load pre-computed chart data from sessionStorage
+  // Load pre-computed chart data from sessionStorage and prefetch RAG data
   useEffect(() => {
+    let saju: any = null;
+    let astro: any = null;
+
     try {
       const stored = sessionStorage.getItem("destinyChartData");
       if (stored) {
         const data = JSON.parse(stored);
         // Only use if data is fresh (within 1 hour)
         if (data.timestamp && Date.now() - data.timestamp < 3600000) {
-          setChartData({ saju: data.saju, astro: data.astro });
+          saju = data.saju;
+          astro = data.astro;
+          setChartData({ saju, astro });
         }
       }
     } catch (e) {
       console.warn("[CounselorPage] Failed to load chart data:", e);
     }
-  }, []);
+
+    // Prefetch RAG data in background
+    if (saju || astro) {
+      const prefetchRAG = async () => {
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+          const res = await fetch(`${backendUrl}/counselor/init`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ saju, astro, theme }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === "success") {
+              setSessionId(data.session_id);
+              setPrefetchStatus({
+                done: true,
+                timeMs: data.prefetch_time_ms,
+                graphNodes: data.data_summary?.graph_nodes,
+                corpusQuotes: data.data_summary?.corpus_quotes,
+              });
+              console.log(`[Counselor] RAG prefetch done: ${data.prefetch_time_ms}ms`);
+            }
+          }
+        } catch (e) {
+          console.warn("[CounselorPage] RAG prefetch failed:", e);
+          setPrefetchStatus({ done: true }); // Continue anyway
+        }
+      };
+      prefetchRAG();
+    }
+  }, [theme]);
+
+  // Premium: Load user context (persona + recent sessions) for returning users
+  useEffect(() => {
+    const loadUserContext = async () => {
+      try {
+        const res = await fetch(`/api/counselor/chat-history?theme=${theme}&limit=3`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            // Build user context
+            const context: UserContext = {};
+
+            // Add persona memory if available
+            if (data.persona) {
+              context.persona = {
+                sessionCount: data.persona.sessionCount,
+                lastTopics: data.persona.lastTopics,
+                emotionalTone: data.persona.emotionalTone,
+                recurringIssues: data.persona.recurringIssues,
+              };
+            }
+
+            // Add recent session summaries
+            if (data.sessions && data.sessions.length > 0) {
+              context.recentSessions = data.sessions.map((s: any) => ({
+                id: s.id,
+                summary: s.summary,
+                keyTopics: s.keyTopics,
+                lastMessageAt: s.lastMessageAt,
+              }));
+
+              // If continuing the same theme, use the most recent session
+              const recentThemeSession = data.sessions.find((s: any) => s.theme === theme);
+              if (recentThemeSession) {
+                setChatSessionId(recentThemeSession.id);
+              }
+            }
+
+            setUserContext(context);
+            console.log("[Counselor] User context loaded:", {
+              isReturningUser: data.isReturningUser,
+              sessionCount: context.persona?.sessionCount,
+              recentSessions: context.recentSessions?.length || 0,
+            });
+          }
+        }
+      } catch (e) {
+        // Not logged in or error - continue without user context
+        console.log("[Counselor] No user context available (guest user)");
+      }
+    };
+
+    loadUserContext();
+  }, [theme]);
+
+  // Premium: Save message callback
+  const handleSaveMessage = useCallback(
+    async (userMessage: string, assistantMessage: string) => {
+      try {
+        const res = await fetch("/api/counselor/chat-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: chatSessionId, // Will create new if undefined
+            theme,
+            locale: lang,
+            userMessage,
+            assistantMessage,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && !chatSessionId) {
+            // Set session ID for subsequent messages
+            setChatSessionId(data.session.id);
+            console.log("[Counselor] New chat session created:", data.session.id);
+          }
+        }
+      } catch (e) {
+        console.warn("[Counselor] Failed to save message:", e);
+      }
+    },
+    [chatSessionId, theme, lang]
+  );
 
   // Loading animation
   useEffect(() => {
@@ -83,16 +230,24 @@ export default function CounselorPage({
       });
     }, 800);
 
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false);
-      setTimeout(() => setShowChat(true), 300);
-    }, 3200);
+    // Wait for either: 3.2s OR prefetch complete (whichever is later, min 2s)
+    const minLoadTime = 2000;
+    const startTime = Date.now();
+
+    const checkReady = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= minLoadTime && (prefetchStatus.done || elapsed >= 5000)) {
+        setIsLoading(false);
+        setTimeout(() => setShowChat(true), 300);
+        clearInterval(checkReady);
+      }
+    }, 100);
 
     return () => {
       clearInterval(stepInterval);
-      clearTimeout(loadingTimer);
+      clearInterval(checkReady);
     };
-  }, [birthDate, birthTime, latitude, longitude, router, loadingMessages.length]);
+  }, [birthDate, birthTime, latitude, longitude, router, loadingMessages.length, prefetchStatus.done]);
 
   // Loading screen
   if (isLoading) {
@@ -134,6 +289,18 @@ export default function CounselorPage({
                 />
               ))}
             </div>
+
+            {/* Prefetch Status */}
+            {prefetchStatus.done && (
+              <div className={styles.prefetchStatus}>
+                <span className={styles.prefetchCheck}>✓</span>
+                <span>
+                  {lang === "ko"
+                    ? `${prefetchStatus.graphNodes || 0}개 지식 노드 준비 완료`
+                    : `${prefetchStatus.graphNodes || 0} knowledge nodes ready`}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -145,8 +312,6 @@ export default function CounselorPage({
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ""}`}>
       {/* Header */}
       <header className={styles.header}>
-        <BackButton onClick={() => router.back()} className={styles.headerBackButton} />
-
         <div className={styles.headerInfo}>
           <div className={styles.counselorBadge}>
             <span className={styles.counselorAvatar}>🔮</span>
@@ -162,14 +327,8 @@ export default function CounselorPage({
           </div>
         </div>
 
-        <div className={styles.headerActions}>
-          {/* Future: Voice button placeholder */}
-          <button className={styles.iconButton} disabled title={t("destinyMap.counselor.voiceComingSoon", "Voice (Coming Soon)")}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
+        {/* Header actions - voice is in Chat component */}
+        <div className={styles.headerActions} />
       </header>
 
       {/* Chat Area */}
@@ -190,6 +349,13 @@ export default function CounselorPage({
           seedEvent="counselor:seed"
           saju={chartData?.saju}
           astro={chartData?.astro}
+          // Premium features for returning users
+          userContext={userContext}
+          chatSessionId={chatSessionId}
+          onSaveMessage={handleSaveMessage}
+          autoScroll={false}
+          // RAG session from /counselor/init prefetch (Jung, graph, corpus)
+          ragSessionId={sessionId || undefined}
         />
       </div>
 

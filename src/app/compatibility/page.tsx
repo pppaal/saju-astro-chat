@@ -48,6 +48,26 @@ const relationIcons: Record<Relation, string> = {
   other: '✨',
 };
 
+// Section title translation keys mapping
+const sectionTitleKeys: Record<string, string> = {
+  'Overall Score': 'compatibilityPage.sections.overallScore',
+  'Saju Analysis': 'compatibilityPage.sections.sajuAnalysis',
+  'Astrology Analysis': 'compatibilityPage.sections.astrologyAnalysis',
+  'Element Harmony': 'compatibilityPage.sections.elementHarmony',
+  'Love Compatibility': 'compatibilityPage.sections.loveCompatibility',
+  'Communication': 'compatibilityPage.sections.communication',
+  'Emotional Connection': 'compatibilityPage.sections.emotionalConnection',
+  'Strengths': 'compatibilityPage.sections.strengths',
+  'Challenges': 'compatibilityPage.sections.challenges',
+  'Advice': 'compatibilityPage.sections.advice',
+  'Summary': 'compatibilityPage.sections.summary',
+  'Sun Sign': 'compatibilityPage.sections.sunSign',
+  'Moon Sign': 'compatibilityPage.sections.moonSign',
+  'Venus Aspect': 'compatibilityPage.sections.venusAspect',
+  'Mars Aspect': 'compatibilityPage.sections.marsAspect',
+  'Overview': 'compatibilityPage.sections.overview',
+};
+
 // Parse result text into sections for beautiful display
 function parseResultSections(text: string): { title: string; icon: string; content: string }[] {
   const sections: { title: string; icon: string; content: string }[] = [];
@@ -534,7 +554,6 @@ export default function CompatPage() {
                             value={p.relationNote ?? ''}
                             onChange={(e) => update(idx, 'relationNote', e.target.value)}
                             placeholder={t('compatibilityPage.shortNote', 'Short note')}
-                            disabled={p.relation !== 'other'}
                             className={styles.input}
                           />
                         </div>
@@ -628,7 +647,11 @@ export default function CompatPage() {
                     <div className={styles.resultCardGlow} />
                     <div className={styles.resultCardHeader}>
                       <span className={styles.resultCardIcon}>{section.icon}</span>
-                      <h3 className={styles.resultCardTitle}>{section.title}</h3>
+                      <h3 className={styles.resultCardTitle}>
+                        {sectionTitleKeys[section.title]
+                          ? t(sectionTitleKeys[section.title], section.title)
+                          : section.title}
+                      </h3>
                     </div>
                     <div className={styles.resultCardContent}>
                       {section.content.split('\n').map((line, i) => {
@@ -737,6 +760,45 @@ export default function CompatPage() {
                 </div>
               </div>
             )}
+
+            {/* Action Buttons: Chat, Counselor, Tarot */}
+            <div className={styles.actionButtons}>
+              <button
+                className={styles.actionButton}
+                onClick={() => router.push(`/compatibility/chat?persons=${encodeURIComponent(JSON.stringify(persons.map(p => ({ name: p.name, date: p.date, time: p.time, city: p.cityQuery, relation: p.relation }))))}&result=${encodeURIComponent(resultText || '')}`)}
+              >
+                <span className={styles.actionButtonIcon}>💬</span>
+                <div className={styles.actionButtonText}>
+                  <strong>{t('compatibilityPage.chat.startChat', 'AI 상담 시작')}</strong>
+                  <span>{t('compatibilityPage.chat.title', '궁합 상담')}</span>
+                </div>
+              </button>
+
+              <button
+                className={styles.actionButton}
+                onClick={() => router.push('/destiny-map/counselor')}
+              >
+                <span className={styles.actionButtonIcon}>🧙‍♂️</span>
+                <div className={styles.actionButtonText}>
+                  <strong>{t('compatibilityPage.counselor.connect', '상담사 연결하기')}</strong>
+                  <span>{t('compatibilityPage.counselor.description', '더 깊은 궁합 분석')}</span>
+                </div>
+              </button>
+
+              <button
+                className={styles.actionButton}
+                onClick={() => {
+                  const partnerName = persons[1]?.name || t('compatibilityPage.person', 'Person') + ' 2';
+                  router.push(`/tarot?context=compatibility&partner=${encodeURIComponent(partnerName)}`);
+                }}
+              >
+                <span className={styles.actionButtonIcon}>🔮</span>
+                <div className={styles.actionButtonText}>
+                  <strong>{t('compatibilityPage.tarot.start', '타로 시작하기')}</strong>
+                  <span>{t('compatibilityPage.tarot.description', '상대방을 생각하며 타로')}</span>
+                </div>
+              </button>
+            </div>
 
             {/* Share Button */}
             <div className={styles.shareSection}>

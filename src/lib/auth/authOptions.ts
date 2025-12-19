@@ -1,11 +1,12 @@
 import type { NextAuthOptions } from 'next-auth'
-import type { Adapter, AdapterAccount } from 'next-auth/adapters'
+import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import KakaoProvider from 'next-auth/providers/kakao'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from '@/lib/db/prisma'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
 import { encryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
+import { generateReferralCode } from '@/lib/referral'
 
 // ============================================
 // OAuth providers (Google, Kakao)
@@ -37,12 +38,24 @@ function encryptAccountTokens(account: AdapterAccount) {
 }
 
 // Custom adapter that filters out unknown account fields before saving
+// and generates referral codes for new users
 function createFilteredPrismaAdapter(): Adapter {
   ensureEncryptionKey()
   const baseAdapter = PrismaAdapter(prisma)
 
   return {
     ...baseAdapter,
+    // Generate referralCode for new OAuth users
+    createUser: async (user: Omit<AdapterUser, "id">) => {
+      const referralCode = generateReferralCode()
+      const createdUser = await prisma.user.create({
+        data: {
+          ...user,
+          referralCode,
+        },
+      })
+      return createdUser as AdapterUser
+    },
     linkAccount: async (account: AdapterAccount) => {
       const filteredAccount: Record<string, unknown> = {}
       for (const [key, value] of Object.entries(account)) {

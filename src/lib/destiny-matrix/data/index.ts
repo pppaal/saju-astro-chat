@@ -1,5 +1,13 @@
 // src/lib/destiny-matrix/data/index.ts
-// Export all layer data
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Data Layer Exports
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * This data represents 1,206 unique cross-reference cells across 10 layers.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 export * from './layer1-element-core';
 export * from './layer2-sibsin-planet';

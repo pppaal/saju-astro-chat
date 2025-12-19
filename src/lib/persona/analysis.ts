@@ -1,4 +1,4 @@
-import { PERSONA_ARCHETYPES } from './archetypes';
+import { PERSONA_ARCHETYPES, getLocalizedArchetypes } from './archetypes';
 import {
   PersonaAnalysis,
   PersonaAxisKey,
@@ -233,12 +233,13 @@ export const EFFECTS: AnswerEffects = {
 
 const resolveAxis = (axis: PersonaAxisKey, state: AxisState): PersonaAxisResult => {
   const [p1, p2] = AXES[axis];
-  const a = state[axis][p1] ?? 0;
-  const b = state[axis][p2] ?? 0;
+  const a = state[axis][p1] ?? 0; // p1 = right side (radiant, visionary, logic, flow)
+  const b = state[axis][p2] ?? 0; // p2 = left side (grounded, structured, empathic, anchor)
   const total = a + b || 1;
   const dominant = (a >= b ? p1 : p2) as PersonaPole;
-  const dominantScore = Math.round(((a >= b ? a : b) / total) * 100);
-  return { pole: dominant, score: dominantScore };
+  // score represents position on spectrum: 0% = full p2 (left), 100% = full p1 (right)
+  const score = Math.round((a / total) * 100);
+  return { pole: dominant, score };
 };
 
 const letterForAxis = (axis: PersonaAxisKey, pole: PersonaPole): string => {
@@ -248,18 +249,32 @@ const letterForAxis = (axis: PersonaAxisKey, pole: PersonaPole): string => {
   return pole === 'flow' ? 'F' : 'A';
 };
 
-const fallbackArchetype = (code: string) => ({
-  code,
-  name: 'Adaptive Polymath',
-  summary: 'Balanced across axes with adaptable strengths.',
-  strengths: ['Flexible', 'Integrative thinking', 'Situational awareness'],
-  cautions: ['May delay decisions', 'Risk of unclear priorities'],
-  idealRoles: ['Generalist PM', 'Operations hybrid', 'Founder associate'],
-  growth: ['Name a primary lane for this season', 'Ship smaller bets faster'],
-  compatibilityHint: 'Pairs with specialists to go deeper; you provide glue.',
-});
+const fallbackArchetype = (code: string, locale: string = 'en') => {
+  if (locale === 'ko') {
+    return {
+      code,
+      name: '적응형 박학다식',
+      summary: '모든 축에서 균형 잡힌 적응력 있는 강점을 가지고 있습니다.',
+      strengths: ['유연성', '통합적 사고', '상황 인식'],
+      cautions: ['결정을 미룰 수 있음', '불명확한 우선순위 위험'],
+      idealRoles: ['제너럴리스트 PM', '운영 하이브리드', '창업자 어소시에이트'],
+      growth: ['이번 시즌의 주요 방향 정하기', '작은 것부터 빠르게 실행하기'],
+      compatibilityHint: '전문가와 함께하면 더 깊이 갈 수 있습니다; 당신은 접착제 역할을 합니다.',
+    };
+  }
+  return {
+    code,
+    name: 'Adaptive Polymath',
+    summary: 'Balanced across axes with adaptable strengths.',
+    strengths: ['Flexible', 'Integrative thinking', 'Situational awareness'],
+    cautions: ['May delay decisions', 'Risk of unclear priorities'],
+    idealRoles: ['Generalist PM', 'Operations hybrid', 'Founder associate'],
+    growth: ['Name a primary lane for this season', 'Ship smaller bets faster'],
+    compatibilityHint: 'Pairs with specialists to go deeper; you provide glue.',
+  };
+};
 
-export function analyzePersona(answers: PersonaQuizAnswers): PersonaAnalysis {
+export function analyzePersona(answers: PersonaQuizAnswers, locale: string = 'en'): PersonaAnalysis {
   const zeroAxis = (a: PersonaPole, b: PersonaPole): Record<PersonaPole, number> =>
     ({
       radiant: 0,
@@ -333,7 +348,8 @@ const CONSISTENCY_PAIRS: Array<[string, string]> = [
     letterForAxis('rhythm', axisResults.rhythm.pole)
   ) as string;
 
-  const archetype = PERSONA_ARCHETYPES[typeCode] ?? fallbackArchetype(typeCode);
+  const localizedArchetypes = getLocalizedArchetypes(locale);
+  const archetype = localizedArchetypes[typeCode] ?? fallbackArchetype(typeCode, locale);
 
   const openness = axisResults.cognition.pole === 'visionary' ? axisResults.cognition.score : 100 - axisResults.cognition.score;
   const conscientiousness = axisResults.rhythm.pole === 'anchor' ? axisResults.rhythm.score : 100 - axisResults.rhythm.score;
@@ -371,7 +387,11 @@ const CONSISTENCY_PAIRS: Array<[string, string]> = [
     career: archetype.idealRoles.slice(0, 3).join(', '),
     relationships: archetype.compatibilityHint,
     guidance: archetype.growth.join(' '),
-    keyMotivations: [
+    keyMotivations: locale === 'ko' ? [
+      axisResults.energy.pole === 'radiant' ? '가시성과 추진력' : '깊이와 안정감',
+      axisResults.cognition.pole === 'visionary' ? '가능성과 패턴' : '명확성과 증거',
+      axisResults.decision.pole === 'empathic' ? '사람에 대한 영향력' : '객관적 정확성',
+    ] : [
       axisResults.energy.pole === 'radiant' ? 'Visibility and momentum' : 'Depth and steadiness',
       axisResults.cognition.pole === 'visionary' ? 'Possibility and patterns' : 'Clarity and proof',
       axisResults.decision.pole === 'empathic' ? 'People impact' : 'Objective correctness',

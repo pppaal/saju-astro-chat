@@ -21,6 +21,20 @@ function getCachedPremium(email: string) {
   return null;
 }
 
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    'http://127.0.0.1:5000';
+  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
+    console.warn('[Saju API] Using non-HTTPS AI backend in production');
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn('[Saju API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL');
+  }
+  return url;
+}
+
 function setCachedPremium(email: string, value: boolean) {
   premiumCache.set(email.toLowerCase(), { value, expires: Date.now() + PREMIUM_TTL_MS });
 }
@@ -704,7 +718,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // ======== AI 백엔드 호출 (GPT) ========
     let aiInterpretation = '';
     let aiModelUsed = '';
-    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+    const backendUrl = pickBackendUrl();
 
     try {
       const headers: Record<string, string> = {

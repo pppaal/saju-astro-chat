@@ -49,6 +49,11 @@ export default function QuizPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Auto scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentPage]);
+
   const progress = Object.keys(answers).length;
   const isQuizComplete = progress === TOTAL_QUESTIONS;
   const progressPercent = Math.round((progress / TOTAL_QUESTIONS) * 100);

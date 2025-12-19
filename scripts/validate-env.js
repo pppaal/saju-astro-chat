@@ -35,6 +35,7 @@ const REQUIRED_AI = [
 // Recommended for production monitoring
 const RECOMMENDED_PRODUCTION = [
   "SENTRY_DSN",
+  "AI_BACKEND_URL", // server-only AI backend URL (prefer over NEXT_PUBLIC_AI_BACKEND)
   "NEXT_PUBLIC_AI_BACKEND",
 ];
 

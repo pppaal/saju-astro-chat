@@ -749,6 +749,67 @@
   border: 2px solid rgba(252, 182, 159, 0.25);
 }
 
+/* Action Buttons Section */
+.actionButtons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .actionButtons {
+    grid-template-columns: 1fr;
+  }
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(145deg, rgba(80, 50, 120, 0.7), rgba(50, 30, 80, 0.7));
+  border: 2px solid rgba(252, 182, 159, 0.25);
+  border-radius: 16px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: left;
+}
+
+.actionButton:hover {
+  transform: translateY(-4px);
+  border-color: rgba(252, 182, 159, 0.5);
+  box-shadow: 0 12px 32px rgba(252, 182, 159, 0.25);
+  background: linear-gradient(145deg, rgba(100, 60, 140, 0.8), rgba(70, 40, 100, 0.8));
+}
+
+.actionButtonIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(252, 182, 159, 0.5));
+}
+
+.actionButtonText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.actionButtonText strong {
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.actionButtonText span {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* Share Section */
 .shareSection {
   display: flex;

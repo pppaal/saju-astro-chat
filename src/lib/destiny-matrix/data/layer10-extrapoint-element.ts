@@ -1,6 +1,12 @@
 // src/lib/destiny-matrix/data/layer10-extrapoint-element.ts
-// Layer 10: Extra Points-Element Matrix (엑스트라포인트-오행 매트릭스)
-// Chiron, Lilith, Part of Fortune, Vertex와 오행/십신의 교차
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 10: ExtraPoint-Element Matrix (엑스트라포인트)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { InteractionCode, ExtraPointName } from '../types';
 import type { FiveElement, SibsinKind } from '../../Saju/types';

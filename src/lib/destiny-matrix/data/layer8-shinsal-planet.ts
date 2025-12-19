@@ -1,6 +1,12 @@
 // src/lib/destiny-matrix/data/layer8-shinsal-planet.ts
-// Layer 8: Shinsal-Planet Matrix (신살-행성 매트릭스)
-// 신살(神殺)은 사주에서 특별한 기운을 나타내는 지표
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 8: Shinsal-Planet Matrix (신살-행성 매트릭스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { InteractionCode, PlanetName, ShinsalKind } from '../types';
 

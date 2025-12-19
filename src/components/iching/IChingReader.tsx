@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { IChingData } from "@/lib/iChing/iChingData";
 import { IChingDataKo } from "@/lib/iChing/iChingData.ko";
@@ -23,6 +23,8 @@ const IChingReader: React.FC = () => {
   const [drawnLines, setDrawnLines] = useState<LineResult[]>([]);
   const [question, setQuestion] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [aiKey, setAiKey] = useState(0); // Key to force AI restart when lines change
+  const aiRestartTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Select data based on current locale
   const currentData = locale === 'ko' ? IChingDataKo : IChingData;
@@ -108,6 +110,66 @@ const IChingReader: React.FC = () => {
     setDrawnLines([]);
     setQuestion("");
     setSaveStatus("idle");
+    setAiKey(0);
+    // Clear any pending AI restart timer
+    if (aiRestartTimerRef.current) {
+      clearTimeout(aiRestartTimerRef.current);
+      aiRestartTimerRef.current = null;
+    }
+  };
+
+  // Toggle changing line status when user clicks on a line
+  const toggleChangingLine = (index: number) => {
+    if (status !== "finished" || !result?.primaryHexagram) return;
+
+    const newLines = drawnLines.map((line, i) =>
+      i === index ? { ...line, isChanging: !line.isChanging } : line
+    );
+    setDrawnLines(newLines);
+
+    // Recalculate binary strings
+    let primaryBinary = "";
+    let resultingBinary = "";
+
+    newLines.forEach(line => {
+      const bit = line.value === 1 ? "1" : "0";
+      primaryBinary += bit;
+      // If changing, flip the bit for resulting hexagram
+      if (line.isChanging) {
+        resultingBinary += line.value === 1 ? "0" : "1";
+      } else {
+        resultingBinary += bit;
+      }
+    });
+
+    // Get hexagrams
+    const primaryHexagram = hexByBinary.get(primaryBinary);
+    if (!primaryHexagram) return;
+
+    const resultingHexagram =
+      primaryBinary !== resultingBinary
+        ? hexByBinary.get(resultingBinary)
+        : undefined;
+
+    // Recalculate changing lines
+    const changingLines = newLines
+      .map((line, idx) => ({ ...line, index: idx }))
+      .filter((line) => line.isChanging)
+      .map((line) => ({
+        index: line.index,
+        text: primaryHexagram.lines[line.index],
+      }));
+
+    setResult({ primaryHexagram, changingLines, resultingHexagram });
+    setSaveStatus("idle"); // Reset save status since result changed
+
+    // Debounce AI restart - wait 800ms after last toggle before restarting
+    if (aiRestartTimerRef.current) {
+      clearTimeout(aiRestartTimerRef.current);
+    }
+    aiRestartTimerRef.current = setTimeout(() => {
+      setAiKey(prev => prev + 1);
+    }, 800);
   };
 
   const handleSave = async () => {
@@ -165,10 +227,26 @@ const IChingReader: React.FC = () => {
               <HexagramLine
                 type={line.value === 1 ? "solid" : "broken"}
                 isChanging={line.isChanging}
+                clickable={status === "finished"}
+                lineIndex={index}
+                onClick={() => toggleChangingLine(index)}
+                locale={locale}
               />
             </div>
           ))}
       </div>
+      {status === "finished" && (
+        <div className={styles.changingInfo}>
+          <p className={styles.changingHint}>
+            {translate("iching.changingHint", "Click on a line to toggle changing status")}
+          </p>
+          {drawnLines.filter(l => l.isChanging).length > 0 && (
+            <p className={styles.changingCount}>
+              {translate("iching.changingCount", "Changing lines")}: {drawnLines.filter(l => l.isChanging).length}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Idle State */}
       {status === "idle" && (
@@ -220,7 +298,7 @@ const IChingReader: React.FC = () => {
               <p className={styles.questionText}>{question}</p>
             </div>
           )}
-          <ResultDisplay result={result} />
+          <ResultDisplay key={aiKey} result={result} question={question} autoStartAi={true} />
           <div className={styles.buttonGroup}>
             {session ? (
               <button

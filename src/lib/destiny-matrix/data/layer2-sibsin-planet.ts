@@ -1,5 +1,12 @@
 // src/lib/destiny-matrix/data/layer2-sibsin-planet.ts
-// Layer 2: Sibsin-Planet Matrix (십신-행성 역할 매트릭스)
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 2: Sibsin-Planet Matrix (십신-행성 매트릭스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { SibsinPlanetMatrix, InteractionCode, PlanetName } from '../types';
 import type { SibsinKind } from '../../Saju/types';

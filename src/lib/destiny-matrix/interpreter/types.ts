@@ -240,8 +240,12 @@ export interface OverallScore {
     challenge: number;
   };
 
+  // 데이터 품질 지표 (개선됨)
+  dataCompleteness?: number;  // 0-100 (데이터가 있는 카테고리 비율)
+  insightCount?: number;      // 생성된 인사이트 수
+
   // 비교 데이터
-  percentile?: number;      // 상위 몇 % (향후 구현)
+  percentile?: number;        // 상위 몇 % (향후 구현)
 }
 
 export interface DomainAnalysis {
@@ -259,6 +263,10 @@ export interface DomainAnalysis {
   challengesEn: string[];
 
   insights: FusionInsight[];
+
+  // 데이터 품질 지표 (개선됨)
+  hasData: boolean;           // 실제 데이터가 있는지
+  insightCount: number;       // 이 도메인의 인사이트 수
 }
 
 export interface TimingAnalysis {

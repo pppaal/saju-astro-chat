@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import styles from "../policy.module.css";
 
 type Section = { title: string; body: string };
@@ -33,7 +34,7 @@ const sections: Section[] = [
   },
   {
     title: "6. Intellectual Property Rights",
-    body: "DestinyPal Content: All Content provided through the Service, including but not limited to:\n- Software, algorithms, and AI models\n- Website design, graphics, logos, and trademarks\n- Reading templates and interpretation frameworks\n- Educational content and articles\n- User interface and experience design\n\nare owned by DestinyPal or our licensors and protected by copyright, trademark, patent, and other intellectual property laws.\n\nUser Content License: By submitting User Content (birth information, questions, feedback, posts), you grant DestinyPal a worldwide, non-exclusive, royalty-free, perpetual, irrevocable license to:\n- Use, reproduce, modify, and adapt your User Content\n- Publicly display and distribute User Content\n- Create derivative works for Service improvement\n- Use for training AI models and improving accuracy\n- Use anonymized data for analytics and research\n\nYou retain ownership of your User Content but represent and warrant that you have all necessary rights to grant this license.\n\nUser Content Responsibility: You are solely responsible for your User Content. We do not endorse or guarantee the accuracy of User Content.\n\nReading Results: Personalized readings generated for you are provided for your personal, non-commercial use. You may not redistribute, resell, or publicly share readings without permission.\n\nTrademarks: 'DestinyPal' and associated logos are trademarks of Paul Rhee. You may not use our trademarks without prior written consent."
+    body: "DestinyPal Content: All Content provided through the Service, including but not limited to:\n- Software, algorithms, and AI models\n- Website design, graphics, logos, and trademarks\n- Reading templates and interpretation frameworks\n- Educational content and articles\n- User interface and experience design\n\nare owned by DestinyPal or our licensors and protected by copyright, trademark, patent, and other intellectual property laws.\n\nProprietary Technology - Destiny Fusion Matrix™: The Destiny Fusion Matrix™ is our proprietary multi-layer cross-reference system that combines Eastern Saju (Four Pillars) astrology with Western astrological interpretations. This system includes:\n- 10-layer matrix architecture with 1,206 unique interaction cells\n- Proprietary scoring algorithms and weight calculations\n- Fusion interpretation methodologies\n- Data structures and interaction codes\n\nThe Destiny Fusion Matrix™ constitutes trade secrets and confidential intellectual property. Any attempt to reverse engineer, decompile, analyze, extract, recreate, or derive the underlying algorithms, data structures, or methodologies is strictly prohibited and may result in civil and criminal liability.\n\nUser Content License: By submitting User Content (birth information, questions, feedback, posts), you grant DestinyPal a worldwide, non-exclusive, royalty-free, perpetual, irrevocable license to:\n- Use, reproduce, modify, and adapt your User Content\n- Publicly display and distribute User Content\n- Create derivative works for Service improvement\n- Use for training AI models and improving accuracy\n- Use anonymized data for analytics and research\n\nYou retain ownership of your User Content but represent and warrant that you have all necessary rights to grant this license.\n\nUser Content Responsibility: You are solely responsible for your User Content. We do not endorse or guarantee the accuracy of User Content.\n\nReading Results: Personalized readings generated for you are provided for your personal, non-commercial use. You may not redistribute, resell, or publicly share readings without permission.\n\nTrademarks: 'DestinyPal', 'Destiny Fusion Matrix', and associated logos are trademarks of Paul Rhee. You may not use our trademarks without prior written consent."
   },
   {
     title: "7. Paid Services and Billing",
@@ -91,7 +92,8 @@ function SectionView({ s }: { s: Section }) {
 }
 
 export default function TermsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isKo = locale === "ko";
 
   return (
     <div className={styles.container}>
@@ -118,6 +120,7 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      <ScrollToTop label={isKo ? "맨 위로" : "Top"} />
     </div>
   );
 }

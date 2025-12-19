@@ -2,19 +2,47 @@
   position: fixed;
   top: 1rem;
   left: 1rem;
-  padding: 0.5rem 1rem;
-  background: var(--button-bg-color, transparent);
-  border: 1px solid #fff;
-  border-radius: 4px;
-  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   z-index: 1000;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.button::before {
+  content: '←';
+  font-size: 1rem;
+  transition: transform 0.3s ease;
 }
 
 .button:hover,
 .button:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateX(-3px);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.button:hover::before {
+  transform: translateX(-3px);
+}
+
+.button:active {
+  transform: translateX(-1px) scale(0.98);
 }

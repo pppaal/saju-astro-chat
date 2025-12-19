@@ -272,6 +272,35 @@ export default function DreamInsightPage() {
   const [result, setResult] = useState<InsightResponse | null>(null);
   const [activeSymbolCategory, setActiveSymbolCategory] = useState<keyof typeof DREAM_SYMBOLS>('animals');
 
+  // Streaming state
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingSection, setStreamingSection] = useState<string>('');
+  const [streamingSummary, setStreamingSummary] = useState<string>('');
+  const [streamingSymbols, setStreamingSymbols] = useState<string>('');
+  const [streamingRecommendations, setStreamingRecommendations] = useState<string>('');
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Loading messages for streaming
+  const LOADING_MESSAGES = [
+    '꿈의 상징들을 해석하고 있어요...',
+    '무의식의 메시지를 분석 중이에요...',
+    '문화적 맥락을 고려하고 있어요...',
+    '깊은 통찰을 찾고 있어요...',
+    '당신의 꿈이 알려주는 이야기...',
+  ];
+
+  // Build result from streaming data when streaming completes
+  useEffect(() => {
+    if (!isStreaming && !isLoading && (streamingSummary || streamingSymbols || streamingRecommendations) && !result) {
+      setResult({
+        summary: streamingSummary || undefined,
+        recommendations: streamingRecommendations ? streamingRecommendations.split('\n').filter(r => r.trim()) : [],
+        dreamSymbols: streamingSymbols ? [{ label: '심볼 분석', meaning: streamingSymbols }] : [],
+      });
+    }
+  }, [isStreaming, isLoading, streamingSummary, streamingSymbols, streamingRecommendations, result]);
+
   // NEW UX FEATURES STATE
   const [searchQuery, setSearchQuery] = useState('');
   const [recentDreams, setRecentDreams] = useState<RecentDream[]>([]);
@@ -539,8 +568,14 @@ export default function DreamInsightPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setIsStreaming(true);
     setError(null);
     setResult(null);
+    setStreamingSummary('');
+    setStreamingSymbols('');
+    setStreamingRecommendations('');
+    setStreamingSection('');
+    setLoadingMessageIndex(0);
 
     // Generate dream text based on mode
     let dreamText: string;
@@ -548,12 +583,14 @@ export default function DreamInsightPage() {
       dreamText = detailedDream.trim();
       if (dreamText.length < 10) {
         setIsLoading(false);
+        setIsStreaming(false);
         setError(t('dream.errorMinLength'));
         return;
       }
     } else {
       if (selectedSymbols.length === 0 && selectedEmotions.length === 0 && !additionalDetails.trim()) {
         setIsLoading(false);
+        setIsStreaming(false);
         setError(t('dream.errorSelectSymbols'));
         return;
       }
@@ -566,44 +603,125 @@ export default function DreamInsightPage() {
 
     if (!dreamText) {
       setIsLoading(false);
+      setIsStreaming(false);
       setError(t('dream.errorEnterDream'));
       return;
     }
 
+    // Start loading message rotation
+    const messageInterval = setInterval(() => {
+      setLoadingMessageIndex(prev => (prev + 1) % LOADING_MESSAGES.length);
+    }, 3000);
+
+    // Create abort controller for cancellation
+    abortControllerRef.current = new AbortController();
+
     try {
       const body = {
-        dream: dreamText,
+        dreamText,
         symbols: selectedSymbols,
         emotions: selectedEmotions,
         themes: selectedThemes,
         context: selectedContext,
-        share,
-        birth: showBirthData ? { date, time, latitude, longitude, timeZone, city: cityQuery } : undefined,
-        // Korean cultural symbols
+        locale: 'ko',
         koreanTypes: selectedKoreanTypes,
         koreanLucky: selectedKoreanLucky,
       };
 
-      const res = await fetch('/api/dream-insight', {
+      // Call streaming API
+      const res = await fetch('/api/dream/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: abortControllerRef.current.signal,
       });
 
-      const data: InsightResponse = await res.json();
-      if (!res.ok || data?.error) {
-        throw new Error(data?.error || `Server error: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
       }
 
-      setResult(data);
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.error) {
+                throw new Error(data.error);
+              }
+
+              if (data.done) {
+                // Streaming complete - will be handled in finally
+                break;
+              }
+
+              if (data.section === 'summary') {
+                if (data.status === 'start') {
+                  setStreamingSection('summary');
+                } else if (data.content) {
+                  setStreamingSummary(prev => prev + data.content);
+                }
+              } else if (data.section === 'symbols') {
+                if (data.status === 'start') {
+                  setStreamingSection('symbols');
+                } else if (data.content) {
+                  setStreamingSymbols(prev => prev + data.content);
+                }
+              } else if (data.section === 'recommendations') {
+                if (data.status === 'start') {
+                  setStreamingSection('recommendations');
+                } else if (data.content) {
+                  setStreamingRecommendations(prev => prev + data.content);
+                }
+              }
+            } catch {
+              // Skip malformed JSON
+            }
+          }
+        }
+      }
+
       // Save to recent dreams
       saveToRecent(dreamText);
       // Clear draft after successful submission
       localStorage.removeItem(STORAGE_KEYS.DRAFT);
     } catch (err: any) {
-      setError(err.message || 'Unknown error occurred.');
+      if (err.name === 'AbortError') {
+        // User cancelled - reset streaming state
+        setStreamingSummary('');
+        setStreamingSymbols('');
+        setStreamingRecommendations('');
+      } else {
+        setError(err.message || 'Unknown error occurred.');
+      }
     } finally {
+      clearInterval(messageInterval);
       setIsLoading(false);
+      setStreamingSection('');
+      abortControllerRef.current = null;
+      // Small delay before transitioning to result
+      setTimeout(() => {
+        setIsStreaming(false);
+      }, 300);
+    }
+  };
+
+  const cancelStreaming = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   };
 
@@ -619,6 +737,10 @@ export default function DreamInsightPage() {
     // Reset Korean cultural symbols
     setSelectedKoreanTypes([]);
     setSelectedKoreanLucky([]);
+    // Reset streaming state
+    setStreamingSummary('');
+    setStreamingSymbols('');
+    setStreamingRecommendations('');
   };
 
   return (
@@ -644,7 +766,86 @@ export default function DreamInsightPage() {
           ))}
         </div>
 
-        {!result && (
+        {/* Streaming UI */}
+        {isStreaming && (
+          <div className={`${styles.streamingContainer} ${styles.fadeIn}`}>
+            <h2 className={styles.streamingTitle}>🌙 꿈을 해석하고 있어요...</h2>
+
+            {/* Progress Indicator */}
+            <div className={styles.streamingProgress}>
+              <span className={`${styles.streamingStep} ${streamingSection === 'summary' ? styles.streamingStepActive : streamingSummary ? styles.streamingStepDone : ''}`}>
+                <span className={styles.streamingStepIcon}>{streamingSummary ? '✓' : '📝'}</span>
+                요약
+              </span>
+              <span className={`${styles.streamingStep} ${streamingSection === 'symbols' ? styles.streamingStepActive : streamingSymbols ? styles.streamingStepDone : ''}`}>
+                <span className={styles.streamingStepIcon}>{streamingSymbols ? '✓' : '🔮'}</span>
+                심볼 분석
+              </span>
+              <span className={`${styles.streamingStep} ${streamingSection === 'recommendations' ? styles.streamingStepActive : streamingRecommendations ? styles.streamingStepDone : ''}`}>
+                <span className={styles.streamingStepIcon}>{streamingRecommendations ? '✓' : '💡'}</span>
+                조언
+              </span>
+            </div>
+
+            {/* Summary Section */}
+            {(streamingSection === 'summary' || streamingSummary) && (
+              <div className={`${styles.streamingContentBox} ${streamingSection === 'summary' ? styles.active : ''}`}>
+                <h3 className={styles.streamingSectionTitle}>📝 꿈의 메시지</h3>
+                <div className={styles.streamingText}>
+                  {streamingSummary}
+                  {streamingSection === 'summary' && <span className={styles.streamingCursor} />}
+                </div>
+              </div>
+            )}
+
+            {/* Symbols Section */}
+            {(streamingSection === 'symbols' || streamingSymbols) && (
+              <div className={`${styles.streamingContentBox} ${streamingSection === 'symbols' ? styles.active : ''}`}>
+                <h3 className={styles.streamingSectionTitle}>🔮 심볼 분석</h3>
+                <div className={styles.streamingText}>
+                  {streamingSymbols}
+                  {streamingSection === 'symbols' && <span className={styles.streamingCursor} />}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendations Section */}
+            {(streamingSection === 'recommendations' || streamingRecommendations) && (
+              <div className={`${styles.streamingContentBox} ${streamingSection === 'recommendations' ? styles.active : ''}`}>
+                <h3 className={styles.streamingSectionTitle}>💡 실천 조언</h3>
+                <div className={styles.streamingText}>
+                  {streamingRecommendations}
+                  {streamingSection === 'recommendations' && <span className={styles.streamingCursor} />}
+                </div>
+              </div>
+            )}
+
+            {/* Loading Dots when waiting */}
+            {!streamingSummary && !streamingSymbols && !streamingRecommendations && (
+              <div className={styles.streamingContentBox}>
+                <div className={styles.typingDots}>
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                </div>
+              </div>
+            )}
+
+            {/* Loading Message */}
+            <div className={styles.loadingMessages}>
+              <p className={styles.loadingMessage} key={loadingMessageIndex}>
+                {LOADING_MESSAGES[loadingMessageIndex]}
+              </p>
+            </div>
+
+            {/* Cancel Button */}
+            <button type="button" className={styles.cancelButton} onClick={cancelStreaming}>
+              취소
+            </button>
+          </div>
+        )}
+
+        {!result && !isStreaming && (
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             <div className={styles.formHeader}>
               <div className={styles.formIcon}>🌙</div>

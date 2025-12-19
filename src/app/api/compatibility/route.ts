@@ -34,6 +34,31 @@ function relationWeight(r?: Relation) {
   return 0.9; // other
 }
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const MAX_NOTE = 240;
+const MAX_NAME = 80;
+const MAX_CITY = 120;
+
+function sanitizeStr(value: unknown, max = 120) {
+  return String(value ?? '').trim().slice(0, max);
+}
+
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    'http://127.0.0.1:5000';
+
+  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
+    console.warn('[Compatibility API] Using non-HTTPS AI backend in production');
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn('[Compatibility API] NEXT_PUBLIC_AI_BACKEND is exposed; prefer AI_BACKEND_URL');
+  }
+  return url;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req.headers);
@@ -53,9 +78,19 @@ export async function POST(req: NextRequest) {
     }
 
     for (let i = 0; i < persons.length; i++) {
-      const p = persons[i];
+      const p = persons[i] || ({} as PersonInput);
+      p.name = sanitizeStr(p.name, MAX_NAME);
+      p.city = sanitizeStr(p.city, MAX_CITY);
+      p.relationNoteToP1 = sanitizeStr(p.relationNoteToP1, MAX_NOTE);
+
       if (!p?.date || !p?.time || !p?.timeZone) {
         return bad(`${i + 1}: date, time, and timeZone are required.`, 400, limit.headers);
+      }
+      if (!DATE_RE.test(p.date) || Number.isNaN(Date.parse(p.date))) {
+        return bad(`${i + 1}: date must be YYYY-MM-DD.`, 400, limit.headers);
+      }
+      if (!TIME_RE.test(p.time)) {
+        return bad(`${i + 1}: time must be HH:mm (24h).`, 400, limit.headers);
       }
       if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number') {
         return bad(`${i + 1}: latitude/longitude must be numbers.`, 400, limit.headers);
@@ -63,9 +98,13 @@ export async function POST(req: NextRequest) {
       if (i > 0 && !p.relationToP1) {
         return bad(`${i + 1}: relationToP1 is required.`, 400, limit.headers);
       }
+      if (i > 0 && !['friend', 'lover', 'other'].includes(p.relationToP1 as string)) {
+        return bad(`${i + 1}: relationToP1 must be friend | lover | other.`, 400, limit.headers);
+      }
       if (i > 0 && p.relationToP1 === 'other' && !p.relationNoteToP1?.trim()) {
         return bad(`${i + 1}: add a short note for relationToP1 = "other".`, 400, limit.headers);
       }
+      persons[i] = p;
     }
 
     const names = persons.map((p, i) => p.name?.trim() || `Person ${i + 1}`);
@@ -111,10 +150,13 @@ export async function POST(req: NextRequest) {
     lines.push('');
     lines.push(`Average: ${avg}/100`);
 
-    // ======== AI 백엔드 호출 (GPT) ========
+    // ======== AI 백엔드 호출 (GPT + FUSION) ========
     let aiInterpretation = '';
     let aiModelUsed = '';
-    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+    let aiScore: number | null = null;
+    let timing: Record<string, unknown> | null = null;
+    let actionItems: string[] = [];
+    const backendUrl = pickBackendUrl();
 
     try {
       const headers: Record<string, string> = {
@@ -126,11 +168,9 @@ export async function POST(req: NextRequest) {
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      // Build prompt for compatibility analysis
-      const compatPrompt = `Analyze the compatibility between these ${persons.length} people:\n\n${lines.join('\n')}\n\nProvide detailed insights on their relationship dynamics, strengths, and areas to work on.`;
-
+      // Send to backend with full birth data for Saju+Astrology fusion analysis
       const aiResponse = await fetch(`${backendUrl}/api/compatibility`, {
         method: 'POST',
         headers,
@@ -143,8 +183,9 @@ export async function POST(req: NextRequest) {
             longitude: p.longitude,
             timeZone: p.timeZone,
             relation: i > 0 ? p.relationToP1 : undefined,
+            relationNote: i > 0 ? p.relationNoteToP1 : undefined,
           })),
-          prompt: compatPrompt,
+          relationship_type: persons[1]?.relationToP1 || 'lover',
           locale: body?.locale || 'ko',
         }),
         signal: controller.signal,
@@ -154,8 +195,15 @@ export async function POST(req: NextRequest) {
 
       if (aiResponse.ok) {
         const aiData = await aiResponse.json();
+        // Handle both nested (data.report) and flat response formats
         aiInterpretation = aiData?.data?.report || aiData?.interpretation || '';
-        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+        aiModelUsed = aiData?.data?.model || aiData?.model || 'gpt-4o';
+        // Get the AI-calculated overall score (Saju+Astrology fusion)
+        aiScore = aiData?.data?.overall_score || aiData?.overall_score || null;
+        // Get timing analysis
+        timing = aiData?.data?.timing || aiData?.timing || null;
+        // Get action items
+        actionItems = aiData?.data?.action_items || aiData?.action_items || [];
       }
     } catch (aiErr) {
       console.warn('[Compatibility API] AI backend call failed:', aiErr);
@@ -163,6 +211,8 @@ export async function POST(req: NextRequest) {
       aiModelUsed = 'error-fallback';
     }
 
+    // Use AI score if available, otherwise use geo-based fallback
+    const finalScore = aiScore ?? avg;
     const fallbackInterpretation = lines.join('\n') + '\n\nNote: This is a playful heuristic score, not professional guidance.';
 
     const res = NextResponse.json({
@@ -170,8 +220,13 @@ export async function POST(req: NextRequest) {
       aiInterpretation,
       aiModelUsed,
       pairs: scores,
-      average: avg,
+      average: finalScore,
+      overall_score: finalScore,
+      timing,
+      action_items: actionItems,
+      fusion_enabled: !!aiScore,
     });
+    res.headers.set('Cache-Control', 'no-store');
     return withHeaders(res, limit.headers);
   } catch (e: any) {
     captureServerError(e, { route: "/api/compatibility" });

@@ -2099,3 +2099,201 @@
     padding: 1rem;
   }
 }
+
+/* ============================================
+   STREAMING UI STYLES
+   ============================================ */
+
+/* Streaming Container */
+.streamingContainer {
+  max-width: 900px;
+  width: 100%;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.streamingTitle {
+  font-family: "Cinzel", serif;
+  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Progress Indicator */
+.streamingProgress {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.streamingStep {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.streamingStepActive {
+  background: rgba(168, 237, 234, 0.15);
+  color: #a8edea;
+  border: 1px solid rgba(168, 237, 234, 0.3);
+}
+
+.streamingStepDone {
+  background: rgba(168, 237, 234, 0.2);
+  color: #a8edea;
+}
+
+.streamingStepIcon {
+  font-size: 1rem;
+}
+
+/* Content Box */
+.streamingContentBox {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.streamingContentBox.active {
+  border-color: rgba(168, 237, 234, 0.4);
+  box-shadow: 0 0 30px rgba(168, 237, 234, 0.1);
+}
+
+.streamingSectionTitle {
+  font-family: "Cinzel", serif;
+  font-size: 1.1rem;
+  color: #a8edea;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.streamingText {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: pre-wrap;
+  min-height: 60px;
+}
+
+/* Streaming Cursor */
+.streamingCursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: linear-gradient(180deg, #a8edea, #fed6e3);
+  margin-left: 2px;
+  animation: cursorBlink 0.8s infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Typing Dots */
+.typingDots {
+  display: flex;
+  gap: 6px;
+  padding: 0.5rem 0;
+}
+
+.typingDot {
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.typingDot:nth-child(1) { animation-delay: 0s; }
+.typingDot:nth-child(2) { animation-delay: 0.2s; }
+.typingDot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+}
+
+/* Loading Messages */
+.loadingMessages {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.loadingMessage {
+  font-size: 0.95rem;
+  color: rgba(168, 237, 234, 0.8);
+  font-style: italic;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0.7; transform: translateY(0); }
+}
+
+/* Cancel Button */
+.cancelButton {
+  display: block;
+  margin: 2rem auto 0;
+  padding: 0.75rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.4);
+  color: #ff9999;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .streamingContainer {
+    padding: 1rem;
+  }
+
+  .streamingTitle {
+    font-size: 1.4rem;
+  }
+
+  .streamingProgress {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .streamingContentBox {
+    padding: 1.25rem;
+  }
+
+  .streamingText {
+    font-size: 0.95rem;
+  }
+}

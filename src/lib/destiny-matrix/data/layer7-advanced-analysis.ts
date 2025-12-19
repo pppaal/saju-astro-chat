@@ -1,6 +1,12 @@
 // src/lib/destiny-matrix/data/layer7-advanced-analysis.ts
-// Layer 7: Advanced Analysis Matrix (고급분석 통합 매트릭스)
-// 19개 격국 + 5개 용신 × 6개 프로그레션 = 144셀
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 7: Advanced Analysis Matrix (고급분석 매트릭스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { AdvancedAnalysisMatrix, InteractionCode, AdvancedAnalysisRow, ProgressionType } from '../types';
 

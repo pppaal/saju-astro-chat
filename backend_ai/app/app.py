@@ -102,6 +102,34 @@ try:
 except ImportError:
     HAS_BADGES = False
 
+# Domain RAG (precomputed embeddings per domain)
+try:
+    from backend_ai.app.domain_rag import get_domain_rag, DOMAINS as DOMAIN_RAG_DOMAINS
+    HAS_DOMAIN_RAG = True
+except ImportError:
+    HAS_DOMAIN_RAG = False
+    DOMAIN_RAG_DOMAINS = []
+    print("[app.py] DomainRAG not available")
+
+# Compatibility (Saju + Astrology fusion)
+try:
+    from backend_ai.app.compatibility_logic import (
+        interpret_compatibility,
+        interpret_compatibility_group,
+    )
+    HAS_COMPATIBILITY = True
+except ImportError:
+    HAS_COMPATIBILITY = False
+    print("[app.py] Compatibility logic not available")
+
+# Hybrid RAG (Vector + BM25 + Graph + rerank)
+try:
+    from backend_ai.app.hybrid_rag import hybrid_search, build_rag_context
+    HAS_HYBRID_RAG = True
+except ImportError:
+    HAS_HYBRID_RAG = False
+    print("[app.py] Hybrid RAG not available")
+
 # Agentic RAG System (Next Level Features)
 try:
     from backend_ai.app.agentic_rag import (
@@ -455,119 +483,69 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
         "family": "complex archetype mother father 콤플렉스 원형 부모",
     }
 
-    # --- Define individual RAG fetch functions ---
-    def fetch_graph_rag():
-        if not HAS_GRAPH_RAG:
-            return {"key": "graph", "data": None}
-        try:
-            graph_rag = get_graph_rag()
-            graph_result = graph_rag.query(
-                facts, top_k=20,
-                domain_priority=theme if theme in graph_rag.rules else "career"
-            )
-            return {
-                "key": "graph",
-                "data": {
-                    "nodes": graph_result.get("matched_nodes", [])[:15],
-                    "context": graph_result.get("context_text", "")[:2000],
-                    "rules": graph_result.get("rule_summary", [])[:5],
-                }
-            }
-        except Exception as e:
-            logger.warning(f"[PREFETCH] GraphRAG failed: {e}")
-            return {"key": "graph", "data": None}
+    # --- Pre-load RAG instances (thread-safe) ---
+    # SentenceTransformer encode() is NOT thread-safe, so we must load
+    # instances in main thread and run queries SEQUENTIALLY
+    _graph_rag_inst = get_graph_rag() if HAS_GRAPH_RAG else None
+    _corpus_rag_inst = get_corpus_rag() if HAS_CORPUS_RAG else None
+    _persona_rag_inst = get_persona_embed_rag() if HAS_PERSONA_EMBED else None
 
-    def fetch_corpus_rag():
-        if not HAS_CORPUS_RAG:
-            return {"key": "corpus", "data": None}
-        try:
-            corpus_rag = get_corpus_rag()
+    # --- Execute RAG fetches SEQUENTIALLY (thread-safe) ---
+    # GraphRAG
+    try:
+        if _graph_rag_inst:
+            graph_result = _graph_rag_inst.query(
+                facts, top_k=20,
+                domain_priority=theme if theme in _graph_rag_inst.rules else "career"
+            )
+            result["graph_nodes"] = graph_result.get("matched_nodes", [])[:15]
+            result["graph_context"] = graph_result.get("context_text", "")[:2000]
+            if graph_result.get("rule_summary"):
+                result["graph_rules"] = graph_result.get("rule_summary", [])[:5]
+            logger.info(f"[PREFETCH] GraphRAG: {len(result['graph_nodes'])} nodes")
+    except Exception as e:
+        logger.warning(f"[PREFETCH] GraphRAG failed: {e}")
+
+    # CorpusRAG (Jung quotes)
+    try:
+        if _corpus_rag_inst:
             jung_query_parts = [theme_concepts.get(theme, theme), query[:100]]
             jung_query = " ".join(jung_query_parts)
-            quotes = corpus_rag.search(jung_query, top_k=5, min_score=0.15)
-            return {
-                "key": "corpus",
-                "data": [
-                    {
-                        "text_ko": q.get("quote_kr", ""),
-                        "text_en": q.get("quote_en", ""),
-                        "source": q.get("source", ""),
-                        "concept": q.get("concept", ""),
-                        "score": q.get("score", 0)
-                    }
-                    for q in quotes
-                ]
-            }
-        except Exception as e:
-            logger.warning(f"[PREFETCH] CorpusRAG failed: {e}")
-            return {"key": "corpus", "data": None}
-
-    def fetch_persona_rag():
-        if not HAS_PERSONA_EMBED:
-            return {"key": "persona", "data": None}
-        try:
-            persona_rag = get_persona_embed_rag()
-            persona_result = persona_rag.get_persona_context(query, top_k=5)
-            return {
-                "key": "persona",
-                "data": {
-                    "jung": persona_result.get("jung_insights", [])[:5],
-                    "stoic": persona_result.get("stoic_insights", [])[:5],
-                    "total": persona_result.get("total_matched", 0),
+            quotes = _corpus_rag_inst.search(jung_query, top_k=5, min_score=0.15)
+            result["corpus_quotes"] = [
+                {
+                    "text_ko": q.get("quote_kr", ""),
+                    "text_en": q.get("quote_en", ""),
+                    "source": q.get("source", ""),
+                    "concept": q.get("concept", ""),
+                    "score": q.get("score", 0)
                 }
+                for q in quotes
+            ]
+            logger.info(f"[PREFETCH] CorpusRAG: {len(result['corpus_quotes'])} quotes")
+    except Exception as e:
+        logger.warning(f"[PREFETCH] CorpusRAG failed: {e}")
+
+    # PersonaEmbedRAG
+    try:
+        if _persona_rag_inst:
+            persona_result = _persona_rag_inst.get_persona_context(query, top_k=5)
+            result["persona_context"] = {
+                "jung": persona_result.get("jung_insights", [])[:5],
+                "stoic": persona_result.get("stoic_insights", [])[:5],
             }
-        except Exception as e:
-            logger.warning(f"[PREFETCH] PersonaEmbedRAG failed: {e}")
-            return {"key": "persona", "data": None}
+            logger.info(f"[PREFETCH] PersonaEmbedRAG: {persona_result.get('total_matched', 0)} matches")
+    except Exception as e:
+        logger.warning(f"[PREFETCH] PersonaEmbedRAG failed: {e}")
 
-    def fetch_cross_analysis():
-        try:
-            return {
-                "key": "cross",
-                "data": get_cross_analysis_for_chart(saju_data, astro_data, theme)
-            }
-        except Exception as e:
-            logger.warning(f"[PREFETCH] Cross-analysis failed: {e}")
-            return {"key": "cross", "data": None}
-
-    # --- Execute all RAG fetches in parallel ---
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [
-            executor.submit(fetch_graph_rag),
-            executor.submit(fetch_corpus_rag),
-            executor.submit(fetch_persona_rag),
-            executor.submit(fetch_cross_analysis),
-        ]
-
-        for future in as_completed(futures):
-            try:
-                res = future.result(timeout=30)
-                key = res["key"]
-                data = res["data"]
-
-                if key == "graph" and data:
-                    result["graph_nodes"] = data["nodes"]
-                    result["graph_context"] = data["context"]
-                    if data.get("rules"):
-                        result["graph_rules"] = data["rules"]
-                    logger.info(f"[PREFETCH] GraphRAG: {len(data['nodes'])} nodes")
-                elif key == "corpus" and data:
-                    result["corpus_quotes"] = data
-                    logger.info(f"[PREFETCH] CorpusRAG: {len(data)} quotes")
-                elif key == "persona" and data:
-                    result["persona_context"] = {
-                        "jung": data["jung"],
-                        "stoic": data["stoic"],
-                    }
-                    logger.info(f"[PREFETCH] PersonaEmbedRAG: {data['total']} matches")
-                elif key == "cross" and data:
-                    result["cross_analysis"] = data
-
-            except Exception as e:
-                logger.warning(f"[PREFETCH] Future failed: {e}")
+    # Cross-analysis (no ML, thread-safe)
+    try:
+        result["cross_analysis"] = get_cross_analysis_for_chart(saju_data, astro_data, theme)
+    except Exception as e:
+        logger.warning(f"[PREFETCH] Cross-analysis failed: {e}")
 
     elapsed = time.time() - start_time
-    logger.info(f"[PREFETCH] All RAG data prefetched in {elapsed:.2f}s (parallel)")
+    logger.info(f"[PREFETCH] All RAG data prefetched in {elapsed:.2f}s (sequential)")
     result["prefetch_time_ms"] = int(elapsed * 1000)
 
     return result
@@ -659,7 +637,7 @@ ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
 RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
 RATE_WINDOW_SECONDS = 60
 _rate_state = defaultdict(list)  # ip -> timestamps
-UNPROTECTED_PATHS = {"/", "/health", "/health/full"}
+UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init"}
 
 
 def _client_id() -> str:
@@ -951,8 +929,11 @@ def ask_stream():
         locale = data.get("locale", "en")
         prompt = (data.get("prompt") or "")[:1500]  # Chat prompt limit
         session_id = data.get("session_id")  # Optional: use pre-fetched RAG data
+        conversation_history = data.get("history") or []  # Previous messages for context
+        user_context = data.get("user_context") or {}  # Premium: persona + session summaries
+        cv_text = (data.get("cv_text") or "")[:4000]  # CV/Resume text for career consultations
 
-        logger.info(f"[ASK-STREAM] id={g.request_id} theme={theme} locale={locale} session={session_id or 'none'}")
+        logger.info(f"[ASK-STREAM] id={g.request_id} theme={theme} locale={locale} session={session_id or 'none'} history_len={len(conversation_history)} has_user_ctx={bool(user_context)} cv_len={len(cv_text)}")
         logger.info(f"[ASK-STREAM] saju dayMaster: {saju_data.get('dayMaster', {})}")
 
         # Check for pre-fetched RAG data from session
@@ -1054,6 +1035,55 @@ def ask_stream():
         weekdays_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
         current_date_str = f"오늘: {now.year}년 {now.month}월 {now.day}일 ({weekdays_ko[now.weekday()]})"
 
+        # Build user context section for returning users (premium feature)
+        user_context_section = ""
+        if user_context:
+            persona = user_context.get("persona", {})
+            recent_sessions = user_context.get("recentSessions", [])
+
+            if persona.get("sessionCount", 0) > 0 or recent_sessions:
+                user_context_section = "\n[🔄 이전 상담 맥락]\n"
+
+                # Persona memory
+                if persona.get("sessionCount"):
+                    user_context_section += f"• 총 {persona['sessionCount']}회 상담한 재방문 고객\n"
+                if persona.get("lastTopics"):
+                    topics = persona["lastTopics"][:3] if isinstance(persona["lastTopics"], list) else []
+                    if topics:
+                        user_context_section += f"• 주요 관심사: {', '.join(topics)}\n"
+                if persona.get("emotionalTone"):
+                    user_context_section += f"• 감정 상태: {persona['emotionalTone']}\n"
+                if persona.get("recurringIssues"):
+                    issues = persona["recurringIssues"][:2] if isinstance(persona["recurringIssues"], list) else []
+                    if issues:
+                        user_context_section += f"• 반복 이슈: {', '.join(issues)}\n"
+
+                # Recent session summaries
+                if recent_sessions:
+                    user_context_section += "\n[최근 대화]\n"
+                    for sess in recent_sessions[:2]:  # Last 2 sessions
+                        if sess.get("summary"):
+                            user_context_section += f"• {sess['summary']}\n"
+                        elif sess.get("keyTopics"):
+                            topics_str = ", ".join(sess["keyTopics"][:3]) if isinstance(sess["keyTopics"], list) else ""
+                            if topics_str:
+                                user_context_section += f"• 주제: {topics_str}\n"
+
+                user_context_section += "\n→ 재방문 고객이니 '또 오셨네요' 같은 친근한 인사로 시작하고, 이전 상담 내용을 자연스럽게 참조하세요.\n"
+                logger.info(f"[ASK-STREAM] User context section: {len(user_context_section)} chars")
+
+        # Build CV/Resume section for career consultations
+        cv_section = ""
+        if cv_text and theme == "career":
+            cv_section = f"""
+[📄 사용자 이력서/CV]
+{cv_text}
+
+→ 위 이력서 내용을 참고하여 사용자의 경력, 기술, 경험에 맞는 구체적인 커리어 조언을 제공하세요.
+→ 사주/점성 해석과 이력서 내용을 연결하여 개인화된 조언을 해주세요.
+"""
+            logger.info(f"[ASK-STREAM] CV section added: {len(cv_text)} chars")
+
         # Build system prompt - with or without RAG context
         if rag_context:
             # RICH prompt with all RAG data
@@ -1065,14 +1095,73 @@ def ask_stream():
 [점성] {astro_detail}
 {cross_section}
 {rag_context}
-
+{user_context_section}{cv_section}
 [응답 방식]
-사주와 점성을 교차 분석하여 자연스럽게 엮어서 해석하세요.
-❌ 나쁜 예: "사주에서는 금입니다. 점성에서는 염소자리입니다." (따로따로)
-✅ 좋은 예: "일간 금(辛)과 태양 염소자리가 만나 실용적이고 야심찬 성향이 강합니다. 10하우스에 태양이 있어 커리어 성공 가능성이 높고, 2026년 봄 목 기운이 들어올 때 기회가 열립니다."
+⚠️ 중요: 먼저 질문 유형을 파악하고 그에 맞는 첫 문장을 선택하세요!
 
-위 지식 그래프와 심리학 인용구도 자연스럽게 활용하세요.
-100-150단어, {locale}로 답변"""
+질문 유형별 첫 문장:
+[자기탐색] "나/내 성격/나에 대해/어떤 사람/장단점/특징"
+  → "흥미로운 질문이네요!" / "본인에 대해 알고 싶으시군요!" / "좋은 질문이에요." / "자신을 알고자 하는 마음이 멋지네요."
+
+[운세/흐름] "운세/오늘/이번달/올해/내년/언제쯤/시기"
+  → "어떤 흐름인지 궁금하시죠!" / "살펴볼게요." / "타이밍이 중요하죠." / "흐름을 함께 봐요."
+
+[기대/설렘] "될까요/가능할까요/잘될까/좋아질까/희망"
+  → "기대되시죠!" / "궁금하시죠." / "좋은 징조가 보여요." / "희망적인 마음이 느껴져요."
+
+[힘든상황] "힘들어/어려워/안좋아/지쳐/포기/우울/슬퍼"
+  → "많이 힘드셨죠..." / "괜찮으세요?" / "마음이 무거우시겠어요." / "힘든 시간을 보내고 계시네요."
+
+[고민/걱정] "고민/걱정/불안/두려워/망설여/어떡해"
+  → "고민이 많으시죠..." / "걱정되는 마음 이해해요." / "많이 생각하고 계시네요."
+
+[연애/관계] "연애/사랑/결혼/이별/짝사랑/썸/재회/고백"
+  → "설레는 마음이 느껴지네요." / "마음이 복잡하시죠." / "감정이 깊으시네요." / "사랑 이야기군요."
+
+[커리어] "취업/이직/진로/사업/승진/퇴사/면접/합격"
+  → "중요한 시기네요." / "신중하게 생각하고 계시네요." / "커리어 고민이시군요." / "좋은 기회를 찾고 계시네요."
+
+[재물/돈] "돈/재물/투자/부동산/복권/사업자금/수입"
+  → "재정 상황이 궁금하시군요." / "돈 문제는 신중해야 하죠." / "재물운을 살펴볼게요."
+
+[건강] "건강/아파/병원/체력/다이어트/운동"
+  → "건강이 제일 중요하죠." / "몸 상태가 걱정되시나요?" / "건강운을 살펴볼게요."
+
+[가족/인간관계] "가족/부모님/자녀/친구/동료/갈등/화해"
+  → "관계가 고민이시군요." / "주변 사람들과의 관계, 중요하죠." / "인연의 흐름을 볼게요."
+
+[선택/결정] "어떻게/뭐가 나을까/선택/결정/고르기/A vs B"
+  → "중요한 갈림길이시네요." / "선택의 순간이군요." / "함께 살펴볼게요."
+
+[궁합/상성] "궁합/잘 맞을까/상성/어울려/케미"
+  → "두 분의 케미가 궁금하시군요!" / "궁합을 살펴볼게요." / "흥미로운 조합이네요."
+
+[감사/좋은일] "감사/좋은일/잘됐어/성공/축하"
+  → "좋은 소식이네요!" / "축하드려요!" / "기쁜 일이 있으셨군요!" / "잘 되셨네요!"
+
+[이사/여행] "이사/여행/유학/해외/이민"
+  → "새로운 곳이 궁금하시군요!" / "변화의 시기네요." / "이동운을 살펴볼게요."
+
+[시험/학업] "시험/공부/합격/자격증/학교"
+  → "열심히 준비하고 계시네요!" / "학업운을 살펴볼게요." / "좋은 결과 있길 바라요."
+
+❌ 절대 금지:
+- "~님의 사주에서..."로 시작
+- 성격 질문에 "고민이 많으시죠" (←고민 질문에만!)
+- 좋은 얘기에 "힘드셨죠" / 힘든 얘기에 "축하해요"
+
+✅ 사주와 점성을 교차 분석하여 자연스럽게 통합 해석하세요.
+
+✅ 구체적이고 풍부한 내용:
+- 성격/성향 분석, 시기별 흐름, 실용적 조언, 주의점
+
+📌 응답 형식:
+1. 본문 (200-250단어, {locale})
+2. 마지막 줄에 반드시: ||FOLLOWUP||["질문1", "질문2"]
+   - 방금 답변 내용과 연관된, 사용자가 궁금해할 만한 후속 질문 2개
+   - 예: 성격 얘기했으면 → ["그럼 연애할 때는 어때요?", "직장에서는 어떤 스타일이에요?"]
+   - 예: 시기 얘기했으면 → ["더 구체적인 날짜가 궁금해요", "그 전에 준비할 건 뭐예요?"]
+   - 예: 조언 했으면 → ["반대로 하면 어떻게 돼요?", "비슷한 사례가 있어요?"]"""
         else:
             # Standard prompt (no session data)
             system_prompt = f"""사주+점성 교차분석 전문 상담사. 두 시스템을 통합하여 하나의 해석으로 답변하세요.
@@ -1082,25 +1171,98 @@ def ask_stream():
 [사주] {saju_detail}
 [점성] {astro_detail}
 {cross_section}
+{user_context_section}{cv_section}
 [응답 방식]
-사주와 점성을 교차 분석하여 자연스럽게 엮어서 해석하세요.
-❌ 나쁜 예: "사주에서는 금입니다. 점성에서는 염소자리입니다." (따로따로)
-✅ 좋은 예: "일간 금(辛)과 태양 염소자리가 만나 실용적이고 야심찬 성향이 강합니다. 10하우스에 태양이 있어 커리어 성공 가능성이 높고, 2026년 봄 목 기운이 들어올 때 기회가 열립니다."
+⚠️ 중요: 먼저 질문 유형을 파악하고 그에 맞는 첫 문장을 선택하세요!
 
-80-100단어, {locale}로 답변"""
+질문 유형별 첫 문장:
+[자기탐색] "나/내 성격/나에 대해/어떤 사람/장단점/특징"
+  → "흥미로운 질문이네요!" / "본인에 대해 알고 싶으시군요!" / "좋은 질문이에요." / "자신을 알고자 하는 마음이 멋지네요."
+
+[운세/흐름] "운세/오늘/이번달/올해/내년/언제쯤/시기"
+  → "어떤 흐름인지 궁금하시죠!" / "살펴볼게요." / "타이밍이 중요하죠." / "흐름을 함께 봐요."
+
+[기대/설렘] "될까요/가능할까요/잘될까/좋아질까/희망"
+  → "기대되시죠!" / "궁금하시죠." / "좋은 징조가 보여요." / "희망적인 마음이 느껴져요."
+
+[힘든상황] "힘들어/어려워/안좋아/지쳐/포기/우울/슬퍼"
+  → "많이 힘드셨죠..." / "괜찮으세요?" / "마음이 무거우시겠어요." / "힘든 시간을 보내고 계시네요."
+
+[고민/걱정] "고민/걱정/불안/두려워/망설여/어떡해"
+  → "고민이 많으시죠..." / "걱정되는 마음 이해해요." / "많이 생각하고 계시네요."
+
+[연애/관계] "연애/사랑/결혼/이별/짝사랑/썸/재회/고백"
+  → "설레는 마음이 느껴지네요." / "마음이 복잡하시죠." / "감정이 깊으시네요." / "사랑 이야기군요."
+
+[커리어] "취업/이직/진로/사업/승진/퇴사/면접/합격"
+  → "중요한 시기네요." / "신중하게 생각하고 계시네요." / "커리어 고민이시군요." / "좋은 기회를 찾고 계시네요."
+
+[재물/돈] "돈/재물/투자/부동산/복권/사업자금/수입"
+  → "재정 상황이 궁금하시군요." / "돈 문제는 신중해야 하죠." / "재물운을 살펴볼게요."
+
+[건강] "건강/아파/병원/체력/다이어트/운동"
+  → "건강이 제일 중요하죠." / "몸 상태가 걱정되시나요?" / "건강운을 살펴볼게요."
+
+[가족/인간관계] "가족/부모님/자녀/친구/동료/갈등/화해"
+  → "관계가 고민이시군요." / "주변 사람들과의 관계, 중요하죠." / "인연의 흐름을 볼게요."
+
+[선택/결정] "어떻게/뭐가 나을까/선택/결정/고르기/A vs B"
+  → "중요한 갈림길이시네요." / "선택의 순간이군요." / "함께 살펴볼게요."
+
+[궁합/상성] "궁합/잘 맞을까/상성/어울려/케미"
+  → "두 분의 케미가 궁금하시군요!" / "궁합을 살펴볼게요." / "흥미로운 조합이네요."
+
+[감사/좋은일] "감사/좋은일/잘됐어/성공/축하"
+  → "좋은 소식이네요!" / "축하드려요!" / "기쁜 일이 있으셨군요!" / "잘 되셨네요!"
+
+[이사/여행] "이사/여행/유학/해외/이민"
+  → "새로운 곳이 궁금하시군요!" / "변화의 시기네요." / "이동운을 살펴볼게요."
+
+[시험/학업] "시험/공부/합격/자격증/학교"
+  → "열심히 준비하고 계시네요!" / "학업운을 살펴볼게요." / "좋은 결과 있길 바라요."
+
+❌ 절대 금지:
+- "~님의 사주에서..."로 시작
+- 성격 질문에 "고민이 많으시죠" (←고민 질문에만!)
+- 좋은 얘기에 "힘드셨죠" / 힘든 얘기에 "축하해요"
+
+✅ 사주와 점성을 교차 분석하여 자연스럽게 통합 해석하세요.
+
+✅ 구체적이고 풍부한 내용:
+- 성격/성향 분석, 시기별 흐름, 실용적 조언, 주의점
+
+📌 응답 형식:
+1. 본문 (150-200단어, {locale})
+2. 마지막 줄에 반드시: ||FOLLOWUP||["질문1", "질문2"]
+   - 방금 답변 내용과 연관된, 사용자가 궁금해할 만한 후속 질문 2개
+   - 예: 성격 얘기했으면 → ["그럼 연애할 때는 어때요?", "직장에서는 어떤 스타일이에요?"]
+   - 예: 시기 얘기했으면 → ["더 구체적인 날짜가 궁금해요", "그 전에 준비할 건 뭐예요?"]"""
         def generate():
             """SSE generator for streaming response."""
             try:
                 from openai import OpenAI
                 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+                # Build messages with conversation history (last 6 exchanges max)
+                messages = [{"role": "system", "content": system_prompt}]
+
+                # Add conversation history (limit to recent messages to save tokens)
+                history_limit = 6  # 3 user + 3 assistant messages
+                recent_history = conversation_history[-history_limit:] if conversation_history else []
+                for msg in recent_history:
+                    if msg.get("role") in ("user", "assistant") and msg.get("content"):
+                        messages.append({
+                            "role": msg["role"],
+                            "content": msg["content"][:500]  # Truncate old messages
+                        })
+
+                # Add current user message
+                messages.append({"role": "user", "content": prompt})
+
                 stream = client.chat.completions.create(
                     model="gpt-4o-mini",  # Fast model for chat
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=350,  # Detailed responses (80-120 words)
+                    messages=messages,
+                    max_tokens=600,  # Detailed responses (150-250 words)
                     temperature=0.7,
                     stream=True
                 )
@@ -1244,6 +1406,182 @@ def calc_astro():
 
 
 # Dream interpretation endpoint
+@app.route("/api/dream/interpret-stream", methods=["POST"])
+def dream_interpret_stream():
+    """
+    Streaming dream interpretation - returns SSE for real-time display.
+    Uses GPT-4o-mini for fast streaming.
+    Streams: summary → symbols → recommendations → done
+    """
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[DREAM_STREAM] id={g.request_id} Starting streaming interpretation")
+
+        dream_text = data.get("dream", "")
+        symbols = data.get("symbols", [])
+        emotions = data.get("emotions", [])
+        themes = data.get("themes", [])
+        context = data.get("context", [])
+        locale = data.get("locale", "ko")
+
+        # Cultural symbols
+        cultural_parts = []
+        if data.get("koreanTypes"):
+            cultural_parts.append(f"Korean Types: {', '.join(data['koreanTypes'])}")
+        if data.get("koreanLucky"):
+            cultural_parts.append(f"Korean Lucky: {', '.join(data['koreanLucky'])}")
+        if data.get("chinese"):
+            cultural_parts.append(f"Chinese: {', '.join(data['chinese'])}")
+        if data.get("islamicTypes"):
+            cultural_parts.append(f"Islamic Types: {', '.join(data['islamicTypes'])}")
+        if data.get("western"):
+            cultural_parts.append(f"Western/Jungian: {', '.join(data['western'])}")
+        if data.get("hindu"):
+            cultural_parts.append(f"Hindu: {', '.join(data['hindu'])}")
+        if data.get("japanese"):
+            cultural_parts.append(f"Japanese: {', '.join(data['japanese'])}")
+
+        cultural_context = '\n'.join(cultural_parts) if cultural_parts else 'None'
+
+        is_korean = locale == "ko"
+        lang_instruction = "Please respond entirely in Korean (한국어로 답변해주세요)." if is_korean else "Please respond in English."
+
+        def generate_stream():
+            """Generator for SSE streaming dream interpretation"""
+            try:
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
+
+                # === SECTION 1: Summary (streaming) ===
+                yield f"data: {json.dumps({'section': 'summary', 'status': 'start'})}\n\n"
+
+                summary_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 꿈 상담사입니다.
+마치 오랜 친구에게 이야기하듯 편안하게 꿈의 메시지를 전달해주세요.
+
+{lang_instruction}
+
+꿈 내용:
+{dream_text[:1500]}
+
+심볼: {', '.join(symbols) if symbols else '없음'}
+감정: {', '.join(emotions) if emotions else '없음'}
+유형: {', '.join(themes) if themes else '없음'}
+상황: {', '.join(context) if context else '없음'}
+문화적 맥락: {cultural_context}
+
+상담 스타일:
+- 따뜻하고 공감하는 말투 ("~하셨군요", "~느끼셨을 거예요")
+- 꿈이 전하는 메시지를 부드럽게 해석
+- 불안한 꿈이라도 긍정적 관점으로 재해석
+- 3-4문장으로 자연스럽게 요약"""
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": summary_prompt}],
+                    temperature=0.7,
+                    max_tokens=400,
+                    stream=True
+                )
+
+                summary_text = ""
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        summary_text += content
+                        yield f"data: {json.dumps({'section': 'summary', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'summary', 'status': 'done', 'full_text': summary_text})}\n\n"
+
+                # === SECTION 2: Symbol Analysis (streaming) ===
+                yield f"data: {json.dumps({'section': 'symbols', 'status': 'start'})}\n\n"
+
+                symbols_prompt = f"""당신은 따뜻한 꿈 상담사입니다. 꿈에 나타난 심볼들의 의미를 친근하게 설명해주세요.
+
+{lang_instruction}
+
+꿈 내용: {dream_text[:1000]}
+심볼: {', '.join(symbols) if symbols else '꿈에서 추출'}
+문화적 맥락: {cultural_context}
+
+상담 스타일:
+- 각 심볼을 개인의 상황과 연결하여 해석
+- 문화적·심리학적 의미를 쉽게 풀어서 설명
+- 부정적 심볼도 성장의 메시지로 재해석
+- 번호 없이 자연스러운 대화체로 2-3개 심볼 분석"""
+
+                symbol_stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": symbols_prompt}],
+                    temperature=0.7,
+                    max_tokens=500,
+                    stream=True
+                )
+
+                symbols_text = ""
+                for chunk in symbol_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        symbols_text += content
+                        yield f"data: {json.dumps({'section': 'symbols', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'symbols', 'status': 'done', 'full_text': symbols_text})}\n\n"
+
+                # === SECTION 3: Recommendations (streaming) ===
+                yield f"data: {json.dumps({'section': 'recommendations', 'status': 'start'})}\n\n"
+
+                rec_prompt = f"""당신은 따뜻한 꿈 상담사입니다. 꿈의 메시지를 실생활에 적용할 수 있는 조언을 해주세요.
+
+{lang_instruction}
+
+꿈 요약: {summary_text[:500]}
+감정: {', '.join(emotions) if emotions else '없음'}
+
+상담 스타일:
+- 친구에게 조언하듯 편안하고 실용적으로
+- 작은 실천 가능한 행동 제안 (예: "오늘 잠깐 산책해보시는 건 어떨까요?")
+- 꿈이 전하는 긍정적 메시지 강조
+- 2-3가지 따뜻한 조언"""
+
+                rec_stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": rec_prompt}],
+                    temperature=0.7,
+                    max_tokens=300,
+                    stream=True
+                )
+
+                rec_text = ""
+                for chunk in rec_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        rec_text += content
+                        yield f"data: {json.dumps({'section': 'recommendations', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'recommendations', 'status': 'done', 'full_text': rec_text})}\n\n"
+
+                # === DONE ===
+                yield f"data: {json.dumps({'done': True})}\n\n"
+
+            except Exception as stream_error:
+                logger.exception(f"[DREAM_STREAM] Error: {stream_error}")
+                yield f"data: {json.dumps({'error': str(stream_error)})}\n\n"
+
+        return Response(
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/dream/interpret-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/dream", methods=["POST"])
 def dream_interpret():
     """
@@ -1728,6 +2066,187 @@ def iching_reading():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+@app.route("/iching/reading-stream", methods=["POST"])
+def iching_reading_stream():
+    """
+    Streaming I Ching interpretation - returns SSE for real-time display.
+    Uses GPT-4o-mini for fast streaming.
+    Streams: overview → changing_lines → advice → done
+    """
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[ICHING_STREAM] id={g.request_id} Starting streaming interpretation")
+
+        # Get hexagram data from request
+        hexagram_number = data.get("hexagramNumber")
+        hexagram_name = data.get("hexagramName", "")
+        hexagram_symbol = data.get("hexagramSymbol", "")
+        judgment = data.get("judgment", "")
+        image = data.get("image", "")
+        core_meaning = data.get("coreMeaning", "")
+        changing_lines = data.get("changingLines", [])
+        resulting_hexagram = data.get("resultingHexagram")
+        question = data.get("question", "")
+        locale = data.get("locale", "ko")
+        themes = data.get("themes", {})
+
+        is_korean = locale == "ko"
+        lang_instruction = "Please respond entirely in Korean (한국어로 답변해주세요)." if is_korean else "Please respond in English."
+
+        def generate_stream():
+            """Generator for SSE streaming I Ching interpretation"""
+            try:
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
+
+                # === SECTION 1: Overview (streaming) ===
+                yield f"data: {json.dumps({'section': 'overview', 'status': 'start'})}\n\n"
+
+                overview_prompt = f"""당신은 따뜻하고 통찰력 있는 주역 상담사입니다.
+마치 오랜 스승처럼 지혜롭고 다정하게 괘의 핵심 메시지를 전달해주세요.
+
+{lang_instruction}
+
+괘 정보:
+- 괘명: {hexagram_name} {hexagram_symbol} (제{hexagram_number}괘)
+- 괘사(Judgment): {judgment}
+- 상사(Image): {image}
+- 핵심 의미: {core_meaning}
+
+{f'질문: {question}' if question else '일반 점괘'}
+
+테마별 해석 참고:
+- 직업/사업: {themes.get('career', '')}
+- 연애/관계: {themes.get('love', '')}
+- 건강: {themes.get('health', '')}
+- 재물: {themes.get('wealth', '')}
+- 시기: {themes.get('timing', '')}
+
+상담 스타일:
+- 따뜻하고 공감하는 말투 ("~하시는군요", "~의 시기입니다")
+- 괘가 전하는 핵심 메시지를 부드럽게 해석
+- 질문이 있다면 그에 맞춰 구체적으로 답변
+- 3-4문장으로 자연스럽게 현재 상황과 연결하여 해석"""
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": overview_prompt}],
+                    temperature=0.7,
+                    max_tokens=500,
+                    stream=True
+                )
+
+                overview_text = ""
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        overview_text += content
+                        yield f"data: {json.dumps({'section': 'overview', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'overview', 'status': 'done', 'full_text': overview_text})}\n\n"
+
+                # === SECTION 2: Changing Lines Analysis (if any) ===
+                if changing_lines:
+                    yield f"data: {json.dumps({'section': 'changing', 'status': 'start'})}\n\n"
+
+                    changing_info = "\n".join([f"- {i+1}효: {line.get('text', '')}" for i, line in enumerate(changing_lines)])
+                    resulting_info = ""
+                    if resulting_hexagram:
+                        resulting_info = f"변화 후 괘: {resulting_hexagram.get('name', '')} {resulting_hexagram.get('symbol', '')}"
+
+                    changing_prompt = f"""주역 상담사로서 변효(변하는 효)의 의미를 해석해주세요.
+
+{lang_instruction}
+
+현재 괘: {hexagram_name} {hexagram_symbol}
+변효:
+{changing_info}
+
+{resulting_info}
+
+상담 스타일:
+- 변효가 의미하는 변화의 과정을 설명
+- 현재에서 미래로 가는 흐름을 따뜻하게 해석
+- 변화를 두려워하지 않도록 긍정적 관점 제시
+- 2-3문장으로 핵심만 전달"""
+
+                    changing_stream = openai_client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": changing_prompt}],
+                        temperature=0.7,
+                        max_tokens=400,
+                        stream=True
+                    )
+
+                    changing_text = ""
+                    for chunk in changing_stream:
+                        if chunk.choices[0].delta.content:
+                            content = chunk.choices[0].delta.content
+                            changing_text += content
+                            yield f"data: {json.dumps({'section': 'changing', 'content': content})}\n\n"
+
+                    yield f"data: {json.dumps({'section': 'changing', 'status': 'done', 'full_text': changing_text})}\n\n"
+
+                # === SECTION 3: Practical Advice (streaming) ===
+                yield f"data: {json.dumps({'section': 'advice', 'status': 'start'})}\n\n"
+
+                advice_prompt = f"""주역 상담사로서 실생활에 적용할 수 있는 조언을 해주세요.
+
+{lang_instruction}
+
+괘: {hexagram_name} - {core_meaning}
+{f'질문: {question}' if question else ''}
+전체 해석: {overview_text[:300]}
+
+상담 스타일:
+- 친구에게 조언하듯 편안하고 실용적으로
+- 오늘/이번 주 할 수 있는 작은 실천 제안
+- 괘의 지혜를 현대적 상황에 맞게 적용
+- 2-3가지 따뜻한 조언 (번호 없이 자연스럽게)"""
+
+                advice_stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": advice_prompt}],
+                    temperature=0.7,
+                    max_tokens=400,
+                    stream=True
+                )
+
+                advice_text = ""
+                for chunk in advice_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        advice_text += content
+                        yield f"data: {json.dumps({'section': 'advice', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'advice', 'status': 'done', 'full_text': advice_text})}\n\n"
+
+                # === DONE ===
+                yield f"data: {json.dumps({'done': True})}\n\n"
+
+            except Exception as stream_error:
+                logger.exception(f"[ICHING_STREAM] Error: {stream_error}")
+                yield f"data: {json.dumps({'error': str(stream_error)})}\n\n"
+
+        return Response(
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/reading-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/iching/search", methods=["GET"])
 def iching_search():
     """Search I Ching wisdom."""
@@ -1826,11 +2345,137 @@ def _map_tarot_theme(category: str, spread_id: str) -> tuple:
     return (mapped_theme, spread_id)
 
 
+# ===============================================================
+# 🎴 DYNAMIC FOLLOW-UP QUESTIONS GENERATOR
+# ===============================================================
+def generate_dynamic_followup_questions(
+    interpretation: str,
+    cards: list,
+    category: str,
+    user_question: str = "",
+    language: str = "ko",
+    static_questions: list = None
+) -> list:
+    """
+    Generate dynamic, contextual follow-up questions based on the interpretation.
+    Uses GPT to create specific, engaging questions that change with each reading.
+
+    Args:
+        interpretation: The full interpretation text
+        cards: List of card dicts with 'name' and 'isReversed'
+        category: Theme category (love, career, etc.)
+        user_question: Original user question if any
+        language: 'ko' or 'en'
+        static_questions: Fallback static questions
+
+    Returns:
+        List of 5 dynamic follow-up questions
+    """
+    try:
+        # Extract key elements from interpretation for context
+        interpretation_preview = interpretation[:800] if len(interpretation) > 800 else interpretation
+        card_names = [f"{c.get('name', '')}{'(역방향)' if c.get('isReversed') else ''}" for c in cards]
+        cards_str = ", ".join(card_names)
+
+        # Detect reading tone from interpretation
+        positive_keywords = ["기회", "성공", "행운", "긍정", "발전", "희망", "사랑", "축복", "성취", "기쁨",
+                           "opportunity", "success", "luck", "positive", "growth", "hope", "love", "blessing", "joy"]
+        challenging_keywords = ["주의", "경고", "위험", "도전", "갈등", "어려움", "장애", "시련", "조심",
+                               "caution", "warning", "danger", "challenge", "conflict", "difficulty", "obstacle"]
+
+        tone = "neutral"
+        positive_count = sum(1 for k in positive_keywords if k in interpretation.lower())
+        challenging_count = sum(1 for k in challenging_keywords if k in interpretation.lower())
+
+        if positive_count > challenging_count + 2:
+            tone = "positive"
+        elif challenging_count > positive_count + 2:
+            tone = "challenging"
+
+        # Build GPT prompt for generating dynamic questions
+        is_korean = language == "ko"
+
+        if is_korean:
+            prompt = f"""당신은 전문 타로 리더입니다. 방금 제공된 타로 해석을 바탕으로, 사용자가 더 깊이 탐구하고 싶어할 만한 후속 질문 5개를 생성하세요.
+
+## 해석 요약
+카드: {cards_str}
+카테고리: {category}
+리딩 톤: {tone}
+{'원래 질문: ' + user_question if user_question else ''}
+
+## 해석 내용
+{interpretation_preview}
+
+## 질문 생성 지침
+1. 해석에서 언급된 구체적인 내용/상징/조언에 기반한 질문
+2. 사용자가 "와, 이걸 더 알고 싶다!" 라고 느낄 만큼 흥미로운 질문
+3. 단순 예/아니오가 아닌, 깊이 있는 대화를 유도하는 질문
+4. 카드 이름이나 상징을 구체적으로 언급
+5. 각 질문은 서로 다른 관점 제시 (시기, 조언, 숨겨진 의미, 관계, 행동)
+
+## 응답 형식
+질문 5개를 줄바꿈으로 구분해서 작성하세요. 번호나 불릿 없이 질문만 작성.
+
+예시:
+{card_names[0] if card_names else '광대'} 카드가 암시하는 새로운 시작의 구체적인 타이밍은?
+이 리딩에서 경고하는 숨겨진 장애물을 극복하는 방법은?"""
+        else:
+            prompt = f"""You are an expert tarot reader. Based on the tarot interpretation just provided, generate 5 follow-up questions the user would want to explore deeper.
+
+## Reading Summary
+Cards: {cards_str}
+Category: {category}
+Reading Tone: {tone}
+{'Original Question: ' + user_question if user_question else ''}
+
+## Interpretation
+{interpretation_preview}
+
+## Question Guidelines
+1. Based on specific content/symbols/advice mentioned in the interpretation
+2. Intriguing enough that user thinks "I want to know more about this!"
+3. Open-ended questions that lead to deeper conversation
+4. Specifically mention card names or symbols
+5. Each question offers a different perspective (timing, advice, hidden meaning, relationships, actions)
+
+## Response Format
+Write 5 questions separated by newlines. No numbers or bullets, just questions.
+
+Example:
+What specific timing does {card_names[0] if card_names else 'The Fool'} suggest for this new beginning?
+How can I overcome the hidden obstacles this reading warns about?"""
+
+        # Generate with GPT-4o-mini for speed
+        response = _generate_with_gpt4(prompt, max_tokens=500, temperature=0.8, use_mini=True)
+
+        # Parse response into list
+        questions = [q.strip() for q in response.strip().split('\n') if q.strip() and len(q.strip()) > 10]
+
+        # Ensure we have exactly 5 questions
+        if len(questions) >= 5:
+            return questions[:5]
+        elif len(questions) > 0:
+            # Pad with static questions if needed
+            if static_questions:
+                remaining = 5 - len(questions)
+                questions.extend(static_questions[:remaining])
+            return questions[:5]
+        else:
+            # Fallback to static
+            return static_questions[:5] if static_questions else []
+
+    except Exception as e:
+        logger.warning(f"[TAROT] Dynamic question generation failed: {e}")
+        return static_questions[:5] if static_questions else []
+
+
 @app.route("/api/tarot/interpret", methods=["POST"])
 def tarot_interpret():
     """
     Premium tarot interpretation using Hybrid RAG + Gemini.
     Supports optional saju/astrology context for enhanced readings.
+    With caching for same card combinations.
     """
     if not HAS_TAROT:
         return jsonify({"status": "error", "message": "Tarot module not available"}), 501
@@ -1858,6 +2503,27 @@ def tarot_interpret():
             return jsonify({"status": "error", "message": "No cards provided"}), 400
 
         start_time = time.time()
+
+        # === CACHING: Check cache for same card combination ===
+        # Build cache key from cards + category + spread + language
+        card_key = "_".join(sorted([
+            f"{c.get('name', '')}{'_R' if c.get('is_reversed') else ''}"
+            for c in cards
+        ]))
+        cache_key = f"tarot:interpret:{category}:{spread_id}:{language}:{card_key}"
+
+        # Don't cache if user has specific question or personalization
+        use_cache = not user_question and not birthdate and not saju_context and not astro_context
+        cache = get_cache()
+
+        if use_cache and cache:
+            cached_result = cache.get(cache_key)
+            if cached_result:
+                duration_ms = int((time.time() - start_time) * 1000)
+                logger.info(f"[TAROT] id={g.request_id} CACHE HIT in {duration_ms}ms")
+                cached_result["cached"] = True
+                cached_result["performance"] = {"duration_ms": duration_ms, "cache_hit": True}
+                return jsonify(cached_result)
         hybrid_rag = get_tarot_hybrid_rag()
 
         # Convert cards to expected format
@@ -1896,24 +2562,39 @@ def tarot_interpret():
         mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
         logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
 
-        # Step 1: Build RAG context from hybrid_rag (use premium context if birthdate available)
+        # === PARALLEL PROCESSING: Build RAG context and advanced analysis concurrently ===
+        def build_rag_context():
+            if birthdate:
+                return hybrid_rag.build_premium_reading_context(
+                    theme=mapped_theme,
+                    sub_topic=mapped_spread,
+                    drawn_cards=drawn_cards,
+                    question=enhanced_question,
+                    birthdate=birthdate,
+                    moon_phase=moon_phase
+                )
+            else:
+                return hybrid_rag.build_reading_context(
+                    theme=mapped_theme,
+                    sub_topic=mapped_spread,
+                    drawn_cards=drawn_cards,
+                    question=enhanced_question
+                )
+
+        def build_advanced_analysis():
+            return hybrid_rag.get_advanced_analysis(drawn_cards)
+
+        # Run both in parallel using ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            rag_future = executor.submit(build_rag_context)
+            advanced_future = executor.submit(build_advanced_analysis)
+
+            rag_context = rag_future.result()
+            advanced = advanced_future.result()
+
         if birthdate:
-            rag_context = hybrid_rag.build_premium_reading_context(
-                theme=mapped_theme,
-                sub_topic=mapped_spread,
-                drawn_cards=drawn_cards,
-                question=enhanced_question,
-                birthdate=birthdate,
-                moon_phase=moon_phase
-            )
-            logger.info(f"[TAROT] Using premium context with birthdate={birthdate}")
-        else:
-            rag_context = hybrid_rag.build_reading_context(
-                theme=mapped_theme,
-                sub_topic=mapped_spread,
-                drawn_cards=drawn_cards,
-                question=enhanced_question
-            )
+            logger.info(f"[TAROT] Using premium context with birthdate={birthdate} (parallel)")
+        logger.info(f"[TAROT] RAG context and advanced analysis built in parallel")
 
         # Step 2: Build premium tarot prompt with current date context
         is_korean = language == "ko"
@@ -1944,43 +2625,34 @@ def tarot_interpret():
         except Exception:
             pass
 
-        tarot_prompt = f"""당신은 프리미엄 타로 마스터입니다. 깊이 있는 통찰과 영적 지혜로 해석해주세요.
+        tarot_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
+마치 오랜 친구에게 이야기하듯 편안하면서도 깊이 있게 카드의 메시지를 전달해주세요.
 
-## 현재 시간 정보
-- 오늘 날짜: {date_str}
-- 계절: {season}{moon_phase_hint}
+## 오늘: {date_str} ({season}){moon_phase_hint}
 
 ## 리딩 정보
-- 카테고리: {category}
-- 스프레드: {spread_title}
-- 뽑힌 카드: {cards_str}
-- 질문: {enhanced_question or "일반 운세"}
+카테고리: {category}
+스프레드: {spread_title}
+카드: {cards_str}
+질문: {enhanced_question or "일반 운세"}
 
-## RAG 컨텍스트 (카드 의미, 조합, 규칙)
+## 카드 컨텍스트
 {rag_context}
 
-## 응답 지침
-1. 각 카드의 위치별 의미를 깊이 있게 해석
-2. 카드 간의 상호작용과 시너지 설명
-3. 실질적이고 실천 가능한 조언 제공
-4. {('한국어로 자연스럽게 작성' if is_korean else 'Write in English')}
-5. 800-1200자 분량으로 작성
+## 상담 스타일
+- 따뜻하고 공감하는 말투 ("~하시는군요", "카드가 이야기하고 있어요")
+- 각 카드 위치별 의미를 자연스럽게 연결
+- 단정적 예언 대신 가능성과 선택지 제시
+- 실생활에 적용 가능한 구체적인 조언
+- {('한국어로 자연스럽게' if is_korean else 'Write in English')}
+- 600-800자 분량"""
 
-전문적이면서도 따뜻한 어조로 해석해주세요."""
-
-        # Step 3: Generate with GPT-4
+        # Generate with GPT-4o-mini (fast, skip refine step)
         try:
-            raw_reading = _generate_with_gpt4(tarot_prompt, max_tokens=2000, temperature=0.2)
+            reading_text = _generate_with_gpt4(tarot_prompt, max_tokens=1200, temperature=0.5, use_mini=True)
         except Exception as llm_e:
-            logger.warning(f"[TAROT] GPT-4 failed: {llm_e}, using fallback")
-            raw_reading = f"카드 해석: {cards_str}. {rag_context[:500]}"
-
-        # Step 4: Polish with GPT-4o-mini
-        try:
-            reading_text = refine_with_gpt5mini(raw_reading, f"tarot_{category}", language)
-        except Exception as polish_e:
-            logger.warning(f"[TAROT] GPT polish failed: {polish_e}")
-            reading_text = raw_reading
+            logger.warning(f"[TAROT] GPT-4o-mini failed: {llm_e}, using fallback")
+            reading_text = f"카드 해석: {cards_str}. {rag_context[:500]}"
 
         # Get card insights
         card_insights = []
@@ -2019,17 +2691,29 @@ def tarot_interpret():
 
             card_insights.append(card_insight)
 
-        # Get advanced analysis
-        advanced = hybrid_rag.get_advanced_analysis(drawn_cards)
+        # Note: advanced analysis already done in parallel above
 
         # Build response
+        # Get static questions as fallback
+        static_followup = hybrid_rag.advanced_rules.get_followup_questions(category, "neutral") if hasattr(hybrid_rag, 'advanced_rules') else []
+
+        # Generate dynamic, contextual follow-up questions based on the interpretation
+        dynamic_followup = generate_dynamic_followup_questions(
+            interpretation=reading_text,
+            cards=drawn_cards,
+            category=category,
+            user_question=enhanced_question or user_question or "",
+            language=language,
+            static_questions=static_followup
+        )
+
         result = {
             "overall_message": reading_text,
             "card_insights": card_insights,
             "guidance": advanced.get("elemental_analysis", {}).get("dominant_advice", "카드의 지혜에 귀 기울이세요."),
             "affirmation": "나는 우주의 지혜를 신뢰합니다.",
             "combinations": [],
-            "followup_questions": hybrid_rag.advanced_rules.get_followup_questions(category, "neutral") if hasattr(hybrid_rag, 'advanced_rules') else []
+            "followup_questions": dynamic_followup
         }
 
         # Add combination if found
@@ -2078,12 +2762,295 @@ def tarot_interpret():
 
         duration_ms = int((time.time() - start_time) * 1000)
         logger.info(f"[TAROT] id={g.request_id} completed in {duration_ms}ms")
-        result["performance"] = {"duration_ms": duration_ms}
+        result["performance"] = {"duration_ms": duration_ms, "cache_hit": False}
+
+        # === CACHING: Store result in cache for same card combination ===
+        if use_cache and cache:
+            try:
+                # Cache for 1 hour (3600 seconds) - same cards can have slightly varied interpretations
+                cache.set(cache_key, result, ttl=3600)
+                logger.info(f"[TAROT] Cached result for key: {cache_key[:50]}...")
+            except Exception as cache_err:
+                logger.warning(f"[TAROT] Failed to cache: {cache_err}")
 
         return jsonify(result)
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/tarot/interpret failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/tarot/prefetch", methods=["POST"])
+def tarot_prefetch():
+    """
+    Prefetch RAG context while user is selecting cards.
+    Call this when user starts card selection to warm up the RAG system.
+    """
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        category = data.get("category", "general")
+        spread_id = data.get("spread_id", "three_card")
+
+        logger.info(f"[TAROT_PREFETCH] id={g.request_id} Prefetching for {category}/{spread_id}")
+
+        start_time = time.time()
+        hybrid_rag = get_tarot_hybrid_rag()
+
+        # Map theme/spread
+        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
+
+        # Pre-warm the RAG by loading theme-specific data
+        # This loads embeddings and indexes into memory
+        try:
+            # Load theme data
+            hybrid_rag._ensure_loaded()
+
+            # Pre-compute some common lookups
+            if hasattr(hybrid_rag, 'advanced_rules'):
+                hybrid_rag.advanced_rules.get_followup_questions(category, "neutral")
+
+            duration_ms = int((time.time() - start_time) * 1000)
+            logger.info(f"[TAROT_PREFETCH] Completed in {duration_ms}ms")
+
+            return jsonify({
+                "status": "ready",
+                "category": category,
+                "spread_id": spread_id,
+                "mapped_theme": mapped_theme,
+                "mapped_spread": mapped_spread,
+                "duration_ms": duration_ms
+            })
+
+        except Exception as warm_e:
+            logger.warning(f"[TAROT_PREFETCH] Warm-up failed: {warm_e}")
+            return jsonify({
+                "status": "partial",
+                "message": str(warm_e)
+            })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/prefetch failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/tarot/interpret-stream", methods=["POST"])
+def tarot_interpret_stream():
+    """
+    Streaming tarot interpretation - returns SSE for real-time display.
+    Streams: overall_message → card_insights (one by one) → guidance → done
+    """
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[TAROT_STREAM] id={g.request_id} Starting streaming interpretation")
+
+        category = data.get("category", "general")
+        spread_id = data.get("spread_id", "three_card")
+        spread_title = data.get("spread_title", "Three Card Spread")
+        cards = data.get("cards", [])
+        user_question = data.get("user_question", "")
+        language = data.get("language", "ko")
+
+        if not cards:
+            return jsonify({"status": "error", "message": "No cards provided"}), 400
+
+        hybrid_rag = get_tarot_hybrid_rag()
+
+        # Convert cards to expected format
+        drawn_cards = [
+            {"name": c.get("name", ""), "isReversed": c.get("is_reversed", False)}
+            for c in cards
+        ]
+
+        # Map theme/spread
+        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
+
+        # Build context in parallel
+        def build_rag():
+            return hybrid_rag.build_reading_context(
+                theme=mapped_theme,
+                sub_topic=mapped_spread,
+                drawn_cards=drawn_cards,
+                question=user_question
+            )
+
+        def build_advanced():
+            return hybrid_rag.get_advanced_analysis(drawn_cards)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            rag_future = executor.submit(build_rag)
+            adv_future = executor.submit(build_advanced)
+            rag_context = rag_future.result()
+            advanced = adv_future.result()
+
+        is_korean = language == "ko"
+        cards_str = ", ".join([
+            f"{c.get('name', '')}{'(역방향)' if c.get('isReversed') else ''}"
+            for c in drawn_cards
+        ])
+
+        now = datetime.now()
+        weekday_names_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        if is_korean:
+            date_str = f"{now.year}년 {now.month}월 {now.day}일 ({weekday_names_ko[now.weekday()]})"
+        else:
+            date_str = now.strftime("%B %d, %Y (%A)")
+
+        def generate_stream():
+            """Generator for SSE streaming interpretation"""
+            try:
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
+
+                # === SECTION 1: Overall Message (streaming) ===
+                yield f"data: {json.dumps({'section': 'overall_message', 'status': 'start'})}\n\n"
+
+                overall_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
+마치 오랜 친구에게 이야기하듯 편안하게 카드의 메시지를 전달해주세요.
+
+카드: {cards_str}
+카테고리: {category}
+스프레드: {spread_title}
+질문: {user_question or "일반 운세"}
+
+참고 컨텍스트:
+{rag_context[:1500]}
+
+상담 스타일:
+- 따뜻하고 공감하는 말투 ("~하시는군요", "카드가 말하고 있어요")
+- 단정적 예언 대신 가능성과 선택지 제시
+- 3-4문장으로 전체 메시지만 자연스럽게 요약"""
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": overall_prompt}],
+                    temperature=0.7,
+                    max_tokens=300,
+                    stream=True
+                )
+
+                overall_text = ""
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        overall_text += content
+                        yield f"data: {json.dumps({'section': 'overall_message', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'overall_message', 'status': 'done', 'full_text': overall_text})}\n\n"
+
+                # === SECTION 2: Card Insights (one by one, streaming each) ===
+                for i, card in enumerate(drawn_cards):
+                    card_name = card.get("name", "")
+                    is_reversed = card.get("isReversed", False)
+                    position = cards[i].get("position", f"Card {i+1}") if i < len(cards) else f"Card {i+1}"
+
+                    yield f"data: {json.dumps({'section': 'card_insight', 'index': i, 'status': 'start', 'card_name': card_name, 'position': position})}\n\n"
+
+                    # Get card-specific context
+                    card_info = hybrid_rag.get_card_info(card_name, is_reversed)
+                    insights = hybrid_rag.get_card_insights(card_name, is_reversed)
+
+                    card_prompt = f"""당신은 따뜻한 타로 상담사입니다. 이 카드가 전하는 메시지를 친근하게 해석해주세요.
+
+카드: {card_name}{'(역방향)' if is_reversed else ''}
+위치: {position}
+스프레드: {spread_title}
+질문: {user_question or "일반 운세"}
+
+카드 정보:
+{json.dumps(card_info, ensure_ascii=False)[:800]}
+
+심리학적 통찰:
+{json.dumps(insights, ensure_ascii=False)[:500]}
+
+상담 스타일:
+- 이 위치에서 카드가 전하는 핵심 메시지
+- 개인의 상황과 연결하여 해석
+- 2-3문장으로 자연스럽게 설명"""
+
+                    card_stream = openai_client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": card_prompt}],
+                        temperature=0.7,
+                        max_tokens=250,
+                        stream=True
+                    )
+
+                    card_text = ""
+                    for chunk in card_stream:
+                        if chunk.choices[0].delta.content:
+                            content = chunk.choices[0].delta.content
+                            card_text += content
+                            yield f"data: {json.dumps({'section': 'card_insight', 'index': i, 'content': content})}\n\n"
+
+                    # Include extra insights
+                    extra = {
+                        "spirit_animal": insights.get("jungian", {}).get("archetype"),
+                        "chakra": insights.get("chakra"),
+                        "element": insights.get("astrology", {}).get("element")
+                    }
+
+                    yield f"data: {json.dumps({'section': 'card_insight', 'index': i, 'status': 'done', 'full_text': card_text, 'extras': extra})}\n\n"
+
+                # === SECTION 3: Guidance (streaming) ===
+                yield f"data: {json.dumps({'section': 'guidance', 'status': 'start'})}\n\n"
+
+                guidance_prompt = f"""당신은 따뜻한 타로 상담사입니다. 이 리딩을 바탕으로 친구에게 조언하듯 이야기해주세요.
+
+카드: {cards_str}
+전체 메시지: {overall_text[:500]}
+
+상담 스타일:
+- 실생활에서 바로 적용할 수 있는 구체적인 조언
+- 부드럽고 격려하는 말투 ("~해보시는 건 어떨까요?")
+- 2-3문장으로 따뜻하게 마무리"""
+
+                guidance_stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": guidance_prompt}],
+                    temperature=0.7,
+                    max_tokens=200,
+                    stream=True
+                )
+
+                guidance_text = ""
+                for chunk in guidance_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        guidance_text += content
+                        yield f"data: {json.dumps({'section': 'guidance', 'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'section': 'guidance', 'status': 'done', 'full_text': guidance_text})}\n\n"
+
+                # === SECTION 4: Followup Questions ===
+                followup = hybrid_rag.advanced_rules.get_followup_questions(category, "neutral") if hasattr(hybrid_rag, 'advanced_rules') else []
+                yield f"data: {json.dumps({'section': 'followup', 'questions': followup[:5]})}\n\n"
+
+                # === DONE ===
+                yield f"data: {json.dumps({'done': True})}\n\n"
+
+            except Exception as stream_error:
+                logger.exception(f"[TAROT_STREAM] Error: {stream_error}")
+                yield f"data: {json.dumps({'error': str(stream_error)})}\n\n"
+
+        return Response(
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/interpret-stream failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -2109,12 +3076,47 @@ def tarot_chat():
         start_time = time.time()
         hybrid_rag = get_tarot_hybrid_rag()
 
+        # Get Jung psychological insights for tarot
+        jung_insight = ""
+        if HAS_CORPUS_RAG:
+            try:
+                corpus_rag = get_corpus_rag()
+                last_msg = messages[-1].get("content", "") if messages else ""
+                # Search for relevant Jung quotes based on user's question + card context
+                card_names = [c.get('name', '') for c in context.get("cards", [])]
+                jung_query = f"{last_msg} {' '.join(card_names[:3])}"
+                jung_quotes = corpus_rag.search(jung_query, top_k=2, min_score=0.2)
+                if jung_quotes:
+                    jung_insight = "\n".join([f"• \"{q['quote'][:150]}...\" - 칼 융" for q in jung_quotes[:2]])
+            except Exception as jung_e:
+                logger.debug(f"[TAROT_CHAT] Jung RAG failed: {jung_e}")
+
         # Build context string from reading
         spread_title = context.get("spread_title", "")
         cards = context.get("cards", [])
         overall_message = context.get("overall_message", "")
         guidance = context.get("guidance", "")
 
+        # Build detailed cards info with position, name, meaning
+        cards_details = []
+        for c in cards:
+            name = c.get('name', '')
+            is_reversed = c.get('is_reversed', False)
+            position = c.get('position', '')
+            meaning = c.get('meaning', '')
+            keywords = c.get('keywords', [])
+            keywords_str = ', '.join(keywords[:3]) if keywords else ''
+
+            card_info = f"- {position}: {name}{'(역방향)' if is_reversed else ''}"
+            if keywords_str:
+                card_info += f" [{keywords_str}]"
+            if meaning:
+                card_info += f" - {meaning[:150]}"
+            cards_details.append(card_info)
+
+        cards_detail_str = "\n".join(cards_details) if cards_details else "카드 정보 없음"
+
+        # Simple comma list for reference
         cards_str = ", ".join([
             f"{c.get('name', '')}{'(역방향)' if c.get('is_reversed') else ''}"
             for c in cards
@@ -2142,33 +3144,43 @@ def tarot_chat():
         else:
             date_str = now.strftime("%B %d, %Y (%A)")
 
-        # Generate response using GPT-4 (same as destiny-map)
-        chat_prompt = f"""당신은 전문 타로 상담사입니다. 사용자의 질문에 친근하고 통찰력 있게 답변하세요.
+        # Generate response using GPT-4o-mini for fast, counselor-like responses
+        chat_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
+마치 오랜 친구처럼 편안하게 대화하면서도, 카드가 전하는 메시지를 섬세하게 전달해주세요.
 
-## 오늘 날짜: {date_str}
+## 오늘: {date_str}
 
-## 현재 리딩 정보
-- 스프레드: {spread_title}
-- 뽑힌 카드: {cards_str}
-- 전체 메시지: {overall_message[:500]}
-- 조언: {guidance}
+## 리딩 정보
+스프레드: {spread_title}
+핵심 메시지: {overall_message[:300] if overall_message else '(없음)'}
 
-## 대화 기록
+## 카드 상세
+{cards_detail_str}
+
+## 가이드
+{guidance if guidance else '(없음)'}
+
+## 대화
 {chr(10).join(conversation_history[-6:])}
 
-## 현재 질문
+## 질문
 {last_user_message}
 
-{'사용자가 카드를 더 뽑고 싶어합니다. 현재 리딩에 집중하도록 안내하면서, 필요하다면 새 리딩을 시작하도록 권유하세요.' if wants_more_cards else ''}
-{'타이밍에 대한 질문입니다. 카드에서 읽을 수 있는 시기적 힌트를 제공하세요.' if asks_about_timing else ''}
+{'💡 추가 카드를 원하시네요. 지금 카드들이 충분한 메시지를 담고 있어요. 이 리딩에 집중해보시고, 더 궁금하시면 새 리딩을 시작해보세요.' if wants_more_cards else ''}
+{'⏰ 타이밍 질문이시네요. 카드에서 읽히는 시기적 흐름을 알려드릴게요.' if asks_about_timing else ''}
 
-친근하게 2-3문장으로 답변하세요."""
+{'## 심리학적 통찰' + chr(10) + jung_insight if jung_insight else ''}
+
+## 상담 스타일 가이드
+- 따뜻하고 공감하는 말투 사용 ("~하시는군요", "~느끼실 수 있어요")
+- 카드 의미를 질문 상황에 맞게 연결
+- 단정적 예언 대신 가능성과 선택지 제시
+- 실질적인 조언이나 관점 제공
+- 3-4문장으로 자연스럽게 대화하듯 답변"""
 
         try:
-            # Step 1: Generate with GPT-4
-            raw_reply = _generate_with_gpt4(chat_prompt, max_tokens=500, temperature=0.3)
-            # Step 2: Light polish with GPT-4o-mini
-            reply = refine_with_gpt5mini(raw_reply, "tarot_chat", language)
+            # GPT-4o-mini for fast, natural counselor responses (skip refine for speed)
+            reply = _generate_with_gpt4(chat_prompt, max_tokens=400, temperature=0.5, use_mini=True)
         except Exception as llm_e:
             logger.warning(f"[TAROT_CHAT] GPT-4 failed: {llm_e}")
             reply = f"현재 리딩에서 {cards_str}이(가) 나왔습니다. {guidance}"
@@ -2183,6 +3195,140 @@ def tarot_chat():
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/tarot/chat failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/tarot/chat-stream", methods=["POST"])
+def tarot_chat_stream():
+    """
+    Streaming tarot chat consultation - real-time response using GPT-4o-mini.
+    Returns Server-Sent Events (SSE) for real-time text streaming.
+    """
+    if not HAS_TAROT:
+        return jsonify({"status": "error", "message": "Tarot module not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[TAROT_CHAT_STREAM] id={g.request_id} Processing streaming chat")
+
+        messages = data.get("messages", [])
+        context = data.get("context", {})
+        language = data.get("language", "ko")
+
+        if not messages:
+            return jsonify({"status": "error", "message": "No messages provided"}), 400
+
+        # Build context (same as non-streaming)
+        spread_title = context.get("spread_title", "")
+        cards = context.get("cards", [])
+        overall_message = context.get("overall_message", "")
+        guidance = context.get("guidance", "")
+
+        cards_details = []
+        for c in cards:
+            name = c.get('name', '')
+            is_reversed = c.get('is_reversed', False)
+            position = c.get('position', '')
+            meaning = c.get('meaning', '')
+            keywords = c.get('keywords', [])
+            keywords_str = ', '.join(keywords[:3]) if keywords else ''
+            card_info = f"- {position}: {name}{'(역방향)' if is_reversed else ''}"
+            if keywords_str:
+                card_info += f" [{keywords_str}]"
+            if meaning:
+                card_info += f" - {meaning[:150]}"
+            cards_details.append(card_info)
+
+        cards_detail_str = "\n".join(cards_details) if cards_details else "카드 정보 없음"
+
+        conversation_history = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            conversation_history.append(f"{'사용자' if role == 'user' else 'AI'}: {content}")
+
+        last_user_message = messages[-1].get("content", "") if messages else ""
+
+        now = datetime.now()
+        is_korean = language == "ko"
+        weekday_names_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        if is_korean:
+            date_str = f"{now.year}년 {now.month}월 {now.day}일 ({weekday_names_ko[now.weekday()]})"
+        else:
+            date_str = now.strftime("%B %d, %Y (%A)")
+
+        chat_prompt = f"""## 오늘: {date_str}
+
+## 리딩 정보
+스프레드: {spread_title}
+핵심 메시지: {overall_message[:300] if overall_message else '(없음)'}
+
+## 카드 상세
+{cards_detail_str}
+
+## 가이드
+{guidance if guidance else '(없음)'}
+
+## 대화
+{chr(10).join(conversation_history[-6:])}
+
+## 질문
+{last_user_message}"""
+
+        system_prompt = """당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
+마치 오랜 친구처럼 편안하게 대화하면서도, 카드가 전하는 메시지를 섬세하게 전달해주세요.
+
+상담 스타일:
+- 따뜻하고 공감하는 말투 ("~하시는군요", "~느끼실 수 있어요")
+- 카드 의미를 질문 상황에 맞게 연결
+- 단정적 예언 대신 가능성과 선택지 제시
+- 실질적인 조언이나 관점 제공
+- 3-4문장으로 자연스럽게 대화하듯 답변"""
+
+        def generate_stream():
+            """Generator for SSE streaming"""
+            try:
+                # Use GPT-4o-mini with streaming for fast response
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": chat_prompt}
+                    ],
+                    temperature=0.6,
+                    max_tokens=400,
+                    stream=True
+                )
+
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        # Send each chunk as SSE data
+                        yield f"data: {json.dumps({'content': content})}\n\n"
+
+                # Send completion signal
+                yield f"data: {json.dumps({'done': True})}\n\n"
+
+            except Exception as stream_error:
+                logger.exception(f"[TAROT_CHAT_STREAM] Streaming error: {stream_error}")
+                yield f"data: {json.dumps({'error': str(stream_error)})}\n\n"
+
+        return Response(
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/chat-stream failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -3916,6 +5062,254 @@ def fortune_daily():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+@app.route("/api/search/domain", methods=["POST"])
+def domain_rag_search():
+    """
+    Lightweight domain search over precomputed embeddings.
+    body: { "domain": "destiny_map|tarot|dream|iching", "query": "...", "top_k": 5 }
+    """
+    if not HAS_DOMAIN_RAG:
+        return jsonify({"status": "error", "message": "DomainRAG not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        domain = (data.get("domain") or "").strip()
+        query = (data.get("query") or "").strip()
+        top_k = int(data.get("top_k", 5))
+        top_k = max(1, min(top_k, 20))
+
+        if not query:
+            return jsonify({"status": "error", "message": "query is required"}), 400
+        if not domain or domain not in DOMAIN_RAG_DOMAINS:
+            return jsonify({
+                "status": "error",
+                "message": f"domain must be one of {DOMAIN_RAG_DOMAINS}",
+            }), 400
+
+        rag = get_domain_rag()
+        rag.load_domain(domain)
+
+        results = rag.search(domain, query, top_k=top_k)
+        context = rag.get_context(domain, query, top_k=min(top_k, 3), max_chars=1500)
+
+        return jsonify({
+            "status": "success",
+            "domain": domain,
+            "query": query,
+            "results": results,
+            "context": context,
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/search/domain failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/search/hybrid", methods=["POST"])
+def hybrid_rag_search():
+    """
+    Hybrid search (vector + BM25 + graph, optional rerank).
+    body: { "query": "...", "top_k": 8, "rerank": true, "graph_root": "<optional>" }
+    """
+    if not HAS_HYBRID_RAG:
+        return jsonify({"status": "error", "message": "Hybrid RAG not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        query = (data.get("query") or "").strip()
+        top_k = int(data.get("top_k", 8))
+        top_k = max(1, min(top_k, 30))
+        rerank = bool(data.get("rerank", True))
+        graph_root = data.get("graph_root")
+
+        if not query:
+            return jsonify({"status": "error", "message": "query is required"}), 400
+
+        results = hybrid_search(
+            query=query,
+            top_k=top_k,
+            use_reranking=rerank,
+            graph_root=graph_root,
+        )
+        context = build_rag_context(query, top_k=min(12, max(top_k, 6)))
+
+        return jsonify({
+            "status": "success",
+            "query": query,
+            "top_k": top_k,
+            "rerank": rerank,
+            "results": results,
+            "context": context,
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/search/hybrid failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/compatibility", methods=["POST"])
+def compatibility_analysis():
+    """
+    Relationship compatibility (Saju + Astrology fusion with GPT).
+    Accepts 2~4 people; uses group mode for 3-4 people.
+    """
+    if not HAS_COMPATIBILITY:
+        return jsonify({"status": "error", "message": "Compatibility engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        people = data.get("people") or []
+
+        # Backward compatibility: allow person1/person2 fields
+        if not people:
+            p1 = data.get("person1") or {}
+            p2 = data.get("person2") or {}
+            if p1 and p2:
+                people = [p1, p2]
+
+        relationship_type = data.get("relationship_type") or data.get("relationshipType") or "lover"
+        locale = data.get("locale", "ko")
+
+        if len(people) < 2:
+            return jsonify({"status": "error", "message": "At least two people are required"}), 400
+        if len(people) > 4:
+            return jsonify({"status": "error", "message": "Maximum 4 people supported"}), 400
+
+        if len(people) <= 2:
+            result = interpret_compatibility(people, relationship_type, locale)
+        else:
+            result = interpret_compatibility_group(people, relationship_type, locale)
+
+        status_code = 200 if result.get("status") == "success" else 500
+        return jsonify(result), status_code
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/compatibility failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/compatibility/chat", methods=["POST"])
+def compatibility_chat():
+    """
+    Compatibility chat consultation - follow-up questions about a compatibility reading.
+    """
+    if not HAS_COMPATIBILITY:
+        return jsonify({"status": "error", "message": "Compatibility engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[COMPAT_CHAT] id={g.request_id} Processing chat message")
+
+        persons = data.get("persons", [])
+        question = data.get("question", "")
+        history = data.get("history", [])
+        locale = data.get("locale", "ko")
+        compatibility_context = data.get("compatibility_context", "")
+        prompt = data.get("prompt", "")
+
+        if not persons or len(persons) < 2:
+            return jsonify({"status": "error", "message": "At least 2 persons required"}), 400
+
+        if not question and not prompt:
+            return jsonify({"status": "error", "message": "No question provided"}), 400
+
+        start_time = time.time()
+        is_korean = locale == "ko"
+
+        # Current date for contextual responses
+        now = datetime.now()
+        weekday_names_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        if is_korean:
+            date_str = f"{now.year}년 {now.month}월 {now.day}일 ({weekday_names_ko[now.weekday()]})"
+        else:
+            date_str = now.strftime("%B %d, %Y (%A)")
+
+        # Format persons info
+        persons_info = []
+        for i, p in enumerate(persons):
+            name = p.get("name") or f"Person {i + 1}"
+            birth_date = p.get("birthDate") or p.get("date", "")
+            birth_time = p.get("birthTime") or p.get("time", "")
+            relation = p.get("relation", "")
+            persons_info.append(f"- {name}: {birth_date} {birth_time}" + (f" ({relation})" if relation else ""))
+
+        persons_str = "\n".join(persons_info)
+
+        # Build conversation history
+        conversation_history = []
+        for msg in history[-6:]:  # Last 6 messages
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role != "system":
+                conversation_history.append(f"{'사용자' if role == 'user' else 'AI'}: {content[:300]}")
+
+        history_str = "\n".join(conversation_history) if conversation_history else "(첫 질문)"
+
+        # Build chat prompt - counselor style with GPT-4o-mini for speed
+        if is_korean:
+            system_instruction = """당신은 따뜻하고 공감 능력이 뛰어난 궁합 상담사입니다.
+마치 오랜 언니/오빠처럼 편안하게 대화하면서, 두 사람의 관계에 대해 진심 어린 조언을 해주세요.
+
+상담 스타일:
+- 공감하며 경청하는 말투 ("그러시군요", "이해해요", "~하실 수 있어요")
+- 사주·점성학 전문 용어는 쉽게 풀어서 설명
+- 단정적 판단보다는 가능성과 노력의 방향 제시
+- 관계의 강점을 먼저 짚어주고, 개선점은 건설적으로
+- 3-4문장으로 자연스럽게 대화하듯 답변"""
+        else:
+            system_instruction = """You are a warm and empathetic relationship counselor.
+Talk like a trusted friend while sharing genuine insights about their relationship.
+
+Counseling style:
+- Use empathetic, listening language
+- Explain Saju/Astrology terms simply
+- Focus on possibilities rather than definitive judgments
+- Highlight relationship strengths first, then constructive improvements
+- Answer naturally in 3-4 sentences like a conversation"""
+
+        chat_prompt = f"""{system_instruction}
+
+## 오늘: {date_str}
+
+## 분석 대상
+{persons_str}
+
+## 궁합 분석 결과
+{compatibility_context[:1500] if compatibility_context else '(분석 결과 없음)'}
+
+## 대화
+{history_str}
+
+## 질문
+{question or prompt}"""
+
+        try:
+            # GPT-4o-mini for fast, natural counselor responses (skip refine for speed)
+            reply = _generate_with_gpt4(chat_prompt, max_tokens=400, temperature=0.5, use_mini=True)
+        except Exception as llm_e:
+            logger.warning(f"[COMPAT_CHAT] GPT-4 failed: {llm_e}")
+            if is_korean:
+                reply = "죄송합니다. 현재 AI 응답을 생성할 수 없습니다. 잠시 후 다시 시도해 주세요."
+            else:
+                reply = "Sorry, unable to generate AI response at the moment. Please try again later."
+
+        duration_ms = int((time.time() - start_time) * 1000)
+        logger.info(f"[COMPAT_CHAT] id={g.request_id} completed in {duration_ms}ms")
+
+        return jsonify({
+            "status": "success",
+            "response": reply,
+            "data": {
+                "response": reply,
+            },
+            "performance": {"duration_ms": duration_ms}
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/compatibility/chat failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # System capabilities
 @app.route("/capabilities", methods=["GET"])
 def get_capabilities():
@@ -3936,7 +5330,9 @@ def get_capabilities():
             "prediction_engine": HAS_PREDICTION,
             "theme_cross_filter": HAS_THEME_FILTER,
             "fortune_score": HAS_FORTUNE_SCORE,
-            "hybrid_rag": True,
+            "hybrid_rag": HAS_HYBRID_RAG,
+            "domain_rag": HAS_DOMAIN_RAG,
+            "compatibility": HAS_COMPATIBILITY,
         },
         "version": "5.2.0-fortune-score",
     })
@@ -3945,7 +5341,7 @@ def get_capabilities():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     logger.info(f"Flask server starting on http://127.0.0.1:{port}")
-    logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}, prediction={HAS_PREDICTION}, theme_filter={HAS_THEME_FILTER}, fortune_score={HAS_FORTUNE_SCORE}")
+    logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}, prediction={HAS_PREDICTION}, theme_filter={HAS_THEME_FILTER}, fortune_score={HAS_FORTUNE_SCORE}, compatibility={HAS_COMPATIBILITY}, hybrid_rag={HAS_HYBRID_RAG}, domain_rag={HAS_DOMAIN_RAG}")
 
     # 🚀 Warmup models before accepting requests
     warmup_models()

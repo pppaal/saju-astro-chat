@@ -1,5 +1,12 @@
 // src/lib/destiny-matrix/data/layer5-relation-aspect.ts
-// Layer 5: Relations-Aspects Matrix (형충회합-애스펙트 교차)
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 5: Relation-Aspect Matrix (형충회합-애스펙트)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { RelationAspectMatrix, InteractionCode, BranchRelation } from '../types';
 import type { AspectType } from '../../astrology/foundation/types';

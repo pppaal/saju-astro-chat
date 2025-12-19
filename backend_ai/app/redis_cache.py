@@ -71,51 +71,73 @@ class RedisCache:
         hash_digest = hashlib.sha256(serialized.encode()).hexdigest()[:16]
         return f"fusion:{prefix}:{hash_digest}"
 
-    def get(self, prefix: str, data: dict) -> Optional[dict]:
-        """Get cached result."""
-        key = self._make_key(prefix, data)
+    def get(self, key_or_prefix: str, data: dict = None) -> Optional[dict]:
+        """Get cached result. Supports both direct key and prefix+data styles."""
+        # If data is None, treat key_or_prefix as direct key
+        if data is None:
+            key = key_or_prefix
+        else:
+            key = self._make_key(key_or_prefix, data)
 
         # Try Redis first
         if self.enabled and self.client:
             try:
                 cached = self.client.get(key)
                 if cached:
-                    logger.info(f"✅ Redis cache HIT: {key}")
+                    logger.info(f"✅ Redis cache HIT: {key[:50]}...")
                     return json.loads(cached)
             except Exception as e:
                 logger.warning(f"⚠️ Redis GET error: {e}")
 
         # Fallback to memory
         if key in self.memory_cache:
-            logger.info(f"✅ Memory cache HIT: {key}")
+            logger.info(f"✅ Memory cache HIT: {key[:50]}...")
             return self.memory_cache[key]
 
-        logger.info(f"❌ Cache MISS: {key}")
         return None
 
-    def set(self, prefix: str, data: dict, result: dict, cache_type: str = None) -> bool:
-        """Store result in cache with type-specific TTL."""
-        key = self._make_key(prefix, data)
-        # Use cache_type if provided, otherwise infer from prefix
-        ttl = self.get_ttl(cache_type or prefix)
+    def set(self, key_or_prefix: str, data_or_result: Any, result: dict = None, ttl: int = None, cache_type: str = None) -> bool:
+        """Store result in cache. Supports both styles:
+        - set(key, result, ttl=3600) - direct key
+        - set(prefix, data, result, cache_type="tarot") - prefix+data style
+        """
+        # Determine which style of call this is
+        if result is None:
+            # Direct key style: set(key, result, ttl=...)
+            key = key_or_prefix
+            result_data = data_or_result
+            cache_ttl = ttl or self.default_ttl
+        else:
+            # Prefix+data style: set(prefix, data, result, cache_type=...)
+            key = self._make_key(key_or_prefix, data_or_result)
+            result_data = result
+            cache_ttl = ttl or self.get_ttl(cache_type or key_or_prefix)
 
         # Try Redis first
         if self.enabled and self.client:
             try:
                 self.client.setex(
                     key,
-                    ttl,
-                    json.dumps(result)
+                    cache_ttl,
+                    json.dumps(result_data)
                 )
-                logger.info(f"✅ Redis cache SET: {key} (TTL={ttl}s / {ttl//3600}h)")
+                logger.info(f"✅ Redis cache SET: {key[:50]}... (TTL={cache_ttl}s)")
                 return True
             except Exception as e:
                 logger.warning(f"⚠️ Redis SET error: {e}")
 
-        # Fallback to memory (with size limit)
-        if len(self.memory_cache) < 100:  # Max 100 entries
-            self.memory_cache[key] = result
-            logger.info(f"✅ Memory cache SET: {key}")
+        # Fallback to memory (with size limit and TTL tracking)
+        if len(self.memory_cache) < 500:  # Increased to 500 entries
+            self.memory_cache[key] = result_data
+            logger.info(f"✅ Memory cache SET: {key[:50]}...")
+            return True
+        else:
+            # Evict oldest entries if at limit (simple FIFO)
+            keys_to_remove = list(self.memory_cache.keys())[:100]
+            for k in keys_to_remove:
+                del self.memory_cache[k]
+            self.memory_cache[key] = result_data
+            logger.info(f"✅ Memory cache SET (after eviction): {key[:50]}...")
             return True
 
         return False

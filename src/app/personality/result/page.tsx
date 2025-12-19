@@ -55,8 +55,49 @@ const AxisBar = ({ label, score, left, right, delay }: {
   );
 };
 
+// Type code letter meanings
+const getTypeCodeMeanings = (typeCode: string, locale: string) => {
+  const meanings: { letter: string; meaning: string }[] = [];
+
+  if (typeCode.length >= 4) {
+    // Energy: R=Radiant, G=Grounded
+    meanings.push({
+      letter: typeCode[0],
+      meaning: locale === 'ko'
+        ? (typeCode[0] === 'R' ? '발산형' : '내향형')
+        : (typeCode[0] === 'R' ? 'Radiant' : 'Grounded')
+    });
+
+    // Cognition: V=Visionary, S=Structured
+    meanings.push({
+      letter: typeCode[1],
+      meaning: locale === 'ko'
+        ? (typeCode[1] === 'V' ? '비전형' : '구조형')
+        : (typeCode[1] === 'V' ? 'Visionary' : 'Structured')
+    });
+
+    // Decision: L=Logic, H=Heart(Empathic)
+    meanings.push({
+      letter: typeCode[2],
+      meaning: locale === 'ko'
+        ? (typeCode[2] === 'L' ? '논리형' : '공감형')
+        : (typeCode[2] === 'L' ? 'Logic' : 'Empathic')
+    });
+
+    // Rhythm: A=Anchor, F=Flow
+    meanings.push({
+      letter: typeCode[3],
+      meaning: locale === 'ko'
+        ? (typeCode[3] === 'A' ? '안정형' : '유동형')
+        : (typeCode[3] === 'A' ? 'Anchor' : 'Flow')
+    });
+  }
+
+  return meanings;
+};
+
 export default function ResultPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { data: session, status: authStatus } = useSession();
   const [answers, setAnswers] = useState<PersonaQuizAnswers>({});
   const [mounted, setMounted] = useState(false);
@@ -178,11 +219,11 @@ export default function ResultPage() {
     const hasAnswers = Object.keys(answers).length > 0;
     if (!hasAnswers) return null;
     try {
-      return analyzePersona(answers);
+      return analyzePersona(answers, locale);
     } catch {
       return null;
     }
-  }, [answers]);
+  }, [answers, locale]);
 
   // Trigger confetti when analysis is ready (only once per result)
   useEffect(() => {
@@ -525,10 +566,22 @@ export default function ResultPage() {
                 <div className={styles.consistencyBadge}>
                   <span className={styles.consistencyValue}>{analysis.consistencyScore}%</span>
                   <span className={styles.consistencyLabel}>
-                    {analysis.consistencyLabel || t('personality.consistency', 'Consistency')}
+                    {analysis.consistencyLabel
+                      ? t(`personality.consistencyLabel.${analysis.consistencyLabel}`, analysis.consistencyLabel)
+                      : t('personality.consistency', 'Consistency')}
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* Type Code Breakdown */}
+            <div className={styles.typeCodeBreakdown}>
+              {getTypeCodeMeanings(analysis.typeCode, locale).map((item, idx) => (
+                <div key={idx} className={styles.codeLetterItem}>
+                  <span className={styles.codeLetter}>{item.letter}</span>
+                  <span className={styles.codeLetterMeaning}>{item.meaning}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>

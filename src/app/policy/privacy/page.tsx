@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import styles from "../policy.module.css";
 
 type Section = { title: string; body: string };
@@ -79,7 +80,8 @@ function SectionView({ s }: { s: Section }) {
 }
 
 export default function PrivacyPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isKo = locale === "ko";
 
   return (
     <div className={styles.container}>
@@ -106,6 +108,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </div>
+      <ScrollToTop label={isKo ? "맨 위로" : "Top"} />
     </div>
   );
 }

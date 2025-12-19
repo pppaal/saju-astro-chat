@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -49,6 +48,10 @@ model User {
   tzId                  String?
   passwordHash          String?
   emailNotifications    Boolean                 @default(false)
+  referralCode          String?                 @unique // 내 고유 추천 코드
+  referrerId            String?                 // 나를 추천한 유저 ID
+  referrer              User?                   @relation("Referrals", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  referrals             User[]                  @relation("Referrals") // 내가 추천한 유저들
   accounts              Account[]
   sessions              Session[]
   readings              Reading[]
@@ -62,6 +65,10 @@ model User {
   subscriptions         Subscription[]
   premiumContentAccess  PremiumContentAccess[]
   credits               UserCredits?
+  counselorChatSessions CounselorChatSession[]
+  referralRewards       ReferralReward[]        // 내가 받은 추천 보상들
+
+  @@index([referrerId])
 }
 
 model VerificationToken {
@@ -309,6 +316,34 @@ model PremiumContentAccess {
   @@index([service, contentType])
 }
 
+// 상담사 채팅 세션 - 프리미엄 대화 히스토리
+model CounselorChatSession {
+  id           String   @id @default(cuid())
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 세션 정보
+  theme        String   @default("chat") // career, love, health, etc.
+  locale       String   @default("ko")
+
+  // 대화 메시지들 (JSON 배열)
+  messages     Json     // [{role: "user"|"assistant", content: "...", timestamp: "..."}]
+
+  // 세션 요약 (AI가 생성)
+  summary      String?  // 대화 요약 (다음 방문 시 참조용)
+  keyTopics    Json?    // 주요 주제들 ["취업", "2025년 상반기"]
+
+  // 메타데이터
+  messageCount Int      @default(0)
+  lastMessageAt DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([userId, theme])
+}
+
 // 유저 크레딧 관리 - 플랜별 사용량 추적
 model UserCredits {
   id                String   @id @default(cuid())
@@ -343,4 +378,27 @@ model UserCredits {
 
   @@index([plan])
   @@index([periodEnd])
+}
+
+// 추천 보상 기록
+model ReferralReward {
+  id              String   @id @default(cuid())
+  userId          String   // 보상 받은 사람 (추천인)
+  referredUserId  String   // 추천받아 가입한 사람
+  createdAt       DateTime @default(now())
+
+  // 보상 정보
+  creditsAwarded  Int      @default(5)  // 지급된 크레딧
+  rewardType      String   @default("signup_complete") // signup_complete, first_analysis
+
+  // 상태
+  status          String   @default("pending") // pending, completed, expired
+  completedAt     DateTime?
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, referredUserId, rewardType]) // 중복 보상 방지
+  @@index([userId])
+  @@index([referredUserId])
+  @@index([status])
 }

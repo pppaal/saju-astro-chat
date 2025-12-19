@@ -430,7 +430,45 @@
     "overallCompatibility": "종합 궁합 점수",
     "score": "점수",
     "shareTitle": "우리의 궁합 결과",
-    "timezoneAutoSet": "도시 선택에 따라 자동 설정됨"
+    "timezoneAutoSet": "도시 선택에 따라 자동 설정됨",
+    "timingGuide": "타이밍 가이드",
+    "thisMonth": "이번 달",
+    "recommendedDays": "추천 날짜",
+    "growthActions": "성장 액션",
+    "sections": {
+      "overview": "개요",
+      "overallScore": "종합 점수",
+      "sajuAnalysis": "사주 분석",
+      "astrologyAnalysis": "점성 분석",
+      "elementHarmony": "오행 조화",
+      "loveCompatibility": "연애 궁합",
+      "communication": "소통",
+      "emotionalConnection": "감정적 연결",
+      "strengths": "강점",
+      "challenges": "도전과제",
+      "advice": "조언",
+      "summary": "요약",
+      "sunSign": "태양 별자리",
+      "moonSign": "달 별자리",
+      "venusAspect": "금성 측면",
+      "marsAspect": "화성 측면"
+    },
+    "chat": {
+      "title": "궁합 상담",
+      "placeholder": "궁합에 대해 질문하세요...",
+      "startChat": "AI 상담 시작",
+      "continueChat": "상담 이어하기"
+    },
+    "counselor": {
+      "title": "전문 상담사 연결",
+      "description": "더 깊은 궁합 분석을 원하시면 전문 상담사와 상담하세요",
+      "connect": "상담사 연결하기"
+    },
+    "tarot": {
+      "title": "타로로 마음 보기",
+      "description": "상대방을 생각하며 타로 카드를 뽑아보세요",
+      "start": "타로 시작하기"
+    }
   },
   "iching": {
     "title": "주역의 지혜",
@@ -440,6 +478,8 @@
     "cast": "괘 뽑기",
     "casting": "효를 뽑는 중",
     "castAgain": "다시 뽑기",
+    "changingHint": "효를 클릭하여 변효를 설정/해제할 수 있습니다",
+    "changingCount": "변효",
     "back": "뒤로",
     "enterBirthInfo": "출생 정보를 입력하세요",
     "question": "질문 (선택사항)",
@@ -458,7 +498,25 @@
     "save": "결과 저장",
     "saved": "저장되었습니다",
     "saveError": "저장 실패",
-    "loginToSave": "로그인하고 결과를 저장하세요"
+    "loginToSave": "로그인하고 결과를 저장하세요",
+    "composition": "괘 구성",
+    "upperTrigram": "상괘",
+    "lowerTrigram": "하괘",
+    "coreMeaning": "핵심 의미",
+    "lifeAreas": "삶의 영역별 해석",
+    "career": "직업/사업",
+    "love": "연애/관계",
+    "health": "건강",
+    "wealth": "재물/금전",
+    "timing": "시기/행동",
+    "deeperInsight": "심층 분석",
+    "luckyColors": "행운의 색",
+    "luckyNumbers": "행운의 숫자",
+    "luckyDirection": "길방(吉方)",
+    "nuclearHexagram": "호괘(互卦)",
+    "nuclearHexagramDesc": "내면의 구조",
+    "oppositeHexagram": "착괘(錯卦)",
+    "oppositeDesc": "상보적 에너지"
   },
   "tarot": {
     "home": {
@@ -1011,7 +1069,7 @@
     "consistency": "일관성",
     "consistencyLabel": {
       "high": "높음",
-      "medium": "보통",
+      "moderate": "보통",
       "low": "낮음"
     },
     "keyMotivations": "핵심 동기",
@@ -1333,5 +1391,46 @@
     "startReading": "리딩 시작하기",
     "goHome": "홈으로 가기",
     "emailNote": "확인 이메일이 등록된 이메일 주소로 발송되었습니다."
+  },
+  "destinyPal": {
+    "title": "친구 초대, 크레딧 획득",
+    "subtitle": "친구가 첫 분석을 완료하면 5크레딧을 받습니다",
+    "welcomeFrom": "환영합니다! {{name}}님이 DestinyPal에 초대했습니다",
+    "bonusCredits": "첫 분석 완료 시 보너스 크레딧",
+    "yourCode": "내 추천 코드",
+    "copy": "복사",
+    "copied": "복사됨!",
+    "shareVia": "공유하기",
+    "copyLink": "링크 복사",
+    "yourStats": "내 현황",
+    "totalInvites": "총 초대",
+    "completed": "완료",
+    "pending": "대기 중",
+    "creditsEarned": "획득 크레딧",
+    "invitedFriends": "초대한 친구들",
+    "statusCompleted": "+5 크레딧",
+    "statusPending": "대기 중",
+    "noInvitesYet": "아직 초대한 친구가 없습니다. 링크를 공유해서 크레딧을 받으세요!",
+    "loginTitle": "프로그램에 참여하세요",
+    "loginSubtitle": "로그인하여 내 추천 코드를 받고 크레딧을 적립하세요",
+    "signIn": "로그인",
+    "howItWorks": "이용 방법",
+    "step1Title": "링크 공유하기",
+    "step1Desc": "내 추천 링크를 복사해서 친구들에게 공유하세요",
+    "step2Title": "친구 가입",
+    "step2Desc": "친구가 내 링크로 가입합니다",
+    "step3Title": "첫 분석 완료",
+    "step3Desc": "친구가 첫 운명 분석을 완료하면 둘 다 혜택!",
+    "step4Title": "크레딧 획득",
+    "step4Desc": "5 보너스 크레딧이 즉시 적립됩니다",
+    "shareMessage": "DestinyPal에서 AI 운세 리딩을 받아보세요! 내 링크로 보너스 크레딧을 받으세요:"
+  },
+  "share": {
+    "button": "친구에게 공유하기",
+    "title": "공유 & 크레딧 획득",
+    "credits": "크레딧",
+    "message": "방금 DestinyPal에서 운명 분석을 받았어요! 당신도 해보세요:",
+    "more": "더보기",
+    "loginHint": "로그인하고 추천 크레딧을 받으세요!"
   }
 }

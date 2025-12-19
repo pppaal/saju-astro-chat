@@ -1,5 +1,13 @@
 // src/lib/destiny-matrix/data/layer1-element-core.ts
-// Layer 1: Element Core Grid (기운핵심격자) - 오행 ↔ 4원소 교차
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 1: Element Core Grid (기운핵심격자)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
+// Layer 1: 오행 ↔ 4원소 교차
 
 import type { ElementCoreGrid, InteractionCode, WesternElement } from '../types';
 import type { FiveElement } from '../../Saju/types';

@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import styles from "../policy/policy.module.css";
 
 const CONTACT_EMAIL = "rheeco88@gmail.com";
@@ -71,6 +72,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+      <ScrollToTop label={isKorean ? "맨 위로" : "Top"} />
     </div>
   );
 }

@@ -27,6 +27,7 @@ export type DestinyResult = {
   interpretation?: string;
   saju?: any;
   astrology?: any;
+  astro?: any; // alias for astrology
   error?: string;
   errorMessage?: string;
   lang?: LangKey;
@@ -110,6 +111,7 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
       ...result,
       profile: input,
       lang: result?.lang ?? lang,
+      astro: result?.astro ?? result?.astrology,
     } as DestinyResult;
   } catch (error: any) {
     const msg = error?.message || String(error);

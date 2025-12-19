@@ -120,6 +120,20 @@ function parseHM(input: string) {
   return { h, m };
 }
 
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    "http://127.0.0.1:5000";
+  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
+    console.warn("[Astrology API] Using non-HTTPS AI backend in production");
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn("[Astrology API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+  }
+  return url;
+}
+
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request.headers);
@@ -217,7 +231,7 @@ export async function POST(request: Request) {
     // ======== AI 백엔드 호출 (GPT) ========
     let aiInterpretation = '';
     let aiModelUsed = '';
-    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+    const backendUrl = pickBackendUrl();
 
     try {
       const headers: Record<string, string> = {
@@ -229,7 +243,7 @@ export async function POST(request: Request) {
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       // Build prompt for astrology interpretation
       const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`;

@@ -176,12 +176,21 @@ export default function TarotReadingPage() {
   const [selectedDeckStyle, setSelectedDeckStyle] = useState<DeckStyle>('celestial');
   const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [selectionOrderMap, setSelectionOrderMap] = useState<Map<number, number>>(new Map());
+  const selectionOrderRef = useRef<Map<number, number>>(new Map());
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null);
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [revealedCards, setRevealedCards] = useState<number[]>([]);
   const detailedSectionRef = useRef<HTMLDivElement>(null);
+
+  // Streaming interpretation state
+  const [streamingOverall, setStreamingOverall] = useState<string>('');
+  const [streamingCardInsights, setStreamingCardInsights] = useState<Map<number, string>>(new Map());
+  const [streamingGuidance, setStreamingGuidance] = useState<string>('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingSection, setStreamingSection] = useState<string>('');
 
   // Custom smooth scroll function for elegant animation
   const smoothScrollTo = (element: HTMLElement, duration: number = 2000) => {
@@ -236,18 +245,54 @@ export default function TarotReadingPage() {
 
   const handleStartReading = () => {
     setGameState('picking');
+    // Prefetch RAG context while user selects cards (non-blocking)
+    fetch('/api/tarot/prefetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categoryId: categoryName, spreadId })
+    }).catch(() => {}); // Silently ignore prefetch errors
   };
 
   const handleCardClick = (index: number) => {
-    if (gameState !== 'picking' || selectedIndices.length >= (spreadInfo?.cardCount ?? 0) || selectedIndices.includes(index)) {
+    const currentMap = selectionOrderRef.current;
+    console.log('=== Card Click ===');
+    console.log('Clicked index:', index);
+    console.log('Current map size:', currentMap.size);
+    console.log('Current map entries:', Array.from(currentMap.entries()));
+
+    if (gameState !== 'picking') {
+      console.log('Rejected: not in picking state');
       return;
     }
+    if (currentMap.size >= (spreadInfo?.cardCount ?? 0)) {
+      console.log('Rejected: max cards reached');
+      return;
+    }
+    if (currentMap.has(index)) {
+      console.log('Rejected: card already selected');
+      return;
+    }
+
+    const newOrder = currentMap.size + 1;
+    const newMap = new Map(currentMap).set(index, newOrder);
+    selectionOrderRef.current = newMap;
+
+    console.log('New order:', newOrder);
+    console.log('New map entries:', Array.from(newMap.entries()));
+
+    setSelectionOrderMap(newMap);
     setSelectedIndices((prev) => [...prev, index]);
   };
 
   const fetchInterpretation = useCallback(async (result: ReadingResponse) => {
+    // Try streaming first for faster perceived response
+    setIsStreaming(true);
+    setStreamingOverall('');
+    setStreamingCardInsights(new Map());
+    setStreamingGuidance('');
+
     try {
-      const response = await fetch('/api/tarot/interpret', {
+      const response = await fetch('/api/tarot/interpret/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -259,39 +304,170 @@ export default function TarotReadingPage() {
             isReversed: dc.isReversed,
             position: result.spread.positions[idx]?.title || `Card ${idx + 1}`
           })),
-          language: language || 'ko',
-          birthdate: getStoredBirthDate()  // For personalization (Birth Card, Year Card)
+          userQuestion: '',
+          language: language || 'ko'
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      const contentType = response.headers.get('content-type');
+
+      if (response.ok && contentType?.includes('text/event-stream') && response.body) {
+        // Handle streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let overallMessage = '';
+        const cardInsights: CardInsight[] = [];
+        let guidance = '';
+        let followupQuestions: string[] = [];
+
+        // Initialize card insights array
+        for (let i = 0; i < result.drawnCards.length; i++) {
+          cardInsights.push({
+            position: result.spread.positions[i]?.title || `Card ${i + 1}`,
+            card_name: result.drawnCards[i].card.name,
+            is_reversed: result.drawnCards[i].isReversed,
+            interpretation: ''
+          });
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value, { stream: true });
+          const lines = text.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                if (data.section === 'overall_message') {
+                  if (data.content) {
+                    overallMessage += data.content;
+                    setStreamingOverall(overallMessage);
+                    setStreamingSection('overall');
+                  }
+                  if (data.status === 'done') {
+                    // Show results state once overall message is ready
+                    setGameState('results');
+                  }
+                }
+
+                if (data.section === 'card_insight') {
+                  const idx = data.index;
+                  if (data.content && idx < cardInsights.length) {
+                    cardInsights[idx].interpretation += data.content;
+                    setStreamingCardInsights(prev => new Map(prev).set(idx, cardInsights[idx].interpretation));
+                    setStreamingSection(`card_${idx}`);
+                  }
+                  if (data.status === 'done' && data.extras) {
+                    cardInsights[idx].spirit_animal = data.extras.spirit_animal ? { name: data.extras.spirit_animal, meaning: '', message: '' } : null;
+                    cardInsights[idx].chakra = data.extras.chakra ? { name: data.extras.chakra, color: '', guidance: '' } : null;
+                    cardInsights[idx].element = data.extras.element;
+                  }
+                }
+
+                if (data.section === 'guidance') {
+                  if (data.content) {
+                    guidance += data.content;
+                    setStreamingGuidance(guidance);
+                    setStreamingSection('guidance');
+                  }
+                }
+
+                if (data.section === 'followup') {
+                  followupQuestions = data.questions || [];
+                }
+
+                if (data.done) {
+                  // Finalize interpretation
+                  setInterpretation({
+                    overall_message: overallMessage,
+                    card_insights: cardInsights,
+                    guidance: guidance,
+                    affirmation: '나는 우주의 지혜와 연결되어 있습니다.',
+                    followup_questions: followupQuestions
+                  });
+                  setIsStreaming(false);
+                }
+
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+              } catch {
+                // Ignore parse errors for incomplete chunks
+              }
+            }
+          }
+        }
+
+        // Ensure final state is set even if done signal not received
+        if (!interpretation) {
+          setInterpretation({
+            overall_message: overallMessage || translate('tarot.results.defaultMessage', 'The cards have revealed their wisdom to you.'),
+            card_insights: cardInsights,
+            guidance: guidance || translate('tarot.results.defaultGuidance', 'Trust your intuition.'),
+            affirmation: '나는 우주의 지혜와 연결되어 있습니다.',
+            followup_questions: followupQuestions
+          });
+        }
+        setIsStreaming(false);
+        return;
+      }
+
+      // Fallback to non-streaming endpoint
+      setIsStreaming(false);
+      const fallbackResponse = await fetch('/api/tarot/interpret', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categoryId: categoryName,
+          spreadId,
+          spreadTitle: result.spread.title,
+          cards: result.drawnCards.map((dc, idx) => {
+            const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright;
+            return {
+              name: dc.card.name,
+              nameKo: dc.card.nameKo,
+              isReversed: dc.isReversed,
+              position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
+              positionKo: result.spread.positions[idx]?.titleKo,
+              meaning: meaning.meaning,
+              meaningKo: meaning.meaningKo,
+              keywords: meaning.keywords,
+              keywordsKo: meaning.keywordsKo
+            };
+          }),
+          language: language || 'ko',
+          birthdate: getStoredBirthDate()
+        })
+      });
+
+      if (fallbackResponse.ok) {
+        const data = await fallbackResponse.json();
         setInterpretation(data);
       } else {
-        setInterpretation({
-          overall_message: translate('tarot.results.defaultMessage', 'The cards have revealed their wisdom to you.'),
-          card_insights: result.drawnCards.map((dc, idx) => ({
-            position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
-            card_name: dc.card.name,
-            is_reversed: dc.isReversed,
-            interpretation: dc.isReversed ? dc.card.reversed.meaning : dc.card.upright.meaning
-          })),
-          guidance: translate('tarot.results.defaultGuidance', 'Trust your intuition as you reflect on these cards.'),
-          affirmation: translate('tarot.results.defaultAffirmation', 'I am open to the wisdom of the universe.'),
-          fallback: true
-        });
+        throw new Error('Fallback also failed');
       }
     } catch (error) {
       console.error('Failed to fetch interpretation:', error);
+      setIsStreaming(false);
       setInterpretation({
         overall_message: translate('tarot.results.defaultMessage', 'The cards have revealed their wisdom to you.'),
-        card_insights: [],
-        guidance: translate('tarot.results.defaultGuidance', 'Trust your intuition.'),
-        affirmation: '',
+        card_insights: result.drawnCards.map((dc, idx) => ({
+          position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
+          card_name: dc.card.name,
+          is_reversed: dc.isReversed,
+          interpretation: dc.isReversed ? dc.card.reversed.meaning : dc.card.upright.meaning
+        })),
+        guidance: translate('tarot.results.defaultGuidance', 'Trust your intuition as you reflect on these cards.'),
+        affirmation: translate('tarot.results.defaultAffirmation', 'I am open to the wisdom of the universe.'),
         fallback: true
       });
     }
-  }, [categoryName, spreadId, language, translate]);
+  }, [categoryName, spreadId, language, translate, interpretation, setGameState]);
 
   useEffect(() => {
     if (spreadInfo && selectedIndices.length === spreadInfo.cardCount && gameState === 'picking') {
@@ -328,6 +504,8 @@ export default function TarotReadingPage() {
   const handleStartChat = () => {
     setShowChat(true);
     setGameState('chat');
+    // Scroll to top when entering chat mode
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleCardExpand = (index: number) => {
@@ -429,8 +607,96 @@ export default function TarotReadingPage() {
     );
   }
 
-  // Interpreting state
+  // Interpreting state - with streaming UI
   if (gameState === 'interpreting') {
+    // Show streaming content if available
+    if (isStreaming && (streamingOverall || streamingCardInsights.size > 0 || streamingGuidance)) {
+      return (
+        <div className={styles.streamingContainer}>
+          <div className={styles.streamingHeader}>
+            <h1 className={styles.streamingTitle}>
+              {language === 'ko' ? readingResult?.spread.titleKo || readingResult?.spread.title : readingResult?.spread.title}
+            </h1>
+            <p className={styles.streamingSubtitle}>
+              {translate('tarot.streaming.generating', '해석을 생성하고 있습니다')}
+              <span className={styles.streamingDots}>
+                <span className={styles.streamingDot}></span>
+                <span className={styles.streamingDot}></span>
+                <span className={styles.streamingDot}></span>
+              </span>
+            </p>
+          </div>
+
+          {/* Overall Message Streaming */}
+          {streamingOverall && (
+            <div className={styles.streamingContentBox}>
+              <div className={styles.streamingSectionLabel}>
+                <span className={styles.streamingSectionIcon}>✨</span>
+                {translate('tarot.streaming.overallMessage', '전체 메시지')}
+              </div>
+              <p className={styles.streamingText}>
+                {streamingOverall}
+                {streamingSection === 'overall' && <span className={styles.streamingCursor}></span>}
+              </p>
+            </div>
+          )}
+
+          {/* Card Insights Streaming */}
+          {streamingCardInsights.size > 0 && (
+            <div className={styles.streamingContentBox}>
+              <div className={styles.streamingSectionLabel}>
+                <span className={styles.streamingSectionIcon}>🃏</span>
+                {translate('tarot.streaming.cardInsights', '카드별 해석')}
+              </div>
+              {Array.from(streamingCardInsights.entries()).map(([idx, text]) => (
+                <div key={idx} className={styles.streamingCardInsightBox}>
+                  <div className={styles.streamingCardLabel}>
+                    <span className={styles.streamingCardNumber}>{idx + 1}</span>
+                    <span className={styles.streamingCardName}>
+                      {readingResult?.drawnCards[idx]?.card.name || `Card ${idx + 1}`}
+                    </span>
+                  </div>
+                  <p className={styles.streamingText}>
+                    {text}
+                    {streamingSection === `card_${idx}` && <span className={styles.streamingCursor}></span>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Guidance Streaming */}
+          {streamingGuidance && (
+            <div className={styles.streamingContentBox}>
+              <div className={styles.streamingSectionLabel}>
+                <span className={styles.streamingSectionIcon}>🔮</span>
+                {translate('tarot.streaming.guidance', '조언')}
+              </div>
+              <p className={styles.streamingText}>
+                {streamingGuidance}
+                {streamingSection === 'guidance' && <span className={styles.streamingCursor}></span>}
+              </p>
+            </div>
+          )}
+
+          {/* Progress indicator */}
+          <div className={styles.streamingProgress}>
+            <div className={styles.progressSteps}>
+              <span className={`${styles.progressStep} ${streamingOverall ? styles.completed : ''} ${streamingSection === 'overall' ? styles.active : ''}`}></span>
+              <span className={`${styles.progressStep} ${streamingCardInsights.size > 0 ? styles.completed : ''} ${streamingSection?.startsWith('card_') ? styles.active : ''}`}></span>
+              <span className={`${styles.progressStep} ${streamingGuidance ? styles.completed : ''} ${streamingSection === 'guidance' ? styles.active : ''}`}></span>
+            </div>
+            <span className={styles.progressLabel}>
+              {streamingSection === 'overall' && translate('tarot.streaming.step1', '전체 메시지 생성 중...')}
+              {streamingSection?.startsWith('card_') && translate('tarot.streaming.step2', '카드 해석 생성 중...')}
+              {streamingSection === 'guidance' && translate('tarot.streaming.step3', '조언 생성 중...')}
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    // Default loading state (before streaming starts)
     return (
       <div className={styles.loading}>
         <div className={styles.loadingOrb}></div>
@@ -508,6 +774,7 @@ export default function TarotReadingPage() {
                 } as React.CSSProperties}
                 onClick={() => !revealed && canReveal && handleCardReveal(index)}
               >
+                <div className={styles.cardNumberBadge}>{index + 1}</div>
                 <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
 
                 <div className={styles.cardContainerLarge}>
@@ -593,7 +860,10 @@ export default function TarotReadingPage() {
                     style={{ '--card-index': index } as React.CSSProperties}
                     onClick={() => toggleCardExpand(index)}
                   >
-                    <div className={styles.positionBadge}>{positionTitle}</div>
+                    <div className={styles.positionBadgeWithNumber}>
+                      <span className={styles.cardNumberSmall}>{index + 1}</span>
+                      <span>{positionTitle}</span>
+                    </div>
 
                     <div className={styles.imageContainer}>
                       <Image
@@ -799,6 +1069,10 @@ export default function TarotReadingPage() {
               <p className={styles.progressText}>
                 {selectedIndices.length} / {spreadInfo.cardCount}
               </p>
+              {/* Debug info */}
+              <p style={{ fontSize: '0.8rem', color: '#ff0', marginTop: '0.5rem' }}>
+                선택된 카드: {Array.from(selectionOrderMap.entries()).map(([idx, order]) => `[${idx}→${order}]`).join(', ') || '없음'}
+              </p>
             </>
           )}
         </div>
@@ -806,12 +1080,11 @@ export default function TarotReadingPage() {
 
       <div className={styles.cardSpreadContainer}>
         {Array.from({ length: 78 }).map((_, index) => {
-          const selectionIndex = selectedIndices.indexOf(index);
-          const isSelected = selectionIndex !== -1;
-          const displayNumber = isSelected ? selectionIndex + 1 : 0;
+          const isSelected = selectionOrderMap.has(index);
+          const displayNumber = selectionOrderMap.get(index) || 0;
           return (
             <div
-              key={`card-${index}`}
+              key={`card-${index}-${displayNumber}`}
               className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''}`}
               style={{
                 '--selection-order': displayNumber,

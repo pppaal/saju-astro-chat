@@ -7,13 +7,28 @@ import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 
-const BACKEND_URL = process.env.BACKEND_AI_URL || "http://localhost:5000";
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.BACKEND_AI_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    "http://localhost:5000";
+  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
+    console.warn("[tarot chat] Using non-HTTPS AI backend in production");
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn("[tarot chat] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+  }
+  return url;
+}
 
 interface CardContext {
   position: string;
   name: string;
-  isReversed: boolean;
+  isReversed?: boolean;   // camelCase (old)
+  is_reversed?: boolean;  // snake_case (new)
   meaning: string;
+  keywords?: string[];
 }
 
 interface TarotContext {
@@ -61,46 +76,67 @@ export async function POST(req: Request) {
       );
     }
 
-    // Call Python backend for chat
-    const backendResponse = await fetch(`${BACKEND_URL}/api/tarot/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages,
-        context: {
-          spread_title: context.spread_title,
-          category: context.category,
-          cards: context.cards.map(c => ({
-            position: c.position,
-            name: c.name,
-            is_reversed: c.isReversed,
-            meaning: c.meaning
-          })),
-          overall_message: context.overall_message,
-          guidance: context.guidance
+    // Call Python backend for chat (with fallback on connection failure)
+    let backendData: { reply?: string } | null = null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
         },
-        language
-      })
-    });
+        body: JSON.stringify({
+          messages,
+          context: {
+            spread_title: context.spread_title,
+            category: context.category,
+            cards: context.cards.map(c => ({
+              position: c.position,
+              name: c.name,
+              is_reversed: c.is_reversed ?? c.isReversed ?? false,
+              meaning: c.meaning,
+              keywords: c.keywords || []
+            })),
+            overall_message: context.overall_message,
+            guidance: context.guidance
+          },
+          language
+        }),
+        signal: controller.signal,
+        cache: "no-store",
+      });
 
-    if (!backendResponse.ok) {
-      console.warn("Backend unavailable, using fallback chat response");
-      const fallbackReply = generateFallbackReply(messages, context, language);
-      const res = NextResponse.json({ reply: fallbackReply });
+      clearTimeout(timeoutId);
+
+      if (backendResponse.ok) {
+        backendData = await backendResponse.json();
+      }
+    } catch (fetchError) {
+      console.warn("Backend connection failed, using fallback:", fetchError);
+    }
+
+    // Use backend response or fallback
+    if (backendData?.reply) {
+      const res = NextResponse.json({ reply: backendData.reply });
       limit.headers.forEach((value, key) => res.headers.set(key, value));
       return res;
     }
 
-    const data = await backendResponse.json();
-    const res = NextResponse.json({ reply: data.reply });
+    // Fallback response
+    console.warn("Using fallback chat response");
+    const fallbackReply = generateFallbackReply(messages, context, language);
+    const res = NextResponse.json({ reply: fallbackReply });
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
 
   } catch (err: unknown) {
     captureServerError(err as Error, { route: "/api/tarot/chat" });
-    console.error("Tarot chat error:", err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("Tarot chat error:", errorMessage, err);
     return NextResponse.json(
-      { error: "Server error" },
+      { error: "Server error", detail: process.env.NODE_ENV === "development" ? errorMessage : undefined },
       { status: 500 }
     );
   }
@@ -162,8 +198,29 @@ function generateFallbackReply(
       : `From a career perspective, the cards' guidance is: ${context.guidance}`;
   }
 
-  // Default response
+  // Default response - build from actual card data
+  const cardSummary = context.cards
+    .map(c => {
+      const reversed = (c.is_reversed ?? c.isReversed) ? "(역방향)" : "";
+      return `${c.position}: ${c.name}${reversed}`;
+    })
+    .join(", ");
+
+  if (context.overall_message && context.guidance) {
+    return isKorean
+      ? `${context.spread_title} 리딩에서 ${cardSummary} 카드가 나왔습니다. ${context.overall_message} ${context.guidance}`
+      : `Your ${context.spread_title} reading shows: ${cardSummary}. ${context.overall_message} ${context.guidance}`;
+  }
+
+  // If no interpretation available, give card-based response
+  const firstCard = context.cards[0];
+  if (firstCard) {
+    return isKorean
+      ? `${context.spread_title} 리딩에서 ${cardSummary} 카드가 나왔습니다. 특히 ${firstCard.position}에 나온 ${firstCard.name} 카드는 "${firstCard.meaning}" 을 의미합니다. 질문에 대해 더 구체적으로 물어보시면 상세한 해석을 드릴 수 있습니다.`
+      : `Your ${context.spread_title} reading shows: ${cardSummary}. The ${firstCard.name} in ${firstCard.position} means "${firstCard.meaning}". Ask more specific questions for detailed interpretation.`;
+  }
+
   return isKorean
-    ? `당신의 ${context.spread_title} 리딩을 바탕으로 말씀드리면, ${context.overall_message} ${context.guidance}`
-    : `Based on your ${context.spread_title} reading, ${context.overall_message} ${context.guidance}`;
+    ? "카드 정보를 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요."
+    : "There was an issue loading card information. Please try again.";
 }

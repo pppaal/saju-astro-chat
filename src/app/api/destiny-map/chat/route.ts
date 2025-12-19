@@ -19,6 +19,20 @@ function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
 }
 
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    "http://127.0.0.1:5000";
+  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
+    console.warn("[destiny-map chat] Using non-HTTPS AI backend in production");
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn("[destiny-map chat] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+  }
+  return url;
+}
+
 function buildChatPrompt(lang: string, theme: string, snapshot: string, history: ChatMessage[]) {
   const historyText = history
     .map((m) => `${m.role.toUpperCase()}: ${guardText(m.content, 400)}`)
@@ -146,7 +160,7 @@ export async function POST(request: Request) {
       .slice(0, PROMPT_BUDGET_CHARS);
 
     // 3) call backend fusion with health check
-    const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+    const backendUrl = pickBackendUrl();
 
     const fallbackReply =
       lang === "ko"

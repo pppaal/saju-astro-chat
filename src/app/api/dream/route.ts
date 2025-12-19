@@ -4,7 +4,19 @@ import { getClientIp } from '@/lib/request-ip';
 import { captureServerError } from '@/lib/telemetry';
 import { requirePublicToken } from '@/lib/auth/publicToken';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    'http://127.0.0.1:5000';
+  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
+    console.warn('[Dream API] Using non-HTTPS AI backend in production');
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn('[Dream API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL');
+  }
+  return url;
+}
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
@@ -38,9 +50,9 @@ export async function POST(req: NextRequest) {
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      const aiResponse = await fetch(`${BACKEND_URL}/api/dream`, {
+      const aiResponse = await fetch(`${pickBackendUrl()}/api/dream`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

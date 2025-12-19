@@ -1,5 +1,12 @@
 // src/lib/destiny-matrix/data/layer6-stage-house.ts
-// Layer 6: TwelveStage-House Matrix (십이운성-하우스 생명력 매트릭스)
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 6: TwelveStage-House Matrix (십이운성-하우스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { TwelveStageHouseMatrix, InteractionCode, HouseNumber } from '../types';
 import type { TwelveStage } from '../../Saju/types';

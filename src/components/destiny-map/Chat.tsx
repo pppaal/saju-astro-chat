@@ -8,7 +8,12 @@ import styles from "./Chat.module.css";
 // PDF parsing utility
 async function extractTextFromPDF(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  // Use bundled worker to avoid CDN/CORS failures in some environments (e.g. Turbopack).
+  const workerModule = await import("pdfjs-dist/build/pdf.worker.min.mjs");
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    // Next/Turbopack exposes the asset on `default`
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (workerModule as any).default ?? workerModule;
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -211,7 +216,26 @@ const I18N: Record<LangKey, Copy> = {
   },
 };
 
-type Message = { role: "system" | "user" | "assistant"; content: string };
+type Message = { role: "system" | "user" | "assistant"; content: string; id?: string };
+
+// Feedback tracking
+type FeedbackType = "up" | "down" | null;
+
+// User context for returning users (premium feature)
+type UserContext = {
+  persona?: {
+    sessionCount?: number;
+    lastTopics?: string[];
+    emotionalTone?: string;
+    recurringIssues?: string[];
+  };
+  recentSessions?: Array<{
+    id: string;
+    summary?: string;
+    keyTopics?: string[];
+    lastMessageAt?: string;
+  }>;
+};
 
 type ChatProps = {
   profile: {
@@ -229,6 +253,13 @@ type ChatProps = {
   seedEvent?: string;
   saju?: any;
   astro?: any;
+  // Premium features
+  userContext?: UserContext;
+  chatSessionId?: string; // Existing session to continue
+  onSaveMessage?: (userMsg: string, assistantMsg: string) => void; // Callback to save messages
+  autoScroll?: boolean;
+  // RAG session ID from /counselor/init prefetch
+  ragSessionId?: string;
 };
 
 type ChatRequest = {
@@ -252,6 +283,11 @@ export default function Chat({
   seedEvent = "chat:seed",
   saju,
   astro,
+  userContext,
+  chatSessionId,
+  onSaveMessage,
+  autoScroll = true,
+  ragSessionId,
 }: ChatProps) {
   const tr = I18N[lang] ?? I18N.en;
   const sessionIdRef = React.useRef<string>(
@@ -272,8 +308,101 @@ export default function Chat({
   const [parsingPdf, setParsingPdf] = React.useState(false);
   const [isRecording, setIsRecording] = React.useState(false);
   const [showTarotPrompt, setShowTarotPrompt] = React.useState(false);
+  const [feedback, setFeedback] = React.useState<Record<string, FeedbackType>>({});
+  const [showSuggestions, setShowSuggestions] = React.useState(true);
+  const [followUpQuestions, setFollowUpQuestions] = React.useState<string[]>([]);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const recognitionRef = React.useRef<any>(null);
+
+  // Universal follow-up questions (works for any response context)
+  const universalFollowUps = lang === "ko"
+    ? [
+        // 깊이 파고들기
+        "더 자세히 알려줘", "왜 그런 거예요?", "구체적으로 설명해줘",
+        // 시기/타이밍
+        "그럼 언제쯤이 좋아요?", "올해 안에 가능할까요?", "몇 월이 제일 좋아요?",
+        // 조언/방향
+        "어떻게 하면 좋을까요?", "주의할 점은 뭐예요?", "피해야 할 건 뭐예요?",
+        // 다른 관점
+        "다른 관점에서도 봐줘", "반대로 생각하면 어때요?", "최악의 경우는 뭐예요?",
+        // 연결 질문
+        "이거랑 연애운은 관련 있어요?", "돈 문제랑 연결해서 봐줘", "건강이랑 연관 있어요?",
+        // 비교/선택
+        "A랑 B 중에 뭐가 나아요?", "지금 vs 나중, 뭐가 좋아요?",
+        // 미래/예측
+        "앞으로 어떻게 될까요?", "내년에는 달라질까요?", "10년 후에는 어때요?",
+        // 자기 이해
+        "내 장점을 더 알려줘", "내 약점은 뭐예요?", "나한테 숨겨진 게 있어요?",
+      ]
+    : [
+        // Dig deeper
+        "Tell me more", "Why is that?", "Explain in detail",
+        // Timing
+        "When would be good?", "Is it possible this year?", "Which month is best?",
+        // Advice
+        "What should I do?", "What should I watch out for?", "What to avoid?",
+        // Different perspective
+        "Show me another angle", "What about the opposite?", "What's the worst case?",
+        // Connected topics
+        "How does this relate to love?", "Connect this to money", "Any health connection?",
+        // Compare/choose
+        "Which is better, A or B?", "Now vs later - which is better?",
+        // Future
+        "What happens next?", "Will it change next year?", "How about in 10 years?",
+        // Self understanding
+        "Tell me more strengths", "What are my weaknesses?", "Any hidden aspects?",
+      ];
+
+  // Generate random follow-up questions (universal - works for any context)
+  const generateFollowUpQuestions = () => {
+    const shuffled = [...universalFollowUps].sort(() => Math.random() - 0.5);
+    setFollowUpQuestions(shuffled.slice(0, 2));
+  };
+
+  // Suggested questions based on theme
+  const suggestedQuestions: Record<string, string[]> = {
+    career: lang === "ko"
+      ? ["나한테 천직이 뭐예요? 🎯", "올해 이직해도 될까요?", "사장 체질인지 직원 체질인지 궁금해요"]
+      : ["What's my dream job? 🎯", "Should I change jobs this year?", "Am I a boss or employee type?"],
+    love: lang === "ko"
+      ? ["내 인연은 어디서 만나요? 💕", "이번 연애 진지하게 가도 될까요?", "왜 나는 연애가 안 될까요?"]
+      : ["Where will I meet my soulmate? 💕", "Is this relationship serious?", "Why can't I find love?"],
+    wealth: lang === "ko"
+      ? ["부자 될 팔자인가요? 💰", "주식 해도 될까요?", "돈 복이 있는 편인가요?"]
+      : ["Am I destined to be rich? 💰", "Should I invest in stocks?", "Do I have money luck?"],
+    health: lang === "ko"
+      ? ["타고난 체질이 뭐예요? 🏃", "조심해야 할 질병 있어요?", "살 빠지는 시기가 있을까요?"]
+      : ["What's my body type? 🏃", "Any diseases to watch?", "When's good for weight loss?"],
+    life_path: lang === "ko"
+      ? ["내 인생 최고의 해는 언제예요? ⭐", "숨겨진 재능이 뭐예요?", "올해 대운이 어때요?"]
+      : ["When's my best year? ⭐", "What's my hidden talent?", "How's my fortune this year?"],
+    chat: lang === "ko"
+      ? ["나는 어떤 사람이에요? ✨", "올해 무슨 일이 생길까요?", "행운의 숫자/색깔 알려줘"]
+      : ["What kind of person am I? ✨", "What will happen this year?", "Tell me my lucky number/color"],
+  };
+
+  // Handle feedback click
+  const handleFeedback = (msgId: string, type: FeedbackType) => {
+    setFeedback((prev) => ({
+      ...prev,
+      [msgId]: prev[msgId] === type ? null : type,
+    }));
+    // Could send to analytics here
+    console.log(`[Feedback] ${msgId}: ${type}`);
+  };
+
+  // Handle follow-up question click
+  const handleFollowUp = (question: string) => {
+    setFollowUpQuestions([]); // Clear follow-ups
+    setInput(""); // Clear input (will use directText)
+    handleSend(question); // Send directly
+  };
+
+  // Handle suggested question click
+  const handleSuggestion = (question: string) => {
+    setInput(question);
+    setShowSuggestions(false);
+  };
 
   // Show tarot prompt after 2+ assistant responses
   React.useEffect(() => {
@@ -314,8 +443,9 @@ export default function Chat({
   }, [seedEvent]);
 
   React.useEffect(() => {
+    if (!autoScroll) return;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, autoScroll]);
 
   // Voice recognition setup
   const startRecording = () => {
@@ -395,11 +525,17 @@ export default function Chat({
     }
   };
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(directText?: string) {
+    const text = directText || input.trim();
     if (!text || loading) return;
 
-    const nextMessages: Message[] = [...messages, { role: "user" as const, content: text }];
+    // Hide suggestions after first message
+    setShowSuggestions(false);
+    // Clear any existing follow-up questions
+    setFollowUpQuestions([]);
+
+    const userMsgId = `user-${Date.now()}`;
+    const nextMessages: Message[] = [...messages, { role: "user" as const, content: text, id: userMsgId }];
     setLoading(true);
     setMessages(nextMessages);
     setInput("");
@@ -421,6 +557,8 @@ export default function Chat({
       // Pass pre-computed chart data for instant responses
       saju,
       astro,
+      // Premium: user context for returning users
+      userContext,
     };
 
     try {
@@ -432,7 +570,8 @@ export default function Chat({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-session-id": sessionIdRef.current,
+          // Use RAG session ID from /counselor/init if available (for cached RAG data)
+          "x-session-id": ragSessionId || sessionIdRef.current,
         },
         body: JSON.stringify(payload),
       });
@@ -443,7 +582,8 @@ export default function Chat({
       if (!res.body) throw new Error("No response body");
 
       // Add empty assistant message that we'll stream into
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      const assistantMsgId = `assistant-${Date.now()}`;
+      setMessages((prev) => [...prev, { role: "assistant", content: "", id: assistantMsgId }]);
       setLoading(false); // Show message immediately
 
       // Read SSE stream
@@ -471,11 +611,18 @@ export default function Chat({
             } else {
               // Append text to message
               accumulated += data;
+              // Real-time filter: hide ||FOLLOWUP|| marker and partial markers during streaming
+              // Handles: ||FOLLOWUP||[...], partial ||FO, ||FOLLOW, ||FOLLOWUP|, etc.
+              let displayContent = accumulated
+                .replace(/\|\|FOLLOWUP\|\|.*/s, "")  // Full marker with content
+                .replace(/\|\|F(?:O(?:L(?:L(?:O(?:W(?:U(?:P(?:\|(?:\|)?)?)?)?)?)?)?)?)?$/s, "")  // Any partial state
+                .replace(/\|$/s, "")  // Single pipe at end
+                .trim();
               setMessages((prev) => {
                 const updated = [...prev];
                 const lastIdx = updated.length - 1;
                 if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
-                  updated[lastIdx] = { ...updated[lastIdx], content: accumulated };
+                  updated[lastIdx] = { ...updated[lastIdx], content: displayContent };
                 }
                 return updated;
               });
@@ -494,6 +641,62 @@ export default function Chat({
           }
           return updated;
         });
+      } else {
+        // Parse AI-generated follow-up questions from response
+        let cleanContent = accumulated;
+        let aiFollowUps: string[] = [];
+
+        // Check for ||FOLLOWUP||["q1", "q2"] pattern (flexible parsing)
+        const followUpMatch = accumulated.match(/\|\|FOLLOWUP\|\|\s*\[([^\]]+)\]/s);
+        if (followUpMatch) {
+          try {
+            // Fix common AI mistakes: curly quotes → straight quotes
+            let jsonStr = "[" + followUpMatch[1] + "]";
+            jsonStr = jsonStr
+              .replace(/[""]/g, '"')  // Fix curly double quotes
+              .replace(/['']/g, "'")  // Fix curly single quotes
+              .replace(/,\s*]/g, "]"); // Fix trailing comma
+
+            aiFollowUps = JSON.parse(jsonStr);
+
+            // Remove the followup part from displayed message
+            cleanContent = accumulated.replace(/\|\|FOLLOWUP\|\|\s*\[[^\]]+\]/s, "").trim();
+
+            // Update the message content without the followup marker
+            setMessages((prev) => {
+              const updated = [...prev];
+              const lastIdx = updated.length - 1;
+              if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
+                updated[lastIdx] = { ...updated[lastIdx], content: cleanContent };
+              }
+              return updated;
+            });
+          } catch (e) {
+            console.log("[Chat] Failed to parse followup questions:", e);
+            // Still remove the malformed marker from display
+            cleanContent = accumulated.replace(/\|\|FOLLOWUP\|\|.*/s, "").trim();
+            setMessages((prev) => {
+              const updated = [...prev];
+              const lastIdx = updated.length - 1;
+              if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
+                updated[lastIdx] = { ...updated[lastIdx], content: cleanContent };
+              }
+              return updated;
+            });
+          }
+        }
+
+        // Use AI-generated follow-ups if available, otherwise use universal pool
+        if (aiFollowUps.length >= 2) {
+          setFollowUpQuestions(aiFollowUps.slice(0, 2));
+        } else {
+          generateFollowUpQuestions();
+        }
+
+        if (onSaveMessage) {
+          // Save message to persistent storage (premium feature)
+          onSaveMessage(text, cleanContent);
+        }
       }
     } catch (e) {
       console.error("[Chat] send error:", e);
@@ -526,12 +729,28 @@ export default function Chat({
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🔮</div>
             <p className={styles.emptyText}>{tr.empty}</p>
+
+            {/* Suggested Questions */}
+            {showSuggestions && (
+              <div className={styles.suggestionsContainer}>
+                {(suggestedQuestions[theme] || suggestedQuestions.chat).map((q, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles.suggestionChip}
+                    onClick={() => handleSuggestion(q)}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {visibleMessages.map((m, i) => (
           <div
-            key={i}
+            key={m.id || i}
             className={`${styles.messageRow} ${
               m.role === "assistant" ? styles.assistantRow : styles.userRow
             }`}
@@ -550,6 +769,28 @@ export default function Chat({
               >
                 {m.content}
               </div>
+
+              {/* Feedback buttons for assistant messages */}
+              {m.role === "assistant" && m.content && m.id && (
+                <div className={styles.feedbackButtons}>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackBtn} ${feedback[m.id] === "up" ? styles.feedbackActive : ""}`}
+                    onClick={() => handleFeedback(m.id!, "up")}
+                    title={lang === "ko" ? "도움이 됐어요" : "Helpful"}
+                  >
+                    👍
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackBtn} ${feedback[m.id] === "down" ? styles.feedbackActive : ""}`}
+                    onClick={() => handleFeedback(m.id!, "down")}
+                    title={lang === "ko" ? "아쉬워요" : "Not helpful"}
+                  >
+                    👎
+                  </button>
+                </div>
+              )}
             </div>
             {m.role === "user" && (
               <div className={styles.avatar}>
@@ -571,6 +812,28 @@ export default function Chat({
                 </div>
                 <span className={styles.thinkingText}>{tr.thinking}</span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Follow-up Questions (shown after response) */}
+        {!loading && followUpQuestions.length > 0 && visibleMessages.length > 0 && (
+          <div className={styles.followUpContainer}>
+            <span className={styles.followUpLabel}>
+              {lang === "ko" ? "이어서 물어보기" : "Continue asking"}
+            </span>
+            <div className={styles.followUpButtons}>
+              {followUpQuestions.map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={styles.followUpChip}
+                  onClick={() => handleFollowUp(q)}
+                >
+                  <span className={styles.followUpIcon}>💬</span>
+                  {q}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -611,7 +874,7 @@ export default function Chat({
           />
           <button
             type="button"
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={loading || !input.trim()}
             className={styles.sendButton}
           >

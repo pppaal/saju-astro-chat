@@ -181,11 +181,32 @@
   box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
 }
 
+/* ============ Prefetch Status ============ */
+.prefetchStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: #6ee7b7;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.prefetchCheck {
+  font-size: 1rem;
+  color: #10b981;
+}
+
 /* ============ Header ============ */
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   padding: 1rem 1.5rem;
   background: rgba(15, 10, 30, 0.8);
   backdrop-filter: blur(10px);
@@ -220,7 +241,7 @@
 .counselorBadge {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .counselorAvatar {

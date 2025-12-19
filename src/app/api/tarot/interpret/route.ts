@@ -7,12 +7,31 @@ import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 
-const BACKEND_URL = process.env.BACKEND_AI_URL || "http://localhost:5000";
+function pickBackendUrl() {
+  const url =
+    process.env.AI_BACKEND_URL ||
+    process.env.BACKEND_AI_URL ||
+    process.env.NEXT_PUBLIC_AI_BACKEND ||
+    "http://localhost:5000";
+  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
+    console.warn("[tarot interpret] Using non-HTTPS AI backend in production");
+  }
+  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
+    console.warn("[tarot interpret] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+  }
+  return url;
+}
 
 interface CardInput {
   name: string;
+  nameKo?: string;
   isReversed: boolean;
   position: string;
+  positionKo?: string;
+  meaning?: string;
+  meaningKo?: string;
+  keywords?: string[];
+  keywordsKo?: string[];
 }
 
 interface InterpretRequest {
@@ -52,38 +71,55 @@ export async function POST(req: Request) {
       );
     }
 
-    // Call Python backend for Hybrid RAG interpretation
-    const backendResponse = await fetch(`${BACKEND_URL}/api/tarot/interpret`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        category: categoryId,
-        spread_id: spreadId,
-        spread_title: spreadTitle,
-        cards: cards.map(c => ({
-          name: c.name,
-          is_reversed: c.isReversed,
-          position: c.position
-        })),
-        user_question: userQuestion,
-        language,
-        // Premium personalization (Tier 4-6)
-        birthdate,      // User's birthdate for birth card / year card calculation
-        moon_phase: moonPhase  // Current moon phase for realtime context
-      })
-    });
+    // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
+    let interpretation = null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/interpret`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
+        },
+        body: JSON.stringify({
+          category: categoryId,
+          spread_id: spreadId,
+          spread_title: spreadTitle,
+          cards: cards.map(c => ({
+            name: c.name,
+            is_reversed: c.isReversed,
+            position: c.position
+          })),
+          user_question: userQuestion,
+          language,
+          birthdate,
+          moon_phase: moonPhase
+        }),
+        signal: controller.signal,
+        cache: "no-store",
+      });
 
-    if (!backendResponse.ok) {
-      // Fallback to basic interpretation if backend is unavailable
-      console.warn("Backend unavailable, using fallback interpretation");
-      const fallbackResult = generateFallbackInterpretation(cards, spreadTitle, language);
-      const res = NextResponse.json(fallbackResult);
+      clearTimeout(timeoutId);
+
+      if (backendResponse.ok) {
+        interpretation = await backendResponse.json();
+      }
+    } catch (fetchError) {
+      console.warn("Backend connection failed, using fallback:", fetchError);
+    }
+
+    // Use backend response or fallback
+    if (interpretation && !interpretation.error) {
+      const res = NextResponse.json(interpretation);
       limit.headers.forEach((value, key) => res.headers.set(key, value));
       return res;
     }
 
-    const interpretation = await backendResponse.json();
-    const res = NextResponse.json(interpretation);
+    // Fallback interpretation
+    console.warn("Using fallback interpretation");
+    const fallbackResult = generateFallbackInterpretation(cards, spreadTitle, language);
+    const res = NextResponse.json(fallbackResult);
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
 
@@ -107,36 +143,70 @@ function generateFallbackInterpretation(
 ) {
   const isKorean = language === "ko";
 
+  // Generate meaningful overall message based on card meanings
+  const cardSummary = cards.map(c => {
+    const cardName = isKorean && c.nameKo ? c.nameKo : c.name;
+    const keywords = isKorean && c.keywordsKo ? c.keywordsKo : c.keywords;
+    return keywords?.slice(0, 2).join(", ") || cardName;
+  }).join(", ");
+
   return {
     overall_message: isKorean
-      ? `${spreadTitle} 리딩에서 ${cards.length}장의 카드가 나왔습니다. 각 카드의 의미를 종합하여 당신의 상황을 해석해보세요.`
-      : `Your ${spreadTitle} reading revealed ${cards.length} cards. Consider the meaning of each card in relation to your question.`,
+      ? `이번 리딩에서는 ${cardSummary}의 에너지가 함께 나타났습니다. 이 카드들의 조화로운 메시지를 통해 현재 상황에 대한 통찰을 얻어보세요.`
+      : `This reading reveals the energies of ${cardSummary}. Let the harmonious messages of these cards provide insight into your current situation.`,
 
-    card_insights: cards.map((card) => ({
-      position: card.position,
-      card_name: card.name,
-      is_reversed: card.isReversed,
-      interpretation: isKorean
-        ? `${card.position} 위치에 ${card.name}${card.isReversed ? " (역방향)" : ""}이(가) 나왔습니다.`
-        : `${card.name}${card.isReversed ? " (Reversed)" : ""} appeared in the ${card.position} position.`,
-      spirit_animal: null,
-      chakra: null,
-      element: null,
-      shadow: null
-    })),
+    card_insights: cards.map((card) => {
+      const cardName = isKorean && card.nameKo ? card.nameKo : card.name;
+      const positionName = isKorean && card.positionKo ? card.positionKo : card.position;
+      const meaning = isKorean && card.meaningKo ? card.meaningKo : card.meaning;
+      const keywords = isKorean && card.keywordsKo ? card.keywordsKo : card.keywords;
+      const keywordText = keywords?.slice(0, 3).join(", ") || "";
+      const reversedText = card.isReversed ? (isKorean ? " (역방향)" : " (Reversed)") : "";
+
+      // Create a rich interpretation combining position context and card meaning
+      let interpretation: string;
+      if (meaning) {
+        interpretation = isKorean
+          ? `【${positionName}】 ${cardName}${reversedText}가 이 자리에 나타났습니다.\n\n${meaning}\n\n핵심 키워드: ${keywordText}`
+          : `【${positionName}】 ${cardName}${reversedText} appears in this position.\n\n${meaning}\n\nKey themes: ${keywordText}`;
+      } else {
+        interpretation = isKorean
+          ? `${positionName} 자리의 ${cardName}${reversedText}는 ${keywordText}의 에너지를 가져옵니다.`
+          : `${cardName}${reversedText} in the ${positionName} position brings the energy of ${keywordText}.`;
+      }
+
+      return {
+        position: card.position,
+        card_name: card.name,
+        is_reversed: card.isReversed,
+        interpretation,
+        spirit_animal: null,
+        chakra: null,
+        element: null,
+        shadow: null
+      };
+    }),
 
     guidance: isKorean
-      ? "카드의 메시지에 마음을 열고 직관을 믿으세요."
-      : "Open your heart to the cards' messages and trust your intuition.",
+      ? "이 카드들이 전하는 지혜에 마음을 열어보세요. 당신의 내면은 이미 답을 알고 있습니다. 조용히 앉아 카드들이 보여주는 이미지와 상징을 떠올려보며, 어떤 감정과 생각이 떠오르는지 관찰해보세요."
+      : "Open your heart to the wisdom these cards convey. Your inner self already knows the answers. Sit quietly and visualize the images and symbols shown by the cards, observing what emotions and thoughts arise.",
 
     affirmation: isKorean
-      ? "나는 내 안의 지혜를 신뢰합니다."
-      : "I trust the wisdom within me.",
+      ? "나는 우주의 지혜와 연결되어 있으며, 내 안의 직관을 신뢰합니다."
+      : "I am connected to the wisdom of the universe and trust my inner intuition.",
 
     combinations: [],
     followup_questions: isKorean
-      ? ["이 카드들이 전하는 핵심 메시지는 무엇인가요?", "구체적인 행동 조언이 있나요?"]
-      : ["What is the core message of these cards?", "Any specific action advice?"],
+      ? [
+          "이 카드들의 조합이 내 현재 상황과 어떻게 연결되나요?",
+          "각 카드에서 가장 끌리는 이미지나 상징은 무엇인가요?",
+          "이 리딩에서 가장 중요하게 느껴지는 메시지는 무엇인가요?"
+        ]
+      : [
+          "How does this combination of cards connect to my current situation?",
+          "What images or symbols from each card draw you the most?",
+          "What feels like the most important message from this reading?"
+        ],
 
     fallback: true
   };

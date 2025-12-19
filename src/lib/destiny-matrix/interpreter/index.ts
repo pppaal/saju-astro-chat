@@ -1,6 +1,13 @@
 // src/lib/destiny-matrix/interpreter/index.ts
-// Destiny Fusion Matrix™ - Interpretation Engine Exports
-// 특허 가능 모듈: 다층 융합 해석 시스템
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Interpretation Engine
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Multi-layer fusion interpretation system with dynamic weight calculation.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 export * from './types';
 export * from './weight-calculator';

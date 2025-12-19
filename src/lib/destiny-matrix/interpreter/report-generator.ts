@@ -162,26 +162,56 @@ export class FusionReportGenerator {
 
   /**
    * 종합 점수 계산
+   * 개선: 데이터가 없는 카테고리는 평균 계산에서 제외
    */
   private calculateOverallScore(insights: FusionInsight[], lang: 'ko' | 'en'): OverallScore {
-    // 카테고리별 점수 계산
-    const categoryScores = {
+    // 카테고리별 점수 계산 (데이터 없으면 null)
+    const rawCategoryScores = {
       strength: this.getCategoryAverage(insights, 'strength'),
       opportunity: this.getCategoryAverage(insights, 'opportunity'),
       balance: this.getCategoryAverage(insights, 'balance'),
-      caution: 100 - this.getCategoryAverage(insights, 'caution'), // 역산
-      challenge: 100 - this.getCategoryAverage(insights, 'challenge'), // 역산
+      caution: this.getCategoryAverage(insights, 'caution'),
+      challenge: this.getCategoryAverage(insights, 'challenge'),
     };
 
-    // 가중 평균 계산
-    const weights = { strength: 0.25, opportunity: 0.25, balance: 0.2, caution: 0.15, challenge: 0.15 };
-    const total = Math.round(
-      categoryScores.strength * weights.strength +
-      categoryScores.opportunity * weights.opportunity +
-      categoryScores.balance * weights.balance +
-      categoryScores.caution * weights.caution +
-      categoryScores.challenge * weights.challenge
-    );
+    // 실제 데이터가 있는 카테고리만 점수 계산
+    const categoryScores = {
+      strength: rawCategoryScores.strength ?? 50,
+      opportunity: rawCategoryScores.opportunity ?? 50,
+      balance: rawCategoryScores.balance ?? 50,
+      caution: rawCategoryScores.caution !== null ? 100 - rawCategoryScores.caution : 50, // 역산
+      challenge: rawCategoryScores.challenge !== null ? 100 - rawCategoryScores.challenge : 50, // 역산
+    };
+
+    // 가중 평균 계산 (데이터 있는 카테고리만)
+    const weights: Record<InsightCategory, number> = {
+      strength: 0.25,
+      opportunity: 0.25,
+      balance: 0.2,
+      caution: 0.15,
+      challenge: 0.15
+    };
+
+    let weightedSum = 0;
+    let totalWeight = 0;
+    const categories: InsightCategory[] = ['strength', 'opportunity', 'balance', 'caution', 'challenge'];
+
+    for (const cat of categories) {
+      if (rawCategoryScores[cat] !== null) {
+        const score = cat === 'caution' || cat === 'challenge'
+          ? 100 - rawCategoryScores[cat]!
+          : rawCategoryScores[cat]!;
+        weightedSum += score * weights[cat];
+        totalWeight += weights[cat];
+      }
+    }
+
+    // 데이터가 전혀 없으면 기본값 50, 있으면 가중 평균
+    const total = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 50;
+
+    // 데이터 완성도 계산 (몇 개 카테고리에 데이터가 있는지)
+    const categoriesWithData = Object.values(rawCategoryScores).filter(v => v !== null).length;
+    const dataCompleteness = Math.round((categoriesWithData / 5) * 100);
 
     // 등급 결정
     const { grade, gradeDescription, gradeDescriptionEn } = this.getGradeInfo(total);
@@ -192,15 +222,18 @@ export class FusionReportGenerator {
       gradeDescription: lang === 'ko' ? gradeDescription : gradeDescriptionEn,
       gradeDescriptionEn,
       categoryScores,
+      dataCompleteness,
+      insightCount: insights.length,
     };
   }
 
   /**
    * 카테고리 평균 점수
+   * 개선: 데이터가 없으면 null 반환 (50이 아님)
    */
-  private getCategoryAverage(insights: FusionInsight[], category: InsightCategory): number {
+  private getCategoryAverage(insights: FusionInsight[], category: InsightCategory): number | null {
     const filtered = insights.filter(i => i.category === category);
-    if (filtered.length === 0) return 50; // 기본값
+    if (filtered.length === 0) return null; // 데이터 없음을 명시
 
     const sum = filtered.reduce((acc, i) => acc + i.score, 0);
     return Math.round(sum / filtered.length);
@@ -236,7 +269,10 @@ export class FusionReportGenerator {
 
     return domains.map(domain => {
       const domainInsights = grouped[domain];
-      const score = domainInsights.length > 0
+      const hasData = domainInsights.length > 0;
+
+      // 데이터가 있으면 실제 점수, 없으면 null (표시용으로만 50 사용)
+      const score = hasData
         ? Math.round(domainInsights.reduce((sum, i) => sum + i.score, 0) / domainInsights.length)
         : 50;
 
@@ -256,8 +292,12 @@ export class FusionReportGenerator {
         domain,
         score,
         grade,
-        summary: this.generateDomainSummary(domain, score, lang),
-        summaryEn: this.generateDomainSummary(domain, score, 'en'),
+        summary: hasData
+          ? this.generateDomainSummary(domain, score, lang)
+          : (lang === 'ko' ? '데이터 부족 - 더 많은 정보 입력 시 분석 가능' : 'Insufficient data - more input needed for analysis'),
+        summaryEn: hasData
+          ? this.generateDomainSummary(domain, score, 'en')
+          : 'Insufficient data - more input needed for analysis',
         strengths,
         strengthsEn: domainInsights
           .filter(i => i.category === 'strength' || i.category === 'opportunity')
@@ -269,6 +309,8 @@ export class FusionReportGenerator {
           .slice(0, 3)
           .map(i => i.titleEn),
         insights: domainInsights.slice(0, 5),
+        hasData,
+        insightCount: domainInsights.length,
       };
     });
   }

@@ -212,6 +212,464 @@
   line-height: 1.6;
 }
 
+/* ===== Hexagram Subtitle ===== */
+.hexagramSubtitle {
+  font-size: 0.9rem;
+  color: rgba(197, 166, 255, 0.8);
+  margin: 0.25rem 0 0 0;
+}
+
+/* ===== Trigram Section ===== */
+.trigramSection {
+  margin: 0.5rem 0;
+}
+
+.trigramGrid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.trigramItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: rgba(138, 43, 226, 0.15);
+  border-radius: 12px;
+  border: 1px solid rgba(138, 43, 226, 0.25);
+  min-width: 80px;
+}
+
+.trigramSymbol {
+  font-size: 1.5rem;
+  color: #ffffff;
+}
+
+.trigramName {
+  font-size: 0.95rem;
+  color: rgba(224, 224, 255, 0.95);
+  font-weight: 500;
+}
+
+.trigramLabel {
+  font-size: 0.75rem;
+  color: rgba(138, 43, 226, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trigramDivider {
+  font-size: 1.25rem;
+  color: rgba(138, 43, 226, 0.6);
+}
+
+/* ===== Core Meaning Section ===== */
+.coreMeaningSection {
+  margin: 0.5rem 0;
+}
+
+.coreMeaningText {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.8;
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.12), rgba(75, 0, 130, 0.08));
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border-left: 4px solid rgba(138, 43, 226, 0.6);
+}
+
+/* ===== Themes Card ===== */
+.themesCard {
+  background: linear-gradient(135deg, rgba(30, 30, 50, 0.6), rgba(45, 25, 70, 0.4));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(138, 43, 226, 0.25);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.themesHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.themesIcon {
+  font-size: 1.25rem;
+  color: rgba(197, 166, 255, 0.9);
+}
+
+.themesTitle {
+  font-family: var(--font-merriweather), serif;
+  font-size: 1.15rem;
+  color: #ffffff;
+  margin: 0;
+}
+
+.themesGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.themeItem {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(138, 43, 226, 0.15);
+  transition: all 0.2s ease;
+}
+
+.themeItem:hover {
+  background: rgba(138, 43, 226, 0.1);
+  border-color: rgba(138, 43, 226, 0.3);
+}
+
+.themeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.themeIcon {
+  font-size: 1.1rem;
+}
+
+.themeLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(197, 166, 255, 0.95);
+  letter-spacing: 0.5px;
+}
+
+.themeText {
+  font-size: 0.95rem;
+  color: rgba(224, 224, 255, 0.9);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ===== Resulting Hexagram Enhancements ===== */
+.resultingSubtitle {
+  font-size: 0.85rem;
+  color: rgba(197, 166, 255, 0.75);
+  margin: 0.25rem 0 0.75rem 0;
+}
+
+.resultingMeaning {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.resultingMeaningText {
+  font-size: 0.9rem;
+  color: rgba(197, 166, 255, 0.85);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== Insight Card (Lucky Info & Nuclear Hexagram) ===== */
+.insightCard {
+  background: linear-gradient(135deg, rgba(20, 30, 50, 0.7), rgba(40, 20, 60, 0.5));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 200, 100, 0.2);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.insightHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.insightIcon {
+  font-size: 1.25rem;
+}
+
+.insightTitle {
+  font-family: var(--font-merriweather), serif;
+  font-size: 1.15rem;
+  color: rgba(255, 220, 150, 1);
+  margin: 0;
+}
+
+.insightGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.insightItem {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(255, 200, 100, 0.15);
+}
+
+.insightItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.insightItemIcon {
+  font-size: 0.95rem;
+}
+
+.insightItemLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 220, 150, 0.9);
+  letter-spacing: 0.3px;
+}
+
+.insightItemText {
+  font-size: 0.9rem;
+  color: rgba(224, 224, 255, 0.9);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.luckyColors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.luckyColorTag {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(75, 0, 130, 0.2));
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: rgba(224, 224, 255, 0.95);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.luckyNumbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.luckyNumberTag {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 200, 100, 0.25), rgba(255, 150, 50, 0.15));
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 220, 150, 1);
+  border: 1px solid rgba(255, 200, 100, 0.3);
+}
+
+/* ===== AI Interpretation Streaming Section ===== */
+.aiInterpretationCard {
+  background: linear-gradient(135deg, rgba(30, 40, 60, 0.7), rgba(50, 30, 80, 0.5));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(100, 149, 237, 0.3);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.aiInterpretationCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6495ed, #9370db, #6495ed);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.aiHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.aiIcon {
+  font-size: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.aiTitle {
+  font-family: var(--font-merriweather), serif;
+  font-size: 1.2rem;
+  color: rgba(100, 149, 237, 1);
+  margin: 0;
+}
+
+.aiSubtitle {
+  font-size: 0.85rem;
+  color: rgba(147, 112, 219, 0.8);
+  margin-left: auto;
+}
+
+.aiSectionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.aiSection {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  padding: 1.25rem;
+  border-left: 4px solid rgba(100, 149, 237, 0.5);
+  transition: all 0.3s ease;
+}
+
+.aiSection.active {
+  border-left-color: rgba(100, 149, 237, 0.9);
+  background: rgba(100, 149, 237, 0.08);
+}
+
+.aiSectionLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(100, 149, 237, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aiSectionContent {
+  font-size: 1rem;
+  color: rgba(224, 224, 255, 0.95);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.streamingCursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: rgba(100, 149, 237, 0.9);
+  margin-left: 2px;
+  animation: blink 0.8s infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.aiLoadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.aiLoadingDots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.aiLoadingDot {
+  width: 10px;
+  height: 10px;
+  background: rgba(100, 149, 237, 0.6);
+  border-radius: 50%;
+  animation: loadingBounce 1.4s infinite ease-in-out both;
+}
+
+.aiLoadingDot:nth-child(1) { animation-delay: -0.32s; }
+.aiLoadingDot:nth-child(2) { animation-delay: -0.16s; }
+.aiLoadingDot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes loadingBounce {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.aiLoadingText {
+  font-size: 0.95rem;
+  color: rgba(100, 149, 237, 0.8);
+}
+
+.aiStartButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.3), rgba(147, 112, 219, 0.2));
+  border: 1px solid rgba(100, 149, 237, 0.4);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aiStartButton:hover {
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.4), rgba(147, 112, 219, 0.3));
+  border-color: rgba(100, 149, 237, 0.6);
+  transform: translateY(-2px);
+}
+
+.aiStartButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.aiButtonIcon {
+  font-size: 1.25rem;
+}
+
+.aiError {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  color: #f87171;
+  text-align: center;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 480px) {
   .resultCard {
@@ -235,5 +693,54 @@
   .changingLinesCard,
   .resultingCard {
     padding: 1rem;
+  }
+
+  .trigramGrid {
+    gap: 0.75rem;
+  }
+
+  .trigramItem {
+    padding: 0.5rem 0.75rem;
+    min-width: 70px;
+  }
+
+  .trigramSymbol {
+    font-size: 1.25rem;
+  }
+
+  .trigramName {
+    font-size: 0.85rem;
+  }
+
+  .themesCard {
+    padding: 1.25rem;
+  }
+
+  .themeItem {
+    padding: 0.85rem 1rem;
+  }
+
+  .coreMeaningText {
+    font-size: 1rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .insightCard {
+    padding: 1.25rem;
+  }
+
+  .insightGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .insightItem {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .luckyNumberTag {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
   }
 }

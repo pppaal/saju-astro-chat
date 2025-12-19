@@ -1,112 +1,95 @@
 // src/app/api/destiny-matrix/report/route.ts
-// Destiny Fusion Matrix™ - User-Friendly Report API
-// 특허 가능 엔드포인트: 사용자 친화적 융합 리포트 생성
+// Destiny Fusion Matrix™ - User-Friendly Report API v2.0
+// 완전한 검증, 에러 처리, 캐싱 적용
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
   calculateDestinyMatrix,
   FusionReportGenerator,
-  reportGenerator,
+  validateReportRequest,
+  DestinyMatrixError,
+  ErrorCodes,
+  wrapError,
+  matrixCache,
+  generateInputHash,
+  performanceMonitor,
 } from '@/lib/destiny-matrix';
-import type { MatrixCalculationInput, InsightDomain } from '@/lib/destiny-matrix';
+import type { InsightDomain, MatrixCalculationInput } from '@/lib/destiny-matrix';
+
+// ===========================
+// POST - 리포트 생성
+// ===========================
 
 export async function POST(req: NextRequest) {
+  const end = performanceMonitor.start('generateReport');
+
   try {
-    const body = await req.json();
-    const {
-      // Saju data
-      dayMasterElement,
-      pillarElements = [],
-      sibsinDistribution = {},
-      twelveStages = {},
-      relations = [],
-      geokguk,
-      yongsin,
-      currentDaeunElement,
-      currentSaeunElement,
+    // 1. 요청 본문 파싱
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      throw new DestinyMatrixError(ErrorCodes.VALIDATION_ERROR, {
+        message: 'Invalid JSON in request body',
+        lang: 'en',
+      });
+    }
 
-      // Shinsal data
-      shinsalList = [],
+    // 2. Zod 스키마로 입력 검증
+    const validation = validateReportRequest(body);
 
-      // Astrology data
-      dominantWesternElement,
-      planetHouses = {},
-      planetSigns = {},
-      aspects = [],
-      activeTransits = [],
-
-      // Asteroid data
-      asteroidHouses = {},
-
-      // Extra Point data
-      extraPointSigns = {},
-
-      // Options
-      lang = 'ko',
-      queryDomain,
-      maxInsights = 5,
-      includeVisualizations = true,
-      includeDetailedData = false,
-    } = body as Partial<MatrixCalculationInput> & {
-      queryDomain?: InsightDomain;
-      maxInsights?: number;
-      includeVisualizations?: boolean;
-      includeDetailedData?: boolean;
-    };
-
-    // Validate required fields
-    if (!dayMasterElement) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'dayMasterElement is required' },
+        {
+          success: false,
+          error: {
+            code: ErrorCodes.VALIDATION_ERROR,
+            message: '입력 데이터 검증에 실패했습니다.',
+            details: validation.errors,
+          },
+        },
         { status: 400 }
       );
     }
 
-    // Build input
-    const input: MatrixCalculationInput = {
-      dayMasterElement,
-      pillarElements,
-      sibsinDistribution,
-      twelveStages,
-      relations,
-      geokguk,
-      yongsin,
-      currentDaeunElement,
-      currentSaeunElement,
-      shinsalList,
-      dominantWesternElement,
-      planetHouses,
-      planetSigns,
-      aspects,
-      activeTransits,
-      asteroidHouses,
-      extraPointSigns,
-      lang,
-    };
+    const validatedInput = validation.data!;
+    const { queryDomain, maxInsights, includeVisualizations, includeDetailedData, ...rest } = validatedInput;
 
-    // Calculate raw matrix
-    const matrix = calculateDestinyMatrix(input);
+    // Zod가 검증을 완료했으므로 타입 캐스팅으로 변환
+    // (Zod 스키마 타입과 기존 인터페이스의 미세한 차이 해결)
+    const matrixInput = rest as unknown as MatrixCalculationInput;
 
-    // Generate layer results for interpreter
-    const layerResults: Record<string, Record<string, any>> = {
-      layer1: extractLayerCells(matrix.layer1_elementCore, 1),
-      layer2: extractLayerCells(matrix.layer2_sibsinPlanet, 2),
-      layer3: extractLayerCells(matrix.layer3_sibsinHouse, 3),
-      layer4: extractLayerCells(matrix.layer4_timing, 4),
-      layer5: extractLayerCells(matrix.layer5_relationAspect, 5),
-      layer6: extractLayerCells(matrix.layer6_stageHouse, 6),
-      layer7: extractLayerCells(matrix.layer7_advanced, 7),
-      layer8: extractLayerCells(matrix.layer8_shinsalPlanet, 8),
-      layer9: extractLayerCells(matrix.layer9_asteroidHouse, 9),
-      layer10: extractLayerCells(matrix.layer10_extraPointElement, 10),
-    };
+    // 3. 캐시 키 생성
+    const inputHash = generateInputHash(matrixInput);
+    const cacheKey = `${inputHash}_${queryDomain ?? 'all'}_${maxInsights}`;
 
-    // Create custom report generator with options
+    // 4. 캐시 체크
+    const cachedReport = matrixCache.getReport(cacheKey);
+    if (cachedReport) {
+      end(true); // cache hit
+      return NextResponse.json({
+        success: true,
+        cached: true,
+        report: cachedReport,
+      });
+    }
+
+    // 5. 매트릭스 계산 (캐시 또는 새로 계산)
+    let matrix = matrixCache.getMatrix(inputHash);
+    if (!matrix) {
+      matrix = calculateDestinyMatrix(matrixInput);
+      matrixCache.setMatrix(inputHash, matrix);
+    }
+
+    // 6. 레이어 셀 추출
+    const layerResults = extractAllLayerCells(matrix as any);
+
+    // 7. 리포트 생성
     const generator = new FusionReportGenerator({
-      lang,
-      maxTopInsights: maxInsights,
-      includeVisualizations,
-      includeDetailedData,
+      lang: rest.lang ?? 'ko',
+      maxTopInsights: maxInsights ?? 5,
+      includeVisualizations: includeVisualizations ?? true,
+      includeDetailedData: includeDetailedData ?? false,
       weightConfig: {
         baseWeights: {
           layer1_elementCore: 1.0,
@@ -126,42 +109,294 @@ export async function POST(req: NextRequest) {
       narrativeStyle: 'friendly',
     });
 
-    // Generate user-friendly report
-    const report = generator.generateReport(input, layerResults, queryDomain);
+    const report = generator.generateReport(matrixInput, layerResults, queryDomain as InsightDomain | undefined);
+
+    // 8. 캐시에 저장
+    matrixCache.setReport(cacheKey, report);
+
+    end(false); // cache miss
 
     return NextResponse.json({
       success: true,
+      cached: false,
       report,
     });
 
   } catch (error) {
-    console.error('Destiny Matrix Report error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate report', details: (error as Error).message },
-      { status: 500 }
-    );
+    end(false);
+
+    // 에러를 DestinyMatrixError로 래핑
+    const wrappedError = wrapError(error);
+
+    console.error('Destiny Matrix Report Error:', {
+      code: wrappedError.code,
+      message: wrappedError.message,
+      details: wrappedError.details,
+    });
+
+    return NextResponse.json(wrappedError.toJSON(), {
+      status: wrappedError.getHttpStatus(),
+    });
   }
 }
 
-/**
- * 레이어 데이터를 MatrixCell 형식으로 변환
- */
+// ===========================
+// GET - API 문서 및 상태
+// ===========================
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const format = searchParams.get('format');
+
+  // 성능 통계 요청
+  if (format === 'stats') {
+    return NextResponse.json({
+      cache: matrixCache.getStats(),
+      performance: performanceMonitor.getStats(),
+    });
+  }
+
+  // OpenAPI 스타일 문서
+  return NextResponse.json({
+    openapi: '3.0.0',
+    info: {
+      title: 'Destiny Fusion Matrix™ Report API',
+      version: '2.0.0',
+      description: '동양 사주와 서양 점성술을 융합한 운명 분석 리포트 API',
+      contact: {
+        name: 'Destiny Fusion Matrix Support',
+      },
+    },
+    servers: [
+      { url: '/api/destiny-matrix/report', description: 'Report API' },
+    ],
+    paths: {
+      '/': {
+        post: {
+          summary: '운명 융합 리포트 생성',
+          description: '사주 데이터와 점성 데이터를 입력받아 사용자 친화적 리포트를 생성합니다.',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ReportRequest' },
+                example: {
+                  dayMasterElement: '목',
+                  geokguk: 'jeonggwan',
+                  yongsin: '화',
+                  sibsinDistribution: { '정관': 2, '정인': 1 },
+                  shinsalList: ['천을귀인', '역마'],
+                  planetHouses: { Sun: 10, Moon: 4 },
+                  activeTransits: ['jupiterReturn'],
+                  lang: 'ko',
+                  queryDomain: 'career',
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: '성공',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ReportResponse' },
+                },
+              },
+            },
+            '400': {
+              description: '검증 오류',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '500': {
+              description: '서버 오류',
+            },
+          },
+        },
+        get: {
+          summary: 'API 문서 및 상태',
+          parameters: [
+            {
+              name: 'format',
+              in: 'query',
+              description: 'stats: 성능 통계 반환',
+              schema: { type: 'string', enum: ['stats'] },
+            },
+          ],
+        },
+      },
+    },
+    components: {
+      schemas: {
+        ReportRequest: {
+          type: 'object',
+          required: ['dayMasterElement'],
+          properties: {
+            dayMasterElement: {
+              type: 'string',
+              enum: ['목', '화', '토', '금', '수'],
+              description: '일간 오행 (필수)',
+            },
+            geokguk: {
+              type: 'string',
+              description: '격국 (19종)',
+            },
+            yongsin: {
+              type: 'string',
+              enum: ['목', '화', '토', '금', '수'],
+              description: '용신 오행',
+            },
+            sibsinDistribution: {
+              type: 'object',
+              description: '십신 분포',
+            },
+            shinsalList: {
+              type: 'array',
+              items: { type: 'string' },
+              description: '신살 목록',
+            },
+            planetHouses: {
+              type: 'object',
+              description: '행성별 하우스 (예: { Sun: 10 })',
+            },
+            planetSigns: {
+              type: 'object',
+              description: '행성별 별자리',
+            },
+            activeTransits: {
+              type: 'array',
+              items: { type: 'string' },
+              description: '활성 트랜짓/역행',
+            },
+            lang: {
+              type: 'string',
+              enum: ['ko', 'en'],
+              default: 'ko',
+            },
+            queryDomain: {
+              type: 'string',
+              enum: ['personality', 'career', 'relationship', 'wealth', 'health', 'spirituality', 'timing'],
+              description: '특정 도메인 집중 분석',
+            },
+            maxInsights: {
+              type: 'number',
+              minimum: 1,
+              maximum: 20,
+              default: 5,
+            },
+            includeVisualizations: {
+              type: 'boolean',
+              default: true,
+            },
+            includeDetailedData: {
+              type: 'boolean',
+              default: false,
+            },
+          },
+        },
+        ReportResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            cached: { type: 'boolean' },
+            report: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                overallScore: {
+                  type: 'object',
+                  properties: {
+                    total: { type: 'number' },
+                    grade: { type: 'string', enum: ['S', 'A', 'B', 'C', 'D'] },
+                  },
+                },
+                topInsights: { type: 'array' },
+                domainAnalysis: { type: 'array' },
+                timingAnalysis: { type: 'object' },
+                visualizations: { type: 'object' },
+              },
+            },
+          },
+        },
+        ErrorResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string', example: 'DFM_1000' },
+                message: { type: 'string' },
+                details: { type: 'array' },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+// ===========================
+// 헬퍼 함수들
+// ===========================
+
+function extractAllLayerCells(matrix: {
+  layer1_elementCore: Record<string, any>;
+  layer2_sibsinPlanet: Record<string, any>;
+  layer3_sibsinHouse: Record<string, any>;
+  layer4_timing: Record<string, any>;
+  layer5_relationAspect: Record<string, any>;
+  layer6_stageHouse: Record<string, any>;
+  layer7_advanced: Record<string, any>;
+  layer8_shinsalPlanet: Record<string, any>;
+  layer9_asteroidHouse: Record<string, any>;
+  layer10_extraPointElement: Record<string, any>;
+}): Record<string, Record<string, any>> {
+  return {
+    layer1: extractLayerCells(matrix.layer1_elementCore, 1),
+    layer2: extractLayerCells(matrix.layer2_sibsinPlanet, 2),
+    layer3: extractLayerCells(matrix.layer3_sibsinHouse, 3),
+    layer4: extractLayerCells(matrix.layer4_timing, 4),
+    layer5: extractLayerCells(matrix.layer5_relationAspect, 5),
+    layer6: extractLayerCells(matrix.layer6_stageHouse, 6),
+    layer7: extractLayerCells(matrix.layer7_advanced, 7),
+    layer8: extractLayerCells(matrix.layer8_shinsalPlanet, 8),
+    layer9: extractLayerCells(matrix.layer9_asteroidHouse, 9),
+    layer10: extractLayerCells(matrix.layer10_extraPointElement, 10),
+  };
+}
+
 function extractLayerCells(
   layerData: Record<string, any>,
   layerNum: number
 ): Record<string, any> {
   const cells: Record<string, any> = {};
 
-  for (const [rowKey, rowData] of Object.entries(layerData || {})) {
-    if (typeof rowData === 'object' && rowData !== null) {
-      for (const [colKey, interaction] of Object.entries(rowData)) {
-        if (interaction && typeof interaction === 'object' && 'level' in interaction) {
-          const cellKey = `${rowKey}_${colKey}`;
-          cells[cellKey] = {
-            interaction,
-            sajuBasis: getSajuBasis(rowKey, layerNum),
-            astroBasis: getAstroBasis(colKey, layerNum),
-          };
+  for (const [cellKey, cellData] of Object.entries(layerData || {})) {
+    if (typeof cellData === 'object' && cellData !== null) {
+      // 새 Computed 형식: { interaction: {...}, sajuBasis: "...", astroBasis: "..." }
+      if ('interaction' in cellData && cellData.interaction && 'level' in cellData.interaction) {
+        cells[cellKey] = {
+          interaction: cellData.interaction,
+          sajuBasis: cellData.sajuBasis || getSajuBasis(cellKey, layerNum),
+          astroBasis: cellData.astroBasis || getAstroBasis(cellKey, layerNum),
+        };
+      }
+      // 레거시 중첩 형식 (하위 호환성): { "목": { "earth": { level: ... } } }
+      else {
+        for (const [colKey, interaction] of Object.entries(cellData)) {
+          if (interaction && typeof interaction === 'object' && 'level' in interaction) {
+            const nestedCellKey = `${cellKey}_${colKey}`;
+            cells[nestedCellKey] = {
+              interaction,
+              sajuBasis: getSajuBasis(cellKey, layerNum),
+              astroBasis: getAstroBasis(colKey, layerNum),
+            };
+          }
         }
       }
     }
@@ -170,85 +405,34 @@ function extractLayerCells(
   return cells;
 }
 
-/**
- * 사주 기반 설명 생성
- */
 function getSajuBasis(key: string, layer: number): string {
-  switch (layer) {
-    case 1: return `오행 ${key}`;
-    case 2:
-    case 3: return `십신 ${key}`;
-    case 4: return key === 'daeunTransition' ? '대운 전환기' : `세운 ${key}`;
-    case 5: return `지지관계 ${key}`;
-    case 6: return `십이운성 ${key}`;
-    case 7: return key.startsWith('yongsin') ? `용신 ${key.replace('yongsin_', '')}` : `격국 ${key}`;
-    case 8: return `신살 ${key}`;
-    case 9: return `소행성 ${key}`;
-    case 10: return `엑스트라포인트 ${key}`;
-    default: return key;
-  }
+  const bases: Record<number, (k: string) => string> = {
+    1: k => `오행 ${k}`,
+    2: k => `십신 ${k}`,
+    3: k => `십신 ${k}`,
+    4: k => k === 'daeunTransition' ? '대운 전환기' : k === 'wolun' ? '월운' : k === 'ilun' ? '일운' : `세운 ${k}`,
+    5: k => `지지관계 ${k}`,
+    6: k => `십이운성 ${k}`,
+    7: k => k.startsWith('yongsin') ? `용신 ${k.replace('yongsin_', '')}` : `격국 ${k}`,
+    8: k => `신살 ${k}`,
+    9: k => `소행성 ${k}`,
+    10: k => `엑스트라포인트 ${k}`,
+  };
+  return bases[layer]?.(key) || key;
 }
 
-/**
- * 점성 기반 설명 생성
- */
 function getAstroBasis(key: string, layer: number): string {
-  switch (layer) {
-    case 1: return `서양 ${key} 원소`;
-    case 2: return `행성 ${key}`;
-    case 3: return `H${key}`;
-    case 4: return key.includes('Retrograde') ? `${key.replace('Retrograde', '')} 역행` : key;
-    case 5: return `애스펙트 ${key}`;
-    case 6: return `H${key}`;
-    case 7: return `프로그레션 ${key}`;
-    case 8: return `행성 ${key}`;
-    case 9: return Number.isInteger(parseInt(key)) ? `H${key}` : `오행 ${key}`;
-    case 10: return `오행/십신 ${key}`;
-    default: return key;
-  }
-}
-
-// GET endpoint for quick examples
-export async function GET(req: NextRequest) {
-  return NextResponse.json({
-    name: 'Destiny Fusion Matrix™ Report API',
-    version: '2.0.0',
-    description: '사용자 친화적 운명 융합 분석 리포트 API',
-    endpoints: {
-      POST: {
-        description: '전체 리포트 생성',
-        requiredFields: ['dayMasterElement'],
-        optionalFields: [
-          'pillarElements', 'sibsinDistribution', 'twelveStages', 'relations',
-          'geokguk', 'yongsin', 'currentDaeunElement', 'currentSaeunElement',
-          'shinsalList', 'dominantWesternElement', 'planetHouses', 'planetSigns',
-          'aspects', 'activeTransits', 'asteroidHouses', 'extraPointSigns',
-          'lang', 'queryDomain', 'maxInsights', 'includeVisualizations', 'includeDetailedData',
-        ],
-      },
-    },
-    exampleRequest: {
-      dayMasterElement: '목',
-      geokguk: 'jeonggwan',
-      yongsin: '화',
-      sibsinDistribution: { '정관': 2, '정인': 1, '식신': 1 },
-      shinsalList: ['천을귀인', '역마'],
-      planetHouses: { Sun: 10, Moon: 4, Mercury: 11, Venus: 7, Mars: 1 },
-      planetSigns: { Sun: '양자리', Moon: '게자리' },
-      activeTransits: ['jupiterReturn'],
-      lang: 'ko',
-      queryDomain: 'career',
-    },
-    exampleResponse: {
-      success: true,
-      report: {
-        id: 'report_xxx',
-        overallScore: { total: 78, grade: 'A' },
-        topInsights: ['...5개의 핵심 인사이트...'],
-        domainAnalysis: ['...7개 도메인별 분석...'],
-        timingAnalysis: { currentPeriod: { score: 75 } },
-        visualizations: { radarChart: {}, heatmap: {}, synergyNetwork: {} },
-      },
-    },
-  });
+  const bases: Record<number, (k: string) => string> = {
+    1: k => `서양 ${k} 원소`,
+    2: k => `행성 ${k}`,
+    3: k => `H${k}`,
+    4: k => k.includes('Retrograde') ? `${k.replace('Retrograde', '')} 역행` : k,
+    5: k => `애스펙트 ${k}`,
+    6: k => `H${k}`,
+    7: k => `프로그레션 ${k}`,
+    8: k => `행성 ${k}`,
+    9: k => /^\d+$/.test(k) ? `H${k}` : `오행 ${k}`,
+    10: k => `오행/십신 ${k}`,
+  };
+  return bases[layer]?.(key) || key;
 }

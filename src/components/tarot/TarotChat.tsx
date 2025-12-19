@@ -32,6 +32,30 @@ const I18N: Record<LangKey, {
   }
 };
 
+// Fun loading messages for better UX
+const LOADING_MESSAGES: Record<LangKey, string[]> = {
+  ko: [
+    "타로 카드의 에너지를 읽고 있어요... 🔮",
+    "별들의 메시지를 해독하는 중... ✨",
+    "당신만을 위한 통찰을 준비하고 있어요... 🌙",
+    "카드가 속삭이는 이야기를 듣고 있어요... 🃏",
+    "우주의 지혜를 연결하는 중... 🌌",
+    "직관의 안개 속을 헤쳐나가는 중... 💫",
+    "신비로운 답을 찾고 있어요... 🔮",
+    "운명의 실타래를 풀고 있어요... 🧵"
+  ],
+  en: [
+    "Reading the energy of your cards... 🔮",
+    "Decoding messages from the stars... ✨",
+    "Preparing insights just for you... 🌙",
+    "Listening to what the cards whisper... 🃏",
+    "Connecting to cosmic wisdom... 🌌",
+    "Navigating through the mist of intuition... 💫",
+    "Searching for mystical answers... 🔮",
+    "Unraveling the threads of fate... 🧵"
+  ]
+};
+
 // Suggested questions based on spread (more specific than category)
 const SPREAD_QUESTIONS: Record<string, Record<LangKey, string[]>> = {
   // === General Insight ===
@@ -1248,10 +1272,15 @@ export default function TarotChat({
   language = "ko"
 }: TarotChatProps) {
   const tr = I18N[language] || I18N.ko;
+  const loadingMessages = LOADING_MESSAGES[language] || LOADING_MESSAGES.ko;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streamingContent, setStreamingContent] = useState<string>("");
+  const [loadingMessage, setLoadingMessage] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [usedQuestionIndices, setUsedQuestionIndices] = useState<Set<number>>(new Set());
+  const loadingMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Generate dynamic questions based on actual drawn cards (만프로 Premium)
   const dynamicQuestions = generateDynamicQuestions(readingResult.drawnCards, language);
@@ -1265,10 +1294,20 @@ export default function TarotChat({
 
   // 울트라 프리미엄 Combination: card-specific > element > court > spread context
   // Dynamic: Specific Minor + Major + Element Interaction + Court Relations + Reversed + Combos
-  const suggestedQuestions = [
+  const allSuggestedQuestions = [
     ...dynamicQuestions.slice(0, 6),  // Top 6 card-specific questions (울트라)
     ...spreadQuestions.slice(0, 4)     // Top 4 spread-specific questions
   ].slice(0, 10); // Max 10 total for ultra premium experience
+
+  // Get next 2 questions that haven't been used yet
+  const getNextSuggestions = (): string[] => {
+    const available = allSuggestedQuestions.filter((_, idx) => !usedQuestionIndices.has(idx));
+    return available.slice(0, 2);
+  };
+
+  // Check if last message is from assistant (for showing suggestions after response)
+  const lastMessage = messages[messages.length - 1];
+  const showSuggestionsAfterResponse = lastMessage?.role === 'assistant' && !loading;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1278,8 +1317,11 @@ export default function TarotChat({
     const cards = readingResult.drawnCards.map((dc, idx) => ({
       position: readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`,
       name: dc.card.name,
-      isReversed: dc.isReversed,
-      meaning: dc.isReversed ? dc.card.reversed.meaning : dc.card.upright.meaning
+      is_reversed: dc.isReversed, // snake_case for backend compatibility
+      meaning: dc.isReversed ? dc.card.reversed.meaning : dc.card.upright.meaning,
+      keywords: dc.isReversed
+        ? (dc.card.reversed.keywordsKo || dc.card.reversed.keywords)
+        : (dc.card.upright.keywordsKo || dc.card.upright.keywords)
     }));
 
     return {
@@ -1291,17 +1333,46 @@ export default function TarotChat({
     };
   };
 
+  // Start rotating loading messages
+  const startLoadingMessages = () => {
+    const randomIndex = Math.floor(Math.random() * loadingMessages.length);
+    setLoadingMessage(loadingMessages[randomIndex]);
+
+    loadingMessageIntervalRef.current = setInterval(() => {
+      const newIndex = Math.floor(Math.random() * loadingMessages.length);
+      setLoadingMessage(loadingMessages[newIndex]);
+    }, 3000);
+  };
+
+  // Stop rotating loading messages
+  const stopLoadingMessages = () => {
+    if (loadingMessageIntervalRef.current) {
+      clearInterval(loadingMessageIntervalRef.current);
+      loadingMessageIntervalRef.current = null;
+    }
+    setLoadingMessage("");
+  };
+
   async function handleSend(text?: string) {
     const messageText = text || input.trim();
     if (!messageText || loading) return;
+
+    // Track used suggestion if it was from suggestions
+    const suggestionIndex = allSuggestedQuestions.indexOf(messageText);
+    if (suggestionIndex !== -1) {
+      setUsedQuestionIndices(prev => new Set([...prev, suggestionIndex]));
+    }
 
     const nextMessages: Message[] = [...messages, { role: "user", content: messageText }];
     setLoading(true);
     setMessages(nextMessages);
     setInput("");
+    setStreamingContent("");
+    startLoadingMessages();
 
     try {
-      const response = await fetch("/api/tarot/chat", {
+      // Try streaming endpoint first
+      const response = await fetch("/api/tarot/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1311,21 +1382,111 @@ export default function TarotChat({
         })
       });
 
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Stream failed: ${response.status}`);
+      }
 
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: data.reply || tr.error
-      }]);
+      const contentType = response.headers.get("content-type");
+
+      if (contentType?.includes("text/event-stream") && response.body) {
+        // Handle SSE streaming
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedContent = "";
+
+        // Stop loading messages once streaming starts
+        stopLoadingMessages();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value, { stream: true });
+          const lines = text.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.content) {
+                  accumulatedContent += data.content;
+                  setStreamingContent(accumulatedContent);
+                }
+                if (data.done) {
+                  // Streaming complete
+                  setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: accumulatedContent || tr.error
+                  }]);
+                  setStreamingContent("");
+                }
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+              } catch (parseError) {
+                // Ignore parse errors for incomplete chunks
+              }
+            }
+          }
+        }
+
+        // If no done signal received, still add the message
+        if (accumulatedContent && !messages.find(m => m.content === accumulatedContent)) {
+          setMessages(prev => {
+            // Check if last message is already this content
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant" && last?.content === accumulatedContent) {
+              return prev;
+            }
+            return [...prev, { role: "assistant", content: accumulatedContent }];
+          });
+          setStreamingContent("");
+        }
+      } else {
+        // Fallback to JSON response
+        stopLoadingMessages();
+        const data = await response.json();
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: data.reply || tr.error
+        }]);
+      }
     } catch (error) {
-      console.error("[TarotChat] error:", error);
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: tr.error
-      }]);
+      console.error("[TarotChat] Streaming error, falling back:", error);
+      stopLoadingMessages();
+
+      // Fallback to non-streaming endpoint
+      try {
+        const fallbackResponse = await fetch("/api/tarot/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: nextMessages,
+            context: buildContext(),
+            language
+          })
+        });
+
+        if (fallbackResponse.ok) {
+          const data = await fallbackResponse.json();
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            content: data.reply || tr.error
+          }]);
+        } else {
+          throw new Error("Fallback also failed");
+        }
+      } catch (fallbackError) {
+        console.error("[TarotChat] Fallback error:", fallbackError);
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: tr.error
+        }]);
+      }
     } finally {
       setLoading(false);
+      stopLoadingMessages();
+      setStreamingContent("");
     }
   }
 
@@ -1344,22 +1505,6 @@ export default function TarotChat({
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🔮</div>
             <p className={styles.emptyText}>{tr.empty}</p>
-
-            {/* Suggested Questions */}
-            <div className={styles.suggestedSection}>
-              <h4 className={styles.suggestedTitle}>{tr.suggestedQuestions}</h4>
-              <div className={styles.suggestedGrid}>
-                {suggestedQuestions.map((q, idx) => (
-                  <button
-                    key={idx}
-                    className={styles.suggestedButton}
-                    onClick={() => handleSend(q)}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
@@ -1386,7 +1531,23 @@ export default function TarotChat({
           </div>
         ))}
 
-        {loading && (
+        {/* Streaming content - show as it arrives */}
+        {streamingContent && (
+          <div className={`${styles.messageRow} ${styles.assistantRow}`}>
+            <div className={styles.avatar}>
+              <span className={styles.avatarIcon}>🔮</span>
+            </div>
+            <div className={styles.messageBubble}>
+              <div className={styles.assistantMessage}>
+                {streamingContent}
+                <span className={styles.streamingCursor}>▊</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading state - show fun messages before streaming starts */}
+        {loading && !streamingContent && (
           <div className={`${styles.messageRow} ${styles.assistantRow}`}>
             <div className={styles.avatar}>
               <span className={styles.avatarIcon}>🔮</span>
@@ -1398,7 +1559,7 @@ export default function TarotChat({
                   <span className={styles.typingDot} />
                   <span className={styles.typingDot} />
                 </div>
-                <span className={styles.thinkingText}>{tr.thinking}</span>
+                <span className={styles.thinkingText}>{loadingMessage || tr.thinking}</span>
               </div>
             </div>
           </div>
@@ -1407,21 +1568,21 @@ export default function TarotChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Actions (after first message) */}
-      {messages.length > 0 && !loading && (
-        <div className={styles.quickActions}>
-          <button
-            className={styles.quickButton}
-            onClick={() => handleSend(language === "ko" ? "카드를 더 뽑아주세요" : "Draw more cards")}
-          >
-            🃏 {language === "ko" ? "카드 더 뽑기" : "Draw More Cards"}
-          </button>
-          <button
-            className={styles.quickButton}
-            onClick={() => handleSend(language === "ko" ? "다른 관점에서 해석해 주세요" : "Interpret differently")}
-          >
-            🔄 {language === "ko" ? "다른 해석" : "Different View"}
-          </button>
+      {/* Suggested Questions (after assistant response) */}
+      {showSuggestionsAfterResponse && getNextSuggestions().length > 0 && (
+        <div className={styles.suggestedSection}>
+          <h4 className={styles.suggestedTitle}>{tr.suggestedQuestions}</h4>
+          <div className={styles.suggestedGrid}>
+            {getNextSuggestions().map((q: string, idx: number) => (
+              <button
+                key={idx}
+                className={styles.suggestedButton}
+                onClick={() => handleSend(q)}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

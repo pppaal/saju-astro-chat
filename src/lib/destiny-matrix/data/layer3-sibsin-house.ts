@@ -1,5 +1,12 @@
 // src/lib/destiny-matrix/data/layer3-sibsin-house.ts
-// Layer 3: Sibsin-House Matrix (십신-하우스 생활영역 매트릭스)
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 3: Sibsin-House Matrix (십신-하우스 매트릭스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { SibsinHouseMatrix, InteractionCode, HouseNumber } from '../types';
 

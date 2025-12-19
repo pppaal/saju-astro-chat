@@ -107,16 +107,27 @@ export async function POST(request: Request) {
     });
     // cross-section validation for destiny-map
     if (report.meta?.validationPassed === false) {
-      recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });
-      recordCounter("destiny.report.validation_fail", 1, { theme, lang });
+      const warnings = report.meta?.validationWarnings ?? [];
+      recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang, validation: "soft_fail" });
+      recordCounter("destiny.report.validation_fail_soft", 1, { theme, lang });
+
+      // Soft-fail: return 200 with warnings so UI can render instead of breaking
       return NextResponse.json(
         {
-          error: "cross_validation_failed",
-          message: "??+?? ?? ??? ?????? ??? ?????. ?? ??????.",
-          warnings: report.meta?.validationWarnings ?? [],
-          report,
+          status: "warning",
+          warning: "cross_validation_failed",
+          message: "교차 검증에서 일부 신호가 부족합니다. 그래도 보고서를 반환합니다.",
+          warnings,
+          report: {
+            ...report,
+            meta: {
+              ...report.meta,
+              validationPassed: false,
+              validationWarnings: warnings,
+            },
+          },
         },
-        { status: 502 }
+        { status: 200 }
       );
     }
     recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });

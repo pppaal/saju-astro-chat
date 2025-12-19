@@ -1,6 +1,12 @@
 // src/lib/destiny-matrix/data/layer9-asteroid-house.ts
-// Layer 9: Asteroid-House Matrix (소행성-하우스 매트릭스)
-// 4대 소행성 (Ceres, Pallas, Juno, Vesta)과 12하우스의 교차
+/**
+ * ============================================================================
+ * Destiny Fusion Matrix™ - Layer 9: Asteroid-House Matrix (소행성-하우스)
+ * ============================================================================
+ * © 2024 All Rights Reserved. PROPRIETARY AND CONFIDENTIAL.
+ * Unauthorized copying, distribution, or reverse engineering is prohibited.
+ * ============================================================================
+ */
 
 import type { InteractionCode, HouseNumber, AsteroidName } from '../types';
 

@@ -1,0 +1,41 @@
+# Robots.txt for Saju Astro Chat
+# Destiny Fusion Matrix™ - © 2024 All Rights Reserved
+
+User-agent: *
+Allow: /
+Allow: /tarot
+Allow: /destiny-map
+Allow: /community
+Allow: /faq
+
+# Protect proprietary API endpoints
+Disallow: /api/destiny-matrix
+Disallow: /api/destiny-matrix/*
+Disallow: /destiny-matrix/viewer
+
+# Protect admin and internal pages
+Disallow: /admin
+Disallow: /test-*
+Disallow: /_next/static/chunks/
+
+# Block aggressive crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# Sitemap
+Sitemap: https://yourdomain.com/sitemap.xml

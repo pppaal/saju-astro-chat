@@ -16,6 +16,18 @@ import { SERVICE_LINKS, TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from "@/da
 
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
 
+// Format large numbers: 1000 -> 1K, 1500000 -> 1.5M
+function formatNumber(num: number | null): string {
+  if (num === null) return "—";
+  if (num < 1000) return num.toLocaleString();
+  if (num < 1000000) {
+    const k = num / 1000;
+    return k % 1 === 0 ? `${k}K` : `${k.toFixed(1)}K`;
+  }
+  const m = num / 1000000;
+  return m % 1 === 0 ? `${m}M` : `${m.toFixed(1)}M`;
+}
+
 interface Particle {
   x: number;
   y: number;
@@ -214,10 +226,8 @@ export default function MainPage() {
 
         // Fetch member stats
         const statsRes = await fetch("/api/stats");
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setTotalMembers(typeof statsData.users === "number" ? statsData.users : 0);
-        }
+        const statsData = await statsRes.json();
+        setTotalMembers(typeof statsData.users === "number" ? statsData.users : 0);
       } catch {
         setVisitorError("Could not load stats.");
       }
@@ -604,7 +614,7 @@ export default function MainPage() {
               {translate("landing.statsToday", "Today")}
             </p>
             <p className={styles.statValue}>
-              {todayVisitors?.toLocaleString() ?? "—"}
+              {formatNumber(todayVisitors)}
             </p>
           </div>
           <div className={styles.statItem}>
@@ -613,7 +623,7 @@ export default function MainPage() {
               {translate("landing.statsTotal", "Total Visitors")}
             </p>
             <p className={styles.statValue}>
-              {totalVisitors?.toLocaleString() ?? "—"}
+              {formatNumber(totalVisitors)}
             </p>
           </div>
           <div className={styles.statItem}>
@@ -622,7 +632,7 @@ export default function MainPage() {
               {translate("landing.statsMembers", "Members")}
             </p>
             <p className={styles.statValue}>
-              {totalMembers?.toLocaleString() ?? "—"}
+              {formatNumber(totalMembers)}
             </p>
           </div>
           <div className={styles.statFootnote}>

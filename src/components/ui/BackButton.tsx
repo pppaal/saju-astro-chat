@@ -11,7 +11,7 @@ type BackButtonProps = {
   className?: string;
 };
 
-export default function BackButton({ onClick, label = "< Back", className }: BackButtonProps) {
+export default function BackButton({ onClick, label, className }: BackButtonProps) {
   const router = useRouter();
 
   const handleClick = () => {

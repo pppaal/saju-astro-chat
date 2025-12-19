@@ -2,7 +2,7 @@
 // Destiny Fusion Matrix™ - Calculation Engine
 
 import type {
-  DestinyFusionMatrix,
+  DestinyFusionMatrixComputed,
   MatrixCalculationInput,
   MatrixCell,
   MatrixSummary,
@@ -444,7 +444,7 @@ function calculateSummary(
 // Main Calculator
 // ===========================
 
-export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFusionMatrix {
+export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFusionMatrixComputed {
   // Calculate each layer
   const layer1Results = calculateLayer1(input);
   const layer2Results = calculateLayer2(input);
@@ -471,20 +471,19 @@ export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFu
     layer10Results,
   );
 
-  // Return full matrix structure
-  // Note: For a complete implementation, you would return the full grid matrices
-  // Here we return a simplified version with calculated cells
+  // Return calculated results for the specific input (filtered/computed cells)
+  // This returns only the cells relevant to the user's data, not the full static matrices
   return {
-    layer1_elementCore: ELEMENT_CORE_GRID,
-    layer2_sibsinPlanet: SIBSIN_PLANET_MATRIX,
-    layer3_sibsinHouse: SIBSIN_HOUSE_MATRIX,
-    layer4_timing: TIMING_OVERLAY_MATRIX,
-    layer5_relationAspect: RELATION_ASPECT_MATRIX,
-    layer6_stageHouse: TWELVE_STAGE_HOUSE_MATRIX,
-    layer7_advanced: ADVANCED_ANALYSIS_MATRIX,
-    layer8_shinsalPlanet: SHINSAL_PLANET_MATRIX,
-    layer9_asteroidHouse: ASTEROID_HOUSE_MATRIX,
-    layer10_extraPointElement: EXTRAPOINT_ELEMENT_MATRIX,
+    layer1_elementCore: layer1Results,
+    layer2_sibsinPlanet: layer2Results,
+    layer3_sibsinHouse: layer3Results,
+    layer4_timing: layer4Results,
+    layer5_relationAspect: layer5Results,
+    layer6_stageHouse: layer6Results,
+    layer7_advanced: layer7Results,
+    layer8_shinsalPlanet: layer8Results,
+    layer9_asteroidHouse: layer9Results,
+    layer10_extraPointElement: layer10Results,
     summary,
   };
 }

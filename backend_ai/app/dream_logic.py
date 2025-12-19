@@ -925,11 +925,11 @@ def interpret_dream(facts: dict) -> dict:
             celestial_context=celestial_context
         )
 
-        # Call LLM using GPT-4
-        system_instruction = "You are an expert dream interpreter. Always respond with valid JSON only."
+        # Call LLM using GPT-4o-mini for fast response
+        system_instruction = "You are a warm and empathetic dream counselor. Always respond with valid JSON only."
         full_prompt = f"[SYSTEM]\n{system_instruction}\n\n[USER]\n{prompt}"
 
-        response_text = _generate_with_gpt4(full_prompt, max_tokens=2000, temperature=0.2)
+        response_text = _generate_with_gpt4(full_prompt, max_tokens=1500, temperature=0.4, use_mini=True)
 
         # Parse JSON from response
         # Try to extract JSON from markdown code blocks
