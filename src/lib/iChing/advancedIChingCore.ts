@@ -474,7 +474,7 @@ function getYaoAdvice(pos: number, nature: '양' | '음', isResonant: boolean): 
 }
 
 /**
- * 변효 분석
+ * 변효 분석 (전통 주역 규칙 준수)
  */
 export function analyzeChangingLines(
   fromBinary: string,
@@ -495,23 +495,84 @@ export function analyzeChangingLines(
     fromHexagram,
     toHexagram,
     changingLines,
-    interpretation: getChangingInterpretation(changingLines),
-    transitionAdvice: getTransitionAdvice(fromHexagram.number, toHexagram.number),
-    keyMoment: `${changingLines.length}개의 변효가 작용하여 상황이 ${fromHexagram.korean}에서 ${toHexagram.korean}으로 전환됩니다.`
+    interpretation: getChangingInterpretation(changingLines, fromHexagram.number, toHexagram.number),
+    transitionAdvice: getTransitionAdvice(changingLines, fromHexagram.number, toHexagram.number),
+    keyMoment: getKeyMoment(changingLines, fromHexagram, toHexagram)
   };
 }
 
-function getChangingInterpretation(lines: number[]): string {
-  if (lines.length === 0) return '변효가 없어 현 상황이 안정적입니다.';
-  if (lines.length === 1) return `${lines[0]}효가 변하여 핵심적인 변화가 일어납니다.`;
-  if (lines.length === 2) return `${lines.join(', ')}효가 변하여 복합적인 변화가 진행됩니다.`;
-  if (lines.length >= 3) return '다수의 변효로 근본적인 전환기입니다.';
+function getChangingInterpretation(lines: number[], fromNum: number, toNum: number): string {
+  const lineCount = lines.length;
+
+  if (lineCount === 0) {
+    return '【불변괘】 변효가 없으니 본괘의 괘사에 집중하세요.';
+  }
+  if (lineCount === 1) {
+    return `【단변】 ${lines[0]}효 하나만 변하니, 본괘의 ${lines[0]}효 효사가 핵심입니다.`;
+  }
+  if (lineCount === 2) {
+    const sortedLines = [...lines].sort((a, b) => a - b);
+    const upperLine = sortedLines[sortedLines.length - 1];
+    return `【이변】 ${sortedLines.join(', ')}효가 변합니다. 위 효인 ${upperLine}효의 효사를 중심으로 보세요.`;
+  }
+  if (lineCount === 3) {
+    return `【삼변】 본괘와 지괘의 괘사를 함께 보되, 본괘 괘사가 중심입니다.`;
+  }
+  if (lineCount === 4) {
+    const unchangedLines = [1, 2, 3, 4, 5, 6].filter(n => !lines.includes(n)).sort((a, b) => a - b);
+    const lowerUnchanged = unchangedLines[0];
+    return `【사변】 변하지 않는 ${unchangedLines.join(', ')}효 중 아래 효인 ${lowerUnchanged}효의 지괘 효사를 보세요.`;
+  }
+  if (lineCount === 5) {
+    const unchangedLine = [1, 2, 3, 4, 5, 6].find(n => !lines.includes(n));
+    return `【오변】 ${unchangedLine}효만 변하지 않습니다. 이 불변효의 지괘 효사가 핵심입니다.`;
+  }
+  if (lineCount === 6) {
+    // 특수 케이스: 건→곤 (용구), 곤→건 (용육)
+    if (fromNum === 1 && toNum === 2) {
+      return '【전효변 - 용구(用九)】 "見群龍無首 吉" - 여러 용이 나타나되 우두머리가 없으니 길하다.';
+    }
+    if (fromNum === 2 && toNum === 1) {
+      return '【전효변 - 용육(用六)】 "利永貞" - 영원히 바르게 함이 이롭다.';
+    }
+    return '【전효변】 6효가 모두 변하니, 지괘의 괘사를 보세요.';
+  }
   return '';
 }
 
-function getTransitionAdvice(from: number, to: number): string {
-  if (from === to) return '변화 속에서도 본질은 유지됩니다.';
+function getTransitionAdvice(lines: number[], fromNum: number, toNum: number): string {
+  const lineCount = lines.length;
+
+  if (lineCount === 0) return '현 상황의 본질을 깊이 이해하고 그에 따르세요.';
+  if (lineCount === 1) return '변효의 위치가 변화의 핵심입니다. 그 시점에 집중하세요.';
+  if (lineCount === 2) return '두 변화가 연결되어 있습니다. 위 효가 더 중요합니다.';
+  if (lineCount === 3) return '본괘의 상황을 중심으로 보되, 지괘로의 변화도 참고하세요.';
+  if (lineCount === 4) return '변하지 않는 것에서 답을 찾으세요. 불변의 요소가 핵심입니다.';
+  if (lineCount === 5) return '유일하게 변하지 않는 효가 상황의 닻입니다.';
+  if (lineCount === 6) {
+    if (fromNum === 1 && toNum === 2) return '강건함을 내려놓고 겸손히 수용하면 길합니다.';
+    if (fromNum === 2 && toNum === 1) return '끝까지 바른 도를 지키면 강건함을 얻습니다.';
+    return '완전한 전환의 시기입니다. 지괘의 지혜를 따르세요.';
+  }
   return '변화를 수용하고 새로운 국면에 대비하세요.';
+}
+
+function getKeyMoment(lines: number[], fromHex: HexagramBasic, toHex: HexagramBasic): string {
+  const lineCount = lines.length;
+
+  if (lineCount === 0) {
+    return `${fromHex.korean}의 상황이 안정적으로 유지됩니다.`;
+  }
+  if (lineCount === 6) {
+    if (fromHex.number === 1 && toHex.number === 2) {
+      return '순양(純陽)이 순음(純陰)으로 - 하늘의 기운이 땅으로 내려갑니다.';
+    }
+    if (fromHex.number === 2 && toHex.number === 1) {
+      return '순음(純陰)이 순양(純陽)으로 - 땅의 기운이 하늘로 올라갑니다.';
+    }
+    return `${fromHex.korean}이 완전히 ${toHex.korean}으로 전환됩니다.`;
+  }
+  return `${lineCount}개의 변효가 작용하여 ${fromHex.korean}에서 ${toHex.korean}으로 전환됩니다.`;
 }
 
 /**

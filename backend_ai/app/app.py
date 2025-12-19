@@ -2153,26 +2153,61 @@ def iching_reading_stream():
                 if changing_lines:
                     yield f"data: {json.dumps({'section': 'changing', 'status': 'start'})}\n\n"
 
-                    changing_info = "\n".join([f"- {i+1}효: {line.get('text', '')}" for i, line in enumerate(changing_lines)])
+                    changing_info = "\n".join([f"- {line.get('index', i+1)}효: {line.get('text', '')}" for i, line in enumerate(changing_lines)])
                     resulting_info = ""
                     if resulting_hexagram:
-                        resulting_info = f"변화 후 괘: {resulting_hexagram.get('name', '')} {resulting_hexagram.get('symbol', '')}"
+                        resulting_info = f"변화 후 괘(지괘): {resulting_hexagram.get('name', '')} {resulting_hexagram.get('symbol', '')} - {resulting_hexagram.get('judgment', '')}"
+
+                    # 변효 개수에 따른 전통 주역 해석 규칙
+                    line_count = len(changing_lines)
+                    line_nums = [line.get('index', i+1) for i, line in enumerate(changing_lines)]
+
+                    if line_count == 1:
+                        interpretation_rule = f"【단변(單變)】 {line_nums[0]}효 하나만 변하니, 본괘의 {line_nums[0]}효 효사가 핵심입니다."
+                    elif line_count == 2:
+                        sorted_lines = sorted(line_nums)
+                        upper_line = sorted_lines[-1]
+                        interpretation_rule = f"【이변(二變)】 {sorted_lines[0]}, {sorted_lines[1]}효가 변합니다. 위 효인 {upper_line}효의 효사를 중심으로 해석하세요."
+                    elif line_count == 3:
+                        interpretation_rule = "【삼변(三變)】 본괘와 지괘의 괘사를 함께 보되, 본괘 괘사가 중심입니다."
+                    elif line_count == 4:
+                        all_lines = {1, 2, 3, 4, 5, 6}
+                        unchanged = sorted(all_lines - set(line_nums))
+                        interpretation_rule = f"【사변(四變)】 변하지 않는 {unchanged[0]}, {unchanged[1]}효 중 아래 효인 {unchanged[0]}효의 지괘 효사를 보세요."
+                    elif line_count == 5:
+                        all_lines = {1, 2, 3, 4, 5, 6}
+                        unchanged = list(all_lines - set(line_nums))[0]
+                        interpretation_rule = f"【오변(五變)】 {unchanged}효만 변하지 않습니다. 이 불변효의 지괘 효사가 핵심입니다."
+                    elif line_count == 6:
+                        # 특수 케이스: 건→곤 (용구), 곤→건 (용육)
+                        if hexagram_number == 1 and resulting_hexagram and resulting_hexagram.get('number') == 2:
+                            interpretation_rule = "【전효변 - 용구(用九)】 '見群龍無首 吉' - 여러 용이 나타나되 우두머리가 없으니 길하다. 리더십을 내려놓고 겸손히 물러나면 길합니다."
+                        elif hexagram_number == 2 and resulting_hexagram and resulting_hexagram.get('number') == 1:
+                            interpretation_rule = "【전효변 - 용육(用六)】 '利永貞' - 영원히 바르게 함이 이롭다. 끝까지 바른 도를 지키면 강건함을 얻습니다."
+                        else:
+                            interpretation_rule = "【전효변(全爻變)】 6효가 모두 변하니, 지괘의 괘사를 중심으로 해석하세요."
+                    else:
+                        interpretation_rule = ""
 
                     changing_prompt = f"""주역 상담사로서 변효(변하는 효)의 의미를 해석해주세요.
 
 {lang_instruction}
 
-현재 괘: {hexagram_name} {hexagram_symbol}
+현재 괘(본괘): {hexagram_name} {hexagram_symbol}
 변효:
 {changing_info}
 
 {resulting_info}
 
+전통 주역 해석 규칙:
+{interpretation_rule}
+
 상담 스타일:
+- 위 해석 규칙에 따라 어떤 효사/괘사를 중심으로 봐야 하는지 명확히 알려주세요
 - 변효가 의미하는 변화의 과정을 설명
 - 현재에서 미래로 가는 흐름을 따뜻하게 해석
 - 변화를 두려워하지 않도록 긍정적 관점 제시
-- 2-3문장으로 핵심만 전달"""
+- 3-4문장으로 핵심 전달"""
 
                     changing_stream = openai_client.chat.completions.create(
                         model="gpt-4o-mini",

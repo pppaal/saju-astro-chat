@@ -131,6 +131,11 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error(locale === "ko"
+            ? "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."
+            : "Too many requests. Please try again later.");
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

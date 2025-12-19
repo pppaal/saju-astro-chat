@@ -41,7 +41,7 @@ interface StreamIChingRequest {
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`iching-stream:${ip}`, { limit: 10, windowSeconds: 60 });
+    const limit = await rateLimit(`iching-stream:${ip}`, { limit: 30, windowSeconds: 60 });
 
     if (!limit.allowed) {
       return NextResponse.json(

@@ -283,7 +283,7 @@ ${context.additionalContext}
   return prompt;
 }
 
-// 변효 조합 해석 생성
+// 변효 조합 해석 생성 (전통 주역 규칙 준수)
 export function interpretChangingLines(
   originalHex: number,
   targetHex: number,
@@ -296,37 +296,116 @@ export function interpretChangingLines(
 
   const lineCount = changingLines.length;
   let interpretation = '';
+  let primaryFocus = ''; // 해석의 주 초점
 
-  // 변효 개수별 해석 방법
+  // 전통 주역 변효 해석 규칙
   if (lineCount === 0) {
-    interpretation = `불변괘입니다. ${original.name}괘(${original.chinese})의 본질적 의미에 집중하세요: ${original.coreWisdom}`;
+    // 불변괘: 본괘의 괘사(卦辭)만 본다
+    primaryFocus = '본괘 괘사';
+    interpretation = `【불변괘】 변효가 없으니 ${original.name}괘(${original.chinese})의 괘사에 집중하세요.\n\n`;
+    interpretation += `괘사: ${original.gwaeSa}\n`;
+    interpretation += `의미: ${original.meaning}\n\n`;
+    interpretation += `핵심 지혜: ${original.coreWisdom}`;
   } else if (lineCount === 1) {
+    // 1개 변효: 해당 변효의 효사(爻辭)를 본다
     const line = changingLines[0];
     const yaoInfo = original.yaoWisdom.find(y => y.position === line);
-    interpretation = `단일 변효(${line}효)입니다. `;
+    primaryFocus = `본괘 ${line}효 효사`;
+    interpretation = `【단변(單變)】 ${line}효 하나만 변하니, 본괘 ${original.name}괘의 ${line}효 효사가 핵심입니다.\n\n`;
     if (yaoInfo) {
-      interpretation += `"${yaoInfo.text}" - ${yaoInfo.meaning}. `;
+      interpretation += `${line}효사: "${yaoInfo.text}"\n`;
+      interpretation += `해석: ${yaoInfo.meaning}\n\n`;
     }
-    interpretation += `${original.name}괘에서 ${target.name}괘로의 변화는 ${original.keyword}에서 ${target.keyword}으로의 전환을 의미합니다.`;
+    interpretation += `${original.name}괘(${original.keyword}) → ${target.name}괘(${target.keyword})로 변화합니다.`;
   } else if (lineCount === 2) {
-    interpretation = `두 개의 변효(${changingLines.join(', ')}효)입니다. 위 효의 의미를 중심으로 보되, 아래 효의 상황도 고려하세요.`;
+    // 2개 변효: 두 변효 중 위에 있는 효(숫자가 큰 효)의 효사를 중심으로 본다
+    const sortedLines = [...changingLines].sort((a, b) => a - b);
+    const upperLine = sortedLines[sortedLines.length - 1]; // 위 효 (숫자가 큰 것)
+    const lowerLine = sortedLines[0]; // 아래 효
+    const upperYaoInfo = original.yaoWisdom.find(y => y.position === upperLine);
+    const lowerYaoInfo = original.yaoWisdom.find(y => y.position === lowerLine);
+    primaryFocus = `본괘 ${upperLine}효 효사 (위 효 중심)`;
+
+    interpretation = `【이변(二變)】 ${sortedLines.join(', ')}효가 변합니다. 위 효인 ${upperLine}효의 효사를 중심으로 보세요.\n\n`;
+    if (upperYaoInfo) {
+      interpretation += `▶ ${upperLine}효사 (주): "${upperYaoInfo.text}" - ${upperYaoInfo.meaning}\n`;
+    }
+    if (lowerYaoInfo) {
+      interpretation += `▷ ${lowerLine}효사 (참고): "${lowerYaoInfo.text}" - ${lowerYaoInfo.meaning}\n`;
+    }
   } else if (lineCount === 3) {
-    interpretation = `세 개의 변효입니다. 본괘(${original.name})와 지괘(${target.name}) 모두의 괘사를 참고하되, 본괘의 아래괘사와 지괘의 위괘사를 중점적으로 보세요.`;
+    // 3개 변효: 본괘와 지괘의 괘사를 모두 보되, 본괘 괘사를 중심으로 해석
+    primaryFocus = '본괘 괘사 중심, 지괘 괘사 참고';
+    interpretation = `【삼변(三變)】 ${changingLines.sort((a,b) => a-b).join(', ')}효가 변합니다. 본괘와 지괘의 괘사를 함께 보되, 본괘 괘사가 중심입니다.\n\n`;
+    interpretation += `▶ 본괘 ${original.name}괘(${original.chinese}) 괘사 (주):\n`;
+    interpretation += `   "${original.gwaeSa}" - ${original.meaning}\n\n`;
+    interpretation += `▷ 지괘 ${target.name}괘(${target.chinese}) 괘사 (참고):\n`;
+    interpretation += `   "${target.gwaeSa}" - ${target.meaning}`;
   } else if (lineCount === 4) {
-    interpretation = `네 개의 변효입니다. 변하지 않는 두 효 중 아래 효의 의미가 중심입니다.`;
+    // 4개 변효: 변하지 않는 두 효 중 아래 효(숫자가 작은 효)의 지괘 효사를 본다
+    const unchangedLines = [1, 2, 3, 4, 5, 6].filter(n => !changingLines.includes(n));
+    const sortedUnchanged = unchangedLines.sort((a, b) => a - b);
+    const lowerUnchangedLine = sortedUnchanged[0]; // 아래 효
+    const targetYaoInfo = target.yaoWisdom.find(y => y.position === lowerUnchangedLine);
+    primaryFocus = `지괘 ${lowerUnchangedLine}효 효사 (불변 하효)`;
+
+    interpretation = `【사변(四變)】 ${changingLines.sort((a,b) => a-b).join(', ')}효가 변합니다. 변하지 않는 ${sortedUnchanged.join(', ')}효 중 아래 효인 ${lowerUnchangedLine}효의 지괘 효사를 보세요.\n\n`;
+    interpretation += `불변효: ${sortedUnchanged.join(', ')}효\n`;
+    if (targetYaoInfo) {
+      interpretation += `▶ 지괘 ${target.name}괘 ${lowerUnchangedLine}효사: "${targetYaoInfo.text}" - ${targetYaoInfo.meaning}`;
+    } else {
+      interpretation += `▶ 지괘 ${target.name}괘의 ${lowerUnchangedLine}효가 핵심입니다.`;
+    }
   } else if (lineCount === 5) {
-    interpretation = `다섯 개의 변효입니다. 변하지 않는 한 효가 핵심입니다.`;
+    // 5개 변효: 변하지 않는 한 효의 지괘 효사를 본다
+    const unchangedLine = [1, 2, 3, 4, 5, 6].find(n => !changingLines.includes(n))!;
+    const targetYaoInfo = target.yaoWisdom.find(y => y.position === unchangedLine);
+    primaryFocus = `지괘 ${unchangedLine}효 효사 (유일 불변효)`;
+
+    interpretation = `【오변(五變)】 ${unchangedLine}효만 변하지 않습니다. 이 불변효의 지괘 효사가 핵심입니다.\n\n`;
+    interpretation += `유일 불변효: ${unchangedLine}효\n`;
+    if (targetYaoInfo) {
+      interpretation += `▶ 지괘 ${target.name}괘 ${unchangedLine}효사: "${targetYaoInfo.text}" - ${targetYaoInfo.meaning}`;
+    } else {
+      interpretation += `▶ 지괘 ${target.name}괘의 ${unchangedLine}효가 유일한 해석 기준입니다.`;
+    }
   } else if (lineCount === 6) {
-    interpretation = `전효(全爻) 변입니다. ${original.name}괘가 완전히 ${target.name}괘로 변하니, 근본적인 전환의 시기입니다.`;
+    // 6개 변효 (전효변): 지괘의 괘사를 본다
+    // 특수 케이스: 건→곤은 용구(用九), 곤→건은 용육(用六)
+    primaryFocus = '지괘 괘사';
+
+    if (originalHex === 1 && targetHex === 2) {
+      // 건괘 → 곤괘: 용구(用九)
+      interpretation = `【전효변 - 용구(用九)】 건괘의 6효가 모두 변하여 곤괘가 됩니다.\n\n`;
+      interpretation += `용구(用九): "見群龍無首 吉" (견군룡무수 길)\n`;
+      interpretation += `해석: 여러 용이 나타나되 우두머리가 없으니 길하다.\n\n`;
+      interpretation += `의미: 강건함이 극에 달하여 유순함으로 변합니다. 리더십을 내려놓고 겸손히 물러나면 길합니다. 모든 것이 각자의 역할을 하며 조화를 이룹니다.`;
+    } else if (originalHex === 2 && targetHex === 1) {
+      // 곤괘 → 건괘: 용육(用六)
+      interpretation = `【전효변 - 용육(用六)】 곤괘의 6효가 모두 변하여 건괘가 됩니다.\n\n`;
+      interpretation += `용육(用六): "利永貞" (이영정)\n`;
+      interpretation += `해석: 영원히 바르게 함이 이롭다.\n\n`;
+      interpretation += `의미: 유순함이 극에 달하여 강건함으로 변합니다. 끝까지 바른 도를 지키면 길합니다. 수용과 인내가 결국 큰 힘이 됩니다.`;
+    } else {
+      // 일반 전효변: 지괘의 괘사를 본다
+      interpretation = `【전효변(全爻變)】 6효가 모두 변하여 ${original.name}괘가 완전히 ${target.name}괘로 바뀝니다.\n\n`;
+      interpretation += `지괘 ${target.name}괘(${target.chinese})의 괘사를 보세요:\n`;
+      interpretation += `괘사: "${target.gwaeSa}"\n`;
+      interpretation += `의미: ${target.meaning}\n\n`;
+      interpretation += `핵심: ${target.coreWisdom}`;
+    }
   }
 
-  // 위치별 의미 추가
-  const positionInsights = changingLines.map(line => {
-    const pos = YAO_POSITION_MEANINGS[line];
-    return `${line}효(${pos.general}): ${pos.timing}`;
-  }).join(' → ');
+  // 변효가 있는 경우 위치별 의미 추가 (0, 6효 전변 제외)
+  if (lineCount > 0 && lineCount < 6) {
+    const positionInsights = changingLines.sort((a, b) => a - b).map(line => {
+      const pos = YAO_POSITION_MEANINGS[line];
+      return `${line}효(${pos.general})`;
+    }).join(' → ');
 
-  interpretation += `\n\n변화의 흐름: ${positionInsights}`;
+    interpretation += `\n\n【변화의 흐름】 ${positionInsights}`;
+    interpretation += `\n【해석 초점】 ${primaryFocus}`;
+  }
 
   return interpretation;
 }

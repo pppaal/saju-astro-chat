@@ -33,10 +33,12 @@ async function incrementCounter(key: string, windowSeconds: number) {
 
   if (!res.ok) return null;
   const data = await res.json().catch(() => null);
-  if (!data?.result || !Array.isArray(data.result) || typeof data.result[0] !== "number") {
+
+  // Upstash pipeline returns: [{ result: 1 }, { result: "OK" }]
+  if (!Array.isArray(data) || !data[0] || typeof data[0].result !== "number") {
     return null;
   }
-  return data.result[0] as number; // current count after increment
+  return data[0].result as number; // current count after increment
 }
 
 export async function rateLimit(
