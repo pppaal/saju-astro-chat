@@ -150,7 +150,9 @@
       "Bash(npx prisma db pull:*)",
       "Bash(taskkill /F /PID 77300)",
       "Bash(taskkill /F /PID 93264)",
-      "Bash(del /f /q \"node_modules\\.prisma\\client\\*.tmp*\")"
+      "Bash(del /f /q \"node_modules\\.prisma\\client\\*.tmp*\")",
+      "Bash(head:*)",
+      "Bash(where /r . page.ts*)"
     ],
     "deny": [],
     "ask": []

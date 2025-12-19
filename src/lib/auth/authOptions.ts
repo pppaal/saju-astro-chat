@@ -93,6 +93,9 @@ export const authOptions: NextAuthOptions = {
   adapter: createFilteredPrismaAdapter(),
   providers,
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/auth/signin',
+  },
   session: {
     strategy: 'jwt',
   },
@@ -113,14 +116,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
-    async signIn({ account }) {
-      if (!account) return
-      try {
-        await revokeGoogleTokensForAccount(account)
-      } catch (e) {
-        console.error('[auth] signIn revoke failed', e)
-      }
-    },
     async signOut({ token }) {
       if (!token?.id) return
       try {

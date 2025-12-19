@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
     if (guard instanceof Response) return guard;
 
-    // DEV MODE: Skip auth check
+    // Dev mode: skip auth check (only for local dev)
     const isDev = process.env.NODE_ENV === "development";
     if (!isDev) {
       const session = await getServerSession(authOptions);

@@ -1,7 +1,7 @@
 /**
  * Destiny Calendar API
- * 사주 + 점성술 교차 분석 기반 중요 날짜 계산
- * AI 백엔드 연동 버전
+ * Saju + Astrology fused yearly important dates
+ * AI-assisted calculations (optional backend)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -28,6 +28,8 @@ const BACKEND_URL =
 
 type TranslationData = Record<string, unknown>;
 
+// Translation helper
+
 function validateBackendUrl(url: string) {
   if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
     console.warn("[Calendar API] Using non-HTTPS AI backend in production");
@@ -49,6 +51,7 @@ function getTranslation(key: string, translations: TranslationData): string {
 }
 
 // 사주 분석 요소 번역
+// Saju factor translations
 const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
   stemBijeon: { ko: "일진 천간이 비견(比肩)으로 자기 힘이 강해집니다", en: "Daily stem forms Companion (Bijeon), strengthening personal power" },
   stemInseong: { ko: "일진 천간이 인성(印星)으로 도움과 지원을 받습니다", en: "Daily stem forms Support (Inseong), receiving help and backing" },
@@ -61,6 +64,7 @@ const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
 };
 
 // 점성술 분석 요소 번역
+// Astrology factor translations
 const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
   sameElement: { ko: "트랜짓 태양이 본명 태양과 같은 원소로 에너지가 강화됩니다", en: "Transit Sun shares the same element as natal Sun, amplifying energy" },
   supportElement: { ko: "트랜짓 태양이 본명 태양을 생(生)해주어 힘을 줍니다", en: "Transit Sun supports natal Sun through elemental generation" },
@@ -70,6 +74,7 @@ const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
 };
 
 // 날짜 데이터 변환
+// Formatted response shape
 interface FormattedDate {
   date: string;
   grade: ImportanceGrade;

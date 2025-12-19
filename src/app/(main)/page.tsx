@@ -520,6 +520,9 @@ export default function MainPage() {
           <Link href="/pricing" className={styles.navLink}>
             {translate("common.pricing", "Pricing")}
           </Link>
+          <Link href="/blog" className={styles.navLink}>
+            {translate("common.blog", "Blog")}
+          </Link>
           <Link href="/myjourney" className={styles.navLink}>
             {t("app.myJourney")}
           </Link>

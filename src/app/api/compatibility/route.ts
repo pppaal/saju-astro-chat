@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     lines.push('');
     lines.push(`Average: ${avg}/100`);
 
-    // ======== AI 백엔드 호출 (GPT + FUSION) ========
+    // ======== AI backend call (GPT + Fusion) ========
     let aiInterpretation = '';
     let aiModelUsed = '';
     let aiScore: number | null = null;
