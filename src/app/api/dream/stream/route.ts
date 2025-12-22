@@ -2,6 +2,9 @@
 // Streaming Dream Interpretation API - Real-time SSE for fast display
 
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/authOptions";
+import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
@@ -23,6 +26,23 @@ interface StreamDreamRequest {
   western?: string[];
   hindu?: string[];
   japanese?: string[];
+  // Birth data for astrology/saju analysis
+  birth?: {
+    date: string;
+    time: string;
+    timezone?: string;
+    latitude?: number;
+    longitude?: number;
+    gender?: string;
+  };
+  sajuInfluence?: {
+    pillars?: Record<string, unknown>;
+    dayMaster?: Record<string, unknown>;
+    currentDaeun?: Record<string, unknown> | null;
+    currentSaeun?: Record<string, unknown> | null;
+    currentWolun?: Record<string, unknown> | null;
+    todayIljin?: Record<string, unknown> | null;
+  };
 }
 
 export async function POST(req: Request) {
@@ -55,7 +75,9 @@ export async function POST(req: Request) {
       islamicTypes = [],
       western = [],
       hindu = [],
-      japanese = []
+      japanese = [],
+      birth,
+      sajuInfluence
     } = body;
 
     if (!dreamText || dreamText.trim().length < 5) {
@@ -85,7 +107,9 @@ export async function POST(req: Request) {
         islamicTypes,
         western,
         hindu,
-        japanese
+        japanese,
+        birth,
+        sajuInfluence
       })
     });
 
@@ -96,6 +120,32 @@ export async function POST(req: Request) {
         { error: "Backend error", detail: errorText },
         { status: backendResponse.status, headers: limit.headers }
       );
+    }
+
+    // ======== 기록 저장 (로그인 사용자만) ========
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      try {
+        const symbolsStr = symbols.slice(0, 5).join(', ');
+        await prisma.reading.create({
+          data: {
+            userId: session.user.id,
+            type: 'dream',
+            title: symbolsStr ? `꿈 해석: ${symbolsStr}` : '꿈 해석',
+            content: JSON.stringify({
+              dreamText: dreamText.slice(0, 500),
+              symbols,
+              emotions,
+              themes,
+              context,
+              koreanTypes,
+              koreanLucky,
+            }),
+          },
+        });
+      } catch (saveErr) {
+        console.warn('[Dream API] Failed to save reading:', saveErr);
+      }
     }
 
     // Check if response is SSE

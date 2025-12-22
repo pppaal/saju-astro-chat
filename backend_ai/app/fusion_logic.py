@@ -134,7 +134,16 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
             f"  ΓÇó ∞ï£∞ú╝(Hour Pillar): {pillars.get('time')} ΓÇö children, later years, creative output"
         )
 
-    # Day Master with interpretive context
+    # Day Master with interpretive context - CRITICAL: This is the person's core identity
+    # Extract year stem to clarify it's different from day master
+    year_stem = None
+    if pillars and pillars.get('year'):
+        year_pillar = pillars.get('year')
+        if isinstance(year_pillar, dict):
+            hs = year_pillar.get('heavenlyStem')
+            if isinstance(hs, dict):
+                year_stem = hs.get('name')
+
     if day_master:
         if isinstance(day_master, dict):
             dm_name = day_master.get('name', '')
@@ -142,14 +151,20 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
             dm_strength = day_master.get('strength', 'moderate')
             element_info = ELEMENT_TRAITS.get(dm_element, {})
 
-            s_parts.append(f"\nπÇÉ∞¥╝Ω░ä µùÑσ╣▓ (Day Master)πÇæ")
-            s_parts.append(f"  ΓÇó Core Identity: {dm_name} ({element_info.get('name', dm_element)})")
-            s_parts.append(f"  ΓÇó Natural Traits: {element_info.get('traits', 'unique characteristics')}")
-            s_parts.append(f"  ΓÇó Strength: {dm_strength} ΓÇö {'strong self-reliance' if dm_strength == 'strong' else 'benefits from support' if dm_strength == 'weak' else 'balanced energy'}")
+            s_parts.append(f"\n{'='*50}")
+            s_parts.append(f"⚠️ CRITICAL: 일간(日干) Day Master - CORE IDENTITY ⚠️")
+            s_parts.append(f"{'='*50}")
+            s_parts.append(f"  ★ Day Master (일간): {dm_name} ({element_info.get('name', dm_element)})")
+            s_parts.append(f"  ★ This is the person's CORE SELF, NOT the year stem!")
+            if year_stem and year_stem != dm_name:
+                s_parts.append(f"  ★ Year stem (년간) is {year_stem} - this is DIFFERENT from day master")
+            s_parts.append(f"{'='*50}")
+            s_parts.append(f"  • Natural Traits: {element_info.get('traits', 'unique characteristics')}")
+            s_parts.append(f"  • Strength: {dm_strength} — {'strong self-reliance' if dm_strength == 'strong' else 'benefits from support' if dm_strength == 'weak' else 'balanced energy'}")
             if element_info.get('organ'):
-                s_parts.append(f"  ΓÇó Body Association: {element_info.get('organ')} (wellness focus area)")
+                s_parts.append(f"  • Body Association: {element_info.get('organ')} (wellness focus area)")
         else:
-            s_parts.append(f"\nπÇÉ∞¥╝Ω░ä µùÑσ╣▓πÇæDay master: {day_master}")
+            s_parts.append(f"\n⚠️ CRITICAL: 일간(日干) Day Master: {day_master} ⚠️")
 
     # Five Elements Balance with interpretation
     if isinstance(facts.get("fiveElements"), dict):

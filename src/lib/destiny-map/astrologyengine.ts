@@ -778,13 +778,16 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       time: sajuFacts?.timePillar,
     };
     const dayMaster = sajuFacts?.dayMaster ?? {};
+    if (enableDebugLogs) {
+      console.log("[computeDestinyMap] dayMaster extracted:", JSON.stringify(dayMaster));
+    }
 
     let daeun: unknown[] = [];
     let annual: unknown[] = [];
     let monthly: unknown[] = [];
     let iljin: unknown[] = [];
-    const startYear = birthDateObj.getFullYear();
-    const startMonth = birthDateObj.getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
 
     const hasValidPillars = Boolean(pillars.year && pillars.month && pillars.day);
     if (hasValidPillars) {
@@ -792,11 +795,14 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const d = getDaeunCycles(birthDateObj, gender, pillars as any, dayMaster as any, timezone);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const a = getAnnualCycles(startYear, 10, dayMaster as any);
+        // 세운: 현재 연도부터 향후 10년 (과거가 아닌 미래/현재 운세)
+        const a = getAnnualCycles(currentYear, 10, dayMaster as any);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const m = getMonthlyCycles(startYear, dayMaster as any);
+        // 월운: 현재 연도 기준
+        const m = getMonthlyCycles(currentYear, dayMaster as any);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const i = getIljinCalendar(startYear, startMonth, dayMaster as any);
+        // 일진: 현재 연/월 기준
+        const i = getIljinCalendar(currentYear, currentMonth, dayMaster as any);
         daeun = Array.isArray(d?.cycles) ? d.cycles : [];
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
@@ -867,12 +873,15 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           },
         });
 
-        // SajuPillarsInput for geokguk/yongsin/tonggeun modules (stem/branch with time)
+        // SajuPillarsInput for geokguk/yongsin/tonggeun modules (stem/branch)
+        // Note: Some modules use 'hour', others use 'time' - include both for compatibility
+        const timePillarSimple = { stem: pillars.time.heavenlyStem?.name || '', branch: pillars.time.earthlyBranch?.name || '' };
         const pillarsSimple = {
           year: { stem: pillars.year.heavenlyStem?.name || '', branch: pillars.year.earthlyBranch?.name || '' },
           month: { stem: pillars.month.heavenlyStem?.name || '', branch: pillars.month.earthlyBranch?.name || '' },
           day: { stem: pillars.day.heavenlyStem?.name || '', branch: pillars.day.earthlyBranch?.name || '' },
-          time: { stem: pillars.time.heavenlyStem?.name || '', branch: pillars.time.earthlyBranch?.name || '' },
+          hour: timePillarSimple,
+          time: timePillarSimple,
         };
 
         advancedAnalysis = {};
@@ -938,17 +947,81 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         }
 
         // 8. 종합 점수 (takes pillars and dayMaster)
+        // calculateComprehensiveScore expects SajuPillars format with heavenlyStem/earthlyBranch objects
         try {
+          // Helper to derive yin_yang from stem/branch name (천간/지지 이름으로 음양 판정)
+          const getYinYangFromName = (name: string): '음' | '양' => {
+            // 양(陽) stems: 갑, 병, 무, 경, 임
+            const yangStems = ['갑', '병', '무', '경', '임'];
+            // 양(陽) branches: 자, 인, 진, 오, 신, 술
+            const yangBranches = ['자', '인', '진', '오', '신', '술'];
+            if (yangStems.includes(name) || yangBranches.includes(name)) return '양';
+            return '음';
+          };
+
+          const pillarsForScore = {
+            year: {
+              heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.year.earthlyBranch?.name || '', element: (pillars.year.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.earthlyBranch?.name || '') },
+              jijanggan: (pillars.year as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+            month: {
+              heavenlyStem: { name: pillars.month.heavenlyStem?.name || '', element: (pillars.month.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.month.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.month.earthlyBranch?.name || '', element: (pillars.month.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.month.earthlyBranch?.name || '') },
+              jijanggan: (pillars.month as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+            day: {
+              heavenlyStem: { name: pillars.day.heavenlyStem?.name || '', element: (pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.day.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.day.earthlyBranch?.name || '', element: (pillars.day.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.day.earthlyBranch?.name || '') },
+              jijanggan: (pillars.day as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+            time: {
+              heavenlyStem: { name: pillars.time.heavenlyStem?.name || '', element: (pillars.time.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.time.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.time.earthlyBranch?.name || '', element: (pillars.time.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.time.earthlyBranch?.name || '') },
+              jijanggan: (pillars.time as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+          };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.score = calculateComprehensiveScore(pillarsSimple as any, dayMasterForAnalysis as any);
+          advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as any);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Score calculation skipped]", e);
         }
 
         // 9. 🔥 1000% 급 고급 분석 (종격, 화격, 일주론 심화, 공망 심화, 삼기)
+        // performUltraAdvancedAnalysis expects SajuPillars format with heavenlyStem/earthlyBranch objects
         try {
+          // Reuse the helper from above (defined in pillarsForScore block)
+          const getYinYangFromNameUltra = (name: string): '음' | '양' => {
+            const yangStems = ['갑', '병', '무', '경', '임'];
+            const yangBranches = ['자', '인', '진', '오', '신', '술'];
+            if (yangStems.includes(name) || yangBranches.includes(name)) return '양';
+            return '음';
+          };
+
+          const pillarsForUltra = {
+            year: {
+              heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.year.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.year.earthlyBranch?.name || '', element: (pillars.year.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.year.earthlyBranch?.name || '') },
+              jijanggan: (pillars.year as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+            month: {
+              heavenlyStem: { name: pillars.month.heavenlyStem?.name || '', element: (pillars.month.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.month.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.month.earthlyBranch?.name || '', element: (pillars.month.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.month.earthlyBranch?.name || '') },
+              jijanggan: (pillars.month as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+            day: {
+              heavenlyStem: { name: pillars.day.heavenlyStem?.name || '', element: (pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.day.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.day.earthlyBranch?.name || '', element: (pillars.day.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.day.earthlyBranch?.name || '') },
+              jijanggan: (pillars.day as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+            time: {
+              heavenlyStem: { name: pillars.time.heavenlyStem?.name || '', element: (pillars.time.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.time.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.time.earthlyBranch?.name || '', element: (pillars.time.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.time.earthlyBranch?.name || '') },
+              jijanggan: (pillars.time as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+            },
+          };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsSimple as any);
+          advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as any);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Ultra Advanced analysis skipped]", e);
         }
@@ -1052,7 +1125,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         options: astroOptions,
         transits,
       },
-      saju: { facts: sajuFacts, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal, advancedAnalysis },
+      saju: { facts: { ...sajuFacts, birthDate }, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal, advancedAnalysis },
       summary,
       // Advanced Astrology Data (all features)
       extraPoints,

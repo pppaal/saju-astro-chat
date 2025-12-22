@@ -1,19 +1,18 @@
 // src/components/destiny-map/Chat.tsx
+// Force rebuild: cache clear
 
 "use client";
 
 import React from "react";
 import styles from "./Chat.module.css";
+import InlineTarotModal from "./InlineTarotModal";
 
 // PDF parsing utility
 async function extractTextFromPDF(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
-  // Use bundled worker to avoid CDN/CORS failures in some environments (e.g. Turbopack).
-  const workerModule = await import("pdfjs-dist/build/pdf.worker.min.mjs");
+  // Use CDN worker for pdfjs-dist v4.x
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    // Next/Turbopack exposes the asset on `default`
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (workerModule as any).default ?? workerModule;
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -49,6 +48,16 @@ type Copy = {
   tarotPrompt: string;
   tarotButton: string;
   tarotDesc: string;
+  // Crisis support
+  crisisTitle: string;
+  crisisMessage: string;
+  crisisHotline: string;
+  crisisHotlineNumber: string;
+  crisisClose: string;
+  // Returning user
+  welcomeBack: string;
+  // Grounding
+  groundingTip: string;
 };
 
 const I18N: Record<LangKey, Copy> = {
@@ -69,6 +78,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "Want deeper insights?",
     tarotButton: "Try Tarot Reading",
     tarotDesc: "Combine your astrology & saju with tarot for guidance on your current concern",
+    crisisTitle: "We're Here For You",
+    crisisMessage: "It sounds like you're going through a really difficult time. Please know that support is available.",
+    crisisHotline: "Crisis Hotline",
+    crisisHotlineNumber: "988 (US) / 116 123 (UK)",
+    crisisClose: "I understand",
+    welcomeBack: "Welcome back! Let's continue our conversation.",
+    groundingTip: "Try this: Take a deep breath. Notice 5 things you can see around you.",
   },
   ko: {
     placeholder: "언제/왜/무엇을 구체적으로 입력해 주세요.",
@@ -87,6 +103,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "더 깊은 통찰을 원하시나요?",
     tarotButton: "타로 리딩 받기",
     tarotDesc: "점성술과 사주를 타로와 결합하여 현재 고민에 대한 지침을 받아보세요",
+    crisisTitle: "당신 곁에 있어요",
+    crisisMessage: "지금 많이 힘드시죠. 혼자가 아니에요. 전문 상담 도움을 받으실 수 있어요.",
+    crisisHotline: "위기상담전화",
+    crisisHotlineNumber: "자살예방 1393 / 정신건강 1577-0199",
+    crisisClose: "확인했어요",
+    welcomeBack: "다시 오셨네요! 이어서 대화해볼까요?",
+    groundingTip: "잠시 숨을 고르세요. 지금 주변에서 보이는 것 5가지를 세어보세요.",
   },
   ja: {
     placeholder: "いつ/なぜ/何を、できるだけ具体的に",
@@ -105,6 +128,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "より深い洞察を求めますか？",
     tarotButton: "タロットリーディング",
     tarotDesc: "占星術と四柱推命をタロットと組み合わせて、今の悩みへの指針を得ましょう",
+    crisisTitle: "あなたのそばにいます",
+    crisisMessage: "今、とても辛い時期を過ごしていますね。専門のサポートがあります。",
+    crisisHotline: "相談窓口",
+    crisisHotlineNumber: "いのちの電話 0570-783-556",
+    crisisClose: "確認しました",
+    welcomeBack: "お帰りなさい！続きをお話ししましょう。",
+    groundingTip: "深呼吸してみてください。周りに見えるもの5つを数えてみましょう。",
   },
   zh: {
     placeholder: "请具体说明（何时/原因/内容）",
@@ -123,6 +153,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "想要更深入的洞察吗？",
     tarotButton: "塔罗牌占卜",
     tarotDesc: "结合占星术和四柱，用塔罗牌为您当前的困惑提供指引",
+    crisisTitle: "我们在您身边",
+    crisisMessage: "您现在正经历困难时期。您并不孤单，专业支持随时可用。",
+    crisisHotline: "心理援助热线",
+    crisisHotlineNumber: "全国心理援助 400-161-9995",
+    crisisClose: "我了解了",
+    welcomeBack: "欢迎回来！让我们继续对话。",
+    groundingTip: "试着深呼吸，数一数周围能看到的5样东西。",
   },
   es: {
     placeholder: "Pregunta concreta (cuando/por que/que)",
@@ -141,6 +178,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "¿Quieres percepciones más profundas?",
     tarotButton: "Lectura de Tarot",
     tarotDesc: "Combina tu astrología y saju con el tarot para guiarte en tu preocupación actual",
+    crisisTitle: "Estamos contigo",
+    crisisMessage: "Parece que estás pasando por un momento difícil. Hay apoyo disponible.",
+    crisisHotline: "Línea de crisis",
+    crisisHotlineNumber: "Teléfono de la Esperanza 717 003 717",
+    crisisClose: "Entendido",
+    welcomeBack: "¡Bienvenido de nuevo! Continuemos nuestra conversación.",
+    groundingTip: "Respira profundo. Nombra 5 cosas que puedes ver a tu alrededor.",
   },
   fr: {
     placeholder: "Pose une question precise (quand/pourquoi/quoi)",
@@ -159,6 +203,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "Voulez-vous des aperçus plus profonds?",
     tarotButton: "Tirage de Tarot",
     tarotDesc: "Combinez votre astrologie et saju avec le tarot pour des conseils sur votre préoccupation actuelle",
+    crisisTitle: "Nous sommes là pour vous",
+    crisisMessage: "Vous traversez une période difficile. De l'aide est disponible.",
+    crisisHotline: "Ligne de crise",
+    crisisHotlineNumber: "SOS Amitié 09 72 39 40 50",
+    crisisClose: "J'ai compris",
+    welcomeBack: "Bon retour ! Continuons notre conversation.",
+    groundingTip: "Respirez profondément. Nommez 5 choses que vous voyez autour de vous.",
   },
   de: {
     placeholder: "Frag prazise (wann/warum/was)",
@@ -177,6 +228,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "Möchten Sie tiefere Einblicke?",
     tarotButton: "Tarot-Lesung",
     tarotDesc: "Kombinieren Sie Ihre Astrologie und Saju mit Tarot für Anleitungen zu Ihrem aktuellen Anliegen",
+    crisisTitle: "Wir sind für Sie da",
+    crisisMessage: "Sie durchleben gerade eine schwierige Zeit. Hilfe ist verfügbar.",
+    crisisHotline: "Krisenhotline",
+    crisisHotlineNumber: "Telefonseelsorge 0800 111 0 111",
+    crisisClose: "Verstanden",
+    welcomeBack: "Willkommen zurück! Lassen Sie uns weitersprechen.",
+    groundingTip: "Atmen Sie tief. Zählen Sie 5 Dinge, die Sie um sich herum sehen.",
   },
   pt: {
     placeholder: "Pergunte de forma precisa (quando/por que/o que)",
@@ -195,6 +253,13 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "Quer insights mais profundos?",
     tarotButton: "Leitura de Tarô",
     tarotDesc: "Combine sua astrologia e saju com tarô para orientação sobre sua preocupação atual",
+    crisisTitle: "Estamos com você",
+    crisisMessage: "Parece que você está passando por um momento difícil. Ajuda está disponível.",
+    crisisHotline: "Linha de crise",
+    crisisHotlineNumber: "CVV 188",
+    crisisClose: "Entendi",
+    welcomeBack: "Bem-vindo de volta! Vamos continuar nossa conversa.",
+    groundingTip: "Respire fundo. Nomeie 5 coisas que você pode ver ao redor.",
   },
   ru: {
     placeholder: "Сформулируйте точно (когда/почему/что)",
@@ -213,8 +278,27 @@ const I18N: Record<LangKey, Copy> = {
     tarotPrompt: "Хотите более глубокие озарения?",
     tarotButton: "Чтение Таро",
     tarotDesc: "Объедините свою астрологию и саджу с таро для руководства по текущей проблеме",
+    crisisTitle: "Мы рядом с вами",
+    crisisMessage: "Похоже, вы переживаете трудное время. Помощь доступна.",
+    crisisHotline: "Линия помощи",
+    crisisHotlineNumber: "8-800-2000-122",
+    crisisClose: "Понятно",
+    welcomeBack: "С возвращением! Продолжим наш разговор.",
+    groundingTip: "Сделайте глубокий вдох. Назовите 5 вещей, которые видите вокруг.",
   },
 };
+
+// Crisis detection keywords
+const CRISIS_KEYWORDS: Record<string, string[]> = {
+  ko: ["죽고 싶", "자살", "끝내고 싶", "사라지고 싶", "자해", "삶이 싫"],
+  en: ["kill myself", "suicide", "end it all", "want to die", "self harm"],
+};
+
+function detectCrisis(text: string, lang: LangKey): boolean {
+  const keywords = CRISIS_KEYWORDS[lang] || CRISIS_KEYWORDS.en;
+  const lowerText = text.toLowerCase();
+  return keywords.some((kw) => lowerText.includes(kw.toLowerCase()));
+}
 
 type Message = { role: "system" | "user" | "assistant"; content: string; id?: string };
 
@@ -260,6 +344,8 @@ type ChatProps = {
   autoScroll?: boolean;
   // RAG session ID from /counselor/init prefetch
   ragSessionId?: string;
+  // Auto-send initial seeded question (for counselor entry via query param)
+  autoSendSeed?: boolean;
 };
 
 type ChatRequest = {
@@ -288,8 +374,10 @@ export default function Chat({
   onSaveMessage,
   autoScroll = true,
   ragSessionId,
+  autoSendSeed = false,
 }: ChatProps) {
-  const tr = I18N[lang] ?? I18N.en;
+  const effectiveLang = lang === "ko" ? "ko" : "en";
+  const tr = I18N[effectiveLang];
   const sessionIdRef = React.useRef<string>(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -308,11 +396,47 @@ export default function Chat({
   const [parsingPdf, setParsingPdf] = React.useState(false);
   const [isRecording, setIsRecording] = React.useState(false);
   const [showTarotPrompt, setShowTarotPrompt] = React.useState(false);
+  const [showTarotModal, setShowTarotModal] = React.useState(false);
   const [feedback, setFeedback] = React.useState<Record<string, FeedbackType>>({});
   const [showSuggestions, setShowSuggestions] = React.useState(true);
   const [followUpQuestions, setFollowUpQuestions] = React.useState<string[]>([]);
+  const [showCrisisModal, setShowCrisisModal] = React.useState(false);
+  const [showWelcomeBack, setShowWelcomeBack] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const recognitionRef = React.useRef<any>(null);
+  const seedSentRef = React.useRef(false);
+  const welcomeShownRef = React.useRef(false);
+
+  // Follow-up questions are now shown separately, not appended to response text
+
+  // Show welcome back message for returning users (only once)
+  React.useEffect(() => {
+    const sessionCount = userContext?.persona?.sessionCount;
+    if (sessionCount && sessionCount > 1 && !welcomeShownRef.current) {
+      welcomeShownRef.current = true;
+      setShowWelcomeBack(true);
+      const timer = setTimeout(() => setShowWelcomeBack(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [userContext?.persona?.sessionCount]);
+
+  // Build a 1-line returning-user context summary
+  const returningSummary = React.useMemo(() => {
+    const persona = userContext?.persona;
+    const lastTopics = persona?.lastTopics?.slice(0, 2)?.join(", ");
+    const tone = persona?.emotionalTone;
+    const recurrence = persona?.recurringIssues?.slice(0, 2)?.join(", ");
+    const parts = [];
+    if (lastTopics) parts.push(lang === "ko" ? `최근 주제: ${lastTopics}` : `Recent topics: ${lastTopics}`);
+    if (tone) parts.push(lang === "ko" ? `감정 톤: ${tone}` : `Tone: ${tone}`);
+    if (recurrence) parts.push(lang === "ko" ? `반복 이슈: ${recurrence}` : `Recurring: ${recurrence}`);
+    return parts.join(" · ");
+  }, [userContext?.persona, lang]);
+
+  const getLastUserMessage = () => {
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    return lastUser?.content || "";
+  };
 
   // Universal follow-up questions (works for any response context)
   const universalFollowUps = lang === "ko"
@@ -353,10 +477,44 @@ export default function Chat({
         "Tell me more strengths", "What are my weaknesses?", "Any hidden aspects?",
       ];
 
-  // Generate random follow-up questions (universal - works for any context)
-  const generateFollowUpQuestions = () => {
-    const shuffled = [...universalFollowUps].sort(() => Math.random() - 0.5);
-    setFollowUpQuestions(shuffled.slice(0, 2));
+  const themedFollowUps = lang === "ko"
+    ? {
+        career: ["일자리/커리어에서 가장 중요한 변수는 뭐예요?", "지금 회사에서 바꿔야 할 한 가지는?", "이직 시기/준비 방법을 더 알려줘"],
+        love: ["관계에서 내가 놓치고 있는 신호가 있을까요?", "이 사람이 진지한지 확인하는 방법은?", "지금 관계를 개선하려면 구체적으로 무엇을 할까요?"],
+        health: ["어떤 생활 습관을 먼저 바꾸면 좋을까요?", "스트레스/수면에서 주의할 점은?", "이 증상에 대해 전문가 상담이 필요할까요?"],
+        wealth: ["지금 재정에서 새는 부분은 무엇인가요?", "투자/저축 우선순위를 어떻게 잡을까요?", "6개월 내 돈 흐름을 안정시키는 방법은?"],
+        family: ["가족과의 갈등을 풀기 위한 첫걸음은?", "지원이 필요한 가족 구성원은 누구인가요?", "대화를 시작할 때 조심할 점은?"],
+      }
+    : {
+        career: ["What one change at work would help most?", "Is it time to switch jobs or role?", "How should I prepare for the next 6 months?"],
+        love: ["What signal am I missing in this relationship?", "How do I confirm their seriousness?", "What practical step improves this connection?"],
+        health: ["Which habit should I change first?", "How to reduce stress or improve sleep?", "Should I consult a professional for this?"],
+        wealth: ["Where is money leaking now?", "How to prioritize invest vs save?", "How to stabilize cash flow in 6 months?"],
+        family: ["What's the first step to ease family tension?", "Who needs support most right now?", "How to start a careful conversation?"],
+      };
+
+  const generateFollowUpQuestions = (lastUserMsg: string) => {
+    const text = (lastUserMsg || "").toLowerCase();
+    const picks: string[] = [];
+
+    const add = (arr: string[] = []) => {
+      for (const q of arr) {
+        if (!picks.includes(q)) picks.push(q);
+      }
+    };
+
+    // Bias by current theme
+    if (theme.includes("career") || text.match(/job|work|이직|커리어|직업/)) add(themedFollowUps.career);
+    if (theme.includes("love") || text.match(/love|relationship|연애|사랑|썸/)) add(themedFollowUps.love);
+    if (theme.includes("health") || text.match(/health|몸|건강|스트레스|수면/)) add(themedFollowUps.health);
+    if (theme.includes("wealth") || text.match(/money|finance|돈|재정|투자|주식/)) add(themedFollowUps.wealth);
+    if (theme.includes("family") || text.match(/family|가족|부모|형제|자녀/)) add(themedFollowUps.family);
+
+    // Fill with universal if needed
+    const shuffledUniversal = [...universalFollowUps].sort(() => Math.random() - 0.5);
+    add(shuffledUniversal);
+
+    setFollowUpQuestions(picks.slice(0, 2));
   };
 
   // Suggested questions based on theme
@@ -412,35 +570,42 @@ export default function Chat({
     }
   }, [messages, showTarotPrompt]);
 
-  // Navigate to tarot with context
+  // Auto-insert returning context as a system message (once) to guide tone/recall
+  React.useEffect(() => {
+    if (!returningSummary) return;
+    const alreadyHas = messages.some((m) => m.role === "system" && m.content.includes("Returning context"));
+    if (alreadyHas) return;
+    setMessages((prev) => [
+      { role: "system", content: `Returning context: ${returningSummary}` },
+      ...prev,
+    ]);
+  }, [returningSummary, messages]);
+
+  // Open inline tarot modal instead of navigating away
   const goToTarot = () => {
-    // Extract conversation summary for tarot context
+    setShowTarotModal(true);
+  };
+
+  // Extract concern from recent messages for tarot context
+  const extractConcernFromMessages = () => {
     const userMessages = messages.filter((m) => m.role === "user").map((m) => m.content);
-    const concern = userMessages.slice(-2).join(" ").slice(0, 200);
-
-    // Store context in sessionStorage for tarot page
-    const tarotContext = {
-      profile,
-      theme,
-      concern,
-      fromCounselor: true,
-      timestamp: Date.now(),
-    };
-    sessionStorage.setItem("tarotContext", JSON.stringify(tarotContext));
-
-    // Navigate to tarot page
-    window.location.href = `/tarot?from=counselor&theme=${encodeURIComponent(theme)}`;
+    return userMessages.slice(-2).join(" ").slice(0, 200);
   };
 
   React.useEffect(() => {
     const onSeed = (e: any) => {
       if (e?.detail && typeof e.detail === "string") {
         setInput(e.detail);
+        if (autoSendSeed && !seedSentRef.current) {
+          seedSentRef.current = true;
+          // Use directText to avoid dependency on state update timing
+          handleSend(e.detail);
+        }
       }
     };
     window.addEventListener(seedEvent, onSeed);
     return () => window.removeEventListener(seedEvent, onSeed);
-  }, [seedEvent]);
+  }, [seedEvent, autoSendSeed]);
 
   React.useEffect(() => {
     if (!autoScroll) return;
@@ -495,17 +660,26 @@ export default function Chat({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log("[CV Upload] File:", file.name, "Type:", file.type, "Size:", file.size);
     setCvName(file.name);
 
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
       setParsingPdf(true);
       try {
         const text = await extractTextFromPDF(file);
-        setCvText(text.slice(0, 6000));
+        console.log("[CV Upload] PDF parsed, text length:", text.length);
+        if (text.length > 0) {
+          setCvText(text.slice(0, 6000));
+          setNotice(lang === "ko" ? `이력서 로드 완료 (${text.length}자)` : `CV loaded (${text.length} chars)`);
+          setTimeout(() => setNotice(null), 3000);
+        } else {
+          setCvText("");
+          setNotice(lang === "ko" ? "PDF에서 텍스트를 추출할 수 없습니다" : "Could not extract text from PDF");
+        }
       } catch (err) {
         console.error("[PDF] parse error:", err);
         setCvText("");
-        setNotice("PDF parsing failed");
+        setNotice(lang === "ko" ? "PDF 파싱 실패" : "PDF parsing failed");
       } finally {
         setParsingPdf(false);
       }
@@ -513,13 +687,18 @@ export default function Chat({
       const reader = new FileReader();
       reader.onload = () => {
         const text = typeof reader.result === "string" ? reader.result : "";
+        console.log("[CV Upload] Text file loaded, length:", text.length);
         setCvText(text.slice(0, 6000));
+        if (text.length > 0) {
+          setNotice(lang === "ko" ? `파일 로드 완료 (${text.length}자)` : `File loaded (${text.length} chars)`);
+          setTimeout(() => setNotice(null), 3000);
+        }
       };
       reader.onerror = () => {
         console.error("[FileReader] error:", reader.error);
         setCvText("");
         setCvName("");
-        setNotice("File reading failed. Please try again.");
+        setNotice(lang === "ko" ? "파일 읽기 실패" : "File reading failed");
       };
       reader.readAsText(file);
     }
@@ -528,6 +707,12 @@ export default function Chat({
   async function handleSend(directText?: string) {
     const text = directText || input.trim();
     if (!text || loading) return;
+
+    // Crisis detection - show support modal if needed
+    if (detectCrisis(text, lang)) {
+      setShowCrisisModal(true);
+      // Still send the message, but show resources
+    }
 
     // Hide suggestions after first message
     setShowSuggestions(false);
@@ -580,6 +765,11 @@ export default function Chat({
 
       if (!res.ok) throw new Error(await res.text());
       if (!res.body) throw new Error("No response body");
+
+      // Mark fallback if backend signaled it
+      if (res.headers.get("x-fallback") === "1") {
+        setUsedFallback(true);
+      }
 
       // Add empty assistant message that we'll stream into
       const assistantMsgId = `assistant-${Date.now()}`;
@@ -686,11 +876,21 @@ export default function Chat({
           }
         }
 
+        // Don't append follow-up text inline - show questions separately instead
+        setMessages((prev) => {
+          const updated = [...prev];
+          const lastIdx = updated.length - 1;
+          if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
+            updated[lastIdx] = { ...updated[lastIdx], content: cleanContent };
+          }
+          return updated;
+        });
+
         // Use AI-generated follow-ups if available, otherwise use universal pool
         if (aiFollowUps.length >= 2) {
           setFollowUpQuestions(aiFollowUps.slice(0, 2));
         } else {
-          generateFollowUpQuestions();
+          generateFollowUpQuestions(text);
         }
 
         if (onSaveMessage) {
@@ -716,6 +916,44 @@ export default function Chat({
 
   return (
     <div className={styles.chatContainer}>
+      {/* Crisis Support Modal */}
+      {showCrisisModal && (
+        <div className={styles.crisisModalOverlay}>
+          <div className={styles.crisisModal}>
+            <div className={styles.crisisIcon}>💜</div>
+            <h3 className={styles.crisisTitle}>{tr.crisisTitle}</h3>
+            <p className={styles.crisisMessage}>{tr.crisisMessage}</p>
+            <div className={styles.crisisHotline}>
+              <span className={styles.crisisHotlineLabel}>{tr.crisisHotline}:</span>
+              <a href={`tel:${tr.crisisHotlineNumber.split(" ")[0]}`} className={styles.crisisHotlineNumber}>
+                {tr.crisisHotlineNumber}
+              </a>
+            </div>
+            <p className={styles.groundingTip}>{tr.groundingTip}</p>
+            <button
+              type="button"
+              className={styles.crisisCloseBtn}
+              onClick={() => setShowCrisisModal(false)}
+            >
+              {tr.crisisClose}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Welcome Back Banner for returning users */}
+      {showWelcomeBack && (
+        <div className={styles.welcomeBackBanner}>
+          <span>👋</span>
+          <span>{tr.welcomeBack}</span>
+          {userContext?.persona?.lastTopics?.[0] && (
+            <span className={styles.lastTopic}>
+              ({lang === "ko" ? "지난 주제" : "Last topic"}: {userContext.persona.lastTopics[0]})
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Messages Panel */}
       <div className={styles.messagesPanel}>
         {notice && (
@@ -934,6 +1172,16 @@ export default function Chat({
           </div>
         )}
       </div>
+
+      {/* Inline Tarot Modal */}
+      <InlineTarotModal
+        isOpen={showTarotModal}
+        onClose={() => setShowTarotModal(false)}
+        lang={lang}
+        profile={profile}
+        initialConcern={extractConcernFromMessages()}
+        theme={theme}
+      />
     </div>
   );
 }

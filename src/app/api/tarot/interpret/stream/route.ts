@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 
 function pickBackendUrl() {
   const url =
@@ -51,6 +52,9 @@ export async function POST(req: Request) {
     if (!requirePublicToken(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
+
+    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    if (oversized) return oversized;
 
     const body: StreamInterpretRequest = await req.json();
     const { categoryId, spreadId, spreadTitle, cards, userQuestion, language = "ko" } = body;

@@ -11,6 +11,8 @@ import { useI18n } from '@/i18n/I18nProvider';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { saveUserProfile } from '@/lib/userProfile';
 import styles from './Astrology.module.css';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
@@ -19,13 +21,25 @@ export default function Home() {
   const { locale, t } = useI18n();
   const router = useRouter();
   const { status } = useSession();
+  const { profile, isLoading: profileLoading } = useUserProfile();
 
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
-  // 프리미엄 상태 관리
-  const [isPremium, setIsPremium] = useState(false);
+  // 프리미엄 상태 관리 - 임시로 모든 사용자에게 프리미엄 제공
+  const [isPremium, setIsPremium] = useState(true);
   const isLoggedIn = status === 'authenticated';
+
+  // Load profile data into form
+  useEffect(() => {
+    if (profileLoading || profileLoaded) return;
+    if (profile.birthDate) setDate(profile.birthDate);
+    if (profile.birthTime) setTime(profile.birthTime);
+    if (profile.birthCity) setCityQuery(profile.birthCity);
+    if (profile.timezone) setTimeZone(profile.timezone);
+    setProfileLoaded(true);
+  }, [profile, profileLoading, profileLoaded]);
 
   // 프리미엄 상태 체크
   useEffect(() => {
@@ -165,6 +179,14 @@ export default function Home() {
         null;
 
       setAdvanced(adv);
+
+      // Save profile for reuse across services
+      saveUserProfile({
+        birthDate: date,
+        birthTime: time,
+        birthCity: cityQuery,
+        timezone: timeZone,
+      });
     } catch (err: any) {
       setError(err.message || (t('error.unknown') as string) || 'Unknown error occurred.');
     } finally {

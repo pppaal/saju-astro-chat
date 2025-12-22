@@ -1003,3 +1003,288 @@
     padding: 12px 16px;
   }
 }
+
+/* ========== Crisis Support Modal ========== */
+.crisisModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+  padding: 20px;
+}
+
+.crisisModal {
+  background: linear-gradient(145deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+  border: 2px solid rgba(167, 139, 250, 0.4);
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 40px rgba(139, 92, 246, 0.4),
+    0 0 80px rgba(139, 92, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: crisisModalEnter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes crisisModalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.crisisIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.8));
+  animation: crisisIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes crisisIconPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.8));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 30px rgba(167, 139, 250, 1));
+  }
+}
+
+.crisisTitle {
+  margin: 0 0 16px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.3;
+}
+
+.crisisMessage {
+  margin: 0 0 24px 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+}
+
+.crisisHotline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.crisisHotlineLabel {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.crisisHotlineNumber {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-radius: 12px;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+}
+
+.crisisHotlineNumber:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.6);
+}
+
+.groundingTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.groundingIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.groundingText {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+}
+
+.groundingText strong {
+  color: rgba(167, 139, 250, 1);
+}
+
+.crisisCloseBtn {
+  width: 100%;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.crisisCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== Welcome Back Banner ========== */
+.welcomeBackBanner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcomeIcon {
+  font-size: 32px;
+  filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.6));
+  animation: welcomeWave 2s ease-in-out infinite;
+}
+
+@keyframes welcomeWave {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(15deg);
+  }
+  75% {
+    transform: rotate(-10deg);
+  }
+}
+
+.welcomeContent {
+  flex: 1;
+}
+
+.welcomeText {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.lastTopic {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.lastTopic span {
+  color: rgba(167, 139, 250, 0.9);
+  font-weight: 500;
+}
+
+.welcomeCloseBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.welcomeCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ========== Crisis Modal Responsive ========== */
+@media (max-width: 640px) {
+  .crisisModal {
+    padding: 24px;
+    margin: 16px;
+  }
+
+  .crisisIcon {
+    font-size: 52px;
+  }
+
+  .crisisTitle {
+    font-size: 20px;
+  }
+
+  .crisisMessage {
+    font-size: 15px;
+  }
+
+  .crisisHotlineNumber {
+    font-size: 18px;
+    padding: 10px 20px;
+  }
+
+  .welcomeBackBanner {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .welcomeCloseBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+}

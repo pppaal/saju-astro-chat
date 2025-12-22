@@ -1,0 +1,272 @@
+{
+  "$schema": "icp_saju_mapping_v1",
+  "$description": "ICP 대인관계 스타일과 사주 십신(十神) 매핑",
+
+  "sipsin_to_icp": {
+    "비견": {
+      "name_en": "Bijeon (Peer/Sibling)",
+      "primary_octant": "PA",
+      "secondary_octant": "NO",
+      "icp_profile": {
+        "dominance": 0.6,
+        "affiliation": 0.3
+      },
+      "interpretation": {
+        "core": "비견은 자기와 동등한 존재로, 대인관계에서 동등함을 추구하고 주도권을 나누려 함",
+        "relational_style": "경쟁적이면서도 동료애가 있음. 파트너십 지향.",
+        "strength": "협력적 리더십, 팀워크, 공정한 관계 추구",
+        "challenge": "경쟁심 과열, 비교 의식, 자존심 충돌"
+      },
+      "icp_behavioral_patterns": [
+        "동등한 위치에서 관계를 맺으려 함",
+        "자신의 영역을 지키면서 협력함",
+        "인정 경쟁이 관계에 영향을 미침"
+      ]
+    },
+
+    "겁재": {
+      "name_en": "Geopjae (Rob Wealth)",
+      "primary_octant": "BC",
+      "secondary_octant": "PA",
+      "icp_profile": {
+        "dominance": 0.8,
+        "affiliation": -0.4
+      },
+      "interpretation": {
+        "core": "겁재는 공격적 경쟁성을 나타내며, 대인관계에서 지배적이고 냉담한 경향",
+        "relational_style": "승리 지향적, 타인을 경쟁자로 봄, 약점을 드러내지 않음",
+        "strength": "강한 추진력, 경쟁 상황에서 빛남, 목표 달성력",
+        "challenge": "관계를 수단화, 신뢰 구축 어려움, 배반에 민감"
+      },
+      "icp_behavioral_patterns": [
+        "관계에서 우위를 점하려 함",
+        "손해 보는 것을 극도로 싫어함",
+        "경계심이 강하고 쉽게 마음을 열지 않음"
+      ]
+    },
+
+    "식신": {
+      "name_en": "Siksin (Eating God)",
+      "primary_octant": "NO",
+      "secondary_octant": "LM",
+      "icp_profile": {
+        "dominance": -0.2,
+        "affiliation": 0.8
+      },
+      "interpretation": {
+        "core": "식신은 온화하고 친화적인 에너지로, 대인관계에서 따뜻함과 수용성을 나타냄",
+        "relational_style": "편안한 분위기 조성, 갈등 회피, 조화 추구",
+        "strength": "친화력, 유머, 사람들을 편안하게 함, 관계의 윤활유",
+        "challenge": "갈등 회피로 문제 축적, 자기 주장 약함, 의존 경향"
+      },
+      "icp_behavioral_patterns": [
+        "모든 사람과 잘 지내려 함",
+        "갈등 상황에서 유머로 넘기려 함",
+        "거절하기 어려워함"
+      ]
+    },
+
+    "상관": {
+      "name_en": "Sanggwan (Hurting Officer)",
+      "primary_octant": "BC",
+      "secondary_octant": "DE",
+      "icp_profile": {
+        "dominance": 0.5,
+        "affiliation": -0.6
+      },
+      "interpretation": {
+        "core": "상관은 기존 권위에 도전하는 에너지로, 대인관계에서 비판적이고 독립적",
+        "relational_style": "솔직하고 직설적, 위선을 참지 못함, 권위에 반항",
+        "strength": "정직함, 창의적 관점, 부조리 지적, 변화 촉발",
+        "challenge": "날카로운 말로 상처 줌, 적을 만들기 쉬움, 고립 위험"
+      },
+      "icp_behavioral_patterns": [
+        "속마음을 숨기지 않고 표현함",
+        "상대의 약점이나 모순을 지적함",
+        "권위자와 충돌하는 경향"
+      ]
+    },
+
+    "편재": {
+      "name_en": "Pyeonjae (Indirect Wealth)",
+      "primary_octant": "PA_NO",
+      "secondary_octant": "PA",
+      "icp_profile": {
+        "dominance": 0.6,
+        "affiliation": 0.5
+      },
+      "interpretation": {
+        "core": "편재는 활동적이고 사교적인 에너지로, 대인관계에서 영향력과 네트워킹",
+        "relational_style": "넓은 인맥 구축, 사교적, 기회 포착에 능함",
+        "strength": "사교성, 다양한 관계 유지, 융통성, 적응력",
+        "challenge": "깊은 관계 어려움, 관계의 도구화, 일관성 부족"
+      },
+      "icp_behavioral_patterns": [
+        "다양한 사람들과 넓게 교류함",
+        "기회가 있는 곳에 사람이 있다고 봄",
+        "관계를 유연하게 관리함"
+      ]
+    },
+
+    "정재": {
+      "name_en": "Jeongjae (Direct Wealth)",
+      "primary_octant": "LM",
+      "secondary_octant": "NO",
+      "icp_profile": {
+        "dominance": -0.3,
+        "affiliation": 0.6
+      },
+      "interpretation": {
+        "core": "정재는 안정적이고 성실한 에너지로, 대인관계에서 신뢰와 헌신을 중시",
+        "relational_style": "깊고 지속적인 관계 선호, 의무 이행, 책임감",
+        "strength": "신뢰성, 꾸준함, 헌신적 파트너, 안정 제공",
+        "challenge": "변화 저항, 새로운 관계 어려움, 소유욕"
+      },
+      "icp_behavioral_patterns": [
+        "한 번 맺은 관계를 오래 유지함",
+        "약속과 의무를 중시함",
+        "관계에서 안정감을 추구함"
+      ]
+    },
+
+    "편관": {
+      "name_en": "Pyeongwan (Seven Killings)",
+      "primary_octant": "PA",
+      "secondary_octant": "BC",
+      "icp_profile": {
+        "dominance": 0.9,
+        "affiliation": -0.2
+      },
+      "interpretation": {
+        "core": "편관은 강력한 권위 에너지로, 대인관계에서 지배와 통제 경향",
+        "relational_style": "카리스마적 지배, 명확한 위계, 강력한 리더십",
+        "strength": "결단력, 위기 대처, 리더십, 보호 본능",
+        "challenge": "독재적 경향, 통제욕, 타협 어려움, 위압감"
+      },
+      "icp_behavioral_patterns": [
+        "관계에서 주도권을 잡으려 함",
+        "명확한 상하 관계를 선호함",
+        "도전받으면 강하게 반응함"
+      ]
+    },
+
+    "정관": {
+      "name_en": "Jeonggwan (Direct Officer)",
+      "primary_octant": "PA",
+      "secondary_octant": "NO",
+      "icp_profile": {
+        "dominance": 0.7,
+        "affiliation": 0.4
+      },
+      "interpretation": {
+        "core": "정관은 질서와 규범의 에너지로, 대인관계에서 올바른 리더십과 책임",
+        "relational_style": "공정함 추구, 규칙 중시, 조직적 관계",
+        "strength": "공정한 리더, 신뢰받는 권위, 조직력, 책임감",
+        "challenge": "융통성 부족, 원칙 고수, 권위주의적 경향"
+      },
+      "icp_behavioral_patterns": [
+        "규칙과 역할을 명확히 함",
+        "공정하게 대우하려 노력함",
+        "책임지는 위치를 맡으려 함"
+      ]
+    },
+
+    "편인": {
+      "name_en": "Pyeonin (Indirect Seal)",
+      "primary_octant": "DE",
+      "secondary_octant": "FG",
+      "icp_profile": {
+        "dominance": -0.3,
+        "affiliation": -0.5
+      },
+      "interpretation": {
+        "core": "편인은 독특하고 비전통적 에너지로, 대인관계에서 거리감과 독립성",
+        "relational_style": "선택적 관계, 깊은 1:1 선호, 대중적 사교 거부",
+        "strength": "깊은 통찰, 독립성, 피상적 관계 거부, 진정성",
+        "challenge": "고립, 오해받음, 사회적 어색함, 관계 단절"
+      },
+      "icp_behavioral_patterns": [
+        "많은 사람보다 소수와 깊게 지냄",
+        "사교적 의무를 부담스러워함",
+        "혼자만의 시간이 필요함"
+      ]
+    },
+
+    "정인": {
+      "name_en": "Jeongin (Direct Seal)",
+      "primary_octant": "LM",
+      "secondary_octant": "JK",
+      "icp_profile": {
+        "dominance": -0.4,
+        "affiliation": 0.7
+      },
+      "interpretation": {
+        "core": "정인은 돌봄과 보호의 에너지로, 대인관계에서 양육적이고 지지적",
+        "relational_style": "돌봄 제공, 지지와 격려, 조건 없는 수용",
+        "strength": "따뜻한 돌봄, 공감력, 안전한 관계 제공, 헌신",
+        "challenge": "과잉보호, 의존관계 형성, 자기 희생, 경계 부족"
+      },
+      "icp_behavioral_patterns": [
+        "상대를 챙기고 돌보려 함",
+        "정서적 지지를 아끼지 않음",
+        "타인의 성장을 돕는 것에서 보람을 느낌"
+      ]
+    }
+  },
+
+  "saju_icp_patterns": {
+    "dominant_patterns": {
+      "겁재_편관_과다": {
+        "icp_tendency": "BC/PA 극단",
+        "description": "관계에서 지배-냉담 극단으로 치우침. 경쟁적이고 통제적.",
+        "relational_challenge": "친밀감 형성 어려움, 권력 투쟁, 신뢰 부족",
+        "growth_direction": "LM/NO 에너지 개발 - 취약함 수용, 따뜻함 표현"
+      },
+      "식신_정인_과다": {
+        "icp_tendency": "LM/NO 극단",
+        "description": "관계에서 순종-따뜻함 극단으로 치우침. 자기 희생적.",
+        "relational_challenge": "경계 설정 어려움, 이용당함, 자기 상실",
+        "growth_direction": "PA 에너지 개발 - 자기 주장, 건강한 거절"
+      },
+      "편인_상관_과다": {
+        "icp_tendency": "DE/BC 극단",
+        "description": "관계에서 냉담-비판적 극단으로 치우침. 고립 위험.",
+        "relational_challenge": "관계 단절, 오해, 외로움",
+        "growth_direction": "NO 에너지 개발 - 연결 시도, 수용적 태도"
+      }
+    },
+
+    "balanced_patterns": {
+      "비견_식신_균형": {
+        "icp_profile": "PA-NO 균형",
+        "description": "주도성과 친화력의 건강한 조합",
+        "relational_strength": "협력적 리더십, 팀 빌딩, 영향력 있는 관계"
+      },
+      "정관_정재_균형": {
+        "icp_profile": "PA-LM 조화",
+        "description": "책임감 있는 리더십과 헌신의 조합",
+        "relational_strength": "신뢰받는 파트너, 안정적 관계, 조직 내 존경"
+      }
+    }
+  },
+
+  "therapeutic_applications": {
+    "icp_based_sipsin_counseling": {
+      "for_BC_dominant": {
+        "sipsin_focus": ["겁재", "상관"],
+        "intervention": "관계에서 승리가 아닌 연결의 가치 탐색. 취약함 표현 연습.",
+        "question": "경쟁에서 이기는 것 말고, 관계에서 진정으로 원하는 것은 무엇인가요?"
+      },
+      "for_LM_dominant": {
+        "sipsin_focus": ["정인", "식신"],
+        "intervention": "건강한 경계 설정과 자기 주장 연습.",
+        "question": "누군가를 돌보지 않을 때, 당신은 어떤 가치가 있나요?"
+      },
+      "for_DE_dominant": {
+        "sipsin_focus": ["편인", "상관"],
+        "intervention": "선택적이고 안전한 연결 시도. 신뢰의 작은 실험.",
+        "question": "거리를 두는 것이 당신을 무엇으로부터 보호하나요?"
+      }
+    }
+  }
+}

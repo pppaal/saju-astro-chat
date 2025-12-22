@@ -1,0 +1,236 @@
+{
+  "$schema": "icp_jung_integration_v1",
+  "$description": "ICP 대인관계 모델과 Carl Jung 분석심리학 통합",
+
+  "theoretical_integration": {
+    "overview": {
+      "icp_origin": "Harry Stack Sullivan의 대인관계 이론, Timothy Leary의 원형 모델",
+      "jung_connection": "Jung의 유형론과 원형 이론은 대인관계 패턴의 심층 구조를 설명",
+      "synthesis": "ICP의 행동적 차원(지배-순종, 친화-적대)을 Jung의 심층 심리로 확장"
+    },
+    "key_bridges": [
+      "ICP 스타일 = 페르소나의 대인관계 표현",
+      "ICP 그림자 = 억압된 반대 스타일",
+      "ICP 갈등 = 콤플렉스의 관계적 표출",
+      "ICP 성장 = 개성화의 관계적 측면"
+    ]
+  },
+
+  "archetype_icp_mapping": {
+    "shadow": {
+      "jung_concept": "억압된 자아의 어두운 측면",
+      "icp_application": {
+        "PA_shadow": "억압된 JK (순종성, 취약함)",
+        "JK_shadow": "억압된 PA (지배성, 공격성)",
+        "NO_shadow": "억압된 DE (냉담함, 거리)",
+        "DE_shadow": "억압된 NO (친밀함, 연결)",
+        "BC_shadow": "억압된 LM (따뜻함, 돌봄)",
+        "LM_shadow": "억압된 BC (냉정함, 경계)"
+      },
+      "integration_process": {
+        "step1": "현재 ICP 스타일 인식",
+        "step2": "반대 스타일에 대한 저항 탐색",
+        "step3": "억압된 스타일의 긍정적 측면 발견",
+        "step4": "작은 실험으로 통합 시작"
+      }
+    },
+
+    "anima_animus": {
+      "jung_concept": "내면의 반대 성별 원형",
+      "icp_application": {
+        "for_men_with_PA": {
+          "anima_challenge": "부드러움, 수용성, 친밀감 통합",
+          "growth_direction": "LM/NO 에너지 개발",
+          "question": "당신의 내면 여성이 원하는 관계는 어떤 모습인가요?"
+        },
+        "for_women_with_LM": {
+          "animus_challenge": "자기주장, 결단력, 경계 통합",
+          "growth_direction": "PA 에너지 개발",
+          "question": "당신의 내면 남성이 지지하는 결정은 무엇인가요?"
+        }
+      }
+    },
+
+    "persona": {
+      "jung_concept": "사회적 가면, 외부에 보여주는 자아상",
+      "icp_application": {
+        "description": "ICP 스타일 자체가 대인관계에서의 페르소나",
+        "healthy_persona": "상황에 맞게 유연한 ICP 스타일",
+        "rigid_persona": "한 가지 ICP 스타일에 고착됨",
+        "persona_inflation": "페르소나와 자기 동일시",
+        "therapeutic_question": "다른 사람 앞에서의 당신과 혼자일 때의 당신, 얼마나 다른가요?"
+      }
+    },
+
+    "self": {
+      "jung_concept": "전체성, 의식과 무의식의 통합",
+      "icp_application": {
+        "description": "모든 ICP 스타일을 상황에 맞게 활용할 수 있는 유연성",
+        "individuation_goal": "지배-순종, 친화-적대 모두 접근 가능",
+        "wholeness_indicators": [
+          "필요할 때 리드할 수 있음 (PA)",
+          "필요할 때 따를 수 있음 (JK)",
+          "가까이 다가갈 수 있음 (NO)",
+          "거리를 둘 수 있음 (DE)",
+          "경쟁할 수 있음 (BC)",
+          "돌볼 수 있음 (LM)"
+        ]
+      }
+    }
+  },
+
+  "complex_icp_manifestation": {
+    "mother_complex": {
+      "jung_description": "어머니 원형에 의해 지배받는 무의식적 패턴",
+      "icp_manifestation": {
+        "positive": "LM 스타일 과발달 - 돌봄, 양육",
+        "negative_devouring": "관계에서 질식시키는 경향",
+        "negative_abandoning": "FG 스타일 - 거부 공포, 자기비하",
+        "in_relationships": "파트너에게 어머니 역할 기대 또는 어머니 역할 거부"
+      }
+    },
+    "father_complex": {
+      "jung_description": "아버지 원형에 의해 지배받는 무의식적 패턴",
+      "icp_manifestation": {
+        "positive": "PA 스타일 - 건강한 권위, 리더십",
+        "negative_tyrannical": "BC 스타일 - 통제, 냉정한 지배",
+        "negative_absent": "JK/FG 스타일 - 권위 부족, 자신감 결여",
+        "in_relationships": "권위 figures와의 갈등 또는 과도한 복종"
+      }
+    },
+    "inferiority_complex": {
+      "jung_description": "자기 가치에 대한 근본적 의심",
+      "icp_manifestation": {
+        "primary_style": "FG (순종적-냉담)",
+        "compensation": "BC (지배적-냉담)로 과잉 보상",
+        "relational_pattern": "관계 회피 또는 과시적 성취"
+      }
+    }
+  },
+
+  "cognitive_function_icp_correlation": {
+    "description": "Jung의 8가지 인지기능과 ICP 경향성",
+    "mappings": {
+      "Te": {
+        "function": "외향 사고",
+        "icp_tendency": "PA/BC",
+        "relational_style": "효율적이고 구조화된 관계, 목표 중심"
+      },
+      "Ti": {
+        "function": "내향 사고",
+        "icp_tendency": "DE",
+        "relational_style": "독립적 판단, 분석적 거리"
+      },
+      "Fe": {
+        "function": "외향 감정",
+        "icp_tendency": "NO/LM",
+        "relational_style": "조화 추구, 그룹 감정 조율"
+      },
+      "Fi": {
+        "function": "내향 감정",
+        "icp_tendency": "LM (깊은 가치) / DE (경계)",
+        "relational_style": "진정성 중시, 선택적 친밀감"
+      },
+      "Se": {
+        "function": "외향 감각",
+        "icp_tendency": "PA_NO",
+        "relational_style": "현재 순간, 활동적 연결"
+      },
+      "Si": {
+        "function": "내향 감각",
+        "icp_tendency": "JK/LM",
+        "relational_style": "안정 추구, 전통적 관계"
+      },
+      "Ne": {
+        "function": "외향 직관",
+        "icp_tendency": "PA_NO/NO",
+        "relational_style": "다양한 가능성, 새로운 연결"
+      },
+      "Ni": {
+        "function": "내향 직관",
+        "icp_tendency": "DE",
+        "relational_style": "깊은 이해, 선택적 연결"
+      }
+    }
+  },
+
+  "therapeutic_integration": {
+    "dream_work": {
+      "description": "꿈에서 나타나는 ICP 역학",
+      "interpretation_guide": {
+        "dominant_figure_in_dream": "내면의 PA 에너지 또는 PA에 대한 관계",
+        "submissive_position_in_dream": "JK 그림자 또는 억압된 취약함",
+        "cold_distant_figure": "DE 그림자 또는 거리두기 욕구",
+        "warm_nurturing_figure": "LM 에너지 또는 돌봄 필요"
+      }
+    },
+    "active_imagination": {
+      "description": "ICP 스타일과의 대화",
+      "exercise": {
+        "step1": "현재 지배적인 ICP 스타일을 인격화하여 대화",
+        "step2": "억압된 반대 스타일을 인격화하여 대화",
+        "step3": "두 스타일 간의 대화 촉진",
+        "step4": "통합된 자기의 목소리 찾기"
+      }
+    },
+    "individuation_through_icp": {
+      "description": "ICP 균형을 통한 개성화",
+      "stages": [
+        {
+          "stage": "페르소나 인식",
+          "icp_work": "자신의 주요 ICP 스타일과 그 기원 이해"
+        },
+        {
+          "stage": "그림자 대면",
+          "icp_work": "억압된 반대 ICP 스타일 인식 및 수용"
+        },
+        {
+          "stage": "아니마/아니무스 통합",
+          "icp_work": "성별 고정관념 넘어 전체 ICP 스펙트럼 접근"
+        },
+        {
+          "stage": "자기 실현",
+          "icp_work": "상황에 따른 유연한 ICP 스타일 활용"
+        }
+      ]
+    }
+  },
+
+  "research_foundation": {
+    "icp_studies": [
+      {
+        "author": "Wiggins, J.S.",
+        "year": 1979,
+        "title": "A psychological taxonomy of trait-descriptive terms: The interpersonal domain",
+        "journal": "Journal of Personality and Social Psychology"
+      },
+      {
+        "author": "Kiesler, D.J.",
+        "year": 1983,
+        "title": "The 1982 Interpersonal Circle",
+        "journal": "Psychological Review"
+      },
+      {
+        "author": "Leary, T.",
+        "year": 1957,
+        "title": "Interpersonal Diagnosis of Personality",
+        "publication": "Ronald Press"
+      }
+    ],
+    "jung_studies": [
+      {
+        "author": "Jung, C.G.",
+        "year": 1921,
+        "title": "Psychological Types",
+        "cw_volume": "CW 6"
+      },
+      {
+        "author": "Jung, C.G.",
+        "year": 1959,
+        "title": "The Archetypes and the Collective Unconscious",
+        "cw_volume": "CW 9i"
+      }
+    ],
+    "integration_rationale": "ICP 모델과 Jung 심리학 모두 대인관계 패턴의 양극성(polarity)을 강조. ICP의 2차원 모델은 Jung의 유형론과 구조적 유사성을 가지며, 원형 이론은 ICP 스타일의 심층적 기원을 설명."
+  }
+}

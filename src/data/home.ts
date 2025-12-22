@@ -108,15 +108,15 @@ export const TAROT_DECK: TarotCard[] = [
 
 export const SERVICE_LINKS: ServiceLink[] = [
   { key: "destinyMap", href: "/destiny-map", icon: "🗺️" },
-  { key: "calendar", href: "/calendar", icon: "🗓️" },
-  { key: "astrology", href: "/astrology", icon: "✨" },
-  { key: "saju", href: "/saju", icon: "☯️" },
   { key: "tarot", href: "/tarot", icon: "🔮" },
-  { key: "iching", href: "/iching", icon: "📜" },
+  { key: "calendar", href: "/calendar", icon: "🗓️" },
   { key: "dream", href: "/dream", icon: "🌙" },
-  { key: "numerology", href: "/numerology", icon: "🔢" },
-  { key: "compatibility", href: "/compatibility", icon: "❤️" },
   { key: "personality", href: "/personality", icon: "🌈" },
-  { key: "destinyMatch", href: "/destiny-match", icon: "💫", comingSoon: true },
-  { key: "pastLife", href: "/past-life", icon: "🔄", comingSoon: true },
+  // { key: "astrology", href: "/astrology", icon: "✨" },
+  // { key: "saju", href: "/saju", icon: "☯️" },
+  // { key: "iching", href: "/iching", icon: "📜" },
+  // { key: "numerology", href: "/numerology", icon: "🔢", comingSoon: true },
+  // { key: "compatibility", href: "/compatibility", icon: "❤️", comingSoon: true },
+  // { key: "destinyMatch", href: "/destiny-match", icon: "💫", comingSoon: true },
+  // { key: "pastLife", href: "/past-life", icon: "🔄", comingSoon: true },
 ];

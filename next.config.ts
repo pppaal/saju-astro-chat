@@ -30,6 +30,25 @@ const nextConfig = {
   // Security and cache headers
   async headers() {
     // Security headers for all routes
+    const isProd = process.env.NODE_ENV === 'production';
+
+    // Build connect-src dynamically to avoid HTTP in production
+    const connectSrc = [
+      "'self'",
+      "https://api.destinypal.com",
+      "https://*.sentry.io",
+      "https://www.google-analytics.com",
+      "https://www.clarity.ms",
+      "wss:",
+    ];
+    const aiBackend = process.env.AI_BACKEND_URL;
+    if (aiBackend && aiBackend.startsWith("https://")) {
+      connectSrc.push(aiBackend);
+    }
+    if (!isProd) {
+      connectSrc.push("http://localhost:5000", "http://127.0.0.1:5000");
+    }
+
     const securityHeaders = [
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'X-Frame-Options', value: 'DENY' },
@@ -40,11 +59,12 @@ const nextConfig = {
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://va.vercel-scripts.com https://cdnjs.cloudflare.com",
+          "worker-src 'self' blob: https://cdnjs.cloudflare.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com",
           "img-src 'self' data: blob: https: http:",
-          "connect-src 'self' http://localhost:5000 http://127.0.0.1:5000 https://api.destinypal.com https://*.sentry.io https://www.google-analytics.com https://www.clarity.ms wss:",
+          `connect-src ${connectSrc.join(' ')}`,
           "frame-ancestors 'none'",
           "base-uri 'self'",
           "form-action 'self'",

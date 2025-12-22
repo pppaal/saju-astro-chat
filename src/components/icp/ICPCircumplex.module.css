@@ -1,0 +1,152 @@
+/* components/icp/ICPCircumplex.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.svg {
+  width: 100%;
+  max-width: 350px;
+  height: auto;
+}
+
+.circleOuter {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+}
+
+.circleMiddle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1;
+  stroke-dasharray: 4 2;
+}
+
+.circleInner {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.axis {
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1;
+}
+
+.axisLabel {
+  fill: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-family: 'Pretendard', sans-serif;
+}
+
+.scorePolygon {
+  fill: rgba(138, 43, 226, 0.2);
+  stroke: rgba(138, 43, 226, 0.8);
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.octantCircle {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.octantCircle:hover {
+  fill: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.octantCircle.primary {
+  fill: rgba(255, 209, 102, 0.3);
+  stroke: #ffd166;
+  stroke-width: 2.5;
+}
+
+.octantCircle.secondary {
+  fill: rgba(102, 209, 255, 0.2);
+  stroke: #66d1ff;
+  stroke-width: 2;
+}
+
+.octantCode {
+  fill: white;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  pointer-events: none;
+}
+
+.octantLabel {
+  fill: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+  font-family: 'Pretendard', sans-serif;
+}
+
+.centerDot {
+  fill: #ff6b6b;
+  stroke: white;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px rgba(255, 107, 107, 0.6));
+}
+
+.legend {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.legendDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.legendDot.primary {
+  background: rgba(255, 209, 102, 0.3);
+  border-color: #ffd166;
+}
+
+.legendDot.secondary {
+  background: rgba(102, 209, 255, 0.2);
+  border-color: #66d1ff;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .svg {
+    max-width: 280px;
+  }
+
+  .octantLabel {
+    font-size: 9px;
+  }
+
+  .axisLabel {
+    font-size: 9px;
+  }
+}

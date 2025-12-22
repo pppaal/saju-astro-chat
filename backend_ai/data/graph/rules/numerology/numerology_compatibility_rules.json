@@ -1,0 +1,735 @@
+{
+  "$schema": "numerology_compatibility_rules_v1",
+  "$description": "수비학 궁합 규칙 - 생명수 간 호환성 분석",
+
+  "rule_type": "numerology_compatibility",
+  "version": "1.0",
+
+  "compatibility_matrix": {
+    "description": "생명수 간 궁합 매트릭스 (1-9, 11, 22, 33)",
+    "pairings": {
+      "1-1": {
+        "score": 70,
+        "level": "moderate",
+        "dynamic": "two_leaders",
+        "interpretation": {
+          "ko": "두 리더의 만남. 서로를 존경하지만 권력 다툼이 일어날 수 있습니다. 각자의 영역을 인정하면 강력한 파트너십이 됩니다.",
+          "en": "Meeting of two leaders. They respect each other but power struggles may arise. Recognizing each other's domains creates a powerful partnership."
+        },
+        "strengths": ["mutual respect", "ambition", "independence"],
+        "challenges": ["ego clashes", "competition", "stubbornness"],
+        "advice": {
+          "ko": "서로의 리더십 영역을 나누고 존중하세요.",
+          "en": "Divide and respect each other's leadership domains."
+        }
+      },
+      "1-2": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "leader_supporter",
+        "interpretation": {
+          "ko": "리더와 서포터의 이상적인 조합. 1의 결단력과 2의 세심함이 조화를 이룹니다.",
+          "en": "Ideal combination of leader and supporter. 1's decisiveness harmonizes with 2's attention to detail."
+        },
+        "strengths": ["complementary skills", "balance", "teamwork"],
+        "challenges": ["1 may dominate", "2 may feel unappreciated"],
+        "advice": {
+          "ko": "1은 2의 기여를 인정하고, 2는 자신의 목소리를 내세요.",
+          "en": "1 should acknowledge 2's contributions, and 2 should speak up."
+        }
+      },
+      "1-3": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "visionary_creative",
+        "interpretation": {
+          "ko": "비전가와 창조자의 역동적인 만남. 에너지 넘치고 재미있는 관계입니다.",
+          "en": "Dynamic meeting of visionary and creator. An energetic and fun relationship."
+        },
+        "strengths": ["creativity", "enthusiasm", "mutual inspiration"],
+        "challenges": ["both want attention", "lack of practicality"],
+        "advice": {
+          "ko": "즐거움 속에서도 실질적인 목표를 설정하세요.",
+          "en": "Set practical goals even while having fun."
+        }
+      },
+      "1-4": {
+        "score": 50,
+        "level": "challenging",
+        "dynamic": "pioneer_stabilizer",
+        "interpretation": {
+          "ko": "개척자와 안정자의 충돌. 1의 모험심과 4의 신중함이 마찰을 일으킬 수 있습니다.",
+          "en": "Clash between pioneer and stabilizer. 1's adventurousness may conflict with 4's caution."
+        },
+        "strengths": ["complementary strengths when balanced"],
+        "challenges": ["different paces", "frustration", "misunderstanding"],
+        "advice": {
+          "ko": "서로의 접근 방식을 배우고 중간 지점을 찾으세요.",
+          "en": "Learn from each other's approaches and find middle ground."
+        }
+      },
+      "1-5": {
+        "score": 90,
+        "level": "excellent",
+        "dynamic": "adventure_partners",
+        "interpretation": {
+          "ko": "모험 파트너! 둘 다 자유와 새로운 경험을 사랑하는 역동적인 조합입니다.",
+          "en": "Adventure partners! A dynamic combination where both love freedom and new experiences."
+        },
+        "strengths": ["shared enthusiasm", "mutual freedom", "excitement"],
+        "challenges": ["lack of stability", "both avoiding commitment"],
+        "advice": {
+          "ko": "자유를 즐기되 가끔은 함께 안정을 찾으세요.",
+          "en": "Enjoy freedom but occasionally find stability together."
+        }
+      },
+      "1-6": {
+        "score": 65,
+        "level": "moderate",
+        "dynamic": "independence_vs_family",
+        "interpretation": {
+          "ko": "독립과 가정의 긴장. 1의 개인적 야망과 6의 가족 중심이 충돌할 수 있습니다.",
+          "en": "Tension between independence and family. 1's personal ambition may clash with 6's family focus."
+        },
+        "strengths": ["1 provides drive", "6 provides warmth"],
+        "challenges": ["different priorities", "1 feels tied down", "6 feels neglected"],
+        "advice": {
+          "ko": "각자의 필요를 존중하며 균형점을 찾으세요.",
+          "en": "Respect each other's needs and find a balance point."
+        }
+      },
+      "1-7": {
+        "score": 55,
+        "level": "challenging",
+        "dynamic": "action_vs_reflection",
+        "interpretation": {
+          "ko": "행동과 성찰의 대비. 1의 외향성과 7의 내성적 성향이 이해하기 어려울 수 있습니다.",
+          "en": "Contrast between action and reflection. 1's extroversion and 7's introversion may be hard to understand."
+        },
+        "strengths": ["intellectual stimulation", "mutual respect for independence"],
+        "challenges": ["communication gap", "different social needs"],
+        "advice": {
+          "ko": "서로의 고유한 방식을 존중하고 공통 관심사를 찾으세요.",
+          "en": "Respect each other's unique ways and find common interests."
+        }
+      },
+      "1-8": {
+        "score": 75,
+        "level": "good",
+        "dynamic": "power_couple",
+        "interpretation": {
+          "ko": "파워 커플 가능성! 둘 다 성공 지향적이며 함께 큰 것을 이룰 수 있습니다.",
+          "en": "Power couple potential! Both are success-oriented and can achieve great things together."
+        },
+        "strengths": ["shared ambition", "mutual respect", "achievement focus"],
+        "challenges": ["both want control", "workaholism"],
+        "advice": {
+          "ko": "일과 관계의 균형을 유지하고 권력을 나누세요.",
+          "en": "Maintain work-life balance and share power."
+        }
+      },
+      "1-9": {
+        "score": 80,
+        "level": "good",
+        "dynamic": "visionary_humanitarian",
+        "interpretation": {
+          "ko": "비전가와 인도주의자. 1의 리더십이 9의 더 넓은 목표와 결합하면 세상을 변화시킬 수 있습니다.",
+          "en": "Visionary and humanitarian. When 1's leadership combines with 9's broader goals, they can change the world."
+        },
+        "strengths": ["shared vision", "mutual inspiration", "making a difference"],
+        "challenges": ["1 may be too self-focused", "9 too sacrificing"],
+        "advice": {
+          "ko": "개인적 야망과 더 큰 목적 사이의 균형을 찾으세요.",
+          "en": "Find balance between personal ambition and greater purpose."
+        }
+      },
+      "2-2": {
+        "score": 80,
+        "level": "good",
+        "dynamic": "harmonious_partners",
+        "interpretation": {
+          "ko": "조화로운 파트너십. 둘 다 관계를 중시하며 서로를 잘 이해합니다.",
+          "en": "Harmonious partnership. Both value relationships and understand each other well."
+        },
+        "strengths": ["empathy", "mutual support", "peaceful"],
+        "challenges": ["indecision", "both avoiding conflict", "lack of initiative"],
+        "advice": {
+          "ko": "때로는 결정을 내리고 주도권을 잡는 연습을 하세요.",
+          "en": "Practice making decisions and taking initiative sometimes."
+        }
+      },
+      "2-3": {
+        "score": 75,
+        "level": "good",
+        "dynamic": "diplomat_entertainer",
+        "interpretation": {
+          "ko": "외교관과 엔터테이너. 2의 세심함과 3의 표현력이 사회적으로 빛나는 조합입니다.",
+          "en": "Diplomat and entertainer. 2's thoughtfulness and 3's expressiveness make a socially shining combination."
+        },
+        "strengths": ["social harmony", "creativity", "emotional connection"],
+        "challenges": ["3 may overshadow 2", "mood swings"],
+        "advice": {
+          "ko": "3은 2에게 주목을 주고, 2는 표현하는 법을 배우세요.",
+          "en": "3 should give attention to 2, and 2 should learn to express more."
+        }
+      },
+      "2-4": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "caring_builder",
+        "interpretation": {
+          "ko": "돌봄과 건설. 2의 감정적 지원과 4의 안정감이 견고한 관계를 만듭니다.",
+          "en": "Caring and building. 2's emotional support and 4's stability create a solid relationship."
+        },
+        "strengths": ["security", "reliability", "mutual trust"],
+        "challenges": ["routine may become boring", "lack of spontaneity"],
+        "advice": {
+          "ko": "안정 속에서도 가끔 새로운 것을 시도하세요.",
+          "en": "Try new things occasionally even within stability."
+        }
+      },
+      "2-5": {
+        "score": 55,
+        "level": "challenging",
+        "dynamic": "stability_vs_freedom",
+        "interpretation": {
+          "ko": "안정과 자유의 충돌. 2의 관계 중심과 5의 자유 추구가 긴장을 일으킵니다.",
+          "en": "Stability vs freedom clash. 2's relationship focus and 5's freedom seeking create tension."
+        },
+        "strengths": ["can learn from differences"],
+        "challenges": ["2 feels abandoned", "5 feels trapped"],
+        "advice": {
+          "ko": "타협점을 찾고 서로의 필요를 존중하세요.",
+          "en": "Find compromises and respect each other's needs."
+        }
+      },
+      "2-6": {
+        "score": 95,
+        "level": "excellent",
+        "dynamic": "nurturing_harmony",
+        "interpretation": {
+          "ko": "양육과 조화의 완벽한 조합! 둘 다 관계와 가정을 중시하며 깊은 사랑을 나눕니다.",
+          "en": "Perfect combination of nurturing and harmony! Both value relationships and home, sharing deep love."
+        },
+        "strengths": ["deep love", "mutual care", "family focus"],
+        "challenges": ["may be too inward-focused", "smothering each other"],
+        "advice": {
+          "ko": "외부 세계와의 연결도 유지하세요.",
+          "en": "Maintain connections with the outside world too."
+        }
+      },
+      "2-7": {
+        "score": 70,
+        "level": "moderate",
+        "dynamic": "emotion_vs_intellect",
+        "interpretation": {
+          "ko": "감정과 지성의 만남. 2의 감정적 접근과 7의 분석적 접근이 보완적일 수 있습니다.",
+          "en": "Meeting of emotion and intellect. 2's emotional approach and 7's analytical approach can be complementary."
+        },
+        "strengths": ["balanced perspectives", "depth"],
+        "challenges": ["communication styles differ", "7 may seem cold to 2"],
+        "advice": {
+          "ko": "서로의 언어를 이해하려 노력하세요.",
+          "en": "Try to understand each other's language."
+        }
+      },
+      "2-8": {
+        "score": 90,
+        "level": "excellent",
+        "dynamic": "support_achiever",
+        "interpretation": {
+          "ko": "서포터와 성취자. 2의 감정적 지원이 8의 성공을 돕고, 8이 안정을 제공합니다.",
+          "en": "Supporter and achiever. 2's emotional support helps 8's success, and 8 provides stability."
+        },
+        "strengths": ["complementary roles", "mutual benefit", "strong team"],
+        "challenges": ["8 may overlook 2's needs", "power imbalance"],
+        "advice": {
+          "ko": "8은 성공만큼 관계에도 투자하세요.",
+          "en": "8 should invest in the relationship as much as in success."
+        }
+      },
+      "2-9": {
+        "score": 65,
+        "level": "moderate",
+        "dynamic": "personal_vs_universal",
+        "interpretation": {
+          "ko": "개인적 사랑과 보편적 사랑. 2는 가까운 관계를, 9는 전체를 사랑합니다.",
+          "en": "Personal love vs universal love. 2 loves close relationships, 9 loves everyone."
+        },
+        "strengths": ["both caring", "can expand each other"],
+        "challenges": ["9 may seem distant", "2 may feel not special"],
+        "advice": {
+          "ko": "9는 2에게 특별한 시간을 주고, 2는 9의 넓은 마음을 이해하세요.",
+          "en": "9 should give special time to 2, and 2 should understand 9's broad heart."
+        }
+      },
+      "3-3": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "creative_explosion",
+        "interpretation": {
+          "ko": "창의력 폭발! 둘 다 표현력이 뛰어나고 함께 있으면 즐겁습니다.",
+          "en": "Creative explosion! Both are expressive and fun to be together."
+        },
+        "strengths": ["fun", "creativity", "social life"],
+        "challenges": ["both scattered", "lack of grounding", "competition for attention"],
+        "advice": {
+          "ko": "즐거움과 함께 현실적인 책임도 나누세요.",
+          "en": "Share realistic responsibilities along with fun."
+        }
+      },
+      "3-4": {
+        "score": 50,
+        "level": "challenging",
+        "dynamic": "creativity_vs_structure",
+        "interpretation": {
+          "ko": "창의성과 구조의 충돌. 3의 자유로움과 4의 체계가 마찰을 일으킬 수 있습니다.",
+          "en": "Creativity vs structure clash. 3's freedom and 4's system may cause friction."
+        },
+        "strengths": ["can balance each other if willing"],
+        "challenges": ["4 seems boring to 3", "3 seems irresponsible to 4"],
+        "advice": {
+          "ko": "서로에게서 배울 점이 있음을 인정하세요.",
+          "en": "Recognize that there's something to learn from each other."
+        }
+      },
+      "3-5": {
+        "score": 95,
+        "level": "excellent",
+        "dynamic": "fun_adventure",
+        "interpretation": {
+          "ko": "재미와 모험! 둘 다 삶을 즐기고 새로운 경험을 사랑하는 역동적인 조합입니다.",
+          "en": "Fun and adventure! A dynamic combination where both enjoy life and love new experiences."
+        },
+        "strengths": ["excitement", "shared interests", "flexibility"],
+        "challenges": ["lack of stability", "both avoid responsibility"],
+        "advice": {
+          "ko": "즐거움 속에서도 미래를 위한 계획을 세우세요.",
+          "en": "Make plans for the future even while having fun."
+        }
+      },
+      "3-6": {
+        "score": 90,
+        "level": "excellent",
+        "dynamic": "creative_nurturing",
+        "interpretation": {
+          "ko": "창의적 양육. 3의 즐거움과 6의 돌봄이 따뜻하고 행복한 가정을 만듭니다.",
+          "en": "Creative nurturing. 3's fun and 6's care create a warm and happy home."
+        },
+        "strengths": ["warmth", "creativity", "family harmony"],
+        "challenges": ["6 may feel burdened", "3 may resist responsibility"],
+        "advice": {
+          "ko": "책임을 공평하게 나누고 서로를 인정하세요.",
+          "en": "Share responsibilities fairly and appreciate each other."
+        }
+      },
+      "3-7": {
+        "score": 55,
+        "level": "challenging",
+        "dynamic": "surface_vs_depth",
+        "interpretation": {
+          "ko": "표면과 깊이. 3의 사교성과 7의 내성적 성향이 이해하기 어려울 수 있습니다.",
+          "en": "Surface and depth. 3's sociability and 7's introversion may be hard to understand."
+        },
+        "strengths": ["can learn from differences"],
+        "challenges": ["different social needs", "communication gap"],
+        "advice": {
+          "ko": "서로의 방식을 존중하고 중간 지점을 찾으세요.",
+          "en": "Respect each other's ways and find middle ground."
+        }
+      },
+      "3-8": {
+        "score": 60,
+        "level": "moderate",
+        "dynamic": "fun_vs_work",
+        "interpretation": {
+          "ko": "즐거움과 일. 3의 놀이 정신과 8의 일 중심이 균형을 찾아야 합니다.",
+          "en": "Fun vs work. 3's playfulness and 8's work focus need to find balance."
+        },
+        "strengths": ["can complement each other"],
+        "challenges": ["different priorities", "8 too serious for 3"],
+        "advice": {
+          "ko": "일과 놀이의 균형을 함께 찾으세요.",
+          "en": "Find work-play balance together."
+        }
+      },
+      "3-9": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "creative_humanitarian",
+        "interpretation": {
+          "ko": "창의적 인도주의. 둘 다 표현력이 뛰어나고 세상에 영감을 줍니다.",
+          "en": "Creative humanitarian. Both are expressive and inspire the world."
+        },
+        "strengths": ["shared creativity", "inspiration", "making a difference"],
+        "challenges": ["both may be impractical", "scattered energy"],
+        "advice": {
+          "ko": "비전을 현실로 만드는 방법을 함께 찾으세요.",
+          "en": "Find ways to make your vision real together."
+        }
+      },
+      "4-4": {
+        "score": 70,
+        "level": "moderate",
+        "dynamic": "double_stability",
+        "interpretation": {
+          "ko": "이중 안정. 둘 다 안정과 체계를 중시하여 견고하지만 융통성이 부족할 수 있습니다.",
+          "en": "Double stability. Both value stability and structure, making it solid but potentially rigid."
+        },
+        "strengths": ["reliability", "shared values", "security"],
+        "challenges": ["too routine", "lack of excitement", "stubbornness"],
+        "advice": {
+          "ko": "가끔은 일상을 벗어나 새로운 것을 시도하세요.",
+          "en": "Try new things outside the routine sometimes."
+        }
+      },
+      "4-5": {
+        "score": 45,
+        "level": "difficult",
+        "dynamic": "stability_vs_change",
+        "interpretation": {
+          "ko": "안정과 변화의 극단적 충돌. 가장 어려운 조합 중 하나입니다.",
+          "en": "Extreme clash of stability and change. One of the most difficult combinations."
+        },
+        "strengths": ["can learn from extremes if very committed"],
+        "challenges": ["fundamental differences", "constant friction"],
+        "advice": {
+          "ko": "큰 노력과 이해가 필요합니다. 서로의 가치를 존중하세요.",
+          "en": "Great effort and understanding needed. Respect each other's values."
+        }
+      },
+      "4-6": {
+        "score": 80,
+        "level": "good",
+        "dynamic": "builder_nurturer",
+        "interpretation": {
+          "ko": "건설자와 양육자. 4의 안정성과 6의 돌봄이 든든한 가정을 만듭니다.",
+          "en": "Builder and nurturer. 4's stability and 6's care create a solid home."
+        },
+        "strengths": ["security", "family focus", "reliability"],
+        "challenges": ["may become too routine", "lack of excitement"],
+        "advice": {
+          "ko": "안정 속에서도 로맨스와 재미를 잊지 마세요.",
+          "en": "Don't forget romance and fun within stability."
+        }
+      },
+      "4-7": {
+        "score": 90,
+        "level": "excellent",
+        "dynamic": "practical_wisdom",
+        "interpretation": {
+          "ko": "실용적 지혜. 4의 현실적 접근과 7의 깊은 사고가 균형 잡힌 관계를 만듭니다.",
+          "en": "Practical wisdom. 4's realistic approach and 7's deep thinking create a balanced relationship."
+        },
+        "strengths": ["mutual respect", "depth", "stability"],
+        "challenges": ["both may be too serious", "lack of spontaneity"],
+        "advice": {
+          "ko": "가끔은 가볍게 즐기는 시간도 가지세요.",
+          "en": "Have light fun times occasionally."
+        }
+      },
+      "4-8": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "builder_achiever",
+        "interpretation": {
+          "ko": "건설자와 성취자. 둘 다 목표 지향적이며 함께 큰 것을 이룰 수 있습니다.",
+          "en": "Builder and achiever. Both are goal-oriented and can achieve great things together."
+        },
+        "strengths": ["shared focus", "achievement", "material success"],
+        "challenges": ["workaholism", "neglecting emotions"],
+        "advice": {
+          "ko": "일 외에 관계와 감정에도 투자하세요.",
+          "en": "Invest in relationship and emotions besides work."
+        }
+      },
+      "4-9": {
+        "score": 55,
+        "level": "challenging",
+        "dynamic": "practical_vs_idealistic",
+        "interpretation": {
+          "ko": "현실과 이상. 4의 실용성과 9의 이상주의가 마찰을 일으킬 수 있습니다.",
+          "en": "Practical vs idealistic. 4's practicality and 9's idealism may cause friction."
+        },
+        "strengths": ["can balance each other"],
+        "challenges": ["different worldviews", "frustration"],
+        "advice": {
+          "ko": "서로의 관점에서 배우려 노력하세요.",
+          "en": "Try to learn from each other's perspectives."
+        }
+      },
+      "5-5": {
+        "score": 75,
+        "level": "good",
+        "dynamic": "double_adventure",
+        "interpretation": {
+          "ko": "이중 모험. 둘 다 자유와 변화를 사랑하여 흥미진진하지만 안정이 부족합니다.",
+          "en": "Double adventure. Both love freedom and change, exciting but lacking stability."
+        },
+        "strengths": ["excitement", "shared freedom", "understanding"],
+        "challenges": ["no anchor", "both avoiding commitment"],
+        "advice": {
+          "ko": "자유를 즐기면서도 서로에 대한 헌신을 키우세요.",
+          "en": "Develop commitment to each other while enjoying freedom."
+        }
+      },
+      "5-6": {
+        "score": 50,
+        "level": "challenging",
+        "dynamic": "freedom_vs_responsibility",
+        "interpretation": {
+          "ko": "자유와 책임의 충돌. 5의 자유 추구와 6의 가정 중심이 갈등을 일으킵니다.",
+          "en": "Freedom vs responsibility clash. 5's freedom seeking and 6's family focus create conflict."
+        },
+        "strengths": ["can expand each other"],
+        "challenges": ["5 feels trapped", "6 feels neglected"],
+        "advice": {
+          "ko": "타협을 통해 양쪽 모두의 필요를 충족시키세요.",
+          "en": "Meet both needs through compromise."
+        }
+      },
+      "5-7": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "explorer_seeker",
+        "interpretation": {
+          "ko": "탐험가와 구도자. 둘 다 새로운 것을 추구하며 깊이 있게 탐구합니다.",
+          "en": "Explorer and seeker. Both pursue new things and explore deeply."
+        },
+        "strengths": ["shared curiosity", "intellectual stimulation", "freedom"],
+        "challenges": ["both may avoid commitment", "different social needs"],
+        "advice": {
+          "ko": "함께 탐구하면서도 연결을 유지하세요.",
+          "en": "Explore together while maintaining connection."
+        }
+      },
+      "5-8": {
+        "score": 60,
+        "level": "moderate",
+        "dynamic": "freedom_vs_control",
+        "interpretation": {
+          "ko": "자유와 통제. 5의 자유로움과 8의 통제 성향이 마찰을 일으킬 수 있습니다.",
+          "en": "Freedom vs control. 5's freedom and 8's controlling tendency may cause friction."
+        },
+        "strengths": ["can be dynamic if balanced"],
+        "challenges": ["power struggles", "different needs"],
+        "advice": {
+          "ko": "서로의 영역을 존중하고 타협하세요.",
+          "en": "Respect each other's space and compromise."
+        }
+      },
+      "5-9": {
+        "score": 90,
+        "level": "excellent",
+        "dynamic": "freedom_humanitarian",
+        "interpretation": {
+          "ko": "자유로운 인도주의. 둘 다 넓은 시야와 변화를 사랑합니다.",
+          "en": "Free humanitarian. Both love broad views and change."
+        },
+        "strengths": ["shared vision", "adventure", "making a difference"],
+        "challenges": ["both may be scattered", "lack of grounding"],
+        "advice": {
+          "ko": "비전을 현실로 만드는 데 함께 집중하세요.",
+          "en": "Focus together on making vision real."
+        }
+      },
+      "6-6": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "double_nurturing",
+        "interpretation": {
+          "ko": "이중 양육. 둘 다 가정과 돌봄을 중시하여 따뜻하고 사랑 넘치는 관계입니다.",
+          "en": "Double nurturing. Both value home and care, creating a warm and loving relationship."
+        },
+        "strengths": ["deep love", "family harmony", "mutual care"],
+        "challenges": ["may smother each other", "lack of outside interests"],
+        "advice": {
+          "ko": "서로에게만 집중하지 말고 외부 관계도 유지하세요.",
+          "en": "Maintain outside relationships, not just focusing on each other."
+        }
+      },
+      "6-7": {
+        "score": 55,
+        "level": "challenging",
+        "dynamic": "warmth_vs_distance",
+        "interpretation": {
+          "ko": "따뜻함과 거리. 6의 친밀함과 7의 독립성이 오해를 일으킬 수 있습니다.",
+          "en": "Warmth vs distance. 6's intimacy and 7's independence may cause misunderstanding."
+        },
+        "strengths": ["can balance each other"],
+        "challenges": ["7 seems cold to 6", "6 too clingy for 7"],
+        "advice": {
+          "ko": "서로의 사랑 언어를 이해하려 노력하세요.",
+          "en": "Try to understand each other's love language."
+        }
+      },
+      "6-8": {
+        "score": 70,
+        "level": "moderate",
+        "dynamic": "home_vs_career",
+        "interpretation": {
+          "ko": "가정과 경력. 6의 가정 중심과 8의 경력 중심이 균형을 찾아야 합니다.",
+          "en": "Home vs career. 6's home focus and 8's career focus need to find balance."
+        },
+        "strengths": ["complementary if balanced", "material comfort"],
+        "challenges": ["different priorities", "8 neglects family"],
+        "advice": {
+          "ko": "가정과 일 모두에 시간을 투자하세요.",
+          "en": "Invest time in both home and work."
+        }
+      },
+      "6-9": {
+        "score": 95,
+        "level": "excellent",
+        "dynamic": "love_expanded",
+        "interpretation": {
+          "ko": "확장된 사랑. 6의 가족 사랑과 9의 보편적 사랑이 깊고 넓은 관계를 만듭니다.",
+          "en": "Love expanded. 6's family love and 9's universal love create a deep and broad relationship."
+        },
+        "strengths": ["deep compassion", "shared values", "making a difference"],
+        "challenges": ["9 may seem distant at times", "both may over-sacrifice"],
+        "advice": {
+          "ko": "서로에게도 시간을 투자하고 자기 돌봄도 잊지 마세요.",
+          "en": "Invest time in each other and don't forget self-care."
+        }
+      },
+      "7-7": {
+        "score": 80,
+        "level": "good",
+        "dynamic": "double_seekers",
+        "interpretation": {
+          "ko": "이중 구도자. 둘 다 깊은 사고와 영적 탐구를 중시합니다.",
+          "en": "Double seekers. Both value deep thinking and spiritual exploration."
+        },
+        "strengths": ["intellectual depth", "mutual understanding", "spiritual connection"],
+        "challenges": ["both may isolate", "lack of emotional expression"],
+        "advice": {
+          "ko": "생각뿐 아니라 감정도 나누세요.",
+          "en": "Share emotions as well as thoughts."
+        }
+      },
+      "7-8": {
+        "score": 50,
+        "level": "challenging",
+        "dynamic": "spiritual_vs_material",
+        "interpretation": {
+          "ko": "영적과 물질적. 7의 내적 탐구와 8의 외적 성공이 충돌할 수 있습니다.",
+          "en": "Spiritual vs material. 7's inner exploration and 8's outer success may clash."
+        },
+        "strengths": ["can balance each other"],
+        "challenges": ["different values", "misunderstanding"],
+        "advice": {
+          "ko": "서로의 가치를 존중하고 배우려 노력하세요.",
+          "en": "Respect each other's values and try to learn."
+        }
+      },
+      "7-9": {
+        "score": 70,
+        "level": "moderate",
+        "dynamic": "wisdom_compassion",
+        "interpretation": {
+          "ko": "지혜와 연민. 둘 다 깊은 이해를 추구하지만 다른 방식으로 표현합니다.",
+          "en": "Wisdom and compassion. Both seek deep understanding but express it differently."
+        },
+        "strengths": ["shared depth", "spiritual connection"],
+        "challenges": ["different approaches", "7 more internal, 9 more external"],
+        "advice": {
+          "ko": "서로의 접근 방식을 존중하고 결합하세요.",
+          "en": "Respect and combine each other's approaches."
+        }
+      },
+      "8-8": {
+        "score": 75,
+        "level": "good",
+        "dynamic": "power_couple",
+        "interpretation": {
+          "ko": "파워 커플. 둘 다 성공 지향적이며 함께 제국을 세울 수 있습니다.",
+          "en": "Power couple. Both are success-oriented and can build an empire together."
+        },
+        "strengths": ["shared ambition", "achievement", "material success"],
+        "challenges": ["power struggles", "workaholism", "neglecting relationship"],
+        "advice": {
+          "ko": "경쟁하지 말고 협력하세요. 관계에도 투자하세요.",
+          "en": "Cooperate instead of competing. Invest in the relationship too."
+        }
+      },
+      "8-9": {
+        "score": 55,
+        "level": "challenging",
+        "dynamic": "material_vs_spiritual",
+        "interpretation": {
+          "ko": "물질과 영성. 8의 물질적 추구와 9의 영적 이상이 충돌할 수 있습니다.",
+          "en": "Material vs spiritual. 8's material pursuit and 9's spiritual ideals may clash."
+        },
+        "strengths": ["can balance each other"],
+        "challenges": ["different values", "9 judges 8, 8 dismisses 9"],
+        "advice": {
+          "ko": "서로의 가치를 비판하지 말고 이해하려 노력하세요.",
+          "en": "Try to understand rather than criticize each other's values."
+        }
+      },
+      "9-9": {
+        "score": 85,
+        "level": "very_good",
+        "dynamic": "humanitarian_partners",
+        "interpretation": {
+          "ko": "인도주의적 파트너. 둘 다 세상을 더 나은 곳으로 만들고 싶어합니다.",
+          "en": "Humanitarian partners. Both want to make the world a better place."
+        },
+        "strengths": ["shared vision", "compassion", "making a difference"],
+        "challenges": ["both may over-sacrifice", "neglecting personal needs"],
+        "advice": {
+          "ko": "세상을 돕되 자신과 서로도 돌보세요.",
+          "en": "Help the world but also care for yourselves and each other."
+        }
+      }
+    }
+  },
+
+  "master_number_compatibility": {
+    "description": "마스터 넘버 궁합 특별 규칙",
+    "notes": {
+      "ko": "마스터 넘버(11, 22, 33)는 기본 숫자(2, 4, 6)의 에너지를 증폭시킵니다. 궁합에서 추가 보너스 또는 도전을 제공합니다.",
+      "en": "Master numbers (11, 22, 33) amplify the energy of base numbers (2, 4, 6). They provide additional bonuses or challenges in compatibility."
+    },
+    "master_bonus": 5,
+    "double_master_bonus": 10,
+    "special_pairings": {
+      "11-11": {
+        "score": 90,
+        "note": {
+          "ko": "높은 영적 연결, 그러나 현실 그라운딩 필요",
+          "en": "High spiritual connection, but grounding in reality needed"
+        }
+      },
+      "11-22": {
+        "score": 85,
+        "note": {
+          "ko": "영감과 현실화의 강력한 조합",
+          "en": "Powerful combination of inspiration and manifestation"
+        }
+      },
+      "22-22": {
+        "score": 80,
+        "note": {
+          "ko": "엄청난 잠재력, 그러나 과부하 위험",
+          "en": "Enormous potential, but risk of overload"
+        }
+      },
+      "22-33": {
+        "score": 90,
+        "note": {
+          "ko": "건설과 치유의 완벽한 조화",
+          "en": "Perfect harmony of building and healing"
+        }
+      },
+      "33-33": {
+        "score": 95,
+        "note": {
+          "ko": "가장 높은 영적 연결, 봉사에 헌신",
+          "en": "Highest spiritual connection, devoted to service"
+        }
+      }
+    }
+  }
+}

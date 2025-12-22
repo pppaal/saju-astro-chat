@@ -1,0 +1,315 @@
+{
+  "$schema": "icp_astro_mapping_v1",
+  "$description": "ICP 대인관계 스타일과 점성술 요소 매핑",
+
+  "planet_to_icp": {
+    "sun": {
+      "name_ko": "태양",
+      "primary_octant": "PA",
+      "secondary_octant": "PA_NO",
+      "icp_profile": {
+        "dominance": 0.7,
+        "affiliation": 0.3
+      },
+      "interpretation": {
+        "core": "태양은 자아와 정체성의 핵심으로, 대인관계에서 자기 표현과 인정 욕구",
+        "relational_style": "중심에 서고 싶은 욕구, 인정받고 싶음, 빛나고 싶음",
+        "strong_sun": "자신감 있는 리더, 카리스마, 타인에게 영감을 줌",
+        "weak_sun": "인정 욕구 과잉, 자기중심성, 관심 독점"
+      }
+    },
+
+    "moon": {
+      "name_ko": "달",
+      "primary_octant": "LM",
+      "secondary_octant": "NO",
+      "icp_profile": {
+        "dominance": -0.4,
+        "affiliation": 0.7
+      },
+      "interpretation": {
+        "core": "달은 감정과 돌봄의 영역으로, 대인관계에서 정서적 연결과 양육",
+        "relational_style": "정서적 친밀감 추구, 돌봄과 돌봄받음, 안전한 관계",
+        "strong_moon": "깊은 공감력, 정서적 지지 제공, 양육적",
+        "weak_moon": "정서적 의존, 변덕, 경계 부족"
+      }
+    },
+
+    "mercury": {
+      "name_ko": "수성",
+      "primary_octant": "NO",
+      "secondary_octant": "PA_NO",
+      "icp_profile": {
+        "dominance": 0.2,
+        "affiliation": 0.5
+      },
+      "interpretation": {
+        "core": "수성은 소통의 행성으로, 대인관계에서 대화와 정보 교환",
+        "relational_style": "대화를 통한 연결, 아이디어 공유, 지적 교류",
+        "strong_mercury": "뛰어난 소통력, 중재 능력, 다양한 관계 유지",
+        "weak_mercury": "피상적 연결, 가십, 진정한 친밀감 어려움"
+      }
+    },
+
+    "venus": {
+      "name_ko": "금성",
+      "primary_octant": "NO",
+      "secondary_octant": "LM",
+      "icp_profile": {
+        "dominance": -0.1,
+        "affiliation": 0.9
+      },
+      "interpretation": {
+        "core": "금성은 사랑과 조화의 행성으로, 대인관계에서 친밀함과 매력",
+        "relational_style": "조화와 아름다움 추구, 갈등 회피, 사랑받고 싶음",
+        "strong_venus": "매력적, 조화로운 관계 구축, 외교적",
+        "weak_venus": "갈등 회피 과잉, 관계 의존, 가치 타협"
+      }
+    },
+
+    "mars": {
+      "name_ko": "화성",
+      "primary_octant": "BC",
+      "secondary_octant": "PA",
+      "icp_profile": {
+        "dominance": 0.8,
+        "affiliation": -0.3
+      },
+      "interpretation": {
+        "core": "화성은 행동과 주장의 행성으로, 대인관계에서 경쟁과 직접성",
+        "relational_style": "직접적 표현, 경쟁, 갈등 마주하기",
+        "strong_mars": "솔직함, 용기, 원하는 것을 추구, 보호 본능",
+        "weak_mars": "공격성, 갈등 유발, 인내 부족"
+      }
+    },
+
+    "jupiter": {
+      "name_ko": "목성",
+      "primary_octant": "PA_NO",
+      "secondary_octant": "NO",
+      "icp_profile": {
+        "dominance": 0.5,
+        "affiliation": 0.6
+      },
+      "interpretation": {
+        "core": "목성은 확장과 관대함의 행성으로, 대인관계에서 포용력과 영향력",
+        "relational_style": "관대함, 멘토링, 비전 공유, 넓은 인맥",
+        "strong_jupiter": "영감을 주는 리더, 관대한 후원자, 연결자",
+        "weak_jupiter": "과장, 약속 과잉, 경계 부족"
+      }
+    },
+
+    "saturn": {
+      "name_ko": "토성",
+      "primary_octant": "DE",
+      "secondary_octant": "BC",
+      "icp_profile": {
+        "dominance": 0.3,
+        "affiliation": -0.6
+      },
+      "interpretation": {
+        "core": "토성은 책임과 한계의 행성으로, 대인관계에서 경계와 구조",
+        "relational_style": "명확한 경계, 신뢰 천천히 구축, 책임 중시",
+        "strong_saturn": "신뢰할 수 있음, 책임감, 장기적 관계",
+        "weak_saturn": "냉담함, 비판적, 친밀감 회피"
+      }
+    },
+
+    "uranus": {
+      "name_ko": "천왕성",
+      "primary_octant": "DE",
+      "secondary_octant": "PA",
+      "icp_profile": {
+        "dominance": 0.4,
+        "affiliation": -0.5
+      },
+      "interpretation": {
+        "core": "천왕성은 독립과 혁신의 행성으로, 대인관계에서 자유와 독특함",
+        "relational_style": "관습적 관계 거부, 독립성 추구, 예측 불가",
+        "strong_uranus": "독창적, 자유로운 관계, 고정관념 타파",
+        "weak_uranus": "관계 불안정, 갑작스러운 단절, 친밀감 회피"
+      }
+    },
+
+    "neptune": {
+      "name_ko": "해왕성",
+      "primary_octant": "LM",
+      "secondary_octant": "FG",
+      "icp_profile": {
+        "dominance": -0.5,
+        "affiliation": 0.4
+      },
+      "interpretation": {
+        "core": "해왕성은 이상과 융합의 행성으로, 대인관계에서 경계 해체와 공감",
+        "relational_style": "깊은 공감, 이상화, 경계 모호, 희생적",
+        "strong_neptune": "무조건적 사랑, 영적 연결, 치유적 존재",
+        "weak_neptune": "공동의존, 환상, 이용당함, 현실 회피"
+      }
+    },
+
+    "pluto": {
+      "name_ko": "명왕성",
+      "primary_octant": "BC",
+      "secondary_octant": "DE",
+      "icp_profile": {
+        "dominance": 0.6,
+        "affiliation": -0.7
+      },
+      "interpretation": {
+        "core": "명왕성은 권력과 변형의 행성으로, 대인관계에서 심층적 역학과 통제",
+        "relational_style": "깊고 강렬한 관계, 권력 역학, 변형적 만남",
+        "strong_pluto": "관계를 통한 변형, 심층 이해, 치유적 파괴",
+        "weak_pluto": "조종, 집착, 권력 투쟁, 신뢰 문제"
+      }
+    }
+  },
+
+  "sign_to_icp": {
+    "aries": {
+      "name_ko": "양자리",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.9, "affiliation": 0.1},
+      "relational_style": "직접적, 솔선수범, 경쟁적, 보호적"
+    },
+    "taurus": {
+      "name_ko": "황소자리",
+      "primary_octant": "LM",
+      "icp_profile": {"dominance": -0.2, "affiliation": 0.6},
+      "relational_style": "안정 추구, 충실함, 소유욕, 감각적 애정 표현"
+    },
+    "gemini": {
+      "name_ko": "쌍둥이자리",
+      "primary_octant": "NO",
+      "icp_profile": {"dominance": 0.2, "affiliation": 0.5},
+      "relational_style": "대화 중심, 다양한 관계, 호기심, 유연함"
+    },
+    "cancer": {
+      "name_ko": "게자리",
+      "primary_octant": "LM",
+      "icp_profile": {"dominance": -0.5, "affiliation": 0.8},
+      "relational_style": "돌봄, 가족 중심, 정서적 친밀감, 보호적"
+    },
+    "leo": {
+      "name_ko": "사자자리",
+      "primary_octant": "PA_NO",
+      "icp_profile": {"dominance": 0.8, "affiliation": 0.5},
+      "relational_style": "관대함, 인정 욕구, 드라마틱, 충성심"
+    },
+    "virgo": {
+      "name_ko": "처녀자리",
+      "primary_octant": "LM",
+      "icp_profile": {"dominance": -0.3, "affiliation": 0.4},
+      "relational_style": "봉사적, 비판적 돌봄, 완벽주의, 실용적 사랑"
+    },
+    "libra": {
+      "name_ko": "천칭자리",
+      "primary_octant": "NO",
+      "icp_profile": {"dominance": 0.0, "affiliation": 0.8},
+      "relational_style": "조화 추구, 파트너십, 외교적, 공정함"
+    },
+    "scorpio": {
+      "name_ko": "전갈자리",
+      "primary_octant": "BC",
+      "icp_profile": {"dominance": 0.5, "affiliation": -0.4},
+      "relational_style": "강렬함, 깊은 친밀감 또는 거리, 충성 또는 배신"
+    },
+    "sagittarius": {
+      "name_ko": "사수자리",
+      "primary_octant": "PA_NO",
+      "icp_profile": {"dominance": 0.6, "affiliation": 0.4},
+      "relational_style": "자유로움, 모험적, 솔직함, 철학적 연결"
+    },
+    "capricorn": {
+      "name_ko": "염소자리",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.7, "affiliation": -0.2},
+      "relational_style": "책임감, 구조적, 장기적 헌신, 신뢰 구축"
+    },
+    "aquarius": {
+      "name_ko": "물병자리",
+      "primary_octant": "DE",
+      "icp_profile": {"dominance": 0.3, "affiliation": -0.3},
+      "relational_style": "독립적, 우정 중시, 개혁적, 감정 거리"
+    },
+    "pisces": {
+      "name_ko": "물고기자리",
+      "primary_octant": "LM",
+      "icp_profile": {"dominance": -0.6, "affiliation": 0.6},
+      "relational_style": "공감적, 희생적, 경계 모호, 영적 연결"
+    }
+  },
+
+  "house_to_icp": {
+    "1st_house": {
+      "name_ko": "1하우스 (자아)",
+      "icp_relevance": "대인관계에서 자기 제시 방식",
+      "interpretation": "자기 표현과 첫인상이 대인관계 스타일에 영향"
+    },
+    "7th_house": {
+      "name_ko": "7하우스 (파트너십)",
+      "icp_relevance": "1:1 관계 패턴의 핵심",
+      "interpretation": "파트너에게 투사하는 특성, 관계에서 찾는 것"
+    },
+    "8th_house": {
+      "name_ko": "8하우스 (심층)",
+      "icp_relevance": "친밀감의 깊이와 권력 역학",
+      "interpretation": "깊은 관계에서의 신뢰, 통제, 변형 이슈"
+    },
+    "11th_house": {
+      "name_ko": "11하우스 (집단)",
+      "icp_relevance": "그룹 내 역할과 우정",
+      "interpretation": "사회적 네트워크에서의 위치와 역할"
+    }
+  },
+
+  "aspect_icp_effects": {
+    "venus_mars": {
+      "conjunction": {
+        "icp_effect": "친화와 지배의 통합",
+        "description": "매력적인 자기주장, 관계에서 열정과 조화 모두 추구"
+      },
+      "square": {
+        "icp_effect": "친화-지배 갈등",
+        "description": "원하는 것과 조화 사이 갈등, 관계에서 밀당"
+      },
+      "opposition": {
+        "icp_effect": "상대에게 투사",
+        "description": "파트너에게 화성적 또는 금성적 특성 투사"
+      }
+    },
+    "sun_saturn": {
+      "conjunction": {
+        "icp_effect": "지배-냉담 통합",
+        "description": "책임감 있는 리더십, 하지만 친밀감에 장벽"
+      },
+      "square": {
+        "icp_effect": "자신감-제한 갈등",
+        "description": "관계에서 인정받고 싶으나 두려움도 있음"
+      }
+    },
+    "moon_pluto": {
+      "conjunction": {
+        "icp_effect": "친화-냉담 강렬",
+        "description": "깊고 강렬한 정서적 유대, 집착 위험"
+      },
+      "square": {
+        "icp_effect": "정서적 권력 투쟁",
+        "description": "관계에서 통제와 돌봄의 갈등"
+      }
+    }
+  },
+
+  "synastry_icp_dynamics": {
+    "description": "두 차트 비교시 ICP 역학 분석",
+    "complementary_indicators": [
+      "한 사람의 PA 강조 + 다른 사람의 JK 강조 → 리더-팔로워 역학",
+      "양쪽 NO 강조 → 조화로운 친밀감",
+      "양쪽 PA 강조 → 권력 투쟁 가능"
+    ],
+    "conflict_indicators": [
+      "BC vs LM → 냉담함이 따뜻함을 상처줌",
+      "DE vs NO → 거리 vs 친밀감 갈등",
+      "PA vs PA → 주도권 경쟁"
+    ]
+  }
+}

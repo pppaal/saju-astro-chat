@@ -197,6 +197,92 @@
   animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
+/* ========== Load Profile Button ========== */
+.loadProfileButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px dashed rgba(139, 92, 246, 0.4);
+  border-radius: 12px;
+  color: #c4b5fd;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.loadProfileButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.15),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.loadProfileButton:hover::before {
+  left: 100%;
+}
+
+.loadProfileButton:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.25));
+  border-color: rgba(139, 92, 246, 0.6);
+  border-style: solid;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+}
+
+.loadProfileButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.loadProfileSuccess {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(74, 222, 128, 0.15));
+  border-color: rgba(34, 197, 94, 0.5);
+  border-style: solid;
+  color: #86efac;
+}
+
+.loadProfileSuccess:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(74, 222, 128, 0.2));
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.loadProfileIcon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.loadProfileSuccess .loadProfileIcon {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.loadProfileText {
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.3px;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -269,6 +355,171 @@ select.input option {
   background: #1a1a2e;
   color: rgba(255, 255, 255, 0.95);
   padding: 12px 16px;
+}
+
+/* ========== Custom Gender Select ========== */
+.genderSelectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.genderSelect {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.genderSelect:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.genderSelect:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.15),
+    0 4px 16px rgba(139, 92, 246, 0.3);
+}
+
+.genderSelectOpen {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.15),
+    0 4px 16px rgba(139, 92, 246, 0.3);
+}
+
+.genderIcon {
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(167, 139, 250, 0.2));
+  border-radius: 8px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  color: #c4b5fd;
+}
+
+.genderText {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+.genderArrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.3s ease;
+}
+
+.genderArrowOpen {
+  transform: rotate(180deg);
+}
+
+.genderDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: rgba(13, 13, 26, 0.98);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.6),
+    0 0 24px rgba(139, 92, 246, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: genderSlideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes genderSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.genderOption {
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  margin: 2px 0;
+}
+
+.genderOption:hover {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.genderOptionActive {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.genderOptionIcon {
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(167, 139, 250, 0.15));
+  border-radius: 8px;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  color: #c4b5fd;
+  transition: all 0.2s ease;
+}
+
+.genderOption:hover .genderOptionIcon {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(167, 139, 250, 0.25));
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: scale(1.05);
+}
+
+.genderOptionText {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+.genderCheck {
+  color: #a78bfa;
+  font-size: 16px;
+  font-weight: 600;
+  animation: checkPop 0.2s ease;
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .input[type="date"]::-webkit-calendar-picker-indicator,
@@ -530,6 +781,88 @@ select.input option {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ========== Matrix Link Section ========== */
+.matrixLink {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(167, 139, 250, 0.15);
+  text-align: center;
+  animation: fadeInUp 0.6s ease-out 0.8s both;
+}
+
+.matrixButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(167, 139, 250, 0.1));
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 12px;
+  color: #e0d4fc;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.matrixButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.matrixButton:hover::before {
+  left: 100%;
+}
+
+.matrixButton:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(167, 139, 250, 0.2));
+  border-color: rgba(167, 139, 250, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.matrixIcon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+}
+
+.matrixText {
+  position: relative;
+  z-index: 1;
+}
+
+.matrixArrow {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.matrixButton:hover .matrixArrow {
+  transform: translateX(4px);
+}
+
+.matrixDescription {
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.3px;
 }
 

@@ -1,0 +1,274 @@
+{
+  "$schema": "personalized_dream_analysis_v1",
+  "$description": "개인화된 꿈 분석 시스템 - 개인 심리, 상황, 패턴 통합",
+
+  "dream_analysis_framework": {
+    "levels": [
+      "1차: 직접적 의미 - 꿈의 표면적 내용",
+      "2차: 상징적 의미 - 보편적 상징 해석",
+      "3차: 개인적 의미 - 개인사와 연결",
+      "4차: 심층 의미 - 무의식의 메시지",
+      "5차: 예지적 의미 - 미래 방향 제시"
+    ],
+    "interpretation_process": {
+      "step1": "꿈의 감정 파악 - 어떤 기분이었는가?",
+      "step2": "주요 상징 추출 - 무엇이 등장했는가?",
+      "step3": "현재 상황 연결 - 최근 고민은 무엇인가?",
+      "step4": "개인 연상 탐색 - 이 상징이 나에게 의미하는 것은?",
+      "step5": "메시지 통합 - 무의식이 말하려는 것은?"
+    }
+  },
+
+  "recurring_dream_patterns": {
+    "description": "반복되는 꿈의 의미와 해결법",
+    "patterns": {
+      "being_chased": {
+        "korean": "쫓기는 꿈",
+        "frequency_meaning": {
+          "occasional": "일시적 스트레스, 회피하고 싶은 문제",
+          "frequent": "해결되지 않은 핵심 이슈, 그림자와의 대면 필요",
+          "chronic": "깊은 트라우마, 전문 상담 권장"
+        },
+        "chaser_types": {
+          "unknown_figure": "자신의 그림자, 억압된 면",
+          "known_person": "그 사람과의 미해결 갈등",
+          "animal": "본능적 욕구, 억압된 에너지",
+          "monster": "두려움의 실체화",
+          "authority": "책임감, 죄책감"
+        },
+        "resolution_guide": {
+          "dream_work": "꿈 속에서 뒤돌아 쫓아오는 것과 대면하기",
+          "waking_work": "회피하고 있는 문제 직면하기",
+          "therapeutic": "그림자 통합 작업"
+        }
+      },
+      "falling": {
+        "korean": "떨어지는 꿈",
+        "frequency_meaning": {
+          "occasional": "통제력 상실 우려, 불안정한 상황",
+          "frequent": "자신감 부족, 실패 두려움",
+          "chronic": "근본적 불안, 기반 상실감"
+        },
+        "context_variations": {
+          "falling_from_height": "높은 위치에서의 추락 공포, 성공 후 실패 두려움",
+          "falling_into_void": "방향 상실, 실존적 불안",
+          "falling_and_landing_safely": "두려움은 있지만 해결 가능",
+          "falling_into_water": "감정에 휩쓸릴 두려움"
+        },
+        "resolution_guide": {
+          "dream_work": "꿈 속에서 날개를 펴거나 부드럽게 착지하기",
+          "waking_work": "불안의 근원 탐색, 안정감 구축",
+          "therapeutic": "기초 안전감 강화"
+        }
+      },
+      "teeth_falling_out": {
+        "korean": "이빨 빠지는 꿈",
+        "meanings": {
+          "traditional_korean": "가족의 우환, 건강 주의",
+          "psychological": "자신감 상실, 외모 불안, 노화 공포",
+          "communication": "말을 잘 못하는 상황, 의사소통 문제"
+        },
+        "context_variations": {
+          "one_tooth": "특정 문제에 대한 불안",
+          "many_teeth": "광범위한 자신감 저하",
+          "painless": "자연스러운 변화의 수용",
+          "painful": "강제적 변화에 대한 저항"
+        }
+      },
+      "being_late": {
+        "korean": "지각하는 꿈",
+        "meanings": {
+          "anxiety": "기회를 놓칠 두려움",
+          "overwhelm": "시간과 책임에 대한 압박감",
+          "self_doubt": "준비되지 않았다는 느낌"
+        },
+        "context_variations": {
+          "late_for_exam": "평가받는 것에 대한 불안",
+          "late_for_work": "직업적 책임감과 압박",
+          "late_for_event": "사회적 기대에 부응하지 못하는 두려움"
+        }
+      },
+      "naked_in_public": {
+        "korean": "벗은 채로 공공장소에 있는 꿈",
+        "meanings": {
+          "vulnerability": "취약함이 드러날 두려움",
+          "authenticity": "진짜 모습을 보여주는 것에 대한 갈등",
+          "shame": "수치심, 판단받는 것에 대한 공포"
+        },
+        "interpretation_nuance": {
+          "no_one_notices": "실제로는 아무도 신경 쓰지 않음",
+          "everyone_stares": "판단받는다는 느낌이 강함",
+          "feeling_free": "진정한 자아를 드러내고 싶은 욕구"
+        }
+      },
+      "flying": {
+        "korean": "나는 꿈",
+        "meanings": {
+          "positive": "자유, 해방, 성취감, 초월",
+          "negative": "현실 도피, 책임 회피"
+        },
+        "flying_qualities": {
+          "effortless": "상황이 순조롭다, 자신감",
+          "struggling": "목표 달성의 어려움",
+          "high_altitude": "높은 이상과 야망",
+          "low_altitude": "현실에 발 딛고 있음",
+          "falling_while_flying": "성공 후 추락 우려"
+        }
+      },
+      "house_rooms": {
+        "korean": "집이나 방에 관한 꿈",
+        "meanings": {
+          "house_as_self": "집은 자아의 상징",
+          "new_room": "자신의 새로운 면 발견",
+          "basement": "무의식, 숨겨진 면",
+          "attic": "더 높은 의식, 영성",
+          "bathroom": "정화, 사적인 것",
+          "bedroom": "친밀함, 휴식, 성"
+        }
+      },
+      "water_dreams": {
+        "korean": "물에 관한 꿈",
+        "meanings": {
+          "water_as_emotion": "물은 감정의 상징",
+          "calm_water": "감정적 평화",
+          "stormy_water": "감정적 혼란",
+          "drowning": "감정에 압도됨",
+          "swimming_well": "감정을 잘 다루고 있음"
+        }
+      }
+    }
+  },
+
+  "dream_emotion_guide": {
+    "description": "꿈 속 감정별 해석 가이드",
+    "emotions": {
+      "fear": {
+        "korean": "두려움",
+        "meaning": "회피하고 있는 것, 그림자와의 대면 필요",
+        "question": "무엇을 두려워하고 있나요? 그 두려움은 현실적인가요?"
+      },
+      "anger": {
+        "korean": "분노",
+        "meaning": "억압된 분노, 경계 침범",
+        "question": "누구에게/무엇에 화가 나 있나요? 표현하지 못한 분노가 있나요?"
+      },
+      "sadness": {
+        "korean": "슬픔",
+        "meaning": "상실, 그리움, 미해결된 슬픔",
+        "question": "무엇을 잃었거나 놓쳤나요? 슬픔을 충분히 표현했나요?"
+      },
+      "joy": {
+        "korean": "기쁨",
+        "meaning": "바람직한 상태, 무의식의 축복",
+        "question": "어떤 상황에서 기쁨을 느꼈나요? 그것을 현실에서 어떻게 실현할 수 있나요?"
+      },
+      "confusion": {
+        "korean": "혼란",
+        "meaning": "불확실성, 결정의 어려움",
+        "question": "무엇이 불분명한가요? 더 많은 정보가 필요한가요?"
+      },
+      "peace": {
+        "korean": "평화",
+        "meaning": "내면의 조화, 올바른 방향",
+        "question": "이 평화로운 느낌을 깨어있는 삶에도 가져올 수 있나요?"
+      }
+    }
+  },
+
+  "life_stage_dream_interpretation": {
+    "description": "인생 단계별 꿈 해석 차이",
+    "stages": {
+      "childhood": {
+        "common_dreams": ["괴물", "부모 잃어버림", "날기"],
+        "interpretation_focus": "안전감, 부모와의 관계, 상상력 발달"
+      },
+      "adolescence": {
+        "common_dreams": ["학교", "시험", "이성", "변형"],
+        "interpretation_focus": "정체성 형성, 성적 발달, 사회적 압력"
+      },
+      "young_adult": {
+        "common_dreams": ["직업", "결혼", "추격", "여행"],
+        "interpretation_focus": "진로, 관계, 독립, 미래에 대한 불안"
+      },
+      "middle_age": {
+        "common_dreams": ["건강", "가족", "죽음", "집"],
+        "interpretation_focus": "성찰, 의미, 업적, 시간의 흐름"
+      },
+      "elder": {
+        "common_dreams": ["과거", "고인", "평화로운 장소"],
+        "interpretation_focus": "인생 정리, 지혜, 초월, 영적 준비"
+      }
+    }
+  },
+
+  "dream_journaling_guide": {
+    "how_to_record": {
+      "immediately": "깨자마자 바로 기록 - 움직이기 전에",
+      "details": "감각, 색깔, 숫자, 인물, 장소, 감정 모두 기록",
+      "no_judgment": "이상해도 있는 그대로 적기",
+      "title": "핵심을 담은 제목 붙이기"
+    },
+    "analysis_questions": [
+      "이 꿈에서 가장 강렬한 이미지는?",
+      "어떤 감정을 느꼈나요?",
+      "이 상징이 나에게 개인적으로 의미하는 것은?",
+      "최근 삶에서 이와 연결되는 것은?",
+      "무의식이 나에게 말하려는 것은 무엇일까?",
+      "이 꿈의 메시지를 삶에 어떻게 적용할 수 있을까?"
+    ],
+    "pattern_tracking": {
+      "recurring_symbols": "반복되는 상징 기록",
+      "recurring_themes": "반복되는 주제 파악",
+      "timeline": "같은 꿈이 언제 반복되는지 패턴 찾기",
+      "life_correlation": "삶의 사건과 꿈의 상관관계"
+    }
+  },
+
+  "lucid_dreaming_guidance": {
+    "description": "자각몽을 통한 꿈 탐험",
+    "benefits": [
+      "두려운 꿈 상황 극복",
+      "그림자와 의식적 대면",
+      "창의적 문제 해결",
+      "치유적 경험"
+    ],
+    "techniques": {
+      "reality_checks": "깨어있는 동안 자주 '지금 꿈인가?' 확인",
+      "dream_signs": "자주 나타나는 꿈의 신호 파악",
+      "wake_back_to_bed": "새벽에 깨서 다시 자면서 자각하기",
+      "intention_setting": "자기 전 '꿈에서 자각하겠다' 의도 설정"
+    },
+    "in_dream_actions": {
+      "confront_fear": "두려운 대상에게 다가가 물어보기",
+      "ask_for_guidance": "꿈 속 인물에게 조언 구하기",
+      "transform_nightmare": "상황을 긍정적으로 바꾸기",
+      "explore": "새로운 장소와 가능성 탐험"
+    }
+  },
+
+  "integration_with_other_systems": {
+    "dream_and_saju": {
+      "description": "사주와 꿈 해석의 연결",
+      "day_master_dreams": {
+        "wood": "성장, 나무, 푸른색 꿈이 많음",
+        "fire": "열정, 빛, 붉은색 꿈이 많음",
+        "earth": "안정, 집, 산, 노란색 꿈이 많음",
+        "metal": "결단, 칼, 하얀색 꿈이 많음",
+        "water": "감정, 물, 검은색 꿈이 많음"
+      }
+    },
+    "dream_and_astrology": {
+      "moon_sign": "달 별자리가 꿈 스타일에 영향",
+      "12th_house": "12하우스 행성이 꿈의 주제에 영향",
+      "neptune": "해왕성 트랜짓 시 꿈이 더 생생해짐"
+    },
+    "dream_and_tarot": {
+      "method": "꿈의 주요 상징을 타로 카드와 연결",
+      "example": {
+        "death_in_dream": "Death 카드 - 변형, 끝과 시작",
+        "tower_falling": "Tower 카드 - 급격한 변화",
+        "water_calm": "Star 카드 - 치유와 희망"
+      }
+    }
+  }
+}

@@ -429,8 +429,8 @@ export default function ResultDisplay({
     </div>
   );
 
-  // 프리미엄 콘텐츠 접근 가능 여부
-  const canAccessPremium = isLoggedIn && isPremium;
+  // 프리미엄 콘텐츠 접근 가능 여부 - 임시로 모든 사용자에게 접근 허용
+  const canAccessPremium = true;
 
   // 열람 기록 중복 방지
   const detailsLoggedRef = useRef(false);

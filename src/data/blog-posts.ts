@@ -1,3 +1,5 @@
+import { generateCurrentYearFortuneBlogPost } from "./yearly-fortune-generator";
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -26,7 +28,6 @@ export const blogPosts: BlogPost[] = [
     icon: "四",
     date: "2024-12-15",
     readTime: 8,
-    featured: true,
     content: `
 ## Introduction to Saju (Four Pillars of Destiny)
 
@@ -1876,6 +1877,896 @@ Ready to explore your compatibility? Try our comprehensive Compatibility Analysi
 궁합을 탐구할 준비가 되셨나요? 종합 궁합 분석으로 관계에 대한 상세한 통찰을 받아보세요.
     `,
   },
+  {
+    slug: "personality-types-astrology-mbti-zodiac",
+    title: "Personality Types & Astrology: How MBTI Connects with Your Zodiac Sign",
+    titleKo: "성격 유형과 점성술: MBTI와 별자리의 놀라운 연결고리",
+    excerpt: "Explore the fascinating connections between MBTI personality types and zodiac signs to gain deeper self-understanding.",
+    excerptKo: "MBTI 성격 유형과 황도대 별자리 사이의 흥미로운 연결을 탐구하여 더 깊은 자기 이해를 얻어보세요.",
+    category: "Personality",
+    categoryKo: "성격",
+    icon: "🧠",
+    date: "2025-01-15",
+    readTime: 9,
+    content: `
+## The Intersection of Modern Psychology and Ancient Wisdom
+
+What if your MBTI type and zodiac sign are telling you the same story from different angles? Both systems aim to illuminate the patterns of human personality, and when combined, they offer a richer understanding of who you are.
+
+## Understanding the Two Systems
+
+### MBTI: The Modern Approach
+The Myers-Briggs Type Indicator categorizes personalities along four dimensions:
+- **Extraversion (E) vs. Introversion (I)**: Where you get energy
+- **Sensing (S) vs. Intuition (N)**: How you gather information
+- **Thinking (T) vs. Feeling (F)**: How you make decisions
+- **Judging (J) vs. Perceiving (P)**: How you structure your world
+
+### Astrology: The Ancient Wisdom
+Zodiac signs categorize personalities by:
+- **Elements**: Fire, Earth, Air, Water
+- **Modalities**: Cardinal, Fixed, Mutable
+- **Planetary rulers**: Each sign's governing planet
+
+## Zodiac Signs and Their MBTI Tendencies
+
+### Fire Signs: The Energizers
+
+**Aries (Mar 21 - Apr 19)**
+- Common types: ESTP, ENTJ, ENTP
+- Traits: Bold, competitive, action-oriented
+- Leadership and quick decision-making
+
+**Leo (Jul 23 - Aug 22)**
+- Common types: ENFJ, ESFP, ENTJ
+- Traits: Charismatic, creative, confident
+- Natural performers and leaders
+
+**Sagittarius (Nov 22 - Dec 21)**
+- Common types: ENTP, ENFP, ESTP
+- Traits: Adventurous, philosophical, optimistic
+- Freedom-loving explorers
+
+### Earth Signs: The Builders
+
+**Taurus (Apr 20 - May 20)**
+- Common types: ISFJ, ISTJ, ESFJ
+- Traits: Reliable, patient, sensual
+- Value stability and comfort
+
+**Virgo (Aug 23 - Sep 22)**
+- Common types: ISTJ, INTJ, ISFJ
+- Traits: Analytical, detail-oriented, helpful
+- Perfectionists at heart
+
+**Capricorn (Dec 22 - Jan 19)**
+- Common types: INTJ, ISTJ, ENTJ
+- Traits: Ambitious, disciplined, practical
+- Goal-oriented achievers
+
+### Air Signs: The Connectors
+
+**Gemini (May 21 - Jun 20)**
+- Common types: ENTP, ENFP, ESTP
+- Traits: Curious, adaptable, communicative
+- Social butterflies and idea-generators
+
+**Libra (Sep 23 - Oct 22)**
+- Common types: ENFJ, INFP, ESFJ
+- Traits: Diplomatic, aesthetic, harmonious
+- Peace-makers and beauty-seekers
+
+**Aquarius (Jan 20 - Feb 18)**
+- Common types: INTP, INTJ, ENTP
+- Traits: Innovative, independent, humanitarian
+- Visionary thinkers
+
+### Water Signs: The Feelers
+
+**Cancer (Jun 21 - Jul 22)**
+- Common types: ISFJ, INFJ, ESFJ
+- Traits: Nurturing, intuitive, protective
+- Emotional caretakers
+
+**Scorpio (Oct 23 - Nov 21)**
+- Common types: INTJ, INFJ, ISTP
+- Traits: Intense, perceptive, transformative
+- Deep psychological insight
+
+**Pisces (Feb 19 - Mar 20)**
+- Common types: INFP, INFJ, ISFP
+- Traits: Empathetic, creative, spiritual
+- Dreamers and artists
+
+## Element-Function Connections
+
+### Fire Signs ↔ Extraverted Intuition/Sensing
+Fire's spontaneous energy mirrors the enthusiasm of extraverted perceiving functions.
+
+### Earth Signs ↔ Introverted Sensing
+Earth's grounded nature connects with Si's focus on concrete experience and tradition.
+
+### Air Signs ↔ Extraverted Thinking/Intuition
+Air's mental agility aligns with the logical analysis and idea exploration of Te/Ne.
+
+### Water Signs ↔ Introverted Feeling/Intuition
+Water's emotional depth resonates with Fi's values and Ni's insight.
+
+## Using Both Systems Together
+
+### For Self-Discovery
+1. Note where your MBTI and zodiac agree - these are core traits
+2. Explore where they differ - these reveal hidden aspects
+3. Consider your rising sign for social personality
+4. Look at your Moon sign for emotional MBTI tendencies
+
+### For Personal Growth
+- Use MBTI to understand your cognitive preferences
+- Use astrology to understand your karmic lessons
+- Combine insights for a 360-degree self-view
+
+## Common Misconceptions
+
+**"My zodiac doesn't match my MBTI"**
+This is normal! Your birth chart has multiple signs, and your full MBTI includes all eight functions. The interplay is complex and unique.
+
+**"One system is more accurate"**
+Both systems offer different lenses. MBTI focuses on cognitive processes; astrology includes emotional, spiritual, and karmic dimensions.
+
+## Conclusion
+
+Neither MBTI nor astrology tells your complete story alone. Together, they create a multidimensional portrait of your personality. Use both as tools for understanding, not boxes for limitation.
+
+Ready to explore your unique personality blueprint? Take our comprehensive personality analysis that integrates multiple wisdom traditions.
+    `,
+    contentKo: `
+## 현대 심리학과 고대 지혜의 교차점
+
+만약 당신의 MBTI 유형과 별자리가 서로 다른 각도에서 같은 이야기를 하고 있다면 어떨까요? 두 시스템 모두 인간 성격의 패턴을 밝히는 것을 목표로 하며, 결합하면 당신이 누구인지에 대한 더 풍부한 이해를 제공합니다.
+
+## 두 시스템 이해하기
+
+### MBTI: 현대적 접근
+마이어스-브릭스 유형 지표는 네 가지 차원으로 성격을 분류합니다:
+- **외향(E) vs 내향(I)**: 에너지를 얻는 곳
+- **감각(S) vs 직관(N)**: 정보를 수집하는 방법
+- **사고(T) vs 감정(F)**: 결정을 내리는 방법
+- **판단(J) vs 인식(P)**: 세상을 구조화하는 방법
+
+### 점성술: 고대의 지혜
+황도대 별자리는 다음으로 성격을 분류합니다:
+- **원소**: 불, 흙, 공기, 물
+- **모달리티**: 카디널, 고정, 변동
+- **행성 지배자**: 각 별자리를 지배하는 행성
+
+## 별자리와 MBTI 성향
+
+### 불 별자리: 에너자이저
+
+**양자리 (3월 21일 - 4월 19일)**
+- 흔한 유형: ESTP, ENTJ, ENTP
+- 특성: 대담함, 경쟁적, 행동 지향적
+- 리더십과 빠른 의사결정
+
+**사자자리 (7월 23일 - 8월 22일)**
+- 흔한 유형: ENFJ, ESFP, ENTJ
+- 특성: 카리스마, 창의적, 자신감
+- 타고난 연기자와 리더
+
+**사수자리 (11월 22일 - 12월 21일)**
+- 흔한 유형: ENTP, ENFP, ESTP
+- 특성: 모험적, 철학적, 낙관적
+- 자유를 사랑하는 탐험가
+
+### 흙 별자리: 빌더
+
+**황소자리 (4월 20일 - 5월 20일)**
+- 흔한 유형: ISFJ, ISTJ, ESFJ
+- 특성: 신뢰할 수 있음, 인내심, 감각적
+- 안정과 편안함 중시
+
+**처녀자리 (8월 23일 - 9월 22일)**
+- 흔한 유형: ISTJ, INTJ, ISFJ
+- 특성: 분석적, 디테일 지향, 도움이 됨
+- 마음속 완벽주의자
+
+**염소자리 (12월 22일 - 1월 19일)**
+- 흔한 유형: INTJ, ISTJ, ENTJ
+- 특성: 야심 찬, 규율 있는, 실용적
+- 목표 지향적 성취자
+
+### 공기 별자리: 커넥터
+
+**쌍둥이자리 (5월 21일 - 6월 20일)**
+- 흔한 유형: ENTP, ENFP, ESTP
+- 특성: 호기심, 적응력, 소통적
+- 사교적 나비와 아이디어 생성자
+
+**천칭자리 (9월 23일 - 10월 22일)**
+- 흔한 유형: ENFJ, INFP, ESFJ
+- 특성: 외교적, 미적, 조화로운
+- 평화 중재자와 아름다움 추구자
+
+**물병자리 (1월 20일 - 2월 18일)**
+- 흔한 유형: INTP, INTJ, ENTP
+- 특성: 혁신적, 독립적, 인도주의적
+- 비전 있는 사상가
+
+### 물 별자리: 필러
+
+**게자리 (6월 21일 - 7월 22일)**
+- 흔한 유형: ISFJ, INFJ, ESFJ
+- 특성: 양육적, 직관적, 보호적
+- 감정적 돌봄 제공자
+
+**전갈자리 (10월 23일 - 11월 21일)**
+- 흔한 유형: INTJ, INFJ, ISTP
+- 특성: 강렬함, 통찰력, 변혁적
+- 깊은 심리적 통찰
+
+**물고기자리 (2월 19일 - 3월 20일)**
+- 흔한 유형: INFP, INFJ, ISFP
+- 특성: 공감적, 창의적, 영적
+- 몽상가와 예술가
+
+## 원소-기능 연결
+
+### 불 별자리 ↔ 외향적 직관/감각
+불의 즉흥적인 에너지는 외향적 인식 기능의 열정을 반영합니다.
+
+### 흙 별자리 ↔ 내향적 감각
+흙의 접지된 본성은 Si의 구체적 경험과 전통에 대한 초점과 연결됩니다.
+
+### 공기 별자리 ↔ 외향적 사고/직관
+공기의 정신적 민첩성은 Te/Ne의 논리적 분석 및 아이디어 탐구와 일치합니다.
+
+### 물 별자리 ↔ 내향적 감정/직관
+물의 감정적 깊이는 Fi의 가치와 Ni의 통찰과 공명합니다.
+
+## 두 시스템 함께 사용하기
+
+### 자기 발견을 위해
+1. MBTI와 별자리가 일치하는 곳 확인 - 핵심 특성
+2. 다른 곳 탐구 - 숨겨진 측면 드러냄
+3. 사회적 성격을 위해 상승궁 고려
+4. 감정적 MBTI 성향을 위해 달 별자리 확인
+
+### 개인 성장을 위해
+- MBTI로 인지 선호도 이해
+- 점성술로 업적 레슨 이해
+- 통찰 결합으로 360도 자기 관점
+
+## 흔한 오해
+
+**"내 별자리가 MBTI와 맞지 않아요"**
+정상입니다! 출생 차트에는 여러 별자리가 있고, 전체 MBTI에는 8가지 기능이 모두 포함됩니다. 상호작용은 복잡하고 독특합니다.
+
+**"한 시스템이 더 정확해요"**
+두 시스템 모두 다른 렌즈를 제공합니다. MBTI는 인지 과정에 초점; 점성술은 감정적, 영적, 업적 차원을 포함합니다.
+
+## 결론
+
+MBTI도 점성술도 혼자서는 완전한 이야기를 하지 않습니다. 함께하면 성격의 다차원적 초상화를 만듭니다. 둘 다 제한을 위한 상자가 아닌 이해를 위한 도구로 사용하세요.
+
+당신만의 독특한 성격 청사진을 탐구할 준비가 되셨나요? 다양한 지혜 전통을 통합한 종합 성격 분석을 받아보세요.
+    `,
+  },
+  {
+    slug: "destiny-map-life-blueprint-guide",
+    title: "Destiny Map: Your Complete Life Blueprint Explained",
+    titleKo: "운명 지도: 인생 청사진 완벽 가이드",
+    excerpt: "Learn how your Destiny Map combines multiple divination systems to reveal your unique life path, purpose, and potential.",
+    excerptKo: "운명 지도가 어떻게 여러 점술 시스템을 결합하여 당신만의 인생 경로, 목적, 잠재력을 드러내는지 알아보세요.",
+    category: "Destiny Map",
+    categoryKo: "운명지도",
+    icon: "🗺️",
+    date: "2025-01-10",
+    readTime: 11,
+    content: `
+## What is a Destiny Map?
+
+A Destiny Map is a comprehensive life analysis that integrates multiple divination traditions—Eastern and Western—to create a holistic picture of your life's journey. Unlike single-system readings, a Destiny Map weaves together insights from Saju, Western Astrology, Numerology, and other wisdom traditions.
+
+## The Components of Your Destiny Map
+
+### 1. Foundation Layer: Birth Data Analysis
+
+Your Destiny Map begins with precise birth information:
+- **Date of birth**: Determines your core numbers and zodiac positions
+- **Time of birth**: Essential for accurate house placements and Saju pillars
+- **Location of birth**: Affects planetary positions and local time calculations
+
+### 2. Eastern Wisdom: Saju Integration
+
+From Korean-Chinese Saju, your Destiny Map includes:
+- **Four Pillars**: Year, Month, Day, Hour
+- **Day Master**: Your core elemental identity
+- **Ten-Year Luck Cycles (Daeun)**: Major life phases
+- **Five Element Balance**: Strengths and areas for growth
+
+### 3. Western Framework: Astrological Blueprint
+
+Western Astrology contributes:
+- **Sun, Moon, Rising**: Your core trinity
+- **Planetary placements**: All celestial influences
+- **House positions**: Life area emphasis
+- **Major aspects**: Planetary relationships
+
+### 4. Numerical Codes: Numerology
+
+Numerology reveals:
+- **Life Path Number**: Your primary life purpose
+- **Expression Number**: Natural talents and abilities
+- **Soul Urge Number**: Deep inner desires
+- **Personal Year Cycles**: Current energy influences
+
+## The Five Destiny Themes
+
+### Theme 1: Life Purpose
+What you're here to accomplish and contribute. This synthesizes your Day Master element, Sun sign mission, and Life Path number into a unified purpose statement.
+
+### Theme 2: Natural Talents
+Your innate abilities and gifts. Revealed through favorable elements in Saju, strong planetary placements, and your Expression number.
+
+### Theme 3: Relationship Patterns
+How you connect with others. Combines Saju compatibility factors, Venus and Moon placements, and Soul Urge influences.
+
+### Theme 4: Career Path
+Professional directions suited to your nature. Integrates Saju career indicators, Midheaven sign, and Life Path vocational guidance.
+
+### Theme 5: Spiritual Growth
+Your soul's evolution journey. Synthesizes karmic indicators from all systems, including North Node, luck cycles, and master numbers.
+
+## Reading Your Destiny Map
+
+### The Overview Section
+Start with the big picture:
+- What elemental energy dominates your chart?
+- Which life areas receive the most planetary/elemental emphasis?
+- What is your primary life lesson?
+
+### The Timing Section
+Understanding life phases:
+- Current 10-year luck cycle theme
+- Annual influences from all systems
+- Upcoming significant transitions
+
+### The Action Section
+Practical guidance:
+- Elements to cultivate or balance
+- Favorable directions and colors
+- Optimal timing for major decisions
+
+## Cross-System Correlations
+
+### When Systems Agree
+Strong agreement between systems indicates core traits:
+- Water Day Master + Cancer Sun + Life Path 2 = Deep emotional nature
+- Wood Day Master + Aries Sun + Life Path 1 = Leadership drive
+
+### When Systems Differ
+Differences reveal complexity:
+- Fire Saju + Water Moon = Passion balanced by emotional depth
+- Life Path 7 + Leo Sun = Wisdom-seeking through creative expression
+
+## Practical Applications
+
+### Daily Decisions
+Use your Destiny Map for:
+- Choosing favorable days for important events
+- Understanding daily energy flows
+- Aligning actions with natural rhythms
+
+### Major Life Choices
+Consult your map when:
+- Changing careers or starting businesses
+- Making relationship commitments
+- Relocating to new places
+- Starting new ventures
+
+### Personal Development
+Use insights for:
+- Identifying growth areas
+- Understanding recurring patterns
+- Developing underdeveloped elements
+
+## The Annual Destiny Update
+
+Your core Destiny Map remains constant, but annual influences shift. Each year brings:
+- New Personal Year number
+- Shifting luck cycle interactions
+- Transiting planetary influences
+- Annual Saju energy changes
+
+## Common Questions
+
+**How accurate is a Destiny Map?**
+The integrated approach often provides more nuanced accuracy than single-system readings, as multiple perspectives illuminate blind spots.
+
+**Can I change my destiny?**
+Your Destiny Map shows tendencies and potentials, not fixed outcomes. Free will operates within these patterns.
+
+**How often should I consult my map?**
+Review the core map annually and check timing influences for major decisions.
+
+## Conclusion
+
+Your Destiny Map is like having a GPS for life's journey. It doesn't drive for you, but it shows the terrain ahead, highlights scenic routes, and warns of challenging passages. Use it as a tool for empowered decision-making and conscious living.
+
+Ready to discover your complete life blueprint? Generate your personalized Destiny Map and unlock the wisdom of integrated divination.
+    `,
+    contentKo: `
+## 운명 지도란 무엇인가?
+
+운명 지도는 동양과 서양의 여러 점술 전통을 통합하여 인생 여정의 전체적인 그림을 만드는 종합적인 인생 분석입니다. 단일 시스템 리딩과 달리, 운명 지도는 사주, 서양 점성술, 수비학 및 기타 지혜 전통의 통찰을 엮어냅니다.
+
+## 운명 지도의 구성 요소
+
+### 1. 기초 레이어: 출생 데이터 분석
+
+운명 지도는 정확한 출생 정보로 시작합니다:
+- **생년월일**: 핵심 숫자와 황도대 위치 결정
+- **출생 시간**: 정확한 하우스 배치와 사주 기둥에 필수
+- **출생 장소**: 행성 위치와 현지 시간 계산에 영향
+
+### 2. 동양의 지혜: 사주 통합
+
+한국-중국 사주에서 운명 지도에 포함되는 것:
+- **사주팔자**: 년주, 월주, 일주, 시주
+- **일간**: 핵심 오행 정체성
+- **대운**: 주요 인생 단계
+- **오행 균형**: 강점과 성장 영역
+
+### 3. 서양 프레임워크: 점성술 청사진
+
+서양 점성술이 기여하는 것:
+- **태양, 달, 상승궁**: 핵심 삼위일체
+- **행성 배치**: 모든 천체 영향
+- **하우스 위치**: 인생 영역 강조
+- **주요 애스펙트**: 행성 관계
+
+### 4. 숫자 코드: 수비학
+
+수비학이 밝히는 것:
+- **생명 경로 수**: 주요 인생 목적
+- **표현 수**: 타고난 재능과 능력
+- **영혼 충동 수**: 깊은 내면의 욕구
+- **개인 연도 주기**: 현재 에너지 영향
+
+## 다섯 가지 운명 테마
+
+### 테마 1: 인생 목적
+당신이 성취하고 기여하기 위해 여기 있는 것. 일간 오행, 태양 별자리 미션, 생명 경로 수를 통합된 목적 선언문으로 합성합니다.
+
+### 테마 2: 타고난 재능
+선천적인 능력과 재능. 사주의 유리한 오행, 강한 행성 배치, 표현 수를 통해 드러납니다.
+
+### 테마 3: 관계 패턴
+다른 사람들과 연결하는 방법. 사주 궁합 요소, 금성과 달 배치, 영혼 충동 영향을 결합합니다.
+
+### 테마 4: 직업 경로
+당신의 본성에 맞는 전문적 방향. 사주 직업 지표, 천정궁 별자리, 생명 경로 직업 안내를 통합합니다.
+
+### 테마 5: 영적 성장
+영혼의 진화 여정. 북쪽 노드, 대운, 마스터 숫자를 포함한 모든 시스템의 업적 지표를 합성합니다.
+
+## 운명 지도 읽기
+
+### 개요 섹션
+큰 그림으로 시작하세요:
+- 어떤 오행 에너지가 차트를 지배하나요?
+- 어떤 인생 영역이 가장 많은 행성/오행 강조를 받나요?
+- 주요 인생 레슨은 무엇인가요?
+
+### 타이밍 섹션
+인생 단계 이해하기:
+- 현재 10년 대운 주제
+- 모든 시스템의 연간 영향
+- 다가오는 중요한 전환
+
+### 실행 섹션
+실용적 안내:
+- 배양하거나 균형을 맞출 오행
+- 유리한 방향과 색상
+- 주요 결정을 위한 최적의 타이밍
+
+## 시스템 간 상관관계
+
+### 시스템이 일치할 때
+시스템 간의 강한 일치는 핵심 특성을 나타냅니다:
+- 수 일간 + 게자리 태양 + 생명경로 2 = 깊은 감정적 본성
+- 목 일간 + 양자리 태양 + 생명경로 1 = 리더십 추진력
+
+### 시스템이 다를 때
+차이점은 복잡성을 드러냅니다:
+- 화 사주 + 물 달 = 감정적 깊이로 균형 잡힌 열정
+- 생명경로 7 + 사자자리 태양 = 창의적 표현을 통한 지혜 추구
+
+## 실용적 응용
+
+### 일상적 결정
+운명 지도를 다음에 사용하세요:
+- 중요한 이벤트를 위한 유리한 날 선택
+- 일일 에너지 흐름 이해
+- 자연스러운 리듬에 맞춘 행동 조정
+
+### 주요 인생 선택
+다음 경우에 지도를 참조하세요:
+- 직업 변경이나 사업 시작
+- 관계 약속
+- 새로운 장소로 이주
+- 새로운 벤처 시작
+
+### 개인 발전
+통찰을 다음에 사용하세요:
+- 성장 영역 식별
+- 반복되는 패턴 이해
+- 미발달 요소 개발
+
+## 연간 운명 업데이트
+
+핵심 운명 지도는 일정하지만 연간 영향은 변합니다. 매년 가져오는 것:
+- 새로운 개인 연도 수
+- 변화하는 대운 상호작용
+- 통과하는 행성 영향
+- 연간 사주 에너지 변화
+
+## 자주 묻는 질문
+
+**운명 지도는 얼마나 정확한가요?**
+통합적 접근은 여러 관점이 사각지대를 비추기 때문에 단일 시스템 리딩보다 더 미묘한 정확성을 제공하는 경우가 많습니다.
+
+**운명을 바꿀 수 있나요?**
+운명 지도는 고정된 결과가 아닌 경향과 잠재력을 보여줍니다. 자유 의지는 이러한 패턴 내에서 작동합니다.
+
+**얼마나 자주 지도를 참조해야 하나요?**
+핵심 지도는 매년 검토하고 주요 결정을 위해 타이밍 영향을 확인하세요.
+
+## 결론
+
+운명 지도는 인생 여정을 위한 GPS와 같습니다. 대신 운전해주지는 않지만 앞의 지형을 보여주고 경치 좋은 경로를 강조하며 도전적인 구간을 경고합니다. 권한 있는 의사결정과 의식적인 삶을 위한 도구로 사용하세요.
+
+완전한 인생 청사진을 발견할 준비가 되셨나요? 개인화된 운명 지도를 생성하고 통합 점술의 지혜를 열어보세요.
+    `,
+  },
+  {
+    slug: "tarot-love-reading-complete-guide",
+    title: "Tarot Love Reading: A Complete Guide to Understanding Relationship Cards",
+    titleKo: "타로 연애 리딩: 관계 카드 완전 정복 가이드",
+    excerpt: "Master the art of love tarot readings with our comprehensive guide to romance-related cards, spreads, and interpretations.",
+    excerptKo: "로맨스 관련 카드, 스프레드, 해석에 대한 종합 가이드로 연애 타로 리딩의 기술을 마스터하세요.",
+    category: "Tarot",
+    categoryKo: "타로",
+    icon: "💕",
+    date: "2025-01-05",
+    readTime: 12,
+    content: `
+## Introduction to Love Tarot
+
+Love and relationships are among the most common reasons people turn to tarot. The cards offer profound insights into romantic dynamics, helping you understand your heart's journey and make empowered relationship decisions.
+
+## Key Love Cards in the Major Arcana
+
+### The Lovers (VI)
+The quintessential romance card:
+- **Upright**: Soul connection, harmony, aligned values, important choice
+- **Reversed**: Disharmony, imbalance, misaligned values
+- **In readings**: Deep connection or major relationship decision ahead
+
+### The Empress (III)
+Divine feminine love:
+- **Upright**: Nurturing love, fertility, abundance, sensuality
+- **Reversed**: Neglecting self-love, creative blocks
+- **In readings**: Loving yourself first, motherly love, pregnancy
+
+### The Emperor (IV)
+Masculine protection:
+- **Upright**: Stability, protection, commitment, structure
+- **Reversed**: Controlling behavior, rigidity
+- **In readings**: Strong partnership, father figure, stable commitment
+
+### Two of Cups
+Partnership card:
+- **Upright**: Mutual attraction, partnership, balanced relationship
+- **Reversed**: Disconnection, imbalance
+- **In readings**: New love, deepening bond, soulmate connection
+
+### Ace of Cups
+New emotional beginnings:
+- **Upright**: New love, emotional awakening, spiritual love
+- **Reversed**: Blocked emotions, self-love needed
+- **In readings**: Fresh start in love, opening your heart
+
+## Love Tarot Spreads
+
+### The Simple Love Spread (3 Cards)
+1. **You in the relationship**: Your current energy
+2. **Them in the relationship**: Their energy
+3. **The relationship itself**: Combined dynamic
+
+### The Relationship Insight Spread (5 Cards)
+1. **Current state of relationship**
+2. **Your unconscious feelings**
+3. **Their unconscious feelings**
+4. **What brings you together**
+5. **What challenges you**
+
+### The Celtic Cross for Love (10 Cards)
+1. Present situation
+2. Challenge/Crossing
+3. Foundation
+4. Recent past
+5. Possible outcome
+6. Near future
+7. Your attitude
+8. External influences
+9. Hopes and fears
+10. Final outcome
+
+## Reading Cards in Context
+
+### Cards That Suggest New Romance
+- The Fool: Adventure, fresh start
+- Ace of Cups: Emotional new beginning
+- Page of Cups: Romantic message/offer
+- The Star: Hope and attraction
+- Two of Cups: Mutual interest
+
+### Cards That Indicate Deepening Love
+- The Lovers: Commitment choice
+- Ten of Cups: Emotional fulfillment
+- Four of Wands: Celebration, stability
+- The Empress: Growing love
+- Knight of Cups: Romantic pursuit
+
+### Cards Warning of Challenges
+- Three of Swords: Heartbreak, pain
+- Five of Cups: Disappointment, focusing on loss
+- The Tower: Sudden disruption
+- Seven of Swords: Deception
+- Devil: Unhealthy attachment
+
+### Cards Suggesting Completion
+- Ten of Swords: Ending, but new dawn
+- Death: Transformation
+- The World: Completion of cycle
+- Eight of Cups: Walking away
+- Three of Swords: Necessary grief
+
+## Interpreting Difficult Cards
+
+### The Tower in Love Readings
+Don't panic. The Tower can mean:
+- Breakthrough of truth
+- Necessary destruction of illusions
+- Clearing space for authentic love
+- Sudden revelation that leads to healing
+
+### Death in Love Readings
+Rarely literal. Usually indicates:
+- End of a relationship phase
+- Transformation in how you love
+- Release of old patterns
+- Rebirth of connection
+
+### The Devil in Love Readings
+Points to examination of:
+- Unhealthy attachments
+- Toxic patterns
+- Material focus over emotional
+- Need for liberation
+
+## Questions to Ask in Love Readings
+
+### For Singles
+- What energy am I bringing to dating?
+- What blocks me from love?
+- What will help me attract love?
+- What does my next relationship look like?
+
+### For Couples
+- What does our relationship need?
+- What are we not seeing?
+- How can we deepen our connection?
+- What's the growth edge for us?
+
+### For Complicated Situations
+- What is the truth of this situation?
+- What do I need to know?
+- What serves my highest good?
+- What action aligns with my heart?
+
+## Tips for Accurate Love Readings
+
+1. **Clear your energy**: Center yourself before reading
+2. **Ask open questions**: Avoid yes/no when possible
+3. **Consider the whole spread**: Cards interact with each other
+4. **Trust your intuition**: First impressions matter
+5. **Stay objective**: Don't read what you want to see
+6. **Consider timing**: Some cards suggest when, not just what
+
+## Common Misinterpretations
+
+### The Hermit ≠ Loneliness
+The Hermit in love readings often means needed self-reflection or spiritual growth before partnership.
+
+### Reversed Cards ≠ Bad
+Reversals often indicate internal process, delays, or redirected energy—not necessarily negative outcomes.
+
+### "Bad" Cards ≠ Doom
+Challenging cards show what needs attention, not unchangeable fate.
+
+## Conclusion
+
+Tarot offers a mirror for your heart, reflecting both conscious desires and hidden patterns. Use love readings as tools for understanding and growth, not as predictive absolutes. The cards illuminate possibilities; you create your love story.
+
+Ready for your love reading? Get a personalized tarot consultation for relationship insights.
+    `,
+    contentKo: `
+## 연애 타로 소개
+
+사랑과 관계는 사람들이 타로를 찾는 가장 흔한 이유 중 하나입니다. 카드는 로맨틱 역학에 대한 깊은 통찰을 제공하여 마음의 여정을 이해하고 권한 있는 관계 결정을 내리는 데 도움을 줍니다.
+
+## 메이저 아르카나의 주요 연애 카드
+
+### 연인 (VI)
+전형적인 로맨스 카드:
+- **정방향**: 영혼 연결, 조화, 일치하는 가치관, 중요한 선택
+- **역방향**: 불화, 불균형, 일치하지 않는 가치관
+- **리딩에서**: 깊은 연결 또는 앞으로의 주요 관계 결정
+
+### 여황제 (III)
+신성한 여성적 사랑:
+- **정방향**: 양육하는 사랑, 다산, 풍요, 관능
+- **역방향**: 자기 사랑 소홀, 창의적 차단
+- **리딩에서**: 먼저 자신 사랑하기, 모성애, 임신
+
+### 황제 (IV)
+남성적 보호:
+- **정방향**: 안정, 보호, 헌신, 구조
+- **역방향**: 통제적 행동, 경직성
+- **리딩에서**: 강한 파트너십, 아버지 인물, 안정적 헌신
+
+### 컵 2
+파트너십 카드:
+- **정방향**: 상호 끌림, 파트너십, 균형 잡힌 관계
+- **역방향**: 단절, 불균형
+- **리딩에서**: 새 사랑, 깊어지는 유대, 소울메이트 연결
+
+### 컵 에이스
+새로운 감정적 시작:
+- **정방향**: 새 사랑, 감정적 각성, 영적 사랑
+- **역방향**: 막힌 감정, 자기 사랑 필요
+- **리딩에서**: 사랑의 새 출발, 마음 열기
+
+## 연애 타로 스프레드
+
+### 심플 연애 스프레드 (3장)
+1. **관계에서의 당신**: 현재 에너지
+2. **관계에서의 상대방**: 그들의 에너지
+3. **관계 자체**: 결합된 역학
+
+### 관계 통찰 스프레드 (5장)
+1. **관계의 현재 상태**
+2. **당신의 무의식적 감정**
+3. **그들의 무의식적 감정**
+4. **함께하게 하는 것**
+5. **도전이 되는 것**
+
+### 연애용 켈틱 크로스 (10장)
+1. 현재 상황
+2. 도전/교차
+3. 기반
+4. 최근 과거
+5. 가능한 결과
+6. 가까운 미래
+7. 당신의 태도
+8. 외부 영향
+9. 희망과 두려움
+10. 최종 결과
+
+## 맥락에서 카드 읽기
+
+### 새 로맨스를 암시하는 카드
+- 바보: 모험, 새 출발
+- 컵 에이스: 감정적 새 시작
+- 컵 페이지: 로맨틱한 메시지/제안
+- 별: 희망과 끌림
+- 컵 2: 상호 관심
+
+### 깊어지는 사랑을 나타내는 카드
+- 연인: 헌신 선택
+- 컵 10: 감정적 충족
+- 완드 4: 축하, 안정
+- 여황제: 자라는 사랑
+- 컵 기사: 로맨틱한 추구
+
+### 도전을 경고하는 카드
+- 검 3: 상심, 고통
+- 컵 5: 실망, 상실에 집중
+- 탑: 갑작스러운 혼란
+- 검 7: 속임
+- 악마: 불건강한 집착
+
+### 완료를 암시하는 카드
+- 검 10: 끝, 하지만 새 여명
+- 죽음: 변화
+- 세계: 순환의 완료
+- 컵 8: 떠나가기
+- 검 3: 필요한 슬픔
+
+## 어려운 카드 해석하기
+
+### 연애 리딩에서 탑
+당황하지 마세요. 탑은 다음을 의미할 수 있습니다:
+- 진실의 돌파
+- 환상의 필요한 파괴
+- 진정한 사랑을 위한 공간 만들기
+- 치유로 이어지는 갑작스러운 깨달음
+
+### 연애 리딩에서 죽음
+거의 문자 그대로가 아닙니다. 보통 나타내는 것:
+- 관계 단계의 끝
+- 사랑하는 방식의 변화
+- 오래된 패턴의 해방
+- 연결의 재탄생
+
+### 연애 리딩에서 악마
+다음의 검토를 가리킵니다:
+- 불건강한 집착
+- 독성 패턴
+- 감정보다 물질에 집중
+- 해방의 필요
+
+## 연애 리딩에서 할 질문
+
+### 싱글을 위해
+- 데이팅에 어떤 에너지를 가져오고 있나요?
+- 무엇이 사랑을 막고 있나요?
+- 사랑을 끌어들이는 데 무엇이 도움이 될까요?
+- 다음 관계는 어떤 모습일까요?
+
+### 커플을 위해
+- 우리 관계에 무엇이 필요한가요?
+- 우리가 보지 못하는 것은 무엇인가요?
+- 어떻게 연결을 깊게 할 수 있을까요?
+- 우리의 성장 가장자리는 무엇인가요?
+
+### 복잡한 상황을 위해
+- 이 상황의 진실은 무엇인가요?
+- 제가 알아야 할 것은 무엇인가요?
+- 무엇이 제 최고 선에 도움이 되나요?
+- 어떤 행동이 제 마음과 일치하나요?
+
+## 정확한 연애 리딩을 위한 팁
+
+1. **에너지 정화**: 리딩 전 자신을 중심에 두기
+2. **열린 질문하기**: 가능하면 예/아니오 피하기
+3. **전체 스프레드 고려**: 카드는 서로 상호작용
+4. **직관 신뢰하기**: 첫인상이 중요
+5. **객관적 유지하기**: 보고 싶은 것을 읽지 않기
+6. **타이밍 고려**: 일부 카드는 무엇뿐 아니라 언제를 암시
+
+## 흔한 오해
+
+### 은둔자 ≠ 외로움
+연애 리딩에서 은둔자는 종종 파트너십 전에 필요한 자기 성찰이나 영적 성장을 의미합니다.
+
+### 역방향 카드 ≠ 나쁨
+역방향은 종종 내부 과정, 지연, 방향 전환된 에너지를 나타내며—반드시 부정적인 결과는 아닙니다.
+
+### "나쁜" 카드 ≠ 운명
+도전적인 카드는 주의가 필요한 것을 보여주지, 변경할 수 없는 운명이 아닙니다.
+
+## 결론
+
+타로는 의식적 욕구와 숨겨진 패턴 모두를 반영하는 마음의 거울을 제공합니다. 연애 리딩을 예측적 절대가 아닌 이해와 성장을 위한 도구로 사용하세요. 카드는 가능성을 비추고; 당신이 사랑 이야기를 만듭니다.
+
+연애 리딩 준비가 되셨나요? 관계 통찰을 위한 개인화된 타로 상담을 받아보세요.
+    `,
+  },
+  // 현재 연도의 운세 글을 동적으로 추가
+  generateCurrentYearFortuneBlogPost(),
 ];
 
 export const categories = [
@@ -1887,4 +2778,6 @@ export const categories = [
   { id: "I Ching", name: "I Ching", nameKo: "주역" },
   { id: "Dream", name: "Dream", nameKo: "꿈해몽" },
   { id: "Compatibility", name: "Compatibility", nameKo: "궁합" },
+  { id: "Personality", name: "Personality", nameKo: "성격" },
+  { id: "Destiny Map", name: "Destiny Map", nameKo: "운명지도" },
 ];

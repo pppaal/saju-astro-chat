@@ -1,6 +1,8 @@
 // Lightweight rate limiter using Upstash REST API.
 // In production, missing Redis credentials blocks requests; in dev, it allows all.
 
+import { recordCounter } from "@/lib/metrics";
+
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -54,6 +56,7 @@ export async function rateLimit(
   if (!UPSTASH_URL || !UPSTASH_TOKEN) {
     if (process.env.NODE_ENV === "production") {
       console.error("[SECURITY] Rate limiting not configured in production (UPSTASH_REDIS_REST_URL/TOKEN missing)");
+      recordCounter("api.rate_limit.misconfig", 1, { env: "prod" });
       headers.set("X-RateLimit-Policy", "enforced-no-backend");
       headers.set("X-RateLimit-Remaining", "0");
       headers.set("X-RateLimit-Reset", "0");
@@ -75,6 +78,7 @@ export async function rateLimit(
       // Redis unavailable: fail closed in prod, open in dev.
       if (process.env.NODE_ENV === "production") {
         console.error("[SECURITY] Rate limit check failed - blocking request in production");
+        recordCounter("api.rate_limit.blocked", 1, { env: "prod" });
         headers.set("X-RateLimit-Policy", "error-blocked");
         headers.set("X-RateLimit-Remaining", "0");
         return { allowed: false, limit, remaining: 0, reset, headers };
@@ -86,6 +90,9 @@ export async function rateLimit(
 
     const remaining = Math.max(0, limit - count);
     headers.set("X-RateLimit-Remaining", String(remaining));
+    if (count > limit) {
+      recordCounter("api.rate_limit.hit", 1, { key });
+    }
     return {
       allowed: count <= limit,
       limit,
@@ -97,6 +104,7 @@ export async function rateLimit(
     // Unexpected error: fail closed in prod, open in dev.
     if (process.env.NODE_ENV === "production") {
       console.error("[SECURITY] Rate limit exception - blocking request in production");
+      recordCounter("api.rate_limit.blocked", 1, { env: "prod" });
       headers.set("X-RateLimit-Policy", "exception-blocked");
       headers.set("X-RateLimit-Remaining", "0");
       return { allowed: false, limit, remaining: 0, reset, headers };

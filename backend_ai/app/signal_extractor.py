@@ -288,6 +288,15 @@ def extract_astro_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
 
     asc_sign = asc.get("sign") if isinstance(asc, dict) else asc
     asc_ruler = _asc_ruler(asc_sign or "")
+
+    # Get Venus and Mars signs for love analysis
+    venus_sign = None
+    mars_sign = None
+    for p in planets or []:
+        if p.get("name") == "Venus":
+            venus_sign = p.get("sign")
+        elif p.get("name") == "Mars":
+            mars_sign = p.get("sign")
     chart_ruler_house = _planet_house(planets, asc_ruler) if asc_ruler else 0
 
     pof_house = _planet_house(planets, "Part of Fortune")
@@ -342,6 +351,8 @@ def extract_astro_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
         },
         "meta": {
           "asc_sign": asc_sign,
+          "venus_sign": venus_sign,
+          "mars_sign": mars_sign,
           "house_counts": {h: len(v) for h, v in by_house.items()},
           "aspects_to_lights": aspect_counts,
           "transits_to_lights": transit_counts,
@@ -364,7 +375,8 @@ def extract_saju_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
     unse = (saju.get("unse") or {})
     sinsal = saju.get("sinsal") or {}
     five_elements = facts_saju.get("fiveElements") or facts_saju.get("five_elements") or {}
-    day_master = facts_saju.get("dayMaster") or facts_saju.get("day_master") or {}
+    # dayMaster can be at saju.dayMaster (frontend) or saju.facts.dayMaster (some backends)
+    day_master = saju.get("dayMaster") or facts_saju.get("dayMaster") or facts_saju.get("day_master") or {}
 
     # Simple imbalance check for health: any element 0 or >=3
     fe_flags = {}
@@ -472,7 +484,8 @@ def extract_saju_signals(facts: Dict[str, Any]) -> Dict[str, Any]:
             "sinsal_hits": len(sinsal_hits),
             "clashes": clashes,
             "sanhap": sanhap,
-            "day_master": day_master.get("name"),
+            "day_master": day_master.get("name") if isinstance(day_master, dict) else day_master,
+            "day_master_element": day_master.get("element") if isinstance(day_master, dict) else None,
             "lucky_element": lucky_element,
             "dominant_element": dominant_element,
             "five_element_counts": five_elements,

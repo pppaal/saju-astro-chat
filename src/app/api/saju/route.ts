@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { toDate } from 'date-fns-tz';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { prisma } from '@/lib/db/prisma';
 import Stripe from 'stripe';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { rateLimit } from '@/lib/rateLimit';
@@ -767,9 +768,38 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       aiModelUsed = 'error-fallback';
     }
 
+    // ======== 기록 저장 (로그인 사용자만) ========
+    if (session?.user?.id) {
+      try {
+        await prisma.reading.create({
+          data: {
+            userId: session.user.id,
+            type: 'saju',
+            title: `${sajuResult.dayMaster?.stem || ''} 일간 사주 분석`,
+            content: JSON.stringify({
+              birthDate: birthDateString,
+              birthTime: adjustedBirthTime,
+              gender,
+              timezone,
+              dayMaster: sajuResult.dayMaster,
+              fiveElements: sajuResult.fiveElements,
+              pillars: {
+                year: sajuResult.yearPillar,
+                month: sajuResult.monthPillar,
+                day: sajuResult.dayPillar,
+                time: sajuResult.timePillar,
+              },
+            }),
+          },
+        });
+      } catch (saveErr) {
+        console.warn('[Saju API] Failed to save reading:', saveErr);
+      }
+    }
+
     return NextResponse.json({
-      // 프리미엄 상태 플래그
-      isPremium,
+      // 프리미엄 상태 플래그 - 임시로 모든 사용자에게 프리미엄 제공
+      isPremium: true,
       isLoggedIn: !!session?.user?.id,
 
       birthYear: new Date(birthDateString).getFullYear(),
@@ -820,8 +850,8 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       aiInterpretation,
       aiModelUsed,
 
-      // ======== 고급 분석 결과 (프리미엄 여부에 따라 분기) ========
-      advancedAnalysis: isPremium ? fullAdvancedAnalysis : freePreview,
+      // ======== 고급 분석 결과 - 임시로 모든 사용자에게 전체 분석 제공 ========
+      advancedAnalysis: fullAdvancedAnalysis,
     });
   } catch (error) {
     console.error('[API /api/saju] Uncaught error:', error);

@@ -2,10 +2,10 @@
 """
 Jungian Counseling Engine - 감동을 주는 심리상담 시스템
 =====================================================
-융 심리학 기반 통합 상담 엔진
+융 심리학 기반 통합 상담 엔진 (v2.0 - Enhanced with RAG)
 - 사주/점성술/타로를 심리학적 도구로 활용
 - 위기 개입 시스템 (자살/자해 감지)
-- 치료적 질문 생성
+- 치료적 질문 생성 (RuleEngine + 시맨틱 검색)
 - 감동적 메시지 시스템
 - 개성화 여정 가이드
 
@@ -16,8 +16,17 @@ import os
 import json
 import re
 import random
+import hashlib
 from typing import List, Dict, Optional, Tuple, Any
 from datetime import datetime
+
+# Load .env with override to use correct API key
+try:
+    from dotenv import load_dotenv
+    _backend_root = os.path.dirname(os.path.dirname(__file__))
+    load_dotenv(os.path.join(_backend_root, ".env"), override=True)
+except ImportError:
+    pass
 
 try:
     from openai import OpenAI
@@ -25,6 +34,27 @@ try:
 except ImportError:
     OpenAI = None
     OPENAI_AVAILABLE = False
+
+# 시맨틱 검색 (SentenceTransformer)
+try:
+    import torch
+    from sentence_transformers import SentenceTransformer, util
+    EMBEDDING_AVAILABLE = True
+except ImportError:
+    EMBEDDING_AVAILABLE = False
+    torch = None
+
+# RuleEngine 임포트
+try:
+    from app.rule_engine import RuleEngine
+    RULE_ENGINE_AVAILABLE = True
+except ImportError:
+    try:
+        from rule_engine import RuleEngine
+        RULE_ENGINE_AVAILABLE = True
+    except ImportError:
+        RULE_ENGINE_AVAILABLE = False
+        RuleEngine = None
 
 
 # ===============================================================
@@ -186,14 +216,28 @@ class TherapeuticQuestionGenerator:
         self.therapeutic_data = {}
         self.prompts_data = {}
         self.archetypes_data = {}
+        self.psychological_types_data = {}
+        self.alchemy_data = {}
+        self.cross_analysis_data = {}
+        self.scenarios_data = {}
+        self.integrated_data = {}
+        self.personality_data = {}
+        self.expanded_data = {}
         self._load_data()
 
     def _load_data(self):
-        """융 심리학 데이터 로드"""
+        """융 심리학 데이터 로드 - 모든 Jung 파일 통합"""
         files_to_load = {
             "jung_therapeutic.json": "therapeutic_data",
             "jung_counseling_prompts.json": "prompts_data",
-            "jung_archetypes.json": "archetypes_data"
+            "jung_archetypes.json": "archetypes_data",
+            "jung_psychological_types.json": "psychological_types_data",
+            "jung_alchemy.json": "alchemy_data",
+            "jung_cross_analysis.json": "cross_analysis_data",
+            "jung_counseling_scenarios.json": "scenarios_data",
+            "jung_integrated_counseling.json": "integrated_data",
+            "jung_personality_integration.json": "personality_data",
+            "jung_expanded_counseling.json": "expanded_data",
         }
 
         for filename, attr in files_to_load.items():
@@ -204,6 +248,8 @@ class TherapeuticQuestionGenerator:
                         setattr(self, attr, json.load(f))
                 except Exception as e:
                     print(f"[TherapeuticQuestionGenerator] Failed to load {filename}: {e}")
+            else:
+                setattr(self, attr, {})
 
     def get_shadow_questions(self, context: Dict = None) -> List[str]:
         """그림자 작업 질문"""
@@ -284,6 +330,405 @@ class TherapeuticQuestionGenerator:
             "love": "진정한 사랑이란 당신에게 어떤 모습인가요?"
         }
         return theme_questions.get(theme, "이것이 당신에게 왜 중요한가요?")
+
+    def get_psychological_type_insight(self, saju_data: Dict = None) -> Dict:
+        """심리 유형 기반 통찰 (융의 심리 유형론 활용)"""
+        if not self.psychological_types_data:
+            return {}
+        types = self.psychological_types_data.get("psychological_types", {})
+        # 사주 데이터로부터 심리 유형 매핑 시도
+        if saju_data:
+            day_master = saju_data.get("dayMaster", {})
+            # Support both nested { heavenlyStem: { element } } and flat { element }
+            if isinstance(day_master.get("heavenlyStem"), dict):
+                element = day_master.get("heavenlyStem", {}).get("element", "").lower()
+            else:
+                element = day_master.get("element", "").lower()
+            # 오행→심리유형 매핑
+            element_to_type = {
+                "wood": "intuition",
+                "fire": "feeling",
+                "earth": "sensation",
+                "metal": "thinking",
+                "water": "intuition"
+            }
+            matched_type = element_to_type.get(element)
+            if matched_type and matched_type in types:
+                return types[matched_type]
+        return {}
+
+    def get_alchemy_stage(self, user_context: str = "") -> Dict:
+        """연금술적 변환 단계 파악 (니그레도→알베도→루베도)"""
+        if not self.alchemy_data:
+            return {}
+        stages = self.alchemy_data.get("alchemical_stages", {})
+        keywords_map = {
+            "nigredo": ["어둠", "혼란", "붕괴", "죽음", "끝", "절망", "막막"],
+            "albedo": ["정화", "깨달음", "이해", "수용", "받아들"],
+            "citrinitas": ["성장", "발전", "배움", "변화"],
+            "rubedo": ["통합", "완성", "새로운", "시작", "탄생"]
+        }
+        for stage, keywords in keywords_map.items():
+            if any(kw in user_context for kw in keywords):
+                return stages.get(stage, {})
+        return stages.get("nigredo", {})  # 기본값
+
+    def get_scenario_guidance(self, scenario_type: str) -> Dict:
+        """상담 시나리오별 가이드 (사랑, 직업, 가족 등)"""
+        if not self.scenarios_data:
+            return {}
+        scenarios = self.scenarios_data.get("counseling_scenarios", {})
+        return scenarios.get(scenario_type, {})
+
+    def get_cross_system_insight(self, saju_data: Dict, astro_data: Dict) -> Dict:
+        """사주×점성술 교차 분석 통찰"""
+        if not self.cross_analysis_data:
+            return {}
+        cross = self.cross_analysis_data.get("cross_system_analysis", {})
+        # 오행과 4원소 매핑
+        element_mapping = cross.get("element_mapping", {})
+        insights = []
+        if saju_data:
+            dm = saju_data.get("dayMaster", {})
+            # Support both nested and flat dayMaster
+            if isinstance(dm.get("heavenlyStem"), dict):
+                day_element = dm.get("heavenlyStem", {}).get("element", "")
+            else:
+                day_element = dm.get("element", "")
+            mapped = element_mapping.get(day_element, {})
+            if mapped:
+                insights.append(mapped)
+        return {"insights": insights, "raw": cross}
+
+    def get_personality_integration_guide(self, dominant_trait: str = None) -> List[str]:
+        """성격 통합 가이드 (그림자 작업)"""
+        if not self.personality_data:
+            return []
+        integration = self.personality_data.get("personality_integration", {})
+        if dominant_trait:
+            return integration.get(dominant_trait, {}).get("integration_path", [])
+        return integration.get("general", {}).get("steps", [])
+
+
+# ===============================================================
+# JUNGIAN RAG (융 심리학 시맨틱 검색)
+# ===============================================================
+class JungianRAG:
+    """
+    융 심리학 기반 시맨틱 검색 엔진
+    - SentenceTransformer로 질문/상황 → 치료적 개입 매칭
+    - RuleEngine으로 조건 기반 규칙 매칭
+    """
+
+    MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
+    def __init__(self, rules_dir: str = None):
+        if rules_dir is None:
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            rules_dir = os.path.join(base_dir, "data", "graph", "rules", "jung")
+
+        self.rules_dir = rules_dir
+        self._model = None
+        self._model_failed = False
+
+        # 임베딩 데이터
+        self.corpus_texts = []  # 검색 대상 텍스트
+        self.corpus_meta = []   # 메타데이터 (source, category, etc.)
+        self.corpus_embeds = None
+        self.embed_cache_path = os.path.join(rules_dir, "jung_embeds.pt") if rules_dir else None
+
+        # RuleEngine (조건 매칭용)
+        self.rule_engine = None
+        if RULE_ENGINE_AVAILABLE and os.path.exists(rules_dir):
+            try:
+                self.rule_engine = RuleEngine(rules_dir)
+                print(f"[JungianRAG] RuleEngine loaded with {len(self.rule_engine.rules)} rule sets")
+            except Exception as e:
+                print(f"[JungianRAG] RuleEngine init failed: {e}")
+
+        # 데이터 로드 및 임베딩 준비
+        self._load_corpus()
+        self._prepare_embeddings()
+
+    @property
+    def model(self):
+        """Lazy load SentenceTransformer"""
+        if self._model is None and not self._model_failed:
+            if not EMBEDDING_AVAILABLE:
+                self._model_failed = True
+                return None
+            try:
+                os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+                torch.set_default_device("cpu")
+                self._model = SentenceTransformer(self.MODEL_NAME, device="cpu")
+                print(f"[JungianRAG] Model loaded: {self.MODEL_NAME}")
+            except Exception as e:
+                print(f"[JungianRAG] Model load failed: {e}")
+                self._model_failed = True
+        return self._model
+
+    def _load_corpus(self):
+        """융 심리학 JSON 파일에서 검색 코퍼스 구축"""
+        if not os.path.exists(self.rules_dir):
+            return
+
+        for filename in os.listdir(self.rules_dir):
+            if not filename.endswith(".json"):
+                continue
+
+            filepath = os.path.join(self.rules_dir, filename)
+            try:
+                with open(filepath, encoding="utf-8") as f:
+                    data = json.load(f)
+                    self._extract_corpus_items(data, filename)
+            except Exception as e:
+                print(f"[JungianRAG] Failed to load {filename}: {e}")
+
+        print(f"[JungianRAG] Corpus built: {len(self.corpus_texts)} items from {self.rules_dir}")
+
+    def _extract_corpus_items(self, data: Any, source: str, prefix: str = ""):
+        """재귀적으로 텍스트 항목 추출"""
+        if isinstance(data, dict):
+            # 치료적 질문 추출
+            if "questions" in data and isinstance(data["questions"], list):
+                for q in data["questions"]:
+                    if isinstance(q, str) and len(q) > 10:
+                        self.corpus_texts.append(q)
+                        self.corpus_meta.append({
+                            "source": source,
+                            "category": prefix,
+                            "type": "question"
+                        })
+
+            # 통찰/조언 추출
+            for key in ["insight", "advice", "description", "therapeutic_focus", "approach"]:
+                if key in data and isinstance(data[key], str) and len(data[key]) > 10:
+                    self.corpus_texts.append(data[key])
+                    self.corpus_meta.append({
+                        "source": source,
+                        "category": prefix,
+                        "type": key
+                    })
+
+            # 재귀
+            for k, v in data.items():
+                self._extract_corpus_items(v, source, f"{prefix}/{k}" if prefix else k)
+
+        elif isinstance(data, list):
+            for item in data:
+                self._extract_corpus_items(item, source, prefix)
+
+    def _calculate_hash(self) -> str:
+        """코퍼스 해시 계산 (캐시 무효화용)"""
+        content = "|".join(self.corpus_texts[:100])  # 앞 100개만 해시
+        return hashlib.md5(content.encode()).hexdigest()[:12]
+
+    def _prepare_embeddings(self):
+        """임베딩 준비 (캐시 활용)"""
+        if not self.corpus_texts:
+            return
+
+        current_hash = self._calculate_hash()
+
+        # 캐시 확인
+        if self.embed_cache_path and os.path.exists(self.embed_cache_path):
+            try:
+                cache = torch.load(self.embed_cache_path, map_location="cpu")
+                if cache.get("hash") == current_hash and cache.get("count") == len(self.corpus_texts):
+                    self.corpus_embeds = cache["embeds"]
+                    print(f"[JungianRAG] Loaded cached embeddings: {self.corpus_embeds.shape}")
+                    return
+            except Exception as e:
+                print(f"[JungianRAG] Cache load failed: {e}")
+
+        # 새로 생성
+        if self.model is None:
+            print("[JungianRAG] Model not available, skipping embeddings")
+            return
+
+        try:
+            print(f"[JungianRAG] Generating embeddings for {len(self.corpus_texts)} items...")
+            self.corpus_embeds = self.model.encode(
+                self.corpus_texts,
+                convert_to_tensor=True,
+                normalize_embeddings=True,
+                batch_size=32
+            )
+            print(f"[JungianRAG] Generated embeddings: {self.corpus_embeds.shape}")
+
+            # 캐시 저장
+            if self.embed_cache_path:
+                torch.save({
+                    "embeds": self.corpus_embeds,
+                    "count": len(self.corpus_texts),
+                    "hash": current_hash
+                }, self.embed_cache_path)
+        except Exception as e:
+            print(f"[JungianRAG] Embedding generation failed: {e}")
+
+    def search(self, query: str, top_k: int = 5, threshold: float = 0.3) -> List[Dict]:
+        """
+        시맨틱 검색: 질문/상황에 맞는 융 심리학 컨텐츠 검색
+
+        Args:
+            query: 사용자 메시지 또는 검색 쿼리
+            top_k: 반환할 결과 수
+            threshold: 최소 유사도 점수
+
+        Returns:
+            List of {text, similarity, source, category, type}
+        """
+        if self.corpus_embeds is None or self.model is None:
+            return self._fallback_keyword_search(query, top_k)
+
+        try:
+            query_embed = self.model.encode(query, convert_to_tensor=True, normalize_embeddings=True)
+            scores = util.cos_sim(query_embed, self.corpus_embeds)[0]
+            top_results = torch.topk(scores, k=min(top_k * 2, len(self.corpus_texts)))
+
+            results = []
+            for idx, score in zip(top_results.indices, top_results.values):
+                if float(score) < threshold:
+                    continue
+                results.append({
+                    "text": self.corpus_texts[int(idx)],
+                    "similarity": round(float(score), 4),
+                    **self.corpus_meta[int(idx)]
+                })
+                if len(results) >= top_k:
+                    break
+
+            return results
+        except Exception as e:
+            print(f"[JungianRAG] Search error: {e}")
+            return self._fallback_keyword_search(query, top_k)
+
+    def _fallback_keyword_search(self, query: str, top_k: int = 5) -> List[Dict]:
+        """키워드 기반 폴백 검색"""
+        query_lower = query.lower()
+        keywords = query_lower.split()
+
+        results = []
+        for i, text in enumerate(self.corpus_texts):
+            text_lower = text.lower()
+            score = sum(1 for kw in keywords if kw in text_lower)
+            if score > 0:
+                results.append({
+                    "text": text,
+                    "similarity": score / len(keywords),
+                    **self.corpus_meta[i],
+                    "fallback": True
+                })
+
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        return results[:top_k]
+
+    def get_rule_based_response(self, facts: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        RuleEngine 기반 조건 매칭
+
+        Args:
+            facts: {"theme": "...", "saju": {...}, "astro": {...}, "emotion": "...", ...}
+
+        Returns:
+            매칭된 규칙 결과
+        """
+        if not self.rule_engine:
+            return {"matched_rules": [], "matched_count": 0}
+
+        return self.rule_engine.evaluate(facts, search_all=True)
+
+    def get_therapeutic_intervention(self, user_message: str, context: Dict = None) -> Dict[str, Any]:
+        """
+        통합 치료적 개입 제안
+
+        시맨틱 검색 + RuleEngine 결합
+
+        Args:
+            user_message: 사용자 메시지
+            context: {"saju": {...}, "astro": {...}, "theme": "...", ...}
+
+        Returns:
+            {
+                "semantic_matches": [...],
+                "rule_matches": [...],
+                "recommended_questions": [...],
+                "insights": [...]
+            }
+        """
+        result = {
+            "semantic_matches": [],
+            "rule_matches": [],
+            "recommended_questions": [],
+            "insights": []
+        }
+
+        # 1. 시맨틱 검색
+        semantic = self.search(user_message, top_k=5)
+        result["semantic_matches"] = semantic
+
+        # 질문과 통찰 분리
+        for item in semantic:
+            if item.get("type") == "question":
+                result["recommended_questions"].append(item["text"])
+            else:
+                result["insights"].append(item["text"])
+
+        # 2. RuleEngine 매칭
+        if context and self.rule_engine:
+            facts = {
+                "theme": context.get("theme", "general"),
+                "saju": context.get("saju", {}),
+                "astro": context.get("astro", {}),
+                "emotion": self._detect_emotion(user_message),
+                "keywords": user_message.lower().split()
+            }
+            rule_result = self.rule_engine.evaluate(facts, search_all=True)
+            result["rule_matches"] = rule_result.get("matched_rules", [])
+
+        return result
+
+    def _detect_emotion(self, text: str) -> str:
+        """간단한 감정 감지"""
+        emotion_keywords = {
+            "anger": ["화나", "짜증", "분노", "열받", "싫어"],
+            "sadness": ["슬프", "우울", "눈물", "외로", "힘들"],
+            "anxiety": ["불안", "걱정", "두려", "무서", "떨려"],
+            "confusion": ["모르겠", "혼란", "복잡", "갈피"],
+            "hopelessness": ["희망", "의미", "소용없", "포기"],
+        }
+        text_lower = text.lower()
+        for emotion, keywords in emotion_keywords.items():
+            if any(kw in text_lower for kw in keywords):
+                return emotion
+        return "neutral"
+
+    def health_check(self) -> Tuple[bool, str]:
+        """상태 확인"""
+        issues = []
+        if not self.corpus_texts:
+            issues.append("No corpus loaded")
+        if self.corpus_embeds is None:
+            issues.append("Embeddings not ready")
+        if self._model_failed:
+            issues.append("Model load failed")
+        if not self.rule_engine:
+            issues.append("RuleEngine not available")
+
+        if issues:
+            return False, f"Issues: {', '.join(issues)}"
+        return True, f"OK: {len(self.corpus_texts)} items, RuleEngine active"
+
+
+# Singleton
+_jungian_rag = None
+
+def get_jungian_rag() -> JungianRAG:
+    """Get or create singleton JungianRAG"""
+    global _jungian_rag
+    if _jungian_rag is None:
+        _jungian_rag = JungianRAG()
+    return _jungian_rag
 
 
 # ===============================================================
@@ -547,6 +992,9 @@ class JungianCounselingEngine:
         self.message_generator = EmotionalMessageGenerator()
         self.sessions: Dict[str, CounselingSession] = {}
 
+        # JungianRAG 통합 (시맨틱 검색 + RuleEngine)
+        self.jungian_rag = get_jungian_rag()
+
     def create_session(self) -> CounselingSession:
         """새 상담 세션 생성"""
         session = CounselingSession()
@@ -716,6 +1164,216 @@ class JungianCounselingEngine:
 
         return closing
 
+    def get_enhanced_context(self, user_message: str, saju_data: Dict = None, astro_data: Dict = None) -> Dict:
+        """
+        통합 융 심리학 컨텍스트 생성 (모든 융 데이터 활용)
+
+        Args:
+            user_message: 사용자 메시지
+            saju_data: 사주 분석 데이터
+            astro_data: 점성술 분석 데이터
+
+        Returns:
+            통합된 융 심리학 컨텍스트
+        """
+        context = {}
+
+        # 1. 심리 유형 분석
+        if saju_data:
+            psych_type = self.question_generator.get_psychological_type_insight(saju_data)
+            if psych_type:
+                context["psychological_type"] = psych_type
+
+        # 2. 연금술적 변환 단계
+        alchemy_stage = self.question_generator.get_alchemy_stage(user_message)
+        if alchemy_stage:
+            context["alchemy_stage"] = alchemy_stage
+
+        # 3. 교차 시스템 통찰 (사주×점성)
+        if saju_data or astro_data:
+            cross_insight = self.question_generator.get_cross_system_insight(
+                saju_data or {}, astro_data or {}
+            )
+            if cross_insight.get("insights"):
+                context["cross_system"] = cross_insight
+
+        # 4. 테마 기반 시나리오 가이드
+        theme = self._detect_theme(user_message)
+        if theme:
+            scenario = self.question_generator.get_scenario_guidance(theme)
+            if scenario:
+                context["scenario_guidance"] = scenario
+                context["detected_theme"] = theme
+
+        # 5. 적절한 치료적 질문 선택
+        context["therapeutic_question"] = self.get_therapeutic_question(theme=theme)
+
+        # 6. JungianRAG 시맨틱 검색 (v2.0 추가)
+        if self.jungian_rag:
+            rag_context = {
+                "theme": theme,
+                "saju": saju_data,
+                "astro": astro_data
+            }
+            intervention = self.jungian_rag.get_therapeutic_intervention(user_message, rag_context)
+
+            # 시맨틱 검색으로 찾은 질문들 추가
+            if intervention.get("recommended_questions"):
+                context["rag_questions"] = intervention["recommended_questions"][:3]
+
+            # 시맨틱 검색으로 찾은 통찰 추가
+            if intervention.get("insights"):
+                context["rag_insights"] = intervention["insights"][:3]
+
+            # RuleEngine 매칭 결과 추가
+            if intervention.get("rule_matches"):
+                context["rule_matches"] = intervention["rule_matches"][:5]
+
+        return context
+
+    def _detect_theme(self, text: str) -> Optional[str]:
+        """텍스트에서 상담 테마 감지"""
+        theme_keywords = {
+            "relationship": ["관계", "연애", "결혼", "이별", "사랑", "짝", "소울메이트"],
+            "career": ["직장", "일", "커리어", "취업", "이직", "사업", "돈", "재정"],
+            "family": ["가족", "부모", "자녀", "형제", "집안", "원가족"],
+            "identity": ["나", "자아", "정체성", "누구", "의미", "목적"],
+            "health": ["건강", "몸", "병", "아프", "스트레스", "불안", "우울"],
+            "spiritual": ["영혼", "영적", "종교", "명상", "꿈", "직관"],
+        }
+
+        text_lower = text.lower()
+        for theme, keywords in theme_keywords.items():
+            if any(kw in text_lower for kw in keywords):
+                return theme
+        return None
+
+    def process_with_jung_context(self,
+                                   user_message: str,
+                                   session: CounselingSession = None,
+                                   saju_data: Dict = None,
+                                   astro_data: Dict = None,
+                                   tarot_data: Dict = None) -> Dict:
+        """
+        융 심리학 컨텍스트를 완전히 통합한 상담 처리
+
+        Args:
+            user_message: 사용자 메시지
+            session: 상담 세션
+            saju_data: 사주 분석 결과
+            astro_data: 점성술 분석 결과
+            tarot_data: 타로 리딩 결과
+
+        Returns:
+            융 통합 응답
+        """
+        if session is None:
+            session = self.create_session()
+
+        # 1. 위기 감지 (항상 먼저)
+        crisis_check = self.crisis_detector.detect_crisis(user_message)
+        if crisis_check["requires_immediate_action"]:
+            return self.process_message(user_message, session)
+
+        # 2. 통합 융 컨텍스트 생성
+        jung_context = self.get_enhanced_context(user_message, saju_data, astro_data)
+
+        # 3. 점술 컨텍스트 구성
+        divination_context = {}
+        if saju_data:
+            divination_context["saju"] = saju_data
+        if astro_data:
+            divination_context["astrology"] = astro_data
+        if tarot_data:
+            divination_context["tarot"] = tarot_data
+
+        # 4. GPT에 융 컨텍스트 포함하여 응답 생성
+        session.add_message("user", user_message)
+
+        if self.client:
+            response_text = self._generate_jung_enhanced_response(
+                session, divination_context, jung_context
+            )
+        else:
+            response_text = self._generate_fallback_response(user_message, session)
+
+        session.add_message("assistant", response_text)
+
+        return {
+            "response": response_text,
+            "jung_context": jung_context,
+            "session_id": session.session_id,
+            "phase": session.current_phase,
+            "crisis_detected": False,
+            "should_continue": True,
+        }
+
+    def _generate_jung_enhanced_response(self,
+                                          session: CounselingSession,
+                                          divination_context: Dict,
+                                          jung_context: Dict) -> str:
+        """융 컨텍스트가 강화된 GPT 응답 생성"""
+        # 기본 시스템 프롬프트
+        enhanced_prompt = self.SYSTEM_PROMPT
+
+        # 융 컨텍스트 추가
+        if jung_context:
+            jung_additions = []
+
+            if jung_context.get("psychological_type"):
+                ptype = jung_context["psychological_type"]
+                jung_additions.append(f"[심리 유형] {ptype.get('name_ko', ptype.get('name', ''))}: {ptype.get('description', '')}")
+
+            if jung_context.get("alchemy_stage"):
+                stage = jung_context["alchemy_stage"]
+                jung_additions.append(f"[연금술 단계] {stage.get('name_ko', stage.get('name', ''))}: {stage.get('therapeutic_focus', '')}")
+
+            if jung_context.get("scenario_guidance"):
+                scenario = jung_context["scenario_guidance"]
+                jung_additions.append(f"[상담 시나리오] {scenario.get('approach', '')}")
+
+            # RAG 시맨틱 검색 결과 추가 (v2.0)
+            if jung_context.get("rag_questions"):
+                jung_additions.append(f"[추천 질문]\n- " + "\n- ".join(jung_context["rag_questions"][:2]))
+
+            if jung_context.get("rag_insights"):
+                jung_additions.append(f"[치료적 통찰]\n- " + "\n- ".join(jung_context["rag_insights"][:2]))
+
+            if jung_context.get("rule_matches"):
+                jung_additions.append(f"[규칙 매칭]\n- " + "\n- ".join(jung_context["rule_matches"][:2]))
+
+            if jung_additions:
+                enhanced_prompt += f"\n\n## 융 심리학 컨텍스트\n" + "\n".join(jung_additions)
+
+        messages = [{"role": "system", "content": enhanced_prompt}]
+
+        # 세션 히스토리
+        for msg in session.history[-10:]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+
+        # 점술 컨텍스트
+        if divination_context:
+            context_msg = self._format_divination_context(divination_context)
+            messages.append({"role": "system", "content": f"[점술 해석 컨텍스트]\n{context_msg}"})
+
+        # 현재 단계
+        phase_info = session.get_phase_info()
+        messages.append({
+            "role": "system",
+            "content": f"[현재 상담 단계: {phase_info.get('name', '')}]\n목표: {', '.join(phase_info.get('goals', []))}"
+        })
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=0.8,
+                max_tokens=1500,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"응답 생성 중 오류가 발생했어요. 잠시 후 다시 시도해주세요. ({str(e)})"
+
     def health_check(self) -> Tuple[bool, str]:
         """시스템 상태 확인"""
         status_parts = []
@@ -726,13 +1384,30 @@ class JungianCounselingEngine:
         else:
             status_parts.append("OpenAI: Not connected (fallback mode)")
 
-        # 데이터 로드 상태
-        if self.question_generator.therapeutic_data:
-            status_parts.append("Therapeutic data: Loaded")
-        else:
-            status_parts.append("Therapeutic data: Not loaded")
+        # 데이터 로드 상태 - 모든 융 데이터 체크
+        qg = self.question_generator
+        jung_data_loaded = sum([
+            1 if qg.therapeutic_data else 0,
+            1 if qg.archetypes_data else 0,
+            1 if qg.prompts_data else 0,
+            1 if qg.psychological_types_data else 0,
+            1 if qg.alchemy_data else 0,
+            1 if qg.cross_analysis_data else 0,
+            1 if qg.scenarios_data else 0,
+            1 if qg.integrated_data else 0,
+            1 if qg.personality_data else 0,
+            1 if qg.expanded_data else 0,
+        ])
+        status_parts.append(f"Jung data: {jung_data_loaded}/10 files loaded")
 
-        is_healthy = self.client is not None
+        # JungianRAG 상태 (v2.0)
+        if self.jungian_rag:
+            rag_healthy, rag_status = self.jungian_rag.health_check()
+            status_parts.append(f"RAG: {rag_status}")
+        else:
+            status_parts.append("RAG: Not initialized")
+
+        is_healthy = self.client is not None and jung_data_loaded >= 3
         return is_healthy, " | ".join(status_parts)
 
 

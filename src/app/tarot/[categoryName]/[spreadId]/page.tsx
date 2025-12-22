@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
+import BackButton from '@/components/ui/BackButton';
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
 import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImagePath } from '@/lib/Tarot/tarot.types';
 import TarotChat from '@/components/tarot/TarotChat';
@@ -552,6 +553,9 @@ export default function TarotReadingPage() {
       <div className={styles.colorSelectContainer}>
         <div className={styles.creditBadgeWrapper}>
           <CreditBadge variant="compact" />
+        </div>
+        <div className={styles.backButtonWrapper}>
+          <BackButton />
         </div>
         <div className={styles.colorSelectHeader}>
           <h1 className={styles.colorSelectTitle}>

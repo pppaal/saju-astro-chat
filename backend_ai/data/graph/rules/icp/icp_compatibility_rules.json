@@ -1,0 +1,288 @@
+{
+  "$schema": "icp_compatibility_rules_v1",
+  "$description": "ICP 기반 대인관계 궁합 분석 규칙",
+
+  "compatibility_matrix": {
+    "description": "각 ICP 스타일 간 궁합 점수 및 역학",
+    "scoring": {
+      "range": "0-100",
+      "70+": "좋은 궁합",
+      "50-69": "보통 궁합 (노력 필요)",
+      "50 미만": "도전적 궁합 (의식적 조율 필요)"
+    },
+
+    "pairings": {
+      "PA_PA": {
+        "score": 45,
+        "dynamic": "권력 투쟁",
+        "description": "두 지배적 성향이 만나면 주도권 경쟁이 발생",
+        "challenges": ["누가 결정을 내리는가", "서로의 영역 침범", "타협 어려움"],
+        "solutions": ["명확한 역할 분담", "각자의 영역 존중", "경쟁을 협력으로 전환"],
+        "growth_potential": "서로의 강점을 인정하면 강력한 파트너십"
+      },
+      "PA_JK": {
+        "score": 85,
+        "dynamic": "상보적 조화",
+        "description": "리더-팔로워의 자연스러운 역학",
+        "challenges": ["JK의 억압된 욕구", "PA의 지배 과잉", "불균형 고착화"],
+        "solutions": ["JK의 의견 정기적 청취", "PA의 통제 조절", "역할 유연성"],
+        "growth_potential": "JK가 자기주장을 배우고, PA가 경청을 배움"
+      },
+      "PA_NO": {
+        "score": 75,
+        "dynamic": "활기찬 연결",
+        "description": "리더십과 친화력의 조합",
+        "challenges": ["PA가 NO의 친화를 약함으로 봄", "NO가 PA의 직접성에 상처"],
+        "solutions": ["서로의 스타일 가치 인정", "따뜻함과 강함 모두 필요함 인식"],
+        "growth_potential": "PA가 따뜻함을, NO가 단호함을 배움"
+      },
+      "PA_DE": {
+        "score": 55,
+        "dynamic": "접근-회피",
+        "description": "지배하려는 PA와 거리두는 DE의 긴장",
+        "challenges": ["PA가 DE를 통제 불가로 느낌", "DE가 PA를 침범적으로 느낌"],
+        "solutions": ["DE의 공간 존중", "PA의 통제 욕구 조절"],
+        "growth_potential": "PA가 거리의 가치를, DE가 연결의 가치를 배움"
+      },
+      "PA_LM": {
+        "score": 80,
+        "dynamic": "돌봄받는 리더",
+        "description": "지배와 헌신의 조합",
+        "challenges": ["LM의 과잉 희생", "PA의 당연시", "불균형"],
+        "solutions": ["LM의 필요 표현 장려", "PA의 감사 표현"],
+        "growth_potential": "LM이 자기 가치를, PA가 감사를 배움"
+      },
+      "PA_BC": {
+        "score": 50,
+        "dynamic": "경쟁적 동맹",
+        "description": "두 지배적 성향, 하나는 따뜻하고 하나는 냉담",
+        "challenges": ["PA가 BC를 냉정하다 느낌", "BC가 PA를 감정적이라 느낌"],
+        "solutions": ["공동 목표 설정", "서로의 접근법 존중"],
+        "growth_potential": "함께 강력한 팀이 될 수 있음"
+      },
+      "PA_FG": {
+        "score": 40,
+        "dynamic": "압도와 위축",
+        "description": "PA의 에너지가 FG를 압도함",
+        "challenges": ["FG가 더 위축됨", "PA가 FG를 이해 못함"],
+        "solutions": ["PA의 에너지 조절", "FG를 위한 안전한 공간"],
+        "growth_potential": "FG가 안전하게 자기표현을 배울 수 있음"
+      },
+
+      "NO_NO": {
+        "score": 90,
+        "dynamic": "조화로운 연결",
+        "description": "서로 따뜻함을 주고받음",
+        "challenges": ["갈등 회피", "문제 직면 어려움", "표면적 조화"],
+        "solutions": ["건강한 갈등 기술 개발", "불편한 주제도 다루기"],
+        "growth_potential": "깊은 우정, 하지만 갈등 해결 능력 필요"
+      },
+      "NO_DE": {
+        "score": 50,
+        "dynamic": "친밀감 vs 거리",
+        "description": "NO의 접근과 DE의 회피",
+        "challenges": ["NO가 거부당한 느낌", "DE가 압박받는 느낌"],
+        "solutions": ["DE의 페이스 존중", "NO의 인내심"],
+        "growth_potential": "NO가 공간의 가치를, DE가 연결의 안전함을 배움"
+      },
+      "NO_LM": {
+        "score": 85,
+        "dynamic": "따뜻한 돌봄",
+        "description": "서로 주고받는 친화적 관계",
+        "challenges": ["주고받음의 불균형", "경계 모호"],
+        "solutions": ["서로의 필요 균형", "건강한 경계"],
+        "growth_potential": "깊은 상호 돌봄 관계"
+      },
+      "NO_BC": {
+        "score": 55,
+        "dynamic": "따뜻함 vs 냉담함",
+        "description": "NO의 친화가 BC의 냉담에 부딪힘",
+        "challenges": ["NO가 상처받음", "BC가 NO를 약하다 봄"],
+        "solutions": ["BC가 NO의 따뜻함 가치 인정", "NO가 BC의 방식 이해"],
+        "growth_potential": "BC가 따뜻함을 배우는 안전한 관계"
+      },
+      "NO_FG": {
+        "score": 70,
+        "dynamic": "수용적 지지",
+        "description": "NO의 따뜻함이 FG에게 안전함 제공",
+        "challenges": ["FG의 자기비하", "NO의 구원자 역할"],
+        "solutions": ["FG의 강점 강조", "건강한 경계"],
+        "growth_potential": "FG가 안전한 관계에서 자신감 회복"
+      },
+
+      "DE_DE": {
+        "score": 60,
+        "dynamic": "평행한 거리",
+        "description": "서로 거리를 유지하며 편안함",
+        "challenges": ["친밀감 부족", "연결의 깊이 한계"],
+        "solutions": ["작은 취약함 공유 시도"],
+        "growth_potential": "서로의 공간을 존중하는 독립적 관계"
+      },
+      "DE_LM": {
+        "score": 50,
+        "dynamic": "주는 자 vs 받지 않는 자",
+        "description": "LM이 주려 하지만 DE가 받지 않음",
+        "challenges": ["LM의 좌절", "DE의 부담감"],
+        "solutions": ["LM이 DE의 거리 존중", "DE가 작은 것부터 받기"],
+        "growth_potential": "DE가 받는 법을 배우는 관계"
+      },
+      "DE_BC": {
+        "score": 55,
+        "dynamic": "냉담한 동맹",
+        "description": "감정보다 목표 중심 관계",
+        "challenges": ["정서적 연결 부재", "실용적 관계로 제한"],
+        "solutions": ["가끔 취약함 공유"],
+        "growth_potential": "효율적 파트너십, 하지만 친밀감 개발 필요"
+      },
+      "DE_FG": {
+        "score": 45,
+        "dynamic": "이중 회피",
+        "description": "둘 다 거리를 두어 연결이 어려움",
+        "challenges": ["관계 시작 자체가 어려움", "고립"],
+        "solutions": ["구조화된 상호작용", "작은 연결부터"],
+        "growth_potential": "서로의 내면을 이해하면 깊은 연결 가능"
+      },
+
+      "LM_LM": {
+        "score": 75,
+        "dynamic": "상호 돌봄",
+        "description": "서로 돌보고 싶어함",
+        "challenges": ["누가 받을 것인가", "자기 희생 경쟁"],
+        "solutions": ["받는 연습", "돌봄의 균형"],
+        "growth_potential": "서로 돌보며 건강한 주고받음 학습"
+      },
+      "LM_BC": {
+        "score": 60,
+        "dynamic": "따뜻함 vs 냉담함의 균형",
+        "description": "LM이 BC를 부드럽게, BC가 LM을 강하게",
+        "challenges": ["LM이 이용당할 수 있음", "BC가 LM을 무시"],
+        "solutions": ["LM의 경계 설정", "BC의 감사 표현"],
+        "growth_potential": "상호 보완적 성장 가능"
+      },
+      "LM_FG": {
+        "score": 65,
+        "dynamic": "돌보는 자와 돌봄받는 자",
+        "description": "LM의 돌봄이 FG에게 안전함 제공",
+        "challenges": ["의존 관계 고착", "FG의 성장 저해"],
+        "solutions": ["FG의 자립 격려", "균형잡힌 역할"],
+        "growth_potential": "FG가 자신감을 회복하는 치유적 관계"
+      },
+
+      "BC_BC": {
+        "score": 40,
+        "dynamic": "냉정한 경쟁",
+        "description": "두 경쟁적-냉담 성향의 치열한 대립",
+        "challenges": ["신뢰 부재", "항상 경계", "배신 우려"],
+        "solutions": ["공동의 적 또는 목표", "규칙 기반 협력"],
+        "growth_potential": "서로를 존중하면 강력한 동맹"
+      },
+      "BC_FG": {
+        "score": 35,
+        "dynamic": "포식자-피해자 역학",
+        "description": "BC가 FG를 압도하거나 무시",
+        "challenges": ["FG의 트라우마 재경험", "BC의 착취"],
+        "solutions": ["BC의 자기인식", "FG를 위한 보호"],
+        "growth_potential": "건강한 관계가 아닐 가능성 높음"
+      },
+
+      "FG_FG": {
+        "score": 50,
+        "dynamic": "상호 위축",
+        "description": "둘 다 자신을 낮추어 관계 진전 어려움",
+        "challenges": ["주도하는 사람 없음", "관계 정체"],
+        "solutions": ["작은 주도 시도", "서로 격려"],
+        "growth_potential": "서로의 그림자를 이해하는 동지"
+      },
+
+      "JK_JK": {
+        "score": 55,
+        "dynamic": "양보의 교착",
+        "description": "둘 다 양보하여 방향 없음",
+        "challenges": ["결정 못함", "주도 부재", "답답함"],
+        "solutions": ["돌아가며 결정하기", "작은 주장 연습"],
+        "growth_potential": "평화롭지만 발전 느림"
+      }
+    }
+  },
+
+  "relationship_type_recommendations": {
+    "romantic": {
+      "optimal_pairings": ["PA_JK", "PA_LM", "NO_NO", "NO_LM"],
+      "challenging_pairings": ["PA_PA", "BC_BC", "BC_FG"],
+      "key_factors": ["지배-순종 상보성", "친화 대응성", "정서적 안전감"]
+    },
+    "friendship": {
+      "optimal_pairings": ["NO_NO", "NO_LM", "PA_NO", "DE_DE"],
+      "challenging_pairings": ["BC_FG", "PA_FG"],
+      "key_factors": ["상호 존중", "편안함", "비슷한 친화 수준"]
+    },
+    "business": {
+      "optimal_pairings": ["PA_JK", "BC_LM", "PA_NO", "TE_DE"],
+      "challenging_pairings": ["PA_PA", "FG_FG", "JK_JK"],
+      "key_factors": ["역할 명확성", "결정력", "효율성"]
+    },
+    "mentorship": {
+      "optimal_pairings": ["PA_JK", "PA_NO_LM", "NO_FG"],
+      "challenging_pairings": ["FG_FG", "JK_JK", "BC_BC"],
+      "key_factors": ["지식 전달", "안전한 성장 환경", "격려"]
+    }
+  },
+
+  "conflict_resolution_by_icp": {
+    "PA_vs_PA": {
+      "conflict_pattern": "주도권 경쟁, 양보하지 않음",
+      "resolution_strategy": [
+        "승패가 아닌 윈윈 프레이밍",
+        "각자의 전문 영역 인정",
+        "규칙 기반 의사결정 (예: 번갈아가며 결정)"
+      ]
+    },
+    "NO_vs_DE": {
+      "conflict_pattern": "접근하려는 NO, 피하는 DE",
+      "resolution_strategy": [
+        "DE의 공간 필요 인정",
+        "연결의 작은 단위로 시작",
+        "NO의 인내심과 DE의 작은 시도"
+      ]
+    },
+    "BC_vs_LM": {
+      "conflict_pattern": "LM이 상처받고, BC가 모름",
+      "resolution_strategy": [
+        "LM이 영향을 명확히 표현",
+        "BC가 피드백을 방어 없이 듣기",
+        "BC의 감사 표현 연습"
+      ]
+    },
+    "JK_accumulated_resentment": {
+      "conflict_pattern": "오래 쌓인 JK의 분노 폭발",
+      "resolution_strategy": [
+        "정기적인 피드백 시간",
+        "작은 불만도 표현하도록 격려",
+        "안전한 표현 환경 조성"
+      ]
+    }
+  },
+
+  "growth_paths": {
+    "PA_to_balance": {
+      "current": "지배적",
+      "growth_direction": "친화 개발",
+      "practices": ["경청 연습", "취약함 표현", "통제 내려놓기"]
+    },
+    "JK_to_balance": {
+      "current": "순종적",
+      "growth_direction": "자기주장 개발",
+      "practices": ["작은 요청하기", "거절 연습", "자기 의견 표현"]
+    },
+    "DE_to_balance": {
+      "current": "냉담",
+      "growth_direction": "친화 개발",
+      "practices": ["취약함의 작은 공유", "연결 시도", "신뢰 실험"]
+    },
+    "NO_to_balance": {
+      "current": "친화적",
+      "growth_direction": "건강한 경계",
+      "practices": ["갈등 직면", "불편함 견디기", "자기 필요 표현"]
+    }
+  }
+}

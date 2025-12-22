@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import styles from "./result.module.css";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
-import SuggestedQuestions from "@/components/destiny-map/SuggestedQuestions";
+import FunInsights from "@/components/destiny-map/FunInsights";
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
@@ -212,6 +212,7 @@ export default function DestinyResultPage({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [activeTheme, setActiveTheme] = useState("focus_love");
+  const [cachedAge, setCachedAge] = useState<string | null>(null);
 
   // ------------------------------------------------------------ //
   // 🎯 비즈니스 로직
@@ -270,6 +271,7 @@ export default function DestinyResultPage({
               astro: res.astro || {},
               timestamp: Date.now(),
             }));
+            setCachedAge("0m");
           } catch (e) {
             console.warn("[ResultPage] Failed to store chart data:", e);
           }
@@ -290,6 +292,21 @@ export default function DestinyResultPage({
     })();
   }, [sp, t]);
 
+  // Cached chart timestamp for UI hint
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("destinyChartData");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.timestamp) {
+        const minutes = Math.max(0, Math.floor((Date.now() - parsed.timestamp) / 60000));
+        setCachedAge(`${minutes}m ago`);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // ------------------------------------------------------------ //
   // ⏳ 상태별 렌더링
   // ------------------------------------------------------------ //
@@ -303,6 +320,14 @@ export default function DestinyResultPage({
         <BackButton />
         <section className={styles.card}>
           <div style={{ padding: 40, color: "crimson" }}>⚠️ {error}</div>
+          <button
+            type="button"
+            className={styles.submitButton}
+            style={{ marginTop: 16 }}
+            onClick={() => window.location.reload()}
+          >
+            {t("destinyMap.result.retry", "Retry")}
+          </button>
         </section>
       </main>
     );
@@ -314,6 +339,14 @@ export default function DestinyResultPage({
         <BackButton />
         <section className={styles.card}>
           <div style={{ padding: 40 }}>{t("destinyMap.result.errorNoResult", "Failed to load results.")}</div>
+          <button
+            type="button"
+            className={styles.submitButton}
+            style={{ marginTop: 16 }}
+            onClick={() => window.location.reload()}
+          >
+            {t("destinyMap.result.retry", "Retry")}
+          </button>
         </section>
       </main>
     );
@@ -353,6 +386,16 @@ export default function DestinyResultPage({
           marginLeft: 4,
         }}>
           📍 {userCity}
+        </span>
+      )}
+      {cachedAge && (
+        <span style={{
+          opacity: 0.8,
+          borderLeft: '1px solid rgba(167, 139, 250, 0.3)',
+          paddingLeft: 8,
+          marginLeft: 4,
+        }}>
+          {t("destinyMap.result.cacheAge", "Cache")}: {cachedAge}
         </span>
       )}
     </div>
@@ -427,12 +470,77 @@ export default function DestinyResultPage({
         {/* 🧮 리포트 본문 렌더 */}
         <Display result={result} lang={lang} theme={activeTheme} reportType="core" />
 
-        {/* 💬 상담사 유도 질문 */}
-        <SuggestedQuestions
-          theme={activeTheme}
-          lang={lang}
+        {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
+        <FunInsights
           saju={result?.saju}
+          astro={result?.astro || result?.astrology}
+          lang={lang}
+          theme={activeTheme}
         />
+
+        {/* 🔮 상담사 연결 버튼 */}
+        <div style={{ marginTop: 48, marginBottom: 20 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              flex: 1,
+              height: 1,
+              background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent)',
+            }} />
+            <span style={{
+              color: '#a78bfa',
+              fontSize: 14,
+              fontWeight: 500,
+            }}>
+              {lang === "ko" ? "더 궁금한 점이 있으신가요?" : "Want to know more?"}
+            </span>
+            <div style={{
+              flex: 1,
+              height: 1,
+              background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent)',
+            }} />
+          </div>
+
+          <button
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              window.location.href = `/destiny-map/counselor?${params.toString()}`;
+            }}
+            style={{
+              width: '100%',
+              padding: '18px 24px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: 16,
+              borderRadius: 16,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 8px 32px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              transition: 'all 0.3s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)';
+            }}
+          >
+            <span style={{ fontSize: 24 }}>🔮</span>
+            <span>{lang === "ko" ? "상담사에게 직접 물어보기" : "Ask the Counselor Directly"}</span>
+            <span style={{ fontSize: 20 }}>→</span>
+          </button>
+        </div>
       </section>
     </main>
   );

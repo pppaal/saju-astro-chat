@@ -685,6 +685,8 @@ Create a deeply personalized fortune analysis following the theme structure abov
 CONTENT REQUIREMENTS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. PERSONALIZATION: Reference specific elements from their chart
+   ⚠️ CRITICAL: The Day Master (일간/日干) is in the SAJU data below - look for "Day Master" field
+   ⚠️ Do NOT confuse the Year Stem (년간) with the Day Master (일간) - they are DIFFERENT!
    - Mention their Day Master element and its characteristics
    - Connect their Four Pillars to current life situations
    - Use their actual planetary positions for timing guidance

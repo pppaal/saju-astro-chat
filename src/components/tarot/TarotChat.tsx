@@ -13,14 +13,20 @@ const I18N: Record<LangKey, {
   empty: string;
   error: string;
   suggestedQuestions: string;
+  cardContextTitle: string;
+  followUpLabel: string;
+  fallbackNote: string;
 }> = {
   ko: {
-    placeholder: "카드에 대해 더 물어보세요...",
-    send: "보내기",
-    thinking: "카드의 메시지를 해석하고 있습니다...",
-    empty: "카드에 대해 궁금한 점을 물어보세요. 예: '이 카드 조합이 연애에서 무슨 의미야?'",
-    error: "오류가 발생했습니다. 다시 시도해 주세요.",
-    suggestedQuestions: "추천 질문"
+    placeholder: "??? ??? ??? ?? ?????.",
+    send: "???",
+    thinking: "?? ???? ???? ?...",
+    empty: "??? ?? ???? ?????. ?) ? ??? ? ??? ?? ?????",
+    error: "??? ??????. ?? ??????.",
+    suggestedQuestions: "?? ??",
+    cardContextTitle: "??? ?? ??",
+    followUpLabel: "???? ??? ?",
+    fallbackNote: "?? ?????. ?? ? ?? ???? ? ??? ?? ?? ? ???."
   },
   en: {
     placeholder: "Ask more about your cards...",
@@ -28,34 +34,29 @@ const I18N: Record<LangKey, {
     thinking: "Interpreting the card's message...",
     empty: "Ask anything about your cards. E.g., 'What does this combination mean for my love life?'",
     error: "An error occurred. Please try again.",
-    suggestedQuestions: "Suggested Questions"
+    suggestedQuestions: "Suggested Questions",
+    cardContextTitle: "Cards drawn",
+    followUpLabel: "Ask next",
+    fallbackNote: "This is a fallback response; try again for a fresher reading."
   }
 };
-
 // Fun loading messages for better UX
 const LOADING_MESSAGES: Record<LangKey, string[]> = {
   ko: [
-    "타로 카드의 에너지를 읽고 있어요... 🔮",
-    "별들의 메시지를 해독하는 중... ✨",
-    "당신만을 위한 통찰을 준비하고 있어요... 🌙",
-    "카드가 속삭이는 이야기를 듣고 있어요... 🃏",
-    "우주의 지혜를 연결하는 중... 🌌",
-    "직관의 안개 속을 헤쳐나가는 중... 💫",
-    "신비로운 답을 찾고 있어요... 🔮",
-    "운명의 실타래를 풀고 있어요... 🧵"
+    "?? ???? ?? ?... ??",
+    "???? ???? ?... ?",
+    "???? ???? ???... ??",
+    "??? ????? ?... ??",
+    "???? ?? ??? ?? ?... ??"
   ],
   en: [
-    "Reading the energy of your cards... 🔮",
-    "Decoding messages from the stars... ✨",
-    "Preparing insights just for you... 🌙",
-    "Listening to what the cards whisper... 🃏",
-    "Connecting to cosmic wisdom... 🌌",
-    "Navigating through the mist of intuition... 💫",
-    "Searching for mystical answers... 🔮",
-    "Unraveling the threads of fate... 🧵"
+    "Reading the energy of your cards... ??",
+    "Decoding messages from the stars... ?",
+    "Preparing insights just for you... ??",
+    "Listening to what the cards whisper... ??",
+    "Finding practical guidance... ??"
   ]
 };
-
 // Suggested questions based on spread (more specific than category)
 const SPREAD_QUESTIONS: Record<string, Record<LangKey, string[]>> = {
   // === General Insight ===
@@ -1278,9 +1279,12 @@ export default function TarotChat({
   const [loading, setLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [loadingMessage, setLoadingMessage] = useState<string>("");
+  const [usedFallback, setUsedFallback] = useState(false);
+  const [persistedContext, setPersistedContext] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [usedQuestionIndices, setUsedQuestionIndices] = useState<Set<number>>(new Set());
   const loadingMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionKeyRef = useRef<string>(`tarot-context:${categoryName}:${spreadId}`);
 
   // Generate dynamic questions based on actual drawn cards (만프로 Premium)
   const dynamicQuestions = generateDynamicQuestions(readingResult.drawnCards, language);
@@ -1313,6 +1317,31 @@ export default function TarotChat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Persist context for reuse within session
+  useEffect(() => {
+    try {
+      const ctx = buildContext();
+      sessionStorage.setItem(sessionKeyRef.current, JSON.stringify(ctx));
+    } catch {
+      // ignore storage errors
+    }
+  }, [readingResult, interpretation, categoryName, spreadId]);
+
+  // Load persisted context (if exists) to keep conversations anchored
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(sessionKeyRef.current);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.cards?.length) {
+          setPersistedContext(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const buildContext = () => {
     const cards = readingResult.drawnCards.map((dc, idx) => ({
       position: readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`,
@@ -1324,13 +1353,30 @@ export default function TarotChat({
         : (dc.card.upright.keywordsKo || dc.card.upright.keywords)
     }));
 
-    return {
+    const base = {
       spread_title: readingResult.spread.title,
       category: categoryName,
       cards,
       overall_message: interpretation?.overall_message || "",
       guidance: interpretation?.guidance || ""
     };
+
+    // If we have a persisted context with cards, merge to keep continuity
+    if (persistedContext?.cards?.length) {
+      const persistedCards = persistedContext.cards as any[];
+      const merged = [...persistedCards];
+      for (const c of cards) {
+        const dup = merged.find(
+          (p) =>
+            p.name === c.name &&
+            (p.position === c.position || !p.position || !c.position)
+        );
+        if (!dup) merged.push(c);
+      }
+      return { ...base, cards: merged };
+    }
+
+    return base;
   };
 
   // Start rotating loading messages
@@ -1353,9 +1399,23 @@ export default function TarotChat({
     setLoadingMessage("");
   };
 
+  // Append a short follow-up anchored to the first card
+  function addFollowUp(content: string) {
+    if (!content) return content;
+    const firstCard = readingResult.drawnCards[0];
+    if (!firstCard) return content;
+    const pos = readingResult.spread.positions[0]?.title || "Card 1";
+    const orient = firstCard.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
+    const follow = language === "ko"
+      ? `\n\n${tr.followUpLabel}: ${pos}의 ${firstCard.card.name}(${orient})에 대해 더 묻고 싶은 점이 있나요?`
+      : `\n\n${tr.followUpLabel}: Anything else about ${firstCard.card.name} (${orient}) in ${pos}?`;
+    return content.includes(tr.followUpLabel) ? content : `${content.trim()}${follow}`;
+  }
+
   async function handleSend(text?: string) {
     const messageText = text || input.trim();
     if (!messageText || loading) return;
+    setUsedFallback(false);
 
     // Track used suggestion if it was from suggestions
     const suggestionIndex = allSuggestedQuestions.indexOf(messageText);
@@ -1387,6 +1447,9 @@ export default function TarotChat({
       }
 
       const contentType = response.headers.get("content-type");
+      if (response.headers.get("x-fallback") === "1") {
+        setUsedFallback(true);
+      }
 
       if (contentType?.includes("text/event-stream") && response.body) {
         // Handle SSE streaming
@@ -1416,7 +1479,7 @@ export default function TarotChat({
                   // Streaming complete
                   setMessages(prev => [...prev, {
                     role: "assistant",
-                    content: accumulatedContent || tr.error
+                    content: addFollowUp(accumulatedContent || tr.error)
                   }]);
                   setStreamingContent("");
                 }
@@ -1438,7 +1501,7 @@ export default function TarotChat({
             if (last?.role === "assistant" && last?.content === accumulatedContent) {
               return prev;
             }
-            return [...prev, { role: "assistant", content: accumulatedContent }];
+            return [...prev, { role: "assistant", content: addFollowUp(accumulatedContent) }];
           });
           setStreamingContent("");
         }
@@ -1448,7 +1511,7 @@ export default function TarotChat({
         const data = await response.json();
         setMessages(prev => [...prev, {
           role: "assistant",
-          content: data.reply || tr.error
+          content: addFollowUp(data.reply || tr.error)
         }]);
       }
     } catch (error) {
@@ -1469,15 +1532,17 @@ export default function TarotChat({
 
         if (fallbackResponse.ok) {
           const data = await fallbackResponse.json();
+          setUsedFallback(true);
           setMessages(prev => [...prev, {
             role: "assistant",
-            content: data.reply || tr.error
+            content: addFollowUp(data.reply || tr.error)
           }]);
         } else {
           throw new Error("Fallback also failed");
         }
       } catch (fallbackError) {
         console.error("[TarotChat] Fallback error:", fallbackError);
+        setUsedFallback(true);
         setMessages(prev => [...prev, {
           role: "assistant",
           content: tr.error
@@ -1501,6 +1566,26 @@ export default function TarotChat({
     <div className={styles.chatContainer}>
       {/* Messages Panel */}
       <div className={styles.messagesPanel}>
+        <div className={styles.cardContext}>
+          <div className={styles.cardContextHeader}>{tr.cardContextTitle}</div>
+          <div className={styles.cardGrid}>
+            {readingResult.drawnCards.map((dc, idx) => {
+              const pos = readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`;
+              const orient = dc.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
+              const keywords = dc.isReversed ? (dc.card.reversed.keywordsKo || dc.card.reversed.keywords) : (dc.card.upright.keywordsKo || dc.card.upright.keywords);
+              return (
+                <div key={idx} className={styles.cardPill}>
+                  <div className={styles.cardTitle}>{pos}</div>
+                  <div className={styles.cardName}>{dc.card.name} · {orient}</div>
+                  {keywords && keywords.length > 0 && (
+                    <div className={styles.cardKeywords}>{keywords.slice(0, 3).join(", ")}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {messages.length === 0 && !loading && (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🔮</div>
@@ -1567,6 +1652,12 @@ export default function TarotChat({
 
         <div ref={messagesEndRef} />
       </div>
+
+      {usedFallback && (
+        <div className={styles.fallbackNote}>
+          {tr.fallbackNote}
+        </div>
+      )}
 
       {/* Suggested Questions (after assistant response) */}
       {showSuggestionsAfterResponse && getNextSuggestions().length > 0 && (

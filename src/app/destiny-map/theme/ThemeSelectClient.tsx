@@ -232,6 +232,21 @@ export default function ThemeSelectClient() {
             </button>
           ))}
         </div>
+
+        <div className={styles.matrixSection}>
+          <button
+            type="button"
+            className={styles.matrixButton}
+            onClick={() => router.push(`/destiny-map/matrix?${baseParams.toString()}`)}
+          >
+            <span className={styles.matrixIcon}>🧬</span>
+            <div className={styles.matrixContent}>
+              <span className={styles.matrixTitle}>Destiny Fusion Matrix™</span>
+              <span className={styles.matrixDesc}>사주 × 점성 10레이어 융합 분석 (1,206 셀)</span>
+            </div>
+            <span className={styles.matrixArrow}>→</span>
+          </button>
+        </div>
       </section>
     </main>
   );

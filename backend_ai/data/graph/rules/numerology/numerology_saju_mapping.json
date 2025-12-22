@@ -1,0 +1,345 @@
+{
+  "$schema": "numerology_saju_mapping_v1",
+  "$description": "수비학과 사주(四柱) 시스템 간의 매핑 - 오행, 십신, 천간, 지지 연결",
+
+  "rule_type": "numerology_saju_mapping",
+  "version": "1.0",
+
+  "number_to_element": {
+    "description": "숫자와 오행(五行) 매핑",
+    "mappings": {
+      "1": {
+        "element": "wood",
+        "element_ko": "목(木)",
+        "yin_yang": "yang",
+        "characteristics": {
+          "ko": "새로운 시작, 성장, 리더십 - 나무가 위로 뻗어나가듯 개척하는 에너지",
+          "en": "New beginnings, growth, leadership - pioneering energy like trees reaching upward"
+        },
+        "saju_parallel": "갑목(甲木)과 유사 - 우뚝 선 나무처럼 독립적이고 진취적"
+      },
+      "2": {
+        "element": "fire",
+        "element_ko": "화(火)",
+        "yin_yang": "yin",
+        "characteristics": {
+          "ko": "조화, 협력, 감수성 - 따뜻한 불이 사람을 모으듯 관계를 중시",
+          "en": "Harmony, cooperation, sensitivity - valuing relationships like warm fire gathering people"
+        },
+        "saju_parallel": "정화(丁火)와 유사 - 촛불처럼 부드럽고 따뜻하게 비추는 에너지"
+      },
+      "3": {
+        "element": "fire",
+        "element_ko": "화(火)",
+        "yin_yang": "yang",
+        "characteristics": {
+          "ko": "창의력, 표현, 즐거움 - 불꽃이 타오르듯 활발한 에너지",
+          "en": "Creativity, expression, joy - vibrant energy like blazing flames"
+        },
+        "saju_parallel": "병화(丙火)와 유사 - 태양처럼 밝게 빛나고 주목받는 에너지"
+      },
+      "4": {
+        "element": "earth",
+        "element_ko": "토(土)",
+        "yin_yang": "yin",
+        "characteristics": {
+          "ko": "안정, 체계, 근면 - 땅이 모든 것을 지탱하듯 든든한 기반",
+          "en": "Stability, structure, diligence - solid foundation like earth supporting all"
+        },
+        "saju_parallel": "기토(己土)와 유사 - 비옥한 논밭처럼 꾸준히 결실을 맺는 에너지"
+      },
+      "5": {
+        "element": "earth",
+        "element_ko": "토(土)",
+        "yin_yang": "yang",
+        "characteristics": {
+          "ko": "변화, 적응, 자유 - 중심에서 모든 방향으로 움직이는 역동성",
+          "en": "Change, adaptation, freedom - dynamism moving in all directions from center"
+        },
+        "saju_parallel": "무토(戊土)와 유사 - 산처럼 광활하고 모든 것을 품는 에너지"
+      },
+      "6": {
+        "element": "metal",
+        "element_ko": "금(金)",
+        "yin_yang": "yin",
+        "characteristics": {
+          "ko": "책임, 돌봄, 조화 - 금속이 그릇이 되듯 담아주는 에너지",
+          "en": "Responsibility, care, harmony - containing energy like metal becoming a vessel"
+        },
+        "saju_parallel": "신금(辛金)과 유사 - 보석처럼 아름답고 섬세한 에너지"
+      },
+      "7": {
+        "element": "metal",
+        "element_ko": "금(金)",
+        "yin_yang": "yang",
+        "characteristics": {
+          "ko": "지혜, 탐구, 분석 - 금속의 날카로움으로 진리를 찾는 에너지",
+          "en": "Wisdom, exploration, analysis - energy seeking truth with metal's sharpness"
+        },
+        "saju_parallel": "경금(庚金)과 유사 - 검처럼 날카롭고 정확한 에너지"
+      },
+      "8": {
+        "element": "water",
+        "element_ko": "수(水)",
+        "yin_yang": "yin",
+        "characteristics": {
+          "ko": "성취, 권력, 풍요 - 물이 깊이 흐르듯 지혜롭게 성공을 추구",
+          "en": "Achievement, power, abundance - pursuing success wisely like deep flowing water"
+        },
+        "saju_parallel": "계수(癸水)와 유사 - 비처럼 만물을 적시며 영향력을 미치는 에너지"
+      },
+      "9": {
+        "element": "water",
+        "element_ko": "수(水)",
+        "yin_yang": "yang",
+        "characteristics": {
+          "ko": "연민, 봉사, 완성 - 큰 바다처럼 모든 것을 품는 에너지",
+          "en": "Compassion, service, completion - embracing energy like the vast ocean"
+        },
+        "saju_parallel": "임수(壬水)와 유사 - 대양처럼 광대하고 모든 것을 포용하는 에너지"
+      }
+    }
+  },
+
+  "number_to_sipsin": {
+    "description": "숫자와 십신(十神) 매핑",
+    "note": "이 매핑은 숫자의 에너지와 십신의 특성을 연결한 해석입니다",
+    "mappings": {
+      "1": {
+        "primary_sipsin": "비견(比肩)",
+        "secondary_sipsin": "겁재(劫財)",
+        "interpretation": {
+          "ko": "비견처럼 독립적이고 자기 주도적인 에너지. 동료와 경쟁하며 성장하는 특성.",
+          "en": "Independent and self-directed energy like Bijeon. Growing through competition with peers."
+        }
+      },
+      "2": {
+        "primary_sipsin": "식신(食神)",
+        "secondary_sipsin": "상관(傷官)",
+        "interpretation": {
+          "ko": "식신처럼 부드럽고 조화로운 에너지. 타인을 돕고 표현하는 특성.",
+          "en": "Gentle and harmonious energy like Sikshin. Helping others and expressing."
+        }
+      },
+      "3": {
+        "primary_sipsin": "상관(傷官)",
+        "secondary_sipsin": "식신(食神)",
+        "interpretation": {
+          "ko": "상관처럼 창의적이고 표현력이 강한 에너지. 기존 틀을 깨는 특성.",
+          "en": "Creative and expressive energy like Sanggwan. Breaking existing frameworks."
+        }
+      },
+      "4": {
+        "primary_sipsin": "정재(正財)",
+        "secondary_sipsin": "편재(偏財)",
+        "interpretation": {
+          "ko": "정재처럼 성실하고 책임감 있는 에너지. 꾸준히 쌓아가는 특성.",
+          "en": "Diligent and responsible energy like Jeongjae. Steadily building up."
+        }
+      },
+      "5": {
+        "primary_sipsin": "편재(偏財)",
+        "secondary_sipsin": "정재(正財)",
+        "interpretation": {
+          "ko": "편재처럼 다재다능하고 변화를 좋아하는 에너지. 다양한 기회를 추구하는 특성.",
+          "en": "Versatile energy loving change like Pyeonjae. Pursuing various opportunities."
+        }
+      },
+      "6": {
+        "primary_sipsin": "정관(正官)",
+        "secondary_sipsin": "편관(偏官)",
+        "interpretation": {
+          "ko": "정관처럼 책임감 있고 질서를 중시하는 에너지. 보살피고 이끄는 특성.",
+          "en": "Responsible energy valuing order like Jeonggwan. Caring and leading."
+        }
+      },
+      "7": {
+        "primary_sipsin": "편관(偏官)",
+        "secondary_sipsin": "정관(正官)",
+        "interpretation": {
+          "ko": "편관처럼 날카롭고 통찰력 있는 에너지. 깊이 파고드는 특성.",
+          "en": "Sharp and insightful energy like Pyeongwan. Digging deep."
+        }
+      },
+      "8": {
+        "primary_sipsin": "정인(正印)",
+        "secondary_sipsin": "편인(偏印)",
+        "interpretation": {
+          "ko": "정인처럼 지혜롭고 성취 지향적인 에너지. 배움을 실현으로 연결하는 특성.",
+          "en": "Wise and achievement-oriented energy like Jeongin. Connecting learning to realization."
+        }
+      },
+      "9": {
+        "primary_sipsin": "편인(偏印)",
+        "secondary_sipsin": "정인(正印)",
+        "interpretation": {
+          "ko": "편인처럼 영적이고 직관적인 에너지. 깊은 이해와 봉사를 추구하는 특성.",
+          "en": "Spiritual and intuitive energy like Pyeonin. Seeking deep understanding and service."
+        }
+      }
+    }
+  },
+
+  "cross_analysis_rules": {
+    "description": "수비학과 사주 교차 분석 규칙",
+    "rules": [
+      {
+        "id": "NUM_SAJU_ELEMENT_MATCH",
+        "condition": "numerology_element == saju_dominant_element",
+        "weight": 1.2,
+        "interpretation": {
+          "ko": "수비학과 사주의 오행이 일치합니다. 에너지가 강화되어 해당 특성이 더욱 두드러집니다.",
+          "en": "Numerology and Saju elements match. Energy is amplified, making those traits more prominent."
+        }
+      },
+      {
+        "id": "NUM_SAJU_ELEMENT_COMPLEMENT",
+        "condition": "numerology_element generates saju_dominant_element",
+        "weight": 1.1,
+        "interpretation": {
+          "ko": "수비학의 오행이 사주의 오행을 생(生)합니다. 서로 보완하여 성장을 촉진합니다.",
+          "en": "Numerology element generates Saju element. They complement each other to promote growth."
+        }
+      },
+      {
+        "id": "NUM_SAJU_ELEMENT_CONTROL",
+        "condition": "numerology_element controls saju_dominant_element",
+        "weight": 0.9,
+        "interpretation": {
+          "ko": "수비학의 오행이 사주의 오행을 극(克)합니다. 내면의 갈등이 있을 수 있지만 성장의 기회이기도 합니다.",
+          "en": "Numerology element controls Saju element. There may be inner conflict but also opportunity for growth."
+        }
+      }
+    ]
+  },
+
+  "element_cycle": {
+    "description": "오행 상생상극 관계",
+    "generation": {
+      "wood_generates_fire": "목생화(木生火)",
+      "fire_generates_earth": "화생토(火生土)",
+      "earth_generates_metal": "토생금(土生金)",
+      "metal_generates_water": "금생수(金生水)",
+      "water_generates_wood": "수생목(水生木)"
+    },
+    "control": {
+      "wood_controls_earth": "목극토(木克土)",
+      "earth_controls_water": "토극수(土克水)",
+      "water_controls_fire": "수극화(水克火)",
+      "fire_controls_metal": "화극금(火克金)",
+      "metal_controls_wood": "금극목(金克木)"
+    }
+  },
+
+  "integrated_interpretation_templates": {
+    "description": "수비학-사주 통합 해석 템플릿",
+    "templates": [
+      {
+        "id": "MATCHING_LEADERSHIP",
+        "conditions": {
+          "life_path": 1,
+          "day_master_strength": "strong"
+        },
+        "template": {
+          "ko": "생명수 1의 리더십 에너지가 강한 일주(日柱)와 결합하여 타고난 지도자의 기질이 더욱 강화됩니다. {day_master}의 특성이 이 리더십에 {element_flavor}의 색깔을 더합니다.",
+          "en": "Life Path 1's leadership energy combined with a strong Day Master reinforces natural leadership qualities. {day_master}'s characteristics add a {element_flavor} color to this leadership."
+        }
+      },
+      {
+        "id": "MATCHING_CREATIVITY",
+        "conditions": {
+          "life_path": 3,
+          "has_sanggwan_sikshin": true
+        },
+        "template": {
+          "ko": "생명수 3의 창의적 표현 에너지가 사주의 식상(食傷) 에너지와 공명합니다. 뛰어난 예술적 재능과 소통 능력이 타고났습니다.",
+          "en": "Life Path 3's creative expression energy resonates with Saju's Siksang energy. You are born with exceptional artistic talent and communication ability."
+        }
+      },
+      {
+        "id": "MATCHING_STABILITY",
+        "conditions": {
+          "life_path": 4,
+          "dominant_element": "earth"
+        },
+        "template": {
+          "ko": "생명수 4의 안정 추구와 사주의 강한 토(土) 기운이 만나 굳건한 기반을 다지는 능력이 탁월합니다. 체계적이고 신뢰할 수 있는 사람입니다.",
+          "en": "Life Path 4's stability seeking meets strong Earth energy in Saju, giving exceptional ability to build solid foundations. You are systematic and reliable."
+        }
+      },
+      {
+        "id": "MATCHING_ACHIEVEMENT",
+        "conditions": {
+          "life_path": 8,
+          "has_jeongjae_pyeonjae": true
+        },
+        "template": {
+          "ko": "생명수 8의 성취 지향 에너지가 사주의 재성(財星)과 결합하여 물질적 성공을 이룰 잠재력이 큽니다. 자원 관리와 사업 능력이 뛰어납니다.",
+          "en": "Life Path 8's achievement-oriented energy combined with Saju's Jaeseong gives great potential for material success. Excellent at resource management and business."
+        }
+      },
+      {
+        "id": "TENSION_FREEDOM_STRUCTURE",
+        "conditions": {
+          "life_path": 5,
+          "dominant_element": "earth"
+        },
+        "template": {
+          "ko": "생명수 5의 자유 추구와 사주의 강한 토(土) 기운 사이에 긴장이 있습니다. 변화와 안정 사이에서 균형을 찾는 것이 인생의 과제입니다.",
+          "en": "There's tension between Life Path 5's freedom seeking and strong Earth energy in Saju. Finding balance between change and stability is life's challenge."
+        }
+      }
+    ]
+  },
+
+  "lucky_elements_by_number": {
+    "description": "숫자별 행운의 오행과 색상",
+    "mappings": {
+      "1": {
+        "lucky_elements": ["wood", "water"],
+        "lucky_colors": ["green", "blue", "black"],
+        "lucky_direction": "east"
+      },
+      "2": {
+        "lucky_elements": ["fire", "wood"],
+        "lucky_colors": ["red", "pink", "green"],
+        "lucky_direction": "south"
+      },
+      "3": {
+        "lucky_elements": ["fire", "wood"],
+        "lucky_colors": ["red", "orange", "yellow"],
+        "lucky_direction": "south"
+      },
+      "4": {
+        "lucky_elements": ["earth", "fire"],
+        "lucky_colors": ["yellow", "brown", "red"],
+        "lucky_direction": "center"
+      },
+      "5": {
+        "lucky_elements": ["earth", "metal"],
+        "lucky_colors": ["yellow", "white", "gold"],
+        "lucky_direction": "center"
+      },
+      "6": {
+        "lucky_elements": ["metal", "earth"],
+        "lucky_colors": ["white", "silver", "gold"],
+        "lucky_direction": "west"
+      },
+      "7": {
+        "lucky_elements": ["metal", "water"],
+        "lucky_colors": ["white", "purple", "blue"],
+        "lucky_direction": "west"
+      },
+      "8": {
+        "lucky_elements": ["water", "metal"],
+        "lucky_colors": ["black", "blue", "gray"],
+        "lucky_direction": "north"
+      },
+      "9": {
+        "lucky_elements": ["water", "wood"],
+        "lucky_colors": ["blue", "green", "purple"],
+        "lucky_direction": "north"
+      }
+    }
+  }
+}

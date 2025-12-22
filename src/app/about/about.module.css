@@ -218,6 +218,29 @@
   color: rgba(255,255,255,1);
 }
 
+/* Coming Soon */
+.comingSoon {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.comingSoon:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.comingSoonBadge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.5px;
+}
+
 /* Philosophy Section */
 .philosophy {
   margin-bottom: 100px;

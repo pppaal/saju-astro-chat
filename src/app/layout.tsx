@@ -1,6 +1,6 @@
 //src/app/layout.tsx
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "../styles/mobile-touch.css";
 import StarrySky from "@/components/ui/StarrySky";
@@ -67,6 +67,14 @@ const merriweather = Merriweather({
   variable: "--font-merriweather",
 });
 
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com"),
@@ -137,7 +145,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   });
 
   return (
-    <html lang="en" data-theme="dark" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
+    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
       <head>
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />

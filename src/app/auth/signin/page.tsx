@@ -104,20 +104,21 @@ function SignInContent() {
               </button>
             )}
 
-            {providers?.kakao && (
-              <button
-                className={styles.kakaoBtn}
-                onClick={() => signIn("kakao", { callbackUrl })}
-              >
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path
-                    fill="#000"
-                    d="M12 3C6.5 3 2 6.58 2 11c0 2.88 1.93 5.41 4.82 6.84-.2.74-.76 2.67-.87 3.08-.14.51.18.5.38.37.15-.1 2.44-1.63 3.47-2.32.77.11 1.56.17 2.37.17C17.5 19.14 22 15.56 22 11S17.5 3 12 3z"
-                  />
-                </svg>
-                Sign in with Kakao
-              </button>
-            )}
+{/* Kakao Login - 임시로 숨김 (나중에 사업자등록 후 활성화)
+            <button
+              className={`${styles.kakaoBtn} ${styles.comingSoon}`}
+              disabled
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path
+                  fill="#000"
+                  d="M12 3C6.5 3 2 6.58 2 11c0 2.88 1.93 5.41 4.82 6.84-.2.74-.76 2.67-.87 3.08-.14.51.18.5.38.37.15-.1 2.44-1.63 3.47-2.32.77.11 1.56.17 2.37.17C17.5 19.14 22 15.56 22 11S17.5 3 12 3z"
+                />
+              </svg>
+              Kakao Login
+              <span className={styles.comingSoonBadge}>Coming Soon</span>
+            </button>
+            */}
           </div>
 
           <div className={styles.divider}>

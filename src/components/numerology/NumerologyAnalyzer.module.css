@@ -1,0 +1,325 @@
+/* components/numerology/NumerologyAnalyzer.module.css */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.form {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.8rem;
+  color: #ffd166;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  margin: 0 0 2rem 0;
+  font-size: 0.95rem;
+}
+
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.required {
+  color: #ff6b6b;
+}
+
+.input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #ffd166;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.hint {
+  display: block;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.error {
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ffd166 0%, #ff9f1c 100%);
+  border: none;
+  border-radius: 10px;
+  color: #0c0a1a;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loading::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #0c0a1a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Results Section */
+.results {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.resultsTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  color: #ffd166;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.numberGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.numberCard {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.numberCard:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.masterNumber {
+  border-color: #ffd166;
+  background: rgba(255, 209, 102, 0.08);
+}
+
+.numberHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.numberValue {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffd166;
+}
+
+.masterBadge {
+  background: #ffd166;
+  color: #0c0a1a;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.numberTitle {
+  font-size: 1rem;
+  color: white;
+  margin: 0 0 0.2rem 0;
+}
+
+.numberKorean {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  margin-bottom: 0.8rem;
+}
+
+.numberMeaning {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.numberDescription {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 1rem 0 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+.expandHint {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 0.8rem;
+}
+
+/* Personal Year */
+.personalYear {
+  background: rgba(102, 209, 255, 0.08);
+  border: 1px solid rgba(102, 209, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.personalYear h4 {
+  color: #66d1ff;
+  font-size: 0.9rem;
+  margin: 0 0 0.8rem 0;
+}
+
+.personalYearContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.yearNumber {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #66d1ff;
+}
+
+.yearTheme {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+/* Korean Name */
+.koreanNameResult {
+  background: rgba(138, 43, 226, 0.08);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  border-radius: 12px;
+  padding: 1.2rem;
+}
+
+.koreanNameResult h4 {
+  color: #9d4edd;
+  font-size: 0.9rem;
+  margin: 0 0 0.8rem 0;
+}
+
+.strokeInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.strokeNumber {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #9d4edd;
+}
+
+.strokeMeaning {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .form,
+  .results {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .numberGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .numberCard {
+    padding: 1rem;
+  }
+
+  .numberValue {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .numberGrid {
+    grid-template-columns: 1fr;
+  }
+}

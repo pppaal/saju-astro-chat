@@ -1,0 +1,431 @@
+{
+  "$schema": "numerology_astro_mapping_v1",
+  "$description": "수비학과 서양 점성술 시스템 간의 매핑 - 행성, 별자리, 하우스 연결",
+
+  "rule_type": "numerology_astro_mapping",
+  "version": "1.0",
+
+  "number_to_planet": {
+    "description": "숫자와 행성 매핑",
+    "mappings": {
+      "1": {
+        "planet": "Sun",
+        "planet_ko": "태양",
+        "symbol": "☉",
+        "archetype": {
+          "ko": "자아, 정체성, 생명력, 리더십",
+          "en": "Self, identity, vitality, leadership"
+        },
+        "characteristics": {
+          "ko": "태양처럼 중심에 서서 빛을 발하는 에너지. 자신만의 길을 개척하고 다른 이들을 인도합니다.",
+          "en": "Energy that shines from the center like the Sun. Pioneers own path and guides others."
+        },
+        "associated_sign": "Leo",
+        "associated_sign_ko": "사자자리"
+      },
+      "2": {
+        "planet": "Moon",
+        "planet_ko": "달",
+        "symbol": "☽",
+        "archetype": {
+          "ko": "감정, 직관, 양육, 무의식",
+          "en": "Emotions, intuition, nurturing, unconscious"
+        },
+        "characteristics": {
+          "ko": "달처럼 감수성이 예민하고 타인의 감정을 잘 느낍니다. 돌봄과 조화를 추구합니다.",
+          "en": "Sensitive like the Moon, feeling others' emotions well. Seeks care and harmony."
+        },
+        "associated_sign": "Cancer",
+        "associated_sign_ko": "게자리"
+      },
+      "3": {
+        "planet": "Jupiter",
+        "planet_ko": "목성",
+        "symbol": "♃",
+        "archetype": {
+          "ko": "확장, 행운, 지혜, 낙관",
+          "en": "Expansion, luck, wisdom, optimism"
+        },
+        "characteristics": {
+          "ko": "목성처럼 풍요롭고 확장적인 에너지. 즐거움과 창의성으로 세상을 밝힙니다.",
+          "en": "Abundant and expansive energy like Jupiter. Brightens the world with joy and creativity."
+        },
+        "associated_sign": "Sagittarius",
+        "associated_sign_ko": "사수자리"
+      },
+      "4": {
+        "planet": "Uranus",
+        "planet_ko": "천왕성",
+        "symbol": "♅",
+        "archetype": {
+          "ko": "혁신, 독창성, 변화, 각성",
+          "en": "Innovation, originality, change, awakening"
+        },
+        "characteristics": {
+          "ko": "천왕성의 체계적이고 혁신적인 에너지. 새로운 구조와 시스템을 만들어냅니다.",
+          "en": "Systematic and innovative energy of Uranus. Creates new structures and systems."
+        },
+        "associated_sign": "Aquarius",
+        "associated_sign_ko": "물병자리",
+        "note": "일부 전통에서는 토성(Saturn)과 연결"
+      },
+      "5": {
+        "planet": "Mercury",
+        "planet_ko": "수성",
+        "symbol": "☿",
+        "archetype": {
+          "ko": "소통, 지성, 적응력, 여행",
+          "en": "Communication, intellect, adaptability, travel"
+        },
+        "characteristics": {
+          "ko": "수성처럼 빠르게 움직이고 다재다능한 에너지. 변화와 자유를 사랑합니다.",
+          "en": "Fast-moving and versatile energy like Mercury. Loves change and freedom."
+        },
+        "associated_sign": "Gemini/Virgo",
+        "associated_sign_ko": "쌍둥이자리/처녀자리"
+      },
+      "6": {
+        "planet": "Venus",
+        "planet_ko": "금성",
+        "symbol": "♀",
+        "archetype": {
+          "ko": "사랑, 아름다움, 조화, 가치",
+          "en": "Love, beauty, harmony, values"
+        },
+        "characteristics": {
+          "ko": "금성처럼 아름다움과 조화를 추구하는 에너지. 가정과 관계에 헌신합니다.",
+          "en": "Energy seeking beauty and harmony like Venus. Devoted to home and relationships."
+        },
+        "associated_sign": "Taurus/Libra",
+        "associated_sign_ko": "황소자리/천칭자리"
+      },
+      "7": {
+        "planet": "Neptune",
+        "planet_ko": "해왕성",
+        "symbol": "♆",
+        "archetype": {
+          "ko": "영성, 직관, 꿈, 초월",
+          "en": "Spirituality, intuition, dreams, transcendence"
+        },
+        "characteristics": {
+          "ko": "해왕성처럼 깊고 신비로운 에너지. 진리를 탐구하고 영적 성장을 추구합니다.",
+          "en": "Deep and mysterious energy like Neptune. Explores truth and seeks spiritual growth."
+        },
+        "associated_sign": "Pisces",
+        "associated_sign_ko": "물고기자리"
+      },
+      "8": {
+        "planet": "Saturn",
+        "planet_ko": "토성",
+        "symbol": "♄",
+        "archetype": {
+          "ko": "책임, 규율, 카르마, 시간",
+          "en": "Responsibility, discipline, karma, time"
+        },
+        "characteristics": {
+          "ko": "토성처럼 성취와 권위를 상징하는 에너지. 노력을 통해 물질적 성공을 이룹니다.",
+          "en": "Energy symbolizing achievement and authority like Saturn. Achieves material success through effort."
+        },
+        "associated_sign": "Capricorn",
+        "associated_sign_ko": "염소자리"
+      },
+      "9": {
+        "planet": "Mars",
+        "planet_ko": "화성",
+        "symbol": "♂",
+        "archetype": {
+          "ko": "행동, 용기, 열정, 투쟁",
+          "en": "Action, courage, passion, struggle"
+        },
+        "characteristics": {
+          "ko": "화성의 열정적인 에너지가 인도주의로 승화됨. 세상을 위해 싸우고 봉사합니다.",
+          "en": "Mars' passionate energy sublimated into humanitarianism. Fights and serves for the world."
+        },
+        "associated_sign": "Aries",
+        "associated_sign_ko": "양자리"
+      },
+      "11": {
+        "planet": "Uranus",
+        "planet_ko": "천왕성",
+        "symbol": "♅",
+        "archetype": {
+          "ko": "직관, 영감, 혁명, 각성",
+          "en": "Intuition, inspiration, revolution, awakening"
+        },
+        "characteristics": {
+          "ko": "마스터 넘버 11은 천왕성의 번개 같은 직관과 영감을 나타냅니다.",
+          "en": "Master Number 11 represents Uranus' lightning-like intuition and inspiration."
+        },
+        "associated_sign": "Aquarius",
+        "associated_sign_ko": "물병자리"
+      },
+      "22": {
+        "planet": "Pluto",
+        "planet_ko": "명왕성",
+        "symbol": "♇",
+        "archetype": {
+          "ko": "변환, 재생, 권력, 변혁",
+          "en": "Transformation, regeneration, power, metamorphosis"
+        },
+        "characteristics": {
+          "ko": "마스터 넘버 22는 명왕성의 변혁적 힘으로 거대한 구조를 만들어냅니다.",
+          "en": "Master Number 22 creates massive structures with Pluto's transformative power."
+        },
+        "associated_sign": "Scorpio",
+        "associated_sign_ko": "전갈자리"
+      },
+      "33": {
+        "planet": "Neptune",
+        "planet_ko": "해왕성",
+        "symbol": "♆",
+        "archetype": {
+          "ko": "치유, 연민, 영적 스승, 희생",
+          "en": "Healing, compassion, spiritual teacher, sacrifice"
+        },
+        "characteristics": {
+          "ko": "마스터 넘버 33은 해왕성의 가장 높은 표현으로 무조건적 사랑과 치유를 나타냅니다.",
+          "en": "Master Number 33 represents Neptune's highest expression of unconditional love and healing."
+        },
+        "associated_sign": "Pisces",
+        "associated_sign_ko": "물고기자리"
+      }
+    }
+  },
+
+  "number_to_zodiac_affinity": {
+    "description": "숫자와 별자리 친화력",
+    "mappings": {
+      "1": {
+        "high_affinity": ["Aries", "Leo", "Sagittarius"],
+        "medium_affinity": ["Gemini", "Aquarius"],
+        "low_affinity": ["Cancer", "Libra"],
+        "interpretation": {
+          "ko": "리더십과 독립성을 나타내는 1은 불의 별자리들과 강한 친화력이 있습니다.",
+          "en": "1 representing leadership and independence has strong affinity with fire signs."
+        }
+      },
+      "2": {
+        "high_affinity": ["Cancer", "Pisces", "Libra"],
+        "medium_affinity": ["Taurus", "Virgo"],
+        "low_affinity": ["Aries", "Sagittarius"],
+        "interpretation": {
+          "ko": "협력과 감수성의 2는 물과 공기의 조화로운 별자리들과 잘 맞습니다.",
+          "en": "2 of cooperation and sensitivity matches well with harmonious water and air signs."
+        }
+      },
+      "3": {
+        "high_affinity": ["Sagittarius", "Leo", "Gemini"],
+        "medium_affinity": ["Aries", "Libra"],
+        "low_affinity": ["Capricorn", "Virgo"],
+        "interpretation": {
+          "ko": "창의성과 표현의 3은 목성이 지배하는 사수자리와 특히 강한 연결이 있습니다.",
+          "en": "3 of creativity and expression has especially strong connection with Jupiter-ruled Sagittarius."
+        }
+      },
+      "4": {
+        "high_affinity": ["Taurus", "Capricorn", "Virgo"],
+        "medium_affinity": ["Aquarius", "Scorpio"],
+        "low_affinity": ["Sagittarius", "Gemini"],
+        "interpretation": {
+          "ko": "안정과 구조의 4는 땅의 별자리들과 자연스러운 친화력이 있습니다.",
+          "en": "4 of stability and structure has natural affinity with earth signs."
+        }
+      },
+      "5": {
+        "high_affinity": ["Gemini", "Sagittarius", "Aquarius"],
+        "medium_affinity": ["Aries", "Libra"],
+        "low_affinity": ["Taurus", "Scorpio"],
+        "interpretation": {
+          "ko": "변화와 자유의 5는 유동적인 공기와 불의 별자리들과 공명합니다.",
+          "en": "5 of change and freedom resonates with fluid air and fire signs."
+        }
+      },
+      "6": {
+        "high_affinity": ["Taurus", "Libra", "Cancer"],
+        "medium_affinity": ["Virgo", "Pisces"],
+        "low_affinity": ["Aries", "Aquarius"],
+        "interpretation": {
+          "ko": "사랑과 책임의 6은 금성이 지배하는 별자리들과 깊은 연결이 있습니다.",
+          "en": "6 of love and responsibility has deep connection with Venus-ruled signs."
+        }
+      },
+      "7": {
+        "high_affinity": ["Pisces", "Scorpio", "Virgo"],
+        "medium_affinity": ["Capricorn", "Cancer"],
+        "low_affinity": ["Gemini", "Leo"],
+        "interpretation": {
+          "ko": "지혜와 탐구의 7은 깊이 있는 물의 별자리들과 강한 공명이 있습니다.",
+          "en": "7 of wisdom and seeking has strong resonance with deep water signs."
+        }
+      },
+      "8": {
+        "high_affinity": ["Capricorn", "Scorpio", "Leo"],
+        "medium_affinity": ["Taurus", "Aries"],
+        "low_affinity": ["Pisces", "Cancer"],
+        "interpretation": {
+          "ko": "성취와 권력의 8은 토성이 지배하는 염소자리와 특히 강한 연결이 있습니다.",
+          "en": "8 of achievement and power has especially strong connection with Saturn-ruled Capricorn."
+        }
+      },
+      "9": {
+        "high_affinity": ["Pisces", "Sagittarius", "Leo"],
+        "medium_affinity": ["Aries", "Libra"],
+        "low_affinity": ["Virgo", "Capricorn"],
+        "interpretation": {
+          "ko": "연민과 봉사의 9는 영적인 물고기자리와 넓은 시야의 사수자리와 잘 맞습니다.",
+          "en": "9 of compassion and service matches well with spiritual Pisces and broad-visioned Sagittarius."
+        }
+      }
+    }
+  },
+
+  "cross_analysis_rules": {
+    "description": "수비학과 점성술 교차 분석 규칙",
+    "rules": [
+      {
+        "id": "NUM_ASTRO_SUN_MATCH",
+        "condition": "life_path_planet == sun_sign_ruler",
+        "weight": 1.3,
+        "interpretation": {
+          "ko": "생명수의 행성과 태양 별자리의 지배성이 일치합니다. 핵심 에너지가 강력하게 통합되어 있습니다.",
+          "en": "Life Path's planet matches Sun sign's ruler. Core energies are powerfully integrated."
+        }
+      },
+      {
+        "id": "NUM_ASTRO_ELEMENT_HARMONY",
+        "condition": "numerology_element == sun_sign_element",
+        "weight": 1.2,
+        "interpretation": {
+          "ko": "수비학과 태양 별자리의 원소가 조화를 이룹니다. 자연스러운 에너지 흐름이 있습니다.",
+          "en": "Numerology and Sun sign elements harmonize. There's a natural energy flow."
+        }
+      },
+      {
+        "id": "NUM_ASTRO_MOON_RESONANCE",
+        "condition": "life_path == 2 && moon_sign_prominent",
+        "weight": 1.2,
+        "interpretation": {
+          "ko": "생명수 2와 강한 달 에너지가 만나 감수성과 직관이 특히 발달했습니다.",
+          "en": "Life Path 2 meets strong Moon energy, making sensitivity and intuition especially developed."
+        }
+      },
+      {
+        "id": "NUM_ASTRO_SATURN_RESONANCE",
+        "condition": "life_path == 8 && saturn_prominent",
+        "weight": 1.2,
+        "interpretation": {
+          "ko": "생명수 8과 강한 토성 에너지가 만나 물질적 성공의 잠재력이 크게 강화됩니다.",
+          "en": "Life Path 8 meets strong Saturn energy, greatly enhancing material success potential."
+        }
+      }
+    ]
+  },
+
+  "timing_integration": {
+    "description": "수비학 주기와 점성술 트랜짓 통합",
+    "rules": [
+      {
+        "id": "PERSONAL_YEAR_JUPITER_RETURN",
+        "condition": "personal_year == 3 && jupiter_return",
+        "interpretation": {
+          "ko": "개인년 3과 목성 회귀가 겹치는 해입니다. 확장과 행운의 에너지가 극대화됩니다.",
+          "en": "Personal Year 3 coincides with Jupiter Return. Expansion and luck energy is maximized."
+        }
+      },
+      {
+        "id": "PERSONAL_YEAR_SATURN_RETURN",
+        "condition": "personal_year == 4 && saturn_return",
+        "interpretation": {
+          "ko": "개인년 4와 토성 회귀가 겹치는 해입니다. 기초를 다지고 책임을 지는 시기입니다.",
+          "en": "Personal Year 4 coincides with Saturn Return. Time to build foundations and take responsibility."
+        }
+      },
+      {
+        "id": "MASTER_11_URANUS_TRANSIT",
+        "condition": "life_path == 11 && uranus_major_transit",
+        "interpretation": {
+          "ko": "마스터 넘버 11과 천왕성 주요 트랜짓이 만납니다. 영적 각성과 혁신의 강력한 시기입니다.",
+          "en": "Master Number 11 meets major Uranus transit. Powerful time for spiritual awakening and innovation."
+        }
+      }
+    ]
+  },
+
+  "house_correlations": {
+    "description": "숫자와 점성술 하우스 연관성",
+    "mappings": {
+      "1": {
+        "primary_house": 1,
+        "house_name": "1st House (Ascendant)",
+        "correlation": {
+          "ko": "자아와 정체성의 1하우스와 리더십의 생명수 1이 공명합니다.",
+          "en": "1st House of self and identity resonates with Life Path 1 of leadership."
+        }
+      },
+      "2": {
+        "primary_house": 4,
+        "house_name": "4th House (IC)",
+        "correlation": {
+          "ko": "가정과 감정의 4하우스와 협력의 생명수 2가 공명합니다.",
+          "en": "4th House of home and emotions resonates with Life Path 2 of cooperation."
+        }
+      },
+      "3": {
+        "primary_house": 5,
+        "house_name": "5th House",
+        "correlation": {
+          "ko": "창의성과 자기표현의 5하우스와 표현의 생명수 3이 공명합니다.",
+          "en": "5th House of creativity and self-expression resonates with Life Path 3 of expression."
+        }
+      },
+      "4": {
+        "primary_house": 10,
+        "house_name": "10th House (MC)",
+        "correlation": {
+          "ko": "경력과 사회적 지위의 10하우스와 기초의 생명수 4가 공명합니다.",
+          "en": "10th House of career and social status resonates with Life Path 4 of foundation."
+        }
+      },
+      "5": {
+        "primary_house": 9,
+        "house_name": "9th House",
+        "correlation": {
+          "ko": "여행과 확장의 9하우스와 자유의 생명수 5가 공명합니다.",
+          "en": "9th House of travel and expansion resonates with Life Path 5 of freedom."
+        }
+      },
+      "6": {
+        "primary_house": 7,
+        "house_name": "7th House (Descendant)",
+        "correlation": {
+          "ko": "파트너십과 관계의 7하우스와 책임의 생명수 6이 공명합니다.",
+          "en": "7th House of partnerships resonates with Life Path 6 of responsibility."
+        }
+      },
+      "7": {
+        "primary_house": 12,
+        "house_name": "12th House",
+        "correlation": {
+          "ko": "영성과 무의식의 12하우스와 지혜의 생명수 7이 공명합니다.",
+          "en": "12th House of spirituality and unconscious resonates with Life Path 7 of wisdom."
+        }
+      },
+      "8": {
+        "primary_house": 2,
+        "house_name": "2nd House",
+        "correlation": {
+          "ko": "재정과 가치의 2하우스와 성취의 생명수 8이 공명합니다.",
+          "en": "2nd House of finances and values resonates with Life Path 8 of achievement."
+        }
+      },
+      "9": {
+        "primary_house": 11,
+        "house_name": "11th House",
+        "correlation": {
+          "ko": "인류와 이상의 11하우스와 인도주의의 생명수 9가 공명합니다.",
+          "en": "11th House of humanity and ideals resonates with Life Path 9 of humanitarianism."
+        }
+      }
+    }
+  }
+}

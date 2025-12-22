@@ -139,7 +139,8 @@ export function getDaeunCycles(
 
 export function getAnnualCycles(startYear: number, count: number, dayMaster: DayMaster): YeonunData[] {
   const cycles: YeonunData[] = [];
-  for (let i = count - 1; i >= 0; i--) {
+  // 연도순으로 정렬: startYear, startYear+1, startYear+2, ...
+  for (let i = 0; i < count; i++) {
     const year = startYear + i;
     const gapja_index = (year - 4 + 6000) % 60;
     const stem = STEMS[gapja_index % 10];

@@ -1,0 +1,251 @@
+{
+  "$schema": "icp_interpersonal_circumplex_v1",
+  "$description": "ICP 대인관계 원형 모델 - 8가지 대인관계 스타일과 사주/점성술/타로 매핑",
+  "$reference": "Wiggins, J.S. (1979). A psychological taxonomy of trait-descriptive terms: The interpersonal domain. Journal of Personality and Social Psychology, 37(3), 395-412.",
+
+  "model_overview": {
+    "name_ko": "대인관계 원형 모델",
+    "name_en": "Interpersonal Circumplex (ICP)",
+    "description": "대인관계 행동을 2차원 원형 공간에 배치하는 모델. 모든 대인관계 특성은 지배-순종(Dominance)과 친화-적대(Affiliation) 두 축의 조합으로 설명됨.",
+    "theoretical_basis": "Harry Stack Sullivan의 대인관계 이론, Timothy Leary의 대인관계 진단, Jerry Wiggins의 원형 모델",
+    "dimensions": {
+      "dominance": {
+        "name_ko": "지배-순종 축",
+        "name_en": "Dominance-Submission Axis",
+        "high": "지배적, 주도적, 통제적",
+        "low": "순종적, 수용적, 양보적"
+      },
+      "affiliation": {
+        "name_ko": "친화-적대 축",
+        "name_en": "Affiliation-Hostility Axis",
+        "high": "따뜻함, 친밀함, 협력적",
+        "low": "냉담함, 거리감, 적대적"
+      }
+    }
+  },
+
+  "octants": {
+    "PA": {
+      "code": "PA",
+      "name_ko": "지배적",
+      "name_en": "Dominant",
+      "position": {"dominance": 1.0, "affiliation": 0.0},
+      "angle": 90,
+      "core_traits": ["자신감", "단호함", "리더십", "주도성"],
+      "behavioral_patterns": [
+        "대화를 주도하고 방향을 설정함",
+        "결정을 내리고 책임을 짐",
+        "자신의 의견을 분명히 표현함",
+        "그룹에서 자연스럽게 리더 역할을 맡음"
+      ],
+      "light": "카리스마 있는 리더, 결단력, 위기 상황에서 빛남",
+      "shadow": "독단적, 타인 의견 무시, 통제욕",
+      "relational_need": "존경과 인정을 받고 싶음",
+      "fear": "무력감, 통제력 상실",
+      "complementary_style": "JK (순종적)",
+      "conflict_style": "PA (지배적) - 권력 투쟁 발생"
+    },
+
+    "BC": {
+      "code": "BC",
+      "name_ko": "지배적-냉담",
+      "name_en": "Dominant-Cold",
+      "position": {"dominance": 0.71, "affiliation": -0.71},
+      "angle": 135,
+      "core_traits": ["경쟁적", "야심적", "계산적", "전략적"],
+      "behavioral_patterns": [
+        "목표 달성을 위해 경쟁함",
+        "감정보다 결과를 중시함",
+        "약점을 드러내지 않음",
+        "전략적으로 관계를 활용함"
+      ],
+      "light": "목표 지향적 성취자, 효율적 문제 해결",
+      "shadow": "냉혹함, 관계를 수단으로 봄, 공감 부족",
+      "relational_need": "성취와 승리를 인정받고 싶음",
+      "fear": "실패, 약해 보이는 것",
+      "complementary_style": "LM (순종적-따뜻함)",
+      "conflict_style": "BC (지배적-냉담) - 치열한 경쟁"
+    },
+
+    "DE": {
+      "code": "DE",
+      "name_ko": "냉담",
+      "name_en": "Cold/Hostile",
+      "position": {"dominance": 0.0, "affiliation": -1.0},
+      "angle": 180,
+      "core_traits": ["독립적", "거리두기", "비판적", "회의적"],
+      "behavioral_patterns": [
+        "정서적 거리를 유지함",
+        "타인에게 쉽게 마음을 열지 않음",
+        "비판적 관점을 유지함",
+        "혼자 있는 시간을 선호함"
+      ],
+      "light": "객관적 판단, 독립성, 불필요한 관계에 휘둘리지 않음",
+      "shadow": "고립, 냉소주의, 친밀감 회피",
+      "relational_need": "안전한 거리와 자율성",
+      "fear": "침범당함, 의존하게 됨",
+      "complementary_style": "NO (따뜻함)",
+      "conflict_style": "NO (따뜻함) - 접근-회피 갈등"
+    },
+
+    "FG": {
+      "code": "FG",
+      "name_ko": "순종적-냉담",
+      "name_en": "Submissive-Cold",
+      "position": {"dominance": -0.71, "affiliation": -0.71},
+      "angle": 225,
+      "core_traits": ["내성적", "자기의심", "사회적 불안", "회피적"],
+      "behavioral_patterns": [
+        "사회적 상황을 피하는 경향",
+        "자신을 낮추고 비판함",
+        "거절에 민감함",
+        "관계에서 철수하는 경향"
+      ],
+      "light": "겸손함, 자기 성찰 능력, 신중함",
+      "shadow": "자기비하, 사회적 위축, 우울 경향",
+      "relational_need": "거부당하지 않을 안전함",
+      "fear": "비판, 거절, 노출됨",
+      "complementary_style": "NO (따뜻함) - 수용적 지지 필요",
+      "conflict_style": "BC (지배적-냉담) - 위축됨"
+    },
+
+    "HI": {
+      "code": "HI",
+      "name_ko": "순종적-적대",
+      "name_en": "Submissive-Hostile",
+      "position": {"dominance": -0.92, "affiliation": -0.38},
+      "angle": 247.5,
+      "core_traits": ["불신", "원망", "수동공격", "피해의식"],
+      "behavioral_patterns": [
+        "직접 대립하지 않고 간접적으로 저항",
+        "불만을 품고 있지만 표현하지 않음",
+        "타인의 의도를 의심함",
+        "피해자 역할에 빠지기 쉬움"
+      ],
+      "light": "부당함에 대한 민감성, 숨겨진 강인함",
+      "shadow": "수동공격성, 만성적 원망, 신뢰 어려움",
+      "relational_need": "공정한 대우와 이해받음",
+      "fear": "이용당함, 무시당함",
+      "complementary_style": "NO (따뜻함) + PA (지배적) - 신뢰 회복 필요",
+      "conflict_style": "PA (지배적) - 억압된 분노 폭발"
+    },
+
+    "JK": {
+      "code": "JK",
+      "name_ko": "순종적",
+      "name_en": "Submissive",
+      "position": {"dominance": -1.0, "affiliation": 0.0},
+      "angle": 270,
+      "core_traits": ["수용적", "유순함", "양보", "복종적"],
+      "behavioral_patterns": [
+        "타인의 의견을 따르는 경향",
+        "갈등을 피하기 위해 양보함",
+        "자기 주장을 어려워함",
+        "조화를 위해 자신을 희생함"
+      ],
+      "light": "협력적, 융통성, 평화 유지자",
+      "shadow": "자기 상실, 이용당함, 경계 부족",
+      "relational_need": "소속감과 수용",
+      "fear": "거부, 갈등, 혼자 남겨짐",
+      "complementary_style": "PA (지배적)",
+      "conflict_style": "PA (지배적) - 억압 축적 후 폭발"
+    },
+
+    "LM": {
+      "code": "LM",
+      "name_ko": "순종적-따뜻함",
+      "name_en": "Submissive-Warm",
+      "position": {"dominance": -0.71, "affiliation": 0.71},
+      "angle": 315,
+      "core_traits": ["돌봄", "이타적", "희생적", "온순함"],
+      "behavioral_patterns": [
+        "타인의 필요를 먼저 챙김",
+        "도움 요청을 거절하기 어려움",
+        "자신보다 타인을 우선시함",
+        "애정을 표현하고 받고 싶어함"
+      ],
+      "light": "헌신적 돌봄, 깊은 공감, 무조건적 지지",
+      "shadow": "공동의존, 자기 희생 과잉, 경계 부족",
+      "relational_need": "필요한 존재로 인정받음",
+      "fear": "쓸모없어짐, 버려짐",
+      "complementary_style": "BC (지배적-냉담) - 균형을 제공",
+      "conflict_style": "DE (냉담) - 거부감에 상처받음"
+    },
+
+    "NO": {
+      "code": "NO",
+      "name_ko": "따뜻함",
+      "name_en": "Warm/Friendly",
+      "position": {"dominance": 0.0, "affiliation": 1.0},
+      "angle": 0,
+      "core_traits": ["친근함", "사교적", "협력적", "공감적"],
+      "behavioral_patterns": [
+        "쉽게 친해지고 관계를 맺음",
+        "타인의 감정에 민감하게 반응함",
+        "협력과 조화를 추구함",
+        "갈등을 해소하려 노력함"
+      ],
+      "light": "관계 구축 능력, 따뜻한 분위기 조성, 중재자",
+      "shadow": "갈등 회피, 가식적 친절, 경계 모호",
+      "relational_need": "친밀한 연결과 소속감",
+      "fear": "고립, 미움받음",
+      "complementary_style": "DE (냉담) - 현실적 관점 제공",
+      "conflict_style": "DE (냉담) - 이해받지 못함"
+    },
+
+    "PA_NO": {
+      "code": "PA-NO",
+      "name_ko": "지배적-따뜻함",
+      "name_en": "Dominant-Warm",
+      "position": {"dominance": 0.71, "affiliation": 0.71},
+      "angle": 45,
+      "core_traits": ["외향적", "열정적", "영향력", "카리스마"],
+      "behavioral_patterns": [
+        "사람들을 이끌고 영감을 줌",
+        "열정적으로 아이디어를 전파함",
+        "관계를 통해 영향력을 행사함",
+        "그룹의 에너지를 높임"
+      ],
+      "light": "영감을 주는 리더, 사람들을 하나로 모음",
+      "shadow": "과시욕, 관심 독점, 조종적",
+      "relational_need": "존경과 사랑을 동시에 받고 싶음",
+      "fear": "무시당함, 중요하지 않게 여겨짐",
+      "complementary_style": "JK (순종적) + LM (순종적-따뜻함)",
+      "conflict_style": "FG (순종적-냉담) - 반응 없음에 좌절"
+    }
+  },
+
+  "interpersonal_dynamics": {
+    "complementarity_principle": {
+      "name_ko": "상보성 원리",
+      "description": "지배-순종 축에서는 반대가 끌리고(상보적), 친화-적대 축에서는 같은 것이 끌림(대응적)",
+      "rules": [
+        "지배적인 사람은 순종적인 사람과 편안함을 느낌",
+        "따뜻한 사람은 따뜻한 사람과 친밀함을 느낌",
+        "냉담한 사람은 냉담한 사람과 거리를 유지하며 편안함"
+      ],
+      "optimal_pairing": {
+        "PA_JK": "지배-순종 상보성 (리더-팔로워)",
+        "NO_NO": "친화 대응성 (따뜻함-따뜻함)",
+        "PA_NO_with_LM": "카리스마 리더와 헌신적 지지자"
+      }
+    },
+    "conflict_patterns": {
+      "dominance_clash": {
+        "pattern": "PA vs PA",
+        "description": "두 지배적 성향이 만나면 권력 투쟁 발생",
+        "resolution": "영역 분리, 역할 명확화, 상호 존중 협약"
+      },
+      "affiliation_clash": {
+        "pattern": "NO vs DE",
+        "description": "따뜻함과 냉담함의 접근-회피 갈등",
+        "resolution": "거리 조절, 친밀감 속도 맞추기"
+      },
+      "submission_buildup": {
+        "pattern": "JK under PA",
+        "description": "장기간 억압된 순종자의 분노 폭발",
+        "resolution": "정기적 의견 표출 기회, 안전한 피드백 환경"
+      }
+    }
+  }
+}

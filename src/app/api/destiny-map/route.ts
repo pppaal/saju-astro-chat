@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 import { sendNotification } from "@/lib/notifications/sse";
 import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
+import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import fs from "fs";
 import path from "path";
 
@@ -105,6 +106,21 @@ export async function POST(request: Request) {
       extraPrompt: prompt,
       userTimezone, // 사용자 현재 타임존 (운세 날짜용)
     });
+    // Sanitize key text fields for ko/en to avoid garbled characters
+    const cleanLang = lang === "ko" ? "ko" : "en";
+    report.summary = sanitizeLocaleText(report.summary || "", cleanLang);
+    if (report.crossHighlights?.summary) {
+      report.crossHighlights.summary = sanitizeLocaleText(report.crossHighlights.summary, cleanLang);
+    }
+    // Normalize theme interpretation strings
+    if (report.themes) {
+      Object.keys(report.themes).forEach((key) => {
+        const t: any = (report.themes as any)[key];
+        if (t?.interpretation && typeof t.interpretation === "string") {
+          t.interpretation = sanitizeLocaleText(t.interpretation, cleanLang);
+        }
+      });
+    }
     // cross-section validation for destiny-map
     if (report.meta?.validationPassed === false) {
       const warnings = report.meta?.validationWarnings ?? [];
@@ -160,10 +176,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // 로그인 사용자의 경우 상담 기록 자동 저장
+    // 로그인 사용자의 경우 상담 기록 자동 저장 (이름 마스킹)
     if (userId && report?.report) {
       try {
-        const fullReport = cleanseText(report.report);
+        const fullReport = maskTextWithName(cleanseText(report.report), name);
         const summary = extractSummary(fullReport);
         await saveConsultation({
           userId,
@@ -202,8 +218,45 @@ export async function POST(request: Request) {
       water: 15,
     };
 
+    // Get dayMaster from saju data - check both saju.dayMaster and saju.facts.dayMaster
+    // Normalize to consistent format: { name: string, element: string }
+    const rawDayMaster = report.raw?.saju?.dayMaster || report.raw?.saju?.facts?.dayMaster;
+    if (enableDebugLogs) {
+      console.log("[API] dayMaster sources:", {
+        "saju.dayMaster": report.raw?.saju?.dayMaster,
+        "saju.facts.dayMaster": report.raw?.saju?.facts?.dayMaster,
+        rawDayMaster,
+      });
+    }
+    // dayMaster should always exist if calculation succeeded - empty object means error occurred
+    if (!rawDayMaster || Object.keys(rawDayMaster).length === 0) {
+      console.error("[API] dayMaster is missing or empty - saju calculation may have failed");
+    }
+    // Normalize dayMaster to { name, element } format
+    let dayMaster: { name?: string; element?: string } = {};
+    if (rawDayMaster) {
+      // Handle nested structure: { heavenlyStem: { name, element } }
+      if (rawDayMaster.heavenlyStem?.name) {
+        dayMaster = {
+          name: rawDayMaster.heavenlyStem.name,
+          element: rawDayMaster.heavenlyStem.element || rawDayMaster.element,
+        };
+      } else if (rawDayMaster.name) {
+        // Already flat: { name, element }
+        dayMaster = {
+          name: rawDayMaster.name,
+          element: rawDayMaster.element,
+        };
+      } else if (typeof rawDayMaster === "string") {
+        // Raw string name
+        dayMaster = { name: rawDayMaster };
+      } else {
+        dayMaster = rawDayMaster;
+      }
+    }
+
     const saju: SajuResult = {
-      dayMaster: report.raw?.saju?.dayMaster ?? { name: "Unknown Day Master", element: "unknown" },
+      dayMaster,
       fiveElements,
       pillars: report.raw?.saju?.pillars,
       unse: report.raw?.saju?.unse,
@@ -231,8 +284,9 @@ export async function POST(request: Request) {
 
     // If prompt was provided, return immediate reply
     if (prompt) {
+      const maskedReply = maskTextWithName(cleanseText(report?.report) || "", name);
       return NextResponse.json({
-        reply: cleanseText(report?.report) || noResultMessage,
+        reply: maskedReply || noResultMessage,
         profile: { name, birthDate, birthTime, city, gender },
         saju,
         astrology,
@@ -241,13 +295,25 @@ export async function POST(request: Request) {
     }
 
     // Otherwise return structured report payload
+    const maskedSummary = maskTextWithName(cleanseText(report.summary), name);
+    const maskedInterpretation = maskTextWithName(cleanseText(report.report), name);
+
+    if (enableDebugLogs) {
+      console.log("[API] Report content check:", {
+        hasReport: Boolean(report.report),
+        reportLength: report.report?.length || 0,
+        maskedInterpLength: maskedInterpretation?.length || 0,
+        firstChars: maskedInterpretation?.substring(0, 100),
+      });
+    }
+
     return NextResponse.json({
       profile: { name, birthDate, birthTime, city, gender },
       lang,
-      summary: cleanseText(report.summary),
+      summary: maskedSummary,
       themes: {
         [theme]: {
-          interpretation: cleanseText(report.report),
+          interpretation: maskedInterpretation,
           highlights: [],
           raw: { saju, astrology },
         },

@@ -16,9 +16,10 @@ interface ResultDisplayProps {
   result: IChingResult | null;
   question?: string;
   autoStartAi?: boolean;
+  onAiComplete?: (aiText: { overview: string; changing: string; advice: string }) => void;
 }
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", autoStartAi = true }) => {
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", autoStartAi = true, onAiComplete }) => {
   const { translate, locale } = useI18n();
   const lang = locale === "ko" ? "ko" : "en";
 
@@ -31,6 +32,13 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
   const [aiError, setAiError] = useState<string>("");
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasStartedRef = useRef(false);
+  const onAiCompleteRef = useRef(onAiComplete);
+  const hasNotifiedRef = useRef(false);
+
+  // Keep ref updated
+  useEffect(() => {
+    onAiCompleteRef.current = onAiComplete;
+  }, [onAiComplete]);
 
   const primaryNumber = result?.primaryHexagram?.number;
   const resultingNumber = result?.resultingHexagram?.number;
@@ -212,6 +220,38 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
       setAiStatus("error");
     }
   }, [result, aiStatus, question, locale, lang, premiumData]);
+
+  // Notify parent when AI is complete - use refs to get latest values
+  const overviewTextRef = useRef(overviewText);
+  const changingTextRef = useRef(changingText);
+  const adviceTextRef = useRef(adviceText);
+
+  // Keep refs updated with latest values
+  useEffect(() => {
+    overviewTextRef.current = overviewText;
+  }, [overviewText]);
+
+  useEffect(() => {
+    changingTextRef.current = changingText;
+  }, [changingText]);
+
+  useEffect(() => {
+    adviceTextRef.current = adviceText;
+  }, [adviceText]);
+
+  useEffect(() => {
+    if (aiStatus === "done" && !hasNotifiedRef.current && onAiCompleteRef.current) {
+      hasNotifiedRef.current = true;
+      // Delay to ensure all streaming text is fully captured in refs
+      setTimeout(() => {
+        onAiCompleteRef.current?.({
+          overview: overviewTextRef.current,
+          changing: changingTextRef.current,
+          advice: adviceTextRef.current,
+        });
+      }, 300);
+    }
+  }, [aiStatus]);
 
   // Auto-start AI interpretation when result is available
   useEffect(() => {
@@ -504,7 +544,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
         </div>
       )}
 
-      {/* Changing Lines */}
+      {/* Changing Lines - Enhanced with detailed interpretation */}
       {result.changingLines.length > 0 && (
         <div className={styles.changingLinesCard}>
           <div className={styles.changingLinesHeader}>
@@ -516,7 +556,49 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
           <div className={styles.changingLinesList}>
             {result.changingLines.map((line: ChangingLine) => (
               <div key={line.index} className={styles.changingLineItem}>
-                {line.text}
+                <div className={styles.changingLineHeader}>
+                  <span className={styles.changingLineIndex}>
+                    {lang === "ko" ? `${line.index + 1}효` : `Line ${line.index + 1}`}
+                  </span>
+                  {line.changing_hexagram_name && (
+                    <span className={styles.changingTo}>
+                      → {line.changing_hexagram_name}
+                    </span>
+                  )}
+                </div>
+                <div className={styles.changingLineText}>{line.text}</div>
+                {line.interpretation && (
+                  <div className={styles.changingLineInterpretation}>
+                    {line.interpretation}
+                  </div>
+                )}
+                {line.changing_interpretation && (
+                  <div className={styles.changingDetailedInterpretation}>
+                    <div className={styles.changingTransition}>
+                      {line.changing_interpretation.transition}
+                    </div>
+                    <div className={styles.changingFromTo}>
+                      {line.changing_interpretation.from_to}
+                    </div>
+                    <div className={styles.changingCoreMessage}>
+                      💡 {line.changing_interpretation.core_message}
+                    </div>
+                    {line.changing_interpretation.practical_advice && line.changing_interpretation.practical_advice.length > 0 && (
+                      <div className={styles.changingAdviceList}>
+                        {line.changing_interpretation.practical_advice.map((advice, idx) => (
+                          <span key={idx} className={styles.changingAdviceItem}>
+                            {advice}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {line.changing_interpretation.warning && (
+                      <div className={styles.changingWarning}>
+                        ⚠️ {line.changing_interpretation.warning}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

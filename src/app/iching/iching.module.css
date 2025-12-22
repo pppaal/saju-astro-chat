@@ -117,7 +117,7 @@
   border-radius: 24px;
   padding: 2.5rem;
   width: 100%;
-  max-width: 600px;
+  max-width: 1200px;
   z-index: 10;
   position: relative;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
@@ -242,7 +242,7 @@
 /* ===== Result Section ===== */
 .resultSection {
   width: 100%;
-  max-width: 700px;
+  max-width: 1200px;
   z-index: 10;
   animation: fadeInUp 0.6s ease-out forwards;
 }

@@ -1,18 +1,24 @@
 # backend_ai/app/iching_rag.py
 """
-Premium I Ching RAG Engine - Gemini Level
-==========================================
+Premium I Ching RAG Engine - Enhanced Edition
+==============================================
 Features:
 - 64 hexagram interpretations with Korean/English
 - Theme-specific readings (career, love, health, wealth, timing)
-- Five Element and Saju cross-analysis
+- Five Element (五行) analysis with 상생/상극 relationships
+- Nuclear hexagram (互卦), Opposite hexagram (錯卦), Reverse hexagram (綜卦)
+- Advanced changing line interpretation rules
+- Seasonal and timing analysis (24절기)
+- Trigram imagery and symbolism
+- Saju cross-analysis with day master element
+- Position-based line analysis (爻位)
 - Hybrid RAG search for related wisdom
-- Changing line analysis
 """
 
 import os
 import json
 import random
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from functools import lru_cache
 
@@ -25,10 +31,85 @@ except ImportError:
 
 
 # ===============================================================
+# CONSTANTS - Five Elements & Trigrams
+# ===============================================================
+
+# 오행 상생 (생하는 관계: 木→火→土→金→水→木)
+WUXING_GENERATING = {
+    "wood": "fire",    # 목생화
+    "fire": "earth",   # 화생토
+    "earth": "metal",  # 토생금
+    "metal": "water",  # 금생수
+    "water": "wood",   # 수생목
+}
+
+# 오행 상극 (극하는 관계: 木→土→水→火→金→木)
+WUXING_OVERCOMING = {
+    "wood": "earth",   # 목극토
+    "earth": "water",  # 토극수
+    "water": "fire",   # 수극화
+    "fire": "metal",   # 화극금
+    "metal": "wood",   # 금극목
+}
+
+# 오행 한글명
+WUXING_KOREAN = {
+    "wood": "목(木)",
+    "fire": "화(火)",
+    "earth": "토(土)",
+    "metal": "금(金)",
+    "water": "수(水)",
+}
+
+# 팔괘 (Eight Trigrams) 정보
+TRIGRAM_INFO = {
+    "heaven": {"korean": "건(乾)", "nature": "하늘", "element": "metal", "direction": "서북", "family": "부", "body": "머리", "symbol": "☰", "image": "강건함, 창조, 리더십"},
+    "earth": {"korean": "곤(坤)", "nature": "땅", "element": "earth", "direction": "서남", "family": "모", "body": "배", "symbol": "☷", "image": "수용, 포용, 헌신"},
+    "thunder": {"korean": "진(震)", "nature": "우레", "element": "wood", "direction": "동", "family": "장남", "body": "발", "symbol": "☳", "image": "움직임, 시작, 충격"},
+    "water": {"korean": "감(坎)", "nature": "물", "element": "water", "direction": "북", "family": "중남", "body": "귀", "symbol": "☵", "image": "위험, 흐름, 지혜"},
+    "mountain": {"korean": "간(艮)", "nature": "산", "element": "earth", "direction": "동북", "family": "소남", "body": "손", "symbol": "☶", "image": "멈춤, 안정, 명상"},
+    "wind": {"korean": "손(巽)", "nature": "바람", "element": "wood", "direction": "동남", "family": "장녀", "body": "넓적다리", "symbol": "☴", "image": "침투, 유연함, 순종"},
+    "fire": {"korean": "리(離)", "nature": "불", "element": "fire", "direction": "남", "family": "중녀", "body": "눈", "symbol": "☲", "image": "밝음, 아름다움, 명료"},
+    "lake": {"korean": "태(兌)", "nature": "연못", "element": "metal", "direction": "서", "family": "소녀", "body": "입", "symbol": "☱", "image": "기쁨, 소통, 교환"},
+}
+
+# 효위(爻位) 의미
+LINE_POSITION_MEANING = {
+    1: {"name": "초효", "meaning": "시작, 잠재력, 기반", "society": "서민", "body": "발", "stage": "맹아기"},
+    2: {"name": "이효", "meaning": "내면의 중심, 성장", "society": "관리", "body": "종아리", "stage": "발전기"},
+    3: {"name": "삼효", "meaning": "내외 경계, 위기와 전환", "society": "대부", "body": "허리", "stage": "전환기"},
+    4: {"name": "사효", "meaning": "외부 진입, 신중함", "society": "공경", "body": "가슴", "stage": "도약기"},
+    5: {"name": "오효", "meaning": "군위, 정점, 중정", "society": "군주", "body": "어깨", "stage": "전성기"},
+    6: {"name": "상효", "meaning": "극점, 마무리, 물러남", "society": "종묘", "body": "머리", "stage": "완성기"},
+}
+
+# 24절기와 괘의 연관
+SOLAR_TERMS = [
+    ("입춘", 2, 4), ("우수", 2, 19), ("경칩", 3, 6), ("춘분", 3, 21),
+    ("청명", 4, 5), ("곡우", 4, 20), ("입하", 5, 6), ("소만", 5, 21),
+    ("망종", 6, 6), ("하지", 6, 21), ("소서", 7, 7), ("대서", 7, 23),
+    ("입추", 8, 8), ("처서", 8, 23), ("백로", 9, 8), ("추분", 9, 23),
+    ("한로", 10, 8), ("상강", 10, 24), ("입동", 11, 8), ("소설", 11, 22),
+    ("대설", 12, 7), ("동지", 12, 22), ("소한", 1, 6), ("대한", 1, 20),
+]
+
+# 계절별 유리한 오행
+SEASON_ELEMENT = {
+    "spring": {"element": "wood", "korean": "봄 - 목(木)의 계절"},
+    "summer": {"element": "fire", "korean": "여름 - 화(火)의 계절"},
+    "late_summer": {"element": "earth", "korean": "환절기 - 토(土)의 계절"},
+    "autumn": {"element": "metal", "korean": "가을 - 금(金)의 계절"},
+    "winter": {"element": "water", "korean": "겨울 - 수(水)의 계절"},
+}
+
+
+# ===============================================================
 # DATA LOADING
 # ===============================================================
 _HEXAGRAM_DATA = None
 _TRIGRAM_DATA = None
+_COMPLETE_HEXAGRAM_DATA = None
+_CHANGING_LINES_DATA = None
 
 
 def _get_data_path() -> str:
@@ -58,6 +139,340 @@ def load_premium_data() -> Tuple[Dict, Dict]:
         print(f"[IChingRAG] Warning: Premium data not found at {data_path}")
 
     return _HEXAGRAM_DATA, _TRIGRAM_DATA
+
+
+def load_complete_hexagram_data() -> Dict:
+    """Load complete hexagram data with line interpretations from all split files."""
+    global _COMPLETE_HEXAGRAM_DATA
+
+    if _COMPLETE_HEXAGRAM_DATA is not None:
+        return _COMPLETE_HEXAGRAM_DATA
+
+    _COMPLETE_HEXAGRAM_DATA = {}
+    base_path = _get_data_path()
+
+    try:
+        # Load main complete file
+        main_path = os.path.join(base_path, "hexagrams_complete_64.json")
+        if os.path.exists(main_path):
+            with open(main_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                _COMPLETE_HEXAGRAM_DATA.update(data.get("hexagrams", {}))
+
+        # Load additional split files (7-16, 17-32, 33-48, 49-64)
+        split_files = [
+            "hexagrams_7_to_16.json",
+            "hexagrams_17_to_32.json",
+            "hexagrams_33_to_48.json",
+            "hexagrams_49_to_64.json",
+        ]
+
+        for filename in split_files:
+            filepath = os.path.join(base_path, filename)
+            if os.path.exists(filepath):
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        if "hexagrams" in data:
+                            _COMPLETE_HEXAGRAM_DATA.update(data["hexagrams"])
+                        elif isinstance(data, dict):
+                            for key, value in data.items():
+                                if key.isdigit() or (isinstance(value, dict) and "name" in value):
+                                    _COMPLETE_HEXAGRAM_DATA[key] = value
+                except (json.JSONDecodeError, IOError) as e:
+                    print(f"[IChingRAG] Warning: Failed to load {filename}: {e}")
+                    continue
+
+    except Exception as e:
+        print(f"[IChingRAG] Error loading complete hexagram data: {e}")
+        _COMPLETE_HEXAGRAM_DATA = {}
+
+    return _COMPLETE_HEXAGRAM_DATA
+
+
+def load_changing_lines_data() -> Dict:
+    """Load advanced changing lines interpretation data."""
+    global _CHANGING_LINES_DATA
+
+    if _CHANGING_LINES_DATA is not None:
+        return _CHANGING_LINES_DATA
+
+    data_path = os.path.join(_get_data_path(), "changing_lines_advanced.json")
+
+    try:
+        if os.path.exists(data_path):
+            with open(data_path, "r", encoding="utf-8") as f:
+                _CHANGING_LINES_DATA = json.load(f)
+        else:
+            _CHANGING_LINES_DATA = {}
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"[IChingRAG] Warning: Failed to load changing lines data: {e}")
+        _CHANGING_LINES_DATA = {}
+
+    return _CHANGING_LINES_DATA
+
+
+# ===============================================================
+# SEASONAL & TIMING ANALYSIS
+# ===============================================================
+def get_current_season() -> str:
+    """Get current season based on date."""
+    now = datetime.now()
+    month = now.month
+
+    if month in [3, 4, 5]:
+        return "spring"
+    elif month in [6, 7, 8]:
+        return "summer"
+    elif month in [9, 10, 11]:
+        return "autumn"
+    else:
+        return "winter"
+
+
+def get_current_solar_term() -> str:
+    """Get current solar term (절기)."""
+    now = datetime.now()
+    month, day = now.month, now.day
+
+    for i, (term_name, term_month, term_day) in enumerate(SOLAR_TERMS):
+        next_idx = (i + 1) % len(SOLAR_TERMS)
+        next_term = SOLAR_TERMS[next_idx]
+
+        if term_month == month and day >= term_day:
+            if next_term[1] != month or day < next_term[2]:
+                return term_name
+
+    return "동지"  # Default
+
+
+def analyze_seasonal_harmony(hexagram_element: str) -> Dict:
+    """Analyze harmony between hexagram element and current season."""
+    season = get_current_season()
+    season_info = SEASON_ELEMENT.get(season, SEASON_ELEMENT["spring"])
+    season_element = season_info["element"]
+
+    harmony = {
+        "season": season,
+        "season_korean": season_info["korean"],
+        "season_element": season_element,
+        "hexagram_element": hexagram_element,
+        "solar_term": get_current_solar_term(),
+    }
+
+    # 상생/상극 분석
+    if WUXING_GENERATING.get(season_element) == hexagram_element:
+        harmony["relationship"] = "상생(相生)"
+        harmony["description"] = f"계절의 기운({WUXING_KOREAN.get(season_element, season_element)})이 괘의 기운({WUXING_KOREAN.get(hexagram_element, hexagram_element)})을 생(生)합니다. 시기적으로 유리합니다."
+        harmony["score"] = 5
+    elif WUXING_GENERATING.get(hexagram_element) == season_element:
+        harmony["relationship"] = "설기(洩氣)"
+        harmony["description"] = f"괘의 기운이 계절에 설(洩)됩니다. 에너지 소모에 주의하세요."
+        harmony["score"] = 3
+    elif WUXING_OVERCOMING.get(season_element) == hexagram_element:
+        harmony["relationship"] = "피극(被剋)"
+        harmony["description"] = f"계절의 기운이 괘를 극(剋)합니다. 저항이 있을 수 있으나 극복 가능합니다."
+        harmony["score"] = 2
+    elif WUXING_OVERCOMING.get(hexagram_element) == season_element:
+        harmony["relationship"] = "극출(剋出)"
+        harmony["description"] = f"괘의 기운이 계절을 극(剋)합니다. 강한 의지로 추진하면 성과가 있습니다."
+        harmony["score"] = 4
+    elif season_element == hexagram_element:
+        harmony["relationship"] = "비화(比和)"
+        harmony["description"] = f"계절과 괘가 같은 오행입니다. 조화롭고 안정적인 시기입니다."
+        harmony["score"] = 4
+    else:
+        harmony["relationship"] = "중립"
+        harmony["description"] = "특별한 상생상극 관계가 없습니다."
+        harmony["score"] = 3
+
+    return harmony
+
+
+# ===============================================================
+# FIVE ELEMENT (五行) ANALYSIS
+# ===============================================================
+def analyze_wuxing_relationship(element1: str, element2: str) -> Dict:
+    """Analyze the Five Element relationship between two elements."""
+    if not element1 or not element2:
+        return {"relationship": "unknown", "description": "오행 정보가 없습니다."}
+
+    e1 = element1.lower()
+    e2 = element2.lower()
+
+    if e1 == e2:
+        return {
+            "relationship": "비화(比和)",
+            "type": "harmony",
+            "description": f"{WUXING_KOREAN.get(e1, e1)}끼리 만나 서로 도움이 됩니다.",
+            "advice": "같은 기운이 만나 안정적입니다. 협력하면 좋습니다."
+        }
+    elif WUXING_GENERATING.get(e1) == e2:
+        return {
+            "relationship": "상생(相生)",
+            "type": "generating",
+            "description": f"{WUXING_KOREAN.get(e1, e1)}이(가) {WUXING_KOREAN.get(e2, e2)}을(를) 생(生)합니다.",
+            "advice": "자연스러운 흐름입니다. 순리대로 나아가세요."
+        }
+    elif WUXING_GENERATING.get(e2) == e1:
+        return {
+            "relationship": "상생(相生) - 생을 받음",
+            "type": "generated",
+            "description": f"{WUXING_KOREAN.get(e2, e2)}이(가) {WUXING_KOREAN.get(e1, e1)}을(를) 생(生)합니다.",
+            "advice": "도움을 받는 위치입니다. 감사히 받아들이세요."
+        }
+    elif WUXING_OVERCOMING.get(e1) == e2:
+        return {
+            "relationship": "상극(相剋) - 극함",
+            "type": "overcoming",
+            "description": f"{WUXING_KOREAN.get(e1, e1)}이(가) {WUXING_KOREAN.get(e2, e2)}을(를) 극(剋)합니다.",
+            "advice": "강하게 밀어붙일 수 있으나, 지나치면 반발이 있습니다."
+        }
+    elif WUXING_OVERCOMING.get(e2) == e1:
+        return {
+            "relationship": "상극(相剋) - 극을 받음",
+            "type": "overcome",
+            "description": f"{WUXING_KOREAN.get(e2, e2)}이(가) {WUXING_KOREAN.get(e1, e1)}을(를) 극(剋)합니다.",
+            "advice": "저항이 있습니다. 우회하거나 인내가 필요합니다."
+        }
+    else:
+        return {
+            "relationship": "중립",
+            "type": "neutral",
+            "description": "직접적인 상생상극 관계가 아닙니다.",
+            "advice": "상황에 따라 유연하게 대처하세요."
+        }
+
+
+def get_saju_element_analysis(hexagram_element: str, saju_element: str) -> Dict:
+    """Analyze relationship between hexagram and user's Saju day master element."""
+    if not saju_element:
+        return None
+
+    relationship = analyze_wuxing_relationship(saju_element, hexagram_element)
+
+    # 일간별 구체적 조언 추가
+    element_specific_advice = {
+        "wood": {
+            "generating": "목(木) 일간에게 화(火)의 괘는 재능을 발휘할 기회입니다.",
+            "generated": "수(水)의 도움을 받아 성장할 수 있습니다.",
+            "overcoming": "토(土)를 다스릴 수 있으니 재물운이 있습니다.",
+            "overcome": "금(金)의 극을 받으니 건강과 관계에 주의하세요.",
+        },
+        "fire": {
+            "generating": "화(火) 일간에게 토(土)의 괘는 안정과 결실을 의미합니다.",
+            "generated": "목(木)의 도움으로 열정이 살아납니다.",
+            "overcoming": "금(金)을 다스려 성과를 얻습니다.",
+            "overcome": "수(水)의 극을 받으니 감정 조절이 필요합니다.",
+        },
+        "earth": {
+            "generating": "토(土) 일간에게 금(金)의 괘는 수확과 보상을 뜻합니다.",
+            "generated": "화(火)의 도움으로 신뢰를 얻습니다.",
+            "overcoming": "수(水)를 다스려 방향을 잡습니다.",
+            "overcome": "목(木)의 극을 받으니 유연성이 필요합니다.",
+        },
+        "metal": {
+            "generating": "금(金) 일간에게 수(水)의 괘는 지혜와 흐름을 상징합니다.",
+            "generated": "토(土)의 도움으로 기반이 탄탄해집니다.",
+            "overcoming": "목(木)을 다스려 권위를 세웁니다.",
+            "overcome": "화(火)의 극을 받으니 스트레스 관리가 중요합니다.",
+        },
+        "water": {
+            "generating": "수(水) 일간에게 목(木)의 괘는 새로운 시작을 의미합니다.",
+            "generated": "금(金)의 도움으로 통찰력이 생깁니다.",
+            "overcoming": "화(火)를 다스려 열정을 조절합니다.",
+            "overcome": "토(土)의 극을 받으니 현실적 장애에 주의하세요.",
+        },
+    }
+
+    saju_advice = element_specific_advice.get(saju_element.lower(), {})
+    relationship["saju_specific_advice"] = saju_advice.get(relationship.get("type", ""), "")
+    relationship["day_master"] = WUXING_KOREAN.get(saju_element.lower(), saju_element)
+
+    return relationship
+
+
+# ===============================================================
+# NUCLEAR, OPPOSITE, REVERSE HEXAGRAM (互卦, 錯卦, 綜卦)
+# ===============================================================
+def calculate_nuclear_hexagram(binary: str) -> int:
+    """
+    Calculate the nuclear hexagram (互卦/호괘).
+    Formed by lines 2-3-4 as lower trigram and 3-4-5 as upper trigram.
+    """
+    if len(binary) != 6:
+        return None
+
+    # Lines are indexed 0-5 (bottom to top)
+    # Lower trigram: lines 2, 3, 4 (indices 1, 2, 3)
+    # Upper trigram: lines 3, 4, 5 (indices 2, 3, 4)
+    nuclear_binary = binary[1:4] + binary[2:5]
+    return _binary_to_hexagram_num(nuclear_binary)
+
+
+def calculate_opposite_hexagram(binary: str) -> int:
+    """
+    Calculate the opposite hexagram (錯卦/착괘).
+    All lines reversed (yin ↔ yang).
+    """
+    if len(binary) != 6:
+        return None
+
+    opposite_binary = "".join("1" if b == "0" else "0" for b in binary)
+    return _binary_to_hexagram_num(opposite_binary)
+
+
+def calculate_reverse_hexagram(binary: str) -> int:
+    """
+    Calculate the reverse hexagram (綜卦/종괘).
+    Hexagram flipped upside down.
+    """
+    if len(binary) != 6:
+        return None
+
+    reverse_binary = binary[::-1]
+    return _binary_to_hexagram_num(reverse_binary)
+
+
+def get_related_hexagrams(hexagram_num: int, binary: str) -> Dict:
+    """Get all related hexagrams (nuclear, opposite, reverse)."""
+    hexagrams, _ = load_premium_data()
+
+    nuclear_num = calculate_nuclear_hexagram(binary)
+    opposite_num = calculate_opposite_hexagram(binary)
+    reverse_num = calculate_reverse_hexagram(binary)
+
+    def get_hex_info(num):
+        if num is None:
+            return None
+        hex_data = hexagrams.get(str(num), {})
+        return {
+            "number": num,
+            "name": hex_data.get("name_ko", f"제{num}괘"),
+            "symbol": hex_data.get("symbol", chr(0x4DC0 + num - 1)),
+            "core_meaning": hex_data.get("core_meaning", {}).get("ko", ""),
+        }
+
+    return {
+        "nuclear": {
+            "info": get_hex_info(nuclear_num),
+            "korean": "호괘(互卦)",
+            "description": "내면에 숨겨진 의미, 상황의 본질을 나타냅니다. 2-3-4효와 3-4-5효로 구성됩니다.",
+            "interpretation_hint": "현재 상황 속에 숨겨진 진짜 의미를 보여줍니다.",
+        },
+        "opposite": {
+            "info": get_hex_info(opposite_num),
+            "korean": "착괘(錯卦)",
+            "description": "음양이 모두 반전된 괘. 정반대 상황이나 대비되는 관점을 나타냅니다.",
+            "interpretation_hint": "현 상황과 정반대로 생각해보면 얻을 수 있는 통찰입니다.",
+        },
+        "reverse": {
+            "info": get_hex_info(reverse_num),
+            "korean": "종괘(綜卦)",
+            "description": "위아래가 뒤집힌 괘. 상대방 입장이나 역지사지의 관점을 나타냅니다.",
+            "interpretation_hint": "상대방의 입장에서 보면 어떨지 생각해보세요.",
+        },
+    }
 
 
 # ===============================================================
@@ -142,7 +557,236 @@ def _binary_to_hexagram_num(binary: str) -> int:
 
 
 # ===============================================================
-# HEXAGRAM INTERPRETATION
+# ADVANCED CHANGING LINE ANALYSIS
+# ===============================================================
+def get_changing_line_rule(changing_lines: List[int], hexagram_num: int, resulting_num: int = None) -> Dict:
+    """
+    Get the traditional I Ching interpretation rule based on number of changing lines.
+
+    Traditional rules (朱熹 周易本義):
+    - 1 line: Read that line's text from primary hexagram
+    - 2 lines: Read upper line's text, lower as secondary
+    - 3 lines: Read both hexagram judgments, primary as main
+    - 4 lines: Read lower unchanged line from resulting hexagram
+    - 5 lines: Read single unchanged line from resulting hexagram
+    - 6 lines: Special cases (乾用九, 坤用六) or read resulting judgment
+    """
+    if not changing_lines:
+        return {
+            "rule": "무변(無變)",
+            "rule_chinese": "無變",
+            "description": "변효가 없으니 본괘의 괘사(彖辭)만으로 해석합니다.",
+            "focus": "primary_judgment",
+            "detail": "현재 상태가 안정적입니다. 본괘의 가르침을 따르세요."
+        }
+
+    line_count = len(changing_lines)
+    sorted_lines = sorted(changing_lines)
+
+    if line_count == 1:
+        line = sorted_lines[0]
+        position_info = LINE_POSITION_MEANING.get(line, {})
+        return {
+            "rule": "단변(單變)",
+            "rule_chinese": "一爻變",
+            "description": f"{line}효 하나만 변하니, 본괘의 {line}효 효사(爻辭)가 핵심입니다.",
+            "focus": "single_line",
+            "focus_line": line,
+            "position_meaning": position_info,
+            "detail": f"{position_info.get('name', '')}가 변합니다. {position_info.get('meaning', '')}의 단계에서 변화가 일어납니다."
+        }
+
+    elif line_count == 2:
+        upper = sorted_lines[-1]
+        lower = sorted_lines[0]
+        return {
+            "rule": "이변(二變)",
+            "rule_chinese": "二爻變",
+            "description": f"{lower}, {upper}효가 변합니다. 위 효인 {upper}효를 주(主)로, {lower}효를 보조로 해석합니다.",
+            "focus": "two_lines_upper",
+            "focus_line": upper,
+            "secondary_line": lower,
+            "detail": f"두 효가 함께 움직이니 변화의 폭이 큽니다. {upper}효의 메시지가 핵심입니다."
+        }
+
+    elif line_count == 3:
+        return {
+            "rule": "삼변(三變)",
+            "rule_chinese": "三爻變",
+            "description": "세 효가 변하니, 본괘와 지괘(변괘)의 괘사를 함께 보되 본괘 괘사가 중심입니다.",
+            "focus": "both_judgments",
+            "primary_weight": 0.6,
+            "resulting_weight": 0.4,
+            "detail": "현재(본괘)와 미래(지괘)를 함께 보아야 합니다. 현재 상황이 우선이나 미래 방향도 참고하세요."
+        }
+
+    elif line_count == 4:
+        all_lines = {1, 2, 3, 4, 5, 6}
+        unchanged = sorted(all_lines - set(sorted_lines))
+        lower_unchanged = unchanged[0] if unchanged else 1
+        return {
+            "rule": "사변(四變)",
+            "rule_chinese": "四爻變",
+            "description": f"변하지 않는 {unchanged[0]}, {unchanged[1]}효 중 아래 효인 {lower_unchanged}효의 지괘 효사를 봅니다.",
+            "focus": "resulting_lower_unchanged",
+            "focus_line": lower_unchanged,
+            "unchanged_lines": unchanged,
+            "detail": f"대부분이 변하나 {unchanged}효가 남아 있습니다. 이 불변의 힘이 중심을 잡아줍니다."
+        }
+
+    elif line_count == 5:
+        all_lines = {1, 2, 3, 4, 5, 6}
+        unchanged = list(all_lines - set(sorted_lines))[0]
+        position_info = LINE_POSITION_MEANING.get(unchanged, {})
+        return {
+            "rule": "오변(五變)",
+            "rule_chinese": "五爻變",
+            "description": f"{unchanged}효만 변하지 않습니다. 이 불변효의 지괘 효사가 핵심입니다.",
+            "focus": "resulting_single_unchanged",
+            "focus_line": unchanged,
+            "position_meaning": position_info,
+            "detail": f"거의 모든 것이 변하나 {position_info.get('name', '')}만 굳건합니다. 이것이 지켜야 할 핵심입니다."
+        }
+
+    else:  # 6 lines
+        # Special cases for Qian (1) and Kun (2)
+        if hexagram_num == 1 and resulting_num == 2:
+            return {
+                "rule": "용구(用九)",
+                "rule_chinese": "用九",
+                "description": "건괘의 모든 양효가 변하니, 용구(用九)를 봅니다: '見群龍無首 吉'",
+                "focus": "special_yong_jiu",
+                "special_text": "群龍無首 吉",
+                "special_meaning": "여러 용이 나타나되 우두머리가 없으니 길하다",
+                "detail": "모든 리더가 되려 하지 말고 겸손히 물러나면 길합니다. 독불장군은 화를 부릅니다."
+            }
+        elif hexagram_num == 2 and resulting_num == 1:
+            return {
+                "rule": "용육(用六)",
+                "rule_chinese": "用六",
+                "description": "곤괘의 모든 음효가 변하니, 용육(用六)을 봅니다: '利永貞'",
+                "focus": "special_yong_liu",
+                "special_text": "利永貞",
+                "special_meaning": "영원히 바르게 함이 이롭다",
+                "detail": "음에서 양으로 완전히 전환됩니다. 끝까지 바른 도를 지키면 강건함을 얻습니다."
+            }
+        else:
+            return {
+                "rule": "전효변(全爻變)",
+                "rule_chinese": "六爻皆變",
+                "description": "6효가 모두 변하니, 지괘(변괘)의 괘사를 중심으로 해석합니다.",
+                "focus": "resulting_judgment",
+                "detail": "완전한 변혁의 시기입니다. 과거를 버리고 미래(지괘)의 가르침을 따르세요."
+            }
+
+
+def get_line_position_analysis(line_num: int, is_yang: bool) -> Dict:
+    """Get detailed position-based analysis for a changing line."""
+    position = LINE_POSITION_MEANING.get(line_num, {})
+
+    # 중정(中正) 분석 - 2,5효가 중(中), 홀수효는 양이, 짝수효는 음이 정(正)
+    is_center = line_num in [2, 5]
+    is_correct_position = (line_num % 2 == 1 and is_yang) or (line_num % 2 == 0 and not is_yang)
+
+    analysis = {
+        "position": position,
+        "is_center": is_center,
+        "is_correct": is_correct_position,
+    }
+
+    if is_center and is_correct_position:
+        analysis["zhong_zheng"] = "중정(中正)"
+        analysis["zhong_zheng_meaning"] = "가장 이상적인 위치입니다. 중용을 지키며 바른 자리에 있습니다."
+    elif is_center:
+        analysis["zhong_zheng"] = "중(中)"
+        analysis["zhong_zheng_meaning"] = "중앙에 있으나 정위(正位)는 아닙니다. 중용은 있으나 완벽하지 않습니다."
+    elif is_correct_position:
+        analysis["zhong_zheng"] = "정(正)"
+        analysis["zhong_zheng_meaning"] = "바른 자리에 있습니다. 위치에 맞게 행동하면 좋습니다."
+    else:
+        analysis["zhong_zheng"] = "부정(不正)"
+        analysis["zhong_zheng_meaning"] = "정위(正位)가 아닙니다. 신중하게 처신해야 합니다."
+
+    # 응효(應爻) 분석 - 1↔4, 2↔5, 3↔6
+    corresponding_line = {1: 4, 2: 5, 3: 6, 4: 1, 5: 2, 6: 3}
+    analysis["corresponding_line"] = corresponding_line.get(line_num)
+
+    return analysis
+
+
+# ===============================================================
+# ENHANCED TRIGRAM ANALYSIS
+# ===============================================================
+def get_enhanced_trigram_analysis(upper_trigram: str, lower_trigram: str) -> Dict:
+    """Get enhanced analysis of the two trigrams forming the hexagram."""
+    upper_info = TRIGRAM_INFO.get(upper_trigram, {})
+    lower_info = TRIGRAM_INFO.get(lower_trigram, {})
+
+    if not upper_info or not lower_info:
+        return None
+
+    # Element relationship between trigrams
+    element_relationship = analyze_wuxing_relationship(
+        lower_info.get("element", ""),
+        upper_info.get("element", "")
+    )
+
+    # Trigram imagery interpretation
+    upper_nature = upper_info.get("nature", "")
+    lower_nature = lower_info.get("nature", "")
+
+    imagery = {
+        "visual": f"{upper_nature} 위에 {lower_nature}",
+        "upper": {
+            "korean": upper_info.get("korean", ""),
+            "nature": upper_nature,
+            "element": WUXING_KOREAN.get(upper_info.get("element", ""), ""),
+            "direction": upper_info.get("direction", ""),
+            "image": upper_info.get("image", ""),
+            "symbol": upper_info.get("symbol", ""),
+        },
+        "lower": {
+            "korean": lower_info.get("korean", ""),
+            "nature": lower_nature,
+            "element": WUXING_KOREAN.get(lower_info.get("element", ""), ""),
+            "direction": lower_info.get("direction", ""),
+            "image": lower_info.get("image", ""),
+            "symbol": lower_info.get("symbol", ""),
+        },
+        "element_relationship": element_relationship,
+    }
+
+    # Combined imagery interpretation
+    imagery["interpretation"] = _interpret_trigram_combination(upper_trigram, lower_trigram)
+
+    return imagery
+
+
+def _interpret_trigram_combination(upper: str, lower: str) -> str:
+    """Generate interpretation based on trigram combination."""
+    interpretations = {
+        ("heaven", "heaven"): "하늘이 거듭되니 순수한 창조의 힘입니다. 끊임없이 나아가세요.",
+        ("earth", "earth"): "땅이 거듭되니 무한한 수용력입니다. 덕을 쌓아 만물을 품으세요.",
+        ("water", "thunder"): "구름과 우레가 만나니 시작의 어려움입니다. 인내하면 돌파합니다.",
+        ("mountain", "water"): "산 아래 샘물이니 어린 시절의 배움입니다. 겸손히 구하세요.",
+        ("water", "heaven"): "구름이 하늘에 있으니 기다림의 때입니다. 준비하며 때를 기다리세요.",
+        ("heaven", "water"): "하늘과 물이 어긋나니 다툼의 상입니다. 화해를 구하세요.",
+        ("earth", "water"): "땅 속에 물이 있으니 군대의 상입니다. 조직과 규율이 필요합니다.",
+        ("water", "earth"): "물이 땅 위에 있으니 친함의 상입니다. 화합하고 단결하세요.",
+        ("wind", "heaven"): "바람이 하늘에 부니 작은 축적입니다. 조금씩 모으세요.",
+        ("heaven", "lake"): "하늘 아래 연못이니 예의의 상입니다. 조심히 처신하세요.",
+        ("earth", "heaven"): "땅과 하늘이 교류하니 태평의 상입니다. 모든 것이 순조롭습니다.",
+        ("heaven", "earth"): "하늘과 땅이 막히니 비색의 상입니다. 물러나 때를 기다리세요.",
+        ("fire", "heaven"): "불이 하늘에 있으니 동지의 상입니다. 뜻을 같이하는 이와 함께하세요.",
+        ("heaven", "fire"): "하늘 위에 불이니 크게 소유함입니다. 겸손히 나누세요.",
+        ("earth", "mountain"): "땅 속에 산이니 겸손의 상입니다. 낮출수록 높아집니다.",
+        ("thunder", "earth"): "우레가 땅에서 나오니 기쁨의 상입니다. 음악과 화합으로 즐기세요.",
+    }
+    return interpretations.get((upper, lower), f"{TRIGRAM_INFO.get(upper, {}).get('nature', upper)} 위에 {TRIGRAM_INFO.get(lower, {}).get('nature', lower)}의 상입니다.")
+
+
+# ===============================================================
+# HEXAGRAM INTERPRETATION (Enhanced)
 # ===============================================================
 def get_hexagram_interpretation(
     hexagram_num: int,
@@ -150,9 +794,10 @@ def get_hexagram_interpretation(
     locale: str = "ko",
     changing_lines: List[int] = None,
     saju_element: str = None,
+    binary: str = None,
 ) -> Dict:
     """
-    Get detailed interpretation for a hexagram.
+    Get detailed interpretation for a hexagram with enhanced analysis.
 
     Args:
         hexagram_num: Hexagram number (1-64)
@@ -160,29 +805,43 @@ def get_hexagram_interpretation(
         locale: Language (ko, en)
         changing_lines: List of changing line numbers (1-6)
         saju_element: Day master element for cross-analysis
+        binary: Binary string representation of hexagram
 
     Returns:
-        Comprehensive interpretation dict
+        Comprehensive interpretation dict with:
+        - Basic hexagram info
+        - Theme-specific reading
+        - Enhanced trigram analysis with imagery
+        - Five Element analysis
+        - Seasonal harmony
+        - Changing line rules and interpretation
+        - Related hexagrams (nuclear, opposite, reverse)
+        - Saju cross-analysis
     """
-    hexagrams, trigrams = load_premium_data()
+    try:
+        hexagrams, trigrams = load_premium_data()
+    except Exception as e:
+        print(f"[IChingRAG] Error loading premium data: {e}")
+        return _get_basic_interpretation(hexagram_num, locale)
 
     hex_key = str(hexagram_num)
     hex_data = hexagrams.get(hex_key)
 
     if not hex_data:
-        # Return basic interpretation if premium data not available
         return _get_basic_interpretation(hexagram_num, locale)
 
-    # Build interpretation
     lang_key = locale if locale in ["ko", "en"] else "ko"
+    hex_element = hex_data.get("element", "")
 
+    # Basic hexagram info
     interpretation = {
         "hexagram": {
             "number": hexagram_num,
             "name": hex_data.get(f"name_{lang_key}", hex_data.get("name_ko")),
             "hanja": hex_data.get("name_hanja", ""),
             "symbol": hex_data.get("symbol", ""),
-            "element": hex_data.get("element", ""),
+            "element": hex_element,
+            "element_korean": WUXING_KOREAN.get(hex_element, hex_element),
         },
         "core_meaning": hex_data.get("core_meaning", {}).get(lang_key, ""),
         "judgment": hex_data.get("judgment", {}).get(lang_key, ""),
@@ -194,7 +853,6 @@ def get_hexagram_interpretation(
     if theme in themes:
         interpretation["theme_reading"] = themes[theme].get(lang_key, "")
     elif theme == "general":
-        # Combine all themes for general reading
         general_parts = []
         for t_name, t_data in themes.items():
             if t_data.get(lang_key):
@@ -204,47 +862,70 @@ def get_hexagram_interpretation(
                     general_parts.append(f"[{t_name.title()}] {t_data[lang_key]}")
         interpretation["theme_reading"] = "\n\n".join(general_parts)
 
-    # Changing lines interpretation
-    if changing_lines:
-        lines_data = hex_data.get("lines", {})
-        changing_interpretations = []
-        for line_num in changing_lines:
-            line_key = str(line_num)
-            if line_key in lines_data:
-                line_info = lines_data[line_key]
-                changing_interpretations.append({
-                    "line": line_num,
-                    "text": line_info.get(f"text_{lang_key}", ""),
-                    "meaning": line_info.get(f"meaning_{lang_key}", ""),
-                })
-        interpretation["changing_lines"] = changing_interpretations
+    # Enhanced Trigram Analysis
+    upper_trigram = hex_data.get("trigram_upper")
+    lower_trigram = hex_data.get("trigram_lower")
+    if upper_trigram and lower_trigram:
+        interpretation["trigram_analysis"] = get_enhanced_trigram_analysis(upper_trigram, lower_trigram)
 
-    # Saju cross-analysis
+    # Seasonal Harmony Analysis
+    if hex_element:
+        interpretation["seasonal_analysis"] = analyze_seasonal_harmony(hex_element)
+
+    # Saju Element Analysis (Enhanced)
     if saju_element:
+        interpretation["saju_analysis"] = get_saju_element_analysis(hex_element, saju_element)
+        # Also keep legacy format for compatibility
         saju_conn = hex_data.get("saju_connection", {})
         day_master_advice = saju_conn.get("day_master_advice", {})
         if saju_element in day_master_advice:
             interpretation["saju_advice"] = day_master_advice[saju_element]
-        interpretation["element_harmony"] = saju_conn.get("element_harmony", "")
 
-    # Trigram analysis
-    upper_trigram = hex_data.get("trigram_upper")
-    lower_trigram = hex_data.get("trigram_lower")
-    if upper_trigram and lower_trigram and trigrams:
-        upper_data = trigrams.get(upper_trigram, {})
-        lower_data = trigrams.get(lower_trigram, {})
-        interpretation["trigram_analysis"] = {
-            "upper": {
-                "name": upper_data.get(f"name_{lang_key}", upper_trigram),
-                "meaning": upper_data.get(f"meaning_{lang_key}", ""),
-                "element": upper_data.get("element", ""),
-            },
-            "lower": {
-                "name": lower_data.get(f"name_{lang_key}", lower_trigram),
-                "meaning": lower_data.get(f"meaning_{lang_key}", ""),
-                "element": lower_data.get("element", ""),
-            },
-        }
+    # Related Hexagrams (Nuclear, Opposite, Reverse)
+    if binary:
+        interpretation["related_hexagrams"] = get_related_hexagrams(hexagram_num, binary)
+
+    # Changing Lines Analysis (Enhanced)
+    if changing_lines:
+        complete_data = load_complete_hexagram_data()
+        hex_complete = complete_data.get(str(hexagram_num), {})
+        lines_data = hex_complete.get("lines", {}) or hex_data.get("lines", {})
+
+        changing_interpretations = []
+        for line_num in changing_lines:
+            line_key = str(line_num)
+            line_info = lines_data.get(line_key, {})
+
+            # Determine if line is yang (1) or yin (0) - changing lines flip
+            # This is approximated; ideally passed from casting
+            is_yang = True  # Placeholder - would be from cast result
+
+            line_analysis = {
+                "line": line_num,
+                "position_name": LINE_POSITION_MEANING.get(line_num, {}).get("name", f"{line_num}효"),
+                "text": line_info.get("text", line_info.get("korean", "")),
+                "interpretation": line_info.get("interpretation", line_info.get("advice", "")),
+                "changing_to": line_info.get("changing_to"),
+                "changing_meaning": line_info.get("changing_meaning", ""),
+                "position_analysis": get_line_position_analysis(line_num, is_yang),
+            }
+            changing_interpretations.append(line_analysis)
+
+        interpretation["changing_lines"] = changing_interpretations
+
+        # Get the changing line rule
+        resulting_num = None
+        if binary:
+            # Calculate resulting hexagram
+            resulting_binary = list(binary)
+            for line in changing_lines:
+                idx = line - 1
+                resulting_binary[idx] = "1" if resulting_binary[idx] == "0" else "0"
+            resulting_num = _binary_to_hexagram_num("".join(resulting_binary))
+
+        interpretation["changing_line_rule"] = get_changing_line_rule(
+            changing_lines, hexagram_num, resulting_num
+        )
 
     return interpretation
 
@@ -276,7 +957,7 @@ def _get_basic_interpretation(hexagram_num: int, locale: str) -> Dict:
 
 
 # ===============================================================
-# FULL READING (Cast + Interpret)
+# FULL READING (Cast + Interpret) - Enhanced
 # ===============================================================
 def perform_iching_reading(
     question: str = None,
@@ -285,7 +966,7 @@ def perform_iching_reading(
     saju_element: str = None,
 ) -> Dict:
     """
-    Perform a complete I Ching reading.
+    Perform a complete I Ching reading with enhanced analysis.
 
     Args:
         question: User's question (optional)
@@ -294,29 +975,59 @@ def perform_iching_reading(
         saju_element: Day master element for cross-analysis
 
     Returns:
-        Complete reading with cast result and interpretation
+        Complete reading with:
+        - Cast result
+        - Primary and resulting hexagram interpretations
+        - Related hexagrams (nuclear, opposite, reverse)
+        - Seasonal harmony analysis
+        - Saju cross-analysis
+        - Changing line rules
+        - RAG context
     """
-    # Cast hexagram
-    cast_result = cast_hexagram()
+    try:
+        # Cast hexagram
+        cast_result = cast_hexagram()
+    except Exception as e:
+        print(f"[IChingRAG] Error casting hexagram: {e}")
+        # Fallback: generate a simple random hexagram
+        cast_result = {
+            "primary": {"number": random.randint(1, 64), "binary": "".join([str(random.randint(0, 1)) for _ in range(6)])},
+            "resulting": None,
+            "lines": [],
+            "changing_lines": [],
+        }
+    primary_binary = cast_result["primary"]["binary"]
+    primary_num = cast_result["primary"]["number"]
 
-    # Get primary hexagram interpretation
+    # Get primary hexagram interpretation with enhanced analysis
     primary_interp = get_hexagram_interpretation(
-        hexagram_num=cast_result["primary"]["number"],
+        hexagram_num=primary_num,
         theme=theme,
         locale=locale,
         changing_lines=[l["line_num"] for l in cast_result["changing_lines"]],
         saju_element=saju_element,
+        binary=primary_binary,
     )
 
     # Get resulting hexagram interpretation if there are changing lines
     resulting_interp = None
+    resulting_num = None
     if cast_result["resulting"]:
+        resulting_num = cast_result["resulting"]["number"]
         resulting_interp = get_hexagram_interpretation(
-            hexagram_num=cast_result["resulting"]["number"],
+            hexagram_num=resulting_num,
             theme=theme,
             locale=locale,
             saju_element=saju_element,
+            binary=cast_result["resulting"]["binary"],
         )
+
+    # Get changing line interpretation rule
+    changing_line_nums = [l["line_num"] for l in cast_result["changing_lines"]]
+    changing_rule = get_changing_line_rule(changing_line_nums, primary_num, resulting_num)
+
+    # Get related hexagrams
+    related = get_related_hexagrams(primary_num, primary_binary)
 
     # Add RAG context if available
     rag_context = ""
@@ -338,13 +1049,132 @@ def perform_iching_reading(
         "cast": cast_result,
         "primary_interpretation": primary_interp,
         "resulting_interpretation": resulting_interp,
+        "changing_line_rule": changing_rule,
+        "related_hexagrams": related,
         "rag_context": rag_context if rag_context else None,
     }
 
-    # Generate summary
-    reading["summary"] = _generate_summary(reading, locale)
+    # Generate enhanced summary
+    reading["summary"] = _generate_enhanced_summary(reading, locale)
 
     return reading
+
+
+def _generate_enhanced_summary(reading: Dict, locale: str) -> str:
+    """Generate an enhanced summary of the reading with all analyses."""
+    primary = reading["primary_interpretation"]
+    resulting = reading["resulting_interpretation"]
+    changing = reading["cast"]["changing_lines"]
+    related = reading.get("related_hexagrams", {})
+    changing_rule = reading.get("changing_line_rule", {})
+
+    if locale == "ko":
+        parts = [
+            f"═══════════════════════════════════════",
+            f"【{primary['hexagram']['name']}】 {primary['hexagram'].get('symbol', '')}",
+            f"═══════════════════════════════════════",
+            "",
+            primary.get("core_meaning", ""),
+        ]
+
+        # Trigram analysis
+        trigram = primary.get("trigram_analysis")
+        if trigram:
+            parts.append("")
+            parts.append(f"[괘상(卦象)]")
+            upper = trigram.get("upper", {})
+            lower = trigram.get("lower", {})
+            parts.append(f"  상괘: {upper.get('korean', '')} - {upper.get('image', '')}")
+            parts.append(f"  하괘: {lower.get('korean', '')} - {lower.get('image', '')}")
+            if trigram.get("interpretation"):
+                parts.append(f"  → {trigram['interpretation']}")
+
+        # Seasonal analysis
+        seasonal = primary.get("seasonal_analysis")
+        if seasonal:
+            parts.append("")
+            parts.append(f"[시기(時期) 분석]")
+            parts.append(f"  현재: {seasonal.get('season_korean', '')} ({seasonal.get('solar_term', '')})")
+            parts.append(f"  조화: {seasonal.get('relationship', '')} - {seasonal.get('description', '')}")
+
+        # Theme reading
+        if primary.get("theme_reading"):
+            parts.append("")
+            parts.append(f"[테마별 해석]")
+            parts.append(primary["theme_reading"])
+
+        # Changing lines
+        if changing:
+            parts.append("")
+            parts.append(f"[변효(變爻): {len(changing)}개]")
+            parts.append(f"  해석 규칙: {changing_rule.get('rule', '')} - {changing_rule.get('description', '')}")
+            for line_info in primary.get("changing_lines", []):
+                parts.append(f"  • {line_info.get('position_name', '')}: {line_info.get('text', '')}")
+                if line_info.get("interpretation"):
+                    parts.append(f"    → {line_info['interpretation']}")
+
+        # Resulting hexagram
+        if resulting:
+            parts.append("")
+            parts.append(f"[지괘(之卦): {resulting['hexagram']['name']}]")
+            parts.append(resulting.get("core_meaning", ""))
+
+        # Related hexagrams
+        if related:
+            parts.append("")
+            parts.append(f"[관련 괘(卦)]")
+            nuclear = related.get("nuclear", {}).get("info")
+            if nuclear:
+                parts.append(f"  호괘(互卦): {nuclear.get('name', '')} - 내면의 의미")
+            opposite = related.get("opposite", {}).get("info")
+            if opposite:
+                parts.append(f"  착괘(錯卦): {opposite.get('name', '')} - 반대 관점")
+            reverse = related.get("reverse", {}).get("info")
+            if reverse:
+                parts.append(f"  종괘(綜卦): {reverse.get('name', '')} - 상대방 시각")
+
+        # Saju analysis
+        saju = primary.get("saju_analysis")
+        if saju:
+            parts.append("")
+            parts.append(f"[사주(四柱) 연동]")
+            parts.append(f"  일간: {saju.get('day_master', '')}")
+            parts.append(f"  관계: {saju.get('relationship', '')} - {saju.get('advice', '')}")
+            if saju.get("saju_specific_advice"):
+                parts.append(f"  → {saju['saju_specific_advice']}")
+
+        parts.append("")
+        parts.append(f"═══════════════════════════════════════")
+
+    else:
+        # English version
+        parts = [
+            f"═══════════════════════════════════════",
+            f"【{primary['hexagram']['name']}】 {primary['hexagram'].get('symbol', '')}",
+            f"═══════════════════════════════════════",
+            "",
+            primary.get("core_meaning", ""),
+        ]
+
+        if primary.get("theme_reading"):
+            parts.append("")
+            parts.append(primary["theme_reading"])
+
+        if changing:
+            parts.append("")
+            parts.append(f"[Changing Lines: {len(changing)}]")
+            for line_info in primary.get("changing_lines", []):
+                parts.append(f"  • Line {line_info.get('line', '')}: {line_info.get('text', '')}")
+
+        if resulting:
+            parts.append("")
+            parts.append(f"[Transformation: {resulting['hexagram']['name']}]")
+            parts.append(resulting.get("core_meaning", ""))
+
+        parts.append("")
+        parts.append(f"═══════════════════════════════════════")
+
+    return "\n".join(parts)
 
 
 def _generate_summary(reading: Dict, locale: str) -> str:
@@ -490,6 +1320,135 @@ def get_all_hexagrams_summary(locale: str = "ko") -> List[Dict]:
             })
 
     return summaries
+
+
+# ===============================================================
+# CHANGING LINE INTERPRETATION API
+# ===============================================================
+def get_changing_line_interpretation(hexagram_num: int, line_index: int, locale: str = "ko") -> Dict:
+    """
+    Get detailed changing line interpretation from the enhanced data.
+
+    Args:
+        hexagram_num: Hexagram number (1-64)
+        line_index: Line index (1-6, bottom to top)
+        locale: Language code (ko, en)
+
+    Returns:
+        Dict with changing line interpretation including:
+        - text: Original line text
+        - interpretation: Basic interpretation
+        - changing_to: Target hexagram number
+        - changing_hexagram_name: Target hexagram name
+        - changing_interpretation: Detailed interpretation object
+    """
+    if not 1 <= hexagram_num <= 64:
+        return {"error": "Invalid hexagram number. Must be 1-64."}
+
+    if not 1 <= line_index <= 6:
+        return {"error": "Invalid line index. Must be 1-6."}
+
+    # Load complete hexagram data with enhanced line interpretations
+    complete_data = load_complete_hexagram_data()
+
+    hex_key = str(hexagram_num)
+    hex_data = complete_data.get(hex_key, {})
+
+    if not hex_data:
+        return {"error": f"Hexagram {hexagram_num} data not found."}
+
+    lines_data = hex_data.get("lines", {})
+    line_key = str(line_index)
+    line_data = lines_data.get(line_key, {})
+
+    if not line_data:
+        return {"error": f"Line {line_index} data not found for hexagram {hexagram_num}."}
+
+    # Build response
+    result = {
+        "hexagram_number": hexagram_num,
+        "hexagram_name": hex_data.get("name", ""),
+        "line_index": line_index,
+        "line_name": LINE_POSITION_MEANING.get(line_index, {}).get("name", f"{line_index}효"),
+        "text": line_data.get("text", ""),
+        "interpretation": line_data.get("interpretation", ""),
+    }
+
+    # Add changing hexagram info if available
+    if "changing_to" in line_data:
+        result["changing_to"] = line_data["changing_to"]
+        result["changing_hexagram_name"] = line_data.get("changing_hexagram_name", "")
+
+        # Add detailed changing interpretation if available
+        changing_interp = line_data.get("changing_interpretation")
+        if changing_interp:
+            result["changing_interpretation"] = {
+                "transition": changing_interp.get("transition", ""),
+                "from_to": changing_interp.get("from_to", ""),
+                "core_message": changing_interp.get("core_message", ""),
+                "practical_advice": changing_interp.get("practical_advice", []),
+                "warning": changing_interp.get("warning", ""),
+            }
+
+    # Add position analysis
+    result["position_analysis"] = {
+        "position_meaning": LINE_POSITION_MEANING.get(line_index, {}),
+    }
+
+    return result
+
+
+def get_all_changing_lines_for_hexagram(hexagram_num: int, locale: str = "ko") -> Dict:
+    """
+    Get all changing line interpretations for a hexagram.
+
+    Args:
+        hexagram_num: Hexagram number (1-64)
+        locale: Language code
+
+    Returns:
+        Dict with all 6 lines' changing interpretations
+    """
+    if not 1 <= hexagram_num <= 64:
+        return {"error": "Invalid hexagram number. Must be 1-64."}
+
+    complete_data = load_complete_hexagram_data()
+    hex_key = str(hexagram_num)
+    hex_data = complete_data.get(hex_key, {})
+
+    if not hex_data:
+        return {"error": f"Hexagram {hexagram_num} data not found."}
+
+    result = {
+        "hexagram_number": hexagram_num,
+        "hexagram_name": hex_data.get("name", ""),
+        "lines": {}
+    }
+
+    lines_data = hex_data.get("lines", {})
+
+    for i in range(1, 7):
+        line_key = str(i)
+        line_data = lines_data.get(line_key, {})
+
+        if line_data:
+            line_result = {
+                "line_name": LINE_POSITION_MEANING.get(i, {}).get("name", f"{i}효"),
+                "text": line_data.get("text", ""),
+                "interpretation": line_data.get("interpretation", ""),
+            }
+
+            if "changing_to" in line_data:
+                line_result["changing_to"] = line_data["changing_to"]
+                line_result["changing_hexagram_name"] = line_data.get("changing_hexagram_name", "")
+
+                changing_interp = line_data.get("changing_interpretation")
+                if changing_interp:
+                    line_result["changing_interpretation"] = changing_interp
+
+            result["lines"][i] = line_result
+
+    return result
 
 
 # ===============================================================

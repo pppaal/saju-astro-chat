@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, relation, birthDate, birthTime, gender, birthCity, tzId, note } = body
+    const { name, relation, birthDate, birthTime, gender, birthCity, latitude, longitude, tzId, note } = body
 
     if (!name || !relation) {
       return NextResponse.json({ error: "Name and relation are required" }, { status: 400 })
@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
         birthTime: birthTime || null,
         gender: gender || null,
         birthCity: birthCity || null,
+        latitude: latitude != null ? latitude : null,
+        longitude: longitude != null ? longitude : null,
         tzId: tzId || null,
         note: note || null,
       },

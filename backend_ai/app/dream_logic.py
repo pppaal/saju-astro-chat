@@ -94,6 +94,67 @@ def build_dream_prompt(
 
     prompt += '\n'.join(cultural_parts) if cultural_parts else 'None specified'
 
+    # Add saju influence if available
+    saju_influence = matched_rules.get('saju_influence')
+    if saju_influence:
+        prompt += f"""
+
+## Current Saju Fortune Influence (사주 운세 영향)
+IMPORTANT: Use this to explain WHY the dreamer is having this type of dream at this time.
+"""
+        day_master = saju_influence.get('dayMaster', {})
+        if day_master:
+            prompt += f"""
+[Day Master - 일간]
+{day_master.get('stem', '')} ({day_master.get('element', '')} {day_master.get('yin_yang', '')})
+- The dreamer's core energy/personality type
+"""
+
+        current_daeun = saju_influence.get('currentDaeun')
+        if current_daeun:
+            prompt += f"""
+[Current Daeun - 현재 대운] (10-year cycle)
+{current_daeun.get('stem', '')} {current_daeun.get('branch', '')} ({current_daeun.get('element', '')})
+Starting Year: {current_daeun.get('startYear', '')}
+- This major life phase influences subconscious themes
+"""
+
+        current_saeun = saju_influence.get('currentSaeun')
+        if current_saeun:
+            prompt += f"""
+[Current Saeun - 올해 세운] (Annual fortune)
+{current_saeun.get('stem', '')} {current_saeun.get('branch', '')} (Year {current_saeun.get('year', '')})
+- This year's energy affects dream themes and symbols
+"""
+
+        current_wolun = saju_influence.get('currentWolun')
+        if current_wolun:
+            prompt += f"""
+[Current Wolun - 이번달 월운] (Monthly fortune)
+{current_wolun.get('stem', '')} {current_wolun.get('branch', '')} (Month {current_wolun.get('month', '')})
+- This month's energy creates immediate dream influences
+"""
+
+        today_iljin = saju_influence.get('todayIljin')
+        if today_iljin:
+            sibsin = today_iljin.get('sibsin', {})
+            is_gwiin = today_iljin.get('isCheoneulGwiin', False)
+            prompt += f"""
+[Today's Iljin - 오늘의 일진] (Daily fortune)
+{today_iljin.get('stem', '')} {today_iljin.get('branch', '')}
+천간십신: {sibsin.get('cheon', '')} / 지지십신: {sibsin.get('ji', '')}
+천을귀인일: {'예 (특별한 길일)' if is_gwiin else '아니오'}
+- Today's energy directly influences last night's dream content
+- The relationship between today's pillars and the dreamer's day master reveals dream meaning
+"""
+
+        prompt += """
+ANALYZE: Based on the current saju fortune (대운, 세운, 월운, 일진), explain:
+1. Why the dreamer might be experiencing these specific dream themes NOW
+2. How the current energy cycle relates to the dream symbols
+3. What the dream might be revealing about this life phase
+"""
+
     # Add celestial context if available
     if celestial_context:
         moon = celestial_context.get('moon_phase', {})
@@ -238,6 +299,17 @@ Provide your interpretation as a JSON object with this exact structure:
     "moon": "emotional/lunar influences",
     "asc": "outer expression"
   },
+  "sajuAnalysis": {
+    "whyNow": "Explain why the dreamer is having this dream at this specific time based on their current saju fortune (대운/세운/월운/일진)",
+    "fortuneConnection": "How the current fortune cycle relates to the dream themes",
+    "lifePhaseInsight": "What this dream reveals about their current life phase",
+    "dailyInfluence": "How today's Iljin (일진) specifically influenced this dream - include the sibsin relationship"
+  },
+  "cosmicInfluence": {
+    "moonPhaseEffect": "How the current moon phase affected this dream",
+    "planetaryInfluence": "Any retrograde or aspect effects on dream content",
+    "overallEnergy": "Summary of celestial energies at play"
+  },
   "crossInsights": [
     "unique insights from combining Eastern and Western perspectives"
   ],
@@ -260,6 +332,7 @@ Provide your interpretation as a JSON object with this exact structure:
 ```
 
 Be insightful, culturally sensitive, and specific to the dream content. Avoid generic interpretations.
+If saju fortune data is provided, make sure to explain WHY this dream occurred NOW based on the current fortune cycle.
 """
     return prompt
 
@@ -912,6 +985,13 @@ def interpret_dream(facts: dict) -> dict:
         if lucky_numbers_result:
             matched_rules['lucky_numbers_context'] = f"행운의 숫자 분석: {lucky_numbers_result.get('element_analysis', '')}"
 
+        # Add saju influence if provided from frontend
+        saju_influence = facts.get('sajuInfluence')
+        if saju_influence:
+            matched_rules['saju_influence'] = saju_influence
+            print(f"[interpret_dream] Saju influence: DayMaster={saju_influence.get('dayMaster', {}).get('stem', 'N/A')}, "
+                  f"Daeun={saju_influence.get('currentDaeun', {}).get('stem', 'N/A') if saju_influence.get('currentDaeun') else 'N/A'}")
+
         # Build prompt
         prompt = build_dream_prompt(
             dream_text=dream_text,
@@ -1002,6 +1082,7 @@ def interpret_dream(facts: dict) -> dict:
                 "lucky_numbers": lucky_numbers_result if lucky_numbers_result else None
             },
             "celestial": celestial_context,
+            "saju_influence": saju_influence,  # Include saju influence in response
             **result
         }
 

@@ -1,0 +1,223 @@
+{
+  "$schema": "icp_tarot_mapping_v1",
+  "$description": "ICP 대인관계 스타일과 타로 카드 매핑",
+
+  "major_arcana_icp": {
+    "the_fool": {
+      "name_ko": "바보",
+      "primary_octant": "PA_NO",
+      "icp_profile": {"dominance": 0.3, "affiliation": 0.4},
+      "relational_meaning": "새로운 관계에 대한 열린 마음, 두려움 없는 연결"
+    },
+    "the_magician": {
+      "name_ko": "마법사",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.8, "affiliation": 0.2},
+      "relational_meaning": "관계에서 주도적 역할, 소통의 능숙함"
+    },
+    "the_high_priestess": {
+      "name_ko": "여사제",
+      "primary_octant": "DE",
+      "icp_profile": {"dominance": 0.0, "affiliation": -0.4},
+      "relational_meaning": "신비로운 거리감, 선택적 친밀감"
+    },
+    "the_empress": {
+      "name_ko": "여황제",
+      "primary_octant": "LM",
+      "icp_profile": {"dominance": -0.2, "affiliation": 0.9},
+      "relational_meaning": "풍요로운 돌봄, 양육적 관계"
+    },
+    "the_emperor": {
+      "name_ko": "황제",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.95, "affiliation": 0.0},
+      "relational_meaning": "권위 있는 보호, 구조화된 관계"
+    },
+    "the_hierophant": {
+      "name_ko": "교황",
+      "primary_octant": "PA_NO",
+      "icp_profile": {"dominance": 0.6, "affiliation": 0.5},
+      "relational_meaning": "전통적 관계, 멘토-멘티 역학"
+    },
+    "the_lovers": {
+      "name_ko": "연인",
+      "primary_octant": "NO",
+      "icp_profile": {"dominance": 0.0, "affiliation": 1.0},
+      "relational_meaning": "조화로운 파트너십, 선택과 헌신"
+    },
+    "the_chariot": {
+      "name_ko": "전차",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.9, "affiliation": 0.1},
+      "relational_meaning": "관계에서 방향 설정, 의지로 장애물 극복"
+    },
+    "strength": {
+      "name_ko": "힘",
+      "primary_octant": "PA_NO",
+      "icp_profile": {"dominance": 0.6, "affiliation": 0.6},
+      "relational_meaning": "부드러운 힘으로 관계 이끔, 인내와 연민"
+    },
+    "the_hermit": {
+      "name_ko": "은둔자",
+      "primary_octant": "DE",
+      "icp_profile": {"dominance": 0.0, "affiliation": -0.7},
+      "relational_meaning": "관계에서 물러남, 내면 탐색의 시간"
+    },
+    "wheel_of_fortune": {
+      "name_ko": "운명의 수레바퀴",
+      "primary_octant": null,
+      "icp_profile": {"dominance": 0.0, "affiliation": 0.0},
+      "relational_meaning": "관계의 전환점, 순환적 변화"
+    },
+    "justice": {
+      "name_ko": "정의",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.5, "affiliation": 0.0},
+      "relational_meaning": "공정한 관계, 균형과 책임"
+    },
+    "the_hanged_man": {
+      "name_ko": "매달린 남자",
+      "primary_octant": "JK",
+      "icp_profile": {"dominance": -0.8, "affiliation": 0.2},
+      "relational_meaning": "관계에서 양보와 희생, 관점 전환"
+    },
+    "death": {
+      "name_ko": "죽음",
+      "primary_octant": "DE",
+      "icp_profile": {"dominance": 0.3, "affiliation": -0.6},
+      "relational_meaning": "관계의 끝과 새로운 시작, 변형"
+    },
+    "temperance": {
+      "name_ko": "절제",
+      "primary_octant": "NO",
+      "icp_profile": {"dominance": 0.0, "affiliation": 0.7},
+      "relational_meaning": "관계의 조화와 균형, 인내"
+    },
+    "the_devil": {
+      "name_ko": "악마",
+      "primary_octant": "BC",
+      "icp_profile": {"dominance": 0.7, "affiliation": -0.6},
+      "relational_meaning": "집착적 관계, 권력 역학, 의존"
+    },
+    "the_tower": {
+      "name_ko": "탑",
+      "primary_octant": "BC",
+      "icp_profile": {"dominance": 0.5, "affiliation": -0.8},
+      "relational_meaning": "관계의 급격한 붕괴, 진실 폭로"
+    },
+    "the_star": {
+      "name_ko": "별",
+      "primary_octant": "LM",
+      "icp_profile": {"dominance": -0.3, "affiliation": 0.8},
+      "relational_meaning": "관계의 치유와 희망, 열린 마음"
+    },
+    "the_moon": {
+      "name_ko": "달",
+      "primary_octant": "FG",
+      "icp_profile": {"dominance": -0.4, "affiliation": -0.5},
+      "relational_meaning": "관계의 불확실성, 숨겨진 두려움"
+    },
+    "the_sun": {
+      "name_ko": "태양",
+      "primary_octant": "PA_NO",
+      "icp_profile": {"dominance": 0.5, "affiliation": 0.8},
+      "relational_meaning": "기쁨과 활력의 관계, 진정한 연결"
+    },
+    "judgement": {
+      "name_ko": "심판",
+      "primary_octant": "PA",
+      "icp_profile": {"dominance": 0.6, "affiliation": 0.3},
+      "relational_meaning": "관계의 재평가, 과거 청산, 부활"
+    },
+    "the_world": {
+      "name_ko": "세계",
+      "primary_octant": "NO",
+      "icp_profile": {"dominance": 0.3, "affiliation": 0.7},
+      "relational_meaning": "관계의 완성과 통합, 조화로운 연결"
+    }
+  },
+
+  "court_cards_icp": {
+    "kings": {
+      "general_octant": "PA",
+      "description": "권위와 주도성, 성숙한 지배적 에너지",
+      "king_of_wands": {"octant": "PA_NO", "style": "열정적이고 카리스마 있는 리더"},
+      "king_of_cups": {"octant": "PA", "style": "정서적으로 성숙한, 공감적 권위"},
+      "king_of_swords": {"octant": "BC", "style": "논리적이고 단호한, 냉철한 판단"},
+      "king_of_pentacles": {"octant": "PA", "style": "안정적이고 책임감 있는, 실용적 리더"}
+    },
+    "queens": {
+      "general_octant": "LM/NO",
+      "description": "수용성과 영향력, 따뜻한 권위",
+      "queen_of_wands": {"octant": "PA_NO", "style": "자신감 있고 매력적인, 영향력 있는"},
+      "queen_of_cups": {"octant": "LM", "style": "깊은 공감, 돌봄, 직관적 연결"},
+      "queen_of_swords": {"octant": "DE", "style": "명확한 경계, 독립적, 직접적"},
+      "queen_of_pentacles": {"octant": "LM", "style": "실용적 돌봄, 안정 제공, 양육적"}
+    },
+    "knights": {
+      "general_octant": "PA/BC",
+      "description": "행동과 추구, 미성숙한 지배적 에너지",
+      "knight_of_wands": {"octant": "PA", "style": "열정적이지만 충동적, 모험적"},
+      "knight_of_cups": {"octant": "NO", "style": "로맨틱하고 이상주의적, 감정적 추구"},
+      "knight_of_swords": {"octant": "BC", "style": "공격적이고 직접적, 갈등 마주하기"},
+      "knight_of_pentacles": {"octant": "JK", "style": "신중하고 책임감 있는, 느리지만 꾸준함"}
+    },
+    "pages": {
+      "general_octant": "JK/NO",
+      "description": "배움과 시작, 미성숙한 수용적 에너지",
+      "page_of_wands": {"octant": "PA_NO", "style": "호기심 있고 열정적인 시작"},
+      "page_of_cups": {"octant": "LM", "style": "감수성 있고 열린, 정서적 배움"},
+      "page_of_swords": {"octant": "DE", "style": "호기심 있지만 신중한, 관찰"},
+      "page_of_pentacles": {"octant": "JK", "style": "성실하고 배움에 열린, 겸손"}
+    }
+  },
+
+  "spreads_for_icp": {
+    "relationship_dynamics_spread": {
+      "name": "관계 역학 스프레드",
+      "positions": [
+        {"position": 1, "meaning": "나의 ICP 스타일", "description": "현재 관계에서 나의 대인관계 패턴"},
+        {"position": 2, "meaning": "상대의 ICP 스타일", "description": "상대방의 대인관계 패턴"},
+        {"position": 3, "meaning": "역학의 핵심", "description": "두 스타일이 만나 만드는 역학"},
+        {"position": 4, "meaning": "갈등 지점", "description": "충돌이 일어나는 영역"},
+        {"position": 5, "meaning": "성장 기회", "description": "이 관계를 통한 성장 방향"}
+      ]
+    },
+    "icp_shadow_spread": {
+      "name": "대인관계 그림자 스프레드",
+      "positions": [
+        {"position": 1, "meaning": "의식적 스타일", "description": "내가 인식하는 나의 관계 방식"},
+        {"position": 2, "meaning": "그림자 스타일", "description": "억압된 나의 또 다른 관계 방식"},
+        {"position": 3, "meaning": "투사", "description": "타인에게 투사하는 것"},
+        {"position": 4, "meaning": "통합", "description": "그림자를 통합하는 방법"}
+      ]
+    }
+  },
+
+  "icp_tarot_interpretation_guide": {
+    "reading_for_PA_dominant": {
+      "focus": "통제 내려놓기, 취약함 수용",
+      "supportive_cards": ["Hanged Man", "Empress", "Star"],
+      "challenging_cards": ["Emperor", "Chariot", "Devil"],
+      "guidance": "이 카드들은 당신이 주도권을 잠시 내려놓을 때 더 깊은 연결이 가능함을 보여줍니다"
+    },
+    "reading_for_JK_dominant": {
+      "focus": "자기 주장, 건강한 경계",
+      "supportive_cards": ["Strength", "Chariot", "Emperor"],
+      "challenging_cards": ["Hanged Man", "Moon", "6 of Swords"],
+      "guidance": "이 카드들은 당신이 자신의 목소리를 찾을 때 관계가 더 균형잡힘을 보여줍니다"
+    },
+    "reading_for_NO_dominant": {
+      "focus": "건강한 갈등, 진정성",
+      "supportive_cards": ["Justice", "Swords cards", "Tower"],
+      "challenging_cards": ["6 of Cups", "2 of Cups", "Lovers"],
+      "guidance": "이 카드들은 갈등을 피하지 않을 때 더 진정한 조화가 온다는 것을 보여줍니다"
+    },
+    "reading_for_DE_dominant": {
+      "focus": "연결 시도, 신뢰 쌓기",
+      "supportive_cards": ["Lovers", "Sun", "3 of Cups"],
+      "challenging_cards": ["Hermit", "High Priestess", "4 of Cups"],
+      "guidance": "이 카드들은 안전한 연결의 가치와 고립의 비용을 보여줍니다"
+    }
+  }
+}

@@ -33,6 +33,68 @@ type Fortune = {
   source?: string;
 };
 
+type ServiceRecord = {
+  id: string;
+  date: string;
+  service: string;
+  theme?: string;
+  summary?: string;
+  type: string;
+};
+
+type DailyHistory = {
+  date: string;
+  records: ServiceRecord[];
+};
+
+const SERVICE_ICONS: Record<string, string> = {
+  "destiny-map": "🗺️",
+  tarot: "🃏",
+  saju: "🔮",
+  astrology: "⭐",
+  dream: "💭",
+  iching: "☯️",
+  numerology: "🔢",
+  aura: "🌈",
+  "daily-fortune": "🌟",
+  personality: "🧠",
+  compatibility: "💕",
+  "destiny-pal": "🤝",
+  "destiny-matrix": "🔷",
+};
+
+const SERVICE_NAMES: Record<string, string> = {
+  "destiny-map": "Destiny Map",
+  tarot: "Tarot",
+  saju: "Saju",
+  astrology: "Astrology",
+  dream: "Dream",
+  iching: "I Ching",
+  numerology: "Numerology",
+  aura: "Aura",
+  "daily-fortune": "Daily Fortune",
+  personality: "Personality",
+  compatibility: "Compatibility",
+  "destiny-pal": "Destiny Pal",
+  "destiny-matrix": "Destiny Matrix",
+};
+
+const SERVICE_URLS: Record<string, string> = {
+  "destiny-map": "/destiny-map",
+  tarot: "/tarot",
+  saju: "/saju",
+  astrology: "/astrology",
+  dream: "/dream",
+  iching: "/iching",
+  numerology: "/numerology",
+  personality: "/personality",
+  compatibility: "/compatibility",
+  "destiny-pal": "/destiny-pal",
+  "destiny-matrix": "/destiny-matrix",
+  "daily-fortune": "/myjourney",
+  aura: "/aura",
+};
+
 export default function MyJourneyClient() {
   return (
     <SessionProvider>
@@ -59,6 +121,8 @@ function MyJourneyPage() {
   const [profile, setProfile] = useState<Profile>({});
   const [fortune, setFortune] = useState<Fortune | null>(null);
   const [fortuneLoading, setFortuneLoading] = useState(false);
+  const [recentHistory, setRecentHistory] = useState<DailyHistory[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -70,6 +134,26 @@ function MyJourneyPage() {
       setProfile(user);
     };
     load();
+  }, [status]);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (status !== "authenticated") return;
+      setHistoryLoading(true);
+      try {
+        const res = await fetch("/api/me/history", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          // Get only recent 3 days of history
+          setRecentHistory((data.history || []).slice(0, 3));
+        }
+      } catch (e) {
+        console.error("Failed to load history:", e);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+    loadHistory();
   }, [status]);
 
   useEffect(() => {
@@ -171,7 +255,8 @@ function MyJourneyPage() {
                 Google
               </button>
 
-              <button
+              {/* Kakao Login - temporarily disabled */}
+              {/* <button
                 className={styles.kakaoBtn}
                 onClick={() => signIn("kakao", { callbackUrl: "/myjourney?from=oauth" })}
               >
@@ -179,7 +264,7 @@ function MyJourneyPage() {
                   <path fill="#000" d="M12 3C6.5 3 2 6.58 2 11c0 2.88 1.93 5.41 4.82 6.84-.2.74-.76 2.67-.87 3.08-.14.51.18.5.38.37.15-.1 2.44-1.63 3.47-2.32.77.11 1.56.17 2.37.17C17.5 19.14 22 15.56 22 11S17.5 3 12 3z"/>
                 </svg>
                 Kakao
-              </button>
+              </button> */}
             </div>
 
             <span className={styles.secureNote}>Secure OAuth - No passwords</span>
@@ -308,20 +393,93 @@ function MyJourneyPage() {
             </div>
           </div>
 
-          {/* Quick Services */}
+          {/* Recent Activity */}
           <div className={styles.services}>
-            <h3>Quick Access</h3>
-            <div className={styles.serviceGrid}>
-              <Link href="/destiny-map" className={styles.serviceBtn}>🗺️ Destiny Map</Link>
-              <Link href="/tarot" className={styles.serviceBtn}>🃏 Tarot</Link>
-              <Link href="/saju" className={styles.serviceBtn}>🔮 Saju</Link>
-              <Link href="/astrology" className={styles.serviceBtn}>⭐ Astrology</Link>
-              <Link href="/dream" className={styles.serviceBtn}>💭 Dream</Link>
-              <Link href="/iching" className={styles.serviceBtn}>☯️ I Ching</Link>
+            <div className={styles.servicesHeader}>
+              <h3>Recent Activity</h3>
+              <Link href="/myjourney/history" className={styles.viewAllLink}>
+                View All →
+              </Link>
             </div>
+            {historyLoading ? (
+              <div className={styles.historyLoading}>
+                <div className={styles.smallSpinner}></div>
+              </div>
+            ) : recentHistory.length > 0 ? (
+              <div className={styles.recentHistory}>
+                {recentHistory.map((day) => (
+                  <div key={day.date} className={styles.dayGroup}>
+                    <div className={styles.dayDate}>{formatDate(day.date)}</div>
+                    <div className={styles.dayRecords}>
+                      {day.records.slice(0, 4).map((record) => (
+                        <Link
+                          key={record.id}
+                          href={SERVICE_URLS[record.service] || "/myjourney/history"}
+                          className={styles.recordItem}
+                        >
+                          <span className={styles.recordIcon}>
+                            {SERVICE_ICONS[record.service] || "📖"}
+                          </span>
+                          <div className={styles.recordInfo}>
+                            <span className={styles.recordService}>
+                              {SERVICE_NAMES[record.service] || record.service}
+                            </span>
+                            {record.theme && (
+                              <span className={styles.recordTheme}>{record.theme}</span>
+                            )}
+                            {record.summary && (
+                              <span className={styles.recordSummary}>{record.summary}</span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.emptyHistory}>
+                <span className={styles.emptyIcon}>📜</span>
+                <p>No activity yet</p>
+                <p className={styles.emptyHint}>
+                  Start using services to track your journey
+                </p>
+                <div className={styles.quickLinks}>
+                  <Link href="/destiny-map" className={styles.quickLink}>🗺️ Destiny Map</Link>
+                  <Link href="/tarot" className={styles.quickLink}>🃏 Tarot</Link>
+                  <Link href="/saju" className={styles.quickLink}>🔮 Saju</Link>
+                  <Link href="/astrology" className={styles.quickLink}>⭐ Astrology</Link>
+                  <Link href="/dream" className={styles.quickLink}>💭 Dream</Link>
+                  <Link href="/iching" className={styles.quickLink}>☯️ I Ching</Link>
+                  <Link href="/personality" className={styles.quickLink}>🧠 Personality</Link>
+                  <Link href="/compatibility" className={styles.quickLink}>💕 Compatibility</Link>
+                  <Link href="/numerology" className={styles.quickLink}>🔢 Numerology</Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
     </main>
   );
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (dateStr === today.toISOString().split("T")[0]) {
+    return "Today";
+  }
+  if (dateStr === yesterday.toISOString().split("T")[0]) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+  });
 }

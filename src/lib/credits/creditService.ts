@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 // 플랜별 설정
 export const PLAN_CONFIG = {
   free: {
-    monthlyCredits: 1,
+    monthlyCredits: 3,
     compatibilityLimit: 0,
     followUpLimit: 0,
     historyRetention: 7,
@@ -20,7 +20,7 @@ export const PLAN_CONFIG = {
     },
   },
   starter: {
-    monthlyCredits: 10,
+    monthlyCredits: 15,
     compatibilityLimit: 2,
     followUpLimit: 2,
     historyRetention: 30,
@@ -37,7 +37,7 @@ export const PLAN_CONFIG = {
     },
   },
   pro: {
-    monthlyCredits: 30,
+    monthlyCredits: 50,
     compatibilityLimit: 5,
     followUpLimit: 5,
     historyRetention: 90,
@@ -54,7 +54,7 @@ export const PLAN_CONFIG = {
     },
   },
   premium: {
-    monthlyCredits: 50,
+    monthlyCredits: 100,
     compatibilityLimit: 10,
     followUpLimit: 10,
     historyRetention: 365,

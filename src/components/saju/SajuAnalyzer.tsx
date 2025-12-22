@@ -4,7 +4,8 @@
 
 import { useState, useEffect, FormEvent, useMemo, useCallback } from 'react';
 import SajuResultDisplay from './SajuResultDisplay';
-import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { saveUserProfile } from '@/lib/userProfile';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import {
@@ -50,11 +51,13 @@ export default function SajuAnalyzer() {
   const tzList: string[] = useMemo(() => getSupportedTimezones(), []);
   const baseInstant = useMemo(() => new Date(), []);
   const [tzQuery, setTzQuery] = useState('');
+  const { profile, isLoading: profileLoading } = useUserProfile();
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
     calendarType: 'solar' as 'solar' | 'lunar',
-    birthDate: '1995-02-09',
-    birthTime: '06:40',
+    birthDate: '',
+    birthTime: '',
     gender: 'male' as 'male' | 'female',
     timezone: userTz,
   });
@@ -105,9 +108,9 @@ export default function SajuAnalyzer() {
     }
   }, []);
 
-  // Load saved profile on mount
+  // Load saved profile from hook
   useEffect(() => {
-    const profile = getUserProfile();
+    if (profileLoading || profileLoaded) return;
     if (profile.birthDate || profile.birthTime || profile.gender) {
       setFormData(prev => ({
         ...prev,
@@ -116,8 +119,13 @@ export default function SajuAnalyzer() {
         gender: (profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : prev.gender) as 'male' | 'female',
         timezone: profile.timezone || prev.timezone,
       }));
+      if (profile.birthCity) {
+        setCityQuery(profile.birthCity);
+        setSelectedCity(profile.birthCity);
+      }
     }
-  }, []);
+    setProfileLoaded(true);
+  }, [profile, profileLoading, profileLoaded]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

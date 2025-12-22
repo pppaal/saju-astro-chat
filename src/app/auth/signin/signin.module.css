@@ -302,6 +302,37 @@
   transform: translateY(-1px);
 }
 
+/* Coming Soon State */
+.kakaoBtn.comingSoon {
+  background: rgba(254, 229, 0, 0.3);
+  color: rgba(0, 0, 0, 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+  position: relative;
+}
+
+.kakaoBtn.comingSoon:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.kakaoBtn.comingSoon svg path {
+  fill: rgba(0, 0, 0, 0.4);
+}
+
+.comingSoonBadge {
+  position: absolute;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* ====================================
    DIVIDER
    ==================================== */

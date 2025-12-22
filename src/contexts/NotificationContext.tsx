@@ -53,37 +53,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [notifications]);
 
   // Setup Server-Sent Events for real-time notifications
+  // TODO: Enable when /api/notifications/stream endpoint is implemented
   useEffect(() => {
-    if (!session?.user) {
-      if (eventSource) {
-        eventSource.close();
-        setEventSource(null);
-      }
-      return;
+    // SSE disabled until endpoint is implemented
+    if (eventSource) {
+      eventSource.close();
+      setEventSource(null);
     }
-
-    // Connect to SSE endpoint
-    const es = new EventSource(`/api/notifications/stream?userId=${session.user.email}`);
-
-    es.onmessage = (event) => {
-      try {
-        const notification = JSON.parse(event.data);
-        addNotification(notification);
-      } catch (e) {
-        console.error("Failed to parse notification", e);
-      }
-    };
-
-    es.onerror = () => {
-      console.error("SSE connection error");
-      es.close();
-    };
-
-    setEventSource(es);
-
-    return () => {
-      es.close();
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 

@@ -3,8 +3,10 @@
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signIn } from "next-auth/react";
 import Chat from "@/components/destiny-map/Chat";
 import { useI18n } from "@/i18n/I18nProvider";
+import { calculateSajuData } from "@/lib/Saju/saju";
 import styles from "./counselor.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -33,6 +35,9 @@ export default function CounselorPage({
   const { t } = useI18n();
   const sp = React.use(searchParams);
   const router = useRouter();
+  const { status: authStatus } = useSession();
+  const isAuthed = authStatus === "authenticated";
+  const isCheckingAuth = authStatus === "loading";
 
   const [isLoading, setIsLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
@@ -77,8 +82,11 @@ export default function CounselorPage({
     t("destinyMap.counselor.loading4", "Preparing personalized guidance..."),
   ];
 
-  // Load pre-computed chart data from sessionStorage and prefetch RAG data
+  // Load pre-computed chart data from sessionStorage OR compute fresh
   useEffect(() => {
+    if (!isAuthed) return;
+    if (!birthDate || !birthTime) return;
+
     let saju: any = null;
     let astro: any = null;
 
@@ -90,12 +98,37 @@ export default function CounselorPage({
         if (data.timestamp && Date.now() - data.timestamp < 3600000) {
           saju = data.saju;
           astro = data.astro;
-          setChartData({ saju, astro });
         }
       }
     } catch (e) {
       console.warn("[CounselorPage] Failed to load chart data:", e);
     }
+
+    // If no cached saju data, compute fresh from birth info
+    if (!saju || !saju.dayMaster) {
+      try {
+        console.log("[CounselorPage] Computing fresh saju data...");
+        // calculateSajuData(birthDate, birthTime, gender, calendarType, timezone, lunarLeap?)
+        const genderVal = (gender === "Male" || gender === "male") ? "male" : "female";
+        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
+        const computed = calculateSajuData(birthDate, birthTime, genderVal, "solar", userTz);
+        saju = computed;
+        // Save to sessionStorage for future use
+        sessionStorage.setItem("destinyChartData", JSON.stringify({
+          saju: computed,
+          astro: astro || {},
+          timestamp: Date.now(),
+        }));
+        console.log("[CounselorPage] Fresh saju computed:", {
+          dayMaster: computed.dayMaster?.heavenlyStem,
+          yearPillar: computed.yearPillar?.heavenlyStem,
+        });
+      } catch (e) {
+        console.warn("[CounselorPage] Failed to compute saju:", e);
+      }
+    }
+
+    setChartData({ saju, astro });
 
     // Prefetch RAG data in background
     if (saju || astro) {
@@ -127,10 +160,12 @@ export default function CounselorPage({
       };
       prefetchRAG();
     }
-  }, [theme]);
+  }, [theme, isAuthed, birthDate, birthTime, gender]);
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
+    if (!isAuthed) return;
+
     const loadUserContext = async () => {
       try {
         const res = await fetch(`/api/counselor/chat-history?theme=${theme}&limit=3`);
@@ -181,7 +216,7 @@ export default function CounselorPage({
     };
 
     loadUserContext();
-  }, [theme]);
+  }, [theme, isAuthed]);
 
   // Premium: Save message callback
   const handleSaveMessage = useCallback(
@@ -216,6 +251,8 @@ export default function CounselorPage({
 
   // Loading animation
   useEffect(() => {
+    if (!isAuthed) return;
+
     if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {
       router.push("/destiny-map");
       return;
@@ -247,7 +284,53 @@ export default function CounselorPage({
       clearInterval(stepInterval);
       clearInterval(checkReady);
     };
-  }, [birthDate, birthTime, latitude, longitude, router, loadingMessages.length, prefetchStatus.done]);
+  }, [birthDate, birthTime, latitude, longitude, router, loadingMessages.length, prefetchStatus.done, isAuthed]);
+
+  const handleLogin = useCallback(() => {
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    signIn(undefined, { callbackUrl: `/destiny-map/counselor${search}` });
+  }, []);
+
+  if (isCheckingAuth) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingText}>
+            <h2 className={styles.counselorTitle}>
+              {t("destinyMap.counselor.title", "DestinyPal Counselor")}
+            </h2>
+            <p className={styles.loadingMessage}>
+              {t("destinyMap.counselor.authChecking", "로그인 상태를 확인하는 중입니다...")}
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAuthed) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.authGate}>
+          <div className={styles.authCard}>
+            <div className={styles.authIcon}>🔒</div>
+            <h1 className={styles.authTitle}>
+              {t("destinyMap.counselor.loginRequiredTitle", "상담사 채팅은 로그인 후 이용할 수 있어요")}
+            </h1>
+            <p className={styles.authDesc}>
+              {t("destinyMap.counselor.loginRequiredDesc", "맞춤형 상담과 이전 대화 기록을 불러오려면 로그인해주세요.")}
+            </p>
+            <button type="button" className={styles.loginButton} onClick={handleLogin}>
+              {t("destinyMap.counselor.loginCta", "로그인하고 시작하기")}
+            </button>
+            <p className={styles.loginHint}>
+              {t("destinyMap.counselor.loginHint", "계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다.")}
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // Loading screen
   if (isLoading) {
@@ -356,6 +439,7 @@ export default function CounselorPage({
           autoScroll={false}
           // RAG session from /counselor/init prefetch (Jung, graph, corpus)
           ragSessionId={sessionId || undefined}
+          autoSendSeed
         />
       </div>
 

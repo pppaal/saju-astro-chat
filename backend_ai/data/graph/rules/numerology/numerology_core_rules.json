@@ -1,0 +1,331 @@
+{
+  "$schema": "numerology_core_rules_v1",
+  "$description": "수비학 핵심 규칙 - 생명수, 표현수, 영혼수 분석 및 해석 규칙",
+
+  "rule_type": "numerology_core",
+  "version": "1.0",
+
+  "life_path_rules": {
+    "description": "생명수(Life Path Number) 기반 해석 규칙",
+    "rules": [
+      {
+        "id": "LP_1_leadership",
+        "condition": {"life_path": 1},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 1은 리더십과 독립성을 나타냅니다. 새로운 길을 개척하고 다른 이들을 이끄는 사명을 가지고 있습니다.",
+          "en": "Life Path 1 indicates leadership and independence. You have a mission to pioneer new paths and lead others."
+        },
+        "advice": {
+          "ko": "자신감을 가지되 겸손함도 잊지 마세요. 혼자만의 성공보다 함께하는 성장이 더 큰 보람을 줍니다.",
+          "en": "Be confident but don't forget humility. Growth together brings more fulfillment than solo success."
+        },
+        "career_hints": ["CEO", "entrepreneur", "inventor", "director"],
+        "challenges": ["stubbornness", "loneliness", "impatience"]
+      },
+      {
+        "id": "LP_2_cooperation",
+        "condition": {"life_path": 2},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 2는 협력과 균형을 나타냅니다. 대립을 화해시키고 조화를 만드는 중재자 역할을 합니다.",
+          "en": "Life Path 2 indicates cooperation and balance. You serve as a mediator who reconciles opposition and creates harmony."
+        },
+        "advice": {
+          "ko": "타인을 돕되 자신의 필요도 소중히 여기세요. 과도한 자기희생은 번아웃을 초래합니다.",
+          "en": "Help others but also value your own needs. Excessive self-sacrifice leads to burnout."
+        },
+        "career_hints": ["counselor", "diplomat", "mediator", "social worker"],
+        "challenges": ["indecision", "oversensitivity", "dependency"]
+      },
+      {
+        "id": "LP_3_expression",
+        "condition": {"life_path": 3},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 3은 창의적 표현을 나타냅니다. 말, 글, 예술을 통해 아이디어를 표현하고 주변에 기쁨을 주는 재능이 있습니다.",
+          "en": "Life Path 3 indicates creative expression. You have a talent for expressing ideas through words, writing, or art and bringing joy to those around you."
+        },
+        "advice": {
+          "ko": "창의성을 발휘하되 깊이와 집중력도 개발하세요. 너무 많은 것에 손대면 아무것도 완성하지 못합니다.",
+          "en": "Express your creativity but also develop depth and focus. Touching too many things means completing none."
+        },
+        "career_hints": ["writer", "actor", "artist", "broadcaster"],
+        "challenges": ["scattered attention", "superficiality", "mood swings"]
+      },
+      {
+        "id": "LP_4_foundation",
+        "condition": {"life_path": 4},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 4는 기초와 안정을 나타냅니다. 체계적으로 목표를 달성하고 견고한 기반을 세우는 능력이 있습니다.",
+          "en": "Life Path 4 indicates foundation and stability. You have the ability to achieve goals systematically and build solid foundations."
+        },
+        "advice": {
+          "ko": "계획대로 진행하되 유연성도 갖추세요. 때로는 변화를 받아들이는 것이 더 현명합니다.",
+          "en": "Proceed as planned but also maintain flexibility. Sometimes accepting change is wiser."
+        },
+        "career_hints": ["architect", "accountant", "engineer", "manager"],
+        "challenges": ["rigidity", "workaholism", "resisting change"]
+      },
+      {
+        "id": "LP_5_freedom",
+        "condition": {"life_path": 5},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 5는 자유와 변화를 나타냅니다. 새로운 경험을 추구하고 삶의 모든 것을 맛보고 싶어하는 탐험가입니다.",
+          "en": "Life Path 5 indicates freedom and change. You are an explorer who seeks new experiences and wants to taste everything life offers."
+        },
+        "advice": {
+          "ko": "모험을 즐기되 책임감도 잊지 마세요. 자유는 책임과 함께할 때 더 의미있습니다.",
+          "en": "Enjoy adventure but don't forget responsibility. Freedom is more meaningful when accompanied by responsibility."
+        },
+        "career_hints": ["traveler", "sales", "journalist", "marketer"],
+        "challenges": ["instability", "irresponsibility", "impulsiveness"]
+      },
+      {
+        "id": "LP_6_nurturing",
+        "condition": {"life_path": 6},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 6은 사랑과 책임을 나타냅니다. 가족과 공동체를 돌보고 조화로운 환경을 만드는 양육자입니다.",
+          "en": "Life Path 6 indicates love and responsibility. You are a nurturer who cares for family and community and creates harmonious environments."
+        },
+        "advice": {
+          "ko": "다른 사람을 돌보면서 자신도 돌보세요. 과도한 간섭은 오히려 관계를 해칠 수 있습니다.",
+          "en": "Care for yourself while caring for others. Excessive interference can actually harm relationships."
+        },
+        "career_hints": ["nurse", "teacher", "counselor", "interior designer"],
+        "challenges": ["overprotection", "perfectionism", "self-sacrifice"]
+      },
+      {
+        "id": "LP_7_wisdom",
+        "condition": {"life_path": 7},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 7은 지혜와 탐구를 나타냅니다. 진리를 추구하고 깊이 이해하며 영적 성장을 이루는 구도자입니다.",
+          "en": "Life Path 7 indicates wisdom and seeking. You are a seeker who pursues truth, understands deeply, and achieves spiritual growth."
+        },
+        "advice": {
+          "ko": "내면 탐구를 즐기되 고립되지 마세요. 다른 사람과 연결될 때 지혜는 더 풍요로워집니다.",
+          "en": "Enjoy inner exploration but don't isolate. Wisdom becomes richer when connected with others."
+        },
+        "career_hints": ["researcher", "philosopher", "scientist", "analyst"],
+        "challenges": ["isolation", "skepticism", "secretiveness"]
+      },
+      {
+        "id": "LP_8_achievement",
+        "condition": {"life_path": 8},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 8은 성취와 풍요를 나타냅니다. 물질적 성공을 달성하고 자원을 관리하며 권력을 현명하게 사용하는 능력이 있습니다.",
+          "en": "Life Path 8 indicates achievement and abundance. You have the ability to attain material success, manage resources, and use power wisely."
+        },
+        "advice": {
+          "ko": "성공을 추구하되 물질과 영성의 균형을 찾으세요. 진정한 풍요는 나눔에서 옵니다.",
+          "en": "Pursue success but find balance between material and spiritual. True abundance comes from sharing."
+        },
+        "career_hints": ["CEO", "investor", "banker", "lawyer"],
+        "challenges": ["greed", "abuse of power", "coldness"]
+      },
+      {
+        "id": "LP_9_humanitarian",
+        "condition": {"life_path": 9},
+        "weight": 1.0,
+        "interpretation": {
+          "ko": "생명수 9는 연민과 봉사를 나타냅니다. 세상을 더 나은 곳으로 만들고 보편적 사랑을 실천하는 인도주의자입니다.",
+          "en": "Life Path 9 indicates compassion and service. You are a humanitarian who makes the world a better place and practices universal love."
+        },
+        "advice": {
+          "ko": "베풂을 즐기되 받는 것도 배우세요. 집착을 내려놓을 때 더 큰 자유를 얻습니다.",
+          "en": "Enjoy giving but also learn to receive. Letting go of attachments brings greater freedom."
+        },
+        "career_hints": ["activist", "artist", "doctor", "teacher"],
+        "challenges": ["excessive sacrifice", "lack of boundaries", "depression"]
+      }
+    ]
+  },
+
+  "master_number_rules": {
+    "description": "마스터 넘버(11, 22, 33) 특별 규칙",
+    "rules": [
+      {
+        "id": "MN_11_illuminator",
+        "condition": {"life_path": 11},
+        "weight": 1.5,
+        "interpretation": {
+          "ko": "마스터 넘버 11은 영적 조명자입니다. 직관과 영감으로 다른 이들을 인도하고 영적 진리를 전달하는 특별한 사명이 있습니다.",
+          "en": "Master Number 11 is a spiritual illuminator. You have a special mission to guide others with intuition and inspiration and convey spiritual truth."
+        },
+        "special_traits": ["heightened intuition", "inspiration", "spiritual sensitivity"],
+        "challenges": ["anxiety", "self-doubt", "disconnection from reality"],
+        "advice": {
+          "ko": "높은 에너지를 현실과 연결하세요. 명상과 그라운딩이 균형을 유지하는 데 도움이 됩니다.",
+          "en": "Connect your high energy to reality. Meditation and grounding help maintain balance."
+        }
+      },
+      {
+        "id": "MN_22_master_builder",
+        "condition": {"life_path": 22},
+        "weight": 1.5,
+        "interpretation": {
+          "ko": "마스터 넘버 22는 마스터 빌더입니다. 거대한 비전을 현실로 만들고 지속 가능한 시스템을 구축하는 가장 강력한 잠재력을 가지고 있습니다.",
+          "en": "Master Number 22 is the Master Builder. You have the most powerful potential to turn grand visions into reality and build sustainable systems."
+        },
+        "special_traits": ["grand vision", "practical manifestation", "organizational genius"],
+        "challenges": ["overwhelm", "gap between vision and reality", "excessive burden"],
+        "advice": {
+          "ko": "비전과 실용성 사이의 균형을 찾으세요. 큰 그림을 보면서 작은 단계로 나아가세요.",
+          "en": "Find balance between vision and practicality. See the big picture while taking small steps."
+        }
+      },
+      {
+        "id": "MN_33_master_healer",
+        "condition": {"life_path": 33},
+        "weight": 1.5,
+        "interpretation": {
+          "ko": "마스터 넘버 33은 마스터 힐러입니다. 깊은 사랑과 연민으로 다른 이들을 치유하고 영적 진리를 가르치는 가장 높은 영적 사명이 있습니다.",
+          "en": "Master Number 33 is the Master Healer. You have the highest spiritual mission to heal others with deep love and compassion and teach spiritual truths."
+        },
+        "special_traits": ["healing power", "unconditional love", "spiritual wisdom"],
+        "challenges": ["excessive sacrifice", "martyr complex", "self-neglect"],
+        "advice": {
+          "ko": "다른 사람을 돌보면서 자신도 돌보세요. 순교자가 아닌 빛의 등대가 되세요.",
+          "en": "Care for yourself while caring for others. Be a lighthouse, not a martyr."
+        }
+      }
+    ]
+  },
+
+  "personal_year_rules": {
+    "description": "개인년(Personal Year) 규칙 - 9년 주기",
+    "rules": [
+      {
+        "id": "PY_1_new_beginnings",
+        "condition": {"personal_year": 1},
+        "weight": 1.0,
+        "theme": "새로운 시작",
+        "interpretation": {
+          "ko": "개인년 1은 9년 주기의 시작입니다. 새 프로젝트를 시작하고 새로운 방향을 설정하기에 완벽한 해입니다.",
+          "en": "Personal Year 1 marks the start of a 9-year cycle. Perfect for starting new projects and setting new directions."
+        },
+        "focus": ["new starts", "leadership", "independent action"],
+        "avoid": ["indecision", "past attachment", "depending on others"]
+      },
+      {
+        "id": "PY_2_patience",
+        "condition": {"personal_year": 2},
+        "weight": 1.0,
+        "theme": "협력과 인내",
+        "interpretation": {
+          "ko": "개인년 2는 기다림과 협력의 해입니다. 지난해 심은 씨앗이 자라는 것을 지켜보세요.",
+          "en": "Personal Year 2 is about waiting and cooperation. Watch the seeds planted last year grow."
+        },
+        "focus": ["partnerships", "patience", "details"],
+        "avoid": ["impatience", "unilateral action", "provoking conflict"]
+      },
+      {
+        "id": "PY_3_expression",
+        "condition": {"personal_year": 3},
+        "weight": 1.0,
+        "theme": "창조와 표현",
+        "interpretation": {
+          "ko": "개인년 3은 자기 표현과 사교 활동의 해입니다. 창조하고 사람들을 만나고 삶을 즐기세요.",
+          "en": "Personal Year 3 is about self-expression and socializing. Create, meet people, and enjoy life."
+        },
+        "focus": ["creation", "social networking", "self-expression"],
+        "avoid": ["isolation", "pessimism", "suppressing expression"]
+      },
+      {
+        "id": "PY_4_foundation",
+        "condition": {"personal_year": 4},
+        "weight": 1.0,
+        "theme": "기초 구축",
+        "interpretation": {
+          "ko": "개인년 4는 열심히 일하고 기초를 다지는 해입니다. 시스템을 구축하고 미래를 준비하세요.",
+          "en": "Personal Year 4 is about hard work and laying foundations. Build systems and prepare for the future."
+        },
+        "focus": ["foundation work", "building systems", "health management"],
+        "avoid": ["shortcuts", "unstable choices", "overwork"]
+      },
+      {
+        "id": "PY_5_change",
+        "condition": {"personal_year": 5},
+        "weight": 1.0,
+        "theme": "변화와 자유",
+        "interpretation": {
+          "ko": "개인년 5는 변화와 모험의 해입니다. 여행하고 새로운 것을 시도하고 자유를 즐기세요.",
+          "en": "Personal Year 5 is about change and adventure. Travel, try new things, and enjoy freedom."
+        },
+        "focus": ["embracing change", "new experiences", "free choices"],
+        "avoid": ["excessive stability seeking", "resisting change", "boredom"]
+      },
+      {
+        "id": "PY_6_responsibility",
+        "condition": {"personal_year": 6},
+        "weight": 1.0,
+        "theme": "가정과 책임",
+        "interpretation": {
+          "ko": "개인년 6은 가정과 책임에 집중하는 해입니다. 가족 관계를 돌보고 사랑하는 이들에게 헌신하세요.",
+          "en": "Personal Year 6 focuses on home and responsibility. Care for family relationships and devote to loved ones."
+        },
+        "focus": ["family", "home matters", "responsibility"],
+        "avoid": ["neglecting family", "excessive interference", "self-sacrifice"]
+      },
+      {
+        "id": "PY_7_introspection",
+        "condition": {"personal_year": 7},
+        "weight": 1.0,
+        "theme": "내면 탐구",
+        "interpretation": {
+          "ko": "개인년 7은 휴식과 내면 탐구의 해입니다. 혼자만의 시간을 갖고 명상하고 깊이 생각하세요.",
+          "en": "Personal Year 7 is about rest and inner exploration. Have alone time, meditate, and think deeply."
+        },
+        "focus": ["meditation", "research", "self-reflection"],
+        "avoid": ["excessive activity", "superficial relationships", "ignoring intuition"]
+      },
+      {
+        "id": "PY_8_achievement",
+        "condition": {"personal_year": 8},
+        "weight": 1.0,
+        "theme": "성취와 재정",
+        "interpretation": {
+          "ko": "개인년 8은 비즈니스와 재정에 집중하는 해입니다. 큰 목표를 세우고 투자하고 경력을 발전시키세요.",
+          "en": "Personal Year 8 focuses on business and finance. Set big goals, invest, and advance your career."
+        },
+        "focus": ["business", "investment", "career advancement"],
+        "avoid": ["greed", "ethical violations", "imbalance"]
+      },
+      {
+        "id": "PY_9_completion",
+        "condition": {"personal_year": 9},
+        "weight": 1.0,
+        "theme": "완성과 마무리",
+        "interpretation": {
+          "ko": "개인년 9는 9년 주기의 마지막 해입니다. 미완성된 것을 마무리하고 놓아야 할 것을 놓으세요.",
+          "en": "Personal Year 9 is the last year of a 9-year cycle. Finish incomplete things and let go what needs releasing."
+        },
+        "focus": ["finishing", "clearing", "service"],
+        "avoid": ["new starts", "attachment", "holding on forcefully"]
+      }
+    ]
+  },
+
+  "number_interaction_rules": {
+    "description": "숫자 간 상호작용 규칙",
+    "harmonious_pairs": [
+      {"numbers": [1, 5], "description": "자유로운 리더십", "synergy": "high"},
+      {"numbers": [2, 6], "description": "조화로운 돌봄", "synergy": "high"},
+      {"numbers": [3, 9], "description": "창의적 인도주의", "synergy": "high"},
+      {"numbers": [4, 8], "description": "안정적 성취", "synergy": "high"},
+      {"numbers": [1, 3], "description": "창의적 리더십", "synergy": "medium"},
+      {"numbers": [5, 7], "description": "탐구적 자유", "synergy": "medium"}
+    ],
+    "challenging_pairs": [
+      {"numbers": [1, 4], "description": "독립 vs 안정", "tension": "medium"},
+      {"numbers": [2, 5], "description": "협력 vs 자유", "tension": "medium"},
+      {"numbers": [4, 5], "description": "안정 vs 변화", "tension": "high"},
+      {"numbers": [8, 9], "description": "물질 vs 영성", "tension": "medium"}
+    ]
+  }
+}

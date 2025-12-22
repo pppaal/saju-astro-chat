@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/authOptions';
+import { prisma } from '@/lib/db/prisma';
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { captureServerError } from '@/lib/telemetry';
 import { requirePublicToken } from '@/lib/auth/publicToken';
+import { enforceBodySize } from '@/lib/http';
 
 type Relation = 'friend' | 'lover' | 'other';
 
@@ -69,6 +73,8 @@ export async function POST(req: NextRequest) {
     if (!requirePublicToken(req)) {
       return bad('Unauthorized', 401, limit.headers);
     }
+    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    if (oversized) return oversized;
 
     const body = await req.json();
     const persons: PersonInput[] = Array.isArray(body?.persons) ? body.persons : [];
@@ -156,6 +162,9 @@ export async function POST(req: NextRequest) {
     let aiScore: number | null = null;
     let timing: Record<string, unknown> | null = null;
     let actionItems: string[] = [];
+    let isGroup = false;
+    let groupAnalysis: Record<string, unknown> | null = null;
+    let synergyBreakdown: Record<string, unknown> | null = null;
     const backendUrl = pickBackendUrl();
 
     try {
@@ -204,6 +213,10 @@ export async function POST(req: NextRequest) {
         timing = aiData?.data?.timing || aiData?.timing || null;
         // Get action items
         actionItems = aiData?.data?.action_items || aiData?.action_items || [];
+        // Get group analysis data (for 3+ people)
+        isGroup = aiData?.is_group || false;
+        groupAnalysis = aiData?.group_analysis || null;
+        synergyBreakdown = aiData?.synergy_breakdown || null;
       }
     } catch (aiErr) {
       console.warn('[Compatibility API] AI backend call failed:', aiErr);
@@ -215,6 +228,32 @@ export async function POST(req: NextRequest) {
     const finalScore = aiScore ?? avg;
     const fallbackInterpretation = lines.join('\n') + '\n\nNote: This is a playful heuristic score, not professional guidance.';
 
+    // ======== 기록 저장 (로그인 사용자만) ========
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      try {
+        await prisma.reading.create({
+          data: {
+            userId: session.user.id,
+            type: 'compatibility',
+            title: `${names.slice(0, 2).join(' & ')} 궁합 분석 (${finalScore}점)`,
+            content: JSON.stringify({
+              persons: persons.map((p, i) => ({
+                name: names[i],
+                date: p.date,
+                time: p.time,
+                relation: i > 0 ? p.relationToP1 : undefined,
+              })),
+              score: finalScore,
+              pairScores: scores,
+            }),
+          },
+        });
+      } catch (saveErr) {
+        console.warn('[Compatibility API] Failed to save reading:', saveErr);
+      }
+    }
+
     const res = NextResponse.json({
       interpretation: aiInterpretation || fallbackInterpretation,
       aiInterpretation,
@@ -225,6 +264,9 @@ export async function POST(req: NextRequest) {
       timing,
       action_items: actionItems,
       fusion_enabled: !!aiScore,
+      is_group: isGroup,
+      group_analysis: groupAnalysis,
+      synergy_breakdown: synergyBreakdown,
     });
     res.headers.set('Cache-Control', 'no-store');
     return withHeaders(res, limit.headers);

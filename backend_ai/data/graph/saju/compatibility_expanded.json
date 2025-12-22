@@ -1,0 +1,198 @@
+{
+  "$schema": "saju_compatibility_expanded_v1",
+  "$description": "사주 궁합 심층 분석 - 일간, 십신, 오행 궁합 완전 가이드",
+
+  "ilgan_compatibility": {
+    "description": "일간(日干) 기준 궁합 - 두 사람의 본질적 조화",
+    "matrix": {
+      "갑목": {
+        "갑목": {"score": 70, "type": "비견", "description": "동등한 관계, 경쟁과 협력 공존", "advice": "각자의 영역 존중 필요"},
+        "을목": {"score": 75, "type": "겁재", "description": "비슷하나 유연함 차이", "advice": "갑이 리드, 을이 보조"},
+        "병화": {"score": 85, "type": "식신", "description": "갑이 병을 낳음, 헌신적 관계", "advice": "갑이 주고 병이 받음"},
+        "정화": {"score": 80, "type": "상관", "description": "창조적 긴장, 자극적 관계", "advice": "표현의 자유 허용"},
+        "무토": {"score": 65, "type": "편재", "description": "갑이 무를 제압, 지배 경향", "advice": "균형 필요"},
+        "기토": {"score": 70, "type": "정재", "description": "갑이 기를 다스림, 안정적", "advice": "책임감 있는 관계"},
+        "경금": {"score": 55, "type": "편관", "description": "경이 갑을 극함, 갈등 가능", "advice": "상호 존중 필수"},
+        "신금": {"score": 60, "type": "정관", "description": "신이 갑을 제어, 규율 관계", "advice": "갑의 자율성 보장"},
+        "임수": {"score": 90, "type": "편인", "description": "임이 갑을 낳음, 지지 관계", "advice": "자연스러운 조화"},
+        "계수": {"score": 95, "type": "정인", "description": "계가 갑을 키움, 최고 궁합", "advice": "깊은 유대감"}
+      },
+      "을목": {
+        "갑목": {"score": 75, "type": "겁재", "description": "을이 갑을 보조", "advice": "역할 분담 중요"},
+        "을목": {"score": 70, "type": "비견", "description": "부드러운 동반자", "advice": "주도권 명확히"},
+        "병화": {"score": 80, "type": "상관", "description": "을이 병을 지원", "advice": "창의적 협력"},
+        "정화": {"score": 85, "type": "식신", "description": "따뜻한 양육 관계", "advice": "서로 돌봄"},
+        "무토": {"score": 70, "type": "정재", "description": "안정적 파트너십", "advice": "신뢰 구축"},
+        "기토": {"score": 65, "type": "편재", "description": "을이 기를 제어", "advice": "부드러운 리드"},
+        "경금": {"score": 85, "type": "정관", "description": "경이 을을 다듬음, 성장 관계", "advice": "건설적 피드백"},
+        "신금": {"score": 55, "type": "편관", "description": "신이 을을 제압", "advice": "을의 공간 필요"},
+        "임수": {"score": 95, "type": "정인", "description": "깊은 보살핌", "advice": "이상적 조합"},
+        "계수": {"score": 90, "type": "편인", "description": "영감의 관계", "advice": "창조적 동반자"}
+      },
+      "병화": {
+        "갑목": {"score": 90, "type": "편인", "description": "갑이 병을 키움", "advice": "에너지 공급원"},
+        "을목": {"score": 85, "type": "정인", "description": "을이 병을 지지", "advice": "안정적 지원"},
+        "병화": {"score": 65, "type": "비견", "description": "강한 에너지 충돌 가능", "advice": "불꽃 조절 필요"},
+        "정화": {"score": 70, "type": "겁재", "description": "열정 경쟁", "advice": "각자 영역에서 빛나기"},
+        "무토": {"score": 80, "type": "식신", "description": "병이 무를 생함", "advice": "창조적 결실"},
+        "기토": {"score": 75, "type": "상관", "description": "표현의 관계", "advice": "자유로운 소통"},
+        "경금": {"score": 60, "type": "편재", "description": "병이 경을 녹임", "advice": "조화 필요"},
+        "신금": {"score": 65, "type": "정재", "description": "병이 신을 다스림", "advice": "균형점 찾기"},
+        "임수": {"score": 50, "type": "편관", "description": "임이 병을 끔", "advice": "큰 갈등 위험"},
+        "계수": {"score": 55, "type": "정관", "description": "계가 병을 제어", "advice": "상호 양보 필수"}
+      },
+      "정화": {
+        "갑목": {"score": 85, "type": "정인", "description": "갑이 정을 지지", "advice": "따뜻한 후원"},
+        "을목": {"score": 90, "type": "편인", "description": "을이 정을 밝힘", "advice": "영감의 원천"},
+        "병화": {"score": 70, "type": "겁재", "description": "빛의 경쟁", "advice": "각자 빛나기"},
+        "정화": {"score": 65, "type": "비견", "description": "비슷한 에너지", "advice": "역할 구분"},
+        "무토": {"score": 75, "type": "상관", "description": "정의 표현", "advice": "창조적 긴장"},
+        "기토": {"score": 80, "type": "식신", "description": "부드러운 결실", "advice": "양육적 관계"},
+        "경금": {"score": 65, "type": "정재", "description": "정이 경을 녹임", "advice": "정교한 관계"},
+        "신금": {"score": 60, "type": "편재", "description": "정이 신을 제압", "advice": "균형 필요"},
+        "임수": {"score": 55, "type": "정관", "description": "임이 정을 제어", "advice": "상호 존중"},
+        "계수": {"score": 50, "type": "편관", "description": "계가 정을 끔", "advice": "갈등 조심"}
+      },
+      "무토": {
+        "갑목": {"score": 55, "type": "편관", "description": "갑이 무를 극함", "advice": "갈등 관리 필요"},
+        "을목": {"score": 60, "type": "정관", "description": "을이 무를 제어", "advice": "상호 조율"},
+        "병화": {"score": 90, "type": "편인", "description": "병이 무를 낳음", "advice": "에너지 공급"},
+        "정화": {"score": 85, "type": "정인", "description": "정이 무를 따뜻이", "advice": "안정적 지원"},
+        "무토": {"score": 70, "type": "비견", "description": "같은 흙, 안정적", "advice": "변화 필요"},
+        "기토": {"score": 75, "type": "겁재", "description": "토끼리 협력", "advice": "보완 관계"},
+        "경금": {"score": 80, "type": "식신", "description": "무가 경을 낳음", "advice": "창조적 결과"},
+        "신금": {"score": 75, "type": "상관", "description": "무가 신을 생함", "advice": "표현 지원"},
+        "임수": {"score": 65, "type": "편재", "description": "무가 임을 막음", "advice": "제어 관계"},
+        "계수": {"score": 70, "type": "정재", "description": "무가 계를 다스림", "advice": "책임 관계"}
+      },
+      "기토": {
+        "갑목": {"score": 60, "type": "정관", "description": "갑이 기를 제어", "advice": "성장 관계"},
+        "을목": {"score": 55, "type": "편관", "description": "을이 기를 극함", "advice": "조율 필요"},
+        "병화": {"score": 85, "type": "정인", "description": "병이 기를 키움", "advice": "따뜻한 후원"},
+        "정화": {"score": 90, "type": "편인", "description": "정이 기를 생함", "advice": "안정적 지지"},
+        "무토": {"score": 75, "type": "겁재", "description": "토끼리 협력", "advice": "역할 분담"},
+        "기토": {"score": 70, "type": "비견", "description": "같은 에너지", "advice": "보완 필요"},
+        "경금": {"score": 75, "type": "상관", "description": "기가 경을 생함", "advice": "표현 관계"},
+        "신금": {"score": 80, "type": "식신", "description": "기가 신을 낳음", "advice": "양육적"},
+        "임수": {"score": 70, "type": "정재", "description": "기가 임을 다스림", "advice": "안정적"},
+        "계수": {"score": 65, "type": "편재", "description": "기가 계를 제어", "advice": "균형 필요"}
+      },
+      "경금": {
+        "갑목": {"score": 65, "type": "편재", "description": "경이 갑을 자름", "advice": "날카로운 관계"},
+        "을목": {"score": 85, "type": "정재", "description": "경이 을을 가다듬음", "advice": "조각 관계"},
+        "병화": {"score": 50, "type": "편관", "description": "병이 경을 녹임", "advice": "큰 갈등"},
+        "정화": {"score": 55, "type": "정관", "description": "정이 경을 제련", "advice": "정제 관계"},
+        "무토": {"score": 90, "type": "편인", "description": "무가 경을 낳음", "advice": "든든한 후원"},
+        "기토": {"score": 85, "type": "정인", "description": "기가 경을 키움", "advice": "안정적 지지"},
+        "경금": {"score": 65, "type": "비견", "description": "금끼리 날카로움", "advice": "충돌 주의"},
+        "신금": {"score": 70, "type": "겁재", "description": "금끼리 협력", "advice": "경쟁과 협력"},
+        "임수": {"score": 80, "type": "식신", "description": "경이 임을 낳음", "advice": "창조적 관계"},
+        "계수": {"score": 75, "type": "상관", "description": "경이 계를 생함", "advice": "표현 지원"}
+      },
+      "신금": {
+        "갑목": {"score": 70, "type": "정재", "description": "신이 갑을 가공", "advice": "정교한 관계"},
+        "을목": {"score": 65, "type": "편재", "description": "신이 을을 자름", "advice": "날카로움"},
+        "병화": {"score": 55, "type": "정관", "description": "병이 신을 녹임", "advice": "제련 관계"},
+        "정화": {"score": 50, "type": "편관", "description": "정이 신을 녹임", "advice": "갈등 위험"},
+        "무토": {"score": 85, "type": "정인", "description": "무가 신을 지지", "advice": "안정적 후원"},
+        "기토": {"score": 90, "type": "편인", "description": "기가 신을 낳음", "advice": "든든한 지원"},
+        "경금": {"score": 70, "type": "겁재", "description": "금끼리 협력", "advice": "경쟁과 협력"},
+        "신금": {"score": 65, "type": "비견", "description": "같은 에너지", "advice": "날카로움 주의"},
+        "임수": {"score": 75, "type": "상관", "description": "신이 임을 생함", "advice": "표현 관계"},
+        "계수": {"score": 80, "type": "식신", "description": "신이 계를 낳음", "advice": "양육적"}
+      },
+      "임수": {
+        "갑목": {"score": 80, "type": "식신", "description": "임이 갑을 낳음", "advice": "창조적 관계"},
+        "을목": {"score": 75, "type": "상관", "description": "임이 을을 생함", "advice": "표현 지원"},
+        "병화": {"score": 65, "type": "편재", "description": "임이 병을 끔", "advice": "제어 관계"},
+        "정화": {"score": 70, "type": "정재", "description": "임이 정을 다스림", "advice": "안정적"},
+        "무토": {"score": 55, "type": "편관", "description": "무가 임을 막음", "advice": "갈등 위험"},
+        "기토": {"score": 60, "type": "정관", "description": "기가 임을 제어", "advice": "조율 필요"},
+        "경금": {"score": 90, "type": "편인", "description": "경이 임을 낳음", "advice": "에너지 원천"},
+        "신금": {"score": 85, "type": "정인", "description": "신이 임을 지지", "advice": "안정적 후원"},
+        "임수": {"score": 70, "type": "비견", "description": "물끼리 합류", "advice": "방향 설정"},
+        "계수": {"score": 75, "type": "겁재", "description": "수끼리 협력", "advice": "흐름 조율"}
+      },
+      "계수": {
+        "갑목": {"score": 75, "type": "상관", "description": "계가 갑을 생함", "advice": "표현 지원"},
+        "을목": {"score": 80, "type": "식신", "description": "계가 을을 낳음", "advice": "양육적"},
+        "병화": {"score": 70, "type": "정재", "description": "계가 병을 제어", "advice": "안정적"},
+        "정화": {"score": 65, "type": "편재", "description": "계가 정을 끔", "advice": "제어 관계"},
+        "무토": {"score": 60, "type": "정관", "description": "무가 계를 다스림", "advice": "조율 필요"},
+        "기토": {"score": 55, "type": "편관", "description": "기가 계를 막음", "advice": "갈등 위험"},
+        "경금": {"score": 85, "type": "정인", "description": "경이 계를 키움", "advice": "안정적 후원"},
+        "신금": {"score": 90, "type": "편인", "description": "신이 계를 낳음", "advice": "에너지 원천"},
+        "임수": {"score": 75, "type": "겁재", "description": "수끼리 협력", "advice": "방향 설정"},
+        "계수": {"score": 70, "type": "비견", "description": "같은 물", "advice": "흐름 조율"}
+      }
+    }
+  },
+
+  "relationship_types": {
+    "romantic": {
+      "best_combinations": [
+        {"combo": "정인-식신", "score": 95, "reason": "주고받는 돌봄의 완벽한 균형"},
+        {"combo": "편인-상관", "score": 90, "reason": "영감과 표현의 시너지"},
+        {"combo": "정재-정관", "score": 85, "reason": "안정적이고 책임감 있는 관계"}
+      ],
+      "challenging_combinations": [
+        {"combo": "편관-편관", "score": 40, "reason": "권력 투쟁, 갈등 심함"},
+        {"combo": "겁재-겁재", "score": 45, "reason": "경쟁과 질투"},
+        {"combo": "상관-정관", "score": 50, "reason": "반항과 규율의 충돌"}
+      ]
+    },
+    "business": {
+      "best_combinations": [
+        {"combo": "식신-편재", "score": 90, "reason": "창의적 아이디어와 실행력"},
+        {"combo": "정관-정재", "score": 85, "reason": "체계적 관리와 안정성"},
+        {"combo": "비견-겁재", "score": 80, "reason": "협력과 경쟁의 균형"}
+      ],
+      "challenging_combinations": [
+        {"combo": "편인-편재", "score": 45, "reason": "가치관 차이"},
+        {"combo": "상관-정관", "score": 50, "reason": "일하는 방식 충돌"}
+      ]
+    },
+    "friendship": {
+      "best_combinations": [
+        {"combo": "비견-비견", "score": 85, "reason": "동등하고 이해하는 관계"},
+        {"combo": "식신-식신", "score": 90, "reason": "즐거움을 함께 나눔"},
+        {"combo": "정인-편인", "score": 80, "reason": "지적 교류"}
+      ]
+    }
+  },
+
+  "twelve_branch_compatibility": {
+    "description": "지지(地支) 궁합 - 삼합, 육합, 충, 형, 해",
+    "combinations": {
+      "삼합": {
+        "수국": ["신", "자", "진"],
+        "목국": ["해", "묘", "미"],
+        "화국": ["인", "오", "술"],
+        "금국": ["사", "유", "축"],
+        "meaning": "가장 조화로운 결합, 함께 일하면 시너지",
+        "score_boost": 20
+      },
+      "육합": {
+        "pairs": [["자", "축"], ["인", "해"], ["묘", "술"], ["진", "유"], ["사", "신"], ["오", "미"]],
+        "meaning": "친밀한 결합, 깊은 유대감",
+        "score_boost": 15
+      },
+      "충": {
+        "pairs": [["자", "오"], ["축", "미"], ["인", "신"], ["묘", "유"], ["진", "술"], ["사", "해"]],
+        "meaning": "정면 충돌, 갈등의 에너지",
+        "score_penalty": -20
+      },
+      "형": {
+        "삼형": [["인", "사", "신"], ["축", "술", "미"]],
+        "자형": ["진", "오", "유", "해"],
+        "meaning": "마찰과 시련의 에너지",
+        "score_penalty": -15
+      },
+      "해": {
+        "pairs": [["자", "미"], ["축", "오"], ["인", "사"], ["묘", "진"], ["신", "해"], ["유", "술"]],
+        "meaning": "숨겨진 해침, 신뢰 문제",
+        "score_penalty": -10
+      }
+    }
+  }
+}

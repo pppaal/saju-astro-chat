@@ -249,6 +249,8 @@ model SavedPerson {
   birthTime   String?
   gender      String?  // M, F, U
   birthCity   String?
+  latitude    Float?
+  longitude   Float?
   tzId        String?
 
   // 메모

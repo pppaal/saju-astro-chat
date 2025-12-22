@@ -1,0 +1,214 @@
+{
+  "$schema": "jung_expanded_counseling_v1",
+  "$description": "융 심리학 확장 상담 시나리오 및 치료적 개입",
+
+  "presenting_issues_responses": {
+    "relationship_issues": {
+      "patterns": {
+        "always_attracted_to_same_type": {
+          "jung_interpretation": "아니마/아니무스 투사. 내면의 반대 성별 원형이 특정 유형에게 투사됨.",
+          "therapeutic_questions": [
+            "이 유형의 사람에게 끌리는 첫 기억은 언제인가요?",
+            "이 유형이 가진 특성 중 당신에게 없다고 느끼는 것은?",
+            "만약 당신이 그 특성을 가진다면 어떻게 변할까요?"
+          ],
+          "intervention": "투사를 철회하고 내면에서 그 특성을 개발하도록 안내"
+        },
+        "fear_of_intimacy": {
+          "jung_interpretation": "그림자 또는 상처받은 아니마/아니무스. 친밀감이 자아를 위협한다고 무의식이 인식.",
+          "therapeutic_questions": [
+            "가까워지면 무엇이 두려운가요?",
+            "과거 친밀한 관계에서 상처받은 경험이 있나요?",
+            "완전히 알려지면 어떤 모습이 드러날까봐 두려운가요?"
+          ],
+          "intervention": "안전한 관계에서 점진적으로 취약함을 연습"
+        },
+        "codependency": {
+          "jung_interpretation": "자아와 페르소나의 동일시. 타인을 통해서만 자아 가치를 느낌.",
+          "therapeutic_questions": [
+            "이 사람 없이 당신은 누구인가요?",
+            "돌보지 않을 때 당신의 가치는 어디서 오나요?",
+            "혼자 있을 때 무엇을 느끼나요?"
+          ],
+          "intervention": "자기(Self)와의 관계 구축, 페르소나와 자아 분리"
+        }
+      }
+    },
+
+    "career_issues": {
+      "patterns": {
+        "lack_of_direction": {
+          "jung_interpretation": "개성화 초기 단계. 아직 진정한 자기(Self)를 발견하지 못함.",
+          "therapeutic_questions": [
+            "어린 시절 무엇에 열중했나요?",
+            "돈과 인정이 없어도 하고 싶은 일은?",
+            "죽음 앞에서 후회할 일은 무엇일까요?"
+          ],
+          "intervention": "적극적 상상, 꿈 작업을 통한 내면의 소명 탐색"
+        },
+        "burnout": {
+          "jung_interpretation": "페르소나 인플레이션. 사회적 역할에 자아가 소진됨.",
+          "therapeutic_questions": [
+            "일하는 당신과 진짜 당신은 얼마나 다른가요?",
+            "왜 이렇게까지 일하는가요? 무엇을 증명하려고?",
+            "만약 이 성과 없이도 사랑받는다면?"
+          ],
+          "intervention": "페르소나 인식, 진정한 자기 돌봄 회복"
+        },
+        "conflict_with_authority": {
+          "jung_interpretation": "아버지 콤플렉스. 권위 figures에 대한 미해결 갈등.",
+          "therapeutic_questions": [
+            "아버지와의 관계는 어땠나요?",
+            "상사를 볼 때 아버지가 떠오르나요?",
+            "권위에 반항할 때 무엇을 느끼나요?"
+          ],
+          "intervention": "아버지 콤플렉스 인식 및 통합"
+        }
+      }
+    },
+
+    "existential_issues": {
+      "patterns": {
+        "midlife_crisis": {
+          "jung_interpretation": "개성화 부름. 인생 전반부와 후반부의 전환점.",
+          "therapeutic_questions": [
+            "지금까지 살아온 삶은 당신이 원한 것인가요?",
+            "이제까지 무시해왔던 자신의 측면은?",
+            "남은 인생에서 진정으로 하고 싶은 것은?"
+          ],
+          "intervention": "인생 후반부의 과제 탐색, 내면 여정 안내"
+        },
+        "fear_of_death": {
+          "jung_interpretation": "자아(ego)의 죽음 공포. 영혼은 변형을 알고 있으나 자아가 저항.",
+          "therapeutic_questions": [
+            "죽음에서 가장 두려운 것은 무엇인가요?",
+            "죽음 이후에 무엇이 있다고 생각하나요?",
+            "만약 영혼이 영원하다면 무엇이 달라질까요?"
+          ],
+          "intervention": "연금술적 변형, 죽음-재생 상징 탐구"
+        },
+        "meaninglessness": {
+          "jung_interpretation": "신경증적 고통이 아닌 삶의 의미 상실. 집단적 가치의 붕괴.",
+          "therapeutic_questions": [
+            "언제 삶이 의미 있었나요?",
+            "무엇이 당신을 살게 하나요?",
+            "이 공허함이 말하려는 것은 무엇일까요?"
+          ],
+          "intervention": "동시성 탐구, 상징과 꿈을 통한 의미 발견"
+        }
+      }
+    },
+
+    "shadow_issues": {
+      "patterns": {
+        "rage_outbursts": {
+          "jung_interpretation": "억압된 그림자의 폭발. 평소 '착한 사람'이 갑자기 분노.",
+          "therapeutic_questions": [
+            "평소 화를 어떻게 다루나요?",
+            "화내면 안 된다고 누가 가르쳤나요?",
+            "분노 아래 숨겨진 필요는 무엇인가요?"
+          ],
+          "intervention": "건강한 분노 표현, 그림자 통합"
+        },
+        "self_sabotage": {
+          "jung_interpretation": "그림자가 자아를 훼방. 성공을 '허락받지 못한' 것으로 무의식이 인식.",
+          "therapeutic_questions": [
+            "성공하면 무엇이 두려운가요?",
+            "가족 중 성공한 사람에 대한 기억은?",
+            "당신이 빛나면 누군가 불편해지나요?"
+          ],
+          "intervention": "성공에 대한 무의식적 금기 탐색 및 해제"
+        },
+        "projection_on_others": {
+          "jung_interpretation": "자신의 그림자를 타인에게 투사. 강렬한 혐오는 자기 그림자의 거울.",
+          "therapeutic_questions": [
+            "그 사람의 어떤 점이 가장 싫은가요?",
+            "그 특성이 당신에게 조금이라도 있다면?",
+            "왜 그렇게 강하게 반응하나요?"
+          ],
+          "intervention": "투사 철회, 그림자 소유하기"
+        }
+      }
+    }
+  },
+
+  "jung_quotes_for_counseling": {
+    "on_suffering": [
+      "신경증은 항상 정당한 고통의 대체물이다.",
+      "누구도 자기를 피해 도망칠 수 없다. 왜냐하면 그림자는 항상 따라오기 때문이다.",
+      "어둠 없이는 빛도 없다."
+    ],
+    "on_growth": [
+      "나는 나에게 일어나는 일이 아니다. 나는 그것에 어떻게 되느냐이다.",
+      "가장 두려운 것은 자기 자신을 완전히 받아들이는 것이다.",
+      "만날 용기가 있는 것만 넘어설 수 있다."
+    ],
+    "on_meaning": [
+      "의미는 모든 것을 견딜 수 있게 한다.",
+      "삶의 오후에서 의미는 아침과 같지 않다.",
+      "인간은 의미 없이 살 수 없다."
+    ],
+    "on_wholeness": [
+      "완전함은 완벽함이 아니라 전체가 되는 것이다.",
+      "자기를 아는 것은 자기가 되는 것이다.",
+      "나는 전체이기 때문에 낫다, 완벽해서가 아니다."
+    ]
+  },
+
+  "active_imagination_exercises": {
+    "for_shadow": {
+      "title": "그림자와의 대화",
+      "steps": [
+        "편안히 앉아 눈을 감고 이완한다",
+        "가장 싫어하는 사람이나 자신의 측면을 떠올린다",
+        "그것이 형상을 가지도록 허용한다",
+        "그 형상에게 '당신은 무엇을 원하나요?'라고 묻는다",
+        "대답을 기다리고 대화를 이어간다",
+        "대화 내용을 기록한다"
+      ],
+      "integration": "그림자가 원하는 것을 건강한 방식으로 일부 허용해본다"
+    },
+    "for_anima_animus": {
+      "title": "내면의 이성과 만남",
+      "steps": [
+        "꿈에 나타난 이성을 떠올린다",
+        "그/그녀에게 다가간다",
+        "무엇을 느끼는지, 무엇을 원하는지 묻는다",
+        "그/그녀가 줄 수 있는 선물은 무엇인지 묻는다",
+        "대화를 기록한다"
+      ],
+      "integration": "내면 이성이 제안한 것을 삶에서 시도해본다"
+    },
+    "for_self": {
+      "title": "내면의 중심 찾기",
+      "steps": [
+        "깊이 이완하고 내면으로 들어간다",
+        "가장 평화로운 장소를 상상한다",
+        "그곳의 중심에 빛이나 현자가 있다",
+        "그에게 가장 중요한 질문을 한다",
+        "대답을 기다린다",
+        "감사하고 돌아온다"
+      ],
+      "integration": "받은 메시지를 삶의 지침으로 삼는다"
+    }
+  },
+
+  "dream_work_protocol": {
+    "method": "융의 확대법(Amplification)",
+    "steps": {
+      "1_association": "꿈의 각 요소에 대해 자유 연상",
+      "2_context": "최근 삶의 상황과 연결",
+      "3_amplification": "보편적 상징, 신화, 원형과 연결",
+      "4_synthesis": "개인적 의미와 보편적 의미 통합",
+      "5_application": "꿈의 메시지를 삶에 적용"
+    },
+    "example": {
+      "dream": "뱀이 나를 쫓아온다",
+      "association": "뱀은 무섭다, 차갑다, 변형한다",
+      "context": "최근 큰 변화 앞에 있다",
+      "amplification": "뱀은 치유의 상징(의료), 탈피와 재생, 쿤달리니 에너지",
+      "synthesis": "두려운 변화가 실은 치유와 재생의 기회",
+      "application": "두려움을 넘어 변화를 수용하라"
+    }
+  }
+}

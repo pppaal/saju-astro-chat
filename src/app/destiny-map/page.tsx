@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, SessionProvider } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import { getUserTimezone } from '@/lib/Saju/timezone';
 import { saveUserProfile, getUserProfile } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
+import BackButton from '@/components/ui/BackButton';
 import styles from './destiny-map.module.css';
 
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
@@ -29,8 +31,17 @@ function extractCityPart(input: string) {
 }
 
 export default function DestinyMapPage() {
+  return (
+    <SessionProvider>
+      <DestinyMapContent />
+    </SessionProvider>
+  );
+}
+
+function DestinyMapContent() {
   const router = useRouter();
   const { t, locale } = useI18n();
+  const { data: session, status } = useSession();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [name, setName] = useState('');
@@ -38,11 +49,16 @@ export default function DestinyMapPage() {
   const [birthTime, setBirthTime] = useState('');
   const [city, setCity] = useState('');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other' | 'Prefer not to say'>('Male');
+  const [genderOpen, setGenderOpen] = useState(false);
 
   const [suggestions, setSuggestions] = useState<CityHit[]>([]);
   const [selectedCity, setSelectedCity] = useState<CityHit | null>(null);
   const [openSug, setOpenSug] = useState(false);
   const [cityErr, setCityErr] = useState<string | null>(null);
+
+  // Load profile from DB states
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   // 사용자 현재 위치 타임존 (운세 날짜 계산용) - client-side only
   const [userTimezone, setUserTimezone] = useState('Asia/Seoul');
@@ -50,6 +66,66 @@ export default function DestinyMapPage() {
     // Detect timezone on client side only (SSR에서 서버 타임존 방지)
     setUserTimezone(getUserTimezone() || 'Asia/Seoul');
   }, []);
+
+  // Load profile from DB for authenticated users
+  const handleLoadProfile = async () => {
+    if (status !== 'authenticated') return;
+
+    setLoadingProfile(true);
+    setCityErr(null);
+
+    try {
+      // Fetch directly from API to ensure fresh data
+      const res = await fetch('/api/me/profile', { cache: 'no-store' });
+      if (!res.ok) {
+        setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
+        setLoadingProfile(false);
+        return;
+      }
+
+      const { user } = await res.json();
+      if (!user || !user.birthDate) {
+        setCityErr(t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.');
+        setLoadingProfile(false);
+        return;
+      }
+
+      // Set form fields from DB data
+      if (user.name) setName(user.name);
+      if (user.birthDate) setBirthDate(user.birthDate);
+      if (user.birthTime) setBirthTime(user.birthTime);
+      if (user.birthCity) {
+        setCity(user.birthCity);
+        // Try to get city coordinates
+        const cityName = user.birthCity.split(',')[0]?.trim();
+        if (cityName) {
+          try {
+            const hits = await searchCities(cityName, { limit: 1 }) as CityHit[];
+            if (hits && hits[0]) {
+              const hit = hits[0];
+              setSelectedCity({
+                ...hit,
+                timezone: hit.timezone ?? user.tzId ?? tzLookup(hit.lat, hit.lon),
+              });
+            }
+          } catch {
+            // City search failed, but continue with other data
+            console.warn('City search failed for:', cityName);
+          }
+        }
+      }
+      // Convert gender from DB format (M/F) to form format (Male/Female)
+      if (user.gender === 'M') setGender('Male');
+      else if (user.gender === 'F') setGender('Female');
+
+      setProfileLoaded(true);
+    } catch (err) {
+      console.error('Failed to load profile:', err);
+      setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   // Load saved profile on mount
   useEffect(() => {
@@ -265,6 +341,7 @@ export default function DestinyMapPage() {
   }, [city]);
 
   const onPick = (hit: CityHit) => {
+    setIsUserTyping(false); // Prevent dropdown from reopening
     setCity(`${hit.name}, ${hit.country}`);
     setSelectedCity({
       ...hit,
@@ -314,12 +391,15 @@ export default function DestinyMapPage() {
       longitude: selectedCity?.lon
     });
 
-    router.push(`/destiny-map/theme?${params.toString()}`);
+    // 테마 선택 건너뛰고 바로 인생총운(life_path)으로 이동
+    params.set('theme', 'focus_overall');
+    router.push(`/destiny-map/result?${params.toString()}`);
   };
 
   return (
     <div className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
+      <BackButton />
 
       <main className={styles.main}>
         <div className={styles.card}>
@@ -337,6 +417,27 @@ export default function DestinyMapPage() {
           </div>
 
           <form onSubmit={onSubmit} className={styles.form}>
+            {/* Load My Profile Button - only for authenticated users */}
+            {status === 'authenticated' && (
+              <button
+                type="button"
+                className={`${styles.loadProfileButton} ${profileLoaded ? styles.loadProfileSuccess : ''}`}
+                onClick={handleLoadProfile}
+                disabled={loadingProfile}
+              >
+                <span className={styles.loadProfileIcon}>
+                  {loadingProfile ? '...' : profileLoaded ? '✓' : '👤'}
+                </span>
+                <span className={styles.loadProfileText}>
+                  {loadingProfile
+                    ? (t('app.loadingProfile') || 'Loading...')
+                    : profileLoaded
+                    ? (t('app.profileLoaded') || 'Profile Loaded!')
+                    : (t('app.loadMyProfile') || 'Load My Profile')}
+                </span>
+              </button>
+            )}
+
             <div className={styles.field}>
               <label className={styles.label}>
                 <span className={styles.labelIcon}>✨</span>
@@ -398,7 +499,7 @@ export default function DestinyMapPage() {
                     setTimeout(() => setOpenSug(false), 150);
                     setIsUserTyping(false);
                   }}
-                  onFocus={() => city && suggestions.length > 0 && setOpenSug(true)}
+                  autoComplete="off"
                   required
                 />
                 {openSug && suggestions.length > 0 && (
@@ -426,14 +527,54 @@ export default function DestinyMapPage() {
                   <span className={styles.labelIcon}>⚧</span>
                   {t('app.gender') || 'Gender'}
                 </label>
-                <select
-                  className={styles.input}
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value as any)}
-                >
-                  <option value="Male">{t('app.male') || 'Male'}</option>
-                  <option value="Female">{t('app.female') || 'Female'}</option>
-                </select>
+                <div className={styles.genderSelectWrapper}>
+                  <button
+                    type="button"
+                    className={`${styles.genderSelect} ${genderOpen ? styles.genderSelectOpen : ''}`}
+                    onClick={() => setGenderOpen(!genderOpen)}
+                    onBlur={() => setTimeout(() => setGenderOpen(false), 150)}
+                  >
+                    <span className={styles.genderIcon}>
+                      {gender === 'Male' ? '♂' : '♀'}
+                    </span>
+                    <span className={styles.genderText}>
+                      {gender === 'Male' ? (t('app.male') || '남성') : (t('app.female') || '여성')}
+                    </span>
+                    <span className={`${styles.genderArrow} ${genderOpen ? styles.genderArrowOpen : ''}`}>
+                      ▾
+                    </span>
+                  </button>
+                  {genderOpen && (
+                    <div className={styles.genderDropdown}>
+                      <button
+                        type="button"
+                        className={`${styles.genderOption} ${gender === 'Male' ? styles.genderOptionActive : ''}`}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setGender('Male');
+                          setGenderOpen(false);
+                        }}
+                      >
+                        <span className={styles.genderOptionIcon}>♂</span>
+                        <span className={styles.genderOptionText}>{t('app.male') || '남성'}</span>
+                        {gender === 'Male' && <span className={styles.genderCheck}>✓</span>}
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.genderOption} ${gender === 'Female' ? styles.genderOptionActive : ''}`}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setGender('Female');
+                          setGenderOpen(false);
+                        }}
+                      >
+                        <span className={styles.genderOptionIcon}>♀</span>
+                        <span className={styles.genderOptionText}>{t('app.female') || '여성'}</span>
+                        {gender === 'Female' && <span className={styles.genderCheck}>✓</span>}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -459,6 +600,7 @@ export default function DestinyMapPage() {
               <span className={styles.featureText}>Tarot Insight</span>
             </div>
           </div>
+
         </div>
       </main>
     </div>

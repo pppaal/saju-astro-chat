@@ -472,13 +472,10 @@ export default function SajuResultDisplay({ result }: Props) {
             </Section>
           )}
 
-          {/* 통근/득령/조후용신 - 프리미엄 전용 */}
+          {/* 통근/득령/조후용신 */}
           <Section title="통근 · 득령 · 조후용신">
             <div style={{ ...advancedAnalysisContainer, position: 'relative', minHeight: 200 }}>
-              {!result.isPremium && (
-                <PremiumLockOverlay isLoggedIn={result.isLoggedIn} feature="심층 분석" />
-              )}
-              {result.isPremium && (result.advancedAnalysis.tonggeun || result.advancedAnalysis.deukryeong || result.advancedAnalysis.johuYongsin) && (
+              {(result.advancedAnalysis.tonggeun || result.advancedAnalysis.deukryeong || result.advancedAnalysis.johuYongsin) && (
                 <>
                 {result.advancedAnalysis.tonggeun && (
                   <AnalysisCard title="통근 (通根)" color="#2dbd7f">
@@ -539,13 +536,10 @@ export default function SajuResultDisplay({ result }: Props) {
             </div>
           </Section>
 
-          {/* 십신 분석 - 프리미엄 전용 */}
+          {/* 십신 분석 */}
           <Section title="십신 분석">
             <div style={{ ...advancedAnalysisContainer, position: 'relative', minHeight: 200 }}>
-              {!result.isPremium && (
-                <PremiumLockOverlay isLoggedIn={result.isLoggedIn} feature="십신 분석" />
-              )}
-              {result.isPremium && result.advancedAnalysis.sibsin && (
+              {result.advancedAnalysis.sibsin && (
                 <>
                 {result.advancedAnalysis.sibsin.count && (
                   <AnalysisCard title="십신 분포" color="#f3a73f">
@@ -592,13 +586,10 @@ export default function SajuResultDisplay({ result }: Props) {
             </div>
           </Section>
 
-          {/* 건강/직업 분석 - 프리미엄 전용 */}
+          {/* 건강/직업 분석 */}
           <Section title="건강 · 직업 분석">
             <div style={{ ...advancedAnalysisContainer, position: 'relative', minHeight: 200 }}>
-              {!result.isPremium && (
-                <PremiumLockOverlay isLoggedIn={result.isLoggedIn} feature="건강 · 직업 분석" />
-              )}
-              {result.isPremium && (result.advancedAnalysis.health || result.advancedAnalysis.career) && (
+              {(result.advancedAnalysis.health || result.advancedAnalysis.career) && (
                 <>
                 {result.advancedAnalysis.health && (
                   <AnalysisCard title="건강 분석" color="#e74c3c">
@@ -662,13 +653,10 @@ export default function SajuResultDisplay({ result }: Props) {
             </div>
           </Section>
 
-          {/* 종합 점수 - 프리미엄 전용 */}
+          {/* 종합 점수 */}
           <Section title="종합 점수">
             <div style={{ ...scoreContainer, position: 'relative', minHeight: 200 }}>
-              {!result.isPremium && (
-                <PremiumLockOverlay isLoggedIn={result.isLoggedIn} feature="종합 점수 분석" />
-              )}
-              {result.isPremium && result.advancedAnalysis.score && (
+              {result.advancedAnalysis.score && (
                 <>
                 <div style={scoreTotalBox}>
                   <div style={scoreTotalLabel}>종합 점수</div>
@@ -753,13 +741,10 @@ export default function SajuResultDisplay({ result }: Props) {
             </div>
           </Section>
 
-          {/* 종합 리포트 - 프리미엄 전용 */}
+          {/* 종합 리포트 */}
           <Section title="종합 리포트">
             <div style={{ ...reportContainer, position: 'relative', minHeight: 200 }}>
-              {!result.isPremium && (
-                <PremiumLockOverlay isLoggedIn={result.isLoggedIn} feature="종합 리포트" />
-              )}
-              {result.isPremium && result.advancedAnalysis.report && (
+              {result.advancedAnalysis.report && (
                 <>
                 {result.advancedAnalysis.report.summary && (
                   <div style={reportSection}>

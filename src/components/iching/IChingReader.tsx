@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { IChingData } from "@/lib/iChing/iChingData";
 import { IChingDataKo } from "@/lib/iChing/iChingData.ko";
@@ -25,6 +25,7 @@ const IChingReader: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [aiKey, setAiKey] = useState(0); // Key to force AI restart when lines change
   const aiRestartTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [aiInterpretation, setAiInterpretation] = useState<{ overview: string; changing: string; advice: string } | null>(null);
 
   // Select data based on current locale
   const currentData = locale === 'ko' ? IChingDataKo : IChingData;
@@ -111,6 +112,7 @@ const IChingReader: React.FC = () => {
     setQuestion("");
     setSaveStatus("idle");
     setAiKey(0);
+    setAiInterpretation(null);
     // Clear any pending AI restart timer
     if (aiRestartTimerRef.current) {
       clearTimeout(aiRestartTimerRef.current);
@@ -167,6 +169,7 @@ const IChingReader: React.FC = () => {
     if (aiRestartTimerRef.current) {
       clearTimeout(aiRestartTimerRef.current);
     }
+    setAiInterpretation(null); // Reset AI interpretation when lines change
     aiRestartTimerRef.current = setTimeout(() => {
       setAiKey(prev => prev + 1);
     }, 800);
@@ -177,22 +180,32 @@ const IChingReader: React.FC = () => {
 
     setSaveStatus("saving");
     try {
+      // Build hexagram lines for display
+      const hexagramLines = drawnLines.map(line => ({
+        value: line.value,
+        isChanging: line.isChanging
+      }));
+
       const content = JSON.stringify({
         question,
         primaryHexagram: {
           number: result.primaryHexagram.number,
           name: result.primaryHexagram.name,
           symbol: result.primaryHexagram.symbol,
+          binary: result.primaryHexagram.binary,
           judgment: result.primaryHexagram.judgment,
           image: result.primaryHexagram.image,
         },
+        hexagramLines, // Save line data for visual display
         changingLines: result.changingLines,
         resultingHexagram: result.resultingHexagram ? {
           number: result.resultingHexagram.number,
           name: result.resultingHexagram.name,
           symbol: result.resultingHexagram.symbol,
+          binary: result.resultingHexagram.binary,
           judgment: result.resultingHexagram.judgment,
         } : null,
+        aiInterpretation: aiInterpretation || null, // Include AI interpretation
         locale,
         timestamp: new Date().toISOString(),
       });
@@ -216,6 +229,11 @@ const IChingReader: React.FC = () => {
       setSaveStatus("error");
     }
   };
+
+  // Handler for AI completion
+  const handleAiComplete = useCallback((aiText: { overview: string; changing: string; advice: string }) => {
+    setAiInterpretation(aiText);
+  }, []);
 
   return (
     <div className={styles.readerContainer}>
@@ -298,22 +316,23 @@ const IChingReader: React.FC = () => {
               <p className={styles.questionText}>{question}</p>
             </div>
           )}
-          <ResultDisplay key={aiKey} result={result} question={question} autoStartAi={true} />
+          <ResultDisplay key={aiKey} result={result} question={question} autoStartAi={true} onAiComplete={handleAiComplete} />
           <div className={styles.buttonGroup}>
             {session ? (
               <button
                 onClick={handleSave}
                 className={`${styles.saveButton} ${saveStatus === "saved" ? styles.saved : ""}`}
-                disabled={saveStatus === "saving" || saveStatus === "saved"}
+                disabled={saveStatus === "saving" || saveStatus === "saved" || !aiInterpretation}
               >
                 {saveStatus === "saving" ? "..." :
                  saveStatus === "saved" ? translate("iching.saved", "Reading Saved") :
                  saveStatus === "error" ? translate("iching.saveError", "Failed to save") :
+                 !aiInterpretation ? translate("iching.waitingAi", "Waiting for AI...") :
                  translate("iching.save", "Save Reading")}
               </button>
             ) : (
               <p className={styles.loginHint}>
-                {translate("iching.loginToSave", "Please log in to save readings")}
+                {translate("iching.loginToSave", "Log in to save your reading")}
               </p>
             )}
             <button onClick={reset} className={styles.resetButton}>

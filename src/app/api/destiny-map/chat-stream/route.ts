@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
+import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,6 +26,50 @@ function pickBackendUrl() {
     console.warn("[destiny-map chat-stream] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
   }
   return url;
+}
+
+function counselorSystemPrompt(lang: string) {
+  const base = [
+    "You are DestinyPal's counselor combining Eastern (Saju) and Western (Astrology) wisdom.",
+    "",
+    "ABSOLUTE RULES:",
+    "1. NO GREETING - Never say 'welcome', 'nice to see you', 'hello', etc.",
+    "2. NO IDENTITY RECAP - NEVER start with 'Your day master is X' or 'You are a Y person'. The user already knows their chart. Jump straight to answering their question.",
+    "3. ONLY use daeun/seun data provided in context - NEVER invent periods like '경금 대운'",
+    "4. If data shows '辛卯', say '신묘', not something else",
+    "5. Use BOTH saju AND astrology equally",
+    "6. Be DETAILED and THOROUGH - provide deep analysis, not surface-level summaries",
+    "",
+    "Response style:",
+    "- Answer the user's question DIRECTLY from the first sentence",
+    "- Weave in saju and astrology insights naturally while answering",
+    "- Explain the 'why' behind your analysis in detail",
+    "- Include specific dates and timing when relevant",
+    "- Provide actionable, concrete advice",
+    "",
+    "Length: 400-600 words. Be comprehensive.",
+  ];
+  return lang === "ko"
+    ? [
+        "너는 DestinyPal 상담사다.",
+        "",
+        "절대 규칙:",
+        "1. 인사 금지 - '안녕하세요', '반가워요' 등 인사 절대 금지",
+        "2. 신상 소개 금지 - '일간이 X입니다', '당신은 Y 성향' 같은 기본 설명 금지. 사용자는 자기 사주를 이미 안다. 바로 질문에 답해.",
+        "3. 제공된 대운/세운 데이터만 사용 - '경금 대운' 같이 지어내지 마. 데이터에 있는 그대로만.",
+        "4. 사주와 점성술 모두 균형있게 활용",
+        "5. 피상적 요약 금지 - 깊이 있는 분석을 상세하게 설명해",
+        "",
+        "응답 스타일:",
+        "- 첫 문장부터 사용자 질문에 바로 답변",
+        "- 답변하면서 사주와 점성술 통찰을 자연스럽게 녹여내",
+        "- '왜 그런지' 이유를 상세히 설명",
+        "- 구체적인 날짜와 시기 포함",
+        "- 실천 가능한 구체적 조언 제공",
+        "",
+        "길이: 400-600단어. 충분히 상세하게.",
+      ].join("\n")
+    : base.join("\n");
 }
 
 export async function POST(request: Request) {
@@ -103,6 +148,7 @@ export async function POST(request: Request) {
 
     // Simple prompt - backend will add context
     const chatPrompt = [
+      counselorSystemPrompt(lang),
       `Name: ${name || "User"}`,
       `Birth: ${birthDate} ${birthTime}`,
       `Gender: ${gender}`,
@@ -172,17 +218,44 @@ export async function POST(request: Request) {
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
+            "X-Fallback": "1",
           },
         }
       );
     }
 
     // Relay the stream from backend to frontend
-    return new Response(backendResponse.body, {
+    // Sanitize/mask the stream on the fly
+    const encoder = new TextEncoder();
+    const sanitizedStream = new ReadableStream({
+      start(controller) {
+        const reader = backendResponse.body!.getReader();
+        const decoder = new TextDecoder();
+        const read = (): any => {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              controller.close();
+              return;
+            }
+            const chunk = decoder.decode(value, { stream: true });
+            const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
+            controller.enqueue(encoder.encode(masked));
+            read();
+          }).catch((err) => {
+            console.error("[chat-stream sanitize error]", err);
+            controller.close();
+          });
+        };
+        read();
+      },
+    });
+
+    return new Response(sanitizedStream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
       },
     });
   } catch (err: any) {

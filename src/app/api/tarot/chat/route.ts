@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 
 function pickBackendUrl() {
   const url =
@@ -40,7 +41,7 @@ interface TarotContext {
 }
 
 interface ChatMessage {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -48,6 +49,48 @@ interface ChatRequest {
   messages: ChatMessage[];
   context: TarotContext;
   language?: "ko" | "en";
+}
+
+function buildSystemInstruction(context: TarotContext, language: "ko" | "en") {
+  const cardLines = context.cards
+    .map((c, idx) => {
+      const pos = c.position || `Card ${idx + 1}`;
+      const orient = c.is_reversed ?? c.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
+      return `- ${pos}: ${c.name} (${orient})`;
+    })
+    .join("\n");
+
+  const baseKo = [
+    "너는 타로 상담사다. 항상 실제로 뽑힌 카드와 위치를 근거로 이야기해.",
+    "출력 형식:",
+    "1) 한 줄 핵심 메시지(카드·포지션을 명시)",
+    "2) 카드별 해석 3줄 이내: 카드명/포지션/정위·역위 근거 + 의미(왜 그렇게 해석하는지 포함)",
+    "3) 실행 가능한 행동 제안 2~3개 (오늘/이번주 등 구체적 시간·행동)",
+    "4) 후속 질문 1개로 마무리",
+    "안전: 의료/법률/투자/응급 상황은 전문 상담을 권유하고 조언은 일반 정보임을 명시해.",
+    "길이: 전체 160단어(또는 8문장) 이내, 불필요한 영성 어휘 줄이고 현실적 조언을 줘.",
+    "항상 카드 이름과 포지션을 인용하고, 카드가 왜 그런 조언을 주는지 명확히 설명해.",
+    "스프레드와 카드 목록:",
+    `스프레드: ${context.spread_title} (${context.category})`,
+    cardLines || "(카드 없음)"
+  ].join("\n");
+
+  const baseEn = [
+    "You are a tarot counselor. Always ground the response in the drawn cards and their positions.",
+    "Output format:",
+    "1) One-line core message (cite card + position)",
+    "2) Card insights in <=3 lines: name/position/upright|reversed + meaning + why it implies that",
+    "3) 2–3 actionable steps with concrete timeframes",
+    "4) End with one follow-up question.",
+    "Safety: for medical/legal/finance/emergency, add a disclaimer and suggest professional help.",
+    "Length: keep it within ~160 words (<=8 sentences); minimize fluffy mysticism and favor practical advice.",
+    "Always cite the card and position, and explain why the card supports the advice.",
+    "Spread and cards:",
+    `Spread: ${context.spread_title} (${context.category})`,
+    cardLines || "(no cards)"
+  ].join("\n");
+
+  return language === "ko" ? baseKo : baseEn;
 }
 
 export async function POST(req: Request) {
@@ -66,6 +109,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
+    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    if (oversized) return oversized;
+
     const body: ChatRequest = await req.json();
     const { messages, context, language = "ko" } = body;
 
@@ -75,6 +121,13 @@ export async function POST(req: Request) {
         { status: 400, headers: limit.headers }
       );
     }
+
+    // Inject system instruction for consistent, card-grounded replies
+    const systemInstruction = buildSystemInstruction(context, language);
+    const messagesWithSystem: ChatMessage[] = [
+      { role: "system", content: systemInstruction },
+      ...messages,
+    ];
 
     // Call Python backend for chat (with fallback on connection failure)
     let backendData: { reply?: string } | null = null;
@@ -88,7 +141,7 @@ export async function POST(req: Request) {
           "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
         },
         body: JSON.stringify({
-          messages,
+          messages: messagesWithSystem,
           context: {
             spread_title: context.spread_title,
             category: context.category,
@@ -120,6 +173,7 @@ export async function POST(req: Request) {
     // Use backend response or fallback
     if (backendData?.reply) {
       const res = NextResponse.json({ reply: backendData.reply });
+      res.headers.set("X-Fallback", "0");
       limit.headers.forEach((value, key) => res.headers.set(key, value));
       return res;
     }
@@ -128,6 +182,7 @@ export async function POST(req: Request) {
     console.warn("Using fallback chat response");
     const fallbackReply = generateFallbackReply(messages, context, language);
     const res = NextResponse.json({ reply: fallbackReply });
+    res.headers.set("X-Fallback", "1");
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
 

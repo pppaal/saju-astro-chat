@@ -2,7 +2,7 @@
  * User Profile Storage Utility
  *
  * Stores and retrieves user birth information across all services.
- * Uses localStorage for persistence without requiring authentication.
+ * Uses localStorage for persistence and syncs with DB for authenticated users.
  */
 
 const USER_PROFILE_KEY = 'destinypal_user_profile';
@@ -30,6 +30,42 @@ export function getUserProfile(): UserProfile {
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
+  }
+}
+
+/**
+ * Fetch user profile from API (for authenticated users)
+ * and sync to localStorage
+ */
+export async function fetchAndSyncUserProfile(): Promise<UserProfile> {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const res = await fetch('/api/me/profile', { cache: 'no-store' });
+    if (!res.ok) return getUserProfile();
+
+    const { user } = await res.json();
+    if (!user) return getUserProfile();
+
+    // Convert API response to UserProfile format
+    const profile: UserProfile = {
+      name: user.name || undefined,
+      birthDate: user.birthDate || undefined,
+      birthTime: user.birthTime || undefined,
+      birthCity: user.birthCity || undefined,
+      gender: user.gender === 'M' ? 'Male' : user.gender === 'F' ? 'Female' : undefined,
+      timezone: user.tzId || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Sync to localStorage
+    if (profile.birthDate || profile.birthTime || profile.name) {
+      saveUserProfile(profile);
+    }
+
+    return profile;
+  } catch {
+    return getUserProfile();
   }
 }
 

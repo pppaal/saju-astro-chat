@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import { apiGuard } from "@/lib/apiGuard";
 import { callBackendWithFallback } from "@/lib/backend-health";
 import { guardText, cleanText as _cleanText, PROMPT_BUDGET_CHARS, safetyMessage, containsForbidden } from "@/lib/textGuards";
+import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,7 +43,16 @@ function buildChatPrompt(lang: string, theme: string, snapshot: string, history:
   const lastUser = [...history].reverse().find((m) => m.role === "user");
 
   return [
-    "You are DestinyPal's chat guide. Stay consistent with the provided astrology+saju snapshot. Do not ask for birth data unless missing. No medical/legal/financial advice.",
+    "You are DestinyPal's chat guide. Stay consistent with the provided astrology+saju snapshot. Do not ask for birth data unless missing.",
+    "Forbidden: medical diagnosis/treatment, legal advice, financial/investment decisions, self-harm encouragement.",
+    "Always ground claims in chart factors (planets/houses/aspects/elements/saju pillars) and name them explicitly.",
+    "Response format:",
+    "1) One-line key message (cite which chart insight you are using).",
+    "2) Brief reasoning (2–3 lines) grounded in astro/saju factors.",
+    "3) 2–3 actionable steps with concrete timing/examples.",
+    "4) End with one follow-up question.",
+    "Safety: add a short disclaimer + suggest professional help for medical/legal/finance/emergency.",
+    "Length: ~140 words; concise, supportive, specific.",
     `Locale: ${lang}`,
     `Theme: ${theme}`,
     "User snapshot (authoritative):",
@@ -181,12 +191,16 @@ export async function POST(request: Request) {
       fallbackPayload
     );
 
-    const reply = data?.fusion_layer || data?.report || fallbackReply;
+    const rawReply = data?.fusion_layer || data?.report || fallbackReply;
+    const reply = maskTextWithName(sanitizeLocaleText(rawReply, lang), name);
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       reply,
       fallback: !success, // Indicate if using fallback
+      backendAvailable: success,
     });
+    res.headers.set("X-Fallback", success ? "0" : "1");
+    return res;
   } catch (err: any) {
     console.error("[DestinyMap chat API error]", err);
     return NextResponse.json({ error: err.message ?? "Internal Server Error" }, { status: 500 });

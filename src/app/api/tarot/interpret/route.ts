@@ -2,10 +2,14 @@
 // Premium Tarot Interpretation API using Hybrid RAG
 
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/authOptions";
+import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 
 function pickBackendUrl() {
   const url =
@@ -61,6 +65,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
+    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    if (oversized) return oversized;
+
     const body: InterpretRequest = await req.json();
     const { categoryId, spreadId, spreadTitle, cards, userQuestion, language = "ko", birthdate, moonPhase } = body;
 
@@ -110,16 +117,43 @@ export async function POST(req: Request) {
     }
 
     // Use backend response or fallback
-    if (interpretation && !interpretation.error) {
-      const res = NextResponse.json(interpretation);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
+    const result = (interpretation && !interpretation.error)
+      ? interpretation
+      : generateFallbackInterpretation(cards, spreadTitle, language);
+
+    if (!interpretation || interpretation.error) {
+      console.warn("Using fallback interpretation");
     }
 
-    // Fallback interpretation
-    console.warn("Using fallback interpretation");
-    const fallbackResult = generateFallbackInterpretation(cards, spreadTitle, language);
-    const res = NextResponse.json(fallbackResult);
+    // ======== 기록 저장 (로그인 사용자만) ========
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      try {
+        await prisma.reading.create({
+          data: {
+            userId: session.user.id,
+            type: 'tarot',
+            title: `${spreadTitle} - ${cards.map(c => c.nameKo || c.name).join(', ')}`,
+            content: JSON.stringify({
+              categoryId,
+              spreadId,
+              spreadTitle,
+              cards: cards.map(c => ({
+                name: c.name,
+                nameKo: c.nameKo,
+                isReversed: c.isReversed,
+                position: c.position,
+              })),
+              userQuestion,
+            }),
+          },
+        });
+      } catch (saveErr) {
+        console.warn('[Tarot API] Failed to save reading:', saveErr);
+      }
+    }
+
+    const res = NextResponse.json(result);
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
 

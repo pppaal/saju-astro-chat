@@ -1,0 +1,511 @@
+{
+  "$schema": "numerology_therapeutic_questions_v1",
+  "$description": "수비학 기반 치료적 질문 - 상담 및 자기 성찰을 위한 질문들",
+
+  "rule_type": "numerology_therapeutic",
+  "version": "1.0",
+
+  "life_path_questions": {
+    "description": "생명수별 치료적 질문",
+    "questions": {
+      "1": {
+        "life_path": 1,
+        "theme": "리더십과 독립",
+        "exploration_questions": [
+          {
+            "ko": "당신은 어떤 상황에서 가장 자신감을 느끼나요?",
+            "en": "In what situations do you feel most confident?"
+          },
+          {
+            "ko": "독립적으로 결정을 내릴 때 어떤 감정이 드나요?",
+            "en": "How do you feel when making decisions independently?"
+          },
+          {
+            "ko": "다른 사람의 의견을 듣는 것이 어려울 때가 있나요?",
+            "en": "Are there times when it's hard to listen to others' opinions?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "혼자만의 성공이 아닌 함께하는 성공을 상상해 보세요. 어떤 느낌인가요?",
+            "en": "Imagine success together rather than alone. How does that feel?"
+          },
+          {
+            "ko": "겸손함을 실천할 수 있는 작은 방법은 무엇일까요?",
+            "en": "What small ways can you practice humility?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "외로움을 느낄 때, 그 감정과 어떻게 대화하나요?",
+            "en": "When you feel lonely, how do you dialogue with that feeling?"
+          },
+          {
+            "ko": "통제를 놓아야 할 때 가장 두려운 것은 무엇인가요?",
+            "en": "What scares you most about letting go of control?"
+          }
+        ]
+      },
+      "2": {
+        "life_path": 2,
+        "theme": "협력과 균형",
+        "exploration_questions": [
+          {
+            "ko": "관계에서 당신이 가장 중요하게 생각하는 것은 무엇인가요?",
+            "en": "What do you value most in relationships?"
+          },
+          {
+            "ko": "다른 사람을 도울 때 어떤 감정이 드나요?",
+            "en": "How do you feel when helping others?"
+          },
+          {
+            "ko": "갈등 상황에서 당신은 보통 어떤 역할을 하나요?",
+            "en": "What role do you usually play in conflict situations?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "자신의 필요를 먼저 챙기는 것이 이기적인 것이 아니라면 어떨까요?",
+            "en": "What if putting your needs first isn't selfish?"
+          },
+          {
+            "ko": "'아니오'라고 말하는 것이 더 건강한 관계를 만들 수 있다면?",
+            "en": "What if saying 'no' could create healthier relationships?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "다른 사람의 인정 없이도 자신의 가치를 느낄 수 있나요?",
+            "en": "Can you feel your worth without others' approval?"
+          },
+          {
+            "ko": "결정을 미루는 것이 당신에게 어떤 영향을 미치나요?",
+            "en": "How does postponing decisions affect you?"
+          }
+        ]
+      },
+      "3": {
+        "life_path": 3,
+        "theme": "창의적 표현",
+        "exploration_questions": [
+          {
+            "ko": "자유롭게 자신을 표현할 때 어떤 기분이 드나요?",
+            "en": "How do you feel when you express yourself freely?"
+          },
+          {
+            "ko": "창의성은 당신의 삶에서 어떤 역할을 하나요?",
+            "en": "What role does creativity play in your life?"
+          },
+          {
+            "ko": "기쁨을 가져다주는 활동은 무엇인가요?",
+            "en": "What activities bring you joy?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "한 가지에 깊이 집중한다면 무엇을 선택하시겠어요?",
+            "en": "If you focused deeply on one thing, what would you choose?"
+          },
+          {
+            "ko": "표면적인 즐거움 너머의 깊은 만족감은 어디서 찾을 수 있을까요?",
+            "en": "Where can you find deep satisfaction beyond surface pleasures?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "비판이 두려워서 표현을 억누른 적이 있나요?",
+            "en": "Have you suppressed expression out of fear of criticism?"
+          },
+          {
+            "ko": "주목받지 못할 때 어떤 감정이 드나요?",
+            "en": "How do you feel when you don't get attention?"
+          }
+        ]
+      },
+      "4": {
+        "life_path": 4,
+        "theme": "기초와 안정",
+        "exploration_questions": [
+          {
+            "ko": "안정감을 느끼게 해주는 것은 무엇인가요?",
+            "en": "What makes you feel secure?"
+          },
+          {
+            "ko": "체계적으로 일할 때 어떤 만족감을 느끼나요?",
+            "en": "What satisfaction do you get from working systematically?"
+          },
+          {
+            "ko": "신뢰할 수 있는 사람으로 인정받을 때 어떤 기분인가요?",
+            "en": "How do you feel when recognized as reliable?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "예상치 못한 변화가 가져올 수 있는 선물은 무엇일까요?",
+            "en": "What gifts might unexpected changes bring?"
+          },
+          {
+            "ko": "완벽하지 않아도 괜찮다면 어떤 일을 시도해보고 싶나요?",
+            "en": "What would you try if imperfection was okay?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "융통성을 발휘하기 어려운 이유는 무엇인가요?",
+            "en": "Why is it hard to be flexible?"
+          },
+          {
+            "ko": "일에만 몰두할 때 무엇을 피하고 있는 것일까요?",
+            "en": "What might you be avoiding when you immerse yourself only in work?"
+          }
+        ]
+      },
+      "5": {
+        "life_path": 5,
+        "theme": "자유와 변화",
+        "exploration_questions": [
+          {
+            "ko": "자유롭다는 것은 당신에게 무엇을 의미하나요?",
+            "en": "What does freedom mean to you?"
+          },
+          {
+            "ko": "새로운 경험을 할 때 어떤 에너지를 느끼나요?",
+            "en": "What energy do you feel when having new experiences?"
+          },
+          {
+            "ko": "변화가 당신의 삶에 어떤 영향을 미쳐왔나요?",
+            "en": "How has change affected your life?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "자유와 헌신이 공존할 수 있다면 어떤 모습일까요?",
+            "en": "What would it look like if freedom and commitment could coexist?"
+          },
+          {
+            "ko": "한 곳에 뿌리를 내린다는 것이 감옥이 아니라면?",
+            "en": "What if putting down roots somewhere isn't a prison?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "책임을 피하고 싶을 때, 정말로 두려운 것은 무엇인가요?",
+            "en": "When you want to avoid responsibility, what are you really afraid of?"
+          },
+          {
+            "ko": "끊임없이 새로운 것을 찾을 때, 무엇을 찾고 있는 건가요?",
+            "en": "When constantly seeking something new, what are you really looking for?"
+          }
+        ]
+      },
+      "6": {
+        "life_path": 6,
+        "theme": "사랑과 책임",
+        "exploration_questions": [
+          {
+            "ko": "다른 사람을 돌볼 때 어떤 기쁨을 느끼나요?",
+            "en": "What joy do you feel when caring for others?"
+          },
+          {
+            "ko": "조화로운 환경이 당신에게 왜 중요한가요?",
+            "en": "Why is a harmonious environment important to you?"
+          },
+          {
+            "ko": "가족이나 공동체에서 당신의 역할은 무엇인가요?",
+            "en": "What is your role in family or community?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "자신을 돌보는 것도 중요한 책임이라면 어떨까요?",
+            "en": "What if caring for yourself is also an important responsibility?"
+          },
+          {
+            "ko": "다른 사람이 자신의 문제를 스스로 해결하도록 두는 것이 더 큰 사랑이라면?",
+            "en": "What if letting others solve their own problems is greater love?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "과도하게 돌보려 할 때, 정말 충족시키려는 욕구는 무엇인가요?",
+            "en": "When you over-care, what need are you really trying to meet?"
+          },
+          {
+            "ko": "완벽해야 한다는 압박감은 어디서 오나요?",
+            "en": "Where does the pressure to be perfect come from?"
+          }
+        ]
+      },
+      "7": {
+        "life_path": 7,
+        "theme": "지혜와 탐구",
+        "exploration_questions": [
+          {
+            "ko": "진리를 탐구할 때 어떤 만족감을 느끼나요?",
+            "en": "What satisfaction do you feel when exploring truth?"
+          },
+          {
+            "ko": "혼자만의 시간이 당신에게 주는 것은 무엇인가요?",
+            "en": "What does alone time give you?"
+          },
+          {
+            "ko": "영적 성장은 당신에게 무엇을 의미하나요?",
+            "en": "What does spiritual growth mean to you?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "깊은 연결도 진리 추구의 일부라면 어떨까요?",
+            "en": "What if deep connection is also part of seeking truth?"
+          },
+          {
+            "ko": "신뢰하기 어려운 것이 보호막이자 장벽이 될 수 있다면?",
+            "en": "What if difficulty trusting can be both shield and barrier?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "고립될 때, 무엇으로부터 자신을 보호하고 있나요?",
+            "en": "When you isolate, what are you protecting yourself from?"
+          },
+          {
+            "ko": "회의주의가 때로는 연결을 피하는 방법이 될 수 있을까요?",
+            "en": "Could skepticism sometimes be a way to avoid connection?"
+          }
+        ]
+      },
+      "8": {
+        "life_path": 8,
+        "theme": "성취와 풍요",
+        "exploration_questions": [
+          {
+            "ko": "성공이 당신에게 무엇을 의미하나요?",
+            "en": "What does success mean to you?"
+          },
+          {
+            "ko": "권력이나 영향력을 가질 때 어떤 책임을 느끼나요?",
+            "en": "What responsibility do you feel when having power or influence?"
+          },
+          {
+            "ko": "물질적 성취가 가져다주는 것은 무엇인가요?",
+            "en": "What does material achievement bring you?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "진정한 풍요가 나눔에서 온다면 어떨까요?",
+            "en": "What if true abundance comes from sharing?"
+          },
+          {
+            "ko": "일과 관계 사이의 균형은 어떤 모습일까요?",
+            "en": "What would balance between work and relationships look like?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "성공에 대한 집착이 무엇을 숨기고 있나요?",
+            "en": "What might obsession with success be hiding?"
+          },
+          {
+            "ko": "통제하려는 욕구 아래에 어떤 두려움이 있나요?",
+            "en": "What fear lies beneath the desire to control?"
+          }
+        ]
+      },
+      "9": {
+        "life_path": 9,
+        "theme": "연민과 봉사",
+        "exploration_questions": [
+          {
+            "ko": "세상을 위해 기여할 때 어떤 의미를 느끼나요?",
+            "en": "What meaning do you feel when contributing to the world?"
+          },
+          {
+            "ko": "연민은 당신의 삶에서 어떻게 표현되나요?",
+            "en": "How is compassion expressed in your life?"
+          },
+          {
+            "ko": "무언가를 마무리할 때 어떤 감정이 드나요?",
+            "en": "How do you feel when completing something?"
+          }
+        ],
+        "growth_questions": [
+          {
+            "ko": "받는 것도 주는 것만큼 중요하다면 어떨까요?",
+            "en": "What if receiving is as important as giving?"
+          },
+          {
+            "ko": "자신을 위한 시간도 봉사의 일부라면?",
+            "en": "What if time for yourself is also part of service?"
+          }
+        ],
+        "shadow_questions": [
+          {
+            "ko": "과도한 희생 뒤에 어떤 믿음이 숨어있나요?",
+            "en": "What beliefs hide behind excessive sacrifice?"
+          },
+          {
+            "ko": "집착을 놓기 어려운 것은 무엇 때문인가요?",
+            "en": "What makes it hard to let go of attachments?"
+          }
+        ]
+      }
+    }
+  },
+
+  "master_number_questions": {
+    "description": "마스터 넘버 치료적 질문",
+    "questions": {
+      "11": {
+        "theme": "영적 조명",
+        "exploration_questions": [
+          {
+            "ko": "직관이 당신을 인도한 경험이 있나요?",
+            "en": "Have you had experiences where intuition guided you?"
+          },
+          {
+            "ko": "영감을 받을 때 어떤 느낌인가요?",
+            "en": "How does it feel when you're inspired?"
+          }
+        ],
+        "grounding_questions": [
+          {
+            "ko": "높은 에너지를 일상에서 어떻게 그라운딩하고 있나요?",
+            "en": "How do you ground your high energy in daily life?"
+          },
+          {
+            "ko": "불안이 찾아올 때 자신을 어떻게 안정시키나요?",
+            "en": "How do you stabilize yourself when anxiety comes?"
+          }
+        ]
+      },
+      "22": {
+        "theme": "마스터 빌더",
+        "exploration_questions": [
+          {
+            "ko": "당신이 세상에 남기고 싶은 것은 무엇인가요?",
+            "en": "What do you want to leave in the world?"
+          },
+          {
+            "ko": "큰 비전과 현실 사이에서 어떻게 균형을 잡나요?",
+            "en": "How do you balance grand vision with reality?"
+          }
+        ],
+        "grounding_questions": [
+          {
+            "ko": "부담감에 압도될 때 어떻게 대처하나요?",
+            "en": "How do you cope when overwhelmed by burden?"
+          },
+          {
+            "ko": "작은 단계로 시작하는 것의 가치를 인정할 수 있나요?",
+            "en": "Can you appreciate the value of starting with small steps?"
+          }
+        ]
+      },
+      "33": {
+        "theme": "마스터 힐러",
+        "exploration_questions": [
+          {
+            "ko": "치유한다는 것은 당신에게 무엇을 의미하나요?",
+            "en": "What does healing mean to you?"
+          },
+          {
+            "ko": "무조건적 사랑을 실천할 때 어떤 어려움이 있나요?",
+            "en": "What challenges arise when practicing unconditional love?"
+          }
+        ],
+        "self_care_questions": [
+          {
+            "ko": "자신을 치유하는 것도 타인을 돕는 것만큼 중요하지 않을까요?",
+            "en": "Isn't healing yourself as important as helping others?"
+          },
+          {
+            "ko": "경계를 설정하는 것이 사랑을 줄이는 것이 아니라면?",
+            "en": "What if setting boundaries doesn't reduce love?"
+          }
+        ]
+      }
+    }
+  },
+
+  "personal_year_questions": {
+    "description": "개인년 주기별 성찰 질문",
+    "questions": {
+      "1": {
+        "theme": "새로운 시작",
+        "questions": [
+          {
+            "ko": "올해 어떤 새로운 것을 시작하고 싶나요?",
+            "en": "What new thing do you want to start this year?"
+          },
+          {
+            "ko": "과거에 묶여 있다면, 무엇을 놓아야 할까요?",
+            "en": "If tied to the past, what should you let go of?"
+          }
+        ]
+      },
+      "5": {
+        "theme": "변화와 자유",
+        "questions": [
+          {
+            "ko": "어떤 변화가 당신을 부르고 있나요?",
+            "en": "What changes are calling you?"
+          },
+          {
+            "ko": "자유를 향해 어떤 한 걸음을 내딛을 수 있나요?",
+            "en": "What step can you take toward freedom?"
+          }
+        ]
+      },
+      "9": {
+        "theme": "완성과 마무리",
+        "questions": [
+          {
+            "ko": "이 주기 동안 무엇을 배웠나요?",
+            "en": "What have you learned during this cycle?"
+          },
+          {
+            "ko": "감사히 놓아줄 준비가 된 것은 무엇인가요?",
+            "en": "What are you ready to release with gratitude?"
+          }
+        ]
+      }
+    }
+  },
+
+  "crisis_detection": {
+    "description": "위기 감지 및 전문가 연결 키워드",
+    "warning_signs": [
+      "자살", "자해", "죽고 싶다", "살고 싶지 않다", "끝내고 싶다",
+      "suicide", "self-harm", "want to die", "don't want to live", "end it all"
+    ],
+    "response_template": {
+      "ko": "당신이 힘든 시간을 보내고 있다는 것을 알겠습니다. 이런 감정은 전문적인 도움이 필요할 수 있습니다. 한국생명의전화 1588-9191 또는 정신건강위기상담전화 1577-0199로 연락해 주세요. 당신은 혼자가 아닙니다.",
+      "en": "I understand you're going through a difficult time. These feelings may need professional help. Please contact a crisis helpline. You are not alone."
+    }
+  },
+
+  "integration_prompts": {
+    "description": "수비학 해석과 함께 사용할 통합 프롬프트",
+    "opening_prompts": [
+      {
+        "ko": "이 숫자의 에너지가 당신의 삶에서 어떻게 나타나고 있나요?",
+        "en": "How is this number's energy showing up in your life?"
+      },
+      {
+        "ko": "이 해석에서 가장 공감되는 부분은 무엇인가요?",
+        "en": "What part of this interpretation resonates most with you?"
+      }
+    ],
+    "closing_prompts": [
+      {
+        "ko": "오늘의 대화에서 어떤 통찰을 얻었나요?",
+        "en": "What insights did you gain from today's conversation?"
+      },
+      {
+        "ko": "이 에너지를 더 잘 활용하기 위해 어떤 한 가지를 시도해 볼 수 있을까요?",
+        "en": "What one thing can you try to better utilize this energy?"
+      }
+    ]
+  }
+}

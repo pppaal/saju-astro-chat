@@ -6,7 +6,20 @@ import BackButton from "@/components/ui/BackButton";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import styles from "./about.module.css";
 
-const services = [
+type Service = {
+  id: string;
+  icon: string;
+  title: string;
+  titleKo: string;
+  description: string;
+  descriptionEn: string;
+  href: string;
+  gradient: string;
+  featured?: boolean;
+  comingSoon?: boolean;
+};
+
+const services: Service[] = [
   {
     id: "destinyMap",
     icon: "🗺️",
@@ -19,26 +32,6 @@ const services = [
     featured: true,
   },
   {
-    id: "astrology",
-    icon: "✦",
-    title: "Astrology",
-    titleKo: "점성술",
-    description: "행성의 배치와 하우스 위치로 당신의 성격과 운명의 흐름을 읽습니다",
-    descriptionEn: "Read your personality and destiny through planetary positions and houses",
-    href: "/astrology",
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  },
-  {
-    id: "saju",
-    icon: "四柱",
-    title: "Saju",
-    titleKo: "사주",
-    description: "사주팔자로 오행 밸런스와 대운·세운의 흐름을 분석합니다",
-    descriptionEn: "Analyze five elements balance and fortune cycles through Four Pillars",
-    href: "/saju",
-    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  },
-  {
     id: "tarot",
     icon: "♜",
     title: "Tarot",
@@ -49,14 +42,14 @@ const services = [
     gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
   },
   {
-    id: "iching",
-    icon: "☯",
-    title: "I Ching",
-    titleKo: "주역",
-    description: "64괘의 지혜로 현재의 상황과 변화의 방향을 제시합니다",
-    descriptionEn: "Wisdom of 64 hexagrams guides current situation and direction of change",
-    href: "/iching",
-    gradient: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
+    id: "calendar",
+    icon: "📅",
+    title: "Calendar",
+    titleKo: "운세 캘린더",
+    description: "매일의 운세와 길일을 캘린더에서 확인하세요",
+    descriptionEn: "Check daily fortune and auspicious days on your calendar",
+    href: "/calendar",
+    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
   },
   {
     id: "dream",
@@ -67,26 +60,6 @@ const services = [
     descriptionEn: "Interpret dream symbols and messages from your subconscious",
     href: "/dream",
     gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-  },
-  {
-    id: "numerology",
-    icon: "🔢",
-    title: "Numerology",
-    titleKo: "수비학",
-    description: "생년월일의 숫자로 당신의 인생 경로와 잠재력을 탐구합니다",
-    descriptionEn: "Discover your life path and potential through birth date numbers",
-    href: "/numerology",
-    gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-  },
-  {
-    id: "compatibility",
-    icon: "💕",
-    title: "Compatibility",
-    titleKo: "궁합",
-    description: "사주와 점성술로 두 사람의 조화와 관계 역학을 분석합니다",
-    descriptionEn: "Analyze harmony and relationship dynamics between two people",
-    href: "/compatibility",
-    gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
   },
   {
     id: "personality",
@@ -143,11 +116,12 @@ export default function AboutPage() {
             {services.map((service) => (
               <Link
                 key={service.id}
-                href={service.href}
-                className={styles.serviceCard}
+                href={service.comingSoon ? "#" : service.href}
+                className={`${styles.serviceCard} ${service.comingSoon ? styles.comingSoon : ""}`}
                 style={{
                   background: service.gradient,
                 }}
+                onClick={service.comingSoon ? (e) => e.preventDefault() : undefined}
               >
                 <div className={styles.cardOverlay} />
                 <div className={styles.cardContent}>
@@ -158,7 +132,11 @@ export default function AboutPage() {
                   <p className={styles.serviceDesc}>
                     {isKo ? service.description : service.descriptionEn}
                   </p>
-                  <span className={styles.serviceArrow}>→</span>
+                  {service.comingSoon ? (
+                    <span className={styles.comingSoonBadge}>Coming Soon</span>
+                  ) : (
+                    <span className={styles.serviceArrow}>→</span>
+                  )}
                 </div>
               </Link>
             ))}

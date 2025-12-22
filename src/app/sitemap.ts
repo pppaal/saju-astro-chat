@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { blogPosts } from "@/data/blog-posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
@@ -54,6 +55,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }))
   );
 
-  return [...staticPages, ...tarotCategoryPages, ...tarotSpreadPages];
+  // 블로그 메인 페이지
+  const blogMainPage: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+  ];
+
+  // 블로그 개별 글 페이지
+  const blogPostPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...tarotCategoryPages, ...tarotSpreadPages, ...blogMainPage, ...blogPostPages];
 }
 

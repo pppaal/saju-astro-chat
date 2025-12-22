@@ -5,6 +5,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix';
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix';
+import { calculateSajuData } from '@/lib/Saju/saju';
+
+// Map Korean element names to standard format
+const ELEMENT_MAP: Record<string, string> = {
+  '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water',
+  'wood': 'wood', 'fire': 'fire', 'earth': 'earth', 'metal': 'metal', 'water': 'water',
+};
 
 /**
  * GET - Returns only summary metadata (NO raw matrix data)
@@ -68,10 +75,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      // Saju data
-      dayMasterElement,
+      // Birth data (new simpler input)
+      birthDate,
+      birthTime = '12:00',
+      birthCity,
+      gender = 'male',
+      timezone = 'Asia/Seoul',
+
+      // Saju data (legacy direct input)
+      dayMasterElement: providedDayMaster,
       pillarElements = [],
-      sibsinDistribution = {},
+      sibsinDistribution: providedSibsin = {},
       twelveStages = {},
       relations = [],
       geokguk,
@@ -97,12 +111,73 @@ export async function POST(req: NextRequest) {
 
       // Options
       lang = 'ko',
-    } = body as Partial<MatrixCalculationInput> & { lang?: 'ko' | 'en' };
+    } = body as Partial<MatrixCalculationInput> & {
+      birthDate?: string;
+      birthTime?: string;
+      birthCity?: string;
+      gender?: 'male' | 'female';
+      timezone?: string;
+      lang?: 'ko' | 'en';
+    };
+
+    let dayMasterElement = providedDayMaster;
+    let sibsinDistribution = providedSibsin;
+    let calculatedPillarElements = pillarElements;
+
+    // If birthDate is provided, calculate saju automatically
+    if (birthDate && !dayMasterElement) {
+      try {
+        const sajuData = calculateSajuData(
+          birthDate,
+          birthTime,
+          gender as 'male' | 'female',
+          'solar',
+          timezone
+        );
+
+        // Extract day master element
+        const dayElement = sajuData.dayPillar?.heavenlyStem?.element;
+        dayMasterElement = ELEMENT_MAP[dayElement] || dayElement;
+
+        // Extract pillar elements
+        calculatedPillarElements = [
+          sajuData.yearPillar?.heavenlyStem?.element,
+          sajuData.yearPillar?.earthlyBranch?.element,
+          sajuData.monthPillar?.heavenlyStem?.element,
+          sajuData.monthPillar?.earthlyBranch?.element,
+          sajuData.dayPillar?.heavenlyStem?.element,
+          sajuData.dayPillar?.earthlyBranch?.element,
+          sajuData.timePillar?.heavenlyStem?.element,
+          sajuData.timePillar?.earthlyBranch?.element,
+        ].filter(Boolean).map(e => ELEMENT_MAP[e] || e);
+
+        // Build sibsin distribution from pillars
+        const sibsinMap: Record<string, number> = {};
+        const pillars = ['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const;
+        for (const pillar of pillars) {
+          const p = sajuData[pillar];
+          if (p?.heavenlyStem?.sibsin) {
+            sibsinMap[p.heavenlyStem.sibsin] = (sibsinMap[p.heavenlyStem.sibsin] || 0) + 1;
+          }
+          if (p?.earthlyBranch?.sibsin) {
+            sibsinMap[p.earthlyBranch.sibsin] = (sibsinMap[p.earthlyBranch.sibsin] || 0) + 1;
+          }
+        }
+        sibsinDistribution = sibsinMap;
+
+      } catch (sajuError) {
+        console.error('Saju calculation failed:', sajuError);
+        return NextResponse.json(
+          { error: 'Failed to calculate saju from birth data' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate required fields
     if (!dayMasterElement) {
       return NextResponse.json(
-        { error: 'dayMasterElement is required' },
+        { error: 'Either birthDate or dayMasterElement is required' },
         { status: 400 }
       );
     }
@@ -110,7 +185,7 @@ export async function POST(req: NextRequest) {
     // Build input
     const input: MatrixCalculationInput = {
       dayMasterElement,
-      pillarElements,
+      pillarElements: calculatedPillarElements,
       sibsinDistribution,
       twelveStages,
       relations,

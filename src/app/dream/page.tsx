@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState, FormEvent, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useState, FormEvent, useCallback, useRef, KeyboardEvent } from 'react';
 import tzLookup from 'tz-lookup';
 import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import { searchCities } from '@/lib/cities';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { saveUserProfile } from '@/lib/userProfile';
 import {
   DREAM_SYMBOLS,
   DREAM_EMOTIONS,
@@ -15,7 +17,19 @@ import {
   KOREAN_LUCKY_SYMBOLS,
   generateQuickDreamEntry,
 } from '@/lib/dream/dreamPrompts';
+import {
+  calculateSajuData,
+  getAnnualCycles,
+  getMonthlyCycles,
+  getIljinCalendar,
+} from '@/lib/Saju';
 import styles from './Dream.module.css';
+
+// Chat message type
+type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
 
@@ -133,6 +147,30 @@ type InsightResponse = {
   summary?: string;
   dreamSymbols?: { label: string; meaning: string }[];
   astrology?: { highlights: string[]; sun?: string; moon?: string; asc?: string };
+  sajuAnalysis?: {
+    whyNow?: string;
+    fortuneConnection?: string;
+    lifePhaseInsight?: string;
+    dailyInfluence?: string;
+  };
+  cosmicInfluence?: {
+    moonPhaseEffect?: string;
+    planetaryInfluence?: string;
+    overallEnergy?: string;
+  };
+  saju_influence?: {
+    pillars?: Record<string, unknown>;
+    dayMaster?: { stem?: string; element?: string; yin_yang?: string };
+    currentDaeun?: { stem?: string; branch?: string; startYear?: number; element?: string } | null;
+    currentSaeun?: { stem?: string; branch?: string; year?: number } | null;
+    currentWolun?: { stem?: string; branch?: string; month?: number } | null;
+    todayIljin?: {
+      stem?: string;
+      branch?: string;
+      sibsin?: { cheon?: string; ji?: string };
+      isCheoneulGwiin?: boolean;
+    } | null;
+  };
   crossInsights?: string[];
   recommendations?: string[];
   themes?: { label: string; weight: number }[];
@@ -236,6 +274,8 @@ type InsightResponse = {
 
 export default function DreamInsightPage() {
   const { t } = useI18n();
+  const { profile, isLoading: profileLoading } = useUserProfile();
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   // Dream - Quick Select Mode
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
@@ -254,13 +294,23 @@ export default function DreamInsightPage() {
   // Birth data
   const [showBirthData, setShowBirthData] = useState(false);
   const [showCulturalSymbols, setShowCulturalSymbols] = useState(false);
-  const [date, setDate] = useState('1995-02-09');
-  const [time, setTime] = useState('06:40');
-  const [cityQuery, setCityQuery] = useState('Seoul, KR');
-  const [latitude, setLatitude] = useState(37.5665);
-  const [longitude, setLongitude] = useState(126.978);
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [cityQuery, setCityQuery] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const _timezones = useMemo(() => getSupportedTimezones(), []);
   const [timeZone, setTimeZone] = useState(getUserTimezone() || 'Asia/Seoul');
+
+  // Load profile data into form
+  useEffect(() => {
+    if (profileLoading || profileLoaded) return;
+    if (profile.birthDate) setDate(profile.birthDate);
+    if (profile.birthTime) setTime(profile.birthTime);
+    if (profile.birthCity) setCityQuery(profile.birthCity);
+    if (profile.timezone) setTimeZone(profile.timezone);
+    setProfileLoaded(true);
+  }, [profile, profileLoading, profileLoaded]);
 
   // Autocomplete
   const [suggestions, setSuggestions] = useState<CityItem[]>([]);
@@ -310,6 +360,148 @@ export default function DreamInsightPage() {
 
   // Voice recognition
   const voice = useVoiceRecognition();
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isChatStreaming, setIsChatStreaming] = useState(false);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+  const chatAbortControllerRef = useRef<AbortController | null>(null);
+
+  // Quick questions for chat
+  const QUICK_QUESTIONS = [
+    '이 꿈이 길몽인가요?',
+    '꿈에서 본 심볼의 의미를 더 알려주세요',
+    '이 꿈이 현실에서 어떤 의미가 있나요?',
+    '비슷한 꿈을 또 꾸면 어떻게 해야 하나요?',
+  ];
+
+  // Scroll to bottom of chat
+  useEffect(() => {
+    if (chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, isChatLoading]);
+
+  // Handle chat send
+  const handleChatSend = async (messageText?: string) => {
+    const text = messageText || chatInput.trim();
+    if (!text || isChatLoading || !result) return;
+
+    // Add user message
+    const userMessage: ChatMessage = { role: 'user', content: text };
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setIsChatLoading(true);
+    setIsChatStreaming(true);
+
+    // Add empty assistant message for streaming
+    setChatMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+    // Create abort controller
+    chatAbortControllerRef.current = new AbortController();
+
+    try {
+      const res = await fetch('/api/dream/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...chatMessages, userMessage],
+          dreamContext: {
+            dreamText: useDetailedMode ? detailedDream : generateQuickDreamEntry({
+              symbols: selectedSymbols,
+              emotions: selectedEmotions,
+              additionalDetails,
+            }),
+            summary: result.summary,
+            symbols: selectedSymbols,
+            emotions: selectedEmotions,
+            themes: selectedThemes,
+            recommendations: result.recommendations,
+          },
+          locale: 'ko',
+        }),
+        signal: chatAbortControllerRef.current.signal,
+      });
+
+      if (!res.ok) throw new Error('Chat request failed');
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let accumulated = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              break;
+            } else if (data === '[ERROR]') {
+              throw new Error('Stream error');
+            } else {
+              accumulated += data;
+              // Update the last assistant message
+              setChatMessages(prev => {
+                const updated = [...prev];
+                const lastIdx = updated.length - 1;
+                if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+                  updated[lastIdx] = { ...updated[lastIdx], content: accumulated };
+                }
+                return updated;
+              });
+            }
+          }
+        }
+      }
+
+      if (!accumulated) {
+        setChatMessages(prev => {
+          const updated = [...prev];
+          const lastIdx = updated.length - 1;
+          if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+            updated[lastIdx] = { ...updated[lastIdx], content: '응답을 받을 수 없습니다. 다시 시도해 주세요.' };
+          }
+          return updated;
+        });
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        // User cancelled
+        setChatMessages(prev => prev.slice(0, -1)); // Remove empty assistant message
+      } else {
+        setChatMessages(prev => {
+          const updated = [...prev];
+          const lastIdx = updated.length - 1;
+          if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+            updated[lastIdx] = { ...updated[lastIdx], content: '오류가 발생했습니다. 다시 시도해 주세요.' };
+          }
+          return updated;
+        });
+      }
+    } finally {
+      setIsChatLoading(false);
+      setIsChatStreaming(false);
+      chatAbortControllerRef.current = null;
+    }
+  };
+
+  // Handle chat input key down
+  const handleChatKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSend();
+    }
+  };
 
   // Autocomplete debounce
   useEffect(() => {
@@ -617,6 +809,90 @@ export default function DreamInsightPage() {
     abortControllerRef.current = new AbortController();
 
     try {
+      // Calculate saju fortune influence if birth data available
+      let sajuInfluence = null;
+      if (date && time) {
+        try {
+          const gender = profile.gender === 'Male' ? 'male' : 'female';
+          const tz = timeZone || 'Asia/Seoul';
+
+          // calculateSajuData expects: (birthDate: string, birthTime: string, gender, calendarType, timezone)
+          const sajuData = calculateSajuData(
+            date,           // YYYY-MM-DD format
+            time,           // HH:MM format
+            gender as 'male' | 'female',
+            'solar',        // calendar type
+            tz              // timezone
+          );
+
+          if (sajuData) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            const birthYear = parseInt(date.split('-')[0], 10);
+            const currentAge = currentYear - birthYear;
+
+            // Get current daeun (대운) from sajuData.daeWoon.list
+            const daeunList = sajuData.daeWoon?.list || [];
+            const currentDaeun = daeunList.slice().reverse().find((d: { age: number }) =>
+              currentAge >= d.age
+            ) || daeunList[0];
+
+            // Get current saeun (세운/연운)
+            // getAnnualCycles expects: (startYear, count, dayMaster)
+            const annualCycles = getAnnualCycles(currentYear, 1, sajuData.dayMaster);
+            const currentSaeun = annualCycles?.[0];
+
+            // Get current wolun (월운)
+            // getMonthlyCycles expects: (year, dayMaster)
+            const monthlyCycles = getMonthlyCycles(currentYear, sajuData.dayMaster);
+            const currentWolun = monthlyCycles?.find((m: { month: number }) => m.month === currentMonth);
+
+            // Get today's Iljin (일진) - daily fortune
+            const today = new Date();
+            const todayYear = today.getFullYear();
+            const todayMonth = today.getMonth() + 1;
+            const todayDay = today.getDate();
+            const iljinCalendar = getIljinCalendar(todayYear, todayMonth, sajuData.dayMaster);
+            const todayEntry = iljinCalendar?.find((d: { day: number }) => d.day === todayDay);
+
+            sajuInfluence = {
+              pillars: {
+                year: sajuData.yearPillar,
+                month: sajuData.monthPillar,
+                day: sajuData.dayPillar,
+                time: sajuData.timePillar,
+              },
+              dayMaster: sajuData.dayMaster,
+              currentDaeun: currentDaeun ? {
+                stem: currentDaeun.heavenlyStem,
+                branch: currentDaeun.earthlyBranch,
+                startAge: currentDaeun.age,
+                startYear: birthYear + currentDaeun.age,
+              } : null,
+              currentSaeun: currentSaeun ? {
+                stem: currentSaeun.heavenlyStem,
+                branch: currentSaeun.earthlyBranch,
+                year: currentSaeun.year,
+              } : null,
+              currentWolun: currentWolun ? {
+                stem: currentWolun.heavenlyStem,
+                branch: currentWolun.earthlyBranch,
+                month: currentWolun.month,
+              } : null,
+              todayIljin: todayEntry ? {
+                stem: todayEntry.heavenlyStem,
+                branch: todayEntry.earthlyBranch,
+                sibsin: todayEntry.sibsin,
+                isCheoneulGwiin: todayEntry.isCheoneulGwiin || false,
+              } : null,
+            };
+          }
+        } catch (sajuErr) {
+          console.warn('Failed to calculate saju influence:', sajuErr);
+        }
+      }
+
       const body = {
         dreamText,
         symbols: selectedSymbols,
@@ -626,6 +902,16 @@ export default function DreamInsightPage() {
         locale: 'ko',
         koreanTypes: selectedKoreanTypes,
         koreanLucky: selectedKoreanLucky,
+        // Birth data for astrology/saju analysis
+        birth: date && time ? {
+          date,
+          time,
+          timezone: timeZone,
+          latitude: latitude ?? undefined,
+          longitude: longitude ?? undefined,
+          gender: profile.gender,
+        } : undefined,
+        sajuInfluence,
       };
 
       // Call streaming API
@@ -741,6 +1027,10 @@ export default function DreamInsightPage() {
     setStreamingSummary('');
     setStreamingSymbols('');
     setStreamingRecommendations('');
+    // Reset chat state
+    setChatMessages([]);
+    setChatInput('');
+    setIsChatOpen(true);
   };
 
   return (
@@ -1326,8 +1616,8 @@ export default function DreamInsightPage() {
                       <p className={styles.inputSmall}>Timezone auto-detected from city.</p>
                     </div>
 
-                    <input type="hidden" name="latitude" value={latitude} />
-                    <input type="hidden" name="longitude" value={longitude} />
+                    <input type="hidden" name="latitude" value={latitude ?? ''} />
+                    <input type="hidden" name="longitude" value={longitude ?? ''} />
 
                     <div>
                       <label htmlFor="timeZone" className={styles.label}>{t("ui.timeZone")}</label>
@@ -1538,6 +1828,138 @@ export default function DreamInsightPage() {
                       </div>
                     </details>
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* Saju Fortune Influence Analysis */}
+            {(result.sajuAnalysis || result.saju_influence) && (
+              <div className={`${styles.resultCard} ${styles.sajuCard} ${styles.fadeIn}`} style={{ animationDelay: '0.08s' }}>
+                <div className={styles.resultCardGlow} />
+                <h3 className={styles.resultTitle}>🔮 사주 운세 영향 분석</h3>
+                <p className={styles.sajuSubtitle}>왜 지금 이런 꿈을 꿨는지 사주로 해석합니다</p>
+
+                {/* Current Fortune Display */}
+                {result.saju_influence && (
+                  <div className={styles.currentFortuneGrid}>
+                    {result.saju_influence.dayMaster && (
+                      <div className={styles.fortuneItem}>
+                        <span className={styles.fortuneLabel}>일간 (나의 기운)</span>
+                        <span className={styles.fortuneValue}>
+                          {result.saju_influence.dayMaster.stem} ({result.saju_influence.dayMaster.element})
+                        </span>
+                      </div>
+                    )}
+                    {result.saju_influence.currentDaeun && (
+                      <div className={styles.fortuneItem}>
+                        <span className={styles.fortuneLabel}>현재 대운 (10년)</span>
+                        <span className={styles.fortuneValue}>
+                          {result.saju_influence.currentDaeun.stem}{result.saju_influence.currentDaeun.branch}
+                          <span className={styles.fortuneElement}>({result.saju_influence.currentDaeun.element})</span>
+                        </span>
+                      </div>
+                    )}
+                    {result.saju_influence.currentSaeun && (
+                      <div className={styles.fortuneItem}>
+                        <span className={styles.fortuneLabel}>올해 세운</span>
+                        <span className={styles.fortuneValue}>
+                          {result.saju_influence.currentSaeun.stem}{result.saju_influence.currentSaeun.branch}
+                        </span>
+                      </div>
+                    )}
+                    {result.saju_influence.currentWolun && (
+                      <div className={styles.fortuneItem}>
+                        <span className={styles.fortuneLabel}>이번달 월운</span>
+                        <span className={styles.fortuneValue}>
+                          {result.saju_influence.currentWolun.stem}{result.saju_influence.currentWolun.branch}
+                        </span>
+                      </div>
+                    )}
+                    {result.saju_influence.todayIljin && (
+                      <div className={`${styles.fortuneItem} ${result.saju_influence.todayIljin.isCheoneulGwiin ? styles.fortuneItemSpecial : ''}`}>
+                        <span className={styles.fortuneLabel}>
+                          오늘 일진 {result.saju_influence.todayIljin.isCheoneulGwiin && '✨'}
+                        </span>
+                        <span className={styles.fortuneValue}>
+                          {result.saju_influence.todayIljin.stem}{result.saju_influence.todayIljin.branch}
+                        </span>
+                        {result.saju_influence.todayIljin.sibsin && (
+                          <span className={styles.fortuneSibsin}>
+                            {result.saju_influence.todayIljin.sibsin.cheon}/{result.saju_influence.todayIljin.sibsin.ji}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Saju Analysis from AI */}
+                {result.sajuAnalysis && (
+                  <details className={styles.sajuDetails} open>
+                    <summary className={styles.sajuSummary}>📖 상세 분석 보기</summary>
+                    <div className={styles.sajuAnalysisContent}>
+                      {result.sajuAnalysis.whyNow && (
+                        <div className={styles.sajuInsight}>
+                          <h4>💭 왜 지금 이 꿈을?</h4>
+                          <p>{result.sajuAnalysis.whyNow}</p>
+                        </div>
+                      )}
+                      {result.sajuAnalysis.fortuneConnection && (
+                        <div className={styles.sajuInsight}>
+                          <h4>🔗 운세와 꿈의 연결</h4>
+                          <p>{result.sajuAnalysis.fortuneConnection}</p>
+                        </div>
+                      )}
+                      {result.sajuAnalysis.lifePhaseInsight && (
+                        <div className={styles.sajuInsight}>
+                          <h4>🌟 현재 인생 시기의 의미</h4>
+                          <p>{result.sajuAnalysis.lifePhaseInsight}</p>
+                        </div>
+                      )}
+                      {result.sajuAnalysis.dailyInfluence && (
+                        <div className={styles.sajuInsight}>
+                          <h4>📅 오늘 일진의 영향</h4>
+                          <p>{result.sajuAnalysis.dailyInfluence}</p>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                )}
+
+                {/* Cosmic Influence Summary */}
+                {result.cosmicInfluence && (
+                  <details className={styles.cosmicDetails}>
+                    <summary className={styles.cosmicSummary}>🌌 우주적 영향 요약</summary>
+                    <div className={styles.cosmicContent}>
+                      {result.cosmicInfluence.moonPhaseEffect && (
+                        <div className={styles.cosmicItem}>
+                          <span className={styles.cosmicIcon}>🌙</span>
+                          <div>
+                            <strong>달의 위상 영향</strong>
+                            <p>{result.cosmicInfluence.moonPhaseEffect}</p>
+                          </div>
+                        </div>
+                      )}
+                      {result.cosmicInfluence.planetaryInfluence && (
+                        <div className={styles.cosmicItem}>
+                          <span className={styles.cosmicIcon}>🪐</span>
+                          <div>
+                            <strong>행성 영향</strong>
+                            <p>{result.cosmicInfluence.planetaryInfluence}</p>
+                          </div>
+                        </div>
+                      )}
+                      {result.cosmicInfluence.overallEnergy && (
+                        <div className={styles.cosmicItem}>
+                          <span className={styles.cosmicIcon}>✨</span>
+                          <div>
+                            <strong>종합 에너지</strong>
+                            <p>{result.cosmicInfluence.overallEnergy}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </details>
                 )}
               </div>
             )}
@@ -1755,6 +2177,117 @@ export default function DreamInsightPage() {
                 )}
               </div>
             )}
+
+            {/* Chat Section - Follow-up Questions */}
+            <div className={styles.chatSection}>
+              <div
+                className={styles.chatHeader}
+                onClick={() => setIsChatOpen(!isChatOpen)}
+              >
+                <div className={styles.chatHeaderLeft}>
+                  <span className={styles.chatHeaderIcon}>💬</span>
+                  <div>
+                    <h3 className={styles.chatHeaderTitle}>추가 질문하기</h3>
+                    <p className={styles.chatHeaderSubtitle}>꿈 해석에 대해 더 궁금한 점을 물어보세요</p>
+                  </div>
+                </div>
+                <span className={`${styles.chatToggleIcon} ${isChatOpen ? styles.chatToggleIconOpen : ''}`}>
+                  ▼
+                </span>
+              </div>
+
+              {isChatOpen && (
+                <div className={styles.chatContent}>
+                  {/* Messages */}
+                  <div className={styles.chatMessages}>
+                    {chatMessages.length === 0 ? (
+                      <div className={styles.chatEmpty}>
+                        <div className={styles.chatEmptyIcon}>🌙</div>
+                        <p className={styles.chatEmptyText}>
+                          해석에 대해 더 알고 싶은 것이 있으신가요?
+                        </p>
+                        <div className={styles.chatQuickQuestions}>
+                          {QUICK_QUESTIONS.map((q, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className={styles.chatQuickQuestion}
+                              onClick={() => handleChatSend(q)}
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {chatMessages.map((msg, i) => (
+                          <div
+                            key={i}
+                            className={`${styles.chatMessage} ${msg.role === 'user' ? styles.chatMessageUser : ''}`}
+                          >
+                            <div
+                              className={`${styles.chatMessageAvatar} ${
+                                msg.role === 'assistant'
+                                  ? styles.chatMessageAvatarAssistant
+                                  : styles.chatMessageAvatarUser
+                              }`}
+                            >
+                              {msg.role === 'assistant' ? '🌙' : '👤'}
+                            </div>
+                            <div
+                              className={`${styles.chatMessageBubble} ${
+                                msg.role === 'assistant'
+                                  ? styles.chatMessageBubbleAssistant
+                                  : styles.chatMessageBubbleUser
+                              }`}
+                            >
+                              {msg.content}
+                              {isChatStreaming && i === chatMessages.length - 1 && msg.role === 'assistant' && (
+                                <span className={styles.chatStreamingCursor} />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {isChatLoading && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
+                          <div className={styles.chatTyping}>
+                            <div className={styles.chatTypingDots}>
+                              <span className={styles.chatTypingDot} />
+                              <span className={styles.chatTypingDot} />
+                              <span className={styles.chatTypingDot} />
+                            </div>
+                            <span>답변을 준비하고 있어요...</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div ref={chatMessagesEndRef} />
+                  </div>
+
+                  {/* Input */}
+                  <div className={styles.chatInputArea}>
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={handleChatKeyDown}
+                      placeholder="꿈에 대해 더 궁금한 점을 입력하세요..."
+                      className={styles.chatInput}
+                      rows={2}
+                      disabled={isChatLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleChatSend()}
+                      disabled={isChatLoading || !chatInput.trim()}
+                      className={styles.chatSendButton}
+                    >
+                      <span className={styles.chatSendIcon}>✨</span>
+                      <span>질문하기</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

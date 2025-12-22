@@ -1,0 +1,177 @@
+{
+  "$schema": "cross_system_validation_v1",
+  "$description": "사주-점성술-타로-수비학-ICP 통합 검증 및 교차 분석",
+
+  "validation_framework": {
+    "purpose": "다양한 시스템 간 해석의 일관성 확인 및 통합 신뢰도 향상",
+    "method": "핵심 특성을 여러 시스템에서 교차 검증",
+    "confidence_levels": {
+      "high": "3개 이상 시스템에서 일치",
+      "medium": "2개 시스템에서 일치",
+      "low": "1개 시스템에서만 해당"
+    }
+  },
+
+  "personality_trait_mapping": {
+    "leadership": {
+      "description": "리더십, 주도성, 지배성",
+      "saju_indicators": ["비견 과다", "편관 강함", "일간 강함"],
+      "astro_indicators": ["태양 강함", "사자자리", "양자리", "10하우스 강조"],
+      "tarot_indicators": ["Emperor", "Chariot", "King cards"],
+      "numerology_indicators": ["1", "8", "마스터 넘버"],
+      "icp_indicators": ["PA", "BC"]
+    },
+    "nurturing": {
+      "description": "돌봄, 양육, 보호",
+      "saju_indicators": ["정인 강함", "식신 강함"],
+      "astro_indicators": ["달 강함", "게자리", "4하우스", "금성-달 조화"],
+      "tarot_indicators": ["Empress", "Queen of Cups", "6 of Pentacles"],
+      "numerology_indicators": ["6", "2"],
+      "icp_indicators": ["LM", "NO"]
+    },
+    "analytical": {
+      "description": "분석력, 탐구, 지적 능력",
+      "saju_indicators": ["편인 강함", "상관 강함"],
+      "astro_indicators": ["수성 강함", "처녀자리", "물병자리", "3하우스"],
+      "tarot_indicators": ["Hermit", "High Priestess", "Ace of Swords"],
+      "numerology_indicators": ["7", "4"],
+      "icp_indicators": ["DE"]
+    },
+    "creative": {
+      "description": "창의성, 표현력, 예술성",
+      "saju_indicators": ["식신 강함", "상관 강함", "화 오행 강함"],
+      "astro_indicators": ["금성 강함", "해왕성 강함", "5하우스", "물고기자리"],
+      "tarot_indicators": ["Magician", "Star", "3 of Wands"],
+      "numerology_indicators": ["3", "5", "9"],
+      "icp_indicators": ["PA_NO", "NO"]
+    },
+    "disciplined": {
+      "description": "규율, 체계, 인내",
+      "saju_indicators": ["정관 강함", "정재 강함", "토 오행 강함"],
+      "astro_indicators": ["토성 강함", "염소자리", "처녀자리", "6하우스"],
+      "tarot_indicators": ["Emperor", "4 of Pentacles", "Hierophant"],
+      "numerology_indicators": ["4", "8"],
+      "icp_indicators": ["PA", "DE"]
+    },
+    "intuitive": {
+      "description": "직관, 영성, 무의식 연결",
+      "saju_indicators": ["편인 강함", "수 오행 강함"],
+      "astro_indicators": ["해왕성 강함", "달 강함", "12하우스", "물고기자리"],
+      "tarot_indicators": ["High Priestess", "Moon", "Star"],
+      "numerology_indicators": ["7", "11"],
+      "icp_indicators": ["FG", "LM"]
+    }
+  },
+
+  "life_theme_validation": {
+    "career_success": {
+      "saju": ["정관 발달", "편관 제어됨", "재성 있음"],
+      "astro": ["10하우스 강함", "태양-토성 조화", "MC 강조"],
+      "tarot": ["Wheel of Fortune 정위치", "3 of Wands"],
+      "numerology": ["8 life path", "1 또는 4 expression"]
+    },
+    "relationship_harmony": {
+      "saju": ["정재-정인 균형", "육합", "일지 조화"],
+      "astro": ["7하우스 조화", "금성-화성 조화", "달-태양 조화"],
+      "tarot": ["Lovers", "2 of Cups", "10 of Pentacles"],
+      "numerology": ["2, 6 강조", "궁합 수 일치"]
+    },
+    "spiritual_growth": {
+      "saju": ["편인 발달", "공망에서의 깨달음"],
+      "astro": ["12하우스", "해왕성-목성 조화", "노드 축"],
+      "tarot": ["High Priestess", "Hermit", "World"],
+      "numerology": ["7, 9, 11 강조"]
+    }
+  },
+
+  "cross_validation_examples": {
+    "example_1": {
+      "query": "리더십 잠재력 평가",
+      "saju_result": {"비견": "강함", "편관": "있음", "일간": "갑목 강함"},
+      "astro_result": {"태양": "사자자리", "1하우스": "양자리", "화성": "10하우스"},
+      "numerology_result": {"life_path": 1, "expression": 8},
+      "icp_result": {"style": "PA"},
+      "validation": {
+        "agreement_count": 4,
+        "confidence": "high",
+        "conclusion": "강력한 리더십 잠재력 확인됨"
+      }
+    },
+    "example_2": {
+      "query": "관계 패턴 분석",
+      "saju_result": {"정인": "과다", "편관": "약함"},
+      "astro_result": {"달": "게자리", "금성": "12하우스", "7하우스": "비어있음"},
+      "numerology_result": {"soul_urge": 2},
+      "icp_result": {"style": "LM"},
+      "validation": {
+        "agreement_count": 4,
+        "confidence": "high",
+        "conclusion": "돌봄 제공자 경향, 자기 필요 표현 어려움"
+      }
+    }
+  },
+
+  "discrepancy_resolution": {
+    "description": "시스템 간 불일치 발생 시 해결 방법",
+    "strategies": [
+      {
+        "type": "developmental",
+        "explanation": "다른 인생 단계에서 다른 특성이 발현",
+        "example": "어릴 때 수줍었지만(사주) 성장하며 리더십 개발(점성술 트랜짓)"
+      },
+      {
+        "type": "conscious_vs_unconscious",
+        "explanation": "의식적 자아와 무의식적 자아의 차이",
+        "example": "드러난 성격(페르소나)과 내면(그림자)의 차이"
+      },
+      {
+        "type": "potential_vs_manifest",
+        "explanation": "잠재력과 실현된 것의 차이",
+        "example": "타고난 재능(사주)이 아직 개발되지 않음"
+      },
+      {
+        "type": "context_dependent",
+        "explanation": "상황에 따라 다른 특성이 발현",
+        "example": "직장에서는 리더(ICP PA), 가정에서는 돌봄자(정인)"
+      }
+    ]
+  },
+
+  "integration_synthesis": {
+    "method": "다중 시스템 통합 해석",
+    "steps": [
+      "1. 각 시스템의 핵심 특성 추출",
+      "2. 공통점 찾기 - 일치하는 특성 확인",
+      "3. 차이점 분석 - 불일치의 의미 탐구",
+      "4. 통합 해석 - 전체적인 그림 제시",
+      "5. 실용적 조언 - 강점 활용, 약점 보완"
+    ],
+    "output_template": {
+      "core_identity": "여러 시스템에서 일치하는 핵심 정체성",
+      "strengths": "교차 검증된 강점들",
+      "challenges": "여러 시스템에서 나타나는 과제",
+      "growth_areas": "개발 필요 영역",
+      "timing_insights": "현재 시점의 에너지 흐름",
+      "actionable_advice": "구체적 실천 방안"
+    }
+  },
+
+  "reliability_metrics": {
+    "single_system": {
+      "reliability": "60-70%",
+      "use_case": "빠른 인사이트, 특정 영역 집중"
+    },
+    "dual_system": {
+      "reliability": "75-85%",
+      "use_case": "균형 잡힌 분석"
+    },
+    "triple_system": {
+      "reliability": "85-90%",
+      "use_case": "깊이 있는 분석"
+    },
+    "full_integration": {
+      "reliability": "90-95%",
+      "use_case": "종합 인생 분석, 중요 결정"
+    }
+  }
+}

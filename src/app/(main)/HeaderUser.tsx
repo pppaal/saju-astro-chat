@@ -145,8 +145,8 @@ export default function HeaderUser() {
               Google
             </button>
 
-            {/* Kakao Login */}
-            <button
+            {/* Kakao Login - temporarily disabled */}
+            {/* <button
               onClick={() => signIn("kakao")}
               style={{
                 display: "flex",
@@ -176,7 +176,7 @@ export default function HeaderUser() {
                 <path fill="#000" d="M12 3C6.5 3 2 6.58 2 11c0 2.88 1.93 5.41 4.82 6.84-.2.74-.76 2.67-.87 3.08-.14.51.18.5.38.37.15-.1 2.44-1.63 3.47-2.32.77.11 1.56.17 2.37.17C17.5 19.14 22 15.56 22 11S17.5 3 12 3z"/>
               </svg>
               Kakao
-            </button>
+            </button> */}
           </div>
         )}
       </div>
@@ -185,35 +185,74 @@ export default function HeaderUser() {
 
   // Logged in - show login status with name (non-clickable)
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div
         style={{
-          color: "#A8C8FF",
-          fontSize: 14,
-          whiteSpace: "nowrap",
-          padding: "6px 14px",
-          borderRadius: 20,
-          background: "rgba(138,164,255,0.15)",
-          border: "1px solid rgba(138,164,255,0.25)",
-          backdropFilter: "blur(6px)",
-          cursor: "default",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "6px 14px 6px 8px",
+          borderRadius: 24,
+          background: "linear-gradient(135deg, rgba(99, 210, 255, 0.12) 0%, rgba(138, 164, 255, 0.12) 100%)",
+          border: "1px solid rgba(99, 210, 255, 0.2)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
         }}
       >
-        {t("common.loggedIn") || "로그인되어있음"}
-      </span>
-      <span style={{
-        color: "#EAE6FF",
-        opacity: 0.9,
-        fontSize: 14,
-        whiteSpace: "nowrap",
-        border: "1px solid rgba(138,164,255,0.25)",
-        padding: "4px 10px",
-        borderRadius: 16,
-        background: "rgba(15,20,36,0.35)",
-        backdropFilter: "blur(6px)",
-      }}>
-        {name}
-      </span>
+        {/* Avatar with gradient */}
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #63d2ff 0%, #a78bfa 50%, #7cf29c 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#fff",
+            textTransform: "uppercase",
+            boxShadow: "0 2px 8px rgba(99, 210, 255, 0.3)",
+          }}
+        >
+          {name?.charAt(0) || "U"}
+        </div>
+        {/* Name */}
+        <span
+          style={{
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+            letterSpacing: "0.01em",
+            background: "linear-gradient(135deg, #ffffff 0%, #a8c8ff 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          {name}
+        </span>
+        {/* Online indicator */}
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #22c55e 0%, #4ade80 100%)",
+            boxShadow: "0 0 8px rgba(34, 197, 94, 0.6)",
+            animation: "pulse 2s ease-in-out infinite",
+          }}
+        />
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
+          }
+        `}</style>
+      </div>
     </div>
   )
 }

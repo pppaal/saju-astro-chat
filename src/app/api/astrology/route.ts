@@ -1,5 +1,8 @@
 // src/app/api/astrology/route.ts
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/authOptions";
+import { prisma } from "@/lib/db/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -277,6 +280,35 @@ export async function POST(request: Request) {
       console.warn('[Astrology API] AI backend call failed:', aiErr);
       aiInterpretation = '';
       aiModelUsed = 'error-fallback';
+    }
+
+    // ======== 기록 저장 (로그인 사용자만) ========
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      try {
+        await prisma.reading.create({
+          data: {
+            userId: session.user.id,
+            type: 'astrology',
+            title: `${ascStr} 상승궁 출생차트`,
+            content: JSON.stringify({
+              date,
+              time,
+              latitude,
+              longitude,
+              timeZone,
+              ascendant: ascStr,
+              mc: mcStr,
+              planets: points.slice(0, 10).map((p: any) => ({
+                name: p.name,
+                sign: p.sign,
+              })),
+            }),
+          },
+        });
+      } catch (saveErr) {
+        console.warn('[Astrology API] Failed to save reading:', saveErr);
+      }
     }
 
     const res = NextResponse.json(

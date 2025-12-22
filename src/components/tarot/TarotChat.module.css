@@ -23,6 +23,52 @@
   gap: 1rem;
 }
 
+.cardContext {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.cardContextHeader {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #e6ddff;
+  margin-bottom: 0.5rem;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.cardPill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(138, 43, 226, 0.25);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+}
+
+.cardTitle {
+  font-size: 0.8rem;
+  color: #c6b8ff;
+  margin-bottom: 0.1rem;
+}
+
+.cardName {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.cardKeywords {
+  font-size: 0.78rem;
+  color: #d1d5db;
+  opacity: 0.85;
+  margin-top: 0.1rem;
+}
+
 .messagesPanel::-webkit-scrollbar {
   width: 6px;
 }
@@ -64,6 +110,16 @@
   line-height: 1.6;
   max-width: 300px;
   margin: 0;
+}
+
+.fallbackNote {
+  margin: 0.75rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fef3c7;
+  font-size: 0.9rem;
 }
 
 /* Suggested Questions Section */

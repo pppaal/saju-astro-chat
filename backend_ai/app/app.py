@@ -17,7 +17,8 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from typing import Optional, Tuple
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 from uuid import uuid4
 
 from flask import Flask, jsonify, g, request, Response, stream_with_context
@@ -201,6 +202,16 @@ except ImportError:
     get_model = None
     print("[app.py] GraphRAG not available")
 
+# OpenAI Client for streaming endpoints
+try:
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    OPENAI_AVAILABLE = True
+except Exception:
+    openai_client = None
+    OPENAI_AVAILABLE = False
+    print("[app.py] OpenAI client not available")
+
 # CorpusRAG System
 try:
     from backend_ai.app.corpus_rag import get_corpus_rag
@@ -209,6 +220,31 @@ except ImportError:
     HAS_CORPUS_RAG = False
     get_corpus_rag = None
     print("[app.py] CorpusRAG not available")
+
+# Numerology System
+try:
+    from backend_ai.app.numerology_logic import (
+        analyze_numerology,
+        analyze_numerology_compatibility,
+        calculate_full_numerology,
+    )
+    HAS_NUMEROLOGY = True
+except ImportError:
+    HAS_NUMEROLOGY = False
+    print("[app.py] Numerology not available")
+
+# ICP (Interpersonal Circumplex) System
+try:
+    from backend_ai.app.icp_logic import (
+        analyze_icp_style,
+        analyze_icp_compatibility,
+        get_icp_questions,
+        ICPAnalyzer,
+    )
+    HAS_ICP = True
+except ImportError:
+    HAS_ICP = False
+    print("[app.py] ICP not available")
 
 # Flask Application
 app = Flask(__name__)
@@ -262,6 +298,248 @@ except Exception as e:  # pragma: no cover
 # ===============================================================
 _CROSS_ANALYSIS_CACHE = {}
 
+# ===============================================================
+# 🔗 INTEGRATION ENGINE CACHE - Multimodal analysis data
+# ===============================================================
+_INTEGRATION_DATA_CACHE = {
+    "multimodal_engine": None,
+    "career_mapping": None,
+    "numerology_core": None,
+    "numerology_compatibility": None,
+    "numerology_saju": None,
+    "numerology_astro": None,
+    "numerology_therapeutic": None,
+}
+
+
+def _load_integration_data():
+    """Load integration engine and numerology data."""
+    global _INTEGRATION_DATA_CACHE
+
+    if _INTEGRATION_DATA_CACHE.get("multimodal_engine") is not None:
+        return _INTEGRATION_DATA_CACHE
+
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+
+    # Integration engine files
+    integration_dir = os.path.join(base_dir, "data", "graph", "rules", "integration")
+    integration_files = {
+        "multimodal_engine": "multimodal_integration_engine.json",
+        "career_mapping": "modern_career_mapping.json",
+    }
+
+    for key, filename in integration_files.items():
+        filepath = os.path.join(integration_dir, filename)
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    _INTEGRATION_DATA_CACHE[key] = json.load(f)
+                    logger.info(f"  ✅ Loaded integration: {filename}")
+        except Exception as e:
+            logger.warning(f"  ⚠️ Failed to load {filename}: {e}")
+            _INTEGRATION_DATA_CACHE[key] = {}
+
+    # Numerology files
+    numerology_dir = os.path.join(base_dir, "data", "graph", "rules", "numerology")
+    numerology_files = {
+        "numerology_core": "numerology_core_rules.json",
+        "numerology_compatibility": "numerology_compatibility_rules.json",
+        "numerology_saju": "numerology_saju_mapping.json",
+        "numerology_astro": "numerology_astro_mapping.json",
+        "numerology_therapeutic": "numerology_therapeutic_questions.json",
+    }
+
+    for key, filename in numerology_files.items():
+        filepath = os.path.join(numerology_dir, filename)
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    _INTEGRATION_DATA_CACHE[key] = json.load(f)
+                    logger.info(f"  ✅ Loaded numerology: {filename}")
+        except Exception as e:
+            logger.warning(f"  ⚠️ Failed to load {filename}: {e}")
+            _INTEGRATION_DATA_CACHE[key] = {}
+
+    loaded_count = sum(1 for v in _INTEGRATION_DATA_CACHE.values() if v)
+    logger.info(f"[INTEGRATION-CACHE] Loaded {loaded_count}/7 integration/numerology files")
+    return _INTEGRATION_DATA_CACHE
+
+
+def get_integration_context(theme: str = "life") -> Dict:
+    """Get theme-specific integration context for multimodal analysis."""
+    data = _load_integration_data()
+    engine = data.get("multimodal_engine", {})
+
+    result = {
+        "correlation_matrix": engine.get("correlation_matrix", {}),
+        "theme_focus": {},
+    }
+
+    # Get theme-specific focus areas
+    question_router = engine.get("question_router", {})
+    if theme in question_router:
+        result["theme_focus"] = question_router[theme]
+
+    return result
+
+
+# ===============================================================
+# 🧠 JUNG PSYCHOLOGY CACHE - Enhanced therapeutic data
+# ===============================================================
+_JUNG_DATA_CACHE = {
+    "active_imagination": None,
+    "lifespan_individuation": None,
+    "crisis_intervention": None,
+    "archetypes": None,
+    "therapeutic": None,
+    "cross_analysis": None,
+    "psychological_types": None,
+    "alchemy": None,
+    "counseling_scenarios": None,
+    "integrated_counseling": None,
+    "counseling_prompts": None,
+    "personality_integration": None,
+    "expanded_counseling": None,
+}
+
+
+def _load_jung_data():
+    """Load extended Jung psychology data for deeper therapeutic sessions."""
+    global _JUNG_DATA_CACHE
+
+    # Return cached data if already loaded
+    if _JUNG_DATA_CACHE.get("active_imagination") is not None:
+        return _JUNG_DATA_CACHE
+
+    jung_dir = os.path.join(os.path.dirname(__file__), "..", "data", "graph", "rules", "jung")
+    jung_dir = os.path.abspath(jung_dir)
+
+    files_to_load = {
+        "active_imagination": "jung_active_imagination.json",
+        "lifespan_individuation": "jung_lifespan_individuation.json",
+        "crisis_intervention": "jung_crisis_intervention.json",
+        "archetypes": "jung_archetypes.json",
+        "therapeutic": "jung_therapeutic.json",
+        "cross_analysis": "jung_cross_analysis.json",
+        "psychological_types": "jung_psychological_types.json",
+        "alchemy": "jung_alchemy.json",
+        "counseling_scenarios": "jung_counseling_scenarios.json",
+        "integrated_counseling": "jung_integrated_counseling.json",
+        "counseling_prompts": "jung_counseling_prompts.json",
+        "personality_integration": "jung_personality_integration.json",
+        "expanded_counseling": "jung_expanded_counseling.json",
+    }
+
+    for key, filename in files_to_load.items():
+        filepath = os.path.join(jung_dir, filename)
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    _JUNG_DATA_CACHE[key] = json.load(f)
+                    logger.info(f"  ✅ Loaded Jung data: {filename}")
+        except Exception as e:
+            logger.warning(f"  ⚠️ Failed to load {filename}: {e}")
+            _JUNG_DATA_CACHE[key] = {}
+
+    logger.info(f"[JUNG-CACHE] Loaded {sum(1 for v in _JUNG_DATA_CACHE.values() if v)} Jung psychology files")
+    return _JUNG_DATA_CACHE
+
+
+def get_lifespan_guidance(birth_year: int) -> dict:
+    """Get age-appropriate psychological guidance based on Jung's lifespan individuation."""
+    jung_data = _load_jung_data()
+    lifespan = jung_data.get("lifespan_individuation", {})
+
+    if not lifespan:
+        return {}
+
+    from datetime import datetime
+    current_year = datetime.now().year
+    age = current_year - birth_year
+
+    life_stages = lifespan.get("life_stages", {})
+
+    # Determine life stage
+    if age <= 12:
+        stage = "childhood"
+    elif age <= 22:
+        stage = "adolescence"
+    elif age <= 35:
+        stage = "early_adulthood"
+    elif age <= 55:
+        stage = "midlife"
+    elif age <= 70:
+        stage = "mature_adulthood"
+    else:
+        stage = "elder"
+
+    stage_data = life_stages.get(stage, {})
+
+    return {
+        "age": age,
+        "stage_name": stage_data.get("name_ko", stage),
+        "psychological_tasks": stage_data.get("psychological_tasks", []),
+        "archetypal_themes": stage_data.get("archetypal_themes", {}),
+        "developmental_crises": stage_data.get("developmental_crises", []),
+        "shadow_challenges": stage_data.get("shadow_challenges", stage_data.get("shadow_manifestations", [])),
+        "saju_parallel": stage_data.get("saju_parallel", {}),
+        "astro_parallel": stage_data.get("astro_parallel", {}),
+        "guidance": stage_data.get("guidance", stage_data.get("saturn_return_guidance", stage_data.get("uranus_opposition_guidance", {}))),
+    }
+
+
+def get_active_imagination_prompts(context: str) -> list:
+    """Get appropriate active imagination exercise prompts based on context."""
+    jung_data = _load_jung_data()
+    ai_data = jung_data.get("active_imagination", {})
+
+    if not ai_data:
+        return []
+
+    prompts = []
+    facilitation = ai_data.get("ai_facilitation_guide", {})
+
+    # Get opening prompts based on context
+    context_lower = context.lower()
+
+    if any(k in context_lower for k in ["꿈", "악몽", "꿈에서"]):
+        prompts = facilitation.get("opening_prompts", {}).get("after_dream_sharing", [])
+    elif any(k in context_lower for k in ["사주", "운세", "일간"]):
+        prompts = facilitation.get("opening_prompts", {}).get("after_saju_analysis", [])
+    elif any(k in context_lower for k in ["점성", "별자리", "하우스"]):
+        prompts = facilitation.get("opening_prompts", {}).get("after_astro_analysis", [])
+    else:
+        prompts = facilitation.get("opening_prompts", {}).get("general", [])
+
+    # Add deepening and integration prompts
+    deepening = facilitation.get("deepening_prompts", [])
+    integration = facilitation.get("integration_prompts", [])
+
+    return {
+        "opening": prompts[:2],
+        "deepening": deepening[:3],
+        "integration": integration[:2],
+    }
+
+
+def get_crisis_resources(locale: str = "ko") -> dict:
+    """Get crisis intervention resources and scripts."""
+    jung_data = _load_jung_data()
+    crisis = jung_data.get("crisis_intervention", {})
+
+    if not crisis:
+        return {}
+
+    resources = crisis.get("response_protocols", {}).get("suicidal_ideation", {}).get("resources_korea", {})
+    limitations = crisis.get("ai_limitations_and_boundaries", {})
+    deescalation = crisis.get("de_escalation_techniques", {})
+
+    return {
+        "resources": resources,
+        "limitations": limitations,
+        "deescalation": deescalation,
+    }
+
 def _load_cross_analysis_cache():
     """Load cross-analysis JSON files for instant lookups (no embedding search)."""
     global _CROSS_ANALYSIS_CACHE
@@ -291,31 +569,126 @@ def _load_cross_analysis_cache():
     return _CROSS_ANALYSIS_CACHE
 
 
-def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str = "chat") -> str:
+def normalize_day_master(saju_data: dict) -> dict:
     """
-    Get instant cross-analysis based on user's chart data.
-    Uses: 1) Cross-analysis cache (daymaster×sun), 2) GraphRAG theme rules (keyword match).
-    No embedding search - all instant lookups.
+    Normalize dayMaster to flat structure { name, element }.
+    Handles both:
+    - Nested: { heavenlyStem: { name: "庚", element: "금" }, element: "..." }
+    - Flat: { name: "庚", element: "금" } or { heavenlyStem: "庚", element: "금" }
+    Returns normalized saju_data with flat dayMaster.
+    """
+    if not saju_data or not saju_data.get("dayMaster"):
+        return saju_data
+
+    dm = saju_data.get("dayMaster", {})
+    if not isinstance(dm, dict):
+        return saju_data
+
+    # Check if heavenlyStem is a nested object
+    hs = dm.get("heavenlyStem")
+    if isinstance(hs, dict):
+        # Nested structure: { heavenlyStem: { name, element } }
+        normalized_dm = {
+            "name": hs.get("name", ""),
+            "heavenlyStem": hs.get("name", ""),
+            "element": hs.get("element") or dm.get("element", ""),
+        }
+        saju_data = dict(saju_data)  # Copy to avoid mutation
+        saju_data["dayMaster"] = normalized_dm
+        logger.debug(f"[NORMALIZE] dayMaster: nested -> flat: {normalized_dm}")
+    elif isinstance(hs, str):
+        # Already flat but with heavenlyStem as string
+        normalized_dm = {
+            "name": hs,
+            "heavenlyStem": hs,
+            "element": dm.get("element", ""),
+        }
+        saju_data = dict(saju_data)
+        saju_data["dayMaster"] = normalized_dm
+    # else: already in { name, element } format or empty
+
+    return saju_data
+
+
+def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str = "chat", locale: str = "ko") -> str:
+    """
+    Get detailed cross-analysis based on user's chart data.
+    Enhanced v3: Uses ALL fusion rules with:
+    - Planet + House combinations with timing/advice
+    - Saju Ten Gods (십신) analysis
+    - Element cross-matching (사주 오행 × 점성 원소)
+    - Health, Wealth, Family, Life Path analysis
+    - Actionable insights with specific timing
+    - Supports both new (text_ko/advice) and legacy (text only) rule formats
     """
     cache = _load_cross_analysis_cache()
     results = []
+    detailed_insights = []
 
-    # Get chart elements
-    daymaster = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
-    dm_element = saju_data.get("dayMaster", {}).get("element", "")
+    # Get chart elements (support both "heavenlyStem" and "name" for dayMaster)
+    dm_data = saju_data.get("dayMaster", {})
+    daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
+    dm_element = dm_data.get("element", "")
     sun_sign = astro_data.get("sun", {}).get("sign", "")
     moon_sign = astro_data.get("moon", {}).get("sign", "")
     dominant = saju_data.get("dominantElement", "")
 
-    # Map Korean sign names to English
+    # Extract Ten Gods (십신) from saju data
+    ten_gods = saju_data.get("tenGods", {})
+    dominant_god = ten_gods.get("dominant", "")  # e.g., "정관", "편관", "정재", "상관"
+
+    # Get element counts for imbalance detection
+    element_counts = saju_data.get("elementCounts", {})
+
+    # Map Korean sign names to English and element
     sign_map = {
         "양자리": "Aries", "황소자리": "Taurus", "쌍둥이자리": "Gemini",
         "게자리": "Cancer", "사자자리": "Leo", "처녀자리": "Virgo",
         "천칭자리": "Libra", "전갈자리": "Scorpio", "궁수자리": "Sagittarius",
         "염소자리": "Capricorn", "물병자리": "Aquarius", "물고기자리": "Pisces",
     }
+    sign_element_map = {
+        "Aries": "fire", "Leo": "fire", "Sagittarius": "fire",
+        "Taurus": "earth", "Virgo": "earth", "Capricorn": "earth",
+        "Gemini": "air", "Libra": "air", "Aquarius": "air",
+        "Cancer": "water", "Scorpio": "water", "Pisces": "water",
+    }
+    # Map saju elements to flags for health rules
+    element_to_flag = {
+        "木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water"
+    }
+
     sun_sign_en = sign_map.get(sun_sign, sun_sign)
     moon_sign_en = sign_map.get(moon_sign, moon_sign)
+    sun_element = sign_element_map.get(sun_sign_en, "")
+
+    # Planet-house combinations to check (used in multiple sections)
+    planet_house_checks = []
+    for planet in ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"]:
+        p_data = astro_data.get(planet, {})
+        house = p_data.get("house")
+        if house:
+            planet_house_checks.append((planet, str(house)))
+
+    # Load ALL fusion rules (not just career/love)
+    fusion_rules = {}
+    try:
+        rules_dir = Path(__file__).parent.parent / "data" / "graph" / "rules" / "fusion"
+        # Load all theme-specific fusion rules
+        all_rule_files = [
+            "career.json", "love.json", "health.json", "wealth.json",
+            "family.json", "life_path.json", "daily.json", "monthly.json",
+            "compatibility.json", "new_year.json", "next_year.json"
+        ]
+        for rule_file in all_rule_files:
+            rule_path = rules_dir / rule_file
+            if rule_path.exists():
+                with open(rule_path, "r", encoding="utf-8") as f:
+                    rules = json.load(f)
+                    fusion_rules[rule_file.replace(".json", "")] = rules
+        logger.debug(f"[CROSS-ANALYSIS] Loaded {len(fusion_rules)} fusion rule sets")
+    except Exception as e:
+        logger.warning(f"[CROSS-ANALYSIS] Failed to load fusion rules: {e}")
 
     # 1. Cross-analysis cache lookup (daymaster × sun sign) - INSTANT
     if cache:
@@ -332,22 +705,340 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
                 if moon_combo:
                     results.append(f"[{daymaster}+달:{moon_sign_en}] 감정: {moon_combo.get('insight', '')[:80]}")
 
-    # 2. GraphRAG theme rules (keyword match, no embedding) - INSTANT
+        # 1-2. 십신-행성 교차 분석 (cross_sipsin_planets.json)
+        sipsin_planets = cache.get("cross_sipsin_planets", {})
+        if sipsin_planets and dominant_god:
+            sipsin_mapping = sipsin_planets.get("sipsin_planet_mapping", {})
+            if dominant_god in sipsin_mapping:
+                sp_data = sipsin_mapping[dominant_god]
+                planet = sp_data.get("planet", "")
+                life_areas = sp_data.get("life_areas", {})
+                psych = sp_data.get("psychological_theme", "")
+                # Theme-specific insight from sipsin-planet mapping
+                area_text = ""
+                if theme in ["focus_career", "career"] and life_areas.get("career"):
+                    area_text = life_areas["career"]
+                elif theme in ["focus_love", "love"] and life_areas.get("relationship"):
+                    area_text = life_areas["relationship"]
+                elif theme in ["focus_wealth", "wealth"] and life_areas.get("wealth"):
+                    area_text = life_areas["wealth"]
+                elif theme in ["focus_health", "health"] and life_areas.get("health"):
+                    area_text = life_areas["health"]
+                if area_text:
+                    detailed_insights.append((7, f"🔗 십신×행성 [{dominant_god}↔{planet}]: {area_text} ({psych})"))
+
+        # 1-3. 지지-하우스 교차 분석 (cross_branch_house.json)
+        branch_house = cache.get("cross_branch_house", {})
+        if branch_house:
+            branch_mapping = branch_house.get("branch_house_mapping", {})
+            # Check year, month, day, hour branches
+            for pillar_key in ["yearPillar", "monthPillar", "dayPillar", "hourPillar"]:
+                pillar = saju_data.get(pillar_key, {})
+                branch = pillar.get("earthlyBranch", "")
+                branch_ko = {"子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
+                             "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"}.get(branch, "")
+                if branch_ko and branch_ko in branch_mapping:
+                    bh_data = branch_mapping[branch_ko]
+                    primary_house = bh_data.get("primary_house")
+                    # Check if user has a planet in this house
+                    for planet, house in planet_house_checks:
+                        if str(primary_house) == house:
+                            life_themes = bh_data.get("life_themes", {})
+                            shared = bh_data.get("shared_energy", "")
+                            pillar_names = {"yearPillar": "년지", "monthPillar": "월지", "dayPillar": "일지", "hourPillar": "시지"}
+                            detailed_insights.append((6, f"⚡ 지지×하우스 [{pillar_names[pillar_key]} {branch}↔{planet} {house}H]: {shared}"))
+                            break
+
+        # 1-4. 천간합/지지합 분석 (cross_relations_aspects.json)
+        relations_aspects = cache.get("cross_relations_aspects", {})
+        if relations_aspects:
+            major_aspects = relations_aspects.get("major_aspects", {})
+            conj = major_aspects.get("conjunction_0", {})
+            # Check for 천간합 in user's chart
+            cheongan_hap = conj.get("cheongan_hap_details", {})
+            year_stem = saju_data.get("yearPillar", {}).get("heavenlyStem", "")
+            day_stem = saju_data.get("dayPillar", {}).get("heavenlyStem", "")
+            # Common 합 combinations
+            hap_pairs = {"갑": "기", "을": "경", "병": "신", "정": "임", "무": "계",
+                         "기": "갑", "경": "을", "신": "병", "임": "정", "계": "무"}
+            for stem in [year_stem, day_stem]:
+                if stem and stem in hap_pairs:
+                    hap_key = f"{stem}{hap_pairs[stem]}합"
+                    if hap_key in cheongan_hap:
+                        hap_info = cheongan_hap[hap_key]
+                        detailed_insights.append((5, f"☯️ 천간합 [{hap_key}]: {hap_info.get('meaning', '')} → {hap_info.get('result', '')}기운 형성"))
+
+        # 1-5. 신살×소행성 매핑 (cross_shinsal_asteroids.json)
+        shinsal_asteroids = cache.get("cross_shinsal_asteroids", {})
+        if shinsal_asteroids:
+            shinsal_mapping = shinsal_asteroids.get("major_shinsal_mapping", {})
+            # Check user's shinsal from saju_data
+            user_shinsals = saju_data.get("sinsal", []) or saju_data.get("shinsals", []) or []
+            if isinstance(user_shinsals, dict):
+                user_shinsals = list(user_shinsals.keys())
+            for shinsal_name in user_shinsals[:3]:  # Top 3 shinsals
+                if shinsal_name in shinsal_mapping:
+                    ss_data = shinsal_mapping[shinsal_name]
+                    astro_par = ss_data.get("astro_parallel", {})
+                    primary = astro_par.get("primary", "")
+                    effect = ss_data.get("effect", "")
+                    house_act = ss_data.get("house_activation", [])
+                    # Check if user has matching planet in activated house
+                    if primary and effect:
+                        detailed_insights.append((6, f"⭐ 신살×점성 [{shinsal_name}↔{primary}]: {effect}"))
+
+        # 1-6. 격국×하우스 패턴 (cross_geokguk_house.json)
+        geokguk_house = cache.get("cross_geokguk_house", {})
+        if geokguk_house:
+            junggyeok = geokguk_house.get("junggyeok_8types", {})
+            user_geokguk = saju_data.get("geokguk", "") or saju_data.get("gyeokguk", "")
+            if user_geokguk and user_geokguk in junggyeok:
+                gk_data = junggyeok[user_geokguk]
+                astro_par = gk_data.get("astro_parallel", {})
+                chart_sig = gk_data.get("chart_signature", "")
+                life_exp = gk_data.get("life_expression", "")
+                primary = astro_par.get("primary", "")
+                if primary and chart_sig:
+                    detailed_insights.append((7, f"🏛️ 격국×차트 [{user_geokguk}↔{primary}]: {chart_sig}"))
+                    if life_exp and theme in ["career", "focus_career", "life"]:
+                        detailed_insights.append((6, f"   → 적성: {life_exp}"))
+
+        # 1-7. 대운×프로그레션 (cross_luck_progression.json)
+        luck_prog = cache.get("cross_luck_progression", {})
+        if luck_prog:
+            daeun_mapping = luck_prog.get("daeun_progression_mapping", {})
+            sipsin_daeun = daeun_mapping.get("sipsin_daeun_astro", {})
+            # Get current daeun sipsin
+            current_daeun = saju_data.get("currentDaeun", {}) or saju_data.get("daeWoon", {})
+            if isinstance(current_daeun, list) and len(current_daeun) > 0:
+                current_daeun = current_daeun[0]
+            daeun_sipsin = ""
+            if isinstance(current_daeun, dict):
+                daeun_sipsin = current_daeun.get("sipsin", "") or current_daeun.get("heavenlyGod", "")
+                if daeun_sipsin and "운" not in daeun_sipsin:
+                    daeun_sipsin = daeun_sipsin + "운"
+            if daeun_sipsin and daeun_sipsin in sipsin_daeun:
+                ld_data = sipsin_daeun[daeun_sipsin]
+                saju_theme = ld_data.get("saju_theme", "")
+                astro_par = ld_data.get("astro_parallel", "")
+                if saju_theme:
+                    detailed_insights.append((5, f"📅 대운×프로그레션 [{daeun_sipsin}]: {saju_theme}"))
+
+        # 1-8. 60갑자×하모닉/납음 (cross_60ganji_harmonic.json)
+        ganji_harmonic = cache.get("cross_60ganji_harmonic", {})
+        if ganji_harmonic:
+            naeum_types = ganji_harmonic.get("naeum_30_types", {})
+            # Get user's day pillar naeum
+            day_pillar = saju_data.get("dayPillar", {})
+            day_ganji = day_pillar.get("fullStem", "") or f"{day_pillar.get('heavenlyStem', '')}{day_pillar.get('earthlyBranch', '')}"
+            for naeum_name, naeum_data in naeum_types.items():
+                if not isinstance(naeum_data, dict):
+                    continue
+                ganji_list = naeum_data.get("ganji", [])
+                if any(day_ganji in g for g in ganji_list):
+                    harmonic = naeum_data.get("harmonic_parallel", {})
+                    personality = naeum_data.get("personality", "")
+                    life_theme = naeum_data.get("life_theme", "")
+                    h_primary = harmonic.get("primary", "")
+                    if personality:
+                        detailed_insights.append((6, f"🎵 납음×하모닉 [{naeum_name}↔{h_primary}]: {personality}"))
+                    if life_theme:
+                        detailed_insights.append((5, f"   → 삶의 테마: {life_theme}"))
+                    break
+
+        # 1-9. 공망×드라코닉 카르마 (cross_draconic_karma.json)
+        draconic_karma = cache.get("cross_draconic_karma", {})
+        if draconic_karma:
+            gongmang_sn = draconic_karma.get("gongmang_south_node", {})
+            branch_void = gongmang_sn.get("cross_mapping", {}).get("branch_house_void", {})
+            user_gongmang = saju_data.get("gongmang", []) or saju_data.get("kongmang", [])
+            if isinstance(user_gongmang, str):
+                user_gongmang = [user_gongmang]
+            for gm in user_gongmang[:2]:
+                gm_key = f"{gm}_공망"
+                if gm_key in branch_void:
+                    gm_data = branch_void[gm_key]
+                    theme = gm_data.get("theme", "")
+                    draconic = gm_data.get("draconic", "")
+                    if theme:
+                        detailed_insights.append((5, f"🌙 공망×드라코닉 [{gm} 공망]: {theme}"))
+
+    # 2. Planet-House detailed analysis from ALL fusion rules
+    is_ko = locale == "ko"
+    text_key = "text_ko" if is_ko else "text_en"
+
+    # Determine which domains to use based on theme (expanded for all themes)
+    theme_to_domain = {
+        # General chat uses multiple domains
+        "chat": ["career", "love", "health", "wealth"],
+        "life": ["career", "love", "life_path", "wealth"],
+        "life_path": ["life_path", "career", "love"],
+        # Focus themes use specific domains
+        "focus_career": ["career"], "career": ["career"],
+        "focus_love": ["love"], "love": ["love"],
+        "focus_health": ["health"], "health": ["health"],
+        "focus_wealth": ["wealth"], "wealth": ["wealth"],
+        "focus_family": ["family"], "family": ["family"],
+        # Time-based themes
+        "daily": ["daily", "health"],
+        "monthly": ["monthly", "career", "love"],
+        "new_year": ["new_year", "career", "love", "health"],
+        "next_year": ["next_year", "career", "wealth"],
+        # Compatibility
+        "compatibility": ["compatibility", "love"],
+    }
+    domains = theme_to_domain.get(theme, ["career", "love", "health"])
+
+    # Helper to extract text from rule (supports both new and legacy formats)
+    def get_rule_text(rule: dict, prefer_ko: bool = True) -> str:
+        """Extract text from rule, supporting both new (text_ko/text_en) and legacy (text) formats."""
+        if prefer_ko:
+            return rule.get("text_ko", rule.get("text", rule.get("text_en", "")))
+        else:
+            return rule.get("text_en", rule.get("text", rule.get("text_ko", "")))
+
+    # Theme-specific emoji mapping
+    domain_emoji = {
+        "career": "💼", "love": "💕", "health": "🏥", "wealth": "💰",
+        "family": "👨‍👩‍👧‍👦", "life_path": "🌟", "daily": "📅", "monthly": "📆",
+        "compatibility": "💑", "new_year": "🎊", "next_year": "🔮"
+    }
+
+    # Apply detailed fusion rules for ALL domains
+    for domain in domains:
+        if domain not in fusion_rules:
+            continue
+        rules = fusion_rules[domain]
+        emoji = domain_emoji.get(domain, "✨")
+
+        # A. Check planet-house rules (e.g., rule_sun_10, rule_venus_7)
+        # Also check legacy format: rule_1, rule_2, etc. with "when" arrays
+        for planet, house in planet_house_checks:
+            # New format: rule_{planet}_{house}
+            rule_key = f"rule_{planet}_{house}"
+            if rule_key in rules:
+                rule = rules[rule_key]
+                text = get_rule_text(rule, is_ko)
+                advice = rule.get("advice_ko", "")
+                timing = rule.get("timing", "")
+                saju_link = rule.get("saju_link", "")
+                weight = rule.get("weight", 5)
+
+                if text:
+                    insight = f"{emoji} {text[:150]}"
+                    if timing and is_ko:
+                        insight += f"\n⏰ 시기: {timing}"
+                    if advice and is_ko:
+                        insight += f"\n💡 조언: {advice}"
+                    if saju_link and dominant_god and dominant_god in saju_link:
+                        insight += f"\n🔗 사주연결: {saju_link}"
+                    detailed_insights.append((weight, insight))
+
+            # Legacy format: search for rules with "when" arrays containing planet and house
+            for rule_key, rule in rules.items():
+                if not isinstance(rule, dict):
+                    continue
+                when = rule.get("when", [])
+                if isinstance(when, list) and planet in when and house in when:
+                    text = get_rule_text(rule, is_ko)
+                    weight = rule.get("weight", 4)
+                    if text and len(text) > 10:
+                        # Translate common English patterns to Korean if needed
+                        if is_ko and text.startswith(planet.capitalize()):
+                            text = f"{planet.capitalize()} {house}하우스: {text.split(':', 1)[-1].strip() if ':' in text else text}"
+                        insight = f"{emoji} {text[:120]}"
+                        detailed_insights.append((weight, insight))
+                        break  # Only one match per planet-house combo per domain
+
+        # B. Health-specific: Element imbalance analysis
+        if domain == "health" and element_counts:
+            for elem_ko, elem_en in element_to_flag.items():
+                count = element_counts.get(elem_ko, 0)
+                # Check for depleted elements (0 count)
+                if count == 0:
+                    flag_key = f"{elem_en}_zero"
+                    for rule_key, rule in rules.items():
+                        when = rule.get("when", [])
+                        if isinstance(when, list) and flag_key in when:
+                            text = get_rule_text(rule, is_ko)
+                            weight = rule.get("weight", 4)
+                            if text:
+                                ko_elem_names = {"wood": "목(木)", "fire": "화(火)", "earth": "토(土)", "metal": "금(金)", "water": "수(水)"}
+                                elem_name = ko_elem_names.get(elem_en, elem_en)
+                                insight = f"🏥 {elem_name} 부족: {text[:100]}" if is_ko else f"🏥 {elem_en} depleted: {text[:100]}"
+                                detailed_insights.append((weight, insight))
+                                break
+                # Check for excess elements (high count, e.g., >= 3)
+                elif count >= 3:
+                    flag_key = f"{elem_en}_high"
+                    for rule_key, rule in rules.items():
+                        when = rule.get("when", [])
+                        if isinstance(when, list) and flag_key in when:
+                            text = get_rule_text(rule, is_ko)
+                            weight = rule.get("weight", 3)
+                            if text:
+                                ko_elem_names = {"wood": "목(木)", "fire": "화(火)", "earth": "토(土)", "metal": "금(金)", "water": "수(水)"}
+                                elem_name = ko_elem_names.get(elem_en, elem_en)
+                                insight = f"🏥 {elem_name} 과다: {text[:100]}" if is_ko else f"🏥 {elem_en} excess: {text[:100]}"
+                                detailed_insights.append((weight, insight))
+                                break
+
+        # C. Wealth-specific: Money house analysis (2, 8, 10, 11)
+        if domain == "wealth":
+            money_houses = ["2", "8", "10", "11"]
+            for planet, house in planet_house_checks:
+                if house in money_houses:
+                    for rule_key, rule in rules.items():
+                        when = rule.get("when", [])
+                        if isinstance(when, list) and planet in when and house in when:
+                            text = get_rule_text(rule, is_ko)
+                            weight = rule.get("weight", 5)
+                            if text:
+                                insight = f"💰 {text[:120]}"
+                                detailed_insights.append((weight, insight))
+                                break
+
+        # D. Check Ten Gods rules (십신 기반 분석) - for career/love domains
+        if dominant_god and domain in ["career", "love"]:
+            god_mapping = {
+                "정관": "jeonggwan", "편관": "pyeongwan",
+                "정재": "jeongje", "편재": "pyeonje",
+                "상관": "sangwan", "식신": "sikshin",
+                "정인": "jeongin", "편인": "pyeonin",
+                "비견": "bigyeon", "겁재": "geopje",
+            }
+            mapped_god = god_mapping.get(dominant_god, "")
+            if mapped_god:
+                for rule_key, rule in rules.items():
+                    if mapped_god in rule_key.lower():
+                        text = get_rule_text(rule, is_ko)
+                        advice = rule.get("advice_ko", "")
+                        weight = rule.get("weight", 5)
+                        if text:
+                            insight = f"📊 십신분석 [{dominant_god}]: {text[:120]}"
+                            if advice:
+                                insight += f"\n💡 {advice}"
+                            detailed_insights.append((weight, insight))
+                            break
+
+        # E. Check element cross-rules (사주 오행 × 점성 원소)
+        if dm_element and sun_element:
+            for rule_key, rule in rules.items():
+                if "cross" in rule_key and dm_element in rule_key and sun_element in rule_key:
+                    text = get_rule_text(rule, is_ko)
+                    advice = rule.get("advice_ko", "")
+                    weight = rule.get("weight", 6)
+                    if text:
+                        insight = f"🔮 융합분석 [{dm_element}+{sun_element}]: {text[:120]}"
+                        if advice:
+                            insight += f"\n💡 {advice}"
+                        detailed_insights.append((weight, insight))
+                        break
+
+    # 3. GraphRAG theme rules (keyword match, no embedding) - INSTANT
     if HAS_GRAPH_RAG:
         try:
             graph_rag = get_graph_rag()
-
-            # Map themes to rule domains
-            theme_map = {
-                "chat": ["career", "love", "health"],
-                "focus_career": ["career"], "career": ["career"],
-                "focus_love": ["love"], "love": ["love"],
-                "focus_health": ["health"], "health": ["health"],
-                "focus_wealth": ["wealth"], "wealth": ["wealth"],
-                "focus_family": ["family"], "family": ["family"],
-                "life": ["life_path"], "life_path": ["life_path"],
-            }
-            domains = theme_map.get(theme, ["career", "love"])
 
             # Build facts string for rule matching
             facts_parts = [theme, daymaster, dm_element, dominant]
@@ -357,11 +1048,8 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
                 facts_parts.append(moon_sign_en.lower())
 
             # Add planets in houses
-            for planet in ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"]:
-                p_data = astro_data.get(planet, {})
-                house = p_data.get("house")
-                if house:
-                    facts_parts.extend([planet, str(house), f"{planet} {house}"])
+            for planet, house in planet_house_checks:
+                facts_parts.extend([planet, house, f"{planet} {house}"])
 
             facts_str = " ".join(filter(None, facts_parts))
 
@@ -375,7 +1063,355 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
         except Exception as e:
             logger.warning(f"[CROSS-ANALYSIS] GraphRAG rules failed: {e}")
 
-    return "\n".join(results[:5]) if results else ""
+    # Sort detailed insights by weight (highest first) and deduplicate
+    detailed_insights.sort(key=lambda x: -x[0])
+    seen_texts = set()
+    unique_insights = []
+    for weight, insight in detailed_insights:
+        # Use first 50 chars as dedup key
+        key = insight[:50]
+        if key not in seen_texts:
+            seen_texts.add(key)
+            unique_insights.append(insight)
+        if len(unique_insights) >= 5:  # Take top 5 unique insights
+            break
+
+    # Combine all results: basic cross-analysis + detailed insights
+    all_results = results + unique_insights
+
+    # Log summary
+    logger.info(f"[CROSS-ANALYSIS] Generated {len(all_results)} insights for theme={theme}, domains={domains}")
+
+    return "\n\n".join(all_results[:8]) if all_results else ""
+
+
+# ===============================================================
+# 🎯 THEME-SPECIFIC FUSION RULES - Daily/Monthly/Yearly guidance
+# ===============================================================
+
+def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale: str = "ko", birth_year: int = None) -> str:
+    """
+    Get theme-specific fusion rules based on counselor theme.
+    Applies rules from daily.json, monthly.json, new_year.json, next_year.json, family.json, life_path.json.
+
+    Returns actionable insights tailored to the specific counseling theme.
+    """
+    from pathlib import Path
+    from datetime import datetime
+
+    results = []
+    is_ko = locale == "ko"
+    now = datetime.now()
+
+    # Theme to rule file mapping
+    theme_file_map = {
+        "focus_overall": ["daily", "monthly", "life_path", "new_year"],
+        "focus_career": ["daily", "monthly", "career"],
+        "focus_love": ["daily", "monthly", "love", "family"],
+        "focus_health": ["daily", "monthly", "health"],
+        "focus_wealth": ["daily", "monthly", "wealth"],
+        "focus_family": ["daily", "monthly", "family"],
+        "focus_2025": ["new_year", "next_year", "monthly"],
+        "focus_compatibility": ["compatibility", "love", "family"],
+        "chat": ["daily", "life_path"],
+    }
+
+    rule_files = theme_file_map.get(theme, ["daily", "life_path"])
+
+    # Load fusion rules
+    rules_dir = Path(__file__).parent.parent / "data" / "graph" / "rules" / "fusion"
+    loaded_rules = {}
+    for rf in rule_files:
+        rule_path = rules_dir / f"{rf}.json"
+        if rule_path.exists():
+            try:
+                with open(rule_path, "r", encoding="utf-8") as f:
+                    loaded_rules[rf] = json.load(f)
+            except Exception as e:
+                logger.warning(f"[THEME-FUSION] Failed to load {rf}.json: {e}")
+
+    # Extract chart data
+    dm_data = saju_data.get("dayMaster", {})
+    daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
+    dm_element = dm_data.get("element", "")
+    ten_gods = saju_data.get("tenGods", {})
+    dominant_god = ten_gods.get("dominant", "")
+
+    # Astrology data
+    sun_sign = astro_data.get("sun", {}).get("sign", "")
+    moon_sign = astro_data.get("moon", {}).get("sign", "")
+
+    # Calculate age if birth_year provided
+    current_age = now.year - birth_year if birth_year else None
+
+    # Helper to get localized text
+    def get_text(rule):
+        if is_ko:
+            return rule.get("text_ko", rule.get("text", ""))
+        return rule.get("text_en", rule.get("text", ""))
+
+    def get_advice(rule):
+        return rule.get("advice_ko", "") if is_ko else rule.get("advice_en", "")
+
+    # ===============================================================
+    # 1. DAILY RULES - Moon phases, planetary transits, day energy
+    # ===============================================================
+    if "daily" in loaded_rules:
+        daily_rules = loaded_rules["daily"]
+
+        # Check moon phase (simplified - use current day of lunar month)
+        lunar_day = now.day % 30
+        if lunar_day <= 3:  # New moon period
+            rule = daily_rules.get("rule_new_moon_day")
+            if rule:
+                results.append(f"🌑 {get_text(rule)}\n💡 {get_advice(rule)}")
+        elif 13 <= lunar_day <= 17:  # Full moon period
+            rule = daily_rules.get("rule_full_moon_day")
+            if rule:
+                results.append(f"🌕 {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check daily Ten God energy (ilgan)
+        if dominant_god:
+            god_category = ""
+            if dominant_god in ["비견", "겁재"]:
+                god_category = "bigyeop"
+            elif dominant_god in ["식신", "상관"]:
+                god_category = "siksang"
+            elif dominant_god in ["정재", "편재"]:
+                god_category = "jaesung"
+            elif dominant_god in ["정관", "편관"]:
+                god_category = "gwansung"
+            elif dominant_god in ["정인", "편인"]:
+                god_category = "insung"
+
+            if god_category:
+                rule_key = f"rule_ilgan_{god_category}"
+                rule = daily_rules.get(rule_key)
+                if rule:
+                    results.append(f"📅 오늘의 기운 [{dominant_god}]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 2. MONTHLY RULES - Seasonal energy, monthly transits
+    # ===============================================================
+    if "monthly" in loaded_rules:
+        monthly_rules = loaded_rules["monthly"]
+
+        # Check monthly Ten God energy (wolgon)
+        if dominant_god:
+            god_category = ""
+            if dominant_god in ["비견", "겁재"]:
+                god_category = "bigyeop"
+            elif dominant_god in ["식신", "상관"]:
+                god_category = "siksang"
+            elif dominant_god in ["정재", "편재"]:
+                god_category = "jaesung"
+            elif dominant_god in ["정관", "편관"]:
+                god_category = "gwansung"
+            elif dominant_god in ["정인", "편인"]:
+                god_category = "insung"
+
+            if god_category:
+                rule_key = f"rule_wolgon_{god_category}"
+                rule = monthly_rules.get(rule_key)
+                if rule:
+                    results.append(f"📆 이번 달 에너지 [{dominant_god}]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check for eclipse month (simple approximation - eclipse seasons)
+        if now.month in [3, 4, 9, 10]:  # Approximate eclipse seasons
+            rule = monthly_rules.get("rule_eclipse_month")
+            if rule and rule.get("weight", 0) >= 8:
+                results.append(f"🌓 {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 3. NEW YEAR / 2025 RULES - Annual themes, daeun
+    # ===============================================================
+    if "new_year" in loaded_rules and theme in ["focus_2025", "focus_overall"]:
+        new_year_rules = loaded_rules["new_year"]
+
+        # Check daeun (10-year luck cycle) based on dominant god
+        if dominant_god:
+            god_category = ""
+            if dominant_god in ["비견", "겁재"]:
+                god_category = "bigyeop"
+            elif dominant_god in ["식신", "상관"]:
+                god_category = "siksang"
+            elif dominant_god in ["정재", "편재"]:
+                god_category = "jaesung"
+            elif dominant_god in ["정관", "편관"]:
+                god_category = "gwansung"
+            elif dominant_god in ["정인", "편인"]:
+                god_category = "insung"
+
+            if god_category:
+                rule_key = f"rule_daeun_{god_category}"
+                rule = new_year_rules.get(rule_key)
+                if rule:
+                    results.append(f"🎊 2025년 대운 [{dominant_god}]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check year pillar harmony/clash (simplified)
+        # 2025 is 을사년 (乙巳年) - Wood Snake
+        year_snake_compatible = ["자", "축", "신", "유"]  # Generally harmonious
+        year_snake_clash = ["해"]  # 사해충
+
+        day_branch = saju_data.get("dayPillar", {}).get("earthlyBranch", "")
+        branch_ko = {"子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
+                     "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"}.get(day_branch, "")
+
+        if branch_ko in year_snake_compatible:
+            rule = new_year_rules.get("rule_year_pillar_match")
+            if rule:
+                results.append(f"✨ 2025년 운세 조화: {get_text(rule)}\n💡 {get_advice(rule)}")
+        elif branch_ko in year_snake_clash:
+            rule = new_year_rules.get("rule_year_pillar_clash")
+            if rule:
+                results.append(f"⚡ 2025년 변화의 해: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 4. NEXT YEAR RULES - Future planning
+    # ===============================================================
+    if "next_year" in loaded_rules and theme in ["focus_2025"]:
+        next_year_rules = loaded_rules["next_year"]
+
+        # Seun (yearly luck) based on dominant god
+        if dominant_god:
+            god_category = ""
+            if dominant_god in ["비견", "겁재"]:
+                god_category = "bigyeop"
+            elif dominant_god in ["식신", "상관"]:
+                god_category = "siksang"
+            elif dominant_god in ["정재", "편재"]:
+                god_category = "jaesung"
+            elif dominant_god in ["정관", "편관"]:
+                god_category = "gwansung"
+            elif dominant_god in ["정인", "편인"]:
+                god_category = "insung"
+
+            if god_category:
+                rule_key = f"rule_seun_{god_category}"
+                rule = next_year_rules.get(rule_key)
+                if rule:
+                    results.append(f"🔮 2026년 세운 전망 [{dominant_god}]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 5. FAMILY RULES - Relationship dynamics
+    # ===============================================================
+    if "family" in loaded_rules and theme in ["focus_love", "focus_family", "focus_compatibility"]:
+        family_rules = loaded_rules["family"]
+
+        # Check moon house position for family dynamics
+        moon_house = astro_data.get("moon", {}).get("house")
+        if moon_house:
+            house_num = str(moon_house).replace("H", "")
+            rule_key = f"rule_moon_{house_num}"
+            rule = family_rules.get(rule_key)
+            if rule:
+                results.append(f"👨‍👩‍👧‍👦 가족 관계 [달 {house_num}하우스]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check venus for relationships
+        venus_house = astro_data.get("venus", {}).get("house")
+        if venus_house:
+            house_num = str(venus_house).replace("H", "")
+            rule_key = f"rule_venus_{house_num}"
+            rule = family_rules.get(rule_key)
+            if rule:
+                results.append(f"💕 관계 에너지 [금성 {house_num}하우스]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 5-1. HEALTH RULES - Element balance, 6th/12th house
+    # ===============================================================
+    if "health" in loaded_rules and theme == "focus_health":
+        health_rules = loaded_rules["health"]
+
+        # Check element deficiencies
+        element_counts = saju_data.get("elementCounts", {})
+        element_map = {"木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water"}
+
+        for elem_ko, elem_en in element_map.items():
+            count = element_counts.get(elem_ko, 0)
+            if count == 0:
+                rule_key = f"rule_{elem_en}_zero"
+                rule = health_rules.get(rule_key)
+                if rule:
+                    results.append(f"⚕️ 오행 부족 [{elem_ko}]: {get_text(rule)}\n💡 {get_advice(rule)}")
+            elif count >= 3:
+                rule_key = f"rule_{elem_en}_high"
+                rule = health_rules.get(rule_key)
+                if rule:
+                    results.append(f"⚕️ 오행 과다 [{elem_ko}]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check health houses (6, 12)
+        for planet in ["mars", "saturn", "moon", "neptune", "jupiter", "pluto"]:
+            planet_data = astro_data.get(planet, {})
+            house = planet_data.get("house")
+            if house:
+                house_num = str(house).replace("H", "")
+                if house_num in ["6", "12", "1"]:
+                    rule_key = f"rule_{planet}_{house_num}"
+                    rule = health_rules.get(rule_key)
+                    if rule:
+                        results.append(f"🏥 건강 관리 [{planet} {house_num}하우스]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 5-2. WEALTH RULES - Money houses, financial potential
+    # ===============================================================
+    if "wealth" in loaded_rules and theme == "focus_wealth":
+        wealth_rules = loaded_rules["wealth"]
+
+        # Check money houses (2, 8, 10, 11)
+        for planet in ["jupiter", "venus", "saturn", "uranus", "pluto", "moon", "mars", "mercury", "sun"]:
+            planet_data = astro_data.get(planet, {})
+            house = planet_data.get("house")
+            if house:
+                house_num = str(house).replace("H", "")
+                if house_num in ["2", "8", "10", "11"]:
+                    rule_key = f"rule_{planet}_{house_num}"
+                    rule = wealth_rules.get(rule_key)
+                    if rule:
+                        results.append(f"💰 재물운 [{planet} {house_num}하우스]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check jaesung (재성) strength
+        ten_gods_count = saju_data.get("tenGodsCount", {})
+        jaesung_count = ten_gods_count.get("정재", 0) + ten_gods_count.get("편재", 0)
+        if jaesung_count >= 2:
+            rule = wealth_rules.get("rule_jaesung_strong")
+            if rule:
+                results.append(f"💎 재성 분석: {get_text(rule)}\n💡 {get_advice(rule)}")
+        elif jaesung_count == 0:
+            rule = wealth_rules.get("rule_jaesung_weak")
+            if rule:
+                results.append(f"💎 재성 분석: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # ===============================================================
+    # 6. LIFE PATH RULES - Soul purpose, individuation
+    # ===============================================================
+    if "life_path" in loaded_rules and theme in ["focus_overall", "chat"]:
+        life_path_rules = loaded_rules["life_path"]
+
+        # Check sun house for life purpose
+        sun_house = astro_data.get("sun", {}).get("house")
+        if sun_house:
+            house_num = str(sun_house).replace("H", "")
+            rule_key = f"rule_sun_{house_num}"
+            rule = life_path_rules.get(rule_key)
+            if rule:
+                results.append(f"🌟 인생 방향 [태양 {house_num}하우스]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+        # Check north node for karmic direction
+        north_node = astro_data.get("northNode", {}) or astro_data.get("north_node", {})
+        nn_house = north_node.get("house")
+        if nn_house:
+            house_num = str(nn_house).replace("H", "")
+            rule_key = f"rule_north_node_{house_num}"
+            rule = life_path_rules.get(rule_key)
+            if rule:
+                results.append(f"🧭 영혼의 성장 방향 [북교점 {house_num}하우스]: {get_text(rule)}\n💡 {get_advice(rule)}")
+
+    # Limit results and format
+    if results:
+        logger.info(f"[THEME-FUSION] Generated {len(results)} theme-specific insights for {theme}")
+        return "\n\n".join(results[:5])  # Top 5 insights
+
+    return ""
 
 
 # ===============================================================
@@ -422,7 +1458,7 @@ def _evict_lru_sessions(keep_count: int = SESSION_CACHE_MAX_SIZE):
         logger.info(f"[SESSION-CACHE] LRU evicted {evict_count} sessions, {len(_SESSION_RAG_CACHE)} remaining")
 
 
-def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat") -> dict:
+def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat", locale: str = "ko") -> dict:
     """
     Pre-fetch relevant data from ALL RAG systems for a user's chart.
     Uses parallel execution for ~2-3x speedup.
@@ -439,9 +1475,10 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
         "cross_analysis": "",
     }
 
-    # Build query from chart data
-    daymaster = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
-    dm_element = saju_data.get("dayMaster", {}).get("element", "")
+    # Build query from chart data (support both "heavenlyStem" and "name" for dayMaster)
+    dm_data = saju_data.get("dayMaster", {})
+    daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
+    dm_element = dm_data.get("element", "")
     sun_sign = astro_data.get("sun", {}).get("sign", "")
     moon_sign = astro_data.get("moon", {}).get("sign", "")
     dominant = saju_data.get("dominantElement", "")
@@ -473,14 +1510,16 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
         "theme": theme,
     }
 
-    # Theme concepts for Jung quotes
+    # Theme concepts for Jung quotes - ENHANCED with more keywords
     theme_concepts = {
-        "career": "vocation calling work purpose self-realization 소명 직업 자아실현",
-        "love": "anima animus relationship shadow projection 아니마 아니무스 그림자 투사",
-        "health": "psyche wholeness integration healing 치유 통합 전체성",
-        "life_path": "individuation self persona shadow 개성화 자아 페르소나",
-        "wealth": "abundance value meaning purpose 가치 의미 목적",
-        "family": "complex archetype mother father 콤플렉스 원형 부모",
+        "career": "vocation calling work purpose self-realization individuation hero journey 소명 직업 자아실현 영웅 여정 사명",
+        "love": "anima animus relationship shadow projection intimacy attachment 아니마 아니무스 그림자 투사 친밀감 관계 사랑",
+        "health": "psyche wholeness integration healing body-mind 치유 통합 전체성 심신 회복",
+        "life_path": "individuation self persona shadow meaning transformation 개성화 자아 페르소나 의미 변환 성장",
+        "wealth": "abundance value meaning purpose security prosperity 가치 의미 목적 안정 풍요",
+        "family": "complex archetype mother father inner child 콤플렉스 원형 부모 내면아이 가족",
+        "chat": "self-discovery meaning crisis growth 자기발견 의미 위기 성장",
+        "focus_career": "vocation calling work purpose self-realization 소명 직업 자아실현 진로",
     }
 
     # --- Pre-load RAG instances (thread-safe) ---
@@ -506,12 +1545,34 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
     except Exception as e:
         logger.warning(f"[PREFETCH] GraphRAG failed: {e}")
 
-    # CorpusRAG (Jung quotes)
+    # CorpusRAG (Jung quotes) - ENHANCED: fetch more quotes with diverse concepts
     try:
         if _corpus_rag_inst:
             jung_query_parts = [theme_concepts.get(theme, theme), query[:100]]
             jung_query = " ".join(jung_query_parts)
-            quotes = _corpus_rag_inst.search(jung_query, top_k=5, min_score=0.15)
+            # Primary theme-based quotes
+            quotes = _corpus_rag_inst.search(jung_query, top_k=6, min_score=0.12)
+
+            # Also fetch general wisdom quotes for variety
+            general_queries = ["individuation growth 개성화 성장", "shadow integration 그림자 통합"]
+            for gq in general_queries:
+                try:
+                    extra_quotes = _corpus_rag_inst.search(gq, top_k=2, min_score=0.15)
+                    quotes.extend(extra_quotes)
+                except:
+                    pass
+
+            # Deduplicate and limit
+            seen = set()
+            unique_quotes = []
+            for q in quotes:
+                key = q.get("quote_kr", "") or q.get("quote_en", "")
+                if key and key not in seen:
+                    seen.add(key)
+                    unique_quotes.append(q)
+                if len(unique_quotes) >= 8:
+                    break
+
             result["corpus_quotes"] = [
                 {
                     "text_ko": q.get("quote_kr", ""),
@@ -520,9 +1581,9 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
                     "concept": q.get("concept", ""),
                     "score": q.get("score", 0)
                 }
-                for q in quotes
+                for q in unique_quotes
             ]
-            logger.info(f"[PREFETCH] CorpusRAG: {len(result['corpus_quotes'])} quotes")
+            logger.info(f"[PREFETCH] CorpusRAG: {len(result['corpus_quotes'])} quotes (enhanced)")
     except Exception as e:
         logger.warning(f"[PREFETCH] CorpusRAG failed: {e}")
 
@@ -538,9 +1599,9 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
     except Exception as e:
         logger.warning(f"[PREFETCH] PersonaEmbedRAG failed: {e}")
 
-    # Cross-analysis (no ML, thread-safe)
+    # Cross-analysis (no ML, thread-safe) - pass locale for proper language
     try:
-        result["cross_analysis"] = get_cross_analysis_for_chart(saju_data, astro_data, theme)
+        result["cross_analysis"] = get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
     except Exception as e:
         logger.warning(f"[PREFETCH] Cross-analysis failed: {e}")
 
@@ -729,7 +1790,8 @@ def _build_saju_summary(saju_data: dict) -> str:
     parts = []
     if saju_data.get("dayMaster"):
         dm = saju_data["dayMaster"]
-        parts.append(f"Day Master: {dm.get('heavenlyStem', '')} ({dm.get('element', '')})")
+        dm_stem = dm.get('heavenlyStem') or dm.get('name', '')
+        parts.append(f"Day Master: {dm_stem} ({dm.get('element', '')})")
     if saju_data.get("yearPillar"):
         yp = saju_data["yearPillar"]
         parts.append(f"Year: {yp.get('heavenlyStem', '')}{yp.get('earthlyBranch', '')}")
@@ -776,10 +1838,11 @@ def _build_detailed_saju(saju_data: dict) -> str:
         hp = saju_data["hourPillar"]
         lines.append(f"시주: {hp.get('heavenlyStem', '')}{hp.get('earthlyBranch', '')} ({hp.get('element', '')})")
 
-    # Day Master (most important)
+    # Day Master (most important) - support both "heavenlyStem" and "name"
     if saju_data.get("dayMaster"):
         dm = saju_data["dayMaster"]
-        lines.append(f"일간(본인): {dm.get('heavenlyStem', '')} - {dm.get('element', '')}의 기운")
+        dm_stem = dm.get('heavenlyStem') or dm.get('name', '')
+        lines.append(f"일간(본인): {dm_stem} - {dm.get('element', '')}의 기운")
 
     # Five Elements balance
     if saju_data.get("fiveElements"):
@@ -809,33 +1872,69 @@ def _build_detailed_astro(astro_data: dict) -> str:
         return "점성술 정보 없음"
 
     lines = []
+    from datetime import datetime
+    now = datetime.now()
 
-    # Big Three
+    # Big Three - ESSENTIAL
+    sun_sign = ""
+    moon_sign = ""
     if astro_data.get("sun"):
         sun = astro_data["sun"]
-        lines.append(f"태양(자아): {sun.get('sign', '')} {sun.get('degree', '')}°")
+        sun_sign = sun.get('sign', '')
+        house = sun.get('house', '')
+        lines.append(f"☀️ 태양(자아): {sun_sign} {sun.get('degree', '')}°" + (f" - {house}하우스" if house else ""))
     if astro_data.get("moon"):
         moon = astro_data["moon"]
-        lines.append(f"달(감정): {moon.get('sign', '')} {moon.get('degree', '')}°")
+        moon_sign = moon.get('sign', '')
+        house = moon.get('house', '')
+        lines.append(f"🌙 달(감정): {moon_sign} {moon.get('degree', '')}°" + (f" - {house}하우스" if house else ""))
     if astro_data.get("ascendant"):
         asc = astro_data["ascendant"]
-        lines.append(f"상승(외적): {asc.get('sign', '')} {asc.get('degree', '')}°")
+        lines.append(f"⬆️ 상승(외적): {asc.get('sign', '')} {asc.get('degree', '')}°")
 
-    # Other planets
-    for planet in ["mercury", "venus", "mars", "jupiter", "saturn"]:
+    # Key planets with houses
+    for planet, info in [("mercury", "수성(소통)"), ("venus", "금성(사랑/관계)"),
+                         ("mars", "화성(에너지)"), ("jupiter", "목성(행운/확장)"),
+                         ("saturn", "토성(시련/책임)")]:
         if astro_data.get(planet):
             p = astro_data[planet]
-            names = {"mercury": "수성(소통)", "venus": "금성(사랑)", "mars": "화성(에너지)",
-                     "jupiter": "목성(행운)", "saturn": "토성(시련)"}
-            lines.append(f"{names.get(planet, planet)}: {p.get('sign', '')}")
+            house = p.get('house', '')
+            lines.append(f"{info}: {p.get('sign', '')}" + (f" - {house}하우스" if house else ""))
 
     # Houses (if available)
     if astro_data.get("houses"):
         h = astro_data["houses"]
-        if h.get("10"):
-            lines.append(f"10하우스(직업): {h['10'].get('sign', '')}")
+        lines.append("\n🏠 주요 하우스:")
+        if h.get("1"):
+            lines.append(f"  1하우스(자아): {h['1'].get('sign', '')}")
         if h.get("7"):
-            lines.append(f"7하우스(관계): {h['7'].get('sign', '')}")
+            lines.append(f"  7하우스(파트너): {h['7'].get('sign', '')}")
+        if h.get("10"):
+            lines.append(f"  10하우스(커리어): {h['10'].get('sign', '')}")
+
+    # Current transits - ADD TIMING CONTEXT for 2025
+    lines.append(f"\n🔮 현재 트랜짓 ({now.year}년 {now.month}월):")
+    if now.year == 2025:
+        if now.month <= 3:
+            lines.append("• 토성 물고기자리: 감정적 경계 학습, 영적 성숙")
+            lines.append("• 목성 쌍둥이자리: 소통과 학습의 확장기")
+        elif now.month <= 6:
+            lines.append("• 토성 양자리 입성 (5월): 새로운 책임과 도전의 시작")
+            lines.append("• 목성 쌍둥이자리 마무리: 지식 확장 완료")
+        else:
+            lines.append("• 토성 양자리: 자기주도적 성장의 시기")
+            lines.append("• 목성 게자리 (7월~): 가정/정서적 풍요")
+        lines.append("• 명왕성 물병자리: 사회적 변혁, 개인의 독립성 강조")
+    else:
+        lines.append("• 주요 행성 트랜짓 참고하여 해석")
+
+    # Interpretation hints
+    if sun_sign or moon_sign:
+        lines.append("\n💡 해석 포인트:")
+        if sun_sign:
+            lines.append(f"  태양 {sun_sign}: 핵심 정체성, 삶의 목적")
+        if moon_sign:
+            lines.append(f"  달 {moon_sign}: 감정 패턴, 내면의 욕구")
 
     return "\n".join(lines) if lines else "점성술 정보 부족"
 
@@ -861,6 +1960,10 @@ def ask():
         theme = data.get("theme", "daily")
         locale = data.get("locale", "en")
         raw_prompt = data.get("prompt") or ""
+
+        # Normalize dayMaster structure (nested -> flat)
+        saju_data = normalize_day_master(saju_data)
+
         # Detect structured JSON prompts from frontend (these contain format instructions)
         is_structured_prompt = (
             "You MUST return a valid JSON object" in raw_prompt or
@@ -932,6 +2035,9 @@ def ask_stream():
         conversation_history = data.get("history") or []  # Previous messages for context
         user_context = data.get("user_context") or {}  # Premium: persona + session summaries
         cv_text = (data.get("cv_text") or "")[:4000]  # CV/Resume text for career consultations
+
+        # Normalize dayMaster structure (nested -> flat)
+        saju_data = normalize_day_master(saju_data)
 
         logger.info(f"[ASK-STREAM] id={g.request_id} theme={theme} locale={locale} session={session_id or 'none'} history_len={len(conversation_history)} has_user_ctx={bool(user_context)} cv_len={len(cv_text)}")
         logger.info(f"[ASK-STREAM] saju dayMaster: {saju_data.get('dayMaster', {})}")
@@ -1018,7 +2124,7 @@ def ask_stream():
             cross_rules = session_cache["rag_data"]["cross_analysis"]
         else:
             try:
-                cross_rules = get_cross_analysis_for_chart(saju_data, astro_data, theme)
+                cross_rules = get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
                 if cross_rules:
                     logger.info(f"[ASK-STREAM] Instant cross-analysis: {len(cross_rules)} chars, theme={theme}")
             except Exception as e:
@@ -1072,188 +2178,391 @@ def ask_stream():
                 user_context_section += "\n→ 재방문 고객이니 '또 오셨네요' 같은 친근한 인사로 시작하고, 이전 상담 내용을 자연스럽게 참조하세요.\n"
                 logger.info(f"[ASK-STREAM] User context section: {len(user_context_section)} chars")
 
-        # Build CV/Resume section for career consultations
+        # Build CV/Resume section - use CV whenever available (for career, life_path, chat themes)
         cv_section = ""
-        if cv_text and theme == "career":
+        if cv_text:
             cv_section = f"""
 [📄 사용자 이력서/CV]
 {cv_text}
 
-→ 위 이력서 내용을 참고하여 사용자의 경력, 기술, 경험에 맞는 구체적인 커리어 조언을 제공하세요.
+→ 위 이력서 내용을 참고하여 사용자의 경력, 기술, 경험에 맞는 구체적인 조언을 제공하세요.
 → 사주/점성 해석과 이력서 내용을 연결하여 개인화된 조언을 해주세요.
+→ 커리어, 직업, 적성 관련 질문에는 이력서 정보를 적극 활용하세요.
 """
-            logger.info(f"[ASK-STREAM] CV section added: {len(cv_text)} chars")
+            logger.info(f"[ASK-STREAM] CV section added: {len(cv_text)} chars, theme={theme}")
 
-        # Build system prompt - with or without RAG context
+        # ======================================================
+        # 🌱 LIFESPAN GUIDANCE - Age-appropriate psychological tasks
+        # ======================================================
+        lifespan_section = ""
+        birth_year = None
+        try:
+            # Extract birth year from birth_data or saju_data
+            if birth_data.get("date"):
+                birth_year = int(birth_data["date"].split("-")[0])
+            elif saju_data.get("birthYear"):
+                birth_year = int(saju_data["birthYear"])
+        except:
+            pass
+
+        if birth_year:
+            lifespan_guidance = get_lifespan_guidance(birth_year)
+            if lifespan_guidance and lifespan_guidance.get("stage_name"):
+                stage = lifespan_guidance
+                lifespan_section = f"""
+[🌱 생애주기별 심리 과제: {stage['stage_name']} ({stage['age']}세)]
+• 발달 과제: {', '.join(stage.get('psychological_tasks', [])[:3])}
+• 핵심 원형: {stage.get('archetypal_themes', {}).get('primary', [''])[0] if isinstance(stage.get('archetypal_themes', {}).get('primary'), list) else ''}
+• 흔한 위기: {', '.join(stage.get('developmental_crises', stage.get('shadow_challenges', []))[:2])}
+• 사주 연결: {stage.get('saju_parallel', {}).get('theme', '')}
+• 점성 연결: {stage.get('astro_parallel', {}).get('theme', '')}
+
+→ 이 생애 단계에 맞는 조언을 해주세요. 나이에 맞지 않는 조언(예: 20대에게 '은퇴 준비')은 피하세요.
+"""
+                logger.info(f"[ASK-STREAM] Lifespan guidance: {stage['stage_name']} (age {stage['age']})")
+
+        # ======================================================
+        # 🎯 THEME FUSION RULES - Daily/Monthly/Yearly guidance
+        # ======================================================
+        theme_fusion_section = ""
+        try:
+            theme_fusion = get_theme_fusion_rules(saju_data, astro_data, theme, locale, birth_year)
+            if theme_fusion:
+                theme_fusion_section = f"""
+[🎯 테마별 융합 해석]
+{theme_fusion}
+
+→ 위 테마별 해석을 상담 내용에 자연스럽게 녹여서 전달하세요.
+"""
+                logger.info(f"[ASK-STREAM] Theme fusion rules added: {len(theme_fusion)} chars, theme={theme}")
+        except Exception as e:
+            logger.warning(f"[ASK-STREAM] Theme fusion rules failed: {e}")
+
+        # ======================================================
+        # 🎨 ACTIVE IMAGINATION - Deep therapeutic prompts (optional)
+        # ======================================================
+        imagination_section = ""
+        if prompt and any(k in prompt.lower() for k in ["깊이", "내면", "무의식", "그림자", "명상", "상상"]):
+            ai_prompts = get_active_imagination_prompts(prompt)
+            if ai_prompts:
+                imagination_section = f"""
+[🎨 적극적 상상 기법 - 심층 작업용]
+• 시작 질문: {ai_prompts.get('opening', [''])[0] if ai_prompts.get('opening') else ''}
+• 심화 질문: {ai_prompts.get('deepening', [''])[0] if ai_prompts.get('deepening') else ''}
+• 통합 질문: {ai_prompts.get('integration', [''])[0] if ai_prompts.get('integration') else ''}
+
+→ 사용자가 깊은 내면 작업을 원할 때만 이 질문들을 활용하세요. 강요하지 마세요.
+"""
+                logger.info(f"[ASK-STREAM] Active imagination prompts added")
+
+        # ======================================================
+        # 🚨 CRISIS DETECTION - Check for dangerous keywords
+        # ======================================================
+        crisis_response = None
+        if HAS_COUNSELING and prompt:
+            crisis_check = CrisisDetector.detect_crisis(prompt)
+            if crisis_check["is_crisis"]:
+                logger.warning(f"[ASK-STREAM] Crisis detected! severity={crisis_check['max_severity']}")
+                crisis_response = CrisisDetector.get_crisis_response(
+                    crisis_check["max_severity"],
+                    locale=locale
+                )
+                if crisis_check["requires_immediate_action"]:
+                    # Return safety response immediately via SSE
+                    def crisis_generator():
+                        msg = crisis_response.get("immediate_message", "")
+                        if crisis_response.get("follow_up"):
+                            msg += "\n\n" + crisis_response["follow_up"]
+                        if crisis_response.get("closing"):
+                            msg += "\n\n" + crisis_response["closing"]
+                        yield f"data: {msg}\n\n"
+                        yield "data: [DONE]\n\n"
+
+                    return Response(
+                        stream_with_context(crisis_generator()),
+                        mimetype="text/event-stream",
+                        headers={
+                            "Cache-Control": "no-cache",
+                            "Connection": "keep-alive",
+                            "X-Accel-Buffering": "no",
+                        }
+                    )
+
+        # Build crisis context for medium/medium_high severity (not immediate, but needs empathetic response)
+        crisis_context_section = ""
+        if crisis_response and not crisis_check.get("requires_immediate_action"):
+            severity = crisis_check.get("max_severity", "")
+            if severity == "medium_high":
+                crisis_context_section = """
+[⚠️ 사용자 감정 상태: 높은 스트레스]
+- 공감과 안정감을 주는 톤으로 응답하세요
+- 먼저 감정을 인정하고 호흡/그라운딩 기법을 안내하세요
+- 점술 해석은 희망적인 관점으로 부드럽게 전달하세요
+- 필요시 전문 상담 권유: 정신건강위기상담전화 1577-0199
+"""
+            elif severity == "medium":
+                crisis_context_section = """
+[⚠️ 사용자 감정 상태: 희망 저하]
+- 공감과 따뜻함을 담아 응답하세요
+- 작은 희망이라도 찾을 수 있도록 도와주세요
+- 점술 해석에서 긍정적 가능성을 강조하세요
+- "혼자가 아니에요"라는 메시지를 자연스럽게 전달하세요
+"""
+            logger.info(f"[ASK-STREAM] Added crisis context for severity={severity}")
+
+        # Build therapeutic context based on question type - ENHANCED with Jung psychology
+        therapeutic_section = ""
+        if HAS_COUNSELING and prompt:
+            prompt_lower = prompt.lower()
+            # Detect question themes and add therapeutic guidance
+            if any(k in prompt_lower for k in ["힘들", "우울", "지쳐", "포기", "의미없", "허무"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 의미/정서 지지]
+- 먼저 감정을 충분히 인정: "정말 힘드셨겠어요... 그 무게를 혼자 지고 계셨군요"
+- 융 관점: "영혼의 어두운 밤(dark night of soul)"은 변화의 전조
+- 사주/점성에서 '전환점'이나 '성장기'를 찾아 희망 연결
+- 그림자 작업: "이 힘듦이 당신에게 가르치려는 게 있다면?"
+- 작은 액션 제안: "오늘 하나만 자신을 위해 한다면 뭘 하고 싶으세요?"
+"""
+            elif any(k in prompt_lower for k in ["연애", "사랑", "결혼", "이별", "짝사랑", "썸"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 관계/사랑]
+- 감정의 깊이를 인정: "마음이 많이 쓰이시네요"
+- 융 관점 - 아니마/아니무스 투사: "끌리는 그 특성이 혹시 내 안에도 있다면?"
+- 그림자 투사: "싫은 그 점... 내 그림자는 아닐까요?"
+- 사주 관성(官星)/점성 금성-7하우스 해석을 심리적 패턴과 연결
+- 질문으로 마무리: "상대에게 진짜 원하는 건 뭘까요?" / "완벽한 관계란 어떤 모습이에요?"
+"""
+            elif any(k in prompt_lower for k in ["취업", "이직", "진로", "사업", "퇴사", "커리어"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 커리어/정체성]
+- 불안감 인정: "중요한 결정 앞에서 고민이 깊으시네요"
+- 융 관점 - 소명(calling): "돈을 떠나서, 진짜 하고 싶은 일은 뭐예요?"
+- 페르소나 vs 자기(Self): "일하는 나 vs 진짜 나, 얼마나 다른가요?"
+- 사주 식상/재성과 점성 10하우스/MC 연결하여 적성 분석
+- 구체적 시기 제시: "2025년 상반기가 전환점" 식으로
+- 질문: "돈 vs 보람, 지금 더 중요한 건?" / "5년 뒤 어떤 모습이고 싶으세요?"
+"""
+            elif any(k in prompt_lower for k in ["부모", "엄마", "아빠", "가족", "형제", "자매"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 가족/콤플렉스]
+- 가족 관계의 복잡함 인정: "가족이라 더 어렵죠"
+- 융 관점 - 부모 콤플렉스: 어머니/아버지 원형이 현재 관계에 미치는 영향
+- 내면아이 작업: "어린 시절의 나에게 뭐라고 말해주고 싶으세요?"
+- 사주 인성(印星)/관성(官星)과 4하우스/10하우스 분석
+- 질문: "부모님께 진짜 하고 싶은 말은?" / "용서가 필요한 건 누구인가요?"
+"""
+            elif any(k in prompt_lower for k in ["불안", "걱정", "두려", "무서"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 불안/두려움]
+- 불안 인정: "불안한 마음, 충분히 이해해요"
+- 융 관점: 두려움은 그림자가 보내는 메시지일 수 있음
+- 그라운딩: "지금 발이 바닥에 닿아있는 걸 느껴보세요"
+- 질문: "그 두려움이 사람이라면, 뭐라고 말할 것 같아요?"
+- 사주/점성에서 안정감을 줄 수 있는 시기나 요소 찾기
+"""
+            elif any(k in prompt_lower for k in ["성격", "나는", "어떤 사람", "장점", "단점"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 자기탐색]
+- 호기심 표현: "자신을 알고 싶은 마음이 멋지네요"
+- 융 관점 - 페르소나/그림자: 보여주는 나 vs 숨기는 나
+- 사주 일간 특성과 점성 태양/상승/달 연결하여 다층적 성격 분석
+- 그림자(약점)도 성장 가능성으로 재해석: "그 점이 건강하게 발휘되면?"
+- 질문: "가장 '나답다'고 느낄 때는?" / "남들은 모르는 나만의 모습이 있다면?"
+"""
+            elif any(k in prompt_lower for k in ["꿈", "악몽", "꿈에서", "꿈을 꿨"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 꿈 해석]
+- 호기심 표현: "흥미로운 꿈이네요. 무의식이 메시지를 보내고 있어요"
+- 융 관점 - 꿈은 무의식의 언어: 상징적 의미 탐색
+- 꿈의 감정에 주목: "그 꿈에서 어떤 감정이 들었어요?"
+- 현재 상황과 연결: "요즘 삶에서 비슷한 느낌이 드는 게 있나요?"
+- 적극적 상상 제안: "꿈 속 인물에게 물어본다면, 뭘 묻고 싶으세요?"
+"""
+            elif any(k in prompt_lower for k in ["싫어", "짜증", "미워", "혐오"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 그림자 투사]
+- 감정 인정: "정말 불편하셨겠어요"
+- 융 관점 - 그림자 투사: 강하게 싫은 것은 내 그림자일 수 있음
+- 질문: "그 사람의 어떤 점이 가장 싫으세요?"
+- 도전: "그 특성이 혹시 나한테도 조금 있다면?"
+- 통합: "그 에너지를 건강하게 쓴다면 어떤 모습일까요?"
+"""
+            elif any(k in prompt_lower for k in ["언제", "시기", "타이밍", "몇 월", "올해", "내년"]):
+                therapeutic_section = """
+[🧠 심리상담 가이드: 시기/타이밍]
+- 구체적 시기 제시 필수: 사주 대운/세운 + 점성 트랜짓 분석
+- 월/분기 단위로 명확하게: "2025년 3-4월이 좋아요"
+- 왜 그 시기인지 설명: "목성이 ~에 들어오면서..."
+- 그 시기에 할 일 제안: "이 시기에 [구체적 행동]을 시작하면 좋겠어요"
+- 주의할 시기도 함께: "다만 ~월은 신중하게"
+"""
+
+        # Build system prompt - Enhanced counselor persona with Jung-inspired therapeutic approach
+        counselor_persona = """당신은 사주+점성술 통합 상담사입니다.
+
+⚠️ 절대 규칙:
+1. 인사 금지 - "안녕하세요", "반가워요" 등 인사 절대 금지
+2. 신상 소개 금지 - "일간이 X입니다", "당신은 Y 성향" 같은 기본 설명 금지. 사용자는 이미 자기 사주를 안다. 바로 질문에 답해.
+3. 제공된 데이터만 사용 - 대운/세운을 지어내지 마세요. 아래 [사주 분석]에 있는 그대로만 인용
+4. 첫 문장부터 사용자 질문에 대한 답변으로 시작
+
+💬 상담 스타일:
+• 상세하고 깊이 있는 분석 (400-600단어)
+• 사주와 점성술 균형있게 활용하되 자연스럽게 녹여내
+• 구체적 날짜/시기 제시
+• '왜 그런지' 이유를 충분히 설명"""
+
         if rag_context:
             # RICH prompt with all RAG data
-            system_prompt = f"""사주+점성+심리학 교차분석 전문 상담사. 두 시스템을 통합하여 하나의 해석으로 답변하세요.
+            system_prompt = f"""{counselor_persona}
 
 ⚠️ {current_date_str} - 과거 날짜를 미래처럼 말하지 마세요
 
-[사주] {saju_detail}
-[점성] {astro_detail}
+[📊 사주 분석]
+{saju_detail}
+
+[🌟 점성 분석]
+{astro_detail}
 {cross_section}
 {rag_context}
-{user_context_section}{cv_section}
-[응답 방식]
-⚠️ 중요: 먼저 질문 유형을 파악하고 그에 맞는 첫 문장을 선택하세요!
+{user_context_section}{cv_section}{lifespan_section}{theme_fusion_section}{imagination_section}{crisis_context_section}{therapeutic_section}
 
-질문 유형별 첫 문장:
-[자기탐색] "나/내 성격/나에 대해/어떤 사람/장단점/특징"
-  → "흥미로운 질문이네요!" / "본인에 대해 알고 싶으시군요!" / "좋은 질문이에요." / "자신을 알고자 하는 마음이 멋지네요."
-
-[운세/흐름] "운세/오늘/이번달/올해/내년/언제쯤/시기"
-  → "어떤 흐름인지 궁금하시죠!" / "살펴볼게요." / "타이밍이 중요하죠." / "흐름을 함께 봐요."
-
-[기대/설렘] "될까요/가능할까요/잘될까/좋아질까/희망"
-  → "기대되시죠!" / "궁금하시죠." / "좋은 징조가 보여요." / "희망적인 마음이 느껴져요."
-
-[힘든상황] "힘들어/어려워/안좋아/지쳐/포기/우울/슬퍼"
-  → "많이 힘드셨죠..." / "괜찮으세요?" / "마음이 무거우시겠어요." / "힘든 시간을 보내고 계시네요."
-
-[고민/걱정] "고민/걱정/불안/두려워/망설여/어떡해"
-  → "고민이 많으시죠..." / "걱정되는 마음 이해해요." / "많이 생각하고 계시네요."
-
-[연애/관계] "연애/사랑/결혼/이별/짝사랑/썸/재회/고백"
-  → "설레는 마음이 느껴지네요." / "마음이 복잡하시죠." / "감정이 깊으시네요." / "사랑 이야기군요."
-
-[커리어] "취업/이직/진로/사업/승진/퇴사/면접/합격"
-  → "중요한 시기네요." / "신중하게 생각하고 계시네요." / "커리어 고민이시군요." / "좋은 기회를 찾고 계시네요."
-
-[재물/돈] "돈/재물/투자/부동산/복권/사업자금/수입"
-  → "재정 상황이 궁금하시군요." / "돈 문제는 신중해야 하죠." / "재물운을 살펴볼게요."
-
-[건강] "건강/아파/병원/체력/다이어트/운동"
-  → "건강이 제일 중요하죠." / "몸 상태가 걱정되시나요?" / "건강운을 살펴볼게요."
-
-[가족/인간관계] "가족/부모님/자녀/친구/동료/갈등/화해"
-  → "관계가 고민이시군요." / "주변 사람들과의 관계, 중요하죠." / "인연의 흐름을 볼게요."
-
-[선택/결정] "어떻게/뭐가 나을까/선택/결정/고르기/A vs B"
-  → "중요한 갈림길이시네요." / "선택의 순간이군요." / "함께 살펴볼게요."
-
-[궁합/상성] "궁합/잘 맞을까/상성/어울려/케미"
-  → "두 분의 케미가 궁금하시군요!" / "궁합을 살펴볼게요." / "흥미로운 조합이네요."
-
-[감사/좋은일] "감사/좋은일/잘됐어/성공/축하"
-  → "좋은 소식이네요!" / "축하드려요!" / "기쁜 일이 있으셨군요!" / "잘 되셨네요!"
-
-[이사/여행] "이사/여행/유학/해외/이민"
-  → "새로운 곳이 궁금하시군요!" / "변화의 시기네요." / "이동운을 살펴볼게요."
-
-[시험/학업] "시험/공부/합격/자격증/학교"
-  → "열심히 준비하고 계시네요!" / "학업운을 살펴볼게요." / "좋은 결과 있길 바라요."
+[🎯 응답 스타일]
+• 첫 문장부터 사용자 질문에 직접 답변 - 신상 소개 NO
+• 사주와 점성술 통찰을 자연스럽게 녹여서 설명
+• '왜 그런지' 이유를 상세히 풀어서 설명
+• 구체적인 날짜/시기 반드시 포함
+• 실천 가능한 구체적 조언 제공
 
 ❌ 절대 금지:
-- "~님의 사주에서..."로 시작
-- 성격 질문에 "고민이 많으시죠" (←고민 질문에만!)
-- 좋은 얘기에 "힘드셨죠" / 힘든 얘기에 "축하해요"
+• 인사/환영 멘트 ("안녕하세요", "다시 찾아주셨네요")
+• 신상 소개 ("일간이 X입니다", "당신은 Y 성향" 등)
+• 대운/세운 지어내기 (위 데이터에 없는 것 언급)
+• 추상적 말만 나열 (구체적 시기 없이)
+• 피상적이고 짧은 답변
 
-✅ 사주와 점성을 교차 분석하여 자연스럽게 통합 해석하세요.
-
-✅ 구체적이고 풍부한 내용:
-- 성격/성향 분석, 시기별 흐름, 실용적 조언, 주의점
-
-📌 응답 형식:
-1. 본문 (200-250단어, {locale})
-2. 마지막 줄에 반드시: ||FOLLOWUP||["질문1", "질문2"]
-   - 방금 답변 내용과 연관된, 사용자가 궁금해할 만한 후속 질문 2개
-   - 예: 성격 얘기했으면 → ["그럼 연애할 때는 어때요?", "직장에서는 어떤 스타일이에요?"]
-   - 예: 시기 얘기했으면 → ["더 구체적인 날짜가 궁금해요", "그 전에 준비할 건 뭐예요?"]
-   - 예: 조언 했으면 → ["반대로 하면 어떻게 돼요?", "비슷한 사례가 있어요?"]"""
+📌 응답 길이: 400-600단어로 충분히 상세하게 ({locale})"""
         else:
             # Standard prompt (no session data)
-            system_prompt = f"""사주+점성 교차분석 전문 상담사. 두 시스템을 통합하여 하나의 해석으로 답변하세요.
+            system_prompt = f"""{counselor_persona}
 
 ⚠️ {current_date_str} - 과거 날짜를 미래처럼 말하지 마세요
 
-[사주] {saju_detail}
-[점성] {astro_detail}
+[📊 사주 분석]
+{saju_detail}
+
+[🌟 점성 분석]
+{astro_detail}
 {cross_section}
-{user_context_section}{cv_section}
-[응답 방식]
-⚠️ 중요: 먼저 질문 유형을 파악하고 그에 맞는 첫 문장을 선택하세요!
+{user_context_section}{cv_section}{lifespan_section}{theme_fusion_section}{imagination_section}{crisis_context_section}{therapeutic_section}
 
-질문 유형별 첫 문장:
-[자기탐색] "나/내 성격/나에 대해/어떤 사람/장단점/특징"
-  → "흥미로운 질문이네요!" / "본인에 대해 알고 싶으시군요!" / "좋은 질문이에요." / "자신을 알고자 하는 마음이 멋지네요."
-
-[운세/흐름] "운세/오늘/이번달/올해/내년/언제쯤/시기"
-  → "어떤 흐름인지 궁금하시죠!" / "살펴볼게요." / "타이밍이 중요하죠." / "흐름을 함께 봐요."
-
-[기대/설렘] "될까요/가능할까요/잘될까/좋아질까/희망"
-  → "기대되시죠!" / "궁금하시죠." / "좋은 징조가 보여요." / "희망적인 마음이 느껴져요."
-
-[힘든상황] "힘들어/어려워/안좋아/지쳐/포기/우울/슬퍼"
-  → "많이 힘드셨죠..." / "괜찮으세요?" / "마음이 무거우시겠어요." / "힘든 시간을 보내고 계시네요."
-
-[고민/걱정] "고민/걱정/불안/두려워/망설여/어떡해"
-  → "고민이 많으시죠..." / "걱정되는 마음 이해해요." / "많이 생각하고 계시네요."
-
-[연애/관계] "연애/사랑/결혼/이별/짝사랑/썸/재회/고백"
-  → "설레는 마음이 느껴지네요." / "마음이 복잡하시죠." / "감정이 깊으시네요." / "사랑 이야기군요."
-
-[커리어] "취업/이직/진로/사업/승진/퇴사/면접/합격"
-  → "중요한 시기네요." / "신중하게 생각하고 계시네요." / "커리어 고민이시군요." / "좋은 기회를 찾고 계시네요."
-
-[재물/돈] "돈/재물/투자/부동산/복권/사업자금/수입"
-  → "재정 상황이 궁금하시군요." / "돈 문제는 신중해야 하죠." / "재물운을 살펴볼게요."
-
-[건강] "건강/아파/병원/체력/다이어트/운동"
-  → "건강이 제일 중요하죠." / "몸 상태가 걱정되시나요?" / "건강운을 살펴볼게요."
-
-[가족/인간관계] "가족/부모님/자녀/친구/동료/갈등/화해"
-  → "관계가 고민이시군요." / "주변 사람들과의 관계, 중요하죠." / "인연의 흐름을 볼게요."
-
-[선택/결정] "어떻게/뭐가 나을까/선택/결정/고르기/A vs B"
-  → "중요한 갈림길이시네요." / "선택의 순간이군요." / "함께 살펴볼게요."
-
-[궁합/상성] "궁합/잘 맞을까/상성/어울려/케미"
-  → "두 분의 케미가 궁금하시군요!" / "궁합을 살펴볼게요." / "흥미로운 조합이네요."
-
-[감사/좋은일] "감사/좋은일/잘됐어/성공/축하"
-  → "좋은 소식이네요!" / "축하드려요!" / "기쁜 일이 있으셨군요!" / "잘 되셨네요!"
-
-[이사/여행] "이사/여행/유학/해외/이민"
-  → "새로운 곳이 궁금하시군요!" / "변화의 시기네요." / "이동운을 살펴볼게요."
-
-[시험/학업] "시험/공부/합격/자격증/학교"
-  → "열심히 준비하고 계시네요!" / "학업운을 살펴볼게요." / "좋은 결과 있길 바라요."
+[🎯 응답 스타일]
+• 첫 문장부터 사용자 질문에 직접 답변 - 신상 소개 NO
+• 사주와 점성술 통찰을 자연스럽게 녹여서 설명
+• '왜 그런지' 이유를 상세히 풀어서 설명
+• 구체적인 날짜/시기 반드시 포함
+• 실천 가능한 구체적 조언 제공
 
 ❌ 절대 금지:
-- "~님의 사주에서..."로 시작
-- 성격 질문에 "고민이 많으시죠" (←고민 질문에만!)
-- 좋은 얘기에 "힘드셨죠" / 힘든 얘기에 "축하해요"
+• 인사/환영 멘트 ("안녕하세요", "다시 찾아주셨네요")
+• 신상 소개 ("일간이 X입니다", "당신은 Y 성향" 등)
+• 대운/세운 지어내기 (위 데이터에 없는 것 언급)
+• 추상적 말만 나열 (구체적 시기 없이)
+• 피상적이고 짧은 답변
 
-✅ 사주와 점성을 교차 분석하여 자연스럽게 통합 해석하세요.
+📌 응답 길이: 400-600단어로 충분히 상세하게 ({locale})"""
+        # ======================================================
+        # EMOTION TRACKING - Detect user's emotional state
+        # ======================================================
+        emotion_context = ""
+        if prompt:
+            prompt_lower = prompt.lower()
+            # Detect emotional indicators
+            emotions_detected = []
+            if any(k in prompt_lower for k in ["힘들", "지쳐", "피곤", "지침"]):
+                emotions_detected.append("exhausted")
+            if any(k in prompt_lower for k in ["우울", "슬퍼", "눈물", "울고"]):
+                emotions_detected.append("sad")
+            if any(k in prompt_lower for k in ["불안", "걱정", "두려", "무서"]):
+                emotions_detected.append("anxious")
+            if any(k in prompt_lower for k in ["화나", "짜증", "억울", "분노"]):
+                emotions_detected.append("angry")
+            if any(k in prompt_lower for k in ["외로", "혼자", "고독"]):
+                emotions_detected.append("lonely")
+            if any(k in prompt_lower for k in ["설레", "기대", "행복", "좋아"]):
+                emotions_detected.append("hopeful")
+            if any(k in prompt_lower for k in ["혼란", "모르겠", "어떻게", "뭘 해야"]):
+                emotions_detected.append("confused")
 
-✅ 구체적이고 풍부한 내용:
-- 성격/성향 분석, 시기별 흐름, 실용적 조언, 주의점
+            if emotions_detected:
+                emotion_map = {
+                    "exhausted": "지침/피로",
+                    "sad": "슬픔/우울",
+                    "anxious": "불안/걱정",
+                    "angry": "분노/답답",
+                    "lonely": "외로움",
+                    "hopeful": "희망/설렘",
+                    "confused": "혼란/방향상실"
+                }
+                detected_ko = [emotion_map.get(e, e) for e in emotions_detected]
+                emotion_context = f"\n[💭 감지된 감정 상태: {', '.join(detected_ko)}]\n→ 이 감정을 먼저 인정하고 공감하세요. 성급히 해결책으로 넘어가지 마세요.\n"
+                logger.info(f"[ASK-STREAM] Emotion detected: {emotions_detected}")
 
-📌 응답 형식:
-1. 본문 (150-200단어, {locale})
-2. 마지막 줄에 반드시: ||FOLLOWUP||["질문1", "질문2"]
-   - 방금 답변 내용과 연관된, 사용자가 궁금해할 만한 후속 질문 2개
-   - 예: 성격 얘기했으면 → ["그럼 연애할 때는 어때요?", "직장에서는 어떤 스타일이에요?"]
-   - 예: 시기 얘기했으면 → ["더 구체적인 날짜가 궁금해요", "그 전에 준비할 건 뭐예요?"]"""
+        # Add emotion context to system prompt if detected
+        if emotion_context:
+            system_prompt = system_prompt.replace("[📏 응답 구조]", f"{emotion_context}\n[📏 응답 구조]")
+
         def generate():
             """SSE generator for streaming response."""
             try:
                 from openai import OpenAI
                 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-                # Build messages with conversation history (last 6 exchanges max)
+                # Build messages with conversation history (EXPANDED: last 12 exchanges)
                 messages = [{"role": "system", "content": system_prompt}]
 
-                # Add conversation history (limit to recent messages to save tokens)
-                history_limit = 6  # 3 user + 3 assistant messages
+                # Add conversation history - increased limit for better context
+                history_limit = 12  # 6 user + 6 assistant messages (was 6)
                 recent_history = conversation_history[-history_limit:] if conversation_history else []
-                for msg in recent_history:
+
+                # Generate conversation summary for long sessions (>6 messages)
+                conversation_summary = ""
+                if len(conversation_history) > 6:
+                    # Extract key topics from older messages
+                    older_msgs = conversation_history[:-6]
+                    topics = []
+                    for m in older_msgs:
+                        if m.get("role") == "user" and m.get("content"):
+                            content = m["content"][:100]
+                            if any(k in content for k in ["연애", "사랑", "결혼"]):
+                                topics.append("연애/관계")
+                            elif any(k in content for k in ["취업", "이직", "커리어", "진로"]):
+                                topics.append("커리어/진로")
+                            elif any(k in content for k in ["힘들", "우울", "지쳐"]):
+                                topics.append("감정적 어려움")
+                            elif any(k in content for k in ["나는", "성격", "어떤 사람"]):
+                                topics.append("자기탐색")
+                    if topics:
+                        unique_topics = list(dict.fromkeys(topics))[:3]
+                        conversation_summary = f"[📋 이전 대화 요약: {', '.join(unique_topics)} 주제로 대화함]\n"
+
+                # Add summary if available
+                if conversation_summary:
+                    messages.append({
+                        "role": "system",
+                        "content": conversation_summary
+                    })
+
+                # Smart truncation: recent messages get more space
+                for idx, msg in enumerate(recent_history):
                     if msg.get("role") in ("user", "assistant") and msg.get("content"):
+                        # Older messages: shorter, Recent messages: longer
+                        is_recent = idx >= len(recent_history) - 4
+                        max_len = 800 if is_recent else 300
                         messages.append({
                             "role": msg["role"],
-                            "content": msg["content"][:500]  # Truncate old messages
+                            "content": msg["content"][:max_len]
                         })
 
                 # Add current user message
@@ -1262,8 +2571,8 @@ def ask_stream():
                 stream = client.chat.completions.create(
                     model="gpt-4o-mini",  # Fast model for chat
                     messages=messages,
-                    max_tokens=600,  # Detailed responses (150-250 words)
-                    temperature=0.7,
+                    max_tokens=1000,  # Increased for richer responses (was 900)
+                    temperature=0.75,  # Slightly more creative (was 0.7)
                     stream=True
                 )
 
@@ -1331,6 +2640,10 @@ def counselor_init():
         saju_data = data.get("saju") or {}
         astro_data = data.get("astro") or {}
         theme = data.get("theme", "chat")
+        locale = data.get("locale", "ko")
+
+        # Normalize dayMaster structure (nested -> flat)
+        saju_data = normalize_day_master(saju_data)
 
         logger.info(f"[COUNSELOR-INIT] id={g.request_id} theme={theme}")
         logger.info(f"[COUNSELOR-INIT] saju dayMaster: {saju_data.get('dayMaster', {})}")
@@ -1339,7 +2652,7 @@ def counselor_init():
         session_id = str(uuid4())[:12]
 
         # Pre-fetch ALL RAG data (this is slow but only happens once)
-        rag_data = prefetch_all_rag_data(saju_data, astro_data, theme)
+        rag_data = prefetch_all_rag_data(saju_data, astro_data, theme, locale)
 
         # Store in session cache
         set_session_rag_cache(session_id, {
@@ -2069,21 +3382,26 @@ def iching_reading():
 @app.route("/iching/reading-stream", methods=["POST"])
 def iching_reading_stream():
     """
-    Streaming I Ching interpretation - returns SSE for real-time display.
-    Uses GPT-4o-mini for fast streaming.
-    Streams: overview → changing_lines → advice → done
+    Enhanced Streaming I Ching interpretation with:
+    - Five Element (五行) analysis
+    - Seasonal harmony
+    - Trigram imagery
+    - Nuclear/Opposite/Reverse hexagram insights
+    - Saju cross-analysis
+    - Advanced changing line rules
     """
     if not HAS_ICHING:
         return jsonify({"status": "error", "message": "I Ching module not available"}), 501
 
     try:
         data = request.get_json(force=True)
-        logger.info(f"[ICHING_STREAM] id={g.request_id} Starting streaming interpretation")
+        logger.info(f"[ICHING_STREAM] id={g.request_id} Starting enhanced streaming interpretation")
 
         # Get hexagram data from request
         hexagram_number = data.get("hexagramNumber")
         hexagram_name = data.get("hexagramName", "")
         hexagram_symbol = data.get("hexagramSymbol", "")
+        hexagram_binary = data.get("hexagramBinary", "")
         judgment = data.get("judgment", "")
         image = data.get("image", "")
         core_meaning = data.get("coreMeaning", "")
@@ -2093,44 +3411,131 @@ def iching_reading_stream():
         locale = data.get("locale", "ko")
         themes = data.get("themes", {})
 
+        # Enhanced data from new analysis functions
+        trigram_upper = data.get("trigramUpper", "")
+        trigram_lower = data.get("trigramLower", "")
+        hexagram_element = data.get("element", "")
+        saju_element = data.get("sajuElement", "")  # User's day master element
+
+        # Related hexagrams (if provided)
+        nuclear_hexagram = data.get("nuclearHexagram", {})
+        opposite_hexagram = data.get("oppositeHexagram", {})
+        reverse_hexagram = data.get("reverseHexagram", {})
+
         is_korean = locale == "ko"
         lang_instruction = "Please respond entirely in Korean (한국어로 답변해주세요)." if is_korean else "Please respond in English."
 
+        # Current date and seasonal analysis
+        now = datetime.now()
+        weekdays_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        weekdays_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+        # Determine current season and 절기
+        month = now.month
+        if month in [3, 4, 5]:
+            season_ko, season_element = "봄", "목(木)"
+        elif month in [6, 7, 8]:
+            season_ko, season_element = "여름", "화(火)"
+        elif month in [9, 10, 11]:
+            season_ko, season_element = "가을", "금(金)"
+        else:
+            season_ko, season_element = "겨울", "수(水)"
+
+        if is_korean:
+            current_date_str = f"오늘: {now.year}년 {now.month}월 {now.day}일 ({weekdays_ko[now.weekday()]}) - {season_ko}"
+        else:
+            current_date_str = f"Today: {now.strftime('%B %d, %Y')} ({weekdays_en[now.weekday()]})"
+
+        # Five Element (오행) analysis for hexagram
+        wuxing_korean = {"wood": "목(木)", "fire": "화(火)", "earth": "토(土)", "metal": "금(金)", "water": "수(水)"}
+        hex_element_ko = wuxing_korean.get(hexagram_element, hexagram_element) if hexagram_element else ""
+
+        # Trigram imagery
+        trigram_names = {
+            "heaven": "건(乾/하늘)", "earth": "곤(坤/땅)", "thunder": "진(震/우레)",
+            "water": "감(坎/물)", "mountain": "간(艮/산)", "wind": "손(巽/바람)",
+            "fire": "리(離/불)", "lake": "태(兌/연못)"
+        }
+        upper_name = trigram_names.get(trigram_upper, trigram_upper)
+        lower_name = trigram_names.get(trigram_lower, trigram_lower)
+
         def generate_stream():
-            """Generator for SSE streaming I Ching interpretation"""
+            """Generator for SSE streaming I Ching interpretation with enhanced analysis"""
             try:
                 if not OPENAI_AVAILABLE or not openai_client:
                     yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
                     return
 
-                # === SECTION 1: Overview (streaming) ===
+                # === SECTION 1: Overview with 괘상/오행/계절 분석 (streaming) ===
                 yield f"data: {json.dumps({'section': 'overview', 'status': 'start'})}\n\n"
 
-                overview_prompt = f"""당신은 따뜻하고 통찰력 있는 주역 상담사입니다.
-마치 오랜 스승처럼 지혜롭고 다정하게 괘의 핵심 메시지를 전달해주세요.
+                # Build enhanced context
+                trigram_context = ""
+                if upper_name and lower_name:
+                    trigram_context = f"""
+괘상(卦象) 분석:
+- 상괘: {upper_name}
+- 하괘: {lower_name}
+- 괘상 이미지: 위에 {upper_name.split('/')[1] if '/' in upper_name else upper_name}, 아래에 {lower_name.split('/')[1] if '/' in lower_name else lower_name}"""
+
+                element_context = ""
+                if hex_element_ko:
+                    element_context = f"""
+오행(五行) 분석:
+- 괘의 오행: {hex_element_ko}
+- 현재 계절: {season_ko} ({season_element})"""
+                    # Add saju analysis if available
+                    if saju_element:
+                        saju_element_ko = wuxing_korean.get(saju_element, saju_element)
+                        element_context += f"""
+- 당신의 일간(日干): {saju_element_ko}"""
+
+                related_context = ""
+                if nuclear_hexagram.get("name") or opposite_hexagram.get("name") or reverse_hexagram.get("name"):
+                    related_context = """
+관련 괘(卦) 참고:"""
+                    if nuclear_hexagram.get("name"):
+                        related_context += f"""
+- 호괘(互卦): {nuclear_hexagram.get('name', '')} - 상황의 내면에 숨겨진 의미"""
+                    if opposite_hexagram.get("name"):
+                        related_context += f"""
+- 착괘(錯卦): {opposite_hexagram.get('name', '')} - 정반대 관점에서의 통찰"""
+                    if reverse_hexagram.get("name"):
+                        related_context += f"""
+- 종괘(綜卦): {reverse_hexagram.get('name', '')} - 상대방 입장에서의 시각"""
+
+                overview_prompt = f"""당신은 깊은 통찰력을 가진 주역(周易) 상담사입니다.
+동양 철학과 오행(五行) 사상에 정통하며, 따뜻하고 지혜로운 스승처럼 괘의 메시지를 전달합니다.
 
 {lang_instruction}
 
-괘 정보:
+{current_date_str}
+
+【괘 정보】
 - 괘명: {hexagram_name} {hexagram_symbol} (제{hexagram_number}괘)
-- 괘사(Judgment): {judgment}
-- 상사(Image): {image}
+- 괘사(彖辭): {judgment}
+- 상사(象辭): {image}
 - 핵심 의미: {core_meaning}
+{trigram_context}
+{element_context}
+{related_context}
 
-{f'질문: {question}' if question else '일반 점괘'}
+{f'【질문】 {question}' if question else '【일반 점괘】'}
 
-테마별 해석 참고:
+【테마별 해석 참고】
 - 직업/사업: {themes.get('career', '')}
 - 연애/관계: {themes.get('love', '')}
 - 건강: {themes.get('health', '')}
 - 재물: {themes.get('wealth', '')}
 - 시기: {themes.get('timing', '')}
 
-상담 스타일:
-- 따뜻하고 공감하는 말투 ("~하시는군요", "~의 시기입니다")
-- 괘가 전하는 핵심 메시지를 부드럽게 해석
-- 질문이 있다면 그에 맞춰 구체적으로 답변
-- 3-4문장으로 자연스럽게 현재 상황과 연결하여 해석"""
+【상담 지침】
+1. 괘상(卦象) 이미지를 활용하여 시각적이고 직관적으로 설명
+2. 오행의 상생상극 관계를 자연스럽게 녹여서 해석
+3. 현재 계절({season_ko})과 괘의 기운 조화를 언급
+4. 따뜻하고 공감하는 말투 ("~하시는군요", "~의 시기입니다")
+5. 질문이 있다면 그에 맞춰 구체적으로 답변
+6. 4-5문장으로 깊이 있으면서도 이해하기 쉽게 해석"""
 
                 stream = openai_client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -2189,25 +3594,44 @@ def iching_reading_stream():
                     else:
                         interpretation_rule = ""
 
-                    changing_prompt = f"""주역 상담사로서 변효(변하는 효)의 의미를 해석해주세요.
+                    # Enhanced changing line context
+                    line_position_meanings = {
+                        1: "초효 - 시작, 잠재력의 단계",
+                        2: "이효 - 내면의 성장, 발전기",
+                        3: "삼효 - 내외 경계, 전환점",
+                        4: "사효 - 외부 진입, 도약기",
+                        5: "오효 - 정점, 전성기",
+                        6: "상효 - 극점, 마무리"
+                    }
+                    line_positions = "\n".join([f"- {line_position_meanings.get(line.get('index', i+1), '')}" for i, line in enumerate(changing_lines)])
+
+                    changing_prompt = f"""당신은 주역의 변효(變爻) 해석에 정통한 상담사입니다.
+전통적인 효변 해석법(朱熹 周易本義)에 따라 정확하고 깊이 있게 해석합니다.
 
 {lang_instruction}
 
-현재 괘(본괘): {hexagram_name} {hexagram_symbol}
-변효:
+【본괘(本卦)】 {hexagram_name} {hexagram_symbol}
+
+【변효(變爻) 정보】
 {changing_info}
 
+【효위(爻位) 의미】
+{line_positions}
+
+【지괘(之卦) 정보】
 {resulting_info}
 
-전통 주역 해석 규칙:
+【전통 주역 해석 규칙 (朱熹 周易本義)】
 {interpretation_rule}
 
-상담 스타일:
-- 위 해석 규칙에 따라 어떤 효사/괘사를 중심으로 봐야 하는지 명확히 알려주세요
-- 변효가 의미하는 변화의 과정을 설명
-- 현재에서 미래로 가는 흐름을 따뜻하게 해석
-- 변화를 두려워하지 않도록 긍정적 관점 제시
-- 3-4문장으로 핵심 전달"""
+【해석 지침】
+1. 위 해석 규칙을 정확히 따라 해석의 중심을 잡으세요
+2. 효위(爻位)가 상징하는 인생 단계와 연결하여 설명
+3. 본괘에서 지괘로의 변화가 의미하는 흐름을 해석
+4. 중정(中正) - 2,5효가 중앙이고 양효가 홀수자리, 음효가 짝수자리면 정위
+5. 응효(應爻) 관계 - 1↔4, 2↔5, 3↔6효의 호응
+6. 변화를 두려워하지 않도록 긍정적이면서도 현실적으로
+7. 4-5문장으로 핵심을 전달"""
 
                     changing_stream = openai_client.chat.completions.create(
                         model="gpt-4o-mini",
@@ -2229,19 +3653,43 @@ def iching_reading_stream():
                 # === SECTION 3: Practical Advice (streaming) ===
                 yield f"data: {json.dumps({'section': 'advice', 'status': 'start'})}\n\n"
 
-                advice_prompt = f"""주역 상담사로서 실생활에 적용할 수 있는 조언을 해주세요.
+                # Build saju advice context if available
+                saju_advice_context = ""
+                if saju_element:
+                    saju_element_ko = wuxing_korean.get(saju_element, saju_element)
+                    saju_advice_context = f"""
+【사주 연동 조언】
+- 당신의 일간(日干): {saju_element_ko}
+- 괘의 오행({hex_element_ko})과의 관계를 고려한 맞춤 조언 필요"""
+
+                advice_prompt = f"""당신은 주역의 지혜를 현대 생활에 적용하는 실용적인 상담사입니다.
+동양 철학의 깊은 통찰을 일상에서 실천 가능한 조언으로 전환합니다.
 
 {lang_instruction}
 
-괘: {hexagram_name} - {core_meaning}
-{f'질문: {question}' if question else ''}
-전체 해석: {overview_text[:300]}
+{current_date_str}
 
-상담 스타일:
-- 친구에게 조언하듯 편안하고 실용적으로
-- 오늘/이번 주 할 수 있는 작은 실천 제안
-- 괘의 지혜를 현대적 상황에 맞게 적용
-- 2-3가지 따뜻한 조언 (번호 없이 자연스럽게)"""
+【괘 정보】
+괘: {hexagram_name} {hexagram_symbol}
+핵심 의미: {core_meaning}
+괘의 오행: {hex_element_ko}
+현재 계절: {season_ko} ({season_element})
+{saju_advice_context}
+
+{f'【질문】 {question}' if question else ''}
+
+【앞선 해석 요약】
+{overview_text[:400]}
+
+【조언 지침】
+1. 오행의 상생상극을 활용한 구체적 행동 제안
+   - 상생: 자연스럽게 흐르는 방향 제시
+   - 상극: 극복해야 할 점과 조화 방법
+2. 현재 계절({season_ko})에 맞는 시의적절한 조언
+3. 오늘/이번 주 실천할 수 있는 구체적 행동 2-3가지
+4. 괘상(卦象) 이미지를 비유로 활용
+5. 친구에게 조언하듯 따뜻하면서도 현실적으로
+6. 번호 없이 자연스러운 문장으로 연결"""
 
                 advice_stream = openai_client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -2322,6 +3770,72 @@ def iching_hexagrams():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+@app.route("/iching/changing-line", methods=["POST"])
+def iching_changing_line():
+    """Get detailed changing line interpretation."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        from backend_ai.app.iching_rag import get_changing_line_interpretation
+
+        data = request.get_json() or {}
+        hexagram_number = data.get("hexagramNumber")
+        line_index = data.get("lineIndex")  # 1-6
+        locale = data.get("locale", "ko")
+
+        if not hexagram_number or not line_index:
+            return jsonify({
+                "status": "error",
+                "message": "hexagramNumber and lineIndex are required"
+            }), 400
+
+        result = get_changing_line_interpretation(
+            hexagram_num=int(hexagram_number),
+            line_index=int(line_index),
+            locale=locale
+        )
+
+        if "error" in result:
+            return jsonify({"status": "error", "message": result["error"]}), 400
+
+        return jsonify({
+            "status": "success",
+            **result
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/changing-line failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/iching/hexagram-lines/<int:hexagram_num>", methods=["GET"])
+def iching_hexagram_lines(hexagram_num: int):
+    """Get all changing line interpretations for a specific hexagram."""
+    if not HAS_ICHING:
+        return jsonify({"status": "error", "message": "I Ching module not available"}), 501
+
+    try:
+        from backend_ai.app.iching_rag import get_all_changing_lines_for_hexagram
+
+        locale = request.args.get("locale", "ko")
+
+        result = get_all_changing_lines_for_hexagram(
+            hexagram_num=hexagram_num,
+            locale=locale
+        )
+
+        if "error" in result:
+            return jsonify({"status": "error", "message": result["error"]}), 400
+
+        return jsonify({
+            "status": "success",
+            **result
+        })
+    except Exception as e:
+        logger.exception(f"[ERROR] /iching/hexagram-lines/{hexagram_num} failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # ===============================================================
 # TAROT (PREMIUM) ENDPOINTS
 # ===============================================================
@@ -2378,6 +3892,58 @@ def _map_tarot_theme(category: str, spread_id: str) -> tuple:
     # Fall back to theme-only mapping
     mapped_theme = TAROT_THEME_MAPPING.get(category, category)
     return (mapped_theme, spread_id)
+
+
+# ===============================================================
+# 🎴 AI 특유 표현 후처리 필터
+# ===============================================================
+def _clean_ai_phrases(text: str) -> str:
+    """
+    Remove AI-sounding phrases from tarot interpretations.
+    Makes output more natural and less robotic.
+    """
+    import re
+
+    # AI 특유의 한국어 표현 패턴
+    ai_patterns_ko = [
+        (r'~하시는군요\.?', ''),
+        (r'~느끼실 수 있어요\.?', ''),
+        (r'~하시면 좋을 것 같습니다\.?', ''),
+        (r'~해보시는 건 어떨까요\?', ''),
+        (r'긍정적인 에너지가 느껴지네요\.?', ''),
+        (r'좋은 결과가 있을 거예요\.?', ''),
+        (r'잘 될 거예요\.?', ''),
+        (r'걱정하지 마세요\.?', ''),
+        (r'자신감을 가지시면 좋겠습니다\.?', ''),
+        (r'~을 나타냅니다\.', '다.'),
+        (r'~을 보여주고 있습니다\.', '다.'),
+        (r'~라고 할 수 있습니다\.', '다.'),
+        (r'희망적인 메시지를 전하고 있네요\.?', ''),
+        (r'응원합니다\.?', ''),
+        (r'파이팅이에요\.?', ''),
+        (r'화이팅!?', ''),
+    ]
+
+    # AI 특유의 영어 표현 패턴
+    ai_patterns_en = [
+        (r'I hope this helps\.?', ''),
+        (r'Feel free to ask.*', ''),
+        (r'I\'m here to help\.?', ''),
+        (r'This suggests that you should\.?', 'This suggests'),
+        (r'It\'s important to remember that\.?', ''),
+        (r'positive energy', 'energy'),
+    ]
+
+    result = text
+    for pattern, replacement in ai_patterns_ko + ai_patterns_en:
+        result = re.sub(pattern, replacement, result)
+
+    # 연속된 공백/마침표 정리
+    result = re.sub(r'\s+', ' ', result)
+    result = re.sub(r'\.+', '.', result)
+    result = result.strip()
+
+    return result
 
 
 # ===============================================================
@@ -2660,8 +4226,7 @@ def tarot_interpret():
         except Exception:
             pass
 
-        tarot_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
-마치 오랜 친구에게 이야기하듯 편안하면서도 깊이 있게 카드의 메시지를 전달해주세요.
+        tarot_prompt = f"""당신은 10년 경력의 타로 리더입니다. 카드 상징과 이미지를 직관적으로 읽어내며, 질문자의 상황에 맞는 실질적인 통찰을 전달합니다.
 
 ## 오늘: {date_str} ({season}){moon_phase_hint}
 
@@ -2674,17 +4239,25 @@ def tarot_interpret():
 ## 카드 컨텍스트
 {rag_context}
 
-## 상담 스타일
-- 따뜻하고 공감하는 말투 ("~하시는군요", "카드가 이야기하고 있어요")
-- 각 카드 위치별 의미를 자연스럽게 연결
-- 단정적 예언 대신 가능성과 선택지 제시
-- 실생활에 적용 가능한 구체적인 조언
-- {('한국어로 자연스럽게' if is_korean else 'Write in English')}
-- 600-800자 분량"""
+## 좋은 해석 예시
+"탑 카드가 첫 위치에 나왔다. 번개가 왕관을 치고 두 사람이 추락하는 그림—지금 뭔가가 무너지고 있거나, 곧 무너질 것이다. 하지만 두 번째 위치의 별 카드를 보라. 폭풍 후 벌거벗은 여인이 물을 붓고 있다. 무너진 후에 치유가 온다. 세 번째 황제 카드는 그 잔해 위에 새로운 질서를 세우라고 한다. 지금 무너지는 게 뭐든, 그건 이미 금이 가 있었다."
+
+## 피해야 할 AI스러운 해석
+"이 카드는 변화를 나타내며, 새로운 시작의 가능성을 보여주고 있습니다. 긍정적인 에너지가 느껴지네요. 자신감을 가지고 앞으로 나아가시면 좋을 것 같습니다."
+
+## 해석 방향
+- 카드 이미지의 상징을 구체적으로 언급
+- 위치별 카드가 서로 어떤 이야기를 만들어내는지 연결
+- 막연한 격려 대신 구체적인 상황 해석
+- 질문과 직접 연결된 통찰 제시
+- {('자연스러운 한국어' if is_korean else 'Natural English')}
+- 500-700자"""
 
         # Generate with GPT-4o-mini (fast, skip refine step)
         try:
-            reading_text = _generate_with_gpt4(tarot_prompt, max_tokens=1200, temperature=0.5, use_mini=True)
+            reading_text = _generate_with_gpt4(tarot_prompt, max_tokens=1200, temperature=0.8, use_mini=True)
+            # Apply post-processing to remove AI-sounding phrases
+            reading_text = _clean_ai_phrases(reading_text)
         except Exception as llm_e:
             logger.warning(f"[TAROT] GPT-4o-mini failed: {llm_e}, using fallback")
             reading_text = f"카드 해석: {cards_str}. {rag_context[:500]}"
@@ -2946,8 +4519,7 @@ def tarot_interpret_stream():
                 # === SECTION 1: Overall Message (streaming) ===
                 yield f"data: {json.dumps({'section': 'overall_message', 'status': 'start'})}\n\n"
 
-                overall_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
-마치 오랜 친구에게 이야기하듯 편안하게 카드의 메시지를 전달해주세요.
+                overall_prompt = f"""당신은 경험 많은 타로 리더입니다. 카드의 상징과 이미지를 직관적으로 읽고, 질문자에게 실질적인 통찰을 전달합니다.
 
 카드: {cards_str}
 카테고리: {category}
@@ -2957,15 +4529,18 @@ def tarot_interpret_stream():
 참고 컨텍스트:
 {rag_context[:1500]}
 
-상담 스타일:
-- 따뜻하고 공감하는 말투 ("~하시는군요", "카드가 말하고 있어요")
-- 단정적 예언 대신 가능성과 선택지 제시
-- 3-4문장으로 전체 메시지만 자연스럽게 요약"""
+좋은 예시: "절벽 끝에 선 광대가 첫 카드다. 발밑을 안 보고 하늘을 본다—뭔가 시작하려 하지만 준비가 덜 됐다. 두 번째 힘 카드는 사자의 턱을 부드럽게 잡은 여인, 억지로 밀어붙이지 말라는 뜻이다."
+피할 것: "긍정적인 에너지가 느껴지네요. 좋은 변화가 올 것 같습니다."
+
+해석 방향:
+- 카드 이미지의 구체적 상징 언급 (인물, 배경, 물건)
+- 카드들이 연결되어 보여주는 이야기
+- 3-4문장으로 핵심만"""
 
                 stream = openai_client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[{"role": "user", "content": overall_prompt}],
-                    temperature=0.7,
+                    temperature=0.8,
                     max_tokens=300,
                     stream=True
                 )
@@ -2991,7 +4566,7 @@ def tarot_interpret_stream():
                     card_info = hybrid_rag.get_card_info(card_name, is_reversed)
                     insights = hybrid_rag.get_card_insights(card_name, is_reversed)
 
-                    card_prompt = f"""당신은 따뜻한 타로 상담사입니다. 이 카드가 전하는 메시지를 친근하게 해석해주세요.
+                    card_prompt = f"""당신은 타로 리더입니다. 이 카드의 상징과 이미지가 현재 위치에서 무엇을 의미하는지 해석하세요.
 
 카드: {card_name}{'(역방향)' if is_reversed else ''}
 위치: {position}
@@ -3004,15 +4579,18 @@ def tarot_interpret_stream():
 심리학적 통찰:
 {json.dumps(insights, ensure_ascii=False)[:500]}
 
-상담 스타일:
-- 이 위치에서 카드가 전하는 핵심 메시지
-- 개인의 상황과 연결하여 해석
-- 2-3문장으로 자연스럽게 설명"""
+좋은 예시: "여사제가 두 기둥 사이에 앉아 있다—B와 J, 밝음과 어둠의 경계. 뒤의 베일 너머엔 바다가 비친다. 알고 있지만 말하지 않는 것이 있다."
+피할 것: "이 카드는 직관을 나타냅니다. 내면의 목소리에 귀 기울이시면 좋겠습니다."
+
+해석 방향:
+- 카드 그림의 구체적 상징 (인물 자세, 배경, 물건)
+- {position} 위치에서의 의미
+- 2-3문장으로 간결하게"""
 
                     card_stream = openai_client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[{"role": "user", "content": card_prompt}],
-                        temperature=0.7,
+                        temperature=0.8,
                         max_tokens=250,
                         stream=True
                     )
@@ -3036,20 +4614,22 @@ def tarot_interpret_stream():
                 # === SECTION 3: Guidance (streaming) ===
                 yield f"data: {json.dumps({'section': 'guidance', 'status': 'start'})}\n\n"
 
-                guidance_prompt = f"""당신은 따뜻한 타로 상담사입니다. 이 리딩을 바탕으로 친구에게 조언하듯 이야기해주세요.
+                guidance_prompt = f"""당신은 타로 리더입니다. 이 리딩에서 도출된 실질적인 조언을 전달하세요.
 
 카드: {cards_str}
 전체 메시지: {overall_text[:500]}
 
-상담 스타일:
-- 실생활에서 바로 적용할 수 있는 구체적인 조언
-- 부드럽고 격려하는 말투 ("~해보시는 건 어떨까요?")
-- 2-3문장으로 따뜻하게 마무리"""
+좋은 예시: "전차의 두 스핑크스가 다른 방향으로 당기고 있다—상반된 힘을 조율해야 할 때다. 어느 한쪽만 선택하지 말고, 둘 다 끌고 가라."
+피할 것: "자신감을 가지시면 좋겠습니다. 좋은 결과가 있을 거예요."
+
+조언 방향:
+- 카드 상징에서 직접 도출된 구체적 행동
+- 2-3문장으로 명확하게"""
 
                 guidance_stream = openai_client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[{"role": "user", "content": guidance_prompt}],
-                    temperature=0.7,
+                    temperature=0.8,
                     max_tokens=200,
                     stream=True
                 )
@@ -3180,8 +4760,7 @@ def tarot_chat():
             date_str = now.strftime("%B %d, %Y (%A)")
 
         # Generate response using GPT-4o-mini for fast, counselor-like responses
-        chat_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
-마치 오랜 친구처럼 편안하게 대화하면서도, 카드가 전하는 메시지를 섬세하게 전달해주세요.
+        chat_prompt = f"""당신은 경험 많은 타로 리더입니다. 카드의 상징을 바탕으로 질문에 직접적이고 실질적인 답변을 해주세요.
 
 ## 오늘: {date_str}
 
@@ -3201,21 +4780,27 @@ def tarot_chat():
 ## 질문
 {last_user_message}
 
-{'💡 추가 카드를 원하시네요. 지금 카드들이 충분한 메시지를 담고 있어요. 이 리딩에 집중해보시고, 더 궁금하시면 새 리딩을 시작해보세요.' if wants_more_cards else ''}
-{'⏰ 타이밍 질문이시네요. 카드에서 읽히는 시기적 흐름을 알려드릴게요.' if asks_about_timing else ''}
+{'💡 현재 카드들이 이미 충분한 메시지를 담고 있습니다. 이 리딩에서 더 깊이 들여다볼 부분이 있다면 질문해주세요.' if wants_more_cards else ''}
+{'⏰ 시기에 대한 질문이네요. 카드의 흐름에서 읽히는 타이밍을 말씀드리겠습니다.' if asks_about_timing else ''}
 
 {'## 심리학적 통찰' + chr(10) + jung_insight if jung_insight else ''}
 
-## 상담 스타일 가이드
-- 따뜻하고 공감하는 말투 사용 ("~하시는군요", "~느끼실 수 있어요")
-- 카드 의미를 질문 상황에 맞게 연결
-- 단정적 예언 대신 가능성과 선택지 제시
-- 실질적인 조언이나 관점 제공
-- 3-4문장으로 자연스럽게 대화하듯 답변"""
+## 좋은 답변 예시
+"죽음 카드가 나왔다고 했는데, 실제 죽음이 아니라 변혁이다. 창백한 기수가 지나가면 왕도 쓰러진다—지위와 상관없이 변화는 온다. 지금 끝내야 할 게 뭔지 이미 알고 있을 것이다."
+
+## 피해야 할 답변
+"걱정하지 마세요. 좋은 방향으로 흘러갈 것 같습니다. 긍정적인 마음을 가지시면 좋겠어요."
+
+## 답변 방향
+- 질문에 직접 연결된 카드 상징 언급
+- 구체적인 이미지 묘사
+- 3-4문장으로 간결하게"""
 
         try:
             # GPT-4o-mini for fast, natural counselor responses (skip refine for speed)
-            reply = _generate_with_gpt4(chat_prompt, max_tokens=400, temperature=0.5, use_mini=True)
+            reply = _generate_with_gpt4(chat_prompt, max_tokens=400, temperature=0.8, use_mini=True)
+            # Apply post-processing to remove AI-sounding phrases
+            reply = _clean_ai_phrases(reply)
         except Exception as llm_e:
             logger.warning(f"[TAROT_CHAT] GPT-4 failed: {llm_e}")
             reply = f"현재 리딩에서 {cards_str}이(가) 나왔습니다. {guidance}"
@@ -3310,15 +4895,15 @@ def tarot_chat_stream():
 ## 질문
 {last_user_message}"""
 
-        system_prompt = """당신은 따뜻하고 공감 능력이 뛰어난 타로 상담사입니다.
-마치 오랜 친구처럼 편안하게 대화하면서도, 카드가 전하는 메시지를 섬세하게 전달해주세요.
+        system_prompt = """당신은 경험 많은 타로 리더입니다. 카드의 상징과 이미지를 바탕으로 질문에 직접적으로 답변합니다.
 
-상담 스타일:
-- 따뜻하고 공감하는 말투 ("~하시는군요", "~느끼실 수 있어요")
-- 카드 의미를 질문 상황에 맞게 연결
-- 단정적 예언 대신 가능성과 선택지 제시
-- 실질적인 조언이나 관점 제공
-- 3-4문장으로 자연스럽게 대화하듯 답변"""
+좋은 예시: "힘 카드에서 여인이 사자의 입을 닫는다—억지로 밀어붙이는 게 아니라 부드럽게. 지금 상황도 마찬가지다. 힘으로 해결하려 하지 마라."
+피할 것: "힘 카드가 나왔네요. 내면의 힘을 믿으시면 좋겠습니다. 잘 될 거예요."
+
+답변 스타일:
+- 카드 그림의 구체적 상징 언급
+- 질문과 직접 연결
+- 3-4문장으로 간결하게"""
 
         def generate_stream():
             """Generator for SSE streaming"""
@@ -3334,7 +4919,7 @@ def tarot_chat_stream():
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": chat_prompt}
                     ],
-                    temperature=0.6,
+                    temperature=0.8,
                     max_tokens=400,
                     stream=True
                 )
@@ -3960,9 +5545,12 @@ def counseling_integrated():
         session_id = data.get("session_id")
 
         # 점술 데이터
-        saju_data = data.get("saju")
+        saju_data = data.get("saju") or {}
         astro_data = data.get("astro")
         tarot_data = data.get("tarot")
+
+        # Normalize dayMaster structure (nested -> flat)
+        saju_data = normalize_day_master(saju_data)
 
         if not message:
             return jsonify({"status": "error", "message": "Message is required"}), 400
@@ -4227,6 +5815,172 @@ def rlhf_weights():
         })
     except Exception as e:
         logger.exception(f"[ERROR] /rlhf/weights failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/rlhf/analytics", methods=["GET"])
+def rlhf_analytics():
+    """
+    Get feedback analytics for counseling quality improvement.
+    상담 품질 개선을 위한 피드백 분석 통계.
+
+    Query params:
+    - days: Number of days to analyze (default: 30)
+    - theme: Filter by theme (optional)
+    """
+    if not HAS_RLHF:
+        return jsonify({"status": "error", "message": "RLHF module not available"}), 501
+
+    try:
+        days = request.args.get("days", 30, type=int)
+        theme_filter = request.args.get("theme")
+
+        fl = get_feedback_learning()
+
+        # Get feedback data
+        from datetime import datetime, timedelta
+        cutoff_date = datetime.now() - timedelta(days=days)
+
+        # Aggregate statistics
+        stats = {
+            "total_feedbacks": 0,
+            "average_rating": 0.0,
+            "rating_distribution": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+            "theme_breakdown": {},
+            "top_positive_themes": [],
+            "needs_improvement_themes": [],
+            "common_feedback_keywords": [],
+            "trend": "stable",
+        }
+
+        # Access feedback storage (if available)
+        if hasattr(fl, '_feedback_storage') and fl._feedback_storage:
+            feedbacks = fl._feedback_storage
+            filtered = []
+
+            for fb in feedbacks:
+                if isinstance(fb, dict):
+                    fb_date = fb.get("timestamp")
+                    fb_theme = fb.get("theme", "unknown")
+
+                    # Apply filters
+                    if theme_filter and fb_theme != theme_filter:
+                        continue
+
+                    if fb_date and isinstance(fb_date, str):
+                        try:
+                            fb_datetime = datetime.fromisoformat(fb_date.replace("Z", "+00:00"))
+                            if fb_datetime < cutoff_date:
+                                continue
+                        except:
+                            pass
+
+                    filtered.append(fb)
+
+            stats["total_feedbacks"] = len(filtered)
+
+            if filtered:
+                # Calculate average rating
+                ratings = [fb.get("rating", 3) for fb in filtered if fb.get("rating")]
+                if ratings:
+                    stats["average_rating"] = round(sum(ratings) / len(ratings), 2)
+
+                    # Rating distribution
+                    for r in ratings:
+                        if 1 <= r <= 5:
+                            stats["rating_distribution"][r] += 1
+
+                # Theme breakdown
+                theme_ratings = {}
+                for fb in filtered:
+                    t = fb.get("theme", "unknown")
+                    r = fb.get("rating", 3)
+                    if t not in theme_ratings:
+                        theme_ratings[t] = []
+                    theme_ratings[t].append(r)
+
+                for t, rs in theme_ratings.items():
+                    avg = round(sum(rs) / len(rs), 2) if rs else 0
+                    stats["theme_breakdown"][t] = {
+                        "count": len(rs),
+                        "average_rating": avg,
+                    }
+
+                # Top positive and needs improvement
+                sorted_themes = sorted(
+                    [(t, d["average_rating"], d["count"]) for t, d in stats["theme_breakdown"].items()],
+                    key=lambda x: (-x[1], -x[2])
+                )
+
+                stats["top_positive_themes"] = [
+                    {"theme": t, "avg_rating": r, "count": c}
+                    for t, r, c in sorted_themes[:3] if r >= 4.0
+                ]
+
+                stats["needs_improvement_themes"] = [
+                    {"theme": t, "avg_rating": r, "count": c}
+                    for t, r, c in reversed(sorted_themes) if r < 3.5
+                ][:3]
+
+                # Extract common keywords from negative feedback
+                negative_texts = [
+                    fb.get("feedback_text", "")
+                    for fb in filtered
+                    if fb.get("rating", 5) <= 2 and fb.get("feedback_text")
+                ]
+
+                keyword_counts = {}
+                negative_keywords = ["애매", "부정확", "일반적", "도움", "안 됨", "별로", "아쉬", "짧", "구체"]
+                for text in negative_texts:
+                    text_lower = text.lower()
+                    for kw in negative_keywords:
+                        if kw in text_lower:
+                            keyword_counts[kw] = keyword_counts.get(kw, 0) + 1
+
+                stats["common_feedback_keywords"] = [
+                    {"keyword": k, "count": c}
+                    for k, c in sorted(keyword_counts.items(), key=lambda x: -x[1])[:5]
+                ]
+
+                # Calculate trend (compare first half vs second half)
+                mid = len(ratings) // 2
+                if mid > 5:
+                    first_half_avg = sum(ratings[:mid]) / mid
+                    second_half_avg = sum(ratings[mid:]) / (len(ratings) - mid)
+                    diff = second_half_avg - first_half_avg
+                    if diff > 0.3:
+                        stats["trend"] = "improving"
+                    elif diff < -0.3:
+                        stats["trend"] = "declining"
+                    else:
+                        stats["trend"] = "stable"
+
+        # Quality insights
+        insights = []
+        if stats["average_rating"] < 3.5:
+            insights.append("전반적인 만족도가 낮습니다. 상담 응답 품질 개선이 필요합니다.")
+        elif stats["average_rating"] >= 4.5:
+            insights.append("매우 높은 만족도를 유지하고 있습니다!")
+
+        if stats["needs_improvement_themes"]:
+            themes_str = ", ".join([t["theme"] for t in stats["needs_improvement_themes"]])
+            insights.append(f"개선이 필요한 테마: {themes_str}")
+
+        if stats["common_feedback_keywords"]:
+            kws = ", ".join([k["keyword"] for k in stats["common_feedback_keywords"][:3]])
+            insights.append(f"부정적 피드백에서 자주 등장하는 키워드: {kws}")
+
+        stats["insights"] = insights
+
+        return jsonify({
+            "status": "success",
+            "period_days": days,
+            "theme_filter": theme_filter,
+            **stats
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /rlhf/analytics failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -5207,8 +6961,8 @@ def compatibility_analysis():
 
         if len(people) < 2:
             return jsonify({"status": "error", "message": "At least two people are required"}), 400
-        if len(people) > 4:
-            return jsonify({"status": "error", "message": "Maximum 4 people supported"}), 400
+        if len(people) > 5:
+            return jsonify({"status": "error", "message": "Maximum 5 people supported"}), 400
 
         if len(people) <= 2:
             result = interpret_compatibility(people, relationship_type, locale)
@@ -5368,9 +7122,988 @@ def get_capabilities():
             "hybrid_rag": HAS_HYBRID_RAG,
             "domain_rag": HAS_DOMAIN_RAG,
             "compatibility": HAS_COMPATIBILITY,
+            "numerology": HAS_NUMEROLOGY,
+            "icp": HAS_ICP,
         },
-        "version": "5.2.0-fortune-score",
+        "version": "5.3.0-numerology-icp",
     })
+
+
+# ===============================================================
+# NUMEROLOGY ENDPOINTS
+# ===============================================================
+
+@app.route("/api/numerology/analyze", methods=["POST"])
+def numerology_analyze():
+    """
+    Analyze numerology profile from birth date and name.
+
+    Request body:
+    {
+        "birthDate": "YYYY-MM-DD",
+        "englishName": "Full Name" (optional),
+        "koreanName": "한글이름" (optional),
+        "locale": "ko" (optional)
+    }
+    """
+    if not HAS_NUMEROLOGY:
+        return jsonify({"error": "Numerology module not available"}), 503
+
+    try:
+        data = request.get_json() or {}
+        birth_date = data.get("birthDate")
+        if not birth_date:
+            return jsonify({"error": "birthDate is required"}), 400
+
+        result = analyze_numerology(
+            birth_date=birth_date,
+            english_name=data.get("englishName"),
+            korean_name=data.get("koreanName"),
+            locale=data.get("locale", "ko")
+        )
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception("[numerology_analyze] Error")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/numerology/compatibility", methods=["POST"])
+def numerology_compatibility():
+    """
+    Analyze numerology compatibility between two people.
+
+    Request body:
+    {
+        "person1": {"birthDate": "YYYY-MM-DD", "name": "Name"},
+        "person2": {"birthDate": "YYYY-MM-DD", "name": "Name"},
+        "locale": "ko"
+    }
+    """
+    if not HAS_NUMEROLOGY:
+        return jsonify({"error": "Numerology module not available"}), 503
+
+    try:
+        data = request.get_json() or {}
+        p1 = data.get("person1", {})
+        p2 = data.get("person2", {})
+
+        if not p1.get("birthDate") or not p2.get("birthDate"):
+            return jsonify({"error": "Both birthDates are required"}), 400
+
+        result = analyze_numerology_compatibility(
+            person1_birth=p1["birthDate"],
+            person2_birth=p2["birthDate"],
+            person1_name=p1.get("name"),
+            person2_name=p2.get("name"),
+            locale=data.get("locale", "ko")
+        )
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception("[numerology_compatibility] Error")
+        return jsonify({"error": str(e)}), 500
+
+
+# ===============================================================
+# ICP (INTERPERSONAL CIRCUMPLEX) ENDPOINTS
+# ===============================================================
+
+@app.route("/api/icp/analyze", methods=["POST"])
+def icp_analyze():
+    """
+    Analyze ICP interpersonal style from saju/astrology data.
+
+    Request body:
+    {
+        "sajuData": {...},  (optional)
+        "astroData": {...}, (optional)
+        "locale": "ko"
+    }
+    """
+    if not HAS_ICP:
+        return jsonify({"error": "ICP module not available"}), 503
+
+    try:
+        data = request.get_json() or {}
+        result = analyze_icp_style(
+            saju_data=data.get("sajuData"),
+            astro_data=data.get("astroData"),
+            locale=data.get("locale", "ko")
+        )
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception("[icp_analyze] Error")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/icp/compatibility", methods=["POST"])
+def icp_compatibility():
+    """
+    Analyze ICP compatibility between two people.
+
+    Request body:
+    {
+        "person1": {"sajuData": {...}, "astroData": {...}},
+        "person2": {"sajuData": {...}, "astroData": {...}},
+        "locale": "ko"
+    }
+    """
+    if not HAS_ICP:
+        return jsonify({"error": "ICP module not available"}), 503
+
+    try:
+        data = request.get_json() or {}
+        p1 = data.get("person1", {})
+        p2 = data.get("person2", {})
+
+        result = analyze_icp_compatibility(
+            person1_saju=p1.get("sajuData"),
+            person1_astro=p1.get("astroData"),
+            person2_saju=p2.get("sajuData"),
+            person2_astro=p2.get("astroData"),
+            locale=data.get("locale", "ko")
+        )
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception("[icp_compatibility] Error")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/icp/questions", methods=["POST"])
+def icp_questions():
+    """
+    Get therapeutic questions for an ICP style.
+
+    Request body:
+    {
+        "style": "PA",  (ICP octant code)
+        "locale": "ko"
+    }
+    """
+    if not HAS_ICP:
+        return jsonify({"error": "ICP module not available"}), 503
+
+    try:
+        data = request.get_json() or {}
+        style = data.get("style", "LM")
+        result = get_icp_questions(
+            style=style,
+            locale=data.get("locale", "ko")
+        )
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception("[icp_questions] Error")
+        return jsonify({"error": str(e)}), 500
+
+
+# ===============================================================
+# SESSION SUMMARY API - Auto-generate counseling session summaries
+# ===============================================================
+
+@app.route("/api/counseling/session-summary", methods=["POST"])
+def counseling_session_summary():
+    """
+    Generate a summary for a counseling session.
+    상담 세션 요약 자동 생성 - 다음 세션 연속성을 위해.
+
+    Request body:
+    {
+        "messages": [{"role": "user/assistant", "content": "..."}, ...],
+        "saju_data": {...},  // Optional
+        "astro_data": {...},  // Optional
+        "locale": "ko"  // Optional
+    }
+
+    Response:
+    {
+        "summary": "...",
+        "key_topics": ["topic1", "topic2"],
+        "emotional_journey": "...",
+        "recommended_followup": ["question1", "question2"],
+        "jung_insights": {...}
+    }
+    """
+    try:
+        data = request.get_json(force=True)
+        messages = data.get("messages", [])
+        locale = data.get("locale", "ko")
+        saju_data = data.get("saju_data", {})
+        astro_data = data.get("astro_data", {})
+
+        if not messages or len(messages) < 2:
+            return jsonify({"status": "error", "message": "At least 2 messages required for summary"}), 400
+
+        # Extract user messages for analysis
+        user_messages = [m["content"] for m in messages if m.get("role") == "user"]
+        assistant_messages = [m["content"] for m in messages if m.get("role") == "assistant"]
+
+        # Topic extraction
+        topic_keywords = {
+            "연애/관계": ["연애", "사랑", "결혼", "이별", "썸", "짝사랑", "커플"],
+            "커리어/진로": ["취업", "이직", "진로", "사업", "퇴사", "회사", "직장"],
+            "가족": ["부모", "엄마", "아빠", "가족", "형제", "자매", "자녀"],
+            "자기탐색": ["성격", "나는", "어떤 사람", "장점", "단점", "정체성"],
+            "건강/스트레스": ["힘들", "우울", "지쳐", "스트레스", "불안", "걱정"],
+            "재정": ["돈", "재정", "경제", "투자", "부동산"],
+            "타이밍/시기": ["언제", "시기", "타이밍", "올해", "내년"],
+        }
+
+        detected_topics = []
+        all_user_text = " ".join(user_messages).lower()
+        for topic, keywords in topic_keywords.items():
+            if any(kw in all_user_text for kw in keywords):
+                detected_topics.append(topic)
+
+        # Emotional journey extraction
+        emotions_timeline = []
+        emotion_map = {
+            "exhausted": "지침",
+            "sad": "슬픔",
+            "anxious": "불안",
+            "angry": "분노",
+            "lonely": "외로움",
+            "hopeful": "희망",
+            "confused": "혼란",
+            "relieved": "안도",
+            "grateful": "감사",
+        }
+
+        for msg in user_messages:
+            msg_lower = msg.lower()
+            for eng_emotion, kr_emotion in emotion_map.items():
+                if any(k in msg_lower for k in [kr_emotion, eng_emotion]):
+                    if kr_emotion not in emotions_timeline:
+                        emotions_timeline.append(kr_emotion)
+
+        # Generate summary using OpenAI
+        summary_text = ""
+        recommended_followup = []
+
+        if OPENAI_AVAILABLE:
+            try:
+                # Build conversation context
+                conv_text = "\n".join([
+                    f"{'사용자' if m['role'] == 'user' else '상담사'}: {m['content'][:300]}"
+                    for m in messages[-10:]  # Last 10 messages
+                ])
+
+                summary_prompt = f"""다음 상담 대화를 분석하고 요약해주세요.
+
+{conv_text}
+
+다음 형식으로 응답해주세요:
+1. 핵심 요약 (2-3문장): 이 세션에서 다룬 주요 내용
+2. 감정 여정: 사용자의 감정이 어떻게 변화했는지
+3. 핵심 통찰: 상담에서 발견한 중요한 인사이트
+4. 다음 세션 추천 질문 (2개): 후속 상담에서 다룰 만한 주제
+
+JSON 형식으로 응답하세요:
+{{"summary": "...", "emotional_journey": "...", "key_insight": "...", "followup_questions": ["...", "..."]}}"""
+
+                response = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": summary_prompt}],
+                    temperature=0.5,
+                    max_tokens=500,
+                )
+
+                import json as json_mod
+                try:
+                    result = json_mod.loads(response.choices[0].message.content)
+                    summary_text = result.get("summary", "")
+                    emotional_journey = result.get("emotional_journey", "")
+                    key_insight = result.get("key_insight", "")
+                    recommended_followup = result.get("followup_questions", [])
+                except:
+                    summary_text = response.choices[0].message.content[:500]
+                    emotional_journey = " → ".join(emotions_timeline) if emotions_timeline else "파악 불가"
+                    key_insight = ""
+                    recommended_followup = []
+
+            except Exception as e:
+                logger.warning(f"[SESSION-SUMMARY] OpenAI call failed: {e}")
+                summary_text = f"주요 주제: {', '.join(detected_topics[:3]) if detected_topics else '일반 상담'}"
+                emotional_journey = " → ".join(emotions_timeline) if emotions_timeline else "파악 불가"
+                key_insight = ""
+        else:
+            summary_text = f"주요 주제: {', '.join(detected_topics[:3]) if detected_topics else '일반 상담'}"
+            emotional_journey = " → ".join(emotions_timeline) if emotions_timeline else "파악 불가"
+            key_insight = ""
+
+        # Jung insights based on detected topics
+        jung_insights = {}
+        if "연애/관계" in detected_topics:
+            jung_insights["archetype"] = "아니마/아니무스"
+            jung_insights["theme"] = "관계 투사 작업"
+        elif "자기탐색" in detected_topics:
+            jung_insights["archetype"] = "페르소나/그림자"
+            jung_insights["theme"] = "자기 통합"
+        elif "가족" in detected_topics:
+            jung_insights["archetype"] = "부모 콤플렉스"
+            jung_insights["theme"] = "원가족 작업"
+        elif "건강/스트레스" in detected_topics:
+            jung_insights["archetype"] = "그림자"
+            jung_insights["theme"] = "억압된 감정 작업"
+
+        return jsonify({
+            "status": "success",
+            "summary": summary_text,
+            "key_topics": detected_topics[:5],
+            "emotional_journey": emotional_journey if isinstance(emotional_journey, str) else " → ".join(emotions_timeline),
+            "key_insight": key_insight if 'key_insight' in dir() else "",
+            "recommended_followup": recommended_followup[:2],
+            "jung_insights": jung_insights,
+            "message_count": len(messages),
+            "user_message_count": len(user_messages),
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/session-summary failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/active-imagination", methods=["POST"])
+def counseling_active_imagination():
+    """
+    Get active imagination exercise prompts based on context.
+    적극적 상상 기법 안내 프롬프트 제공.
+    """
+    try:
+        data = request.get_json(force=True)
+        context = data.get("context", "")
+        archetype = data.get("archetype", "")  # shadow, anima_animus, inner_child, wise_figure
+
+        # Load jung data
+        jung_data = _load_jung_data()
+        ai_data = jung_data.get("active_imagination", {})
+
+        if not ai_data:
+            return jsonify({
+                "status": "error",
+                "message": "Active imagination data not available"
+            }), 501
+
+        # Get relevant prompts
+        facilitation = ai_data.get("ai_facilitation_guide", {})
+        practice_methods = ai_data.get("practice_methods", {})
+
+        # Determine method based on context
+        method = "dialogue_with_figure"  # Default
+        context_lower = context.lower()
+
+        if any(k in context_lower for k in ["꿈", "악몽"]):
+            method = "dream_continuation"
+        elif any(k in context_lower for k in ["몸", "아프", "통증", "증상"]):
+            method = "body_symptom_dialogue"
+        elif any(k in context_lower for k in ["화나", "슬퍼", "두려", "감정"]):
+            method = "emotion_personification"
+
+        method_data = practice_methods.get(method, {})
+
+        # Get archetype-specific questions if available
+        archetype_questions = []
+        if archetype and method == "dialogue_with_figure":
+            archetype_data = method_data.get("archetype_specific", {}).get(archetype, {})
+            archetype_questions = archetype_data.get("questions", [])
+
+        # Build response
+        response = {
+            "status": "success",
+            "method": method_data.get("name_ko", method),
+            "description": method_data.get("description", ""),
+            "steps": method_data.get("steps", []),
+            "suggested_questions": method_data.get("suggested_questions", archetype_questions),
+            "opening_prompts": facilitation.get("opening_prompts", {}).get("general", []),
+            "deepening_prompts": facilitation.get("deepening_prompts", [])[:3],
+            "integration_prompts": facilitation.get("integration_prompts", [])[:2],
+            "safety_notes": facilitation.get("safety_responses", {}).get("overwhelming", []),
+        }
+
+        # Add archetype approach if applicable
+        if archetype:
+            archetype_data = practice_methods.get("dialogue_with_figure", {}).get("archetype_specific", {}).get(archetype, {})
+            if archetype_data:
+                response["archetype_approach"] = archetype_data.get("approach", "")
+                response["archetype_questions"] = archetype_data.get("questions", [])
+
+        return jsonify(response)
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/active-imagination failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/lifespan-guidance", methods=["GET"])
+def counseling_lifespan_guidance():
+    """
+    Get age-appropriate psychological guidance.
+    생애주기별 심리 발달 과제 안내.
+    """
+    try:
+        birth_year = request.args.get("birth_year", type=int)
+
+        if not birth_year:
+            return jsonify({
+                "status": "error",
+                "message": "birth_year parameter required"
+            }), 400
+
+        guidance = get_lifespan_guidance(birth_year)
+
+        if not guidance:
+            return jsonify({
+                "status": "error",
+                "message": "Lifespan guidance data not available"
+            }), 501
+
+        return jsonify({
+            "status": "success",
+            **guidance
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/lifespan-guidance failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ============================================================
+# SAJU-ONLY COUNSELOR ENDPOINTS
+# ============================================================
+
+@app.route("/saju/counselor/init", methods=["POST"])
+def saju_counselor_init():
+    """
+    Initialize saju-only counselor session with pre-fetched RAG data.
+    Similar to /counselor/init but focuses only on saju knowledge.
+    """
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        saju_data = data.get("saju") or {}
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+
+        # Normalize dayMaster structure
+        saju_data = normalize_day_master(saju_data)
+
+        logger.info(f"[SAJU-COUNSELOR-INIT] id={g.request_id} theme={theme}")
+
+        # Generate session ID
+        session_id = str(uuid4())[:12]
+
+        start_time = time.time()
+
+        # Pre-fetch saju-specific RAG data only (no astrology)
+        rag_data = {
+            "graph_nodes": [],
+            "corpus_quotes": [],
+            "persona_context": {},
+        }
+
+        # Load saju-specific graph rules
+        try:
+            from backend_ai.app.graph_rag import get_graph_rag
+            graph_rag = get_graph_rag()
+            if graph_rag:
+                # Query saju-specific rules
+                day_master = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
+                queries = [
+                    f"사주 일간 {day_master} 특성",
+                    f"오행 균형 분석",
+                    f"대운 세운 해석",
+                    f"사주 {theme} 운세",
+                ]
+                for q in queries:
+                    nodes = graph_rag.search(q, top_k=3)
+                    rag_data["graph_nodes"].extend([n.get("text", "") for n in nodes if n.get("text")])
+        except Exception as e:
+            logger.warning(f"[SAJU-COUNSELOR-INIT] Graph RAG failed: {e}")
+
+        prefetch_time_ms = int((time.time() - start_time) * 1000)
+        rag_data["prefetch_time_ms"] = prefetch_time_ms
+
+        # Store in session cache
+        set_session_rag_cache(session_id, {
+            "rag_data": rag_data,
+            "saju_data": saju_data,
+            "astro_data": {},  # No astrology data
+            "theme": theme,
+            "counselor_type": "saju",
+        })
+
+        return jsonify({
+            "status": "success",
+            "session_id": session_id,
+            "prefetch_time_ms": prefetch_time_ms,
+            "data_summary": {
+                "graph_nodes": len(rag_data.get("graph_nodes", [])),
+            }
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /saju/counselor/init failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/saju/ask-stream", methods=["POST"])
+def saju_ask_stream():
+    """
+    Streaming chat for saju-only counselor.
+    Uses Server-Sent Events (SSE) for real-time responses.
+    Focuses exclusively on saju interpretation without astrology.
+    """
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        saju_data = data.get("saju") or {}
+        birth_data = data.get("birth") or {}
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+        prompt = (data.get("prompt") or "")[:1500]
+        session_id = data.get("session_id")
+        conversation_history = data.get("history") or []
+        user_context = data.get("user_context") or {}
+
+        # Normalize dayMaster structure
+        saju_data = normalize_day_master(saju_data)
+
+        logger.info(f"[SAJU-ASK-STREAM] id={g.request_id} theme={theme} locale={locale}")
+
+        # Check for pre-fetched RAG data from session
+        session_cache = None
+        rag_context = ""
+        if session_id:
+            session_cache = get_session_rag_cache(session_id)
+            if session_cache:
+                if not saju_data:
+                    saju_data = session_cache.get("saju_data", {})
+
+                rag_data = session_cache.get("rag_data", {})
+                if rag_data.get("graph_nodes"):
+                    rag_context += "\n[사주 관련 지식]\n"
+                    rag_context += "\n".join(rag_data["graph_nodes"][:8])
+
+        # Compute saju if not provided
+        if not saju_data and birth_data.get("date") and birth_data.get("time"):
+            try:
+                saju_data = calculate_saju_data(
+                    birth_data["date"],
+                    birth_data["time"],
+                    birth_data.get("gender", "male")
+                )
+            except Exception as e:
+                logger.warning(f"[SAJU-ASK-STREAM] Failed to compute saju: {e}")
+
+        # Build detailed saju context (NO astrology)
+        saju_detail = _build_detailed_saju(saju_data)
+
+        # Current date
+        from datetime import datetime
+        now = datetime.now()
+        weekdays_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        current_date_str = f"오늘: {now.year}년 {now.month}월 {now.day}일 ({weekdays_ko[now.weekday()]})"
+
+        # Build user context section
+        user_context_section = ""
+        if user_context:
+            persona = user_context.get("persona", {})
+            if persona.get("sessionCount", 0) > 0:
+                user_context_section = f"\n[이전 상담]\n• {persona.get('sessionCount', 0)}회 방문 고객\n"
+
+        # Build saju-focused system prompt
+        if locale == "ko":
+            system_prompt = f"""너는 사주(四柱) 전문 상담사다. 동양 명리학 전문가로서 상담해.
+
+절대 규칙:
+1. 인사 금지 - 바로 분석 시작
+2. 사주 분석에만 집중 - 서양 점성술 언급 금지
+3. 제공된 대운/세운 데이터만 사용
+4. 한국 사주 용어 사용 (일간, 용신, 대운, 세운, 오행 등)
+
+{current_date_str}
+
+[사주 명식]
+{saju_detail}
+
+{rag_context}
+{user_context_section}
+
+응답 형식:
+【일간】 일간의 특성과 현재 상태
+【대운】 현재 대운 분석
+【세운】 올해 세운 분석
+【오행】 오행 균형과 보완 방법
+【조언】 2-3개 실천 조언
+
+200-300단어로 답변."""
+        else:
+            system_prompt = f"""You are a Saju (Four Pillars of Destiny) counselor specializing in Eastern fortune-telling.
+
+RULES:
+1. NO GREETING - Start directly with analysis
+2. Focus ONLY on Saju - NO Western astrology
+3. Use only provided daeun/seun data
+4. Use proper Saju terminology
+
+{current_date_str}
+
+[Saju Chart]
+{saju_detail}
+
+{rag_context}
+{user_context_section}
+
+Response format:
+【Day Master】 Characteristics and current state
+【Major Luck】 Current major luck cycle
+【Annual Luck】 This year's luck
+【Five Elements】 Balance and recommendations
+【Advice】 2-3 practical actions
+
+200-300 words."""
+
+        # Full prompt
+        full_prompt = f"{system_prompt}\n\n사용자 질문: {prompt}"
+
+        # Streaming response
+        def generate():
+            try:
+                response = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    stream=True,
+                    temperature=0.7,
+                    max_tokens=800,
+                )
+
+                collected_text = ""
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        text = chunk.choices[0].delta.content
+                        collected_text += text
+                        yield f"data: {text}\n\n"
+
+                # Add follow-up questions
+                follow_ups = [
+                    "올해 세운이 제 운세에 어떤 영향을 주나요?",
+                    "제 용신은 무엇인가요?",
+                    "오행 균형을 어떻게 맞출 수 있나요?",
+                ] if locale == "ko" else [
+                    "How does this year's luck affect me?",
+                    "What is my favorable element?",
+                    "How can I balance my five elements?",
+                ]
+                yield f"data: ||FOLLOWUP||{json.dumps(follow_ups, ensure_ascii=False)}\n\n"
+                yield "data: [DONE]\n\n"
+
+            except Exception as e:
+                logger.error(f"[SAJU-ASK-STREAM] Streaming error: {e}")
+                yield f"data: 오류가 발생했습니다: {str(e)}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /saju/ask-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ============================================================
+# ASTROLOGY-ONLY COUNSELOR ENDPOINTS
+# ============================================================
+
+@app.route("/astrology/counselor/init", methods=["POST"])
+def astrology_counselor_init():
+    """
+    Initialize astrology-only counselor session with pre-fetched RAG data.
+    Similar to /counselor/init but focuses only on Western astrology.
+    """
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        astro_data = data.get("astro") or {}
+        birth_data = data.get("birth") or {}
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+
+        logger.info(f"[ASTROLOGY-COUNSELOR-INIT] id={g.request_id} theme={theme}")
+
+        # Generate session ID
+        session_id = str(uuid4())[:12]
+
+        start_time = time.time()
+
+        # Compute astrology if not provided but birth info is available
+        if not astro_data and birth_data.get("date") and birth_data.get("time"):
+            try:
+                lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
+                lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
+                date_parts = birth_data["date"].split("-")
+                time_parts = birth_data["time"].split(":")
+                astro_data = calculate_astrology_data({
+                    "year": int(date_parts[0]),
+                    "month": int(date_parts[1]),
+                    "day": int(date_parts[2]),
+                    "hour": int(time_parts[0]),
+                    "minute": int(time_parts[1]) if len(time_parts) > 1 else 0,
+                    "latitude": lat,
+                    "longitude": lon,
+                })
+            except Exception as e:
+                logger.warning(f"[ASTROLOGY-COUNSELOR-INIT] Failed to compute astro: {e}")
+
+        # Pre-fetch astrology-specific RAG data only (no saju)
+        rag_data = {
+            "graph_nodes": [],
+            "corpus_quotes": [],
+        }
+
+        # Load astrology-specific graph rules
+        try:
+            from backend_ai.app.graph_rag import get_graph_rag
+            graph_rag = get_graph_rag()
+            if graph_rag:
+                sun_sign = astro_data.get("sun", {}).get("sign", "")
+                moon_sign = astro_data.get("moon", {}).get("sign", "")
+                queries = [
+                    f"태양 {sun_sign} 특성",
+                    f"달 {moon_sign} 감정",
+                    f"행성 트랜짓 영향",
+                    f"점성술 {theme} 해석",
+                ]
+                for q in queries:
+                    nodes = graph_rag.search(q, top_k=3)
+                    rag_data["graph_nodes"].extend([n.get("text", "") for n in nodes if n.get("text")])
+        except Exception as e:
+            logger.warning(f"[ASTROLOGY-COUNSELOR-INIT] Graph RAG failed: {e}")
+
+        prefetch_time_ms = int((time.time() - start_time) * 1000)
+        rag_data["prefetch_time_ms"] = prefetch_time_ms
+
+        # Store in session cache
+        set_session_rag_cache(session_id, {
+            "rag_data": rag_data,
+            "saju_data": {},  # No saju data
+            "astro_data": astro_data,
+            "theme": theme,
+            "counselor_type": "astrology",
+        })
+
+        return jsonify({
+            "status": "success",
+            "session_id": session_id,
+            "astro": astro_data,  # Return computed astro data
+            "prefetch_time_ms": prefetch_time_ms,
+            "data_summary": {
+                "graph_nodes": len(rag_data.get("graph_nodes", [])),
+            }
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /astrology/counselor/init failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/astrology/ask-stream", methods=["POST"])
+def astrology_ask_stream():
+    """
+    Streaming chat for astrology-only counselor.
+    Uses Server-Sent Events (SSE) for real-time responses.
+    Focuses exclusively on Western astrology without saju.
+    """
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        astro_data = data.get("astro") or {}
+        birth_data = data.get("birth") or {}
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+        prompt = (data.get("prompt") or "")[:1500]
+        session_id = data.get("session_id")
+        conversation_history = data.get("history") or []
+        user_context = data.get("user_context") or {}
+
+        logger.info(f"[ASTROLOGY-ASK-STREAM] id={g.request_id} theme={theme} locale={locale}")
+
+        # Check for pre-fetched RAG data from session
+        session_cache = None
+        rag_context = ""
+        if session_id:
+            session_cache = get_session_rag_cache(session_id)
+            if session_cache:
+                if not astro_data:
+                    astro_data = session_cache.get("astro_data", {})
+
+                rag_data = session_cache.get("rag_data", {})
+                if rag_data.get("graph_nodes"):
+                    rag_context += "\n[점성술 관련 지식]\n"
+                    rag_context += "\n".join(rag_data["graph_nodes"][:8])
+
+        # Compute astrology if not provided
+        if not astro_data and birth_data.get("date") and birth_data.get("time"):
+            try:
+                lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
+                lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
+                date_parts = birth_data["date"].split("-")
+                time_parts = birth_data["time"].split(":")
+                astro_data = calculate_astrology_data({
+                    "year": int(date_parts[0]),
+                    "month": int(date_parts[1]),
+                    "day": int(date_parts[2]),
+                    "hour": int(time_parts[0]),
+                    "minute": int(time_parts[1]) if len(time_parts) > 1 else 0,
+                    "latitude": lat,
+                    "longitude": lon,
+                })
+            except Exception as e:
+                logger.warning(f"[ASTROLOGY-ASK-STREAM] Failed to compute astro: {e}")
+
+        # Build detailed astrology context (NO saju)
+        astro_detail = _build_detailed_astro(astro_data)
+
+        # Current date
+        from datetime import datetime
+        now = datetime.now()
+        weekdays_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+        current_date_str = f"오늘: {now.year}년 {now.month}월 {now.day}일 ({weekdays_ko[now.weekday()]})"
+
+        # Build user context section
+        user_context_section = ""
+        if user_context:
+            persona = user_context.get("persona", {})
+            if persona.get("sessionCount", 0) > 0:
+                user_context_section = f"\n[이전 상담]\n• {persona.get('sessionCount', 0)}회 방문 고객\n"
+
+        # Build astrology-focused system prompt
+        if locale == "ko":
+            system_prompt = f"""너는 서양 점성술 전문 상담사다. 출생 차트 분석과 행성 트랜짓 전문가야.
+
+절대 규칙:
+1. 인사 금지 - 바로 분석 시작
+2. 서양 점성술에만 집중 - 사주/동양 역술 언급 금지
+3. 점성술 용어 사용 (별자리, 하우스, 애스펙트, 트랜짓 등)
+4. 구체적인 행성 위치와 각도 언급
+
+{current_date_str}
+
+[출생 차트]
+{astro_detail}
+
+{rag_context}
+{user_context_section}
+
+응답 형식:
+【태양/달】 태양과 달 별자리의 핵심 성격
+【상승궁】 어센던트가 외적 페르소나에 미치는 영향
+【트랜짓】 현재 행성 트랜짓과 그 영향
+【하우스】 질문과 관련된 하우스 배치
+【조언】 2-3개 실천 조언
+
+200-300단어로 답변."""
+        else:
+            system_prompt = f"""You are a Western Astrology counselor specializing in birth chart analysis.
+
+RULES:
+1. NO GREETING - Start directly with analysis
+2. Focus ONLY on Western Astrology - NO Eastern fortune-telling
+3. Use proper astrological terminology (signs, houses, aspects, transits)
+4. Include specific planetary positions
+
+{current_date_str}
+
+[Birth Chart]
+{astro_detail}
+
+{rag_context}
+{user_context_section}
+
+Response format:
+【Sun/Moon】 Core personality from Sun and Moon signs
+【Rising】 Ascendant influence
+【Transits】 Current planetary transits
+【Houses】 Relevant house placements
+【Guidance】 2-3 practical actions
+
+200-300 words."""
+
+        # Full prompt
+        full_prompt = f"{system_prompt}\n\n사용자 질문: {prompt}"
+
+        # Streaming response
+        def generate():
+            try:
+                response = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    stream=True,
+                    temperature=0.7,
+                    max_tokens=800,
+                )
+
+                collected_text = ""
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        text = chunk.choices[0].delta.content
+                        collected_text += text
+                        yield f"data: {text}\n\n"
+
+                # Add follow-up questions
+                follow_ups = [
+                    "현재 행성 트랜짓이 제게 어떤 영향을 주나요?",
+                    "제 상승궁에 대해 더 알려주세요",
+                    "올해 주요 점성술적 이벤트는 무엇인가요?",
+                ] if locale == "ko" else [
+                    "How do current transits affect me?",
+                    "Tell me more about my rising sign",
+                    "What are the major astrological events this year?",
+                ]
+                yield f"data: ||FOLLOWUP||{json.dumps(follow_ups, ensure_ascii=False)}\n\n"
+                yield "data: [DONE]\n\n"
+
+            except Exception as e:
+                logger.error(f"[ASTROLOGY-ASK-STREAM] Streaming error: {e}")
+                yield f"data: 오류가 발생했습니다: {str(e)}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /astrology/ask-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 if __name__ == "__main__":

@@ -73,9 +73,25 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const lucky = ((sinsal as any)?.luckyList ?? []).map((x: any) => x.name).join(", ");
   const unlucky = ((sinsal as any)?.unluckyList ?? []).map((x: any) => x.name).join(", ");
 
+  // 일주(日柱)에서 일간 추출 - pillars.day의 heavenlyStem이 일간
+  const dayPillarStem = pillars?.day?.heavenlyStem?.name;
+  const dayPillarElement = pillars?.day?.heavenlyStem?.element;
+
+  // dayMaster가 없거나 잘못된 경우 일주에서 추출
+  const actualDayMaster = dayMaster?.name || dayPillarStem || "-";
+  const actualDayMasterElement = dayMaster?.element || dayPillarElement || "-";
+
   return [
     `[DATA SNAPSHOT - ${theme}]`,
     `Locale: ${lang}`,
+    ``,
+    `⚠️ CRITICAL - DAY MASTER (일간/日干) ⚠️`,
+    `═══════════════════════════════════════`,
+    `Day Master (일간): ${actualDayMaster} (${actualDayMasterElement})`,
+    `This is the CORE IDENTITY of the person. NOT the year stem (년간).`,
+    `The year stem is: ${pillars?.year?.heavenlyStem?.name ?? "-"} (different from day master)`,
+    `═══════════════════════════════════════`,
+    ``,
     `Asc: ${ascendant?.sign ?? "-"} | MC: ${mc?.sign ?? "-"}`,
     `Sun: ${planets.find((p: any) => p.name === "Sun")?.sign ?? "-"} | Moon: ${
       planets.find((p: any) => p.name === "Moon")?.sign ?? "-"
@@ -84,7 +100,6 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     `Planets: ${planetLines || "-"}`,
     `Houses: ${houseLines || "-"}`,
     `Aspects: ${aspectLines || "-"}`,
-    `Day Master: ${dayMaster?.name ?? "-"} (${dayMaster?.element ?? "-"})`,
     `Pillars: ${pillarText}`,
     `Daeun: ${daeun || "-"}`,
     `Annual: ${annual || "-"}`,

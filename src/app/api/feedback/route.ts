@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { guardText, cleanText } from "@/lib/textGuards";
+import { enforceBodySize } from "@/lib/http";
 
 const BACKEND_URL =
   process.env.AI_BACKEND_URL ||
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
     if (!requirePublicToken(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
+
+    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    if (oversized) return oversized;
 
     const body = await req.json();
 

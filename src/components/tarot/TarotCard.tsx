@@ -122,6 +122,7 @@ export default function TarotCard({
           width={size === "small" ? 120 : size === "medium" ? 180 : 220}
           height={size === "small" ? 210 : size === "medium" ? 315 : 385}
           className={styles.cardImage}
+          unoptimized
         />
         {isReversed && (
           <div className={styles.reversedLabel}>Reversed</div>

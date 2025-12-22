@@ -1,0 +1,1605 @@
+{
+  "$schema": "iching_hexagrams_v2",
+  "hexagrams": {
+    "33": {
+      "number": 33,
+      "name": "천산둔",
+      "chinese": "遯",
+      "meaning": "물러남, 은둔",
+      "upper_trigram": "건",
+      "lower_trigram": "간",
+      "judgment": {
+        "korean": "둔은 형통하니 작은 것에 바르면 이롭다",
+        "interpretation": "물러날 때를 아는 것이 지혜. 전략적 후퇴."
+      },
+      "situations": {
+        "love": {
+          "single": "지금은 기다리는 것이 좋습니다."
+        },
+        "career": {
+          "general": "물러서서 관망하세요."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "둔의 꼬리니 위태롭다. 갈 곳에 쓰지 마라",
+          "interpretation": "물러날 때 뒤처지면 위험하다.",
+          "changing_to": 13,
+          "changing_hexagram_name": "천화동인(天火同人)",
+          "changing_interpretation": {
+            "transition": "위태로운 후퇴가 함께하는 동지로 바뀝니다.",
+            "from_to": "뒤처져 위태로운 상황 → 뜻이 맞는 이들과 함께하는 상황으로",
+            "core_message": "동인(同人)은 뜻을 같이하는 사람들입니다. 혼자 물러나지 말고 동지를 찾으세요.",
+            "practical_advice": ["뜻이 맞는 사람을 찾으세요", "함께하면 위험이 줄어듭니다", "고립되지 마세요"],
+            "warning": "혼자 뒤처지면 위험합니다. 반드시 함께하세요."
+          }
+        },
+        "2": {
+          "text": "황소의 가죽으로 잡으니 풀 수 없다",
+          "interpretation": "굳건히 잡고 있으면 벗어나지 못한다.",
+          "changing_to": 44,
+          "changing_hexagram_name": "천풍구(天風姤)",
+          "changing_interpretation": {
+            "transition": "굳건한 붙잡음이 우연한 만남으로 바뀝니다.",
+            "from_to": "놓지 않으려는 상황 → 예상치 못한 만남의 상황으로",
+            "core_message": "구(姤)는 우연한 만남입니다. 붙잡던 것을 놓으면 새로운 것을 만납니다.",
+            "practical_advice": ["집착을 놓으세요", "새로운 가능성을 받아들이세요", "유연하게 대처하세요"],
+            "warning": "너무 붙잡으면 오히려 놓칩니다."
+          }
+        },
+        "3": {
+          "text": "계둔이니 병이 있어 위태롭다",
+          "interpretation": "얽매여 물러나니 힘들다.",
+          "changing_to": 12,
+          "changing_hexagram_name": "천지비(天地否)",
+          "changing_interpretation": {
+            "transition": "얽매인 후퇴가 막힘으로 바뀝니다.",
+            "from_to": "얽혀서 물러나기 힘든 상황 → 완전히 막히는 상황으로",
+            "core_message": "비(否)는 막힘입니다. 얽매임을 풀지 않으면 더 막힙니다.",
+            "practical_advice": ["관계를 정리하세요", "물러날 때 깔끔하게", "미련을 버리세요"],
+            "warning": "얽매인 채 물러나면 병이 됩니다."
+          }
+        },
+        "4": {
+          "text": "좋은 둔이니 군자는 길하고 소인은 아니다",
+          "interpretation": "때에 맞게 물러나니 길하다.",
+          "changing_to": 53,
+          "changing_hexagram_name": "풍산점(風山漸)",
+          "changing_interpretation": {
+            "transition": "좋은 물러남이 점진적 나아감으로 바뀝니다.",
+            "from_to": "때에 맞게 물러나는 상황 → 천천히 나아가는 상황으로",
+            "core_message": "점(漸)은 점진적 발전입니다. 물러났으니 이제 천천히 나아가세요.",
+            "practical_advice": ["조급해하지 마세요", "한 걸음씩 나아가세요", "기다림을 배우세요"],
+            "warning": "물러난 후 급히 나서면 안 됩니다."
+          }
+        },
+        "5": {
+          "text": "아름다운 둔이니 바르면 길하다",
+          "interpretation": "우아하게 물러나니 길하다.",
+          "changing_to": 56,
+          "changing_hexagram_name": "화산려(火山旅)",
+          "changing_interpretation": {
+            "transition": "아름다운 물러남이 여행으로 바뀝니다.",
+            "from_to": "우아하게 물러나는 상황 → 나그네처럼 떠나는 상황으로",
+            "core_message": "려(旅)는 여행입니다. 물러남이 새로운 여정의 시작이 됩니다.",
+            "practical_advice": ["가벼운 마음으로 떠나세요", "새로운 곳에서 배우세요", "과거에 집착하지 마세요"],
+            "warning": "여행자처럼 겸손하게 행동하세요."
+          }
+        },
+        "6": {
+          "text": "살진 둔이니 이롭지 않음이 없다",
+          "interpretation": "넉넉하게 물러나니 이롭다.",
+          "changing_to": 31,
+          "changing_hexagram_name": "택산함(澤山咸)",
+          "changing_interpretation": {
+            "transition": "넉넉한 물러남이 감응으로 바뀝니다.",
+            "from_to": "여유있게 물러나는 상황 → 마음이 통하는 상황으로",
+            "core_message": "함(咸)은 감응입니다. 여유있게 물러나면 마음이 통하는 인연을 만납니다.",
+            "practical_advice": ["마음을 열어두세요", "새로운 인연에 열려있으세요", "감응을 느껴보세요"],
+            "warning": "물질에만 집착하지 마세요."
+          }
+        }
+      }
+    },
+    "34": {
+      "number": 34,
+      "name": "뇌천대장",
+      "chinese": "大壯",
+      "meaning": "큰 힘, 강성함",
+      "upper_trigram": "진",
+      "lower_trigram": "건",
+      "judgment": {
+        "korean": "대장은 바르면 이롭다",
+        "interpretation": "힘이 넘치지만 정도를 지켜야 한다."
+      },
+      "situations": {
+        "love": {
+          "single": "자신감 있게 다가가세요."
+        },
+        "career": {
+          "general": "추진력이 강한 시기입니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "발에 장함이니 정벌하면 흉하다",
+          "interpretation": "힘이 아직 약하니 나서지 마라.",
+          "changing_to": 32,
+          "changing_hexagram_name": "뇌풍항(雷風恆)",
+          "changing_interpretation": {
+            "transition": "성급한 힘이 항구함으로 바뀝니다.",
+            "from_to": "힘이 약한데 나서려는 상황 → 꾸준함을 배우는 상황으로",
+            "core_message": "항(恆)은 항구함입니다. 힘을 기르며 꾸준히 준비하세요.",
+            "practical_advice": ["조급함을 버리세요", "꾸준히 힘을 기르세요", "기초를 다지세요"],
+            "warning": "발에 힘이 생기기 전에 나서면 넘어집니다."
+          }
+        },
+        "2": {
+          "text": "바르면 길하다",
+          "interpretation": "중용을 지키니 길하다.",
+          "changing_to": 55,
+          "changing_hexagram_name": "뇌화풍(雷火豐)",
+          "changing_interpretation": {
+            "transition": "중용의 힘이 풍요로움으로 바뀝니다.",
+            "from_to": "바르게 힘을 쓰는 상황 → 크게 번성하는 상황으로",
+            "core_message": "풍(豐)은 풍성함입니다. 바른 힘은 풍요를 가져옵니다.",
+            "practical_advice": ["지금의 중용을 유지하세요", "풍요를 누리세요", "나눔을 실천하세요"],
+            "warning": "풍요로울 때 교만하지 마세요."
+          }
+        },
+        "3": {
+          "text": "소인은 장함을 쓰고 군자는 쓰지 않는다",
+          "interpretation": "힘을 자랑하지 마라.",
+          "changing_to": 54,
+          "changing_hexagram_name": "뇌택귀매(雷澤歸妹)",
+          "changing_interpretation": {
+            "transition": "힘의 과시가 불완전한 결합으로 바뀝니다.",
+            "from_to": "힘을 자랑하는 상황 → 분수에 맞지 않는 관계의 상황으로",
+            "core_message": "귀매(歸妹)는 시집가는 여동생입니다. 힘을 자랑하면 어울리지 않는 관계에 빠집니다.",
+            "practical_advice": ["겸손하세요", "힘을 숨기세요", "분수를 지키세요"],
+            "warning": "힘을 과시하면 후회할 관계에 빠집니다."
+          }
+        },
+        "4": {
+          "text": "바르면 길하고 후회가 없다",
+          "interpretation": "나아가면 막힘이 없다.",
+          "changing_to": 11,
+          "changing_hexagram_name": "지천태(地天泰)",
+          "changing_interpretation": {
+            "transition": "막힘없는 전진이 태평으로 바뀝니다.",
+            "from_to": "막힘없이 나아가는 상황 → 평화롭고 형통하는 상황으로",
+            "core_message": "태(泰)는 태평입니다. 바르게 나아가면 모든 것이 형통합니다.",
+            "practical_advice": ["자신있게 나아가세요", "평화를 누리세요", "조화를 이루세요"],
+            "warning": "태평할 때 방심하지 마세요."
+          }
+        },
+        "5": {
+          "text": "양을 잃으니 후회가 없다",
+          "interpretation": "고집을 버리니 후회가 없다.",
+          "changing_to": 43,
+          "changing_hexagram_name": "택천쾌(澤天夬)",
+          "changing_interpretation": {
+            "transition": "고집을 버림이 결단으로 바뀝니다.",
+            "from_to": "고집을 버리는 상황 → 과감하게 결단하는 상황으로",
+            "core_message": "쾌(夬)는 결단입니다. 고집을 버렸으니 이제 결단하세요.",
+            "practical_advice": ["과감하게 결정하세요", "더 이상 미루지 마세요", "단호하게 행동하세요"],
+            "warning": "결단이 과격해지지 않도록 하세요."
+          }
+        },
+        "6": {
+          "text": "숫양이 울타리에 걸려 나아가지도 물러나지도 못한다",
+          "interpretation": "진퇴양난이다.",
+          "changing_to": 14,
+          "changing_hexagram_name": "화천대유(火天大有)",
+          "changing_interpretation": {
+            "transition": "진퇴양난이 크게 소유함으로 바뀝니다.",
+            "from_to": "나아가지도 물러나지도 못하는 상황 → 크게 얻는 상황으로",
+            "core_message": "대유(大有)는 큰 소유입니다. 걸린 상황을 풀면 크게 얻습니다.",
+            "practical_advice": ["무리하지 마세요", "상황을 관찰하세요", "빠져나갈 길을 찾으세요"],
+            "warning": "힘으로 밀어붙이면 더 걸립니다."
+          }
+        }
+      }
+    },
+    "35": {
+      "number": 35,
+      "name": "화지진",
+      "chinese": "晉",
+      "meaning": "나아감, 진보",
+      "upper_trigram": "리",
+      "lower_trigram": "곤",
+      "judgment": {
+        "korean": "진은 강후가 말을 번성하게 하사받고 하루에 세 번 접견한다",
+        "interpretation": "밝은 곳으로 나아가라. 인정받는 시기."
+      },
+      "situations": {
+        "love": {
+          "single": "적극적으로 나서세요."
+        },
+        "career": {
+          "general": "승진과 인정의 때입니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "나아가나 물리침을 받으니 바르면 길하다",
+          "interpretation": "처음에는 막히나 바르면 길하다.",
+          "changing_to": 21,
+          "changing_hexagram_name": "화뢰서합(火雷噬嗑)",
+          "changing_interpretation": {
+            "transition": "막히는 나아감이 장애물을 깨뭄으로 바뀝니다.",
+            "from_to": "나아가다 막히는 상황 → 장애물을 씹어 넘기는 상황으로",
+            "core_message": "서합(噬嗑)은 씹어서 합하는 것입니다. 막히면 장애물을 제거하세요.",
+            "practical_advice": ["장애물을 직시하세요", "문제를 해결하세요", "단호하게 처리하세요"],
+            "warning": "회피하지 말고 정면으로 부딪히세요."
+          }
+        },
+        "2": {
+          "text": "나아가나 근심이 있으니 바르면 길하다",
+          "interpretation": "근심이 있으나 결국 길하다.",
+          "changing_to": 64,
+          "changing_hexagram_name": "화수미제(火水未濟)",
+          "changing_interpretation": {
+            "transition": "근심 속 나아감이 아직 이루지 못함으로 바뀝니다.",
+            "from_to": "근심하며 나아가는 상황 → 아직 완성되지 않은 상황으로",
+            "core_message": "미제(未濟)는 아직 건너지 못함입니다. 근심하지만 끝까지 가세요.",
+            "practical_advice": ["포기하지 마세요", "끝까지 해내세요", "마무리에 집중하세요"],
+            "warning": "완성 직전에 방심하지 마세요."
+          }
+        },
+        "3": {
+          "text": "뭇 사람이 허락하니 후회가 없다",
+          "interpretation": "인정받아 후회가 없다.",
+          "changing_to": 56,
+          "changing_hexagram_name": "화산려(火山旅)",
+          "changing_interpretation": {
+            "transition": "인정받음이 여행자의 상황으로 바뀝니다.",
+            "from_to": "사람들이 허락하는 상황 → 나그네로서 떠나는 상황으로",
+            "core_message": "려(旅)는 여행입니다. 인정받았으니 더 넓은 세상으로 나아가세요.",
+            "practical_advice": ["새로운 곳으로 나아가세요", "배움을 멈추지 마세요", "겸손을 유지하세요"],
+            "warning": "여행자는 뿌리가 약합니다. 겸손하세요."
+          }
+        },
+        "4": {
+          "text": "나아감이 다람쥐 같으니 바르면 위태롭다",
+          "interpretation": "욕심이 지나치면 위태롭다.",
+          "changing_to": 23,
+          "changing_hexagram_name": "산지박(山地剝)",
+          "changing_interpretation": {
+            "transition": "다람쥐 같은 욕심이 깎임으로 바뀝니다.",
+            "from_to": "욕심을 부리는 상황 → 모든 것이 깎여나가는 상황으로",
+            "core_message": "박(剝)은 벗겨짐입니다. 욕심을 부리면 모두 잃습니다.",
+            "practical_advice": ["욕심을 줄이세요", "분수를 지키세요", "차분하게 기다리세요"],
+            "warning": "다람쥐처럼 이것저것 탐하면 모두 잃습니다."
+          }
+        },
+        "5": {
+          "text": "후회가 없다. 얻고 잃음을 생각하지 마라",
+          "interpretation": "나아가면 모든 것이 이롭다.",
+          "changing_to": 12,
+          "changing_hexagram_name": "천지비(天地否)",
+          "changing_interpretation": {
+            "transition": "후회없는 나아감이 막힘으로 바뀝니다.",
+            "from_to": "거침없이 나아가는 상황 → 막히는 상황으로",
+            "core_message": "비(否)는 막힘입니다. 나아가도 때가 막힐 수 있음을 알아야 합니다.",
+            "practical_advice": ["때를 분별하세요", "막히면 멈추세요", "내실을 다지세요"],
+            "warning": "영원히 나아갈 수만은 없습니다."
+          }
+        },
+        "6": {
+          "text": "뿔로 나아가니 읍을 정벌하면 위태로우나 길하다",
+          "interpretation": "단호히 나아가면 길하다.",
+          "changing_to": 16,
+          "changing_hexagram_name": "뇌지예(雷地豫)",
+          "changing_interpretation": {
+            "transition": "단호한 전진이 기쁨으로 바뀝니다.",
+            "from_to": "뿔로 정벌하는 상황 → 즐겁게 움직이는 상황으로",
+            "core_message": "예(豫)는 기쁨입니다. 단호히 나아간 후에 기쁨을 누립니다.",
+            "practical_advice": ["끝까지 밀고 나가세요", "승리를 즐기세요", "기쁨을 나누세요"],
+            "warning": "승리 후 교만하지 마세요."
+          }
+        }
+      }
+    },
+    "36": {
+      "number": 36,
+      "name": "지화명이",
+      "chinese": "明夷",
+      "meaning": "밝음이 상함, 지하의 빛",
+      "upper_trigram": "곤",
+      "lower_trigram": "리",
+      "judgment": {
+        "korean": "명이는 어려움에 바르면 이롭다",
+        "interpretation": "어두운 시기. 빛을 숨기고 지혜롭게 처신하라."
+      },
+      "situations": {
+        "love": {
+          "single": "표현을 자제하세요."
+        },
+        "career": {
+          "general": "실력을 드러내지 말고 기다리세요."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "밝음이 상하여 날아가니 날개를 늘어뜨린다",
+          "interpretation": "어려움에 처해 멀리 떠난다.",
+          "changing_to": 15,
+          "changing_hexagram_name": "지산겸(地山謙)",
+          "changing_interpretation": {
+            "transition": "상처받은 비상이 겸손으로 바뀝니다.",
+            "from_to": "날개 다치고 떠나는 상황 → 낮은 곳에서 겸손히 머무는 상황으로",
+            "core_message": "겸(謙)은 겸손입니다. 어려울 때 겸손하면 살아남습니다.",
+            "practical_advice": ["높이 날려 하지 마세요", "낮은 곳에 머무세요", "겸손이 생존입니다"],
+            "warning": "날개가 다쳤을 때 억지로 날면 추락합니다."
+          }
+        },
+        "2": {
+          "text": "밝음이 상하여 왼쪽 넓적다리를 상한다",
+          "interpretation": "상처를 입었으나 도움을 받는다.",
+          "changing_to": 11,
+          "changing_hexagram_name": "지천태(地天泰)",
+          "changing_interpretation": {
+            "transition": "상처받은 상황이 태평으로 바뀝니다.",
+            "from_to": "다리를 다친 상황 → 평화롭고 형통하는 상황으로",
+            "core_message": "태(泰)는 태평입니다. 도움을 받아 다시 일어서면 태평이 옵니다.",
+            "practical_advice": ["도움을 구하세요", "회복에 집중하세요", "좋은 때가 옵니다"],
+            "warning": "상처를 무시하면 회복이 늦어집니다."
+          }
+        },
+        "3": {
+          "text": "밝음이 상하여 남쪽으로 사냥하니 큰 우두머리를 잡는다",
+          "interpretation": "힘들지만 목표를 달성한다.",
+          "changing_to": 24,
+          "changing_hexagram_name": "지뢰복(地雷復)",
+          "changing_interpretation": {
+            "transition": "어둠 속 사냥이 돌아옴으로 바뀝니다.",
+            "from_to": "어려운 중에 목표를 달성하는 상황 → 다시 돌아오는 상황으로",
+            "core_message": "복(復)은 돌아옴입니다. 목표를 달성하면 밝음이 돌아옵니다.",
+            "practical_advice": ["끝까지 추구하세요", "빛은 돌아옵니다", "희망을 잃지 마세요"],
+            "warning": "어둠이 깊어질수록 새벽이 가깝습니다."
+          }
+        },
+        "4": {
+          "text": "왼쪽 배로 들어가 밝음이 상한 마음을 얻어 문정을 나간다",
+          "interpretation": "핵심을 파악하고 떠난다.",
+          "changing_to": 55,
+          "changing_hexagram_name": "뇌화풍(雷火豐)",
+          "changing_interpretation": {
+            "transition": "핵심 파악이 풍요로움으로 바뀝니다.",
+            "from_to": "어둠의 핵심을 파악하는 상황 → 크게 번성하는 상황으로",
+            "core_message": "풍(豐)은 풍성함입니다. 어둠을 알면 빛을 크게 밝힐 수 있습니다.",
+            "practical_advice": ["진실을 파악하세요", "때가 되면 떠나세요", "풍요를 향해 나아가세요"],
+            "warning": "어둠에 오래 머물지 마세요."
+          }
+        },
+        "5": {
+          "text": "기자의 밝음이 상하니 바르면 이롭다",
+          "interpretation": "어두운 때를 견디면 길하다.",
+          "changing_to": 63,
+          "changing_hexagram_name": "수화기제(水火旣濟)",
+          "changing_interpretation": {
+            "transition": "견딤이 완성으로 바뀝니다.",
+            "from_to": "어두운 때를 견디는 상황 → 모든 것이 이루어지는 상황으로",
+            "core_message": "기제(旣濟)는 이미 건넜음입니다. 견디면 완성에 이릅니다.",
+            "practical_advice": ["바름을 지키세요", "끝까지 견디세요", "완성이 가까웠습니다"],
+            "warning": "완성 후에도 경계를 늦추지 마세요."
+          }
+        },
+        "6": {
+          "text": "밝지 않고 어두우니 처음에는 하늘에 올랐다가 후에 땅으로 들어간다",
+          "interpretation": "높은 곳에서 떨어진다.",
+          "changing_to": 22,
+          "changing_hexagram_name": "산화비(山火賁)",
+          "changing_interpretation": {
+            "transition": "추락이 꾸밈으로 바뀝니다.",
+            "from_to": "높은 곳에서 떨어지는 상황 → 아름답게 꾸미는 상황으로",
+            "core_message": "비(賁)는 꾸밈입니다. 떨어졌으면 다시 아름답게 일어서세요.",
+            "practical_advice": ["다시 시작하세요", "외면을 다듬으세요", "아름다움을 회복하세요"],
+            "warning": "화려함에 집착하지 말고 실질을 다지세요."
+          }
+        }
+      }
+    },
+    "37": {
+      "number": 37,
+      "name": "풍화가인",
+      "chinese": "家人",
+      "meaning": "집안 사람, 가정",
+      "upper_trigram": "손",
+      "lower_trigram": "리",
+      "judgment": {
+        "korean": "가인은 여자가 바르면 이롭다",
+        "interpretation": "가정의 화목이 모든 것의 기본."
+      },
+      "situations": {
+        "love": {
+          "single": "가정적인 사람을 만나세요."
+        },
+        "career": {
+          "general": "팀워크와 협력이 중요합니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "집을 막으니 후회가 없다",
+          "interpretation": "규율을 세우니 후회가 없다.",
+          "changing_to": 53,
+          "changing_hexagram_name": "풍산점(風山漸)",
+          "changing_interpretation": {
+            "transition": "규율이 점진적 발전으로 바뀝니다.",
+            "from_to": "집안에 규율을 세우는 상황 → 천천히 발전하는 상황으로",
+            "core_message": "점(漸)은 점진적 나아감입니다. 규율 위에 천천히 성장하세요.",
+            "practical_advice": ["규율을 유지하세요", "점진적으로 발전하세요", "서두르지 마세요"],
+            "warning": "급하게 변화시키면 규율이 무너집니다."
+          }
+        },
+        "2": {
+          "text": "이루는 바가 없고 가운데서 음식을 장만하니 바르면 길하다",
+          "interpretation": "내조에 충실하면 길하다.",
+          "changing_to": 9,
+          "changing_hexagram_name": "풍천소축(風天小畜)",
+          "changing_interpretation": {
+            "transition": "내조가 작은 축적으로 바뀝니다.",
+            "from_to": "가운데서 음식을 장만하는 상황 → 조금씩 쌓아가는 상황으로",
+            "core_message": "소축(小畜)은 작은 축적입니다. 내실을 다지며 조금씩 쌓으세요.",
+            "practical_advice": ["작은 것부터 모으세요", "내실을 다지세요", "겸손히 준비하세요"],
+            "warning": "큰 것을 바라지 말고 작은 것에 충실하세요."
+          }
+        },
+        "3": {
+          "text": "집안 사람이 엄하니 후회하고 위태로워도 길하다",
+          "interpretation": "엄격함이 결국 이롭다.",
+          "changing_to": 42,
+          "changing_hexagram_name": "풍뢰익(風雷益)",
+          "changing_interpretation": {
+            "transition": "엄격함이 이익으로 바뀝니다.",
+            "from_to": "엄하게 다스리는 상황 → 이익이 늘어나는 상황으로",
+            "core_message": "익(益)은 이익입니다. 엄격히 다스린 후에 이익이 옵니다.",
+            "practical_advice": ["규율을 지키세요", "엄격함을 유지하세요", "결국 이익이 됩니다"],
+            "warning": "너무 엄하면 반발이 생깁니다. 중용을 찾으세요."
+          }
+        },
+        "4": {
+          "text": "집을 부유하게 하니 크게 길하다",
+          "interpretation": "가정을 풍요롭게 하니 길하다.",
+          "changing_to": 13,
+          "changing_hexagram_name": "천화동인(天火同人)",
+          "changing_interpretation": {
+            "transition": "가정의 풍요가 뜻을 같이함으로 바뀝니다.",
+            "from_to": "집이 부유해지는 상황 → 뜻이 맞는 이들과 함께하는 상황으로",
+            "core_message": "동인(同人)은 뜻을 같이하는 사람들입니다. 가정이 풍요로우면 밖으로도 화합합니다.",
+            "practical_advice": ["풍요를 나누세요", "사람들과 화합하세요", "가정의 행복을 넓히세요"],
+            "warning": "가정만 챙기지 말고 이웃도 생각하세요."
+          }
+        },
+        "5": {
+          "text": "왕이 집에 이르니 근심하지 말고 길하다",
+          "interpretation": "덕으로 다스리니 길하다.",
+          "changing_to": 22,
+          "changing_hexagram_name": "산화비(山火賁)",
+          "changing_interpretation": {
+            "transition": "덕스러운 다스림이 꾸밈으로 바뀝니다.",
+            "from_to": "덕으로 다스리는 상황 → 아름답게 꾸미는 상황으로",
+            "core_message": "비(賁)는 꾸밈입니다. 덕으로 다스리면 모든 것이 아름답습니다.",
+            "practical_advice": ["덕을 갖추세요", "아름다움을 추구하세요", "근심하지 마세요"],
+            "warning": "겉모습에 집착하지 말고 내면을 다스리세요."
+          }
+        },
+        "6": {
+          "text": "믿음이 있고 위엄이 있으니 끝에 길하다",
+          "interpretation": "믿음과 위엄으로 마무리한다.",
+          "changing_to": 63,
+          "changing_hexagram_name": "수화기제(水火旣濟)",
+          "changing_interpretation": {
+            "transition": "믿음과 위엄이 완성으로 바뀝니다.",
+            "from_to": "믿음과 위엄이 있는 상황 → 모든 것이 완성되는 상황으로",
+            "core_message": "기제(旣濟)는 이미 건넜음입니다. 믿음과 위엄으로 완성에 이릅니다.",
+            "practical_advice": ["끝까지 믿음을 지키세요", "위엄을 유지하세요", "마무리를 잘하세요"],
+            "warning": "완성 후에도 경계를 늦추지 마세요."
+          }
+        }
+      }
+    },
+    "38": {
+      "number": 38,
+      "name": "화택규",
+      "chinese": "睽",
+      "meaning": "어긋남, 대립",
+      "upper_trigram": "리",
+      "lower_trigram": "태",
+      "judgment": {
+        "korean": "규는 작은 일에 길하다",
+        "interpretation": "서로 다르지만 조화를 찾을 수 있다."
+      },
+      "situations": {
+        "love": {
+          "single": "차이를 인정하세요."
+        },
+        "career": {
+          "general": "이견을 조율해야 합니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "후회가 없다. 말을 잃었으나 쫓지 마라",
+          "interpretation": "잃은 것은 돌아온다.",
+          "changing_to": 64,
+          "changing_hexagram_name": "화수미제(火水未濟)",
+          "changing_interpretation": {
+            "transition": "잃음이 아직 완성되지 않음으로 바뀝니다.",
+            "from_to": "말을 잃은 상황 → 아직 완성되지 않은 상황으로",
+            "core_message": "미제(未濟)는 아직 건너지 못함입니다. 잃었어도 다시 얻을 기회가 있습니다.",
+            "practical_advice": ["쫓아가지 마세요", "기다리세요", "새로운 기회를 기다리세요"],
+            "warning": "집착하면 오히려 더 잃습니다."
+          }
+        },
+        "2": {
+          "text": "골목에서 주인을 만나니 허물이 없다",
+          "interpretation": "우연히 도움을 만난다.",
+          "changing_to": 21,
+          "changing_hexagram_name": "화뢰서합(火雷噬嗑)",
+          "changing_interpretation": {
+            "transition": "우연한 만남이 장애물 제거로 바뀝니다.",
+            "from_to": "우연히 만나는 상황 → 장애물을 씹어서 합치는 상황으로",
+            "core_message": "서합(噬嗑)은 씹어서 합함입니다. 도움을 받아 장애물을 제거하세요.",
+            "practical_advice": ["우연을 활용하세요", "문제를 해결하세요", "함께 힘을 모으세요"],
+            "warning": "좋은 기회를 놓치지 마세요."
+          }
+        },
+        "3": {
+          "text": "수레를 끌고 소를 잡고 그 사람이 이마를 베이고 코가 베이니",
+          "interpretation": "모든 것이 어긋난다.",
+          "changing_to": 14,
+          "changing_hexagram_name": "화천대유(火天大有)",
+          "changing_interpretation": {
+            "transition": "어긋남이 크게 소유함으로 바뀝니다.",
+            "from_to": "모든 것이 어긋나는 상황 → 크게 소유하는 상황으로",
+            "core_message": "대유(大有)는 큰 소유입니다. 어긋남을 견디면 크게 얻습니다.",
+            "practical_advice": ["상황을 버티세요", "포기하지 마세요", "결국 풀립니다"],
+            "warning": "가장 어긋날 때가 전환점입니다."
+          }
+        },
+        "4": {
+          "text": "규에 홀로 있다가 훌륭한 장부를 만나 믿음으로 사귀니 위태로우나 허물이 없다",
+          "interpretation": "진정한 동지를 만난다.",
+          "changing_to": 41,
+          "changing_hexagram_name": "산택손(山澤損)",
+          "changing_interpretation": {
+            "transition": "동지를 만남이 덜어냄으로 바뀝니다.",
+            "from_to": "진정한 동지를 만나는 상황 → 자신을 덜어내는 상황으로",
+            "core_message": "손(損)은 덜어냄입니다. 동지를 만났으면 자신을 낮추세요.",
+            "practical_advice": ["겸손하세요", "자기를 낮추세요", "함께 성장하세요"],
+            "warning": "동지 앞에서 교만하면 잃습니다."
+          }
+        },
+        "5": {
+          "text": "후회가 없다. 조상이 살을 깨무니 가면 무슨 허물이 있으랴",
+          "interpretation": "함께하면 허물이 없다.",
+          "changing_to": 10,
+          "changing_hexagram_name": "천택리(天澤履)",
+          "changing_interpretation": {
+            "transition": "함께함이 예의 바른 행동으로 바뀝니다.",
+            "from_to": "함께하는 상황 → 예의를 지키며 나아가는 상황으로",
+            "core_message": "리(履)는 밟음입니다. 함께하되 예의를 지키세요.",
+            "practical_advice": ["예의를 갖추세요", "분별있게 행동하세요", "호랑이 꼬리를 밟듯 조심하세요"],
+            "warning": "함께하더라도 예의를 잃으면 안 됩니다."
+          }
+        },
+        "6": {
+          "text": "규에 홀로 있어 돼지가 진흙을 지고 수레에 귀신이 가득하다",
+          "interpretation": "의심이 풀리면 길하다.",
+          "changing_to": 54,
+          "changing_hexagram_name": "뇌택귀매(雷澤歸妹)",
+          "changing_interpretation": {
+            "transition": "의심이 결합으로 바뀝니다.",
+            "from_to": "의심이 가득한 상황 → 결합하는 상황으로",
+            "core_message": "귀매(歸妹)는 시집감입니다. 의심을 풀면 결합할 수 있습니다.",
+            "practical_advice": ["의심을 버리세요", "마음을 열세요", "화합하세요"],
+            "warning": "분수를 알고 처신하세요."
+          }
+        }
+      }
+    },
+    "39": {
+      "number": 39,
+      "name": "수산건",
+      "chinese": "蹇",
+      "meaning": "절름발이, 곤란",
+      "upper_trigram": "감",
+      "lower_trigram": "간",
+      "judgment": {
+        "korean": "건은 서남이 이롭고 동북은 이롭지 않다",
+        "interpretation": "어려운 상황. 현인의 도움을 구하라."
+      },
+      "situations": {
+        "love": {
+          "single": "어려움이 있지만 포기하지 마세요."
+        },
+        "career": {
+          "general": "장애물이 있습니다. 우회하세요."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "가면 건이요 오면 명예롭다",
+          "interpretation": "나아가면 막히고 돌아오면 좋다.",
+          "changing_to": 63,
+          "changing_hexagram_name": "수화기제(水火旣濟)",
+          "changing_interpretation": {
+            "transition": "막힘이 완성으로 바뀝니다.",
+            "from_to": "나아가면 막히는 상황 → 모든 것이 완성되는 상황으로",
+            "core_message": "기제(旣濟)는 이미 건넜음입니다. 돌아서면 완성에 이릅니다.",
+            "practical_advice": ["돌아가는 길을 선택하세요", "우회하면 성공합니다", "직진만이 답이 아닙니다"],
+            "warning": "고집스럽게 밀어붙이면 더 막힙니다."
+          }
+        },
+        "2": {
+          "text": "왕의 신하가 건건하니 자기 때문이 아니다",
+          "interpretation": "공을 위해 어려움을 겪는다.",
+          "changing_to": 48,
+          "changing_hexagram_name": "수풍정(水風井)",
+          "changing_interpretation": {
+            "transition": "공을 위한 어려움이 우물로 바뀝니다.",
+            "from_to": "공을 위해 고생하는 상황 → 근원을 지키는 상황으로",
+            "core_message": "정(井)은 우물입니다. 어려움을 겪어도 본질을 지키세요.",
+            "practical_advice": ["본분을 다하세요", "기본에 충실하세요", "공익을 위해 노력하세요"],
+            "warning": "자기 이익만 챙기면 안 됩니다."
+          }
+        },
+        "3": {
+          "text": "가면 건이요 오면 돌아온다",
+          "interpretation": "나아가면 막히니 돌아와라.",
+          "changing_to": 8,
+          "changing_hexagram_name": "수지비(水地比)",
+          "changing_interpretation": {
+            "transition": "막힘이 친밀함으로 바뀝니다.",
+            "from_to": "나아가면 막히는 상황 → 친밀하게 함께하는 상황으로",
+            "core_message": "비(比)는 친밀함입니다. 돌아와서 가까운 이들과 함께하세요.",
+            "practical_advice": ["돌아오세요", "가족과 함께하세요", "친밀함을 회복하세요"],
+            "warning": "멀리 가려 하지 말고 가까운 곳에서 찾으세요."
+          }
+        },
+        "4": {
+          "text": "가면 건이요 오면 연합한다",
+          "interpretation": "함께 힘을 모아야 한다.",
+          "changing_to": 31,
+          "changing_hexagram_name": "택산함(澤山咸)",
+          "changing_interpretation": {
+            "transition": "연합이 감응으로 바뀝니다.",
+            "from_to": "힘을 모으는 상황 → 마음이 서로 통하는 상황으로",
+            "core_message": "함(咸)은 감응입니다. 연합하면 마음이 통합니다.",
+            "practical_advice": ["함께 하세요", "마음을 모으세요", "서로 감응하세요"],
+            "warning": "혼자서는 극복할 수 없습니다."
+          }
+        },
+        "5": {
+          "text": "크게 건하니 벗이 온다",
+          "interpretation": "어려울 때 도움이 온다.",
+          "changing_to": 15,
+          "changing_hexagram_name": "지산겸(地山謙)",
+          "changing_interpretation": {
+            "transition": "큰 어려움이 겸손으로 바뀝니다.",
+            "from_to": "크게 어려운 상황 → 겸손히 낮추는 상황으로",
+            "core_message": "겸(謙)은 겸손입니다. 어려울 때 겸손하면 도움이 옵니다.",
+            "practical_advice": ["겸손하세요", "도움을 받으세요", "낮은 자세를 유지하세요"],
+            "warning": "교만하면 도움이 오지 않습니다."
+          }
+        },
+        "6": {
+          "text": "가면 건이요 오면 성대하다",
+          "interpretation": "큰 어려움을 이기고 성공한다.",
+          "changing_to": 53,
+          "changing_hexagram_name": "풍산점(風山漸)",
+          "changing_interpretation": {
+            "transition": "성대함이 점진적 발전으로 바뀝니다.",
+            "from_to": "성대하게 돌아오는 상황 → 점진적으로 나아가는 상황으로",
+            "core_message": "점(漸)은 점진적 발전입니다. 어려움을 이긴 후 천천히 발전하세요.",
+            "practical_advice": ["서두르지 마세요", "점진적으로 나아가세요", "성공 후에도 차분하세요"],
+            "warning": "성공에 도취되지 마세요."
+          }
+        }
+      }
+    },
+    "40": {
+      "number": 40,
+      "name": "뇌수해",
+      "chinese": "解",
+      "meaning": "풀림, 해방",
+      "upper_trigram": "진",
+      "lower_trigram": "감",
+      "judgment": {
+        "korean": "해는 서남이 이로우니 갈 곳이 없으면 돌아옴이 길하다",
+        "interpretation": "어려움이 풀린다. 문제가 해결되는 시기."
+      },
+      "situations": {
+        "love": {
+          "single": "막혔던 것이 풀립니다."
+        },
+        "career": {
+          "general": "문제가 해결됩니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "허물이 없다",
+          "interpretation": "풀리기 시작하니 허물이 없다.",
+          "changing_to": 54,
+          "changing_hexagram_name": "뇌택귀매(雷澤歸妹)",
+          "changing_interpretation": {
+            "transition": "풀림이 결합으로 바뀝니다.",
+            "from_to": "풀리기 시작하는 상황 → 결합하는 상황으로",
+            "core_message": "귀매(歸妹)는 시집감입니다. 풀렸으니 새로운 관계를 맺으세요.",
+            "practical_advice": ["새로운 시작을 준비하세요", "관계를 맺으세요", "분수를 지키세요"],
+            "warning": "급하게 결합하면 후회할 수 있습니다."
+          }
+        },
+        "2": {
+          "text": "밭에서 세 마리 여우를 잡아 황금 화살을 얻으니 바르면 길하다",
+          "interpretation": "장애물을 제거하고 보상받는다.",
+          "changing_to": 16,
+          "changing_hexagram_name": "뇌지예(雷地豫)",
+          "changing_interpretation": {
+            "transition": "보상이 기쁨으로 바뀝니다.",
+            "from_to": "장애를 제거하고 보상받는 상황 → 즐겁게 움직이는 상황으로",
+            "core_message": "예(豫)는 기쁨입니다. 장애를 제거하면 기쁨을 누립니다.",
+            "practical_advice": ["성과를 즐기세요", "기쁨을 나누세요", "활기차게 움직이세요"],
+            "warning": "기쁨에 빠져 방심하지 마세요."
+          }
+        },
+        "3": {
+          "text": "짐을 지고 수레를 타니 도적을 불러들인다",
+          "interpretation": "분수에 맞지 않으면 화를 부른다.",
+          "changing_to": 32,
+          "changing_hexagram_name": "뇌풍항(雷風恆)",
+          "changing_interpretation": {
+            "transition": "분수 넘음이 항구함으로 바뀝니다.",
+            "from_to": "분수에 맞지 않는 상황 → 한결같이 지키는 상황으로",
+            "core_message": "항(恆)은 항구함입니다. 분수를 지키며 꾸준히 하세요.",
+            "practical_advice": ["분수를 지키세요", "욕심을 버리세요", "꾸준함을 유지하세요"],
+            "warning": "과시하면 도적을 부릅니다."
+          }
+        },
+        "4": {
+          "text": "네 엄지발가락을 풀어라 벗이 이르러 믿음이 있다",
+          "interpretation": "구속을 풀면 도움이 온다.",
+          "changing_to": 7,
+          "changing_hexagram_name": "지수사(地水師)",
+          "changing_interpretation": {
+            "transition": "구속 풀림이 군대로 바뀝니다.",
+            "from_to": "구속을 푸는 상황 → 무리를 이끄는 상황으로",
+            "core_message": "사(師)는 군대입니다. 구속을 풀고 사람들을 이끄세요.",
+            "practical_advice": ["사람들을 모으세요", "리더십을 발휘하세요", "함께 힘을 합치세요"],
+            "warning": "진정한 친구를 분별하세요."
+          }
+        },
+        "5": {
+          "text": "군자만이 풀 수 있으니 길하고 소인에게 믿음이 있다",
+          "interpretation": "올바른 자만이 풀 수 있다.",
+          "changing_to": 47,
+          "changing_hexagram_name": "택수곤(澤水困)",
+          "changing_interpretation": {
+            "transition": "풀어냄이 곤궁으로 바뀝니다.",
+            "from_to": "문제를 풀어내는 상황 → 곤궁한 상황으로",
+            "core_message": "곤(困)은 곤궁입니다. 풀었어도 아직 어려움이 남아있습니다.",
+            "practical_advice": ["방심하지 마세요", "끝까지 지켜보세요", "도를 지키세요"],
+            "warning": "풀었다고 안심하면 다시 어려워집니다."
+          }
+        },
+        "6": {
+          "text": "공이 높은 담장 위의 매를 쏘아 잡으니 이롭지 않음이 없다",
+          "interpretation": "최종 장애를 제거하면 이롭다.",
+          "changing_to": 64,
+          "changing_hexagram_name": "화수미제(火水未濟)",
+          "changing_interpretation": {
+            "transition": "최종 제거가 아직 완성되지 않음으로 바뀝니다.",
+            "from_to": "최종 장애를 제거하는 상황 → 아직 완성되지 않은 상황으로",
+            "core_message": "미제(未濟)는 아직 건너지 못함입니다. 마지막까지 방심하지 마세요.",
+            "practical_advice": ["끝까지 긴장을 늦추지 마세요", "마무리를 잘하세요", "완성까지 힘쓰세요"],
+            "warning": "마지막 순간이 가장 중요합니다."
+          }
+        }
+      }
+    },
+    "41": {
+      "number": 41,
+      "name": "산택손",
+      "chinese": "損",
+      "meaning": "덜어냄, 손해",
+      "upper_trigram": "간",
+      "lower_trigram": "태",
+      "judgment": {
+        "korean": "손은 믿음이 있으면 크게 길하여 허물이 없다",
+        "interpretation": "버림으로써 얻는다. 자기 낮춤의 덕."
+      },
+      "situations": {
+        "love": {
+          "single": "욕심을 버리세요."
+        },
+        "career": {
+          "general": "손해를 감수해야 할 때입니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "일을 마치고 빨리 가면 허물이 없으나 참작하여 덜어라",
+          "interpretation": "빨리 가되 적절히 덜어라.",
+          "changing_to": 4,
+          "changing_hexagram_name": "산수몽(山水蒙)",
+          "changing_interpretation": {
+            "transition": "덜어냄이 어리석음으로 바뀝니다.",
+            "from_to": "적절히 덜어내는 상황 → 배움이 필요한 상황으로",
+            "core_message": "몽(蒙)은 어리석음입니다. 덜어내고 다시 배우세요.",
+            "practical_advice": ["겸손히 배우세요", "초심으로 돌아가세요", "스승을 찾으세요"],
+            "warning": "덜어냈다고 다 아는 것이 아닙니다."
+          }
+        },
+        "2": {
+          "text": "바르면 이롭고 정벌하면 흉하다. 덜지 않고 더한다",
+          "interpretation": "나서지 말고 덕을 쌓아라.",
+          "changing_to": 27,
+          "changing_hexagram_name": "산뢰이(山雷頤)",
+          "changing_interpretation": {
+            "transition": "덕을 쌓음이 양육으로 바뀝니다.",
+            "from_to": "덕을 쌓는 상황 → 기르고 양육하는 상황으로",
+            "core_message": "이(頤)는 양육입니다. 덕을 쌓으며 자신과 타인을 기르세요.",
+            "practical_advice": ["스스로를 기르세요", "타인을 돌보세요", "입조심하세요"],
+            "warning": "공격하면 흉합니다."
+          }
+        },
+        "3": {
+          "text": "세 사람이 가면 한 사람을 잃고 한 사람이 가면 벗을 얻는다",
+          "interpretation": "혼자 가면 동지를 만난다.",
+          "changing_to": 26,
+          "changing_hexagram_name": "산천대축(山天大畜)",
+          "changing_interpretation": {
+            "transition": "혼자 감이 크게 축적함으로 바뀝니다.",
+            "from_to": "혼자 가는 상황 → 크게 쌓는 상황으로",
+            "core_message": "대축(大畜)은 큰 축적입니다. 혼자 가면 오히려 크게 쌓입니다.",
+            "practical_advice": ["혼자 가세요", "크게 쌓으세요", "덕을 축적하세요"],
+            "warning": "너무 많으면 오히려 해가 됩니다."
+          }
+        },
+        "4": {
+          "text": "그 병을 덜어 빨리 기쁨이 있으면 허물이 없다",
+          "interpretation": "결점을 고치면 기쁨이 온다.",
+          "changing_to": 38,
+          "changing_hexagram_name": "화택규(火澤睽)",
+          "changing_interpretation": {
+            "transition": "결점 고침이 어긋남으로 바뀝니다.",
+            "from_to": "결점을 고치는 상황 → 서로 어긋나는 상황으로",
+            "core_message": "규(睽)는 어긋남입니다. 결점을 고쳐도 어긋날 수 있으니 조화를 찾으세요.",
+            "practical_advice": ["조화를 찾으세요", "다름을 인정하세요", "빨리 기뻐하세요"],
+            "warning": "고쳐도 완전하지 않음을 알아야 합니다."
+          }
+        },
+        "5": {
+          "text": "누군가 더해주니 거북 열 붕을 이길 수 없다",
+          "interpretation": "하늘이 도와 크게 얻는다.",
+          "changing_to": 61,
+          "changing_hexagram_name": "풍택중부(風澤中孚)",
+          "changing_interpretation": {
+            "transition": "하늘의 도움이 진실된 믿음으로 바뀝니다.",
+            "from_to": "크게 얻는 상황 → 중심의 믿음이 있는 상황으로",
+            "core_message": "중부(中孚)는 진실된 믿음입니다. 하늘의 도움은 진실됨에서 옵니다.",
+            "practical_advice": ["진심을 다하세요", "감사하세요", "믿음을 지키세요"],
+            "warning": "진실되지 않으면 하늘도 돕지 않습니다."
+          }
+        },
+        "6": {
+          "text": "덜지 않고 더하니 허물이 없고 바르면 길하다",
+          "interpretation": "베풀면 이롭다.",
+          "changing_to": 19,
+          "changing_hexagram_name": "지택임(地澤臨)",
+          "changing_interpretation": {
+            "transition": "베풀음이 임함으로 바뀝니다.",
+            "from_to": "베푸는 상황 → 다가가 다스리는 상황으로",
+            "core_message": "임(臨)은 다가감입니다. 베풀면서 사람들에게 다가가세요.",
+            "practical_advice": ["사람들에게 다가가세요", "덕으로 다스리세요", "관대하게 행동하세요"],
+            "warning": "높은 곳에서 내려다보지 말고 함께 하세요."
+          }
+        }
+      }
+    },
+    "42": {
+      "number": 42,
+      "name": "풍뢰익",
+      "chinese": "益",
+      "meaning": "더함, 이익",
+      "upper_trigram": "손",
+      "lower_trigram": "진",
+      "judgment": {
+        "korean": "익은 갈 곳이 있으면 이로우니 큰 내를 건넘이 이롭다",
+        "interpretation": "이익이 늘어나는 시기. 적극적으로 행동하라."
+      },
+      "situations": {
+        "love": {
+          "single": "좋은 인연을 만납니다."
+        },
+        "career": {
+          "general": "성과가 늘어납니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "이로운 큰 일을 하니 크게 길하고 허물이 없다",
+          "interpretation": "큰 일을 하면 길하다.",
+          "changing_to": 20,
+          "changing_hexagram_name": "풍지관(風地觀)",
+          "changing_interpretation": {
+            "transition": "큰 일이 관찰함으로 바뀝니다.",
+            "from_to": "큰 일을 하는 상황 → 넓게 살피는 상황으로",
+            "core_message": "관(觀)은 살핌입니다. 큰 일을 한 후 널리 살피세요.",
+            "practical_advice": ["널리 살피세요", "다른 이의 관점을 배우세요", "큰 그림을 보세요"],
+            "warning": "자기 성과에만 빠지지 마세요."
+          }
+        },
+        "2": {
+          "text": "누군가 더해주니 거북 열 붕을 이길 수 없다",
+          "interpretation": "하늘의 도움으로 크게 이롭다.",
+          "changing_to": 61,
+          "changing_hexagram_name": "풍택중부(風澤中孚)",
+          "changing_interpretation": {
+            "transition": "하늘의 도움이 진실된 믿음으로 바뀝니다.",
+            "from_to": "크게 이로운 상황 → 중심의 믿음이 있는 상황으로",
+            "core_message": "중부(中孚)는 진실된 믿음입니다. 이익을 얻었으면 진실을 지키세요.",
+            "practical_advice": ["진심을 유지하세요", "감사하세요", "믿음으로 보답하세요"],
+            "warning": "이익에 눈이 멀면 진심을 잃습니다."
+          }
+        },
+        "3": {
+          "text": "더함에 흉한 일을 써도 허물이 없다",
+          "interpretation": "어려운 일이라도 해내면 된다.",
+          "changing_to": 37,
+          "changing_hexagram_name": "풍화가인(風火家人)",
+          "changing_interpretation": {
+            "transition": "어려운 일이 가정으로 바뀝니다.",
+            "from_to": "흉한 일을 감당하는 상황 → 가정을 다스리는 상황으로",
+            "core_message": "가인(家人)은 가정입니다. 어려운 일을 해냈으면 가정을 돌보세요.",
+            "practical_advice": ["가정을 돌보세요", "가까운 이들을 챙기세요", "화목을 유지하세요"],
+            "warning": "밖에서만 애쓰고 집안을 소홀히 하지 마세요."
+          }
+        },
+        "4": {
+          "text": "가운데를 행하여 공에게 고하니 따라서 나라를 옮기면 이롭다",
+          "interpretation": "큰 결정에 이롭다.",
+          "changing_to": 25,
+          "changing_hexagram_name": "천뢰무망(天雷无妄)",
+          "changing_interpretation": {
+            "transition": "큰 결정이 무망으로 바뀝니다.",
+            "from_to": "중도를 행하는 상황 → 거짓이 없는 상황으로",
+            "core_message": "무망(无妄)은 거짓 없음입니다. 큰 결정은 진실에서 나와야 합니다.",
+            "practical_advice": ["진실되게 행동하세요", "거짓 없이 결정하세요", "순리를 따르세요"],
+            "warning": "헛된 기대를 하지 마세요."
+          }
+        },
+        "5": {
+          "text": "믿음이 있어 마음을 혜택하니 묻지 않아도 크게 길하다",
+          "interpretation": "진심으로 베풀면 크게 길하다.",
+          "changing_to": 27,
+          "changing_hexagram_name": "산뢰이(山雷頤)",
+          "changing_interpretation": {
+            "transition": "베풀음이 양육으로 바뀝니다.",
+            "from_to": "마음으로 베푸는 상황 → 기르고 양육하는 상황으로",
+            "core_message": "이(頤)는 양육입니다. 마음으로 베풀어 기르세요.",
+            "practical_advice": ["진심으로 기르세요", "올바른 것을 먹이세요", "자기도 기르세요"],
+            "warning": "입에서 나오는 것을 조심하세요."
+          }
+        },
+        "6": {
+          "text": "더해주지 않고 혹 치니 마음을 항상하게 세우지 않으면 흉하다",
+          "interpretation": "마음을 굳건히 하라.",
+          "changing_to": 3,
+          "changing_hexagram_name": "수뢰둔(水雷屯)",
+          "changing_interpretation": {
+            "transition": "마음을 세우지 않음이 어려움으로 바뀝니다.",
+            "from_to": "마음이 흔들리는 상황 → 초창기의 어려움으로",
+            "core_message": "둔(屯)은 어려운 시작입니다. 마음을 세우지 않으면 처음처럼 어려워집니다.",
+            "practical_advice": ["마음을 굳건히 하세요", "흔들리지 마세요", "처음의 어려움을 기억하세요"],
+            "warning": "일관성이 없으면 모든 것을 잃습니다."
+          }
+        }
+      }
+    },
+    "43": {
+      "number": 43,
+      "name": "택천쾌",
+      "chinese": "夬",
+      "meaning": "결단, 터뜨림",
+      "upper_trigram": "태",
+      "lower_trigram": "건",
+      "judgment": {
+        "korean": "쾌는 왕정에 드러내니 믿음으로 호령하면 위태로움이 있다",
+        "interpretation": "결단을 내려야 할 때. 소인을 물리쳐라."
+      },
+      "situations": {
+        "love": {
+          "single": "결단을 내리세요."
+        },
+        "career": {
+          "general": "과감하게 결정하세요."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "발가락에 힘을 주고 가니 이기지 못하면 허물이 된다",
+          "interpretation": "준비 없이 나서면 실패한다.",
+          "changing_to": 28,
+          "changing_hexagram_name": "택풍대과(澤風大過)",
+          "changing_interpretation": {
+            "transition": "성급한 결단이 지나침으로 바뀝니다.",
+            "from_to": "준비 없이 나서는 상황 → 크게 지나치는 상황으로",
+            "core_message": "대과(大過)는 지나침입니다. 준비 없이 나서면 지나쳐 버립니다.",
+            "practical_advice": ["준비를 하세요", "성급하지 마세요", "기반을 다지세요"],
+            "warning": "준비 없이 나서면 크게 실패합니다."
+          }
+        },
+        "2": {
+          "text": "두려워 부르짖으니 밤에 병기가 있어도 근심하지 마라",
+          "interpretation": "경계하면 위험이 없다.",
+          "changing_to": 49,
+          "changing_hexagram_name": "택화혁(澤火革)",
+          "changing_interpretation": {
+            "transition": "경계가 변혁으로 바뀝니다.",
+            "from_to": "두려워 경계하는 상황 → 변화와 혁신의 상황으로",
+            "core_message": "혁(革)은 변혁입니다. 경계하며 변화를 이끌어내세요.",
+            "practical_advice": ["변화를 두려워하지 마세요", "경계심을 유지하세요", "새롭게 바꾸세요"],
+            "warning": "무방비로 변화에 임하지 마세요."
+          }
+        },
+        "3": {
+          "text": "광대뼈에 힘이 있으니 흉하다",
+          "interpretation": "혼자 강하게 나서면 흉하다.",
+          "changing_to": 58,
+          "changing_hexagram_name": "중택태(重澤兌)",
+          "changing_interpretation": {
+            "transition": "혼자의 강함이 기쁨으로 바뀝니다.",
+            "from_to": "혼자 강하게 나서는 상황 → 함께 기뻐하는 상황으로",
+            "core_message": "태(兌)는 기쁨입니다. 혼자 나서지 말고 함께 기뻐하세요.",
+            "practical_advice": ["함께 하세요", "기쁨을 나누세요", "부드럽게 접근하세요"],
+            "warning": "강하게만 나서면 고립됩니다."
+          }
+        },
+        "4": {
+          "text": "볼기에 살이 없어 행함이 어렵다",
+          "interpretation": "기반이 약해 나아가기 어렵다.",
+          "changing_to": 5,
+          "changing_hexagram_name": "수천수(水天需)",
+          "changing_interpretation": {
+            "transition": "약한 기반이 기다림으로 바뀝니다.",
+            "from_to": "기반이 약한 상황 → 기다리며 때를 보는 상황으로",
+            "core_message": "수(需)는 기다림입니다. 기반이 약하면 기다리세요.",
+            "practical_advice": ["기다리세요", "힘을 기르세요", "때를 보세요"],
+            "warning": "기반 없이 나서면 넘어집니다."
+          }
+        },
+        "5": {
+          "text": "비름을 결단하니 가운데를 행하면 허물이 없다",
+          "interpretation": "중도를 지키며 결단하라.",
+          "changing_to": 34,
+          "changing_hexagram_name": "뇌천대장(雷天大壯)",
+          "changing_interpretation": {
+            "transition": "중도의 결단이 큰 힘으로 바뀝니다.",
+            "from_to": "중도를 지키는 상황 → 힘이 강성한 상황으로",
+            "core_message": "대장(大壯)은 큰 힘입니다. 중도를 지키면 힘이 생깁니다.",
+            "practical_advice": ["중용을 지키세요", "힘을 쓰세요", "정도를 행하세요"],
+            "warning": "힘이 생겨도 교만하지 마세요."
+          }
+        },
+        "6": {
+          "text": "부름이 없으니 끝에 흉하다",
+          "interpretation": "경계를 늦추면 흉하다.",
+          "changing_to": 1,
+          "changing_hexagram_name": "중천건(重天乾)",
+          "changing_interpretation": {
+            "transition": "경계 소홀이 순수한 양으로 바뀝니다.",
+            "from_to": "경계를 늦추는 상황 → 하늘의 창조력이 충만한 상황으로",
+            "core_message": "건(乾)은 하늘입니다. 끝까지 경계하면 새로운 시작이 옵니다.",
+            "practical_advice": ["끝까지 경계하세요", "새로운 시작을 준비하세요", "창조적으로 나아가세요"],
+            "warning": "마지막에 방심하면 모든 것을 잃습니다."
+          }
+        }
+      }
+    },
+    "44": {
+      "number": 44,
+      "name": "천풍구",
+      "chinese": "姤",
+      "meaning": "만남, 우연한 조우",
+      "upper_trigram": "건",
+      "lower_trigram": "손",
+      "judgment": {
+        "korean": "구는 여자가 강하니 여자를 취하지 마라",
+        "interpretation": "우연한 만남에 주의하라. 유혹을 조심."
+      },
+      "situations": {
+        "love": {
+          "single": "가벼운 만남을 조심하세요."
+        },
+        "career": {
+          "general": "유혹에 넘어가지 마세요."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "쇠고삐에 매어야 하니 바르면 길하다",
+          "interpretation": "처음부터 단속해야 한다.",
+          "changing_to": 1,
+          "changing_hexagram_name": "중천건(重天乾)",
+          "changing_interpretation": {
+            "transition": "단속이 순수한 창조력으로 바뀝니다.",
+            "from_to": "처음부터 단속하는 상황 → 순수한 하늘의 힘으로",
+            "core_message": "건(乾)은 하늘입니다. 처음에 단속하면 순수한 힘을 유지합니다.",
+            "practical_advice": ["초기에 통제하세요", "순수함을 지키세요", "흔들리지 마세요"],
+            "warning": "처음 단속을 놓치면 나중에 감당할 수 없습니다."
+          }
+        },
+        "2": {
+          "text": "포에 물고기가 있으니 허물이 없으나 손에게는 이롭지 않다",
+          "interpretation": "내부에서 다스리면 된다.",
+          "changing_to": 33,
+          "changing_hexagram_name": "천산둔(天山遯)",
+          "changing_interpretation": {
+            "transition": "내부 다스림이 물러남으로 바뀝니다.",
+            "from_to": "내부에서 다스리는 상황 → 물러나는 상황으로",
+            "core_message": "둔(遯)은 물러남입니다. 내부를 다스렸으면 때가 되면 물러나세요.",
+            "practical_advice": ["내부를 정리하세요", "때가 되면 물러나세요", "지혜롭게 후퇴하세요"],
+            "warning": "밖으로 뻗치려 하지 마세요."
+          }
+        },
+        "3": {
+          "text": "볼기에 살이 없어 행함이 어렵다",
+          "interpretation": "기반이 약하다.",
+          "changing_to": 6,
+          "changing_hexagram_name": "천수송(天水訟)",
+          "changing_interpretation": {
+            "transition": "약한 기반이 다툼으로 바뀝니다.",
+            "from_to": "기반이 약한 상황 → 다투는 상황으로",
+            "core_message": "송(訟)은 다툼입니다. 기반이 약하면 다툼이 생깁니다.",
+            "practical_advice": ["다투지 마세요", "기반을 먼저 다지세요", "양보하세요"],
+            "warning": "약한 상태에서 다투면 반드시 집니다."
+          }
+        },
+        "4": {
+          "text": "포에 물고기가 없으니 흉하다",
+          "interpretation": "민심을 잃으면 흉하다.",
+          "changing_to": 57,
+          "changing_hexagram_name": "중풍손(重風巽)",
+          "changing_interpretation": {
+            "transition": "민심 잃음이 순종함으로 바뀝니다.",
+            "from_to": "민심을 잃는 상황 → 순종하며 스며드는 상황으로",
+            "core_message": "손(巽)은 순종함입니다. 민심을 잃었으면 겸손히 순종하세요.",
+            "practical_advice": ["겸손해지세요", "사람들에게 스며드세요", "부드럽게 다가가세요"],
+            "warning": "민심을 잃으면 모든 것을 잃습니다."
+          }
+        },
+        "5": {
+          "text": "버드나무로 오이를 싸니 아름다움을 품으면 하늘에서 떨어진다",
+          "interpretation": "겸손히 기다리면 복이 온다.",
+          "changing_to": 50,
+          "changing_hexagram_name": "화풍정(火風鼎)",
+          "changing_interpretation": {
+            "transition": "겸손한 기다림이 새로운 그릇으로 바뀝니다.",
+            "from_to": "아름다움을 품고 기다리는 상황 → 새것을 담는 상황으로",
+            "core_message": "정(鼎)은 솥입니다. 겸손히 기다리면 새로운 것을 담을 그릇이 됩니다.",
+            "practical_advice": ["겸손히 기다리세요", "새로운 것을 담으세요", "현인을 모시세요"],
+            "warning": "급하게 드러내면 떨어집니다."
+          }
+        },
+        "6": {
+          "text": "그 뿔에 구하니 부끄러우나 허물은 없다",
+          "interpretation": "고집스러우나 허물은 없다.",
+          "changing_to": 28,
+          "changing_hexagram_name": "택풍대과(澤風大過)",
+          "changing_interpretation": {
+            "transition": "고집이 지나침으로 바뀝니다.",
+            "from_to": "고집스럽게 추구하는 상황 → 크게 지나치는 상황으로",
+            "core_message": "대과(大過)는 지나침입니다. 고집이 심하면 지나칩니다.",
+            "practical_advice": ["고집을 줄이세요", "유연하게 하세요", "지나침을 경계하세요"],
+            "warning": "너무 고집스러우면 모든 것이 지나쳐 버립니다."
+          }
+        }
+      }
+    },
+    "45": {
+      "number": 45,
+      "name": "택지췌",
+      "chinese": "萃",
+      "meaning": "모임, 집결",
+      "upper_trigram": "태",
+      "lower_trigram": "곤",
+      "judgment": {
+        "korean": "췌는 형통하니 왕이 사당에 이르면 대인을 봄이 이롭다",
+        "interpretation": "사람들이 모인다. 지도력을 발휘할 때."
+      },
+      "situations": {
+        "love": {
+          "single": "모임에서 인연을 만납니다."
+        },
+        "career": {
+          "general": "협력과 네트워크가 중요합니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "믿음이 있으나 끝나지 않으니 이에 어지럽고 이에 모인다",
+          "interpretation": "믿음을 끝까지 유지하라.",
+          "changing_to": 17,
+          "changing_hexagram_name": "택뢰수(澤雷隨)",
+          "changing_interpretation": {
+            "transition": "어지러운 모임이 따름으로 바뀝니다.",
+            "from_to": "어지럽게 모이는 상황 → 때를 따르는 상황으로",
+            "core_message": "수(隨)는 따름입니다. 혼란 속에서도 때를 따르세요.",
+            "practical_advice": ["때를 따르세요", "순리를 따르세요", "믿음을 지키세요"],
+            "warning": "혼란에 빠지지 말고 방향을 찾으세요."
+          }
+        },
+        "2": {
+          "text": "이끌리니 길하고 허물이 없다",
+          "interpretation": "이끌림을 따르면 길하다.",
+          "changing_to": 47,
+          "changing_hexagram_name": "택수곤(澤水困)",
+          "changing_interpretation": {
+            "transition": "이끌림이 곤궁함으로 바뀝니다.",
+            "from_to": "이끌려 따르는 상황 → 곤궁한 상황으로",
+            "core_message": "곤(困)은 곤궁입니다. 이끌림을 따라도 어려움이 있을 수 있습니다.",
+            "practical_advice": ["어려움을 견디세요", "도를 지키세요", "끝까지 따르세요"],
+            "warning": "이끌림을 따랐다고 끝이 아닙니다."
+          }
+        },
+        "3": {
+          "text": "모이나 탄식하니 이로울 곳이 없다",
+          "interpretation": "모였으나 화합하지 못한다.",
+          "changing_to": 31,
+          "changing_hexagram_name": "택산함(澤山咸)",
+          "changing_interpretation": {
+            "transition": "탄식이 감응으로 바뀝니다.",
+            "from_to": "화합하지 못해 탄식하는 상황 → 마음이 통하는 상황으로",
+            "core_message": "함(咸)은 감응입니다. 탄식을 그치고 마음으로 통하세요.",
+            "practical_advice": ["마음을 열으세요", "진심으로 다가가세요", "감응하세요"],
+            "warning": "표면적 모임은 의미가 없습니다."
+          }
+        },
+        "4": {
+          "text": "크게 길하고 허물이 없다",
+          "interpretation": "크게 모이니 길하다.",
+          "changing_to": 8,
+          "changing_hexagram_name": "수지비(水地比)",
+          "changing_interpretation": {
+            "transition": "큰 모임이 친밀함으로 바뀝니다.",
+            "from_to": "크게 모이는 상황 → 친밀하게 함께하는 상황으로",
+            "core_message": "비(比)는 친밀함입니다. 크게 모였으면 이제 친밀해지세요.",
+            "practical_advice": ["친밀함을 나누세요", "가깝게 지내세요", "서로를 아끼세요"],
+            "warning": "모임만 크고 정이 없으면 흩어집니다."
+          }
+        },
+        "5": {
+          "text": "모임에 지위가 있으니 허물이 없다",
+          "interpretation": "지도자로서 모으니 좋다.",
+          "changing_to": 16,
+          "changing_hexagram_name": "뇌지예(雷地豫)",
+          "changing_interpretation": {
+            "transition": "지도력이 기쁨으로 바뀝니다.",
+            "from_to": "지도자로 모으는 상황 → 기쁨을 나누는 상황으로",
+            "core_message": "예(豫)는 기쁨입니다. 지도자로서 모았으면 기쁨을 나누세요.",
+            "practical_advice": ["기쁨을 함께하세요", "즐거움을 나누세요", "음악과 문화를 즐기세요"],
+            "warning": "지위에 안주하지 마세요."
+          }
+        },
+        "6": {
+          "text": "한숨 쉬고 눈물 흘리니 허물이 없다",
+          "interpretation": "진심으로 슬퍼해도 허물이 없다.",
+          "changing_to": 12,
+          "changing_hexagram_name": "천지비(天地否)",
+          "changing_interpretation": {
+            "transition": "슬픔이 막힘으로 바뀝니다.",
+            "from_to": "슬퍼하는 상황 → 막히는 상황으로",
+            "core_message": "비(否)는 막힘입니다. 슬픔이 지나치면 막힙니다.",
+            "practical_advice": ["슬픔을 추슬르세요", "앞으로 나아가세요", "막힘을 넘어서세요"],
+            "warning": "슬픔에 빠져 있으면 앞으로 나아갈 수 없습니다."
+          }
+        }
+      }
+    },
+    "46": {
+      "number": 46,
+      "name": "지풍승",
+      "chinese": "升",
+      "meaning": "올라감, 상승",
+      "upper_trigram": "곤",
+      "lower_trigram": "손",
+      "judgment": {
+        "korean": "승은 크게 형통하니 대인을 봄이 이롭다",
+        "interpretation": "상승의 시기. 겸손히 나아가라."
+      },
+      "situations": {
+        "love": {
+          "single": "관계가 발전합니다."
+        },
+        "career": {
+          "general": "승진과 성장의 때입니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "허락받아 오르니 크게 길하다",
+          "interpretation": "인정받아 오르니 길하다.",
+          "changing_to": 11,
+          "changing_hexagram_name": "지천태(地天泰)",
+          "changing_interpretation": {
+            "transition": "인정받은 상승이 태평으로 바뀝니다.",
+            "from_to": "허락받아 오르는 상황 → 평화롭고 형통하는 상황으로",
+            "core_message": "태(泰)는 태평입니다. 인정받아 오르면 태평을 누립니다.",
+            "practical_advice": ["감사하세요", "평화를 누리세요", "조화를 이루세요"],
+            "warning": "오른 후에도 겸손하세요."
+          }
+        },
+        "2": {
+          "text": "믿음이 있으면 제사를 올리는 것이 이로우니 허물이 없다",
+          "interpretation": "정성을 다하면 허물이 없다.",
+          "changing_to": 15,
+          "changing_hexagram_name": "지산겸(地山謙)",
+          "changing_interpretation": {
+            "transition": "정성이 겸손으로 바뀝니다.",
+            "from_to": "정성을 다하는 상황 → 겸손히 낮추는 상황으로",
+            "core_message": "겸(謙)은 겸손입니다. 정성을 다해도 겸손하세요.",
+            "practical_advice": ["겸손을 유지하세요", "정성을 다하세요", "낮은 자세를 유지하세요"],
+            "warning": "성과에 교만하지 마세요."
+          }
+        },
+        "3": {
+          "text": "빈 읍에 오른다",
+          "interpretation": "저항 없이 올라간다.",
+          "changing_to": 7,
+          "changing_hexagram_name": "지수사(地水師)",
+          "changing_interpretation": {
+            "transition": "쉬운 상승이 군대로 바뀝니다.",
+            "from_to": "저항 없이 오르는 상황 → 무리를 이끄는 상황으로",
+            "core_message": "사(師)는 군대입니다. 빈 곳에 올랐으면 이제 사람을 이끄세요.",
+            "practical_advice": ["사람을 모으세요", "리더십을 발휘하세요", "조직을 세우세요"],
+            "warning": "빈 곳이라고 방심하지 마세요."
+          }
+        },
+        "4": {
+          "text": "왕이 기산에서 제사하니 길하고 허물이 없다",
+          "interpretation": "최고의 영예를 얻는다.",
+          "changing_to": 32,
+          "changing_hexagram_name": "뇌풍항(雷風恆)",
+          "changing_interpretation": {
+            "transition": "최고의 영예가 항구함으로 바뀝니다.",
+            "from_to": "최고의 영예를 얻는 상황 → 꾸준히 지키는 상황으로",
+            "core_message": "항(恆)은 항구함입니다. 영예를 얻었으면 꾸준히 유지하세요.",
+            "practical_advice": ["꾸준히 유지하세요", "영예를 지키세요", "변함없이 하세요"],
+            "warning": "영예는 유지해야 의미가 있습니다."
+          }
+        },
+        "5": {
+          "text": "바르면 길하니 계단을 오른다",
+          "interpretation": "차근차근 오르면 길하다.",
+          "changing_to": 48,
+          "changing_hexagram_name": "수풍정(水風井)",
+          "changing_interpretation": {
+            "transition": "계단 오름이 우물로 바뀝니다.",
+            "from_to": "차근차근 오르는 상황 → 근원을 지키는 상황으로",
+            "core_message": "정(井)은 우물입니다. 올라도 근본을 잊지 마세요.",
+            "practical_advice": ["기본을 잊지 마세요", "근원을 지키세요", "베풀며 오르세요"],
+            "warning": "높이 올라도 뿌리를 잊으면 안 됩니다."
+          }
+        },
+        "6": {
+          "text": "어두워 오르니 쉬지 않는 바름이 이롭다",
+          "interpretation": "끊임없이 노력하면 이롭다.",
+          "changing_to": 18,
+          "changing_hexagram_name": "산풍고(山風蠱)",
+          "changing_interpretation": {
+            "transition": "끊임없는 노력이 좀먹음으로 바뀝니다.",
+            "from_to": "쉬지 않고 오르는 상황 → 썩은 것을 고치는 상황으로",
+            "core_message": "고(蠱)는 좀먹음입니다. 너무 오르기만 하면 내부가 상합니다.",
+            "practical_advice": ["쉼도 필요합니다", "내부를 점검하세요", "썩은 것을 고치세요"],
+            "warning": "쉬지 않고 오르면 내부가 무너집니다."
+          }
+        }
+      }
+    },
+    "47": {
+      "number": 47,
+      "name": "택수곤",
+      "chinese": "困",
+      "meaning": "곤궁, 곤란",
+      "upper_trigram": "태",
+      "lower_trigram": "감",
+      "judgment": {
+        "korean": "곤은 형통하고 바르니 대인이면 길하여 허물이 없다",
+        "interpretation": "곤궁하지만 도를 지키면 형통한다."
+      },
+      "situations": {
+        "love": {
+          "single": "어려운 시기지만 견디세요."
+        },
+        "career": {
+          "general": "곤란하지만 끝이 있습니다."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "볼기가 그루터기에 곤하니 어두운 골짜기에 들어가 3년을 보지 못한다",
+          "interpretation": "오랫동안 곤궁하다.",
+          "changing_to": 58,
+          "changing_hexagram_name": "중택태(重澤兌)",
+          "changing_interpretation": {
+            "transition": "오랜 곤궁이 기쁨으로 바뀝니다.",
+            "from_to": "오래 곤궁한 상황 → 기쁨을 나누는 상황으로",
+            "core_message": "태(兌)는 기쁨입니다. 오랜 곤궁 끝에 기쁨이 옵니다.",
+            "practical_advice": ["희망을 잃지 마세요", "끝이 있습니다", "기쁨을 기다리세요"],
+            "warning": "어둠 속에서도 기쁨의 가능성을 믿으세요."
+          }
+        },
+        "2": {
+          "text": "술과 음식에 곤하니 붉은 띠가 막 온다",
+          "interpretation": "도움이 온다.",
+          "changing_to": 45,
+          "changing_hexagram_name": "택지췌(澤地萃)",
+          "changing_interpretation": {
+            "transition": "도움이 모임으로 바뀝니다.",
+            "from_to": "도움이 오는 상황 → 사람들이 모이는 상황으로",
+            "core_message": "췌(萃)는 모임입니다. 도움이 오면 사람들이 모입니다.",
+            "practical_advice": ["도움을 받으세요", "사람들과 함께하세요", "네트워크를 넓히세요"],
+            "warning": "도움이 와도 함부로 쓰지 마세요."
+          }
+        },
+        "3": {
+          "text": "돌에 곤하여 가시나무를 잡고 집에 들어가도 아내를 보지 못하니 흉하다",
+          "interpretation": "어디에도 기댈 곳이 없다.",
+          "changing_to": 28,
+          "changing_hexagram_name": "택풍대과(澤風大過)",
+          "changing_interpretation": {
+            "transition": "극심한 곤궁이 지나침으로 바뀝니다.",
+            "from_to": "어디에도 기댈 수 없는 상황 → 크게 지나치는 상황으로",
+            "core_message": "대과(大過)는 지나침입니다. 극도로 힘들면 지나칠 수 있습니다.",
+            "practical_advice": ["버티세요", "무리하지 마세요", "도움을 구하세요"],
+            "warning": "혼자 버티다 무너지지 마세요."
+          }
+        },
+        "4": {
+          "text": "천천히 오니 금수레에 곤하다",
+          "interpretation": "도움이 늦게 온다.",
+          "changing_to": 29,
+          "changing_hexagram_name": "중수감(重水坎)",
+          "changing_interpretation": {
+            "transition": "늦은 도움이 험난함으로 바뀝니다.",
+            "from_to": "도움이 늦게 오는 상황 → 험난함이 계속되는 상황으로",
+            "core_message": "감(坎)은 험난함입니다. 도움이 늦으면 험난함을 더 견뎌야 합니다.",
+            "practical_advice": ["인내하세요", "믿음을 지키세요", "진실로 버티세요"],
+            "warning": "도움이 늦다고 포기하지 마세요."
+          }
+        },
+        "5": {
+          "text": "코와 발이 베이니 붉은 띠에 곤하고 이에 천천히 기쁨이 있다",
+          "interpretation": "고통 후에 기쁨이 온다.",
+          "changing_to": 40,
+          "changing_hexagram_name": "뇌수해(雷水解)",
+          "changing_interpretation": {
+            "transition": "고통이 풀림으로 바뀝니다.",
+            "from_to": "고통받는 상황 → 문제가 풀리는 상황으로",
+            "core_message": "해(解)는 풀림입니다. 고통을 견디면 모든 것이 풀립니다.",
+            "practical_advice": ["견디세요", "풀리는 때가 옵니다", "기쁨을 준비하세요"],
+            "warning": "고통 끝에 반드시 풀림이 옵니다."
+          }
+        },
+        "6": {
+          "text": "칡덩굴에 곤하여 위태로운데 움직이면 후회하니 후회하면 정벌하여 길하다",
+          "interpretation": "후회하고 고치면 길하다.",
+          "changing_to": 6,
+          "changing_hexagram_name": "천수송(天水訟)",
+          "changing_interpretation": {
+            "transition": "후회가 다툼으로 바뀝니다.",
+            "from_to": "후회하고 고치는 상황 → 다투는 상황으로",
+            "core_message": "송(訟)은 다툼입니다. 후회하고 고쳤으면 이제 바로잡아야 합니다.",
+            "practical_advice": ["잘못을 바로잡으세요", "정당하게 해결하세요", "분쟁을 해결하세요"],
+            "warning": "다툼에서 승리하려면 정당해야 합니다."
+          }
+        }
+      }
+    },
+    "48": {
+      "number": 48,
+      "name": "수풍정",
+      "chinese": "井",
+      "meaning": "우물",
+      "upper_trigram": "감",
+      "lower_trigram": "손",
+      "judgment": {
+        "korean": "정은 고을을 옮겨도 우물은 옮기지 못하니",
+        "interpretation": "변하지 않는 본질. 근원을 지켜라."
+      },
+      "situations": {
+        "love": {
+          "single": "진정한 가치를 찾으세요."
+        },
+        "career": {
+          "general": "기본에 충실하세요."
+        }
+      },
+      "lines": {
+        "1": {
+          "text": "우물 진흙을 먹지 않으니 오래된 우물에 짐승이 없다",
+          "interpretation": "버려진 상태.",
+          "changing_to": 5,
+          "changing_hexagram_name": "수천수(水天需)",
+          "changing_interpretation": {
+            "transition": "버려진 상태가 기다림으로 바뀝니다.",
+            "from_to": "버려진 상태 → 기다리며 때를 보는 상황으로",
+            "core_message": "수(需)는 기다림입니다. 버려졌어도 때를 기다리세요.",
+            "practical_advice": ["때를 기다리세요", "자신을 정화하세요", "쓰일 때가 옵니다"],
+            "warning": "버려졌다고 포기하지 마세요."
+          }
+        },
+        "2": {
+          "text": "우물 골짜기에서 부어가 쏘니 항아리가 깨져 새다",
+          "interpretation": "쓸모없이 흘러간다.",
+          "changing_to": 39,
+          "changing_hexagram_name": "수산건(水山蹇)",
+          "changing_interpretation": {
+            "transition": "헛됨이 어려움으로 바뀝니다.",
+            "from_to": "쓸모없이 흘러가는 상황 → 어렵고 막히는 상황으로",
+            "core_message": "건(蹇)은 어려움입니다. 헛되이 흘러가면 어려움에 빠집니다.",
+            "practical_advice": ["새는 곳을 막으세요", "낭비를 멈추세요", "효율을 찾으세요"],
+            "warning": "새는 바가지는 쓸모가 없습니다."
+          }
+        },
+        "3": {
+          "text": "우물이 다스려졌으나 먹지 않으니 내 마음이 슬프다",
+          "interpretation": "준비되었으나 쓰이지 않는다.",
+          "changing_to": 29,
+          "changing_hexagram_name": "중수감(重水坎)",
+          "changing_interpretation": {
+            "transition": "쓰이지 않음이 험난함으로 바뀝니다.",
+            "from_to": "준비되었으나 쓰이지 않는 상황 → 험난한 상황으로",
+            "core_message": "감(坎)은 험난함입니다. 쓰이지 않으면 험난해집니다.",
+            "practical_advice": ["기회를 찾으세요", "알려지게 하세요", "슬퍼만 하지 마세요"],
+            "warning": "재능을 썩히면 험난해집니다."
+          }
+        },
+        "4": {
+          "text": "우물을 고치니 허물이 없다",
+          "interpretation": "수리하면 허물이 없다.",
+          "changing_to": 28,
+          "changing_hexagram_name": "택풍대과(澤風大過)",
+          "changing_interpretation": {
+            "transition": "수리가 지나침으로 바뀝니다.",
+            "from_to": "우물을 고치는 상황 → 크게 지나치는 상황으로",
+            "core_message": "대과(大過)는 지나침입니다. 고치는 것도 지나치면 안 됩니다.",
+            "practical_advice": ["적절히 고치세요", "지나치지 마세요", "균형을 유지하세요"],
+            "warning": "수리도 과하면 망가뜨립니다."
+          }
+        },
+        "5": {
+          "text": "우물이 맑고 차가운 샘물을 먹는다",
+          "interpretation": "맑은 물을 얻어 쓴다.",
+          "changing_to": 46,
+          "changing_hexagram_name": "지풍승(地風升)",
+          "changing_interpretation": {
+            "transition": "맑은 물이 상승으로 바뀝니다.",
+            "from_to": "맑은 물을 얻는 상황 → 올라가는 상황으로",
+            "core_message": "승(升)은 올라감입니다. 맑은 물을 얻었으니 올라가세요.",
+            "practical_advice": ["성장하세요", "위로 나아가세요", "근본을 잊지 마세요"],
+            "warning": "맑음을 유지하며 올라가세요."
+          }
+        },
+        "6": {
+          "text": "우물을 거두지 않고 덮지 않으니 믿음이 있어 크게 길하다",
+          "interpretation": "널리 베풀어 크게 길하다.",
+          "changing_to": 57,
+          "changing_hexagram_name": "중풍손(重風巽)",
+          "changing_interpretation": {
+            "transition": "베풀음이 스며듦으로 바뀝니다.",
+            "from_to": "널리 베푸는 상황 → 깊이 스며드는 상황으로",
+            "core_message": "손(巽)은 스며듦입니다. 베풀면 스며들어 영향을 미칩니다.",
+            "practical_advice": ["계속 베푸세요", "깊이 스며들게 하세요", "겸손히 스며드세요"],
+            "warning": "베풀되 대가를 바라지 마세요."
+          }
+        }
+      }
+    }
+  }
+}

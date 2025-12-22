@@ -48,7 +48,17 @@ interface LuckyElements {
   items?: string[];
 }
 
+interface ThemeSection {
+  id: string;
+  icon: string;
+  title: string;
+  titleEn: string;
+  content: string;
+}
+
 interface StructuredFortune {
+  themeSummary?: string;
+  sections?: ThemeSection[];
   lifeTimeline?: {
     description?: string;
     importantYears?: ImportantYear[];
@@ -58,13 +68,7 @@ interface StructuredFortune {
   luckyElements?: LuckyElements;
   sajuHighlight?: { pillar: string; element: string; meaning: string };
   astroHighlight?: { planet: string; sign: string; meaning: string };
-  // Legacy format support
-  sections?: {
-    id: string;
-    title: string;
-    icon?: string;
-    content: string;
-  }[];
+  crossHighlights?: { summary: string; points?: string[] };
 }
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es";
@@ -363,6 +367,31 @@ function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: 
   );
 }
 
+// Theme Sections component (테마별 섹션 카드)
+function ThemeSectionsDisplay({ sections, lang }: { sections: ThemeSection[]; lang: LangKey }) {
+  if (!sections || sections.length === 0) return null;
+
+  return (
+    <div className={styles.themeSections}>
+      {sections.map((section) => (
+        <div key={section.id} className={styles.themeSection}>
+          <div className={styles.themeSectionHeader}>
+            <span className={styles.themeSectionIcon}>{section.icon}</span>
+            <h3 className={styles.themeSectionTitle}>
+              {lang === "en" ? section.titleEn : section.title}
+            </h3>
+          </div>
+          <div className={styles.themeSectionContent}>
+            {section.content.split('\n').map((line, i) => (
+              <p key={i}>{line.replace(/\*\*(.*?)\*\*/g, '$1')}</p>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const I18N: Record<LangKey, {
   userFallback: string;
   analysisFallback: string;
@@ -457,15 +486,34 @@ export default function Display({
     return null;
   }, [themed?.interpretation]);
 
-  // Check if we have complete structured data (lifeTimeline + categoryAnalysis)
+  // Check if we have complete structured data (sections or lifeTimeline + categoryAnalysis)
   const hasFullStructuredData = useMemo(() => {
-    return structuredData?.lifeTimeline?.importantYears?.length ||
+    return (structuredData?.sections && structuredData.sections.length > 0) ||
+           structuredData?.lifeTimeline?.importantYears?.length ||
            (structuredData?.categoryAnalysis && Object.keys(structuredData.categoryAnalysis).length > 0);
   }, [structuredData]);
 
   // Get plain text for markdown rendering (remove JSON if present)
   const fixedText = useMemo(() => {
-    if (typeof themed?.interpretation !== "string") return tr.analysisFallback;
+    if (typeof themed?.interpretation !== "string" || !themed.interpretation.trim()) {
+      // No interpretation - but check if we have raw saju/astro data to show something
+      // Use result.saju (top-level) since ThemedBlock doesn't have 'raw'
+      const sajuData = result?.saju;
+      const astroData = result?.astrology || result?.astro;
+      if (sajuData?.dayMaster || astroData) {
+        // Generate a basic display from raw data
+        // dayMaster can be { name, element } or { heavenlyStem: { name, element } }
+        const dm = sajuData?.dayMaster;
+        const dayMasterName = dm?.name || dm?.heavenlyStem?.name || dm?.heavenlyStem || "";
+        const dayMasterElement = dm?.element || dm?.heavenlyStem?.element || "";
+        if (dayMasterName) {
+          return lang === "ko"
+            ? `## 사주×점성 분석\n\n당신의 일간은 **${dayMasterName}**(${dayMasterElement})입니다.\n\n상세 분석을 보려면 상담사에게 문의하세요.`
+            : `## Saju × Astrology Analysis\n\nYour Day Master is **${dayMasterName}** (${dayMasterElement}).\n\nFor detailed analysis, please consult with the counselor.`;
+        }
+      }
+      return tr.analysisFallback;
+    }
 
     // If we have full structured data, don't show markdown content
     if (hasFullStructuredData) {
@@ -479,9 +527,14 @@ export default function Display({
         .map(s => `## ${s.icon || "✦"} ${s.title}\n\n${s.content}`)
         .join("\n\n---\n\n");
     }
-    // Otherwise clean up the raw text (remove JSON from display)
-    return text.replace(/##+\s*/g, "## ").replace(/\{[\s\S]*\}/g, "").trim() || tr.analysisFallback;
-  }, [themed?.interpretation, structuredData, hasFullStructuredData, tr.analysisFallback]);
+    // Otherwise clean up the raw text (remove JSON from display, but keep markdown)
+    // Don't strip curly braces if it's markdown content (not JSON)
+    const isLikelyJson = text.trim().startsWith("{") && text.includes('"lifeTimeline"');
+    if (isLikelyJson) {
+      return text.replace(/\{[\s\S]*\}/g, "").trim() || tr.analysisFallback;
+    }
+    return text.replace(/##+\s*/g, "## ").trim() || tr.analysisFallback;
+  }, [themed?.interpretation, result?.saju, result?.astrology, result?.astro, structuredData, hasFullStructuredData, tr.analysisFallback, lang]);
 
   return (
     <div>
@@ -516,7 +569,7 @@ export default function Display({
       )}
 
       <div className={styles.header}>
-        <h2 className={styles.title}>{getThemeLabel(activeTheme, lang)}</h2>
+        <h2 className={styles.title}>{structuredData?.themeSummary || getThemeLabel(activeTheme, lang)}</h2>
         <p className={styles.subtitle}>{tr.tagline}</p>
         <div className={styles.profile}>
           <div className={styles.profileName}>{name}</div>
@@ -528,6 +581,11 @@ export default function Display({
           )}
         </div>
       </div>
+
+      {/* Theme Sections - 테마별 섹션 카드 (새 템플릿 포맷) */}
+      {structuredData?.sections && structuredData.sections.length > 0 && (
+        <ThemeSectionsDisplay sections={structuredData.sections} lang={lang} />
+      )}
 
       {/* Key Insights - Top summary */}
       {structuredData?.keyInsights && (
@@ -605,14 +663,7 @@ export default function Display({
         </div>
       )}
 
-      <div className={styles.section}>
-        <h3 className={styles.h2}>{tr.followup}</h3>
-        <Chat
-          profile={result?.profile as any}
-          lang={lang}
-          theme={activeTheme}
-        />
-      </div>
+      {/* 후속 질문하기 섹션 제거 - 상담사 페이지에서 동일 기능 제공 */}
     </div>
   );
 }

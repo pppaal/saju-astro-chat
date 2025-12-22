@@ -1,0 +1,294 @@
+{
+  "$schema": "iching_changing_lines_v1",
+  "$description": "주역 변효(變爻) 심층 해석 시스템",
+
+  "meta": {
+    "description": "각 효가 변할 때의 의미와 변괘로의 전환 해석",
+    "total_combinations": 384,
+    "structure": "64괘 × 6효 = 384개 변효 조합"
+  },
+
+  "changing_line_principles": {
+    "basic_rule": "음효(陰爻)는 양효(陽爻)로, 양효는 음효로 변한다",
+    "interpretation_layers": [
+      "1. 해당 효사의 직접적 의미",
+      "2. 효의 위치가 갖는 상징적 의미",
+      "3. 변괘로 전환되는 역동적 의미",
+      "4. 원괘와 변괘의 관계에서 오는 통합적 의미"
+    ],
+    "position_meanings": {
+      "1": {"name": "초효", "meaning": "시작, 잠재력, 아직 드러나지 않음", "body": "발", "society": "서민"},
+      "2": {"name": "이효", "meaning": "내면의 중심, 발전 단계", "body": "종아리", "society": "관리"},
+      "3": {"name": "삼효", "meaning": "내외의 경계, 위기와 전환", "body": "허리", "society": "대부"},
+      "4": {"name": "사효", "meaning": "외부 세계 진입, 신중함 필요", "body": "가슴", "society": "공경"},
+      "5": {"name": "오효", "meaning": "군위, 정점, 중정의 자리", "body": "머리", "society": "천자"},
+      "6": {"name": "상효", "meaning": "극점, 변화 직전, 물러남", "body": "정수리", "society": "종묘"}
+    }
+  },
+
+  "hexagram_1_changing": {
+    "hexagram": "건(乾)",
+    "changes": {
+      "line_1_changes": {
+        "from": "건(乾) → 구(姤)",
+        "original_meaning": "잠룡물용 - 잠긴 용이니 쓰지 말라",
+        "deep_interpretation": {
+          "situation": "잠재력은 있으나 아직 발현할 때가 아니다",
+          "action": "은인자중하며 실력을 기르라",
+          "warning": "조급하게 나서면 오히려 화를 자초한다",
+          "timing": "3-6개월 후에 다시 도모하라"
+        },
+        "resulting_hexagram": {
+          "number": 44,
+          "name": "구(姤)",
+          "meaning": "만남, 우연한 조우",
+          "integration": "기다리던 중 예상치 못한 만남이 생긴다. 그러나 그 만남이 진정한 것인지 살펴라."
+        },
+        "practical_advice": {
+          "love": "지금 만남은 인연이 아닐 수 있다. 관망하라.",
+          "career": "준비 기간으로 삼아라. 아직 나설 때가 아니다.",
+          "finance": "투자는 보류. 시장을 관찰하라."
+        }
+      },
+      "line_2_changes": {
+        "from": "건(乾) → 동인(同人)",
+        "original_meaning": "현룡재전 - 나타난 용이 밭에 있다",
+        "deep_interpretation": {
+          "situation": "재능이 드러나기 시작했다",
+          "action": "뜻을 같이하는 사람을 찾아라",
+          "warning": "아직 정상은 아니다. 겸손을 유지하라",
+          "timing": "협력자를 만나면 급진전"
+        },
+        "resulting_hexagram": {
+          "number": 13,
+          "name": "동인(同人)",
+          "meaning": "동지, 뜻을 같이함",
+          "integration": "혼자가 아닌 함께 가는 길이 열린다. 진정한 동지를 찾으라."
+        },
+        "practical_advice": {
+          "love": "좋은 인연을 만날 때. 마음을 열어라.",
+          "career": "팀워크가 중요. 협력 프로젝트를 추진하라.",
+          "finance": "공동 투자가 유리할 수 있다."
+        }
+      },
+      "line_3_changes": {
+        "from": "건(乾) → 이(履)",
+        "original_meaning": "종일건건 석척약려 - 종일 힘쓰고 저녁에 두려워하라",
+        "deep_interpretation": {
+          "situation": "성공에 가까워질수록 위험도 커진다",
+          "action": "낮에는 일하고 밤에는 반성하라",
+          "warning": "자만하면 넘어진다",
+          "timing": "지금이 가장 조심해야 할 때"
+        },
+        "resulting_hexagram": {
+          "number": 10,
+          "name": "이(履)",
+          "meaning": "밟음, 예의, 처신",
+          "integration": "호랑이 꼬리를 밟듯 조심스럽게 행동하라. 예의를 갖추면 화를 면한다."
+        },
+        "practical_advice": {
+          "love": "상대를 존중하는 태도가 중요하다.",
+          "career": "상사나 고객을 대할 때 예의를 갖춰라.",
+          "finance": "리스크 관리에 신경 써라."
+        }
+      },
+      "line_4_changes": {
+        "from": "건(乾) → 소축(小畜)",
+        "original_meaning": "혹약재연 - 뛰어오르나 연못에 머무른다",
+        "deep_interpretation": {
+          "situation": "도약할 것인가 머무를 것인가의 기로",
+          "action": "상황을 살피고 신중히 결정하라",
+          "warning": "무리한 도약은 실패를 부른다",
+          "timing": "작은 것부터 쌓아가라"
+        },
+        "resulting_hexagram": {
+          "number": 9,
+          "name": "소축(小畜)",
+          "meaning": "작은 축적, 기다림",
+          "integration": "큰 것을 이루려면 작은 것부터 모아라. 아직은 축적의 시기다."
+        },
+        "practical_advice": {
+          "love": "큰 진전보다 작은 노력이 쌓여야 한다.",
+          "career": "당장의 성과보다 실력 축적에 집중.",
+          "finance": "적금, 저축 위주. 큰 투자는 아직."
+        }
+      },
+      "line_5_changes": {
+        "from": "건(乾) → 대유(大有)",
+        "original_meaning": "비룡재천 - 나는 용이 하늘에 있다",
+        "deep_interpretation": {
+          "situation": "정상에 올랐다. 최고의 위치",
+          "action": "덕으로 다스리고 현자를 가까이하라",
+          "warning": "정상에서 교만하면 떨어진다",
+          "timing": "지금이 전성기. 잘 유지하라"
+        },
+        "resulting_hexagram": {
+          "number": 14,
+          "name": "대유(大有)",
+          "meaning": "크게 소유함, 풍요",
+          "integration": "크게 얻었으니 겸손으로 지켜라. 나눌 때 더 커진다."
+        },
+        "practical_advice": {
+          "love": "풍요로운 관계. 감사를 표현하라.",
+          "career": "리더십을 발휘할 때. 팀을 이끌어라.",
+          "finance": "풍요롭지만 겸손히 관리하라."
+        }
+      },
+      "line_6_changes": {
+        "from": "건(乾) → 쾌(夬)",
+        "original_meaning": "항룡유회 - 높이 오른 용이니 후회가 있다",
+        "deep_interpretation": {
+          "situation": "극에 달해 내려갈 곳밖에 없다",
+          "action": "물러날 때를 알아야 한다",
+          "warning": "더 오르려 하면 추락한다",
+          "timing": "퇴임, 양보, 물러남의 시기"
+        },
+        "resulting_hexagram": {
+          "number": 43,
+          "name": "쾌(夬)",
+          "meaning": "결단, 터져나감",
+          "integration": "결단을 내려야 할 때다. 그러나 독단은 금물."
+        },
+        "practical_advice": {
+          "love": "관계의 결단이 필요할 수 있다.",
+          "career": "은퇴나 이직을 고려할 때.",
+          "finance": "정리하고 안정 자산으로."
+        }
+      }
+    }
+  },
+
+  "hexagram_2_changing": {
+    "hexagram": "곤(坤)",
+    "changes": {
+      "line_1_changes": {
+        "from": "곤(坤) → 복(復)",
+        "original_meaning": "이상견빙지 - 서리를 밟으면 얼음이 온다",
+        "deep_interpretation": {
+          "situation": "작은 징조가 큰 결과로 이어진다",
+          "action": "시작 단계에서 방향을 잘 잡아라",
+          "warning": "작은 것을 무시하면 큰 화가 된다",
+          "timing": "초기 신호를 잘 살펴라"
+        },
+        "resulting_hexagram": {
+          "number": 24,
+          "name": "복(復)",
+          "meaning": "돌아옴, 회복",
+          "integration": "새로운 시작이 온다. 과거를 정리하고 다시 시작하라."
+        }
+      },
+      "line_2_changes": {
+        "from": "곤(坤) → 사(師)",
+        "original_meaning": "직방대 - 곧고 방정하며 크다",
+        "deep_interpretation": {
+          "situation": "본성대로 행하면 저절로 이루어진다",
+          "action": "자연스럽게 행동하라",
+          "warning": "억지로 하면 오히려 꼬인다",
+          "timing": "순리대로 흘러가게 두라"
+        },
+        "resulting_hexagram": {
+          "number": 7,
+          "name": "사(師)",
+          "meaning": "군대, 조직",
+          "integration": "조직을 이끌어야 할 책임이 생긴다. 정의로운 리더십을 발휘하라."
+        }
+      },
+      "line_3_changes": {
+        "from": "곤(坤) → 겸(謙)",
+        "original_meaning": "함장가정 - 아름다움을 품고 바름을 지킨다",
+        "deep_interpretation": {
+          "situation": "재능을 숨기고 보조 역할에 충실하라",
+          "action": "공을 나누고 실속을 챙겨라",
+          "warning": "드러내려 하면 시기를 받는다",
+          "timing": "때가 되면 자연히 드러난다"
+        },
+        "resulting_hexagram": {
+          "number": 15,
+          "name": "겸(謙)",
+          "meaning": "겸손",
+          "integration": "겸손이 복을 부른다. 낮출수록 높아진다."
+        }
+      },
+      "line_4_changes": {
+        "from": "곤(坤) → 예(豫)",
+        "original_meaning": "괄낭 - 주머니를 묶는다",
+        "deep_interpretation": {
+          "situation": "침묵이 금이다",
+          "action": "입을 다물고 때를 기다려라",
+          "warning": "말이 많으면 화를 자초한다",
+          "timing": "지금은 숨어야 할 때"
+        },
+        "resulting_hexagram": {
+          "number": 16,
+          "name": "예(豫)",
+          "meaning": "기쁨, 즐거움",
+          "integration": "기쁨이 오고 있다. 조금만 더 참으면 좋은 때가 온다."
+        }
+      },
+      "line_5_changes": {
+        "from": "곤(坤) → 비(比)",
+        "original_meaning": "황상원길 - 누런 치마니 크게 길하다",
+        "deep_interpretation": {
+          "situation": "중용의 덕으로 아래를 보좌한다",
+          "action": "겸손히 섬기면 복이 온다",
+          "warning": "높은 자리를 탐하지 마라",
+          "timing": "지금 위치에서 최선을 다하라"
+        },
+        "resulting_hexagram": {
+          "number": 8,
+          "name": "비(比)",
+          "meaning": "친함, 화합",
+          "integration": "화합하고 친밀해지는 때다. 관계를 돈독히 하라."
+        }
+      },
+      "line_6_changes": {
+        "from": "곤(坤) → 박(剝)",
+        "original_meaning": "용전우야 - 용이 들에서 싸운다",
+        "deep_interpretation": {
+          "situation": "음이 극에 달해 양과 충돌한다",
+          "action": "대립을 피하고 물러나라",
+          "warning": "싸우면 양쪽 다 피 흘린다",
+          "timing": "화해하지 않으면 공멸한다"
+        },
+        "resulting_hexagram": {
+          "number": 23,
+          "name": "박(剝)",
+          "meaning": "깎임, 벗겨짐",
+          "integration": "무너지고 깎이는 때다. 지킬 것만 지키고 나머지는 포기하라."
+        }
+      }
+    }
+  },
+
+  "multiple_changing_lines": {
+    "description": "여러 효가 동시에 변할 때의 해석 원칙",
+    "rules": {
+      "one_line": "변효의 효사를 직접 해석",
+      "two_lines": "위쪽 효를 주로, 아래쪽을 보조로 해석",
+      "three_lines": "원괘와 변괘의 단사(彖辭)로 해석",
+      "four_lines": "변하지 않는 두 효 중 아래 효로 해석",
+      "five_lines": "변하지 않는 한 효로 해석",
+      "six_lines": "건곤은 용구/용육 해석, 나머지는 변괘로 해석"
+    },
+    "special_cases": {
+      "all_yang_changing": "건괘 모든 양효가 변함 → 용구(用九): 群龍無首 吉",
+      "all_yin_changing": "곤괘 모든 음효가 변함 → 용육(用六): 利永貞"
+    }
+  },
+
+  "timing_guidance": {
+    "seasons": {
+      "spring": "목의 괘가 유리 (진, 손 관련)",
+      "summer": "화의 괘가 유리 (리 관련)",
+      "autumn": "금의 괘가 유리 (건, 태 관련)",
+      "winter": "수의 괘가 유리 (감 관련)",
+      "between_seasons": "토의 괘가 유리 (곤, 간 관련)"
+    },
+    "waiting_periods": {
+      "immediate": "건, 태 계열",
+      "short_term": "리, 진 계열 (1-3개월)",
+      "medium_term": "손, 간 계열 (3-6개월)",
+      "long_term": "감, 곤 계열 (6개월 이상)"
+    }
+  }
+}
