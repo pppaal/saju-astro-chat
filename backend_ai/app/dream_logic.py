@@ -9,8 +9,39 @@ from dotenv import load_dotenv
 
 from backend_ai.app.rule_engine import RuleEngine
 from backend_ai.app.redis_cache import get_cache
-from backend_ai.app.dream_embeddings import get_dream_embed_rag
-from backend_ai.model.fusion_generate import _generate_with_gpt4, refine_with_gpt5mini
+
+# Lazy import dream_embeddings to avoid loading SentenceTransformer on module load
+# This prevents OOM on Railway free tier (512MB limit)
+_dream_embed_rag = None
+
+def get_dream_embed_rag():
+    """Lazy wrapper for dream_embeddings.get_dream_embed_rag."""
+    global _dream_embed_rag
+    if _dream_embed_rag is None:
+        from backend_ai.app.dream_embeddings import get_dream_embed_rag as _get_rag
+        _dream_embed_rag = _get_rag()
+    return _dream_embed_rag
+
+# Lazy import to avoid loading SentenceTransformer on module load
+# This prevents OOM on Railway free tier (512MB limit)
+_fusion_generate_module = None
+
+def _get_fusion_generate():
+    """Lazy load fusion_generate module."""
+    global _fusion_generate_module
+    if _fusion_generate_module is None:
+        from backend_ai.model import fusion_generate as _fg
+        _fusion_generate_module = _fg
+    return _fusion_generate_module
+
+def _generate_with_gpt4(*args, **kwargs):
+    """Lazy wrapper for _generate_with_gpt4."""
+    return _get_fusion_generate()._generate_with_gpt4(*args, **kwargs)
+
+def refine_with_gpt5mini(*args, **kwargs):
+    """Lazy wrapper for refine_with_gpt5mini."""
+    return _get_fusion_generate().refine_with_gpt5mini(*args, **kwargs)
+
 from backend_ai.app.realtime_astro import get_current_transits
 from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
 

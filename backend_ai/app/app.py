@@ -30,10 +30,26 @@ from backend_ai.app.fusion_logic import interpret_with_ai
 from backend_ai.app.saju_parser import calculate_saju_data
 from backend_ai.app.dream_logic import interpret_dream
 from backend_ai.app.redis_cache import get_cache
-from backend_ai.model.fusion_generate import (
-    _generate_with_gpt4,
-    refine_with_gpt5mini,
-)
+# Lazy import fusion_generate to avoid loading SentenceTransformer on startup
+# This prevents OOM on Railway free tier (512MB limit)
+_fusion_generate_module = None
+
+def _get_fusion_generate():
+    """Lazy load fusion_generate module to save memory."""
+    global _fusion_generate_module
+    if _fusion_generate_module is None:
+        from backend_ai.model import fusion_generate as _fg
+        _fusion_generate_module = _fg
+    return _fusion_generate_module
+
+def _generate_with_gpt4(*args, **kwargs):
+    """Lazy wrapper for _generate_with_gpt4."""
+    return _get_fusion_generate()._generate_with_gpt4(*args, **kwargs)
+
+def refine_with_gpt5mini(*args, **kwargs):
+    """Lazy wrapper for refine_with_gpt5mini."""
+    return _get_fusion_generate().refine_with_gpt5mini(*args, **kwargs)
+
 from backend_ai.app.performance_optimizer import (
     track_performance,
     get_performance_stats,
@@ -65,29 +81,87 @@ try:
 except ImportError:
     HAS_USER_MEMORY = False
 
-try:
-    from backend_ai.app.iching_rag import (
-        cast_hexagram,
-        get_hexagram_interpretation,
-        perform_iching_reading,
-        search_iching_wisdom,
-        get_all_hexagrams_summary,
-    )
-    HAS_ICHING = True
-except ImportError:
-    HAS_ICHING = False
+# I-Ching RAG - Lazy loaded to avoid OOM (uses saju_astro_rag -> SentenceTransformer)
+HAS_ICHING = True  # Assume available, will fail gracefully if not
+_iching_rag_module = None
+
+def _get_iching_rag():
+    """Lazy load iching_rag module."""
+    global _iching_rag_module, HAS_ICHING
+    if _iching_rag_module is None:
+        try:
+            from backend_ai.app import iching_rag as _ir
+            _iching_rag_module = _ir
+        except ImportError:
+            HAS_ICHING = False
+            print("[app.py] I-Ching RAG not available (lazy load)")
+            return None
+    return _iching_rag_module
+
+def cast_hexagram(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.cast_hexagram(*args, **kwargs) if m else None
+
+def get_hexagram_interpretation(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.get_hexagram_interpretation(*args, **kwargs) if m else None
+
+def perform_iching_reading(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.perform_iching_reading(*args, **kwargs) if m else None
+
+def search_iching_wisdom(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.search_iching_wisdom(*args, **kwargs) if m else None
+
+def get_all_hexagrams_summary(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.get_all_hexagrams_summary(*args, **kwargs) if m else None
+
+# Persona Embeddings - Lazy loaded (uses SentenceTransformer)
+HAS_PERSONA_EMBED = True  # Assume available
+_persona_embed_module = None
+
+def _get_persona_embed_module():
+    global _persona_embed_module, HAS_PERSONA_EMBED
+    if _persona_embed_module is None:
+        try:
+            from backend_ai.app import persona_embeddings as _pe
+            _persona_embed_module = _pe
+        except ImportError:
+            HAS_PERSONA_EMBED = False
+            return None
+    return _persona_embed_module
+
+def get_persona_embed_rag(*args, **kwargs):
+    m = _get_persona_embed_module()
+    return m.get_persona_embed_rag(*args, **kwargs) if m else None
 
 try:
-    from backend_ai.app.persona_embeddings import get_persona_embed_rag
-    HAS_PERSONA_EMBED = True
+    # This import is safe (no SentenceTransformer dependency at module level)
+    pass  # Placeholder - persona_embeddings now lazy loaded above
+    HAS_PERSONA_EMBED = True  # Already set above
 except ImportError:
     HAS_PERSONA_EMBED = False
 
-try:
-    from backend_ai.app.tarot_hybrid_rag import get_tarot_hybrid_rag
-    HAS_TAROT = True
-except ImportError:
-    HAS_TAROT = False
+# Tarot Hybrid RAG - Lazy loaded (uses tarot_rag -> SentenceTransformer)
+HAS_TAROT = True  # Assume available
+_tarot_hybrid_rag_module = None
+
+def _get_tarot_hybrid_rag_module():
+    global _tarot_hybrid_rag_module, HAS_TAROT
+    if _tarot_hybrid_rag_module is None:
+        try:
+            from backend_ai.app import tarot_hybrid_rag as _thr
+            _tarot_hybrid_rag_module = _thr
+        except ImportError:
+            HAS_TAROT = False
+            return None
+    return _tarot_hybrid_rag_module
+
+def get_tarot_hybrid_rag(*args, **kwargs):
+    m = _get_tarot_hybrid_rag_module()
+    return m.get_tarot_hybrid_rag(*args, **kwargs) if m else None
 
 # RLHF Feedback Learning System
 try:
@@ -103,57 +177,140 @@ try:
 except ImportError:
     HAS_BADGES = False
 
-# Domain RAG (precomputed embeddings per domain)
-try:
-    from backend_ai.app.domain_rag import get_domain_rag, DOMAINS as DOMAIN_RAG_DOMAINS
-    HAS_DOMAIN_RAG = True
-except ImportError:
-    HAS_DOMAIN_RAG = False
-    DOMAIN_RAG_DOMAINS = []
-    print("[app.py] DomainRAG not available")
+# Domain RAG - Lazy loaded (uses SentenceTransformer)
+HAS_DOMAIN_RAG = True  # Assume available
+DOMAIN_RAG_DOMAINS = []  # Will be populated on first access
+_domain_rag_module = None
 
-# Compatibility (Saju + Astrology fusion)
-try:
-    from backend_ai.app.compatibility_logic import (
-        interpret_compatibility,
-        interpret_compatibility_group,
-    )
-    HAS_COMPATIBILITY = True
-except ImportError:
-    HAS_COMPATIBILITY = False
-    print("[app.py] Compatibility logic not available")
+def _get_domain_rag_module():
+    global _domain_rag_module, HAS_DOMAIN_RAG, DOMAIN_RAG_DOMAINS
+    if _domain_rag_module is None:
+        try:
+            from backend_ai.app import domain_rag as _dr
+            _domain_rag_module = _dr
+            DOMAIN_RAG_DOMAINS = _dr.DOMAINS
+        except ImportError:
+            HAS_DOMAIN_RAG = False
+            print("[app.py] DomainRAG not available (lazy load)")
+            return None
+    return _domain_rag_module
 
-# Hybrid RAG (Vector + BM25 + Graph + rerank)
-try:
-    from backend_ai.app.hybrid_rag import hybrid_search, build_rag_context
-    HAS_HYBRID_RAG = True
-except ImportError:
-    HAS_HYBRID_RAG = False
-    print("[app.py] Hybrid RAG not available")
+def get_domain_rag(*args, **kwargs):
+    m = _get_domain_rag_module()
+    return m.get_domain_rag(*args, **kwargs) if m else None
 
-# Agentic RAG System (Next Level Features)
-try:
-    from backend_ai.app.agentic_rag import (
-        agentic_query,
-        get_agent_orchestrator,
-        get_entity_extractor,
-        get_deep_traversal,
-        EntityExtractor,
-        DeepGraphTraversal,
-        AgentOrchestrator,
-    )
-    HAS_AGENTIC = True
-except ImportError:
-    HAS_AGENTIC = False
-    print("[app.py] Agentic RAG not available")
+# Compatibility (Saju + Astrology fusion) - Lazy loaded (uses saju_astro_rag)
+HAS_COMPATIBILITY = True  # Assume available
+_compatibility_logic_module = None
 
-# Jungian Counseling Engine
-try:
-    from backend_ai.app.counseling_engine import get_counseling_engine, CrisisDetector
-    HAS_COUNSELING = True
-except ImportError:
-    HAS_COUNSELING = False
-    print("[app.py] Counseling engine not available")
+def _get_compatibility_logic():
+    global _compatibility_logic_module, HAS_COMPATIBILITY
+    if _compatibility_logic_module is None:
+        try:
+            from backend_ai.app import compatibility_logic as _cl
+            _compatibility_logic_module = _cl
+        except ImportError:
+            HAS_COMPATIBILITY = False
+            print("[app.py] Compatibility logic not available (lazy load)")
+            return None
+    return _compatibility_logic_module
+
+def interpret_compatibility(*args, **kwargs):
+    m = _get_compatibility_logic()
+    return m.interpret_compatibility(*args, **kwargs) if m else None
+
+def interpret_compatibility_group(*args, **kwargs):
+    m = _get_compatibility_logic()
+    return m.interpret_compatibility_group(*args, **kwargs) if m else None
+
+# Hybrid RAG (Vector + BM25 + Graph + rerank) - Lazy loaded
+HAS_HYBRID_RAG = True  # Assume available
+_hybrid_rag_module = None
+
+def _get_hybrid_rag_module():
+    global _hybrid_rag_module, HAS_HYBRID_RAG
+    if _hybrid_rag_module is None:
+        try:
+            from backend_ai.app import hybrid_rag as _hr
+            _hybrid_rag_module = _hr
+        except ImportError:
+            HAS_HYBRID_RAG = False
+            print("[app.py] Hybrid RAG not available (lazy load)")
+            return None
+    return _hybrid_rag_module
+
+def hybrid_search(*args, **kwargs):
+    m = _get_hybrid_rag_module()
+    return m.hybrid_search(*args, **kwargs) if m else None
+
+def build_rag_context(*args, **kwargs):
+    m = _get_hybrid_rag_module()
+    return m.build_rag_context(*args, **kwargs) if m else None
+
+# Agentic RAG System (Next Level Features) - Lazy loaded to avoid OOM
+# Import deferred to first use to prevent loading SentenceTransformer on startup
+HAS_AGENTIC = True  # Assume available, will fail gracefully if not
+_agentic_rag_module = None
+
+def _get_agentic_rag():
+    """Lazy load agentic_rag module."""
+    global _agentic_rag_module, HAS_AGENTIC
+    if _agentic_rag_module is None:
+        try:
+            from backend_ai.app import agentic_rag as _ar
+            _agentic_rag_module = _ar
+        except ImportError:
+            HAS_AGENTIC = False
+            print("[app.py] Agentic RAG not available (lazy load)")
+            return None
+    return _agentic_rag_module
+
+def agentic_query(*args, **kwargs):
+    """Lazy wrapper for agentic_query."""
+    m = _get_agentic_rag()
+    return m.agentic_query(*args, **kwargs) if m else None
+
+def get_agent_orchestrator(*args, **kwargs):
+    """Lazy wrapper for get_agent_orchestrator."""
+    m = _get_agentic_rag()
+    return m.get_agent_orchestrator(*args, **kwargs) if m else None
+
+def get_entity_extractor(*args, **kwargs):
+    """Lazy wrapper for get_entity_extractor."""
+    m = _get_agentic_rag()
+    return m.get_entity_extractor(*args, **kwargs) if m else None
+
+def get_deep_traversal(*args, **kwargs):
+    """Lazy wrapper for get_deep_traversal."""
+    m = _get_agentic_rag()
+    return m.get_deep_traversal(*args, **kwargs) if m else None
+
+# Classes are accessed as properties
+EntityExtractor = property(lambda self: _get_agentic_rag().EntityExtractor if _get_agentic_rag() else None)
+DeepGraphTraversal = property(lambda self: _get_agentic_rag().DeepGraphTraversal if _get_agentic_rag() else None)
+AgentOrchestrator = property(lambda self: _get_agentic_rag().AgentOrchestrator if _get_agentic_rag() else None)
+
+# Jungian Counseling Engine - Lazy loaded (uses SentenceTransformer)
+HAS_COUNSELING = True  # Assume available
+_counseling_engine_module = None
+
+def _get_counseling_engine_module():
+    global _counseling_engine_module, HAS_COUNSELING
+    if _counseling_engine_module is None:
+        try:
+            from backend_ai.app import counseling_engine as _ce
+            _counseling_engine_module = _ce
+        except ImportError:
+            HAS_COUNSELING = False
+            print("[app.py] Counseling engine not available (lazy load)")
+            return None
+    return _counseling_engine_module
+
+def get_counseling_engine(*args, **kwargs):
+    m = _get_counseling_engine_module()
+    return m.get_counseling_engine(*args, **kwargs) if m else None
+
+CrisisDetector = property(lambda self: _get_counseling_engine_module().CrisisDetector if _get_counseling_engine_module() else None)
 
 # Prediction Engine (v5.0)
 try:
@@ -192,15 +349,29 @@ except ImportError:
     HAS_FORTUNE_SCORE = False
     print("[app.py] Fortune score engine not available")
 
-# GraphRAG System
-try:
-    from backend_ai.app.saju_astro_rag import get_graph_rag, get_model
-    HAS_GRAPH_RAG = True
-except ImportError:
-    HAS_GRAPH_RAG = False
-    get_graph_rag = None
-    get_model = None
-    print("[app.py] GraphRAG not available")
+# GraphRAG System - Lazy loaded (uses SentenceTransformer)
+HAS_GRAPH_RAG = True  # Assume available
+_saju_astro_rag_module = None
+
+def _get_saju_astro_rag_module():
+    global _saju_astro_rag_module, HAS_GRAPH_RAG
+    if _saju_astro_rag_module is None:
+        try:
+            from backend_ai.app import saju_astro_rag as _sar
+            _saju_astro_rag_module = _sar
+        except ImportError:
+            HAS_GRAPH_RAG = False
+            print("[app.py] GraphRAG not available (lazy load)")
+            return None
+    return _saju_astro_rag_module
+
+def get_graph_rag(*args, **kwargs):
+    m = _get_saju_astro_rag_module()
+    return m.get_graph_rag(*args, **kwargs) if m else None
+
+def get_model(*args, **kwargs):
+    m = _get_saju_astro_rag_module()
+    return m.get_model(*args, **kwargs) if m else None
 
 # OpenAI Client for streaming endpoints
 try:
@@ -212,14 +383,25 @@ except Exception:
     OPENAI_AVAILABLE = False
     print("[app.py] OpenAI client not available")
 
-# CorpusRAG System
-try:
-    from backend_ai.app.corpus_rag import get_corpus_rag
-    HAS_CORPUS_RAG = True
-except ImportError:
-    HAS_CORPUS_RAG = False
-    get_corpus_rag = None
-    print("[app.py] CorpusRAG not available")
+# CorpusRAG System - Lazy loaded (uses SentenceTransformer)
+HAS_CORPUS_RAG = True  # Assume available
+_corpus_rag_module = None
+
+def _get_corpus_rag_module():
+    global _corpus_rag_module, HAS_CORPUS_RAG
+    if _corpus_rag_module is None:
+        try:
+            from backend_ai.app import corpus_rag as _cr
+            _corpus_rag_module = _cr
+        except ImportError:
+            HAS_CORPUS_RAG = False
+            print("[app.py] CorpusRAG not available (lazy load)")
+            return None
+    return _corpus_rag_module
+
+def get_corpus_rag(*args, **kwargs):
+    m = _get_corpus_rag_module()
+    return m.get_corpus_rag(*args, **kwargs) if m else None
 
 # Numerology System
 try:
@@ -6794,6 +6976,142 @@ def fortune_score_breakdown():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# =========================================================
+# 간이 만세력 계산 (Daily Fortune용)
+# =========================================================
+def _calculate_simple_saju(birth_date: str, birth_time: str = "12:00") -> dict:
+    """
+    생년월일시로 기본 사주 데이터 계산 (만세력 간이 버전)
+    """
+    from datetime import datetime as dt_module
+
+    # 천간/지지 데이터
+    STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+    BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
+    STEM_ELEMENTS = {"甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土",
+                     "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水"}
+    BRANCH_ELEMENTS = {"子": "水", "丑": "土", "寅": "木", "卯": "木", "辰": "土", "巳": "火",
+                       "午": "火", "未": "土", "申": "金", "酉": "金", "戌": "土", "亥": "水"}
+
+    # 십신 계산 헬퍼
+    def get_sibsin(day_stem: str, target_stem: str) -> str:
+        dm_idx = STEMS.index(day_stem)
+        t_idx = STEMS.index(target_stem)
+        diff = (t_idx - dm_idx) % 10
+        sibsin_map = {0: "비견", 1: "겁재", 2: "식신", 3: "상관", 4: "편재",
+                      5: "정재", 6: "편관", 7: "정관", 8: "편인", 9: "정인"}
+        return sibsin_map.get(diff, "비견")
+
+    try:
+        # Parse birth date
+        bd = dt_module.strptime(birth_date, "%Y-%m-%d")
+        year, month, day = bd.year, bd.month, bd.day
+
+        # Parse birth time
+        hour = 12
+        if birth_time:
+            try:
+                hour = int(birth_time.split(":")[0])
+            except:
+                hour = 12
+
+        # 년주 계산 (1984=甲子 기준)
+        year_offset = (year - 1984) % 60
+        year_stem = STEMS[year_offset % 10]
+        year_branch = BRANCHES[year_offset % 12]
+
+        # 월주 계산 (간략화 - 실제로는 절기 고려 필요)
+        month_branch_idx = (month + 1) % 12  # 寅월(1월)부터 시작
+        month_branch = BRANCHES[month_branch_idx]
+        # 월간 계산 (년간 기준)
+        year_stem_idx = STEMS.index(year_stem)
+        month_stem_idx = (year_stem_idx * 2 + month) % 10
+        month_stem = STEMS[month_stem_idx]
+
+        # 일주 계산 (JDN 기반)
+        a = (14 - month) // 12
+        y = year + 4800 - a
+        m = month + 12 * a - 3
+        jdn = day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
+        day_offset = (jdn - 11) % 60  # 甲子일 보정
+        day_stem = STEMS[day_offset % 10]
+        day_branch = BRANCHES[day_offset % 12]
+
+        # 시주 계산
+        hour_branch_idx = ((hour + 1) // 2) % 12
+        hour_branch = BRANCHES[hour_branch_idx]
+        day_stem_idx = STEMS.index(day_stem)
+        hour_stem_idx = (day_stem_idx * 2 + hour_branch_idx) % 10
+        hour_stem = STEMS[hour_stem_idx]
+
+        # 일간 (day master)
+        dm_element = STEM_ELEMENTS[day_stem]
+
+        # 십신 분포 계산
+        sibsin_dist = {}
+        for stem in [year_stem, month_stem, hour_stem]:
+            s = get_sibsin(day_stem, stem)
+            sibsin_dist[s] = sibsin_dist.get(s, 0) + 1
+
+        # 오늘 일진 계산
+        today = dt_module.now()
+        today_jdn = today.day + (153 * ((today.month + 12 * ((14 - today.month) // 12) - 3)) + 2) // 5 + \
+                    365 * (today.year + 4800 - ((14 - today.month) // 12)) + \
+                    (today.year + 4800 - ((14 - today.month) // 12)) // 4 - \
+                    (today.year + 4800 - ((14 - today.month) // 12)) // 100 + \
+                    (today.year + 4800 - ((14 - today.month) // 12)) // 400 - 32045
+        today_offset = (today_jdn - 11) % 60
+        today_stem = STEMS[today_offset % 10]
+        today_branch = BRANCHES[today_offset % 12]
+        today_element = STEM_ELEMENTS[today_stem]
+
+        # 형충회합 간이 계산
+        CHONG_PAIRS = [("子", "午"), ("丑", "未"), ("寅", "申"), ("卯", "酉"), ("辰", "戌"), ("巳", "亥")]
+        HAP_PAIRS = [("子", "丑"), ("寅", "亥"), ("卯", "戌"), ("辰", "酉"), ("巳", "申"), ("午", "未")]
+
+        natal_branches = [year_branch, month_branch, day_branch, hour_branch]
+        chung_list = []
+        hap_list = []
+        for b in natal_branches:
+            if (b, today_branch) in CHONG_PAIRS or (today_branch, b) in CHONG_PAIRS:
+                chung_list.append(f"{b}-{today_branch}")
+            if (b, today_branch) in HAP_PAIRS or (today_branch, b) in HAP_PAIRS:
+                hap_list.append(f"{b}-{today_branch}")
+
+        return {
+            "dayMaster": {"name": day_stem, "element": dm_element},
+            "pillars": {
+                "year": year_stem + year_branch,
+                "month": month_stem + month_branch,
+                "day": day_stem + day_branch,
+                "time": hour_stem + hour_branch,
+            },
+            "unse": {
+                "iljin": [{"gan": today_stem, "ji": today_branch, "element": today_element}],
+                "monthly": [{"element": STEM_ELEMENTS.get(month_stem, "土")}],
+                "annual": [{"element": STEM_ELEMENTS.get(year_stem, "土")}],
+            },
+            "advancedAnalysis": {
+                "sibsin": {"distribution": sibsin_dist},
+                "hyeongchung": {"chung": chung_list, "hap": hap_list},
+                "yongsin": {"primary": {"element": dm_element}},  # 간이 용신
+                "geokguk": {"grade": "중"},
+            },
+        }
+    except Exception as e:
+        logger.warning(f"[SimpleSaju] Calculation error: {e}")
+        # Fallback minimal data
+        return {
+            "dayMaster": {"name": "甲", "element": "木"},
+            "pillars": {"year": "甲子", "month": "甲寅", "day": "甲午", "time": "甲子"},
+            "unse": {"iljin": [{"element": "木"}], "monthly": [{"element": "木"}], "annual": [{"element": "木"}]},
+            "advancedAnalysis": {
+                "sibsin": {"distribution": {}},
+                "hyeongchung": {"chung": [], "hap": []},
+            },
+        }
+
+
 @app.route("/api/fortune/daily", methods=["POST"])
 def fortune_daily():
     """
@@ -6811,40 +7129,253 @@ def fortune_daily():
         if not birth_date:
             return jsonify({"status": "error", "message": "birthDate is required"}), 400
 
-        # Calculate saju data from birth info
-        saju_data = calculate_saju_data({
-            "birthDate": birth_date,
-            "birthTime": birth_time or "12:00",
-        })
+        # Calculate saju data from birth info (simplified backend calculation)
+        saju_data = _calculate_simple_saju(birth_date, birth_time or "12:00")
 
-        # Simple astro data (minimal for daily fortune)
+        # Get REAL-TIME astrology data
+        realtime_transits = get_current_transits()
+        moon_data = realtime_transits.get("moon", {})
+        retrogrades = realtime_transits.get("retrogrades", [])
+        aspects = realtime_transits.get("aspects", [])
+        planets = realtime_transits.get("planets", [])
+
+        # Determine planetary hour from current hour
+        from datetime import datetime as dt_module
+        current_hour = dt_module.now().hour
+        planetary_hours = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
+        planetary_hour_ruler = planetary_hours[current_hour % 7]
+
+        # Build astro_data with real values
         astro_data = {
+            "planets": planets,
+            "transits": [{"planet": a["planet1"], "aspect": a["aspect"], "natalPlanet": a["planet2"]} for a in aspects[:5]],
+            "aspects": aspects,
             "electional": {
-                "moonPhase": {"phase": "Waxing Gibbous"},  # Would be calculated in real impl
-                "planetaryHour": {"planet": "Sun"},
-                "voidOfCourse": {"isVoid": False},
-                "retrograde": [],
+                "moonPhase": {"phase": moon_data.get("phase_name", "Unknown")},
+                "planetaryHour": {"planet": planetary_hour_ruler},
+                "voidOfCourse": {"isVoid": False},  # TODO: implement VOC calculation
+                "retrograde": retrogrades,
             }
         }
 
         score_result = calculate_fortune_score(saju_data, astro_data)
 
-        # Add lucky items based on score
+        # Extract score breakdown
+        saju_breakdown = score_result.get("saju", {})
+        astro_breakdown = score_result.get("astro", {})
         total_score = score_result["total"]
-        lucky_colors = ["Red", "Blue", "Green", "Yellow", "Purple", "Orange", "White", "Black"]
-        lucky_color = lucky_colors[total_score % len(lucky_colors)]
-        lucky_number = (total_score % 9) + 1
+
+        # =====================================================
+        # 영역별 점수 계산 (사주 십신 + 오행 + 점성술 교차 분석)
+        # =====================================================
+
+        # Get day master and current unse elements
+        day_master = saju_data.get("dayMaster", {})
+        dm_element = day_master.get("element", "木") if isinstance(day_master, dict) else "木"
+
+        # Get today's pillar element from unse
+        unse = saju_data.get("unse", {})
+        iljin = unse.get("iljin", [{}])
+        today_element = iljin[0].get("element", "木") if iljin else "木"
+
+        # Get sibsin distribution
+        adv = saju_data.get("advancedAnalysis", {})
+        sibsin = adv.get("sibsin", {})
+        sibsin_dist = sibsin.get("distribution", {}) or sibsin.get("counts", {})
+
+        # 영역별 관련 십성 및 오행 (사주 전통 이론 기반)
+        AREA_CONFIG = {
+            "love": {
+                "boost_sibsin": ["정관", "정재", "식신"],  # 정관=배우자(여), 정재=배우자(남), 식신=매력
+                "penalty_sibsin": ["편관", "상관"],  # 편관=불안정, 상관=구설
+                "related_elements": ["火", "木"],  # 화=열정, 목=성장
+                "astro_boost": ["Venus", "Moon"],  # 금성=사랑, 달=감정
+            },
+            "career": {
+                "boost_sibsin": ["정관", "편관", "정인"],  # 관성=직장, 인성=권위
+                "penalty_sibsin": ["상관"],  # 상관=상사충돌
+                "related_elements": ["金", "土"],  # 금=결단, 토=안정
+                "astro_boost": ["Saturn", "Jupiter", "Sun"],  # 토성=책임, 목성=성공, 태양=명예
+            },
+            "wealth": {
+                "boost_sibsin": ["정재", "편재", "식신"],  # 재성=재물, 식신=생산
+                "penalty_sibsin": ["겁재", "비견"],  # 비겁=경쟁/손재
+                "related_elements": ["土", "金"],  # 토=축적, 금=가치
+                "astro_boost": ["Jupiter", "Venus"],  # 목성=확장, 금성=가치
+            },
+            "health": {
+                "boost_sibsin": ["정인", "비견"],  # 인성=보호, 비견=체력
+                "penalty_sibsin": ["편관", "상관"],  # 관성=스트레스, 상관=소모
+                "related_elements": ["木", "水"],  # 목=생기, 수=유연
+                "astro_boost": ["Moon", "Sun"],  # 달=리듬, 태양=활력
+            },
+        }
+
+        # 오행 상생상극 관계
+        ELEMENT_GENERATING = {"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}
+        ELEMENT_CONTROLLING = {"木": "土", "土": "水", "水": "火", "火": "金", "金": "木"}
+
+        # 행성별 유리한/불리한 사인 (Dignity/Detriment)
+        PLANET_DIGNITY = {
+            "Venus": {"dignity": ["Taurus", "Libra"], "detriment": ["Scorpio", "Aries"]},
+            "Mars": {"dignity": ["Aries", "Scorpio"], "detriment": ["Libra", "Taurus"]},
+            "Jupiter": {"dignity": ["Sagittarius", "Pisces"], "detriment": ["Gemini", "Virgo"]},
+            "Saturn": {"dignity": ["Capricorn", "Aquarius"], "detriment": ["Cancer", "Leo"]},
+            "Mercury": {"dignity": ["Gemini", "Virgo"], "detriment": ["Sagittarius", "Pisces"]},
+            "Sun": {"dignity": ["Leo"], "detriment": ["Aquarius"]},
+            "Moon": {"dignity": ["Cancer"], "detriment": ["Capricorn"]},
+        }
+
+        # Aspect scores
+        ASPECT_SCORES = {
+            "conjunction": 3, "trine": 4, "sextile": 2,
+            "square": -3, "opposition": -2,
+        }
+
+        # 영역별 관련 하우스/사인
+        AREA_ASTRO_SIGNS = {
+            "love": ["Libra", "Taurus", "Cancer", "Pisces"],  # 7H, Venus ruled, emotional
+            "career": ["Capricorn", "Leo", "Aries", "Virgo"],  # 10H, Sun ruled, achievement
+            "wealth": ["Taurus", "Scorpio", "Cancer", "Capricorn"],  # 2H, 8H, material
+            "health": ["Virgo", "Aries", "Scorpio", "Leo"],  # 6H, vitality signs
+        }
+
+        def calc_area_score(area: str) -> int:
+            config = AREA_CONFIG[area]
+            score = 50  # 기본점수
+
+            # ========== 사주 요소 (50%) ==========
+
+            # 1. 십신 가산/감산 - 최대 ±15점
+            for boost in config["boost_sibsin"]:
+                if sibsin_dist.get(boost, 0) > 0:
+                    score += 4 * min(sibsin_dist.get(boost, 0), 3)
+            for penalty in config["penalty_sibsin"]:
+                if sibsin_dist.get(penalty, 0) > 1:
+                    score -= 3 * (sibsin_dist.get(penalty, 0) - 1)
+
+            # 2. 오늘 운세 오행과 영역 관련 오행 매칭 - 최대 +12점
+            if today_element in config["related_elements"]:
+                score += 12
+
+            # 3. 일간과 오늘 오행의 관계 - 최대 ±10점
+            if today_element == dm_element:
+                score += 4  # 비화
+            elif ELEMENT_GENERATING.get(today_element) == dm_element:
+                score += 10  # 생조
+            elif ELEMENT_CONTROLLING.get(today_element) == dm_element:
+                score -= 8  # 극입
+            elif ELEMENT_GENERATING.get(dm_element) == today_element:
+                score -= 4  # 설기
+
+            # 4. 형충회합 - 최대 ±8점
+            hc = adv.get("hyeongchung", {})
+            if area == "love":
+                score += len(hc.get("hap", [])) * 3
+                score -= len(hc.get("chung", [])) * 4
+            elif area == "career":
+                score += len(hc.get("samhap", [])) * 2  # 삼합=큰 성과
+                score -= len(hc.get("hyeong", [])) * 2  # 형=갈등
+
+            # ========== 점성술 요소 (50%) ==========
+
+            # 5. 관련 행성 상태 (순행/역행 + Dignity) - 최대 ±15점
+            for planet in planets:
+                planet_name = planet.get("name", "")
+                planet_sign = planet.get("sign", "")
+
+                if planet_name in config["astro_boost"]:
+                    # 순행/역행
+                    if not planet.get("retrograde"):
+                        score += 3
+                    else:
+                        score -= 2
+
+                    # Dignity/Detriment (행성이 유리한 사인에 있는지)
+                    dignity_info = PLANET_DIGNITY.get(planet_name, {})
+                    if planet_sign in dignity_info.get("dignity", []):
+                        score += 5  # 본위치 = 강화
+                    elif planet_sign in dignity_info.get("detriment", []):
+                        score -= 3  # 불리한 위치
+
+            # 6. 현재 행성이 영역 관련 사인에 있는지 - 최대 +10점
+            area_signs = AREA_ASTRO_SIGNS.get(area, [])
+            for planet in planets[:5]:  # 개인행성만 (Sun~Mars)
+                if planet.get("sign") in area_signs:
+                    score += 2
+
+            # 7. 트랜짓 Aspects 분석 - 최대 ±12점
+            for asp in aspects:
+                p1 = asp.get("planet1", "")
+                p2 = asp.get("planet2", "")
+                asp_type = asp.get("aspect", "").lower()
+
+                # 영역 관련 행성이 포함된 aspect
+                if p1 in config["astro_boost"] or p2 in config["astro_boost"]:
+                    asp_score = ASPECT_SCORES.get(asp_type, 0)
+                    score += asp_score
+
+            # 8. 달 위상 - 최대 ±8점 (모든 영역에 영향)
+            moon_phase = moon_data.get("phase_name", "")
+            moon_scores = {
+                "Full Moon": 8, "Waxing Gibbous": 5, "First Quarter": 3,
+                "Waxing Crescent": 2, "New Moon": -3, "Waning Crescent": -2,
+                "Last Quarter": 0, "Waning Gibbous": 1,
+            }
+            base_moon = moon_scores.get(moon_phase, 0)
+            # 연애/건강은 달 영향 더 받음
+            if area in ["love", "health"]:
+                score += int(base_moon * 1.2)
+            else:
+                score += int(base_moon * 0.7)
+
+            # 9. 역행 영향 (영역별 차등) - 최대 -8점
+            if "Mercury" in retrogrades:
+                if area == "career":
+                    score -= 5  # 소통/계약 문제
+                elif area == "wealth":
+                    score -= 4  # 거래 지연
+            if "Venus" in retrogrades:
+                if area == "love":
+                    score -= 6  # 연애 역행
+                elif area == "wealth":
+                    score -= 3  # 금전 가치 혼란
+            if "Mars" in retrogrades:
+                if area == "career":
+                    score -= 4  # 추진력 약화
+                elif area == "health":
+                    score -= 3  # 에너지 저하
+            if "Jupiter" in retrogrades:
+                if area in ["wealth", "career"]:
+                    score -= 3  # 확장 지연
+
+            return max(0, min(100, score))
+
+        love_score = calc_area_score("love")
+        career_score = calc_area_score("career")
+        wealth_score = calc_area_score("wealth")
+        health_score = calc_area_score("health")
+
+        # Overall = 영역별 가중 평균 + FortuneScoreEngine cross_bonus 반영
+        cross_bonus = score_result.get("cross_bonus", 0)
+        overall_score = int((love_score + career_score + wealth_score + health_score) / 4 + cross_bonus)
+        overall_score = max(0, min(100, overall_score))
 
         return jsonify({
             "status": "success",
             "fortune": {
-                "overall": total_score,
-                "love": min(100, max(0, total_score + (hash(birth_date + "love") % 20) - 10)),
-                "career": min(100, max(0, total_score + (hash(birth_date + "career") % 20) - 10)),
-                "wealth": min(100, max(0, total_score + (hash(birth_date + "wealth") % 20) - 10)),
-                "health": min(100, max(0, total_score + (hash(birth_date + "health") % 20) - 10)),
-                "luckyColor": lucky_color,
-                "luckyNumber": lucky_number,
+                "overall": overall_score,
+                "love": love_score,
+                "career": career_score,
+                "wealth": wealth_score,
+                "health": health_score,
+            },
+            "breakdown": score_result,
+            "realtime_astro": {
+                "moon_phase": moon_data.get("phase_name"),
+                "moon_illumination": moon_data.get("illumination"),
+                "retrogrades": retrogrades,
+                "planetary_hour": planetary_hour_ruler,
             },
             "alerts": score_result.get("alerts", []),
             "timestamp": datetime.utcnow().isoformat(),

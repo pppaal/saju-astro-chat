@@ -7,7 +7,12 @@ import traceback
 from datetime import datetime
 from dotenv import load_dotenv
 
-from backend_ai.app.saju_astro_rag import search_graphs
+# Lazy import to avoid loading SentenceTransformer on module load
+# This prevents OOM on Railway free tier (512MB limit)
+def search_graphs(query, top_k=12):
+    """Lazy wrapper for saju_astro_rag.search_graphs."""
+    from backend_ai.app.saju_astro_rag import search_graphs as _search
+    return _search(query, top_k=top_k)
 
 """
 Fusion Generator - GPT-4 Powered

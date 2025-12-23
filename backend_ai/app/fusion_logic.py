@@ -82,13 +82,33 @@ except ImportError:
     HAS_RLHF = False
     print("[fusion_logic] RLHF FeedbackLearning not available")
 
-# Agentic RAG System (Next Level Features)
-try:
-    from agentic_rag import agentic_query, get_entity_extractor
-    HAS_AGENTIC = True
-except ImportError:
-    HAS_AGENTIC = False
-    print("[fusion_logic] Agentic RAG not available")
+# Agentic RAG System (Next Level Features) - Lazy loaded to avoid OOM
+# Import deferred to first use to prevent loading SentenceTransformer on startup
+HAS_AGENTIC = True  # Assume available, will fail gracefully if not
+_agentic_module = None
+
+def _get_agentic_module():
+    """Lazy load agentic_rag module."""
+    global _agentic_module, HAS_AGENTIC
+    if _agentic_module is None:
+        try:
+            from . import agentic_rag as _ar
+            _agentic_module = _ar
+        except ImportError:
+            HAS_AGENTIC = False
+            print("[fusion_logic] Agentic RAG not available (lazy load)")
+            return None
+    return _agentic_module
+
+def agentic_query(*args, **kwargs):
+    """Lazy wrapper for agentic_query."""
+    m = _get_agentic_module()
+    return m.agentic_query(*args, **kwargs) if m else {"status": "error", "message": "Agentic RAG not available"}
+
+def get_entity_extractor():
+    """Lazy wrapper for get_entity_extractor."""
+    m = _get_agentic_module()
+    return m.get_entity_extractor() if m else None
 
 # Theme-based Cross-Reference Filter (v5.1)
 try:
