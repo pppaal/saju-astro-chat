@@ -10,24 +10,61 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.append(os.path.dirname(__file__))
 
-from saju_astro_rag import GraphRAG, get_graph_rag
 from rule_engine import RuleEngine
 from signal_extractor import extract_signals
 from signal_summary import summarize_signals, summarize_cross_signals
-from corpus_rag import get_corpus_rag
-from backend_ai.model.fusion_generate import get_llm, generate_fusion_report
 from redis_cache import get_cache
 from performance_optimizer import track_performance
 from sanitizer import sanitize_user_input, sanitize_name, is_suspicious_input, validate_birth_data
 from template_renderer import render_template_report
 
-# Persona semantic search (Jung/Stoic V4)
-try:
-    from persona_embeddings import get_persona_embed_rag
-    HAS_PERSONA_EMBED = True
-except ImportError:
-    HAS_PERSONA_EMBED = False
-    print("[fusion_logic] PersonaEmbedRAG not available")
+# Lazy imports for memory-heavy modules (avoid OOM on Railway free tier)
+# SentenceTransformer models use 500MB+ memory, only load when needed
+_graph_rag_instance = None
+_corpus_rag_instance = None
+
+def get_graph_rag():
+    """Lazy load GraphRAG to save memory in template mode."""
+    global _graph_rag_instance
+    if _graph_rag_instance is None:
+        from saju_astro_rag import get_graph_rag as _get_rag
+        _graph_rag_instance = _get_rag()
+    return _graph_rag_instance
+
+def get_corpus_rag():
+    """Lazy load CorpusRAG to save memory in template mode."""
+    global _corpus_rag_instance
+    if _corpus_rag_instance is None:
+        from corpus_rag import get_corpus_rag as _get_corpus
+        _corpus_rag_instance = _get_corpus()
+    return _corpus_rag_instance
+
+def get_llm():
+    """Lazy load LLM module."""
+    from backend_ai.model.fusion_generate import get_llm as _get_llm
+    return _get_llm()
+
+def generate_fusion_report(*args, **kwargs):
+    """Lazy load fusion report generator."""
+    from backend_ai.model.fusion_generate import generate_fusion_report as _gen
+    return _gen(*args, **kwargs)
+
+# Persona semantic search (Jung/Stoic V4) - lazy loaded
+HAS_PERSONA_EMBED = True  # Assume available, will fail gracefully if not
+_persona_embed_rag = None
+
+def get_persona_embed_rag():
+    """Lazy load PersonaEmbedRAG to save memory."""
+    global _persona_embed_rag, HAS_PERSONA_EMBED
+    if _persona_embed_rag is None:
+        try:
+            from persona_embeddings import get_persona_embed_rag as _get_persona
+            _persona_embed_rag = _get_persona()
+        except ImportError:
+            HAS_PERSONA_EMBED = False
+            print("[fusion_logic] PersonaEmbedRAG not available")
+            return None
+    return _persona_embed_rag
 
 # User memory for consultation history (MOAT feature)
 try:
