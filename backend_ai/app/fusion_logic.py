@@ -569,6 +569,63 @@ def interpret_with_ai(facts: dict):
             cached["cached"] = True  # Mark as cache hit
             return cached
 
+        # ====================================================================
+        # TEMPLATE MODE - Fast path without RAG (prevents OOM on Railway)
+        # ====================================================================
+        if render_mode == "template":
+            # DEBUG: Log saju.unse data before template rendering
+            saju_for_debug = facts.get("saju", {})
+            unse_for_debug = saju_for_debug.get("unse", {})
+            print(f"[FusionLogic DEBUG] Template mode - saju keys: {list(saju_for_debug.keys())}")
+            print(f"[FusionLogic DEBUG] unse keys: {list(unse_for_debug.keys()) if unse_for_debug else 'EMPTY'}")
+            print(f"[FusionLogic DEBUG] daeun count: {len(unse_for_debug.get('daeun', []))}")
+            print(f"[FusionLogic DEBUG] annual count: {len(unse_for_debug.get('annual', []))}")
+            if unse_for_debug.get('daeun'):
+                print(f"[FusionLogic DEBUG] daeun[0]: {unse_for_debug['daeun'][0]}")
+
+            # Lightweight signal extraction (no RAG)
+            signals = extract_signals(facts)
+            cross_summary = summarize_cross_signals(signals)
+
+            # Theme cross filter (if available, doesn't use SentenceTransformer)
+            theme_cross_summary = {}
+            if HAS_THEME_FILTER:
+                try:
+                    theme_filter = get_theme_filter()
+                    theme_cross_summary = theme_filter.get_theme_summary(
+                        theme,
+                        facts.get("saju", {}),
+                        facts.get("astro", {})
+                    )
+                except Exception as e:
+                    print(f"[ThemeFilter] Error: {e}")
+
+            fusion_text = render_template_report(
+                facts, signals, cross_summary, theme_cross_summary
+            )
+            result = {
+                "status": "success",
+                "timestamp": datetime.utcnow().isoformat(),
+                "theme": theme,
+                "fusion_layer": fusion_text,
+                "context": f"[Signals]\n{json.dumps(signals, ensure_ascii=False, indent=2)}",
+                "cached": False,
+                "matched_rule_ids": [],
+                "user_prompt": user_prompt,
+                "stats": {
+                    "template_mode": True,
+                    "rlhf_enabled": False,
+                },
+                "theme_cross": theme_cross_summary if theme_cross_summary else None,
+                "cross_summary": cross_summary if cross_summary else None,
+                "render_mode": "template",
+            }
+            cache.set("fusion", cache_data, result)
+            return result
+
+        # ====================================================================
+        # GPT MODE - Full RAG processing (memory intensive)
+        # ====================================================================
         base_dir = os.path.dirname(os.path.dirname(__file__))  # .../backend_ai
         rag = get_graph_rag()  # Use singleton instead of creating new instance
 
@@ -762,48 +819,8 @@ def interpret_with_ai(facts: dict):
         )
         theme = facts.get("theme", "life_path")
 
-        # Template-only rendering (no LLM) for fast/non-GPT mode
-        if render_mode == "template":
-            # DEBUG: Log saju.unse data before template rendering
-            saju_for_debug = facts.get("saju", {})
-            unse_for_debug = saju_for_debug.get("unse", {})
-            print(f"[FusionLogic DEBUG] saju keys: {list(saju_for_debug.keys())}")
-            print(f"[FusionLogic DEBUG] unse keys: {list(unse_for_debug.keys()) if unse_for_debug else 'EMPTY'}")
-            print(f"[FusionLogic DEBUG] daeun count: {len(unse_for_debug.get('daeun', []))}")
-            print(f"[FusionLogic DEBUG] annual count: {len(unse_for_debug.get('annual', []))}")
-            if unse_for_debug.get('daeun'):
-                print(f"[FusionLogic DEBUG] daeun[0]: {unse_for_debug['daeun'][0]}")
-
-            fusion_text = render_template_report(
-                facts, signals, cross_summary, theme_cross_summary
-            )
-            context_text = (
-                f"[Graph/Rule matches]\n{json.dumps(linked, ensure_ascii=False, indent=2)}\n\n"
-                f"[Signals]\n{json.dumps(signals, ensure_ascii=False, indent=2)}\n"
-                f"{signal_highlights}"
-                f"{cross_highlights}"
-                f"{theme_cross_context}"
-            )
-            result = {
-                "status": "success",
-                "timestamp": datetime.utcnow().isoformat(),
-                "theme": theme,
-                "fusion_layer": fusion_text,
-                "context": context_text,
-                "cached": False,
-                "matched_rule_ids": rule_eval.get("matched_rule_ids", []),
-                "user_prompt": user_prompt,
-                "stats": {
-                    "template_mode": True,
-                    "persona_rule_matched": persona_eval.get("matched_count", 0),
-                    "rlhf_enabled": HAS_RLHF,
-                },
-                "theme_cross": theme_cross_summary if theme_cross_summary else None,
-                "cross_summary": cross_summary if cross_summary else None,
-                "render_mode": "template",
-            }
-            cache.set("fusion", cache_data, result)
-            return result
+        # Note: Template mode is handled above (early return before RAG loading)
+        # This section is only reached in GPT mode
 
         model = get_llm()
         meta = report_memory.get(theme, {"avg_len": 4800, "calls": 0})
