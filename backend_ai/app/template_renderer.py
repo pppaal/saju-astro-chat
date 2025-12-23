@@ -270,8 +270,9 @@ def _get_important_years(unse: Dict[str, Any], saju: Dict[str, Any], astro: Dict
     birth_year = None
 
     # 1. Try facts.birthDate first (most reliable - comes from frontend input)
+    # Also check saju.birthDate directly (in case it's at top level)
     facts = (saju or {}).get("facts", {})
-    birth_date = facts.get("birthDate") or facts.get("birth_date") or facts.get("dateOfBirth") or ""
+    birth_date = facts.get("birthDate") or facts.get("birth_date") or facts.get("dateOfBirth") or (saju or {}).get("birthDate") or ""
     if birth_date and isinstance(birth_date, str) and len(birth_date) >= 4:
         try:
             # Handle formats: "1990-01-01", "1990/01/01", "19900101"
@@ -379,19 +380,89 @@ def _get_important_years(unse: Dict[str, Any], saju: Dict[str, Any], astro: Dict
             "astroReason": meaning["astro"],
         })
 
-    # Filter to only 4-5 star ratings, then sort by rating desc, then year
-    high_rated = [y for y in years if y["rating"] >= 4]
+    # DEBUG: Log years before filtering
+    print(f"[_get_important_years] Total years collected: {len(years)}")
+    for i, y in enumerate(years[:5]):
+        print(f"  [{i}] year={y.get('year')}, age={y.get('age')}, rating={y.get('rating')}, title={y.get('title', '')[:30]}")
 
-    # If not enough high-rated years, include some 3-star ones
-    if len(high_rated) < 6:
-        medium_rated = [y for y in years if y["rating"] == 3]
-        medium_rated.sort(key=lambda x: x["year"])
-        high_rated.extend(medium_rated[:6 - len(high_rated)])
+    # ========== 새 로직: daeun이 있으면 우선 포함, rating 관계없이 ==========
+    # daeun 데이터가 있으면 모두 포함 (rating 필터링 제거)
+    has_daeun = bool(daeun)
+    has_annual = bool(annual)
 
-    # Sort by rating (desc) then year (asc)
-    high_rated.sort(key=lambda x: (-x["rating"], x["year"]))
+    if has_daeun or has_annual:
+        # daeun과 annual이 있으면 모두 포함하고 rating으로 정렬
+        high_rated = years.copy()
+        # Sort by rating (desc) then year (asc)
+        high_rated.sort(key=lambda x: (-x["rating"], x["year"]))
+        # 최대 8개만 유지
+        high_rated = high_rated[:8]
+        print(f"[_get_important_years] Using real unse data: {len(high_rated)} entries")
+    else:
+        # 기존 필터링 로직 (daeun/annual 없을 때만)
+        high_rated = [y for y in years if y["rating"] >= 4]
 
-    return high_rated[:6]
+        # If not enough high-rated years, include some 3-star ones
+        if len(high_rated) < 6:
+            medium_rated = [y for y in years if y["rating"] == 3]
+            medium_rated.sort(key=lambda x: x["year"])
+            high_rated.extend(medium_rated[:6 - len(high_rated)])
+
+        # Sort by rating (desc) then year (asc)
+        high_rated.sort(key=lambda x: (-x["rating"], x["year"]))
+
+    # ========== FALLBACK: unse 데이터가 전혀 없으면 기본 년도 생성 ==========
+    if len(high_rated) < 4 and not has_daeun and not has_annual:
+        # 일간 기반으로 향후 10년 운세 생성
+        day_master = (saju or {}).get("dayMaster", {})
+        dm_name = day_master.get("name") or day_master.get("heavenlyStem") or ""
+        dm_element = day_master.get("element") or _get_element_from_stem(dm_name)
+
+        # 오행 상생 관계
+        generates = {"목": "화", "화": "토", "토": "금", "금": "수", "수": "목"}
+        supports = {"목": "수", "화": "목", "토": "화", "금": "토", "수": "금"}
+
+        # 년도별 천간 (2024-2033)
+        year_stems = {
+            2024: ("갑", "목"), 2025: ("을", "목"), 2026: ("병", "화"), 2027: ("정", "화"),
+            2028: ("무", "토"), 2029: ("기", "토"), 2030: ("경", "금"), 2031: ("신", "금"),
+            2032: ("임", "수"), 2033: ("계", "수")
+        }
+
+        for year in range(current_year, current_year + 10):
+            if year not in year_stems:
+                continue
+            stem, el = year_stems[year]
+            age = year - birth_year
+
+            # 상생/비화 관계에 따른 rating
+            rating = 3
+            reason = "변화의 기운이 흐르는 해"
+            astro_reason = _get_yearly_transit_info(year, astro)
+
+            if el == dm_element:
+                rating = 4
+                reason = f"같은 {el} 기운으로 힘이 강해지는 해"
+            elif dm_element and generates.get(dm_element) == el:
+                rating = 3
+                reason = f"에너지를 발산하기 좋은 해"
+            elif dm_element and supports.get(dm_element) == el:
+                rating = 5
+                reason = f"{el}이 당신을 생(生)해주는 황금기"
+
+            high_rated.append({
+                "year": year,
+                "age": age,
+                "rating": rating,
+                "title": f"{year}년 운세",
+                "sajuReason": reason,
+                "astroReason": astro_reason,
+            })
+
+        # 다시 정렬
+        high_rated.sort(key=lambda x: (-x["rating"], x["year"]))
+
+    return high_rated[:8]  # 8개까지 표시
 
 
 def _calculate_rating(element: str, ten_god: str) -> int:
@@ -993,7 +1064,7 @@ def _get_category_keywords(category: str, saju_data: dict, astro_data: dict) -> 
     return base_keywords.get(category, [])
 
 
-def _get_key_insights(theme_cross: Dict[str, Any], signals: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _get_key_insights(theme_cross: Dict[str, Any], signals: Dict[str, Any], saju: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """Extract key insights from cross analysis.
 
     Returns format matching Display.tsx KeyInsight interface:
@@ -1002,6 +1073,7 @@ def _get_key_insights(theme_cross: Dict[str, Any], signals: Dict[str, Any]) -> L
     - icon?: string
     """
     insights = []
+    saju = saju or {}
 
     # Map sources to insight types
     source_to_type = {
@@ -1044,10 +1116,38 @@ def _get_key_insights(theme_cross: Dict[str, Any], signals: Dict[str, Any]) -> L
             })
 
     # Add default insights if none found
-    if not insights:
-        saju_meta = (signals or {}).get("saju", {}).get("meta", {})
-        astro_meta = (signals or {}).get("astro", {}).get("meta", {})
+    saju_meta = (signals or {}).get("saju", {}).get("meta", {})
+    astro_meta = (signals or {}).get("astro", {}).get("meta", {})
 
+    # ========== 용신(用神) 정보 추가 ==========
+    # 용신은 saju.advancedAnalysis.yongsin에서 가져옴
+    advanced = saju.get("advancedAnalysis", {})
+    yongsin_data = advanced.get("yongsin", {})
+    # yongsin can be { element: "목", description: "..." } or just a string
+    if isinstance(yongsin_data, dict):
+        yongsin = yongsin_data.get("element") or yongsin_data.get("name") or ""
+    else:
+        yongsin = str(yongsin_data) if yongsin_data else ""
+    # Fallback to signals meta
+    if not yongsin:
+        yongsin = saju_meta.get("yongsin") or saju_meta.get("yong_sin") or ""
+    print(f"[_get_key_insights] yongsin extracted: {yongsin}")
+    if yongsin:
+        element_meaning = {
+            "목": "성장과 창의력을 키워주는",
+            "화": "열정과 표현력을 높여주는",
+            "토": "안정과 신뢰를 가져다주는",
+            "금": "결단력과 추진력을 강화하는",
+            "수": "지혜와 유연성을 높여주는",
+        }
+        meaning = element_meaning.get(yongsin, f"{yongsin} 기운이 당신에게 도움이 되는")
+        insights.append({
+            "type": "strength",
+            "text": f"용신: {yongsin} - {meaning} 에너지입니다. 이 기운을 보충하면 운이 좋아집니다.",
+            "icon": "🔮"
+        })
+
+    if not insights:
         day_master = saju_meta.get("day_master")
         if day_master:
             insights.append({
@@ -1215,17 +1315,50 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
     zodiac_venus = ZODIAC_PROFILES.get(venus_s, {})
     zodiac_moon = ZODIAC_PROFILES.get(moon_s, {})
 
+    # DEBUG: Log saju data received
+    print(f"[_get_theme_sections] saju keys: {list(saju.keys()) if saju else 'EMPTY'}")
+    print(f"[_get_theme_sections] unse keys: {list(unse.keys()) if unse else 'EMPTY'}")
+    print(f"[_get_theme_sections] daeun count: {len(daeun)}, annual count: {len(annual)}")
+    if daeun:
+        print(f"[_get_theme_sections] daeun[0]: age={daeun[0].get('age')}, sibsin={daeun[0].get('sibsin')}")
+
     # Calculate user age from birthDate in facts
+    # birthDate can be in saju.facts.birthDate OR saju.birthDate (direct)
     user_age = 30  # default
     birth_year = None
     facts = saju.get("facts", {})
-    birth_date = facts.get("birthDate") or ""
+    birth_date = facts.get("birthDate") or saju.get("birthDate") or ""
+
+    # Also try to infer from first daeun entry if birthDate is missing
+    if not birth_date and daeun:
+        # First daeun age helps us calculate birth year
+        first_daeun_age = daeun[0].get("age", 0)
+        # First daeun typically starts at age 1-10
+        # We can estimate birth year if we know current age from annual data
+        if annual:
+            first_annual_year = annual[0].get("year", now.year)
+            # Rough estimate: current year is first annual year
+            # So user is approximately (first_annual_year - birth_year) years old
+            # But we don't know birth year... try estimating from daeun list
+            pass
+
     if birth_date and len(birth_date) >= 4:
         try:
             birth_year = int(birth_date[:4])
             user_age = now.year - birth_year
+            print(f"[_get_theme_sections] birthDate={birth_date}, user_age={user_age}")
         except:
             pass
+    else:
+        # Fallback: try to infer user_age from daeun ages
+        # If we have daeun data, find the most likely current daeun
+        # based on reasonable age assumptions (20-60)
+        if daeun and len(daeun) >= 3:
+            # Pick middle-range daeun as likely current
+            mid_idx = min(3, len(daeun) - 1)  # age 33 typically
+            estimated_age = daeun[mid_idx].get("age", 30) + 2  # +2 years into the daeun
+            user_age = estimated_age
+            print(f"[_get_theme_sections] No birthDate, estimated user_age={user_age} from daeun")
 
     # Find current daeun by age (each daeun covers 10 years from its start age)
     cur_daeun = {}
@@ -1242,15 +1375,23 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
     cur_annual = next((a for a in annual if a.get("year") == now.year), {})
     next_annual = next((a for a in annual if a.get("year") == now.year + 1), {})
 
-    # 현재 대운 십신
+    # 현재 대운 십신 (문자열 또는 객체 형태 모두 지원)
     cur_daeun_sibsin = cur_daeun.get("sibsin", {})
-    cur_cheon = cur_daeun_sibsin.get("cheon", "")
-    cur_ji = cur_daeun_sibsin.get("ji", "")
+    if isinstance(cur_daeun_sibsin, str):
+        # 문자열이면 십신 이름 직접 사용
+        cur_cheon = cur_daeun_sibsin
+        cur_ji = ""
+    else:
+        cur_cheon = cur_daeun_sibsin.get("cheon", "") if cur_daeun_sibsin else ""
+        cur_ji = cur_daeun_sibsin.get("ji", "") if cur_daeun_sibsin else ""
     sibsin_info = SIBSIN_MEANINGS.get(cur_cheon, {})
 
-    # 세운 십신
+    # 세운 십신 (문자열 또는 객체 형태 모두 지원)
     annual_sibsin = cur_annual.get("sibsin", {})
-    annual_cheon = annual_sibsin.get("cheon", "")
+    if isinstance(annual_sibsin, str):
+        annual_cheon = annual_sibsin
+    else:
+        annual_cheon = annual_sibsin.get("cheon", "") if annual_sibsin else ""
     annual_sibsin_info = SIBSIN_MEANINGS.get(annual_cheon, {})
 
     if theme == "fortune_today":
@@ -1258,7 +1399,10 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
         iljin = unse.get("iljin", [])
         today_iljin = next((i for i in iljin if i.get("day") == now.day and i.get("month") == now.month), {})
         iljin_sibsin = today_iljin.get("sibsin", {})
-        iljin_cheon = iljin_sibsin.get("cheon", "")
+        if isinstance(iljin_sibsin, str):
+            iljin_cheon = iljin_sibsin
+        else:
+            iljin_cheon = iljin_sibsin.get("cheon", "") if iljin_sibsin else ""
         is_gwiin = today_iljin.get("isCheoneulGwiin", False)
 
         daily_tip = SIBSIN_MEANINGS.get(iljin_cheon, {}).get("timing", "평온한 하루")
@@ -1422,25 +1566,59 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
     else:  # focus_overall / life
         asc_s = asc.get("sign","")
 
-        # 대운 시기별 전망
+        # 대운 시기별 전망 (데이터가 없으면 일간 기반 생성)
         daeun_forecast = []
-        for d in daeun[:6]:
-            d_age = d.get("age", 0)
-            d_stem = d.get("heavenlyStem", "")
-            d_branch = d.get("earthlyBranch", "")
-            d_sibsin = d.get("sibsin", {}).get("cheon", "")
-            d_info = SIBSIN_MEANINGS.get(d_sibsin, {})
-            is_current = d_age <= user_age < d_age + 10
-            marker = "👉 " if is_current else ""
-            daeun_forecast.append(f"{marker}**{d_age}~{d_age+9}세** ({d_stem}{d_branch}): {d_info.get('meaning', d_sibsin + ' 운')}")
+        if daeun:
+            for d in daeun[:6]:
+                d_age = d.get("age", 0)
+                d_stem = d.get("heavenlyStem", "")
+                d_branch = d.get("earthlyBranch", "")
+                d_sibsin = d.get("sibsin", {}).get("cheon", "")
+                d_info = SIBSIN_MEANINGS.get(d_sibsin, {})
+                is_current = d_age <= user_age < d_age + 10
+                marker = "👉 " if is_current else ""
+                daeun_forecast.append(f"{marker}**{d_age}~{d_age+9}세** ({d_stem}{d_branch}): {d_info.get('meaning', d_sibsin + ' 운')}")
+        else:
+            # 대운 데이터가 없을 때 일간 기반 대략적인 전망
+            el_life = {
+                "목": ["20대: 성장과 도전", "30대: 확장과 발전", "40대: 결실의 시작", "50대: 안정과 지혜"],
+                "화": ["20대: 열정의 시기", "30대: 성과와 인정", "40대: 성숙과 조율", "50대: 내면의 빛"],
+                "토": ["20대: 기반 다지기", "30대: 꾸준한 성장", "40대: 안정의 절정", "50대: 지혜의 축적"],
+                "금": ["20대: 재능 연마", "30대: 전문성 확립", "40대: 결실과 성과", "50대: 통찰의 시기"],
+                "수": ["20대: 탐색과 학습", "30대: 지혜의 축적", "40대: 유연한 적응", "50대: 깊은 통찰"],
+            }
+            daeun_forecast = el_life.get(day_el, ["인생의 흐름이 자연스럽게 전개됩니다"])
+
+        # 현재 대운 정보 (없으면 일간 기반 메시지)
+        if cur_daeun:
+            current_daeun_text = f"**현재 대운**: {cur_daeun.get('heavenlyStem','')}{cur_daeun.get('earthlyBranch','')} ({cur_cheon})\n{sibsin_info.get('meaning', '변화의 시기')}"
+        else:
+            # 일간 오행 기반 현재 운세 추론
+            el_now = {
+                "목": "성장과 발전의 에너지가 흐르는 시기입니다. 새로운 도전에 적극적으로 나서세요.",
+                "화": "열정과 표현의 에너지가 강한 시기입니다. 적극적인 활동이 좋은 결과를 가져옵니다.",
+                "토": "안정과 축적의 에너지가 흐르는 시기입니다. 꾸준한 노력이 빛을 발합니다.",
+                "금": "결단과 정리의 에너지가 흐르는 시기입니다. 중요한 결정을 내리기 좋습니다.",
+                "수": "지혜와 유연함의 에너지가 흐르는 시기입니다. 직관을 믿고 흐름을 타세요.",
+            }
+            current_daeun_text = f"**현재 흐름**: {day_master} 일간 ({el_ko.get(day_el, day_el)})\n{el_now.get(day_el, '변화의 시기를 지나고 있습니다.')}"
+
+        # 올해 세운 정보
+        if cur_annual:
+            annual_text = f"**{now.year}년 세운**: {cur_annual.get('heavenlyStem','')}{cur_annual.get('earthlyBranch','')} ({annual_cheon})\n{annual_sibsin_info.get('timing', '올해의 흐름')}"
+        else:
+            # 년도별 천간으로 추론
+            year_stems = {2024: "갑진", 2025: "을사", 2026: "병오", 2027: "정미", 2028: "무신", 2029: "기유", 2030: "경술"}
+            ganji = year_stems.get(now.year, f"{now.year}년")
+            annual_text = f"**{now.year}년**: {ganji}년의 기운이 흐릅니다.\n꾸준한 노력이 좋은 결과로 이어집니다."
 
         return [
             {"id":"identity","icon":"🌟","title":"당신은 누구인가","titleEn":"Identity","content":f"**일간 {day_master}**: {dm_profile.get('personality', '독특한 매력의 소유자')}\n\n**강점**: {dm_profile.get('strengths', '다양한 능력')}\n**약점**: {dm_profile.get('weaknesses', '주의할 점')}\n\n**점성 조합**\n- 태양 {sign_ko.get(sun_s,'')}: {zodiac_sun.get('trait', '')}\n- 달 {sign_ko.get(moon_s,'')}: 감정의 뿌리\n- 상승 {sign_ko.get(asc_s,'')}: 첫인상/외면"},
-            {"id":"lifepath","icon":"🛤️","title":"인생 로드맵","titleEn":"Life Path","content":"\n".join(daeun_forecast)},
+            {"id":"lifepath","icon":"🛤️","title":"인생 로드맵","titleEn":"Life Path","content":"\n".join(daeun_forecast) if daeun_forecast else "인생의 여정이 펼쳐지고 있습니다."},
             {"id":"career","icon":"💼","title":"커리어 & 재물","titleEn":"Career","content":f"**적성 분야**: {dm_profile.get('career_fit', '다양한 분야')}\n\n**재물 스타일**: {dm_profile.get('wealth_style', '꾸준한 축적')}"},
             {"id":"love","icon":"💖","title":"연애 & 결혼","titleEn":"Love","content":f"**연애 스타일**: {dm_profile.get('love_style', '진심 어린 사랑')}\n\n**결혼 시기**: {dm_profile.get('love_timing', '좋은 인연을 기다리는 중')}\n\n**이상형**: {dm_profile.get('ideal_partner', '마음이 통하는 사람')}"},
             {"id":"health","icon":"💊","title":"건강 포인트","titleEn":"Health","content":f"**주의 기관**: {dm_profile.get('health_focus', '전반적인 건강 관리')}"},
-            {"id":"current","icon":"📍","title":"현재 운세 흐름","titleEn":"Current","content":f"**현재 대운**: {cur_daeun.get('heavenlyStem','')}{cur_daeun.get('earthlyBranch','')} ({cur_cheon})\n{sibsin_info.get('meaning', '변화의 시기')}\n\n**{now.year}년 세운**: {cur_annual.get('heavenlyStem','')}{cur_annual.get('earthlyBranch','')} ({annual_cheon})\n{annual_sibsin_info.get('timing', '올해의 흐름')}"},
+            {"id":"current","icon":"📍","title":"현재 운세 흐름","titleEn":"Current","content":f"{current_daeun_text}\n\n{annual_text}"},
             {"id":"cross","icon":"✨","title":"사주×점성 융합","titleEn":"Cross","content":f"【사주】{day_master} 일간 ({el_ko.get(day_el,day_el)})\n【점성】{sign_ko.get(sun_s,'')} 태양 + {sign_ko.get(asc_s,'')} 상승\n\n동양과 서양의 지혜가 만나\n당신만의 운명 지도가 완성됩니다."},
             {"id":"advice","icon":"💝","title":"인생 조언","titleEn":"Advice","content":f"✅ {dm_profile.get('strengths', '강점').split(',')[0]} 최대한 활용하기\n⚠️ {dm_profile.get('weaknesses', '단점').split(',')[0]} 경계하기\n💫 때를 기다리며 실력 쌓기"}]
 
@@ -1483,6 +1661,14 @@ def render_template_report(
     theme = facts.get("theme", "focus_overall")
     unse = saju.get("unse") or {}
 
+    # DEBUG: Log incoming data at render_template_report entry point
+    print(f"[render_template_report] saju keys: {list(saju.keys()) if saju else 'EMPTY'}")
+    print(f"[render_template_report] unse keys: {list(unse.keys()) if unse else 'EMPTY'}")
+    print(f"[render_template_report] daeun count: {len(unse.get('daeun', []))}")
+    print(f"[render_template_report] annual count: {len(unse.get('annual', []))}")
+    if unse.get('daeun'):
+        print(f"[render_template_report] daeun[0]: {unse['daeun'][0]}")
+
     structured = {
         "themeSummary": _get_theme_summary(theme, saju, astro),
         "sections": _get_theme_sections(theme, saju, astro),
@@ -1491,7 +1677,7 @@ def render_template_report(
             "importantYears": _get_important_years(unse, saju, astro)
         },
         "categoryAnalysis": _get_category_analysis(signals, theme_cross),
-        "keyInsights": _get_key_insights(theme_cross, signals),
+        "keyInsights": _get_key_insights(theme_cross, signals, saju),
         "luckyElements": _get_lucky_elements(signals, saju),
         "sajuHighlight": _get_saju_highlight(saju),
         "astroHighlight": _get_astro_highlight(astro, signals),
