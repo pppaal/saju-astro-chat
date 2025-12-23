@@ -361,7 +361,7 @@ export async function generateReport({
     theme,
     lang,
     date: analysisDate, // 같은 날에만 캐시 유효
-    mode: "template_v4", // v4: birthDate를 saju.facts에 추가 (대운/세운 나이 계산용)
+    mode: "template_v5", // v5: Fix cache format issue, ensure daeun reaches template_renderer
     name: hashName(name),
     gender,
     userTimezone: userTimezone || "unknown",
@@ -370,6 +370,15 @@ export async function generateReport({
   const cached = await cacheGet<ReportOutput>(cacheKey);
   if (cached) {
     console.log("[DestinyMap] Cache HIT:", cacheKey);
+    // DEBUG: Log cached structure to diagnose dayMaster/daeun issue
+    console.log("[DestinyMap] Cached data structure:", {
+      hasRaw: !!cached.raw,
+      rawKeys: cached.raw ? Object.keys(cached.raw) : [],
+      hasSaju: !!cached.raw?.saju,
+      sajuKeys: cached.raw?.saju ? Object.keys(cached.raw.saju) : [],
+      dayMaster: cached.raw?.saju?.dayMaster,
+      daeunCount: cached.raw?.saju?.unse?.daeun?.length || 0,
+    });
     return cached;
   }
   console.log("[DestinyMap] Cache MISS:", cacheKey);
@@ -445,6 +454,13 @@ export async function generateReport({
       // 템플릿 모드: 30초, AI 모드: 180초
       const timeoutMs = useAI ? 180000 : 30000;
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      // DEBUG: Log saju.unse data being sent to backend
+      console.log("[DestinyMap] Sending to backend - saju.unse:", {
+        daeun_count: result.saju?.unse?.daeun?.length || 0,
+        annual_count: result.saju?.unse?.annual?.length || 0,
+        monthly_count: result.saju?.unse?.monthly?.length || 0,
+      });
 
       const response = await fetch(`${backendUrl}/ask`, {
         method: "POST",

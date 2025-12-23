@@ -498,6 +498,7 @@ def interpret_with_ai(facts: dict):
         # Check Redis cache first
         cache = get_cache()
         cache_data = {
+            "cache_version": "v5",  # 🔥 v5: Fix daeun/lifeTimeline rendering
             "theme": theme,
             "locale": locale,
             "prompt": user_prompt,
@@ -706,6 +707,16 @@ def interpret_with_ai(facts: dict):
 
         # Template-only rendering (no LLM) for fast/non-GPT mode
         if render_mode == "template":
+            # DEBUG: Log saju.unse data before template rendering
+            saju_for_debug = facts.get("saju", {})
+            unse_for_debug = saju_for_debug.get("unse", {})
+            print(f"[FusionLogic DEBUG] saju keys: {list(saju_for_debug.keys())}")
+            print(f"[FusionLogic DEBUG] unse keys: {list(unse_for_debug.keys()) if unse_for_debug else 'EMPTY'}")
+            print(f"[FusionLogic DEBUG] daeun count: {len(unse_for_debug.get('daeun', []))}")
+            print(f"[FusionLogic DEBUG] annual count: {len(unse_for_debug.get('annual', []))}")
+            if unse_for_debug.get('daeun'):
+                print(f"[FusionLogic DEBUG] daeun[0]: {unse_for_debug['daeun'][0]}")
+
             fusion_text = render_template_report(
                 facts, signals, cross_summary, theme_cross_summary
             )

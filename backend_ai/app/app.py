@@ -1979,6 +1979,10 @@ def ask():
         render_mode = data.get("render_mode", "gpt")
         logger.info(f"[ASK] id={g.request_id} theme={theme} locale={locale} render_mode={render_mode}")
 
+        # DEBUG: Log saju.unse data received from frontend
+        unse_data = saju_data.get("unse", {})
+        logger.info(f"[ASK] saju.unse received: daeun={len(unse_data.get('daeun', []))}, annual={len(unse_data.get('annual', []))}")
+
         facts = {
             "theme": theme,
             "saju": saju_data,

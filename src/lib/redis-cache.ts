@@ -21,7 +21,20 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     const data = await res.json();
     if (!data?.result) return null;
 
-    return JSON.parse(data.result) as T;
+    const parsed = JSON.parse(data.result);
+
+    // Handle legacy format where value was wrapped in { value, ex } object
+    // This ensures backward compatibility with old cache entries
+    if (parsed && typeof parsed === 'object' && 'value' in parsed && 'ex' in parsed) {
+      console.log("[Redis Cache] Converting legacy cache format");
+      // The 'value' field contains the actual stringified data
+      if (typeof parsed.value === 'string') {
+        return JSON.parse(parsed.value) as T;
+      }
+      return parsed.value as T;
+    }
+
+    return parsed as T;
   } catch (err) {
     console.error("[Redis Cache] GET error:", err);
     return null;
@@ -30,6 +43,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 
 /**
  * Set cached value in Redis with TTL
+ * Uses Upstash REST API pipeline format: [["SET", key, value, "EX", seconds]]
  */
 export async function cacheSet(
   key: string,
@@ -39,16 +53,17 @@ export async function cacheSet(
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return false;
 
   try {
-    const res = await fetch(`${UPSTASH_URL}/set/${encodeURIComponent(key)}`, {
+    // Use Upstash pipeline format for SET with EX (expiry)
+    // This is the correct way to set a value with TTL
+    const res = await fetch(`${UPSTASH_URL}/pipeline`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${UPSTASH_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        value: JSON.stringify(value),
-        ex: ttlSeconds,
-      }),
+      body: JSON.stringify([
+        ["SET", key, JSON.stringify(value), "EX", ttlSeconds],
+      ]),
       cache: "no-store",
     });
 
