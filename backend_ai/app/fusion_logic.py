@@ -498,7 +498,7 @@ def interpret_with_ai(facts: dict):
         # Check Redis cache first
         cache = get_cache()
         cache_data = {
-            "cache_version": "v5",  # 🔥 v5: Fix daeun/lifeTimeline rendering
+            "cache_version": "v6",  # 🔥 v6: Personalized daeun meanings, remove keywords, filter 4-5 stars
             "theme": theme,
             "locale": locale,
             "prompt": user_prompt,

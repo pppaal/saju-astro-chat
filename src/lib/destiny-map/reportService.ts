@@ -361,7 +361,7 @@ export async function generateReport({
     theme,
     lang,
     date: analysisDate, // 같은 날에만 캐시 유효
-    mode: "template_v5", // v5: Fix cache format issue, ensure daeun reaches template_renderer
+    mode: "template_v6", // v6: Personalized daeun, remove keywords, 4-5 star filter
     name: hashName(name),
     gender,
     userTimezone: userTimezone || "unknown",
