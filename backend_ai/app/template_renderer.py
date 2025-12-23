@@ -11,6 +11,25 @@ import json
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+
+def _get_sibsin_value(sibsin_data, key: str = "cheon", default: str = "") -> str:
+    """
+    Extract sibsin value from either string or dict format.
+    sibsin can be:
+    - String: "식신", "비견", etc.
+    - Dict: {"cheon": "식신", "ji": "상관"}
+
+    Returns the sibsin value or default if not found.
+    """
+    if sibsin_data is None:
+        return default
+    if isinstance(sibsin_data, str):
+        # If it's a string, return it directly (only makes sense for "cheon")
+        return sibsin_data if key == "cheon" else default
+    if isinstance(sibsin_data, dict):
+        return sibsin_data.get(key, default)
+    return default
+
 # ============================================================
 # 일간(日干)별 상세 성격/특성 데이터
 # ============================================================
@@ -325,9 +344,9 @@ def _get_important_years(unse: Dict[str, Any], saju: Dict[str, Any], astro: Dict
         branch = d.get("earthlyBranch") or d.get("earthly_branch") or ""
         ganji = f"{stem}{branch}"
 
-        sibsin = d.get("sibsin") or {}
-        cheon_sibsin = sibsin.get("cheon") or ""
-        ji_sibsin = sibsin.get("ji") or ""
+        sibsin = d.get("sibsin")
+        cheon_sibsin = _get_sibsin_value(sibsin, "cheon", "")
+        ji_sibsin = _get_sibsin_value(sibsin, "ji", "")
 
         element = _get_element_from_stem(stem)
         rating = _calculate_rating_from_sibsin(cheon_sibsin, ji_sibsin)
@@ -361,9 +380,9 @@ def _get_important_years(unse: Dict[str, Any], saju: Dict[str, Any], astro: Dict
         branch = a.get("earthlyBranch") or a.get("earthly_branch") or ""
         ganji = f"{stem}{branch}"
 
-        sibsin = a.get("sibsin") or {}
-        cheon_sibsin = sibsin.get("cheon") or ""
-        ji_sibsin = sibsin.get("ji") or ""
+        sibsin = a.get("sibsin")
+        cheon_sibsin = _get_sibsin_value(sibsin, "cheon", "")
+        ji_sibsin = _get_sibsin_value(sibsin, "ji", "")
 
         element = _get_element_from_stem(stem)
         rating = _calculate_rating_from_sibsin(cheon_sibsin, ji_sibsin)
@@ -380,10 +399,10 @@ def _get_important_years(unse: Dict[str, Any], saju: Dict[str, Any], astro: Dict
             "astroReason": meaning["astro"],
         })
 
-    # DEBUG: Log years before filtering
+    # DEBUG: Log years before filtering (avoid non-ASCII to prevent Windows encoding errors)
     print(f"[_get_important_years] Total years collected: {len(years)}")
-    for i, y in enumerate(years[:5]):
-        print(f"  [{i}] year={y.get('year')}, age={y.get('age')}, rating={y.get('rating')}, title={y.get('title', '')[:30]}")
+    for i, y in enumerate(years[:3]):
+        print(f"  [{i}] year={y.get('year')}, age={y.get('age')}, rating={y.get('rating')}")
 
     # ========== 새 로직: daeun이 있으면 우선 포함, rating 관계없이 ==========
     # daeun 데이터가 있으면 모두 포함 (rating 필터링 제거)
@@ -1420,8 +1439,7 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
         # 월운 가져오기
         monthly = unse.get("monthly", [])
         cur_month = next((m for m in monthly if m.get("month") == now.month and m.get("year") == now.year), {})
-        month_sibsin = cur_month.get("sibsin", {})
-        month_cheon = month_sibsin.get("cheon", "")
+        month_cheon = _get_sibsin_value(cur_month.get("sibsin"), "cheon", "")
         month_info = SIBSIN_MEANINGS.get(month_cheon, {})
 
         return [
@@ -1436,8 +1454,7 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
     elif theme == "fortune_new_year" or theme == "fortune_next_year":
         target_year = now.year if theme == "fortune_new_year" else now.year + 1
         target_annual = cur_annual if theme == "fortune_new_year" else next_annual
-        target_sibsin = target_annual.get("sibsin", {})
-        target_cheon = target_sibsin.get("cheon", "")
+        target_cheon = _get_sibsin_value(target_annual.get("sibsin"), "cheon", "")
         target_info = SIBSIN_MEANINGS.get(target_cheon, {})
         ganji = f"{target_annual.get('heavenlyStem','')}{target_annual.get('earthlyBranch','')}"
 
@@ -1472,7 +1489,7 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
         career_daeun = []
         for d in daeun[:5]:
             d_age = d.get("age", 0)
-            d_sibsin = d.get("sibsin", {}).get("cheon", "")
+            d_sibsin = _get_sibsin_value(d.get("sibsin"), "cheon", "")
             if d_sibsin in ["정관", "편관"]:
                 career_daeun.append(f"{d_age}~{d_age+9}세: 승진/인정받는 시기")
             elif d_sibsin in ["정재", "편재"]:
@@ -1493,7 +1510,7 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
         # 연애 시기 찾기
         love_years = []
         for a in annual[:5]:
-            a_sibsin = a.get("sibsin", {}).get("cheon", "")
+            a_sibsin = _get_sibsin_value(a.get("sibsin"), "cheon", "")
             if a_sibsin in ["정관", "정재"]:
                 love_years.append(f"{a.get('year')}년: 결혼/진지한 인연 가능")
             elif a_sibsin in ["편관", "편재"]:
@@ -1573,7 +1590,7 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict) -> List[Dict[str, A
                 d_age = d.get("age", 0)
                 d_stem = d.get("heavenlyStem", "")
                 d_branch = d.get("earthlyBranch", "")
-                d_sibsin = d.get("sibsin", {}).get("cheon", "")
+                d_sibsin = _get_sibsin_value(d.get("sibsin"), "cheon", "")
                 d_info = SIBSIN_MEANINGS.get(d_sibsin, {})
                 is_current = d_age <= user_age < d_age + 10
                 marker = "👉 " if is_current else ""
