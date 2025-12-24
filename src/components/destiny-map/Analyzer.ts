@@ -92,10 +92,18 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
     const result = await response.json().catch(() => null);
 
     if (!response.ok) {
-      const msg =
+      let msg =
         result?.error?.message ||
         result?.error ||
         `API Error: ${response.status}`;
+
+      // 429 에러에 대한 사용자 친화적 메시지
+      if (response.status === 429) {
+        msg = lang === "ko"
+          ? "요청이 너무 많습니다. 30초 후 다시 시도해주세요."
+          : "Too many requests. Please wait 30 seconds and try again.";
+      }
+
       console.error("[Analyzer] API Error:", msg, "Response:", result);
       return {
         profile: input,

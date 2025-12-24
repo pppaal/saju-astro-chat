@@ -8,12 +8,23 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { sendNotification } from "@/lib/notifications/sse";
 import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
+import { enforceBodySize } from "@/lib/http";
 import fs from "fs";
 import path from "path";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 180;
 const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === "true";
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const ALLOWED_LANG = new Set(["ko", "en"]);
+const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
+const MAX_THEME = 32;
+const MAX_PROMPT = 2000;
+const MAX_NAME = 80;
+const MAX_CITY = 120;
+const MAX_TZ = 80;
 
 // Basic HTML/script stripping to keep responses safe for UI rendering
 // IMPORTANT: Preserve JSON structure (curly braces) for structured responses
@@ -61,31 +72,51 @@ function maskPayload(body: any) {
  */
 export async function POST(request: Request) {
   try {
-    const guard = await apiGuard(request, { path: "destiny-map", limit: 30, windowSeconds: 60 });
+    const oversized = enforceBodySize(request as any, 64 * 1024);
+    if (oversized) return oversized;
+
+    const guard = await apiGuard(request, { path: "destiny-map", limit: 60, windowSeconds: 60 });
     if (guard instanceof NextResponse) return guard;
 
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     if (enableDebugLogs) {
       console.log("[API] DestinyMap POST received", { theme: body?.theme, lang: body?.lang, hasPrompt: Boolean(body?.prompt) });
     }
 
-    const {
-      name,
-      birthDate,
-      birthTime,
-      gender = "male",
-      city,
-      latitude,
-      longitude,
-      theme = "life",
-      lang = "ko",
-      prompt,
-      userTimezone,
-    } = body;
+    if (!body) {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    }
 
-    if (!birthDate || !birthTime || !latitude || !longitude) {
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
+    const birthTime = typeof body.birthTime === "string" ? body.birthTime.trim() : "";
+    const gender = typeof body.gender === "string" && ALLOWED_GENDER.has(body.gender) ? body.gender : "male";
+    const city = typeof body.city === "string" ? body.city.trim().slice(0, MAX_CITY) : undefined;
+    const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
+    const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
+    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, MAX_THEME) : "life";
+    const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
+    const prompt = typeof body.prompt === "string" ? body.prompt.slice(0, MAX_PROMPT) : undefined;
+    const userTimezone = typeof body.userTimezone === "string" ? body.userTimezone.trim().slice(0, MAX_TZ) : undefined;
+
+    if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
       console.error("[API] Missing required fields");
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+    if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
+      return NextResponse.json({ error: "Invalid birthDate" }, { status: 400 });
+    }
+    if (!TIME_RE.test(birthTime)) {
+      return NextResponse.json({ error: "Invalid birthTime" }, { status: 400 });
+    }
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      return NextResponse.json({ error: "Invalid latitude" }, { status: 400 });
+    }
+    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      return NextResponse.json({ error: "Invalid longitude" }, { status: 400 });
+    }
+    if (userTimezone && (!userTimezone.includes("/") || userTimezone.length < 3)) {
+      return NextResponse.json({ error: "Invalid userTimezone" }, { status: 400 });
     }
 
     if (enableDebugLogs) {
@@ -121,33 +152,17 @@ export async function POST(request: Request) {
         }
       });
     }
-    // cross-section validation for destiny-map
-    if (report.meta?.validationPassed === false) {
-      const warnings = report.meta?.validationWarnings ?? [];
+    // Track validation status for response
+    const validationFailed = report.meta?.validationPassed === false;
+    const validationWarnings = report.meta?.validationWarnings ?? [];
+
+    if (validationFailed) {
       recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang, validation: "soft_fail" });
       recordCounter("destiny.report.validation_fail_soft", 1, { theme, lang });
-
-      // Soft-fail: return 200 with warnings so UI can render instead of breaking
-      return NextResponse.json(
-        {
-          status: "warning",
-          warning: "cross_validation_failed",
-          message: "교차 검증에서 일부 신호가 부족합니다. 그래도 보고서를 반환합니다.",
-          warnings,
-          report: {
-            ...report,
-            meta: {
-              ...report.meta,
-              validationPassed: false,
-              validationWarnings: warnings,
-            },
-          },
-        },
-        { status: 200 }
-      );
+    } else {
+      recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });
+      recordCounter("destiny.report.success", 1, { theme, lang });
     }
-    recordTiming("destiny.report.latency_ms", Date.now() - start, { theme, lang });
-    recordCounter("destiny.report.success", 1, { theme, lang });
 
     if (enableDebugLogs) {
       console.log("[API] Report generated (redacted payload)");
@@ -203,11 +218,12 @@ export async function POST(request: Request) {
       }
     }
 
-    // Five element fallback values - access from report.raw.saju (not report.raw.raw.saju)
+    // Five element fallback values - check both saju.fiveElements and saju.facts.fiveElements
+    const rawFiveElements =
+      report?.raw?.saju?.fiveElements || report?.raw?.saju?.facts?.fiveElements;
     const dynamicFiveElements =
-      report?.raw?.saju?.fiveElements &&
-      Object.keys(report.raw.saju.fiveElements).length > 0
-        ? report.raw.saju.fiveElements
+      rawFiveElements && Object.keys(rawFiveElements).length > 0
+        ? rawFiveElements
         : undefined;
 
     const fiveElements = dynamicFiveElements ?? {
@@ -260,6 +276,8 @@ export async function POST(request: Request) {
       fiveElements,
       pillars: report.raw?.saju?.pillars,
       unse: report.raw?.saju?.unse,
+      sinsal: report.raw?.saju?.sinsal,
+      advancedAnalysis: report.raw?.saju?.advancedAnalysis,
     };
 
     const astrology: AstrologyResult = report.raw?.astrology ?? { facts: {} };
@@ -307,7 +325,8 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({
+    // Build response payload
+    const responsePayload = {
       profile: { name, birthDate, birthTime, city, gender },
       lang,
       summary: maskedSummary,
@@ -324,7 +343,37 @@ export async function POST(request: Request) {
       // 분석 기준 날짜 정보 (사용자 타임존 기준)
       analysisDate: report.raw?.analysisDate,
       userTimezone: report.raw?.userTimezone,
-    });
+      // 고급 점성술 데이터
+      advancedAstrology: {
+        extraPoints: report.raw?.extraPoints,
+        solarReturn: report.raw?.solarReturn,
+        lunarReturn: report.raw?.lunarReturn,
+        progressions: report.raw?.progressions,
+        draconic: report.raw?.draconic,
+        harmonics: report.raw?.harmonics,
+        asteroids: report.raw?.asteroids,
+        fixedStars: report.raw?.fixedStars,
+        eclipses: report.raw?.eclipses,
+        electional: report.raw?.electional,
+        midpoints: report.raw?.midpoints,
+      },
+    };
+
+    // Return with warning wrapper if validation failed
+    if (validationFailed) {
+      return NextResponse.json(
+        {
+          status: "warning",
+          warning: "cross_validation_failed",
+          message: "교차 검증에서 일부 신호가 부족합니다. 그래도 보고서를 반환합니다.",
+          warnings: validationWarnings,
+          ...responsePayload,
+        },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json(responsePayload);
   } catch (err: any) {
     console.error("[DestinyMap API Error]:", err);
     recordCounter("destiny.report.failure", 1);

@@ -30,6 +30,13 @@ from backend_ai.app.fusion_logic import interpret_with_ai
 from backend_ai.app.saju_parser import calculate_saju_data
 from backend_ai.app.dream_logic import interpret_dream
 from backend_ai.app.redis_cache import get_cache
+from backend_ai.app.sanitizer import (
+    sanitize_user_input,
+    sanitize_dream_text,
+    sanitize_name,
+    validate_birth_data,
+    is_suspicious_input,
+)
 # Lazy import fusion_generate to avoid loading SentenceTransformer on startup
 # This prevents OOM on Railway free tier (512MB limit)
 _fusion_generate_module = None
@@ -310,7 +317,28 @@ def get_counseling_engine(*args, **kwargs):
     m = _get_counseling_engine_module()
     return m.get_counseling_engine(*args, **kwargs) if m else None
 
-CrisisDetector = property(lambda self: _get_counseling_engine_module().CrisisDetector if _get_counseling_engine_module() else None)
+def _get_crisis_detector():
+    """Get CrisisDetector class from counseling engine module."""
+    m = _get_counseling_engine_module()
+    return m.CrisisDetector if m else None
+
+# Proxy class that forwards calls to the actual CrisisDetector
+class _CrisisDetectorProxy:
+    @staticmethod
+    def detect_crisis(text):
+        detector = _get_crisis_detector()
+        if detector:
+            return detector.detect_crisis(text)
+        return {"is_crisis": False, "max_severity": "none", "detections": [], "requires_immediate_action": False}
+
+    @staticmethod
+    def get_crisis_response(severity, locale="ko"):
+        detector = _get_crisis_detector()
+        if detector:
+            return detector.get_crisis_response(severity, locale)
+        return {"immediate_message": "", "follow_up": "", "closing": ""}
+
+CrisisDetector = _CrisisDetectorProxy
 
 # Prediction Engine (v5.0)
 try:
@@ -376,7 +404,11 @@ def get_model(*args, **kwargs):
 # OpenAI Client for streaming endpoints
 try:
     from openai import OpenAI
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    import httpx
+    openai_client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        timeout=httpx.Timeout(60.0, connect=10.0)  # 60s total, 10s connect
+    )
     OPENAI_AVAILABLE = True
 except Exception:
     openai_client = None
@@ -473,6 +505,41 @@ try:
         logger.info("Sentry initialized for Flask backend.")
 except Exception as e:  # pragma: no cover
     logger.warning(f"Sentry init skipped: {e}")
+
+
+# ===============================================================
+# 🛡️ INPUT SANITIZATION HELPERS
+# ===============================================================
+
+def sanitize_messages(messages: list, max_content_length: int = 2000) -> list:
+    """Sanitize a list of chat messages."""
+    if not messages or not isinstance(messages, list):
+        return []
+    sanitized = []
+    for msg in messages:
+        if not isinstance(msg, dict):
+            continue
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if isinstance(content, str) and content:
+            # Check for suspicious patterns
+            if is_suspicious_input(content):
+                logger.warning(f"[SANITIZE] Suspicious content in {role} message")
+            content = sanitize_user_input(content, max_length=max_content_length, allow_newlines=True)
+        sanitized.append({"role": role, "content": content})
+    return sanitized
+
+
+def mask_sensitive_data(text: str) -> str:
+    """Mask potentially sensitive data in logs."""
+    import re
+    # Mask email addresses
+    text = re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '[EMAIL]', text)
+    # Mask phone numbers (various formats)
+    text = re.sub(r'\b\d{3}[-.\s]?\d{3,4}[-.\s]?\d{4}\b', '[PHONE]', text)
+    # Mask credit card numbers
+    text = re.sub(r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b', '[CARD]', text)
+    return text
 
 
 # ===============================================================
@@ -754,7 +821,8 @@ def _load_cross_analysis_cache():
 def normalize_day_master(saju_data: dict) -> dict:
     """
     Normalize dayMaster to flat structure { name, element }.
-    Handles both:
+    Handles:
+    - String: "庚" -> { name: "庚", heavenlyStem: "庚", element: "금" }
     - Nested: { heavenlyStem: { name: "庚", element: "금" }, element: "..." }
     - Flat: { name: "庚", element: "금" } or { heavenlyStem: "庚", element: "금" }
     Returns normalized saju_data with flat dayMaster.
@@ -763,6 +831,28 @@ def normalize_day_master(saju_data: dict) -> dict:
         return saju_data
 
     dm = saju_data.get("dayMaster", {})
+
+    # Map stem to element
+    stem_to_element = {
+        "甲": "목", "乙": "목", "丙": "화", "丁": "화", "戊": "토",
+        "己": "토", "庚": "금", "辛": "금", "壬": "수", "癸": "수",
+        "갑": "목", "을": "목", "병": "화", "정": "화", "무": "토",
+        "기": "토", "경": "금", "신": "금", "임": "수", "계": "수",
+    }
+
+    # Handle dayMaster as string (e.g., "庚" or "경")
+    if isinstance(dm, str):
+        element = stem_to_element.get(dm, "")
+        normalized_dm = {
+            "name": dm,
+            "heavenlyStem": dm,
+            "element": element,
+        }
+        saju_data = dict(saju_data)
+        saju_data["dayMaster"] = normalized_dm
+        logger.debug(f"[NORMALIZE] dayMaster: string -> dict: {normalized_dm}")
+        return saju_data
+
     if not isinstance(dm, dict):
         return saju_data
 
@@ -809,10 +899,18 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
 
     # Get chart elements (support both "heavenlyStem" and "name" for dayMaster)
     dm_data = saju_data.get("dayMaster", {})
-    daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
-    dm_element = dm_data.get("element", "")
-    sun_sign = astro_data.get("sun", {}).get("sign", "")
-    moon_sign = astro_data.get("moon", {}).get("sign", "")
+    if isinstance(dm_data, str):
+        daymaster = dm_data
+        dm_element = ""
+    else:
+        daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "") if isinstance(dm_data, dict) else ""
+        dm_element = dm_data.get("element", "") if isinstance(dm_data, dict) else ""
+
+    # Safely get astro signs (handle both dict and non-dict cases)
+    sun_data = astro_data.get("sun", {})
+    sun_sign = sun_data.get("sign", "") if isinstance(sun_data, dict) else ""
+    moon_data = astro_data.get("moon", {})
+    moon_sign = moon_data.get("sign", "") if isinstance(moon_data, dict) else ""
     dominant = saju_data.get("dominantElement", "")
 
     # Extract Ten Gods (십신) from saju data
@@ -1710,6 +1808,7 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
     _graph_rag_inst = get_graph_rag() if HAS_GRAPH_RAG else None
     _corpus_rag_inst = get_corpus_rag() if HAS_CORPUS_RAG else None
     _persona_rag_inst = get_persona_embed_rag() if HAS_PERSONA_EMBED else None
+    _domain_rag_inst = get_domain_rag() if HAS_DOMAIN_RAG else None
 
     # --- Execute RAG fetches SEQUENTIALLY (thread-safe) ---
     # GraphRAG
@@ -1741,7 +1840,7 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
                 try:
                     extra_quotes = _corpus_rag_inst.search(gq, top_k=2, min_score=0.15)
                     quotes.extend(extra_quotes)
-                except:
+                except Exception:
                     pass
 
             # Deduplicate and limit
@@ -1786,6 +1885,22 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
         result["cross_analysis"] = get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
     except Exception as e:
         logger.warning(f"[PREFETCH] Cross-analysis failed: {e}")
+
+    # DomainRAG - 도메인별 전문 지식 (사주/점성 해석 원칙 등)
+    try:
+        if _domain_rag_inst:
+            # 테마에 맞는 도메인 검색
+            domain_map = {
+                "career": "career", "love": "love", "health": "health",
+                "wealth": "wealth", "family": "family", "life_path": "life",
+                "focus_career": "career", "focus_love": "love",
+            }
+            domain = domain_map.get(theme, "life")
+            domain_results = _domain_rag_inst.search(query[:200], domain=domain, top_k=5)
+            result["domain_knowledge"] = domain_results[:5] if domain_results else []
+            logger.info(f"[PREFETCH] DomainRAG: {len(result.get('domain_knowledge', []))} results")
+    except Exception as e:
+        logger.warning(f"[PREFETCH] DomainRAG failed: {e}")
 
     elapsed = time.time() - start_time
     logger.info(f"[PREFETCH] All RAG data prefetched in {elapsed:.2f}s (sequential)")
@@ -1880,7 +1995,7 @@ ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
 RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
 RATE_WINDOW_SECONDS = 60
 _rate_state = defaultdict(list)  # ip -> timestamps
-UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init"}
+UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init", "/api/destiny-story/generate-stream"}
 
 
 def _client_id() -> str:
@@ -1891,11 +2006,28 @@ def _client_id() -> str:
     )
 
 
+_rate_cleanup_counter = 0
+
 def _check_rate() -> Tuple[bool, Optional[float]]:
+    global _rate_cleanup_counter
     now = time.time()
     client = _client_id()
     window = [t for t in _rate_state[client] if now - t < RATE_WINDOW_SECONDS]
     _rate_state[client] = window
+
+    # Periodic cleanup of stale clients (every 100 requests)
+    _rate_cleanup_counter += 1
+    if _rate_cleanup_counter >= 100:
+        _rate_cleanup_counter = 0
+        stale_clients = [
+            c for c, ts in _rate_state.items()
+            if not ts or (now - max(ts)) > RATE_WINDOW_SECONDS * 2
+        ]
+        for c in stale_clients:
+            del _rate_state[c]
+        if stale_clients:
+            logger.debug(f"[RATE] Cleaned up {len(stale_clients)} stale clients")
+
     if len(window) >= RATE_LIMIT:
         retry_after = max(0, RATE_WINDOW_SECONDS - (now - window[0]))
         return False, retry_after
@@ -1962,6 +2094,63 @@ def after_request(response):
     except Exception:
         pass
     return response
+
+
+# ===============================================================
+# GLOBAL ERROR HANDLERS - Consistent error responses
+# ===============================================================
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({
+        "status": "error",
+        "code": 400,
+        "message": "Bad request",
+        "request_id": getattr(g, "request_id", None)
+    }), 400
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({
+        "status": "error",
+        "code": 404,
+        "message": "Endpoint not found",
+        "request_id": getattr(g, "request_id", None)
+    }), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({
+        "status": "error",
+        "code": 405,
+        "message": "Method not allowed",
+        "request_id": getattr(g, "request_id", None)
+    }), 405
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    logger.exception(f"[ERROR] Unhandled exception: {e}")
+    return jsonify({
+        "status": "error",
+        "code": 500,
+        "message": "Internal server error",
+        "request_id": getattr(g, "request_id", None)
+    }), 500
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Catch-all for unhandled exceptions."""
+    logger.exception(f"[ERROR] Unhandled exception: {e}")
+    return jsonify({
+        "status": "error",
+        "code": 500,
+        "message": "An unexpected error occurred",
+        "request_id": getattr(g, "request_id", None)
+    }), 500
 
 
 # Helper functions for building chart context
@@ -2087,12 +2276,25 @@ def _build_detailed_astro(astro_data: dict) -> str:
     if astro_data.get("houses"):
         h = astro_data["houses"]
         lines.append("\n🏠 주요 하우스:")
-        if h.get("1"):
-            lines.append(f"  1하우스(자아): {h['1'].get('sign', '')}")
-        if h.get("7"):
-            lines.append(f"  7하우스(파트너): {h['7'].get('sign', '')}")
-        if h.get("10"):
-            lines.append(f"  10하우스(커리어): {h['10'].get('sign', '')}")
+        # Handle both dict and list formats
+        if isinstance(h, dict):
+            if h.get("1"):
+                lines.append(f"  1하우스(자아): {h['1'].get('sign', '') if isinstance(h['1'], dict) else h['1']}")
+            if h.get("7"):
+                lines.append(f"  7하우스(파트너): {h['7'].get('sign', '') if isinstance(h['7'], dict) else h['7']}")
+            if h.get("10"):
+                lines.append(f"  10하우스(커리어): {h['10'].get('sign', '') if isinstance(h['10'], dict) else h['10']}")
+        elif isinstance(h, list) and len(h) >= 10:
+            # List format: index 0 = 1st house, etc.
+            if h[0]:
+                sign = h[0].get('sign', '') if isinstance(h[0], dict) else h[0]
+                lines.append(f"  1하우스(자아): {sign}")
+            if len(h) > 6 and h[6]:
+                sign = h[6].get('sign', '') if isinstance(h[6], dict) else h[6]
+                lines.append(f"  7하우스(파트너): {sign}")
+            if len(h) > 9 and h[9]:
+                sign = h[9].get('sign', '') if isinstance(h[9], dict) else h[9]
+                lines.append(f"  10하우스(커리어): {sign}")
 
     # Current transits - ADD TIMING CONTEXT for 2025
     lines.append(f"\n🔮 현재 트랜짓 ({now.year}년 {now.month}월):")
@@ -2121,6 +2323,135 @@ def _build_detailed_astro(astro_data: dict) -> str:
     return "\n".join(lines) if lines else "점성술 정보 부족"
 
 
+def _build_advanced_astro_context(advanced_astro: dict) -> str:
+    """Build context from advanced astrology features (draconic, harmonics, progressions, etc.)."""
+    if not advanced_astro:
+        return ""
+
+    lines = []
+
+    # Draconic Chart (soul-level astrology)
+    if advanced_astro.get("draconic"):
+        draconic = advanced_astro["draconic"]
+        if isinstance(draconic, dict):
+            lines.append("\n🐉 드라코닉 차트 (영혼 레벨):")
+            if draconic.get("sun"):
+                lines.append(f"  • 드라코닉 태양: {draconic['sun']}")
+            if draconic.get("moon"):
+                lines.append(f"  • 드라코닉 달: {draconic['moon']}")
+            if draconic.get("insights"):
+                lines.append(f"  → {draconic['insights'][:200]}")
+
+    # Harmonics (personality layers)
+    if advanced_astro.get("harmonics"):
+        harmonics = advanced_astro["harmonics"]
+        if isinstance(harmonics, dict):
+            lines.append("\n🎵 하모닉 분석:")
+            for key, value in list(harmonics.items())[:3]:
+                if value:
+                    lines.append(f"  • {key}: {value[:100] if isinstance(value, str) else value}")
+
+    # Progressions (life timing)
+    if advanced_astro.get("progressions"):
+        prog = advanced_astro["progressions"]
+        if isinstance(prog, dict):
+            lines.append("\n🔄 프로그레션 (생애 타이밍):")
+            if prog.get("secondary"):
+                lines.append(f"  • 세컨더리: {prog['secondary'][:150] if isinstance(prog['secondary'], str) else prog['secondary']}")
+            if prog.get("solarArc"):
+                lines.append(f"  • 솔라 아크: {prog['solarArc'][:150] if isinstance(prog['solarArc'], str) else prog['solarArc']}")
+            if prog.get("moonPhase"):
+                lines.append(f"  • 현재 달 위상: {prog['moonPhase']}")
+
+    # Solar Return (birthday year ahead)
+    if advanced_astro.get("solarReturn"):
+        sr = advanced_astro["solarReturn"]
+        if isinstance(sr, dict) and sr.get("summary"):
+            lines.append("\n🎂 솔라 리턴 (올해 생일 차트):")
+            lines.append(f"  {sr['summary'][:200]}")
+
+    # Lunar Return (monthly energy)
+    if advanced_astro.get("lunarReturn"):
+        lr = advanced_astro["lunarReturn"]
+        if isinstance(lr, dict) and lr.get("summary"):
+            lines.append("\n🌙 루나 리턴 (이번 달 에너지):")
+            lines.append(f"  {lr['summary'][:200]}")
+
+    # Asteroids (detailed personality)
+    if advanced_astro.get("asteroids"):
+        asteroids = advanced_astro["asteroids"]
+        if isinstance(asteroids, (list, dict)):
+            lines.append("\n☄️ 소행성 분석:")
+            if isinstance(asteroids, list):
+                for ast in asteroids[:4]:
+                    if isinstance(ast, dict):
+                        lines.append(f"  • {ast.get('name', '')}: {ast.get('sign', '')} {ast.get('interpretation', '')[:80]}")
+            elif isinstance(asteroids, dict):
+                for name, data in list(asteroids.items())[:4]:
+                    if isinstance(data, dict):
+                        lines.append(f"  • {name}: {data.get('sign', '')} {data.get('interpretation', '')[:80]}")
+
+    # Fixed Stars (fate/destiny points)
+    if advanced_astro.get("fixedStars"):
+        stars = advanced_astro["fixedStars"]
+        if isinstance(stars, list) and stars:
+            lines.append("\n⭐ 고정항성 (운명 포인트):")
+            for star in stars[:3]:
+                if isinstance(star, dict):
+                    lines.append(f"  • {star.get('name', '')}: {star.get('interpretation', '')[:100]}")
+
+    # Eclipses (transformation points)
+    if advanced_astro.get("eclipses"):
+        eclipses = advanced_astro["eclipses"]
+        if isinstance(eclipses, (list, dict)):
+            lines.append("\n🌑 일식/월식 영향:")
+            if isinstance(eclipses, list):
+                for ecl in eclipses[:2]:
+                    if isinstance(ecl, dict):
+                        lines.append(f"  • {ecl.get('type', '')}: {ecl.get('date', '')} - {ecl.get('interpretation', '')[:100]}")
+            elif isinstance(eclipses, dict):
+                if eclipses.get("solar"):
+                    lines.append(f"  • 일식: {eclipses['solar'][:100]}")
+                if eclipses.get("lunar"):
+                    lines.append(f"  • 월식: {eclipses['lunar'][:100]}")
+
+    # Midpoints (relationship dynamics)
+    if advanced_astro.get("midpoints"):
+        mp = advanced_astro["midpoints"]
+        if isinstance(mp, dict):
+            lines.append("\n🔗 미드포인트 (핵심 조합):")
+            if mp.get("sunMoon"):
+                lines.append(f"  • 태양/달: {mp['sunMoon'][:100] if isinstance(mp['sunMoon'], str) else mp['sunMoon']}")
+            if mp.get("ascMc"):
+                lines.append(f"  • 상승/MC: {mp['ascMc'][:100] if isinstance(mp['ascMc'], str) else mp['ascMc']}")
+
+    # Current Transits (personalized)
+    if advanced_astro.get("transits"):
+        transits = advanced_astro["transits"]
+        if isinstance(transits, list) and transits:
+            lines.append("\n🌍 현재 개인 트랜짓:")
+            for transit in transits[:5]:
+                if isinstance(transit, dict):
+                    lines.append(f"  • {transit.get('aspect', '')}: {transit.get('interpretation', '')[:100]}")
+                elif isinstance(transit, str):
+                    lines.append(f"  • {transit[:100]}")
+
+    # Extra Points (Lilith, Part of Fortune, etc.)
+    if advanced_astro.get("extraPoints"):
+        extra = advanced_astro["extraPoints"]
+        if isinstance(extra, dict):
+            lines.append("\n🔮 특수 포인트:")
+            for name, data in list(extra.items())[:4]:
+                if isinstance(data, dict):
+                    lines.append(f"  • {name}: {data.get('sign', '')} {data.get('interpretation', '')[:80]}")
+                elif isinstance(data, str):
+                    lines.append(f"  • {name}: {data[:80]}")
+
+    if lines:
+        return "\n".join(lines)
+    return ""
+
+
 # Health check
 @app.route("/", methods=["GET"])
 def index():
@@ -2143,6 +2474,10 @@ def ask():
         locale = data.get("locale", "en")
         raw_prompt = data.get("prompt") or ""
 
+        # Input validation - check for suspicious patterns
+        if is_suspicious_input(raw_prompt):
+            logger.warning(f"[ASK] Suspicious input detected: {raw_prompt[:100]}...")
+
         # Normalize dayMaster structure (nested -> flat)
         saju_data = normalize_day_master(saju_data)
 
@@ -2152,8 +2487,8 @@ def ask():
             '"lifeTimeline"' in raw_prompt or
             '"categoryAnalysis"' in raw_prompt
         )
-        # Allow full prompt for structured requests, otherwise clamp to 500 chars
-        prompt = raw_prompt if is_structured_prompt else raw_prompt[:500]
+        # Allow full prompt for structured requests, otherwise sanitize and clamp
+        prompt = raw_prompt if is_structured_prompt else sanitize_user_input(raw_prompt, max_length=500)
         if is_structured_prompt:
             logger.info(f"[ASK] Detected STRUCTURED JSON prompt (len={len(raw_prompt)})")
 
@@ -2213,14 +2548,20 @@ def ask_stream():
 
         saju_data = data.get("saju") or {}
         astro_data = data.get("astro") or {}
+        advanced_astro = data.get("advanced_astro") or {}  # Advanced astrology features
         birth_data = data.get("birth") or {}
         theme = data.get("theme", "chat")
         locale = data.get("locale", "en")
-        prompt = (data.get("prompt") or "")[:1500]  # Chat prompt limit
+        raw_prompt = data.get("prompt") or ""
         session_id = data.get("session_id")  # Optional: use pre-fetched RAG data
         conversation_history = data.get("history") or []  # Previous messages for context
         user_context = data.get("user_context") or {}  # Premium: persona + session summaries
         cv_text = (data.get("cv_text") or "")[:4000]  # CV/Resume text for career consultations
+
+        # Input validation - sanitize user prompt
+        if is_suspicious_input(raw_prompt):
+            logger.warning(f"[ASK-STREAM] Suspicious input detected: {raw_prompt[:100]}...")
+        prompt = sanitize_user_input(raw_prompt, max_length=1500, allow_newlines=True)
 
         # Normalize dayMaster structure (nested -> flat)
         saju_data = normalize_day_master(saju_data)
@@ -2268,18 +2609,20 @@ def ask_stream():
             else:
                 logger.warning(f"[ASK-STREAM] Session {session_id} not found or expired")
 
-        # If saju/astro not provided but birth info is, compute minimal data
-        if not saju_data and birth_data.get("date") and birth_data.get("time"):
+        # If saju/astro not provided (or empty) but birth info is, compute minimal data
+        if (not saju_data or not saju_data.get("dayMaster")) and birth_data.get("date") and birth_data.get("time"):
             try:
                 saju_data = calculate_saju_data(
                     birth_data["date"],
                     birth_data["time"],
                     birth_data.get("gender", "male")
                 )
+                saju_data = normalize_day_master(saju_data)
+                logger.info(f"[ASK-STREAM] Computed saju from birth: {saju_data.get('dayMaster', {})}")
             except Exception as e:
                 logger.warning(f"[ASK-STREAM] Failed to compute saju: {e}")
 
-        if not astro_data and birth_data.get("date") and birth_data.get("time"):
+        if (not astro_data or not astro_data.get("sun")) and birth_data.get("date") and birth_data.get("time"):
             try:
                 lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
                 lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
@@ -2295,14 +2638,18 @@ def ask_stream():
                     "latitude": lat,
                     "longitude": lon,
                 })
+                logger.info(f"[ASK-STREAM] Computed astro from birth: sun={astro_data.get('sun', {}).get('sign')}")
             except Exception as e:
                 logger.warning(f"[ASK-STREAM] Failed to compute astro: {e}")
 
         # Build DETAILED chart context (not just summary)
         saju_detail = _build_detailed_saju(saju_data)
         astro_detail = _build_detailed_astro(astro_data)
+        advanced_astro_detail = _build_advanced_astro_context(advanced_astro)
         logger.info(f"[ASK-STREAM] saju_detail length: {len(saju_detail)}")
         logger.info(f"[ASK-STREAM] astro_detail length: {len(astro_detail)}")
+        if advanced_astro_detail:
+            logger.info(f"[ASK-STREAM] advanced_astro_detail length: {len(advanced_astro_detail)}")
 
         # Get cross-analysis (from session or instant lookup)
         cross_rules = ""
@@ -2315,6 +2662,31 @@ def ask_stream():
                     logger.info(f"[ASK-STREAM] Instant cross-analysis: {len(cross_rules)} chars, theme={theme}")
             except Exception as e:
                 logger.warning(f"[ASK-STREAM] Cross-analysis lookup failed: {e}")
+
+        # Get Jung/Stoic insights if not from session (instant lookup)
+        if not rag_context and HAS_CORPUS_RAG:
+            try:
+                _corpus_rag_inst = get_corpus_rag()
+                if _corpus_rag_inst:
+                    # Build query from user context
+                    theme_concepts = {
+                        "career": "vocation calling purpose 소명 직업 자아실현",
+                        "love": "anima animus relationship 관계 사랑 그림자",
+                        "health": "healing wholeness 치유 통합",
+                        "life_path": "individuation meaning 개성화 의미 성장",
+                        "family": "complex archetype 콤플렉스 원형 가족",
+                    }
+                    jung_query = f"{theme_concepts.get(theme, theme)} {prompt[:50] if prompt else ''}"
+                    quotes = _corpus_rag_inst.search(jung_query, top_k=3, min_score=0.15)
+                    if quotes:
+                        rag_context += "\n\n[📚 융 심리학 통찰]\n"
+                        for q in quotes[:2]:
+                            quote_text = q.get('quote_kr') or q.get('quote_en', '')
+                            if quote_text:
+                                rag_context += f"• \"{quote_text[:150]}...\" — 칼 융, {q.get('source', '')}\n"
+                        logger.info(f"[ASK-STREAM] Instant Jung quotes: {len(quotes)} found")
+            except Exception as e:
+                logger.debug(f"[ASK-STREAM] Instant Jung quotes failed: {e}")
 
         # Build cross-analysis section
         cross_section = ""
@@ -2332,9 +2704,46 @@ def ask_stream():
         if user_context:
             persona = user_context.get("persona", {})
             recent_sessions = user_context.get("recentSessions", [])
+            personality_type = user_context.get("personalityType", {})
+
+            # Nova Personality Type (from personality quiz)
+            if personality_type.get("typeCode"):
+                type_code = personality_type["typeCode"]
+                type_name = personality_type.get("personaName", "")
+                user_context_section = f"\n[🎭 사용자 성격 유형: {type_code}]\n"
+                if type_name:
+                    user_context_section += f"• 유형명: {type_name}\n"
+
+                # Lookup archetype details for counseling approach
+                archetype_hints = {
+                    "RVLA": "전략적 관점에서 조언. 큰 그림과 실행 계획 제시. 직접적 소통 선호.",
+                    "RVLF": "다양한 옵션과 가능성 제시. 실험적 접근 권장. 창의적 해결책 탐색.",
+                    "RVHA": "비전과 의미 연결. 스토리텔링 활용. 동기부여 중심 조언.",
+                    "RVHF": "영감과 새로운 관점 제시. 사회적 연결 강조. 열정적 소통.",
+                    "RSLA": "명확한 단계별 실행 계획 제시. 책임과 결과 강조. 효율적 조언.",
+                    "RSLF": "즉각적이고 실용적인 해결책. 현장 감각 활용. 위기 대응 관점.",
+                    "RSHA": "관계와 성장 중심. 따뜻하면서도 체계적. 안정적 환경 강조.",
+                    "RSHF": "참여와 소통 중심. 다양한 관점 포용. 함께하는 해결.",
+                    "GVLA": "근본 원인 분석. 장기적 관점. 체계적이고 깊은 해결책.",
+                    "GVLF": "데이터와 증거 기반 접근. 체계적 분석. 패턴 활용.",
+                    "GVHA": "성장과 발전 중심. 장기적 관계. 멘토링 관점.",
+                    "GVHF": "의미와 목적 연결. 깊은 질문. 진정성 있는 대화.",
+                    "GSLA": "단계별 검증된 방법 권장. 안정적 실행 지원. 리스크 관리.",
+                    "GSLF": "문제를 작게 분해. 하나씩 체계적 해결. 정밀한 접근.",
+                    "GSHA": "안정과 신뢰 기반. 점진적 변화 권장. 꾸준한 지원.",
+                    "GSHF": "갈등 해소와 조화 중심. 경청과 중재. 부드러운 접근.",
+                }
+                if type_code in archetype_hints:
+                    user_context_section += f"• 상담 스타일: {archetype_hints[type_code]}\n"
+
+                user_context_section += "\n→ 이 사용자의 성격 유형에 맞게 소통 스타일을 조절하세요.\n"
+                logger.info(f"[ASK-STREAM] Personality type: {type_code}")
 
             if persona.get("sessionCount", 0) > 0 or recent_sessions:
-                user_context_section = "\n[🔄 이전 상담 맥락]\n"
+                if not user_context_section:
+                    user_context_section = "\n[🔄 이전 상담 맥락]\n"
+                else:
+                    user_context_section += "\n[🔄 이전 상담 맥락]\n"
 
                 # Persona memory
                 if persona.get("sessionCount"):
@@ -2388,7 +2797,7 @@ def ask_stream():
                 birth_year = int(birth_data["date"].split("-")[0])
             elif saju_data.get("birthYear"):
                 birth_year = int(saju_data["birthYear"])
-        except:
+        except (ValueError, KeyError, TypeError, AttributeError):
             pass
 
         if birth_year:
@@ -2443,10 +2852,20 @@ def ask_stream():
 
         # ======================================================
         # 🚨 CRISIS DETECTION - Check for dangerous keywords
+        # Only check the USER's message, not the full prompt (which includes system instructions)
         # ======================================================
         crisis_response = None
-        if HAS_COUNSELING and prompt:
-            crisis_check = CrisisDetector.detect_crisis(prompt)
+        crisis_check = {"is_crisis": False, "max_severity": "none", "requires_immediate_action": False}
+        user_message_for_crisis = ""
+        if conversation_history:
+            # Get the last user message from history
+            for msg in reversed(conversation_history):
+                if msg.get("role") == "user":
+                    user_message_for_crisis = msg.get("content", "")
+                    break
+
+        if HAS_COUNSELING and user_message_for_crisis:
+            crisis_check = CrisisDetector.detect_crisis(user_message_for_crisis)
             if crisis_check["is_crisis"]:
                 logger.warning(f"[ASK-STREAM] Crisis detected! severity={crisis_check['max_severity']}")
                 crisis_response = CrisisDetector.get_crisis_response(
@@ -2597,7 +3016,17 @@ def ask_stream():
 • 상세하고 깊이 있는 분석 (400-600단어)
 • 사주와 점성술 균형있게 활용하되 자연스럽게 녹여내
 • 구체적 날짜/시기 제시
-• '왜 그런지' 이유를 충분히 설명"""
+• '왜 그런지' 이유를 충분히 설명
+• 융 심리학 인용이 있으면 해석에 자연스럽게 녹여서 깊이 더하기"""
+
+        # Build advanced astrology section (only if data available)
+        advanced_astro_section = ""
+        if advanced_astro_detail:
+            advanced_astro_section = f"""
+
+[🔭 심층 점성 분석]
+{advanced_astro_detail}
+"""
 
         if rag_context:
             # RICH prompt with all RAG data
@@ -2610,7 +3039,7 @@ def ask_stream():
 
 [🌟 점성 분석]
 {astro_detail}
-{cross_section}
+{advanced_astro_section}{cross_section}
 {rag_context}
 {user_context_section}{cv_section}{lifespan_section}{theme_fusion_section}{imagination_section}{crisis_context_section}{therapeutic_section}
 
@@ -2620,6 +3049,7 @@ def ask_stream():
 • '왜 그런지' 이유를 상세히 풀어서 설명
 • 구체적인 날짜/시기 반드시 포함
 • 실천 가능한 구체적 조언 제공
+• 융 심리학 인용이 있으면 1-2문장 자연스럽게 활용 (딱딱하게 인용 X)
 
 ❌ 절대 금지:
 • 인사/환영 멘트 ("안녕하세요", "다시 찾아주셨네요")
@@ -2640,7 +3070,7 @@ def ask_stream():
 
 [🌟 점성 분석]
 {astro_detail}
-{cross_section}
+{advanced_astro_section}{cross_section}
 {user_context_section}{cv_section}{lifespan_section}{theme_fusion_section}{imagination_section}{crisis_context_section}{therapeutic_section}
 
 [🎯 응답 스타일]
@@ -2649,6 +3079,7 @@ def ask_stream():
 • '왜 그런지' 이유를 상세히 풀어서 설명
 • 구체적인 날짜/시기 반드시 포함
 • 실천 가능한 구체적 조언 제공
+• 융 심리학 인용이 있으면 1-2문장 자연스럽게 활용 (딱딱하게 인용 X)
 
 ❌ 절대 금지:
 • 인사/환영 멘트 ("안녕하세요", "다시 찾아주셨네요")
@@ -2703,7 +3134,11 @@ def ask_stream():
             """SSE generator for streaming response."""
             try:
                 from openai import OpenAI
-                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                import httpx
+                client = OpenAI(
+                    api_key=os.getenv("OPENAI_API_KEY"),
+                    timeout=httpx.Timeout(60.0, connect=10.0)
+                )
 
                 # Build messages with conversation history (EXPANDED: last 12 exchanges)
                 messages = [{"role": "system", "content": system_prompt}]
@@ -2825,6 +3260,7 @@ def counselor_init():
 
         saju_data = data.get("saju") or {}
         astro_data = data.get("astro") or {}
+        birth_data = data.get("birth") or {}
         theme = data.get("theme", "chat")
         locale = data.get("locale", "ko")
 
@@ -2833,6 +3269,40 @@ def counselor_init():
 
         logger.info(f"[COUNSELOR-INIT] id={g.request_id} theme={theme}")
         logger.info(f"[COUNSELOR-INIT] saju dayMaster: {saju_data.get('dayMaster', {})}")
+        logger.info(f"[COUNSELOR-INIT] astro_data keys: {list(astro_data.keys()) if astro_data else 'empty'}")
+
+        # Compute saju if not provided but birth info is available
+        if (not saju_data or not saju_data.get("dayMaster")) and birth_data.get("date") and birth_data.get("time"):
+            try:
+                saju_data = calculate_saju_data(
+                    birth_data["date"],
+                    birth_data["time"],
+                    birth_data.get("gender", "male")
+                )
+                saju_data = normalize_day_master(saju_data)
+                logger.info(f"[COUNSELOR-INIT] Computed saju from birth data: {saju_data.get('dayMaster', {})}")
+            except Exception as e:
+                logger.warning(f"[COUNSELOR-INIT] Failed to compute saju: {e}")
+
+        # Compute astro if not provided but birth info is available
+        if (not astro_data or not astro_data.get("sun")) and birth_data.get("date") and birth_data.get("time"):
+            try:
+                lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
+                lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
+                date_parts = birth_data["date"].split("-")
+                time_parts = birth_data["time"].split(":")
+                astro_data = calculate_astrology_data({
+                    "year": int(date_parts[0]),
+                    "month": int(date_parts[1]),
+                    "day": int(date_parts[2]),
+                    "hour": int(time_parts[0]),
+                    "minute": int(time_parts[1]) if len(time_parts) > 1 else 0,
+                    "latitude": lat,
+                    "longitude": lon,
+                })
+                logger.info(f"[COUNSELOR-INIT] Computed astro from birth data: sun={astro_data.get('sun', {}).get('sign')}")
+            except Exception as e:
+                logger.warning(f"[COUNSELOR-INIT] Failed to compute astro: {e}")
 
         # Generate session ID
         session_id = str(uuid4())[:12]
@@ -2916,12 +3386,17 @@ def dream_interpret_stream():
         data = request.get_json(force=True)
         logger.info(f"[DREAM_STREAM] id={g.request_id} Starting streaming interpretation")
 
-        dream_text = data.get("dream", "")
+        raw_dream_text = data.get("dream", "")
         symbols = data.get("symbols", [])
         emotions = data.get("emotions", [])
         themes = data.get("themes", [])
         context = data.get("context", [])
         locale = data.get("locale", "ko")
+
+        # Input validation - sanitize dream text
+        if is_suspicious_input(raw_dream_text):
+            logger.warning(f"[DREAM_STREAM] Suspicious input detected")
+        dream_text = sanitize_dream_text(raw_dream_text)
 
         # Cultural symbols
         cultural_parts = []
@@ -3081,7 +3556,360 @@ def dream_interpret_stream():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+@app.route("/api/dream/chat-stream", methods=["POST"])
+def dream_chat_stream():
+    """
+    Streaming dream follow-up chat - Enhanced with RAG + Saju + Celestial context.
+    Returns Server-Sent Events (SSE) for real-time text streaming.
+
+    Request body:
+        {
+            "messages": [{"role": "user"|"assistant", "content": "..."}],
+            "dream_context": {
+                "dream_text": "원래 꿈 내용",
+                "summary": "해석 요약",
+                "symbols": ["symbol1", "symbol2"],
+                "emotions": ["emotion1"],
+                "themes": ["theme1"],
+                "recommendations": ["recommendation1"],
+                "cultural_notes": {"korean": "...", "western": "..."},
+                "celestial": {...},  # Optional: moon phase, retrogrades
+                "saju": {...}  # Optional: birth data for saju context
+            },
+            "language": "ko"|"en"
+        }
+    """
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[DREAM_CHAT_STREAM] id={g.request_id} Processing enhanced streaming chat with RAG")
+
+        raw_messages = data.get("messages", [])
+        dream_context = data.get("dream_context", {})
+        language = data.get("language", "ko")
+
+        # Sanitize all messages
+        messages = sanitize_messages(raw_messages)
+
+        if not messages:
+            return jsonify({"status": "error", "message": "No messages provided"}), 400
+
+        # Extract dream context
+        dream_text = dream_context.get("dream_text", "")
+        summary = dream_context.get("summary", "")
+        symbols = dream_context.get("symbols", [])
+        emotions = dream_context.get("emotions", [])
+        themes = dream_context.get("themes", [])
+        recommendations = dream_context.get("recommendations", [])
+        cultural_notes = dream_context.get("cultural_notes", {})
+        celestial = dream_context.get("celestial", {})
+        saju_data = dream_context.get("saju", {})
+
+        # Get last user message for RAG search
+        last_user_message = ""
+        for msg in reversed(messages):
+            if msg.get("role") == "user":
+                last_user_message = msg.get("content", "")
+                break
+
+        # ============================================================
+        # RAG SEARCH: Find relevant dream interpretations for the question
+        # ============================================================
+        rag_context = ""
+        try:
+            from backend_ai.app.dream_logic import get_dream_embed_rag
+            dream_rag = get_dream_embed_rag()
+
+            # Search based on: original dream + user's current question
+            search_query = f"{dream_text[:300]} {last_user_message}"
+            rag_results = dream_rag.get_interpretation_context(search_query, top_k=6)
+
+            if rag_results.get("texts"):
+                rag_texts = rag_results.get("texts", [])[:5]
+                korean_notes_rag = rag_results.get("korean_notes", [])[:3]
+                specifics = rag_results.get("specifics", [])[:4]
+                advice_rag = rag_results.get("advice", [])[:3]
+                categories = rag_results.get("categories", [])
+
+                rag_context = "\n\n[📚 지식베이스 검색 결과 - 이 정보를 활용하여 답변하세요]\n"
+
+                if rag_texts:
+                    rag_context += "\n관련 해석:\n" + "\n".join([f"• {t}" for t in rag_texts])
+
+                if korean_notes_rag:
+                    rag_context += "\n\n한국 전통 해몽:\n" + "\n".join([f"• {n}" for n in korean_notes_rag])
+
+                if specifics:
+                    rag_context += "\n\n상세 상황별 해석:\n" + "\n".join([f"• {s}" for s in specifics])
+
+                if advice_rag:
+                    rag_context += "\n\n전통 조언:\n" + "\n".join([f"• {a}" for a in advice_rag])
+
+                if categories:
+                    rag_context += f"\n\n꿈 카테고리: {', '.join(categories)}"
+
+                logger.info(f"[DREAM_CHAT_STREAM] RAG found {len(rag_texts)} relevant texts, quality={rag_results.get('match_quality')}")
+        except Exception as rag_error:
+            logger.warning(f"[DREAM_CHAT_STREAM] RAG search failed (continuing without): {rag_error}")
+
+        # ============================================================
+        # CELESTIAL CONTEXT: Moon phase and planetary influences
+        # ============================================================
+        celestial_context = ""
+        if celestial:
+            moon_phase = celestial.get("moon_phase", {})
+            moon_sign = celestial.get("moon_sign", {})
+            retrogrades = celestial.get("retrogrades", [])
+
+            if moon_phase or moon_sign:
+                celestial_context = "\n\n[🌙 현재 천체 상황]\n"
+
+                if moon_phase:
+                    phase_name = moon_phase.get("korean", moon_phase.get("name", ""))
+                    phase_emoji = moon_phase.get("emoji", "🌙")
+                    dream_meaning = moon_phase.get("dream_meaning", "")
+                    celestial_context += f"달의 위상: {phase_emoji} {phase_name}\n"
+                    if dream_meaning:
+                        celestial_context += f"꿈에 미치는 영향: {dream_meaning}\n"
+
+                if moon_sign:
+                    sign_korean = moon_sign.get("korean", moon_sign.get("sign", ""))
+                    dream_flavor = moon_sign.get("dream_flavor", "")
+                    celestial_context += f"달 별자리: {sign_korean}\n"
+                    if dream_flavor:
+                        celestial_context += f"꿈 성격: {dream_flavor}\n"
+
+                if retrogrades:
+                    retro_names = [r.get("korean", r.get("planet", "")) for r in retrogrades[:3]]
+                    celestial_context += f"역행 중인 행성: {', '.join(retro_names)}\n"
+        else:
+            # Try to get current celestial data if not provided
+            try:
+                if HAS_REALTIME:
+                    transits = get_current_transits()
+                    if transits:
+                        moon_phase = transits.get("moon_phase", {})
+                        if moon_phase:
+                            phase_name = moon_phase.get("korean", moon_phase.get("name", ""))
+                            phase_emoji = moon_phase.get("emoji", "🌙")
+                            celestial_context = f"\n\n[🌙 현재 달 위상: {phase_emoji} {phase_name}]\n"
+            except Exception:
+                pass
+
+        # ============================================================
+        # SAJU CONTEXT: User's fortune influence on dreams
+        # ============================================================
+        saju_context = ""
+        if saju_data and saju_data.get("birth_date"):
+            try:
+                birth_date = saju_data.get("birth_date", "")
+                birth_time = saju_data.get("birth_time", "")
+
+                # Calculate current saju if we have birth data
+                saju_result = calculate_saju_data(
+                    birth_date=birth_date,
+                    birth_time=birth_time or "12:00",
+                    birth_city=saju_data.get("birth_city", "Seoul"),
+                    timezone=saju_data.get("timezone", "Asia/Seoul"),
+                    language=language
+                )
+
+                if saju_result:
+                    day_master = saju_result.get("dayMaster", {})
+                    current_daeun = saju_result.get("currentDaeun", {})
+                    today_iljin = saju_result.get("todayIljin", {})
+
+                    saju_context = "\n\n[🔮 사용자 사주 운세 컨텍스트]\n"
+
+                    if day_master:
+                        dm_stem = day_master.get("stem", "")
+                        dm_element = day_master.get("element", "")
+                        saju_context += f"일간(본질): {dm_stem} ({dm_element})\n"
+
+                    if current_daeun:
+                        daeun_info = f"{current_daeun.get('stem', '')} {current_daeun.get('branch', '')}"
+                        saju_context += f"현재 대운(10년): {daeun_info}\n"
+
+                    if today_iljin:
+                        iljin_info = f"{today_iljin.get('stem', '')} {today_iljin.get('branch', '')}"
+                        saju_context += f"오늘 일진: {iljin_info}\n"
+
+                    saju_context += "→ 이 운세 흐름이 꿈의 내용과 시점에 영향을 미칩니다.\n"
+
+                    logger.info(f"[DREAM_CHAT_STREAM] Added saju context for user")
+            except Exception as saju_error:
+                logger.warning(f"[DREAM_CHAT_STREAM] Saju calculation failed: {saju_error}")
+
+        # Format basic context
+        symbols_str = ", ".join(symbols) if symbols else "없음"
+        emotions_str = ", ".join(emotions) if emotions else "없음"
+        themes_str = ", ".join(themes) if themes else "없음"
+        recommendations_str = " / ".join(recommendations) if recommendations else "없음"
+
+        # Build conversation history
+        conversation_history = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "system":
+                continue
+            conversation_history.append(f"{'사용자' if role == 'user' else 'AI'}: {content}")
+
+        is_korean = language == "ko"
+
+        # ============================================================
+        # BUILD ENHANCED SYSTEM PROMPT
+        # ============================================================
+        if is_korean:
+            system_prompt = """당신은 전문 꿈 해석 상담사입니다. 한국 전통 해몽, 융 심리학, 동양 철학을 융합한 깊이 있는 해석을 제공합니다.
+
+핵심 역할:
+- 지식베이스의 구체적인 해석 정보를 활용하여 답변
+- 한국 전통 해몽 (길몽/흉몽, 태몽, 재물몽 등) 관점 제공
+- 꿈의 심볼이 실생활에 어떻게 적용되는지 구체적으로 설명
+- 사용자의 현재 운세(사주) 흐름과 꿈의 연관성 분석
+- 천체 에너지(달 위상 등)가 꿈에 미치는 영향 설명
+
+답변 스타일:
+- 구체적이고 개인화된 해석 제공 (일반론 피하기)
+- 지식베이스에서 찾은 정보를 자연스럽게 녹여서 답변
+- 실용적인 조언과 행동 지침 포함
+- 따뜻하고 공감적이면서도 전문적인 톤
+
+주의사항:
+- 의학적 조언 금지
+- 구체적인 복권 번호 예측 금지 (재물운 조언은 가능)
+- 답변은 4-6문장으로 충실하게"""
+
+            # Build enhanced chat prompt with all context
+            chat_prompt = f"""[꿈 해석 컨텍스트]
+원래 꿈: {dream_text[:600] if dream_text else "(없음)"}
+해석 요약: {summary[:400] if summary else "(없음)"}
+주요 심볼: {symbols_str}
+감정: {emotions_str}
+테마: {themes_str}
+기존 조언: {recommendations_str}"""
+
+            # Add cultural notes if available
+            if cultural_notes:
+                if cultural_notes.get("korean"):
+                    chat_prompt += f"\n한국 해몽 해석: {cultural_notes['korean'][:200]}"
+                if cultural_notes.get("western"):
+                    chat_prompt += f"\n서양 심리학 해석: {cultural_notes['western'][:200]}"
+
+            # Add RAG context
+            chat_prompt += rag_context
+
+            # Add celestial context
+            chat_prompt += celestial_context
+
+            # Add saju context
+            chat_prompt += saju_context
+
+            chat_prompt += f"""
+
+[대화 기록]
+{chr(10).join(conversation_history[-6:])}
+
+[사용자 질문]
+{last_user_message}
+
+위의 지식베이스 검색 결과와 컨텍스트를 활용하여 구체적이고 개인화된 답변을 제공하세요."""
+
+        else:
+            system_prompt = """You are an expert dream interpretation counselor combining Korean traditional dream interpretation (해몽), Jungian psychology, and Eastern philosophy.
+
+Core Role:
+- Use knowledge base information to provide specific, grounded interpretations
+- Offer perspectives from multiple cultural traditions
+- Explain how dream symbols apply to real life specifically
+- Connect user's current fortune cycle (if available) to dream meaning
+- Consider celestial influences on dream content
+
+Response Style:
+- Provide specific, personalized interpretations (avoid generalities)
+- Naturally incorporate knowledge base findings
+- Include practical advice and action steps
+- Warm and empathetic yet professional tone
+
+Guidelines:
+- No medical advice
+- No specific lottery number predictions (fortune guidance is fine)
+- Keep responses substantive (4-6 sentences)"""
+
+            chat_prompt = f"""[Dream Interpretation Context]
+Original Dream: {dream_text[:600] if dream_text else "(none)"}
+Summary: {summary[:400] if summary else "(none)"}
+Key Symbols: {symbols_str}
+Emotions: {emotions_str}
+Themes: {themes_str}
+Previous Recommendations: {recommendations_str}"""
+
+            if cultural_notes:
+                if cultural_notes.get("korean"):
+                    chat_prompt += f"\nKorean Traditional: {cultural_notes['korean'][:200]}"
+                if cultural_notes.get("western"):
+                    chat_prompt += f"\nWestern Psychology: {cultural_notes['western'][:200]}"
+
+            chat_prompt += rag_context
+            chat_prompt += celestial_context
+            chat_prompt += saju_context
+
+            chat_prompt += f"""
+
+[Conversation History]
+{chr(10).join(conversation_history[-6:])}
+
+[User Question]
+{last_user_message}
+
+Use the knowledge base results and context above to provide a specific, personalized response."""
+
+        def generate_stream():
+            """Generator for SSE streaming"""
+            try:
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": chat_prompt}
+                    ],
+                    temperature=0.75,
+                    max_tokens=800,  # Increased for longer responses
+                    stream=True
+                )
+
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        yield f"data: {json.dumps({'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'done': True})}\n\n"
+
+            except Exception as stream_error:
+                logger.exception(f"[DREAM_CHAT_STREAM] Streaming error: {stream_error}")
+                yield f"data: {json.dumps({'error': str(stream_error)})}\n\n"
+
+        return Response(
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/dream/chat-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/dream", methods=["POST"])
+@app.route("/api/dream", methods=["POST"])
 def dream_interpret():
     """
     Dream interpretation endpoint.
@@ -3199,7 +4027,11 @@ def performance_stats():
 @app.route("/health", methods=["GET"])
 def health_check():
     """Simple health check for Railway/load balancer."""
-    return jsonify({"status": "ok"})
+    return jsonify({
+        "status": "ok",
+        "timestamp": time.time(),
+        "version": "1.0.0"
+    })
 
 
 @app.route("/health/full", methods=["GET"])
@@ -3211,28 +4043,52 @@ def full_health_check():
 
         # Calculate overall health score
         health_score = 100
+        issues = []
 
         # Penalize for low cache hit rate
         if perf_stats["cache_hit_rate"] < 30:
             health_score -= 20
+            issues.append("Low cache hit rate")
 
         # Penalize for slow responses
         if perf_stats["avg_response_time_ms"] > 2000:
             health_score -= 15
+            issues.append("Slow response times")
 
         # Penalize for cache issues
         if cache_health["health_score"] < 80:
             health_score -= 15
+            issues.append("Cache degradation")
+
+        # Check memory (if available)
+        try:
+            import psutil
+            memory = psutil.Process().memory_info()
+            memory_mb = memory.rss / 1024 / 1024
+            if memory_mb > 450:  # Railway 512MB limit
+                health_score -= 20
+                issues.append(f"High memory usage: {memory_mb:.0f}MB")
+        except ImportError:
+            memory_mb = None
+
+        # Check rate limit state size
+        rate_state_size = len(_rate_state)
+        if rate_state_size > 1000:
+            issues.append(f"Large rate state: {rate_state_size} clients")
 
         status_text = "excellent" if health_score >= 90 else "good" if health_score >= 70 else "degraded"
 
         return jsonify({
             "status": "success",
-            "health_score": health_score,
+            "health_score": max(0, health_score),
             "status_text": status_text,
+            "issues": issues,
             "performance": perf_stats,
             "cache": cache_health,
-            "timestamp": time.time()
+            "memory_mb": memory_mb,
+            "rate_state_clients": rate_state_size,
+            "timestamp": time.time(),
+            "version": "1.0.0"
         })
     except Exception as e:
         logger.exception(f"[ERROR] /health/full failed: {e}")
@@ -4068,8 +4924,8 @@ TAROT_SUBTOPIC_MAPPING = {
 }
 
 
-def _map_tarot_theme(category: str, spread_id: str) -> tuple:
-    """Map frontend theme/spread to backend theme/sub_topic"""
+def _map_tarot_theme(category: str, spread_id: str, user_question: str = "") -> tuple:
+    """Map frontend theme/spread to backend theme/sub_topic, considering user's question"""
     # Check specific mapping first
     key = (category, spread_id)
     if key in TAROT_SUBTOPIC_MAPPING:
@@ -4077,6 +4933,43 @@ def _map_tarot_theme(category: str, spread_id: str) -> tuple:
 
     # Fall back to theme-only mapping
     mapped_theme = TAROT_THEME_MAPPING.get(category, category)
+
+    # Dynamic sub_topic selection based on user question keywords
+    if user_question and mapped_theme == "career":
+        q = user_question.lower()
+        if any(kw in q for kw in ["사업", "창업", "자영업", "business", "startup", "entrepreneur"]):
+            return (mapped_theme, "entrepreneurship")
+        elif any(kw in q for kw in ["취업", "취직", "입사", "job", "employment", "hire"]):
+            return (mapped_theme, "job_search")
+        elif any(kw in q for kw in ["이직", "퇴사", "전직", "resign", "quit", "change job"]):
+            return (mapped_theme, "career_change")
+        elif any(kw in q for kw in ["승진", "promotion", "raise"]):
+            return (mapped_theme, "promotion")
+        elif any(kw in q for kw in ["직장", "회사", "상사", "동료", "workplace", "boss", "colleague"]):
+            return (mapped_theme, "workplace")
+
+    elif user_question and mapped_theme == "love":
+        q = user_question.lower()
+        if any(kw in q for kw in ["짝사랑", "고백", "crush", "confess"]):
+            return (mapped_theme, "crush")
+        elif any(kw in q for kw in ["헤어", "이별", "breakup", "separate"]):
+            return (mapped_theme, "breakup")
+        elif any(kw in q for kw in ["결혼", "약혼", "marriage", "wedding"]):
+            return (mapped_theme, "marriage")
+        elif any(kw in q for kw in ["재회", "다시", "reconcile", "ex"]):
+            return (mapped_theme, "reconciliation")
+        elif any(kw in q for kw in ["만남", "소개팅", "dating", "meet"]):
+            return (mapped_theme, "new_love")
+
+    elif user_question and mapped_theme == "wealth":
+        q = user_question.lower()
+        if any(kw in q for kw in ["투자", "주식", "코인", "invest", "stock", "crypto"]):
+            return (mapped_theme, "investment")
+        elif any(kw in q for kw in ["빚", "대출", "부채", "debt", "loan"]):
+            return (mapped_theme, "debt")
+        elif any(kw in q for kw in ["저축", "절약", "save", "saving"]):
+            return (mapped_theme, "saving")
+
     return (mapped_theme, spread_id)
 
 
@@ -4275,8 +5168,13 @@ def tarot_interpret():
         spread_id = data.get("spread_id", "three_card")
         spread_title = data.get("spread_title", "Three Card Spread")
         cards = data.get("cards", [])
-        user_question = data.get("user_question", "")
+        raw_question = data.get("user_question", "")
         language = data.get("language", "ko")
+
+        # Input validation - sanitize user question
+        if is_suspicious_input(raw_question):
+            logger.warning(f"[TAROT] Suspicious input detected")
+        user_question = sanitize_user_input(raw_question, max_length=500)
 
         # Optional context for enhanced readings (from destiny-map)
         saju_context = data.get("saju_context")  # e.g., day_master, five_elements
@@ -4345,9 +5243,9 @@ def tarot_interpret():
                 enhanced_question = f"[배경: {', '.join(context_parts)}] {user_question}"
 
         # Generate reading using GPT-4 (same as destiny-map)
-        # Apply theme/spread mapping (frontend IDs → backend names)
-        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
-        logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
+        # Apply theme/spread mapping (frontend IDs → backend names) with user question for dynamic sub_topic
+        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id, user_question)
+        logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread} (question: {user_question[:50] if user_question else 'none'}...)")
 
         # === PARALLEL PROCESSING: Build RAG context and advanced analysis concurrently ===
         def build_rag_context():
@@ -4412,6 +5310,19 @@ def tarot_interpret():
         except Exception:
             pass
 
+        # Detect question intent for more specific guidance
+        question_context = ""
+        if user_question:
+            q = user_question.lower()
+            if mapped_spread == "entrepreneurship" or any(kw in q for kw in ["사업", "창업", "business"]):
+                question_context = "질문자는 사업/창업에 대해 묻고 있습니다. 사업 시작 시기, 성공 가능성, 주의점 위주로 해석하세요."
+            elif mapped_spread == "job_search" or any(kw in q for kw in ["취업", "취직", "job"]):
+                question_context = "질문자는 취업에 대해 묻고 있습니다. 합격 가능성, 준비 방향, 시기 위주로 해석하세요."
+            elif mapped_spread == "career_change" or any(kw in q for kw in ["이직", "퇴사"]):
+                question_context = "질문자는 이직/퇴사를 고민 중입니다. 현 직장 vs 새 직장, 시기, 리스크 위주로 해석하세요."
+            elif any(kw in q for kw in ["vs", "아니면", "할까요", "or"]):
+                question_context = "질문자는 양자택일 상황입니다. 각 선택지의 장단점과 카드가 어느 쪽을 가리키는지 명확히 해석하세요."
+
         tarot_prompt = f"""당신은 10년 경력의 타로 리더입니다. 카드 상징과 이미지를 직관적으로 읽어내며, 질문자의 상황에 맞는 실질적인 통찰을 전달합니다.
 
 ## 오늘: {date_str} ({season}){moon_phase_hint}
@@ -4420,7 +5331,10 @@ def tarot_interpret():
 카테고리: {category}
 스프레드: {spread_title}
 카드: {cards_str}
-질문: {enhanced_question or "일반 운세"}
+
+## ⭐ 질문자의 질문 (반드시 이 질문에 직접 답하세요)
+"{enhanced_question or '일반 운세'}"
+{question_context}
 
 ## 카드 컨텍스트
 {rag_context}
@@ -4432,10 +5346,10 @@ def tarot_interpret():
 "이 카드는 변화를 나타내며, 새로운 시작의 가능성을 보여주고 있습니다. 긍정적인 에너지가 느껴지네요. 자신감을 가지고 앞으로 나아가시면 좋을 것 같습니다."
 
 ## 해석 방향
+- 질문에 직접 답변 (취업 vs 사업이면 어느 쪽이 유리한지, 시기는 언제인지 등)
 - 카드 이미지의 상징을 구체적으로 언급
 - 위치별 카드가 서로 어떤 이야기를 만들어내는지 연결
 - 막연한 격려 대신 구체적인 상황 해석
-- 질문과 직접 연결된 통찰 제시
 - {('자연스러운 한국어' if is_korean else 'Natural English')}
 - 500-700자"""
 
@@ -4661,8 +5575,9 @@ def tarot_interpret_stream():
             for c in cards
         ]
 
-        # Map theme/spread
-        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
+        # Map theme/spread with user question for dynamic sub_topic selection
+        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id, user_question)
+        logger.info(f"[TAROT_STREAM] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
 
         # Build context in parallel
         def build_rag():
@@ -4702,6 +5617,19 @@ def tarot_interpret_stream():
                     yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
                     return
 
+                # Detect question intent for more specific guidance
+                question_context = ""
+                if user_question:
+                    q = user_question.lower()
+                    if mapped_spread == "entrepreneurship" or any(kw in q for kw in ["사업", "창업", "business"]):
+                        question_context = "\n⭐ 질문자는 사업/창업에 대해 묻고 있습니다. 사업 시작 시기, 성공 가능성, 주의점 위주로 해석하세요."
+                    elif mapped_spread == "job_search" or any(kw in q for kw in ["취업", "취직", "job"]):
+                        question_context = "\n⭐ 질문자는 취업에 대해 묻고 있습니다. 합격 가능성, 준비 방향, 시기 위주로 해석하세요."
+                    elif mapped_spread == "career_change" or any(kw in q for kw in ["이직", "퇴사"]):
+                        question_context = "\n⭐ 질문자는 이직/퇴사를 고민 중입니다. 현 직장 vs 새 직장, 시기, 리스크 위주로 해석하세요."
+                    elif any(kw in q for kw in ["vs", "아니면", "할까요", "or"]):
+                        question_context = "\n⭐ 질문자는 양자택일 상황입니다. 각 선택지의 장단점과 카드가 어느 쪽을 가리키는지 명확히 해석하세요."
+
                 # === SECTION 1: Overall Message (streaming) ===
                 yield f"data: {json.dumps({'section': 'overall_message', 'status': 'start'})}\n\n"
 
@@ -4710,7 +5638,9 @@ def tarot_interpret_stream():
 카드: {cards_str}
 카테고리: {category}
 스프레드: {spread_title}
-질문: {user_question or "일반 운세"}
+
+⭐ 질문자의 질문 (반드시 이 질문에 직접 답하세요):
+"{user_question or '일반 운세'}"{question_context}
 
 참고 컨텍스트:
 {rag_context[:1500]}
@@ -4719,6 +5649,7 @@ def tarot_interpret_stream():
 피할 것: "긍정적인 에너지가 느껴지네요. 좋은 변화가 올 것 같습니다."
 
 해석 방향:
+- 질문에 직접 답변 (취업 vs 사업이면 어느 쪽이 유리한지 등)
 - 카드 이미지의 구체적 상징 언급 (인물, 배경, 물건)
 - 카드들이 연결되어 보여주는 이야기
 - 3-4문장으로 핵심만"""
@@ -4757,7 +5688,9 @@ def tarot_interpret_stream():
 카드: {card_name}{'(역방향)' if is_reversed else ''}
 위치: {position}
 스프레드: {spread_title}
-질문: {user_question or "일반 운세"}
+
+⭐ 질문 (이 질문 맥락에서 해석하세요):
+"{user_question or '일반 운세'}"{question_context}
 
 카드 정보:
 {json.dumps(card_info, ensure_ascii=False)[:800]}
@@ -4769,6 +5702,7 @@ def tarot_interpret_stream():
 피할 것: "이 카드는 직관을 나타냅니다. 내면의 목소리에 귀 기울이시면 좋겠습니다."
 
 해석 방향:
+- 질문에 대해 이 카드가 말하는 바를 명확히
 - 카드 그림의 구체적 상징 (인물 자세, 배경, 물건)
 - {position} 위치에서의 의미
 - 2-3문장으로 간결하게"""
@@ -4969,10 +5903,10 @@ def tarot_chat():
 {'💡 현재 카드들이 이미 충분한 메시지를 담고 있습니다. 이 리딩에서 더 깊이 들여다볼 부분이 있다면 질문해주세요.' if wants_more_cards else ''}
 {'⏰ 시기에 대한 질문이네요. 카드의 흐름에서 읽히는 타이밍을 말씀드리겠습니다.' if asks_about_timing else ''}
 
-{'## 심리학적 통찰' + chr(10) + jung_insight if jung_insight else ''}
+{'## 심리학적 통찰 (융 심리학 인용 - 해석에 자연스럽게 녹여서 사용)' + chr(10) + jung_insight if jung_insight else ''}
 
 ## 좋은 답변 예시
-"죽음 카드가 나왔다고 했는데, 실제 죽음이 아니라 변혁이다. 창백한 기수가 지나가면 왕도 쓰러진다—지위와 상관없이 변화는 온다. 지금 끝내야 할 게 뭔지 이미 알고 있을 것이다."
+"죽음 카드가 나왔다고 했는데, 실제 죽음이 아니라 변혁이다. 창백한 기수가 지나가면 왕도 쓰러진다—지위와 상관없이 변화는 온다. 융이 말했듯이 '무언가가 끝나지 않으면 새로운 것이 시작될 수 없다.' 지금 끝내야 할 게 뭔지 이미 알고 있을 것이다."
 
 ## 피해야 할 답변
 "걱정하지 마세요. 좋은 방향으로 흘러갈 것 같습니다. 긍정적인 마음을 가지시면 좋겠어요."
@@ -4980,7 +5914,8 @@ def tarot_chat():
 ## 답변 방향
 - 질문에 직접 연결된 카드 상징 언급
 - 구체적인 이미지 묘사
-- 3-4문장으로 간결하게"""
+- 심리학적 통찰이 있으면 1문장 정도 자연스럽게 녹여서
+- 3-5문장으로 간결하지만 깊이 있게"""
 
         try:
             # GPT-4o-mini for fast, natural counselor responses (skip refine for speed)
@@ -5017,9 +5952,12 @@ def tarot_chat_stream():
         data = request.get_json(force=True)
         logger.info(f"[TAROT_CHAT_STREAM] id={g.request_id} Processing streaming chat")
 
-        messages = data.get("messages", [])
+        raw_messages = data.get("messages", [])
         context = data.get("context", {})
         language = data.get("language", "ko")
+
+        # Sanitize all messages
+        messages = sanitize_messages(raw_messages)
 
         if not messages:
             return jsonify({"status": "error", "message": "No messages provided"}), 400
@@ -6058,7 +6996,7 @@ def rlhf_analytics():
                             fb_datetime = datetime.fromisoformat(fb_date.replace("Z", "+00:00"))
                             if fb_datetime < cutoff_date:
                                 continue
-                        except:
+                        except (ValueError, TypeError):
                             pass
 
                     filtered.append(fb)
@@ -7012,7 +7950,7 @@ def _calculate_simple_saju(birth_date: str, birth_time: str = "12:00") -> dict:
         if birth_time:
             try:
                 hour = int(birth_time.split(":")[0])
-            except:
+            except (ValueError, IndexError, AttributeError):
                 hour = 12
 
         # 년주 계산 (1984=甲子 기준)
@@ -7953,7 +8891,7 @@ JSON 형식으로 응답하세요:
                     emotional_journey = result.get("emotional_journey", "")
                     key_insight = result.get("key_insight", "")
                     recommended_followup = result.get("followup_questions", [])
-                except:
+                except (json_mod.JSONDecodeError, KeyError, TypeError, AttributeError):
                     summary_text = response.choices[0].message.content[:500]
                     emotional_journey = " → ".join(emotions_timeline) if emotions_timeline else "파악 불가"
                     key_insight = ""
@@ -8638,6 +9576,569 @@ Response format:
 
     except Exception as e:
         logger.exception(f"[ERROR] /astrology/ask-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ============================================================
+# DESTINY MATRIX STORY - AI Generated Personal Destiny Analysis
+# ============================================================
+
+@app.route("/api/destiny-story/generate-stream", methods=["POST"])
+def generate_destiny_story_stream():
+    """
+    Generate a personalized ~20,000 character destiny story using AI.
+    Combines Eastern (Saju) and Western (Astrology) wisdom with ALL RAG data:
+    - GraphRAG (지식 그래프)
+    - CorpusRAG (융 심리학 인용)
+    - PersonaEmbedRAG (융/스토아 철학 인사이트)
+    - Cross-analysis (사주×점성 교차 분석)
+    - 신살, 대운, 세운 정보
+    Uses streaming for real-time response.
+    """
+    try:
+        data = request.get_json(force=True)
+        saju_data = data.get("saju") or {}
+        astro_data = data.get("astro") or {}
+        locale = data.get("locale", "ko")
+
+        # Normalize dayMaster structure
+        saju_data = normalize_day_master(saju_data)
+
+        # Extract key data - handle multiple naming conventions
+        day_master = saju_data.get("dayMaster", "")
+        if isinstance(day_master, dict):
+            # Handle various frontend formats: { name, element } or { korean, hanja } or { heavenlyStem: { name } }
+            day_master = (
+                day_master.get("name") or  # Frontend format
+                day_master.get("korean") or
+                day_master.get("hanja") or
+                day_master.get("heavenlyStem", {}).get("name") if isinstance(day_master.get("heavenlyStem"), dict) else None or
+                day_master.get("heavenlyStem") or
+                str(day_master)
+            )
+
+        pillars = saju_data.get("pillars", {})
+        year_pillar = pillars.get("year", {})
+        month_pillar = pillars.get("month", {})
+        day_pillar = pillars.get("day", {})
+        hour_pillar = pillars.get("hour", {})
+
+        # Astrology data - handle both nested and flat formats
+        def get_sign(data, key):
+            """Extract sign from various formats"""
+            val = data.get(key, {})
+            if isinstance(val, dict):
+                return val.get("sign", "") or val.get("zodiac", "") or val.get("name", "")
+            return str(val) if val else ""
+
+        # Also check astro.facts for nested data
+        astro_facts = astro_data.get("facts", {})
+        planets = astro_facts.get("planets", {}) if astro_facts else {}
+
+        sun_sign = get_sign(astro_data, "sun") or get_sign(planets, "sun")
+        moon_sign = get_sign(astro_data, "moon") or get_sign(planets, "moon")
+        rising_sign = get_sign(astro_data, "ascendant") or astro_data.get("rising", "") or get_sign(astro_facts, "ascendant")
+
+        # Additional astro planets
+        mercury_sign = get_sign(astro_data, "mercury") or get_sign(planets, "mercury")
+        venus_sign = get_sign(astro_data, "venus") or get_sign(planets, "venus")
+        mars_sign = get_sign(astro_data, "mars") or get_sign(planets, "mars")
+        jupiter_sign = get_sign(astro_data, "jupiter") or get_sign(planets, "jupiter")
+        saturn_sign = get_sign(astro_data, "saturn") or get_sign(planets, "saturn")
+
+        # 신살 (Special Stars) - handle both sinsal and shinsal naming
+        shinsal = saju_data.get("shinsal", []) or saju_data.get("sinsal", []) or saju_data.get("specialStars", [])
+        if isinstance(shinsal, dict):
+            shinsal = list(shinsal.values())
+
+        # 대운/세운 (Life Cycles)
+        unse = saju_data.get("unse", {})
+        daeun = unse.get("daeun", [])  # 10년 대운
+        current_daeun = unse.get("currentDaeun", {})
+        annual = unse.get("annual", [])  # 세운
+
+        # 십신 (Ten Gods)
+        ten_gods = saju_data.get("tenGods", {})
+
+        # 오행 균형 - handle both elementCounts and fiveElements naming
+        element_counts = saju_data.get("elementCounts", {}) or saju_data.get("fiveElements", {})
+        # Convert English keys to Korean if needed
+        if element_counts:
+            korean_elements = {}
+            key_map = {"wood": "목", "fire": "화", "earth": "토", "metal": "금", "water": "수"}
+            for k, v in element_counts.items():
+                korean_key = key_map.get(k.lower(), k)
+                korean_elements[korean_key] = v
+            if any(k in key_map for k in element_counts.keys()):
+                element_counts = korean_elements
+
+        dominant_element = saju_data.get("dominantElement", "")
+
+        is_korean = locale == "ko"
+
+        # Debug log all extracted data
+        logger.info(f"[DESTINY_STORY] Starting with ALL RAG data:")
+        logger.info(f"  - dayMaster: {day_master}")
+        logger.info(f"  - pillars: year={year_pillar}, month={month_pillar}, day={day_pillar}, hour={hour_pillar}")
+        logger.info(f"  - astro: sun={sun_sign}, moon={moon_sign}, rising={rising_sign}")
+        logger.info(f"  - planets: mercury={mercury_sign}, venus={venus_sign}, mars={mars_sign}")
+        logger.info(f"  - shinsal: {shinsal}")
+        logger.info(f"  - element_counts: {element_counts}")
+        logger.info(f"  - locale: {locale}")
+
+        # ============================================
+        # PRE-FETCH ALL RAG DATA (before streaming)
+        # ============================================
+        yield_prefix = "data: "
+
+        # Send initial status
+        logger.info("[DESTINY_STORY] Pre-fetching RAG data...")
+
+        rag_data = prefetch_all_rag_data(saju_data, astro_data, "life_path", locale)
+        prefetch_time = rag_data.get("prefetch_time_ms", 0)
+        logger.info(f"[DESTINY_STORY] RAG prefetch completed in {prefetch_time}ms")
+
+        # Extract RAG results
+        graph_nodes = rag_data.get("graph_nodes", [])
+        graph_context = rag_data.get("graph_context", "")
+        corpus_quotes = rag_data.get("corpus_quotes", [])
+        persona_context = rag_data.get("persona_context", {})
+        cross_analysis = rag_data.get("cross_analysis", "")
+        domain_knowledge = rag_data.get("domain_knowledge", [])
+
+        # Format RAG data for prompt
+        def format_graph_nodes(nodes, limit=10):
+            if not nodes:
+                return "없음"
+            formatted = []
+            for n in nodes[:limit]:
+                if isinstance(n, str):
+                    formatted.append(f"• {n}")
+                elif isinstance(n, dict):
+                    text = n.get("text") or n.get("content") or n.get("node", "")
+                    if text:
+                        formatted.append(f"• {text[:200]}")
+            return "\n".join(formatted) if formatted else "없음"
+
+        def format_quotes(quotes, limit=5):
+            if not quotes:
+                return "없음"
+            formatted = []
+            for q in quotes[:limit]:
+                text = q.get("text_ko") if is_korean else q.get("text_en")
+                if not text:
+                    text = q.get("text_ko") or q.get("text_en", "")
+                source = q.get("source", "")
+                if text:
+                    formatted.append(f'"{text}" - {source}')
+            return "\n".join(formatted) if formatted else "없음"
+
+        def format_persona(ctx):
+            if not ctx:
+                return "없음"
+            parts = []
+            jung = ctx.get("jung", [])
+            stoic = ctx.get("stoic", [])
+            if jung:
+                parts.append("[융 심리학 관점]")
+                for j in jung[:3]:
+                    parts.append(f"• {j}")
+            if stoic:
+                parts.append("[스토아 철학 관점]")
+                for s in stoic[:3]:
+                    parts.append(f"• {s}")
+            return "\n".join(parts) if parts else "없음"
+
+        def format_shinsal(stars):
+            if not stars:
+                return "없음"
+            return ", ".join(str(s) for s in stars[:10])
+
+        def format_daeun(cycles):
+            if not cycles:
+                return "없음"
+            formatted = []
+            for d in cycles[:5]:
+                if isinstance(d, dict):
+                    age = d.get("age", "")
+                    stem = d.get("stem", "")
+                    branch = d.get("branch", "")
+                    formatted.append(f"{age}세: {stem}{branch}")
+                else:
+                    formatted.append(str(d))
+            return ", ".join(formatted) if formatted else "없음"
+
+        graph_nodes_text = format_graph_nodes(graph_nodes)
+        quotes_text = format_quotes(corpus_quotes)
+        persona_text = format_persona(persona_context)
+        shinsal_text = format_shinsal(shinsal)
+        daeun_text = format_daeun(daeun)
+
+        # Format domain knowledge
+        def format_domain(knowledge):
+            if not knowledge:
+                return "없음"
+            formatted = []
+            for item in knowledge[:5]:
+                if isinstance(item, str):
+                    formatted.append(f"• {item[:200]}")
+                elif isinstance(item, dict):
+                    text = item.get("text") or item.get("content") or item.get("rule", "")
+                    if text:
+                        formatted.append(f"• {text[:200]}")
+            return "\n".join(formatted) if formatted else "없음"
+
+        domain_text = format_domain(domain_knowledge)
+
+        def generate_stream():
+            """Generator for SSE streaming destiny story with ALL RAG data"""
+            try:
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
+
+                # Build the comprehensive prompt with ALL RAG data
+                if is_korean:
+                    system_prompt = """당신은 사람의 마음을 꿰뚫어보는 상담사입니다.
+사주와 점성술 데이터를 바탕으로, 마치 오랜 친구처럼 따뜻하지만 날카롭게 이야기합니다.
+
+# 핵심 원칙:
+1. "운명의 서막", "우주", "별들의 교향곡" 같은 뻔한 표현 금지. 현실적으로 써라.
+2. 누가 읽어도 "어? 이거 내 얘기인데?" 하고 소름돋게 구체적으로.
+3. 실제 상황 예시를 들어라. "회의 중에 말 끊기는 거 싫어하죠?", "혼자 있을 때 갑자기 불안해진 적 있죠?"
+4. 장점만 나열하지 말고, 아픈 곳도 정확히 짚어라. 그래야 신뢰가 생긴다.
+5. 절대 사과하거나 "데이터가 부족합니다" 같은 말 금지. 바로 본문 시작.
+
+# 융 & 스토아 인용 (적절한 타이밍에)
+- 전체 15개 섹션 중 3~5곳에서 자연스럽게 인용 (매 섹션 X, 억지로 X)
+- 이런 주제일 때 인용하면 좋다:
+  * 그림자/단점/문제점 → 융 ("융은 말했죠: '그림자를 인식하는 것이...'")
+  * 힘든 상황/스트레스 → 스토아 ("세네카는 말했습니다: '...'")
+  * 무의식/숨겨진 면 → 융
+  * 조언/앞으로 방향 → 스토아
+- 내용과 자연스럽게 연결될 때만. 뜬금없이 끼워넣지 말 것.
+
+# 문체:
+- 친구한테 얘기하듯 편하게, 하지만 깊이있게
+- "~하시죠?", "~그랬을 거예요" 처럼 독자에게 직접 말하기
+- 뻔한 위로 말고 진짜 도움되는 조언
+- 때로는 따끔하게, 때로는 다독이듯이"""
+
+                    user_prompt = f"""이 사람의 사주와 점성술 데이터를 보고 15개 섹션으로 심층 분석해줘.
+뻔한 말 말고, 읽는 사람이 "와 이거 진짜 나네" 하고 소름돋게 구체적으로 써줘.
+바로 "## 1. 첫인상과 실제 당신" 으로 시작해. 인사나 설명 없이 바로 본문.
+
+═══════════════════════════════════════════════════
+[사주팔자 데이터]
+═══════════════════════════════════════════════════
+• 일주(日主/Day Master): {day_master}
+• 년주(年柱): {year_pillar.get('stem', '')} {year_pillar.get('branch', '')}
+• 월주(月柱): {month_pillar.get('stem', '')} {month_pillar.get('branch', '')}
+• 일주(日柱): {day_pillar.get('stem', '')} {day_pillar.get('branch', '')}
+• 시주(時柱): {hour_pillar.get('stem', '')} {hour_pillar.get('branch', '')}
+
+• 주도적 오행: {dominant_element}
+• 오행 분포: 목({element_counts.get('목', 0)}) 화({element_counts.get('화', 0)}) 토({element_counts.get('토', 0)}) 금({element_counts.get('금', 0)}) 수({element_counts.get('수', 0)})
+
+• 십신(十神): {json.dumps(ten_gods, ensure_ascii=False) if ten_gods else '없음'}
+
+═══════════════════════════════════════════════════
+[신살 정보 - 특별한 별들]
+═══════════════════════════════════════════════════
+{shinsal_text}
+
+═══════════════════════════════════════════════════
+[대운과 세운 - 인생의 큰 흐름]
+═══════════════════════════════════════════════════
+• 대운 흐름: {daeun_text}
+• 현재 대운: {json.dumps(current_daeun, ensure_ascii=False) if current_daeun else '정보 없음'}
+
+═══════════════════════════════════════════════════
+[서양 점성술 데이터]
+═══════════════════════════════════════════════════
+• 태양(Sun): {sun_sign}
+• 달(Moon): {moon_sign}
+• 상승궁(Rising): {rising_sign}
+• 수성(Mercury): {mercury_sign}
+• 금성(Venus): {venus_sign}
+• 화성(Mars): {mars_sign}
+• 목성(Jupiter): {jupiter_sign}
+• 토성(Saturn): {saturn_sign}
+
+═══════════════════════════════════════════════════
+[지식 그래프 - 관련 지식]
+═══════════════════════════════════════════════════
+{graph_nodes_text}
+
+═══════════════════════════════════════════════════
+[융 심리학 인용 - 깊이 있는 통찰]
+═══════════════════════════════════════════════════
+{quotes_text}
+
+═══════════════════════════════════════════════════
+[페르소나 분석 - 철학적 관점]
+═══════════════════════════════════════════════════
+{persona_text}
+
+═══════════════════════════════════════════════════
+[동서양 교차 분석 결과]
+═══════════════════════════════════════════════════
+{cross_analysis[:2000] if cross_analysis else '없음'}
+
+═══════════════════════════════════════════════════
+[도메인 전문 지식 - 해석 원칙]
+═══════════════════════════════════════════════════
+{domain_text}
+
+═══════════════════════════════════════════════════
+[15개 섹션 - 현실적이고 구체적으로]
+═══════════════════════════════════════════════════
+
+## 1. 첫인상과 실제 당신
+사람들이 처음 보는 당신 vs 진짜 당신. 왜 오해받는지, 실제론 어떤 사람인지.
+
+## 2. 당신의 핵심 에너지 ({day_master})
+이 사람의 기본 성향. 뭘 좋아하고, 뭘 못 참고, 어떤 상황에서 빛나는지.
+
+## 3. 솔직히 말하면 이런 점이 문제야
+장점 뒤에 숨은 단점. 본인도 알지만 고치기 힘든 패턴. 구체적 상황 예시 필수.
+
+## 4. 연애할 때 당신
+좋아하는 타입, 연애 패턴, 질리는 포인트, 헤어지는 이유까지. 도화살/금성 활용.
+
+## 5. 돈과 일, 솔직한 얘기
+맞는 직업, 돈 버는 스타일, 커리어에서 주의할 점. 십신 정보 활용.
+
+## 6. 사람 관계에서 당신의 패턴
+친구/가족/동료와의 관계. 갈등 원인, 상처받는 포인트, 관계 유지법.
+
+## 7. 겉과 속이 다른 부분
+{sun_sign} 태양(보여주는 나)과 {moon_sign} 달(진짜 감정). 왜 힘든지.
+
+## 8. 소통/사랑/행동 스타일
+수성({mercury_sign}) - 말하는 방식
+금성({venus_sign}) - 사랑 표현법
+화성({mars_sign}) - 화낼 때, 열정 쏟을 때
+
+## 9. 당신만의 특별한 기운 ({shinsal_text})
+신살이 주는 특수 능력과 주의점. 이게 왜 당신한테 있는지.
+
+## 10. 사주랑 별자리가 말하는 공통점
+동서양 분석이 일치하는 부분. 더 확실한 당신의 특성.
+
+## 11. 인생 타이밍 ({daeun_text})
+언제 잘 풀리고, 언제 조심해야 하는지. 대운 흐름으로 보는 인생 시기.
+
+## 12. 어린 시절이 지금에 미친 영향
+왜 그런 성격이 됐는지. 어릴 때 경험이 지금 패턴에 미친 영향.
+
+## 13. 인정하기 싫지만 이런 면도 있어요
+숨기고 싶은 부분, 무의식적 두려움, 회피하는 것들. 따뜻하지만 솔직하게.
+
+## 14. 힘들 때 당신은
+스트레스 받을 때 패턴, 회복하는 방법, 도움이 되는 것들.
+
+## 15. 앞으로 이렇게 하면 좋겠어요
+구체적이고 실천 가능한 조언. 뻔한 말 말고 진짜 도움되는 것만.
+
+═══════════════════════════════════════════════════
+★★★ 작성 규칙 ★★★
+1. 각 섹션을 충분히 길게 쓰되, 뻔한 말 금지.
+2. "~하시죠?", "~그런 적 있죠?" 처럼 독자에게 직접 말하듯이.
+3. 읽는 사람이 소름돋을 정도로 구체적인 상황 예시를 들어줘.
+4. 융/스토아 인용은 전체에서 3~5번, 적절한 타이밍에 자연스럽게.
+   - 단점/그림자/무의식 얘기할 때 → 융 인용
+   - 힘든 상황/조언 줄 때 → 스토아 인용
+   예: "융은 말했죠: '의식하지 못한 것은 운명이 된다'"
+5. 제공된 [융 심리학 인용]과 [페르소나 분석] 데이터 활용."""
+
+                else:
+                    system_prompt = """You are a master destiny analyst combining Eastern Saju wisdom, Western Astrology, and Jungian psychology.
+Your interpretations are eerily accurate, as if you can see through the soul of the person.
+You provide deep, specific analysis that makes readers feel "This is really me..."
+
+You have access to:
+- Complete Saju data (Day Master, Four Pillars, Ten Gods, Five Elements balance)
+- Western Astrology data (Sun through Saturn, Rising sign)
+- Shinsal (Special Stars) information
+- Daeun and Seun (Life Cycles)
+- Jung psychology quotes and insights
+- Stoic philosophy perspectives
+- East-West cross-analysis results
+
+Use ALL this information to write a 20,000+ character deep analysis.
+
+Writing Style:
+- Second person perspective, speaking directly to the reader (You are...)
+- Poetic and literary style with rich metaphors and imagery
+- Naturally weave in Jung psychology quotes for depth
+- Describe specific situations and emotions to evoke empathy
+- Balance positive aspects with growth opportunities
+- Each chapter should be at least 1,500 characters
+- Use Daeun/Seun data to predict life transitions"""
+
+                    user_prompt = f"""Based on ALL the following data, write a comprehensive destiny analysis story with **15 chapters**, totaling at least **20,000 characters**.
+
+═══════════════════════════════════════════════════
+[SAJU (Four Pillars) DATA]
+═══════════════════════════════════════════════════
+• Day Master: {day_master}
+• Year Pillar: {year_pillar.get('stem', '')} {year_pillar.get('branch', '')}
+• Month Pillar: {month_pillar.get('stem', '')} {month_pillar.get('branch', '')}
+• Day Pillar: {day_pillar.get('stem', '')} {day_pillar.get('branch', '')}
+• Hour Pillar: {hour_pillar.get('stem', '')} {hour_pillar.get('branch', '')}
+
+• Dominant Element: {dominant_element}
+• Element Distribution: Wood({element_counts.get('목', 0)}) Fire({element_counts.get('화', 0)}) Earth({element_counts.get('토', 0)}) Metal({element_counts.get('금', 0)}) Water({element_counts.get('수', 0)})
+
+• Ten Gods: {json.dumps(ten_gods, ensure_ascii=False) if ten_gods else 'None'}
+
+═══════════════════════════════════════════════════
+[SHINSAL - Special Stars]
+═══════════════════════════════════════════════════
+{shinsal_text}
+
+═══════════════════════════════════════════════════
+[DAEUN & SEUN - Life Cycles]
+═══════════════════════════════════════════════════
+• Major Cycles: {daeun_text}
+• Current Cycle: {json.dumps(current_daeun, ensure_ascii=False) if current_daeun else 'Not available'}
+
+═══════════════════════════════════════════════════
+[WESTERN ASTROLOGY DATA]
+═══════════════════════════════════════════════════
+• Sun: {sun_sign}
+• Moon: {moon_sign}
+• Rising: {rising_sign}
+• Mercury: {mercury_sign}
+• Venus: {venus_sign}
+• Mars: {mars_sign}
+• Jupiter: {jupiter_sign}
+• Saturn: {saturn_sign}
+
+═══════════════════════════════════════════════════
+[KNOWLEDGE GRAPH - Related Wisdom]
+═══════════════════════════════════════════════════
+{graph_nodes_text}
+
+═══════════════════════════════════════════════════
+[JUNG PSYCHOLOGY QUOTES - Deep Insights]
+═══════════════════════════════════════════════════
+{quotes_text}
+
+═══════════════════════════════════════════════════
+[PERSONA ANALYSIS - Philosophical Perspectives]
+═══════════════════════════════════════════════════
+{persona_text}
+
+═══════════════════════════════════════════════════
+[EAST-WEST CROSS-ANALYSIS]
+═══════════════════════════════════════════════════
+{cross_analysis[:2000] if cross_analysis else 'None'}
+
+═══════════════════════════════════════════════════
+[REQUIRED CHAPTER STRUCTURE - Each 1,500+ characters]
+═══════════════════════════════════════════════════
+
+## Chapter 1: The Prelude of Destiny - Your Universe
+Grand opening describing your birth's cosmic alignment from both Saju and Astrology perspectives.
+
+## Chapter 2: The Essence of Your Day Master - Core of Your Soul
+Deep analysis of {day_master} and how this energy permeates your being. Apply Jung's archetype theory.
+
+## Chapter 3: Light and Shadow - Strengths and Weaknesses
+Honest exploration of your personality's shining parts and hidden shadows. Use Jung's shadow concept.
+
+## Chapter 4: The Language of Love - Romance Patterns
+How you love, who you're attracted to, relationship patterns. Use Venus, Mars, and Peach Blossom star data.
+
+## Chapter 5: Vocation and Calling - True Path
+Suitable careers, success fields, work to avoid. Use Ten Gods and planetary placements.
+
+## Chapter 6: Dynamics of Relationships - You Among Others
+How you connect with friends, family, and colleagues.
+
+## Chapter 7: Sun and Moon Duet - Outer and Inner Self
+The complex inner world created by {sun_sign} Sun and {moon_sign} Moon.
+
+## Chapter 8: Symphony of Planets - Mercury, Venus, Mars
+Communication (Mercury {mercury_sign}), Love/Values (Venus {venus_sign}), Action/Desire (Mars {mars_sign}).
+
+## Chapter 9: Secrets of Shinsal - Special Stars' Messages
+The special destiny and potential indicated by your Shinsal ({shinsal_text}).
+
+## Chapter 10: East Meets West - Intersection of Destinies
+Unique insights at the meeting point of Saju and Astrology. Use cross-analysis results.
+
+## Chapter 11: Waves of Daeun - Seasons of Life
+Major life transitions according to Daeun ({daeun_text}) and their meanings.
+
+## Chapter 12: Childhood Echoes - Roots' Memories
+How childhood patterns influence who you are today. Apply Jung's complex theory.
+
+## Chapter 13: The Shadow Self - Hidden Fears
+Courageous exploration of parts hard to acknowledge. Use Jung psychology quotes.
+
+## Chapter 14: Crisis and Resilience - Strength in Trials
+How you handle crises and sources of resilience. Include Stoic philosophy perspectives.
+
+## Chapter 15: Journey of Individuation - True Self-Realization
+Concluding with specific advice for growth and Jung's individuation process.
+
+═══════════════════════════════════════════════════
+Use ALL the data above fully. Write each chapter 1,500+ characters.
+Connect as one grand narrative, naturally weaving Jung psychology quotes.
+Be so specific and accurate that readers feel "This is really me!" with chills."""
+
+                # Start streaming
+                yield f"data: {json.dumps({'status': 'start', 'total_chapters': 15, 'rag_prefetch_ms': prefetch_time})}\n\n"
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o",  # Use GPT-4o for better quality
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.85,
+                    max_tokens=16000,  # Increased for ~20,000+ characters
+                    stream=True
+                )
+
+                full_text = ""
+                current_chapter = 0
+
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        full_text += content
+
+                        # Detect chapter changes
+                        if "## 챕터" in content or "## Chapter" in content:
+                            current_chapter += 1
+                            yield f"data: {json.dumps({'chapter': current_chapter})}\n\n"
+
+                        yield f"data: {json.dumps({'content': content})}\n\n"
+
+                # Done
+                yield f"data: {json.dumps({'status': 'done', 'total_length': len(full_text)})}\n\n"
+                logger.info(f"[DESTINY_STORY] Completed: {len(full_text)} characters (RAG prefetch: {prefetch_time}ms)")
+
+            except Exception as stream_error:
+                logger.exception(f"[DESTINY_STORY] Stream error: {stream_error}")
+                yield f"data: {json.dumps({'error': str(stream_error)})}\n\n"
+
+        return Response(
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/destiny-story/generate-stream failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
