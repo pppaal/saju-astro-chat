@@ -239,6 +239,19 @@ export default function ResultPage() {
         }, 500);
         return () => clearTimeout(timer);
       }
+
+      // Save analysis result to localStorage for counselor integration
+      try {
+        localStorage.setItem('personaResult', JSON.stringify({
+          typeCode: analysis.typeCode,
+          personaName: analysis.personaName,
+          summary: analysis.summary,
+          axes: analysis.axes,
+          timestamp: Date.now(),
+        }));
+      } catch {
+        // Ignore localStorage errors
+      }
     }
   }, [mounted, analysis, createConfetti]);
 
@@ -273,124 +286,167 @@ export default function ResultPage() {
     canvas.width = 1200;
     canvas.height = 630;
 
-    // Background gradient
+    // Background gradient - more vibrant
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#0a0a1a');
-    gradient.addColorStop(0.5, '#1a1a2e');
-    gradient.addColorStop(1, '#0f0f23');
+    gradient.addColorStop(0, '#0d0d1f');
+    gradient.addColorStop(0.3, '#1a1a35');
+    gradient.addColorStop(0.7, '#1f1a2e');
+    gradient.addColorStop(1, '#0d0d1f');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Add subtle star effect
-    for (let i = 0; i < 100; i++) {
-      ctx.fillStyle = `rgba(168, 237, 234, ${Math.random() * 0.5})`;
+    // Add more stars with varying sizes
+    for (let i = 0; i < 150; i++) {
+      const opacity = Math.random() * 0.6 + 0.1;
+      const size = Math.random() * 2.5;
+      ctx.fillStyle = `rgba(168, 237, 234, ${opacity})`;
       ctx.beginPath();
       ctx.arc(
         Math.random() * canvas.width,
         Math.random() * canvas.height,
-        Math.random() * 2,
+        size,
         0,
         Math.PI * 2
       );
       ctx.fill();
     }
 
-    // Glow effect
-    const glowGradient = ctx.createRadialGradient(600, 315, 0, 600, 315, 400);
-    glowGradient.addColorStop(0, 'rgba(168, 237, 234, 0.15)');
+    // Multiple glow effects
+    const glowGradient = ctx.createRadialGradient(600, 280, 0, 600, 280, 350);
+    glowGradient.addColorStop(0, 'rgba(168, 237, 234, 0.2)');
+    glowGradient.addColorStop(0.5, 'rgba(254, 214, 227, 0.1)');
     glowGradient.addColorStop(1, 'transparent');
     ctx.fillStyle = glowGradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Brand title
-    ctx.font = '600 24px "Cinzel", serif';
-    ctx.fillStyle = 'rgba(168, 237, 234, 0.8)';
-    ctx.textAlign = 'center';
-    ctx.fillText('NOVA PERSONA', 600, 80);
+    // Decorative border
+    ctx.strokeStyle = 'rgba(168, 237, 234, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(30, 30, canvas.width - 60, canvas.height - 60, 20);
+    ctx.stroke();
 
-    // Persona name
-    ctx.font = '800 64px "Cinzel", serif';
-    const nameGradient = ctx.createLinearGradient(300, 150, 900, 200);
+    // Brand title
+    ctx.font = '600 22px sans-serif';
+    ctx.fillStyle = 'rgba(168, 237, 234, 0.9)';
+    ctx.textAlign = 'center';
+    ctx.fillText('✨ NOVA PERSONA ✨', 600, 75);
+
+    // Type code badge background
+    ctx.fillStyle = 'rgba(168, 237, 234, 0.15)';
+    ctx.beginPath();
+    ctx.roundRect(500, 95, 200, 50, 25);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(168, 237, 234, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Type code
+    ctx.font = '700 28px monospace';
+    ctx.fillStyle = '#a8edea';
+    ctx.fillText(analysis.typeCode, 600, 130);
+
+    // Persona name - larger and more prominent
+    ctx.font = '800 52px sans-serif';
+    const nameGradient = ctx.createLinearGradient(300, 170, 900, 220);
     nameGradient.addColorStop(0, '#a8edea');
     nameGradient.addColorStop(0.5, '#ffffff');
     nameGradient.addColorStop(1, '#fed6e3');
     ctx.fillStyle = nameGradient;
-    ctx.fillText(analysis.personaName, 600, 200);
+    ctx.fillText(analysis.personaName, 600, 210);
 
-    // Type code badge
-    ctx.font = '700 36px monospace';
-    ctx.fillStyle = '#a8edea';
-    ctx.fillText(analysis.typeCode, 600, 280);
-
-    // Summary (wrap text)
-    ctx.font = '400 24px sans-serif';
+    // Summary - better text wrapping for Korean
+    ctx.font = '400 20px sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    const words = analysis.summary.split(' ');
-    let line = '';
-    let y = 350;
+    const summaryText = analysis.summary;
     const maxWidth = 900;
-    const lineHeight = 36;
+    const lineHeight = 32;
+    let y = 270;
 
-    for (const word of words) {
-      const testLine = line + word + ' ';
+    // Better text wrapping for both Korean and English
+    let currentLine = '';
+    for (let i = 0; i < summaryText.length; i++) {
+      const char = summaryText[i];
+      const testLine = currentLine + char;
       const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && line !== '') {
-        ctx.fillText(line.trim(), 600, y);
-        line = word + ' ';
+
+      if (metrics.width > maxWidth && currentLine !== '') {
+        ctx.fillText(currentLine, 600, y);
+        currentLine = char;
         y += lineHeight;
-        if (y > 450) break; // Max 3 lines
+        if (y > 370) {
+          currentLine += '...';
+          break;
+        }
       } else {
-        line = testLine;
+        currentLine = testLine;
       }
     }
-    if (line && y <= 450) {
-      ctx.fillText(line.trim(), 600, y);
+    if (currentLine && y <= 370) {
+      ctx.fillText(currentLine, 600, y);
     }
 
-    // Axes visualization
+    // Axes visualization - improved design
+    const axisLabels = locale === 'ko'
+      ? ['에너지', '인지', '결정', '리듬']
+      : ['Energy', 'Cognition', 'Decision', 'Rhythm'];
+
     const axes = [
-      { label: 'Energy', score: analysis.axes.energy.score },
-      { label: 'Cognition', score: analysis.axes.cognition.score },
-      { label: 'Decision', score: analysis.axes.decision.score },
-      { label: 'Rhythm', score: analysis.axes.rhythm.score },
+      { label: axisLabels[0], score: analysis.axes.energy.score },
+      { label: axisLabels[1], score: analysis.axes.cognition.score },
+      { label: axisLabels[2], score: analysis.axes.decision.score },
+      { label: axisLabels[3], score: analysis.axes.rhythm.score },
     ];
 
-    const barWidth = 200;
-    const barHeight = 12;
-    const startX = 200;
-    const startY = 500;
+    const barWidth = 220;
+    const barHeight = 14;
+    const startX = 160;
+    const startY = 480;
+
+    // Background panel for axes
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.beginPath();
+    ctx.roundRect(100, 420, 1000, 150, 15);
+    ctx.fill();
 
     axes.forEach((axis, i) => {
-      const x = startX + i * 220;
+      const x = startX + i * 250;
+
+      // Label
+      ctx.font = '600 16px sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.textAlign = 'center';
+      ctx.fillText(axis.label, x + barWidth / 2, startY - 20);
 
       // Track
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.beginPath();
-      ctx.roundRect(x, startY, barWidth, barHeight, 6);
+      ctx.roundRect(x, startY, barWidth, barHeight, 7);
       ctx.fill();
 
-      // Fill
+      // Fill with gradient
       const fillGradient = ctx.createLinearGradient(x, startY, x + barWidth, startY);
       fillGradient.addColorStop(0, '#a8edea');
       fillGradient.addColorStop(1, '#fed6e3');
       ctx.fillStyle = fillGradient;
       ctx.beginPath();
-      ctx.roundRect(x, startY, (barWidth * axis.score) / 100, barHeight, 6);
+      ctx.roundRect(x, startY, (barWidth * axis.score) / 100, barHeight, 7);
       ctx.fill();
 
-      // Label
-      ctx.font = '500 14px sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.textAlign = 'center';
-      ctx.fillText(axis.label, x + barWidth / 2, startY - 10);
-      ctx.fillText(`${Math.round(axis.score)}%`, x + barWidth / 2, startY + 30);
+      // Score
+      ctx.font = '700 18px sans-serif';
+      ctx.fillStyle = '#fed6e3';
+      ctx.fillText(`${Math.round(axis.score)}%`, x + barWidth / 2, startY + 40);
     });
 
-    // Footer
-    ctx.font = '400 18px sans-serif';
-    ctx.fillStyle = 'rgba(168, 237, 234, 0.6)';
+    // Footer with CTA
+    ctx.font = '500 16px sans-serif';
+    ctx.fillStyle = 'rgba(168, 237, 234, 0.8)';
     ctx.textAlign = 'center';
-    ctx.fillText('DestinyPal.me', 600, 600);
+    const footerText = locale === 'ko'
+      ? '나도 테스트하기 → DestinyPal.me'
+      : 'Take the test → DestinyPal.me';
+    ctx.fillText(footerText, 600, 595);
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
@@ -557,20 +613,27 @@ export default function ResultPage() {
             <h1 className={styles.personaName}>{analysis.personaName}</h1>
             <p className={styles.summary}>{analysis.summary}</p>
 
-            <div className={styles.badges}>
-              <div className={styles.typeCodeBadge}>
-                <span className={styles.typeCodeValue}>{analysis.typeCode}</span>
-                <span className={styles.typeCodeLabel}>{t('personality.typeCode', 'Type Code')}</span>
-              </div>
-              {analysis.consistencyScore !== undefined && (
-                <div className={styles.consistencyBadge}>
-                  <span className={styles.consistencyValue}>{analysis.consistencyScore}%</span>
-                  <span className={styles.consistencyLabel}>
-                    {analysis.consistencyLabel
-                      ? t(`personality.consistencyLabel.${analysis.consistencyLabel}`, analysis.consistencyLabel)
-                      : t('personality.consistency', 'Consistency')}
-                  </span>
+            <div className={styles.badgesWrapper}>
+              <div className={styles.badges}>
+                <div className={styles.typeCodeBadge}>
+                  <span className={styles.typeCodeValue}>{analysis.typeCode}</span>
+                  <span className={styles.typeCodeLabel}>{t('personality.typeCode', 'Type Code')}</span>
                 </div>
+                {analysis.consistencyScore !== undefined && (
+                  <div className={styles.consistencyBadge}>
+                    <span className={styles.consistencyValue}>{analysis.consistencyScore}%</span>
+                    <span className={styles.consistencyLabel}>
+                      {analysis.consistencyLabel
+                        ? t(`personality.consistencyLabel.${analysis.consistencyLabel}`, analysis.consistencyLabel)
+                        : t('personality.consistency', 'Consistency')}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {analysis.consistencyLabel && (
+                <p className={styles.consistencyHint}>
+                  {t(`personality.consistencyDesc.${analysis.consistencyLabel}`, '')}
+                </p>
               )}
             </div>
 
@@ -695,17 +758,30 @@ export default function ResultPage() {
           </div>
         </section>
 
-        {/* Compatibility & Guidance */}
+        {/* Compatibility */}
         <section className={styles.insightsSection}>
           <div className={styles.insightCard}>
             <div className={styles.insightIcon}>🤝</div>
             <h3>{t('personality.compatibility', 'Compatibility')}</h3>
             <p>{analysis.compatibilityHint}</p>
           </div>
-          <div className={styles.insightCard}>
-            <div className={styles.insightIcon}>🧭</div>
-            <h3>{t('personality.guidance', 'Guidance')}</h3>
-            <p>{analysis.guidance}</p>
+        </section>
+
+        {/* Growth Guide Section */}
+        <section className={styles.growthSection}>
+          <h2 className={styles.sectionTitle}>
+            <span className={styles.sectionIcon}>🌱</span>
+            {t('personality.growthGuide', 'Growth Guide')}
+          </h2>
+          <div className={styles.growthCards}>
+            {analysis.growthTips.map((tip, idx) => (
+              <div key={idx} className={styles.growthCard}>
+                <div className={styles.growthNumber}>{idx + 1}</div>
+                <div className={styles.growthContent}>
+                  <p className={styles.growthTip}>{tip}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

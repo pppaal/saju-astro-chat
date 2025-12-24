@@ -1,10 +1,11 @@
 // src/app/api/dream/chat/route.ts
-// Dream Follow-up Chat API - Streaming SSE proxy to backend
+// Dream Follow-up Chat API - Enhanced with RAG, Celestial, and Saju context
 
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 
 function pickBackendUrl() {
   const url =
@@ -23,80 +24,259 @@ interface Message {
   content: string;
 }
 
-interface DreamChatRequest {
-  messages: Message[];
-  dreamContext: {
-    dreamText: string;
-    summary?: string;
-    symbols?: string[];
-    emotions?: string[];
-    themes?: string[];
-    recommendations?: string[];
-  };
-  locale?: "ko" | "en";
+interface CulturalNotes {
+  korean?: string;
+  western?: string;
+  chinese?: string;
+  islamic?: string;
 }
 
-function buildSystemInstruction(dreamContext: DreamChatRequest["dreamContext"], locale: "ko" | "en") {
-  const symbolsStr = dreamContext.symbols?.join(", ") || "없음";
-  const emotionsStr = dreamContext.emotions?.join(", ") || "없음";
-  const themesStr = dreamContext.themes?.join(", ") || "없음";
-  const recommendationsStr = dreamContext.recommendations?.join(" / ") || "없음";
+interface MoonPhase {
+  name?: string;
+  korean?: string;
+  emoji?: string;
+  illumination?: number;
+  dream_quality?: string;
+  dream_meaning?: string;
+  advice?: string;
+}
 
-  if (locale === "ko") {
-    return `당신은 전문 꿈 해석 상담사입니다. 사용자가 이미 받은 꿈 해석을 기반으로 추가 질문에 답변합니다.
+interface MoonSign {
+  sign?: string;
+  korean?: string;
+  dream_flavor?: string;
+  enhanced_symbols?: string[];
+}
 
-역할:
-- 꿈의 심볼과 의미에 대해 더 깊이 설명
-- 사용자의 개인적 상황과 연결하여 해석
-- 실용적인 조언과 통찰 제공
-- 심리학적, 문화적 관점에서 꿈 분석
-- 한국 전통 해몽 지식 활용
+interface Retrograde {
+  planet?: string;
+  korean?: string;
+  emoji?: string;
+  themes?: string[];
+  interpretation?: string;
+}
 
-톤:
-- 따뜻하고 공감적
-- 전문적이지만 이해하기 쉽게
-- 긍정적이고 지지적
+interface CelestialContext {
+  moon_phase?: MoonPhase;
+  moon_sign?: MoonSign;
+  retrogrades?: Retrograde[];
+}
 
-제한:
-- 의학적 조언 금지
-- 미래 예측 (복권 번호 등) 금지
-- 답변은 간결하게 (3-4문장)
+interface SajuContext {
+  birth_date?: string;
+  birth_time?: string;
+  birth_city?: string;
+  timezone?: string;
+}
 
-[꿈 해석 컨텍스트]
-원래 꿈: ${dreamContext.dreamText || ""}
-해석 요약: ${dreamContext.summary || ""}
-주요 심볼: ${symbolsStr}
-감정: ${emotionsStr}
-테마: ${themesStr}
-조언: ${recommendationsStr}`;
-  } else {
-    return `You are a professional dream interpretation counselor. You answer follow-up questions based on the dream interpretation the user has already received.
+interface PreviousConsultation {
+  summary?: string;
+  dreamText?: string;
+  date?: string;
+}
 
-Role:
-- Explain dream symbols and meanings in more depth
-- Connect interpretations to the user's personal situation
-- Provide practical advice and insights
-- Analyze dreams from psychological and cultural perspectives
-- Utilize knowledge of various dream interpretation traditions
+interface PersonaMemory {
+  sessionCount?: number;
+  keyInsights?: string[];
+  emotionalTone?: string;
+}
 
-Tone:
-- Warm and empathetic
-- Professional but easy to understand
-- Positive and supportive
+interface EnhancedDreamContext {
+  dreamText: string;
+  summary?: string;
+  symbols?: string[];
+  emotions?: string[];
+  themes?: string[];
+  recommendations?: string[];
+  cultural_notes?: CulturalNotes;
+  celestial?: CelestialContext;
+  saju?: SajuContext;
+  previous_consultations?: PreviousConsultation[];
+  persona_memory?: PersonaMemory;
+}
 
-Limitations:
-- No medical advice
-- No future predictions (lottery numbers, etc.)
-- Keep responses concise (3-4 sentences)
+const ALLOWED_CHAT_ROLES = new Set<Message["role"]>(["user", "assistant", "system"]);
+const ALLOWED_CHAT_LOCALES = new Set(["ko", "en"]);
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_CONTEXT_FIELD = 2000;
+const MAX_CONTEXT_ITEMS = 20;
+const MAX_CONTEXT_ITEM_LEN = 200;
+const MAX_CHAT_BODY = 96 * 1024; // Increased for additional context
 
-[Dream Interpretation Context]
-Original Dream: ${dreamContext.dreamText || ""}
-Summary: ${dreamContext.summary || ""}
-Key Symbols: ${symbolsStr}
-Emotions: ${emotionsStr}
-Themes: ${themesStr}
-Recommendations: ${recommendationsStr}`;
+function cleanStringArray(value: unknown, maxItems = MAX_CONTEXT_ITEMS, maxLen = MAX_CONTEXT_ITEM_LEN): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned: string[] = [];
+  for (const entry of value.slice(0, maxItems)) {
+    if (typeof entry !== "string") continue;
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    cleaned.push(trimmed.slice(0, maxLen));
   }
+  return cleaned;
+}
+
+function normalizeMessages(raw: unknown): Message[] {
+  if (!Array.isArray(raw)) return [];
+  const normalized: Message[] = [];
+  for (const m of raw.slice(-MAX_MESSAGES)) {
+    if (!m || typeof m !== "object") continue;
+    const role = typeof (m as Record<string, unknown>).role === "string" && ALLOWED_CHAT_ROLES.has((m as Record<string, unknown>).role as Message["role"])
+      ? (m as Record<string, unknown>).role as Message["role"]
+      : null;
+    const content = typeof (m as Record<string, unknown>).content === "string" ? ((m as Record<string, unknown>).content as string).trim() : "";
+    if (!role || !content) continue;
+    normalized.push({ role, content: content.slice(0, MAX_MESSAGE_LENGTH) });
+  }
+  return normalized;
+}
+
+function normalizeCulturalNotes(raw: unknown): CulturalNotes | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const obj = raw as Record<string, unknown>;
+  const result: CulturalNotes = {};
+
+  if (typeof obj.korean === "string" && obj.korean.trim()) {
+    result.korean = obj.korean.trim().slice(0, 500);
+  }
+  if (typeof obj.western === "string" && obj.western.trim()) {
+    result.western = obj.western.trim().slice(0, 500);
+  }
+  if (typeof obj.chinese === "string" && obj.chinese.trim()) {
+    result.chinese = obj.chinese.trim().slice(0, 500);
+  }
+  if (typeof obj.islamic === "string" && obj.islamic.trim()) {
+    result.islamic = obj.islamic.trim().slice(0, 500);
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+function normalizeCelestialContext(raw: unknown): CelestialContext | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const obj = raw as Record<string, unknown>;
+  const result: CelestialContext = {};
+
+  // Moon phase
+  if (obj.moon_phase && typeof obj.moon_phase === "object") {
+    const mp = obj.moon_phase as Record<string, unknown>;
+    result.moon_phase = {
+      name: typeof mp.name === "string" ? mp.name : undefined,
+      korean: typeof mp.korean === "string" ? mp.korean : undefined,
+      emoji: typeof mp.emoji === "string" ? mp.emoji : undefined,
+      illumination: typeof mp.illumination === "number" ? mp.illumination : undefined,
+      dream_quality: typeof mp.dream_quality === "string" ? mp.dream_quality : undefined,
+      dream_meaning: typeof mp.dream_meaning === "string" ? mp.dream_meaning : undefined,
+      advice: typeof mp.advice === "string" ? mp.advice : undefined,
+    };
+  }
+
+  // Moon sign
+  if (obj.moon_sign && typeof obj.moon_sign === "object") {
+    const ms = obj.moon_sign as Record<string, unknown>;
+    result.moon_sign = {
+      sign: typeof ms.sign === "string" ? ms.sign : undefined,
+      korean: typeof ms.korean === "string" ? ms.korean : undefined,
+      dream_flavor: typeof ms.dream_flavor === "string" ? ms.dream_flavor : undefined,
+      enhanced_symbols: Array.isArray(ms.enhanced_symbols)
+        ? ms.enhanced_symbols.filter((s): s is string => typeof s === "string").slice(0, 10)
+        : undefined,
+    };
+  }
+
+  // Retrogrades
+  if (Array.isArray(obj.retrogrades)) {
+    result.retrogrades = obj.retrogrades
+      .filter((r): r is Record<string, unknown> => r !== null && typeof r === "object")
+      .slice(0, 5)
+      .map(r => ({
+        planet: typeof r.planet === "string" ? r.planet : undefined,
+        korean: typeof r.korean === "string" ? r.korean : undefined,
+        emoji: typeof r.emoji === "string" ? r.emoji : undefined,
+        themes: Array.isArray(r.themes)
+          ? r.themes.filter((t): t is string => typeof t === "string").slice(0, 5)
+          : undefined,
+        interpretation: typeof r.interpretation === "string" ? r.interpretation : undefined,
+      }));
+  }
+
+  return (result.moon_phase || result.moon_sign || result.retrogrades) ? result : undefined;
+}
+
+function normalizeSajuContext(raw: unknown): SajuContext | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const obj = raw as Record<string, unknown>;
+
+  // Must have at least birth_date
+  if (typeof obj.birth_date !== "string" || !obj.birth_date.trim()) {
+    return undefined;
+  }
+
+  return {
+    birth_date: obj.birth_date.trim(),
+    birth_time: typeof obj.birth_time === "string" ? obj.birth_time.trim() : undefined,
+    birth_city: typeof obj.birth_city === "string" ? obj.birth_city.trim().slice(0, 100) : undefined,
+    timezone: typeof obj.timezone === "string" ? obj.timezone.trim() : undefined,
+  };
+}
+
+function normalizeEnhancedDreamContext(raw: unknown): EnhancedDreamContext | null {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw as Record<string, unknown>;
+
+  const dreamText = typeof obj.dreamText === "string" ? obj.dreamText.trim() : "";
+  if (!dreamText || dreamText.length < 5) return null;
+
+  const summary = typeof obj.summary === "string" ? obj.summary.trim().slice(0, MAX_CONTEXT_FIELD) : undefined;
+  const symbols = cleanStringArray(obj.symbols);
+  const emotions = cleanStringArray(obj.emotions);
+  const themes = cleanStringArray(obj.themes);
+  const recommendations = cleanStringArray(obj.recommendations);
+
+  // Enhanced context
+  const cultural_notes = normalizeCulturalNotes(obj.cultural_notes);
+  const celestial = normalizeCelestialContext(obj.celestial);
+  const saju = normalizeSajuContext(obj.saju);
+
+  // Previous consultations for continuity
+  let previous_consultations: PreviousConsultation[] | undefined;
+  if (Array.isArray(obj.previous_consultations)) {
+    previous_consultations = obj.previous_consultations
+      .filter((c): c is Record<string, unknown> => c !== null && typeof c === "object")
+      .slice(0, 5)
+      .map(c => ({
+        summary: typeof c.summary === "string" ? c.summary.slice(0, 300) : undefined,
+        dreamText: typeof c.dreamText === "string" ? c.dreamText.slice(0, 200) : undefined,
+        date: typeof c.date === "string" ? c.date : undefined,
+      }));
+  }
+
+  // Persona memory for personalized responses
+  let persona_memory: PersonaMemory | undefined;
+  if (obj.persona_memory && typeof obj.persona_memory === "object") {
+    const pm = obj.persona_memory as Record<string, unknown>;
+    persona_memory = {
+      sessionCount: typeof pm.sessionCount === "number" ? pm.sessionCount : undefined,
+      keyInsights: Array.isArray(pm.keyInsights)
+        ? pm.keyInsights.filter((i): i is string => typeof i === "string").slice(0, 5)
+        : undefined,
+      emotionalTone: typeof pm.emotionalTone === "string" ? pm.emotionalTone : undefined,
+    };
+  }
+
+  return {
+    dreamText: dreamText.slice(0, MAX_CONTEXT_FIELD),
+    summary,
+    symbols,
+    emotions,
+    themes,
+    recommendations,
+    cultural_notes,
+    celestial,
+    saju,
+    previous_consultations,
+    persona_memory,
+  };
 }
 
 export async function POST(req: Request) {
@@ -115,26 +295,69 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const body: DreamChatRequest = await req.json();
-    const { messages, dreamContext, locale = "ko" } = body;
+    const oversized = enforceBodySize(req, MAX_CHAT_BODY, limit.headers);
+    if (oversized) return oversized;
 
-    if (!messages || messages.length === 0) {
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "invalid_body" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    const locale = typeof (body as Record<string, unknown>).locale === "string" && ALLOWED_CHAT_LOCALES.has((body as Record<string, unknown>).locale as string)
+      ? (body as Record<string, unknown>).locale as "ko" | "en"
+      : "ko";
+    const messages = normalizeMessages((body as Record<string, unknown>).messages);
+    if (!messages.length) {
       return NextResponse.json(
         { error: "Messages required" },
         { status: 400, headers: limit.headers }
       );
     }
+    const dreamContext = normalizeEnhancedDreamContext((body as Record<string, unknown>).dreamContext);
+    if (!dreamContext) {
+      return NextResponse.json(
+        { error: "Invalid dream context" },
+        { status: 400, headers: limit.headers }
+      );
+    }
 
-    // Build system instruction with dream context
-    const systemInstruction = buildSystemInstruction(dreamContext, locale);
-    const messagesWithSystem: Message[] = [
-      { role: "system", content: systemInstruction },
-      ...messages,
-    ];
-
-    // Call backend streaming endpoint
+    // Call backend streaming endpoint with full enhanced context
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // Extended timeout for RAG
+
+    // Build backend request with all context
+    const backendPayload = {
+      messages: messages,
+      dream_context: {
+        dream_text: dreamContext.dreamText,
+        summary: dreamContext.summary,
+        symbols: dreamContext.symbols,
+        emotions: dreamContext.emotions,
+        themes: dreamContext.themes,
+        recommendations: dreamContext.recommendations,
+        // Enhanced context for RAG + Saju + Celestial
+        cultural_notes: dreamContext.cultural_notes,
+        celestial: dreamContext.celestial,
+        saju: dreamContext.saju,
+        // Previous consultations for memory/continuity
+        previous_consultations: dreamContext.previous_consultations,
+        persona_memory: dreamContext.persona_memory,
+      },
+      language: locale
+    };
+
+    console.log("[DreamChat] Sending enhanced context to backend:", {
+      hasContext: !!dreamContext,
+      hasCultural: !!dreamContext.cultural_notes,
+      hasCelestial: !!dreamContext.celestial,
+      hasSaju: !!dreamContext.saju,
+      hasPreviousConsultations: !!dreamContext.previous_consultations?.length,
+      hasPersonaMemory: !!dreamContext.persona_memory,
+      symbolCount: dreamContext.symbols?.length || 0,
+    });
 
     const backendResponse = await fetch(`${pickBackendUrl()}/api/dream/chat-stream`, {
       method: "POST",
@@ -142,18 +365,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
       },
-      body: JSON.stringify({
-        messages: messagesWithSystem,
-        dream_context: {
-          dream_text: dreamContext.dreamText,
-          summary: dreamContext.summary,
-          symbols: dreamContext.symbols,
-          emotions: dreamContext.emotions,
-          themes: dreamContext.themes,
-          recommendations: dreamContext.recommendations,
-        },
-        language: locale
-      }),
+      body: JSON.stringify(backendPayload),
       signal: controller.signal,
       cache: "no-store",
     });

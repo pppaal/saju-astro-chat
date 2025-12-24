@@ -1,0 +1,106 @@
+{
+  "_meta": {
+    "description": "스토아 철학 기반 꿈 해석 및 실용적 조언",
+    "version": "1.0.0",
+    "source": "Marcus Aurelius, Epictetus, Seneca",
+    "last_updated": "2024-12"
+  },
+
+  "_principles": {
+    "dichotomy_of_control": "통제할 수 있는 것과 없는 것의 구분",
+    "present_moment": "현재에 집중하는 것의 중요성",
+    "amor_fati": "운명을 사랑하라 - 일어난 일을 받아들이기",
+    "memento_mori": "죽음을 기억하라 - 삶의 유한성 인식",
+    "virtue_as_goal": "덕(지혜, 용기, 절제, 정의)이 최고 선"
+  },
+
+  "stoic_control": {
+    "when": ["통제", "control", "무력감", "helpless", "좌절", "frustration", "어쩔 수 없", "cannot change"],
+    "text": "스토아 철학에서 가장 중요한 것은 '통제의 이분법'입니다. 당신이 통제할 수 있는 것(생각, 판단, 행동)에 집중하고, 통제할 수 없는 것(타인의 행동, 외부 사건)은 받아들이세요. 꿈에서 통제력을 잃는 느낌은 이 구분이 필요하다는 신호입니다.",
+    "weight": 9,
+    "category": "stoic",
+    "advice": "오늘 걱정하는 것 중 진짜 통제 가능한 것은 무엇인가요?",
+    "marcus_aurelius": "네가 통제할 수 없는 것에 휘둘리지 마라. 네 마음의 요새를 지켜라."
+  },
+
+  "stoic_adversity": {
+    "when": ["어려움", "difficulty", "시련", "hardship", "역경", "adversity", "obstacle", "장애물"],
+    "text": "스토아 철학자들은 역경을 성장의 기회로 보았습니다. '장애물이 곧 길이다(The obstacle is the way).' 꿈에서 마주하는 어려움은 현실에서 극복해야 할 도전을 반영합니다. 회피가 아닌 직면을 통해 덕을 기를 수 있습니다.",
+    "weight": 9,
+    "category": "stoic",
+    "advice": "이 장애물이 당신을 더 강하게 만들 기회라면, 어떻게 접근하시겠습니까?",
+    "marcus_aurelius": "불은 거기에 던져진 모든 것을 빛과 불꽃으로 바꾼다."
+  },
+
+  "stoic_acceptance": {
+    "when": ["받아들임", "acceptance", "거부", "denial", "운명", "fate", "변화", "change"],
+    "text": "'아모르 파티(Amor Fati)' - 운명을 사랑하라. 일어난 일을 거부하지 말고 받아들이세요. 꿈에서 저항하는 것들은 현실에서 받아들이지 못한 것일 수 있습니다. 받아들임은 포기가 아니라, 에너지를 효율적으로 쓰는 것입니다.",
+    "weight": 9,
+    "category": "stoic",
+    "advice": "지금 거부하고 있는 현실 중, 받아들이면 평화를 얻을 것이 있나요?",
+    "seneca": "운명은 원하는 자를 이끌고, 원하지 않는 자를 끌고 간다."
+  },
+
+  "stoic_mortality": {
+    "when": ["죽음", "death", "끝", "ending", "시간", "time", "유한", "finite", "마감"],
+    "text": "'메멘토 모리(Memento Mori)' - 죽음을 기억하라. 시간의 유한성을 인식하면 오늘을 더 충실히 살게 됩니다. 꿈에서 죽음이나 끝을 마주하는 것은 삶의 우선순위를 재정립하라는 메시지일 수 있습니다.",
+    "weight": 8,
+    "category": "stoic",
+    "advice": "만약 1년밖에 남지 않았다면, 오늘 무엇을 하시겠습니까?",
+    "marcus_aurelius": "오늘이 마지막인 것처럼 행동하되, 영원히 살 것처럼 배워라."
+  },
+
+  "stoic_virtue": {
+    "when": ["선택", "choice", "결정", "decision", "옳은 일", "right thing", "도덕", "moral"],
+    "text": "스토아 철학에서 진정한 행복(에우다이모니아)은 덕을 실천할 때 옵니다. 지혜(sophia), 용기(andreia), 절제(sophrosyne), 정의(dikaiosyne) - 이 네 가지 덕목이 나침반입니다. 꿈에서 도덕적 선택의 상황은 당신의 가치관을 점검하라는 신호입니다.",
+    "weight": 9,
+    "category": "stoic",
+    "advice": "이 상황에서 '최선의 나'는 어떻게 행동할까요?",
+    "epictetus": "네가 되고 싶은 사람처럼 행동하기 시작하라."
+  },
+
+  "stoic_anxiety": {
+    "when": ["불안", "anxiety", "걱정", "worry", "두려움", "fear", "미래", "future"],
+    "text": "스토아 철학자들은 불안의 대부분이 '아직 일어나지 않은 일'에 대한 것임을 알았습니다. 현재에 집중하세요. 꿈에서 불안한 상황은 마음이 미래로 너무 달려가고 있다는 신호입니다.",
+    "weight": 9,
+    "category": "stoic",
+    "advice": "지금 이 순간, 실제로 일어나고 있는 문제가 무엇인가요?",
+    "seneca": "우리는 실제로 일어나는 것보다 상상 속에서 더 많이 고통받는다."
+  },
+
+  "stoic_anger": {
+    "when": ["분노", "anger", "화", "rage", "짜증", "irritation", "복수", "revenge"],
+    "text": "분노는 통제할 수 없는 것을 통제하려 할 때 생깁니다. 세네카는 '분노는 잠깐의 광기'라 했습니다. 꿈에서 화가 나는 상황은 현실에서 기대를 내려놓아야 할 곳을 보여줍니다.",
+    "weight": 8,
+    "category": "stoic",
+    "advice": "이 분노 아래에 어떤 기대가 있었나요? 그 기대가 합리적인가요?",
+    "seneca": "분노를 참는 것보다 분노를 아예 느끼지 않는 것이 낫다."
+  },
+
+  "stoic_relationships": {
+    "when": ["관계", "relationship", "사람들", "people", "배신", "betrayal", "실망", "disappointment"],
+    "text": "에픽테토스는 말했습니다: '사람들에게 상처받은 것이 아니라, 그들에 대한 당신의 기대에 상처받은 것이다.' 타인을 바꿀 수는 없지만, 그들을 어떻게 볼지는 선택할 수 있습니다.",
+    "weight": 8,
+    "category": "stoic",
+    "advice": "이 사람에게 가진 기대 중, 내려놓을 수 있는 것이 있나요?",
+    "epictetus": "타인의 행동으로 마음이 흔들리지 않게 하라. 그것은 그들의 것이다."
+  },
+
+  "stoic_loss": {
+    "when": ["상실", "loss", "잃다", "losing", "이별", "farewell", "그리움", "longing"],
+    "text": "스토아 철학에서는 '빌려준 것을 돌려받은 것'으로 상실을 봅니다. 모든 것은 일시적이며, 가졌던 시간에 감사하는 것이 지혜입니다. 꿈에서 상실을 경험한다면, 무상함을 받아들이라는 메시지일 수 있습니다.",
+    "weight": 8,
+    "category": "stoic",
+    "advice": "잃어버린 것에 대해 감사할 수 있는 것은 무엇인가요?",
+    "epictetus": "그것을 영원히 가질 수 있다고 생각하지 마라. 잠시 빌린 것일 뿐이다."
+  },
+
+  "stoic_action": {
+    "when": ["행동", "action", "결단", "resolve", "시작", "start", "실행", "execute"],
+    "text": "스토아 철학은 명상만이 아닌 행동의 철학입니다. 생각만으로는 충분하지 않습니다. 꿈에서 무언가를 해야 하는 상황은 현실에서 행동이 필요하다는 신호입니다.",
+    "weight": 8,
+    "category": "stoic",
+    "advice": "오늘 당장 할 수 있는 작은 행동 하나는 무엇인가요?",
+    "marcus_aurelius": "새벽에 일어나기 싫을 때, 이것을 생각하라: 나는 인간의 일을 하기 위해 일어나는 것이다."
+  }
+}

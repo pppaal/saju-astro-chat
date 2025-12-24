@@ -3,12 +3,25 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
+import { enforceBodySize } from "@/lib/http";
+import { calculateSajuData } from "@/lib/Saju/saju";
+import { calculateNatalChart } from "@/lib/astrology";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
+
+const ALLOWED_LANG = new Set(["ko", "en"]);
+const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
+const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const MAX_THEME = 40;
+const MAX_MESSAGES = 10;
+const MAX_NAME = 80;
+const MAX_CV = 1200;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
@@ -74,6 +87,9 @@ function counselorSystemPrompt(lang: string) {
 
 export async function POST(request: Request) {
   try {
+    const oversized = enforceBodySize(request as any, 64 * 1024);
+    if (oversized) return oversized;
+
     const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
     if (guard instanceof Response) return guard;
 
@@ -89,31 +105,114 @@ export async function POST(request: Request) {
       }
     }
 
-    const body = await request.json();
-    const {
-      name,
-      birthDate,
-      birthTime,
-      gender = "male",
-      latitude,
-      longitude,
-      theme = "chat",
-      lang = "ko",
-      messages = [],
-      saju,
-      astro,
-      userContext, // Premium: persona memory + recent session summaries
-      cvText, // CV/Resume text for career consultations
-    } = body;
-
-    if (!birthDate || !birthTime) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    const body = await request.json().catch(() => null);
+    if (!body) {
+      return new Response(JSON.stringify({ error: "invalid_body" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    const trimmedHistory = clampMessages(messages);
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
+    const birthTime = typeof body.birthTime === "string" ? body.birthTime.trim() : "";
+    const gender = typeof body.gender === "string" && ALLOWED_GENDER.has(body.gender) ? body.gender : "male";
+    const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
+    const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
+    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, MAX_THEME) : "chat";
+    const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
+    const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : [];
+    let saju = body.saju;
+    let astro = body.astro;
+    const advancedAstro = body.advancedAstro;  // Advanced astrology features
+    const userContext = body.userContext;
+    const cvText = typeof body.cvText === "string" ? body.cvText : "";
+
+    if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
+      return new Response(JSON.stringify({ error: "Invalid birthDate" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!TIME_RE.test(birthTime)) {
+      return new Response(JSON.stringify({ error: "Invalid birthTime" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      return new Response(JSON.stringify({ error: "Invalid latitude" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      return new Response(JSON.stringify({ error: "Invalid longitude" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Compute saju if not provided or empty
+    if (!saju || !saju.dayMaster) {
+      try {
+        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
+        saju = calculateSajuData(birthDate, birthTime, gender, "solar", userTz);
+        console.log("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
+      } catch (e) {
+        console.warn("[chat-stream] Failed to compute saju:", e);
+      }
+    }
+
+    // Compute astro if not provided or empty
+    if (!astro || !astro.sun) {
+      try {
+        const [year, month, day] = birthDate.split("-").map(Number);
+        const [hour, minute] = birthTime.split(":").map(Number);
+        const natalData = await calculateNatalChart({
+          year,
+          month,
+          date: day,
+          hour,
+          minute,
+          latitude,
+          longitude,
+          timeZone: "Asia/Seoul", // Default timezone
+        });
+        // Transform planets array to expected format
+        const getPlanet = (name: string) => natalData.planets.find((p) => p.name === name);
+        astro = {
+          sun: getPlanet("Sun"),
+          moon: getPlanet("Moon"),
+          mercury: getPlanet("Mercury"),
+          venus: getPlanet("Venus"),
+          mars: getPlanet("Mars"),
+          jupiter: getPlanet("Jupiter"),
+          saturn: getPlanet("Saturn"),
+          ascendant: natalData.ascendant,
+        };
+        console.log("[chat-stream] Computed astro:", astro?.sun?.sign);
+      } catch (e) {
+        console.warn("[chat-stream] Failed to compute astro:", e);
+      }
+    }
+
+    const normalizedMessages: ChatMessage[] = [];
+    for (const m of messages) {
+      if (!m || typeof m !== "object") continue;
+      const role = typeof (m as any).role === "string" && ALLOWED_ROLE.has((m as any).role) ? ((m as any).role as ChatMessage["role"]) : null;
+      const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+      if (!role || !content) continue;
+      normalizedMessages.push({ role, content: content.slice(0, 2000) });
+    }
+
+    const trimmedHistory = clampMessages(normalizedMessages);
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === "user");
@@ -154,7 +253,7 @@ export async function POST(request: Request) {
       `Gender: ${gender}`,
       `Theme: ${theme}`,
       // Include CV summary if provided (for career consultations)
-      cvText ? `\nCV/Resume:\n${guardText(cvText, 3000)}` : "",
+      cvText ? `\nCV/Resume:\n${guardText(cvText, MAX_CV)}` : "",
       historyText ? `\nConversation:\n${historyText}` : "",
       `\nQuestion: ${userQuestion}`,
     ]
@@ -184,6 +283,8 @@ export async function POST(request: Request) {
         // Pass pre-computed chart data if available (instant response)
         saju: saju || undefined,
         astro: astro || undefined,
+        // Advanced astrology features (draconic, harmonics, progressions, etc.)
+        advanced_astro: advancedAstro || undefined,
         // Fallback: Pass birth info for backend to compute if needed
         birth: { date: birthDate, time: birthTime, gender, lat: latitude, lon: longitude },
         // Conversation history for context-aware responses

@@ -98,9 +98,16 @@ export async function POST(req: NextRequest) {
       if (!TIME_RE.test(p.time)) {
         return bad(`${i + 1}: time must be HH:mm (24h).`, 400, limit.headers);
       }
-      if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number') {
+      if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number' || !Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) {
         return bad(`${i + 1}: latitude/longitude must be numbers.`, 400, limit.headers);
       }
+      if (p.latitude < -90 || p.latitude > 90 || p.longitude < -180 || p.longitude > 180) {
+        return bad(`${i + 1}: latitude/longitude out of range.`, 400, limit.headers);
+      }
+      if (!p.timeZone || typeof p.timeZone !== 'string' || !p.timeZone.trim()) {
+        return bad(`${i + 1}: timeZone is required.`, 400, limit.headers);
+      }
+      p.timeZone = p.timeZone.trim().slice(0, 80);
       if (i > 0 && !p.relationToP1) {
         return bad(`${i + 1}: relationToP1 is required.`, 400, limit.headers);
       }

@@ -20,15 +20,20 @@ import os
 import torch
 from typing import List, Dict, Optional
 from functools import lru_cache
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import util
+
+# Use shared model singleton from saju_astro_rag
+try:
+    from backend_ai.app.saju_astro_rag import get_model
+except ImportError:
+    from saju_astro_rag import get_model
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMBEDDINGS_DIR = os.path.join(BASE_DIR, "data", "embeddings")
-MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
-# Domain configuration
-DOMAINS = ["destiny_map", "tarot", "dream", "iching"]
+# Domain configuration - only domains with actual embedding files
+DOMAINS = ["tarot", "dream"]
 
 
 class DomainRAG:
@@ -41,24 +46,23 @@ class DomainRAG:
         Initialize DomainRAG.
 
         Args:
-            preload_domains: List of domains to preload on init (default: ["destiny_map"])
+            preload_domains: List of domains to preload on init (default: None - lazy load all)
         """
         self._model: Optional[SentenceTransformer] = None
         self._domain_cache: Dict[str, Dict] = {}
 
-        # Preload specified domains (destiny_map by default for fast startup)
-        preload = preload_domains or ["destiny_map"]
+        # Preload specified domains (none by default - lazy load for memory efficiency)
+        preload = preload_domains or []
         for domain in preload:
             if domain in DOMAINS:
                 self._load_domain(domain)
 
     @property
-    def model(self) -> SentenceTransformer:
-        """Lazy load the sentence transformer model."""
+    def model(self):
+        """Get shared model singleton from saju_astro_rag."""
         if self._model is None:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            print(f"[DomainRAG] Loading model on {device}...")
-            self._model = SentenceTransformer(MODEL_NAME, device=device)
+            print("[DomainRAG] Using shared model from saju_astro_rag...")
+            self._model = get_model()
         return self._model
 
     def _load_domain(self, domain: str) -> bool:
@@ -255,12 +259,6 @@ def get_domain_rag(preload: List[str] = None) -> DomainRAG:
 # UTILITY FUNCTIONS
 # =============================================================================
 
-def search_destiny_map(query: str, top_k: int = 5) -> List[Dict]:
-    """Convenience function for destiny-map searches."""
-    rag = get_domain_rag(["destiny_map"])
-    return rag.search("destiny_map", query, top_k=top_k)
-
-
 def search_tarot(query: str, top_k: int = 5) -> List[Dict]:
     """Convenience function for tarot searches."""
     rag = get_domain_rag()
@@ -275,13 +273,6 @@ def search_dream(query: str, top_k: int = 5) -> List[Dict]:
     return rag.search("dream", query, top_k=top_k)
 
 
-def search_iching(query: str, top_k: int = 5) -> List[Dict]:
-    """Convenience function for I Ching searches."""
-    rag = get_domain_rag()
-    rag.load_domain("iching")
-    return rag.search("iching", query, top_k=top_k)
-
-
 # =============================================================================
 # TEST
 # =============================================================================
@@ -289,15 +280,17 @@ def search_iching(query: str, top_k: int = 5) -> List[Dict]:
 if __name__ == "__main__":
     print("Testing DomainRAG...")
 
-    rag = DomainRAG(preload_domains=["destiny_map"])
+    rag = DomainRAG()
 
-    print("\n[Test 1] Destiny Map Search")
-    results = rag.search("destiny_map", "리더십과 추진력", top_k=3)
+    print("\n[Test 1] Tarot Search")
+    rag.load_domain("tarot")
+    results = rag.search("tarot", "사랑과 관계", top_k=3)
     for r in results:
         print(f"  [{r['score']:.3f}] {r['text'][:80]}...")
 
-    print("\n[Test 2] Get Context")
-    context = rag.get_context("destiny_map", "연애운", top_k=3, max_chars=500)
+    print("\n[Test 2] Dream Search")
+    rag.load_domain("dream")
+    context = rag.get_context("dream", "꿈 해석", top_k=3, max_chars=500)
     print(f"  Context length: {len(context)} chars")
     print(f"  Preview: {context[:200]}...")
 

@@ -2,17 +2,46 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
 import { generateReferralCode, linkReferrer } from "@/lib/referral";
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/request-ip";
+import { enforceBodySize } from "@/lib/http";
+
+const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const MAX_NAME = 80;
+const MAX_REFERRAL = 32;
+const MIN_PASSWORD = 8;
+const MAX_PASSWORD = 128;
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, password, name, referralCode } = body || {};
-    if (!email || !password) {
-      return NextResponse.json({ error: "missing_fields" }, { status: 400 });
+    const ip = getClientIp(req.headers as Headers);
+    const limit = await rateLimit(`register:${ip}`, { limit: 10, windowSeconds: 300 });
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: limit.headers });
     }
+
+    const oversized = enforceBodySize(req as any, 32 * 1024, limit.headers);
+    if (oversized) return oversized;
+
+    const body = await req.json().catch(() => null);
+    const email = typeof body?.email === "string" ? body.email.trim() : "";
+    const password = typeof body?.password === "string" ? body.password : "";
+    const name = typeof body?.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const referralCode = typeof body?.referralCode === "string" ? body.referralCode.trim().slice(0, MAX_REFERRAL) : undefined;
+
+    if (!email || !password) {
+      return NextResponse.json({ error: "missing_fields" }, { status: 400, headers: limit.headers });
+    }
+    if (!EMAIL_RE.test(email) || email.length > 254) {
+      return NextResponse.json({ error: "invalid_email" }, { status: 400, headers: limit.headers });
+    }
+    if (password.length < MIN_PASSWORD || password.length > MAX_PASSWORD) {
+      return NextResponse.json({ error: "invalid_password" }, { status: 400, headers: limit.headers });
+    }
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing?.passwordHash) {
-      return NextResponse.json({ error: "user_exists" }, { status: 409 });
+      return NextResponse.json({ error: "user_exists" }, { status: 409, headers: limit.headers });
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -34,7 +63,7 @@ export async function POST(req: Request) {
       await linkReferrer(user.id, referralCode);
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true }, { headers: limit.headers });
   } catch (err: any) {
     console.error("[register] error", err);
     return NextResponse.json({ error: err.message ?? "server_error" }, { status: 500 });

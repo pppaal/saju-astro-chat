@@ -4,13 +4,73 @@ Dream Interpretation Embedding System (Standalone)
 Uses SentenceTransformer for semantic similarity matching
 - 독립적인 드림 전용 임베딩 시스템
 - 사주/점성 GraphRAG와 분리된 캐시 사용
+- 융 심리학 치료적 질문 및 위기 감지 통합
 """
 
 import os
 import json
 import torch
-from typing import List, Dict, Optional
-from sentence_transformers import SentenceTransformer, util
+from typing import List, Dict, Optional, Tuple
+from sentence_transformers import util
+
+# Use shared model singleton from saju_astro_rag
+try:
+    from backend_ai.app.saju_astro_rag import get_model
+except ImportError:
+    from saju_astro_rag import get_model
+
+
+# ============================================================
+# CRISIS DETECTION MODULE
+# ============================================================
+class CrisisDetector:
+    """위기 상황 감지 - jung_crisis_intervention.json 기반"""
+
+    HIGH_RISK_KEYWORDS = {
+        "suicidal": {
+            "keywords": ["죽고 싶", "자살", "끝내고 싶", "사라지고 싶", "없어지고 싶",
+                        "더 이상 못 살", "삶을 끝", "죽는 게 나을", "죽어버릴", "자해"],
+            "severity": "critical",
+            "response": "지금 많이 힘드시네요. 혹시 스스로를 해치고 싶은 생각이 드시나요? "
+                       "그런 생각이 들 정도로 힘드셨다면, 전문 상담이 꼭 필요합니다. "
+                       "자살예방상담전화 1393, 정신건강위기상담전화 1577-0199로 연락해주세요."
+        },
+        "severe_distress": {
+            "keywords": ["희망이 없", "아무 의미 없", "살고 싶지 않", "모든 게 끝났",
+                        "아무도 나를 원하지 않", "차라리 없는 게", "견딜 수 없"],
+            "severity": "high",
+            "response": "정말 힘든 시간을 보내고 계시는군요. 이런 감정은 혼자 감당하기 어렵습니다. "
+                       "전문 상담사와 이야기하시는 것이 도움이 될 수 있어요. "
+                       "정신건강위기상담전화 1577-0199로 편하게 연락해주세요."
+        }
+    }
+
+    RESOURCES_KOREA = {
+        "emergency": "119 (응급)",
+        "suicide_prevention": "1393 (자살예방상담전화)",
+        "mental_health_crisis": "1577-0199 (정신건강위기상담전화)",
+        "youth": "1388 (청소년전화)"
+    }
+
+    @classmethod
+    def check_crisis(cls, text: str) -> Optional[Dict]:
+        """위기 상황 감지. 감지되면 Dict 반환, 아니면 None"""
+        if not text:
+            return None
+
+        text_lower = text.lower()
+
+        for crisis_type, config in cls.HIGH_RISK_KEYWORDS.items():
+            for keyword in config["keywords"]:
+                if keyword in text_lower:
+                    return {
+                        "detected": True,
+                        "type": crisis_type,
+                        "severity": config["severity"],
+                        "response": config["response"],
+                        "resources": cls.RESOURCES_KOREA
+                    }
+        return None
 
 
 class DreamEmbedRAG:
@@ -27,30 +87,31 @@ class DreamEmbedRAG:
             rules_dir = os.path.join(base_dir, "data", "graph", "rules", "dream")
 
         self.rules_dir = rules_dir
+        self.base_rules_dir = os.path.dirname(rules_dir)  # Parent: rules/
         self.rules = {}  # rule_file -> {rule_id -> rule_data}
         self.rule_texts = []  # [{file, rule_id, text, weight, category, ...}]
         self.rule_embeds = None
-        self.embed_cache_path = os.path.join(rules_dir, "dream_embeds.pt")
+        self.embed_cache_path = os.path.join(rules_dir, "dream_embeds_v2.pt")  # New cache for extended rules
+
+        # 치료적 질문 데이터 (jung_therapeutic.json)
+        self.therapeutic_questions = {}
+        # 상담 시나리오 (jung_counseling_scenarios.json)
+        self.counseling_scenarios = {}
 
         # 모델 초기화 (lazy load)
         self._model = None
 
         # 로드
         self._load_rules()
+        self._load_jung_extensions()
         self._prepare_embeddings()
 
     @property
     def model(self):
-        """Lazy load SentenceTransformer model"""
+        """Get shared model singleton from saju_astro_rag"""
         if self._model is None:
-            os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-            torch.set_default_device("cpu")
-            print("[DreamEmbedRAG] Loading SentenceTransformer model...")
-            self._model = SentenceTransformer(
-                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-                device="cpu"
-            )
-            print("[DreamEmbedRAG] Model loaded successfully")
+            print("[DreamEmbedRAG] Using shared model from saju_astro_rag...")
+            self._model = get_model()
         return self._model
 
     def _load_rules(self):
@@ -103,6 +164,84 @@ class DreamEmbedRAG:
                 print(f"[DreamEmbedRAG] Failed to load {filename}: {e}")
 
         print(f"[DreamEmbedRAG] Loaded {len(self.rules)} rule files, {len(self.rule_texts)} rules")
+
+    def _load_jung_extensions(self):
+        """Load Jung therapeutic questions and counseling scenarios for enriched responses"""
+        jung_dir = os.path.join(self.base_rules_dir, "jung")
+
+        # Load therapeutic questions
+        therapeutic_path = os.path.join(jung_dir, "jung_therapeutic.json")
+        if os.path.exists(therapeutic_path):
+            try:
+                with open(therapeutic_path, encoding='utf-8') as f:
+                    data = json.load(f)
+                    self.therapeutic_questions = data.get("therapeutic_questions", {})
+                    self.dream_symbols = data.get("dream_interpretation", {}).get("common_symbols", {})
+                    print(f"[DreamEmbedRAG] Loaded therapeutic questions: {len(self.therapeutic_questions)} categories")
+
+                    # Also add dream symbols from therapeutic to rule_texts
+                    for symbol, symbol_data in self.dream_symbols.items():
+                        meaning = symbol_data.get("meaning", "")
+                        therapeutic = symbol_data.get("therapeutic", "")
+                        variations = symbol_data.get("variations", {})
+
+                        text = f"꿈에서 {symbol}: {meaning}. {therapeutic}"
+                        for var_key, var_val in variations.items():
+                            text += f" {var_key}: {var_val}."
+
+                        if text.strip():
+                            self.rule_texts.append({
+                                'file': 'jung_therapeutic',
+                                'rule_id': f'symbol_{symbol}',
+                                'text': text,
+                                'weight': 8,  # High weight for therapeutic content
+                                'category': 'jungian',
+                                'korean': '',
+                                'advice': therapeutic,
+                                'original': meaning,
+                                'when': [symbol],
+                                'specifics': variations
+                            })
+            except Exception as e:
+                print(f"[DreamEmbedRAG] Failed to load therapeutic questions: {e}")
+
+        # Load counseling scenarios
+        scenarios_path = os.path.join(jung_dir, "jung_counseling_scenarios.json")
+        if os.path.exists(scenarios_path):
+            try:
+                with open(scenarios_path, encoding='utf-8') as f:
+                    data = json.load(f)
+                    self.counseling_scenarios = data.get("concern_categories", {})
+                    print(f"[DreamEmbedRAG] Loaded counseling scenarios: {len(self.counseling_scenarios)} categories")
+
+                    # Add counseling scenario keywords to rule_texts for RAG matching
+                    for category, cat_data in self.counseling_scenarios.items():
+                        for subcat, subcat_data in cat_data.get("subcategories", {}).items():
+                            jungian_lens = subcat_data.get("jungian_lens", {})
+                            key_questions = subcat_data.get("key_questions", [])
+
+                            primary_concept = jungian_lens.get("primary_concept", "")
+                            interpretation = jungian_lens.get("interpretation", "")
+                            therapeutic_direction = jungian_lens.get("therapeutic_direction", "")
+
+                            text = f"{primary_concept}: {interpretation} {therapeutic_direction}"
+                            advice = " ".join(key_questions[:2]) if key_questions else ""
+
+                            if text.strip():
+                                self.rule_texts.append({
+                                    'file': 'jung_counseling',
+                                    'rule_id': f'scenario_{category}_{subcat}',
+                                    'text': text,
+                                    'weight': 7,
+                                    'category': 'counseling',
+                                    'korean': subcat_data.get("name_ko", ""),
+                                    'advice': advice,
+                                    'original': interpretation,
+                                    'when': subcat_data.get("common_complaints", [])[:3],
+                                    'specifics': {}
+                                })
+            except Exception as e:
+                print(f"[DreamEmbedRAG] Failed to load counseling scenarios: {e}")
 
     def _prepare_embeddings(self):
         """Prepare or load cached embeddings"""
@@ -249,6 +388,104 @@ class DreamEmbedRAG:
             'sources': list(sources),
             'match_quality': 'high' if high_matches else ('medium' if filtered_results else 'fallback')
         }
+
+    def get_therapeutic_questions(self, dream_text: str, themes: List[str] = None) -> Dict:
+        """
+        꿈 내용에 맞는 융 심리학 치료적 질문 반환
+
+        Args:
+            dream_text: 꿈 설명
+            themes: 감지된 테마들 (예: ['shadow', 'relationship', 'fear'])
+
+        Returns:
+            Dict with therapeutic questions and insights
+        """
+        if not self.therapeutic_questions:
+            return {}
+
+        dream_lower = dream_text.lower()
+        matched_questions = []
+        matched_categories = []
+
+        # Keywords to category mapping
+        category_keywords = {
+            "shadow_work": ["그림자", "shadow", "어둠", "무서운", "쫓기", "chase", "괴물", "monster", "숨김"],
+            "anima_animus": ["이성", "연인", "사랑", "relationship", "남자", "여자", "결혼"],
+            "persona_work": ["가면", "페르소나", "진짜 나", "연기", "숨기", "역할"],
+            "inner_child": ["어린 시절", "아이", "child", "순수", "놀이", "보호받지 못한"],
+            "meaning_crisis": ["의미", "목적", "죽음", "death", "끝", "공허", "무의미"]
+        }
+
+        # Match themes and keywords to categories
+        for category, keywords in category_keywords.items():
+            if category in self.therapeutic_questions:
+                for keyword in keywords:
+                    if keyword in dream_lower:
+                        cat_data = self.therapeutic_questions[category]
+                        questions = cat_data.get("questions", []) or \
+                                   cat_data.get("for_men", []) + cat_data.get("for_women", [])
+                        if questions:
+                            matched_questions.extend(questions[:2])
+                            matched_categories.append(cat_data.get("category", category))
+                        break
+
+        # Deduplicate
+        matched_questions = list(dict.fromkeys(matched_questions))[:4]
+
+        return {
+            "therapeutic_questions": matched_questions,
+            "categories": list(set(matched_categories)),
+            "insight": self._generate_therapeutic_insight(matched_categories)
+        }
+
+    def _generate_therapeutic_insight(self, categories: List[str]) -> str:
+        """Generate brief therapeutic insight based on matched categories"""
+        insights = {
+            "그림자 작업": "이 꿈은 당신이 억압하거나 거부하는 자신의 일부를 보여줄 수 있습니다.",
+            "아니마/아니무스 작업": "이 꿈은 내면의 이성적 에너지와 관계를 맺으라는 메시지일 수 있습니다.",
+            "페르소나 작업": "이 꿈은 '진짜 나'와 '보여주는 나' 사이의 간극을 탐색하라고 합니다.",
+            "내면 아이 작업": "이 꿈은 돌봄이 필요한 내면 아이의 목소리일 수 있습니다.",
+            "의미 위기/영혼의 어두운 밤": "이 꿈은 삶의 의미와 방향을 재고하라는 심층적 메시지입니다."
+        }
+
+        for cat in categories:
+            if cat in insights:
+                return insights[cat]
+        return ""
+
+    def get_counseling_context(self, user_question: str) -> Dict:
+        """
+        사용자 질문에 맞는 상담 시나리오 컨텍스트 반환
+
+        Args:
+            user_question: 사용자의 질문/고민
+
+        Returns:
+            Dict with counseling insights and reframes
+        """
+        if not self.counseling_scenarios:
+            return {}
+
+        question_lower = user_question.lower()
+
+        # Check each scenario
+        for category, cat_data in self.counseling_scenarios.items():
+            for subcat, subcat_data in cat_data.get("subcategories", {}).items():
+                complaints = subcat_data.get("common_complaints", [])
+                for complaint in complaints:
+                    if any(word in question_lower for word in complaint.split()[:3]):
+                        jungian_lens = subcat_data.get("jungian_lens", {})
+                        return {
+                            "category": category,
+                            "subcategory": subcat_data.get("name_ko", subcat),
+                            "jungian_concept": jungian_lens.get("primary_concept", ""),
+                            "interpretation": jungian_lens.get("interpretation", ""),
+                            "therapeutic_direction": jungian_lens.get("therapeutic_direction", ""),
+                            "key_questions": subcat_data.get("key_questions", [])[:3],
+                            "reframes": subcat_data.get("reframe_examples", [])[:2]
+                        }
+
+        return {}
 
 
 # Singleton instance

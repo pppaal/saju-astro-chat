@@ -1,0 +1,293 @@
+/* ============================================================
+   Centralized Responsive Breakpoint System
+   ============================================================
+
+   Breakpoint Reference:
+   - Mobile Small:   max-width: 359px   (iPhone SE, older devices)
+   - Mobile:         max-width: 480px   (Standard phones)
+   - Mobile Large:   max-width: 640px   (Large phones, iPhone Pro Max)
+   - Tablet:         max-width: 768px   (iPad Mini, small tablets)
+   - Tablet Large:   max-width: 1024px  (iPad, iPad Pro 11")
+   - Desktop:        max-width: 1280px  (Laptops, iPad Pro 12.9")
+   - Wide:           min-width: 1281px  (Large monitors)
+
+   Usage in CSS Modules:
+   @media (max-width: 480px) { } - Mobile only
+   @media (max-width: 768px) { } - Mobile + Tablet
+   @media (max-width: 1024px) { } - Mobile + Tablet + Small Desktop
+   @media (min-width: 769px) { } - Tablet+ (desktop first)
+   @media (min-width: 1025px) { } - Desktop+
+
+   ============================================================ */
+
+:root {
+  /* Breakpoint values as custom properties (for reference/JS access) */
+  --bp-mobile-sm: 359px;
+  --bp-mobile: 480px;
+  --bp-mobile-lg: 640px;
+  --bp-tablet: 768px;
+  --bp-tablet-lg: 1024px;
+  --bp-desktop: 1280px;
+
+  /* Responsive spacing - adjusts based on screen size */
+  --spacing-page-x: clamp(16px, 4vw, 32px);
+  --spacing-page-y: clamp(24px, 5vh, 48px);
+  --spacing-section: clamp(32px, 8vh, 64px);
+  --spacing-card: clamp(16px, 3vw, 28px);
+
+  /* Responsive font sizes */
+  --text-xs: clamp(11px, 2.5vw, 12px);
+  --text-sm: clamp(13px, 2.8vw, 14px);
+  --text-base: clamp(15px, 3vw, 16px);
+  --text-lg: clamp(17px, 3.2vw, 18px);
+  --text-xl: clamp(19px, 3.5vw, 20px);
+  --text-2xl: clamp(22px, 4vw, 24px);
+  --text-3xl: clamp(26px, 5vw, 30px);
+  --text-4xl: clamp(32px, 6vw, 36px);
+  --text-5xl: clamp(40px, 8vw, 48px);
+
+  /* Responsive heading sizes */
+  --heading-page: clamp(28px, 6vw, 48px);
+  --heading-section: clamp(22px, 4.5vw, 36px);
+  --heading-card: clamp(18px, 3.5vw, 24px);
+
+  /* Container max-widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1200px;
+  --container-2xl: 1400px;
+
+  /* Touch target sizes */
+  --touch-target-sm: 36px;
+  --touch-target-md: 44px;
+  --touch-target-lg: 48px;
+
+  /* Grid gaps - responsive */
+  --gap-xs: clamp(8px, 2vw, 12px);
+  --gap-sm: clamp(12px, 2.5vw, 16px);
+  --gap-md: clamp(16px, 3vw, 24px);
+  --gap-lg: clamp(24px, 4vw, 32px);
+  --gap-xl: clamp(32px, 5vw, 48px);
+}
+
+/* ============================================================
+   Responsive Container Utility
+   ============================================================ */
+
+.responsive-container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-page-x);
+  padding-right: var(--spacing-page-x);
+}
+
+.responsive-container-sm {
+  max-width: var(--container-sm);
+}
+
+.responsive-container-md {
+  max-width: var(--container-md);
+}
+
+.responsive-container-lg {
+  max-width: var(--container-lg);
+}
+
+/* ============================================================
+   Responsive Grid Utilities
+   ============================================================ */
+
+.responsive-grid {
+  display: grid;
+  gap: var(--gap-md);
+}
+
+/* 1 column on mobile, 2 on tablet, 3+ on desktop */
+.responsive-grid-auto {
+  display: grid;
+  gap: var(--gap-md);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 641px) {
+  .responsive-grid-auto {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .responsive-grid-auto {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Auto-fit grid with minimum card size */
+.responsive-grid-cards {
+  display: grid;
+  gap: var(--gap-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+/* ============================================================
+   Responsive Flex Utilities
+   ============================================================ */
+
+.responsive-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-md);
+}
+
+/* Stack on mobile, row on tablet+ */
+.responsive-flex-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
+@media (min-width: 769px) {
+  .responsive-flex-row {
+    flex-direction: row;
+  }
+}
+
+/* ============================================================
+   Responsive Visibility Utilities
+   ============================================================ */
+
+/* Hide on mobile only (show on tablet+) */
+.hide-mobile {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .hide-mobile {
+    display: block !important;
+  }
+}
+
+/* Show on mobile only (hide on tablet+) */
+.show-mobile {
+  display: block !important;
+}
+
+@media (min-width: 769px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet only */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   Responsive Typography Utilities
+   ============================================================ */
+
+.text-responsive-sm {
+  font-size: var(--text-sm);
+}
+
+.text-responsive-base {
+  font-size: var(--text-base);
+}
+
+.text-responsive-lg {
+  font-size: var(--text-lg);
+}
+
+.text-responsive-xl {
+  font-size: var(--text-xl);
+}
+
+.heading-responsive-page {
+  font-size: var(--heading-page);
+  line-height: 1.2;
+}
+
+.heading-responsive-section {
+  font-size: var(--heading-section);
+  line-height: 1.25;
+}
+
+.heading-responsive-card {
+  font-size: var(--heading-card);
+  line-height: 1.3;
+}
+
+/* ============================================================
+   Responsive Spacing Utilities
+   ============================================================ */
+
+.p-responsive {
+  padding: var(--spacing-card);
+}
+
+.px-responsive {
+  padding-left: var(--spacing-page-x);
+  padding-right: var(--spacing-page-x);
+}
+
+.py-responsive {
+  padding-top: var(--spacing-page-y);
+  padding-bottom: var(--spacing-page-y);
+}
+
+.gap-responsive {
+  gap: var(--gap-md);
+}
+
+.gap-responsive-sm {
+  gap: var(--gap-sm);
+}
+
+.gap-responsive-lg {
+  gap: var(--gap-lg);
+}
+
+/* ============================================================
+   Landscape Mode Optimizations
+   ============================================================ */
+
+/* Landscape phone - reduce vertical space */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --spacing-page-y: 16px;
+    --spacing-section: 24px;
+  }
+}
+
+/* ============================================================
+   Safe Area Support for Notched Devices
+   ============================================================ */
+
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-top: max(var(--spacing-page-y), env(safe-area-inset-top));
+    padding-bottom: max(var(--spacing-page-y), env(safe-area-inset-bottom));
+    padding-left: max(var(--spacing-page-x), env(safe-area-inset-left));
+    padding-right: max(var(--spacing-page-x), env(safe-area-inset-right));
+  }
+}
+
+/* ============================================================
+   Print Media Query
+   ============================================================ */
+
+@media print {
+  .hide-print {
+    display: none !important;
+  }
+
+  .responsive-container {
+    max-width: 100%;
+    padding: 0;
+  }
+}

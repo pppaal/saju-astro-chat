@@ -8,8 +8,17 @@ import {
   PLAN_CONFIG,
   type FeatureType,
 } from "@/lib/credits/creditService";
+import { enforceBodySize } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
+
+const ALLOWED_CREDIT_TYPES = new Set<("reading" | "compatibility" | "followUp")>([
+  "reading",
+  "compatibility",
+  "followUp",
+]);
+const ALLOWED_FEATURES = new Set<FeatureType>(Object.keys(PLAN_CONFIG.free.features) as FeatureType[]);
+const MAX_CREDIT_AMOUNT = 10;
 
 // GET: 현재 크레딧 상태 조회
 export async function GET() {
@@ -67,8 +76,42 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { type = "reading", amount = 1, feature } = body;
+    const oversized = enforceBodySize(request as any, 4 * 1024);
+    if (oversized) return oversized;
+
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "invalid_body", allowed: false },
+        { status: 400 }
+      );
+    }
+
+    const typeRaw = typeof (body as any).type === "string" ? (body as any).type : undefined;
+    if (typeRaw && !ALLOWED_CREDIT_TYPES.has(typeRaw as any)) {
+      return NextResponse.json(
+        { error: "invalid_type", allowed: false },
+        { status: 400 }
+      );
+    }
+
+    const type = (typeRaw && ALLOWED_CREDIT_TYPES.has(typeRaw as any)
+      ? typeRaw
+      : "reading") as "reading" | "compatibility" | "followUp";
+    const parsedAmount = Number((body as any).amount ?? 1);
+    const amount = Number.isFinite(parsedAmount)
+      ? Math.min(Math.max(Math.trunc(parsedAmount), 1), MAX_CREDIT_AMOUNT)
+      : 1;
+    const featureRaw = typeof (body as any).feature === "string" ? (body as any).feature : undefined;
+    const feature = featureRaw && ALLOWED_FEATURES.has(featureRaw as FeatureType)
+      ? (featureRaw as FeatureType)
+      : undefined;
+    if (featureRaw && !feature) {
+      return NextResponse.json(
+        { error: "invalid_feature", allowed: false },
+        { status: 400 }
+      );
+    }
 
     // 기능 체크
     if (feature) {

@@ -1,0 +1,186 @@
+{
+  "$schema": "nova_personality_archetypes_v1",
+  "$description": "Nova 성격 유형 시스템 - 16가지 원형. 상담 시 사용자 맞춤 조언에 활용",
+
+  "axes": {
+    "energy": {
+      "radiant": {"ko": "발산형", "en": "Radiant", "desc": "외부에서 에너지를 얻고, 활발한 교류 선호"},
+      "grounded": {"ko": "안정형", "en": "Grounded", "desc": "내면에서 에너지를 얻고, 깊은 집중 선호"}
+    },
+    "cognition": {
+      "visionary": {"ko": "직관형", "en": "Visionary", "desc": "큰 그림과 가능성 중시, 미래 지향"},
+      "structured": {"ko": "체계형", "en": "Structured", "desc": "현실과 구체적 사실 중시, 현재 지향"}
+    },
+    "decision": {
+      "logic": {"ko": "논리형", "en": "Logic", "desc": "객관적 분석과 효율성 중시"},
+      "empathic": {"ko": "공감형", "en": "Empathic", "desc": "감정과 관계, 조화 중시"}
+    },
+    "rhythm": {
+      "flow": {"ko": "유연형", "en": "Flow", "desc": "열린 가능성과 적응 선호"},
+      "anchor": {"ko": "계획형", "en": "Anchor", "desc": "구조와 완결, 계획 선호"}
+    }
+  },
+
+  "archetypes": {
+    "RVLA": {
+      "name_ko": "별을 빚는 설계자",
+      "name_en": "Starforge Architect",
+      "summary_ko": "미래의 청사진을 그리며 사람들을 하나로 모으는 카리스마 있는 비전가",
+      "communication_style": "명확하고 직접적인 소통을 선호. 큰 그림부터 설명하고 세부사항은 나중에.",
+      "counseling_approach": "전략적 관점에서 조언. 구체적 실행 계획 제시. 장기적 비전과 연결.",
+      "strengths": ["전략적 사고", "추진력", "시스템 구조화", "리더십"],
+      "growth_areas": ["세부사항 주의", "팀 속도 배려", "감정적 뉘앙스 인식"],
+      "compatible_types": ["GSLA", "GSHA"]
+    },
+    "RVLF": {
+      "name_ko": "불꽃의 발명가",
+      "name_en": "Catalyst Inventor",
+      "summary_ko": "새로운 가능성을 발견하고 빠르게 실험하는 창의적인 혁신가",
+      "communication_style": "아이디어 중심 대화. 빠른 피봇과 가능성 탐색 선호.",
+      "counseling_approach": "다양한 옵션 제시. 실험적 접근 권장. 창의적 해결책 모색.",
+      "strengths": ["아이디어 생성", "패턴 인식", "실험 정신", "적응력"],
+      "growth_areas": ["완료까지 집중", "현실적 제약 고려", "실행 파트너 확보"],
+      "compatible_types": ["RSLA", "GSLA"]
+    },
+    "RVHA": {
+      "name_ko": "비전의 연결자",
+      "name_en": "Alliance Strategist",
+      "summary_ko": "사람들의 마음을 움직이는 스토리텔러이자 팀의 사기를 높이는 전략가",
+      "communication_style": "'왜'를 먼저 설명. 스토리텔링 활용. 감정적 연결 중시.",
+      "counseling_approach": "비전과 의미 연결. 팀/관계 관점 고려. 동기부여 중심 조언.",
+      "strengths": ["스토리텔링", "이해관계자 조율", "장기 전략", "팀 문화"],
+      "growth_areas": ["자기 돌봄", "단독 결정 용기", "회복 시간 확보"],
+      "compatible_types": ["GVLA"]
+    },
+    "RVHF": {
+      "name_ko": "영감의 탐험가",
+      "name_en": "Empathic Pioneer",
+      "summary_ko": "새로운 트렌드를 감지하고 사람들을 이야기와 분위기로 사로잡는 매력적인 개척자",
+      "communication_style": "에너지와 열정 중심. 트렌드와 가능성 탐색. 커뮤니티 지향.",
+      "counseling_approach": "영감과 동기부여. 새로운 관점 제시. 사회적 연결 강조.",
+      "strengths": ["매력적 스토리텔링", "트렌드 감지", "커뮤니티 빌딩", "창의성"],
+      "growth_areas": ["결정력", "에너지 분산 방지", "명확한 완료 기준"],
+      "compatible_types": ["RVHA", "RSHA"]
+    },
+    "RSLA": {
+      "name_ko": "철벽의 지휘관",
+      "name_en": "Command Organizer",
+      "summary_ko": "혼란 속에서 질서를 세우고 팀을 목표로 이끄는 신뢰할 수 있는 리더",
+      "communication_style": "명확하고 구조화된 소통. 목표와 책임 명시. 효율성 중시.",
+      "counseling_approach": "실행 계획 중심. 명확한 단계 제시. 책임과 결과 강조.",
+      "strengths": ["실행력", "빠른 결정", "역할 분배", "시스템 구축"],
+      "growth_areas": ["유연성", "미묘한 신호 감지", "탐색 여유"],
+      "compatible_types": ["RVLF"]
+    },
+    "RSLF": {
+      "name_ko": "현장의 해결사",
+      "name_en": "Tactical Improviser",
+      "summary_ko": "예상치 못한 상황에서도 침착하게 해결책을 찾아내는 실시간 문제 해결의 달인",
+      "communication_style": "실용적이고 현장 중심. 빠른 판단과 대응. 이론보다 실제.",
+      "counseling_approach": "즉각적 해결책 제시. 리소스 최대 활용. 위기 대응 관점.",
+      "strengths": ["순발력", "위기 대응", "자원 활용", "현장 감각"],
+      "growth_areas": ["문서화", "장기적 관점", "속도와 품질 균형"],
+      "compatible_types": ["RSLA", "GSLA"]
+    },
+    "RSHA": {
+      "name_ko": "따뜻한 관리자",
+      "name_en": "Connector Steward",
+      "summary_ko": "사람들이 최선을 다할 수 있는 환경을 만드는 따뜻한 관리자",
+      "communication_style": "따뜻하고 구조화된 소통. 사람 중심이면서 체계적.",
+      "counseling_approach": "관계와 성장 중심. 안정적 환경 조성. 갈등 해결 지원.",
+      "strengths": ["사람 중심 운영", "팀 문화 구축", "갈등 해결", "안정적 리더십"],
+      "growth_areas": ["경계 설정", "완벽주의 조절", "자기 돌봄"],
+      "compatible_types": ["RVHA", "GVHF"]
+    },
+    "RSHF": {
+      "name_ko": "화합의 촉진자",
+      "name_en": "Warm Facilitator",
+      "summary_ko": "어떤 모임도 활기차게 만들고 모두가 참여하게 하는 타고난 진행자",
+      "communication_style": "따뜻하고 포용적. 모두의 참여 유도. 분위기 조성.",
+      "counseling_approach": "참여와 소통 중심. 다양한 관점 포용. 함께하는 해결.",
+      "strengths": ["진행 능력", "즉흥 대응", "포용적 분위기", "참여 유도"],
+      "growth_areas": ["범위 제한", "결정력", "핵심 목표 집중"],
+      "compatible_types": ["RSLA", "GVLA"]
+    },
+    "GVLA": {
+      "name_ko": "고요한 설계자",
+      "name_en": "Quiet Architect",
+      "summary_ko": "표면 아래의 구조를 보며 몇 수 앞을 내다보는 깊은 사색가",
+      "communication_style": "분석적이고 심층적. 근본 원인 탐구. 체계적 설명.",
+      "counseling_approach": "근본 원인 분석. 장기적 관점. 체계적 해결책 설계.",
+      "strengths": ["시스템 이해", "장기 예측", "일관된 설계", "깊은 분석"],
+      "growth_areas": ["분석 마비 주의", "불완전한 시작 허용", "빠른 피드백"],
+      "compatible_types": ["RVLF"]
+    },
+    "GVLF": {
+      "name_ko": "탐구하는 분석가",
+      "name_en": "Analyst Explorer",
+      "summary_ko": "차분하게 가설을 세우고 데이터로 개선해나가는 분석적 탐험가",
+      "communication_style": "데이터 중심. 가설-검증 방식. 객관적 분석.",
+      "counseling_approach": "증거 기반 접근. 체계적 실험 권장. 패턴 분석 활용.",
+      "strengths": ["가설 검증", "깊은 집중", "패턴 발견", "객관적 분석"],
+      "growth_areas": ["가시성 확보", "컨텍스트 스위칭 관리", "공유하기"],
+      "compatible_types": ["RVLA"]
+    },
+    "GVHA": {
+      "name_ko": "조용한 전략가",
+      "name_en": "Reflective Mentor",
+      "summary_ko": "한 발 물러서서 팀과 조직의 성장을 설계하는 조용한 전략가",
+      "communication_style": "사려 깊고 관계 중심. 장기적 성장 관점. 멘토링.",
+      "counseling_approach": "성장과 발전 중심. 장기적 관계. 깊은 이해 바탕.",
+      "strengths": ["조용한 영향력", "성장 설계", "시스템적 공감", "멘토링"],
+      "growth_areas": ["자기 의견 표현", "가시적 기여", "적극적 소통"],
+      "compatible_types": ["RVHA"]
+    },
+    "GVHF": {
+      "name_ko": "깊은 관찰자",
+      "name_en": "Depth Seeker",
+      "summary_ko": "남들이 지나치는 것들에서 의미를 발견하는 깊은 관찰자",
+      "communication_style": "의미 탐구 중심. 깊은 대화 선호. 진정성 중시.",
+      "counseling_approach": "의미와 목적 연결. 개인적 성장 지원. 깊은 질문.",
+      "strengths": ["의미 발견", "깊은 공감", "진정성 추구", "질적 통찰"],
+      "growth_areas": ["실행 속도", "과분석 방지", "외부 피드백"],
+      "compatible_types": ["RSHA"]
+    },
+    "GSLA": {
+      "name_ko": "믿음직한 실행가",
+      "name_en": "Reliable Executor",
+      "summary_ko": "복잡한 프로세스를 차분하게 완료하는 믿음직한 실행가",
+      "communication_style": "정확하고 체계적. 프로세스 중심. 안정적.",
+      "counseling_approach": "단계별 접근. 검증된 방법 권장. 안정적 실행 지원.",
+      "strengths": ["꼼꼼함", "프로세스 관리", "안정적 실행", "리스크 관리"],
+      "growth_areas": ["변화 수용", "새로운 방법 시도", "속도 조절"],
+      "compatible_types": ["RVLA", "RSLF"]
+    },
+    "GSLF": {
+      "name_ko": "정밀한 해결사",
+      "name_en": "Precision Solver",
+      "summary_ko": "복잡한 문제를 차근차근 풀어가는 정밀한 해결사",
+      "communication_style": "정확하고 논리적. 문제 해결 중심. 단계적 접근.",
+      "counseling_approach": "문제 분해. 하나씩 해결. 체계적 접근 권장.",
+      "strengths": ["문제 분해", "정밀 분석", "단계적 해결", "품질 관리"],
+      "growth_areas": ["전체 그림 보기", "유연성", "빠른 판단"],
+      "compatible_types": ["GVLA"]
+    },
+    "GSHA": {
+      "name_ko": "안정의 수호자",
+      "name_en": "Steady Guardian",
+      "summary_ko": "조용하지만 확실하게 팀을 지탱하는 안정의 수호자",
+      "communication_style": "차분하고 신뢰감 있는. 안정 중시. 지원 중심.",
+      "counseling_approach": "안정과 신뢰 기반. 점진적 변화. 꾸준한 지원.",
+      "strengths": ["안정적 지원", "신뢰 구축", "꾸준함", "갈등 방지"],
+      "growth_areas": ["변화 수용", "자기 표현", "적극적 의견"],
+      "compatible_types": ["RVLA", "GVLA"]
+    },
+    "GSHF": {
+      "name_ko": "조용한 화합의 장인",
+      "name_en": "Gentle Harmonizer",
+      "summary_ko": "조용히 갈등을 해소하고 화합을 이끄는 장인",
+      "communication_style": "부드럽고 조화 중심. 갈등 해소. 경청 중시.",
+      "counseling_approach": "갈등 해소 중심. 관계 회복. 중재와 조화.",
+      "strengths": ["갈등 해소", "경청", "조화 유지", "섬세한 배려"],
+      "growth_areas": ["자기 한계 설정", "문제 에스컬레이션", "구조적 해결"],
+      "compatible_types": ["GSLA", "GVLA"]
+    }
+  }
+}

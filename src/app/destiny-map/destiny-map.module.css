@@ -925,6 +925,180 @@ select.input option {
   }
 }
 
+/* ============================================================
+   TABLET BREAKPOINT (481px - 1024px)
+   Better iPad and tablet experience
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .main {
+    padding: 90px 24px 40px;
+  }
+
+  .card {
+    max-width: 550px;
+    padding: 40px 36px;
+    border-radius: 28px;
+  }
+
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .iconWrapper {
+    width: 75px;
+    height: 75px;
+    margin-bottom: 18px;
+  }
+
+  .icon {
+    font-size: 38px;
+  }
+
+  .title {
+    font-size: 1.85rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .form {
+    gap: 20px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .input {
+    padding: 15px 18px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  .submitButton {
+    padding: 16px 28px;
+    font-size: 16px;
+    min-height: 52px;
+  }
+
+  .features {
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .backButton {
+    width: 46px;
+    height: 46px;
+    top: 20px;
+    left: 20px;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE PHONE OPTIMIZATION
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  .main {
+    padding: 60px 24px 24px;
+    min-height: auto;
+  }
+
+  .card {
+    padding: 24px 32px;
+    max-width: 600px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .iconWrapper {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 12px;
+  }
+
+  .icon {
+    font-size: 32px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+
+  .form {
+    gap: 16px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .features {
+    padding-top: 20px;
+    margin-top: 20px;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .matrixLink {
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+}
+
+/* ============================================================
+   EXTRA SMALL MOBILE (< 360px)
+   ============================================================ */
+@media (max-width: 359px) {
+  .main {
+    padding: 60px 8px 20px;
+  }
+
+  .card {
+    padding: 20px 12px;
+    border-radius: 20px;
+  }
+
+  .iconWrapper {
+    width: 60px;
+    height: 60px;
+  }
+
+  .icon {
+    font-size: 28px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .input {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .submitButton {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .backButton {
+    width: 40px;
+    height: 40px;
+    top: 12px;
+    left: 12px;
+    font-size: 20px;
+  }
+}
+
 /* ========== Smooth scrolling and selection ========== */
 .container {
   scroll-behavior: smooth;

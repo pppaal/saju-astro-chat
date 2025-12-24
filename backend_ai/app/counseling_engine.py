@@ -38,11 +38,17 @@ except ImportError:
 # 시맨틱 검색 (SentenceTransformer)
 try:
     import torch
-    from sentence_transformers import SentenceTransformer, util
+    from sentence_transformers import util
+    # Use shared model singleton from saju_astro_rag
+    try:
+        from backend_ai.app.saju_astro_rag import get_model as get_shared_model
+    except ImportError:
+        from saju_astro_rag import get_model as get_shared_model
     EMBEDDING_AVAILABLE = True
 except ImportError:
     EMBEDDING_AVAILABLE = False
     torch = None
+    get_shared_model = None
 
 # RuleEngine 임포트
 try:
@@ -452,16 +458,14 @@ class JungianRAG:
 
     @property
     def model(self):
-        """Lazy load SentenceTransformer"""
+        """Get shared model singleton from saju_astro_rag"""
         if self._model is None and not self._model_failed:
-            if not EMBEDDING_AVAILABLE:
+            if not EMBEDDING_AVAILABLE or get_shared_model is None:
                 self._model_failed = True
                 return None
             try:
-                os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-                torch.set_default_device("cpu")
-                self._model = SentenceTransformer(self.MODEL_NAME, device="cpu")
-                print(f"[JungianRAG] Model loaded: {self.MODEL_NAME}")
+                print("[JungianRAG] Using shared model from saju_astro_rag...")
+                self._model = get_shared_model()
             except Exception as e:
                 print(f"[JungianRAG] Model load failed: {e}")
                 self._model_failed = True
@@ -981,7 +985,11 @@ class JungianCounselingEngine:
 
         if OPENAI_AVAILABLE and self.api_key:
             try:
-                self.client = OpenAI(api_key=self.api_key)
+                import httpx
+                self.client = OpenAI(
+                    api_key=self.api_key,
+                    timeout=httpx.Timeout(60.0, connect=10.0)
+                )
                 print("[JungianCounselingEngine] OpenAI client initialized")
             except Exception as e:
                 print(f"[JungianCounselingEngine] Failed to initialize: {e}")

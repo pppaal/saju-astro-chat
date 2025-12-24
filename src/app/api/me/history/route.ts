@@ -17,6 +17,23 @@ type DailyHistory = {
   records: ServiceRecord[]
 }
 
+// Format destiny map summary based on theme
+function formatDestinyMapSummary(theme?: string | null): string {
+  if (!theme) return "Destiny Map 분석을 이용했습니다"
+
+  const themeLabels: Record<string, string> = {
+    "focus_overall": "종합 운세",
+    "focus_love": "연애운",
+    "focus_career": "직장/사업운",
+    "focus_money": "재물운",
+    "focus_health": "건강운",
+    "dream": "꿈 해석",
+  }
+
+  const label = themeLabels[theme] || theme
+  return `${label} 분석을 이용했습니다`
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
@@ -95,7 +112,7 @@ export async function GET() {
         date: c.createdAt.toISOString().split("T")[0],
         service: "destiny-map",
         theme: c.theme,
-        summary: c.summary,
+        summary: formatDestinyMapSummary(c.theme),
         type: "consultation",
       })),
       ...interactions

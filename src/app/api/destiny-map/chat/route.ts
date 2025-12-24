@@ -8,6 +8,7 @@ import { apiGuard } from "@/lib/apiGuard";
 import { callBackendWithFallback } from "@/lib/backend-health";
 import { guardText, cleanText as _cleanText, PROMPT_BUDGET_CHARS, safetyMessage, containsForbidden } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
+import { enforceBodySize } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -15,6 +16,16 @@ export const maxDuration = 120;
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 type BackendReply = { fusion_layer?: string; report?: string };
+
+const ALLOWED_LANG = new Set(["ko", "en"]);
+const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
+const MAX_THEME = 40;
+const MAX_MESSAGES = 10;
+const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const MAX_NAME = 80;
+const MAX_CV = 1200;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
@@ -96,6 +107,9 @@ async function checkStripeActive(email?: string) {
 
 export async function POST(request: Request) {
   try {
+    const oversized = enforceBodySize(request as any, 64 * 1024);
+    if (oversized) return oversized;
+
     const guard = await apiGuard(request, { path: "destiny-map-chat", limit: 45, windowSeconds: 60 });
     if (guard instanceof NextResponse) return guard;
 
@@ -119,22 +133,46 @@ export async function POST(request: Request) {
       }
     }
 
-    const body = await request.json();
-    const {
-      name,
-      birthDate,
-      birthTime,
-      gender = "male",
-      latitude,
-      longitude,
-      theme = "life",
-      lang = "ko",
-      messages = [],
-      cvText = "",
-    } = body;
+    const body = await request.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    }
 
-    if (!birthDate || !birthTime || !latitude || !longitude) {
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
+    const birthTime = typeof body.birthTime === "string" ? body.birthTime.trim() : "";
+    const gender = typeof body.gender === "string" && ALLOWED_GENDER.has(body.gender) ? body.gender : "male";
+    const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
+    const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
+    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, MAX_THEME) : "life";
+    const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
+    const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : [];
+    const cvText = typeof body.cvText === "string" ? body.cvText : "";
+
+    if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+    if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
+      return NextResponse.json({ error: "Invalid birthDate" }, { status: 400 });
+    }
+    if (!TIME_RE.test(birthTime)) {
+      return NextResponse.json({ error: "Invalid birthTime" }, { status: 400 });
+    }
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      return NextResponse.json({ error: "Invalid latitude" }, { status: 400 });
+    }
+    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      return NextResponse.json({ error: "Invalid longitude" }, { status: 400 });
+    }
+
+    // Normalize messages
+    const normalizedMessages: ChatMessage[] = [];
+    for (const m of messages) {
+      if (!m || typeof m !== "object") continue;
+      const role = typeof (m as any).role === "string" && ALLOWED_ROLE.has((m as any).role) ? ((m as any).role as ChatMessage["role"]) : null;
+      const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+      if (!role || !content) continue;
+      normalizedMessages.push({ role, content: content.slice(0, 2000) });
     }
 
     // 1) compute snapshot
@@ -149,10 +187,10 @@ export async function POST(request: Request) {
     });
 
     const snapshot = buildAllDataPrompt(lang, theme, result).slice(0, 2500);
-    const trimmedHistory = clampMessages(messages);
+    const trimmedHistory = clampMessages(normalizedMessages);
 
     // 2) build chat prompt
-    const cvSnippet = guardText(cvText || "", 1200);
+    const cvSnippet = guardText(cvText || "", MAX_CV);
     const safetyFlag =
       containsForbidden(cvSnippet) ||
       [...trimmedHistory, { role: "user", content: cvSnippet }].some((m) => m.content.includes("[filtered]"));

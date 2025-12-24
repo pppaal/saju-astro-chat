@@ -4,9 +4,13 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import { Card, DrawnCard } from "@/lib/Tarot/tarot.types";
 import { tarotDeck } from "@/lib/Tarot/tarot-data";
+
+const MAX_ID_LEN = 64;
+const BODY_LIMIT = 8 * 1024;
 
 function drawCards(count: number): DrawnCard[] {
   const deck = [...tarotDeck];
@@ -32,8 +36,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const body = await req.json();
-    const { categoryId, spreadId } = body;
+    const oversized = enforceBodySize(req as any, BODY_LIMIT, limit.headers);
+    if (oversized) return oversized;
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
+    }
+
+    const categoryIdRaw = typeof (body as any).categoryId === "string" ? (body as any).categoryId.trim() : "";
+    const spreadIdRaw = typeof (body as any).spreadId === "string" ? (body as any).spreadId.trim() : "";
+    const categoryId = categoryIdRaw.slice(0, MAX_ID_LEN);
+    const spreadId = spreadIdRaw.slice(0, MAX_ID_LEN);
 
     if (!categoryId || !spreadId) {
       return NextResponse.json(

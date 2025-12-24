@@ -11,8 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.append(os.path.dirname(__file__))
 
 from rule_engine import RuleEngine
-from signal_extractor import extract_signals
-from signal_summary import summarize_signals, summarize_cross_signals
+from signal_extractor import extract_signals, summarize_signals, summarize_cross_signals
 from redis_cache import get_cache
 from performance_optimizer import track_performance
 from sanitizer import sanitize_user_input, sanitize_name, is_suspicious_input, validate_birth_data
@@ -573,15 +572,7 @@ def interpret_with_ai(facts: dict):
         # TEMPLATE MODE - Fast path without RAG (prevents OOM on Railway)
         # ====================================================================
         if render_mode == "template":
-            # DEBUG: Log saju.unse data before template rendering
-            saju_for_debug = facts.get("saju", {})
-            unse_for_debug = saju_for_debug.get("unse", {})
-            print(f"[FusionLogic DEBUG] Template mode - saju keys: {list(saju_for_debug.keys())}")
-            print(f"[FusionLogic DEBUG] unse keys: {list(unse_for_debug.keys()) if unse_for_debug else 'EMPTY'}")
-            print(f"[FusionLogic DEBUG] daeun count: {len(unse_for_debug.get('daeun', []))}")
-            print(f"[FusionLogic DEBUG] annual count: {len(unse_for_debug.get('annual', []))}")
-            if unse_for_debug.get('daeun'):
-                print(f"[FusionLogic DEBUG] daeun[0]: {unse_for_debug['daeun'][0]}")
+            # DEBUG logging removed to avoid Windows encoding errors
 
             # Lightweight signal extraction (no RAG)
             signals = extract_signals(facts)
@@ -600,8 +591,10 @@ def interpret_with_ai(facts: dict):
                 except Exception as e:
                     print(f"[ThemeFilter] Error: {e}")
 
+            # Pass locale to template renderer
+            facts_with_locale = {**facts, "locale": locale}
             fusion_text = render_template_report(
-                facts, signals, cross_summary, theme_cross_summary
+                facts_with_locale, signals, cross_summary, theme_cross_summary
             )
             result = {
                 "status": "success",

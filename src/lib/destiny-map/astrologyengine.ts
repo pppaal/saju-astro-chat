@@ -807,12 +807,29 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
         iljin = Array.isArray(i) ? i : [];
-        console.log("[Unse cycles]:", daeun.length);
+        console.log("[Unse cycles] daeun:", daeun.length, "annual:", annual.length, "monthly:", monthly.length);
+
+        // CRITICAL: Daeun must exist
+        if (daeun.length === 0) {
+          console.error("[Unse CRITICAL] daeun is EMPTY!");
+          console.error("[Unse DEBUG] getDaeunCycles returned:", JSON.stringify(d));
+          console.error("[Unse DEBUG] birthDateObj:", birthDateObj?.toISOString());
+          console.error("[Unse DEBUG] gender:", gender);
+          console.error("[Unse DEBUG] timezone:", timezone);
+          console.error("[Unse DEBUG] pillars.year:", JSON.stringify(pillars.year));
+          console.error("[Unse DEBUG] pillars.month:", JSON.stringify(pillars.month));
+          console.error("[Unse DEBUG] dayMaster:", JSON.stringify(dayMaster));
+          // 대운이 없으면 문제가 있는 것이므로 여기서 throw하지 않고 로그만 남김
+        }
       } catch (err) {
-        console.warn("[Unse calculation warning]", err);
+        console.error("[Unse calculation ERROR]", err);
       }
     } else {
-      console.warn("Invalid pillars, skip unse calculation");
+      console.error("[Unse CRITICAL] Invalid pillars - cannot calculate daeun!", {
+        year: !!pillars.year,
+        month: !!pillars.month,
+        day: !!pillars.day
+      });
     }
 
     const sinsal = hasValidPillars ? await getSinsal(pillars) : null;
@@ -1045,12 +1062,26 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     }
 
     // ---------- Summary ----------
-    const dayMasterText =
-      typeof dayMaster === "string"
-        ? dayMaster
-        : dayMaster?.name
-        ? `${dayMaster.name} (${dayMaster.element ?? ""})`
-        : "Unknown";
+    // dayMaster는 sajuFacts?.dayMaster에서 가져옴 (line 780)
+    // sajuFacts.dayMaster 구조: { name: '庚', element: '금', yin_yang: '양' } (from STEMS)
+    // dayMaster가 비어있으면 sajuFacts에서 직접 가져오기
+    // v9 fix: always use sajuFacts.dayMaster as primary source
+    console.log("[v9 DEBUG] dayMaster:", JSON.stringify(dayMaster));
+    console.log("[v9 DEBUG] sajuFacts.dayMaster:", JSON.stringify(sajuFacts?.dayMaster));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const effectiveDayMaster = sajuFacts?.dayMaster || dayMaster || {};
+    // Direct access to effectiveDayMaster properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const edm = effectiveDayMaster as any;
+    const dmName: string | undefined = edm?.name;
+    const dmElement: string | undefined = edm?.element;
+    console.log("[v9 DEBUG] dmName:", dmName, "dmElement:", dmElement, "dmName truthy:", !!dmName);
+    const dayMasterText = dmName
+      ? `${dmName} (${dmElement ?? ""})`
+      : dmElement
+      ? `(${dmElement})`
+      : "Unknown";
+    console.log("[v9 DEBUG] dayMasterText:", dayMasterText);
     const sun = planets.find((p) => p.name === "Sun")?.sign ?? "-";
     const moon = planets.find((p) => p.name === "Moon")?.sign ?? "-";
     const element =
@@ -1063,7 +1094,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       `Moon: ${moon}`,
       `Asc: ${ascendant?.sign ?? "-"}`,
       `MC: ${mc?.sign ?? "-"}`,
-      `Dominant Element: ${element}`,
+      element ? `Dominant Element: ${element}` : "",
       `Day Master: ${dayMasterText}`,
     ]
       .filter(Boolean)

@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
+import { enforceBodySize } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,8 +11,33 @@ export const maxDuration = 60;
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
+const ALLOWED_LANG = new Set(["ko", "en"]);
+const ALLOWED_GENDER = new Set(["male", "female", "other"]);
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const MAX_NAME = 120;
+const MAX_THEME = 64;
+const MAX_MESSAGE_LEN = 2000;
+const MAX_MESSAGES = 10;
+const BODY_LIMIT = 64 * 1024;
+
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
+}
+
+function normalizeMessages(raw: unknown): ChatMessage[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ChatMessage[] = [];
+  for (const m of raw.slice(-MAX_MESSAGES)) {
+    if (!m || typeof m !== "object") continue;
+    const role = typeof (m as any).role === "string" && ["user", "assistant", "system"].includes((m as any).role)
+      ? ((m as any).role as ChatMessage["role"])
+      : null;
+    const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+    if (!role || !content) continue;
+    out.push({ role, content: content.slice(0, MAX_MESSAGE_LEN) });
+  }
+  return out;
 }
 
 function pickBackendUrl() {
@@ -83,23 +109,48 @@ export async function POST(request: Request) {
       }
     }
 
-    const body = await request.json();
-    const {
-      name,
-      birthDate,
-      birthTime,
-      gender = "male",
-      latitude,
-      longitude,
-      theme = "life",
-      lang = "ko",
-      messages = [],
-      astro,
-      userContext,
-    } = body;
+    const oversized = enforceBodySize(request as any, BODY_LIMIT);
+    if (oversized) return oversized;
 
-    if (!birthDate || !birthTime) {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return new Response(JSON.stringify({ error: "invalid_body" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const name = typeof (body as any).name === "string" ? (body as any).name.trim().slice(0, MAX_NAME) : undefined;
+    const birthDate = typeof (body as any).birthDate === "string" ? (body as any).birthDate.trim().slice(0, 10) : "";
+    const birthTime = typeof (body as any).birthTime === "string" ? (body as any).birthTime.trim().slice(0, 5) : "";
+    const gender = typeof (body as any).gender === "string" && ALLOWED_GENDER.has((body as any).gender)
+      ? (body as any).gender
+      : "male";
+    const latitude = typeof (body as any).latitude === "number" ? (body as any).latitude : Number((body as any).latitude);
+    const longitude = typeof (body as any).longitude === "number" ? (body as any).longitude : Number((body as any).longitude);
+    const themeRaw = typeof (body as any).theme === "string" ? (body as any).theme.trim() : "life";
+    const theme = themeRaw.slice(0, MAX_THEME) || "life";
+    const lang = typeof (body as any).lang === "string" && ALLOWED_LANG.has((body as any).lang) ? (body as any).lang : "ko";
+    const messages = normalizeMessages((body as any).messages);
+    const astro = typeof (body as any).astro === "object" && body.astro !== null ? (body as any).astro : undefined;
+    const userContext = typeof (body as any).userContext === "string"
+      ? (body as any).userContext.slice(0, 1000)
+      : undefined;
+
+    if (!birthDate || !birthTime || !DATE_RE.test(birthDate) || !TIME_RE.test(birthTime)) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      return new Response(JSON.stringify({ error: "Invalid coordinates" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!messages.length) {
+      return new Response(JSON.stringify({ error: "Missing messages" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });

@@ -7,6 +7,7 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
+import { enforceBodySize } from '@/lib/http'
 import {
   getPriceId,
   getCreditPackPriceId,
@@ -45,6 +46,9 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers)
 
   try {
+    const oversized = enforceBodySize(req as any, 32 * 1024)
+    if (oversized) return oversized
+
     // Rate limit to reduce checkout abuse
     const limit = await rateLimit(`checkout:${ip}`, { limit: 8, windowSeconds: 60 })
     const rateHeaders = new Headers(limit.headers)
@@ -67,6 +71,17 @@ export async function POST(req: NextRequest) {
     }
 
     const body = (await req.json().catch(() => ({}))) as CheckoutBody
+    const plan = body.plan
+    const billingCycle = body.billingCycle
+    const creditPack = body.creditPack
+
+    if (plan && creditPack) {
+      return NextResponse.json({ error: 'choose_one_of_plan_or_creditPack' }, { status: 400, headers: rateHeaders })
+    }
+    if (!plan && !creditPack) {
+      return NextResponse.json({ error: 'missing_product' }, { status: 400, headers: rateHeaders })
+    }
+
     const stripe = getStripe()
     if (!stripe) {
       console.error('ERR: STRIPE_SECRET_KEY missing')
@@ -86,10 +101,10 @@ export async function POST(req: NextRequest) {
     const idempotencyKey = clientIdemKey && clientIdemKey.length < 128 ? clientIdemKey : randomUUID()
 
     // Handle credit pack purchase (one-time payment)
-    if (body.creditPack) {
-      const creditPrice = getCreditPackPriceId(body.creditPack)
+    if (creditPack) {
+      const creditPrice = getCreditPackPriceId(creditPack)
       if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
-        console.error('[checkout] credit pack price not allowed', { creditPack: body.creditPack })
+        console.error('[checkout] credit pack price not allowed', { creditPack })
         recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
         return NextResponse.json({ error: 'invalid_credit_pack' }, { status: 400, headers: rateHeaders })
       }
@@ -103,7 +118,7 @@ export async function POST(req: NextRequest) {
           customer_email: email,
           metadata: {
             type: 'credit_pack',
-            creditPack: body.creditPack,
+            creditPack: creditPack,
             userId: (session.user as any)?.id || '',
             source: 'web',
           },
@@ -116,22 +131,22 @@ export async function POST(req: NextRequest) {
       }
 
       console.info('[checkout] credit pack session created', {
-        userId: (session.user as any)?.id,
-        email,
-        ip,
-        checkoutId: checkout.id,
-        creditPack: body.creditPack,
-      })
+          userId: (session.user as any)?.id,
+          email,
+          ip,
+          checkoutId: checkout.id,
+          creditPack,
+        })
 
       return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })
     }
 
     // Handle subscription purchase
-    const plan = body.plan || 'premium'
-    const billingCycle = body.billingCycle || 'monthly'
-    const price = getPriceId(plan, billingCycle)
+    const selectedPlan = plan || 'premium'
+    const selectedBilling = billingCycle || 'monthly'
+    const price = getPriceId(selectedPlan, selectedBilling)
     if (!price || !allowedPriceIds().includes(price)) {
-      console.error('[checkout] price not allowed', { plan, billingCycle })
+      console.error('[checkout] price not allowed', { plan: selectedPlan, billingCycle: selectedBilling })
       recordCounter('stripe_checkout_price_error', 1, { type: 'subscription' })
       return NextResponse.json({ error: 'invalid_price' }, { status: 400, headers: rateHeaders })
     }
@@ -146,11 +161,11 @@ export async function POST(req: NextRequest) {
         customer_email: email,
         metadata: {
           type: 'subscription',
-          productId: `${plan}-${billingCycle}`,
+          productId: `${selectedPlan}-${selectedBilling}`,
           userId: (session.user as any)?.id || '',
           source: 'web',
-          plan,
-          billingCycle,
+          plan: selectedPlan,
+          billingCycle: selectedBilling,
         },
       },
       { idempotencyKey }
@@ -163,11 +178,11 @@ export async function POST(req: NextRequest) {
     console.info('[checkout] subscription session created', {
       userId: (session.user as any)?.id,
       email,
-      ip,
-      checkoutId: checkout.id,
-      plan,
-      billingCycle,
-    })
+        ip,
+        checkoutId: checkout.id,
+        plan: selectedPlan,
+        billingCycle: selectedBilling,
+      })
 
     return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })
   } catch (e: any) {

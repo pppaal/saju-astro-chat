@@ -643,6 +643,16 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
       if (!target.iching) target.iching = {};
       Object.assign(target.iching, jsonData.iching);
     }
+    // Merge dream translations from JSON
+    if (jsonData.dream) {
+      if (!target.dream) target.dream = {};
+      Object.assign(target.dream, jsonData.dream);
+    }
+    // Merge form translations from JSON
+    if (jsonData.form) {
+      if (!target.form) target.form = {};
+      Object.assign(target.form, jsonData.form);
+    }
   }
 }
 

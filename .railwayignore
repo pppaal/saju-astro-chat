@@ -3,32 +3,54 @@ node_modules
 .next
 .venv
 __pycache__
+*.pyc
 
 # Git (3.3GB!)
 .git
+.gitignore
 
-# Backend AI (deployed separately on Railway)
-backend_ai
-
-# Unused public folders
+# Frontend (not needed for backend-only deploy)
+src
+public
 publiccardsnouveau
 publiccardsmystic
 publiccardsmodern
+
+# Frontend configs
+next.config.ts
+next-env.d.ts
+tailwind.config.ts
+postcss.config.mjs
+tsconfig.json
+package.json
+package-lock.json
+pnpm-lock.yaml
 
 # Logs & Cache
 logs
 .pytest_cache
 .VSCodeCounter
 tmp
+*.log
+*.tmp
 
 # Build artifacts
 *.tsbuildinfo
-*.log
-*.tmp
 
 # IDE
 .idea
 .vscode
+.claude
 
 # Test files
 tests
+
+# Documentation
+*.md
+!backend_ai/README.md
+
+# Scripts (dev only)
+scripts
+
+# Prisma (frontend only)
+prisma

@@ -22,6 +22,16 @@ type DailyHistory = {
   records: ServiceRecord[];
 };
 
+type DestinyMapContent = {
+  id: string;
+  theme: string;
+  summary: string;
+  fullReport?: string;
+  createdAt: string;
+  locale?: string;
+  userQuestion?: string;
+};
+
 type IChingContent = {
   question?: string;
   primaryHexagram: {
@@ -92,6 +102,9 @@ function HistoryContent() {
   const [selectedRecord, setSelectedRecord] = useState<ServiceRecord | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [ichingDetail, setIchingDetail] = useState<IChingContent | null>(null);
+  const [destinyMapDetail, setDestinyMapDetail] = useState<DestinyMapContent | null>(null);
+  const [showAllRecords, setShowAllRecords] = useState(false);
+  const INITIAL_DISPLAY_COUNT = 5;
 
   // Particle animation
   useEffect(() => {
@@ -254,19 +267,37 @@ function HistoryContent() {
 
   // Load detailed reading content
   const loadReadingDetail = useCallback(async (record: ServiceRecord) => {
-    if (record.service !== "iching" || record.type !== "reading") return;
-
     setSelectedRecord(record);
     setDetailLoading(true);
     setIchingDetail(null);
+    setDestinyMapDetail(null);
 
     try {
-      const res = await fetch(`/api/readings/${record.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.reading?.content) {
-          const parsed = JSON.parse(data.reading.content) as IChingContent;
-          setIchingDetail(parsed);
+      if (record.service === "iching" && record.type === "reading") {
+        const res = await fetch(`/api/readings/${record.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.reading?.content) {
+            const parsed = JSON.parse(data.reading.content) as IChingContent;
+            setIchingDetail(parsed);
+          }
+        }
+      } else if (record.service === "destiny-map" && record.type === "consultation") {
+        const res = await fetch(`/api/consultation/${record.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data) {
+            setDestinyMapDetail(data.data as DestinyMapContent);
+          }
+        } else if (res.status === 402) {
+          // Premium required - show message
+          setDestinyMapDetail({
+            id: record.id,
+            theme: record.theme || "unknown",
+            summary: record.summary || "상담 기록",
+            fullReport: undefined,
+            createdAt: record.date,
+          });
         }
       }
     } catch (e) {
@@ -279,6 +310,7 @@ function HistoryContent() {
   const closeDetail = useCallback(() => {
     setSelectedRecord(null);
     setIchingDetail(null);
+    setDestinyMapDetail(null);
   }, []);
 
   if (status === "loading" || loading) {
@@ -304,7 +336,17 @@ function HistoryContent() {
       serviceCounts[r.service] = (serviceCounts[r.service] || 0) + 1;
     });
   });
-  const availableServices = Object.keys(serviceCounts);
+
+  // Define all services to display (in order)
+  const allServicesOrder = [
+    "destiny-map",
+    "tarot",
+    "personality",
+    "dream",
+  ];
+
+  // Use all services (show all, even with 0 count)
+  const displayServices = allServicesOrder;
 
   // Filter history by selected service
   const filteredHistory = selectedService
@@ -316,6 +358,29 @@ function HistoryContent() {
         .filter((day) => day.records.length > 0)
     : [];
 
+  // Count total filtered records
+  const filteredRecordsCount = filteredHistory.reduce((sum, day) => sum + day.records.length, 0);
+
+  // Limit displayed history based on showAllRecords
+  const displayedHistory = showAllRecords
+    ? filteredHistory
+    : (() => {
+        let count = 0;
+        const limited: DailyHistory[] = [];
+        for (const day of filteredHistory) {
+          if (count >= INITIAL_DISPLAY_COUNT) break;
+          const remaining = INITIAL_DISPLAY_COUNT - count;
+          if (day.records.length <= remaining) {
+            limited.push(day);
+            count += day.records.length;
+          } else {
+            limited.push({ ...day, records: day.records.slice(0, remaining) });
+            count += remaining;
+          }
+        }
+        return limited;
+      })();
+
   const totalRecords = history.reduce((sum, day) => sum + day.records.length, 0);
 
   return (
@@ -325,7 +390,14 @@ function HistoryContent() {
       <section className={styles.card}>
         {/* Header */}
         <header className={styles.header}>
-          <BackButton onClick={() => selectedService ? setSelectedService(null) : router.back()} />
+          <BackButton onClick={() => {
+                if (selectedService) {
+                  setSelectedService(null);
+                  setShowAllRecords(false);
+                } else {
+                  router.push("/myjourney");
+                }
+              }} />
           <div className={styles.headerContent}>
             <h1 className={styles.title}>
               {selectedService ? (SERVICE_CONFIG[selectedService]?.title || selectedService) : "My Destiny"}
@@ -341,7 +413,7 @@ function HistoryContent() {
         {/* Service Selection Grid (when no service selected) */}
         {!selectedService ? (
           <>
-            {availableServices.length === 0 ? (
+            {displayServices.length === 0 ? (
               <div className={styles.empty}>
                 <span className={styles.emptyIcon}>📜</span>
                 <p>아직 기록이 없습니다</p>
@@ -362,7 +434,7 @@ function HistoryContent() {
               </div>
             ) : (
               <div className={styles.serviceGrid}>
-                {availableServices.map((service, index) => {
+                {displayServices.map((service, index) => {
                   const config = SERVICE_CONFIG[service] || {
                     icon: "📖",
                     title: service,
@@ -384,7 +456,7 @@ function HistoryContent() {
                         <div className={styles.serviceTitle}>{config.title}</div>
                         <div className={styles.serviceDesc}>{config.desc}</div>
                       </div>
-                      <div className={styles.serviceCount}>{serviceCounts[service]}</div>
+                      <div className={styles.serviceCount}>{serviceCounts[service] || 0}</div>
                     </button>
                   );
                 })}
@@ -400,48 +472,72 @@ function HistoryContent() {
                 <p>이 서비스에 대한 기록이 없습니다</p>
               </div>
             ) : (
-              <div className={styles.historyList}>
-                {filteredHistory.map((day) => (
-                  <div key={day.date} className={styles.dayGroup}>
-                    <div className={styles.dayHeader}>
-                      <span className={styles.dayDate}>{formatDate(day.date)}</span>
-                      <span className={styles.dayCount}>
-                        {day.records.length}개
-                      </span>
-                    </div>
-                    <div className={styles.dayRecords}>
-                      {day.records.map((record) => (
-                        <div
-                          key={record.id}
-                          className={`${styles.recordCard} ${record.service === "iching" && record.type === "reading" ? styles.clickable : ""}`}
-                          onClick={() => record.service === "iching" && record.type === "reading" && loadReadingDetail(record)}
-                          style={{ '--service-color': SERVICE_CONFIG[record.service]?.color || '#8b5cf6' } as React.CSSProperties}
-                        >
-                          <span className={styles.recordIcon}>
-                            {SERVICE_ICONS[record.service] || "📖"}
-                          </span>
-                          <div className={styles.recordContent}>
-                            <div className={styles.recordTitle}>
-                              <span className={styles.serviceName}>
-                                {SERVICE_CONFIG[record.service]?.title || record.service}
+              <>
+                <div className={styles.historyList}>
+                  {displayedHistory.map((day) => (
+                    <div key={day.date} className={styles.dayGroup}>
+                      <div className={styles.dayHeader}>
+                        <span className={styles.dayDate}>{formatDate(day.date)}</span>
+                        <span className={styles.dayCount}>
+                          {day.records.length}개
+                        </span>
+                      </div>
+                      <div className={styles.dayRecords}>
+                        {day.records.map((record) => {
+                          const isClickable =
+                            (record.service === "iching" && record.type === "reading") ||
+                            (record.service === "destiny-map" && record.type === "consultation");
+                          return (
+                            <div
+                              key={record.id}
+                              className={`${styles.recordCard} ${isClickable ? styles.clickable : ""}`}
+                              onClick={() => isClickable && loadReadingDetail(record)}
+                              style={{ '--service-color': SERVICE_CONFIG[record.service]?.color || '#8b5cf6' } as React.CSSProperties}
+                            >
+                              <span className={styles.recordIcon}>
+                                {SERVICE_ICONS[record.service] || "📖"}
                               </span>
-                              {record.theme && (
-                                <span className={styles.recordTheme}>{record.theme}</span>
-                              )}
-                              {record.service === "iching" && record.type === "reading" && (
-                                <span className={styles.viewDetail}>상세보기</span>
-                              )}
+                              <div className={styles.recordContent}>
+                                <div className={styles.recordTitle}>
+                                  <span className={styles.serviceName}>
+                                    {SERVICE_CONFIG[record.service]?.title || record.service}
+                                  </span>
+                                  {record.theme && (
+                                    <span className={styles.recordTheme}>{record.theme}</span>
+                                  )}
+                                  {isClickable && (
+                                    <span className={styles.viewDetail}>상세보기</span>
+                                  )}
+                                </div>
+                                {record.summary && (
+                                  <p className={styles.recordSummary}>{record.summary}</p>
+                                )}
+                              </div>
+                              <span className={styles.recordArrow}>→</span>
                             </div>
-                            {record.summary && (
-                              <p className={styles.recordSummary}>{record.summary}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {!showAllRecords && filteredRecordsCount > INITIAL_DISPLAY_COUNT && (
+                  <button
+                    className={styles.showMoreButton}
+                    onClick={() => setShowAllRecords(true)}
+                  >
+                    더보기 ({filteredRecordsCount - INITIAL_DISPLAY_COUNT}개 더)
+                  </button>
+                )}
+                {showAllRecords && filteredRecordsCount > INITIAL_DISPLAY_COUNT && (
+                  <button
+                    className={styles.showMoreButton}
+                    onClick={() => setShowAllRecords(false)}
+                  >
+                    접기
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
@@ -467,6 +563,65 @@ function HistoryContent() {
               <div className={styles.modalLoading}>
                 <div className={styles.spinner}></div>
                 <p>Loading...</p>
+              </div>
+            ) : destinyMapDetail ? (
+              <div className={styles.destinyMapDetail}>
+                {/* Header */}
+                <div className={styles.destinyHeader}>
+                  <span className={styles.destinyIcon}>🗺️</span>
+                  <div>
+                    <h2>Destiny Map</h2>
+                    <p className={styles.destinyTheme}>
+                      {destinyMapDetail.theme === "focus_love" ? "연애운" :
+                       destinyMapDetail.theme === "focus_career" ? "직장/사업운" :
+                       destinyMapDetail.theme === "focus_money" ? "재물운" :
+                       destinyMapDetail.theme === "focus_health" ? "건강운" :
+                       destinyMapDetail.theme === "focus_overall" ? "종합 운세" :
+                       destinyMapDetail.theme}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>요약</h3>
+                  <p>{destinyMapDetail.summary}</p>
+                </div>
+
+                {/* Full Report */}
+                {destinyMapDetail.fullReport ? (
+                  <div className={styles.aiSection}>
+                    <h3 className={styles.aiSectionTitle}>
+                      <span>✨</span> 상세 분석
+                    </h3>
+                    <div className={styles.aiBlock}>
+                      <div className={styles.fullReport}>
+                        {destinyMapDetail.fullReport}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.premiumRequired}>
+                    <span className={styles.lockIcon}>🔒</span>
+                    <p>상세 내용은 프리미엄 구독자 전용입니다.</p>
+                    <Link href="/pricing" className={styles.upgradeLink}>
+                      프리미엄 구독하기
+                    </Link>
+                  </div>
+                )}
+
+                {/* User Question */}
+                {destinyMapDetail.userQuestion && (
+                  <div className={styles.questionBox}>
+                    <span className={styles.questionIcon}>❓</span>
+                    <p>{destinyMapDetail.userQuestion}</p>
+                  </div>
+                )}
+
+                {/* Timestamp */}
+                <p className={styles.timestamp}>
+                  {new Date(destinyMapDetail.createdAt).toLocaleString()}
+                </p>
               </div>
             ) : ichingDetail ? (
               <div className={styles.ichingDetail}>

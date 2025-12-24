@@ -370,12 +370,21 @@ class ThemeCrossFilter:
         # 용신 (있으면)
         yongsin = saju_data.get("advancedAnalysis", {}).get("yongsin", {})
         if yongsin:
-            factors.append({
-                "type": "yongsin",
-                "value": yongsin.get("element", ""),
-                "description": f"용신: {yongsin.get('korean', '')}",
-                "relevance": "high"
-            })
+            # element can be 한자 (木) or 한글 (목)
+            yongsin_el = yongsin.get("element", "") if isinstance(yongsin, dict) else str(yongsin)
+            hanja_map = {"木": "목", "火": "화", "土": "토", "金": "금", "水": "수"}
+            yongsin_hangul = hanja_map.get(yongsin_el, yongsin_el)
+            # description can be in 'korean', 'description', or 'meaning'
+            yongsin_desc = ""
+            if isinstance(yongsin, dict):
+                yongsin_desc = yongsin.get("korean", "") or yongsin.get("description", "") or yongsin.get("meaning", "") or yongsin_hangul
+            if yongsin_hangul:  # Only add if we have actual element value
+                factors.append({
+                    "type": "yongsin",
+                    "value": yongsin_hangul,
+                    "description": f"용신: {yongsin_hangul} - {yongsin_desc}" if yongsin_desc and yongsin_desc != yongsin_hangul else f"용신: {yongsin_hangul}",
+                    "relevance": "high"
+                })
 
         # 대운/세운
         daeun = saju_data.get("advancedAnalysis", {}).get("currentDaeun", {})

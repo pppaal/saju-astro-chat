@@ -4,10 +4,37 @@
   border-radius: var(--dp-radius-lg);
   box-shadow: var(--dp-shadow-sm);
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  padding: var(--dp-card-padding);
 }
 
 .card:hover {
   transform: translateY(-2px);
   border-color: var(--dp-border-strong);
   box-shadow: var(--dp-shadow-lg);
+}
+
+/* Tablet - slightly reduced padding */
+@media (max-width: 1024px) {
+  .card {
+    border-radius: var(--dp-radius-md);
+  }
+}
+
+/* Mobile - remove hover transform for touch */
+@media (max-width: 768px) {
+  .card:hover {
+    transform: none;
+  }
+
+  .card:active {
+    transform: scale(0.98);
+    transition: transform 100ms ease;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 359px) {
+  .card {
+    border-radius: var(--dp-radius-sm);
+  }
 }

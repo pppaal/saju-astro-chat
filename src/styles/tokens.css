@@ -22,13 +22,13 @@
   --dp-shadow-lg: 0 30px 90px rgba(0, 0, 0, 0.35);
   --dp-shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.25);
 
-  /* Radii */
+  /* Radii - responsive */
   --dp-radius-sm: 10px;
   --dp-radius-md: 14px;
   --dp-radius-lg: 20px;
   --dp-radius-pill: 999px;
 
-  /* Spacing (px) */
+  /* Spacing (px) - fixed values */
   --dp-space-1: 4px;
   --dp-space-2: 8px;
   --dp-space-3: 12px;
@@ -39,4 +39,38 @@
   --dp-space-8: 32px;
   --dp-space-9: 40px;
   --dp-space-10: 48px;
+
+  /* Responsive spacing - use clamp for fluid sizing */
+  --dp-space-responsive-sm: clamp(8px, 2vw, 12px);
+  --dp-space-responsive-md: clamp(16px, 3vw, 24px);
+  --dp-space-responsive-lg: clamp(24px, 4vw, 40px);
+  --dp-space-responsive-xl: clamp(32px, 5vw, 56px);
+
+  /* Container padding - responsive */
+  --dp-container-padding: clamp(16px, 4vw, 32px);
+  --dp-section-gap: clamp(32px, 6vh, 64px);
+
+  /* Card padding - responsive */
+  --dp-card-padding: clamp(16px, 3vw, 28px);
+
+  /* Touch target sizes */
+  --dp-touch-min: 44px;
+  --dp-touch-preferred: 48px;
+}
+
+/* Tablet adjustments */
+@media (max-width: 1024px) {
+  :root {
+    --dp-radius-lg: 16px;
+    --dp-radius-md: 12px;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  :root {
+    --dp-radius-lg: 14px;
+    --dp-radius-md: 10px;
+    --dp-radius-sm: 8px;
+  }
 }

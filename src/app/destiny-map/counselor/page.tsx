@@ -25,6 +25,10 @@ type UserContext = {
     keyTopics?: string[];
     lastMessageAt?: string;
   }>;
+  personalityType?: {
+    typeCode: string;      // e.g., "RVLA"
+    personaName: string;   // e.g., "별을 빚는 설계자"
+  };
 };
 
 export default function CounselorPage({
@@ -42,7 +46,7 @@ export default function CounselorPage({
   const [isLoading, setIsLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [chartData, setChartData] = useState<{ saju?: any; astro?: any } | null>(null);
+  const [chartData, setChartData] = useState<{ saju?: any; astro?: any; advancedAstro?: any } | null>(null);
   const [prefetchStatus, setPrefetchStatus] = useState<{
     done: boolean;
     timeMs?: number;
@@ -89,6 +93,7 @@ export default function CounselorPage({
 
     let saju: any = null;
     let astro: any = null;
+    let advancedAstro: any = null;
 
     try {
       const stored = sessionStorage.getItem("destinyChartData");
@@ -98,6 +103,10 @@ export default function CounselorPage({
         if (data.timestamp && Date.now() - data.timestamp < 3600000) {
           saju = data.saju;
           astro = data.astro;
+          // Load advanced astrology data if available
+          if (data.advancedAstro) {
+            advancedAstro = data.advancedAstro;
+          }
         }
       }
     } catch (e) {
@@ -117,6 +126,7 @@ export default function CounselorPage({
         sessionStorage.setItem("destinyChartData", JSON.stringify({
           saju: computed,
           astro: astro || {},
+          advancedAstro: advancedAstro || null,
           timestamp: Date.now(),
         }));
         console.log("[CounselorPage] Fresh saju computed:", {
@@ -128,18 +138,31 @@ export default function CounselorPage({
       }
     }
 
-    setChartData({ saju, astro });
+    setChartData({ saju, astro, advancedAstro });
 
     // Prefetch RAG data in background
-    if (saju || astro) {
-      const prefetchRAG = async () => {
-        try {
-          const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
-          const res = await fetch(`${backendUrl}/counselor/init`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ saju, astro, theme }),
-          });
+    // Always call prefetchRAG - backend will compute saju/astro from birth data if needed
+    const prefetchRAG = async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+        const res = await fetch(`${backendUrl}/counselor/init`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            saju,
+            astro,
+            advancedAstro,  // Include advanced astrology data
+            theme,
+            // Always send birth data so backend can compute if saju/astro missing
+            birth: {
+              date: birthDate,
+              time: birthTime,
+              gender: gender === "Male" || gender === "male" ? "male" : "female",
+              latitude,
+              longitude,
+            },
+          }),
+        });
           if (res.ok) {
             const data = await res.json();
             if (data.status === "success") {
@@ -159,8 +182,7 @@ export default function CounselorPage({
         }
       };
       prefetchRAG();
-    }
-  }, [theme, isAuthed, birthDate, birthTime, gender]);
+  }, [theme, isAuthed, birthDate, birthTime, gender, latitude, longitude]);
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
@@ -168,13 +190,30 @@ export default function CounselorPage({
 
     const loadUserContext = async () => {
       try {
+        // Build user context
+        const context: UserContext = {};
+
+        // Load personality type from localStorage (from personality quiz)
+        try {
+          const storedPersonality = localStorage.getItem("personaResult");
+          if (storedPersonality) {
+            const personalityData = JSON.parse(storedPersonality);
+            if (personalityData.typeCode) {
+              context.personalityType = {
+                typeCode: personalityData.typeCode,
+                personaName: personalityData.personaName || "",
+              };
+              console.log("[Counselor] Personality type loaded:", personalityData.typeCode);
+            }
+          }
+        } catch (e) {
+          // Ignore localStorage errors
+        }
+
         const res = await fetch(`/api/counselor/chat-history?theme=${theme}&limit=3`);
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
-            // Build user context
-            const context: UserContext = {};
-
             // Add persona memory if available
             if (data.persona) {
               context.persona = {
@@ -432,6 +471,7 @@ export default function CounselorPage({
           seedEvent="counselor:seed"
           saju={chartData?.saju}
           astro={chartData?.astro}
+          advancedAstro={chartData?.advancedAstro}
           // Premium features for returning users
           userContext={userContext}
           chatSessionId={chatSessionId}

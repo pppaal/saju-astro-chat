@@ -12,6 +12,7 @@ import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImag
 import TarotChat from '@/components/tarot/TarotChat';
 import { getStoredBirthDate } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
+import PersonalityInsight from '@/components/personality/PersonalityInsight';
 import styles from './tarot-reading.module.css';
 
 // Card back color options - now linked to deck styles
@@ -177,6 +178,7 @@ export default function TarotReadingPage() {
   const [selectedDeckStyle, setSelectedDeckStyle] = useState<DeckStyle>('celestial');
   const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [userTopic, setUserTopic] = useState<string>('');
   const [selectionOrderMap, setSelectionOrderMap] = useState<Map<number, number>>(new Map());
   const selectionOrderRef = useRef<Map<number, number>>(new Map());
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null);
@@ -305,7 +307,8 @@ export default function TarotReadingPage() {
             isReversed: dc.isReversed,
             position: result.spread.positions[idx]?.title || `Card ${idx + 1}`
           })),
-          userQuestion: '',
+          userQuestion: userTopic,
+          userTopic: userTopic,
           language: language || 'ko'
         })
       });
@@ -468,17 +471,18 @@ export default function TarotReadingPage() {
         fallback: true
       });
     }
-  }, [categoryName, spreadId, language, translate, interpretation, setGameState]);
+  }, [categoryName, spreadId, language, translate, interpretation, setGameState, userTopic]);
 
   useEffect(() => {
-    if (spreadInfo && selectedIndices.length === spreadInfo.cardCount && gameState === 'picking') {
+    const targetCardCount = spreadInfo?.cardCount || 0;
+    if (spreadInfo && selectedIndices.length === targetCardCount && gameState === 'picking') {
       const fetchReading = async () => {
         setGameState('revealing');
         try {
           const response = await fetch('/api/tarot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ categoryId: categoryName, spreadId }),
+            body: JSON.stringify({ categoryId: categoryName, spreadId, cardCount: targetCardCount, userTopic }),
           });
           if (!response.ok) throw new Error('Failed to fetch reading');
           const data = await response.json();
@@ -496,7 +500,7 @@ export default function TarotReadingPage() {
       };
       setTimeout(fetchReading, 1000);
     }
-  }, [selectedIndices, spreadInfo, categoryName, spreadId, fetchInterpretation, gameState]);
+  }, [selectedIndices, spreadInfo, categoryName, spreadId, fetchInterpretation, gameState, userTopic]);
 
   const handleReset = () => {
     router.push('/tarot');
@@ -547,6 +551,9 @@ export default function TarotReadingPage() {
     );
   }
 
+  // Get card count from spread
+  const effectiveCardCount = spreadInfo?.cardCount || 3;
+
   // Deck style selection state
   if (gameState === 'color-select') {
     return (
@@ -563,6 +570,28 @@ export default function TarotReadingPage() {
           </h1>
           <p className={styles.colorSelectSubtitle}>
             {translate('tarot.deckSelect.subtitle', 'Select the aesthetic that resonates with your spirit')}
+          </p>
+        </div>
+
+        {/* User Topic Input */}
+        <div className={styles.topicInputSection}>
+          <label className={styles.topicLabel}>
+            {language === 'ko' ? '🔮 상담 주제를 입력하세요' : '🔮 Enter your question or topic'}
+          </label>
+          <textarea
+            className={styles.topicInput}
+            value={userTopic}
+            onChange={(e) => setUserTopic(e.target.value)}
+            placeholder={language === 'ko'
+              ? '예: 이직을 고민하고 있어요 / 연애 운이 궁금해요 / 올해 재정 상황은 어떨까요?'
+              : 'E.g.: Should I change jobs? / What about my love life? / How will my finances be this year?'}
+            rows={3}
+            maxLength={500}
+          />
+          <p className={styles.topicHint}>
+            {language === 'ko'
+              ? '구체적인 질문을 입력하면 더 정확한 해석을 받을 수 있어요'
+              : 'A specific question leads to a more accurate reading'}
           </p>
         </div>
 
@@ -601,7 +630,12 @@ export default function TarotReadingPage() {
 
         <div className={styles.spreadPreview}>
           <h3 className={styles.spreadPreviewTitle}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</h3>
-          <p className={styles.spreadPreviewDesc}>{spreadInfo.cardCount} {translate('tarot.spread.cards', 'cards')}</p>
+          <p className={styles.spreadPreviewDesc}>{effectiveCardCount} {translate('tarot.spread.cards', 'cards')}</p>
+          {userTopic && (
+            <p className={styles.topicPreview}>
+              {language === 'ko' ? '주제: ' : 'Topic: '}{userTopic.slice(0, 50)}{userTopic.length > 50 ? '...' : ''}
+            </p>
+          )}
         </div>
 
         <button className={styles.startButton} onClick={handleStartReading}>
@@ -748,6 +782,12 @@ export default function TarotReadingPage() {
           <p className={styles.resultsSubtitle}>
             {translate('tarot.results.subtitle', 'Your cards have spoken')}
           </p>
+          {userTopic && (
+            <div className={styles.userTopicDisplay}>
+              <span className={styles.topicIcon}>💭</span>
+              <span className={styles.topicText}>{userTopic}</span>
+            </div>
+          )}
         </div>
 
         {/* Overall Message */}
@@ -1033,6 +1073,9 @@ export default function TarotReadingPage() {
           </div>
         )}
 
+        {/* Personality Insight (from Nova Persona quiz) */}
+        <PersonalityInsight lang={language} compact className={styles.personalityInsight} />
+
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
           <button onClick={handleStartChat} className={styles.chatButton}>
@@ -1062,20 +1105,16 @@ export default function TarotReadingPage() {
           ) : (
             <>
               <p className={styles.pickingText}>
-                {translate('tarot.reading.choose', 'Choose')} {spreadInfo.cardCount} {translate('tarot.reading.cards', 'cards')}
+                {translate('tarot.reading.choose', 'Choose')} {effectiveCardCount} {translate('tarot.reading.cards', 'cards')}
               </p>
               <div className={styles.progressBar}>
                 <div
                   className={styles.progressFill}
-                  style={{ width: `${(selectedIndices.length / spreadInfo.cardCount) * 100}%` }}
+                  style={{ width: `${(selectedIndices.length / effectiveCardCount) * 100}%` }}
                 ></div>
               </div>
               <p className={styles.progressText}>
-                {selectedIndices.length} / {spreadInfo.cardCount}
-              </p>
-              {/* Debug info */}
-              <p style={{ fontSize: '0.8rem', color: '#ff0', marginTop: '0.5rem' }}>
-                선택된 카드: {Array.from(selectionOrderMap.entries()).map(([idx, order]) => `[${idx}→${order}]`).join(', ') || '없음'}
+                {selectedIndices.length} / {effectiveCardCount}
               </p>
             </>
           )}
@@ -1110,6 +1149,20 @@ export default function TarotReadingPage() {
           );
         })}
       </div>
+
+      {/* Reset/Redraw button */}
+      {selectedIndices.length > 0 && gameState === 'picking' && (
+        <button
+          className={styles.redrawButton}
+          onClick={() => {
+            setSelectedIndices([]);
+            setSelectionOrderMap(new Map());
+            selectionOrderRef.current = new Map();
+          }}
+        >
+          {translate('tarot.reading.redraw', '다시 그리기')}
+        </button>
+      )}
     </div>
   );
 }

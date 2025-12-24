@@ -80,6 +80,13 @@ class AdvancedRulesLoader:
         self.shadow_work = {}
         self.moon_phases = {}
         self.spirit_animals = {}
+        # 추가된 데이터
+        self.spread_positions = {}
+        self.multidimensional_matrix = {}
+        self.card_pair_combinations = []  # CSV에서 로드
+        self.crisis_support = {}  # 위기/상실 상황 지원
+        self.decision_framework = {}  # 결정 프레임워크
+        self.reverse_interpretations = {}  # 역방향 카드 해석
         self._load_all_rules()
 
     def _load_all_rules(self):
@@ -106,7 +113,13 @@ class AdvancedRulesLoader:
             'soulmate_indicators.json': 'soulmate_indicators',
             'shadow_work_prompts.json': 'shadow_work',
             'moon_phase_rules.json': 'moon_phases',
-            'spirit_animals.json': 'spirit_animals'
+            'spirit_animals.json': 'spirit_animals',
+            # 추가: 스프레드 포지션 & 다차원 매트릭스
+            'tarot_spread_positions.json': 'spread_positions',
+            'tarot_multidimensional_matrix.json': 'multidimensional_matrix',
+            'crisis.json': 'crisis_support',
+            'decisions.json': 'decision_framework',
+            'tarot_reverse_interpretations.json': 'reverse_interpretations'
         }
 
         for filename, attr in rule_files.items():
@@ -118,6 +131,79 @@ class AdvancedRulesLoader:
                         print(f"[AdvancedRulesLoader] Loaded {filename}")
                 except Exception as e:
                     print(f"[AdvancedRulesLoader] Failed to load {filename}: {e}")
+
+        # CSV 파일 로드 (카드 조합)
+        self._load_card_pair_combinations()
+
+    def _load_card_pair_combinations(self):
+        """Load tarot_combinations.csv for card pair interpretations"""
+        # CSV는 tarot/ 폴더에 있음
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        csv_path = os.path.join(base_dir, "data", "graph", "rules", "tarot", "tarot_combinations.csv")
+
+        if not os.path.exists(csv_path):
+            return
+
+        try:
+            import csv
+            with open(csv_path, encoding='utf-8-sig') as f:
+                reader = csv.DictReader(f)
+                self.card_pair_combinations = list(reader)
+            print(f"[AdvancedRulesLoader] Loaded tarot_combinations.csv ({len(self.card_pair_combinations)} pairs)")
+        except Exception as e:
+            print(f"[AdvancedRulesLoader] Failed to load tarot_combinations.csv: {e}")
+
+    def _card_name_to_id(self, card_name: str) -> Optional[str]:
+        """Convert English card name to card_id format (e.g., 'The Fool' -> 'MAJOR_0')"""
+        major_names = [
+            'Fool', 'Magician', 'High Priestess', 'Empress', 'Emperor',
+            'Hierophant', 'Lovers', 'Chariot', 'Strength', 'Hermit',
+            'Wheel of Fortune', 'Justice', 'Hanged Man', 'Death',
+            'Temperance', 'Devil', 'Tower', 'Star', 'Moon', 'Sun',
+            'Judgement', 'World'
+        ]
+        for idx, name in enumerate(major_names):
+            if name in card_name:
+                return f"MAJOR_{idx}"
+
+        # Minor Arcana
+        suits = {'Wands': 'WANDS', 'Cups': 'CUPS', 'Swords': 'SWORDS', 'Pentacles': 'PENTACLES'}
+        ranks = {'Ace': 1, 'Two': 2, 'Three': 3, 'Four': 4, 'Five': 5, 'Six': 6,
+                 'Seven': 7, 'Eight': 8, 'Nine': 9, 'Ten': 10,
+                 'Page': 11, 'Knight': 12, 'Queen': 13, 'King': 14}
+        for suit, suit_id in suits.items():
+            if suit in card_name:
+                for rank, rank_num in ranks.items():
+                    if rank in card_name:
+                        return f"{suit_id}_{rank_num}"
+        return None
+
+    def find_card_pair_interpretation(self, card1_name: str, card2_name: str) -> Optional[Dict]:
+        """Find interpretation for a specific card pair from CSV data"""
+        if not self.card_pair_combinations:
+            return None
+
+        # 카드 이름을 ID로 변환
+        card1_id = self._card_name_to_id(card1_name)
+        card2_id = self._card_name_to_id(card2_name)
+
+        for combo in self.card_pair_combinations:
+            combo_card1_id = combo.get('card1_id', '')
+            combo_card2_id = combo.get('card2_id', '')
+
+            # ID로 매칭 (순서 상관없이)
+            if (combo_card1_id == card1_id and combo_card2_id == card2_id) or \
+               (combo_card1_id == card2_id and combo_card2_id == card1_id):
+                return {
+                    'card1': card1_name,
+                    'card2': card2_name,
+                    'element_relation': combo.get('element_relation'),
+                    'love': combo.get('love_interpretation'),
+                    'career': combo.get('career_interpretation'),
+                    'finance': combo.get('finance_interpretation'),
+                    'advice': combo.get('advice')
+                }
+        return None
 
     def find_card_combination(self, card_names: List[str]) -> Optional[Dict]:
         """Find special meaning if cards form a known combination"""
@@ -479,7 +565,7 @@ class AdvancedRulesLoader:
                             if 'value: ' in reversal_modifier[modifier_key]:
                                 try:
                                     return float(reversal_modifier[modifier_key].split('value: ')[1].replace(')', ''))
-                                except:
+                                except (ValueError, IndexError, AttributeError):
                                     return base_value * -0.5
                             return base_value * -0.5
                     return base_value
@@ -779,6 +865,236 @@ class AdvancedRulesLoader:
             'element_message': element_message
         }
 
+    # ===========================================
+    # CRISIS SUPPORT (위기/상실 상황 지원)
+    # ===========================================
+    def get_crisis_support(self, crisis_type: str, card_name: str) -> Optional[Dict]:
+        """Get crisis support message for a specific card in crisis situation"""
+        if not self.crisis_support:
+            return None
+
+        crisis_data = self.crisis_support.get('crisis_types', {}).get(crisis_type, {})
+        supportive_cards = crisis_data.get('supportive_cards', {})
+
+        if card_name in supportive_cards:
+            return {
+                'crisis_type': crisis_type,
+                'crisis_name': crisis_data.get('name', ''),
+                'card': card_name,
+                'validation': supportive_cards[card_name].get('validation', ''),
+                'hope': supportive_cards[card_name].get('hope', ''),
+                'action': supportive_cards[card_name].get('action', ''),
+                'recovery_message': crisis_data.get('recovery_message', '')
+            }
+        return None
+
+    def get_crisis_recovery_cards(self, crisis_type: str) -> List[str]:
+        """Get recovery cards for a crisis type"""
+        if not self.crisis_support:
+            return []
+
+        crisis_data = self.crisis_support.get('crisis_types', {}).get(crisis_type, {})
+        return crisis_data.get('recovery_cards', [])
+
+    def detect_crisis_situation(self, cards: List[Dict], question: str = '') -> Optional[Dict]:
+        """Detect if reading involves a crisis situation"""
+        if not self.crisis_support:
+            return None
+
+        crisis_keywords = {
+            'breakup': ['이별', '헤어', '결별', '끝났', '관계 끝'],
+            'loss_grief': ['돌아가', '사별', '죽', '떠나', '상실'],
+            'job_loss': ['해고', '실직', '퇴사', '잘렸', '그만두'],
+            'health_crisis': ['암', '수술', '입원', '병원', '진단'],
+            'financial_crisis': ['파산', '빚', '대출', '경제적'],
+            'existential': ['의미 없', '살고 싶지', '포기', '무기력']
+        }
+
+        detected = None
+        for crisis_type, keywords in crisis_keywords.items():
+            for keyword in keywords:
+                if keyword in question:
+                    detected = crisis_type
+                    break
+            if detected:
+                break
+
+        if detected:
+            crisis_data = self.crisis_support.get('crisis_types', {}).get(detected, {})
+            return {
+                'crisis_type': detected,
+                'crisis_name': crisis_data.get('name', ''),
+                'severity': crisis_data.get('severity', 'moderate'),
+                'professional_help_needed': crisis_data.get('severity') == 'critical'
+            }
+        return None
+
+    # ===========================================
+    # DECISION FRAMEWORK (결정 도움)
+    # ===========================================
+    def get_decision_guidance(self, decision_type: str, cards: List[Dict]) -> Optional[Dict]:
+        """Get guidance for decision-making based on cards"""
+        if not self.decision_framework:
+            return None
+
+        decision_data = self.decision_framework.get('decision_types', {}).get(decision_type, {})
+        if not decision_data:
+            return None
+
+        card_names = [c.get('name', '') for c in cards]
+
+        # For stay_or_go decisions
+        if decision_type == 'stay_or_go':
+            key_cards = decision_data.get('key_cards', {})
+            stay_score = sum(1 for c in card_names if c in key_cards.get('stay', {}).get('positive', []))
+            go_score = sum(1 for c in card_names if c in key_cards.get('go', {}).get('positive', []))
+            wait_score = sum(1 for c in card_names if c in key_cards.get('wait', {}).get('cards', []))
+
+            if wait_score > 0:
+                suggestion = 'wait'
+                meaning = key_cards.get('wait', {}).get('meaning', '')
+            elif go_score > stay_score:
+                suggestion = 'go'
+                meaning = key_cards.get('go', {}).get('meaning', '')
+            elif stay_score > go_score:
+                suggestion = 'stay'
+                meaning = key_cards.get('stay', {}).get('meaning', '')
+            else:
+                suggestion = 'unclear'
+                meaning = '카드가 명확한 방향을 제시하지 않습니다. 더 깊이 생각해보세요.'
+
+            return {
+                'decision_type': decision_type,
+                'suggestion': suggestion,
+                'meaning': meaning,
+                'scores': {'stay': stay_score, 'go': go_score, 'wait': wait_score}
+            }
+
+        return {
+            'decision_type': decision_type,
+            'name': decision_data.get('name', ''),
+            'description': decision_data.get('description', ''),
+            'positions': decision_data.get('positions', {})
+        }
+
+    # ===========================================
+    # SPREAD POSITIONS (스프레드 위치 정보)
+    # ===========================================
+    def get_spread_position_meaning(self, spread_name: str, position: int) -> Optional[Dict]:
+        """Get meaning for a specific position in a spread"""
+        if not self.spread_positions:
+            return None
+
+        spreads = self.spread_positions.get('spreads', {})
+        spread = spreads.get(spread_name, {})
+        positions = spread.get('positions', {})
+
+        pos_data = positions.get(str(position), {})
+        if pos_data:
+            return {
+                'spread': spread_name,
+                'position': position,
+                'name': pos_data.get('name', ''),
+                'description': pos_data.get('description', '')
+            }
+        return None
+
+    def get_spread_info(self, spread_name: str) -> Optional[Dict]:
+        """Get full info about a spread"""
+        if not self.spread_positions:
+            return None
+
+        spreads = self.spread_positions.get('spreads', {})
+        spread = spreads.get(spread_name, {})
+
+        if spread:
+            return {
+                'name': spread.get('name', spread_name),
+                'total_positions': spread.get('total_positions', 0),
+                'positions': spread.get('positions', {}),
+                'reading_guide': spread.get('reading_guide', {})
+            }
+        return None
+
+    # ===========================================
+    # MULTIDIMENSIONAL MATRIX (심층 해석)
+    # ===========================================
+    def get_card_deep_meaning(self, card_name: str) -> Optional[Dict]:
+        """Get deep psychological/archetypal meaning for a card"""
+        if not self.multidimensional_matrix:
+            return None
+
+        # Convert card name to key format (e.g., "The Fool" -> "fool")
+        key = card_name.lower().replace('the ', '').replace(' ', '_')
+
+        journey = self.multidimensional_matrix.get('major_arcana_journey', {})
+        if key in journey:
+            data = journey[key]
+            return {
+                'card': card_name,
+                'archetype': data.get('archetype', ''),
+                'jung': data.get('jung', ''),
+                'upright': data.get('upright', ''),
+                'reversed': data.get('reversed', ''),
+                'therapeutic_question': data.get('therapeutic_question', '')
+            }
+        return None
+
+    # ===========================================
+    # REVERSE INTERPRETATIONS (역방향 상세 해석)
+    # ===========================================
+    def get_detailed_reverse_interpretation(self, card_id: str, theme: str = None) -> Optional[Dict]:
+        """Get detailed reverse interpretation for a card"""
+        if not self.reverse_interpretations:
+            return None
+
+        cards = self.reverse_interpretations.get('cards', {})
+        card_data = cards.get(card_id, {})
+
+        if not card_data:
+            return None
+
+        result = {
+            'card_id': card_id,
+            'name': card_data.get('name', ''),
+            'core': card_data.get('reverse_meaning', {}).get('core', ''),
+            'blocked_energy': card_data.get('reverse_meaning', {}).get('blocked_energy', ''),
+            'shadow_aspect': card_data.get('reverse_meaning', {}).get('shadow_aspect', ''),
+            'lesson': card_data.get('reverse_meaning', {}).get('lesson', ''),
+            'advice': card_data.get('advice', ''),
+            'action_items': card_data.get('action_items', [])
+        }
+
+        # Add theme-specific interpretation if requested
+        if theme:
+            interpretations = card_data.get('interpretations', {})
+            if theme in interpretations:
+                result['theme_interpretation'] = interpretations[theme]
+        else:
+            result['interpretations'] = card_data.get('interpretations', {})
+
+        return result
+
+    # ===========================================
+    # CARD PAIR COMBINATIONS (카드 쌍 해석)
+    # ===========================================
+    def get_all_card_pair_interpretations(self, cards: List[Dict]) -> List[Dict]:
+        """Get interpretations for all card pairs in a reading"""
+        if not self.card_pair_combinations or len(cards) < 2:
+            return []
+
+        results = []
+        card_names = [c.get('name', '') for c in cards]
+
+        # Check all pairs
+        for i in range(len(card_names)):
+            for j in range(i + 1, len(card_names)):
+                pair = self.find_card_pair_interpretation(card_names[i], card_names[j])
+                if pair:
+                    results.append(pair)
+
+        return results
+
 
 # ===============================================================
 # SPREAD LOADER
@@ -854,25 +1170,33 @@ class SpreadLoader:
 class TarotPromptBuilder:
     """Build prompts for GPT based on spread and cards"""
 
-    SYSTEM_PROMPT = """당신은 전문 타로 리더입니다. 유튜브에서 활동하는 인기 타로 리더처럼 친근하면서도 통찰력 있는 해석을 제공합니다.
+    SYSTEM_PROMPT = """당신은 편하게 이야기하는 타로 리더이자 심리 상담가예요. 친구한테 얘기하듯이 자연스럽게 해석해주세요.
 
-스타일 가이드:
-- 친근하고 따뜻한 말투로 이야기하듯 해석해주세요
-- 각 카드를 자세히 설명하면서 포지션의 의미와 연결지어 해석하세요
-- 역방향 카드는 부정적인 것만이 아니라 내면의 에너지나 잠재된 의미로도 해석하세요
-- 구체적인 상황과 행동 조언을 포함하세요
-- 타이밍에 대한 힌트가 있으면 시기도 언급하세요
-- 전체적인 흐름을 자연스럽게 연결해서 하나의 이야기로 만들어주세요
-- 희망적이면서도 현실적인 메시지를 전달하세요
-- 원소 에너지의 균형이 제공되면 이를 해석에 반영하세요
-- 특별한 카드 조합이 있으면 그 의미를 강조하세요
-- 궁정 카드는 인물로서, 또는 내면의 에너지로 해석하세요
+스타일:
+- "~해요", "~네요", "~것 같아요" 같은 편한 말투 사용
+- "에너지", "우주", "통찰", "지혜" 같은 뻔한 표현 쓰지 말기
+- 실제로 도움 되는 구체적인 얘기 해주기
+- 역방향 카드도 무섭게 말고 그냥 "좀 막혀있다" 정도로
+- 뜬구름 잡는 소리 말고 현실적인 조언
 
-중요:
-- 카드 이름과 포지션을 명확히 언급하세요
-- 각 카드마다 충분히 깊이 있게 해석하세요 (최소 3-4문장)
-- 카드들 사이의 연결고리를 찾아 스토리로 엮어주세요
-- 마지막에 종합적인 메시지와 조언을 제공하세요"""
+심리학적 깊이:
+- 카드의 원형(archetype) 의미를 자연스럽게 녹여내기
+- 그림자 작업, 페르소나, 아니마/아니무스 등 융 심리학 개념을 쉽게 풀어서 설명
+- 제공된 심리학적 질문을 통해 자기 성찰 유도
+- 융 인용구가 있으면 해석에 자연스럽게 연결
+
+하지 말아야 할 것:
+- "당신의 내면", "영혼이 이끄는", "신비로운" 같은 표현
+- 너무 장황하게 늘어놓기
+- 억지로 희망적인 척 하기
+- 심리학 용어를 딱딱하게 나열하기
+
+해야 할 것:
+- 카드 이름이랑 자리 먼저 말하기
+- 카드마다 3-4문장으로 요점만
+- 카드들 연결해서 전체 흐름 설명
+- 심리학적 통찰을 한두 문장으로 자연스럽게
+- 마지막에 "그래서 어떻게 하면 좋을지" 정리 + 성찰 질문 하나"""
 
     @staticmethod
     def build_reading_prompt(
@@ -979,12 +1303,27 @@ class TarotPromptBuilder:
                 if timing:
                     card_meaning += f"\n    - 타이밍: {timing}"
 
+            # Get Jung psychological depth (archetype, therapeutic question)
+            jung_depth = ""
+            if advanced_rules:
+                deep_meaning = advanced_rules.get_card_deep_meaning(card_name)
+                if deep_meaning:
+                    archetype = deep_meaning.get('archetype', '')
+                    jung_insight = deep_meaning.get('jung', '')
+                    therapeutic_q = deep_meaning.get('therapeutic_question', '')
+                    if archetype or jung_insight:
+                        jung_depth = f"""
+    - [심리학적 깊이]
+    - 원형: {archetype}
+    - 융 심리학: {jung_insight}
+    - 성찰 질문: {therapeutic_q}"""
+
             card_context.append(f"""
 [카드 {i+1}] {pos['name']}
 - 포지션 의미: {pos['meaning']}
 - 해석 힌트: {pos.get('prompt_hint', '')}
 - 뽑힌 카드: {card_name} ({orientation})
-{card_meaning}{court_profile}
+{card_meaning}{court_profile}{jung_depth}
 """)
 
         prompt = f"""
@@ -998,17 +1337,15 @@ class TarotPromptBuilder:
 {''.join(card_context)}
 
 ## 요청사항:
-위 카드들을 각 포지션의 의미에 맞게 깊이 있게 해석해주세요.
-1. 각 카드를 포지션 의미와 연결해서 상세히 해석하세요
-2. 카드들 사이의 연결고리를 찾아 하나의 스토리로 엮어주세요
-3. 특별한 카드 조합이 있다면 그 의미를 강조하세요
-4. 원소 균형 분석을 해석에 반영하세요
-5. 궁정 카드가 있다면 인물로서, 또는 내면의 에너지로 해석하세요
-6. 구체적인 상황 묘사와 행동 조언을 포함하세요
-7. 타이밍 힌트가 있다면 시기도 언급하세요
-8. 마지막에 종합적인 메시지를 전달하세요
+1. 카드 이름이랑 포지션 먼저 말하기
+2. 카드마다 핵심만 3-4문장으로
+3. 카드들 연결해서 전체 흐름 설명
+4. 특별한 조합 있으면 짚어주기
+5. 심리학적 깊이가 있으면 자연스럽게 녹여서 설명 (딱딱하게 X)
+6. "그래서 어떻게 하면 좋을지" 정리
+7. 마지막에 성찰 질문 하나 던지기 (제공된 질문 중 선택하거나 변형)
 
-친근한 유튜브 타로 리더처럼 이야기하듯 자연스럽게 해석해주세요.
+편하게 친구한테 얘기하듯이, 하지만 깊이 있게 해주세요.
 """
         return prompt
 
@@ -1025,17 +1362,11 @@ class TarotPromptBuilder:
         orientation = "역방향" if is_reversed else "정방향"
 
         return f"""
-타로 카드 해석 요청:
-
 카드: {card_name} ({orientation})
-포지션: {position_name}
-포지션 의미: {position_meaning}
+포지션: {position_name} - {position_meaning}
 {f'맥락: {context}' if context else ''}
 
-이 카드를 해당 포지션의 의미에 맞게 깊이 있게 해석해주세요.
-- 카드의 상징과 의미를 설명하고
-- 포지션과 연결지어 구체적인 해석을 제공하고
-- 실질적인 조언이나 메시지를 전달해주세요
+이 카드 해석해줘. 3-4문장으로 핵심만, 그래서 뭘 하면 좋을지도 알려줘.
 """
 
 
@@ -1059,7 +1390,11 @@ class TarotHybridRAG:
 
         if OPENAI_AVAILABLE and self.api_key:
             try:
-                self.client = OpenAI(api_key=self.api_key)
+                import httpx
+                self.client = OpenAI(
+                    api_key=self.api_key,
+                    timeout=httpx.Timeout(60.0, connect=10.0)
+                )
                 print(f"[TarotHybridRAG] OpenAI client initialized (model: {self.model_name})")
             except Exception as e:
                 print(f"[TarotHybridRAG] Failed to initialize OpenAI: {e}")
@@ -1114,6 +1449,9 @@ class TarotHybridRAG:
         insights['timing'] = self.advanced_rules.get_timing_hint(card_name)
         insights['court_profile'] = self.advanced_rules.get_court_card_profile(card_name)
         insights['reversed_special'] = self.advanced_rules.get_reversed_special_meaning(card_name)
+
+        # 새로 추가된 데이터
+        insights['deep_meaning'] = self.advanced_rules.get_card_deep_meaning(card_name)
 
         # From semantic search (related entries)
         related = self.advanced_embeddings.search_by_card(card_name, top_k=5)
@@ -1412,6 +1750,71 @@ class TarotHybridRAG:
             synthesis = pattern.get('synthesis', {})
             if synthesis.get('summary'):
                 context_parts.append(f"\n## 종합: {synthesis['summary']}")
+
+        # 카드 쌍 해석 (CSV 데이터)
+        card_pairs = self.advanced_rules.get_all_card_pair_interpretations(drawn_cards)
+        if card_pairs:
+            context_parts.append("\n## 카드 쌍 해석:")
+            for pair in card_pairs[:3]:  # 최대 3개
+                context_parts.append(f"- {pair.get('card1')} + {pair.get('card2')}")
+                if theme == 'love' and pair.get('love'):
+                    context_parts.append(f"  연애: {pair.get('love')}")
+                elif theme == 'career' and pair.get('career'):
+                    context_parts.append(f"  커리어: {pair.get('career')}")
+                elif theme == 'wealth' and pair.get('finance'):
+                    context_parts.append(f"  재정: {pair.get('finance')}")
+                if pair.get('advice'):
+                    context_parts.append(f"  조언: {pair.get('advice')}")
+
+        # 위기 상황 감지
+        if question:
+            crisis = self.advanced_rules.detect_crisis_situation(drawn_cards, question)
+            if crisis:
+                context_parts.append("\n## ⚠️ 감지된 상황:")
+                context_parts.append(f"- 유형: {crisis.get('crisis_name', '')}")
+                context_parts.append(f"- 심각도: {crisis.get('severity', 'moderate')}")
+                if crisis.get('professional_help_needed'):
+                    context_parts.append("- 전문 상담 권유 필요")
+
+                # 해당 위기 상황에 맞는 카드 해석 추가
+                for card_info in drawn_cards:
+                    card_name = card_info.get('name', '')
+                    crisis_support = self.advanced_rules.get_crisis_support(
+                        crisis.get('crisis_type', ''), card_name
+                    )
+                    if crisis_support:
+                        context_parts.append(f"\n[{card_name} 위기 지원]")
+                        context_parts.append(f"- 공감: {crisis_support.get('validation', '')}")
+                        context_parts.append(f"- 희망: {crisis_support.get('hope', '')}")
+                        context_parts.append(f"- 행동: {crisis_support.get('action', '')}")
+
+        # 역방향 카드 상세 해석
+        for card_info in drawn_cards:
+            if card_info.get('isReversed'):
+                card_name = card_info.get('name', '')
+                # card_id 변환 (예: "The Fool" -> "MAJOR_0")
+                card_id = None
+                if 'major' in card_name.lower() or card_name.startswith('The '):
+                    major_names = ['Fool', 'Magician', 'High Priestess', 'Empress', 'Emperor',
+                                   'Hierophant', 'Lovers', 'Chariot', 'Strength', 'Hermit',
+                                   'Wheel of Fortune', 'Justice', 'Hanged Man', 'Death',
+                                   'Temperance', 'Devil', 'Tower', 'Star', 'Moon', 'Sun',
+                                   'Judgement', 'World']
+                    for idx, name in enumerate(major_names):
+                        if name in card_name:
+                            card_id = f"MAJOR_{idx}"
+                            break
+
+                if card_id:
+                    reverse_detail = self.advanced_rules.get_detailed_reverse_interpretation(
+                        card_id, theme
+                    )
+                    if reverse_detail and reverse_detail.get('core'):
+                        context_parts.append(f"\n[{card_name} 역방향 상세]")
+                        context_parts.append(f"- 핵심: {reverse_detail.get('core', '')}")
+                        context_parts.append(f"- 막힌 에너지: {reverse_detail.get('blocked_energy', '')}")
+                        if reverse_detail.get('theme_interpretation'):
+                            context_parts.append(f"- {theme}: {reverse_detail.get('theme_interpretation', '')}")
 
         # Semantic search for additional context
         if question:

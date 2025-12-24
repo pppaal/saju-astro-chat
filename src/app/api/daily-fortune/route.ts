@@ -20,6 +20,23 @@ function pickBackendUrl() {
   return url;
 }
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+
+function isValidDateString(value?: string): value is string {
+  if (!value) return false;
+  if (!DATE_RE.test(value)) return false;
+  const d = new Date(value);
+  return !Number.isNaN(d.getTime());
+}
+
+function isValidTimeString(value?: string) {
+  if (!value) return false;
+  if (!TIME_RE.test(value)) return false;
+  const [h, m] = value.split(":").map(Number);
+  return h >= 0 && h < 24 && m >= 0 && m < 60;
+}
+
 /**
  * 타임존 기반 현재 날짜 헬퍼
  */
@@ -51,10 +68,23 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { birthDate, birthTime: _birthTime, latitude: _latitude, longitude: _longitude, sendEmail = false, userTimezone } = body;
+    const {
+      birthDate: _birthDate,
+      birthTime: _birthTime,
+      latitude: _latitude,
+      longitude: _longitude,
+      sendEmail = false,
+      userTimezone,
+    } = body;
 
-    if (!birthDate) {
+    const birthDate = typeof _birthDate === "string" ? _birthDate.trim() : "";
+    const birthTime = typeof _birthTime === "string" && _birthTime.trim() ? _birthTime.trim() : undefined;
+
+    if (!isValidDateString(birthDate)) {
       return NextResponse.json({ error: "Birth date required" }, { status: 400 });
+    }
+    if (birthTime && !isValidTimeString(birthTime)) {
+      return NextResponse.json({ error: "Invalid birth time" }, { status: 400 });
     }
 
     // ========================================
@@ -67,13 +97,22 @@ export async function POST(request: Request) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
+      // Build headers with auth
+      const scoreHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      const apiToken = process.env.ADMIN_API_TOKEN;
+      if (apiToken) {
+        scoreHeaders['X-API-KEY'] = apiToken;
+      }
+
       // Try to use the new comprehensive fortune score engine
       const scoreResponse = await fetch(`${backendUrl}/api/fortune/daily`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: scoreHeaders,
         body: JSON.stringify({
           birthDate,
-          birthTime: _birthTime,
+          birthTime,
         }),
         signal: controller.signal,
         cache: 'no-store',
@@ -101,7 +140,7 @@ export async function POST(request: Request) {
     } catch (backendErr) {
       console.warn('[Daily Fortune API] Backend fortune engine failed, using fallback:', backendErr);
       // Fallback to simple calculation
-      fortune = calculateDailyFortune(birthDate, _birthTime, _latitude, _longitude, userTimezone);
+      fortune = calculateDailyFortune(birthDate, birthTime, _latitude, _longitude, userTimezone);
     }
 
     // ========================================
@@ -123,21 +162,21 @@ export async function POST(request: Request) {
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       // Build prompt for daily fortune
-      const fortunePrompt = `오늘의 운세를 분석해주세요:
-날짜: ${fortune.date}
-생년월일: ${birthDate}
+      const fortunePrompt = `Create a concise, encouraging daily fortune.
+Date: ${fortune.date}
+Birth date: ${birthDate}
 
-운세 점수:
-- 연애운: ${fortune.love}/100
-- 직업운: ${fortune.career}/100
-- 재물운: ${fortune.wealth}/100
-- 건강운: ${fortune.health}/100
-- 종합운: ${fortune.overall}/100
+Scores (0-100):
+- Love: ${fortune.love}
+- Career: ${fortune.career}
+- Wealth: ${fortune.wealth}
+- Health: ${fortune.health}
+- Overall: ${fortune.overall}
 
-행운의 색상: ${fortune.luckyColor}
-행운의 숫자: ${fortune.luckyNumber}
+Lucky color: ${fortune.luckyColor}
+Lucky number: ${fortune.luckyNumber}
 
-각 분야별 상세 해석과 오늘의 조언을 제공해주세요.`;
+Write in a warm, practical tone with 4-6 sentences. Include one actionable tip. Keep it under 120 words. Locale: ${body.locale || "ko"}.`;
 
       const aiResponse = await fetch(`${backendUrl}/ask`, {
         method: 'POST',
@@ -147,7 +186,7 @@ export async function POST(request: Request) {
           prompt: fortunePrompt,
           saju: {
             birthDate,
-            birthTime: _birthTime,
+            birthTime,
           },
           locale: body.locale || 'ko',
           fortune,
@@ -287,35 +326,31 @@ function calculateDailyFortune(
  */
 async function sendFortuneEmail(email: string, fortune: any) {
   try {
-    // 이메일 서비스가 설정되어 있으면 전송
     const response = await fetch(`${process.env.NEXTAUTH_URL}/api/email/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         to: email,
-        subject: "🌟 Your Daily Fortune",
+        subject: "DestinyPal | Today's Fortune",
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #7c5cff;">🌟 Today's Fortune</h1>
-            <p><strong>Date:</strong> ${fortune.date}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 8px;">
+            <h1 style="color: #6c5ce7; margin-bottom: 4px;">Today's Fortune</h1>
+            <p style="margin-top: 0; color: #444;">${fortune.date}</p>
 
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <h2 style="color: #333;">Overall Score: ${fortune.overall}/100</h2>
-
-              <p>❤️ <strong>Love:</strong> ${fortune.love}/100</p>
-              <p>💼 <strong>Career:</strong> ${fortune.career}/100</p>
-              <p>💰 <strong>Wealth:</strong> ${fortune.wealth}/100</p>
-              <p>🏥 <strong>Health:</strong> ${fortune.health}/100</p>
+            <div style="background: #f5f5f8; padding: 16px; border-radius: 12px; margin: 16px 0;">
+              <h2 style="color: #1e293b; margin: 0 0 8px;">Overall: ${fortune.overall}/100</h2>
+              <p style="margin: 4px 0;">Love: ${fortune.love}/100</p>
+              <p style="margin: 4px 0;">Career: ${fortune.career}/100</p>
+              <p style="margin: 4px 0;">Wealth: ${fortune.wealth}/100</p>
+              <p style="margin: 4px 0;">Health: ${fortune.health}/100</p>
             </div>
 
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
-              <p>🎨 <strong>Lucky Color:</strong> ${fortune.luckyColor}</p>
-              <p>🔢 <strong>Lucky Number:</strong> ${fortune.luckyNumber}</p>
+            <div style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: #fff; padding: 16px; border-radius: 12px;">
+              <p style="margin: 0;">Lucky Color: <strong>${fortune.luckyColor}</strong></p>
+              <p style="margin: 4px 0 0;">Lucky Number: <strong>${fortune.luckyNumber}</strong></p>
             </div>
 
-            <p style="margin-top: 30px; color: #666;">
-              Have a great day! ✨
-            </p>
+            <p style="margin-top: 20px; color: #475569;">Have a great day with DestinyPal.</p>
           </div>
         `,
       }),
@@ -325,9 +360,8 @@ async function sendFortuneEmail(email: string, fortune: any) {
       throw new Error("Email send failed");
     }
 
-    console.log("✅ Fortune email sent to:", email);
+    console.log("[Daily Fortune] Email sent to:", email);
   } catch (error) {
-    console.warn("⚠️ Email send failed:", error);
-    // 이메일 실패해도 운세는 계속 진행
+    console.warn("[Daily Fortune] Email send failed:", error);
   }
 }

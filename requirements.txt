@@ -1,0 +1,53 @@
+# Backend runtime requirements (copied from backend_ai/requirements.txt for Docker builds with root context)
+# PINNED VERSIONS for production stability
+
+# --- Web framework ---
+flask==3.1.0
+flask-cors==5.0.0
+flask-compress==1.17  # Gzip compression for responses
+gunicorn==23.0.0
+
+# --- AI/ML Core ---
+# CPU-only PyTorch (much smaller than full torch with CUDA)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+sentence-transformers==3.3.1
+networkx==3.4.2
+
+# --- AI API integrations ---
+openai==1.58.1
+anthropic==0.42.0
+httpx==0.28.1  # Required for OpenAI timeout configuration
+
+# --- Retrieval/Agent (optional but recommended for full features) ---
+rank-bm25==0.2.2
+langgraph==0.2.60
+tiktoken==0.8.0
+transformers==4.47.1
+
+# --- Caching & Performance (Optional) ---
+# Redis is optional - system falls back to in-memory cache if unavailable
+redis==5.2.1
+hiredis==3.1.0
+
+# --- Real-time astronomy (optional; required if enabling Swiss ephemeris path) ---
+pyswisseph==2.10.3.2
+
+# --- Image generation (Optional) ---
+pillow==11.0.0
+
+# --- Utility & Config ---
+python-dotenv==1.0.1
+requests==2.32.3
+
+# --- Monitoring ---
+sentry-sdk==2.19.2
+psutil==6.1.0  # Memory monitoring for health checks
+
+# --- Testing/QA ---
+pytest==8.3.4
+
+# --- Notes ---
+# LangGraph is NOT required - custom orchestration is used instead
+# Redis is optional - falls back to in-memory cache automatically
+# All versions pinned as of 2024-12 for production stability

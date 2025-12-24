@@ -1071,7 +1071,11 @@ class UnifiedPredictionEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = None
         if OPENAI_AVAILABLE and self.api_key:
-            self.client = OpenAI(api_key=self.api_key)
+            import httpx
+            self.client = OpenAI(
+                api_key=self.api_key,
+                timeout=httpx.Timeout(60.0, connect=10.0)
+            )
 
     def get_comprehensive_forecast(
         self,

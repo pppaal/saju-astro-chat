@@ -17,15 +17,30 @@ async function extractTextFromPDF(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
+  console.log("[PDF] Loaded:", file.name, "Pages:", pdf.numPages);
+
   let fullText = "";
+  let totalItems = 0;
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
+    totalItems += content.items.length;
+    // Join text items with proper spacing
     const pageText = content.items
       .map((item: any) => item.str)
+      .filter((str: string) => str.trim().length > 0)
       .join(" ");
     fullText += pageText + "\n";
+    console.log(`[PDF] Page ${i}: ${content.items.length} items, ${pageText.length} chars`);
   }
+
+  console.log("[PDF] Total items:", totalItems, "Total chars:", fullText.length);
+
+  // If no text found, it's likely a scanned/image-based PDF
+  if (fullText.trim().length === 0 && totalItems === 0) {
+    throw new Error("SCANNED_PDF");
+  }
+
   return fullText.trim();
 }
 
@@ -43,8 +58,6 @@ type Copy = {
   uploadCv: string;
   attached: string;
   parsingPdf: string;
-  recording: string;
-  stopRecording: string;
   tarotPrompt: string;
   tarotButton: string;
   tarotDesc: string;
@@ -73,8 +86,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "Upload CV",
     attached: "Attached:",
     parsingPdf: "Reading PDF...",
-    recording: "Recording...",
-    stopRecording: "Stop",
     tarotPrompt: "Want deeper insights?",
     tarotButton: "Try Tarot Reading",
     tarotDesc: "Combine your astrology & saju with tarot for guidance on your current concern",
@@ -98,8 +109,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "이력서 업로드",
     attached: "첨부됨:",
     parsingPdf: "PDF 읽는 중...",
-    recording: "녹음 중...",
-    stopRecording: "중지",
     tarotPrompt: "더 깊은 통찰을 원하시나요?",
     tarotButton: "타로 리딩 받기",
     tarotDesc: "점성술과 사주를 타로와 결합하여 현재 고민에 대한 지침을 받아보세요",
@@ -123,8 +132,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "履歴書アップロード",
     attached: "添付済み:",
     parsingPdf: "PDFを読み込み中...",
-    recording: "録音中...",
-    stopRecording: "停止",
     tarotPrompt: "より深い洞察を求めますか？",
     tarotButton: "タロットリーディング",
     tarotDesc: "占星術と四柱推命をタロットと組み合わせて、今の悩みへの指針を得ましょう",
@@ -148,8 +155,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "上传简历",
     attached: "已附加:",
     parsingPdf: "正在读取PDF...",
-    recording: "录音中...",
-    stopRecording: "停止",
     tarotPrompt: "想要更深入的洞察吗？",
     tarotButton: "塔罗牌占卜",
     tarotDesc: "结合占星术和四柱，用塔罗牌为您当前的困惑提供指引",
@@ -173,8 +178,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "Subir CV",
     attached: "Adjunto:",
     parsingPdf: "Leyendo PDF...",
-    recording: "Grabando...",
-    stopRecording: "Detener",
     tarotPrompt: "¿Quieres percepciones más profundas?",
     tarotButton: "Lectura de Tarot",
     tarotDesc: "Combina tu astrología y saju con el tarot para guiarte en tu preocupación actual",
@@ -198,8 +201,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "Télécharger CV",
     attached: "Joint:",
     parsingPdf: "Lecture du PDF...",
-    recording: "Enregistrement...",
-    stopRecording: "Arrêter",
     tarotPrompt: "Voulez-vous des aperçus plus profonds?",
     tarotButton: "Tirage de Tarot",
     tarotDesc: "Combinez votre astrologie et saju avec le tarot pour des conseils sur votre préoccupation actuelle",
@@ -223,8 +224,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "Lebenslauf hochladen",
     attached: "Angehängt:",
     parsingPdf: "PDF lesen...",
-    recording: "Aufnahme...",
-    stopRecording: "Stoppen",
     tarotPrompt: "Möchten Sie tiefere Einblicke?",
     tarotButton: "Tarot-Lesung",
     tarotDesc: "Kombinieren Sie Ihre Astrologie und Saju mit Tarot für Anleitungen zu Ihrem aktuellen Anliegen",
@@ -248,8 +247,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "Enviar CV",
     attached: "Anexado:",
     parsingPdf: "Lendo PDF...",
-    recording: "Gravando...",
-    stopRecording: "Parar",
     tarotPrompt: "Quer insights mais profundos?",
     tarotButton: "Leitura de Tarô",
     tarotDesc: "Combine sua astrologia e saju com tarô para orientação sobre sua preocupação atual",
@@ -273,8 +270,6 @@ const I18N: Record<LangKey, Copy> = {
     uploadCv: "Загрузить резюме",
     attached: "Прикреплено:",
     parsingPdf: "Чтение PDF...",
-    recording: "Запись...",
-    stopRecording: "Стоп",
     tarotPrompt: "Хотите более глубокие озарения?",
     tarotButton: "Чтение Таро",
     tarotDesc: "Объедините свою астрологию и саджу с таро для руководства по текущей проблеме",
@@ -337,6 +332,7 @@ type ChatProps = {
   seedEvent?: string;
   saju?: any;
   astro?: any;
+  advancedAstro?: any;  // Advanced astrology features (draconic, harmonics, progressions, etc.)
   // Premium features
   userContext?: UserContext;
   chatSessionId?: string; // Existing session to continue
@@ -369,6 +365,7 @@ export default function Chat({
   seedEvent = "chat:seed",
   saju,
   astro,
+  advancedAstro,
   userContext,
   chatSessionId,
   onSaveMessage,
@@ -394,7 +391,6 @@ export default function Chat({
   const [notice, setNotice] = React.useState<string | null>(null);
   const [usedFallback, setUsedFallback] = React.useState(false);
   const [parsingPdf, setParsingPdf] = React.useState(false);
-  const [isRecording, setIsRecording] = React.useState(false);
   const [showTarotPrompt, setShowTarotPrompt] = React.useState(false);
   const [showTarotModal, setShowTarotModal] = React.useState(false);
   const [feedback, setFeedback] = React.useState<Record<string, FeedbackType>>({});
@@ -403,7 +399,6 @@ export default function Chat({
   const [showCrisisModal, setShowCrisisModal] = React.useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const recognitionRef = React.useRef<any>(null);
   const seedSentRef = React.useRef(false);
   const welcomeShownRef = React.useRef(false);
 
@@ -539,14 +534,51 @@ export default function Chat({
       : ["What kind of person am I? ✨", "What will happen this year?", "Tell me my lucky number/color"],
   };
 
-  // Handle feedback click
-  const handleFeedback = (msgId: string, type: FeedbackType) => {
-    setFeedback((prev) => ({
-      ...prev,
-      [msgId]: prev[msgId] === type ? null : type,
-    }));
-    // Could send to analytics here
-    console.log(`[Feedback] ${msgId}: ${type}`);
+  // Handle feedback click - send to API for RLHF and analytics
+  const handleFeedback = async (msgId: string, type: FeedbackType) => {
+    const previousFeedback = feedback[msgId];
+
+    // Toggle off if same type clicked again
+    if (previousFeedback === type) {
+      setFeedback((prev) => ({ ...prev, [msgId]: null }));
+      return;
+    }
+
+    // Update UI immediately
+    setFeedback((prev) => ({ ...prev, [msgId]: type }));
+
+    // Find the message content for context
+    const message = messages.find((m) => m.id === msgId);
+    const lastUserMsg = getLastUserMessage();
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service: "destiny-map",
+          theme,
+          sectionId: msgId,
+          helpful: type === "up",
+          locale: lang,
+          userHash: sessionIdRef.current,
+          // Extended RLHF fields
+          recordId: msgId,
+          rating: type === "up" ? 5 : 1,
+          userQuestion: lastUserMsg,
+          consultationSummary: message?.content?.slice(0, 500),
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`[Feedback] Sent: ${msgId} = ${type}`);
+      } else {
+        console.warn("[Feedback] API error:", response.status);
+      }
+    } catch (err) {
+      console.warn("[Feedback] Failed to send:", err);
+      // Keep UI state even if API fails
+    }
   };
 
   // Handle follow-up question click
@@ -612,49 +644,6 @@ export default function Chat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, autoScroll]);
 
-  // Voice recognition setup
-  const startRecording = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setNotice("Speech recognition not supported in this browser");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en-US";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onresult = (event: any) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      setInput((prev) => prev + transcript);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error("[Voice] error:", event.error);
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsRecording(true);
-  };
-
-  const stopRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
-    setIsRecording(false);
-  };
-
   // File upload handler (PDF + text)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -676,10 +665,16 @@ export default function Chat({
           setCvText("");
           setNotice(lang === "ko" ? "PDF에서 텍스트를 추출할 수 없습니다" : "Could not extract text from PDF");
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("[PDF] parse error:", err);
         setCvText("");
-        setNotice(lang === "ko" ? "PDF 파싱 실패" : "PDF parsing failed");
+        if (err?.message === "SCANNED_PDF") {
+          setNotice(lang === "ko"
+            ? "스캔된 PDF는 텍스트를 읽을 수 없습니다. 텍스트 기반 PDF를 업로드해주세요."
+            : "Scanned PDFs cannot be read. Please upload a text-based PDF.");
+        } else {
+          setNotice(lang === "ko" ? "PDF 파싱 실패" : "PDF parsing failed");
+        }
       } finally {
         setParsingPdf(false);
       }
@@ -742,6 +737,8 @@ export default function Chat({
       // Pass pre-computed chart data for instant responses
       saju,
       astro,
+      // Advanced astrology features (draconic, harmonics, progressions, etc.)
+      advancedAstro,
       // Premium: user context for returning users
       userContext,
     };
@@ -946,11 +943,6 @@ export default function Chat({
         <div className={styles.welcomeBackBanner}>
           <span>👋</span>
           <span>{tr.welcomeBack}</span>
-          {userContext?.persona?.lastTopics?.[0] && (
-            <span className={styles.lastTopic}>
-              ({lang === "ko" ? "지난 주제" : "Last topic"}: {userContext.persona.lastTopics[0]})
-            </span>
-          )}
         </div>
       )}
 
@@ -1145,24 +1137,6 @@ export default function Chat({
               {tr.attached} {cvName}
             </span>
           )}
-          {/* Voice Recording Button */}
-          <button
-            type="button"
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`${styles.voiceButton} ${isRecording ? styles.recording : ""}`}
-            disabled={loading}
-          >
-            {isRecording ? (
-              <>
-                <span className={styles.recordingDot} />
-                <span>{tr.stopRecording}</span>
-              </>
-            ) : (
-              <>
-                <span className={styles.micIcon}>🎤</span>
-              </>
-            )}
-          </button>
         </div>
 
         {usedFallback && (

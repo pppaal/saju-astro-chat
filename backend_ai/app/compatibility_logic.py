@@ -39,8 +39,7 @@ except ImportError:
     print("[compatibility_logic] RuleEngine not available")
 
 try:
-    from signal_extractor import extract_signals
-    from signal_summary import summarize_signals
+    from signal_extractor import extract_signals, summarize_signals
     HAS_SIGNALS = True
 except ImportError:
     HAS_SIGNALS = False
@@ -52,7 +51,11 @@ def get_openai_client():
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY is missing.")
     from openai import OpenAI
-    return OpenAI(api_key=OPENAI_API_KEY)
+    import httpx
+    return OpenAI(
+        api_key=OPENAI_API_KEY,
+        timeout=httpx.Timeout(60.0, connect=10.0)
+    )
 
 
 # ===============================================================

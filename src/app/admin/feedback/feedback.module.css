@@ -1,0 +1,325 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0a1e 0%, #1a1030 100%);
+  color: #fff;
+}
+
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #a1a1aa;
+  font-size: 0.95rem;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filterGroup label {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  text-transform: uppercase;
+}
+
+.filterGroup select {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #e5e5e5;
+}
+
+.checkboxLabel input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.refreshBtn {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.refreshBtn:hover {
+  transform: scale(1.05);
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+}
+
+/* Satisfaction Bar */
+.satisfactionBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.barLabel {
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.barContainer {
+  flex: 1;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.barValue {
+  font-weight: 700;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Section Breakdown */
+.sectionBreakdown {
+  margin-bottom: 2rem;
+}
+
+.sectionBreakdown h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #e5e5e5;
+}
+
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sectionItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.sectionInfo {
+  min-width: 200px;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sectionId {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  font-family: monospace;
+}
+
+.sectionCount {
+  font-size: 0.75rem;
+  color: #71717a;
+}
+
+.sectionBar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sectionBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.sectionRate {
+  font-weight: 600;
+  min-width: 45px;
+  text-align: right;
+}
+
+/* Records Section */
+.recordsSection {
+  margin-top: 2rem;
+}
+
+.recordsSection h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #e5e5e5;
+}
+
+.recordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.recordItem {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.recordItem.positive {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: #22c55e;
+}
+
+.recordItem.negative {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+.recordHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.recordIcon {
+  font-size: 1.1rem;
+}
+
+.recordService {
+  font-weight: 500;
+  color: #a78bfa;
+}
+
+.recordTheme {
+  font-size: 0.85rem;
+  padding: 0.125rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.recordTime {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #71717a;
+}
+
+.recordDetails {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #a1a1aa;
+}
+
+/* States */
+.loading,
+.noData {
+  text-align: center;
+  padding: 4rem;
+  color: #a1a1aa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .refreshBtn {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+
+  .sectionItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sectionBar {
+    width: 100%;
+  }
+}

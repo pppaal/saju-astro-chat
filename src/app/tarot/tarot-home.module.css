@@ -565,3 +565,140 @@
     gap: 0.5rem;
   }
 }
+
+/* ============================================================
+   TABLET BREAKPOINT (481px - 1024px)
+   Better iPad and tablet experience
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .container {
+    padding: 4.5rem 1.5rem 3rem;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+  }
+
+  .themeSelector {
+    max-width: 800px;
+    gap: 0.5rem;
+  }
+
+  .themeButton {
+    padding: 0.55rem 0.95rem;
+    font-size: 0.85rem;
+    min-height: 44px;
+  }
+
+  .themeHeader {
+    flex-direction: row;
+    text-align: left;
+    max-width: 550px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .themeIconLarge {
+    width: 65px;
+    height: 65px;
+    font-size: 1.85rem;
+  }
+
+  .spreadGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    max-width: 800px;
+  }
+
+  .spreadCard {
+    padding: 1.35rem;
+  }
+
+  .spreadTitle {
+    font-size: 1.2rem;
+  }
+
+  .tipContainer {
+    max-width: 550px;
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE PHONE OPTIMIZATION
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  .container {
+    padding: 3rem 2rem 2rem;
+  }
+
+  .crystalBallContainer {
+    margin-bottom: 1rem;
+  }
+
+  .crystalBall {
+    width: 70px;
+    height: 70px;
+  }
+
+  .orbRing {
+    width: 100px;
+    height: 100px;
+  }
+
+  .orbRing2 {
+    width: 130px;
+    height: 130px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    margin-bottom: 1rem;
+  }
+
+  .spreadGrid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* ============================================================
+   EXTRA SMALL MOBILE (< 360px)
+   ============================================================ */
+@media (max-width: 359px) {
+  .container {
+    padding: 3rem 0.5rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .themeButton {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .spreadCard {
+    padding: 1rem;
+  }
+
+  .spreadTitle {
+    font-size: 1rem;
+  }
+
+  .spreadDescription {
+    font-size: 0.85rem;
+  }
+}

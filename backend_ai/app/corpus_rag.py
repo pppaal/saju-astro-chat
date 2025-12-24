@@ -9,7 +9,13 @@ import os
 import json
 import torch
 from typing import List, Dict, Optional, Tuple
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import util
+
+# Use shared model singleton from saju_astro_rag
+try:
+    from backend_ai.app.saju_astro_rag import get_model
+except ImportError:
+    from saju_astro_rag import get_model
 
 
 class CorpusRAG:
@@ -22,63 +28,78 @@ class CorpusRAG:
     - Returns relevant quotes with proper citations
     """
 
-    def __init__(self, corpus_dir: str = None):
+    def __init__(self, corpus_dir: str = None, corpus_dirs: Optional[List[str]] = None):
         """
         Initialize the Corpus RAG engine.
 
         Args:
             corpus_dir: Path to directory containing quote JSON files
+            corpus_dirs: Optional list of directories to load (fallback to Jung + Stoic)
         """
-        # Set default corpus directory
-        if corpus_dir is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            corpus_dir = os.path.join(base_dir, "data", "corpus", "jung")
+        # Set default corpus directories (Jung + Stoic)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        default_dirs = [
+            os.path.join(base_dir, "data", "corpus", "jung"),
+            os.path.join(base_dir, "data", "corpus", "stoic"),
+        ]
 
-        self.corpus_dir = corpus_dir
+        # Backward compatibility: allow single corpus_dir
+        if corpus_dirs:
+            self.corpus_dirs = corpus_dirs
+        elif corpus_dir:
+            self.corpus_dirs = [corpus_dir]
+        else:
+            self.corpus_dirs = default_dirs
+
         self.quotes: List[Dict] = []
         self.quote_texts: List[str] = []
         self.quote_embeddings = None
 
-        # Initialize embedding model (same as graph_rag for consistency)
-        os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-        torch.set_default_device("cpu")
-
-        self.embed_model = SentenceTransformer(
-            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-            device="cpu"
-        )
+        # Use shared model singleton
+        self.embed_model = get_model()
 
         # Load and embed quotes
         self._load_quotes()
         self._prepare_embeddings()
 
     def _load_quotes(self):
-        """Load all quotes from JSON files in corpus directory."""
-        if not os.path.exists(self.corpus_dir):
-            print(f"[CorpusRAG] Warning: Corpus directory not found: {self.corpus_dir}")
-            return
-
-        for filename in os.listdir(self.corpus_dir):
-            if not filename.endswith('.json'):
+        """Load all quotes from JSON files in configured corpus directories."""
+        total_files = 0
+        for corpus_dir in self.corpus_dirs:
+            if not os.path.exists(corpus_dir):
+                print(f"[CorpusRAG] Warning: Corpus directory not found: {corpus_dir}")
                 continue
 
-            filepath = os.path.join(self.corpus_dir, filename)
-            try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
+            for filename in os.listdir(corpus_dir):
+                if not filename.endswith('.json'):
+                    continue
 
-                concept = data.get('concept', 'unknown')
-                concept_kr = data.get('concept_kr', concept)
+                filepath = os.path.join(corpus_dir, filename)
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
 
-                for quote in data.get('quotes', []):
-                    quote['concept'] = concept
-                    quote['concept_kr'] = concept_kr
-                    self.quotes.append(quote)
+                    # Derive meta
+                    source_tag = os.path.basename(corpus_dir)
+                    concept = data.get('concept') or data.get('philosopher') or source_tag or "unknown"
+                    concept_kr = data.get('concept_kr') or data.get('philosopher_kr') or concept
+                    default_source = data.get('main_work') or data.get('philosopher') or "Unknown"
 
-            except Exception as e:
-                print(f"[CorpusRAG] Error loading {filename}: {e}")
+                    for quote in data.get('quotes', []):
+                        if not isinstance(quote, dict):
+                            continue
+                        q = dict(quote)  # shallow copy
+                        q.setdefault('concept', concept)
+                        q.setdefault('concept_kr', concept_kr)
+                        q.setdefault('source', default_source)
+                        q['corpus_source'] = source_tag  # e.g., jung or stoic
+                        self.quotes.append(q)
+                        total_files += 1
 
-        print(f"[CorpusRAG] Loaded {len(self.quotes)} quotes from {self.corpus_dir}")
+                except Exception as e:
+                    print(f"[CorpusRAG] Error loading {filename}: {e}")
+
+        print(f"[CorpusRAG] Loaded {len(self.quotes)} quotes from {len(self.corpus_dirs)} corpus dirs")
 
     def _prepare_embeddings(self):
         """Create embeddings for all quotes."""
@@ -94,7 +115,8 @@ class CorpusRAG:
                 q.get('concept', ''),
                 q.get('en', ''),
                 q.get('kr', ''),
-                " ".join(q.get('tags', []))
+                " ".join(q.get('tags', [])),
+                q.get('corpus_source', '')
             ])
             self.quote_texts.append(combined_text)
 
@@ -165,6 +187,7 @@ class CorpusRAG:
                 'concept_kr': quote.get('concept_kr', ''),
                 'context': quote.get('context', ''),
                 'tags': quote.get('tags', []),
+                'corpus_source': quote.get('corpus_source', ''),
                 'score': score_val
             })
 

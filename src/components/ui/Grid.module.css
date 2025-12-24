@@ -1,5 +1,88 @@
 .grid {
   display: grid;
-  gap: var(--dp-space-4);
+  gap: var(--gap-md, var(--dp-space-4));
   width: 100%;
+}
+
+/* Auto-fit grid for responsive cards */
+.gridAuto {
+  display: grid;
+  gap: var(--gap-md, var(--dp-space-4));
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+/* 2-column grid */
+.grid2 {
+  display: grid;
+  gap: var(--gap-md, var(--dp-space-4));
+  width: 100%;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 640px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 3-column grid */
+.grid3 {
+  display: grid;
+  gap: var(--gap-md, var(--dp-space-4));
+  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .grid3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 4-column grid */
+.grid4 {
+  display: grid;
+  gap: var(--gap-md, var(--dp-space-4));
+  width: 100%;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .grid4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive gap adjustments */
+@media (max-width: 768px) {
+  .grid,
+  .gridAuto,
+  .grid2,
+  .grid3,
+  .grid4 {
+    gap: var(--gap-sm, var(--dp-space-3));
+  }
+}
+
+@media (max-width: 480px) {
+  .grid,
+  .gridAuto,
+  .grid2,
+  .grid3,
+  .grid4 {
+    gap: var(--dp-space-3);
+  }
 }

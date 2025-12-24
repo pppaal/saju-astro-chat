@@ -361,7 +361,7 @@ export async function generateReport({
     theme,
     lang,
     date: analysisDate, // 같은 날에만 캐시 유효
-    mode: "template_v6", // v6: Personalized daeun, remove keywords, 4-5 star filter
+    mode: "template_v12", // v12: Fix warning response to include processed saju/fiveElements
     name: hashName(name),
     gender,
     userTimezone: userTimezone || "unknown",
@@ -434,6 +434,11 @@ export async function generateReport({
   let backendAvailable = true;
 
   // 백엔드 URL이 없거나 템플릿 모드일 경우 로컬 생성
+  console.log("[DestinyMap] Backend URL check:", {
+    AI_BACKEND_URL: process.env.AI_BACKEND_URL,
+    NEXT_PUBLIC_AI_BACKEND: process.env.NEXT_PUBLIC_AI_BACKEND,
+    resolved: backendUrl,
+  });
   if (!backendUrl) {
     console.log("[DestinyMap] No backend URL - using local template generation");
     aiText = generateLocalReport(result, theme, lang, name);

@@ -10,6 +10,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 import {
   calculateNatalChart,
   toChart,
@@ -21,6 +22,10 @@ import {
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const BODY_LIMIT = 64 * 1024;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIMEZONE_MAX = 64;
 
 const LABELS = {
   en: {
@@ -148,13 +153,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const body = await request.json();
-    const { date, time, latitude, longitude, timeZone, locale, options } = body ?? {};
+    const oversized = enforceBodySize(request as any, BODY_LIMIT, limit.headers);
+    if (oversized) return oversized;
+
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400, headers: limit.headers });
+    }
+
+    const date = typeof (body as any).date === "string" ? (body as any).date.trim().slice(0, 10) : "";
+    const time = (body as any).time;
+    const latitude = typeof (body as any).latitude === "number" ? (body as any).latitude : Number((body as any).latitude);
+    const longitude = typeof (body as any).longitude === "number" ? (body as any).longitude : Number((body as any).longitude);
+    const timeZone = typeof (body as any).timeZone === "string" ? (body as any).timeZone.trim().slice(0, TIMEZONE_MAX) : "";
+    const locale = typeof (body as any).locale === "string" ? (body as any).locale : undefined;
+    const options = (body as any).options && typeof (body as any).options === "object" ? (body as any).options : undefined;
     const L = pickLabels(locale);
     const locKey = normalizeLocale(locale);
 
     if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json({ error: "date, time, latitude, longitude, and timeZone are required." }, { status: 400, headers: limit.headers });
+    }
+    if (!DATE_RE.test(date)) {
+      return NextResponse.json({ error: "date must be YYYY-MM-DD." }, { status: 400, headers: limit.headers });
     }
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {

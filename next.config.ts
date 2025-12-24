@@ -168,5 +168,8 @@ export default withSentryConfig(nextConfig, {
   bundleSizeOptimizations: {
     excludeDebugStatements: true,
   },
-  automaticVercelMonitors: true,
+  webpack: {
+    // Updated per Sentry deprecation: use webpack.automaticVercelMonitors
+    automaticVercelMonitors: true,
+  },
 });

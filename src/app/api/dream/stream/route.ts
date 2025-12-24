@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { enforceBodySize } from "@/lib/http";
 
 const BACKEND_URL = process.env.BACKEND_AI_URL || "http://localhost:5000";
 
@@ -45,6 +46,49 @@ interface StreamDreamRequest {
   };
 }
 
+const MAX_STREAM_BODY = 64 * 1024;
+const MAX_TEXT_LEN = 4000;
+const MAX_LIST_ITEMS = 20;
+const MAX_LIST_ITEM_LEN = 120;
+const STREAM_LOCALES = new Set(["ko", "en"]);
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const MAX_TIMEZONE_LEN = 64;
+
+function cleanStringArray(value: unknown, maxItems = MAX_LIST_ITEMS, maxLen = MAX_LIST_ITEM_LEN): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned: string[] = [];
+  for (const entry of value.slice(0, maxItems)) {
+    if (typeof entry !== "string") continue;
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    cleaned.push(trimmed.slice(0, maxLen));
+  }
+  return cleaned;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function sanitizeBirth(raw: unknown) {
+  if (!isRecord(raw)) return undefined;
+  const date = typeof raw.date === "string" && DATE_RE.test(raw.date) ? raw.date : undefined;
+  const time = typeof raw.time === "string" && TIME_RE.test(raw.time) ? raw.time : undefined;
+  const timezone = typeof raw.timezone === "string" ? raw.timezone.trim().slice(0, MAX_TIMEZONE_LEN) : undefined;
+  const latNum = Number(raw.latitude);
+  const lonNum = Number(raw.longitude);
+  const latitude = Number.isFinite(latNum) && latNum >= -90 && latNum <= 90 ? latNum : undefined;
+  const longitude = Number.isFinite(lonNum) && lonNum >= -180 && lonNum <= 180 ? lonNum : undefined;
+  const gender = typeof raw.gender === "string" ? raw.gender.trim().slice(0, 20) : undefined;
+
+  if (!date && !time && latitude === undefined && longitude === undefined && !timezone && !gender) {
+    return undefined;
+  }
+
+  return { date, time, timezone, latitude, longitude, gender };
+}
+
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req.headers);
@@ -61,24 +105,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const body: StreamDreamRequest = await req.json();
-    const {
-      dreamText,
-      symbols = [],
-      emotions = [],
-      themes = [],
-      context = [],
-      locale = "ko",
-      koreanTypes = [],
-      koreanLucky = [],
-      chinese = [],
-      islamicTypes = [],
-      western = [],
-      hindu = [],
-      japanese = [],
-      birth,
-      sajuInfluence
-    } = body;
+    const oversized = enforceBodySize(req as any, MAX_STREAM_BODY, limit.headers);
+    if (oversized) return oversized;
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "invalid_body" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    const dreamTextRaw = typeof (body as any).dreamText === "string" ? (body as any).dreamText.trim() : "";
+    const dreamText = dreamTextRaw.slice(0, MAX_TEXT_LEN);
+    const symbols = cleanStringArray((body as any).symbols);
+    const emotions = cleanStringArray((body as any).emotions);
+    const themes = cleanStringArray((body as any).themes);
+    const context = cleanStringArray((body as any).context);
+    const locale = typeof (body as any).locale === "string" && STREAM_LOCALES.has((body as any).locale)
+      ? (body as any).locale as "ko" | "en"
+      : "ko";
+    const koreanTypes = cleanStringArray((body as any).koreanTypes);
+    const koreanLucky = cleanStringArray((body as any).koreanLucky);
+    const chinese = cleanStringArray((body as any).chinese);
+    const islamicTypes = cleanStringArray((body as any).islamicTypes);
+    const western = cleanStringArray((body as any).western);
+    const hindu = cleanStringArray((body as any).hindu);
+    const japanese = cleanStringArray((body as any).japanese);
+    const birth = sanitizeBirth((body as any).birth);
+    const sajuInfluence = isRecord((body as any).sajuInfluence) ? (body as any).sajuInfluence : undefined;
 
     if (!dreamText || dreamText.trim().length < 5) {
       return NextResponse.json(

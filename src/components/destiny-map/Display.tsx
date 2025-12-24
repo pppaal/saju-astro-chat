@@ -465,26 +465,20 @@ export default function Display({
   );
   const tr = I18N[lang] ?? I18N.en;
 
-  if ((result as any)?.error) {
-    return (
-      <div className={styles.summary}>
-        Analysis failed: {(result as any).errorMessage || (result as any).error}
-      </div>
-    );
-  }
-
   // Find theme data with case-insensitive matching
   const themeMatch = findThemeData(result?.themes, activeTheme);
   const themed = themeMatch?.data;
   const name = result?.profile?.name?.trim() || tr.userFallback;
+  const interpretationText =
+    typeof themed?.interpretation === "string" ? themed.interpretation : "";
+  const sajuData = result?.saju;
+  const astroData = result?.astrology || result?.astro;
 
   // Try to parse structured JSON from interpretation
   const structuredData = useMemo(() => {
-    if (typeof themed?.interpretation === "string") {
-      return tryParseStructured(themed.interpretation);
-    }
-    return null;
-  }, [themed?.interpretation]);
+    if (!interpretationText.trim()) return null;
+    return tryParseStructured(interpretationText);
+  }, [interpretationText]);
 
   // Check if we have complete structured data (sections or lifeTimeline + categoryAnalysis)
   const hasFullStructuredData = useMemo(() => {
@@ -495,11 +489,9 @@ export default function Display({
 
   // Get plain text for markdown rendering (remove JSON if present)
   const fixedText = useMemo(() => {
-    if (typeof themed?.interpretation !== "string" || !themed.interpretation.trim()) {
+    if (!interpretationText.trim()) {
       // No interpretation - but check if we have raw saju/astro data to show something
       // Use result.saju (top-level) since ThemedBlock doesn't have 'raw'
-      const sajuData = result?.saju;
-      const astroData = result?.astrology || result?.astro;
       if (sajuData?.dayMaster || astroData) {
         // Generate a basic display from raw data
         // dayMaster can be { name, element } or { heavenlyStem: { name, element } }
@@ -520,7 +512,7 @@ export default function Display({
       return ""; // Will be handled by structured components
     }
 
-    let text = themed.interpretation;
+    let text = interpretationText;
     // If structured data exists with sections, extract sections content for display
     if (structuredData?.sections) {
       return structuredData.sections
@@ -534,7 +526,15 @@ export default function Display({
       return text.replace(/\{[\s\S]*\}/g, "").trim() || tr.analysisFallback;
     }
     return text.replace(/##+\s*/g, "## ").trim() || tr.analysisFallback;
-  }, [themed?.interpretation, result?.saju, result?.astrology, result?.astro, structuredData, hasFullStructuredData, tr.analysisFallback, lang]);
+  }, [interpretationText, sajuData, astroData, structuredData, hasFullStructuredData, tr.analysisFallback, lang]);
+
+  if ((result as any)?.error) {
+    return (
+      <div className={styles.summary}>
+        Analysis failed: {(result as any).errorMessage || (result as any).error}
+      </div>
+    );
+  }
 
   return (
     <div>

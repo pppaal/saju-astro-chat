@@ -92,6 +92,9 @@
 }
 
 .header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   margin-bottom: 40px;
   animation: fadeInDown 0.6s ease-out 0.2s both;
@@ -134,24 +137,33 @@
 
 .title {
   font-family: var(--font-cinzel), ui-serif, Georgia, "Times New Roman", serif;
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.75rem;
+  font-weight: 700;
   color: white;
-  margin: 0 0 12px;
-  background: linear-gradient(135deg, #ffffff, #63d2ff, #a78bfa);
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #a78bfa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 0 30px rgba(99, 210, 255, 0.4);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .subtitle {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
   margin: 0;
   letter-spacing: 0.3px;
+  max-width: 400px;
+  font-weight: 400;
+}
+
+.creditBadgeWrapper {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 
 .form {
@@ -159,6 +171,92 @@
   flex-direction: column;
   gap: 24px;
   animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+/* ========== Load Profile Button ========== */
+.loadProfileButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px dashed rgba(99, 210, 255, 0.4);
+  border-radius: 12px;
+  color: #a5f3fc;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.loadProfileButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 210, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.loadProfileButton:hover::before {
+  left: 100%;
+}
+
+.loadProfileButton:hover {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.2), rgba(139, 92, 246, 0.25));
+  border-color: rgba(99, 210, 255, 0.6);
+  border-style: solid;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 210, 255, 0.25);
+}
+
+.loadProfileButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.loadProfileSuccess {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(74, 222, 128, 0.15));
+  border-color: rgba(34, 197, 94, 0.5);
+  border-style: solid;
+  color: #86efac;
+}
+
+.loadProfileSuccess:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(74, 222, 128, 0.2));
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.loadProfileIcon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(99, 210, 255, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.loadProfileSuccess .loadProfileIcon {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.loadProfileText {
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.3px;
 }
 
 @keyframes fadeInUp {
@@ -897,6 +995,13 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Grade 0: 천운의 날 - 황금빛 */
+.dateItem.grade0 {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 165, 0, 0.15) 100%);
+  border-left: 3px solid #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
 .dateItem.grade1 {
   background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(251, 191, 36, 0.1) 100%);
   border-left: 3px solid #eab308;
@@ -961,6 +1066,13 @@
 .dateCard:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
+}
+
+/* Grade 0: 천운의 날 - 황금빛 빛나는 효과 */
+.dateCard.grade0 {
+  border-left: 4px solid #ffd700;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(255, 165, 0, 0.08) 100%);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
 }
 
 .dateCard.grade1 {
@@ -1557,14 +1669,117 @@
   transform: scale(1.02);
 }
 
-.day.today {
-  border: 2px solid #6366f1;
-  background: rgba(99, 102, 241, 0.15);
+/* ========================================
+   Grade 스타일 (배경색) - 먼저 정의
+   ======================================== */
+
+/* Grade 0: 천운의 날 - 황금빛 + 빛나는 효과 */
+.day.dayGrade0 {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.4) 0%, rgba(255, 165, 0, 0.3) 50%, rgba(255, 223, 128, 0.25) 100%) !important;
+  border: 2px solid rgba(255, 215, 0, 0.8) !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6), 0 0 24px rgba(255, 165, 0, 0.4), inset 0 0 8px rgba(255, 255, 255, 0.3) !important;
+  animation: cheununGlow 2s ease-in-out infinite;
 }
 
+@keyframes cheununGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 215, 0, 0.6), 0 0 24px rgba(255, 165, 0, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 36px rgba(255, 165, 0, 0.6); }
+}
+
+.day.dayGrade0 .dayNumber {
+  color: #ffd700 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+  font-weight: 700;
+}
+
+/* Grade 1: 좋은 날 - 녹색 */
+.day.dayGrade1 {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(74, 222, 128, 0.15) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.day.dayGrade1 .dayNumber {
+  color: #4ade80;
+}
+
+/* Grade 2: 좋은 날 - 연한 초록색 */
+.day.dayGrade2 {
+  background: linear-gradient(135deg, rgba(134, 239, 172, 0.15) 0%, rgba(167, 243, 208, 0.1) 100%);
+  border: 1px solid rgba(134, 239, 172, 0.3);
+}
+
+.day.dayGrade2 .dayNumber {
+  color: #86efac;
+}
+
+/* Grade 3: 보통 날 - 연한 파란색 */
+.day.dayGrade3 {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.12) 0%, rgba(209, 213, 219, 0.08) 100%);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.day.dayGrade3 .dayNumber {
+  color: #d1d5db;
+}
+
+/* Grade 4: 나쁜 날 - 빨간색 */
+.day.dayGrade4 {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(248, 113, 113, 0.2) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.day.dayGrade4 .dayNumber {
+  color: #fca5a5;
+}
+
+/* ========================================
+   오늘/선택 상태 - 테두리로만 표시 (배경 유지)
+   ======================================== */
+
+/* 오늘: 보라색 테두리 (outline 사용하여 border와 별도로) */
+.day.today {
+  outline: 3px solid #a78bfa;
+  outline-offset: -1px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 오늘 + Grade 조합 */
+.day.today.dayGrade0 {
+  outline: 3px solid #fff;
+  outline-offset: -1px;
+}
+
+.day.today.dayGrade1 {
+  outline: 3px solid #a78bfa;
+  outline-offset: -1px;
+}
+
+.day.today.dayGrade4 {
+  outline: 3px solid #a78bfa;
+  outline-offset: -1px;
+}
+
+/* 선택됨: 더 굵은 테두리 */
 .day.selected {
-  background: rgba(99, 102, 241, 0.3);
-  border: 2px solid #8b5cf6;
+  outline: 3px solid #8b5cf6;
+  outline-offset: -1px;
+  position: relative;
+  z-index: 2;
+}
+
+/* 선택 + Grade 조합 - 배경 유지 */
+.day.selected.dayGrade0 {
+  outline: 3px solid #fff;
+}
+
+.day.selected.dayGrade1 {
+  outline: 3px solid #8b5cf6;
+}
+
+.day.selected.dayGrade4 {
+  outline: 3px solid #8b5cf6;
 }
 
 .day.sunday .dayNumber {
@@ -1575,19 +1790,15 @@
   color: #3b82f6;
 }
 
-.day.dayGrade1 {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(251, 191, 36, 0.1) 100%);
-  border: 1px solid rgba(234, 179, 8, 0.3);
+/* Grade 색상이 요일 색상보다 우선 */
+.day.dayGrade0.sunday .dayNumber,
+.day.dayGrade0.saturday .dayNumber {
+  color: #ffd700 !important;
 }
 
-.day.dayGrade2 {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(74, 222, 128, 0.08) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.25);
-}
-
-.day.dayGrade3 {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(248, 113, 113, 0.08) 100%);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+.day.dayGrade4.sunday .dayNumber,
+.day.dayGrade4.saturday .dayNumber {
+  color: #fca5a5 !important;
 }
 
 .dayNumber {
@@ -1634,15 +1845,24 @@
   border-radius: 4px;
 }
 
-.grade1Dot {
-  background: linear-gradient(135deg, #eab308, #fcd34d);
+.grade0Dot {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
 }
 
-.grade2Dot {
+.grade1Dot {
   background: linear-gradient(135deg, #22c55e, #4ade80);
 }
 
+.grade2Dot {
+  background: linear-gradient(135deg, #86efac, #a7f3d0);
+}
+
 .grade3Dot {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+}
+
+.grade4Dot {
   background: linear-gradient(135deg, #ef4444, #f87171);
 }
 
@@ -1695,6 +1915,54 @@
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
   margin: 0 0 16px 0;
+}
+
+/* 한줄 요약 박스 */
+.summaryBox {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.15), rgba(147, 112, 219, 0.15));
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.summaryText {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 추천 시간대 박스 */
+.bestTimesBox {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.bestTimesTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 10px 0;
+}
+
+.bestTimesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bestTimeItem {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(99, 210, 255, 0.1);
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .selectedCategories {
@@ -1847,16 +2115,58 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.highlightCard.grade1 {
-  border-left: 3px solid #eab308;
+/* Grade classes for highlight cards */
+.grade0 {
+  border-left: 3px solid #ffd700 !important;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.15) 100%) !important;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+  animation: highlightGlow 2s ease-in-out infinite;
 }
 
-.highlightCard.grade2 {
-  border-left: 3px solid #22c55e;
+.grade1 {
+  border-left: 3px solid #22c55e !important;
+  background: rgba(34, 197, 94, 0.12) !important;
 }
 
-.highlightCard.grade3 {
-  border-left: 3px solid #ef4444;
+.grade2 {
+  border-left: 3px solid #9ca3af !important;
+  background: rgba(156, 163, 175, 0.08) !important;
+}
+
+.grade3 {
+  border-left: 3px solid #9ca3af !important;
+  background: rgba(156, 163, 175, 0.08) !important;
+}
+
+.grade4 {
+  border-left: 3px solid #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+@keyframes highlightGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+}
+
+.grade0 .highlightTitle {
+  color: #ffd700 !important;
+  text-shadow: 0 0 4px rgba(255, 215, 0, 0.4);
+}
+
+.grade0 .highlightDate {
+  color: #ffd700 !important;
+}
+
+.grade1 .highlightTitle {
+  color: #4ade80 !important;
+}
+
+.grade2 .highlightTitle {
+  color: #86efac !important;
+}
+
+.grade4 .highlightTitle {
+  color: #fca5a5 !important;
 }
 
 .highlightHeader {
@@ -1897,6 +2207,12 @@
 
 .highlightEmojis {
   font-size: 0.9rem;
+}
+
+.highlightScore {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
 }
 
 .highlightReason {

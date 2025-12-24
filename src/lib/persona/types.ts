@@ -59,6 +59,7 @@ export interface PersonaAnalysis {
   career: string;
   relationships: string;
   guidance: string;
+  growthTips: string[];
   keyMotivations: string[];
   recommendedRoles: string[];
   compatibilityHint: string;

@@ -249,6 +249,13 @@
   margin: 0 0 1.5rem;
 }
 
+.badgesWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .badges {
   display: flex;
   justify-content: center;
@@ -293,6 +300,18 @@
   font-weight: 700;
   color: #fed6e3;
   line-height: 1.2;
+}
+
+.consistencyHint {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(254, 214, 227, 0.08);
+  border-radius: 10px;
+  max-width: 400px;
+  line-height: 1.5;
 }
 
 /* Type Code Breakdown */
@@ -562,15 +581,82 @@
 /* Insights Section */
 .insightsSection {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
   margin-top: 3rem;
   animation: fadeInUp 0.8s ease-out 0.5s both;
 }
 
+/* Growth Section */
+.growthSection {
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.55s both;
+}
+
+.growthCards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.growthCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.05), rgba(254, 214, 227, 0.05));
+  border: 1px solid rgba(168, 237, 234, 0.15);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.growthCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.growthCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.growthCard:hover {
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.1), rgba(254, 214, 227, 0.1));
+  border-color: rgba(168, 237, 234, 0.3);
+  transform: translateX(8px);
+}
+
+.growthNumber {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #1a1a2e;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.growthContent {
+  flex: 1;
+}
+
+.growthTip {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
 @media (max-width: 640px) {
-  .insightsSection {
-    grid-template-columns: 1fr;
+  .growthCard {
+    padding: 1.25rem;
+  }
+
+  .growthTip {
+    font-size: 0.95rem;
   }
 }
 

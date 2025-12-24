@@ -621,6 +621,101 @@
   align-items: center;
 }
 
+/* Service Selector Button */
+.serviceSelectBtn {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 3;
+}
+
+.serviceSelectBtn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.serviceSelectIcon {
+  font-size: 1.2rem;
+}
+
+.serviceSelectArrow {
+  font-size: 0.6rem;
+  color: rgba(196, 181, 253, 0.7);
+  transition: transform 0.3s ease;
+}
+
+.serviceSelectBtn:hover .serviceSelectArrow {
+  transform: translateY(2px);
+}
+
+/* Service Dropdown */
+.serviceDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 12px;
+  background: rgba(15, 20, 40, 0.98);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 8px;
+  min-width: 180px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5),
+              0 0 20px rgba(139, 92, 246, 0.2);
+  z-index: 10;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.serviceDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.serviceDropdownItem:hover {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.serviceDropdownItem.selected {
+  background: rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+}
+
+.serviceDropdownIcon {
+  font-size: 1.3rem;
+}
+
+.serviceDropdownLabel {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
 .questionSearchIcon {
   position: absolute;
   left: 24px;
@@ -629,6 +724,7 @@
   pointer-events: none;
   filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.6));
   animation: iconPulse 2s ease-in-out infinite;
+  display: none; /* Hidden since we use service selector now */
 }
 
 @keyframes iconPulse {
@@ -638,7 +734,7 @@
 
 .questionSearchInput {
   width: 100%;
-  padding: 22px 65px 22px 60px;
+  padding: 22px 65px 22px 110px;
   font-size: 1.15rem;
   font-weight: 500;
   border: 2px solid rgba(139, 92, 246, 0.3);
@@ -722,6 +818,45 @@
   color: #ffffff;
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
+/* AI Routing Guide */
+.aiRoutingGuide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.aiRoutingText {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.serviceIconsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.serviceIcon {
+  font-size: 1.5rem;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  cursor: default;
+  filter: grayscale(30%);
+}
+
+.serviceIcon:hover {
+  opacity: 1;
+  transform: scale(1.15);
+  filter: grayscale(0%);
 }
 
 /* Destiny Map Hero Card - Prominent Display */
@@ -2978,5 +3113,197 @@ to { opacity: 1; transform: translateY(0); }
 
   .scrollToTopText {
     display: none;
+  }
+}
+
+/* ============================================================
+   TABLET BREAKPOINT (481px - 1024px)
+   Better iPad and tablet experience
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .container {
+    padding: 5rem 2rem 4rem;
+    gap: 2.5rem;
+  }
+
+  .topBar {
+    padding: 12px 24px;
+  }
+
+  .dropdown {
+    min-width: 90vw;
+    max-width: 600px;
+  }
+
+  .dropdownGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .dropItem {
+    padding: 14px 10px;
+  }
+
+  .dropItemIcon {
+    width: 46px;
+    height: 46px;
+    font-size: 24px;
+  }
+
+  .fullscreenHero {
+    min-height: 90vh;
+    padding-top: 6rem;
+  }
+
+  .heroContent .heroTitle {
+    font-size: clamp(2rem, 5vw, 3rem);
+    white-space: normal;
+  }
+
+  .heroContent .heroSub {
+    font-size: 1.1rem;
+    max-width: 500px;
+  }
+
+  .questionSearchInput {
+    font-size: 1.1rem;
+    padding: 20px 60px 20px 55px;
+  }
+
+  .questionHints {
+    gap: 0.6rem;
+  }
+
+  .questionHint {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  .statsBar {
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .statItem {
+    padding: 20px 28px;
+    min-width: 120px;
+    flex: 0 1 auto;
+  }
+
+  .statValue {
+    font-size: 1.9rem;
+  }
+
+  .services {
+    gap: 1.2rem;
+  }
+
+  .serviceGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stepsContainer {
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .stepCard {
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 250px;
+    max-width: none;
+  }
+
+  .stepArrow {
+    display: none;
+  }
+
+  .destinyMapHero {
+    padding: 1.5rem;
+  }
+
+  .destinyMapTitle {
+    font-size: 1.2rem;
+  }
+
+  .destinyMapFormula {
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE PHONE OPTIMIZATION
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  .fullscreenHero {
+    min-height: auto;
+    padding: 4rem 2rem 2rem;
+    margin-top: 0;
+  }
+
+  .heroContent .heroTitle {
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .heroContent .heroSub {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .scrollIndicator {
+    display: none;
+  }
+
+  .questionSearchInput {
+    padding: 16px 55px 16px 50px;
+  }
+
+  .questionSearchBtn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ============================================================
+   EXTRA SMALL MOBILE (< 360px)
+   ============================================================ */
+@media (max-width: 359px) {
+  .container {
+    padding: 3rem 0.75rem 2rem;
+  }
+
+  .heroContent .heroTitle {
+    font-size: 1.5rem;
+  }
+
+  .questionSearchInput {
+    padding: 16px 50px 16px 45px;
+    font-size: 1rem;
+  }
+
+  .questionSearchIcon {
+    left: 16px;
+    font-size: 1.3rem;
+  }
+
+  .questionHint {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  .statItem {
+    padding: 12px 16px;
+    min-width: 80px;
+  }
+
+  .statValue {
+    font-size: 1.3rem;
+  }
+
+  .statLabel {
+    font-size: 0.6rem;
   }
 }

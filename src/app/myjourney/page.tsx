@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./myjourney.module.css";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Profile = {
   birthDate?: string | null;
@@ -63,20 +64,20 @@ const SERVICE_ICONS: Record<string, string> = {
   "destiny-matrix": "🔷",
 };
 
-const SERVICE_NAMES: Record<string, string> = {
-  "destiny-map": "Destiny Map",
-  tarot: "Tarot",
-  saju: "Saju",
-  astrology: "Astrology",
-  dream: "Dream",
-  iching: "I Ching",
-  numerology: "Numerology",
-  aura: "Aura",
-  "daily-fortune": "Daily Fortune",
-  personality: "Personality",
-  compatibility: "Compatibility",
-  "destiny-pal": "Destiny Pal",
-  "destiny-matrix": "Destiny Matrix",
+const SERVICE_NAME_KEYS: Record<string, string> = {
+  "destiny-map": "myjourney.services.destinyMap",
+  tarot: "myjourney.services.tarot",
+  saju: "myjourney.services.saju",
+  astrology: "myjourney.services.astrology",
+  dream: "myjourney.services.dream",
+  iching: "myjourney.services.iching",
+  numerology: "myjourney.services.numerology",
+  aura: "myjourney.services.aura",
+  "daily-fortune": "myjourney.services.dailyFortune",
+  personality: "myjourney.services.personality",
+  compatibility: "myjourney.services.compatibility",
+  "destiny-pal": "myjourney.services.destinyPal",
+  "destiny-matrix": "myjourney.services.destinyMatrix",
 };
 
 const SERVICE_URLS: Record<string, string> = {
@@ -114,6 +115,7 @@ function LoadingScreen() {
 }
 
 function MyJourneyPage() {
+  const { t, locale } = useI18n();
   const { data: session, status } = useSession();
   const router = useRouter();
   const search = useSearchParams();
@@ -123,6 +125,7 @@ function MyJourneyPage() {
   const [fortuneLoading, setFortuneLoading] = useState(false);
   const [recentHistory, setRecentHistory] = useState<DailyHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -144,8 +147,8 @@ function MyJourneyPage() {
         const res = await fetch("/api/me/history", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          // Get only recent 3 days of history
-          setRecentHistory((data.history || []).slice(0, 3));
+          // Get only recent 2 days of history
+          setRecentHistory((data.history || []).slice(0, 2));
         }
       } catch (e) {
         console.error("Failed to load history:", e);
@@ -225,10 +228,10 @@ function MyJourneyPage() {
       {/* Header */}
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={goBack}>←</button>
-        <h1 className={styles.logo}>My Journey</h1>
+        <h1 className={styles.logo}>{t("myjourney.title")}</h1>
         {session && (
           <button className={styles.logoutBtn} onClick={() => signOut({ callbackUrl: "/myjourney" })}>
-            Logout
+            {t("myjourney.logout")}
           </button>
         )}
       </header>
@@ -238,8 +241,8 @@ function MyJourneyPage() {
         <div className={styles.loginContainer}>
           <div className={styles.loginCard}>
             <div className={styles.loginIcon}>✨</div>
-            <h2>Start Your Journey</h2>
-            <p>Sign in to save readings and get personalized insights</p>
+            <h2>{t("myjourney.login.title")}</h2>
+            <p>{t("myjourney.login.subtitle")}</p>
 
             <div className={styles.loginButtons}>
               <button
@@ -267,7 +270,7 @@ function MyJourneyPage() {
               </button> */}
             </div>
 
-            <span className={styles.secureNote}>Secure OAuth - No passwords</span>
+            <span className={styles.secureNote}>{t("myjourney.login.secureNote")}</span>
           </div>
         </div>
       ) : (
@@ -310,24 +313,24 @@ function MyJourneyPage() {
               <Link href="/myjourney/profile" className={styles.menuCard}>
                 <span className={styles.menuIcon}>👤</span>
                 <div>
-                  <h3>My Profile</h3>
-                  <p>Birth info & settings</p>
+                  <h3>{t("myjourney.profile.title")}</h3>
+                  <p>{t("myjourney.profile.desc")}</p>
                 </div>
               </Link>
 
               <Link href="/myjourney/circle" className={styles.menuCard}>
                 <span className={styles.menuIcon}>👥</span>
                 <div>
-                  <h3>My Circle</h3>
-                  <p>Family, friends, partners</p>
+                  <h3>{t("myjourney.circle.title")}</h3>
+                  <p>{t("myjourney.circle.desc")}</p>
                 </div>
               </Link>
 
               <Link href="/myjourney/history" className={styles.menuCard}>
                 <span className={styles.menuIcon}>📜</span>
                 <div>
-                  <h3>My Destiny</h3>
-                  <p>Past readings & insights</p>
+                  <h3>{t("myjourney.destiny.title")}</h3>
+                  <p>{t("myjourney.destiny.desc")}</p>
                 </div>
               </Link>
             </div>
@@ -335,54 +338,36 @@ function MyJourneyPage() {
             {/* Right Column - Fortune Details */}
             <div className={styles.column}>
               <div className={styles.fortuneCard}>
-                <h3>Today&apos;s Fortune</h3>
+                <h3>{t("myjourney.fortune.title")}</h3>
                 {fortune ? (
                   <>
                     <div className={styles.fortuneGrid}>
                       <div className={styles.fortuneItem}>
                         <span>❤️</span>
                         <span>{fortune.love}</span>
-                        <small>Love</small>
+                        <small>{t("myjourney.fortune.love")}</small>
                       </div>
                       <div className={styles.fortuneItem}>
                         <span>💼</span>
                         <span>{fortune.career}</span>
-                        <small>Career</small>
+                        <small>{t("myjourney.fortune.career")}</small>
                       </div>
                       <div className={styles.fortuneItem}>
                         <span>💰</span>
                         <span>{fortune.wealth}</span>
-                        <small>Wealth</small>
+                        <small>{t("myjourney.fortune.wealth")}</small>
                       </div>
                       <div className={styles.fortuneItem}>
                         <span>🏥</span>
                         <span>{fortune.health}</span>
-                        <small>Health</small>
+                        <small>{t("myjourney.fortune.health")}</small>
                       </div>
                     </div>
-                    <div className={styles.luckyItems}>
-                      <span>🎨 {fortune.luckyColor}</span>
-                      <span>🔢 {fortune.luckyNumber}</span>
-                    </div>
-                    {/* Fortune Alerts */}
-                    {fortune.alerts && fortune.alerts.length > 0 && (
-                      <div className={styles.fortuneAlerts}>
-                        {fortune.alerts.slice(0, 2).map((alert, idx) => (
-                          <div
-                            key={idx}
-                            className={`${styles.alertItem} ${styles[`alert${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}`]}`}
-                          >
-                            <span>{alert.icon || (alert.type === "warning" ? "⚠️" : alert.type === "positive" ? "✨" : "ℹ️")}</span>
-                            <span>{alert.msg}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </>
                 ) : !profile.birthDate ? (
                   <div className={styles.fortuneSetup}>
-                    <p>Set your birth date first</p>
-                    <Link href="/myjourney/profile">Setup Profile →</Link>
+                    <p>{t("myjourney.fortune.setup")}</p>
+                    <Link href="/myjourney/profile">{t("myjourney.fortune.setupLink")}</Link>
                   </div>
                 ) : (
                   <div className={styles.fortuneLoading}>
@@ -396,9 +381,9 @@ function MyJourneyPage() {
           {/* Recent Activity */}
           <div className={styles.services}>
             <div className={styles.servicesHeader}>
-              <h3>Recent Activity</h3>
+              <h3>{t("myjourney.activity.title")}</h3>
               <Link href="/myjourney/history" className={styles.viewAllLink}>
-                View All →
+                {t("myjourney.activity.viewAll")}
               </Link>
             </div>
             {historyLoading ? (
@@ -407,54 +392,42 @@ function MyJourneyPage() {
               </div>
             ) : recentHistory.length > 0 ? (
               <div className={styles.recentHistory}>
-                {recentHistory.map((day) => (
-                  <div key={day.date} className={styles.dayGroup}>
-                    <div className={styles.dayDate}>{formatDate(day.date)}</div>
-                    <div className={styles.dayRecords}>
-                      {day.records.slice(0, 4).map((record) => (
-                        <Link
-                          key={record.id}
-                          href={SERVICE_URLS[record.service] || "/myjourney/history"}
-                          className={styles.recordItem}
+                {recentHistory.map((day) => {
+                  const isExpanded = expandedDays[day.date];
+                  const visibleRecords = isExpanded ? day.records : day.records.slice(0, 3);
+                  const hasMore = day.records.length > 3;
+
+                  return (
+                    <div key={day.date} className={styles.dayGroup}>
+                      <div className={styles.dayDate}>{formatDate(day.date, t, locale)}</div>
+                      <div className={styles.dayTags}>
+                        {visibleRecords.map((record) => (
+                          <Link
+                            key={record.id}
+                            href={SERVICE_URLS[record.service] || "/myjourney/history"}
+                            className={styles.serviceTag}
+                          >
+                            <span className={styles.tagIcon}>{SERVICE_ICONS[record.service] || "📖"}</span>
+                            <span className={styles.tagName}>{SERVICE_NAME_KEYS[record.service] ? t(SERVICE_NAME_KEYS[record.service]) : record.service}</span>
+                            <span className={styles.tagArrow}>→</span>
+                          </Link>
+                        ))}
+                      </div>
+                      {hasMore && (
+                        <button
+                          className={styles.showMoreBtn}
+                          onClick={() => setExpandedDays(prev => ({ ...prev, [day.date]: !prev[day.date] }))}
                         >
-                          <span className={styles.recordIcon}>
-                            {SERVICE_ICONS[record.service] || "📖"}
-                          </span>
-                          <div className={styles.recordInfo}>
-                            <span className={styles.recordService}>
-                              {SERVICE_NAMES[record.service] || record.service}
-                            </span>
-                            {record.theme && (
-                              <span className={styles.recordTheme}>{record.theme}</span>
-                            )}
-                            {record.summary && (
-                              <span className={styles.recordSummary}>{record.summary}</span>
-                            )}
-                          </div>
-                        </Link>
-                      ))}
+                          {isExpanded ? t("myjourney.activity.showLess") : `${t("myjourney.activity.showMore")} (+${day.records.length - 3})`}
+                        </button>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className={styles.emptyHistory}>
-                <span className={styles.emptyIcon}>📜</span>
-                <p>No activity yet</p>
-                <p className={styles.emptyHint}>
-                  Start using services to track your journey
-                </p>
-                <div className={styles.quickLinks}>
-                  <Link href="/destiny-map" className={styles.quickLink}>🗺️ Destiny Map</Link>
-                  <Link href="/tarot" className={styles.quickLink}>🃏 Tarot</Link>
-                  <Link href="/saju" className={styles.quickLink}>🔮 Saju</Link>
-                  <Link href="/astrology" className={styles.quickLink}>⭐ Astrology</Link>
-                  <Link href="/dream" className={styles.quickLink}>💭 Dream</Link>
-                  <Link href="/iching" className={styles.quickLink}>☯️ I Ching</Link>
-                  <Link href="/personality" className={styles.quickLink}>🧠 Personality</Link>
-                  <Link href="/compatibility" className={styles.quickLink}>💕 Compatibility</Link>
-                  <Link href="/numerology" className={styles.quickLink}>🔢 Numerology</Link>
-                </div>
+                <p className={styles.emptyHint}>{t("myjourney.activity.empty")}</p>
               </div>
             )}
           </div>
@@ -464,20 +437,20 @@ function MyJourneyPage() {
   );
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, t: (key: string) => string, locale: string): string {
   const date = new Date(dateStr);
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
   if (dateStr === today.toISOString().split("T")[0]) {
-    return "Today";
+    return t("myjourney.activity.today");
   }
   if (dateStr === yesterday.toISOString().split("T")[0]) {
-    return "Yesterday";
+    return t("myjourney.activity.yesterday");
   }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale === "ko" ? "ko-KR" : "en-US", {
     month: "short",
     day: "numeric",
     year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,

@@ -260,20 +260,24 @@ function getRecommendedDates(saju: any, astro: any, lang: string): { date: strin
     }
   }
 
-  // 대운 정보
-  if (saju?.daeWoon?.list?.length > 0) {
+  // 대운 정보 - unse.daeun 또는 daeWoon.list 둘 다 지원
+  const daeunList = saju?.unse?.daeun || saju?.daeWoon?.list || [];
+  if (daeunList.length > 0) {
     const birthYear = parseInt(saju.birthDate?.split("-")[0]) || 1990;
     const age = currentYear - birthYear;
-    const startAge = saju.daeWoon.startAge || 0;
+    const startAge = saju?.unse?.startAge || saju?.daeWoon?.startAge || 0;
     const daeunIndex = Math.max(0, Math.floor((age - startAge) / 10));
 
-    if (daeunIndex < saju.daeWoon.list.length) {
-      const daeun = saju.daeWoon.list[daeunIndex];
+    if (daeunIndex < daeunList.length) {
+      const daeun = daeunList[daeunIndex];
+      // 다양한 데이터 구조 지원: { ganji } 또는 { stem, branch } 또는 { heavenlyStem, earthlyBranch }
+      const ganji = daeun?.ganji || "";
       const stem = daeun?.stem?.name || daeun?.heavenlyStem || "";
       const branch = daeun?.branch?.name || daeun?.earthlyBranch || "";
-      if (stem || branch) {
+      const displayText = ganji || `${stem}${branch}`;
+      if (displayText) {
         dates.push({
-          date: isKo ? `현재 대운: ${stem}${branch}` : `Current Daeun: ${stem}${branch}`,
+          date: isKo ? `현재 대운: ${displayText}` : `Current Daeun: ${displayText}`,
           type: isKo ? "🔮 10년 대운" : "🔮 10-Year Cycle",
           reason: isKo ? "장기적 운세 흐름을 나타내는 대운 주기" : "Long-term fortune cycle",
           score: 70
@@ -426,12 +430,12 @@ export default function FunInsights({ saju, astro, lang = "ko", theme = "", clas
   const hasFiveElements = Boolean(saju?.fiveElements && Object.keys(saju.fiveElements).length > 0);
   const hasValidAstro = Boolean(findPlanetSign(astro, "sun"));
 
-  // 데이터가 아예 없으면 표시하지 않음
-  if (!hasFiveElements && !hasValidAstro) {
-    return null;
-  }
-
   const data = useMemo(() => {
+    // 안전 가드
+    if (!hasFiveElements && !hasValidAstro) {
+      return null;
+    }
+
     // dayMaster.name이 한자일 수 있으므로 한글로 변환
     const rawDayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || "갑";
     const dayMasterName = tianGanMap[rawDayMasterName] || rawDayMasterName;
@@ -460,7 +464,12 @@ export default function FunInsights({ saju, astro, lang = "ko", theme = "", clas
       luckyItems: getLuckyItems(saju, lang),
       report: generateReport(saju, astro, lang, theme),
     };
-  }, [saju, astro, lang, theme]);
+  }, [saju, astro, lang, theme, hasFiveElements, hasValidAstro]);
+
+  // 데이터가 아예 없으면 표시하지 않음
+  if (!data) {
+    return null;
+  }
 
   return (
     <div className={`mt-8 ${className}`}>

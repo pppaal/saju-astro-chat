@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSession, SessionProvider } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import { getUserProfile } from "@/lib/userProfile";
 import BackButton from "@/components/ui/BackButton";
+import CreditBadge from "@/components/ui/CreditBadge";
 import styles from "./DestinyCalendar.module.css";
 
 type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
-type ImportanceGrade = 1 | 2 | 3;
+type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
 
 interface ImportantDate {
@@ -19,6 +21,8 @@ interface ImportantDate {
   categories: EventCategory[];
   title: string;
   description: string;
+  summary?: string;
+  bestTimes?: string[];
   sajuFactors: string[];
   astroFactors: string[];
   recommendations: string[];
@@ -30,9 +34,11 @@ interface CalendarData {
   year: number;
   summary?: {
     total: number;
-    grade1: number;
-    grade2: number;
-    grade3: number;
+    grade0: number; // 천운의 날
+    grade1: number; // 아주 좋은 날
+    grade2: number; // 좋은 날
+    grade3: number; // 보통 날
+    grade4: number; // 나쁜 날
   };
   topDates?: ImportantDate[];
   goodDates?: ImportantDate[];
@@ -81,8 +87,26 @@ function extractCityPart(input: string) {
   return (idx >= 0 ? s.slice(0, idx) : s).trim();
 }
 
+/**
+ * YYYY-MM-DD 문자열을 로컬 타임존 Date로 파싱
+ * new Date("2025-12-31")은 UTC로 파싱되어 타임존에 따라 전날로 계산될 수 있음
+ */
+function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export default function DestinyCalendar() {
+  return (
+    <SessionProvider>
+      <DestinyCalendarContent />
+    </SessionProvider>
+  );
+}
+
+function DestinyCalendarContent() {
   const { locale, t } = useI18n();
+  const { data: session, status } = useSession();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -111,6 +135,10 @@ export default function DestinyCalendar() {
   const [cityErr, setCityErr] = useState<string | null>(null);
   const [genderOpen, setGenderOpen] = useState(false);
 
+  // Load profile from DB states
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
   // Load saved profile on mount
   useEffect(() => {
     const profile = getUserProfile();
@@ -118,6 +146,70 @@ export default function DestinyCalendar() {
     if (profile.birthTime) setBirthInfo(prev => ({ ...prev, birthTime: profile.birthTime || '' }));
     if (profile.gender) setBirthInfo(prev => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }));
   }, []);
+
+  // Load profile from DB for authenticated users
+  const handleLoadProfile = async () => {
+    if (status !== 'authenticated') return;
+
+    setLoadingProfile(true);
+    setCityErr(null);
+
+    try {
+      const res = await fetch('/api/me/profile', { cache: 'no-store' });
+      if (!res.ok) {
+        setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
+        setLoadingProfile(false);
+        return;
+      }
+
+      const { user } = await res.json();
+      if (!user || !user.birthDate) {
+        setCityErr(t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.');
+        setLoadingProfile(false);
+        return;
+      }
+
+      // Set form fields from DB data
+      const updatedBirthInfo: BirthInfo = {
+        ...birthInfo,
+        birthDate: user.birthDate || '',
+        birthTime: user.birthTime || '',
+        birthPlace: user.birthCity || '',
+        gender: user.gender === 'M' ? 'Male' : user.gender === 'F' ? 'Female' : 'Male',
+      };
+
+      // Try to get city coordinates
+      if (user.birthCity) {
+        const cityName = user.birthCity.split(',')[0]?.trim();
+        if (cityName) {
+          try {
+            const hits = await searchCities(cityName, { limit: 1 }) as CityHit[];
+            if (hits && hits[0]) {
+              const hit = hits[0];
+              const tz = hit.timezone ?? user.tzId ?? tzLookup(hit.lat, hit.lon);
+              setSelectedCity({
+                ...hit,
+                timezone: tz,
+              });
+              updatedBirthInfo.latitude = hit.lat;
+              updatedBirthInfo.longitude = hit.lon;
+              updatedBirthInfo.timezone = tz;
+            }
+          } catch {
+            console.warn('City search failed for:', cityName);
+          }
+        }
+      }
+
+      setBirthInfo(updatedBirthInfo);
+      setProfileLoaded(true);
+    } catch (err) {
+      console.error('Failed to load profile:', err);
+      setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -385,6 +477,23 @@ export default function DestinyCalendar() {
     }
   }, [year, activeCategory, hasBirthInfo, birthInfo, fetchCalendar]);
 
+  // 데이터 로드 후 오늘 날짜 자동 선택
+  useEffect(() => {
+    if (data?.allDates && !selectedDay) {
+      const today = new Date();
+      // 로컬 타임존 기준 YYYY-MM-DD 문자열 생성
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
+      const todayInfo = data.allDates.find(d => d.date === todayStr);
+      setSelectedDay(today);
+      if (todayInfo) {
+        setSelectedDate(todayInfo);
+      }
+    }
+  }, [data, selectedDay]);
+
   const handleBirthInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setCityErr(null);
@@ -411,7 +520,11 @@ export default function DestinyCalendar() {
 
   const getDateInfo = (date: Date): ImportantDate | undefined => {
     if (!data?.allDates) return undefined;
-    const dateStr = date.toISOString().split("T")[0];
+    // 로컬 타임존 기준 YYYY-MM-DD 문자열 생성 (toISOString은 UTC 기준이라 타임존 문제 발생)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     return data.allDates.find(d => d.date === dateStr);
   };
 
@@ -466,11 +579,14 @@ export default function DestinyCalendar() {
     setCurrentDate(new Date());
   };
 
-  const getGradeEmoji = (grade: ImportanceGrade): string => {
+  const getGradeEmoji = (grade: number): string => {
     switch (grade) {
-      case 1: return "🌟";
-      case 2: return "⭐";
-      case 3: return "⚠️";
+      case 0: return "💫"; // 천운의 날
+      case 1: return "🌟"; // 아주 좋은 날
+      case 2: return "✨"; // 좋은 날
+      case 3: return "⭐"; // 보통 날
+      case 4: return "⚠️"; // 나쁜 날
+      default: return "⭐";
     }
   };
 
@@ -491,6 +607,9 @@ export default function DestinyCalendar() {
 
         <main className={styles.introMain}>
           <div className={styles.card}>
+            <div className={styles.creditBadgeWrapper}>
+              <CreditBadge variant="compact" />
+            </div>
             <div className={styles.header}>
               <div className={styles.iconWrapper}>
                 <span className={styles.icon}>{ICONS.calendar}</span>
@@ -500,12 +619,33 @@ export default function DestinyCalendar() {
               </h1>
               <p className={styles.subtitle}>
                 {locale === "ko"
-                  ? "사주와 점성술을 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다"
-                  : "Cross-analyze Saju and Astrology to find your important dates"}
+                  ? "동서양 운세를 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다"
+                  : "Cross-analyze Eastern and Western fortune to find your important dates"}
               </p>
             </div>
 
             <form onSubmit={handleBirthInfoSubmit} className={styles.form}>
+              {/* Load My Profile Button - only for authenticated users */}
+              {status === 'authenticated' && (
+                <button
+                  type="button"
+                  className={`${styles.loadProfileButton} ${profileLoaded ? styles.loadProfileSuccess : ''}`}
+                  onClick={handleLoadProfile}
+                  disabled={loadingProfile}
+                >
+                  <span className={styles.loadProfileIcon}>
+                    {loadingProfile ? '...' : profileLoaded ? '✓' : '👤'}
+                  </span>
+                  <span className={styles.loadProfileText}>
+                    {loadingProfile
+                      ? (t('app.loadingProfile') || 'Loading...')
+                      : profileLoaded
+                      ? (t('app.profileLoaded') || 'Profile Loaded!')
+                      : (t('app.loadMyProfile') || 'Load My Profile')}
+                  </span>
+                </button>
+              )}
+
               <div className={styles.grid2}>
                 <div className={styles.field}>
                   <label className={styles.label}>
@@ -661,13 +801,13 @@ export default function DestinyCalendar() {
               <div className={styles.feature}>
                 <span className={styles.featureIcon}>{ICONS.crystal}</span>
                 <span className={styles.featureText}>
-                  {locale === "ko" ? "사주 분석" : "Saju Analysis"}
+                  {locale === "ko" ? "동양 운세" : "Eastern Fortune"}
                 </span>
               </div>
               <div className={styles.feature}>
                 <span className={styles.featureIcon}>{ICONS.sparkle}</span>
                 <span className={styles.featureText}>
-                  {locale === "ko" ? "점성술" : "Astrology"}
+                  {locale === "ko" ? "서양 운세" : "Western Fortune"}
                 </span>
               </div>
             </div>
@@ -729,11 +869,13 @@ export default function DestinyCalendar() {
         {/* Summary */}
         {data?.summary && (
           <div className={styles.summaryBadges}>
+            {data.summary.grade0 > 0 && (
+              <span className={styles.summaryBadge}>
+                💫 {data.summary.grade0}
+              </span>
+            )}
             <span className={styles.summaryBadge}>
               🌟 {data.summary.grade1}
-            </span>
-            <span className={styles.summaryBadge}>
-              ⭐ {data.summary.grade2}
             </span>
             <span className={styles.summaryBadge}>
               ⚠️ {data.summary.grade3}
@@ -819,11 +961,15 @@ export default function DestinyCalendar() {
         </div>
       </div>
 
-      {/* 범례 */}
+      {/* 범례 - 5등급 시스템 */}
       <div className={styles.legend}>
         <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.grade0Dot}`}></span>
+          <span>{locale === "ko" ? "천운의 날" : "Celestial Day"}</span>
+        </div>
+        <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade1Dot}`}></span>
-          <span>{locale === "ko" ? "최고의 날" : "Best Day"}</span>
+          <span>{locale === "ko" ? "아주 좋은 날" : "Very Good Day"}</span>
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade2Dot}`}></span>
@@ -831,7 +977,11 @@ export default function DestinyCalendar() {
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade3Dot}`}></span>
-          <span>{locale === "ko" ? "주의 날" : "Caution Day"}</span>
+          <span>{locale === "ko" ? "보통 날" : "Normal Day"}</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.grade4Dot}`}></span>
+          <span>{locale === "ko" ? "나쁜 날" : "Bad Day"}</span>
         </div>
       </div>
 
@@ -851,7 +1001,29 @@ export default function DestinyCalendar() {
           {selectedDate ? (
             <div className={styles.selectedDayContent}>
               <h3 className={styles.selectedTitle}>{selectedDate.title}</h3>
+
+              {/* 한줄 요약 - 가장 눈에 띄게 */}
+              {selectedDate.summary && (
+                <div className={styles.summaryBox}>
+                  <p className={styles.summaryText}>{selectedDate.summary}</p>
+                </div>
+              )}
+
               <p className={styles.selectedDesc}>{selectedDate.description}</p>
+
+              {/* 추천 시간대 */}
+              {selectedDate.bestTimes && selectedDate.bestTimes.length > 0 && (
+                <div className={styles.bestTimesBox}>
+                  <h4 className={styles.bestTimesTitle}>
+                    ⏰ {locale === "ko" ? "오늘의 좋은 시간" : "Best Times Today"}
+                  </h4>
+                  <div className={styles.bestTimesList}>
+                    {selectedDate.bestTimes.map((time, i) => (
+                      <span key={i} className={styles.bestTimeItem}>{time}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className={styles.selectedCategories}>
                 {selectedDate.categories.map(cat => (
@@ -871,33 +1043,19 @@ export default function DestinyCalendar() {
                 {locale === "ko" ? "점수" : "Score"}: {selectedDate.score}/100
               </span>
 
-              {/* 사주 분석 근거 */}
-              {selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0 && (
+              {/* 통합 분석 - 사주 + 점성술 */}
+              {((selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0) ||
+                (selectedDate.astroFactors && selectedDate.astroFactors.length > 0)) && (
                 <div className={styles.analysisSection}>
                   <h4 className={styles.analysisTitle}>
-                    <span className={styles.analysisBadge}>🔮</span>
-                    {locale === "ko" ? "사주 분석 근거" : "Saju Analysis"}
+                    <span className={styles.analysisBadge}>✨</span>
+                    {locale === "ko" ? "오늘의 운세 분석" : "Today's Fortune Analysis"}
                   </h4>
                   <ul className={styles.analysisList}>
-                    {selectedDate.sajuFactors.map((factor, i) => (
-                      <li key={i} className={styles.analysisItem}>
-                        <span className={styles.analysisDot}></span>
-                        {factor}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* 점성술 분석 근거 */}
-              {selectedDate.astroFactors && selectedDate.astroFactors.length > 0 && (
-                <div className={styles.analysisSection}>
-                  <h4 className={styles.analysisTitle}>
-                    <span className={styles.analysisBadge}>✦</span>
-                    {locale === "ko" ? "점성술 분석 근거" : "Astrology Analysis"}
-                  </h4>
-                  <ul className={styles.analysisList}>
-                    {selectedDate.astroFactors.map((factor, i) => (
+                    {/* 사주 + 점성술 요소 통합하여 최대 4개 표시 */}
+                    {[...(selectedDate.sajuFactors || []), ...(selectedDate.astroFactors || [])]
+                      .slice(0, 4)
+                      .map((factor, i) => (
                       <li key={i} className={styles.analysisItem}>
                         <span className={styles.analysisDot}></span>
                         {factor}
@@ -909,9 +1067,9 @@ export default function DestinyCalendar() {
 
               {selectedDate.recommendations.length > 0 && (
                 <div className={styles.infoSection}>
-                  <h4>{locale === "ko" ? "✅ 추천 활동" : "✅ Recommendations"}</h4>
+                  <h4>{locale === "ko" ? "✨ 오늘의 행운 키" : "✨ Lucky Keys"}</h4>
                   <ul>
-                    {selectedDate.recommendations.map((r, i) => (
+                    {selectedDate.recommendations.slice(0, 3).map((r, i) => (
                       <li key={i}>{r}</li>
                     ))}
                   </ul>
@@ -920,9 +1078,9 @@ export default function DestinyCalendar() {
 
               {selectedDate.warnings.length > 0 && (
                 <div className={styles.infoSection}>
-                  <h4>{locale === "ko" ? "⚠️ 주의사항" : "⚠️ Warnings"}</h4>
+                  <h4>{locale === "ko" ? "⚡ 오늘의 주의보" : "⚡ Today's Alert"}</h4>
                   <ul>
-                    {selectedDate.warnings.map((w, i) => (
+                    {selectedDate.warnings.slice(0, 2).map((w, i) => (
                       <li key={i}>{w}</li>
                     ))}
                   </ul>
@@ -938,52 +1096,87 @@ export default function DestinyCalendar() {
       )}
 
       {/* 이번 달 중요 날짜 요약 */}
-      {data?.topDates && data.topDates.length > 0 && (
+      {data?.allDates && data.allDates.length > 0 && (() => {
+        const monthDates = data.allDates.filter(d => parseLocalDate(d.date).getMonth() === month);
+
+        // 좋은 날 (grade 0, 1, 2) - 점수 높은 순 3개
+        const goodDates = monthDates
+          .filter(d => d.grade <= 2)
+          .sort((a, b) => a.grade - b.grade || b.score - a.score)
+          .slice(0, 3);
+
+        // 나쁜 날 (grade 4) - 점수 낮은 순 2개
+        const badDates = monthDates
+          .filter(d => d.grade === 4)
+          .sort((a, b) => a.score - b.score)
+          .slice(0, 2);
+
+        // 합쳐서 날짜순 정렬
+        const highlightDates = [...goodDates, ...badDates].sort((a, b) =>
+          parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
+        );
+
+        if (highlightDates.length === 0) return null;
+
+        return (
         <div className={styles.monthHighlights}>
           <h2 className={styles.highlightsTitle}>
             🌟 {year} {MONTHS[month]} {locale === "ko" ? "주요 날짜" : "Highlights"}
           </h2>
           <div className={styles.highlightsList}>
-            {data.topDates
-              .filter(d => new Date(d.date).getMonth() === month)
-              .slice(0, 5)
-              .map((d, i) => (
+            {highlightDates.map((d, i) => {
+                const gradeClass = d.grade === 0 ? styles.grade0
+                  : d.grade === 1 ? styles.grade1
+                  : d.grade === 2 ? styles.grade2
+                  : d.grade === 4 ? styles.grade4
+                  : styles.grade3;
+                return (
                 <div
                   key={i}
-                  className={`${styles.highlightCard} ${styles[`grade${d.grade}`]}`}
+                  className={`${styles.highlightCard} ${gradeClass}`}
                   onClick={() => {
-                    setSelectedDay(new Date(d.date));
+                    setSelectedDay(parseLocalDate(d.date));
                     setSelectedDate(d);
                   }}
                 >
                   <div className={styles.highlightHeader}>
                     <span className={styles.highlightDate}>
-                      {new Date(d.date).getDate()}{locale === "ko" ? "일" : ""}
+                      {parseLocalDate(d.date).getDate()}{locale === "ko" ? "일" : ""}
                     </span>
                     <div className={styles.highlightBadges}>
-                      {d.sajuFactors && d.sajuFactors.length > 0 && (
-                        <span className={styles.highlightBadge} title={locale === "ko" ? "사주 근거" : "Saju"}>🔮</span>
-                      )}
-                      {d.astroFactors && d.astroFactors.length > 0 && (
-                        <span className={styles.highlightBadge} title={locale === "ko" ? "점성술 근거" : "Astrology"}>✦</span>
+                      {((d.sajuFactors && d.sajuFactors.length > 0) || (d.astroFactors && d.astroFactors.length > 0)) && (
+                        <span className={styles.highlightBadge} title={locale === "ko" ? "분석 완료" : "Analyzed"}>✨</span>
                       )}
                     </div>
                   </div>
-                  <span className={styles.highlightTitle}>{d.title}</span>
-                  <span className={styles.highlightEmojis}>
-                    {d.categories.slice(0, 2).map(c => CATEGORY_EMOJI[c]).join(" ")}
+                  <span className={styles.highlightTitle}>
+                    {d.title || (d.grade === 0 ? (locale === "ko" ? "천운의 날" : "Celestial Day")
+                      : d.grade === 1 ? (locale === "ko" ? "아주 좋은 날" : "Very Good Day")
+                      : d.grade === 2 ? (locale === "ko" ? "좋은 날" : "Good Day")
+                      : d.grade === 4 ? (locale === "ko" ? "나쁜 날" : "Bad Day")
+                      : (locale === "ko" ? "보통 날" : "Normal Day"))}
+                  </span>
+                  {d.categories && d.categories.length > 0 && (
+                    <span className={styles.highlightEmojis}>
+                      {d.categories.slice(0, 2).map(c => CATEGORY_EMOJI[c] || "").join(" ")}
+                    </span>
+                  )}
+                  <span className={styles.highlightScore}>
+                    {locale === "ko" ? "점수" : "Score"}: {d.score}
                   </span>
                   {/* 간략한 이유 표시 */}
                   {(d.sajuFactors?.length > 0 || d.astroFactors?.length > 0) && (
                     <div className={styles.highlightReason}>
-                      {d.sajuFactors?.[0]?.substring(0, 25) || d.astroFactors?.[0]?.substring(0, 25)}...
+                      {(d.sajuFactors?.[0] || d.astroFactors?.[0] || "").substring(0, 30)}...
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

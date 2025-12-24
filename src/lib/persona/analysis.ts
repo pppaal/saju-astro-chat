@@ -179,52 +179,80 @@ export const EFFECTS: AnswerEffects = {
   },
 
   // Rhythm (Flow vs Anchor) - 10 questions
+  // Flow = 유동적, 즉흥적, 변화에 유연
+  // Anchor = 안정적, 계획적, 일관된 루틴
   q16_rhythm_deadline: {
+    // A: 미리 해두고 여유 있게 = anchor (계획적)
+    // B: 마감 직전 폭발 = flow (즉흥적)
+    // C: 꾸준한 페이스 = anchor (일관됨)
     A: [{ axis: 'rhythm', pole: 'anchor', weight: 2 }],
     B: [{ axis: 'rhythm', pole: 'flow', weight: 2 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q17_rhythm_change: {
+    // A: 빠르게 피벗 = flow
+    // B: 신중하게 재계획 = anchor
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q18_rhythm_workstyle: {
+    // A: 병렬 처리 = flow (멀티태스킹)
+    // B: 하나씩 집중 = anchor (체계적)
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q19_rhythm_holiday: {
+    // A: 즉흥적 외출 = flow
+    // B: 계획된 일정 = anchor
+    // C: 아무 일정 없이 휴식 = flow (자유로움)
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q20_rhythm_feeling: {
+    // A: 새로운 옵션에 호기심 = flow
+    // B: 예측 가능함 원함 = anchor
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q36_rhythm_morning_evening: {
+    // A: 이른 시간 집중 = anchor (규칙적 루틴)
+    // B: 늦은 시간 = flow (유연한 시작)
+    // C: 날마다 다름 = flow (비규칙적)
     A: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
   },
   q37_rhythm_planslack: {
+    // A: 빡빡하게 = anchor (철저한 계획)
+    // B: 여유를 둔다 = flow (유연성)
+    // C: 많이 계획 안함 = flow
     A: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
   },
   q38_rhythm_batching: {
+    // A: 몰아서 집중 후 휴식 = flow (유연한 스프린트)
+    // B: 꾸준하고 일정한 페이스 = anchor (일관됨)
+    // C: 실시간 처리 = flow
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q39_rhythm_contextswitch: {
+    // A: 자극이 됨 = flow (변화를 즐김)
+    // B: 최소화 = anchor (일관성 추구)
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q40_rhythm_deadtime: {
+    // A: 즉흥적 아이디어 = flow
+    // B: 계획된 일 정리 = anchor
+    // C: 방향 없이 = flow
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
@@ -387,6 +415,7 @@ const CONSISTENCY_PAIRS: Array<[string, string]> = [
     career: archetype.idealRoles.slice(0, 3).join(', '),
     relationships: archetype.compatibilityHint,
     guidance: archetype.growth.join(' '),
+    growthTips: archetype.growth,
     keyMotivations: locale === 'ko' ? [
       axisResults.energy.pole === 'radiant' ? '가시성과 추진력' : '깊이와 안정감',
       axisResults.cognition.pole === 'visionary' ? '가능성과 패턴' : '명확성과 증거',

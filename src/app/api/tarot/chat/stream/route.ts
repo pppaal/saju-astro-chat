@@ -50,6 +50,80 @@ interface StreamRequest {
   language?: "ko" | "en";
 }
 
+const ALLOWED_TAROT_LANG = new Set(["ko", "en"]);
+const ALLOWED_TAROT_ROLES = new Set<ChatMessage["role"]>(["user", "assistant", "system"]);
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_CARD_COUNT = 20;
+const MAX_CARD_TEXT = 400;
+const MAX_TITLE_TEXT = 200;
+const MAX_GUIDANCE_TEXT = 1200;
+const MAX_KEYWORD_LEN = 60;
+
+function cleanStringArray(value: unknown, maxItems = 20, maxLen = MAX_KEYWORD_LEN): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned: string[] = [];
+  for (const entry of value.slice(0, maxItems)) {
+    if (typeof entry !== "string") continue;
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    cleaned.push(trimmed.slice(0, maxLen));
+  }
+  return cleaned;
+}
+
+function normalizeMessages(raw: unknown): ChatMessage[] {
+  if (!Array.isArray(raw)) return [];
+  const normalized: ChatMessage[] = [];
+  for (const m of raw.slice(-MAX_MESSAGES)) {
+    if (!m || typeof m !== "object") continue;
+    const role = typeof (m as any).role === "string" && ALLOWED_TAROT_ROLES.has((m as any).role)
+      ? (m as any).role as ChatMessage["role"]
+      : null;
+    const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+    if (!role || !content) continue;
+    normalized.push({ role, content: content.slice(0, MAX_MESSAGE_LENGTH) });
+  }
+  return normalized;
+}
+
+function sanitizeCards(raw: unknown): CardContext[] {
+  if (!Array.isArray(raw)) return [];
+  const cards: CardContext[] = [];
+  for (const card of raw.slice(0, MAX_CARD_COUNT)) {
+    if (!card || typeof card !== "object") continue;
+    const position = typeof (card as any).position === "string" ? (card as any).position.trim().slice(0, MAX_TITLE_TEXT) : "";
+    const name = typeof (card as any).name === "string" ? (card as any).name.trim().slice(0, MAX_TITLE_TEXT) : "";
+    const meaning = typeof (card as any).meaning === "string" ? (card as any).meaning.trim().slice(0, MAX_CARD_TEXT) : "";
+    if (!position || !name || !meaning) continue;
+    const isReversed = Boolean((card as any).is_reversed ?? (card as any).isReversed);
+    const keywords = cleanStringArray((card as any).keywords);
+    cards.push({
+      position,
+      name,
+      is_reversed: isReversed,
+      meaning,
+      keywords,
+    });
+  }
+  return cards;
+}
+
+function sanitizeContext(raw: unknown): TarotContext | null {
+  if (!raw || typeof raw !== "object") return null;
+  const spread_title = typeof (raw as any).spread_title === "string" ? (raw as any).spread_title.trim().slice(0, MAX_TITLE_TEXT) : "";
+  const category = typeof (raw as any).category === "string" ? (raw as any).category.trim().slice(0, MAX_TITLE_TEXT) : "";
+  const cards = sanitizeCards((raw as any).cards);
+  const overall_message = typeof (raw as any).overall_message === "string" ? (raw as any).overall_message.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
+  const guidance = typeof (raw as any).guidance === "string" ? (raw as any).guidance.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
+
+  if (!spread_title || !category || cards.length === 0) {
+    return null;
+  }
+
+  return { spread_title, category, cards, overall_message, guidance };
+}
+
 function buildSystemInstruction(context: TarotContext, language: "ko" | "en") {
   const cardLines = context.cards
     .map((c, idx) => {
@@ -111,12 +185,29 @@ export async function POST(req: Request) {
     const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
     if (oversized) return oversized;
 
-    const body: StreamRequest = await req.json();
-    const { messages, context, language = "ko" } = body;
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "invalid_body" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    const language = typeof (body as any).language === "string" && ALLOWED_TAROT_LANG.has((body as any).language)
+      ? (body as any).language as "ko" | "en"
+      : "ko";
+    const messages = normalizeMessages((body as any).messages);
+    const context = sanitizeContext((body as any).context);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(
         { error: "Missing messages" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+    if (!context) {
+      return NextResponse.json(
+        { error: "Invalid tarot context" },
         { status: 400, headers: limit.headers }
       );
     }
@@ -132,42 +223,97 @@ export async function POST(req: Request) {
       ...messages,
     ];
 
-    const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/chat-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify({
-        messages: messagesWithSystem,
-        context: {
-          spread_title: context.spread_title,
-          category: context.category,
-          cards: context.cards.map(c => ({
-            position: c.position,
-            name: c.name,
-            is_reversed: c.is_reversed ?? c.isReversed ?? false,
-            meaning: c.meaning,
-            keywords: c.keywords || []
-          })),
-          overall_message: context.overall_message,
-          guidance: context.guidance
+    let backendResponse: Response;
+    try {
+      backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/chat-stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
         },
-        language
-      }),
-      signal: controller.signal,
-      cache: "no-store",
-    });
+        body: JSON.stringify({
+          messages: messagesWithSystem,
+          context: {
+            spread_title: context.spread_title,
+            category: context.category,
+            cards: context.cards.map(c => ({
+              position: c.position,
+              name: c.name,
+              is_reversed: c.is_reversed ?? c.isReversed ?? false,
+              meaning: c.meaning,
+              keywords: c.keywords || []
+            })),
+            overall_message: context.overall_message,
+            guidance: context.guidance
+          },
+          language
+        }),
+        signal: controller.signal,
+        cache: "no-store",
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      console.error("[TarotChatStream] Backend connection failed, using fallback:", fetchError);
+
+      // Generate fallback response based on context
+      const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
+      const cardSummary = context.cards.map(c => `${c.position}: ${c.name}`).join(", ");
+
+      const fallbackMessage = language === "ko"
+        ? `${context.spread_title} 리딩에서 ${cardSummary} 카드가 나왔네요. "${lastUserMessage}"에 대해 말씀드리면, 카드들이 전하는 메시지는 ${context.overall_message || "내면의 지혜를 믿으라는 것"}입니다. ${context.guidance || "카드의 조언에 귀 기울여보세요."}\n\n다음으로 물어볼 것: 특정 카드에 대해 더 자세히 알고 싶으신가요?`
+        : `In your ${context.spread_title} reading with ${cardSummary}, regarding "${lastUserMessage}", the cards suggest: ${context.overall_message || "trust your inner wisdom"}. ${context.guidance || "Listen to the guidance of the cards."}\n\nNext question: Would you like to explore any specific card in more detail?`;
+
+      // Return as SSE stream format for consistency
+      const encoder = new TextEncoder();
+      const fallbackStream = new ReadableStream({
+        start(controller) {
+          const data = `data: ${JSON.stringify({ content: fallbackMessage, done: true })}\n\n`;
+          controller.enqueue(encoder.encode(data));
+          controller.close();
+        }
+      });
+
+      return new Response(fallbackStream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+          "X-Fallback": "1",
+          ...Object.fromEntries(limit.headers.entries())
+        }
+      });
+    }
 
     clearTimeout(timeoutId);
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
       console.error("[TarotChatStream] Backend error:", backendResponse.status, errorText);
-      return NextResponse.json(
-        { error: "Backend error", detail: errorText },
-        { status: backendResponse.status, headers: { ...Object.fromEntries(limit.headers.entries()), "X-Fallback": "1" } }
-      );
+
+      // Return fallback instead of error
+      const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
+      const fallbackMessage = language === "ko"
+        ? `"${lastUserMessage}"에 대해 카드가 전하는 메시지를 전해드릴게요. ${context.overall_message || "지금은 내면의 직관을 믿을 때입니다."} 다른 질문이 있으시면 말씀해주세요.`
+        : `Regarding "${lastUserMessage}", the cards suggest: ${context.overall_message || "Trust your intuition at this time."} Feel free to ask another question.`;
+
+      const encoder = new TextEncoder();
+      const fallbackStream = new ReadableStream({
+        start(controller) {
+          const data = `data: ${JSON.stringify({ content: fallbackMessage, done: true })}\n\n`;
+          controller.enqueue(encoder.encode(data));
+          controller.close();
+        }
+      });
+
+      return new Response(fallbackStream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+          "X-Fallback": "1",
+          ...Object.fromEntries(limit.headers.entries())
+        }
+      });
     }
 
     // Check if response is SSE

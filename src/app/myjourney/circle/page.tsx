@@ -3,7 +3,6 @@
 import { SessionProvider, useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import BackButton from "@/components/ui/BackButton";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
@@ -56,7 +55,7 @@ function CircleContent() {
   const [relation, setRelation] = useState("family");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [gender, setGender] = useState("U");
+  const [gender, setGender] = useState("M");
   const [birthCity, setBirthCity] = useState("");
   const [note, setNote] = useState("");
 
@@ -131,7 +130,7 @@ function CircleContent() {
     setRelation("family");
     setBirthDate("");
     setBirthTime("");
-    setGender("U");
+    setGender("M");
     setBirthCity("");
     setNote("");
     setCitySuggestions([]);
@@ -145,7 +144,6 @@ function CircleContent() {
   const getRelationInfo = (val: string) => RELATIONS.find((r) => r.value === val) || RELATIONS[1];
   const getGenderInfo = (val: string) => {
     const genders = [
-      { value: "U", label: "Unknown", icon: "⚪" },
       { value: "M", label: "Male", icon: "♂" },
       { value: "F", label: "Female", icon: "♀" },
     ];
@@ -164,7 +162,7 @@ function CircleContent() {
           relation,
           birthDate: birthDate || null,
           birthTime: birthTime || null,
-          gender: gender === "U" ? null : gender,
+          gender,
           birthCity: birthCity || null,
           latitude: selectedCity?.lat || null,
           longitude: selectedCity?.lon || null,
@@ -319,7 +317,6 @@ function CircleContent() {
                 {genderOpen && (
                   <div className={styles.selectDropdown}>
                     {[
-                      { value: "U", label: "Unknown", icon: "⚪" },
                       { value: "M", label: "Male", icon: "♂" },
                       { value: "F", label: "Female", icon: "♀" },
                     ].map((g) => (
@@ -450,12 +447,6 @@ function CircleContent() {
                         )}
                       </div>
                       <div className={styles.personActions}>
-                        <Link
-                          href={`/destiny-match?person=${person.id}`}
-                          className={styles.matchButton}
-                        >
-                          Check compatibility
-                        </Link>
                         <button
                           className={styles.deleteButton}
                           onClick={() => handleDelete(person.id)}

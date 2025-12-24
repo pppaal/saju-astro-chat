@@ -7,7 +7,7 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import { getUserTimezone } from '@/lib/Saju/timezone';
-import { saveUserProfile, getUserProfile } from '@/lib/userProfile';
+import { saveUserProfile } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
 import BackButton from '@/components/ui/BackButton';
 import styles from './destiny-map.module.css';
@@ -48,7 +48,7 @@ function DestinyMapContent() {
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('');
   const [city, setCity] = useState('');
-  const [gender, setGender] = useState<'Male' | 'Female' | 'Other' | 'Prefer not to say'>('Male');
+  const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   const [genderOpen, setGenderOpen] = useState(false);
 
   const [suggestions, setSuggestions] = useState<CityHit[]>([]);
@@ -127,26 +127,13 @@ function DestinyMapContent() {
     }
   };
 
-  // Load saved profile on mount
-  useEffect(() => {
-    const profile = getUserProfile();
-    if (profile.name) setName(profile.name);
-    if (profile.birthDate) setBirthDate(profile.birthDate);
-    if (profile.birthTime) setBirthTime(profile.birthTime);
-    // Don't auto-fill city - let user enter fresh each time
-    // if (profile.birthCity) setCity(profile.birthCity);
-    if (profile.gender) setGender(profile.gender);
-    // Don't auto-fill city coordinates - let user select fresh
-    // if (profile.latitude && profile.longitude && profile.birthCity) {
-    //   setSelectedCity({
-    //     name: profile.birthCity.split(',')[0] || profile.birthCity,
-    //     country: profile.birthCity.split(',')[1]?.trim() || '',
-    //     lat: profile.latitude,
-    //     lon: profile.longitude,
-    //     timezone: profile.timezone
-    //   });
-    // }
-  }, []);
+  // Don't auto-load profile on mount - user should click "Load My Profile" button
+  // or enter fresh data each time
+  // useEffect(() => {
+  //   const profile = getUserProfile();
+  //   if (profile.name) setName(profile.name);
+  //   ...
+  // }, []);
 
   // Particle animation
   useEffect(() => {

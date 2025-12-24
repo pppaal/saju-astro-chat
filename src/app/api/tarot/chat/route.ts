@@ -51,6 +51,80 @@ interface ChatRequest {
   language?: "ko" | "en";
 }
 
+const ALLOWED_TAROT_LANG = new Set(["ko", "en"]);
+const ALLOWED_TAROT_ROLES = new Set<ChatMessage["role"]>(["user", "assistant", "system"]);
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_CARD_COUNT = 20;
+const MAX_CARD_TEXT = 400;
+const MAX_TITLE_TEXT = 200;
+const MAX_GUIDANCE_TEXT = 1200;
+const MAX_KEYWORD_LEN = 60;
+
+function cleanStringArray(value: unknown, maxItems = 20, maxLen = MAX_KEYWORD_LEN): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned: string[] = [];
+  for (const entry of value.slice(0, maxItems)) {
+    if (typeof entry !== "string") continue;
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    cleaned.push(trimmed.slice(0, maxLen));
+  }
+  return cleaned;
+}
+
+function normalizeMessages(raw: unknown): ChatMessage[] {
+  if (!Array.isArray(raw)) return [];
+  const normalized: ChatMessage[] = [];
+  for (const m of raw.slice(-MAX_MESSAGES)) {
+    if (!m || typeof m !== "object") continue;
+    const role = typeof (m as any).role === "string" && ALLOWED_TAROT_ROLES.has((m as any).role)
+      ? (m as any).role as ChatMessage["role"]
+      : null;
+    const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+    if (!role || !content) continue;
+    normalized.push({ role, content: content.slice(0, MAX_MESSAGE_LENGTH) });
+  }
+  return normalized;
+}
+
+function sanitizeCards(raw: unknown): CardContext[] {
+  if (!Array.isArray(raw)) return [];
+  const cards: CardContext[] = [];
+  for (const card of raw.slice(0, MAX_CARD_COUNT)) {
+    if (!card || typeof card !== "object") continue;
+    const position = typeof (card as any).position === "string" ? (card as any).position.trim().slice(0, MAX_TITLE_TEXT) : "";
+    const name = typeof (card as any).name === "string" ? (card as any).name.trim().slice(0, MAX_TITLE_TEXT) : "";
+    const meaning = typeof (card as any).meaning === "string" ? (card as any).meaning.trim().slice(0, MAX_CARD_TEXT) : "";
+    if (!position || !name || !meaning) continue;
+    const isReversed = Boolean((card as any).is_reversed ?? (card as any).isReversed);
+    const keywords = cleanStringArray((card as any).keywords);
+    cards.push({
+      position,
+      name,
+      is_reversed: isReversed,
+      meaning,
+      keywords,
+    });
+  }
+  return cards;
+}
+
+function sanitizeContext(raw: unknown): TarotContext | null {
+  if (!raw || typeof raw !== "object") return null;
+  const spread_title = typeof (raw as any).spread_title === "string" ? (raw as any).spread_title.trim().slice(0, MAX_TITLE_TEXT) : "";
+  const category = typeof (raw as any).category === "string" ? (raw as any).category.trim().slice(0, MAX_TITLE_TEXT) : "";
+  const cards = sanitizeCards((raw as any).cards);
+  const overall_message = typeof (raw as any).overall_message === "string" ? (raw as any).overall_message.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
+  const guidance = typeof (raw as any).guidance === "string" ? (raw as any).guidance.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
+
+  if (!spread_title || !category || cards.length === 0) {
+    return null;
+  }
+
+  return { spread_title, category, cards, overall_message, guidance };
+}
+
 function buildSystemInstruction(context: TarotContext, language: "ko" | "en") {
   const cardLines = context.cards
     .map((c, idx) => {
@@ -112,12 +186,29 @@ export async function POST(req: Request) {
     const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
     if (oversized) return oversized;
 
-    const body: ChatRequest = await req.json();
-    const { messages, context, language = "ko" } = body;
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "invalid_body" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    const language = typeof (body as any).language === "string" && ALLOWED_TAROT_LANG.has((body as any).language)
+      ? (body as any).language as "ko" | "en"
+      : "ko";
+    const messages = normalizeMessages((body as any).messages);
+    const context = sanitizeContext((body as any).context);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(
         { error: "Missing messages" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+    if (!context) {
+      return NextResponse.json(
+        { error: "Invalid tarot context" },
         { status: 400, headers: limit.headers }
       );
     }

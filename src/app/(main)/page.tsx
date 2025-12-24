@@ -60,6 +60,18 @@ export default function MainPage() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [lifeQuestion, setLifeQuestion] = useState("");
   const [typingPlaceholder, setTypingPlaceholder] = useState("");
+  const [showServiceSelector, setShowServiceSelector] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Service options for routing (matches SERVICE_LINKS in home.ts)
+  const serviceOptions = [
+    { key: 'destinyMap', icon: '🗺️', path: '/destiny-map' },
+    { key: 'tarot', icon: '🔮', path: '/tarot' },
+    { key: 'calendar', icon: '🗓️', path: '/calendar' },
+    { key: 'dream', icon: '🌙', path: '/dream' },
+    { key: 'personality', icon: '🌈', path: '/personality' },
+  ];
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
   const [totalVisitors, setTotalVisitors] = useState<number | null>(null);
   const [totalMembers, setTotalMembers] = useState<number | null>(null);
@@ -206,6 +218,18 @@ export default function MainPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close service selector when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowServiceSelector(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     if (trackedOnce.current) return;
     trackedOnce.current = true;
@@ -267,15 +291,23 @@ export default function MainPage() {
     }
   }, [isDeckSpread, fisherYatesShuffle]);
 
-  // Handle question submission - navigate to destiny-map with the question
+  // Handle question submission - navigate to selected service with the question
   const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
+    const service = serviceOptions.find(s => s.key === selectedService) || serviceOptions[0];
     if (lifeQuestion.trim()) {
-      router.push(`/destiny-map?q=${encodeURIComponent(lifeQuestion.trim())}`);
+      router.push(`${service.path}?q=${encodeURIComponent(lifeQuestion.trim())}`);
     } else {
-      router.push('/destiny-map');
+      router.push(service.path);
     }
-  }, [lifeQuestion, router]);
+    setShowServiceSelector(false);
+  }, [lifeQuestion, router, selectedService, serviceOptions]);
+
+  // Handle service selection
+  const handleServiceSelect = useCallback((serviceKey: string) => {
+    setSelectedService(serviceKey);
+    setShowServiceSelector(false);
+  }, []);
 
   const handleHintClick = useCallback((hint: string) => {
     setLifeQuestion(hint);
@@ -555,16 +587,46 @@ export default function MainPage() {
           </p>
 
           {/* Google-style Question Search Box */}
-          <div className={styles.questionSearchContainer}>
+          <div className={styles.questionSearchContainer} ref={searchContainerRef}>
             <form onSubmit={handleQuestionSubmit} className={styles.questionSearchForm}>
               <div className={styles.questionSearchWrapper}>
-                <span className={styles.questionSearchIcon}>&#10024;</span>
+                {/* Service Selector Button */}
+                <button
+                  type="button"
+                  className={styles.serviceSelectBtn}
+                  onClick={() => setShowServiceSelector(!showServiceSelector)}
+                  title={translate("landing.selectService", "서비스 선택")}
+                >
+                  <span className={styles.serviceSelectIcon}>
+                    {serviceOptions.find(s => s.key === selectedService)?.icon || '🌟'}
+                  </span>
+                  <span className={styles.serviceSelectArrow}>▼</span>
+                </button>
+
+                {/* Service Dropdown */}
+                {showServiceSelector && (
+                  <div className={styles.serviceDropdown}>
+                    {serviceOptions.map((service) => (
+                      <button
+                        key={service.key}
+                        type="button"
+                        className={`${styles.serviceDropdownItem} ${selectedService === service.key ? styles.selected : ''}`}
+                        onClick={() => handleServiceSelect(service.key)}
+                      >
+                        <span className={styles.serviceDropdownIcon}>{service.icon}</span>
+                        <span className={styles.serviceDropdownLabel}>{t(`menu.${service.key}`)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   type="text"
                   className={styles.questionSearchInput}
                   placeholder={typingPlaceholder || translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?")}
                   value={lifeQuestion}
                   onChange={(e) => setLifeQuestion(e.target.value)}
+                  onFocus={() => setShowServiceSelector(false)}
                   autoComplete="off"
                 />
                 <button type="submit" className={styles.questionSearchBtn} aria-label="Search">
@@ -596,6 +658,19 @@ export default function MainPage() {
               </div>
             </form>
 
+            {/* AI Routing Guide */}
+            <div className={styles.aiRoutingGuide}>
+              <p className={styles.aiRoutingText}>
+                {translate("landing.aiRoutingText", "서비스를 선택하고 질문을 입력하세요")}
+              </p>
+              <div className={styles.serviceIconsRow}>
+                {serviceOptions.map((service) => (
+                  <span key={service.key} className={styles.serviceIcon} title={t(`menu.${service.key}`)}>
+                    {service.icon}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

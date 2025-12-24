@@ -60,8 +60,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     # === Feedback Count Badges ===
     "first_voice": BadgeDefinition(
         id="first_voice",
-        name_ko="오라클의 첫 목소리",
-        name_en="Oracle's First Voice",
+        name_ko="첫 피드백",
+        name_en="First Feedback",
         description_ko="첫 번째 피드백을 남겼습니다",
         description_en="Left your first feedback",
         rarity=BadgeRarity.COMMON,
@@ -108,7 +108,7 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "feedback_sage": BadgeDefinition(
         id="feedback_sage",
-        name_ko="피드백 현자",
+        name_ko="피드백 고수",
         name_en="Feedback Sage",
         description_ko="50개의 피드백을 남겼습니다",
         description_en="Left 50 feedbacks",
@@ -120,10 +120,10 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "oracle_guardian": BadgeDefinition(
         id="oracle_guardian",
-        name_ko="오라클 수호자",
-        name_en="Oracle Guardian",
-        description_ko="100개의 피드백으로 오라클을 성장시켰습니다",
-        description_en="Helped the Oracle grow with 100 feedbacks",
+        name_ko="피드백 레전드",
+        name_en="Feedback Legend",
+        description_ko="100개의 피드백을 남겼습니다",
+        description_en="Left 100 feedbacks",
         rarity=BadgeRarity.LEGENDARY,
         image_path="/badges/oracle-guardian.png",
         condition_type="feedback_count",
@@ -134,8 +134,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     # === Streak Badges (연속 피드백) ===
     "devoted_seeker_3": BadgeDefinition(
         id="devoted_seeker_3",
-        name_ko="헌신적인 탐구자",
-        name_en="Devoted Seeker",
+        name_ko="3일 연속",
+        name_en="3-Day Streak",
         description_ko="3일 연속 피드백을 남겼습니다",
         description_en="Left feedback for 3 consecutive days",
         rarity=BadgeRarity.UNCOMMON,
@@ -146,8 +146,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "weekly_oracle": BadgeDefinition(
         id="weekly_oracle",
-        name_ko="주간 오라클",
-        name_en="Weekly Oracle",
+        name_ko="일주일 연속",
+        name_en="Weekly Streak",
         description_ko="7일 연속 피드백을 남겼습니다",
         description_en="Left feedback for 7 consecutive days",
         rarity=BadgeRarity.RARE,
@@ -158,8 +158,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "monthly_mystic": BadgeDefinition(
         id="monthly_mystic",
-        name_ko="월간 신비주의자",
-        name_en="Monthly Mystic",
+        name_ko="한달 연속",
+        name_en="Monthly Streak",
         description_ko="30일 연속 피드백을 남겼습니다",
         description_en="Left feedback for 30 consecutive days",
         rarity=BadgeRarity.LEGENDARY,
@@ -172,8 +172,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     # === Positive Feedback Badges ===
     "positive_soul": BadgeDefinition(
         id="positive_soul",
-        name_ko="긍정의 영혼",
-        name_en="Positive Soul",
+        name_ko="좋아요 10개",
+        name_en="10 Likes",
         description_ko="10개의 좋아요(4점 이상)를 남겼습니다",
         description_en="Left 10 positive feedbacks (4+ stars)",
         rarity=BadgeRarity.UNCOMMON,
@@ -184,8 +184,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "light_bringer": BadgeDefinition(
         id="light_bringer",
-        name_ko="빛을 가져오는 자",
-        name_en="Light Bringer",
+        name_ko="좋아요 25개",
+        name_en="25 Likes",
         description_ko="25개의 좋아요를 남겼습니다",
         description_en="Left 25 positive feedbacks",
         rarity=BadgeRarity.RARE,
@@ -198,8 +198,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     # === Theme Expert Badges ===
     "love_oracle": BadgeDefinition(
         id="love_oracle",
-        name_ko="연애 오라클",
-        name_en="Love Oracle",
+        name_ko="연애 전문가",
+        name_en="Love Expert",
         description_ko="연애 테마에서 10개의 피드백을 남겼습니다",
         description_en="Left 10 feedbacks on love theme",
         rarity=BadgeRarity.UNCOMMON,
@@ -210,8 +210,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "career_oracle": BadgeDefinition(
         id="career_oracle",
-        name_ko="커리어 오라클",
-        name_en="Career Oracle",
+        name_ko="커리어 전문가",
+        name_en="Career Expert",
         description_ko="커리어 테마에서 10개의 피드백을 남겼습니다",
         description_en="Left 10 feedbacks on career theme",
         rarity=BadgeRarity.UNCOMMON,
@@ -222,8 +222,8 @@ BADGES: Dict[str, BadgeDefinition] = {
     ),
     "life_oracle": BadgeDefinition(
         id="life_oracle",
-        name_ko="인생 오라클",
-        name_en="Life Oracle",
+        name_ko="인생 전문가",
+        name_en="Life Expert",
         description_ko="인생 테마에서 10개의 피드백을 남겼습니다",
         description_en="Left 10 feedbacks on life_path theme",
         rarity=BadgeRarity.UNCOMMON,

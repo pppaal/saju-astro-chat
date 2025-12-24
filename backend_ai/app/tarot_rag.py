@@ -1,11 +1,10 @@
 # backend_ai/app/tarot_rag.py
 """
-Tarot Card Interpretation RAG System (Premium)
-==============================================
+Tarot Card Interpretation RAG System
+====================================
 Uses SentenceTransformer for semantic similarity matching with tarot cards.
 - 타로 카드 전용 임베딩 시스템
 - 78장 라이더-웨이트 타로 덱 (메이저 아르카나 + 마이너 아르카나)
-- 9개 테마별 심층 해석 (life_path, love, career, wealth, health, family, spiritual, daily, monthly)
 
 개선사항 (v2.0):
 - 모델 업그레이드: mpnet-base-v2 (더 정확한 다국어 임베딩)
@@ -35,19 +34,11 @@ MODEL_OPTIONS = {
 }
 DEFAULT_MODEL = 'high'
 
-# Available themes for premium interpretations
-AVAILABLE_THEMES = [
-    "life_path", "love", "career", "wealth",
-    "health", "family", "spiritual", "daily", "monthly"
-]
-
-
 class TarotRAG:
     """
-    임베딩 기반 타로 해석 검색 엔진 (Premium v2.0)
+    임베딩 기반 타로 해석 검색 엔진
     - 질문/상황을 벡터로 변환하여 가장 관련 있는 카드 의미 검색
     - 정방향/역방향 해석 지원
-    - 9개 테마별 심층 해석 (life_path, love, career, wealth, health, family, spiritual, daily, monthly)
     - 개선: 더 정확한 모델, 캐시 무효화, 에러 핸들링
     """
 
@@ -65,7 +56,6 @@ class TarotRAG:
             rules_dir = os.path.join(base_dir, "data", "graph", "rules", "tarot")
 
         self.rules_dir = rules_dir
-        self.themes_dir = os.path.join(rules_dir, "themes")
         self.model_quality = model_quality
         self.model_name = MODEL_OPTIONS.get(model_quality, MODEL_OPTIONS['high'])
 
@@ -75,16 +65,12 @@ class TarotRAG:
         self.embed_cache_path = os.path.join(rules_dir, "tarot_embeds.pt")
         self._data_hash = None  # 캐시 무효화용 해시
 
-        # Premium theme data
-        self.themes = {}  # theme_name -> theme_data
-
         # 모델 초기화 (lazy load)
         self._model = None
         self._model_load_failed = False
 
         # 로드
         self._load_cards()
-        self._load_themes()
         self._prepare_embeddings()
 
     @property
@@ -364,27 +350,6 @@ class TarotRAG:
 
         print(f"[TarotRAG] Loaded complete corpus: {len(data.get('major_arcana', []))} major + {len(data.get('minor_arcana', []))} minor")
 
-    def _load_themes(self):
-        """Load all premium theme JSON files from themes/ directory"""
-        if not os.path.exists(self.themes_dir):
-            print(f"[TarotRAG] Themes directory not found: {self.themes_dir}")
-            return
-
-        for theme_name in AVAILABLE_THEMES:
-            theme_path = os.path.join(self.themes_dir, f"{theme_name}.json")
-            if not os.path.exists(theme_path):
-                print(f"[TarotRAG] Theme file not found: {theme_name}.json")
-                continue
-
-            try:
-                with open(theme_path, encoding='utf-8') as f:
-                    theme_data = json.load(f)
-                    self.themes[theme_name] = theme_data
-            except Exception as e:
-                print(f"[TarotRAG] Failed to load theme {theme_name}: {e}")
-
-        print(f"[TarotRAG] Loaded {len(self.themes)} premium themes: {list(self.themes.keys())}")
-
     def _prepare_embeddings(self):
         """Prepare or load cached embeddings with cache invalidation"""
         if not self.card_texts:
@@ -654,117 +619,6 @@ class TarotRAG:
         query = theme_queries.get(theme.lower(), theme)
         return self.search(query, top_k=top_k)
 
-    def get_theme_interpretation(self, card_name: str, theme: str) -> Optional[Dict]:
-        """
-        특정 카드의 테마별 심층 해석 가져오기 (Premium)
-
-        Args:
-            card_name: 카드 이름 (예: "The Fool", "Ace of Wands")
-            theme: 테마 (life_path, love, career, wealth, health, family, spiritual, daily, monthly)
-
-        Returns:
-            Theme-specific interpretation dict or None
-        """
-        if theme not in self.themes:
-            return None
-
-        theme_data = self.themes[theme]
-
-        # Try different key patterns based on theme structure
-        # Major Arcana keys vary by theme
-        key_patterns = [
-            "major_arcana_deep",      # life_path, spiritual
-            "major_arcana_love",      # love
-            "major_arcana_career",    # career
-            "major_arcana_wealth",    # wealth
-            "major_arcana_health",    # health
-            "major_arcana_family",    # family
-            "major_arcana_daily",     # daily
-            "major_arcana_monthly",   # monthly
-        ]
-
-        for key in key_patterns:
-            if key in theme_data:
-                card_data = theme_data[key].get(card_name)
-                if card_data:
-                    return {
-                        'card_name': card_name,
-                        'theme': theme,
-                        'theme_title': theme_data.get('_meta', {}).get('title', theme),
-                        'interpretation': card_data
-                    }
-
-        return None
-
-    def get_premium_reading(self, drawn_cards: List[Dict], theme: str, question: str = "") -> Dict:
-        """
-        프리미엄 테마 기반 타로 리딩 (Premium)
-
-        Args:
-            drawn_cards: List of {name, isReversed} dicts
-            theme: 선택한 테마 (9개 중 하나)
-            question: 사용자의 질문 (선택사항)
-
-        Returns:
-            Premium interpretation with theme-specific deep meanings
-        """
-        if theme not in AVAILABLE_THEMES:
-            theme = "life_path"  # default
-
-        base_context = self.get_reading_context(drawn_cards, question)
-
-        # Add premium theme interpretations
-        premium_interpretations = []
-        for card in base_context['card_interpretations']:
-            card_name = card['name']
-            theme_interp = self.get_theme_interpretation(card_name, theme)
-
-            premium_card = card.copy()
-            if theme_interp:
-                premium_card['theme_interpretation'] = theme_interp['interpretation']
-            premium_interpretations.append(premium_card)
-
-        # Get theme metadata
-        theme_meta = {}
-        if theme in self.themes:
-            theme_meta = self.themes[theme].get('_meta', {})
-
-        return {
-            'theme': theme,
-            'theme_title': theme_meta.get('title', theme),
-            'theme_description': theme_meta.get('description', ''),
-            'card_interpretations': premium_interpretations,
-            'themes': base_context['themes'],
-            'advice': base_context['advice'],
-            'contextual_cards': base_context['contextual_cards'],
-            'card_count': base_context['card_count'],
-            'is_premium': True
-        }
-
-    def get_available_themes(self) -> List[Dict]:
-        """
-        사용 가능한 테마 목록 반환
-
-        Returns:
-            List of theme info dicts
-        """
-        theme_info = []
-        for theme_name in AVAILABLE_THEMES:
-            if theme_name in self.themes:
-                meta = self.themes[theme_name].get('_meta', {})
-                theme_info.append({
-                    'id': theme_name,
-                    'title': meta.get('title', theme_name),
-                    'description': meta.get('description', '')
-                })
-            else:
-                theme_info.append({
-                    'id': theme_name,
-                    'title': theme_name,
-                    'description': ''
-                })
-        return theme_info
-
     def get_status(self) -> Dict[str, Any]:
         """시스템 상태 정보 반환"""
         return {
@@ -778,7 +632,6 @@ class TarotRAG:
             'cache_exists': os.path.exists(self.embed_cache_path),
             'cache_valid': self.is_cache_valid(),
             'data_hash': self._data_hash[:8] if self._data_hash else None,
-            'themes_loaded': list(self.themes.keys()),
         }
 
     def health_check(self) -> Tuple[bool, str]:
@@ -906,62 +759,3 @@ if __name__ == "__main__":
         for i, r in enumerate(results):
             print(f"  [{i+1}] {r['name']} ({r['orientation']}) - similarity: {r['similarity']:.3f}")
             print(f"      keywords: {', '.join(r['keywords'][:4])}")
-
-    # Test available themes
-    print("\n" + "=" * 70)
-    print("[AVAILABLE PREMIUM THEMES]")
-    print("=" * 70)
-
-    themes = rag.get_available_themes()
-    for t in themes:
-        print(f"  - {t['id']}: {t['title']}")
-        if t['description']:
-            print(f"    > {t['description'][:60]}...")
-
-    # Test theme interpretation
-    print("\n" + "=" * 70)
-    print("[PREMIUM THEME INTERPRETATION TEST]")
-    print("=" * 70)
-
-    test_cards = ["The Fool", "The Lovers", "The World"]
-    test_themes = ["love", "career", "spiritual"]
-
-    for card in test_cards:
-        print(f"\n[Card] {card}")
-        for theme in test_themes:
-            interp = rag.get_theme_interpretation(card, theme)
-            if interp:
-                data = interp['interpretation']
-                print(f"  [{theme}]")
-                # Print first available key from interpretation
-                for k, v in list(data.items())[:2]:
-                    if isinstance(v, str) and len(v) < 100:
-                        print(f"    {k}: {v}")
-
-    # Test premium reading
-    print("\n" + "=" * 70)
-    print("[PREMIUM READING TEST]")
-    print("=" * 70)
-
-    drawn_cards = [
-        {"name": "The Fool", "isReversed": False},
-        {"name": "The Lovers", "isReversed": True},
-        {"name": "The World", "isReversed": False}
-    ]
-
-    for theme in ["love", "career", "daily"]:
-        print(f"\nTheme: {theme.upper()}")
-        print("-" * 50)
-        reading = rag.get_premium_reading(drawn_cards, theme, "What does my future hold?")
-        print(f"  Theme title: {reading['theme_title']}")
-        print(f"  Card count: {reading['card_count']}")
-        print(f"  Is premium: {reading['is_premium']}")
-        for card in reading['card_interpretations'][:1]:
-            print(f"  First card: {card['name']} ({card['orientation']})")
-            if 'theme_interpretation' in card:
-                ti = card['theme_interpretation']
-                first_key = list(ti.keys())[0] if ti else None
-                if first_key:
-                    val = ti[first_key]
-                    if isinstance(val, str):
-                        print(f"    {first_key}: {val[:80]}...")

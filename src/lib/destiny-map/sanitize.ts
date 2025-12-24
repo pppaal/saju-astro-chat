@@ -6,8 +6,9 @@ export function sanitizeLocaleText(str: string, lang: string) {
   if (isJson) return str;
 
   // Allow printable ASCII plus language blocks
+  // Note: Korean text often includes CJK Hanja (Chinese characters) for traditional terms
   const allowedByLang: Record<string, RegExp> = {
-    ko: /[^\u0009\u000A\u000D\u0020-\u007E\uAC00-\uD7A3]/g,
+    ko: /[^\u0009\u000A\u000D\u0020-\u007E\uAC00-\uD7A3\u4E00-\u9FFF]/g, // Hangul + CJK Hanja
     ja: /[^\u0009\u000A\u000D\u0020-\u007E\u3040-\u30FF\u31F0-\u31FF\u4E00-\u9FFF]/g,
     zh: /[^\u0009\u000A\u000D\u0020-\u007E\u4E00-\u9FFF]/g,
     es: /[^\u0009\u000A\u000D\u0020-\u00FF]/g, // Latin + accents

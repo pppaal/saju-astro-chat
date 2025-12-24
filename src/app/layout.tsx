@@ -84,8 +84,8 @@ export const metadata: Metadata = {
   },
   description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.",
   keywords: [
-    // Korean keywords (cleaned)
-    "사주", "사주풀이", "사주팔자", "오늘의 운세", "무료 운세", "타로", "타로 점보기", "떡별 운세", "별자리 운세", "궁합", "궁합 테스트", "꿈해몬", "해몬", "명리학",
+    // Korean keywords
+    "사주", "사주풀이", "사주팔자", "오늘의 운세", "무료 운세", "타로", "타로 점보기", "별자리 운세", "궁합", "궁합 테스트", "꿀 해석", "명리학",
     // English keywords
     "free tarot reading", "tarot online", "horoscope today", "astrology chart", "numerology", "birth chart", "compatibility test", "dream interpretation", "saju", "korean fortune telling",
   ],

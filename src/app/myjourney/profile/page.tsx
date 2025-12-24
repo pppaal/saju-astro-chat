@@ -32,7 +32,7 @@ function ProfileContent() {
 
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [gender, setGender] = useState<"M" | "F" | "U">("U");
+  const [gender, setGender] = useState<"M" | "F">("M");
   const [city, setCity] = useState("");
   const [tzId, setTzId] = useState<string>(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -114,7 +114,7 @@ function ProfileContent() {
         body: JSON.stringify({
           birthDate,
           birthTime: birthTime || null,
-          gender: gender === "U" ? null : gender,
+          gender,
           birthCity: city || null,
           tzId: tzId || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
         }),
@@ -198,10 +198,10 @@ function ProfileContent() {
                 onBlur={() => setTimeout(() => setGenderOpen(false), 150)}
               >
                 <span className={styles.genderIcon}>
-                  {gender === 'M' ? '♂' : gender === 'F' ? '♀' : '⚪'}
+                  {gender === 'M' ? '♂' : '♀'}
                 </span>
                 <span className={styles.genderText}>
-                  {gender === 'M' ? 'Male' : gender === 'F' ? 'Female' : 'Prefer not to say'}
+                  {gender === 'M' ? 'Male' : 'Female'}
                 </span>
                 <span className={`${styles.genderArrow} ${genderOpen ? styles.genderArrowOpen : ''}`}>
                   ▾
@@ -209,19 +209,6 @@ function ProfileContent() {
               </button>
               {genderOpen && (
                 <div className={styles.genderDropdown}>
-                  <button
-                    type="button"
-                    className={`${styles.genderOption} ${gender === 'U' ? styles.genderOptionActive : ''}`}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setGender('U');
-                      setGenderOpen(false);
-                    }}
-                  >
-                    <span className={styles.genderOptionIcon}>⚪</span>
-                    <span className={styles.genderOptionText}>Prefer not to say</span>
-                    {gender === 'U' && <span className={styles.genderCheck}>✓</span>}
-                  </button>
                   <button
                     type="button"
                     className={`${styles.genderOption} ${gender === 'M' ? styles.genderOptionActive : ''}`}

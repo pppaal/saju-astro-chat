@@ -3612,9 +3612,25 @@ def dream_chat_stream():
                 break
 
         # ============================================================
+        # CRISIS DETECTION: Check for high-risk keywords first
+        # ============================================================
+        crisis_response = None
+        try:
+            from backend_ai.app.dream_embeddings import CrisisDetector
+            crisis_check = CrisisDetector.check_crisis(last_user_message)
+            if crisis_check:
+                crisis_response = crisis_check
+                logger.warning(f"[DREAM_CHAT_STREAM] Crisis detected: type={crisis_check['type']}, severity={crisis_check['severity']}")
+        except Exception as crisis_error:
+            logger.warning(f"[DREAM_CHAT_STREAM] Crisis detection failed: {crisis_error}")
+
+        # ============================================================
         # RAG SEARCH: Find relevant dream interpretations for the question
         # ============================================================
         rag_context = ""
+        therapeutic_context = ""
+        counseling_context = ""
+
         try:
             from backend_ai.app.dream_logic import get_dream_embed_rag
             dream_rag = get_dream_embed_rag()
@@ -3648,6 +3664,29 @@ def dream_chat_stream():
                     rag_context += f"\n\n꿈 카테고리: {', '.join(categories)}"
 
                 logger.info(f"[DREAM_CHAT_STREAM] RAG found {len(rag_texts)} relevant texts, quality={rag_results.get('match_quality')}")
+
+            # ============================================================
+            # THERAPEUTIC QUESTIONS: Get Jung-based therapeutic questions
+            # ============================================================
+            therapeutic_data = dream_rag.get_therapeutic_questions(dream_text + " " + last_user_message)
+            if therapeutic_data.get("therapeutic_questions"):
+                therapeutic_context = "\n\n[🧠 융 심리학 치료적 질문 - 적절히 활용하세요]\n"
+                therapeutic_context += f"통찰: {therapeutic_data.get('insight', '')}\n"
+                therapeutic_context += "치료적 질문:\n" + "\n".join([f"• {q}" for q in therapeutic_data['therapeutic_questions'][:3]])
+
+            # ============================================================
+            # COUNSELING CONTEXT: Get scenario-based counseling insights
+            # ============================================================
+            counseling_data = dream_rag.get_counseling_context(last_user_message)
+            if counseling_data.get("jungian_concept"):
+                counseling_context = "\n\n[💭 상담 시나리오 컨텍스트]\n"
+                counseling_context += f"융 개념: {counseling_data.get('jungian_concept', '')}\n"
+                counseling_context += f"해석: {counseling_data.get('interpretation', '')}\n"
+                if counseling_data.get("key_questions"):
+                    counseling_context += "핵심 질문:\n" + "\n".join([f"• {q}" for q in counseling_data['key_questions'][:2]])
+                if counseling_data.get("reframes"):
+                    counseling_context += "\n리프레이밍:\n" + "\n".join([f"• {r}" for r in counseling_data['reframes']])
+
         except Exception as rag_error:
             logger.warning(f"[DREAM_CHAT_STREAM] RAG search failed (continuing without): {rag_error}")
 
@@ -3745,6 +3784,43 @@ def dream_chat_stream():
         themes_str = ", ".join(themes) if themes else "없음"
         recommendations_str = " / ".join(recommendations) if recommendations else "없음"
 
+        # ============================================================
+        # PREVIOUS CONSULTATIONS CONTEXT (Memory/Continuity)
+        # ============================================================
+        previous_context = ""
+        previous_consultations = dream_context.get("previous_consultations", [])
+        if previous_consultations:
+            previous_context = "\n\n[🔄 이전 상담 기록 - 사용자와의 연속성 유지]\n"
+            for i, prev in enumerate(previous_consultations[:3], 1):
+                prev_summary = prev.get("summary", "")[:150]
+                prev_dream = prev.get("dreamText", "")[:100]
+                prev_date = prev.get("date", "")[:10]
+                if prev_summary:
+                    previous_context += f"{i}. ({prev_date}) {prev_summary}\n"
+                    if prev_dream:
+                        previous_context += f"   이전 꿈: {prev_dream}...\n"
+            previous_context += "→ 이전 상담 내용을 참고하여 연속성 있는 답변을 제공하세요.\n"
+
+        # ============================================================
+        # PERSONA MEMORY (Personalization)
+        # ============================================================
+        persona_context = ""
+        persona_memory = dream_context.get("persona_memory", {})
+        if persona_memory:
+            session_count = persona_memory.get("sessionCount", 0)
+            key_insights = persona_memory.get("keyInsights", [])
+            emotional_tone = persona_memory.get("emotionalTone", "")
+
+            if session_count > 1 or key_insights or emotional_tone:
+                persona_context = "\n\n[👤 사용자 프로필 (개인화)]\n"
+                if session_count > 1:
+                    persona_context += f"상담 횟수: {session_count}회 (단골 사용자)\n"
+                if emotional_tone:
+                    persona_context += f"전반적 감정 톤: {emotional_tone}\n"
+                if key_insights:
+                    persona_context += f"핵심 인사이트: {', '.join(key_insights[:3])}\n"
+                persona_context += "→ 이전 통찰을 바탕으로 개인화된 답변을 제공하세요.\n"
+
         # Build conversation history
         conversation_history = []
         for msg in messages:
@@ -3757,28 +3833,34 @@ def dream_chat_stream():
         is_korean = language == "ko"
 
         # ============================================================
-        # BUILD ENHANCED SYSTEM PROMPT
+        # BUILD ENHANCED SYSTEM PROMPT (Jung + Stoic + Korean Haemong)
         # ============================================================
         if is_korean:
-            system_prompt = """당신은 전문 꿈 해석 상담사입니다. 한국 전통 해몽, 융 심리학, 동양 철학을 융합한 깊이 있는 해석을 제공합니다.
+            system_prompt = """당신은 전문 꿈 해석 상담사입니다. 칼 융(Carl Jung) 분석심리학, 스토아 철학, 한국 전통 해몽을 융합한 깊이 있는 상담을 제공합니다.
 
 핵심 역할:
-- 지식베이스의 구체적인 해석 정보를 활용하여 답변
-- 한국 전통 해몽 (길몽/흉몽, 태몽, 재물몽 등) 관점 제공
-- 꿈의 심볼이 실생활에 어떻게 적용되는지 구체적으로 설명
-- 사용자의 현재 운세(사주) 흐름과 꿈의 연관성 분석
-- 천체 에너지(달 위상 등)가 꿈에 미치는 영향 설명
+1. [한국 전통 해몽] 길몽/흉몽, 태몽, 재물몽 등 구체적 해석 제공
+2. [융 심리학] 그림자, 아니마/아니무스, 자기실현 관점에서 꿈 분석
+   - 꿈은 무의식의 메시지, 상징에 숨겨진 의미 탐구
+   - "꿈이 당신에게 말하고자 하는 것은 무엇인가요?"
+3. [스토아 철학] 실용적 지혜와 행동 지침 제공
+   - "통제할 수 있는 것에 집중하세요"
+   - "장애물이 곧 길입니다" (Obstacle is the way)
+   - 마르쿠스 아우렐리우스, 세네카, 에픽테토스 인용
+4. [사주/천체] 현재 운세 흐름과 꿈의 연관성 분석
 
 답변 스타일:
-- 구체적이고 개인화된 해석 제공 (일반론 피하기)
-- 지식베이스에서 찾은 정보를 자연스럽게 녹여서 답변
-- 실용적인 조언과 행동 지침 포함
+- 구체적이고 개인화된 해석 (일반론 피하기)
+- 융 심리학의 치료적 질문 활용 ("이 그림자가 당신에게 원하는 것은 무엇일까요?")
+- 스토아 철학의 실용적 조언 ("지금 이 순간 할 수 있는 것에 집중하세요")
 - 따뜻하고 공감적이면서도 전문적인 톤
+- 이전 상담 기록이 있다면 연속성 유지
 
 주의사항:
 - 의학적 조언 금지
-- 구체적인 복권 번호 예측 금지 (재물운 조언은 가능)
-- 답변은 4-6문장으로 충실하게"""
+- 구체적인 복권 번호 예측 금지
+- 답변은 5-7문장으로 충실하게
+- 필요시 융/스토아 철학자 인용 포함"""
 
             # Build enhanced chat prompt with all context
             chat_prompt = f"""[꿈 해석 컨텍스트]
@@ -3799,11 +3881,36 @@ def dream_chat_stream():
             # Add RAG context
             chat_prompt += rag_context
 
+            # Add therapeutic context (Jung-based questions)
+            chat_prompt += therapeutic_context
+
+            # Add counseling context (scenario-based)
+            chat_prompt += counseling_context
+
             # Add celestial context
             chat_prompt += celestial_context
 
             # Add saju context
             chat_prompt += saju_context
+
+            # Add previous consultations
+            chat_prompt += previous_context
+
+            # Add persona memory
+            chat_prompt += persona_context
+
+            # Add crisis context if detected
+            crisis_instruction = ""
+            if crisis_response:
+                crisis_instruction = f"""
+
+[⚠️ 위기 상황 감지 - 우선 대응 필요]
+감지 유형: {crisis_response['type']}
+심각도: {crisis_response['severity']}
+권장 대응: {crisis_response['response']}
+전문 기관: {', '.join([f"{k}: {v}" for k, v in crisis_response['resources'].items()])}
+
+중요: 먼저 공감과 지지를 표현하고, 전문 상담 기관 연락처를 안내하세요."""
 
             chat_prompt += f"""
 
@@ -3812,29 +3919,40 @@ def dream_chat_stream():
 
 [사용자 질문]
 {last_user_message}
+{crisis_instruction}
 
-위의 지식베이스 검색 결과와 컨텍스트를 활용하여 구체적이고 개인화된 답변을 제공하세요."""
+위의 모든 컨텍스트(지식베이스, 천체, 사주, 이전 상담, 치료적 질문)를 활용하여:
+1. 한국 해몽 관점의 구체적 해석
+2. 융 심리학적 통찰 (필요시 원형 언급, 치료적 질문 활용)
+3. 스토아 철학의 실용적 조언
+을 자연스럽게 융합한 답변을 제공하세요."""
 
         else:
-            system_prompt = """You are an expert dream interpretation counselor combining Korean traditional dream interpretation (해몽), Jungian psychology, and Eastern philosophy.
+            system_prompt = """You are an expert dream interpretation counselor combining Carl Jung's analytical psychology, Stoic philosophy, and Korean traditional dream interpretation (해몽).
 
-Core Role:
-- Use knowledge base information to provide specific, grounded interpretations
-- Offer perspectives from multiple cultural traditions
-- Explain how dream symbols apply to real life specifically
-- Connect user's current fortune cycle (if available) to dream meaning
-- Consider celestial influences on dream content
+Core Frameworks:
+1. [Korean Haemong] Auspicious/inauspicious dreams, conception dreams, wealth dreams
+2. [Jungian Psychology] Shadow, Anima/Animus, Self-realization analysis
+   - Dreams as messages from the unconscious
+   - "What is this dream trying to tell you?"
+3. [Stoic Philosophy] Practical wisdom and action guidance
+   - "Focus on what you can control"
+   - "The obstacle is the way"
+   - Quote Marcus Aurelius, Seneca, Epictetus when relevant
+4. [Saju/Celestial] Connect fortune cycles to dream meaning
 
 Response Style:
-- Provide specific, personalized interpretations (avoid generalities)
-- Naturally incorporate knowledge base findings
-- Include practical advice and action steps
-- Warm and empathetic yet professional tone
+- Specific, personalized interpretations (avoid generalities)
+- Use therapeutic questions ("What might this shadow represent?")
+- Include Stoic practical advice ("What can you do right now?")
+- Warm yet professional tone
+- Maintain continuity with previous consultations if available
 
 Guidelines:
 - No medical advice
-- No specific lottery number predictions (fortune guidance is fine)
-- Keep responses substantive (4-6 sentences)"""
+- No lottery number predictions
+- Keep responses substantive (5-7 sentences)
+- Include philosopher quotes when relevant"""
 
             chat_prompt = f"""[Dream Interpretation Context]
 Original Dream: {dream_text[:600] if dream_text else "(none)"}
@@ -3851,8 +3969,25 @@ Previous Recommendations: {recommendations_str}"""
                     chat_prompt += f"\nWestern Psychology: {cultural_notes['western'][:200]}"
 
             chat_prompt += rag_context
+            chat_prompt += therapeutic_context
+            chat_prompt += counseling_context
             chat_prompt += celestial_context
             chat_prompt += saju_context
+            chat_prompt += previous_context
+            chat_prompt += persona_context
+
+            # Add crisis context if detected (English)
+            crisis_instruction_en = ""
+            if crisis_response:
+                crisis_instruction_en = f"""
+
+[⚠️ CRISIS DETECTED - PRIORITY RESPONSE NEEDED]
+Type: {crisis_response['type']}
+Severity: {crisis_response['severity']}
+Recommended Response: First express empathy and support, then provide professional helpline information.
+Korean Crisis Lines: Suicide Prevention 1393, Mental Health Crisis 1577-0199
+
+Important: Prioritize emotional support and professional referral."""
 
             chat_prompt += f"""
 
@@ -3861,8 +3996,12 @@ Previous Recommendations: {recommendations_str}"""
 
 [User Question]
 {last_user_message}
+{crisis_instruction_en}
 
-Use the knowledge base results and context above to provide a specific, personalized response."""
+Using all context (knowledge base, celestial, saju, previous consultations, therapeutic questions), provide a response that naturally blends:
+1. Korean traditional dream interpretation
+2. Jungian psychological insight (use therapeutic questions when appropriate)
+3. Stoic practical wisdom"""
 
         def generate_stream():
             """Generator for SSE streaming"""

@@ -10,7 +10,13 @@ import os
 import json
 import torch
 from typing import List, Dict, Optional
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import util
+
+# Use shared model singleton from saju_astro_rag
+try:
+    from backend_ai.app.saju_astro_rag import get_model
+except ImportError:
+    from saju_astro_rag import get_model
 
 
 class PersonaEmbedRAG:
@@ -36,16 +42,10 @@ class PersonaEmbedRAG:
 
     @property
     def model(self):
-        """Lazy load SentenceTransformer model"""
+        """Get shared model singleton from saju_astro_rag"""
         if self._model is None:
-            os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-            torch.set_default_device("cpu")
-            print("[PersonaEmbedRAG] Loading SentenceTransformer model...")
-            self._model = SentenceTransformer(
-                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-                device="cpu"
-            )
-            print("[PersonaEmbedRAG] Model loaded successfully")
+            print("[PersonaEmbedRAG] Using shared model from saju_astro_rag...")
+            self._model = get_model()
         return self._model
 
     def _load_rules(self):

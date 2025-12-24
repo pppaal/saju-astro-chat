@@ -501,3 +501,93 @@
     font-size: 1rem;
   }
 }
+
+/* Tablet breakpoint */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .container {
+    padding: 2rem 1.5rem;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .mainCard {
+    padding: 2rem;
+  }
+
+  .hexagramSymbol {
+    padding: 25px;
+  }
+
+  .hexLine {
+    width: 65px;
+    height: 7px;
+  }
+
+  .castButton {
+    min-height: 52px;
+    padding: 1rem 2.5rem;
+    font-size: 1.15rem;
+  }
+
+  .resultCard {
+    padding: 2rem;
+  }
+}
+
+/* Landscape phone */
+@media (orientation: landscape) and (max-height: 500px) {
+  .container {
+    padding: 1rem 2rem;
+  }
+
+  .mainCard {
+    padding: 1.25rem 2rem;
+  }
+
+  .hexagramSymbol {
+    padding: 15px;
+  }
+
+  .orbRing,
+  .orbRing2 {
+    display: none;
+  }
+
+  .linesContainer {
+    min-height: 120px;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 359px) {
+  .container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .mainCard {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .linesContainer {
+    width: 80px;
+    min-height: 130px;
+  }
+
+  .castButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
