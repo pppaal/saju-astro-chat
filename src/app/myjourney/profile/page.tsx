@@ -40,13 +40,16 @@ function ProfileContent() {
 
   // City search states
   const [suggestions, setSuggestions] = useState<CityHit[]>([]);
-  const [selectedCity, setSelectedCity] = useState<CityHit | null>(null);
   const [openSug, setOpenSug] = useState(false);
   const [isUserTyping, setIsUserTyping] = useState(false);
   const [genderOpen, setGenderOpen] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+
+  // View/Edit mode - start in view mode if data exists
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [hasSavedData, setHasSavedData] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -66,6 +69,15 @@ function ProfileContent() {
       if (user.gender) setGender(user.gender);
       if (user.birthCity) setCity(user.birthCity);
       if (user.tzId) setTzId(user.tzId);
+
+      // If user has saved birth data, show view mode
+      if (user.birthDate) {
+        setHasSavedData(true);
+        setIsEditMode(false);
+      } else {
+        // No data yet, show edit mode
+        setIsEditMode(true);
+      }
     };
     load();
   }, [status]);
@@ -95,7 +107,6 @@ function ProfileContent() {
     setIsUserTyping(false);
     setCity(`${hit.name}, ${hit.country}`);
     const tz = hit.timezone ?? tzLookup(hit.lat, hit.lon);
-    setSelectedCity({ ...hit, timezone: tz });
     setTzId(tz);
     setOpenSug(false);
   };
@@ -122,11 +133,30 @@ function ProfileContent() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to save");
       setMsg("Saved successfully!");
+      setHasSavedData(true);
+      setIsEditMode(false);
     } catch (e: any) {
       setMsg("Error: " + (e?.message || "Something went wrong"));
     } finally {
       setBusy(false);
     }
+  };
+
+  // Format date for display (YYYY-MM-DD -> localized date)
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    const [year, month, day] = dateStr.split("-");
+    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+  };
+
+  // Format time for display (HH:mm -> localized time)
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return "미입력";
+    const [hour, minute] = timeStr.split(":");
+    const h = parseInt(hour);
+    const period = h < 12 ? "오전" : "오후";
+    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${period} ${displayHour}시 ${minute}분`;
   };
 
   if (status === "loading") {
@@ -161,12 +191,60 @@ function ProfileContent() {
         </div>
 
         <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Birth Information</h2>
-        <p className={styles.cardDesc}>
-          Your birth data is used for accurate Saju & Astrology readings
-        </p>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>Birth Information</h2>
+            <p className={styles.cardDesc}>
+              Your birth data is used for accurate Saju & Astrology readings
+            </p>
+          </div>
+          {hasSavedData && !isEditMode && (
+            <button
+              className={styles.editButton}
+              onClick={() => setIsEditMode(true)}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Edit
+            </button>
+          )}
+        </div>
 
-        <div className={styles.formGrid}>
+        {/* View Mode - Show saved birth info */}
+        {hasSavedData && !isEditMode ? (
+          <div className={styles.viewMode}>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>생년월일</span>
+                <span className={styles.infoValue}>{formatDate(birthDate)}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>출생 시간</span>
+                <span className={styles.infoValue}>{formatTime(birthTime)}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>성별</span>
+                <span className={styles.infoValue}>
+                  <span className={styles.genderBadge}>
+                    {gender === 'M' ? '♂ 남성' : '♀ 여성'}
+                  </span>
+                </span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>출생 도시</span>
+                <span className={styles.infoValue}>{city || "미입력"}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>타임존</span>
+                <span className={styles.infoValue}>{tzId}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Edit Mode - Show form */
+          <div className={styles.formGrid}>
           <div className={styles.formGroup}>
             <label>Date of Birth *</label>
             <input
@@ -286,6 +364,7 @@ function ProfileContent() {
             />
           </div>
         </div>
+        )}
 
         {msg && (
           <p className={`${styles.message} ${msg.includes("Error") ? styles.error : styles.success}`}>
@@ -293,13 +372,25 @@ function ProfileContent() {
           </p>
         )}
 
-        <button
-          className={styles.saveButton}
-          onClick={saveBirthInfo}
-          disabled={busy || !birthDate}
-        >
-          {busy ? "Saving..." : "Save Profile"}
-        </button>
+        {isEditMode && (
+          <div className={styles.buttonGroup}>
+            {hasSavedData && (
+              <button
+                className={styles.cancelButton}
+                onClick={() => setIsEditMode(false)}
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              className={styles.saveButton}
+              onClick={saveBirthInfo}
+              disabled={busy || !birthDate}
+            >
+              {busy ? "Saving..." : "Save Profile"}
+            </button>
+          </div>
+        )}
       </section>
       </div>
     </main>

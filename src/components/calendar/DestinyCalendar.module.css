@@ -1894,6 +1894,53 @@
   font-size: 1.5rem;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saveBtn {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 215, 0, 0.6);
+}
+
+.saveBtn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  color: rgba(255, 215, 0, 0.9);
+  transform: scale(1.05);
+}
+
+.saveBtn.saved {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  color: #ffd700;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saveMsg {
+  background: rgba(99, 210, 255, 0.15);
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: #63d2ff;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
 .selectedDayContent {
   animation: fadeIn 0.3s ease;
 }
@@ -2332,4 +2379,67 @@
   .welcomeTitle {
     font-size: 1.8rem;
   }
+}
+
+/* ========================================
+   Large Save Button - 큰 저장 버튼
+   ======================================== */
+
+.saveBtnLarge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  margin-top: 20px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15);
+}
+
+.saveBtnLarge:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 165, 0, 0.2));
+  border-color: rgba(255, 215, 0, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+}
+
+.saveBtnLarge.saved {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 165, 0, 0.2));
+  border-color: rgba(255, 215, 0, 0.6);
+  color: #ffd700;
+}
+
+.saveBtnLarge.saved:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1));
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.saveBtnLarge:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.saveBtnIcon {
+  font-size: 1.3rem;
+}
+
+.loginHint {
+  text-align: center;
+  padding: 12px 16px;
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
 }

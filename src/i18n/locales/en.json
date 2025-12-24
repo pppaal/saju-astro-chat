@@ -160,30 +160,30 @@
     "loggedIn": "Logged in"
   },
   "calendar": {
-    "title": "Destiny Calendar",
-    "subtitle": "Cross-analyzing Saju and Astrology to reveal your important dates",
-    "bijeon": "Day of Bijeon (Companion)",
-    "bijeonDesc": "A day when your personal strength is amplified. Great for leadership and taking initiative.",
-    "inseong": "Day of Inseong (Support)",
-    "inseongDesc": "A favorable day for learning and growth. Ideal for gaining new knowledge or seeking advice.",
-    "jaeseong": "Day of Jaeseong (Wealth)",
-    "jaeseongDesc": "A day when wealth luck rises. Favorable for financial transactions and investment decisions.",
-    "siksang": "Day of Siksang (Expression)",
-    "siksangDesc": "A day when creativity and expression shine. Great for romance and artistic activities.",
-    "gwansal": "Day of Gwansal (Authority)",
-    "gwansalDesc": "A day when external pressure may arise. Make important decisions carefully.",
-    "samhap": "Day of Samhap (Triple Harmony)",
-    "samhapDesc": "A day when three energies harmoniously combine. Perfect for starting major endeavors.",
-    "yukhap": "Day of Yukhap (Union)",
-    "yukhapDesc": "A day strong in harmony and connection energy. Great for meetings and collaborations.",
-    "chung": "Day of Chung (Clash)",
-    "chungDesc": "A day when energy clashes may occur. Plan travel or movement carefully.",
-    "cheoneulGwiin": "Day of the Noble Helper",
-    "cheoneulGwiinDesc": "The best day with a noble benefactor! You may meet helpful people or receive great support.",
+    "title": "Fortune Calendar",
+    "subtitle": "Combining Eastern & Western fortune to find your important dates",
+    "bijeon": "Confidence Day",
+    "bijeonDesc": "A day when self-confidence rises! Great for leadership.",
+    "inseong": "Learning Day",
+    "inseongDesc": "Perfect for learning or getting advice.",
+    "jaeseong": "Wealth Day",
+    "jaeseongDesc": "Favorable for money matters! Shopping, investing OK.",
+    "siksang": "Inspiration Day",
+    "siksangDesc": "Creativity boost! Great for planning, writing, art.",
+    "gwansal": "Caution Day",
+    "gwansalDesc": "Watch out for bosses. Keep a low profile.",
+    "samhap": "Lucky Day",
+    "samhapDesc": "Multiple fortunes align! Best for new beginnings.",
+    "yukhap": "Connection Day",
+    "yukhapDesc": "Great for meeting people! Dates, networking recommended.",
+    "chung": "Clash Day",
+    "chungDesc": "Conflicts likely. Watch your words, drive carefully!",
+    "cheoneulGwiin": "Helper Day",
+    "cheoneulGwiinDesc": "Best day to meet helpful people! Schedule interviews, meetings.",
     "cheununDay": "✨ Day of Celestial Fortune ✨",
-    "cheununDayDesc": "A rare day when Saju and Astrology align perfectly! The ideal timing for life-changing decisions, weddings, contracts, or starting a business.",
+    "cheununDayDesc": "A rare day when Eastern & Western fortunes align perfectly! Ideal for weddings, contracts, starting business, major decisions.",
     "veryGoodDay": "🌟 Very Good Day",
-    "veryGoodDayDesc": "A special day where both Saju and Astrology indicate positive energies. Great for important decisions or new beginnings.",
+    "veryGoodDayDesc": "A special day with multiple positive fortunes! Great for important decisions or new beginnings.",
     "goodDay": "Good Day",
     "goodDayDesc": "A day with generally positive energy. Good for proceeding with planned activities.",
     "normalDay": "Normal Day",
@@ -200,10 +200,10 @@
       "general": "General"
     },
     "factors": {
-      "sajuStem": "The daily stem has a {{relation}} relationship with your day master",
-      "sajuBranch": "The daily branch forms a {{relation}}",
-      "astroTransit": "Transit Sun is in {{sign}}, strengthening {{element}} energy",
-      "crossVerified": "Saju and Astrology analyses align"
+      "sajuStem": "Today's energy has a {{relation}} relationship",
+      "sajuBranch": "{{relation}} energy flows today",
+      "astroTransit": "{{sign}} strengthens {{element}} energy",
+      "crossVerified": "Eastern & Western fortunes both align!"
     },
     "recommendations": {
       "business": "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
@@ -285,7 +285,16 @@
       "instability": "🎢 Unstable energy present. Change is good, but avoid drastic changes!",
       "riskManagement": "📊 Risk management is essential! Don't be greedy, make safe choices!",
       "rivalry": "⚔️ Watch out for rivals/competitors! Focus on protecting what's yours!",
-      "loss": "💔 You might lose money or miss opportunities. Lock up what's important!"
+      "loss": "💔 You might lose money or miss opportunities. Lock up what's important!",
+      "voidOfCourse": "🌙 Moon is void of course. Focus on finishing existing tasks rather than starting new ones!",
+      "mercuryRetrograde": "☿️ Mercury retrograde! Contracts, communication, and travel may hit snags. Double-check everything!",
+      "venusRetrograde": "♀️ Venus retrograde! Postpone big decisions about love and finances!",
+      "marsRetrograde": "♂️ Mars retrograde! Watch your temper and avoid strenuous exercise!",
+      "eclipseDay": "🌑 Eclipse day! Energy is unstable. Avoid major decisions!",
+      "eclipseNear": "🌓 Eclipse influence zone. Stay flexible for unexpected changes!",
+      "avoidTravel": "🚗 Avoid long trips. Check your vehicle! No speeding!",
+      "avoidChange": "🔄 Sudden schedule changes may happen. Have a Plan B ready!",
+      "avoidAuthority": "👔 Don't argue with your boss or seniors. Just say 'Yes, understood' and move on!"
     }
   },
   "services": {
@@ -1288,7 +1297,8 @@
       "mini": "Mini Pack",
       "standard": "Standard Pack",
       "plus": "Plus Pack",
-      "mega": "Mega Pack"
+      "mega": "Mega Pack",
+      "ultra": "Ultra Pack"
     },
     "bestValue": "Best Value",
     "faqs": {
@@ -1393,6 +1403,7 @@
     },
     "services": {
       "destinyMap": "Destiny Map",
+      "destinyCalendar": "Destiny Calendar",
       "tarot": "Tarot",
       "saju": "Saju",
       "astrology": "Astrology",
@@ -1406,5 +1417,9 @@
       "destinyPal": "Destiny Pal",
       "destinyMatrix": "Destiny Matrix"
     }
+  },
+  "history": {
+    "recordUnit": " records",
+    "savedUnit": " readings saved"
   }
 }

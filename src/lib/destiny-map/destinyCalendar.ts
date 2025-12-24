@@ -2482,8 +2482,15 @@ function analyzeDate(
     titleKey = "calendar.gwansal";
     descKey = "calendar.gwansalDesc";
     sajuFactorKeys.push("stemGwansal");
-    warningKeys.push("conflict", "health", "authority");
+    warningKeys.push("conflict", "health", "avoidAuthority");
     recommendationKeys.push("careful", "lowProfile");
+    // 관살이 있으면 권위/승진 추천 제거 (상사와 충돌 위험)
+    const removeRecs = ["authority", "promotion", "interview"];
+    for (let i = recommendationKeys.length - 1; i >= 0; i--) {
+      if (removeRecs.includes(recommendationKeys[i])) {
+        recommendationKeys.splice(i, 1);
+      }
+    }
   }
 
   // 2. 지지 관계 (삼합, 육합, 충, 형, 해)
@@ -2531,8 +2538,15 @@ function analyzeDate(
       titleKey = "calendar.chung";
       descKey = "calendar.chungDesc";
       sajuFactorKeys.push("branchChung");
-      warningKeys.push("travel", "conflict", "accident", "change");
+      warningKeys.push("avoidTravel", "conflict", "accident", "avoidChange");
       recommendationKeys.push("careful", "postpone");
+      // 충이 있으면 여행/변화 추천 제거 (역마살과 충돌 방지)
+      const removeRecs = ["travel", "change"];
+      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
+        if (removeRecs.includes(recommendationKeys[i])) {
+          recommendationKeys.splice(i, 1);
+        }
+      }
     }
 
     // 형 (刑) 체크 - 자형, 상형
@@ -2547,6 +2561,13 @@ function analyzeDate(
       sajuNegative = true;
       sajuFactorKeys.push("branchXing");
       warningKeys.push("legal", "injury");
+      // 형이 있으면 계약 관련 추천 제거
+      const removeRecs = ["contract", "bigDecision", "partnership"];
+      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
+        if (removeRecs.includes(recommendationKeys[i])) {
+          recommendationKeys.splice(i, 1);
+        }
+      }
     }
 
     // 해 (害) 체크 - 육해
@@ -2560,6 +2581,13 @@ function analyzeDate(
       sajuNegative = true;
       sajuFactorKeys.push("branchHai");
       warningKeys.push("betrayal", "misunderstanding");
+      // 해가 있으면 소셜/네트워킹 추천 제거 (오해/배신 위험)
+      const removeRecs = ["networking", "socializing"];
+      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
+        if (removeRecs.includes(recommendationKeys[i])) {
+          recommendationKeys.splice(i, 1);
+        }
+      }
     }
   }
 
@@ -2647,11 +2675,25 @@ function analyzeDate(
       score -= 8;
       warningKeys.push("mercuryRetrograde");
       astroNegative = true;
+      // 수성 역행 시 계약/통신 관련 추천 제거
+      const removeRecs = ["contract", "documents", "interview"];
+      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
+        if (removeRecs.includes(recommendationKeys[i])) {
+          recommendationKeys.splice(i, 1);
+        }
+      }
     }
     // 금성 역행은 연애/재물에 주의
     if (retrogradePlanets.includes("venus")) {
       score -= 5;
       warningKeys.push("venusRetrograde");
+      // 금성 역행 시 연애/재정 추천 제거
+      const removeRecs = ["dating", "love", "finance", "investment", "shopping"];
+      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
+        if (removeRecs.includes(recommendationKeys[i])) {
+          recommendationKeys.splice(i, 1);
+        }
+      }
     }
     // 화성 역행은 행동/에너지에 주의
     if (retrogradePlanets.includes("mars")) {
@@ -2929,19 +2971,23 @@ function analyzeDate(
   );
 
   if (isCheununDay) {
-    // Grade 0: 천운의 날
+    // Grade 0: 천운의 날 - 최상의 날이므로 경고 메시지 제거
     grade = 0;
     titleKey = "calendar.cheununDay";
     descKey = "calendar.cheununDayDesc";
     recommendationKeys.unshift("majorDecision", "wedding", "contract", "bigDecision");
+    // 천운의 날은 경고 없음 - 모든 부정적 요소가 상쇄됨
+    warningKeys.length = 0;
   } else if (isVeryGoodDay) {
-    // Grade 1: 아주 좋은 날
+    // Grade 1: 아주 좋은 날 - 매우 좋은 날이므로 경고 메시지 제거
     grade = 1;
     if (!titleKey) {
       titleKey = "calendar.veryGoodDay";
       descKey = "calendar.veryGoodDayDesc";
     }
     recommendationKeys.unshift("majorDecision", "contract");
+    // 아주 좋은 날도 경고 없음 - 긍정적 요소가 압도
+    warningKeys.length = 0;
   } else if (isBadDay) {
     // Grade 4: 나쁜 날
     grade = 4;
@@ -2954,13 +3000,21 @@ function analyzeDate(
     }
     recommendationKeys.push("rest", "meditation");
   } else if (isGoodDay) {
-    // Grade 2: 좋은 날
+    // Grade 2: 좋은 날 - 긍정적인 날이므로 심각한 경고 제거
     grade = 2;
     if (!titleKey) {
       titleKey = "calendar.goodDay";
       descKey = "calendar.goodDayDesc";
     }
     recommendationKeys.push("majorDecision");
+    // 좋은 날에는 심각한 경고(extremeCaution, confusion) 제거
+    // 가벼운 참고 정보(역행, voidOfCourse)만 유지
+    const severeWarnings = ["extremeCaution", "confusion", "conflict", "accident", "injury", "betrayal"];
+    for (let i = warningKeys.length - 1; i >= 0; i--) {
+      if (severeWarnings.includes(warningKeys[i])) {
+        warningKeys.splice(i, 1);
+      }
+    }
   } else {
     // Grade 3: 보통 날 - 나머지 전부
     grade = 3;

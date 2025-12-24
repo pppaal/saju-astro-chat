@@ -368,7 +368,7 @@ export default function MatrixJourneyPage() {
         </div>
 
         <footer className={styles.introFooter}>
-          <p>© 2024 Destiny Fusion Matrix™. All Rights Reserved.</p>
+          <p>© 2025 Destiny Fusion Matrix™. All Rights Reserved.</p>
         </footer>
       </div>
     );
@@ -716,7 +716,7 @@ export default function MatrixJourneyPage() {
 
       {/* Footer */}
       <footer className={styles.footer}>
-        <p>© 2024 Destiny Fusion Matrix™. All Rights Reserved.</p>
+        <p>© 2025 Destiny Fusion Matrix™. All Rights Reserved.</p>
         <p className={styles.footerNote}>
           10개 레이어, {totalCells.toLocaleString()}개 융합 셀 분석 완료
         </p>

@@ -211,6 +211,135 @@
 }
 
 /* ========== Card Header ========== */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.cardHeader > div {
+  flex: 1;
+}
+
+.cardHeader .cardTitle {
+  margin-bottom: 8px;
+}
+
+.cardHeader .cardDesc {
+  margin-bottom: 0;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 10px;
+  color: #c4b5fd;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.editButton:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+}
+
+.editButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ========== View Mode ========== */
+.viewMode {
+  animation: fadeIn 0.3s ease;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.infoItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.infoLabel {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.infoValue {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.genderBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(167, 139, 250, 0.1));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  font-size: 14px;
+  color: #c4b5fd;
+}
+
+/* ========== Button Group ========== */
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.buttonGroup .saveButton {
+  flex: 2;
+}
+
 .cardTitle {
   font-family: var(--font-cinzel), ui-serif, Georgia, "Times New Roman", serif;
   font-size: 1.5rem;
@@ -698,9 +827,33 @@
     border-radius: 24px;
   }
 
+  .cardHeader {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .editButton {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+
   .formGrid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .buttonGroup .saveButton,
+  .cancelButton {
+    flex: none;
+    width: 100%;
+  }
+
+  .infoItem {
+    padding: 14px 16px;
   }
 
   .iconWrapper {

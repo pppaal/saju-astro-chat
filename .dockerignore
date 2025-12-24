@@ -1,13 +1,45 @@
+# Git & IDE
 .git
+.vscode
+.idea
+.claude
+
+# Node.js (frontend)
 .next
 node_modules
-.venv
-.pytest_cache
-*.log
 dist
 build
 coverage
+
+# Python
+.venv
+.pytest_cache
+__pycache__
+*.pyc
+
+# Logs & temp
+*.log
 tmp
 .cache
 
-# keep public assets; do not exclude public/
+# Frontend source (not needed for backend Dockerfile)
+src
+public
+publiccardsnouveau
+publiccardsmystic
+publiccardsmodern
+
+# Frontend configs
+next.config.ts
+next-env.d.ts
+tailwind.config.ts
+postcss.config.mjs
+tsconfig.json
+package.json
+package-lock.json
+pnpm-lock.yaml
+
+# Keep these for backend build:
+# !backend_ai
+# !Dockerfile
+# !requirements.txt

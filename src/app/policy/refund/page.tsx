@@ -9,7 +9,7 @@ type Section = { title: string; titleKo: string; body: string; bodyKo: string };
 
 const PSP_NAME = "Stripe";
 const CONTACT_EMAIL = "rheeco88@gmail.com";
-const EFFECTIVE_DATE = "2025-12-16";
+const EFFECTIVE_DATE = "2025-12-24";
 
 const sections: Section[] = [
   {

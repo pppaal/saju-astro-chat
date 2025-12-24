@@ -45,7 +45,7 @@ export async function GET() {
     const userId = session.user.id
 
     // Fetch all service records from different tables
-    const [readings, consultations, interactions, dailyFortunes] = await Promise.all([
+    const [readings, consultations, interactions, dailyFortunes, calendarDates] = await Promise.all([
       // Readings (tarot, astrology, dream, etc.)
       prisma.reading.findMany({
         where: { userId },
@@ -95,6 +95,20 @@ export async function GET() {
           overallScore: true,
         },
       }),
+      // Saved calendar dates
+      prisma.savedCalendarDate.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          createdAt: true,
+          date: true,
+          grade: true,
+          title: true,
+          summary: true,
+        },
+      }),
     ])
 
     // Combine and normalize all records
@@ -110,9 +124,9 @@ export async function GET() {
       ...consultations.map((c) => ({
         id: c.id,
         date: c.createdAt.toISOString().split("T")[0],
-        service: "destiny-map",
-        theme: c.theme,
-        summary: formatDestinyMapSummary(c.theme),
+        service: c.theme === "dream" ? "dream" : "destiny-map",
+        theme: c.theme === "dream" ? undefined : c.theme,
+        summary: c.theme === "dream" ? (c.summary || "꿈 해석") : formatDestinyMapSummary(c.theme),
         type: "consultation",
       })),
       ...interactions
@@ -132,6 +146,14 @@ export async function GET() {
         theme: undefined,
         summary: `Overall score: ${f.overallScore}`,
         type: "fortune",
+      })),
+      ...calendarDates.map((c) => ({
+        id: c.id,
+        date: c.date,
+        service: "destiny-calendar",
+        theme: c.grade <= 2 ? "좋은 날" : c.grade === 4 ? "주의 날" : "보통 날",
+        summary: c.title || c.summary || "저장된 날짜",
+        type: "calendar",
       })),
     ]
 

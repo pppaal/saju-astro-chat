@@ -50,6 +50,7 @@ type DailyHistory = {
 
 const SERVICE_ICONS: Record<string, string> = {
   "destiny-map": "🗺️",
+  "destiny-calendar": "📅",
   tarot: "🃏",
   saju: "🔮",
   astrology: "⭐",
@@ -66,6 +67,7 @@ const SERVICE_ICONS: Record<string, string> = {
 
 const SERVICE_NAME_KEYS: Record<string, string> = {
   "destiny-map": "myjourney.services.destinyMap",
+  "destiny-calendar": "myjourney.services.destinyCalendar",
   tarot: "myjourney.services.tarot",
   saju: "myjourney.services.saju",
   astrology: "myjourney.services.astrology",
@@ -82,6 +84,7 @@ const SERVICE_NAME_KEYS: Record<string, string> = {
 
 const SERVICE_URLS: Record<string, string> = {
   "destiny-map": "/destiny-map",
+  "destiny-calendar": "/calendar",
   tarot: "/tarot",
   saju: "/saju",
   astrology: "/astrology",

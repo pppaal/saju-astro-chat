@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BackButton from "@/components/ui/BackButton";
+import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./history.module.css";
 
 type ServiceRecord = {
@@ -60,10 +61,43 @@ type IChingContent = {
   timestamp?: string;
 };
 
+type CalendarContent = {
+  id: string;
+  date: string;
+  grade: number;
+  score: number;
+  title: string;
+  description: string;
+  summary?: string;
+  categories: string[];
+  bestTimes?: string[];
+  sajuFactors?: string[];
+  astroFactors?: string[];
+  recommendations?: string[];
+  warnings?: string[];
+  createdAt: string;
+};
+
+type TarotCard = {
+  name: string;
+  nameKo?: string;
+  isReversed: boolean;
+  position?: string;
+};
+
+type TarotContent = {
+  categoryId: string;
+  spreadId: string;
+  spreadTitle: string;
+  cards: TarotCard[];
+  userQuestion?: string;
+};
+
 // Service configuration with icons, titles, descriptions, and colors
 const SERVICE_CONFIG: Record<string, { icon: string; title: string; desc: string; color: string }> = {
   "daily-fortune": { icon: "🌟", title: "오늘의 운세", desc: "매일의 운세와 조언", color: "#fbbf24" },
   "destiny-map": { icon: "🗺️", title: "Destiny Map", desc: "사주 + 점성술 + 타로 융합 분석", color: "#8b5cf6" },
+  "destiny-calendar": { icon: "📅", title: "운명 캘린더", desc: "중요한 날짜 저장", color: "#10b981" },
   iching: { icon: "☯️", title: "주역", desc: "64괘의 지혜로 미래 예측", color: "#6366f1" },
   tarot: { icon: "🃏", title: "타로", desc: "카드가 전하는 메시지", color: "#ec4899" },
   saju: { icon: "🔮", title: "사주", desc: "사주팔자 분석", color: "#f97316" },
@@ -94,6 +128,7 @@ export default function HistoryPage() {
 function HistoryContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [history, setHistory] = useState<DailyHistory[]>([]);
@@ -103,6 +138,8 @@ function HistoryContent() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [ichingDetail, setIchingDetail] = useState<IChingContent | null>(null);
   const [destinyMapDetail, setDestinyMapDetail] = useState<DestinyMapContent | null>(null);
+  const [calendarDetail, setCalendarDetail] = useState<CalendarContent | null>(null);
+  const [tarotDetail, setTarotDetail] = useState<TarotContent | null>(null);
   const [showAllRecords, setShowAllRecords] = useState(false);
   const INITIAL_DISPLAY_COUNT = 5;
 
@@ -271,6 +308,8 @@ function HistoryContent() {
     setDetailLoading(true);
     setIchingDetail(null);
     setDestinyMapDetail(null);
+    setCalendarDetail(null);
+    setTarotDetail(null);
 
     try {
       if (record.service === "iching" && record.type === "reading") {
@@ -288,16 +327,50 @@ function HistoryContent() {
           const data = await res.json();
           if (data.data) {
             setDestinyMapDetail(data.data as DestinyMapContent);
+          } else {
+            // No data returned - show basic info
+            setDestinyMapDetail({
+              id: record.id,
+              theme: record.theme || "focus_overall",
+              summary: record.summary || "Destiny Map 분석",
+              fullReport: undefined,
+              createdAt: record.date,
+            });
           }
-        } else if (res.status === 402) {
-          // Premium required - show message
+        } else {
+          // Any error (402 premium required, 404 not found, etc.) - show basic info
           setDestinyMapDetail({
             id: record.id,
-            theme: record.theme || "unknown",
-            summary: record.summary || "상담 기록",
+            theme: record.theme || "focus_overall",
+            summary: record.summary || "Destiny Map 분석",
             fullReport: undefined,
             createdAt: record.date,
           });
+        }
+      } else if (record.service === "destiny-calendar" && record.type === "calendar") {
+        const res = await fetch(`/api/calendar/save/${record.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.savedDate) {
+            setCalendarDetail({
+              ...data.savedDate,
+              categories: data.savedDate.categories || [],
+              bestTimes: data.savedDate.bestTimes || [],
+              sajuFactors: data.savedDate.sajuFactors || [],
+              astroFactors: data.savedDate.astroFactors || [],
+              recommendations: data.savedDate.recommendations || [],
+              warnings: data.savedDate.warnings || [],
+            } as CalendarContent);
+          }
+        }
+      } else if (record.service === "tarot" && record.type === "reading") {
+        const res = await fetch(`/api/readings/${record.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.reading?.content) {
+            const parsed = JSON.parse(data.reading.content) as TarotContent;
+            setTarotDetail(parsed);
+          }
         }
       }
     } catch (e) {
@@ -311,6 +384,8 @@ function HistoryContent() {
     setSelectedRecord(null);
     setIchingDetail(null);
     setDestinyMapDetail(null);
+    setCalendarDetail(null);
+    setTarotDetail(null);
   }, []);
 
   if (status === "loading" || loading) {
@@ -340,6 +415,7 @@ function HistoryContent() {
   // Define all services to display (in order)
   const allServicesOrder = [
     "destiny-map",
+    "destiny-calendar",
     "tarot",
     "personality",
     "dream",
@@ -404,8 +480,8 @@ function HistoryContent() {
             </h1>
             <p className={styles.subtitle}>
               {selectedService
-                ? `${serviceCounts[selectedService] || 0}개의 기록`
-                : `${totalRecords}개의 리딩 저장됨`}
+                ? `${serviceCounts[selectedService] || 0}${t("history.recordUnit")}`
+                : `${totalRecords}${t("history.savedUnit")}`}
             </p>
           </div>
         </header>
@@ -486,7 +562,9 @@ function HistoryContent() {
                         {day.records.map((record) => {
                           const isClickable =
                             (record.service === "iching" && record.type === "reading") ||
-                            (record.service === "destiny-map" && record.type === "consultation");
+                            (record.service === "tarot" && record.type === "reading") ||
+                            (record.service === "destiny-map" && record.type === "consultation") ||
+                            (record.service === "destiny-calendar" && record.type === "calendar");
                           return (
                             <div
                               key={record.id}
@@ -502,9 +580,6 @@ function HistoryContent() {
                                   <span className={styles.serviceName}>
                                     {SERVICE_CONFIG[record.service]?.title || record.service}
                                   </span>
-                                  {record.theme && (
-                                    <span className={styles.recordTheme}>{record.theme}</span>
-                                  )}
                                   {isClickable && (
                                     <span className={styles.viewDetail}>상세보기</span>
                                   )}
@@ -621,6 +696,117 @@ function HistoryContent() {
                 {/* Timestamp */}
                 <p className={styles.timestamp}>
                   {new Date(destinyMapDetail.createdAt).toLocaleString()}
+                </p>
+              </div>
+            ) : calendarDetail ? (
+              <div className={styles.calendarDetail}>
+                {/* Header */}
+                <div className={styles.destinyHeader}>
+                  <span className={styles.destinyIcon}>📅</span>
+                  <div>
+                    <h2>운명 캘린더</h2>
+                    <p className={styles.destinyTheme}>
+                      {calendarDetail.date}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Grade & Score */}
+                <div className={styles.calendarGrade}>
+                  <span className={styles.gradeEmoji}>
+                    {calendarDetail.grade === 0 ? "💫" :
+                     calendarDetail.grade === 1 ? "🌟" :
+                     calendarDetail.grade === 2 ? "✨" :
+                     calendarDetail.grade === 3 ? "⭐" : "⚠️"}
+                  </span>
+                  <span className={styles.gradeLabel}>
+                    {calendarDetail.grade === 0 ? "천운의 날" :
+                     calendarDetail.grade === 1 ? "아주 좋은 날" :
+                     calendarDetail.grade === 2 ? "좋은 날" :
+                     calendarDetail.grade === 3 ? "보통 날" : "주의할 날"}
+                  </span>
+                  <span className={styles.scoreText}>점수: {calendarDetail.score}/100</span>
+                </div>
+
+                {/* Title & Summary */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>{calendarDetail.title}</h3>
+                  {calendarDetail.summary && (
+                    <p className={styles.calendarSummary}>{calendarDetail.summary}</p>
+                  )}
+                  <p>{calendarDetail.description}</p>
+                </div>
+
+                {/* Categories */}
+                {calendarDetail.categories && calendarDetail.categories.length > 0 && (
+                  <div className={styles.calendarCategories}>
+                    {calendarDetail.categories.map((cat, i) => (
+                      <span key={i} className={styles.categoryTag}>
+                        {cat === "wealth" ? "💰 재물" :
+                         cat === "career" ? "💼 직장" :
+                         cat === "love" ? "💕 연애" :
+                         cat === "health" ? "💪 건강" :
+                         cat === "travel" ? "✈️ 여행" :
+                         cat === "study" ? "📚 학업" : `⭐ ${cat}`}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Best Times */}
+                {calendarDetail.bestTimes && calendarDetail.bestTimes.length > 0 && (
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>⏰ 좋은 시간대</h3>
+                    <div className={styles.bestTimesList}>
+                      {calendarDetail.bestTimes.map((time, i) => (
+                        <span key={i} className={styles.bestTimeItem}>{time}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Analysis */}
+                {((calendarDetail.sajuFactors && calendarDetail.sajuFactors.length > 0) ||
+                  (calendarDetail.astroFactors && calendarDetail.astroFactors.length > 0)) && (
+                  <div className={styles.aiSection}>
+                    <h3 className={styles.aiSectionTitle}>
+                      <span>✨</span> 운세 분석
+                    </h3>
+                    <ul className={styles.analysisList}>
+                      {[...(calendarDetail.sajuFactors || []), ...(calendarDetail.astroFactors || [])].map((factor, i) => (
+                        <li key={i}>{factor}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {calendarDetail.recommendations && calendarDetail.recommendations.length > 0 && (
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>✨ 오늘의 행운 키</h3>
+                    <ul>
+                      {calendarDetail.recommendations.map((r, i) => (
+                        <li key={i}>{r}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Warnings */}
+                {calendarDetail.warnings && calendarDetail.warnings.length > 0 && (
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>⚡ 주의사항</h3>
+                    <ul>
+                      {calendarDetail.warnings.map((w, i) => (
+                        <li key={i}>{w}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Timestamp */}
+                <p className={styles.timestamp}>
+                  저장일: {new Date(calendarDetail.createdAt).toLocaleString()}
                 </p>
               </div>
             ) : ichingDetail ? (

@@ -653,6 +653,18 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
       if (!target.form) target.form = {};
       Object.assign(target.form, jsonData.form);
     }
+    // Merge pricing translations from JSON
+    if (jsonData.pricing) {
+      if (!target.pricing) target.pricing = {};
+      for (const [key, value] of Object.entries(jsonData.pricing)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          if (!target.pricing[key]) target.pricing[key] = {};
+          Object.assign(target.pricing[key], value);
+        } else {
+          target.pricing[key] = value;
+        }
+      }
+    }
   }
 }
 

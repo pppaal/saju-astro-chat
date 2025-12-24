@@ -117,6 +117,11 @@ function DestinyCalendarContent() {
   const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
+  // 저장 상태
+  const [savedDates, setSavedDates] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
   // 생년월일 입력
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
     birthDate: "",
@@ -213,6 +218,102 @@ function DestinyCalendarContent() {
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
+  // 로그인 사용자의 저장된 날짜 로드
+  useEffect(() => {
+    const loadSavedDates = async () => {
+      if (status !== 'authenticated') return;
+      try {
+        const res = await fetch(`/api/calendar/save?year=${year}`);
+        if (res.ok) {
+          const { savedDates: dates } = await res.json();
+          setSavedDates(new Set(dates.map((d: { date: string }) => d.date)));
+        }
+      } catch (err) {
+        console.error('Failed to load saved dates:', err);
+      }
+    };
+    loadSavedDates();
+  }, [status, year]);
+
+  // 날짜 저장 함수
+  const handleSaveDate = async () => {
+    if (!selectedDate || status !== 'authenticated') return;
+
+    setSaving(true);
+    setSaveMsg(null);
+
+    try {
+      const res = await fetch('/api/calendar/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: selectedDate.date,
+          year,
+          grade: selectedDate.grade,
+          score: selectedDate.score,
+          title: selectedDate.title,
+          description: selectedDate.description,
+          summary: selectedDate.summary,
+          categories: selectedDate.categories,
+          bestTimes: selectedDate.bestTimes,
+          sajuFactors: selectedDate.sajuFactors,
+          astroFactors: selectedDate.astroFactors,
+          recommendations: selectedDate.recommendations,
+          warnings: selectedDate.warnings,
+          birthDate: birthInfo.birthDate,
+          birthTime: birthInfo.birthTime,
+          birthPlace: birthInfo.birthPlace,
+          locale,
+        }),
+      });
+
+      if (res.ok) {
+        setSavedDates(prev => new Set([...prev, selectedDate.date]));
+        setSaveMsg(locale === 'ko' ? '저장되었습니다!' : 'Saved!');
+      } else {
+        const data = await res.json();
+        setSaveMsg(data.error || (locale === 'ko' ? '저장 실패' : 'Save failed'));
+      }
+    } catch (err) {
+      console.error('Failed to save date:', err);
+      setSaveMsg(locale === 'ko' ? '저장 실패' : 'Save failed');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(null), 2000);
+    }
+  };
+
+  // 저장된 날짜 삭제 함수
+  const handleUnsaveDate = async () => {
+    if (!selectedDate || status !== 'authenticated') return;
+
+    setSaving(true);
+    setSaveMsg(null);
+
+    try {
+      const res = await fetch(`/api/calendar/save?date=${selectedDate.date}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setSavedDates(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(selectedDate.date);
+          return newSet;
+        });
+        setSaveMsg(locale === 'ko' ? '삭제되었습니다!' : 'Removed!');
+      } else {
+        setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed');
+      }
+    } catch (err) {
+      console.error('Failed to unsave date:', err);
+      setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(null), 2000);
+    }
+  };
 
   // Particle animation (only for birth info form)
   useEffect(() => {
@@ -993,10 +1094,29 @@ function DestinyCalendarContent() {
               {selectedDay.getMonth() + 1}/{selectedDay.getDate()}
               {locale === "ko" && ` (${WEEKDAYS[selectedDay.getDay()]})`}
             </span>
-            {selectedDate && (
-              <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>
-            )}
+            <div className={styles.headerActions}>
+              {selectedDate && (
+                <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>
+              )}
+              {/* 저장 버튼 - 로그인 사용자만 */}
+              {status === 'authenticated' && selectedDate && (
+                <button
+                  className={`${styles.saveBtn} ${savedDates.has(selectedDate.date) ? styles.saved : ''}`}
+                  onClick={savedDates.has(selectedDate.date) ? handleUnsaveDate : handleSaveDate}
+                  disabled={saving}
+                  title={savedDates.has(selectedDate.date)
+                    ? (locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)')
+                    : (locale === 'ko' ? '이 날짜 저장하기' : 'Save this date')}
+                >
+                  {saving ? '...' : savedDates.has(selectedDate.date) ? '★' : '☆'}
+                </button>
+              )}
+            </div>
           </div>
+          {/* 저장 메시지 */}
+          {saveMsg && (
+            <div className={styles.saveMsg}>{saveMsg}</div>
+          )}
 
           {selectedDate ? (
             <div className={styles.selectedDayContent}>
@@ -1085,6 +1205,34 @@ function DestinyCalendarContent() {
                     ))}
                   </ul>
                 </div>
+              )}
+
+              {/* 큰 저장 버튼 - 로그인 사용자만 */}
+              {status === 'authenticated' && (
+                <button
+                  className={`${styles.saveBtnLarge} ${savedDates.has(selectedDate.date) ? styles.saved : ''}`}
+                  onClick={savedDates.has(selectedDate.date) ? handleUnsaveDate : handleSaveDate}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <span>{locale === 'ko' ? '저장 중...' : 'Saving...'}</span>
+                  ) : savedDates.has(selectedDate.date) ? (
+                    <>
+                      <span className={styles.saveBtnIcon}>★</span>
+                      <span>{locale === 'ko' ? '저장됨 (삭제하려면 클릭)' : 'Saved (click to remove)'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={styles.saveBtnIcon}>☆</span>
+                      <span>{locale === 'ko' ? '이 날짜 저장하기' : 'Save this date'}</span>
+                    </>
+                  )}
+                </button>
+              )}
+              {status !== 'authenticated' && (
+                <p className={styles.loginHint}>
+                  {locale === 'ko' ? '로그인하면 이 날짜를 저장할 수 있어요' : 'Login to save this date'}
+                </p>
               )}
             </div>
           ) : (

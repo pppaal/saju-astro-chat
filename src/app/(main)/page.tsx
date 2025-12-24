@@ -1031,41 +1031,47 @@ export default function MainPage() {
           {translate("landing.tarotSectionTitle", "오늘의 타로 리딩")}
         </h2>
         <p className={styles.featureSectionSubtitle}>
-          {translate("landing.tarotSectionSubtitle", "카드가 전하는 메시지에 귀 기울여 보세요")}
+          {translate("landing.tarotSectionSubtitle", "카드에 담긴 메시지를 들어보세요.")}
         </p>
-        {/* Card Deck - 78 cards shuffling */}
+        {/* Card Deck - Semi-circular spread */}
         <div className={styles.tarotDeckContainer}>
           <div
             className={`${styles.tarotDeck} ${isDeckSpread ? styles.deckSpread : ''}`}
             onClick={handleDeckClick}
-            style={{
-              width: isDeckSpread ? '280px' : '100px',
-              height: isDeckSpread ? '160px' : '150px',
-              transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)'
-            }}
           >
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className={styles.deckCard}
-                style={{
-                  transform: isDeckSpread
-                    ? `translateX(${(i - 7) * 14}px) translateY(${Math.abs(i - 7) * 5}px) rotate(${(i - 7) * 2}deg)`
-                    : `translateX(${i * 0.2}px) translateY(${i * 0.2}px) rotate(${(i - 7) * 0.5}deg)`,
-                  zIndex: 15 - i,
-                  transition: `all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.02}s`
-                }}
-              >
-                <div className={styles.deckCardDesign}>
-                  <span className={styles.deckCardIcon}>✦</span>
+            {[...Array(13)].map((_, i) => {
+              // Semi-circular spread: cards fan out in an arc
+              const totalCards = 13;
+              const centerIndex = (totalCards - 1) / 2;
+              const angleSpread = 120; // Total angle of the fan (degrees)
+              const anglePerCard = angleSpread / (totalCards - 1);
+              const cardAngle = (i - centerIndex) * anglePerCard;
+              const radius = 160; // Distance from center point
+
+              return (
+                <div
+                  key={i}
+                  className={styles.deckCard}
+                  style={{
+                    transform: isDeckSpread
+                      ? `rotate(${cardAngle}deg) translateY(-${radius}px)`
+                      : `translateY(${i * 0.3}px) rotate(${(i - centerIndex) * 0.3}deg)`,
+                    zIndex: isDeckSpread ? (i <= centerIndex ? i + 1 : totalCards - i) : totalCards - i,
+                    transition: `all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.04}s`,
+                    transformOrigin: 'center bottom',
+                  }}
+                >
+                  <div className={styles.deckCardDesign}>
+                    <span className={styles.deckCardIcon}>✦</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <p className={styles.deckLabel} suppressHydrationWarning>
             {isDeckSpread
-              ? translate("landing.tarotDeckReset", "Draw again")
-              : translate("landing.tarotDeckLabel", "Click to draw cards")}
+              ? translate("landing.tarotDeckReset", "클릭하여 카드 그리기")
+              : translate("landing.tarotDeckLabel", "클릭하여 카드 그리기")}
           </p>
         </div>
         {/* Selected Cards - only show when cards are drawn */}

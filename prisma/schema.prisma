@@ -67,6 +67,7 @@ model User {
   credits               UserCredits?
   counselorChatSessions CounselorChatSession[]
   referralRewards       ReferralReward[]        // 내가 받은 추천 보상들
+  savedCalendarDates    SavedCalendarDate[]     // 저장된 운명 캘린더 날짜들
 
   @@index([referrerId])
 }
@@ -380,6 +381,46 @@ model UserCredits {
 
   @@index([plan])
   @@index([periodEnd])
+}
+
+// 운명 캘린더 저장 - 날짜별 운세 정보
+model SavedCalendarDate {
+  id          String   @id @default(cuid())
+  userId      String
+  createdAt   DateTime @default(now())
+
+  // 날짜 정보
+  date        String   // YYYY-MM-DD
+  year        Int      // 조회 연도
+
+  // 운세 정보
+  grade       Int      // 0-4 (천운~나쁜날)
+  score       Int      // 0-100
+  title       String
+  description String   @db.Text
+  summary     String?  // 한줄 요약
+
+  // 카테고리
+  categories  Json     // ["wealth", "career", "love", ...]
+
+  // 분석 요소
+  bestTimes       Json?    // 좋은 시간대
+  sajuFactors     Json?    // 사주 분석 요소
+  astroFactors    Json?    // 점성술 분석 요소
+  recommendations Json?    // 추천 사항
+  warnings        Json?    // 주의 사항
+
+  // 사용자 생년월일 정보 (참고용)
+  birthDate   String?
+  birthTime   String?
+  birthPlace  String?
+  locale      String   @default("ko")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@index([userId, year])
 }
 
 // 추천 보상 기록

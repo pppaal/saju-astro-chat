@@ -140,6 +140,16 @@ const creditPacks: CreditPack[] = [
     perReadingEn: "$0.25",
     gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   },
+  {
+    id: "ultra",
+    nameKey: "ultra",
+    price: 39900,
+    priceEn: 39.99,
+    readings: 200,
+    perReading: "₩200",
+    perReadingEn: "$0.20",
+    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  },
 ];
 
 const faqKeys = ["q1", "q2", "q3", "q4", "q5"];

@@ -105,7 +105,7 @@ export default function AboutPage() {
               {translate("about.servicesEyebrow", "DestinyPal Services")}
             </p>
             <h2 className={styles.sectionTitle}>
-              {translate("about.servicesTitle", "9 Destiny Readings")}
+              {translate("about.servicesTitle", "5 Destiny Readings")}
             </h2>
             <p className={styles.sectionDesc}>
               {translate("about.servicesDesc", "Explore your destiny from multiple perspectives with each unique service")}

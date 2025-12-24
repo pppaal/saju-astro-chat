@@ -914,7 +914,19 @@ function generateSummary(
   const cat = categories[0] || "general";
 
   if (lang === "ko") {
-    if (grade === 1) {
+    if (grade === 0) {
+      // 천운의 날 - 최상의 메시지
+      const messages: Record<string, string> = {
+        career: "🌟 인생을 바꿀 계약, 사업 시작에 완벽한 날!",
+        wealth: "💎 대박 재물운! 중요한 투자/계약 강력 추천!",
+        love: "💍 프로포즈, 결혼 결정에 최고의 날!",
+        health: "✨ 에너지 폭발! 새로운 도전을 시작하세요!",
+        travel: "🌈 인생 여행 떠나기 완벽한 날!",
+        study: "🏆 합격운 최고! 시험, 면접에 행운이!",
+        general: "✨ 천운이 함께하는 특별한 날!"
+      };
+      return messages[cat] || messages.general;
+    } else if (grade === 1) {
       const messages: Record<string, string> = {
         career: "💼 계약, 협상, 중요한 결정에 최적의 날!",
         wealth: "💰 재물운 최고! 투자, 쇼핑에 좋아요!",
@@ -938,7 +950,20 @@ function generateSummary(
       return messages[cat] || messages.general;
     } else if (grade === 2) {
       return "🌥️ 평범한 하루, 무리하지 마세요";
+    } else if (grade === 3) {
+      // 보통 날 - 중립적 메시지
+      const messages: Record<string, string> = {
+        career: "📝 일상 업무에 집중하세요",
+        wealth: "💵 큰 거래보다 평소대로 관리하세요",
+        love: "☕ 가벼운 대화가 좋아요",
+        health: "🚶 무리하지 않는 게 좋아요",
+        travel: "🏠 가까운 곳 위주가 좋아요",
+        study: "📖 복습 위주로 하세요",
+        general: "🌤️ 평범한 하루, 편안하게 보내세요"
+      };
+      return messages[cat] || messages.general;
     } else {
+      // Grade 4 - 나쁜 날
       const messages: Record<string, string> = {
         career: "⚠️ 중요한 결정은 미루세요",
         wealth: "💸 큰 지출/투자는 피하세요",
@@ -952,7 +977,19 @@ function generateSummary(
     }
   } else {
     // English
-    if (grade === 1) {
+    if (grade === 0) {
+      // Celestial Day - best messages
+      const messages: Record<string, string> = {
+        career: "🌟 Perfect day for life-changing contracts!",
+        wealth: "💎 Amazing fortune! Big investments highly recommended!",
+        love: "💍 Best day for proposals and wedding decisions!",
+        health: "✨ Energy explosion! Start new challenges!",
+        travel: "🌈 Perfect day for a journey of a lifetime!",
+        study: "🏆 Best luck for exams and interviews!",
+        general: "✨ A special day blessed by heaven!"
+      };
+      return messages[cat] || messages.general;
+    } else if (grade === 1) {
       const messages: Record<string, string> = {
         career: "💼 Best day for contracts and decisions!",
         wealth: "💰 Great wealth luck! Good for investments!",
@@ -967,6 +1004,8 @@ function generateSummary(
       return "🌤️ A good day with positive energy";
     } else if (grade === 2) {
       return "🌥️ An ordinary day, take it easy";
+    } else if (grade === 3) {
+      return "🌤️ A normal day, take it easy";
     } else {
       return "🌧️ Be cautious and avoid big decisions";
     }
@@ -979,7 +1018,8 @@ function generateBestTimes(
   categories: EventCategory[],
   lang: "ko" | "en"
 ): string[] {
-  if (grade === 3) return []; // 주의일은 시간 추천 없음
+  // Grade 3(보통), Grade 4(나쁜 날)는 시간 추천 없음
+  if (grade >= 3) return [];
 
   const cat = categories[0] || "general";
 
