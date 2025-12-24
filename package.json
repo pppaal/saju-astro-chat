@@ -6,7 +6,7 @@
     "preinstall": "node scripts/bootstrap-python.mjs",
     "postinstall": "prisma generate",
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js",
     "test": "vitest run",
