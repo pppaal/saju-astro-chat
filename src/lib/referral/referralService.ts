@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { addBonusCredits } from "@/lib/credits/creditService";
 import { randomBytes } from "crypto";
 
-const REFERRAL_CREDITS = 5; // 추천 시 지급 크레딧
+const REFERRAL_CREDITS = 3; // 추천 시 지급 크레딧
 
 // 고유 추천 코드 생성 (8자리)
 export function generateReferralCode(): string {
@@ -60,14 +60,18 @@ export async function linkReferrer(
       data: { referrerId: referrer.id },
     });
 
-    // 보상 대기 레코드 생성 (첫 분석 완료 시 지급)
+    // 가입 즉시 추천인에게 크레딧 지급
+    await addBonusCredits(referrer.id, REFERRAL_CREDITS);
+
+    // 보상 레코드 생성 (완료 상태로)
     await prisma.referralReward.create({
       data: {
         userId: referrer.id,
         referredUserId: newUserId,
         creditsAwarded: REFERRAL_CREDITS,
-        rewardType: "first_analysis",
-        status: "pending",
+        rewardType: "signup_complete",
+        status: "completed",
+        completedAt: new Date(),
       },
     });
 
@@ -175,5 +179,5 @@ export async function getReferralStats(userId: string) {
 // 추천 링크 URL 생성
 export function getReferralUrl(code: string, baseUrl?: string): string {
   const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.me";
-  return `${base}/destiny-pal?ref=${code}`;
+  return `${base}/?ref=${code}`;
 }

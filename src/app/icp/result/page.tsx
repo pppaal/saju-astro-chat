@@ -99,7 +99,7 @@ const OctantRadar = ({ scores, isKo }: { scores: Record<string, number>; isKo: b
 };
 
 export default function ICPResultPage() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isKo = locale === 'ko';
   const { data: session, status: authStatus } = useSession();
   const [answers, setAnswers] = useState<ICPQuizAnswers>({});

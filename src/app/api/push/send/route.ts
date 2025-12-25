@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { targetUserId, title, message, url: _url, icon: _icon } = await request.json();
+    const { targetUserId, title, message } = await request.json();
 
     if (!targetUserId || !title || !message) {
       return NextResponse.json(
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Try to dynamically import web-push (optional dependency)
-    let webpush: any;
+    let webpush: { setVapidDetails: (subject: string, publicKey: string, privateKey: string) => void };
     try {
       // @ts-ignore - web-push is an optional dependency
       webpush = (await import("web-push")).default;

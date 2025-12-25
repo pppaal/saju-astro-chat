@@ -24,7 +24,7 @@ async function main() {
         session_state: null,
       },
     });
-    console.log(`[cleanup] Cleared tokens on ${result.count} accounts`);
+    console.warn(`[cleanup] Cleared tokens on ${result.count} accounts`);
   } catch (err) {
     console.error("[cleanup] Failed to clear tokens:", err);
     process.exitCode = 1;

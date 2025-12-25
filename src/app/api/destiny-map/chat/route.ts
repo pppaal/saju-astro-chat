@@ -1,5 +1,6 @@
 ﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
 import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
@@ -13,6 +14,7 @@ import { enforceBodySize } from "@/lib/http";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
+const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 type BackendReply = { fusion_layer?: string; report?: string };
@@ -29,20 +31,6 @@ const MAX_CV = 1200;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
-}
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://127.0.0.1:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[destiny-map chat] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[destiny-map chat] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
 }
 
 function buildChatPrompt(lang: string, theme: string, snapshot: string, history: ChatMessage[]) {
@@ -88,7 +76,7 @@ async function checkStripeActive(email?: string) {
   if (!process.env.REQUIRE_PAID_CHAT || process.env.REQUIRE_PAID_CHAT === "false") return true;
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email || !isValidEmail(email)) return false;
-  const stripe = new Stripe(key, { apiVersion: "2024-12-18.acacia" as any });
+  const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   const customers = await stripe.customers.search({
     query: `email:'${email}'`,
     limit: 3,
@@ -107,7 +95,7 @@ async function checkStripeActive(email?: string) {
 
 export async function POST(request: Request) {
   try {
-    const oversized = enforceBodySize(request as any, 64 * 1024);
+    const oversized = enforceBodySize(request, 64 * 1024);
     if (oversized) return oversized;
 
     const guard = await apiGuard(request, { path: "destiny-map-chat", limit: 45, windowSeconds: 60 });
@@ -169,8 +157,11 @@ export async function POST(request: Request) {
     const normalizedMessages: ChatMessage[] = [];
     for (const m of messages) {
       if (!m || typeof m !== "object") continue;
-      const role = typeof (m as any).role === "string" && ALLOWED_ROLE.has((m as any).role) ? ((m as any).role as ChatMessage["role"]) : null;
-      const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+      const record = m as Record<string, unknown>;
+      const role = typeof record.role === "string" && ALLOWED_ROLE.has(record.role)
+        ? (record.role as ChatMessage["role"])
+        : null;
+      const content = typeof record.content === "string" ? record.content.trim() : "";
       if (!role || !content) continue;
       normalizedMessages.push({ role, content: content.slice(0, 2000) });
     }
@@ -186,7 +177,8 @@ export async function POST(request: Request) {
       theme,
     });
 
-    const snapshot = buildAllDataPrompt(lang, theme, result).slice(0, 2500);
+    // v3.1: Full snapshot without truncation - backend will use this as authoritative prompt
+    const snapshot = buildAllDataPrompt(lang, theme, result);
     const trimmedHistory = clampMessages(normalizedMessages);
 
     // 2) build chat prompt
@@ -239,8 +231,9 @@ export async function POST(request: Request) {
     });
     res.headers.set("X-Fallback", success ? "0" : "1");
     return res;
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[DestinyMap chat API error]", err);
-    return NextResponse.json({ error: err.message ?? "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

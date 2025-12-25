@@ -158,7 +158,7 @@ describe("Circuit Breaker Integration", () => {
 
     // First two calls hit the service
     for (let i = 0; i < 5; i++) {
-      const { result, fromFallback } = await withCircuitBreaker(
+      const { fromFallback } = await withCircuitBreaker(
         name,
         failingService,
         "cached-response",

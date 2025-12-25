@@ -12,11 +12,20 @@ export async function GET() {
           imageUrl: null,
           message: 'No weekly fortune image available yet'
         },
-        { status: 200 }
+        {
+          status: 200,
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+          }
+        }
       );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      }
+    });
   } catch (error) {
     console.error('[WeeklyFortune] Error fetching:', error);
     return NextResponse.json(

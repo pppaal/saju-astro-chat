@@ -460,11 +460,26 @@ function calcTransitsToLights(transitPlanets: PlanetData[], lights: { name: stri
   return transits;
 }
 
-/* Main Engine */
+/* Main Engine with Memoization Cache */
+const destinyMapCache = new Map<string, { result: CombinedResult; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5분 캐시
+const MAX_CACHE_SIZE = 50;
+
 export async function computeDestinyMap(input: CombinedInput): Promise<CombinedResult> {
   try {
     const { birthDate, birthTime, latitude, longitude, gender: rawGender, tz, name, userTimezone } = input;
-    if (enableDebugLogs) { console.log("[Engine] Input received"); }
+
+    // 캐시 키 생성 (사용자 이름 제외, 출생 데이터만으로)
+    const cacheKey = `${birthDate}|${birthTime}|${latitude.toFixed(4)}|${longitude.toFixed(4)}|${rawGender || 'male'}|${tz || 'auto'}`;
+
+    // 캐시 확인
+    const cached = destinyMapCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      if (enableDebugLogs) { console.warn("[Engine] Cache hit"); }
+      return cached.result;
+    }
+
+    if (enableDebugLogs) { console.warn("[Engine] Input received"); }
 
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
       throw new Error("Invalid coordinates range");
@@ -561,129 +576,135 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       const sunHouse = sunPlanet?.house ?? 1;
       const nightChart = isNightChart(sunHouse);
 
-      // ===== Extra Points (Chiron, Lilith, Part of Fortune, Vertex) =====
-      try {
-        const chiron = calculateChiron(0, houseCusps);
-        const lilith = calculateLilith(0, houseCusps);
-        const partOfFortune = calculatePartOfFortune(ascLon, sunLon, moonLon, nightChart, houseCusps);
-        const vertex = calculateVertex(0, latitude, longitude, houseCusps);
-        extraPoints = { chiron, lilith, partOfFortune, vertex };
-      } catch (epErr) {
-        if (enableDebugLogs) console.warn("[Extra points calculation skipped]", epErr);
-      }
+      // ===== 병렬 계산: Extra Points, Returns, Progressions, Advanced Features =====
+      // 모든 고급 계산을 Promise.allSettled로 병렬 실행하여 성능 향상
+      const [
+        extraPointsResult,
+        solarReturnResult,
+        lunarReturnResult,
+        progressionsResult,
+        draconicResult,
+        harmonicsResult,
+        asteroidsResult,
+        fixedStarsResult,
+        eclipsesResult,
+      ] = await Promise.allSettled([
+        // Extra Points
+        (async () => {
+          const chiron = calculateChiron(0, houseCusps);
+          const lilith = calculateLilith(0, houseCusps);
+          const partOfFortune = calculatePartOfFortune(ascLon, sunLon, moonLon, nightChart, houseCusps);
+          const vertex = calculateVertex(0, latitude, longitude, houseCusps);
+          return { chiron, lilith, partOfFortune, vertex };
+        })(),
 
-      // ===== Solar Return (현재 연도 - 사용자 타임존 기준) =====
-      try {
-        const srChart = await calculateSolarReturn({ natal: natalInput, year: userNow.year });
-        const srSummary = getSolarReturnSummary(srChart);
-        solarReturn = { chart: srChart, summary: srSummary };
-      } catch (srErr) {
-        if (enableDebugLogs) console.warn("[Solar Return calculation skipped]", srErr);
-      }
+        // Solar Return
+        (async () => {
+          const srChart = await calculateSolarReturn({ natal: natalInput, year: userNow.year });
+          const srSummary = getSolarReturnSummary(srChart);
+          return { chart: srChart, summary: srSummary };
+        })(),
 
-      // ===== Lunar Return (현재 월 - 사용자 타임존 기준) =====
-      try {
-        const lrChart = await calculateLunarReturn({
-          natal: natalInput,
-          month: userNow.month,
-          year: userNow.year,
-        });
-        const lrSummary = getLunarReturnSummary(lrChart);
-        lunarReturn = { chart: lrChart, summary: lrSummary };
-      } catch (lrErr) {
-        if (enableDebugLogs) console.warn("[Lunar Return calculation skipped]", lrErr);
-      }
+        // Lunar Return
+        (async () => {
+          const lrChart = await calculateLunarReturn({
+            natal: natalInput,
+            month: userNow.month,
+            year: userNow.year,
+          });
+          const lrSummary = getLunarReturnSummary(lrChart);
+          return { chart: lrChart, summary: lrSummary };
+        })(),
 
-      // ===== Progressions (Secondary + Solar Arc - 사용자 타임존 기준) =====
-      try {
-        const today = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`;
+        // Progressions
+        (async () => {
+          const today = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`;
+          const secProgChart = await calculateSecondaryProgressions({ natal: natalInput, targetDate: today });
+          const secProgSun = secProgChart.planets.find(p => p.name === "Sun");
+          const secProgMoon = secProgChart.planets.find(p => p.name === "Moon");
+          const secMoonPhase = secProgSun && secProgMoon
+            ? getProgressedMoonPhase(secProgSun.longitude, secProgMoon.longitude)
+            : { phase: "Unknown", angle: 0, description: "" };
+          const secProgSummary = getProgressionSummary(secProgChart);
+          const solarArcChart = await calculateSolarArcDirections({ natal: natalInput, targetDate: today });
+          const solarArcSummary = getProgressionSummary(solarArcChart);
+          return {
+            secondary: { chart: secProgChart, moonPhase: secMoonPhase as any, summary: secProgSummary },
+            solarArc: { chart: solarArcChart, summary: solarArcSummary },
+          };
+        })(),
 
-        // Secondary Progressions
-        const secProgChart = await calculateSecondaryProgressions({ natal: natalInput, targetDate: today });
-        const secProgSun = secProgChart.planets.find(p => p.name === "Sun");
-        const secProgMoon = secProgChart.planets.find(p => p.name === "Moon");
-        const secMoonPhase = secProgSun && secProgMoon
-          ? getProgressedMoonPhase(secProgSun.longitude, secProgMoon.longitude)
-          : { phase: "Unknown", angle: 0, description: "" };
-        const secProgSummary = getProgressionSummary(secProgChart);
+        // Draconic
+        (async () => {
+          const draconicChart = calculateDraconicChart(natalChart);
+          const draconicComparison = compareDraconicToNatal(natalChart);
+          return { chart: draconicChart, comparison: draconicComparison };
+        })(),
 
-        // Solar Arc Directions
-        const solarArcChart = await calculateSolarArcDirections({ natal: natalInput, targetDate: today });
-        const solarArcSummary = getProgressionSummary(solarArcChart);
+        // Harmonics
+        (async () => {
+          const h5 = calculateHarmonicChart(natalChart, 5);
+          const h7 = calculateHarmonicChart(natalChart, 7);
+          const h9 = calculateHarmonicChart(natalChart, 9);
+          const currentAge = userNow.year - year;
+          const profile = generateHarmonicProfile(natalChart, currentAge);
+          return { h5, h7, h9, profile };
+        })(),
 
-        progressions = {
-          secondary: {
-            chart: secProgChart,
-            moonPhase: secMoonPhase as any,
-            summary: secProgSummary,
-          },
-          solarArc: {
-            chart: solarArcChart,
-            summary: solarArcSummary,
-          },
-        };
-      } catch (progErr) {
-        if (enableDebugLogs) console.warn("[Progressions calculation skipped]", progErr);
-      }
-
-      // ===== 🐉 Draconic Chart (드라코닉 - 영혼 차트) =====
-      try {
-        const draconicChart = calculateDraconicChart(natalChart);
-        const draconicComparison = compareDraconicToNatal(natalChart);
-        draconic = { chart: draconicChart, comparison: draconicComparison };
-      } catch (draErr) {
-        if (enableDebugLogs) console.warn("[Draconic calculation skipped]", draErr);
-      }
-
-      // ===== 🎵 Harmonics (하모닉 - 5차, 7차, 9차) =====
-      try {
-        const h5 = calculateHarmonicChart(natalChart, 5);
-        const h7 = calculateHarmonicChart(natalChart, 7);
-        const h9 = calculateHarmonicChart(natalChart, 9);
-        // Calculate current age for harmonic profile
-        const currentAge = userNow.year - year;
-        const profile = generateHarmonicProfile(natalChart, currentAge);
-        harmonics = { h5, h7, h9, profile };
-      } catch (harmErr) {
-        if (enableDebugLogs) console.warn("[Harmonics calculation skipped]", harmErr);
-      }
-
-      // ===== ☄️ Asteroids (소행성 - Ceres, Pallas, Juno, Vesta) =====
-      try {
-        const jdUT = natalChart.meta?.jdUT;
-        if (jdUT) {
+        // Asteroids
+        (async () => {
+          const jdUT = natalChart.meta?.jdUT;
+          if (!jdUT) return undefined;
           const allAsteroids = calculateAllAsteroids(jdUT, houseCusps);
           const asteroidAspects = findAllAsteroidAspects(allAsteroids, natalChart.planets);
-          asteroids = {
+          return {
             ceres: allAsteroids.Ceres,
             pallas: allAsteroids.Pallas,
             juno: allAsteroids.Juno,
             vesta: allAsteroids.Vesta,
             aspects: asteroidAspects,
           };
-        }
-      } catch (astErr) {
-        if (enableDebugLogs) console.warn("[Asteroids calculation skipped]", astErr);
-      }
+        })(),
 
-      // ===== ⭐ Fixed Stars (항성) =====
-      try {
-        fixedStars = findFixedStarConjunctions(natalChart);
-      } catch (fsErr) {
-        if (enableDebugLogs) console.warn("[Fixed Stars calculation skipped]", fsErr);
-      }
+        // Fixed Stars
+        (async () => findFixedStarConjunctions(natalChart))(),
 
-      // ===== 🌑 Eclipses (일/월식 영향 분석) =====
-      try {
-        // findEclipseImpact takes chart and optionally eclipses array
-        const eclipseImpacts = findEclipseImpact(natalChart);
-        const upcomingEclipses = getUpcomingEclipses(5);
-        // Take the first impact or null if none
-        const firstImpact = eclipseImpacts.length > 0 ? eclipseImpacts[0] : null;
-        eclipses = { impact: firstImpact, upcoming: upcomingEclipses };
-      } catch (eclErr) {
-        if (enableDebugLogs) console.warn("[Eclipses calculation skipped]", eclErr);
-      }
+        // Eclipses
+        (async () => {
+          const eclipseImpacts = findEclipseImpact(natalChart);
+          const upcomingEclipses = getUpcomingEclipses(5);
+          const firstImpact = eclipseImpacts.length > 0 ? eclipseImpacts[0] : null;
+          return { impact: firstImpact, upcoming: upcomingEclipses };
+        })(),
+      ]);
+
+      // 결과 할당
+      if (extraPointsResult.status === 'fulfilled') extraPoints = extraPointsResult.value;
+      else if (enableDebugLogs) console.warn("[Extra points skipped]", extraPointsResult.reason);
+
+      if (solarReturnResult.status === 'fulfilled') solarReturn = solarReturnResult.value;
+      else if (enableDebugLogs) console.warn("[Solar Return skipped]", solarReturnResult.reason);
+
+      if (lunarReturnResult.status === 'fulfilled') lunarReturn = lunarReturnResult.value;
+      else if (enableDebugLogs) console.warn("[Lunar Return skipped]", lunarReturnResult.reason);
+
+      if (progressionsResult.status === 'fulfilled') progressions = progressionsResult.value;
+      else if (enableDebugLogs) console.warn("[Progressions skipped]", progressionsResult.reason);
+
+      if (draconicResult.status === 'fulfilled') draconic = draconicResult.value;
+      else if (enableDebugLogs) console.warn("[Draconic skipped]", draconicResult.reason);
+
+      if (harmonicsResult.status === 'fulfilled') harmonics = harmonicsResult.value;
+      else if (enableDebugLogs) console.warn("[Harmonics skipped]", harmonicsResult.reason);
+
+      if (asteroidsResult.status === 'fulfilled') asteroids = asteroidsResult.value;
+      else if (enableDebugLogs) console.warn("[Asteroids skipped]", asteroidsResult.reason);
+
+      if (fixedStarsResult.status === 'fulfilled') fixedStars = fixedStarsResult.value;
+      else if (enableDebugLogs) console.warn("[Fixed Stars skipped]", fixedStarsResult.reason);
+
+      if (eclipsesResult.status === 'fulfilled') eclipses = eclipsesResult.value;
+      else if (enableDebugLogs) console.warn("[Eclipses skipped]", eclipsesResult.reason);
 
       // ===== 📅 Electional (택일 분석 - 출생 차트 기반) =====
       try {
@@ -739,7 +760,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     }
 
     if (enableDebugLogs) {
-      console.log("[Astrology finished]:", {
+      console.warn("[Astrology finished]:", {
         sun: planets.find((p) => p.name === "Sun")?.sign,
         moon: planets.find((p) => p.name === "Moon")?.sign,
         extraPoints: extraPoints ? Object.keys(extraPoints) : 'none',
@@ -766,7 +787,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     let sajuFacts: any = {};
     try {
       sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, "solar", timezone);
-      if (enableDebugLogs) { console.log("[SajuFacts keys]:", Object.keys(sajuFacts || {})); }
+      if (enableDebugLogs) { console.warn("[SajuFacts keys]:", Object.keys(sajuFacts || {})); }
     } catch (err) {
       console.error("[calculateSajuData Error]", err);
     }
@@ -779,7 +800,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     };
     const dayMaster = sajuFacts?.dayMaster ?? {};
     if (enableDebugLogs) {
-      console.log("[computeDestinyMap] dayMaster extracted:", JSON.stringify(dayMaster));
+      console.warn("[computeDestinyMap] dayMaster extracted:", JSON.stringify(dayMaster));
     }
 
     let daeun: unknown[] = [];
@@ -807,7 +828,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
         iljin = Array.isArray(i) ? i : [];
-        console.log("[Unse cycles] daeun:", daeun.length, "annual:", annual.length, "monthly:", monthly.length);
+        console.warn("[Unse cycles] daeun:", daeun.length, "annual:", annual.length, "monthly:", monthly.length);
 
         // CRITICAL: Daeun must exist
         if (daeun.length === 0) {
@@ -907,7 +928,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         try {
           const extended = analyzeExtendedSaju(dayMasterForAnalysis, pillarsForAnalysis);
           advancedAnalysis.extended = extended;
-          if (enableDebugLogs) console.log("[Extended analysis]:", extended.strength.level, extended.geokguk.type);
+          if (enableDebugLogs) console.warn("[Extended analysis]:", extended.strength.level, extended.geokguk.type);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Extended analysis skipped]", e);
         }
@@ -1044,7 +1065,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         }
 
         if (enableDebugLogs) {
-          console.log("[Advanced Saju Analysis completed]:", {
+          console.warn("[Advanced Saju Analysis completed]:", {
             hasExtended: !!advancedAnalysis.extended,
             hasGeokguk: !!advancedAnalysis.geokguk,
             hasYongsin: !!advancedAnalysis.yongsin,
@@ -1066,8 +1087,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     // sajuFacts.dayMaster 구조: { name: '庚', element: '금', yin_yang: '양' } (from STEMS)
     // dayMaster가 비어있으면 sajuFacts에서 직접 가져오기
     // v9 fix: always use sajuFacts.dayMaster as primary source
-    console.log("[v9 DEBUG] dayMaster:", JSON.stringify(dayMaster));
-    console.log("[v9 DEBUG] sajuFacts.dayMaster:", JSON.stringify(sajuFacts?.dayMaster));
+    console.warn("[v9 DEBUG] dayMaster:", JSON.stringify(dayMaster));
+    console.warn("[v9 DEBUG] sajuFacts.dayMaster:", JSON.stringify(sajuFacts?.dayMaster));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const effectiveDayMaster = sajuFacts?.dayMaster || dayMaster || {};
     // Direct access to effectiveDayMaster properties
@@ -1075,13 +1096,13 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     const edm = effectiveDayMaster as any;
     const dmName: string | undefined = edm?.name;
     const dmElement: string | undefined = edm?.element;
-    console.log("[v9 DEBUG] dmName:", dmName, "dmElement:", dmElement, "dmName truthy:", !!dmName);
+    console.warn("[v9 DEBUG] dmName:", dmName, "dmElement:", dmElement, "dmName truthy:", !!dmName);
     const dayMasterText = dmName
       ? `${dmName} (${dmElement ?? ""})`
       : dmElement
       ? `(${dmElement})`
       : "Unknown";
-    console.log("[v9 DEBUG] dayMasterText:", dayMasterText);
+    console.warn("[v9 DEBUG] dayMasterText:", dayMasterText);
     const sun = planets.find((p) => p.name === "Sun")?.sign ?? "-";
     const moon = planets.find((p) => p.name === "Moon")?.sign ?? "-";
     const element =
@@ -1132,13 +1153,13 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           ),
           "utf8"
         );
-        console.log("[Engine] Full output saved:", file);
+        console.warn("[Engine] Full output saved:", file);
       } catch (err) {
         console.warn("Log save failed:", err);
       }
     }
 
-    return {
+    const result: CombinedResult = {
       meta: {
         generator: "DestinyMap Core Engine (file save)",
         generatedAt: new Date().toISOString(),
@@ -1178,6 +1199,15 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       // ⚡ Midpoints (미드포인트)
       midpoints,
     };
+
+    // 캐시에 저장 (크기 제한)
+    if (destinyMapCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = destinyMapCache.keys().next().value;
+      if (firstKey) destinyMapCache.delete(firstKey);
+    }
+    destinyMapCache.set(cacheKey, { result, timestamp: Date.now() });
+
+    return result;
   } catch (err) {
     console.error("[computeDestinyMap Error]", err);
     return {

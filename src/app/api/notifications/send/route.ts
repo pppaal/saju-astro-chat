@@ -45,7 +45,7 @@ export async function POST(_request: NextRequest) {
       );
     }
 
-    const sent = sendNotification(targetUserId, {
+    const sent = await sendNotification(targetUserId, {
       type,
       title,
       message,
@@ -86,7 +86,7 @@ export async function GET(_request: NextRequest) {
   }
 
   // Send a test notification to the current user
-  const sent = sendNotification(session.user.email, {
+  const sent = await sendNotification(session.user.email, {
     type: "system",
     title: "Test Notification",
     message: "This is a test notification from the system",

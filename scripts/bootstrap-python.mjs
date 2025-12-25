@@ -36,7 +36,7 @@ const cmds = [
 
 for (const [cmd, args] of cmds) {
   const label = `${cmd} ${args.join(" ")}`;
-  console.log(`▶ ${label}`);
+  console.warn(`▶ ${label}`);
   const result = spawnSync(cmd, args, { stdio: "inherit", env });
   if (result.status !== 0) {
     console.error(`❌ Failed: ${label}`);
@@ -44,4 +44,4 @@ for (const [cmd, args] of cmds) {
   }
 }
 
-console.log("✅ Python environment ready (setuptools vendored distutils installed).");
+console.warn("✅ Python environment ready (setuptools vendored distutils installed).");

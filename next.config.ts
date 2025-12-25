@@ -132,7 +132,7 @@ const nextConfig = {
 
   webpack: (
     config: Configuration,
-    { isServer }: { isServer: boolean }
+    { isServer: _isServer }: { isServer: boolean }
   ) => {
     // swisseph는 서버와 클라이언트 빌드 모두에서 외부 모듈로 처리해야 합니다.
     // 서버: 번들링에서 제외하고 런타임에 Node.js가 require() 하도록 합니다.

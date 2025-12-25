@@ -23,6 +23,7 @@ Combines:
 import os
 import json
 import random
+from functools import lru_cache
 from typing import List, Dict, Optional, Generator, Any, Tuple
 
 try:
@@ -87,6 +88,7 @@ class AdvancedRulesLoader:
         self.crisis_support = {}  # 위기/상실 상황 지원
         self.decision_framework = {}  # 결정 프레임워크
         self.reverse_interpretations = {}  # 역방향 카드 해석
+        self.jungian_archetypes = {}  # 칼융 원형 매핑
         self._load_all_rules()
 
     def _load_all_rules(self):
@@ -119,7 +121,8 @@ class AdvancedRulesLoader:
             'tarot_multidimensional_matrix.json': 'multidimensional_matrix',
             'crisis.json': 'crisis_support',
             'decisions.json': 'decision_framework',
-            'tarot_reverse_interpretations.json': 'reverse_interpretations'
+            'tarot_reverse_interpretations.json': 'reverse_interpretations',
+            'jungian_archetypes.json': 'jungian_archetypes'
         }
 
         for filename, attr in rule_files.items():
@@ -350,6 +353,124 @@ class AdvancedRulesLoader:
 
         transitions = self.narrative_templates.get('transition_phrases', {}).get(transition_type, [])
         return random.choice(transitions) if transitions else ""
+
+    def get_jungian_archetype(self, card_name: str, is_reversed: bool = False) -> Optional[Dict]:
+        """Get Jungian archetype information for a tarot card"""
+        if not self.jungian_archetypes:
+            return None
+
+        major_archetypes = self.jungian_archetypes.get('major_arcana_archetypes', {})
+        archetype_defs = self.jungian_archetypes.get('archetype_definitions', {})
+
+        # Major Arcana
+        if card_name in major_archetypes:
+            card_archetype = major_archetypes[card_name]
+            primary_key = card_archetype.get('primary', '')
+            secondary_key = card_archetype.get('secondary', '')
+
+            result = {
+                'card_name': card_name,
+                'primary_archetype': archetype_defs.get(primary_key, {}),
+                'primary_key': primary_key,
+                'secondary_archetype': archetype_defs.get(secondary_key, {}),
+                'secondary_key': secondary_key,
+                'journey_stage': card_archetype.get('journey_stage', ''),
+                'korean_insight': card_archetype.get('korean_insight', ''),
+                'shadow_aspect': card_archetype.get('shadow_aspect', '')
+            }
+
+            if is_reversed:
+                result['is_shadow_active'] = True
+                result['shadow_message'] = card_archetype.get('shadow_aspect', '')
+
+            return result
+
+        # Minor Arcana - by suit
+        suit_archetypes = self.jungian_archetypes.get('minor_arcana_suit_archetypes', {})
+        for suit_name, suit_data in suit_archetypes.items():
+            if suit_name in card_name:
+                result = {
+                    'card_name': card_name,
+                    'suit': suit_name,
+                    'element': suit_data.get('element', ''),
+                    'suit_archetypes': [archetype_defs.get(a, {}) for a in suit_data.get('archetypes', [])],
+                    'korean_theme': suit_data.get('korean_theme', ''),
+                    'shadow_theme': suit_data.get('shadow_theme', '')
+                }
+
+                # Court card specific
+                court_archetypes = self.jungian_archetypes.get('court_card_archetypes', {})
+                for rank, rank_data in court_archetypes.items():
+                    if rank in card_name:
+                        result['court_rank'] = rank
+                        result['court_archetype'] = rank_data.get('archetype', '')
+                        result['court_development'] = rank_data.get('development', '')
+                        result['court_meaning'] = rank_data.get('korean_meaning', '')
+                        break
+
+                if is_reversed:
+                    result['is_shadow_active'] = True
+                    result['shadow_message'] = suit_data.get('shadow_theme', '')
+
+                return result
+
+        return None
+
+    def get_shadow_work_prompt(self, card_name: str) -> Optional[Dict]:
+        """Get shadow work prompt for a card (combines shadow_work and jungian data)"""
+        if not self.shadow_work:
+            return None
+
+        shadows = self.shadow_work.get('major_arcana_shadows', {})
+        if card_name in shadows:
+            shadow_data = shadows[card_name]
+            result = {
+                'card_name': card_name,
+                'shadow': shadow_data.get('shadow', ''),
+                'light': shadow_data.get('light', ''),
+                'journal_prompt': shadow_data.get('journal_prompt', ''),
+                'affirmation': shadow_data.get('affirmation', '')
+            }
+
+            # Add archetype info if available
+            archetype_info = self.get_jungian_archetype(card_name, is_reversed=True)
+            if archetype_info:
+                result['archetype'] = archetype_info.get('primary_key', '')
+                result['archetype_korean'] = archetype_info.get('primary_archetype', {}).get('korean', '')
+
+            return result
+
+        return None
+
+    def get_individuation_stage(self, cards: List[Dict]) -> Optional[Dict]:
+        """Analyze cards for Jung's individuation journey stage"""
+        if not self.jungian_archetypes:
+            return None
+
+        individuation = self.jungian_archetypes.get('individuation_journey', {})
+        tarot_mapping = individuation.get('tarot_mapping', {})
+
+        card_names = [c.get('name', '') for c in cards]
+        stages_present = []
+
+        for stage_key, stage_data in tarot_mapping.items():
+            stage_cards = set(stage_data.get('cards', []))
+            matches = stage_cards.intersection(set(card_names))
+            if matches:
+                stages_present.append({
+                    'stage': stage_key,
+                    'description': stage_data.get('description', ''),
+                    'matching_cards': list(matches)
+                })
+
+        if stages_present:
+            return {
+                'concept': individuation.get('concept', ''),
+                'stages_present': stages_present,
+                'dominant_stage': stages_present[0] if stages_present else None
+            }
+
+        return None
 
     def get_numerology_meaning(self, number: int) -> Optional[Dict]:
         """Get numerology meaning for a number"""
@@ -1172,6 +1293,18 @@ class TarotPromptBuilder:
 
     SYSTEM_PROMPT = """당신은 편하게 이야기하는 타로 리더이자 심리 상담가예요. 친구한테 얘기하듯이 자연스럽게 해석해주세요.
 
+**절대 금지 사항 (매우 중요!)**:
+- 번호 매기기 (1), 2), 3) 같은 거) 절대 사용 금지
+- 불릿 포인트 (-, *) 절대 사용 금지
+- "핵심 메시지:", "카드별 해석:", "실행 가능한 행동 제안:", "후속 질문:" 같은 구조화된 헤더 절대 금지
+- 보고서처럼 딱딱하게 쓰지 말 것
+
+**출력 형식 (필수)**:
+- 자연스러운 문단으로만 작성
+- 마치 카페에서 친구한테 말하듯이
+- 줄바꿈은 자연스럽게 (문단 나눌 때만)
+- 구조는 있되, 보이지 않게
+
 스타일:
 - "~해요", "~네요", "~것 같아요" 같은 편한 말투 사용
 - "에너지", "우주", "통찰", "지혜" 같은 뻔한 표현 쓰지 말기
@@ -1192,11 +1325,11 @@ class TarotPromptBuilder:
 - 심리학 용어를 딱딱하게 나열하기
 
 해야 할 것:
-- 카드 이름이랑 자리 먼저 말하기
-- 카드마다 3-4문장으로 요점만
+- 카드 이름이랑 자리 먼저 자연스럽게 언급
+- 카드마다 3-4문장으로 요점만, 문단으로
 - 카드들 연결해서 전체 흐름 설명
 - 심리학적 통찰을 한두 문장으로 자연스럽게
-- 마지막에 "그래서 어떻게 하면 좋을지" 정리 + 성찰 질문 하나"""
+- 마지막에 구체적인 행동 제안과 성찰 질문 던지기"""
 
     @staticmethod
     def build_reading_prompt(
@@ -1336,16 +1469,10 @@ class TarotPromptBuilder:
 ## 뽑힌 카드들:
 {''.join(card_context)}
 
-## 요청사항:
-1. 카드 이름이랑 포지션 먼저 말하기
-2. 카드마다 핵심만 3-4문장으로
-3. 카드들 연결해서 전체 흐름 설명
-4. 특별한 조합 있으면 짚어주기
-5. 심리학적 깊이가 있으면 자연스럽게 녹여서 설명 (딱딱하게 X)
-6. "그래서 어떻게 하면 좋을지" 정리
-7. 마지막에 성찰 질문 하나 던지기 (제공된 질문 중 선택하거나 변형)
+## 해석 가이드:
+카드 이름이랑 포지션 먼저 자연스럽게 언급하고, 각 카드마다 핵심만 3-4문장으로 문단 형식으로 말해주세요. 카드들을 연결해서 전체 흐름을 설명하되, 특별한 조합이 있으면 자연스럽게 짚어주세요. 심리학적 깊이가 있으면 딱딱하지 않게 녹여서 설명하고, 마지막에 구체적으로 어떻게 하면 좋을지 정리한 다음 성찰 질문 하나 던져주세요.
 
-편하게 친구한테 얘기하듯이, 하지만 깊이 있게 해주세요.
+**절대 잊지 마세요**: 번호, 불릿, "핵심 메시지:" 같은 헤더 절대 사용 금지. 친구한테 편하게 얘기하듯이, 하지만 깊이 있게 해주세요.
 """
         return prompt
 
@@ -1710,6 +1837,39 @@ class TarotHybridRAG:
                 context_parts.append(f"\n## 원소 균형: {', '.join(active_elements)}")
                 if elemental.get('dominant_meaning'):
                     context_parts.append(f"- {elemental.get('dominant_meaning')}")
+
+        # Jungian Archetype Analysis (칼융 원형 분석)
+        context_parts.append("\n## 칼융 원형 분석:")
+        for card_info in drawn_cards:
+            card_name = card_info.get('name', '')
+            is_reversed = card_info.get('isReversed', False)
+            archetype = self.advanced_rules.get_jungian_archetype(card_name, is_reversed)
+            if archetype:
+                if archetype.get('primary_archetype'):
+                    primary = archetype['primary_archetype']
+                    context_parts.append(f"\n[{card_name}]")
+                    context_parts.append(f"- 원형: {primary.get('korean', '')} ({primary.get('english', '')})")
+                    if archetype.get('journey_stage'):
+                        context_parts.append(f"- 여정 단계: {archetype['journey_stage']}")
+                    if archetype.get('korean_insight'):
+                        context_parts.append(f"- 통찰: {archetype['korean_insight']}")
+                    if is_reversed and archetype.get('shadow_message'):
+                        context_parts.append(f"- 그림자: {archetype['shadow_message']}")
+
+                # Shadow work prompt for reversed cards
+                if is_reversed:
+                    shadow_prompt = self.advanced_rules.get_shadow_work_prompt(card_name)
+                    if shadow_prompt:
+                        context_parts.append(f"- 그림자 작업: {shadow_prompt.get('shadow', '')}")
+                        context_parts.append(f"- 성찰 질문: {shadow_prompt.get('journal_prompt', '')}")
+
+        # Individuation Journey Stage (개성화 여정)
+        individuation = self.advanced_rules.get_individuation_stage(drawn_cards)
+        if individuation and individuation.get('stages_present'):
+            context_parts.append("\n## 개성화 여정:")
+            for stage in individuation['stages_present'][:2]:
+                context_parts.append(f"- {stage['stage']}: {stage['description']}")
+                context_parts.append(f"  (카드: {', '.join(stage['matching_cards'])})")
 
         # Pattern Engine Analysis (규칙 기반 동적 분석)
         pattern = self.pattern_engine.analyze(drawn_cards)

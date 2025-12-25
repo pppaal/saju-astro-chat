@@ -188,7 +188,7 @@ export default function InlineTarotModal({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-public-token": "true",
+          "x-api-token": process.env.NEXT_PUBLIC_API_TOKEN || "",
         },
         body: JSON.stringify({
           categoryId: selectedCategory,
@@ -196,7 +196,11 @@ export default function InlineTarotModal({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to draw cards");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+        console.error("[InlineTarot] API error:", res.status, errorData);
+        throw new Error(`Failed to draw cards: ${res.status} - ${JSON.stringify(errorData)}`);
+      }
 
       const data = await res.json();
       setDrawnCards(data.drawnCards);
@@ -239,7 +243,7 @@ export default function InlineTarotModal({
           : (lang === "ko" ? dc.card.upright.keywordsKo || dc.card.upright.keywords : dc.card.upright.keywords),
       })),
       language: lang,
-      concern,
+      userQuestion: concern,
       birthdate: profile.birthDate,
     };
 
@@ -248,7 +252,7 @@ export default function InlineTarotModal({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-public-token": "true",
+          "x-api-token": process.env.NEXT_PUBLIC_API_TOKEN || "",
         },
         body: JSON.stringify(payload),
       });

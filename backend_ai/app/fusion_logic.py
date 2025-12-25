@@ -420,7 +420,11 @@ def _parallel_rag_query(rag, facts_data, domain):
         return {}
 
 def _parallel_jung_quotes(theme, locale):
-    """Thread-safe Jung quotes retrieval."""
+    """Thread-safe Jung quotes retrieval.
+
+    NOTE: Jung quotes are used as interpretive frameworks, not direct quotes.
+    AI should say "칼융 심리학에 의하면" instead of "융이 말했듯이".
+    """
     try:
         corpus_rag = get_corpus_rag()
         theme_queries = {
@@ -515,10 +519,19 @@ def interpret_with_ai(facts: dict):
             '"categoryAnalysis"' in raw_prompt
         )
 
-        if is_structured_prompt:
-            # For structured prompts from frontend, allow full length (no truncation)
+        # v3.1: Check if frontend sent comprehensive snapshot (from buildAllDataPrompt)
+        is_frontend_v3_snapshot = (
+            "[COMPREHENSIVE DATA SNAPSHOT v3" in raw_prompt or
+            "PART 1: 사주 (KOREAN ASTROLOGY - SAJU)" in raw_prompt
+        )
+
+        if is_structured_prompt or is_frontend_v3_snapshot:
+            # For structured prompts or v3.1 snapshots from frontend, allow full length (no truncation)
             user_prompt = sanitize_user_input(raw_prompt, max_length=50000, allow_newlines=True)
-            print(f"[FusionLogic] Structured JSON prompt detected (len={len(raw_prompt)})")
+            if is_structured_prompt:
+                print(f"[FusionLogic] Structured JSON prompt detected (len={len(raw_prompt)})")
+            if is_frontend_v3_snapshot:
+                print(f"[FusionLogic] Frontend v3.1 snapshot detected (len={len(raw_prompt)}) - using as authoritative data")
         else:
             # Normal user input - apply strict sanitization
             user_prompt = sanitize_user_input(raw_prompt)
@@ -622,10 +635,11 @@ def interpret_with_ai(facts: dict):
         base_dir = os.path.dirname(os.path.dirname(__file__))  # .../backend_ai
         rag = get_graph_rag()  # Use singleton instead of creating new instance
 
-        # PARALLEL PREPROCESSING - Run independent tasks concurrently
+        # PARALLEL PREPROCESSING - Run independent tasks concurrently (optimized)
+        # Increased max_workers to 8 for better parallelism
         parallel_results = {}
 
-        with ThreadPoolExecutor(max_workers=6) as executor:
+        with ThreadPoolExecutor(max_workers=8) as executor:
             futures = {
                 executor.submit(_parallel_rag_query, rag, facts.get("saju", {}), "saju"): "rag_saju",
                 executor.submit(_parallel_rag_query, rag, facts.get("astro", {}), "astro"): "rag_astro",
@@ -638,7 +652,7 @@ def interpret_with_ai(facts: dict):
             for future in as_completed(futures):
                 key = futures[future]
                 try:
-                    parallel_results[key] = future.result()
+                    parallel_results[key] = future.result(timeout=5)  # Add 5s timeout per task
                 except Exception as e:
                     print(f"[Parallel] {key} failed: {e}")
                     parallel_results[key] = None

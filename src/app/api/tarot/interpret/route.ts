@@ -2,6 +2,7 @@
 // Premium Tarot Interpretation API using Hybrid RAG
 
 import { NextResponse } from "next/server";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
@@ -11,20 +12,6 @@ import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
 
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.BACKEND_AI_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://localhost:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[tarot interpret] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[tarot interpret] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
-}
 
 interface CardInput {
   name: string;

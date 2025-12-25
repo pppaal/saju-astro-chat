@@ -49,8 +49,19 @@ type DailyHistory = {
 };
 
 const SERVICE_ICONS: Record<string, string> = {
+  // kebab-case versions
   "destiny-map": "🗺️",
   "destiny-calendar": "📅",
+  "daily-fortune": "🌟",
+  "destiny-pal": "🤝",
+  "destiny-matrix": "🔷",
+  // camelCase versions (for backward compatibility)
+  "destinyMap": "🗺️",
+  "destinyCalendar": "📅",
+  "dailyFortune": "🌟",
+  "destinyPal": "🤝",
+  "destinyMatrix": "🔷",
+  // single word services
   tarot: "🃏",
   saju: "🔮",
   astrology: "⭐",
@@ -58,16 +69,24 @@ const SERVICE_ICONS: Record<string, string> = {
   iching: "☯️",
   numerology: "🔢",
   aura: "🌈",
-  "daily-fortune": "🌟",
   personality: "🧠",
   compatibility: "💕",
-  "destiny-pal": "🤝",
-  "destiny-matrix": "🔷",
 };
 
 const SERVICE_NAME_KEYS: Record<string, string> = {
+  // kebab-case versions
   "destiny-map": "myjourney.services.destinyMap",
   "destiny-calendar": "myjourney.services.destinyCalendar",
+  "daily-fortune": "myjourney.services.dailyFortune",
+  "destiny-pal": "myjourney.services.destinyPal",
+  "destiny-matrix": "myjourney.services.destinyMatrix",
+  // camelCase versions (for backward compatibility)
+  "destinyMap": "myjourney.services.destinyMap",
+  "destinyCalendar": "myjourney.services.destinyCalendar",
+  "dailyFortune": "myjourney.services.dailyFortune",
+  "destinyPal": "myjourney.services.destinyPal",
+  "destinyMatrix": "myjourney.services.destinyMatrix",
+  // single word services
   tarot: "myjourney.services.tarot",
   saju: "myjourney.services.saju",
   astrology: "myjourney.services.astrology",
@@ -75,16 +94,24 @@ const SERVICE_NAME_KEYS: Record<string, string> = {
   iching: "myjourney.services.iching",
   numerology: "myjourney.services.numerology",
   aura: "myjourney.services.aura",
-  "daily-fortune": "myjourney.services.dailyFortune",
   personality: "myjourney.services.personality",
   compatibility: "myjourney.services.compatibility",
-  "destiny-pal": "myjourney.services.destinyPal",
-  "destiny-matrix": "myjourney.services.destinyMatrix",
 };
 
 const SERVICE_URLS: Record<string, string> = {
+  // kebab-case versions
   "destiny-map": "/destiny-map",
   "destiny-calendar": "/calendar",
+  "daily-fortune": "/myjourney",
+  "destiny-pal": "/destiny-pal",
+  "destiny-matrix": "/destiny-matrix",
+  // camelCase versions (for backward compatibility)
+  "destinyMap": "/destiny-map",
+  "destinyCalendar": "/calendar",
+  "dailyFortune": "/myjourney",
+  "destinyPal": "/destiny-pal",
+  "destinyMatrix": "/destiny-matrix",
+  // single word services
   tarot: "/tarot",
   saju: "/saju",
   astrology: "/astrology",
@@ -93,9 +120,6 @@ const SERVICE_URLS: Record<string, string> = {
   numerology: "/numerology",
   personality: "/personality",
   compatibility: "/compatibility",
-  "destiny-pal": "/destiny-pal",
-  "destiny-matrix": "/destiny-matrix",
-  "daily-fortune": "/myjourney",
   aura: "/aura",
 };
 
@@ -129,6 +153,7 @@ function MyJourneyPage() {
   const [recentHistory, setRecentHistory] = useState<DailyHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  const [credits, setCredits] = useState<{ remaining: number; total: number; plan: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -140,6 +165,26 @@ function MyJourneyPage() {
       setProfile(user);
     };
     load();
+  }, [status]);
+
+  useEffect(() => {
+    const loadCredits = async () => {
+      if (status !== "authenticated") return;
+      try {
+        const res = await fetch("/api/me/credits", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          setCredits({
+            remaining: data.credits?.remaining ?? 0,
+            total: data.credits?.monthly ?? 0,
+            plan: data.plan || 'free'
+          });
+        }
+      } catch (e) {
+        console.error("Failed to load credits:", e);
+      }
+    };
+    loadCredits();
   }, [status]);
 
   useEffect(() => {
@@ -231,10 +276,10 @@ function MyJourneyPage() {
       {/* Header */}
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={goBack}>←</button>
-        <h1 className={styles.logo}>{t("myjourney.title")}</h1>
+        <h1 className={styles.logo}>{t("myjourney.title", "My Journey")}</h1>
         {session && (
           <button className={styles.logoutBtn} onClick={() => signOut({ callbackUrl: "/myjourney" })}>
-            {t("myjourney.logout")}
+            {t("myjourney.logout", "Logout")}
           </button>
         )}
       </header>
@@ -293,6 +338,28 @@ function MyJourneyPage() {
             <div className={styles.profileInfo}>
               <h2>{session.user?.name || "User"}</h2>
               <p>{session.user?.email}</p>
+              {/* Plan Badge */}
+              {credits && (
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginTop: '8px',
+                  padding: '4px 12px',
+                  background: credits.plan === 'free' ? 'rgba(255,255,255,0.1)' :
+                             credits.plan === 'starter' ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
+                             credits.plan === 'pro' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
+                             'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: 'white',
+                  textTransform: 'uppercase'
+                }}>
+                  <span>{credits.plan === 'free' ? '🆓' : credits.plan === 'starter' ? '⭐' : credits.plan === 'pro' ? '💎' : '👑'}</span>
+                  <span>{credits.plan}</span>
+                </div>
+              )}
             </div>
             {/* Fortune Orb */}
             <div className={styles.fortuneOrb}>
@@ -309,6 +376,41 @@ function MyJourneyPage() {
             </div>
           </div>
 
+          {/* Credits Card */}
+          {credits && (
+            <div className={styles.menuCard} style={{
+              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              cursor: 'pointer'
+            }} onClick={() => router.push('/pricing')}>
+              <span className={styles.menuIcon}>✨</span>
+              <div style={{ flex: 1 }}>
+                <h3>{t("myjourney.credits.title", "Credits")}</h3>
+                <p>{t("myjourney.credits.desc", `${credits.remaining} / ${credits.total} remaining`)}</p>
+              </div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: '4px'
+              }}>
+                <div style={{
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {credits.remaining}
+                </div>
+                <div style={{ fontSize: '11px', opacity: 0.6 }}>
+                  {t("myjourney.credits.upgrade", "Tap to upgrade")}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 2-Column Grid */}
           <div className={styles.grid}>
             {/* Left Column - Navigation */}
@@ -316,24 +418,32 @@ function MyJourneyPage() {
               <Link href="/myjourney/profile" className={styles.menuCard}>
                 <span className={styles.menuIcon}>👤</span>
                 <div>
-                  <h3>{t("myjourney.profile.title")}</h3>
-                  <p>{t("myjourney.profile.desc")}</p>
+                  <h3>{t("myjourney.profile.title", "My Profile")}</h3>
+                  <p>{t("myjourney.profile.desc", "Birth date & settings")}</p>
                 </div>
               </Link>
 
               <Link href="/myjourney/circle" className={styles.menuCard}>
                 <span className={styles.menuIcon}>👥</span>
                 <div>
-                  <h3>{t("myjourney.circle.title")}</h3>
-                  <p>{t("myjourney.circle.desc")}</p>
+                  <h3>{t("myjourney.circle.title", "My Circle")}</h3>
+                  <p>{t("myjourney.circle.desc", "Family, friends, partners")}</p>
                 </div>
               </Link>
 
               <Link href="/myjourney/history" className={styles.menuCard}>
                 <span className={styles.menuIcon}>📜</span>
                 <div>
-                  <h3>{t("myjourney.destiny.title")}</h3>
-                  <p>{t("myjourney.destiny.desc")}</p>
+                  <h3>{t("myjourney.destiny.title", "My Destiny")}</h3>
+                  <p>{t("myjourney.destiny.desc", "Past readings & insights")}</p>
+                </div>
+              </Link>
+
+              <Link href="/destiny-pal" className={styles.menuCard} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                <span className={styles.menuIcon}>🎁</span>
+                <div>
+                  <h3>{t("myjourney.referral.title", "Invite Friends")}</h3>
+                  <p>{t("myjourney.referral.desc", "Get 3 credits per friend")}</p>
                 </div>
               </Link>
             </div>
@@ -341,29 +451,29 @@ function MyJourneyPage() {
             {/* Right Column - Fortune Details */}
             <div className={styles.column}>
               <div className={styles.fortuneCard}>
-                <h3>{t("myjourney.fortune.title")}</h3>
+                <h3>{t("myjourney.fortune.title", "Today's Fortune")}</h3>
                 {fortune ? (
                   <>
                     <div className={styles.fortuneGrid}>
                       <div className={styles.fortuneItem}>
                         <span>❤️</span>
                         <span>{fortune.love}</span>
-                        <small>{t("myjourney.fortune.love")}</small>
+                        <small>{t("myjourney.fortune.love", "Love")}</small>
                       </div>
                       <div className={styles.fortuneItem}>
                         <span>💼</span>
                         <span>{fortune.career}</span>
-                        <small>{t("myjourney.fortune.career")}</small>
+                        <small>{t("myjourney.fortune.career", "Career")}</small>
                       </div>
                       <div className={styles.fortuneItem}>
                         <span>💰</span>
                         <span>{fortune.wealth}</span>
-                        <small>{t("myjourney.fortune.wealth")}</small>
+                        <small>{t("myjourney.fortune.wealth", "Wealth")}</small>
                       </div>
                       <div className={styles.fortuneItem}>
                         <span>🏥</span>
                         <span>{fortune.health}</span>
-                        <small>{t("myjourney.fortune.health")}</small>
+                        <small>{t("myjourney.fortune.health", "Health")}</small>
                       </div>
                     </div>
                   </>
@@ -384,9 +494,9 @@ function MyJourneyPage() {
           {/* Recent Activity */}
           <div className={styles.services}>
             <div className={styles.servicesHeader}>
-              <h3>{t("myjourney.activity.title")}</h3>
+              <h3>{t("myjourney.activity.title", "Recent Activity")}</h3>
               <Link href="/myjourney/history" className={styles.viewAllLink}>
-                {t("myjourney.activity.viewAll")}
+                {t("myjourney.activity.viewAll", "View All →")}
               </Link>
             </div>
             {historyLoading ? (
@@ -404,24 +514,50 @@ function MyJourneyPage() {
                     <div key={day.date} className={styles.dayGroup}>
                       <div className={styles.dayDate}>{formatDate(day.date, t, locale)}</div>
                       <div className={styles.dayTags}>
-                        {visibleRecords.map((record) => (
-                          <Link
-                            key={record.id}
-                            href={SERVICE_URLS[record.service] || "/myjourney/history"}
-                            className={styles.serviceTag}
-                          >
-                            <span className={styles.tagIcon}>{SERVICE_ICONS[record.service] || "📖"}</span>
-                            <span className={styles.tagName}>{SERVICE_NAME_KEYS[record.service] ? t(SERVICE_NAME_KEYS[record.service]) : record.service}</span>
-                            <span className={styles.tagArrow}>→</span>
-                          </Link>
-                        ))}
+                        {visibleRecords.map((record) => {
+                          // Get service name with proper formatting
+                          let serviceName: string;
+                          const i18nKey = SERVICE_NAME_KEYS[record.service];
+
+                          if (i18nKey) {
+                            serviceName = t(i18nKey);
+                            // If translation failed and returned the key itself, use fallback
+                            if (serviceName === i18nKey || serviceName.includes('.')) {
+                              serviceName = record.service
+                                .replace(/([A-Z])/g, ' $1')
+                                .split(/[-\s]/)
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                .join(' ')
+                                .trim();
+                            }
+                          } else {
+                            // Convert camelCase or kebab-case to Title Case
+                            serviceName = record.service
+                              .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+                              .split(/[-\s]/) // Split by dash or space
+                              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                              .join(' ')
+                              .trim();
+                          }
+
+                          return (
+                            <div
+                              key={record.id}
+                              className={styles.serviceTag}
+                              style={{ cursor: 'default' }}
+                            >
+                              <span className={styles.tagIcon}>{SERVICE_ICONS[record.service] || "📖"}</span>
+                              <span className={styles.tagName}>{serviceName}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                       {hasMore && (
                         <button
                           className={styles.showMoreBtn}
                           onClick={() => setExpandedDays(prev => ({ ...prev, [day.date]: !prev[day.date] }))}
                         >
-                          {isExpanded ? t("myjourney.activity.showLess") : `${t("myjourney.activity.showMore")} (+${day.records.length - 3})`}
+                          {isExpanded ? t("myjourney.activity.showLess", "Show Less") : `${t("myjourney.activity.showMore", "Show More")} (+${day.records.length - 3})`}
                         </button>
                       )}
                     </div>

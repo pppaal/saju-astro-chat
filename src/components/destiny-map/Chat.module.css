@@ -220,8 +220,9 @@
 .userMessage {
   padding: 18px 22px;
   border-radius: 18px;
-  font-size: 1.1rem;
-  line-height: 1.85;
+  font-size: 1rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
   white-space: pre-wrap;
   word-wrap: break-word;
   position: relative;
@@ -229,11 +230,12 @@
 }
 
 .assistantMessage {
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(139, 92, 246, 0.12);
   border: 1px solid rgba(167, 139, 250, 0.2);
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.92);
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
   border-radius: 16px 16px 16px 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
 }
 
 .userMessage {
@@ -244,7 +246,8 @@
   border-radius: 16px 16px 4px 16px;
 }
 
-/* Shine effect on assistant messages */
+/* Shine effect on assistant messages - DISABLED for cleaner look */
+/*
 .assistantMessage::before {
   content: '';
   position: absolute;
@@ -269,25 +272,41 @@
     left: 100%;
   }
 }
+*/
 
-/* ========== Thinking Indicator ========== */
+/* ========== Enhanced Thinking Indicator ========== */
 .thinkingMessage {
   padding: 14px 18px;
   border-radius: 16px 16px 16px 4px;
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(167, 139, 250, 0.1) 100%);
+  border: 1px solid rgba(167, 139, 250, 0.3);
   display: flex;
   align-items: center;
   gap: 12px;
+  animation: thinkingPulse 2s ease-in-out infinite;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+}
+
+@keyframes thinkingPulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+    border-color: rgba(167, 139, 250, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+    border-color: rgba(167, 139, 250, 0.5);
+  }
 }
 
 .typingDot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(167, 139, 250, 0.8);
-  animation: typingDot 1.4s ease-in-out infinite;
-  box-shadow: 0 0 10px rgba(167, 139, 250, 0.6);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 1) 0%, rgba(139, 92, 246, 0.9) 100%);
+  animation: typingDot 1.2s ease-in-out infinite;
+  box-shadow:
+    0 0 12px rgba(167, 139, 250, 0.8),
+    0 0 24px rgba(139, 92, 246, 0.4);
 }
 
 .typingDot:nth-child(1) {
@@ -295,28 +314,39 @@
 }
 
 .typingDot:nth-child(2) {
-  animation-delay: 0.2s;
+  animation-delay: 0.15s;
 }
 
 .typingDot:nth-child(3) {
-  animation-delay: 0.4s;
+  animation-delay: 0.3s;
 }
 
 @keyframes typingDot {
   0%, 60%, 100% {
-    transform: translateY(0);
-    opacity: 0.7;
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
   }
   30% {
-    transform: translateY(-10px);
+    transform: translateY(-14px) scale(1.2);
     opacity: 1;
   }
 }
 
 .thinkingText {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 14px;
+  font-weight: 500;
   margin-left: 8px;
+  animation: textFade 1.5s ease-in-out infinite;
+}
+
+@keyframes textFade {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* ========== Input Area ========== */
@@ -852,8 +882,8 @@
   .assistantMessage,
   .userMessage {
     padding: 14px 16px;
-    font-size: 1rem;
-    line-height: 1.75;
+    font-size: 0.95rem;
+    line-height: 1.7;
   }
 
   .inputRow {
@@ -901,7 +931,8 @@
   .assistantMessage,
   .userMessage {
     padding: 12px 14px;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
   }
 
   .textarea {
@@ -1286,5 +1317,312 @@
     position: absolute;
     top: 12px;
     right: 12px;
+  }
+}
+
+/* ========== Connection Status Indicator ========== */
+.connectionStatus {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  animation: slideInRight 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.connectionStatus.slow {
+  background: rgba(251, 191, 36, 0.95);
+  color: #1f2937;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.connectionStatus.offline {
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ========== Session Management Buttons ========== */
+.sessionButtons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sessionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sessionBtn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ========== History Modal ========== */
+.historyModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+  padding: 20px;
+}
+
+.historyModal {
+  background: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  animation: crisisModalEnter 0.3s ease-out;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+}
+
+.historyTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.historyCloseBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.historyCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.historyContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.historyLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.historyEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.historyItem:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.historyItemContent {
+  flex: 1;
+  cursor: pointer;
+}
+
+.historyItemDate {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+}
+
+.historyItemMeta {
+  font-size: 12px;
+  color: rgba(167, 139, 250, 0.8);
+}
+
+.historyItemSummary {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.historyItemDelete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.historyItemDelete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  opacity: 1;
+}
+
+.deleteConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+}
+
+.deleteConfirmButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.deleteConfirmYes {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.8);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteConfirmYes:hover {
+  background: rgba(239, 68, 68, 1);
+}
+
+.deleteConfirmNo {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteConfirmNo:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.historyFooter {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(167, 139, 250, 0.15);
+}
+
+.newChatBtn {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.newChatBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+@media (max-width: 640px) {
+  .sessionButtons {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .sessionBtn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .historyModal {
+    max-height: 80vh;
+    margin: 10px;
   }
 }

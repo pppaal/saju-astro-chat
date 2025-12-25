@@ -24,9 +24,9 @@
 
 .backButtonContainer {
   position: fixed;
-  top: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
 }
 
 /* ===== Crystal Ball ===== */
@@ -125,6 +125,22 @@
   border-radius: 4px;
 }
 
+/* ===== Counselor Selection ===== */
+.counselorSection {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 2rem;
+  z-index: 20;
+  position: relative;
+}
+
+.counselorLabel {
+  font-size: 0.9rem;
+  color: rgba(99, 210, 255, 0.8);
+  margin: 0 0 0.75rem 0.25rem;
+  font-weight: 500;
+}
+
 /* ===== Title/Subtitle ===== */
 .title {
   font-family: 'Inter', system-ui, sans-serif;
@@ -149,6 +165,331 @@
   color: rgba(99, 210, 255, 0.9);
   z-index: 10;
   position: relative;
+}
+
+/* ===== Question Input ===== */
+.questionInputContainer {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+  z-index: 10;
+  position: relative;
+}
+
+.questionInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.questionInput {
+  width: 100%;
+  padding: 1rem 3rem 1rem 1.5rem;
+  font-size: 1.1rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: rgba(30, 30, 45, 0.6);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(99, 210, 255, 0.4);
+  border-radius: 16px;
+  color: #ffffff;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.questionInput::placeholder {
+  color: rgba(99, 210, 255, 0.6);
+}
+
+.questionInput:focus {
+  border-color: rgba(124, 242, 156, 0.7);
+  box-shadow: 0 0 20px rgba(99, 210, 255, 0.3),
+              0 0 40px rgba(124, 242, 156, 0.15);
+}
+
+.clearButton {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+/* ===== Quick Questions ===== */
+.quickQuestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  z-index: 10;
+  position: relative;
+  max-width: 600px;
+}
+
+.quickQuestionButton {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  background: rgba(99, 210, 255, 0.15);
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 20px;
+  color: rgba(99, 210, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quickQuestionButton:hover {
+  background: rgba(99, 210, 255, 0.25);
+  border-color: rgba(99, 210, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 210, 255, 0.2);
+}
+
+/* ===== Recent Questions Section ===== */
+.recentSection {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+  z-index: 10;
+  position: relative;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.recentLabel {
+  font-size: 0.8rem;
+  color: rgba(99, 210, 255, 0.6);
+  margin: 0 0 0.5rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recentQuestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.recentQuestionButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.9rem;
+  background: rgba(30, 30, 45, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(224, 224, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+}
+
+.recentQuestionButton:hover {
+  background: rgba(99, 210, 255, 0.15);
+  border-color: rgba(99, 210, 255, 0.4);
+  transform: translateX(4px);
+}
+
+.recentQuestionText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentDeleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.recentDeleteButton:hover {
+  color: rgba(255, 100, 100, 0.9);
+  background: rgba(255, 100, 100, 0.15);
+}
+
+/* ===== Recommendations Section ===== */
+.recommendationsSection {
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 2rem;
+  z-index: 10;
+  position: relative;
+}
+
+.recommendationsTitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgba(99, 210, 255, 0.9);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.recommendationsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.recommendationCard {
+  background: rgba(30, 30, 45, 0.5);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(99, 210, 255, 0.3);
+  border-radius: 16px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recommendationCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.recommendationCard:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(124, 242, 156, 0.6);
+  box-shadow: 0 12px 30px rgba(99, 210, 255, 0.3),
+              0 0 40px rgba(124, 242, 156, 0.15);
+}
+
+.recommendationCard:hover::before {
+  opacity: 0.15;
+}
+
+.recommendationIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.recommendationContent {
+  flex: 1;
+}
+
+.recommendationTitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #7cf29c;
+  margin: 0 0 0.25rem 0;
+}
+
+.recommendationCardCount {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(99, 210, 255, 0.9);
+  background: rgba(99, 210, 255, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.recommendationReason {
+  font-size: 0.85rem;
+  color: rgba(224, 224, 255, 0.8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.recommendationTheme {
+  margin-top: 0.5rem;
+}
+
+.themeTag {
+  font-size: 0.75rem;
+  color: rgba(99, 210, 255, 0.7);
+  background: rgba(99, 210, 255, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+}
+
+.recommendationArrow {
+  font-size: 1.25rem;
+  color: rgba(99, 210, 255, 0.5);
+  text-align: right;
+  transition: all 0.3s ease;
+}
+
+.recommendationCard:hover .recommendationArrow {
+  transform: translateX(5px);
+  color: rgba(124, 242, 156, 0.8);
+}
+
+/* ===== Manual Toggle ===== */
+.manualToggle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 12px;
+  color: rgba(99, 210, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  z-index: 10;
+  position: relative;
+}
+
+.manualToggle:hover {
+  background: rgba(99, 210, 255, 0.1);
+  border-color: rgba(99, 210, 255, 0.5);
+}
+
+/* ===== Manual Section ===== */
+.manualSection {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.4s ease-out;
 }
 
 /* ===== Theme Selector Pills ===== */
@@ -480,6 +821,37 @@
     height: 180px;
   }
 
+  .questionInput {
+    font-size: 1rem;
+    padding: 0.875rem 2.5rem 0.875rem 1.25rem;
+  }
+
+  .quickQuestions {
+    gap: 0.4rem;
+  }
+
+  .quickQuestionButton {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .recentQuestionButton {
+    font-size: 0.85rem;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .recommendationsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendationCard {
+    padding: 1rem;
+  }
+
+  .recommendationTitle {
+    font-size: 1.05rem;
+  }
+
   .themeSelector {
     gap: 0.5rem;
   }
@@ -547,6 +919,47 @@
     width: 55px;
     height: 20px;
     margin-top: -10px;
+  }
+
+  .questionInput {
+    font-size: 0.95rem;
+    padding: 0.75rem 2.25rem 0.75rem 1rem;
+  }
+
+  .quickQuestionButton {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .recentLabel {
+    font-size: 0.75rem;
+  }
+
+  .recentQuestionButton {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+  }
+
+  .recommendationsTitle {
+    font-size: 1rem;
+  }
+
+  .recommendationCard {
+    padding: 0.875rem;
+  }
+
+  .recommendationTitle {
+    font-size: 1rem;
+  }
+
+  .recommendationReason {
+    font-size: 0.8rem;
+  }
+
+  .manualToggle {
+    font-size: 0.85rem;
+    padding: 0.6rem 1.25rem;
   }
 
   .themeButton {

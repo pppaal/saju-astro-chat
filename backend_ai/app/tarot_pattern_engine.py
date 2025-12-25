@@ -16,6 +16,8 @@ Tarot Pattern Engine - 규칙 기반 카드 조합 분석
 
 from typing import List, Dict, Optional, Tuple, Set
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
 import re
 
 
@@ -375,6 +377,7 @@ class TarotPatternEngine:
         self.element_interactions = ELEMENT_INTERACTIONS
         self.polarity_pairs = POLARITY_PAIRS
         self.transformation_sequences = TRANSFORMATION_SEQUENCES
+        self._analysis_cache = {}
 
     # =========================================================================
     # 메인 분석 메서드
@@ -393,10 +396,17 @@ class TarotPatternEngine:
         if not cards:
             return {}
 
+        # 캐시 키 생성 (카드 이름과 역방향 여부로 해시)
+        cache_key = tuple((c.get('name', ''), c.get('isReversed', False)) for c in cards)
+
+        # 캐시 확인
+        if cache_key in self._analysis_cache:
+            return self._analysis_cache[cache_key]
+
         # 카드 정보 파싱
         parsed_cards = [self._parse_card(c) for c in cards]
 
-        return {
+        result = {
             # 슈트 패턴
             'suit_analysis': self._analyze_suit_pattern(parsed_cards),
 
@@ -430,6 +440,16 @@ class TarotPatternEngine:
             # 종합 메시지
             'synthesis': self._synthesize_patterns(parsed_cards),
         }
+
+        # 캐시 저장 (최대 100개 유지)
+        if len(self._analysis_cache) >= 100:
+            # 오래된 항목 제거 (간단히 절반 삭제)
+            keys_to_remove = list(self._analysis_cache.keys())[:50]
+            for key in keys_to_remove:
+                del self._analysis_cache[key]
+
+        self._analysis_cache[cache_key] = result
+        return result
 
     # =========================================================================
     # 카드 파싱
@@ -804,7 +824,7 @@ class TarotPatternEngine:
     def _analyze_energy_flow(self, cards: List[Dict]) -> Dict:
         """카드 순서에 따른 에너지 흐름 분석"""
         if len(cards) < 2:
-            return {'flow': 'single', 'messages': []}
+            return {'flow': 'single', 'trend': 'neutral', 'pattern': 'stable', 'messages': []}
 
         # 에너지 점수 계산 (메이저=3, 궁정=2, 숫자=숫자값/3)
         def get_energy_score(card: Dict) -> float:
@@ -1009,13 +1029,22 @@ class TarotPatternEngine:
 
     def _synthesize_patterns(self, cards: List[Dict]) -> Dict:
         """모든 패턴을 종합하여 핵심 메시지 도출"""
-        # 각 분석 수행
-        suit = self._analyze_suit_pattern(cards)
-        number = self._analyze_number_pattern(cards)
-        arcana = self._analyze_arcana_ratio(cards)
-        court = self._analyze_court_pattern(cards)
-        energy = self._analyze_energy_flow(cards)
-        reversals = self._analyze_reversals(cards)
+        # 각 분석을 병렬로 수행
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            suit_future = executor.submit(self._analyze_suit_pattern, cards)
+            number_future = executor.submit(self._analyze_number_pattern, cards)
+            arcana_future = executor.submit(self._analyze_arcana_ratio, cards)
+            court_future = executor.submit(self._analyze_court_pattern, cards)
+            energy_future = executor.submit(self._analyze_energy_flow, cards)
+            reversals_future = executor.submit(self._analyze_reversals, cards)
+
+            # 결과 수집
+            suit = suit_future.result()
+            number = number_future.result()
+            arcana = arcana_future.result()
+            court = court_future.result()
+            energy = energy_future.result()
+            reversals = reversals_future.result()
 
         synthesis = {
             'primary_theme': None,
@@ -1038,9 +1067,9 @@ class TarotPatternEngine:
         # 에너지 품질
         if reversals['ratio'] >= 50:
             synthesis['energy_quality'] = 'blocked'
-        elif energy['trend'] == 'ascending':
+        elif energy.get('trend') == 'ascending':
             synthesis['energy_quality'] = 'rising'
-        elif energy['trend'] == 'descending':
+        elif energy.get('trend') == 'descending':
             synthesis['energy_quality'] = 'settling'
         else:
             synthesis['energy_quality'] = 'stable'

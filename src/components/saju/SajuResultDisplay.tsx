@@ -363,7 +363,7 @@ export default function SajuResultDisplay({ result }: Props) {
 
         {/* 표: 외부 컴포넌트 + 어댑터 정규화 */}
         <PillarSummaryTable
-          data={buildPillarView(result.table?.byPillar)}
+          data={buildPillarView(result.table?.byPillar as any)}
         />
 
         <p style={{ textAlign: 'center', marginTop: 18, fontSize: '1rem', color: '#a0a0a0' }}>

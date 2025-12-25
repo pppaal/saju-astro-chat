@@ -39,6 +39,15 @@ export async function checkAndConsumeCredits(
 
   const userId = session.user.id;
 
+  // 개발/테스트 환경에서 크레딧 우회
+  if (process.env.BYPASS_CREDITS === "true") {
+    return {
+      allowed: true,
+      userId,
+      remaining: 9999,
+    };
+  }
+
   // 크레딧 체크
   const canUse = await canUseCredits(userId, type, amount);
   if (!canUse.allowed) {
@@ -90,6 +99,15 @@ export async function checkCreditsOnly(
       allowed: false,
       error: "로그인이 필요합니다",
       errorCode: "not_authenticated",
+    };
+  }
+
+  // 개발/테스트 환경에서 크레딧 우회
+  if (process.env.BYPASS_CREDITS === "true") {
+    return {
+      allowed: true,
+      userId: session.user.id,
+      remaining: 9999,
     };
   }
 

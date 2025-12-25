@@ -17,4 +17,4 @@ for (const [cc, list] of map) {
   list.sort((a,b)=> a.name.localeCompare(b.name));
   fs.writeFileSync(path.join(OUTDIR, `${cc}.json`), JSON.stringify(list));
 }
-console.log('countries:', map.size, 'files at', OUTDIR);
+console.warn('countries:', map.size, 'files at', OUTDIR);

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { primaryStyle, secondaryStyle, dominanceScore, affiliationScore, consistencyScore, analysisData } = body;
+    const { primaryStyle, secondaryStyle, dominanceScore, affiliationScore, consistencyScore } = body;
 
     // 필수 필드 검증
     if (!primaryStyle || dominanceScore === undefined || affiliationScore === undefined) {

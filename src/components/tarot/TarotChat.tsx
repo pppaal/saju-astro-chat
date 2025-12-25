@@ -1,8 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import styles from "./TarotChat.module.css";
 import { Spread, DrawnCard } from "@/lib/Tarot/tarot.types";
+import { apiFetch } from "@/lib/api-client";
+import { tarotCounselors } from "@/lib/Tarot/tarot-counselors";
+import CreditBadge from "@/components/ui/CreditBadge";
 
 type LangKey = "ko" | "en";
 
@@ -40,21 +44,21 @@ const I18N: Record<LangKey, {
     fallbackNote: "This is a fallback response; try again for a fresher reading."
   }
 };
-// Fun loading messages for better UX
+// Loading messages - clean and realistic
 const LOADING_MESSAGES: Record<LangKey, string[]> = {
   ko: [
-    "카드의 에너지를 읽고 있어요... ✨",
-    "별들의 메시지를 해독 중... 🌟",
-    "당신만을 위한 인사이트 준비 중... 💫",
-    "카드가 속삭이는 말을 듣고 있어요... 🔮",
-    "실용적인 조언을 찾고 있어요... 📖"
+    "카드 해석 중...",
+    "답변 준비 중...",
+    "분석 중...",
+    "응답 생성 중...",
+    "조언 정리 중..."
   ],
   en: [
-    "Reading the energy of your cards... ✨",
-    "Decoding messages from the stars... 🌟",
-    "Preparing insights just for you... 💫",
-    "Listening to what the cards whisper... 🔮",
-    "Finding practical guidance... 📖"
+    "Analyzing cards...",
+    "Preparing response...",
+    "Processing...",
+    "Generating answer...",
+    "Organizing insights..."
   ]
 };
 // Suggested questions based on spread (more specific than category)
@@ -716,50 +720,6 @@ const SUIT_QUESTIONS: Record<string, Record<LangKey, string[]>> = {
   }
 };
 
-// === NUMBER-BASED QUESTIONS (Ace through 10) ===
-const _NUMBER_QUESTIONS: Record<string, Record<LangKey, string[]>> = {
-  "Ace": {
-    ko: ["이 새로운 시작의 씨앗을 어떻게 심어야 할까요?", "에이스가 가져오는 순수한 잠재력은?"],
-    en: ["How should I plant this seed of new beginning?", "What pure potential does this Ace bring?"]
-  },
-  "Two": {
-    ko: ["균형과 선택 사이에서 무엇이 중요한가요?", "파트너십이나 이중성의 의미는?"],
-    en: ["What matters between balance and choice?", "What does partnership or duality mean?"]
-  },
-  "Three": {
-    ko: ["확장과 성장의 다음 단계는?", "협력과 창조의 결과가 나타나고 있나요?"],
-    en: ["What is the next step of expansion and growth?", "Are results of collaboration appearing?"]
-  },
-  "Four": {
-    ko: ["안정과 기반이 필요한 영역은?", "구조를 세우거나 휴식이 필요한 곳은?"],
-    en: ["What area needs stability and foundation?", "Where do I need structure or rest?"]
-  },
-  "Five": {
-    ko: ["이 도전과 갈등에서 배울 교훈은?", "변화의 고통을 어떻게 극복할까요?"],
-    en: ["What lesson is there in this challenge and conflict?", "How to overcome the pain of change?"]
-  },
-  "Six": {
-    ko: ["조화와 균형을 회복하는 방법은?", "주고받음의 에너지가 흐르고 있나요?"],
-    en: ["How to restore harmony and balance?", "Is the energy of giving and receiving flowing?"]
-  },
-  "Seven": {
-    ko: ["성찰과 평가가 필요한 시점인가요?", "깊은 내면의 작업이 필요한 영역은?"],
-    en: ["Is this a time for reflection and assessment?", "What area needs deep inner work?"]
-  },
-  "Eight": {
-    ko: ["숙달과 움직임의 방향은?", "노력이 결실을 맺고 있나요?"],
-    en: ["What is the direction of mastery and movement?", "Is my effort bearing fruit?"]
-  },
-  "Nine": {
-    ko: ["거의 완성에 가까워졌나요?", "마지막 단계에서 주의할 점은?"],
-    en: ["Am I near completion?", "What to watch in the final stage?"]
-  },
-  "Ten": {
-    ko: ["이 사이클의 완성과 새 시작이 의미하는 것은?", "정점에 도달한 후 다음은?"],
-    en: ["What does completion and new beginning mean?", "What comes after reaching the peak?"]
-  }
-};
-
 // === COURT CARD QUESTIONS ===
 const COURT_CARD_QUESTIONS: Record<string, Record<LangKey, string[]>> = {
   "Page": {
@@ -1257,12 +1217,72 @@ interface ReadingResponse {
 
 type Message = { role: "user" | "assistant"; content: string };
 
+// Memoized Message Component for performance
+const MessageRow = React.memo(({
+  message,
+  index,
+  language,
+  styles
+}: {
+  message: Message;
+  index: number;
+  language: LangKey;
+  styles: Record<string, string>;
+}) => {
+  return (
+    <div
+      key={index}
+      className={`${styles.messageRow} ${message.role === "assistant" ? styles.assistantRow : styles.userRow}`}
+    >
+      {message.role === "assistant" && (
+        <div className={styles.avatar}>
+          <span className={styles.avatarIcon}>🔮</span>
+        </div>
+      )}
+      <div className={styles.messageBubble}>
+        <div className={message.role === "assistant" ? styles.assistantMessage : styles.userMessage}>
+          {message.content}
+        </div>
+      </div>
+      {message.role === "user" && (
+        <div className={styles.avatar}>
+          <span className={styles.avatarIcon}>👤</span>
+        </div>
+      )}
+    </div>
+  );
+});
+
+MessageRow.displayName = "MessageRow";
+
+type PersistedCard = {
+  position?: string;
+  name: string;
+  is_reversed?: boolean;
+  meaning?: string;
+  keywords?: string[];
+};
+
+type PersistedContext = {
+  spread_title?: string;
+  category?: string;
+  cards?: PersistedCard[];
+  overall_message?: string;
+  guidance?: string;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
 interface TarotChatProps {
   readingResult: ReadingResponse;
   interpretation: InterpretationResult | null;
   categoryName: string;
   spreadId: string;
   language: LangKey;
+  counselorId?: string;
+  counselorStyle?: string;
+  userTopic?: string;
 }
 
 export default function TarotChat({
@@ -1270,24 +1290,167 @@ export default function TarotChat({
   interpretation,
   categoryName,
   spreadId,
-  language = "ko"
+  language = "ko",
+  counselorId,
+  counselorStyle,
+  userTopic
 }: TarotChatProps) {
   const tr = I18N[language] || I18N.ko;
   const loadingMessages = LOADING_MESSAGES[language] || LOADING_MESSAGES.ko;
-  const [messages, setMessages] = useState<Message[]>([]);
+  const sessionKeyRef = useRef<string>(`tarot-chat:${categoryName}:${spreadId}`);
+  const messagesStorageKey = `${sessionKeyRef.current}:messages`;
+
+  // Load messages from localStorage on mount
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(messagesStorageKey);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [loadingMessage, setLoadingMessage] = useState<string>("");
   const [usedFallback, setUsedFallback] = useState(false);
-  const [persistedContext, setPersistedContext] = useState<any>(null);
+  const [persistedContext, setPersistedContext] = useState<PersistedContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [usedQuestionIndices, setUsedQuestionIndices] = useState<Set<number>>(new Set());
   const loadingMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const sessionKeyRef = useRef<string>(`tarot-context:${categoryName}:${spreadId}`);
+  const [showCardsModal, setShowCardsModal] = useState(false);
+
+  // 타로집 스타일: 질문마다 카드 뽑기 설정
+  const [cardCountForQuestion, setCardCountForQuestion] = useState<1 | 3 | 5>(1);
+  const [newlyDrawnCards, setNewlyDrawnCards] = useState<DrawnCard[]>([]);
+  const [showNewCards, setShowNewCards] = useState(false);
+  const [isDrawingCards, setIsDrawingCards] = useState(false);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && messages.length > 0) {
+      try {
+        localStorage.setItem(messagesStorageKey, JSON.stringify(messages));
+      } catch (e) {
+        console.error('Failed to save messages:', e);
+      }
+    }
+  }, [messages, messagesStorageKey]);
+
+  // Show counselor greeting on first load
+  useEffect(() => {
+    if (messages.length === 0 && counselorId) {
+      const counselor = tarotCounselors.find(c => c.id === counselorId);
+      if (counselor) {
+        const greetingText = language === 'ko' ? counselor.greetingKo : counselor.greeting;
+        setMessages([{
+          role: "assistant",
+          content: greetingText
+        }]);
+      }
+    }
+  }, []); // Only run once on mount
 
   // Generate dynamic questions based on actual drawn cards (만프로 Premium)
   const dynamicQuestions = generateDynamicQuestions(readingResult.drawnCards, language);
+
+  // Generate topic-based questions from userTopic
+  const generateTopicBasedQuestions = (): string[] => {
+    if (!userTopic || userTopic.trim().length === 0) return [];
+
+    const topic = userTopic.toLowerCase();
+    const topicQuestions: string[] = [];
+
+    // Detect topic themes and generate relevant questions
+    const isLove = /연애|사랑|이별|짝사랑|결혼|연인|데이트|소개팅|love|relationship|dating|marriage|crush|ex/i.test(topic);
+    const isCareer = /취업|이직|직장|회사|업무|승진|면접|사업|창업|job|career|work|business|promotion|interview/i.test(topic);
+    const isMoney = /돈|재정|투자|주식|재물|월급|빚|대출|money|finance|invest|wealth|salary/i.test(topic);
+    const isHealth = /건강|다이어트|운동|병|치료|스트레스|health|diet|exercise|stress/i.test(topic);
+    const isStudy = /공부|시험|합격|학업|자격증|study|exam|test|school|university/i.test(topic);
+    const isFamily = /가족|부모|자녀|형제|집안|family|parents|children/i.test(topic);
+    const isDecision = /선택|결정|고민|어떻게|해야|decision|choice|should|choose/i.test(topic);
+
+    if (language === 'ko') {
+      // Add the user's original topic as a question prefix
+      if (userTopic.length < 50) {
+        topicQuestions.push(`"${userTopic}"에 대해 카드가 알려주는 조언은?`);
+      }
+
+      if (isLove) {
+        topicQuestions.push("이 연애 고민에서 상대방의 마음은 어떤가요?");
+        topicQuestions.push("이 관계의 미래는 어떻게 될까요?");
+      }
+      if (isCareer) {
+        topicQuestions.push("이 커리어 결정에서 가장 중요하게 봐야 할 점은?");
+        topicQuestions.push("직장에서의 전망은 어떤가요?");
+      }
+      if (isMoney) {
+        topicQuestions.push("재정 상황이 언제쯤 나아질까요?");
+        topicQuestions.push("금전적으로 주의해야 할 점은?");
+      }
+      if (isHealth) {
+        topicQuestions.push("건강을 위해 특별히 신경 써야 할 부분은?");
+      }
+      if (isStudy) {
+        topicQuestions.push("시험/공부 운이 어떤가요?");
+        topicQuestions.push("학업에서 집중해야 할 방향은?");
+      }
+      if (isFamily) {
+        topicQuestions.push("가족 관계를 개선하려면 어떻게 해야 할까요?");
+      }
+      if (isDecision) {
+        topicQuestions.push("이 선택에서 어떤 방향이 더 좋을까요?");
+        topicQuestions.push("결정을 내리기 전에 고려해야 할 점은?");
+      }
+
+      // Generic topic-related questions
+      if (topicQuestions.length < 2) {
+        topicQuestions.push("이 상황에서 가장 주의해야 할 점은?");
+        topicQuestions.push("이 문제 해결을 위한 구체적인 조언은?");
+      }
+    } else {
+      if (userTopic.length < 50) {
+        topicQuestions.push(`What do the cards advise about "${userTopic}"?`);
+      }
+
+      if (isLove) {
+        topicQuestions.push("What are their true feelings about this?");
+        topicQuestions.push("What is the future of this relationship?");
+      }
+      if (isCareer) {
+        topicQuestions.push("What's most important for this career decision?");
+        topicQuestions.push("What does my professional future look like?");
+      }
+      if (isMoney) {
+        topicQuestions.push("When will my financial situation improve?");
+        topicQuestions.push("What financial pitfalls should I avoid?");
+      }
+      if (isHealth) {
+        topicQuestions.push("What health aspects need special attention?");
+      }
+      if (isStudy) {
+        topicQuestions.push("How are my study/exam prospects?");
+      }
+      if (isFamily) {
+        topicQuestions.push("How can I improve family relationships?");
+      }
+      if (isDecision) {
+        topicQuestions.push("Which direction is better for this choice?");
+        topicQuestions.push("What should I consider before deciding?");
+      }
+
+      if (topicQuestions.length < 2) {
+        topicQuestions.push("What should I watch out for in this situation?");
+        topicQuestions.push("What's the specific advice for this issue?");
+      }
+    }
+
+    return topicQuestions;
+  };
+
+  const topicQuestions = generateTopicBasedQuestions();
 
   // Priority: dynamic card-based > spreadId > categoryName > default
   // Merge dynamic questions with spread questions for comprehensive suggestions
@@ -1296,15 +1459,110 @@ export default function TarotChat({
     CATEGORY_QUESTIONS[categoryName]?.[language] ||
     CATEGORY_QUESTIONS.default[language];
 
-  // 울트라 프리미엄 Combination: card-specific > element > court > spread context
-  // Dynamic: Specific Minor + Major + Element Interaction + Court Relations + Reversed + Combos
+  // 울트라 프리미엄 Combination: topic-specific > card-specific > spread context
+  // Prioritize user's topic-related questions at the top
   const allSuggestedQuestions = [
-    ...dynamicQuestions.slice(0, 6),  // Top 6 card-specific questions (울트라)
-    ...spreadQuestions.slice(0, 4)     // Top 4 spread-specific questions
+    ...topicQuestions.slice(0, 3),       // Top 3 topic-specific questions (highest priority)
+    ...dynamicQuestions.slice(0, 4),     // Top 4 card-specific questions
+    ...spreadQuestions.slice(0, 3)       // Top 3 spread-specific questions
   ].slice(0, 10); // Max 10 total for ultra premium experience
 
-  // Get next 2 questions that haven't been used yet
+  // Generate contextual follow-up questions based on the last assistant response
+  const generateContextualQuestions = (lastResponse: string): string[] => {
+    if (!lastResponse) return [];
+
+    const contextualQuestions: string[] = [];
+    const cards = readingResult.drawnCards;
+
+    // Extract key themes from the response
+    const hasLove = /연애|사랑|관계|감정|연인|love|relationship/i.test(lastResponse);
+    const hasCareer = /직장|커리어|일|사업|job|career|work/i.test(lastResponse);
+    const hasChange = /변화|전환|바꾸|change|transform/i.test(lastResponse);
+    const hasChoice = /선택|결정|decision|choice/i.test(lastResponse);
+    const hasTiming = /시기|타이밍|언제|when|timing/i.test(lastResponse);
+    const hasWarning = /주의|조심|경고|warning|caution/i.test(lastResponse);
+
+    if (language === 'ko') {
+      if (hasChoice) {
+        contextualQuestions.push("어떤 선택이 더 나은 결과를 가져올까요?");
+        contextualQuestions.push("결정을 내릴 때 가장 중요하게 봐야 할 점은?");
+      }
+      if (hasTiming) {
+        contextualQuestions.push("구체적으로 언제쯤 행동하는 게 좋을까요?");
+        contextualQuestions.push("이 시기가 지나면 어떻게 될까요?");
+      }
+      if (hasLove) {
+        contextualQuestions.push("상대방은 어떻게 생각하고 있을까요?");
+        contextualQuestions.push("관계를 발전시키려면 무엇이 필요한가요?");
+      }
+      if (hasCareer) {
+        contextualQuestions.push("현재 직장에서 더 성장할 수 있을까요?");
+        contextualQuestions.push("커리어 전환의 적기는 언제인가요?");
+      }
+      if (hasChange) {
+        contextualQuestions.push("변화에 대비해 지금 준비해야 할 것은?");
+        contextualQuestions.push("변화를 받아들이기 위한 마음가짐은?");
+      }
+      if (hasWarning) {
+        contextualQuestions.push("구체적으로 어떤 점을 조심해야 하나요?");
+        contextualQuestions.push("이 위험을 피하려면 어떻게 해야 할까요?");
+      }
+
+      // Card-specific questions based on what was mentioned
+      if (cards.length > 1) {
+        contextualQuestions.push(`${cards[0].card.nameKo || cards[0].card.name} 카드를 더 자세히 알고 싶어요`);
+        contextualQuestions.push("카드들의 조합이 가진 특별한 의미가 있나요?");
+      }
+    } else {
+      if (hasChoice) {
+        contextualQuestions.push("Which choice leads to a better outcome?");
+        contextualQuestions.push("What's most important to consider when deciding?");
+      }
+      if (hasTiming) {
+        contextualQuestions.push("When exactly should I take action?");
+        contextualQuestions.push("What happens after this period passes?");
+      }
+      if (hasLove) {
+        contextualQuestions.push("What are they thinking/feeling?");
+        contextualQuestions.push("What's needed to develop this relationship?");
+      }
+      if (hasCareer) {
+        contextualQuestions.push("Can I grow more at my current job?");
+        contextualQuestions.push("When is the right time for a career change?");
+      }
+      if (hasChange) {
+        contextualQuestions.push("What should I prepare for this change?");
+        contextualQuestions.push("How should I embrace this transformation?");
+      }
+      if (hasWarning) {
+        contextualQuestions.push("What specifically should I be careful about?");
+        contextualQuestions.push("How can I avoid this risk?");
+      }
+
+      if (cards.length > 1) {
+        contextualQuestions.push(`Tell me more about the ${cards[0].card.name} card`);
+        contextualQuestions.push("Is there special meaning in this card combination?");
+      }
+    }
+
+    return contextualQuestions;
+  };
+
+  // Get next 2 questions - prioritize contextual questions from last response
   const getNextSuggestions = (): string[] => {
+    const lastAssistantMessage = messages.filter(m => m.role === 'assistant').pop();
+
+    if (lastAssistantMessage) {
+      const contextual = generateContextualQuestions(lastAssistantMessage.content);
+      if (contextual.length > 0) {
+        // Mix contextual with unused general questions
+        const available = allSuggestedQuestions.filter((_, idx) => !usedQuestionIndices.has(idx));
+        const mixed = [...contextual.slice(0, 2), ...available.slice(0, 1)];
+        return mixed.slice(0, 2);
+      }
+    }
+
+    // Fallback to general questions
     const available = allSuggestedQuestions.filter((_, idx) => !usedQuestionIndices.has(idx));
     return available.slice(0, 2);
   };
@@ -1313,9 +1571,14 @@ export default function TarotChat({
   const lastMessage = messages[messages.length - 1];
   const showSuggestionsAfterResponse = lastMessage?.role === 'assistant' && !loading;
 
+  const isInitialMount = useRef(true);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+    // Skip auto-scroll - let user control their own scroll position
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    }
+    // Removed auto-scroll to prevent screen jumping during streaming
+  }, [messages]);
 
   // Persist context for reuse within session
   useEffect(() => {
@@ -1332,9 +1595,9 @@ export default function TarotChat({
     try {
       const stored = sessionStorage.getItem(sessionKeyRef.current);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.cards?.length) {
-          setPersistedContext(parsed);
+        const parsed = JSON.parse(stored) as unknown;
+        if (isRecord(parsed) && Array.isArray(parsed.cards) && parsed.cards.length > 0) {
+          setPersistedContext(parsed as PersistedContext);
         }
       }
     } catch {
@@ -1353,7 +1616,7 @@ export default function TarotChat({
         : (dc.card.upright.keywordsKo || dc.card.upright.keywords)
     }));
 
-    const base = {
+    const base: PersistedContext = {
       spread_title: readingResult.spread.title,
       category: categoryName,
       cards,
@@ -1362,8 +1625,8 @@ export default function TarotChat({
     };
 
     // If we have a persisted context with cards, merge to keep continuity
-    if (persistedContext?.cards?.length) {
-      const persistedCards = persistedContext.cards as any[];
+    const persistedCards = persistedContext?.cards;
+    if (persistedCards && persistedCards.length) {
       const merged = [...persistedCards];
       for (const c of cards) {
         const dup = merged.find(
@@ -1399,20 +1662,7 @@ export default function TarotChat({
     setLoadingMessage("");
   };
 
-  // Append a short follow-up anchored to the first card
-  function addFollowUp(content: string) {
-    if (!content) return content;
-    const firstCard = readingResult.drawnCards[0];
-    if (!firstCard) return content;
-    const pos = readingResult.spread.positions[0]?.title || "Card 1";
-    const orient = firstCard.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
-    const follow = language === "ko"
-      ? `\n\n${tr.followUpLabel}: ${pos}의 ${firstCard.card.name}(${orient})에 대해 더 묻고 싶은 점이 있나요?`
-      : `\n\n${tr.followUpLabel}: Anything else about ${firstCard.card.name} (${orient}) in ${pos}?`;
-    return content.includes(tr.followUpLabel) ? content : `${content.trim()}${follow}`;
-  }
-
-  async function handleSend(text?: string) {
+  const handleSend = React.useCallback(async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || loading) return;
     setUsedFallback(false);
@@ -1430,15 +1680,66 @@ export default function TarotChat({
     setStreamingContent("");
     startLoadingMessages();
 
+    // Log counselor info for debugging
+    console.log('[TarotChat] Sending request with counselor:', counselorId, 'style:', counselorStyle);
+
     try {
-      // Try streaming endpoint first
-      const response = await fetch("/api/tarot/chat/stream", {
+      // Step 1: Draw a new card for this question (타로집 스타일)
+      let newDrawnCard = null;
+      try {
+        const drawResponse = await apiFetch("/api/tarot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            categoryId: categoryName,
+            spreadId: "quick-reading", // 1장 뽑기
+            cardCount: 1,
+            userTopic: messageText
+          })
+        });
+        if (drawResponse.ok) {
+          const drawData = await drawResponse.json();
+          if (drawData.drawnCards && drawData.drawnCards.length > 0) {
+            newDrawnCard = drawData.drawnCards[0];
+            console.log('[TarotChat] Drew new card for question:', newDrawnCard.card.name);
+          }
+        }
+      } catch (drawErr) {
+        console.warn('[TarotChat] Failed to draw new card, using existing context:', drawErr);
+      }
+
+      // Build context with new card added to cards array (backend processes cards array)
+      const baseContext = buildContext();
+      const contextWithNewCard = newDrawnCard ? {
+        ...baseContext,
+        cards: [
+          // Add new card at the beginning with "이번 질문" position
+          {
+            position: language === 'ko' ? '이번 질문에 대한 카드' : 'Card for this question',
+            name: language === 'ko' ? (newDrawnCard.card.nameKo || newDrawnCard.card.name) : newDrawnCard.card.name,
+            is_reversed: newDrawnCard.isReversed,
+            meaning: newDrawnCard.isReversed
+              ? (language === 'ko' ? newDrawnCard.card.reversed.meaningKo || newDrawnCard.card.reversed.meaning : newDrawnCard.card.reversed.meaning)
+              : (language === 'ko' ? newDrawnCard.card.upright.meaningKo || newDrawnCard.card.upright.meaning : newDrawnCard.card.upright.meaning),
+            keywords: newDrawnCard.isReversed
+              ? (language === 'ko' ? newDrawnCard.card.reversed.keywordsKo || newDrawnCard.card.reversed.keywords : newDrawnCard.card.reversed.keywords)
+              : (language === 'ko' ? newDrawnCard.card.upright.keywordsKo || newDrawnCard.card.upright.keywords : newDrawnCard.card.upright.keywords)
+          },
+          // Keep original cards as reference context
+          ...(baseContext.cards || [])
+        ]
+      } : baseContext;
+
+      // Step 2: Try streaming endpoint with the new card context
+      const response = await apiFetch("/api/tarot/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: nextMessages,
-          context: buildContext(),
-          language
+          context: contextWithNewCard,
+          language,
+          counselor_id: counselorId,
+          counselor_style: counselorStyle
         })
       });
 
@@ -1476,17 +1777,13 @@ export default function TarotChat({
                   setStreamingContent(accumulatedContent);
                 }
                 if (data.done) {
-                  // Streaming complete
-                  setMessages(prev => [...prev, {
-                    role: "assistant",
-                    content: addFollowUp(accumulatedContent || tr.error)
-                  }]);
+                  // Streaming complete - message will be added after loop
                   setStreamingContent("");
                 }
                 if (data.error) {
                   throw new Error(data.error);
                 }
-              } catch (parseError) {
+              } catch {
                 // Ignore parse errors for incomplete chunks
               }
             }
@@ -1501,7 +1798,7 @@ export default function TarotChat({
             if (last?.role === "assistant" && last?.content === accumulatedContent) {
               return prev;
             }
-            return [...prev, { role: "assistant", content: addFollowUp(accumulatedContent) }];
+            return [...prev, { role: "assistant", content: accumulatedContent }];
           });
           setStreamingContent("");
         }
@@ -1511,7 +1808,7 @@ export default function TarotChat({
         const data = await response.json();
         setMessages(prev => [...prev, {
           role: "assistant",
-          content: addFollowUp(data.reply || tr.error)
+          content: data.reply || tr.error
         }]);
       }
     } catch (error) {
@@ -1520,13 +1817,15 @@ export default function TarotChat({
 
       // Fallback to non-streaming endpoint
       try {
-        const fallbackResponse = await fetch("/api/tarot/chat", {
+        const fallbackResponse = await apiFetch("/api/tarot/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: nextMessages,
             context: buildContext(),
-            language
+            language,
+            counselor_id: counselorId,
+            counselor_style: counselorStyle
           })
         });
 
@@ -1535,7 +1834,7 @@ export default function TarotChat({
           setUsedFallback(true);
           setMessages(prev => [...prev, {
             role: "assistant",
-            content: addFollowUp(data.reply || tr.error)
+            content: data.reply || tr.error
           }]);
         } else {
           throw new Error("Fallback also failed");
@@ -1553,38 +1852,102 @@ export default function TarotChat({
       stopLoadingMessages();
       setStreamingContent("");
     }
-  }
+  }, [input, loading, messages, buildContext, language, counselorId, counselorStyle, tr.error, allSuggestedQuestions, setUsedQuestionIndices]);
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  const onKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  }
+  }, [handleSend]);
 
   return (
     <div className={styles.chatContainer}>
+      {/* Header with Credit Badge and Home Button */}
+      <div className={styles.chatHeader}>
+        <CreditBadge variant="compact" />
+        <Link href="/" className={styles.homeButton} aria-label="Home">
+          <span className={styles.homeIcon}>🏠</span>
+          <span className={styles.homeLabel}>{language === 'ko' ? '홈' : 'Home'}</span>
+        </Link>
+      </div>
+
       {/* Messages Panel */}
       <div className={styles.messagesPanel}>
-        <div className={styles.cardContext}>
-          <div className={styles.cardContextHeader}>{tr.cardContextTitle}</div>
-          <div className={styles.cardGrid}>
-            {readingResult.drawnCards.map((dc, idx) => {
-              const pos = readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`;
-              const orient = dc.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
-              const keywords = dc.isReversed ? (dc.card.reversed.keywordsKo || dc.card.reversed.keywords) : (dc.card.upright.keywordsKo || dc.card.upright.keywords);
-              return (
-                <div key={idx} className={styles.cardPill}>
-                  <div className={styles.cardTitle}>{pos}</div>
-                  <div className={styles.cardName}>{dc.card.name} · {orient}</div>
-                  {keywords && keywords.length > 0 && (
-                    <div className={styles.cardKeywords}>{keywords.slice(0, 3).join(", ")}</div>
-                  )}
-                </div>
-              );
-            })}
+        <button
+          className={styles.cardContextButton}
+          onClick={() => setShowCardsModal(true)}
+        >
+          <span className={styles.cardContextIcon}>🃏</span>
+          <span className={styles.cardContextText}>
+            {language === 'ko' ? `뽑은 카드 ${readingResult.drawnCards.length}장 보기` : `View ${readingResult.drawnCards.length} cards`}
+          </span>
+          <span className={styles.cardContextArrow}>▼</span>
+        </button>
+
+        {/* Cards Modal */}
+        {showCardsModal && (
+          <div className={styles.modalBackdrop} onClick={() => setShowCardsModal(false)}>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <h3 className={styles.modalTitle}>{tr.cardContextTitle}</h3>
+                <button
+                  className={styles.modalCloseBtn}
+                  onClick={() => setShowCardsModal(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className={styles.modalCardGrid}>
+                {readingResult.drawnCards.map((dc, idx) => {
+                  const pos = language === 'ko'
+                    ? (readingResult.spread.positions[idx]?.titleKo || readingResult.spread.positions[idx]?.title || `카드 ${idx + 1}`)
+                    : (readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`);
+                  const orient = dc.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
+                  const keywords = dc.isReversed ? (dc.card.reversed.keywordsKo || dc.card.reversed.keywords) : (dc.card.upright.keywordsKo || dc.card.upright.keywords);
+                  // Use AI interpretation if available, otherwise fall back to default meaning
+                  const aiInterpretation = interpretation?.card_insights?.[idx]?.interpretation;
+                  const defaultMeaning = dc.isReversed ? (dc.card.reversed.meaningKo || dc.card.reversed.meaning) : (dc.card.upright.meaningKo || dc.card.upright.meaning);
+                  const meaning = aiInterpretation || defaultMeaning;
+                  return (
+                    <div key={idx} className={styles.modalCardItem}>
+                      <div className={styles.modalCardLeft}>
+                        <div className={styles.modalCardImageWrapper}>
+                          <img
+                            src={dc.card.image}
+                            alt={dc.card.name}
+                            className={`${styles.modalCardImage} ${dc.isReversed ? styles.reversed : ''}`}
+                          />
+                          {dc.isReversed && (
+                            <div className={styles.reversedBadge}>
+                              {language === 'ko' ? '역위' : 'Reversed'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.modalCardRight}>
+                        <div className={styles.modalCardHeader}>
+                          <span className={styles.modalCardNumber}>{idx + 1}</span>
+                          <span className={styles.modalCardPosition}>{pos}</span>
+                        </div>
+                        <div className={styles.modalCardName}>{language === 'ko' ? dc.card.nameKo : dc.card.name}</div>
+                        <div className={styles.modalCardOrient}>{orient}</div>
+                        {keywords && keywords.length > 0 && (
+                          <div className={styles.modalCardKeywords}>
+                            {keywords.slice(0, 5).map((kw, i) => (
+                              <span key={i} className={styles.modalKeywordTag}>{kw}</span>
+                            ))}
+                          </div>
+                        )}
+                        <div className={styles.modalCardMeaning}>{meaning}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {messages.length === 0 && !loading && (
           <div className={styles.emptyState}>
@@ -1594,26 +1957,13 @@ export default function TarotChat({
         )}
 
         {messages.map((m, i) => (
-          <div
+          <MessageRow
             key={i}
-            className={`${styles.messageRow} ${m.role === "assistant" ? styles.assistantRow : styles.userRow}`}
-          >
-            {m.role === "assistant" && (
-              <div className={styles.avatar}>
-                <span className={styles.avatarIcon}>🔮</span>
-              </div>
-            )}
-            <div className={styles.messageBubble}>
-              <div className={m.role === "assistant" ? styles.assistantMessage : styles.userMessage}>
-                {m.content}
-              </div>
-            </div>
-            {m.role === "user" && (
-              <div className={styles.avatar}>
-                <span className={styles.avatarIcon}>👤</span>
-              </div>
-            )}
-          </div>
+            message={m}
+            index={i}
+            language={language}
+            styles={styles}
+          />
         ))}
 
         {/* Streaming content - show as it arrives */}

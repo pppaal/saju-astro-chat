@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const helpful = searchParams.get("helpful");
     const limit = parseInt(searchParams.get("limit") || "100", 10);
 
-    const where: any = {};
+    const where: { service?: string; theme?: string; helpful?: boolean } = {};
     if (service) where.service = service;
     if (theme) where.theme = theme;
     if (helpful !== null) where.helpful = helpful === "true";
@@ -33,10 +33,10 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ records });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Feedback Records Error]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500 }
     );
   }

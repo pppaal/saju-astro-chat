@@ -66,7 +66,7 @@ export function isCircuitOpen(
     if (now - circuit.lastFailure >= opts.resetTimeoutMs) {
       circuit.state = "HALF_OPEN";
       circuit.halfOpenAttempts = 0;
-      console.log(`[CircuitBreaker:${name}] OPEN → HALF_OPEN (testing)`);
+      console.warn(`[CircuitBreaker:${name}] OPEN → HALF_OPEN (testing)`);
       return false; // 테스트 요청 허용
     }
     return true; // 차단
@@ -87,7 +87,7 @@ export function recordSuccess(name: string): void {
   const circuit = getCircuit(name);
 
   if (circuit.state === "HALF_OPEN") {
-    console.log(`[CircuitBreaker:${name}] HALF_OPEN → CLOSED (recovered)`);
+    console.warn(`[CircuitBreaker:${name}] HALF_OPEN → CLOSED (recovered)`);
   }
 
   circuit.state = "CLOSED";
@@ -135,7 +135,7 @@ export async function withCircuitBreaker<T>(
 ): Promise<{ result: T; fromFallback: boolean }> {
   // 회로가 열려있으면 즉시 폴백
   if (isCircuitOpen(name, options)) {
-    console.log(`[CircuitBreaker:${name}] Circuit OPEN - using fallback`);
+    console.warn(`[CircuitBreaker:${name}] Circuit OPEN - using fallback`);
     const fallbackResult =
       typeof fallback === "function"
         ? await (fallback as () => T | Promise<T>)()

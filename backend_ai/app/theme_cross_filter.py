@@ -411,8 +411,23 @@ class ThemeCrossFilter:
         relevant_houses = theme_planets.get("houses", [])
 
         # 행성 배치
-        planets = astro_data.get("planets", [])
+        planets_raw = astro_data.get("planets", [])
+
+        # Handle both dict format {sun: {...}, moon: {...}} and list format [{name: "sun", ...}, ...]
+        planets = []
+        if isinstance(planets_raw, dict):
+            # Convert dict to list format
+            for planet_name, planet_data in planets_raw.items():
+                if isinstance(planet_data, dict):
+                    planet_obj = {"name": planet_name}
+                    planet_obj.update(planet_data)
+                    planets.append(planet_obj)
+        elif isinstance(planets_raw, list):
+            planets = planets_raw
+
         for planet in planets:
+            if not isinstance(planet, dict):
+                continue
             planet_name = planet.get("name", "").lower()
 
             relevance = "high" if planet_name in primary_planets else \
@@ -439,6 +454,8 @@ class ThemeCrossFilter:
         relevant_aspects = theme_planets.get("aspects", [])
 
         for aspect in aspects:
+            if not isinstance(aspect, dict):
+                continue
             planet1 = aspect.get("planet1", "").lower()
             planet2 = aspect.get("planet2", "").lower()
             aspect_type = aspect.get("aspect", "").lower()

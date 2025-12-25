@@ -1,0 +1,355 @@
+{
+  "_meta": {
+    "title": "Jungian Archetypes for Tarot",
+    "description": "칼 융의 12가지 원형과 타로 카드 매핑 - 심층 심리학적 해석을 위한 데이터",
+    "version": "1.0"
+  },
+  "archetype_definitions": {
+    "innocent": {
+      "korean": "순수한 아이",
+      "english": "The Innocent",
+      "core_desire": "안전과 행복",
+      "goal": "낙원을 찾는 것",
+      "fear": "처벌받거나 버림받는 것",
+      "shadow": "나이브함, 현실 부정, 의존성",
+      "gift": "믿음, 낙관주의, 충성"
+    },
+    "orphan": {
+      "korean": "고아/일반인",
+      "english": "The Orphan/Everyman",
+      "core_desire": "소속감",
+      "goal": "다른 사람들과 연결되는 것",
+      "fear": "배제되거나 눈에 띄는 것",
+      "shadow": "희생자 의식, 냉소주의",
+      "gift": "공감, 현실주의, 회복력"
+    },
+    "hero": {
+      "korean": "영웅",
+      "english": "The Hero",
+      "core_desire": "자신의 가치를 증명하는 것",
+      "goal": "세상을 더 나은 곳으로 만드는 것",
+      "fear": "약함, 취약함",
+      "shadow": "오만함, 끊임없는 싸움 추구",
+      "gift": "용기, 역량, 결단력"
+    },
+    "caregiver": {
+      "korean": "돌봄이",
+      "english": "The Caregiver",
+      "core_desire": "다른 사람을 보호하고 돌보는 것",
+      "goal": "다른 사람을 돕는 것",
+      "fear": "이기심, 배은망덕",
+      "shadow": "순교자 의식, 조종",
+      "gift": "관대함, 연민, 양육"
+    },
+    "explorer": {
+      "korean": "탐험가",
+      "english": "The Explorer",
+      "core_desire": "자유롭게 자신을 발견하는 것",
+      "goal": "더 진정한 삶을 경험하는 것",
+      "fear": "갇힘, 순응, 공허함",
+      "shadow": "방황, 불만족, 외로움",
+      "gift": "자율성, 야망, 진정성"
+    },
+    "rebel": {
+      "korean": "반역자",
+      "english": "The Rebel/Outlaw",
+      "core_desire": "혁명이나 복수",
+      "goal": "작동하지 않는 것을 뒤엎는 것",
+      "fear": "무력함, 무의미함",
+      "shadow": "범죄적 행동, 파괴성",
+      "gift": "급진적 자유, 변혁"
+    },
+    "lover": {
+      "korean": "연인",
+      "english": "The Lover",
+      "core_desire": "친밀감과 경험",
+      "goal": "사람, 일, 환경과 관계 맺기",
+      "fear": "원치 않음, 사랑받지 못함",
+      "shadow": "집착, 질투, 자아 상실",
+      "gift": "열정, 감사, 헌신"
+    },
+    "creator": {
+      "korean": "창조자",
+      "english": "The Creator",
+      "core_desire": "지속적 가치를 창조하는 것",
+      "goal": "비전을 현실로 만드는 것",
+      "fear": "평범한 비전이나 실행",
+      "shadow": "완벽주의, 나르시시즘",
+      "gift": "창의성, 상상력, 비전"
+    },
+    "jester": {
+      "korean": "광대",
+      "english": "The Jester",
+      "core_desire": "현재를 즐기는 것",
+      "goal": "즐거운 시간을 보내고 세상을 밝히는 것",
+      "fear": "지루함, 따분해 보이는 것",
+      "shadow": "경박함, 회피, 잔인한 유머",
+      "gift": "기쁨, 놀이, 현재 즐기기"
+    },
+    "sage": {
+      "korean": "현자",
+      "english": "The Sage",
+      "core_desire": "진리와 지혜를 찾는 것",
+      "goal": "지성과 분석으로 세상을 이해하는 것",
+      "fear": "속임, 무지",
+      "shadow": "냉담함, 행동하지 않음",
+      "gift": "지혜, 지성, 통찰"
+    },
+    "magician": {
+      "korean": "마법사",
+      "english": "The Magician",
+      "core_desire": "우주의 근본 법칙을 이해하는 것",
+      "goal": "꿈을 현실로 만드는 것",
+      "fear": "의도치 않은 부정적 결과",
+      "shadow": "조종, 속임수",
+      "gift": "변환, 비전 실현"
+    },
+    "ruler": {
+      "korean": "통치자",
+      "english": "The Ruler",
+      "core_desire": "통제, 권력",
+      "goal": "성공적인 공동체/가족/기업 창조",
+      "fear": "혼란, 전복",
+      "shadow": "권위주의, 폭정",
+      "gift": "책임감, 리더십, 번영"
+    }
+  },
+  "major_arcana_archetypes": {
+    "The Fool": {
+      "primary": "innocent",
+      "secondary": "explorer",
+      "journey_stage": "출발",
+      "korean_insight": "바보는 순수한 아이 원형으로, 새로운 여정을 두려움 없이 시작합니다. 이 카드가 나왔다면 당신 안의 순수함과 모험심을 일깨울 때입니다.",
+      "shadow_aspect": "무모함과 현실 도피는 순수한 아이의 그림자입니다. 책임을 회피하고 있지는 않은지 돌아보세요."
+    },
+    "The Magician": {
+      "primary": "magician",
+      "secondary": "creator",
+      "journey_stage": "도구 발견",
+      "korean_insight": "마법사 원형은 의지와 창조력의 결합입니다. 당신은 이미 필요한 모든 도구를 가지고 있습니다.",
+      "shadow_aspect": "조종과 속임수는 마법사의 그림자입니다. 자신의 능력을 어떻게 사용하고 있는지 성찰하세요."
+    },
+    "The High Priestess": {
+      "primary": "sage",
+      "secondary": "caregiver",
+      "journey_stage": "내면 탐구",
+      "korean_insight": "여사제는 내면의 지혜와 직관을 상징합니다. 답은 이미 당신 안에 있습니다.",
+      "shadow_aspect": "비밀 유지와 감정 차단은 현자의 그림자입니다. 진실을 외면하고 있지는 않나요?"
+    },
+    "The Empress": {
+      "primary": "caregiver",
+      "secondary": "lover",
+      "journey_stage": "풍요로움",
+      "korean_insight": "황후는 돌봄이와 연인 원형의 조합으로, 풍요와 양육을 상징합니다. 자신에게도 사랑을 베푸세요.",
+      "shadow_aspect": "과잉 보호와 자기 희생은 돌봄이의 그림자입니다. 건강한 경계를 설정하세요."
+    },
+    "The Emperor": {
+      "primary": "ruler",
+      "secondary": "hero",
+      "journey_stage": "구조화",
+      "korean_insight": "황제는 통치자 원형으로, 질서와 안정을 창조합니다. 당신의 삶에 구조가 필요할 수 있습니다.",
+      "shadow_aspect": "통제욕과 경직성은 통치자의 그림자입니다. 유연함도 필요합니다."
+    },
+    "The Hierophant": {
+      "primary": "sage",
+      "secondary": "ruler",
+      "journey_stage": "전통의 가르침",
+      "korean_insight": "교황은 현자와 통치자의 조합으로, 전통과 영적 가르침을 전합니다.",
+      "shadow_aspect": "교조주의와 맹목적 순종은 그림자입니다. 당신만의 진리를 찾으세요."
+    },
+    "The Lovers": {
+      "primary": "lover",
+      "secondary": "innocent",
+      "journey_stage": "선택",
+      "korean_insight": "연인들은 사랑과 선택을 상징합니다. 마음이 이끄는 곳을 따르되, 책임도 함께하세요.",
+      "shadow_aspect": "의존성과 양가감정은 연인 원형의 그림자입니다."
+    },
+    "The Chariot": {
+      "primary": "hero",
+      "secondary": "ruler",
+      "journey_stage": "승리를 향한 전진",
+      "korean_insight": "전차는 영웅 원형으로, 의지력과 결단으로 장애물을 극복합니다.",
+      "shadow_aspect": "공격성과 강박적 전진은 영웅의 그림자입니다. 때로는 멈춤도 필요합니다."
+    },
+    "Strength": {
+      "primary": "caregiver",
+      "secondary": "hero",
+      "journey_stage": "내면의 힘",
+      "korean_insight": "힘 카드는 돌봄이의 부드러운 힘을 보여줍니다. 진정한 강함은 연민에서 나옵니다.",
+      "shadow_aspect": "분노 억압과 과도한 인내는 그림자입니다. 모든 감정에는 가치가 있습니다."
+    },
+    "The Hermit": {
+      "primary": "sage",
+      "secondary": "explorer",
+      "journey_stage": "고독한 성찰",
+      "korean_insight": "은둔자는 현자와 탐험가의 조합으로, 내면을 탐구하며 지혜를 찾습니다.",
+      "shadow_aspect": "고립과 세상과의 단절은 현자의 그림자입니다. 균형을 찾으세요."
+    },
+    "Wheel of Fortune": {
+      "primary": "orphan",
+      "secondary": "magician",
+      "journey_stage": "운명의 전환점",
+      "korean_insight": "운명의 수레바퀴는 삶의 순환을 보여줍니다. 변화를 받아들이세요.",
+      "shadow_aspect": "운명 탓과 통제력 상실 두려움은 그림자입니다."
+    },
+    "Justice": {
+      "primary": "ruler",
+      "secondary": "sage",
+      "journey_stage": "균형과 결과",
+      "korean_insight": "정의는 통치자의 공정함을 상징합니다. 진실을 직면하세요.",
+      "shadow_aspect": "자기 비판과 완벽주의는 그림자입니다. 자신에게도 연민을 베푸세요."
+    },
+    "The Hanged Man": {
+      "primary": "orphan",
+      "secondary": "sage",
+      "journey_stage": "항복과 새 관점",
+      "korean_insight": "매달린 사람은 자발적 희생과 새로운 시각을 상징합니다. 다른 관점으로 보세요.",
+      "shadow_aspect": "희생자 의식과 순교자 콤플렉스는 그림자입니다."
+    },
+    "Death": {
+      "primary": "rebel",
+      "secondary": "magician",
+      "journey_stage": "변환",
+      "korean_insight": "죽음 카드는 반역자 원형으로, 오래된 것을 끝내고 새로운 시작을 알립니다.",
+      "shadow_aspect": "변화 거부와 집착은 그림자입니다. 놓아주면 새것이 들어옵니다."
+    },
+    "Temperance": {
+      "primary": "sage",
+      "secondary": "caregiver",
+      "journey_stage": "균형과 통합",
+      "korean_insight": "절제는 현자의 균형과 조화를 보여줍니다. 극단을 피하고 중도를 찾으세요.",
+      "shadow_aspect": "극단과 중독은 그림자입니다."
+    },
+    "The Devil": {
+      "primary": "rebel",
+      "secondary": "lover",
+      "journey_stage": "그림자 대면",
+      "korean_insight": "악마는 우리 안의 그림자를 직접 보여주는 카드입니다. 무엇이 당신을 묶고 있나요?",
+      "shadow_aspect": "중독, 물질주의, 억압된 욕망이 드러납니다. 인정하면 해방됩니다."
+    },
+    "The Tower": {
+      "primary": "rebel",
+      "secondary": "hero",
+      "journey_stage": "붕괴와 해방",
+      "korean_insight": "탑은 반역자 에너지의 극단으로, 거짓된 것을 무너뜨립니다. 진실만 남습니다.",
+      "shadow_aspect": "파괴에 대한 두려움과 통제 상실은 그림자입니다."
+    },
+    "The Star": {
+      "primary": "innocent",
+      "secondary": "caregiver",
+      "journey_stage": "희망과 치유",
+      "korean_insight": "별은 순수한 아이의 희망과 믿음을 회복합니다. 치유가 시작됩니다.",
+      "shadow_aspect": "희망 상실과 비현실적 기대는 그림자입니다."
+    },
+    "The Moon": {
+      "primary": "orphan",
+      "secondary": "magician",
+      "journey_stage": "무의식 탐험",
+      "korean_insight": "달은 무의식과 직관의 영역입니다. 두려움 너머에 진실이 있습니다.",
+      "shadow_aspect": "두려움, 환상, 자기 기만은 그림자입니다."
+    },
+    "The Sun": {
+      "primary": "innocent",
+      "secondary": "jester",
+      "journey_stage": "기쁨과 성취",
+      "korean_insight": "태양은 순수한 아이와 광대의 기쁨을 보여줍니다. 빛 속에서 춤추세요.",
+      "shadow_aspect": "거짓된 긍정과 그림자 부정은 그림자입니다. 어둠도 품어야 합니다."
+    },
+    "Judgement": {
+      "primary": "sage",
+      "secondary": "hero",
+      "journey_stage": "각성과 부름",
+      "korean_insight": "심판은 현자의 최종 각성입니다. 당신의 소명이 부르고 있습니다.",
+      "shadow_aspect": "자기 심판과 과거 죄책감은 그림자입니다. 용서하세요."
+    },
+    "The World": {
+      "primary": "ruler",
+      "secondary": "magician",
+      "journey_stage": "완성과 통합",
+      "korean_insight": "세계는 모든 원형의 통합입니다. 여정이 완성되고 새 순환이 시작됩니다.",
+      "shadow_aspect": "완성 두려움과 다음 단계 회피는 그림자입니다."
+    }
+  },
+  "minor_arcana_suit_archetypes": {
+    "Wands": {
+      "element": "fire",
+      "archetypes": ["hero", "explorer", "creator"],
+      "korean_theme": "열정, 창조력, 행동",
+      "shadow_theme": "분노, 성급함, 소진"
+    },
+    "Cups": {
+      "element": "water",
+      "archetypes": ["lover", "caregiver", "orphan"],
+      "korean_theme": "감정, 관계, 직관",
+      "shadow_theme": "감정 억압, 의존, 환상"
+    },
+    "Swords": {
+      "element": "air",
+      "archetypes": ["sage", "hero", "rebel"],
+      "korean_theme": "사고, 진실, 결단",
+      "shadow_theme": "냉소, 잔인함, 분석 마비"
+    },
+    "Pentacles": {
+      "element": "earth",
+      "archetypes": ["ruler", "caregiver", "creator"],
+      "korean_theme": "물질, 안정, 실현",
+      "shadow_theme": "탐욕, 집착, 경직성"
+    }
+  },
+  "court_card_archetypes": {
+    "Page": {
+      "archetype": "innocent",
+      "development": "원형의 시작 단계",
+      "korean_meaning": "학습자, 메신저, 새로운 에너지"
+    },
+    "Knight": {
+      "archetype": "hero",
+      "development": "원형의 활동 단계",
+      "korean_meaning": "행동가, 추구자, 극단으로 치닫는 에너지"
+    },
+    "Queen": {
+      "archetype": "caregiver",
+      "development": "원형의 내면화 단계",
+      "korean_meaning": "내면의 숙달, 수용적 힘, 양육"
+    },
+    "King": {
+      "archetype": "ruler",
+      "development": "원형의 외면화 단계",
+      "korean_meaning": "외부 숙달, 권위, 책임"
+    }
+  },
+  "reversed_shadow_integration": {
+    "description": "역방향 카드는 해당 원형의 그림자 측면을 나타냅니다",
+    "approach": [
+      "그림자는 적이 아닌 통합해야 할 자아의 일부입니다",
+      "역방향 카드는 억압되거나 과잉된 에너지를 보여줍니다",
+      "인정 → 이해 → 통합의 과정을 안내하세요"
+    ],
+    "integration_questions": [
+      "이 그림자가 보호하려는 것은 무엇인가요?",
+      "이 에너지를 건강하게 표현하는 방법은?",
+      "이 측면을 통합하면 어떤 힘을 얻게 되나요?"
+    ]
+  },
+  "individuation_journey": {
+    "concept": "개성화(Individuation)는 융 심리학의 핵심 개념으로, 의식과 무의식을 통합하여 온전한 자아가 되는 과정입니다",
+    "tarot_mapping": {
+      "stage_1_persona": {
+        "cards": ["The Magician", "The High Priestess", "The Empress", "The Emperor"],
+        "description": "사회적 가면(페르소나) 인식 단계"
+      },
+      "stage_2_shadow": {
+        "cards": ["The Devil", "The Moon", "Death"],
+        "description": "그림자 대면 단계"
+      },
+      "stage_3_anima_animus": {
+        "cards": ["The Lovers", "The Empress", "The Emperor"],
+        "description": "내면의 이성(아니마/아니무스) 통합"
+      },
+      "stage_4_self": {
+        "cards": ["The Sun", "Judgement", "The World"],
+        "description": "자기(Self) 실현 단계"
+      }
+    }
+  }
+}

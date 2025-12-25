@@ -25,7 +25,7 @@ export function recordCounter(name: string, value = 1, labels?: Labels) {
   const sample = (counters[key] = counters[key] || { name, labels, value: 0 });
   sample.value += value;
   if (process.env.NODE_ENV !== "production") {
-    console.debug(`[metric] counter ${name}=${sample.value}`, labels ?? {});
+    console.warn(`[metric] counter ${name}=${sample.value}`, labels ?? {});
   }
 }
 
@@ -37,7 +37,7 @@ export function recordTiming(name: string, ms: number, labels?: Labels) {
   bucket.sum += ms;
   bucket.max = Math.max(bucket.max, ms);
   if (process.env.NODE_ENV !== "production") {
-    console.debug(`[metric] timing ${name}=${ms.toFixed(1)}ms`, labels ?? {});
+    console.warn(`[metric] timing ${name}=${ms.toFixed(1)}ms`, labels ?? {});
   }
 }
 
@@ -46,7 +46,7 @@ export function recordGauge(name: string, value: number, labels?: Labels) {
   const key = makeKey(name, labels);
   gauges[key] = { name, labels, value };
   if (process.env.NODE_ENV !== "production") {
-    console.debug(`[metric] gauge ${name}=${value}`, labels ?? {});
+    console.warn(`[metric] gauge ${name}=${value}`, labels ?? {});
   }
 }
 

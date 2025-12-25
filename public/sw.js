@@ -1,19 +1,16 @@
 // Service Worker for Push Notifications
 // This handles push notifications when the app is in the background
 
-self.addEventListener("install", (event) => {
-  console.log("Service Worker installing...");
+self.addEventListener("install", (_event) => {
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
-  console.log("Service Worker activating...");
-  event.waitUntil(self.clients.claim());
+self.addEventListener("activate", (_event) => {
+  _event.waitUntil(self.clients.claim());
 });
 
 // Handle push notifications
 self.addEventListener("push", (event) => {
-  console.log("Push notification received:", event);
 
   let data = {
     title: "New Notification",
@@ -57,8 +54,6 @@ self.addEventListener("push", (event) => {
 
 // Handle notification clicks
 self.addEventListener("notificationclick", (event) => {
-  console.log("Notification clicked:", event);
-
   event.notification.close();
 
   const urlToOpen = event.notification.data?.url || "/notifications";
@@ -87,6 +82,4 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 // Handle notification close
-self.addEventListener("notificationclose", (event) => {
-  console.log("Notification closed:", event);
-});
+self.addEventListener("notificationclose", (_event) => {});

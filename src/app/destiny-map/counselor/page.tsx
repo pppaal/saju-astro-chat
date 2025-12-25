@@ -3,40 +3,31 @@
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import Chat from "@/components/destiny-map/Chat";
 import { useI18n } from "@/i18n/I18nProvider";
 import { calculateSajuData } from "@/lib/Saju/saju";
+import { loadChartData, saveChartData } from "@/lib/chartDataCache";
+import { ErrorBoundary, ChatErrorFallback } from "@/components/ErrorBoundary";
+import CreditBadge from "@/components/ui/CreditBadge";
+import type {
+  Lang,
+  ChartData,
+  UserContext,
+  CounselorInitResponse,
+  CounselorContextResponse,
+} from "@/types/api";
 import styles from "./counselor.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
-
-// User context type for returning users
-type UserContext = {
-  persona?: {
-    sessionCount?: number;
-    lastTopics?: string[];
-    emotionalTone?: string;
-    recurringIssues?: string[];
-  };
-  recentSessions?: Array<{
-    id: string;
-    summary?: string;
-    keyTopics?: string[];
-    lastMessageAt?: string;
-  }>;
-  personalityType?: {
-    typeCode: string;      // e.g., "RVLA"
-    personaName: string;   // e.g., "별을 빚는 설계자"
-  };
-};
 
 export default function CounselorPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { t } = useI18n();
+  const { t, setLocale } = useI18n();
   const sp = React.use(searchParams);
   const router = useRouter();
   const { status: authStatus } = useSession();
@@ -46,7 +37,7 @@ export default function CounselorPage({
   const [isLoading, setIsLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [chartData, setChartData] = useState<{ saju?: any; astro?: any; advancedAstro?: any } | null>(null);
+  const [chartData, setChartData] = useState<ChartData | null>(null);
   const [prefetchStatus, setPrefetchStatus] = useState<{
     done: boolean;
     timeMs?: number;
@@ -66,7 +57,8 @@ export default function CounselorPage({
   const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? "";
   const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? "";
   const theme = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? "life";
-  const lang = ((Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko") as any;
+  const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
+  const lang: Lang = langParam === "en" ? "en" : "ko";
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? "";
 
   const latStr =
@@ -79,66 +71,240 @@ export default function CounselorPage({
   const latitude = latStr ? Number(latStr) : NaN;
   const longitude = lonStr ? Number(lonStr) : NaN;
 
-  const loadingMessages = [
-    t("destinyMap.counselor.loading1", "Connecting with your counselor..."),
-    t("destinyMap.counselor.loading2", "Analyzing your birth chart..."),
-    t("destinyMap.counselor.loading3", "Reading celestial energies..."),
-    t("destinyMap.counselor.loading4", "Preparing personalized guidance..."),
+  // Theme selection state (can be changed by user)
+  const [selectedTheme, setSelectedTheme] = useState(theme);
+
+  // Available themes with labels
+  const themeOptions: Array<{ key: string; icon: string; label: string }> = [
+    // { key: "love", icon: "💕", label: lang === "ko" ? "연애" : "Love" },
+    // { key: "career", icon: "💼", label: lang === "ko" ? "커리어" : "Career" },
+    // { key: "health", icon: "🏥", label: lang === "ko" ? "건강" : "Health" },
+    // { key: "wealth", icon: "💰", label: lang === "ko" ? "재물" : "Wealth" },
+    // { key: "today", icon: "📅", label: lang === "ko" ? "오늘" : "Today" },
+    // { key: "month", icon: "📆", label: lang === "ko" ? "이달" : "Month" },
+    // { key: "year", icon: "🗓️", label: lang === "ko" ? "올해" : "Year" },
+    // { key: "family", icon: "👨‍👩‍👧", label: lang === "ko" ? "가족" : "Family" },
+    // { key: "life", icon: "🌟", label: lang === "ko" ? "인생" : "Life" },
   ];
 
-  // Load pre-computed chart data from sessionStorage OR compute fresh
+  const loadingMessages = [
+    t("destinyMap.counselor.loading1", "Connecting with counselor..."),
+    t("destinyMap.counselor.loading2", "Analyzing your profile..."),
+    t("destinyMap.counselor.loading3", "Preparing data..."),
+    t("destinyMap.counselor.loading4", "Ready to start!"),
+  ];
+
+  // Set locale from URL parameter
+  useEffect(() => {
+    if (lang && (lang === "en" || lang === "ko")) {
+      setLocale(lang);
+    }
+  }, [lang, setLocale]);
+
+  // Load pre-computed chart data from cache OR compute fresh
   useEffect(() => {
     if (!isAuthed) return;
-    if (!birthDate || !birthTime) return;
+    if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) return;
 
-    let saju: any = null;
-    let astro: any = null;
-    let advancedAstro: any = null;
+    let saju: Record<string, unknown> | null = null;
+    let astro: Record<string, unknown> | null = null;
+    let advancedAstro: Record<string, unknown> | null = null;
 
-    try {
-      const stored = sessionStorage.getItem("destinyChartData");
-      if (stored) {
-        const data = JSON.parse(stored);
-        // Only use if data is fresh (within 1 hour)
-        if (data.timestamp && Date.now() - data.timestamp < 3600000) {
-          saju = data.saju;
-          astro = data.astro;
-          // Load advanced astrology data if available
-          if (data.advancedAstro) {
-            advancedAstro = data.advancedAstro;
-          }
-        }
-      }
-    } catch (e) {
-      console.warn("[CounselorPage] Failed to load chart data:", e);
+    // Try to load from cache with birth data validation
+    const cached = loadChartData(birthDate, birthTime, latitude, longitude);
+    if (cached) {
+      console.warn("[CounselorPage] Using cached chart data");
+      saju = cached.saju ?? null;
+      astro = cached.astro ?? null;
+      advancedAstro = cached.advancedAstro ?? null;
     }
 
     // If no cached saju data, compute fresh from birth info
     if (!saju || !saju.dayMaster) {
       try {
-        console.log("[CounselorPage] Computing fresh saju data...");
-        // calculateSajuData(birthDate, birthTime, gender, calendarType, timezone, lunarLeap?)
+        console.warn("[CounselorPage] Computing fresh saju data...");
         const genderVal = (gender === "Male" || gender === "male") ? "male" : "female";
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
         const computed = calculateSajuData(birthDate, birthTime, genderVal, "solar", userTz);
-        saju = computed;
-        // Save to sessionStorage for future use
-        sessionStorage.setItem("destinyChartData", JSON.stringify({
-          saju: computed,
-          astro: astro || {},
-          advancedAstro: advancedAstro || null,
-          timestamp: Date.now(),
-        }));
-        console.log("[CounselorPage] Fresh saju computed:", {
+        saju = computed as Record<string, unknown>;
+
+        console.warn("[CounselorPage] Fresh saju computed:", {
           dayMaster: computed.dayMaster?.heavenlyStem,
           yearPillar: computed.yearPillar?.heavenlyStem,
         });
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("[CounselorPage] Failed to compute saju:", e);
       }
     }
 
-    setChartData({ saju, astro, advancedAstro });
+    // Set initial chartData (may be updated later by async advanced astro fetch)
+    setChartData({
+      saju: saju || undefined,
+      astro: astro || undefined,
+      advancedAstro: advancedAstro || undefined
+    });
+
+    // Always fetch advanced astro to ensure all fields are present
+    // Check if cache has all required fields
+    const hasAllFields = advancedAstro &&
+      'fixedStars' in advancedAstro &&
+      'eclipses' in advancedAstro &&
+      'midpoints' in advancedAstro;
+
+    console.warn("[CounselorPage] Cache check:", {
+      hasAdvancedAstro: !!advancedAstro,
+      hasFixedStars: advancedAstro ? 'fixedStars' in advancedAstro : false,
+      hasEclipses: advancedAstro ? 'eclipses' in advancedAstro : false,
+      hasMidpoints: advancedAstro ? 'midpoints' in advancedAstro : false,
+      hasAllFields,
+    });
+
+    if (!hasAllFields) {
+      console.warn("[CounselorPage] Fetching advanced astrology data...", {
+        reason: !advancedAstro ? "no cache" : "missing fields"
+      });
+      const fetchAdvancedAstro = async () => {
+        try {
+          const requestBody = {
+            date: birthDate,
+            time: birthTime,
+            latitude,
+            longitude,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
+          };
+
+          // Fetch ALL advanced astrology features in parallel
+          // Note: electional and rectification APIs require additional params (eventType, events)
+          // so they are not called here - transits are computed in chat-stream instead
+          const advancedHeaders = {
+            'Content-Type': 'application/json',
+            'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+          };
+          const [
+            asteroidsRes,
+            draconicRes,
+            harmonicsRes,
+            solarReturnRes,
+            lunarReturnRes,
+            progressionsRes,
+            fixedStarsRes,
+            eclipsesRes,
+            midpointsRes,
+          ] = await Promise.all([
+            fetch(`/api/astrology/advanced/asteroids`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            fetch(`/api/astrology/advanced/draconic`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            fetch(`/api/astrology/advanced/harmonics`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            // Solar Return (현재 연도)
+            fetch(`/api/astrology/advanced/solar-return`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            // Lunar Return (현재 월)
+            fetch(`/api/astrology/advanced/lunar-return`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            // Progressions (현재 날짜)
+            fetch(`/api/astrology/advanced/progressions`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            // Fixed Stars (항성)
+            fetch(`/api/astrology/advanced/fixed-stars`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            // Eclipses (이클립스)
+            fetch(`/api/astrology/advanced/eclipses`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+            // Midpoints (미드포인트)
+            fetch(`/api/astrology/advanced/midpoints`, {
+              method: 'POST',
+              headers: advancedHeaders,
+              body: JSON.stringify(requestBody)
+            }).catch(() => null),
+          ]);
+
+          const advanced: Record<string, unknown> = {};
+
+          if (asteroidsRes?.ok) {
+            const data = await asteroidsRes.json();
+            advanced.asteroids = data.asteroids;
+            advanced.extraPoints = data.extraPoints;
+          }
+
+          if (draconicRes?.ok) {
+            advanced.draconic = await draconicRes.json();
+          }
+
+          if (harmonicsRes?.ok) {
+            advanced.harmonics = await harmonicsRes.json();
+          }
+
+          if (solarReturnRes?.ok) {
+            advanced.solarReturn = await solarReturnRes.json();
+          }
+
+          if (lunarReturnRes?.ok) {
+            advanced.lunarReturn = await lunarReturnRes.json();
+          }
+
+          if (progressionsRes?.ok) {
+            advanced.progressions = await progressionsRes.json();
+          }
+
+          if (fixedStarsRes?.ok) {
+            advanced.fixedStars = await fixedStarsRes.json();
+          }
+
+          if (eclipsesRes?.ok) {
+            advanced.eclipses = await eclipsesRes.json();
+          }
+
+          if (midpointsRes?.ok) {
+            advanced.midpoints = await midpointsRes.json();
+          }
+
+          console.warn("[CounselorPage] ✅ Advanced astrology fetched:", Object.keys(advanced));
+
+          // Update chartData with advanced astrology
+          setChartData(prev => ({
+            ...prev,
+            advancedAstro: advanced
+          }));
+
+          // Save to cache
+          saveChartData(birthDate, birthTime, latitude, longitude, {
+            saju: saju || undefined,
+            astro: astro || undefined,
+            advancedAstro: advanced,
+          });
+        } catch (e) {
+          console.warn("[CounselorPage] Failed to fetch advanced astrology:", e);
+        }
+      };
+
+      fetchAdvancedAstro();
+    }
 
     // Prefetch RAG data in background
     // Always call prefetchRAG - backend will compute saju/astro from birth data if needed
@@ -163,25 +329,27 @@ export default function CounselorPage({
             },
           }),
         });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.status === "success") {
+        if (res.ok) {
+          const data = (await res.json()) as CounselorInitResponse;
+          if (data.status === "success") {
+            if (data.session_id) {
               setSessionId(data.session_id);
-              setPrefetchStatus({
-                done: true,
-                timeMs: data.prefetch_time_ms,
-                graphNodes: data.data_summary?.graph_nodes,
-                corpusQuotes: data.data_summary?.corpus_quotes,
-              });
-              console.log(`[Counselor] RAG prefetch done: ${data.prefetch_time_ms}ms`);
             }
+            setPrefetchStatus({
+              done: true,
+              timeMs: data.prefetch_time_ms,
+              graphNodes: data.data_summary?.graph_nodes,
+              corpusQuotes: data.data_summary?.corpus_quotes,
+            });
+            console.warn(`[Counselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
           }
-        } catch (e) {
-          console.warn("[CounselorPage] RAG prefetch failed:", e);
-          setPrefetchStatus({ done: true }); // Continue anyway
         }
-      };
-      prefetchRAG();
+      } catch (e: unknown) {
+        console.warn("[CounselorPage] RAG prefetch failed:", e);
+        setPrefetchStatus({ done: true }); // Continue anyway
+      }
+    };
+    prefetchRAG();
   }, [theme, isAuthed, birthDate, birthTime, gender, latitude, longitude]);
 
   // Premium: Load user context (persona + recent sessions) for returning users
@@ -197,22 +365,22 @@ export default function CounselorPage({
         try {
           const storedPersonality = localStorage.getItem("personaResult");
           if (storedPersonality) {
-            const personalityData = JSON.parse(storedPersonality);
+            const personalityData = JSON.parse(storedPersonality) as { typeCode?: string; personaName?: string };
             if (personalityData.typeCode) {
               context.personalityType = {
                 typeCode: personalityData.typeCode,
                 personaName: personalityData.personaName || "",
               };
-              console.log("[Counselor] Personality type loaded:", personalityData.typeCode);
+              console.warn("[Counselor] Personality type loaded:", personalityData.typeCode);
             }
           }
-        } catch (e) {
+        } catch (e: unknown) {
           // Ignore localStorage errors
         }
 
         const res = await fetch(`/api/counselor/chat-history?theme=${theme}&limit=3`);
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as CounselorContextResponse;
           if (data.success) {
             // Add persona memory if available
             if (data.persona) {
@@ -225,8 +393,9 @@ export default function CounselorPage({
             }
 
             // Add recent session summaries
-            if (data.sessions && data.sessions.length > 0) {
-              context.recentSessions = data.sessions.map((s: any) => ({
+            const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+            if (sessions.length > 0) {
+              context.recentSessions = sessions.map((s) => ({
                 id: s.id,
                 summary: s.summary,
                 keyTopics: s.keyTopics,
@@ -234,23 +403,23 @@ export default function CounselorPage({
               }));
 
               // If continuing the same theme, use the most recent session
-              const recentThemeSession = data.sessions.find((s: any) => s.theme === theme);
+              const recentThemeSession = sessions.find((s) => s.theme === theme);
               if (recentThemeSession) {
                 setChatSessionId(recentThemeSession.id);
               }
             }
 
             setUserContext(context);
-            console.log("[Counselor] User context loaded:", {
+            console.warn("[Counselor] User context loaded:", {
               isReturningUser: data.isReturningUser,
               sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
             });
           }
         }
-      } catch (e) {
+      } catch (e: unknown) {
         // Not logged in or error - continue without user context
-        console.log("[Counselor] No user context available (guest user)");
+        console.warn("[Counselor] No user context available (guest user)");
       }
     };
 
@@ -278,10 +447,10 @@ export default function CounselorPage({
           if (data.success && !chatSessionId) {
             // Set session ID for subsequent messages
             setChatSessionId(data.session.id);
-            console.log("[Counselor] New chat session created:", data.session.id);
+            console.warn("[Counselor] New chat session created:", data.session.id);
           }
         }
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("[Counselor] Failed to save message:", e);
       }
     },
@@ -412,17 +581,6 @@ export default function CounselorPage({
               ))}
             </div>
 
-            {/* Prefetch Status */}
-            {prefetchStatus.done && (
-              <div className={styles.prefetchStatus}>
-                <span className={styles.prefetchCheck}>✓</span>
-                <span>
-                  {lang === "ko"
-                    ? `${prefetchStatus.graphNodes || 0}개 지식 노드 준비 완료`
-                    : `${prefetchStatus.graphNodes || 0} knowledge nodes ready`}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </main>
@@ -434,6 +592,16 @@ export default function CounselorPage({
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ""}`}>
       {/* Header */}
       <header className={styles.header}>
+        {/* Back Button */}
+        <button
+          type="button"
+          className={styles.backButton}
+          onClick={() => router.back()}
+          aria-label={t("common.back", "뒤로가기")}
+        >
+          <span className={styles.backIcon}>←</span>
+        </button>
+
         <div className={styles.headerInfo}>
           <div className={styles.counselorBadge}>
             <span className={styles.counselorAvatar}>🔮</span>
@@ -449,38 +617,73 @@ export default function CounselorPage({
           </div>
         </div>
 
-        {/* Header actions - voice is in Chat component */}
-        <div className={styles.headerActions} />
+        {/* Header actions - credit badge & home */}
+        <div className={styles.headerActions}>
+          <CreditBadge variant="compact" />
+          <Link href="/" className={styles.homeButton} aria-label="Home">
+            <span className={styles.homeIcon}>🏠</span>
+            <span className={styles.homeLabel}>홈</span>
+          </Link>
+        </div>
       </header>
+
+      {/* Theme Selection Bar */}
+      <div className={styles.themeBar}>
+        <div className={styles.themeScroll}>
+          {themeOptions.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              className={`${styles.themeChip} ${selectedTheme === opt.key ? styles.themeChipActive : ""}`}
+              onClick={() => setSelectedTheme(opt.key)}
+            >
+              <span className={styles.themeIcon}>{opt.icon}</span>
+              <span className={styles.themeLabel}>{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Chat Area */}
       <div className={styles.chatWrapper}>
-        <Chat
-          profile={{
-            name,
-            birthDate,
-            birthTime,
-            city,
-            gender,
-            latitude,
-            longitude,
+        <ErrorBoundary
+          fallback={
+            <ChatErrorFallback
+              error={new Error("Chat error")}
+              reset={() => window.location.reload()}
+            />
+          }
+          onError={(error, errorInfo) => {
+            console.error("[Counselor] Chat error:", error, errorInfo);
           }}
-          lang={lang}
-          theme={theme}
-          initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ""}
-          seedEvent="counselor:seed"
-          saju={chartData?.saju}
-          astro={chartData?.astro}
-          advancedAstro={chartData?.advancedAstro}
-          // Premium features for returning users
-          userContext={userContext}
-          chatSessionId={chatSessionId}
-          onSaveMessage={handleSaveMessage}
-          autoScroll={false}
-          // RAG session from /counselor/init prefetch (Jung, graph, corpus)
-          ragSessionId={sessionId || undefined}
-          autoSendSeed
-        />
+        >
+          <Chat
+            profile={{
+              name,
+              birthDate,
+              birthTime,
+              city,
+              gender,
+              latitude,
+              longitude,
+            }}
+            lang={lang}
+            theme={selectedTheme}
+            initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ""}
+            seedEvent="counselor:seed"
+            saju={chartData?.saju}
+            astro={chartData?.astro}
+            advancedAstro={chartData?.advancedAstro}
+            // Premium features for returning users
+            userContext={userContext}
+            chatSessionId={chatSessionId}
+            onSaveMessage={handleSaveMessage}
+            autoScroll={false}
+            // RAG session from /counselor/init prefetch (Jung, graph, corpus)
+            ragSessionId={sessionId || undefined}
+            autoSendSeed
+          />
+        </ErrorBoundary>
       </div>
 
       {/* Initial Question Auto-send */}

@@ -13,6 +13,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import Card from "@/components/ui/Card";
 import Grid from "@/components/ui/Grid";
 import { SERVICE_LINKS, TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from "@/data/home";
+import { ChatDemoSection } from "@/components/home/ChatDemoSection";
 
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
 
@@ -239,19 +240,27 @@ export default function MainPage() {
 
     async function run() {
       try {
-        // Fetch visitor stats
-        await fetch("/api/visitors-today", { method: "POST", headers });
-        const visitorRes = await fetch("/api/visitors-today", { headers });
+        // Track visitor (POST - don't wait for response)
+        fetch("/api/visitors-today", { method: "POST", headers }).catch(() => {});
+
+        // Fetch both visitor stats and member stats in parallel
+        const [visitorRes, statsRes] = await Promise.all([
+          fetch("/api/visitors-today", { headers }),
+          fetch("/api/stats")
+        ]);
+
+        // Process visitor stats
         if (visitorRes.ok) {
           const data = await visitorRes.json();
           setTodayVisitors(typeof data.count === "number" ? data.count : 0);
           setTotalVisitors(typeof data.total === "number" ? data.total : 0);
         }
 
-        // Fetch member stats
-        const statsRes = await fetch("/api/stats");
-        const statsData = await statsRes.json();
-        setTotalMembers(typeof statsData.users === "number" ? statsData.users : 0);
+        // Process member stats
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setTotalMembers(typeof statsData.users === "number" ? statsData.users : 0);
+        }
       } catch {
         setVisitorError("Could not load stats.");
       }
@@ -725,65 +734,7 @@ export default function MainPage() {
       </section>
 
       {/* AI Chat Demo Section */}
-      <section className={styles.services}>
-        <div className={styles.serviceHeaderCentered}>
-          <div>
-            <p className={styles.sectionEyebrow}>
-              {translate("landing.servicesEyebrow", "DestinyPal Services")}
-            </p>
-            <h2 className={styles.sectionTitle}>
-              {translate("landing.servicesTitle", "Your Destiny, Decoded.")}
-            </h2>
-            <p className={styles.sectionDesc}>
-              {translate("landing.servicesDesc", "운명의 언어를 AI가 해석합니다")}
-            </p>
-          </div>
-          <div className={styles.heroGlass}>
-            <div className={styles.chatHeader}>
-              <div className={styles.chatHeaderLeft}>
-                <div className={styles.avatarBot}>AI</div>
-                <div>
-                  <div className={styles.chatHeaderTitle}>DestinyPal AI</div>
-                  <div className={styles.chatHeaderStatus}>Online</div>
-                </div>
-              </div>
-            </div>
-            <div className={styles.chatBubble}>
-              <div className={`${styles.messageRow} ${styles.userRow}`}>
-                <div className={styles.messageContent}>
-                  <div className={styles.userMessage}>
-                    {translate("landing.prompt1", "How is my fortune today?")}
-                  </div>
-                  <div className={styles.messageTime}>Just now</div>
-                </div>
-                <div className={styles.avatarUser}>You</div>
-              </div>
-              <div className={`${styles.messageRow} ${styles.aiRow}`}>
-                <div className={styles.avatarBot}>AI</div>
-                <div className={styles.messageContent}>
-                  <div className={styles.aiMessage}>
-                    {translate("landing.aiResponse", "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.")}
-                  </div>
-                  <div className={styles.messageTime}>Just now</div>
-                </div>
-              </div>
-            </div>
-            <div className={styles.chatInputArea}>
-              <input
-                type="text"
-                className={styles.chatInput}
-                placeholder={translate("landing.chatInputPlaceholder", "Ask about your destiny...")}
-                disabled
-              />
-              <button className={styles.chatSendBtn} disabled>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 8L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ChatDemoSection translate={translate} />
 
       {/* Astrology Feature Section */}
       <section className={styles.featureSection}>

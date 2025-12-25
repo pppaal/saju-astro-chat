@@ -1,15 +1,16 @@
 import { getServerSession } from "next-auth";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { enforceBodySize } from "@/lib/http";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import { normalizeMessages as normalizeMessagesBase, type ChatMessage } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 const ALLOWED_LANG = new Set(["ko", "en"]);
 const ALLOWED_GENDER = new Set(["male", "female", "other"]);
@@ -25,30 +26,12 @@ function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
 }
 
+// Use shared normalizeMessages with local config
 function normalizeMessages(raw: unknown): ChatMessage[] {
-  if (!Array.isArray(raw)) return [];
-  const out: ChatMessage[] = [];
-  for (const m of raw.slice(-MAX_MESSAGES)) {
-    if (!m || typeof m !== "object") continue;
-    const role = typeof (m as any).role === "string" && ["user", "assistant", "system"].includes((m as any).role)
-      ? ((m as any).role as ChatMessage["role"])
-      : null;
-    const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
-    if (!role || !content) continue;
-    out.push({ role, content: content.slice(0, MAX_MESSAGE_LEN) });
-  }
-  return out;
-}
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://127.0.0.1:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[astrology chat-stream] Using non-HTTPS AI backend in production");
-  }
-  return url;
+  return normalizeMessagesBase(raw, {
+    maxMessages: MAX_MESSAGES,
+    maxLength: MAX_MESSAGE_LEN,
+  });
 }
 
 function astrologyCounselorSystemPrompt(lang: string) {
@@ -109,10 +92,22 @@ export async function POST(request: Request) {
       }
     }
 
-    const oversized = enforceBodySize(request as any, BODY_LIMIT);
+    const oversized = enforceBodySize(request, BODY_LIMIT);
     if (oversized) return oversized;
 
-    const body = await request.json().catch(() => null);
+    const body = (await request.json().catch(() => null)) as {
+      name?: string;
+      birthDate?: string;
+      birthTime?: string;
+      gender?: string;
+      latitude?: number | string;
+      longitude?: number | string;
+      theme?: string;
+      lang?: string;
+      messages?: unknown;
+      astro?: unknown;
+      userContext?: string;
+    } | null;
     if (!body || typeof body !== "object") {
       return new Response(JSON.stringify({ error: "invalid_body" }), {
         status: 400,
@@ -120,21 +115,21 @@ export async function POST(request: Request) {
       });
     }
 
-    const name = typeof (body as any).name === "string" ? (body as any).name.trim().slice(0, MAX_NAME) : undefined;
-    const birthDate = typeof (body as any).birthDate === "string" ? (body as any).birthDate.trim().slice(0, 10) : "";
-    const birthTime = typeof (body as any).birthTime === "string" ? (body as any).birthTime.trim().slice(0, 5) : "";
-    const gender = typeof (body as any).gender === "string" && ALLOWED_GENDER.has((body as any).gender)
-      ? (body as any).gender
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim().slice(0, 10) : "";
+    const birthTime = typeof body.birthTime === "string" ? body.birthTime.trim().slice(0, 5) : "";
+    const gender = typeof body.gender === "string" && ALLOWED_GENDER.has(body.gender)
+      ? body.gender
       : "male";
-    const latitude = typeof (body as any).latitude === "number" ? (body as any).latitude : Number((body as any).latitude);
-    const longitude = typeof (body as any).longitude === "number" ? (body as any).longitude : Number((body as any).longitude);
-    const themeRaw = typeof (body as any).theme === "string" ? (body as any).theme.trim() : "life";
+    const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
+    const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
+    const themeRaw = typeof body.theme === "string" ? body.theme.trim() : "life";
     const theme = themeRaw.slice(0, MAX_THEME) || "life";
-    const lang = typeof (body as any).lang === "string" && ALLOWED_LANG.has((body as any).lang) ? (body as any).lang : "ko";
-    const messages = normalizeMessages((body as any).messages);
-    const astro = typeof (body as any).astro === "object" && body.astro !== null ? (body as any).astro : undefined;
-    const userContext = typeof (body as any).userContext === "string"
-      ? (body as any).userContext.slice(0, 1000)
+    const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
+    const messages = normalizeMessages(body.messages);
+    const astro = typeof body.astro === "object" && body.astro !== null ? body.astro : undefined;
+    const userContext = typeof body.userContext === "string"
+      ? body.userContext.slice(0, 1000)
       : undefined;
 
     if (!birthDate || !birthTime || !DATE_RE.test(birthDate) || !TIME_RE.test(birthTime)) {
@@ -154,6 +149,12 @@ export async function POST(request: Request) {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // Check credits and consume (required for chat)
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult);
     }
 
     const trimmedHistory = clampMessages(messages);
@@ -265,7 +266,7 @@ export async function POST(request: Request) {
       start(controller) {
         const reader = backendResponse.body!.getReader();
         const decoder = new TextDecoder();
-        const read = (): any => {
+        const read = (): void => {
           reader.read().then(({ done, value }) => {
             if (done) {
               controller.close();
@@ -292,9 +293,9 @@ export async function POST(request: Request) {
         "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Astrology Chat-Stream API error]", err);
-    return new Response(JSON.stringify({ error: err.message ?? "Internal Server Error" }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

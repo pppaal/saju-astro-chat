@@ -3,58 +3,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { sendNotification } from "@/lib/notifications/sse";
+import { isValidDate, isValidTime } from "@/lib/validation";
+import { apiClient } from "@/lib/api";
+import { getNowInTimezone, formatDateString } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://127.0.0.1:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[daily-fortune] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[daily-fortune] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
-}
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
-
-function isValidDateString(value?: string): value is string {
-  if (!value) return false;
-  if (!DATE_RE.test(value)) return false;
-  const d = new Date(value);
-  return !Number.isNaN(d.getTime());
-}
-
-function isValidTimeString(value?: string) {
-  if (!value) return false;
-  if (!TIME_RE.test(value)) return false;
-  const [h, m] = value.split(":").map(Number);
-  return h >= 0 && h < 24 && m >= 0 && m < 60;
-}
-
-/**
- * 타임존 기반 현재 날짜 헬퍼
- */
-function getNowInTimezone(tz?: string) {
-  const now = new Date();
-  const effectiveTz = tz || 'Asia/Seoul';
-  try {
-    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, year: 'numeric' }).format(now));
-    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, month: '2-digit' }).format(now));
-    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, day: '2-digit' }).format(now));
-    return { year: y, month: m, day: d };
-  } catch {
-    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(now));
-    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', month: '2-digit' }).format(now));
-    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', day: '2-digit' }).format(now));
-    return { year: y, month: m, day: d };
-  }
-}
 
 /**
  * 오늘의 운세 점수 계산 (AI 없이 사주+점성학 기반)
@@ -80,62 +33,37 @@ export async function POST(request: Request) {
     const birthDate = typeof _birthDate === "string" ? _birthDate.trim() : "";
     const birthTime = typeof _birthTime === "string" && _birthTime.trim() ? _birthTime.trim() : undefined;
 
-    if (!isValidDateString(birthDate)) {
+    if (!isValidDate(birthDate)) {
       return NextResponse.json({ error: "Birth date required" }, { status: 400 });
     }
-    if (birthTime && !isValidTimeString(birthTime)) {
+    if (birthTime && !isValidTime(birthTime)) {
       return NextResponse.json({ error: "Invalid birth time" }, { status: 400 });
     }
 
     // ========================================
     // 1️⃣ 오늘의 운세 점수 계산 (백엔드 Fortune Score Engine 사용)
     // ========================================
-    const backendUrl = pickBackendUrl();
     let fortune;
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      // Build headers with auth
-      const scoreHeaders: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      const apiToken = process.env.ADMIN_API_TOKEN;
-      if (apiToken) {
-        scoreHeaders['X-API-KEY'] = apiToken;
-      }
-
       // Try to use the new comprehensive fortune score engine
-      const scoreResponse = await fetch(`${backendUrl}/api/fortune/daily`, {
-        method: 'POST',
-        headers: scoreHeaders,
-        body: JSON.stringify({
-          birthDate,
-          birthTime,
-        }),
-        signal: controller.signal,
-        cache: 'no-store',
-      });
+      const result = await apiClient.post<{ status: string; fortune: any; alerts?: string[] }>(
+        '/api/fortune/daily',
+        { birthDate, birthTime },
+        { timeout: 20000 }
+      );
 
-      clearTimeout(timeoutId);
-
-      if (scoreResponse.ok) {
-        const scoreData = await scoreResponse.json();
-        if (scoreData.status === 'success' && scoreData.fortune) {
-          const userNow = getNowInTimezone(userTimezone);
-          fortune = {
-            ...scoreData.fortune,
-            date: `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`,
-            userTimezone: userTimezone || 'Asia/Seoul',
-            alerts: scoreData.alerts || [],
-            source: 'backend-engine',
-          };
-        } else {
-          throw new Error('Invalid response from fortune engine');
-        }
+      if (result.ok && result.data?.status === 'success' && result.data?.fortune) {
+        const userNow = getNowInTimezone(userTimezone);
+        fortune = {
+          ...result.data.fortune,
+          date: formatDateString(userNow.year, userNow.month, userNow.day),
+          userTimezone: userTimezone || 'Asia/Seoul',
+          alerts: result.data.alerts || [],
+          source: 'backend-engine',
+        };
       } else {
-        throw new Error('Fortune engine unavailable');
+        throw new Error('Invalid response from fortune engine');
       }
     } catch (backendErr) {
       console.warn('[Daily Fortune API] Backend fortune engine failed, using fallback:', backendErr);
@@ -150,17 +78,6 @@ export async function POST(request: Request) {
     let aiModelUsed = '';
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      const apiToken = process.env.ADMIN_API_TOKEN;
-      if (apiToken) {
-        headers['X-API-KEY'] = apiToken;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
       // Build prompt for daily fortune
       const fortunePrompt = `Create a concise, encouraging daily fortune.
 Date: ${fortune.date}
@@ -178,28 +95,21 @@ Lucky number: ${fortune.luckyNumber}
 
 Write in a warm, practical tone with 4-6 sentences. Include one actionable tip. Keep it under 120 words. Locale: ${body.locale || "ko"}.`;
 
-      const aiResponse = await fetch(`${backendUrl}/ask`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      const aiResult = await apiClient.post<{ data?: { fusion_layer?: string; report?: string; model?: string } }>(
+        '/ask',
+        {
           theme: 'daily-fortune',
           prompt: fortunePrompt,
-          saju: {
-            birthDate,
-            birthTime,
-          },
+          saju: { birthDate, birthTime },
           locale: body.locale || 'ko',
           fortune,
-        }),
-        signal: controller.signal,
-      });
+        },
+        { timeout: 60000 }
+      );
 
-      clearTimeout(timeoutId);
-
-      if (aiResponse.ok) {
-        const aiData = await aiResponse.json();
-        aiInterpretation = aiData?.data?.fusion_layer || aiData?.data?.report || '';
-        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      if (aiResult.ok && aiResult.data) {
+        aiInterpretation = aiResult.data.data?.fusion_layer || aiResult.data.data?.report || '';
+        aiModelUsed = aiResult.data.data?.model || 'gpt-4o';
       }
     } catch (aiErr) {
       console.warn('[Daily Fortune API] AI backend call failed:', aiErr);
@@ -306,7 +216,7 @@ function calculateDailyFortune(
   const luckyNumber = (currentDay + birthDay) % 10;
 
   // 분석 기준일 (사용자 타임존)
-  const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`;
+  const analysisDate = formatDateString(userNow.year, userNow.month, userNow.day);
 
   return {
     love,

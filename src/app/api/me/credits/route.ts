@@ -19,6 +19,11 @@ const ALLOWED_CREDIT_TYPES = new Set<("reading" | "compatibility" | "followUp")>
 ]);
 const ALLOWED_FEATURES = new Set<FeatureType>(Object.keys(PLAN_CONFIG.free.features) as FeatureType[]);
 const MAX_CREDIT_AMOUNT = 10;
+type CreditType = "reading" | "compatibility" | "followUp";
+const isCreditType = (value: string): value is CreditType =>
+  ALLOWED_CREDIT_TYPES.has(value as CreditType);
+const isFeatureType = (value: string): value is FeatureType =>
+  ALLOWED_FEATURES.has(value as FeatureType);
 
 // GET: 현재 크레딧 상태 조회
 export async function GET() {
@@ -49,16 +54,18 @@ export async function GET() {
         used: balance.usedCredits,
         bonus: balance.bonusCredits,
         remaining: balance.remainingCredits,
+        total: balance.totalCredits,
       },
       compatibility: balance.compatibility,
       followUp: balance.followUp,
       historyRetention: balance.historyRetention,
       periodEnd: balance.periodEnd,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Credits GET error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: message },
       { status: 500 }
     );
   }
@@ -76,7 +83,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const oversized = enforceBodySize(request as any, 4 * 1024);
+    const oversized = enforceBodySize(request, 4 * 1024);
     if (oversized) return oversized;
 
     const body = await request.json().catch(() => null);
@@ -87,24 +94,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const typeRaw = typeof (body as any).type === "string" ? (body as any).type : undefined;
-    if (typeRaw && !ALLOWED_CREDIT_TYPES.has(typeRaw as any)) {
+    const bodyObj = body as Record<string, unknown>;
+    const typeRaw = typeof bodyObj.type === "string" ? bodyObj.type : undefined;
+    if (typeRaw && !isCreditType(typeRaw)) {
       return NextResponse.json(
         { error: "invalid_type", allowed: false },
         { status: 400 }
       );
     }
 
-    const type = (typeRaw && ALLOWED_CREDIT_TYPES.has(typeRaw as any)
+    const type: CreditType = typeRaw && isCreditType(typeRaw)
       ? typeRaw
-      : "reading") as "reading" | "compatibility" | "followUp";
-    const parsedAmount = Number((body as any).amount ?? 1);
+      : "reading";
+    const parsedAmount = typeof bodyObj.amount === "number" || typeof bodyObj.amount === "string"
+      ? Number(bodyObj.amount)
+      : 1;
     const amount = Number.isFinite(parsedAmount)
       ? Math.min(Math.max(Math.trunc(parsedAmount), 1), MAX_CREDIT_AMOUNT)
       : 1;
-    const featureRaw = typeof (body as any).feature === "string" ? (body as any).feature : undefined;
-    const feature = featureRaw && ALLOWED_FEATURES.has(featureRaw as FeatureType)
-      ? (featureRaw as FeatureType)
+    const featureRaw = typeof bodyObj.feature === "string" ? bodyObj.feature : undefined;
+    const feature = featureRaw && isFeatureType(featureRaw)
+      ? featureRaw
       : undefined;
     if (featureRaw && !feature) {
       return NextResponse.json(
@@ -126,10 +136,11 @@ export async function POST(request: Request) {
     // 크레딧 체크
     const result = await canUseCredits(session.user.id, type, amount);
     return NextResponse.json(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Credits POST error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: message },
       { status: 500 }
     );
   }

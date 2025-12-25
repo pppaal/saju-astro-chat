@@ -15,9 +15,9 @@ async function testTogether() {
     }),
   });
 
-  console.log("🔹 Status:", response.status);
+  console.warn("🔹 Status:", response.status);
   const data = await response.json();
-  console.log("🔹 Response:", data);
+  console.warn("🔹 Response:", data);
 }
 
 testTogether().catch(console.error);

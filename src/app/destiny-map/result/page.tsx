@@ -8,15 +8,27 @@ import styles from "./result.module.css";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
 import FunInsights from "@/components/destiny-map/FunInsights";
-import DestinyMatrixStory from "@/components/destiny-map/DestinyMatrixStory";
+// DestinyMatrixStory 제거됨 - FunInsights에서 스토리텔링 형식으로 통합
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
 import ShareButton from "@/components/ui/ShareButton";
-// Import retained intentionally; disable unused lint because FortuneCharts is optional rendering
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import FortuneCharts from "@/components/destiny-map/FortuneCharts";
 import PersonalityInsight from "@/components/personality/PersonalityInsight";
+
+type Lang = "ko" | "en";
+type DestinyResult = {
+  lang?: string;
+  themes?: Record<string, unknown>;
+  profile?: { city?: string };
+  analysisDate?: string;
+  saju?: Record<string, unknown>;
+  astrology?: Record<string, unknown>;
+  astro?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
 
 // ============================================
 // Analyzing Loader Component with Progress Bar
@@ -27,8 +39,8 @@ function AnalyzingLoader() {
   const [step, setStep] = React.useState(0);
 
   const steps: { label: string; icon: string }[] = [
-    { label: t("destinyMap.result.step1", "Calculating Four Pillars..."), icon: "☯" },
-    { label: t("destinyMap.result.step2", "Analyzing Astrology Chart..."), icon: "☉" },
+    { label: t("destinyMap.result.step1", "Eastern Fortune Analysis..."), icon: "☯" },
+    { label: t("destinyMap.result.step2", "Western Fortune Analysis..."), icon: "☉" },
     { label: t("destinyMap.result.step3", "Generating AI Interpretation..."), icon: "✨" },
     { label: t("destinyMap.result.step4", "Finalizing Report..."), icon: "📜" },
   ];
@@ -212,7 +224,7 @@ export default function DestinyResultPage({
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<DestinyResult | null>(null);
   const [activeTheme, setActiveTheme] = useState("focus_love");
   const [cachedAge, setCachedAge] = useState<string | null>(null);
 
@@ -227,6 +239,7 @@ export default function DestinyResultPage({
       const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? "";
       const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? "";
       const rawLang = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
+      const reqLang: Lang = rawLang === "en" ? "en" : "ko";
       const themeParam = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? "focus_love";
 
       const latStr =
@@ -259,42 +272,52 @@ export default function DestinyResultPage({
           gender,
           latitude,
           longitude,
-          lang: rawLang as any,
+          lang: reqLang,
           themes: themesReq,
           userTimezone: userTz || undefined,
         });
-        setResult(res);
+        setResult(res as DestinyResult);
 
         // Store saju/astro for counselor chat (avoids re-computation)
         // Note: API returns "astrology" but we store as "astro" for consistency
         // Include advanced astrology features for deeper counseling
         if (res?.saju || res?.astrology) {
           try {
-            // Cast to any to access optional advanced astrology fields from API response
-            const advancedRes = res as any;
+            const advancedRes = res as Record<string, unknown>;
+            const solarReturn = isRecord(advancedRes.solarReturn) ? advancedRes.solarReturn : null;
+            const lunarReturn = isRecord(advancedRes.lunarReturn) ? advancedRes.lunarReturn : null;
+            const progressions = isRecord(advancedRes.progressions) ? advancedRes.progressions : null;
+            const progressionsSecondary = progressions && isRecord(progressions.secondary) ? progressions.secondary : null;
+            const progressionsSolarArc = progressions && isRecord(progressions.solarArc) ? progressions.solarArc : null;
+            const draconic = isRecord(advancedRes.draconic) ? advancedRes.draconic : null;
+            const harmonics = isRecord(advancedRes.harmonics) ? advancedRes.harmonics : null;
+            const midpoints = isRecord(advancedRes.midpoints) ? advancedRes.midpoints : null;
+            const fixedStars = Array.isArray(advancedRes.fixedStars) ? advancedRes.fixedStars.slice(0, 5) : null;
+            const transits = Array.isArray(advancedRes.transitAspects) ? advancedRes.transitAspects.slice(0, 10) : null;
+
             sessionStorage.setItem("destinyChartData", JSON.stringify({
               saju: res.saju || {},
               astro: res.astrology || {},  // API returns "astrology", store as "astro"
               // Advanced astrology features for counselor
               advancedAstro: {
                 extraPoints: advancedRes.extraPoints || null,
-                solarReturn: advancedRes.solarReturn ? { summary: advancedRes.solarReturn.summary } : null,
-                lunarReturn: advancedRes.lunarReturn ? { summary: advancedRes.lunarReturn.summary } : null,
-                progressions: advancedRes.progressions ? {
-                  secondary: advancedRes.progressions.secondary?.summary,
-                  solarArc: advancedRes.progressions.solarArc?.summary,
-                  moonPhase: advancedRes.progressions.secondary?.moonPhase,
+                solarReturn: solarReturn ? { summary: solarReturn.summary } : null,
+                lunarReturn: lunarReturn ? { summary: lunarReturn.summary } : null,
+                progressions: progressions ? {
+                  secondary: progressionsSecondary ? progressionsSecondary.summary : undefined,
+                  solarArc: progressionsSolarArc ? progressionsSolarArc.summary : undefined,
+                  moonPhase: progressionsSecondary ? progressionsSecondary.moonPhase : undefined,
                 } : null,
-                draconic: advancedRes.draconic?.comparison || null,
-                harmonics: advancedRes.harmonics?.profile || null,
+                draconic: draconic ? draconic.comparison : null,
+                harmonics: harmonics ? harmonics.profile : null,
                 asteroids: advancedRes.asteroids || null,
-                fixedStars: advancedRes.fixedStars?.slice(0, 5) || null,  // Top 5 conjunctions
+                fixedStars,  // Top 5 conjunctions
                 eclipses: advancedRes.eclipses || null,
-                midpoints: advancedRes.midpoints ? {
-                  sunMoon: advancedRes.midpoints.sunMoon,
-                  ascMc: advancedRes.midpoints.ascMc,
+                midpoints: midpoints ? {
+                  sunMoon: midpoints.sunMoon,
+                  ascMc: midpoints.ascMc,
                 } : null,
-                transits: advancedRes.transitAspects?.slice(0, 10) || null,  // Top 10 transits
+                transits,  // Top 10 transits
               },
               timestamp: Date.now(),
             }));
@@ -310,9 +333,10 @@ export default function DestinyResultPage({
         } catch (e) {
           // Silent fail - not critical
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("[ResultPage] analyzeDestiny error:", err);
-        setError(err?.message || String(err));
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -383,7 +407,7 @@ export default function DestinyResultPage({
   // ✅ 결과 렌더링
   // ------------------------------------------------------------ //
   const themeKeys = Object.keys(result?.themes || {});
-  const lang: any = result?.lang ?? "ko";
+  const lang: Lang = result?.lang === "en" ? "en" : "ko";
 
   // 분석 기준일 포맷팅 - 사용자 위치(도시) 기준으로 표시
   const userCity = result?.profile?.city || "";
@@ -413,16 +437,6 @@ export default function DestinyResultPage({
           marginLeft: 4,
         }}>
           📍 {userCity}
-        </span>
-      )}
-      {cachedAge && (
-        <span style={{
-          opacity: 0.8,
-          borderLeft: '1px solid rgba(167, 139, 250, 0.3)',
-          paddingLeft: 8,
-          marginLeft: 4,
-        }}>
-          {t("destinyMap.result.cacheAge", "Cache")}: {cachedAge}
         </span>
       )}
     </div>
@@ -495,23 +509,31 @@ export default function DestinyResultPage({
         )}
 
         {/* 🧮 리포트 본문 렌더 */}
-        <Display result={result} lang={lang} theme={activeTheme} reportType="core" />
+        <Display result={result as any} lang={lang} theme={activeTheme} reportType="core" />
 
         {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
         <FunInsights
           saju={result?.saju}
-          astro={result?.astro || result?.astrology}
+          astro={{
+            ...(result?.astro || result?.astrology || {}),
+            // 🔥 고급 점성학 데이터 병합
+            extraPoints: (result as any)?.advancedAstrology?.extraPoints,
+            asteroids: (result as any)?.advancedAstrology?.asteroids,
+            solarReturn: (result as any)?.advancedAstrology?.solarReturn,
+            lunarReturn: (result as any)?.advancedAstrology?.lunarReturn,
+            progressions: (result as any)?.advancedAstrology?.progressions,
+            draconic: (result as any)?.advancedAstrology?.draconic,
+            harmonics: (result as any)?.advancedAstrology?.harmonics,
+            fixedStars: (result as any)?.advancedAstrology?.fixedStars,
+            eclipses: (result as any)?.advancedAstrology?.eclipses,
+            electional: (result as any)?.advancedAstrology?.electional,
+            midpoints: (result as any)?.advancedAstrology?.midpoints,
+          }}
           lang={lang}
           theme={activeTheme}
         />
 
-        {/* 📖 운명 매트릭스 스토리 (AI 기반 20,000자 심층 분석) */}
-        <DestinyMatrixStory
-          saju={result?.saju}
-          astro={result?.astro || result?.astrology}
-          lang={lang}
-          useAI={true}
-        />
+{/* DestinyMatrixStory AI 섹션 제거됨 - FunInsights에서 스토리텔링 형식으로 통합 */}
 
         {/* ✨ 성격 유형 인사이트 (노바 페르소나 결과 연동) */}
         <PersonalityInsight lang={lang} />
@@ -546,6 +568,7 @@ export default function DestinyResultPage({
           <button
             onClick={() => {
               const params = new URLSearchParams(window.location.search);
+              params.set("lang", lang); // Ensure lang is passed
               window.location.href = `/destiny-map/counselor?${params.toString()}`;
             }}
             style={{

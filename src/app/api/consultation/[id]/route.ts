@@ -6,6 +6,14 @@ import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+const STRIPE_API_VERSION = "2025-10-29.clover" as Stripe.LatestApiVersion;
+
 // 이메일 형식 검증 (Stripe 쿼리 인젝션 방지)
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -17,7 +25,7 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email || !isValidEmail(email)) return false;
 
-  const stripe = new Stripe(key, { apiVersion: "2024-12-18.acacia" as any });
+  const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   const customers = await stripe.customers.search({
     query: `email:'${email}'`,
     limit: 3,
@@ -38,9 +46,9 @@ async function checkStripeActive(email?: string): Promise<boolean> {
 }
 
 // GET: 개별 상담 기록 조회 (프리미엄 전용)
-export async function GET(request: Request, context: any) {
+export async function GET(request: Request, context: RouteContext) {
   try {
-    const id = context?.params?.id as string | undefined;
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "invalid_params" }, { status: 400 });
     }
@@ -80,10 +88,10 @@ export async function GET(request: Request, context: any) {
       success: true,
       data: consultation,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Consultation GET by ID error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -92,10 +100,10 @@ export async function GET(request: Request, context: any) {
 // DELETE: 상담 기록 삭제 (본인 기록만)
 export async function DELETE(
   request: Request,
-  context: any
+  context: RouteContext
 ) {
   try {
-    const id = context?.params?.id as string | undefined;
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "invalid_params" }, { status: 400 });
     }
@@ -127,10 +135,10 @@ export async function DELETE(
       success: true,
       message: "상담 기록이 삭제되었습니다.",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Consultation DELETE error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }

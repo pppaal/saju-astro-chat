@@ -6,7 +6,7 @@ import { captureServerError } from '@/lib/telemetry';
 
 export const runtime = 'nodejs';
 
-function json(data: any, status = 200, headers?: Headers) {
+function json(data: unknown, status = 200, headers?: Headers) {
   const res = new Response(JSON.stringify(data), {
     status,
     headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -46,8 +46,8 @@ export async function GET(req: Request) {
     await client.end();
 
     return json({ ok: true, rows: r.rows }, 200, limit.headers);
-  } catch (e: any) {
+  } catch (e: unknown) {
     captureServerError(e, { route: "/api/db-ping" });
-    return json({ ok: false, error: String(e?.message || e) }, 500);
+    return json({ ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
   }
 }

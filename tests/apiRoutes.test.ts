@@ -1,8 +1,36 @@
 // Mock API route handlers
+type DestinyMapBody = {
+  year?: number;
+  month?: number;
+  day?: number;
+  hour?: number;
+  minute?: number;
+  timezone?: string;
+};
+
+type TarotCard = {
+  name?: string;
+  isReversed?: boolean;
+};
+
+type TarotRequest = {
+  category?: string;
+  spreadId?: string;
+  cards?: TarotCard[];
+};
+
+type DreamRequest = {
+  dreamText?: string;
+};
+
+type IChingRequest = {
+  question?: string;
+};
+
 describe("API Routes", () => {
   describe("Destiny Map API", () => {
-    const validateDestinyMapRequest = (body: any) => {
-      const required = ["year", "month", "day", "hour", "minute", "timezone"];
+    const validateDestinyMapRequest = (body: DestinyMapBody) => {
+      const required: Array<keyof DestinyMapBody> = ["year", "month", "day", "hour", "minute", "timezone"];
       const missing = required.filter((field) => body[field] === undefined);
       return missing.length === 0 ? null : `Missing: ${missing.join(", ")}`;
     };
@@ -47,7 +75,7 @@ describe("API Routes", () => {
   });
 
   describe("Tarot API", () => {
-    const validateTarotRequest = (body: any) => {
+    const validateTarotRequest = (body: TarotRequest) => {
       if (!body.category) return "Missing category";
       if (!body.spreadId) return "Missing spreadId";
       if (!body.cards || !Array.isArray(body.cards)) return "Missing or invalid cards";
@@ -75,7 +103,7 @@ describe("API Routes", () => {
     });
 
     it("validates card structure", () => {
-      const validateCard = (card: any) => {
+      const validateCard = (card: TarotCard) => {
         return typeof card.name === "string" && typeof card.isReversed === "boolean";
       };
 
@@ -86,7 +114,7 @@ describe("API Routes", () => {
   });
 
   describe("Dream API", () => {
-    const validateDreamRequest = (body: any) => {
+    const validateDreamRequest = (body: DreamRequest) => {
       if (!body.dreamText || typeof body.dreamText !== "string") {
         return "Invalid or missing dreamText";
       }
@@ -125,7 +153,7 @@ describe("API Routes", () => {
   });
 
   describe("I Ching API", () => {
-    const validateIChingRequest = (body: any) => {
+    const validateIChingRequest = (body: IChingRequest) => {
       if (!body.question || typeof body.question !== "string") {
         return "Missing question";
       }

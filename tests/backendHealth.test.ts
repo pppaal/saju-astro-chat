@@ -106,17 +106,17 @@ describe("Backend health check", () => {
 
       const actualResponse = { message: "Success", data: { value: 42 } };
 
-      async function callWithFallback<T>(fallback: T, actual: T): Promise<{ success: boolean; data: T }> {
+      async function callWithFallback<TFallback, TActual>(
+        fallback: TFallback,
+        actual: TActual
+      ): Promise<{ success: boolean; data: TFallback | TActual }> {
         if (!healthStatus.healthy) {
           return { success: false, data: fallback };
         }
         return { success: true, data: actual };
       }
 
-      const result = await callWithFallback(
-        { message: "Fallback" } as any,
-        actualResponse as any
-      );
+      const result = await callWithFallback({ message: "Fallback" }, actualResponse);
 
       expect(result.success).toBe(true);
     });

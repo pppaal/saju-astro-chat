@@ -20,15 +20,16 @@ class RedisCache:
     """Redis-based distributed cache with fallback to memory."""
 
     # TTL presets for different data types (in seconds)
+    # Optimized for speed: longer cache = faster repeated queries
     TTL_PRESETS = {
-        "astro": 6 * 3600,      # 6 hours - transits change frequently
-        "saju": 48 * 3600,      # 48 hours - static birth data
-        "tarot": 24 * 3600,     # 24 hours - daily readings
-        "dream": 24 * 3600,     # 24 hours
-        "iching": 24 * 3600,    # 24 hours
-        "fusion": 12 * 3600,    # 12 hours - combined analysis
-        "static": 48 * 3600,    # 48 hours - static interpretations
-        "default": 24 * 3600,   # 24 hours - default fallback
+        "astro": 24 * 3600,     # 24 hours - transits change daily
+        "saju": 7 * 24 * 3600,  # 7 days - static birth data (never changes)
+        "tarot": 48 * 3600,     # 48 hours - readings stay relevant
+        "dream": 48 * 3600,     # 48 hours
+        "iching": 48 * 3600,    # 48 hours
+        "fusion": 24 * 3600,    # 24 hours - combined analysis (increased from 12h)
+        "static": 30 * 24 * 3600,  # 30 days - interpretation rules never change
+        "default": 48 * 3600,   # 48 hours - default fallback (increased from 24h)
     }
 
     def __init__(self):

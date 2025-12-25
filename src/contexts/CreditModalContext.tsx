@@ -68,19 +68,26 @@ export function useCreditModal() {
 }
 
 // Helper for API responses - can be used without React context
-export function shouldShowCreditModal(response: Response, data: any): { show: boolean; type: "depleted" | "low"; remaining: number } {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+export function shouldShowCreditModal(
+  response: Response,
+  data: unknown
+): { show: boolean; type: "depleted" | "low"; remaining: number } {
   // Check for 402 Payment Required
   if (response.status === 402) {
     return { show: true, type: "depleted", remaining: 0 };
   }
 
   // Check for low credits in response data
-  if (data?.remainingCredits !== undefined) {
-    if (data.remainingCredits <= 0) {
+  const remainingCredits = isRecord(data) ? data.remainingCredits : undefined;
+  if (typeof remainingCredits === "number") {
+    if (remainingCredits <= 0) {
       return { show: true, type: "depleted", remaining: 0 };
     }
-    if (data.remainingCredits <= 2) {
-      return { show: true, type: "low", remaining: data.remainingCredits };
+    if (remainingCredits <= 2) {
+      return { show: true, type: "low", remaining: remainingCredits };
     }
   }
 

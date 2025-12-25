@@ -26,10 +26,11 @@ export async function GET(request: Request) {
       valid: true,
       referrerName: referrer.name || "Friend",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Referral validate error]", err);
     return NextResponse.json(
-      { valid: false, error: err.message ?? "Internal Server Error" },
+      { valid: false, error: message },
       { status: 500 }
     );
   }

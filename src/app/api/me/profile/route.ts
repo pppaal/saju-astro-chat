@@ -78,7 +78,7 @@ export async function PATCH(request: Request) {
       readingLength,
     } = body || {}
 
-    const data: any = {}
+    const data: { name?: string; image?: string | null; emailNotifications?: boolean } = {}
     if (isNonEmptyString(name, 64)) data.name = name.trim()
     if (typeof emailNotifications === "boolean") data.emailNotifications = emailNotifications
     if (image === null) {

@@ -6,6 +6,18 @@ import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
+const STRIPE_API_VERSION = "2025-10-29.clover" as Stripe.LatestApiVersion;
+
+type ConsultationBody = {
+  theme?: string;
+  summary?: string;
+  fullReport?: string;
+  jungQuotes?: unknown;
+  signals?: unknown;
+  userQuestion?: string;
+  locale?: string;
+};
+
 // 이메일 형식 검증 (Stripe 쿼리 인젝션 방지)
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -17,7 +29,7 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email || !isValidEmail(email)) return false;
 
-  const stripe = new Stripe(key, { apiVersion: "2024-12-18.acacia" as any });
+  const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   const customers = await stripe.customers.search({
     query: `email:'${email}'`,
     limit: 3,
@@ -58,7 +70,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const body = (await request.json().catch(() => null)) as ConsultationBody | null;
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    }
+
     const {
       theme,
       summary,
@@ -83,9 +99,9 @@ export async function POST(request: Request) {
         theme,
         summary,
         fullReport,
-        jungQuotes: jungQuotes || null,
-        signals: signals || null,
-        userQuestion: userQuestion || null,
+        jungQuotes: jungQuotes || undefined,
+        signals: signals || undefined,
+        userQuestion: userQuestion || undefined,
         locale,
       },
     });
@@ -98,10 +114,10 @@ export async function POST(request: Request) {
       id: consultation.id,
       createdAt: consultation.createdAt,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Consultation POST error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -134,7 +150,7 @@ export async function GET(request: Request) {
     const offset = parseInt(searchParams.get("offset") || "0");
 
     // 쿼리 빌드
-    const where: any = { userId: session.user.id };
+    const where: { userId: string; theme?: string } = { userId: session.user.id };
     if (theme) {
       where.theme = theme;
     }
@@ -167,10 +183,10 @@ export async function GET(request: Request) {
         hasMore: offset + consultations.length < total,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Consultation GET error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }

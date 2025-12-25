@@ -9,6 +9,8 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import { cleanStringArray, isRecord } from "@/lib/api";
 
 const BACKEND_URL = process.env.BACKEND_AI_URL || "http://localhost:5000";
 
@@ -55,21 +57,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}$/;
 const MAX_TIMEZONE_LEN = 64;
 
-function cleanStringArray(value: unknown, maxItems = MAX_LIST_ITEMS, maxLen = MAX_LIST_ITEM_LEN): string[] {
-  if (!Array.isArray(value)) return [];
-  const cleaned: string[] = [];
-  for (const entry of value.slice(0, maxItems)) {
-    if (typeof entry !== "string") continue;
-    const trimmed = entry.trim();
-    if (!trimmed) continue;
-    cleaned.push(trimmed.slice(0, maxLen));
-  }
-  return cleaned;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+// cleanStringArray and isRecord imported from @/lib/api
 
 function sanitizeBirth(raw: unknown) {
   if (!isRecord(raw)) return undefined;
@@ -105,10 +93,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(req as any, MAX_STREAM_BODY, limit.headers);
+    const oversized = enforceBodySize(req, MAX_STREAM_BODY, limit.headers);
     if (oversized) return oversized;
 
-    const body = await req.json().catch(() => null);
+    const body = (await req.json().catch(() => null)) as Partial<StreamDreamRequest> | null;
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },
@@ -116,30 +104,36 @@ export async function POST(req: Request) {
       );
     }
 
-    const dreamTextRaw = typeof (body as any).dreamText === "string" ? (body as any).dreamText.trim() : "";
+    const dreamTextRaw = typeof body.dreamText === "string" ? body.dreamText.trim() : "";
     const dreamText = dreamTextRaw.slice(0, MAX_TEXT_LEN);
-    const symbols = cleanStringArray((body as any).symbols);
-    const emotions = cleanStringArray((body as any).emotions);
-    const themes = cleanStringArray((body as any).themes);
-    const context = cleanStringArray((body as any).context);
-    const locale = typeof (body as any).locale === "string" && STREAM_LOCALES.has((body as any).locale)
-      ? (body as any).locale as "ko" | "en"
+    const symbols = cleanStringArray(body.symbols);
+    const emotions = cleanStringArray(body.emotions);
+    const themes = cleanStringArray(body.themes);
+    const context = cleanStringArray(body.context);
+    const locale = typeof body.locale === "string" && STREAM_LOCALES.has(body.locale)
+      ? body.locale
       : "ko";
-    const koreanTypes = cleanStringArray((body as any).koreanTypes);
-    const koreanLucky = cleanStringArray((body as any).koreanLucky);
-    const chinese = cleanStringArray((body as any).chinese);
-    const islamicTypes = cleanStringArray((body as any).islamicTypes);
-    const western = cleanStringArray((body as any).western);
-    const hindu = cleanStringArray((body as any).hindu);
-    const japanese = cleanStringArray((body as any).japanese);
-    const birth = sanitizeBirth((body as any).birth);
-    const sajuInfluence = isRecord((body as any).sajuInfluence) ? (body as any).sajuInfluence : undefined;
+    const koreanTypes = cleanStringArray(body.koreanTypes);
+    const koreanLucky = cleanStringArray(body.koreanLucky);
+    const chinese = cleanStringArray(body.chinese);
+    const islamicTypes = cleanStringArray(body.islamicTypes);
+    const western = cleanStringArray(body.western);
+    const hindu = cleanStringArray(body.hindu);
+    const japanese = cleanStringArray(body.japanese);
+    const birth = sanitizeBirth(body.birth);
+    const sajuInfluence = isRecord(body.sajuInfluence) ? body.sajuInfluence : undefined;
 
     if (!dreamText || dreamText.trim().length < 5) {
       return NextResponse.json(
         { error: "Dream description required (min 5 characters)" },
         { status: 400, headers: limit.headers }
       );
+    }
+
+    // Check credits and consume (required for dream interpretation)
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult);
     }
 
     // Call backend streaming endpoint

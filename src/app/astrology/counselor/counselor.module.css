@@ -288,7 +288,39 @@
 
 .headerActions {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.homeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  gap: 0.1rem;
+}
+
+.homeButton:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: scale(1.05);
+}
+
+.homeIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.homeLabel {
+  font-size: 0.65rem;
+  color: #60a5fa;
+  font-weight: 500;
 }
 
 .iconButton {

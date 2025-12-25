@@ -2,27 +2,19 @@
 // Dream Follow-up Chat API - Enhanced with RAG, Celestial, and Saju context
 
 import { NextResponse } from "next/server";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
+import {
+  cleanStringArray,
+  normalizeMessages as normalizeMessagesBase,
+  type ChatMessage,
+} from "@/lib/api";
 
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.BACKEND_AI_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://localhost:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[dream-chat] Using non-HTTPS AI backend in production");
-  }
-  return url;
-}
 
-interface Message {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
+// Message type imported from @/lib/api as ChatMessage, aliased below
 
 interface CulturalNotes {
   korean?: string;
@@ -95,7 +87,6 @@ interface EnhancedDreamContext {
   persona_memory?: PersonaMemory;
 }
 
-const ALLOWED_CHAT_ROLES = new Set<Message["role"]>(["user", "assistant", "system"]);
 const ALLOWED_CHAT_LOCALES = new Set(["ko", "en"]);
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 2000;
@@ -104,31 +95,15 @@ const MAX_CONTEXT_ITEMS = 20;
 const MAX_CONTEXT_ITEM_LEN = 200;
 const MAX_CHAT_BODY = 96 * 1024; // Increased for additional context
 
-function cleanStringArray(value: unknown, maxItems = MAX_CONTEXT_ITEMS, maxLen = MAX_CONTEXT_ITEM_LEN): string[] {
-  if (!Array.isArray(value)) return [];
-  const cleaned: string[] = [];
-  for (const entry of value.slice(0, maxItems)) {
-    if (typeof entry !== "string") continue;
-    const trimmed = entry.trim();
-    if (!trimmed) continue;
-    cleaned.push(trimmed.slice(0, maxLen));
-  }
-  return cleaned;
-}
+// Type alias for local usage (Message = ChatMessage from @/lib/api)
+type Message = ChatMessage;
 
+// Use shared normalizeMessages with local config
 function normalizeMessages(raw: unknown): Message[] {
-  if (!Array.isArray(raw)) return [];
-  const normalized: Message[] = [];
-  for (const m of raw.slice(-MAX_MESSAGES)) {
-    if (!m || typeof m !== "object") continue;
-    const role = typeof (m as Record<string, unknown>).role === "string" && ALLOWED_CHAT_ROLES.has((m as Record<string, unknown>).role as Message["role"])
-      ? (m as Record<string, unknown>).role as Message["role"]
-      : null;
-    const content = typeof (m as Record<string, unknown>).content === "string" ? ((m as Record<string, unknown>).content as string).trim() : "";
-    if (!role || !content) continue;
-    normalized.push({ role, content: content.slice(0, MAX_MESSAGE_LENGTH) });
-  }
-  return normalized;
+  return normalizeMessagesBase(raw, {
+    maxMessages: MAX_MESSAGES,
+    maxLength: MAX_MESSAGE_LENGTH,
+  });
 }
 
 function normalizeCulturalNotes(raw: unknown): CulturalNotes | undefined {

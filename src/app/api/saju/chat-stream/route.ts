@@ -1,8 +1,10 @@
 import { getServerSession } from "next-auth";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,17 +14,6 @@ type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
-}
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://127.0.0.1:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[saju chat-stream] Using non-HTTPS AI backend in production");
-  }
-  return url;
 }
 
 function sajuCounselorSystemPrompt(lang: string) {
@@ -101,6 +92,12 @@ export async function POST(request: Request) {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // Check credits and consume (required for chat)
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult);
     }
 
     const trimmedHistory = clampMessages(messages);
@@ -211,7 +208,7 @@ export async function POST(request: Request) {
       start(controller) {
         const reader = backendResponse.body!.getReader();
         const decoder = new TextDecoder();
-        const read = (): any => {
+        const read = (): void => {
           reader.read().then(({ done, value }) => {
             if (done) {
               controller.close();
@@ -238,9 +235,10 @@ export async function POST(request: Request) {
         "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Saju Chat-Stream API error]", err);
-    return new Response(JSON.stringify({ error: err.message ?? "Internal Server Error" }), {
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

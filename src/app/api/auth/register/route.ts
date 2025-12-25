@@ -11,6 +11,12 @@ const MAX_NAME = 80;
 const MAX_REFERRAL = 32;
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 128;
+type RegisterBody = {
+  email?: string;
+  password?: string;
+  name?: string;
+  referralCode?: string;
+};
 
 export async function POST(req: Request) {
   try {
@@ -20,10 +26,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(req as any, 32 * 1024, limit.headers);
+    const oversized = enforceBodySize(req, 32 * 1024, limit.headers);
     if (oversized) return oversized;
 
-    const body = await req.json().catch(() => null);
+    const body = (await req.json().catch(() => null)) as RegisterBody | null;
     const email = typeof body?.email === "string" ? body.email.trim() : "";
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
@@ -64,8 +70,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true }, { headers: limit.headers });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[register] error", err);
-    return NextResponse.json({ error: err.message ?? "server_error" }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "server_error" }, { status: 500 });
   }
 }

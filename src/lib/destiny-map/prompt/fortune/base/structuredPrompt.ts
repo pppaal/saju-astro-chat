@@ -16,14 +16,14 @@ export interface StructuredFortuneOutput {
     lucky: Array<{
       date: string;
       reason: string;
-      sajuFactor?: string;
+      easternFactor?: string;
       astroFactor?: string;
       rating: 1 | 2 | 3 | 4 | 5;
     }>;
     caution: Array<{
       date: string;
       reason: string;
-      sajuFactor?: string;
+      easternFactor?: string;
       astroFactor?: string;
     }>;
     bestPeriod?: {
@@ -37,7 +37,7 @@ export interface StructuredFortuneOutput {
     text: string;
     icon: string;
   }>;
-  sajuHighlight?: {
+  easternHighlight?: {
     pillar: string;
     element: string;
     meaning: string;
@@ -292,11 +292,11 @@ export function buildStructuredFortunePrompt(
 
   // 형충회합 (Hyeongchung - Interactions)
   const hyeongchungText = adv?.hyeongchung ? [
-    adv.hyeongchung.chung?.length ? `충(沖): ${adv.hyeongchung.chung.map((c: any) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")}` : (adv.hyeongchung.clashes?.length ? `충(沖): ${adv.hyeongchung.clashes.map((c: any) => c.description ?? `${c.from}-${c.to}`).join(", ")}` : null),
-    adv.hyeongchung.hyeong?.length ? `형(刑): ${adv.hyeongchung.hyeong.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}`).join(", ")}` : (adv.hyeongchung.punishments?.length ? `형(刑): ${adv.hyeongchung.punishments.map((p: any) => p.description ?? `${p.from}-${p.to}`).join(", ")}` : null),
-    adv.hyeongchung.hap?.length ? `합(合): ${adv.hyeongchung.hap.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")}` : (adv.hyeongchung.combinations?.length ? `합(合): ${adv.hyeongchung.combinations.map((c: any) => c.description ?? `${c.branches?.join?.("-")}`).join(", ")}` : null),
-    adv.hyeongchung.samhap?.length ? `삼합(三合): ${adv.hyeongchung.samhap.map((s: any) => s.branches?.join?.("-") ?? s.description).join("; ")}` : null,
-    adv.hyeongchung.banghap?.length ? `방합(方合): ${adv.hyeongchung.banghap.map((b: any) => b.branches?.join?.("-") ?? b.description).join("; ")}` : null,
+    adv.hyeongchung.chung?.length ? `충: ${adv.hyeongchung.chung.map((c: any) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")}` : (adv.hyeongchung.clashes?.length ? `충: ${adv.hyeongchung.clashes.map((c: any) => c.description ?? `${c.from}-${c.to}`).join(", ")}` : null),
+    adv.hyeongchung.hyeong?.length ? `형: ${adv.hyeongchung.hyeong.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}`).join(", ")}` : (adv.hyeongchung.punishments?.length ? `형: ${adv.hyeongchung.punishments.map((p: any) => p.description ?? `${p.from}-${p.to}`).join(", ")}` : null),
+    adv.hyeongchung.hap?.length ? `합: ${adv.hyeongchung.hap.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")}` : (adv.hyeongchung.combinations?.length ? `합: ${adv.hyeongchung.combinations.map((c: any) => c.description ?? `${c.branches?.join?.("-")}`).join(", ")}` : null),
+    adv.hyeongchung.samhap?.length ? `삼합: ${adv.hyeongchung.samhap.map((s: any) => s.branches?.join?.("-") ?? s.description).join("; ")}` : null,
+    adv.hyeongchung.banghap?.length ? `방합: ${adv.hyeongchung.banghap.map((b: any) => b.branches?.join?.("-") ?? b.description).join("; ")}` : null,
   ].filter(Boolean).join("\n") : "-";
 
   // 십신 분석 (Sibsin - Ten Gods)
@@ -360,47 +360,47 @@ Date: ${dateText}${tzInfo}
 Locale: ${lang}
 
 ===========================================
-PART 1: SAJU (사주) - KOREAN ASTROLOGY
+PART 1: EASTERN DESTINY ANALYSIS
 ===========================================
 
-=== 기본 사주 정보 ===
-Day Master (일간): ${dayMaster?.name ?? "-"} (${dayMaster?.element ?? "-"})
-Four Pillars (사주): ${pillarText}
+=== 기본 정보 ===
+Day Master: ${dayMaster?.name ?? "-"} (${dayMaster?.element ?? "-"})
+Four Pillars: ${pillarText}
 
-=== 운세 흐름 (대운/세운/월운) ===
-Current Daeun (대운): ${currentDaeun?.name ?? "-"} (${currentDaeun?.startYear ?? ""}-${currentDaeun?.endYear ?? ""})
-Annual Fortune (세운): ${currentAnnual?.element ?? "-"} ${currentAnnual?.year ?? ""}
-Monthly Fortune (월운): ${currentMonthly?.element ?? "-"} ${currentMonthly?.year ?? ""}-${currentMonthly?.month ?? ""}
+=== 운세 흐름 (장기/연간/월간) ===
+Long-term Flow: ${currentDaeun?.name ?? "-"} (${currentDaeun?.startYear ?? ""}-${currentDaeun?.endYear ?? ""})
+Annual Flow: ${currentAnnual?.element ?? "-"} ${currentAnnual?.year ?? ""}
+Monthly Flow: ${currentMonthly?.element ?? "-"} ${currentMonthly?.year ?? ""}-${currentMonthly?.month ?? ""}
 
-=== 신강/신약 분석 ===
+=== 에너지 강도 분석 ===
 ${strengthText}
 
-=== 격국 (Chart Pattern) ===
+=== 성향 유형 (Chart Pattern) ===
 ${geokgukText}
 
-=== 용신 (Favorable Elements) ===
+=== 핵심 에너지 (Favorable Elements) ===
 ${yongsinText}
 
-=== 조후용신 (Seasonal Balance) ===
+=== 계절 균형 (Seasonal Balance) ===
 ${johuText}
 
-=== 통근/투출/득령 ===
-통근 (Root Strength):
+=== 뿌리/표출/시기 ===
+Root Strength:
 ${tonggeunText}
 
-투출 (Stem Emergence):
+Stem Emergence:
 ${tuechulText}
 
-득령 (Seasonal Timing):
+Seasonal Timing:
 ${deukryeongText}
 
-=== 회국 (Branch Combinations) ===
+=== 에너지 결합 (Branch Combinations) ===
 ${hoegukText}
 
-=== 형충회합 (Interactions) ===
+=== 에너지 상호작용 (Interactions) ===
 ${hyeongchungText}
 
-=== 십신 분석 (Ten Gods) ===
+=== 에너지 분포 (Energy Distribution) ===
 ${sibsinText}
 
 === 건강/직업 적성 ===
@@ -409,15 +409,15 @@ ${healthCareerText}
 === 종합 점수 ===
 ${scoreText}
 
-=== 고급 분석 (종격/화격/일주론/공망/삼기) ===
+=== 고급 분석 (특수 성향) ===
 ${ultraText}
 
-=== 신살 (Lucky/Unlucky Factors) ===
-Lucky (길신): ${luckyList || "-"}
-Unlucky (흉신): ${unluckyList || "-"}
+=== 특수 에너지 (Lucky/Unlucky Factors) ===
+Lucky: ${luckyList || "-"}
+Unlucky: ${unluckyList || "-"}
 Twelve Gods: ${twelveGods || "-"}
 
-=== 향후 월운 (Next 6 Months) ===
+=== 향후 월간 흐름 (Next 6 Months) ===
 ${upcomingMonths.map((m: any) => `${m.year}-${String(m.month).padStart(2, "0")}: ${m.element ?? "-"} (${m.heavenlyStem ?? ""} ${m.earthlyBranch ?? ""})`).join("\n")}
 
 ===========================================
@@ -490,11 +490,11 @@ TASK: ${theme.toUpperCase()} ANALYSIS
 ${instruction}
 
 IMPORTANT ANALYSIS GUIDELINES:
-1. CROSS-REFERENCE both Saju and Western astrology for deeper insights
+1. CROSS-REFERENCE both Eastern and Western systems for deeper insights
 2. DATE RECOMMENDATIONS should use BOTH systems:
-   - Saju: 오행 흐름, 충/합 관계, 월운/일진
+   - Eastern: 오행 흐름, 충/합 관계, 월간/일간 흐름
    - Astrology: 트랜짓, 문페이즈, 보이드오브코스
-3. Use the ADVANCED data (격국, 용신, 십신) for personality insights
+3. Use the ADVANCED data (성향 유형, 핵심 에너지, 에너지 분포) for personality insights
 4. Reference PROGRESSIONS for timing of life developments
 5. Use DRACONIC for soul-level/karmic insights
 6. Use HARMONICS for creative/spiritual potential
@@ -507,14 +507,14 @@ You MUST return a valid JSON object with this exact structure:
 
 {
   "lifeTimeline": {
-    "description": "Overview of life journey based on saju+astrology cross-analysis in ${lang}",
+    "description": "Overview of life journey based on Eastern+Western cross-analysis in ${lang}",
     "importantYears": [
       {
         "year": 2025,
         "age": 30,
         "rating": 5,
         "title": "Major turning point title in ${lang}",
-        "sajuReason": "대운/세운 교체, 용신 기운 강화 등",
+        "easternReason": "장기/연간 흐름 교체, 핵심 에너지 강화 등",
         "astroReason": "Jupiter return, Saturn trine natal Sun 등",
         "advice": "Specific advice for this year in ${lang}"
       }
@@ -524,65 +524,65 @@ You MUST return a valid JSON object with this exact structure:
     "personality": {
       "icon": "🧠",
       "title": "성격 / Personality",
-      "sajuAnalysis": "일간, 격국, 십신 분포 기반 성격 분석",
+      "easternAnalysis": "Day Master, 성향 유형, 에너지 분포 기반 성격 분석",
       "astroAnalysis": "Sun/Moon/Ascendant 기반 성격 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 핵심 성격 특징",
+      "crossInsight": "동양+서양 교차 분석으로 도출된 핵심 성격 특징",
       "keywords": ["키워드1", "키워드2", "키워드3"]
     },
     "appearance": {
       "icon": "✨",
       "title": "외모/인상 / Appearance",
-      "sajuAnalysis": "일주, 오행 균형 기반 외모/인상 분석",
+      "easternAnalysis": "일주, 오행 균형 기반 외모/인상 분석",
       "astroAnalysis": "Ascendant, Venus, 1st house 기반 외모 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 외모/인상 특징",
+      "crossInsight": "동양+서양 교차 분석으로 도출된 외모/인상 특징",
       "keywords": ["키워드1", "키워드2"]
     },
     "love": {
       "icon": "💕",
       "title": "연애/결혼 / Love",
-      "sajuAnalysis": "일지 배우자궁, 관성/재성 기반 연애운 분석",
+      "easternAnalysis": "배우자 자리, 파트너 에너지 기반 연애운 분석",
       "astroAnalysis": "Venus, 7th house, Juno 기반 연애운 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 연애/결혼 특징",
+      "crossInsight": "동양+서양 교차 분석으로 도출된 연애/결혼 특징",
       "idealPartner": "이상적인 파트너 특징",
       "timing": "결혼/연애 좋은 시기"
     },
     "family": {
       "icon": "👨‍👩‍👧‍👦",
       "title": "가족 / Family",
-      "sajuAnalysis": "년주(조상), 월주(부모), 시주(자녀) 기반 가족운 분석",
+      "easternAnalysis": "년주(조상), 월주(부모), 시주(자녀) 기반 가족운 분석",
       "astroAnalysis": "4th house, Moon, IC 기반 가족운 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 가족관계 특징"
+      "crossInsight": "동양+서양 교차 분석으로 도출된 가족관계 특징"
     },
     "friends": {
       "icon": "🤝",
       "title": "친구/대인관계 / Social",
-      "sajuAnalysis": "비겁, 식상 기반 대인관계 분석",
+      "easternAnalysis": "동료 에너지, 표현 에너지 기반 대인관계 분석",
       "astroAnalysis": "11th house, Mercury, 3rd house 기반 대인관계 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 대인관계 특징"
+      "crossInsight": "동양+서양 교차 분석으로 도출된 대인관계 특징"
     },
     "career": {
       "icon": "💼",
       "title": "직업/사업 / Career",
-      "sajuAnalysis": "관성, 격국, 용신 기반 직업 적성 분석",
+      "easternAnalysis": "직장 에너지, 성향 유형, 핵심 에너지 기반 직업 적성 분석",
       "astroAnalysis": "MC, 10th house, Saturn 기반 직업 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 직업/사업 특징",
+      "crossInsight": "동양+서양 교차 분석으로 도출된 직업/사업 특징",
       "suitableCareers": ["적합 직업1", "적합 직업2", "적합 직업3"],
       "timing": "사업/이직 좋은 시기"
     },
     "wealth": {
       "icon": "💰",
       "title": "재물/금전 / Wealth",
-      "sajuAnalysis": "재성, 식상생재 기반 재물운 분석",
+      "easternAnalysis": "재물 에너지, 창의→재물 패턴 기반 재물운 분석",
       "astroAnalysis": "2nd house, 8th house, Jupiter 기반 재물 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 재물운 특징",
+      "crossInsight": "동양+서양 교차 분석으로 도출된 재물운 특징",
       "wealthType": "부의 유형 (급여형/사업형/투자형 등)"
     },
     "health": {
       "icon": "🏥",
       "title": "건강 / Health",
-      "sajuAnalysis": "오행 과불급, 일간 강약 기반 건강 분석",
+      "easternAnalysis": "오행 과불급, Day Master 강약 기반 건강 분석",
       "astroAnalysis": "6th house, Mars, Chiron 기반 건강 분석",
-      "crossInsight": "사주+점성 교차 분석으로 도출된 건강 특징",
+      "crossInsight": "동양+서양 교차 분석으로 도출된 건강 특징",
       "vulnerabilities": ["취약 부위1", "취약 부위2"],
       "advice": "건강 관리 조언"
     }
@@ -590,17 +590,17 @@ You MUST return a valid JSON object with this exact structure:
   "keyInsights": [
     {
       "type": "strength",
-      "text": "Key strength based on 격국/용신/natal chart in ${lang}",
+      "text": "Key strength based on 성향유형/핵심에너지/natal chart in ${lang}",
       "icon": "💪"
     },
     {
       "type": "opportunity",
-      "text": "Current opportunity from transits/대운/세운",
+      "text": "Current opportunity from transits/장기/연간 흐름",
       "icon": "🚀"
     },
     {
       "type": "caution",
-      "text": "What to watch based on 충/형/difficult aspects",
+      "text": "What to watch based on 충돌/어려운 aspects",
       "icon": "⚠️"
     },
     {
@@ -615,9 +615,9 @@ You MUST return a valid JSON object with this exact structure:
     "numbers": [3, 8],
     "items": ["행운의 아이템1", "아이템2"]
   },
-  "sajuHighlight": {
-    "pillar": "e.g., 일주 甲子",
-    "element": "e.g., 목(木) - 용신",
+  "easternHighlight": {
+    "pillar": "e.g., Day Pillar 甲子",
+    "element": "e.g., 목(木) - 핵심 에너지",
     "meaning": "What this means for the user in ${lang}"
   },
   "astroHighlight": {
@@ -629,10 +629,10 @@ You MUST return a valid JSON object with this exact structure:
 
 CRITICAL REQUIREMENTS:
 1. lifeTimeline.importantYears: List 8-12 most significant years from birth to age 90
-   - Rate importance 1-5 stars based on BOTH saju (대운/세운 교체점) AND astrology (major transits)
+   - Rate importance 1-5 stars based on BOTH Eastern (장기/연간 흐름 교체점) AND astrology (major transits)
    - Include specific reasons from BOTH systems
 2. categoryAnalysis: MUST include ALL 8 categories with CROSS-ANALYSIS
-   - Each category must have sajuAnalysis, astroAnalysis, AND crossInsight
+   - Each category must have easternAnalysis, astroAnalysis, AND crossInsight
    - crossInsight should synthesize BOTH systems, not just repeat
 3. All text in ${lang}
 4. Return ONLY valid JSON, no markdown

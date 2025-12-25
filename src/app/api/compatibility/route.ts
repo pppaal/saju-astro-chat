@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
@@ -7,6 +8,13 @@ import { getClientIp } from '@/lib/request-ip';
 import { captureServerError } from '@/lib/telemetry';
 import { requirePublicToken } from '@/lib/auth/publicToken';
 import { enforceBodySize } from '@/lib/http';
+import {
+  isValidDate,
+  isValidTime,
+  isValidLatitude,
+  isValidLongitude,
+  LIMITS,
+} from "@/lib/validation";
 
 type Relation = 'friend' | 'lover' | 'other';
 
@@ -38,30 +46,12 @@ function relationWeight(r?: Relation) {
   return 0.9; // other
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
 const MAX_NOTE = 240;
-const MAX_NAME = 80;
-const MAX_CITY = 120;
 
 function sanitizeStr(value: unknown, max = 120) {
   return String(value ?? '').trim().slice(0, max);
 }
 
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    'http://127.0.0.1:5000';
-
-  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
-    console.warn('[Compatibility API] Using non-HTTPS AI backend in production');
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn('[Compatibility API] NEXT_PUBLIC_AI_BACKEND is exposed; prefer AI_BACKEND_URL');
-  }
-  return url;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -85,23 +75,23 @@ export async function POST(req: NextRequest) {
 
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i] || ({} as PersonInput);
-      p.name = sanitizeStr(p.name, MAX_NAME);
-      p.city = sanitizeStr(p.city, MAX_CITY);
+      p.name = sanitizeStr(p.name, LIMITS.NAME);
+      p.city = sanitizeStr(p.city, LIMITS.CITY);
       p.relationNoteToP1 = sanitizeStr(p.relationNoteToP1, MAX_NOTE);
 
       if (!p?.date || !p?.time || !p?.timeZone) {
         return bad(`${i + 1}: date, time, and timeZone are required.`, 400, limit.headers);
       }
-      if (!DATE_RE.test(p.date) || Number.isNaN(Date.parse(p.date))) {
+      if (!isValidDate(p.date)) {
         return bad(`${i + 1}: date must be YYYY-MM-DD.`, 400, limit.headers);
       }
-      if (!TIME_RE.test(p.time)) {
+      if (!isValidTime(p.time)) {
         return bad(`${i + 1}: time must be HH:mm (24h).`, 400, limit.headers);
       }
       if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number' || !Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) {
         return bad(`${i + 1}: latitude/longitude must be numbers.`, 400, limit.headers);
       }
-      if (p.latitude < -90 || p.latitude > 90 || p.longitude < -180 || p.longitude > 180) {
+      if (!isValidLatitude(p.latitude) || !isValidLongitude(p.longitude)) {
         return bad(`${i + 1}: latitude/longitude out of range.`, 400, limit.headers);
       }
       if (!p.timeZone || typeof p.timeZone !== 'string' || !p.timeZone.trim()) {

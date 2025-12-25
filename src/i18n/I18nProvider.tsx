@@ -263,6 +263,14 @@ const dicts = {
       compatibility: { label: "Compatibility", desc: "Compatibility Analysis" },
       personality: { label: "Personality", desc: "Personality Analysis" },
     },
+    success: {
+      title: "Payment Successful!",
+      message: "Thank you for your purchase. Your account has been upgraded and you're ready to explore your destiny.",
+      orderRef: "Order Reference",
+      startReading: "Start Your Reading",
+      goHome: "Go to Home",
+      emailNote: "A confirmation email has been sent to your registered email address.",
+    },
     personality: {
       title: "Nova Persona",
       typeCode: "Type Code",
@@ -665,6 +673,40 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
         }
       }
     }
+    // Merge history translations from JSON
+    if (jsonData.history) {
+      if (!target.history) target.history = {};
+      for (const [key, value] of Object.entries(jsonData.history)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          if (!target.history[key]) target.history[key] = {};
+          Object.assign(target.history[key], value);
+        } else {
+          target.history[key] = value;
+        }
+      }
+    }
+    // Merge myjourney translations from JSON
+    if (jsonData.myjourney) {
+      if (!target.myjourney) target.myjourney = {};
+      for (const [key, value] of Object.entries(jsonData.myjourney)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          if (!target.myjourney[key]) target.myjourney[key] = {};
+          Object.assign(target.myjourney[key], value);
+        } else {
+          target.myjourney[key] = value;
+        }
+      }
+    }
+    // Merge success translations from JSON
+    if (jsonData.success) {
+      if (!target.success) target.success = {};
+      Object.assign(target.success, jsonData.success);
+    }
+    // Merge destinyPal translations from JSON
+    if (jsonData.destinyPal) {
+      if (!target.destinyPal) target.destinyPal = {};
+      Object.assign(target.destinyPal, jsonData.destinyPal);
+    }
   }
 }
 
@@ -682,6 +724,7 @@ type I18nContextType = {
   t: (path: string, fallback?: string) => string;
   translate: (path: string, fallback?: string) => string;
   dir: "ltr" | "rtl";
+  hydrated: boolean;
 };
 
 export const DICTS = dicts;
@@ -694,12 +737,10 @@ const isRtl = (_l: Locale) => false; // No RTL languages supported
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>("en");
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Mark as hydrated first to prevent flash
-    setIsHydrated(true);
-
+    setHydrated(true);
     try {
       const stored = localStorage.getItem("locale") as Locale | null;
       if (stored && SUPPORTED_LOCALES.includes(stored)) {
@@ -738,9 +779,21 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       return cur;
     };
 
+    const isLikelyCorrupted = (value: string) =>
+      /[\u0400-\u04FF]/.test(value) || value.includes("�");
+
     return (path: string, fallback?: string) => {
       const got = getter(dicts[locale], path);
-      if (typeof got === "string") return got;
+      if (typeof got === "string") {
+        // Some locale files were corrupted (Cyrillic/�). If detected, fall back to English.
+        if (locale === "ko" && isLikelyCorrupted(got)) {
+          const fb = getter(dicts.en, path);
+          if (typeof fb === "string") return fb;
+          if (fallback) return fallback;
+          return path.split(".").pop() || path;
+        }
+        return got;
+      }
 
       const fb = getter(dicts.en, path);
       if (typeof fb === "string") return fb;
@@ -752,8 +805,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, [locale]);
 
   const value = useMemo<I18nContextType>(
-    () => ({ locale, language: locale, setLocale, t, translate: t, dir: isRtl(locale) ? "rtl" : "ltr" }),
-    [locale, t]
+    () => ({ locale, language: locale, setLocale, t, translate: t, dir: isRtl(locale) ? "rtl" : "ltr", hydrated }),
+    [locale, t, hydrated]
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

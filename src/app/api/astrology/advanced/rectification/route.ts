@@ -178,10 +178,11 @@ export async function POST(request: Request) {
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unexpected server error.";
     captureServerError(error, { route: "/api/astrology/advanced/rectification" });
     return NextResponse.json(
-      { error: error?.message || "Unexpected server error." },
+      { error: message },
       { status: 500 }
     );
   }
@@ -213,7 +214,7 @@ export async function GET(request: Request) {
     const allAppearances = validSigns.reduce((acc, s) => {
       acc[s] = getAscendantAppearance(s);
       return acc;
-    }, {} as Record<ZodiacKo, any>);
+    }, {} as Record<ZodiacKo, ReturnType<typeof getAscendantAppearance>>);
 
     const res = NextResponse.json(
       {
@@ -229,10 +230,11 @@ export async function GET(request: Request) {
 
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unexpected server error.";
     captureServerError(error, { route: "/api/astrology/advanced/rectification GET" });
     return NextResponse.json(
-      { error: error?.message || "Unexpected server error." },
+      { error: message },
       { status: 500 }
     );
   }

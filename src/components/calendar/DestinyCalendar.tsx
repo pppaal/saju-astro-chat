@@ -106,7 +106,7 @@ export default function DestinyCalendar() {
 
 function DestinyCalendarContent() {
   const { locale, t } = useI18n();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -151,6 +151,25 @@ function DestinyCalendarContent() {
     if (profile.birthTime) setBirthInfo(prev => ({ ...prev, birthTime: profile.birthTime || '' }));
     if (profile.gender) setBirthInfo(prev => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }));
   }, []);
+
+  // Auto-load profile for authenticated users and auto-submit if complete
+  useEffect(() => {
+    if (status === 'authenticated' && !profileLoaded && !loadingProfile) {
+      handleLoadProfile();
+    }
+  }, [status]);
+
+  // Auto-submit when profile is loaded and complete
+  useEffect(() => {
+    if (profileLoaded && birthInfo.birthDate && birthInfo.birthTime && birthInfo.birthPlace && selectedCity) {
+      // Wait a bit for user to see the loaded data
+      const timer = setTimeout(() => {
+        setSubmitting(true);
+        fetchCalendar(birthInfo);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [profileLoaded, selectedCity]);
 
   // Load profile from DB for authenticated users
   const handleLoadProfile = async () => {
@@ -730,25 +749,24 @@ function DestinyCalendarContent() {
             </div>
 
             <form onSubmit={handleBirthInfoSubmit} className={styles.form}>
-              {/* Load My Profile Button - only for authenticated users */}
-              {status === 'authenticated' && (
-                <button
-                  type="button"
-                  className={`${styles.loadProfileButton} ${profileLoaded ? styles.loadProfileSuccess : ''}`}
-                  onClick={handleLoadProfile}
-                  disabled={loadingProfile}
-                >
-                  <span className={styles.loadProfileIcon}>
-                    {loadingProfile ? '...' : profileLoaded ? '✓' : '👤'}
+              {/* Auto-loading message for authenticated users */}
+              {status === 'authenticated' && loadingProfile && (
+                <div className={styles.autoLoadingMessage}>
+                  <span className={styles.autoLoadingIcon}>⏳</span>
+                  <span className={styles.autoLoadingText}>
+                    {locale === 'ko' ? '저장된 프로필을 불러오는 중...' : 'Loading your saved profile...'}
                   </span>
-                  <span className={styles.loadProfileText}>
-                    {loadingProfile
-                      ? (t('app.loadingProfile') || 'Loading...')
-                      : profileLoaded
-                      ? (t('app.profileLoaded') || 'Profile Loaded!')
-                      : (t('app.loadMyProfile') || 'Load My Profile')}
+                </div>
+              )}
+
+              {/* Profile loaded success message */}
+              {status === 'authenticated' && profileLoaded && (
+                <div className={styles.profileLoadedMessage}>
+                  <span className={styles.profileLoadedIcon}>✓</span>
+                  <span className={styles.profileLoadedText}>
+                    {locale === 'ko' ? '프로필 불러오기 완료! 잠시 후 자동으로 분석됩니다...' : 'Profile loaded! Auto-analyzing your calendar...'}
                   </span>
-                </button>
+                </div>
               )}
 
               <div className={styles.grid2}>

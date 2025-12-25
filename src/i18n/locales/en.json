@@ -71,18 +71,18 @@
     "prompt3": "I want to see my love fortune.",
     "chatInputPlaceholder": "Ask about your destiny...",
     "aiResponse": "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.",
-    "astrologyTitle": "Astrology",
-    "astrologyDesc": "Planets, houses, and aspects animated.",
+    "astrologyTitle": "Western Fortune",
+    "astrologyDesc": "Your destiny through zodiac & planetary alignment",
     "destinyTitle": "Destiny Map",
-    "destinyDesc": "Integrates Saju, star transits, and tarot in one map.",
-    "sajuTitle": "Saju",
-    "sajuDesc": "Visualizes five elements balance and fortune cycles.",
+    "destinyDesc": "AI combines Eastern + Western fortune in one analysis",
+    "sajuTitle": "Eastern Fortune",
+    "sajuDesc": "Your destiny through Saju & Five Elements",
     "tarotTitle": "Tarot",
     "tarotDesc": "Intuitive spreads with card pulling animation.",
-    "astrologySectionTitle": "Your Day, Astrologically",
-    "astrologySectionSubtitle": "See how planetary positions influence your destiny in real time",
-    "sajuSectionTitle": "Five Elements Balance with Saju",
-    "sajuSectionSubtitle": "Check your five element energy distribution and find balance",
+    "astrologySectionTitle": "🌍 Western Fortune — Your Stars Today",
+    "astrologySectionSubtitle": "See how the Sun, Moon, and planets influence your day",
+    "sajuSectionTitle": "🌏 Eastern Fortune — Your Saju Today",
+    "sajuSectionSubtitle": "Wood · Fire · Earth · Metal · Water — how do the five elements guide your destiny?",
     "tarotSectionTitle": "Today's Tarot Reading",
     "tarotSectionSubtitle": "Listen to the message the cards have for you",
     "tarotDeckLabel": "Click to draw cards",
@@ -118,6 +118,25 @@
     "scorpio": "Scorpio",
     "pisces": "Pisces",
     "ageUnit": " yrs",
+    "sajuSimpleExplain": "Eastern philosophy believes everyone receives 5 energies (Wood·Fire·Earth·Metal·Water) at birth. This balance determines your personality, talents, and life flow.",
+    "fourPillarsTitle": "📊 Four Pillars of Life",
+    "fourPillarsExplain": "Your birth year/month/day/hour each govern different life areas",
+    "yearPillarSimple": "Ancestry/Childhood",
+    "monthPillarSimple": "Parents/Youth",
+    "dayPillarSimple": "Self",
+    "hourPillarSimple": "Children/Later Years",
+    "yearPillarMeaning": "Stable Foundation",
+    "monthPillarMeaning": "Growth & Challenge",
+    "dayPillarMeaning": "Passionate Nature",
+    "hourPillarMeaning": "Flexible & Wise",
+    "luckTimelineTitle": "📈 10-Year Luck Cycles",
+    "luckTimelineExplain": "Your life receives different energies every 10 years. What phase are you in now?",
+    "luckPeriod1": "Stability",
+    "luckPeriod2": "Challenge",
+    "luckPeriod3": "Prime",
+    "luckPeriod4": "Transition",
+    "luckPeriod5": "Maturity",
+    "currentPeriod": "Current",
     "todayMessage": "Today is favorable for new beginnings. Your creativity will shine.",
     "searchPlaceholder": "What would you like to know today?",
     "hint1": "How is my fortune today?",
@@ -130,6 +149,20 @@
     "questionHint1": "What is my life direction?",
     "questionHint2": "How will my year be?",
     "questionHint3": "What career suits me?",
+    "chatDemo": {
+      "title": "DestinyPal Services",
+      "subtitle": "Your Destiny, Decoded.",
+      "subtitle2": "AI interprets the language of fate",
+      "aiName": "DestinyPal AI",
+      "online": "Online",
+      "placeholder": "Ask about your destiny...",
+      "q1": "How is my fortune today?",
+      "a1": "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.",
+      "q2": "What about love life?",
+      "a2": "Your romantic sector shows interesting dynamics. The Peach Blossom star in your chart indicates charm and attractiveness. Venus is well-aspected, suggesting harmony in relationships. If you're single, this is a good time for new connections. For couples, focus on communication and shared goals.",
+      "q3": "Should I start a new project?",
+      "a3": "Yes, the timing looks favorable! Your current 10-year luck cycle supports new beginnings. The combination of Wood and Fire elements in your chart provides creative energy and momentum. Mercury's position enhances planning and communication skills. Consider starting within the next few weeks for optimal results."
+    },
     "elementCombo": {
       "earthEarth": "Earth-Earth",
       "metalMetal": "Metal-Metal",
@@ -918,8 +951,8 @@
     "result": {
       "analyzingTitle": "Analyzing Your Destiny",
       "analyzingSubtitle": "Analyzing Your Destiny Chart",
-      "step1": "Calculating Four Pillars...",
-      "step2": "Analyzing Astrology Chart...",
+      "step1": "Eastern Fortune Analysis...",
+      "step2": "Western Fortune Analysis...",
       "step3": "Generating AI Interpretation...",
       "step4": "Finalizing Report...",
       "dataNodes": "Where Eastern and Western wisdom unite",
@@ -1332,6 +1365,10 @@
     "copied": "Copied!",
     "shareVia": "Share via",
     "copyLink": "Copy Link",
+    "share": "Share",
+    "showQR": "Show QR Code",
+    "hideQR": "Hide QR Code",
+    "qrHint": "Scan this QR code to share with friends easily",
     "yourStats": "Your Stats",
     "totalInvites": "Total Invites",
     "completed": "Completed",
@@ -1383,6 +1420,10 @@
       "title": "My Destiny",
       "desc": "Past readings & insights"
     },
+    "referral": {
+      "title": "Invite Friends",
+      "desc": "Get 3 credits per friend"
+    },
     "fortune": {
       "title": "Today's Fortune",
       "love": "Love",
@@ -1402,24 +1443,86 @@
       "showLess": "Show less"
     },
     "services": {
-      "destinyMap": "Destiny Map",
-      "destinyCalendar": "Destiny Calendar",
+      "destinyMap": "Destiny map",
+      "destinyCalendar": "Destiny calendar",
       "tarot": "Tarot",
       "saju": "Saju",
       "astrology": "Astrology",
       "dream": "Dream",
-      "iching": "I Ching",
+      "iching": "I ching",
       "numerology": "Numerology",
       "aura": "Aura",
-      "dailyFortune": "Daily Fortune",
+      "dailyFortune": "Daily fortune",
       "personality": "Personality",
       "compatibility": "Compatibility",
-      "destinyPal": "Destiny Pal",
-      "destinyMatrix": "Destiny Matrix"
+      "destinyPal": "Destiny pal",
+      "destinyMatrix": "Destiny matrix"
     }
   },
   "history": {
     "recordUnit": " records",
-    "savedUnit": " readings saved"
+    "savedUnit": " readings saved",
+    "viewDetail": "View details",
+    "services": {
+      "dailyFortune": {
+        "title": "Daily Fortune",
+        "desc": "Daily fortune and advice"
+      },
+      "destinyMap": {
+        "title": "Destiny Map",
+        "desc": "East + West fusion analysis"
+      },
+      "destinyCalendar": {
+        "title": "Destiny Calendar",
+        "desc": "Save important dates"
+      },
+      "iching": {
+        "title": "I Ching",
+        "desc": "64 hexagrams predict future"
+      },
+      "tarot": {
+        "title": "Tarot",
+        "desc": "Messages from cards"
+      },
+      "saju": {
+        "title": "Saju",
+        "desc": "Eastern fortune analysis"
+      },
+      "astrology": {
+        "title": "Astrology",
+        "desc": "Zodiac and planetary influences"
+      },
+      "dream": {
+        "title": "Dream Interpretation",
+        "desc": "Messages from dreams"
+      },
+      "compatibility": {
+        "title": "Compatibility",
+        "desc": "Relationship harmony analysis"
+      },
+      "numerology": {
+        "title": "Numerology",
+        "desc": "Secrets of numbers"
+      },
+      "aura": {
+        "title": "Aura",
+        "desc": "Energy field analysis"
+      },
+      "personality": {
+        "title": "Personality",
+        "desc": "Inner self exploration"
+      },
+      "destinyPal": {
+        "title": "Destiny Pal",
+        "desc": "AI counseling partner"
+      },
+      "destinyMatrix": {
+        "title": "Destiny Matrix",
+        "desc": "Blueprint of destiny"
+      },
+      "default": {
+        "desc": "View records"
+      }
+    }
   }
 }

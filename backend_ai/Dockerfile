@@ -33,4 +33,6 @@ EXPOSE 8080
 ENV PYTHONPATH=/app
 
 # Start command (default to 8080 if PORT is not provided)
-CMD ["sh", "-c", "gunicorn app.app:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
+# Use 1 worker with threads for memory efficiency on Railway
+# preload to share model memory, graceful-timeout for clean shutdown
+CMD ["sh", "-c", "gunicorn app.app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 4 --timeout 120 --graceful-timeout 30 --keep-alive 5 --preload"]

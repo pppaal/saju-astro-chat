@@ -11,8 +11,8 @@ interface Consultation {
 
 interface ConsultationDetail extends Consultation {
   fullReport: string;
-  jungQuotes?: any;
-  signals?: any;
+  jungQuotes?: unknown;
+  signals?: unknown;
 }
 
 interface Pagination {
@@ -70,8 +70,8 @@ export function useConsultationHistory(): UseConsultationHistoryReturn {
         setConsultations((prev) => [...prev, ...data.data]);
       }
       setPagination(data.pagination);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -92,8 +92,8 @@ export function useConsultationHistory(): UseConsultationHistoryReturn {
       }
 
       return data.data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
       return null;
     }
   }, []);
@@ -109,8 +109,8 @@ export function useConsultationHistory(): UseConsultationHistoryReturn {
 
       setConsultations((prev) => prev.filter((c) => c.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
       return false;
     }
   }, []);

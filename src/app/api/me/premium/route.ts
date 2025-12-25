@@ -5,6 +5,8 @@ import Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
+const STRIPE_API_VERSION = "2025-10-29.clover" as Stripe.LatestApiVersion;
+
 // 이메일 형식 검증 (Stripe 쿼리 인젝션 방지)
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -16,7 +18,7 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email || !isValidEmail(email)) return false;
 
-  const stripe = new Stripe(key, { apiVersion: "2024-12-18.acacia" as any });
+  const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   const customers = await stripe.customers.search({
     query: `email:'${email}'`,
     limit: 3,
@@ -56,10 +58,10 @@ export async function GET() {
       isLoggedIn: true,
       isPremium,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Premium check error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }

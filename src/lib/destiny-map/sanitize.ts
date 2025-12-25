@@ -1,3 +1,12 @@
+// src/lib/destiny-map/sanitize.ts
+// Locale-specific text sanitization
+
+// Re-export from centralized security module for backward compatibility
+export { maskDisplayName, maskTextWithName } from "@/lib/security";
+
+/**
+ * Sanitize text based on locale - removes invalid characters
+ */
 export function sanitizeLocaleText(str: string, lang: string) {
   if (!str) return str;
 
@@ -17,23 +26,4 @@ export function sanitizeLocaleText(str: string, lang: string) {
 
   const regex = allowedByLang[lang] || allowedByLang.default;
   return str.replace(regex, "");
-}
-
-function escapeRegExp(str: string) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-export function maskDisplayName(name?: string) {
-  if (!name) return undefined;
-  const first = name.trim().slice(0, 1) || "";
-  return `${first}***`;
-}
-
-export function maskTextWithName(text: string, name?: string) {
-  if (!text || !name) return text;
-  try {
-    return text.replace(new RegExp(escapeRegExp(name), "g"), "***");
-  } catch {
-    return text;
-  }
 }

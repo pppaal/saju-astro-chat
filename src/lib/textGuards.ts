@@ -11,7 +11,8 @@
   /\b(self-harm|suicide|harm myself|kill myself|end my life)\b/gi,
 ];
 
-export const PROMPT_BUDGET_CHARS = 6000;
+// v3.1: Increased to support full comprehensive data snapshot (~8-10KB)
+export const PROMPT_BUDGET_CHARS = 15000;
 
 export function cleanText(value: string, max = 1800) {
   return (value || "")

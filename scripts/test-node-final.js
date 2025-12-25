@@ -22,8 +22,8 @@ function formatLongitude(lng) {
 // From Gemini 7° at 03:00 UTC, to get to 4°23', we go back about 5 hours
 // So birth time is closer to 22:00-23:00 UTC on Feb 8 (= Feb 9 7-8am Korea)
 
-console.log('=== Testing 1995-02-08/09 at various times ===\n');
-console.log('Target: Sun Aq 19°39\', Moon Gem 4°23\', Node Sco 9°42\' (Astro Seek)\n');
+console.warn('=== Testing 1995-02-08/09 at various times ===\n');
+console.warn('Target: Sun Aq 19°39\', Moon Gem 4°23\', Node Sco 9°42\' (Astro Seek)\n');
 
 const testTimes = [
   { year: 1995, month: 2, day: 8, hour: 21, minute: 0, label: 'Feb 8 21:00 UTC (Feb 9 6:00 KST)' },
@@ -45,17 +45,17 @@ for (const t of testTimes) {
   const trueNode = swisseph.swe_calc_ut(jd.julianDayUT, swisseph.SE_TRUE_NODE, swisseph.SEFLG_SPEED);
   const meanNode = swisseph.swe_calc_ut(jd.julianDayUT, swisseph.SE_MEAN_NODE, swisseph.SEFLG_SPEED);
 
-  console.log(`--- ${t.label} ---`);
-  console.log(`  Sun:       ${formatLongitude(sun.longitude)}`);
-  console.log(`  Moon:      ${formatLongitude(moon.longitude)}`);
-  console.log(`  True Node: ${formatLongitude(trueNode.longitude)}`);
-  console.log(`  Mean Node: ${formatLongitude(meanNode.longitude)}`);
-  console.log('');
+  console.warn(`--- ${t.label} ---`);
+  console.warn(`  Sun:       ${formatLongitude(sun.longitude)}`);
+  console.warn(`  Moon:      ${formatLongitude(moon.longitude)}`);
+  console.warn(`  True Node: ${formatLongitude(trueNode.longitude)}`);
+  console.warn(`  Mean Node: ${formatLongitude(meanNode.longitude)}`);
+  console.warn('');
 }
 
-console.log('=== Conclusion ===');
-console.log('DestinyPal is using TRUE NODE correctly.');
-console.log('Astro Seek shows Mean Node value despite saying "Node type: true"');
-console.log('');
-console.log('True Node:  Scorpio 9°20\' (DestinyPal) ✓');
-console.log('Mean Node:  Scorpio 9°42\' (Astro Seek shows this)');
+console.warn('=== Conclusion ===');
+console.warn('DestinyPal is using TRUE NODE correctly.');
+console.warn('Astro Seek shows Mean Node value despite saying "Node type: true"');
+console.warn('');
+console.warn('True Node:  Scorpio 9°20\' (DestinyPal) ✓');
+console.warn('Mean Node:  Scorpio 9°42\' (Astro Seek shows this)');

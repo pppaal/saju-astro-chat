@@ -16,7 +16,7 @@ const downloadDir = path.join(__dirname, 'public', 'ephe');
 // 폴더가 없으면 생성하기
 if (!fs.existsSync(downloadDir)) {
     fs.mkdirSync(downloadDir, { recursive: true });
-    console.log(`성공: '${downloadDir}' 폴더를 생성했습니다.`);
+    console.warn(`성공: '${downloadDir}' 폴더를 생성했습니다.`);
 }
 
 // 파일 다운로드 함수
@@ -25,7 +25,7 @@ function downloadFile(fileInfo) {
         const filePath = path.join(downloadDir, fileInfo.name);
         const fileStream = fs.createWriteStream(filePath);
 
-        console.log(`▶️ ${fileInfo.name} 파일 다운로드를 시작합니다... (주소: ${fileInfo.url})`);
+        console.warn(`▶️ ${fileInfo.name} 파일 다운로드를 시작합니다... (주소: ${fileInfo.url})`);
 
         https.get(fileInfo.url, (response) => {
             // 응답을 파일에 직접 쓴다
@@ -33,7 +33,7 @@ function downloadFile(fileInfo) {
 
             fileStream.on('finish', () => {
                 fileStream.close();
-                console.log(`✅ 성공: ${fileInfo.name} 파일 다운로드 완료!`);
+                console.warn(`✅ 성공: ${fileInfo.name} 파일 다운로드 완료!`);
                 resolve();
             });
 
@@ -47,16 +47,16 @@ function downloadFile(fileInfo) {
 
 // 모든 파일을 순차적으로 다운로드 실행
 async function startDownloads() {
-    console.log('--- 천체력 파일 다운로드 프로그램을 시작합니다 ---');
+    console.warn('--- 천체력 파일 다운로드 프로그램을 시작합니다 ---');
     for (const file of filesToDownload) {
         try {
             await downloadFile(file);
         } catch (error) {
-            console.error(`치명적 오류로 인해 프로그램이 중단됩니다. 네트워크 연결을 확인해주세요.`);
+            console.error(`치명적 오류로 인해 프로그램이 중단됩니다. 네트워크 연결을 확인해주세요.`, error);
             return; // 오류 발생 시 중단
         }
     }
-    console.log('\n🎉 모든 파일 다운로드를 성공적으로 완료했습니다! 🎉');
+    console.warn('\n🎉 모든 파일 다운로드를 성공적으로 완료했습니다! 🎉');
 }
 
 // 프로그램 실행!

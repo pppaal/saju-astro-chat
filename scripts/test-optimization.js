@@ -18,7 +18,7 @@ const colors = {
 };
 
 function log(msg, color = 'reset') {
-  console.log(`${colors[color]}${msg}${colors.reset}`);
+  console.warn(`${colors[color]}${msg}${colors.reset}`);
 }
 
 function score(value, max) {

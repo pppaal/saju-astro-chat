@@ -2,25 +2,11 @@
 // Streaming Tarot Interpretation API - Real-time SSE for first interpretation
 
 import { NextResponse } from "next/server";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.BACKEND_AI_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://localhost:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[tarot interpret stream] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[tarot interpret stream] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
-}
 
 interface CardInput {
   name: string;
@@ -35,6 +21,8 @@ interface StreamInterpretRequest {
   cards: CardInput[];
   userQuestion?: string;
   language?: "ko" | "en";
+  counselorId?: string;
+  counselorStyle?: string;
 }
 
 export async function POST(req: Request) {
@@ -53,11 +41,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
     if (oversized) return oversized;
 
     const body: StreamInterpretRequest = await req.json();
-    const { categoryId, spreadId, spreadTitle, cards, userQuestion, language = "ko" } = body;
+    const { categoryId, spreadId, spreadTitle, cards, userQuestion, language = "ko", counselorId, counselorStyle } = body;
 
     if (!categoryId || !spreadId || !cards || cards.length === 0) {
       return NextResponse.json(
@@ -86,7 +74,9 @@ export async function POST(req: Request) {
           position: c.position
         })),
         user_question: userQuestion,
-        language
+        language,
+        counselor_id: counselorId,
+        counselor_style: counselorStyle
       }),
       signal: controller.signal,
       cache: "no-store",

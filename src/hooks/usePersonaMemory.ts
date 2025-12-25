@@ -12,8 +12,8 @@ interface PersonaMemory {
   lastTopics: string[] | null;
   recurringIssues: string[] | null;
   sessionCount: number;
-  birthChart: any | null;
-  sajuProfile: any | null;
+  birthChart: unknown | null;
+  sajuProfile: unknown | null;
 }
 
 interface UsePersonaMemoryReturn {
@@ -48,8 +48,8 @@ export function usePersonaMemory(autoFetch = false): UsePersonaMemoryReturn {
 
       setMemory(data.data);
       setIsNewUser(data.isNewUser);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -71,13 +71,13 @@ export function usePersonaMemory(autoFetch = false): UsePersonaMemoryReturn {
       setMemory(data.data);
       setIsNewUser(false);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
       return false;
     }
   }, []);
 
-  const patchMemory = useCallback(async (action: string, data: any): Promise<boolean> => {
+  const patchMemory = useCallback(async (action: string, data: unknown): Promise<boolean> => {
     try {
       const res = await fetch("/api/persona-memory", {
         method: "PATCH",
@@ -92,8 +92,8 @@ export function usePersonaMemory(autoFetch = false): UsePersonaMemoryReturn {
 
       setMemory(result.data);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
       return false;
     }
   }, []);

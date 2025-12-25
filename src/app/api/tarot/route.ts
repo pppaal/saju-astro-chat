@@ -11,6 +11,10 @@ import { tarotDeck } from "@/lib/Tarot/tarot-data";
 
 const MAX_ID_LEN = 64;
 const BODY_LIMIT = 8 * 1024;
+type TarotBody = {
+  categoryId?: string;
+  spreadId?: string;
+};
 
 function drawCards(count: number): DrawnCard[] {
   const deck = [...tarotDeck];
@@ -36,16 +40,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(req as any, BODY_LIMIT, limit.headers);
+    const oversized = enforceBodySize(req, BODY_LIMIT, limit.headers);
     if (oversized) return oversized;
 
-    const body = await req.json().catch(() => null);
+    const body = (await req.json().catch(() => null)) as TarotBody | null;
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
     }
 
-    const categoryIdRaw = typeof (body as any).categoryId === "string" ? (body as any).categoryId.trim() : "";
-    const spreadIdRaw = typeof (body as any).spreadId === "string" ? (body as any).spreadId.trim() : "";
+    const categoryIdRaw = typeof body.categoryId === "string" ? body.categoryId.trim() : "";
+    const spreadIdRaw = typeof body.spreadId === "string" ? body.spreadId.trim() : "";
     const categoryId = categoryIdRaw.slice(0, MAX_ID_LEN);
     const spreadId = spreadIdRaw.slice(0, MAX_ID_LEN);
 
@@ -71,7 +75,7 @@ export async function POST(req: Request) {
     });
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
-  } catch (err: any) {
+  } catch (err: unknown) {
     captureServerError(err, { route: "/api/tarot" });
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

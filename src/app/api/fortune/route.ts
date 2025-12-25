@@ -25,7 +25,7 @@ export async function POST(req: Request) {
           userId: session.user.id,
           date: normalized,
           kind,
-        } as any,
+        },
       },
       update: { title: title ?? null, content },
       create: {
@@ -65,7 +65,7 @@ export async function GET(req: Request) {
           userId: session.user.id,
           date: normalized,
           kind,
-        } as any,
+        },
       },
     })
     return NextResponse.json({ fortune: row ?? null })

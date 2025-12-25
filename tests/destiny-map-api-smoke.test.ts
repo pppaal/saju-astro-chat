@@ -45,7 +45,7 @@ describe("destiny-map chat API smoke", () => {
       method: "POST",
       body: JSON.stringify({ birthDate: "", birthTime: "" }),
     });
-    const res = await ChatPost(req as any);
+    const res = await ChatPost(req);
     expect(res.status).toBe(400);
   });
 
@@ -63,7 +63,7 @@ describe("destiny-map chat API smoke", () => {
         messages: [{ role: "user", content: "hello" }],
       }),
     });
-    const res = await ChatPost(req as any);
+    const res = await ChatPost(req);
     expect(res.status).toBe(200);
     expect(res.headers.get("X-Fallback")).toBe("1");
     const json = await res.json();

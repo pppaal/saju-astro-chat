@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { dreamId, dreamText, messages, summary, locale = "ko" } = body as SaveDreamChatRequest;
+    const { dreamText, messages, summary, locale = "ko" } = body as SaveDreamChatRequest;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(

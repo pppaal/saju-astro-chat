@@ -2,19 +2,26 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db/prisma"
-import { getPlanFromPriceId } from "@/lib/payments/prices"
+import { getPlanFromPriceId, getCreditPackFromPriceId } from "@/lib/payments/prices"
 import { getClientIp } from "@/lib/request-ip"
 import { captureServerError } from "@/lib/telemetry"
 import { recordCounter } from "@/lib/metrics"
-import { upgradePlan, type PlanType } from "@/lib/credits/creditService"
+import { upgradePlan, addBonusCredits, type PlanType } from "@/lib/credits/creditService"
 
 export const dynamic = "force-dynamic"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia" as any,
-})
+const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover"
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not configured")
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: STRIPE_API_VERSION,
+  })
+}
+
+const getWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET
 
 async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
@@ -23,6 +30,7 @@ async function findUserByEmail(email: string) {
 }
 
 export async function POST(request: Request) {
+  const webhookSecret = getWebhookSecret()
   if (!webhookSecret) {
     console.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
     captureServerError(new Error("STRIPE_WEBHOOK_SECRET missing"), { route: "/api/webhook/stripe", stage: "config" })
@@ -32,6 +40,7 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+  const stripe = getStripe()
 
   const body = await request.text()
   const headersList = await headers()
@@ -51,20 +60,26 @@ export async function POST(request: Request) {
 
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-  } catch (err: any) {
-    console.error("[Stripe Webhook] Signature verification failed:", err.message)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error"
+    console.error("[Stripe Webhook] Signature verification failed:", message)
     recordCounter("stripe_webhook_auth_error", 1, { reason: "verify_failed" })
     captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip })
     return NextResponse.json(
-      { error: `Webhook signature verification failed: ${err.message}` },
+      { error: `Webhook signature verification failed: ${message}` },
       { status: 400 }
     )
   }
 
-  console.log(`[Stripe Webhook] Event: ${event.type}`, { ip })
+  console.warn(`[Stripe Webhook] Event: ${event.type}`, { ip })
 
   try {
     switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session
+        await handleCheckoutCompleted(session)
+        break
+      }
       case "customer.subscription.created": {
         const subscription = event.data.object as Stripe.Subscription
         await handleSubscriptionCreated(subscription)
@@ -91,22 +106,93 @@ export async function POST(request: Request) {
         break
       }
       default:
-        console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`)
+        console.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
     }
 
     return NextResponse.json({ received: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error"
     console.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
     recordCounter("stripe_webhook_handler_error", 1, { event: event.type })
     captureServerError(err, { route: "/api/webhook/stripe", event: event.type })
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: message },
       { status: 500 }
     )
   }
 }
 
+// 크레딧팩 구매 완료 처리 (일회성 결제)
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  // 크레딧팩 구매인지 확인
+  const metadata = session.metadata
+  if (metadata?.type !== 'credit_pack') {
+    console.log('[Stripe Webhook] Not a credit pack purchase, skipping')
+    return
+  }
+
+  const creditPack = metadata.creditPack as 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate' | undefined
+  const userId = metadata.userId
+
+  if (!creditPack || !userId) {
+    console.error('[Stripe Webhook] Missing creditPack or userId in metadata')
+    return
+  }
+
+  // 크레딧 수량 매핑
+  const CREDIT_PACK_AMOUNTS: Record<string, number> = {
+    mini: 5,
+    standard: 15,
+    plus: 40,
+    mega: 100,
+    ultimate: 250,
+  }
+
+  const creditAmount = CREDIT_PACK_AMOUNTS[creditPack]
+  if (!creditAmount) {
+    console.error(`[Stripe Webhook] Unknown credit pack: ${creditPack}`)
+    return
+  }
+
+  // 사용자 확인
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  })
+
+  if (!user) {
+    console.error(`[Stripe Webhook] User not found: ${userId}`)
+    return
+  }
+
+  // 보너스 크레딧 추가
+  try {
+    await addBonusCredits(userId, creditAmount)
+    console.warn(`[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`)
+  } catch (err) {
+    console.error('[Stripe Webhook] Failed to add bonus credits:', err)
+    throw err
+  }
+
+  // 구매 기록 저장 (선택사항) - CreditPurchase 모델이 스키마에 없음
+  // await prisma.creditPurchase.create({
+  //   data: {
+  //     userId,
+  //     pack: creditPack,
+  //     credits: creditAmount,
+  //     amount: session.amount_total || 0,
+  //     currency: session.currency || 'krw',
+  //     stripeSessionId: session.id,
+  //     status: 'completed',
+  //   },
+  // }).catch((err) => {
+  //   console.warn('[Stripe Webhook] Could not save credit purchase record:', err.message)
+  // })
+
+  console.warn(`[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`)
+}
+
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
+  const stripe = getStripe()
   const customerId = subscription.customer as string
   const customer = await stripe.customers.retrieve(customerId)
 
@@ -135,11 +221,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   }
   const { plan, billingCycle } = planInfo
 
-  const sub = subscription as any
-  const periodStart = sub.current_period_start
-  const periodEnd = sub.current_period_end
+  const periodStart = (subscription as any).current_period_start as number | undefined
+  const periodEnd = (subscription as any).current_period_end as number | undefined
 
-  await (prisma as any).subscription.upsert({
+  await prisma.subscription.upsert({
     where: { stripeSubscriptionId: subscription.id },
     update: {
       status: subscription.status,
@@ -167,16 +252,16 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   // 크레딧 시스템 업그레이드
   try {
     await upgradePlan(user.id, plan as PlanType)
-    console.log(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
+    console.warn(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
   } catch (creditErr) {
     console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
   }
 
-  console.log(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
+  console.warn(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  const existing = await (prisma as any).subscription.findUnique({
+  const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscription.id },
   })
 
@@ -190,12 +275,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const plan = planInfo?.plan ?? existing.plan
   const billingCycle = planInfo?.billingCycle ?? existing.billingCycle
 
-  const sub = subscription as any
-  const periodStart = sub.current_period_start
-  const periodEnd = sub.current_period_end
-  const canceledAt = sub.canceled_at
+  const periodStart = (subscription as any).current_period_start as number | undefined
+  const periodEnd = (subscription as any).current_period_end as number | undefined
+  const canceledAt = subscription.canceled_at
 
-  await (prisma as any).subscription.update({
+  await prisma.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
     data: {
       status: subscription.status,
@@ -213,26 +297,26 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   if (existing.plan !== plan && subscription.status === "active") {
     try {
       await upgradePlan(existing.userId, plan as PlanType)
-      console.log(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
+      console.warn(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
     } catch (creditErr) {
       console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
     }
   }
 
-  console.log(`[Stripe Webhook] Subscription updated: ${subscription.id} -> ${subscription.status}`)
+  console.warn(`[Stripe Webhook] Subscription updated: ${subscription.id} -> ${subscription.status}`)
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const existing = await (prisma as any).subscription.findUnique({
+  const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscription.id },
   })
 
   if (!existing) {
-    console.log(`[Stripe Webhook] Subscription not found: ${subscription.id}`)
+    console.warn(`[Stripe Webhook] Subscription not found: ${subscription.id}`)
     return
   }
 
-  await (prisma as any).subscription.update({
+  await prisma.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
     data: {
       status: "canceled",
@@ -243,29 +327,32 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   // 구독 취소 시 free 플랜으로 다운그레이드
   try {
     await upgradePlan(existing.userId, "free")
-    console.log(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
+    console.warn(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
   } catch (creditErr) {
     console.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
   }
 
-  console.log(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
+  console.warn(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const inv = invoice as any
-  const subscriptionId = inv.subscription as string
+  const invoiceAny = invoice as any
+  const subscriptionId = typeof invoiceAny.subscription === "string" ? invoiceAny.subscription : invoiceAny.subscription?.id
   if (!subscriptionId) return
 
-  const existing = await (prisma as any).subscription.findUnique({
+  const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId },
   })
 
   if (existing) {
-    const paymentMethod = inv.payment_intent
-      ? await getPaymentMethodType(inv.payment_intent as string)
+    const paymentIntentId = typeof invoiceAny.payment_intent === "string"
+      ? invoiceAny.payment_intent
+      : invoiceAny.payment_intent?.id
+    const paymentMethod = paymentIntentId
+      ? await getPaymentMethodType(paymentIntentId)
       : null
 
-    await (prisma as any).subscription.update({
+    await prisma.subscription.update({
       where: { stripeSubscriptionId: subscriptionId },
       data: {
         status: "active",
@@ -274,20 +361,20 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     })
   }
 
-  console.log(`[Stripe Webhook] Payment succeeded for subscription: ${subscriptionId}`)
+  console.warn(`[Stripe Webhook] Payment succeeded for subscription: ${subscriptionId}`)
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const inv = invoice as any
-  const subscriptionId = inv.subscription as string
+  const invoiceAny = invoice as any
+  const subscriptionId = typeof invoiceAny.subscription === "string" ? invoiceAny.subscription : invoiceAny.subscription?.id
   if (!subscriptionId) return
 
-  const existing = await (prisma as any).subscription.findUnique({
+  const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId },
   })
 
   if (existing) {
-    await (prisma as any).subscription.update({
+    await prisma.subscription.update({
       where: { stripeSubscriptionId: subscriptionId },
       data: {
         status: "past_due",
@@ -295,11 +382,12 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     })
   }
 
-  console.log(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)
+  console.warn(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)
 }
 
 async function getPaymentMethodType(paymentIntentId: string): Promise<string | null> {
   try {
+    const stripe = getStripe()
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     const paymentMethodId = paymentIntent.payment_method as string
     if (!paymentMethodId) return null

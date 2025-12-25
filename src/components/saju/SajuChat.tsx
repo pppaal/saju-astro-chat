@@ -5,6 +5,7 @@
 
 import React from "react";
 import styles from "./SajuChat.module.css";
+import { detectCrisis } from "@/components/destiny-map/chat-i18n";
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
@@ -182,19 +183,55 @@ const I18N: Record<LangKey, Copy> = {
   },
 };
 
-// Crisis detection keywords
-const CRISIS_KEYWORDS: Record<string, string[]> = {
-  ko: ["죽고 싶", "자살", "끝내고 싶", "사라지고 싶", "자해", "삶이 싫"],
-  en: ["kill myself", "suicide", "end it all", "want to die", "self harm"],
-};
-
-function detectCrisis(text: string, lang: LangKey): boolean {
-  const keywords = CRISIS_KEYWORDS[lang] || CRISIS_KEYWORDS.en;
-  const lowerText = text.toLowerCase();
-  return keywords.some((kw) => lowerText.includes(kw.toLowerCase()));
-}
+// detectCrisis imported from @/components/destiny-map/chat-i18n
 
 type Message = { role: "system" | "user" | "assistant"; content: string; id?: string };
+
+// Memoized Message Component for performance
+const MessageRow = React.memo(({
+  message,
+  feedback,
+  onFeedback,
+  styles
+}: {
+  message: Message;
+  feedback: Record<string, FeedbackType>;
+  onFeedback: (id: string, type: FeedbackType) => void;
+  styles: Record<string, string>;
+}) => {
+  return (
+    <div
+      key={message.id || message.content.slice(0, 20)}
+      className={`${styles.message} ${styles[message.role]}`}
+    >
+      <div className={styles.messageContent}>
+        {message.content}
+      </div>
+      {message.role === "assistant" && message.content && (
+        <div className={styles.feedbackButtons}>
+          <button
+            type="button"
+            className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "up" ? styles.active : ""}`}
+            onClick={() => onFeedback(message.id || "", "up")}
+            title="Good response"
+          >
+            &#x1F44D;
+          </button>
+          <button
+            type="button"
+            className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "down" ? styles.active : ""}`}
+            onClick={() => onFeedback(message.id || "", "down")}
+            title="Needs improvement"
+          >
+            &#x1F44E;
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
+
+MessageRow.displayName = "MessageRow";
 
 type FeedbackType = "up" | "down" | null;
 
@@ -227,11 +264,11 @@ type SajuChatProps = {
   seedEvent?: string;
   saju?: any;
   userContext?: UserContext;
-  chatSessionId?: string;
   onSaveMessage?: (userMsg: string, assistantMsg: string) => void;
   autoScroll?: boolean;
-  ragSessionId?: string;
+  chatSessionId?: string;
   autoSendSeed?: boolean;
+  ragSessionId?: string;
 };
 
 export default function SajuChat({
@@ -242,11 +279,9 @@ export default function SajuChat({
   seedEvent = "saju-chat:seed",
   saju,
   userContext,
-  chatSessionId,
   onSaveMessage,
   autoScroll = true,
   ragSessionId,
-  autoSendSeed = false,
 }: SajuChatProps) {
   const effectiveLang = lang === "ko" ? "ko" : "en";
   const tr = I18N[effectiveLang];
@@ -312,16 +347,16 @@ export default function SajuChat({
         "How is my luck for the second half of this year?",
       ];
 
-  const generateFollowUpQuestions = () => {
+  const generateFollowUpQuestions = React.useCallback(() => {
     // Shuffle and pick 3 random questions
     const shuffled = [...sajuFollowUps].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 3);
-  };
+  }, [sajuFollowUps]);
 
-  const handleSuggestionClick = (question: string) => {
+  const handleSuggestionClick = React.useCallback((question: string) => {
     setInput(question);
     setShowSuggestions(false);
-  };
+  }, []);
 
   const scrollToBottom = React.useCallback(() => {
     if (autoScroll && messagesEndRef.current) {
@@ -498,7 +533,7 @@ export default function SajuChat({
   };
 
   // Feedback handler
-  const handleFeedback = async (messageId: string, type: FeedbackType) => {
+  const handleFeedback = React.useCallback(async (messageId: string, type: FeedbackType) => {
     setFeedback((prev) => ({ ...prev, [messageId]: type }));
     try {
       await fetch("/api/feedback", {
@@ -514,7 +549,7 @@ export default function SajuChat({
     } catch {
       // Silent fail
     }
-  };
+  }, []);
 
   const visibleMessages = messages.filter((m) => m.role !== "system");
 
@@ -557,34 +592,13 @@ export default function SajuChat({
         )}
 
         {visibleMessages.map((msg) => (
-          <div
+          <MessageRow
             key={msg.id || msg.content.slice(0, 20)}
-            className={`${styles.message} ${styles[msg.role]}`}
-          >
-            <div className={styles.messageContent}>
-              {msg.content || (msg.role === "assistant" && loading ? tr.thinking : "")}
-            </div>
-            {msg.role === "assistant" && msg.content && (
-              <div className={styles.feedbackButtons}>
-                <button
-                  type="button"
-                  className={`${styles.feedbackBtn} ${feedback[msg.id || ""] === "up" ? styles.active : ""}`}
-                  onClick={() => handleFeedback(msg.id || "", "up")}
-                  title="Good response"
-                >
-                  &#x1F44D;
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.feedbackBtn} ${feedback[msg.id || ""] === "down" ? styles.active : ""}`}
-                  onClick={() => handleFeedback(msg.id || "", "down")}
-                  title="Needs improvement"
-                >
-                  &#x1F44E;
-                </button>
-              </div>
-            )}
-          </div>
+            message={msg}
+            feedback={feedback}
+            onFeedback={handleFeedback}
+            styles={styles}
+          />
         ))}
 
         {loading && visibleMessages[visibleMessages.length - 1]?.role !== "assistant" && (

@@ -27,7 +27,7 @@ async function main() {
   const plus = findAspectsPlus(natalChart, transit, {}, opts);
   const meta = buildEngineMeta(transit.meta!, opts);
 
-  console.log("OK ✓",
+  console.warn("OK ✓",
     { natalPlanets: natal.planets.length, transitPlanets: transit.planets.length,
       topNatal: baseNatal[0], topTransit: hits[0], topPlus: plus[0], meta });
 }

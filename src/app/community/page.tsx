@@ -108,9 +108,13 @@ const sanitizeIcon = (icon?: string) => {
   return ascii || "*";
 };
 
-const getCommunityDict = (locale: string) => {
-  const dict = (DICTS as any)?.[locale]?.community;
-  return dict || (DICTS as any)?.en?.community || {};
+const getCommunityDict = (locale: string): Record<string, unknown> => {
+  const dicts = DICTS as Record<string, { community?: unknown }>;
+  const current = dicts[locale]?.community;
+  if (current && typeof current === "object") return current as Record<string, unknown>;
+  const fallback = dicts.en?.community;
+  if (fallback && typeof fallback === "object") return fallback as Record<string, unknown>;
+  return {};
 };
 
 const buildExternalCommunities = (locale: string): ExternalCommunity[] => {

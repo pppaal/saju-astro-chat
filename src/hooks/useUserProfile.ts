@@ -41,7 +41,7 @@ interface UseUserProfileReturn {
 export function useUserProfile(
   options: UseUserProfileOptions = {}
 ): UseUserProfileReturn {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [profile, setProfile] = useState<UserProfile>({});
   const [isLoading, setIsLoading] = useState(true);
 

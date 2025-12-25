@@ -26,7 +26,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     // Handle legacy format where value was wrapped in { value, ex } object
     // This ensures backward compatibility with old cache entries
     if (parsed && typeof parsed === 'object' && 'value' in parsed && 'ex' in parsed) {
-      console.log("[Redis Cache] Converting legacy cache format");
+      console.warn("[Redis Cache] Converting legacy cache format");
       // The 'value' field contains the actual stringified data
       if (typeof parsed.value === 'string') {
         return JSON.parse(parsed.value) as T;

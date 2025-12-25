@@ -56,47 +56,47 @@
     "personality": "성격분석"
   },
   "landing": {
-    "heroTitle": "자신을 알고 내일을 만드세요.",
-    "heroSub": "운명, 심리학, 영성이 만나는 곳",
+    "heroTitle": "나를 알고, 내일을 바꾸세요",
+    "heroSub": "운명, 심리, 영성이 만나는 곳",
     "statsToday": "오늘",
-    "statsTotal": "총 방문자",
-    "statsMembers": "회원수",
-    "statsSince": "(2025년 10월 이후)",
+    "statsTotal": "누적 방문자",
+    "statsMembers": "회원",
+    "statsSince": "(2025년 10월부터)",
     "statsFootnote": "실시간 통계",
     "servicesEyebrow": "DestinyPal 서비스",
-    "servicesTitle": "당신의 운명을 해독합니다.",
-    "servicesDesc": "AI는 운명의 언어를 해석합니다",
-    "prompt1": "오늘 나의 재산은 어떠한가?",
-    "prompt2": "중요한 결정을 내려야 합니다.",
-    "prompt3": "연애운을 보고 싶다.",
-    "chatInputPlaceholder": "당신의 운명에 대해 물어보세요...",
-    "aiResponse": "점성술 차트를 기반으로 오늘은 유리한 행성 정렬을 제공합니다. 사주 요소는 특히 커리어 및 자산 부문에서 강한 조화를 보여줍니다. 달의 위치는 정서적 명확성을 시사하고 목성의 영향력은 성장의 기회를 향상시킵니다.",
-    "astrologyTitle": "점성술",
-    "astrologyDesc": "행성, 하우스, 애스펙트를 애니메이션으로 표시합니다.",
+    "servicesTitle": "당신의 운명, 해석합니다",
+    "servicesDesc": "운명의 언어를 AI가 해석합니다",
+    "prompt1": "오늘 운세가 궁금해요",
+    "prompt2": "중요한 결정을 앞두고 있어요",
+    "prompt3": "연애운이 어떨까요",
+    "chatInputPlaceholder": "운명에 대해 무엇이든 물어보세요...",
+    "aiResponse": "당신의 출생 차트를 분석한 결과 오늘은 행성의 배열이 유리합니다. 사주 오행은 조화를 이루고 있으며, 특히 재물과 직업 영역에서 좋은 기운이 감지됩니다. 달의 위치는 감정적 명료함을, 목성의 영향은 성장 기회를 나타냅니다.",
+    "astrologyTitle": "서양 운세",
+    "astrologyDesc": "별자리 · 행성 배치로 보는 내 운명",
     "destinyTitle": "운명 지도",
-    "destinyDesc": "사주, 별자리 트랜짓, 타로를 하나의 지도에 통합합니다.",
-    "sajuTitle": "사주",
-    "sajuDesc": "오행의 균형과 운세 사이클을 시각화합니다.",
+    "destinyDesc": "동양+서양 운세를 AI가 하나로 통합 분석",
+    "sajuTitle": "동양 운세",
+    "sajuDesc": "사주팔자 · 오행으로 보는 내 운명",
     "tarotTitle": "타로",
-    "tarotDesc": "카드 뽑기 애니메이션이 있는 직관적인 스프레드.",
-    "astrologySectionTitle": "오늘의 당신, 점성학적으로",
-    "astrologySectionSubtitle": "행성의 배치가 당신의 운명에 어떤 영향을 미치는지 실시간으로 확인하세요",
-    "sajuSectionTitle": "사주와 함께하는 5가지 요소의 균형",
-    "sajuSectionSubtitle": "5요소 에너지 분포를 확인하고 균형을 찾으십시오",
+    "tarotDesc": "직관적인 카드 뽑기 애니메이션",
+    "astrologySectionTitle": "🌍 서양 운세 — 별자리로 보는 오늘",
+    "astrologySectionSubtitle": "태양 · 달 · 행성의 위치가 오늘 당신에게 어떤 영향을 주는지 확인하세요",
+    "sajuSectionTitle": "🌏 동양 운세 — 사주로 보는 오늘",
+    "sajuSectionSubtitle": "목 · 화 · 토 · 금 · 수, 오행의 기운이 당신의 운명을 어떻게 이끌까요?",
     "tarotSectionTitle": "오늘의 타로 리딩",
-    "tarotSectionSubtitle": "카드에 담긴 메시지를 들어보세요.",
-    "tarotDeckLabel": "클릭하여 카드 그리기",
-    "tarotDeckReset": "다시 그리기",
+    "tarotSectionSubtitle": "카드가 전하는 메시지를 들어보세요",
+    "tarotDeckLabel": "78장의 타로 카드",
+    "tarotDeckReset": "다시 섞기",
     "tarotPast": "과거",
     "tarotPresent": "현재",
     "tarotFuture": "미래",
     "tarotAdvice": "조언",
-    "ctaTitle": "더 나은 결정 내리기",
-    "ctaSubtitle": "AI는 당신의 운명을 읽고 최선의 선택으로 안내합니다",
-    "ctaButton": "지금 시작하기",
+    "ctaTitle": "더 나은 결정을 내리세요",
+    "ctaSubtitle": "AI가 당신의 운명을 읽고, 최적의 선택을 안내합니다",
+    "ctaButton": "시작하기 →",
     "scrollToTop": "맨 위로",
     "aiChatDemo": "AI 채팅 데모",
-    "ascendant": "어센던트",
+    "ascendant": "상승궁",
     "sun": "태양",
     "moon": "달",
     "hourPillar": "시주",
@@ -118,7 +118,26 @@
     "scorpio": "전갈자리",
     "pisces": "물고기자리",
     "ageUnit": "세",
-    "todayMessage": "오늘은 새로운 시작에 좋은 날입니다. 창의력이 빛날 것입니다.",
+    "sajuSimpleExplain": "동양 철학에서는 모든 사람이 태어날 때 5가지 에너지(木火土金水)를 받는다고 믿어요. 이 균형이 당신의 성격, 재능, 인생 흐름을 결정합니다.",
+    "fourPillarsTitle": "📊 인생의 네 기둥",
+    "fourPillarsExplain": "당신이 태어난 연/월/일/시가 각각 다른 인생 영역을 담당해요",
+    "yearPillarSimple": "조상/유년기",
+    "monthPillarSimple": "부모/청년기",
+    "dayPillarSimple": "나 자신",
+    "hourPillarSimple": "자녀/노년",
+    "yearPillarMeaning": "안정적 기반",
+    "monthPillarMeaning": "성장과 도전",
+    "dayPillarMeaning": "열정적 본성",
+    "hourPillarMeaning": "유연하고 지혜로운",
+    "luckTimelineTitle": "📈 10년마다 바뀌는 운의 흐름",
+    "luckTimelineExplain": "당신의 인생은 10년 주기로 다른 에너지를 받아요. 지금은 어떤 시기일까요?",
+    "luckPeriod1": "안정기",
+    "luckPeriod2": "도전기",
+    "luckPeriod3": "전성기",
+    "luckPeriod4": "전환기",
+    "luckPeriod5": "성숙기",
+    "currentPeriod": "현재",
+    "todayMessage": "오늘은 새로운 시작에 좋은 날입니다. 창의력이 빛을 발합니다.",
     "searchPlaceholder": "오늘 무엇이 궁금하세요?",
     "hint1": "오늘의 운세가 궁금해요",
     "hint2": "연애운이 어떨까요?",
@@ -126,10 +145,24 @@
     "scrollDown": "스크롤하여 더보기",
     "aiRoutingText": "서비스를 선택하고 질문을 입력하세요",
     "selectService": "서비스 선택",
-    "questionPlaceholder": "질문을 입력하세요...",
-    "questionHint1": "나의 인생 방향은?",
-    "questionHint2": "올해 운세는 어떨까요?",
-    "questionHint3": "어떤 직업이 나에게 맞을까요?",
+    "questionPlaceholder": "오늘 무엇이 궁금하세요...",
+    "questionHint1": "내 운명의 흐름은 어떤가요",
+    "questionHint2": "좋은 결정을 내리고 싶어요",
+    "questionHint3": "관계 운세가 궁금해요",
+    "chatDemo": {
+      "title": "DestinyPal 서비스",
+      "subtitle": "당신의 운명, 해석합니다",
+      "subtitle2": "운명의 언어를 AI가 해석합니다",
+      "aiName": "DestinyPal AI",
+      "online": "온라인",
+      "placeholder": "운명에 대해 무엇이든 물어보세요...",
+      "q1": "오늘 운세가 어떤가요?",
+      "a1": "오늘은 행성 배열이 유리합니다. 사주 오행이 조화를 이루고 있으며, 특히 재물과 직업 영역에서 좋은 기운이 감지됩니다. 달의 위치는 감정적 명료함을, 목성의 영향은 성장 기회를 나타냅니다.",
+      "q2": "연애운은 어떨까요?",
+      "a2": "연애 영역에 흥미로운 기운이 있습니다. 도화살이 매력과 인연을 나타내며, 금성이 좋은 위치에 있어 관계의 조화를 암시합니다. 싱글이라면 새로운 만남에 좋은 시기이고, 커플이라면 소통과 공동 목표에 집중하세요.",
+      "q3": "새로운 프로젝트를 시작해도 될까요?",
+      "a3": "네, 타이밍이 좋습니다! 현재 10년 대운이 새로운 시작을 지원합니다. 목과 화의 조합이 창의적 에너지와 추진력을 제공하며, 수성의 위치가 기획과 소통 능력을 강화합니다. 앞으로 몇 주 내 시작하면 최적의 결과를 얻을 수 있습니다."
+    },
     "elementCombo": {
       "earthEarth": "토-토",
       "metalMetal": "금-금",
@@ -140,11 +173,11 @@
     },
     "shinsal": {
       "heavenlyNoble": "천을귀인",
-      "heavenlyNobleDesc": "귀인의 에너지",
-      "postHorse": "역마살",
-      "postHorseDesc": "여행과 이동",
-      "peachBlossom": "도화살",
-      "peachBlossomDesc": "매력과 연애운"
+      "heavenlyNobleDesc": "귀인의 도움을 받음",
+      "postHorse": "역마",
+      "postHorseDesc": "이동과 변화의 기운",
+      "peachBlossom": "도화",
+      "peachBlossomDesc": "매력과 인연의 기운"
     }
   },
   "common": {
@@ -591,18 +624,18 @@
     },
     "results": {
       "title": "결과",
-      "subtitle": "카드가 말합니다",
+      "subtitle": "카드 해석",
       "reversed": "역방향",
       "askAnother": "새로 읽기",
       "startChat": "AI 상담 시작",
       "clickToExpand": "▼ 클릭하여 더 보기",
       "clickToCollapse": "▲ 클릭하여 접기",
       "clickToReveal": "클릭하여 표시",
-      "detailedReadings": "상세 읽기",
+      "detailedReadings": "상세 해석",
       "card": "카드",
-      "defaultMessage": "카드가 당신에게 지혜를 전해드렸습니다.",
-      "defaultGuidance": "이 카드들을 되돌아보며 직감을 믿으세요.",
-      "defaultAffirmation": "나는 우주의 지혜에 열려 있다."
+      "defaultMessage": "카드 해석이 완료되었습니다.",
+      "defaultGuidance": "이 결과를 바탕으로 생각해보세요.",
+      "defaultAffirmation": "이 조언을 실천으로 옮기겠습니다."
     },
     "premium": {
       "title": "프리미엄 AI 타로 상담",
@@ -640,7 +673,7 @@
     },
     "deckSelect": {
       "title": "스타일 선택",
-      "subtitle": "Select the aesthetic that resonates with your spirit"
+      "subtitle": "당신의 영혼과 공명하는 스타일을 선택하세요"
     },
     "colorSelect": {
       "start": "읽기 시작"
@@ -710,19 +743,19 @@
     }
   },
   "dream": {
-    "title": "해몽",
-    "subtitle": "점성술의 통찰력으로 꿈의 더 깊은 의미를 탐구해보세요",
-    "simpleSubtitle": "꿈을 공유하고 우주의 안내를 받으세요",
-    "labelDream": "꿈에 대해 설명해 주세요.",
-    "hintDream": "어떤 꿈을 꾸셨는지 자유롭게 적어주세요. 길이는 상관없습니다.",
-    "placeholderDream": "어젯밤에 꿈꿨는데…",
-    "birthInfo": "출생 정보",
-    "birthInfoHint": "사주와 점성술을 기반으로 한 맞춤 통찰력",
-    "buttonAnalyze": "꿈 해석",
-    "buttonAnalyzing": "꿈을 분석하는 중...",
-    "buttonReset": "새 꿈",
-    "resultTitle": "해몽",
-    "resultSubtitle": "잠재의식의 메시지",
+    "title": "꿈해몽",
+    "subtitle": "당신의 꿈이 전하는 메시지를 들어보세요",
+    "simpleSubtitle": "꿈을 기록하고 의미를 찾아보세요",
+    "labelDream": "어떤 꿈을 꾸셨나요?",
+    "hintDream": "꿈의 내용을 자유롭게 적어주세요",
+    "placeholderDream": "예: 하늘을 날고 있었어요...",
+    "birthInfo": "생년월일 정보",
+    "birthInfoHint": "더 정확한 해석을 위해 입력해주세요",
+    "buttonAnalyze": "해몽하기",
+    "buttonAnalyzing": "해몽 중...",
+    "buttonReset": "다른 꿈 보기",
+    "resultTitle": "꿈 해석",
+    "resultSubtitle": "당신의 꿈이 말하는 것",
     "resultSummary": "요약",
     "resultThemes": "테마",
     "resultSymbols": "꿈의 상징",
@@ -743,12 +776,12 @@
     "saveNotice": "읽은 내용을 저장하려면 로그인해야 합니다",
     "fallbackNotice": "AI 서버 연결 불안정 - 기본 해석 표시",
     "chat": {
-      "title": "드림 카운슬러에게 물어보세요",
-      "subtitle": "꿈에 대한 더 깊은 통찰력을 얻으세요",
-      "empty": "꿈의 해석에 대해 무엇이든 물어보세요",
-      "placeholder": "꿈에 대해 더 알고 싶은 것이 있으신가요?",
-      "send": "전송",
-      "thinking": "꿈의 의미를 해석하는 중...",
+      "title": "꿈 상담",
+      "subtitle": "궁금한 점을 자유롭게 물어보세요",
+      "empty": "꿈에 대해 더 알고 싶은 것이 있나요?",
+      "placeholder": "궁금한 점을 물어보세요...",
+      "send": "보내기",
+      "thinking": "답변을 준비하는 중...",
       "error": "에러가 발생했습니다. 다시 해보세요",
       "quickQ1": "한국 전통 해몽으로 이 꿈을 해석하면 어떤가요?",
       "quickQ2": "이 꿈이 길몽인지 흉몽인지, 재물운과 관련있나요?",
@@ -918,8 +951,8 @@
     "result": {
       "analyzingTitle": "운명 분석하기",
       "analyzingSubtitle": "운명 차트 분석하기",
-      "step1": "네 개의 기둥 계산 중...",
-      "step2": "점성술 차트 분석 중...",
+      "step1": "동양 운세 분석 중...",
+      "step2": "서양 운세 분석 중...",
       "step3": "AI 해석 생성 중...",
       "step4": "보고서 마무리 중...",
       "dataNodes": "Where Eastern and Western wisdom unite",
@@ -941,10 +974,10 @@
       "title": "DestinyPal 카운슬러",
       "online": "Online",
       "voiceComingSoon": "Voice (Coming Soon)",
-      "loading1": "카운슬러와 연결하는 중...",
-      "loading2": "출생 차트 분석 중...",
-      "loading3": "Reading celestial energies...",
-      "loading4": "Preparing personalized guidance..."
+      "loading1": "상담사와 연결하는 중...",
+      "loading2": "프로필 분석 중...",
+      "loading3": "데이터 준비 중...",
+      "loading4": "상담 준비 완료!"
     },
     "visualizer": {
       "dominantElement": "지배적 요소",
@@ -1490,45 +1523,49 @@
     }
   },
   "success": {
-    "title": "Payment Successful!",
-    "message": "Thank you for your purchase. Your account has been upgraded and you're ready to explore your destiny.",
-    "orderRef": "Order Reference",
-    "startReading": "Start Your Reading",
+    "title": "결제 완료!",
+    "message": "구매해 주셔서 감사합니다. 계정이 업그레이드되었으며, 이제 운명을 탐험할 준비가 되었습니다.",
+    "orderRef": "주문 번호",
+    "startReading": "리딩 시작하기",
     "goHome": "홈으로 이동",
     "emailNote": "등록된 이메일 주소로 확인 이메일이 발송되었습니다."
   },
   "destinyPal": {
     "title": "친구를 초대하고 크레딧을 받으세요",
     "subtitle": "첫 번째 분석을 완료한 친구 1명당 5 크레딧을 받으세요",
-    "welcomeFrom": "Welcome! {{name}} invited you to DestinyPal",
-    "bonusCredits": "bonus credits on first analysis",
-    "yourCode": "Your Referral Code",
+    "welcomeFrom": "환영합니다! {{name}}님이 DestinyPal에 초대했어요",
+    "bonusCredits": "첫 분석 시 보너스 크레딧",
+    "yourCode": "내 추천 코드",
     "copy": "복사",
     "copied": "복사 완료",
-    "shareVia": "Share via",
-    "copyLink": "현재는 게스트 계정입니다. 계속하려면 계정을 연동해야 합니다. 지금 연동하시겠어요?",
-    "yourStats": "Your Stats",
-    "totalInvites": "Total Invites",
+    "shareVia": "공유하기",
+    "copyLink": "링크 복사",
+    "share": "공유",
+    "showQR": "QR 코드 보기",
+    "hideQR": "QR 코드 숨기기",
+    "qrHint": "이 QR 코드를 스캔하면 친구와 쉽게 공유할 수 있어요",
+    "yourStats": "내 통계",
+    "totalInvites": "총 초대",
     "completed": "완료",
-    "pending": "Pending",
-    "creditsEarned": "취득 학점",
-    "invitedFriends": "초대된 친구",
+    "pending": "대기중",
+    "creditsEarned": "획득 크레딧",
+    "invitedFriends": "초대한 친구",
     "statusCompleted": "+5 크레딧",
-    "statusPending": "Pending",
-    "noInvitesYet": "아직 초대장이 없습니다. 링크를 공유하고 수입을 올리세요!",
+    "statusPending": "대기중",
+    "noInvitesYet": "아직 초대한 친구가 없어요. 링크를 공유하고 크레딧을 받아보세요!",
     "loginTitle": "프로그램 참여하기",
-    "loginSubtitle": "Sign in to get your unique referral code and start earning credits",
-    "signIn": "Sign In",
+    "loginSubtitle": "로그인하고 나만의 추천 코드를 받아 크레딧을 획득하세요",
+    "signIn": "로그인",
     "howItWorks": "이용방법",
-    "step1Title": "Share Your Link",
-    "step1Desc": "고유 추천 링크를 복사하여 친구와 공유하세요.",
+    "step1Title": "링크 공유하기",
+    "step1Desc": "고유 추천 링크를 복사하여 친구와 공유하세요",
     "step2Title": "친구 가입",
-    "step2Desc": "Your friend creates an account using your link",
-    "step3Title": "1차 분석 완료",
-    "step3Desc": "When they finish their first destiny reading, you both win!",
-    "step4Title": "학점 취득.",
-    "step4Desc": "You get 5 bonus credits instantly added to your account",
-    "shareMessage": "DestinyPal - AI Fortune Reading을 확인하세요! 보너스 크레딧에 내 링크 사용:"
+    "step2Desc": "친구가 내 링크로 계정을 만들어요",
+    "step3Title": "첫 분석 완료",
+    "step3Desc": "친구가 첫 운명 분석을 완료하면 둘 다 혜택을 받아요!",
+    "step4Title": "크레딧 획득",
+    "step4Desc": "즉시 5 크레딧이 계정에 추가돼요",
+    "shareMessage": "DestinyPal - AI 운세 앱을 확인해보세요! 보너스 크레딧을 받으려면 내 링크를 사용하세요:"
   },
   "myjourney": {
     "title": "My Journey",
@@ -1549,6 +1586,10 @@
     "destiny": {
       "title": "나의 운명",
       "desc": "과거 리딩 및 인사이트"
+    },
+    "referral": {
+      "title": "친구 초대",
+      "desc": "친구 1명당 크레딧 3개"
     },
     "fortune": {
       "title": "오늘의 운세",
@@ -1587,6 +1628,68 @@
   },
   "history": {
     "recordUnit": "개의 기록",
-    "savedUnit": "개의 리딩 저장됨"
+    "savedUnit": "개의 리딩 저장됨",
+    "viewDetail": "상세보기",
+    "services": {
+      "dailyFortune": {
+        "title": "오늘의 운세",
+        "desc": "매일의 운세와 조언"
+      },
+      "destinyMap": {
+        "title": "운명 지도",
+        "desc": "동양 + 서양 운세 융합 분석"
+      },
+      "destinyCalendar": {
+        "title": "운명 캘린더",
+        "desc": "중요한 날짜 저장"
+      },
+      "iching": {
+        "title": "주역",
+        "desc": "64괘의 지혜로 미래 예측"
+      },
+      "tarot": {
+        "title": "타로",
+        "desc": "카드가 전하는 메시지"
+      },
+      "saju": {
+        "title": "동양 운세",
+        "desc": "동양 운세 분석"
+      },
+      "astrology": {
+        "title": "서양 운세",
+        "desc": "별자리와 행성의 영향"
+      },
+      "dream": {
+        "title": "꿈 해몽",
+        "desc": "꿈이 전하는 메시지"
+      },
+      "compatibility": {
+        "title": "궁합",
+        "desc": "관계의 조화 분석"
+      },
+      "numerology": {
+        "title": "수비학",
+        "desc": "숫자의 비밀"
+      },
+      "aura": {
+        "title": "오라",
+        "desc": "에너지 필드 분석"
+      },
+      "personality": {
+        "title": "성격",
+        "desc": "내면의 자아 탐구"
+      },
+      "destinyPal": {
+        "title": "Destiny Pal",
+        "desc": "AI 상담 파트너"
+      },
+      "destinyMatrix": {
+        "title": "운명 매트릭스",
+        "desc": "운명의 청사진"
+      },
+      "default": {
+        "desc": "기록 보기"
+      }
+    }
   }
 }

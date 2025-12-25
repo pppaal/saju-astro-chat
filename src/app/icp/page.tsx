@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import styles from './ICP.module.css';
 
 export default function ICPHomePage() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const router = useRouter();
   const isKo = locale === 'ko';
 

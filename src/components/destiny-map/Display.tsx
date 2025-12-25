@@ -3,10 +3,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import ReactMarkdown from "react-markdown";
-import DOMPurify from "dompurify";
 import type { DestinyResult } from "./Analyzer";
-import Chat from "./Chat";
 import styles from "@/app/destiny-map/result/result.module.css";
 
 // Structured fortune response types
@@ -77,7 +74,7 @@ type ReportType = "core" | "timing" | "compat";
 // Theme translations
 const THEME_LABELS: Record<string, Record<LangKey, string>> = {
   // Focus themes
-  focus_overall: { ko: "종합 운세", en: "Overall Fortune", ja: "総合運勢", zh: "综合运势", es: "Fortuna General" },
+  focus_overall: { ko: "운명의 지도", en: "Destiny Map", ja: "運命の地図", zh: "命运地图", es: "Mapa del Destino" },
   focus_love: { ko: "연애운", en: "Love & Romance", ja: "恋愛運", zh: "爱情运", es: "Amor" },
   focus_career: { ko: "직업운", en: "Career & Work", ja: "仕事運", zh: "事业运", es: "Carrera" },
   focus_wealth: { ko: "재물운", en: "Wealth & Finance", ja: "金運", zh: "财运", es: "Riqueza" },
@@ -437,7 +434,7 @@ const I18N: Record<LangKey, {
 };
 
 // Helper to find theme data with case-insensitive key matching
-const findThemeData = (themes: Record<string, any> | undefined, themeKey: string) => {
+const findThemeData = (themes: Record<string, unknown> | undefined, themeKey: string) => {
   if (!themes || !themeKey) return undefined;
   // Try exact match first
   if (themes[themeKey]) return { key: themeKey, data: themes[themeKey] };
@@ -470,9 +467,7 @@ export default function Display({
   const themed = themeMatch?.data;
   const name = result?.profile?.name?.trim() || tr.userFallback;
   const interpretationText =
-    typeof themed?.interpretation === "string" ? themed.interpretation : "";
-  const sajuData = result?.saju;
-  const astroData = result?.astrology || result?.astro;
+    typeof (themed as any)?.interpretation === "string" ? (themed as any).interpretation : "";
 
   // Try to parse structured JSON from interpretation
   const structuredData = useMemo(() => {
@@ -480,58 +475,11 @@ export default function Display({
     return tryParseStructured(interpretationText);
   }, [interpretationText]);
 
-  // Check if we have complete structured data (sections or lifeTimeline + categoryAnalysis)
-  const hasFullStructuredData = useMemo(() => {
-    return (structuredData?.sections && structuredData.sections.length > 0) ||
-           structuredData?.lifeTimeline?.importantYears?.length ||
-           (structuredData?.categoryAnalysis && Object.keys(structuredData.categoryAnalysis).length > 0);
-  }, [structuredData]);
-
-  // Get plain text for markdown rendering (remove JSON if present)
-  const fixedText = useMemo(() => {
-    if (!interpretationText.trim()) {
-      // No interpretation - but check if we have raw saju/astro data to show something
-      // Use result.saju (top-level) since ThemedBlock doesn't have 'raw'
-      if (sajuData?.dayMaster || astroData) {
-        // Generate a basic display from raw data
-        // dayMaster can be { name, element } or { heavenlyStem: { name, element } }
-        const dm = sajuData?.dayMaster;
-        const dayMasterName = dm?.name || dm?.heavenlyStem?.name || dm?.heavenlyStem || "";
-        const dayMasterElement = dm?.element || dm?.heavenlyStem?.element || "";
-        if (dayMasterName) {
-          return lang === "ko"
-            ? `## 사주×점성 분석\n\n당신의 일간은 **${dayMasterName}**(${dayMasterElement})입니다.\n\n상세 분석을 보려면 상담사에게 문의하세요.`
-            : `## Saju × Astrology Analysis\n\nYour Day Master is **${dayMasterName}** (${dayMasterElement}).\n\nFor detailed analysis, please consult with the counselor.`;
-        }
-      }
-      return tr.analysisFallback;
-    }
-
-    // If we have full structured data, don't show markdown content
-    if (hasFullStructuredData) {
-      return ""; // Will be handled by structured components
-    }
-
-    let text = interpretationText;
-    // If structured data exists with sections, extract sections content for display
-    if (structuredData?.sections) {
-      return structuredData.sections
-        .map(s => `## ${s.icon || "✦"} ${s.title}\n\n${s.content}`)
-        .join("\n\n---\n\n");
-    }
-    // Otherwise clean up the raw text (remove JSON from display, but keep markdown)
-    // Don't strip curly braces if it's markdown content (not JSON)
-    const isLikelyJson = text.trim().startsWith("{") && text.includes('"lifeTimeline"');
-    if (isLikelyJson) {
-      return text.replace(/\{[\s\S]*\}/g, "").trim() || tr.analysisFallback;
-    }
-    return text.replace(/##+\s*/g, "## ").trim() || tr.analysisFallback;
-  }, [interpretationText, sajuData, astroData, structuredData, hasFullStructuredData, tr.analysisFallback, lang]);
-
-  if ((result as any)?.error) {
+  const errorMessage = result.errorMessage || result.error;
+  if (errorMessage) {
     return (
       <div className={styles.summary}>
-        Analysis failed: {(result as any).errorMessage || (result as any).error}
+        Analysis failed: {errorMessage}
       </div>
     );
   }
@@ -569,16 +517,57 @@ export default function Display({
       )}
 
       <div className={styles.header}>
-        <h2 className={styles.title}>{structuredData?.themeSummary || getThemeLabel(activeTheme, lang)}</h2>
-        <p className={styles.subtitle}>{tr.tagline}</p>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '16px',
+          marginBottom: '24px',
+          padding: '12px 32px',
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15))',
+          borderRadius: '50px',
+          border: '1px solid rgba(167, 139, 250, 0.3)',
+          backdropFilter: 'blur(10px)',
+        }}>
+          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(167, 139, 250, 0.6))' }}>✨</span>
+          <h2 className={styles.title} style={{ margin: 0, fontSize: '2rem', textShadow: 'none' }}>
+            {structuredData?.themeSummary || getThemeLabel(activeTheme, lang)}
+          </h2>
+          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(167, 139, 250, 0.6))' }}>✨</span>
+        </div>
+
         <div className={styles.profile}>
-          <div className={styles.profileName}>{name}</div>
-          {result?.profile?.birthDate && (
-            <div className={styles.profileMeta}>
-              <span>{tr.birthDate}: {result.profile.birthDate}</span>
-              {result?.profile?.birthTime && <span> · {result.profile.birthTime}</span>}
-            </div>
-          )}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            width: '100%'
+          }}>
+            <div className={styles.profileName}>{name}</div>
+            {result?.profile?.birthDate && (
+              <div className={styles.profileMeta} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                fontSize: '0.95rem',
+                color: 'rgba(167, 139, 250, 0.9)'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ opacity: 0.7 }}>📅</span>
+                  {result.profile.birthDate}
+                </span>
+                {result?.profile?.birthTime && (
+                  <>
+                    <span style={{ opacity: 0.5 }}>•</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ opacity: 0.7 }}>🕐</span>
+                      {result.profile.birthTime}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -635,33 +624,7 @@ export default function Display({
         </div>
       )}
 
-      {/* Main Content - Only show if there's text to display (no structured data) */}
-      {fixedText && fixedText.trim() && (
-        <div className={styles.summary}>
-          <ReactMarkdown
-            skipHtml={true}
-            components={{
-              h1: (props) => <h2 className={styles.sectionTitle} {...props} />,
-              h2: (props) => <h3 className={styles.sectionTitle} {...props} />,
-              h3: (props) => <h4 className={styles.subTitle} {...props} />,
-              h4: (props) => <h5 className={styles.subTitle} {...props} />,
-              ul: (props) => <ul className={styles.list} {...props} />,
-              li: (props) => <li className={styles.listItem} {...props} />,
-              p: (props) => <p className={styles.paragraph} {...props} />,
-              strong: (props) => <strong className={styles.strong} {...props} />,
-              em: (props) => <em className={styles.emphasis} {...props} />,
-              hr: () => <hr className={styles.divider} />,
-              blockquote: (props) => <blockquote className={styles.blockquote} {...props} />,
-            }}
-          >
-            {DOMPurify.sanitize(fixedText, {
-              ALLOWED_TAGS: [],
-              ALLOWED_ATTR: [],
-              USE_PROFILES: { html: false },
-            })}
-          </ReactMarkdown>
-        </div>
-      )}
+      {/* Main Content - 제거됨: FunInsights 컴포넌트에서 스토리텔링 형식으로 통합 표시 */}
 
       {/* 후속 질문하기 섹션 제거 - 상담사 페이지에서 동일 기능 제공 */}
     </div>

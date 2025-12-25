@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { TOTAL_ICP_QUESTIONS, icpQuestions, type ICPQuestion } from '@/lib/icp/questions';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
@@ -21,7 +21,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function ICPQuizPage() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isKo = locale === 'ko';
   const router = useRouter();
   const [answers, setAnswers] = useState<ICPQuizAnswers>({});

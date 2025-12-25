@@ -199,7 +199,11 @@ export default function ResultPage() {
             career: analysis.career,
             compatibilityHint: analysis.compatibilityHint,
             guidance: analysis.guidance,
+            growthTips: analysis.growthTips,
+            primaryColor: analysis.primaryColor,
+            secondaryColor: analysis.secondaryColor,
           },
+          answers,
         }),
       });
 

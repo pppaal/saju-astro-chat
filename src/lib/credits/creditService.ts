@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 // 플랜별 설정
 export const PLAN_CONFIG = {
   free: {
-    monthlyCredits: 3,
+    monthlyCredits: 7,
     compatibilityLimit: 0,
     followUpLimit: 0,
     historyRetention: 7,
@@ -20,7 +20,7 @@ export const PLAN_CONFIG = {
     },
   },
   starter: {
-    monthlyCredits: 15,
+    monthlyCredits: 25,
     compatibilityLimit: 2,
     followUpLimit: 2,
     historyRetention: 30,
@@ -37,7 +37,7 @@ export const PLAN_CONFIG = {
     },
   },
   pro: {
-    monthlyCredits: 50,
+    monthlyCredits: 80,
     compatibilityLimit: 5,
     followUpLimit: 5,
     historyRetention: 90,
@@ -54,7 +54,7 @@ export const PLAN_CONFIG = {
     },
   },
   premium: {
-    monthlyCredits: 100,
+    monthlyCredits: 150,
     compatibilityLimit: 10,
     followUpLimit: 10,
     historyRetention: 365,
@@ -129,12 +129,16 @@ export async function getUserCredits(userId: string) {
 export async function getCreditBalance(userId: string) {
   const credits = await getUserCredits(userId);
   const remaining = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits;
+  // totalBonusReceived가 없는 기존 유저는 현재 bonusCredits를 사용
+  const totalBonus = (credits as { totalBonusReceived?: number }).totalBonusReceived ?? credits.bonusCredits;
+  const totalCredits = credits.monthlyCredits + totalBonus;
 
   return {
     plan: credits.plan as PlanType,
     monthlyCredits: credits.monthlyCredits,
     usedCredits: credits.usedCredits,
     bonusCredits: credits.bonusCredits,
+    totalCredits,
     remainingCredits: Math.max(0, remaining),
     compatibility: {
       used: credits.compatibilityUsed,
@@ -195,6 +199,46 @@ export async function canUseCredits(
   return { allowed: false, reason: "invalid_type" };
 }
 
+// 보너스 크레딧 소비 (FIFO - 먼저 구매한 것부터 사용)
+async function consumeBonusCreditsFromPurchases(userId: string, amount: number): Promise<number> {
+  if (amount <= 0) return 0;
+
+  const now = new Date();
+
+  // 유효한 보너스 구매 건 조회 (먼저 구매한 것부터, 만료 임박한 것부터)
+  const validPurchases = await prisma.bonusCreditPurchase.findMany({
+    where: {
+      userId,
+      expired: false,
+      expiresAt: { gt: now },
+      remaining: { gt: 0 },
+    },
+    orderBy: [
+      { expiresAt: "asc" }, // 만료 임박한 것 먼저
+      { createdAt: "asc" }, // 먼저 구매한 것 먼저
+    ],
+  });
+
+  let remainingToConsume = amount;
+  let totalConsumed = 0;
+
+  for (const purchase of validPurchases) {
+    if (remainingToConsume <= 0) break;
+
+    const toConsume = Math.min(purchase.remaining, remainingToConsume);
+
+    await prisma.bonusCreditPurchase.update({
+      where: { id: purchase.id },
+      data: { remaining: { decrement: toConsume } },
+    });
+
+    totalConsumed += toConsume;
+    remainingToConsume -= toConsume;
+  }
+
+  return totalConsumed;
+}
+
 // 크레딧 소비
 export async function consumeCredits(
   userId: string,
@@ -208,16 +252,24 @@ export async function consumeCredits(
 
   const credits = await getUserCredits(userId);
 
-  // 보너스 크레딧 먼저 사용
+  // 보너스 크레딧 먼저 사용 (만료 임박한 것부터)
   let fromBonus = 0;
   let fromMonthly = amount;
 
   if (type === "reading" && credits.bonusCredits > 0) {
     fromBonus = Math.min(credits.bonusCredits, amount);
     fromMonthly = amount - fromBonus;
+
+    // BonusCreditPurchase 테이블에서 FIFO로 차감
+    const actualBonusConsumed = await consumeBonusCreditsFromPurchases(userId, fromBonus);
+    // 실제 차감된 양과 다르면 조정 (레거시 데이터 대응)
+    if (actualBonusConsumed < fromBonus) {
+      fromMonthly += (fromBonus - actualBonusConsumed);
+      fromBonus = actualBonusConsumed;
+    }
   }
 
-  const updateData: any = {};
+  const updateData: Record<string, { increment?: number; decrement?: number }> = {};
 
   if (type === "reading") {
     if (fromBonus > 0) {
@@ -232,15 +284,37 @@ export async function consumeCredits(
     updateData.followUpUsed = { increment: amount };
   }
 
-  await prisma.userCredits.update({
-    where: { userId },
-    data: updateData,
-  });
+  if (Object.keys(updateData).length > 0) {
+    await prisma.userCredits.update({
+      where: { userId },
+      data: updateData,
+    });
+  }
 
   return { success: true };
 }
 
-// 월간 크레딧 리셋
+// 구독 상태 확인 (active 또는 trialing인 경우만 유효)
+async function hasActiveSubscription(userId: string): Promise<boolean> {
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      userId,
+      status: { in: ["active", "trialing"] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  if (!subscription) return false;
+
+  // currentPeriodEnd가 지났으면 만료된 것
+  if (subscription.currentPeriodEnd && new Date() > subscription.currentPeriodEnd) {
+    return false;
+  }
+
+  return true;
+}
+
+// 월간 크레딧 리셋 (구독이 유효한 경우에만)
 export async function resetMonthlyCredits(userId: string) {
   const credits = await prisma.userCredits.findUnique({
     where: { userId },
@@ -250,6 +324,32 @@ export async function resetMonthlyCredits(userId: string) {
     return initializeUserCredits(userId, "free");
   }
 
+  // 구독이 유효한지 확인
+  const isSubscribed = await hasActiveSubscription(userId);
+
+  if (!isSubscribed) {
+    // 구독 만료 → free 플랜으로 다운그레이드
+    const freeConfig = PLAN_CONFIG.free;
+    const now = new Date();
+
+    return prisma.userCredits.update({
+      where: { userId },
+      data: {
+        plan: "free",
+        usedCredits: 0,
+        compatibilityUsed: 0,
+        followUpUsed: 0,
+        periodStart: now,
+        periodEnd: getNextPeriodEnd(),
+        monthlyCredits: freeConfig.monthlyCredits,
+        compatibilityLimit: freeConfig.compatibilityLimit,
+        followUpLimit: freeConfig.followUpLimit,
+        historyRetention: freeConfig.historyRetention,
+      },
+    });
+  }
+
+  // 구독 유효 → 현재 플랜 기준으로 리셋
   const config = PLAN_CONFIG[credits.plan as PlanType] || PLAN_CONFIG.free;
   const now = new Date();
 
@@ -261,7 +361,6 @@ export async function resetMonthlyCredits(userId: string) {
       followUpUsed: 0,
       periodStart: now,
       periodEnd: getNextPeriodEnd(),
-      // 플랜 설정도 업데이트 (플랜 변경 시 반영)
       monthlyCredits: config.monthlyCredits,
       compatibilityLimit: config.compatibilityLimit,
       followUpLimit: config.followUpLimit,
@@ -303,15 +402,111 @@ export async function upgradePlan(userId: string, newPlan: PlanType) {
 }
 
 // 보너스 크레딧 추가 (크레딧팩 구매 등)
-export async function addBonusCredits(userId: string, amount: number) {
-  const credits = await getUserCredits(userId);
+export async function addBonusCredits(
+  userId: string,
+  amount: number,
+  source: "purchase" | "referral" | "promotion" | "gift" = "purchase",
+  stripePaymentId?: string
+) {
+  await getUserCredits(userId);
 
+  const now = new Date();
+  const expiresAt = new Date(now);
+  expiresAt.setMonth(expiresAt.getMonth() + 3); // 3개월 후 만료
+
+  // BonusCreditPurchase 테이블에 기록 (만료일 추적용)
+  await prisma.bonusCreditPurchase.create({
+    data: {
+      userId,
+      amount,
+      remaining: amount,
+      expiresAt,
+      source,
+      stripePaymentId,
+    },
+  });
+
+  // UserCredits 테이블도 업데이트 (빠른 조회용)
   return prisma.userCredits.update({
     where: { userId },
     data: {
       bonusCredits: { increment: amount },
+      totalBonusReceived: { increment: amount },
     },
   });
+}
+
+// 유효한 보너스 크레딧 계산 (만료되지 않은 것만)
+export async function getValidBonusCredits(userId: string): Promise<number> {
+  const now = new Date();
+
+  const validPurchases = await prisma.bonusCreditPurchase.findMany({
+    where: {
+      userId,
+      expired: false,
+      expiresAt: { gt: now },
+      remaining: { gt: 0 },
+    },
+    select: { remaining: true },
+  });
+
+  return validPurchases.reduce((sum, p) => sum + p.remaining, 0);
+}
+
+// 만료된 보너스 크레딧 정리 (cron job용)
+export async function expireBonusCredits() {
+  const now = new Date();
+
+  // 만료된 구매 건 조회
+  const expiredPurchases = await prisma.bonusCreditPurchase.findMany({
+    where: {
+      expired: false,
+      expiresAt: { lte: now },
+      remaining: { gt: 0 },
+    },
+    select: { id: true, userId: true, remaining: true },
+  });
+
+  // 각 유저별로 만료된 크레딧 합계
+  const userExpiredCredits = new Map<string, number>();
+  for (const p of expiredPurchases) {
+    userExpiredCredits.set(
+      p.userId,
+      (userExpiredCredits.get(p.userId) || 0) + p.remaining
+    );
+  }
+
+  // 트랜잭션으로 처리
+  const results = await Promise.allSettled(
+    Array.from(userExpiredCredits.entries()).map(([uid, expiredAmount]) =>
+      prisma.$transaction([
+        // 만료된 구매 건들 업데이트
+        prisma.bonusCreditPurchase.updateMany({
+          where: {
+            userId: uid,
+            expired: false,
+            expiresAt: { lte: now },
+          },
+          data: { expired: true },
+        }),
+        // UserCredits에서 만료된 크레딧 차감
+        prisma.userCredits.update({
+          where: { userId: uid },
+          data: { bonusCredits: { decrement: expiredAmount } },
+        }),
+      ])
+    )
+  );
+
+  const succeeded = results.filter((r) => r.status === "fulfilled").length;
+  const failed = results.filter((r) => r.status === "rejected").length;
+
+  return {
+    totalUsers: userExpiredCredits.size,
+    totalCreditsExpired: Array.from(userExpiredCredits.values()).reduce((a, b) => a + b, 0),
+    succeeded,
+    failed
+  };
 }
 
 // 기능 사용 가능 여부 확인

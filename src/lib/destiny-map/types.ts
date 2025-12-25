@@ -43,6 +43,12 @@ export interface SajuResult {
   };
   sinsal?: ShinsalHit[] | null;
   advancedAnalysis?: AdvancedSajuAnalysis;
+  facts?: {
+    birthDate?: string;
+    birthTime?: string;
+    gender?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface AstrologyResult {

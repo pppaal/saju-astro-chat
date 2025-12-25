@@ -5,18 +5,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { apiClient } from "@/lib/api";
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    'http://127.0.0.1:5000';
-  return url;
-}
 
 /**
  * POST /api/numerology
@@ -53,19 +44,9 @@ export async function POST(req: Request) {
 
     const action = body.action || 'analyze';
     const locale = body.locale || 'ko';
-    const backendUrl = pickBackendUrl();
-
-    // Build request headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    const apiToken = process.env.ADMIN_API_TOKEN;
-    if (apiToken) {
-      headers['X-API-KEY'] = apiToken;
-    }
 
     let endpoint = '';
-    let requestBody: Record<string, any> = {};
+    let requestBody: Record<string, unknown> = {};
 
     if (action === 'analyze') {
       // Single person numerology analysis
@@ -102,30 +83,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    // Call backend
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    // Call backend using ApiClient
+    const result = await apiClient.post(endpoint, requestBody, { timeout: 30000 });
 
-    const response = await fetch(`${backendUrl}${endpoint}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Numerology API] Backend error:', response.status, errorText);
+    if (!result.ok) {
+      console.error('[Numerology API] Backend error:', result.status, result.error);
       return NextResponse.json(
-        { error: 'Backend service error', status: response.status },
-        { status: response.status }
+        { error: 'Backend service error', status: result.status },
+        { status: result.status }
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(result.data);
 
   } catch (error) {
     console.error('[API /api/numerology] Error:', error);
@@ -164,30 +133,21 @@ export async function GET(req: Request) {
       );
     }
 
-    const backendUrl = pickBackendUrl();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    const apiToken = process.env.ADMIN_API_TOKEN;
-    if (apiToken) {
-      headers['X-API-KEY'] = apiToken;
-    }
-
-    const response = await fetch(`${backendUrl}/api/numerology/analyze`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ birthDate, englishName, koreanName, locale }),
+    const result = await apiClient.post('/api/numerology/analyze', {
+      birthDate,
+      englishName,
+      koreanName,
+      locale,
     });
 
-    if (!response.ok) {
+    if (!result.ok) {
       return NextResponse.json(
         { error: 'Backend service error' },
-        { status: response.status }
+        { status: result.status }
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(result.data);
 
   } catch (error) {
     console.error('[API /api/numerology GET] Error:', error);

@@ -1,8 +1,7 @@
 'use client';
-/* eslint-disable react/no-unescaped-entities */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -13,6 +12,8 @@ import TarotChat from '@/components/tarot/TarotChat';
 import { getStoredBirthDate } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
 import PersonalityInsight from '@/components/personality/PersonalityInsight';
+import { getCounselorById, TarotCounselor } from '@/lib/Tarot/tarot-counselors';
+import { apiFetch } from '@/lib/api-client';
 import styles from './tarot-reading.module.css';
 
 // Card back color options - now linked to deck styles
@@ -40,94 +41,94 @@ const THEME_DISPLAY_INFO: Record<string, {
   affirmationTitleKo: string;
 }> = {
   'general-insight': {
-    guidanceIcon: '🔮',
-    guidanceTitle: 'Guiding Light',
-    guidanceTitleKo: '길잡이',
-    guidanceFooter: 'Trust the flow of destiny',
-    guidanceFooterKo: '운명의 흐름을 따라가세요',
-    affirmationIcon: '✨',
-    affirmationTitle: 'Soul Affirmation',
-    affirmationTitleKo: '영혼의 다짐',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Key Insight',
+    guidanceTitleKo: '핵심 조언',
+    guidanceFooter: 'Take action on this advice',
+    guidanceFooterKo: '이 조언을 실천해보세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Action Plan',
+    affirmationTitleKo: '실천 계획',
   },
   'love-relationships': {
-    guidanceIcon: '💕',
-    guidanceTitle: 'Heart\'s Whisper',
-    guidanceTitleKo: '사랑의 속삭임',
-    guidanceFooter: 'Let love guide your heart',
-    guidanceFooterKo: '사랑이 마음을 이끌게 하세요',
-    affirmationIcon: '❤️',
-    affirmationTitle: 'Love\'s Promise',
-    affirmationTitleKo: '사랑의 다짐',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Relationship Advice',
+    guidanceTitleKo: '관계 조언',
+    guidanceFooter: 'Apply this to your relationship',
+    guidanceFooterKo: '관계에 적용해보세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Next Step',
+    affirmationTitleKo: '다음 단계',
   },
   'career-work': {
-    guidanceIcon: '⚡',
-    guidanceTitle: 'Path Forward',
-    guidanceTitleKo: '성공의 나침반',
-    guidanceFooter: 'Your potential is limitless',
-    guidanceFooterKo: '당신의 가능성은 무한합니다',
-    affirmationIcon: '🎯',
-    affirmationTitle: 'Career Mantra',
-    affirmationTitleKo: '성공의 주문',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Career Advice',
+    guidanceTitleKo: '커리어 조언',
+    guidanceFooter: 'Take these steps forward',
+    guidanceFooterKo: '이 단계들을 실행하세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Action Items',
+    affirmationTitleKo: '실행 항목',
   },
   'money-finance': {
-    guidanceIcon: '💎',
-    guidanceTitle: 'Abundance Guide',
-    guidanceTitleKo: '풍요의 길잡이',
-    guidanceFooter: 'Prosperity flows to you',
-    guidanceFooterKo: '번영이 당신에게 흐릅니다',
-    affirmationIcon: '🌟',
-    affirmationTitle: 'Wealth Affirmation',
-    affirmationTitleKo: '풍요의 다짐',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Financial Advice',
+    guidanceTitleKo: '재정 조언',
+    guidanceFooter: 'Apply these money tips',
+    guidanceFooterKo: '이 재정 팁을 활용하세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Money Plan',
+    affirmationTitleKo: '재정 계획',
   },
   'well-being-health': {
-    guidanceIcon: '🌿',
-    guidanceTitle: 'Healing Wisdom',
-    guidanceTitleKo: '치유의 지혜',
-    guidanceFooter: 'Your body knows the way',
-    guidanceFooterKo: '몸이 길을 알고 있습니다',
-    affirmationIcon: '🙏',
-    affirmationTitle: 'Wellness Vow',
-    affirmationTitleKo: '건강의 서약',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Health Advice',
+    guidanceTitleKo: '건강 조언',
+    guidanceFooter: 'Take care of yourself',
+    guidanceFooterKo: '자신을 돌보세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Wellness Plan',
+    affirmationTitleKo: '건강 계획',
   },
   'spiritual-growth': {
-    guidanceIcon: '🕯️',
-    guidanceTitle: 'Inner Light',
-    guidanceTitleKo: '내면의 빛',
-    guidanceFooter: 'Your soul knows the truth',
-    guidanceFooterKo: '영혼이 진실을 알고 있습니다',
-    affirmationIcon: '🦋',
-    affirmationTitle: 'Spirit\'s Call',
-    affirmationTitleKo: '영혼의 부름',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Growth Advice',
+    guidanceTitleKo: '성장 조언',
+    guidanceFooter: 'Practice these insights',
+    guidanceFooterKo: '이 통찰을 실천하세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Growth Plan',
+    affirmationTitleKo: '성장 계획',
   },
   'decisions-crossroads': {
-    guidanceIcon: '🧭',
-    guidanceTitle: 'Crossroads Wisdom',
-    guidanceTitleKo: '기로의 지혜',
-    guidanceFooter: 'Trust your inner compass',
-    guidanceFooterKo: '내면의 나침반을 믿으세요',
-    affirmationIcon: '🔑',
-    affirmationTitle: 'Choice Affirmation',
-    affirmationTitleKo: '선택의 다짐',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Decision Advice',
+    guidanceTitleKo: '결정 조언',
+    guidanceFooter: 'Consider these factors',
+    guidanceFooterKo: '이 요소들을 고려하세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Decision Plan',
+    affirmationTitleKo: '결정 계획',
   },
   'self-discovery': {
-    guidanceIcon: '🪞',
-    guidanceTitle: 'Mirror of Truth',
-    guidanceTitleKo: '진실의 거울',
-    guidanceFooter: 'Embrace your true self',
-    guidanceFooterKo: '진정한 자신을 받아들이세요',
-    affirmationIcon: '💫',
-    affirmationTitle: 'Self Affirmation',
-    affirmationTitleKo: '자아의 다짐',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Self Advice',
+    guidanceTitleKo: '자기 이해 조언',
+    guidanceFooter: 'Learn about yourself',
+    guidanceFooterKo: '자신을 알아가세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Self Plan',
+    affirmationTitleKo: '자기 계획',
   },
   'daily-reading': {
-    guidanceIcon: '☀️',
-    guidanceTitle: 'Daily Insight',
-    guidanceTitleKo: '오늘의 메시지',
-    guidanceFooter: 'Make today meaningful',
-    guidanceFooterKo: '오늘을 의미있게 보내세요',
-    affirmationIcon: '🌈',
-    affirmationTitle: 'Today\'s Mantra',
-    affirmationTitleKo: '오늘의 주문',
+    guidanceIcon: '💡',
+    guidanceTitle: 'Today\'s Advice',
+    guidanceTitleKo: '오늘의 조언',
+    guidanceFooter: 'Use this today',
+    guidanceFooterKo: '오늘 활용하세요',
+    affirmationIcon: '✓',
+    affirmationTitle: 'Today\'s Plan',
+    affirmationTitleKo: '오늘의 계획',
   },
 };
 
@@ -169,9 +170,12 @@ type GameState = 'loading' | 'color-select' | 'picking' | 'revealing' | 'interpr
 export default function TarotReadingPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { translate, language } = useI18n();
   const categoryName = params?.categoryName as string | undefined;
   const spreadId = params?.spreadId as string | undefined;
+  const counselorId = searchParams?.get('counselor') || undefined;
+  const counselor = counselorId ? getCounselorById(counselorId) : undefined;
 
   const [gameState, setGameState] = useState<GameState>('loading');
   const [spreadInfo, setSpreadInfo] = useState<Spread | null>(null);
@@ -249,7 +253,7 @@ export default function TarotReadingPage() {
   const handleStartReading = () => {
     setGameState('picking');
     // Prefetch RAG context while user selects cards (non-blocking)
-    fetch('/api/tarot/prefetch', {
+    apiFetch('/api/tarot/prefetch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ categoryId: categoryName, spreadId })
@@ -258,21 +262,21 @@ export default function TarotReadingPage() {
 
   const handleCardClick = (index: number) => {
     const currentMap = selectionOrderRef.current;
-    console.log('=== Card Click ===');
-    console.log('Clicked index:', index);
-    console.log('Current map size:', currentMap.size);
-    console.log('Current map entries:', Array.from(currentMap.entries()));
+    console.warn('=== Card Click ===');
+    console.warn('Clicked index:', index);
+    console.warn('Current map size:', currentMap.size);
+    console.warn('Current map entries:', Array.from(currentMap.entries()));
 
     if (gameState !== 'picking') {
-      console.log('Rejected: not in picking state');
+      console.warn('Rejected: not in picking state');
       return;
     }
     if (currentMap.size >= (spreadInfo?.cardCount ?? 0)) {
-      console.log('Rejected: max cards reached');
+      console.warn('Rejected: max cards reached');
       return;
     }
     if (currentMap.has(index)) {
-      console.log('Rejected: card already selected');
+      console.warn('Rejected: card already selected');
       return;
     }
 
@@ -280,8 +284,8 @@ export default function TarotReadingPage() {
     const newMap = new Map(currentMap).set(index, newOrder);
     selectionOrderRef.current = newMap;
 
-    console.log('New order:', newOrder);
-    console.log('New map entries:', Array.from(newMap.entries()));
+    console.warn('New order:', newOrder);
+    console.warn('New map entries:', Array.from(newMap.entries()));
 
     setSelectionOrderMap(newMap);
     setSelectedIndices((prev) => [...prev, index]);
@@ -295,7 +299,7 @@ export default function TarotReadingPage() {
     setStreamingGuidance('');
 
     try {
-      const response = await fetch('/api/tarot/interpret/stream', {
+      const response = await apiFetch('/api/tarot/interpret/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -309,7 +313,9 @@ export default function TarotReadingPage() {
           })),
           userQuestion: userTopic,
           userTopic: userTopic,
-          language: language || 'ko'
+          language: language || 'ko',
+          counselorId: counselor?.id,
+          counselorStyle: counselor?.style
         })
       });
 
@@ -391,9 +397,13 @@ export default function TarotReadingPage() {
                     overall_message: overallMessage,
                     card_insights: cardInsights,
                     guidance: guidance,
-                    affirmation: '나는 우주의 지혜와 연결되어 있습니다.',
+                    affirmation: '이 조언을 행동으로 옮기겠습니다.',
                     followup_questions: followupQuestions
                   });
+                  // Clear streaming states to prevent duplicate display
+                  setStreamingOverall('');
+                  setStreamingCardInsights(new Map());
+                  setStreamingGuidance('');
                   setIsStreaming(false);
                 }
 
@@ -413,17 +423,21 @@ export default function TarotReadingPage() {
             overall_message: overallMessage || translate('tarot.results.defaultMessage', 'The cards have revealed their wisdom to you.'),
             card_insights: cardInsights,
             guidance: guidance || translate('tarot.results.defaultGuidance', 'Trust your intuition.'),
-            affirmation: '나는 우주의 지혜와 연결되어 있습니다.',
+            affirmation: '이 조언을 행동으로 옮기겠습니다.',
             followup_questions: followupQuestions
           });
         }
+        // Clear streaming states
+        setStreamingOverall('');
+        setStreamingCardInsights(new Map());
+        setStreamingGuidance('');
         setIsStreaming(false);
         return;
       }
 
       // Fallback to non-streaming endpoint
       setIsStreaming(false);
-      const fallbackResponse = await fetch('/api/tarot/interpret', {
+      const fallbackResponse = await apiFetch('/api/tarot/interpret', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -479,12 +493,16 @@ export default function TarotReadingPage() {
       const fetchReading = async () => {
         setGameState('revealing');
         try {
-          const response = await fetch('/api/tarot', {
+          const response = await apiFetch('/api/tarot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ categoryId: categoryName, spreadId, cardCount: targetCardCount, userTopic }),
           });
-          if (!response.ok) throw new Error('Failed to fetch reading');
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Tarot API error:', response.status, errorData);
+            throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`);
+          }
           const data = await response.json();
           setReadingResult(data);
 
@@ -509,8 +527,6 @@ export default function TarotReadingPage() {
   const handleStartChat = () => {
     setShowChat(true);
     setGameState('chat');
-    // Scroll to top when entering chat mode
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleCardExpand = (index: number) => {
@@ -560,6 +576,10 @@ export default function TarotReadingPage() {
       <div className={styles.colorSelectContainer}>
         <div className={styles.creditBadgeWrapper}>
           <CreditBadge variant="compact" />
+          <Link href="/" className={styles.homeButton} aria-label="Home">
+            <span className={styles.homeIcon}>🏠</span>
+            <span className={styles.homeLabel}>홈</span>
+          </Link>
         </div>
         <div className={styles.backButtonWrapper}>
           <BackButton />
@@ -647,8 +667,8 @@ export default function TarotReadingPage() {
 
   // Interpreting state - with streaming UI
   if (gameState === 'interpreting') {
-    // Show streaming content if available
-    if (isStreaming && (streamingOverall || streamingCardInsights.size > 0 || streamingGuidance)) {
+    // Skip streaming UI, just show loading
+    if (false && isStreaming && (streamingOverall || streamingCardInsights.size > 0 || streamingGuidance)) {
       return (
         <div className={styles.streamingContainer}>
           <div className={styles.streamingHeader}>
@@ -762,6 +782,9 @@ export default function TarotReadingPage() {
           categoryName={categoryName || ''}
           spreadId={spreadId || ''}
           language={(language as 'ko' | 'en') || 'ko'}
+          counselorId={counselor?.id}
+          counselorStyle={counselor?.style}
+          userTopic={userTopic}
         />
       </div>
     );
@@ -775,16 +798,20 @@ export default function TarotReadingPage() {
       <div className={styles.resultsContainer}>
         <div className={styles.creditBadgeWrapper}>
           <CreditBadge variant="compact" />
+          <Link href="/" className={styles.homeButton} aria-label="Home">
+            <span className={styles.homeIcon}>🏠</span>
+            <span className={styles.homeLabel}>홈</span>
+          </Link>
         </div>
         {/* Header */}
         <div className={styles.resultsHeader}>
           <h1 className={styles.resultsTitle}>{language === 'ko' ? readingResult.spread.titleKo || readingResult.spread.title : readingResult.spread.title}</h1>
           <p className={styles.resultsSubtitle}>
-            {translate('tarot.results.subtitle', 'Your cards have spoken')}
+            {translate('tarot.results.subtitle', 'Card Interpretation')}
           </p>
           {userTopic && (
             <div className={styles.userTopicDisplay}>
-              <span className={styles.topicIcon}>💭</span>
+              <span className={styles.topicIcon}>Q.</span>
               <span className={styles.topicText}>{userTopic}</span>
             </div>
           )}
@@ -793,7 +820,7 @@ export default function TarotReadingPage() {
         {/* Overall Message */}
         {insight?.overall_message && (
           <div className={styles.overallMessage}>
-            <div className={styles.messageIcon}>✨</div>
+            <div className={styles.messageIcon}>📝</div>
             <p className={styles.messageText}>{insight.overall_message}</p>
           </div>
         )}
@@ -900,9 +927,8 @@ export default function TarotReadingPage() {
                 return (
                   <div
                     key={index}
-                    className={`${styles.resultCardSlot} ${isExpanded ? styles.expanded : ''}`}
+                    className={`${styles.resultCardSlot} ${styles.expanded}`}
                     style={{ '--card-index': index } as React.CSSProperties}
-                    onClick={() => toggleCardExpand(index)}
                   >
                     <div className={styles.positionBadgeWithNumber}>
                       <span className={styles.cardNumberSmall}>{index + 1}</span>
@@ -941,8 +967,8 @@ export default function TarotReadingPage() {
                         {language === 'ko' ? meaning.meaningKo || meaning.meaning : meaning.meaning}
                       </p>
 
-                      {/* Premium Insights (expandable) */}
-                      {isExpanded && cardInsight && (
+                      {/* Premium Insights (always shown) */}
+                      {cardInsight && (
                         <div className={styles.premiumInsights}>
                           {cardInsight.interpretation && cardInsight.interpretation !== meaning.meaning && (
                             <div className={styles.insightSection}>
@@ -957,7 +983,7 @@ export default function TarotReadingPage() {
                               <div className={styles.spiritAnimal}>
                                 <span className={styles.animalName}>{cardInsight.spirit_animal.name}</span>
                                 <p className={styles.animalMeaning}>{cardInsight.spirit_animal.meaning}</p>
-                                <p className={styles.animalMessage}>"{cardInsight.spirit_animal.message}"</p>
+                                <p className={styles.animalMessage}>&quot;{cardInsight.spirit_animal.message}&quot;</p>
                               </div>
                             </div>
                           )}
@@ -1021,45 +1047,18 @@ export default function TarotReadingPage() {
           </div>
         )}
 
-        {/* Guidance & Affirmation */}
-        {(() => {
-          const themeInfo = getThemeDisplayInfo(categoryName);
-          return (
-            <div className={styles.guidanceSection}>
-              {insight?.guidance && (
-                <div className={styles.guidanceBox}>
-                  <div className={styles.guidanceIcon}>
-                    <span className={styles.iconGlow}>{themeInfo.guidanceIcon}</span>
-                  </div>
-                  <h3 className={styles.guidanceTitle}>
-                    {language === 'ko' ? themeInfo.guidanceTitleKo : themeInfo.guidanceTitle}
-                  </h3>
-                  <p className={styles.guidanceText}>{insight.guidance}</p>
-                  <div className={styles.guidanceFooter}>
-                    <span className={styles.starDecor}>✦</span>
-                    <span className={styles.footerText}>
-                      {language === 'ko' ? themeInfo.guidanceFooterKo : themeInfo.guidanceFooter}
-                    </span>
-                    <span className={styles.starDecor}>✦</span>
-                  </div>
-                </div>
-              )}
-
-              {insight?.affirmation && (
-                <div className={styles.affirmationBox}>
-                  <div className={styles.affirmationIcon}>
-                    <span className={styles.iconPulse}>{themeInfo.affirmationIcon}</span>
-                  </div>
-                  <h3 className={styles.affirmationTitle}>
-                    {language === 'ko' ? themeInfo.affirmationTitleKo : themeInfo.affirmationTitle}
-                  </h3>
-                  <p className={styles.affirmationText}>"{insight.affirmation}"</p>
-                  <div className={styles.affirmationMoon}>🌙</div>
-                </div>
-              )}
+        {/* Guidance - Compact & Conditional */}
+        {insight?.guidance && insight.guidance.trim() && (
+          <div className={styles.guidanceBoxCompact}>
+            <div className={styles.guidanceHeaderCompact}>
+              <span className={styles.guidanceIconCompact}>💡</span>
+              <span className={styles.guidanceTitleCompact}>
+                {language === 'ko' ? '조언' : 'Advice'}
+              </span>
             </div>
-          );
-        })()}
+            <p className={styles.guidanceTextCompact}>{insight.guidance}</p>
+          </div>
+        )}
 
         {/* Follow-up Questions */}
         {insight?.followup_questions && insight.followup_questions.length > 0 && (
@@ -1092,6 +1091,9 @@ export default function TarotReadingPage() {
   // Card picking state
   return (
     <div className={styles.readingContainer}>
+      <div className={styles.backButtonWrapper}>
+        <BackButton />
+      </div>
       <div className={styles.instructions}>
         <h1 className={styles.instructionTitle}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</h1>
         <div className={styles.instructionContent}>

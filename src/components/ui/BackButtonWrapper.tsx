@@ -6,6 +6,7 @@ import BackButton from "./BackButton";
 // Pages that should hide the global back button
 // These pages either have their own back button or custom header navigation
 const PAGES_WITHOUT_BACK_BUTTON = [
+  "/",                 // Home page - no back button needed
   "/tarot",            // Tarot pages - have their own navigation
   "/dream",            // Uses ServicePageLayout with built-in back button
   "/compatibility",    // Uses ServicePageLayout with built-in back button
@@ -31,16 +32,31 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   "/blog",             // Has custom back button
   "/community",        // Has custom back button
   "/success",          // Has custom back button
+  "/icp",              // Has custom back button
+  "/admin",            // Admin pages - no back button needed
 ];
 
 export default function BackButtonWrapper() {
   const pathname = usePathname();
+
+  // Always hide on home page
   if (!pathname || pathname === "/") return null;
 
   // Hide on pages that have their own back button or navigation
-  const shouldHide = PAGES_WITHOUT_BACK_BUTTON.some(prefix =>
-    pathname === prefix || pathname.startsWith(prefix + "/")
-  );
+  const shouldHide = PAGES_WITHOUT_BACK_BUTTON.some(prefix => {
+    // Exact match for root pages
+    if (prefix === pathname) return true;
+    // Match child routes, but exclude specific exceptions
+    if (pathname.startsWith(prefix + "/")) {
+      // Show back button on counselor subpages that don't have their own
+      // (astrology/counselor and saju/counselor need the global back button)
+      if (pathname === "/astrology/counselor" || pathname === "/saju/counselor") {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  });
 
   if (shouldHide) return null;
   return <BackButton />;

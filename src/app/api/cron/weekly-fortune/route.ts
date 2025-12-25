@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log('[WeeklyFortune] Starting image generation...');
+    console.warn('[WeeklyFortune] Starting image generation...');
 
     // 이미지 생성
     const imageUrl = await generateWeeklyFortuneImage();
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
       console.error('[WeeklyFortune] Failed to save to Redis');
     }
 
-    console.log('[WeeklyFortune] Image generated and saved successfully');
+    console.warn('[WeeklyFortune] Image generated and saved successfully');
 
     return NextResponse.json({
       success: true,

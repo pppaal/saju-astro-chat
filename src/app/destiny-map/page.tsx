@@ -41,7 +41,7 @@ export default function DestinyMapPage() {
 function DestinyMapContent() {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [name, setName] = useState('');
@@ -576,11 +576,11 @@ function DestinyMapContent() {
           <div className={styles.features}>
             <div className={styles.feature}>
               <span className={styles.featureIcon}>🔮</span>
-              <span className={styles.featureText}>Saju Analysis</span>
+              <span className={styles.featureText}>동양운세</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}>✦</span>
-              <span className={styles.featureText}>Astrology Chart</span>
+              <span className={styles.featureText}>서양운세</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}>🃏</span>

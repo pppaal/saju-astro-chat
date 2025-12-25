@@ -56,10 +56,11 @@ export async function GET(request: Request) {
     });
     limit.headers?.forEach((value, key) => res.headers.set(key, value));
     return res;
-  } catch (error: any) {
-    console.error("[Stats API Error]", error?.message, error?.stack);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : undefined;
+    console.error("[Stats API Error]", err?.message, err?.stack);
     return NextResponse.json(
-      { error: "Failed to fetch stats", details: error?.message, users: 0, subscribers: 0 },
+      { error: "Failed to fetch stats", details: err?.message, users: 0, subscribers: 0 },
       { status: 500 }
     );
   }

@@ -78,7 +78,6 @@ export async function POST(req: NextRequest) {
       // Birth data (new simpler input)
       birthDate,
       birthTime = '12:00',
-      birthCity,
       gender = 'male',
       timezone = 'Asia/Seoul',
 
@@ -114,7 +113,6 @@ export async function POST(req: NextRequest) {
     } = body as Partial<MatrixCalculationInput> & {
       birthDate?: string;
       birthTime?: string;
-      birthCity?: string;
       gender?: 'male' | 'female';
       timezone?: string;
       lang?: 'ko' | 'en';

@@ -59,9 +59,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [chartData, setChartData] = useState<any | null>(null);
-  const [aspects, setAspects] = useState<any[] | null>(null);
-  const [advanced, setAdvanced] = useState<any | null>(null);
+  const [chartData, setChartData] = useState<Record<string, unknown> | null>(null);
+  const [aspects, setAspects] = useState<Record<string, unknown>[] | null>(null);
+  const [advanced, setAdvanced] = useState<Record<string, unknown> | null>(null);
 
   const timezones = useMemo(() => getSupportedTimezones(), []);
   const [timeZone, setTimeZone] = useState<string>(() => {
@@ -130,9 +130,10 @@ export default function Home() {
       if (!timeZone) {
         throw new Error(t('error.timezoneRequired') || 'Please select a time zone.');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setIsLoading(false);
-      setError(e?.message || (t('error.unknown') as string) || 'Unknown error.');
+      const message = e instanceof Error ? e.message : (t('error.unknown') as string) || 'Unknown error.';
+      setError(message);
       return;
     }
 
@@ -169,8 +170,12 @@ export default function Home() {
         throw new Error(t('error.noData') || 'No analysis data in server response.');
       }
 
-      if (result?.chartData) setChartData(result.chartData);
-      if (Array.isArray(result?.aspects)) setAspects(result.aspects);
+      if (result?.chartData && typeof result.chartData === 'object') {
+        setChartData(result.chartData as Record<string, unknown>);
+      }
+      if (Array.isArray(result?.aspects)) {
+        setAspects(result.aspects as Record<string, unknown>[]);
+      }
 
       const adv =
         result?.advanced ??
@@ -178,7 +183,7 @@ export default function Home() {
         result?.chartData?.advanced ??
         null;
 
-      setAdvanced(adv);
+      setAdvanced(adv && typeof adv === 'object' ? (adv as Record<string, unknown>) : null);
 
       // Save profile for reuse across services
       saveUserProfile({
@@ -187,8 +192,9 @@ export default function Home() {
         birthCity: cityQuery,
         timezone: timeZone,
       });
-    } catch (err: any) {
-      setError(err.message || (t('error.unknown') as string) || 'Unknown error occurred.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : (t('error.unknown') as string) || 'Unknown error occurred.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -371,7 +377,7 @@ export default function Home() {
               isLoading={isLoading}
               error={error}
               interpretation={interpretation}
-              chartData={chartData}
+              chartData={chartData as any}
               aspects={aspects}
               advanced={advanced}
               isLoggedIn={isLoggedIn}

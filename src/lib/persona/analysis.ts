@@ -20,162 +20,162 @@ const AXES: Record<PersonaAxisKey, [PersonaPole, PersonaPole]> = {
 type Effect = { axis: PersonaAxisKey; pole: PersonaPole; weight: number };
 type AnswerEffects = Record<string, Record<string, Effect[]>>;
 
-// Map each answer to axis/pole weights. C = neutral/balanced (small weight to both)
+// Map each answer to axis/pole weights. C = neutral/balanced (equal weight to both)
 export const EFFECTS: AnswerEffects = {
   // Energy (Radiant vs Grounded) - 10 questions
   q1_energy_network: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 2 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 2 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q2_energy_weekend: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 2 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 2 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q3_energy_spontaneous: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 2 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 2 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q4_energy_transit: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q5_energy_idealday: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 2 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 2 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q21_energy_focus: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q22_energy_solo_group: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q23_energy_interruptions: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q24_energy_events: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
   q25_energy_noise: {
     A: [{ axis: 'energy', pole: 'radiant', weight: 1 }],
     B: [{ axis: 'energy', pole: 'grounded', weight: 1 }],
-    C: [{ axis: 'energy', pole: 'radiant', weight: 0.5 }, { axis: 'energy', pole: 'grounded', weight: 0.5 }],
+    C: [{ axis: 'energy', pole: 'radiant', weight: 1 }, { axis: 'energy', pole: 'grounded', weight: 1 }],
   },
 
   // Cognition (Visionary vs Structured) - 10 questions
   q6_cog_problem: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 2 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 2 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q7_cog_explain: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q8_cog_evaluate: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 2 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 2 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q9_cog_basis: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q10_cog_constraints: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q26_cog_detail_bigpicture: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q27_cog_rule_break: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q28_cog_metrics_story: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q29_cog_timehorizon: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
   q30_cog_changecomfort: {
     A: [{ axis: 'cognition', pole: 'visionary', weight: 1 }],
     B: [{ axis: 'cognition', pole: 'structured', weight: 1 }],
-    C: [{ axis: 'cognition', pole: 'visionary', weight: 0.5 }, { axis: 'cognition', pole: 'structured', weight: 0.5 }],
+    C: [{ axis: 'cognition', pole: 'visionary', weight: 1 }, { axis: 'cognition', pole: 'structured', weight: 1 }],
   },
 
   // Decision (Logic vs Empathic) - 10 questions
   q11_decision_conflict: {
     A: [{ axis: 'decision', pole: 'logic', weight: 2 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 2 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q12_decision_feedback: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q13_decision_resources: {
     A: [{ axis: 'decision', pole: 'logic', weight: 2 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 2 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q14_decision_rules: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q15_decision_delay: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q31_decision_dataemotion: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q32_decision_feedback_tone: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q33_decision_risk: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q34_decision_delegate: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
   q35_decision_conflict_speed: {
     A: [{ axis: 'decision', pole: 'logic', weight: 1 }],
     B: [{ axis: 'decision', pole: 'empathic', weight: 1 }],
-    C: [{ axis: 'decision', pole: 'logic', weight: 0.5 }, { axis: 'decision', pole: 'empathic', weight: 0.5 }],
+    C: [{ axis: 'decision', pole: 'logic', weight: 1 }, { axis: 'decision', pole: 'empathic', weight: 1 }],
   },
 
   // Rhythm (Flow vs Anchor) - 10 questions
@@ -187,36 +187,36 @@ export const EFFECTS: AnswerEffects = {
     // C: 꾸준한 페이스 = anchor (일관됨)
     A: [{ axis: 'rhythm', pole: 'anchor', weight: 2 }],
     B: [{ axis: 'rhythm', pole: 'flow', weight: 2 }],
-    C: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
+    C: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }, { axis: 'rhythm', pole: 'flow', weight: 1 }],
   },
   q17_rhythm_change: {
     // A: 빠르게 피벗 = flow
     // B: 신중하게 재계획 = anchor
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q18_rhythm_workstyle: {
     // A: 병렬 처리 = flow (멀티태스킹)
     // B: 하나씩 집중 = anchor (체계적)
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q19_rhythm_holiday: {
     // A: 즉흥적 외출 = flow
     // B: 계획된 일정 = anchor
-    // C: 아무 일정 없이 휴식 = flow (자유로움)
+    // C: 아무 일정 없이 휴식 = neutral
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q20_rhythm_feeling: {
     // A: 새로운 옵션에 호기심 = flow
     // B: 예측 가능함 원함 = anchor
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q36_rhythm_morning_evening: {
     // A: 이른 시간 집중 = anchor (규칙적 루틴)
@@ -224,38 +224,38 @@ export const EFFECTS: AnswerEffects = {
     // C: 날마다 다름 = flow (비규칙적)
     A: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q37_rhythm_planslack: {
     // A: 빡빡하게 = anchor (철저한 계획)
-    // B: 여유를 둔다 = flow (유연성)
+    // B: 여유를 둔다 = 균형
     // C: 많이 계획 안함 = flow
     A: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    B: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
+    B: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
   q38_rhythm_batching: {
     // A: 몰아서 집중 후 휴식 = flow (유연한 스프린트)
     // B: 꾸준하고 일정한 페이스 = anchor (일관됨)
-    // C: 실시간 처리 = flow
+    // C: 실시간 처리 = neutral
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q39_rhythm_contextswitch: {
     // A: 자극이 됨 = flow (변화를 즐김)
     // B: 최소화 = anchor (일관성 추구)
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1 }, { axis: 'rhythm', pole: 'anchor', weight: 1 }],
   },
   q40_rhythm_deadtime: {
     // A: 즉흥적 아이디어 = flow
     // B: 계획된 일 정리 = anchor
-    // C: 방향 없이 = flow
+    // C: 방향 없이 = flow-leaning
     A: [{ axis: 'rhythm', pole: 'flow', weight: 1 }],
     B: [{ axis: 'rhythm', pole: 'anchor', weight: 1 }],
-    C: [{ axis: 'rhythm', pole: 'flow', weight: 0.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
+    C: [{ axis: 'rhythm', pole: 'flow', weight: 1.5 }, { axis: 'rhythm', pole: 'anchor', weight: 0.5 }],
   },
 };
 
@@ -341,14 +341,29 @@ export function analyzePersona(answers: PersonaQuizAnswers, locale: string = 'en
 
   // Simple consistency check using pairs that should lean same pole
 const CONSISTENCY_PAIRS: Array<[string, string]> = [
-  ['q2_energy_weekend', 'q5_energy_idealday'],
-  ['q3_energy_spontaneous', 'q4_energy_transit'],
-  ['q21_energy_focus', 'q22_energy_solo_group'],
-  ['q23_energy_interruptions', 'q25_energy_noise'],
-  ['q16_rhythm_deadline', 'q19_rhythm_holiday'],
-  ['q17_rhythm_change', 'q20_rhythm_feeling'],
-  ['q36_rhythm_morning_evening', 'q37_rhythm_planslack'],
-  ['q38_rhythm_batching', 'q39_rhythm_contextswitch'],
+  // Energy axis (4 pairs)
+  ['q1_energy_network', 'q24_energy_events'],       // 대인 에너지 - 대규모 행사
+  ['q2_energy_weekend', 'q5_energy_idealday'],      // 주말 계획 - 이상적인 하루
+  ['q3_energy_spontaneous', 'q4_energy_transit'],   // 즉흥성 - 대기 시간
+  ['q21_energy_focus', 'q22_energy_solo_group'],    // 재충전 - 사고 방식
+
+  // Cognition axis (4 pairs)
+  ['q6_cog_problem', 'q8_cog_evaluate'],            // 문제 접근 - 아이디어 평가
+  ['q7_cog_explain', 'q26_cog_detail_bigpicture'],  // 학습 방식 - 작업 결과물
+  ['q9_cog_basis', 'q29_cog_timehorizon'],          // 결정 기반 - 시간 지평
+  ['q27_cog_rule_break', 'q30_cog_changecomfort'],  // 프로세스 - 변화 수용
+
+  // Decision axis (4 pairs)
+  ['q11_decision_conflict', 'q35_decision_conflict_speed'], // 갈등 접근
+  ['q12_decision_feedback', 'q32_decision_feedback_tone'],  // 피드백 스타일
+  ['q13_decision_resources', 'q31_decision_dataemotion'],   // 자원 배분 - 데이터 vs 감정
+  ['q33_decision_risk', 'q34_decision_delegate'],           // 위험 수용 - 위임
+
+  // Rhythm axis (4 pairs)
+  ['q16_rhythm_deadline', 'q38_rhythm_batching'],   // 마감 - 작업 처리
+  ['q17_rhythm_change', 'q20_rhythm_feeling'],      // 변화 대응 - 계획 변경 감정
+  ['q18_rhythm_workstyle', 'q39_rhythm_contextswitch'], // 작업 스타일 - 컨텍스트 스위칭
+  ['q19_rhythm_holiday', 'q37_rhythm_planslack'],   // 휴일 - 계획 여유
 ];
   let consistent = 0;
   let considered = 0;

@@ -11,7 +11,21 @@ type ChatMessage = {
   timestamp: string;
 };
 
-// GET: 이전 대화 세션들 불러오기
+type CounselorChatPostBody = {
+  sessionId?: string;
+  theme?: string;
+  locale?: string;
+  userMessage?: string;
+  assistantMessage?: string;
+};
+
+type CounselorChatPatchBody = {
+  sessionId?: string;
+  summary?: string;
+  keyTopics?: string[];
+};
+
+// GET: ?? ?? ??? ????
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,7 +37,7 @@ export async function GET(request: Request) {
     const theme = searchParams.get("theme") || undefined;
     const limit = parseInt(searchParams.get("limit") || "5");
 
-    // 최근 대화 세션들 조회
+    // ?? ?? ?? ??
     const chatSessions = await prisma.counselorChatSession.findMany({
       where: {
         userId: session.user.id,
@@ -39,11 +53,11 @@ export async function GET(request: Request) {
         messageCount: true,
         lastMessageAt: true,
         createdAt: true,
-        messages: true, // 최근 세션의 메시지들
+        messages: true, // ?? ??? ??
       },
     });
 
-    // 페르소나 메모리도 함께 반환 (재방문 인사용)
+    // ???? ??? ?? (?? ??)
     const personaMemory = await prisma.personaMemory.findUnique({
       where: { userId: session.user.id },
       select: {
@@ -60,16 +74,16 @@ export async function GET(request: Request) {
       persona: personaMemory,
       isReturningUser: (personaMemory?.sessionCount || 0) > 0,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[CounselorChatHistory GET error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }
 }
 
-// POST: 새 메시지 저장 (세션 생성/업데이트)
+// POST: ? ??? ?? (?? ??/??)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -77,14 +91,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      sessionId,      // 기존 세션 ID (있으면 업데이트, 없으면 새로 생성)
-      theme = "chat",
-      locale = "ko",
-      userMessage,    // 사용자 메시지
-      assistantMessage, // AI 응답
-    } = body;
+    const body = (await request.json().catch(() => null)) as CounselorChatPostBody | null;
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    }
+
+    const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
+    const theme = typeof body.theme === "string" ? body.theme : "chat";
+    const locale = typeof body.locale === "string" ? body.locale : "ko";
+    const userMessage = typeof body.userMessage === "string" ? body.userMessage : "";
+    const assistantMessage = typeof body.assistantMessage === "string" ? body.assistantMessage : "";
 
     const now = new Date();
     const newMessages: ChatMessage[] = [];
@@ -105,7 +121,7 @@ export async function POST(request: Request) {
     }
 
     if (sessionId) {
-      // 기존 세션 업데이트
+      // ?? ?? ????
       const existingSession = await prisma.counselorChatSession.findUnique({
         where: { id: sessionId, userId: session.user.id },
       });
@@ -135,7 +151,7 @@ export async function POST(request: Request) {
         action: "updated",
       });
     } else {
-      // 새 세션 생성
+      // ? ?? ??
       const created = await prisma.counselorChatSession.create({
         data: {
           userId: session.user.id,
@@ -147,7 +163,7 @@ export async function POST(request: Request) {
         },
       });
 
-      // PersonaMemory 세션 카운트 증가
+      // PersonaMemory ?? ??? ??
       await prisma.personaMemory.upsert({
         where: { userId: session.user.id },
         create: {
@@ -166,16 +182,16 @@ export async function POST(request: Request) {
         action: "created",
       });
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[CounselorChatHistory POST error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }
 }
 
-// PATCH: 세션 요약 업데이트 (대화 종료 시)
+// PATCH: ?? ?? ???? (?? ?? ?)
 export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -183,8 +199,14 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { sessionId, summary, keyTopics } = body;
+    const body = (await request.json().catch(() => null)) as CounselorChatPatchBody | null;
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    }
+
+    const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
+    const summary = typeof body.summary === "string" ? body.summary : "";
+    const keyTopics = Array.isArray(body.keyTopics) ? body.keyTopics.filter((topic) => typeof topic === "string") : undefined;
 
     if (!sessionId) {
       return NextResponse.json(
@@ -205,10 +227,10 @@ export async function PATCH(request: Request) {
       success: true,
       session: updated,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[CounselorChatHistory PATCH error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }

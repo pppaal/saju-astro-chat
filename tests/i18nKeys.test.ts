@@ -2,12 +2,16 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { DICTS, SUPPORTED_LOCALES } = require("../src/i18n/I18nProvider");
 
-type Dict = Record<string, any>;
+type Dict = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+};
 
 function flattenKeys(obj: Dict, prefix = ""): string[] {
   return Object.entries(obj).flatMap(([k, v]) => {
     const path = prefix ? `${prefix}.${k}` : k;
-    if (v && typeof v === "object" && !Array.isArray(v)) {
+    if (isRecord(v)) {
       return flattenKeys(v, path);
     }
     return [path];

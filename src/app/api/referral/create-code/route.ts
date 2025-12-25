@@ -24,10 +24,11 @@ export async function POST() {
       code,
       referralUrl,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Referral create-code error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: message },
       { status: 500 }
     );
   }

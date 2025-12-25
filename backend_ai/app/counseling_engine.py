@@ -981,7 +981,10 @@ class JungianCounselingEngine:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = None
-        self.model_name = "gpt-4o-mini"
+        # 환경변수로 모델 선택 가능 (기본: gpt-4o-mini)
+        # COUNSELOR_MODEL=gpt-4o 로 설정하면 프리미엄 품질
+        self.model_name = os.getenv("COUNSELOR_MODEL", "gpt-4o-mini")
+        print(f"[JungianCounselingEngine] Using model: {self.model_name}")
 
         if OPENAI_AVAILABLE and self.api_key:
             try:

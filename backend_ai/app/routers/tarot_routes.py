@@ -1164,6 +1164,236 @@ def tarot_detect_topic():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# Note: /chat, /chat-stream, /interpret-stream routes are still in app.py
-# They will be migrated in a future refactoring phase due to their complexity
-# and streaming response handling.
+# ===============================================================
+# TAROT CHAT STREAM - RAG-Enhanced Streaming Response
+# ===============================================================
+
+@tarot_bp.route('/chat-stream', methods=['POST'])
+def tarot_chat_stream():
+    """
+    Streaming tarot chat with RAG-enhanced context.
+    Returns Server-Sent Events (SSE) for real-time text streaming.
+    """
+    from flask import Response, stream_with_context
+
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[TAROT-CHAT] id={getattr(g, 'request_id', 'N/A')} Starting chat stream")
+
+        messages = data.get("messages", [])
+        context = data.get("context", {})
+        language = data.get("language", "ko")
+        counselor_id = data.get("counselor_id")
+        counselor_style = data.get("counselor_style")
+
+        # Sanitize messages
+        messages = sanitize_messages(messages, max_content_length=2000)
+
+        if not messages:
+            return jsonify({"error": "No messages provided"}), 400
+
+        # Extract card info from context
+        cards = context.get("cards", [])
+        spread_title = context.get("spread_title", "Tarot Reading")
+        category = context.get("category", "general")
+        overall_message = context.get("overall_message", "")
+        guidance = context.get("guidance", "")
+
+        # Get the latest user question
+        user_messages = [m for m in messages if m.get("role") == "user"]
+        latest_question = user_messages[-1].get("content", "") if user_messages else ""
+
+        # Build card context string
+        card_lines = []
+        for i, card in enumerate(cards):
+            pos = card.get("position", f"Card {i+1}")
+            name = card.get("name", "Unknown")
+            reversed_str = "(역방향)" if card.get("is_reversed") else "(정방향)"
+            meaning = card.get("meaning", "")[:200]
+            card_lines.append(f"- {pos}: {name} {reversed_str}\n  의미: {meaning}")
+        cards_context = "\n".join(card_lines) if card_lines else "(카드 없음)"
+
+        # Build RAG context if available
+        rag_context = ""
+        try:
+            hybrid_rag = get_tarot_hybrid_rag()
+            if hybrid_rag and cards:
+                drawn_cards = [
+                    {"name": c.get("name", ""), "isReversed": c.get("is_reversed", False)}
+                    for c in cards
+                ]
+                mapped_theme, mapped_spread = _map_tarot_theme(category, spread_title, latest_question)
+                rag_context = hybrid_rag.build_reading_context(
+                    theme=mapped_theme,
+                    sub_topic=mapped_spread,
+                    drawn_cards=drawn_cards,
+                    question=latest_question
+                )
+        except Exception as rag_err:
+            logger.warning(f"[TAROT-CHAT] RAG context failed: {rag_err}")
+
+        # Build system prompt
+        is_korean = language == "ko"
+
+        if is_korean:
+            system_prompt = f"""너는 따뜻하고 통찰력 있는 타로 상담사다. 실제로 뽑힌 카드를 기반으로 질문에 답변해.
+
+## 현재 스프레드: {spread_title} ({category})
+
+## 뽑힌 카드들
+{cards_context}
+
+## RAG 컨텍스트 (참고용)
+{rag_context[:1500] if rag_context else '(없음)'}
+
+## 이전 해석 요약
+{overall_message[:500] if overall_message else '(없음)'}
+
+## 응답 지침
+1) 질문에 직접 답변하되, 반드시 뽑힌 카드를 근거로 해석
+2) 카드 이름과 위치를 명시하며 설명
+3) 카드의 상징과 이미지를 구체적으로 언급
+4) 실용적이고 구체적인 조언 제공
+5) 150-250자 분량으로 간결하게 응답
+6) AI스러운 표현(~하시면 좋을 것 같습니다, 긍정적인 에너지 등) 피하기"""
+        else:
+            system_prompt = f"""You are a warm and insightful tarot counselor. Answer questions based on the actual drawn cards.
+
+## Current Spread: {spread_title} ({category})
+
+## Drawn Cards
+{cards_context}
+
+## RAG Context (Reference)
+{rag_context[:1500] if rag_context else '(none)'}
+
+## Previous Interpretation Summary
+{overall_message[:500] if overall_message else '(none)'}
+
+## Response Guidelines
+1) Answer directly, always grounding in the drawn cards
+2) Mention card names and positions explicitly
+3) Reference specific card symbolism and imagery
+4) Provide practical, actionable advice
+5) Keep response concise (150-250 words)
+6) Avoid AI-sounding phrases"""
+
+        # Add counselor style if specified
+        if counselor_style:
+            system_prompt += f"\n\n## 상담사 스타일: {counselor_style}"
+
+        # Prepare messages for OpenAI
+        openai_messages = [{"role": "system", "content": system_prompt}]
+
+        # Add conversation history (last 10 messages)
+        for msg in messages[-10:]:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role in ["user", "assistant"] and content:
+                openai_messages.append({"role": role, "content": content})
+
+        def generate_stream():
+            """Generator for SSE streaming."""
+            try:
+                client = _get_openai_client()
+                if not client:
+                    yield f"data: {json.dumps({'error': 'OpenAI client not available'})}\n\n"
+                    return
+
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=openai_messages,
+                    max_tokens=800,
+                    temperature=0.8,
+                    stream=True
+                )
+
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        # Clean AI phrases on the fly
+                        content = _clean_ai_phrases(content)
+                        yield f"data: {json.dumps({'content': content})}\n\n"
+
+                yield f"data: {json.dumps({'done': True})}\n\n"
+
+            except Exception as stream_err:
+                logger.exception(f"[TAROT-CHAT] Stream error: {stream_err}")
+                yield f"data: {json.dumps({'error': str(stream_err)})}\n\n"
+
+        return Response(
+            stream_with_context(generate_stream()),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/chat-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@tarot_bp.route('/chat', methods=['POST'])
+def tarot_chat():
+    """
+    Non-streaming tarot chat (fallback).
+    """
+    try:
+        data = request.get_json(force=True)
+        logger.info(f"[TAROT-CHAT] id={getattr(g, 'request_id', 'N/A')} Non-streaming chat")
+
+        messages = data.get("messages", [])
+        context = data.get("context", {})
+        language = data.get("language", "ko")
+
+        messages = sanitize_messages(messages, max_content_length=2000)
+
+        if not messages:
+            return jsonify({"error": "No messages provided"}), 400
+
+        # Extract info
+        cards = context.get("cards", [])
+        spread_title = context.get("spread_title", "Tarot Reading")
+        overall_message = context.get("overall_message", "")
+
+        user_messages = [m for m in messages if m.get("role") == "user"]
+        latest_question = user_messages[-1].get("content", "") if user_messages else ""
+
+        # Build simple response using GPT
+        card_names = [f"{c.get('name', '')}{'(역)' if c.get('is_reversed') else ''}" for c in cards]
+        cards_str = ", ".join(card_names) if card_names else "카드 없음"
+
+        is_korean = language == "ko"
+
+        if is_korean:
+            prompt = f"""타로 상담사로서 답변해주세요.
+스프레드: {spread_title}
+카드: {cards_str}
+이전 해석: {overall_message[:300] if overall_message else '없음'}
+질문: {latest_question}
+
+카드를 기반으로 150자 이내로 간결하게 답변하세요."""
+        else:
+            prompt = f"""As a tarot counselor, please respond.
+Spread: {spread_title}
+Cards: {cards_str}
+Previous reading: {overall_message[:300] if overall_message else 'none'}
+Question: {latest_question}
+
+Respond concisely in under 150 words, based on the cards."""
+
+        try:
+            reply = _generate_with_gpt4(prompt, max_tokens=400, temperature=0.8, use_mini=True)
+            reply = _clean_ai_phrases(reply)
+        except Exception as llm_err:
+            logger.warning(f"[TAROT-CHAT] GPT failed: {llm_err}")
+            reply = f"카드 {cards_str}가 전하는 메시지입니다. {overall_message[:200] if overall_message else '내면의 직관을 믿으세요.'}"
+
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/tarot/chat failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500

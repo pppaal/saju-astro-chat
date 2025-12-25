@@ -2,26 +2,17 @@
 // Tarot Chat API - Follow-up conversation about tarot readings
 
 import { NextResponse } from "next/server";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.BACKEND_AI_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://localhost:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[tarot chat] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[tarot chat] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
-}
+import {
+  cleanStringArray,
+  normalizeMessages as normalizeMessagesBase,
+  type ChatMessage,
+} from "@/lib/api";
 
 interface CardContext {
   position: string;
@@ -40,11 +31,6 @@ interface TarotContext {
   guidance: string;
 }
 
-interface ChatMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
 interface ChatRequest {
   messages: ChatMessage[];
   context: TarotContext;
@@ -52,40 +38,19 @@ interface ChatRequest {
 }
 
 const ALLOWED_TAROT_LANG = new Set(["ko", "en"]);
-const ALLOWED_TAROT_ROLES = new Set<ChatMessage["role"]>(["user", "assistant", "system"]);
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_CARD_COUNT = 20;
 const MAX_CARD_TEXT = 400;
 const MAX_TITLE_TEXT = 200;
 const MAX_GUIDANCE_TEXT = 1200;
-const MAX_KEYWORD_LEN = 60;
 
-function cleanStringArray(value: unknown, maxItems = 20, maxLen = MAX_KEYWORD_LEN): string[] {
-  if (!Array.isArray(value)) return [];
-  const cleaned: string[] = [];
-  for (const entry of value.slice(0, maxItems)) {
-    if (typeof entry !== "string") continue;
-    const trimmed = entry.trim();
-    if (!trimmed) continue;
-    cleaned.push(trimmed.slice(0, maxLen));
-  }
-  return cleaned;
-}
-
+// Use shared normalizeMessages with local config
 function normalizeMessages(raw: unknown): ChatMessage[] {
-  if (!Array.isArray(raw)) return [];
-  const normalized: ChatMessage[] = [];
-  for (const m of raw.slice(-MAX_MESSAGES)) {
-    if (!m || typeof m !== "object") continue;
-    const role = typeof (m as any).role === "string" && ALLOWED_TAROT_ROLES.has((m as any).role)
-      ? (m as any).role as ChatMessage["role"]
-      : null;
-    const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
-    if (!role || !content) continue;
-    normalized.push({ role, content: content.slice(0, MAX_MESSAGE_LENGTH) });
-  }
-  return normalized;
+  return normalizeMessagesBase(raw, {
+    maxMessages: MAX_MESSAGES,
+    maxLength: MAX_MESSAGE_LENGTH,
+  });
 }
 
 function sanitizeCards(raw: unknown): CardContext[] {

@@ -14,7 +14,7 @@ import {
   generateInputHash,
   performanceMonitor,
 } from '@/lib/destiny-matrix';
-import type { InsightDomain, MatrixCalculationInput } from '@/lib/destiny-matrix';
+import type { InsightDomain, MatrixCalculationInput, MatrixCell } from '@/lib/destiny-matrix';
 
 // ===========================
 // POST - 리포트 생성
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. 레이어 셀 추출
-    const layerResults = extractAllLayerCells(matrix as any);
+    const layerResults = extractAllLayerCells(matrix as MatrixLayers);
 
     // 7. 리포트 생성
     const generator = new FusionReportGenerator({
@@ -344,18 +344,24 @@ export async function GET(req: NextRequest) {
 // 헬퍼 함수들
 // ===========================
 
-function extractAllLayerCells(matrix: {
-  layer1_elementCore: Record<string, any>;
-  layer2_sibsinPlanet: Record<string, any>;
-  layer3_sibsinHouse: Record<string, any>;
-  layer4_timing: Record<string, any>;
-  layer5_relationAspect: Record<string, any>;
-  layer6_stageHouse: Record<string, any>;
-  layer7_advanced: Record<string, any>;
-  layer8_shinsalPlanet: Record<string, any>;
-  layer9_asteroidHouse: Record<string, any>;
-  layer10_extraPointElement: Record<string, any>;
-}): Record<string, Record<string, any>> {
+type MatrixLayer = Record<string, unknown>;
+type MatrixLayers = {
+  layer1_elementCore: MatrixLayer;
+  layer2_sibsinPlanet: MatrixLayer;
+  layer3_sibsinHouse: MatrixLayer;
+  layer4_timing: MatrixLayer;
+  layer5_relationAspect: MatrixLayer;
+  layer6_stageHouse: MatrixLayer;
+  layer7_advanced: MatrixLayer;
+  layer8_shinsalPlanet: MatrixLayer;
+  layer9_asteroidHouse: MatrixLayer;
+  layer10_extraPointElement: MatrixLayer;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+function extractAllLayerCells(matrix: MatrixLayers): Record<string, Record<string, MatrixCell>> {
   return {
     layer1: extractLayerCells(matrix.layer1_elementCore, 1),
     layer2: extractLayerCells(matrix.layer2_sibsinPlanet, 2),
@@ -371,28 +377,34 @@ function extractAllLayerCells(matrix: {
 }
 
 function extractLayerCells(
-  layerData: Record<string, any>,
+  layerData: Record<string, unknown>,
   layerNum: number
-): Record<string, any> {
-  const cells: Record<string, any> = {};
+): Record<string, MatrixCell> {
+  const cells: Record<string, MatrixCell> = {};
 
   for (const [cellKey, cellData] of Object.entries(layerData || {})) {
-    if (typeof cellData === 'object' && cellData !== null) {
+    if (isRecord(cellData)) {
       // 새 Computed 형식: { interaction: {...}, sajuBasis: "...", astroBasis: "..." }
-      if ('interaction' in cellData && cellData.interaction && 'level' in cellData.interaction) {
+      if (isRecord(cellData.interaction) && 'level' in cellData.interaction) {
+        const sajuBasis = typeof cellData.sajuBasis === 'string'
+          ? cellData.sajuBasis
+          : getSajuBasis(cellKey, layerNum);
+        const astroBasis = typeof cellData.astroBasis === 'string'
+          ? cellData.astroBasis
+          : getAstroBasis(cellKey, layerNum);
         cells[cellKey] = {
-          interaction: cellData.interaction,
-          sajuBasis: cellData.sajuBasis || getSajuBasis(cellKey, layerNum),
-          astroBasis: cellData.astroBasis || getAstroBasis(cellKey, layerNum),
+          interaction: cellData.interaction as MatrixCell["interaction"],
+          sajuBasis,
+          astroBasis,
         };
       }
       // 레거시 중첩 형식 (하위 호환성): { "목": { "earth": { level: ... } } }
       else {
         for (const [colKey, interaction] of Object.entries(cellData)) {
-          if (interaction && typeof interaction === 'object' && 'level' in interaction) {
+          if (isRecord(interaction) && 'level' in interaction) {
             const nestedCellKey = `${cellKey}_${colKey}`;
             cells[nestedCellKey] = {
-              interaction,
+              interaction: interaction as MatrixCell["interaction"],
               sajuBasis: getSajuBasis(cellKey, layerNum),
               astroBasis: getAstroBasis(colKey, layerNum),
             };

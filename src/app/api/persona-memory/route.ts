@@ -31,10 +31,10 @@ export async function GET() {
       data: memory,
       isNewUser: false,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[PersonaMemory GET error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -108,10 +108,10 @@ export async function POST(request: Request) {
         action: "created",
       });
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[PersonaMemory POST error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -139,7 +139,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    let updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     switch (action) {
       case "add_insight":
@@ -217,10 +217,10 @@ export async function PATCH(request: Request) {
       data: updated,
       action,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[PersonaMemory PATCH error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { captureServerError } from '@/lib/telemetry';
@@ -131,17 +132,6 @@ type InsightResponse = {
   error?: string;
 };
 
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.FLASK_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    'http://127.0.0.1:5000';
-  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
-    console.warn('[Dream API] Using non-HTTPS AI backend in production');
-  }
-  return url;
-}
 
 // 서킷브레이커 설정: 3회 연속 실패 시 1분간 차단
 const CIRCUIT_BREAKER_OPTIONS = {

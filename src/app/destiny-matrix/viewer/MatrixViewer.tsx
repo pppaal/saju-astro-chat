@@ -7,17 +7,6 @@
 import { useState, useEffect } from 'react';
 import styles from './viewer.module.css';
 
-interface LayerInfo {
-  layer: number;
-  name: string;
-  nameKo: string;
-  cells: number;
-  description: string;
-  descriptionKo: string;
-  rowLabel: string;
-  colLabel: string;
-}
-
 interface ReportResult {
   success: boolean;
   report?: {
@@ -127,7 +116,7 @@ export default function MatrixViewer() {
       const data = await res.json();
       setReportResult(data);
       setShowReport(true);
-    } catch (err) {
+    } catch {
       setReportResult({ success: false, error: { message: 'Request failed' } });
       setShowReport(true);
     } finally {

@@ -22,4 +22,4 @@ for (const r of arr) {
 const cleaned = arr.filter(r => !r._invalid);
 
 fs.writeFileSync(file, JSON.stringify(cleaned));
-console.log(`lat/lon fix complete. swapped=${swapped}, kept=${cleaned.length}`);
+console.warn(`lat/lon fix complete. swapped=${swapped}, kept=${cleaned.length}`);

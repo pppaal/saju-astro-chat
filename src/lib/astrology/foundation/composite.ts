@@ -53,7 +53,7 @@ function createCompositePlanet(
   let house = 1;
   for (let i = 0; i < 12; i++) {
     const nextI = (i + 1) % 12;
-    let cusp = houses[i].cusp;
+    const cusp = houses[i].cusp;
     let nextCusp = houses[nextI].cusp;
 
     if (nextCusp < cusp) nextCusp += 360;

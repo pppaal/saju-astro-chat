@@ -11,29 +11,18 @@ import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
 import { getCreditBalance } from '@/lib/credits/creditService';
+import { getBackendUrl as pickBackendUrl } from '@/lib/backend-url';
+import { getNowInTimezone } from '@/lib/datetime';
 
 // simple in-memory cache to reduce repeated Stripe lookups per runtime
 const premiumCache = new Map<string, { value: boolean; expires: number }>();
 const PREMIUM_TTL_MS = 5 * 60 * 1000;
+const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover';
 
 function getCachedPremium(email: string) {
   const entry = premiumCache.get(email.toLowerCase());
   if (entry && entry.expires > Date.now()) return entry.value;
   return null;
-}
-
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    'http://127.0.0.1:5000';
-  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
-    console.warn('[Saju API] Using non-HTTPS AI backend in production');
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn('[Saju API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL');
-  }
-  return url;
 }
 
 function setCachedPremium(email: string, value: boolean) {
@@ -58,7 +47,7 @@ async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean>
       return false;
     }
 
-    const stripe = new Stripe(key, { apiVersion: '2024-12-18.acacia' as any });
+    const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
     const customers = await stripe.customers.search({
       query: `email:'${email}'`,
       limit: 3,
@@ -118,20 +107,34 @@ import { calculateComprehensiveScore } from '@/lib/Saju/strengthScore';
 import {
   getTwelveStageInterpretation,
   getElementInterpretation,
+  TWELVE_STAGE_INTERPRETATIONS,
+  type TwelveStageType,
 } from '@/lib/Saju/interpretations';
 
 /* -----------------------------
    Utilities
 ------------------------------*/
-function formatSajuForGPT(sajuData: any): string {
+type DaeunCycle = { age: number; heavenlyStem: string; earthlyBranch: string };
+type SajuPromptPillar = { heavenlyStem: { name: string }; earthlyBranch: { name: string } };
+type SajuPromptData = {
+  yearPillar: SajuPromptPillar;
+  monthPillar: SajuPromptPillar;
+  dayPillar: SajuPromptPillar;
+  timePillar: SajuPromptPillar;
+  fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number };
+  daeun?: { cycles?: DaeunCycle[] };
+  birthDate: string;
+};
+
+function formatSajuForGPT(sajuData: SajuPromptData): string {
   const { yearPillar, monthPillar, dayPillar, timePillar, fiveElements, daeun } = sajuData;
   let prompt = `Analyze the following Saju (Four Pillars of Destiny) information as an expert astrologer.\n\n`;
   prompt += `### 1. Basic Information\n`;
   prompt += `- Four Pillars: ${yearPillar.heavenlyStem.name}${yearPillar.earthlyBranch.name} Year, ${monthPillar.heavenlyStem.name}${monthPillar.earthlyBranch.name} Month, ${dayPillar.heavenlyStem.name}${dayPillar.earthlyBranch.name} Day, ${timePillar.heavenlyStem.name}${timePillar.earthlyBranch.name} Hour\n`;
   prompt += `- Day Master: ${dayPillar.heavenlyStem.name}\n`;
   const currentAge = new Date().getFullYear() - new Date(sajuData.birthDate).getFullYear() + 1;
-  const cycles = daeun?.cycles ?? [];
-  const currentDaeun = cycles.find((d: any) => currentAge >= d.age && currentAge < d.age + 10);
+  const cycles: DaeunCycle[] = daeun?.cycles ?? [];
+  const currentDaeun = cycles.find((cycle) => currentAge >= cycle.age && currentAge < cycle.age + 10);
   if (currentDaeun) {
     prompt += `- Current Grand Cycle: Age ${currentDaeun.age} (${currentDaeun.heavenlyStem}${currentDaeun.earthlyBranch})\n\n`;
   } else {
@@ -173,23 +176,12 @@ const toBranch = (src: { name: string; element: string; sibsin?: string }) => ({
   sibsin: src.sibsin ?? '',
 });
 
-// 타임존 기반 현재 날짜 헬퍼
-function getNowInTimezone(tz?: string) {
-  const now = new Date();
-  const effectiveTz = tz || 'Asia/Seoul';
-  try {
-    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, year: 'numeric' }).format(now));
-    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, month: '2-digit' }).format(now));
-    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: effectiveTz, day: '2-digit' }).format(now));
-    return { year: y, month: m, day: d };
-  } catch {
-    // fallback to KST
-    const y = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(now));
-    const m = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', month: '2-digit' }).format(now));
-    const d = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', day: '2-digit' }).format(now));
-    return { year: y, month: m, day: d };
-  }
-}
+const FIVE_ELEMENT_KEYS: FiveElement[] = ['목', '화', '토', '금', '수'];
+const isFiveElement = (value: string): value is FiveElement => FIVE_ELEMENT_KEYS.includes(value as FiveElement);
+const isTwelveStageType = (value: string): value is TwelveStageType =>
+  Object.prototype.hasOwnProperty.call(TWELVE_STAGE_INTERPRETATIONS, value);
+
+// getNowInTimezone imported from @/lib/datetime
 
 // Lucky whitelist/ordering
 // 라이브러리 kind와 동일한 표기(접미사 '살' 없음)
@@ -221,7 +213,21 @@ const pickLucky = (
    지장간 포매터
 ------------------------------*/
 type JGItem = { name?: string; sibsin?: string };
-type JijangganAny = string | { [k: string]: any } | JGItem[] | null | undefined;
+type JijangganAny = string | Record<string, unknown> | JGItem[] | null | undefined;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const toJGItem = (value: unknown): JGItem | undefined => {
+  if (!value) return undefined;
+  if (typeof value === 'string') return { name: value };
+  if (isRecord(value)) {
+    const name = typeof value.name === 'string' ? value.name : undefined;
+    const sibsin = typeof value.sibsin === 'string' ? value.sibsin : undefined;
+    if (name || sibsin) return { name, sibsin };
+  }
+  return undefined;
+};
 
 const HANGUL_TO_HANJA_STEM: Record<string, string> = {
   갑: '甲', 을: '乙', 병: '丙', 정: '丁', 무: '戊', 기: '己', 경: '庚', 신: '辛', 임: '壬', 계: '癸',
@@ -261,7 +267,13 @@ const SIBSIN_TABLE: Record<string, Record<string, string>> = {
 // 무엇이 오든 {chogi,junggi,jeonggi} 객체로
 const coerceJijanggan = (raw: JijangganAny): { chogi?: JGItem; junggi?: JGItem; jeonggi?: JGItem } => {
   if (!raw) return {};
-  if (typeof raw === 'object' && !Array.isArray(raw)) return raw as any;
+  if (isRecord(raw)) {
+    return {
+      chogi: toJGItem(raw.chogi),
+      junggi: toJGItem(raw.junggi),
+      jeonggi: toJGItem(raw.jeonggi),
+    };
+  }
   const arr: JGItem[] = Array.isArray(raw)
     ? raw.map((x) => (typeof x === 'object' ? x : { name: String(x) }))
     : String(raw).split('').filter(Boolean).map((ch) => ({ name: ch }));
@@ -299,12 +311,12 @@ const buildJijangganRaw = (raw: JijangganAny) => {
     const list = raw.map(v => typeof v === 'string' ? v : (v?.name ?? '')).filter(Boolean);
     return { raw: list.join(''), list };
   }
-  if (raw && typeof raw === 'object') {
-    const keys: (keyof any)[] = ['chogi', 'junggi', 'jeonggi'];
-    const list = keys.map(k => {
-      const v: any = (raw as any)[k];
+  if (isRecord(raw)) {
+    const keys = ['chogi', 'junggi', 'jeonggi'] as const;
+    const list = keys.map((k) => {
+      const v = raw[k];
       if (!v) return '';
-      const name = typeof v === 'string' ? v : v.name;
+      const name = typeof v === 'string' ? v : (isRecord(v) && typeof v.name === 'string' ? v.name : '');
       return toHangulStem(name);
     }).filter(Boolean);
     return { raw: list.join(''), list };
@@ -336,11 +348,8 @@ export async function POST(req: Request) {
     let creditBalance = null;
 
     if (session?.user?.id) {
-      // 크레딧 체크 및 소비
-      const creditResult = await checkAndConsumeCredits("reading", 1);
-      if (!creditResult.allowed) {
-        return creditErrorResponse(creditResult);
-      }
+      // 초기 사주 분석은 무료 (크레딧 차감 없음)
+      // 상담사 채팅만 크레딧 차감
 
       // 플랜 기반 프리미엄 체크
       creditBalance = await getCreditBalance(session.user.id);
@@ -431,9 +440,9 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       const p = sajuResult[`${pillar}Pillar` as const];
       const jgRaw = buildJijangganRaw(p.jijanggan);
       const jgObj = enrichSibsin(coerceJijanggan(p.jijanggan), dayMasterStem);
-      const display = ['chogi', 'junggi', 'jeonggi']
-        .map(k => {
-          const it: any = (jgObj as any)[k];
+      const display = (['chogi', 'junggi', 'jeonggi'] as const)
+        .map((k) => {
+          const it = jgObj[k];
           if (!it?.name) return '';
           const han = it.name; // hanja
           const sib = it.sibsin ? `(${it.sibsin})` : '';
@@ -527,7 +536,12 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     };
 
     // 공통 pillarsWithHour 객체 (hour key 사용하는 모듈용) - 한 번만 정의
-    const pillarsWithHour = {
+    const pillarsWithHour: {
+      year: { stem: string; branch: string };
+      month: { stem: string; branch: string };
+      day: { stem: string; branch: string };
+      hour: { stem: string; branch: string };
+    } = {
       year: { stem: simplePillars.year.stem, branch: simplePillars.year.branch },
       month: { stem: simplePillars.month.stem, branch: simplePillars.month.branch },
       day: { stem: simplePillars.day.stem, branch: simplePillars.day.branch },
@@ -594,7 +608,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // 6. 십신 종합 분석 (uses hour instead of time)
     let sibsinAnalysis = null;
     try {
-      sibsinAnalysis = analyzeSibsinComprehensive(pillarsWithHour as any);
+      sibsinAnalysis = analyzeSibsinComprehensive(pillarsWithHour);
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Sibsin analysis failed:', e);
     }
@@ -602,7 +616,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // 7. 건강 분석
     let healthAnalysis = null;
     try {
-      healthAnalysis = analyzeHealth(pillarsWithHour as any);
+      healthAnalysis = analyzeHealth(pillarsWithHour);
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Health analysis failed:', e);
     }
@@ -610,7 +624,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // 8. 직업 적성 분석
     let careerAnalysis = null;
     try {
-      careerAnalysis = analyzeCareer(pillarsWithHour as any);
+      careerAnalysis = analyzeCareer(pillarsWithHour);
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Career analysis failed:', e);
     }
@@ -626,27 +640,31 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // 10. 종합 리포트
     let comprehensiveReport = null;
     try {
-      comprehensiveReport = generateComprehensiveReport(pillarsWithHour as any);
+      comprehensiveReport = generateComprehensiveReport(pillarsWithHour);
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Comprehensive report failed:', e);
     }
 
     // 11. 해석 데이터 수집
-    const interpretations = {
-      twelveStages: {} as Record<string, any>,
-      elements: {} as Record<string, any>,
+    const interpretations: {
+      twelveStages: Record<string, ReturnType<typeof getTwelveStageInterpretation>>;
+      elements: Record<string, ReturnType<typeof getElementInterpretation>>;
+    } = {
+      twelveStages: {},
+      elements: {},
     };
     try {
       // 12운성 해석
       for (const [pillar, stage] of Object.entries(twelveStages)) {
-        if (stage) {
-          interpretations.twelveStages[pillar] = getTwelveStageInterpretation(stage as any);
+        if (stage && typeof stage === 'string' && isTwelveStageType(stage)) {
+          interpretations.twelveStages[pillar] = getTwelveStageInterpretation(stage);
         }
       }
       // 오행 해석
       for (const [elem, count] of Object.entries(sajuResult.fiveElements)) {
-        if ((count as number) > 0) {
-          interpretations.elements[elem] = getElementInterpretation(elem as any);
+        const countValue = Number(count);
+        if (countValue > 0 && isFiveElement(elem)) {
+          interpretations.elements[elem] = getElementInterpretation(elem);
         }
       }
     } catch (e) {
@@ -669,7 +687,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // 유료: 격국, 용신, 건강/직업 분석, 종합 리포트
 
     // 무료 사용자용 미리보기 (일부 정보만 노출)
-    const freePreview = {
+    const _freePreview = {
       // 격국 - 이름만 노출
       geokguk: geokgukAnalysis ? {
         primary: geokgukAnalysis.primary,

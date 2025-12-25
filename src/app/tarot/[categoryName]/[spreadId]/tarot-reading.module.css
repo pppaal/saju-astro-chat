@@ -45,16 +45,21 @@
 
 /* ===== Card Selection Screen ===== */
 .readingContainer {
-  width: 100%;
-  min-height: 100vh;
-  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   background: transparent;
-  padding: 2rem 1rem;
-  position: relative;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
 }
 
 .readingContainer::before {
@@ -71,39 +76,46 @@
 .instructions {
   text-align: center;
   color: #63d2ff;
-  margin-bottom: 3rem;
   z-index: 100;
+  width: 100%;
+  background: transparent;
+  padding: 1rem 1rem 0.5rem;
+  flex-shrink: 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .instructionTitle {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.75rem 0;
   text-shadow: 0 0 20px rgba(99, 210, 255, 0.5);
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-align: center;
 }
 
 .instructionContent {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .pickingText {
-  font-size: 1.3rem;
+  font-size: 1rem;
   color: rgba(224, 224, 255, 0.9);
   margin: 0;
 }
 
 .progressBar {
-  width: 300px;
-  height: 8px;
+  width: 200px;
+  height: 6px;
   background: rgba(99, 210, 255, 0.15);
   border-radius: 10px;
   overflow: hidden;
@@ -118,7 +130,7 @@
 }
 
 .progressText {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   color: rgba(99, 210, 255, 0.9);
   font-weight: 600;
   margin: 0;
@@ -142,32 +154,37 @@
 
 /* ===== Card Spread - Semi-circle Arc ===== */
 .cardSpreadContainer {
-  position: relative;
+  position: absolute;
   width: 100%;
   max-width: 100vw;
-  height: 450px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   perspective: 2000px;
-  padding: 0 1rem;
-  overflow: visible;
+  padding: 0 1rem 3rem;
+  overflow: hidden;
 }
 
 .cardWrapper {
   position: absolute;
-  width: 60px;
-  height: 96px;
+  width: 200px;
+  height: 320px;
   cursor: pointer;
   left: 50%;
-  bottom: 30px;
-  margin-left: -30px;
+  bottom: 0;
+  margin-left: -100px;
   transform-origin: center bottom;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform;
 
   /* Fan spread: semi-circle arc - 78 cards spread across 160 degrees (-80 to +80) */
   --angle: calc((var(--i) - 38.5) * 2.05deg);
-  transform: rotate(var(--angle)) translateY(-280px);
+  transform: rotate(var(--angle)) translateY(-520px);
 }
 
 .cardBack {
@@ -194,7 +211,7 @@
 }
 
 .cardWrapper:hover {
-  transform: rotate(var(--angle)) translateY(-310px) scale(1.15);
+  transform: rotate(var(--angle)) translateY(-550px) scale(1.05);
   z-index: 100;
 }
 
@@ -205,23 +222,23 @@
 }
 
 .cardWrapper.selected {
-  transform: rotate(0deg) translateY(-350px) scale(1.2);
+  transform: rotate(0deg) translateY(-420px) scale(1.2);
   cursor: default;
   z-index: calc(50 + var(--selection-order, 0));
   pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
 }
 
 .cardWrapper.selected .selectionNumber {
   transform: translateX(-50%) scale(1);
-  top: auto;
-  bottom: -50px;
+  top: -50px;
+  bottom: auto;
 }
 
 .cardWrapper.selected .cardBack {
   border-color: rgba(212, 175, 55, 1);
   box-shadow: 0 10px 40px rgba(212, 175, 55, 0.6),
               0 0 60px rgba(212, 175, 55, 0.4);
-  animation: selectedPulse 1.5s ease-in-out infinite;
 }
 
 .selectionNumber {
@@ -243,7 +260,7 @@
   font-size: 1.1rem;
   box-shadow: 0 4px 15px rgba(124, 242, 156, 0.8),
               0 0 20px rgba(99, 210, 255, 0.5);
-  animation: numberAppear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: numberAppear 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
   z-index: 10;
 }
 
@@ -254,18 +271,21 @@
 
 /* ===== Redraw Button ===== */
 .redrawButton {
-  position: relative;
-  margin-top: 2rem;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: rgba(180, 160, 220, 0.9);
-  background: transparent;
+  background: rgba(20, 10, 40, 0.85);
   border: 1px solid rgba(180, 160, 220, 0.3);
-  border-radius: 25px;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(10px);
 }
 
 .redrawButton:hover {
@@ -358,10 +378,10 @@
 
 .resultsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 400px));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 550px));
   gap: 3rem;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1600px;
   justify-content: center;
   margin-bottom: 4rem;
   z-index: 10;
@@ -377,11 +397,13 @@
   backdrop-filter: blur(15px);
   border: 1px solid rgba(99, 210, 255, 0.15);
   border-radius: 24px;
-  padding: 2rem;
+  padding: 2.5rem;
   opacity: 0;
   animation: cardSlotElegant 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: calc(var(--card-index, 0) * 0.1s);
   transition: all 0.4s ease;
+  min-height: fit-content;
+  cursor: auto;
 }
 
 @keyframes cardSlotElegant {
@@ -419,20 +441,21 @@
 }
 
 .positionBadgeWithNumber {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #7cf29c;
-  background: rgba(124, 242, 156, 0.1);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #ffffff;
+  background: rgba(99, 210, 255, 0.15);
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
-  border: 1px solid rgba(124, 242, 156, 0.3);
+  border: 1px solid rgba(99, 210, 255, 0.4);
   text-align: center;
   min-height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  letter-spacing: 0.5px;
 }
 
 .cardNumberSmall {
@@ -549,12 +572,13 @@
 }
 
 .cardName {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #7cf29c;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #ffffff;
   margin: 0;
-  text-shadow: 0 0 15px rgba(124, 242, 156, 0.4);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 
 .keywords {
@@ -583,12 +607,15 @@
 }
 
 .meaning {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: rgba(224, 224, 255, 0.9);
+  font-size: 1.1rem;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.92);
   text-align: left;
   margin: 0;
-  padding: 0 0.5rem;
+  padding: 0 1rem;
+  width: 100%;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0.3px;
 }
 
 .resetButton {
@@ -879,7 +906,8 @@
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
-  max-width: 900px;
+  max-width: 1200px;
+  width: 100%;
   margin-bottom: 3rem;
   padding: 2rem;
   background: rgba(99, 210, 255, 0.1);
@@ -896,10 +924,13 @@
 }
 
 .messageText {
-  font-size: 1.15rem;
-  line-height: 1.8;
-  color: rgba(224, 224, 255, 0.95);
+  font-size: 1.25rem;
+  line-height: 2.1;
+  color: rgba(255, 255, 255, 0.95);
   margin: 0;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0.3px;
+  font-weight: 400;
 }
 
 /* ===== Expanded Card State ===== */
@@ -909,46 +940,45 @@
 }
 
 .expandHint {
-  font-size: 0.85rem;
-  color: rgba(99, 210, 255, 0.7);
-  text-align: center;
-  margin-top: 1rem;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.expandHint:hover {
-  color: rgba(99, 210, 255, 1);
+  display: none;
 }
 
 /* ===== Premium Insights ===== */
 .premiumInsights {
   width: 100%;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
   border-top: 1px solid rgba(99, 210, 255, 0.2);
   animation: fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .insightSection {
   background: rgba(30, 30, 45, 0.4);
   border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 0;
+  border: 1px solid rgba(99, 210, 255, 0.1);
 }
 
 .insightTitle {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: #7cf29c;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 1rem 0;
 }
 
 .insightText {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: rgba(224, 224, 255, 0.9);
+  font-size: 1.05rem;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.92);
   margin: 0;
+  white-space: pre-wrap;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0.3px;
 }
 
 /* Spirit Animal */
@@ -1093,7 +1123,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
-  max-width: 900px;
+  max-width: 1400px;
+  width: 100%;
   margin-bottom: 2rem;
   z-index: 10;
   position: relative;
@@ -1101,16 +1132,20 @@
 
 .guidanceBox {
   flex: 1;
+  width: 100%;
   min-width: 280px;
-  background: linear-gradient(145deg, rgba(99, 210, 255, 0.08) 0%, rgba(30, 30, 45, 0.6) 50%, rgba(124, 242, 156, 0.05) 100%);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 210, 255, 0.25);
-  border-radius: 24px;
-  padding: 2rem 1.5rem;
-  text-align: center;
+  background: linear-gradient(145deg, rgba(99, 210, 255, 0.12) 0%, rgba(30, 30, 45, 0.7) 50%, rgba(124, 242, 156, 0.08) 100%);
+  backdrop-filter: blur(25px);
+  border: 2px solid rgba(99, 210, 255, 0.3);
+  border-radius: 28px;
+  padding: 3.5rem 4rem;
+  text-align: left;
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              0 0 60px rgba(99, 210, 255, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .guidanceBox::before {
@@ -1119,8 +1154,19 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(99, 210, 255, 0.8), rgba(124, 242, 156, 0.8), transparent);
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(99, 210, 255, 0.6) 20%,
+    rgba(124, 242, 156, 0.8) 50%,
+    rgba(99, 210, 255, 0.6) 80%,
+    transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .guidanceBox:hover {
@@ -1160,14 +1206,15 @@
 }
 
 .guidanceIcon, .affirmationIcon {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .iconGlow {
-  font-size: 2.5rem;
+  font-size: 3.5rem;
   display: inline-block;
   animation: iconFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 15px rgba(99, 210, 255, 0.6));
+  filter: drop-shadow(0 0 20px rgba(99, 210, 255, 0.8));
 }
 
 .iconPulse {
@@ -1189,14 +1236,15 @@
 
 .guidanceTitle {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #63d2ff, #7cf29c);
+  background: linear-gradient(135deg, #63d2ff 0%, #7cf29c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 1.2rem 0;
-  letter-spacing: 0.05em;
+  margin: 0 0 2rem 0;
+  letter-spacing: 0.02em;
+  text-align: center;
 }
 
 .affirmationTitle {
@@ -1212,10 +1260,12 @@
 }
 
 .guidanceText {
-  font-size: 1.05rem;
-  line-height: 1.8;
-  color: rgba(224, 224, 255, 0.95);
-  margin: 0 0 1.5rem 0;
+  font-size: 1.15rem;
+  line-height: 2;
+  color: rgba(240, 240, 255, 0.95);
+  margin: 0 0 2rem 0;
+  white-space: pre-line;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .guidanceFooter {
@@ -1248,13 +1298,36 @@
   font-style: italic;
 }
 
+.affirmationSection {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+}
+
+.affirmationDivider {
+  width: 120px;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(124, 242, 156, 0.3) 20%,
+    rgba(124, 242, 156, 0.8) 50%,
+    rgba(124, 242, 156, 0.3) 80%,
+    transparent 100%);
+  margin: 0 auto 2rem auto;
+  box-shadow: 0 0 10px rgba(124, 242, 156, 0.3);
+}
+
 .affirmationText {
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   font-style: italic;
-  line-height: 1.7;
-  color: rgba(224, 224, 255, 0.95);
-  margin: 0 0 1rem 0;
-  padding: 0 0.5rem;
+  line-height: 1.9;
+  color: rgba(240, 240, 255, 0.95);
+  margin: 0;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  text-shadow: 0 0 15px rgba(124, 242, 156, 0.3);
+  background: linear-gradient(135deg, rgba(124, 242, 156, 0.08), rgba(99, 210, 255, 0.08));
+  border-radius: 16px;
+  border: 1px solid rgba(124, 242, 156, 0.2);
 }
 
 .affirmationMoon {
@@ -1267,6 +1340,88 @@
 @keyframes moonGlow {
   0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3)); }
   50% { opacity: 0.9; filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)); }
+}
+
+/* ===== Compact Guidance Box (New) ===== */
+.guidanceBoxCompact {
+  width: 100%;
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.08) 0%, rgba(30, 30, 45, 0.6) 100%);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(99, 210, 255, 0.25);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(99, 210, 255, 0.1);
+}
+
+.guidanceBoxCompact::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(99, 210, 255, 0.8) 0%, rgba(124, 242, 156, 0.6) 100%);
+  box-shadow: 0 0 10px rgba(99, 210, 255, 0.5);
+}
+
+.guidanceBoxCompact::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(99, 210, 255, 0.3) 20%,
+    rgba(124, 242, 156, 0.3) 80%,
+    transparent 100%);
+}
+
+.guidanceBoxCompact:hover {
+  border-color: rgba(99, 210, 255, 0.4);
+  box-shadow: 0 8px 30px rgba(99, 210, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.guidanceHeaderCompact {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
+}
+
+.guidanceIconCompact {
+  font-size: 1.3rem;
+  filter: drop-shadow(0 0 8px rgba(99, 210, 255, 0.5));
+}
+
+.guidanceTitleCompact {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(99, 210, 255, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgba(99, 210, 255, 0.3);
+}
+
+.guidanceTextCompact {
+  font-size: 1.15rem;
+  line-height: 2.1;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  white-space: pre-line;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0.3px;
+  font-weight: 400;
 }
 
 /* ===== Follow-up Questions ===== */
@@ -1314,13 +1469,27 @@
 }
 
 @keyframes selectedPulse {
-  0%, 100% { box-shadow: 0 10px 40px rgba(124, 242, 156, 0.5), 0 0 60px rgba(99, 210, 255, 0.6); }
-  50% { box-shadow: 0 12px 50px rgba(124, 242, 156, 0.7), 0 0 80px rgba(99, 210, 255, 0.8); }
+  0%, 100% {
+    box-shadow: 0 10px 40px rgba(124, 242, 156, 0.5), 0 0 60px rgba(99, 210, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 12px 50px rgba(124, 242, 156, 0.7), 0 0 80px rgba(99, 210, 255, 0.8);
+  }
 }
 
 @keyframes numberAppear {
-  from { transform: translateX(-50%) scale(0) rotate(-180deg); opacity: 0; }
-  to { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+  0% {
+    transform: translateX(-50%) scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-50%) scale(1.1) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 
 @keyframes cardReveal {
@@ -1365,27 +1534,26 @@
   }
 
   .cardWrapper {
-    width: 45px;
-    height: 72px;
-    margin-left: -22.5px;
+    width: 50px;
+    height: 80px;
+    margin-left: -25px;
+    bottom: 0;
+    transform-origin: center bottom;
     --angle: calc((var(--i) - 38.5) * 2.05deg);
-    transform: rotate(var(--angle)) translateY(-220px);
+    transform: rotate(var(--angle)) translateY(-260px);
   }
 
   .cardWrapper:hover {
-    transform: rotate(var(--angle)) translateY(-245px) scale(1.12);
+    transform: rotate(var(--angle)) translateY(-275px) scale(1.05);
   }
 
   .cardWrapper.selected {
-    transform: rotate(0deg) translateY(-280px) scale(1.15);
+    transform: rotate(0deg) translateY(-210px) scale(1.15);
+    transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
   }
 
   .cardCenterIcon {
     font-size: 1.8rem;
-  }
-
-  .cardSpreadContainer {
-    height: 380px;
   }
 
   .resultsTitle {
@@ -1425,23 +1593,22 @@
   }
 
   .cardWrapper {
-    width: 35px;
-    height: 56px;
-    margin-left: -17.5px;
+    width: 40px;
+    height: 64px;
+    margin-left: -20px;
+    bottom: 0;
+    transform-origin: center bottom;
     --angle: calc((var(--i) - 38.5) * 2.05deg);
-    transform: rotate(var(--angle)) translateY(-170px);
+    transform: rotate(var(--angle)) translateY(-200px);
   }
 
   .cardWrapper:hover {
-    transform: rotate(var(--angle)) translateY(-190px) scale(1.1);
-  }
-
-  .cardSpreadContainer {
-    height: 320px;
+    transform: rotate(var(--angle)) translateY(-215px) scale(1.04);
   }
 
   .cardWrapper.selected {
-    transform: rotate(0deg) translateY(-220px) scale(1.1);
+    transform: rotate(0deg) translateY(-170px) scale(1.1);
+    transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
   }
 
   .resultsContainer {
@@ -1512,6 +1679,40 @@
   top: 20px;
   right: 20px;
   z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.homeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  background: rgba(99, 210, 255, 0.15);
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  gap: 0.1rem;
+}
+
+.homeButton:hover {
+  background: rgba(99, 210, 255, 0.25);
+  border-color: rgba(99, 210, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.homeIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.homeLabel {
+  font-size: 0.65rem;
+  color: #63d2ff;
+  font-weight: 500;
 }
 
 .backButtonWrapper {
@@ -2395,12 +2596,13 @@
 }
 
 .cardNameCompact {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #7cf29c;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff;
   margin: 0;
-  text-shadow: 0 0 10px rgba(124, 242, 156, 0.3);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.3px;
 }
 
 .keywordsCompact {

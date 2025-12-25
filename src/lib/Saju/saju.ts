@@ -261,13 +261,72 @@ export function calculateSajuData(
     });
 
     const yNowLocal = Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(new Date()));
+    const mNowLocal = Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(new Date()));
     const birthYearLocal = Y;
     const currentAge = yNowLocal - birthYearLocal;
     const currentLuckPillar = daeWoonList.slice().reverse().find(d => currentAge >= d.age) || daeWoonList[0];
 
+    // 연운 (현재 연도부터 6년치)
+    const annualCycles: any[] = [];
+    for (let i = 0; i < 6; i++) {
+      const yr = yNowLocal + i;
+      const idx60 = (yr - 4 + 6000) % 60;
+      const stem = STEMS[idx60 % 10];
+      const branch = BRANCHES[idx60 % 12];
+      const mainForB = getBranchMainStem(branch.name);
+      annualCycles.push({
+        year: yr,
+        ganji: `${stem.name}${branch.name}`,
+        element: stem.element,
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as any)) }
+      });
+    }
+
+    // 월운 (현재 월부터 12개월치)
+    const monthlyCycles: any[] = [];
+    for (let i = 0; i < 12; i++) {
+      let yr = yNowLocal;
+      let mo = mNowLocal + i;
+      if (mo > 12) { mo -= 12; yr += 1; }
+      const idx60 = (yr - 4 + 6000) % 60;
+      const yearStemName = STEMS[idx60 % 10].name;
+      const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName];
+      const firstMonthStemIndex = STEMS.findIndex(s => s.name === firstMonthStemName);
+      const branchOrder = [2,3,4,5,6,7,8,9,10,11,0,1];
+      const stem = STEMS[(firstMonthStemIndex + mo - 1) % 10];
+      const branch = BRANCHES[branchOrder[(mo - 1) % 12]];
+      const mainForB = getBranchMainStem(branch.name);
+      monthlyCycles.push({
+        year: yr,
+        month: mo,
+        ganji: `${stem.name}${branch.name}`,
+        element: stem.element,
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as any)) }
+      });
+    }
+
+    // unse 구조 (baseAllDataPrompt.ts가 기대하는 형식)
+    const unse = {
+      daeun: daeWoonList.map(d => ({
+        age: d.age,
+        heavenlyStem: d.heavenlyStem,
+        earthlyBranch: d.earthlyBranch,
+        ganji: `${d.heavenlyStem}${d.earthlyBranch}`,
+      })),
+      annual: annualCycles,
+      monthly: monthlyCycles,
+    };
+
     return {
       ...finalPillars,
+      pillars: {
+        year: finalPillars.yearPillar,
+        month: finalPillars.monthPillar,
+        day: finalPillars.dayPillar,
+        time: finalPillars.timePillar,
+      },
       daeWoon: { startAge: daeWoonStartAge, isForward, current: currentLuckPillar, list: daeWoonList },
+      unse,
       fiveElements: {
         wood: fiveElementsCount['목'],
         fire: fiveElementsCount['화'],

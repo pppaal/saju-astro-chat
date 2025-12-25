@@ -153,6 +153,25 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 12px 32px rgba(0,0,0,0.25);
   z-index: 20;
+  gap: 32px;
+}
+
+.logo {
+  flex-shrink: 0;
+}
+
+.logoLink {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  letter-spacing: -0.02em;
+}
+
+.logoLink:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
 }
 
 .brand {
@@ -2310,6 +2329,212 @@ to { opacity: 1; transform: translateY(0); }
   letter-spacing: 0.02em;
 }
 
+/* Saju Simple Styles - White Theme */
+.simpleExplanation {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.simpleExplanation p {
+  color: #1a1a1a;
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0;
+  font-weight: 500;
+}
+
+.pillarExplanation {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.pillarExplanation h3 {
+  color: #1a1a1a;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.pillarExplanation p {
+  color: #4a4a4a;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 500;
+}
+
+.pillarLabelSimple {
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.pillarHighlight {
+  position: relative;
+}
+
+.pillarHighlight::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
+  border-radius: 16px;
+  z-index: -1;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.stemSimple,
+.branchSimple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid;
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.stemSimple:hover,
+.branchSimple:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 1);
+}
+
+.elementIconLarge {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.elementNameSimple {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.pillarMeaning {
+  font-size: 0.85rem;
+  color: #4a4a4a;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.luckTimelineSimple {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 2rem;
+  margin: 3rem auto;
+  max-width: 900px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.luckTimelineSimple h3 {
+  color: #1a1a1a;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.luckTimelineSimple > p {
+  color: #4a4a4a;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+.timelineTrackSimple {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.luckPeriodSimple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.2rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  min-width: 100px;
+}
+
+.luckPeriodSimple:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
+}
+
+.luckPeriodSimple.activeSimple {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 245, 200, 0.3));
+  border: 2px solid rgba(255, 165, 0, 0.4);
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.2);
+}
+
+.luckAgeSimple {
+  font-size: 0.85rem;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+.luckIconSimple {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.luckDescSimple {
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.currentBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  color: #1a1a1a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(255, 165, 0, 0.3);
+}
+
 /* Tarot Section */
 .tarotDeckContainer {
   display: flex;
@@ -2730,6 +2955,8 @@ to { opacity: 1; transform: translateY(0); }
 @media (max-width: 768px) {
   .container { padding: 4.5rem 1.1rem 5rem; gap: 2.5rem; }
   .topBar { flex-direction: row; gap: 10px; position: fixed; padding: 10px 16px; }
+  .logo { flex-shrink: 0; }
+  .logoLink { font-size: 1.2rem; }
   .nav { display: none; }
   .headerLinks { gap: 8px; }
   .ctaPrimary { padding: 8px 12px; font-size: 13px; }

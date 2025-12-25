@@ -609,7 +609,7 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
 
   // AI 스토리 생성 함수
   const generateAIStory = useCallback(async () => {
-    console.log("[DestinyMatrixStory] generateAIStory called", { saju, astro, lang });
+    console.warn("[DestinyMatrixStory] generateAIStory called", { saju, astro, lang });
 
     if (!saju || !astro) {
       console.warn("[DestinyMatrixStory] Missing data - saju:", !!saju, "astro:", !!astro);
@@ -690,7 +690,7 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
 
   // AI 모드일 때 자동으로 스토리 생성
   useEffect(() => {
-    console.log("[DestinyMatrixStory] useEffect check:", {
+    console.warn("[DestinyMatrixStory] useEffect check:", {
       useAI,
       hasSaju: !!saju,
       hasAstro: !!astro,
@@ -701,7 +701,7 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
     });
 
     if (useAI && saju && astro && !aiStory && !isLoading) {
-      console.log("[DestinyMatrixStory] Calling generateAIStory...");
+      console.warn("[DestinyMatrixStory] Calling generateAIStory...");
       generateAIStory();
     }
   }, [useAI, saju, astro, aiStory, isLoading, generateAIStory]);

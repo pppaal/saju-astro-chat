@@ -3,10 +3,12 @@
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import SajuChat from "@/components/saju/SajuChat";
 import { useI18n } from "@/i18n/I18nProvider";
 import { calculateSajuData } from "@/lib/Saju/saju";
+import CreditBadge from "@/components/ui/CreditBadge";
 import styles from "./counselor.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -27,6 +29,38 @@ type UserContext = {
   }>;
 };
 
+type Lang = "ko" | "en";
+type SajuData = Record<string, unknown>;
+
+type PrefetchResponse = {
+  status?: string;
+  session_id?: string;
+  prefetch_time_ms?: number;
+  data_summary?: { graph_nodes?: number };
+};
+
+type CounselorSession = {
+  id: string;
+  summary?: string;
+  keyTopics?: string[];
+  lastMessageAt?: string;
+  theme?: string;
+};
+
+type CounselorPersona = {
+  sessionCount?: number;
+  lastTopics?: string[];
+  emotionalTone?: string;
+  recurringIssues?: string[];
+};
+
+type CounselorContextResponse = {
+  success?: boolean;
+  persona?: CounselorPersona;
+  sessions?: CounselorSession[];
+  isReturningUser?: boolean;
+};
+
 export default function SajuCounselorPage({
   searchParams,
 }: {
@@ -42,7 +76,7 @@ export default function SajuCounselorPage({
   const [isLoading, setIsLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [sajuData, setSajuData] = useState<any>(null);
+  const [sajuData, setSajuData] = useState<SajuData | null>(null);
   const [prefetchStatus, setPrefetchStatus] = useState<{
     done: boolean;
     timeMs?: number;
@@ -61,7 +95,8 @@ export default function SajuCounselorPage({
   const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? "";
   const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? "";
   const theme = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? "life";
-  const lang = ((Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko") as any;
+  const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
+  const lang: Lang = langParam === "en" ? "en" : "ko";
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? "";
 
   const loadingMessages = [
@@ -76,7 +111,7 @@ export default function SajuCounselorPage({
     if (!isAuthed) return;
     if (!birthDate || !birthTime) return;
 
-    let saju: any = null;
+    let saju: SajuData | null = null;
 
     try {
       const stored = sessionStorage.getItem("sajuCounselorData");
@@ -87,28 +122,28 @@ export default function SajuCounselorPage({
           saju = data.saju;
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn("[SajuCounselorPage] Failed to load saju data:", e);
     }
 
     // If no cached saju data, compute fresh from birth info
     if (!saju || !saju.dayMaster) {
       try {
-        console.log("[SajuCounselorPage] Computing fresh saju data...");
+        console.warn("[SajuCounselorPage] Computing fresh saju data...");
         const genderVal = (gender === "Male" || gender === "male") ? "male" : "female";
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
         const computed = calculateSajuData(birthDate, birthTime, genderVal, "solar", userTz);
-        saju = computed;
+        saju = computed as SajuData;
         // Save to sessionStorage for future use
         sessionStorage.setItem("sajuCounselorData", JSON.stringify({
           saju: computed,
           timestamp: Date.now(),
         }));
-        console.log("[SajuCounselorPage] Fresh saju computed:", {
+        console.warn("[SajuCounselorPage] Fresh saju computed:", {
           dayMaster: computed.dayMaster?.heavenlyStem,
           yearPillar: computed.yearPillar?.heavenlyStem,
         });
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("[SajuCounselorPage] Failed to compute saju:", e);
       }
     }
@@ -126,18 +161,20 @@ export default function SajuCounselorPage({
             body: JSON.stringify({ saju, theme }),
           });
           if (res.ok) {
-            const data = await res.json();
+            const data = (await res.json()) as PrefetchResponse;
             if (data.status === "success") {
-              setSessionId(data.session_id);
+              if (data.session_id) {
+                setSessionId(data.session_id);
+              }
               setPrefetchStatus({
                 done: true,
-                timeMs: data.prefetch_time_ms,
+                timeMs: typeof data.prefetch_time_ms === "number" ? data.prefetch_time_ms : undefined,
                 graphNodes: data.data_summary?.graph_nodes,
               });
-              console.log(`[SajuCounselor] RAG prefetch done: ${data.prefetch_time_ms}ms`);
+              console.warn(`[SajuCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
             }
           }
-        } catch (e) {
+        } catch (e: unknown) {
           console.warn("[SajuCounselorPage] RAG prefetch failed:", e);
           setPrefetchStatus({ done: true }); // Continue anyway
         }
@@ -154,7 +191,7 @@ export default function SajuCounselorPage({
       try {
         const res = await fetch(`/api/counselor/chat-history?theme=${theme}&type=saju&limit=3`);
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as CounselorContextResponse;
           if (data.success) {
             const context: UserContext = {};
 
@@ -167,30 +204,31 @@ export default function SajuCounselorPage({
               };
             }
 
-            if (data.sessions && data.sessions.length > 0) {
-              context.recentSessions = data.sessions.map((s: any) => ({
+            const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+            if (sessions.length > 0) {
+              context.recentSessions = sessions.map((s) => ({
                 id: s.id,
                 summary: s.summary,
                 keyTopics: s.keyTopics,
                 lastMessageAt: s.lastMessageAt,
               }));
 
-              const recentThemeSession = data.sessions.find((s: any) => s.theme === theme);
+              const recentThemeSession = sessions.find((s) => s.theme === theme);
               if (recentThemeSession) {
                 setChatSessionId(recentThemeSession.id);
               }
             }
 
             setUserContext(context);
-            console.log("[SajuCounselor] User context loaded:", {
+            console.warn("[SajuCounselor] User context loaded:", {
               isReturningUser: data.isReturningUser,
               sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
             });
           }
         }
-      } catch (e) {
-        console.log("[SajuCounselor] No user context available (guest user)");
+      } catch (e: unknown) {
+        console.warn("[SajuCounselor] No user context available (guest user)");
       }
     };
 
@@ -218,10 +256,10 @@ export default function SajuCounselorPage({
           const data = await res.json();
           if (data.success && !chatSessionId) {
             setChatSessionId(data.session.id);
-            console.log("[SajuCounselor] New chat session created:", data.session.id);
+            console.warn("[SajuCounselor] New chat session created:", data.session.id);
           }
         }
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("[SajuCounselor] Failed to save message:", e);
       }
     },
@@ -388,7 +426,13 @@ export default function SajuCounselorPage({
           </div>
         </div>
 
-        <div className={styles.headerActions} />
+        <div className={styles.headerActions}>
+          <CreditBadge variant="compact" />
+          <Link href="/" className={styles.homeButton} aria-label="Home">
+            <span className={styles.homeIcon}>🏠</span>
+            <span className={styles.homeLabel}>홈</span>
+          </Link>
+        </div>
       </header>
 
       {/* Chat Area */}

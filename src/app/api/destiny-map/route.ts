@@ -9,6 +9,15 @@ import { sendNotification } from "@/lib/notifications/sse";
 import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { enforceBodySize } from "@/lib/http";
+import {
+  DATE_RE,
+  TIME_RE,
+  LIMITS,
+  isValidDate,
+  isValidTime,
+  isValidLatitude,
+  isValidLongitude,
+} from "@/lib/validation";
 import fs from "fs";
 import path from "path";
 
@@ -16,15 +25,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 180;
 const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === "true";
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
 const ALLOWED_LANG = new Set(["ko", "en"]);
 const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
-const MAX_THEME = 32;
-const MAX_PROMPT = 2000;
-const MAX_NAME = 80;
-const MAX_CITY = 120;
-const MAX_TZ = 80;
 
 // Basic HTML/script stripping to keep responses safe for UI rendering
 // IMPORTANT: Preserve JSON structure (curly braces) for structured responses
@@ -54,15 +56,25 @@ function cleanseText(raw: string) {
     .trim();
 }
 
-function maskPayload(body: any) {
+function maskPayload(body: unknown) {
   if (!body || typeof body !== "object") return body;
+  const payload = body as Record<string, unknown>;
+  const name = typeof payload.name === "string" ? payload.name : undefined;
+  const birthDate = typeof payload.birthDate === "string" ? payload.birthDate : undefined;
+  const birthTime = typeof payload.birthTime === "string" ? payload.birthTime : undefined;
+  const latitude = typeof payload.latitude === "number" || typeof payload.latitude === "string"
+    ? Number(payload.latitude)
+    : undefined;
+  const longitude = typeof payload.longitude === "number" || typeof payload.longitude === "string"
+    ? Number(payload.longitude)
+    : undefined;
   return {
-    ...body,
-    name: body.name ? `${body.name[0] ?? ""}***` : undefined,
-    birthDate: body.birthDate ? "****-**-**" : undefined,
-    birthTime: body.birthTime ? "**:**" : undefined,
-    latitude: body.latitude ? Number(body.latitude).toFixed(3) : undefined,
-    longitude: body.longitude ? Number(body.longitude).toFixed(3) : undefined,
+    ...payload,
+    name: name ? `${name[0] ?? ""}***` : undefined,
+    birthDate: birthDate ? "****-**-**" : undefined,
+    birthTime: birthTime ? "**:**" : undefined,
+    latitude: latitude !== undefined && Number.isFinite(latitude) ? latitude.toFixed(3) : undefined,
+    longitude: longitude !== undefined && Number.isFinite(longitude) ? longitude.toFixed(3) : undefined,
   };
 }
 
@@ -72,7 +84,7 @@ function maskPayload(body: any) {
  */
 export async function POST(request: Request) {
   try {
-    const oversized = enforceBodySize(request as any, 64 * 1024);
+    const oversized = enforceBodySize(request, 64 * 1024);
     if (oversized) return oversized;
 
     const guard = await apiGuard(request, { path: "destiny-map", limit: 60, windowSeconds: 60 });
@@ -80,39 +92,40 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => null);
     if (enableDebugLogs) {
-      console.log("[API] DestinyMap POST received", { theme: body?.theme, lang: body?.lang, hasPrompt: Boolean(body?.prompt) });
+      console.warn("[API] DestinyMap POST received", { theme: body?.theme, lang: body?.lang, hasPrompt: Boolean(body?.prompt) });
     }
 
     if (!body) {
       return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
-    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, LIMITS.NAME) : undefined;
     const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
     const birthTime = typeof body.birthTime === "string" ? body.birthTime.trim() : "";
     const gender = typeof body.gender === "string" && ALLOWED_GENDER.has(body.gender) ? body.gender : "male";
-    const city = typeof body.city === "string" ? body.city.trim().slice(0, MAX_CITY) : undefined;
+    const city = typeof body.city === "string" ? body.city.trim().slice(0, LIMITS.CITY) : undefined;
     const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
     const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
-    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, MAX_THEME) : "life";
+    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, LIMITS.THEME) : "life";
     const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
-    const prompt = typeof body.prompt === "string" ? body.prompt.slice(0, MAX_PROMPT) : undefined;
-    const userTimezone = typeof body.userTimezone === "string" ? body.userTimezone.trim().slice(0, MAX_TZ) : undefined;
+    const prompt = typeof body.prompt === "string" ? body.prompt.slice(0, LIMITS.PROMPT) : undefined;
+    const userTimezone = typeof body.userTimezone === "string" ? body.userTimezone.trim().slice(0, LIMITS.TIMEZONE) : undefined;
 
+    // Validate required fields using shared utilities
     if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
       console.error("[API] Missing required fields");
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
+    if (!isValidDate(birthDate)) {
       return NextResponse.json({ error: "Invalid birthDate" }, { status: 400 });
     }
-    if (!TIME_RE.test(birthTime)) {
+    if (!isValidTime(birthTime)) {
       return NextResponse.json({ error: "Invalid birthTime" }, { status: 400 });
     }
-    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    if (!isValidLatitude(latitude)) {
       return NextResponse.json({ error: "Invalid latitude" }, { status: 400 });
     }
-    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    if (!isValidLongitude(longitude)) {
       return NextResponse.json({ error: "Invalid longitude" }, { status: 400 });
     }
     if (userTimezone && (!userTimezone.includes("/") || userTimezone.length < 3)) {
@@ -120,7 +133,7 @@ export async function POST(request: Request) {
     }
 
     if (enableDebugLogs) {
-      console.log("[API] Calling generateReport ...");
+      console.warn("[API] Calling generateReport ...");
     }
 
     const start = Date.now();
@@ -145,10 +158,15 @@ export async function POST(request: Request) {
     }
     // Normalize theme interpretation strings
     if (report.themes) {
-      Object.keys(report.themes).forEach((key) => {
-        const t: any = (report.themes as any)[key];
-        if (t?.interpretation && typeof t.interpretation === "string") {
-          t.interpretation = sanitizeLocaleText(t.interpretation, cleanLang);
+      const themes = report.themes as Record<string, unknown>;
+      Object.keys(themes).forEach((key) => {
+        const themeValue = themes[key];
+        if (themeValue && typeof themeValue === "object") {
+          const record = themeValue as Record<string, unknown>;
+          const interpretation = record.interpretation;
+          if (typeof interpretation === "string") {
+            record.interpretation = sanitizeLocaleText(interpretation, cleanLang);
+          }
         }
       });
     }
@@ -165,7 +183,7 @@ export async function POST(request: Request) {
     }
 
     if (enableDebugLogs) {
-      console.log("[API] Report generated (redacted payload)");
+      console.warn("[API] Report generated (redacted payload)");
     }
 
     // Notify user via SSE if logged in
@@ -174,16 +192,17 @@ export async function POST(request: Request) {
       const session = await getServerSession(authOptions);
       if (session?.user?.email) {
         userId = session.user.id;
-        sendNotification(session.user.email, {
-          type: "system",
-          title: "Destiny Map Ready!",
-          message: `Your ${theme} reading for ${name || "your profile"} has been generated successfully.`,
-          link: "/destiny-map/result",
-        });
-        if (enableDebugLogs) {
-          const maskedEmail = `${session.user.email.split("@")[0]?.slice(0, 2) ?? "**"}***@***`;
-          console.log("[API] Notification sent (masked):", maskedEmail);
-        }
+        // SSE notification disabled - enable when needed
+        // await sendNotification(session.user.email, {
+        //   type: "system",
+        //   title: "Destiny Map Ready!",
+        //   message: `Your ${theme} reading for ${name || "your profile"} has been generated successfully.`,
+        //   link: "/destiny-map/result",
+        // });
+        // if (enableDebugLogs) {
+        //   const maskedEmail = `${session.user.email.split("@")[0]?.slice(0, 2) ?? "**"}***@***`;
+        //   console.warn("[API] Notification sent (masked):", maskedEmail);
+        // }
       }
     } catch (notifErr) {
       if (enableDebugLogs) {
@@ -209,7 +228,7 @@ export async function POST(request: Request) {
           locale: lang,
         });
         if (enableDebugLogs) {
-          console.log("[API] Consultation saved for user");
+          console.warn("[API] Consultation saved for user");
         }
       } catch (saveErr) {
         if (enableDebugLogs) {
@@ -238,7 +257,7 @@ export async function POST(request: Request) {
     // Normalize to consistent format: { name: string, element: string }
     const rawDayMaster = report.raw?.saju?.dayMaster || report.raw?.saju?.facts?.dayMaster;
     if (enableDebugLogs) {
-      console.log("[API] dayMaster sources:", {
+      console.warn("[API] dayMaster sources:", {
         "saju.dayMaster": report.raw?.saju?.dayMaster,
         "saju.facts.dayMaster": report.raw?.saju?.facts?.dayMaster,
         rawDayMaster,
@@ -278,7 +297,20 @@ export async function POST(request: Request) {
       unse: report.raw?.saju?.unse,
       sinsal: report.raw?.saju?.sinsal,
       advancedAnalysis: report.raw?.saju?.advancedAnalysis,
+      facts: report.raw?.saju?.facts, // ✅ birthDate 등 기본 정보 포함
     };
+
+    // 🔍 facts 데이터 확인
+    if (enableDebugLogs) {
+      console.warn("[API] Saju facts check:", {
+        hasSaju: !!report.raw?.saju,
+        sajuKeys: report.raw?.saju ? Object.keys(report.raw.saju) : [],
+        hasFacts: !!report.raw?.saju?.facts,
+        factsKeys: report.raw?.saju?.facts ? Object.keys(report.raw.saju.facts) : [],
+        birthDate: report.raw?.saju?.facts?.birthDate,
+        daeunCount: report.raw?.saju?.unse?.daeun?.length || 0,
+      });
+    }
 
     const astrology: AstrologyResult = report.raw?.astrology ?? { facts: {} };
 
@@ -289,7 +321,7 @@ export async function POST(request: Request) {
         if (!fs.existsSync(dir)) fs.mkdirSync(dir);
         const file = path.join(dir, `destinymap-${Date.now()}.json`);
         fs.writeFileSync(file, JSON.stringify({ body: maskPayload(body), report }, null, 2), "utf8");
-        console.log("[API] Log saved:", file);
+        console.warn("[API] Log saved:", file);
       } catch (err) {
         console.warn("[API] Log save failed:", err);
       }
@@ -317,7 +349,7 @@ export async function POST(request: Request) {
     const maskedInterpretation = maskTextWithName(cleanseText(report.report), name);
 
     if (enableDebugLogs) {
-      console.log("[API] Report content check:", {
+      console.warn("[API] Report content check:", {
         hasReport: Boolean(report.report),
         reportLength: report.report?.length || 0,
         maskedInterpLength: maskedInterpretation?.length || 0,
@@ -374,9 +406,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(responsePayload);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[DestinyMap API Error]:", err);
     recordCounter("destiny.report.failure", 1);
-    return NextResponse.json({ error: err.message ?? "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

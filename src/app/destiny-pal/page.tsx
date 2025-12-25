@@ -2,10 +2,11 @@
 
 import { SessionProvider, useSession, signIn } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./destiny-pal.module.css";
 import { useI18n } from "@/i18n/I18nProvider";
+import { QRCodeSVG } from "qrcode.react";
 
 type ReferralStats = {
   referralCode: string;
@@ -44,14 +45,14 @@ function LoadingScreen() {
 
 function DestinyPalContent() {
   const { t } = useI18n();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [data, setData] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
 
   const refCode = searchParams?.get("ref") ?? null;
 
@@ -117,27 +118,24 @@ function DestinyPalContent() {
     }
   };
 
-  const shareMessage = t(
-    "destinyPal.shareMessage",
-    "Check out DestinyPal - AI Fortune Reading! Use my link for bonus credits:"
-  );
-
-  const shareKakao = () => {
+  const handleNativeShare = async () => {
     if (!data) return;
-    const kakaoLink = `https://story.kakao.com/share?url=${encodeURIComponent(data.referralUrl)}&text=${encodeURIComponent(shareMessage)}`;
-    window.open(kakaoLink, "_blank", "width=600,height=400");
-  };
 
-  const shareWhatsApp = () => {
-    if (!data) return;
-    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareMessage + " " + data.referralUrl)}`;
-    window.open(whatsappLink, "_blank");
-  };
-
-  const shareTwitter = () => {
-    if (!data) return;
-    const twitterLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(data.referralUrl)}`;
-    window.open(twitterLink, "_blank", "width=600,height=400");
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'DestinyPal - AI Fortune Reading',
+          text: t("destinyPal.shareMessage", "Check out DestinyPal - AI Fortune Reading! Use my link for bonus credits:"),
+          url: data.referralUrl,
+        });
+      } catch (err) {
+        // User cancelled or error occurred
+        console.log('Share cancelled or failed:', err);
+      }
+    } else {
+      // Fallback to copy link
+      copyToClipboard(data.referralUrl);
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -158,7 +156,7 @@ function DestinyPalContent() {
             <span>←</span>
           </button>
         </Link>
-        <h1 className={styles.logo}>Destiny Pal</h1>
+        <h1 className={styles.logo}>DestinyPal</h1>
       </header>
 
       <main className={styles.main}>
@@ -189,59 +187,54 @@ function DestinyPalContent() {
           <LoadingScreen />
         ) : status === "authenticated" && data ? (
           <>
-            {/* Referral Code Card */}
+            {/* Referral Link Card */}
             <div className={styles.codeCard}>
               <div className={styles.codeLabel}>
-                <span>🎟️</span>
-                {t("destinyPal.yourCode", "Your Referral Code")}
-              </div>
-              <div className={styles.codeDisplay}>
-                <span className={styles.code}>{data.referralCode}</span>
-                <button
-                  className={`${styles.copyBtn} ${copied ? styles.copied : ""}`}
-                  onClick={() => copyToClipboard(data.referralCode)}
-                >
-                  {copied ? "✓" : "📋"} {copied ? t("destinyPal.copied", "Copied!") : t("destinyPal.copy", "Copy")}
-                </button>
+                <span>🔗</span>
+                {t("destinyPal.yourLink", "Your Referral Link")}
               </div>
               <div className={styles.urlDisplay}>
                 <span className={styles.urlText}>{data.referralUrl}</span>
                 <button
-                  className={styles.copyBtn}
+                  className={`${styles.copyBtn} ${copied ? styles.copied : ""}`}
                   onClick={() => copyToClipboard(data.referralUrl)}
-                  style={{ padding: "0.5rem 1rem", fontSize: "0.75rem" }}
                 >
-                  📋
+                  {copied ? "✓" : "📋"} {copied ? t("destinyPal.copied", "Copied!") : t("destinyPal.copy", "Copy")}
                 </button>
               </div>
 
-              {/* Share Buttons */}
-              <div className={styles.shareSection}>
-                <div className={styles.shareLabel}>
-                  {t("destinyPal.shareVia", "Share via")}
-                </div>
-                <div className={styles.shareButtons}>
-                  <button className={`${styles.shareBtn} ${styles.kakao}`} onClick={shareKakao}>
-                    <span className={styles.shareIcon}>💬</span>
-                    KakaoTalk
-                  </button>
-                  <button className={`${styles.shareBtn} ${styles.whatsapp}`} onClick={shareWhatsApp}>
-                    <span className={styles.shareIcon}>📱</span>
-                    WhatsApp
-                  </button>
-                  <button className={`${styles.shareBtn} ${styles.twitter}`} onClick={shareTwitter}>
-                    <span className={styles.shareIcon}>🐦</span>
-                    Twitter
-                  </button>
-                  <button
-                    className={`${styles.shareBtn} ${styles.link}`}
-                    onClick={() => copyToClipboard(data.referralUrl)}
-                  >
-                    <span className={styles.shareIcon}>🔗</span>
-                    {t("destinyPal.copyLink", "Copy Link")}
-                  </button>
-                </div>
+              {/* QR Code Section */}
+              <div className={styles.qrSection}>
+                <button
+                  className={styles.qrToggleBtn}
+                  onClick={() => setShowQR(!showQR)}
+                >
+                  {showQR ? "📱 " + t("destinyPal.hideQR", "Hide QR Code") : "📱 " + t("destinyPal.showQR", "Show QR Code")}
+                </button>
+                {showQR && (
+                  <div className={styles.qrCodeContainer}>
+                    <QRCodeSVG
+                      value={data.referralUrl}
+                      size={200}
+                      level="H"
+                      includeMargin={true}
+                    />
+                    <p className={styles.qrHint}>
+                      {t("destinyPal.qrHint", "Scan this QR code to share with friends easily")}
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Share Button */}
+              <button
+                className={`${styles.shareBtn} ${styles.nativeShare}`}
+                onClick={handleNativeShare}
+                style={{ width: '100%', marginTop: '1rem' }}
+              >
+                <span className={styles.shareIcon}>📤</span>
+                {t("destinyPal.share", "Share")}
+              </button>
             </div>
 
             {/* Stats Section */}

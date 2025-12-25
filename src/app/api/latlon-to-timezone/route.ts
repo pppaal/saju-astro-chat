@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ timeZone });
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
-  } catch (e: any) {
+  } catch (e: unknown) {
     captureServerError(e, { route: "/api/latlon-to-timezone" });
-    return NextResponse.json({ error: e?.message || 'server error' }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'server error' }, { status: 500 });
   }
 }

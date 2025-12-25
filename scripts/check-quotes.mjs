@@ -1,7 +1,7 @@
 import fs from 'fs';
 const c = fs.readFileSync('c:/dev/saju-astro-chat/src/i18n/I18nProvider.tsx', 'utf8');
 const lines = c.split('\n');
-let errors = [];
+const errors = [];
 lines.forEach((line, i) => {
   const dq = (line.match(/"/g) || []).length;
   if (dq % 2 !== 0) {
@@ -9,8 +9,8 @@ lines.forEach((line, i) => {
   }
 });
 if (errors.length > 0) {
-  console.log('Lines with odd quotes:');
-  errors.slice(0, 15).forEach(e => console.log(e));
+  console.warn('Lines with odd quotes:');
+  errors.slice(0, 15).forEach(e => console.warn(e));
 } else {
-  console.log('No obvious quote issues');
+  console.warn('No obvious quote issues');
 }

@@ -110,7 +110,7 @@ export function generateJsonLd(data: {
   faqs?: Array<{ question: string; answer: string }>;
   service?: { name: string; description: string; provider?: string; category?: string };
   howTo?: { steps: Array<{ name: string; text: string }> };
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
 

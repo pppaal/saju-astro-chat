@@ -61,7 +61,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
         lastCheck: now,
         consecutiveFailures: 0,
       };
-      console.log(`[Backend] Health check passed ✅`);
+      console.warn(`[Backend] Health check passed ✅`);
       return true;
     }
   } catch (error) {
@@ -155,5 +155,5 @@ export function resetHealthStatus(): void {
     lastCheck: 0,
     consecutiveFailures: 0,
   };
-  console.log(`[Backend] Health status reset ✅`);
+  console.warn(`[Backend] Health status reset ✅`);
 }

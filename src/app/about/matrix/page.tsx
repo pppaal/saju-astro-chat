@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import styles from './matrix.module.css';
 
 interface LayerCard {
@@ -198,7 +197,7 @@ const GEOKGUKS = [
 ] as const;
 
 export default function MatrixJourneyPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [step, setStep] = useState<'intro' | 'input' | 'loading' | 'result'>('intro');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('');

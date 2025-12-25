@@ -36,7 +36,7 @@ B) PARTIALLY USED Credits:
 - Example: If you purchase a 30-credit Plus Pack and use 1 credit, you cannot receive any refund for the remaining 29 credits
 
 C) Credit Validity and Expiration:
-- Purchased credits are valid for 1 year from purchase date
+- Purchased credits are valid for 3 months from purchase date
 - Expired credits cannot be refunded, extended, or restored
 - No reminder emails will be sent before expiration
 
@@ -59,7 +59,7 @@ B) 부분 사용된 크레딧:
 - 예시: 30크레딧 플러스팩 구매 후 1개 사용 시, 남은 29개에 대해 환불받을 수 없음
 
 C) 크레딧 유효기간 및 만료:
-- 구매한 크레딧은 구매일로부터 1년간 유효
+- 구매한 크레딧은 구매일로부터 3개월간 유효
 - 만료된 크레딧은 환불, 연장 또는 복구 불가
 - 만료 전 알림 이메일이 발송되지 않음
 
@@ -448,7 +448,7 @@ function SectionView({ s, isKo }: { s: Section; isKo: boolean }) {
 }
 
 export default function RefundPage() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isKo = locale === "ko";
 
   return (

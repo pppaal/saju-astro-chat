@@ -5,6 +5,15 @@ import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useConsent } from "@/contexts/ConsentContext";
 
+type WindowWithGtag = Window & {
+  gtag?: (...args: unknown[]) => void;
+};
+
+const getGtag = () => {
+  if (typeof window === "undefined") return undefined;
+  return (window as WindowWithGtag).gtag;
+};
+
 export function GoogleAnalytics({ gaId }: { gaId: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -17,8 +26,9 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
     // Send pageview with custom URL
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("config", gaId, {
+    const gtag = getGtag();
+    if (gtag) {
+      gtag("config", gaId, {
         page_path: url,
       });
     }
@@ -26,8 +36,7 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
 
   // Keep Google Consent Mode in sync with banner choice
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const gtag = (window as any).gtag;
+    const gtag = getGtag();
     if (!gtag) return;
 
     const consentState = consentGranted ? "granted" : "denied";
@@ -75,10 +84,11 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
 // Helper function to track custom events
 export const trackEvent = (
   eventName: string,
-  params?: Record<string, any>
+  params?: Record<string, unknown>
 ) => {
-  if (typeof window !== "undefined" && (window as any).gtag) {
-    (window as any).gtag("event", eventName, params);
+  const gtag = getGtag();
+  if (gtag) {
+    gtag("event", eventName, params);
   }
 };
 

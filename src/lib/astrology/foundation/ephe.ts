@@ -17,7 +17,6 @@ export function getSwisseph() {
   }
   if (!sw) {
     // Lazy require to avoid bundling into client
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     sw = require("swisseph");
   }
   ensureEphePath();

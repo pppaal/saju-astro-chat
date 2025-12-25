@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "./feedback.module.css";
 
 type SectionStat = {
@@ -42,7 +42,7 @@ export default function FeedbackDashboard() {
   const [theme, setTheme] = useState("all");
   const [showNegativeOnly, setShowNegativeOnly] = useState(false);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -59,9 +59,9 @@ export default function FeedbackDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [service, theme]);
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (service !== "all") params.set("service", service);
@@ -77,12 +77,12 @@ export default function FeedbackDashboard() {
     } catch (err) {
       console.error("Failed to fetch records:", err);
     }
-  };
+  }, [service, theme, showNegativeOnly]);
 
   useEffect(() => {
     fetchStats();
     fetchRecords();
-  }, [service, theme, showNegativeOnly]);
+  }, [service, theme, showNegativeOnly, fetchStats, fetchRecords]);
 
   const getSatisfactionColor = (rate: number) => {
     if (rate >= 80) return "#22c55e";

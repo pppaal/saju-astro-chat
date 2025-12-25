@@ -8,6 +8,7 @@ import {
   LineElement,
   Filler,
   Tooltip,
+  type ChartOptions,
 } from 'chart.js';
 import { CoreNumerologyProfile } from '@/lib/numerology/numerology';
 
@@ -45,7 +46,7 @@ export default function NumerologyRadarChart({ profile }: Props) {
     ],
   };
 
-  const options: any = {
+  const options: ChartOptions<'radar'> = {
     scales: {
       r: {
         angleLines: { color: 'rgba(255, 255, 255, 0.2)' },

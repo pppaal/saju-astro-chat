@@ -93,27 +93,24 @@ type TarotContent = {
   userQuestion?: string;
 };
 
-// Service configuration with icons, titles, descriptions, and colors
-const SERVICE_CONFIG: Record<string, { icon: string; title: string; desc: string; color: string }> = {
-  "daily-fortune": { icon: "🌟", title: "오늘의 운세", desc: "매일의 운세와 조언", color: "#fbbf24" },
-  "destiny-map": { icon: "🗺️", title: "Destiny Map", desc: "사주 + 점성술 + 타로 융합 분석", color: "#8b5cf6" },
-  "destiny-calendar": { icon: "📅", title: "운명 캘린더", desc: "중요한 날짜 저장", color: "#10b981" },
-  iching: { icon: "☯️", title: "주역", desc: "64괘의 지혜로 미래 예측", color: "#6366f1" },
-  tarot: { icon: "🃏", title: "타로", desc: "카드가 전하는 메시지", color: "#ec4899" },
-  saju: { icon: "🔮", title: "사주", desc: "사주팔자 분석", color: "#f97316" },
-  astrology: { icon: "⭐", title: "점성술", desc: "별자리와 행성의 영향", color: "#06b6d4" },
-  dream: { icon: "💭", title: "꿈 해몽", desc: "꿈이 전하는 메시지", color: "#a855f7" },
-  compatibility: { icon: "💕", title: "궁합", desc: "관계의 조화 분석", color: "#f43f5e" },
-  numerology: { icon: "🔢", title: "수비학", desc: "숫자의 비밀", color: "#14b8a6" },
-  aura: { icon: "🌈", title: "오라", desc: "에너지 필드 분석", color: "#84cc16" },
-  personality: { icon: "🧠", title: "성격", desc: "내면의 자아 탐구", color: "#0ea5e9" },
-  "destiny-pal": { icon: "🤝", title: "Destiny Pal", desc: "AI 상담 파트너", color: "#8b5cf6" },
-  "destiny-matrix": { icon: "🔷", title: "운명 매트릭스", desc: "운명의 청사진", color: "#6366f1" },
+// Service configuration with icons and colors (titles and descriptions from i18n)
+const SERVICE_CONFIG: Record<string, { icon: string; titleKey: string; descKey: string; color: string }> = {
+  "daily-fortune": { icon: "🌟", titleKey: "history.services.dailyFortune.title", descKey: "history.services.dailyFortune.desc", color: "#fbbf24" },
+  "destiny-map": { icon: "🗺️", titleKey: "history.services.destinyMap.title", descKey: "history.services.destinyMap.desc", color: "#8b5cf6" },
+  "destiny-calendar": { icon: "📅", titleKey: "history.services.destinyCalendar.title", descKey: "history.services.destinyCalendar.desc", color: "#10b981" },
+  iching: { icon: "☯️", titleKey: "history.services.iching.title", descKey: "history.services.iching.desc", color: "#6366f1" },
+  tarot: { icon: "🃏", titleKey: "history.services.tarot.title", descKey: "history.services.tarot.desc", color: "#ec4899" },
+  saju: { icon: "🔮", titleKey: "history.services.saju.title", descKey: "history.services.saju.desc", color: "#f97316" },
+  astrology: { icon: "⭐", titleKey: "history.services.astrology.title", descKey: "history.services.astrology.desc", color: "#06b6d4" },
+  dream: { icon: "💭", titleKey: "history.services.dream.title", descKey: "history.services.dream.desc", color: "#a855f7" },
+  compatibility: { icon: "💕", titleKey: "history.services.compatibility.title", descKey: "history.services.compatibility.desc", color: "#f43f5e" },
+  numerology: { icon: "🔢", titleKey: "history.services.numerology.title", descKey: "history.services.numerology.desc", color: "#14b8a6" },
+  aura: { icon: "🌈", titleKey: "history.services.aura.title", descKey: "history.services.aura.desc", color: "#84cc16" },
+  personality: { icon: "🧠", titleKey: "history.services.personality.title", descKey: "history.services.personality.desc", color: "#0ea5e9" },
+  "destiny-pal": { icon: "🤝", titleKey: "history.services.destinyPal.title", descKey: "history.services.destinyPal.desc", color: "#8b5cf6" },
+  "destiny-matrix": { icon: "🔷", titleKey: "history.services.destinyMatrix.title", descKey: "history.services.destinyMatrix.desc", color: "#6366f1" },
 };
 
-const SERVICE_ICONS: Record<string, string> = Object.fromEntries(
-  Object.entries(SERVICE_CONFIG).map(([k, v]) => [k, v.icon])
-);
 
 export default function HistoryPage() {
   return (
@@ -476,7 +473,7 @@ function HistoryContent() {
               }} />
           <div className={styles.headerContent}>
             <h1 className={styles.title}>
-              {selectedService ? (SERVICE_CONFIG[selectedService]?.title || selectedService) : "My Destiny"}
+              {selectedService ? (SERVICE_CONFIG[selectedService] ? t(SERVICE_CONFIG[selectedService].titleKey) : selectedService) : "My Destiny"}
             </h1>
             <p className={styles.subtitle}>
               {selectedService
@@ -511,12 +508,29 @@ function HistoryContent() {
             ) : (
               <div className={styles.serviceGrid}>
                 {displayServices.map((service, index) => {
-                  const config = SERVICE_CONFIG[service] || {
-                    icon: "📖",
-                    title: service,
-                    desc: "기록 보기",
-                    color: "#8b5cf6"
-                  };
+                  const config = SERVICE_CONFIG[service];
+                  const icon = config?.icon || "📖";
+                  const color = config?.color || "#8b5cf6";
+
+                  // Get title with fallback
+                  const titleKey = config?.titleKey;
+                  let titleText: string;
+                  if (titleKey) {
+                    titleText = t(titleKey);
+                  } else {
+                    // Convert camelCase or kebab-case to Title Case
+                    titleText = service
+                      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+                      .split(/[-\s]/) // Split by dash or space
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ')
+                      .trim();
+                  }
+
+                  // Get desc with fallback
+                  const descKey = config?.descKey;
+                  const descText = descKey ? t(descKey) : t("history.services.default.desc");
+
                   return (
                     <button
                       key={service}
@@ -524,13 +538,13 @@ function HistoryContent() {
                       onClick={() => setSelectedService(service)}
                       style={{
                         animationDelay: `${index * 0.05}s`,
-                        '--service-color': config.color
+                        '--service-color': color
                       } as React.CSSProperties}
                     >
-                      <div className={styles.serviceIcon}>{config.icon}</div>
+                      <div className={styles.serviceIcon}>{icon}</div>
                       <div className={styles.serviceInfo}>
-                        <div className={styles.serviceTitle}>{config.title}</div>
-                        <div className={styles.serviceDesc}>{config.desc}</div>
+                        <div className={styles.serviceTitle}>{titleText}</div>
+                        <div className={styles.serviceDesc}>{descText}</div>
                       </div>
                       <div className={styles.serviceCount}>{serviceCounts[service] || 0}</div>
                     </button>
@@ -573,15 +587,27 @@ function HistoryContent() {
                               style={{ '--service-color': SERVICE_CONFIG[record.service]?.color || '#8b5cf6' } as React.CSSProperties}
                             >
                               <span className={styles.recordIcon}>
-                                {SERVICE_ICONS[record.service] || "📖"}
+                                {SERVICE_CONFIG[record.service]?.icon || "📖"}
                               </span>
                               <div className={styles.recordContent}>
                                 <div className={styles.recordTitle}>
                                   <span className={styles.serviceName}>
-                                    {SERVICE_CONFIG[record.service]?.title || record.service}
+                                    {(() => {
+                                      const titleKey = SERVICE_CONFIG[record.service]?.titleKey;
+                                      if (titleKey) {
+                                        return t(titleKey);
+                                      }
+                                      // Convert camelCase or kebab-case to Title Case
+                                      return record.service
+                                        .replace(/([A-Z])/g, ' $1')
+                                        .split(/[-\s]/)
+                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                        .join(' ')
+                                        .trim();
+                                    })()}
                                   </span>
                                   {isClickable && (
-                                    <span className={styles.viewDetail}>상세보기</span>
+                                    <span className={styles.viewDetail}>{t("history.viewDetail")}</span>
                                   )}
                                 </div>
                                 {record.summary && (
@@ -808,6 +834,57 @@ function HistoryContent() {
                 <p className={styles.timestamp}>
                   저장일: {new Date(calendarDetail.createdAt).toLocaleString()}
                 </p>
+              </div>
+            ) : tarotDetail ? (
+              <div className={styles.tarotDetail}>
+                {/* Header */}
+                <div className={styles.destinyHeader}>
+                  <span className={styles.destinyIcon}>🃏</span>
+                  <div>
+                    <h2>타로 리딩</h2>
+                    <p className={styles.destinyTheme}>{tarotDetail.spreadTitle}</p>
+                  </div>
+                </div>
+
+                {/* User Question */}
+                {tarotDetail.userQuestion && (
+                  <div className={styles.questionBox}>
+                    <span className={styles.questionIcon}>❓</span>
+                    <p>{tarotDetail.userQuestion}</p>
+                  </div>
+                )}
+
+                {/* Cards */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>뽑은 카드</h3>
+                  <div className={styles.tarotCards}>
+                    {tarotDetail.cards.map((card, idx) => (
+                      <div key={idx} className={styles.tarotCard}>
+                        <div className={styles.tarotCardHeader}>
+                          {card.position && (
+                            <span className={styles.cardPosition}>{card.position}</span>
+                          )}
+                          <span className={`${styles.cardOrientation} ${card.isReversed ? styles.reversed : ''}`}>
+                            {card.isReversed ? '역방향' : '정방향'}
+                          </span>
+                        </div>
+                        <div className={styles.cardName}>
+                          {card.nameKo || card.name}
+                        </div>
+                        {card.nameKo && card.name !== card.nameKo && (
+                          <div className={styles.cardNameEn}>{card.name}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Timestamp */}
+                {selectedRecord && (
+                  <p className={styles.timestamp}>
+                    {formatDate(selectedRecord.date)}
+                  </p>
+                )}
               </div>
             ) : ichingDetail ? (
               <div className={styles.ichingDetail}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./ShareButton.module.css";
@@ -154,7 +155,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
 
           {!session && (
             <div className={styles.loginHint}>
-              <a href="/api/auth/signin">{t("share.loginHint", "Sign in to earn referral credits!")}</a>
+              <Link href="/api/auth/signin">{t("share.loginHint", "Sign in to earn referral credits!")}</Link>
             </div>
           )}
         </div>

@@ -1604,7 +1604,7 @@ function getMoonPhaseDetailed(date: Date): {
   const moonPos = getPlanetPosition(date, "moon");
 
   // 태양-달 각도
-  let angle = (moonPos.longitude - sunPos.longitude + 360) % 360;
+  const angle = (moonPos.longitude - sunPos.longitude + 360) % 360;
 
   // 조도 계산 (0-100%)
   const illumination = Math.round((1 - Math.cos(angle * Math.PI / 180)) / 2 * 100);
@@ -3235,5 +3235,290 @@ export function calculateAstroProfileFromBirthDate(birthDate: Date): UserAstroPr
     sunSign,
     sunElement: normalizeElement(ZODIAC_TO_ELEMENT[sunSign] || "fire"),
     sunLongitude: sunPosition.longitude,
+    birthMonth: birthDate.getMonth() + 1,
+    birthDay: birthDate.getDate(),
+  };
+}
+
+/**
+ * Daily Fortune 점수 계산 (오늘의 운세)
+ * Destiny Calendar와 동일한 사주+점성술 교차 검증 로직 사용
+ *
+ * @param birthDate 생년월일 (Date 또는 'YYYY-MM-DD' 문자열)
+ * @param birthTime 생시 (선택사항, 'HH:MM' 형식)
+ * @param targetDate 분석 대상 날짜 (기본값: 오늘)
+ * @returns 오늘의 운세 점수 및 상세 정보
+ */
+export interface DailyFortuneResult {
+  overall: number;
+  love: number;
+  career: number;
+  wealth: number;
+  health: number;
+  luckyColor: string;
+  luckyNumber: number;
+  grade: ImportanceGrade;
+  ganzhi: string;
+  alerts: { type: "warning" | "positive" | "info"; msg: string; icon?: string }[];
+  recommendations: string[];
+  warnings: string[];
+  crossVerified: boolean;
+  sajuFactors: string[];
+  astroFactors: string[];
+}
+
+export function getDailyFortuneScore(
+  birthDate: Date | string,
+  birthTime?: string,
+  targetDate?: Date
+): DailyFortuneResult {
+  // 날짜 파싱
+  const birth = typeof birthDate === "string" ? new Date(birthDate) : birthDate;
+  const today = targetDate || new Date();
+
+  // 사주 프로필 계산
+  const sajuProfile = calculateSajuProfileFromBirthDate(birth);
+
+  // 연지(年支) 추가 - 삼재/역마/도화 계산용
+  const birthYearGanzhi = getYearGanzhi(birth.getFullYear());
+  sajuProfile.yearBranch = birthYearGanzhi.branch;
+  sajuProfile.birthYear = birth.getFullYear();
+
+  // 점성술 프로필 계산
+  const astroProfile = calculateAstroProfileFromBirthDate(birth);
+  astroProfile.birthMonth = birth.getMonth() + 1;
+  astroProfile.birthDay = birth.getDate();
+
+  // 핵심: analyzeDate 함수로 종합 분석
+  const analysis = analyzeDate(today, sajuProfile, astroProfile);
+
+  // 분석 결과가 없으면 기본값 반환
+  if (!analysis) {
+    const defaultScore = 50;
+    return createDefaultFortuneResult(defaultScore, today, birth);
+  }
+
+  // 전체 점수 (0-100)
+  const overallScore = analysis.score;
+
+  // 영역별 점수 계산 (전체 점수 기반으로 변동)
+  const areaScores = calculateAreaScores(overallScore, analysis, sajuProfile, today);
+
+  // 행운의 색상/숫자 계산
+  const ganzhi = getGanzhiForDate(today);
+  const luckyColor = getLuckyColorFromElement(ganzhi.stemElement);
+  const luckyNumber = getLuckyNumber(today, birth);
+
+  // 알림 생성
+  const alerts = generateAlerts(analysis, overallScore);
+
+  return {
+    overall: overallScore,
+    love: areaScores.love,
+    career: areaScores.career,
+    wealth: areaScores.wealth,
+    health: areaScores.health,
+    luckyColor,
+    luckyNumber,
+    grade: analysis.grade,
+    ganzhi: analysis.ganzhi,
+    alerts,
+    recommendations: analysis.recommendationKeys,
+    warnings: analysis.warningKeys,
+    crossVerified: analysis.crossVerified,
+    sajuFactors: analysis.sajuFactorKeys,
+    astroFactors: analysis.astroFactorKeys,
+  };
+}
+
+/**
+ * 영역별 점수 계산
+ * 전체 점수를 기반으로 하되, 각 영역에 특화된 요소 반영
+ */
+function calculateAreaScores(
+  overallScore: number,
+  analysis: ImportantDate,
+  sajuProfile: UserSajuProfile,
+  targetDate: Date
+): { love: number; career: number; wealth: number; health: number } {
+  const baseScore = overallScore;
+  const variance = 12; // 영역별 변동 폭
+
+  // 영역별 조정 요소
+  let loveAdj = 0;
+  let careerAdj = 0;
+  let wealthAdj = 0;
+  let healthAdj = 0;
+
+  // 사주 요소 기반 조정
+  const factors = analysis.sajuFactorKeys;
+
+  // 도화살 - 연애운 상승
+  if (factors.includes("dohwaDay")) {
+    loveAdj += 15;
+  }
+
+  // 건록 - 직업운 상승
+  if (factors.includes("geonrokDay")) {
+    careerAdj += 12;
+  }
+
+  // 정재/편재 십신 - 재물운 상승
+  if (factors.some(f => f.includes("sipsin_정재") || f.includes("sipsin_편재"))) {
+    wealthAdj += 12;
+  }
+
+  // 정인 십신 - 건강운 상승 (안정)
+  if (factors.some(f => f.includes("sipsin_정인"))) {
+    healthAdj += 8;
+  }
+
+  // 충(冲) - 건강/여행 주의
+  if (factors.includes("branchChung") || factors.includes("iljinChung")) {
+    healthAdj -= 15;
+  }
+
+  // 형(刑) - 건강 주의
+  if (factors.includes("branchXing") || factors.includes("iljinXing")) {
+    healthAdj -= 10;
+  }
+
+  // 육합 - 연애운 상승
+  if (factors.includes("branchYukhap") || factors.includes("iljinYukhap")) {
+    loveAdj += 10;
+  }
+
+  // 점성술 요소 기반 조정
+  const astroFactors = analysis.astroFactorKeys;
+
+  // 금성 트라인 - 연애/재물 상승
+  if (astroFactors.includes("venusTrine")) {
+    loveAdj += 10;
+    wealthAdj += 8;
+  }
+
+  // 목성 트라인 - 전반적 행운
+  if (astroFactors.includes("jupiterTrine")) {
+    careerAdj += 10;
+    wealthAdj += 12;
+  }
+
+  // 토성 스퀘어/컨정션 - 제한/압박
+  if (astroFactors.includes("saturnSquare") || astroFactors.includes("saturnConjunct")) {
+    careerAdj -= 8;
+  }
+
+  // 보름달 - 감정적 완성
+  if (astroFactors.includes("lunarFullMoon") || astroFactors.includes("moonPhaseFull")) {
+    loveAdj += 5;
+  }
+
+  // 날짜 기반 미세 변동 (일관성 유지)
+  const dayHash = targetDate.getDate() * 7 + targetDate.getMonth() * 3;
+  const microVar = (dayHash % variance) - (variance / 2);
+
+  // 최종 점수 계산 (범위 제한)
+  const love = Math.max(15, Math.min(95, baseScore + loveAdj + (microVar * 0.8)));
+  const career = Math.max(15, Math.min(95, baseScore + careerAdj + (microVar * 0.6)));
+  const wealth = Math.max(15, Math.min(95, baseScore + wealthAdj + (microVar * 0.7)));
+  const health = Math.max(15, Math.min(95, baseScore + healthAdj + (microVar * 0.5)));
+
+  return {
+    love: Math.round(love),
+    career: Math.round(career),
+    wealth: Math.round(wealth),
+    health: Math.round(health),
+  };
+}
+
+/**
+ * 행운의 색상 (일간 오행 기반)
+ */
+function getLuckyColorFromElement(element: string): string {
+  const colorMap: Record<string, string[]> = {
+    wood: ["Green", "Teal", "Emerald"],
+    fire: ["Red", "Orange", "Pink"],
+    earth: ["Yellow", "Brown", "Beige"],
+    metal: ["White", "Silver", "Gold"],
+    water: ["Blue", "Black", "Navy"],
+  };
+
+  const colors = colorMap[element] || colorMap.wood;
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+/**
+ * 행운의 숫자 계산
+ */
+function getLuckyNumber(targetDate: Date, birthDate: Date): number {
+  const dayOfYear = Math.floor((targetDate.getTime() - new Date(targetDate.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const birthDay = birthDate.getDate();
+  return ((dayOfYear + birthDay) % 9) + 1;
+}
+
+/**
+ * 알림 생성
+ */
+function generateAlerts(
+  analysis: ImportantDate,
+  overallScore: number
+): { type: "warning" | "positive" | "info"; msg: string; icon?: string }[] {
+  const alerts: { type: "warning" | "positive" | "info"; msg: string; icon?: string }[] = [];
+
+  // 등급별 알림
+  if (analysis.grade === 0) {
+    alerts.push({ type: "positive", msg: "천운의 날! 중요한 결정에 최적입니다.", icon: "🌟" });
+  } else if (analysis.grade === 1) {
+    alerts.push({ type: "positive", msg: "아주 좋은 날입니다. 적극적으로 행동하세요.", icon: "✨" });
+  } else if (analysis.grade === 4) {
+    alerts.push({ type: "warning", msg: "오늘은 조심하세요. 중요한 결정은 미루세요.", icon: "⚠️" });
+  }
+
+  // 특별 요소 알림
+  if (analysis.sajuFactorKeys.includes("cheoneulGwiin")) {
+    alerts.push({ type: "positive", msg: "천을귀인이 함께합니다. 귀인의 도움이 있습니다.", icon: "👼" });
+  }
+
+  if (analysis.sajuFactorKeys.includes("dohwaDay")) {
+    alerts.push({ type: "info", msg: "도화살의 기운. 매력이 빛나는 날입니다.", icon: "💕" });
+  }
+
+  if (analysis.astroFactorKeys.includes("retrogradeMercury")) {
+    alerts.push({ type: "warning", msg: "수성 역행 중. 계약/통신에 주의하세요.", icon: "📝" });
+  }
+
+  if (analysis.crossVerified) {
+    alerts.push({ type: "positive", msg: "사주와 점성술이 일치합니다. 신뢰도 높음!", icon: "🎯" });
+  }
+
+  return alerts;
+}
+
+/**
+ * 기본 운세 결과 생성 (분석 실패 시)
+ */
+function createDefaultFortuneResult(
+  score: number,
+  targetDate: Date,
+  birthDate: Date
+): DailyFortuneResult {
+  const ganzhi = getGanzhiForDate(targetDate);
+
+  return {
+    overall: score,
+    love: score + Math.floor(Math.random() * 10) - 5,
+    career: score + Math.floor(Math.random() * 10) - 5,
+    wealth: score + Math.floor(Math.random() * 10) - 5,
+    health: score + Math.floor(Math.random() * 10) - 5,
+    luckyColor: getLuckyColorFromElement(ganzhi.stemElement),
+    luckyNumber: getLuckyNumber(targetDate, birthDate),
+    grade: 3,
+    ganzhi: `${ganzhi.stem}${ganzhi.branch}`,
+    alerts: [],
+    recommendations: [],
+    warnings: [],
+    crossVerified: false,
+    sajuFactors: [],
+    astroFactors: [],
   };
 }

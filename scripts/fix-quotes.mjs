@@ -1,12 +1,12 @@
 import fs from 'fs';
 
-let c = fs.readFileSync('c:/dev/saju-astro-chat/src/i18n/I18nProvider.tsx', 'utf8');
-let lines = c.split('\n');
+const c = fs.readFileSync('c:/dev/saju-astro-chat/src/i18n/I18nProvider.tsx', 'utf8');
+const lines = c.split('\n');
 let fixCount = 0;
 
 for (let i = 0; i < lines.length; i++) {
   let line = lines[i];
-  let original = line;
+  const original = line;
 
   // Fix German low quote pattern
   line = line.replace(/"ž/g, "'");
@@ -26,9 +26,9 @@ for (let i = 0; i < lines.length; i++) {
   if (line !== original) {
     lines[i] = line;
     fixCount++;
-    console.log('Fixed line', i + 1);
+    console.warn('Fixed line', i + 1);
   }
 }
 
 fs.writeFileSync('c:/dev/saju-astro-chat/src/i18n/I18nProvider.tsx', lines.join('\n'), 'utf8');
-console.log('Total fixed:', fixCount);
+console.warn('Total fixed:', fixCount);

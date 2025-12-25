@@ -318,8 +318,6 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
   const majorAspectAngles = [0, 60, 90, 120, 180];
   const otherPlanets = chart.planets.filter(p => p.name !== "Moon");
 
-  let lastAspectPlanet: string | null = null;
-  let lastAspectType: AspectType | null = null;
   let closestFutureAspect: { planet: string; degrees: number } | null = null;
 
   for (const planet of otherPlanets) {
@@ -341,6 +339,8 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
   }
 
   const isVoid = closestFutureAspect === null;
+  const lastAspectPlanet = closestFutureAspect?.planet ?? null;
+  const lastAspectType: AspectType | null = null;
 
   return {
     isVoid,

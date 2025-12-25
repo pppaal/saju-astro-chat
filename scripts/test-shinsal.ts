@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   toSajuPillarsLike,
   annotateShinsal,
@@ -10,7 +9,7 @@ import type { FiveElement } from '../src/lib/Saju/types';
 type FE = FiveElement;
 
 // 기본 옵션 확인
-console.log('DEFAULT_ANNOTATE_OPTIONS =', DEFAULT_ANNOTATE_OPTIONS);
+console.warn('DEFAULT_ANNOTATE_OPTIONS =', DEFAULT_ANNOTATE_OPTIONS);
 
 // 예시 사주
 const p = toSajuPillarsLike({
@@ -20,7 +19,7 @@ const p = toSajuPillarsLike({
   timePillar:  { heavenlyStem: { name: '辛', element: '금' as FE }, earthlyBranch: { name: '卯', element: '목' as FE } },
 });
 
-console.log('Branches =', {
+console.warn('Branches =', {
   time: p.time.earthlyBranch.name,
   day: p.day.earthlyBranch.name,
   month: p.month.earthlyBranch.name,
@@ -33,7 +32,7 @@ const single12 = getTwelveShinsalSingleByPillar(p, {
   useMonthCompletion: false,
   ruleSet: 'your',
 });
-console.log('Single Twelve Shinsal =', single12);
+console.warn('Single Twelve Shinsal =', single12);
 
 // 상세 어노테이트 — 표 규칙(your) 사용
 const annotOptions = {
@@ -41,18 +40,18 @@ const annotOptions = {
   useMonthCompletion: false,
   ruleSet: 'your',
 } as const;
-console.log('OPTIONS_USED =', annotOptions);
+console.warn('OPTIONS_USED =', annotOptions);
 
 const annot = annotateShinsal(p, annotOptions);
-console.log('Twelve Stages =', annot.twelveStage);
+console.warn('Twelve Stages =', annot.twelveStage);
 
 // byPillar 요약
-console.log('byPillar =', JSON.stringify(annot.byPillar, null, 2));
+console.warn('byPillar =', JSON.stringify(annot.byPillar, null, 2));
 
 // 개별 히트 전체 나열
-console.log('Hits =');
+console.warn('Hits =');
 for (const h of annot.hits) {
-  console.log(' -', {
+  console.warn(' -', {
     kind: h.kind,
     pillars: h.pillars,
     target: h.target,
@@ -74,6 +73,6 @@ for (const c of cases) {
     timePillar:  { heavenlyStem: { name: '丙', element: '화' as FE }, earthlyBranch: { name: c.time as any,  element: '화' as FE } },
   });
   const s = getTwelveShinsalSingleByPillar(pp, { includeTwelveAll: true, useMonthCompletion: false, ruleSet: 'your' });
-  console.log('[CASE]', c.label, '=>', s);
+  console.warn('[CASE]', c.label, '=>', s);
 }
 */

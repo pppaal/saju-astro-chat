@@ -127,7 +127,7 @@ function main() {
     process.exit(1);
   }
 
-  console.log("[env:check] OK");
+  console.warn("[env:check] OK");
   process.exit(0);
 }
 

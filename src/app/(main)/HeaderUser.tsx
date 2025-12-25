@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, signOut } from "next-auth/react"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function HeaderUser() {
@@ -183,21 +183,36 @@ export default function HeaderUser() {
     )
   }
 
-  // Logged in - show login status with name (non-clickable)
+  // Logged in - show login status with name and dropdown for logout
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <div
+    <div ref={dropdownRef} style={{ position: "relative", marginLeft: 8 }}>
+      <button
+        onClick={() => setShowDropdown(!showDropdown)}
         style={{
           display: "flex",
           alignItems: "center",
           gap: 10,
           padding: "6px 14px 6px 8px",
           borderRadius: 24,
-          background: "linear-gradient(135deg, rgba(99, 210, 255, 0.12) 0%, rgba(138, 164, 255, 0.12) 100%)",
+          background: showDropdown
+            ? "linear-gradient(135deg, rgba(99, 210, 255, 0.2) 0%, rgba(138, 164, 255, 0.2) 100%)"
+            : "linear-gradient(135deg, rgba(99, 210, 255, 0.12) 0%, rgba(138, 164, 255, 0.12) 100%)",
           border: "1px solid rgba(99, 210, 255, 0.2)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
           boxShadow: "0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.background = "linear-gradient(135deg, rgba(99, 210, 255, 0.2) 0%, rgba(138, 164, 255, 0.2) 100%)"
+          e.currentTarget.style.borderColor = "rgba(99, 210, 255, 0.4)"
+        }}
+        onMouseOut={(e) => {
+          if (!showDropdown) {
+            e.currentTarget.style.background = "linear-gradient(135deg, rgba(99, 210, 255, 0.12) 0%, rgba(138, 164, 255, 0.12) 100%)"
+            e.currentTarget.style.borderColor = "rgba(99, 210, 255, 0.2)"
+          }
         }}
       >
         {/* Avatar with gradient */}
@@ -252,7 +267,65 @@ export default function HeaderUser() {
             50% { opacity: 0.7; transform: scale(0.9); }
           }
         `}</style>
-      </div>
+      </button>
+
+      {showDropdown && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            minWidth: 160,
+            background: "rgba(15, 20, 40, 0.95)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(138,164,255,0.2)",
+            borderRadius: 16,
+            padding: "8px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          {/* Logout button */}
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 16px",
+              background: "rgba(239, 68, 68, 0.15)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              borderRadius: 12,
+              color: "#f87171",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(239, 68, 68, 0.25)"
+              e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)"
+              e.currentTarget.style.transform = "translateY(-1px)"
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "rgba(239, 68, 68, 0.15)"
+              e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)"
+              e.currentTarget.style.transform = "translateY(0)"
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            {t("community.logout") || "Logout"}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

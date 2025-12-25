@@ -4,6 +4,7 @@ import path from "path";
 // Test data paths
 const TAROT_DATA_PATH = path.join(process.cwd(), "data", "tarot");
 const BACKEND_DATA_PATH = path.join(process.cwd(), "backend_ai", "data");
+type SpreadConfig = { id?: string; positions?: unknown };
 
 describe("Tarot data integrity", () => {
   describe("Card definitions", () => {
@@ -41,8 +42,6 @@ describe("Tarot data integrity", () => {
   });
 
   describe("Theme spreads", () => {
-    const themes = ["love", "career", "money", "health", "spiritual", "general", "relationship", "self", "timing"];
-
     it("has spread configurations for major themes", () => {
       const spreadsDir = path.join(BACKEND_DATA_PATH, "tarot", "spreads");
       if (fs.existsSync(spreadsDir)) {
@@ -61,7 +60,7 @@ describe("Tarot data integrity", () => {
           const spreadData = JSON.parse(fs.readFileSync(path.join(spreadsDir, file), "utf-8"));
           // Expect required fields
           if (spreadData.spreads) {
-            spreadData.spreads.forEach((spread: any) => {
+            spreadData.spreads.forEach((spread: SpreadConfig) => {
               expect(spread).toHaveProperty("id");
               expect(spread).toHaveProperty("positions");
             });

@@ -26,17 +26,17 @@ function buildQuickData(data: CombinedResult): string {
 
   return [
     "=== CORE DATA (요약) ===",
-    `사주 일간: ${dayMaster?.name || "-"} (${dayMaster?.element || "-"})`,
-    `사주 사주팔자: ${formatPillar(pillars?.year)} / ${formatPillar(pillars?.month)} / ${formatPillar(pillars?.day)} / ${formatPillar(pillars?.time)}`,
-    `현재 대운: ${currentDaeun || "-"}`,
-    `올해 세운: ${(unse as any)?.annual?.[0]?.ganji || "-"}`,
+    `Day Master: ${dayMaster?.name || "-"} (${dayMaster?.element || "-"})`,
+    `Four Pillars: ${formatPillar(pillars?.year)} / ${formatPillar(pillars?.month)} / ${formatPillar(pillars?.day)} / ${formatPillar(pillars?.time)}`,
+    `현재 장기 흐름: ${currentDaeun || "-"}`,
+    `올해 연간 흐름: ${(unse as any)?.annual?.[0]?.ganji || "-"}`,
     `Sun: ${sun?.sign || "-"} House${sun?.house || "?"}`,
     `Moon: ${moon?.sign || "-"} House${moon?.house || "?"}`,
     `Asc: ${ascendant?.sign || "-"}`,
   ].join("\n");
 }
 
-// Life path prompt (사주+점성 교차 전용, 섹션 고정)
+// Life path prompt (동양+서양 교차 전용, 섹션 고정)
 export function buildLifePrompt(lang: string, data: CombinedResult, useStructured = true) {
   // Use structured JSON prompt for comprehensive cross-analysis
   if (useStructured) {

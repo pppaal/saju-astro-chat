@@ -8,13 +8,6 @@
 import React from 'react';
 import styles from './ICPCircumplex.module.css';
 
-interface OctantData {
-  code: string;
-  name: string;
-  korean: string;
-  score: number;
-}
-
 interface ICPCircumplexProps {
   primaryStyle: string;
   secondaryStyle?: string;
@@ -88,8 +81,6 @@ export default function ICPCircumplex({
           const pos = getOctantPosition(code);
           const isPrimary = code === primaryStyle;
           const isSecondary = code === secondaryStyle;
-          const score = octantScores[code] || 0;
-
           return (
             <g key={code}>
               {/* Octant circle */}

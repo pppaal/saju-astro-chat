@@ -129,7 +129,7 @@ export default function LanguageSwitcher() {
               <button
                 key={loc}
                 onClick={() => {
-                  setLocale(loc as any);
+                  setLocale(loc);
                   setIsOpen(false);
                 }}
                 style={{

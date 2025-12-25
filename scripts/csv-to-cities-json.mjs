@@ -127,5 +127,5 @@ const final = Array.from(map.values());
 // 출력
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(final));
-console.log(`Wrote ${final.length} cities to ${OUT}`);
-console.log(`-> ${OUT}`);
+console.warn(`Wrote ${final.length} cities to ${OUT}`);
+console.warn(`-> ${OUT}`);

@@ -9,6 +9,20 @@ interface Props {
   onClose: () => void;
 }
 
+type JungQuote = {
+  kr?: string;
+  en?: string;
+  source?: string;
+};
+
+type ConsultationDetail = {
+  theme: string;
+  createdAt: string;
+  userQuestion?: string;
+  fullReport?: string;
+  jungQuotes?: JungQuote[];
+};
+
 const themeLabels: Record<string, { ko: string; en: string }> = {
   love: { ko: "연애/관계", en: "Love/Relationships" },
   career: { ko: "직업/경력", en: "Career" },
@@ -34,7 +48,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }: Pro
   const { locale } = useI18n();
   const isKo = locale === "ko";
   const { fetchDetail, isPremiumRequired } = useConsultationHistory();
-  const [detail, setDetail] = useState<any>(null);
+  const [detail, setDetail] = useState<ConsultationDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,12 +58,12 @@ export default function ConsultationDetailModal({ consultationId, onClose }: Pro
       try {
         const data = await fetchDetail(consultationId);
         if (data) {
-          setDetail(data);
+          setDetail(data as any);
         } else if (!isPremiumRequired) {
           setError(isKo ? "상담 기록을 불러올 수 없습니다." : "Failed to load consultation.");
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -155,7 +169,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }: Pro
                     {isKo ? "인용된 Jung 명언" : "Referenced Jung Quotes"}
                   </h3>
                   <div className="space-y-3">
-                    {detail.jungQuotes.map((quote: any, idx: number) => (
+                    {detail.jungQuotes.map((quote: JungQuote, idx: number) => (
                       <blockquote key={idx} className="border-l-2 border-purple-500 pl-4 italic text-gray-300">
                         &ldquo;{isKo ? quote.kr : quote.en}&rdquo;
                         <footer className="text-xs text-gray-500 mt-1 not-italic">

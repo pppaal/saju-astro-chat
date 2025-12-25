@@ -1,8 +1,9 @@
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement, PillarData } from '@/lib/Saju/types';
 import {
   annotateShinsal,
   toSajuPillarsLike,
   getJijangganText,
+  type SajuPillarsAdapterInput,
 } from '@/lib/Saju/shinsal';
 
 export interface PillarSide {
@@ -29,55 +30,98 @@ const KILSUNG_SET = new Set<string>([
 ]);
 
 // 유연한 입력 추출 헬퍼(현재 전달 구조가 일정치 않을 수 있어 방어적으로 처리)
-type AnyPillar = any;
-function extractStemName(p?: AnyPillar): string {
+interface UnknownPillar {
+  heavenlyStem?: { name?: string; element?: FiveElement };
+  stem?: { name?: string; element?: FiveElement } | string;
+  earthlyBranch?: { name?: string; element?: FiveElement };
+  branch?: { name?: string; element?: FiveElement } | string;
+  gan?: string;
+  천간?: string;
+  간?: string;
+  ji?: string;
+  지지?: string;
+  지?: string;
+}
+
+function extractStemName(p?: UnknownPillar): string {
   return (
     p?.heavenlyStem?.name ??
-    p?.stem?.name ??
-    p?.stem ??
+    (typeof p?.stem === 'object' ? p.stem.name : p?.stem) ??
     p?.gan ??
     p?.천간 ??
     p?.간 ??
     ''
   );
 }
-function extractBranchName(p?: AnyPillar): string {
+function extractBranchName(p?: UnknownPillar): string {
   return (
     p?.earthlyBranch?.name ??
-    p?.branch?.name ??
-    p?.branch ??
+    (typeof p?.branch === 'object' ? p.branch.name : p?.branch) ??
     p?.ji ??
     p?.지지 ??
     p?.지 ??
     ''
   );
 }
-function buildInputFromUnknown(byPillar: any) {
+interface UnknownPillarSet {
+  year?: UnknownPillar;
+  month?: UnknownPillar;
+  day?: UnknownPillar;
+  time?: UnknownPillar;
+  연주?: UnknownPillar;
+  월주?: UnknownPillar;
+  일주?: UnknownPillar;
+  시주?: UnknownPillar;
+}
+
+function extractElement(p: UnknownPillar, type: 'stem' | 'branch'): FiveElement {
+  if (type === 'stem') {
+    return (
+      p?.heavenlyStem?.element ??
+      (typeof p?.stem === 'object' ? p.stem.element : undefined) ??
+      'Wood'
+    ) as FiveElement;
+  }
+  return (
+    p?.earthlyBranch?.element ??
+    (typeof p?.branch === 'object' ? p.branch.element : undefined) ??
+    'Wood'
+  ) as FiveElement;
+}
+
+function buildInputFromUnknown(byPillar: UnknownPillarSet): SajuPillarsAdapterInput {
   const y = byPillar?.year ?? byPillar?.연주 ?? {};
   const m = byPillar?.month ?? byPillar?.월주 ?? {};
   const d = byPillar?.day ?? byPillar?.일주 ?? {};
   const t = byPillar?.time ?? byPillar?.시주 ?? {};
 
   const yearPillar = {
-    heavenlyStem: { name: extractStemName(y), element: (y?.heavenlyStem?.element ?? y?.stem?.element ?? 'Wood') as FiveElement },
-    earthlyBranch: { name: extractBranchName(y), element: (y?.earthlyBranch?.element ?? y?.branch?.element ?? 'Wood') as FiveElement },
+    heavenlyStem: { name: extractStemName(y), element: extractElement(y, 'stem') },
+    earthlyBranch: { name: extractBranchName(y), element: extractElement(y, 'branch') },
   };
   const monthPillar = {
-    heavenlyStem: { name: extractStemName(m), element: (m?.heavenlyStem?.element ?? m?.stem?.element ?? 'Wood') as FiveElement },
-    earthlyBranch: { name: extractBranchName(m), element: (m?.earthlyBranch?.element ?? m?.branch?.element ?? 'Wood') as FiveElement },
+    heavenlyStem: { name: extractStemName(m), element: extractElement(m, 'stem') },
+    earthlyBranch: { name: extractBranchName(m), element: extractElement(m, 'branch') },
   };
   const dayPillar = {
-    heavenlyStem: { name: extractStemName(d), element: (d?.heavenlyStem?.element ?? d?.stem?.element ?? 'Wood') as FiveElement },
-    earthlyBranch: { name: extractBranchName(d), element: (d?.earthlyBranch?.element ?? d?.branch?.element ?? 'Wood') as FiveElement },
+    heavenlyStem: { name: extractStemName(d), element: extractElement(d, 'stem') },
+    earthlyBranch: { name: extractBranchName(d), element: extractElement(d, 'branch') },
   };
   const timePillar = {
-    heavenlyStem: { name: extractStemName(t), element: (t?.heavenlyStem?.element ?? t?.stem?.element ?? 'Wood') as FiveElement },
-    earthlyBranch: { name: extractBranchName(t), element: (t?.earthlyBranch?.element ?? t?.branch?.element ?? 'Wood') as FiveElement },
+    heavenlyStem: { name: extractStemName(t), element: extractElement(t, 'stem') },
+    earthlyBranch: { name: extractBranchName(t), element: extractElement(t, 'branch') },
   };
   return { yearPillar, monthPillar, dayPillar, timePillar };
 }
 
-export function buildPillarView(source?: any): PillarView {
+interface KnownPillarSet {
+  year: PillarData;
+  month: PillarData;
+  day: PillarData;
+  time: PillarData;
+}
+
+export function buildPillarView(source?: UnknownPillarSet | KnownPillarSet): PillarView {
   if (!source) return {};
 
   const looksLikeRaw =
@@ -87,12 +131,12 @@ export function buildPillarView(source?: any): PillarView {
     source?.day?.heavenlyStem?.name &&
     source?.time?.heavenlyStem?.name;
 
-  const input = looksLikeRaw
+  const input: SajuPillarsAdapterInput = looksLikeRaw
     ? {
-        yearPillar: source.year,
-        monthPillar: source.month,
-        dayPillar: source.day,
-        timePillar: source.time,
+        yearPillar: source.year as SajuPillarsAdapterInput['yearPillar'],
+        monthPillar: source.month as SajuPillarsAdapterInput['monthPillar'],
+        dayPillar: source.day as SajuPillarsAdapterInput['dayPillar'],
+        timePillar: source.time as SajuPillarsAdapterInput['timePillar'],
       }
     : buildInputFromUnknown(source);
 
@@ -127,15 +171,6 @@ export function buildPillarView(source?: any): PillarView {
         )
       );
     }
-
-    // 디버그(필요 시 한 번 확인 후 주석)
-    // if (k === 'year') {
-    //   console.log('[map-12] year src lucky =', annot.byPillar?.year?.lucky);
-    //   console.log('[map-12] year src general =', annot.byPillar?.year?.generalShinsal);
-    //   console.log('[map-12] year luckyMergedRaw =', luckyMergedRaw);
-    //   console.log('[map-12] year luckyMerged(normalized) =', luckyMerged);
-    //   console.log('[map-12] year luckyFiltered(final) =', luckyFiltered);
-    // }
 
     return {
       jijanggan: getJijangganText(p[k].earthlyBranch.name),

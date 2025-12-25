@@ -8,6 +8,7 @@ import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
 import { saveUserProfile } from '@/lib/userProfile';
 import { useSession } from 'next-auth/react';
+import { apiFetch } from '@/lib/api-client';
 import styles from './Dream.module.css';
 
 type CityItem = { name: string; country: string; lat: number; lon: number };
@@ -288,9 +289,11 @@ export default function DreamInsightPage() {
       });
 
       // Use the dream API
-      const res = await fetch('/api/dream', {
+      const res = await apiFetch('/api/dream', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           dream: dreamText.trim(),
           locale,
@@ -311,8 +314,9 @@ export default function DreamInsightPage() {
 
       const data = await res.json();
       setResult(data);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -340,8 +344,9 @@ export default function DreamInsightPage() {
       }
       const data = await res.json();
       setHistory(data.history || []);
-    } catch (err: any) {
-      setHistoryError(err.message || 'Failed to load history');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load history';
+      setHistoryError(message);
     } finally {
       setHistoryLoading(false);
     }
@@ -470,9 +475,11 @@ export default function DreamInsightPage() {
         };
       }
 
-      const response = await fetch('/api/dream/chat', {
+      const response = await apiFetch('/api/dream/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           messages: [...chatMessages, { role: 'user', content: userMessage }],
           dreamContext: enhancedContext,

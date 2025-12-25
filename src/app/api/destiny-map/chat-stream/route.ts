@@ -1,11 +1,24 @@
 import { getServerSession } from "next-auth";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
-import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
+import { sanitizeLocaleText } from "@/lib/destiny-map/sanitize";
+import { maskTextWithName } from "@/lib/security";
 import { enforceBodySize } from "@/lib/http";
 import { calculateSajuData } from "@/lib/Saju/saju";
-import { calculateNatalChart } from "@/lib/astrology";
+import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart } from "@/lib/astrology";
+import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
+import { buildFewShotPrompt } from "@/lib/destiny-map/counselor-examples";
+import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import {
+  isValidDate,
+  isValidTime,
+  isValidLatitude,
+  isValidLongitude,
+  LIMITS,
+} from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,78 +29,106 @@ type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 const ALLOWED_LANG = new Set(["ko", "en"]);
 const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
 const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
-const MAX_THEME = 40;
 const MAX_MESSAGES = 10;
-const MAX_NAME = 80;
 const MAX_CV = 1200;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
 }
 
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://127.0.0.1:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[destiny-map chat-stream] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[destiny-map chat-stream] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
-}
-
 function counselorSystemPrompt(lang: string) {
   const base = [
     "You are DestinyPal's counselor combining Eastern (Saju) and Western (Astrology) wisdom.",
     "",
+    "⚠️ CRITICAL DATA ACCURACY ⚠️",
+    "- NEVER fabricate or guess 대운/운세 data!",
+    "- ONLY quote 대운 from the [전체 장기 흐름 - 10년 주기] section",
+    "- If asked about daeun at a specific age, find the matching age range from the data",
+    "- If data is missing, say 'Not available in current data'",
+    "",
     "ABSOLUTE RULES:",
-    "1. NO GREETING - Never say 'welcome', 'nice to see you', 'hello', etc.",
-    "2. NO IDENTITY RECAP - NEVER start with 'Your day master is X' or 'You are a Y person'. The user already knows their chart. Jump straight to answering their question.",
-    "3. ONLY use daeun/seun data provided in context - NEVER invent periods like '경금 대운'",
-    "4. If data shows '辛卯', say '신묘', not something else",
-    "5. Use BOTH saju AND astrology equally",
-    "6. Be DETAILED and THOROUGH - provide deep analysis, not surface-level summaries",
+    "1. NO GREETING - Jump straight to answering",
+    "2. NO IDENTITY RECAP - User knows their chart",
+    "3. ONLY use data provided - NEVER invent",
+    "4. Use BOTH saju AND astrology equally",
+    "5. NO ** bold markdown",
     "",
-    "Response style:",
-    "- Answer the user's question DIRECTLY from the first sentence",
-    "- Weave in saju and astrology insights naturally while answering",
-    "- Explain the 'why' behind your analysis in detail",
-    "- Include specific dates and timing when relevant",
-    "- Provide actionable, concrete advice",
+    "FUTURE PREDICTIONS - USE BOTH SYSTEMS:",
     "",
-    "Length: 400-600 words. Be comprehensive.",
+    "[SAJU 사주]",
+    "- Check [미래 예측용 운세 데이터] for daeun/annual/monthly",
+    "- Quote EXACT periods from data (look for ★현재★ marker)",
+    "- Match age range to find correct 대운 (e.g., if user is 35, find 32-41세 range)",
+    "",
+    "[ASTROLOGY 점성술]",
+    "- Solar Return: Year themes, SR Sun/Moon house for annual trends",
+    "- Lunar Return: Monthly themes",
+    "- Progressions: Progressed Moon phase = life cycle stage",
+    "- Transits: Jupiter/Saturn transits for timing (7H=marriage, 10H=career, 2H=money)",
+    "- Venus transit to 7H = love opportunity",
+    "- Jupiter transit to 10H = career growth",
+    "- Saturn return (age 29, 58) = major life restructuring",
+    "",
+    "TIMING EXAMPLES:",
+    "- Marriage: Saju 관성 활성화 + Venus/Jupiter 7H transit",
+    "- Career: Saju 관성/식상 + Jupiter/Saturn 10H transit",
+    "- Money: Saju 재성 + Jupiter 2H/8H transit",
+    "",
+    "Response: 250-400 words, specific dates/periods, detailed analysis, 3-4 actionable tips at end.",
   ];
   return lang === "ko"
     ? [
         "너는 DestinyPal 상담사다.",
         "",
+        "⚠️ 데이터 정확성 필수 ⚠️",
+        "- 절대로 대운/운세 데이터를 추측하거나 만들어내지 마세요!",
+        "- 대운은 반드시 [전체 장기 흐름 - 10년 주기] 섹션에서만 인용하세요",
+        "- 특정 나이의 대운을 물으면, 해당 나이 범위에 맞는 데이터를 찾아 답변하세요",
+        "- ★현재★ 표시가 있는 항목이 현재 운세입니다",
+        "- 데이터에 없는 정보는 '해당 정보가 없습니다'라고 솔직히 말하세요",
+        "",
         "절대 규칙:",
-        "1. 인사 금지 - '안녕하세요', '반가워요' 등 인사 절대 금지",
-        "2. 신상 소개 금지 - '일간이 X입니다', '당신은 Y 성향' 같은 기본 설명 금지. 사용자는 자기 사주를 이미 안다. 바로 질문에 답해.",
-        "3. 제공된 대운/세운 데이터만 사용 - '경금 대운' 같이 지어내지 마. 데이터에 있는 그대로만.",
-        "4. 사주와 점성술 모두 균형있게 활용",
-        "5. 피상적 요약 금지 - 깊이 있는 분석을 상세하게 설명해",
+        "1. 인사 금지 - 바로 답변",
+        "2. 신상 소개 금지",
+        "3. 제공된 데이터만 사용 (절대 추측 금지!)",
+        "4. 사주와 점성술 모두 활용",
+        "5. ** 마크다운 금지",
         "",
-        "응답 스타일:",
-        "- 첫 문장부터 사용자 질문에 바로 답변",
-        "- 답변하면서 사주와 점성술 통찰을 자연스럽게 녹여내",
-        "- '왜 그런지' 이유를 상세히 설명",
-        "- 구체적인 날짜와 시기 포함",
-        "- 실천 가능한 구체적 조언 제공",
+        "미래 예측 - 두 시스템 함께 사용:",
         "",
-        "길이: 400-600단어. 충분히 상세하게.",
+        "[사주]",
+        "- [미래 예측용 운세 데이터]에서 대운/연운/월운 확인",
+        "- 정확한 시기 인용 (데이터에 있는 그대로 사용)",
+        "",
+        "[점성술]",
+        "- Solar Return: 연간 테마, SR 태양/달 하우스",
+        "- Lunar Return: 월간 테마",
+        "- Progressions: 진행 달 위상 = 인생 주기",
+        "- Transits: 목성/토성 트랜짓으로 시기 파악",
+        "  - 7하우스 = 결혼/파트너십",
+        "  - 10하우스 = 커리어",
+        "  - 2하우스 = 재물",
+        "- 금성 7하우스 트랜짓 = 연애 기회",
+        "- 목성 10하우스 트랜짓 = 커리어 성장",
+        "- 토성 리턴(29세, 58세) = 인생 재구성",
+        "",
+        "타이밍 예시:",
+        "- 결혼: 사주 관성 활성화 + 금성/목성 7H 트랜짓",
+        "- 취업: 사주 관성/식상 + 목성/토성 10H 트랜짓",
+        "- 재물: 사주 재성 + 목성 2H/8H 트랜짓",
+        "",
+        "응답 형식:",
+        "- 250-400단어로 충분히 설명",
+        "- 사주와 점성술 각각의 관점에서 분석",
+        "- 구체적인 시기와 근거 제시",
+        "- 마지막에 실천 가능한 팁 3-4개",
       ].join("\n")
     : base.join("\n");
 }
 
 export async function POST(request: Request) {
   try {
-    const oversized = enforceBodySize(request as any, 64 * 1024);
+    const oversized = enforceBodySize(request, 64 * 1024);
     if (oversized) return oversized;
 
     const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
@@ -113,13 +154,13 @@ export async function POST(request: Request) {
       });
     }
 
-    const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, LIMITS.NAME) : undefined;
     const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
     const birthTime = typeof body.birthTime === "string" ? body.birthTime.trim() : "";
     const gender = typeof body.gender === "string" && ALLOWED_GENDER.has(body.gender) ? body.gender : "male";
     const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
     const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
-    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, MAX_THEME) : "chat";
+    const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, LIMITS.THEME) : "chat";
     const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
     const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : [];
     let saju = body.saju;
@@ -134,29 +175,35 @@ export async function POST(request: Request) {
         headers: { "Content-Type": "application/json" },
       });
     }
-    if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
+    if (!isValidDate(birthDate)) {
       return new Response(JSON.stringify({ error: "Invalid birthDate" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
-    if (!TIME_RE.test(birthTime)) {
+    if (!isValidTime(birthTime)) {
       return new Response(JSON.stringify({ error: "Invalid birthTime" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
-    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    if (!isValidLatitude(latitude)) {
       return new Response(JSON.stringify({ error: "Invalid latitude" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
-    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    if (!isValidLongitude(longitude)) {
       return new Response(JSON.stringify({ error: "Invalid longitude" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // 크레딧 체크 및 소비
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult);
     }
 
     // Compute saju if not provided or empty
@@ -164,18 +211,26 @@ export async function POST(request: Request) {
       try {
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
         saju = calculateSajuData(birthDate, birthTime, gender, "solar", userTz);
-        console.log("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
+        console.warn("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
       } catch (e) {
         console.warn("[chat-stream] Failed to compute saju:", e);
       }
     }
 
+    // 🔍 DEBUG: Log saju.unse to verify daeun data
+    console.warn("[chat-stream] saju.unse exists:", !!(saju as any)?.unse);
+    console.warn("[chat-stream] saju.unse.daeun count:", (saju as any)?.unse?.daeun?.length ?? 0);
+    if ((saju as any)?.unse?.daeun?.[0]) {
+      console.warn("[chat-stream] First daeun:", JSON.stringify((saju as any).unse.daeun[0]));
+    }
+
     // Compute astro if not provided or empty
+    let natalChartData: Awaited<ReturnType<typeof calculateNatalChart>> | null = null;
     if (!astro || !astro.sun) {
       try {
         const [year, month, day] = birthDate.split("-").map(Number);
         const [hour, minute] = birthTime.split(":").map(Number);
-        const natalData = await calculateNatalChart({
+        natalChartData = await calculateNatalChart({
           year,
           month,
           date: day,
@@ -186,7 +241,7 @@ export async function POST(request: Request) {
           timeZone: "Asia/Seoul", // Default timezone
         });
         // Transform planets array to expected format
-        const getPlanet = (name: string) => natalData.planets.find((p) => p.name === name);
+        const getPlanet = (name: string) => natalChartData!.planets.find((p) => p.name === name);
         astro = {
           sun: getPlanet("Sun"),
           moon: getPlanet("Moon"),
@@ -195,19 +250,50 @@ export async function POST(request: Request) {
           mars: getPlanet("Mars"),
           jupiter: getPlanet("Jupiter"),
           saturn: getPlanet("Saturn"),
-          ascendant: natalData.ascendant,
+          ascendant: natalChartData.ascendant,
         };
-        console.log("[chat-stream] Computed astro:", astro?.sun?.sign);
+        console.warn("[chat-stream] Computed astro:", astro?.sun?.sign);
       } catch (e) {
         console.warn("[chat-stream] Failed to compute astro:", e);
+      }
+    }
+
+    // Compute current transits for future predictions
+    let currentTransits: unknown[] = [];
+    if (natalChartData) {
+      try {
+        const now = new Date();
+        const isoNow = now.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
+        const transitChart = await calculateTransitChart({
+          iso: isoNow,
+          latitude,
+          longitude,
+          timeZone: "Asia/Seoul",
+        });
+
+        const natalChart = toChart(natalChartData);
+        const majorTransits = findMajorTransits(transitChart, natalChart);
+        currentTransits = majorTransits.map(t => ({
+          transitPlanet: t.transitPlanet,
+          natalPoint: t.natalPoint,
+          aspectType: t.type,
+          orb: t.orb?.toFixed(1),
+          isApplying: t.isApplying,
+        }));
+        console.warn("[chat-stream] Current transits found:", currentTransits.length);
+      } catch (e) {
+        console.warn("[chat-stream] Failed to compute transits:", e);
       }
     }
 
     const normalizedMessages: ChatMessage[] = [];
     for (const m of messages) {
       if (!m || typeof m !== "object") continue;
-      const role = typeof (m as any).role === "string" && ALLOWED_ROLE.has((m as any).role) ? ((m as any).role as ChatMessage["role"]) : null;
-      const content = typeof (m as any).content === "string" ? (m as any).content.trim() : "";
+      const record = m as Record<string, unknown>;
+      const role = typeof record.role === "string" && ALLOWED_ROLE.has(record.role)
+        ? (record.role as ChatMessage["role"])
+        : null;
+      const content = typeof record.content === "string" ? record.content.trim() : "";
       if (!role || !content) continue;
       normalizedMessages.push({ role, content: content.slice(0, 2000) });
     }
@@ -245,20 +331,108 @@ export async function POST(request: Request) {
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : "";
 
-    // Simple prompt - backend will add context
-    const chatPrompt = [
-      counselorSystemPrompt(lang),
-      `Name: ${name || "User"}`,
-      `Birth: ${birthDate} ${birthTime}`,
-      `Gender: ${gender}`,
-      `Theme: ${theme}`,
-      // Include CV summary if provided (for career consultations)
-      cvText ? `\nCV/Resume:\n${guardText(cvText, MAX_CV)}` : "",
-      historyText ? `\nConversation:\n${historyText}` : "",
-      `\nQuestion: ${userQuestion}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    // v3.1: Build comprehensive data snapshot if saju/astro data is available
+    // This is a lightweight string-building operation (no heavy computation)
+    let v3Snapshot = "";
+    if (saju || astro) {
+      try {
+        // Add transits to astrology object
+        const astroWithTransits = astro ? {
+          ...astro,
+          transits: currentTransits,
+        } : undefined;
+
+        const combinedResult: CombinedResult = {
+          saju: saju || undefined,
+          astrology: astroWithTransits || undefined,
+          extraPoints: advancedAstro?.extraPoints || undefined,
+          asteroids: advancedAstro?.asteroids || undefined,
+          solarReturn: advancedAstro?.solarReturn || undefined,
+          lunarReturn: advancedAstro?.lunarReturn || undefined,
+          progressions: advancedAstro?.progressions || undefined,
+          draconic: advancedAstro?.draconic || undefined,
+          harmonics: advancedAstro?.harmonics || undefined,
+          fixedStars: advancedAstro?.fixedStars || undefined,
+          eclipses: advancedAstro?.eclipses || undefined,
+          electional: advancedAstro?.electional || undefined,
+          midpoints: advancedAstro?.midpoints || undefined,
+        } as CombinedResult;
+
+        // 🔍 DEBUG: Check what advanced data is available
+        console.warn(`[chat-stream] Advanced astro check:`, {
+          hasExtraPoints: !!advancedAstro?.extraPoints,
+          hasAsteroids: !!advancedAstro?.asteroids,
+          hasSolarReturn: !!advancedAstro?.solarReturn,
+          hasLunarReturn: !!advancedAstro?.lunarReturn,
+          hasProgressions: !!advancedAstro?.progressions,
+          hasDraconic: !!advancedAstro?.draconic,
+          hasHarmonics: !!advancedAstro?.harmonics,
+          hasFixedStars: !!advancedAstro?.fixedStars,
+          hasEclipses: !!advancedAstro?.eclipses,
+          hasElectional: !!advancedAstro?.electional,
+          hasMidpoints: !!advancedAstro?.midpoints,
+          hasTransits: currentTransits.length > 0,
+        });
+
+        v3Snapshot = buildAllDataPrompt(lang, theme, combinedResult);
+        console.warn(`[chat-stream] v3.1 snapshot built: ${v3Snapshot.length} chars`);
+      } catch (e) {
+        console.warn("[chat-stream] Failed to build v3.1 snapshot:", e);
+      }
+    }
+
+    // Few-shot examples for quality improvement
+    const fewShotExamples = buildFewShotPrompt(lang as "ko" | "en", userQuestion);
+
+    // Theme descriptions for context
+    const themeDescriptions: Record<string, { ko: string; en: string }> = {
+      love: { ko: "연애/결혼/배우자 관련 질문", en: "Love, marriage, partner questions" },
+      career: { ko: "직업/취업/이직/사업 관련 질문", en: "Career, job, business questions" },
+      wealth: { ko: "재물/투자/재정 관련 질문", en: "Money, investment, finance questions" },
+      health: { ko: "건강/체력/웰빙 관련 질문", en: "Health, wellness questions" },
+      family: { ko: "가족/인간관계 관련 질문", en: "Family, relationships questions" },
+      today: { ko: "오늘의 운세/조언", en: "Today's fortune and advice" },
+      month: { ko: "이번 달 운세/조언", en: "This month's fortune" },
+      year: { ko: "올해 운세/연간 예측", en: "This year's fortune" },
+      life: { ko: "인생 전반/종합 상담", en: "Life overview, general counseling" },
+      chat: { ko: "자유 주제 상담", en: "Free topic counseling" },
+    };
+    const themeDesc = themeDescriptions[theme] || themeDescriptions.chat;
+    const themeContext = lang === "ko"
+      ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n이 테마에 맞춰 답변해주세요.`
+      : `Current theme: ${theme} (${themeDesc.en})\nFocus your answer on this theme.`;
+
+    // Build prompt with v3.1 snapshot if available, otherwise fallback to simple prompt
+    const chatPrompt = v3Snapshot
+      ? [
+          counselorSystemPrompt(lang),
+          `Name: ${name || "User"}`,
+          themeContext,
+          "",
+          "═══════════════════════════════════════════════════════════════",
+          "[AUTHORITATIVE DATA SNAPSHOT v3.1]",
+          "═══════════════════════════════════════════════════════════════",
+          v3Snapshot,
+          "",
+          "═══════════════════════════════════════════════════════════════",
+          "[FEW-SHOT EXAMPLES - Learn from these high-quality responses]",
+          "═══════════════════════════════════════════════════════════════",
+          fewShotExamples,
+          "",
+          cvText ? `CV/Resume:\n${guardText(cvText, MAX_CV)}` : "",
+          historyText ? `\nConversation:\n${historyText}` : "",
+          `\nQuestion: ${userQuestion}`,
+        ].filter(Boolean).join("\n")
+      : [
+          counselorSystemPrompt(lang),
+          `Name: ${name || "User"}`,
+          `Birth: ${birthDate} ${birthTime}`,
+          `Gender: ${gender}`,
+          themeContext,
+          cvText ? `\nCV/Resume:\n${guardText(cvText, MAX_CV)}` : "",
+          historyText ? `\nConversation:\n${historyText}` : "",
+          `\nQuestion: ${userQuestion}`,
+        ].filter(Boolean).join("\n");
 
     // Call backend streaming endpoint IMMEDIATELY (no heavy computation)
     const backendUrl = pickBackendUrl();
@@ -332,7 +506,7 @@ export async function POST(request: Request) {
       start(controller) {
         const reader = backendResponse.body!.getReader();
         const decoder = new TextDecoder();
-        const read = (): any => {
+        const read = (): void => {
           reader.read().then(({ done, value }) => {
             if (done) {
               controller.close();
@@ -359,9 +533,10 @@ export async function POST(request: Request) {
         "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Chat-Stream API error]", err);
-    return new Response(JSON.stringify({ error: err.message ?? "Internal Server Error" }), {
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

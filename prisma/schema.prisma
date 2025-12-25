@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model Account {
@@ -68,6 +69,7 @@ model User {
   counselorChatSessions CounselorChatSession[]
   referralRewards       ReferralReward[]        // 내가 받은 추천 보상들
   savedCalendarDates    SavedCalendarDate[]     // 저장된 운명 캘린더 날짜들
+  personalityResult     PersonalityResult?      // 성격 테스트 결과
 
   @@index([referrerId])
 }
@@ -361,6 +363,7 @@ model UserCredits {
   monthlyCredits    Int      @default(1)  // 플랜별 월간 한도
   usedCredits       Int      @default(0)  // 이번 달 사용량
   bonusCredits      Int      @default(0)  // 보너스/구매 크레딧 (리셋 안됨)
+  totalBonusReceived Int     @default(0)  // 총 받은 보너스 (total 계산용)
 
   // 기능별 사용량 (월간)
   compatibilityUsed Int      @default(0)  // 궁합 분석 사용 횟수
@@ -423,6 +426,29 @@ model SavedCalendarDate {
   @@index([userId, year])
 }
 
+// 보너스 크레딧 구매/지급 기록 - 각 구매별 만료일 추적
+model BonusCreditPurchase {
+  id              String   @id @default(cuid())
+  userId          String
+  createdAt       DateTime @default(now())
+
+  // 크레딧 정보
+  amount          Int      // 구매한 크레딧 수
+  remaining       Int      // 남은 크레딧 수
+
+  // 만료 정보 (구매일로부터 3개월)
+  expiresAt       DateTime
+  expired         Boolean  @default(false)
+
+  // 구매 정보
+  source          String   @default("purchase") // purchase, referral, promotion, gift
+  stripePaymentId String?  // Stripe 결제 ID (해당하는 경우)
+
+  @@index([userId])
+  @@index([userId, expired])
+  @@index([expiresAt])
+}
+
 // 추천 보상 기록
 model ReferralReward {
   id              String   @id @default(cuid())
@@ -431,7 +457,7 @@ model ReferralReward {
   createdAt       DateTime @default(now())
 
   // 보상 정보
-  creditsAwarded  Int      @default(5)  // 지급된 크레딧
+  creditsAwarded  Int      @default(3)  // 지급된 크레딧
   rewardType      String   @default("signup_complete") // signup_complete, first_analysis
 
   // 상태
@@ -444,4 +470,37 @@ model ReferralReward {
   @@index([userId])
   @@index([referredUserId])
   @@index([status])
+}
+
+// 성격 테스트 결과 (Nova Persona)
+model PersonalityResult {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 타입 코드 및 페르소나 정보
+  typeCode          String   // RVLA, GSHA, etc. (4글자)
+  personaName       String   // 페르소나 이름
+  avatarGender      String   @default("M") // M, F
+
+  // 4가지 축 스코어 (0-100)
+  energyScore       Int      // Radiant(100) <-> Grounded(0)
+  cognitionScore    Int      // Visionary(100) <-> Structured(0)
+  decisionScore     Int      // Logic(100) <-> Empathic(0)
+  rhythmScore       Int      // Flow(100) <-> Anchor(0)
+
+  // 일관성 점수
+  consistencyScore  Int?     // 0-100
+
+  // 분석 결과 (JSON)
+  analysisData      Json     // summary, keyMotivations, strengths, challenges, etc.
+
+  // 답변 데이터 (백업용)
+  answers           Json?    // 전체 답변 데이터
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([typeCode])
+  @@index([createdAt])
 }

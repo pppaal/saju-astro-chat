@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
     const natalChart = toChart(chartData);
 
-    let response: any = {};
+    const response: Record<string, unknown> = {};
 
     // 특정 하모닉 분석
     if (harmonicNum) {
@@ -117,10 +117,10 @@ export async function POST(request: Request) {
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
     captureServerError(error, { route: "/api/astrology/advanced/harmonics" });
     return NextResponse.json(
-      { error: error?.message || "Unexpected server error." },
+      { error: error instanceof Error ? error.message : "Unexpected server error." },
       { status: 500 }
     );
   }

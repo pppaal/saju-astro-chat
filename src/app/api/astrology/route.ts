@@ -1,5 +1,6 @@
 // src/app/api/astrology/route.ts
 import { NextResponse } from "next/server";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
@@ -128,19 +129,6 @@ function parseHM(input: string) {
   return { h, m };
 }
 
-function pickBackendUrl() {
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    "http://127.0.0.1:5000";
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[Astrology API] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[Astrology API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-  return url;
-}
 
 export async function POST(request: Request) {
   try {

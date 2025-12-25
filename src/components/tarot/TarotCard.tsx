@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable react/no-unescaped-entities */
 
 import { useState } from "react";
 import Image from "next/image";
@@ -168,7 +167,7 @@ export default function TarotCard({
                 <div className={styles.spiritAnimal}>
                   <span className={styles.animalName}>{insights.spiritAnimal.name}</span>
                   <p className={styles.animalMeaning}>{insights.spiritAnimal.meaning}</p>
-                  <p className={styles.animalMessage}>"{insights.spiritAnimal.message}"</p>
+                  <p className={styles.animalMessage}>&quot;{insights.spiritAnimal.message}&quot;</p>
                 </div>
               </div>
             )}

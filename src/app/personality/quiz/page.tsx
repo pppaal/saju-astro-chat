@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import PersonaQuiz from '@/components/persona/PersonaQuiz';
 import type { PersonaQuizAnswers } from '@/lib/persona/types';

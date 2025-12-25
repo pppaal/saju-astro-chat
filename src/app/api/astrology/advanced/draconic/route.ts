@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       planet: planet.name,
       sign: planet.sign,
       formatted: planet.formatted,
-      meaning: getDraconicPlanetMeaning(planet.name, planet.sign as any),
+      meaning: getDraconicPlanetMeaning(planet.name, planet.sign),
     }));
 
     const res = NextResponse.json(
@@ -98,10 +98,11 @@ export async function POST(request: Request) {
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unexpected server error.";
     captureServerError(error, { route: "/api/astrology/advanced/draconic" });
     return NextResponse.json(
-      { error: error?.message || "Unexpected server error." },
+      { error: message },
       { status: 500 }
     );
   }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resetAllExpiredCredits } from "@/lib/credits/creditService";
+import { resetAllExpiredCredits, expireBonusCredits } from "@/lib/credits/creditService";
 
 // Vercel Cron 또는 외부 cron 서비스용 엔드포인트
 // 매일 자정에 실행 권장
@@ -29,19 +29,26 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log("[Cron] Starting monthly credit reset...");
-    const result = await resetAllExpiredCredits();
-    console.log("[Cron] Credit reset completed:", result);
+    // 1. 만료된 보너스 크레딧 정리 (구매일로부터 3개월)
+    console.warn("[Cron] Starting bonus credit expiration...");
+    const bonusResult = await expireBonusCredits();
+    console.warn("[Cron] Bonus credit expiration completed:", bonusResult);
+
+    // 2. 월간 크레딧 리셋 (periodEnd 지난 유저)
+    console.warn("[Cron] Starting monthly credit reset...");
+    const monthlyResult = await resetAllExpiredCredits();
+    console.warn("[Cron] Credit reset completed:", monthlyResult);
 
     return NextResponse.json({
       success: true,
-      message: "Monthly credit reset completed",
-      ...result,
+      message: "Credit maintenance completed",
+      bonusExpiration: bonusResult,
+      monthlyReset: monthlyResult,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Cron Reset error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
     );
   }

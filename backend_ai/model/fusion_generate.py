@@ -1,4 +1,4 @@
-﻿# backend_ai/model/fusion_generate.py
+# backend_ai/model/fusion_generate.py
 
 import os
 import re
@@ -31,7 +31,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Token budget configuration - configurable via environment
-DEFAULT_MAX_TOKENS = int(os.getenv("FUSION_MAX_TOKENS", "3500"))
+DEFAULT_MAX_TOKENS = int(os.getenv("FUSION_MAX_TOKENS", "2500"))
 MAX_OUTPUT_TOKENS = DEFAULT_MAX_TOKENS  # Alias for backward compatibility
 
 # Theme-specific token budgets (optimized for content length requirements)
@@ -48,9 +48,9 @@ THEME_TOKEN_BUDGETS = {
     "family": 2500,         # Family dynamics
 
     # Long-form content (comprehensive analysis)
-    "life_path": 3500,      # Life path: in-depth
-    "new_year": 4000,       # Annual forecast: comprehensive
-    "next_year": 3500,      # Next year preview
+    "life_path": 2500,      # Life path: in-depth (reduced from 3500)
+    "new_year": 2500,       # Annual forecast: comprehensive (reduced from 4000)
+    "next_year": 2500,      # Next year preview (reduced from 3500)
 
     # Default fallback
     "default": DEFAULT_MAX_TOKENS,
@@ -116,14 +116,15 @@ def _chat_with_retry(client, model: str, messages, max_tokens: int, temperature:
     raise last_err
 
 
-def _generate_with_gpt4(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15, use_mini: bool = False) -> str:
+def _generate_with_gpt4(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15, use_mini: bool = True) -> str:
     """Generate using GPT-4o or GPT-4o-mini.
 
     Args:
-        use_mini: If True, use gpt-4o-mini (3x faster, good for chat). Default False.
+        use_mini: If True, use gpt-4o-mini (3x faster, good for chat). Default True (optimized for speed).
     """
     client = get_openai_llm()
-    model = "gpt-4o-mini" if use_mini else "gpt-4o"
+    # Force gpt-4o-mini for all services (3x faster, 20x cheaper)
+    model = "gpt-4o-mini"
     resp = _chat_with_retry(
         client,
         model=model,
@@ -148,18 +149,30 @@ UNIFIED_PERSONA = """
 You are a wise, warm, and insightful advisor who blends Eastern wisdom (사주, 명리학)
 with Western astrology. Your role is to guide, not to predict fate deterministically.
 
+**절대 금지 사항 (CRITICAL - NEVER DO THIS):**
+- 번호 매기기 (1., 2., 3., 1), 2), 3)) 절대 사용 금지
+- 불릿 포인트 (-, *, •) 절대 사용 금지
+- "사주 분석:", "점성술 분석:", "구체적인 직업 예시:", "실천 가능한 조언:" 같은 구조화된 헤더 절대 금지
+- 보고서처럼 딱딱하게 쓰지 말 것
+
+**출력 형식 (REQUIRED):**
+- 자연스러운 문단으로만 작성
+- 마치 카페에서 친구나 멘토에게 얘기하듯이
+- 줄바꿈은 자연스럽게 (문단 나눌 때만)
+- 구조는 있되, 보이지 않게
+
 VOICE PRINCIPLES:
-• Empathetic yet objective - validate feelings while offering balanced perspective
-• Hopeful yet realistic - inspire without making false promises
-• Knowledgeable yet accessible - explain complex concepts simply
-• Respectful of free will - empower choices rather than dictate outcomes
+공감적이면서도 객관적 - 감정을 인정하면서도 균형잡힌 관점 제공
+희망적이면서도 현실적 - 거짓 약속 없이 영감을 주기
+지식이 풍부하면서도 접근하기 쉽게 - 복잡한 개념을 쉽게 설명
+자유 의지 존중 - 결과를 지시하지 않고 선택권을 부여
 
 CONSISTENCY RULES:
-• Always maintain this core warmth regardless of theme
-• Never be cold, judgmental, or fatalistic
-• Balance mystical insight with practical wisdom
-• Use inclusive language (we, let's) to create connection
-• Acknowledge both opportunities AND challenges
+테마와 관계없이 항상 따뜻함 유지
+차갑거나 판단적이거나 운명론적이지 않게
+신비로운 통찰과 실용적 지혜의 균형
+포용적 언어 사용 (우리, 함께)으로 연결감 형성
+기회와 도전을 모두 인정
 """
 
 # ===============================================================
@@ -170,13 +183,9 @@ PRESETS = {
     "life_path": """
 [THEME: Life Path & Destiny 인생경로]
 TONE: Wise mentor sharing ancient wisdom. Balanced between encouragement and realistic guidance.
-STRUCTURE:
-- Open with their core elemental nature and how it shapes their life journey
-- Discuss the interplay of their Four Pillars (년주/월주/일주/시주) and what each reveals
-- Connect planetary transits to current life phase and upcoming shifts
-- Identify their unique strengths from birth chart (hidden talents, natural gifts)
-- Address potential obstacles as growth opportunities, not limitations
-- Provide 3-5 year vision with key turning points
+⚠️ FORMAT: Write as natural paragraphs, NO bullet points, NO numbered lists
+NARRATIVE FLOW:
+Begin with their core elemental nature and how it shapes their life journey. Weave in the interplay of their Four Pillars (년주/월주/일주/시주) and what each reveals. Naturally connect planetary transits to their current life phase and upcoming shifts. Identify unique strengths from their birth chart (hidden talents, natural gifts) within the story. Address potential obstacles as growth opportunities, not limitations. End with a 3-5 year vision including key turning points, all integrated conversationally.
 INCLUDE: Element balance (오행 균형), Ten Gods relationships (십성), Day Master strength (일간 강약)
 AVOID: Fatalistic language, absolute predictions, discouraging tone
 """,
@@ -184,13 +193,9 @@ AVOID: Fatalistic language, absolute predictions, discouraging tone
     "career": """
 [THEME: Career & Professional Growth 사업운/직업운]
 TONE: Strategic advisor with business acumen. Confident, practical, action-oriented.
-STRUCTURE:
-- Analyze their professional archetype based on Day Master and Ten Gods
-- Identify optimal career fields aligned with their elemental nature
-- Discuss current transit influences on work and opportunities
-- Pinpoint best timing windows for: job changes, negotiations, launches, investments
-- Reveal collaboration dynamics - who to partner with (element compatibility)
-- Provide concrete monthly/quarterly action steps
+⚠️ FORMAT: Write as natural paragraphs, NO bullet points, NO numbered lists
+NARRATIVE FLOW:
+Start by revealing their professional archetype based on Day Master and Ten Gods. Weave in optimal career fields aligned with their elemental nature. Naturally discuss current transit influences on work and opportunities as part of the story. Include specific timing windows for job changes, negotiations, launches, or investments within the narrative. Reveal collaboration dynamics and element compatibility conversationally. End with concrete monthly or quarterly action steps integrated into the advice.
 INCLUDE: Wealth stars (재성), Authority stars (관성), favorable industries by element, timing cycles
 SPECIAL: For 사업운, emphasize business timing, partnerships, financial cycles
 """,
@@ -510,13 +515,25 @@ def generate_fusion_report(
             '"categoryAnalysis"' in safe_user_prompt
         )
 
-        # For structured JSON requests, don't truncate the prompt - it contains critical instructions
-        if not is_structured_json_request and len(safe_user_prompt) > 1200:
+        # v3.1: Check if frontend sent comprehensive snapshot (authoritative data)
+        is_frontend_v3_snapshot = (
+            "[COMPREHENSIVE DATA SNAPSHOT v3" in safe_user_prompt or
+            "PART 1: 사주 (KOREAN ASTROLOGY - SAJU)" in safe_user_prompt
+        )
+
+        # For structured JSON requests or v3.1 snapshots, don't truncate - they contain critical data
+        if not is_structured_json_request and not is_frontend_v3_snapshot and len(safe_user_prompt) > 1200:
             safe_user_prompt = safe_user_prompt[:1200] + "\n...[truncated]"
         dataset_summary = f"\n\n[Dataset context]\n{dataset_text.strip()}\n" if dataset_text else ""
-        extra_user = (
-            f"\n\n[User instructions - may be in {locale}]\n{safe_user_prompt}\n" if safe_user_prompt else ""
-        )
+
+        # v3.1: If frontend sent comprehensive snapshot, use it as authoritative data source
+        if is_frontend_v3_snapshot:
+            extra_user = f"\n\n[AUTHORITATIVE DATA FROM FRONTEND v3.1 - Use this as primary source]\n{safe_user_prompt}\n"
+            print(f"[FusionGenerate] Using frontend v3.1 snapshot as authoritative data (len={len(safe_user_prompt)})")
+        else:
+            extra_user = (
+                f"\n\n[User instructions - may be in {locale}]\n{safe_user_prompt}\n" if safe_user_prompt else ""
+            )
         tarot_block = f"\n\n[TAROT summary]\n{tarot_text}" if tarot_text else ""
 
         # Enhanced comprehensive prompt with detailed guidance for ALL 10 supported languages
@@ -532,6 +549,13 @@ def generate_fusion_report(
 - 구체적인 숫자, 날짜, 시기를 언급하여 개인화된 느낌 제공
 - 문단 사이에 자연스러운 연결어 사용
 - 마무리는 희망적이면서도 실천 가능한 조언으로
+
+⚠️ 절대 금지 (NEVER DO THIS):
+- 번호 매기기 (1., 2., 3., 1), 2), 3)) 사용 금지
+- 불릿 포인트 (-, *, •) 사용 금지
+- "**사주 분석:**", "**점성술 분석:**", "**구체적인 직업 예시:**" 같은 구조화된 헤더 금지
+- 보고서처럼 딱딱한 형식 금지
+- 자연스러운 문단 형식으로만 작성
 """,
             "ja": """
 ⚠️ CRITICAL: YOU MUST RESPOND ENTIRELY IN JAPANESE (日本語) ⚠️
@@ -674,6 +698,9 @@ def generate_fusion_report(
             except Exception as e:
                 print(f"[FusionGenerate] Hybrid RAG error: {e}")
 
+        locale_upper = locale.upper()
+        realtime_block = ("[REALTIME TRANSITS 현재 천체 배치]\n" + realtime_transit_text) if realtime_transit_text else ""
+        hybrid_block = ("[HYBRID RAG CONTEXT]\n" + hybrid_context) if hybrid_context else ""
         comprehensive_prompt = f"""
 {UNIFIED_PERSONA}
 
@@ -707,11 +734,12 @@ CONTENT REQUIREMENTS:
    - Reference the graph knowledge for deeper interpretation
    - Connect celestial patterns to practical life advice
 
-4. STRUCTURE: Clear, scannable format
-   - Use meaningful section headers
-   - Include bullet points for key insights
-   - Highlight important dates or periods
-   - End with actionable recommendations
+4. STRUCTURE: Natural narrative flow
+   ⚠️ CRITICAL: NO numbered lists, NO bullet points, NO section headers like "사주 분석:"
+   - Write in natural paragraphs like telling a story
+   - Weave insights seamlessly into the narrative
+   - Highlight important dates or periods within sentences
+   - End with conversational, actionable advice
 
 5. LENGTH: 800-1200 words (adjust for daily/monthly themes)
 
@@ -735,12 +763,12 @@ Use this date to provide time-relevant advice:
 [ASTRO 점성술 분석 데이터]
 {astro_text}
 
-{f"[REALTIME TRANSITS 현재 천체 배치]{chr(10)}{realtime_transit_text}" if realtime_transit_text else ""}
+{realtime_block}
 
 [KNOWLEDGE GRAPH 참조 지식]
 {graph_context}
 
-{f"[HYBRID RAG CONTEXT]{chr(10)}{hybrid_context}" if hybrid_context else ""}
+{hybrid_block}
 {tarot_block}
 {dataset_summary}
 {extra_user}
@@ -754,7 +782,7 @@ Use this date to provide time-relevant advice:
 - Respect the user's agency and free will
 - Ground mystical concepts in practical wisdom
 
-⚠️ FINAL REMINDER: YOUR ENTIRE RESPONSE MUST BE IN {locale.upper()} LANGUAGE ⚠️
+⚠️ FINAL REMINDER: YOUR ENTIRE RESPONSE MUST BE IN {locale_upper} LANGUAGE ⚠️
 Do NOT mix languages. Do NOT write in English unless locale is 'en'.
 """
 

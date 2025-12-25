@@ -66,10 +66,11 @@ export async function POST(request: Request) {
       linked: true,
       referrerId: result.referrerId,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     console.error("[Referral link error]", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
+      { error: message },
       { status: 500 }
     );
   }

@@ -135,8 +135,9 @@ function ProfileContent() {
       setMsg("Saved successfully!");
       setHasSavedData(true);
       setIsEditMode(false);
-    } catch (e: any) {
-      setMsg("Error: " + (e?.message || "Something went wrong"));
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Something went wrong";
+      setMsg(`Error: ${message}`);
     } finally {
       setBusy(false);
     }
@@ -195,7 +196,7 @@ function ProfileContent() {
           <div>
             <h2 className={styles.cardTitle}>Birth Information</h2>
             <p className={styles.cardDesc}>
-              Your birth data is used for accurate Saju & Astrology readings
+              Your birth data is used for accurate 동양 운세 및 서양 운세 readings
             </p>
           </div>
           {hasSavedData && !isEditMode && (

@@ -1,4 +1,5 @@
 // src/app/api/feedback/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
@@ -6,20 +7,34 @@ import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { guardText, cleanText } from "@/lib/textGuards";
 import { enforceBodySize } from "@/lib/http";
+import { apiClient } from "@/lib/api";
 
-const BACKEND_URL =
-  process.env.AI_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_AI_BACKEND ||
-  "http://127.0.0.1:5000";
+type FeedbackBody = {
+  service?: string;
+  theme?: string;
+  sectionId?: string;
+  helpful?: boolean;
+  dayMaster?: string;
+  sunSign?: string;
+  locale?: string;
+  userHash?: string;
+  recordId?: string;
+  rating?: number;
+  feedbackText?: string;
+  userQuestion?: string;
+  consultationSummary?: string;
+  contextUsed?: string;
+};
+type RlhfResponse = {
+  feedback_id?: string;
+  new_badges?: string[];
+};
+type SectionGroup = {
+  sectionId: string;
+  _count: { _all: number };
+};
 
-function validateBackendUrl(url: string) {
-  if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[Feedback API] Using non-HTTPS AI backend in production");
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[Feedback API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
-  }
-}
+
 
 function trimValue(value: unknown, max = 120) {
   return String(value ?? "").trim().slice(0, max);
@@ -41,10 +56,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
     if (oversized) return oversized;
 
-    const body = await req.json();
+    const body = (await req.json().catch(() => null)) as FeedbackBody | null;
+
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
+    }
 
     const {
       service,
@@ -62,7 +81,7 @@ export async function POST(req: NextRequest) {
       userQuestion,
       consultationSummary,
       contextUsed,
-    } = body;
+        } = body;
 
     const safeService = trimValue(service, 64);
     const safeTheme = trimValue(theme, 64);
@@ -104,9 +123,8 @@ export async function POST(req: NextRequest) {
     });
 
     // Also send to backend RLHF system for AI improvement
-    let rlhfResult = null;
+    let rlhfResult: RlhfResponse | null = null;
     try {
-      validateBackendUrl(BACKEND_URL);
       const rlhfRating = normalizedRating ?? (helpful ? 5 : 1); // Convert boolean to rating if not provided
       const rlhfPayload = {
         consultation_data: {
@@ -122,25 +140,11 @@ export async function POST(req: NextRequest) {
         user_id: safeUserHash || "anonymous",
       };
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const result = await apiClient.post<RlhfResponse>('/rlhf/feedback', rlhfPayload, { timeout: 8000 });
 
-      const rlhfResponse = await fetch(`${BACKEND_URL}/rlhf/feedback`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-KEY": process.env.ADMIN_API_TOKEN || "",
-        },
-        body: JSON.stringify(rlhfPayload),
-        signal: controller.signal,
-        cache: "no-store",
-      });
-
-      clearTimeout(timeoutId);
-
-      if (rlhfResponse.ok) {
-        rlhfResult = await rlhfResponse.json();
-        console.log("[Feedback] RLHF recorded:", rlhfResult.feedback_id);
+      if (result.ok && result.data) {
+        rlhfResult = result.data;
+        console.warn("[Feedback] RLHF recorded:", rlhfResult.feedback_id);
       }
     } catch (rlhfErr) {
       // RLHF is optional - don't fail the whole request
@@ -156,10 +160,10 @@ export async function POST(req: NextRequest) {
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Feedback API Error]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500, headers: limitHeaders }
     );
   }
@@ -172,7 +176,7 @@ export async function GET(req: NextRequest) {
     const service = searchParams.get("service");
     const theme = searchParams.get("theme");
 
-    const where: any = {};
+    const where: { service?: string; theme?: string } = {};
     if (service) where.service = service;
     if (theme) where.theme = theme;
 
@@ -190,17 +194,17 @@ export async function GET(req: NextRequest) {
         where: { ...where, helpful: true },
         _count: { _all: true },
       }),
-    ]);
+    ]) as [number, number, SectionGroup[], SectionGroup[]];
 
     const satisfactionRate = total > 0 ? Math.round((positive / total) * 100) : 0;
 
     // Format section stats
     const positiveMap = new Map<string, number>();
-    bySectionPositives.forEach((s: any) => {
+    bySectionPositives.forEach((s) => {
       positiveMap.set(s.sectionId, s._count._all || 0);
     });
 
-    const sectionStats = bySectionTotals.map((s: any) => {
+    const sectionStats = bySectionTotals.map((s) => {
       const pos = positiveMap.get(s.sectionId) || 0;
       const totalCount = s._count._all;
       return {
@@ -218,10 +222,10 @@ export async function GET(req: NextRequest) {
       satisfactionRate,
       bySection: sectionStats,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Feedback Stats Error]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500 }
     );
   }

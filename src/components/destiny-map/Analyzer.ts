@@ -25,9 +25,9 @@ export type ThemedBlock = {
 export type DestinyResult = {
   profile?: DestinyInput;
   interpretation?: string;
-  saju?: any;
-  astrology?: any;
-  astro?: any; // alias for astrology
+  saju?: Record<string, unknown>;
+  astrology?: Record<string, unknown>;
+  astro?: Record<string, unknown>; // alias for astrology
   error?: string;
   errorMessage?: string;
   lang?: LangKey;
@@ -36,6 +36,10 @@ export type DestinyResult = {
   requestedThemes?: string[];
   usedFabricator?: boolean;
 };
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
 
 // 🔮 Client‑side Destiny Analyzer
 export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult> {
@@ -89,13 +93,18 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
       cache: "no-store",
     });
 
-    const result = await response.json().catch(() => null);
+    const result = (await response.json().catch(() => null)) as Record<string, unknown> | null;
 
     if (!response.ok) {
-      let msg =
-        result?.error?.message ||
-        result?.error ||
-        `API Error: ${response.status}`;
+      let msg = `API Error: ${response.status}`;
+      if (result) {
+        const errValue = result.error;
+        if (typeof errValue === "string") {
+          msg = errValue;
+        } else if (isRecord(errValue) && typeof errValue.message === "string") {
+          msg = errValue.message;
+        }
+      }
 
       // 429 에러에 대한 사용자 친화적 메시지
       if (response.status === 429) {
@@ -115,14 +124,22 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
     }
 
     // ✅ 정상 결과 반환
+    const normalized = isRecord(result) ? result : {};
+    const resultLang = typeof normalized.lang === "string" ? normalized.lang : lang;
+    const astro = isRecord(normalized.astro)
+      ? normalized.astro
+      : isRecord(normalized.astrology)
+      ? normalized.astrology
+      : undefined;
+
     return {
-      ...result,
+      ...normalized,
       profile: input,
-      lang: result?.lang ?? lang,
-      astro: result?.astro ?? result?.astrology,
+      lang: resultLang as LangKey,
+      astro,
     } as DestinyResult;
-  } catch (error: any) {
-    const msg = error?.message || String(error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
     console.error("[Analyzer] Exception caught:", msg);
     return {
       profile: input,

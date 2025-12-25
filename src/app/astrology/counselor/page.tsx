@@ -3,9 +3,11 @@
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import AstrologyChat from "@/components/astrology/AstrologyChat";
 import { useI18n } from "@/i18n/I18nProvider";
+import CreditBadge from "@/components/ui/CreditBadge";
 import styles from "./counselor.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -26,6 +28,38 @@ type UserContext = {
   }>;
 };
 
+type Lang = "ko" | "en";
+
+type PrefetchResponse = {
+  status?: string;
+  session_id?: string;
+  astro?: Record<string, unknown>;
+  prefetch_time_ms?: number;
+  data_summary?: { graph_nodes?: number };
+};
+
+type CounselorSession = {
+  id: string;
+  summary?: string;
+  keyTopics?: string[];
+  lastMessageAt?: string;
+  theme?: string;
+};
+
+type CounselorPersona = {
+  sessionCount?: number;
+  lastTopics?: string[];
+  emotionalTone?: string;
+  recurringIssues?: string[];
+};
+
+type CounselorContextResponse = {
+  success?: boolean;
+  persona?: CounselorPersona;
+  sessions?: CounselorSession[];
+  isReturningUser?: boolean;
+};
+
 export default function AstrologyCounselorPage({
   searchParams,
 }: {
@@ -41,7 +75,7 @@ export default function AstrologyCounselorPage({
   const [isLoading, setIsLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [astroData, setAstroData] = useState<any>(null);
+  const [astroData, setAstroData] = useState<Record<string, unknown> | null>(null);
   const [prefetchStatus, setPrefetchStatus] = useState<{
     done: boolean;
     timeMs?: number;
@@ -60,7 +94,8 @@ export default function AstrologyCounselorPage({
   const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? "";
   const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? "";
   const theme = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? "life";
-  const lang = ((Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko") as any;
+  const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
+  const lang: Lang = langParam === "en" ? "en" : "ko";
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? "";
 
   const latStr =
@@ -85,7 +120,7 @@ export default function AstrologyCounselorPage({
     if (!isAuthed) return;
     if (!birthDate || !birthTime) return;
 
-    let astro: any = null;
+    let astro: Record<string, unknown> | null = null;
 
     try {
       const stored = sessionStorage.getItem("astrologyCounselorData");
@@ -96,7 +131,7 @@ export default function AstrologyCounselorPage({
           astro = data.astro;
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn("[AstrologyCounselorPage] Failed to load astro data:", e);
     }
 
@@ -129,9 +164,11 @@ export default function AstrologyCounselorPage({
           }),
         });
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as PrefetchResponse;
           if (data.status === "success") {
-            setSessionId(data.session_id);
+            if (data.session_id) {
+              setSessionId(data.session_id);
+            }
             // Update astro data if computed by backend
             if (data.astro) {
               setAstroData(data.astro);
@@ -142,13 +179,13 @@ export default function AstrologyCounselorPage({
             }
             setPrefetchStatus({
               done: true,
-              timeMs: data.prefetch_time_ms,
+              timeMs: typeof data.prefetch_time_ms === "number" ? data.prefetch_time_ms : undefined,
               graphNodes: data.data_summary?.graph_nodes,
             });
-            console.log(`[AstrologyCounselor] RAG prefetch done: ${data.prefetch_time_ms}ms`);
+            console.warn(`[AstrologyCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
           }
         }
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("[AstrologyCounselorPage] RAG prefetch failed:", e);
         setPrefetchStatus({ done: true }); // Continue anyway
       }
@@ -164,7 +201,7 @@ export default function AstrologyCounselorPage({
       try {
         const res = await fetch(`/api/counselor/chat-history?theme=${theme}&type=astrology&limit=3`);
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as CounselorContextResponse;
           if (data.success) {
             const context: UserContext = {};
 
@@ -177,30 +214,31 @@ export default function AstrologyCounselorPage({
               };
             }
 
-            if (data.sessions && data.sessions.length > 0) {
-              context.recentSessions = data.sessions.map((s: any) => ({
+            const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+            if (sessions.length > 0) {
+              context.recentSessions = sessions.map((s) => ({
                 id: s.id,
                 summary: s.summary,
                 keyTopics: s.keyTopics,
                 lastMessageAt: s.lastMessageAt,
               }));
 
-              const recentThemeSession = data.sessions.find((s: any) => s.theme === theme);
+              const recentThemeSession = sessions.find((s) => s.theme === theme);
               if (recentThemeSession) {
                 setChatSessionId(recentThemeSession.id);
               }
             }
 
             setUserContext(context);
-            console.log("[AstrologyCounselor] User context loaded:", {
+            console.warn("[AstrologyCounselor] User context loaded:", {
               isReturningUser: data.isReturningUser,
               sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
             });
           }
         }
-      } catch (e) {
-        console.log("[AstrologyCounselor] No user context available (guest user)");
+      } catch (e: unknown) {
+        console.warn("[AstrologyCounselor] No user context available (guest user)");
       }
     };
 
@@ -228,10 +266,10 @@ export default function AstrologyCounselorPage({
           const data = await res.json();
           if (data.success && !chatSessionId) {
             setChatSessionId(data.session.id);
-            console.log("[AstrologyCounselor] New chat session created:", data.session.id);
+            console.warn("[AstrologyCounselor] New chat session created:", data.session.id);
           }
         }
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("[AstrologyCounselor] Failed to save message:", e);
       }
     },
@@ -398,7 +436,13 @@ export default function AstrologyCounselorPage({
           </div>
         </div>
 
-        <div className={styles.headerActions} />
+        <div className={styles.headerActions}>
+          <CreditBadge variant="compact" />
+          <Link href="/" className={styles.homeButton} aria-label="Home">
+            <span className={styles.homeIcon}>🏠</span>
+            <span className={styles.homeLabel}>홈</span>
+          </Link>
+        </div>
       </header>
 
       {/* Chat Area */}

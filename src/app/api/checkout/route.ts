@@ -42,11 +42,16 @@ type CheckoutBody = {
   creditPack?: CreditPackKey
 }
 
+type SessionUser = {
+  id?: string
+  email?: string | null
+}
+
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers)
 
   try {
-    const oversized = enforceBodySize(req as any, 32 * 1024)
+    const oversized = enforceBodySize(req, 32 * 1024)
     if (oversized) return oversized
 
     // Rate limit to reduce checkout abuse
@@ -61,6 +66,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'not_authenticated' }, { status: 401, headers: rateHeaders })
     }
+    const sessionUser = session.user as SessionUser
 
     const base = process.env.NEXT_PUBLIC_BASE_URL // e.g., https://your-domain.com
     if (!base) {
@@ -90,9 +96,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'missing_secret' }, { status: 500, headers: rateHeaders })
     }
 
-    const email = session.user.email ?? ''
+    const email = sessionUser.email ?? ''
     if (!isValidEmail(email)) {
-      console.warn('[checkout] invalid email for session user', { userId: (session.user as any)?.id })
+      console.warn('[checkout] invalid email for session user', { userId: sessionUser.id })
       return NextResponse.json({ error: 'invalid_email' }, { status: 400, headers: rateHeaders })
     }
 
@@ -119,7 +125,7 @@ export async function POST(req: NextRequest) {
           metadata: {
             type: 'credit_pack',
             creditPack: creditPack,
-            userId: (session.user as any)?.id || '',
+            userId: sessionUser.id || '',
             source: 'web',
           },
         },
@@ -129,14 +135,6 @@ export async function POST(req: NextRequest) {
       if (!checkout.url) {
         return NextResponse.json({ error: 'no_checkout_url' }, { status: 500, headers: rateHeaders })
       }
-
-      console.info('[checkout] credit pack session created', {
-          userId: (session.user as any)?.id,
-          email,
-          ip,
-          checkoutId: checkout.id,
-          creditPack,
-        })
 
       return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })
     }
@@ -162,7 +160,7 @@ export async function POST(req: NextRequest) {
         metadata: {
           type: 'subscription',
           productId: `${selectedPlan}-${selectedBilling}`,
-          userId: (session.user as any)?.id || '',
+          userId: sessionUser.id || '',
           source: 'web',
           plan: selectedPlan,
           billingCycle: selectedBilling,
@@ -175,22 +173,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'no_checkout_url' }, { status: 500, headers: rateHeaders })
     }
 
-    console.info('[checkout] subscription session created', {
-      userId: (session.user as any)?.id,
-      email,
-        ip,
-        checkoutId: checkout.id,
-        plan: selectedPlan,
-        billingCycle: selectedBilling,
-      })
-
     return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })
-  } catch (e: any) {
-    console.error('Stripe error:', e?.raw?.message || e?.message || e)
-    recordCounter('stripe_checkout_error', 1, { reason: e?.code || 'unknown' })
-    captureServerError(e, { route: '/api/checkout', message: e?.raw?.message || e?.message || 'unknown' })
+  } catch (e: unknown) {
+    const err = e as { raw?: { message?: string }; message?: string; code?: string }
+    const msg = err?.raw?.message || err?.message || 'unknown'
+    console.error('Stripe error:', msg)
+    recordCounter('stripe_checkout_error', 1, { reason: err?.code || 'unknown' })
+    captureServerError(e, { route: '/api/checkout', message: msg })
     return NextResponse.json(
-      { error: 'stripe_error', message: e?.raw?.message || e?.message || 'unknown' },
+      { error: 'stripe_error', message: msg },
       { status: 400 }
     )
   }

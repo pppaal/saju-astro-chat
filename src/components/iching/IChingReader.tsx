@@ -79,8 +79,10 @@ const IChingReader: React.FC = () => {
 
     const primaryHexagram = hexByBinary.get(primaryBinary);
     if (!primaryHexagram) {
+      const fallbackHexagram =
+        currentData[0] || { number: 0, binary: primaryBinary, name: "", symbol: "", judgment: "", image: "", lines: [] };
       setResult({
-        primaryHexagram: undefined as any,
+        primaryHexagram: fallbackHexagram,
         changingLines: [],
         error: "Could not find the corresponding hexagram. Please check the data.",
       });

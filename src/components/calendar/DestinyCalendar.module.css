@@ -173,7 +173,79 @@
   animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
-/* ========== Load Profile Button ========== */
+/* ========== Auto Loading & Profile Messages ========== */
+.autoLoadingMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.12), rgba(139, 92, 246, 0.12));
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 14px;
+  color: #a5f3fc;
+  font-size: 15px;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.autoLoadingIcon {
+  font-size: 20px;
+  animation: spin 2s linear infinite;
+}
+
+.autoLoadingText {
+  letter-spacing: 0.3px;
+}
+
+.profileLoadedMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(74, 222, 128, 0.15));
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 14px;
+  color: #86efac;
+  font-size: 15px;
+  font-weight: 500;
+  animation: slideInDown 0.5s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profileLoadedIcon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(34, 197, 94, 0.2);
+  border-radius: 50%;
+  animation: checkPop 0.5s ease;
+}
+
+.profileLoadedText {
+  letter-spacing: 0.3px;
+}
+
+/* ========== Load Profile Button (deprecated - kept for compatibility) ========== */
 .loadProfileButton {
   display: flex;
   align-items: center;

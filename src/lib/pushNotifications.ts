@@ -30,7 +30,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
   try {
     const permission = await Notification.requestPermission();
-    console.log("Notification permission:", permission);
+    console.warn("Notification permission:", permission);
     return permission;
   } catch (error) {
     console.error("Error requesting notification permission:", error);
@@ -50,7 +50,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       scope: "/",
     });
 
-    console.log("Service Worker registered:", registration);
+    console.warn("Service Worker registered:", registration);
 
     // Wait for the service worker to be ready
     await navigator.serviceWorker.ready;
@@ -106,9 +106,9 @@ export async function subscribeToPushNotifications(
         applicationServerKey: convertedVapidKey as BufferSource,
       });
 
-      console.log("Push subscription created:", subscription);
+      console.warn("Push subscription created:", subscription);
     } else {
-      console.log("Already subscribed to push notifications");
+      console.warn("Already subscribed to push notifications");
     }
 
     return subscription;
@@ -126,7 +126,7 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
 
     if (subscription) {
       const successful = await subscription.unsubscribe();
-      console.log("Push unsubscribe successful:", successful);
+      console.warn("Push unsubscribe successful:", successful);
       return successful;
     }
 
@@ -166,7 +166,7 @@ export async function sendSubscriptionToServer(
       throw new Error("Failed to send subscription to server");
     }
 
-    console.log("Subscription sent to server");
+    console.warn("Subscription sent to server");
     return true;
   } catch (error) {
     console.error("Error sending subscription to server:", error);
@@ -225,7 +225,7 @@ export async function initializePushNotifications(
     // If permission is default, don't automatically request it
     // Let the user trigger it via a button
     if (permission === "default") {
-      console.log("Notification permission not yet requested");
+      console.warn("Notification permission not yet requested");
       return false;
     }
 

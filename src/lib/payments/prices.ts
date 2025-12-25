@@ -48,7 +48,7 @@ const priceEntries = ([
 ].filter((p) => p.id)) as PriceEntry[]
 
 // Credit pack entries (one-time purchases)
-// Pack details: mini(3), standard(10), plus(30), mega(60), ultimate(120)
+// Pack details: mini(5), standard(15), plus(40), mega(100), ultimate(250)
 const creditPackEntries = ([
   {
     id: process.env.STRIPE_PRICE_CREDIT_MINI || '',

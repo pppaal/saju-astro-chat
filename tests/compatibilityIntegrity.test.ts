@@ -105,8 +105,8 @@ describe("Compatibility score calculation", () => {
   function calculateCompatibility(
     element1: string,
     element2: string,
-    zodiac1: string,
-    zodiac2: string
+    _zodiac1: string,
+    _zodiac2: string
   ): number {
     // Simple mock calculation
     let score = 50; // Base score

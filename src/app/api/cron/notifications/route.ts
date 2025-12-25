@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
     const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
     const currentHour = kstTime.getUTCHours();
 
-    console.log(`[Cron] Running notification job at KST hour: ${currentHour}`);
+    console.warn(`[Cron] Running notification job at KST hour: ${currentHour}`);
 
     const result = await sendScheduledNotifications(currentHour);
 
-    console.log(`[Cron] Notification job completed:`, result);
+    console.warn(`[Cron] Notification job completed:`, result);
 
     return NextResponse.json({
       success: true,
@@ -54,13 +54,14 @@ export async function GET(request: NextRequest) {
       hour: currentHour,
       ...result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[Cron] Notification job failed:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: message,
         timestamp: new Date().toISOString(),
       },
       { status: 500 }
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const hour = body.hour ?? new Date().getHours();
 
-    console.log(`[Manual] Running notification job for hour: ${hour}`);
+    console.warn(`[Manual] Running notification job for hour: ${hour}`);
 
     const result = await sendScheduledNotifications(hour);
 
@@ -95,13 +96,14 @@ export async function POST(request: NextRequest) {
       hour,
       ...result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[Manual] Notification job failed:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: message,
       },
       { status: 500 }
     );
