@@ -2382,15 +2382,19 @@ def _build_advanced_astro_context(advanced_astro: dict) -> str:
     if advanced_astro.get("solarReturn"):
         sr = advanced_astro["solarReturn"]
         if isinstance(sr, dict) and sr.get("summary"):
-            lines.append("\n🎂 솔라 리턴 (올해 생일 차트):")
-            lines.append(f"  {sr['summary'][:200]}")
+            summary = sr['summary']
+            if isinstance(summary, str):
+                lines.append("\n🎂 솔라 리턴 (올해 생일 차트):")
+                lines.append(f"  {summary[:200]}")
 
     # Lunar Return (monthly energy)
     if advanced_astro.get("lunarReturn"):
         lr = advanced_astro["lunarReturn"]
         if isinstance(lr, dict) and lr.get("summary"):
-            lines.append("\n🌙 루나 리턴 (이번 달 에너지):")
-            lines.append(f"  {lr['summary'][:200]}")
+            summary = lr['summary']
+            if isinstance(summary, str):
+                lines.append("\n🌙 루나 리턴 (이번 달 에너지):")
+                lines.append(f"  {summary[:200]}")
 
     # Asteroids (detailed personality)
     if advanced_astro.get("asteroids"):
