@@ -2404,11 +2404,15 @@ def _build_advanced_astro_context(advanced_astro: dict) -> str:
             if isinstance(asteroids, list):
                 for ast in asteroids[:4]:
                     if isinstance(ast, dict):
-                        lines.append(f"  • {ast.get('name', '')}: {ast.get('sign', '')} {ast.get('interpretation', '')[:80]}")
+                        interp = ast.get('interpretation', '')
+                        interp_str = interp[:80] if isinstance(interp, str) else str(interp)[:80]
+                        lines.append(f"  • {ast.get('name', '')}: {ast.get('sign', '')} {interp_str}")
             elif isinstance(asteroids, dict):
                 for name, data in list(asteroids.items())[:4]:
                     if isinstance(data, dict):
-                        lines.append(f"  • {name}: {data.get('sign', '')} {data.get('interpretation', '')[:80]}")
+                        interp = data.get('interpretation', '')
+                        interp_str = interp[:80] if isinstance(interp, str) else str(interp)[:80]
+                        lines.append(f"  • {name}: {data.get('sign', '')} {interp_str}")
 
     # Fixed Stars (fate/destiny points)
     if advanced_astro.get("fixedStars"):
@@ -2417,7 +2421,9 @@ def _build_advanced_astro_context(advanced_astro: dict) -> str:
             lines.append("\n⭐ 고정항성 (운명 포인트):")
             for star in stars[:3]:
                 if isinstance(star, dict):
-                    lines.append(f"  • {star.get('name', '')}: {star.get('interpretation', '')[:100]}")
+                    interp = star.get('interpretation', '')
+                    interp_str = interp[:100] if isinstance(interp, str) else str(interp)[:100]
+                    lines.append(f"  • {star.get('name', '')}: {interp_str}")
 
     # Eclipses (transformation points)
     if advanced_astro.get("eclipses"):
@@ -2427,12 +2433,18 @@ def _build_advanced_astro_context(advanced_astro: dict) -> str:
             if isinstance(eclipses, list):
                 for ecl in eclipses[:2]:
                     if isinstance(ecl, dict):
-                        lines.append(f"  • {ecl.get('type', '')}: {ecl.get('date', '')} - {ecl.get('interpretation', '')[:100]}")
+                        interp = ecl.get('interpretation', '')
+                        interp_str = interp[:100] if isinstance(interp, str) else str(interp)[:100]
+                        lines.append(f"  • {ecl.get('type', '')}: {ecl.get('date', '')} - {interp_str}")
             elif isinstance(eclipses, dict):
                 if eclipses.get("solar"):
-                    lines.append(f"  • 일식: {eclipses['solar'][:100]}")
+                    solar = eclipses['solar']
+                    solar_str = solar[:100] if isinstance(solar, str) else str(solar)[:100]
+                    lines.append(f"  • 일식: {solar_str}")
                 if eclipses.get("lunar"):
-                    lines.append(f"  • 월식: {eclipses['lunar'][:100]}")
+                    lunar = eclipses['lunar']
+                    lunar_str = lunar[:100] if isinstance(lunar, str) else str(lunar)[:100]
+                    lines.append(f"  • 월식: {lunar_str}")
 
     # Midpoints (relationship dynamics)
     if advanced_astro.get("midpoints"):
