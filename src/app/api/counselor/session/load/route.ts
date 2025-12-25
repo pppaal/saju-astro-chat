@@ -16,30 +16,22 @@ export async function GET(request: Request) {
     const theme = searchParams.get("theme") || "chat";
     const sessionId = searchParams.get("sessionId");
 
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: 404 });
-    }
-
+    // Single query with join through user relation
     let chatSession;
 
     if (sessionId) {
-      // Load specific session by ID
+      // Load specific session by ID with email check
       chatSession = await prisma.counselorChatSession.findFirst({
         where: {
           id: sessionId,
-          userId: user.id,
+          user: { email: session.user.email },
         },
       });
     } else {
       // Get most recent session for this theme
       chatSession = await prisma.counselorChatSession.findFirst({
         where: {
-          userId: user.id,
+          user: { email: session.user.email },
           theme,
         },
         orderBy: {

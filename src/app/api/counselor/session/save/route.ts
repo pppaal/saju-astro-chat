@@ -19,25 +19,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid_request" }, { status: 400 });
     }
 
-    // Find user
+    // Check if session exists first
+    const existingSession = await prisma.counselorChatSession.findFirst({
+      where: {
+        id: sessionId,
+        user: { email: session.user.email },
+      },
+      select: { id: true },
+    });
+
+    if (existingSession) {
+      // Update existing session
+      await prisma.counselorChatSession.update({
+        where: { id: sessionId },
+        data: {
+          messages,
+          messageCount: messages.length,
+          lastMessageAt: new Date(),
+        },
+      });
+      return NextResponse.json({ success: true, sessionId });
+    }
+
+    // Create new session - need user.id for this
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      select: { id: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: "user_not_found" }, { status: 404 });
     }
 
-    // Upsert chat session
-    const chatSession = await prisma.counselorChatSession.upsert({
-      where: { id: sessionId },
-      update: {
-        messages,
-        messageCount: messages.length,
-        lastMessageAt: new Date(),
-        updatedAt: new Date(),
-      },
-      create: {
+    const chatSession = await prisma.counselorChatSession.create({
+      data: {
         id: sessionId,
         userId: user.id,
         theme: theme || "chat",
