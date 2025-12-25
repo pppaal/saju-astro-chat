@@ -935,7 +935,14 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
 
     # Extract Ten Gods (십신) from saju data
     ten_gods = saju_data.get("tenGods", {})
+    if not isinstance(ten_gods, dict):
+        ten_gods = {}
     dominant_god = ten_gods.get("dominant", "")  # e.g., "정관", "편관", "정재", "상관"
+    # Ensure dominant_god is a string (not dict)
+    if isinstance(dominant_god, dict):
+        dominant_god = dominant_god.get("name", "") or dominant_god.get("ko", "") or ""
+    elif not isinstance(dominant_god, str):
+        dominant_god = str(dominant_god) if dominant_god else ""
 
     # Get element counts for imbalance detection
     element_counts = saju_data.get("elementCounts", {})
@@ -1155,13 +1162,15 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
             if isinstance(user_gongmang, str):
                 user_gongmang = [user_gongmang]
             for gm in user_gongmang[:2]:
+                if not isinstance(gm, str):
+                    continue
                 gm_key = f"{gm}_공망"
                 if gm_key in branch_void:
                     gm_data = branch_void[gm_key]
-                    theme = gm_data.get("theme", "")
+                    gm_theme = gm_data.get("theme", "")  # Use gm_theme to avoid shadowing function param
                     draconic = gm_data.get("draconic", "")
-                    if theme:
-                        detailed_insights.append((5, f"🌙 공망×드라코닉 [{gm} 공망]: {theme}"))
+                    if gm_theme:
+                        detailed_insights.append((5, f"🌙 공망×드라코닉 [{gm} 공망]: {gm_theme}"))
 
     # 2. Planet-House detailed analysis from ALL fusion rules
     is_ko = locale == "ko"
@@ -1432,14 +1441,25 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
 
     # Extract chart data
     dm_data = saju_data.get("dayMaster", {})
+    if not isinstance(dm_data, dict):
+        dm_data = {}
     daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
     dm_element = dm_data.get("element", "")
     ten_gods = saju_data.get("tenGods", {})
+    if not isinstance(ten_gods, dict):
+        ten_gods = {}
     dominant_god = ten_gods.get("dominant", "")
+    # Ensure dominant_god is a string (not dict)
+    if isinstance(dominant_god, dict):
+        dominant_god = dominant_god.get("name", "") or dominant_god.get("ko", "") or ""
+    elif not isinstance(dominant_god, str):
+        dominant_god = str(dominant_god) if dominant_god else ""
 
-    # Astrology data
-    sun_sign = astro_data.get("sun", {}).get("sign", "")
-    moon_sign = astro_data.get("moon", {}).get("sign", "")
+    # Astrology data - safely handle non-dict values
+    sun_data = astro_data.get("sun", {})
+    sun_sign = sun_data.get("sign", "") if isinstance(sun_data, dict) else ""
+    moon_data = astro_data.get("moon", {})
+    moon_sign = moon_data.get("sign", "") if isinstance(moon_data, dict) else ""
 
     # Calculate age if birth_year provided
     current_age = now.year - birth_year if birth_year else None
