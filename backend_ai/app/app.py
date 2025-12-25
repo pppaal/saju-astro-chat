@@ -405,15 +405,20 @@ def get_model(*args, **kwargs):
 try:
     from openai import OpenAI
     import httpx
+    _openai_key = os.getenv("OPENAI_API_KEY")
+    if not _openai_key:
+        print(f"[app.py] OPENAI_API_KEY not found in environment. Available env vars: {[k for k in os.environ.keys() if 'OPENAI' in k.upper() or 'API' in k.upper()]}")
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
     openai_client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key=_openai_key,
         timeout=httpx.Timeout(60.0, connect=10.0)  # 60s total, 10s connect
     )
     OPENAI_AVAILABLE = True
-except Exception:
+    print(f"[app.py] OpenAI client initialized successfully (key length: {len(_openai_key)})")
+except Exception as e:
     openai_client = None
     OPENAI_AVAILABLE = False
-    print("[app.py] OpenAI client not available")
+    print(f"[app.py] OpenAI client not available: {e}")
 
 # CorpusRAG System - Lazy loaded (uses SentenceTransformer)
 HAS_CORPUS_RAG = True  # Assume available
