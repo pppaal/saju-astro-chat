@@ -554,7 +554,11 @@ function DestinyCalendarContent() {
       params.set("birthTime", birthData.birthTime);
       params.set("birthPlace", birthData.birthPlace);
 
-      const res = await fetch(`/api/calendar?${params}`);
+      const res = await fetch(`/api/calendar?${params}`, {
+        headers: {
+          'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+        },
+      });
       const json = await res.json();
 
       if (!res.ok) {
