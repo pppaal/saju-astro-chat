@@ -1,7 +1,45 @@
 // src/app/api/life-prediction/explain-results/route.ts
 // AI 기반 결과 설명 생성 API - 사주 분석 결과를 사용자 친화적으로 변환
+// RAG 컨텍스트를 활용하여 더 풍부한 해석 제공
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// ============================================================
+// 백엔드 RAG 컨텍스트 호출
+// ============================================================
+const BACKEND_URL = process.env.BACKEND_AI_URL || 'http://localhost:5000';
+
+async function fetchRagContext(sipsin?: string, eventType?: string): Promise<string> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/prediction/rag-context`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sipsin,
+        event_type: eventType,
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn('[explain-results] RAG context fetch failed:', response.status);
+      return '';
+    }
+
+    const data = await response.json();
+    const ragContext = data.rag_context || {};
+
+    // RAG 컨텍스트를 하나의 문자열로 결합
+    const parts: string[] = [];
+    if (ragContext.sipsin) parts.push(ragContext.sipsin);
+    if (ragContext.timing) parts.push(ragContext.timing);
+    if (ragContext.query_result) parts.push(ragContext.query_result);
+
+    return parts.join('\n\n');
+  } catch (error) {
+    console.warn('[explain-results] RAG context error:', error);
+    return '';
+  }
+}
 
 // ============================================================
 // OpenAI API 호출 헬퍼
@@ -48,6 +86,9 @@ interface ExplainRequest {
   eventLabel: string;
   optimalPeriods: OptimalPeriod[];
   locale?: 'ko' | 'en';
+  // RAG 관련 추가 필드
+  sipsin?: string;  // 현재 대운/세운의 십신
+  useRag?: boolean; // RAG 사용 여부 (기본: true)
 }
 
 interface ExplainedPeriod {
@@ -105,7 +146,7 @@ JSON 형식으로 각 기간에 대해:
 export async function POST(request: NextRequest): Promise<NextResponse<ExplainResponse>> {
   try {
     const body: ExplainRequest = await request.json();
-    const { question, eventType, eventLabel, optimalPeriods, locale = 'ko' } = body;
+    const { question, eventType, eventLabel, optimalPeriods, sipsin, useRag = true } = body;
 
     if (!optimalPeriods || optimalPeriods.length === 0) {
       return NextResponse.json(
@@ -114,7 +155,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ExplainRe
       );
     }
 
-    // 프롬프트 구성
+    // RAG 컨텍스트 가져오기 (백엔드에서)
+    let ragContext = '';
+    if (useRag) {
+      ragContext = await fetchRagContext(sipsin, eventType);
+    }
+
+    // 프롬프트 구성 (RAG 컨텍스트 포함)
     const userPrompt = `
 **사용자 질문:** "${question}"
 **분석 주제:** ${eventLabel} (${eventType})
@@ -125,8 +172,12 @@ ${i + 1}위: ${p.startDate} ~ ${p.endDate}
    점수: ${p.score}점 (${p.grade}등급)
    이유: ${p.reasons.join(', ')}
 `).join('\n')}
-
+${ragContext ? `
+**참고 지식 (RAG):**
+${ragContext.slice(0, 1000)}
+` : ''}
 위 결과를 사용자의 질문("${question}")에 맞춰 쉽고 따뜻하게 설명해주세요.
+${ragContext ? '참고 지식의 내용을 자연스럽게 녹여서 설명해주세요.' : ''}
 각 이유에 적절한 이모지를 붙여주세요.`;
 
     // OpenAI API 호출

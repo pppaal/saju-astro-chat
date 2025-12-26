@@ -148,7 +148,7 @@ def prediction_timing():
 def prediction_forecast():
     """
     종합 예측 - 대운/세운/트랜짓 통합 분석.
-    AI 해석 포함.
+    AI 해석 + RAG 컨텍스트 포함.
     """
     if not HAS_PREDICTION:
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
@@ -170,13 +170,63 @@ def prediction_forecast():
 
         result = get_full_forecast(birth_info, question)
 
-        return jsonify({
+        # RAG 컨텍스트가 있으면 포함
+        response_data = {
             "status": "success",
             **result
-        })
+        }
+
+        # rag_context가 비어있으면 제거 (불필요한 데이터 전송 방지)
+        if not response_data.get("rag_context"):
+            response_data.pop("rag_context", None)
+
+        return jsonify(response_data)
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/prediction/forecast failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@prediction_bp.route('/rag-context', methods=['POST'])
+def prediction_rag_context():
+    """
+    예측 관련 RAG 컨텍스트만 반환.
+    프론트엔드에서 별도로 RAG 컨텍스트가 필요할 때 사용.
+    """
+    if not HAS_PREDICTION:
+        return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        sipsin = data.get("sipsin")  # 십신 이름 (정관, 편재 등)
+        event_type = data.get("event_type")  # career, relationship 등
+        query = data.get("query")  # 자유 검색 쿼리
+
+        engine = get_prediction_engine()
+        result = {"status": "success", "rag_context": {}}
+
+        # 십신 기반 검색
+        if sipsin:
+            context = engine.get_sipsin_rag_context(sipsin, event_type)
+            if context:
+                result["rag_context"]["sipsin"] = context
+
+        # 이벤트 타입 기반 검색
+        if event_type:
+            context = engine.get_timing_rag_context(event_type)
+            if context:
+                result["rag_context"]["timing"] = context
+
+        # 자유 쿼리 검색
+        if query:
+            rag_result = engine.search_rag_context(query, top_k=6)
+            if rag_result.get("context_text"):
+                result["rag_context"]["query_result"] = rag_result["context_text"]
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/prediction/rag-context failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 

@@ -1373,31 +1373,49 @@ class UnifiedPredictionEngine:
         return timing
 
     def _generate_ai_interpretation(self, data: Dict, question: str) -> str:
-        """AI를 통한 자연스러운 해석 생성"""
+        """AI를 통한 자연스러운 해석 생성 (RAG 컨텍스트 활용)"""
+
+        # RAG 컨텍스트 구성
+        rag_context = data.get("rag_context", {})
+        rag_text = ""
+        if rag_context:
+            rag_parts = []
+            if rag_context.get("daeun"):
+                rag_parts.append(f"[대운 관련 지식]\n{rag_context['daeun'][:500]}")
+            if rag_context.get("seun"):
+                rag_parts.append(f"[세운 관련 지식]\n{rag_context['seun'][:500]}")
+            if rag_context.get("combination"):
+                rag_parts.append(f"[대운-세운 조합]\n{rag_context['combination'][:300]}")
+            if rag_context.get("timing"):
+                rag_parts.append(f"[타이밍 조언]\n{rag_context['timing'][:300]}")
+            rag_text = "\n\n".join(rag_parts)
 
         prompt = f"""당신은 전문 운세 상담사입니다.
 사주와 점성술 분석 결과를 바탕으로 따뜻하고 실용적인 조언을 해주세요.
 
 분석 데이터:
-{json.dumps(data.get('predictions', {}), ensure_ascii=False, indent=2)[:2000]}
+{json.dumps(data.get('predictions', {}), ensure_ascii=False, indent=2)[:1500]}
+
+{f'참고 지식 (RAG):{chr(10)}{rag_text}' if rag_text else ''}
 
 질문: {question}
 
-위 데이터를 바탕으로:
+위 데이터와 참고 지식을 바탕으로:
 1. 현재 운세 흐름을 간략히 설명
 2. 질문에 대한 구체적인 답변
 3. 실천 가능한 조언
 
-응답은 친근하고 희망적인 톤으로, 300자 내외로 작성해주세요."""
+응답은 친근하고 희망적인 톤으로, 400자 내외로 작성해주세요.
+참고 지식의 내용을 자연스럽게 녹여서 설명해주세요."""
 
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "당신은 따뜻하고 통찰력 있는 운세 상담사입니다."},
+                {"role": "system", "content": "당신은 따뜻하고 통찰력 있는 운세 상담사입니다. 사주/점성술 지식을 활용하여 구체적이고 풍부한 조언을 제공합니다."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.8,
-            max_tokens=500
+            temperature=0.7,
+            max_tokens=600
         )
 
         return response.choices[0].message.content
