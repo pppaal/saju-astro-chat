@@ -3,17 +3,18 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import styles from "./result.module.css";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
 import FunInsights from "@/components/destiny-map/FunInsights";
-// DestinyMatrixStory 제거됨 - FunInsights에서 스토리텔링 형식으로 통합
+const FortuneDashboard = React.lazy(() => import("@/components/life-prediction/FortuneDashboard"));
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
 import ShareButton from "@/components/ui/ShareButton";
 import PersonalityInsight from "@/components/personality/PersonalityInsight";
+import { calculateSajuData } from "@/lib/Saju/saju";
 
 type Lang = "ko" | "en";
 type DestinyResult = {
@@ -29,6 +30,20 @@ type DestinyResult = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
+
+// Life Prediction Skeleton
+function LifePredictionSkeleton() {
+  return (
+    <div style={{ padding: 24, background: 'rgba(59, 130, 246, 0.05)', borderRadius: 16, border: '1px solid rgba(59, 130, 246, 0.1)' }}>
+      <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '8px 0' }}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} style={{ minWidth: 100, height: 140, borderRadius: 12, background: 'rgba(59,130,246,0.1)', animation: 'pulse 1.5s infinite' }} />
+        ))}
+      </div>
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }`}</style>
+    </div>
+  );
+}
 
 // ============================================
 // Analyzing Loader Component with Progress Bar
@@ -228,6 +243,14 @@ export default function DestinyResultPage({
   const [activeTheme, setActiveTheme] = useState("focus_love");
   const [cachedAge, setCachedAge] = useState<string | null>(null);
 
+  // Life Prediction states
+  const [activeTab, setActiveTab] = useState<"destiny" | "life-prediction">("destiny");
+  const [lifePredictionTrend, setLifePredictionTrend] = useState<any>(null);
+  const [lifePredictionLoading, setLifePredictionLoading] = useState(false);
+  const [lifePredictionError, setLifePredictionError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
   // ------------------------------------------------------------ //
   // 🎯 비즈니스 로직
   // ------------------------------------------------------------ //
@@ -358,6 +381,87 @@ export default function DestinyResultPage({
     }
   }, []);
 
+  // Load Life Prediction when tab is switched
+  const loadLifePrediction = useCallback(async () => {
+    if (lifePredictionTrend || lifePredictionLoading) return;
+
+    const birthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? "";
+    const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? "";
+    const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? "Male";
+    const rawLang = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
+    const locale = rawLang === "en" ? "en" : "ko";
+
+    if (!birthDate || !birthTime) return;
+
+    setLifePredictionLoading(true);
+    setLifePredictionError(null);
+
+    try {
+      const sajuGender = gender === "Female" ? "female" : "male";
+      const sajuResult = calculateSajuData(birthDate, birthTime, sajuGender, "solar", "Asia/Seoul");
+
+      const dayStem = sajuResult?.pillars?.day?.heavenlyStem?.name || "甲";
+      const dayBranch = sajuResult?.pillars?.day?.earthlyBranch?.name || "子";
+      const monthBranch = sajuResult?.pillars?.month?.earthlyBranch?.name || "子";
+      const yearBranch = sajuResult?.pillars?.year?.earthlyBranch?.name || "子";
+      const allStems = [sajuResult?.pillars?.year?.heavenlyStem?.name, sajuResult?.pillars?.month?.heavenlyStem?.name, dayStem, sajuResult?.pillars?.time?.heavenlyStem?.name].filter(Boolean);
+      const allBranches = [yearBranch, monthBranch, dayBranch, sajuResult?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+      const daeunData = sajuResult?.daeun?.cycles || [];
+      const birthYear = parseInt(birthDate.split("-")[0]);
+
+      const response = await fetch("/api/life-prediction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "comprehensive", birthYear, birthMonth: parseInt(birthDate.split("-")[1]), birthDay: parseInt(birthDate.split("-")[2]),
+          gender: sajuGender, dayStem, dayBranch, monthBranch, yearBranch, allStems, allBranches, daeunList: daeunData, yearsRange: 10, locale,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch prediction");
+      const apiResult = await response.json();
+      if (apiResult.success && apiResult.data?.multiYearTrend) {
+        setLifePredictionTrend(apiResult.data.multiYearTrend);
+      } else {
+        throw new Error(apiResult.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error("[LifePrediction] Error:", err);
+      setLifePredictionError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLifePredictionLoading(false);
+    }
+  }, [sp, lifePredictionTrend, lifePredictionLoading]);
+
+  useEffect(() => {
+    if (activeTab === "life-prediction" && !lifePredictionTrend && !lifePredictionLoading) {
+      loadLifePrediction();
+    }
+  }, [activeTab, lifePredictionTrend, lifePredictionLoading, loadLifePrediction]);
+
+  const handleYearClick = useCallback((year: number) => setSelectedYear(year), []);
+
+  // Save Life Prediction result
+  const saveLifePrediction = useCallback(async () => {
+    if (!lifePredictionTrend || saveStatus === 'saving') return;
+    setSaveStatus('saving');
+    try {
+      const rawLang = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
+      const response = await fetch("/api/life-prediction/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ multiYearTrend: lifePredictionTrend, saju: result?.saju, astro: result?.astrology, locale: rawLang }),
+      });
+      if (response.ok) {
+        setSaveStatus('saved');
+      } else {
+        setSaveStatus('error');
+      }
+    } catch {
+      setSaveStatus('error');
+    }
+  }, [lifePredictionTrend, result, sp, saveStatus]);
+
   // ------------------------------------------------------------ //
   // ⏳ 상태별 렌더링
   // ------------------------------------------------------------ //
@@ -455,6 +559,20 @@ export default function DestinyResultPage({
           {analysisDateDisplay}
         </div>
 
+        {/* 🗂️ 탭 네비게이션 */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 28, justifyContent: 'center', background: 'rgba(15, 12, 41, 0.6)', borderRadius: 16, padding: 4, border: '1px solid rgba(167, 139, 250, 0.15)' }}>
+          <button onClick={() => setActiveTab("destiny")} style={{ flex: 1, maxWidth: 200, padding: '14px 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 600, transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: activeTab === "destiny" ? 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)' : 'transparent', color: activeTab === "destiny" ? '#fff' : 'rgba(255,255,255,0.6)', boxShadow: activeTab === "destiny" ? '0 4px 20px rgba(139, 92, 246, 0.4)' : 'none' }}>
+            <span style={{ fontSize: 18 }}>🗺️</span>
+            <span>{t("destinyMap.result.tabDestiny", "운명 분석")}</span>
+          </button>
+          <button onClick={() => setActiveTab("life-prediction")} style={{ flex: 1, maxWidth: 200, padding: '14px 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 600, transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: activeTab === "life-prediction" ? 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' : 'transparent', color: activeTab === "life-prediction" ? '#fff' : 'rgba(255,255,255,0.6)', boxShadow: activeTab === "life-prediction" ? '0 4px 20px rgba(59, 130, 246, 0.4)' : 'none' }}>
+            <span style={{ fontSize: 18 }}>📈</span>
+            <span>{t("destinyMap.result.tabLifePrediction", "10년 예측")}</span>
+          </button>
+        </div>
+
+        {/* ===== DESTINY TAB ===== */}
+        {activeTab === "destiny" && (<>
         {/* 🌗 테마 전환 버튼 */}
         {themeKeys.length > 1 && (
           <div
@@ -602,6 +720,78 @@ export default function DestinyResultPage({
             <span style={{ fontSize: 20 }}>→</span>
           </button>
         </div>
+        </>)}
+
+        {/* ===== LIFE PREDICTION TAB ===== */}
+        {activeTab === "life-prediction" && (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#fff', marginBottom: 8, background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                {lang === "ko" ? "📈 10년 인생 예측" : "📈 10-Year Life Prediction"}
+              </h2>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
+                {lang === "ko" ? "사주와 대운을 기반으로 한 연도별 운세 흐름" : "Year-by-year fortune flow based on Saju and Daeun"}
+              </p>
+            </div>
+
+            {lifePredictionLoading && <LifePredictionSkeleton />}
+
+            {lifePredictionError && (
+              <div style={{ padding: 32, textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                <span style={{ fontSize: 32, marginBottom: 12, display: 'block' }}>⚠️</span>
+                <p style={{ color: '#f87171', marginBottom: 16 }}>{lifePredictionError}</p>
+                <button onClick={() => { setLifePredictionError(null); setLifePredictionTrend(null); loadLifePrediction(); }} style={{ padding: '10px 24px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, cursor: 'pointer' }}>
+                  {lang === "ko" ? "다시 시도" : "Retry"}
+                </button>
+              </div>
+            )}
+
+            {lifePredictionTrend && !lifePredictionLoading && (
+              <Suspense fallback={<LifePredictionSkeleton />}>
+                <FortuneDashboard trend={lifePredictionTrend} locale={lang} onYearClick={handleYearClick} />
+              </Suspense>
+            )}
+
+            {/* 저장 버튼 */}
+            {lifePredictionTrend && (
+              <div style={{ marginTop: 24, textAlign: 'center' }}>
+                <button
+                  onClick={saveLifePrediction}
+                  disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+                  style={{
+                    padding: '12px 32px', borderRadius: 12, border: 'none', cursor: saveStatus === 'saved' ? 'default' : 'pointer',
+                    background: saveStatus === 'saved' ? 'rgba(34, 197, 94, 0.2)' : saveStatus === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                    color: saveStatus === 'saved' ? '#22c55e' : saveStatus === 'error' ? '#f87171' : '#60a5fa',
+                    fontWeight: 600, fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 8, transition: 'all 0.3s ease',
+                  }}
+                >
+                  {saveStatus === 'saving' ? (lang === "ko" ? "저장 중..." : "Saving...") :
+                   saveStatus === 'saved' ? (<><span>✓</span>{lang === "ko" ? "저장됨" : "Saved"}</>) :
+                   saveStatus === 'error' ? (lang === "ko" ? "저장 실패 - 다시 시도" : "Failed - Retry") :
+                   (<><span>💾</span>{lang === "ko" ? "결과 저장하기" : "Save Results"}</>)}
+                </button>
+              </div>
+            )}
+
+            {/* 상담사 버튼 */}
+            <div style={{ marginTop: 48, marginBottom: 20 }}>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams(window.location.search);
+                  params.set("lang", lang);
+                  params.set("theme", "future");
+                  if (selectedYear) params.set("focusYear", String(selectedYear));
+                  window.location.href = `/destiny-map/counselor?${params.toString()}`;
+                }}
+                style={{ width: '100%', padding: '18px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)', color: '#ffffff', fontWeight: 700, fontSize: 16, borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(59, 130, 246, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, transition: 'all 0.3s ease' }}
+              >
+                <span style={{ fontSize: 24 }}>🔮</span>
+                <span>{selectedYear ? (lang === "ko" ? `${selectedYear}년 운세 상담받기` : `Consult about ${selectedYear}`) : (lang === "ko" ? "미래 운세 상담받기" : "Consult about future")}</span>
+                <span style={{ fontSize: 20 }}>→</span>
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

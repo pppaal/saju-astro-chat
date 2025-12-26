@@ -2015,7 +2015,17 @@ def warmup_models():
             tarot = get_tarot_hybrid_rag()
             logger.info(f"  ✅ TarotHybridRAG loaded")
 
-        # 6. Redis cache connection
+        # 6. Dream RAG (for faster dream interpretation)
+        try:
+            from backend_ai.app.dream_logic import get_dream_embed_rag
+            dream_rag = get_dream_embed_rag()
+            # Warmup query to pre-compute any lazy embeddings
+            _ = dream_rag.search("꿈 해석 테스트", top_k=1)
+            logger.info(f"  ✅ DreamEmbedRAG loaded and warmed up")
+        except Exception as dream_err:
+            logger.warning(f"  ⚠️ DreamEmbedRAG warmup failed: {dream_err}")
+
+        # 7. Redis cache connection
         cache = get_cache()
         logger.info(f"  ✅ Redis cache: {'connected' if cache.enabled else 'memory fallback'}")
 

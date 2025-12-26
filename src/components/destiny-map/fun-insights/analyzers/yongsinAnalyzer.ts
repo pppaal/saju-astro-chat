@@ -1,6 +1,7 @@
 import { elementTraits } from '../data';
+import type { SajuData } from '../types';
 
-export function getYongsinAnalysis(saju: any, lang: string): { title: string; element: string; why: string; how: string; emoji: string } | null {
+export function getYongsinAnalysis(saju: SajuData | undefined, lang: string): { title: string; element: string; why: string; how: string; emoji: string } | null {
   const isKo = lang === "ko";
   const fiveElements = saju?.fiveElements;
   if (!fiveElements) return null;

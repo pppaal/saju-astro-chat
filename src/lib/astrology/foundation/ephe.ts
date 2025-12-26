@@ -1,24 +1,34 @@
 // Shared Swiss Ephemeris accessor (server-only)
-import path from "path";
+// IMPORTANT: This file must not have any top-level imports that would fail in the browser.
+// All Node.js-specific imports (path, swisseph) are done dynamically inside getSwisseph().
 
 let sw: any;
 let ephePathSet = false;
 
-function ensureEphePath() {
-  if (ephePathSet || !sw) return;
-  const ephePath = process.env.EPHE_PATH || path.join(process.cwd(), "public", "ephe");
-  sw.swe_set_ephe_path(ephePath);
-  ephePathSet = true;
-}
-
+/**
+ * Returns the Swiss Ephemeris module. Server-only.
+ * Throws an error if called from the browser.
+ */
 export function getSwisseph() {
+  // Prevent usage in browser environment
   if (typeof window !== "undefined") {
     throw new Error("swisseph is server-only and must not run in the browser.");
   }
+
   if (!sw) {
-    // Lazy require to avoid bundling into client
+    // Dynamic require to avoid bundling into client
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     sw = require("swisseph");
   }
-  ensureEphePath();
+
+  if (!ephePathSet && sw) {
+    // Dynamic require of path module
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require("path");
+    const ephePath = process.env.EPHE_PATH || path.join(process.cwd(), "public", "ephe");
+    sw.swe_set_ephe_path(ephePath);
+    ephePathSet = true;
+  }
+
   return sw;
 }

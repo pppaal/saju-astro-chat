@@ -1,19 +1,22 @@
 import { elementTraits, elementKeyMap, monthElements } from '../data';
+import type { SajuData, AstroData, UnseItem } from '../types';
 
-export function getTimeBasedFortune(saju: any, astro: any, lang: string): {
+interface TimeBasedFortuneResult {
   year?: { title: string; message: string; advice: string; emoji: string };
   month?: { title: string; message: string; advice?: string; emoji: string };
   today?: { title: string; message: string; tip: string; emoji: string };
   growth?: { title: string; stage: string; message: string; emoji: string };
-} | null {
+}
+
+export function getTimeBasedFortune(saju: SajuData | undefined, astro: AstroData | undefined, lang: string): TimeBasedFortuneResult | null {
   const isKo = lang === "ko";
-  const result: any = {};
+  const result: TimeBasedFortuneResult = {};
 
   // 올해 운세 (Solar Return + 사주 세운)
   const solarReturn = astro?.solarReturn?.summary;
   const currentYear = new Date().getFullYear();
   const annualList = saju?.unse?.annual;
-  const thisYearSaju = Array.isArray(annualList) ? annualList.find((a: any) => a.year === currentYear) : null;
+  const thisYearSaju = Array.isArray(annualList) ? annualList.find((a: UnseItem) => a.year === currentYear) : null;
 
   if (solarReturn || thisYearSaju) {
     let message = "";
@@ -21,8 +24,6 @@ export function getTimeBasedFortune(saju: any, astro: any, lang: string): {
 
     if (typeof solarReturn === 'string') {
       message = solarReturn;
-    } else if (solarReturn?.theme) {
-      message = solarReturn.theme;
     } else if (thisYearSaju) {
       // 사주 기반 간단한 메시지
       const ganji = thisYearSaju.ganji || "";
@@ -68,7 +69,7 @@ export function getTimeBasedFortune(saju: any, astro: any, lang: string): {
   const lunarReturn = astro?.lunarReturn?.summary;
   const currentMonth = new Date().getMonth() + 1;
   const monthlyList = saju?.unse?.monthly;
-  const thisMonthSaju = Array.isArray(monthlyList) ? monthlyList.find((m: any) => m.month === currentMonth) : null;
+  const thisMonthSaju = Array.isArray(monthlyList) ? monthlyList.find((m: UnseItem) => m.month === currentMonth) : null;
 
   if (lunarReturn || thisMonthSaju) {
     let message = "";
@@ -77,11 +78,10 @@ export function getTimeBasedFortune(saju: any, astro: any, lang: string): {
     // 기존 lunarReturn 메시지가 있으면 사용
     if (typeof lunarReturn === 'string' && lunarReturn.length > 50) {
       message = lunarReturn;
-    } else if (lunarReturn?.theme && typeof lunarReturn.theme === 'string' && lunarReturn.theme.length > 50) {
-      message = lunarReturn.theme;
     } else if (thisMonthSaju) {
       // 월운 간지로 이번 달 에너지 판단
-      const ganjiMonth = thisMonthSaju.ganji || thisMonthSaju.month_ganji || "";
+      const ganjiRaw = thisMonthSaju.ganji || (thisMonthSaju as Record<string, unknown>).month_ganji || "";
+      const ganjiMonth = typeof ganjiRaw === 'string' ? ganjiRaw : "";
 
       if (ganjiMonth.includes("甲") || ganjiMonth.includes("乙")) {
         message = isKo
@@ -129,7 +129,8 @@ export function getTimeBasedFortune(saju: any, astro: any, lang: string): {
   // 오늘 (사주 일진)
   const todayDate = new Date().toISOString().slice(0, 10);
   const iljinList = saju?.unse?.iljin;
-  const todayIljin = Array.isArray(iljinList) ? iljinList.find((i: any) => i.day === todayDate) : null;
+  const todayDayNum = new Date().getDate();
+  const todayIljin = Array.isArray(iljinList) ? iljinList.find((i: UnseItem) => i.day === todayDate || i.day === todayDayNum) : null;
 
   if (todayIljin) {
     const ganji = todayIljin.ganji || "";

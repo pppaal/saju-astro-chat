@@ -1,0 +1,125 @@
+/* src/components/ui/MarkdownMessage.module.css */
+/* Beautiful markdown styling for chat messages */
+
+.markdown {
+  line-height: 1.75;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 단락 */
+.paragraph {
+  margin: 0 0 0.75em 0;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* 굵은 텍스트 - 보라색 그라데이션 강조 */
+.strong {
+  font-weight: 600;
+  background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 기울임 */
+.em {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 리스트 */
+.list,
+.orderedList {
+  margin: 0.75em 0;
+  padding-left: 1.5em;
+}
+
+.listItem {
+  margin: 0.4em 0;
+  position: relative;
+}
+
+.list .listItem::marker {
+  color: #a78bfa;
+}
+
+.orderedList .listItem::marker {
+  color: #a78bfa;
+  font-weight: 500;
+}
+
+/* 코드 */
+.code {
+  background: rgba(139, 92, 246, 0.2);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.9em;
+  color: #c4b5fd;
+}
+
+/* 링크 */
+.link {
+  color: #a78bfa;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.3);
+  transition: all 0.2s ease;
+}
+
+.link:hover {
+  color: #c4b5fd;
+  border-bottom-color: rgba(196, 181, 253, 0.6);
+}
+
+/* 헤딩 */
+.heading1,
+.heading2,
+.heading3 {
+  font-weight: 600;
+  margin: 1em 0 0.5em 0;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.heading1 {
+  font-size: 1.4em;
+}
+
+.heading2 {
+  font-size: 1.2em;
+}
+
+.heading3 {
+  font-size: 1.1em;
+}
+
+/* 인용구 */
+.blockquote {
+  margin: 0.75em 0;
+  padding: 0.75em 1em;
+  border-left: 3px solid #a78bfa;
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 0 8px 8px 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-style: italic;
+}
+
+.blockquote p {
+  margin: 0;
+}
+
+/* 구분선 */
+.hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.4),
+    transparent
+  );
+  margin: 1em 0;
+}

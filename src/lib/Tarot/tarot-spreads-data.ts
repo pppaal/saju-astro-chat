@@ -61,6 +61,19 @@ export const tarotThemes: TarotTheme[] = [
     descriptionKo: "연애와 관계에 대해 물어봐요.",
     spreads: [
       {
+        id: "crush-feelings",
+        title: "Do They Like Me?",
+        titleKo: "그 사람 마음",
+        cardCount: 3,
+        description: "Discover what your crush really feels about you.",
+        descriptionKo: "그 사람이 나를 어떻게 생각하는지 봐요.",
+        positions: [
+          { title: "Their Feelings", titleKo: "상대 마음" },
+          { title: "What They Want", titleKo: "원하는 것" },
+          { title: "Possibility", titleKo: "가능성" }
+        ],
+      },
+      {
         id: "relationship-check-in",
         title: "Relationship Check-in",
         titleKo: "관계 점검",
@@ -70,6 +83,20 @@ export const tarotThemes: TarotTheme[] = [
         positions: [
           { title: "Your Energy", titleKo: "내 마음" },
           { title: "Partner's Energy", titleKo: "상대 마음" }
+        ],
+      },
+      {
+        id: "reconciliation",
+        title: "Reconciliation",
+        titleKo: "재회 가능성",
+        cardCount: 4,
+        description: "Can you get back together? What are the chances?",
+        descriptionKo: "헤어진 사람과 다시 만날 수 있을까요?",
+        positions: [
+          { title: "Their Current State", titleKo: "상대 현재 상태" },
+          { title: "Your Energy", titleKo: "내 에너지" },
+          { title: "Obstacles", titleKo: "장애물" },
+          { title: "Outcome", titleKo: "결과" }
         ],
       },
       {
@@ -118,6 +145,46 @@ export const tarotThemes: TarotTheme[] = [
         description: "A single point of focus or advice for your professional life today.",
         descriptionKo: "오늘 일에서 집중할 포인트.",
         positions: [{ title: "Key Focus", titleKo: "핵심" }],
+      },
+      {
+        id: "interview-result",
+        title: "Interview Result",
+        titleKo: "면접 결과",
+        cardCount: 3,
+        description: "What are your chances? What should you focus on?",
+        descriptionKo: "면접 붙을까요? 어떻게 준비하면 좋을까요?",
+        positions: [
+          { title: "Your Energy", titleKo: "내 에너지" },
+          { title: "Interviewer's View", titleKo: "면접관 시선" },
+          { title: "Outcome", titleKo: "결과" }
+        ],
+      },
+      {
+        id: "exam-pass",
+        title: "Exam Success",
+        titleKo: "시험 합격",
+        cardCount: 3,
+        description: "Will you pass? What do you need to focus on?",
+        descriptionKo: "시험 붙을 수 있을까요? 집중할 부분은?",
+        positions: [
+          { title: "Current Preparation", titleKo: "현재 준비 상태" },
+          { title: "What to Focus", titleKo: "집중할 부분" },
+          { title: "Outcome", titleKo: "결과" }
+        ],
+      },
+      {
+        id: "job-change",
+        title: "Should I Quit?",
+        titleKo: "이직할까",
+        cardCount: 4,
+        description: "Is it time to move on? What are the risks and rewards?",
+        descriptionKo: "지금 이직해도 될까요? 타이밍은?",
+        positions: [
+          { title: "Current Situation", titleKo: "현재 상황" },
+          { title: "If You Stay", titleKo: "남으면" },
+          { title: "If You Leave", titleKo: "떠나면" },
+          { title: "Advice", titleKo: "조언" }
+        ],
       },
       {
         id: "career-path",
@@ -417,6 +484,32 @@ export const tarotThemes: TarotTheme[] = [
           { title: "Afternoon", titleKo: "낮" },
           { title: "Evening", titleKo: "저녁" }
         ],
+      },
+      {
+        id: "weekly-forecast",
+        title: "Weekly Forecast",
+        titleKo: "이번 주 운세",
+        cardCount: 7,
+        description: "A card for each day of the week.",
+        descriptionKo: "월요일부터 일요일까지 일주일 흐름.",
+        positions: [
+          { title: "Monday", titleKo: "월요일" },
+          { title: "Tuesday", titleKo: "화요일" },
+          { title: "Wednesday", titleKo: "수요일" },
+          { title: "Thursday", titleKo: "목요일" },
+          { title: "Friday", titleKo: "금요일" },
+          { title: "Saturday", titleKo: "토요일" },
+          { title: "Sunday", titleKo: "일요일" }
+        ],
+      },
+      {
+        id: "oracle-message",
+        title: "Oracle Message",
+        titleKo: "오라클 메시지",
+        cardCount: 1,
+        description: "A special message the universe wants you to hear.",
+        descriptionKo: "우주가 전하고 싶은 메시지.",
+        positions: [{ title: "Message", titleKo: "메시지" }],
       },
     ],
   },

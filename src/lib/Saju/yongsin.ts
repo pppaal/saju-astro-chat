@@ -1,7 +1,7 @@
 // src/lib/Saju/yongsin.ts
 // 용신(用神) 선정 모듈 - 사주명리학 핵심 기능
 
-import { FiveElement, YinYang, SajuPillars, PillarData } from './types';
+import { FiveElement, YinYang, SajuPillars, PillarData, SajuPillarsInput } from './types';
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
 
 /**
@@ -47,15 +47,8 @@ export interface ElementStats {
   수: number;
 }
 
-/**
- * 사주 입력 타입 (간소화)
- */
-export interface SajuPillarsInput {
-  year: { stem: string; branch: string };
-  month: { stem: string; branch: string };
-  day: { stem: string; branch: string };
-  time: { stem: string; branch: string };
-}
+// Re-export for backward compatibility
+export type { SajuPillarsInput };
 
 // ============ 헬퍼 함수들 ============
 

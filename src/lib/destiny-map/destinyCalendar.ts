@@ -11,7 +11,30 @@
  * - 영역별 분석: 재물/연애/건강/직업 세부 점수
  * - 점성술 트랜짓: 태양/달 위상 분석
  * - 교차 검증: 사주+점성술 시너지/경고
+ * - 고급 예측: 공망/신살/에너지/시간대 최적화 (ultraPrecisionEngine)
+ * - 대운-트랜짓 동기화: 목성회귀/토성회귀 (daeunTransitSync)
  */
+
+import {
+  calculateDailyPillar,
+  analyzeGongmang,
+  analyzeShinsal,
+  analyzeEnergyFlow,
+  generateHourlyAdvice,
+} from '@/lib/prediction/ultraPrecisionEngine';
+import {
+  analyzeDaeunTransitSync,
+  convertSajuDaeunToInfo,
+} from '@/lib/prediction/daeunTransitSync';
+import {
+  analyzeMultiLayer,
+  analyzeBranchInteractions,
+  calculatePreciseTwelveStage,
+  calculateYearlyGanji,
+  calculateMonthlyGanji as advancedMonthlyGanji,
+  type BranchInteraction,
+  type LayerAnalysis,
+} from '@/lib/prediction/advancedTimingEngine';
 
 // ============================================================
 // 천을귀인(天乙貴人) - 가장 좋은 귀인 (from saju.ts)
@@ -2089,6 +2112,53 @@ export interface ImportantDate {
   astroFactorKeys: string[];       // 점성술 분석 요소 키
   recommendationKeys: string[];    // 추천 활동 키
   warningKeys: string[];           // 주의사항 키
+
+  // === 고급 예측 필드 (ultraPrecisionEngine + daeunTransitSync) ===
+  confidence?: number;             // 분석 신뢰도 (0-100%)
+  confidenceNote?: string;         // 신뢰도 설명
+  gongmangStatus?: {               // 공망 상태
+    isEmpty: boolean;
+    emptyBranches: string[];
+    affectedAreas: string[];
+  };
+  shinsalActive?: {                // 활성 신살
+    name: string;
+    type: 'lucky' | 'unlucky' | 'special';
+    affectedArea: string;
+  }[];
+  energyFlow?: {                   // 에너지 흐름
+    strength: 'very_strong' | 'strong' | 'moderate' | 'weak' | 'very_weak';
+    dominantElement: string;
+    tonggeunCount: number;
+    tuechulCount: number;
+  };
+  bestHours?: {                    // 최적 시간대
+    hour: number;
+    siGan: string;
+    quality: 'excellent' | 'good' | 'neutral' | 'caution';
+  }[];
+  transitSync?: {                  // 대운-트랜짓 동기화
+    isMajorTransitYear: boolean;
+    transitType?: string;          // 'jupiter_return' | 'saturn_return' | 'saturn_opposition'
+    synergyType?: 'amplify' | 'clash' | 'balance' | 'neutral';
+    synergyScore?: number;
+  };
+  activityScores?: {               // 활동별 점수
+    marriage?: number;
+    career?: number;
+    investment?: number;
+    moving?: number;
+    surgery?: number;
+    study?: number;
+  };
+  // === 시간 구분 (과거/현재/미래) ===
+  timeContext?: {
+    isPast: boolean;
+    isFuture: boolean;
+    isToday: boolean;
+    daysFromToday: number;
+    retrospectiveNote?: string;    // 과거 날짜에 대한 회고적 분석
+  };
 }
 
 export interface CalendarMonth {
@@ -2164,6 +2234,63 @@ const RELATION_NAMES: Record<string, { ko: string; en: string }> = {
 };
 
 /**
+ * 활동별 점수 계산 (고급 분석용)
+ * 기본 점수에 공망/신살/에너지 흐름을 반영
+ */
+function calculateActivityScore(
+  activityType: 'love' | 'career' | 'wealth' | 'travel' | 'health' | 'study',
+  baseScore: number,
+  gongmang: { isEmpty: boolean; affectedAreas: string[] },
+  shinsals: { name: string; type: 'lucky' | 'unlucky' | 'special'; affectedArea: string }[],
+  energy: { strength: string; dominantElement: string }
+): number {
+  let score = baseScore;
+
+  // 공망 영향: 해당 영역이 공망 영역에 포함되면 -10
+  if (gongmang.isEmpty || gongmang.affectedAreas.includes(activityType)) {
+    score -= 10;
+  }
+
+  // 신살 영향: 해당 영역에 적용되는 신살 반영
+  for (const shinsal of shinsals) {
+    if (shinsal.affectedArea.includes(activityType) || shinsal.affectedArea === 'all') {
+      if (shinsal.type === 'lucky') {
+        score += 8;
+      } else if (shinsal.type === 'unlucky') {
+        score -= 8;
+      }
+    }
+  }
+
+  // 에너지 강도 반영
+  const energyBonus: Record<string, number> = {
+    very_strong: 5,
+    strong: 3,
+    moderate: 0,
+    weak: -3,
+    very_weak: -5,
+  };
+  score += energyBonus[energy.strength] || 0;
+
+  // 활동별 오행 조합 반영
+  const activityElements: Record<string, string[]> = {
+    love: ['fire', 'wood'],
+    career: ['metal', 'earth'],
+    wealth: ['earth', 'metal'],
+    travel: ['water', 'fire'],
+    health: ['wood', 'water'],
+    study: ['water', 'wood'],
+  };
+
+  const preferredElements = activityElements[activityType] || [];
+  if (preferredElements.includes(energy.dominantElement)) {
+    score += 5;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+/**
  * 날짜 분석 - 교차 검증 (세운 + 월운 + 일진 + 점성술)
  */
 function analyzeDate(
@@ -2225,6 +2352,74 @@ function analyzeDate(
   const dayMasterStem = sajuProfile.dayMaster;
   const iljinAnalysis = calculateIljinScore(dayMasterElement, dayMasterStem, dayBranch, date);
 
+  // === 고급 다층 분석 (대운+세운+월운 레이어 상호작용) ===
+  let advancedMultiLayerScore = 0;
+  let advancedBranchInteractions: BranchInteraction[] = [];
+
+  if (dayMasterStem && dayBranch) {
+    try {
+      // 세운/월운 간지 계산 (advancedTimingEngine 사용)
+      const advSaeun = calculateYearlyGanji(year);
+      const advWolun = advancedMonthlyGanji(year, month);
+
+      // 대운 정보 (있으면 사용)
+      let daeunInfo: { stem: string; branch: string } | undefined;
+      if (sajuProfile.daeunCycles && sajuProfile.daeunCycles.length > 0 && sajuProfile.birthYear) {
+        const currentAge = year - sajuProfile.birthYear;
+        // daeunCycles는 각 대운의 시작 나이(age)와 천간/지지를 가짐
+        // 현재 나이에 해당하는 대운 찾기 (각 대운은 10년 주기)
+        const sortedDaeuns = [...sajuProfile.daeunCycles].sort((a, b) => a.age - b.age);
+        const currentDaeun = sortedDaeuns.find((d, idx) => {
+          const nextDaeun = sortedDaeuns[idx + 1];
+          if (nextDaeun) {
+            return currentAge >= d.age && currentAge < nextDaeun.age;
+          }
+          return currentAge >= d.age; // 마지막 대운
+        });
+        if (currentDaeun && currentDaeun.heavenlyStem && currentDaeun.earthlyBranch) {
+          daeunInfo = { stem: currentDaeun.heavenlyStem, branch: currentDaeun.earthlyBranch };
+        }
+      }
+
+      // 다층 레이어 분석
+      const multiLayerResult = analyzeMultiLayer({
+        dayStem: dayMasterStem,
+        dayBranch: dayBranch,
+        daeun: daeunInfo,
+        saeun: advSaeun,
+        wolun: advWolun,
+      });
+
+      // 레이어 상호작용 점수 합산
+      for (const interaction of multiLayerResult.interactions) {
+        advancedMultiLayerScore += interaction.scoreModifier * 0.3;
+      }
+
+      // 지지 상호작용 분석 (육합/삼합/충/형 등)
+      advancedBranchInteractions = multiLayerResult.branchInteractions;
+      for (const bInter of advancedBranchInteractions) {
+        advancedMultiLayerScore += bInter.score * 0.25;
+      }
+
+      // 정밀 12운성 분석 (월지 기준)
+      const preciseStage = calculatePreciseTwelveStage(dayMasterStem, advWolun.branch);
+
+      // 12운성 에너지 단계에 따른 보너스/페널티
+      if (preciseStage.energy === 'peak') {
+        advancedMultiLayerScore += 8;  // 건록/제왕
+      } else if (preciseStage.energy === 'rising') {
+        advancedMultiLayerScore += 4;  // 장생/목욕/관대/태/양
+      } else if (preciseStage.energy === 'declining') {
+        advancedMultiLayerScore -= 2;  // 쇠/병/사
+      } else if (preciseStage.energy === 'dormant') {
+        advancedMultiLayerScore -= 5;  // 묘/절
+      }
+    } catch {
+      // 오류 발생 시 무시 (기본 분석 유지)
+      advancedMultiLayerScore = 0;
+    }
+  }
+
   // === 달 위상 분석 (기존) ===
   const lunarPhase = getLunarPhase(date);
 
@@ -2270,7 +2465,8 @@ function analyzeDate(
     + Math.round(planetTransits.score * 0.15)
     + Math.round(advancedAstroScore * 0.10)
     + Math.round(advancedSajuScore * 0.20)  // 용신/격국 가중치 20%
-    + Math.round(advancedAstroExtra * 0.15); // Solar Return/Progressions 15%
+    + Math.round(advancedAstroExtra * 0.15) // Solar Return/Progressions 15%
+    + Math.round(advancedMultiLayerScore);  // 다층 레이어 + 지지 상호작용 + 12운성
   const categories: EventCategory[] = [];
   let titleKey = "";
   let descKey = "";
@@ -2282,6 +2478,29 @@ function analyzeDate(
   const astroFactorKeys: string[] = [];
   const recommendationKeys: string[] = [];
   const warningKeys: string[] = [];
+
+  // === 고급 지지 상호작용 결과 반영 ===
+  for (const bInter of advancedBranchInteractions) {
+    if (bInter.impact === 'positive') {
+      sajuPositive = true;
+      sajuFactorKeys.push(`advanced_${bInter.type}`);
+      if (bInter.type === '육합') {
+        recommendationKeys.push("partnership", "harmony");
+      } else if (bInter.type === '삼합') {
+        recommendationKeys.push("collaboration", "synergy");
+      } else if (bInter.type === '방합') {
+        recommendationKeys.push("expansion", "growth");
+      }
+    } else if (bInter.impact === 'negative') {
+      sajuNegative = true;
+      sajuFactorKeys.push(`advanced_${bInter.type}`);
+      if (bInter.type === '충') {
+        warningKeys.push("conflict", "change");
+      } else if (bInter.type === '형') {
+        warningKeys.push("tension", "challenge");
+      }
+    }
+  }
 
   // === 천을귀인(天乙貴人) 체크 - 가장 좋은 귀인 ===
   // dayMasterStem은 일진 분석에서 이미 선언됨 (line ~1115)
@@ -2900,54 +3119,16 @@ function analyzeDate(
   );
 
   // ========================================
-  // 5등급 시스템 (완화된 조건)
-  // Grade 0: 천운의 날 (월 1~2일)
-  // Grade 1: 아주 좋은 날 (월 3~5일)
-  // Grade 2: 좋은 날 (월 6~8일)
-  // Grade 3: 보통 날 (대부분)
-  // Grade 4: 나쁜 날 (월 3~5일)
+  // 5등급 시스템 (균형 조정)
+  // Grade 0: 천운의 날 (연 7~11일, 약 2%)
+  // Grade 1: 아주 좋은 날 (연 36~55일, 약 10-15%)
+  // Grade 2: 좋은 날 (연 55~110일, 약 15-30%)
+  // Grade 3: 보통 날 (연 150~220일, 약 40-60%)
+  // Grade 4: 나쁜 날 (연 36~55일, 약 10-15%)
   // ========================================
-
-  const isCheununDay = (
-    // 조건 1: 높은 점수 + 교차검증 + 양쪽 긍정 + 강점 (월 1일)
-    (
-      score >= 87 &&
-      crossVerified &&
-      sajuPositive && astroPositive &&
-      sajuStrengthCount >= 1 &&
-      hasNoMajorRetrograde
-    ) ||
-    // 조건 2: 생일 특별 조건
-    (isBirthdaySpecial && score >= 78)
-  );
 
   // 역행 개수 카운트 (수성/금성/화성만 - 개인 영향 큼)
   const retrogradeCount = [hasMercuryRetrograde, hasVenusRetrograde, hasMarsRetrograde].filter(Boolean).length;
-
-  const isVeryGoodDay = (
-    // 높은 점수 + 교차검증 + 양쪽 긍정 (월 3~5일)
-    score >= 80 &&
-    crossVerified &&
-    sajuPositive && astroPositive &&
-    hasNoMajorRetrograde
-  );
-
-  const isGoodDay = (
-    // 좋은 점수 + 교차검증 (월 6~8일)
-    // 역행 1개까지는 허용, 단 점수가 더 높아야 함
-    (
-      score >= 72 &&
-      crossVerified &&
-      (sajuPositive || astroPositive) &&
-      hasNoMajorRetrograde
-    ) ||
-    (
-      score >= 78 &&
-      crossVerified &&
-      (sajuPositive || astroPositive) &&
-      retrogradeCount <= 1  // 역행 1개까지 허용
-    )
-  );
 
   // 나쁜 요소 개수 카운트 - 사주 + 점성학 모두 포함
   const sajuBadCount = [hasChung, hasXing, hasKibsinMatch].filter(Boolean).length;
@@ -2958,16 +3139,65 @@ function analyzeDate(
   ].filter(Boolean).length;
   const totalBadCount = sajuBadCount + astroBadCount;
 
+  // 총 강점 개수 계산 (사주 + 점성학)
+  const totalStrengthCount = sajuStrengthCount + astroStrengthCount;
+
+  const isCheununDay = (
+    // 조건 1: 높은 점수 + 교차검증 + 양쪽 긍정 + 강점 풍부 + 역행 없음 (연 7~11일, 약 2%)
+    (
+      score >= 85 &&  // 점수 조건 추가
+      crossVerified &&
+      sajuPositive && astroPositive &&
+      astroStrengthCount >= 3 &&  // 점성학 강점 3개 이상 (7개 중)
+      sajuStrengthCount >= 1 &&  // 사주 강점 1개 이상
+      hasNoMajorRetrograde &&
+      sajuBadCount === 0  // 사주 나쁜 요소 없음
+    ) ||
+    // 조건 2: 생일 특별 조건
+    (isBirthdaySpecial && score >= 80 && sajuBadCount === 0 && astroStrengthCount >= 2)
+  );
+
+  const isVeryGoodDay = (
+    // 높은 점수 + 교차검증 + 양쪽 긍정 + 역행 없음 + 강점 (연 36~55일, 약 10-15%)
+    score >= 75 &&  // 점수 조건 추가
+    crossVerified &&
+    sajuPositive && astroPositive &&
+    hasNoMajorRetrograde &&
+    astroStrengthCount >= 3 &&  // 점성학 강점 3개 이상
+    sajuBadCount === 0  // 사주 나쁜 요소 없음
+  );
+
+  const isGoodDay = (
+    // 좋은 점수 + 교차검증 + 양쪽 긍정 + 역행 없음 + 강점 (연 55~110일, 약 15-30%)
+    (
+      score >= 65 &&  // 점수 조건 추가
+      crossVerified &&
+      sajuPositive && astroPositive &&
+      hasNoMajorRetrograde &&
+      astroStrengthCount >= 2 &&  // 점성학 강점 2개 이상
+      sajuBadCount === 0  // 사주 나쁜 요소 없음
+    ) ||
+    // 한쪽 긍정만이라도 강점이 충분하면 OK
+    (
+      score >= 70 &&  // 점수 조건 추가
+      crossVerified &&
+      (sajuPositive || astroPositive) &&
+      hasNoMajorRetrograde &&
+      totalStrengthCount >= 4 &&
+      sajuBadCount === 0
+    )
+  );
+
   const isBadDay = (
-    // 나쁜 날 조건 (월 3~5일)
-    score <= 35 ||  // 매우 낮은 점수 (하위 ~10%)
-    (score <= 45 && sajuNegative) ||  // 낮은 점수 + 사주 부정
-    (score <= 45 && astroNegative) ||  // 낮은 점수 + 점성학 부정
+    // 나쁜 날 조건 (연 36~55일, 약 10-15%)
+    score <= 38 ||  // 매우 낮은 점수 (하위 ~10%)
+    (score <= 45 && sajuNegative && !sajuPositive) ||  // 낮은 점수 + 사주만 부정
+    (score <= 45 && astroNegative && !astroPositive) ||  // 낮은 점수 + 점성학만 부정
     (hasChung && hasXing) ||  // 충+형 동시 (사주)
-    (hasChung && astroNegative) ||  // 충 + 점성학 부정
-    (hasXing && astroNegative) ||  // 형 + 점성학 부정
-    (sajuBadCount >= 1 && astroBadCount >= 2) ||  // 사주 1개 + 점성학 2개
-    (totalBadCount >= 3 && score <= 50)  // 총 3개 + 낮은 점수
+    (hasChung && astroNegative && score <= 50) ||  // 충 + 점성학 부정 + 낮은 점수
+    (hasXing && astroNegative && score <= 50) ||  // 형 + 점성학 부정 + 낮은 점수
+    (sajuBadCount >= 2 && astroBadCount >= 1 && score <= 55) ||  // 사주 2개 + 점성학 1개 + 점수 조건
+    (totalBadCount >= 3 && score <= 48)  // 총 3개 + 낮은 점수
   );
 
   if (isCheununDay) {
@@ -3024,6 +3254,155 @@ function analyzeDate(
     }
   }
 
+  // ============================================================
+  // 고급 예측 분석 (ultraPrecisionEngine + daeunTransitSync)
+  // ============================================================
+
+  // 1. 일진 간지 계산
+  const dailyPillar = calculateDailyPillar(date);
+  const dayStem = sajuProfile.dayMaster || dailyPillar.stem;
+
+  // 2. 공망(空亡) 분석
+  const gongmangBranches = analyzeGongmang(dayStem, dayBranch || dailyPillar.branch, dailyPillar.branch);
+  const gongmangStatus = {
+    isEmpty: gongmangBranches.isToday空,
+    emptyBranches: gongmangBranches.emptyBranches,
+    affectedAreas: gongmangBranches.affectedAreas,
+  };
+
+  // 3. 신살(神煞) 분석
+  const shinsalResult = analyzeShinsal(dayBranch || dailyPillar.branch, dailyPillar.branch);
+  const shinsalActive = shinsalResult.active.map(s => ({
+    name: s.name,
+    type: s.type,
+    affectedArea: s.affectedArea,
+  }));
+
+  // 4. 에너지 흐름 분석 (통근/투출)
+  const allStems = sajuProfile.pillars
+    ? [sajuProfile.pillars.year?.stem, sajuProfile.pillars.month?.stem, sajuProfile.pillars.day?.stem, sajuProfile.pillars.time?.stem].filter(Boolean) as string[]
+    : [dayStem];
+  const allBranches = sajuProfile.pillars
+    ? [sajuProfile.pillars.year?.branch, sajuProfile.pillars.month?.branch, sajuProfile.pillars.day?.branch, sajuProfile.pillars.time?.branch].filter(Boolean) as string[]
+    : [dayBranch || dailyPillar.branch];
+  const energyResult = analyzeEnergyFlow(dayStem, allStems, allBranches);
+  const energyFlow = {
+    strength: energyResult.energyStrength as 'very_strong' | 'strong' | 'moderate' | 'weak' | 'very_weak',
+    dominantElement: energyResult.dominantElement,
+    tonggeunCount: energyResult.tonggeun.length,
+    tuechulCount: energyResult.tuechul.length,
+  };
+
+  // 5. 최적 시간대 분석
+  const hourlyAdvice = generateHourlyAdvice(dayStem, dayBranch || dailyPillar.branch);
+  const bestHours = hourlyAdvice
+    .filter(h => h.quality === 'excellent' || h.quality === 'good')
+    .slice(0, 4)
+    .map(h => ({
+      hour: h.hour,
+      siGan: h.siGan,
+      quality: h.quality,
+    }));
+
+  // 6. 대운-트랜짓 동기화 분석 (목성회귀, 토성회귀)
+  let transitSync: {
+    isMajorTransitYear: boolean;
+    transitType?: string;
+    synergyType?: 'amplify' | 'clash' | 'balance' | 'neutral';
+    synergyScore?: number;
+  } = { isMajorTransitYear: false };
+
+  if (sajuProfile.birthYear && sajuProfile.daeunCycles && sajuProfile.daeunCycles.length > 0) {
+    const daeunInfo = convertSajuDaeunToInfo(sajuProfile.daeunCycles);
+    const currentAge = year - sajuProfile.birthYear;
+    const syncAnalysis = analyzeDaeunTransitSync(daeunInfo, sajuProfile.birthYear, currentAge);
+
+    // 해당 연도에 major transition이 있는지 확인
+    const majorTransitionForYear = syncAnalysis.majorTransitions.find((t: { year: number }) => t.year === year);
+    if (majorTransitionForYear) {
+      // 트랜짓 타입 결정 (첫 번째 트랜짓 사용)
+      const primaryTransit = majorTransitionForYear.transits[0];
+      transitSync = {
+        isMajorTransitYear: true,
+        transitType: primaryTransit?.type || 'daeun_transition',
+        synergyType: majorTransitionForYear.synergyType,
+        synergyScore: majorTransitionForYear.synergyScore,
+      };
+    }
+  }
+
+  // 7. 신뢰도 계산
+  let confidenceBase = 60;
+  const confidenceNotes: string[] = [];
+
+  if (sajuProfile.pillars?.time) {
+    confidenceBase += 15;
+  } else {
+    confidenceNotes.push('시주 없음');
+  }
+  if (sajuProfile.daeunCycles && sajuProfile.daeunCycles.length > 0) {
+    confidenceBase += 10;
+  } else {
+    confidenceNotes.push('대운 정보 없음');
+  }
+  if (sajuProfile.yongsin) {
+    confidenceBase += 10;
+  } else {
+    confidenceNotes.push('용신 정보 없음');
+  }
+  if (crossVerified) {
+    confidenceBase += 5;
+  }
+  const confidence = Math.min(confidenceBase, 100);
+  const confidenceNote = confidenceNotes.length > 0
+    ? `제한: ${confidenceNotes.join(', ')}`
+    : '완전한 분석';
+
+  // 8. 활동별 점수 계산
+  const activityScores = {
+    marriage: calculateActivityScore('love', score, gongmangStatus, shinsalActive, energyFlow),
+    career: calculateActivityScore('career', score, gongmangStatus, shinsalActive, energyFlow),
+    investment: calculateActivityScore('wealth', score, gongmangStatus, shinsalActive, energyFlow),
+    moving: calculateActivityScore('travel', score, gongmangStatus, shinsalActive, energyFlow),
+    surgery: calculateActivityScore('health', score, gongmangStatus, shinsalActive, energyFlow),
+    study: calculateActivityScore('study', score, gongmangStatus, shinsalActive, energyFlow),
+  };
+
+  // 9. 시간 맥락 (과거/현재/미래) 분석
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+  const daysFromToday = Math.round((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  const isPast = daysFromToday < 0;
+  const isFuture = daysFromToday > 0;
+  const isToday = daysFromToday === 0;
+
+  // 과거 날짜에 대한 회고적 분석 노트 생성
+  let retrospectiveNote: string | undefined;
+  if (isPast) {
+    if (grade <= 1) {
+      retrospectiveNote = '이 날은 매우 좋은 기운이 있었습니다. 주요 성과나 좋은 일이 있었을 가능성이 높습니다.';
+    } else if (grade >= 4) {
+      retrospectiveNote = '이 날은 도전적인 기운이 있었습니다. 어려움이나 장애물이 있었을 수 있습니다.';
+    } else if (gongmangStatus.isEmpty) {
+      retrospectiveNote = '공망이 활성화된 날이었습니다. 계획했던 일이 예상대로 진행되지 않았을 수 있습니다.';
+    } else if (shinsalActive.some(s => s.type === 'lucky')) {
+      retrospectiveNote = '길신이 활성화된 날이었습니다. 예상치 못한 도움이나 행운이 있었을 수 있습니다.';
+    } else if (transitSync.isMajorTransitYear) {
+      retrospectiveNote = `${transitSync.transitType} 주기의 해였습니다. 인생의 중요한 전환점이었을 수 있습니다.`;
+    }
+  }
+
+  const timeContext = {
+    isPast,
+    isFuture,
+    isToday,
+    daysFromToday,
+    retrospectiveNote,
+  };
+
   return {
     date: dateStr,
     grade,
@@ -3038,6 +3417,16 @@ function analyzeDate(
     astroFactorKeys,
     recommendationKeys,
     warningKeys,
+    // 고급 예측 필드
+    confidence,
+    confidenceNote,
+    gongmangStatus,
+    shinsalActive,
+    energyFlow,
+    bestHours,
+    transitSync,
+    activityScores,
+    timeContext,
   };
 }
 

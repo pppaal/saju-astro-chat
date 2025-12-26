@@ -27,6 +27,10 @@ interface ImportantDate {
   astroFactors: string[];
   recommendations: string[];
   warnings: string[];
+  // 신규 분석 데이터 (확장)
+  ganzhi?: string;           // 일주 간지
+  transitSunSign?: string;   // 트랜짓 태양 별자리
+  crossVerified?: boolean;   // 사주+점성술 교차 검증
 }
 
 interface CalendarData {
@@ -117,6 +121,11 @@ function DestinyCalendarContent() {
   const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
+  // Theme state
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  // Month transition direction
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+
   // 저장 상태
   const [savedDates, setSavedDates] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -152,24 +161,7 @@ function DestinyCalendarContent() {
     if (profile.gender) setBirthInfo(prev => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }));
   }, []);
 
-  // Auto-load profile for authenticated users and auto-submit if complete
-  useEffect(() => {
-    if (status === 'authenticated' && !profileLoaded && !loadingProfile) {
-      handleLoadProfile();
-    }
-  }, [status]);
-
-  // Auto-submit when profile is loaded and complete
-  useEffect(() => {
-    if (profileLoaded && birthInfo.birthDate && birthInfo.birthTime && birthInfo.birthPlace && selectedCity) {
-      // Wait a bit for user to see the loaded data
-      const timer = setTimeout(() => {
-        setSubmitting(true);
-        fetchCalendar(birthInfo);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [profileLoaded, selectedCity]);
+  // Auto-load/auto-submit disabled - user must click manually
 
   // Load profile from DB for authenticated users
   const handleLoadProfile = async () => {
@@ -692,15 +684,30 @@ function DestinyCalendarContent() {
   };
 
   const prevMonth = () => {
+    setSlideDirection('right');
     setCurrentDate(new Date(year, month - 1, 1));
+    setTimeout(() => setSlideDirection(null), 300);
   };
 
   const nextMonth = () => {
+    setSlideDirection('left');
     setCurrentDate(new Date(year, month + 1, 1));
+    setTimeout(() => setSlideDirection(null), 300);
   };
 
   const goToToday = () => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    if (today.getMonth() > month || today.getFullYear() > year) {
+      setSlideDirection('left');
+    } else if (today.getMonth() < month || today.getFullYear() < year) {
+      setSlideDirection('right');
+    }
+    setCurrentDate(today);
+    setTimeout(() => setSlideDirection(null), 300);
+  };
+
+  const toggleTheme = () => {
+    setIsDarkTheme(!isDarkTheme);
   };
 
   const getGradeEmoji = (grade: number): string => {
@@ -722,7 +729,7 @@ function DestinyCalendarContent() {
 
   const days = getMonthDays();
 
-  // 생년월일 입력 폼 - Destiny Map 스타일
+  // 생년월일 입력 폼 - Dream 스타일
   if (!hasBirthInfo) {
     return (
       <div className={styles.introContainer}>
@@ -730,210 +737,207 @@ function DestinyCalendarContent() {
         <BackButton />
 
         <main className={styles.introMain}>
-          <div className={styles.card}>
-            <div className={styles.creditBadgeWrapper}>
-              <CreditBadge variant="compact" />
+          <div className={styles.pageHeader}>
+            <div className={styles.iconWrapper}>
+              <span className={styles.icon}>{ICONS.calendar}</span>
             </div>
-            <div className={styles.header}>
-              <div className={styles.iconWrapper}>
-                <span className={styles.icon}>{ICONS.calendar}</span>
-              </div>
-              <h1 className={styles.title}>
-                {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
-              </h1>
-              <p className={styles.subtitle}>
+            <h1 className={styles.pageTitle}>
+              {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
+            </h1>
+            <p className={styles.pageSubtitle}>
+              {locale === "ko"
+                ? "동서양 운세를 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다"
+                : "Cross-analyze Eastern and Western fortune to find your important dates"}
+            </p>
+          </div>
+
+          <div className={styles.birthFormCard}>
+            <div className={styles.formHeader}>
+              <span className={styles.formIcon}>🎂</span>
+              <h3 className={styles.formTitle}>
+                {locale === "ko" ? "생년월일을 입력해주세요" : "Enter Your Birth Info"}
+              </h3>
+              <p className={styles.formSubtitle}>
                 {locale === "ko"
-                  ? "동서양 운세를 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다"
-                  : "Cross-analyze Eastern and Western fortune to find your important dates"}
+                  ? "정확한 분석을 위해 필요한 정보입니다"
+                  : "Required for accurate analysis"}
               </p>
             </div>
 
+            {/* Load Profile Button */}
+            {status === 'authenticated' && !profileLoaded && (
+              <button
+                type="button"
+                className={styles.loadProfileButton}
+                onClick={handleLoadProfile}
+                disabled={loadingProfile}
+              >
+                <span className={styles.loadProfileIcon}>
+                  {loadingProfile ? '⏳' : '👤'}
+                </span>
+                <span className={styles.loadProfileText}>
+                  {loadingProfile
+                    ? (locale === 'ko' ? '불러오는 중...' : 'Loading...')
+                    : (locale === 'ko' ? '내 프로필 불러오기' : 'Load My Profile')}
+                </span>
+                <span className={styles.loadProfileArrow}>→</span>
+              </button>
+            )}
+
+            {/* Profile loaded success message */}
+            {status === 'authenticated' && profileLoaded && (
+              <div className={styles.profileLoadedMessage}>
+                <span className={styles.profileLoadedIcon}>✓</span>
+                <span className={styles.profileLoadedText}>
+                  {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+                </span>
+              </div>
+            )}
+
             <form onSubmit={handleBirthInfoSubmit} className={styles.form}>
-              {/* Auto-loading message for authenticated users */}
-              {status === 'authenticated' && loadingProfile && (
-                <div className={styles.autoLoadingMessage}>
-                  <span className={styles.autoLoadingIcon}>⏳</span>
-                  <span className={styles.autoLoadingText}>
-                    {locale === 'ko' ? '저장된 프로필을 불러오는 중...' : 'Loading your saved profile...'}
-                  </span>
-                </div>
-              )}
-
-              {/* Profile loaded success message */}
-              {status === 'authenticated' && profileLoaded && (
-                <div className={styles.profileLoadedMessage}>
-                  <span className={styles.profileLoadedIcon}>✓</span>
-                  <span className={styles.profileLoadedText}>
-                    {locale === 'ko' ? '프로필 불러오기 완료! 잠시 후 자동으로 분석됩니다...' : 'Profile loaded! Auto-analyzing your calendar...'}
-                  </span>
-                </div>
-              )}
-
-              <div className={styles.grid2}>
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>{ICONS.calendar}</span>
-                    {locale === "ko" ? "생년월일" : "Birth Date"}
-                  </label>
-                  <input
-                    type="date"
-                    className={styles.input}
-                    value={birthInfo.birthDate}
-                    onChange={(e) => setBirthInfo({ ...birthInfo, birthDate: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>{ICONS.clock}</span>
-                    {locale === "ko" ? "출생 시간" : "Birth Time"}
-                  </label>
-                  <input
-                    type="time"
-                    className={styles.input}
-                    value={birthInfo.birthTime}
-                    onChange={(e) => setBirthInfo({ ...birthInfo, birthTime: e.target.value })}
-                    required
-                  />
-                </div>
+              {/* Birth Date */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>
+                  {locale === "ko" ? "생년월일" : "Birth Date"}
+                  <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="date"
+                  className={styles.input}
+                  value={birthInfo.birthDate}
+                  onChange={(e) => setBirthInfo({ ...birthInfo, birthDate: e.target.value })}
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                  min="1900-01-01"
+                />
               </div>
 
-              <div className={styles.grid2}>
-                <div className={styles.field} style={{ position: 'relative' }}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>{ICONS.globe}</span>
-                    {locale === "ko" ? "출생 도시" : "Birth City"}
-                  </label>
-                  <input
-                    className={styles.input}
-                    placeholder={locale === "ko" ? "도시를 입력하세요" : "Enter your city"}
-                    value={birthInfo.birthPlace}
-                    onChange={(e) => {
-                      setBirthInfo({ ...birthInfo, birthPlace: e.target.value });
-                      setIsUserTyping(true);
-                      setOpenSug(true);
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => setOpenSug(false), 150);
-                      setIsUserTyping(false);
-                    }}
-                    autoComplete="off"
-                    required
-                  />
-                  {openSug && suggestions.length > 0 && (
-                    <ul className={styles.dropdown}>
-                      {suggestions.map((s, idx) => (
-                        <li
-                          key={`${s.name}-${s.country}-${idx}`}
-                          className={styles.dropdownItem}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            onPickCity(s);
-                          }}
-                        >
-                          <span className={styles.cityName}>{s.name}</span>
-                          <span className={styles.country}>{s.country}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+              {/* Birth Time */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>
+                  {locale === "ko" ? "출생 시간" : "Birth Time"}
+                  <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="time"
+                  className={styles.input}
+                  value={birthInfo.birthTime}
+                  onChange={(e) => setBirthInfo({ ...birthInfo, birthTime: e.target.value })}
+                  required
+                />
+              </div>
 
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>{ICONS.gender}</span>
-                    {locale === "ko" ? "성별" : "Gender"}
-                  </label>
-                  <div className={styles.genderSelectWrapper}>
-                    <button
-                      type="button"
-                      className={`${styles.genderSelect} ${genderOpen ? styles.genderSelectOpen : ''}`}
-                      onClick={() => setGenderOpen(!genderOpen)}
-                      onBlur={() => setTimeout(() => setGenderOpen(false), 150)}
-                    >
-                      <span className={styles.genderIcon}>
-                        {birthInfo.gender === 'Male' ? '♂' : '♀'}
-                      </span>
-                      <span className={styles.genderText}>
-                        {birthInfo.gender === 'Male'
-                          ? (locale === "ko" ? '남성' : 'Male')
-                          : (locale === "ko" ? '여성' : 'Female')}
-                      </span>
-                      <span className={`${styles.genderArrow} ${genderOpen ? styles.genderArrowOpen : ''}`}>
-                        ▾
-                      </span>
-                    </button>
-                    {genderOpen && (
-                      <div className={styles.genderDropdown}>
-                        <button
-                          type="button"
-                          className={`${styles.genderOption} ${birthInfo.gender === 'Male' ? styles.genderOptionActive : ''}`}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setBirthInfo({ ...birthInfo, gender: 'Male' });
-                            setGenderOpen(false);
-                          }}
-                        >
-                          <span className={styles.genderOptionIcon}>♂</span>
-                          <span className={styles.genderOptionText}>{locale === "ko" ? '남성' : 'Male'}</span>
-                          {birthInfo.gender === 'Male' && <span className={styles.genderCheck}>✓</span>}
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.genderOption} ${birthInfo.gender === 'Female' ? styles.genderOptionActive : ''}`}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setBirthInfo({ ...birthInfo, gender: 'Female' });
-                            setGenderOpen(false);
-                          }}
-                        >
-                          <span className={styles.genderOptionIcon}>♀</span>
-                          <span className={styles.genderOptionText}>{locale === "ko" ? '여성' : 'Female'}</span>
-                          {birthInfo.gender === 'Female' && <span className={styles.genderCheck}>✓</span>}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+              {/* Birth City */}
+              <div className={styles.fieldGroup} style={{ position: 'relative' }}>
+                <label className={styles.label}>
+                  {locale === "ko" ? "출생 도시" : "Birth City"}
+                  <span className={styles.required}>*</span>
+                </label>
+                <input
+                  className={styles.input}
+                  placeholder={locale === "ko" ? "도시를 입력하세요" : "Enter your city"}
+                  value={birthInfo.birthPlace}
+                  onChange={(e) => {
+                    setBirthInfo({ ...birthInfo, birthPlace: e.target.value });
+                    setIsUserTyping(true);
+                    setOpenSug(true);
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => setOpenSug(false), 150);
+                    setIsUserTyping(false);
+                  }}
+                  autoComplete="off"
+                  required
+                />
+                {openSug && suggestions.length > 0 && (
+                  <ul className={styles.dropdown}>
+                    {suggestions.map((s, idx) => (
+                      <li
+                        key={`${s.name}-${s.country}-${idx}`}
+                        className={styles.dropdownItem}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          onPickCity(s);
+                        }}
+                      >
+                        <span className={styles.cityName}>{s.name}</span>
+                        <span className={styles.country}>{s.country}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Gender */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>
+                  {locale === "ko" ? "성별" : "Gender"}
+                  <span className={styles.required}>*</span>
+                </label>
+                <div className={styles.genderButtons}>
+                  <button
+                    type="button"
+                    className={`${styles.genderBtn} ${birthInfo.gender === 'Male' ? styles.active : ''}`}
+                    onClick={() => setBirthInfo({ ...birthInfo, gender: 'Male' })}
+                  >
+                    <span>👨</span>
+                    <span>{locale === "ko" ? "남성" : "Male"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.genderBtn} ${birthInfo.gender === 'Female' ? styles.active : ''}`}
+                    onClick={() => setBirthInfo({ ...birthInfo, gender: 'Female' })}
+                  >
+                    <span>👩</span>
+                    <span>{locale === "ko" ? "여성" : "Female"}</span>
+                  </button>
                 </div>
               </div>
 
               {cityErr && <div className={styles.error}>{cityErr}</div>}
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 className={styles.submitButton}
-                disabled={submitting}
+                disabled={submitting || !birthInfo.birthDate || !birthInfo.birthTime || !birthInfo.birthPlace}
               >
-                <span className={styles.buttonText}>
-                  {submitting
-                    ? (locale === "ko" ? "분석 중..." : "Analyzing...")
-                    : (locale === "ko" ? "운명의 날 찾기" : "Find Your Destiny Days")}
-                </span>
-                <span className={styles.buttonIcon}>→</span>
+                {submitting ? (
+                  <>
+                    <div className={styles.buttonSpinner} />
+                    <span>{locale === "ko" ? "분석 중..." : "Analyzing..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✨</span>
+                    <span>{locale === "ko" ? "운명의 날 찾기" : "Find Your Destiny Days"}</span>
+                  </>
+                )}
               </button>
             </form>
 
-            <div className={styles.features}>
-              <div className={styles.feature}>
-                <span className={styles.featureIcon}>{ICONS.star}</span>
-                <span className={styles.featureText}>
-                  {locale === "ko" ? "최고의 날" : "Best Days"}
-                </span>
+            {status === 'unauthenticated' && (
+              <div className={styles.loginHint}>
+                <p>
+                  {locale === "ko"
+                    ? "로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요"
+                    : "Log in to save your info for a better experience"}
+                </p>
+                <a href="/auth/signin" className={styles.loginLink}>
+                  {locale === "ko" ? "로그인하기" : "Log in"}
+                </a>
               </div>
-              <div className={styles.feature}>
-                <span className={styles.featureIcon}>{ICONS.crystal}</span>
-                <span className={styles.featureText}>
-                  {locale === "ko" ? "동양 운세" : "Eastern Fortune"}
-                </span>
-              </div>
-              <div className={styles.feature}>
-                <span className={styles.featureIcon}>{ICONS.sparkle}</span>
-                <span className={styles.featureText}>
-                  {locale === "ko" ? "서양 운세" : "Western Fortune"}
-                </span>
-              </div>
-            </div>
+            )}
+          </div>
+
+          {/* Quick Tips */}
+          <div className={styles.quickTips}>
+            <h4>{locale === "ko" ? "💡 이런 분들께 추천해요" : "💡 Recommended for"}</h4>
+            <ul>
+              <li>{locale === "ko" ? "중요한 일정을 잡아야 할 때" : "Planning important events"}</li>
+              <li>{locale === "ko" ? "좋은 날과 조심할 날을 알고 싶을 때" : "Know your best and caution days"}</li>
+              <li>{locale === "ko" ? "사주와 점성술을 함께 참고하고 싶을 때" : "Want both Saju and Astrology insights"}</li>
+            </ul>
           </div>
         </main>
       </div>
@@ -974,37 +978,62 @@ function DestinyCalendarContent() {
 
   const CATEGORIES: EventCategory[] = ["wealth", "career", "love", "health", "travel", "study"];
 
+  // 월간 운세 그래프 데이터 계산
+  const getMonthFortuneData = () => {
+    if (!data?.allDates) return [];
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthData: { day: number; grade: number; score: number }[] = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dateInfo = data.allDates.find(d => d.date === dateStr);
+      monthData.push({
+        day,
+        grade: dateInfo?.grade ?? 3,
+        score: dateInfo?.score ?? 50
+      });
+    }
+    return monthData;
+  };
+
+  const fortuneData = getMonthFortuneData();
+  const goodDaysCount = fortuneData.filter(d => d.grade <= 2).length;
+  const badDaysCount = fortuneData.filter(d => d.grade === 4).length;
+
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
       <BackButton />
 
       {/* 헤더 */}
       <div className={styles.calendarHeader}>
         <div className={styles.headerLeft}>
           <h1 className={styles.calendarTitle}>
-            📅 {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
+            {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
           </h1>
           <button className={styles.editBirthBtn} onClick={() => setHasBirthInfo(false)}>
-            ✏️ {locale === "ko" ? "생일 수정" : "Edit Birth"}
+            {locale === "ko" ? "수정" : "Edit"}
           </button>
         </div>
 
-        {/* Summary */}
-        {data?.summary && (
-          <div className={styles.summaryBadges}>
-            {data.summary.grade0 > 0 && (
-              <span className={styles.summaryBadge}>
-                💫 {data.summary.grade0}
+        <div className={styles.headerActions}>
+          {/* Summary - 천운, 최고, 주의 */}
+          {data?.summary && (
+            <div className={styles.summaryBadges}>
+              <span className={styles.summaryBadge} title="천운의 날">
+                <span className={styles.badgeLabel}>{locale === "ko" ? "천운" : "Celestial"}</span>
+                <span className={styles.badgeCount}>{data.summary.grade0}</span>
               </span>
-            )}
-            <span className={styles.summaryBadge}>
-              🌟 {data.summary.grade1}
-            </span>
-            <span className={styles.summaryBadge}>
-              ⚠️ {data.summary.grade3}
-            </span>
-          </div>
-        )}
+              <span className={styles.summaryBadge} title="최고의 날">
+                <span className={styles.badgeLabel}>{locale === "ko" ? "최고" : "Great"}</span>
+                <span className={styles.badgeCount}>{data.summary.grade1}</span>
+              </span>
+              <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title="주의가 필요한 날">
+                <span className={styles.badgeLabel}>{locale === "ko" ? "주의" : "Caution"}</span>
+                <span className={styles.badgeCount}>{data.summary.grade4}</span>
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 월 네비게이션 */}
@@ -1054,20 +1083,54 @@ function DestinyCalendarContent() {
         </div>
 
         {/* 날짜 그리드 */}
-        <div className={styles.daysGrid}>
+        <div
+          className={`${styles.daysGrid} ${slideDirection === 'left' ? styles.slideLeft : ''} ${slideDirection === 'right' ? styles.slideRight : ''}`}
+          role="grid"
+          aria-label={locale === "ko" ? `${year}년 ${month + 1}월 캘린더` : `Calendar for ${MONTHS[month]} ${year}`}
+        >
           {days.map((date, idx) => {
             const dateInfo = date ? getDateInfo(date) : undefined;
+            const isToday = date &&
+              date.getDate() === new Date().getDate() &&
+              date.getMonth() === new Date().getMonth() &&
+              date.getFullYear() === new Date().getFullYear();
+
+            const getGradeLabel = (grade: number) => {
+              const labels = {
+                0: locale === "ko" ? "천운의 날" : "Celestial Day",
+                1: locale === "ko" ? "아주 좋은 날" : "Very Good Day",
+                2: locale === "ko" ? "좋은 날" : "Good Day",
+                3: locale === "ko" ? "보통 날" : "Normal Day",
+                4: locale === "ko" ? "나쁜 날" : "Bad Day",
+              };
+              return labels[grade as keyof typeof labels] || labels[3];
+            };
+
             return (
               <div
                 key={idx}
                 className={getDayClassName(date)}
                 onClick={() => handleDayClick(date)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleDayClick(date);
+                  }
+                }}
+                role="gridcell"
+                tabIndex={date ? 0 : -1}
+                aria-label={date ? `${date.getDate()}${locale === "ko" ? "일" : ""}, ${dateInfo ? getGradeLabel(dateInfo.grade) : locale === "ko" ? "정보 없음" : "No info"}${isToday ? (locale === "ko" ? ", 오늘" : ", Today") : ""}` : undefined}
+                aria-selected={!!(selectedDay && date &&
+                  date.getDate() === selectedDay.getDate() &&
+                  date.getMonth() === selectedDay.getMonth() &&
+                  date.getFullYear() === selectedDay.getFullYear())}
+                aria-current={isToday ? "date" : undefined}
               >
                 {date && (
                   <>
                     <span className={styles.dayNumber}>{date.getDate()}</span>
                     {dateInfo && (
-                      <div className={styles.dayIndicators}>
+                      <div className={styles.dayIndicators} aria-hidden="true">
                         {dateInfo.categories.slice(0, 2).map((cat, i) => (
                           <span key={i} className={styles.dayEmoji}>{CATEGORY_EMOJI[cat]}</span>
                         ))}
@@ -1088,25 +1151,64 @@ function DestinyCalendarContent() {
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade0Dot}`}></span>
-          <span>{locale === "ko" ? "천운의 날" : "Celestial Day"}</span>
+          <span>{locale === "ko" ? "천운" : "Celestial"}</span>
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade1Dot}`}></span>
-          <span>{locale === "ko" ? "아주 좋은 날" : "Very Good Day"}</span>
+          <span>{locale === "ko" ? "최고" : "Great"}</span>
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade2Dot}`}></span>
-          <span>{locale === "ko" ? "좋은 날" : "Good Day"}</span>
+          <span>{locale === "ko" ? "좋음" : "Good"}</span>
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade3Dot}`}></span>
-          <span>{locale === "ko" ? "보통 날" : "Normal Day"}</span>
+          <span>{locale === "ko" ? "보통" : "Normal"}</span>
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade4Dot}`}></span>
-          <span>{locale === "ko" ? "나쁜 날" : "Bad Day"}</span>
+          <span>{locale === "ko" ? "주의" : "Caution"}</span>
         </div>
       </div>
+
+      {/* 월간 운세 그래프 */}
+      {fortuneData.length > 0 && (
+        <div className={styles.fortuneGraph}>
+          <div className={styles.graphHeader}>
+            <span className={styles.graphTitle}>
+              📊 {locale === "ko" ? "월간 운세 흐름" : "Monthly Fortune Flow"}
+            </span>
+            <div className={styles.graphStats}>
+              <span className={styles.graphStat}>
+                <span className={`${styles.graphStatDot} ${styles.good}`}></span>
+                {locale === "ko" ? `좋은 날 ${goodDaysCount}일` : `${goodDaysCount} good days`}
+              </span>
+              <span className={styles.graphStat}>
+                <span className={`${styles.graphStatDot} ${styles.bad}`}></span>
+                {locale === "ko" ? `주의 ${badDaysCount}일` : `${badDaysCount} caution`}
+              </span>
+            </div>
+          </div>
+          <div className={styles.sparkline}>
+            {fortuneData.map((d, idx) => {
+              const isSelected = selectedDay && selectedDay.getDate() === d.day && selectedDay.getMonth() === month;
+              const height = Math.max(10, (100 - d.grade * 20)) + '%';
+              return (
+                <div
+                  key={idx}
+                  className={`${styles.sparkBar} ${styles[`grade${d.grade}`]} ${isSelected ? styles.active : ''}`}
+                  style={{ height }}
+                  onClick={() => {
+                    const clickedDate = new Date(year, month, d.day);
+                    handleDayClick(clickedDate);
+                  }}
+                  title={`${d.day}${locale === "ko" ? "일" : ""}: ${d.score}점`}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 선택된 날짜 정보 */}
       {selectedDay && (
@@ -1144,6 +1246,16 @@ function DestinyCalendarContent() {
             <div className={styles.selectedDayContent}>
               <h3 className={styles.selectedTitle}>{selectedDate.title}</h3>
 
+              {/* 교차 검증 배지 */}
+              {selectedDate.crossVerified && (
+                <div className={styles.crossVerifiedBadge}>
+                  <span className={styles.crossVerifiedIcon}>🔮</span>
+                  <span className={styles.crossVerifiedText}>
+                    {locale === "ko" ? "사주 + 점성술 교차 검증 완료" : "Saju + Astrology Cross-verified"}
+                  </span>
+                </div>
+              )}
+
               {/* 한줄 요약 - 가장 눈에 띄게 */}
               {selectedDate.summary && (
                 <div className={styles.summaryBox}>
@@ -1153,15 +1265,38 @@ function DestinyCalendarContent() {
 
               <p className={styles.selectedDesc}>{selectedDate.description}</p>
 
-              {/* 추천 시간대 */}
+              {/* 간지 정보 */}
+              {selectedDate.ganzhi && (
+                <div className={styles.ganzhiBox}>
+                  <span className={styles.ganzhiLabel}>
+                    {locale === "ko" ? "일주" : "Day Pillar"}
+                  </span>
+                  <span className={styles.ganzhiValue}>{selectedDate.ganzhi}</span>
+                  {selectedDate.transitSunSign && (
+                    <>
+                      <span className={styles.ganzhiDivider}>|</span>
+                      <span className={styles.ganzhiLabel}>
+                        {locale === "ko" ? "태양" : "Sun"}
+                      </span>
+                      <span className={styles.ganzhiValue}>{selectedDate.transitSunSign}</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* 추천 시간대 - 카드 형식으로 개선 */}
               {selectedDate.bestTimes && selectedDate.bestTimes.length > 0 && (
                 <div className={styles.bestTimesBox}>
                   <h4 className={styles.bestTimesTitle}>
-                    ⏰ {locale === "ko" ? "오늘의 좋은 시간" : "Best Times Today"}
+                    <span className={styles.bestTimesIcon}>⏰</span>
+                    {locale === "ko" ? "오늘의 좋은 시간" : "Best Times Today"}
                   </h4>
                   <div className={styles.bestTimesList}>
                     {selectedDate.bestTimes.map((time, i) => (
-                      <span key={i} className={styles.bestTimeItem}>{time}</span>
+                      <span key={i} className={styles.bestTimeItem}>
+                        <span className={styles.bestTimeNumber}>{i + 1}</span>
+                        {time}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -1175,31 +1310,30 @@ function DestinyCalendarContent() {
                 ))}
               </div>
 
-              <div className={styles.scoreBar}>
-                <div
-                  className={`${styles.scoreFill} ${getScoreClass(selectedDate.score)}`}
-                  style={{ width: `${selectedDate.score}%` }}
-                />
+              {/* 점수 바 - 애니메이션 추가 */}
+              <div className={styles.scoreWrapper}>
+                <div className={styles.scoreBar}>
+                  <div
+                    className={`${styles.scoreFill} ${getScoreClass(selectedDate.score)}`}
+                    style={{ width: `${selectedDate.score}%` }}
+                  />
+                </div>
+                <span className={styles.scoreText}>
+                  {locale === "ko" ? "점수" : "Score"}: {selectedDate.score}/100
+                </span>
               </div>
-              <span className={styles.scoreText}>
-                {locale === "ko" ? "점수" : "Score"}: {selectedDate.score}/100
-              </span>
 
-              {/* 통합 분석 - 사주 + 점성술 */}
-              {((selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0) ||
-                (selectedDate.astroFactors && selectedDate.astroFactors.length > 0)) && (
+              {/* 사주 분석 섹션 */}
+              {selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0 && (
                 <div className={styles.analysisSection}>
                   <h4 className={styles.analysisTitle}>
-                    <span className={styles.analysisBadge}>✨</span>
-                    {locale === "ko" ? "오늘의 운세 분석" : "Today's Fortune Analysis"}
+                    <span className={styles.analysisBadge}>☯️</span>
+                    {locale === "ko" ? "사주 분석" : "Saju Analysis"}
                   </h4>
                   <ul className={styles.analysisList}>
-                    {/* 사주 + 점성술 요소 통합하여 최대 4개 표시 */}
-                    {[...(selectedDate.sajuFactors || []), ...(selectedDate.astroFactors || [])]
-                      .slice(0, 4)
-                      .map((factor, i) => (
+                    {selectedDate.sajuFactors.slice(0, 4).map((factor, i) => (
                       <li key={i} className={styles.analysisItem}>
-                        <span className={styles.analysisDot}></span>
+                        <span className={styles.analysisDotSaju}></span>
                         {factor}
                       </li>
                     ))}
@@ -1207,23 +1341,55 @@ function DestinyCalendarContent() {
                 </div>
               )}
 
-              {selectedDate.recommendations.length > 0 && (
-                <div className={styles.infoSection}>
-                  <h4>{locale === "ko" ? "✨ 오늘의 행운 키" : "✨ Lucky Keys"}</h4>
-                  <ul>
-                    {selectedDate.recommendations.slice(0, 3).map((r, i) => (
-                      <li key={i}>{r}</li>
+              {/* 점성술 분석 섹션 */}
+              {selectedDate.astroFactors && selectedDate.astroFactors.length > 0 && (
+                <div className={styles.analysisSection}>
+                  <h4 className={styles.analysisTitle}>
+                    <span className={styles.analysisBadge}>🌟</span>
+                    {locale === "ko" ? "점성술 분석" : "Astrology Analysis"}
+                  </h4>
+                  <ul className={styles.analysisList}>
+                    {selectedDate.astroFactors.slice(0, 4).map((factor, i) => (
+                      <li key={i} className={styles.analysisItem}>
+                        <span className={styles.analysisDotAstro}></span>
+                        {factor}
+                      </li>
                     ))}
                   </ul>
                 </div>
               )}
 
+              {/* 행운 키 - 그리드 레이아웃 */}
+              {selectedDate.recommendations.length > 0 && (
+                <div className={styles.recommendationsSection}>
+                  <h4 className={styles.recommendationsTitle}>
+                    <span className={styles.recommendationsIcon}>✨</span>
+                    {locale === "ko" ? "오늘의 행운 키" : "Lucky Keys"}
+                  </h4>
+                  <div className={styles.recommendationsGrid}>
+                    {selectedDate.recommendations.slice(0, 4).map((r, i) => (
+                      <div key={i} className={styles.recommendationCard}>
+                        <span className={styles.recommendationNumber}>{i + 1}</span>
+                        <span className={styles.recommendationText}>{r}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 주의사항 - 경고 스타일 */}
               {selectedDate.warnings.length > 0 && (
-                <div className={styles.infoSection}>
-                  <h4>{locale === "ko" ? "⚡ 오늘의 주의보" : "⚡ Today's Alert"}</h4>
-                  <ul>
-                    {selectedDate.warnings.slice(0, 2).map((w, i) => (
-                      <li key={i}>{w}</li>
+                <div className={styles.warningsSection}>
+                  <h4 className={styles.warningsTitle}>
+                    <span className={styles.warningsIcon}>⚡</span>
+                    {locale === "ko" ? "오늘의 주의보" : "Today's Alert"}
+                  </h4>
+                  <ul className={styles.warningsList}>
+                    {selectedDate.warnings.slice(0, 3).map((w, i) => (
+                      <li key={i} className={styles.warningItem}>
+                        <span className={styles.warningDot}></span>
+                        {w}
+                      </li>
                     ))}
                   </ul>
                 </div>

@@ -3,32 +3,20 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 
 import type { FiveElement } from "@/lib/Saju/types";
+import { STEM_TO_ELEMENT, ELEMENT_KO_TO_EN as ELEMENT_EN } from "@/lib/Saju/stemElementMapping";
+import { getBackendUrl } from "@/lib/backend-url";
+import type { SajuData, AstroData, ShinsalItem, PlanetData } from "./fun-insights/types";
 
 interface Props {
-  saju?: any;
-  astro?: any;
+  saju?: SajuData;
+  astro?: AstroData;
   lang?: string;
   className?: string;
   useAI?: boolean; // AI 생성 스토리 사용 여부
 }
 
 // AI 백엔드 URL
-const AI_BACKEND_URL = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
-
-// 천간 → 오행 매핑
-const STEM_TO_ELEMENT: Record<string, FiveElement> = {
-  "甲": "목", "乙": "목", "丙": "화", "丁": "화",
-  "戊": "토", "己": "토", "庚": "금", "辛": "금",
-  "壬": "수", "癸": "수",
-  "갑": "목", "을": "목", "병": "화", "정": "화",
-  "무": "토", "기": "토", "경": "금", "신": "금",
-  "임": "수", "계": "수",
-};
-
-// 오행 영어 이름
-const ELEMENT_EN: Record<string, string> = {
-  "목": "Wood", "화": "Fire", "토": "Earth", "금": "Metal", "수": "Water"
-};
+const AI_BACKEND_URL = getBackendUrl();
 
 // 천간 상세 정보
 const STEM_INFO: Record<string, {
@@ -361,7 +349,7 @@ const STEM_KO_TO_HANJA: Record<string, string> = {
 };
 
 // 메인 스토리 생성
-function generateFullStory(saju: any, astro: any, lang: string): string {
+function generateFullStory(saju: SajuData | undefined, astro: AstroData | undefined, lang: string): string {
   const isKo = lang === "ko";
   const L = (obj: { ko: string; en: string } | undefined) => obj ? (isKo ? obj.ko : obj.en) : "";
 
@@ -380,10 +368,14 @@ function generateFullStory(saju: any, astro: any, lang: string): string {
   const stageInfo = TWELVE_STAGE[stage];
 
   const shinsals = saju?.shinsal || saju?.specialStars || [];
-  const shinsalList = Array.isArray(shinsals) ? shinsals.map((s: any) => s?.name || s?.kind || (typeof s === 'string' ? s : null)).filter(Boolean) : [];
+  const shinsalList: string[] = Array.isArray(shinsals) ? shinsals.map((s: ShinsalItem | string) => {
+    if (typeof s === 'string') return s;
+    return s?.name || s?.kind || null;
+  }).filter((s): s is string => s !== null && s !== undefined) : [];
 
-  const planets = astro?.planets || [];
-  const getPlanet = (n: string) => planets.find((p: any) => p?.name?.toLowerCase() === n);
+  const planetsRaw = astro?.planets || [];
+  const planets = Array.isArray(planetsRaw) ? planetsRaw : [];
+  const getPlanet = (n: string) => planets.find((p: PlanetData) => p?.name?.toLowerCase() === n);
   const sun = getPlanet("sun"), moon = getPlanet("moon"), mercury = getPlanet("mercury"), venus = getPlanet("venus"), mars = getPlanet("mars"), jupiter = getPlanet("jupiter");
 
   const sunSign = sun?.sign?.toLowerCase() || "aries", moonSign = moon?.sign?.toLowerCase() || "cancer";

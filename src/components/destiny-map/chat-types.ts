@@ -114,6 +114,30 @@ export interface AdvancedAstroData {
   compositeChart?: AstroData;
 }
 
+// Life prediction context for AI counselor
+export interface PredictionContext {
+  eventType?: string;
+  eventLabel?: string;
+  optimalPeriods?: Array<{
+    startDate: string;
+    endDate: string;
+    score: number;
+    grade: string;
+    reasons: string[];
+  }>;
+  avoidPeriods?: Array<{
+    startDate: string;
+    endDate: string;
+    score: number;
+    reasons: string[];
+  }>;
+  advice?: string;
+  tierAnalysis?: {
+    tier6?: { reasons: string[]; penalties: string[] };
+    tier7to10?: { reasons: string[]; penalties: string[]; confidence: number };
+  };
+}
+
 // Chat component props
 export interface ChatProps {
   profile: ChatProfile;
@@ -124,6 +148,8 @@ export interface ChatProps {
   saju?: SajuData;
   astro?: AstroData;
   advancedAstro?: AdvancedAstroData;
+  // Life prediction context (TIER 1-10 분석 결과)
+  predictionContext?: PredictionContext;
   // Premium features
   userContext?: UserContext;
   chatSessionId?: string;
@@ -152,6 +178,8 @@ export interface ChatPayload {
   astro?: AstroData;
   advancedAstro?: AdvancedAstroData;
   userContext?: UserContext;
+  // Life prediction context
+  predictionContext?: PredictionContext;
 }
 
 // PDF text content item (from pdfjs-dist)

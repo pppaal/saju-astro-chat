@@ -1,0 +1,23 @@
+{
+  "name": "DestinyPal",
+  "short_name": "DestinyPal",
+  "description": "AI Spiritual Mental Care Platform - Diagnose with Fate, Analyze with Psychology, Heal with Spirituality",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#0d1225",
+  "theme_color": "#0d1225",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/logo/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["lifestyle", "entertainment", "utilities"],
+  "prefer_related_applications": false
+}

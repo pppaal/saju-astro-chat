@@ -3,7 +3,9 @@
  * Manages caching of Saju and Astrology calculation results
  */
 
-const CACHE_KEY = "destinyChartData";
+const CACHE_KEY_PREFIX = "destinyChartData_";
+const CACHE_KEY_INDEX = "destinyChartDataKey";
+const LEGACY_CACHE_KEY = "destinyChartData"; // 레거시 호환
 const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
 export interface ChartCacheData {
@@ -42,12 +44,15 @@ export function saveChartData(
 ): void {
   try {
     const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude);
+    const cacheKey = `${CACHE_KEY_PREFIX}${birthDate}_${birthTime}`;
     const cacheData: ChartCacheData = {
       ...data,
       timestamp: Date.now(),
       birthKey,
     };
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    // 현재 활성 캐시 키 저장
+    sessionStorage.setItem(CACHE_KEY_INDEX, cacheKey);
   } catch (error) {
     console.warn("[ChartCache] Failed to save cache:", error);
   }
@@ -68,22 +73,30 @@ export function loadChartData(
   advancedAstro?: Record<string, unknown>;
 } | null {
   try {
-    const stored = sessionStorage.getItem(CACHE_KEY);
+    // 새로운 키 형식 시도
+    const cacheKey = `${CACHE_KEY_PREFIX}${birthDate}_${birthTime}`;
+    let stored = sessionStorage.getItem(cacheKey);
+
+    // 레거시 키로 폴백
+    if (!stored) {
+      stored = sessionStorage.getItem(LEGACY_CACHE_KEY);
+    }
+
     if (!stored) return null;
 
     const cached: ChartCacheData = JSON.parse(stored);
 
     // Check if cache is expired
     if (Date.now() - cached.timestamp > CACHE_DURATION) {
-      sessionStorage.removeItem(CACHE_KEY);
+      sessionStorage.removeItem(cacheKey);
+      sessionStorage.removeItem(LEGACY_CACHE_KEY);
       return null;
     }
 
     // Check if birth data matches
     const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude);
     if (cached.birthKey !== birthKey) {
-      // Different birth data - clear cache
-      sessionStorage.removeItem(CACHE_KEY);
+      // Different birth data - don't use this cache
       return null;
     }
 
@@ -99,8 +112,54 @@ export function loadChartData(
     };
   } catch (error) {
     console.warn("[ChartCache] Failed to load cache:", error);
-    // Clear corrupted cache
-    sessionStorage.removeItem(CACHE_KEY);
+    return null;
+  }
+}
+
+/**
+ * Load the most recent chart data (without birth data validation)
+ * Useful for counselor page where we trust the cached data
+ */
+export function loadCurrentChartData(): {
+  saju?: Record<string, unknown>;
+  astro?: Record<string, unknown>;
+  advancedAstro?: Record<string, unknown>;
+  birthDate?: string;
+  birthTime?: string;
+} | null {
+  try {
+    // 현재 활성 캐시 키 확인
+    const currentKey = sessionStorage.getItem(CACHE_KEY_INDEX);
+    let stored = currentKey ? sessionStorage.getItem(currentKey) : null;
+
+    // 레거시 키로 폴백
+    if (!stored) {
+      stored = sessionStorage.getItem(LEGACY_CACHE_KEY);
+    }
+
+    if (!stored) return null;
+
+    const cached = JSON.parse(stored);
+
+    // Check if cache is expired
+    if (Date.now() - cached.timestamp > CACHE_DURATION) {
+      return null;
+    }
+
+    // Validate data integrity
+    if (!cached.saju && !cached.astro) {
+      return null;
+    }
+
+    return {
+      saju: cached.saju,
+      astro: cached.astro,
+      advancedAstro: cached.advancedAstro,
+      birthDate: cached.birthDate,
+      birthTime: cached.birthTime,
+    };
+  } catch (error) {
+    console.warn("[ChartCache] Failed to load current cache:", error);
     return null;
   }
 }
@@ -110,7 +169,13 @@ export function loadChartData(
  */
 export function clearChartCache(): void {
   try {
-    sessionStorage.removeItem(CACHE_KEY);
+    // 현재 활성 캐시 키 확인 후 삭제
+    const currentKey = sessionStorage.getItem(CACHE_KEY_INDEX);
+    if (currentKey) {
+      sessionStorage.removeItem(currentKey);
+    }
+    sessionStorage.removeItem(CACHE_KEY_INDEX);
+    sessionStorage.removeItem(LEGACY_CACHE_KEY);
   } catch (error) {
     console.warn("[ChartCache] Failed to clear cache:", error);
   }

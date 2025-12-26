@@ -32,6 +32,17 @@ const services: Service[] = [
     featured: true,
   },
   {
+    id: "lifePrediction",
+    icon: "🔮",
+    title: "Life Prediction",
+    titleKo: "인생 예측",
+    description: "10년간의 운세 흐름과 인생 전환점을 미리 알아보세요",
+    descriptionEn: "Discover your 10-year fortune flow and life turning points",
+    href: "/life-prediction",
+    gradient: "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)",
+    featured: true,
+  },
+  {
     id: "tarot",
     icon: "♜",
     title: "Tarot",

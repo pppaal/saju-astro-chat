@@ -7,6 +7,7 @@ import BackButton from "@/components/ui/BackButton";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import styles from "./profile.module.css";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type CityHit = {
   name: string;
@@ -27,6 +28,7 @@ export default function ProfilePage() {
 }
 
 function ProfileContent() {
+  const { t, locale } = useI18n();
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -50,6 +52,8 @@ function ProfileContent() {
   // View/Edit mode - start in view mode if data exists
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasSavedData, setHasSavedData] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [credits, setCredits] = useState<{ remaining: number; total: number; plan: string } | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -59,24 +63,47 @@ function ProfileContent() {
 
   useEffect(() => {
     const load = async () => {
-      if (status !== "authenticated") return;
-      const res = await fetch("/api/me/profile", { cache: "no-store" });
-      if (!res.ok) return;
-      const { user } = await res.json();
-      if (!user) return;
-      if (user.birthDate) setBirthDate(user.birthDate);
-      if (user.birthTime) setBirthTime(user.birthTime);
-      if (user.gender) setGender(user.gender);
-      if (user.birthCity) setCity(user.birthCity);
-      if (user.tzId) setTzId(user.tzId);
+      if (status !== "authenticated") {
+        setInitialLoading(false);
+        return;
+      }
+      try {
+        // Load profile and credits in parallel
+        const [profileRes, creditsRes] = await Promise.all([
+          fetch("/api/me/profile", { cache: "no-store" }),
+          fetch("/api/me/credits", { cache: "no-store" })
+        ]);
 
-      // If user has saved birth data, show view mode
-      if (user.birthDate) {
-        setHasSavedData(true);
-        setIsEditMode(false);
-      } else {
-        // No data yet, show edit mode
-        setIsEditMode(true);
+        if (profileRes.ok) {
+          const { user } = await profileRes.json();
+          if (user) {
+            if (user.birthDate) setBirthDate(user.birthDate);
+            if (user.birthTime) setBirthTime(user.birthTime);
+            if (user.gender) setGender(user.gender);
+            if (user.birthCity) setCity(user.birthCity);
+            if (user.tzId) setTzId(user.tzId);
+
+            // If user has saved birth data, show view mode
+            if (user.birthDate) {
+              setHasSavedData(true);
+              setIsEditMode(false);
+            } else {
+              // No data yet, show edit mode
+              setIsEditMode(true);
+            }
+          }
+        }
+
+        if (creditsRes.ok) {
+          const data = await creditsRes.json();
+          setCredits({
+            remaining: data.credits?.remaining ?? 0,
+            total: data.credits?.monthly ?? 0,
+            plan: data.plan || 'free'
+          });
+        }
+      } finally {
+        setInitialLoading(false);
       }
     };
     load();
@@ -114,7 +141,7 @@ function ProfileContent() {
   const saveBirthInfo = async () => {
     setMsg("");
     if (!birthDate) {
-      setMsg("Please select your date of birth.");
+      setMsg(t("profile.error.birthDateRequired", "Please select your date of birth."));
       return;
     }
     setBusy(true);
@@ -131,13 +158,13 @@ function ProfileContent() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Failed to save");
-      setMsg("Saved successfully!");
+      if (!res.ok) throw new Error(data?.error || t("profile.error.saveFailed", "Failed to save"));
+      setMsg(t("profile.success.saved", "Saved successfully!"));
       setHasSavedData(true);
       setIsEditMode(false);
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Something went wrong";
-      setMsg(`Error: ${message}`);
+      const message = e instanceof Error ? e.message : t("profile.error.somethingWrong", "Something went wrong");
+      setMsg(`${t("common.error", "Error")}: ${message}`);
     } finally {
       setBusy(false);
     }
@@ -147,21 +174,30 @@ function ProfileContent() {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "-";
     const [year, month, day] = dateStr.split("-");
-    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+    if (locale === "ko") {
+      return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+    }
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   };
 
   // Format time for display (HH:mm -> localized time)
   const formatTime = (timeStr: string) => {
-    if (!timeStr) return "미입력";
+    if (!timeStr) return t("profile.notEntered", "Not entered");
     const [hour, minute] = timeStr.split(":");
     const h = parseInt(hour);
-    const period = h < 12 ? "오전" : "오후";
+    if (locale === "ko") {
+      const period = h < 12 ? "오전" : "오후";
+      const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      return `${period} ${displayHour}시 ${minute}분`;
+    }
+    const period = h < 12 ? "AM" : "PM";
     const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return `${period} ${displayHour}시 ${minute}분`;
+    return `${displayHour}:${minute} ${period}`;
   };
 
-  if (status === "loading") {
-    return <div className={styles.loading}>Loading...</div>;
+  if (status === "loading" || (status === "authenticated" && initialLoading)) {
+    return <div className={styles.loading}>{t("common.loading", "Loading...")}</div>;
   }
 
   if (!session) {
@@ -182,21 +218,47 @@ function ProfileContent() {
               <path d="M5 20c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <h1 className={styles.title}>My Profile</h1>
+          <h1 className={styles.title}>{t("profile.title", "My Profile")}</h1>
           <div className={styles.titleDecoration}>
             <span className={styles.decorLine}></span>
             <span className={styles.decorStar}>&#10022;</span>
             <span className={styles.decorLine}></span>
           </div>
-          <p className={styles.subtitle}>Manage your personal information</p>
+          <p className={styles.subtitle}>{t("profile.subtitle", "Manage your personal information")}</p>
+
+          {/* Membership & Credits Display */}
+          {credits && (
+            <div className={styles.membershipCard}>
+              <div className={styles.membershipHeader}>
+                <div className={`${styles.planBadge} ${styles[`plan${credits.plan.charAt(0).toUpperCase() + credits.plan.slice(1)}`]}`}>
+                  <span className={styles.planIcon}>
+                    {credits.plan === 'free' ? '🆓' : credits.plan === 'starter' ? '⭐' : credits.plan === 'pro' ? '💎' : '👑'}
+                  </span>
+                  <span className={styles.planName}>{t(`myjourney.plan.${credits.plan}`, credits.plan.toUpperCase())}</span>
+                </div>
+              </div>
+              <div className={styles.creditsDisplay}>
+                <div className={styles.creditsInfo}>
+                  <span className={styles.creditsCount}>{credits.remaining}</span>
+                  <span className={styles.creditsLabel}>{t("myjourney.credits.short", "credits")}</span>
+                </div>
+                <button
+                  className={styles.upgradeBtn}
+                  onClick={() => router.push('/pricing')}
+                >
+                  {credits.plan === 'free' ? t("profile.upgrade", "Upgrade") : t("profile.manage", "Manage")}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <section className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <h2 className={styles.cardTitle}>Birth Information</h2>
+            <h2 className={styles.cardTitle}>{t("profile.birthInfo.title", "Birth Information")}</h2>
             <p className={styles.cardDesc}>
-              Your birth data is used for accurate 동양 운세 및 서양 운세 readings
+              {t("profile.birthInfo.desc", "Your birth data is used for accurate fortune readings")}
             </p>
           </div>
           {hasSavedData && !isEditMode && (
@@ -208,7 +270,7 @@ function ProfileContent() {
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Edit
+              {t("common.edit", "Edit")}
             </button>
           )}
         </div>
@@ -218,27 +280,27 @@ function ProfileContent() {
           <div className={styles.viewMode}>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>생년월일</span>
+                <span className={styles.infoLabel}>{t("profile.field.birthDate", "Date of Birth")}</span>
                 <span className={styles.infoValue}>{formatDate(birthDate)}</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>출생 시간</span>
+                <span className={styles.infoLabel}>{t("profile.field.birthTime", "Time of Birth")}</span>
                 <span className={styles.infoValue}>{formatTime(birthTime)}</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>성별</span>
+                <span className={styles.infoLabel}>{t("profile.field.gender", "Gender")}</span>
                 <span className={styles.infoValue}>
                   <span className={styles.genderBadge}>
-                    {gender === 'M' ? '♂ 남성' : '♀ 여성'}
+                    {gender === 'M' ? `♂ ${t("profile.gender.male", "Male")}` : `♀ ${t("profile.gender.female", "Female")}`}
                   </span>
                 </span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>출생 도시</span>
-                <span className={styles.infoValue}>{city || "미입력"}</span>
+                <span className={styles.infoLabel}>{t("profile.field.birthCity", "Birth City")}</span>
+                <span className={styles.infoValue}>{city || t("profile.notEntered", "Not entered")}</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>타임존</span>
+                <span className={styles.infoLabel}>{t("profile.field.timezone", "Timezone")}</span>
                 <span className={styles.infoValue}>{tzId}</span>
               </div>
             </div>
@@ -247,7 +309,7 @@ function ProfileContent() {
           /* Edit Mode - Show form */
           <div className={styles.formGrid}>
           <div className={styles.formGroup}>
-            <label>Date of Birth *</label>
+            <label>{t("profile.field.birthDate", "Date of Birth")} *</label>
             <input
               type="date"
               value={birthDate}
@@ -257,18 +319,18 @@ function ProfileContent() {
           </div>
 
           <div className={styles.formGroup}>
-            <label>Time of Birth</label>
+            <label>{t("profile.field.birthTime", "Time of Birth")}</label>
             <input
               type="time"
               value={birthTime}
               onChange={(e) => setBirthTime(e.target.value)}
               className={styles.input}
-              placeholder="Optional but recommended"
+              placeholder={t("profile.placeholder.birthTime", "Optional but recommended")}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>Gender</label>
+            <label>{t("profile.field.gender", "Gender")}</label>
             <div className={styles.genderSelectWrapper}>
               <button
                 type="button"
@@ -280,7 +342,7 @@ function ProfileContent() {
                   {gender === 'M' ? '♂' : '♀'}
                 </span>
                 <span className={styles.genderText}>
-                  {gender === 'M' ? 'Male' : 'Female'}
+                  {gender === 'M' ? t("profile.gender.male", "Male") : t("profile.gender.female", "Female")}
                 </span>
                 <span className={`${styles.genderArrow} ${genderOpen ? styles.genderArrowOpen : ''}`}>
                   ▾
@@ -298,7 +360,7 @@ function ProfileContent() {
                     }}
                   >
                     <span className={styles.genderOptionIcon}>♂</span>
-                    <span className={styles.genderOptionText}>Male</span>
+                    <span className={styles.genderOptionText}>{t("profile.gender.male", "Male")}</span>
                     {gender === 'M' && <span className={styles.genderCheck}>✓</span>}
                   </button>
                   <button
@@ -311,7 +373,7 @@ function ProfileContent() {
                     }}
                   >
                     <span className={styles.genderOptionIcon}>♀</span>
-                    <span className={styles.genderOptionText}>Female</span>
+                    <span className={styles.genderOptionText}>{t("profile.gender.female", "Female")}</span>
                     {gender === 'F' && <span className={styles.genderCheck}>✓</span>}
                   </button>
                 </div>
@@ -320,10 +382,10 @@ function ProfileContent() {
           </div>
 
           <div className={styles.formGroup} style={{ position: 'relative' }}>
-            <label>Birth City</label>
+            <label>{t("profile.field.birthCity", "Birth City")}</label>
             <input
               className={styles.input}
-              placeholder="Enter your city"
+              placeholder={t("profile.placeholder.birthCity", "Enter your city")}
               value={city}
               onChange={(e) => {
                 setCity(e.target.value);
@@ -356,12 +418,12 @@ function ProfileContent() {
           </div>
 
           <div className={styles.formGroup}>
-            <label>Timezone</label>
+            <label>{t("profile.field.timezone", "Timezone")}</label>
             <input
               className={styles.input}
               value={tzId}
               readOnly
-              placeholder="Auto-detected from city"
+              placeholder={t("profile.placeholder.timezone", "Auto-detected from city")}
             />
           </div>
         </div>
@@ -380,7 +442,7 @@ function ProfileContent() {
                 className={styles.cancelButton}
                 onClick={() => setIsEditMode(false)}
               >
-                Cancel
+                {t("common.cancel", "Cancel")}
               </button>
             )}
             <button
@@ -388,7 +450,7 @@ function ProfileContent() {
               onClick={saveBirthInfo}
               disabled={busy || !birthDate}
             >
-              {busy ? "Saving..." : "Save Profile"}
+              {busy ? t("common.saving", "Saving...") : t("profile.saveProfile", "Save Profile")}
             </button>
           </div>
         )}

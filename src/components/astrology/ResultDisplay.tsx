@@ -4,7 +4,78 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
-import type { NatalChartData } from '@/lib/astrology';
+import type { NatalChartData, PlanetData } from '@/lib/astrology';
+
+// Local type definitions for ResultDisplay
+interface HouseData {
+  cusp: number;
+  formatted: string;
+  sign?: string;
+}
+
+interface AspectData {
+  planet1?: string;
+  planet2?: string;
+  type?: string;
+  orb?: number;
+  from?: string | { name?: string };
+  to?: string | { name?: string };
+  aspect?: string;
+  score?: number;
+}
+
+interface AdvancedPoint {
+  name?: string;
+  key?: string;
+  formatted?: string;
+  sign?: string;
+  house?: number;
+  speed?: number;
+  retrograde?: boolean;
+  rx?: boolean;
+}
+
+interface AdvancedOptions {
+  houseSystem?: string;
+  theme?: string;
+  nodeType?: string;
+  includeMinorAspects?: boolean;
+  enable?: {
+    chiron?: boolean;
+    lilith?: boolean;
+    pof?: boolean;
+  };
+  [key: string]: unknown;
+}
+
+interface AdvancedMeta {
+  engine?: string;
+  version?: string;
+  seVersion?: string;
+  sweVersion?: string;
+  nodeType?: string;
+  houseSystem?: string;
+  includeMinorAspects?: boolean;
+  [key: string]: unknown;
+}
+
+interface AdvancedData {
+  options?: AdvancedOptions;
+  meta?: AdvancedMeta;
+  houses?: HouseData[];
+  points?: AdvancedPoint[];
+  aspectsPlus?: AspectData[];
+}
+
+// Localized planet type (extends PlanetData with localized name)
+interface LocalizedPlanet extends PlanetData {
+  retrograde?: boolean;
+}
+
+interface LocalizedHouse {
+  cusp: number;
+  formatted: string;
+}
 
 // 행성 이미지 매핑
 const PLANET_IMAGES: Record<string, string> = {
@@ -302,14 +373,8 @@ interface ResultDisplayProps {
   isLoading: boolean;
   error: string | null;
   chartData?: NatalChartData | null;
-  aspects?: any[] | null;
-  advanced?: {
-    options?: any;
-    meta?: any;
-    houses?: any[];
-    points?: any[];
-    aspectsPlus?: any[];
-  } | null;
+  aspects?: AspectData[] | null;
+  advanced?: AdvancedData | null;
   isLoggedIn?: boolean;
   isPremium?: boolean;
 }
@@ -404,7 +469,7 @@ export default function ResultDisplay({
             {description || (type === 'login' ? PL.loginDesc : PL.premiumDesc)}
           </p>
           <a
-            href={type === 'login' ? '/api/auth/signin' : '/pricing'}
+            href={type === 'login' ? '/auth/signin' : '/pricing'}
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all ${
               type === 'login'
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
@@ -485,20 +550,20 @@ export default function ResultDisplay({
     try {
       const localizedAsc = (() => {
         const { signPart, degreePart } = splitSignAndDegree(
-          String((chartData as any).ascendant?.formatted || '')
+          String(chartData.ascendant?.formatted || '')
         );
         const sign = localizeSignLabel(signPart, locKey);
         return `${sign} ${degreePart}`.trim();
       })();
       const localizedMc = (() => {
         const { signPart, degreePart } = splitSignAndDegree(
-          String((chartData as any).mc?.formatted || '')
+          String(chartData.mc?.formatted || '')
         );
         const sign = localizeSignLabel(signPart, locKey);
         return `${sign} ${degreePart}`.trim();
       })();
 
-      const planets = ((chartData as any).planets || []).map((p: any) => {
+      const planets = (chartData.planets || []).map((p: PlanetData) => {
         const name = localizePlanetLabel(String(p.name || ''), locKey);
         const { signPart, degreePart } = splitSignAndDegree(String(p.formatted || ''));
         const sign = localizeSignLabel(signPart, locKey);
@@ -506,25 +571,25 @@ export default function ResultDisplay({
           ...p,
           name,
           formatted: `${sign} ${degreePart}`.trim(),
-          retrograde: typeof p.speed === 'number' ? p.speed < 0 : !!p.rx,
+          retrograde: typeof p.speed === 'number' ? p.speed < 0 : false,
         };
       });
 
-      const houses = ((chartData as any).houses || []).map((h: any) => {
+      const houses = (chartData.houses || []).map((h: { cusp: number; formatted: string }) => {
         const { signPart, degreePart } = splitSignAndDegree(String(h.formatted || ''));
         const sign = localizeSignLabel(signPart, locKey);
         return { ...h, formatted: `${sign} ${degreePart}`.trim() };
       });
 
       return {
-        ...(chartData as any),
-        ascendant: { ...(chartData as any).ascendant, formatted: localizedAsc },
-        mc: { ...(chartData as any).mc, formatted: localizedMc },
+        ...chartData,
+        ascendant: { ...chartData.ascendant, formatted: localizedAsc },
+        mc: { ...chartData.mc, formatted: localizedMc },
         planets,
         houses,
       };
     } catch {
-      return chartData as any;
+      return chartData;
     }
   }, [chartData, locKey]);
 
@@ -610,7 +675,7 @@ export default function ResultDisplay({
               </tr>
             </thead>
             <tbody>
-              {viewChart.planets.map((p: any, idx: number) => {
+              {viewChart.planets.map((p: LocalizedPlanet, idx: number) => {
                 const originalName = getOriginalPlanetName(p.name);
                 const planetImage = getPlanetImage(originalName);
                 return (
@@ -669,7 +734,7 @@ export default function ResultDisplay({
           Houses
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {viewChart.houses.map((h: any, idx: number) => (
+          {viewChart.houses.map((h: LocalizedHouse, idx: number) => (
             <div
               key={`house-${idx + 1}`}
               className="rounded-lg border border-amber-400/10 bg-gradient-to-br from-slate-800/40 to-indigo-900/20 p-3 hover:border-amber-400/25 transition-colors"
@@ -716,10 +781,12 @@ export default function ResultDisplay({
               </tr>
             </thead>
             <tbody>
-              {aspects.slice(0, 100).map((a: any, i: number) => {
-                const fromName = localizePlanetLabel(String(a?.from?.name || a?.from || ''), locKey);
-                const toName = localizePlanetLabel(String(a?.to?.name || a?.to || ''), locKey);
-                const colorClass = getAspectColor(a.type);
+              {aspects.slice(0, 100).map((a: AspectData, i: number) => {
+                const fromVal = typeof a?.from === 'object' ? a.from?.name : a?.from;
+                const toVal = typeof a?.to === 'object' ? a.to?.name : a?.to;
+                const fromName = localizePlanetLabel(String(fromVal || ''), locKey);
+                const toName = localizePlanetLabel(String(toVal || ''), locKey);
+                const colorClass = getAspectColor(a.type || '');
                 return (
                   <tr
                     key={`asp-${i}`}
@@ -727,7 +794,7 @@ export default function ResultDisplay({
                   >
                     <td className="py-3 px-4">
                       <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${colorClass}`}>
-                        {localizeAspectType(a.type, locKey)}
+                        {localizeAspectType(a.type || '', locKey)}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-white/90 font-medium">{fromName}</td>
@@ -770,12 +837,12 @@ export default function ResultDisplay({
       'Chiron','키론','Lilith','리릴리스','Lilith(True)','Lilith(Mean)','Black Moon Lilith',
       'Part of Fortune','Fortune','행운점','True Node','Mean Node','North Node','South Node','진월교점',
     ]);
-    const extraPoints = advPoints.filter((p: any) => {
-      const n = String(p?.name ?? p?.key ?? '').trim();
+    const extraPoints = advPoints.filter((p: AdvancedPoint) => {
+      const n = String(p?.name ?? '').trim();
       return EXTRA_NAMES.has(n);
     });
 
-    const isRx = (p: any) =>
+    const isRx = (p: AdvancedPoint) =>
       Boolean(p?.rx || (typeof p?.speed === 'number' && p.speed < 0));
 
     const handleToggle = () => {
@@ -870,7 +937,7 @@ export default function ResultDisplay({
                       </tr>
                     </thead>
                     <tbody>
-                      {extraPoints.map((p: any, i: number) => (
+                      {extraPoints.map((p: AdvancedPoint, i: number) => (
                         <tr key={`extra-${i}`} className="border-b border-white/5 hover:bg-purple-400/5 transition-colors">
                           <td className="py-3 px-4">
                             <span className="font-medium text-white/95">
@@ -920,10 +987,10 @@ export default function ResultDisplay({
       </div>
 
       {/* 행성 이미지 그리드 - 3열, 큰 사이즈 */}
-      {viewChart?.planets?.length > 0 && (
+      {viewChart && viewChart.planets && viewChart.planets.length > 0 && (
         <div className="mb-6">
           <div className="grid grid-cols-3 gap-3 sm:gap-5">
-            {viewChart.planets.map((p: any, idx: number) => {
+            {viewChart.planets.map((p: LocalizedPlanet, idx: number) => {
               // 영문 행성명 찾기
               let englishName = p.name;
               for (const labels of Object.values(PLANET_LABELS)) {

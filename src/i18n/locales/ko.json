@@ -45,6 +45,7 @@
   },
   "menu": {
     "destinyMap": "운명 지도",
+    "lifePrediction": "인생 예측",
     "saju": "사주",
     "astrology": "점성술",
     "iching": "역경",
@@ -190,7 +191,48 @@
     "pricing": "요금",
     "blog": "블로그",
     "comingSoon": "준비중",
-    "loggedIn": "로그인됨"
+    "loggedIn": "로그인됨",
+    "loading": "로딩 중...",
+    "edit": "수정",
+    "cancel": "취소",
+    "saving": "저장 중...",
+    "error": "오류"
+  },
+  "profile": {
+    "title": "내 프로필",
+    "subtitle": "개인정보를 관리하세요",
+    "notEntered": "미입력",
+    "saveProfile": "프로필 저장",
+    "birthInfo": {
+      "title": "생년월일 정보",
+      "desc": "정확한 운세 분석을 위해 사용됩니다"
+    },
+    "field": {
+      "birthDate": "생년월일",
+      "birthTime": "출생 시간",
+      "gender": "성별",
+      "birthCity": "출생 도시",
+      "timezone": "타임존"
+    },
+    "gender": {
+      "male": "남성",
+      "female": "여성"
+    },
+    "placeholder": {
+      "birthTime": "선택사항 (권장)",
+      "birthCity": "도시를 입력하세요",
+      "timezone": "도시에서 자동 설정"
+    },
+    "error": {
+      "birthDateRequired": "생년월일을 선택해주세요.",
+      "saveFailed": "저장 실패",
+      "somethingWrong": "문제가 발생했습니다"
+    },
+    "success": {
+      "saved": "저장되었습니다!"
+    },
+    "upgrade": "업그레이드",
+    "manage": "관리"
   },
   "calendar": {
     "title": "운세 캘린더",
@@ -292,7 +334,15 @@
       "unique": "🎭 개성을 보여주세요! 독특한 아이디어가 빛나는 날!",
       "travel": "✈️ 여행, 출장, 워케이션에 완벽한 날! 비행기표 예약하세요!",
       "change": "🔄 이직, 이사, 새 시작에 좋은 타이밍! 변화를 두려워하지 마세요!",
-      "celebration": "🎊 축하할 일이 있다면 파티하세요! 기쁨을 나누면 두 배!"
+      "celebration": "🎊 축하할 일이 있다면 파티하세요! 기쁨을 나누면 두 배!",
+      "expansion": "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+      "growth": "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+      "luck": "🍀 행운이 따르는 날! 새로운 시도나 모험에 적극적으로 나서세요!",
+      "beauty": "💄 미용, 패션, 외모 관리에 좋은 날! 새 스타일을 시도하세요!",
+      "harmony": "☯️ 조화와 균형의 에너지가 흘러요! 관계 개선에 집중하세요!",
+      "collaboration": "🤝 협업 프로젝트나 팀 활동에 최적! 함께하면 더 큰 성과!",
+      "synergy": "⚡ 시너지 효과가 극대화되는 날! 파트너와 힘을 합치세요!",
+      "career": "💼 커리어 발전에 좋은 날! 이력서 업데이트, 네트워킹을 하세요!"
     },
     "warnings": {
       "conflict": "⚡ 가족/동료와 다툼 주의! 메시지 보내기 전 3초 생각하세요. 감정적 반응 금물!",
@@ -336,6 +386,10 @@
     "destinyMap": {
       "label": "운명 지도",
       "desc": "AI 운세 분석"
+    },
+    "lifePrediction": {
+      "label": "인생 예측",
+      "desc": "10년 운세 흐름"
     },
     "calendar": {
       "label": "운세 캘린더",
@@ -968,7 +1022,10 @@
       "themeNewYear": "새해",
       "themeNextYear": "내년",
       "themeMonthly": "매월",
-      "themeToday": "Today"
+      "themeToday": "Today",
+      "tabDestiny": "운명 분석",
+      "tabLifePrediction": "10년 예측",
+      "retry": "다시 시도"
     },
     "counselor": {
       "title": "DestinyPal 카운슬러",
@@ -1593,12 +1650,28 @@
     },
     "fortune": {
       "title": "오늘의 운세",
+      "today": "오늘",
       "love": "연애",
       "career": "직업",
       "wealth": "재물",
       "health": "건강",
       "setup": "먼저 생년월일을 설정하세요",
       "setupLink": "프로필 설정 →"
+    },
+    "credits": {
+      "short": "크레딧"
+    },
+    "plan": {
+      "free": "무료",
+      "starter": "스타터",
+      "pro": "프로",
+      "premium": "프리미엄"
+    },
+    "menu": {
+      "profile": "프로필",
+      "circle": "서클",
+      "history": "히스토리",
+      "upgrade": "업그레이드"
     },
     "activity": {
       "title": "최근 활동",
@@ -1611,6 +1684,7 @@
     },
     "services": {
       "destinyMap": "운명 지도",
+      "lifePrediction": "인생 예측",
       "destinyCalendar": "운명 캘린더",
       "tarot": "타로",
       "saju": "사주",
@@ -1638,6 +1712,10 @@
       "destinyMap": {
         "title": "운명 지도",
         "desc": "동양 + 서양 운세 융합 분석"
+      },
+      "lifePrediction": {
+        "title": "인생 예측",
+        "desc": "10년 운세 흐름과 인생 전환점"
       },
       "destinyCalendar": {
         "title": "운명 캘린더",

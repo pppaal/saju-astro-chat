@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import styles from "./TarotChat.module.css";
 import { Spread, DrawnCard } from "@/lib/Tarot/tarot.types";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api";
 import { tarotCounselors } from "@/lib/Tarot/tarot-counselors";
 import CreditBadge from "@/components/ui/CreditBadge";
 

@@ -19,7 +19,7 @@ export default function RecommendationsPage() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/api/auth/signin");
+      router.push("/auth/signin");
       return;
     }
 

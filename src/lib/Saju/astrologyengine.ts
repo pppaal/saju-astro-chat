@@ -23,7 +23,10 @@ export type GeokgukType =
 
 export type YongsinElement = FiveElement;
 
-export interface StrengthAnalysis {
+/**
+ * 일간 신강/신약 분석 결과 (십성 점수 기반)
+ */
+export interface DaymasterStrengthAnalysis {
   level: StrengthLevel;
   score: number;           // -100 ~ +100 (양수: 신강, 음수: 신약)
   helpingScore: number;    // 일간을 돕는 힘 (비겁 + 인성)
@@ -38,6 +41,9 @@ export interface StrengthAnalysis {
     관성: number;
   };
 }
+
+/** @deprecated Use DaymasterStrengthAnalysis instead */
+export type StrengthAnalysis = DaymasterStrengthAnalysis;
 
 export interface GeokgukAnalysis {
   type: GeokgukType;

@@ -1,5 +1,7 @@
+import type { SajuData } from '../types';
+
 // 십신 분포 계산
-export function getSibsinDistribution(saju: any): Record<string, number> {
+export function getSibsinDistribution(saju: SajuData | undefined): Record<string, number> {
   const distribution: Record<string, number> = {};
 
   // advancedAnalysis에서 sibsin 가져오기
@@ -8,27 +10,29 @@ export function getSibsinDistribution(saju: any): Record<string, number> {
   }
 
   // pillars에서 직접 계산
-  const pillars = ['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'];
-  for (const pillarKey of pillars) {
-    const pillar = saju?.[pillarKey];
+  const pillarKeys = ['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const;
+  for (const pillarKey of pillarKeys) {
+    const pillar = saju?.[pillarKey as keyof SajuData] as { heavenlyStem?: { sibsin?: unknown }; earthlyBranch?: { sibsin?: unknown } } | undefined;
     if (pillar?.heavenlyStem?.sibsin) {
-      const sibsin = typeof pillar.heavenlyStem.sibsin === 'object'
-        ? pillar.heavenlyStem.sibsin.name || pillar.heavenlyStem.sibsin.kind
-        : pillar.heavenlyStem.sibsin;
-      if (sibsin) distribution[sibsin] = (distribution[sibsin] || 0) + 1;
+      const sibsinVal = pillar.heavenlyStem.sibsin as unknown;
+      const sibsin = typeof sibsinVal === 'object' && sibsinVal !== null
+        ? (sibsinVal as Record<string, unknown>).name || (sibsinVal as Record<string, unknown>).kind
+        : sibsinVal;
+      if (typeof sibsin === 'string' && sibsin) distribution[sibsin] = (distribution[sibsin] || 0) + 1;
     }
     if (pillar?.earthlyBranch?.sibsin) {
-      const sibsin = typeof pillar.earthlyBranch.sibsin === 'object'
-        ? pillar.earthlyBranch.sibsin.name || pillar.earthlyBranch.sibsin.kind
-        : pillar.earthlyBranch.sibsin;
-      if (sibsin) distribution[sibsin] = (distribution[sibsin] || 0) + 1;
+      const sibsinVal = pillar.earthlyBranch.sibsin as unknown;
+      const sibsin = typeof sibsinVal === 'object' && sibsinVal !== null
+        ? (sibsinVal as Record<string, unknown>).name || (sibsinVal as Record<string, unknown>).kind
+        : sibsinVal;
+      if (typeof sibsin === 'string' && sibsin) distribution[sibsin] = (distribution[sibsin] || 0) + 1;
     }
   }
 
   return distribution;
 }
 
-export function getSibsinAnalysis(saju: any, lang: string): { category: string; count: number; description: string; emoji: string }[] {
+export function getSibsinAnalysis(saju: SajuData | undefined, lang: string): { category: string; count: number; description: string; emoji: string }[] {
   const isKo = lang === "ko";
   const distribution = getSibsinDistribution(saju);
 

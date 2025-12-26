@@ -1,12 +1,13 @@
 """
-Prediction Engine v5.0
-사주 대운/세운 + 점성술 트랜짓 통합 예측 시스템
+Prediction Engine v5.1
+사주 대운/세운 + 점성술 트랜짓 통합 예측 시스템 + RAG
 
 Features:
 - 대운/세운 기반 장기 예측
 - 트랜짓 기반 이벤트 타이밍
 - '언제가 좋을까?' 질문 답변
 - 사주-점성술 크로스 분석
+- GraphRAG 연동으로 풍부한 해석 컨텍스트 제공
 """
 
 import json
@@ -16,6 +17,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 # OpenAI for AI-enhanced predictions
 try:
@@ -24,6 +28,18 @@ try:
 except ImportError:
     OpenAI = None
     OPENAI_AVAILABLE = False
+
+# GraphRAG for rich interpretation context
+try:
+    from backend_ai.app.saju_astro_rag import get_graph_rag, search_graphs
+    GRAPH_RAG_AVAILABLE = True
+except ImportError:
+    try:
+        from .saju_astro_rag import get_graph_rag, search_graphs
+        GRAPH_RAG_AVAILABLE = True
+    except ImportError:
+        GRAPH_RAG_AVAILABLE = False
+        logger.warning("[PredictionEngine] GraphRAG not available")
 
 
 class TimingQuality(Enum):
@@ -1059,6 +1075,7 @@ class UnifiedPredictionEngine:
 
     사주 + 점성술 + 타로를 통합하여
     종합적인 예측과 타이밍 조언 제공
+    + GraphRAG로 풍부한 해석 컨텍스트 제공
     """
 
     def __init__(self, api_key: str = None):
@@ -1066,6 +1083,15 @@ class UnifiedPredictionEngine:
         self.luck_predictor = LuckCyclePredictor(self.data_loader)
         self.transit_engine = TransitTimingEngine(self.data_loader)
         self.electional_engine = ElectionalEngine(self.data_loader)
+
+        # GraphRAG for rich context
+        self.graph_rag = None
+        if GRAPH_RAG_AVAILABLE:
+            try:
+                self.graph_rag = get_graph_rag()
+                logger.info("[PredictionEngine] GraphRAG loaded successfully")
+            except Exception as e:
+                logger.warning(f"[PredictionEngine] GraphRAG init failed: {e}")
 
         # AI 해석을 위한 OpenAI 클라이언트
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
@@ -1077,6 +1103,123 @@ class UnifiedPredictionEngine:
                 timeout=httpx.Timeout(60.0, connect=10.0)
             )
 
+    def search_rag_context(
+        self,
+        query: str,
+        domain: str = "saju",
+        top_k: int = 8
+    ) -> Dict:
+        """
+        GraphRAG에서 관련 해석 컨텍스트 검색
+
+        Args:
+            query: 검색 쿼리 (예: "정관 대운 직장 승진")
+            domain: 도메인 우선순위 (saju, astro, fusion)
+            top_k: 검색 결과 수
+
+        Returns:
+            RAG 검색 결과 (matched_nodes, context_text, rule_summary 등)
+        """
+        if not self.graph_rag:
+            return {"context_text": "", "matched_nodes": [], "error": "GraphRAG not available"}
+
+        try:
+            # GraphRAG query는 facts dict를 받음
+            facts = {"query": query, "domain": domain}
+            result = self.graph_rag.query(facts, top_k=top_k, domain_priority=domain)
+            return result
+        except Exception as e:
+            logger.error(f"[PredictionEngine] RAG search failed: {e}")
+            return {"context_text": "", "matched_nodes": [], "error": str(e)}
+
+    def get_sipsin_rag_context(self, sipsin: str, event_type: str = None) -> str:
+        """
+        특정 십신에 대한 RAG 컨텍스트 검색
+
+        Args:
+            sipsin: 십신 이름 (정관, 편재 등)
+            event_type: 이벤트 유형 (career, relationship 등)
+
+        Returns:
+            RAG 검색 결과 텍스트
+        """
+        if not GRAPH_RAG_AVAILABLE:
+            return ""
+
+        # 검색 쿼리 구성
+        query_parts = [sipsin, "대운", "운세"]
+        if event_type:
+            event_ko = {
+                "career": "직장 사업 취업",
+                "relationship": "연애 결혼 인연",
+                "finance": "재물 투자 돈",
+                "health": "건강",
+                "education": "학업 시험 공부",
+                "travel": "여행 이사",
+                "contract": "계약 협상"
+            }.get(event_type, "")
+            if event_ko:
+                query_parts.append(event_ko)
+
+        query = " ".join(query_parts)
+
+        try:
+            results = search_graphs(query, top_k=6)
+            if results:
+                context_lines = []
+                for r in results:
+                    label = r.get("label", "")
+                    desc = r.get("description", "")
+                    if desc:
+                        context_lines.append(f"[{label}] {desc[:200]}")
+                return "\n".join(context_lines)
+        except Exception as e:
+            logger.warning(f"[PredictionEngine] sipsin RAG search failed: {e}")
+
+        return ""
+
+    def get_timing_rag_context(self, event_type: str, date: datetime = None) -> str:
+        """
+        타이밍/택일 관련 RAG 컨텍스트 검색
+
+        Args:
+            event_type: 이벤트 유형
+            date: 대상 날짜
+
+        Returns:
+            RAG 검색 결과 텍스트
+        """
+        if not GRAPH_RAG_AVAILABLE:
+            return ""
+
+        # 이벤트 유형별 검색 키워드
+        event_queries = {
+            "career": "직장 사업 승진 취업 좋은 시기",
+            "relationship": "연애 결혼 인연 좋은 날",
+            "finance": "투자 재물 재테크 좋은 시기",
+            "health": "건강 수술 치료 좋은 날",
+            "education": "시험 합격 공부 좋은 시기",
+            "travel": "여행 이사 이동 좋은 날",
+            "contract": "계약 협상 서명 좋은 시기",
+            "general": "길일 좋은 날 택일"
+        }
+
+        query = event_queries.get(event_type, event_queries["general"])
+
+        try:
+            results = search_graphs(query, top_k=5)
+            if results:
+                context_lines = []
+                for r in results:
+                    desc = r.get("description", "")
+                    if desc:
+                        context_lines.append(desc[:150])
+                return "\n".join(context_lines)
+        except Exception as e:
+            logger.warning(f"[PredictionEngine] timing RAG search failed: {e}")
+
+        return ""
+
     def get_comprehensive_forecast(
         self,
         birth_info: Dict,
@@ -1084,7 +1227,7 @@ class UnifiedPredictionEngine:
         include_timing: bool = True
     ) -> Dict:
         """
-        종합 예측
+        종합 예측 (RAG 컨텍스트 포함)
 
         Args:
             birth_info: {"year": int, "month": int, "day": int, "hour": int, "gender": str}
@@ -1094,10 +1237,12 @@ class UnifiedPredictionEngine:
         result = {
             "birth_info": birth_info,
             "generated_at": datetime.now().isoformat(),
-            "predictions": {}
+            "predictions": {},
+            "rag_context": {}  # RAG 컨텍스트 추가
         }
 
         # 1. 대운 분석
+        daeun_sipsin = None
         try:
             daeun = self.luck_predictor.calculate_daeun(
                 birth_info["year"],
@@ -1106,6 +1251,7 @@ class UnifiedPredictionEngine:
                 birth_info.get("hour", 12),
                 birth_info.get("gender", "unknown")
             )
+            daeun_sipsin = daeun.dominant_god
             result["predictions"]["current_daeun"] = {
                 "period": f"{daeun.start_year}-{daeun.end_year}",
                 "dominant_god": daeun.dominant_god,
@@ -1119,6 +1265,7 @@ class UnifiedPredictionEngine:
             result["predictions"]["current_daeun"] = {"error": str(e)}
 
         # 2. 세운 분석
+        seun_sipsin = None
         try:
             current_year = datetime.now().year
             seun = self.luck_predictor.calculate_seun(
@@ -1126,6 +1273,7 @@ class UnifiedPredictionEngine:
                 birth_info["month"],
                 current_year
             )
+            seun_sipsin = seun.dominant_god
             result["predictions"]["current_seun"] = {
                 "year": current_year,
                 "dominant_god": seun.dominant_god,
@@ -1138,7 +1286,30 @@ class UnifiedPredictionEngine:
         except Exception as e:
             result["predictions"]["current_seun"] = {"error": str(e)}
 
-        # 3. 장기 예측 (5년)
+        # 3. RAG 컨텍스트 검색 (대운/세운 기반)
+        if daeun_sipsin:
+            daeun_context = self.get_sipsin_rag_context(daeun_sipsin)
+            if daeun_context:
+                result["rag_context"]["daeun"] = daeun_context
+
+        if seun_sipsin:
+            seun_context = self.get_sipsin_rag_context(seun_sipsin)
+            if seun_context:
+                result["rag_context"]["seun"] = seun_context
+
+        # 대운+세운 조합 컨텍스트
+        if daeun_sipsin and seun_sipsin:
+            combo_query = f"{daeun_sipsin} {seun_sipsin} 조합 운세"
+            try:
+                combo_results = search_graphs(combo_query, top_k=4) if GRAPH_RAG_AVAILABLE else []
+                if combo_results:
+                    combo_context = "\n".join([r.get("description", "")[:150] for r in combo_results if r.get("description")])
+                    if combo_context:
+                        result["rag_context"]["combination"] = combo_context
+            except Exception:
+                pass
+
+        # 4. 장기 예측 (5년)
         try:
             long_term = self.luck_predictor.get_long_term_forecast(
                 birth_info["year"],
@@ -1152,7 +1323,7 @@ class UnifiedPredictionEngine:
         except Exception as e:
             result["predictions"]["five_year_outlook"] = {"error": str(e)}
 
-        # 4. 질문이 있으면 택일 분석
+        # 5. 질문이 있으면 택일 분석 + 이벤트별 RAG
         if question and include_timing:
             try:
                 timing = self.electional_engine.find_best_time(
@@ -1161,10 +1332,17 @@ class UnifiedPredictionEngine:
                     days_range=90
                 )
                 result["predictions"]["timing_recommendation"] = timing
+
+                # 이벤트 유형별 RAG 컨텍스트
+                event_type = timing.get("event_type", "general")
+                timing_context = self.get_timing_rag_context(event_type)
+                if timing_context:
+                    result["rag_context"]["timing"] = timing_context
+
             except Exception as e:
                 result["predictions"]["timing_recommendation"] = {"error": str(e)}
 
-        # 5. AI 해석 (선택적)
+        # 6. AI 해석 (RAG 컨텍스트 포함)
         if self.client and question:
             try:
                 ai_interpretation = self._generate_ai_interpretation(result, question)

@@ -5,6 +5,9 @@
 
 import { z } from "zod";
 
+// Re-export validation limits from patterns.ts for centralized access
+export { LIMITS } from "@/lib/validation/patterns";
+
 // ==========================================
 // Common Schemas
 // ==========================================

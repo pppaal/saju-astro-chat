@@ -1,8 +1,11 @@
 // src/lib/destiny-matrix/types.ts
 // Destiny Fusion Matrix™ - Type Definitions
 
-import type { FiveElement, SibsinKind, TwelveStage, RelationHit } from '../Saju/types';
+import type { FiveElement, SibsinKind, TwelveStageStandard, TwelveStage, RelationHit } from '../Saju/types';
 import type { AspectType, ZodiacKo } from '../astrology/foundation/types';
+
+// Re-export TwelveStage for use in other modules
+export type { TwelveStage };
 
 // ===========================
 // Core Types
@@ -153,7 +156,7 @@ export type RelationAspectMatrix = {
 // ===========================
 
 export type TwelveStageHouseMatrix = {
-  [stage in TwelveStage]: {
+  [stage in TwelveStageStandard]: {
     [house in HouseNumber]: InteractionCode;
   };
 };
@@ -278,7 +281,7 @@ export interface MatrixCalculationInput {
   dayMasterElement: FiveElement;
   pillarElements: FiveElement[];
   sibsinDistribution: Partial<Record<SibsinKind, number>>;
-  twelveStages: Partial<Record<TwelveStage, number>>;
+  twelveStages: Partial<Record<TwelveStageStandard, number>>;
   relations: RelationHit[];
   geokguk?: GeokgukType;
   yongsin?: FiveElement;

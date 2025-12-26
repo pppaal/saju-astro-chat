@@ -1,6 +1,7 @@
 import { elementTraits } from '../data';
+import type { SajuData } from '../types';
 
-export function getHealthAnalysis(saju: any, lang: string): { organ: string; status: string; advice: string; emoji: string }[] {
+export function getHealthAnalysis(saju: SajuData | undefined, lang: string): { organ: string; status: string; advice: string; emoji: string }[] {
   const isKo = lang === "ko";
   const fiveElements = saju?.fiveElements;
   if (!fiveElements) return [];

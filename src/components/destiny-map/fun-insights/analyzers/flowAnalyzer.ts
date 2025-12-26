@@ -1,4 +1,6 @@
-export function getCurrentFlowAnalysis(saju: any, lang: string): { title: string; flow: string; advice: string; emoji: string } | null {
+import type { SajuData, UnseItem } from '../types';
+
+export function getCurrentFlowAnalysis(saju: SajuData | undefined, lang: string): { title: string; flow: string; advice: string; emoji: string } | null {
   const isKo = lang === "ko";
   const unse = saju?.unse;
 
@@ -30,7 +32,7 @@ export function getCurrentFlowAnalysis(saju: any, lang: string): { title: string
   let currentDaeun = null;
   if (koreanAge) {
     // 한국 나이로 먼저 시도 (age부터 age+9까지, 총 10년)
-    currentDaeun = daeunList.find((d: any) => {
+    currentDaeun = daeunList.find((d: UnseItem) => {
       const startAge = d.age || 0;
       const endAge = startAge + 9;
       return koreanAge >= startAge && koreanAge <= endAge;
@@ -38,7 +40,7 @@ export function getCurrentFlowAnalysis(saju: any, lang: string): { title: string
 
     // 못 찾으면 만 나이로 시도
     if (!currentDaeun && westernAge) {
-      currentDaeun = daeunList.find((d: any) => {
+      currentDaeun = daeunList.find((d: UnseItem) => {
         const startAge = d.age || 0;
         const endAge = startAge + 9;
         return westernAge >= startAge && westernAge <= endAge;
@@ -48,18 +50,20 @@ export function getCurrentFlowAnalysis(saju: any, lang: string): { title: string
 
   // 올해 연운 찾기
   const annualList = Array.isArray(unse.annual) ? unse.annual : [];
-  const thisYear = annualList.find((a: any) => a.year === currentYear);
+  const thisYear = annualList.find((a: UnseItem) => a.year === currentYear);
 
   if (!currentDaeun && !thisYear) return null;
 
   const daeunGanji = currentDaeun ? `${currentDaeun.heavenlyStem}${currentDaeun.earthlyBranch}` : "";
-  const daeunAge = currentDaeun ? `${currentDaeun.age}-${currentDaeun.age + 9}세` : "";
+  const daeunAge = currentDaeun?.age != null ? `${currentDaeun.age}-${currentDaeun.age + 9}세` : "";
   const yearGanji = thisYear ? `${thisYear.heavenlyStem}${thisYear.earthlyBranch}` : "";
   const yearNum = thisYear?.year || currentYear;
 
-  // 십신 정보 추출
-  const daeunSibsin = currentDaeun?.sibsin?.cheon || "";
-  const yearSibsin = thisYear?.sibsin?.cheon || "";
+  // 십신 정보 추출 - sibsin이 string일 수도 있고 object일 수도 있음
+  const daeunSibsinRaw = currentDaeun?.sibsin;
+  const daeunSibsin = typeof daeunSibsinRaw === 'object' && daeunSibsinRaw?.cheon ? daeunSibsinRaw.cheon : (typeof daeunSibsinRaw === 'string' ? daeunSibsinRaw : "");
+  const yearSibsinRaw = thisYear?.sibsin;
+  const yearSibsin = typeof yearSibsinRaw === 'object' && yearSibsinRaw?.cheon ? yearSibsinRaw.cheon : (typeof yearSibsinRaw === 'string' ? yearSibsinRaw : "");
 
   // 십신별 간단한 설명
   const sibsinFlow: Record<string, { ko: string; en: string }> = {

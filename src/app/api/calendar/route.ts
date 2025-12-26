@@ -10,24 +10,20 @@ import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import {
   calculateYearlyImportantDates,
-  calculateSajuProfileFromBirthDate,
-  calculateAstroProfileFromBirthDate,
-  getYearGanzhi,
-  getMonthGanzhi,
-  getGanzhiForDate,
   type EventCategory,
   type ImportanceGrade,
   type ImportantDate,
 } from "@/lib/destiny-map/destinyCalendar";
+import { calculateSajuData } from "@/lib/Saju/saju";
+import { calculateNatalChart } from "@/lib/astrology/foundation/astrologyService";
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from "@/lib/Saju/stemElementMapping";
+import { getBackendUrl } from "@/lib/backend-url";
 import koTranslations from "@/i18n/locales/ko.json";
 import enTranslations from "@/i18n/locales/en.json";
 
 export const dynamic = "force-dynamic";
 
-const BACKEND_URL =
-  process.env.AI_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_AI_BACKEND ||
-  "http://localhost:5000";
+const BACKEND_URL = getBackendUrl();
 
 type TranslationData = Record<string, unknown>;
 
@@ -765,71 +761,143 @@ const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
     ko: "♄ 토요일 - 토성의 날! 책임, 구조화, 장기 계획에 유리한 날이에요. 재미보다 의무에 집중하고, 기초를 다지세요. 부동산, 노인과 관련된 일에도 좋아요.",
     en: "♄ Saturday - Saturn's day! Favorable for responsibility, structuring, and long-term planning. Focus on duty over fun and build foundations. Good for real estate and matters related to elders."
   },
+  // ============================================================
+  // 신규 분석 요소 (13가지 개선)
+  // ============================================================
+  // 납음(納音) 분석
+  napeumSupport: {
+    ko: "🎵 오늘의 납음 기운이 당신과 조화로워요! 소리, 음악, 대화가 좋은 영향을 줘요. 노래방 가거나 중요한 대화 나누기 좋은 날이에요.",
+    en: "🎵 Today's Napeum energy harmonizes with you! Sound, music, and conversation bring good influence. Good day for karaoke or important talks."
+  },
+  napeumConflict: {
+    ko: "🎵 오늘의 납음 기운이 당신과 충돌해요. 큰 소리나 시끄러운 환경이 스트레스가 될 수 있어요. 조용한 환경에서 일하는 게 좋아요.",
+    en: "🎵 Today's Napeum energy conflicts with you. Loud noise or noisy environments may cause stress. Working in a quiet environment is better."
+  },
+  napeumHarmony: {
+    ko: "🎶 본명과 오늘의 납음이 상생해요! 자연스러운 흐름으로 일이 진행돼요. 음악이나 예술 활동에 특히 좋은 날이에요.",
+    en: "🎶 Your natal and today's Napeum are in mutual generation! Things flow naturally. Especially good for music or art activities."
+  },
+  // 신살 상호작용
+  salInteraction_cancel: {
+    ko: "⚖️ 좋은 신살이 나쁜 신살을 상쇄했어요! 걱정했던 일이 무난하게 지나갈 거예요.",
+    en: "⚖️ Good Shinsal has cancelled the bad one! Things you worried about will pass smoothly."
+  },
+  salInteraction_amplify: {
+    ko: "⚡ 신살들이 상호작용하여 효과가 강해졌어요! 오늘 결정과 행동에 더 신경 쓰세요.",
+    en: "⚡ Shinsal interactions have amplified the effect! Pay more attention to decisions and actions today."
+  },
+  salInteraction_neutralize: {
+    ko: "☯️ 신살들이 서로 중화되었어요. 평범한 하루가 될 거예요. 편안하게 지내세요.",
+    en: "☯️ Shinsal have neutralized each other. It will be an ordinary day. Take it easy."
+  },
+  // 대운/세운 교차점
+  daeunSeun_critical: {
+    ko: "🔮 인생의 중요한 전환점이에요! 대운과 세운이 교차하는 시기로, 큰 변화가 올 수 있어요. 신중하게 결정하고, 새로운 기회에 열린 마음을 가지세요.",
+    en: "🔮 This is a major turning point in life! A period when Daeun and Seun intersect, big changes may come. Decide carefully and keep an open mind to new opportunities."
+  },
+  daeunSeun_high: {
+    ko: "⚡ 대운과 세운의 영향이 강한 시기예요. 직장이나 인생 방향에서 중요한 결정이 필요할 수 있어요. 장기적 관점에서 생각하세요.",
+    en: "⚡ A period of strong Daeun and Seun influence. Important decisions regarding career or life direction may be needed. Think from a long-term perspective."
+  },
+  lifeTransitionPeriod: {
+    ko: "🌊 인생의 변화기예요. 흐름에 저항하기보다 순응하면서 최선의 선택을 하세요. 변화는 성장의 기회예요.",
+    en: "🌊 A transitional period in life. Rather than resisting the flow, adapt while making the best choices. Change is an opportunity for growth."
+  },
+  // 동적 강약 분석
+  dynamicStrength_stronger: {
+    ko: "💪 오늘 당신의 사주 기운이 평소보다 강해요! 적극적으로 행동하고 도전해도 좋은 날이에요. 자신감을 가지세요.",
+    en: "💪 Your Saju energy is stronger than usual today! It's a good day to act proactively and take on challenges. Have confidence."
+  },
+  dynamicStrength_weaker: {
+    ko: "😌 오늘은 기운이 약해지는 날이에요. 무리하지 말고 휴식을 취하세요. 충전의 시간으로 활용하세요.",
+    en: "😌 Today your energy is weakening. Don't overdo it and take rest. Use it as a time to recharge."
+  },
+  dynamicStrength_stable: {
+    ko: "⚖️ 기운이 안정적인 날이에요. 평소대로 하시면 됩니다. 균형 잡힌 하루를 보내세요.",
+    en: "⚖️ Your energy is stable today. Proceed as usual. Have a balanced day."
+  },
+  activeAction: {
+    ko: "오늘은 적극적으로 행동해도 좋아요!",
+    en: "It's okay to act proactively today!"
+  },
+  rest: {
+    ko: "오늘은 휴식이 필요한 날이에요.",
+    en: "Today is a day when you need rest."
+  },
+  // 음력 분석
+  lunarSpecialDay: {
+    ko: "🌙 음력으로 특별한 날이에요! 조상님께 감사하거나 가족과 함께하기 좋은 날이에요.",
+    en: "🌙 It's a special day in the lunar calendar! Good day to thank ancestors or spend time with family."
+  },
+  // 키론 트랜짓
+  healingWork: {
+    ko: "💚 치유의 에너지가 활성화되어 있어요. 오래된 상처를 돌아보고 치유할 기회예요.",
+    en: "💚 Healing energy is activated. An opportunity to look back and heal old wounds."
+  },
+  selfCare: {
+    ko: "🧘 자기 돌봄에 집중하세요. 명상, 운동, 충분한 수면이 도움이 돼요.",
+    en: "🧘 Focus on self-care. Meditation, exercise, and adequate sleep will help."
+  },
+  woundActivation: {
+    ko: "⚠️ 과거의 상처가 자극될 수 있어요. 감정을 억누르지 말고 표현하세요. 필요하면 도움을 요청하세요.",
+    en: "⚠️ Past wounds may be triggered. Don't suppress emotions, express them. Ask for help if needed."
+  },
+  // 노드 트랜짓
+  destinyPath: {
+    ko: "🌟 운명적인 만남이나 기회가 올 수 있어요! 직감을 믿고 따라가세요.",
+    en: "🌟 A destined encounter or opportunity may come! Trust your intuition and follow it."
+  },
+  spiritualGrowth: {
+    ko: "✨ 영적 성장의 시기예요. 명상, 독서, 자기 성찰에 좋은 날이에요.",
+    en: "✨ A time for spiritual growth. Good day for meditation, reading, and self-reflection."
+  },
+  // 프로그레스드 문
+  emotionalFocus: {
+    ko: "🌙 감정적으로 중요한 시기예요. 내면의 목소리에 귀 기울이세요.",
+    en: "🌙 An emotionally important period. Listen to your inner voice."
+  },
+  // 솔라 아크
+  lifeDirection: {
+    ko: "🌞 인생의 방향이 명확해지는 시기예요. 장기 목표를 세우기 좋아요.",
+    en: "🌞 A period when life direction becomes clear. Good for setting long-term goals."
+  },
+  destinyUnfolding: {
+    ko: "⭐ 운명이 펼쳐지는 시기예요. 우연의 일치에 주목하세요.",
+    en: "⭐ A period when destiny unfolds. Pay attention to coincidences."
+  },
+  // 사주-점성술 통합
+  sajuAstroHarmony: {
+    ko: "☯️🌟 사주와 점성술이 같은 메시지를 보내고 있어요! 오늘의 에너지가 매우 강력해요.",
+    en: "☯️🌟 Saju and astrology are sending the same message! Today's energy is very powerful."
+  },
+  sajuAstroTension: {
+    ko: "⚡ 사주와 점성술이 다른 신호를 보내고 있어요. 신중하게 판단하세요.",
+    en: "⚡ Saju and astrology are sending different signals. Judge carefully."
+  },
+  integratedEnergy: {
+    ko: "동서양 운세가 조화롭게 작용하는 날이에요!",
+    en: "Eastern and Western fortune work harmoniously today!"
+  },
+  energyConflict: {
+    ko: "에너지 충돌이 있을 수 있어요. 균형을 찾으세요.",
+    en: "There may be energy conflicts. Find balance."
+  },
+  // 시간대별 추천
+  hourlyEnergy_자: { ko: "🌙 자시(23-01시): 직관력이 높아지는 시간. 명상이나 계획 세우기 좋아요.", en: "🌙 Ja-si (11PM-1AM): Intuition heightens. Good for meditation or planning." },
+  hourlyEnergy_축: { ko: "🐂 축시(01-03시): 조용히 정리하는 시간. 숙면이 내일의 에너지가 돼요.", en: "🐂 Chuk-si (1-3AM): Time for quiet organizing. Good sleep becomes tomorrow's energy." },
+  hourlyEnergy_인: { ko: "🐯 인시(03-05시): 새벽의 기운. 일찍 일어나면 좋은 아이디어가 떠올라요.", en: "🐯 In-si (3-5AM): Dawn energy. Waking early brings good ideas." },
+  hourlyEnergy_묘: { ko: "🐰 묘시(05-07시): 하루를 시작하는 최적의 시간. 운동이나 명상 추천!", en: "🐰 Myo-si (5-7AM): Optimal time to start the day. Exercise or meditation recommended!" },
+  hourlyEnergy_진: { ko: "🐲 진시(07-09시): 활력이 넘치는 시간. 중요한 일 시작하기 좋아요.", en: "🐲 Jin-si (7-9AM): Energetic time. Good for starting important tasks." },
+  hourlyEnergy_사: { ko: "🐍 사시(09-11시): 집중력 최고! 복잡한 업무 처리하기 딱 좋아요.", en: "🐍 Sa-si (9-11AM): Peak concentration! Perfect for handling complex work." },
+  hourlyEnergy_오: { ko: "🐎 오시(11-13시): 에너지 절정. 미팅이나 발표에 최적이에요.", en: "🐎 O-si (11AM-1PM): Peak energy. Optimal for meetings or presentations." },
+  hourlyEnergy_미: { ko: "🐑 미시(13-15시): 점심 후 휴식 시간. 가벼운 업무나 휴식 추천.", en: "🐑 Mi-si (1-3PM): Post-lunch rest time. Light work or rest recommended." },
+  hourlyEnergy_신: { ko: "🐒 신시(15-17시): 창의력 상승. 브레인스토밍이나 기획에 좋아요.", en: "🐒 Shin-si (3-5PM): Creativity rises. Good for brainstorming or planning." },
+  hourlyEnergy_유: { ko: "🐔 유시(17-19시): 마무리 시간. 하루를 정리하고 퇴근 준비하세요.", en: "🐔 Yu-si (5-7PM): Wrap-up time. Organize your day and prepare to leave work." },
+  hourlyEnergy_술: { ko: "🐕 술시(19-21시): 인간관계 시간. 가족, 친구와 시간 보내기 좋아요.", en: "🐕 Sul-si (7-9PM): Relationship time. Good for spending time with family and friends." },
+  hourlyEnergy_해: { ko: "🐖 해시(21-23시): 휴식과 충전. 다음 날을 위한 준비 시간이에요.", en: "🐖 Hae-si (9-11PM): Rest and recharge. Time to prepare for the next day." },
 };
 
 // ==== Date helpers ====
-const HEAVENLY_STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-const EARTHLY_BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
-
-// 천간의 음양
-const STEM_YIN_YANG: Record<string, "양" | "음"> = {
-  "甲": "양", "乙": "음", "丙": "양", "丁": "음", "戊": "양",
-  "己": "음", "庚": "양", "辛": "음", "壬": "양", "癸": "음",
-};
-
-/**
- * 간단한 대운 추정 계산 (완전 정확하진 않지만 근사치)
- * 정확한 대운은 절기 계산이 필요하지만, 여기서는 간단히 추정
- */
-function estimateDaeunCycles(
-  birthDate: Date,
-  gender: "male" | "female",
-  yearStem: string,
-  monthStem: string,
-  monthBranch: string
-): { daeunsu: number; cycles: Array<{ age: number; heavenlyStem: string; earthlyBranch: string }> } {
-  // 순행/역행 결정: 연간 양+남 또는 음+여 → 순행, 그 외 역행
-  const yearYinYang = STEM_YIN_YANG[yearStem] || "양";
-  const isForward = (yearYinYang === "양" && gender === "male") || (yearYinYang === "음" && gender === "female");
-
-  // 대운수 추정 (평균적으로 3~8세 사이, 간단히 5로 추정)
-  // 정확한 계산은 생일과 절기 사이 일수/3 이지만 여기서는 간단히
-  const birthMonth = birthDate.getMonth() + 1;
-  const birthDay = birthDate.getDate();
-  // 절기 중간값 15일 기준 거리로 추정
-  const daysFromMid = Math.abs(birthDay - 15);
-  const estimatedDaeunsu = Math.max(1, Math.min(10, Math.round(daysFromMid / 3)));
-
-  // 월주 인덱스
-  const monthStemIdx = HEAVENLY_STEMS.indexOf(monthStem);
-  const monthBranchIdx = EARTHLY_BRANCHES.indexOf(monthBranch);
-
-  if (monthStemIdx === -1 || monthBranchIdx === -1) {
-    return { daeunsu: 0, cycles: [] };
-  }
-
-  // 대운 10주기 생성
-  const cycles: Array<{ age: number; heavenlyStem: string; earthlyBranch: string }> = [];
-  for (let i = 1; i <= 10; i++) {
-    const age = estimatedDaeunsu + (i - 1) * 10;
-    let stemIdx: number, branchIdx: number;
-    if (isForward) {
-      stemIdx = (monthStemIdx + i) % 10;
-      branchIdx = (monthBranchIdx + i) % 12;
-    } else {
-      stemIdx = (monthStemIdx - i % 10 + 10) % 10;
-      branchIdx = (monthBranchIdx - i % 12 + 12) % 12;
-    }
-    cycles.push({
-      age,
-      heavenlyStem: HEAVENLY_STEMS[stemIdx],
-      earthlyBranch: EARTHLY_BRANCHES[branchIdx],
-    });
-  }
-
-  return { daeunsu: estimatedDaeunsu, cycles };
-}
-
 function parseBirthDate(birthDateParam: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDateParam);
   if (!match) return null;
@@ -848,43 +916,6 @@ function parseBirthDate(birthDateParam: string): Date | null {
     return null;
   }
   return date;
-}
-
-function getHourBranchIndex(hour: number): number {
-  // 子시: 23-00, 丑: 01-02 ... 亥: 21-22
-  return Math.floor(((hour + 1) % 24) / 2);
-}
-
-function getHourStem(dayStem: string, hourBranchIdx: number): string {
-  const dayStemIndex = HEAVENLY_STEMS.indexOf(dayStem);
-  if (dayStemIndex === -1) return "";
-  const baseIndex = (dayStemIndex % 5) * 2; // 甲/己→甲, 乙/庚→丙, 丙/辛→戊, 丁/壬→庚, 戊/癸→壬
-  return HEAVENLY_STEMS[(baseIndex + hourBranchIdx) % 10] || "";
-}
-
-function buildPillars(birthDate: Date, birthTime: string) {
-  const yearGanzhi = getYearGanzhi(birthDate.getFullYear());
-  const monthGanzhi = getMonthGanzhi(birthDate.getFullYear(), birthDate.getMonth() + 1);
-  const dayGanzhi = getGanzhiForDate(birthDate);
-
-  let hourStem = "";
-  let hourBranch = "";
-  const timeMatch = /^(\d{2}):(\d{2})$/.exec(birthTime);
-  if (timeMatch) {
-    const hour = Number(timeMatch[1]);
-    if (hour >= 0 && hour <= 23) {
-      const branchIdx = getHourBranchIndex(hour);
-      hourBranch = EARTHLY_BRANCHES[branchIdx] || "";
-      hourStem = getHourStem(dayGanzhi.stem, branchIdx);
-    }
-  }
-
-  return {
-    year: { stem: yearGanzhi.stem, branch: yearGanzhi.branch },
-    month: { stem: monthGanzhi.stem, branch: monthGanzhi.branch },
-    day: { stem: dayGanzhi.stem, branch: dayGanzhi.branch },
-    hour: { stem: hourStem, branch: hourBranch },
-  };
 }
 
 // 날짜 데이터 변환
@@ -1215,8 +1246,8 @@ export async function GET(request: NextRequest) {
 
     const birthTimeParam = (searchParams.get("birthTime") || "12:00").trim().slice(0, 5);
     const birthPlaceParam = (searchParams.get("birthPlace") || "Seoul").trim();
-    const birthPlace =
-      birthPlaceParam.length <= MAX_PLACE_LEN && VALID_CALENDAR_PLACES.has(birthPlaceParam) ? birthPlaceParam : null;
+    // birthPlace 검증 완화 - 길이만 체크하고 모든 도시 허용
+    const birthPlace = birthPlaceParam.length > 0 && birthPlaceParam.length <= MAX_PLACE_LEN ? birthPlaceParam : "Seoul";
     const yearParam = searchParams.get("year")?.trim();
     const year = parseInt(yearParam || String(new Date().getFullYear()), 10);
 
@@ -1242,34 +1273,140 @@ export async function GET(request: NextRequest) {
     if ((yearParam && !CALENDAR_YEAR_RE.test(yearParam)) || !Number.isFinite(year) || year < 1900 || year > 2100) {
       return NextResponse.json({ error: "Invalid year" }, { status: 400, headers: limit.headers });
     }
-    if (!birthPlace) {
-      return NextResponse.json({ error: "Invalid birth place" }, { status: 400, headers: limit.headers });
+    // birthPlace는 항상 유효한 값이 있음 (기본값: Seoul)
+    const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS["Seoul"];
+    const timezone = coords.tz;
+
+    // ✅ 정확한 사주 계산 (saju.ts 사용 - 절기 기반 월주, 자시 교차 처리)
+    let sajuResult;
+    try {
+      sajuResult = calculateSajuData(
+        birthDateParam,
+        birthTimeParam,
+        gender,
+        'solar',
+        timezone
+      );
+    } catch (sajuError) {
+      console.error("[Calendar] Saju calculation error:", sajuError);
+      return NextResponse.json(
+        { error: "Failed to calculate saju data" },
+        { status: 500, headers: limit.headers }
+      );
     }
 
-    // 사주 프로필 계산
-    const baseSajuProfile = calculateSajuProfileFromBirthDate(birthDate);
-    const astroProfile = calculateAstroProfileFromBirthDate(birthDate);
-    const pillars = buildPillars(birthDate, birthTimeParam);
+    // 사주 데이터에서 필요한 정보 추출
+    // Null safety: pillars 객체가 없을 수 있음
+    const sajuPillars = sajuResult?.pillars || {};
+    const pillars = {
+      year: {
+        stem: sajuPillars.year?.heavenlyStem?.name || sajuPillars.year?.stem?.name || "",
+        branch: sajuPillars.year?.earthlyBranch?.name || sajuPillars.year?.branch?.name || "",
+      },
+      month: {
+        stem: sajuPillars.month?.heavenlyStem?.name || sajuPillars.month?.stem?.name || "",
+        branch: sajuPillars.month?.earthlyBranch?.name || sajuPillars.month?.branch?.name || "",
+      },
+      day: {
+        stem: sajuPillars.day?.heavenlyStem?.name || sajuPillars.day?.stem?.name || "",
+        branch: sajuPillars.day?.earthlyBranch?.name || sajuPillars.day?.branch?.name || "",
+      },
+      hour: {
+        stem: sajuPillars.hour?.heavenlyStem?.name || sajuPillars.hour?.stem?.name || "",
+        branch: sajuPillars.hour?.earthlyBranch?.name || sajuPillars.hour?.branch?.name || "",
+      },
+    };
 
-    // 대운 계산 및 sajuProfile에 추가
-    const daeunData = estimateDaeunCycles(
-      birthDate,
-      gender,
-      pillars.year.stem,
-      pillars.month.stem,
-      pillars.month.branch
-    );
+    const dayMasterStem = pillars.day.stem;
+    const dayMasterElement = STEM_TO_ELEMENT[dayMasterStem] || "wood";
 
-    // 연지(年支) 추출 - 삼재/역마/도화 계산에 필요
-    const yearBranch = pillars.year.branch;
+    // 대운 추출
+    const daeunCycles = sajuResult.unse?.daeun?.map((d: { age?: number; heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string }; sibsin?: string }) => ({
+      age: d.age || 0,
+      heavenlyStem: d.heavenlyStem?.name || "",
+      earthlyBranch: d.earthlyBranch?.name || "",
+      sibsin: d.sibsin,
+    })).filter((d: { heavenlyStem: string; earthlyBranch: string }) => d.heavenlyStem && d.earthlyBranch) || [];
 
     const sajuProfile = {
-      ...baseSajuProfile,
+      dayMaster: dayMasterStem,
+      dayMasterElement,
+      dayBranch: pillars.day.branch,
       birthYear: birthDate.getFullYear(),
-      yearBranch,
-      daeunCycles: daeunData.cycles,
-      daeunsu: daeunData.daeunsu,
+      yearBranch: pillars.year.branch,
+      daeunCycles,
+      daeunsu: sajuResult.unse?.daeunsu || 0,
+      pillars,
     };
+
+    // ✅ 정확한 점성술 계산 (Swiss Ephemeris 사용)
+    const [birthHour, birthMinute] = birthTimeParam.split(':').map(Number);
+    let astroProfile;
+    try {
+      const natalChart = await calculateNatalChart({
+        year: birthDate.getFullYear(),
+        month: birthDate.getMonth() + 1,
+        date: birthDate.getDate(),
+        hour: birthHour || 12,
+        minute: birthMinute || 0,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        timeZone: timezone,
+      });
+
+      // 태양 정보 추출
+      const sunPlanet = natalChart.planets.find(p => p.name === "Sun");
+      const sunSign = sunPlanet?.sign || "Aries";
+      const sunLongitude = sunPlanet?.longitude || 0;
+
+      // 별자리 → 오행 매핑
+      const ZODIAC_TO_ELEMENT: Record<string, string> = {
+        Aries: "fire", Leo: "fire", Sagittarius: "fire",
+        Taurus: "earth", Virgo: "earth", Capricorn: "earth",
+        Gemini: "metal", Libra: "metal", Aquarius: "metal",  // air → metal
+        Cancer: "water", Scorpio: "water", Pisces: "water",
+      };
+
+      astroProfile = {
+        sunSign,
+        sunElement: ZODIAC_TO_ELEMENT[sunSign] || "fire",
+        sunLongitude,
+        birthMonth: birthDate.getMonth() + 1,
+        birthDay: birthDate.getDate(),
+      };
+    } catch (astroError) {
+      console.warn("[Calendar] Astrology calculation fallback:", astroError);
+      // 폴백: 단순 계산
+      const month = birthDate.getMonth();
+      const day = birthDate.getDate();
+      let sunSign = "Aries";
+      if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) sunSign = "Aries";
+      else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) sunSign = "Taurus";
+      else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) sunSign = "Gemini";
+      else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) sunSign = "Cancer";
+      else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) sunSign = "Leo";
+      else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) sunSign = "Virgo";
+      else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) sunSign = "Libra";
+      else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) sunSign = "Scorpio";
+      else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) sunSign = "Sagittarius";
+      else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) sunSign = "Capricorn";
+      else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) sunSign = "Aquarius";
+      else sunSign = "Pisces";
+
+      const ZODIAC_TO_ELEMENT: Record<string, string> = {
+        Aries: "fire", Leo: "fire", Sagittarius: "fire",
+        Taurus: "earth", Virgo: "earth", Capricorn: "earth",
+        Gemini: "metal", Libra: "metal", Aquarius: "metal",
+        Cancer: "water", Scorpio: "water", Pisces: "water",
+      };
+
+      astroProfile = {
+        sunSign,
+        sunElement: ZODIAC_TO_ELEMENT[sunSign] || "fire",
+        birthMonth: birthDate.getMonth() + 1,
+        birthDay: birthDate.getDate(),
+      };
+    }
 
     // 로컬 계산으로 중요 날짜 가져오기 (모든 등급 포함)
     const localDates = calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
@@ -1283,8 +1420,6 @@ export async function GET(request: NextRequest) {
     }
 
     // AI 백엔드에서 추가 정보 시도
-    const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS["Seoul"];
-
     const sajuData = {
       birth_date: birthDateParam,
       birth_time: birthTimeParam,

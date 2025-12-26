@@ -67,6 +67,19 @@ export interface SajuPillars {
   time: PillarData;
 }
 
+// 간단한 입력용 타입 (stem/branch만 필요한 경우)
+export interface SimplePillar {
+  stem: string;
+  branch: string;
+}
+
+export interface SajuPillarsInput {
+  year: SimplePillar;
+  month: SimplePillar;
+  day: SimplePillar;
+  time: SimplePillar;
+}
+
 // --- 공통 키 타입(관계/신살 등에서 사용) ---
 export type PillarKind = 'year' | 'month' | 'day' | 'time';
 
@@ -83,9 +96,13 @@ export interface RelationHit {
 }
 
 // --- 12운성 타입 ---
-export type TwelveStage =
+// 표준 12운성 (임관, 왕지 사용)
+export type TwelveStageStandard =
   | '장생' | '목욕' | '관대' | '임관' | '왕지'
   | '쇠' | '병' | '사' | '묘' | '절' | '태' | '양';
+
+// 별칭 포함 버전 (건록=임관, 제왕=왕지)
+export type TwelveStage = TwelveStageStandard | '건록' | '제왕';
 
 // --- 신살 결과 타입 ---
 export interface ShinsalHit {

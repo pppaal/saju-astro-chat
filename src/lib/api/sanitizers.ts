@@ -111,3 +111,35 @@ export function sanitizeBoolean(value: unknown, defaultValue = false): boolean {
   if (typeof value === "boolean") return value;
   return defaultValue;
 }
+
+/**
+ * Sanitize HTML content - removes script tags and dangerous characters
+ * Use for user-generated content that might contain HTML
+ */
+export function sanitizeHtml(
+  value: unknown,
+  maxLen = 10000,
+  defaultValue = ""
+): string {
+  if (typeof value !== "string") return defaultValue;
+  return value
+    .replace(/<script[\s\S]*?<\/script>/gi, "") // Remove script tags
+    .replace(/<[^>]+>/g, "") // Remove HTML tags
+    .replace(/[<>{}]/g, "") // Remove dangerous chars
+    .trim()
+    .slice(0, maxLen);
+}
+
+/**
+ * Sanitize enum value - ensures value is one of allowed options
+ */
+export function sanitizeEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  defaultValue: T
+): T {
+  if (typeof value === "string" && allowed.includes(value as T)) {
+    return value as T;
+  }
+  return defaultValue;
+}

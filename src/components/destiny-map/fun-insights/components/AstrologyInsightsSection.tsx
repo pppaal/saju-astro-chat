@@ -16,8 +16,10 @@ import {
   getEclipsesInsight,
 } from "../astrology";
 
+import type { AstroData } from "../types";
+
 interface AstrologyInsightsSectionProps {
-  astro: any;
+  astro: AstroData | undefined;
   lang: string;
 }
 

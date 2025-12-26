@@ -3,23 +3,8 @@
  * 일진/트랜짓 기반 실시간 푸시 알림 콘텐츠 생성
  */
 
-// 오행 관계
-const ELEMENT_RELATIONS: Record<string, { generates: string; controls: string; generatedBy: string; controlledBy: string }> = {
-  wood: { generates: "fire", controls: "earth", generatedBy: "water", controlledBy: "metal" },
-  fire: { generates: "earth", controls: "metal", generatedBy: "wood", controlledBy: "water" },
-  earth: { generates: "metal", controls: "water", generatedBy: "fire", controlledBy: "wood" },
-  metal: { generates: "water", controls: "wood", generatedBy: "earth", controlledBy: "fire" },
-  water: { generates: "wood", controls: "fire", generatedBy: "metal", controlledBy: "earth" },
-};
-
-// 천간-오행 매핑
-const STEM_TO_ELEMENT: Record<string, string> = {
-  "甲": "wood", "乙": "wood",
-  "丙": "fire", "丁": "fire",
-  "戊": "earth", "己": "earth",
-  "庚": "metal", "辛": "metal",
-  "壬": "water", "癸": "water",
-};
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/stemElementMapping';
+import { ELEMENT_RELATIONS } from '@/lib/destiny-map/config/elements.config';
 
 // 별자리-오행 매핑
 const ZODIAC_TO_ELEMENT: Record<string, string> = {

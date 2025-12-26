@@ -1,9 +1,11 @@
 // src/lib/Saju/interpretations.ts
 // 12운성, 신살, 십성 해석 데이터 및 종합 해석 리포트 생성
+// 데이터는 JSON에서 로드하고, 타입 정의와 헬퍼 함수만 유지
 
 import type { FiveElement, SibsinKind } from './types';
+import interpretationsData from './data/interpretations.json';
 
-// ============ 12운성 해석 데이터 ============
+// ============ 12운성 타입 정의 ============
 
 export type TwelveStageType =
   | '장생' | '목욕' | '관대' | '건록' | '제왕'
@@ -21,142 +23,7 @@ export interface TwelveStageInterpretation {
   advice: string;
 }
 
-export const TWELVE_STAGE_INTERPRETATIONS: Record<TwelveStageType, TwelveStageInterpretation> = {
-  '장생': {
-    name: '장생',
-    hanja: '長生',
-    meaning: '새로운 생명이 탄생하는 시기',
-    fortune: '길',
-    personality: '낙관적이고 희망적. 새로운 시작에 대한 열정이 있으며 창조적인 에너지가 넘침.',
-    career: '새로운 사업 시작이나 창업에 유리. 성장 가능성이 높은 분야에서 능력 발휘.',
-    relationship: '새로운 인연을 만나기 좋음. 관계의 시작이 순탄하고 발전 가능성 높음.',
-    health: '생명력이 강함. 회복력이 좋고 건강한 편이나 과욕 주의.',
-    advice: '새로운 도전을 두려워하지 말고 적극적으로 시작하세요.'
-  },
-  '목욕': {
-    name: '목욕',
-    hanja: '沐浴',
-    meaning: '정화와 성장의 시기',
-    fortune: '중립',
-    personality: '감성적이고 예민함. 외부 영향을 받기 쉽고 유혹에 약한 면이 있음.',
-    career: '예술, 서비스업에 적합. 유흥, 술, 물과 관련된 직업 인연. 변동 많음.',
-    relationship: '이성 관계에서 복잡함을 겪을 수 있음. 감정적 동요 주의.',
-    health: '피부, 신장 계통 주의. 물과 관련된 사고 조심.',
-    advice: '유혹을 경계하고 자기 절제력을 기르세요.'
-  },
-  '관대': {
-    name: '관대',
-    hanja: '冠帶',
-    meaning: '성인이 되어 관을 쓰는 시기',
-    fortune: '길',
-    personality: '자존심 강하고 당당함. 사회적 지위와 명예를 중시하며 리더십이 있음.',
-    career: '공직, 관리직, 전문직에 적합. 사회적 인정을 받는 위치에서 성공.',
-    relationship: '체면을 중시해 관계가 형식적일 수 있음. 진정성 있는 교류 필요.',
-    health: '과도한 스트레스 주의. 정신적 긴장으로 인한 질환 조심.',
-    advice: '명예도 좋지만 실속을 챙기는 지혜도 필요합니다.'
-  },
-  '건록': {
-    name: '건록',
-    hanja: '建祿',
-    meaning: '녹을 받는 전성기',
-    fortune: '길',
-    personality: '능력 있고 독립적. 자수성가형으로 실력으로 인정받으며 자기 주관 확고.',
-    career: '어떤 분야든 성공 가능. 독립 사업, 전문직에서 특히 두각.',
-    relationship: '독립심이 강해 관계에서 주도권을 잡으려 함. 양보 필요.',
-    health: '건강한 편이나 과로 주의. 과신하지 말고 휴식 필요.',
-    advice: '능력을 발휘하되 겸손함을 잃지 마세요.'
-  },
-  '제왕': {
-    name: '제왕',
-    hanja: '帝旺',
-    meaning: '권력의 정점',
-    fortune: '길',
-    personality: '카리스마 있고 지배적. 리더십이 강하고 큰 포부를 가지나 독선적일 수 있음.',
-    career: '최고 자리에 오르는 능력. CEO, 정치인, 대기업 임원에 적합.',
-    relationship: '지배적인 성향으로 갈등 가능. 상대방 존중 필요.',
-    health: '강건하나 과로, 스트레스로 갑작스러운 질환 주의.',
-    advice: '정상에서는 내려올 일만 있으니 겸손과 나눔을 실천하세요.'
-  },
-  '쇠': {
-    name: '쇠',
-    hanja: '衰',
-    meaning: '기운이 쇠하기 시작',
-    fortune: '중립',
-    personality: '신중하고 보수적. 안정을 추구하며 모험을 꺼리는 성향.',
-    career: '큰 변화보다 안정적인 직장이 유리. 현상 유지에 주력.',
-    relationship: '안정적인 관계 선호. 새로운 만남보다 기존 관계 유지.',
-    health: '기력 저하 시작. 건강 관리에 신경 쓰고 무리하지 말기.',
-    advice: '욕심을 줄이고 현재에 감사하며 내실을 다지세요.'
-  },
-  '병': {
-    name: '병',
-    hanja: '病',
-    meaning: '기운이 쇠약해짐',
-    fortune: '흉',
-    personality: '소심하고 걱정 많음. 자신감이 부족하고 우유부단한 면이 있음.',
-    career: '큰 성취보다 안정이 중요. 무리한 사업 확장 금물.',
-    relationship: '의존적인 성향. 스스로 자립심을 기르는 노력 필요.',
-    health: '건강 문제 발생 가능. 정기 검진과 예방에 신경 쓰기.',
-    advice: '건강이 최우선. 무리하지 말고 자기 관리에 집중하세요.'
-  },
-  '사': {
-    name: '사',
-    hanja: '死',
-    meaning: '끝과 새로운 시작의 경계',
-    fortune: '흉',
-    personality: '극적인 성격. 극단적 사고와 변화를 좋아하며 올인하는 타입.',
-    career: '기존 것의 마무리와 정리. 새로운 전환점을 위한 준비 시기.',
-    relationship: '관계의 끝과 시작이 교차. 이별 후 새 만남 가능.',
-    health: '큰 병환 주의. 정밀 검사와 예방 필수.',
-    advice: '끝이 있어야 새로운 시작이 있습니다. 집착을 버리세요.'
-  },
-  '묘': {
-    name: '묘',
-    hanja: '墓',
-    meaning: '잠복과 축적의 시기',
-    fortune: '중립',
-    personality: '내성적이고 깊은 사고. 비밀이 많고 내면 세계가 풍부함.',
-    career: '연구직, 종교, 철학 분야 적합. 드러나지 않는 곳에서 힘 발휘.',
-    relationship: '마음을 쉽게 열지 않음. 깊은 관계는 오래 지속.',
-    health: '만성 질환 주의. 숨은 병 발견을 위한 정기 검진.',
-    advice: '내면의 힘을 기르고 때를 기다리세요.'
-  },
-  '절': {
-    name: '절',
-    hanja: '絶',
-    meaning: '끊어지고 새로워지는 시기',
-    fortune: '흉',
-    personality: '고독하고 독특함. 주류와 다른 길을 가며 혁신적인 사고.',
-    career: '기존 틀을 깨는 일에 적합. 예술, 발명, 혁신 분야.',
-    relationship: '인연이 끊어지기 쉬움. 관계 유지에 노력 필요.',
-    health: '급작스러운 건강 변화 주의. 사고 조심.',
-    advice: '절망 속에서도 희망을 찾으세요. 끝은 곧 시작입니다.'
-  },
-  '태': {
-    name: '태',
-    hanja: '胎',
-    meaning: '새 생명이 잉태되는 시기',
-    fortune: '중립',
-    personality: '순수하고 잠재력 풍부. 아직 드러나지 않은 가능성이 큼.',
-    career: '새로운 분야 학습, 준비 시기. 성급한 결정보다 공부에 집중.',
-    relationship: '새로운 인연의 씨앗. 아직은 조용히 발전시킬 때.',
-    health: '건강하지만 저항력 약함. 예방에 신경 쓰기.',
-    advice: '씨앗이 자라듯 천천히 성장하세요. 조급함은 금물.'
-  },
-  '양': {
-    name: '양',
-    hanja: '養',
-    meaning: '보살핌을 받으며 자라는 시기',
-    fortune: '길',
-    personality: '온순하고 받아들이는 자세. 배우고 성장하는 것을 즐김.',
-    career: '수련, 교육, 성장 과정에 있음. 귀인의 도움으로 발전.',
-    relationship: '보살핌을 받는 위치. 감사하는 마음으로 관계 유지.',
-    health: '약하지만 점점 좋아짐. 영양 관리와 휴식 중요.',
-    advice: '배움을 게을리하지 말고 성장에 집중하세요.'
-  }
-};
-
-// ============ 십성 해석 데이터 ============
+// ============ 십성 타입 정의 ============
 
 export interface SibsinInterpretation {
   name: SibsinKind;
@@ -169,110 +36,7 @@ export interface SibsinInterpretation {
   relationship: string;
 }
 
-export const SIBSIN_INTERPRETATIONS: Record<SibsinKind, SibsinInterpretation> = {
-  '비견': {
-    name: '비견',
-    hanja: '比肩',
-    element: '같은 오행, 같은 음양',
-    meaning: '나와 같은 존재 - 형제, 동료, 친구',
-    positive: '독립심, 자주성, 협동심, 경쟁심',
-    negative: '고집, 분쟁, 재물 분산, 이기심',
-    career: '동업, 팀워크 필요한 일, 경쟁 분야',
-    relationship: '형제자매, 동료와의 관계 중요. 경쟁과 협력의 양면.'
-  },
-  '겁재': {
-    name: '겁재',
-    hanja: '劫財',
-    element: '같은 오행, 다른 음양',
-    meaning: '나의 재물을 빼앗으려는 존재',
-    positive: '추진력, 적극성, 도전정신',
-    negative: '재물 손실, 배신, 도박성, 분쟁',
-    career: '투기, 도전적 사업, 스포츠, 영업',
-    relationship: '경쟁자와의 관계. 재물 관련 분쟁 주의.'
-  },
-  '식신': {
-    name: '식신',
-    hanja: '食神',
-    element: '내가 생하는 오행, 같은 음양',
-    meaning: '내가 낳은 것을 먹이는 존재 - 표현, 재능',
-    positive: '창의력, 예술성, 식복, 온화함, 건강',
-    negative: '게으름, 향락, 과식, 나태',
-    career: '예술, 요리, 교육, 서비스, 창작',
-    relationship: '자녀, 제자, 아랫사람과의 관계. 돌봄과 표현.'
-  },
-  '상관': {
-    name: '상관',
-    hanja: '傷官',
-    element: '내가 생하는 오행, 다른 음양',
-    meaning: '관을 상하게 하는 존재 - 반항, 표현',
-    positive: '언변, 창의력, 예술성, 개혁정신',
-    negative: '반항심, 관재, 구설, 이직',
-    career: '예술, 비평, 법률, 언론, 프리랜서',
-    relationship: '권위에 반발. 상사와 갈등 가능. 자유로운 관계 선호.'
-  },
-  '편재': {
-    name: '편재',
-    hanja: '偏財',
-    element: '내가 극하는 오행, 같은 음양',
-    meaning: '유동적인 재물 - 사업, 투자',
-    positive: '사업 수완, 넓은 인맥, 활동성',
-    negative: '재물 변동, 바람기, 투기',
-    career: '사업, 무역, 투자, 금융, 영업',
-    relationship: '아버지, 이성(남자 기준). 여러 인연과 교류.'
-  },
-  '정재': {
-    name: '정재',
-    hanja: '正財',
-    element: '내가 극하는 오행, 다른 음양',
-    meaning: '안정적인 재물 - 급여, 저축',
-    positive: '검소함, 성실함, 안정적 수입',
-    negative: '인색함, 재물 집착, 융통성 부족',
-    career: '정규직, 공무원, 금융, 재무',
-    relationship: '배우자(남자 기준), 안정적 파트너.'
-  },
-  '편관': {
-    name: '편관',
-    hanja: '偏官',
-    element: '나를 극하는 오행, 같은 음양',
-    meaning: '칠살 - 극복해야 할 힘, 권력',
-    positive: '결단력, 추진력, 권위, 리더십',
-    negative: '위험, 소송, 사고, 건강 문제',
-    career: '군인, 경찰, 의사, 스포츠, 수술',
-    relationship: '자녀(여자 기준), 권위적 인물. 긴장 관계.'
-  },
-  '정관': {
-    name: '정관',
-    hanja: '正官',
-    element: '나를 극하는 오행, 다른 음양',
-    meaning: '바른 관직 - 명예, 지위',
-    positive: '명예, 지위, 신용, 규범',
-    negative: '융통성 부족, 고지식함, 압박감',
-    career: '공무원, 공직, 대기업, 관리직',
-    relationship: '배우자(여자 기준), 상사, 권위적 인물.'
-  },
-  '편인': {
-    name: '편인',
-    hanja: '偏印',
-    element: '나를 생하는 오행, 같은 음양',
-    meaning: '도식 - 특별한 학문, 영성',
-    positive: '영감, 창의력, 종교성, 연구심',
-    negative: '의존성, 우울, 식신 파괴, 불안정',
-    career: '종교, 철학, 예술, 의술, 연구',
-    relationship: '계모, 스승. 특별한 인연.'
-  },
-  '정인': {
-    name: '정인',
-    hanja: '正印',
-    element: '나를 생하는 오행, 다른 음양',
-    meaning: '바른 인장 - 학문, 어머니',
-    positive: '지혜, 자비, 학문, 명예',
-    negative: '나태, 의존성, 수동성',
-    career: '교육, 학문, 종교, 의료, 공직',
-    relationship: '어머니, 스승. 보살핌의 관계.'
-  }
-};
-
-// ============ 신살 해석 데이터 ============
+// ============ 신살 타입 정의 ============
 
 export interface ShinsalInterpretation {
   name: string;
@@ -283,156 +47,7 @@ export interface ShinsalInterpretation {
   advice: string;
 }
 
-export const SHINSAL_INTERPRETATIONS: Record<string, ShinsalInterpretation> = {
-  // 길신
-  '천을귀인': {
-    name: '천을귀인',
-    hanja: '天乙貴人',
-    category: '길신',
-    meaning: '하늘이 내린 귀인. 어려울 때 도움을 주는 사람이 나타남.',
-    effect: '귀인의 도움으로 위기 극복. 사회적 지위 상승. 관재 해소.',
-    advice: '귀인을 만나면 감사하게 대하고, 본인도 남에게 귀인이 되세요.'
-  },
-  '천덕귀인': {
-    name: '천덕귀인',
-    hanja: '天德貴人',
-    category: '길신',
-    meaning: '하늘의 덕이 있는 귀인. 재앙을 피하고 복을 받음.',
-    effect: '액운 해소, 건강 회복, 사고 방지.',
-    advice: '선행을 베풀어 복을 쌓으세요.'
-  },
-  '월덕귀인': {
-    name: '월덕귀인',
-    hanja: '月德貴人',
-    category: '길신',
-    meaning: '달의 덕이 있는 귀인. 매월 복을 받음.',
-    effect: '액운 해소, 문서운 상승, 시험 합격.',
-    advice: '꾸준한 노력이 결실을 맺습니다.'
-  },
-  '문창귀인': {
-    name: '문창귀인',
-    hanja: '文昌貴人',
-    category: '길신',
-    meaning: '학문과 문서의 길신.',
-    effect: '학업 성취, 시험 합격, 문서 처리 원활.',
-    advice: '공부와 글쓰기에 집중하면 성과가 있습니다.'
-  },
-  '학당귀인': {
-    name: '학당귀인',
-    hanja: '學堂貴人',
-    category: '길신',
-    meaning: '학문의 전당에 드는 길신.',
-    effect: '학업 성취, 교육 분야 성공, 지식 습득.',
-    advice: '배움을 게을리하지 마세요.'
-  },
-  '역마': {
-    name: '역마',
-    hanja: '驛馬',
-    category: '중립',
-    meaning: '이동과 변화의 신살.',
-    effect: '이사, 출장, 여행이 많음. 해외 인연.',
-    advice: '한곳에 정착하기 어려우니 변화를 즐기세요.'
-  },
-  '화개': {
-    name: '화개',
-    hanja: '華蓋',
-    category: '중립',
-    meaning: '화려한 덮개. 예술과 종교의 별.',
-    effect: '예술적 재능, 종교적 심성, 고독한 성향.',
-    advice: '예술이나 종교에서 마음의 평화를 찾으세요.'
-  },
-  '도화': {
-    name: '도화',
-    hanja: '桃花',
-    category: '중립',
-    meaning: '복숭아꽃. 이성을 끄는 매력.',
-    effect: '이성에게 인기. 연예, 예술 분야 재능.',
-    advice: '매력을 긍정적으로 활용하고 유혹에 주의하세요.'
-  },
-  '장성': {
-    name: '장성',
-    hanja: '將星',
-    category: '길신',
-    meaning: '장군의 별. 리더십과 권위.',
-    effect: '지도자 자질, 군인/경찰 적성, 권위 획득.',
-    advice: '리더로서의 책임감을 가지세요.'
-  },
-  '금여': {
-    name: '금여',
-    hanja: '金輿',
-    category: '길신',
-    meaning: '금으로 된 수레. 부귀와 명예.',
-    effect: '부와 명예 획득, 좋은 배우자.',
-    advice: '복을 누리되 겸손함을 유지하세요.'
-  },
-  // 흉신
-  '공망': {
-    name: '공망',
-    hanja: '空亡',
-    category: '흉신',
-    meaning: '공허함과 상실.',
-    effect: '노력의 성과가 부족, 허무함, 기대 이하의 결과.',
-    advice: '과도한 기대를 버리고 현실에 충실하세요.'
-  },
-  '양인': {
-    name: '양인',
-    hanja: '羊刃',
-    category: '흉신',
-    meaning: '날카로운 칼날. 강한 기운.',
-    effect: '결단력 있으나 사고, 수술, 분쟁 위험.',
-    advice: '날카로움을 다스리고 인내심을 기르세요.'
-  },
-  '겁살': {
-    name: '겁살',
-    hanja: '劫煞',
-    category: '흉신',
-    meaning: '강탈의 별. 손실과 위험.',
-    effect: '재물 손실, 도난, 사기 위험.',
-    advice: '재물 관리에 신중하고 보험에 가입하세요.'
-  },
-  '망신살': {
-    name: '망신살',
-    hanja: '亡身煞',
-    category: '흉신',
-    meaning: '몸을 망치는 살.',
-    effect: '건강 문제, 명예 손상, 관재.',
-    advice: '건강 관리와 처신에 주의하세요.'
-  },
-  '원진살': {
-    name: '원진살',
-    hanja: '怨嗔煞',
-    category: '흉신',
-    meaning: '원망의 살.',
-    effect: '인간관계 갈등, 오해, 다툼.',
-    advice: '오해를 풀고 화해에 노력하세요.'
-  },
-  '백호살': {
-    name: '백호살',
-    hanja: '白虎煞',
-    category: '흉신',
-    meaning: '흰 호랑이의 살. 혈광과 사고.',
-    effect: '교통사고, 수술, 유혈 사태 위험.',
-    advice: '위험한 활동을 삼가고 안전에 주의하세요.'
-  },
-  '괴강살': {
-    name: '괴강살',
-    hanja: '魁罡煞',
-    category: '중립',
-    meaning: '괴이하고 강한 기운.',
-    effect: '강한 결단력과 카리스마. 고독할 수 있음.',
-    advice: '강한 기운을 올바르게 사용하세요.'
-  },
-  '천라지망': {
-    name: '천라지망',
-    hanja: '天羅地網',
-    category: '흉신',
-    meaning: '하늘과 땅의 그물에 갇힘.',
-    effect: '구속, 제한, 법적 문제.',
-    advice: '법을 준수하고 정도를 걸으세요.'
-  }
-};
-
-// ============ 오행 해석 데이터 ============
+// ============ 오행 타입 정의 ============
 
 export interface ElementInterpretation {
   element: FiveElement;
@@ -445,58 +60,12 @@ export interface ElementInterpretation {
   career: string;
 }
 
-export const ELEMENT_INTERPRETATIONS: Record<FiveElement, ElementInterpretation> = {
-  '목': {
-    element: '목',
-    hanja: '木',
-    nature: '생장, 발전, 인, 봄, 동쪽',
-    personality: '인자하고 성장 지향적. 창의적이고 진취적.',
-    excess: '고집, 분노, 화를 잘 냄, 독단적',
-    deficiency: '우유부단, 자신감 부족, 추진력 부족',
-    health: '간, 담, 눈, 힘줄 관련 질환 주의',
-    career: '교육, 출판, 농업, 의류, 목재'
-  },
-  '화': {
-    element: '화',
-    hanja: '火',
-    nature: '발산, 열정, 예, 여름, 남쪽',
-    personality: '열정적이고 활발함. 예의 바르고 표현력 좋음.',
-    excess: '급함, 분노, 충동적, 조급함',
-    deficiency: '무기력, 우울, 표현력 부족',
-    health: '심장, 소장, 혀, 혈액 관련 주의',
-    career: '예술, 연예, 광고, 전자, 요식업'
-  },
-  '토': {
-    element: '토',
-    hanja: '土',
-    nature: '중재, 안정, 신, 사계절 환절기, 중앙',
-    personality: '신뢰감 있고 안정적. 중재 능력 좋음.',
-    excess: '고집, 답답함, 융통성 부족',
-    deficiency: '불안정, 의지력 부족, 산만함',
-    health: '비장, 위장, 피부, 근육 관련 주의',
-    career: '부동산, 농업, 건설, 금융, 중개'
-  },
-  '금': {
-    element: '금',
-    hanja: '金',
-    nature: '결실, 수렴, 의, 가을, 서쪽',
-    personality: '의리 있고 결단력 있음. 정의감 강함.',
-    excess: '냉정함, 잔인함, 비판적',
-    deficiency: '우유부단, 결단력 부족, 나약함',
-    health: '폐, 대장, 코, 피부, 호흡기 주의',
-    career: '금융, 철강, 기계, 법률, 군경'
-  },
-  '수': {
-    element: '수',
-    hanja: '水',
-    nature: '지혜, 유연, 지, 겨울, 북쪽',
-    personality: '지혜롭고 유연함. 적응력 좋고 깊은 사고.',
-    excess: '우울, 두려움, 음험함',
-    deficiency: '용기 부족, 지혜 부족, 적응력 부족',
-    health: '신장, 방광, 귀, 뼈 관련 주의',
-    career: '수산, 유통, 관광, IT, 서비스'
-  }
-};
+// ============ JSON에서 데이터 로드 ============
+
+export const TWELVE_STAGE_INTERPRETATIONS = interpretationsData.twelveStages as Record<TwelveStageType, TwelveStageInterpretation>;
+export const SIBSIN_INTERPRETATIONS = interpretationsData.sibsin as Record<SibsinKind, SibsinInterpretation>;
+export const SHINSAL_INTERPRETATIONS = interpretationsData.shinsal as Record<string, ShinsalInterpretation>;
+export const ELEMENT_INTERPRETATIONS = interpretationsData.fiveElements as Record<FiveElement, ElementInterpretation>;
 
 // ============ 종합 해석 헬퍼 함수 ============
 
@@ -553,7 +122,6 @@ export function analyzeElementBalance(counts: Record<FiveElement, number>): {
   const values = elements.map(e => counts[e] || 0);
   const max = Math.max(...values);
   const min = Math.min(...values);
-  const total = values.reduce((a, b) => a + b, 0);
 
   const dominant = max >= 3 ? elements[values.indexOf(max)] : null;
   const deficient = min === 0 ? elements[values.indexOf(min)] : null;

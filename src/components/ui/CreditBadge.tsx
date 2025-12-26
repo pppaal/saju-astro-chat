@@ -74,7 +74,7 @@ export default function CreditBadge({
   if (!session?.user) {
     if (variant === "minimal") return null;
     return (
-      <Link href="/api/auth/signin" className={`${styles.badge} ${styles.login} ${className}`}>
+      <Link href="/auth/signin" className={`${styles.badge} ${styles.login} ${className}`}>
         <span className={styles.icon}>🔑</span>
         <span className={styles.loginText}>{t("common.login") || "Login"}</span>
       </Link>

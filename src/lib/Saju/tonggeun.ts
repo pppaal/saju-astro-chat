@@ -2,18 +2,11 @@
 // 통근(通根), 투출(透出), 회국(會局) 계산 모듈
 // 일간 및 오행의 실제 힘을 정밀하게 계산
 
-import { FiveElement, YinYang } from './types';
+import { FiveElement, YinYang, SajuPillarsInput } from './types';
 import { STEMS, BRANCHES, JIJANGGAN } from './constants';
 
-/**
- * 사주 입력 타입
- */
-export interface SajuPillarsInput {
-  year: { stem: string; branch: string };
-  month: { stem: string; branch: string };
-  day: { stem: string; branch: string };
-  time: { stem: string; branch: string };
-}
+// Re-export for backward compatibility
+export type { SajuPillarsInput };
 
 /**
  * 통근 결과
@@ -68,9 +61,9 @@ export interface DeukryeongResult {
 }
 
 /**
- * 종합 세력 분석 결과
+ * 종합 세력 분석 결과 (통근/득령/회국 기반)
  */
-export interface StrengthAnalysis {
+export interface TonggeunStrengthAnalysis {
   daymaster: string;
   daymasterElement: FiveElement;
   tonggeun: TonggeunResult;
@@ -80,6 +73,9 @@ export interface StrengthAnalysis {
   finalStrength: '극신강' | '신강' | '중화' | '신약' | '극신약';
   score: number;  // -100 ~ 100
 }
+
+/** @deprecated Use TonggeunStrengthAnalysis instead */
+export type StrengthAnalysis = TonggeunStrengthAnalysis;
 
 // ============ 기본 유틸리티 ============
 

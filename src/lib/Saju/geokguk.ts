@@ -2,7 +2,7 @@
 // 격국(格局) 판정 모듈
 
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
-import type { FiveElement } from './types';
+import type { FiveElement, SajuPillarsInput } from './types';
 
 export type GeokgukType =
   | '식신격' | '상관격' | '편재격' | '정재격'
@@ -23,12 +23,8 @@ export interface GeokgukResult {
   gisin?: string;
 }
 
-export interface SajuPillarsInput {
-  year: { stem: string; branch: string };
-  month: { stem: string; branch: string };
-  day: { stem: string; branch: string };
-  time: { stem: string; branch: string };
-}
+// Re-export for backward compatibility
+export type { SajuPillarsInput };
 
 // 한글 ↔ 한자 변환
 const STEM_KO_TO_HAN: Record<string, string> = {

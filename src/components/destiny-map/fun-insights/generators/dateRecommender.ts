@@ -1,23 +1,31 @@
-import { extractSajuProfile, extractAstroProfile, calculateMonthlyImportantDates } from '@/lib/destiny-map/destinyCalendar';
+import { extractSajuProfile, extractAstroProfile, calculateMonthlyImportantDates, type ImportantDate } from '@/lib/destiny-map/destinyCalendar';
 import { elementTraits, elementKeyMap, elementRelations, monthElements } from '../data';
+import type { SajuData, AstroData } from '../types';
 
-export function getRecommendedDates(saju: any, astro: any, lang: string): { date: string; type: string; reason: string; score: number; grade?: number }[] {
+interface RecommendedDateItem {
+  date: string;
+  type: string;
+  reason: string;
+  score: number;
+  grade?: number;
+  categories?: string[];
+}
+
+export function getRecommendedDates(saju: SajuData | undefined, astro: AstroData | undefined, lang: string): RecommendedDateItem[] {
   const isKo = lang === "ko";
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth(); // 0-indexed
 
   try {
     const sajuProfile = extractSajuProfile(saju);
     const astroProfile = extractAstroProfile(astro);
 
     // 생년월일에서 출생년도 추출 (과거 15년 ~ 미래 15년)
-    const birthYear = parseInt(saju.birthDate?.split("-")[0]) || 1990;
-    const currentAge = currentYear - birthYear;
+    const birthYear = parseInt(saju?.birthDate?.split("-")[0] || "") || 1990;
     const startYear = currentYear - 15; // 과거 15년
     const endYear = currentYear + 15; // 미래 15년
 
     // 연도별 평균 점수 계산
-    const yearScores: Record<number, { totalScore: number; count: number; bestGrade: number; dates: any[] }> = {};
+    const yearScores: Record<number, { totalScore: number; count: number; bestGrade: number; dates: ImportantDate[] }> = {};
 
     // 과거 15년부터 미래 15년까지 스캔
     for (let year = startYear; year <= endYear; year++) {
@@ -121,7 +129,7 @@ export function getRecommendedDates(saju: any, astro: any, lang: string): { date
   }
 }
 
-export function getSimpleRecommendedDates(saju: any, lang: string): { date: string; type: string; reason: string; score: number }[] {
+export function getSimpleRecommendedDates(saju: SajuData | undefined, lang: string): { date: string; type: string; reason: string; score: number }[] {
   const dates: { date: string; type: string; reason: string; score: number }[] = [];
   const isKo = lang === "ko";
   const currentYear = new Date().getFullYear();

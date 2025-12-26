@@ -1,7 +1,8 @@
 import { elementTraits, dayMasterData, zodiacData, elementKeyMap, tianGanMap, elementRelations, astroToSaju } from '../data';
 import { findPlanetSign } from '../utils';
+import type { SajuData, AstroData } from '../types';
 
-export function getCrossAnalysis(saju: any, astro: any, lang: string): { title: string; insight: string; emoji: string; summary?: string }[] {
+export function getCrossAnalysis(saju: SajuData | undefined, astro: AstroData | undefined, lang: string): { title: string; insight: string; emoji: string; summary?: string }[] {
   const insights: { title: string; insight: string; emoji: string; summary?: string }[] = [];
   const isKo = lang === "ko";
 

@@ -155,7 +155,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
 
           {!session && (
             <div className={styles.loginHint}>
-              <Link href="/api/auth/signin">{t("share.loginHint", "Sign in to earn referral credits!")}</Link>
+              <Link href="/auth/signin">{t("share.loginHint", "Sign in to earn referral credits!")}</Link>
             </div>
           )}
         </div>

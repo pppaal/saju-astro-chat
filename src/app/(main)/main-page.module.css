@@ -197,6 +197,13 @@
   object-fit: contain;
 }
 
+.brandText {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
 .nav {
   display: flex;
   align-items: center;

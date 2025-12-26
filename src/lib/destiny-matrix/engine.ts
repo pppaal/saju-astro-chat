@@ -23,7 +23,14 @@ import type {
   ExtraPointName,
 } from './types';
 
-import type { FiveElement, SibsinKind, TwelveStage, RelationHit } from '../Saju/types';
+import type { FiveElement, SibsinKind, TwelveStageStandard, TwelveStage, RelationHit } from '../Saju/types';
+
+// 건록/제왕을 표준 십이운성으로 변환
+function toStandardStage(stage: TwelveStage): TwelveStageStandard {
+  if (stage === '건록') return '임관';
+  if (stage === '제왕') return '왕지';
+  return stage;
+}
 import type { AspectType } from '../astrology/foundation/types';
 
 import {
@@ -204,7 +211,8 @@ function calculateLayer6(input: MatrixCalculationInput): Record<string, MatrixCe
   const results: Record<string, MatrixCell> = {};
   const stageList = Object.keys(input.twelveStages) as TwelveStage[];
 
-  for (const stage of stageList) {
+  for (const rawStage of stageList) {
+    const stage = toStandardStage(rawStage);
     for (const [planet, house] of Object.entries(input.planetHouses)) {
       const houseNum = house as HouseNumber;
       const matrixCell = TWELVE_STAGE_HOUSE_MATRIX[stage]?.[houseNum];
@@ -528,7 +536,7 @@ export function getRelationAspectInteraction(
 }
 
 export function getStageHouseInteraction(
-  stage: TwelveStage,
+  stage: TwelveStageStandard,
   house: HouseNumber
 ): InteractionCode | null {
   return TWELVE_STAGE_HOUSE_MATRIX[stage]?.[house] || null;

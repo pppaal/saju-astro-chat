@@ -1,4 +1,6 @@
-export function getLuckyItems(saju: any, lang: string): { item: string; reason: string }[] {
+import type { SajuData } from '../types';
+
+export function getLuckyItems(saju: SajuData | undefined, lang: string): { item: string; reason: string }[] {
   if (!saju?.fiveElements) return [];
   const isKo = lang === "ko";
 

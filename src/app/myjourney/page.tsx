@@ -154,26 +154,29 @@ function MyJourneyPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
   const [credits, setCredits] = useState<{ remaining: number; total: number; plan: string } | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      if (status !== "authenticated") return;
-      const res = await fetch("/api/me/profile", { cache: "no-store" });
-      if (!res.ok) return;
-      const { user } = await res.json();
-      if (!user) return;
-      setProfile(user);
-    };
-    load();
-  }, [status]);
+    const loadInitialData = async () => {
+      if (status !== "authenticated") {
+        setInitialLoading(false);
+        return;
+      }
 
-  useEffect(() => {
-    const loadCredits = async () => {
-      if (status !== "authenticated") return;
       try {
-        const res = await fetch("/api/me/credits", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
+        // Load profile and credits in parallel
+        const [profileRes, creditsRes] = await Promise.all([
+          fetch("/api/me/profile", { cache: "no-store" }),
+          fetch("/api/me/credits", { cache: "no-store" })
+        ]);
+
+        if (profileRes.ok) {
+          const { user } = await profileRes.json();
+          if (user) setProfile(user);
+        }
+
+        if (creditsRes.ok) {
+          const data = await creditsRes.json();
           setCredits({
             remaining: data.credits?.remaining ?? 0,
             total: data.credits?.monthly ?? 0,
@@ -181,10 +184,12 @@ function MyJourneyPage() {
           });
         }
       } catch (e) {
-        console.error("Failed to load credits:", e);
+        console.error("Failed to load initial data:", e);
+      } finally {
+        setInitialLoading(false);
       }
     };
-    loadCredits();
+    loadInitialData();
   }, [status]);
 
   useEffect(() => {
@@ -267,7 +272,7 @@ function MyJourneyPage() {
     }
   };
 
-  if (status === "loading") {
+  if (status === "loading" || (status === "authenticated" && initialLoading)) {
     return <LoadingScreen />;
   }
 
@@ -324,42 +329,42 @@ function MyJourneyPage() {
       ) : (
         /* ========== LOGGED IN - DASHBOARD ========== */
         <div className={styles.dashboard}>
-          {/* User Profile Card */}
+          {/* Unified Profile + Credits + Fortune Header */}
           <div className={styles.profileCard}>
-            {session.user?.image && (
-              <Image
-                src={session.user.image}
-                alt=""
-                width={56}
-                height={56}
-                className={styles.profileAvatar}
-              />
-            )}
-            <div className={styles.profileInfo}>
-              <h2>{session.user?.name || "User"}</h2>
-              <p>{session.user?.email}</p>
-              {/* Plan Badge */}
-              {credits && (
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginTop: '8px',
-                  padding: '4px 12px',
-                  background: credits.plan === 'free' ? 'rgba(255,255,255,0.1)' :
-                             credits.plan === 'starter' ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
-                             credits.plan === 'pro' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
-                             'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                  borderRadius: '20px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: 'white',
-                  textTransform: 'uppercase'
-                }}>
-                  <span>{credits.plan === 'free' ? '🆓' : credits.plan === 'starter' ? '⭐' : credits.plan === 'pro' ? '💎' : '👑'}</span>
-                  <span>{credits.plan}</span>
+            <div className={styles.profileLeft}>
+              {session.user?.image ? (
+                <Image
+                  src={session.user.image}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className={styles.profileAvatar}
+                />
+              ) : (
+                <div className={styles.profileAvatarPlaceholder}>
+                  {(session.user?.name || "U")[0].toUpperCase()}
                 </div>
               )}
+              <div className={styles.profileInfo}>
+                <h2>{session.user?.name || "User"}</h2>
+                {credits && (
+                  <div className={styles.membershipRow}>
+                    <div className={`${styles.planBadge} ${styles[`plan${credits.plan.charAt(0).toUpperCase() + credits.plan.slice(1)}`]}`}>
+                      <span className={styles.planIcon}>
+                        {credits.plan === 'free' ? '🆓' : credits.plan === 'starter' ? '⭐' : credits.plan === 'pro' ? '💎' : '👑'}
+                      </span>
+                      <span className={styles.planName}>{t(`myjourney.plan.${credits.plan}`, credits.plan.toUpperCase())}</span>
+                    </div>
+                    <div
+                      className={styles.creditsBadge}
+                      onClick={() => router.push('/pricing')}
+                    >
+                      <span className={styles.creditsCount}>{credits.remaining}</span>
+                      <span className={styles.creditsLabel}>{t("myjourney.credits.short", "credits")}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             {/* Fortune Orb */}
             <div className={styles.fortuneOrb}>
@@ -368,7 +373,7 @@ function MyJourneyPage() {
               ) : fortune ? (
                 <>
                   <span className={styles.orbScore}>{fortune.overall}</span>
-                  <span className={styles.orbLabel}>Today</span>
+                  <span className={styles.orbLabel}>{t("myjourney.fortune.today", "Today")}</span>
                 </>
               ) : (
                 <span className={styles.orbEmpty}>?</span>
@@ -376,119 +381,62 @@ function MyJourneyPage() {
             </div>
           </div>
 
-          {/* Credits Card */}
-          {credits && (
-            <div className={styles.menuCard} style={{
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-              border: '1px solid rgba(102, 126, 234, 0.3)',
-              cursor: 'pointer'
-            }} onClick={() => router.push('/pricing')}>
-              <span className={styles.menuIcon}>✨</span>
-              <div style={{ flex: 1 }}>
-                <h3>{t("myjourney.credits.title", "Credits")}</h3>
-                <p>{t("myjourney.credits.desc", `${credits.remaining} / ${credits.total} remaining`)}</p>
-              </div>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-                gap: '4px'
-              }}>
-                <div style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}>
-                  {credits.remaining}
+          {/* Today's Fortune Card */}
+          <div className={styles.fortuneCard}>
+            <h3>{t("myjourney.fortune.title", "Today's Fortune")}</h3>
+            {fortune ? (
+              <div className={styles.fortuneGrid}>
+                <div className={styles.fortuneItem}>
+                  <span className={styles.fortuneEmoji}>❤️</span>
+                  <span className={styles.fortuneScore}>{fortune.love}</span>
+                  <small>{t("myjourney.fortune.love", "Love")}</small>
                 </div>
-                <div style={{ fontSize: '11px', opacity: 0.6 }}>
-                  {t("myjourney.credits.upgrade", "Tap to upgrade")}
+                <div className={styles.fortuneItem}>
+                  <span className={styles.fortuneEmoji}>💼</span>
+                  <span className={styles.fortuneScore}>{fortune.career}</span>
+                  <small>{t("myjourney.fortune.career", "Career")}</small>
+                </div>
+                <div className={styles.fortuneItem}>
+                  <span className={styles.fortuneEmoji}>💰</span>
+                  <span className={styles.fortuneScore}>{fortune.wealth}</span>
+                  <small>{t("myjourney.fortune.wealth", "Wealth")}</small>
+                </div>
+                <div className={styles.fortuneItem}>
+                  <span className={styles.fortuneEmoji}>🏥</span>
+                  <span className={styles.fortuneScore}>{fortune.health}</span>
+                  <small>{t("myjourney.fortune.health", "Health")}</small>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* 2-Column Grid */}
-          <div className={styles.grid}>
-            {/* Left Column - Navigation */}
-            <div className={styles.column}>
-              <Link href="/myjourney/profile" className={styles.menuCard}>
-                <span className={styles.menuIcon}>👤</span>
-                <div>
-                  <h3>{t("myjourney.profile.title", "My Profile")}</h3>
-                  <p>{t("myjourney.profile.desc", "Birth date & settings")}</p>
-                </div>
-              </Link>
-
-              <Link href="/myjourney/circle" className={styles.menuCard}>
-                <span className={styles.menuIcon}>👥</span>
-                <div>
-                  <h3>{t("myjourney.circle.title", "My Circle")}</h3>
-                  <p>{t("myjourney.circle.desc", "Family, friends, partners")}</p>
-                </div>
-              </Link>
-
-              <Link href="/myjourney/history" className={styles.menuCard}>
-                <span className={styles.menuIcon}>📜</span>
-                <div>
-                  <h3>{t("myjourney.destiny.title", "My Destiny")}</h3>
-                  <p>{t("myjourney.destiny.desc", "Past readings & insights")}</p>
-                </div>
-              </Link>
-
-              <Link href="/destiny-pal" className={styles.menuCard} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                <span className={styles.menuIcon}>🎁</span>
-                <div>
-                  <h3>{t("myjourney.referral.title", "Invite Friends")}</h3>
-                  <p>{t("myjourney.referral.desc", "Get 3 credits per friend")}</p>
-                </div>
-              </Link>
-            </div>
-
-            {/* Right Column - Fortune Details */}
-            <div className={styles.column}>
-              <div className={styles.fortuneCard}>
-                <h3>{t("myjourney.fortune.title", "Today's Fortune")}</h3>
-                {fortune ? (
-                  <>
-                    <div className={styles.fortuneGrid}>
-                      <div className={styles.fortuneItem}>
-                        <span>❤️</span>
-                        <span>{fortune.love}</span>
-                        <small>{t("myjourney.fortune.love", "Love")}</small>
-                      </div>
-                      <div className={styles.fortuneItem}>
-                        <span>💼</span>
-                        <span>{fortune.career}</span>
-                        <small>{t("myjourney.fortune.career", "Career")}</small>
-                      </div>
-                      <div className={styles.fortuneItem}>
-                        <span>💰</span>
-                        <span>{fortune.wealth}</span>
-                        <small>{t("myjourney.fortune.wealth", "Wealth")}</small>
-                      </div>
-                      <div className={styles.fortuneItem}>
-                        <span>🏥</span>
-                        <span>{fortune.health}</span>
-                        <small>{t("myjourney.fortune.health", "Health")}</small>
-                      </div>
-                    </div>
-                  </>
-                ) : !profile.birthDate ? (
-                  <div className={styles.fortuneSetup}>
-                    <p>{t("myjourney.fortune.setup")}</p>
-                    <Link href="/myjourney/profile">{t("myjourney.fortune.setupLink")}</Link>
-                  </div>
-                ) : (
-                  <div className={styles.fortuneLoading}>
-                    <div className={styles.smallSpinner}></div>
-                  </div>
-                )}
+            ) : !profile.birthDate ? (
+              <div className={styles.fortuneSetup}>
+                <p>{t("myjourney.fortune.setup", "Set your birth date first")}</p>
+                <Link href="/myjourney/profile">{t("myjourney.fortune.setupLink", "Setup Profile")}</Link>
               </div>
-            </div>
+            ) : (
+              <div className={styles.fortuneLoading}>
+                <div className={styles.smallSpinner}></div>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Menu Grid */}
+          <div className={styles.quickMenu}>
+            <Link href="/myjourney/profile" className={styles.quickMenuItem}>
+              <span className={styles.quickMenuIcon}>👤</span>
+              <span>{t("myjourney.menu.profile", "Profile")}</span>
+            </Link>
+            <Link href="/myjourney/circle" className={styles.quickMenuItem}>
+              <span className={styles.quickMenuIcon}>👥</span>
+              <span>{t("myjourney.menu.circle", "Circle")}</span>
+            </Link>
+            <Link href="/myjourney/history" className={styles.quickMenuItem}>
+              <span className={styles.quickMenuIcon}>📜</span>
+              <span>{t("myjourney.menu.history", "History")}</span>
+            </Link>
+            <Link href="/pricing" className={styles.quickMenuItem}>
+              <span className={styles.quickMenuIcon}>✨</span>
+              <span>{t("myjourney.menu.upgrade", "Upgrade")}</span>
+            </Link>
           </div>
 
           {/* Recent Activity */}

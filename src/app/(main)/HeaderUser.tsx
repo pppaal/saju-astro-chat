@@ -1,11 +1,25 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { signIn, signOut } from "next-auth/react"
+import { useRouter, usePathname } from "next/navigation"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function HeaderUser() {
   const { t } = useI18n()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // 로그인 후 현재 페이지로 돌아가기 위한 핸들러
+  const handleGoogleLogin = useCallback(() => {
+    const callbackUrl = pathname || "/"
+    signIn("google", { callbackUrl })
+  }, [pathname])
+
+  const handleKakaoLogin = useCallback(() => {
+    const callbackUrl = pathname || "/"
+    signIn("kakao", { callbackUrl })
+  }, [pathname])
   const [name, setName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -111,7 +125,7 @@ export default function HeaderUser() {
           >
             {/* Google Login */}
             <button
-              onClick={() => signIn("google")}
+              onClick={handleGoogleLogin}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -147,7 +161,7 @@ export default function HeaderUser() {
 
             {/* Kakao Login - temporarily disabled */}
             {/* <button
-              onClick={() => signIn("kakao")}
+              onClick={handleKakaoLogin}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -288,6 +302,45 @@ export default function HeaderUser() {
             gap: 4,
           }}
         >
+          {/* My Journey button */}
+          <button
+            onClick={() => {
+              setShowDropdown(false)
+              router.push("/myjourney")
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 16px",
+              background: "rgba(138, 164, 255, 0.15)",
+              border: "1px solid rgba(138, 164, 255, 0.3)",
+              borderRadius: 12,
+              color: "#a8c8ff",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(138, 164, 255, 0.25)"
+              e.currentTarget.style.borderColor = "rgba(138, 164, 255, 0.5)"
+              e.currentTarget.style.transform = "translateY(-1px)"
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "rgba(138, 164, 255, 0.15)"
+              e.currentTarget.style.borderColor = "rgba(138, 164, 255, 0.3)"
+              e.currentTarget.style.transform = "translateY(0)"
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            {t("nav.myJourney") || "My Journey"}
+          </button>
           {/* Logout button */}
           <button
             onClick={() => signOut({ callbackUrl: "/" })}

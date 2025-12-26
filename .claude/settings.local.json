@@ -280,7 +280,20 @@
       "Bash(dir \"C:\\\\Users$env:USERNAME\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\")",
       "Bash(Get-ChildItem -Path \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\" -Recurse -Filter \"stripe.exe\" -ErrorAction SilentlyContinue)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(python scripts/cleanup-app-routes.py:*)"
+      "Bash(python scripts/cleanup-app-routes.py:*)",
+      "Bash(node --experimental-vm-modules:*)",
+      "Bash(node scripts/test-grade-simple.js:*)",
+      "Bash(ls -la \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\life-prediction\"\" 2>/dev/null || echo \"Directory not found \")",
+      "Bash(ls -la \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\components\\\\life-prediction\"\" 2>/dev/null || echo \"Directory not found \")",
+      "Bash(python3 -c:*)",
+      "Bash(timeout 60 curl:*)",
+      "Bash(for profile in \"1990-08-15\" \"1985-03-22\" \"2000-12-01\")",
+      "Bash(do echo \"프로필: $profile\")",
+      "Bash(dir /s /b \"c:\\\\dev\\\\*backend*\")",
+      "Bash(npx next build:*)",
+      "Bash(npx tsc --noEmit --skipLibCheck)",
+      "Bash(node scripts/test-calendar-api.mjs:*)",
+      "Bash(node scripts/fix-tier-code.mjs:*)"
     ],
     "deny": [],
     "ask": []

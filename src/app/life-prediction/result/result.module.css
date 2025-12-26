@@ -1,0 +1,280 @@
+/* ========================================= */
+/* 🔮 Life Prediction Result Page           */
+/* ========================================= */
+
+/* ========== Loader ========== */
+.loaderContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0520 0%, #1a0a35 50%, #0d1025 100%);
+  padding: 20px;
+}
+
+.loaderCard {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  padding: 48px 32px;
+  background: rgba(15, 10, 30, 0.85);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.loaderIcon {
+  font-size: 72px;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.6));
+}
+
+.spinningIcon {
+  display: inline-block;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(10deg); }
+}
+
+.loaderTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 24px 0;
+  background: linear-gradient(135deg, #fff, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.progressContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 14px;
+  font-weight: 600;
+  color: #a78bfa;
+  min-width: 48px;
+}
+
+.stepsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.stepActive {
+  opacity: 1;
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.2);
+}
+
+.stepCurrent {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+.stepIcon {
+  font-size: 20px;
+}
+
+.stepLabel {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.stepCheck {
+  color: #4ade80;
+  font-weight: bold;
+}
+
+/* ========== Error State ========== */
+.errorContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0520 0%, #1a0a35 50%, #0d1025 100%);
+  padding: 20px;
+}
+
+.errorCard {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  padding: 48px 32px;
+  background: rgba(15, 10, 30, 0.85);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.errorIcon {
+  font-size: 56px;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.errorCard h2 {
+  color: #fff;
+  font-size: 1.25rem;
+  margin: 0 0 12px 0;
+}
+
+.errorCard p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.retryButton {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+}
+
+/* ========== Main Container ========== */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0520 0%, #1a0a35 50%, #0d1025 100%);
+  padding: 80px 20px 40px;
+}
+
+.creditBadgeWrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ========== Header ========== */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px 0;
+  background: linear-gradient(135deg, #fff, #a78bfa, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ========== Advanced Analysis Section ========== */
+.advancedSection {
+  margin-top: 24px;
+}
+
+/* ========== Chat Section ========== */
+.chatSection {
+  margin-top: 24px;
+}
+
+.chatTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.chatSubtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.chatWrapper {
+  background: rgba(15, 10, 30, 0.5);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+/* ========== Mobile Responsive ========== */
+@media (max-width: 640px) {
+  .container {
+    padding: 70px 12px 24px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .loaderCard {
+    padding: 32px 20px;
+  }
+
+  .loaderTitle {
+    font-size: 1.25rem;
+  }
+
+  .chatWrapper {
+    border-radius: 16px;
+    min-height: 400px;
+  }
+}

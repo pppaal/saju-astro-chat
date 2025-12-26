@@ -3,6 +3,41 @@
 
 import { getBackendUrl } from "@/lib/backend-url";
 
+// ==========================================
+// Simple fetch wrapper for internal API calls
+// ==========================================
+
+export interface ApiFetchOptions extends Omit<RequestInit, 'headers'> {
+  headers?: Record<string, string>;
+}
+
+/**
+ * Wrapper around fetch that automatically includes the X-API-Token header
+ * for authenticated API requests to Next.js internal routes
+ */
+export async function apiFetch(url: string, options?: ApiFetchOptions): Promise<Response> {
+  const headers: Record<string, string> = {
+    ...options?.headers,
+  };
+
+  // Add X-API-Token header for internal API calls
+  if (url.startsWith('/api/')) {
+    const token = process.env.NEXT_PUBLIC_API_TOKEN;
+    if (token) {
+      headers['X-API-Token'] = token;
+    }
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
+// ==========================================
+// Backend API Client
+// ==========================================
+
 export interface ApiClientOptions {
   /** Request timeout in milliseconds (default: 60000) */
   timeout?: number;

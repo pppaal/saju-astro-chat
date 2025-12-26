@@ -4,10 +4,25 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { sendNotification } from "@/lib/notifications/sse";
 import { isValidDate, isValidTime } from "@/lib/validation";
-import { apiClient } from "@/lib/api";
 import { getNowInTimezone, formatDateString } from "@/lib/datetime";
+import { getDailyFortuneScore } from "@/lib/destiny-map/destinyCalendar";
 
 export const dynamic = "force-dynamic";
+
+// Fortune data type
+interface FortuneData {
+  love: number;
+  career: number;
+  wealth: number;
+  health: number;
+  overall: number;
+  luckyColor: string;
+  luckyNumber: number;
+  date: string;
+  userTimezone?: string;
+  alerts?: { type: "warning" | "positive" | "info"; msg: string; icon?: string }[];
+  source?: string;
+}
 
 /**
  * 오늘의 운세 점수 계산 (AI 없이 사주+점성학 기반)
@@ -24,8 +39,6 @@ export async function POST(request: Request) {
     const {
       birthDate: _birthDate,
       birthTime: _birthTime,
-      latitude: _latitude,
-      longitude: _longitude,
       sendEmail = false,
       userTimezone,
     } = body;
@@ -41,81 +54,27 @@ export async function POST(request: Request) {
     }
 
     // ========================================
-    // 1️⃣ 오늘의 운세 점수 계산 (백엔드 Fortune Score Engine 사용)
+    // 1️⃣ 오늘의 운세 점수 계산 (destinyCalendar 로직 직접 사용)
     // ========================================
-    let fortune;
+    const userNow = getNowInTimezone(userTimezone);
+    const targetDate = new Date(userNow.year, userNow.month - 1, userNow.day);
 
-    try {
-      // Try to use the new comprehensive fortune score engine
-      const result = await apiClient.post<{ status: string; fortune: any; alerts?: string[] }>(
-        '/api/fortune/daily',
-        { birthDate, birthTime },
-        { timeout: 20000 }
-      );
+    // destinyCalendar의 getDailyFortuneScore 사용 (빠른 계산)
+    const fortuneResult = getDailyFortuneScore(birthDate, birthTime, targetDate);
 
-      if (result.ok && result.data?.status === 'success' && result.data?.fortune) {
-        const userNow = getNowInTimezone(userTimezone);
-        fortune = {
-          ...result.data.fortune,
-          date: formatDateString(userNow.year, userNow.month, userNow.day),
-          userTimezone: userTimezone || 'Asia/Seoul',
-          alerts: result.data.alerts || [],
-          source: 'backend-engine',
-        };
-      } else {
-        throw new Error('Invalid response from fortune engine');
-      }
-    } catch (backendErr) {
-      console.warn('[Daily Fortune API] Backend fortune engine failed, using fallback:', backendErr);
-      // Fallback to simple calculation
-      fortune = calculateDailyFortune(birthDate, birthTime, _latitude, _longitude, userTimezone);
-    }
-
-    // ========================================
-    // 1.5️⃣ AI 백엔드 호출 (GPT로 운세 해석)
-    // ========================================
-    let aiInterpretation = '';
-    let aiModelUsed = '';
-
-    try {
-      // Build prompt for daily fortune
-      const fortunePrompt = `Create a concise, encouraging daily fortune.
-Date: ${fortune.date}
-Birth date: ${birthDate}
-
-Scores (0-100):
-- Love: ${fortune.love}
-- Career: ${fortune.career}
-- Wealth: ${fortune.wealth}
-- Health: ${fortune.health}
-- Overall: ${fortune.overall}
-
-Lucky color: ${fortune.luckyColor}
-Lucky number: ${fortune.luckyNumber}
-
-Write in a warm, practical tone with 4-6 sentences. Include one actionable tip. Keep it under 120 words. Locale: ${body.locale || "ko"}.`;
-
-      const aiResult = await apiClient.post<{ data?: { fusion_layer?: string; report?: string; model?: string } }>(
-        '/ask',
-        {
-          theme: 'daily-fortune',
-          prompt: fortunePrompt,
-          saju: { birthDate, birthTime },
-          locale: body.locale || 'ko',
-          fortune,
-        },
-        { timeout: 60000 }
-      );
-
-      if (aiResult.ok && aiResult.data) {
-        aiInterpretation = aiResult.data.data?.fusion_layer || aiResult.data.data?.report || '';
-        aiModelUsed = aiResult.data.data?.model || 'gpt-4o';
-      }
-    } catch (aiErr) {
-      console.warn('[Daily Fortune API] AI backend call failed:', aiErr);
-      aiInterpretation = '';
-      aiModelUsed = 'error-fallback';
-    }
+    const fortune = {
+      love: fortuneResult.love,
+      career: fortuneResult.career,
+      wealth: fortuneResult.wealth,
+      health: fortuneResult.health,
+      overall: fortuneResult.overall,
+      luckyColor: fortuneResult.luckyColor,
+      luckyNumber: fortuneResult.luckyNumber,
+      date: formatDateString(userNow.year, userNow.month, userNow.day),
+      userTimezone: userTimezone || 'Asia/Seoul',
+      alerts: fortuneResult.alerts || [],
+      source: 'destinyCalendar',
+    };
 
     // ========================================
     // 2️⃣ 데이터베이스에 저장
@@ -162,79 +121,21 @@ Write in a warm, practical tone with 4-6 sentences. Include one actionable tip. 
     return NextResponse.json({
       success: true,
       fortune,
-      aiInterpretation,
-      aiModelUsed,
       message: sendEmail ? "Fortune sent to your email!" : "Fortune calculated!",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Daily Fortune Error]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500 }
     );
   }
 }
 
 /**
- * 오늘의 운세 점수 계산 (사주 + 점성학 기반)
- */
-function calculateDailyFortune(
-  birthDate: string,
-  _birthTime?: string,
-  _latitude?: number,
-  _longitude?: number,
-  userTimezone?: string
-) {
-  // 사용자 타임존 기준 현재 날짜
-  const userNow = getNowInTimezone(userTimezone);
-  const birth = new Date(birthDate);
-
-  // 사주 기반 계산
-  const birthYear = birth.getFullYear();
-  const birthMonth = birth.getMonth() + 1;
-  const birthDay = birth.getDate();
-
-  const currentYear = userNow.year;
-  const currentMonth = userNow.month;
-  const currentDay = userNow.day;
-
-  // 간단한 점수 계산 (실제로는 더 복잡한 사주 로직 사용 가능)
-  const dayScore = (currentDay * 7 + birthDay * 3) % 100;
-  const monthScore = (currentMonth * 11 + birthMonth * 5) % 100;
-  const yearScore = ((currentYear - birthYear) * 13) % 100;
-
-  // 각 분야별 점수
-  const love = Math.floor((dayScore + monthScore) / 2);
-  const career = Math.floor((monthScore + yearScore) / 2);
-  const wealth = Math.floor((dayScore + yearScore) / 2);
-  const health = Math.floor((dayScore + monthScore + yearScore) / 3);
-  const overall = Math.floor((love + career + wealth + health) / 4);
-
-  // 행운의 색상과 숫자
-  const colors = ["Red", "Blue", "Green", "Yellow", "Purple", "White", "Black", "Pink"];
-  const luckyColor = colors[currentDay % colors.length];
-  const luckyNumber = (currentDay + birthDay) % 10;
-
-  // 분석 기준일 (사용자 타임존)
-  const analysisDate = formatDateString(userNow.year, userNow.month, userNow.day);
-
-  return {
-    love,
-    career,
-    wealth,
-    health,
-    overall,
-    luckyColor,
-    luckyNumber,
-    date: analysisDate,
-    userTimezone: userTimezone || 'Asia/Seoul',
-  };
-}
-
-/**
  * 이메일로 운세 전송
  */
-async function sendFortuneEmail(email: string, fortune: any) {
+async function sendFortuneEmail(email: string, fortune: FortuneData) {
   try {
     const response = await fetch(`${process.env.NEXTAUTH_URL}/api/email/send`, {
       method: "POST",

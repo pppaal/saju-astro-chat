@@ -1,0 +1,451 @@
+/* Result Cards Container */
+.resultsContainer {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resultsHeader {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.resultsTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 0.5rem 0;
+}
+
+.resultsSubtitle {
+  font-size: 0.95rem;
+  color: rgba(196, 181, 253, 0.7);
+  margin: 0;
+}
+
+/* Timing Card */
+.timingCard {
+  position: relative;
+  background: linear-gradient(145deg, rgba(20, 25, 50, 0.9), rgba(15, 20, 40, 0.95));
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 20px;
+  padding: 1.5rem;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.timingCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c4b5fd);
+  opacity: 0.8;
+}
+
+.timingCard.rank1::before {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #d97706);
+}
+
+.timingCard.rank2::before {
+  background: linear-gradient(90deg, #60a5fa, #3b82f6, #2563eb);
+}
+
+.timingCard.rank3::before {
+  background: linear-gradient(90deg, #34d399, #10b981, #059669);
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.rankBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rank1 .rankBadge {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1a1a2e;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+}
+
+.rank2 .rankBadge {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+}
+
+.rank3 .rankBadge {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+}
+
+.timingCard:not(.rank1):not(.rank2):not(.rank3) .rankBadge {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+.dateInfo {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.datePeriod {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 0.25rem 0;
+}
+
+.dateLabel {
+  font-size: 0.85rem;
+  color: rgba(196, 181, 253, 0.7);
+  margin: 0;
+}
+
+.gradeBadge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.gradeExcellent {
+  background: rgba(52, 211, 153, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.gradeGood {
+  background: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+}
+
+.gradeNeutral {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.gradeCaution {
+  background: rgba(248, 113, 113, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+/* Score Bar */
+.scoreSection {
+  margin: 1rem 0;
+}
+
+.scoreHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.scoreLabel {
+  font-size: 0.85rem;
+  color: rgba(196, 181, 253, 0.7);
+}
+
+.scoreValue {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.scoreBarContainer {
+  height: 8px;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.scoreBar {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  border-radius: 4px;
+  transform-origin: left;
+}
+
+.scoreBarHigh {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.scoreBarMedium {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.scoreBarLow {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* Reasons List */
+.reasonsSection {
+  margin-top: 1rem;
+}
+
+.reasonsTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(196, 181, 253, 0.8);
+  margin: 0 0 0.75rem 0;
+}
+
+.reasonsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reasonItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.reasonIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Specific Days */
+.specificDays {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.specificDaysTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(196, 181, 253, 0.8);
+  margin: 0 0 0.75rem 0;
+}
+
+.daysList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dayBadge {
+  padding: 6px 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 15px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dayBadge.excellent {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: rgba(52, 211, 153, 0.35);
+  color: #34d399;
+}
+
+.dayBadge.good {
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.35);
+  color: #60a5fa;
+}
+
+/* View Toggle */
+.viewToggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.toggleBtn {
+  padding: 10px 24px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 25px;
+  color: rgba(196, 181, 253, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggleBtn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.toggleBtn.active {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+/* Ask Again Button */
+.askAgainBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+  margin: 2rem auto 0;
+  padding: 14px 28px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 30px;
+  color: rgba(196, 181, 253, 0.9);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.askAgainBtn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(167, 139, 250, 0.5);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
+/* Analyzing Loader */
+.analyzerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  min-height: 300px;
+}
+
+.analyzerIcon {
+  font-size: 4rem;
+  margin-bottom: 2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.analyzerTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.analyzerSubtitle {
+  font-size: 1rem;
+  color: rgba(196, 181, 253, 0.7);
+  margin: 0 0 2rem 0;
+  text-align: center;
+}
+
+.analyzerDots {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.analyzerDot {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  border-radius: 50%;
+  animation: bounce 0.6s ease-in-out infinite;
+}
+
+.analyzerDot:nth-child(1) { animation-delay: 0s; }
+.analyzerDot:nth-child(2) { animation-delay: 0.15s; }
+.analyzerDot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Analysis Steps */
+.analysisStepsContainer {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.analysisStep {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(196, 181, 253, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .timingCard {
+    padding: 1.25rem;
+  }
+
+  .rankBadge {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .datePeriod {
+    font-size: 1.1rem;
+  }
+
+  .resultsTitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardHeader {
+    flex-wrap: wrap;
+  }
+
+  .gradeBadge {
+    margin-top: 0.75rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .daysList {
+    justify-content: center;
+  }
+}

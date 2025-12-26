@@ -45,6 +45,7 @@
   },
   "menu": {
     "destinyMap": "Destiny Map",
+    "lifePrediction": "Life Prediction",
     "saju": "Saju",
     "astrology": "Astrology",
     "iching": "I Ching",
@@ -190,7 +191,48 @@
     "pricing": "Pricing",
     "blog": "Blog",
     "comingSoon": "Coming Soon",
-    "loggedIn": "Logged in"
+    "loggedIn": "Logged in",
+    "loading": "Loading...",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "error": "Error"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information",
+    "notEntered": "Not entered",
+    "saveProfile": "Save Profile",
+    "birthInfo": {
+      "title": "Birth Information",
+      "desc": "Your birth data is used for accurate fortune readings"
+    },
+    "field": {
+      "birthDate": "Date of Birth",
+      "birthTime": "Time of Birth",
+      "gender": "Gender",
+      "birthCity": "Birth City",
+      "timezone": "Timezone"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "placeholder": {
+      "birthTime": "Optional but recommended",
+      "birthCity": "Enter your city",
+      "timezone": "Auto-detected from city"
+    },
+    "error": {
+      "birthDateRequired": "Please select your date of birth.",
+      "saveFailed": "Failed to save",
+      "somethingWrong": "Something went wrong"
+    },
+    "success": {
+      "saved": "Saved successfully!"
+    },
+    "upgrade": "Upgrade",
+    "manage": "Manage"
   },
   "calendar": {
     "title": "Fortune Calendar",
@@ -292,7 +334,15 @@
       "unique": "🎭 Show your individuality! Your unique ideas shine today!",
       "travel": "✈️ Perfect day for travel, business trips, or workcations! Book those tickets!",
       "change": "🔄 Great timing for job changes, moving, or new beginnings! Don't fear change!",
-      "celebration": "🎊 If there's something to celebrate, throw a party! Sharing joy doubles it!"
+      "celebration": "🎊 If there's something to celebrate, throw a party! Sharing joy doubles it!",
+      "expansion": "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+      "growth": "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+      "luck": "🍀 Luck is on your side! Be proactive with new attempts or adventures!",
+      "beauty": "💄 Great day for beauty, fashion, and self-care! Try a new style!",
+      "harmony": "☯️ Energy of harmony and balance flows! Focus on improving relationships!",
+      "collaboration": "🤝 Perfect for collaboration or team activities! Together you achieve more!",
+      "synergy": "⚡ Synergy effects are maximized today! Join forces with your partner!",
+      "career": "💼 Good day for career advancement! Update your resume, do some networking!"
     },
     "warnings": {
       "conflict": "⚡ Watch for arguments with family/colleagues! Think 3 seconds before sending messages. No emotional reactions!",
@@ -336,6 +386,10 @@
     "destinyMap": {
       "label": "Destiny Map",
       "desc": "AI Fortune Analysis"
+    },
+    "lifePrediction": {
+      "label": "Life Prediction",
+      "desc": "10-Year Fortune Flow"
     },
     "calendar": {
       "label": "Destiny Calendar",
@@ -968,7 +1022,10 @@
       "themeNewYear": "New Year",
       "themeNextYear": "Next Year",
       "themeMonthly": "Monthly",
-      "themeToday": "Today"
+      "themeToday": "Today",
+      "tabDestiny": "Destiny Analysis",
+      "tabLifePrediction": "10-Year Forecast",
+      "retry": "Retry"
     },
     "counselor": {
       "title": "DestinyPal Counselor",
@@ -1426,12 +1483,28 @@
     },
     "fortune": {
       "title": "Today's Fortune",
+      "today": "Today",
       "love": "Love",
       "career": "Career",
       "wealth": "Wealth",
       "health": "Health",
       "setup": "Set your birth date first",
       "setupLink": "Setup Profile →"
+    },
+    "credits": {
+      "short": "credits"
+    },
+    "plan": {
+      "free": "FREE",
+      "starter": "STARTER",
+      "pro": "PRO",
+      "premium": "PREMIUM"
+    },
+    "menu": {
+      "profile": "Profile",
+      "circle": "Circle",
+      "history": "History",
+      "upgrade": "Upgrade"
     },
     "activity": {
       "title": "Recent Activity",
@@ -1444,6 +1517,7 @@
     },
     "services": {
       "destinyMap": "Destiny map",
+      "lifePrediction": "Life prediction",
       "destinyCalendar": "Destiny calendar",
       "tarot": "Tarot",
       "saju": "Saju",
@@ -1471,6 +1545,10 @@
       "destinyMap": {
         "title": "Destiny Map",
         "desc": "East + West fusion analysis"
+      },
+      "lifePrediction": {
+        "title": "Life Prediction",
+        "desc": "10-year fortune flow and turning points"
       },
       "destinyCalendar": {
         "title": "Destiny Calendar",

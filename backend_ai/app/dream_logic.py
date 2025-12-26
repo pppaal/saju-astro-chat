@@ -6,6 +6,8 @@ import traceback
 import hashlib
 from datetime import datetime
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 
 from backend_ai.app.rule_engine import RuleEngine
 from backend_ai.app.redis_cache import get_cache
@@ -369,8 +371,19 @@ If saju fortune data is provided, make sure to explain WHY this dream occurred N
 
 
 # ===============================================================
-# DREAM INTERPRETATION ENGINE
+# DREAM INTERPRETATION ENGINE (Singleton for performance)
 # ===============================================================
+_dream_rule_engine_instance = None
+
+
+def get_dream_rule_engine():
+    """Get singleton DreamRuleEngine instance for performance."""
+    global _dream_rule_engine_instance
+    if _dream_rule_engine_instance is None:
+        _dream_rule_engine_instance = DreamRuleEngine()
+    return _dream_rule_engine_instance
+
+
 class DreamRuleEngine:
     """Rule engine specifically for dream interpretation."""
 
@@ -945,38 +958,87 @@ def interpret_dream(facts: dict) -> dict:
             "japanese": facts.get("japanese", []),
         }
 
-        # Get rule matches (keyword-based)
-        rule_engine = DreamRuleEngine()
-        keyword_matches = rule_engine.evaluate(facts)
+        # =============================================================
+        # PARALLEL PROCESSING: Run heavy operations concurrently
+        # =============================================================
+        parallel_start = time.time()
 
-        # CELESTIAL CONTEXT: Get current moon phase and planetary transits
-        celestial_context = rule_engine.get_celestial_context(locale)
+        # Use singleton rule engine (avoids reloading rules every request)
+        rule_engine = get_dream_rule_engine()
+
+        # Define tasks for parallel execution
+        def task_keyword_matches():
+            return rule_engine.evaluate(facts)
+
+        def task_celestial_context():
+            return rule_engine.get_celestial_context(locale)
+
+        def task_embed_search():
+            try:
+                embed_rag = get_dream_embed_rag()
+                return embed_rag.get_interpretation_context(dream_text, top_k=8)
+            except Exception as e:
+                print(f"[interpret_dream] Embedding search failed: {e}")
+                return {'texts': [], 'korean_notes': [], 'categories': [], 'specifics': [], 'advice': []}
+
+        def task_premium_features():
+            return {
+                'combinations': rule_engine.detect_combinations(dream_text, symbols),
+                'taemong': rule_engine.detect_taemong(dream_text, symbols, themes),
+                'lucky_numbers': rule_engine.generate_lucky_numbers(dream_text, symbols)
+            }
+
+        # Execute all tasks in parallel
+        keyword_matches = {}
+        celestial_context = None
+        embed_matches = {'texts': [], 'korean_notes': [], 'categories': [], 'specifics': [], 'advice': []}
+        premium_results = {}
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {
+                executor.submit(task_keyword_matches): 'keyword',
+                executor.submit(task_celestial_context): 'celestial',
+                executor.submit(task_embed_search): 'embed',
+                executor.submit(task_premium_features): 'premium'
+            }
+
+            for future in as_completed(futures):
+                task_name = futures[future]
+                try:
+                    result = future.result(timeout=10)  # 10 second timeout per task
+                    if task_name == 'keyword':
+                        keyword_matches = result
+                    elif task_name == 'celestial':
+                        celestial_context = result
+                    elif task_name == 'embed':
+                        embed_matches = result
+                    elif task_name == 'premium':
+                        premium_results = result
+                except Exception as e:
+                    print(f"[interpret_dream] Task {task_name} failed: {e}")
+
+        parallel_elapsed = time.time() - parallel_start
+        print(f"[interpret_dream] Parallel tasks completed in {parallel_elapsed:.2f}s")
+
+        # Extract premium results
+        detected_combinations = premium_results.get('combinations', [])
+        taemong_result = premium_results.get('taemong')
+        lucky_numbers_result = premium_results.get('lucky_numbers')
+
+        # Log results
         if celestial_context:
             print(f"[interpret_dream] Celestial context: Moon={celestial_context.get('moon_phase', {}).get('name', 'N/A')}, "
                   f"Sign={celestial_context.get('moon_sign', {}).get('sign', 'N/A')}, "
                   f"Retrogrades={len(celestial_context.get('retrogrades', []))}")
 
-        # PREMIUM FEATURES: Detect combinations, taemong, lucky numbers
-        detected_combinations = rule_engine.detect_combinations(dream_text, symbols)
-        taemong_result = rule_engine.detect_taemong(dream_text, symbols, themes)
-        lucky_numbers_result = rule_engine.generate_lucky_numbers(dream_text, symbols)
-
         if detected_combinations:
             print(f"[interpret_dream] Detected {len(detected_combinations)} symbol combinations")
         if taemong_result:
-            # Use ASCII-safe output to avoid Windows encoding issues
             print("[interpret_dream] Taemong detected: primary_symbol found")
         if lucky_numbers_result:
             print(f"[interpret_dream] Generated lucky numbers: {lucky_numbers_result.get('numbers', [])}")
 
-        # Get embedding-based matches (semantic similarity)
-        try:
-            embed_rag = get_dream_embed_rag()
-            embed_matches = embed_rag.get_interpretation_context(dream_text, top_k=8)
-            print(f"[interpret_dream] Embedding search found {len(embed_matches.get('texts', []))} matches (quality: {embed_matches.get('match_quality', 'unknown')})")
-        except Exception as embed_err:
-            print(f"[interpret_dream] Embedding search failed: {embed_err}")
-            embed_matches = {'texts': [], 'korean_notes': [], 'categories': [], 'specifics': [], 'advice': []}
+        print(f"[interpret_dream] Embedding search found {len(embed_matches.get('texts', []))} matches (quality: {embed_matches.get('match_quality', 'unknown')})")
 
         # Merge results (keyword + embedding)
         merged_texts = _merge_unique(keyword_matches.get('texts', []), embed_matches.get('texts', []))[:15]

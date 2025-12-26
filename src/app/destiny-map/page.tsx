@@ -127,13 +127,12 @@ function DestinyMapContent() {
     }
   };
 
-  // Don't auto-load profile on mount - user should click "Load My Profile" button
-  // or enter fresh data each time
-  // useEffect(() => {
-  //   const profile = getUserProfile();
-  //   if (profile.name) setName(profile.name);
-  //   ...
-  // }, []);
+  // Auto-load profile on mount for authenticated users
+  useEffect(() => {
+    if (status === 'authenticated' && !profileLoaded && !loadingProfile) {
+      handleLoadProfile();
+    }
+  }, [status, profileLoaded, loadingProfile]);
 
   // Particle animation
   useEffect(() => {

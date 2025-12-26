@@ -1,12 +1,63 @@
-// Service Worker for Push Notifications
-// This handles push notifications when the app is in the background
+// Service Worker for PWA & Push Notifications
+// Handles offline caching and push notifications
 
-self.addEventListener("install", (_event) => {
+const CACHE_NAME = 'destinypal-v1';
+const PRECACHE_ASSETS = [
+  '/',
+  '/manifest.json',
+  '/logo/logo.png',
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(PRECACHE_ASSETS);
+    })
+  );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (_event) => {
-  _event.waitUntil(self.clients.claim());
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name))
+        );
+      }),
+    ])
+  );
+});
+
+// Fetch event - network first, fallback to cache
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Skip API requests - always go to network
+  if (event.request.url.includes('/api/')) return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Clone and cache successful responses
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Fallback to cache if network fails
+        return caches.match(event.request);
+      })
+  );
 });
 
 // Handle push notifications

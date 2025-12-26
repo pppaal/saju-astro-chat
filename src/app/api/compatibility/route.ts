@@ -267,8 +267,8 @@ export async function POST(req: NextRequest) {
     });
     res.headers.set('Cache-Control', 'no-store');
     return withHeaders(res, limit.headers);
-  } catch (e: any) {
-    captureServerError(e, { route: "/api/compatibility" });
-    return bad(e?.message || 'Unexpected server error', 500);
+  } catch (e: unknown) {
+    captureServerError(e as Error, { route: "/api/compatibility" });
+    return bad(e instanceof Error ? e.message : 'Unexpected server error', 500);
   }
 }

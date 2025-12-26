@@ -24,6 +24,46 @@ import {
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// Type definitions for natal chart data
+interface NatalPlanet {
+  name: string;
+  key?: string;
+  formatted?: string;
+  sign?: string;
+  degree?: number;
+  minute?: number;
+  house?: number;
+  speed?: number;
+  rx?: boolean;
+}
+
+interface NatalPoint {
+  formatted?: string;
+}
+
+interface NatalChartResult {
+  ascendant?: NatalPoint;
+  mc?: NatalPoint;
+  planets?: NatalPlanet[];
+  houses?: unknown[];
+  meta?: Record<string, unknown>;
+}
+
+interface ChartResult {
+  houses?: unknown[];
+  points?: NatalPlanet[];
+}
+
+interface AstrologyRequestBody {
+  date?: string;
+  time?: string;
+  latitude?: number | string;
+  longitude?: number | string;
+  timeZone?: string;
+  locale?: string;
+  options?: Record<string, unknown>;
+}
+
 const BODY_LIMIT = 64 * 1024;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIMEZONE_MAX = 64;
@@ -67,7 +107,7 @@ function pickLabels(locale?: string) {
 
 function normalizeLocale(l?: string): LocaleKey {
   const k = (l || "en").split("-")[0] as LocaleKey;
-  return (SIGNS as any)[k] ? k : "en";
+  return k in SIGNS ? k : "en";
 }
 
 function splitSignAndDegree(text: string) {
@@ -102,14 +142,20 @@ function localizeSignLabel(inputSign: string, target: LocaleKey): string {
 }
 
 function localizePlanetLabel(inputName: string, target: LocaleKey): string {
-  const enKeys = Object.keys(PLANET_LABELS.en) as (keyof typeof PLANET_LABELS.en)[];
-  if (enKeys.includes(inputName as any)) {
-    return PLANET_LABELS[target]?.[inputName as keyof typeof PLANET_LABELS.en] || String(inputName);
+  type PlanetKey = keyof typeof PLANET_LABELS.en;
+  const enKeys = Object.keys(PLANET_LABELS.en) as PlanetKey[];
+  if (enKeys.includes(inputName as PlanetKey)) {
+    const labels = PLANET_LABELS[target];
+    if (labels) return labels[inputName as PlanetKey] || String(inputName);
+    return String(inputName);
   }
-  for (const labels of Object.values(PLANET_LABELS).filter(Boolean) as any[]) {
+  const allLabels = Object.values(PLANET_LABELS).filter((l): l is NonNullable<typeof l> => l !== null);
+  for (const labels of allLabels) {
     for (const enKey of enKeys) {
       if (labels[enKey] === inputName) {
-        return (PLANET_LABELS as any)[target]?.[enKey] || (PLANET_LABELS as any).en[enKey];
+        const targetLabels = PLANET_LABELS[target];
+        if (targetLabels) return targetLabels[enKey];
+        return PLANET_LABELS.en[enKey];
       }
     }
   }
@@ -141,21 +187,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(request as any, BODY_LIMIT, limit.headers);
+    const oversized = enforceBodySize(request as Request & { body?: ReadableStream }, BODY_LIMIT, limit.headers);
     if (oversized) return oversized;
 
-    const body = await request.json().catch(() => null);
+    const body = await request.json().catch(() => null) as AstrologyRequestBody | null;
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400, headers: limit.headers });
     }
 
-    const date = typeof (body as any).date === "string" ? (body as any).date.trim().slice(0, 10) : "";
-    const time = (body as any).time;
-    const latitude = typeof (body as any).latitude === "number" ? (body as any).latitude : Number((body as any).latitude);
-    const longitude = typeof (body as any).longitude === "number" ? (body as any).longitude : Number((body as any).longitude);
-    const timeZone = typeof (body as any).timeZone === "string" ? (body as any).timeZone.trim().slice(0, TIMEZONE_MAX) : "";
-    const locale = typeof (body as any).locale === "string" ? (body as any).locale : undefined;
-    const options = (body as any).options && typeof (body as any).options === "object" ? (body as any).options : undefined;
+    const date = typeof body.date === "string" ? body.date.trim().slice(0, 10) : "";
+    const time = body.time;
+    const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
+    const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
+    const timeZone = typeof body.timeZone === "string" ? body.timeZone.trim().slice(0, TIMEZONE_MAX) : "";
+    const locale = typeof body.locale === "string" ? body.locale : undefined;
+    const options = body.options && typeof body.options === "object" ? body.options : undefined;
     const L = pickLabels(locale);
     const locKey = normalizeLocale(locale);
 
@@ -192,14 +238,14 @@ export async function POST(request: Request) {
       hour: h, minute: m,
       latitude, longitude,
       timeZone: String(timeZone),
-    });
+    }) as NatalChartResult;
 
-    const ascSplit = splitSignAndDegree(String((natal as any).ascendant?.formatted || ""));
-    const mcSplit  = splitSignAndDegree(String((natal as any).mc?.formatted || ""));
+    const ascSplit = splitSignAndDegree(String(natal.ascendant?.formatted || ""));
+    const mcSplit  = splitSignAndDegree(String(natal.mc?.formatted || ""));
     const ascStr = `${localizeSignLabel(ascSplit.signPart, locKey)} ${ascSplit.degreePart}`.trim();
     const mcStr  = `${localizeSignLabel(mcSplit.signPart, locKey)} ${mcSplit.degreePart}`.trim();
 
-    const planetLines = ((natal as any).planets || []).map((p: any) => {
+    const planetLines = (natal.planets || []).map((p: NatalPlanet) => {
       const name = localizePlanetLabel(String(p.name || ""), locKey);
       const { signPart, degreePart } = splitSignAndDegree(String(p.formatted || ""));
       const sign = localizeSignLabel(signPart, locKey);
@@ -209,18 +255,21 @@ export async function POST(request: Request) {
     const basics = `${L?.asc ?? "Ascendant"}: ${ascStr}\n${L?.mc ?? "MC"}: ${mcStr}`;
     const interpretation = `${L?.title ?? "Natal Chart Summary"}\n${basics}\n\n${L?.planetPositions ?? "Planet Positions"}\n${planetLines}\n\n${L?.notice ?? ""}`;
 
-    const chart = toChart(natal as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chart = toChart(natal as any) as ChartResult;
     const aspectRules: AspectRules = {
       includeMinor: opts.includeMinorAspects,
       maxResults: 120,
       scoring: { weights: { orb: 0.55, aspect: 0.4, speed: 0.05 } },
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const aspectsPlus = findNatalAspectsPlus(chart as any, aspectRules, opts);
-    const chartMeta = buildEngineMeta(((natal as any).meta ?? {}) as any, opts);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chartMeta = buildEngineMeta((natal.meta ?? {}) as any, opts);
 
-    const houses = (chart as any).houses || (natal as any).houses || [];
-    const pointsRaw = (chart as any).points || (natal as any).planets || [];
-    const points = pointsRaw.map((p: any) => ({
+    const houses = chart.houses || natal.houses || [];
+    const pointsRaw = chart.points || natal.planets || [];
+    const points = pointsRaw.map((p: NatalPlanet) => ({
       key: p.key || p.name,
       name: p.name,
       formatted: p.formatted,
@@ -267,9 +316,9 @@ export async function POST(request: Request) {
           theme: 'astrology',
           prompt: astroPrompt,
           astro: {
-            ascendant: (natal as any).ascendant,
-            mc: (natal as any).mc,
-            planets: (natal as any).planets,
+            ascendant: natal.ascendant,
+            mc: natal.mc,
+            planets: natal.planets,
             houses,
             aspects: aspectsPlus,
           },
@@ -308,7 +357,7 @@ export async function POST(request: Request) {
               timeZone,
               ascendant: ascStr,
               mc: mcStr,
-              planets: points.slice(0, 10).map((p: any) => ({
+              planets: points.slice(0, 10).map((p) => ({
                 name: p.name,
                 sign: p.sign,
               })),
@@ -336,10 +385,10 @@ export async function POST(request: Request) {
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
-  } catch (error: any) {
-    captureServerError(error, { route: "/api/astrology" });
+  } catch (error: unknown) {
+    captureServerError(error as Error, { route: "/api/astrology" });
     return NextResponse.json(
-      { error: error?.message || "Unexpected server error." },
+      { error: error instanceof Error ? error.message : "Unexpected server error." },
       { status: 500 }
     );
   }

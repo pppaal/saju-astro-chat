@@ -1,8 +1,13 @@
+// Re-export from centralized location for backwards compatibility
+export { ELEMENT_EN_TO_KO as elementKeyMapReverse } from '@/lib/Saju/stemElementMapping';
+
 export const elementKeyMap: Record<string, string> = {
   "목": "wood", "화": "fire", "토": "earth", "금": "metal", "수": "water",
   "木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water",
 };
 
+// Chinese to Korean heavenly stem conversion
+// Includes romanization support
 export const tianGanMap: Record<string, string> = {
   "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무",
   "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",

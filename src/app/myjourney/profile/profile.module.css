@@ -945,6 +945,154 @@
 }
 
 /* ========== Selection ========== */
+/* ========== Membership Card ========== */
+.membershipCard {
+  width: 100%;
+  max-width: 360px;
+  margin-top: 20px;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(139, 92, 246, 0.1);
+  animation: fadeInScale 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.membershipHeader {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.planBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.planIcon {
+  font-size: 16px;
+}
+
+.planName {
+  color: inherit;
+}
+
+/* Plan-specific colors */
+.planFree {
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(75, 85, 99, 0.2));
+  border: 1px solid rgba(107, 114, 128, 0.4);
+  color: #9ca3af;
+}
+
+.planStarter {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.15));
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+}
+
+.planPro {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(167, 139, 250, 0.2));
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+}
+
+.planPremium {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(244, 114, 182, 0.2));
+  border: 1px solid rgba(236, 72, 153, 0.5);
+  color: #f9a8d4;
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.25);
+  animation: premiumGlow 2s ease-in-out infinite;
+}
+
+@keyframes premiumGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.4);
+  }
+}
+
+.creditsDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.creditsInfo {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.creditsCount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.creditsLabel {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.upgradeBtn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35);
+}
+
+.upgradeBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+.upgradeBtn:active {
+  transform: translateY(0);
+}
+
+/* Responsive adjustments for membership card */
+@media (max-width: 480px) {
+  .membershipCard {
+    padding: 16px 20px;
+    max-width: 100%;
+  }
+
+  .creditsCount {
+    font-size: 2rem;
+  }
+
+  .upgradeBtn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
 .container ::selection {
   background: rgba(167, 139, 250, 0.3);
   color: #ffffff;

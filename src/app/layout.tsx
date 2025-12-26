@@ -92,6 +92,12 @@ export const metadata: Metadata = {
   authors: [{ name: "DestinyPal" }],
   creator: "DestinyPal",
   publisher: "DestinyPal",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "DestinyPal",
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -147,6 +153,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="dark" data-scroll-behavior="smooth" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/logo/logo.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="DestinyPal" />
+        <meta name="theme-color" content="#0d1225" />
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />
       </head>

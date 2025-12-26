@@ -241,18 +241,8 @@ export function validateDreamInput(data: Record<string, unknown>): ValidationRes
   });
 }
 
-/**
- * Sanitize string input
- */
-export function sanitizeString(input: string | undefined): string {
-  if (!input) return "";
-  return input
-    .replace(/<script[\s\S]*?<\/script>/gi, "") // Remove script tags
-    .replace(/<[^>]+>/g, "") // Remove HTML tags
-    .replace(/[<>{}]/g, "") // Remove dangerous chars
-    .trim()
-    .slice(0, 10000); // Limit length
-}
+// sanitizeString moved to sanitizers.ts - import from there
+// import { sanitizeString } from './sanitizers';
 
 /**
  * Parse and validate JSON body safely

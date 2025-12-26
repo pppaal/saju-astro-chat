@@ -50,7 +50,7 @@ def get_tarot_hybrid_rag():
     mod = _get_tarot_hybrid_rag()
     if mod is None:
         return None
-    return mod.get_tarot_rag()
+    return mod.get_tarot_hybrid_rag()
 
 
 def _get_corpus_rag():
@@ -841,6 +841,9 @@ def tarot_interpret():
             rag_context = rag_future.result()
             advanced = advanced_future.result()
 
+        logger.info(f"[TAROT] RAG context length: {len(rag_context) if rag_context else 0}")
+        logger.info(f"[TAROT] RAG context preview: {rag_context[:200] if rag_context else 'EMPTY'}...")
+
         # Build prompt
         is_korean = language == "ko"
         cards_str = ", ".join([
@@ -860,9 +863,28 @@ def tarot_interpret():
 
         # Detect question intent
         question_context = ""
+        is_playful_question = False
         if user_question:
             q = user_question.lower()
-            if mapped_spread == "entrepreneurship" or any(kw in q for kw in ["사업", "창업", "business"]):
+
+            # 장난스러운/이상한 질문 감지
+            playful_keywords = [
+                "개한테", "고양이한테", "강아지한테", "동물",
+                "키스", "뽀뽀", "핥", "물어",
+                "라면", "밥 먹", "치킨", "피자", "짜장면",
+                "게임", "유튜브", "넷플릭스", "틱톡",
+                "머리 염색", "문신", "타투", "피어싱",
+                "술 마", "담배", "복권", "로또",
+                "외계인", "귀신", "유령", "좀비",
+                "kiss a dog", "kiss my dog", "pet", "lotto", "lottery"
+            ]
+            if any(kw in q for kw in playful_keywords):
+                is_playful_question = True
+                question_context = """질문자가 가벼운/재미있는 질문을 하고 있습니다.
+유머러스하게 카드를 해석하되, 카드의 상징을 실제로 연결해주세요.
+예: "개한테 키스할까?" → "광대 카드가 나왔네요—이 카드는 순수한 즐거움과 자유로운 행동을 나타내요. 반려견과의 교감은 순수한 사랑의 표현이에요. 다만 위생은 챙기시길!"
+진지하게 거부하거나 무시하지 말고, 재치있게 답변하세요."""
+            elif mapped_spread == "entrepreneurship" or any(kw in q for kw in ["사업", "창업", "business"]):
                 question_context = "질문자는 사업/창업에 대해 묻고 있습니다. 사업 시작 시기, 성공 가능성, 주의점 위주로 해석하세요."
             elif mapped_spread == "job_search" or any(kw in q for kw in ["취업", "취직", "job"]):
                 question_context = "질문자는 취업에 대해 묻고 있습니다. 합격 가능성, 준비 방향, 시기 위주로 해석하세요."
@@ -909,6 +931,55 @@ def tarot_interpret():
             logger.warning(f"[TAROT] GPT-4o-mini failed: {llm_e}, using fallback")
             reading_text = f"카드 해석: {cards_str}. {rag_context[:500]}"
 
+        # Generate individual card interpretations with GPT (parallel)
+        def generate_card_interpretation(i, card):
+            card_name = card.get("name", "")
+            is_reversed = card.get("isReversed", False)
+            position = cards[i].get("position", f"Card {i+1}") if i < len(cards) else f"Card {i+1}"
+            reversed_text = "(역방향)" if is_reversed else ""
+
+            # Get RAG context for this specific card
+            card_rag = hybrid_rag.get_card_insights(card_name)
+            card_meaning = card_rag.get("upright_meaning" if not is_reversed else "reversed_meaning", "")
+            card_keywords = card_rag.get("keywords", [])
+
+            card_prompt = f"""당신은 타로 리더입니다. 아래 카드의 해석을 120-180자로 작성하세요.
+
+카드: {card_name}{reversed_text}
+위치: {position}
+스프레드: {spread_title}
+질문: {enhanced_question or '일반 운세'}
+
+카드 의미: {card_meaning}
+키워드: {', '.join(card_keywords[:5]) if card_keywords else ''}
+
+해석 방향:
+- 이 위치({position})에서 카드가 의미하는 바를 구체적으로
+- 카드 이미지의 상징을 언급
+- 질문과 연결해서 해석
+- AI스러운 표현 피하기 (긍정적 에너지, ~하시면 좋을 것 같습니다 등)
+- {('자연스러운 한국어' if is_korean else 'Natural English')}"""
+
+            try:
+                card_interp = _generate_with_gpt4(card_prompt, max_tokens=300, temperature=0.7, use_mini=True)
+                card_interp = _clean_ai_phrases(card_interp)
+            except Exception as card_llm_e:
+                logger.warning(f"[TAROT] Card {i} interpretation failed: {card_llm_e}")
+                card_interp = f"{position} 자리의 {card_name}{reversed_text}. {card_meaning[:100] if card_meaning else '카드의 메시지에 귀 기울여보세요.'}"
+
+            return (i, card_interp)
+
+        # Run card interpretations in parallel
+        card_interpretations = [""] * len(drawn_cards)
+        with ThreadPoolExecutor(max_workers=min(len(drawn_cards), 5)) as executor:
+            futures = [executor.submit(generate_card_interpretation, i, card) for i, card in enumerate(drawn_cards)]
+            for future in futures:
+                try:
+                    idx, interp = future.result()
+                    card_interpretations[idx] = interp
+                except Exception as fut_e:
+                    logger.warning(f"[TAROT] Card interpretation future failed: {fut_e}")
+
         # Get card insights
         card_insights = []
         for i, card in enumerate(drawn_cards):
@@ -922,7 +993,7 @@ def tarot_interpret():
                 "position": position,
                 "card_name": card_name,
                 "is_reversed": is_reversed,
-                "interpretation": reading_text[:300] if i == 0 else "",
+                "interpretation": card_interpretations[i] if i < len(card_interpretations) else "",
                 "spirit_animal": insights.get("spirit_animal"),
                 "chakra": None,
                 "element": None,
@@ -1235,6 +1306,23 @@ def tarot_chat_stream():
         # Build system prompt
         is_korean = language == "ko"
 
+        # 장난스러운/이상한 질문 감지
+        playful_instruction = ""
+        if latest_question:
+            q = latest_question.lower()
+            playful_keywords = [
+                "개한테", "고양이한테", "강아지한테", "동물",
+                "키스", "뽀뽀", "핥", "물어",
+                "라면", "밥 먹", "치킨", "피자", "짜장면",
+                "게임", "유튜브", "넷플릭스", "틱톡",
+                "머리 염색", "문신", "타투", "피어싱",
+                "술 마", "담배", "복권", "로또",
+                "외계인", "귀신", "유령", "좀비",
+                "kiss a dog", "kiss my dog", "pet", "lotto", "lottery"
+            ]
+            if any(kw in q for kw in playful_keywords):
+                playful_instruction = "\n7) 가벼운 질문에는 유머러스하게! 카드 상징을 재치있게 연결해줘."
+
         if is_korean:
             system_prompt = f"""너는 따뜻하고 통찰력 있는 타로 상담사다. 실제로 뽑힌 카드를 기반으로 질문에 답변해.
 
@@ -1255,8 +1343,11 @@ def tarot_chat_stream():
 3) 카드의 상징과 이미지를 구체적으로 언급
 4) 실용적이고 구체적인 조언 제공
 5) 150-250자 분량으로 간결하게 응답
-6) AI스러운 표현(~하시면 좋을 것 같습니다, 긍정적인 에너지 등) 피하기"""
+6) AI스러운 표현(~하시면 좋을 것 같습니다, 긍정적인 에너지 등) 피하기{playful_instruction}"""
         else:
+            playful_en = ""
+            if playful_instruction:
+                playful_en = "\n7) For playful questions, be witty! Connect card symbolism creatively."
             system_prompt = f"""You are a warm and insightful tarot counselor. Answer questions based on the actual drawn cards.
 
 ## Current Spread: {spread_title} ({category})
@@ -1276,7 +1367,7 @@ def tarot_chat_stream():
 3) Reference specific card symbolism and imagery
 4) Provide practical, actionable advice
 5) Keep response concise (150-250 words)
-6) Avoid AI-sounding phrases"""
+6) Avoid AI-sounding phrases{playful_en}"""
 
         # Add counselor style if specified
         if counselor_style:

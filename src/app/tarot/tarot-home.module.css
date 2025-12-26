@@ -1,208 +1,162 @@
+/* ========================================= */
+/* 🔮  AI TAROT HOME - Premium Design       */
+/* ========================================= */
+
 .container {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 5rem 2rem 4rem;
-  background: linear-gradient(135deg, #0a0a1a 0%, #0d1f2d 50%, #16213e 100%);
   position: relative;
-  overflow-x: hidden;
+  min-height: 100svh;
+  width: 100%;
+  background: linear-gradient(135deg, #0a0a1a 0%, #0d1f2d 50%, #16213e 100%);
+  overflow: hidden;
 }
 
-.container::before {
-  content: '';
-  position: absolute;
+/* ========== Animated Background Canvas ========== */
+.backgroundCanvas {
+  position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 30%, rgba(99, 210, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 70%, rgba(124, 242, 156, 0.1) 0%, transparent 50%);
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   pointer-events: none;
+  opacity: 0.8;
 }
 
+/* ========== Back Button ========== */
 .backButtonContainer {
   position: fixed;
   top: 1rem;
   left: 1rem;
-  z-index: 1000;
+  z-index: 100;
 }
 
-/* ===== Crystal Ball ===== */
-.crystalBallContainer {
+/* ========== Credit Badge ========== */
+.creditBadgeWrapper {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
+
+/* ========== Main Content ========== */
+.main {
   position: relative;
-  margin-bottom: 2rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 80px 20px 40px;
+}
+
+.contentWrapper {
+  width: 100%;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 10;
+  gap: 2rem;
 }
 
-.orbRing, .orbRing2 {
-  position: absolute;
+/* ========== Logo Section ========== */
+.logoSection {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.15), rgba(124, 242, 156, 0.1));
   border-radius: 50%;
-  border: 2px solid rgba(99, 210, 255, 0.3);
-  animation: orbPulse 4s ease-in-out infinite;
+  margin-bottom: 1.5rem;
+  animation: float 4s ease-in-out infinite;
+  box-shadow:
+    0 8px 32px rgba(99, 210, 255, 0.25),
+    inset 0 0 20px rgba(99, 210, 255, 0.1);
+  border: 1px solid rgba(99, 210, 255, 0.2);
 }
 
-.orbRing {
-  width: 160px;
-  height: 160px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
-.orbRing2 {
-  width: 200px;
-  height: 200px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation-delay: 2s;
+.tarotIcon {
+  font-size: 48px;
+  filter: drop-shadow(0 0 20px rgba(99, 210, 255, 0.5));
 }
 
-.crystalBall {
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(circle at 35% 35%, #ffffff, #e0f7ff, #b8e8ff, #63d2ff, #4aa8d4 70%);
-  border-radius: 50%;
-  position: relative;
-  box-shadow: 0 0 40px rgba(99, 210, 255, 0.6),
-              0 0 80px rgba(99, 210, 255, 0.3),
-              inset 0 0 20px rgba(255, 255, 255, 0.8);
-  animation: float 6s ease-in-out infinite, shimmer 3s ease-in-out infinite;
-}
-
-.innerGlow {
-  position: absolute;
-  width: 60%;
-  height: 60%;
-  top: 20%;
-  left: 20%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(10px);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.sparkle {
-  position: absolute;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.8rem;
-  animation: sparkle 2s ease-in-out infinite;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-}
-
-.sparkle:nth-child(3) {
-  animation-delay: 0.7s;
-}
-
-.crystalBallBase {
-  width: 70px;
-  height: 24px;
-  background: linear-gradient(180deg, #1a3a4a 0%, #0d1f2d 100%);
-  border-radius: 0 0 8px 8px;
-  margin-top: -12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-  position: relative;
-  z-index: 5;
-}
-
-.baseTop {
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, rgba(99, 210, 255, 0.5), transparent);
-  border-radius: 8px 8px 0 0;
-}
-
-.baseMiddle {
-  width: 85%;
-  height: 6px;
-  background: rgba(99, 210, 255, 0.2);
-  margin: 2px auto;
-  border-radius: 4px;
-}
-
-/* ===== Counselor Selection ===== */
-.counselorSection {
-  width: 100%;
-  max-width: 800px;
-  margin-bottom: 2rem;
-  z-index: 20;
-  position: relative;
-}
-
-.counselorLabel {
-  font-size: 0.9rem;
-  color: rgba(99, 210, 255, 0.8);
-  margin: 0 0 0.75rem 0.25rem;
-  font-weight: 500;
-}
-
-/* ===== Title/Subtitle ===== */
-.title {
-  font-family: 'Inter', system-ui, sans-serif;
+.mainTitle {
+  font-family: var(--font-cinzel), ui-serif, Georgia, serif;
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 20px rgba(99, 210, 255, 0.6), 0 0 40px rgba(99, 210, 255, 0.3);
-  text-align: center;
+  margin: 0 0 0.75rem;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  z-index: 10;
-  position: relative;
+  text-shadow: 0 0 30px rgba(99, 210, 255, 0.4);
+  letter-spacing: 1px;
 }
 
 .subtitle {
+  font-size: 1rem;
+  color: rgba(99, 210, 255, 0.8);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* ========== Search Container ========== */
+.searchContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.searchBox {
+  position: relative;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  z-index: 2;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 1.25rem 3.5rem 1.25rem 3.5rem;
   font-size: 1.1rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-  text-align: center;
-  color: rgba(99, 210, 255, 0.9);
-  z-index: 10;
-  position: relative;
-}
-
-/* ===== Question Input ===== */
-.questionInputContainer {
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 1.5rem;
-  z-index: 10;
-  position: relative;
-}
-
-.questionInputWrapper {
-  position: relative;
-  width: 100%;
-}
-
-.questionInput {
-  width: 100%;
-  padding: 1rem 3rem 1rem 1.5rem;
-  font-size: 1.1rem;
-  font-family: 'Inter', system-ui, sans-serif;
-  background: rgba(30, 30, 45, 0.6);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(99, 210, 255, 0.4);
-  border-radius: 16px;
+  font-family: inherit;
+  background: rgba(30, 30, 50, 0.6);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(99, 210, 255, 0.3);
+  border-radius: 20px;
   color: #ffffff;
   outline: none;
   transition: all 0.3s ease;
 }
 
-.questionInput::placeholder {
-  color: rgba(99, 210, 255, 0.6);
+.searchInput::placeholder {
+  color: rgba(99, 210, 255, 0.5);
 }
 
-.questionInput:focus {
-  border-color: rgba(124, 242, 156, 0.7);
-  box-shadow: 0 0 20px rgba(99, 210, 255, 0.3),
-              0 0 40px rgba(124, 242, 156, 0.15);
+.searchContainer.focused .searchInput,
+.searchInput:focus {
+  border-color: rgba(99, 210, 255, 0.6);
+  background: rgba(30, 30, 50, 0.8);
+  box-shadow:
+    0 0 30px rgba(99, 210, 255, 0.2),
+    inset 0 0 20px rgba(99, 210, 255, 0.05);
 }
 
 .clearButton {
@@ -210,14 +164,14 @@
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
   cursor: pointer;
-  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,893 +179,310 @@
 }
 
 .clearButton:hover {
-  background: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
-/* ===== Quick Questions ===== */
-.quickQuestions {
+/* ========== Danger Warning ========== */
+.dangerWarning {
   display: flex;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.dangerWarning .warningIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.dangerWarning p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(147, 197, 253, 0.9);
+  line-height: 1.5;
+}
+
+/* ========== AI Explanation ========== */
+.aiExplanation {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-  z-index: 10;
-  position: relative;
-  max-width: 600px;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(124, 242, 156, 0.1), rgba(99, 210, 255, 0.1));
+  border: 1px solid rgba(124, 242, 156, 0.3);
+  border-radius: 16px;
+  font-size: 0.95rem;
+  color: rgba(167, 243, 208, 0.95);
+  animation: fadeIn 0.3s ease;
 }
 
-.quickQuestionButton {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
-  background: rgba(99, 210, 255, 0.15);
-  border: 1px solid rgba(99, 210, 255, 0.3);
-  border-radius: 20px;
-  color: rgba(99, 210, 255, 0.9);
-  cursor: pointer;
-  transition: all 0.3s ease;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.quickQuestionButton:hover {
-  background: rgba(99, 210, 255, 0.25);
-  border-color: rgba(99, 210, 255, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 210, 255, 0.2);
-}
-
-/* ===== Recent Questions Section ===== */
-.recentSection {
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 1.5rem;
-  z-index: 10;
-  position: relative;
-  animation: fadeInUp 0.3s ease-out;
-}
-
-.recentLabel {
-  font-size: 0.8rem;
-  color: rgba(99, 210, 255, 0.6);
-  margin: 0 0 0.5rem 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.recentQuestions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.recentQuestionButton {
+/* ========== Reading Section ========== */
+.readingSection {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.65rem 1rem;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.9rem;
-  background: rgba(30, 30, 45, 0.4);
-  backdrop-filter: blur(10px);
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(99, 210, 255, 0.08);
   border: 1px solid rgba(99, 210, 255, 0.2);
-  border-radius: 12px;
-  color: rgba(224, 224, 255, 0.9);
-  cursor: pointer;
-  transition: all 0.25s ease;
-  text-align: left;
+  border-radius: 16px;
 }
 
-.recentQuestionButton:hover {
+.cardCountPreview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.previewIcon {
+  font-size: 1.1rem;
+}
+
+.cardCount {
+  color: rgba(99, 210, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+.readingButton {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #63d2ff, #7cf29c);
+  border: none;
+  border-radius: 12px;
+  color: #0a0a1a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.readingButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 210, 255, 0.4);
+}
+
+.readingButton:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.analyzing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: #0a0a1a;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* ========== Quick Tags ========== */
+.quickTags {
+  width: 100%;
+}
+
+.quickTagsLabel {
+  font-size: 0.85rem;
+  color: rgba(99, 210, 255, 0.6);
+  margin: 0 0 0.75rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.quickTagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quickTag {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  background: rgba(99, 210, 255, 0.08);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 24px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quickTag:hover:not(:disabled) {
   background: rgba(99, 210, 255, 0.15);
   border-color: rgba(99, 210, 255, 0.4);
-  transform: translateX(4px);
+  transform: translateY(-2px);
 }
 
-.recentQuestionText {
+.quickTag:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tagEmoji {
+  font-size: 1rem;
+}
+
+/* ========== Recent Section ========== */
+.recentSection {
+  width: 100%;
+}
+
+.recentLabel {
+  font-size: 0.85rem;
+  color: rgba(99, 210, 255, 0.6);
+  margin: 0 0 0.75rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recentItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recentItem:hover:not(:disabled) {
+  background: rgba(99, 210, 255, 0.08);
+  border-color: rgba(99, 210, 255, 0.2);
+}
+
+.recentItem:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recentIcon {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.recentText {
   flex: 1;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.recentDeleteButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.recentDeleteButton:hover {
-  color: rgba(255, 100, 100, 0.9);
-  background: rgba(255, 100, 100, 0.15);
-}
-
-/* ===== Recommendations Section ===== */
-.recommendationsSection {
-  width: 100%;
-  max-width: 900px;
-  margin-bottom: 2rem;
-  z-index: 10;
-  position: relative;
-}
-
-.recommendationsTitle {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: rgba(99, 210, 255, 0.9);
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.recommendationsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.recommendationCard {
-  background: rgba(30, 30, 45, 0.5);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(99, 210, 255, 0.3);
-  border-radius: 16px;
-  padding: 1.25rem;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  text-align: left;
-  opacity: 0;
-  animation: fadeInUp 0.5s ease-out forwards;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.recommendationCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--gradient);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: -1;
-}
-
-.recommendationCard:hover {
-  transform: translateY(-6px) scale(1.02);
-  border-color: rgba(124, 242, 156, 0.6);
-  box-shadow: 0 12px 30px rgba(99, 210, 255, 0.3),
-              0 0 40px rgba(124, 242, 156, 0.15);
-}
-
-.recommendationCard:hover::before {
-  opacity: 0.15;
-}
-
-.recommendationIcon {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.recommendationContent {
-  flex: 1;
-}
-
-.recommendationTitle {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #7cf29c;
-  margin: 0 0 0.25rem 0;
-}
-
-.recommendationCardCount {
-  display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(99, 210, 255, 0.9);
-  background: rgba(99, 210, 255, 0.15);
-  padding: 0.2rem 0.6rem;
-  border-radius: 10px;
-  border: 1px solid rgba(99, 210, 255, 0.3);
-  margin-bottom: 0.5rem;
-}
-
-.recommendationReason {
-  font-size: 0.85rem;
-  color: rgba(224, 224, 255, 0.8);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.recommendationTheme {
-  margin-top: 0.5rem;
-}
-
-.themeTag {
-  font-size: 0.75rem;
-  color: rgba(99, 210, 255, 0.7);
-  background: rgba(99, 210, 255, 0.1);
-  padding: 0.2rem 0.6rem;
-  border-radius: 8px;
-}
-
-.recommendationArrow {
-  font-size: 1.25rem;
-  color: rgba(99, 210, 255, 0.5);
-  text-align: right;
-  transition: all 0.3s ease;
-}
-
-.recommendationCard:hover .recommendationArrow {
-  transform: translateX(5px);
-  color: rgba(124, 242, 156, 0.8);
-}
-
-/* ===== Manual Toggle ===== */
-.manualToggle {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.95rem;
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: 1px solid rgba(99, 210, 255, 0.3);
-  border-radius: 12px;
-  color: rgba(99, 210, 255, 0.8);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-  z-index: 10;
-  position: relative;
-}
-
-.manualToggle:hover {
-  background: rgba(99, 210, 255, 0.1);
-  border-color: rgba(99, 210, 255, 0.5);
-}
-
-/* ===== Manual Section ===== */
-.manualSection {
-  width: 100%;
-  max-width: 1000px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2rem;
-  animation: fadeInUp 0.4s ease-out;
-}
-
-/* ===== Theme Selector Pills ===== */
-.themeSelector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-  z-index: 10;
-  position: relative;
-  max-width: 1000px;
-  padding: 0 1rem;
-}
-
-.themeButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
-  background: rgba(30, 30, 45, 0.5);
-  backdrop-filter: blur(10px);
-  color: rgba(224, 224, 255, 0.9);
-  border: 1px solid rgba(99, 210, 255, 0.3);
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.75;
-}
-
-.themeButton:hover {
-  background: rgba(99, 210, 255, 0.2);
-  border-color: rgba(99, 210, 255, 0.6);
-  opacity: 1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 210, 255, 0.3);
-}
-
-.themeButton.active {
-  color: #7cf29c;
-  font-weight: 600;
-  border-color: rgba(124, 242, 156, 0.5);
-  box-shadow: 0 0 20px rgba(99, 210, 255, 0.5);
-  opacity: 1;
-}
-
-.themeIcon {
-  font-size: 1rem;
-}
-
-.themeName {
   white-space: nowrap;
 }
 
-/* ===== Theme Header ===== */
-.themeHeader {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
-  background: rgba(30, 30, 45, 0.4);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(99, 210, 255, 0.3);
-  border-radius: 20px;
-  z-index: 10;
-  position: relative;
-  max-width: 600px;
-  width: 100%;
+.recentDelete {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-.themeIconLarge {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
+.recentDelete:hover {
+  color: rgba(239, 68, 68, 0.8);
+  background: rgba(239, 68, 68, 0.1);
 }
 
-.themeInfo {
-  flex: 1;
-}
-
-.themeTitleLarge {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #7cf29c;
-  margin: 0 0 0.5rem 0;
-}
-
-.themeDescription {
-  font-size: 0.95rem;
-  color: rgba(99, 210, 255, 0.9);
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ===== Spread Cards Grid ===== */
-.spreadGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 1000px;
-  z-index: 10;
-  position: relative;
-  margin-bottom: 2rem;
-}
-
-.spreadCard {
-  background: rgba(30, 30, 45, 0.5);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(99, 210, 255, 0.3);
-  border-radius: 20px;
-  padding: 1.5rem;
-  text-decoration: none;
-  color: #ffffff;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  opacity: 0;
-  animation: fadeInUp 0.5s ease-out forwards;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.spreadCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--gradient);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: -1;
-}
-
-.spreadCard:hover {
-  transform: translateY(-8px) scale(1.02);
-  border-color: rgba(99, 210, 255, 0.7);
-  box-shadow: 0 15px 40px rgba(99, 210, 255, 0.35),
-              0 0 60px rgba(99, 210, 255, 0.2);
-}
-
-.spreadCard:hover::before {
-  opacity: 0.15;
-}
-
-.spreadCard:hover .spreadCardIcon {
-  transform: scale(1.15) rotate(-5deg);
-}
-
-.spreadCard:hover .spreadCardArrow {
-  transform: translateX(8px);
-  opacity: 1;
-}
-
-.spreadCardIcon {
-  font-size: 2rem;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-}
-
-.spreadCardContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.spreadTitle {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #7cf29c;
-}
-
-.spreadCardCount {
-  display: inline-block;
+/* ========== Footer Hint ========== */
+.footerHint {
   font-size: 0.85rem;
-  font-weight: 600;
-  color: rgba(99, 210, 255, 0.9);
-  background: rgba(99, 210, 255, 0.15);
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  border: 1px solid rgba(99, 210, 255, 0.3);
-  width: fit-content;
-}
-
-.spreadDescription {
-  font-size: 0.9rem;
-  opacity: 0.85;
-  line-height: 1.5;
-  color: rgba(224, 224, 255, 0.9);
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
   margin: 0;
-}
-
-.spreadPositions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.positionTag {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: rgba(99, 210, 255, 0.9);
-}
-
-.positionMore {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  background: rgba(99, 210, 255, 0.2);
-  border-radius: 8px;
-  color: rgba(99, 210, 255, 0.9);
-}
-
-.spreadCardArrow {
-  font-size: 1.5rem;
-  transition: all 0.3s ease;
-  color: rgba(99, 210, 255, 0.7);
-  opacity: 0.5;
-  text-align: right;
-}
-
-/* ===== Quick Tip ===== */
-.tipContainer {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: rgba(99, 210, 255, 0.1);
-  border: 1px solid rgba(99, 210, 255, 0.2);
-  border-radius: 15px;
-  max-width: 600px;
-  width: 100%;
-  z-index: 10;
-  position: relative;
-}
-
-.tipIcon {
-  font-size: 1.5rem;
-}
-
-.tipText {
-  font-size: 0.9rem;
-  color: rgba(99, 210, 255, 0.9);
-  margin: 0;
+  max-width: 400px;
   line-height: 1.5;
 }
 
-/* ===== Animations ===== */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes shimmer {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
-}
-
-@keyframes sparkle {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.25); }
-}
-
-@keyframes orbPulse {
-  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.05); }
-}
-
-/* ===== Responsive Design ===== */
-@media (max-width: 768px) {
-  .container {
-    padding: 4rem 1rem 3rem;
+/* ========== Mobile Responsive ========== */
+@media (max-width: 640px) {
+  .main {
+    padding: 100px 16px 32px;
   }
 
-  .title {
-    font-size: 2rem;
+  .contentWrapper {
+    gap: 1.5rem;
   }
 
-  .subtitle {
-    font-size: 1rem;
-  }
-
-  .crystalBall {
-    width: 100px;
-    height: 100px;
-  }
-
-  .orbRing {
-    width: 140px;
-    height: 140px;
-  }
-
-  .orbRing2 {
-    width: 180px;
-    height: 180px;
-  }
-
-  .questionInput {
-    font-size: 1rem;
-    padding: 0.875rem 2.5rem 0.875rem 1.25rem;
-  }
-
-  .quickQuestions {
-    gap: 0.4rem;
-  }
-
-  .quickQuestionButton {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-  }
-
-  .recentQuestionButton {
-    font-size: 0.85rem;
-    padding: 0.55rem 0.85rem;
-  }
-
-  .recommendationsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .recommendationCard {
-    padding: 1rem;
-  }
-
-  .recommendationTitle {
-    font-size: 1.05rem;
-  }
-
-  .themeSelector {
-    gap: 0.5rem;
-  }
-
-  .themeButton {
-    font-size: 0.8rem;
-    padding: 0.45rem 0.85rem;
-  }
-
-  .themeHeader {
-    flex-direction: column;
-    text-align: center;
-    padding: 1.25rem;
-  }
-
-  .themeIconLarge {
-    width: 60px;
-    height: 60px;
-    font-size: 1.75rem;
-  }
-
-  .themeTitleLarge {
-    font-size: 1.3rem;
-  }
-
-  .spreadGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .spreadCard {
-    padding: 1.25rem;
-  }
-
-  .spreadTitle {
-    font-size: 1.15rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 3.5rem 0.75rem 2rem;
-  }
-
-  .title {
-    font-size: 1.75rem;
-  }
-
-  .crystalBall {
+  .iconWrapper {
     width: 80px;
     height: 80px;
   }
 
-  .orbRing {
-    width: 120px;
-    height: 120px;
+  .tarotIcon {
+    font-size: 36px;
   }
 
-  .orbRing2 {
-    width: 160px;
-    height: 160px;
+  .mainTitle {
+    font-size: 2rem;
   }
 
-  .crystalBallBase {
-    width: 55px;
-    height: 20px;
-    margin-top: -10px;
-  }
-
-  .questionInput {
-    font-size: 0.95rem;
-    padding: 0.75rem 2.25rem 0.75rem 1rem;
-  }
-
-  .quickQuestionButton {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.7rem;
-  }
-
-  .recentLabel {
-    font-size: 0.75rem;
-  }
-
-  .recentQuestionButton {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 10px;
-  }
-
-  .recommendationsTitle {
-    font-size: 1rem;
-  }
-
-  .recommendationCard {
-    padding: 0.875rem;
-  }
-
-  .recommendationTitle {
-    font-size: 1rem;
-  }
-
-  .recommendationReason {
-    font-size: 0.8rem;
-  }
-
-  .manualToggle {
-    font-size: 0.85rem;
-    padding: 0.6rem 1.25rem;
-  }
-
-  .themeButton {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.7rem;
-    gap: 0.3rem;
-  }
-
-  .themeIcon {
+  .subtitle {
     font-size: 0.9rem;
   }
 
-  .tipContainer {
+  .searchInput {
+    padding: 1rem 3rem 1rem 3rem;
+    font-size: 1rem;
+  }
+
+  .readingSection {
     flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-  }
-}
-
-/* ============================================================
-   TABLET BREAKPOINT (481px - 1024px)
-   Better iPad and tablet experience
-   ============================================================ */
-@media (min-width: 481px) and (max-width: 1024px) {
-  .container {
-    padding: 4.5rem 1.5rem 3rem;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
-  .title {
-    font-size: 2.25rem;
+  .cardCountPreview {
+    justify-content: center;
   }
 
-  .subtitle {
-    font-size: 1.05rem;
+  .readingButton {
+    width: 100%;
+    justify-content: center;
   }
 
-  .themeSelector {
-    max-width: 800px;
-    gap: 0.5rem;
+  .quickTagsList {
+    justify-content: center;
   }
 
-  .themeButton {
-    padding: 0.55rem 0.95rem;
+  .quickTag {
     font-size: 0.85rem;
-    min-height: 44px;
-  }
-
-  .themeHeader {
-    flex-direction: row;
-    text-align: left;
-    max-width: 550px;
-    padding: 1.25rem 1.5rem;
-  }
-
-  .themeIconLarge {
-    width: 65px;
-    height: 65px;
-    font-size: 1.85rem;
-  }
-
-  .spreadGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-    max-width: 800px;
-  }
-
-  .spreadCard {
-    padding: 1.35rem;
-  }
-
-  .spreadTitle {
-    font-size: 1.2rem;
-  }
-
-  .tipContainer {
-    max-width: 550px;
-    padding: 1rem 1.25rem;
-  }
-}
-
-/* ============================================================
-   LANDSCAPE PHONE OPTIMIZATION
-   ============================================================ */
-@media (orientation: landscape) and (max-height: 500px) {
-  .container {
-    padding: 3rem 2rem 2rem;
-  }
-
-  .crystalBallContainer {
-    margin-bottom: 1rem;
-  }
-
-  .crystalBall {
-    width: 70px;
-    height: 70px;
-  }
-
-  .orbRing {
-    width: 100px;
-    height: 100px;
-  }
-
-  .orbRing2 {
-    width: 130px;
-    height: 130px;
-  }
-
-  .title {
-    font-size: 1.8rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .subtitle {
-    margin-bottom: 1rem;
-  }
-
-  .spreadGrid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-  }
-}
-
-/* ============================================================
-   EXTRA SMALL MOBILE (< 360px)
-   ============================================================ */
-@media (max-width: 359px) {
-  .container {
-    padding: 3rem 0.5rem 1.5rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
-  }
-
-  .subtitle {
-    font-size: 0.9rem;
-  }
-
-  .themeButton {
-    font-size: 0.7rem;
-    padding: 0.35rem 0.6rem;
-  }
-
-  .spreadCard {
-    padding: 1rem;
-  }
-
-  .spreadTitle {
-    font-size: 1rem;
-  }
-
-  .spreadDescription {
-    font-size: 0.85rem;
+    padding: 0.5rem 0.85rem;
   }
 }

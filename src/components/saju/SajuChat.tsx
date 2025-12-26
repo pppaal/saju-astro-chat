@@ -6,6 +6,7 @@
 import React from "react";
 import styles from "./SajuChat.module.css";
 import { detectCrisis } from "@/components/destiny-map/chat-i18n";
+import MarkdownMessage from "@/components/ui/MarkdownMessage";
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
@@ -205,7 +206,11 @@ const MessageRow = React.memo(({
       className={`${styles.message} ${styles[message.role]}`}
     >
       <div className={styles.messageContent}>
-        {message.content}
+        {message.role === "assistant" ? (
+          <MarkdownMessage content={message.content} />
+        ) : (
+          message.content
+        )}
       </div>
       {message.role === "assistant" && message.content && (
         <div className={styles.feedbackButtons}>
@@ -262,7 +267,7 @@ type SajuChatProps = {
   lang?: LangKey;
   theme?: string;
   seedEvent?: string;
-  saju?: any;
+  saju?: Record<string, unknown> | null;
   userContext?: UserContext;
   onSaveMessage?: (userMsg: string, assistantMsg: string) => void;
   autoScroll?: boolean;
@@ -358,6 +363,15 @@ export default function SajuChat({
     setShowSuggestions(false);
   }, []);
 
+  // Ref to store latest handleSubmit for follow-up questions
+  const handleSubmitRef = React.useRef<(text: string) => void>(() => {});
+
+  // Handle follow-up question click - sends immediately
+  const handleFollowUpClick = React.useCallback((question: string) => {
+    setFollowUpQuestions([]);
+    handleSubmitRef.current(question);
+  }, []);
+
   const scrollToBottom = React.useCallback(() => {
     if (autoScroll && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -370,10 +384,10 @@ export default function SajuChat({
 
   // Handle seed event
   React.useEffect(() => {
-    const handler = (e: CustomEvent<string>) => {
+    const handler = (e: Event) => {
       if (seedSentRef.current) return;
       seedSentRef.current = true;
-      const question = e.detail;
+      const question = (e as CustomEvent<string>).detail;
       if (question) {
         setInput(question);
         setTimeout(() => {
@@ -382,8 +396,8 @@ export default function SajuChat({
         }, 100);
       }
     };
-    window.addEventListener(seedEvent as any, handler as any);
-    return () => window.removeEventListener(seedEvent as any, handler as any);
+    window.addEventListener(seedEvent, handler);
+    return () => window.removeEventListener(seedEvent, handler);
   }, [seedEvent]);
 
   // Voice recording
@@ -392,15 +406,15 @@ export default function SajuChat({
       recognitionRef.current?.stop();
       setIsRecording(false);
     } else {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (!SpeechRecognition) {
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognitionClass) {
         setNotice(lang === "ko" ? "음성 인식이 지원되지 않습니다." : "Speech recognition not supported.");
         return;
       }
-      const recognition = new SpeechRecognition();
+      const recognition = new SpeechRecognitionClass();
       recognition.lang = lang === "ko" ? "ko-KR" : "en-US";
       recognition.interimResults = false;
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         setInput((prev) => prev + " " + transcript);
         setIsRecording(false);
@@ -413,10 +427,10 @@ export default function SajuChat({
     }
   };
 
-  // Submit handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = input.trim();
+  // Submit handler - can be called with direct text for follow-up questions
+  const handleSubmit = async (e?: React.FormEvent, directText?: string) => {
+    e?.preventDefault();
+    const trimmed = directText || input.trim();
     if (!trimmed || loading) return;
 
     // Crisis detection
@@ -466,6 +480,7 @@ export default function SajuChat({
       const decoder = new TextDecoder();
       let assistantContent = "";
       const assistantId = `assistant-${Date.now()}`;
+      let lastScrollTime = 0;
 
       setMessages((prev) => [...prev, { role: "assistant", content: "", id: assistantId }]);
 
@@ -507,6 +522,13 @@ export default function SajuChat({
                 m.id === assistantId ? { ...m, content: assistantContent } : m
               )
             );
+
+            // Auto-scroll during streaming (throttled)
+            const now = Date.now();
+            if (autoScroll && now - lastScrollTime > 100) {
+              lastScrollTime = now;
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }
           }
         }
       }
@@ -531,6 +553,9 @@ export default function SajuChat({
       setLoading(false);
     }
   };
+
+  // Update ref for follow-up click handler
+  handleSubmitRef.current = (text: string) => handleSubmit(undefined, text);
 
   // Feedback handler
   const handleFeedback = React.useCallback(async (messageId: string, type: FeedbackType) => {
@@ -625,7 +650,7 @@ export default function SajuChat({
               key={i}
               type="button"
               className={styles.followUpBtn}
-              onClick={() => handleSuggestionClick(q)}
+              onClick={() => handleFollowUpClick(q)}
             >
               {q}
             </button>

@@ -8,12 +8,12 @@ import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
 import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImagePath } from '@/lib/Tarot/tarot.types';
-import TarotChat from '@/components/tarot/TarotChat';
 import { getStoredBirthDate } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
 import PersonalityInsight from '@/components/personality/PersonalityInsight';
 import { getCounselorById, TarotCounselor } from '@/lib/Tarot/tarot-counselors';
-import { apiFetch } from '@/lib/api-client';
+import { saveReading, formatReadingForSave, getSavedReadings } from '@/lib/Tarot/tarot-storage';
+import { apiFetch } from '@/lib/api';
 import styles from './tarot-reading.module.css';
 
 // Card back color options - now linked to deck styles
@@ -165,7 +165,7 @@ interface ReadingResponse {
   drawnCards: DrawnCard[];
 }
 
-type GameState = 'loading' | 'color-select' | 'picking' | 'revealing' | 'interpreting' | 'results' | 'chat' | 'error';
+type GameState = 'loading' | 'color-select' | 'picking' | 'revealing' | 'interpreting' | 'results' | 'error';
 
 export default function TarotReadingPage() {
   const router = useRouter();
@@ -182,15 +182,19 @@ export default function TarotReadingPage() {
   const [selectedDeckStyle, setSelectedDeckStyle] = useState<DeckStyle>('celestial');
   const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const [userTopic, setUserTopic] = useState<string>('');
+  // Get question from URL params
+  const questionFromUrl = searchParams?.get('question') || '';
+  const [userTopic, setUserTopic] = useState<string>(questionFromUrl);
   const [selectionOrderMap, setSelectionOrderMap] = useState<Map<number, number>>(new Map());
   const selectionOrderRef = useRef<Map<number, number>>(new Map());
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null);
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
-  const [showChat, setShowChat] = useState(false);
   const [revealedCards, setRevealedCards] = useState<number[]>([]);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string>('');
   const detailedSectionRef = useRef<HTMLDivElement>(null);
+  const [isSpreading, setIsSpreading] = useState(true); // Initial card spread animation
 
   // Streaming interpretation state
   const [streamingOverall, setStreamingOverall] = useState<string>('');
@@ -244,6 +248,16 @@ export default function TarotReadingPage() {
       setGameState('error');
     }
   }, [categoryName, spreadId]);
+
+  // Stop spreading animation after cards are spread
+  useEffect(() => {
+    if (gameState === 'picking' && isSpreading) {
+      const timer = setTimeout(() => {
+        setIsSpreading(false);
+      }, 800); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [gameState, isSpreading]);
 
   const handleColorSelect = (color: typeof CARD_COLORS[0]) => {
     setSelectedColor(color);
@@ -506,27 +520,40 @@ export default function TarotReadingPage() {
           const data = await response.json();
           setReadingResult(data);
 
-          setTimeout(async () => {
-            setGameState('interpreting');
-            await fetchInterpretation(data);
+          // 즉시 기본 해석으로 결과 화면 표시
+          const basicInterpretation: InterpretationResult = {
+            overall_message: '',
+            card_insights: data.drawnCards.map((dc: DrawnCard, idx: number) => ({
+              position: data.spread.positions[idx]?.title || `Card ${idx + 1}`,
+              card_name: dc.card.name,
+              is_reversed: dc.isReversed,
+              interpretation: dc.isReversed
+                ? (language === 'ko' ? dc.card.reversed.meaningKo || dc.card.reversed.meaning : dc.card.reversed.meaning)
+                : (language === 'ko' ? dc.card.upright.meaningKo || dc.card.upright.meaning : dc.card.upright.meaning)
+            })),
+            guidance: '',
+            affirmation: '',
+            fallback: true
+          };
+          setInterpretation(basicInterpretation);
+
+          // 바로 결과 화면으로 전환 (카드 클릭해서 볼 수 있음)
+          setTimeout(() => {
             setGameState('results');
-          }, 1500);
+            // 백그라운드에서 GPT 해석 가져오기
+            fetchInterpretation(data);
+          }, 1000);
         } catch (error) {
           console.error(error);
           setGameState('error');
         }
       };
-      setTimeout(fetchReading, 1000);
+      setTimeout(fetchReading, 500);
     }
-  }, [selectedIndices, spreadInfo, categoryName, spreadId, fetchInterpretation, gameState, userTopic]);
+  }, [selectedIndices, spreadInfo, categoryName, spreadId, fetchInterpretation, gameState, userTopic, language]);
 
   const handleReset = () => {
     router.push('/tarot');
-  };
-
-  const handleStartChat = () => {
-    setShowChat(true);
-    setGameState('chat');
   };
 
   const toggleCardExpand = (index: number) => {
@@ -544,6 +571,34 @@ export default function TarotReadingPage() {
 
   const isCardRevealed = (index: number) => revealedCards.includes(index);
   const canRevealCard = (index: number) => index === revealedCards.length;
+
+  // 리딩 저장 핸들러
+  const handleSaveReading = useCallback(() => {
+    if (!readingResult || !spreadInfo || isSaved) return;
+
+    try {
+      const formattedReading = formatReadingForSave(
+        userTopic,
+        spreadInfo,
+        readingResult.drawnCards,
+        interpretation,
+        categoryName || '',
+        spreadId || '',
+        selectedDeckStyle
+      );
+
+      saveReading(formattedReading);
+      setIsSaved(true);
+      setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!');
+
+      // 3초 후 메시지 숨기기
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to save reading:', error);
+      setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed');
+      setTimeout(() => setSaveMessage(''), 3000);
+    }
+  }, [readingResult, spreadInfo, interpretation, userTopic, categoryName, spreadId, selectedDeckStyle, language, isSaved]);
 
   // Loading state
   if (gameState === 'loading') {
@@ -573,94 +628,75 @@ export default function TarotReadingPage() {
   // Deck style selection state
   if (gameState === 'color-select') {
     return (
-      <div className={styles.colorSelectContainer}>
-        <div className={styles.creditBadgeWrapper}>
-          <CreditBadge variant="compact" />
-          <Link href="/" className={styles.homeButton} aria-label="Home">
-            <span className={styles.homeIcon}>🏠</span>
-            <span className={styles.homeLabel}>홈</span>
-          </Link>
-        </div>
+      <div className={styles.deckSelectPage}>
+        {/* Fixed elements */}
         <div className={styles.backButtonWrapper}>
           <BackButton />
         </div>
-        <div className={styles.colorSelectHeader}>
-          <h1 className={styles.colorSelectTitle}>
-            {translate('tarot.deckSelect.title', 'Choose Your Deck Style')}
-          </h1>
-          <p className={styles.colorSelectSubtitle}>
-            {translate('tarot.deckSelect.subtitle', 'Select the aesthetic that resonates with your spirit')}
-          </p>
+        <div className={styles.creditBadgeWrapper}>
+          <CreditBadge variant="compact" />
         </div>
 
-        {/* User Topic Input */}
-        <div className={styles.topicInputSection}>
-          <label className={styles.topicLabel}>
-            {language === 'ko' ? '🔮 상담 주제를 입력하세요' : '🔮 Enter your question or topic'}
-          </label>
-          <textarea
-            className={styles.topicInput}
-            value={userTopic}
-            onChange={(e) => setUserTopic(e.target.value)}
-            placeholder={language === 'ko'
-              ? '예: 이직을 고민하고 있어요 / 연애 운이 궁금해요 / 올해 재정 상황은 어떨까요?'
-              : 'E.g.: Should I change jobs? / What about my love life? / How will my finances be this year?'}
-            rows={3}
-            maxLength={500}
-          />
-          <p className={styles.topicHint}>
-            {language === 'ko'
-              ? '구체적인 질문을 입력하면 더 정확한 해석을 받을 수 있어요'
-              : 'A specific question leads to a more accurate reading'}
-          </p>
-        </div>
-
-        <div className={styles.colorGrid}>
-          {CARD_COLORS.map((deck) => (
-            <button
-              key={deck.id}
-              className={`${styles.colorOption} ${selectedColor.id === deck.id ? styles.colorSelected : ''}`}
-              onClick={() => handleColorSelect(deck)}
-              style={{
-                '--card-gradient': deck.gradient,
-                '--card-border': deck.border,
-              } as React.CSSProperties}
-            >
-              <div className={styles.colorCardPreview}>
-                <Image
-                  src={deck.backImage}
-                  alt={deck.name}
-                  width={130}
-                  height={200}
-                  className={styles.deckBackImage}
-                />
+        {/* Main content */}
+        <main className={styles.deckSelectMain}>
+          <div className={styles.deckSelectContent}>
+            {/* User Question Display - at top */}
+            {userTopic && (
+              <div className={styles.userQuestionBanner}>
+                <span className={styles.questionQuote}>&quot;</span>
+                <p className={styles.userQuestionText}>{userTopic}</p>
+                <span className={styles.questionQuote}>&quot;</span>
               </div>
-              <span className={styles.colorName}>
-                {language === 'ko' ? deck.nameKo : deck.name}
-              </span>
-              <span className={styles.colorDescription}>
-                {language === 'ko' ? deck.descriptionKo : deck.description}
-              </span>
-              {selectedColor.id === deck.id && (
-                <div className={styles.colorCheckmark}>✓</div>
-              )}
+            )}
+
+            {/* Title Section */}
+            <div className={styles.deckSelectHeader}>
+              <div className={styles.spreadInfoBadge}>
+                <span className={styles.spreadIcon}>🃏</span>
+                <span className={styles.spreadName}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</span>
+                <span className={styles.spreadCardCount}>{effectiveCardCount}{language === 'ko' ? '장' : ' cards'}</span>
+              </div>
+              <h1 className={styles.deckSelectTitle}>
+                {language === 'ko' ? '덱 스타일 선택' : 'Choose Your Deck'}
+              </h1>
+              <p className={styles.deckSelectSubtitle}>
+                {language === 'ko' ? '마음에 드는 카드 뒷면을 선택하세요' : 'Select the card back that resonates with you'}
+              </p>
+            </div>
+
+            {/* Deck Grid */}
+            <div className={styles.deckGrid}>
+              {CARD_COLORS.map((deck) => (
+                <button
+                  key={deck.id}
+                  className={`${styles.deckOption} ${selectedColor.id === deck.id ? styles.deckSelected : ''}`}
+                  onClick={() => handleColorSelect(deck)}
+                >
+                  <div className={styles.deckCardPreview}>
+                    <Image
+                      src={deck.backImage}
+                      alt={deck.name}
+                      width={100}
+                      height={155}
+                      className={styles.deckBackImage}
+                    />
+                  </div>
+                  <span className={styles.deckName}>
+                    {language === 'ko' ? deck.nameKo : deck.name}
+                  </span>
+                  {selectedColor.id === deck.id && (
+                    <div className={styles.deckCheckmark}>✓</div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Start Button */}
+            <button className={styles.startReadingButton} onClick={handleStartReading}>
+              {language === 'ko' ? '카드 뽑기' : 'Draw Cards'} →
             </button>
-          ))}
-        </div>
-
-        <div className={styles.spreadPreview}>
-          <h3 className={styles.spreadPreviewTitle}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</h3>
-          <p className={styles.spreadPreviewDesc}>{effectiveCardCount} {translate('tarot.spread.cards', 'cards')}</p>
-          {userTopic && (
-            <p className={styles.topicPreview}>
-              {language === 'ko' ? '주제: ' : 'Topic: '}{userTopic.slice(0, 50)}{userTopic.length > 50 ? '...' : ''}
-            </p>
-          )}
-        </div>
-
-        <button className={styles.startButton} onClick={handleStartReading}>
-          {translate('tarot.colorSelect.start', 'Begin Reading')} →
-        </button>
+          </div>
+        </main>
       </div>
     );
   }
@@ -766,30 +802,6 @@ export default function TarotReadingPage() {
     );
   }
 
-  // Chat state
-  if (gameState === 'chat' && readingResult && showChat) {
-    return (
-      <div className={styles.chatContainer}>
-        <div className={styles.chatHeader}>
-          <button className={styles.backToResults} onClick={() => { setShowChat(false); setGameState('results'); }}>
-            ← {translate('tarot.chat.backToResults', 'Back to Cards')}
-          </button>
-          <h2 className={styles.chatTitle}>🔮 {translate('tarot.chat.title', 'Tarot Consultation')}</h2>
-        </div>
-        <TarotChat
-          readingResult={readingResult}
-          interpretation={interpretation}
-          categoryName={categoryName || ''}
-          spreadId={spreadId || ''}
-          language={(language as 'ko' | 'en') || 'ko'}
-          counselorId={counselor?.id}
-          counselorStyle={counselor?.style}
-          userTopic={userTopic}
-        />
-      </div>
-    );
-  }
-
   // Results state
   if (gameState === 'results' && readingResult) {
     const insight = interpretation;
@@ -817,13 +829,18 @@ export default function TarotReadingPage() {
           )}
         </div>
 
-        {/* Overall Message */}
-        {insight?.overall_message && (
+        {/* Overall Message or Loading Indicator */}
+        {insight?.fallback ? (
+          <div className={styles.loadingInsightBanner}>
+            <div className={styles.loadingSpinner}></div>
+            <span>{language === 'ko' ? '상세 해석 생성 중...' : 'Generating detailed reading...'}</span>
+          </div>
+        ) : insight?.overall_message ? (
           <div className={styles.overallMessage}>
             <div className={styles.messageIcon}>📝</div>
             <p className={styles.messageText}>{insight.overall_message}</p>
           </div>
-        )}
+        ) : null}
 
         {/* Cards Grid - Horizontal */}
         <div className={styles.resultsGridHorizontal}>
@@ -1077,11 +1094,21 @@ export default function TarotReadingPage() {
 
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
-          <button onClick={handleStartChat} className={styles.chatButton}>
-            💬 {translate('tarot.results.startChat', 'Continue with Consultation')}
+          <button
+            onClick={handleSaveReading}
+            className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`}
+            disabled={isSaved}
+          >
+            {isSaved ? '✓' : '💾'} {isSaved
+              ? (language === 'ko' ? '저장됨' : 'Saved')
+              : (language === 'ko' ? '저장하기' : 'Save Reading')
+            }
           </button>
+          {saveMessage && (
+            <span className={styles.saveMessage}>{saveMessage}</span>
+          )}
           <button onClick={handleReset} className={styles.resetButton}>
-            {translate('tarot.results.askAnother', 'Ask Another Question')}
+            {language === 'ko' ? '새로 읽기' : 'New Reading'}
           </button>
         </div>
       </div>
@@ -1097,31 +1124,39 @@ export default function TarotReadingPage() {
       <div className={styles.instructions}>
         <h1 className={styles.instructionTitle}>{language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}</h1>
         <div className={styles.instructionContent}>
-          {gameState === 'revealing' ? (
+          {gameState === 'revealing' && (
             <>
               <div className={styles.revealingOrb}></div>
               <p className={styles.revealingText}>
                 ✨ {translate('tarot.reading.revealing', 'Selection Complete! Revealing your destiny...')}
               </p>
             </>
-          ) : (
-            <>
-              <p className={styles.pickingText}>
-                {translate('tarot.reading.choose', 'Choose')} {effectiveCardCount} {translate('tarot.reading.cards', 'cards')}
-              </p>
-              <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{ width: `${(selectedIndices.length / effectiveCardCount) * 100}%` }}
-                ></div>
-              </div>
-              <p className={styles.progressText}>
-                {selectedIndices.length} / {effectiveCardCount}
-              </p>
-            </>
           )}
         </div>
       </div>
+
+      {/* Top Right Controls - Progress and Redraw */}
+      {gameState === 'picking' && (
+        <div className={styles.topRightControls}>
+          <div className={styles.progressBadge}>
+            <span className={styles.progressLabel}>{language === 'ko' ? '선택' : 'Selected'}</span>
+            <span className={styles.progressCount}>{selectedIndices.length} / {effectiveCardCount}</span>
+          </div>
+          {selectedIndices.length > 0 && (
+            <button
+              className={styles.redrawButton}
+              onClick={() => {
+                setSelectedIndices([]);
+                setSelectionOrderMap(new Map());
+                selectionOrderRef.current = new Map();
+                setIsSpreading(true); // Trigger spread animation
+              }}
+            >
+              {translate('tarot.reading.redraw', '다시 그리기')}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className={styles.cardSpreadContainer}>
         {Array.from({ length: 78 }).map((_, index) => {
@@ -1130,7 +1165,7 @@ export default function TarotReadingPage() {
           return (
             <div
               key={`card-${index}-${displayNumber}`}
-              className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''}`}
+              className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''} ${isSpreading ? styles.spreading : ''}`}
               style={{
                 '--selection-order': displayNumber,
                 '--i': index,
@@ -1151,20 +1186,6 @@ export default function TarotReadingPage() {
           );
         })}
       </div>
-
-      {/* Reset/Redraw button */}
-      {selectedIndices.length > 0 && gameState === 'picking' && (
-        <button
-          className={styles.redrawButton}
-          onClick={() => {
-            setSelectedIndices([]);
-            setSelectionOrderMap(new Map());
-            selectionOrderRef.current = new Map();
-          }}
-        >
-          {translate('tarot.reading.redraw', '다시 그리기')}
-        </button>
-      )}
     </div>
   );
 }

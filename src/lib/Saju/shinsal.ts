@@ -1,8 +1,8 @@
 // src/lib/Saju/shinsal.ts
 import { BRANCHES, STEMS } from './constants';
-import type { FiveElement, YinYang } from './types';
+import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types';
 
-export type PillarKind = 'year' | 'month' | 'day' | 'time';
+export type { PillarKind, TwelveStage };
 
 export interface PillarBase {
   heavenlyStem: { name: string; element: FiveElement; yin_yang?: YinYang };
@@ -16,9 +16,7 @@ export interface SajuPillarsLike {
   time: PillarBase;
 }
 
-export type TwelveStage =
-  | '장생' | '목욕' | '관대' | '임관' | '왕지'
-  | '쇠' | '병' | '사' | '묘' | '절' | '태' | '양';
+// TwelveStage is re-exported from types.ts
 
 export interface ShinsalHit {
   kind:

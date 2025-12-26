@@ -1,7 +1,8 @@
 import { elementTraits } from '../data';
+import type { SajuData, AstroData, PlanetData } from '../types';
 
 // 현재 타이밍 분석 - 오늘, 이번달, 현재 단계 + 용신 에너지 통합
-export function getCurrentTimingAnalysis(saju: any, astro: any, lang: string): {
+export function getCurrentTimingAnalysis(saju: SajuData | undefined, astro: AstroData | undefined, lang: string): {
   today: { title: string; subtitle: string; message: string; emoji: string } | null;
   thisMonth: { title: string; subtitle: string; message: string; emoji: string } | null;
   currentStage: { title: string; subtitle: string; message: string; emoji: string } | null;
@@ -13,7 +14,8 @@ export function getCurrentTimingAnalysis(saju: any, astro: any, lang: string): {
   const currentDay = now.getDate();
 
   // 생년월일에서 나이 계산
-  const birthYear = parseInt(saju?.birthDate?.split("-")[0]) || 1990;
+  const birthDateStr = saju?.birthDate;
+  const birthYear = birthDateStr ? parseInt(birthDateStr.split("-")[0]) : 1990;
   const age = currentYear - birthYear;
 
   // 대운 계산 (10년 주기)
@@ -45,7 +47,8 @@ export function getCurrentTimingAnalysis(saju: any, astro: any, lang: string): {
   // 1) 오늘 운세 - 태양 위치 + 용신 에너지 통합
   let today = null;
   if (astro?.planets) {
-    const sunSign = astro.planets.find((p: any) => p?.name?.toLowerCase() === "sun")?.sign?.toLowerCase();
+    const planets = Array.isArray(astro.planets) ? astro.planets : [];
+    const sunSign = planets.find((p: PlanetData) => p?.name?.toLowerCase() === "sun")?.sign?.toLowerCase();
 
     const sunThemes: Record<string, { ko: string; en: string }> = {
       aries: { ko: "새로운 시작", en: "New beginnings" },

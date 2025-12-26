@@ -34,6 +34,7 @@ import type {
   ChatPayload,
   PDFTextItem,
 } from "./chat-types";
+import MarkdownMessage from "@/components/ui/MarkdownMessage";
 
 // PDF parsing utility
 async function extractTextFromPDF(file: File): Promise<string> {
@@ -69,49 +70,51 @@ async function extractTextFromPDF(file: File): Promise<string> {
   return fullText.trim();
 }
 
-// Memoized Message Component for performance
-const MessageRow = React.memo(({
-  message,
-  index,
-  feedback,
-  lang,
-  onFeedback,
-  styles: s
-}: {
+// Props type for MessageRow
+interface MessageRowProps {
   message: Message;
   index: number;
   feedback: Record<string, FeedbackType>;
   lang: string;
   onFeedback: (id: string, type: FeedbackType) => void;
   styles: Record<string, string>;
-}) => {
+}
+
+// Memoized Message Component for performance
+const MessageRow = React.memo(function MessageRow({
+  message,
+  index,
+  feedback,
+  lang,
+  onFeedback,
+  styles: s
+}: MessageRowProps) {
+  const isAssistant = message.role === "assistant";
+  const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`;
+  const messageClass = isAssistant ? s.assistantMessage : s.userMessage;
+  const hasFeedback = isAssistant && message.content && message.id;
+
   return (
     <div
       key={message.id || index}
-      className={`${s.messageRow} ${
-        message.role === "assistant" ? s.assistantRow : s.userRow
-      }`}
+      className={rowClass}
       style={{ animationDelay: `${index * 0.1}s` }}
     >
-      {message.role === "assistant" && (
-        <div className={s.counselorAvatar} />
-      )}
+      {isAssistant && <div className={s.counselorAvatar} />}
       <div className={s.messageBubble}>
-        <div
-          className={
-            message.role === "assistant"
-              ? s.assistantMessage
-              : s.userMessage
-          }
-        >
-          {message.content}
+        <div className={messageClass}>
+          {isAssistant ? (
+            <MarkdownMessage content={message.content} />
+          ) : (
+            message.content
+          )}
         </div>
 
-        {message.role === "assistant" && message.content && message.id && (
+        {hasFeedback && (
           <div className={s.feedbackButtons}>
             <button
               type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id] === "up" ? s.feedbackActive : ""}`}
+              className={`${s.feedbackBtn} ${feedback[message.id!] === "up" ? s.feedbackActive : ""}`}
               onClick={() => onFeedback(message.id!, "up")}
               title={lang === "ko" ? "도움이 됐어요" : "Helpful"}
             >
@@ -119,7 +122,7 @@ const MessageRow = React.memo(({
             </button>
             <button
               type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id] === "down" ? s.feedbackActive : ""}`}
+              className={`${s.feedbackBtn} ${feedback[message.id!] === "down" ? s.feedbackActive : ""}`}
               onClick={() => onFeedback(message.id!, "down")}
               title={lang === "ko" ? "아쉬워요" : "Not helpful"}
             >
@@ -128,7 +131,7 @@ const MessageRow = React.memo(({
           </div>
         )}
       </div>
-      {message.role === "user" && (
+      {!isAssistant && (
         <div className={s.avatar}>
           <span className={s.avatarIcon}>👤</span>
         </div>
@@ -146,6 +149,7 @@ export default function Chat({
   saju,
   astro,
   advancedAstro,
+  predictionContext,
   userContext,
   chatSessionId,
   onSaveMessage,
@@ -257,6 +261,46 @@ export default function Chat({
     return () => clearTimeout(saveTimer);
   }, [messages, sessionLoaded, theme, lang]);
 
+  // Auto-update PersonaMemory after conversation (when assistant responds)
+  const lastUpdateRef = React.useRef<number>(0);
+  React.useEffect(() => {
+    if (!sessionLoaded) return;
+    const visibleMsgs = messages.filter(m => m.role !== "system");
+    if (visibleMsgs.length < 2) return; // Need at least 1 Q&A pair
+
+    // Debounce: only update if 30s passed since last update
+    const now = Date.now();
+    if (now - lastUpdateRef.current < 30000) return;
+
+    // Only update when we have a complete Q&A (last message is assistant)
+    const lastMsg = visibleMsgs[visibleMsgs.length - 1];
+    if (lastMsg?.role !== "assistant" || !lastMsg.content || lastMsg.content.length < 50) return;
+
+    lastUpdateRef.current = now;
+
+    // Fire and forget - don't block UI
+    fetch("/api/persona-memory/update-from-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: sessionIdRef.current,
+        theme: theme || "chat",
+        locale: lang || "ko",
+        messages: visibleMsgs,
+        saju: saju || undefined,
+        astro: astro || undefined,
+      }),
+    })
+      .then(res => {
+        if (res.ok) {
+          console.log("[Chat] PersonaMemory auto-updated");
+        }
+      })
+      .catch(e => {
+        console.warn("[Chat] Failed to update PersonaMemory:", e);
+      });
+  }, [messages, sessionLoaded, theme, lang, saju, astro]);
+
   // Show welcome back message for returning users
   React.useEffect(() => {
     const sessionCount = userContext?.persona?.sessionCount;
@@ -320,11 +364,16 @@ export default function Chat({
     }
   }, [feedback, messages, theme, lang]);
 
-  // Handle follow-up question click
+  // Handle follow-up question click - uses ref to avoid stale closure
+  const handleSendRef = React.useRef(handleSend);
+  React.useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
+
   const handleFollowUp = React.useCallback((question: string) => {
     setFollowUpQuestions([]);
     setInput("");
-    handleSend(question);
+    handleSendRef.current(question);
   }, []);
 
   // Handle suggested question click
@@ -560,23 +609,35 @@ export default function Chat({
     }
   }
 
+  // Helper: Update last assistant message content
+  const updateLastAssistantMessage = React.useCallback((content: string) => {
+    setMessages((prev) => {
+      const updated = [...prev];
+      const lastIdx = updated.length - 1;
+      if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
+        updated[lastIdx] = { ...updated[lastIdx], content };
+      }
+      return updated;
+    });
+  }, []);
+
   // Process SSE stream response using StreamProcessor
   async function processStream(
     res: Response,
     assistantMsgId: string,
     userText: string
   ): Promise<void> {
+    let lastScrollTime = 0;
     const result = await streamProcessor.process(res, {
       onChunk: (_accumulated, cleaned) => {
         // Update message in real-time as chunks arrive
-        setMessages((prev) => {
-          const updated = [...prev];
-          const lastIdx = updated.length - 1;
-          if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
-            updated[lastIdx] = { ...updated[lastIdx], content: cleaned };
-          }
-          return updated;
-        });
+        updateLastAssistantMessage(cleaned);
+        // Auto-scroll during streaming (throttled to every 100ms)
+        const now = Date.now();
+        if (autoScroll && now - lastScrollTime > 100) {
+          lastScrollTime = now;
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
       },
       onError: () => {
         setNotice(tr.error);
@@ -585,23 +646,9 @@ export default function Chat({
 
     // Process final content
     if (!result.content) {
-      setMessages((prev) => {
-        const updated = [...prev];
-        const lastIdx = updated.length - 1;
-        if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
-          updated[lastIdx] = { ...updated[lastIdx], content: tr.noResponse };
-        }
-        return updated;
-      });
+      updateLastAssistantMessage(tr.noResponse);
     } else {
-      setMessages((prev) => {
-        const updated = [...prev];
-        const lastIdx = updated.length - 1;
-        if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
-          updated[lastIdx] = { ...updated[lastIdx], content: result.content };
-        }
-        return updated;
-      });
+      updateLastAssistantMessage(result.content);
 
       // Set follow-up questions
       if (result.followUps.length >= CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT) {
@@ -652,6 +699,7 @@ export default function Chat({
       saju,
       astro,
       advancedAstro,
+      predictionContext,
       userContext,
     };
 

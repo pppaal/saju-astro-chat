@@ -11,13 +11,17 @@ export const STEMS: StemBranchInfo[] = [
 ];
 
 export const BRANCHES: StemBranchInfo[] = [
-    { name: '子', element: '수', yin_yang: '양' }, { name: '丑', element: '토', yin_yang: '음' }, 
-    { name: '寅', element: '목', yin_yang: '양' }, { name: '卯', element: '목', yin_yang: '음' }, 
-    { name: '辰', element: '토', yin_yang: '양' }, { name: '巳', element: '화', yin_yang: '음' }, 
-    { name: '午', element: '화', yin_yang: '양' }, { name: '未', element: '토', yin_yang: '음' }, 
-    { name: '申', element: '금', yin_yang: '양' }, { name: '酉', element: '금', yin_yang: '음' }, 
+    { name: '子', element: '수', yin_yang: '양' }, { name: '丑', element: '토', yin_yang: '음' },
+    { name: '寅', element: '목', yin_yang: '양' }, { name: '卯', element: '목', yin_yang: '음' },
+    { name: '辰', element: '토', yin_yang: '양' }, { name: '巳', element: '화', yin_yang: '음' },
+    { name: '午', element: '화', yin_yang: '양' }, { name: '未', element: '토', yin_yang: '음' },
+    { name: '申', element: '금', yin_yang: '양' }, { name: '酉', element: '금', yin_yang: '음' },
     { name: '戌', element: '토', yin_yang: '양' }, { name: '亥', element: '수', yin_yang: '음' },
 ];
+
+// Simple name arrays for convenience
+export const STEM_NAMES = STEMS.map(s => s.name);
+export const BRANCH_NAMES = BRANCHES.map(b => b.name);
 
 // 지장간: 여기(餘氣)=잔여기운, 중기(中氣)=과도기, 정기(正氣)=본기
 // 자/묘/유는 정기만, 오/해는 여기+정기만 (중기 없음)
@@ -60,6 +64,51 @@ export const FIVE_ELEMENT_RELATIONS: {
 export const CHEONEUL_GWIIN_MAP: { [key: string]: string[] } = {
     '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'], '乙': ['子', '申'], '己': ['子', '申'],
     '丙': ['亥', '酉'], '丁': ['亥', '酉'], '壬': ['卯', '巳'], '癸': ['卯', '巳'], '辛': ['寅', '午'],
+};
+
+// 지지 관계 (합충형파해) - 중앙화된 정의
+// 육합 (六合) - 조화와 결합
+export const YUKHAP: Record<string, string> = {
+    '子': '丑', '丑': '子', '寅': '亥', '亥': '寅',
+    '卯': '戌', '戌': '卯', '辰': '酉', '酉': '辰',
+    '巳': '申', '申': '巳', '午': '未', '未': '午',
+};
+
+// 충 (冲) - 반대 지지, 충돌
+export const CHUNG: Record<string, string> = {
+    '子': '午', '午': '子', '丑': '未', '未': '丑',
+    '寅': '申', '申': '寅', '卯': '酉', '酉': '卯',
+    '辰': '戌', '戌': '辰', '巳': '亥', '亥': '巳',
+};
+
+// 삼합 (三合) - 가장 강력한 조화
+export const SAMHAP: Record<string, string[]> = {
+    '수': ['申', '子', '辰'], // 수국
+    '목': ['亥', '卯', '未'], // 목국
+    '화': ['寅', '午', '戌'], // 화국
+    '금': ['巳', '酉', '丑'], // 금국
+};
+
+// 형 (刑) - 형벌, 장애 (복수 대상 가능)
+export const XING: Record<string, string[]> = {
+    '寅': ['巳', '申'], '巳': ['寅', '申'], '申': ['寅', '巳'], // 무은지형
+    '丑': ['戌', '未'], '戌': ['丑', '未'], '未': ['丑', '戌'], // 지세지형
+    '子': ['卯'], '卯': ['子'], // 무례지형
+    '辰': ['辰'], '午': ['午'], '酉': ['酉'], '亥': ['亥'], // 자형
+};
+
+// 해 (害) - 서로 해침
+export const HAI: Record<string, string> = {
+    '子': '未', '未': '子', '丑': '午', '午': '丑',
+    '寅': '巳', '巳': '寅', '卯': '辰', '辰': '卯',
+    '申': '亥', '亥': '申', '酉': '戌', '戌': '酉',
+};
+
+// 파 (破) - 깨뜨림
+export const PA: Record<string, string> = {
+    '子': '酉', '酉': '子', '丑': '辰', '辰': '丑',
+    '寅': '亥', '亥': '寅', '卯': '午', '午': '卯',
+    '巳': '申', '申': '巳', '未': '戌', '戌': '未',
 };
 
 // 절기 데이터 지원 범위(연도)

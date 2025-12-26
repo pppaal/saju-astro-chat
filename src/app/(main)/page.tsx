@@ -2,7 +2,6 @@
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
@@ -68,6 +67,7 @@ export default function MainPage() {
   // Service options for routing (matches SERVICE_LINKS in home.ts)
   const serviceOptions = [
     { key: 'destinyMap', icon: '🗺️', path: '/destiny-map' },
+    { key: 'lifePrediction', icon: '📈', path: '/life-prediction' },
     { key: 'tarot', icon: '🔮', path: '/tarot' },
     { key: 'calendar', icon: '🗓️', path: '/calendar' },
     { key: 'dream', icon: '🌙', path: '/dream' },
@@ -502,14 +502,7 @@ export default function MainPage() {
 
       <header className={styles.topBar}>
         <div className={styles.brand}>
-          <Image
-            src="/logo/logo.png"
-            alt="DestinyPal Logo"
-            width={28}
-            height={28}
-            className={styles.brandLogo}
-          />
-          <span>DestinyPal</span>
+          <span className={styles.brandText}>DestinyPal</span>
         </div>
         <nav className={styles.nav}>
           <Link href="/about" className={styles.navLink}>
@@ -576,9 +569,6 @@ export default function MainPage() {
           <HeaderUser />
           <NotificationBell />
           <LanguageSwitcher />
-          <Link href="/destiny-map" className={styles.ctaPrimary}>
-            {t("common.start")}
-          </Link>
         </div>
       </header>
 

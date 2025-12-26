@@ -39,6 +39,14 @@ export interface NatalChartData {
   ascendant: PlanetData;
   mc: PlanetData;
   houses: { cusp: number; formatted: string }[];
+  meta?: {
+    jdUT: number;
+    isoUTC?: string;
+    timeZone?: string;
+    latitude?: number;
+    longitude?: number;
+    houseSystem?: string;
+  };
 }
 
 const getPlanetList = (() => {
