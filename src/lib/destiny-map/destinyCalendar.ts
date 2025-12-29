@@ -2545,9 +2545,13 @@ function analyzeDate(
   }));
 
   // 사주 입력 데이터 구성
+  // 삼재년에 귀인이 있으면 삼재 페널티 상쇄
+  const hasAnyGwiin = hasCheoneulGwiin || shinsalForScoring?.active?.some(
+    s => s.name.includes('귀인') || s.name === '태극귀인' || s.name === '천덕귀인' || s.name === '월덕귀인'
+  );
   const sajuInput: SajuScoreInput = {
     daeun: adaptDaeunResult(daeunAnalysis),
-    seun: adaptSeunResult(seunAnalysis, isSamjaeYear),
+    seun: adaptSeunResult(seunAnalysis, isSamjaeYear, hasAnyGwiin),
     wolun: adaptWolunResult(wolunAnalysis),
     iljin: adaptIljinResult(iljinAnalysis, {
       hasCheoneulGwiin,

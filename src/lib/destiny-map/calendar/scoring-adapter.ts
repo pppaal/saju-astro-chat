@@ -84,12 +84,16 @@ export function adaptDaeunResult(result: LegacyAnalysisResult): SajuScoreInput['
 
 /**
  * 기존 세운 분석 결과 → 새 시스템 입력
+ * @param result - 레거시 분석 결과
+ * @param isSamjaeYear - 삼재년 여부
+ * @param hasGwiin - 귀인이 있는지 여부 (삼재 상쇄용)
  */
 export function adaptSeunResult(
   result: LegacyAnalysisResult,
-  isSamjaeYear?: boolean
+  isSamjaeYear?: boolean,
+  hasGwiin?: boolean
 ): SajuScoreInput['seun'] {
-  const input: SajuScoreInput['seun'] = { isSamjaeYear };
+  const input: SajuScoreInput['seun'] = { isSamjaeYear, hasGwiin };
 
   for (const key of result.factorKeys) {
     if (key.includes('Inseong') || key.includes('인성')) input.sibsin = 'inseong';

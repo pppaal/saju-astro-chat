@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useSession, SessionProvider } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
@@ -101,11 +101,8 @@ function parseLocalDate(dateStr: string): Date {
 }
 
 export default function DestinyCalendar() {
-  return (
-    <SessionProvider>
-      <DestinyCalendarContent />
-    </SessionProvider>
-  );
+  // SessionProvider는 상위 레이아웃에서 이미 제공됨
+  return <DestinyCalendarContent />;
 }
 
 function DestinyCalendarContent() {
@@ -179,6 +176,9 @@ function DestinyCalendarContent() {
       }
 
       const { user } = await res.json();
+      console.log('[DestinyCalendar] Loaded user profile:', user);
+      console.log('[DestinyCalendar] birthCity:', user?.birthCity);
+
       if (!user || !user.birthDate) {
         setCityErr(t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.');
         setLoadingProfile(false);
@@ -197,9 +197,11 @@ function DestinyCalendarContent() {
       // Try to get city coordinates
       if (user.birthCity) {
         const cityName = user.birthCity.split(',')[0]?.trim();
+        console.log('[DestinyCalendar] Searching city:', cityName);
         if (cityName) {
           try {
             const hits = await searchCities(cityName, { limit: 1 }) as CityHit[];
+            console.log('[DestinyCalendar] City search hits:', hits);
             if (hits && hits[0]) {
               const hit = hits[0];
               const tz = hit.timezone ?? user.tzId ?? tzLookup(hit.lat, hit.lon);
@@ -211,12 +213,13 @@ function DestinyCalendarContent() {
               updatedBirthInfo.longitude = hit.lon;
               updatedBirthInfo.timezone = tz;
             }
-          } catch {
-            console.warn('City search failed for:', cityName);
+          } catch (searchErr) {
+            console.warn('[DestinyCalendar] City search failed for:', cityName, searchErr);
           }
         }
       }
 
+      console.log('[DestinyCalendar] Final birthInfo:', updatedBirthInfo);
       setBirthInfo(updatedBirthInfo);
       setProfileLoaded(true);
     } catch (err) {

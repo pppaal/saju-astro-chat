@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback } from "react"
-import { signIn, signOut } from "next-auth/react"
+import { useState, useRef, useCallback, useEffect } from "react"
+import { signIn, signOut, useSession } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
 import { useI18n } from "@/i18n/I18nProvider"
 
@@ -9,6 +9,7 @@ export default function HeaderUser() {
   const { t } = useI18n()
   const router = useRouter()
   const pathname = usePathname()
+  const { data: session, status } = useSession()
 
   // 로그인 후 현재 페이지로 돌아가기 위한 핸들러
   const handleGoogleLogin = useCallback(() => {
@@ -20,26 +21,12 @@ export default function HeaderUser() {
     const callbackUrl = pathname || "/"
     signIn("kakao", { callbackUrl })
   }, [pathname])
-  const [name, setName] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    let mounted = true
-    fetch("/api/me")
-      .then((r) => r.json())
-      .then((d) => {
-        if (mounted) {
-          setName(d?.name ?? null)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        if (mounted) setLoading(false)
-      })
-    return () => { mounted = false }
-  }, [])
+  const loading = status === "loading"
+  const name = session?.user?.name || session?.user?.email || null
 
   // Close dropdown when clicking outside
   useEffect(() => {

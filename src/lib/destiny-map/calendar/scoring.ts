@@ -1,11 +1,12 @@
 /**
  * Destiny Calendar Scoring Module
- * 체계적인 점수 계산 로직
+ * 체계적인 점수 계산 로직 (v2 - 논리적 개선)
  *
  * 설계 원칙:
  * 1. 사주 50점 + 점성술 50점 = 총 100점
  * 2. 각 카테고리 내 요소들은 정규화 후 합산
- * 3. 교차검증으로 최대 ±5점 보정
+ * 3. 교차검증으로 최대 ±3점 보정 (완화)
+ * 4. 삼재: 조건부 처리 (충과 함께일 때만 가중, 귀인 있으면 상쇄)
  */
 
 import {
@@ -22,6 +23,7 @@ import {
   SOLAR_RETURN_SCORES,
   CROSS_VERIFICATION_SCORES,
   GRADE_THRESHOLDS,
+  calculateAdjustedScore,
 } from './scoring-config';
 
 import type { ImportanceGrade } from './types';
@@ -49,6 +51,8 @@ export interface SajuScoreInput {
     hasGwansal?: boolean;
     hasSamhapNegative?: boolean;
     isSamjaeYear?: boolean;
+    // 삼재 조건부 처리를 위한 추가 필드
+    hasGwiin?: boolean;  // 귀인이 있으면 삼재 상쇄
   };
   // 월운 요소
   wolun: {
@@ -185,147 +189,149 @@ export interface ScoreResult {
 // ============================================================
 
 function calculateDaeunScore(input: SajuScoreInput['daeun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.daeun; // 5점
-  let score = 2.5; // 기본 중간값
+  const maxScore = CATEGORY_MAX_SCORES.saju.daeun; // 8점 (개선)
+  const adjustments: number[] = [];
 
-  // 긍정 요소 (영향력 증가)
-  if (input.sibsin === 'inseong') score += 2.5;
-  else if (input.sibsin === 'jaeseong') score += 2.2;
-  else if (input.sibsin === 'bijeon') score += 1.5;
-  else if (input.sibsin === 'siksang') score += 1.0;
-  else if (input.sibsin === 'gwansal') score -= 2.0;
+  // 긍정 요소 - config 비율 사용
+  if (input.sibsin === 'inseong') adjustments.push(DAEUN_SCORES.positive.inseong);
+  else if (input.sibsin === 'jaeseong') adjustments.push(DAEUN_SCORES.positive.jaeseong);
+  else if (input.sibsin === 'bijeon') adjustments.push(DAEUN_SCORES.positive.bijeon);
+  else if (input.sibsin === 'siksang') adjustments.push(DAEUN_SCORES.positive.siksang);
+  else if (input.sibsin === 'gwansal') adjustments.push(DAEUN_SCORES.negative.gwansal);
 
-  if (input.hasYukhap) score += 1.2;
-  if (input.hasSamhapPositive) score += 1.8;
+  if (input.hasYukhap) adjustments.push(DAEUN_SCORES.positive.yukhap);
+  if (input.hasSamhapPositive) adjustments.push(DAEUN_SCORES.positive.samhapPositive);
 
-  // 부정 요소 (영향력 증가)
-  if (input.hasChung) score -= 2.5;
-  if (input.hasGwansal) score -= 2.2;
-  if (input.hasSamhapNegative) score -= 1.5;
+  // 부정 요소
+  if (input.hasChung) adjustments.push(DAEUN_SCORES.negative.chung);
+  if (input.hasGwansal) adjustments.push(DAEUN_SCORES.negative.gwansal);
+  if (input.hasSamhapNegative) adjustments.push(DAEUN_SCORES.negative.samhapNegative);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, DAEUN_SCORES.maxRaw);
 }
 
 function calculateSeunScore(input: SajuScoreInput['seun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.seun; // 10점
-  let score = 5.0; // 기본 중간값
+  const maxScore = CATEGORY_MAX_SCORES.saju.seun; // 12점 (개선)
+  const adjustments: number[] = [];
 
-  // 긍정 요소 (영향력 증가)
-  if (input.sibsin === 'inseong') score += 5.0;
-  else if (input.sibsin === 'jaeseong') score += 4.5;
-  else if (input.sibsin === 'bijeon') score += 3.5;
-  else if (input.sibsin === 'siksang') score += 3.0;
-  else if (input.sibsin === 'gwansal') score -= 5.0;
+  // 긍정 요소 - config 비율 사용
+  if (input.sibsin === 'inseong') adjustments.push(SEUN_SCORES.positive.inseong);
+  else if (input.sibsin === 'jaeseong') adjustments.push(SEUN_SCORES.positive.jaeseong);
+  else if (input.sibsin === 'bijeon') adjustments.push(SEUN_SCORES.positive.bijeon);
+  else if (input.sibsin === 'siksang') adjustments.push(SEUN_SCORES.positive.siksang);
+  else if (input.sibsin === 'gwansal') adjustments.push(SEUN_SCORES.negative.gwansal);
 
-  if (input.hasYukhap) score += 3.5;
-  if (input.hasSamhapPositive) score += 4.5;
+  if (input.hasYukhap) adjustments.push(SEUN_SCORES.positive.yukhap);
+  if (input.hasSamhapPositive) adjustments.push(SEUN_SCORES.positive.samhapPositive);
 
-  // 부정 요소 (영향력 대폭 증가)
-  if (input.hasChung) score -= 7.0;
-  if (input.hasGwansal) score -= 6.0;
-  if (input.hasSamhapNegative) score -= 5.0;
-  if (input.isSamjaeYear) score -= 5.0;
+  // 부정 요소
+  if (input.hasChung) adjustments.push(SEUN_SCORES.negative.chung);
+  if (input.hasGwansal) adjustments.push(SEUN_SCORES.negative.gwansal);
+  if (input.hasSamhapNegative) adjustments.push(SEUN_SCORES.negative.samhapNegative);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  // 삼재 조건부 처리 (개선) - 매일 감점하지 않고 조건에 따라 처리
+  if (input.isSamjaeYear) {
+    if (input.hasGwiin) {
+      // 귀인이 있으면 삼재 상쇄
+      adjustments.push(SEUN_SCORES.samjae.withGwiin);
+    } else if (input.hasChung) {
+      // 삼재 + 충 = 더 나쁨
+      adjustments.push(SEUN_SCORES.samjae.withChung);
+    } else {
+      // 삼재만 있을 때 - 매우 약한 페널티
+      adjustments.push(SEUN_SCORES.samjae.base);
+    }
+  }
+
+  return calculateAdjustedScore(maxScore, adjustments, SEUN_SCORES.maxRaw);
 }
 
 function calculateWolunScore(input: SajuScoreInput['wolun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.wolun; // 10점
-  let score = 5.0; // 기본 중간값
+  const maxScore = CATEGORY_MAX_SCORES.saju.wolun; // 12점 (개선)
+  const adjustments: number[] = [];
 
-  // 긍정 요소 (영향력 증가)
-  if (input.sibsin === 'inseong') score += 4.5;
-  else if (input.sibsin === 'jaeseong') score += 4.0;
-  else if (input.sibsin === 'bijeon') score += 3.0;
-  else if (input.sibsin === 'siksang') score += 2.5;
-  else if (input.sibsin === 'gwansal') score -= 4.0;
+  // 긍정 요소 - config 비율 사용
+  if (input.sibsin === 'inseong') adjustments.push(WOLUN_SCORES.positive.inseong);
+  else if (input.sibsin === 'jaeseong') adjustments.push(WOLUN_SCORES.positive.jaeseong);
+  else if (input.sibsin === 'bijeon') adjustments.push(WOLUN_SCORES.positive.bijeon);
+  else if (input.sibsin === 'siksang') adjustments.push(WOLUN_SCORES.positive.siksang);
+  else if (input.sibsin === 'gwansal') adjustments.push(WOLUN_SCORES.negative.gwansal);
 
-  if (input.hasYukhap) score += 3.5;
-  if (input.hasSamhapPositive) score += 4.0;
+  if (input.hasYukhap) adjustments.push(WOLUN_SCORES.positive.yukhap);
+  if (input.hasSamhapPositive) adjustments.push(WOLUN_SCORES.positive.samhapPositive);
 
-  // 부정 요소 (영향력 대폭 증가)
-  if (input.hasChung) score -= 6.5;
-  if (input.hasGwansal) score -= 6.0;
-  if (input.hasSamhapNegative) score -= 5.0;
+  // 부정 요소
+  if (input.hasChung) adjustments.push(WOLUN_SCORES.negative.chung);
+  if (input.hasGwansal) adjustments.push(WOLUN_SCORES.negative.gwansal);
+  if (input.hasSamhapNegative) adjustments.push(WOLUN_SCORES.negative.samhapNegative);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, WOLUN_SCORES.maxRaw);
 }
 
 function calculateIljinScore(input: SajuScoreInput['iljin']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.iljin; // 20점
-  let score = 10.0; // 기본 중간값
+  const maxScore = CATEGORY_MAX_SCORES.saju.iljin; // 13점 (개선 - 20→13 하향)
+  const adjustments: number[] = [];
 
-  // 십신 점수 (더 극단적인 값으로 범위 확대)
-  const sipsinScores: Record<string, number> = {
-    jeongyin: 10.0,   // 정인: 최고
-    pyeonyin: 6.0,    // 편인: 좋음
-    jeongchaae: 9.0,  // 정재: 매우 좋음
-    pyeonchaae: 5.0,  // 편재: 약간 좋음
-    sikshin: 7.0,     // 식신: 좋음
-    sanggwan: -6.0,   // 상관: 나쁨
-    jeongwan: 8.0,    // 정관: 좋음
-    pyeonwan: -8.0,   // 편관: 매우 나쁨
-    bijeon: 3.0,      // 비견: 약간 좋음
-    gyeobjae: -5.0,   // 겁재: 나쁨
-  };
-  if (input.sibsin && input.sibsin in sipsinScores) {
-    score += sipsinScores[input.sibsin];
+  // 십신 점수 - config 비율 사용
+  const sipsinKey = input.sibsin as keyof typeof ILJIN_SCORES.sipsin;
+  if (sipsinKey && sipsinKey in ILJIN_SCORES.sipsin) {
+    adjustments.push(ILJIN_SCORES.sipsin[sipsinKey]);
   }
 
-  // 지지 상호작용 (영향력 대폭 증가)
-  if (input.hasYukhap) score += 7.0;
-  if (input.hasSamhapPositive) score += 8.0;
-  if (input.hasSamhapNegative) score -= 8.0;
-  if (input.hasChung) score -= 12.0;  // 충: 가장 나쁨
-  if (input.hasXing) score -= 10.0;   // 형: 매우 나쁨
-  if (input.hasHai) score -= 7.0;     // 해: 나쁨
+  // 지지 상호작용 - config 비율 사용 (완만하게 조정됨)
+  if (input.hasYukhap) adjustments.push(ILJIN_SCORES.branch.yukhap);
+  if (input.hasSamhapPositive) adjustments.push(ILJIN_SCORES.branch.samhapPositive);
+  if (input.hasSamhapNegative) adjustments.push(ILJIN_SCORES.branch.samhapNegative);
+  if (input.hasChung) adjustments.push(ILJIN_SCORES.branch.chung);
+  if (input.hasXing) adjustments.push(ILJIN_SCORES.branch.xing);
+  if (input.hasHai) adjustments.push(ILJIN_SCORES.branch.hai);
 
-  // 특수 길일 (큰 보너스)
-  if (input.hasCheoneulGwiin) score += 10.0;
-  if (input.hasGeonrok) score += 7.0;
-  if (input.hasSonEomneun) score += 6.0;
-  if (input.hasYeokma) score += 4.0;
-  if (input.hasDohwa) score += 3.0;
+  // 특수 길일 - config 비율 사용
+  if (input.hasCheoneulGwiin) adjustments.push(ILJIN_SCORES.special.cheoneulGwiin);
+  if (input.hasGeonrok) adjustments.push(ILJIN_SCORES.special.geonrok);
+  if (input.hasSonEomneun) adjustments.push(ILJIN_SCORES.special.sonEomneun);
+  if (input.hasYeokma) adjustments.push(ILJIN_SCORES.special.yeokma);
+  if (input.hasDohwa) adjustments.push(ILJIN_SCORES.special.dohwa);
 
-  // 추가 신살 - 길신 (보너스)
-  if (input.hasTaegukGwiin) score += 8.0;       // 태극귀인: 큰 행운
-  if (input.hasCheondeokGwiin) score += 6.0;   // 천덕귀인
-  if (input.hasWoldeokGwiin) score += 5.0;     // 월덕귀인
-  if (input.hasHwagae) score += 3.0;           // 화개: 예술/영적
+  // 추가 길신
+  if (input.hasTaegukGwiin) adjustments.push(ILJIN_SCORES.special.taegukGwiin);
+  if (input.hasCheondeokGwiin) adjustments.push(ILJIN_SCORES.special.cheondeokGwiin);
+  if (input.hasWoldeokGwiin) adjustments.push(ILJIN_SCORES.special.woldeokGwiin);
+  if (input.hasHwagae) adjustments.push(ILJIN_SCORES.special.hwagae);
 
-  // 추가 신살 - 흉신 (페널티)
-  if (input.hasGongmang) score -= 8.0;         // 공망: 허무, 공허
-  if (input.hasWonjin) score -= 7.0;           // 원진: 원망, 갈등
-  if (input.hasYangin) score -= 6.0;           // 양인: 위험, 사고
-  if (input.hasGoegang) score -= 5.0;          // 괴강: 극단적
-  if (input.hasBackho) score -= 6.0;           // 백호: 사고, 수술
-  if (input.hasGuimungwan) score -= 7.0;       // 귀문관: 정신 혼란
+  // 추가 흉신 - config 비율 사용 (완화됨)
+  if (input.hasGongmang) adjustments.push(ILJIN_SCORES.negative.gongmang);
+  if (input.hasWonjin) adjustments.push(ILJIN_SCORES.negative.wonjin);
+  if (input.hasYangin) adjustments.push(ILJIN_SCORES.negative.yangin);
+  if (input.hasGoegang) adjustments.push(ILJIN_SCORES.negative.goegang);
+  if (input.hasBackho) adjustments.push(ILJIN_SCORES.negative.backho);
+  if (input.hasGuimungwan) adjustments.push(ILJIN_SCORES.negative.guimungwan);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, ILJIN_SCORES.maxRaw);
 }
 
 function calculateYongsinScore(input: SajuScoreInput['yongsin']): number {
   const maxScore = CATEGORY_MAX_SCORES.saju.yongsin; // 5점
-  let score = 2.5; // 기본 중간값
+  const adjustments: number[] = [];
 
-  // 긍정 요소 (영향력 증가)
-  if (input.hasPrimaryMatch) score += 2.5;  // 용신 일치
-  if (input.hasSecondaryMatch) score += 1.2;
-  if (input.hasBranchMatch) score += 1.5;
-  if (input.hasSupport) score += 1.0;
+  // 긍정 요소 - config 비율 사용
+  if (input.hasPrimaryMatch) adjustments.push(YONGSIN_SCORES.positive.primaryMatch);
+  if (input.hasSecondaryMatch) adjustments.push(YONGSIN_SCORES.positive.secondaryMatch);
+  if (input.hasBranchMatch) adjustments.push(YONGSIN_SCORES.positive.branchMatch);
+  if (input.hasSupport) adjustments.push(YONGSIN_SCORES.positive.support);
 
-  // 부정 요소 (영향력 증가)
-  if (input.hasKibsinMatch) score -= 3.0;   // 기신 일치
-  if (input.hasKibsinBranch) score -= 2.0;
-  if (input.hasHarm) score -= 1.5;
+  // 부정 요소
+  if (input.hasKibsinMatch) adjustments.push(YONGSIN_SCORES.negative.kibsinMatch);
+  if (input.hasKibsinBranch) adjustments.push(YONGSIN_SCORES.negative.kibsinBranch);
+  if (input.hasHarm) adjustments.push(YONGSIN_SCORES.negative.harm);
 
-  // 격국 (영향력 증가)
-  if (input.geokgukFavor) score += 1.5;
-  if (input.geokgukAvoid) score -= 1.5;
-  if (input.strengthBalance) score += 0.8;
-  if (input.strengthImbalance) score -= 0.8;
+  // 격국
+  if (input.geokgukFavor) adjustments.push(YONGSIN_SCORES.geokguk.favor);
+  if (input.geokgukAvoid) adjustments.push(YONGSIN_SCORES.geokguk.avoid);
+  if (input.strengthBalance) adjustments.push(YONGSIN_SCORES.geokguk.strengthBalance);
+  if (input.strengthImbalance) adjustments.push(YONGSIN_SCORES.geokguk.strengthImbalance);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, YONGSIN_SCORES.maxRaw);
 }
 
 // ============================================================
@@ -333,80 +339,37 @@ function calculateYongsinScore(input: SajuScoreInput['yongsin']): number {
 // ============================================================
 
 function calculateTransitSunScore(input: AstroScoreInput['transitSun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.astro.transitSun; // 10점
+  const maxScore = CATEGORY_MAX_SCORES.astro.transitSun; // 8점 (개선)
+  const adjustments: number[] = [];
 
-  // 오행 관계 (절대값 점수) - 관계가 없으면 중간값 5.0
-  // 극단적 점수로 범위 확대
-  const relationScores: Record<string, number> = {
-    same: 10.0,         // 같은 원소: 최고
-    generatedBy: 8.5,   // 생해주는 관계: 좋음
-    generates: 4.0,     // 내가 생하는 관계: 보통
-    controlledBy: 0.5,  // 극당하는 관계: 매우 나쁨
-    controls: 6.5,      // 내가 극하는 관계: 약간 좋음
-  };
-
-  let score = 5.0; // 기본 중간값
-  if (input.elementRelation && input.elementRelation in relationScores) {
-    score = relationScores[input.elementRelation];
+  // 오행 관계 - config 비율 사용
+  const relationKey = input.elementRelation as keyof typeof TRANSIT_SUN_SCORES.elementRelation;
+  if (relationKey && relationKey in TRANSIT_SUN_SCORES.elementRelation) {
+    adjustments.push(TRANSIT_SUN_SCORES.elementRelation[relationKey]);
   }
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, TRANSIT_SUN_SCORES.maxRaw);
 }
 
 function calculateTransitMoonScore(input: AstroScoreInput['transitMoon']): number {
-  const maxScore = CATEGORY_MAX_SCORES.astro.transitMoon; // 10점
+  const maxScore = CATEGORY_MAX_SCORES.astro.transitMoon; // 12점 (개선)
+  const adjustments: number[] = [];
 
-  // 오행 관계 (절대값 점수) - 관계가 없으면 중간값 5.0
-  // 극단적 점수로 범위 확대
-  const relationScores: Record<string, number> = {
-    same: 10.0,
-    generatedBy: 8.0,
-    generates: 4.0,
-    controlledBy: 1.0,  // 매우 나쁨
-    controls: 5.5,
-  };
-
-  let score = 5.0; // 기본 중간값
-  if (input.elementRelation && input.elementRelation in relationScores) {
-    score = relationScores[input.elementRelation];
+  // 오행 관계 - config 비율 사용
+  const relationKey = input.elementRelation as keyof typeof TRANSIT_MOON_SCORES.elementRelation;
+  if (relationKey && relationKey in TRANSIT_MOON_SCORES.elementRelation) {
+    adjustments.push(TRANSIT_MOON_SCORES.elementRelation[relationKey]);
   }
 
-  // Void of Course 페널티 (영향력 증가)
-  if (input.isVoidOfCourse) score -= 4.0;
+  // Void of Course 페널티 - config 사용 (완화됨)
+  if (input.isVoidOfCourse) adjustments.push(TRANSIT_MOON_SCORES.voidOfCourse);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, TRANSIT_MOON_SCORES.maxRaw);
 }
 
 function calculateMajorPlanetsScore(input: AstroScoreInput['majorPlanets']): number {
   const maxScore = CATEGORY_MAX_SCORES.astro.majorPlanets; // 15점
-  let score = 7.5; // 기본 중간값
-
-  // 어스펙트별 보정 점수 (영향력 대폭 증가)
-  const aspectScores: Record<string, number> = {
-    conjunction: 4.5,   // 합: 강력함
-    trine: 5.0,         // 삼분: 가장 좋음
-    sextile: 3.0,       // 육분: 좋음
-    square: -4.0,       // 사분: 긴장
-    opposition: -3.5,   // 충: 균형 필요
-  };
-
-  // 행성별 가중치
-  const planetWeights: Record<string, number> = {
-    mercury: 0.9,   // 소통
-    venus: 1.1,     // 사랑/재물
-    mars: 1.0,      // 행동
-    jupiter: 1.4,   // 행운 (가장 중요)
-    saturn: 1.1,    // 시련/성장
-  };
-
-  // 역행 페널티 (영향력 대폭 증가)
-  const retrogradePenalties: Record<string, number> = {
-    mercury: -4.0,  // 수성 역행: 소통 주의
-    venus: -3.5,    // 금성 역행: 관계 주의
-    mars: -3.0,     // 화성 역행: 행동 지연
-    jupiter: -2.0,
-    saturn: -2.0,
-  };
+  const adjustments: number[] = [];
 
   const planets: (keyof typeof input)[] = ['mercury', 'venus', 'mars', 'jupiter', 'saturn'];
 
@@ -414,59 +377,55 @@ function calculateMajorPlanetsScore(input: AstroScoreInput['majorPlanets']): num
     const planetData = input[planet];
     if (!planetData) continue;
 
-    const weight = planetWeights[planet] || 1.0;
+    const weight = MAJOR_PLANETS_SCORES.weights[planet] || 1.0;
 
-    // 어스펙트 점수 (합산)
-    if (planetData.aspect && planetData.aspect in aspectScores) {
-      score += aspectScores[planetData.aspect] * weight;
+    // 어스펙트 점수 - config 사용 (완화됨)
+    const aspectKey = planetData.aspect as keyof typeof MAJOR_PLANETS_SCORES.aspects;
+    if (aspectKey && aspectKey in MAJOR_PLANETS_SCORES.aspects) {
+      adjustments.push(MAJOR_PLANETS_SCORES.aspects[aspectKey] * weight);
     }
 
-    // 역행 페널티
+    // 역행 페널티 - config 사용 (완화됨)
     if (planetData.isRetrograde) {
-      score += retrogradePenalties[planet] || -1.0;
+      const retrograde = MAJOR_PLANETS_SCORES.retrograde[planet as keyof typeof MAJOR_PLANETS_SCORES.retrograde];
+      if (retrograde) adjustments.push(retrograde);
     }
   }
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, MAJOR_PLANETS_SCORES.maxRaw);
 }
 
 function calculateLunarPhaseScore(phase?: AstroScoreInput['lunarPhase']): number {
-  const maxScore = CATEGORY_MAX_SCORES.astro.lunarPhase; // 10점
+  const maxScore = CATEGORY_MAX_SCORES.astro.lunarPhase; // 8점 (개선)
+  const adjustments: number[] = [];
 
-  if (!phase) return 5.0; // 기본 중간값
+  if (!phase) return maxScore * 0.5; // 기본 중간값
 
-  // 달 위상별 점수 (절대값) - 범위 확대
-  const phaseScores: Record<string, number> = {
-    newMoon: 7.5,         // 신월: 새로운 시작
-    waxingCrescent: 5.5,  // 초승달: 성장 시작
-    firstQuarter: 3.0,    // 상현달: 긴장 (낮춤)
-    waxingGibbous: 7.0,   // 상현망: 성숙
-    fullMoon: 10.0,       // 보름달: 완성 (최고)
-    waningGibbous: 5.0,   // 하현망: 수확
-    lastQuarter: 2.5,     // 하현달: 반성 (낮춤)
-    waningCrescent: 3.5,  // 그믐달: 휴식 (낮춤)
-  };
+  // 달 위상별 점수 - config 사용 (완만한 분포)
+  const phaseKey = phase as keyof typeof LUNAR_PHASE_SCORES;
+  if (phaseKey && phaseKey in LUNAR_PHASE_SCORES && phaseKey !== 'maxRaw') {
+    adjustments.push(LUNAR_PHASE_SCORES[phaseKey] as number);
+  }
 
-  const score = phaseScores[phase] ?? 5.0;
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, LUNAR_PHASE_SCORES.maxRaw);
 }
 
 function calculateSolarReturnScore(input: AstroScoreInput['solarReturn']): number {
-  const maxScore = CATEGORY_MAX_SCORES.astro.solarReturn; // 5점
-  let score = 2.5; // 기본 중간값
+  const maxScore = CATEGORY_MAX_SCORES.astro.solarReturn; // 7점 (개선)
+  const adjustments: number[] = [];
 
-  // 생일 근처 보너스
+  // 생일 근처 보너스 - config 사용
   const days = input.daysFromBirthday ?? 365;
-  if (days === 0) score += 2.5;       // 생일 당일: 최대 보너스
-  else if (days <= 1) score += 2.0;   // ±1일
-  else if (days <= 3) score += 1.2;   // ±3일
-  else if (days <= 7) score += 0.6;   // ±7일
+  if (days === 0) adjustments.push(SOLAR_RETURN_SCORES.exactBirthday);
+  else if (days <= 1) adjustments.push(SOLAR_RETURN_SCORES.nearBirthday1);
+  else if (days <= 3) adjustments.push(SOLAR_RETURN_SCORES.nearBirthday3);
+  else if (days <= 7) adjustments.push(SOLAR_RETURN_SCORES.nearBirthday7);
 
-  // Progression
-  if (input.progressionSupport) score += 1.0;
-  if (input.progressionChallenge) score -= 0.8;
+  // Progression - config 사용
+  if (input.progressionSupport) adjustments.push(SOLAR_RETURN_SCORES.progressionSupport);
+  if (input.progressionChallenge) adjustments.push(SOLAR_RETURN_SCORES.progressionChallenge);
 
-  return Math.round(Math.max(0, Math.min(maxScore, score)) * 10) / 10;
+  return calculateAdjustedScore(maxScore, adjustments, SOLAR_RETURN_SCORES.maxRaw);
 }
 
 /**

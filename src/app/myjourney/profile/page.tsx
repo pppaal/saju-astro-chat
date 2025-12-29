@@ -145,17 +145,21 @@ function ProfileContent() {
       return;
     }
     setBusy(true);
+
+    const payload = {
+      birthDate,
+      birthTime: birthTime || null,
+      gender,
+      birthCity: city || null,
+      tzId: tzId || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
+    };
+    console.log('[Profile] Saving birth info:', payload);
+
     try {
       const res = await fetch("/api/user/update-birth-info", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthDate,
-          birthTime: birthTime || null,
-          gender,
-          birthCity: city || null,
-          tzId: tzId || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || t("profile.error.saveFailed", "Failed to save"));

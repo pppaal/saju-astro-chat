@@ -3314,7 +3314,7 @@ def ask_stream():
                 stream = client.chat.completions.create(
                     model="gpt-4o-mini",  # Fast model for chat
                     messages=messages,
-                    max_tokens=1500,  # Increased to prevent cutoff (was 1000)
+                    max_tokens=2000,  # Increased for full responses with advanced analysis
                     temperature=0.75,  # Slightly more creative (was 0.7)
                     stream=True
                 )
