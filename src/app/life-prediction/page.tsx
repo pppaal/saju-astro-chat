@@ -9,6 +9,8 @@ import { PredictionChat } from '@/components/life-prediction/PredictionChat';
 import { TimingCard, TimingPeriod } from '@/components/life-prediction/ResultCards/TimingCard';
 import { AnalyzingLoader } from '@/components/life-prediction/ResultCards/AnalyzingLoader';
 import { BirthInfoForm } from '@/components/life-prediction/BirthInfoForm';
+import { AdvisorChat } from '@/components/life-prediction/AdvisorChat';
+import { ResultShare } from '@/components/life-prediction/ResultShare';
 import { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector';
 import { cardContainerVariants, pageTransitionVariants } from '@/components/life-prediction/animations/cardAnimations';
 
@@ -33,6 +35,7 @@ interface GuestBirthInfo {
   birthDate: string;
   birthTime: string;
   gender: 'M' | 'F';
+  birthCity?: string;
 }
 
 // ========== 사주 용어 → 사용자 친화적 설명 변환 ==========
@@ -255,6 +258,7 @@ function LifePredictionContent() {
             birthDate: birthInfo.birthDate,
             birthTime: birthInfo.birthTime,
             gender: birthInfo.gender,
+            birthCity: birthInfo.birthCity,
           }),
         });
 
@@ -264,6 +268,7 @@ function LifePredictionContent() {
             birthDate: birthInfo.birthDate,
             birthTime: birthInfo.birthTime,
             gender: birthInfo.gender,
+            birthCity: birthInfo.birthCity,
           });
         }
       } catch (err) {
@@ -411,7 +416,7 @@ function LifePredictionContent() {
           startDate: p.startDate,
           endDate: p.endDate,
           score: p.score,
-          grade: p.grade as 'S' | 'A' | 'B' | 'C' | 'D',
+          grade: p.grade as 'S' | 'A+' | 'A' | 'B' | 'C' | 'D',
           reasons: p.reasons || ['✨ 좋은 시기입니다'],
           specificDays: p.specificDays?.map((dateStr: string) => ({
             date: dateStr,
@@ -628,7 +633,7 @@ function LifePredictionContent() {
           startDate: p.startDate,
           endDate: p.endDate,
           score: p.score,
-          grade: p.grade as 'S' | 'A' | 'B' | 'C' | 'D',
+          grade: p.grade as 'S' | 'A+' | 'A' | 'B' | 'C' | 'D',
           reasons: aiExplainedPeriods?.[index]?.reasons || p.reasons || ['✨ 좋은 시기입니다'],
           specificDays: p.specificDays?.map((dateStr: string) => ({
             date: dateStr,
@@ -662,6 +667,7 @@ function LifePredictionContent() {
   // 생년월일 다시 입력하기
   const handleChangeBirthInfo = useCallback(() => {
     setGuestBirthInfo(null);
+    setUserProfile(null);
     setPhase('birth-input');
   }, []);
 
@@ -749,14 +755,12 @@ function LifePredictionContent() {
                     {userProfile?.birthDate || guestBirthInfo?.birthDate}
                     {(userProfile?.gender || guestBirthInfo?.gender) === 'M' ? ' 👨' : ' 👩'}
                   </span>
-                  {!userProfile?.birthDate && (
-                    <button
-                      className={styles.changeBirthBtn}
-                      onClick={handleChangeBirthInfo}
-                    >
-                      {locale === 'ko' ? '변경' : 'Change'}
-                    </button>
-                  )}
+                  <button
+                    className={styles.changeBirthBtn}
+                    onClick={handleChangeBirthInfo}
+                  >
+                    {locale === 'ko' ? '변경' : 'Change'}
+                  </button>
                 </div>
               )}
 
@@ -801,6 +805,23 @@ function LifePredictionContent() {
               exit="exit"
               className={styles.phaseContainer}
             >
+              {/* 현재 생년월일 표시 */}
+              {(userProfile?.birthDate || guestBirthInfo?.birthDate) && (
+                <div className={styles.birthInfoDisplay}>
+                  <span className={styles.birthInfoIcon}>🎂</span>
+                  <span className={styles.birthInfoText}>
+                    {userProfile?.birthDate || guestBirthInfo?.birthDate}
+                    {(userProfile?.gender || guestBirthInfo?.gender) === 'M' ? ' 👨' : ' 👩'}
+                  </span>
+                  <button
+                    className={styles.changeBirthBtn}
+                    onClick={handleChangeBirthInfo}
+                  >
+                    {locale === 'ko' ? '변경' : 'Change'}
+                  </button>
+                </div>
+              )}
+
               {/* 상단 검색창 (컴팩트) */}
               <PredictionChat
                 onSubmit={handleSubmit}
@@ -840,6 +861,52 @@ function LifePredictionContent() {
                   />
                 ))}
               </motion.div>
+
+              {/* 결과 공유 */}
+              {results.length > 0 && (
+                <ResultShare
+                  result={{
+                    question: currentQuestion,
+                    eventType: currentEventType || 'general',
+                    topResult: {
+                      startDate: results[0].startDate,
+                      endDate: results[0].endDate,
+                      score: results[0].score,
+                      grade: results[0].grade,
+                    },
+                    allResults: results.map(r => ({
+                      startDate: r.startDate,
+                      endDate: r.endDate,
+                      score: r.score,
+                      grade: r.grade,
+                      reasons: r.reasons,
+                    })),
+                    totalCount: results.length,
+                    birthDate: userProfile?.birthDate || guestBirthInfo?.birthDate || '',
+                    gender: (userProfile?.gender || guestBirthInfo?.gender || 'M') as 'M' | 'F',
+                  }}
+                  locale={locale as 'ko' | 'en'}
+                  isLoggedIn={status === 'authenticated'}
+                />
+              )}
+
+              {/* AI 상담사 채팅 */}
+              <AdvisorChat
+                predictionContext={{
+                  question: currentQuestion,
+                  eventType: currentEventType || 'general',
+                  results: results.map(r => ({
+                    startDate: String(r.startDate),
+                    endDate: String(r.endDate),
+                    score: r.score,
+                    grade: r.grade,
+                    reasons: r.reasons,
+                  })),
+                  birthDate: userProfile?.birthDate || guestBirthInfo?.birthDate || '',
+                  gender: (userProfile?.gender || guestBirthInfo?.gender || 'M') as 'M' | 'F',
+                }}
+                locale={locale as 'ko' | 'en'}
+              />
 
               {/* 다시 질문하기 버튼 */}
               <button className={styles.askAgainBtn} onClick={handleAskAgain}>

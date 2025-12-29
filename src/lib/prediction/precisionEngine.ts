@@ -367,8 +367,10 @@ export function getSolarTermMonth(date: Date): number {
  * 기준: 1900년 1월 1일 = 氐宿 (3번째 수)
  */
 export function getLunarMansion(date: Date): LunarMansion {
-  const baseDate = new Date(1900, 0, 1);
-  const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(1900, 0, 1);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
   const index = ((diffDays + 2) % 28) + 1; // 1-28
 
   const mansion = LUNAR_MANSIONS[index - 1];
@@ -429,7 +431,10 @@ export function calculatePlanetaryHours(
   longitude: number = 126.9780
 ): PlanetaryHour[] {
   // 간단한 일출/일몰 계산 (실제로는 천문학적 계산 필요)
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 연초부터 일수 계산 (서버 타임존 영향 제거)
+  const yearStartUtc = Date.UTC(date.getFullYear(), 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayOfYear = Math.floor((dateUtc - yearStartUtc) / (1000 * 60 * 60 * 24));
 
   // 서울 기준 근사 일출/일몰 시간
   const sunriseHour = 5 + Math.sin((dayOfYear - 80) * Math.PI / 182.5) * 1.5;
@@ -529,7 +534,10 @@ export function calculateSecondaryProgression(
   birthDate: Date,
   targetDate: Date
 ): ProgressionResult['secondaryProgression'] {
-  const yearsDiff = (targetDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+  // UTC 기준으로 연수 계산 (서버 타임존 영향 제거)
+  const birthUtc = Date.UTC(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+  const targetUtc = Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  const yearsDiff = (targetUtc - birthUtc) / (1000 * 60 * 60 * 24 * 365.25);
   const progressedDate = new Date(birthDate.getTime() + yearsDiff * 24 * 60 * 60 * 1000);
 
   // 태양 위치 계산 (간단한 근사)

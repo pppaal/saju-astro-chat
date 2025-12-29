@@ -45,5 +45,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit/Integration tests
-        run: npm test
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit/Integration tests (coverage)
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build

@@ -2,6 +2,7 @@
 // 월별 타이밍 스코어 매트릭스 및 신뢰도 점수 시스템
 
 import { TIMING_OVERLAY_MATRIX, TRANSIT_CYCLE_INFO, RETROGRADE_SCHEDULE } from '@/lib/destiny-matrix/data/layer4-timing-overlay';
+import { scoreToGrade, type PredictionGrade } from './index';
 
 // ============================================================
 // 타입 정의
@@ -28,7 +29,7 @@ export interface MonthlyTimingScore {
   // 종합
   combinedScore: number;        // 종합 점수 (0-100)
   confidence: number;           // 신뢰도 (0-100)
-  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: PredictionGrade;
 
   // 해석
   themes: string[];
@@ -314,14 +315,8 @@ export function calculateMonthlyTimingScore(params: CalculateMonthlyScoreParams)
   // 4. 신뢰도 계산
   const confidence = calculateConfidence(easternScore, westernScore, retrogradeEffects.length);
 
-  // 5. 등급
-  let grade: MonthlyTimingScore['grade'];
-  if (combinedScore >= 85) grade = 'S';
-  else if (combinedScore >= 70) grade = 'A';
-  else if (combinedScore >= 55) grade = 'B';
-  else if (combinedScore >= 40) grade = 'C';
-  else if (combinedScore >= 25) grade = 'D';
-  else grade = 'F';
+  // 5. 등급 (통일된 기준 사용)
+  const grade = scoreToGrade(combinedScore);
 
   // 6. 테마 및 조언 생성
   const { themes, opportunities, cautions, advice } = generateThemesAndAdvice(
@@ -521,7 +516,9 @@ function generateThemesAndAdvice(
 
 function findBestDays(month: number, baseScore: number): number[] {
   const days: number[] = [];
-  const daysInMonth = new Date(2024, month, 0).getDate();
+  // 현재 연도 기준으로 월의 일수 계산 (하드코딩된 2024 제거)
+  const currentYear = new Date().getFullYear();
+  const daysInMonth = new Date(currentYear, month, 0).getDate();
 
   // 간략화된 로직: 점수가 높을수록 좋은 날이 많음
   const goodDayCount = baseScore >= 70 ? 6 : baseScore >= 50 ? 4 : 2;
@@ -546,7 +543,9 @@ function findAvoidDays(month: number, retrogrades: RetrogradeEffect[]): number[]
   if (hasRetrograde) {
     // 역행 중에는 월초/월말 주의
     days.push(1, 2, 3);
-    const daysInMonth = new Date(2024, month, 0).getDate();
+    // 현재 연도 기준으로 월의 일수 계산 (하드코딩된 2024 제거)
+    const currentYear = new Date().getFullYear();
+    const daysInMonth = new Date(currentYear, month, 0).getDate();
     days.push(daysInMonth - 2, daysInMonth - 1, daysInMonth);
   }
 

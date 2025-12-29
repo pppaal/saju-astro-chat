@@ -293,7 +293,8 @@
       "Bash(npx next build:*)",
       "Bash(npx tsc --noEmit --skipLibCheck)",
       "Bash(node scripts/test-calendar-api.mjs:*)",
-      "Bash(node scripts/fix-tier-code.mjs:*)"
+      "Bash(node scripts/fix-tier-code.mjs:*)",
+      "Bash(node scripts/test-grade-dist.js:*)"
     ],
     "deny": [],
     "ask": []

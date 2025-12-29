@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from './ResultCards.module.css';
 import { loaderVariants } from '../animations/cardAnimations';
@@ -51,6 +51,35 @@ const ANALYSIS_STEPS = [
 ] as const;
 
 export function AnalyzingLoader({ eventType, message }: AnalyzingLoaderProps) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  // 진행률 자동 업데이트
+  useEffect(() => {
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => {
+        if (prev < ANALYSIS_STEPS.length - 1) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 1200);
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev < 95) {
+          return prev + Math.random() * 3 + 1;
+        }
+        return prev;
+      });
+    }, 200);
+
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(progressInterval);
+    };
+  }, []);
+
   // 랜덤 메시지 선택 (컴포넌트 마운트 시 한 번만)
   const displayMessage = useMemo(
     () => message || ANALYZING_MESSAGES[Math.floor(Math.random() * ANALYZING_MESSAGES.length)],
@@ -94,23 +123,17 @@ export function AnalyzingLoader({ eventType, message }: AnalyzingLoaderProps) {
         {displayMessage}
       </p>
 
-      {/* 로딩 도트 */}
-      <div className={styles.analyzerDots}>
-        {[0, 1, 2].map((i) => (
+      {/* 진행률 바 */}
+      <div className={styles.progressContainer}>
+        <div className={styles.progressBar}>
           <motion.div
-            key={i}
-            className={styles.analyzerDot}
-            animate={{
-              y: [0, -15, 0],
-            }}
-            transition={{
-              duration: 0.6,
-              repeat: Infinity,
-              delay: i * 0.15,
-              ease: 'easeInOut',
-            }}
+            className={styles.progressFill}
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min(progress, 95)}%` }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           />
-        ))}
+        </div>
+        <span className={styles.progressText}>{Math.round(Math.min(progress, 95))}%</span>
       </div>
 
       {/* 분석 단계 표시 */}
@@ -118,29 +141,37 @@ export function AnalyzingLoader({ eventType, message }: AnalyzingLoaderProps) {
         className={styles.analysisStepsContainer}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.3 }}
       >
-        {ANALYSIS_STEPS.map((step) => (
-          <AnalysisStep key={step.text} delay={step.delay} text={step.text} />
+        {ANALYSIS_STEPS.map((step, index) => (
+          <AnalysisStepWithStatus
+            key={step.text}
+            text={step.text}
+            status={index < currentStep ? 'done' : index === currentStep ? 'active' : 'pending'}
+          />
         ))}
       </motion.div>
     </motion.div>
   );
 }
 
-function AnalysisStep({ delay, text }: { delay: number; text: string }) {
+function AnalysisStepWithStatus({ text, status }: { text: string; status: 'done' | 'active' | 'pending' }) {
+  const statusIcon = status === 'done' ? '✓' : status === 'active' ? '◈' : '○';
+  const statusClass = status === 'done' ? styles.stepDone : status === 'active' ? styles.stepActive : styles.stepPending;
+
   return (
     <motion.div
-      className={styles.analysisStep}
+      className={`${styles.analysisStep} ${statusClass}`}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.4 }}
+      transition={{ duration: 0.3 }}
     >
       <motion.span
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 1.5, repeat: Infinity, delay }}
+        className={styles.stepIcon}
+        animate={status === 'active' ? { opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] } : {}}
+        transition={{ duration: 1, repeat: Infinity }}
       >
-        ◈
+        {statusIcon}
       </motion.span>
       {text}
     </motion.div>

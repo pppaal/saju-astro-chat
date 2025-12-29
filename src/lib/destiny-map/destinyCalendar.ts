@@ -36,6 +36,32 @@ import {
   type LayerAnalysis,
 } from '@/lib/prediction/advancedTimingEngine';
 
+// 모듈화된 등급 결정 로직
+import {
+  calculateGrade,
+  getGradeKeys,
+  getGradeRecommendations,
+  filterWarningsByGrade,
+} from './calendar/grading';
+
+// 새 점수 시스템
+import {
+  calculateTotalScore,
+  type SajuScoreInput,
+  type AstroScoreInput,
+  type ScoreResult,
+} from './calendar/scoring';
+import {
+  adaptDaeunResult,
+  adaptSeunResult,
+  adaptWolunResult,
+  adaptIljinResult,
+  adaptYongsinResult,
+  adaptPlanetTransits,
+  type LegacyBranchInteraction,
+} from './calendar/scoring-adapter';
+import { GRADE_THRESHOLDS } from './calendar/scoring-config';
+
 // ============================================================
 // 천을귀인(天乙貴人) - 가장 좋은 귀인 (from saju.ts)
 // ============================================================
@@ -160,8 +186,10 @@ function isSonEomneunDay(lunarDay: number): boolean {
 // 간단한 양력→음력 근사 변환 (정확도 ±1~2일)
 function approximateLunarDay(date: Date): number {
   // 2000년 1월 6일이 음력 1월 1일
-  const baseDate = new Date(2000, 0, 6);
-  const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(2000, 0, 6);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
   // 음력 한 달 평균 29.53일
   const lunarMonthDays = 29.53;
   const dayInMonth = ((diffDays % lunarMonthDays) + lunarMonthDays) % lunarMonthDays;
@@ -288,6 +316,28 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
 // air를 metal로 매핑 (동양 오행 체계)
 function normalizeElement(el: string): string {
   return el === "air" ? "metal" : el;
+}
+
+// 삼재년 체크 (isSamjaeYear 충돌 방지용 별도 함수)
+function isSamjaeYearCheck(birthYearBranch: string, currentYearBranch: string): boolean {
+  const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[birthYearBranch];
+  return samjaeBranches?.includes(currentYearBranch) ?? false;
+}
+
+// 달 오행 가져오기 (트랜짓 달 기준)
+function getMoonElement(date: Date): string {
+  // 달의 위치 기반 별자리에서 오행 추출 (간략화)
+  const zodiacElements: Record<string, string> = {
+    Aries: "fire", Taurus: "earth", Gemini: "air", Cancer: "water",
+    Leo: "fire", Virgo: "earth", Libra: "air", Scorpio: "water",
+    Sagittarius: "fire", Capricorn: "earth", Aquarius: "air", Pisces: "water",
+  };
+  // 태양 기준 월로 간략 추정 (정확한 계산은 ephemeris 필요)
+  const month = date.getMonth();
+  const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini",
+                 "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
+  const approxSign = signs[month];
+  return normalizeElement(zodiacElements[approxSign] || "earth");
 }
 
 // ============================================================
@@ -547,9 +597,10 @@ function analyzeSolarReturn(
   const currentDay = date.getDate();
 
   // 생일까지의 일수 계산 (같은 해 기준)
-  const targetDate = new Date(date.getFullYear(), birthMonth - 1, birthDay);
-  const diffTime = targetDate.getTime() - date.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const targetUtc = Date.UTC(date.getFullYear(), birthMonth - 1, birthDay);
+  const diffDays = Math.round((targetUtc - dateUtc) / (1000 * 60 * 60 * 24));
   result.daysFromBirthday = Math.abs(diffDays);
 
   // 생일 당일
@@ -1225,10 +1276,12 @@ function calculateDaeunScore(
  */
 function getLunarPhase(date: Date): { phase: number; phaseName: string; phaseScore: number } {
   // 2000년 1월 6일 18:14 UTC 신월 기준
-  const knownNewMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
   const lunarCycle = 29.53058867; // 평균 삭망월 (일)
 
-  const diffMs = date.getTime() - knownNewMoon.getTime();
+  // UTC 기준으로 밀리초 차이 계산 (서버 타임존 영향 제거)
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const diffMs = dateUtc - knownNewMoon;
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
   const phase = ((diffDays % lunarCycle) + lunarCycle) % lunarCycle;
 
@@ -1276,8 +1329,10 @@ type PlanetName = "sun" | "moon" | "mercury" | "venus" | "mars" | "jupiter" | "s
  */
 function getPlanetPosition(date: Date, planet: PlanetName): { sign: string; longitude: number; degree: number } {
   // 기준일: 2000년 1월 1일 각 행성 위치
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   let longitude: number;
 
@@ -1343,8 +1398,10 @@ type RetrogradePlanet = "mercury" | "venus" | "mars" | "jupiter" | "saturn";
  * - 토성: 약 4.5개월간, 매년
  */
 function isRetrograde(date: Date, planet: RetrogradePlanet): boolean {
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   switch (planet) {
     case "mercury":
@@ -1516,8 +1573,11 @@ function checkEclipseImpact(date: Date): {
   sign: string | null;
   daysFromEclipse: number | null;
 } {
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
   for (const eclipse of ECLIPSES) {
-    const diffMs = Math.abs(date.getTime() - eclipse.date.getTime());
+    const eclipseUtc = Date.UTC(eclipse.date.getFullYear(), eclipse.date.getMonth(), eclipse.date.getDate());
+    const diffMs = Math.abs(dateUtc - eclipseUtc);
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
     if (diffDays <= 1) {
@@ -2054,8 +2114,10 @@ function analyzePlanetTransits(
 // 날짜별 천간지지 계산
 export function getGanzhiForDate(date: Date): { stem: string; branch: string; stemElement: string; branchElement: string } {
   // 기준일: 1900년 1월 31일은 甲子일
-  const baseDate = new Date(1900, 0, 31);
-  const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(1900, 0, 31);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
 
   const stemIndex = ((diffDays % 10) + 10) % 10;
   const branchIndex = ((diffDays % 12) + 12) % 12;
@@ -2318,7 +2380,10 @@ function analyzeDate(
   if (!relations) return null;
 
   // 날짜별 변동성을 위한 해시 기반 미세 조정
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 연초부터 일수 계산 (서버 타임존 영향 제거)
+  const yearStartUtc = Date.UTC(date.getFullYear(), 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayOfYear = Math.floor((dateUtc - yearStartUtc) / (1000 * 60 * 60 * 24));
   const microVariance = ((dayOfYear * 17 + date.getDate() * 7) % 21) - 10; // -10 ~ +10
 
   // === 용신(用神) 분석 - 사주의 핵심 보완 오행 ===
@@ -2441,6 +2506,10 @@ function analyzeDate(
   // === 고급 점성학: 행성 시간 (요일 기준) ===
   const planetaryHour = getPlanetaryHourForDate(date);
 
+  // === 신살 분석 (점수 계산용) ===
+  // dayBranch: 사주 일지, ganzhi.branch: 일진 지지
+  const shinsalForScoring = analyzeShinsal(dayBranch || ganzhi.branch, ganzhi.branch);
+
   // 기본 점수: 대운 + 세운 + 월운 + 일진 + 행성 트랜짓 + 고급 점성학 영향 포함
   // 대운(0.25): 10년 주기 - 기본 바탕
   // 세운(0.15): 1년 주기
@@ -2451,38 +2520,82 @@ function analyzeDate(
   let advancedAstroScore = 0;
   advancedAstroScore += moonPhaseDetailed.score; // 달 위상 점수 (-3 ~ +12)
 
-  // 용신/격국 분석 점수 (고급 사주)
-  const advancedSajuScore = yongsinAnalysis.score + geokgukAnalysis.score;
+  // ============================================================
+  // 새 점수 시스템으로 계산
+  // 사주 50점 + 점성술 50점 = 100점 만점
+  // ============================================================
 
-  // 고급 점성학 점수 (Solar Return + Progressions)
-  const advancedAstroExtra = solarReturnAnalysis.score + progressionAnalysis.score;
+  // 특수 요소 체크 (일진 분석용)
+  const hasCheoneulGwiin = dayMasterStem ? isCheoneulGwiin(dayMasterStem, ganzhi.branch) : false;
+  const hasGeonrok = dayMasterStem ? isGeonrokDay(dayMasterStem, ganzhi.branch) : false;
+  const approxLunarDay = approximateLunarDay(date);
+  const hasSonEomneun = isSonEomneunDay(approxLunarDay);
+  const hasYeokma = sajuProfile.yearBranch ? isYeokmaDay(sajuProfile.yearBranch, ganzhi.branch) : false;
+  const hasDohwa = sajuProfile.yearBranch ? isDohwaDay(sajuProfile.yearBranch, ganzhi.branch) : false;
 
-  let score = 50 + microVariance
-    + Math.round(daeunAnalysis.score * 0.25)
-    + Math.round(seunAnalysis.score * 0.15)
-    + Math.round(wolunAnalysis.score * 0.20)
-    + Math.round(iljinAnalysis.score * 0.50)
-    + Math.round(planetTransits.score * 0.15)
-    + Math.round(advancedAstroScore * 0.10)
-    + Math.round(advancedSajuScore * 0.20)  // 용신/격국 가중치 20%
-    + Math.round(advancedAstroExtra * 0.15) // Solar Return/Progressions 15%
-    + Math.round(advancedMultiLayerScore);  // 다층 레이어 + 지지 상호작용 + 12운성
+  // 삼재년 체크
+  const yearGanzhi = getYearGanzhi(year);
+  const isSamjaeYear = sajuProfile.yearBranch ? isSamjaeYearCheck(sajuProfile.yearBranch, yearGanzhi.branch) : false;
+
+  // 지지 상호작용 변환 (transformative → neutral 매핑)
+  const branchInteractions: LegacyBranchInteraction[] = advancedBranchInteractions.map(bi => ({
+    type: bi.type,
+    impact: (bi.impact === 'transformative' ? 'neutral' : bi.impact) as 'positive' | 'negative' | 'neutral',
+    element: (bi as any).element,
+  }));
+
+  // 사주 입력 데이터 구성
+  const sajuInput: SajuScoreInput = {
+    daeun: adaptDaeunResult(daeunAnalysis),
+    seun: adaptSeunResult(seunAnalysis, isSamjaeYear),
+    wolun: adaptWolunResult(wolunAnalysis),
+    iljin: adaptIljinResult(iljinAnalysis, {
+      hasCheoneulGwiin,
+      hasGeonrok,
+      hasSonEomneun,
+      hasYeokma,
+      hasDohwa,
+      branchInteractions,
+      shinsalResult: shinsalForScoring,
+    }),
+    yongsin: adaptYongsinResult(yongsinAnalysis as any, geokgukAnalysis),
+  };
+
+  // 점성술 입력 데이터 구성
+  const astroInput: AstroScoreInput = adaptPlanetTransits(planetTransits, {
+    retrogradePlanets,
+    voidOfCourse: voidOfCourse.isVoid,
+    lunarPhase: moonPhaseDetailed.phaseName,
+    daysFromBirthday: solarReturnAnalysis.daysFromBirthday,
+    natalSunElement: normalizeElement(astroProfile.sunElement),
+    transitSunElement,
+    transitMoonElement: getMoonElement(date),
+    elementRelations: ELEMENT_RELATIONS,
+    eclipseImpact,
+  });
+
+  // 새 점수 시스템으로 계산
+  const scoreResult: ScoreResult = calculateTotalScore(sajuInput, astroInput);
+
+  // 점수 및 플래그 추출 (새 시스템에서 계산됨)
+  let score = scoreResult.totalScore;
+  let sajuPositive = scoreResult.sajuPositive;
+  let sajuNegative = scoreResult.sajuNegative;
+  let astroPositive = scoreResult.astroPositive;
+  let astroNegative = scoreResult.astroNegative;
+  const crossVerified = scoreResult.crossVerified;
+
   const categories: EventCategory[] = [];
   let titleKey = "";
   let descKey = "";
-  let sajuPositive = false;
-  let sajuNegative = false;
-  let astroPositive = false;
-  let astroNegative = false;
   const sajuFactorKeys: string[] = [];
   const astroFactorKeys: string[] = [];
   const recommendationKeys: string[] = [];
   const warningKeys: string[] = [];
 
-  // === 고급 지지 상호작용 결과 반영 ===
+  // === 고급 지지 상호작용 결과 반영 (점수는 이미 계산됨, factorKeys만 추가) ===
   for (const bInter of advancedBranchInteractions) {
     if (bInter.impact === 'positive') {
-      sajuPositive = true;
       sajuFactorKeys.push(`advanced_${bInter.type}`);
       if (bInter.type === '육합') {
         recommendationKeys.push("partnership", "harmony");
@@ -2492,7 +2605,6 @@ function analyzeDate(
         recommendationKeys.push("expansion", "growth");
       }
     } else if (bInter.impact === 'negative') {
-      sajuNegative = true;
       sajuFactorKeys.push(`advanced_${bInter.type}`);
       if (bInter.type === '충') {
         warningKeys.push("conflict", "change");
@@ -2502,11 +2614,8 @@ function analyzeDate(
     }
   }
 
-  // === 천을귀인(天乙貴人) 체크 - 가장 좋은 귀인 ===
-  // dayMasterStem은 일진 분석에서 이미 선언됨 (line ~1115)
-  if (dayMasterStem && isCheoneulGwiin(dayMasterStem, ganzhi.branch)) {
-    score += 25;
-    sajuPositive = true;
+  // === 천을귀인(天乙貴人) 체크 (점수는 새 시스템에서 계산됨) ===
+  if (hasCheoneulGwiin) {
     sajuFactorKeys.push("cheoneulGwiin");
     recommendationKeys.push("majorDecision", "contract", "meeting");
     if (!titleKey) {
@@ -2515,38 +2624,29 @@ function analyzeDate(
     }
   }
 
-  // === 손없는 날 (擇日) - 이사/결혼/개업 최적일 ===
-  const approxLunarDay = approximateLunarDay(date);
-  if (isSonEomneunDay(approxLunarDay)) {
-    score += 15;
-    sajuPositive = true;
+  // === 손없는 날 (擇日) ===
+  if (hasSonEomneun) {
     sajuFactorKeys.push("sonEomneunDay");
     recommendationKeys.push("moving", "wedding", "business");
     if (!categories.includes("general")) categories.push("general");
   }
 
-  // === 건록(建祿) 체크 - 일간의 록지에 해당 ===
-  if (dayMasterStem && isGeonrokDay(dayMasterStem, ganzhi.branch)) {
-    score += 18;
-    sajuPositive = true;
+  // === 건록(建祿) 체크 ===
+  if (hasGeonrok) {
     sajuFactorKeys.push("geonrokDay");
     recommendationKeys.push("career", "authority", "promotion");
     if (!categories.includes("career")) categories.push("career");
   }
 
-  // === 삼재(三災) 체크 - 12년 주기 불운의 해 ===
-  const birthYearBranch = sajuProfile.yearBranch; // 연지(年支) 사용 - 정확한 삼재 계산
-  const yearGanzhi = getYearGanzhi(year);
-  if (birthYearBranch && isSamjaeYear(birthYearBranch, yearGanzhi.branch)) {
-    score -= 8; // 삼재 해는 기본 페널티
-    sajuNegative = true;
+  // === 삼재(三災) 체크 ===
+  const birthYearBranch = sajuProfile.yearBranch;
+  if (isSamjaeYear) {
     sajuFactorKeys.push("samjaeYear");
     warningKeys.push("samjae", "caution");
   }
 
-  // === 역마살(驛馬殺) 체크 - 이동/변화의 날 ===
-  if (birthYearBranch && isYeokmaDay(birthYearBranch, ganzhi.branch)) {
-    score += 5; // 역마는 양면성 - 여행에 좋지만 불안정
+  // === 역마살(驛馬殺) 체크 ===
+  if (hasYeokma) {
     sajuFactorKeys.push("yeokmaDay");
     recommendationKeys.push("travel", "change", "interview");
     warningKeys.push("instability");
@@ -2555,54 +2655,95 @@ function analyzeDate(
 
   // === 도화살(桃花殺) 체크 - 연애/매력의 날 ===
   if (birthYearBranch && isDohwaDay(birthYearBranch, ganzhi.branch)) {
-    score += 10;
-    sajuPositive = true;
+    // 점수는 새 시스템에서 계산됨 (adaptIljinResult의 hasDohwa)
     sajuFactorKeys.push("dohwaDay");
     recommendationKeys.push("dating", "socializing", "charm");
     if (!categories.includes("love")) categories.push("love");
   }
 
-  // === 십신(十神) 완전 분석 ===
+  // === 신살 분석 결과 factorKeys에 추가 ===
+  if (shinsalForScoring?.active) {
+    for (const shinsal of shinsalForScoring.active) {
+      const name = shinsal.name;
+      // 길신
+      if (name === '태극귀인') {
+        sajuFactorKeys.push("shinsal_taegukGwiin");
+        recommendationKeys.push("majorLuck", "blessing");
+      } else if (name === '천덕귀인' || name === '천덕') {
+        sajuFactorKeys.push("shinsal_cheondeokGwiin");
+        recommendationKeys.push("heavenlyHelp", "protection");
+      } else if (name === '월덕귀인' || name === '월덕') {
+        sajuFactorKeys.push("shinsal_woldeokGwiin");
+        recommendationKeys.push("lunarBlessing", "assistance");
+      } else if (name === '화개') {
+        sajuFactorKeys.push("shinsal_hwagae");
+        recommendationKeys.push("creativity", "spiritual");
+      }
+      // 흉신
+      else if (name === '공망') {
+        sajuFactorKeys.push("shinsal_gongmang");
+        warningKeys.push("emptiness", "voidDay");
+      } else if (name === '원진') {
+        sajuFactorKeys.push("shinsal_wonjin");
+        warningKeys.push("resentment", "conflict");
+      } else if (name === '양인') {
+        sajuFactorKeys.push("shinsal_yangin");
+        warningKeys.push("danger", "impulsiveness");
+      } else if (name === '괴강') {
+        sajuFactorKeys.push("shinsal_goegang");
+        warningKeys.push("extremes", "intensity");
+      } else if (name === '백호') {
+        sajuFactorKeys.push("shinsal_backho");
+        warningKeys.push("accident", "surgery");
+      } else if (name === '귀문관') {
+        sajuFactorKeys.push("shinsal_guimungwan");
+        warningKeys.push("mentalConfusion", "anxiety");
+      }
+      // 특수 신살
+      else if (name === '역마') {
+        sajuFactorKeys.push("shinsal_yeokma");
+        recommendationKeys.push("travel", "movement");
+      } else if (name === '재살') {
+        sajuFactorKeys.push("shinsal_jaesal");
+        warningKeys.push("dispute", "legalIssue");
+      }
+    }
+  }
+
+
+  // === 십신(十神) 완전 분석 (점수는 새 시스템에서 계산됨) ===
   if (dayMasterStem) {
     const daySipsin = getSipsin(dayMasterStem, ganzhi.stem);
     if (daySipsin) {
       sajuFactorKeys.push(`sipsin_${daySipsin}`);
 
-      // 십신별 점수 및 카테고리 조정
+      // 십신별 카테고리 조정 (점수는 scoring.ts에서 계산)
       switch (daySipsin) {
         case "정재":
-          score += 12;
-          sajuPositive = true;
           if (!categories.includes("wealth")) categories.push("wealth");
           recommendationKeys.push("stableWealth", "savings");
           break;
         case "편재":
-          score += 10;
-          sajuPositive = true;
           if (!categories.includes("wealth")) categories.push("wealth");
           recommendationKeys.push("speculation", "windfall");
           warningKeys.push("riskManagement");
           break;
         case "정인":
-          score += 15;
-          sajuPositive = true;
           if (!categories.includes("study")) categories.push("study");
           recommendationKeys.push("learning", "certification", "mother");
           break;
         case "편인":
-          score += 8;
           if (!categories.includes("study")) categories.push("study");
           recommendationKeys.push("spirituality", "unique");
           break;
         case "겁재":
-          score -= 5;
           warningKeys.push("rivalry", "loss");
           break;
       }
     }
   }
 
-  // === 지장간(支藏干) 분석 - 숨은 기운 ===
+  // === 지장간(支藏干) 분석 - 숨은 기운 (점수는 새 시스템에서 계산됨) ===
   const hiddenStems = JIJANGGAN[ganzhi.branch];
   if (hiddenStems) {
     const mainHiddenStem = hiddenStems.정기;
@@ -2610,12 +2751,10 @@ function analyzeDate(
 
     // 지장간 정기가 일간을 생해주면 좋음
     if (mainHiddenElement && relations.generatedBy === mainHiddenElement) {
-      score += 8;
       sajuFactorKeys.push("hiddenStemSupport");
     }
     // 지장간 정기가 일간을 극하면 주의
     if (mainHiddenElement && relations.controlledBy === mainHiddenElement) {
-      score -= 5;
       sajuFactorKeys.push("hiddenStemConflict");
     }
   }
@@ -2653,13 +2792,11 @@ function analyzeDate(
     }
   }
 
-  // === 사주 분석 (강화) ===
+  // === 사주 분석 (강화) - 점수는 새 시스템에서 계산됨 ===
 
   // 1. 일진 천간과 일간의 관계
   if (ganzhi.stemElement === dayMasterElement) {
     // 비견 - 자기 힘 강화, 경쟁도 있음
-    score += 18;
-    sajuPositive = true;
     categories.push("career");
     titleKey = "calendar.bijeon";
     descKey = "calendar.bijeonDesc";
@@ -2668,8 +2805,6 @@ function analyzeDate(
     warningKeys.push("competition"); // 비견은 경쟁자 의미도 있음
   } else if (ganzhi.stemElement === relations.generatedBy) {
     // 인성 - 도움/학습/보호
-    score += 25;
-    sajuPositive = true;
     categories.push("study", "career");
     titleKey = "calendar.inseong";
     descKey = "calendar.inseongDesc";
@@ -2677,8 +2812,6 @@ function analyzeDate(
     recommendationKeys.push("study", "mentor", "documents");
   } else if (ganzhi.stemElement === relations.controls) {
     // 재성 - 재물, 아버지/아내
-    score += 30;
-    sajuPositive = true;
     categories.push("wealth", "love");
     titleKey = "calendar.jaeseong";
     descKey = "calendar.jaeseongDesc";
@@ -2686,8 +2819,6 @@ function analyzeDate(
     recommendationKeys.push("finance", "investment", "shopping");
   } else if (ganzhi.stemElement === relations.generates) {
     // 식상 - 표현/창작/연애/자녀
-    score += 20;
-    sajuPositive = true;
     categories.push("love", "career");
     titleKey = "calendar.siksang";
     descKey = "calendar.siksangDesc";
@@ -2695,8 +2826,6 @@ function analyzeDate(
     recommendationKeys.push("love", "creative", "expression");
   } else if (ganzhi.stemElement === relations.controlledBy) {
     // 관살 - 외부 압박, 직장/권위
-    score -= 25;
-    sajuNegative = true;
     categories.push("health", "career");
     titleKey = "calendar.gwansal";
     descKey = "calendar.gwansalDesc";
@@ -2718,8 +2847,7 @@ function analyzeDate(
     for (const [element, branches] of Object.entries(SAMHAP)) {
       if (branches.includes(dayBranch) && branches.includes(ganzhi.branch)) {
         if (element === dayMasterElement || element === relations.generatedBy) {
-          score += 28;
-          sajuPositive = true;
+          // 점수는 새 시스템에서 계산됨
           sajuFactorKeys.push("branchSamhap");
           if (!titleKey) {
             titleKey = "calendar.samhap";
@@ -2728,8 +2856,7 @@ function analyzeDate(
           recommendationKeys.push("bigDecision", "contract", "partnership");
           if (!categories.includes("general")) categories.push("general");
         } else if (element === relations.controlledBy) {
-          score -= 15;
-          sajuNegative = true;
+          // 점수는 새 시스템에서 계산됨
           sajuFactorKeys.push("branchSamhapNegative");
           warningKeys.push("opposition");
         }
@@ -2738,8 +2865,7 @@ function analyzeDate(
 
     // 육합 체크 - 인연/화합
     if (YUKHAP[dayBranch] === ganzhi.branch) {
-      score += 22;
-      sajuPositive = true;
+      // 점수는 새 시스템에서 계산됨
       sajuFactorKeys.push("branchYukhap");
       if (!titleKey) {
         titleKey = "calendar.yukhap";
@@ -2751,8 +2877,7 @@ function analyzeDate(
 
     // 충 체크 - 충돌/변화
     if (CHUNG[dayBranch] === ganzhi.branch) {
-      score -= 30;
-      sajuNegative = true;
+      // 점수는 새 시스템에서 계산됨
       categories.push("travel", "health");
       titleKey = "calendar.chung";
       descKey = "calendar.chungDesc";
@@ -2776,8 +2901,7 @@ function analyzeDate(
       "辰": ["辰"], "午": ["午"], "酉": ["酉"], "亥": ["亥"], // 자형
     };
     if (XING[dayBranch]?.includes(ganzhi.branch)) {
-      score -= 18;
-      sajuNegative = true;
+      // 점수는 새 시스템에서 계산됨
       sajuFactorKeys.push("branchXing");
       warningKeys.push("legal", "injury");
       // 형이 있으면 계약 관련 추천 제거
@@ -2796,8 +2920,7 @@ function analyzeDate(
       "申": "亥", "亥": "申", "酉": "戌", "戌": "酉",
     };
     if (HAI[dayBranch] === ganzhi.branch) {
-      score -= 12;
-      sajuNegative = true;
+      // 점수는 새 시스템에서 계산됨
       sajuFactorKeys.push("branchHai");
       warningKeys.push("betrayal", "misunderstanding");
       // 해가 있으면 소셜/네트워킹 추천 제거 (오해/배신 위험)
@@ -2812,46 +2935,36 @@ function analyzeDate(
 
   // === 점성술 분석 (강화) ===
 
-  // 트랜짓 태양과 본명 태양의 관계
+  // 트랜짓 태양과 본명 태양의 관계 (점수는 새 시스템에서 계산됨)
   if (transitSunElement === natalSunElement) {
     // 같은 원소 - 강력한 에너지 공명
-    score += 22;
-    astroPositive = true;
     astroFactorKeys.push("sameElement");
     recommendationKeys.push("confidence", "selfExpression");
   } else if (ELEMENT_RELATIONS[natalSunElement]?.generatedBy === transitSunElement) {
     // 생해주는 관계 - 지원 에너지
-    score += 15;
-    astroPositive = true;
     astroFactorKeys.push("supportElement");
     recommendationKeys.push("learning", "receiving");
   } else if (ELEMENT_RELATIONS[natalSunElement]?.generates === transitSunElement) {
     // 내가 생하는 관계 - 에너지 소모 but 창조적
-    score += 5;
     astroFactorKeys.push("givingElement");
     recommendationKeys.push("giving", "teaching");
   } else if (ELEMENT_RELATIONS[natalSunElement]?.controlledBy === transitSunElement) {
     // 극하는 관계 - 도전/긴장
-    score -= 18;
-    astroNegative = true;
     astroFactorKeys.push("conflictElement");
     warningKeys.push("stress", "opposition");
   } else if (ELEMENT_RELATIONS[natalSunElement]?.controls === transitSunElement) {
     // 내가 극하는 관계 - 통제/성취
-    score += 8;
     astroFactorKeys.push("controlElement");
     recommendationKeys.push("achievement", "discipline");
   }
 
-  // === 달의 위상 분석 (실제 계산) ===
-  score += lunarPhase.phaseScore;
+  // === 달의 위상 분석 (점수는 새 시스템에서 계산됨) ===
   if (lunarPhase.phaseName === "newMoon") {
     astroFactorKeys.push("lunarNewMoon");
     recommendationKeys.push("newBeginning", "planning");
   } else if (lunarPhase.phaseName === "fullMoon") {
     astroFactorKeys.push("lunarFullMoon");
     recommendationKeys.push("completion", "celebration");
-    astroPositive = true;
   } else if (lunarPhase.phaseName === "firstQuarter") {
     astroFactorKeys.push("lunarFirstQuarter");
     warningKeys.push("tension", "challenge");
@@ -2889,11 +3002,9 @@ function analyzeDate(
     for (const planet of retrogradePlanets) {
       astroFactorKeys.push(`retrograde${planet.charAt(0).toUpperCase() + planet.slice(1)}`);
     }
-    // 수성 역행은 커뮤니케이션/계약에 특히 주의
+    // 수성 역행은 커뮤니케이션/계약에 특히 주의 (점수는 새 시스템에서 계산됨)
     if (retrogradePlanets.includes("mercury")) {
-      score -= 8;
       warningKeys.push("mercuryRetrograde");
-      astroNegative = true;
       // 수성 역행 시 계약/통신 관련 추천 제거
       const removeRecs = ["contract", "documents", "interview"];
       for (let i = recommendationKeys.length - 1; i >= 0; i--) {
@@ -2902,9 +3013,8 @@ function analyzeDate(
         }
       }
     }
-    // 금성 역행은 연애/재물에 주의
+    // 금성 역행은 연애/재물에 주의 (점수는 새 시스템에서 계산됨)
     if (retrogradePlanets.includes("venus")) {
-      score -= 5;
       warningKeys.push("venusRetrograde");
       // 금성 역행 시 연애/재정 추천 제거
       const removeRecs = ["dating", "love", "finance", "investment", "shopping"];
@@ -2914,22 +3024,19 @@ function analyzeDate(
         }
       }
     }
-    // 화성 역행은 행동/에너지에 주의
+    // 화성 역행은 행동/에너지에 주의 (점수는 새 시스템에서 계산됨)
     if (retrogradePlanets.includes("mars")) {
-      score -= 4;
       warningKeys.push("marsRetrograde");
     }
   }
 
-  // 3. Void of Course Moon (공허한 달)
+  // 3. Void of Course Moon (공허한 달) - 점수는 새 시스템에서 계산됨
   if (voidOfCourse.isVoid) {
-    score -= 10;
     astroFactorKeys.push("voidOfCourse");
     warningKeys.push("voidOfCourse");
-    astroNegative = true;
   }
 
-  // 4. 일/월식 영향
+  // 4. 일/월식 영향 (점수는 새 시스템에서 계산됨)
   if (eclipseImpact.hasImpact) {
     if (eclipseImpact.type === "solar") {
       astroFactorKeys.push(`solarEclipse${eclipseImpact.intensity}`);
@@ -2938,28 +3045,19 @@ function analyzeDate(
     }
 
     if (eclipseImpact.intensity === "strong") {
-      score -= 15; // 일/월식 당일은 큰 변화의 날
       warningKeys.push("eclipseDay");
-      astroNegative = true;
     } else if (eclipseImpact.intensity === "medium") {
-      score -= 8;
       warningKeys.push("eclipseNear");
-    } else {
-      score -= 3;
     }
   }
 
-  // 5. 행성 시간 (요일 지배 행성)
+  // 5. 행성 시간 (요일 지배 행성) - 점수는 새 시스템에서 계산됨
   astroFactorKeys.push(`dayRuler${planetaryHour.dayRuler}`);
   // 목요일(Jupiter) = 확장/행운, 금요일(Venus) = 사랑/재물
   if (planetaryHour.dayRuler === "Jupiter") {
-    score += 3;
     recommendationKeys.push("expansion", "luck");
   } else if (planetaryHour.dayRuler === "Venus") {
-    score += 2;
     recommendationKeys.push("love", "beauty");
-  } else if (planetaryHour.dayRuler === "Saturn") {
-    score -= 2; // 토요일은 제한/책임
   }
 
   // === 긍정/부정 플래그 업데이트 ===
@@ -2984,25 +3082,22 @@ function analyzeDate(
   if (progressionAnalysis.negative) astroNegative = true;
 
   // === 교차 검증 (핵심) ===
+  // (crossVerified는 이미 scoreResult에서 가져옴)
 
   // 사주와 점성술 모두 긍정적 - 시너지
-  const crossVerified = sajuPositive && astroPositive;
   if (crossVerified) {
-    score += 20;
     astroFactorKeys.push("crossVerified");
     recommendationKeys.push("majorDecision");
   }
 
-  // 사주와 점성술 모두 부정적 - 주의 필요
+  // 사주와 점성술 모두 부정적 - 주의 필요 (점수는 새 시스템에서 계산됨)
   if (sajuNegative && astroNegative) {
-    score -= 15;
     astroFactorKeys.push("crossNegative");
     warningKeys.push("extremeCaution");
   }
 
-  // 사주 일진과 점성술 트랜짓이 같은 원소 - 일관성
+  // 사주 일진과 점성술 트랜짓이 같은 원소 - 일관성 (점수는 새 시스템에서 계산됨)
   if (ganzhi.stemElement === transitSunElement) {
-    score += 12;
     astroFactorKeys.push("alignedElement");
   }
 
@@ -3012,8 +3107,10 @@ function analyzeDate(
     warningKeys.push("confusion");
   }
 
-  // 점수 범위 제한 및 조정
-  score = Math.max(5, Math.min(98, score));
+  // ============================================================
+  // 점수는 이미 새 시스템(scoring.ts)에서 0~100 범위로 계산됨
+  // 정규화 불필요 - 체계적인 가중치로 계산됨
+  // ============================================================
 
   // 중요하지 않은 날은 제외
   const hasSignificantFactors = sajuFactorKeys.length > 0 || astroFactorKeys.length > 0;
@@ -3037,13 +3134,13 @@ function analyzeDate(
   let grade: ImportanceGrade;
 
   // ========================================
-  // 사주(Saju) 요소 체크
+  // 사주(Saju) 요소 체크 (그레이딩용)
   // ========================================
-  const hasCheoneulGwiin = sajuFactorKeys.includes("cheoneulGwiin");
-  const hasSamhap = sajuFactorKeys.includes("samhap");
-  const hasYukhap = sajuFactorKeys.includes("yukhap");
-  const hasChung = sajuFactorKeys.includes("chung");
-  const hasXing = sajuFactorKeys.includes("xing");
+  const gradeCheoneulGwiin = sajuFactorKeys.includes("cheoneulGwiin");
+  const gradeSamhap = sajuFactorKeys.some(k => k.toLowerCase().includes("samhap"));
+  const gradeYukhap = sajuFactorKeys.some(k => k.toLowerCase().includes("yukhap"));
+  const gradeChung = sajuFactorKeys.some(k => k.toLowerCase().includes("chung") || k.includes("충"));
+  const gradeXing = sajuFactorKeys.some(k => k.toLowerCase().includes("xing") || k.includes("형"));
 
   // ========================================
   // 점성술(Astrology) 요소 체크
@@ -3084,9 +3181,9 @@ function analyzeDate(
 
   // 사주 강점 포인트 카운트 (용신/격국 포함)
   const sajuStrengthCount = [
-    hasCheoneulGwiin,
-    hasSamhap,
-    hasYukhap,
+    gradeCheoneulGwiin,
+    gradeSamhap,
+    gradeYukhap,
     hasYongsinMatch,        // 용신 천간 일치
     hasYongsinBranchMatch,  // 용신 지지 일치
     hasGeokgukFavor,        // 격국에 맞는 십신
@@ -3131,7 +3228,7 @@ function analyzeDate(
   const retrogradeCount = [hasMercuryRetrograde, hasVenusRetrograde, hasMarsRetrograde].filter(Boolean).length;
 
   // 나쁜 요소 개수 카운트 - 사주 + 점성학 모두 포함
-  const sajuBadCount = [hasChung, hasXing, hasKibsinMatch].filter(Boolean).length;
+  const sajuBadCount = [gradeChung, gradeXing, hasKibsinMatch].filter(Boolean).length;
   const astroBadCount = [
     retrogradeCount >= 2,  // 역행 2개 이상
     hasVoidOfCourse,       // 보이드 오브 코스
@@ -3142,117 +3239,47 @@ function analyzeDate(
   // 총 강점 개수 계산 (사주 + 점성학)
   const totalStrengthCount = sajuStrengthCount + astroStrengthCount;
 
-  const isCheununDay = (
-    // 조건 1: 높은 점수 + 교차검증 + 양쪽 긍정 + 강점 풍부 + 역행 없음 (연 7~11일, 약 2%)
-    (
-      score >= 85 &&  // 점수 조건 추가
-      crossVerified &&
-      sajuPositive && astroPositive &&
-      astroStrengthCount >= 3 &&  // 점성학 강점 3개 이상 (7개 중)
-      sajuStrengthCount >= 1 &&  // 사주 강점 1개 이상
-      hasNoMajorRetrograde &&
-      sajuBadCount === 0  // 사주 나쁜 요소 없음
-    ) ||
-    // 조건 2: 생일 특별 조건
-    (isBirthdaySpecial && score >= 80 && sajuBadCount === 0 && astroStrengthCount >= 2)
-  );
+  // ============================================================
+  // 등급 결정 로직 (모듈화된 점수 기반 계산 사용)
+  // ============================================================
+  const gradeInput = {
+    score,
+    isBirthdaySpecial,
+    crossVerified,
+    sajuPositive,
+    astroPositive,
+    totalStrengthCount,
+    sajuBadCount,
+    hasChung: gradeChung,
+    hasXing: gradeXing,
+    hasNoMajorRetrograde,
+    retrogradeCount,
+    totalBadCount,
+  };
 
-  const isVeryGoodDay = (
-    // 높은 점수 + 교차검증 + 양쪽 긍정 + 역행 없음 + 강점 (연 36~55일, 약 10-15%)
-    score >= 75 &&  // 점수 조건 추가
-    crossVerified &&
-    sajuPositive && astroPositive &&
-    hasNoMajorRetrograde &&
-    astroStrengthCount >= 3 &&  // 점성학 강점 3개 이상
-    sajuBadCount === 0  // 사주 나쁜 요소 없음
-  );
+  const gradeResult = calculateGrade(gradeInput);
+  grade = gradeResult.grade;
 
-  const isGoodDay = (
-    // 좋은 점수 + 교차검증 + 양쪽 긍정 + 역행 없음 + 강점 (연 55~110일, 약 15-30%)
-    (
-      score >= 65 &&  // 점수 조건 추가
-      crossVerified &&
-      sajuPositive && astroPositive &&
-      hasNoMajorRetrograde &&
-      astroStrengthCount >= 2 &&  // 점성학 강점 2개 이상
-      sajuBadCount === 0  // 사주 나쁜 요소 없음
-    ) ||
-    // 한쪽 긍정만이라도 강점이 충분하면 OK
-    (
-      score >= 70 &&  // 점수 조건 추가
-      crossVerified &&
-      (sajuPositive || astroPositive) &&
-      hasNoMajorRetrograde &&
-      totalStrengthCount >= 4 &&
-      sajuBadCount === 0
-    )
-  );
-
-  const isBadDay = (
-    // 나쁜 날 조건 (연 36~55일, 약 10-15%)
-    score <= 38 ||  // 매우 낮은 점수 (하위 ~10%)
-    (score <= 45 && sajuNegative && !sajuPositive) ||  // 낮은 점수 + 사주만 부정
-    (score <= 45 && astroNegative && !astroPositive) ||  // 낮은 점수 + 점성학만 부정
-    (hasChung && hasXing) ||  // 충+형 동시 (사주)
-    (hasChung && astroNegative && score <= 50) ||  // 충 + 점성학 부정 + 낮은 점수
-    (hasXing && astroNegative && score <= 50) ||  // 형 + 점성학 부정 + 낮은 점수
-    (sajuBadCount >= 2 && astroBadCount >= 1 && score <= 55) ||  // 사주 2개 + 점성학 1개 + 점수 조건
-    (totalBadCount >= 3 && score <= 48)  // 총 3개 + 낮은 점수
-  );
-
-  if (isCheununDay) {
-    // Grade 0: 천운의 날 - 최상의 날이므로 경고 메시지 제거
-    grade = 0;
-    titleKey = "calendar.cheununDay";
-    descKey = "calendar.cheununDayDesc";
-    recommendationKeys.unshift("majorDecision", "wedding", "contract", "bigDecision");
-    // 천운의 날은 경고 없음 - 모든 부정적 요소가 상쇄됨
-    warningKeys.length = 0;
-  } else if (isVeryGoodDay) {
-    // Grade 1: 아주 좋은 날 - 매우 좋은 날이므로 경고 메시지 제거
-    grade = 1;
-    if (!titleKey) {
-      titleKey = "calendar.veryGoodDay";
-      descKey = "calendar.veryGoodDayDesc";
-    }
-    recommendationKeys.unshift("majorDecision", "contract");
-    // 아주 좋은 날도 경고 없음 - 긍정적 요소가 압도
-    warningKeys.length = 0;
-  } else if (isBadDay) {
-    // Grade 4: 나쁜 날
-    grade = 4;
-    if (!titleKey) {
-      titleKey = "calendar.badDay";
-      descKey = "calendar.badDayDesc";
-    }
-    if (warningKeys.length === 0) {
-      warningKeys.push("health");
-    }
-    recommendationKeys.push("rest", "meditation");
-  } else if (isGoodDay) {
-    // Grade 2: 좋은 날 - 긍정적인 날이므로 심각한 경고 제거
-    grade = 2;
-    if (!titleKey) {
-      titleKey = "calendar.goodDay";
-      descKey = "calendar.goodDayDesc";
-    }
-    recommendationKeys.push("majorDecision");
-    // 좋은 날에는 심각한 경고(extremeCaution, confusion) 제거
-    // 가벼운 참고 정보(역행, voidOfCourse)만 유지
-    const severeWarnings = ["extremeCaution", "confusion", "conflict", "accident", "injury", "betrayal"];
-    for (let i = warningKeys.length - 1; i >= 0; i--) {
-      if (severeWarnings.includes(warningKeys[i])) {
-        warningKeys.splice(i, 1);
-      }
-    }
-  } else {
-    // Grade 3: 보통 날 - 나머지 전부
-    grade = 3;
-    if (!titleKey) {
-      titleKey = "calendar.normalDay";
-      descKey = "calendar.normalDayDesc";
-    }
+  // 타이틀/설명 키 설정
+  // Grade 0 (천운)일 때는 항상 천운으로 표시
+  if (grade === 0 || !titleKey) {
+    const keys = getGradeKeys(grade);
+    titleKey = keys.titleKey;
+    descKey = keys.descKey;
   }
+
+  // 등급별 추천 추가
+  const gradeRecs = getGradeRecommendations(grade);
+  if (grade <= 1) {
+    recommendationKeys.unshift(...gradeRecs);
+  } else {
+    recommendationKeys.push(...gradeRecs);
+  }
+
+  // 경고 필터링
+  const filteredWarnings = filterWarningsByGrade(grade, warningKeys);
+  warningKeys.length = 0;
+  warningKeys.push(...filteredWarnings);
 
   // ============================================================
   // 고급 예측 분석 (ultraPrecisionEngine + daeunTransitSync)
@@ -3369,11 +3396,11 @@ function analyzeDate(
   };
 
   // 9. 시간 맥락 (과거/현재/미래) 분석
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
-  const daysFromToday = Math.round((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const daysFromToday = Math.round((targetUtc - todayUtc) / (1000 * 60 * 60 * 24));
 
   const isPast = daysFromToday < 0;
   const isFuture = daysFromToday > 0;
@@ -3580,8 +3607,10 @@ export function extractAstroProfile(astrology: any): UserAstroProfile {
  */
 export function calculateSajuProfileFromBirthDate(birthDate: Date): UserSajuProfile {
   // 기준일: 1900년 1월 31일은 甲子일
-  const baseDate = new Date(1900, 0, 31);
-  const diffDays = Math.floor((birthDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(1900, 0, 31);
+  const dateUtc = Date.UTC(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
 
   const stemIndex = ((diffDays % 10) + 10) % 10;
   const branchIndex = ((diffDays % 12) + 12) % 12;
@@ -3840,7 +3869,10 @@ function getLuckyColorFromElement(element: string): string {
  * 행운의 숫자 계산
  */
 function getLuckyNumber(targetDate: Date, birthDate: Date): number {
-  const dayOfYear = Math.floor((targetDate.getTime() - new Date(targetDate.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 연초부터 일수 계산 (서버 타임존 영향 제거)
+  const yearStartUtc = Date.UTC(targetDate.getFullYear(), 0, 0);
+  const dateUtc = Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  const dayOfYear = Math.floor((dateUtc - yearStartUtc) / (1000 * 60 * 60 * 24));
   const birthDay = birthDate.getDate();
   return ((dayOfYear + birthDay) % 9) + 1;
 }

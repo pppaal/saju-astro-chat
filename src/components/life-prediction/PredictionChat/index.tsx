@@ -19,6 +19,16 @@ const HINTS: readonly { type: EventType; text: string }[] = [
   { type: 'move', text: '이사 가기 좋은 시기' },
   { type: 'investment', text: '투자 시작 타이밍' },
   { type: 'study', text: '시험 운이 좋은 때' },
+  { type: 'relationship', text: '연애운 좋은 시기' },
+  { type: 'health', text: '건강 관리 시기' },
+] as const;
+
+// 컴팩트 모드용 빠른 힌트 (4개만)
+const COMPACT_HINTS: readonly { type: EventType; text: string }[] = [
+  { type: 'marriage', text: '결혼' },
+  { type: 'career', text: '취업' },
+  { type: 'investment', text: '투자' },
+  { type: 'move', text: '이사' },
 ] as const;
 
 // 타이핑 애니메이션 플레이스홀더
@@ -140,6 +150,24 @@ export function PredictionChat({ onSubmit, isLoading = false, compact = false }:
                 >
                   <span className={styles.hintIcon}>{EVENT_ICONS[hint.type]}</span>
                   {hint.text}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 컴팩트 모드 빠른 힌트 */}
+          {compact && (
+            <div className={styles.compactHints}>
+              {COMPACT_HINTS.map((hint, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className={styles.compactHint}
+                  onClick={() => handleHintClick(`${hint.text} 최적 시기는?`)}
+                  disabled={isLoading}
+                >
+                  <span>{EVENT_ICONS[hint.type]}</span>
+                  <span>{hint.text}</span>
                 </button>
               ))}
             </div>

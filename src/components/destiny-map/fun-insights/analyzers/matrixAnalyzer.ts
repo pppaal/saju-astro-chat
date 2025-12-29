@@ -136,6 +136,52 @@ function getLevelDescription(level: string, isKo: boolean): string {
   return isKo ? descriptions[level]?.ko || level : descriptions[level]?.en || level;
 }
 
+// 오행 한글명
+const elementNameKo: Record<string, string> = {
+  '목': '나무',
+  '화': '불',
+  '토': '흙',
+  '금': '쇠',
+  '수': '물',
+};
+
+// 서양 원소 한글명
+const westElementNameKo: Record<string, string> = {
+  'fire': '불',
+  'earth': '흙',
+  'air': '바람',
+  'water': '물',
+};
+
+// 융합 설명 생성 (한국어)
+function getFusionDescriptionKo(sajuEl: string, westEl: string, planet: string, level: string): string {
+  const sajuName = elementNameKo[sajuEl] || sajuEl;
+  const westName = westElementNameKo[westEl] || westEl;
+
+  const levelMessages: Record<string, string> = {
+    extreme: `당신의 ${sajuName} 기운과 ${planet}의 ${westName} 에너지가 완벽하게 공명해요!`,
+    amplify: `${sajuName} 기운이 ${planet}의 ${westName} 에너지와 만나 더욱 강해져요.`,
+    balance: `${sajuName} 기운과 ${planet}의 ${westName} 에너지가 조화롭게 균형을 이뤄요.`,
+    clash: `${sajuName} 기운과 ${planet}의 ${westName} 에너지 사이에 약간의 긴장감이 있어요.`,
+    conflict: `${sajuName} 기운과 ${planet}의 ${westName} 에너지가 서로 다른 방향을 향해요.`,
+  };
+
+  return levelMessages[level] || `${sajuName} 기운과 ${planet}의 ${westName} 에너지가 만났어요.`;
+}
+
+// 융합 설명 생성 (영어)
+function getFusionDescriptionEn(sajuEl: string, westEl: string, planet: string, level: string): string {
+  const levelMessages: Record<string, string> = {
+    extreme: `Your ${sajuEl} energy and ${planet}'s ${westEl} element resonate perfectly!`,
+    amplify: `Your ${sajuEl} energy is amplified by ${planet}'s ${westEl} element.`,
+    balance: `Your ${sajuEl} energy harmonizes with ${planet}'s ${westEl} element.`,
+    clash: `There's some tension between your ${sajuEl} energy and ${planet}'s ${westEl} element.`,
+    conflict: `Your ${sajuEl} energy and ${planet}'s ${westEl} element pull in different directions.`,
+  };
+
+  return levelMessages[level] || `Your ${sajuEl} energy meets ${planet}'s ${westEl} element.`;
+}
+
 function getHouseLifeArea(house: number, isKo: boolean): string {
   const areas: Record<number, { ko: string; en: string }> = {
     1: { ko: '자아/외모', en: 'Self/Appearance' },
@@ -205,8 +251,8 @@ export function getMatrixAnalysis(
           color: getInteractionColor(interaction.level),
           keyword: { ko: interaction.keyword, en: interaction.keywordEn },
           description: {
-            ko: `${sajuEl}(일간) × ${westEl}(태양) = ${interaction.keyword}`,
-            en: `${sajuEl}(Day Master) × ${westEl}(Sun) = ${interaction.keywordEn}`,
+            ko: getFusionDescriptionKo(sajuEl, westEl, '태양', interaction.level),
+            en: getFusionDescriptionEn(sajuEl, westEl, 'Sun', interaction.level),
           },
         },
       });
@@ -228,8 +274,8 @@ export function getMatrixAnalysis(
           color: getInteractionColor(interaction.level),
           keyword: { ko: interaction.keyword, en: interaction.keywordEn },
           description: {
-            ko: `${sajuEl}(일간) × ${westEl}(달) = ${interaction.keyword}`,
-            en: `${sajuEl}(Day Master) × ${westEl}(Moon) = ${interaction.keywordEn}`,
+            ko: getFusionDescriptionKo(sajuEl, westEl, '달', interaction.level),
+            en: getFusionDescriptionEn(sajuEl, westEl, 'Moon', interaction.level),
           },
         },
       });

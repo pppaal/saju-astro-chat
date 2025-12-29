@@ -39,6 +39,13 @@ export default function CreditDepletedModal({
   }, [isOpen]);
 
   const handlePurchase = useCallback(() => {
+    // 결제 후 돌아올 URL 저장
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/pricing" && currentPath !== "/success") {
+        localStorage.setItem("checkout_return_url", currentPath);
+      }
+    }
     onClose();
     router.push("/pricing");
   }, [onClose, router]);

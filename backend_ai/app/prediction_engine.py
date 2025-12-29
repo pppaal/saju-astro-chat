@@ -12,12 +12,15 @@ Features:
 
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 import math
 import logging
+
+# 한국 시간대 (UTC+9)
+KST = timezone(timedelta(hours=9))
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +227,7 @@ class LuckCyclePredictor:
         여기서는 간략화된 로직 사용
         """
         if target_year is None:
-            target_year = datetime.now().year
+            target_year = datetime.now(KST).year
 
         age = target_year - birth_year
 
@@ -304,7 +307,7 @@ class LuckCyclePredictor:
         해당 연도의 천간지지와 일주와의 관계로 판단
         """
         if target_year is None:
-            target_year = datetime.now().year
+            target_year = datetime.now(KST).year
 
         # 세운의 천간 (갑을병정무기경신임계)
         heavenly_stems = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"]
@@ -374,7 +377,7 @@ class LuckCyclePredictor:
         장기 예측 (향후 N년)
         대운 + 세운 조합 분석
         """
-        current_year = datetime.now().year
+        current_year = datetime.now(KST).year
         forecasts = []
 
         # 현재 대운 정보
@@ -638,15 +641,24 @@ class TransitTimingEngine:
         특정 이벤트에 적합한 타이밍 찾기
         """
         if start_date is None:
-            start_date = datetime.now()
+            start_date = datetime.now(KST)
 
         windows = []
+        all_dates = []  # 모든 날짜 평가 결과 저장
         current_date = start_date
         end_date = start_date + timedelta(days=days_range)
 
         while current_date < end_date:
             # 해당 날짜의 타이밍 품질 평가
             quality, factors = self._evaluate_date(current_date, event_type)
+
+            # 모든 날짜 저장 (폴백용)
+            all_dates.append({
+                "date": current_date,
+                "quality": quality,
+                "factors": factors,
+                "score": factors.get("score", 50)
+            })
 
             if quality in [TimingQuality.EXCELLENT, TimingQuality.GOOD]:
                 # 연속된 좋은 날짜 찾기
@@ -674,6 +686,54 @@ class TransitTimingEngine:
             else:
                 current_date += timedelta(days=1)
 
+        # 결과가 없으면 상위 점수 날짜로 폴백
+        if not windows and all_dates:
+            # 점수순으로 정렬하여 상위 5개 기간 생성
+            sorted_dates = sorted(all_dates, key=lambda x: x["score"], reverse=True)
+
+            # 상위 날짜들을 기간으로 그룹화
+            used_dates = set()
+            for date_info in sorted_dates[:15]:  # 상위 15개 검토
+                if len(windows) >= 5:
+                    break
+
+                date = date_info["date"]
+                if date in used_dates:
+                    continue
+
+                # 연속 날짜 찾기 (전후 2일)
+                window_start = date
+                window_end = date
+
+                for offset in range(1, 3):
+                    check_date = date + timedelta(days=offset)
+                    if check_date not in used_dates and check_date < end_date:
+                        _, check_factors = self._evaluate_date(check_date, event_type)
+                        if check_factors.get("score", 0) >= date_info["score"] - 10:
+                            window_end = check_date
+                            used_dates.add(check_date)
+
+                used_dates.add(date)
+
+                # 품질 결정 (폴백이므로 NEUTRAL 또는 GOOD)
+                score = date_info["score"]
+                if score >= 55:
+                    quality = TimingQuality.GOOD
+                else:
+                    quality = TimingQuality.NEUTRAL
+
+                window = TimingWindow(
+                    start_date=window_start,
+                    end_date=window_end,
+                    quality=quality,
+                    event_types=[event_type],
+                    astro_factors=date_info["factors"].get("astro", []),
+                    saju_factors=date_info["factors"].get("saju", []),
+                    advice=self._generate_timing_advice(event_type, date_info["factors"]),
+                    score=score
+                )
+                windows.append(window)
+
         return sorted(windows, key=lambda w: w.score, reverse=True)[:10]
 
     def _evaluate_date(
@@ -683,7 +743,8 @@ class TransitTimingEngine:
     ) -> Tuple[TimingQuality, Dict]:
         """날짜 평가"""
 
-        factors = {"astro": [], "saju": [], "score": 50}
+        # 기본 점수를 55로 상향 (더 많은 날짜가 추천됨)
+        factors = {"astro": [], "saju": [], "score": 55}
 
         # 달의 위상 (간략화된 계산)
         moon_phase = self._get_moon_phase(date)
@@ -694,8 +755,11 @@ class TransitTimingEngine:
         # 요일 효과
         weekday_score = self._evaluate_weekday(date.weekday(), event_type)
         factors["score"] += weekday_score
+        if weekday_score > 0:
+            weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
+            factors["astro"].append(f"{weekday_names[date.weekday()]}요일 유리")
 
-        # 역행 체크 (간략화)
+        # 역행 체크 (간략화) - 페널티 완화
         retrograde_penalty = self._check_retrograde(date, event_type)
         factors["score"] -= retrograde_penalty
         if retrograde_penalty > 0:
@@ -704,18 +768,18 @@ class TransitTimingEngine:
         # 사주 일진 체크
         saju_bonus = self._check_saju_day(date, event_type)
         factors["score"] += saju_bonus
-        if saju_bonus > 10:
-            factors["saju"].append("길일")
+        if saju_bonus > 5:
+            factors["saju"].append("황도길일")
 
-        # 점수를 품질로 변환
+        # 점수를 품질로 변환 (기준 완화)
         score = factors["score"]
-        if score >= 80:
+        if score >= 75:
             quality = TimingQuality.EXCELLENT
-        elif score >= 65:
+        elif score >= 60:
             quality = TimingQuality.GOOD
-        elif score >= 50:
+        elif score >= 45:
             quality = TimingQuality.NEUTRAL
-        elif score >= 35:
+        elif score >= 30:
             quality = TimingQuality.CAUTION
         else:
             quality = TimingQuality.AVOID
@@ -793,14 +857,13 @@ class TransitTimingEngine:
         # 실제로는 천문력 데이터 필요
         penalty = 0
 
-        year = date.year
         month = date.month
 
-        # 수성 역행 (연 3-4회, 각 약 3주)
-        mercury_retro_months = [1, 4, 8, 12]  # 대략적인 예시
+        # 수성 역행 (연 3-4회, 각 약 3주) - 페널티 완화
+        mercury_retro_months = [4, 8, 12]  # 대략적인 예시 (축소)
         if month in mercury_retro_months:
             if event_type in [EventType.CONTRACT, EventType.TRAVEL]:
-                penalty += 15
+                penalty += 8  # 15에서 8로 완화
 
         return penalty
 
@@ -851,10 +914,11 @@ class ElectionalEngine:
     최적의 날짜/시간 추천
     """
 
-    def __init__(self, data_loader: DataLoader = None):
+    def __init__(self, data_loader: DataLoader = None, openai_client=None):
         self.data_loader = data_loader or DataLoader()
         self.luck_predictor = LuckCyclePredictor(data_loader)
         self.transit_engine = TransitTimingEngine(data_loader)
+        self.openai_client = openai_client  # AI 기반 질문 의도 파악용
 
     def find_best_time(
         self,
@@ -864,10 +928,11 @@ class ElectionalEngine:
         days_range: int = 90
     ) -> Dict:
         """
-        '언제가 좋을까?' 질문에 대한 답변
+        '언제가 좋을까?' 또는 '언제 ~했나요?' 질문에 대한 답변
+        과거 2년 + 미래 2년 통합 분석
 
         Args:
-            question: 질문 (예: "사업 시작 언제가 좋아?", "결혼 날짜 추천")
+            question: 질문 (예: "사업 시작 언제가 좋아?", "과거에 언제 힘들었나요?")
             birth_info: 생년월일시 정보 (선택)
             start_date: 검색 시작일
             days_range: 검색 기간 (일)
@@ -875,20 +940,21 @@ class ElectionalEngine:
         Returns:
             최적 날짜들과 이유
         """
-        if start_date is None:
-            start_date = datetime.now()
-
         # 질문에서 이벤트 유형 파악
         event_type = self._detect_event_type(question)
 
-        # 트랜짓 기반 좋은 날짜 찾기
-        timing_windows = self.transit_engine.get_timing_for_event(
-            event_type, start_date, days_range
-        )
-
-        # 사주 운세 반영 (생년월일 제공시)
+        # 생년월일 있으면 항상 세운 기반 분석 사용 (더 정확함)
         if birth_info:
-            timing_windows = self._filter_by_saju(timing_windows, birth_info)
+            return self._analyze_yearly_periods(question, birth_info, event_type)
+
+        # 생년월일 없으면 트랜짓 기반 분석 (폴백)
+        now = datetime.now()
+        search_start = now - timedelta(days=730)
+        total_range = 1460
+
+        timing_windows = self.transit_engine.get_timing_for_event(
+            event_type, search_start, total_range
+        )
 
         # 결과 정리
         recommendations = []
@@ -908,41 +974,328 @@ class ElectionalEngine:
             recommendations.append(rec)
 
         # 피해야 할 날짜들
-        avoid_dates = self._get_dates_to_avoid(event_type, start_date, days_range)
+        avoid_dates = self._get_dates_to_avoid(event_type, search_start, total_range)
 
         return {
             "question": question,
             "event_type": event_type.value,
             "search_period": {
-                "start": start_date.strftime("%Y-%m-%d"),
-                "end": (start_date + timedelta(days=days_range)).strftime("%Y-%m-%d")
+                "start": search_start.strftime("%Y-%m-%d"),
+                "end": (search_start + timedelta(days=total_range)).strftime("%Y-%m-%d")
             },
             "recommendations": recommendations,
             "avoid_dates": avoid_dates,
             "general_advice": self._get_general_advice(event_type)
         }
 
-    def _detect_event_type(self, question: str) -> EventType:
-        """질문에서 이벤트 유형 감지"""
+    def _is_past_question(self, question: str) -> bool:
+        """질문이 과거에 대한 것인지 감지"""
+        past_keywords = [
+            "과거", "언제 힘들", "힘들었", "어려웠", "안좋았", "좋지 않았",
+            "지나간", "예전", "작년", "재작년", "몇 년 전", "했나요", "했어요",
+            "었나요", "었어요", "였나요", "였어요"
+        ]
+        return any(kw in question for kw in past_keywords)
 
-        keyword_mapping = {
-            EventType.CAREER: ["직장", "취업", "이직", "사업", "창업", "승진", "면접"],
-            EventType.RELATIONSHIP: ["결혼", "연애", "고백", "프로포즈", "소개팅", "데이트"],
-            EventType.FINANCE: ["투자", "주식", "부동산", "재테크", "대출", "돈"],
-            EventType.HEALTH: ["수술", "치료", "병원", "건강", "다이어트", "운동"],
-            EventType.EDUCATION: ["시험", "공부", "학교", "입학", "자격증", "면허"],
-            EventType.TRAVEL: ["여행", "이사", "이민", "해외", "출장"],
-            EventType.CONTRACT: ["계약", "서명", "협상", "합의", "거래"]
+    def _analyze_past_periods(
+        self,
+        question: str,
+        birth_info: Dict,
+        event_type: EventType
+    ) -> Dict:
+        """과거 운세 분석 - 힘들었던/좋았던 시기 찾기 (세운/대운 기반)"""
+        current_year = datetime.now().year
+        birth_year = birth_info.get("year", 1990)
+        birth_month = birth_info.get("month", 1)
+
+        # 과거 10년 + 미래 2년 분석
+        start_year = max(birth_year + 10, current_year - 10)
+        end_year = current_year + 2
+
+        periods = []
+        is_hardship_question = any(kw in question for kw in ["힘들", "어려", "안좋", "좋지 않"])
+
+        for year in range(start_year, end_year + 1):
+            seun = self.luck_predictor.calculate_seun(birth_year, birth_month, year)
+
+            # 모든 연도 저장 (필터링 없이 - 항상 결과 반환)
+            if is_hardship_question:
+                score = 100 - seun.overall_rating
+            else:
+                score = seun.overall_rating
+
+            periods.append({
+                "year": year,
+                "score": score,
+                "dominant_god": seun.dominant_god,
+                "themes": seun.themes,
+                "challenges": seun.challenges,
+                "opportunities": seun.opportunities,
+                "rating": seun.overall_rating
+            })
+
+        # 점수순 정렬
+        periods.sort(key=lambda x: x["score"], reverse=True)
+
+        # 결과를 recommendations 형식으로 변환
+        recommendations = []
+        for p in periods[:5]:
+            quality = "caution" if is_hardship_question else ("excellent" if p["rating"] >= 75 else "good")
+            quality_display = "⚠️ 어려운 시기" if is_hardship_question else ("⭐ 최상" if p["rating"] >= 75 else "👍 좋음")
+
+            reasons_astro = []
+            reasons_saju = [f"세운: {p['dominant_god']}"]
+            if p["themes"]:
+                reasons_saju.extend([f"테마: {t}" for t in p["themes"][:2]])
+            if is_hardship_question and p["challenges"]:
+                reasons_saju.extend([f"주의: {c}" for c in p["challenges"][:2]])
+            elif p["opportunities"]:
+                reasons_saju.extend([f"기회: {o}" for o in p["opportunities"][:2]])
+
+            rec = {
+                "start_date": f"{p['year']}-01-01",
+                "end_date": f"{p['year']}-12-31",
+                "quality": quality,
+                "quality_display": quality_display,
+                "score": round(p["score"], 1),
+                "reasons": {
+                    "astro": reasons_astro,
+                    "saju": reasons_saju
+                },
+                "advice": f"{p['year']}년 {p['dominant_god']} 운"
+            }
+            recommendations.append(rec)
+
+        return {
+            "question": question,
+            "event_type": event_type.value,
+            "search_period": {
+                "start": f"{start_year}-01-01",
+                "end": f"{end_year}-12-31"
+            },
+            "recommendations": recommendations,
+            "avoid_dates": [],
+            "general_advice": "세운(연운) 기반으로 분석한 결과입니다."
         }
 
-        question_lower = question.lower()
+    def _analyze_yearly_periods(
+        self,
+        question: str,
+        birth_info: Dict,
+        event_type: EventType
+    ) -> Dict:
+        """
+        모든 질문에 대해 연도별 운세 분석 (세운 기반)
+        과거 2년 + 미래 2년 분석
+        """
+        current_year = datetime.now().year
+        birth_year = birth_info.get("year", 1990)
+        birth_month = birth_info.get("month", 1)
 
+        # 과거 2년 + 미래 2년
+        start_year = current_year - 2
+        end_year = current_year + 2
+
+        periods = []
+
+        for year in range(start_year, end_year + 1):
+            seun = self.luck_predictor.calculate_seun(birth_year, birth_month, year)
+
+            # 이벤트 유형에 따른 점수 조정
+            event_score = self._get_event_specific_score(seun, event_type)
+
+            periods.append({
+                "year": year,
+                "score": event_score,
+                "dominant_god": seun.dominant_god,
+                "themes": seun.themes,
+                "challenges": seun.challenges,
+                "opportunities": seun.opportunities,
+                "rating": seun.overall_rating
+            })
+
+        # 점수순 정렬
+        periods.sort(key=lambda x: x["score"], reverse=True)
+
+        # 결과를 recommendations 형식으로 변환
+        recommendations = []
+        for p in periods[:5]:
+            if p["score"] >= 75:
+                quality = "excellent"
+                quality_display = "⭐ 최상"
+            elif p["score"] >= 60:
+                quality = "good"
+                quality_display = "👍 좋음"
+            else:
+                quality = "neutral"
+                quality_display = "➡️ 보통"
+
+            reasons_astro = []
+            reasons_saju = [f"세운: {p['dominant_god']}"]
+            if p["themes"]:
+                reasons_saju.extend([f"테마: {t}" for t in p["themes"][:2]])
+            if p["opportunities"]:
+                reasons_saju.extend([f"기회: {o}" for o in p["opportunities"][:2]])
+
+            rec = {
+                "start_date": f"{p['year']}-01-01",
+                "end_date": f"{p['year']}-12-31",
+                "quality": quality,
+                "quality_display": quality_display,
+                "score": round(p["score"], 1),
+                "reasons": {
+                    "astro": reasons_astro,
+                    "saju": reasons_saju
+                },
+                "advice": f"{p['year']}년 {p['dominant_god']} 운 - {self._get_event_advice(event_type, p)}"
+            }
+            recommendations.append(rec)
+
+        return {
+            "question": question,
+            "event_type": event_type.value,
+            "search_period": {
+                "start": f"{start_year}-01-01",
+                "end": f"{end_year}-12-31"
+            },
+            "recommendations": recommendations,
+            "avoid_dates": [],
+            "general_advice": self._get_general_advice(event_type)
+        }
+
+    def _get_event_specific_score(self, seun, event_type: EventType) -> float:
+        """이벤트 유형별 세운 점수 계산"""
+        base_score = seun.overall_rating
+
+        # 십신별 이벤트 가중치
+        sipsin_event_bonus = {
+            EventType.CAREER: {"정관": 15, "편관": 10, "정인": 8, "식신": 5},
+            EventType.RELATIONSHIP: {"정재": 15, "정관": 10, "식신": 8, "정인": 5},
+            EventType.FINANCE: {"정재": 15, "편재": 12, "식신": 8, "상관": 5},
+            EventType.HEALTH: {"식신": 15, "정인": 10, "비견": 8},
+            EventType.EDUCATION: {"정인": 15, "편인": 12, "식신": 8},
+            EventType.TRAVEL: {"편재": 10, "식신": 8, "상관": 5},
+            EventType.CONTRACT: {"정관": 12, "정재": 10, "정인": 8},
+            EventType.GENERAL: {}
+        }
+
+        bonus_map = sipsin_event_bonus.get(event_type, {})
+        bonus = bonus_map.get(seun.dominant_god, 0)
+
+        return min(100, base_score + bonus)
+
+    def _get_event_advice(self, event_type: EventType, period: Dict) -> str:
+        """이벤트별 간단한 조언"""
+        advice_map = {
+            EventType.CAREER: "직장/사업 운",
+            EventType.RELATIONSHIP: "인연/관계 운",
+            EventType.FINANCE: "재물 운",
+            EventType.HEALTH: "건강 운",
+            EventType.EDUCATION: "학업/시험 운",
+            EventType.TRAVEL: "이동/여행 운",
+            EventType.CONTRACT: "계약/협상 운",
+            EventType.GENERAL: "전반적 운"
+        }
+        return advice_map.get(event_type, "운세")
+
+    def _detect_event_type(self, question: str) -> EventType:
+        """질문에서 이벤트 유형 감지 - 키워드 + AI 폴백"""
+
+        keyword_mapping = {
+            EventType.CAREER: [
+                "직장", "취업", "이직", "사업", "창업", "승진", "면접", "퇴사",
+                "일", "회사", "직업", "커리어", "경력", "업무", "프로젝트"
+            ],
+            EventType.RELATIONSHIP: [
+                "결혼", "연애", "고백", "프로포즈", "소개팅", "데이트",
+                "부모", "가족", "친구", "인간관계", "사이", "관계", "만남",
+                "이별", "화해", "사랑", "짝", "배우자", "남편", "아내", "애인"
+            ],
+            EventType.FINANCE: [
+                "투자", "주식", "부동산", "재테크", "대출", "돈", "재산",
+                "월급", "수입", "지출", "저축", "금전", "재물", "복권", "로또",
+                "사야", "살까", "구매", "구입", "비싼", "가격", "물건"
+            ],
+            EventType.HEALTH: [
+                "수술", "치료", "병원", "건강", "다이어트", "운동",
+                "아프", "질병", "몸", "체력", "피로", "스트레스"
+            ],
+            EventType.EDUCATION: [
+                "시험", "공부", "학교", "입학", "자격증", "면허",
+                "합격", "졸업", "학업", "성적", "수능", "토익", "자격"
+            ],
+            EventType.TRAVEL: [
+                "여행", "이사", "이민", "해외", "출장", "이동", "휴가"
+            ],
+            EventType.CONTRACT: [
+                "계약", "서명", "협상", "합의", "거래", "매매", "임대"
+            ]
+        }
+
+        # 1. 키워드 매칭 먼저 시도 (빠름)
         for event_type, keywords in keyword_mapping.items():
             for keyword in keywords:
-                if keyword in question_lower:
+                if keyword in question:
                     return event_type
 
+        # 2. 키워드 매칭 실패시 AI 분석 (더 정확하지만 느림)
+        if self.openai_client:
+            ai_result = self._detect_event_type_with_ai(question)
+            if ai_result != EventType.GENERAL:
+                return ai_result
+
         return EventType.GENERAL
+
+    def _detect_event_type_with_ai(self, question: str) -> EventType:
+        """OpenAI를 사용하여 질문 의도 파악"""
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """당신은 질문 분류 전문가입니다. 사용자의 질문을 분석하여 다음 카테고리 중 하나로 분류하세요.
+
+카테고리:
+- career: 직장, 취업, 이직, 사업, 창업, 승진, 경력 관련
+- relationship: 연애, 결혼, 가족, 친구, 인간관계 관련
+- finance: 돈, 투자, 재산, 수입, 지출 관련
+- health: 건강, 수술, 치료, 다이어트, 운동 관련
+- education: 공부, 시험, 학교, 자격증 관련
+- travel: 여행, 이사, 이민, 출장 관련
+- contract: 계약, 서명, 협상, 거래 관련
+- general: 위 카테고리에 해당하지 않는 경우
+
+반드시 카테고리 이름만 소문자로 응답하세요. 예: career"""
+                    },
+                    {
+                        "role": "user",
+                        "content": f"질문: {question}"
+                    }
+                ],
+                max_tokens=20,
+                temperature=0
+            )
+
+            category = response.choices[0].message.content.strip().lower()
+
+            # 카테고리 매핑
+            category_map = {
+                "career": EventType.CAREER,
+                "relationship": EventType.RELATIONSHIP,
+                "finance": EventType.FINANCE,
+                "health": EventType.HEALTH,
+                "education": EventType.EDUCATION,
+                "travel": EventType.TRAVEL,
+                "contract": EventType.CONTRACT,
+                "general": EventType.GENERAL
+            }
+
+            return category_map.get(category, EventType.GENERAL)
+
+        except Exception as e:
+            logger.warning(f"[ElectionalEngine] AI event detection failed: {e}")
+            return EventType.GENERAL
 
     def _filter_by_saju(
         self,
@@ -954,7 +1307,7 @@ class ElectionalEngine:
         if not all(k in birth_info for k in ["year", "month"]):
             return windows
 
-        year = datetime.now().year
+        year = datetime.now(KST).year
         seun = self.luck_predictor.calculate_seun(
             birth_info["year"], birth_info["month"], year
         )
@@ -1082,7 +1435,20 @@ class UnifiedPredictionEngine:
         self.data_loader = DataLoader()
         self.luck_predictor = LuckCyclePredictor(self.data_loader)
         self.transit_engine = TransitTimingEngine(self.data_loader)
-        self.electional_engine = ElectionalEngine(self.data_loader)
+
+        # AI 해석을 위한 OpenAI 클라이언트 (먼저 초기화)
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.client = None
+        if OPENAI_AVAILABLE and self.api_key:
+            import httpx
+            self.client = OpenAI(
+                api_key=self.api_key,
+                timeout=httpx.Timeout(60.0, connect=10.0)
+            )
+            logger.info("[PredictionEngine] OpenAI client initialized for AI event detection")
+
+        # ElectionalEngine에 OpenAI 클라이언트 전달 (AI 기반 질문 의도 파악)
+        self.electional_engine = ElectionalEngine(self.data_loader, openai_client=self.client)
 
         # GraphRAG for rich context
         self.graph_rag = None
@@ -1092,16 +1458,6 @@ class UnifiedPredictionEngine:
                 logger.info("[PredictionEngine] GraphRAG loaded successfully")
             except Exception as e:
                 logger.warning(f"[PredictionEngine] GraphRAG init failed: {e}")
-
-        # AI 해석을 위한 OpenAI 클라이언트
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.client = None
-        if OPENAI_AVAILABLE and self.api_key:
-            import httpx
-            self.client = OpenAI(
-                api_key=self.api_key,
-                timeout=httpx.Timeout(60.0, connect=10.0)
-            )
 
     def search_rag_context(
         self,
@@ -1236,7 +1592,7 @@ class UnifiedPredictionEngine:
         """
         result = {
             "birth_info": birth_info,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": datetime.now(KST).isoformat(),
             "predictions": {},
             "rag_context": {}  # RAG 컨텍스트 추가
         }
@@ -1267,7 +1623,7 @@ class UnifiedPredictionEngine:
         # 2. 세운 분석
         seun_sipsin = None
         try:
-            current_year = datetime.now().year
+            current_year = datetime.now(KST).year
             seun = self.luck_predictor.calculate_seun(
                 birth_info["year"],
                 birth_info["month"],

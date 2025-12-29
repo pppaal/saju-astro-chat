@@ -31,7 +31,8 @@ const themeKeywords: Record<string, string[]> = {
     "돈", "재정", "투자", "월급", "수입", "재물", "금전", "주식", "부동산",
     "저축", "대출", "빚", "재산", "경제", "부자", "수익", "재테크", "코인", "비트",
     "재물운", "금전운", "돈이 들어", "돈 들어",
-    "money", "finance", "investment", "salary", "wealth", "crypto", "bitcoin"
+    "사야", "살까", "구매", "구입", "지출", "비싼", "가격", "물건",
+    "money", "finance", "investment", "salary", "wealth", "crypto", "bitcoin", "buy", "purchase"
   ],
   "well-being-health": [
     "건강", "몸", "피곤", "스트레스", "아픔", "병원", "다이어트", "운동",
@@ -449,15 +450,25 @@ const directMatches: DirectMatch[] = [
     reason: "Compare your options", reasonKo: "두 선택지를 비교해봐요",
     priority: 50 },
   // "~할까" 패턴 (선택)
-  { keywords: ["할까", "갈까", "볼까", "먹을까", "살까", "마실까", "해볼까"],
+  { keywords: ["할까", "갈까", "볼까", "먹을까", "살까", "마실까", "해볼까", "탈까", "입을까", "쓸까", "들을까", "읽을까", "볼까", "만날까", "말할까", "물어볼까", "신청할까", "등록할까", "시작할까", "끝낼까", "바꿀까", "고를까"],
     themeId: "decisions-crossroads", spreadId: "yes-no-why",
     reason: "Yes or No guidance", reasonKo: "해야 할지 말아야 할지",
     priority: 45 },
-  // "해도 될까" 패턴
-  { keywords: ["해도 될까", "해야 할까", "괜찮을까", "가도 될까", "사도 될까", "마셔도 될까", "해도 돼"],
+  // "~도 될까/되나/돼" 패턴 (허락/확인형 질문)
+  { keywords: ["도 될까", "도 되나", "도 돼", "도될까", "도되나", "도돼", "면 될까", "면 되나", "면 돼", "어도 될", "어도 되", "아도 될", "아도 되", "해도 될", "해도 되", "가도 될", "가도 되", "사도 될", "사도 되", "먹어도 될", "먹어도 되", "마셔도 될", "마셔도 되", "써도 될", "써도 되", "타도 될", "타도 되", "입어도 될", "입어도 되", "봐도 될", "봐도 되", "만나도 될", "만나도 되", "해봐도 될", "해봐도 되", "시작해도 될", "시작해도 되", "그만둬도 될", "그만둬도 되", "바꿔도 될", "바꿔도 되", "신청해도 될", "신청해도 되", "등록해도 될", "등록해도 되"],
+    themeId: "decisions-crossroads", spreadId: "yes-no-why",
+    reason: "Yes or No guidance", reasonKo: "해도 될지 안 될지",
+    priority: 50 },
+  // "해야 할까/하나/해" 패턴
+  { keywords: ["해야 할까", "해야 하나", "해야 돼", "해야할까", "해야하나", "해야돼", "가야 할까", "가야 하나", "가야 돼", "사야 할까", "사야 하나", "사야 돼", "먹어야 할까", "먹어야 하나", "타야 할까", "타야 하나", "봐야 할까", "봐야 하나", "만나야 할까", "만나야 하나", "바꿔야 할까", "바꿔야 하나", "그만둬야 할까", "그만둬야 하나", "시작해야 할까", "시작해야 하나"],
     themeId: "decisions-crossroads", spreadId: "yes-no-why",
     reason: "Yes or No guidance", reasonKo: "해야 할지 말아야 할지",
     priority: 50 },
+  // "괜찮을까/좋을까" 패턴
+  { keywords: ["괜찮을까", "괜찮나", "좋을까", "좋나", "나을까", "나을까요", "맞을까", "맞나", "될까", "될까요", "되나", "되나요", "가능할까", "가능하나", "할 수 있을까", "할수있을까"],
+    themeId: "decisions-crossroads", spreadId: "yes-no-why",
+    reason: "Yes or No guidance", reasonKo: "될지 안 될지",
+    priority: 48 },
   // "언제"는 다른 주제 키워드 없을 때만 일반 타이밍으로
   { keywords: ["언제", "타이밍", "시기", "때가", "when", "timing"],
     themeId: "decisions-crossroads", spreadId: "timing-window",

@@ -10,5 +10,12 @@ type Props = {
 };
 
 export default function AuthProvider({ children }: Props) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <SessionProvider
+      refetchOnWindowFocus={true}
+      refetchWhenOffline={false}
+    >
+      {children}
+    </SessionProvider>
+  );
 }

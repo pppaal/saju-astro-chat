@@ -197,43 +197,12 @@ export default function Chat({
   const seedSentRef = React.useRef(false);
   const welcomeShownRef = React.useRef(false);
 
-  // Load previous chat session on mount
+  // Mark session as loaded on mount (no longer auto-load previous messages)
+  // Users can view history via "이전 채팅 보기" button
   React.useEffect(() => {
-    async function loadSession() {
-      const themeToLoad = theme || "chat";
-      console.log("[Chat] Loading session for theme:", themeToLoad);
-
-      try {
-        const res = await fetch(`/api/counselor/session/load?theme=${themeToLoad}`);
-        console.log("[Chat] Load response status:", res.status);
-
-        if (res.ok) {
-          const data = await res.json();
-          console.log("[Chat] Load response data:", data);
-
-          if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
-            setMessages(data.messages);
-            if (data.sessionId) {
-              sessionIdRef.current = data.sessionId;
-            }
-            console.log("[Chat] ✅ Loaded previous session:", data.messages.length, "messages");
-          } else {
-            console.log("[Chat] No previous messages found");
-          }
-        } else {
-          console.warn("[Chat] Load failed with status:", res.status);
-        }
-      } catch (e) {
-        console.warn("[Chat] Failed to load session:", e);
-      } finally {
-        setSessionLoaded(true);
-      }
-    }
-
-    if (!sessionLoaded) {
-      loadSession();
-    }
-  }, [theme, sessionLoaded]);
+    setSessionLoaded(true);
+    console.log("[Chat] Session ready (fresh start - history available via button)");
+  }, []);
 
   // Auto-save messages to database
   React.useEffect(() => {

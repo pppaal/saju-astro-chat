@@ -112,9 +112,20 @@ export default function CreditBadge({
     return styles.low;
   };
 
+  // 결제 후 돌아올 URL을 저장하면서 pricing 페이지로 이동
+  const handleClick = () => {
+    if (typeof window !== "undefined") {
+      // 현재 페이지 경로 저장 (pricing 페이지 제외)
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/pricing" && currentPath !== "/success") {
+        localStorage.setItem("checkout_return_url", currentPath);
+      }
+    }
+  };
+
   if (variant === "minimal") {
     return (
-      <Link href="/pricing" className={`${styles.badgeMinimal} ${getColorClass()} ${className}`}>
+      <Link href="/pricing" onClick={handleClick} className={`${styles.badgeMinimal} ${getColorClass()} ${className}`}>
         <span className={styles.creditIcon}>✦</span>
         <span className={styles.creditCount}>{remaining}</span>
       </Link>
@@ -123,7 +134,7 @@ export default function CreditBadge({
 
   if (variant === "compact") {
     return (
-      <Link href="/pricing" className={`${styles.badge} ${styles.compact} ${getColorClass()} ${className}`}>
+      <Link href="/pricing" onClick={handleClick} className={`${styles.badge} ${styles.compact} ${getColorClass()} ${className}`}>
         <span className={styles.creditIcon}>✦</span>
         <span className={styles.creditText}>
           {remaining}/{totalCredits}
@@ -133,7 +144,7 @@ export default function CreditBadge({
   }
 
   return (
-    <Link href="/pricing" className={`${styles.badge} ${getColorClass()} ${className}`}>
+    <Link href="/pricing" onClick={handleClick} className={`${styles.badge} ${getColorClass()} ${className}`}>
       <div className={styles.content}>
         {showPlan && (
           <span className={styles.planBadge}>{plan.toUpperCase()}</span>

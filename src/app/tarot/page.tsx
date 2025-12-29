@@ -20,23 +20,26 @@ interface AIAnalysisResult {
   path: string;
 }
 
-// 키워드 기반 빠른 추천 (미리보기용)
-function getQuickRecommendation(question: string): { path: string; cardCount: number; spreadTitle: string } {
+// 키워드 기반 빠른 추천 (미리보기용) - 키워드 매칭 성공 여부도 반환
+function getQuickRecommendation(question: string): { path: string; cardCount: number; spreadTitle: string; isKeywordMatch: boolean } {
   const recommendations = recommendSpreads(question, 1);
 
-  if (recommendations.length > 0) {
+  if (recommendations.length > 0 && recommendations[0].matchScore > 0) {
     const rec = recommendations[0];
     return {
       path: `/tarot/${rec.themeId}/${rec.spreadId}?question=${encodeURIComponent(question)}`,
       cardCount: rec.spread.cardCount,
-      spreadTitle: rec.spread.titleKo || rec.spread.title
+      spreadTitle: rec.spread.titleKo || rec.spread.title,
+      isKeywordMatch: true
     };
   }
 
+  // 키워드 매칭 실패 - 기본값 반환하되 GPT 호출 필요함을 표시
   return {
     path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(question)}`,
     cardCount: 3,
-    spreadTitle: "과거-현재-미래"
+    spreadTitle: "과거-현재-미래",
+    isKeywordMatch: false
   };
 }
 
@@ -81,10 +84,12 @@ export default function TarotHomePage() {
   const [question, setQuestion] = useState("");
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [isFocused, setIsFocused] = useState(false);
-  const [previewInfo, setPreviewInfo] = useState<{ cardCount: number; spreadTitle: string } | null>(null);
+  const [previewInfo, setPreviewInfo] = useState<{ cardCount: number; spreadTitle: string; path?: string } | null>(null);
   const [dangerWarning, setDangerWarning] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const gptDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setRecentQuestions(getRecentQuestions());
@@ -154,8 +159,14 @@ export default function TarotHomePage() {
     };
   }, []);
 
-  // 질문이 변경될 때 키워드 기반 빠른 미리보기 (즉시 반응)
+  // 질문이 변경될 때: 1) 키워드 즉시 반응 2) 키워드 실패시 GPT 디바운스 호출
   useEffect(() => {
+    // 이전 GPT 요청 취소
+    if (gptDebounceRef.current) {
+      clearTimeout(gptDebounceRef.current);
+      gptDebounceRef.current = null;
+    }
+
     if (question.trim()) {
       // 위험한 질문 체크
       const dangerCheck = checkDangerousQuestion(question);
@@ -163,18 +174,64 @@ export default function TarotHomePage() {
         setDangerWarning((isKo ? dangerCheck.messageKo : dangerCheck.message) || null);
         setPreviewInfo(null);
         setAiExplanation(null);
-      } else {
-        setDangerWarning(null);
-        const result = getQuickRecommendation(question);
-        setPreviewInfo({ cardCount: result.cardCount, spreadTitle: result.spreadTitle });
-        setAiExplanation(null);
+        setIsLoadingPreview(false);
+        return;
       }
+
+      setDangerWarning(null);
+      const fallbackResult = getQuickRecommendation(question);
+
+      // 항상 GPT 분석 사용 (더 정확함)
+      setPreviewInfo({ cardCount: 3, spreadTitle: isKo ? "분석 중..." : "Analyzing...", path: undefined });
+      setIsLoadingPreview(true);
+      setAiExplanation(null);
+
+      gptDebounceRef.current = setTimeout(async () => {
+        try {
+          const response = await fetch("/api/tarot/analyze-question", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question, language }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.isDangerous) {
+              setDangerWarning(data.message || "");
+              setPreviewInfo(null);
+            } else {
+              setPreviewInfo({
+                cardCount: data.cardCount,
+                spreadTitle: data.spreadTitle,
+                path: data.path
+              });
+              setAiExplanation(data.userFriendlyExplanation);
+            }
+          } else {
+            // API 실패시 키워드 기반 폴백
+            setPreviewInfo({ cardCount: fallbackResult.cardCount, spreadTitle: fallbackResult.spreadTitle, path: fallbackResult.path });
+          }
+        } catch (error) {
+          console.error("GPT analysis failed:", error);
+          // 실패시 키워드 기반 폴백
+          setPreviewInfo({ cardCount: fallbackResult.cardCount, spreadTitle: fallbackResult.spreadTitle, path: fallbackResult.path });
+        } finally {
+          setIsLoadingPreview(false);
+        }
+      }, 400); // 400ms 디바운스 (빠른 응답)
     } else {
       setPreviewInfo(null);
       setDangerWarning(null);
       setAiExplanation(null);
+      setIsLoadingPreview(false);
     }
-  }, [question, isKo]);
+
+    return () => {
+      if (gptDebounceRef.current) {
+        clearTimeout(gptDebounceRef.current);
+      }
+    };
+  }, [question, isKo, language]);
 
   // GPT로 질문 분석 (타로 보기 클릭 시)
   const analyzeWithAI = useCallback(async (q: string): Promise<AIAnalysisResult | null> => {
@@ -196,14 +253,22 @@ export default function TarotHomePage() {
     }
   }, [language]);
 
-  // 타로 시작 - GPT 분석 후 이동
+  // 타로 시작 - 이미 GPT 분석 결과가 있으면 바로 사용, 없으면 분석
   const handleStartReading = useCallback(async () => {
-    if (!question.trim() || dangerWarning) return;
+    if (!question.trim() || dangerWarning || isLoadingPreview) return;
 
+    saveRecentQuestion(question);
+
+    // 이미 previewInfo에 path가 있으면 (GPT나 키워드로 분석 완료) 바로 이동
+    if (previewInfo?.path) {
+      router.push(previewInfo.path);
+      return;
+    }
+
+    // 아직 분석 안 됐으면 GPT 호출
     setIsAnalyzing(true);
 
     try {
-      // GPT로 분석
       const aiResult = await analyzeWithAI(question);
 
       if (aiResult?.isDangerous) {
@@ -212,15 +277,11 @@ export default function TarotHomePage() {
         return;
       }
 
-      saveRecentQuestion(question);
-
       if (aiResult) {
-        // AI 분석 결과 사용
         setAiExplanation(aiResult.userFriendlyExplanation);
-        // 잠깐 설명 보여주고 이동
         setTimeout(() => {
           router.push(aiResult.path);
-        }, 800);
+        }, 500);
       } else {
         // AI 실패시 키워드 기반 폴백
         const result = getQuickRecommendation(question);
@@ -228,11 +289,10 @@ export default function TarotHomePage() {
       }
     } catch {
       // 에러시 키워드 기반 폴백
-      saveRecentQuestion(question);
       const result = getQuickRecommendation(question);
       router.push(result.path);
     }
-  }, [question, dangerWarning, analyzeWithAI, router]);
+  }, [question, dangerWarning, isLoadingPreview, previewInfo, analyzeWithAI, router]);
 
   // 빠른 질문 선택 - 바로 이동 (GPT 분석 없이)
   const handleQuickQuestion = (q: typeof quickQuestions[0]) => {
@@ -356,17 +416,23 @@ export default function TarotHomePage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <div className={styles.cardCountPreview}>
-                    <span className={styles.previewIcon}>🃏</span>
+                  <div className={`${styles.cardCountPreview} ${isLoadingPreview ? styles.loading : ''}`}>
+                    {isLoadingPreview ? (
+                      <span className={styles.previewIcon}>✨</span>
+                    ) : (
+                      <span className={styles.previewIcon}>🃏</span>
+                    )}
                     <span>{previewInfo.spreadTitle}</span>
-                    <span className={styles.cardCount}>({previewInfo.cardCount}{isKo ? "장" : " cards"})</span>
+                    {!isLoadingPreview && (
+                      <span className={styles.cardCount}>({previewInfo.cardCount}{isKo ? "장" : " cards"})</span>
+                    )}
                   </div>
                   <button
                     className={styles.readingButton}
                     onClick={handleStartReading}
-                    disabled={isAnalyzing}
+                    disabled={isAnalyzing || isLoadingPreview}
                   >
-                    {isAnalyzing ? (
+                    {isAnalyzing || isLoadingPreview ? (
                       <span className={styles.analyzing}>
                         <span className={styles.dot}></span>
                         <span className={styles.dot}></span>

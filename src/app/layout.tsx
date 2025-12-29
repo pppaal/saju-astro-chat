@@ -18,8 +18,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { generateJsonLd } from "@/components/seo/SEO";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
-import PushNotificationPrompt from "@/components/notifications/PushNotificationPrompt";
 import AuthProvider from "@/components/AuthProvider";
+import ScrollRestoration from "@/components/ui/ScrollRestoration";
 import { ReactNode, Suspense } from "react";
 import { Montserrat, Noto_Sans_KR, Cinzel, Roboto, Lora, Merriweather } from "next/font/google";
 
@@ -187,11 +187,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </Suspense>
 
           <AuthProvider>
+            <ScrollRestoration />
             <I18nProvider>
               <ToastProvider>
                 <CreditModalProvider>
                   <NotificationProvider>
-                    <PushNotificationPrompt />
                     <StarrySky />
                     <BackButtonWrapper />
                     <main id="main-content">{children}</main>

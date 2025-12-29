@@ -244,6 +244,20 @@
   gap: 0.5rem;
   font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.85);
+  transition: opacity 0.3s ease;
+}
+
+.cardCountPreview.loading {
+  opacity: 0.7;
+}
+
+.cardCountPreview.loading .previewIcon {
+  animation: sparkle 1s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
 
 .previewIcon {

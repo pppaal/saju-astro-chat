@@ -18,12 +18,15 @@ interface PersonalityAnalysis {
   strengths: string[];
   challenges: string[];
   advice: string;
-  sibsinProfile?: string;  // 십신 기반 성격 프로필
-  lifeStage?: string;      // 12운성 기반 현재 단계
-  socialImage?: string;    // ASC 기반 외적 이미지
-  sunMoonHarmony?: string; // 태양-달 애스펙트 - 내면과 외면의 조화
-  thinkingStyle?: string;  // 수성 - 사고방식
-  innerConflict?: string;  // 내면 갈등 패턴
+  sibsinProfile?: string;      // 십신 기반 성격 프로필
+  lifeStage?: string;          // 12운성 기반 현재 단계
+  socialImage?: string;        // ASC 기반 외적 이미지
+  sunMoonHarmony?: string;     // 태양-달 애스펙트 - 내면과 외면의 조화
+  thinkingStyle?: string;      // 수성 - 사고방식
+  innerConflict?: string;      // 내면 갈등 패턴
+  communicationStyle?: string; // 의사소통 스타일
+  decisionMaking?: string;     // 의사결정 스타일
+  stressResponse?: string;     // 스트레스 대응 방식
 }
 
 // 십신별 성격 영향
@@ -120,6 +123,54 @@ const elementConflicts: Record<string, { ko: string; en: string }> = {
   "air-earth": { ko: "아이디어와 현실 사이에서 갈등해요. 상상과 실행 사이 간극이 있어요.", en: "Conflict between ideas and reality. Gap between imagination and execution." },
   "fire-air": { ko: "에너지가 넘쳐요. 행동과 생각이 빨라서 때로는 앞서가요.", en: "Overflowing energy. Actions and thoughts are fast, sometimes ahead." },
   "water-earth": { ko: "감정과 현실 사이에서 균형을 찾아요. 안정 속에서 깊이를 추구해요.", en: "Find balance between emotion and reality. Seek depth in stability." },
+};
+
+// 금성 별자리별 의사소통/관계 스타일
+const venusCommunicationStyle: Record<string, { ko: string; en: string }> = {
+  aries: { ko: "직접적이고 솔직하게 소통해요. 돌려 말하는 걸 싫어해요.", en: "Communicate directly and honestly. Dislike beating around the bush." },
+  taurus: { ko: "차분하고 신중하게 대화해요. 진심 어린 표현을 중시해요.", en: "Talk calmly and thoughtfully. Value sincere expressions." },
+  gemini: { ko: "재치 있고 다양한 화제로 대화해요. 대화의 즐거움을 아는 사람이에요.", en: "Converse with wit on various topics. Someone who knows the joy of conversation." },
+  cancer: { ko: "공감과 배려가 담긴 대화를 해요. 상대의 감정을 잘 읽어요.", en: "Communicate with empathy and care. Read others' emotions well." },
+  leo: { ko: "열정적이고 따뜻하게 소통해요. 칭찬과 격려를 잘 해요.", en: "Communicate passionately and warmly. Good at praise and encouragement." },
+  virgo: { ko: "정확하고 구체적으로 전달해요. 실질적인 도움을 주려 해요.", en: "Deliver precisely and specifically. Try to give practical help." },
+  libra: { ko: "조화롭고 우아하게 대화해요. 갈등을 피하고 균형을 추구해요.", en: "Converse harmoniously and elegantly. Avoid conflict and seek balance." },
+  scorpio: { ko: "깊이 있고 진실한 대화를 원해요. 피상적인 대화는 싫어해요.", en: "Want deep and truthful conversations. Dislike superficial talk." },
+  sagittarius: { ko: "유머와 철학이 있는 대화를 해요. 열린 마음으로 소통해요.", en: "Converse with humor and philosophy. Communicate with an open mind." },
+  capricorn: { ko: "신뢰와 실용성을 담아 소통해요. 말에 책임을 져요.", en: "Communicate with trust and practicality. Take responsibility for words." },
+  aquarius: { ko: "독창적이고 평등한 대화를 추구해요. 다양한 관점을 존중해요.", en: "Pursue original and equal conversation. Respect diverse viewpoints." },
+  pisces: { ko: "감성적이고 부드럽게 소통해요. 상대의 마음을 이해하려 해요.", en: "Communicate emotionally and gently. Try to understand others' hearts." },
+};
+
+// 화성 별자리별 의사결정/행동 스타일
+const marsDecisionStyle: Record<string, { ko: string; en: string }> = {
+  aries: { ko: "빠르고 과감하게 결정해요. 주저하지 않고 행동에 옮겨요.", en: "Decide quickly and boldly. Act without hesitation." },
+  taurus: { ko: "천천히 확실하게 결정해요. 한번 정하면 끝까지 밀고 나가요.", en: "Decide slowly but surely. Once decided, push through to the end." },
+  gemini: { ko: "여러 옵션을 검토하고 결정해요. 유연하게 계획을 수정해요.", en: "Review multiple options before deciding. Flexibly modify plans." },
+  cancer: { ko: "직감과 감정을 믿고 결정해요. 가족과 소중한 사람을 고려해요.", en: "Decide trusting intuition and emotion. Consider family and loved ones." },
+  leo: { ko: "자신감 있게 결정하고 이끌어요. 큰 그림을 보고 행동해요.", en: "Decide confidently and lead. Act seeing the big picture." },
+  virgo: { ko: "분석하고 계획을 세워 결정해요. 세부사항까지 신경 써요.", en: "Decide after analyzing and planning. Pay attention to details." },
+  libra: { ko: "균형과 공정함을 고려해 결정해요. 다른 사람 의견도 참고해요.", en: "Decide considering balance and fairness. Reference others' opinions too." },
+  scorpio: { ko: "전략적으로 깊이 생각하고 결정해요. 한번 정하면 강력하게 추진해요.", en: "Decide after strategic deep thinking. Once set, pursue powerfully." },
+  sagittarius: { ko: "낙관적으로 과감하게 결정해요. 모험을 두려워하지 않아요.", en: "Decide optimistically and boldly. Not afraid of adventure." },
+  capricorn: { ko: "현실적이고 장기적으로 결정해요. 성과와 결과를 중시해요.", en: "Decide realistically and long-term. Value outcomes and results." },
+  aquarius: { ko: "독창적인 방식으로 결정해요. 기존 방식에 얽매이지 않아요.", en: "Decide in original ways. Not bound by conventional methods." },
+  pisces: { ko: "직관과 영감을 따라 결정해요. 유연하게 흐름에 맡기기도 해요.", en: "Decide following intuition and inspiration. Sometimes go with the flow." },
+};
+
+// 달 별자리별 스트레스 대응 방식
+const moonStressResponse: Record<string, { ko: string; en: string }> = {
+  aries: { ko: "스트레스를 받으면 활동적으로 풀어요. 운동이나 행동으로 해소해요.", en: "When stressed, release through activity. Exercise or action helps." },
+  taurus: { ko: "편안한 환경에서 휴식하며 회복해요. 맛있는 음식이나 자연이 도움돼요.", en: "Recover by resting in comfort. Good food or nature helps." },
+  gemini: { ko: "대화하거나 새로운 정보를 찾으며 해소해요. 머리를 쓰면 기분이 나아져요.", en: "Release through conversation or seeking new info. Mental activity improves mood." },
+  cancer: { ko: "혼자만의 시간이나 가까운 사람과 함께하며 회복해요. 안정감이 필요해요.", en: "Recover with alone time or close ones. Need sense of security." },
+  leo: { ko: "창의적 활동이나 주목받는 일로 해소해요. 인정받으면 힘이 나요.", en: "Release through creative activity or being noticed. Recognition energizes." },
+  virgo: { ko: "정리하고 문제를 해결하며 마음을 가다듬어요. 실질적 행동이 도움돼요.", en: "Organize and solve problems to calm down. Practical action helps." },
+  libra: { ko: "아름다운 것을 보거나 조화로운 환경에서 쉬어요. 균형 회복이 중요해요.", en: "Rest seeing beauty or in harmonious environment. Balance recovery matters." },
+  scorpio: { ko: "깊이 성찰하거나 혼자 시간을 보내며 재충전해요. 강렬한 감정을 소화해요.", en: "Recharge through deep reflection or alone time. Process intense emotions." },
+  sagittarius: { ko: "여행이나 새로운 경험으로 기분을 전환해요. 자유로움이 필요해요.", en: "Change mood through travel or new experiences. Need freedom." },
+  capricorn: { ko: "일에 집중하거나 목표를 향해 노력하며 극복해요. 성취감이 회복을 도와요.", en: "Overcome by focusing on work or pursuing goals. Achievement aids recovery." },
+  aquarius: { ko: "혼자 생각하거나 친구들과 어울리며 해소해요. 개인 공간이 중요해요.", en: "Release by thinking alone or hanging with friends. Personal space matters." },
+  pisces: { ko: "예술, 음악, 명상으로 마음을 치유해요. 상상의 세계로 잠시 피해요.", en: "Heal through art, music, meditation. Escape to imagination briefly." },
 };
 
 /**
@@ -244,6 +295,8 @@ export function getPersonalityAnalysis(
   const ascendant = getAscendant(astro);
   const sunMoonAspectType = getSunMoonAspect(astro);
   const mercurySign = getMercurySign(astro);
+  const venusSign = extractPlanetSign(astro, 'venus');
+  const marsSign = extractPlanetSign(astro, 'mars');
   const sunElement = getSignElement(sunSign);
   const moonElement = getSignElement(moonSign);
   const conflictType = getElementConflict(sunElement, moonElement);
@@ -261,6 +314,9 @@ export function getPersonalityAnalysis(
   let sunMoonHarmony: string | undefined;
   let thinkingStyle: string | undefined;
   let innerConflict: string | undefined;
+  let communicationStyle: string | undefined;
+  let decisionMaking: string | undefined;
+  let stressResponse: string | undefined;
 
   // 태양 별자리로 외적 성격 보강
   if (sunSign && zodiacPersonalityTraits[sunSign]) {
@@ -318,6 +374,21 @@ export function getPersonalityAnalysis(
     innerConflict = selectLang(isKo, elementConflicts[conflictType]);
   }
 
+  // 7. 금성 별자리 - 의사소통 스타일
+  if (venusSign && venusCommunicationStyle[venusSign]) {
+    communicationStyle = selectLang(isKo, venusCommunicationStyle[venusSign]);
+  }
+
+  // 8. 화성 별자리 - 의사결정 스타일
+  if (marsSign && marsDecisionStyle[marsSign]) {
+    decisionMaking = selectLang(isKo, marsDecisionStyle[marsSign]);
+  }
+
+  // 9. 달 별자리 - 스트레스 대응
+  if (moonSign && moonStressResponse[moonSign]) {
+    stressResponse = selectLang(isKo, moonStressResponse[moonSign]);
+  }
+
   // 조언 생성 (약한 오행 기반)
   const weakestElement = sorted[sorted.length - 1]?.[0];
   if (weakestElement && elementAdvice[weakestElement]) {
@@ -339,5 +410,8 @@ export function getPersonalityAnalysis(
     sunMoonHarmony,
     thinkingStyle,
     innerConflict,
+    communicationStyle,
+    decisionMaking,
+    stressResponse,
   };
 }

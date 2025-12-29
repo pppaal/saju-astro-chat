@@ -29,6 +29,8 @@ import {
   type UltraPrecisionScore,
 } from './ultraPrecisionEngine';
 
+import { scoreToGrade, type PredictionGrade } from './index';
+
 // TIER 5: 초정밀 분석 엔진
 import {
   PrecisionEngine,
@@ -173,7 +175,7 @@ export interface YearlyScore {
   year: number;
   age: number;
   score: number;
-  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: PredictionGrade;
   yearGanji: { stem: string; branch: string };
   twelveStage: PreciseTwelveStage;
   sibsin: string;
@@ -209,7 +211,7 @@ export interface PastRetrospective {
   targetDate: Date;
   dailyPillar: { stem: string; branch: string };
   score: number;
-  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: PredictionGrade;
   yearGanji: { stem: string; branch: string };
   monthGanji: { stem: string; branch: string };
   twelveStage: PreciseTwelveStage;
@@ -257,7 +259,7 @@ export interface OptimalPeriod {
   startDate: Date;
   endDate: Date;
   score: number;
-  grade: 'S' | 'A' | 'B';
+  grade: PredictionGrade;
   reasons: string[];
   specificDays?: Date[];
 }
@@ -988,6 +990,10 @@ function calculateCompoundLuckScore(
   const monthStage = calculatePreciseTwelveStage(input.dayStem, monthGanji.branch);
 
   const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
+  // 유효하지 않은 eventType이면 기본값 반환
+  if (!conditions) {
+    return { bonus: 0, reasons: [], penalties: [] };
+  }
 
   // ========================================
   // 1. 삼중 시너지 분석 (대운 + 세운 + 월운)
@@ -1324,14 +1330,8 @@ export function analyzeMultiYearTrend(
 
     score = Math.max(0, Math.min(100, score));
 
-    // 등급 결정
-    let grade: YearlyScore['grade'];
-    if (score >= 85) grade = 'S';
-    else if (score >= 70) grade = 'A';
-    else if (score >= 55) grade = 'B';
-    else if (score >= 40) grade = 'C';
-    else if (score >= 25) grade = 'D';
-    else grade = 'F';
+    // 등급 결정 (통일된 기준 사용)
+    const grade = scoreToGrade(score);
 
     // 테마/기회/도전 생성
     const themes: string[] = [];
@@ -1679,13 +1679,8 @@ export function analyzePastDate(
 
   score = Math.max(0, Math.min(100, score));
 
-  let grade: PastRetrospective['grade'];
-  if (score >= 85) grade = 'S';
-  else if (score >= 70) grade = 'A';
-  else if (score >= 55) grade = 'B';
-  else if (score >= 40) grade = 'C';
-  else if (score >= 25) grade = 'D';
-  else grade = 'F';
+  // 등급 결정 (통일된 기준 사용)
+  const grade = scoreToGrade(score);
 
   // === TIER 5: 인과 요인 분석 ===
   const causalFactors = analyzeCausalFactors(
@@ -2048,6 +2043,17 @@ export function findOptimalEventTiming(
   const { useProgressions = true, useSolarTerms = true } = options;
 
   const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
+  // 유효하지 않은 eventType이면 빈 결과 반환
+  if (!conditions) {
+    return {
+      eventType,
+      searchRange: { startYear, endYear },
+      optimalPeriods: [],
+      avoidPeriods: [],
+      nextBestWindow: null,
+      advice: `Unknown event type: ${eventType}`,
+    };
+  }
   const optimalPeriods: OptimalPeriod[] = [];
   const avoidPeriods: AvoidPeriod[] = [];
 
@@ -2287,10 +2293,8 @@ export function findOptimalEventTiming(
 
       // 분류
       if (score >= 70) {
-        let grade: OptimalPeriod['grade'];
-        if (score >= 85) grade = 'S';
-        else if (score >= 75) grade = 'A';
-        else grade = 'B';
+        // 등급 결정 (통일된 기준 사용)
+        const grade = scoreToGrade(score);
 
         // 해당 월의 좋은 날짜 찾기 (TIER 5 버전)
         const specificDays = findSpecificGoodDays(input, monthStart, monthEnd, eventType, {
@@ -2348,6 +2352,10 @@ function findSpecificGoodDays(
   const { useLunarMansions = true, usePlanetaryHours = false } = options;
 
   const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
+  // 유효하지 않은 eventType이면 빈 배열 반환
+  if (!conditions) {
+    return [];
+  }
   const goodDays: { date: Date; score: number; reasons: string[] }[] = [];
 
   const current = new Date(monthStart);

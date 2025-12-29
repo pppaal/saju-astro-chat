@@ -1,0 +1,138 @@
+/* Result Share Component */
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  margin-top: 1rem;
+}
+
+.shareButtons {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.shareBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.shareBtn:hover {
+  transform: translateY(-2px);
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.label {
+  display: inline;
+}
+
+/* Copy Button */
+.copyBtn {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: rgba(196, 181, 253, 0.9);
+}
+
+.copyBtn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+/* Kakao Button */
+.kakaoBtn {
+  background: rgba(254, 229, 0, 0.15);
+  border-color: rgba(254, 229, 0, 0.3);
+  color: rgba(254, 229, 0, 0.9);
+}
+
+.kakaoBtn:hover {
+  background: rgba(254, 229, 0, 0.25);
+  border-color: rgba(254, 229, 0, 0.5);
+  color: #fee500;
+  box-shadow: 0 4px 15px rgba(254, 229, 0, 0.3);
+}
+
+/* Twitter Button */
+.twitterBtn {
+  background: rgba(29, 161, 242, 0.15);
+  border-color: rgba(29, 161, 242, 0.3);
+  color: rgba(29, 161, 242, 0.9);
+}
+
+.twitterBtn:hover {
+  background: rgba(29, 161, 242, 0.25);
+  border-color: rgba(29, 161, 242, 0.5);
+  color: #1da1f2;
+  box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+}
+
+/* Save Button */
+.saveBtn {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: rgba(52, 211, 153, 0.9);
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: rgba(52, 211, 153, 0.25);
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #34d399;
+  box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+}
+
+.saveBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.saveBtn.saved {
+  background: rgba(52, 211, 153, 0.3);
+  border-color: rgba(52, 211, 153, 0.6);
+  color: #34d399;
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: rgba(52, 211, 153, 0.95);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 25px;
+  box-shadow: 0 8px 25px rgba(52, 211, 153, 0.4);
+  z-index: 1000;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .shareButtons {
+    gap: 0.5rem;
+  }
+
+  .shareBtn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+
+  .icon {
+    font-size: 0.9rem;
+  }
+}

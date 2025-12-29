@@ -1041,7 +1041,11 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
             # Check year, month, day, hour branches
             for pillar_key in ["yearPillar", "monthPillar", "dayPillar", "hourPillar"]:
                 pillar = saju_data.get(pillar_key, {})
+                if not isinstance(pillar, dict):
+                    continue
                 branch = pillar.get("earthlyBranch", "")
+                if not isinstance(branch, str):
+                    branch = str(branch) if branch else ""
                 branch_ko = {"子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
                              "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"}.get(branch, "")
                 if branch_ko and branch_ko in branch_mapping:
@@ -1063,13 +1067,20 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
             conj = major_aspects.get("conjunction_0", {})
             # Check for 천간합 in user's chart
             cheongan_hap = conj.get("cheongan_hap_details", {})
-            year_stem = saju_data.get("yearPillar", {}).get("heavenlyStem", "")
-            day_stem = saju_data.get("dayPillar", {}).get("heavenlyStem", "")
+            year_pillar = saju_data.get("yearPillar", {})
+            day_pillar = saju_data.get("dayPillar", {})
+            year_stem = year_pillar.get("heavenlyStem", "") if isinstance(year_pillar, dict) else ""
+            day_stem = day_pillar.get("heavenlyStem", "") if isinstance(day_pillar, dict) else ""
+            # Ensure stems are strings
+            if not isinstance(year_stem, str):
+                year_stem = str(year_stem) if year_stem else ""
+            if not isinstance(day_stem, str):
+                day_stem = str(day_stem) if day_stem else ""
             # Common 합 combinations
             hap_pairs = {"갑": "기", "을": "경", "병": "신", "정": "임", "무": "계",
                          "기": "갑", "경": "을", "신": "병", "임": "정", "계": "무"}
             for stem in [year_stem, day_stem]:
-                if stem and stem in hap_pairs:
+                if stem and isinstance(stem, str) and stem in hap_pairs:
                     hap_key = f"{stem}{hap_pairs[stem]}합"
                     if hap_key in cheongan_hap:
                         hap_info = cheongan_hap[hap_key]
@@ -1079,11 +1090,36 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
         shinsal_asteroids = cache.get("cross_shinsal_asteroids", {})
         if shinsal_asteroids:
             shinsal_mapping = shinsal_asteroids.get("major_shinsal_mapping", {})
-            # Check user's shinsal from saju_data
-            user_shinsals = saju_data.get("sinsal", []) or saju_data.get("shinsals", []) or []
-            if isinstance(user_shinsals, dict):
-                user_shinsals = list(user_shinsals.keys())
+            # Check user's shinsal from saju_data - handle various data structures
+            raw_shinsals = saju_data.get("sinsal", []) or saju_data.get("shinsals", []) or saju_data.get("shinsalList", []) or []
+            user_shinsals = []
+            if isinstance(raw_shinsals, dict):
+                # Handle {"luckyList": [{"name": "천을귀인"}], "unluckyList": [...]} structure
+                for key in ["luckyList", "unluckyList", "twelveAll", "hits"]:
+                    sublist = raw_shinsals.get(key, [])
+                    if isinstance(sublist, list):
+                        for item in sublist:
+                            if isinstance(item, dict):
+                                name = item.get("name", "") or item.get("kind", "")
+                                if name:
+                                    user_shinsals.append(name)
+                            elif isinstance(item, str):
+                                user_shinsals.append(item)
+                # Also try dict keys as fallback
+                if not user_shinsals:
+                    user_shinsals = [k for k in raw_shinsals.keys() if not k.startswith("$")]
+            elif isinstance(raw_shinsals, list):
+                # Handle list of dicts or list of strings
+                for item in raw_shinsals:
+                    if isinstance(item, dict):
+                        name = item.get("name", "") or item.get("kind", "")
+                        if name:
+                            user_shinsals.append(name)
+                    elif isinstance(item, str):
+                        user_shinsals.append(item)
             for shinsal_name in user_shinsals[:3]:  # Top 3 shinsals
+                if not isinstance(shinsal_name, str):
+                    continue
                 if shinsal_name in shinsal_mapping:
                     ss_data = shinsal_mapping[shinsal_name]
                     astro_par = ss_data.get("astro_parallel", {})
@@ -1573,7 +1609,10 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
         year_snake_compatible = ["자", "축", "신", "유"]  # Generally harmonious
         year_snake_clash = ["해"]  # 사해충
 
-        day_branch = saju_data.get("dayPillar", {}).get("earthlyBranch", "")
+        day_pillar_data = saju_data.get("dayPillar", {})
+        day_branch = day_pillar_data.get("earthlyBranch", "") if isinstance(day_pillar_data, dict) else ""
+        if not isinstance(day_branch, str):
+            day_branch = str(day_branch) if day_branch else ""
         branch_ko = {"子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
                      "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"}.get(day_branch, "")
 
@@ -1644,10 +1683,13 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
 
         # Check element deficiencies
         element_counts = saju_data.get("elementCounts", {})
+        if not isinstance(element_counts, dict):
+            element_counts = {}
         element_map = {"木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water"}
 
         for elem_ko, elem_en in element_map.items():
-            count = element_counts.get(elem_ko, 0)
+            count_val = element_counts.get(elem_ko, 0)
+            count = count_val if isinstance(count_val, (int, float)) else 0
             if count == 0:
                 rule_key = f"rule_{elem_en}_zero"
                 rule = health_rules.get(rule_key)
@@ -1662,6 +1704,8 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
         # Check health houses (6, 12)
         for planet in ["mars", "saturn", "moon", "neptune", "jupiter", "pluto"]:
             planet_data = astro_data.get(planet, {})
+            if not isinstance(planet_data, dict):
+                continue
             house = planet_data.get("house")
             if house:
                 house_num = str(house).replace("H", "")
@@ -1680,6 +1724,8 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
         # Check money houses (2, 8, 10, 11)
         for planet in ["jupiter", "venus", "saturn", "uranus", "pluto", "moon", "mars", "mercury", "sun"]:
             planet_data = astro_data.get(planet, {})
+            if not isinstance(planet_data, dict):
+                continue
             house = planet_data.get("house")
             if house:
                 house_num = str(house).replace("H", "")
@@ -1691,7 +1737,14 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
 
         # Check jaesung (재성) strength
         ten_gods_count = saju_data.get("tenGodsCount", {})
-        jaesung_count = ten_gods_count.get("정재", 0) + ten_gods_count.get("편재", 0)
+        if not isinstance(ten_gods_count, dict):
+            ten_gods_count = {}
+        jeongjae_val = ten_gods_count.get("정재", 0)
+        pyeonjae_val = ten_gods_count.get("편재", 0)
+        # Ensure values are numeric
+        jeongjae_count = jeongjae_val if isinstance(jeongjae_val, (int, float)) else 0
+        pyeonjae_count = pyeonjae_val if isinstance(pyeonjae_val, (int, float)) else 0
+        jaesung_count = jeongjae_count + pyeonjae_count
         if jaesung_count >= 2:
             rule = wealth_rules.get("rule_jaesung_strong")
             if rule:
@@ -1708,7 +1761,8 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
         life_path_rules = loaded_rules["life_path"]
 
         # Check sun house for life purpose
-        sun_house = astro_data.get("sun", {}).get("house")
+        sun_data = astro_data.get("sun", {})
+        sun_house = sun_data.get("house") if isinstance(sun_data, dict) else None
         if sun_house:
             house_num = str(sun_house).replace("H", "")
             rule_key = f"rule_sun_{house_num}"
@@ -1718,6 +1772,8 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
 
         # Check north node for karmic direction
         north_node = astro_data.get("northNode", {}) or astro_data.get("north_node", {})
+        if not isinstance(north_node, dict):
+            north_node = {}
         nn_house = north_node.get("house")
         if nn_house:
             house_num = str(nn_house).replace("H", "")
@@ -1936,7 +1992,7 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
                 "focus_career": "career", "focus_love": "love",
             }
             domain = domain_map.get(theme, "life")
-            domain_results = _domain_rag_inst.search(query[:200], domain=domain, top_k=5)
+            domain_results = _domain_rag_inst.search(domain, query[:200], top_k=5)
             result["domain_knowledge"] = domain_results[:5] if domain_results else []
             logger.info(f"[PREFETCH] DomainRAG: {len(result.get('domain_knowledge', []))} results")
     except Exception as e:

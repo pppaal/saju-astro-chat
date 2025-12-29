@@ -98,6 +98,8 @@ const SERVICE_CONFIG: Record<string, { icon: string; titleKey: string; descKey: 
   "daily-fortune": { icon: "🌟", titleKey: "history.services.dailyFortune.title", descKey: "history.services.dailyFortune.desc", color: "#fbbf24" },
   "destiny-map": { icon: "🗺️", titleKey: "history.services.destinyMap.title", descKey: "history.services.destinyMap.desc", color: "#8b5cf6" },
   "destiny-calendar": { icon: "📅", titleKey: "history.services.destinyCalendar.title", descKey: "history.services.destinyCalendar.desc", color: "#10b981" },
+  "life-prediction": { icon: "🔮", titleKey: "history.services.lifePrediction.title", descKey: "history.services.lifePrediction.desc", color: "#a855f7" },
+  "life-prediction-timing": { icon: "⏰", titleKey: "history.services.lifePredictionTiming.title", descKey: "history.services.lifePredictionTiming.desc", color: "#8b5cf6" },
   iching: { icon: "☯️", titleKey: "history.services.iching.title", descKey: "history.services.iching.desc", color: "#6366f1" },
   tarot: { icon: "🃏", titleKey: "history.services.tarot.title", descKey: "history.services.tarot.desc", color: "#ec4899" },
   saju: { icon: "🔮", titleKey: "history.services.saju.title", descKey: "history.services.saju.desc", color: "#f97316" },
@@ -413,6 +415,7 @@ function HistoryContent() {
   const allServicesOrder = [
     "destiny-map",
     "destiny-calendar",
+    "life-prediction-timing",
     "tarot",
     "personality",
     "dream",

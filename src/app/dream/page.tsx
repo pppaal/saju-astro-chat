@@ -26,13 +26,19 @@ interface GuestBirthInfo {
   birthDate: string;
   birthTime: string;
   gender: 'M' | 'F';
+  birthCity?: string;
+}
+
+interface Recommendation {
+  title: string;
+  detail: string;
 }
 
 interface InsightResponse {
   summary?: string;
   dreamSymbols?: { label: string; meaning: string }[];
   crossInsights?: string[];
-  recommendations?: string[];
+  recommendations?: (string | Recommendation)[];
   themes?: { label: string; weight: number }[];
   culturalNotes?: {
     korean?: string;
@@ -105,7 +111,14 @@ function DreamContent() {
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00');
   const [gender, setGender] = useState<'M' | 'F'>('M');
+  const [birthCity, setBirthCity] = useState('');
   const [showTimeInput, setShowTimeInput] = useState(false);
+  const [showCityInput, setShowCityInput] = useState(false);
+
+  // Profile loading state
+  const [loadingProfileBtn, setLoadingProfileBtn] = useState(false);
+  const [profileLoadedMsg, setProfileLoadedMsg] = useState(false);
+  const [profileLoadError, setProfileLoadError] = useState<string | null>(null);
 
   // Dream input state
   const [dreamText, setDreamText] = useState('');
@@ -167,6 +180,7 @@ function DreamContent() {
       birthDate,
       birthTime: showTimeInput ? birthTime : '12:00',
       gender,
+      birthCity: showCityInput ? birthCity : undefined,
     };
 
     if (status === 'authenticated') {
@@ -182,6 +196,7 @@ function DreamContent() {
             birthDate: birthInfo.birthDate,
             birthTime: birthInfo.birthTime,
             gender: birthInfo.gender,
+            birthCity: birthInfo.birthCity,
           });
         }
       } catch (err) {
@@ -192,39 +207,61 @@ function DreamContent() {
     }
 
     setPhase('dream-input');
-  }, [birthDate, birthTime, gender, showTimeInput, status]);
+  }, [birthDate, birthTime, gender, birthCity, showTimeInput, showCityInput, status]);
 
   // Load profile button handler
   const handleLoadProfile = useCallback(async () => {
     if (status !== 'authenticated') return;
 
+    setLoadingProfileBtn(true);
+    setProfileLoadError(null);
+
     try {
       const res = await fetch('/api/me/profile', { cache: 'no-store' });
-      if (res.ok) {
-        const { user } = await res.json();
-        if (user?.birthDate) {
-          setBirthDate(user.birthDate);
-          if (user.birthTime) {
-            setBirthTime(user.birthTime);
-            setShowTimeInput(true);
-          }
-          if (user.gender) {
-            setGender(user.gender);
-          }
-          setUserProfile({
-            birthDate: user.birthDate,
-            birthTime: user.birthTime,
-            gender: user.gender,
-            latitude: user.latitude,
-            longitude: user.longitude,
-            timezone: user.tzId,
-          });
-        }
+      if (!res.ok) {
+        setProfileLoadError(locale === 'ko' ? '프로필을 불러올 수 없습니다' : 'Failed to load profile');
+        setLoadingProfileBtn(false);
+        return;
       }
+
+      const { user } = await res.json();
+
+      if (!user || !user.birthDate) {
+        setProfileLoadError(locale === 'ko'
+          ? '저장된 프로필이 없습니다. My Journey에서 먼저 정보를 저장해주세요.'
+          : 'No saved profile. Please save your info in My Journey first.');
+        setLoadingProfileBtn(false);
+        return;
+      }
+
+      // Set form fields from DB data (destiny-map 방식과 동일)
+      if (user.birthDate) setBirthDate(user.birthDate);
+      if (user.birthTime) {
+        setBirthTime(user.birthTime);
+        setShowTimeInput(true);
+      }
+      if (user.gender) setGender(user.gender);
+      if (user.birthCity) {
+        setBirthCity(user.birthCity);
+        setShowCityInput(true);
+      }
+      setUserProfile({
+        birthDate: user.birthDate,
+        birthTime: user.birthTime,
+        birthCity: user.birthCity,
+        gender: user.gender,
+        latitude: user.latitude,
+        longitude: user.longitude,
+        timezone: user.tzId,
+      });
+      setProfileLoadedMsg(true);
     } catch (err) {
       console.error('Failed to load profile:', err);
+      setProfileLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
+    } finally {
+      setLoadingProfileBtn(false);
     }
-  }, [status]);
+  }, [status, locale]);
 
   // Background animation
   useEffect(() => {
@@ -374,6 +411,9 @@ function DreamContent() {
   // Change birth info
   const handleChangeBirthInfo = useCallback(() => {
     setGuestBirthInfo(null);
+    setUserProfile(null);
+    setProfileLoadedMsg(false);
+    setProfileLoadError(null);
     setPhase('birth-input');
   }, []);
 
@@ -439,16 +479,41 @@ function DreamContent() {
                 </div>
 
                 {/* Load Profile Button */}
-                {status === 'authenticated' && (
+                {status === 'authenticated' && !profileLoadedMsg && (
                   <button
                     type="button"
                     className={styles.loadProfileButton}
                     onClick={handleLoadProfile}
+                    disabled={loadingProfileBtn}
                   >
-                    <span className={styles.loadProfileIcon}>👤</span>
-                    <span>{locale === 'ko' ? '내 프로필 불러오기' : 'Load My Profile'}</span>
+                    <span className={styles.loadProfileIcon}>
+                      {loadingProfileBtn ? '⏳' : '👤'}
+                    </span>
+                    <span>
+                      {loadingProfileBtn
+                        ? (locale === 'ko' ? '불러오는 중...' : 'Loading...')
+                        : (locale === 'ko' ? '내 프로필 불러오기' : 'Load My Profile')}
+                    </span>
                     <span className={styles.loadProfileArrow}>→</span>
                   </button>
+                )}
+
+                {/* Profile loaded success message */}
+                {status === 'authenticated' && profileLoadedMsg && (
+                  <div className={styles.profileLoadedMsg}>
+                    <span className={styles.profileLoadedIcon}>✓</span>
+                    <span className={styles.profileLoadedText}>
+                      {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Error message */}
+                {profileLoadError && (
+                  <div className={styles.loadErrorMsg}>
+                    <span className={styles.loadErrorIcon}>⚠️</span>
+                    <span className={styles.loadErrorText}>{profileLoadError}</span>
+                  </div>
                 )}
 
                 <form onSubmit={handleBirthInfoSubmit} className={styles.form}>
@@ -523,6 +588,35 @@ function DreamContent() {
                     )}
                   </div>
 
+                  {/* Birth City Toggle */}
+                  <div className={styles.fieldGroup}>
+                    <button
+                      type="button"
+                      className={styles.toggleBtn}
+                      onClick={() => setShowCityInput(!showCityInput)}
+                    >
+                      <span className={styles.toggleIcon}>{showCityInput ? '▼' : '▶'}</span>
+                      <span>{locale === 'ko' ? '태어난 도시 입력 (선택)' : 'Birth City (Optional)'}</span>
+                    </button>
+
+                    {showCityInput && (
+                      <div className={styles.timeInputWrapper}>
+                        <input
+                          type="text"
+                          value={birthCity}
+                          onChange={(e) => setBirthCity(e.target.value)}
+                          className={styles.input}
+                          placeholder={locale === 'ko' ? '예: 서울, 부산, Seoul' : 'e.g., Seoul, New York'}
+                        />
+                        <p className={styles.timeHint}>
+                          {locale === 'ko'
+                            ? '더 정확한 분석을 위해 입력해주세요'
+                            : 'For more accurate analysis'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Submit Button */}
                   <button
                     type="submit"
@@ -582,11 +676,9 @@ function DreamContent() {
                     {userProfile?.birthDate || guestBirthInfo?.birthDate}
                     {(userProfile?.gender || guestBirthInfo?.gender) === 'M' ? ' 👨' : ' 👩'}
                   </span>
-                  {!userProfile?.birthDate && (
-                    <button className={styles.changeBirthBtn} onClick={handleChangeBirthInfo}>
-                      {locale === 'ko' ? '변경' : 'Change'}
-                    </button>
-                  )}
+                  <button className={styles.changeBirthBtn} onClick={handleChangeBirthInfo}>
+                    {locale === 'ko' ? '변경' : 'Change'}
+                  </button>
                 </div>
               )}
 
@@ -771,74 +863,119 @@ function DreamContent() {
 
                 {/* Bottom Section - Analysis Cards Grid */}
                 <div className={styles.resultBottomSection}>
-                  <div className={styles.analysisCardsGrid}>
-                    {/* Dream Symbols */}
-                    {result.dreamSymbols && result.dreamSymbols.length > 0 && (
-                      <div className={styles.resultCard}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>🔮 {locale === 'ko' ? '꿈의 상징' : 'Dream Symbols'}</div>
-                        <ul className={styles.resultList}>
-                          {result.dreamSymbols.map((sym, i) => (
-                            <li key={i}><strong>{sym.label}:</strong> {sym.meaning}</li>
-                          ))}
-                        </ul>
+                  {/* Dream Symbols - Premium Horizontal Scroll */}
+                  {result.dreamSymbols && result.dreamSymbols.length > 0 && (
+                    <div className={styles.symbolsSection}>
+                      <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🔮</span>
+                        <h3 className={styles.sectionTitle}>{locale === 'ko' ? '꿈의 상징' : 'Dream Symbols'}</h3>
                       </div>
-                    )}
-
-                    {/* Cross Insights */}
-                    {result.crossInsights && result.crossInsights.length > 0 && (
-                      <div className={styles.resultCard}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>💡 {locale === 'ko' ? '통합 분석' : 'Cross Insights'}</div>
-                        <ul className={styles.resultList}>
-                          {result.crossInsights.map((insight, i) => (
-                            <li key={i}>{insight}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Recommendations */}
-                    {result.recommendations && result.recommendations.length > 0 && (
-                      <div className={styles.resultCard}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>🌟 {locale === 'ko' ? '조언' : 'Advice'}</div>
-                        <ol className={styles.resultListOrdered}>
-                          {result.recommendations.map((rec, i) => (
-                            <li key={i}>{rec}</li>
-                          ))}
-                        </ol>
-                      </div>
-                    )}
-
-                    {/* Themes */}
-                    {result.themes && result.themes.length > 0 && (
-                      <div className={styles.resultCard}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>🎭 {locale === 'ko' ? '주요 테마' : 'Themes'}</div>
-                        {result.themes.map((theme, i) => (
-                          <div key={i} className={styles.themeBar}>
-                            <div className={styles.themeLabel}>
-                              <span>{theme.label}</span>
-                              <span className={styles.themePercent}>{Math.round(theme.weight * 100)}%</span>
+                      <div className={styles.symbolsScroll}>
+                        {result.dreamSymbols.map((sym, i) => (
+                          <div key={i} className={styles.symbolCard}>
+                            <div className={styles.symbolHeader}>
+                              <span className={styles.symbolEmoji}>✨</span>
+                              <span className={styles.symbolLabel}>{sym.label}</span>
                             </div>
-                            <div className={styles.themeBarContainer}>
-                              <div className={styles.themeBarFill} style={{ width: `${theme.weight * 100}%` }} />
-                            </div>
+                            <p className={styles.symbolMeaning}>{sym.meaning}</p>
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Two Column Grid */}
+                  <div className={styles.analysisCardsGrid}>
+                    {/* Cross Insights - Left Column */}
+                    {result.crossInsights && result.crossInsights.length > 0 && (
+                      <div className={styles.insightSection}>
+                        <div className={styles.sectionHeader}>
+                          <span className={styles.sectionIcon}>💡</span>
+                          <h3 className={styles.sectionTitle}>{locale === 'ko' ? '통합 분석' : 'Cross Insights'}</h3>
+                        </div>
+                        <div className={styles.insightsList}>
+                          {result.crossInsights.map((insight, i) => (
+                            <div key={i} className={styles.insightItem}>
+                              <div className={styles.insightBullet}>{i + 1}</div>
+                              <p className={styles.insightText}>{insight}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
 
+                    {/* Themes - Right Column */}
+                    {result.themes && result.themes.length > 0 && (
+                      <div className={styles.themesSection}>
+                        <div className={styles.sectionHeader}>
+                          <span className={styles.sectionIcon}>🎭</span>
+                          <h3 className={styles.sectionTitle}>{locale === 'ko' ? '주요 테마' : 'Themes'}</h3>
+                        </div>
+                        <div className={styles.themesList}>
+                          {result.themes.map((theme, i) => (
+                            <div key={i} className={styles.themeItem}>
+                              <div className={styles.themeInfo}>
+                                <span className={styles.themeName}>{theme.label}</span>
+                                <span className={styles.themePercent}>{Math.round(theme.weight * 100)}%</span>
+                              </div>
+                              <div className={styles.themeBarContainer}>
+                                <div
+                                  className={styles.themeBarFill}
+                                  style={{
+                                    width: `${theme.weight * 100}%`,
+                                    background: `linear-gradient(90deg,
+                                      hsl(${180 + i * 30}, 70%, 60%),
+                                      hsl(${200 + i * 30}, 80%, 70%))`
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Recommendations - Full Width Premium Section */}
+                  {result.recommendations && result.recommendations.length > 0 && (
+                    <div className={styles.recommendationsSection}>
+                      <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🌟</span>
+                        <h3 className={styles.sectionTitle}>{locale === 'ko' ? '맞춤 조언' : 'Personalized Advice'}</h3>
+                        <span className={styles.sectionBadge}>{locale === 'ko' ? '실천 가이드' : 'Action Guide'}</span>
+                      </div>
+                      <div className={styles.recommendationsGrid}>
+                        {result.recommendations.map((rec, i) => (
+                          <div key={i} className={styles.recommendationCard}>
+                            <div className={styles.recommendationNumber}>{i + 1}</div>
+                            {typeof rec === 'string' ? (
+                              <p className={styles.recommendationText}>{rec}</p>
+                            ) : (
+                              <>
+                                <h4 className={styles.recommendationTitle}>{rec.title}</h4>
+                                <p className={styles.recommendationDetail}>{rec.detail}</p>
+                              </>
+                            )}
+                            <div className={styles.recommendationGlow}></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lucky & Moon Phase - Side by Side */}
+                  <div className={styles.luckyMoonRow}>
                     {/* Lucky Elements */}
                     {result.luckyElements && (result.luckyElements.luckyNumbers?.length || result.luckyElements.luckyColors?.length) && (
-                      <div className={`${styles.resultCard} ${styles.luckyCard}`}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>🍀 {locale === 'ko' ? '행운의 요소' : 'Lucky Elements'}</div>
+                      <div className={styles.luckySection}>
+                        <div className={styles.sectionHeader}>
+                          <span className={styles.sectionIcon}>🍀</span>
+                          <h3 className={styles.sectionTitle}>{locale === 'ko' ? '행운의 요소' : 'Lucky Elements'}</h3>
+                        </div>
                         <div className={styles.luckyContent}>
                           {result.luckyElements.luckyNumbers && result.luckyElements.luckyNumbers.length > 0 && (
-                            <div className={styles.luckyNumbers}>
-                              <strong>{locale === 'ko' ? '행운의 숫자' : 'Lucky Numbers'}:</strong>
+                            <div className={styles.luckyRow}>
+                              <span className={styles.luckyLabel}>{locale === 'ko' ? '행운의 숫자' : 'Numbers'}</span>
                               <div className={styles.numberBalls}>
                                 {result.luckyElements.luckyNumbers.map((num, i) => (
                                   <span key={i} className={styles.numberBall}>{num}</span>
@@ -847,8 +984,8 @@ function DreamContent() {
                             </div>
                           )}
                           {result.luckyElements.luckyColors && result.luckyElements.luckyColors.length > 0 && (
-                            <div className={styles.luckyColors}>
-                              <strong>{locale === 'ko' ? '행운의 색상' : 'Lucky Colors'}:</strong>
+                            <div className={styles.luckyRow}>
+                              <span className={styles.luckyLabel}>{locale === 'ko' ? '행운의 색상' : 'Colors'}</span>
                               <div className={styles.colorTags}>
                                 {result.luckyElements.luckyColors.map((color, i) => (
                                   <span key={i} className={styles.colorTag}>{color}</span>
@@ -857,9 +994,7 @@ function DreamContent() {
                             </div>
                           )}
                           {result.luckyElements.advice && (
-                            <div className={styles.luckyAdvice}>
-                              <p>{result.luckyElements.advice}</p>
-                            </div>
+                            <p className={styles.luckyAdviceText}>{result.luckyElements.advice}</p>
                           )}
                         </div>
                       </div>
@@ -867,49 +1002,58 @@ function DreamContent() {
 
                     {/* Moon Phase */}
                     {result.celestial?.moon_phase && (
-                      <div className={styles.resultCard}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>
-                          {result.celestial.moon_phase.emoji || '🌕'} {locale === 'ko' ? '달의 위상' : 'Moon Phase'}
+                      <div className={styles.moonSection}>
+                        <div className={styles.sectionHeader}>
+                          <span className={styles.sectionIcon}>{result.celestial.moon_phase.emoji || '🌕'}</span>
+                          <h3 className={styles.sectionTitle}>{locale === 'ko' ? '달의 위상' : 'Moon Phase'}</h3>
                         </div>
-                        <div className={styles.moonPhaseContent}>
-                          <p className={styles.moonPhaseName}>
-                            {result.celestial.moon_phase.korean || result.celestial.moon_phase.name}
-                          </p>
+                        <div className={styles.moonContent}>
+                          <div className={styles.moonVisual}>
+                            <span className={styles.moonEmoji}>{result.celestial.moon_phase.emoji || '🌕'}</span>
+                            <span className={styles.moonName}>
+                              {result.celestial.moon_phase.korean || result.celestial.moon_phase.name}
+                            </span>
+                          </div>
                           {result.celestial.moon_phase.dream_meaning && (
-                            <p className={styles.resultText}>{result.celestial.moon_phase.dream_meaning}</p>
+                            <p className={styles.moonMeaning}>{result.celestial.moon_phase.dream_meaning}</p>
                           )}
                         </div>
                       </div>
                     )}
+                  </div>
 
-                    {/* Cultural Notes - 문화별 해몽 */}
-                    {result.culturalNotes && (result.culturalNotes.korean || result.culturalNotes.western || result.culturalNotes.chinese) && (
-                      <div className={styles.resultCard}>
-                        <div className={styles.resultCardGlow}></div>
-                        <div className={styles.resultTitle}>🌏 {locale === 'ko' ? '문화별 해몽' : 'Cultural Interpretations'}</div>
-                        <div className={styles.culturalNotes}>
-                          {result.culturalNotes.korean && (
-                            <div className={styles.culturalNote}>
-                              <strong>🇰🇷 {locale === 'ko' ? '한국 전통' : 'Korean'}:</strong>
-                              <p>{result.culturalNotes.korean}</p>
-                            </div>
-                          )}
-                          {result.culturalNotes.western && (
-                            <div className={styles.culturalNote}>
-                              <strong>🧠 {locale === 'ko' ? '서양/융 심리학' : 'Western/Jungian'}:</strong>
-                              <p>{result.culturalNotes.western}</p>
-                            </div>
-                          )}
-                          {result.culturalNotes.chinese && (
-                            <div className={styles.culturalNote}>
-                              <strong>🇨🇳 {locale === 'ko' ? '중국 해몽' : 'Chinese'}:</strong>
-                              <p>{result.culturalNotes.chinese}</p>
-                            </div>
-                          )}
-                        </div>
+                  {/* Cultural Notes - Premium Tab Style */}
+                  {result.culturalNotes && (result.culturalNotes.korean || result.culturalNotes.western || result.culturalNotes.chinese) && (
+                    <div className={styles.culturalSection}>
+                      <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🌏</span>
+                        <h3 className={styles.sectionTitle}>{locale === 'ko' ? '문화별 해몽' : 'Cultural Interpretations'}</h3>
                       </div>
-                    )}
+                      <div className={styles.culturalGrid}>
+                        {result.culturalNotes.korean && (
+                          <div className={styles.culturalCard}>
+                            <div className={styles.culturalFlag}>🇰🇷</div>
+                            <h4 className={styles.culturalTitle}>{locale === 'ko' ? '한국 전통' : 'Korean'}</h4>
+                            <p className={styles.culturalText}>{result.culturalNotes.korean}</p>
+                          </div>
+                        )}
+                        {result.culturalNotes.western && (
+                          <div className={styles.culturalCard}>
+                            <div className={styles.culturalFlag}>🧠</div>
+                            <h4 className={styles.culturalTitle}>{locale === 'ko' ? '서양/융' : 'Western'}</h4>
+                            <p className={styles.culturalText}>{result.culturalNotes.western}</p>
+                          </div>
+                        )}
+                        {result.culturalNotes.chinese && (
+                          <div className={styles.culturalCard}>
+                            <div className={styles.culturalFlag}>🇨🇳</div>
+                            <h4 className={styles.culturalTitle}>{locale === 'ko' ? '중국' : 'Chinese'}</h4>
+                            <p className={styles.culturalText}>{result.culturalNotes.chinese}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                     {/* Taemong - 태몽 분석 */}
                     {result.premium_features?.taemong?.is_taemong && result.premium_features.taemong.primary_symbol && (
@@ -982,8 +1126,6 @@ function DreamContent() {
                     )}
                   </div>
                 </div>
-              </div>
-
               {/* Ask Again Button */}
               <button className={styles.askAgainBtn} onClick={handleReset}>
                 <span>🌙</span>

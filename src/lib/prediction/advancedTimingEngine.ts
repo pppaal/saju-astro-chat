@@ -2,6 +2,7 @@
 // 고급 타이밍 엔진 - 정밀 12운성 + 다층 운세 중첩 분석
 
 import type { FiveElement, YinYang } from '@/lib/Saju/types';
+import { scoreToGrade, type PredictionGrade } from './index';
 
 // ============================================================
 // 타입 정의 (re-export from central types)
@@ -58,7 +59,7 @@ export interface LayeredTimingScore {
   rawScore: number;               // 가중치 적용 전 (0-100)
   weightedScore: number;          // 가중치 적용 후 (0-100)
   confidence: number;             // 신뢰도 (0-100)
-  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: PredictionGrade;
 
   // 해석
   dominantEnergy: FiveElement;
@@ -670,14 +671,8 @@ export function calculateAdvancedMonthlyScore(input: AdvancedTimingInput): Layer
   if (branchInteractions.length > 0) confidence += 10;
   confidence = Math.min(100, confidence);
 
-  // 등급
-  let grade: LayeredTimingScore['grade'];
-  if (weightedScore >= 85) grade = 'S';
-  else if (weightedScore >= 70) grade = 'A';
-  else if (weightedScore >= 55) grade = 'B';
-  else if (weightedScore >= 40) grade = 'C';
-  else if (weightedScore >= 25) grade = 'D';
-  else grade = 'F';
+  // 등급 (통일된 기준 사용)
+  const grade = scoreToGrade(weightedScore);
 
   // 오행 분포 계산
   const energyBalance: Record<FiveElement, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
@@ -748,7 +743,9 @@ export function calculateAdvancedMonthlyScore(input: AdvancedTimingInput): Layer
 }
 
 function calculateLuckyDays(month: number, baseScore: number): number[] {
-  const daysInMonth = new Date(2024, month, 0).getDate();
+  // 현재 연도 기준으로 월의 일수 계산 (하드코딩된 2024 제거)
+  const currentYear = new Date().getFullYear();
+  const daysInMonth = new Date(currentYear, month, 0).getDate();
   const luckyCount = baseScore >= 70 ? 6 : baseScore >= 50 ? 4 : 2;
 
   // 1, 6, 11, 16, 21, 26 (5일 간격)
@@ -763,7 +760,9 @@ function calculateCautionDays(month: number, branchInteractions: BranchInteracti
   const hasConflict = branchInteractions.some(b => b.impact === 'negative');
   if (!hasConflict) return [];
 
-  const daysInMonth = new Date(2024, month, 0).getDate();
+  // 현재 연도 기준으로 월의 일수 계산 (하드코딩된 2024 제거)
+  const currentYear = new Date().getFullYear();
+  const daysInMonth = new Date(currentYear, month, 0).getDate();
   // 충이 있으면 월초/월말 주의
   return [1, 2, daysInMonth - 1, daysInMonth];
 }

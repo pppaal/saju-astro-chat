@@ -1139,110 +1139,149 @@ export default function KarmaTab({ saju, astro, lang, isKo, data }: TabProps) {
       {/* 동서양 카르마 교차점 */}
       {matrixAnalysis && (
         <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-fuchsia-900/20 border border-fuchsia-500/30 p-6">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <span className="text-2xl">☯️</span>
             <h3 className="text-lg font-bold text-fuchsia-300">
-              {isKo ? "동서양 운명 교차점" : "East-West Destiny Crossroads"}
+              {isKo ? "동서양 에너지 융합 분석" : "East-West Energy Fusion Analysis"}
             </h3>
           </div>
-          <p className="text-gray-400 text-sm mb-4">
-            {isKo
-              ? "동양 사주와 서양 점성술이 만나는 특별한 교차점입니다."
-              : "Special crossroads where Eastern Saju meets Western Astrology."}
-          </p>
+
+          {/* 설명 박스 */}
+          <div className="mb-5 p-4 rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/10">
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {isKo
+                ? "당신의 사주(동양)와 별자리(서양)가 어떻게 어울리는지 분석했어요. 사주의 오행(목·화·토·금·수)과 별자리의 원소(불·흙·바람·물)가 만나면 특별한 에너지가 생겨요."
+                : "We analyzed how your Saju (Eastern) and zodiac (Western) energies combine. When Five Elements meet zodiac elements, special energy is created."}
+            </p>
+          </div>
 
           {/* 오행-원소 융합 */}
           {matrixAnalysis.elementFusions.length > 0 && (
-            <div className="mb-4">
-              <p className="text-sm font-bold text-gray-300 mb-3 flex items-center gap-2">
-                <span>🌀</span> {isKo ? "오행 × 원소 융합" : "Five Elements × Elements Fusion"}
-              </p>
-              <div className="space-y-2">
+            <div className="mb-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🌀</span>
+                <p className="text-sm font-bold text-gray-300">
+                  {isKo ? "당신의 에너지가 어떻게 만나는지" : "How Your Energies Meet"}
+                </p>
+              </div>
+              <div className="space-y-3">
                 {matrixAnalysis.elementFusions.map((fusion, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 p-3 rounded-lg"
+                    className="p-4 rounded-xl"
                     style={{
                       backgroundColor: `${fusion.fusion.color}10`,
                       border: `1px solid ${fusion.fusion.color}25`
                     }}
                   >
-                    <span className="text-xl">{fusion.fusion.icon}</span>
-                    <div className="flex-1">
-                      <p className="text-sm" style={{ color: fusion.fusion.color }}>
-                        {isKo ? fusion.fusion.description.ko : fusion.fusion.description.en}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold" style={{ color: fusion.fusion.color }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">{fusion.fusion.icon}</span>
+                      <span className="text-sm font-bold" style={{ color: fusion.fusion.color }}>
                         {isKo ? fusion.fusion.keyword.ko : fusion.fusion.keyword.en}
-                      </p>
-                      <p className="text-xs text-gray-500">{fusion.fusion.score}/10</p>
+                      </span>
+                      <span className="ml-auto text-xs px-2 py-1 rounded-full" style={{ backgroundColor: `${fusion.fusion.color}20`, color: fusion.fusion.color }}>
+                        {isKo ? `조화도 ${fusion.fusion.score}점` : `${fusion.fusion.score}/10`}
+                      </span>
                     </div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      {isKo ? fusion.fusion.description.ko : fusion.fusion.description.en}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* 융합 레벨 분포 */}
-          <div className="grid grid-cols-5 gap-1 mb-4">
-            {matrixAnalysis.fusionSummary.extreme > 0 && (
-              <div className="text-center p-2 rounded bg-purple-500/20">
-                <div className="text-purple-400 font-bold">{matrixAnalysis.fusionSummary.extreme}</div>
-                <div className="text-gray-500 text-xs">{isKo ? "극강" : "Peak"}</div>
-              </div>
-            )}
-            {matrixAnalysis.fusionSummary.amplify > 0 && (
-              <div className="text-center p-2 rounded bg-green-500/20">
-                <div className="text-green-400 font-bold">{matrixAnalysis.fusionSummary.amplify}</div>
-                <div className="text-gray-500 text-xs">{isKo ? "증폭" : "Boost"}</div>
-              </div>
-            )}
-            {matrixAnalysis.fusionSummary.balance > 0 && (
-              <div className="text-center p-2 rounded bg-blue-500/20">
-                <div className="text-blue-400 font-bold">{matrixAnalysis.fusionSummary.balance}</div>
-                <div className="text-gray-500 text-xs">{isKo ? "균형" : "Bal"}</div>
-              </div>
-            )}
-            {matrixAnalysis.fusionSummary.clash > 0 && (
-              <div className="text-center p-2 rounded bg-yellow-500/20">
-                <div className="text-yellow-400 font-bold">{matrixAnalysis.fusionSummary.clash}</div>
-                <div className="text-gray-500 text-xs">{isKo ? "긴장" : "Clash"}</div>
-              </div>
-            )}
-            {matrixAnalysis.fusionSummary.conflict > 0 && (
-              <div className="text-center p-2 rounded bg-red-500/20">
-                <div className="text-red-400 font-bold">{matrixAnalysis.fusionSummary.conflict}</div>
-                <div className="text-gray-500 text-xs">{isKo ? "상충" : "Conf"}</div>
-              </div>
-            )}
+          {/* 에너지 조화도 요약 */}
+          <div className="mb-5 p-4 rounded-xl bg-slate-800/50">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">📊</span>
+              <p className="text-sm font-bold text-gray-300">
+                {isKo ? "전체 에너지 조화도" : "Overall Energy Harmony"}
+              </p>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              {isKo
+                ? "동서양 에너지가 얼마나 잘 어울리는지 보여줘요. 완벽 공명이 많을수록 좋고, 긴장이 있어도 성장의 기회가 돼요."
+                : "Shows how well your Eastern and Western energies harmonize. More perfect resonance is better, but tension creates growth opportunities."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {matrixAnalysis.fusionSummary.extreme > 0 && (
+                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-purple-500/20">
+                  <span className="text-purple-300 text-sm">💜</span>
+                  <div>
+                    <p className="text-purple-300 text-xs font-bold">{isKo ? "완벽 공명" : "Perfect"}</p>
+                    <p className="text-purple-200 text-xs">{matrixAnalysis.fusionSummary.extreme}개 - {isKo ? "에너지가 폭발적으로 증폭!" : "Energy amplified!"}</p>
+                  </div>
+                </div>
+              )}
+              {matrixAnalysis.fusionSummary.amplify > 0 && (
+                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-green-500/20">
+                  <span className="text-green-300 text-sm">💚</span>
+                  <div>
+                    <p className="text-green-300 text-xs font-bold">{isKo ? "시너지" : "Synergy"}</p>
+                    <p className="text-green-200 text-xs">{matrixAnalysis.fusionSummary.amplify}개 - {isKo ? "서로 힘을 더해줘요" : "Boost each other"}</p>
+                  </div>
+                </div>
+              )}
+              {matrixAnalysis.fusionSummary.balance > 0 && (
+                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-500/20">
+                  <span className="text-blue-300 text-sm">💙</span>
+                  <div>
+                    <p className="text-blue-300 text-xs font-bold">{isKo ? "조화" : "Harmony"}</p>
+                    <p className="text-blue-200 text-xs">{matrixAnalysis.fusionSummary.balance}개 - {isKo ? "안정적으로 균형" : "Stable balance"}</p>
+                  </div>
+                </div>
+              )}
+              {matrixAnalysis.fusionSummary.clash > 0 && (
+                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-yellow-500/20">
+                  <span className="text-yellow-300 text-sm">💛</span>
+                  <div>
+                    <p className="text-yellow-300 text-xs font-bold">{isKo ? "긴장" : "Tension"}</p>
+                    <p className="text-yellow-200 text-xs">{matrixAnalysis.fusionSummary.clash}개 - {isKo ? "성장의 자극이 돼요" : "Stimulates growth"}</p>
+                  </div>
+                </div>
+              )}
+              {matrixAnalysis.fusionSummary.conflict > 0 && (
+                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-500/20">
+                  <span className="text-red-300 text-sm">❤️</span>
+                  <div>
+                    <p className="text-red-300 text-xs font-bold">{isKo ? "도전" : "Challenge"}</p>
+                    <p className="text-red-200 text-xs">{matrixAnalysis.fusionSummary.conflict}개 - {isKo ? "극복하면 크게 성장해요" : "Overcome for big growth"}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* 카르마 메시지 */}
+          {/* 운명적 메시지 */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-fuchsia-500/10 to-purple-500/10 border border-fuchsia-500/20">
             <p className="text-fuchsia-300 font-bold text-sm mb-2">
-              {isKo ? "🔮 운명적 메시지" : "🔮 Destined Message"}
+              {isKo ? "💫 당신에게 주는 메시지" : "💫 Message For You"}
             </p>
             <p className="text-gray-300 text-sm leading-relaxed">
               {(() => {
-                const { extreme, conflict, amplify } = matrixAnalysis.fusionSummary;
+                const { extreme, conflict, amplify, clash, balance } = matrixAnalysis.fusionSummary;
                 if (extreme >= 2 && conflict === 0) {
                   return isKo
-                    ? "동서양 운명이 강하게 공명하고 있어요! 이 에너지를 활용하면 큰 성취가 가능해요."
-                    : "East and West destinies resonate strongly! Harnessing this energy enables great achievement.";
+                    ? "동양과 서양의 에너지가 완벽하게 공명하고 있어요! 당신은 타고난 운이 강한 편이에요. 이 에너지를 믿고 적극적으로 행동하면 큰 성취를 이룰 수 있어요."
+                    : "Your Eastern and Western energies resonate perfectly! You have naturally strong fortune. Trust this energy and act boldly for great achievements.";
                 } else if (conflict >= 2) {
                   return isKo
-                    ? "동서양 에너지 사이에 긴장이 있어요. 이것은 성장의 기회예요. 균형을 찾으면 강해져요."
-                    : "Tension exists between East-West energies. This is a growth opportunity. Finding balance makes you stronger.";
-                } else if (amplify >= 3) {
+                    ? "동서양 에너지 사이에 도전적인 긴장이 있어요. 하지만 걱정하지 마세요! 이런 긴장감은 당신을 더 강하게 만들어요. 내면의 균형을 찾으면 오히려 큰 힘이 돼요."
+                    : "There's challenging tension between your energies. But don't worry! This tension makes you stronger. Finding inner balance will become your greatest strength.";
+                } else if (amplify >= 2) {
                   return isKo
-                    ? "에너지가 증폭되어 흐르고 있어요. 지금 시작하면 좋은 결과가 올 거예요."
-                    : "Energy is flowing amplified. Starting now will bring good results.";
+                    ? "에너지가 서로 힘을 더해주고 있어요! 지금 시작하는 일들이 좋은 결과로 이어질 가능성이 높아요. 자신감을 가지고 추진하세요."
+                    : "Your energies are boosting each other! Things you start now are likely to lead to good results. Pursue them with confidence.";
+                } else if (clash >= 2) {
+                  return isKo
+                    ? "약간의 긴장감이 있지만, 이건 성장의 원동력이에요. 다른 관점에서 생각해보면 새로운 길이 보일 거예요."
+                    : "There's some tension, but it's the driving force for growth. Looking from different perspectives will reveal new paths.";
                 }
                 return isKo
-                  ? "동서양 운명이 조화롭게 어우러지고 있어요. 자연스러운 흐름을 따르세요."
-                  : "East-West destinies harmonize well. Follow the natural flow.";
+                  ? "동서양 에너지가 조화롭게 흐르고 있어요. 큰 파도 없이 안정적인 상태예요. 자연스러운 흐름을 따라가면서 당신만의 속도로 나아가세요."
+                  : "Your energies are flowing harmoniously. It's a stable state without big waves. Follow the natural flow and progress at your own pace.";
               })()}
             </p>
           </div>

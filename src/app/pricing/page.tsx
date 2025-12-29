@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "./pricing.module.css";
@@ -159,6 +159,35 @@ export default function PricingPage() {
   const isKo = locale === "ko";
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // 결제 후 돌아갈 URL 저장 (referrer 또는 이전에 저장된 값 유지)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 이미 저장된 returnUrl이 있으면 유지
+    const existingReturnUrl = localStorage.getItem("checkout_return_url");
+    if (existingReturnUrl) return;
+
+    // referrer에서 같은 도메인의 경로 추출
+    try {
+      const referrer = document.referrer;
+      if (referrer) {
+        const referrerUrl = new URL(referrer);
+        const currentHost = window.location.host;
+
+        // 같은 도메인에서 온 경우에만 저장
+        if (referrerUrl.host === currentHost) {
+          const path = referrerUrl.pathname;
+          // pricing, success, auth 페이지 제외
+          if (path !== "/pricing" && path !== "/success" && !path.startsWith("/auth")) {
+            localStorage.setItem("checkout_return_url", path);
+          }
+        }
+      }
+    } catch {
+      // URL 파싱 실패 시 무시
+    }
+  }, []);
 
   const pt = useCallback((key: string) => t(`pricing.${key}`), [t]);
 

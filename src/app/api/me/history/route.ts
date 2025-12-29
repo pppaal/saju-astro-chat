@@ -124,9 +124,14 @@ export async function GET() {
       ...consultations.map((c) => ({
         id: c.id,
         date: c.createdAt.toISOString().split("T")[0],
-        service: c.theme === "dream" ? "dream" : "destiny-map",
+        service: c.theme === "dream" ? "dream"
+          : c.theme === "life-prediction-timing" ? "life-prediction-timing"
+          : c.theme === "life-prediction" ? "life-prediction"
+          : "destiny-map",
         theme: c.theme === "dream" ? undefined : c.theme,
-        summary: c.theme === "dream" ? (c.summary || "꿈 해석") : formatDestinyMapSummary(c.theme),
+        summary: c.theme === "dream" ? (c.summary || "꿈 해석")
+          : c.theme?.startsWith("life-prediction") ? (c.summary || "인생 예측")
+          : formatDestinyMapSummary(c.theme),
         type: "consultation",
       })),
       ...interactions

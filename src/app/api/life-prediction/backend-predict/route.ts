@@ -2,6 +2,7 @@
 // 백엔드 Flask prediction API 프록시 - RAG 기반 예측 시스템 사용
 
 import { NextRequest, NextResponse } from 'next/server';
+import { scoreToGrade as standardScoreToGrade, type PredictionGrade } from '@/lib/prediction';
 
 // ============================================================
 // 타입 정의
@@ -142,10 +143,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.log(`[Backend Predict] Calling ${endpoint}`);
 
     // 백엔드 API 호출
+    const apiKey = process.env.ADMIN_API_TOKEN || '';
     const backendRes = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify(requestBody),
     });
@@ -248,12 +251,8 @@ function transformBackendResponse(
 // ============================================================
 // 헬퍼 함수
 // ============================================================
-function scoreToGrade(score: number): 'S' | 'A' | 'B' | 'C' | 'D' {
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 60) return 'C';
-  return 'D';
+function scoreToGrade(score: number): PredictionGrade {
+  return standardScoreToGrade(score);
 }
 
 function formatReasons(

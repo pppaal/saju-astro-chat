@@ -252,7 +252,7 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
   return data.choices[0]?.message?.content || '';
 }
 
-// GPT를 사용한 해석 생성 (백엔드 없이 직접 호출)
+// GPT를 사용한 해석 생성 (백엔드 없이 직접 호출) - 통합 프롬프트로 속도 최적화
 async function generateGPTInterpretation(
   cards: CardInput[],
   spreadTitle: string,
@@ -260,118 +260,120 @@ async function generateGPTInterpretation(
   userQuestion?: string
 ) {
   const isKorean = language === "ko";
-  const cardsStr = cards.map(c => {
+
+  // 위치별 카드 정보
+  const cardListText = cards.map((c, i) => {
     const name = isKorean && c.nameKo ? c.nameKo : c.name;
-    return `${name}${c.isReversed ? '(역방향)' : ''}`;
-  }).join(', ');
+    const pos = isKorean && c.positionKo ? c.positionKo : c.position;
+    const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || [];
+    return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`;
+  }).join('\n');
 
-  // 전체 해석과 개별 카드 해석을 병렬로 생성
-  const overallPrompt = isKorean
-    ? `당신은 10년 경력의 타로 리더입니다.
+  const q = userQuestion || (isKorean ? '일반 운세' : 'general reading');
 
-질문: "${userQuestion || '일반 운세'}"
-스프레드: ${spreadTitle}
-카드: ${cardsStr}
+  // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언을 한번에)
+  const unifiedPrompt = isKorean
+    ? `당신은 따뜻하고 직관적인 타로 상담사입니다. 친구에게 이야기하듯 자연스럽게 해석해주세요.
 
-위 카드들을 종합해서 300-400자로 해석해주세요.
-- 질문에 직접 답변
-- 카드 이미지의 상징을 구체적으로 언급
-- AI스러운 표현 피하기 (긍정적 에너지, ~하시면 좋을 것 같습니다 등)
-- 자연스러운 한국어`
-    : `You are a tarot reader with 10 years of experience.
+## 스프레드: ${spreadTitle}
+## 질문: "${q}"
 
-Question: "${userQuestion || 'General reading'}"
-Spread: ${spreadTitle}
-Cards: ${cardsStr}
+## 뽑힌 카드
+${cardListText}
 
-Interpret these cards in 200-300 words.
-- Answer the question directly
-- Reference specific card symbolism
-- Avoid AI-sounding phrases
-- Natural English`;
+## 출력 형식 (JSON)
+다음 형식으로 JSON 응답하세요:
+{
+  "overall": "전체 메시지 (300-400자). 상담사가 대화하듯 자연스럽게. 질문에 직접 답하고, 마지막에 '결론:' 포함",
+  "cards": [
+    {"position": "위치명", "interpretation": "이 카드의 해석 (80-120자). 위치 의미에 맞게, 카드 상징 언급"}
+  ],
+  "advice": "실용적 조언 (60-80자). 구체적 행동 지침"
+}
 
-  // 각 카드별 해석 프롬프트 생성
-  const cardPrompts = cards.map((card, i) => {
-    const cardName = isKorean && card.nameKo ? card.nameKo : card.name;
-    const position = isKorean && card.positionKo ? card.positionKo : card.position;
-    const meaning = isKorean && card.meaningKo ? card.meaningKo : card.meaning;
-    const keywords = isKorean && card.keywordsKo ? card.keywordsKo : card.keywords;
-    const reversedText = card.isReversed ? (isKorean ? '(역방향)' : '(Reversed)') : '';
+## 규칙
+1. 질문 "${q}"에 직접 답변하세요
+2. 각 카드가 질문에 뭐라고 하는지 연결하세요
+3. 상담사처럼 따뜻하지만 솔직하게 말하세요
+4. "~것 같습니다", "~하시면 좋겠습니다" 같은 AI 표현 금지`
+    : `You are a warm, intuitive tarot counselor. Speak naturally like talking to a friend.
 
-    return isKorean
-      ? `타로 리더로서 아래 카드를 100-150자로 해석하세요.
+## Spread: ${spreadTitle}
+## Question: "${q}"
 
-카드: ${cardName}${reversedText}
-위치: ${position}
-질문: ${userQuestion || '일반 운세'}
-카드 의미: ${meaning || ''}
-키워드: ${keywords?.join(', ') || ''}
+## Cards Drawn
+${cardListText}
 
-해석 방향:
-- 이 위치(${position})에서 카드가 의미하는 바
-- 카드 이미지의 상징 언급
-- AI스러운 표현 피하기`
-      : `As a tarot reader, interpret this card in 80-120 words.
+## Output Format (JSON)
+Respond in this JSON format:
+{
+  "overall": "Overall message (200-300 words). Speak like a counselor naturally. Answer the question directly, end with 'Conclusion:'",
+  "cards": [
+    {"position": "Position name", "interpretation": "Card interpretation (60-80 words). Match position meaning, mention card symbolism"}
+  ],
+  "advice": "Practical advice (40-60 words). Specific action steps"
+}
 
-Card: ${cardName}${reversedText}
-Position: ${position}
-Question: ${userQuestion || 'General reading'}
-Meaning: ${meaning || ''}
-Keywords: ${keywords?.join(', ') || ''}
-
-Focus on what this card means in this position.`;
-  });
-
-  // 조언 프롬프트
-  const guidancePrompt = isKorean
-    ? `타로 상담사로서 아래 카드들을 바탕으로 실용적인 조언을 150-200자로 작성하세요.
-
-질문: "${userQuestion || '일반 운세'}"
-카드: ${cardsStr}
-
-조언 방향:
-- 구체적이고 실행 가능한 조언
-- 질문에 직접적으로 답하는 내용
-- "~하세요", "~해보세요" 같은 행동 지침
-- AI스러운 표현 피하기 (긍정적 에너지, ~하시면 좋을 것 같습니다 등)`
-    : `As a tarot counselor, give practical advice in 100-150 words based on these cards.
-
-Question: "${userQuestion || 'General reading'}"
-Cards: ${cardsStr}
-
-Give specific, actionable advice that directly answers the question.`;
+## Rules
+1. Directly answer "${q}"
+2. Connect each card to the question
+3. Be warm but honest like a counselor
+4. No AI phrases like "I believe" or "I suggest"`;
 
   try {
-    // 모든 GPT 호출을 병렬로 실행 (조언도 포함)
-    const [overallResult, guidanceResult, ...cardResults] = await Promise.all([
-      callGPT(overallPrompt, 600),
-      callGPT(guidancePrompt, 300),
-      ...cardPrompts.map(prompt => callGPT(prompt, 250))
-    ]);
+    const result = await callGPT(unifiedPrompt, 1500);
 
+    // Parse JSON response
+    const jsonMatch = result.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      return {
+        overall_message: parsed.overall || '',
+        card_insights: cards.map((card, i) => {
+          const cardData = parsed.cards?.[i] || {};
+          return {
+            position: card.position,
+            card_name: card.name,
+            is_reversed: card.isReversed,
+            interpretation: cardData.interpretation || '',
+            spirit_animal: null,
+            chakra: null,
+            element: null,
+            shadow: null
+          };
+        }),
+        guidance: parsed.advice || (isKorean ? "카드의 메시지에 귀 기울여보세요." : "Listen to the cards."),
+        affirmation: isKorean
+          ? "오늘 하루도 나답게 가면 돼요."
+          : "Just be yourself today.",
+        combinations: [],
+        followup_questions: [],
+        fallback: false
+      };
+    }
+
+    // JSON 파싱 실패 시 전체 텍스트를 overall로 사용
     return {
-      overall_message: overallResult,
-      card_insights: cards.map((card, i) => ({
+      overall_message: result,
+      card_insights: cards.map((card) => ({
         position: card.position,
         card_name: card.name,
         is_reversed: card.isReversed,
-        interpretation: cardResults[i] || '',
+        interpretation: '',
         spirit_animal: null,
         chakra: null,
         element: null,
         shadow: null
       })),
-      guidance: guidanceResult || (isKorean ? "카드의 메시지에 귀 기울여보세요." : "Listen to the cards."),
-      affirmation: isKorean
-        ? "오늘 하루도 나답게 가면 돼요."
-        : "Just be yourself today.",
+      guidance: isKorean ? "카드의 메시지에 귀 기울여보세요." : "Listen to the cards.",
+      affirmation: isKorean ? "오늘도 화이팅!" : "You got this!",
       combinations: [],
       followup_questions: [],
       fallback: false
     };
   } catch (error) {
     console.error("GPT interpretation failed:", error);
-    // GPT 실패 시 기본 fallback
     return generateSimpleFallback(cards, spreadTitle, language, userQuestion);
   }
 }

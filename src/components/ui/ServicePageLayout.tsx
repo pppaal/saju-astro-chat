@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef } from "react";
 import BackButton from "./BackButton";
+import CreditBadge from "./CreditBadge";
 import styles from "./ServicePageLayout.module.css";
 
 interface ServicePageLayoutProps {
@@ -181,6 +182,9 @@ export default function ServicePageLayout({
     <div className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
       <BackButton onClick={onBack} label={backLabel} />
+      <div className={styles.creditBadgeWrapper}>
+        <CreditBadge variant="compact" />
+      </div>
       <div className={styles.content}>
         <header className={styles.header}>
           {icon && (

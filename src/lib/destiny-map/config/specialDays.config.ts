@@ -80,8 +80,10 @@ export function isSonEomneunDay(lunarDay: number): boolean {
 
 // 간단한 양력→음력 근사 변환 (정확도 ±1~2일)
 export function approximateLunarDay(date: Date): number {
-  const baseDate = new Date(2000, 0, 6);
-  const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(2000, 0, 6);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
   const lunarMonthDays = 29.53;
   const dayInMonth = ((diffDays % lunarMonthDays) + lunarMonthDays) % lunarMonthDays;
   return Math.floor(dayInMonth) + 1;
@@ -458,8 +460,10 @@ export const TWELVE_SPIRITS = ["건", "제", "만", "평", "정", "집", "파", 
 
 export function getTwelveSpiritForDay(date: Date): { name: string; meaning: string; score: number } {
   // 기준일: 2000년 1월 1일 = "건"
-  const baseDate = new Date(2000, 0, 1);
-  const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(2000, 0, 1);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
   const index = ((diffDays % 12) + 12) % 12;
   const name = TWELVE_SPIRITS[index];
 
@@ -516,8 +520,10 @@ export const TWENTY_EIGHT_MANSIONS = [
 ];
 
 export function get28MansionForDay(date: Date): { name: string; meaning: string; score: number } {
-  const baseDate = new Date(2000, 0, 1);
-  const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const baseUtc = Date.UTC(2000, 0, 1);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
   const index = ((diffDays % 28) + 28) % 28;
   return TWENTY_EIGHT_MANSIONS[index];
 }
@@ -581,8 +587,10 @@ export const SOLAR_TERMS: SolarTermInfo[] = [
 
 // 태양 황경 근사 계산
 function getSunLongitude(date: Date): number {
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
   // 평균 태양 황경 (근사)
   const L = (280.46 + 0.9856474 * daysSinceJ2000) % 360;
   return L < 0 ? L + 360 : L;
@@ -637,8 +645,10 @@ export interface EclipseInfo {
 
 // 달의 노드(교점) 근처에서 삭/망이면 일식/월식 가능성
 export function checkEclipsePotential(date: Date): { potential: boolean; type: "solar" | "lunar" | null; strength: number } {
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   // 태양 황경
   const sunLong = (280.46 + 0.9856474 * daysSinceJ2000) % 360;
@@ -687,8 +697,10 @@ export interface RetrogradePhase {
 
 // 수성 역행 상세 (그림자 기간 포함)
 export function getMercuryRetrogradePhase(date: Date): RetrogradePhase {
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   // 수성 시노딕 주기: 약 116일
   const cycle = daysSinceJ2000 % 116;
@@ -711,8 +723,10 @@ export function getMercuryRetrogradePhase(date: Date): RetrogradePhase {
 
 // 금성 역행 상세
 export function getVenusRetrogradePhase(date: Date): RetrogradePhase {
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   // 금성 시노딕 주기: 약 584일
   const cycle = daysSinceJ2000 % 584;
@@ -735,8 +749,10 @@ export function getVenusRetrogradePhase(date: Date): RetrogradePhase {
 
 // 화성 역행 상세
 export function getMarsRetrogradePhase(date: Date): RetrogradePhase {
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   // 화성 시노딕 주기: 약 780일
   const cycle = daysSinceJ2000 % 780;
@@ -1083,8 +1099,10 @@ const ASPECT_MEANINGS: Record<string, Record<string, { meaning: string; score: n
 
 export function getDetailedPlanetaryAspects(date: Date): DetailedAspect[] {
   const aspects: DetailedAspect[] = [];
-  const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-  const daysSinceJ2000 = (date.getTime() - J2000.getTime()) / (1000 * 60 * 60 * 24);
+  // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
+  const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  const daysSinceJ2000 = (dateUtc - J2000) / (1000 * 60 * 60 * 24);
 
   // 행성 위치 계산 (근사)
   const planets: Record<string, { longitude: number; speed: number }> = {
@@ -3460,8 +3478,10 @@ export function analyzeProgressedMoon(
   const signOrder = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
                      "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 
-  // 나이 계산
-  const ageInDays = Math.floor((currentDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
+  // 나이 계산 (UTC 기준으로 일수 계산 - 서버 타임존 영향 제거)
+  const birthUtc = Date.UTC(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+  const currentUtc = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+  const ageInDays = Math.floor((currentUtc - birthUtc) / (1000 * 60 * 60 * 24));
   const ageInYears = ageInDays / 365.25;
 
   // 프로그레스드 문 위치 (약 2.5년/사인)
@@ -3858,9 +3878,11 @@ export function analyzeLunarDate(
   // 음력일은 비슷하게 유지 (실제로는 달의 위상에 따라 다름)
   const lunarDay = day;
 
-  // 달의 위상
+  // 달의 위상 (UTC 기준으로 연초부터 일수 계산 - 서버 타임존 영향 제거)
   const moonCycle = 29.53;
-  const dayOfYear = Math.floor((gregorianDate.getTime() - new Date(year, 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const yearStartUtc = Date.UTC(year, 0, 0);
+  const dateUtc = Date.UTC(gregorianDate.getFullYear(), gregorianDate.getMonth(), gregorianDate.getDate());
+  const dayOfYear = Math.floor((dateUtc - yearStartUtc) / (1000 * 60 * 60 * 24));
   const moonPhaseDay = dayOfYear % moonCycle;
 
   let lunarPhase: string;

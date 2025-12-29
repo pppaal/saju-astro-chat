@@ -116,98 +116,50 @@ function clampMessages(messages: ChatMessage[], max = 6) {
 }
 
 function counselorSystemPrompt(lang: string) {
-  const base = [
-    "You are DestinyPal's counselor combining Eastern (Saju) and Western (Astrology) wisdom.",
-    "",
-    "⚠️ CRITICAL DATA ACCURACY ⚠️",
-    "- NEVER fabricate or guess 대운/운세 data!",
-    "- ONLY quote 대운 from the [전체 장기 흐름 - 10년 주기] section",
-    "- If asked about daeun at a specific age, find the matching age range from the data",
-    "- If data is missing, say 'Not available in current data'",
-    "",
-    "ABSOLUTE RULES:",
-    "1. NO GREETING - Jump straight to answering",
-    "2. NO IDENTITY RECAP - User knows their chart",
-    "3. ONLY use data provided - NEVER invent",
-    "4. Use BOTH saju AND astrology equally",
-    "5. NO ** bold markdown",
-    "",
-    "FUTURE PREDICTIONS - USE BOTH SYSTEMS:",
-    "",
-    "[SAJU 사주]",
-    "- Check [미래 예측용 운세 데이터] for daeun/annual/monthly",
-    "- Quote EXACT periods from data (look for ★현재★ marker)",
-    "- Match age range to find correct 대운 (e.g., if user is 35, find 32-41세 range)",
-    "",
-    "[ASTROLOGY 점성술]",
-    "- Solar Return: Year themes, SR Sun/Moon house for annual trends",
-    "- Lunar Return: Monthly themes",
-    "- Progressions: Progressed Moon phase = life cycle stage",
-    "- Transits: Jupiter/Saturn transits for timing (7H=marriage, 10H=career, 2H=money)",
-    "- Venus transit to 7H = love opportunity",
-    "- Jupiter transit to 10H = career growth",
-    "- Saturn return (age 29, 58) = major life restructuring",
-    "",
-    "TIMING EXAMPLES:",
-    "- Marriage: Saju 관성 활성화 + Venus/Jupiter 7H transit",
-    "- Career: Saju 관성/식상 + Jupiter/Saturn 10H transit",
-    "- Money: Saju 재성 + Jupiter 2H/8H transit",
-    "",
-    "Response: 250-400 words, specific dates/periods, detailed analysis, 3-4 actionable tips at end.",
-  ];
   return lang === "ko"
     ? [
-        "너는 DestinyPal 상담사다.",
+        "당신은 따뜻하고 전문적인 운명 상담사입니다.",
         "",
-        "⚠️ 데이터 정확성 필수 ⚠️",
-        "- 절대로 대운/운세 데이터를 추측하거나 만들어내지 마세요!",
-        "- 대운은 반드시 [전체 장기 흐름 - 10년 주기] 섹션에서만 인용하세요",
-        "- 특정 나이의 대운을 물으면, 해당 나이 범위에 맞는 데이터를 찾아 답변하세요",
-        "- ★현재★ 표시가 있는 항목이 현재 운세입니다",
-        "- 데이터에 없는 정보는 '해당 정보가 없습니다'라고 솔직히 말하세요",
+        "핵심 규칙:",
+        "1. 공감 먼저 - 질문자의 마음을 알아주고 시작",
+        "2. 친근한 말투 - '~네요', '~있어요' 등 부드럽게",
+        "3. 구체적 답변 - 추상적 말 대신 실제 직업명, 시기, 행동 제안",
+        "4. 희망 전달 - 어려움도 성장 기회로",
         "",
-        "절대 규칙:",
-        "1. 인사 금지 - 바로 답변",
-        "2. 신상 소개 금지",
-        "3. 제공된 데이터만 사용 (절대 추측 금지!)",
-        "4. 사주와 점성술 모두 활용",
-        "5. ** 마크다운 금지",
+        "응답 구조 (총 200-300자):",
+        "• 공감 1문장",
+        "• 사주 기반 핵심 분석 2-3문장 (일간, 오행, 적성)",
+        "• 점성술 보완 1-2문장 (태양/달 하우스)",
+        "• 추천 직업 3-5개 구체적으로",
+        "• 응원 마무리 1문장",
         "",
-        "미래 예측 - 두 시스템 함께 사용:",
-        "",
-        "[사주]",
-        "- [미래 예측용 운세 데이터]에서 대운/연운/월운 확인",
-        "- 정확한 시기 인용 (데이터에 있는 그대로 사용)",
-        "",
-        "[점성술]",
-        "- Solar Return: 연간 테마, SR 태양/달 하우스",
-        "- Lunar Return: 월간 테마",
-        "- Progressions: 진행 달 위상 = 인생 주기",
-        "- Transits: 목성/토성 트랜짓으로 시기 파악",
-        "  - 7하우스 = 결혼/파트너십",
-        "  - 10하우스 = 커리어",
-        "  - 2하우스 = 재물",
-        "- 금성 7하우스 트랜짓 = 연애 기회",
-        "- 목성 10하우스 트랜짓 = 커리어 성장",
-        "- 토성 리턴(29세, 58세) = 인생 재구성",
-        "",
-        "타이밍 예시:",
-        "- 결혼: 사주 관성 활성화 + 금성/목성 7H 트랜짓",
-        "- 취업: 사주 관성/식상 + 목성/토성 10H 트랜짓",
-        "- 재물: 사주 재성 + 목성 2H/8H 트랜짓",
-        "",
-        "응답 형식:",
-        "- 250-400단어로 충분히 설명",
-        "- 사주와 점성술 각각의 관점에서 분석",
-        "- 구체적인 시기와 근거 제시",
-        "- 마지막에 실천 가능한 팁 3-4개",
+        "금지: **볼드마크다운, 번호매기기(1. 2. 3.), 장황한 설명",
+        "필수: 자연스러운 문단, 구체적 직업명, 따뜻한 어조",
       ].join("\n")
-    : base.join("\n");
+    : [
+        "You are a warm, professional destiny counselor.",
+        "",
+        "Core Rules:",
+        "1. Empathize first - acknowledge their feelings",
+        "2. Friendly tone - warm and approachable",
+        "3. Specific answers - real job names, timing, action steps",
+        "4. Give hope - challenges are growth opportunities",
+        "",
+        "Response Structure (200-300 words):",
+        "• 1 empathy sentence",
+        "• 2-3 sentences on Saju analysis (day master, elements, aptitude)",
+        "• 1-2 sentences on astrology (Sun/Moon house)",
+        "• 3-5 specific job recommendations",
+        "• 1 encouraging closing",
+        "",
+        "Forbidden: **bold markdown, numbered lists (1. 2. 3.), lengthy explanations",
+        "Required: natural paragraphs, specific job names, warm tone",
+      ].join("\n");
 }
 
 export async function POST(request: Request) {
   try {
-    const oversized = enforceBodySize(request, 64 * 1024);
+    const oversized = enforceBodySize(request, 256 * 1024); // 256KB for large chart data
     if (oversized) return oversized;
 
     const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
@@ -1639,43 +1591,18 @@ export async function POST(request: Request) {
       ].join("\n");
     }
 
-    // Build prompt with v3.1 snapshot if available, otherwise fallback to simple prompt
-    const chatPrompt = v3Snapshot
-      ? [
-          counselorSystemPrompt(lang),
-          `Name: ${name || "User"}`,
-          themeContext,
-          longTermMemorySection,  // 🧠 Add long-term memory
-          timingScoreSection,     // 📅 Add timing scores with confidence
-          predictionSection,      // 🔮 Add life prediction analysis (TIER 1-10)
-          "",
-          "═══════════════════════════════════════════════════════════════",
-          "[AUTHORITATIVE DATA SNAPSHOT v3.1]",
-          "═══════════════════════════════════════════════════════════════",
-          v3Snapshot,
-          "",
-          "═══════════════════════════════════════════════════════════════",
-          "[FEW-SHOT EXAMPLES - Learn from these high-quality responses]",
-          "═══════════════════════════════════════════════════════════════",
-          fewShotExamples,
-          "",
-          cvText ? `CV/Resume:\n${guardText(cvText, MAX_CV)}` : "",
-          historyText ? `\nConversation:\n${historyText}` : "",
-          `\nQuestion: ${userQuestion}`,
-        ].filter(Boolean).join("\n")
-      : [
-          counselorSystemPrompt(lang),
-          `Name: ${name || "User"}`,
-          `Birth: ${effectiveBirthDate} ${effectiveBirthTime}`,
-          `Gender: ${effectiveGender}`,
-          themeContext,
-          longTermMemorySection,  // 🧠 Add long-term memory
-          timingScoreSection,     // 📅 Add timing scores with confidence
-          predictionSection,      // 🔮 Add life prediction analysis (TIER 1-10)
-          cvText ? `\nCV/Resume:\n${guardText(cvText, MAX_CV)}` : "",
-          historyText ? `\nConversation:\n${historyText}` : "",
-          `\nQuestion: ${userQuestion}`,
-        ].filter(Boolean).join("\n");
+    // Build prompt - simplified for faster response
+    const chatPrompt = [
+      counselorSystemPrompt(lang),
+      `Name: ${name || "User"}`,
+      themeContext,
+      "",
+      // Core data only - skip verbose sections for speed
+      v3Snapshot ? `[사주/점성 데이터]\n${v3Snapshot.slice(0, 4000)}` : "",
+      // Skip few-shot examples for speed - system prompt is enough
+      historyText ? `\n대화:\n${historyText}` : "",
+      `\n질문: ${userQuestion}`,
+    ].filter(Boolean).join("\n");
 
     // Call backend streaming endpoint IMMEDIATELY (no heavy computation)
     const backendUrl = pickBackendUrl();
@@ -1749,19 +1676,25 @@ export async function POST(request: Request) {
       start(controller) {
         const reader = backendResponse.body!.getReader();
         const decoder = new TextDecoder();
+        let isClosed = false;
         const read = (): void => {
           reader.read().then(({ done, value }) => {
+            if (isClosed) return;
             if (done) {
-              controller.close();
+              isClosed = true;
+              try { controller.close(); } catch { /* already closed */ }
               return;
             }
             const chunk = decoder.decode(value, { stream: true });
             const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
-            controller.enqueue(encoder.encode(masked));
+            try { controller.enqueue(encoder.encode(masked)); } catch { /* already closed */ }
             read();
           }).catch((err) => {
-            console.error("[chat-stream sanitize error]", err);
-            controller.close();
+            if (!isClosed) {
+              console.error("[chat-stream sanitize error]", err);
+              isClosed = true;
+              try { controller.close(); } catch { /* already closed */ }
+            }
           });
         };
         read();

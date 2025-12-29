@@ -1017,6 +1017,126 @@
   font-weight: 400;
 }
 
+/* ===== Counselor Style Chat Bubble ===== */
+.counselorSection {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 900px;
+  width: 100%;
+  margin-bottom: 2.5rem;
+  z-index: 10;
+  position: relative;
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.counselorAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.3), rgba(124, 242, 156, 0.3));
+  border: 2px solid rgba(99, 210, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(99, 210, 255, 0.3);
+}
+
+.counselorEmoji {
+  font-size: 1.8rem;
+}
+
+.counselorBubble {
+  flex: 1;
+  background: rgba(30, 35, 50, 0.9);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(99, 210, 255, 0.25);
+  border-radius: 4px 20px 20px 20px;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+}
+
+.counselorBubble::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid rgba(30, 35, 50, 0.9);
+}
+
+.counselorName {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(99, 210, 255, 0.9);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.3px;
+}
+
+.counselorMessage {
+  font-family: 'Georgia', 'Noto Serif KR', serif;
+  font-size: 1.1rem;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  letter-spacing: 0.2px;
+  word-break: keep-all;
+}
+
+.typingIndicator {
+  display: flex;
+  gap: 4px;
+  padding: 0.5rem 0;
+}
+
+.typingIndicator span {
+  width: 8px;
+  height: 8px;
+  background: rgba(99, 210, 255, 0.6);
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typingIndicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typingIndicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingIndicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
 /* ===== Expanded Card State ===== */
 .resultCardSlot.expanded {
   border-color: rgba(124, 242, 156, 0.5);
@@ -3167,4 +3287,421 @@
 /* ===== Personality Insight Section ===== */
 .personalityInsight {
   margin: 2rem 0;
+}
+
+/* ===== Counselor Chat Flow UI ===== */
+.counselorChat {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 1.5rem;
+  z-index: 10;
+  position: relative;
+  animation: chatSlideIn 0.5s ease-out;
+}
+
+.cardInterpretationsChat {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 2rem 0;
+  z-index: 10;
+}
+
+@keyframes chatSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chatMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+.chatAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.25), rgba(124, 242, 156, 0.25));
+  border: 2px solid rgba(99, 210, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 15px rgba(99, 210, 255, 0.25);
+}
+
+.chatContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatName {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(99, 210, 255, 0.85);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cardPosition {
+  background: rgba(124, 242, 156, 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: rgba(124, 242, 156, 0.95);
+}
+
+.cardNameLabel {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.chatBubble {
+  background: rgba(30, 35, 50, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 4px 18px 18px 18px;
+  padding: 1.1rem 1.4rem;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.chatBubble::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 7px solid rgba(30, 35, 50, 0.85);
+}
+
+.chatText {
+  font-family: 'Georgia', 'Noto Serif KR', serif;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.93);
+  margin: 0;
+  letter-spacing: 0.2px;
+  word-break: keep-all;
+}
+
+/* Card Interpretation Bubble */
+.cardBubble {
+  background: rgba(35, 40, 55, 0.85);
+  border-color: rgba(124, 242, 156, 0.2);
+}
+
+.cardBubble::before {
+  border-right-color: rgba(35, 40, 55, 0.85);
+}
+
+/* Advice Bubble - Prominent Style */
+.adviceBubble {
+  background: linear-gradient(135deg, rgba(124, 242, 156, 0.15), rgba(99, 210, 255, 0.1));
+  border: 2px solid rgba(124, 242, 156, 0.4);
+  border-radius: 4px 18px 18px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.adviceBubble::before {
+  border-right-color: rgba(124, 242, 156, 0.15);
+}
+
+.adviceBubble::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(124, 242, 156, 0.9), rgba(99, 210, 255, 0.7));
+  box-shadow: 0 0 15px rgba(124, 242, 156, 0.5);
+}
+
+.adviceText {
+  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.97);
+  margin: 0;
+  padding-left: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* New Advice Card Style */
+.adviceListContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adviceCard {
+  background: linear-gradient(135deg, rgba(124, 242, 156, 0.12), rgba(99, 210, 255, 0.08));
+  border: 1px solid rgba(124, 242, 156, 0.3);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  position: relative;
+  overflow: visible;
+}
+
+.adviceCard::after {
+  display: none;
+}
+
+.adviceCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.adviceCardNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  background: linear-gradient(135deg, rgba(124, 242, 156, 0.35), rgba(99, 210, 255, 0.25));
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7cf29c;
+}
+
+.adviceCardTitle {
+  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #7cf29c;
+}
+
+.adviceCardDetail {
+  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  padding-left: 36px;
+}
+
+/* Mobile adjustments for chat UI */
+@media (max-width: 640px) {
+  .counselorChat {
+    margin-bottom: 1.25rem;
+  }
+
+  .chatAvatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .chatMessage {
+    gap: 0.75rem;
+  }
+
+  .chatBubble {
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px 14px 14px 14px;
+  }
+
+  .chatText {
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+
+  .adviceText {
+    font-size: 1rem;
+  }
+
+  .chatName {
+    font-size: 0.75rem;
+  }
+
+  .cardPosition {
+    font-size: 0.7rem;
+  }
+}
+
+/* ========== Login Required Screen ========== */
+.loginRequired {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a2a 100%);
+  padding: 2rem;
+}
+
+.loginContent {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: rgba(30, 35, 50, 0.8);
+  border-radius: 24px;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loginIcon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.loginTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loginDescription {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  white-space: pre-line;
+}
+
+.loginButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.loginButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  background: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.loginButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.googleIcon {
+  flex-shrink: 0;
+}
+
+.kakaoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000;
+  background: #FEE500;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(254, 229, 0, 0.3);
+}
+
+.kakaoButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(254, 229, 0, 0.4);
+  background: #FFD900;
+}
+
+.kakaoIcon {
+  flex-shrink: 0;
+}
+
+.backLink {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 480px) {
+  .loginContent {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .loginIcon {
+    font-size: 3rem;
+  }
+
+  .loginTitle {
+    font-size: 1.5rem;
+  }
+
+  .loginDescription {
+    font-size: 0.9rem;
+  }
+
+  .loginButton,
+  .kakaoButton {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
 }

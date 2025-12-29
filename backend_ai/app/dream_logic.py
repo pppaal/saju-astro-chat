@@ -319,9 +319,9 @@ Note: Include specific lucky numbers in your luckyElements response based on the
 Provide your interpretation as a JSON object with this exact structure:
 ```json
 {
-  "summary": "2-3 sentence overview of the dream's core message",
+  "summary": "A comprehensive 5-7 sentence interpretation that deeply analyzes the dream's meaning. Start with the overall message, then explore the emotional undercurrents, connect it to the dreamer's life situation, and explain how the symbols work together. Be warm, insightful, and specific - not generic. Make it feel like a conversation with a wise counselor who truly understands the dreamer.",
   "dreamSymbols": [
-    {"label": "symbol name", "meaning": "interpretation combining multiple traditions"}
+    {"label": "symbol name", "meaning": "A detailed 2-3 sentence interpretation combining multiple traditions. Explain not just what the symbol means, but WHY it appeared and what message it carries for the dreamer."}
   ],
   "themes": [
     {"label": "theme name", "weight": 0.0-1.0}
@@ -347,7 +347,10 @@ Provide your interpretation as a JSON object with this exact structure:
     "unique insights from combining Eastern and Western perspectives"
   ],
   "recommendations": [
-    "practical action or reflection based on the dream"
+    {
+      "title": "Short action title (2-4 words)",
+      "detail": "A warm, encouraging 2-3 sentence explanation of this advice. Explain WHY this action will help and HOW to practically implement it in daily life. Be specific and actionable."
+    }
   ],
   "culturalNotes": {
     "korean": "specific Korean interpretation if applicable",
@@ -364,8 +367,15 @@ Provide your interpretation as a JSON object with this exact structure:
 }
 ```
 
-Be insightful, culturally sensitive, and specific to the dream content. Avoid generic interpretations.
-If saju fortune data is provided, make sure to explain WHY this dream occurred NOW based on the current fortune cycle.
+IMPORTANT GUIDELINES:
+1. Write with warmth and empathy - like a trusted counselor having a heartfelt conversation
+2. Be SPECIFIC to this dream - avoid generic or templated responses
+3. The summary should be rich and insightful (5-7 sentences minimum), not a brief overview
+4. Each symbol meaning should be 2-3 sentences explaining the deeper significance
+5. Recommendations should have both a title AND detailed explanation (2-3 sentences each)
+6. Provide at least 3-4 meaningful recommendations
+7. If saju fortune data is provided, make sure to explain WHY this dream occurred NOW based on the current fortune cycle
+8. Connect the dream to the dreamer's potential life situations and emotional state
 """
     return prompt
 
@@ -1102,7 +1112,7 @@ def interpret_dream(facts: dict) -> dict:
         system_instruction = "You are a warm and empathetic dream counselor. Always respond with valid JSON only."
         full_prompt = f"[SYSTEM]\n{system_instruction}\n\n[USER]\n{prompt}"
 
-        response_text = _generate_with_gpt4(full_prompt, max_tokens=1500, temperature=0.4, use_mini=True)
+        response_text = _generate_with_gpt4(full_prompt, max_tokens=2500, temperature=0.5, use_mini=True)
 
         # Parse JSON from response
         # Try to extract JSON from markdown code blocks

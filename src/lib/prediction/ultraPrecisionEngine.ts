@@ -12,6 +12,8 @@ import {
   type PreciseTwelveStage,
 } from './advancedTimingEngine';
 
+import { scoreToGrade, type PredictionGrade } from './index';
+
 // TIER 5: 초정밀 분석 엔진 임포트
 import {
   PrecisionEngine,
@@ -56,7 +58,7 @@ export interface UltraPrecisionScore {
   // 종합 점수
   totalScore: number;           // 0-100
   confidence: number;           // 0-100
-  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: PredictionGrade;
 
   // 해석
   dayQuality: 'excellent' | 'good' | 'neutral' | 'caution' | 'avoid';
@@ -709,14 +711,8 @@ export function calculateUltraPrecisionScore(input: CalculateDailyScoreInput): U
   // 8. 신뢰도 (데이터 완전성)
   const confidence = 75 + (allBranches.length * 2);
 
-  // 9. 등급
-  let grade: UltraPrecisionScore['grade'];
-  if (totalScore >= 85) grade = 'S';
-  else if (totalScore >= 70) grade = 'A';
-  else if (totalScore >= 55) grade = 'B';
-  else if (totalScore >= 40) grade = 'C';
-  else if (totalScore >= 25) grade = 'D';
-  else grade = 'F';
+  // 9. 등급 (통일된 기준 사용)
+  const grade = scoreToGrade(totalScore);
 
   // 10. 일 품질
   let dayQuality: UltraPrecisionScore['dayQuality'];
@@ -926,7 +922,7 @@ export interface MinutePrecisionResult {
 
   // 종합 점수
   score: number;
-  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: PredictionGrade;
 
   // 해당 시간에 최적인 활동
   optimalActivities: string[];
@@ -1040,14 +1036,8 @@ export function analyzeMinutePrecision(
 
   score = Math.max(0, Math.min(100, score));
 
-  // 등급 결정
-  let grade: MinutePrecisionResult['grade'];
-  if (score >= 85) grade = 'S';
-  else if (score >= 70) grade = 'A';
-  else if (score >= 55) grade = 'B';
-  else if (score >= 40) grade = 'C';
-  else if (score >= 25) grade = 'D';
-  else grade = 'F';
+  // 등급 결정 (통일된 기준 사용)
+  const grade = scoreToGrade(score);
 
   // 정밀 조언 생성
   const advice = generateMinuteAdvice(

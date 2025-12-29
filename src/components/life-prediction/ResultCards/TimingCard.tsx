@@ -9,7 +9,7 @@ export interface TimingPeriod {
   startDate: string;
   endDate: string;
   score: number;
-  grade: 'S' | 'A' | 'B' | 'C' | 'D';
+  grade: 'S' | 'A+' | 'A' | 'B' | 'C' | 'D';
   reasons: string[];
   specificDays?: Array<{
     date: string;
@@ -29,17 +29,19 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
 // 등급별 라벨
 const GRADE_LABELS: Record<string, string> = {
-  S: '최상',
-  A: '상',
-  B: '중상',
-  C: '중',
-  D: '하',
+  S: '최적기',
+  'A+': '매우 좋음',
+  A: '좋음',
+  B: '괜찮음',
+  C: '보통',
+  D: '주의',
 };
 
 // 등급별 스타일 키 (타입 안전)
 type GradeStyleKey = 'gradeExcellent' | 'gradeGood' | 'gradeNeutral' | 'gradeCaution';
 const GRADE_STYLE_KEYS: Record<string, GradeStyleKey> = {
   S: 'gradeExcellent',
+  'A+': 'gradeExcellent',
   A: 'gradeGood',
   B: 'gradeNeutral',
   C: 'gradeCaution',
