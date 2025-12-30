@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Caching Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2rem;
+    }
+
+    .test-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .log {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      margin-bottom: 8px;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .log-hit {
+      background: rgba(34, 197, 94, 0.2);
+      border-left: 4px solid #22c55e;
+      color: #166534;
+    }
+
+    .log-miss {
+      background: rgba(239, 68, 68, 0.2);
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .log-info {
+      background: rgba(59, 130, 246, 0.2);
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+
+    .log-success {
+      background: rgba(34, 197, 94, 0.2);
+      border-left: 4px solid #22c55e;
+      color: #166534;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .cache-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.15));
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 6px;
+      color: #22c55e;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 10px;
+    }
+
+    .storage-info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .storage-info h3 {
+      color: #374151;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .storage-item {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 5px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Destiny Calendar Caching Test</h1>
+
+    <div class="test-section">
+      <h2>캐싱 시뮬레이션</h2>
+      <p style="color: #666; margin-bottom: 20px;">
+        버튼을 클릭하여 캐시 동작을 테스트하세요. 같은 키를 두 번 호출하면 캐시 히트!
+      </p>
+
+      <button onclick="testCache('2025', 'career')">2025년 Career</button>
+      <button onclick="testCache('2025', 'health')">2025년 Health</button>
+      <button onclick="testCache('2026', 'career')">2026년 Career</button>
+      <button onclick="testCache('2025', 'all')">2025년 All</button>
+      <button onclick="clearAllCache()" style="background: #ef4444;">캐시 전체 삭제</button>
+      <button onclick="clearOldCache()" style="background: #f59e0b;">만료 캐시 삭제</button>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="hitCount">0</div>
+          <div class="stat-label">Cache Hits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="missCount">0</div>
+          <div class="stat-label">Cache Misses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalCount">0</div>
+          <div class="stat-label">Total Requests</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="hitRate">0%</div>
+          <div class="stat-label">Hit Rate</div>
+        </div>
+      </div>
+
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📦 localStorage 상태</h2>
+      <button onclick="showStorage()">캐시 항목 보기</button>
+      <button onclick="simulateExpiry()" style="background: #f59e0b;">만료 시뮬레이션</button>
+      <div class="storage-info" id="storageInfo"></div>
+    </div>
+  </div>
+
+  <script>
+    // 캐싱 설정
+    const CACHE_VERSION = 'v1';
+    const CACHE_EXPIRY_DAYS = 30;
+
+    // 통계
+    let hitCount = 0;
+    let missCount = 0;
+
+    // 캐시 키 생성
+    function getCacheKey(year, category) {
+      const birthInfo = '1990-01-01_14:30_Seoul'; // 테스트용 고정값
+      return `calendar_${birthInfo}_${year}_${category}`;
+    }
+
+    // 캐시 데이터 가져오기
+    function getCachedData(cacheKey) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (!cached) return null;
+
+        const parsed = JSON.parse(cached);
+
+        // 버전 체크
+        if (parsed.version !== CACHE_VERSION) {
+          localStorage.removeItem(cacheKey);
+          return null;
+        }
+
+        // 만료 체크
+        const now = Date.now();
+        const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+        if (now - parsed.timestamp > expiryMs) {
+          localStorage.removeItem(cacheKey);
+          return null;
+        }
+
+        return parsed.data;
+      } catch (err) {
+        console.error('Failed to get cached data:', err);
+        return null;
+      }
+    }
+
+    // 캐시 데이터 저장
+    function setCachedData(cacheKey, year, category, data) {
+      try {
+        const cacheData = {
+          version: CACHE_VERSION,
+          timestamp: Date.now(),
+          year,
+          category,
+          data,
+        };
+
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      } catch (err) {
+        console.error('Failed to set cached data:', err);
+        // Quota exceeded - 오래된 캐시 삭제
+        clearOldCache();
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      }
+    }
+
+    // 오래된 캐시 삭제
+    function clearOldCache() {
+      try {
+        const now = Date.now();
+        const keys = Object.keys(localStorage);
+        const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
+
+        let deletedCount = 0;
+        calendarKeys.forEach(key => {
+          try {
+            const cached = localStorage.getItem(key);
+            if (!cached) return;
+
+            const parsed = JSON.parse(cached);
+            const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+            if (now - parsed.timestamp > expiryMs) {
+              localStorage.removeItem(key);
+              deletedCount++;
+            }
+          } catch {
+            localStorage.removeItem(key);
+            deletedCount++;
+          }
+        });
+
+        addLog(`✅ ${deletedCount}개의 만료된 캐시 삭제됨`, 'success');
+      } catch (err) {
+        console.error('Failed to clear old cache:', err);
+      }
+    }
+
+    // 캐시 테스트
+    function testCache(year, category) {
+      const cacheKey = getCacheKey(year, category);
+      const cachedData = getCachedData(cacheKey);
+
+      if (cachedData) {
+        // Cache HIT
+        hitCount++;
+        addLog(`⚡ Cache HIT! 🎯 | ${year}년 ${category} (${Math.floor(Math.random() * 5)}ms)`, 'hit');
+      } else {
+        // Cache MISS - 가짜 API 호출 시뮬레이션
+        missCount++;
+        addLog(`❌ Cache MISS | ${year}년 ${category} - API 호출 중...`, 'miss');
+
+        setTimeout(() => {
+          const fakeData = {
+            year,
+            category,
+            days: Array.from({ length: 365 }, (_, i) => ({
+              date: `${year}-01-${String(i + 1).padStart(2, '0')}`,
+              score: Math.floor(Math.random() * 100),
+            }))
+          };
+
+          setCachedData(cacheKey, year, category, fakeData);
+          addLog(`✅ 데이터 캐시됨 | ${year}년 ${category} (${1500 + Math.floor(Math.random() * 500)}ms)`, 'success');
+        }, 500);
+      }
+
+      updateStats();
+    }
+
+    // 전체 캐시 삭제
+    function clearAllCache() {
+      const keys = Object.keys(localStorage);
+      const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
+
+      calendarKeys.forEach(key => localStorage.removeItem(key));
+
+      addLog(`🗑️ ${calendarKeys.length}개의 캐시 항목 삭제됨`, 'info');
+
+      // 통계 초기화
+      hitCount = 0;
+      missCount = 0;
+      updateStats();
+    }
+
+    // 만료 시뮬레이션
+    function simulateExpiry() {
+      const keys = Object.keys(localStorage);
+      const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
+
+      if (calendarKeys.length === 0) {
+        addLog('⚠️ 캐시된 항목이 없습니다', 'info');
+        return;
+      }
+
+      // 첫 번째 캐시 항목을 31일 전으로 변경
+      const key = calendarKeys[0];
+      const cached = JSON.parse(localStorage.getItem(key));
+      cached.timestamp = Date.now() - (31 * 24 * 60 * 60 * 1000);
+      localStorage.setItem(key, JSON.stringify(cached));
+
+      addLog(`⏰ "${key}" 항목을 31일 전으로 변경 (만료됨)`, 'info');
+    }
+
+    // localStorage 상태 보기
+    function showStorage() {
+      const keys = Object.keys(localStorage);
+      const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
+
+      const storageInfo = document.getElementById('storageInfo');
+
+      if (calendarKeys.length === 0) {
+        storageInfo.innerHTML = '<div class="storage-item">캐시된 항목이 없습니다.</div>';
+        return;
+      }
+
+      let html = `<h3>📦 캐시 항목 (${calendarKeys.length}개)</h3>`;
+
+      calendarKeys.forEach((key, index) => {
+        try {
+          const cached = JSON.parse(localStorage.getItem(key));
+          const age = Math.floor((Date.now() - cached.timestamp) / (1000 * 60 * 60 * 24));
+          const isExpired = age > CACHE_EXPIRY_DAYS;
+
+          html += `
+            <div class="storage-item" style="${isExpired ? 'color: #ef4444;' : ''}">
+              ${index + 1}. ${cached.year}년 ${cached.category}
+              (${age}일 전${isExpired ? ' - 만료됨' : ''})
+            </div>
+          `;
+        } catch (err) {
+          html += `<div class="storage-item" style="color: #ef4444;">${index + 1}. ${key} (파싱 오류)</div>`;
+        }
+      });
+
+      storageInfo.innerHTML = html;
+    }
+
+    // 로그 추가
+    function addLog(message, type = 'info') {
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.insertBefore(entry, log.firstChild);
+
+      // 최대 50개 항목만 유지
+      while (log.children.length > 50) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    // 통계 업데이트
+    function updateStats() {
+      const total = hitCount + missCount;
+      const hitRate = total > 0 ? Math.round((hitCount / total) * 100) : 0;
+
+      document.getElementById('hitCount').textContent = hitCount;
+      document.getElementById('missCount').textContent = missCount;
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('hitRate').textContent = hitRate + '%';
+    }
+
+    // 초기 로그
+    addLog('⚡ 캐싱 시스템 준비 완료', 'info');
+  </script>
+</body>
+</html>

@@ -106,8 +106,15 @@ export default function TarotHomePage() {
 
     let animationId: number;
     let time = 0;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
 
-    const animate = () => {
+    const animate = (timestamp = 0) => {
+      if (timestamp - lastFrame < frameInterval) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrame = timestamp;
       time += 0.002;
 
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);

@@ -3,10 +3,12 @@ import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import KakaoProvider from 'next-auth/providers/kakao'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/db/prisma'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
 import { encryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 import { generateReferralCode } from '@/lib/referral'
+import { sendWelcomeEmail } from '@/lib/email'
 
 // ============================================
 // OAuth providers (Google, Kakao)
@@ -19,6 +21,28 @@ const ALLOWED_ACCOUNT_FIELDS = new Set([
   'refresh_token', 'access_token', 'expires_at', 'token_type',
   'scope', 'id_token', 'session_state',
 ])
+
+function getCookieDomain() {
+  const explicit = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim()
+  if (explicit) return explicit
+
+  const baseUrl = process.env.NEXTAUTH_URL
+  if (!baseUrl) return undefined
+
+  try {
+    const host = new URL(baseUrl).hostname.toLowerCase()
+    if (host === 'localhost' || host.endsWith('.localhost')) return undefined
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return undefined
+    if (host.startsWith('www.')) return `.${host.slice(4)}`
+    const parts = host.split('.')
+    if (parts.length === 2) return `.${host}`
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
+const cookieDomain = getCookieDomain()
 
 function ensureEncryptionKey() {
   if (hasTokenEncryptionKey()) return
@@ -115,6 +139,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: cookieDomain,
       },
     },
   },
@@ -135,12 +160,50 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
+    async signIn({ user, account, isNewUser }) {
+      // Send welcome email for new OAuth users
+      if (isNewUser && user?.email && user?.id) {
+        // Get user's referral code from DB
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id as string },
+          select: { referralCode: true },
+        })
+        sendWelcomeEmail(
+          user.id as string,
+          user.email,
+          user.name || '',
+          'ko',
+          dbUser?.referralCode || undefined
+        ).catch((err) => {
+          console.error('[auth] Failed to send welcome email:', err)
+        })
+      }
+
+      if (process.env.NODE_ENV !== 'production') return
+      Sentry.withScope((scope) => {
+        scope.setTag('auth_event', 'sign_in')
+        scope.setTag('provider', account?.provider ?? 'unknown')
+        scope.setExtra('isNewUser', isNewUser ?? false)
+        if (user?.id) scope.setUser({ id: String(user.id), email: user.email ?? undefined })
+        Sentry.captureMessage('auth.sign_in')
+      })
+    },
     async signOut({ token }) {
       if (!token?.id) return
       try {
         await revokeGoogleTokensForUser(String(token.id))
+        if (process.env.NODE_ENV === 'production') {
+          Sentry.withScope((scope) => {
+            scope.setTag('auth_event', 'sign_out')
+            scope.setUser({ id: String(token.id) })
+            Sentry.captureMessage('auth.sign_out')
+          })
+        }
       } catch (e) {
         console.error('[auth] signOut revoke failed', e)
+        if (process.env.NODE_ENV === 'production') {
+          Sentry.captureException(e)
+        }
       }
     },
   },

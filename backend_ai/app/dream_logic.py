@@ -319,9 +319,17 @@ Note: Include specific lucky numbers in your luckyElements response based on the
 Provide your interpretation as a JSON object with this exact structure:
 ```json
 {
-  "summary": "A comprehensive 5-7 sentence interpretation that deeply analyzes the dream's meaning. Start with the overall message, then explore the emotional undercurrents, connect it to the dreamer's life situation, and explain how the symbols work together. Be warm, insightful, and specific - not generic. Make it feel like a conversation with a wise counselor who truly understands the dreamer.",
+  "summary": "⚠️ CRITICAL: This must be 7-10 FULL sentences (minimum 400 characters in Korean, 300 in English). Write a comprehensive, detailed interpretation that deeply analyzes the dream's meaning. Start with the overall message, then explore the emotional undercurrents, connect it to the dreamer's life situation, explain how the symbols work together, discuss what the subconscious is trying to communicate, and provide psychological insights. Be warm, insightful, and specific - not generic. Make it feel like a conversation with a wise counselor who truly understands the dreamer. SHORT RESPONSES ARE NOT ACCEPTABLE.",
   "dreamSymbols": [
-    {"label": "symbol name", "meaning": "A detailed 2-3 sentence interpretation combining multiple traditions. Explain not just what the symbol means, but WHY it appeared and what message it carries for the dreamer."}
+    {
+      "label": "symbol name",
+      "meaning": "A detailed 2-3 sentence interpretation combining multiple traditions. Explain not just what the symbol means, but WHY it appeared and what message it carries for the dreamer.",
+      "interpretations": {
+        "jung": "Jungian psychological interpretation (1-2 sentences): archetype, shadow, anima/animus, or collective unconscious perspective",
+        "stoic": "Stoic philosophical interpretation (1-2 sentences): virtue, wisdom, acceptance, or living in harmony with nature",
+        "tarot": "Tarot symbolism interpretation (1-2 sentences): related card meanings, spiritual journey, or life lessons"
+      }
+    }
   ],
   "themes": [
     {"label": "theme name", "weight": 0.0-1.0}
@@ -370,12 +378,14 @@ Provide your interpretation as a JSON object with this exact structure:
 IMPORTANT GUIDELINES:
 1. Write with warmth and empathy - like a trusted counselor having a heartfelt conversation
 2. Be SPECIFIC to this dream - avoid generic or templated responses
-3. The summary should be rich and insightful (5-7 sentences minimum), not a brief overview
+3. ⚠️ CRITICAL - SUMMARY LENGTH: The summary MUST be 7-10 full sentences (minimum 400 characters for Korean, 300 for English). Do NOT write a brief 1-2 sentence summary. Users are paying for detailed analysis.
 4. Each symbol meaning should be 2-3 sentences explaining the deeper significance
 5. Recommendations should have both a title AND detailed explanation (2-3 sentences each)
 6. Provide at least 3-4 meaningful recommendations
 7. If saju fortune data is provided, make sure to explain WHY this dream occurred NOW based on the current fortune cycle
 8. Connect the dream to the dreamer's potential life situations and emotional state
+9. crossInsights should have at least 3-4 unique insights combining Eastern and Western perspectives
+10. ⚠️ VALIDATION: Before finalizing, check that your summary is at least 400 characters. If shorter, expand it with more insights.
 """
     return prompt
 
@@ -1109,10 +1119,10 @@ def interpret_dream(facts: dict) -> dict:
         )
 
         # Call LLM using GPT-4o-mini for fast response
-        system_instruction = "You are a warm and empathetic dream counselor. Always respond with valid JSON only."
+        system_instruction = "You are a warm and empathetic dream counselor. Always respond with valid JSON only. Your responses must be comprehensive and detailed - never brief or superficial."
         full_prompt = f"[SYSTEM]\n{system_instruction}\n\n[USER]\n{prompt}"
 
-        response_text = _generate_with_gpt4(full_prompt, max_tokens=2500, temperature=0.5, use_mini=True)
+        response_text = _generate_with_gpt4(full_prompt, max_tokens=4000, temperature=0.6, use_mini=True)
 
         # Parse JSON from response
         # Try to extract JSON from markdown code blocks

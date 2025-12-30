@@ -4,11 +4,13 @@ import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import AstrologyChat from "@/components/astrology/AstrologyChat";
 import { useI18n } from "@/i18n/I18nProvider";
 import CreditBadge from "@/components/ui/CreditBadge";
+import AuthGate from "@/components/auth/AuthGate";
 import styles from "./counselor.module.css";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -314,8 +316,8 @@ export default function AstrologyCounselorPage({
 
   const handleLogin = useCallback(() => {
     const search = typeof window !== "undefined" ? window.location.search : "";
-    signIn(undefined, { callbackUrl: `/astrology/counselor${search}` });
-  }, []);
+    router.push(buildSignInUrl(`/astrology/counselor${search}`));
+  }, [router]);
 
   if (isCheckingAuth) {
     return (
@@ -334,8 +336,7 @@ export default function AstrologyCounselorPage({
     );
   }
 
-  if (!isAuthed) {
-    return (
+  const loginFallback = (
       <main className={styles.page}>
         <div className={styles.authGate}>
           <div className={styles.authCard}>
@@ -355,11 +356,10 @@ export default function AstrologyCounselorPage({
           </div>
         </div>
       </main>
-    );
-  }
+  );
 
   // Loading screen
-  if (isLoading) {
+  if (isLoading && isAuthed) {
     return (
       <main className={styles.page}>
         <div className={styles.loadingContainer}>
@@ -418,6 +418,7 @@ export default function AstrologyCounselorPage({
 
   // Chat screen
   return (
+    <AuthGate statusOverride={authStatus} callbackUrl={typeof window !== "undefined" ? `/astrology/counselor${window.location.search}` : '/astrology/counselor'} fallback={loginFallback}>
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ""}`}>
       {/* Header */}
       <header className={styles.header}>
@@ -476,6 +477,7 @@ export default function AstrologyCounselorPage({
         <InitialQuestionSender question={initialQuestion} />
       )}
     </main>
+    </AuthGate>
   );
 }
 

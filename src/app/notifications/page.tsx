@@ -8,11 +8,13 @@ import { useI18n } from "@/i18n/I18nProvider";
 import Link from "next/link";
 import BackButton from "@/components/ui/BackButton";
 import styles from "./notifications.module.css";
+import AuthGate from "@/components/auth/AuthGate";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 type FilterType = "all" | "unread" | "like" | "comment" | "reply" | "mention" | "system";
 
 export default function NotificationsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { notifications, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
   const [filter, setFilter] = useState<FilterType>("all");
   const { t } = useI18n();
@@ -31,20 +33,19 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  if (!session) {
-    return (
+  const signInUrl = buildSignInUrl();
+  const loginFallback = (
       <div className={styles.container}>
         <BackButton />
         <div className={styles.emptyState}>
           <span className={styles.emptyIcon}>🔔</span>
           <h2>{t("notifications.authRequired", "Please sign in to view notifications")}</h2>
-          <Link href="/" className={styles.backLink}>
-            {t("common.start", "Go to Home")}
+          <Link href={signInUrl} className={styles.backLink}>
+            {t("common.login", "Log in")}
           </Link>
         </div>
       </div>
-    );
-  }
+  );
 
   const formatTime = (timestamp: number) => {
     const now = Date.now();
@@ -78,9 +79,10 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <BackButton />
-      <header className={styles.header}>
+    <AuthGate statusOverride={status} fallback={loginFallback} loadingFallback={loginFallback}>
+      <div className={styles.container}>
+        <BackButton />
+        <header className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.title}>
             {t("notifications.title", "Notifications")}
@@ -220,7 +222,8 @@ export default function NotificationsPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </AuthGate>
   );
 }

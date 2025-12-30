@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import Link from "next/link";
 import styles from "./CreditBadge.module.css";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 interface CreditData {
   isLoggedIn: boolean;
@@ -31,19 +32,24 @@ export default function CreditBadge({
 }: CreditBadgeProps) {
   const { data: session, status } = useSession();
   const { t } = useI18n();
+  const signInUrl = buildSignInUrl();
   const [creditData, setCreditData] = useState<CreditData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const sessionLoading = status === "loading";
 
   const fetchCredits = useCallback(async () => {
     if (status === "loading") return;
 
     if (!session?.user) {
+      setCreditData(null);
+      setError(false);
       setLoading(false);
       return;
     }
 
     try {
+      setLoading(true);
       const res = await fetch("/api/me/credits");
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
@@ -71,10 +77,20 @@ export default function CreditBadge({
   }, [fetchCredits]);
 
   // Not logged in - show login prompt
+  if (sessionLoading) {
+    if (variant === "minimal") return null;
+    return (
+      <div className={`${styles.badge} ${styles.loading} ${className}`}>
+        <span className={styles.spinner} />
+      </div>
+    );
+  }
+
+  // Not logged in - show login prompt
   if (!session?.user) {
     if (variant === "minimal") return null;
     return (
-      <Link href="/auth/signin" className={`${styles.badge} ${styles.login} ${className}`}>
+      <Link href={signInUrl} className={`${styles.badge} ${styles.login} ${className}`}>
         <span className={styles.icon}>🔑</span>
         <span className={styles.loginText}>{t("common.login") || "Login"}</span>
       </Link>

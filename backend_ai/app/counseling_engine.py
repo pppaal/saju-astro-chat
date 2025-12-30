@@ -1114,7 +1114,7 @@ class JungianCounselingEngine:
                 model=self.model_name,
                 messages=messages,
                 temperature=0.8,
-                max_tokens=1500,
+                max_tokens=3000,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -1379,7 +1379,7 @@ class JungianCounselingEngine:
                 model=self.model_name,
                 messages=messages,
                 temperature=0.8,
-                max_tokens=1500,
+                max_tokens=3000,
             )
             return response.choices[0].message.content
         except Exception as e:

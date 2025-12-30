@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/ui/BackButton";
@@ -19,11 +19,9 @@ type CityHit = {
 
 export default function ProfilePage() {
   return (
-    <SessionProvider>
-      <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
-        <ProfileContent />
-      </Suspense>
-    </SessionProvider>
+    <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+      <ProfileContent />
+    </Suspense>
   );
 }
 

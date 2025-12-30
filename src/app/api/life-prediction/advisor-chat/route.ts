@@ -1,10 +1,14 @@
 // src/app/api/life-prediction/advisor-chat/route.ts
-// AI 운세 상담사 채팅 API
+// AI 운세 상담사 채팅 API - 융 심리학 기반 상담
+// v3.0: 백엔드 counseling_engine 완전 통합 (위기감지, RAG, RuleEngine)
 
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.BACKEND_AI_URL || 'http://localhost:5000';
+
 interface ChatRequest {
   message: string;
+  sessionId?: string; // 세션 ID 추가
   context: {
     question: string;
     eventType: string;
@@ -17,6 +21,10 @@ interface ChatRequest {
     }>;
     birthDate: string;
     gender: 'M' | 'F';
+    // RAG 관련 추가 필드
+    sipsin?: string;
+    daeun?: string;
+    yongsin?: string[];
   };
   history: Array<{
     role: 'user' | 'assistant';
@@ -25,10 +33,108 @@ interface ChatRequest {
   locale: 'ko' | 'en';
 }
 
+// ============================================================
+// RAG 컨텍스트 (백엔드 없이도 기본 동작)
+// ============================================================
+async function fetchRagContext(
+  sipsin?: string,
+  eventType?: string,
+  userMessage?: string
+): Promise<{ context: string; insights: string[] }> {
+  // 백엔드가 없어도 기본 지식으로 동작
+  const fallbackContext = buildFallbackContext(sipsin, eventType);
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000); // 3초 타임아웃
+
+    const response = await fetch(`${BACKEND_URL}/api/prediction/rag-context`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sipsin,
+        event_type: eventType,
+        query: userMessage,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return fallbackContext;
+    }
+
+    const data = await response.json();
+    const ragContext = data.rag_context || {};
+
+    const parts: string[] = [];
+    if (ragContext.sipsin) parts.push(ragContext.sipsin);
+    if (ragContext.timing) parts.push(ragContext.timing);
+    if (ragContext.query_result) parts.push(ragContext.query_result);
+
+    return {
+      context: parts.join('\n\n') || fallbackContext.context,
+      insights: ragContext.insights || [],
+    };
+  } catch {
+    // 백엔드 연결 실패 시 fallback 사용 (조용히 처리)
+    return fallbackContext;
+  }
+}
+
+// 백엔드 없을 때 기본 컨텍스트
+function buildFallbackContext(sipsin?: string, eventType?: string): { context: string; insights: string[] } {
+  const tips: string[] = [];
+
+  if (eventType) {
+    const eventTips: Record<string, string> = {
+      '취업/이직': '직장운은 관성(官星)과 인성(印星)의 조화가 중요합니다.',
+      '연애/결혼': '인연운은 재성(財星)과 관성(官星)의 흐름을 봅니다.',
+      '재물/투자': '재물운은 식상생재(食傷生財)의 흐름이 핵심입니다.',
+      '시험/학업': '학업운은 인성(印星)과 식신(食神)의 기운이 중요합니다.',
+      '건강': '건강운은 일간의 강약과 오행 균형을 봅니다.',
+      '이사/부동산': '부동산운은 인성과 재성의 관계가 핵심입니다.',
+    };
+    if (eventTips[eventType]) tips.push(eventTips[eventType]);
+  }
+
+  if (sipsin) {
+    tips.push(`현재 ${sipsin}의 기운이 흐르고 있습니다.`);
+  }
+
+  return { context: tips.join(' '), insights: [] };
+}
+
+// ============================================================
+// 융 심리학 기반 치료적 질문 가져오기
+// ============================================================
+async function fetchTherapeuticQuestions(
+  theme: string,
+  userMessage: string
+): Promise<string[]> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/counseling/therapeutic-questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        theme,
+        user_message: userMessage,
+      }),
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    return data.rag_questions || [data.question] || [];
+  } catch {
+    return [];
+  }
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body: ChatRequest = await request.json();
-    const { message, context, history, locale } = body;
+    const { message, context, history, locale, sessionId } = body;
 
     if (!message?.trim()) {
       return NextResponse.json(
@@ -37,54 +143,131 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 예측 결과 요약 생성
+    // ============================================================
+    // v3.0: 백엔드 counseling engine 우선 사용
+    // ============================================================
+    try {
+      const counselingResponse = await fetch(`${BACKEND_URL}/api/counseling/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          session_id: sessionId,
+          saju: {
+            dayMaster: {
+              element: context.sipsin?.split(' ')[0] || '',
+            },
+            daeun: context.daeun,
+          },
+          // 타로/점성 데이터가 있다면 추가 가능
+        }),
+        signal: AbortSignal.timeout(15000), // 15초 타임아웃
+      });
+
+      if (counselingResponse.ok) {
+        const counselingData = await counselingResponse.json();
+
+        if (counselingData.status === 'success') {
+          // ✅ 백엔드 상담 엔진 사용 성공
+          console.log('[Advisor Chat] Using backend counseling engine');
+
+          return NextResponse.json({
+            success: true,
+            reply: counselingData.response,
+            sessionId: counselingData.session_id,
+            phase: counselingData.phase,
+            crisisDetected: counselingData.crisis_detected,
+            severity: counselingData.severity,
+            shouldContinue: counselingData.should_continue,
+            jungContext: counselingData.jung_context,
+            useBackendEngine: true, // 백엔드 엔진 사용 표시
+          });
+        }
+      }
+    } catch (backendError) {
+      console.warn('[Advisor Chat] Backend counseling engine unavailable, falling back to GPT:', backendError);
+      // Fallback continues below
+    }
+
+    // ============================================================
+    // Fallback: 기존 GPT 방식 (백엔드 실패 시)
+    // ============================================================
+    console.log('[Advisor Chat] Using fallback GPT mode');
+
+    // RAG 컨텍스트 가져오기
+    const { context: ragContext } = await fetchRagContext(
+      context.sipsin,
+      context.eventType,
+      message
+    );
+
+    // 치료적 질문 가져오기
+    const therapeuticQuestions = await fetchTherapeuticQuestions(
+      context.eventType,
+      message
+    );
+
+    // 예측 결과 상세 요약 생성
     const resultsSummary = context.results
-      .slice(0, 3)
+      .slice(0, 5)
       .map((r, i) => {
         const startDate = new Date(r.startDate).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US');
         const endDate = new Date(r.endDate).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US');
-        return `${i + 1}. ${startDate} ~ ${endDate}: ${r.grade}등급 (${r.score}점) - ${r.reasons.slice(0, 2).join(', ')}`;
+        return `${i + 1}위: ${startDate} ~ ${endDate}
+   등급: ${r.grade} (${r.score}점)
+   이유: ${r.reasons.join(', ')}`;
       })
-      .join('\n');
+      .join('\n\n');
 
-    // 시스템 프롬프트
+    // 현재 날짜 계산
+    const now = new Date();
+    const currentDateKo = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
+    const currentDateEn = now.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    // 시스템 프롬프트 - 간결하게 핵심만
+    const userInfo = [
+      `생년월일: ${context.birthDate}`,
+      `성별: ${context.gender === 'M' ? '남성' : '여성'}`,
+      `질문: "${context.question}"`,
+      context.sipsin && `현재 운: ${context.sipsin}`,
+      context.daeun && `대운: ${context.daeun}`,
+    ].filter(Boolean).join(' | ');
+
     const systemPrompt = locale === 'ko'
-      ? `당신은 친근하고 지혜로운 운세 상담사입니다. 사용자의 인생 예측 결과를 바탕으로 따뜻하고 실용적인 조언을 제공합니다.
+      ? `운세 상담사. 오늘: ${currentDateKo}
 
-## 사용자 정보
-- 생년월일: ${context.birthDate}
-- 성별: ${context.gender === 'M' ? '남성' : '여성'}
-- 질문: "${context.question}"
-- 이벤트 유형: ${context.eventType}
+[사용자] ${userInfo}
 
-## 예측 결과 (상위 3개)
+[길일 TOP5]
 ${resultsSummary}
 
-## 대화 지침
-1. 따뜻하고 공감하는 어조로 대화하세요
-2. 예측 결과를 바탕으로 구체적이고 실용적인 조언을 제공하세요
-3. 긍정적인 면을 강조하되, 필요한 주의사항도 언급하세요
-4. 너무 길지 않게, 2-4문장 정도로 간결하게 답변하세요
-5. 사주/점성술 용어는 쉬운 말로 풀어서 설명하세요
-6. 답변 끝에 이모지를 적절히 사용해 친근감을 더하세요`
-      : `You are a warm and wise fortune advisor. Provide warm and practical advice based on the user's life prediction results.
+${ragContext ? `[참고지식]\n${ragContext.slice(0, 800)}` : ''}
 
-## User Information
-- Birth Date: ${context.birthDate}
-- Gender: ${context.gender === 'M' ? 'Male' : 'Female'}
-- Question: "${context.question}"
-- Event Type: ${context.eventType}
+${therapeuticQuestions.length ? `[활용질문] ${therapeuticQuestions[0]}` : ''}
 
-## Prediction Results (Top 3)
+[규칙]
+- 공감 먼저, 그 다음 조언
+- 사주 용어는 쉽게 풀어서
+- 구체적 시기 + 실천 방법 제시
+- 3-5문장으로 간결하게`
+      : `Fortune advisor. Today: ${currentDateEn}
+
+[User] Birth: ${context.birthDate}, ${context.gender === 'M' ? 'Male' : 'Female'}, Q: "${context.question}"
+
+[Best Dates]
 ${resultsSummary}
 
-## Conversation Guidelines
-1. Speak with a warm, empathetic tone
-2. Provide specific, practical advice based on the prediction results
-3. Emphasize positive aspects while mentioning necessary cautions
-4. Keep responses concise, about 2-4 sentences
-5. Explain any fortune-telling terms in simple language
-6. Use appropriate emojis at the end for friendliness`;
+${ragContext ? `[Knowledge]\n${ragContext.slice(0, 800)}` : ''}
+
+[Rules]
+- Empathize first, then advise
+- Explain terms simply
+- Give specific timing + actionable steps
+- Keep responses to 3-5 sentences`;
 
     // 대화 히스토리 구성
     const messages = [
@@ -97,10 +280,7 @@ ${resultsSummary}
     ];
 
     // OpenAI API 호출
-    // Note: Using hardcoded key temporarily due to system env var conflict
-    const apiKey = process.env.OPENAI_API_KEY?.startsWith('sk-proj-JmRh')
-      ? process.env.OPENAI_API_KEY
-      : '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';
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       console.error('[Advisor Chat] OPENAI_API_KEY is not set');
       return NextResponse.json(
@@ -116,9 +296,9 @@ ${resultsSummary}
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',  // 최고 성능 모델로 업그레이드
         messages,
-        max_tokens: 800,
+        max_tokens: 1500,
         temperature: 0.7,
       }),
     });
@@ -126,7 +306,6 @@ ${resultsSummary}
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('[Advisor Chat] OpenAI error:', response.status, errorBody);
-      console.error('[Advisor Chat] API Key prefix:', apiKey?.substring(0, 20) + '...');
       throw new Error(`OpenAI API error: ${response.status} - ${errorBody}`);
     }
 
@@ -136,6 +315,10 @@ ${resultsSummary}
     return NextResponse.json({
       success: true,
       reply,
+      // 디버깅용 정보
+      ragUsed: !!ragContext,
+      therapeuticQuestionsUsed: therapeuticQuestions.length > 0,
+      useBackendEngine: false, // Fallback 사용
     });
 
   } catch (error) {

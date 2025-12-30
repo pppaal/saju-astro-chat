@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSession, SessionProvider } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
 import { apiFetch } from '@/lib/api';
+import DreamSymbolCard from '@/components/dream/DreamSymbolCard';
 import styles from './Dream.module.css';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 type Phase = 'birth-input' | 'dream-input' | 'analyzing' | 'result';
 
@@ -36,7 +38,15 @@ interface Recommendation {
 
 interface InsightResponse {
   summary?: string;
-  dreamSymbols?: { label: string; meaning: string }[];
+  dreamSymbols?: {
+    label: string;
+    meaning: string;
+    interpretations?: {
+      jung?: string;
+      stoic?: string;
+      tarot?: string;
+    };
+  }[];
   crossInsights?: string[];
   recommendations?: (string | Recommendation)[];
   themes?: { label: string; weight: number }[];
@@ -90,16 +100,13 @@ const pageTransitionVariants = {
 };
 
 export default function DreamPage() {
-  return (
-    <SessionProvider>
-      <DreamContent />
-    </SessionProvider>
-  );
+  return <DreamContent />;
 }
 
 function DreamContent() {
   const { t, locale } = useI18n();
   const { status } = useSession();
+  const signInUrl = buildSignInUrl();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [phase, setPhase] = useState<Phase>('birth-input');
@@ -274,29 +281,39 @@ function DreamContent() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    let animationId: number;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let animationId: number | null = null;
     let time = 0;
+    let isRunning = false;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
 
-    const animate = () => {
-      time += 0.002;
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    const drawFrame = () => {
+      const width = canvas.width;
+      const height = canvas.height;
+      const starCount = width < 640 ? 50 : width < 1024 ? 65 : 80;
 
       // Deep blue/indigo gradient for dream theme
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
       gradient.addColorStop(0, 'rgba(10, 8, 24, 1)');
       gradient.addColorStop(0.5, 'rgba(20, 15, 45, 1)');
       gradient.addColorStop(1, 'rgba(8, 12, 30, 1)');
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, width, height);
 
       // Stars with cyan/pink dream colors
-      for (let i = 0; i < 80; i++) {
-        const x = (Math.sin(time * 0.3 + i * 1.5) * 0.5 + 0.5) * canvas.width;
-        const y = (Math.cos(time * 0.2 + i * 0.9) * 0.5 + 0.5) * canvas.height;
+      for (let i = 0; i < starCount; i++) {
+        const x = (Math.sin(time * 0.3 + i * 1.5) * 0.5 + 0.5) * width;
+        const y = (Math.cos(time * 0.2 + i * 0.9) * 0.5 + 0.5) * height;
         const opacity = 0.15 + Math.sin(time * 2 + i) * 0.1;
         const hue = 180 + Math.sin(time + i) * 30; // Cyan to pink range
 
@@ -307,8 +324,8 @@ function DreamContent() {
       }
 
       // Moon glow effect
-      const moonX = canvas.width * 0.8;
-      const moonY = canvas.height * 0.2;
+      const moonX = width * 0.8;
+      const moonY = height * 0.2;
       const moonRadius = 60 + Math.sin(time) * 10;
 
       const moonGradient = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moonRadius * 2);
@@ -320,21 +337,65 @@ function DreamContent() {
       ctx.arc(moonX, moonY, moonRadius * 2, 0, Math.PI * 2);
       ctx.fillStyle = moonGradient;
       ctx.fill();
+    };
 
+    const animate = (timestamp = 0) => {
+      if (!isRunning) return;
+      if (timestamp - lastFrame >= frameInterval) {
+        lastFrame = timestamp;
+        time += 0.002;
+        drawFrame();
+      }
       animationId = requestAnimationFrame(animate);
     };
 
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const stop = () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      isRunning = false;
     };
 
+    const start = () => {
+      if (isRunning) return;
+      if (mediaQuery.matches || document.hidden) {
+        drawFrame();
+        return;
+      }
+      isRunning = true;
+      lastFrame = 0;
+      animate();
+    };
+
+    const handleVisibility = () => {
+      if (mediaQuery.matches || document.hidden) {
+        stop();
+        drawFrame();
+        return;
+      }
+      start();
+    };
+
+    const handleResize = () => {
+      resizeCanvas();
+      if (!isRunning) {
+        drawFrame();
+      }
+    };
+
+    resizeCanvas();
+    handleVisibility();
+
     window.addEventListener('resize', handleResize);
-    animate();
+    document.addEventListener('visibilitychange', handleVisibility);
+    mediaQuery.addEventListener('change', handleVisibility);
 
     return () => {
-      cancelAnimationFrame(animationId);
+      stop();
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      mediaQuery.removeEventListener('change', handleVisibility);
     };
   }, []);
 
@@ -759,7 +820,7 @@ function DreamContent() {
                         ? '로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요'
                         : 'Log in to save your info for a better experience'}
                     </p>
-                    <a href="/auth/signin" className={styles.loginLink}>
+                    <a href={signInUrl} className={styles.loginLink}>
                       {locale === 'ko' ? '로그인하기' : 'Log in'}
                     </a>
                   </div>
@@ -1014,23 +1075,31 @@ function DreamContent() {
 
                 {/* Bottom Section - Analysis Cards Grid */}
                 <div className={styles.resultBottomSection}>
-                  {/* Dream Symbols - Premium Horizontal Scroll */}
+                  {/* Dream Symbols - Interactive Flip Cards */}
                   {result.dreamSymbols && result.dreamSymbols.length > 0 && (
                     <div className={styles.symbolsSection}>
                       <div className={styles.sectionHeader}>
                         <span className={styles.sectionIcon}>🔮</span>
                         <h3 className={styles.sectionTitle}>{locale === 'ko' ? '꿈의 상징' : 'Dream Symbols'}</h3>
+                        <span className={styles.sectionBadge}>{locale === 'ko' ? '뒤집어보세요!' : 'Flip to explore!'}</span>
                       </div>
                       <div className={styles.symbolsScroll}>
-                        {result.dreamSymbols.map((sym, i) => (
-                          <div key={i} className={styles.symbolCard}>
-                            <div className={styles.symbolHeader}>
-                              <span className={styles.symbolEmoji}>✨</span>
-                              <span className={styles.symbolLabel}>{sym.label}</span>
-                            </div>
-                            <p className={styles.symbolMeaning}>{sym.meaning}</p>
-                          </div>
-                        ))}
+                        {result.dreamSymbols.map((sym: any, i: number) => {
+                          // Generate unique color for each card
+                          const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+                          const color = colors[i % colors.length];
+
+                          return (
+                            <DreamSymbolCard
+                              key={i}
+                              symbol={sym.label}
+                              meaning={sym.meaning}
+                              interpretations={sym.interpretations}
+                              color={color}
+                              locale={locale as 'ko' | 'en'}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   )}

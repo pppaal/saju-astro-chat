@@ -208,12 +208,17 @@ export {
   type AvoidPeriod,
   type ComprehensivePrediction,
   type UpcomingHighlight,
+  // 주간 분석 타입 추가
+  type WeeklyPeriod,
+  type WeeklyEventTimingResult,
 
   // Functions
   analyzeMultiYearTrend,
   analyzePastDate,
   analyzePastPeriod,
   findOptimalEventTiming,
+  // 주간 분석 함수 추가
+  findWeeklyOptimalTiming,
   generateComprehensivePrediction,
   generateLifePredictionPromptContext,
   generateEventTimingPromptContext,

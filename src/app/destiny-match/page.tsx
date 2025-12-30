@@ -2,9 +2,10 @@
 
 import { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './DestinyMatch.module.css';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 type UserProfile = {
   id: string;
@@ -131,6 +132,8 @@ const MOCK_PROFILES: UserProfile[] = [
 
 export default function DestinyMatchPage() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const signInUrl = buildSignInUrl('/destiny-match');
   const [viewMode, setViewMode] = useState<ViewMode>('swipe');
   const [profiles] = useState<UserProfile[]>(MOCK_PROFILES);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -157,7 +160,7 @@ export default function DestinyMatchPage() {
   // Swipe handlers
   const handleDragStart = (clientX: number, clientY: number) => {
     if (!session) {
-      signIn();
+      router.push(signInUrl);
       return;
     }
     setIsDragging(true);
@@ -188,7 +191,7 @@ export default function DestinyMatchPage() {
 
   const handleLike = () => {
     if (!session) {
-      signIn();
+      router.push(signInUrl);
       return;
     }
     if (currentProfile) {
@@ -199,7 +202,7 @@ export default function DestinyMatchPage() {
 
   const handlePass = () => {
     if (!session) {
-      signIn();
+      router.push(signInUrl);
       return;
     }
     if (currentProfile) {
@@ -210,7 +213,7 @@ export default function DestinyMatchPage() {
 
   const handleSuperLike = () => {
     if (!session) {
-      signIn();
+      router.push(signInUrl);
       return;
     }
     if (currentProfile) {
@@ -564,7 +567,6 @@ export default function DestinyMatchPage() {
     </div>
   );
 }
-
 
 
 

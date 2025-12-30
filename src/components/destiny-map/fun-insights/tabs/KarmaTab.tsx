@@ -4,1298 +4,1208 @@ import type { TabProps } from './types';
 import type { KarmaAnalysisResult } from '../analyzers/karmaAnalyzer';
 import { getMatrixAnalysis } from '../analyzers';
 
-// 헬퍼: 행성 하우스 찾기
+// ============================================================
+// 비유 기반 쉬운 설명 데이터
+// ============================================================
+
+// 일간(Day Master) - 쉬운 비유와 상세 설명
+const dayMasterSimple: Record<string, {
+  emoji: string;
+  simpleKo: string;
+  simpleEn: string;
+  metaphorKo: string;
+  metaphorEn: string;
+  strengthKo: string;
+  strengthEn: string;
+  watchOutKo: string;
+  watchOutEn: string;
+  luckyColorKo: string;
+  luckyColorEn: string;
+}> = {
+  "갑": {
+    emoji: "🌳",
+    simpleKo: "큰 나무 아이",
+    simpleEn: "Big Tree Kid",
+    metaphorKo: "숲에서 제일 큰 나무처럼, 위로 위로 자라고 싶어해요! 항상 '내가 먼저!' 하고 앞으로 나가요. 새로운 모험이 제일 좋아요!",
+    metaphorEn: "Like the biggest tree in the forest, always wanting to grow taller! Always says 'Me first!' and leads the way. Loves new adventures!",
+    strengthKo: "리더십이 넘쳐요! 새로운 것을 시작하는 힘이 강해요",
+    strengthEn: "Born leader! Strong power to start new things",
+    watchOutKo: "가끔 너무 고집이 세요. 다른 친구 말도 들어보세요!",
+    watchOutEn: "Sometimes too stubborn. Listen to friends too!",
+    luckyColorKo: "🟢 초록색 (나무처럼!)",
+    luckyColorEn: "🟢 Green (Like a tree!)"
+  },
+  "을": {
+    emoji: "🌿",
+    simpleKo: "덩굴 아이",
+    simpleEn: "Vine Kid",
+    metaphorKo: "담쟁이덩굴처럼 어디든 찰싹! 붙어서 자랄 수 있어요. 부드럽지만 끈질기게 목표까지 가요. 적응력 만점!",
+    metaphorEn: "Like ivy that sticks anywhere! Soft but persistent to reach goals. Super adaptable!",
+    strengthKo: "어디서든 잘 적응해요! 부드럽지만 포기 안 해요",
+    strengthEn: "Adapts anywhere! Soft but never gives up",
+    watchOutKo: "너무 다른 사람에게 맞추다 보면 나를 잃어버릴 수 있어요",
+    watchOutEn: "May lose yourself trying too hard to fit in",
+    luckyColorKo: "💚 연두색 (새싹처럼!)",
+    luckyColorEn: "💚 Light green (Like sprouts!)"
+  },
+  "병": {
+    emoji: "☀️",
+    simpleKo: "태양 아이",
+    simpleEn: "Sun Kid",
+    metaphorKo: "뜨거운 태양처럼 반짝반짝! 어디 가든 주목받아요. 주변을 환하게 밝히는 에너지가 넘쳐요!",
+    metaphorEn: "Shiny like the hot sun! Gets attention everywhere. Overflowing energy that brightens surroundings!",
+    strengthKo: "존재감이 뿜뿜! 사람들에게 희망을 줘요",
+    strengthEn: "Amazing presence! Gives hope to people",
+    watchOutKo: "가끔 너무 뜨거워서 다른 사람이 힘들 수 있어요. 쉬어가세요!",
+    watchOutEn: "Sometimes too hot for others. Take breaks!",
+    luckyColorKo: "🔴 빨간색, 주황색 (태양처럼!)",
+    luckyColorEn: "🔴 Red, Orange (Like the sun!)"
+  },
+  "정": {
+    emoji: "🕯️",
+    simpleKo: "촛불 아이",
+    simpleEn: "Candle Kid",
+    metaphorKo: "어둠 속 촛불처럼 은은하게 빛나요. 조용하지만 깊이 생각하고, 마음을 따뜻하게 녹여줘요.",
+    metaphorEn: "Glows gently like a candle in the dark. Quiet but thinks deeply, warms hearts.",
+    strengthKo: "집중력 최고! 섬세하고 따뜻한 마음",
+    strengthEn: "Best focus! Delicate and warm heart",
+    watchOutKo: "혼자 너무 많이 생각하면 지쳐요. 나눠보세요!",
+    watchOutEn: "Thinking too much alone is tiring. Share!",
+    luckyColorKo: "🧡 주황색, 보라색 (촛불처럼!)",
+    luckyColorEn: "🧡 Orange, Purple (Like candlelight!)"
+  },
+  "무": {
+    emoji: "🏔️",
+    simpleKo: "산 아이",
+    simpleEn: "Mountain Kid",
+    metaphorKo: "커다란 산처럼 듬직해요! 흔들리지 않고 모든 것을 품어줘요. 사람들이 기대고 싶어하는 존재예요.",
+    metaphorEn: "Solid like a big mountain! Unshakeable and embraces everything. People want to lean on you.",
+    strengthKo: "든든한 버팀목! 믿음직스러워요",
+    strengthEn: "Reliable support! Very trustworthy",
+    watchOutKo: "너무 무거운 것을 혼자 지면 힘들어요. 도움 요청하세요!",
+    watchOutEn: "Carrying too much alone is hard. Ask for help!",
+    luckyColorKo: "🟤 갈색, 베이지 (산처럼!)",
+    luckyColorEn: "🟤 Brown, Beige (Like mountains!)"
+  },
+  "기": {
+    emoji: "🌾",
+    simpleKo: "논밭 아이",
+    simpleEn: "Field Kid",
+    metaphorKo: "비옥한 논밭처럼 뭐든 키워내요! 씨앗을 심으면 열매가 열리게 하는 마법 같은 힘이 있어요.",
+    metaphorEn: "Grows anything like fertile fields! Magical power to make seeds bear fruit.",
+    strengthKo: "뭐든 잘 키워요! 보살피는 능력 최고",
+    strengthEn: "Grows anything well! Best nurturing ability",
+    watchOutKo: "남 챙기다 자기를 잊으면 안 돼요!",
+    watchOutEn: "Don't forget yourself while caring for others!",
+    luckyColorKo: "🟡 노란색, 흙색 (논밭처럼!)",
+    luckyColorEn: "🟡 Yellow, Earth tones (Like fields!)"
+  },
+  "경": {
+    emoji: "⚔️",
+    simpleKo: "검 아이",
+    simpleEn: "Sword Kid",
+    metaphorKo: "날카로운 검처럼 척척! 결정을 잘 내려요. 정의로운 일에 앞장서고, 필요할 때 과감하게 행동해요!",
+    metaphorEn: "Sharp like a sword! Makes decisions well. Leads for justice and acts boldly when needed!",
+    strengthKo: "결단력 갑! 정의로운 마음",
+    strengthEn: "Ultimate decision maker! Righteous heart",
+    watchOutKo: "말이 너무 날카로우면 친구가 상처받아요. 부드럽게!",
+    watchOutEn: "Too sharp words hurt friends. Be gentle!",
+    luckyColorKo: "⚪ 흰색, 은색 (검처럼!)",
+    luckyColorEn: "⚪ White, Silver (Like a sword!)"
+  },
+  "신": {
+    emoji: "💎",
+    simpleKo: "보석 아이",
+    simpleEn: "Gem Kid",
+    metaphorKo: "반짝이는 보석처럼 완벽을 추구해요! 디테일에 강하고, 예쁜 것을 알아보는 눈이 있어요.",
+    metaphorEn: "Pursues perfection like a shining gem! Strong in details, has an eye for beauty.",
+    strengthKo: "완벽주의! 섬세하고 예술적이에요",
+    strengthEn: "Perfectionist! Delicate and artistic",
+    watchOutKo: "완벽하지 않아도 괜찮아요. 자신을 너무 몰아붙이지 마세요!",
+    watchOutEn: "It's okay not to be perfect. Don't push too hard!",
+    luckyColorKo: "✨ 은색, 금색 (보석처럼!)",
+    luckyColorEn: "✨ Silver, Gold (Like gems!)"
+  },
+  "임": {
+    emoji: "🌊",
+    simpleKo: "바다 아이",
+    simpleEn: "Ocean Kid",
+    metaphorKo: "넓고 깊은 바다처럼 마음이 넓어요! 모든 것을 품을 수 있고, 지혜가 넘쳐요. 흐름을 잘 읽어요.",
+    metaphorEn: "Wide and deep heart like the ocean! Can embrace everything, full of wisdom. Reads the flow well.",
+    strengthKo: "마음이 넓어요! 깊은 생각, 지혜로워요",
+    strengthEn: "Wide heart! Deep thoughts, very wise",
+    watchOutKo: "너무 깊이 빠지면 헤어나오기 힘들어요. 균형을 잡으세요!",
+    watchOutEn: "Going too deep makes it hard to come out. Find balance!",
+    luckyColorKo: "💙 파란색, 검정 (바다처럼!)",
+    luckyColorEn: "💙 Blue, Black (Like the ocean!)"
+  },
+  "계": {
+    emoji: "💧",
+    simpleKo: "샘물 아이",
+    simpleEn: "Spring Water Kid",
+    metaphorKo: "맑은 샘물처럼 순수해요! 직감이 뛰어나고, 감성이 풍부해요. 영적으로 민감한 특별한 능력이 있어요.",
+    metaphorEn: "Pure like clear spring water! Great intuition, rich emotions. Special spiritual sensitivity.",
+    strengthKo: "직감력 만점! 예민하고 감성적이에요",
+    strengthEn: "Amazing intuition! Sensitive and emotional",
+    watchOutKo: "남의 감정까지 다 흡수하면 지쳐요. 나를 지키세요!",
+    watchOutEn: "Absorbing everyone's emotions is tiring. Protect yourself!",
+    luckyColorKo: "💜 보라색, 파스텔 (샘물처럼!)",
+    luckyColorEn: "💜 Purple, Pastel (Like spring water!)"
+  }
+};
+
+// 오행 에너지 쉬운 설명
+const fiveElementsSimple: Record<string, {
+  emoji: string;
+  nameKo: string;
+  nameEn: string;
+  simpleKo: string;
+  simpleEn: string;
+  likeKo: string;
+  likeEn: string;
+  tooMuchKo: string;
+  tooMuchEn: string;
+  tooLittleKo: string;
+  tooLittleEn: string;
+}> = {
+  wood: {
+    emoji: "🌳",
+    nameKo: "나무 에너지 (木)",
+    nameEn: "Wood Energy (木)",
+    simpleKo: "쑥쑥 자라는 힘! 새로운 시작, 성장, 도전하는 에너지예요.",
+    simpleEn: "Growing power! Energy for new beginnings, growth, and challenges.",
+    likeKo: "봄, 동쪽, 초록색, 아침, 신맛",
+    likeEn: "Spring, East, Green, Morning, Sour taste",
+    tooMuchKo: "너무 많으면: 성급하고 화가 잘 나요 😤",
+    tooMuchEn: "Too much: Impatient and easily angry 😤",
+    tooLittleKo: "부족하면: 결단력이 없고 시작을 못 해요 😞",
+    tooLittleEn: "Too little: Indecisive, can't start things 😞"
+  },
+  fire: {
+    emoji: "🔥",
+    nameKo: "불 에너지 (火)",
+    nameEn: "Fire Energy (火)",
+    simpleKo: "활활 타오르는 열정! 기쁨, 표현, 빛나는 에너지예요.",
+    simpleEn: "Burning passion! Energy of joy, expression, and shining.",
+    likeKo: "여름, 남쪽, 빨간색, 낮, 쓴맛",
+    likeEn: "Summer, South, Red, Daytime, Bitter taste",
+    tooMuchKo: "너무 많으면: 흥분하기 쉽고 지쳐요 🔥💦",
+    tooMuchEn: "Too much: Gets excited easily, burns out 🔥💦",
+    tooLittleKo: "부족하면: 우울하고 기운이 없어요 😔",
+    tooLittleEn: "Too little: Depressed, no energy 😔"
+  },
+  earth: {
+    emoji: "🏔️",
+    nameKo: "흙 에너지 (土)",
+    nameEn: "Earth Energy (土)",
+    simpleKo: "든든한 안정감! 중심 잡기, 믿음, 포용하는 에너지예요.",
+    simpleEn: "Solid stability! Energy of centering, trust, and embracing.",
+    likeKo: "환절기, 중앙, 노란색, 오후, 단맛",
+    likeEn: "Season transitions, Center, Yellow, Afternoon, Sweet taste",
+    tooMuchKo: "너무 많으면: 고집이 세고 변화를 싫어해요 😑",
+    tooMuchEn: "Too much: Stubborn, dislikes change 😑",
+    tooLittleKo: "부족하면: 불안하고 중심이 없어요 😰",
+    tooLittleEn: "Too little: Anxious, no center 😰"
+  },
+  metal: {
+    emoji: "⚔️",
+    nameKo: "쇠 에너지 (金)",
+    nameEn: "Metal Energy (金)",
+    simpleKo: "칼처럼 날카로운 결단! 정리, 마무리, 수확하는 에너지예요.",
+    simpleEn: "Sharp decision like a sword! Energy of organizing, finishing, harvesting.",
+    likeKo: "가을, 서쪽, 흰색, 저녁, 매운맛",
+    likeEn: "Autumn, West, White, Evening, Spicy taste",
+    tooMuchKo: "너무 많으면: 너무 날카롭고 비판적이에요 😤",
+    tooMuchEn: "Too much: Too sharp and critical 😤",
+    tooLittleKo: "부족하면: 결정을 못 하고 끝을 못 내요 😕",
+    tooLittleEn: "Too little: Can't decide, can't finish 😕"
+  },
+  water: {
+    emoji: "💧",
+    nameKo: "물 에너지 (水)",
+    nameEn: "Water Energy (水)",
+    simpleKo: "흐르는 물처럼 지혜! 생각, 휴식, 저장하는 에너지예요.",
+    simpleEn: "Wisdom like flowing water! Energy of thinking, resting, storing.",
+    likeKo: "겨울, 북쪽, 검정/파랑, 밤, 짠맛",
+    likeEn: "Winter, North, Black/Blue, Night, Salty taste",
+    tooMuchKo: "너무 많으면: 두려움이 많고 우울해요 😨",
+    tooMuchEn: "Too much: Fearful and depressed 😨",
+    tooLittleKo: "부족하면: 지혜가 부족하고 뻣뻣해요 😐",
+    tooLittleEn: "Too little: Lacks wisdom, stiff 😐"
+  }
+};
+
+// 신살 쉬운 설명 (기존 것 대체 - 더 상세하고 직관적으로)
+const shinsalSimple: Record<string, {
+  emoji: string;
+  typeKo: string;
+  typeEn: string;
+  simpleKo: string;
+  simpleEn: string;
+  storyKo: string;
+  storyEn: string;
+  adviceKo: string;
+  adviceEn: string;
+  isLucky: boolean;
+}> = {
+  "천을귀인": {
+    emoji: "👼",
+    typeKo: "천사의 별",
+    typeEn: "Angel Star",
+    simpleKo: "하늘에서 천사가 지켜봐요!",
+    simpleEn: "An angel watches over you from heaven!",
+    storyKo: "어려울 때마다 신기하게 누군가 나타나 도와줘요. 마치 천사가 보내준 것처럼요! 주변에 좋은 사람이 많이 모여요.",
+    storyEn: "Mysteriously, someone appears to help whenever you're in trouble. Like an angel sent them! Good people gather around you.",
+    adviceKo: "혼자 힘들어하지 말고 도움을 요청하세요. 귀인이 반드시 나타나요!",
+    adviceEn: "Don't struggle alone, ask for help. A helper will surely appear!",
+    isLucky: true
+  },
+  "천덕귀인": {
+    emoji: "🛡️",
+    typeKo: "하늘의 방패",
+    typeEn: "Heaven's Shield",
+    simpleKo: "하늘이 보호해줘요!",
+    simpleEn: "Heaven protects you!",
+    storyKo: "큰 위험이 와도 신기하게 피해가요. 마치 투명 방패가 있는 것처럼요! 나쁜 일이 다가와도 슬쩍 비켜가는 행운이 있어요.",
+    storyEn: "Mysteriously avoids big dangers. Like having an invisible shield! Bad things somehow miss you.",
+    adviceKo: "선한 마음으로 살면 이 복이 더 강해져요. 좋은 일을 많이 하세요!",
+    adviceEn: "Living with a good heart strengthens this blessing. Do good deeds!",
+    isLucky: true
+  },
+  "문창귀인": {
+    emoji: "📚",
+    typeKo: "공부의 별",
+    typeEn: "Study Star",
+    simpleKo: "공부를 잘하는 별!",
+    simpleEn: "Star of great learning!",
+    storyKo: "배우는 것이 재미있고 빨리 이해해요. 글 쓰는 것, 말하는 것에 특별한 재능이 있어요. 선생님들이 좋아해요!",
+    storyEn: "Learning is fun and you understand quickly. Special talent in writing and speaking. Teachers love you!",
+    adviceKo: "계속 배우고 글을 쓰세요. 그게 당신의 무기예요!",
+    adviceEn: "Keep learning and writing. That's your weapon!",
+    isLucky: true
+  },
+  "역마살": {
+    emoji: "✈️",
+    typeKo: "여행자의 별",
+    typeEn: "Traveler Star",
+    simpleKo: "한 곳에 있기 힘들어요!",
+    simpleEn: "Hard to stay in one place!",
+    storyKo: "가만히 있으면 근질근질해요! 새로운 곳, 새로운 사람이 좋아요. 여행하거나 이동이 많은 삶이 맞아요.",
+    storyEn: "Staying still makes you restless! Love new places and people. A life with travel and movement suits you.",
+    adviceKo: "해외, 출장, 이동이 많은 일을 선택하세요. 돌아다녀야 운이 트여요!",
+    adviceEn: "Choose work with overseas travel and movement. Moving around opens luck!",
+    isLucky: true
+  },
+  "화개살": {
+    emoji: "🎨",
+    typeKo: "예술가의 별",
+    typeEn: "Artist Star",
+    simpleKo: "예술적 감각이 뛰어나요!",
+    simpleEn: "Outstanding artistic sense!",
+    storyKo: "뭔가 특별한 것이 보여요. 다른 사람이 못 느끼는 것을 느껴요. 예술, 종교, 영적인 것에 끌려요.",
+    storyEn: "You see something special. Feel what others can't. Drawn to art, religion, spiritual things.",
+    adviceKo: "창작 활동이나 명상을 해보세요. 당신의 진짜 재능이 거기 있어요!",
+    adviceEn: "Try creative activities or meditation. Your true talent is there!",
+    isLucky: true
+  },
+  "장성살": {
+    emoji: "👑",
+    typeKo: "리더의 별",
+    typeEn: "Leader Star",
+    simpleKo: "대장이 되는 별!",
+    simpleEn: "Star of becoming a leader!",
+    storyKo: "사람들이 자연스럽게 따라와요. 카리스마가 있고, 책임감이 강해요. 높은 자리에 올라갈 운명이에요.",
+    storyEn: "People naturally follow you. You have charisma and strong responsibility. Destined for high positions.",
+    adviceKo: "리더십을 발휘하세요! 그게 당신의 역할이에요.",
+    adviceEn: "Exercise your leadership! That's your role.",
+    isLucky: true
+  },
+  "도화살": {
+    emoji: "🌸",
+    typeKo: "매력의 별",
+    typeEn: "Charm Star",
+    simpleKo: "매력이 넘쳐요!",
+    simpleEn: "Overflowing charm!",
+    storyKo: "사람들이 끌려와요. 인기가 많아요! 하지만 이성 문제로 복잡해질 수 있어요. 매력을 잘 써야 해요.",
+    storyEn: "People are attracted to you. Very popular! But romance can get complicated. Use charm wisely.",
+    adviceKo: "매력을 일이나 예술에 쓰면 대성공해요! 사랑은 신중하게.",
+    adviceEn: "Using charm for work or art brings great success! Be careful with love.",
+    isLucky: false
+  },
+  "홍염살": {
+    emoji: "💋",
+    typeKo: "정열의 별",
+    typeEn: "Passion Star",
+    simpleKo: "강렬한 매력이 있어요!",
+    simpleEn: "Intense attraction!",
+    storyKo: "불꽃 같은 매력이 있어요. 이성에게 강렬한 인상을 줘요. 하지만 감정이 너무 뜨거우면 위험해요.",
+    storyEn: "Flame-like charm. Makes intense impressions on others. But emotions too hot can be dangerous.",
+    adviceKo: "감정 조절을 배우세요. 그 열정을 좋은 곳에 쓰면 성공해요!",
+    adviceEn: "Learn emotional control. Using that passion well leads to success!",
+    isLucky: false
+  },
+  "백호살": {
+    emoji: "🐯",
+    typeKo: "호랑이의 별",
+    typeEn: "Tiger Star",
+    simpleKo: "용감하지만 조심해야 해요!",
+    simpleEn: "Brave but need to be careful!",
+    storyKo: "호랑이처럼 용감하고 빨라요! 하지만 너무 급하면 다칠 수 있어요. 급한 결정은 피하세요.",
+    storyEn: "Brave and fast like a tiger! But being too hasty can cause injury. Avoid rushed decisions.",
+    adviceKo: "한 박자 쉬고 결정하세요. 안전이 중요해요!",
+    adviceEn: "Take a beat before deciding. Safety is important!",
+    isLucky: false
+  },
+  "공망": {
+    emoji: "🕳️",
+    typeKo: "빈 공간의 별",
+    typeEn: "Empty Space Star",
+    simpleKo: "어떤 것은 비어있어요.",
+    simpleEn: "Something is empty.",
+    storyKo: "특정 영역에서 헛수고가 될 수 있어요. 하지만 비어있기 때문에 오히려 자유로울 수 있어요!",
+    storyEn: "May have futile efforts in certain areas. But emptiness can mean freedom!",
+    adviceKo: "집착을 버리면 오히려 채워져요. 내려놓으세요!",
+    adviceEn: "Letting go fills you instead. Release attachments!",
+    isLucky: false
+  },
+  "겁살": {
+    emoji: "⚡",
+    typeKo: "급변의 별",
+    typeEn: "Sudden Change Star",
+    simpleKo: "갑작스러운 일이 생겨요!",
+    simpleEn: "Sudden things happen!",
+    storyKo: "예상 못한 일이 갑자기 생길 수 있어요. 하지만 그걸 극복하면 엄청 강해져요!",
+    storyEn: "Unexpected things can suddenly happen. But overcoming them makes you incredibly strong!",
+    adviceKo: "위기를 기회로 바꾸는 연습을 하세요. 당신은 강해질 거예요!",
+    adviceEn: "Practice turning crisis into opportunity. You'll become strong!",
+    isLucky: false
+  },
+  "양인살": {
+    emoji: "🗡️",
+    typeKo: "칼날의 별",
+    typeEn: "Blade Star",
+    simpleKo: "강한 추진력이 있어요!",
+    simpleEn: "Strong driving force!",
+    storyKo: "밀어붙이는 힘이 강해요! 하지만 너무 세면 자기도 다치고 남도 다쳐요.",
+    storyEn: "Strong pushing power! But if too strong, you and others get hurt.",
+    adviceKo: "그 에너지를 운동이나 일에 쓰세요. 잘 쓰면 대단한 힘이에요!",
+    adviceEn: "Channel that energy into exercise or work. Used well, it's amazing power!",
+    isLucky: false
+  },
+  "고신살": {
+    emoji: "🏔️",
+    typeKo: "고독한 산의 별",
+    typeEn: "Lonely Mountain Star",
+    simpleKo: "혼자 있는 시간이 필요해요.",
+    simpleEn: "Need time alone.",
+    storyKo: "외로움을 느끼기 쉽지만, 그래서 독립심이 강해져요. 혼자서도 잘해요!",
+    storyEn: "Easy to feel lonely, but that makes you independent. You do well alone!",
+    adviceKo: "혼자만의 시간을 창조적으로 쓰세요. 그게 당신의 강점이에요!",
+    adviceEn: "Use alone time creatively. That's your strength!",
+    isLucky: false
+  },
+  "월덕귀인": {
+    emoji: "🌙",
+    typeKo: "달의 축복",
+    typeEn: "Moon's Blessing",
+    simpleKo: "어머니 같은 사람이 도와줘요!",
+    simpleEn: "Mother-like people help you!",
+    storyKo: "여성 어른이나 어머니 같은 분들이 당신을 도와줘요. 따뜻한 보살핌을 받는 복이 있어요.",
+    storyEn: "Female elders or mother figures help you. Blessed with warm care.",
+    adviceKo: "여성 멘토나 어른을 소중히 하세요. 그분들이 복이에요!",
+    adviceEn: "Cherish female mentors and elders. They're your blessing!",
+    isLucky: true
+  },
+  "학당귀인": {
+    emoji: "🎓",
+    typeKo: "학교의 별",
+    typeEn: "School Star",
+    simpleKo: "배움에 복이 있어요!",
+    simpleEn: "Blessed in learning!",
+    storyKo: "공부하면 잘 돼요! 학교, 자격증, 배움의 기회가 많이 찾아와요.",
+    storyEn: "Studying works out well! Many opportunities for school, certifications, learning come to you.",
+    adviceKo: "평생 배우세요. 그게 당신의 성공 비결이에요!",
+    adviceEn: "Learn for life. That's your secret to success!",
+    isLucky: true
+  },
+  "금여록": {
+    emoji: "💰",
+    typeKo: "재물의 별",
+    typeEn: "Wealth Star",
+    simpleKo: "돈복이 있어요!",
+    simpleEn: "Money luck!",
+    storyKo: "물질적인 복이 있어요. 돈이 들어오는 통로가 열려 있어요. 풍요로운 삶을 살 수 있어요.",
+    storyEn: "Material blessings. Channels for money are open. Can live an abundant life.",
+    adviceKo: "돈보다 가치를 쫓으세요. 그러면 돈이 따라와요!",
+    adviceEn: "Chase value over money. Then money follows!",
+    isLucky: true
+  },
+  "천주귀인": {
+    emoji: "🍻",
+    typeKo: "사교의 별",
+    typeEn: "Social Star",
+    simpleKo: "사람들과 잘 어울려요!",
+    simpleEn: "Gets along well with people!",
+    storyKo: "파티, 모임, 사교에서 빛나요! 음식과 술에도 복이 있어요. 네트워킹의 달인!",
+    storyEn: "Shines at parties and gatherings! Blessed with food and drink. Networking master!",
+    adviceKo: "사람을 만나세요. 기회가 사람에게서 와요!",
+    adviceEn: "Meet people. Opportunities come from people!",
+    isLucky: true
+  },
+  "원진살": {
+    emoji: "😕",
+    typeKo: "오해의 별",
+    typeEn: "Misunderstanding Star",
+    simpleKo: "오해를 받기 쉬워요.",
+    simpleEn: "Easily misunderstood.",
+    storyKo: "같은 말을 해도 오해를 받을 때가 있어요. 하지만 진심을 전하면 풀려요!",
+    storyEn: "Sometimes misunderstood even saying the same thing. But sincerity resolves it!",
+    adviceKo: "오해가 생기면 적극적으로 소통하세요. 피하면 안 돼요!",
+    adviceEn: "Communicate actively when misunderstood. Don't avoid it!",
+    isLucky: false
+  },
+  "괴강살": {
+    emoji: "🦁",
+    typeKo: "강렬한 별",
+    typeEn: "Intense Star",
+    simpleKo: "극단적으로 강해요!",
+    simpleEn: "Extremely strong!",
+    storyKo: "성격이 강렬해서 호불호가 갈려요. 하지만 큰 일을 해낼 수 있는 힘이 있어요!",
+    storyEn: "Strong personality divides opinions. But you have power to accomplish great things!",
+    adviceKo: "큰 목표를 세우세요. 당신은 큰 일을 할 사람이에요!",
+    adviceEn: "Set big goals. You're meant for great things!",
+    isLucky: false
+  },
+  "과숙살": {
+    emoji: "💪",
+    typeKo: "독립의 별",
+    typeEn: "Independence Star",
+    simpleKo: "혼자서도 잘 해내요!",
+    simpleEn: "Does well alone!",
+    storyKo: "스스로의 힘으로 성취해야 해요. 배우자 덕보다는 자기 노력으로 성공해요.",
+    storyEn: "Must achieve by your own power. Success through effort, not spouse's help.",
+    adviceKo: "스스로 강해지세요. 그게 당신의 운명이에요!",
+    adviceEn: "Become strong yourself. That's your destiny!",
+    isLucky: false
+  }
+};
+
+// 노스노드 하우스 쉬운 설명
+const northNodeSimple: Record<number, {
+  emoji: string;
+  titleKo: string;
+  titleEn: string;
+  simpleKo: string;
+  simpleEn: string;
+  lessonKo: string;
+  lessonEn: string;
+  tipKo: string;
+  tipEn: string;
+}> = {
+  1: {
+    emoji: "🦸",
+    titleKo: "영웅이 되는 길",
+    titleEn: "Path to Hero",
+    simpleKo: "이번 생에서는 '나'를 찾아야 해요! 다른 사람에게 기대지 말고, 내가 주인공이 되세요.",
+    simpleEn: "This life, find 'yourself'! Don't lean on others, become the main character.",
+    lessonKo: "혼자 결정하고 혼자 시작하는 연습을 하세요",
+    lessonEn: "Practice deciding and starting alone",
+    tipKo: "나를 먼저 생각해도 이기적인 게 아니에요!",
+    tipEn: "Thinking of yourself first isn't selfish!"
+  },
+  2: {
+    emoji: "💎",
+    titleKo: "보물을 찾는 길",
+    titleEn: "Path to Treasure",
+    simpleKo: "나만의 가치를 알아야 해요! 내가 가진 것, 내가 할 수 있는 것의 가치를 믿으세요.",
+    simpleEn: "Know your own worth! Believe in what you have and can do.",
+    lessonKo: "다른 사람 것에 의존하지 말고 나만의 것을 만드세요",
+    lessonEn: "Don't depend on others' things, create your own",
+    tipKo: "돈을 벌고 모으는 것도 당신의 과제예요!",
+    tipEn: "Earning and saving money is your task too!"
+  },
+  3: {
+    emoji: "💬",
+    titleKo: "말하는 힘을 키우는 길",
+    titleEn: "Path to Communication",
+    simpleKo: "소통하고 배우고 연결하는 게 중요해요! 생각을 말로 표현하세요.",
+    simpleEn: "Communicating, learning, connecting matters! Express thoughts in words.",
+    lessonKo: "높은 이상만 쫓지 말고 일상의 대화에 집중하세요",
+    lessonEn: "Don't just chase high ideals, focus on daily conversation",
+    tipKo: "글쓰기, 말하기, SNS가 당신의 무기예요!",
+    tipEn: "Writing, speaking, SNS are your weapons!"
+  },
+  4: {
+    emoji: "🏠",
+    titleKo: "집을 짓는 길",
+    titleEn: "Path to Home",
+    simpleKo: "마음의 집이 필요해요! 가족, 감정, 내면의 안정을 찾으세요.",
+    simpleEn: "Need a home for the heart! Find family, emotions, inner stability.",
+    lessonKo: "사회적 성공만 쫓지 말고 마음의 뿌리를 내리세요",
+    lessonEn: "Don't just chase social success, put down emotional roots",
+    tipKo: "가족과 시간을 보내는 것이 성장이에요!",
+    tipEn: "Spending time with family is growth!"
+  },
+  5: {
+    emoji: "🎭",
+    titleKo: "빛나는 별이 되는 길",
+    titleEn: "Path to Stardom",
+    simpleKo: "창조하고 표현하고 즐기세요! 당신만의 빛을 발산하세요.",
+    simpleEn: "Create, express, enjoy! Radiate your unique light.",
+    lessonKo: "집단에 숨지 말고 무대 위로 올라가세요",
+    lessonEn: "Don't hide in the crowd, get on stage",
+    tipKo: "취미, 예술, 연애가 당신의 성장 열쇠예요!",
+    tipEn: "Hobbies, art, romance are your growth keys!"
+  },
+  6: {
+    emoji: "⚙️",
+    titleKo: "장인이 되는 길",
+    titleEn: "Path to Mastery",
+    simpleKo: "일상을 가꾸고 봉사하세요! 디테일과 건강이 중요해요.",
+    simpleEn: "Cultivate daily life and serve! Details and health matter.",
+    lessonKo: "꿈에만 빠지지 말고 현실적으로 실천하세요",
+    lessonEn: "Don't just dream, take practical action",
+    tipKo: "루틴, 건강관리, 봉사가 당신을 성장시켜요!",
+    tipEn: "Routine, health care, service help you grow!"
+  },
+  7: {
+    emoji: "🤝",
+    titleKo: "함께하는 길",
+    titleEn: "Path to Partnership",
+    simpleKo: "파트너십을 배워야 해요! 혼자 다 하려 하지 말고 협력하세요.",
+    simpleEn: "Learn partnership! Don't try to do everything alone, cooperate.",
+    lessonKo: "나만 생각하지 말고 '우리'를 생각하세요",
+    lessonEn: "Don't just think of 'me', think of 'us'",
+    tipKo: "결혼, 사업 파트너, 협업이 성장의 길이에요!",
+    tipEn: "Marriage, business partners, collaboration are paths to growth!"
+  },
+  8: {
+    emoji: "🦋",
+    titleKo: "변신하는 길",
+    titleEn: "Path to Transformation",
+    simpleKo: "깊이 변화하고 연결해야 해요! 표면이 아닌 깊은 곳으로 들어가세요.",
+    simpleEn: "Deep change and connection needed! Go deep, not surface.",
+    lessonKo: "물질적 안정에 집착하지 말고 변화를 받아들이세요",
+    lessonEn: "Don't cling to material security, embrace change",
+    tipKo: "위기가 오면 그것이 당신의 성장 기회예요!",
+    tipEn: "When crisis comes, that's your growth opportunity!"
+  },
+  9: {
+    emoji: "🌍",
+    titleKo: "탐험가의 길",
+    titleEn: "Path to Exploration",
+    simpleKo: "넓은 세계로 나가세요! 큰 그림, 의미, 철학을 찾으세요.",
+    simpleEn: "Go out to the wider world! Find the big picture, meaning, philosophy.",
+    lessonKo: "세부적인 것에 갇히지 말고 높이 날아올라 보세요",
+    lessonEn: "Don't get trapped in details, fly high and see",
+    tipKo: "여행, 유학, 종교/철학 공부가 성장의 길이에요!",
+    tipEn: "Travel, study abroad, religion/philosophy are paths to growth!"
+  },
+  10: {
+    emoji: "🏆",
+    titleKo: "정상에 오르는 길",
+    titleEn: "Path to Summit",
+    simpleKo: "사회적 역할을 찾으세요! 세상에 나가 당신의 일을 하세요.",
+    simpleEn: "Find your social role! Go out and do your work in the world.",
+    lessonKo: "가족에만 머물지 말고 세상에서 역할을 하세요",
+    lessonEn: "Don't just stay with family, play a role in the world",
+    tipKo: "커리어, 사회적 성공이 당신의 과제예요!",
+    tipEn: "Career, social success are your tasks!"
+  },
+  11: {
+    emoji: "🌐",
+    titleKo: "함께 꿈꾸는 길",
+    titleEn: "Path to Collective Dreams",
+    simpleKo: "큰 공동체와 미래를 위해 일하세요! 나보다 '우리 모두'를 생각하세요.",
+    simpleEn: "Work for larger community and future! Think 'all of us' not just 'me'.",
+    lessonKo: "개인적 영광만 쫓지 말고 나누는 법을 배우세요",
+    lessonEn: "Don't just chase personal glory, learn to share",
+    tipKo: "동호회, 네트워크, 사회 활동이 성장의 길이에요!",
+    tipEn: "Clubs, networks, social activities are paths to growth!"
+  },
+  12: {
+    emoji: "🧘",
+    titleKo: "영혼을 만나는 길",
+    titleEn: "Path to Spirit",
+    simpleKo: "내면의 평화를 찾으세요! 영적 성장이 이번 생의 과제예요.",
+    simpleEn: "Find inner peace! Spiritual growth is this life's task.",
+    lessonKo: "외부 세계에만 집중하지 말고 내면으로 들어가세요",
+    lessonEn: "Don't just focus on outer world, go inward",
+    tipKo: "명상, 요가, 예술, 봉사가 당신을 채워요!",
+    tipEn: "Meditation, yoga, art, service fill you!"
+  }
+};
+
+// 토성 하우스 쉬운 설명
+const saturnSimple: Record<number, {
+  emoji: string;
+  lessonKo: string;
+  lessonEn: string;
+  challengeKo: string;
+  challengeEn: string;
+  rewardKo: string;
+  rewardEn: string;
+}> = {
+  1: { emoji: "🪨", lessonKo: "나 자신을 믿는 법", lessonEn: "Believing in myself", challengeKo: "자신감 부족", challengeEn: "Lack of confidence", rewardKo: "진정한 자아 발견", rewardEn: "Finding true self" },
+  2: { emoji: "💸", lessonKo: "돈과 가치를 다루는 법", lessonEn: "Handling money and value", challengeKo: "재정적 불안", challengeEn: "Financial insecurity", rewardKo: "단단한 재정 기반", rewardEn: "Solid financial foundation" },
+  3: { emoji: "🗣️", lessonKo: "말하고 소통하는 법", lessonEn: "Speaking and communicating", challengeKo: "표현의 어려움", challengeEn: "Difficulty expressing", rewardKo: "명확한 소통 능력", rewardEn: "Clear communication skills" },
+  4: { emoji: "🏠", lessonKo: "가족과 뿌리의 소중함", lessonEn: "Value of family and roots", challengeKo: "가정의 무거움", challengeEn: "Heavy family burden", rewardKo: "단단한 정서적 기반", rewardEn: "Solid emotional foundation" },
+  5: { emoji: "🎨", lessonKo: "즐기고 창조하는 법", lessonEn: "Enjoying and creating", challengeKo: "재미를 느끼기 어려움", challengeEn: "Hard to feel fun", rewardKo: "성숙한 창의력", rewardEn: "Mature creativity" },
+  6: { emoji: "⚕️", lessonKo: "건강과 일상의 소중함", lessonEn: "Value of health and routine", challengeKo: "건강/일 문제", challengeEn: "Health/work issues", rewardKo: "건강한 생활 습관", rewardEn: "Healthy lifestyle habits" },
+  7: { emoji: "💍", lessonKo: "관계와 협력의 기술", lessonEn: "Art of relationships and cooperation", challengeKo: "관계의 어려움", challengeEn: "Relationship difficulties", rewardKo: "성숙한 파트너십", rewardEn: "Mature partnership" },
+  8: { emoji: "🔮", lessonKo: "변화와 깊이의 힘", lessonEn: "Power of change and depth", challengeKo: "위기와 상실", challengeEn: "Crisis and loss", rewardKo: "강력한 변환 능력", rewardEn: "Powerful transformation ability" },
+  9: { emoji: "📖", lessonKo: "믿음과 지혜 찾기", lessonEn: "Finding faith and wisdom", challengeKo: "믿음의 시험", challengeEn: "Test of faith", rewardKo: "깊은 철학적 지혜", rewardEn: "Deep philosophical wisdom" },
+  10: { emoji: "🏔️", lessonKo: "사회적 책임 다하기", lessonEn: "Fulfilling social responsibility", challengeKo: "성공의 압박", challengeEn: "Pressure to succeed", rewardKo: "존경받는 위치", rewardEn: "Respected position" },
+  11: { emoji: "👥", lessonKo: "친구와 공동체 만들기", lessonEn: "Building friends and community", challengeKo: "소속감 부족", challengeEn: "Lack of belonging", rewardKo: "믿을 수 있는 네트워크", rewardEn: "Reliable network" },
+  12: { emoji: "🌙", lessonKo: "내면과 영혼 돌보기", lessonEn: "Caring for inner self and soul", challengeKo: "고독과 두려움", challengeEn: "Loneliness and fear", rewardKo: "영적 평화", rewardEn: "Spiritual peace" }
+};
+
+// 헬퍼 함수들
 function findPlanetHouse(planets: any[], name: string): number | null {
   if (!Array.isArray(planets)) return null;
   const planet = planets.find((p: any) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.house || null;
 }
 
-// 헬퍼: 행성 별자리 찾기
-function findPlanetSign(planets: any[], name: string): string | null {
-  if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: any) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
-  return planet?.sign || null;
+// 오행 분석 헬퍼
+function analyzeElements(saju: any): { strongest: string; weakest: string; balance: Record<string, number> } | null {
+  const elements = saju?.fiveElements;
+  if (!elements) return null;
+
+  const balance: Record<string, number> = {
+    wood: elements.wood || elements['목'] || 0,
+    fire: elements.fire || elements['화'] || 0,
+    earth: elements.earth || elements['토'] || 0,
+    metal: elements.metal || elements['금'] || 0,
+    water: elements.water || elements['수'] || 0
+  };
+
+  const sorted = Object.entries(balance).sort(([,a], [,b]) => b - a);
+  return {
+    strongest: sorted[0]?.[0] || 'earth',
+    weakest: sorted[sorted.length - 1]?.[0] || 'water',
+    balance
+  };
 }
 
-// 일간 해석 데이터
-const dayMasterInterpretations: Record<string, { ko: string; en: string; soul: string; soulEn: string }> = {
-  "갑": {
-    ko: "갑목(甲木) 일간인 당신은 큰 나무처럼 위로 뻗어가는 에너지를 가졌어요. 리더십과 성장 본능이 강하고, 새로운 시작을 두려워하지 않아요.",
-    en: "As a Gab-Wood day master, you have energy like a tall tree reaching upward. Strong leadership and growth instincts, unafraid of new beginnings.",
-    soul: "개척자의 영혼 - 이번 생에서 새로운 길을 열어가는 것이 사명이에요.",
-    soulEn: "Pioneer Soul - Your mission this life is to open new paths."
-  },
-  "을": {
-    ko: "을목(乙木) 일간인 당신은 덩굴처럼 유연하고 적응력이 뛰어나요. 부드럽지만 끈질기게 목표를 향해 나아가는 힘이 있어요.",
-    en: "As an Eul-Wood day master, you're flexible like a vine with excellent adaptability. Soft yet tenaciously moving toward goals.",
-    soul: "조화자의 영혼 - 부드러움으로 세상을 바꾸는 것이 당신의 카르마예요.",
-    soulEn: "Harmonizer Soul - Your karma is to change the world with gentleness."
-  },
-  "병": {
-    ko: "병화(丙火) 일간인 당신은 태양처럼 강렬하고 따뜻해요. 존재감이 뚜렷하고, 주변을 밝히는 힘이 있어요.",
-    en: "As a Byeong-Fire day master, you're intense and warm like the sun. Distinct presence with power to brighten surroundings.",
-    soul: "빛의 영혼 - 세상에 빛을 비추고 영감을 주는 것이 이번 생의 목적이에요.",
-    soulEn: "Light Soul - Your purpose this life is to shine light and inspire the world."
-  },
-  "정": {
-    ko: "정화(丁火) 일간인 당신은 촛불처럼 은은하고 섬세해요. 집중력이 뛰어나고, 깊은 통찰력을 가졌어요.",
-    en: "As a Jeong-Fire day master, you're gentle and delicate like candlelight. Excellent focus with deep insight.",
-    soul: "지혜자의 영혼 - 어둠 속에서 길을 밝히는 것이 당신의 역할이에요.",
-    soulEn: "Wisdom Soul - Your role is to light the way in darkness."
-  },
-  "무": {
-    ko: "무토(戊土) 일간인 당신은 큰 산처럼 듬직하고 신뢰감이 있어요. 안정적이고 포용력이 넓어 많은 것을 품을 수 있어요.",
-    en: "As a Mu-Earth day master, you're solid and reliable like a mountain. Stable with wide embrace, able to hold much.",
-    soul: "수호자의 영혼 - 다른 사람들에게 안정과 지지를 주는 것이 사명이에요.",
-    soulEn: "Guardian Soul - Your mission is to give stability and support to others."
-  },
-  "기": {
-    ko: "기토(己土) 일간인 당신은 비옥한 땅처럼 생명을 키워내는 힘이 있어요. 섬세하고 실용적이며, 보살피는 능력이 뛰어나요.",
-    en: "As a Gi-Earth day master, you have power to nurture life like fertile soil. Delicate, practical, excellent at caring.",
-    soul: "양육자의 영혼 - 성장을 돕고 열매를 맺게 하는 것이 당신의 카르마예요.",
-    soulEn: "Nurturer Soul - Your karma is to help growth and bring fruition."
-  },
-  "경": {
-    ko: "경금(庚金) 일간인 당신은 강철처럼 단단하고 결단력이 있어요. 정의로우며, 필요할 때 과감히 행동해요.",
-    en: "As a Gyeong-Metal day master, you're hard as steel with decisiveness. Righteous, acting boldly when needed.",
-    soul: "전사의 영혼 - 정의를 지키고 결단하는 것이 이번 생의 과제예요.",
-    soulEn: "Warrior Soul - Your task this life is to uphold justice and make decisions."
-  },
-  "신": {
-    ko: "신금(辛金) 일간인 당신은 보석처럼 정제되고 예리해요. 완벽주의적 성향이 있고, 디테일에 강해요.",
-    en: "As a Sin-Metal day master, you're refined and sharp like a jewel. Perfectionist tendency with strength in details.",
-    soul: "연금술사의 영혼 - 가치 있는 것을 발견하고 다듬는 것이 사명이에요.",
-    soulEn: "Alchemist Soul - Your mission is to discover and refine what's valuable."
-  },
-  "임": {
-    ko: "임수(壬水) 일간인 당신은 큰 바다처럼 깊고 넓은 마음을 가졌어요. 지혜롭고 포용력이 있으며, 흐름을 잘 읽어요.",
-    en: "As an Im-Water day master, you have a deep, wide heart like the ocean. Wise, embracing, reading flows well.",
-    soul: "현자의 영혼 - 깊은 지혜를 나누고 흐름을 이끄는 것이 카르마예요.",
-    soulEn: "Sage Soul - Your karma is to share deep wisdom and lead the flow."
-  },
-  "계": {
-    ko: "계수(癸水) 일간인 당신은 맑은 샘물처럼 순수하고 직관적이에요. 감성이 풍부하고 영적인 민감성이 있어요.",
-    en: "As a Gye-Water day master, you're pure and intuitive like clear spring water. Rich in emotion with spiritual sensitivity.",
-    soul: "영혼의 안내자 - 보이지 않는 것을 느끼고 전달하는 것이 사명이에요.",
-    soulEn: "Soul Guide - Your mission is to sense and convey the unseen."
-  }
-};
-
-// 신살 구체적 해석
-const shinsalInterpretations: Record<string, { ko: string; en: string; advice: string; adviceEn: string }> = {
-  // 길신 (Lucky)
-  "천을귀인": {
-    ko: "천을귀인이 있어요! 어려울 때 귀인이 나타나 도와주는 축복받은 사주예요.",
-    en: "You have Cheonul-Guiin! Blessed to have helpers appear when in difficulty.",
-    advice: "어려울 때 주변에 도움을 요청하세요. 반드시 귀인이 나타나요.",
-    adviceEn: "Ask for help when struggling. A helper will surely appear."
-  },
-  "천덕귀인": {
-    ko: "천덕귀인이 있어요! 하늘의 덕을 받아 큰 재난을 피해가는 복이 있어요.",
-    en: "You have Cheonduk-Guiin! Blessed with heaven's virtue to avoid major disasters.",
-    advice: "선한 행동을 많이 하세요. 복이 돌아와요.",
-    adviceEn: "Do good deeds often. Blessings will return to you."
-  },
-  "월덕귀인": {
-    ko: "월덕귀인이 있어요! 어머니나 여성 귀인의 도움을 받는 사주예요.",
-    en: "You have Wolduk-Guiin! Blessed with help from mother figures or female benefactors.",
-    advice: "여성 멘토나 지인을 소중히 하세요.",
-    adviceEn: "Cherish female mentors and acquaintances."
-  },
-  "문창귀인": {
-    ko: "문창귀인이 있어요! 학문과 글재주에 뛰어난 재능이 있어요.",
-    en: "You have Munchang-Guiin! Outstanding talent in academics and writing.",
-    advice: "공부나 글쓰기를 통해 성공할 수 있어요.",
-    adviceEn: "Success comes through study or writing."
-  },
-  "학당귀인": {
-    ko: "학당귀인이 있어요! 배움에 대한 열정과 재능이 있어요.",
-    en: "You have Hakdang-Guiin! Passion and talent for learning.",
-    advice: "평생 배움을 멈추지 마세요. 그것이 당신의 힘이에요.",
-    adviceEn: "Never stop learning. That's your power."
-  },
-  "역마살": {
-    ko: "역마살이 있어요! 이동과 변화가 많은 운명이에요. 한 곳에 머무르기 어려워요.",
-    en: "You have Yeokma-sal! A destiny with much movement and change. Hard to stay in one place.",
-    advice: "여행, 해외, 이동이 잦은 일이 좋아요.",
-    adviceEn: "Jobs with travel, overseas work, or frequent movement suit you."
-  },
-  "화개살": {
-    ko: "화개살이 있어요! 예술적 감각과 영적 민감성이 뛰어나요.",
-    en: "You have Hwagae-sal! Outstanding artistic sense and spiritual sensitivity.",
-    advice: "창작 활동이나 영적 수행이 당신에게 맞아요.",
-    adviceEn: "Creative work or spiritual practice suits you."
-  },
-  "장성살": {
-    ko: "장성살이 있어요! 리더십과 권위가 있어요. 지도자의 운명이에요.",
-    en: "You have Jangseong-sal! Leadership and authority. A leader's destiny.",
-    advice: "책임지는 위치에서 능력을 발휘하세요.",
-    adviceEn: "Demonstrate ability in positions of responsibility."
-  },
-  "금여록": {
-    ko: "금여록이 있어요! 물질적 축복이 있어요. 풍요로운 삶을 살 수 있어요.",
-    en: "You have Geumyeo-rok! Material blessings. Can live an abundant life.",
-    advice: "돈보다 가치를 쫓으면 돈이 따라와요.",
-    adviceEn: "Chase value over money, and money follows."
-  },
-  "천주귀인": {
-    ko: "천주귀인이 있어요! 술과 음식에 복이 있고, 사교적이에요.",
-    en: "You have Cheonju-Guiin! Blessed with food and drink, socially gifted.",
-    advice: "네트워킹과 사교 활동을 즐기세요.",
-    adviceEn: "Enjoy networking and social activities."
-  },
-  // 흉신 (Challenging)
-  "도화살": {
-    ko: "도화살이 있어요! 매력이 넘치지만 이성 문제에 주의가 필요해요.",
-    en: "You have Dohwa-sal! Overflowing charm but need caution with romance.",
-    advice: "매력을 예술이나 일에 활용하면 성공해요.",
-    adviceEn: "Channel charm into art or work for success."
-  },
-  "홍염살": {
-    ko: "홍염살이 있어요! 강렬한 이성 매력이 있지만 감정 조절이 중요해요.",
-    en: "You have Hongyeom-sal! Intense romantic appeal but emotional control is key.",
-    advice: "감정에 휩쓸리지 말고 냉정함을 유지하세요.",
-    adviceEn: "Don't get swept by emotions, stay cool."
-  },
-  "원진살": {
-    ko: "원진살이 있어요! 인간관계에서 오해를 받기 쉬워요.",
-    en: "You have Wonjin-sal! Easily misunderstood in relationships.",
-    advice: "오해는 소통으로 풀어요. 적극적으로 표현하세요.",
-    adviceEn: "Resolve misunderstandings through communication. Express actively."
-  },
-  "겁살": {
-    ko: "겁살이 있어요! 갑작스러운 사건이 있을 수 있지만, 극복하면 강해져요.",
-    en: "You have Geop-sal! Sudden events possible, but overcoming makes you stronger.",
-    advice: "위기를 기회로 바꾸는 능력을 기르세요.",
-    adviceEn: "Develop ability to turn crisis into opportunity."
-  },
-  "백호살": {
-    ko: "백호살이 있어요! 급한 성격이 있을 수 있어요. 사고에 주의하세요.",
-    en: "You have Baekho-sal! May have impatient personality. Watch for accidents.",
-    advice: "급하게 결정하지 말고 한 템포 쉬어가세요.",
-    adviceEn: "Don't decide hastily, take a beat."
-  },
-  "양인살": {
-    ko: "양인살이 있어요! 강한 추진력이 있지만 과격해질 수 있어요.",
-    en: "You have Yangin-sal! Strong drive but can become aggressive.",
-    advice: "그 에너지를 운동이나 일에 쏟으세요.",
-    adviceEn: "Channel that energy into exercise or work."
-  },
-  "공망": {
-    ko: "공망이 있어요! 어떤 영역에서 헛수고가 있을 수 있어요.",
-    en: "You have Gongmang! May have futile efforts in some areas.",
-    advice: "집착을 버리면 오히려 얻게 돼요.",
-    adviceEn: "Letting go of attachment actually brings gain."
-  },
-  "괴강살": {
-    ko: "괴강살이 있어요! 극단적인 성격이지만 큰 일을 해낼 수 있어요.",
-    en: "You have Goegang-sal! Extreme personality but can accomplish great things.",
-    advice: "큰 목표를 세우고 밀어붙이세요.",
-    adviceEn: "Set big goals and push through."
-  },
-  "고신살": {
-    ko: "고신살이 있어요! 외로움을 느끼기 쉽지만 독립심이 강해요.",
-    en: "You have Gosin-sal! Easily feel lonely but strongly independent.",
-    advice: "혼자 있는 시간을 창조적으로 활용하세요.",
-    adviceEn: "Use alone time creatively."
-  },
-  "과숙살": {
-    ko: "과숙살이 있어요! 배우자 덕이 약할 수 있어요.",
-    en: "You have Gwasuk-sal! Spouse luck may be weak.",
-    advice: "스스로의 힘으로 성취하면 더 단단해져요.",
-    adviceEn: "Achieving by yourself makes you stronger."
-  }
-};
-
-// 노드 하우스 해석
-const northNodeHouseInterpretations: Record<number, { ko: string; en: string; lesson: string; lessonEn: string }> = {
-  1: {
-    ko: "노스노드 1하우스: 이번 생에서 '나'를 발견하고 자기 주도적인 삶을 사는 것이 과제예요.",
-    en: "North Node 1H: This life's task is discovering 'yourself' and living self-directed.",
-    lesson: "다른 사람에게 의존하던 패턴을 버리고, 나만의 정체성을 확립하세요.",
-    lessonEn: "Let go of dependency patterns and establish your own identity."
-  },
-  2: {
-    ko: "노스노드 2하우스: 자신의 가치를 인정하고 물질적 안정을 만들어가는 것이 과제예요.",
-    en: "North Node 2H: Task is recognizing your worth and creating material stability.",
-    lesson: "다른 사람의 자원에 의존하지 말고, 스스로 가치를 창출하세요.",
-    lessonEn: "Don't depend on others' resources, create your own value."
-  },
-  3: {
-    ko: "노스노드 3하우스: 소통하고 배우며 주변과 연결되는 것이 이번 생의 과제예요.",
-    en: "North Node 3H: This life's task is communicating, learning, connecting with surroundings.",
-    lesson: "높은 이상만 쫓지 말고, 일상의 대화와 배움에 집중하세요.",
-    lessonEn: "Don't just chase high ideals, focus on daily conversation and learning."
-  },
-  4: {
-    ko: "노스노드 4하우스: 내면의 안정과 가족, 집의 중요성을 깨닫는 것이 과제예요.",
-    en: "North Node 4H: Task is realizing importance of inner stability, family, home.",
-    lesson: "사회적 성공만 쫓지 말고, 정서적 뿌리를 내리세요.",
-    lessonEn: "Don't just chase social success, put down emotional roots."
-  },
-  5: {
-    ko: "노스노드 5하우스: 창조하고 표현하며 삶을 즐기는 것이 이번 생의 과제예요.",
-    en: "North Node 5H: This life's task is creating, expressing, enjoying life.",
-    lesson: "집단에 묻히지 말고, 당신만의 빛을 발산하세요.",
-    lessonEn: "Don't get lost in the crowd, radiate your own light."
-  },
-  6: {
-    ko: "노스노드 6하우스: 일상을 개선하고 봉사하며 건강을 돌보는 것이 과제예요.",
-    en: "North Node 6H: Task is improving daily life, serving, caring for health.",
-    lesson: "꿈에만 빠지지 말고, 현실적인 실천을 하세요.",
-    lessonEn: "Don't just dream, take practical action."
-  },
-  7: {
-    ko: "노스노드 7하우스: 파트너십과 타인과의 협력을 배우는 것이 이번 생의 과제예요.",
-    en: "North Node 7H: This life's task is learning partnership and cooperation with others.",
-    lesson: "혼자 다 하려 하지 말고, 함께하는 법을 배우세요.",
-    lessonEn: "Don't try to do everything alone, learn to work together."
-  },
-  8: {
-    ko: "노스노드 8하우스: 깊은 변화와 타인과의 친밀한 연결을 경험하는 것이 과제예요.",
-    en: "North Node 8H: Task is experiencing deep transformation and intimate connection with others.",
-    lesson: "물질적 안정에 집착하지 말고, 깊은 변화를 받아들이세요.",
-    lessonEn: "Don't cling to material security, embrace deep change."
-  },
-  9: {
-    ko: "노스노드 9하우스: 더 넓은 세계를 탐험하고 의미를 찾는 것이 이번 생의 과제예요.",
-    en: "North Node 9H: This life's task is exploring wider world and finding meaning.",
-    lesson: "세부적인 것에 갇히지 말고, 큰 그림을 보세요.",
-    lessonEn: "Don't get trapped in details, see the big picture."
-  },
-  10: {
-    ko: "노스노드 10하우스: 사회적 역할을 찾고 성취하는 것이 이번 생의 과제예요.",
-    en: "North Node 10H: This life's task is finding social role and achieving.",
-    lesson: "가족에만 머물지 말고, 세상에 나가 당신의 역할을 하세요.",
-    lessonEn: "Don't just stay with family, go out and play your role in the world."
-  },
-  11: {
-    ko: "노스노드 11하우스: 더 큰 공동체와 미래 비전을 위해 일하는 것이 과제예요.",
-    en: "North Node 11H: Task is working for larger community and future vision.",
-    lesson: "개인적 영광만 쫓지 말고, 함께 나누는 법을 배우세요.",
-    lessonEn: "Don't just chase personal glory, learn to share together."
-  },
-  12: {
-    ko: "노스노드 12하우스: 영적 성장과 내면의 평화를 찾는 것이 이번 생의 과제예요.",
-    en: "North Node 12H: This life's task is finding spiritual growth and inner peace.",
-    lesson: "외부 세계에만 집중하지 말고, 내면의 여행을 떠나세요.",
-    lessonEn: "Don't just focus on outer world, embark on inner journey."
-  }
-};
-
-// 격국 해석
-const geokgukInterpretations: Record<string, { ko: string; en: string }> = {
-  "비견격": { ko: "비견격은 독립적이고 경쟁적인 에너지예요. 스스로의 힘으로 성취해야 하는 운명이에요.", en: "Bigyeon-gyeok has independent, competitive energy. Destined to achieve through your own power." },
-  "겁재격": { ko: "겁재격은 강한 추진력이 있지만 재물에 대한 시험이 있어요. 나눔을 배우면 풍요로워져요.", en: "Geopjae-gyeok has strong drive but tests with money. Learning to share brings abundance." },
-  "식신격": { ko: "식신격은 표현력과 창의력이 뛰어나요. 자신을 표현하며 사는 것이 중요해요.", en: "Siksin-gyeok excels in expression and creativity. Living while expressing yourself is important." },
-  "상관격": { ko: "상관격은 반항적이고 자유로운 영혼이에요. 틀을 깨는 것이 당신의 역할이에요.", en: "Sanggwan-gyeok is a rebellious, free soul. Breaking the mold is your role." },
-  "편재격": { ko: "편재격은 재물을 다루는 능력이 있어요. 사업이나 투자에 재능이 있어요.", en: "Pyeonjae-gyeok has ability to handle money. Talented in business or investment." },
-  "정재격": { ko: "정재격은 안정적인 재물운이에요. 꾸준히 모으면 부를 축적할 수 있어요.", en: "Jeongjae-gyeok has stable money luck. Consistent saving accumulates wealth." },
-  "편관격": { ko: "편관격은 권력과 리더십의 에너지예요. 책임지는 자리에서 빛나요.", en: "Pyeongwan-gyeok has power and leadership energy. Shines in positions of responsibility." },
-  "정관격": { ko: "정관격은 정직하고 규율적인 에너지예요. 공적인 역할에서 성공해요.", en: "Jeonggwan-gyeok has honest, disciplined energy. Succeeds in public roles." },
-  "편인격": { ko: "편인격은 특이하고 독창적인 사고를 가졌어요. 일반적이지 않은 길에서 성공해요.", en: "Pyeonin-gyeok has unique, original thinking. Succeeds on unconventional paths." },
-  "정인격": { ko: "정인격은 학문과 배움에 복이 있어요. 가르치거나 배우는 일이 잘 맞아요.", en: "Jeongin-gyeok is blessed in academics and learning. Teaching or learning suits you well." }
-};
-
-// 용신 상세 해석
-const yongsinInterpretations: Record<string, { ko: string; en: string; advice: string; adviceEn: string }> = {
-  "목": {
-    ko: "목(木) 에너지가 필요해요. 당신의 사주에 목기운이 부족하거나 목이 용신이에요. 목은 성장, 시작, 확장의 에너지예요.",
-    en: "You need Wood (木) energy. Your Saju lacks wood energy or wood is your Yongsin. Wood represents growth, beginnings, expansion.",
-    advice: "초록색 옷을 입고, 동쪽 방향이 좋아요. 아침 시간(5-9시)에 활동하고, 새로운 것을 시작하세요. 나무나 식물 근처가 좋아요.",
-    adviceEn: "Wear green, east direction is favorable. Be active in morning (5-9am), start new things. Being near trees or plants helps."
-  },
-  "화": {
-    ko: "화(火) 에너지가 필요해요. 열정, 표현, 빛의 에너지가 당신에게 도움이 돼요. 더 적극적으로 자신을 드러내세요.",
-    en: "You need Fire (火) energy. Passion, expression, light energy helps you. Express yourself more actively.",
-    advice: "빨간색/주황색 옷을 입고, 남쪽 방향이 좋아요. 낮 시간(9시-오후 3시)에 활동하고, 사람들 앞에 나서세요.",
-    adviceEn: "Wear red/orange, south direction is favorable. Be active during day (9am-3pm), step in front of people."
-  },
-  "토": {
-    ko: "토(土) 에너지가 필요해요. 안정, 중심, 기반의 에너지가 당신에게 도움이 돼요. 급하게 가지 말고 기반을 다지세요.",
-    en: "You need Earth (土) energy. Stability, centering, foundation energy helps you. Don't rush, build your foundation.",
-    advice: "노란색/베이지색 옷을 입고, 중앙이 좋아요. 사계절 환절기에 유의하고, 부동산/땅과 관련된 일이 좋아요.",
-    adviceEn: "Wear yellow/beige, center is favorable. Watch seasonal transitions, real estate/land-related work suits you."
-  },
-  "금": {
-    ko: "금(金) 에너지가 필요해요. 결단, 정리, 수확의 에너지가 당신에게 도움이 돼요. 과감하게 결정하고 잘라내세요.",
-    en: "You need Metal (金) energy. Decision, organization, harvest energy helps you. Decide boldly and cut what needs cutting.",
-    advice: "흰색/금색 옷을 입고, 서쪽 방향이 좋아요. 오후(3-7시)에 결정을 내리고, 정리정돈을 하세요.",
-    adviceEn: "Wear white/gold, west direction is favorable. Make decisions in afternoon (3-7pm), organize and declutter."
-  },
-  "수": {
-    ko: "수(水) 에너지가 필요해요. 지혜, 유연함, 흐름의 에너지가 당신에게 도움이 돼요. 물처럼 유연하게 흘러가세요.",
-    en: "You need Water (水) energy. Wisdom, flexibility, flow energy helps you. Flow flexibly like water.",
-    advice: "검은색/파란색 옷을 입고, 북쪽 방향이 좋아요. 밤 시간(9시-새벽 1시)에 사색하고, 물 근처가 좋아요.",
-    adviceEn: "Wear black/blue, north direction is favorable. Contemplate at night (9pm-1am), being near water helps."
-  },
-  "wood": {
-    ko: "목(木) 에너지가 필요해요. 당신의 사주에 목기운이 부족하거나 목이 용신이에요. 목은 성장, 시작, 확장의 에너지예요.",
-    en: "You need Wood (木) energy. Your Saju lacks wood energy or wood is your Yongsin. Wood represents growth, beginnings, expansion.",
-    advice: "초록색 옷을 입고, 동쪽 방향이 좋아요. 아침 시간(5-9시)에 활동하고, 새로운 것을 시작하세요.",
-    adviceEn: "Wear green, east direction is favorable. Be active in morning (5-9am), start new things."
-  },
-  "fire": {
-    ko: "화(火) 에너지가 필요해요. 열정, 표현, 빛의 에너지가 당신에게 도움이 돼요.",
-    en: "You need Fire (火) energy. Passion, expression, light energy helps you.",
-    advice: "빨간색 옷을 입고, 남쪽 방향이 좋아요. 사람들 앞에 나서세요.",
-    adviceEn: "Wear red, south direction is favorable. Step in front of people."
-  },
-  "earth": {
-    ko: "토(土) 에너지가 필요해요. 안정과 기반의 에너지가 당신에게 도움이 돼요.",
-    en: "You need Earth (土) energy. Stability and foundation energy helps you.",
-    advice: "노란색 옷을 입고, 부동산/땅과 관련된 일이 좋아요.",
-    adviceEn: "Wear yellow, real estate/land-related work suits you."
-  },
-  "metal": {
-    ko: "금(金) 에너지가 필요해요. 결단과 정리의 에너지가 당신에게 도움이 돼요.",
-    en: "You need Metal (金) energy. Decision and organization energy helps you.",
-    advice: "흰색 옷을 입고, 과감하게 결정하세요.",
-    adviceEn: "Wear white, decide boldly."
-  },
-  "water": {
-    ko: "수(水) 에너지가 필요해요. 지혜와 유연함의 에너지가 당신에게 도움이 돼요.",
-    en: "You need Water (水) energy. Wisdom and flexibility energy helps you.",
-    advice: "검은색/파란색 옷을 입고, 북쪽 방향이 좋아요.",
-    adviceEn: "Wear black/blue, north direction is favorable."
-  }
-};
-
-// 십신 상세 해석
-const sibsinInterpretations: Record<string, { ko: string; en: string; role: string; roleEn: string }> = {
-  "비견": {
-    ko: "비견(比肩)은 '나와 같은 것'이에요. 동료, 경쟁자, 형제의 에너지예요. 독립심이 강하고 자기 주장이 뚜렷해요.",
-    en: "Bigyeon means 'same as me'. Energy of peers, competitors, siblings. Strong independence and clear self-assertion.",
-    role: "독립적으로 일하거나 동료와 협력할 때",
-    roleEn: "When working independently or collaborating with peers"
-  },
-  "겁재": {
-    ko: "겁재(劫財)는 '재물을 빼앗는 것'이에요. 경쟁적이고 추진력이 있지만, 재물이 새어나갈 수 있어요.",
-    en: "Geopjae means 'robbing wealth'. Competitive with drive, but wealth may leak out.",
-    role: "적극적으로 나서야 할 때, 경쟁 상황",
-    roleEn: "When needing to step up, competitive situations"
-  },
-  "식신": {
-    ko: "식신(食神)은 '먹여주는 신'이에요. 표현력, 창의력, 재능의 에너지예요. 자연스럽게 능력이 발휘돼요.",
-    en: "Siksin means 'feeding god'. Energy of expression, creativity, talent. Abilities naturally unfold.",
-    role: "창작, 표현, 가르침, 요리 등 재능을 발휘할 때",
-    roleEn: "When expressing talents in creation, expression, teaching, cooking"
-  },
-  "상관": {
-    ko: "상관(傷官)은 '관을 상하게 하는 것'이에요. 반항적이고 자유분방하며, 틀을 깨는 에너지예요.",
-    en: "Sanggwan means 'hurting officials'. Rebellious, free-spirited, breaking molds.",
-    role: "혁신, 변화, 예술, 기존 틀을 깰 때",
-    roleEn: "When innovating, changing, in art, breaking existing frameworks"
-  },
-  "편재": {
-    ko: "편재(偏財)는 '기울어진 재물'이에요. 횡재, 투기, 사업의 에너지예요. 돈이 크게 들어오고 크게 나가요.",
-    en: "Pyeonjae means 'tilted wealth'. Energy of windfalls, speculation, business. Money comes big, goes big.",
-    role: "사업, 투자, 유동적인 재물을 다룰 때",
-    roleEn: "When dealing with business, investment, liquid assets"
-  },
-  "정재": {
-    ko: "정재(正財)는 '바른 재물'이에요. 월급, 저축, 안정적인 수입의 에너지예요. 꾸준히 모이는 돈이에요.",
-    en: "Jeongjae means 'proper wealth'. Energy of salary, savings, stable income. Money that steadily accumulates.",
-    role: "안정적인 수입, 저축, 장기 투자할 때",
-    roleEn: "When earning stable income, saving, making long-term investments"
-  },
-  "편관": {
-    ko: "편관(偏官)은 '기울어진 관직'이에요. 칠살이라고도 해요. 권위, 압박, 도전의 에너지예요.",
-    en: "Pyeongwan means 'tilted official'. Also called Seven Killings. Energy of authority, pressure, challenge.",
-    role: "리더십을 발휘하거나 도전에 맞설 때",
-    roleEn: "When exercising leadership or facing challenges"
-  },
-  "정관": {
-    ko: "정관(正官)은 '바른 관직'이에요. 명예, 규율, 책임의 에너지예요. 사회적 인정을 받아요.",
-    en: "Jeonggwan means 'proper official'. Energy of honor, discipline, responsibility. Receives social recognition.",
-    role: "공식적인 자리, 승진, 사회적 역할을 할 때",
-    roleEn: "When in official positions, promotions, taking social roles"
-  },
-  "편인": {
-    ko: "편인(偏印)은 '기울어진 도장'이에요. 독창성, 특이함, 비주류의 에너지예요.",
-    en: "Pyeonin means 'tilted seal'. Energy of originality, uniqueness, being unconventional.",
-    role: "독창적인 아이디어, 비주류 분야에서 활동할 때",
-    roleEn: "When having original ideas, working in unconventional fields"
-  },
-  "정인": {
-    ko: "정인(正印)은 '바른 도장'이에요. 학문, 어머니, 보호의 에너지예요. 배움과 지원을 받아요.",
-    en: "Jeongin means 'proper seal'. Energy of academics, mother, protection. Receives learning and support.",
-    role: "공부, 자격증, 멘토의 도움을 받을 때",
-    roleEn: "When studying, getting certifications, receiving mentor's help"
-  }
-};
-
-export default function KarmaTab({ saju, astro, lang, isKo, data }: TabProps) {
+export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
   const karmaAnalysis = data.karmaAnalysis as KarmaAnalysisResult | null;
-  const matrixAnalysis = getMatrixAnalysis(saju, astro, lang);
 
-  // 직접 사주 데이터 추출
+  // 데이터 추출
   const dayMaster = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || saju?.fourPillars?.day?.heavenlyStem || "";
-  const geokguk = saju?.advancedAnalysis?.geokguk;
-  const geokName = geokguk?.name || geokguk?.type || "";
-  const sibsin = saju?.sibsin || {};
-  const yongsin = saju?.advancedAnalysis?.yongsin;
   const sinsal = saju?.advancedAnalysis?.sinsal || {};
-
-  // 점성술 데이터 추출
-  const planets = astro?.planets || [];
-  const northNodeHouse = findPlanetHouse(planets, 'north node') || findPlanetHouse(planets, 'northnode');
-  const southNodeHouse = northNodeHouse ? (northNodeHouse > 6 ? northNodeHouse - 6 : northNodeHouse + 6) : null;
-  const chironSign = findPlanetSign(planets, 'chiron');
-  const saturnHouse = findPlanetHouse(planets, 'saturn');
-  const plutoHouse = findPlanetHouse(planets, 'pluto');
-
-  // 신살 추출
   const luckyList = sinsal?.luckyList || [];
   const unluckyList = sinsal?.unluckyList || [];
+  const elementAnalysis = analyzeElements(saju);
 
-  if (!karmaAnalysis) {
+  // 점성술 데이터
+  const planets = astro?.planets || [];
+  const northNodeHouse = findPlanetHouse(planets, 'north node') || findPlanetHouse(planets, 'northnode');
+  const saturnHouse = findPlanetHouse(planets, 'saturn');
+  const southNodeHouse = northNodeHouse ? (northNodeHouse > 6 ? northNodeHouse - 6 : northNodeHouse + 6) : null;
+
+  if (!karmaAnalysis && !dayMaster && !northNodeHouse) {
     return (
       <div className="p-6 text-center text-gray-400">
+        <span className="text-4xl mb-4 block">🔮</span>
         {isKo ? "카르마 분석을 위한 데이터가 충분하지 않습니다." : "Not enough data for karma analysis."}
       </div>
     );
   }
 
+  const dayMasterInfo = dayMaster ? dayMasterSimple[dayMaster] : null;
+  const northNodeInfo = northNodeHouse ? northNodeSimple[northNodeHouse] : null;
+  const saturnInfo = saturnHouse ? saturnSimple[saturnHouse] : null;
+
   return (
     <div className="space-y-6">
-      {/* 당신의 운명 DNA - 핵심 데이터 요약 */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-indigo-900/30 border border-indigo-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🧬</span>
-          <h3 className="text-lg font-bold text-indigo-300">
-            {isKo ? "당신의 운명 DNA" : "Your Destiny DNA"}
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          {/* 일간 */}
-          {dayMaster && (
-            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-center">
-              <p className="text-purple-400 text-xs mb-1">{isKo ? "일간 (나)" : "Day Master"}</p>
-              <p className="text-xl font-bold text-purple-300">{dayMaster}</p>
-            </div>
-          )}
-          {/* 격국 */}
-          {geokName && (
-            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
-              <p className="text-blue-400 text-xs mb-1">{isKo ? "격국 (틀)" : "Frame"}</p>
-              <p className="text-sm font-bold text-blue-300">{geokName}</p>
-            </div>
-          )}
-          {/* North Node */}
-          {northNodeHouse && (
-            <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-center">
-              <p className="text-teal-400 text-xs mb-1">{isKo ? "노스노드" : "North Node"}</p>
-              <p className="text-xl font-bold text-teal-300">{northNodeHouse}H</p>
-            </div>
-          )}
-          {/* Saturn */}
-          {saturnHouse && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
-              <p className="text-amber-400 text-xs mb-1">{isKo ? "토성" : "Saturn"}</p>
-              <p className="text-xl font-bold text-amber-300">{saturnHouse}H</p>
-            </div>
-          )}
-        </div>
-
-        {/* 일간 구체적 해석 */}
-        {dayMaster && dayMasterInterpretations[dayMaster] && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 mb-3">
-            <p className="text-purple-300 text-sm leading-relaxed mb-2">
-              {isKo ? dayMasterInterpretations[dayMaster].ko : dayMasterInterpretations[dayMaster].en}
-            </p>
-            <p className="text-indigo-400 text-sm font-medium">
-              ✨ {isKo ? dayMasterInterpretations[dayMaster].soul : dayMasterInterpretations[dayMaster].soulEn}
+      {/* ============================================================ */}
+      {/* 1. 나는 누구? - 일간 (가장 중요!) */}
+      {/* ============================================================ */}
+      {dayMasterInfo && (
+        <div className="rounded-2xl bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border-2 border-purple-400/50 p-6 shadow-lg shadow-purple-500/10">
+          <div className="text-center mb-4">
+            <span className="text-5xl block mb-2">{dayMasterInfo.emoji}</span>
+            <h3 className="text-2xl font-bold text-purple-200">
+              {isKo ? "나는 누구?" : "Who Am I?"}
+            </h3>
+            <p className="text-purple-400 text-sm mt-1">
+              {isKo ? "일간(日干) - 내 영혼의 정체성" : "Day Master - My Soul Identity"}
             </p>
           </div>
-        )}
 
-        {/* 격국 구체적 해석 */}
-        {geokName && geokgukInterpretations[geokName] && (
-          <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-3">
-            <p className="text-blue-300 text-sm leading-relaxed">
-              {isKo ? geokgukInterpretations[geokName].ko : geokgukInterpretations[geokName].en}
+          <div className="bg-white/5 rounded-xl p-4 mb-4">
+            <p className="text-xl font-bold text-center text-white mb-2">
+              {dayMasterInfo.emoji} {isKo ? dayMasterInfo.simpleKo : dayMasterInfo.simpleEn}
+            </p>
+            <p className="text-purple-200 text-center text-sm leading-relaxed">
+              {isKo ? dayMasterInfo.metaphorKo : dayMasterInfo.metaphorEn}
             </p>
           </div>
-        )}
 
-        {/* 노스노드 구체적 해석 */}
-        {northNodeHouse && northNodeHouseInterpretations[northNodeHouse] && (
-          <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20 mb-3">
-            <p className="text-teal-300 text-sm leading-relaxed mb-2">
-              {isKo ? northNodeHouseInterpretations[northNodeHouse].ko : northNodeHouseInterpretations[northNodeHouse].en}
-            </p>
-            <p className="text-teal-400 text-xs">
-              💡 {isKo ? northNodeHouseInterpretations[northNodeHouse].lesson : northNodeHouseInterpretations[northNodeHouse].lessonEn}
-            </p>
-          </div>
-        )}
-
-        {/* 십신 분포 - 상세 해석 포함 */}
-        {(sibsin.year || sibsin.month || sibsin.hour) && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-slate-500/10 to-gray-500/10 border border-gray-500/20 mb-3">
-            <p className="text-gray-300 font-bold text-sm mb-3 flex items-center gap-2">
-              <span>🎭</span> {isKo ? "십신 분포 (에너지 배치)" : "Sibsin Distribution"}
-            </p>
-            <div className="space-y-3">
-              {sibsin.year && (
-                <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-purple-400 text-xs font-bold">{isKo ? "년주" : "Year"}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-300 text-xs font-bold">{sibsin.year}</span>
-                  </div>
-                  {sibsinInterpretations[sibsin.year] && (
-                    <>
-                      <p className="text-purple-200 text-xs leading-relaxed">
-                        {isKo ? sibsinInterpretations[sibsin.year].ko : sibsinInterpretations[sibsin.year].en}
-                      </p>
-                      <p className="text-purple-400 text-xs mt-1">
-                        📍 {isKo ? `조상/사회: ${sibsinInterpretations[sibsin.year].role}` : `Ancestors/Society: ${sibsinInterpretations[sibsin.year].roleEn}`}
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-              {sibsin.month && (
-                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-blue-400 text-xs font-bold">{isKo ? "월주" : "Month"}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-300 text-xs font-bold">{sibsin.month}</span>
-                  </div>
-                  {sibsinInterpretations[sibsin.month] && (
-                    <>
-                      <p className="text-blue-200 text-xs leading-relaxed">
-                        {isKo ? sibsinInterpretations[sibsin.month].ko : sibsinInterpretations[sibsin.month].en}
-                      </p>
-                      <p className="text-blue-400 text-xs mt-1">
-                        📍 {isKo ? `부모/청년기: ${sibsinInterpretations[sibsin.month].role}` : `Parents/Youth: ${sibsinInterpretations[sibsin.month].roleEn}`}
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-              {sibsin.day && (
-                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-green-400 text-xs font-bold">{isKo ? "일주" : "Day"}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-green-500/30 text-green-300 text-xs font-bold">{sibsin.day}</span>
-                  </div>
-                  {sibsinInterpretations[sibsin.day] && (
-                    <>
-                      <p className="text-green-200 text-xs leading-relaxed">
-                        {isKo ? sibsinInterpretations[sibsin.day].ko : sibsinInterpretations[sibsin.day].en}
-                      </p>
-                      <p className="text-green-400 text-xs mt-1">
-                        📍 {isKo ? `배우자/중년: ${sibsinInterpretations[sibsin.day].role}` : `Spouse/Middle-age: ${sibsinInterpretations[sibsin.day].roleEn}`}
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-              {sibsin.hour && (
-                <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-orange-400 text-xs font-bold">{isKo ? "시주" : "Hour"}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-orange-500/30 text-orange-300 text-xs font-bold">{sibsin.hour}</span>
-                  </div>
-                  {sibsinInterpretations[sibsin.hour] && (
-                    <>
-                      <p className="text-orange-200 text-xs leading-relaxed">
-                        {isKo ? sibsinInterpretations[sibsin.hour].ko : sibsinInterpretations[sibsin.hour].en}
-                      </p>
-                      <p className="text-orange-400 text-xs mt-1">
-                        📍 {isKo ? `자녀/말년: ${sibsinInterpretations[sibsin.hour].role}` : `Children/Later years: ${sibsinInterpretations[sibsin.hour].roleEn}`}
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 용신 - 상세 해석 포함 */}
-        {yongsin && (() => {
-          const yongsinStr = typeof yongsin === 'object' ? (yongsin.primary || yongsin.main || "") : String(yongsin);
-          const yongsinKey = yongsinStr.toLowerCase().includes("목") ? "목"
-            : yongsinStr.toLowerCase().includes("화") ? "화"
-            : yongsinStr.toLowerCase().includes("토") ? "토"
-            : yongsinStr.toLowerCase().includes("금") ? "금"
-            : yongsinStr.toLowerCase().includes("수") ? "수"
-            : yongsinStr.toLowerCase().includes("wood") ? "wood"
-            : yongsinStr.toLowerCase().includes("fire") ? "fire"
-            : yongsinStr.toLowerCase().includes("earth") ? "earth"
-            : yongsinStr.toLowerCase().includes("metal") ? "metal"
-            : yongsinStr.toLowerCase().includes("water") ? "water"
-            : "";
-          const yongsinInterp = yongsinInterpretations[yongsinKey];
-
-          return (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20">
-              <p className="text-yellow-400 font-bold text-sm mb-2 flex items-center gap-2">
-                <span>⚡</span> {isKo ? "용신 (필요한 에너지)" : "Yongsin (Needed Energy)"}
-              </p>
-              <p className="text-yellow-300 text-lg font-bold mb-2">{yongsinStr}</p>
-              {yongsinInterp ? (
-                <>
-                  <p className="text-yellow-200 text-sm leading-relaxed mb-3">
-                    {isKo ? yongsinInterp.ko : yongsinInterp.en}
-                  </p>
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                    <p className="text-amber-300 text-xs">
-                      💡 {isKo ? "실천 방법: " : "How to apply: "}
-                      <span className="text-amber-200">
-                        {isKo ? yongsinInterp.advice : yongsinInterp.adviceEn}
-                      </span>
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-yellow-200 text-sm">
-                  {isKo ? "이 에너지를 보충하면 운이 좋아져요." : "Supplementing this energy improves your fortune."}
-                </p>
-              )}
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* 영혼 유형 */}
-      <div className="rounded-2xl bg-gradient-to-br from-violet-900/30 to-purple-900/30 border border-violet-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">{karmaAnalysis.soulType.emoji}</span>
-          <h3 className="text-lg font-bold text-violet-300">
-            {isKo ? "당신의 영혼 유형" : "Your Soul Type"}
-          </h3>
-          {geokName && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">
-              {isKo ? `${geokName} 기반` : `Based on ${geokName}`}
-            </span>
-          )}
-        </div>
-        <div className="space-y-3">
-          <p className="text-xl font-bold text-purple-300">{karmaAnalysis.soulType.title}</p>
-          <p className="text-gray-200 text-base leading-relaxed">{karmaAnalysis.soulType.description}</p>
-          {karmaAnalysis.soulType.draconicSoul && (
-            <p className="text-purple-400 text-sm">
-              {isKo ? "드라코닉 영혼: " : "Draconic Soul: "}{karmaAnalysis.soulType.draconicSoul}
-            </p>
-          )}
-          {karmaAnalysis.soulType.traits && karmaAnalysis.soulType.traits.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
-              {karmaAnalysis.soulType.traits.map((trait, i) => (
-                <span key={i} className="px-3 py-1 rounded-full bg-violet-500/20 text-violet-300 text-sm">{trait}</span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 영혼의 사명 */}
-      <div className="rounded-2xl bg-gradient-to-br from-indigo-900/30 to-blue-900/30 border border-indigo-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🌌</span>
-          <h3 className="text-lg font-bold text-indigo-300">
-            {isKo ? "이번 생의 사명" : "This Life's Mission"}
-          </h3>
-        </div>
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-            <p className="text-indigo-300 font-bold text-sm mb-2">
-              {isKo ? "핵심 사명" : "Core Mission"}
-            </p>
-            <p className="text-gray-200 text-sm leading-relaxed">{karmaAnalysis.soulMission.core}</p>
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-              <p className="text-blue-300 font-bold text-sm mb-2">
-                {isKo ? "표현 방식" : "Expression"}
-              </p>
-              <p className="text-gray-300 text-sm">{karmaAnalysis.soulMission.expression}</p>
+            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+              <p className="text-green-400 font-bold text-sm mb-1">💪 {isKo ? "나의 강점" : "My Strength"}</p>
+              <p className="text-green-200 text-sm">{isKo ? dayMasterInfo.strengthKo : dayMasterInfo.strengthEn}</p>
             </div>
-            <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-              <p className="text-cyan-300 font-bold text-sm mb-2">
-                {isKo ? "성취의 순간" : "Fulfillment"}
-              </p>
-              <p className="text-gray-300 text-sm">{karmaAnalysis.soulMission.fulfillment}</p>
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <p className="text-amber-400 font-bold text-sm mb-1">⚠️ {isKo ? "조심할 점" : "Watch Out"}</p>
+              <p className="text-amber-200 text-sm">{isKo ? dayMasterInfo.watchOutKo : dayMasterInfo.watchOutEn}</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* 성장 경로 (North Node) */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-teal-900/20 border border-teal-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🧭</span>
-          <h3 className="text-lg font-bold text-teal-300">
-            {isKo ? "이번 생의 성장 방향" : "Growth Direction This Life"}
-          </h3>
-          {northNodeHouse && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400">
-              North Node {northNodeHouse}H
-            </span>
-          )}
-        </div>
-
-        {/* 노드 축 시각화 */}
-        {northNodeHouse && southNodeHouse && (
-          <div className="flex items-center justify-center gap-4 mb-4 p-3 rounded-xl bg-white/5">
-            <div className="text-center">
-              <p className="text-gray-500 text-xs">{isKo ? "과거 (놓아줄 것)" : "Past (Let Go)"}</p>
-              <p className="text-rose-400 font-bold">South Node {southNodeHouse}H</p>
-            </div>
-            <div className="text-gray-600">→</div>
-            <div className="text-center">
-              <p className="text-gray-500 text-xs">{isKo ? "미래 (성장 방향)" : "Future (Growth)"}</p>
-              <p className="text-teal-400 font-bold">North Node {northNodeHouse}H</p>
-            </div>
-          </div>
-        )}
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/20">
-            <p className="text-teal-300 font-bold text-sm mb-2">
-              🌟 {isKo ? "나아가야 할 방향" : "Direction to Go"}
-            </p>
-            <p className="text-gray-200 text-sm leading-relaxed">{karmaAnalysis.growthPath.direction}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-500/10 border border-slate-500/20">
-            <p className="text-slate-300 font-bold text-sm mb-2">
-              🔙 {isKo ? "전생의 패턴 (놓아줘야 할 것)" : "Past Life Pattern (To Let Go)"}
-            </p>
-            <p className="text-gray-400 text-sm leading-relaxed">{karmaAnalysis.growthPath.pastPattern}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-            <p className="text-emerald-300 font-bold text-sm mb-2">
-              💎 {isKo ? "핵심 교훈" : "Core Lesson"}
-            </p>
-            <p className="text-gray-200 text-sm leading-relaxed">{karmaAnalysis.growthPath.lesson}</p>
-          </div>
-          {karmaAnalysis.growthPath.practicalAdvice && karmaAnalysis.growthPath.practicalAdvice.length > 0 && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20">
-              <p className="text-teal-300 font-bold text-sm mb-3">
-                ✅ {isKo ? "실천 조언" : "Practical Advice"}
-              </p>
-              <ul className="space-y-2">
-                {karmaAnalysis.growthPath.practicalAdvice.map((advice, i) => (
-                  <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
-                    <span className="text-teal-400 mt-0.5">•</span>
-                    <span>{advice}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 치유해야 할 상처 (Chiron) */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-rose-900/20 border border-rose-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🩹</span>
-          <h3 className="text-lg font-bold text-rose-300">
-            {isKo ? "치유해야 할 상처 (Chiron)" : "Wound to Heal (Chiron)"}
-          </h3>
-        </div>
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-            <p className="text-rose-300 font-bold text-sm mb-2">
-              💔 {isKo ? "깊은 상처" : "Deep Wound"}
-            </p>
-            <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.woundToHeal.wound}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
-            <p className="text-pink-300 font-bold text-sm mb-2">
-              💝 {isKo ? "치유의 길" : "Healing Path"}
-            </p>
-            <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.woundToHeal.healingPath}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-gradient-to-r from-rose-500/10 to-purple-500/10 border border-rose-500/20">
-            <p className="text-sm flex items-start gap-3">
-              <span className="text-xl">🎁</span>
-              <span>
-                <span className="text-purple-300 font-bold">{isKo ? "치유 후 선물: " : "Gift After Healing: "}</span>
-                <span className="text-gray-300">{karmaAnalysis.woundToHeal.gift}</span>
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 토성 레슨 */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-amber-900/20 border border-amber-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🪐</span>
-          <h3 className="text-lg font-bold text-amber-300">
-            {isKo ? "토성이 가르치는 인생 수업" : "Saturn's Life Lesson"}
-          </h3>
-        </div>
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-            <p className="text-amber-300 font-bold text-sm mb-2">
-              📚 {isKo ? "핵심 레슨" : "Core Lesson"}
-            </p>
-            <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.saturnLesson.lesson}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
-              <p className="text-orange-300 font-bold text-sm mb-2">
-                ⏰ {isKo ? "시험의 시기" : "Testing Times"}
-              </p>
-              <p className="text-gray-400 text-sm">{karmaAnalysis.saturnLesson.timing}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-              <p className="text-yellow-300 font-bold text-sm mb-2">
-                🏆 {isKo ? "마스터리 보상" : "Mastery Reward"}
-              </p>
-              <p className="text-gray-300 text-sm">{karmaAnalysis.saturnLesson.mastery}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 플루토 변환 */}
-      {karmaAnalysis.plutoTransform && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-gray-900/50 border border-gray-600/30 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">🔥</span>
-            <h3 className="text-lg font-bold text-gray-300">
-              {isKo ? "플루토의 변환 영역" : "Pluto's Transformation Area"}
-            </h3>
-          </div>
-          <div className="space-y-4">
-            <div className="text-center p-4 rounded-xl bg-gray-800/50 border border-gray-700/30">
-              <p className="text-gray-400 text-sm mb-2">{isKo ? "변환 영역" : "Transformation Area"}</p>
-              <p className="text-xl font-bold text-gray-200">{karmaAnalysis.plutoTransform.area}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-red-900/20 border border-red-700/20 text-center">
-                <p className="text-red-400 text-xs mb-1">{isKo ? "죽여야 할 것" : "Must Die"}</p>
-                <p className="text-gray-300 text-sm">{karmaAnalysis.plutoTransform.death}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-green-900/20 border border-green-700/20 text-center">
-                <p className="text-green-400 text-xs mb-1">{isKo ? "다시 태어날 것" : "Will Rebirth"}</p>
-                <p className="text-gray-300 text-sm">{karmaAnalysis.plutoTransform.rebirth}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 전생 테마 */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-purple-900/20 border border-purple-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🔮</span>
-          <h3 className="text-lg font-bold text-purple-300">
-            {isKo ? "전생에서 가져온 에너지" : "Energy from Past Lives"}
-          </h3>
-        </div>
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-            <p className="text-purple-300 font-bold text-sm mb-2">
-              🌀 {isKo ? "전생의 모습" : "Past Life Glimpse"}
-            </p>
-            <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.pastLifeTheme.likely}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
-              <p className="text-violet-300 font-bold text-sm mb-2">
-                ✨ {isKo ? "가져온 재능" : "Brought Talents"}
-              </p>
-              <p className="text-gray-300 text-sm">{karmaAnalysis.pastLifeTheme.talents}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20">
-              <p className="text-fuchsia-300 font-bold text-sm mb-2">
-                📖 {isKo ? "이번 생의 숙제" : "This Life's Homework"}
-              </p>
-              <p className="text-gray-300 text-sm">{karmaAnalysis.pastLifeTheme.lessons}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 운명적 인연 */}
-      {karmaAnalysis.fatedConnections && karmaAnalysis.fatedConnections.length > 0 && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-pink-900/20 border border-pink-500/30 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">💫</span>
-            <h3 className="text-lg font-bold text-pink-300">
-              {isKo ? "운명적 인연의 징후" : "Signs of Fated Connections"}
-            </h3>
-          </div>
-          <div className="space-y-3">
-            {karmaAnalysis.fatedConnections.map((connection, i) => (
-              <div key={i} className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
-                <p className="text-pink-300 font-bold text-sm mb-2">{connection.type}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{connection.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 카르마 인사이트 점수 */}
-      {karmaAnalysis.karmaScore > 50 && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-violet-900/20 border border-violet-500/30 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">📊</span>
-            <h3 className="text-lg font-bold text-violet-300">
-              {isKo ? "카르마 인사이트 깊이" : "Karma Insight Depth"}
-            </h3>
-          </div>
-          <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-violet-300 font-bold text-sm">{isKo ? "분석 깊이" : "Analysis Depth"}</p>
-              <span className="text-2xl font-bold text-violet-400">{karmaAnalysis.karmaScore}%</span>
-            </div>
-            <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-400 transition-all duration-700"
-                style={{ width: `${karmaAnalysis.karmaScore}%` }}
-              />
-            </div>
-            <p className="text-gray-400 text-xs mt-2">
-              {isKo
-                ? karmaAnalysis.karmaScore >= 80 ? "매우 깊은 영혼의 여정이 보여요!"
-                  : karmaAnalysis.karmaScore >= 60 ? "카르마 패턴이 잘 드러나고 있어요."
-                  : "더 많은 출생 정보가 있으면 더 깊은 분석이 가능해요."
-                : karmaAnalysis.karmaScore >= 80 ? "A very deep soul journey is revealed!"
-                  : karmaAnalysis.karmaScore >= 60 ? "Karma patterns are showing clearly."
-                  : "More birth data would enable deeper analysis."}
+          <div className="mt-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-center">
+            <p className="text-purple-300 text-sm">
+              {isKo ? dayMasterInfo.luckyColorKo : dayMasterInfo.luckyColorEn}
             </p>
           </div>
         </div>
       )}
 
-      {/* 영혼 여정 타임라인 */}
-      {karmaAnalysis.soulJourney && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-cyan-900/20 border border-cyan-500/30 p-6">
+      {/* ============================================================ */}
+      {/* 2. 오행 에너지 밸런스 */}
+      {/* ============================================================ */}
+      {elementAnalysis && (
+        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-emerald-900/30 border border-emerald-500/30 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">🌀</span>
-            <h3 className="text-lg font-bold text-cyan-300">
-              {isKo ? "영혼의 여정 타임라인" : "Soul Journey Timeline"}
-            </h3>
-          </div>
-          <div className="space-y-4">
-            <div className="relative pl-8 border-l-2 border-cyan-500/30">
-              <div className="absolute -left-2.5 top-0 w-5 h-5 rounded-full bg-cyan-500/30 border-2 border-cyan-400"></div>
-              <div className="p-3 rounded-xl bg-cyan-500/10 mb-4">
-                <p className="text-cyan-300 font-bold text-sm mb-1">🔮 {isKo ? "전생" : "Past Life"}</p>
-                <p className="text-gray-300 text-sm">{karmaAnalysis.soulJourney.pastLife}</p>
-              </div>
-              <div className="absolute -left-2.5 top-[calc(50%-10px)] w-5 h-5 rounded-full bg-teal-500/50 border-2 border-teal-400"></div>
-              <div className="p-3 rounded-xl bg-teal-500/10 mb-4">
-                <p className="text-teal-300 font-bold text-sm mb-1">🌟 {isKo ? "현재 생" : "Current Life"}</p>
-                <p className="text-gray-300 text-sm">{karmaAnalysis.soulJourney.currentLife}</p>
-              </div>
-              <div className="absolute -left-2.5 bottom-0 w-5 h-5 rounded-full bg-emerald-500/50 border-2 border-emerald-400"></div>
-              <div className="p-3 rounded-xl bg-emerald-500/10">
-                <p className="text-emerald-300 font-bold text-sm mb-1">✨ {isKo ? "미래 잠재력" : "Future Potential"}</p>
-                <p className="text-gray-300 text-sm">{karmaAnalysis.soulJourney.futurePotential}</p>
-              </div>
-            </div>
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-              <p className="text-amber-300 font-bold text-sm mb-1">⚡ {isKo ? "주요 전환점" : "Key Transition"}</p>
-              <p className="text-gray-300 text-sm">{karmaAnalysis.soulJourney.keyTransition}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 신살 기반 운명 패턴 */}
-      {(luckyList.length > 0 || unluckyList.length > 0) && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-orange-900/20 border border-orange-500/30 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">⚡</span>
-            <h3 className="text-lg font-bold text-orange-300">
-              {isKo ? "타고난 운명 패턴 (신살)" : "Innate Destiny Patterns (Shinsal)"}
+            <span className="text-2xl">⚖️</span>
+            <h3 className="text-lg font-bold text-emerald-300">
+              {isKo ? "내 안의 다섯 가지 에너지" : "Five Energies Inside Me"}
             </h3>
           </div>
 
           <p className="text-gray-400 text-sm mb-4">
             {isKo
-              ? "당신의 사주에 새겨진 특별한 별들이에요. 이것들이 삶의 패턴을 만들어요."
-              : "Special stars inscribed in your Saju. These create life patterns."}
+              ? "모든 사람은 나무🌳, 불🔥, 흙🏔️, 쇠⚔️, 물💧 다섯 가지 에너지를 가지고 있어요. 어떤 것이 많고 적은지가 성격을 만들어요!"
+              : "Everyone has five energies: Wood🌳, Fire🔥, Earth🏔️, Metal⚔️, Water💧. How much of each shapes your personality!"}
           </p>
 
-          {/* 길신 (Lucky Patterns) - 구체적 해석 포함 */}
+          {/* 에너지 바 차트 */}
+          <div className="space-y-3 mb-4">
+            {Object.entries(elementAnalysis.balance).map(([element, value]) => {
+              const info = fiveElementsSimple[element];
+              if (!info) return null;
+              const percentage = Math.min(100, Math.max(5, (value as number) * 20));
+              const colors: Record<string, string> = {
+                wood: 'from-green-500 to-green-400',
+                fire: 'from-red-500 to-orange-400',
+                earth: 'from-yellow-600 to-yellow-400',
+                metal: 'from-gray-400 to-white',
+                water: 'from-blue-600 to-blue-400'
+              };
+
+              return (
+                <div key={element}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-gray-300">
+                      {info.emoji} {isKo ? info.nameKo : info.nameEn}
+                    </span>
+                    <span className="text-xs text-gray-400">{value}</span>
+                  </div>
+                  <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${colors[element]}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 가장 강한/약한 에너지 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+              <p className="text-green-400 font-bold text-xs mb-1">
+                🌟 {isKo ? "가장 강한 에너지" : "Strongest Energy"}
+              </p>
+              <p className="text-green-300 text-sm">
+                {fiveElementsSimple[elementAnalysis.strongest]?.emoji} {isKo ? fiveElementsSimple[elementAnalysis.strongest]?.nameKo : fiveElementsSimple[elementAnalysis.strongest]?.nameEn}
+              </p>
+            </div>
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
+              <p className="text-rose-400 font-bold text-xs mb-1">
+                💫 {isKo ? "보충하면 좋은 에너지" : "Energy to Boost"}
+              </p>
+              <p className="text-rose-300 text-sm">
+                {fiveElementsSimple[elementAnalysis.weakest]?.emoji} {isKo ? fiveElementsSimple[elementAnalysis.weakest]?.nameKo : fiveElementsSimple[elementAnalysis.weakest]?.nameEn}
+              </p>
+            </div>
+          </div>
+
+          {/* 약한 에너지 보충 방법 */}
+          {fiveElementsSimple[elementAnalysis.weakest] && (
+            <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+              <p className="text-indigo-300 font-bold text-sm mb-2">
+                💡 {isKo ? "이렇게 보충하세요!" : "How to Boost!"}
+              </p>
+              <p className="text-indigo-200 text-sm">
+                {isKo ? fiveElementsSimple[elementAnalysis.weakest].likeKo : fiveElementsSimple[elementAnalysis.weakest].likeEn}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 3. 이번 생의 방향 - 노스노드 */}
+      {/* ============================================================ */}
+      {northNodeInfo && (
+        <div className="rounded-2xl bg-gradient-to-br from-teal-900/40 to-cyan-900/40 border-2 border-teal-400/50 p-6">
+          <div className="text-center mb-4">
+            <span className="text-4xl block mb-2">{northNodeInfo.emoji}</span>
+            <h3 className="text-xl font-bold text-teal-200">
+              {isKo ? northNodeInfo.titleKo : northNodeInfo.titleEn}
+            </h3>
+            <p className="text-teal-400 text-sm mt-1">
+              {isKo ? `노스노드 ${northNodeHouse}하우스 - 이번 생의 성장 방향` : `North Node ${northNodeHouse}H - This Life's Growth Direction`}
+            </p>
+          </div>
+
+          <div className="bg-white/5 rounded-xl p-4 mb-4">
+            <p className="text-teal-200 text-center leading-relaxed">
+              {isKo ? northNodeInfo.simpleKo : northNodeInfo.simpleEn}
+            </p>
+          </div>
+
+          {/* 과거 → 미래 시각화 */}
+          {southNodeHouse && (
+            <div className="flex items-center justify-center gap-4 mb-4 p-3 rounded-xl bg-white/5">
+              <div className="text-center">
+                <p className="text-rose-400 text-xs mb-1">{isKo ? "전생의 패턴" : "Past Life Pattern"}</p>
+                <p className="text-rose-300 font-bold">← {southNodeHouse}H</p>
+                <p className="text-rose-400/70 text-xs">{isKo ? "(내려놓을 것)" : "(Let Go)"}</p>
+              </div>
+              <div className="text-2xl text-gray-600">→</div>
+              <div className="text-center">
+                <p className="text-teal-400 text-xs mb-1">{isKo ? "이번 생의 방향" : "This Life's Direction"}</p>
+                <p className="text-teal-300 font-bold">{northNodeHouse}H →</p>
+                <p className="text-teal-400/70 text-xs">{isKo ? "(나아갈 곳)" : "(Go Here)"}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3">
+            <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/30">
+              <p className="text-teal-400 font-bold text-sm mb-1">📚 {isKo ? "배워야 할 것" : "To Learn"}</p>
+              <p className="text-teal-200 text-sm">{isKo ? northNodeInfo.lessonKo : northNodeInfo.lessonEn}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
+              <p className="text-cyan-400 font-bold text-sm mb-1">💡 {isKo ? "실천 팁" : "Action Tip"}</p>
+              <p className="text-cyan-200 text-sm">{isKo ? northNodeInfo.tipKo : northNodeInfo.tipEn}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 4. 토성의 수업 */}
+      {/* ============================================================ */}
+      {saturnInfo && (
+        <div className="rounded-2xl bg-gradient-to-br from-amber-900/30 to-orange-900/30 border border-amber-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">🪐</span>
+            <h3 className="text-lg font-bold text-amber-300">
+              {isKo ? "토성 선생님의 수업" : "Saturn Teacher's Lesson"}
+            </h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+              {saturnHouse}H
+            </span>
+          </div>
+
+          <p className="text-gray-400 text-sm mb-4">
+            {isKo
+              ? "토성은 엄격한 선생님처럼, 힘들지만 꼭 배워야 할 것을 가르쳐요. 졸업하면 큰 보상이 있어요!"
+              : "Saturn teaches like a strict teacher. Hard lessons, but big rewards after graduation!"}
+          </p>
+
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <p className="text-amber-400 font-bold text-sm mb-1">📖 {isKo ? "배울 것" : "To Learn"}</p>
+              <p className="text-amber-200 text-sm">{isKo ? saturnInfo.lessonKo : saturnInfo.lessonEn}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+              <p className="text-red-400 font-bold text-sm mb-1">😓 {isKo ? "힘든 점" : "Challenge"}</p>
+              <p className="text-red-200 text-sm">{isKo ? saturnInfo.challengeKo : saturnInfo.challengeEn}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+              <p className="text-green-400 font-bold text-sm mb-1">🏆 {isKo ? "졸업 보상" : "Graduation Reward"}</p>
+              <p className="text-green-200 text-sm">{isKo ? saturnInfo.rewardKo : saturnInfo.rewardEn}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 5. 신살 - 타고난 별들 */}
+      {/* ============================================================ */}
+      {(luckyList.length > 0 || unluckyList.length > 0) && (
+        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-violet-900/30 border border-violet-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">⭐</span>
+            <h3 className="text-lg font-bold text-violet-300">
+              {isKo ? "내가 타고난 별들" : "Stars I Was Born With"}
+            </h3>
+          </div>
+
+          <p className="text-gray-400 text-sm mb-4">
+            {isKo
+              ? "태어날 때 특별한 별들이 당신에게 선물을 줬어요. 이 별들이 삶의 패턴을 만들어요!"
+              : "Special stars gave you gifts when you were born. These stars create life patterns!"}
+          </p>
+
+          {/* 길신 (Lucky Stars) */}
           {luckyList.length > 0 && (
             <div className="mb-4">
               <p className="text-green-400 font-bold text-sm mb-3 flex items-center gap-2">
-                <span>✨</span> {isKo ? "길신 (축복의 별)" : "Lucky Stars"}
+                ✨ {isKo ? "축복의 별 (길신)" : "Blessing Stars (Lucky)"}
               </p>
               <div className="space-y-3">
                 {luckyList.map((item: any, i: number) => {
                   const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
-                  const interp = shinsalInterpretations[name];
-                  return name ? (
-                    <div key={i} className="p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                  const info = shinsalSimple[name];
+                  if (!name) return null;
+
+                  return (
+                    <div key={i} className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-full bg-green-500/30 text-green-300 text-xs font-bold">
-                          {name}
-                        </span>
+                        <span className="text-xl">{info?.emoji || '⭐'}</span>
+                        <span className="font-bold text-green-300">{name}</span>
+                        {info && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/30 text-green-200">
+                            {isKo ? info.typeKo : info.typeEn}
+                          </span>
+                        )}
                       </div>
-                      {interp ? (
+                      {info ? (
                         <>
-                          <p className="text-green-200 text-sm mb-2">
-                            {isKo ? interp.ko : interp.en}
+                          <p className="text-green-100 text-sm font-medium mb-1">
+                            {isKo ? info.simpleKo : info.simpleEn}
+                          </p>
+                          <p className="text-green-200/80 text-sm leading-relaxed mb-2">
+                            {isKo ? info.storyKo : info.storyEn}
                           </p>
                           <p className="text-green-400 text-xs">
-                            💡 {isKo ? interp.advice : interp.adviceEn}
+                            💡 {isKo ? info.adviceKo : info.adviceEn}
                           </p>
                         </>
                       ) : (
                         <p className="text-green-200 text-sm">
-                          {isKo ? "행운과 축복을 가져다주는 별이에요." : "A star that brings luck and blessings."}
+                          {isKo ? "특별한 축복을 주는 별이에요!" : "A star that gives special blessings!"}
                         </p>
                       )}
                     </div>
-                  ) : null;
+                  );
                 })}
               </div>
             </div>
           )}
 
-          {/* 흉신 (Challenging Patterns) - 구체적 해석 포함 */}
+          {/* 흉신 (Challenging Stars) */}
           {unluckyList.length > 0 && (
-            <div className="mb-4">
-              <p className="text-orange-400 font-bold text-sm mb-3 flex items-center gap-2">
-                <span>⚠️</span> {isKo ? "흉신 (도전의 별)" : "Challenging Stars"}
+            <div>
+              <p className="text-rose-400 font-bold text-sm mb-3 flex items-center gap-2">
+                🌟 {isKo ? "도전의 별 (극복하면 강해져요!)" : "Challenge Stars (Overcome to Grow!)"}
               </p>
               <div className="space-y-3">
                 {unluckyList.map((item: any, i: number) => {
                   const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
-                  const interp = shinsalInterpretations[name];
-                  return name ? (
-                    <div key={i} className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                  const info = shinsalSimple[name];
+                  if (!name) return null;
+
+                  return (
+                    <div key={i} className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-full bg-orange-500/30 text-orange-300 text-xs font-bold">
-                          {name}
-                        </span>
+                        <span className="text-xl">{info?.emoji || '⚡'}</span>
+                        <span className="font-bold text-rose-300">{name}</span>
+                        {info && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-200">
+                            {isKo ? info.typeKo : info.typeEn}
+                          </span>
+                        )}
                       </div>
-                      {interp ? (
+                      {info ? (
                         <>
-                          <p className="text-orange-200 text-sm mb-2">
-                            {isKo ? interp.ko : interp.en}
+                          <p className="text-rose-100 text-sm font-medium mb-1">
+                            {isKo ? info.simpleKo : info.simpleEn}
                           </p>
-                          <p className="text-amber-400 text-xs">
-                            🛡️ {isKo ? interp.advice : interp.adviceEn}
+                          <p className="text-rose-200/80 text-sm leading-relaxed mb-2">
+                            {isKo ? info.storyKo : info.storyEn}
+                          </p>
+                          <p className="text-rose-400 text-xs">
+                            💪 {isKo ? info.adviceKo : info.adviceEn}
                           </p>
                         </>
                       ) : (
-                        <p className="text-orange-200 text-sm">
-                          {isKo ? "인식하고 대응하면 오히려 성장의 기회가 돼요." : "Awareness and response turn this into growth opportunity."}
+                        <p className="text-rose-200 text-sm">
+                          {isKo ? "극복하면 강해지는 별이에요!" : "A star that makes you stronger when overcome!"}
                         </p>
                       )}
                     </div>
-                  ) : null;
+                  );
                 })}
               </div>
             </div>
           )}
-
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-gray-400 text-xs">
-              {isKo
-                ? "💡 흉신은 '나쁜 것'이 아니에요. 오히려 성장의 기회! 인식하면 힘이 돼요."
-                : "💡 Challenging stars aren't 'bad'—they're growth opportunities! Awareness makes them power."}
-            </p>
-          </div>
         </div>
       )}
 
-      {/* 카르마 해제 힌트 */}
-      {karmaAnalysis.karmaRelease && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-green-900/20 border border-green-500/30 p-6">
+      {/* ============================================================ */}
+      {/* 6. 영혼 유형 (karmaAnalysis) */}
+      {/* ============================================================ */}
+      {karmaAnalysis?.soulType && (
+        <div className="rounded-2xl bg-gradient-to-br from-violet-900/40 to-purple-900/40 border border-violet-500/30 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">🔓</span>
-            <h3 className="text-lg font-bold text-green-300">
-              {isKo ? "카르마 해제 가이드" : "Karma Release Guide"}
-            </h3>
-            {chironSign && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
-                Chiron in {chironSign}
-              </span>
-            )}
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-              <p className="text-red-300 font-bold text-sm mb-2">🚧 {isKo ? "막혀 있는 것" : "Blockage"}</p>
-              <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.karmaRelease.blockage}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-              <p className="text-yellow-300 font-bold text-sm mb-2">💊 {isKo ? "치유의 방법" : "Healing Method"}</p>
-              <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.karmaRelease.healing}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
-              <p className="text-green-300 font-bold text-sm mb-2">🌈 {isKo ? "돌파구" : "Breakthrough"}</p>
-              <p className="text-gray-300 text-sm leading-relaxed">{karmaAnalysis.karmaRelease.breakthrough}</p>
+            <span className="text-3xl">{karmaAnalysis.soulType.emoji}</span>
+            <div>
+              <h3 className="text-lg font-bold text-violet-300">
+                {isKo ? "나의 영혼 타입" : "My Soul Type"}
+              </h3>
+              <p className="text-xl font-bold text-purple-200">{karmaAnalysis.soulType.title}</p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 동서양 카르마 교차점 */}
-      {matrixAnalysis && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-fuchsia-900/20 border border-fuchsia-500/30 p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl">☯️</span>
-            <h3 className="text-lg font-bold text-fuchsia-300">
-              {isKo ? "동서양 에너지 융합 분석" : "East-West Energy Fusion Analysis"}
-            </h3>
-          </div>
-
-          {/* 설명 박스 */}
-          <div className="mb-5 p-4 rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/10">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {isKo
-                ? "당신의 사주(동양)와 별자리(서양)가 어떻게 어울리는지 분석했어요. 사주의 오행(목·화·토·금·수)과 별자리의 원소(불·흙·바람·물)가 만나면 특별한 에너지가 생겨요."
-                : "We analyzed how your Saju (Eastern) and zodiac (Western) energies combine. When Five Elements meet zodiac elements, special energy is created."}
-            </p>
-          </div>
-
-          {/* 오행-원소 융합 */}
-          {matrixAnalysis.elementFusions.length > 0 && (
-            <div className="mb-5">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">🌀</span>
-                <p className="text-sm font-bold text-gray-300">
-                  {isKo ? "당신의 에너지가 어떻게 만나는지" : "How Your Energies Meet"}
-                </p>
-              </div>
-              <div className="space-y-3">
-                {matrixAnalysis.elementFusions.map((fusion, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-xl"
-                    style={{
-                      backgroundColor: `${fusion.fusion.color}10`,
-                      border: `1px solid ${fusion.fusion.color}25`
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xl">{fusion.fusion.icon}</span>
-                      <span className="text-sm font-bold" style={{ color: fusion.fusion.color }}>
-                        {isKo ? fusion.fusion.keyword.ko : fusion.fusion.keyword.en}
-                      </span>
-                      <span className="ml-auto text-xs px-2 py-1 rounded-full" style={{ backgroundColor: `${fusion.fusion.color}20`, color: fusion.fusion.color }}>
-                        {isKo ? `조화도 ${fusion.fusion.score}점` : `${fusion.fusion.score}/10`}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-300 leading-relaxed">
-                      {isKo ? fusion.fusion.description.ko : fusion.fusion.description.en}
-                    </p>
-                  </div>
-                ))}
-              </div>
+          <p className="text-gray-200 text-sm leading-relaxed mb-4">
+            {karmaAnalysis.soulType.description}
+          </p>
+          {karmaAnalysis.soulType.traits && karmaAnalysis.soulType.traits.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {karmaAnalysis.soulType.traits.map((trait, i) => (
+                <span key={i} className="px-3 py-1 rounded-full bg-violet-500/20 text-violet-300 text-sm">
+                  {trait}
+                </span>
+              ))}
             </div>
           )}
+        </div>
+      )}
 
-          {/* 에너지 조화도 요약 */}
-          <div className="mb-5 p-4 rounded-xl bg-slate-800/50">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">📊</span>
-              <p className="text-sm font-bold text-gray-300">
-                {isKo ? "전체 에너지 조화도" : "Overall Energy Harmony"}
-              </p>
-            </div>
-            <p className="text-xs text-gray-400 mb-3">
-              {isKo
-                ? "동서양 에너지가 얼마나 잘 어울리는지 보여줘요. 완벽 공명이 많을수록 좋고, 긴장이 있어도 성장의 기회가 돼요."
-                : "Shows how well your Eastern and Western energies harmonize. More perfect resonance is better, but tension creates growth opportunities."}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {matrixAnalysis.fusionSummary.extreme > 0 && (
-                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-purple-500/20">
-                  <span className="text-purple-300 text-sm">💜</span>
-                  <div>
-                    <p className="text-purple-300 text-xs font-bold">{isKo ? "완벽 공명" : "Perfect"}</p>
-                    <p className="text-purple-200 text-xs">{matrixAnalysis.fusionSummary.extreme}개 - {isKo ? "에너지가 폭발적으로 증폭!" : "Energy amplified!"}</p>
-                  </div>
-                </div>
-              )}
-              {matrixAnalysis.fusionSummary.amplify > 0 && (
-                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-green-500/20">
-                  <span className="text-green-300 text-sm">💚</span>
-                  <div>
-                    <p className="text-green-300 text-xs font-bold">{isKo ? "시너지" : "Synergy"}</p>
-                    <p className="text-green-200 text-xs">{matrixAnalysis.fusionSummary.amplify}개 - {isKo ? "서로 힘을 더해줘요" : "Boost each other"}</p>
-                  </div>
-                </div>
-              )}
-              {matrixAnalysis.fusionSummary.balance > 0 && (
-                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-500/20">
-                  <span className="text-blue-300 text-sm">💙</span>
-                  <div>
-                    <p className="text-blue-300 text-xs font-bold">{isKo ? "조화" : "Harmony"}</p>
-                    <p className="text-blue-200 text-xs">{matrixAnalysis.fusionSummary.balance}개 - {isKo ? "안정적으로 균형" : "Stable balance"}</p>
-                  </div>
-                </div>
-              )}
-              {matrixAnalysis.fusionSummary.clash > 0 && (
-                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-yellow-500/20">
-                  <span className="text-yellow-300 text-sm">💛</span>
-                  <div>
-                    <p className="text-yellow-300 text-xs font-bold">{isKo ? "긴장" : "Tension"}</p>
-                    <p className="text-yellow-200 text-xs">{matrixAnalysis.fusionSummary.clash}개 - {isKo ? "성장의 자극이 돼요" : "Stimulates growth"}</p>
-                  </div>
-                </div>
-              )}
-              {matrixAnalysis.fusionSummary.conflict > 0 && (
-                <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-500/20">
-                  <span className="text-red-300 text-sm">❤️</span>
-                  <div>
-                    <p className="text-red-300 text-xs font-bold">{isKo ? "도전" : "Challenge"}</p>
-                    <p className="text-red-200 text-xs">{matrixAnalysis.fusionSummary.conflict}개 - {isKo ? "극복하면 크게 성장해요" : "Overcome for big growth"}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+      {/* ============================================================ */}
+      {/* 7. 영혼의 사명 */}
+      {/* ============================================================ */}
+      {karmaAnalysis?.soulMission && (
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-900/40 to-blue-900/40 border border-indigo-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">🌟</span>
+            <h3 className="text-lg font-bold text-indigo-300">
+              {isKo ? "이번 생에서 할 일" : "What to Do This Life"}
+            </h3>
           </div>
-
-          {/* 운명적 메시지 */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-fuchsia-500/10 to-purple-500/10 border border-fuchsia-500/20">
-            <p className="text-fuchsia-300 font-bold text-sm mb-2">
-              {isKo ? "💫 당신에게 주는 메시지" : "💫 Message For You"}
-            </p>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {(() => {
-                const { extreme, conflict, amplify, clash, balance } = matrixAnalysis.fusionSummary;
-                if (extreme >= 2 && conflict === 0) {
-                  return isKo
-                    ? "동양과 서양의 에너지가 완벽하게 공명하고 있어요! 당신은 타고난 운이 강한 편이에요. 이 에너지를 믿고 적극적으로 행동하면 큰 성취를 이룰 수 있어요."
-                    : "Your Eastern and Western energies resonate perfectly! You have naturally strong fortune. Trust this energy and act boldly for great achievements.";
-                } else if (conflict >= 2) {
-                  return isKo
-                    ? "동서양 에너지 사이에 도전적인 긴장이 있어요. 하지만 걱정하지 마세요! 이런 긴장감은 당신을 더 강하게 만들어요. 내면의 균형을 찾으면 오히려 큰 힘이 돼요."
-                    : "There's challenging tension between your energies. But don't worry! This tension makes you stronger. Finding inner balance will become your greatest strength.";
-                } else if (amplify >= 2) {
-                  return isKo
-                    ? "에너지가 서로 힘을 더해주고 있어요! 지금 시작하는 일들이 좋은 결과로 이어질 가능성이 높아요. 자신감을 가지고 추진하세요."
-                    : "Your energies are boosting each other! Things you start now are likely to lead to good results. Pursue them with confidence.";
-                } else if (clash >= 2) {
-                  return isKo
-                    ? "약간의 긴장감이 있지만, 이건 성장의 원동력이에요. 다른 관점에서 생각해보면 새로운 길이 보일 거예요."
-                    : "There's some tension, but it's the driving force for growth. Looking from different perspectives will reveal new paths.";
-                }
-                return isKo
-                  ? "동서양 에너지가 조화롭게 흐르고 있어요. 큰 파도 없이 안정적인 상태예요. 자연스러운 흐름을 따라가면서 당신만의 속도로 나아가세요."
-                  : "Your energies are flowing harmoniously. It's a stable state without big waves. Follow the natural flow and progress at your own pace.";
-              })()}
-            </p>
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+              <p className="text-indigo-300 font-bold text-sm mb-2">🎯 {isKo ? "핵심 사명" : "Core Mission"}</p>
+              <p className="text-gray-200 text-sm leading-relaxed">{karmaAnalysis.soulMission.core}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                <p className="text-blue-300 font-bold text-sm mb-1">💫 {isKo ? "표현 방식" : "Expression"}</p>
+                <p className="text-gray-300 text-sm">{karmaAnalysis.soulMission.expression}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                <p className="text-cyan-300 font-bold text-sm mb-1">✨ {isKo ? "성취의 순간" : "Fulfillment"}</p>
+                <p className="text-gray-300 text-sm">{karmaAnalysis.soulMission.fulfillment}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* 가이드 메시지 */}
-      <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/30">
-        <p className="text-gray-400 text-sm leading-relaxed text-center">
-          {isKo
-            ? "카르마는 벌이 아니라 성장의 기회예요. 과거의 패턴을 인식하고 새로운 방향으로 나아가세요. 🌟"
-            : "Karma isn't punishment—it's an opportunity for growth. Recognize past patterns and move in new directions. 🌟"}
-        </p>
-      </div>
+      {/* ============================================================ */}
+      {/* 8. 치유해야 할 상처 */}
+      {/* ============================================================ */}
+      {karmaAnalysis?.woundToHeal && (
+        <div className="rounded-2xl bg-gradient-to-br from-rose-900/30 to-pink-900/30 border border-rose-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">💝</span>
+            <h3 className="text-lg font-bold text-rose-300">
+              {isKo ? "치유해야 할 마음" : "Heart to Heal"}
+            </h3>
+          </div>
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
+              <p className="text-rose-300 font-bold text-sm mb-1">💔 {isKo ? "아픈 곳" : "The Wound"}</p>
+              <p className="text-gray-300 text-sm">{karmaAnalysis.woundToHeal.wound}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-pink-500/10 border border-pink-500/20">
+              <p className="text-pink-300 font-bold text-sm mb-1">🩹 {isKo ? "치유의 길" : "Healing Path"}</p>
+              <p className="text-gray-300 text-sm">{karmaAnalysis.woundToHeal.healingPath}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-gradient-to-r from-rose-500/10 to-purple-500/10 border border-rose-500/20">
+              <p className="text-purple-300 font-bold text-sm mb-1">🎁 {isKo ? "치유 후 선물" : "Gift After Healing"}</p>
+              <p className="text-gray-300 text-sm">{karmaAnalysis.woundToHeal.gift}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 9. 전생의 힌트 */}
+      {/* ============================================================ */}
+      {karmaAnalysis?.pastLifeTheme && (
+        <div className="rounded-2xl bg-gradient-to-br from-purple-900/30 to-indigo-900/30 border border-purple-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">🔮</span>
+            <h3 className="text-lg font-bold text-purple-300">
+              {isKo ? "전생의 힌트" : "Past Life Hints"}
+            </h3>
+          </div>
+          <p className="text-gray-400 text-sm mb-4">
+            {isKo
+              ? "당신의 영혼이 전생에서 가져온 이야기예요. 신비로운 이야기라 100% 맞다고 할 순 없지만, 영감을 줄 수 있어요!"
+              : "Stories your soul brought from past lives. Can't say it's 100% accurate, but may inspire you!"}
+          </p>
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <p className="text-purple-300 font-bold text-sm mb-1">🌀 {isKo ? "전생의 모습" : "Past Life Glimpse"}</p>
+              <p className="text-gray-300 text-sm">{karmaAnalysis.pastLifeTheme.likely}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                <p className="text-violet-300 font-bold text-sm mb-1">✨ {isKo ? "가져온 재능" : "Brought Talents"}</p>
+                <p className="text-gray-300 text-sm">{karmaAnalysis.pastLifeTheme.talents}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20">
+                <p className="text-fuchsia-300 font-bold text-sm mb-1">📖 {isKo ? "이번 생 숙제" : "This Life's Homework"}</p>
+                <p className="text-gray-300 text-sm">{karmaAnalysis.pastLifeTheme.lessons}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 10. 카르마 인사이트 점수 */}
+      {/* ============================================================ */}
+      {karmaAnalysis && karmaAnalysis.karmaScore > 30 && (
+        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-violet-900/20 border border-violet-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">📊</span>
+            <h3 className="text-lg font-bold text-violet-300">
+              {isKo ? "분석 깊이" : "Analysis Depth"}
+            </h3>
+          </div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-gray-400 text-sm">{isKo ? "얼마나 자세히 볼 수 있는지" : "How detailed the analysis is"}</p>
+            <span className="text-xl font-bold text-violet-400">{karmaAnalysis.karmaScore}%</span>
+          </div>
+          <div className="h-4 bg-gray-800/50 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-400 transition-all duration-700"
+              style={{ width: `${karmaAnalysis.karmaScore}%` }}
+            />
+          </div>
+          <p className="text-gray-400 text-xs mt-2">
+            {isKo
+              ? karmaAnalysis.karmaScore >= 80 ? "🌟 정말 깊은 영혼의 여정이 보여요!"
+                : karmaAnalysis.karmaScore >= 60 ? "✨ 카르마 패턴이 잘 드러나고 있어요"
+                : karmaAnalysis.karmaScore >= 40 ? "💫 기본적인 패턴을 볼 수 있어요"
+                : "🌙 더 많은 정보가 있으면 더 자세히 볼 수 있어요"
+              : karmaAnalysis.karmaScore >= 80 ? "🌟 Very deep soul journey revealed!"
+                : karmaAnalysis.karmaScore >= 60 ? "✨ Karma patterns showing clearly"
+                : karmaAnalysis.karmaScore >= 40 ? "💫 Basic patterns visible"
+                : "🌙 More info would enable deeper analysis"}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

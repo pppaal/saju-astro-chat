@@ -5,7 +5,7 @@
 
 import React from "react";
 import styles from "./Chat.module.css";
-import InlineTarotModal from "./InlineTarotModal";
+import InlineTarotModal, { type TarotResultSummary } from "./InlineTarotModal";
 
 // Extracted modules
 import { CHAT_I18N, detectCrisis, type LangKey } from "./chat-i18n";
@@ -371,6 +371,34 @@ export default function Chat({
   }, [returningSummary, messages]);
 
   const goToTarot = () => setShowTarotModal(true);
+
+  // Handle tarot result from InlineTarotModal
+  const handleTarotComplete = (result: TarotResultSummary) => {
+    // Create a summary message to add to chat
+    const cardsSummary = result.cards
+      .map((c) => `• ${c.position}: ${c.name}${c.isReversed ? " (역방향)" : ""}`)
+      .join("\n");
+
+    const tarotMessage = `🃏 **타로 리딩 결과** - ${result.spreadTitle}
+
+**질문:** ${result.question}
+
+**뽑은 카드:**
+${cardsSummary}
+
+**전체 메시지:**
+${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}` : ""}${result.affirmation ? `\n\n**확언:** _${result.affirmation}_` : ""}`;
+
+    // Add as assistant message
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: tarotMessage,
+        id: generateMessageId("assistant"),
+      },
+    ]);
+  };
 
   // Format relative date
   const formatRelativeDate = (dateStr: string) => {
@@ -1031,6 +1059,7 @@ export default function Chat({
       <InlineTarotModal
         isOpen={showTarotModal}
         onClose={() => setShowTarotModal(false)}
+        onComplete={handleTarotComplete}
         lang={lang}
         profile={profile}
         initialConcern={extractConcernFromMessages()}

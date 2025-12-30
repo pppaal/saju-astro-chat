@@ -21,7 +21,7 @@ import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
 import AuthProvider from "@/components/AuthProvider";
 import ScrollRestoration from "@/components/ui/ScrollRestoration";
 import { ReactNode, Suspense } from "react";
-import { Montserrat, Noto_Sans_KR, Cinzel, Roboto, Lora, Merriweather } from "next/font/google";
+import { Montserrat, Noto_Sans_KR, Cinzel, Lora, Merriweather } from "next/font/google";
 
 // Primary fonts with optimized loading
 const montserrat = Montserrat({
@@ -44,13 +44,6 @@ const cinzel = Cinzel({
   weight: ["400", "700"],
   display: "swap",
   variable: "--font-cinzel",
-});
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["300", "400", "700"],
-  display: "swap",
-  variable: "--font-roboto",
 });
 
 const lora = Lora({
@@ -85,10 +78,39 @@ export const metadata: Metadata = {
   description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.",
   keywords: [
     // Korean keywords
-    "사주", "사주팔자", "오늘 운세", "운세 보기", "타로", "타로 리딩", "별자리 운세", "별자리", "궁합", "꿈 해몽", "심리 테스트", "성격 테스트",
+    "??",
+    "????",
+    "????",
+    "??",
+    "????",
+    "???",
+    "???",
+    "??? ??",
+    "???",
+    "???",
+    "???",
+    "??",
+    "AI ??",
+    "AI ??",
+    "????",
+    "????",
     // English keywords
-    "free tarot reading", "tarot online", "horoscope today", "astrology chart", "numerology", "birth chart", "compatibility test", "dream interpretation", "saju", "korean fortune telling",
+    "free tarot reading",
+    "tarot online",
+    "horoscope today",
+    "astrology chart",
+    "numerology",
+    "birth chart",
+    "compatibility test",
+    "dream interpretation",
+    "saju",
+    "korean fortune telling",
+    "ai tarot",
+    "ai astrology",
+    "spiritual counseling",
+    "life prediction",
   ],
+  applicationName: "DestinyPal",
   authors: [{ name: "DestinyPal" }],
   creator: "DestinyPal",
   publisher: "DestinyPal",
@@ -106,6 +128,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
+    alternateLocale: ["ko_KR"],
     url: "/",
     siteName: "DestinyPal",
     title: "DestinyPal | AI Spiritual Mental Care Platform",
@@ -125,6 +148,7 @@ export const metadata: Metadata = {
     description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
     images: ["/og-image.png"],
     creator: "@destinypal",
+    site: "@destinypal",
   },
   robots: {
     index: true,
@@ -136,6 +160,13 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
+  },
+  alternates: {
+    canonical: "/",
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
   },
 };
 
@@ -167,7 +198,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           ${montserrat.variable}
           ${notoKr.variable}
           ${cinzel.variable}
-          ${roboto.variable}
           ${lora.variable}
           ${merriweather.variable}
         `}

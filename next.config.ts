@@ -106,6 +106,17 @@ const nextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.destinypal.com" }],
+        destination: "https://destinypal.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   // 이미지 최적화 설정
   images: {
     remotePatterns: [

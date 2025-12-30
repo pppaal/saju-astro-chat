@@ -8,6 +8,7 @@ import {
   analyzePastDate,
   analyzePastPeriod,
   findOptimalEventTiming,
+  findWeeklyOptimalTiming,
   generateComprehensivePrediction,
   generateLifePredictionPromptContext,
   generateEventTimingPromptContext,
@@ -225,7 +226,14 @@ interface ComprehensiveRequest extends BaseRequest {
   yearsRange?: number;
 }
 
-type PredictionRequest = MultiYearRequest | PastAnalysisRequest | EventTimingRequest | ComprehensiveRequest;
+interface WeeklyTimingRequest extends BaseRequest {
+  type: 'weekly-timing';
+  eventType: EventType;
+  startDate?: string;  // YYYY-MM-DD
+  endDate?: string;    // YYYY-MM-DD (기본 3개월)
+}
+
+type PredictionRequest = MultiYearRequest | PastAnalysisRequest | EventTimingRequest | ComprehensiveRequest | WeeklyTimingRequest;
 
 // ============================================================
 // 헬퍼 함수
@@ -938,9 +946,59 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case 'weekly-timing': {
+        const { eventType, startDate: startDateStr, endDate: endDateStr } = body as WeeklyTimingRequest;
+
+        if (!eventType) {
+          return NextResponse.json(
+            { success: false, error: 'eventType is required' },
+            { status: 400 }
+          );
+        }
+
+        const startDate = startDateStr ? new Date(startDateStr) : new Date();
+        const endDate = endDateStr ? new Date(endDateStr) : undefined;
+
+        const weeklyResult = findWeeklyOptimalTiming(input, eventType, startDate, endDate);
+
+        // 날짜를 ISO 문자열로 변환
+        const weeklyPeriodsFormatted = weeklyResult.weeklyPeriods.map(w => ({
+          ...w,
+          startDate: w.startDate.toISOString().split('T')[0],
+          endDate: w.endDate.toISOString().split('T')[0],
+          bestDays: w.bestDays.map(d => d.toISOString().split('T')[0]),
+        }));
+
+        return NextResponse.json({
+          success: true,
+          type: 'weekly-timing',
+          data: {
+            eventType: weeklyResult.eventType,
+            searchRange: {
+              startDate: weeklyResult.searchRange.startDate.toISOString().split('T')[0],
+              endDate: weeklyResult.searchRange.endDate.toISOString().split('T')[0],
+            },
+            weeklyPeriods: weeklyPeriodsFormatted,
+            bestWeek: weeklyResult.bestWeek ? {
+              ...weeklyResult.bestWeek,
+              startDate: weeklyResult.bestWeek.startDate.toISOString().split('T')[0],
+              endDate: weeklyResult.bestWeek.endDate.toISOString().split('T')[0],
+              bestDays: weeklyResult.bestWeek.bestDays.map(d => d.toISOString().split('T')[0]),
+            } : null,
+            worstWeek: weeklyResult.worstWeek ? {
+              ...weeklyResult.worstWeek,
+              startDate: weeklyResult.worstWeek.startDate.toISOString().split('T')[0],
+              endDate: weeklyResult.worstWeek.endDate.toISOString().split('T')[0],
+              bestDays: weeklyResult.worstWeek.bestDays.map(d => d.toISOString().split('T')[0]),
+            } : null,
+            summary: weeklyResult.summary,
+          },
+        });
+      }
+
       default:
         return NextResponse.json(
-          { success: false, error: 'Invalid type. Use multi-year, past-analysis, event-timing, or comprehensive' },
+          { success: false, error: 'Invalid type. Use multi-year, past-analysis, event-timing, weekly-timing, or comprehensive' },
           { status: 400 }
         );
     }

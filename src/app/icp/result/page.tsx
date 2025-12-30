@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import type { ICPQuizAnswers, ICPAnalysis } from '@/lib/icp/types';
 import { analyzeICP } from '@/lib/icp/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import styles from './result.module.css';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 // Confetti particle type
 interface ConfettiParticle {
@@ -102,6 +104,7 @@ export default function ICPResultPage() {
   const { locale } = useI18n();
   const isKo = locale === 'ko';
   const { data: session, status: authStatus } = useSession();
+  const router = useRouter();
   const [answers, setAnswers] = useState<ICPQuizAnswers>({});
   const [mounted, setMounted] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -191,7 +194,7 @@ export default function ICPResultPage() {
     if (!analysis) return;
 
     if (authStatus !== 'authenticated') {
-      signIn(undefined, { callbackUrl: '/icp/result' });
+      router.push(buildSignInUrl('/icp/result'));
       return;
     }
 

@@ -1,8 +1,6 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/weekly-fortune",
-      "schedule": "0 0 * * 1"
-    }
+    { "path": "/api/cron/daily-fortune-post", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/notifications", "schedule": "0 7,9,12,18,21 * * *" }
   ]
 }

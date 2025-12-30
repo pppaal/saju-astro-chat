@@ -26,20 +26,27 @@ export default function StarrySky() {
       setStars([]);
       return;
     }
-    const generatedStars: Star[] = Array.from({ length: 100 }).map((_, i) => {
-      const size = Math.random() * 2 + 1;
-      return {
-        id: i,
-        style: {
-          '--size': `${size}px`,
-          '--left': `${Math.random() * 100}vw`,
-          '--fall-duration': `${Math.random() * 5 + 5}s`,
-          '--fall-delay': `${Math.random() * 10}s`,
-          '--twinkle-duration': `${Math.random() * 3 + 2}s`,
-        } as React.CSSProperties,
-      };
-    });
-    setStars(generatedStars);
+    const width = typeof window !== "undefined" ? window.innerWidth : 1200;
+    const starCount = width < 640 ? 50 : width < 1024 ? 70 : 100;
+
+    const timerId = window.setTimeout(() => {
+      const generatedStars: Star[] = Array.from({ length: starCount }).map((_, i) => {
+        const size = Math.random() * 2 + 1;
+        return {
+          id: i,
+          style: {
+            '--size': `${size}px`,
+            '--left': `${Math.random() * 100}vw`,
+            '--fall-duration': `${Math.random() * 5 + 5}s`,
+            '--fall-delay': `${Math.random() * 10}s`,
+            '--twinkle-duration': `${Math.random() * 3 + 2}s`,
+          } as React.CSSProperties,
+        };
+      });
+      setStars(generatedStars);
+    }, 120);
+
+    return () => window.clearTimeout(timerId);
   }, [reduceMotion]);
 
   return (

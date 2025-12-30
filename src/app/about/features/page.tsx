@@ -34,6 +34,8 @@ function useOvoidScene(canvasId: string) {
 
     const canvas = el;
     let raf = 0;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
     const DPR = Math.min(2, window.devicePixelRatio || 1);
 
     const getW = () => canvas.clientWidth || canvas.width / DPR;
@@ -67,7 +69,12 @@ function useOvoidScene(canvasId: string) {
     initStars();
 
     let t = 0;
-    const draw = () => {
+    const draw = (timestamp = 0) => {
+      if (timestamp - lastFrame < frameInterval) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrame = timestamp;
       const w = getW();
       const h = getH();
 

@@ -21,6 +21,11 @@ function createPrismaClient(): PrismaClient {
   const basePrisma = new PrismaClient({
     // 로그가 필요하면 켜기
     // log: ['query', 'error', 'warn'],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
   });
 
   // Prisma 6.x: use Client Extensions instead of deprecated $use middleware
@@ -29,6 +34,17 @@ function createPrismaClient(): PrismaClient {
   // and rely on explicit encryption calls where needed
 
   return basePrisma;
+}
+
+// 연결 끊김 시 재연결을 위한 함수
+export async function ensureDbConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (error) {
+    console.warn('[prisma] Connection lost, reconnecting...');
+    await prisma.$disconnect();
+    await prisma.$connect();
+  }
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

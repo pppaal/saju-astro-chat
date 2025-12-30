@@ -342,6 +342,8 @@ export default function MainPage() {
 
     let particlesArray: Particle[] = [];
     let raf = 0;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
 
     const mouse = {
       x: undefined as number | undefined,
@@ -475,13 +477,16 @@ export default function MainPage() {
       }
     }
 
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-      connectParticles();
+    function animate(timestamp = 0) {
+      if (timestamp - lastFrame >= frameInterval) {
+        lastFrame = timestamp;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach((p) => {
+          p.update();
+          p.draw();
+        });
+        connectParticles();
+      }
       raf = requestAnimationFrame(animate);
     }
 

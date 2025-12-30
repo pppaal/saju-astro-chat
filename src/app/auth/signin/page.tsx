@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./signin.module.css";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Providers = Awaited<ReturnType<typeof getProviders>>;
 
@@ -30,6 +31,7 @@ function SignInContent() {
   const error = searchParams?.get("error");
   const [providers, setProviders] = useState<Providers>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
 
   useEffect(() => {
     getProviders().then((p) => {
@@ -54,25 +56,25 @@ function SignInContent() {
         <Link href="/" className={styles.backBtn}>
           ←
         </Link>
-        <h1 className={styles.logo}>Sign In</h1>
+        <h1 className={styles.logo}>{t("auth.signIn")}</h1>
       </header>
 
       {/* Login Card */}
       <div className={styles.loginContainer}>
         <div className={styles.loginCard}>
           <div className={styles.loginIcon}>✨</div>
-          <h2>Welcome Back</h2>
-          <p>Sign in to continue your cosmic journey</p>
+          <h2>{t("auth.welcomeBack")}</h2>
+          <p>{t("auth.signInToContinue")}</p>
 
           {error && (
             <div className={styles.errorBox}>
-              {error === "OAuthSignin" && "Error starting sign in. Please try again."}
-              {error === "OAuthCallback" && "Error during sign in callback."}
-              {error === "OAuthAccountNotLinked" && "This email is already linked to another account."}
-              {error === "Callback" && "Error during callback. Please try again."}
-              {error === "Default" && "An error occurred. Please try again."}
+              {error === "OAuthSignin" && t("auth.error.oauthSignin")}
+              {error === "OAuthCallback" && t("auth.error.oauthCallback")}
+              {error === "OAuthAccountNotLinked" && t("auth.error.oauthAccountNotLinked")}
+              {error === "Callback" && t("auth.error.callback")}
+              {error === "Default" && t("auth.error.default")}
               {!["OAuthSignin", "OAuthCallback", "OAuthAccountNotLinked", "Callback", "Default"].includes(error) &&
-                "An unexpected error occurred."}
+                t("auth.error.unexpected")}
             </div>
           )}
 
@@ -100,7 +102,7 @@ function SignInContent() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                Sign in with Google
+                {t("auth.signInWithGoogle")}
               </button>
             )}
 
@@ -122,14 +124,14 @@ function SignInContent() {
           </div>
 
           <div className={styles.divider}>
-            <span>Secure Authentication</span>
+            <span>{t("auth.secureAuthentication")}</span>
           </div>
 
           <p className={styles.secureNote}>
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
             </svg>
-            Your data is protected with OAuth 2.0
+            {t("auth.dataProtected")}
           </p>
         </div>
 

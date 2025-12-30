@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { addBonusCredits } from "@/lib/credits/creditService";
 import { randomBytes } from "crypto";
+import { sendReferralRewardEmail } from "@/lib/email";
 
 const REFERRAL_CREDITS = 3; // 추천 시 지급 크레딧
 
@@ -74,6 +75,20 @@ export async function linkReferrer(
         completedAt: new Date(),
       },
     });
+
+    // 추천 보상 이메일 발송
+    const referrerUser = await prisma.user.findUnique({
+      where: { id: referrer.id },
+      select: { email: true, name: true },
+    });
+    if (referrerUser?.email) {
+      sendReferralRewardEmail(referrer.id, referrerUser.email, {
+        userName: referrerUser.name || undefined,
+        creditsAwarded: REFERRAL_CREDITS,
+      }).catch((err) => {
+        console.error('[linkReferrer] Failed to send referral reward email:', err);
+      });
+    }
 
     return { success: true, referrerId: referrer.id };
   } catch (error: any) {

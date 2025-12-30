@@ -12,7 +12,7 @@ export type { FortuneArea };
 // Core Types
 // ============================================================
 
-export type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
+export type ImportanceGrade = 0 | 1 | 2 | 3 | 4 | 5;
 export type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
 
 export interface ImportantDate {

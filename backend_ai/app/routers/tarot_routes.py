@@ -832,14 +832,9 @@ def tarot_interpret():
                     question=enhanced_question
                 )
 
-        def build_advanced_analysis():
-            return hybrid_rag.get_advanced_analysis(drawn_cards)
-
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            rag_future = executor.submit(build_rag_context)
-            advanced_future = executor.submit(build_advanced_analysis)
-            rag_context = rag_future.result()
-            advanced = advanced_future.result()
+        # 심층해석 제거 - 속도 개선을 위해 RAG 컨텍스트만 사용
+        rag_context = build_rag_context()
+        advanced = {}  # 심층해석 비활성화
 
         logger.info(f"[TAROT] RAG context length: {len(rag_context) if rag_context else 0}")
         logger.info(f"[TAROT] RAG context preview: {rag_context[:200] if rag_context else 'EMPTY'}...")
@@ -1063,6 +1058,12 @@ def tarot_interpret():
 ## 금지 표현
 "긍정적인 에너지", "~하시면 좋을 것 같습니다", 막연한 격려
 
+## 말투 (중요!)
+- 친구에게 카페에서 이야기하듯 편하고 자연스럽게
+- "~해요", "~죠", "~거든요", "~네요" 같은 부드러운 존댓말 사용
+- 절대 금지: "~하옵니다", "~하오", "~니이다", "~로다" 같은 고어체/궁서체
+- 절대 금지: "~것입니다", "~하겠습니다", "~드립니다" 같은 딱딱한 격식체
+
 ## 형식
 {('자연스러운 한국어' if is_korean else 'Natural English')}, 500-700자"""
 
@@ -1075,23 +1076,94 @@ def tarot_interpret():
             position = cards[i].get("position", f"Card {i+1}") if i < len(cards) else f"Card {i+1}"
             reversed_text = "(역방향)" if is_reversed else ""
 
-            # Get RAG context for card
+            # Get RAG context for card - 더 풍부하게
             card_rag = hybrid_rag.get_card_insights(card_name)
             card_meaning = card_rag.get("upright_meaning" if not is_reversed else "reversed_meaning", "")
             card_keywords = card_rag.get("keywords", [])
+            card_symbolism = card_rag.get("symbolism", card_rag.get("imagery", ""))
+            card_advice = card_rag.get("advice", card_rag.get("guidance", ""))
+
+            # 심층 의미 추가 (get_card_deep_meaning)
+            deep_meaning_data = hybrid_rag.get_card_deep_meaning(card_name)
+            deep_meaning = ""
+            if deep_meaning_data:
+                deep_parts = []
+                if deep_meaning_data.get("archetype"):
+                    deep_parts.append(f"원형: {deep_meaning_data['archetype']}")
+                if deep_meaning_data.get("journey_stage"):
+                    deep_parts.append(f"여정: {deep_meaning_data['journey_stage']}")
+                if deep_meaning_data.get("life_lesson"):
+                    deep_parts.append(f"교훈: {deep_meaning_data['life_lesson']}")
+                if deep_meaning_data.get("shadow_aspect"):
+                    deep_parts.append(f"그림자: {deep_meaning_data['shadow_aspect']}")
+                deep_meaning = " | ".join(deep_parts)
 
             card_details.append({
                 "index": i,
                 "name": card_name,
                 "reversed_text": reversed_text,
                 "position": position,
-                "meaning": card_meaning[:150] if card_meaning else "",
-                "keywords": ", ".join(card_keywords[:4]) if card_keywords else ""
+                "meaning": card_meaning[:400] if card_meaning else "",
+                "keywords": ", ".join(card_keywords[:6]) if card_keywords else "",
+                "symbolism": card_symbolism[:300] if card_symbolism else "",
+                "advice": card_advice[:200] if card_advice else "",
+                "deep_meaning": deep_meaning[:300] if deep_meaning else ""
             })
 
-        # Unified prompt for overall + all card interpretations
-        card_list_text = "\n".join([
-            f"{cd['index']+1}. [{cd['position']}] {cd['name']}{cd['reversed_text']} - {cd['keywords']}"
+        # 카드 조합 해석 추가 (get_all_card_pair_interpretations)
+        card_names = [cd['name'] for cd in card_details]
+        pair_interpretations = hybrid_rag.get_all_card_pair_interpretations(card_names)
+        combinations_text = ""
+        if pair_interpretations:
+            combo_parts = []
+            for pair_key, pair_data in list(pair_interpretations.items())[:5]:  # 최대 5개 조합
+                if isinstance(pair_data, dict):
+                    combo_meaning = pair_data.get("combined_meaning", pair_data.get("meaning", ""))
+                    if combo_meaning:
+                        combo_parts.append(f"• {pair_key}: {combo_meaning[:150]}")
+                elif isinstance(pair_data, str):
+                    combo_parts.append(f"• {pair_key}: {pair_data[:150]}")
+            if combo_parts:
+                combinations_text = "\n".join(combo_parts)
+
+        # 원소 균형 분석 (analyze_elemental_balance)
+        elemental_balance = hybrid_rag.analyze_elemental_balance(card_names)
+        elemental_text = ""
+        if elemental_balance:
+            elem_parts = []
+            if elemental_balance.get("dominant"):
+                elem_parts.append(f"주요: {elemental_balance['dominant']}")
+            if elemental_balance.get("lacking"):
+                elem_parts.append(f"부족: {elemental_balance['lacking']}")
+            if elemental_balance.get("interpretation"):
+                elem_parts.append(elemental_balance['interpretation'][:150])
+            elemental_text = " | ".join(elem_parts)
+
+        # 시기 힌트 (get_timing_hint)
+        timing_text = ""
+        if card_names:
+            timing_data = hybrid_rag.get_timing_hint(card_names[0])
+            if timing_data:
+                if timing_data.get("timeframe"):
+                    timing_text = timing_data['timeframe']
+                if timing_data.get("season"):
+                    timing_text += f" ({timing_data['season']})"
+
+        # 융 원형 (get_jungian_archetype)
+        archetype_parts = []
+        for cn in card_names[:3]:
+            arch = hybrid_rag.get_jungian_archetype(cn)
+            if arch and arch.get("archetype"):
+                archetype_parts.append(f"{cn}: {arch['archetype']}")
+        archetype_text = " | ".join(archetype_parts) if archetype_parts else ""
+
+        # Unified prompt for overall + all card interpretations - RAG 정보 풍부하게 포함
+        card_list_text = "\n\n".join([
+            f"""### {cd['index']+1}. [{cd['position']}] {cd['name']}{cd['reversed_text']}
+키워드: {cd['keywords']}
+의미: {cd['meaning']}
+상징: {cd['symbolism']}
+심층: {cd['deep_meaning']}"""
             for cd in card_details
         ])
 
@@ -1109,32 +1181,50 @@ def tarot_interpret():
 ## 참고 지식
 {rag_context[:800] if rag_context else ''}
 
+## 카드 조합 시너지
+{combinations_text if combinations_text else '(조합 정보 없음)'}
+
+## 원소 균형
+{elemental_text if elemental_text else '(분석 없음)'}
+
+## 시기 힌트
+{timing_text if timing_text else '(시기 정보 없음)'}
+
+## 심리 원형 (융)
+{archetype_text if archetype_text else '(원형 정보 없음)'}
+
 ## 출력 형식 (JSON)
-다음 형식으로 JSON 응답하세요:
+다음 형식으로 JSON 응답해:
 {{
-  "overall": "전체 메시지 (500-700자). 친구에게 진심으로 이야기하듯 따뜻하게 시작하세요. 질문의 핵심을 짚어주고, 카드들이 함께 전하는 메시지를 연결해서 설명하세요. 현재 상황에 대한 통찰, 앞으로의 방향성, 그리고 희망적인 마무리를 포함하세요. 마지막에 '결론:' 으로 핵심 메시지를 한 문장으로 정리하세요.",
+  "overall": "전체 메시지 (900-1200자, 최소 15줄). 친구에게 진심으로 이야기하듯 따뜻하게. 1) 질문의 핵심을 깊이 있게 짚고 2) 각 카드들이 함께 만드는 전체적인 이야기를 풀어내고 3) 카드들 사이의 연결과 흐름을 설명하고 4) 질문자의 상황에 대한 통찰을 풍부하게 제공하고 5) 마지막에 '결론:'으로 핵심 메시지를 정리해. 매우 풍성하고 깊이 있게 작성해.",
   "cards": [
-    {{"position": "위치명", "interpretation": "이 카드의 해석 (150-200자). 카드의 이미지와 상징을 생생하게 묘사하고, 이 위치에서 이 카드가 나온 이유를 설명하세요. 질문과 연결해서 구체적인 메시지를 전달하세요."}}
+    {{"position": "위치명", "interpretation": "이 카드의 매우 깊이 있는 해석 (500-700자, 최소 8-10줄). 1) 카드 이미지와 상징을 생생하게 묘사 (색깔, 인물, 배경 등) 2) 이 위치에서 이 카드가 나온 의미 3) 질문자의 현재 상황과 어떻게 연결되는지 구체적으로 4) 이 카드가 전하는 감정적/실용적 메시지 5) 구체적인 행동 조언까지. 매우 풍성하고 깊이 있게 작성해."}}
   ],
   "advice": [
-    {{"title": "조언 제목 (2-4단어)", "detail": "구체적이고 실용적인 조언 (80-120자). 왜 이렇게 해야 하는지, 어떻게 실천할 수 있는지 따뜻하게 설명하세요."}}
+    {{"title": "조언 제목 (구체적으로)", "detail": "매우 구체적이고 실천 가능한 조언 (300-400자, 최소 7-10줄). 1) 왜 이 조언이 지금 중요한지 배경 설명 2) 구체적으로 무엇을 어떻게 해야 하는지 단계별 안내 3) 언제, 어디서, 어떤 방식으로 실천할지 구체적 예시 4) 예상되는 효과나 변화까지 포함. 추상적인 조언이 아닌 오늘 당장 실천할 수 있는 구체적인 행동 지침을 매우 상세하게 제시해."}}
   ]
 }}
 
 ## 규칙
-1. 질문 "{q}"에 진심을 담아 직접 답변하세요
-2. 각 카드의 이미지를 생생하게 묘사하며 질문과 연결하세요
-3. 상담사처럼 따뜻하지만 솔직하게, 희망을 주되 현실적으로 말하세요
-4. "~것 같습니다", "~하시면 좋겠습니다" 같은 AI 표현 금지. "~해", "~야", "~거든" 같은 자연스러운 반말/존댓말 혼용
-5. advice는 2-3개의 구체적인 조언을 배열로 제공하세요
-6. {('자연스러운 한국어로 작성' if is_korean else 'Write in natural English')}"""
+1. 질문 "{q}"에 진심을 담아 직접 답변해
+2. 각 카드의 이미지를 생생하게 묘사하며 질문과 연결해
+3. 상담사처럼 따뜻하지만 솔직하게, 희망을 주되 현실적으로 말해
+4. advice는 3-5개의 매우 구체적인 조언을 배열로 제공해 (각 300-400자씩)
+
+## 말투 (매우 중요!)
+- 친구에게 카페에서 이야기하듯 편하고 자연스럽게
+- "~해요", "~죠", "~거든요", "~네요", "~예요" 같은 부드러운 존댓말 사용
+- 절대 금지: "~하옵니다", "~하오", "~니이다", "~로다", "~하느니라" 같은 고어체/궁서체
+- 절대 금지: "~것입니다", "~하겠습니다", "~드립니다", "~것 같습니다" 같은 딱딱한 격식체
+- 절대 금지: "~하시면 좋겠습니다", "긍정적인 에너지" 같은 AI스러운 표현
+- {('자연스러운 한국어로 작성' if is_korean else 'Write in natural English')}"""
 
         reading_text = ""
         card_interpretations = [""] * len(drawn_cards)
         advice_text = ""
 
         try:
-            unified_result = _generate_with_gpt4(unified_prompt, max_tokens=2500, temperature=0.75, use_mini=True)
+            unified_result = _generate_with_gpt4(unified_prompt, max_tokens=6000, temperature=0.75, use_mini=True)
             unified_result = _clean_ai_phrases(unified_result)
 
             # Parse JSON response
@@ -1533,7 +1623,13 @@ def tarot_chat_stream():
 3) 카드의 상징과 이미지를 구체적으로 언급
 4) 실용적이고 구체적인 조언 제공
 5) 150-250자 분량으로 간결하게 응답
-6) AI스러운 표현(~하시면 좋을 것 같습니다, 긍정적인 에너지 등) 피하기{playful_instruction}"""
+6) AI스러운 표현(~하시면 좋을 것 같습니다, 긍정적인 에너지 등) 피하기
+
+## 말투 (중요!)
+- 친구에게 카페에서 이야기하듯 편하고 자연스럽게 말해
+- "~해요", "~죠", "~거든요", "~네요" 같은 부드러운 존댓말 사용
+- 절대 금지: "~하옵니다", "~하오", "~니이다", "~로다", "~하느니라" 같은 고어체/궁서체
+- 절대 금지: "~것입니다", "~하겠습니다", "~드립니다" 같은 딱딱한 격식체{playful_instruction}"""
         else:
             playful_en = ""
             if playful_instruction:
@@ -1650,13 +1746,15 @@ def tarot_chat():
         is_korean = language == "ko"
 
         if is_korean:
-            prompt = f"""타로 상담사로서 답변해주세요.
+            prompt = f"""타로 상담사로서 답변해줘.
 스프레드: {spread_title}
 카드: {cards_str}
 이전 해석: {overall_message[:300] if overall_message else '없음'}
 질문: {latest_question}
 
-카드를 기반으로 150자 이내로 간결하게 답변하세요."""
+카드를 기반으로 150자 이내로 간결하게 답변해.
+말투: 친구에게 카페에서 이야기하듯 "~해요", "~죠", "~네요" 사용.
+절대 금지: "~하옵니다", "~하오", "~니이다" 같은 궁서체/고어체, "~것입니다", "~하겠습니다" 같은 딱딱한 격식체."""
         else:
             prompt = f"""As a tarot counselor, please respond.
 Spread: {spread_title}

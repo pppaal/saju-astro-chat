@@ -294,7 +294,10 @@
       "Bash(npx tsc --noEmit --skipLibCheck)",
       "Bash(node scripts/test-calendar-api.mjs:*)",
       "Bash(node scripts/fix-tier-code.mjs:*)",
-      "Bash(node scripts/test-grade-dist.js:*)"
+      "Bash(node scripts/test-grade-dist.js:*)",
+      "Bash(python -X utf8 -c:*)",
+      "Bash(node scripts/test-calendar-distribution.mjs:*)",
+      "Bash(node scripts/test-calendar-direct.mjs:*)"
     ],
     "deny": [],
     "ask": []

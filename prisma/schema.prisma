@@ -70,6 +70,8 @@ model User {
   referralRewards       ReferralReward[]        // 내가 받은 추천 보상들
   savedCalendarDates    SavedCalendarDate[]     // 저장된 운명 캘린더 날짜들
   personalityResult     PersonalityResult?      // 성격 테스트 결과
+  tarotReadings         TarotReading[]          // 타로 리딩 기록
+  pushSubscriptions     PushSubscription[]      // 푸시 알림 구독
 
   @@index([referrerId])
 }
@@ -470,6 +472,81 @@ model ReferralReward {
   @@index([userId])
   @@index([referredUserId])
   @@index([status])
+}
+
+// 타로 리딩 결과 저장
+model TarotReading {
+  id              String   @id @default(cuid())
+  userId          String
+  createdAt       DateTime @default(now())
+
+  // 질문/관심사
+  question        String   @db.Text
+  theme           String?  // love, career, general, etc.
+
+  // 스프레드 정보
+  spreadId        String   // 스프레드 ID
+  spreadTitle     String   // 스프레드 이름
+
+  // 뽑은 카드들 (JSON)
+  cards           Json     // [{cardId, name, image, isReversed, position}]
+
+  // AI 해석 결과
+  overallMessage  String?  @db.Text
+  cardInsights    Json?    // 카드별 해석
+  guidance        String?  @db.Text
+  affirmation     String?
+
+  // 출처 (counselor = 상담사 내 타로, standalone = 타로 페이지)
+  source          String   @default("standalone")
+
+  // 상담 세션 연결 (상담 중 타로인 경우)
+  counselorSessionId String?
+
+  locale          String   @default("ko")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, theme])
+}
+
+// 푸시 알림 구독 정보
+model PushSubscription {
+  id          String    @id @default(cuid())
+  userId      String
+  endpoint    String    @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  isActive    Boolean   @default(true)
+  failCount   Int       @default(0)
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// 이메일 발송 로그
+model EmailLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  email       String
+  type        String   // welcome, payment_receipt, subscription_confirm, etc.
+  subject     String
+  status      String   @default("sent") // sent, failed, bounced
+  errorMsg    String?
+  provider    String   // resend, sendgrid, nodemailer
+  messageId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 // 성격 테스트 결과 (Nova Persona)

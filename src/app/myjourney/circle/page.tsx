@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/ui/BackButton";
@@ -33,11 +33,9 @@ const RELATIONS = [
 
 export default function CirclePage() {
   return (
-    <SessionProvider>
-      <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
-        <CircleContent />
-      </Suspense>
-    </SessionProvider>
+    <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+      <CircleContent />
+    </Suspense>
   );
 }
 

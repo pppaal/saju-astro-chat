@@ -16,7 +16,9 @@
     "test:e2e:api": "vitest run tests/e2e",
     "test:unit": "set TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\",\"jsx\":\"react-jsx\"}&& node -r ts-node/register --test tests/*.test.ts",
     "dev:astro": "ts-node -P tsconfig.scripts.json -r tsconfig-paths/register scripts/dev-astro.ts",
-    "check:env": "node scripts/validate-env.js"
+    "check:env": "node scripts/validate-env.js",
+    "marketing:auto-post": "node scripts/auto-post-daily-fortune.mjs",
+    "marketing:test": "node scripts/auto-post-daily-fortune.mjs --test"
   },
   "overrides": {
     "node-gyp": "^10.0.1",

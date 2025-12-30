@@ -1,51 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/authOptions";
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/authOptions';
+import {
+  savePushSubscription,
+  removePushSubscription,
+} from '@/lib/notifications/pushService';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/push/subscribe
  * Save user's push notification subscription
  */
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const subscription = await _request.json();
+    const subscription = await request.json();
 
     // Validate subscription object
-    if (!subscription || !subscription.endpoint) {
+    if (!subscription || !subscription.endpoint || !subscription.keys) {
       return NextResponse.json(
-        { error: "Invalid subscription" },
+        { error: 'Invalid subscription: missing endpoint or keys' },
         { status: 400 }
       );
     }
 
-    // TODO: Store subscription in database
+    if (!subscription.keys.p256dh || !subscription.keys.auth) {
+      return NextResponse.json(
+        { error: 'Invalid subscription: missing p256dh or auth keys' },
+        { status: 400 }
+      );
+    }
 
-    // In production, store in database:
-    // await prisma.pushSubscription.upsert({
-    //   where: { userId: session.user.email },
-    //   update: { subscription: JSON.stringify(subscription) },
-    //   create: {
-    //     userId: session.user.email,
-    //     subscription: JSON.stringify(subscription),
-    //   },
-    // });
+    const userAgent = request.headers.get('user-agent') || undefined;
+
+    // Store subscription in database
+    await savePushSubscription(
+      session.user.id,
+      {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: subscription.keys.p256dh,
+          auth: subscription.keys.auth,
+        },
+      },
+      userAgent
+    );
 
     return NextResponse.json({
       success: true,
-      message: "Subscription saved successfully",
+      message: 'Subscription saved successfully',
     });
   } catch (error) {
-    console.error("Error saving push subscription:", error);
+    console.error('Error saving push subscription:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -55,29 +69,35 @@ export async function POST(_request: NextRequest) {
  * DELETE /api/push/subscribe
  * Remove user's push notification subscription
  */
-export async function DELETE(_request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    // TODO: Remove subscription from database
+    const body = await request.json().catch(() => ({}));
+    const endpoint = body.endpoint;
 
-    // In production:
-    // await prisma.pushSubscription.delete({
-    //   where: { userId: session.user.email },
-    // });
+    if (!endpoint) {
+      return NextResponse.json(
+        { error: 'Missing endpoint' },
+        { status: 400 }
+      );
+    }
+
+    // Remove subscription from database
+    await removePushSubscription(endpoint);
 
     return NextResponse.json({
       success: true,
-      message: "Subscription removed successfully",
+      message: 'Subscription removed successfully',
     });
   } catch (error) {
-    console.error("Error removing push subscription:", error);
+    console.error('Error removing push subscription:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

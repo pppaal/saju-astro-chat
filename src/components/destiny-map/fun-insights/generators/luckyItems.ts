@@ -9,8 +9,8 @@ export function getLuckyItems(saju: SajuData | undefined, lang: string): { item:
 
   const items: Record<string, { ko: string[]; en: string[] }> = {
     wood: {
-      ko: ["🕯️ 캔들/조명", "화 기운 활성화", "❤️ 빨간색 아이템", "열정 에너지", "☀️ 남쪽 방향", "화 기운 방위"],
-      en: ["🕯️ Candles", "Fire activation", "❤️ Red items", "Passion energy", "☀️ South direction", "Fire direction"]
+      ko: ["🌿 식물/화분", "목 기운 성장", "💚 초록색 아이템", "생명력 에너지", "🌅 동쪽 방향", "목 기운 방위"],
+      en: ["🌿 Plants/pots", "Wood growth", "💚 Green items", "Vitality energy", "🌅 East direction", "Wood direction"]
     },
     fire: {
       ko: ["🕯️ 캔들/조명", "화 기운 활성화", "❤️ 빨간색 아이템", "열정 에너지", "☀️ 남쪽 방향", "화 기운 방위"],
@@ -21,8 +21,8 @@ export function getLuckyItems(saju: SajuData | undefined, lang: string): { item:
       en: ["🏺 Ceramics", "Earth stability", "🟤 Beige/brown", "Trust energy", "🏔️ Center position", "Earth center"]
     },
     metal: {
-      ko: ["⌚ 메탈 악세서리", "금 기운 결단력", "🤍 흰색/은색", "정화 에너지", "🌅 서쪽 방향", "금 기운 방위"],
-      en: ["⌚ Metal accessories", "Decisiveness", "🤍 White/silver", "Purifying", "🌅 West direction", "Metal direction"]
+      ko: ["⌚ 메탈 악세서리", "금 기운 결단력", "🤍 흰색/은색", "정화 에너지", "🌄 서쪽 방향", "금 기운 방위"],
+      en: ["⌚ Metal accessories", "Decisiveness", "🤍 White/silver", "Purifying", "🌄 West direction", "Metal direction"]
     },
     water: {
       ko: ["💧 수족관/분수", "수 기운 지혜", "💙 파란색/검정", "유연함 에너지", "🌊 북쪽 방향", "수 기운 방위"],

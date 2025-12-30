@@ -8,10 +8,11 @@ import tzLookup from "tz-lookup";
 import { getUserProfile } from "@/lib/userProfile";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import styles from "./DestinyCalendar.module.css";
 
 type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
-type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
+type ImportanceGrade = 0 | 1 | 2 | 3 | 4 | 5;
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
 
 interface ImportantDate {
@@ -43,6 +44,7 @@ interface CalendarData {
     grade2: number; // 좋은 날
     grade3: number; // 보통 날
     grade4: number; // 나쁜 날
+    grade5: number; // 아주 나쁜 날
   };
   topDates?: ImportantDate[];
   goodDates?: ImportantDate[];
@@ -100,6 +102,118 @@ function parseLocalDate(dateStr: string): Date {
   return new Date(year, month - 1, day);
 }
 
+// ============================================================
+// 캐싱 유틸리티
+// ============================================================
+const CACHE_VERSION = 'v1';
+const CACHE_EXPIRY_DAYS = 30; // 30일 후 만료
+
+interface CachedCalendarData {
+  version: string;
+  timestamp: number;
+  birthInfo: BirthInfo;
+  year: number;
+  category: string;
+  data: CalendarData;
+}
+
+function getCacheKey(birthInfo: BirthInfo, year: number, category: string): string {
+  // 생년월일+시간+장소+연도+카테고리로 고유 키 생성
+  return `calendar_${birthInfo.birthDate}_${birthInfo.birthTime}_${birthInfo.birthPlace}_${year}_${category}`;
+}
+
+function getCachedData(cacheKey: string): CalendarData | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+
+    const parsed: CachedCalendarData = JSON.parse(cached);
+
+    // 버전 체크
+    if (parsed.version !== CACHE_VERSION) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+
+    // 만료 체크 (30일)
+    const now = Date.now();
+    const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+    if (now - parsed.timestamp > expiryMs) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+
+    return parsed.data;
+  } catch (err) {
+    console.error('[Cache] Failed to get cached data:', err);
+    return null;
+  }
+}
+
+function setCachedData(cacheKey: string, birthInfo: BirthInfo, year: number, category: string, data: CalendarData): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const cacheData: CachedCalendarData = {
+      version: CACHE_VERSION,
+      timestamp: Date.now(),
+      birthInfo,
+      year,
+      category,
+      data,
+    };
+
+    localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+  } catch (err) {
+    console.error('[Cache] Failed to set cached data:', err);
+    // localStorage quota exceeded - 오래된 캐시 삭제
+    try {
+      clearOldCache();
+      localStorage.setItem(cacheKey, JSON.stringify({
+        version: CACHE_VERSION,
+        timestamp: Date.now(),
+        birthInfo,
+        year,
+        category,
+        data,
+      }));
+    } catch (retryErr) {
+      console.error('[Cache] Failed to set cached data after cleanup:', retryErr);
+    }
+  }
+}
+
+function clearOldCache(): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const now = Date.now();
+    const keys = Object.keys(localStorage);
+    const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
+
+    // 만료된 캐시 삭제
+    calendarKeys.forEach(key => {
+      try {
+        const cached = localStorage.getItem(key);
+        if (!cached) return;
+
+        const parsed: CachedCalendarData = JSON.parse(cached);
+        const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+        if (now - parsed.timestamp > expiryMs) {
+          localStorage.removeItem(key);
+        }
+      } catch {
+        // 파싱 실패한 캐시는 삭제
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (err) {
+    console.error('[Cache] Failed to clear old cache:', err);
+  }
+}
+
 export default function DestinyCalendar() {
   // SessionProvider는 상위 레이아웃에서 이미 제공됨
   return <DestinyCalendarContent />;
@@ -108,6 +222,7 @@ export default function DestinyCalendar() {
 function DestinyCalendarContent() {
   const { locale, t } = useI18n();
   const { status } = useSession();
+  const signInUrl = buildSignInUrl();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -137,6 +252,9 @@ function DestinyCalendarContent() {
   });
   const [hasBirthInfo, setHasBirthInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // 캐시 상태
+  const [cacheHit, setCacheHit] = useState(false);
 
   // City search
   const [suggestions, setSuggestions] = useState<CityHit[]>([]);
@@ -558,8 +676,26 @@ function DestinyCalendarContent() {
   const fetchCalendar = useCallback(async (birthData: BirthInfo) => {
     setLoading(true);
     setError(null);
+    setCacheHit(false);
 
     try {
+      // 1. 캐시 확인
+      const cacheKey = getCacheKey(birthData, year, activeCategory);
+      const cachedData = getCachedData(cacheKey);
+
+      if (cachedData) {
+        console.log('[Calendar] Cache HIT! 🎯', { year, category: activeCategory });
+        setData(cachedData);
+        setHasBirthInfo(true);
+        setCacheHit(true);
+        setLoading(false);
+        setSubmitting(false);
+        return;
+      }
+
+      // 2. 캐시 없으면 API 호출
+      console.log('[Calendar] Cache MISS. Fetching from API...', { year, category: activeCategory });
+
       const params = new URLSearchParams({ year: String(year), locale });
       if (activeCategory !== "all") {
         params.set("category", activeCategory);
@@ -580,6 +716,10 @@ function DestinyCalendarContent() {
       } else {
         setData(json);
         setHasBirthInfo(true);
+
+        // 3. 성공한 데이터는 캐시에 저장
+        setCachedData(cacheKey, birthData, year, activeCategory, json);
+        console.log('[Calendar] Data cached successfully ✅', { year, category: activeCategory });
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error loading calendar");
@@ -926,7 +1066,7 @@ function DestinyCalendarContent() {
                     ? "로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요"
                     : "Log in to save your info for a better experience"}
                 </p>
-                <a href="/auth/signin" className={styles.loginLink}>
+                <a href={signInUrl} className={styles.loginLink}>
                   {locale === "ko" ? "로그인하기" : "Log in"}
                 </a>
               </div>
@@ -1001,7 +1141,7 @@ function DestinyCalendarContent() {
 
   const fortuneData = getMonthFortuneData();
   const goodDaysCount = fortuneData.filter(d => d.grade <= 2).length;
-  const badDaysCount = fortuneData.filter(d => d.grade === 4).length;
+  const badDaysCount = fortuneData.filter(d => d.grade >= 4).length; // grade 4 + 5
 
   return (
     <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
@@ -1016,6 +1156,12 @@ function DestinyCalendarContent() {
           <button className={styles.editBirthBtn} onClick={() => setHasBirthInfo(false)}>
             {locale === "ko" ? "수정" : "Edit"}
           </button>
+          {/* 캐시 히트 표시 */}
+          {cacheHit && (
+            <span className={styles.cacheHitBadge} title={locale === "ko" ? "캐시된 데이터 (빠른 로딩)" : "Cached data (fast loading)"}>
+              ⚡ {locale === "ko" ? "캐시" : "Cached"}
+            </span>
+          )}
         </div>
 
         <div className={styles.headerActions}>
@@ -1051,6 +1197,155 @@ function DestinyCalendarContent() {
           {locale === "ko" ? "오늘" : "Today"}
         </button>
       </div>
+
+      {/* 점수 분포 차트 */}
+      {data?.allDates && (
+        <div className={styles.scoreDistribution}>
+          <div className={styles.distributionHeader}>
+            <h3>{locale === "ko" ? "📊 연간 점수 분포" : "📊 Annual Score Distribution"}</h3>
+            <button
+              className={styles.toggleDistribution}
+              onClick={() => {
+                const elem = document.getElementById('distributionChart');
+                if (elem) elem.classList.toggle(styles.collapsed);
+              }}
+            >
+              {locale === "ko" ? "접기/펼치기" : "Toggle"}
+            </button>
+          </div>
+
+          <div id="distributionChart" className={styles.distributionChart}>
+            {(() => {
+              // 점수 범위별 카운트 계산 (6등급 시스템 v7)
+              const ranges = [
+                { label: '74-100', min: 74, max: 100, grade: 0, color: '#FFD700' },
+                { label: '66-73', min: 66, max: 73, grade: 1, color: '#90EE90' },
+                { label: '56-65', min: 56, max: 65, grade: 2, color: '#87CEEB' },
+                { label: '45-55', min: 45, max: 55, grade: 3, color: '#D3D3D3' },
+                { label: '35-44', min: 35, max: 44, grade: 4, color: '#FFB6C1' },
+                { label: '0-34', min: 0, max: 34, grade: 5, color: '#8B0000' },
+              ];
+
+              const allDates = data.allDates ?? [];
+              const distribution = ranges.map(range => ({
+                ...range,
+                count: allDates.filter(d =>
+                  d.score >= range.min && d.score <= range.max
+                ).length,
+              }));
+
+              const maxCount = Math.max(...distribution.map(d => d.count));
+              const totalDays = allDates.length;
+
+              // 평균/최고/최저 점수 계산
+              const scores = allDates.map(d => d.score);
+              const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+              const maxScore = Math.max(...scores);
+              const minScore = Math.min(...scores);
+
+              return (
+                <>
+                  {/* 통계 요약 */}
+                  <div className={styles.statsRow}>
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>{locale === "ko" ? "평균" : "Average"}</span>
+                      <span className={styles.statValue}>{avgScore}</span>
+                    </div>
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>{locale === "ko" ? "최고" : "Max"}</span>
+                      <span className={styles.statValue} style={{ color: '#FFD700' }}>{maxScore}</span>
+                    </div>
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>{locale === "ko" ? "최저" : "Min"}</span>
+                      <span className={styles.statValue} style={{ color: '#FF6B6B' }}>{minScore}</span>
+                    </div>
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>{locale === "ko" ? "총 일수" : "Total Days"}</span>
+                      <span className={styles.statValue}>{totalDays}</span>
+                    </div>
+                  </div>
+
+                  {/* 히스토그램 */}
+                  <div className={styles.histogram}>
+                    {distribution.map((range, idx) => {
+                      const percentage = totalDays > 0 ? (range.count / totalDays) * 100 : 0;
+                      const barHeight = maxCount > 0 ? (range.count / maxCount) * 100 : 0;
+
+                      return (
+                        <div key={idx} className={styles.histogramBar}>
+                          <div className={styles.barWrapper}>
+                            <div
+                              className={styles.bar}
+                              style={{
+                                height: `${barHeight}%`,
+                                backgroundColor: range.color,
+                              }}
+                              title={`${range.label}: ${range.count}일 (${percentage.toFixed(1)}%)`}
+                            >
+                              <span className={styles.barCount}>{range.count}</span>
+                            </div>
+                          </div>
+                          <div className={styles.barLabel}>
+                            <div className={styles.barRange}>{range.label}</div>
+                            <div className={styles.barPercent}>{percentage.toFixed(0)}%</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* 등급별 설명 (6등급 시스템 v7) */}
+                  <div className={styles.gradeExplanation}>
+                    <div className={styles.gradeItem}>
+                      <span className={styles.gradeDot} style={{ backgroundColor: '#FFD700' }}></span>
+                      <span>{locale === "ko" ? "천운 (74+)" : "Celestial (74+)"}</span>
+                    </div>
+                    <div className={styles.gradeItem}>
+                      <span className={styles.gradeDot} style={{ backgroundColor: '#90EE90' }}></span>
+                      <span>{locale === "ko" ? "아주좋음 (66-73)" : "Very Good (66-73)"}</span>
+                    </div>
+                    <div className={styles.gradeItem}>
+                      <span className={styles.gradeDot} style={{ backgroundColor: '#87CEEB' }}></span>
+                      <span>{locale === "ko" ? "좋음 (56-65)" : "Good (56-65)"}</span>
+                    </div>
+                    <div className={styles.gradeItem}>
+                      <span className={styles.gradeDot} style={{ backgroundColor: '#D3D3D3' }}></span>
+                      <span>{locale === "ko" ? "보통 (45-55)" : "Normal (45-55)"}</span>
+                    </div>
+                    <div className={styles.gradeItem}>
+                      <span className={styles.gradeDot} style={{ backgroundColor: '#FFB6C1' }}></span>
+                      <span>{locale === "ko" ? "나쁨 (35-44)" : "Bad (35-44)"}</span>
+                    </div>
+                    <div className={styles.gradeItem}>
+                      <span className={styles.gradeDot} style={{ backgroundColor: '#8B0000' }}></span>
+                      <span>{locale === "ko" ? "아주나쁨 (0-34)" : "Very Bad (0-34)"}</span>
+                    </div>
+                  </div>
+
+                  {/* 점수 요소 분석 */}
+                  <div className={styles.scoreBreakdown}>
+                    <h4>{locale === "ko" ? "💡 점수 구성" : "💡 Score Composition"}</h4>
+                    <div className={styles.breakdownGrid}>
+                      <div className={styles.breakdownItem}>
+                        <span className={styles.breakdownLabel}>{locale === "ko" ? "사주 분석" : "Saju"}</span>
+                        <span className={styles.breakdownValue}>50점</span>
+                      </div>
+                      <div className={styles.breakdownItem}>
+                        <span className={styles.breakdownLabel}>{locale === "ko" ? "점성술 분석" : "Astrology"}</span>
+                        <span className={styles.breakdownValue}>50점</span>
+                      </div>
+                      <div className={styles.breakdownItem}>
+                        <span className={styles.breakdownLabel}>{locale === "ko" ? "교차검증" : "Cross-Check"}</span>
+                        <span className={styles.breakdownValue}>±5점</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* 카테고리 필터 */}
       <div className={styles.filters}>
@@ -1150,7 +1445,7 @@ function DestinyCalendarContent() {
         </div>
       </div>
 
-      {/* 범례 - 5등급 시스템 */}
+      {/* 범례 - 6등급 시스템 */}
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade0Dot}`}></span>
@@ -1171,6 +1466,10 @@ function DestinyCalendarContent() {
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.grade4Dot}`}></span>
           <span>{locale === "ko" ? "주의" : "Caution"}</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.grade5Dot}`}></span>
+          <span>{locale === "ko" ? "위험" : "Danger"}</span>
         </div>
       </div>
 
@@ -1444,10 +1743,10 @@ function DestinyCalendarContent() {
           .sort((a, b) => a.grade - b.grade || b.score - a.score)
           .slice(0, 3);
 
-        // 나쁜 날 (grade 4) - 점수 낮은 순 2개
+        // 나쁜 날 (grade 4, 5) - 점수 낮은 순 2개
         const badDates = monthDates
-          .filter(d => d.grade === 4)
-          .sort((a, b) => a.score - b.score)
+          .filter(d => d.grade >= 4)
+          .sort((a, b) => b.grade - a.grade || a.score - b.score)
           .slice(0, 2);
 
         // 합쳐서 날짜순 정렬
@@ -1468,6 +1767,7 @@ function DestinyCalendarContent() {
                   : d.grade === 1 ? styles.grade1
                   : d.grade === 2 ? styles.grade2
                   : d.grade === 4 ? styles.grade4
+                  : d.grade === 5 ? styles.grade5
                   : styles.grade3;
                 return (
                 <div
@@ -1493,6 +1793,7 @@ function DestinyCalendarContent() {
                       : d.grade === 1 ? (locale === "ko" ? "아주 좋은 날" : "Very Good Day")
                       : d.grade === 2 ? (locale === "ko" ? "좋은 날" : "Good Day")
                       : d.grade === 4 ? (locale === "ko" ? "나쁜 날" : "Bad Day")
+                      : d.grade === 5 ? (locale === "ko" ? "아주 나쁜 날" : "Very Bad Day")
                       : (locale === "ko" ? "보통 날" : "Normal Day"))}
                   </span>
                   {d.categories && d.categories.length > 0 && (

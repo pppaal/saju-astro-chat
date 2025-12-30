@@ -2683,7 +2683,20 @@ def ask_stream():
         # Input validation - sanitize user prompt
         if is_suspicious_input(raw_prompt):
             logger.warning(f"[ASK-STREAM] Suspicious input detected: {raw_prompt[:100]}...")
-        prompt = sanitize_user_input(raw_prompt, max_length=1500, allow_newlines=True)
+
+        # Detect if frontend already sent a fully structured prompt (from chat-stream/route.ts)
+        # This includes system prompt, saju/astro data, and advanced analysis
+        is_frontend_structured = (
+            "당신은 따뜻하고 전문적인 운명 상담사" in raw_prompt or
+            "You are a warm, professional destiny counselor" in raw_prompt or
+            "[사주/점성 기본 데이터]" in raw_prompt or
+            "★★★ 핵심 규칙 ★★★" in raw_prompt
+        )
+
+        prompt = sanitize_user_input(raw_prompt, max_length=8000 if is_frontend_structured else 1500, allow_newlines=True)
+
+        if is_frontend_structured:
+            logger.info(f"[ASK-STREAM] Detected STRUCTURED frontend prompt (len={len(raw_prompt)})")
 
         # Normalize dayMaster structure (nested -> flat)
         saju_data = normalize_day_master(saju_data)
@@ -3125,8 +3138,80 @@ def ask_stream():
 - 주의할 시기도 함께: "다만 ~월은 신중하게"
 """
 
-        # Build system prompt - Enhanced counselor persona with Jung-inspired therapeutic approach
-        counselor_persona = """당신은 사주+점성술 통합 상담사입니다.
+        # ======================================================
+        # FRONTEND STRUCTURED PROMPT - Use simplified backend system prompt
+        # Frontend already sent complete prompt with all analysis data
+        # Backend only adds RAG enrichment (Jung quotes, cross-analysis, etc.)
+        # ======================================================
+        if is_frontend_structured:
+            # Build RAG-only enrichment section
+            rag_enrichment_parts = []
+
+            # 1. Cross-analysis rules (사주+점성 교차 해석)
+            if cross_rules:
+                rag_enrichment_parts.append(f"[🔗 사주+점성 교차 해석 규칙]\n{cross_rules[:1500]}")
+
+            # 2. Jung/Stoic quotes from RAG
+            if rag_context:
+                rag_enrichment_parts.append(rag_context)
+
+            # 3. Lifespan guidance
+            if lifespan_section:
+                rag_enrichment_parts.append(lifespan_section)
+
+            # 4. Theme fusion rules
+            if theme_fusion_section:
+                rag_enrichment_parts.append(theme_fusion_section)
+
+            # 5. Therapeutic guidance based on question type
+            if therapeutic_section:
+                rag_enrichment_parts.append(therapeutic_section)
+
+            # 6. Crisis context if detected
+            if crisis_context_section:
+                rag_enrichment_parts.append(crisis_context_section)
+
+            # 7. User context (returning users)
+            if user_context_section:
+                rag_enrichment_parts.append(user_context_section)
+
+            # 8. CV section for career questions
+            if cv_section:
+                rag_enrichment_parts.append(cv_section)
+
+            rag_enrichment = "\n\n".join(rag_enrichment_parts) if rag_enrichment_parts else ""
+
+            # Simplified system prompt - frontend prompt is already comprehensive
+            # Just add RAG enrichment and remind AI to use all provided data
+            system_prompt = f"""당신은 최고 수준의 운명 상담사입니다. 사용자가 보낸 메시지에 이미 완전한 사주/점성 분석 데이터가 포함되어 있습니다.
+
+⚠️ 핵심 규칙:
+1. 사용자 메시지의 모든 데이터를 꼼꼼히 활용하세요 (일간, 오행, 대운, 신살, 트랜짓, 하모닉 등)
+2. 일반 GPT보다 훨씬 더 깊고 구체적인 분석을 제공하세요
+3. 구체적 날짜와 시기를 반드시 언급하세요
+4. "~하면 좋겠어요" 같은 추상적 조언 대신 구체적 행동을 제시하세요
+5. 첫 문장부터 질문에 대한 답변으로 시작하세요
+
+📚 추가 지식 (아래 내용을 답변에 자연스럽게 녹여서 활용하세요):
+{rag_enrichment if rag_enrichment else "(없음)"}
+
+💡 일반 GPT와 차별화 포인트:
+- 사주의 십신(정관/편관/식신/상관 등), 신살(역마/도화/화개 등) 활용
+- 점성의 트랜짓, 프로그레션, 하모닉 차트 활용
+- 대운/세운의 흐름과 현재 위치 분석
+- 융 심리학 인용이 있으면 해석에 깊이 더하기
+- 동양(사주)과 서양(점성)의 교차 검증으로 신뢰도 높이기
+
+📌 응답 길이: 400-600단어 ({locale})"""
+
+            logger.info(f"[ASK-STREAM] Using SIMPLIFIED system prompt for frontend-structured request (RAG enrichment: {len(rag_enrichment)} chars)")
+
+        else:
+            # ======================================================
+            # LEGACY PATH - Build full system prompt (for non-frontend requests)
+            # ======================================================
+            # Build system prompt - Enhanced counselor persona with Jung-inspired therapeutic approach
+            counselor_persona = """당신은 사주+점성술 통합 상담사입니다.
 
 ⚠️ 절대 규칙:
 1. 인사 금지 - "안녕하세요", "반가워요" 등 인사 절대 금지
@@ -3141,16 +3226,16 @@ def ask_stream():
 • '왜 그런지' 이유를 충분히 설명
 • 융 심리학 인용이 있으면 해석에 자연스럽게 녹여서 깊이 더하기"""
 
-        # Build advanced astrology section (only if data available)
-        advanced_astro_section = ""
-        if advanced_astro_detail:
-            advanced_astro_section = f"""
+            # Build advanced astrology section (only if data available)
+            advanced_astro_section = ""
+            if advanced_astro_detail:
+                advanced_astro_section = f"""
 
 [🔭 심층 점성 분석]
 {advanced_astro_detail}
 """
 
-        if rag_context:
+        if not is_frontend_structured and rag_context:
             # RICH prompt with all RAG data
             system_prompt = f"""{counselor_persona}
 
@@ -3181,7 +3266,7 @@ def ask_stream():
 • 피상적이고 짧은 답변
 
 📌 응답 길이: 400-600단어로 충분히 상세하게 ({locale})"""
-        else:
+        elif not is_frontend_structured:
             # Standard prompt (no session data)
             system_prompt = f"""{counselor_persona}
 
@@ -3314,7 +3399,7 @@ def ask_stream():
                 stream = client.chat.completions.create(
                     model="gpt-4o-mini",  # Fast model for chat
                     messages=messages,
-                    max_tokens=2000,  # Increased for full responses with advanced analysis
+                    max_tokens=4000,  # Increased for full responses with advanced analysis
                     temperature=0.75,  # Slightly more creative (was 0.7)
                     stream=True
                 )
@@ -3573,7 +3658,7 @@ def dream_interpret_stream():
 - 3-4문장으로 자연스럽게 요약"""
 
                 stream = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4o",  # Upgraded for better dream interpretation quality
                     messages=[{"role": "user", "content": summary_prompt}],
                     temperature=0.7,
                     max_tokens=400,
@@ -3607,7 +3692,7 @@ def dream_interpret_stream():
 - 번호 없이 자연스러운 대화체로 2-3개 심볼 분석"""
 
                 symbol_stream = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4o",  # Upgraded for better symbol interpretation
                     messages=[{"role": "user", "content": symbols_prompt}],
                     temperature=0.7,
                     max_tokens=500,
@@ -3640,7 +3725,7 @@ def dream_interpret_stream():
 - 2-3가지 따뜻한 조언"""
 
                 rec_stream = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4o",  # Upgraded for better recommendations
                     messages=[{"role": "user", "content": rec_prompt}],
                     temperature=0.7,
                     max_tokens=300,
@@ -3708,6 +3793,7 @@ def dream_chat_stream():
         raw_messages = data.get("messages", [])
         dream_context = data.get("dream_context", {})
         language = data.get("language", "ko")
+        session_id = data.get("session_id")  # Optional session ID for continuity
 
         # Sanitize all messages
         messages = sanitize_messages(raw_messages)
@@ -3734,15 +3820,63 @@ def dream_chat_stream():
                 break
 
         # ============================================================
-        # CRISIS DETECTION: Check for high-risk keywords first
+        # SESSION MANAGEMENT: Get or create counseling session
+        # ============================================================
+        counseling_engine = None
+        counseling_session = None
+        try:
+            counseling_engine = get_counseling_engine()
+            if counseling_engine and session_id:
+                # Try to retrieve existing session
+                counseling_session = counseling_engine.get_session(session_id)
+                if counseling_session:
+                    logger.info(f"[DREAM_CHAT_STREAM] Retrieved existing session: {session_id}, phase: {counseling_session.current_phase}")
+                else:
+                    # Create new session with provided ID
+                    counseling_session = counseling_engine.create_session()
+                    counseling_session.session_id = session_id
+                    counseling_engine.sessions[session_id] = counseling_session
+                    logger.info(f"[DREAM_CHAT_STREAM] Created new session: {session_id}")
+            elif counseling_engine:
+                # Create new session
+                counseling_session = counseling_engine.create_session()
+                logger.info(f"[DREAM_CHAT_STREAM] Created new session: {counseling_session.session_id}")
+        except Exception as session_error:
+            logger.warning(f"[DREAM_CHAT_STREAM] Session management failed: {session_error}")
+
+        # ============================================================
+        # CRISIS DETECTION: Use CounselingEngine's advanced crisis detection
         # ============================================================
         crisis_response = None
         try:
-            from backend_ai.app.dream_embeddings import CrisisDetector
-            crisis_check = CrisisDetector.check_crisis(last_user_message)
-            if crisis_check:
-                crisis_response = crisis_check
-                logger.warning(f"[DREAM_CHAT_STREAM] Crisis detected: type={crisis_check['type']}, severity={crisis_check['severity']}")
+            # Use advanced CounselingEngine crisis detector (5-level severity)
+            if not counseling_engine:
+                counseling_engine = get_counseling_engine()
+            if counseling_engine:
+                crisis_detector = counseling_engine.crisis_detector
+                crisis_check = crisis_detector.detect_crisis(last_user_message)
+
+                if crisis_check["is_crisis"]:
+                    # Get detailed crisis response
+                    crisis_data = crisis_detector.get_crisis_response(
+                        crisis_check["max_severity"],
+                        locale=language
+                    )
+                    crisis_response = {
+                        "type": "crisis",
+                        "severity": crisis_check["max_severity"],
+                        "response": crisis_data.get("immediate_message", ""),
+                        "resources": crisis_data.get("resources", {}),
+                        "requires_immediate_action": crisis_check["requires_immediate_action"]
+                    }
+                    logger.warning(f"[DREAM_CHAT_STREAM] Advanced crisis detected: severity={crisis_check['max_severity']}, immediate_action={crisis_check['requires_immediate_action']}")
+            else:
+                # Fallback to dream_embeddings CrisisDetector
+                from backend_ai.app.dream_embeddings import CrisisDetector
+                crisis_check = CrisisDetector.check_crisis(last_user_message)
+                if crisis_check:
+                    crisis_response = crisis_check
+                    logger.warning(f"[DREAM_CHAT_STREAM] Fallback crisis detected: type={crisis_check['type']}")
         except Exception as crisis_error:
             logger.warning(f"[DREAM_CHAT_STREAM] Crisis detection failed: {crisis_error}")
 
@@ -3943,6 +4077,75 @@ def dream_chat_stream():
                     persona_context += f"핵심 인사이트: {', '.join(key_insights[:3])}\n"
                 persona_context += "→ 이전 통찰을 바탕으로 개인화된 답변을 제공하세요.\n"
 
+        # ============================================================
+        # JUNGIAN ENHANCED CONTEXT (from CounselingEngine)
+        # ============================================================
+        jung_context_str = ""
+        if counseling_engine:
+            try:
+                # Get enhanced Jung context from counseling engine
+                jung_context = counseling_engine.get_enhanced_context(
+                    user_message=last_user_message,
+                    saju_data=saju_data if saju_data else None
+                )
+
+                if jung_context:
+                    jung_context_str = "\n\n[🧠 융 심리학 고급 컨텍스트 - CounselingEngine]\n"
+
+                    # Psychological Type (from Saju mapping)
+                    if jung_context.get("psychological_type"):
+                        ptype = jung_context["psychological_type"]
+                        jung_context_str += f"심리 유형: {ptype.get('name_ko', ptype.get('name', ''))}\n"
+                        jung_context_str += f"  특징: {ptype.get('description', '')[:100]}\n"
+
+                    # Alchemical Stage (Nigredo→Albedo→Rubedo)
+                    if jung_context.get("alchemy_stage"):
+                        stage = jung_context["alchemy_stage"]
+                        jung_context_str += f"연금술 단계: {stage.get('name_ko', stage.get('name', ''))}\n"
+                        jung_context_str += f"  초점: {stage.get('therapeutic_focus', '')[:100]}\n"
+
+                    # Scenario Guidance
+                    if jung_context.get("scenario_guidance"):
+                        scenario = jung_context["scenario_guidance"]
+                        jung_context_str += f"상담 접근: {scenario.get('approach', '')[:100]}\n"
+
+                    # RAG-based recommended questions
+                    if jung_context.get("rag_questions"):
+                        jung_context_str += "추천 치료적 질문:\n"
+                        for q in jung_context["rag_questions"][:2]:
+                            jung_context_str += f"  • {q}\n"
+
+                    # RAG insights
+                    if jung_context.get("rag_insights"):
+                        jung_context_str += "관련 통찰:\n"
+                        for insight in jung_context["rag_insights"][:2]:
+                            jung_context_str += f"  • {insight[:80]}...\n"
+
+                    jung_context_str += "→ 이 융 심리학 컨텍스트를 꿈 해석에 자연스럽게 통합하세요.\n"
+
+                    logger.info(f"[DREAM_CHAT_STREAM] Added Jung enhanced context from CounselingEngine")
+            except Exception as jung_error:
+                logger.warning(f"[DREAM_CHAT_STREAM] Jung context generation failed: {jung_error}")
+
+        # ============================================================
+        # SESSION PHASE TRACKING
+        # ============================================================
+        session_phase_context = ""
+        if counseling_session:
+            try:
+                # Add user message to session
+                counseling_session.add_message("user", last_user_message)
+
+                # Get current phase info
+                phase_info = counseling_session.get_phase_info()
+                session_phase_context = f"\n\n[📍 상담 진행 단계: {phase_info.get('name', '')}]\n"
+                session_phase_context += f"목표: {', '.join(phase_info.get('goals', []))}\n"
+                session_phase_context += f"→ 현재 단계의 목표에 맞춰 답변하세요.\n"
+
+                logger.info(f"[DREAM_CHAT_STREAM] Session phase: {counseling_session.current_phase}")
+            except Exception as phase_error:
+                logger.warning(f"[DREAM_CHAT_STREAM] Session phase tracking failed: {phase_error}")
+
         # Build conversation history
         conversation_history = []
         for msg in messages:
@@ -4003,11 +4206,17 @@ def dream_chat_stream():
             # Add RAG context
             chat_prompt += rag_context
 
-            # Add therapeutic context (Jung-based questions)
+            # Add therapeutic context (Jung-based questions from DreamRAG)
             chat_prompt += therapeutic_context
 
-            # Add counseling context (scenario-based)
+            # Add counseling context (scenario-based from DreamRAG)
             chat_prompt += counseling_context
+
+            # Add Jung enhanced context (from CounselingEngine) ⭐ NEW
+            chat_prompt += jung_context_str
+
+            # Add session phase tracking ⭐ NEW
+            chat_prompt += session_phase_context
 
             # Add celestial context
             chat_prompt += celestial_context
@@ -4133,13 +4342,13 @@ Using all context (knowledge base, celestial, saju, previous consultations, ther
                     return
 
                 stream = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4o",  # Upgraded from gpt-4o-mini for better Jung psychology + Korean haemong fusion
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": chat_prompt}
                     ],
                     temperature=0.75,
-                    max_tokens=800,  # Increased for longer responses
+                    max_tokens=2000,  # Increased for comprehensive dream interpretation responses
                     stream=True
                 )
 
@@ -5036,6 +5245,147 @@ def detect_tarot_topic(text: str) -> dict:
 # ===============================================================
 # JUNGIAN COUNSELING ENDPOINTS (심리상담)
 # ===============================================================
+
+@app.route("/api/counseling/chat", methods=["POST"])
+def counseling_chat():
+    """
+    융 심리학 기반 상담 채팅 엔드포인트
+    - 위기 감지 자동화
+    - RAG + RuleEngine 기반 치료적 개입
+    - 사주/점성/타로 컨텍스트 통합
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        user_message = data.get("message", "")
+        session_id = data.get("session_id")
+
+        # 사주/점성/타로 컨텍스트
+        saju_data = data.get("saju")
+        astro_data = data.get("astro")
+        tarot_data = data.get("tarot")
+
+        if not user_message.strip():
+            return jsonify({"status": "error", "message": "Message is required"}), 400
+
+        engine = get_counseling_engine()
+        if not engine:
+            return jsonify({"status": "error", "message": "Counseling engine initialization failed"}), 500
+
+        # 세션 가져오기 또는 생성
+        session = None
+        if session_id:
+            session = engine.get_session(session_id)
+
+        # 융 심리학 컨텍스트 통합 처리
+        result = engine.process_with_jung_context(
+            user_message=user_message,
+            session=session,
+            saju_data=saju_data,
+            astro_data=astro_data,
+            tarot_data=tarot_data
+        )
+
+        return jsonify({
+            "status": "success",
+            "response": result["response"],
+            "session_id": result["session_id"],
+            "phase": result.get("phase"),
+            "crisis_detected": result.get("crisis_detected", False),
+            "severity": result.get("severity"),
+            "should_continue": result.get("should_continue", True),
+            "jung_context": result.get("jung_context", {})
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/chat failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/therapeutic-questions", methods=["POST"])
+def therapeutic_questions():
+    """
+    융 심리학 기반 치료적 질문 생성
+    - 테마별 맞춤 질문
+    - 원형(archetype)별 질문
+    - 시맨틱 검색 기반 질문 추천
+    """
+    if not HAS_COUNSELING:
+        return jsonify({"status": "error", "message": "Counseling engine not available"}), 501
+
+    try:
+        data = request.get_json(force=True)
+        theme = data.get("theme")
+        user_message = data.get("user_message", "")
+        archetype = data.get("archetype")
+        question_type = data.get("question_type", "deepening")
+
+        engine = get_counseling_engine()
+        if not engine:
+            return jsonify({"status": "error", "message": "Counseling engine initialization failed"}), 500
+
+        # 기본 치료적 질문
+        question = engine.get_therapeutic_question(
+            theme=theme,
+            archetype=archetype,
+            question_type=question_type
+        )
+
+        # RAG 기반 추가 질문 (사용자 메시지가 있는 경우)
+        rag_questions = []
+        if user_message and engine.jungian_rag:
+            intervention = engine.jungian_rag.get_therapeutic_intervention(
+                user_message,
+                context={"theme": theme}
+            )
+            rag_questions = intervention.get("recommended_questions", [])
+
+        return jsonify({
+            "status": "success",
+            "question": question,
+            "rag_questions": rag_questions[:3],
+            "theme": theme,
+            "archetype": archetype
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/therapeutic-questions failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/counseling/health", methods=["GET"])
+def counseling_health():
+    """상담 엔진 상태 확인"""
+    if not HAS_COUNSELING:
+        return jsonify({
+            "status": "unavailable",
+            "message": "Counseling engine not loaded"
+        }), 501
+
+    try:
+        engine = get_counseling_engine()
+        if not engine:
+            return jsonify({
+                "status": "error",
+                "message": "Counseling engine initialization failed"
+            }), 500
+
+        is_healthy, status_message = engine.health_check()
+
+        return jsonify({
+            "status": "healthy" if is_healthy else "degraded",
+            "message": status_message,
+            "has_openai": engine.client is not None,
+            "model": engine.model_name,
+            "has_rag": engine.jungian_rag is not None
+        })
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /api/counseling/health failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 # ===============================================================
 # RLHF FEEDBACK LEARNING ENDPOINTS

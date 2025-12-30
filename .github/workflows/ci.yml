@@ -27,6 +27,8 @@ jobs:
         env:
           # Provide dummy placeholders so check:env only flags missing/placeholder values in CI
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-placeholder' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+          NEXTAUTH_COOKIE_DOMAIN: ${{ secrets.NEXTAUTH_COOKIE_DOMAIN || '.example.com' }}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' }}
           ADMIN_API_TOKEN: ${{ secrets.ADMIN_API_TOKEN || 'ci-placeholder' }}
           CRON_SECRET: ${{ secrets.CRON_SECRET || 'ci-placeholder' }}
@@ -53,3 +55,19 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Start dev server
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3000 > /tmp/next-dev.log 2>&1 &
+        env:
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_BASE_URL: http://localhost:3000
+          CRON_SECRET: ci-cron-secret
+          PUBLIC_METRICS_TOKEN: ci-metrics-token
+
+      - name: E2E API tests
+        run: npm run test:e2e:api
+        env:
+          API_BASE_URL: http://localhost:3000
+          CRON_SECRET: ci-cron-secret
+          PUBLIC_METRICS_TOKEN: ci-metrics-token

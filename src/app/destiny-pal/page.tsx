@@ -1,11 +1,13 @@
 "use client";
 
-import { SessionProvider, useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./destiny-pal.module.css";
 import { useI18n } from "@/i18n/I18nProvider";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import AuthGate from "@/components/auth/AuthGate";
 import { QRCodeSVG } from "qrcode.react";
 
 type ReferralStats = {
@@ -27,11 +29,9 @@ type ReferralStats = {
 
 export default function DestinyPalPage() {
   return (
-    <SessionProvider>
-      <Suspense fallback={<LoadingScreen />}>
-        <DestinyPalContent />
-      </Suspense>
-    </SessionProvider>
+    <Suspense fallback={<LoadingScreen />}>
+      <DestinyPalContent />
+    </Suspense>
   );
 }
 
@@ -47,6 +47,7 @@ function DestinyPalContent() {
   const { t } = useI18n();
   const { status } = useSession();
   const searchParams = useSearchParams();
+  const signInUrl = buildSignInUrl("/destiny-pal");
 
   const [data, setData] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -147,6 +148,21 @@ function DestinyPalContent() {
     });
   };
 
+  const loginFallback = (
+    <div className={styles.loginPrompt}>
+      <div className={styles.loginIcon}>dY"r</div>
+      <h3 className={styles.loginTitle}>
+        {t("destinyPal.loginTitle", "Join the Program")}
+      </h3>
+      <p className={styles.loginSubtitle}>
+        {t("destinyPal.loginSubtitle", "Sign in to get your unique referral code and start earning credits")}
+      </p>
+      <Link href={signInUrl} className={styles.loginBtn}>
+        {t("destinyPal.signIn", "Sign In")}
+      </Link>
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       {/* Header */}
@@ -183,10 +199,16 @@ function DestinyPalContent() {
           </p>
         </section>
 
-        {status === "loading" || loading ? (
-          <LoadingScreen />
-        ) : status === "authenticated" && data ? (
-          <>
+        <AuthGate
+          statusOverride={status}
+          callbackUrl="/destiny-pal"
+          fallback={loginFallback}
+          loadingFallback={<LoadingScreen />}
+        >
+          {loading ? (
+            <LoadingScreen />
+          ) : data ? (
+            <>
             {/* Referral Link Card */}
             <div className={styles.codeCard}>
               <div className={styles.codeLabel}>
@@ -298,21 +320,13 @@ function DestinyPalContent() {
               )}
             </section>
           </>
-        ) : (
-          /* Login Prompt */
-          <div className={styles.loginPrompt}>
-            <div className={styles.loginIcon}>🔮</div>
-            <h3 className={styles.loginTitle}>
-              {t("destinyPal.loginTitle", "Join the Program")}
-            </h3>
-            <p className={styles.loginSubtitle}>
-              {t("destinyPal.loginSubtitle", "Sign in to get your unique referral code and start earning credits")}
-            </p>
-            <button className={styles.loginBtn} onClick={() => signIn()}>
-              {t("destinyPal.signIn", "Sign In")}
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>!</div>
+              <p>{t("destinyPal.loadFailed", "Unable to load your referral data right now. Please try again.")}</p>
+            </div>
+          )}
+        </AuthGate>
 
         {/* How It Works */}
         <section className={styles.howItWorks}>

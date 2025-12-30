@@ -1,0 +1,336 @@
+/* ============================================================
+   INTERACTIVE DREAM SYMBOL CARD
+   Flip card with Jung/Stoic/Tarot interpretations
+   ============================================================ */
+
+.cardContainer {
+  perspective: 1000px;
+  width: 280px;
+  height: 360px;
+  flex-shrink: 0;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+/* ============================================================
+   FRONT SIDE - Symbol & Basic Meaning
+   ============================================================ */
+
+.cardFront,
+.cardBack {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  border: 2px solid;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.cardFront:hover,
+.cardBack:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.cardFront {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+}
+
+.frontContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.symbolIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+}
+
+.symbolName {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  margin-bottom: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.symbolMeaning {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary, #e0e0e0);
+  margin-bottom: 24px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.flipHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.flipIcon {
+  font-size: 16px;
+  animation: rotate 2s linear infinite;
+}
+
+.flipText {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.cardGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.5;
+  animation: glow 3s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* ============================================================
+   BACK SIDE - Jung/Stoic/Tarot Interpretations
+   ============================================================ */
+
+.cardBack {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.backContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.backHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.backIcon {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.backTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   INTERPRETATIONS SECTION
+   ============================================================ */
+
+.interpretations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.interpretation {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.interpretationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.interpretationIcon {
+  font-size: 18px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.interpretationLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.interpretationText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary, #e0e0e0);
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.flipBackHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  margin-top: auto;
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .cardContainer {
+    width: 240px;
+    height: 320px;
+  }
+
+  .symbolIcon {
+    font-size: 40px;
+  }
+
+  .symbolName {
+    font-size: 20px;
+  }
+
+  .symbolMeaning {
+    font-size: 13px;
+  }
+
+  .backTitle {
+    font-size: 18px;
+  }
+
+  .interpretationText {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardContainer {
+    width: 220px;
+    height: 300px;
+  }
+
+  .symbolIcon {
+    font-size: 36px;
+  }
+
+  .symbolName {
+    font-size: 18px;
+  }
+
+  .backIcon {
+    font-size: 28px;
+  }
+}
+
+/* ============================================================
+   DARK/LIGHT THEME SUPPORT
+   ============================================================ */
+
+@media (prefers-color-scheme: light) {
+  .symbolName,
+  .backTitle,
+  .interpretationLabel {
+    color: #1a1a1a;
+  }
+
+  .symbolMeaning,
+  .interpretationText {
+    color: #4a4a4a;
+  }
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR FOR BACK SIDE
+   ============================================================ */
+
+.cardBack::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cardBack::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.cardBack::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.cardBack::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}

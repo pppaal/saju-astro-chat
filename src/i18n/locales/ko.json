@@ -265,6 +265,8 @@
     "normalDayDesc": "균형 잡힌 에너지의 평범한 하루. 일상적인 활동을 진행하세요.",
     "badDay": "⚠️ 나쁜 날",
     "badDayDesc": "주의가 필요한 날. 중요한 결정은 미루고, 충분한 휴식을 취하세요.",
+    "veryBadDay": "🚨 아주 나쁜 날",
+    "veryBadDayDesc": "극도로 주의가 필요한 날. 중요한 일은 절대 피하고, 건강과 안전에 최우선으로 신경쓰세요.",
     "categories": {
       "wealth": "재물",
       "career": "경력",
@@ -674,7 +676,8 @@
       "interpreting": "카드를 해석하고 있습니다...",
       "interpretingDesc": "잠시만 기다려주세요",
       "pleaseWait": "20-30초 정도 소요됩니다",
-      "redirecting": "타로로 이동 중..."
+      "redirecting": "타로로 이동 중...",
+      "redraw": "다시 뽑기"
     },
     "results": {
       "title": "결과",
@@ -1028,13 +1031,18 @@
       "retry": "다시 시도"
     },
     "counselor": {
-      "title": "DestinyPal 카운슬러",
-      "online": "Online",
-      "voiceComingSoon": "Voice (Coming Soon)",
+      "title": "DestinyPal 상담사",
+      "online": "온라인",
+      "voiceComingSoon": "음성 (준비중)",
       "loading1": "상담사와 연결하는 중...",
       "loading2": "프로필 분석 중...",
       "loading3": "데이터 준비 중...",
-      "loading4": "상담 준비 완료!"
+      "loading4": "상담 준비 완료!",
+      "authChecking": "로그인 상태를 확인하는 중...",
+      "loginRequiredTitle": "상담사 채팅은 로그인 후 이용할 수 있어요",
+      "loginRequiredDesc": "맞춤형 상담과 이전 대화 기록을 불러오려면 로그인해주세요.",
+      "loginCta": "로그인하고 시작하기",
+      "loginHint": "계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다."
     },
     "visualizer": {
       "dominantElement": "지배적 요소",
@@ -1768,6 +1776,22 @@
       "default": {
         "desc": "기록 보기"
       }
+    }
+  },
+  "auth": {
+    "signIn": "로그인",
+    "welcomeBack": "다시 오신 것을 환영합니다",
+    "signInToContinue": "우주 여행을 계속하려면 로그인하세요",
+    "signInWithGoogle": "Google로 로그인",
+    "secureAuthentication": "보안 인증",
+    "dataProtected": "OAuth 2.0으로 데이터가 보호됩니다",
+    "error": {
+      "oauthSignin": "로그인을 시작하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+      "oauthCallback": "로그인 콜백 중 오류가 발생했습니다.",
+      "oauthAccountNotLinked": "이 이메일은 이미 다른 계정에 연결되어 있습니다.",
+      "callback": "콜백 중 오류가 발생했습니다. 다시 시도해주세요.",
+      "default": "오류가 발생했습니다. 다시 시도해주세요.",
+      "unexpected": "예상치 못한 오류가 발생했습니다."
     }
   }
 }

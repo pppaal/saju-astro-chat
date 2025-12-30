@@ -420,7 +420,7 @@ export function getCombinedLifeTheme(
   const weakName = elementNames[weakEl];
 
   return {
-    ko: `${dmTheme.ko}을 추구하되, ${strongName.ko}(${strongRatio}%)의 힘을 활용하고 ${weakName.ko}(${weakRatio}%)를 보완하는 여정`,
+    ko: `${dmTheme.ko}을 추구하되, ${strongName.ko}(${strongRatio}%)의 힘을 활용하고 ${weakName.ko}(${weakRatio}%)을 보완하는 여정`,
     en: `A journey pursuing ${dmTheme.en}, leveraging ${strongName.en} (${strongRatio}%) while complementing ${weakName.en} (${weakRatio}%)`,
     detail: {
       ko: `당신의 본질은 ${dmTheme.ko}이에요. ${strongName.ko} 기운이 ${strongRatio}%로 강해서 ${strongEl === 'wood' ? '시작과 성장' : strongEl === 'fire' ? '열정과 표현' : strongEl === 'earth' ? '안정과 신뢰' : strongEl === 'metal' ? '결단과 완결' : '직관과 유연함'}에 탁월해요. 반면 ${weakName.ko} 기운이 ${weakRatio}%로 부족해서 ${weakEl === 'wood' ? '새로운 시작' : weakEl === 'fire' ? '열정 표현' : weakEl === 'earth' ? '안정감 확보' : weakEl === 'metal' ? '결단력 발휘' : '휴식과 직관'}을 의식적으로 챙겨야 해요.`,

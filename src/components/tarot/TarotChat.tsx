@@ -8,6 +8,12 @@ import { apiFetch } from "@/lib/api";
 import { tarotCounselors } from "@/lib/Tarot/tarot-counselors";
 import CreditBadge from "@/components/ui/CreditBadge";
 
+// Development-only logging
+const isDev = process.env.NODE_ENV === 'development';
+const devLog = (...args: any[]) => isDev && console.log(...args);
+const devWarn = (...args: any[]) => isDev && console.warn(...args);
+const devError = (...args: any[]) => console.error(...args); // Always log errors
+
 type LangKey = "ko" | "en";
 
 const I18N: Record<LangKey, {
@@ -1334,7 +1340,7 @@ export default function TarotChat({
       try {
         localStorage.setItem(messagesStorageKey, JSON.stringify(messages));
       } catch (e) {
-        console.error('Failed to save messages:', e);
+        devError('Failed to save messages:', e);
       }
     }
   }, [messages, messagesStorageKey]);
@@ -1681,7 +1687,7 @@ export default function TarotChat({
     startLoadingMessages();
 
     // Log counselor info for debugging
-    console.log('[TarotChat] Sending request with counselor:', counselorId, 'style:', counselorStyle);
+    devLog('[TarotChat] Sending request with counselor:', counselorId, 'style:', counselorStyle);
 
     try {
       // Step 1: Draw a new card for this question (타로집 스타일)
@@ -1701,11 +1707,11 @@ export default function TarotChat({
           const drawData = await drawResponse.json();
           if (drawData.drawnCards && drawData.drawnCards.length > 0) {
             newDrawnCard = drawData.drawnCards[0];
-            console.log('[TarotChat] Drew new card for question:', newDrawnCard.card.name);
+            devLog('[TarotChat] Drew new card for question:', newDrawnCard.card.name);
           }
         }
       } catch (drawErr) {
-        console.warn('[TarotChat] Failed to draw new card, using existing context:', drawErr);
+        devWarn('[TarotChat] Failed to draw new card, using existing context:', drawErr);
       }
 
       // Build context with new card added to cards array (backend processes cards array)
@@ -1812,7 +1818,7 @@ export default function TarotChat({
         }]);
       }
     } catch (error) {
-      console.error("[TarotChat] Streaming error, falling back:", error);
+      devError("[TarotChat] Streaming error, falling back:", error);
       stopLoadingMessages();
 
       // Fallback to non-streaming endpoint
@@ -1840,7 +1846,7 @@ export default function TarotChat({
           throw new Error("Fallback also failed");
         }
       } catch (fallbackError) {
-        console.error("[TarotChat] Fallback error:", fallbackError);
+        devError("[TarotChat] Fallback error:", fallbackError);
         setUsedFallback(true);
         setMessages(prev => [...prev, {
           role: "assistant",

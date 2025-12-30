@@ -6,6 +6,7 @@
 
 const REQUIRED_ALWAYS = [
   "NEXTAUTH_SECRET",
+  "NEXTAUTH_URL",
   "NEXT_PUBLIC_BASE_URL",
   "ADMIN_API_TOKEN",
   "CRON_SECRET",
@@ -40,6 +41,7 @@ const RECOMMENDED_PRODUCTION = [
 ];
 
 const REQUIRED_PUSH = ["NEXT_PUBLIC_VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"];
+const REQUIRED_PRODUCTION = ["NEXTAUTH_COOKIE_DOMAIN"];
 
 function isMissing(name) {
   const val = process.env[name];
@@ -73,6 +75,7 @@ function main() {
   const missing = REQUIRED_ALWAYS.filter(isMissing);
   const missingPush = REQUIRED_PUSH.filter(isMissing);
   const emailError = checkEmailProvider();
+  const missingProduction = isProduction ? REQUIRED_PRODUCTION.filter(isMissing) : [];
 
   // Production-specific checks
   const missingRateLimit = isProduction ? REQUIRED_RATE_LIMIT.filter(isMissing) : [];
@@ -86,6 +89,7 @@ function main() {
   if (missing.length) problems.push(`Missing required: ${missing.join(", ")}`);
   if (missingPush.length) problems.push(`Push keys missing: ${missingPush.join(", ")}`);
   if (emailError) problems.push(`Email config: ${emailError}`);
+  if (missingProduction.length) problems.push(`Missing required for production: ${missingProduction.join(", ")}`);
 
   // Production-only errors
   if (missingRateLimit.length) problems.push(`Rate limit config missing: ${missingRateLimit.join(", ")}`);
@@ -101,6 +105,44 @@ function main() {
   const authSecret = process.env.NEXTAUTH_SECRET;
   if (authSecret && authSecret.length < 32) {
     problems.push("NEXTAUTH_SECRET must be at least 32 characters");
+  }
+
+  // Validate NEXTAUTH_URL format and https in production
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
+  let nextAuthHost = null;
+  if (nextAuthUrl) {
+    try {
+      const parsed = new URL(nextAuthUrl);
+      nextAuthHost = parsed.hostname.toLowerCase();
+      if (isProduction && parsed.protocol !== "https:") {
+        problems.push("NEXTAUTH_URL must use https in production");
+      }
+    } catch {
+      problems.push("NEXTAUTH_URL must be a valid URL");
+    }
+  }
+
+  // Validate NEXT_PUBLIC_BASE_URL matches NEXTAUTH_URL host in production
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  if (isProduction && nextAuthUrl && baseUrl) {
+    try {
+      const baseHost = new URL(baseUrl).hostname.toLowerCase();
+      if (nextAuthHost && baseHost !== nextAuthHost) {
+        problems.push("NEXT_PUBLIC_BASE_URL must match NEXTAUTH_URL host in production");
+      }
+    } catch {
+      problems.push("NEXT_PUBLIC_BASE_URL must be a valid URL");
+    }
+  }
+
+  // Validate cookie domain for cross-subdomain sessions in production
+  const cookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN;
+  if (isProduction && cookieDomain) {
+    if (!cookieDomain.startsWith(".")) {
+      problems.push("NEXTAUTH_COOKIE_DOMAIN must start with a leading dot (e.g. .example.com)");
+    } else if (nextAuthHost && !nextAuthHost.endsWith(cookieDomain.slice(1))) {
+      problems.push("NEXTAUTH_COOKIE_DOMAIN must match NEXTAUTH_URL host");
+    }
   }
 
   // Validate TOKEN_ENCRYPTION_KEY length (32 bytes min; accept base64 or utf-8)

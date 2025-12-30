@@ -27,12 +27,13 @@ export interface GradeResult {
 }
 
 /**
- * 점수 기반 등급 결정 (adjustedScore 기준)
- * Grade 0: 천운 (adjustedScore 80+ AND 충+형 동시 없음)
- * Grade 1: 아주 좋음 (adjustedScore 68+)
- * Grade 2: 좋음 (adjustedScore 55+)
- * Grade 3: 보통 (adjustedScore 42+)
- * Grade 4: 나쁨 (adjustedScore 42 미만)
+ * 점수 기반 등급 결정 (6등급 시스템 v7)
+ * Grade 0: 천운 (adjustedScore 74+ AND 충+형 없음) ~3%
+ * Grade 1: 아주 좋음 (adjustedScore 66+) ~12%
+ * Grade 2: 좋음 (adjustedScore 56+) ~25%
+ * Grade 3: 보통 (adjustedScore 45+) ~35%
+ * Grade 4: 나쁨 (adjustedScore 35+) ~17%
+ * Grade 5: 아주 나쁨 (adjustedScore 35 미만) ~5%
  */
 export function calculateGrade(input: GradeInput): GradeResult {
   let gradeBonus = 0;
@@ -52,22 +53,23 @@ export function calculateGrade(input: GradeInput): GradeResult {
 
   const adjustedScore = input.score + gradeBonus;
 
-  // 등급 판단 (adjustedScore 기준)
-  // 목표 분포: 천운 2-5%, 아주좋음 15-25%, 좋음 30-40%, 보통 25-35%, 나쁨 5-15%
+  // 등급 판단 (6등급 시스템)
   let grade: ImportanceGrade;
 
-  // 천운: adjustedScore 80+ AND 충도 없고 형도 없어야 함 (진정한 최고의 날)
+  // 천운: adjustedScore 74+ AND 충도 없고 형도 없어야 함 (진정한 최고의 날)
   const hasChungOrXing = input.hasChung || input.hasXing;
-  if (adjustedScore >= 80 && !hasChungOrXing) {
-    grade = 0;
-  } else if (adjustedScore >= 68) {
+  if (adjustedScore >= 74 && !hasChungOrXing) {
+    grade = 0; // 천운
+  } else if (adjustedScore >= 66) {
     grade = 1; // 아주좋음
-  } else if (adjustedScore >= 55) {
+  } else if (adjustedScore >= 56) {
     grade = 2; // 좋음
-  } else if (adjustedScore >= 42) {
+  } else if (adjustedScore >= 45) {
     grade = 3; // 보통
-  } else {
+  } else if (adjustedScore >= 35) {
     grade = 4; // 나쁨
+  } else {
+    grade = 5; // 아주나쁨
   }
 
   return { grade, adjustedScore, gradeBonus };
@@ -87,8 +89,10 @@ export function getGradeKeys(grade: ImportanceGrade): { titleKey: string; descKe
     case 3:
       return { titleKey: "calendar.normalDay", descKey: "calendar.normalDayDesc" };
     case 4:
-    default:
       return { titleKey: "calendar.badDay", descKey: "calendar.badDayDesc" };
+    case 5:
+    default:
+      return { titleKey: "calendar.veryBadDay", descKey: "calendar.veryBadDayDesc" };
   }
 }
 
@@ -105,6 +109,8 @@ export function getGradeRecommendations(grade: ImportanceGrade): string[] {
       return ["majorDecision"];
     case 4:
       return ["rest", "meditation"];
+    case 5:
+      return ["rest", "meditation", "avoidBigDecisions"];
     default:
       return [];
   }
@@ -127,6 +133,12 @@ export function filterWarningsByGrade(grade: ImportanceGrade, warningKeys: strin
 
   if (grade === 4 && warningKeys.length === 0) {
     return ["health"];
+  }
+
+  if (grade === 5) {
+    // Grade 5 (아주나쁨): 기본 경고 추가
+    const baseWarnings = ["extremeCaution", "health"];
+    return [...new Set([...baseWarnings, ...warningKeys])];
   }
 
   return warningKeys;

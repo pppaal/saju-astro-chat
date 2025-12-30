@@ -316,15 +316,19 @@ export const CROSS_VERIFICATION_SCORES = {
 } as const;
 
 // ============================================================
-// 등급 임계값 (정규분포 개선)
+// 등급 임계값 (6등급 시스템 v7)
+// 실제 점수 범위: 약 25~81, 평균 54
+// 목표 분포:
+//   천운 ~3%, 아주좋음 ~12%, 좋음 ~25%, 보통 ~35%, 나쁨 ~17%, 아주나쁨 ~5%
 // ============================================================
 
 export const GRADE_THRESHOLDS = {
-  grade0: 80,  // 천운: 80점 이상 (~5%)
-  grade1: 68,  // 아주좋음: 68~79점 (~15%)
-  grade2: 52,  // 좋음: 52~67점 (~30%)
-  grade3: 38,  // 보통: 38~51점 (~35%)
-  // grade4: 38 미만 (나쁨) (~15%)
+  grade0: 74,  // 천운: 74점 이상 (~3%) - 76→74 하향으로 천운 증가
+  grade1: 66,  // 아주좋음: 66~73점 (~12%) - 68→66 하향
+  grade2: 56,  // 좋음: 56~65점 (~25%) - 54→56 상향으로 좋음 감소
+  grade3: 45,  // 보통: 45~55점 (~35%)
+  grade4: 35,  // 나쁨: 35~44점 (~17%)
+  // grade5: 35 미만 (아주나쁨) (~5%)
 } as const;
 
 // ============================================================
@@ -359,26 +363,24 @@ export function sumAndNormalize(
 }
 
 /**
- * 직접 점수 계산 방식 (v3 - 완전 개선)
+ * 직접 점수 계산 방식 (v6 - 6등급 분포 최적화)
  *
  * 핵심 변경:
- * - 기본값 60%에서 시작 (중앙보다 약간 위)
- * - 보정값을 2배로 증폭하여 변동폭 확대
- * - 좋은 요소가 많으면 쉽게 80점 이상 (천운) 도달
- * - 나쁜 요소가 많으면 38점 이하 (나쁜날) 도달
+ * - 기본값 40%에서 시작 (낮춰서 나쁜날/아주나쁜날 비율 높임)
+ * - 보정값을 3.2배로 증폭하여 변동폭 더 확대
+ * - 목표 분포: 천운 ~3%, 아주좋음 ~12%, 좋음 ~28%, 보통 ~32%, 나쁨 ~17%, 아주나쁨 ~5%
  */
 export function calculateAdjustedScore(
   categoryMax: number,
   adjustments: number[],
   _maxAdjustment: number = 0.5  // 하위 호환성 유지
 ): number {
-  // 기본값: 카테고리 최대의 60% (약간 긍정 편향 - 대부분의 날이 "보통" 이상)
-  const baseScore = categoryMax * 0.6;
+  // 기본값: 카테고리 최대의 40% (낮춰서 나쁜날 비율 높임)
+  const baseScore = categoryMax * 0.40;
   const totalAdj = adjustments.reduce((a, b) => a + b, 0);
 
-  // 보정값 증폭: 2배로 적용하여 변동폭 확대
-  // 예: 0.25 보정 → 13점 카테고리에서 6.5점 추가 (기존 3.25점)
-  const amplifiedAdj = totalAdj * 2;
+  // 보정값 증폭: 3.2배로 적용하여 변동폭 더 확대
+  const amplifiedAdj = totalAdj * 3.2;
   const adjScore = amplifiedAdj * categoryMax;
 
   return Math.round(Math.max(0, Math.min(categoryMax, baseScore + adjScore)) * 10) / 10;

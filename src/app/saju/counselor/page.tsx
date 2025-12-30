@@ -4,11 +4,13 @@ import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import SajuChat from "@/components/saju/SajuChat";
 import { useI18n } from "@/i18n/I18nProvider";
 import { calculateSajuData } from "@/lib/Saju/saju";
 import CreditBadge from "@/components/ui/CreditBadge";
+import AuthGate from "@/components/auth/AuthGate";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import styles from "./counselor.module.css";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -304,8 +306,8 @@ export default function SajuCounselorPage({
 
   const handleLogin = useCallback(() => {
     const search = typeof window !== "undefined" ? window.location.search : "";
-    signIn(undefined, { callbackUrl: `/saju/counselor${search}` });
-  }, []);
+    router.push(buildSignInUrl(`/saju/counselor${search}`));
+  }, [router]);
 
   if (isCheckingAuth) {
     return (
@@ -324,8 +326,7 @@ export default function SajuCounselorPage({
     );
   }
 
-  if (!isAuthed) {
-    return (
+  const loginFallback = (
       <main className={styles.page}>
         <div className={styles.authGate}>
           <div className={styles.authCard}>
@@ -345,11 +346,10 @@ export default function SajuCounselorPage({
           </div>
         </div>
       </main>
-    );
-  }
+  );
 
   // Loading screen
-  if (isLoading) {
+  if (isLoading && isAuthed) {
     return (
       <main className={styles.page}>
         <div className={styles.loadingContainer}>
@@ -408,6 +408,7 @@ export default function SajuCounselorPage({
 
   // Chat screen
   return (
+    <AuthGate statusOverride={authStatus} callbackUrl={typeof window !== "undefined" ? `/saju/counselor${window.location.search}` : '/saju/counselor'} fallback={loginFallback}>
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ""}`}>
       {/* Header */}
       <header className={styles.header}>
@@ -464,6 +465,7 @@ export default function SajuCounselorPage({
         <InitialQuestionSender question={initialQuestion} />
       )}
     </main>
+    </AuthGate>
   );
 }
 

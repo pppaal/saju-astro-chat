@@ -1,9 +1,13 @@
 "use client";
 
 import Script from "next/script";
+import { useConsent } from "@/contexts/ConsentContext";
 
 export function MicrosoftClarity({ clarityId }: { clarityId: string }) {
-  if (!clarityId) return null;
+  const { status } = useConsent();
+  const consentGranted = status === "granted";
+
+  if (!clarityId || !consentGranted) return null;
 
   return (
     <Script

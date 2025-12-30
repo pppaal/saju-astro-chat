@@ -5,6 +5,7 @@ import React, { useMemo, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { NatalChartData, PlanetData } from '@/lib/astrology';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 // Local type definitions for ResultDisplay
 interface HouseData {
@@ -441,6 +442,7 @@ export default function ResultDisplay({
   const locKey = normalizeLocale(locale);
   const L = LABELS[locKey];
   const PL = PAYWALL_LABELS[locKey] || PAYWALL_LABELS.en;
+  const signInUrl = buildSignInUrl();
 
   // 잠금 UI 컴포넌트
   const PaywallOverlay: React.FC<{ type: 'login' | 'premium'; description?: string }> = ({ type, description }) => (
@@ -469,7 +471,7 @@ export default function ResultDisplay({
             {description || (type === 'login' ? PL.loginDesc : PL.premiumDesc)}
           </p>
           <a
-            href={type === 'login' ? '/auth/signin' : '/pricing'}
+            href={type === 'login' ? signInUrl : '/pricing'}
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all ${
               type === 'login'
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white'

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -11,11 +12,17 @@ import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
 import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImagePath } from '@/lib/Tarot/tarot.types';
 import { getStoredBirthDate } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
-import PersonalityInsight from '@/components/personality/PersonalityInsight';
 import { getCounselorById, TarotCounselor } from '@/lib/Tarot/tarot-counselors';
 import { saveReading, formatReadingForSave, getSavedReadings } from '@/lib/Tarot/tarot-storage';
 import { apiFetch } from '@/lib/api';
 import styles from './tarot-reading.module.css';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
+import AuthGate from '@/components/auth/AuthGate';
+
+const PersonalityInsight = dynamic(
+  () => import('@/components/personality/PersonalityInsight'),
+  { ssr: false }
+);
 
 // Card back color options - now linked to deck styles
 const CARD_COLORS = DECK_STYLES.map(style => ({
@@ -182,6 +189,10 @@ export default function TarotReadingPage() {
   const categoryName = params?.categoryName as string | undefined;
   const spreadId = params?.spreadId as string | undefined;
   const counselorId = searchParams?.get('counselor') || undefined;
+  const search = searchParams?.toString();
+  const basePath = categoryName && spreadId ? `/tarot/${categoryName}/${spreadId}` : "/tarot";
+  const callbackUrl = search ? `${basePath}?${search}` : basePath;
+  const signInUrl = buildSignInUrl(callbackUrl);
   const counselor = counselorId ? getCounselorById(counselorId) : undefined;
 
   const [gameState, setGameState] = useState<GameState>('loading');
@@ -520,8 +531,7 @@ export default function TarotReadingPage() {
   }
 
   // Login required - show login prompt
-  if (!session) {
-    return (
+  const loginFallback = (
       <div className={styles.loginRequired}>
         <div className={styles.loginContent}>
           <div className={styles.loginIcon}>🔮</div>
@@ -530,13 +540,13 @@ export default function TarotReadingPage() {
           </h1>
           <p className={styles.loginDescription}>
             {language === 'ko'
-              ? '타로 해석을 보려면 로그인해주세요.\n로그인하면 해석 결과를 저장하고 다시 볼 수 있어요.'
-              : 'Please login to view your tarot reading.\nYour readings will be saved for future reference.'}
+              ? '타로 해석을 보려면 로그인해주세요. 로그인하면 해석 결과를 저장하고 다시 볼 수 있어요.'
+              : 'Please login to view your tarot reading. Your readings will be saved for future reference.'}
           </p>
           <div className={styles.loginButtons}>
             <button
               className={styles.loginButton}
-              onClick={() => signIn('google')}
+              onClick={() => router.push(signInUrl)}
             >
               <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -548,7 +558,7 @@ export default function TarotReadingPage() {
             </button>
             <button
               className={styles.kakaoButton}
-              onClick={() => signIn('kakao')}
+              onClick={() => router.push(signInUrl)}
             >
               <svg className={styles.kakaoIcon} viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#000" d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.88 5.32 4.71 6.73-.15.53-.96 3.39-1 3.56 0 .09.03.18.1.24.08.06.18.07.27.03.36-.14 4.16-2.73 4.67-3.06.41.05.83.08 1.25.08 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
@@ -561,9 +571,9 @@ export default function TarotReadingPage() {
           </Link>
         </div>
       </div>
-    );
-  }
+  );
 
+  const content = (() => {
   // Loading state
   if (gameState === 'loading') {
     return (
@@ -1145,4 +1155,12 @@ export default function TarotReadingPage() {
       </div>
     </div>
   );
+  })();
+
+  return (
+    <AuthGate statusOverride={status} callbackUrl={callbackUrl} fallback={loginFallback}>
+      {content}
+    </AuthGate>
+  );
+
 }

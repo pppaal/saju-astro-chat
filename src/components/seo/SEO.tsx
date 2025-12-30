@@ -17,7 +17,7 @@ export function generateMetadata({
   title,
   description,
   keywords = [],
-  ogImage = "/og-default.png",
+  ogImage = "/og-image.png",
   ogType = "website",
   twitterCard = "summary_large_image",
   canonicalUrl,
@@ -303,10 +303,51 @@ export const SERVICE_FAQS = {
       answer: "We include Korean, Chinese, Islamic, Western, Hindu, Japanese, and Native American dream symbolism for a comprehensive interpretation."
     },
   ],
+  saju: [
+    {
+      question: "What is Saju?",
+      answer: "Saju is the Korean Four Pillars of Destiny system based on your birth date and time."
+    },
+    {
+      question: "Do I need an exact birth time?",
+      answer: "Exact time improves accuracy, but a close estimate can still provide helpful insights."
+    },
+  ],
+  astrology: [
+    {
+      question: "What do I need for a birth chart?",
+      answer: "We use your birth date, exact time, and place to calculate planetary positions."
+    },
+    {
+      question: "How should I use astrology insights?",
+      answer: "Astrology is best used as a reflective tool for guidance and self-understanding."
+    },
+  ],
+  numerology: [
+    {
+      question: "What is numerology?",
+      answer: "Numerology interprets numbers derived from your birth date and name to reveal patterns."
+    },
+    {
+      question: "Which numbers are calculated?",
+      answer: "We calculate life path, expression, and soul urge numbers with detailed meanings."
+    },
+  ],
+  iching: [
+    {
+      question: "What is the I Ching?",
+      answer: "The I Ching is a classic Chinese divination system based on 64 hexagrams."
+    },
+    {
+      question: "How is a reading generated?",
+      answer: "You ask a question and the system generates and interprets a hexagram."
+    },
+  ],
 };
 
 // Generate service schema for specific pages
 export function generateServiceSchema(serviceType: "destiny-map" | "tarot" | "dream" | "saju" | "astrology" | "numerology" | "iching" | "aura") {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
   const services = {
     "destiny-map": {
       name: "Destiny Map - Saju & Astrology Fusion",
@@ -353,6 +394,6 @@ export function generateServiceSchema(serviceType: "destiny-map" | "tarot" | "dr
   return generateJsonLd({
     type: "Service",
     service: services[serviceType],
-    url: `/${serviceType}`,
+    url: `${baseUrl}/${serviceType}`,
   });
 }

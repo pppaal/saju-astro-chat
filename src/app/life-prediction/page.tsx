@@ -1,22 +1,32 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSession, SessionProvider } from 'next-auth/react';
+import dynamic from 'next/dynamic';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 import { PredictionChat } from '@/components/life-prediction/PredictionChat';
 import { TimingCard, TimingPeriod } from '@/components/life-prediction/ResultCards/TimingCard';
 import { AnalyzingLoader } from '@/components/life-prediction/ResultCards/AnalyzingLoader';
 import { BirthInfoForm } from '@/components/life-prediction/BirthInfoForm';
-import { AdvisorChat } from '@/components/life-prediction/AdvisorChat';
-import { ResultShare } from '@/components/life-prediction/ResultShare';
 import { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector';
 import { cardContainerVariants, pageTransitionVariants } from '@/components/life-prediction/animations/cardAnimations';
 
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
 import styles from './life-prediction.module.css';
+
+const AdvisorChat = dynamic(
+  () => import('@/components/life-prediction/AdvisorChat').then((mod) => mod.default),
+  { ssr: false }
+);
+
+const ResultShare = dynamic(
+  () => import('@/components/life-prediction/ResultShare').then((mod) => mod.default),
+  { ssr: false }
+);
 
 type Phase = 'birth-input' | 'input' | 'analyzing' | 'result';
 
@@ -177,16 +187,13 @@ function translateReasons(reasons: string[], eventType: string): string[] {
 }
 
 export default function LifePredictionPage() {
-  return (
-    <SessionProvider>
-      <LifePredictionContent />
-    </SessionProvider>
-  );
+  return <LifePredictionContent />;
 }
 
 function LifePredictionContent() {
   const { locale } = useI18n();
   const { status } = useSession();
+  const signInUrl = buildSignInUrl();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [phase, setPhase] = useState<Phase>('birth-input');
@@ -287,28 +294,39 @@ function LifePredictionContent() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    let animationId: number;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let animationId: number | null = null;
     let time = 0;
+    let isRunning = false;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
 
-    const animate = () => {
-      time += 0.003;
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
 
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const drawFrame = () => {
+      const width = canvas.width;
+      const height = canvas.height;
+      const starCount = width < 640 ? 30 : width < 1024 ? 40 : 50;
+      const orbCount = width < 640 ? 3 : 5;
+
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
       gradient.addColorStop(0, 'rgba(10, 15, 30, 1)');
       gradient.addColorStop(0.5, 'rgba(20, 25, 50, 1)');
       gradient.addColorStop(1, 'rgba(15, 20, 40, 1)');
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, width, height);
 
-      // 별 효과
-      for (let i = 0; i < 50; i++) {
-        const x = (Math.sin(time * 0.5 + i * 1.3) * 0.5 + 0.5) * canvas.width;
-        const y = (Math.cos(time * 0.3 + i * 0.7) * 0.5 + 0.5) * canvas.height;
+      // ?3, ?s"?3?
+      for (let i = 0; i < starCount; i++) {
+        const x = (Math.sin(time * 0.5 + i * 1.3) * 0.5 + 0.5) * width;
+        const y = (Math.cos(time * 0.3 + i * 0.7) * 0.5 + 0.5) * height;
         const opacity = 0.1 + Math.sin(time * 2 + i) * 0.05;
 
         ctx.beginPath();
@@ -317,10 +335,10 @@ function LifePredictionContent() {
         ctx.fill();
       }
 
-      // 큰 글로우 원
-      for (let i = 0; i < 5; i++) {
-        const x = (Math.sin(time + i * 1.2) * 0.3 + 0.5) * canvas.width;
-        const y = (Math.cos(time * 0.7 + i * 0.8) * 0.3 + 0.5) * canvas.height;
+      // ??? ?,???o?s? ?>?
+      for (let i = 0; i < orbCount; i++) {
+        const x = (Math.sin(time + i * 1.2) * 0.3 + 0.5) * width;
+        const y = (Math.cos(time * 0.7 + i * 0.8) * 0.3 + 0.5) * height;
         const radius = 100 + Math.sin(time + i) * 50;
 
         ctx.beginPath();
@@ -328,21 +346,65 @@ function LifePredictionContent() {
         ctx.fillStyle = `rgba(139, 92, 246, ${0.02 + Math.sin(time + i) * 0.01})`;
         ctx.fill();
       }
+    };
 
+    const animate = (timestamp = 0) => {
+      if (!isRunning) return;
+      if (timestamp - lastFrame >= frameInterval) {
+        lastFrame = timestamp;
+        time += 0.003;
+        drawFrame();
+      }
       animationId = requestAnimationFrame(animate);
     };
 
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const stop = () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      isRunning = false;
     };
 
+    const start = () => {
+      if (isRunning) return;
+      if (mediaQuery.matches || document.hidden) {
+        drawFrame();
+        return;
+      }
+      isRunning = true;
+      lastFrame = 0;
+      animate();
+    };
+
+    const handleVisibility = () => {
+      if (mediaQuery.matches || document.hidden) {
+        stop();
+        drawFrame();
+        return;
+      }
+      start();
+    };
+
+    const handleResize = () => {
+      resizeCanvas();
+      if (!isRunning) {
+        drawFrame();
+      }
+    };
+
+    resizeCanvas();
+    handleVisibility();
+
     window.addEventListener('resize', handleResize);
-    animate();
+    document.addEventListener('visibilitychange', handleVisibility);
+    mediaQuery.addEventListener('change', handleVisibility);
 
     return () => {
-      cancelAnimationFrame(animationId);
+      stop();
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      mediaQuery.removeEventListener('change', handleVisibility);
     };
   }, []);
 
@@ -729,7 +791,7 @@ function LifePredictionContent() {
                       ? '로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요'
                       : 'Log in to save your info for a better experience'}
                   </p>
-                  <a href="/login" className={styles.loginLink}>
+                  <a href={signInUrl} className={styles.loginLink}>
                     {locale === 'ko' ? '로그인하기' : 'Log in'}
                   </a>
                 </div>

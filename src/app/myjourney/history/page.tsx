@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -116,11 +116,9 @@ const SERVICE_CONFIG: Record<string, { icon: string; titleKey: string; descKey: 
 
 export default function HistoryPage() {
   return (
-    <SessionProvider>
-      <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
-        <HistoryContent />
-      </Suspense>
-    </SessionProvider>
+    <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+      <HistoryContent />
+    </Suspense>
   );
 }
 
@@ -147,13 +145,17 @@ function HistoryContent() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const PARTICLE_COUNT = 50;
-    const MAX_LINK_DISTANCE = 100;
-    const PARTICLE_BASE_SPEED = 0.2;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let animationId: number | null = null;
+    let isRunning = false;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
+    let particleCount = 50;
+    let maxLinkDistance = 100;
+    let particleBaseSpeed = 0.2;
 
     type Particle = {
       x: number;
@@ -165,7 +167,6 @@ function HistoryContent() {
     };
 
     let particlesArray: Particle[] = [];
-    let raf = 0;
 
     const mouse = {
       x: undefined as number | undefined,
@@ -181,15 +182,18 @@ function HistoryContent() {
       mouse.x = undefined;
       mouse.y = undefined;
     };
-    const handleResize = () => {
+
+    const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      init();
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseout', handleMouseOut);
-    window.addEventListener('resize', handleResize);
+    const updateSettings = () => {
+      const width = canvas.width;
+      particleCount = width < 640 ? 30 : width < 1024 ? 40 : 50;
+      maxLinkDistance = width < 640 ? 80 : 100;
+      particleBaseSpeed = width < 640 ? 0.15 : 0.2;
+    };
 
     function createParticle(): Particle {
       const colors = ['#63d2ff', '#7cf29c', '#a78bfa', '#8b5cf6'];
@@ -197,16 +201,17 @@ function HistoryContent() {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         size: Math.random() * 2 + 1,
-        speedX: (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED,
-        speedY: (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED,
+        speedX: (Math.random() * 2 - 1) * particleBaseSpeed,
+        speedY: (Math.random() * 2 - 1) * particleBaseSpeed,
         color: colors[Math.floor(Math.random() * colors.length)],
       };
     }
 
     function init() {
       particlesArray = [];
+      updateSettings();
       let numberOfParticles = (canvas.height * canvas.width) / 15000;
-      numberOfParticles = Math.min(numberOfParticles, PARTICLE_COUNT);
+      numberOfParticles = Math.min(numberOfParticles, particleCount);
       for (let i = 0; i < numberOfParticles; i++) {
         particlesArray.push(createParticle());
       }
@@ -231,6 +236,7 @@ function HistoryContent() {
     }
 
     function drawParticle(p: Particle) {
+      if (!ctx) return;
       ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -238,13 +244,14 @@ function HistoryContent() {
     }
 
     function connectParticles() {
+      if (!ctx) return;
       for (let a = 0; a < particlesArray.length; a++) {
         for (let b = a; b < particlesArray.length; b++) {
           const dx = particlesArray[a].x - particlesArray[b].x;
           const dy = particlesArray[a].y - particlesArray[b].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < MAX_LINK_DISTANCE) {
-            const opacity = (1 - distance / MAX_LINK_DISTANCE) * 0.4;
+          if (distance < maxLinkDistance) {
+            const opacity = (1 - distance / maxLinkDistance) * 0.4;
             ctx.strokeStyle = `rgba(99, 210, 255, ${opacity})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -256,24 +263,78 @@ function HistoryContent() {
       }
     }
 
-    function animate() {
+    const drawFrame = (animateFrame: boolean) => {
+      if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particlesArray.forEach((p) => {
-        updateParticle(p);
+        if (animateFrame) updateParticle(p);
         drawParticle(p);
       });
       connectParticles();
-      raf = requestAnimationFrame(animate);
-    }
+    };
 
+    const animate = (timestamp = 0) => {
+      if (!isRunning) return;
+      if (timestamp - lastFrame >= frameInterval) {
+        lastFrame = timestamp;
+        drawFrame(true);
+      }
+      animationId = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      isRunning = false;
+    };
+
+    const start = () => {
+      if (isRunning) return;
+      if (mediaQuery.matches || document.hidden) {
+        drawFrame(false);
+        return;
+      }
+      isRunning = true;
+      lastFrame = 0;
+      animate();
+    };
+
+    const handleVisibility = () => {
+      if (mediaQuery.matches || document.hidden) {
+        stop();
+        drawFrame(false);
+        return;
+      }
+      start();
+    };
+
+    const handleResize = () => {
+      resizeCanvas();
+      init();
+      if (!isRunning) {
+        drawFrame(false);
+      }
+    };
+
+    resizeCanvas();
     init();
-    animate();
+    handleVisibility();
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+    window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibility);
+    mediaQuery.addEventListener('change', handleVisibility);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseout', handleMouseOut);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      mediaQuery.removeEventListener('change', handleVisibility);
     };
   }, []);
 

@@ -91,7 +91,7 @@ class DreamEmbedRAG:
         self.rules = {}  # rule_file -> {rule_id -> rule_data}
         self.rule_texts = []  # [{file, rule_id, text, weight, category, ...}]
         self.rule_embeds = None
-        self.embed_cache_path = os.path.join(rules_dir, "dream_embeds_v2.pt")  # New cache for extended rules
+        self.embed_cache_path = os.path.join(rules_dir, "dream_embeds_v3_full_corpus.pt")  # v3: Jung+Stoic corpus
 
         # 치료적 질문 데이터 (jung_therapeutic.json)
         self.therapeutic_questions = {}
@@ -104,6 +104,8 @@ class DreamEmbedRAG:
         # 로드
         self._load_rules()
         self._load_jung_extensions()
+        self._load_jung_corpus()  # NEW: Load 23 Jung quote files
+        self._load_stoic_corpus()  # NEW: Load 3 Stoic philosophy files
         self._prepare_embeddings()
 
     @property
@@ -242,6 +244,128 @@ class DreamEmbedRAG:
                                 })
             except Exception as e:
                 print(f"[DreamEmbedRAG] Failed to load counseling scenarios: {e}")
+
+    def _load_jung_corpus(self):
+        """Load Jung quote corpus (23 files with 2,456+ lines of authentic Jung quotes)"""
+        # base_rules_dir is 'data/graph/rules', so go up to 'data' then to 'corpus/jung'
+        data_dir = os.path.dirname(os.path.dirname(self.base_rules_dir))  # Go up to 'data'
+        corpus_dir = os.path.join(data_dir, "corpus", "jung")
+
+        if not os.path.exists(corpus_dir):
+            print(f"[DreamEmbedRAG] Jung corpus directory not found: {corpus_dir}")
+            return
+
+        loaded_count = 0
+        quotes_count = 0
+
+        for filename in os.listdir(corpus_dir):
+            if not filename.endswith('.json'):
+                continue
+
+            filepath = os.path.join(corpus_dir, filename)
+            try:
+                with open(filepath, encoding='utf-8') as f:
+                    data = json.load(f)
+
+                    concept = data.get('concept', '')
+                    concept_kr = data.get('concept_kr', '')
+                    quotes = data.get('quotes', [])
+
+                    for quote in quotes:
+                        en = quote.get('en', '')
+                        kr = quote.get('kr', '')
+                        tags = quote.get('tags', [])
+                        context = quote.get('context', '')
+
+                        # Combine English and Korean for richer embedding
+                        text = f"{en} {kr}"
+                        if context:
+                            text += f" Context: {context}"
+
+                        if text.strip():
+                            self.rule_texts.append({
+                                'file': f'jung_corpus_{concept}',
+                                'rule_id': quote.get('id', f'quote_{quotes_count}'),
+                                'text': text,
+                                'weight': 9,  # High weight for authentic Jung quotes
+                                'category': 'jung_wisdom',
+                                'korean': kr,
+                                'advice': en,  # English quote as advice
+                                'original': en,
+                                'when': tags,
+                                'specifics': {
+                                    'concept_kr': concept_kr,
+                                    'source': quote.get('source', ''),
+                                    'year': quote.get('year', '')
+                                }
+                            })
+                            quotes_count += 1
+
+                    loaded_count += 1
+
+            except Exception as e:
+                print(f"[DreamEmbedRAG] Failed to load Jung corpus file {filename}: {e}")
+
+        print(f"[DreamEmbedRAG] Loaded Jung corpus: {loaded_count} files, {quotes_count} quotes")
+
+    def _load_stoic_corpus(self):
+        """Load Stoic philosophy corpus (3 files: Epictetus, Marcus Aurelius, Seneca)"""
+        # base_rules_dir is 'data/graph/rules', so go up to 'data' then to 'corpus/stoic'
+        data_dir = os.path.dirname(os.path.dirname(self.base_rules_dir))  # Go up to 'data'
+        corpus_dir = os.path.join(data_dir, "corpus", "stoic")
+
+        if not os.path.exists(corpus_dir):
+            print(f"[DreamEmbedRAG] Stoic corpus directory not found: {corpus_dir}")
+            return
+
+        loaded_count = 0
+        quotes_count = 0
+
+        for filename in os.listdir(corpus_dir):
+            if not filename.endswith('.json'):
+                continue
+
+            filepath = os.path.join(corpus_dir, filename)
+            try:
+                with open(filepath, encoding='utf-8') as f:
+                    data = json.load(f)
+
+                    philosopher = data.get('philosopher', '')
+                    philosopher_kr = data.get('philosopher_kr', '')
+                    quotes = data.get('quotes', [])
+
+                    for quote in quotes:
+                        en = quote.get('en', '')
+                        kr = quote.get('kr', '')
+                        tags = quote.get('tags', [])
+
+                        # Combine English and Korean for richer embedding
+                        text = f"{en} {kr}"
+
+                        if text.strip():
+                            self.rule_texts.append({
+                                'file': f'stoic_{philosopher}',
+                                'rule_id': quote.get('id', f'stoic_{quotes_count}'),
+                                'text': text,
+                                'weight': 8,  # High weight for Stoic wisdom
+                                'category': 'stoic_wisdom',
+                                'korean': kr,
+                                'advice': en,  # English quote as advice
+                                'original': en,
+                                'when': tags,
+                                'specifics': {
+                                    'philosopher_kr': philosopher_kr,
+                                    'source': quote.get('source', '')
+                                }
+                            })
+                            quotes_count += 1
+
+                    loaded_count += 1
+
+            except Exception as e:
+                print(f"[DreamEmbedRAG] Failed to load Stoic corpus file {filename}: {e}")
+
+        print(f"[DreamEmbedRAG] Loaded Stoic corpus: {loaded_count} files, {quotes_count} quotes")
 
     def _prepare_embeddings(self):
         """Prepare or load cached embeddings"""

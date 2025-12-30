@@ -10,9 +10,24 @@ type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
 type Step = "concern" | "spread-select" | "card-draw" | "interpreting" | "result";
 
+export interface TarotResultSummary {
+  question: string;
+  spreadTitle: string;
+  cards: Array<{
+    name: string;
+    isReversed: boolean;
+    position: string;
+    image: string;
+  }>;
+  overallMessage: string;
+  guidance?: string;
+  affirmation?: string;
+}
+
 interface InlineTarotModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onComplete?: (result: TarotResultSummary) => void;
   lang?: LangKey;
   profile: {
     name?: string;
@@ -31,6 +46,7 @@ const I18N: Record<string, {
   concernPlaceholder: string;
   concernHint: string;
   next: string;
+  autoSelect: string;
   spreadTitle: string;
   quickTip: string;
   normalTip: string;
@@ -48,13 +64,17 @@ const I18N: Record<string, {
   cards: string;
   drawAgain: string;
   yourConcern: string;
+  save: string;
+  saved: string;
+  analyzing: string;
 }> = {
   ko: {
     title: "타로 리딩",
     concernTitle: "어떤 고민이 있으신가요?",
     concernPlaceholder: "고민을 입력해주세요...",
     concernHint: "구체적으로 적을수록 더 정확한 해석이 가능해요",
-    next: "다음",
+    next: "직접 선택",
+    autoSelect: "🔮 AI가 골라줘",
     spreadTitle: "스프레드를 선택해주세요",
     quickTip: "빠른 답변",
     normalTip: "시간의 흐름",
@@ -72,13 +92,17 @@ const I18N: Record<string, {
     cards: "장",
     drawAgain: "🔄 다시 뽑기",
     yourConcern: "나의 고민",
+    save: "💾 저장하기",
+    saved: "✓ 저장됨",
+    analyzing: "질문 분석 중...",
   },
   en: {
     title: "Tarot Reading",
     concernTitle: "What's on your mind?",
     concernPlaceholder: "Enter your concern...",
     concernHint: "The more specific you are, the more accurate the reading",
-    next: "Next",
+    next: "Choose Manually",
+    autoSelect: "🔮 AI Picks",
     spreadTitle: "Choose a spread",
     quickTip: "Quick answer",
     normalTip: "Timeline view",
@@ -96,6 +120,9 @@ const I18N: Record<string, {
     cards: "cards",
     drawAgain: "🔄 Draw Again",
     yourConcern: "Your Concern",
+    save: "💾 Save",
+    saved: "✓ Saved",
+    analyzing: "Analyzing question...",
   },
 };
 
@@ -116,6 +143,7 @@ const themeToCategory: Record<string, string> = {
 export default function InlineTarotModal({
   isOpen,
   onClose,
+  onComplete,
   lang = "ko",
   profile,
   initialConcern = "",
@@ -136,6 +164,14 @@ export default function InlineTarotModal({
   const [cardInsights, setCardInsights] = useState<CardInsight[]>([]);
   const [guidance, setGuidance] = useState("");
   const [affirmation, setAffirmation] = useState("");
+
+  // Save state
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // AI auto-select state
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiReason, setAiReason] = useState("");
 
   // Get recommended spreads based on theme (memoized to avoid re-render)
   const recommendedSpreads = React.useMemo(() => {
@@ -162,13 +198,138 @@ export default function InlineTarotModal({
       setCardInsights([]);
       setGuidance("");
       setAffirmation("");
+      setIsSaved(false);
+      setIsSaving(false);
+      setIsAnalyzing(false);
+      setAiReason("");
     }
   }, [isOpen, initialConcern]);
 
-  // Handle concern submission
+  // Handle concern submission (manual select)
   const handleConcernNext = () => {
     if (concern.trim()) {
       setStep("spread-select");
+    }
+  };
+
+  // AI auto-select spread based on question
+  const handleAutoSelect = async () => {
+    if (!concern.trim()) return;
+
+    setIsAnalyzing(true);
+    try {
+      const res = await fetch("/api/tarot/analyze-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-token": process.env.NEXT_PUBLIC_API_TOKEN || "",
+        },
+        body: JSON.stringify({
+          question: concern,
+          language: lang,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to analyze question");
+      }
+
+      const data = await res.json();
+
+      // 위험한 질문인 경우
+      if (data.isDangerous) {
+        alert(data.message);
+        setIsAnalyzing(false);
+        return;
+      }
+
+      const selectedId = data.spreadId;
+      const reason = data.reason || data.userFriendlyExplanation || "";
+
+      // Find the spread from recommended spreads first
+      let spread = recommendedSpreads.find((s) => s.id === selectedId);
+
+      // If not found in recommended, use the first recommended spread
+      // but update category if AI suggested a different theme
+      if (!spread && recommendedSpreads.length > 0) {
+        // If the AI suggested a different category, try to find it there
+        if (data.themeId && data.themeId !== selectedCategory) {
+          const newCategory = tarotThemes.find((t) => t.id === data.themeId);
+          if (newCategory) {
+            spread = newCategory.spreads.find((s) => s.id === selectedId);
+            if (spread) {
+              setSelectedCategory(data.themeId);
+            }
+          }
+        }
+
+        // Still not found? Use first recommended
+        if (!spread) {
+          spread = recommendedSpreads[0];
+        }
+      }
+
+      if (spread) {
+        setSelectedSpread(spread);
+        setAiReason(reason);
+        setStep("card-draw");
+      } else {
+        // Fallback to manual selection
+        setStep("spread-select");
+      }
+    } catch (err) {
+      console.error("[InlineTarot] auto-select error:", err);
+      // Fallback to manual selection
+      setStep("spread-select");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Save tarot reading to database
+  const handleSave = async () => {
+    if (isSaving || isSaved || !selectedSpread) return;
+
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/tarot/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: concern,
+          theme: selectedCategory,
+          spreadId: selectedSpread.id,
+          spreadTitle: lang === "ko" ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
+          cards: drawnCards.map((dc, idx) => ({
+            cardId: dc.card.id,
+            name: lang === "ko" ? dc.card.nameKo || dc.card.name : dc.card.name,
+            image: dc.card.image,
+            isReversed: dc.isReversed,
+            position: lang === "ko"
+              ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+              : selectedSpread.positions[idx]?.title,
+          })),
+          overallMessage,
+          cardInsights,
+          guidance,
+          affirmation,
+          source: "counselor",
+          locale: lang,
+        }),
+      });
+
+      if (res.ok) {
+        setIsSaved(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        console.error("[InlineTarot] save error:", err);
+      }
+    } catch (err) {
+      console.error("[InlineTarot] save error:", err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -384,13 +545,22 @@ export default function InlineTarotModal({
                 autoFocus
               />
               <p className={styles.hint}>{tr.concernHint}</p>
-              <button
-                className={styles.primaryButton}
-                onClick={handleConcernNext}
-                disabled={!concern.trim()}
-              >
-                {tr.next}
-              </button>
+              <div className={styles.concernButtons}>
+                <button
+                  className={styles.secondaryButton}
+                  onClick={handleConcernNext}
+                  disabled={!concern.trim() || isAnalyzing}
+                >
+                  {tr.next}
+                </button>
+                <button
+                  className={styles.primaryButton}
+                  onClick={handleAutoSelect}
+                  disabled={!concern.trim() || isAnalyzing}
+                >
+                  {isAnalyzing ? tr.analyzing : tr.autoSelect}
+                </button>
+              </div>
             </div>
           )}
 
@@ -435,6 +605,11 @@ export default function InlineTarotModal({
                   ? selectedSpread?.titleKo || selectedSpread?.title
                   : selectedSpread?.title}
               </h3>
+
+              {/* AI 선택 이유 표시 */}
+              {aiReason && (
+                <p className={styles.aiReasonText}>✨ {aiReason}</p>
+              )}
 
               {drawnCards.length === 0 ? (
                 <div className={styles.drawArea}>
@@ -556,10 +731,17 @@ export default function InlineTarotModal({
                 ))}
               </div>
 
-              {/* Draw Again Button */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+              {/* Draw Again & Save Buttons */}
+              <div className={styles.resultTopActions}>
                 <button className={styles.drawAgainButton} onClick={handleDrawAgain}>
                   {tr.drawAgain}
+                </button>
+                <button
+                  className={`${styles.saveButton} ${isSaved ? styles.saved : ""}`}
+                  onClick={handleSave}
+                  disabled={isSaving || isSaved}
+                >
+                  {isSaving ? "..." : isSaved ? tr.saved : tr.save}
                 </button>
               </div>
 
@@ -589,7 +771,32 @@ export default function InlineTarotModal({
 
               {/* Action Buttons */}
               <div className={styles.resultActions}>
-                <button className={styles.secondaryButton} onClick={onClose}>
+                <button
+                  className={styles.secondaryButton}
+                  onClick={() => {
+                    // Call onComplete with result summary for chat integration
+                    if (onComplete && selectedSpread) {
+                      onComplete({
+                        question: concern,
+                        spreadTitle: lang === "ko"
+                          ? selectedSpread.titleKo || selectedSpread.title
+                          : selectedSpread.title,
+                        cards: drawnCards.map((dc, idx) => ({
+                          name: lang === "ko" ? dc.card.nameKo || dc.card.name : dc.card.name,
+                          isReversed: dc.isReversed,
+                          position: lang === "ko"
+                            ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+                            : selectedSpread.positions[idx]?.title,
+                          image: dc.card.image,
+                        })),
+                        overallMessage,
+                        guidance: guidance || undefined,
+                        affirmation: affirmation || undefined,
+                      });
+                    }
+                    onClose();
+                  }}
+                >
                   {tr.continueChat}
                 </button>
                 <button className={styles.primaryButton} onClick={goToFullTarot}>

@@ -4,11 +4,13 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useI18n, DICTS } from "@/i18n/I18nProvider";
 import { useToast } from "@/components/ui/Toast";
 import { PostSkeleton } from "@/components/ui/Skeleton";
 import styles from "./community.module.css";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 // Prevent static export errors; this page depends on client/session data.
 export const dynamic = "force-dynamic";
@@ -186,6 +188,8 @@ function TimeStamp({ epoch }: { epoch: number }) {
 export default function CommunityPage() {
   const { data: session } = useSession();
   const { t, locale } = useI18n();
+  const pathname = usePathname();
+  const signInUrl = buildSignInUrl(pathname || "/community");
   const toast = useToast();
   const isLoggedIn = !!session?.user;
   const canvasRef = useRef<HTMLCanvasElement>(null!);
@@ -230,6 +234,8 @@ export default function CommunityPage() {
 
     let particlesArray: Particle[] = [];
     let raf = 0;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
 
     const mouse = {
       x: undefined as number | undefined,
@@ -332,13 +338,16 @@ export default function CommunityPage() {
       }
     }
 
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-      connectParticles();
+    function animate(timestamp = 0) {
+      if (timestamp - lastFrame >= frameInterval) {
+        lastFrame = timestamp;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach((p) => {
+          p.update();
+          p.draw();
+        });
+        connectParticles();
+      }
       raf = requestAnimationFrame(animate);
     }
 
@@ -672,9 +681,9 @@ export default function CommunityPage() {
               {t("community.logout", "Log out")}
             </button>
           ) : (
-            <button onClick={() => signIn()} className={styles.loginBtn}>
+            <Link href={signInUrl} className={styles.loginBtn}>
               {t("community.login", "Log in")}
-            </button>
+            </Link>
           )}
         </div>
         </header>
@@ -839,9 +848,9 @@ export default function CommunityPage() {
         {!isLoggedIn && (
           <div className={styles.loginPrompt}>
           <p>{t("community.loginToPost", "Log in to create posts and join the discussion")}</p>
-          <button onClick={() => signIn()} className={styles.loginPromptBtn}>
+          <Link href={signInUrl} className={styles.loginPromptBtn}>
             {t("community.login", "Log in")}
-          </button>
+          </Link>
           </div>
         )}
 

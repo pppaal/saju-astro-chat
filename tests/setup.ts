@@ -6,18 +6,26 @@
 
 import { vi } from "vitest";
 
-// Mock environment variables for testing
-process.env.NODE_ENV = "test";
-process.env.NEXTAUTH_SECRET = "test-secret-at-least-32-characters-long";
-process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
-process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
-process.env.ADMIN_API_TOKEN = "test-admin-token";
-process.env.CRON_SECRET = "test-cron-secret";
-process.env.METRICS_TOKEN = "test-metrics-token";
-process.env.NEXT_PUBLIC_AI_BACKEND = "http://localhost:5000";
+const shouldUseRealFetch =
+  process.env.npm_lifecycle_event === "test:e2e:api" ||
+  process.env.VITEST_REAL_FETCH === "1";
 
-// Mock fetch globally
-global.fetch = vi.fn();
+// Mock environment variables for unit/integration tests only.
+process.env.NODE_ENV = process.env.NODE_ENV || "test";
+if (!shouldUseRealFetch) {
+  process.env.NEXTAUTH_SECRET = "test-secret-at-least-32-characters-long";
+  process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+  process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
+  process.env.ADMIN_API_TOKEN = "test-admin-token";
+  process.env.CRON_SECRET = "test-cron-secret";
+  process.env.METRICS_TOKEN = "test-metrics-token";
+  process.env.NEXT_PUBLIC_AI_BACKEND = "http://localhost:5000";
+}
+
+// Mock fetch globally for unit/integration tests.
+if (!shouldUseRealFetch) {
+  global.fetch = vi.fn();
+}
 
 // Reset all mocks after each test
 afterEach(() => {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./ShareButton.module.css";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 interface ShareButtonProps {
   variant?: "full" | "compact";
@@ -14,6 +15,7 @@ interface ShareButtonProps {
 export default function ShareButton({ variant = "full", className }: ShareButtonProps) {
   const { t } = useI18n();
   const { data: session } = useSession();
+  const signInUrl = buildSignInUrl();
   const [isOpen, setIsOpen] = useState(false);
   const [referralUrl, setReferralUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -155,7 +157,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
 
           {!session && (
             <div className={styles.loginHint}>
-              <Link href="/auth/signin">{t("share.loginHint", "Sign in to earn referral credits!")}</Link>
+              <Link href={signInUrl}>{t("share.loginHint", "Sign in to earn referral credits!")}</Link>
             </div>
           )}
         </div>

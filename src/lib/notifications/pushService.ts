@@ -1,48 +1,306 @@
 /**
  * Push Notification Service
- * 푸시 알림 발송 서비스
- * TODO: PushSubscription 모델이 Prisma 스키마에 추가되면 전체 구현 활성화
+ * 푸시 알림 발송 서비스 - web-push 사용
  */
 
-import { prisma } from "@/lib/db/prisma";
+import webpush from 'web-push';
+import { prisma } from '@/lib/db/prisma';
 import {
   generateDailyNotifications,
   getNotificationsForHour,
   type DailyNotification,
-} from "./dailyTransitNotifications";
+} from './dailyTransitNotifications';
+
+// VAPID 설정 초기화
+let vapidConfigured = false;
+
+function initializeVapid() {
+  if (vapidConfigured) return true;
+
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT || 'mailto:admin@destinypal.me';
+
+  if (!publicKey || !privateKey) {
+    console.warn('[pushService] VAPID keys not configured');
+    return false;
+  }
+
+  try {
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+    vapidConfigured = true;
+    return true;
+  } catch (error) {
+    console.error('[pushService] Failed to set VAPID details:', error);
+    return false;
+  }
+}
+
+export interface PushPayload {
+  title: string;
+  message: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: {
+    url?: string;
+    [key: string]: unknown;
+  };
+  requireInteraction?: boolean;
+}
 
 /**
  * 단일 사용자에게 푸시 알림 발송
  */
 export async function sendPushNotification(
   userId: string,
-  notification: DailyNotification
-): Promise<{ success: boolean; error?: string }> {
-  // PushSubscription 모델이 아직 구현되지 않음
-  void userId;
-  void notification;
-  return { success: false, error: "Push subscription not implemented yet" };
+  payload: PushPayload | DailyNotification
+): Promise<{ success: boolean; sent: number; failed: number; error?: string }> {
+  if (!initializeVapid()) {
+    return { success: false, sent: 0, failed: 0, error: 'VAPID not configured' };
+  }
+
+  // 사용자의 활성화된 구독 조회
+  const subscriptions = await prisma.pushSubscription.findMany({
+    where: { userId, isActive: true },
+  });
+
+  if (subscriptions.length === 0) {
+    return { success: false, sent: 0, failed: 0, error: 'No active subscriptions' };
+  }
+
+  // DailyNotification을 PushPayload로 변환
+  const pushPayload: PushPayload =
+    'type' in payload
+      ? {
+          title: payload.title,
+          message: payload.message,
+          icon: '/icon-192.png',
+          badge: '/badge-72.png',
+          tag: payload.type,
+          data: payload.data || { url: '/notifications' },
+        }
+      : payload;
+
+  const payloadString = JSON.stringify({
+    title: pushPayload.title,
+    message: pushPayload.message,
+    icon: pushPayload.icon || '/icon-192.png',
+    badge: pushPayload.badge || '/badge-72.png',
+    tag: pushPayload.tag || 'destinypal',
+    data: pushPayload.data || { url: '/notifications' },
+    requireInteraction: pushPayload.requireInteraction || false,
+  });
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const sub of subscriptions) {
+    try {
+      await webpush.sendNotification(
+        {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+          },
+        },
+        payloadString
+      );
+
+      // 성공: 마지막 사용 시간 업데이트, 실패 카운트 리셋
+      await prisma.pushSubscription.update({
+        where: { id: sub.id },
+        data: { lastUsedAt: new Date(), failCount: 0 },
+      });
+
+      sent++;
+    } catch (error: any) {
+      console.error(`[pushService] Failed to send to ${sub.id}:`, error.message);
+
+      // 410 Gone 또는 404: 구독이 만료/삭제됨
+      if (error.statusCode === 404 || error.statusCode === 410) {
+        await prisma.pushSubscription.update({
+          where: { id: sub.id },
+          data: { isActive: false },
+        });
+      } else {
+        // 기타 에러: 실패 카운트 증가
+        const newFailCount = sub.failCount + 1;
+        await prisma.pushSubscription.update({
+          where: { id: sub.id },
+          data: {
+            failCount: newFailCount,
+            // 5번 이상 실패하면 비활성화
+            isActive: newFailCount < 5,
+          },
+        });
+      }
+
+      failed++;
+    }
+  }
+
+  return { success: sent > 0, sent, failed };
 }
 
 /**
  * 특정 시간대의 모든 알림 발송 (스케줄러용)
  */
-export async function sendScheduledNotifications(
-  hour: number
-): Promise<{
+export async function sendScheduledNotifications(hour: number): Promise<{
   total: number;
   sent: number;
   failed: number;
   errors: string[];
 }> {
-  void hour;
-  // PushSubscription 모델이 아직 구현되지 않음
+  if (!initializeVapid()) {
+    return { total: 0, sent: 0, failed: 0, errors: ['VAPID not configured'] };
+  }
+
+  // 활성 푸시 구독이 있는 사용자 조회
+  const users = await prisma.user.findMany({
+    where: {
+      birthDate: { not: null },
+      pushSubscriptions: { some: { isActive: true } },
+    },
+    select: {
+      id: true,
+      name: true,
+      birthDate: true,
+      birthTime: true,
+      personaMemory: {
+        select: {
+          sajuProfile: true,
+          birthChart: true,
+        },
+      },
+    },
+    take: 1000, // 배치 크기 제한
+  });
+
+  let totalSent = 0;
+  let totalFailed = 0;
+  const errors: string[] = [];
+
+  for (const user of users) {
+    try {
+      const sajuProfile = (user.personaMemory?.sajuProfile as any) || {};
+      const birthChart = (user.personaMemory?.birthChart as any) || {};
+
+      // 알림 생성
+      const allNotifications = generateDailyNotifications(
+        {
+          dayMaster: sajuProfile.dayMaster,
+          pillars: sajuProfile.pillars,
+          unse: sajuProfile.unse,
+        },
+        {
+          transits: birthChart.transits,
+          planets: birthChart.planets,
+        },
+        {
+          birthDate: user.birthDate!,
+          birthTime: user.birthTime || undefined,
+          name: user.name || undefined,
+        }
+      );
+
+      // 해당 시간의 알림만 필터링
+      const hourlyNotifications = getNotificationsForHour(allNotifications, hour);
+
+      for (const notification of hourlyNotifications) {
+        const result = await sendPushNotification(user.id, notification);
+        totalSent += result.sent;
+        totalFailed += result.failed;
+      }
+    } catch (error: any) {
+      console.error(`[pushService] Error for user ${user.id}:`, error.message);
+      errors.push(`User ${user.id}: ${error.message}`);
+      totalFailed++;
+    }
+  }
+
   return {
-    total: 0,
-    sent: 0,
-    failed: 0,
-    errors: ["Push subscription not implemented yet"],
+    total: users.length,
+    sent: totalSent,
+    failed: totalFailed,
+    errors,
   };
+}
+
+/**
+ * 모든 활성 사용자에게 브로드캐스트 알림
+ */
+export async function sendBroadcastNotification(
+  payload: PushPayload
+): Promise<{ totalUsers: number; sent: number; failed: number }> {
+  if (!initializeVapid()) {
+    return { totalUsers: 0, sent: 0, failed: 0 };
+  }
+
+  // 활성 구독이 있는 모든 사용자 ID 조회
+  const userIds = await prisma.pushSubscription.findMany({
+    where: { isActive: true },
+    select: { userId: true },
+    distinct: ['userId'],
+  });
+
+  let totalSent = 0;
+  let totalFailed = 0;
+
+  for (const { userId } of userIds) {
+    const result = await sendPushNotification(userId, payload);
+    totalSent += result.sent;
+    totalFailed += result.failed;
+  }
+
+  return {
+    totalUsers: userIds.length,
+    sent: totalSent,
+    failed: totalFailed,
+  };
+}
+
+/**
+ * 푸시 구독 저장
+ */
+export async function savePushSubscription(
+  userId: string,
+  subscription: {
+    endpoint: string;
+    keys: { p256dh: string; auth: string };
+  },
+  userAgent?: string
+): Promise<void> {
+  await prisma.pushSubscription.upsert({
+    where: { endpoint: subscription.endpoint },
+    update: {
+      userId,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      userAgent,
+      isActive: true,
+      failCount: 0,
+    },
+    create: {
+      userId,
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      userAgent,
+      isActive: true,
+    },
+  });
+}
+
+/**
+ * 푸시 구독 제거 (비활성화)
+ */
+export async function removePushSubscription(endpoint: string): Promise<void> {
+  await prisma.pushSubscription.updateMany({
+    where: { endpoint },
+    data: { isActive: false },
+  });
 }
 
 /**
@@ -94,19 +352,12 @@ export async function previewUserNotifications(
  */
 export async function sendTestNotification(
   userId: string
-): Promise<{ success: boolean; error?: string }> {
-  const testNotification: DailyNotification = {
-    type: "daily_fortune",
-    title: "🔔 테스트 알림",
-    message: "푸시 알림이 정상적으로 작동합니다!",
-    emoji: "🔔",
-    scheduledHour: new Date().getHours(),
-    confidence: 5,
-    category: "positive",
-    data: {
-      url: "/settings",
-    },
-  };
-
-  return sendPushNotification(userId, testNotification);
+): Promise<{ success: boolean; sent: number; failed: number; error?: string }> {
+  return sendPushNotification(userId, {
+    title: '테스트 알림',
+    message: '푸시 알림이 정상적으로 작동합니다!',
+    icon: '/icon-192.png',
+    tag: 'test',
+    data: { url: '/profile' },
+  });
 }

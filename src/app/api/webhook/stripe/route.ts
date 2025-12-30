@@ -7,6 +7,12 @@ import { getClientIp } from "@/lib/request-ip"
 import { captureServerError } from "@/lib/telemetry"
 import { recordCounter } from "@/lib/metrics"
 import { upgradePlan, addBonusCredits, type PlanType } from "@/lib/credits/creditService"
+import {
+  sendPaymentReceiptEmail,
+  sendSubscriptionConfirmEmail,
+  sendSubscriptionCancelledEmail,
+  sendPaymentFailedEmail,
+} from "@/lib/email"
 
 export const dynamic = "force-dynamic"
 
@@ -173,6 +179,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw err
   }
 
+  // 결제 완료 이메일 발송
+  if (user.email) {
+    const packNames: Record<string, string> = {
+      mini: 'Mini (5 Credits)',
+      standard: 'Standard (15 Credits)',
+      plus: 'Plus (40 Credits)',
+      mega: 'Mega (100 Credits)',
+      ultimate: 'Ultimate (250 Credits)',
+    }
+    sendPaymentReceiptEmail(userId, user.email, {
+      userName: user.name || undefined,
+      amount: session.amount_total || 0,
+      currency: session.currency || 'krw',
+      productName: packNames[creditPack] || `${creditPack} Credit Pack`,
+      transactionId: session.id,
+    }).catch((err) => {
+      console.error('[Stripe Webhook] Failed to send payment receipt email:', err)
+    })
+  }
+
   // 구매 기록 저장 (선택사항) - CreditPurchase 모델이 스키마에 없음
   // await prisma.creditPurchase.create({
   //   data: {
@@ -257,6 +283,21 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
   }
 
+  // 구독 확인 이메일 발송
+  if (email) {
+    const nextBillingDate = periodEnd
+      ? new Date(periodEnd * 1000).toLocaleDateString('ko-KR')
+      : undefined
+    sendSubscriptionConfirmEmail(user.id, email, {
+      userName: user.name || undefined,
+      planName: plan,
+      billingCycle,
+      nextBillingDate,
+    }).catch((err) => {
+      console.error('[Stripe Webhook] Failed to send subscription confirm email:', err)
+    })
+  }
+
   console.warn(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
 }
 
@@ -332,6 +373,20 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     console.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
   }
 
+  // 구독 취소 이메일 발송
+  const user = await prisma.user.findUnique({
+    where: { id: existing.userId },
+    select: { email: true, name: true },
+  })
+  if (user?.email) {
+    sendSubscriptionCancelledEmail(existing.userId, user.email, {
+      userName: user.name || undefined,
+      planName: existing.plan,
+    }).catch((err) => {
+      console.error('[Stripe Webhook] Failed to send subscription cancelled email:', err)
+    })
+  }
+
   console.warn(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
 }
 
@@ -380,6 +435,20 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
         status: "past_due",
       },
     })
+
+    // 결제 실패 이메일 발송
+    const user = await prisma.user.findUnique({
+      where: { id: existing.userId },
+      select: { email: true, name: true },
+    })
+    if (user?.email) {
+      sendPaymentFailedEmail(existing.userId, user.email, {
+        userName: user.name || undefined,
+        planName: existing.plan,
+      }).catch((err) => {
+        console.error('[Stripe Webhook] Failed to send payment failed email:', err)
+      })
+    }
   }
 
   console.warn(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)

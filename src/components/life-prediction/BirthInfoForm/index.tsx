@@ -17,20 +17,118 @@ interface BirthInfoFormProps {
   initialData?: Partial<BirthInfo>;
 }
 
+// 12시진 (Korean traditional time periods)
+const TIME_PERIODS = [
+  { id: 'unknown', label: '모름', labelEn: "Don't know", time: '12:00' },
+  { id: 'ja', label: '자시 (23:00-01:00)', labelEn: 'Ja (23:00-01:00)', time: '00:00' },
+  { id: 'chuk', label: '축시 (01:00-03:00)', labelEn: 'Chuk (01:00-03:00)', time: '02:00' },
+  { id: 'in', label: '인시 (03:00-05:00)', labelEn: 'In (03:00-05:00)', time: '04:00' },
+  { id: 'myo', label: '묘시 (05:00-07:00)', labelEn: 'Myo (05:00-07:00)', time: '06:00' },
+  { id: 'jin', label: '진시 (07:00-09:00)', labelEn: 'Jin (07:00-09:00)', time: '08:00' },
+  { id: 'sa', label: '사시 (09:00-11:00)', labelEn: 'Sa (09:00-11:00)', time: '10:00' },
+  { id: 'o', label: '오시 (11:00-13:00)', labelEn: 'O (11:00-13:00)', time: '12:00' },
+  { id: 'mi', label: '미시 (13:00-15:00)', labelEn: 'Mi (13:00-15:00)', time: '14:00' },
+  { id: 'sin', label: '신시 (15:00-17:00)', labelEn: 'Sin (15:00-17:00)', time: '16:00' },
+  { id: 'yu', label: '유시 (17:00-19:00)', labelEn: 'Yu (17:00-19:00)', time: '18:00' },
+  { id: 'sul', label: '술시 (19:00-21:00)', labelEn: 'Sul (19:00-21:00)', time: '20:00' },
+  { id: 'hae', label: '해시 (21:00-23:00)', labelEn: 'Hae (21:00-23:00)', time: '22:00' },
+];
+
+// Helper to parse initial date
+function parseInitialDate(dateStr?: string) {
+  if (!dateStr) return { year: '', month: '', day: '' };
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return { year: parts[0], month: parts[1], day: parts[2] };
+  }
+  return { year: '', month: '', day: '' };
+}
+
+// Helper to find time period from time string
+function findTimePeriodFromTime(timeStr?: string): string {
+  if (!timeStr) return 'unknown';
+  const [hours] = timeStr.split(':').map(Number);
+  if (hours >= 23 || hours < 1) return 'ja';
+  if (hours >= 1 && hours < 3) return 'chuk';
+  if (hours >= 3 && hours < 5) return 'in';
+  if (hours >= 5 && hours < 7) return 'myo';
+  if (hours >= 7 && hours < 9) return 'jin';
+  if (hours >= 9 && hours < 11) return 'sa';
+  if (hours >= 11 && hours < 13) return 'o';
+  if (hours >= 13 && hours < 15) return 'mi';
+  if (hours >= 15 && hours < 17) return 'sin';
+  if (hours >= 17 && hours < 19) return 'yu';
+  if (hours >= 19 && hours < 21) return 'sul';
+  if (hours >= 21 && hours < 23) return 'hae';
+  return 'unknown';
+}
+
+// Generate year options (1920 to current year)
+function generateYearOptions() {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let y = currentYear; y >= 1920; y--) {
+    years.push(y);
+  }
+  return years;
+}
+
+// Generate month options (1-12)
+function generateMonthOptions() {
+  return Array.from({ length: 12 }, (_, i) => i + 1);
+}
+
+// Generate day options based on year and month
+function generateDayOptions(year: number, month: number) {
+  if (!year || !month) return Array.from({ length: 31 }, (_, i) => i + 1);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+}
+
 export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInfoFormProps) {
   const { status } = useSession();
 
-  const [birthDate, setBirthDate] = useState(initialData?.birthDate || '');
-  const [birthTime, setBirthTime] = useState(initialData?.birthTime || '12:00');
+  // Parse initial date into year, month, day
+  const initialParsed = parseInitialDate(initialData?.birthDate);
+
+  const [birthYear, setBirthYear] = useState(initialParsed.year);
+  const [birthMonth, setBirthMonth] = useState(initialParsed.month);
+  const [birthDay, setBirthDay] = useState(initialParsed.day);
+  const [timePeriod, setTimePeriod] = useState(findTimePeriodFromTime(initialData?.birthTime));
   const [gender, setGender] = useState<'M' | 'F'>(initialData?.gender || 'M');
   const [birthCity, setBirthCity] = useState(initialData?.birthCity || '');
-  const [showTimeInput, setShowTimeInput] = useState(!!initialData?.birthTime);
   const [showCityInput, setShowCityInput] = useState(!!initialData?.birthCity);
 
   // Profile loading states
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Computed values
+  const yearOptions = generateYearOptions();
+  const monthOptions = generateMonthOptions();
+  const dayOptions = generateDayOptions(
+    birthYear ? parseInt(birthYear) : 0,
+    birthMonth ? parseInt(birthMonth) : 0
+  );
+
+  // Check if date is valid
+  const isDateValid = birthYear && birthMonth && birthDay;
+
+  // Build date string
+  const buildDateString = () => {
+    if (!birthYear || !birthMonth || !birthDay) return '';
+    const y = birthYear.padStart(4, '0');
+    const m = birthMonth.padStart(2, '0');
+    const d = birthDay.padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  // Get time from time period
+  const getTimeFromPeriod = () => {
+    const period = TIME_PERIODS.find(p => p.id === timePeriod);
+    return period?.time || '12:00';
+  };
 
   // Load profile from API
   const handleLoadProfile = useCallback(async () => {
@@ -58,20 +156,23 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
         return;
       }
 
-      // Set form fields from profile
-      setBirthDate(user.birthDate || '');
-      // 시간이 있으면 설정하고, 시간 입력 필드를 표시
+      // Parse and set date fields
+      const parsed = parseInitialDate(user.birthDate);
+      setBirthYear(parsed.year);
+      setBirthMonth(parsed.month.replace(/^0/, '')); // Remove leading zero for select
+      setBirthDay(parsed.day.replace(/^0/, '')); // Remove leading zero for select
+
+      // Set time period from birthTime
       if (user.birthTime && user.birthTime.trim() !== '') {
         console.log('[BirthInfoForm] Setting birthTime:', user.birthTime);
-        setBirthTime(user.birthTime);
-        setShowTimeInput(true);
-      } else {
-        console.log('[BirthInfoForm] No birthTime in profile');
+        setTimePeriod(findTimePeriodFromTime(user.birthTime));
       }
+
       if (user.gender) {
         setGender(user.gender === 'M' || user.gender === 'F' ? user.gender : 'M');
       }
-      // 출생 도시가 있으면 설정
+
+      // Set birth city
       if (user.birthCity && user.birthCity.trim() !== '') {
         console.log('[BirthInfoForm] Setting birthCity:', user.birthCity);
         setBirthCity(user.birthCity);
@@ -89,11 +190,11 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!birthDate) return;
+    if (!isDateValid) return;
 
     onSubmit({
-      birthDate,
-      birthTime: showTimeInput ? birthTime : '12:00',
+      birthDate: buildDateString(),
+      birthTime: getTimeFromPeriod(),
       gender,
       birthCity: showCityInput ? birthCity : undefined,
     });
@@ -152,21 +253,68 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
       )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        {/* Birth Date */}
+        {/* Birth Date - Year/Month/Day Selects */}
         <div className={styles.fieldGroup}>
           <label className={styles.label}>
             {locale === 'ko' ? '생년월일' : 'Birth Date'}
             <span className={styles.required}>*</span>
           </label>
-          <input
-            type="date"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            className={styles.input}
-            required
-            max={new Date().toISOString().split('T')[0]}
-            min="1900-01-01"
-          />
+          <div className={styles.dateSelectGroup}>
+            {/* Year */}
+            <div className={styles.dateSelectWrapper}>
+              <select
+                value={birthYear}
+                onChange={(e) => setBirthYear(e.target.value)}
+                className={styles.dateSelect}
+                required
+              >
+                <option value="">{locale === 'ko' ? '년도' : 'Year'}</option>
+                {yearOptions.map(year => (
+                  <option key={year} value={year.toString()}>{year}{locale === 'ko' ? '년' : ''}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Month */}
+            <div className={styles.dateSelectWrapper}>
+              <select
+                value={birthMonth}
+                onChange={(e) => {
+                  setBirthMonth(e.target.value);
+                  // Reset day if it's invalid for new month
+                  const newDays = generateDayOptions(
+                    birthYear ? parseInt(birthYear) : 0,
+                    parseInt(e.target.value)
+                  );
+                  if (birthDay && parseInt(birthDay) > newDays.length) {
+                    setBirthDay('');
+                  }
+                }}
+                className={styles.dateSelect}
+                required
+              >
+                <option value="">{locale === 'ko' ? '월' : 'Month'}</option>
+                {monthOptions.map(month => (
+                  <option key={month} value={month.toString()}>{month}{locale === 'ko' ? '월' : ''}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Day */}
+            <div className={styles.dateSelectWrapper}>
+              <select
+                value={birthDay}
+                onChange={(e) => setBirthDay(e.target.value)}
+                className={styles.dateSelect}
+                required
+              >
+                <option value="">{locale === 'ko' ? '일' : 'Day'}</option>
+                {dayOptions.map(day => (
+                  <option key={day} value={day.toString()}>{day}{locale === 'ko' ? '일' : ''}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Gender */}
@@ -195,34 +343,27 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
           </div>
         </div>
 
-        {/* Birth Time Toggle */}
+        {/* Birth Time - 12시진 Selection */}
         <div className={styles.fieldGroup}>
-          <button
-            type="button"
-            className={styles.toggleBtn}
-            onClick={() => setShowTimeInput(!showTimeInput)}
+          <label className={styles.label}>
+            {locale === 'ko' ? '태어난 시간' : 'Birth Time'}
+          </label>
+          <select
+            value={timePeriod}
+            onChange={(e) => setTimePeriod(e.target.value)}
+            className={styles.timeSelect}
           >
-            <span className={styles.toggleIcon}>{showTimeInput ? '▼' : '▶'}</span>
-            <span>
-              {locale === 'ko' ? '태어난 시간 입력 (선택)' : 'Birth Time (Optional)'}
-            </span>
-          </button>
-
-          {showTimeInput && (
-            <div className={styles.timeInputWrapper}>
-              <input
-                type="time"
-                value={birthTime}
-                onChange={(e) => setBirthTime(e.target.value)}
-                className={styles.input}
-              />
-              <p className={styles.timeHint}>
-                {locale === 'ko'
-                  ? '모르시면 12:00(정오)로 자동 설정됩니다'
-                  : 'Defaults to 12:00 PM if unknown'}
-              </p>
-            </div>
-          )}
+            {TIME_PERIODS.map(period => (
+              <option key={period.id} value={period.id}>
+                {locale === 'ko' ? period.label : period.labelEn}
+              </option>
+            ))}
+          </select>
+          <p className={styles.timeHint}>
+            {locale === 'ko'
+              ? '정확한 시간을 모르시면 "모름"을 선택해주세요'
+              : 'Select "Don\'t know" if you\'re unsure'}
+          </p>
         </div>
 
         {/* Birth City Toggle */}
@@ -260,7 +401,7 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
         <button
           type="submit"
           className={styles.submitBtn}
-          disabled={!birthDate}
+          disabled={!isDateValid}
         >
           <span>✨</span>
           <span>{locale === 'ko' ? '시작하기' : 'Get Started'}</span>

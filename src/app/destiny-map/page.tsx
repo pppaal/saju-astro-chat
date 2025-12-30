@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, SessionProvider } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
@@ -31,11 +31,7 @@ function extractCityPart(input: string) {
 }
 
 export default function DestinyMapPage() {
-  return (
-    <SessionProvider>
-      <DestinyMapContent />
-    </SessionProvider>
-  );
+  return <DestinyMapContent />;
 }
 
 function DestinyMapContent() {
@@ -139,17 +135,20 @@ function DestinyMapContent() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const PARTICLE_COUNT = 80;
-    const MAX_LINK_DISTANCE = 120;
-    const PARTICLE_BASE_SPEED = 0.3;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const PARTICLE_COLOR = '#a78bfa';
 
     let particlesArray: Particle[] = [];
-    let raf = 0;
+    let animationId: number | null = null;
+    let isRunning = false;
+    let lastFrame = 0;
+    const frameInterval = 1000 / 30;
+    let particleCount = 80;
+    let maxLinkDistance = 120;
+    let particleBaseSpeed = 0.3;
 
     const mouse = {
       x: undefined as number | undefined,
@@ -165,15 +164,18 @@ function DestinyMapContent() {
       mouse.x = undefined;
       mouse.y = undefined;
     };
-    const handleResize = () => {
+
+    const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      init();
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseout', handleMouseOut);
-    window.addEventListener('resize', handleResize);
+    const updateSettings = () => {
+      const width = canvas.width;
+      particleCount = width < 640 ? 40 : width < 1024 ? 60 : 80;
+      maxLinkDistance = width < 640 ? 90 : 120;
+      particleBaseSpeed = width < 640 ? 0.2 : 0.3;
+    };
 
     class ParticleImpl implements Particle {
       x: number;
@@ -187,8 +189,8 @@ function DestinyMapContent() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.size = Math.random() * 2 + 1;
-        this.speedX = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
-        this.speedY = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
+        this.speedX = (Math.random() * 2 - 1) * particleBaseSpeed;
+        this.speedY = (Math.random() * 2 - 1) * particleBaseSpeed;
         this.color = PARTICLE_COLOR;
       }
 
@@ -216,6 +218,7 @@ function DestinyMapContent() {
       }
 
       draw() {
+        if (!ctx) return;
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -225,21 +228,23 @@ function DestinyMapContent() {
 
     function init() {
       particlesArray = [];
+      updateSettings();
       let numberOfParticles = (canvas.height * canvas.width) / 15000;
-      numberOfParticles = Math.min(numberOfParticles, PARTICLE_COUNT);
+      numberOfParticles = Math.min(numberOfParticles, particleCount);
       for (let i = 0; i < numberOfParticles; i++) {
         particlesArray.push(new ParticleImpl());
       }
     }
 
     function connectParticles() {
+      if (!ctx) return;
       for (let a = 0; a < particlesArray.length; a++) {
         for (let b = a; b < particlesArray.length; b++) {
           const dx = particlesArray[a].x - particlesArray[b].x;
           const dy = particlesArray[a].y - particlesArray[b].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < MAX_LINK_DISTANCE) {
-            const opacity = 1 - distance / MAX_LINK_DISTANCE;
+          if (distance < maxLinkDistance) {
+            const opacity = 1 - distance / maxLinkDistance;
             ctx.strokeStyle = `rgba(167, 139, 250, ${opacity * 0.5})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -251,24 +256,78 @@ function DestinyMapContent() {
       }
     }
 
-    function animate() {
+    const drawFrame = (animateFrame: boolean) => {
+      if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particlesArray.forEach((p) => {
-        p.update();
+        if (animateFrame) p.update();
         p.draw();
       });
       connectParticles();
-      raf = requestAnimationFrame(animate);
-    }
+    };
 
+    const animate = (timestamp = 0) => {
+      if (!isRunning) return;
+      if (timestamp - lastFrame >= frameInterval) {
+        lastFrame = timestamp;
+        drawFrame(true);
+      }
+      animationId = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      isRunning = false;
+    };
+
+    const start = () => {
+      if (isRunning) return;
+      if (mediaQuery.matches || document.hidden) {
+        drawFrame(false);
+        return;
+      }
+      isRunning = true;
+      lastFrame = 0;
+      animate();
+    };
+
+    const handleVisibility = () => {
+      if (mediaQuery.matches || document.hidden) {
+        stop();
+        drawFrame(false);
+        return;
+      }
+      start();
+    };
+
+    const handleResize = () => {
+      resizeCanvas();
+      init();
+      if (!isRunning) {
+        drawFrame(false);
+      }
+    };
+
+    resizeCanvas();
     init();
-    animate();
+    handleVisibility();
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+    window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibility);
+    mediaQuery.addEventListener('change', handleVisibility);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseout', handleMouseOut);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      mediaQuery.removeEventListener('change', handleVisibility);
     };
   }, []);
 

@@ -40,15 +40,24 @@ export default defineConfig({
         "src/**/*.d.ts",
         "src/**/*.test.{ts,tsx}",
         "src/**/*.spec.{ts,tsx}",
+        // UI-heavy areas covered by E2E instead of unit coverage.
+        "src/app/**",
+        "src/components/**",
+        "src/styles/**",
+        "src/data/**",
+        "src/lib/**/data/**",
+        "src/lib/**/tarot-data.ts",
+        "src/lib/**/tarot-spreads-data.ts",
+        "src/lib/**/tarot-counselors.ts",
         "src/types/**",
         "src/generated/**",
       ],
       // Baseline thresholds to prevent regressions; raise as coverage improves.
       thresholds: {
-        lines: 3,
-        functions: 2,
-        branches: 1,
-        statements: 3,
+        lines: 4.5,
+        functions: 4.2,
+        branches: 3.2,
+        statements: 4.5,
       },
     },
     // Test timeouts

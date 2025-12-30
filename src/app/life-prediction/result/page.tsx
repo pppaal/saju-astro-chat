@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { SessionProvider } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
@@ -388,9 +387,5 @@ export default function LifePredictionResultPage({
 }) {
   const sp = React.use(searchParams);
 
-  return (
-    <SessionProvider>
-      <LifePredictionResultContent searchParams={sp} />
-    </SessionProvider>
-  );
+  return <LifePredictionResultContent searchParams={sp} />;
 }

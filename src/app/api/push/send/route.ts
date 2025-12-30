@@ -1,98 +1,75 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/authOptions";
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/authOptions';
+import {
+  sendPushNotification,
+  sendTestNotification,
+} from '@/lib/notifications/pushService';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/push/send
  * Send a push notification to a user
- *
- * NOTE: This requires web-push library and VAPID keys to be configured
- * Install: npm install web-push
- * Generate VAPID keys: npx web-push generate-vapid-keys
  */
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { targetUserId, title, message } = await request.json();
+    const body = await request.json();
+    const { targetUserId, title, message, icon, url, tag, test } = body;
 
-    if (!targetUserId || !title || !message) {
+    // 테스트 알림 발송
+    if (test) {
+      const result = await sendTestNotification(session.user.id);
+      return NextResponse.json({
+        success: result.success,
+        sent: result.sent,
+        failed: result.failed,
+        error: result.error,
+      });
+    }
+
+    // 일반 알림 발송
+    const userId = targetUserId || session.user.id;
+
+    // 본인에게만 발송 가능 (관리자 기능은 추후 추가)
+    if (targetUserId && targetUserId !== session.user.id) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: 'Cannot send to other users' },
+        { status: 403 }
+      );
+    }
+
+    if (!title || !message) {
+      return NextResponse.json(
+        { error: 'Missing required fields: title, message' },
         { status: 400 }
       );
     }
 
-    // Check VAPID keys are configured
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-    const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@destinypal.com";
-
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      return NextResponse.json(
-        { error: "Push notifications not configured. Install: npm install web-push, then run: npx web-push generate-vapid-keys" },
-        { status: 500 }
-      );
-    }
-
-    // Try to dynamically import web-push (optional dependency)
-    let webpush: { setVapidDetails: (subject: string, publicKey: string, privateKey: string) => void };
-    try {
-      // @ts-ignore - web-push is an optional dependency
-      webpush = (await import("web-push")).default;
-    } catch {
-      return NextResponse.json(
-        { error: "web-push module not installed. Run: npm install web-push" },
-        { status: 500 }
-      );
-    }
-
-    // Configure web-push with VAPID keys
-    webpush.setVapidDetails(
-      vapidSubject,
-      vapidPublicKey,
-      vapidPrivateKey
-    );
-
-    // TODO: Retrieve user's push subscription from database
-    // For now, return a placeholder response
-
-    // In production:
-    // const subscription = await prisma.pushSubscription.findUnique({
-    //   where: { userId: targetUserId },
-    // });
-    //
-    // if (!subscription) {
-    //   return NextResponse.json({ error: "User not subscribed" }, { status: 404 });
-    // }
-    //
-    // const payload = JSON.stringify({
-    //   title,
-    //   message,
-    //   icon: icon || "/icon-192.png",
-    //   badge: "/badge-72.png",
-    //   data: { url: url || "/notifications" },
-    // });
-    //
-    // await webpush.sendNotification(
-    //   JSON.parse(subscription.subscription),
-    //   payload
-    // );
+    const result = await sendPushNotification(userId, {
+      title,
+      message,
+      icon: icon || '/icon-192.png',
+      tag: tag || 'destinypal',
+      data: { url: url || '/notifications' },
+    });
 
     return NextResponse.json({
-      success: true,
-      message: "Push notification sent (placeholder - configure database to enable)",
+      success: result.success,
+      sent: result.sent,
+      failed: result.failed,
+      error: result.error,
     });
   } catch (error) {
-    console.error("Error sending push notification:", error);
+    console.error('Error sending push notification:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -156,6 +156,17 @@
   margin: 12px 0 20px;
 }
 
+/* Concern Buttons - Two buttons side by side */
+.concernButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.concernButtons .secondaryButton,
+.concernButtons .primaryButton {
+  flex: 1;
+}
+
 /* ========== Buttons ========== */
 .primaryButton {
   width: 100%;
@@ -255,6 +266,18 @@
 .spreadTip {
   font-size: 0.8rem;
   color: #a78bfa;
+}
+
+/* AI 선택 이유 텍스트 */
+.aiReasonText {
+  font-size: 0.9rem;
+  color: #a78bfa;
+  text-align: center;
+  margin: 0 0 16px;
+  padding: 8px 16px;
+  background: rgba(167, 139, 250, 0.1);
+  border-radius: 8px;
+  font-style: italic;
 }
 
 /* ========== Card Draw ========== */
@@ -445,6 +468,14 @@
   flex: 1;
 }
 
+/* Result Top Actions - Draw Again & Save */
+.resultTopActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
 /* 다시 뽑기 버튼 */
 .drawAgainButton {
   padding: 12px 24px;
@@ -465,6 +496,39 @@
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(109, 40, 217, 0.25));
   border-color: #a78bfa;
   transform: scale(1.02);
+}
+
+/* 저장 버튼 */
+.saveButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.15));
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 30px;
+  color: #4ade80;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.25));
+  border-color: #4ade80;
+  transform: scale(1.02);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.saveButton.saved {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.35));
+  border-color: #22c55e;
+  color: #22c55e;
 }
 
 .resultSection {
@@ -559,6 +623,20 @@
 
   .resultActions {
     flex-direction: column;
+  }
+
+  .concernButtons {
+    flex-direction: column;
+  }
+
+  .resultTopActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .drawAgainButton,
+  .saveButton {
+    justify-content: center;
   }
 
   .drawnCardsGrid {

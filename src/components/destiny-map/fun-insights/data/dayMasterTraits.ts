@@ -182,7 +182,7 @@ export const dayMasterPersonalityTraits: Record<string, {
     core: { ko: "날카로운 검처럼 정의롭고 단호한 사람. 원칙이 확실하고 결단력이 있어요.", en: "Righteous and decisive like a sharp sword. Clear principles and decisiveness." },
     traits: { ko: ["정의감", "결단력", "솔직함"], en: ["Justice", "Decisiveness", "Honesty"] },
     strength: { ko: "실행력과 정직함", en: "Execution and honesty" },
-    challenge: { ko: "날카로움, 융통성 부족", en: "Sharpness, lack of flexibility" }
+    challenge: { ko: "완고함, 융통성 부족", en: "Rigidity, lack of flexibility" }
   },
   "신": {
     title: { ko: "보석형", en: "Gem Type" },

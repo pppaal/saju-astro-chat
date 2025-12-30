@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import type { PersonaAnalysis, PersonaQuizAnswers } from '@/lib/persona/types';
 import { analyzePersona } from '@/lib/persona/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import styles from './result.module.css';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 // Confetti particle type
 interface ConfettiParticle {
@@ -99,6 +101,7 @@ const getTypeCodeMeanings = (typeCode: string, locale: string) => {
 export default function ResultPage() {
   const { t, locale } = useI18n();
   const { data: session, status: authStatus } = useSession();
+  const router = useRouter();
   const [answers, setAnswers] = useState<PersonaQuizAnswers>({});
   const [mounted, setMounted] = useState(false);
   const [gender, setGender] = useState<'M' | 'F'>('M');
@@ -172,7 +175,7 @@ export default function ResultPage() {
 
     if (authStatus !== 'authenticated') {
       // Redirect to login
-      signIn(undefined, { callbackUrl: '/personality/result' });
+      router.push(buildSignInUrl('/personality/result'));
       return;
     }
 

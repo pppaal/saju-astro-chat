@@ -265,6 +265,8 @@
     "normalDayDesc": "A regular day with balanced energies. Proceed with routine activities.",
     "badDay": "⚠️ Bad Day",
     "badDayDesc": "A day requiring caution. Consider postponing important decisions and get plenty of rest.",
+    "veryBadDay": "🚨 Very Bad Day",
+    "veryBadDayDesc": "A day requiring extreme caution. Avoid important matters entirely and prioritize your health and safety.",
     "categories": {
       "wealth": "Wealth",
       "career": "Career",
@@ -674,7 +676,8 @@
       "interpreting": "Reading the cards...",
       "interpretingDesc": "Please wait a moment",
       "pleaseWait": "This may take 20-30 seconds",
-      "redirecting": "Redirecting to Tarot..."
+      "redirecting": "Redirecting to Tarot...",
+      "redraw": "Redraw"
     },
     "results": {
       "title": "Results",
@@ -1034,7 +1037,12 @@
       "loading1": "Connecting with your counselor...",
       "loading2": "Analyzing your birth chart...",
       "loading3": "Reading celestial energies...",
-      "loading4": "Preparing personalized guidance..."
+      "loading4": "Preparing personalized guidance...",
+      "authChecking": "Checking login status...",
+      "loginRequiredTitle": "Sign in to chat with the counselor",
+      "loginRequiredDesc": "Sign in to access personalized consultations and load your previous conversation history.",
+      "loginCta": "Sign in to start",
+      "loginHint": "No account? You can sign up during the login process."
     },
     "visualizer": {
       "dominantElement": "Dominant element",
@@ -1601,6 +1609,22 @@
       "default": {
         "desc": "View records"
       }
+    }
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "welcomeBack": "Welcome Back",
+    "signInToContinue": "Sign in to continue your cosmic journey",
+    "signInWithGoogle": "Sign in with Google",
+    "secureAuthentication": "Secure Authentication",
+    "dataProtected": "Your data is protected with OAuth 2.0",
+    "error": {
+      "oauthSignin": "Error starting sign in. Please try again.",
+      "oauthCallback": "Error during sign in callback.",
+      "oauthAccountNotLinked": "This email is already linked to another account.",
+      "callback": "Error during callback. Please try again.",
+      "default": "An error occurred. Please try again.",
+      "unexpected": "An unexpected error occurred."
     }
   }
 }

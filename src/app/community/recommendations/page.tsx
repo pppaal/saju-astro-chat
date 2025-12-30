@@ -9,6 +9,7 @@ import {
   type LifeRecommendation,
 } from "@/lib/ai/recommendations";
 import styles from "./recommendations.module.css";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 export default function RecommendationsPage() {
   const { data: session, status } = useSession();
@@ -19,7 +20,7 @@ export default function RecommendationsPage() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin");
+      router.push(buildSignInUrl());
       return;
     }
 

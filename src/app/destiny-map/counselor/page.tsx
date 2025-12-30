@@ -4,13 +4,15 @@ import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Chat from "@/components/destiny-map/Chat";
 import { useI18n } from "@/i18n/I18nProvider";
 import { calculateSajuData } from "@/lib/Saju/saju";
 import { loadChartData, saveChartData } from "@/lib/chartDataCache";
 import { ErrorBoundary, ChatErrorFallback } from "@/components/ErrorBoundary";
 import CreditBadge from "@/components/ui/CreditBadge";
+import AuthGate from "@/components/auth/AuthGate";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import type {
   Lang,
   ChartData,
@@ -496,8 +498,8 @@ export default function CounselorPage({
 
   const handleLogin = useCallback(() => {
     const search = typeof window !== "undefined" ? window.location.search : "";
-    signIn(undefined, { callbackUrl: `/destiny-map/counselor${search}` });
-  }, []);
+    router.push(buildSignInUrl(`/destiny-map/counselor${search}`));
+  }, [router]);
 
   if (isCheckingAuth) {
     return (
@@ -508,7 +510,7 @@ export default function CounselorPage({
               {t("destinyMap.counselor.title", "DestinyPal Counselor")}
             </h2>
             <p className={styles.loadingMessage}>
-              {t("destinyMap.counselor.authChecking", "로그인 상태를 확인하는 중입니다...")}
+              {t("destinyMap.counselor.authChecking", "Checking login status...")}
             </p>
           </div>
         </div>
@@ -516,8 +518,7 @@ export default function CounselorPage({
     );
   }
 
-  if (!isAuthed) {
-    return (
+  const loginFallback = (
       <main className={styles.page}>
         <div className={styles.authGate}>
           <div className={styles.authCard}>
@@ -537,11 +538,10 @@ export default function CounselorPage({
           </div>
         </div>
       </main>
-    );
-  }
+  );
 
   // Loading screen
-  if (isLoading) {
+  if (isLoading && isAuthed) {
     return (
       <main className={styles.page}>
         <div className={styles.loadingContainer}>
@@ -589,6 +589,7 @@ export default function CounselorPage({
 
   // Chat screen
   return (
+    <AuthGate statusOverride={authStatus} callbackUrl={typeof window !== "undefined" ? `/destiny-map/counselor${window.location.search}` : '/destiny-map/counselor'} fallback={loginFallback}>
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ""}`}>
       {/* Header */}
       <header className={styles.header}>
@@ -691,6 +692,7 @@ export default function CounselorPage({
         <InitialQuestionSender question={initialQuestion} />
       )}
     </main>
+    </AuthGate>
   );
 }
 
