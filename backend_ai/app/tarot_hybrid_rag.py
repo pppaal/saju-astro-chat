@@ -1627,6 +1627,44 @@ class TarotHybridRAG:
         """Get deep psychological/archetypal meaning for a card (delegate to advanced_rules)"""
         return self.advanced_rules.get_card_deep_meaning(card_name)
 
+    def get_all_card_pair_interpretations(self, cards: List) -> List[Dict]:
+        """
+        Get interpretations for all card pairs in a reading.
+
+        Args:
+            cards: List of card names (str) or card dicts with 'name' key
+
+        Returns:
+            List of pair interpretation dictionaries
+        """
+        # Normalize input: convert string list to dict list if needed
+        if cards and isinstance(cards[0], str):
+            cards = [{'name': card_name} for card_name in cards]
+        return self.advanced_rules.get_all_card_pair_interpretations(cards)
+
+    def analyze_elemental_balance(self, cards: List) -> Optional[Dict]:
+        """
+        Analyze elemental balance of the cards (delegate to advanced_rules).
+
+        Args:
+            cards: List of card names (str) or card dicts with 'name' key
+
+        Returns:
+            Dictionary with element counts, dominant/missing elements, and meanings
+        """
+        # Normalize input: convert string list to dict list if needed
+        if cards and isinstance(cards[0], str):
+            cards = [{'name': card_name} for card_name in cards]
+        return self.advanced_rules.analyze_elemental_balance(cards)
+
+    def get_timing_hint(self, card_name: str) -> Optional[str]:
+        """Get timing hint for a card (delegate to advanced_rules)"""
+        return self.advanced_rules.get_timing_hint(card_name)
+
+    def get_jungian_archetype(self, card_name: str, is_reversed: bool = False) -> Optional[Dict]:
+        """Get Jungian archetype for a card (delegate to advanced_rules)"""
+        return self.advanced_rules.get_jungian_archetype(card_name, is_reversed)
+
     def get_available_themes(self) -> List[str]:
         """Get available themes with spreads"""
         return self.spread_loader.get_available_themes()

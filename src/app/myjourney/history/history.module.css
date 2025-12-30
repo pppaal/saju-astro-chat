@@ -1197,6 +1197,30 @@
   margin-top: 0.25rem;
 }
 
+.cardInsight {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-left: 3px solid rgba(139, 92, 246, 0.5);
+  border-radius: 0 8px 8px 0;
+}
+
+.cardInsight p {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.affirmation {
+  font-style: italic;
+  color: rgba(167, 139, 250, 0.95);
+  padding: 1rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 8px;
+  text-align: center;
+}
+
 /* ========== Responsive ========== */
 @media (max-width: 768px) {
   .container {

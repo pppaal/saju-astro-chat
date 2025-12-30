@@ -1116,13 +1116,18 @@ def tarot_interpret():
         combinations_text = ""
         if pair_interpretations:
             combo_parts = []
-            for pair_key, pair_data in list(pair_interpretations.items())[:5]:  # 최대 5개 조합
+            for pair_data in pair_interpretations[:5]:  # 최대 5개 조합
                 if isinstance(pair_data, dict):
-                    combo_meaning = pair_data.get("combined_meaning", pair_data.get("meaning", ""))
+                    pair_key = f"{pair_data.get('card1', '')} + {pair_data.get('card2', '')}"
+                    # Get interpretation (love/career/finance or advice)
+                    combo_meaning = (
+                        pair_data.get("love") or
+                        pair_data.get("career") or
+                        pair_data.get("advice") or
+                        ""
+                    )
                     if combo_meaning:
                         combo_parts.append(f"• {pair_key}: {combo_meaning[:150]}")
-                elif isinstance(pair_data, str):
-                    combo_parts.append(f"• {pair_key}: {pair_data[:150]}")
             if combo_parts:
                 combinations_text = "\n".join(combo_parts)
 
@@ -1133,21 +1138,20 @@ def tarot_interpret():
             elem_parts = []
             if elemental_balance.get("dominant"):
                 elem_parts.append(f"주요: {elemental_balance['dominant']}")
-            if elemental_balance.get("lacking"):
-                elem_parts.append(f"부족: {elemental_balance['lacking']}")
-            if elemental_balance.get("interpretation"):
-                elem_parts.append(elemental_balance['interpretation'][:150])
+            if elemental_balance.get("missing"):
+                missing_elements = elemental_balance['missing']
+                if missing_elements:
+                    elem_parts.append(f"부족: {', '.join(missing_elements)}")
+            if elemental_balance.get("dominant_meaning"):
+                elem_parts.append(elemental_balance['dominant_meaning'][:150])
             elemental_text = " | ".join(elem_parts)
 
-        # 시기 힌트 (get_timing_hint)
+        # 시기 힌트 (get_timing_hint) - returns string like "한국어: timeframe"
         timing_text = ""
         if card_names:
-            timing_data = hybrid_rag.get_timing_hint(card_names[0])
-            if timing_data:
-                if timing_data.get("timeframe"):
-                    timing_text = timing_data['timeframe']
-                if timing_data.get("season"):
-                    timing_text += f" ({timing_data['season']})"
+            timing_hint = hybrid_rag.get_timing_hint(card_names[0])
+            if timing_hint:
+                timing_text = timing_hint
 
         # 융 원형 (get_jungian_archetype)
         archetype_parts = []

@@ -481,7 +481,7 @@ export default function TarotReadingPage() {
   const canRevealCard = (index: number) => index === revealedCards.length;
 
   // 리딩 저장 핸들러
-  const handleSaveReading = useCallback(() => {
+  const handleSaveReading = useCallback(async () => {
     if (!readingResult || !spreadInfo || isSaved) return;
 
     try {
@@ -497,6 +497,7 @@ export default function TarotReadingPage() {
           }
         : null;
 
+      // 로컬 스토리지에 저장 (기존 로직)
       const formattedReading = formatReadingForSave(
         userTopic,
         spreadInfo,
@@ -506,8 +507,42 @@ export default function TarotReadingPage() {
         spreadId || '',
         selectedDeckStyle
       );
-
       saveReading(formattedReading);
+
+      // 서버 API에도 저장 (AI 해석 포함)
+      if (session?.user) {
+        await apiFetch('/api/tarot/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: userTopic,
+            theme: categoryName,
+            spreadId: spreadId,
+            spreadTitle: language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title,
+            cards: readingResult.drawnCards.map((dc, idx) => ({
+              cardId: dc.card.id,
+              name: language === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
+              image: getCardImagePath(dc.card.id, selectedDeckStyle),
+              isReversed: dc.isReversed,
+              position: language === 'ko'
+                ? readingResult.spread.positions[idx]?.titleKo || readingResult.spread.positions[idx]?.title || `카드 ${idx + 1}`
+                : readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`,
+            })),
+            overallMessage: interpretation?.overall_message || '',
+            cardInsights: interpretation?.card_insights?.map(ci => ({
+              position: ci.position,
+              card_name: ci.card_name,
+              is_reversed: ci.is_reversed,
+              interpretation: ci.interpretation,
+            })) || [],
+            guidance: guidanceText || '',
+            affirmation: interpretation?.affirmation || '',
+            source: 'standalone',
+            locale: language,
+          }),
+        });
+      }
+
       setIsSaved(true);
       setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!');
 
@@ -518,7 +553,7 @@ export default function TarotReadingPage() {
       setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed');
       setTimeout(() => setSaveMessage(''), 3000);
     }
-  }, [readingResult, spreadInfo, interpretation, userTopic, categoryName, spreadId, selectedDeckStyle, language, isSaved]);
+  }, [readingResult, spreadInfo, interpretation, userTopic, categoryName, spreadId, selectedDeckStyle, language, isSaved, session]);
 
   // Session loading state
   if (status === 'loading') {

@@ -83,6 +83,14 @@ type TarotCard = {
   nameKo?: string;
   isReversed: boolean;
   position?: string;
+  image?: string;
+};
+
+type TarotCardInsight = {
+  position: string;
+  card_name: string;
+  is_reversed: boolean;
+  interpretation: string;
 };
 
 type TarotContent = {
@@ -91,6 +99,10 @@ type TarotContent = {
   spreadTitle: string;
   cards: TarotCard[];
   userQuestion?: string;
+  overallMessage?: string;
+  cardInsights?: TarotCardInsight[];
+  guidance?: string;
+  affirmation?: string;
 };
 
 // Service configuration with icons and colors (titles and descriptions from i18n)
@@ -423,13 +435,33 @@ function HistoryContent() {
             } as CalendarContent);
           }
         }
-      } else if (record.service === "tarot" && record.type === "reading") {
-        const res = await fetch(`/api/readings/${record.id}`);
+      } else if (record.service === "tarot" && (record.type === "reading" || record.type === "tarot-reading")) {
+        // Try new TarotReading table first
+        const res = await fetch(`/api/tarot/save/${record.id}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.reading?.content) {
-            const parsed = JSON.parse(data.reading.content) as TarotContent;
-            setTarotDetail(parsed);
+          if (data.reading) {
+            setTarotDetail({
+              categoryId: data.reading.theme || '',
+              spreadId: data.reading.spreadId || '',
+              spreadTitle: data.reading.spreadTitle || '타로 리딩',
+              cards: data.reading.cards || [],
+              userQuestion: data.reading.question,
+              overallMessage: data.reading.overallMessage,
+              cardInsights: data.reading.cardInsights,
+              guidance: data.reading.guidance,
+              affirmation: data.reading.affirmation,
+            });
+          }
+        } else {
+          // Fallback to old Reading table
+          const fallbackRes = await fetch(`/api/readings/${record.id}`);
+          if (fallbackRes.ok) {
+            const data = await fallbackRes.json();
+            if (data.reading?.content) {
+              const parsed = JSON.parse(data.reading.content) as TarotContent;
+              setTarotDetail(parsed);
+            }
           }
         }
       }
@@ -640,7 +672,7 @@ function HistoryContent() {
                         {day.records.map((record) => {
                           const isClickable =
                             (record.service === "iching" && record.type === "reading") ||
-                            (record.service === "tarot" && record.type === "reading") ||
+                            (record.service === "tarot" && (record.type === "reading" || record.type === "tarot-reading")) ||
                             (record.service === "destiny-map" && record.type === "consultation") ||
                             (record.service === "destiny-calendar" && record.type === "calendar");
                           return (
@@ -918,30 +950,68 @@ function HistoryContent() {
                   </div>
                 )}
 
+                {/* Overall Message */}
+                {tarotDetail.overallMessage && (
+                  <div className={styles.aiSection}>
+                    <h3 className={styles.aiSectionTitle}>
+                      <span>🔮</span> AI 해석
+                    </h3>
+                    <div className={styles.aiBlock}>
+                      <p>{tarotDetail.overallMessage}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Cards */}
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>뽑은 카드</h3>
                   <div className={styles.tarotCards}>
-                    {tarotDetail.cards.map((card, idx) => (
-                      <div key={idx} className={styles.tarotCard}>
-                        <div className={styles.tarotCardHeader}>
-                          {card.position && (
-                            <span className={styles.cardPosition}>{card.position}</span>
+                    {tarotDetail.cards.map((card, idx) => {
+                      const cardInsight = tarotDetail.cardInsights?.find(
+                        ci => ci.card_name === card.name || ci.card_name === card.nameKo
+                      );
+                      return (
+                        <div key={idx} className={styles.tarotCard}>
+                          <div className={styles.tarotCardHeader}>
+                            {card.position && (
+                              <span className={styles.cardPosition}>{card.position}</span>
+                            )}
+                            <span className={`${styles.cardOrientation} ${card.isReversed ? styles.reversed : ''}`}>
+                              {card.isReversed ? '역방향' : '정방향'}
+                            </span>
+                          </div>
+                          <div className={styles.cardName}>
+                            {card.nameKo || card.name}
+                          </div>
+                          {card.nameKo && card.name !== card.nameKo && (
+                            <div className={styles.cardNameEn}>{card.name}</div>
                           )}
-                          <span className={`${styles.cardOrientation} ${card.isReversed ? styles.reversed : ''}`}>
-                            {card.isReversed ? '역방향' : '정방향'}
-                          </span>
+                          {cardInsight?.interpretation && (
+                            <div className={styles.cardInsight}>
+                              <p>{cardInsight.interpretation}</p>
+                            </div>
+                          )}
                         </div>
-                        <div className={styles.cardName}>
-                          {card.nameKo || card.name}
-                        </div>
-                        {card.nameKo && card.name !== card.nameKo && (
-                          <div className={styles.cardNameEn}>{card.name}</div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* Guidance */}
+                {tarotDetail.guidance && (
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>💡 조언</h3>
+                    <p>{tarotDetail.guidance}</p>
+                  </div>
+                )}
+
+                {/* Affirmation */}
+                {tarotDetail.affirmation && (
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>✨ 확언</h3>
+                    <p className={styles.affirmation}>{tarotDetail.affirmation}</p>
+                  </div>
+                )}
 
                 {/* Timestamp */}
                 {selectedRecord && (

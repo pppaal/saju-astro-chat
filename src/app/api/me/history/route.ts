@@ -45,8 +45,8 @@ export async function GET() {
     const userId = session.user.id
 
     // Fetch all service records from different tables
-    const [readings, consultations, interactions, dailyFortunes, calendarDates] = await Promise.all([
-      // Readings (tarot, astrology, dream, etc.)
+    const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates] = await Promise.all([
+      // Readings (astrology, dream, etc.)
       prisma.reading.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
@@ -56,6 +56,20 @@ export async function GET() {
           createdAt: true,
           type: true,
           title: true,
+        },
+      }),
+      // Tarot readings (separate table with AI interpretation)
+      prisma.tarotReading.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          createdAt: true,
+          question: true,
+          theme: true,
+          spreadTitle: true,
+          overallMessage: true,
         },
       }),
       // Consultation history
@@ -120,6 +134,14 @@ export async function GET() {
         theme: undefined,
         summary: r.title || undefined,
         type: "reading",
+      })),
+      ...tarotReadings.map((t) => ({
+        id: t.id,
+        date: t.createdAt.toISOString().split("T")[0],
+        service: "tarot",
+        theme: t.theme || undefined,
+        summary: t.question || t.spreadTitle || "타로 리딩",
+        type: "tarot-reading",
       })),
       ...consultations.map((c) => ({
         id: c.id,
