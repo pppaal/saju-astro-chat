@@ -1,0 +1,15 @@
+.git
+.next
+node_modules
+.venv
+venv
+backend_ai/venv
+backend_ai/.venv
+backend_ai/data
+coverage
+reports
+logs
+android
+.vs
+.cursor
+.claude

@@ -605,12 +605,15 @@ function DestinyCalendarContent() {
     }
     const timeout = setTimeout(async () => {
       try {
+        console.log('[DestinyCalendar] Searching cities for:', q);
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
+        console.log('[DestinyCalendar] City search results:', hits);
         setSuggestions(hits);
         if (isUserTyping) {
           setOpenSug(hits.length > 0);
         }
-      } catch {
+      } catch (err) {
+        console.error('[DestinyCalendar] City search error:', err);
         setSuggestions([]);
       }
     }, 120);

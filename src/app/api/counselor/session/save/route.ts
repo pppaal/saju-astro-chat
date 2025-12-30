@@ -12,7 +12,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
     }
 
-    const body = await request.json();
+    // Safe JSON parsing
+    let body;
+    try {
+      const text = await request.text();
+      if (!text || text.trim() === "") {
+        return NextResponse.json({ error: "empty_body" }, { status: 400 });
+      }
+      body = JSON.parse(text);
+    } catch {
+      return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+    }
+
     const { sessionId, theme, locale, messages } = body;
 
     if (!sessionId || !messages || !Array.isArray(messages)) {

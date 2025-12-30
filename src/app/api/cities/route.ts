@@ -22,7 +22,8 @@ async function loadCities(): Promise<City[]> {
     loading = (async () => {
       const filePath = path.join(process.cwd(), "public", "data", "cities.min.json");
       const raw = await fs.readFile(filePath, "utf-8");
-      const data = JSON.parse(raw);
+      const sanitized = raw.replace(/^\uFEFF/, "");
+      const data = JSON.parse(sanitized);
       cachedCities = Array.isArray(data) ? data : [];
       return cachedCities;
     })();
@@ -36,12 +37,15 @@ export async function GET(request: Request) {
   const limitParam = Number(searchParams.get("limit"));
   const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 200) : 200;
 
+  console.log("[cities API] Query:", query, "Limit:", limit);
+
   if (query.length < 1) {
     return NextResponse.json({ results: [] });
   }
 
   try {
     const data = await loadCities();
+    console.log("[cities API] Loaded cities count:", data.length);
     const scored: { c: City; score: number }[] = [];
 
     for (const c of data) {
@@ -57,6 +61,7 @@ export async function GET(request: Request) {
     scored.sort((a, b) => a.score - b.score || a.c.name.localeCompare(b.c.name));
     const results = scored.slice(0, limit).map(({ c }) => c);
 
+    console.log("[cities API] Found results:", results.length);
     const response = NextResponse.json({ results });
     response.headers.set("Cache-Control", "public, max-age=86400");
     return response;

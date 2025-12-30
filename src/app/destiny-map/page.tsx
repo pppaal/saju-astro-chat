@@ -180,14 +180,17 @@ function DestinyMapContent() {
     }
     const t = setTimeout(async () => {
       try {
+        console.log('[DestinyMap] Searching cities for:', q);
         const { searchCities } = await loadCitiesModule();
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
+        console.log('[DestinyMap] City search results:', hits);
         setSuggestions(hits);
         // Only open dropdown if user is actively typing
         if (isUserTyping) {
           setOpenSug(hits.length > 0);
         }
-      } catch {
+      } catch (err) {
+        console.error('[DestinyMap] City search error:', err);
         setSuggestions([]);
       }
     }, 120);
