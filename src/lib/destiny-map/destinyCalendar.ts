@@ -2157,7 +2157,7 @@ function getSunSign(date: Date): string {
 // Grade 2: 좋은 날 (월 6~8일) - 긍정적 요소 있음
 // Grade 3: 보통 날 (대부분) - 평범
 // Grade 4: 나쁜 날 (월 3~5일) - 부정적 요소 강함
-export type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
+export type ImportanceGrade = 0 | 1 | 2 | 3 | 4 | 5;
 export type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
 
 export interface ImportantDate {

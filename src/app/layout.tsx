@@ -51,6 +51,7 @@ const lora = Lora({
   weight: ["400", "700"],
   display: "swap",
   variable: "--font-lora",
+  preload: false,
 });
 
 const merriweather = Merriweather({
@@ -58,6 +59,7 @@ const merriweather = Merriweather({
   weight: ["400", "700"],
   display: "swap",
   variable: "--font-merriweather",
+  preload: false,
 });
 
 

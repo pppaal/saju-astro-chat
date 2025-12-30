@@ -51,7 +51,6 @@ function DestinyMapContent() {
   const router = useRouter();
   const { t, locale } = useI18n();
   const { status } = useSession();
-  const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -72,9 +71,32 @@ function DestinyMapContent() {
   // 사용자 현재 위치 타임존 (운세 날짜 계산용) - client-side only
   const [userTimezone, setUserTimezone] = useState('Asia/Seoul');
   useEffect(() => {
+    let active = true;
+    const resolveTimezone = async () => {
+      try {
+        const { getUserTimezone } = await loadTimezoneModule();
+        if (active) {
+          setUserTimezone(getUserTimezone() || 'Asia/Seoul');
+        }
+      } catch {
+        if (active) {
+          setUserTimezone('Asia/Seoul');
+        }
+      }
+    };
     // Detect timezone on client side only (SSR에서 서버 타임존 방지)
-    setUserTimezone(getUserTimezone() || 'Asia/Seoul');
+    resolveTimezone();
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const resolveCityTimezone = async (hit: CityHit, fallback?: string) => {
+    if (hit.timezone) return hit.timezone;
+    if (fallback) return fallback;
+    const { default: tzLookup } = await loadTzLookup();
+    return tzLookup(hit.lat, hit.lon);
+  };
 
   // Load profile from DB for authenticated users
   const handleLoadProfile = async () => {
@@ -109,12 +131,14 @@ function DestinyMapContent() {
         const cityName = user.birthCity.split(',')[0]?.trim();
         if (cityName) {
           try {
+            const { searchCities } = await loadCitiesModule();
             const hits = await searchCities(cityName, { limit: 1 }) as CityHit[];
             if (hits && hits[0]) {
               const hit = hits[0];
+              const timezone = await resolveCityTimezone(hit, user.tzId);
               setSelectedCity({
                 ...hit,
-                timezone: hit.timezone ?? user.tzId ?? tzLookup(hit.lat, hit.lon),
+                timezone,
               });
             }
           } catch {
@@ -143,214 +167,37 @@ function DestinyMapContent() {
     }
   }, [status, profileLoaded, loadingProfile]);
 
-  // Particle animation
+
+  // City search (idle warmup)
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const PARTICLE_COLOR = '#a78bfa';
-
-    let particlesArray: Particle[] = [];
-    let animationId: number | null = null;
-    let isRunning = false;
-    let lastFrame = 0;
-    const frameInterval = 1000 / 30;
-    let particleCount = 80;
-    let maxLinkDistance = 120;
-    let particleBaseSpeed = 0.3;
-
-    const mouse = {
-      x: undefined as number | undefined,
-      y: undefined as number | undefined,
-      radius: 150,
+    const warmCities = () => {
+      loadCitiesModule()
+        .then(({ searchCities }) => searchCities('se', { limit: 1 }))
+        .catch(() => {});
     };
+    if (typeof window === 'undefined') return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.x = e.x;
-      mouse.y = e.y;
-    };
-    const handleMouseOut = () => {
-      mouse.x = undefined;
-      mouse.y = undefined;
-    };
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+    const requestIdle = (window as Window & {
+      requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
+    }).requestIdleCallback;
+    const cancelIdle = (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
 
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    const updateSettings = () => {
-      const width = canvas.width;
-      particleCount = width < 640 ? 40 : width < 1024 ? 60 : 80;
-      maxLinkDistance = width < 640 ? 90 : 120;
-      particleBaseSpeed = width < 640 ? 0.2 : 0.3;
-    };
-
-    class ParticleImpl implements Particle {
-      x: number;
-      y: number;
-      size: number;
-      speedX: number;
-      speedY: number;
-      color: string;
-
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1;
-        this.speedX = (Math.random() * 2 - 1) * particleBaseSpeed;
-        this.speedY = (Math.random() * 2 - 1) * particleBaseSpeed;
-        this.color = PARTICLE_COLOR;
-      }
-
-      update() {
-        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
-
-        this.x += this.speedX;
-        this.y += this.speedY;
-
-        if (mouse.x !== undefined && mouse.y !== undefined) {
-          const dx = mouse.x - this.x;
-          const dy = mouse.y - this.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < mouse.radius) {
-            const forceDirectionX = dx / distance;
-            const forceDirectionY = dy / distance;
-            const force = (mouse.radius - distance) / mouse.radius;
-            const directionX = forceDirectionX * force * 2;
-            const directionY = forceDirectionY * force * 2;
-            this.x -= directionX;
-            this.y -= directionY;
-          }
-        }
-      }
-
-      draw() {
-        if (!ctx) return;
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    if (requestIdle) {
+      idleId = requestIdle(warmCities, { timeout: 1500 });
+    } else {
+      timeoutId = window.setTimeout(warmCities, 1200);
     }
-
-    function init() {
-      particlesArray = [];
-      updateSettings();
-      let numberOfParticles = (canvas.height * canvas.width) / 15000;
-      numberOfParticles = Math.min(numberOfParticles, particleCount);
-      for (let i = 0; i < numberOfParticles; i++) {
-        particlesArray.push(new ParticleImpl());
-      }
-    }
-
-    function connectParticles() {
-      if (!ctx) return;
-      for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
-          const dx = particlesArray[a].x - particlesArray[b].x;
-          const dy = particlesArray[a].y - particlesArray[b].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < maxLinkDistance) {
-            const opacity = 1 - distance / maxLinkDistance;
-            ctx.strokeStyle = `rgba(167, 139, 250, ${opacity * 0.5})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
-            ctx.stroke();
-          }
-        }
-      }
-    }
-
-    const drawFrame = (animateFrame: boolean) => {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach((p) => {
-        if (animateFrame) p.update();
-        p.draw();
-      });
-      connectParticles();
-    };
-
-    const animate = (timestamp = 0) => {
-      if (!isRunning) return;
-      if (timestamp - lastFrame >= frameInterval) {
-        lastFrame = timestamp;
-        drawFrame(true);
-      }
-      animationId = requestAnimationFrame(animate);
-    };
-
-    const stop = () => {
-      if (animationId !== null) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-      }
-      isRunning = false;
-    };
-
-    const start = () => {
-      if (isRunning) return;
-      if (mediaQuery.matches || document.hidden) {
-        drawFrame(false);
-        return;
-      }
-      isRunning = true;
-      lastFrame = 0;
-      animate();
-    };
-
-    const handleVisibility = () => {
-      if (mediaQuery.matches || document.hidden) {
-        stop();
-        drawFrame(false);
-        return;
-      }
-      start();
-    };
-
-    const handleResize = () => {
-      resizeCanvas();
-      init();
-      if (!isRunning) {
-        drawFrame(false);
-      }
-    };
-
-    resizeCanvas();
-    init();
-    handleVisibility();
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseout', handleMouseOut);
-    window.addEventListener('resize', handleResize);
-    document.addEventListener('visibilitychange', handleVisibility);
-    mediaQuery.addEventListener('change', handleVisibility);
 
     return () => {
-      stop();
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseout', handleMouseOut);
-      window.removeEventListener('resize', handleResize);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      mediaQuery.removeEventListener('change', handleVisibility);
+      if (idleId !== null && cancelIdle) {
+        cancelIdle(idleId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
     };
-  }, []);
-
-  // City search
-  useEffect(() => {
-    (async () => {
-      try {
-        await searchCities('se', { limit: 1 });
-      } catch {}
-    })();
   }, []);
 
   // Track if user is actively typing (to avoid auto-opening dropdown on page load)
@@ -365,6 +212,7 @@ function DestinyMapContent() {
     }
     const t = setTimeout(async () => {
       try {
+        const { searchCities } = await loadCitiesModule();
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
         setSuggestions(hits);
         // Only open dropdown if user is actively typing
@@ -383,12 +231,14 @@ function DestinyMapContent() {
       const q = extractCityPart(city);
       if (!q) return;
       try {
+        const { searchCities } = await loadCitiesModule();
         const hits = (await searchCities(q, { limit: 1 })) as CityHit[];
         if (hits && hits[0]) {
           const hit = hits[0];
+          const timezone = await resolveCityTimezone(hit);
           setSelectedCity({
             ...hit,
-            timezone: hit.timezone ?? tzLookup(hit.lat, hit.lon),
+            timezone,
           });
         }
       } catch (err) {
@@ -403,18 +253,31 @@ function DestinyMapContent() {
     setCity(`${hit.name}, ${hit.country}`);
     setSelectedCity({
       ...hit,
-      timezone: hit.timezone ?? tzLookup(hit.lat, hit.lon),
+      timezone: hit.timezone,
     });
     setOpenSug(false);
+    resolveCityTimezone(hit)
+      .then((timezone) => {
+        setSelectedCity((prev) => {
+          if (!prev || prev.name !== hit.name || prev.country !== hit.country) return prev;
+          return { ...prev, timezone };
+        });
+      })
+      .catch(() => {});
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setCityErr(null);
 
     const lat = selectedCity?.lat?.toString() ?? '';
     const lon = selectedCity?.lon?.toString() ?? '';
-    const tz = selectedCity?.timezone ?? 'Asia/Seoul';
+    let tz = selectedCity?.timezone ?? 'Asia/Seoul';
+    if (selectedCity && !selectedCity.timezone) {
+      try {
+        tz = await resolveCityTimezone(selectedCity);
+      } catch {}
+    }
 
     if (!birthDate || !birthTime || !city) {
       setCityErr(t('error.allFieldsRequired') || '⚠️ All fields are required');
@@ -438,6 +301,7 @@ function DestinyMapContent() {
     params.set('userTz', userTimezone); // 사용자 현재 타임존 (운세 날짜용)
 
     // Save user profile for reuse across services
+    const { saveUserProfile } = await import('@/lib/userProfile');
     saveUserProfile({
       name: name || undefined,
       birthDate: birthDate || undefined,
@@ -456,7 +320,7 @@ function DestinyMapContent() {
 
   return (
     <div className={styles.container}>
-      <canvas ref={canvasRef} className={styles.particleCanvas} />
+      <ParticleBackground className={styles.particleCanvas} />
       <BackButton />
 
       <main className={styles.main}>
