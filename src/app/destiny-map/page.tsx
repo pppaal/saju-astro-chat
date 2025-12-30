@@ -1,28 +1,41 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
-import { searchCities } from '@/lib/cities';
-import tzLookup from 'tz-lookup';
-import { getUserTimezone } from '@/lib/Saju/timezone';
-import { saveUserProfile } from '@/lib/userProfile';
-import CreditBadge from '@/components/ui/CreditBadge';
-import BackButton from '@/components/ui/BackButton';
 import styles from './destiny-map.module.css';
 
+const CreditBadge = dynamic(() => import('@/components/ui/CreditBadge'), { ssr: false });
+const BackButton = dynamic(() => import('@/components/ui/BackButton'), { ssr: false });
+const ParticleBackground = dynamic(() => import('@/components/destiny-map/ParticleBackground'), { ssr: false });
+
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
-type Particle = {
-  x: number;
-  y: number;
-  size: number;
-  speedX: number;
-  speedY: number;
-  color: string;
-  update: () => void;
-  draw: () => void;
-};
+
+const loadCitiesModule = (() => {
+  let promise: Promise<typeof import('@/lib/cities')> | null = null;
+  return () => {
+    if (!promise) promise = import('@/lib/cities');
+    return promise;
+  };
+})();
+
+const loadTimezoneModule = (() => {
+  let promise: Promise<typeof import('@/lib/Saju/timezone')> | null = null;
+  return () => {
+    if (!promise) promise = import('@/lib/Saju/timezone');
+    return promise;
+  };
+})();
+
+const loadTzLookup = (() => {
+  let promise: Promise<typeof import('tz-lookup')> | null = null;
+  return () => {
+    if (!promise) promise = import('tz-lookup');
+    return promise;
+  };
+})();
 
 function extractCityPart(input: string) {
   const s = String(input || '').trim();
