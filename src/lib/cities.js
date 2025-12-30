@@ -1,8 +1,5 @@
 // src/lib/cities.js
-
-// src/lib/cities.js
-let ALL = null;
-let loading = null;
+let apiOrigin = null;
 
 function norm(s) { return String(s || '').trim().toLowerCase(); }
 
@@ -11,41 +8,27 @@ export function parseCountryHint(q) {
   return m ? m[1].toUpperCase() : null;
 }
 
-async function loadAll() {
-  if (ALL) return ALL;
-  if (!loading) {
-    loading = (async () => {
-      const res = await fetch('/data/cities.min.json', { cache: 'no-cache' });
-      if (!res.ok) throw new Error(`Failed to load cities: ${res.status}`);
-      const data = await res.json(); // [{ name, country, lat, lon }, ...]
-      ALL = Array.isArray(data) ? data : [];
-      return ALL;
-    })();
-  }
-  return loading;
+function getApiOrigin() {
+  if (apiOrigin) return apiOrigin;
+  if (typeof window === 'undefined') return '';
+  apiOrigin = window.location.origin;
+  return apiOrigin;
 }
 
-/** 1글자부터 부분일치, 접두어 우선, 최대 200개 표시 */
 export async function searchCities(q, opts) {
+  if (typeof window === 'undefined') return [];
   const query = norm(q);
   if (query.length < 1) return [];
-  const data = await loadAll();
 
-  const isPrefix = (name) => name.startsWith(query);
-  const includes = (name) => name.includes(query);
-
-  const scored = [];
-  for (const c of data) {
-    const n = norm(c.name);
-    const cc = norm(c.country);
-    const pair = `${n}, ${cc}`;
-    if (isPrefix(n) || includes(n) || isPrefix(pair) || includes(pair)) {
-      const score = (isPrefix(n) ? 0 : 10) + (isPrefix(pair) ? 0 : 5);
-      scored.push({ c, score });
-    }
-  }
-
-  scored.sort((a, b) => a.score - b.score || a.c.name.localeCompare(b.c.name));
   const limit = (opts && opts.limit) || 200;
-  return scored.slice(0, limit).map((s) => s.c);
+  const url = new URL('/api/cities', getApiOrigin());
+  url.searchParams.set('q', query);
+  url.searchParams.set('limit', String(limit));
+
+  const res = await fetch(url.toString(), { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error(`Failed to search cities: ${res.status}`);
+  }
+  const data = await res.json();
+  return Array.isArray(data?.results) ? data.results : [];
 }

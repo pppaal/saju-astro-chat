@@ -168,38 +168,6 @@ function DestinyMapContent() {
   }, [status, profileLoaded, loadingProfile]);
 
 
-  // City search (idle warmup)
-  useEffect(() => {
-    const warmCities = () => {
-      loadCitiesModule()
-        .then(({ searchCities }) => searchCities('se', { limit: 1 }))
-        .catch(() => {});
-    };
-    if (typeof window === 'undefined') return;
-
-    let idleId: number | null = null;
-    let timeoutId: number | null = null;
-    const requestIdle = (window as Window & {
-      requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
-    }).requestIdleCallback;
-    const cancelIdle = (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
-
-    if (requestIdle) {
-      idleId = requestIdle(warmCities, { timeout: 1500 });
-    } else {
-      timeoutId = window.setTimeout(warmCities, 1200);
-    }
-
-    return () => {
-      if (idleId !== null && cancelIdle) {
-        cancelIdle(idleId);
-      }
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, []);
-
   // Track if user is actively typing (to avoid auto-opening dropdown on page load)
   const [isUserTyping, setIsUserTyping] = useState(false);
 
@@ -416,6 +384,9 @@ function DestinyMapContent() {
                     setCity(e.target.value);
                     setIsUserTyping(true);
                     setOpenSug(true);
+                  }}
+                  onFocus={() => {
+                    loadCitiesModule().catch(() => {});
                   }}
                   onBlur={() => {
                     setTimeout(() => setOpenSug(false), 150);

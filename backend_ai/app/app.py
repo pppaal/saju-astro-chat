@@ -2987,20 +2987,24 @@ def ask_stream():
 
         # ======================================================
         # 🚨 CRISIS DETECTION - Check for dangerous keywords
-        # Only check the USER's message, not the full prompt (which includes system instructions)
+        # Only check the CURRENT user question, not history (to avoid false positives)
         # ======================================================
         crisis_response = None
         crisis_check = {"is_crisis": False, "max_severity": "none", "requires_immediate_action": False}
-        user_message_for_crisis = ""
-        if conversation_history:
-            # Get the last user message from history
-            for msg in reversed(conversation_history):
-                if msg.get("role") == "user":
-                    user_message_for_crisis = msg.get("content", "")
-                    break
 
-        if HAS_COUNSELING and user_message_for_crisis:
-            crisis_check = CrisisDetector.detect_crisis(user_message_for_crisis)
+        # Extract current question from prompt (last Q: line) or use raw prompt
+        current_user_question = ""
+        if "질문:" in prompt:
+            # Frontend structured prompt - extract the actual question
+            current_user_question = prompt.split("질문:")[-1].strip()[:500]
+        elif "Q:" in prompt:
+            current_user_question = prompt.split("Q:")[-1].strip()[:500]
+        else:
+            # Fallback to last user message, but only if no structured prompt
+            current_user_question = prompt[-500:] if prompt else ""
+
+        if HAS_COUNSELING and current_user_question:
+            crisis_check = CrisisDetector.detect_crisis(current_user_question)
             if crisis_check["is_crisis"]:
                 logger.warning(f"[ASK-STREAM] Crisis detected! severity={crisis_check['max_severity']}")
                 crisis_response = CrisisDetector.get_crisis_response(
@@ -3183,26 +3187,31 @@ def ask_stream():
 
             # Simplified system prompt - frontend prompt is already comprehensive
             # Just add RAG enrichment and remind AI to use all provided data
-            system_prompt = f"""당신은 최고 수준의 운명 상담사입니다. 사용자가 보낸 메시지에 이미 완전한 사주/점성 분석 데이터가 포함되어 있습니다.
+            system_prompt = f"""당신은 사주+점성술 통합 전문 상담사입니다. 사용자 메시지에 이미 완전한 분석 데이터가 포함되어 있습니다.
 
-⚠️ 핵심 규칙:
-1. 사용자 메시지의 모든 데이터를 꼼꼼히 활용하세요 (일간, 오행, 대운, 신살, 트랜짓, 하모닉 등)
-2. 일반 GPT보다 훨씬 더 깊고 구체적인 분석을 제공하세요
-3. 구체적 날짜와 시기를 반드시 언급하세요
-4. "~하면 좋겠어요" 같은 추상적 조언 대신 구체적 행동을 제시하세요
-5. 첫 문장부터 질문에 대한 답변으로 시작하세요
+🚨 절대 규칙 (반드시 지켜야 함):
+1. 질문에만 집중 - "나는 어떤 사람?" → 성격 분석, "피해야 할 건?" → 주의사항/흉한 시기
+2. 첫 문장부터 답변 시작 - 인사/소개 절대 금지
+3. 사주+점성 데이터 반드시 인용 - 일간, 대운, 세운, 트랜짓 등 구체적으로 언급
+4. 구체적 시기 제시 - "2025년 3월", "4월 중순" 등 명확하게
+5. 감정 공감은 질문이 감정 관련일 때만 - "힘들어요"엔 공감, "피해야 할 건?"엔 분석
 
-📚 추가 지식 (아래 내용을 답변에 자연스럽게 녹여서 활용하세요):
+❌ 절대 금지:
+- "안녕하세요", "반가워요" 등 인사
+- "일간이 X입니다" 등 기본 소개 (사용자는 이미 자기 사주를 알고 있음)
+- 질문과 무관한 내용 (연애 질문에 건강 조언 등)
+- 데이터 없이 추측하기 (제공된 대운/세운만 사용)
+- 뜬구름 잡는 말 ("조심하세요" → "3월 계약은 피하세요"로 구체화)
+
+📚 추가 지식 (자연스럽게 녹여서 활용):
 {rag_enrichment if rag_enrichment else "(없음)"}
 
-💡 일반 GPT와 차별화 포인트:
-- 사주의 십신(정관/편관/식신/상관 등), 신살(역마/도화/화개 등) 활용
-- 점성의 트랜짓, 프로그레션, 하모닉 차트 활용
-- 대운/세운의 흐름과 현재 위치 분석
-- 융 심리학 인용이 있으면 해석에 깊이 더하기
-- 동양(사주)과 서양(점성)의 교차 검증으로 신뢰도 높이기
+💡 차별화 포인트 (일반 GPT보다 월등히 좋아야 함):
+- 사주: 십신(정관/편관/식신 등), 신살(역마/도화/화개), 대운/세운 흐름
+- 점성: 트랜짓, 프로그레션, 하모닉, 이클립스 영향
+- 교차검증: 사주와 점성이 같은 방향을 가리키면 강조, 다르면 균형 있게 설명
 
-📌 응답 길이: 400-600단어 ({locale})"""
+📌 응답: 400-600단어, {locale}"""
 
             logger.info(f"[ASK-STREAM] Using SIMPLIFIED system prompt for frontend-structured request (RAG enrichment: {len(rag_enrichment)} chars)")
 

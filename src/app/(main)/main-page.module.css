@@ -2960,6 +2960,37 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
+  .particleCanvas {
+    display: none;
+  }
+
+  .topBar {
+    backdrop-filter: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  }
+
+  .heroContent {
+    animation: none;
+  }
+
+  .heroContent .heroTitle {
+    text-shadow: none;
+    filter: none;
+    animation: none;
+  }
+
+  .heroContent .heroSub {
+    text-shadow: none;
+  }
+
+  .scrollIndicator {
+    animation: none;
+  }
+
+  .scrollArrow span {
+    animation: none;
+  }
+
   .container { padding: 4.5rem 1.1rem 5rem; gap: 2.5rem; }
   .topBar { flex-direction: row; gap: 10px; position: fixed; padding: 10px 16px; }
   .logo { flex-shrink: 0; }
