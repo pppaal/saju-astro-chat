@@ -19,6 +19,15 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: |
+            backend_ai/requirements.txt
+            backend_ai/requirements-dev.txt
+
       - name: Install deps
         run: npm ci
 
@@ -26,14 +35,18 @@ jobs:
         run: npm run check:env
         env:
           # Provide dummy placeholders so check:env only flags missing/placeholder values in CI
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-placeholder' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-placeholder-32-characters-long-secret' }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
           NEXTAUTH_COOKIE_DOMAIN: ${{ secrets.NEXTAUTH_COOKIE_DOMAIN || '.example.com' }}
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' }}
           ADMIN_API_TOKEN: ${{ secrets.ADMIN_API_TOKEN || 'ci-placeholder' }}
           CRON_SECRET: ${{ secrets.CRON_SECRET || 'ci-placeholder' }}
-          METRICS_TOKEN: ${{ secrets.METRICS_TOKEN || 'ci-placeholder' }}
+          PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
+          NEXT_PUBLIC_PUBLIC_METRICS_TOKEN: ${{ secrets.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'ci-placeholder-token-encryption-key-32bytes' }}
+          PUBLIC_API_TOKEN: ${{ secrets.PUBLIC_API_TOKEN || 'ci-placeholder' }}
+          NEXT_PUBLIC_API_TOKEN: ${{ secrets.NEXT_PUBLIC_API_TOKEN || 'ci-placeholder' }}
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'ci-placeholder' }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY || 'ci-placeholder' }}
           EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER || 'resend' }}
@@ -52,6 +65,19 @@ jobs:
 
       - name: Unit/Integration tests (coverage)
         run: npm run test:coverage
+
+      - name: Install backend deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend_ai/requirements.txt -r backend_ai/requirements-dev.txt
+
+      - name: Backend AI tests
+        run: python -m pytest backend_ai/tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test-ci-placeholder' }}
+          ADMIN_API_TOKEN: ${{ secrets.ADMIN_API_TOKEN || 'ci-placeholder' }}
+          PUBLIC_API_TOKEN: ${{ secrets.PUBLIC_API_TOKEN || 'ci-placeholder' }}
+          PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
 
       - name: Build
         run: npm run build

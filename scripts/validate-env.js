@@ -10,7 +10,6 @@ const REQUIRED_ALWAYS = [
   "NEXT_PUBLIC_BASE_URL",
   "ADMIN_API_TOKEN",
   "CRON_SECRET",
-  "METRICS_TOKEN",
   "DATABASE_URL",
   "TOKEN_ENCRYPTION_KEY",
   "PUBLIC_API_TOKEN",
@@ -85,6 +84,22 @@ function main() {
 
   const problems = [];
   const warnings = [];
+
+  const metricsPrimaryMissing = isMissing("PUBLIC_METRICS_TOKEN");
+  const metricsLegacyMissing = isMissing("METRICS_TOKEN");
+  if (metricsPrimaryMissing && metricsLegacyMissing) {
+    problems.push("Missing required: PUBLIC_METRICS_TOKEN");
+  }
+  if (metricsPrimaryMissing && !metricsLegacyMissing) {
+    warnings.push("METRICS_TOKEN is deprecated; use PUBLIC_METRICS_TOKEN");
+  }
+
+  if (process.env.PUBLIC_API_TOKEN && isMissing("NEXT_PUBLIC_API_TOKEN")) {
+    warnings.push("NEXT_PUBLIC_API_TOKEN is missing; browser requests to protected endpoints may fail");
+  }
+  if (!metricsPrimaryMissing && isMissing("NEXT_PUBLIC_PUBLIC_METRICS_TOKEN")) {
+    warnings.push("NEXT_PUBLIC_PUBLIC_METRICS_TOKEN is missing; browser metrics requests may fail");
+  }
 
   if (missing.length) problems.push(`Missing required: ${missing.join(", ")}`);
   if (missingPush.length) problems.push(`Push keys missing: ${missingPush.join(", ")}`);

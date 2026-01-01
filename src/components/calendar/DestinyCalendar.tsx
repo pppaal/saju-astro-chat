@@ -1152,22 +1152,13 @@ function DestinyCalendarContent() {
 
       {/* 헤더 */}
       <div className={styles.calendarHeader}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.calendarTitle}>
-            {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
-          </h1>
+        <h1 className={styles.calendarTitle}>
+          {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
+        </h1>
+        <div className={styles.headerActions}>
           <button className={styles.editBirthBtn} onClick={() => setHasBirthInfo(false)}>
             {locale === "ko" ? "수정" : "Edit"}
           </button>
-          {/* 캐시 히트 표시 */}
-          {cacheHit && (
-            <span className={styles.cacheHitBadge} title={locale === "ko" ? "캐시된 데이터 (빠른 로딩)" : "Cached data (fast loading)"}>
-              ⚡ {locale === "ko" ? "캐시" : "Cached"}
-            </span>
-          )}
-        </div>
-
-        <div className={styles.headerActions}>
           {/* Summary - 천운, 최고, 주의 */}
           {data?.summary && (
             <div className={styles.summaryBadges}>
@@ -1200,155 +1191,6 @@ function DestinyCalendarContent() {
           {locale === "ko" ? "오늘" : "Today"}
         </button>
       </div>
-
-      {/* 점수 분포 차트 */}
-      {data?.allDates && (
-        <div className={styles.scoreDistribution}>
-          <div className={styles.distributionHeader}>
-            <h3>{locale === "ko" ? "📊 연간 점수 분포" : "📊 Annual Score Distribution"}</h3>
-            <button
-              className={styles.toggleDistribution}
-              onClick={() => {
-                const elem = document.getElementById('distributionChart');
-                if (elem) elem.classList.toggle(styles.collapsed);
-              }}
-            >
-              {locale === "ko" ? "접기/펼치기" : "Toggle"}
-            </button>
-          </div>
-
-          <div id="distributionChart" className={styles.distributionChart}>
-            {(() => {
-              // 점수 범위별 카운트 계산 (6등급 시스템 v7)
-              const ranges = [
-                { label: '74-100', min: 74, max: 100, grade: 0, color: '#FFD700' },
-                { label: '66-73', min: 66, max: 73, grade: 1, color: '#90EE90' },
-                { label: '56-65', min: 56, max: 65, grade: 2, color: '#87CEEB' },
-                { label: '45-55', min: 45, max: 55, grade: 3, color: '#D3D3D3' },
-                { label: '35-44', min: 35, max: 44, grade: 4, color: '#FFB6C1' },
-                { label: '0-34', min: 0, max: 34, grade: 5, color: '#8B0000' },
-              ];
-
-              const allDates = data.allDates ?? [];
-              const distribution = ranges.map(range => ({
-                ...range,
-                count: allDates.filter(d =>
-                  d.score >= range.min && d.score <= range.max
-                ).length,
-              }));
-
-              const maxCount = Math.max(...distribution.map(d => d.count));
-              const totalDays = allDates.length;
-
-              // 평균/최고/최저 점수 계산
-              const scores = allDates.map(d => d.score);
-              const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-              const maxScore = Math.max(...scores);
-              const minScore = Math.min(...scores);
-
-              return (
-                <>
-                  {/* 통계 요약 */}
-                  <div className={styles.statsRow}>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>{locale === "ko" ? "평균" : "Average"}</span>
-                      <span className={styles.statValue}>{avgScore}</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>{locale === "ko" ? "최고" : "Max"}</span>
-                      <span className={styles.statValue} style={{ color: '#FFD700' }}>{maxScore}</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>{locale === "ko" ? "최저" : "Min"}</span>
-                      <span className={styles.statValue} style={{ color: '#FF6B6B' }}>{minScore}</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>{locale === "ko" ? "총 일수" : "Total Days"}</span>
-                      <span className={styles.statValue}>{totalDays}</span>
-                    </div>
-                  </div>
-
-                  {/* 히스토그램 */}
-                  <div className={styles.histogram}>
-                    {distribution.map((range, idx) => {
-                      const percentage = totalDays > 0 ? (range.count / totalDays) * 100 : 0;
-                      const barHeight = maxCount > 0 ? (range.count / maxCount) * 100 : 0;
-
-                      return (
-                        <div key={idx} className={styles.histogramBar}>
-                          <div className={styles.barWrapper}>
-                            <div
-                              className={styles.bar}
-                              style={{
-                                height: `${barHeight}%`,
-                                backgroundColor: range.color,
-                              }}
-                              title={`${range.label}: ${range.count}일 (${percentage.toFixed(1)}%)`}
-                            >
-                              <span className={styles.barCount}>{range.count}</span>
-                            </div>
-                          </div>
-                          <div className={styles.barLabel}>
-                            <div className={styles.barRange}>{range.label}</div>
-                            <div className={styles.barPercent}>{percentage.toFixed(0)}%</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 등급별 설명 (6등급 시스템 v7) */}
-                  <div className={styles.gradeExplanation}>
-                    <div className={styles.gradeItem}>
-                      <span className={styles.gradeDot} style={{ backgroundColor: '#FFD700' }}></span>
-                      <span>{locale === "ko" ? "천운 (74+)" : "Celestial (74+)"}</span>
-                    </div>
-                    <div className={styles.gradeItem}>
-                      <span className={styles.gradeDot} style={{ backgroundColor: '#90EE90' }}></span>
-                      <span>{locale === "ko" ? "아주좋음 (66-73)" : "Very Good (66-73)"}</span>
-                    </div>
-                    <div className={styles.gradeItem}>
-                      <span className={styles.gradeDot} style={{ backgroundColor: '#87CEEB' }}></span>
-                      <span>{locale === "ko" ? "좋음 (56-65)" : "Good (56-65)"}</span>
-                    </div>
-                    <div className={styles.gradeItem}>
-                      <span className={styles.gradeDot} style={{ backgroundColor: '#D3D3D3' }}></span>
-                      <span>{locale === "ko" ? "보통 (45-55)" : "Normal (45-55)"}</span>
-                    </div>
-                    <div className={styles.gradeItem}>
-                      <span className={styles.gradeDot} style={{ backgroundColor: '#FFB6C1' }}></span>
-                      <span>{locale === "ko" ? "나쁨 (35-44)" : "Bad (35-44)"}</span>
-                    </div>
-                    <div className={styles.gradeItem}>
-                      <span className={styles.gradeDot} style={{ backgroundColor: '#8B0000' }}></span>
-                      <span>{locale === "ko" ? "아주나쁨 (0-34)" : "Very Bad (0-34)"}</span>
-                    </div>
-                  </div>
-
-                  {/* 점수 요소 분석 */}
-                  <div className={styles.scoreBreakdown}>
-                    <h4>{locale === "ko" ? "💡 점수 구성" : "💡 Score Composition"}</h4>
-                    <div className={styles.breakdownGrid}>
-                      <div className={styles.breakdownItem}>
-                        <span className={styles.breakdownLabel}>{locale === "ko" ? "사주 분석" : "Saju"}</span>
-                        <span className={styles.breakdownValue}>50점</span>
-                      </div>
-                      <div className={styles.breakdownItem}>
-                        <span className={styles.breakdownLabel}>{locale === "ko" ? "점성술 분석" : "Astrology"}</span>
-                        <span className={styles.breakdownValue}>50점</span>
-                      </div>
-                      <div className={styles.breakdownItem}>
-                        <span className={styles.breakdownLabel}>{locale === "ko" ? "교차검증" : "Cross-Check"}</span>
-                        <span className={styles.breakdownValue}>±5점</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* 카테고리 필터 */}
       <div className={styles.filters}>
