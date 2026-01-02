@@ -11,8 +11,9 @@ import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { cleanStringArray, isRecord } from "@/lib/api";
+import { getBackendUrl } from "@/lib/backend-url";
 
-const BACKEND_URL = process.env.BACKEND_AI_URL || "http://localhost:5000";
+const BACKEND_URL = getBackendUrl();
 
 interface StreamDreamRequest {
   dreamText: string;

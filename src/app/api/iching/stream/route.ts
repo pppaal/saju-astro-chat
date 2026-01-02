@@ -5,8 +5,9 @@ import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { getBackendUrl } from "@/lib/backend-url";
 
-const BACKEND_URL = process.env.BACKEND_AI_URL || "http://localhost:5000";
+const BACKEND_URL = getBackendUrl();
 
 interface ChangingLine {
   index: number;

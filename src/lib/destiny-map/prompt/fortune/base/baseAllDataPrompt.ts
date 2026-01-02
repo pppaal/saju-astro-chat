@@ -672,6 +672,12 @@ ${allDaeunText || "데이터 없음"}
 [COMPREHENSIVE DATA SNAPSHOT v3.1 - ${theme}]
 Locale: ${lang}
 
+📌 사용자 기본 정보
+───────────────────────────────────────
+생년: ${birthYear}년생
+현재 만 나이: ${currentAge}세
+오늘 날짜: ${currentYear}년 ${currentMonth}월
+
 ⚠️⚠️⚠️ CRITICAL DATA ACCURACY RULES ⚠️⚠️⚠️
 ═══════════════════════════════════════════════════════════════
 1. 대운/세운/월운 등 운세 데이터는 반드시 아래 제공된 데이터만 사용하세요.

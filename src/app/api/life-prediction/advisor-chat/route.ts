@@ -3,8 +3,9 @@
 // v3.0: 백엔드 counseling_engine 완전 통합 (위기감지, RAG, RuleEngine)
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getBackendUrl } from '@/lib/backend-url';
 
-const BACKEND_URL = process.env.BACKEND_AI_URL || 'http://localhost:5000';
+const BACKEND_URL = getBackendUrl();
 
 interface ChatRequest {
   message: string;
