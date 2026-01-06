@@ -324,8 +324,8 @@ OPENAI_API_KEY=your_key_here
 COUNSELOR_MODEL=gpt-4o        # 또는 gpt-4o-mini
 
 # .env.local (frontend)
-BACKEND_AI_URL=http://localhost:5000  # 로컬 개발
-# BACKEND_AI_URL=https://your-backend.com  # 프로덕션
+AI_BACKEND_URL=http://localhost:5000  # local dev
+# AI_BACKEND_URL=https://your-backend.com  # production
 ```
 
 ---

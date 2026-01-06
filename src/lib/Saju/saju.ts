@@ -201,7 +201,7 @@ export function calculateSajuData(
       : birthDateTime.getTime() - prevTermUTC.getTime();
     const daeWoonStartAge = daysToDaeunAge(diffToTermMs / 86400000);
 
-    const daeWoonList: any[] = [];
+    const daeWoonList: DaeunPillar[] = [];
     const direction = isForward ? 1 : -1;
     let curStemIdx = monthStemIndex;
     let curBranchIdx = monthBranchIndex;
@@ -216,13 +216,13 @@ export function calculateSajuData(
         age,
         heavenlyStem: s.name,
         earthlyBranch: b.name,
-        sibsin: { cheon: getSibseong(dayMaster, s), ji: getSibseong(dayMaster, mainForB ?? (b as any)) }
+        sibsin: { cheon: getSibseong(dayMaster, s), ji: getSibseong(dayMaster, mainForB ?? (b as string)) }
       });
     }
 
     /* ---------------- 결과 구성 ---------------- */
     const pillars = { yearPillar, monthPillar, dayPillar, timePillar } as const;
-    const finalPillars: any = {};
+    const finalPillars: Record<string, unknown> = {};
     (['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const).forEach(name => {
       const p = pillars[name];
       const j = JIJANGGAN[p.branch.name];
@@ -240,7 +240,7 @@ export function calculateSajuData(
         earthlyBranch: {
           name: p.branch.name,
           element: p.branch.element,
-          sibsin: getSibseong(dayMaster, mainStem ?? (p.branch as any))
+          sibsin: getSibseong(dayMaster, mainStem ?? (p.branch as string))
         },
         jijanggan: {
           chogi: chogiName ? { name: chogiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === chogiName)!) } : undefined,
@@ -267,7 +267,7 @@ export function calculateSajuData(
     const currentLuckPillar = daeWoonList.slice().reverse().find(d => currentAge >= d.age) || daeWoonList[0];
 
     // 연운 (현재 연도부터 6년치)
-    const annualCycles: any[] = [];
+    const annualCycles: CycleData[] = [];
     for (let i = 0; i < 6; i++) {
       const yr = yNowLocal + i;
       const idx60 = (yr - 4 + 6000) % 60;
@@ -278,12 +278,12 @@ export function calculateSajuData(
         year: yr,
         ganji: `${stem.name}${branch.name}`,
         element: stem.element,
-        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as any)) }
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as string)) }
       });
     }
 
     // 월운 (현재 월부터 12개월치)
-    const monthlyCycles: any[] = [];
+    const monthlyCycles: CycleData[] = [];
     for (let i = 0; i < 12; i++) {
       let yr = yNowLocal;
       let mo = mNowLocal + i;
@@ -301,7 +301,7 @@ export function calculateSajuData(
         month: mo,
         ganji: `${stem.name}${branch.name}`,
         element: stem.element,
-        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as any)) }
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as string)) }
       });
     }
 
@@ -344,7 +344,7 @@ export function calculateSajuData(
 
 /* ========== 연/월/일 유틸 ========== */
 export function getAnnualCycles(startYear: number, count: number, dayMaster: DayMaster) {
-  const cycles: any[] = [];
+  const cycles: CycleData[] = [];
   for (let i = 0; i < count; i++) {
     const year = startYear + i;
     const idx60 = (year - 4 + 6000) % 60;
@@ -355,14 +355,14 @@ export function getAnnualCycles(startYear: number, count: number, dayMaster: Day
       year,
       heavenlyStem: stem.name,
       earthlyBranch: branch.name,
-      sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as any)) }
+      sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as string)) }
     });
   }
   return cycles;
 }
 
 export function getMonthlyCycles(year: number, dayMaster: DayMaster) {
-  const cycles: any[] = [];
+  const cycles: CycleData[] = [];
   const idx60 = (year - 4 + 6000) % 60;
   const yearStemName = STEMS[idx60 % 10].name;
   const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName];
@@ -376,7 +376,7 @@ export function getMonthlyCycles(year: number, dayMaster: DayMaster) {
       month:i+1,
       heavenlyStem: stem.name,
       earthlyBranch: branch.name,
-      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? (branch as any)) }
+      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? (branch as string)) }
     });
   }
   return cycles.sort((a,b)=>a.month-b.month);
@@ -384,7 +384,7 @@ export function getMonthlyCycles(year: number, dayMaster: DayMaster) {
 
 export function getIljinCalendar(year:number,month:number,dayMaster:DayMaster){
   const daysInMonth=new Date(year,month,0).getDate();
-  const calendar:any[]=[];
+  const calendar: unknown[] =[];
   for(let day=1;day<=daysInMonth;day++){
     const a=Math.floor((14-month)/12);
     const y_=year+4800-a;
@@ -397,7 +397,7 @@ export function getIljinCalendar(year:number,month:number,dayMaster:DayMaster){
       year,month,day,
       heavenlyStem:stem.name,
       earthlyBranch:branch.name,
-      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? (branch as any)) },
+      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? (branch as string)) },
       isCheoneulGwiin:isCheoneulGwiin(dayMaster.name,branch.name),
     });
   }

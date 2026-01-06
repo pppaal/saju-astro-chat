@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     if (!requirePublicToken(req)) {
       return bad('Unauthorized', 401, limit.headers);
     }
-    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
     if (oversized) return oversized;
 
     const body = await req.json();

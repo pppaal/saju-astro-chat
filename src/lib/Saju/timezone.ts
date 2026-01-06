@@ -1,7 +1,7 @@
 // src/lib/Saju/timezone.ts
 
 export function getSupportedTimezones(): string[] {
-  const anyIntl = Intl as any;
+  const anyIntl = Intl;
   if (typeof anyIntl?.supportedValuesOf === 'function') {
     try {
       const list = anyIntl.supportedValuesOf('timeZone') as string[];

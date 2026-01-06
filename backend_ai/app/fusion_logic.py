@@ -125,38 +125,38 @@ report_memory: dict[str, dict] = {}
 # ELEMENT & INTERPRETATION HELPERS
 # ===============================================================
 ELEMENT_TRAITS = {
-    "µ£¿": {"name": "Wood/δ¬⌐", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
-    "τü½": {"name": "Fire/φÖö", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
-    "σ£ƒ": {"name": "Earth/φåá", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
-    "Θçæ": {"name": "Metal/Ω╕ê", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
-    "µ░┤": {"name": "Water/∞êÿ", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
-    "wood": {"name": "Wood/δ¬⌐", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
-    "fire": {"name": "Fire/φÖö", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
-    "earth": {"name": "Earth/φåá", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
-    "metal": {"name": "Metal/Ω╕ê", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
-    "water": {"name": "Water/∞êÿ", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
+    "목": {"name": "Wood/목", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
+    "화": {"name": "Fire/화", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
+    "토": {"name": "Earth/토", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
+    "금": {"name": "Metal/금", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
+    "수": {"name": "Water/수", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
+    "wood": {"name": "Wood/목", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
+    "fire": {"name": "Fire/화", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
+    "earth": {"name": "Earth/토", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
+    "metal": {"name": "Metal/금", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
+    "water": {"name": "Water/수", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
 }
 
 TEN_GODS_MEANING = {
-    "δ╣äΩ▓¼": "Peer/Competitor - independence, rivalry, partnership",
-    "Ω▓ü∞₧¼": "Rob Wealth - boldness, risk-taking, competition",
-    "∞ï¥∞ïá": "Eating God - creativity, expression, enjoyment",
-    "∞âüΩ┤Ç": "Hurting Officer - rebellion, innovation, critique",
-    "φÄ╕∞₧¼": "Indirect Wealth - speculation, windfall, entrepreneurship",
-    "∞áò∞₧¼": "Direct Wealth - stable income, savings, reliability",
-    "φÄ╕Ω┤Ç": "Indirect Authority - pressure, challenge, discipline",
-    "∞áòΩ┤Ç": "Direct Authority - status, law, organization",
-    "φÄ╕∞¥╕": "Indirect Resource - unconventional learning, intuition",
-    "∞áò∞¥╕": "Direct Resource - knowledge, nurturing, tradition",
+    "비견": "Peer/Competitor - independence, rivalry, partnership",
+    "겁재": "Rob Wealth - boldness, risk-taking, competition",
+    "식신": "Eating God - creativity, expression, enjoyment",
+    "상관": "Hurting Officer - rebellion, innovation, critique",
+    "편재": "Indirect Wealth - speculation, windfall, entrepreneurship",
+    "정재": "Direct Wealth - stable income, savings, reliability",
+    "편관": "Indirect Authority - pressure, challenge, discipline",
+    "정관": "Direct Authority - status, law, organization",
+    "편인": "Indirect Resource - unconventional learning, intuition",
+    "정인": "Direct Resource - knowledge, nurturing, tradition",
 }
 
 ASPECT_MEANINGS = {
-    "conjunction": "Φ₧ìσÉê - powerful blend, intensification of energies",
-    "opposition": "σ░ìµ▓û - tension, awareness, potential for integration",
-    "trine": "Σ╕ëσÉê - harmony, natural flow, gifts",
-    "square": "σêæ - friction, challenge, growth through effort",
-    "sextile": "σà¡σÉê - opportunity, cooperation, gentle support",
-    "quincunx": "Σ╕ìΦ¬┐ - adjustment needed, blind spots",
+    "conjunction": "합 (Conjunction) - powerful blend, intensification of energies",
+    "opposition": "충 (Opposition) - tension, awareness, potential for integration",
+    "trine": "삼합 (Trine) - harmony, natural flow, gifts",
+    "square": "사각 (Square) - friction, challenge, growth through effort",
+    "sextile": "육합 (Sextile) - opportunity, cooperation, gentle support",
+    "quincunx": "퀸컨스 (Quincunx) - adjustment needed, blind spots",
 }
 
 
@@ -176,18 +176,18 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
     # Four Pillars with meaning
     if pillars:
-        s_parts.append("πÇÉ∞é¼∞ú╝φîö∞₧É σ¢¢µƒ▒σà½σ¡ùπÇæ")
+        s_parts.append("\n[사주 4기둥 / Four Pillars]")
         s_parts.append(
-            f"  ΓÇó δàä∞ú╝(Year Pillar): {pillars.get('year')} ΓÇö ancestral energy, social persona, outer world"
+            f"  • 연주(Year Pillar): {pillars.get('year')} - ancestral energy, social persona, outer world"
         )
         s_parts.append(
-            f"  ΓÇó ∞¢ö∞ú╝(Month Pillar): {pillars.get('month')} ΓÇö parents, career path, life structure"
+            f"  • 월주(Month Pillar): {pillars.get('month')} - parents, career path, life structure"
         )
         s_parts.append(
-            f"  ΓÇó ∞¥╝∞ú╝(Day Pillar): {pillars.get('day')} ΓÇö core self, spouse relationship, inner nature"
+            f"  • 일주(Day Pillar): {pillars.get('day')} - core self, spouse relationship, inner nature"
         )
         s_parts.append(
-            f"  ΓÇó ∞ï£∞ú╝(Hour Pillar): {pillars.get('time')} ΓÇö children, later years, creative output"
+            f"  • 시주(Hour Pillar): {pillars.get('time')} - children, later years, creative output"
         )
 
     # Day Master with interpretive context - CRITICAL: This is the person's core identity
@@ -225,7 +225,7 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
     # Five Elements Balance with interpretation
     if isinstance(facts.get("fiveElements"), dict):
         fe = facts["fiveElements"]
-        s_parts.append(f"\nπÇÉ∞ÿñφûë Ω╖áφÿò Five Elements BalanceπÇæ")
+        s_parts.append("\n[오행 균형 / Five Elements Balance]")
 
         # Find dominant and weak elements
         sorted_elements = sorted(fe.items(), key=lambda x: x[1], reverse=True)
@@ -234,62 +234,62 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
         for elem, count in fe.items():
             elem_info = ELEMENT_TRAITS.get(elem, {})
-            status = "dominant Γÿà" if dominant and elem == dominant[0] and count > 2 else ""
-            status = "deficient Γùï" if weakest and elem == weakest[0] and count == 0 else status
-            s_parts.append(f"  ΓÇó {elem_info.get('name', elem)}: {count} {status}")
+            status = "우세" if dominant and elem == dominant[0] and count > 2 else ""
+            status = "부족" if weakest and elem == weakest[0] and count == 0 else status
+            s_parts.append(f"  • {elem_info.get('name', elem)}: {count} {status}")
 
         if dominant and dominant[1] > 3:
-            s_parts.append(f"  ΓåÆ Dominant {ELEMENT_TRAITS.get(dominant[0], {}).get('name', dominant[0])}: amplified {ELEMENT_TRAITS.get(dominant[0], {}).get('traits', 'energy')}")
+            s_parts.append(f"  • 우세 오행: {ELEMENT_TRAITS.get(dominant[0], {}).get('name', dominant[0])} - {ELEMENT_TRAITS.get(dominant[0], {}).get('traits', 'energy')}")
         if weakest and weakest[1] == 0:
-            s_parts.append(f"  ΓåÆ Missing {ELEMENT_TRAITS.get(weakest[0], {}).get('name', weakest[0])}: area for conscious development")
+            s_parts.append(f"  • 부족 오행: {ELEMENT_TRAITS.get(weakest[0], {}).get('name', weakest[0])} - conscious development needed")
 
     # Ten Gods with meanings
     if "tenGods" in facts:
         ten_gods = facts['tenGods']
-        s_parts.append(f"\nπÇÉ∞ï¡∞ä▒ σìüτÑ₧ (Ten Gods)πÇæ")
+        s_parts.append("\n[십성 (Ten Gods)]")
         if isinstance(ten_gods, dict):
             for god, info in ten_gods.items():
                 meaning = TEN_GODS_MEANING.get(god, "special influence")
-                s_parts.append(f"  ΓÇó {god}: {meaning}")
+                s_parts.append(f"  • {god}: {meaning}")
         else:
             s_parts.append(f"  {ten_gods}")
 
     # Power Balance
     if "powerBalance" in facts:
         pb = facts['powerBalance']
-        s_parts.append(f"\nπÇÉ∞ïáΩ░ò∞ïá∞ò╜ Power BalanceπÇæ")
+        s_parts.append("\n[신강/신약 밸런스 / Power Balance]")
         if isinstance(pb, dict):
             balance_type = pb.get('type', 'balanced')
-            s_parts.append(f"  ΓÇó Type: {balance_type}")
-            if balance_type in ['∞ïáΩ░ò', 'strong']:
-                s_parts.append("  ΓåÆ Self-sufficient, leadership potential, may need to consider others")
-            elif balance_type in ['∞ïá∞ò╜', 'weak']:
-                s_parts.append("  ΓåÆ Collaborative nature, benefits from support, adaptable")
+            s_parts.append(f"  • Type: {balance_type}")
+            if balance_type in ["신강", "강", "strong"]:
+                s_parts.append("  • Self-sufficient, leadership potential, may need to consider others")
+            elif balance_type in ["신약", "약", "weak"]:
+                s_parts.append("  • Collaborative nature, benefits from support, adaptable")
         else:
             s_parts.append(f"  {pb}")
 
     # Luck Cycles with context
     cycle_labels = {
-        "daeun": ("δîÇ∞Ü┤ σñºΘüï (Great Luck)", "10-year cycle, major life phases"),
-        "annual": ("∞ä╕∞Ü┤ µ¡▓Θüï (Annual Luck)", "yearly energy, current year themes"),
-        "monthly": ("∞¢ö∞Ü┤ µ£êΘüï (Monthly)", "monthly focus, timing for actions"),
-        "iljin": ("∞¥╝∞ºä µùÑΦ╛░ (Daily)", "daily energy, immediate timing"),
+        "daeun": ("대운 (Great Luck)", "10-year cycle, major life phases"),
+        "annual": ("세운 (Annual Luck)", "yearly energy, current year themes"),
+        "monthly": ("월운 (Monthly)", "monthly focus, timing for actions"),
+        "iljin": ("일진 (Daily)", "daily energy, immediate timing"),
     }
     for key, (label, desc) in cycle_labels.items():
         cycles = unse.get(key, [])
         if cycles:
             names = [c.get("name") or str(c) for c in cycles[:6]]
-            s_parts.append(f"\nπÇÉ{label}πÇæ({desc})")
+            s_parts.append(f"\n[{label}] ({desc})")
             s_parts.append(f"  Current/Upcoming: {', '.join(names)}")
 
     # Sinsal (Special Stars) with interpretation
     if sinsal and sinsal.get("hits"):
-        s_parts.append(f"\nπÇÉ∞ïá∞é┤ τÑ₧τà₧ (Special Stars)πÇæ")
+        s_parts.append("\n[신살 (Special Stars)]")
         for h in sinsal["hits"][:10]:
             name = h.get("name", "")
             desc = h.get("description", h.get("meaning", "unique influence"))
             if name:
-                s_parts.append(f"  ΓÇó {name}: {desc[:80]}")
+                s_parts.append(f"  • {name}: {desc[:80]}")
 
     saju_text = "\n".join(s_parts) or "No saju facts."
 
@@ -304,17 +304,17 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
     # Key Angles
     if asc or mc:
-        a_parts.append("πÇÉ∞ú╝∞Üö ∞ò╡Ω╕Ç Key AnglesπÇæ")
+        a_parts.append("[주요 각도 / Key Angles]")
         if asc:
             asc_sign = asc.get('sign') if isinstance(asc, dict) else asc
-            a_parts.append(f"  ΓÇó Ascendant (ASC): {asc_sign} ΓÇö first impression, physical presence, life approach")
+            a_parts.append(f"  • Ascendant (ASC): {asc_sign} - first impression, physical presence, life approach")
         if mc:
             mc_sign = mc.get('sign') if isinstance(mc, dict) else mc
-            a_parts.append(f"  ΓÇó Midheaven (MC): {mc_sign} ΓÇö career path, public image, life direction")
+            a_parts.append(f"  • Midheaven (MC): {mc_sign} - career path, public image, life direction")
 
     # Planets with interpretive context
     if planets:
-        a_parts.append(f"\nπÇÉφûë∞ä▒ δ░░∞╣ÿ Planetary PositionsπÇæ")
+        a_parts.append("\n[행성 위치 / Planetary Positions]")
         planet_meanings = {
             "Sun": "core identity, vitality, ego",
             "Moon": "emotions, instincts, inner needs",
@@ -334,30 +334,30 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
                 house = p.get('house', '')
                 degree = p.get('degree', '')
                 meaning = planet_meanings.get(name, 'influence')
-                degree_str = f" at {degree}┬░" if degree else ""
-                a_parts.append(f"  ΓÇó {name} in {sign}{degree_str} (House {house}): {meaning}")
+                degree_str = f" at {degree}°" if degree else ""
+                a_parts.append(f"  • {name} in {sign}{degree_str} (House {house}): {meaning}")
 
     # Aspects with meanings
     if aspects:
-        a_parts.append(f"\nπÇÉφûë∞ä▒ ∞âüφÿ╕∞₧æ∞Ü⌐ Major AspectsπÇæ")
+        a_parts.append("\n[주요 각 / Major Aspects]")
         for a in aspects[:12]:
             asp_type = a.get('aspect', '')
             p1 = a.get('planet1', '')
             p2 = a.get('planet2', '')
             orb = a.get('orb', '')
             meaning = ASPECT_MEANINGS.get(asp_type.lower(), 'connection')
-            orb_str = f" (orb: {orb}┬░)" if orb else ""
-            a_parts.append(f"  ΓÇó {p1} {asp_type} {p2}{orb_str}: {meaning}")
+            orb_str = f" (orb: {orb}°)" if orb else ""
+            a_parts.append(f"  • {p1} {asp_type} {p2}{orb_str}: {meaning}")
 
     # Element Ratios with interpretation
     if facts.get("elementRatios"):
         er = facts["elementRatios"]
-        a_parts.append(f"\nπÇÉ∞¢É∞åî δ╢äφÅ¼ Element DistributionπÇæ")
+        a_parts.append("\n[오행 분포 / Element Distribution]")
         sorted_er = sorted(er.items(), key=lambda x: x[1], reverse=True)
         for elem, ratio in sorted_er:
             pct = round(ratio * 100) if ratio <= 1 else round(ratio)
-            status = "Γÿà dominant" if pct > 35 else "Γùï low" if pct < 10 else ""
-            a_parts.append(f"  ΓÇó {elem}: {pct}% {status}")
+            status = "우세" if pct > 35 else "낮음" if pct < 10 else ""
+            a_parts.append(f"  • {elem}: {pct}% {status}")
 
     astro_text = "\n".join(a_parts) or "No astrology facts."
 
@@ -368,19 +368,19 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
     category = tarot.get("category") or tarot.get("theme")
 
     if category or spread:
-        t_parts.append("πÇÉφâÇδí£ δª¼δö⌐ Tarot ReadingπÇæ")
+        t_parts.append("[타로 리딩 / Tarot Reading]")
         if category:
             t_parts.append(f"  Theme: {category}")
         if spread:
             t_parts.append(f"  Spread: {spread.get('title') or spread.get('id')} ({spread.get('cardCount', len(drawn_cards))} cards)")
 
     if isinstance(drawn_cards, list) and drawn_cards:
-        t_parts.append(f"\nπÇÉ∞╣┤δô£ φò┤∞ä¥ Card InterpretationsπÇæ")
+        t_parts.append("\n[카드 해석 / Card Interpretations]")
         for idx, dc in enumerate(drawn_cards[:8]):
             card = dc.get("card") if isinstance(dc, dict) else None
             name = card.get("name") if isinstance(card, dict) else dc.get("name")
             is_reversed = dc.get("isReversed", False) if isinstance(dc, dict) else False
-            orientation = "∞ù¡δ░⌐φûÑ Reversed" if is_reversed else "∞áòδ░⌐φûÑ Upright"
+            orientation = "역방향 (Reversed)" if is_reversed else "정방향 (Upright)"
 
             keywords = []
             description = ""
@@ -482,9 +482,9 @@ def _parallel_persona_semantic(user_prompt):
         semantic_context = persona_rag.get_persona_context(user_prompt, top_k=2)
         parts = []
         if semantic_context.get("jung_insights"):
-            parts.append("[Jung δ╢ä∞ä¥Ω░Ç]\n" + "\n".join(semantic_context["jung_insights"][:2]))
+            parts.append("[Jung 인사이트]\n" + "\n".join(semantic_context["jung_insights"][:2]))
         if semantic_context.get("stoic_insights"):
-            parts.append("[Stoic ∞áäδ₧╡Ω░Ç]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
+            parts.append("[Stoic 인사이트]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
         return "\n\n".join(parts) if parts else ""
     except Exception as e:
         print(f"[Parallel] Persona semantic error: {e}")
@@ -748,7 +748,7 @@ def interpret_with_ai(facts: dict):
                         path_strs = []
                         for p in paths[:3]:
                             if p.get("nodes"):
-                                path_strs.append(" ΓåÆ ".join(p["nodes"][:6]))
+                                path_strs.append(" → ".join(p["nodes"][:6]))
                         if path_strs:
                             agentic_context += f"\n\n[Deep Graph Paths - Multi-hop]\n" + "\n".join(path_strs)
 
@@ -760,7 +760,7 @@ def interpret_with_ai(facts: dict):
                             label = r.get("label", "")
                             desc = r.get("description", "")[:150]
                             if label and desc:
-                                graph_context_parts.append(f"ΓÇó {label}: {desc}")
+                                graph_context_parts.append(f"• {label}: {desc}")
                         if graph_context_parts:
                             agentic_context += f"\n\n[Enhanced Graph Context]\n" + "\n".join(graph_context_parts)
 

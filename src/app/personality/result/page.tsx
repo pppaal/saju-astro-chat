@@ -221,7 +221,7 @@ export default function ResultPage() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+   
   const analysis: PersonaAnalysis | null = useMemo(() => {
     const hasAnswers = Object.keys(answers).length > 0;
     if (!hasAnswers) return null;

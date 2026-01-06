@@ -37,7 +37,7 @@ export interface ReportOutput {
   };
   summary: string;
   report: string;
-  raw: any;
+  raw: Record<string, unknown>;
   crossHighlights?: { summary: string; points?: string[] };
   themes?: Record<string, unknown>;
 }

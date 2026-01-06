@@ -247,8 +247,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   }
   const { plan, billingCycle } = planInfo
 
-  const periodStart = (subscription as any).current_period_start as number | undefined
-  const periodEnd = (subscription as any).current_period_end as number | undefined
+  const periodStart = (subscription).current_period_start as number | undefined
+  const periodEnd = (subscription).current_period_end as number | undefined
 
   await prisma.subscription.upsert({
     where: { stripeSubscriptionId: subscription.id },
@@ -316,8 +316,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const plan = planInfo?.plan ?? existing.plan
   const billingCycle = planInfo?.billingCycle ?? existing.billingCycle
 
-  const periodStart = (subscription as any).current_period_start as number | undefined
-  const periodEnd = (subscription as any).current_period_end as number | undefined
+  const periodStart = (subscription).current_period_start as number | undefined
+  const periodEnd = (subscription).current_period_end as number | undefined
   const canceledAt = subscription.canceled_at
 
   await prisma.subscription.update({
@@ -391,7 +391,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const invoiceAny = invoice as any
+  const invoiceAny = invoice
   const subscriptionId = typeof invoiceAny.subscription === "string" ? invoiceAny.subscription : invoiceAny.subscription?.id
   if (!subscriptionId) return
 
@@ -420,7 +420,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const invoiceAny = invoice as any
+  const invoiceAny = invoice
   const subscriptionId = typeof invoiceAny.subscription === "string" ? invoiceAny.subscription : invoiceAny.subscription?.id
   if (!subscriptionId) return
 

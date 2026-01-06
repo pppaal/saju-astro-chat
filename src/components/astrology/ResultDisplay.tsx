@@ -320,7 +320,7 @@ const ASPECT_LABELS = {
 
 function normalizeLocale(l?: string): LocaleKey {
   const k = (l || 'en').split('-')[0] as LocaleKey;
-  return (SIGNS as any)[k] ? k : 'en';
+  return (SIGNS)[k] ? k : 'en';
 }
 function splitSignAndDegree(text: string) {
   const s = String(text || '').trim();
@@ -352,13 +352,13 @@ function localizeSignLabel(inputSign: string, target: LocaleKey): string {
 }
 function localizePlanetLabel(inputName: string, target: LocaleKey): string {
   const enKeys = Object.keys(PLANET_LABELS.en) as (keyof typeof PLANET_LABELS.en)[];
-  if (enKeys.includes(inputName as any)) {
+  if (enKeys.includes(inputName)) {
     return PLANET_LABELS[target][inputName as keyof typeof PLANET_LABELS.en] || String(inputName);
   }
-  for (const labels of Object.values(PLANET_LABELS) as any[]) {
+  for (const labels of Object.values(PLANET_LABELS)) {
     for (const enKey of enKeys) {
       if (labels[enKey] === inputName) {
-        return (PLANET_LABELS as any)[target][enKey] || (PLANET_LABELS as any).en[enKey];
+        return (PLANET_LABELS)[target][enKey] || (PLANET_LABELS).en[enKey];
       }
     }
   }
@@ -366,7 +366,7 @@ function localizePlanetLabel(inputName: string, target: LocaleKey): string {
 }
 function localizeAspectType(type: string, loc: LocaleKey) {
   const key = String(type || '').toLowerCase() as keyof typeof ASPECT_LABELS.en;
-  return (ASPECT_LABELS as any)[loc]?.[key] || type;
+  return (ASPECT_LABELS)[loc]?.[key] || type;
 }
 
 interface ResultDisplayProps {
@@ -538,7 +538,7 @@ export default function ResultDisplay({
   const prettyInterpretation = useMemo(() => {
     if (!interpretation) return null;
     const rawLines = interpretation.split(/\r?\n/);
-    let lines = rawLines.map((s) => s.trim()).filter(Boolean);
+    const lines = rawLines.map((s) => s.trim()).filter(Boolean);
     const isHeader = (s: string) =>
       /^title$/i.test(s) || /^natal$/i.test(s) || /(요약|summary)$/i.test(s);
     while (lines.length && isHeader(lines[0])) lines.shift();
@@ -1087,7 +1087,7 @@ export default function ResultDisplay({
                       {L.ascendant}
                     </div>
                     <div className="text-2xl font-bold bg-gradient-to-r from-amber-100 to-amber-200 bg-clip-text text-transparent">
-                      {(viewChart as any).ascendant?.formatted}
+                      {(viewChart).ascendant?.formatted}
                     </div>
                   </div>
                   <div className="relative overflow-hidden rounded-xl border border-indigo-400/20 bg-gradient-to-br from-indigo-900/20 via-slate-800/50 to-purple-900/30 p-5 group/card hover:border-indigo-400/40 transition-colors">
@@ -1097,7 +1097,7 @@ export default function ResultDisplay({
                       MC (Midheaven)
                     </div>
                     <div className="text-2xl font-bold bg-gradient-to-r from-indigo-100 to-indigo-200 bg-clip-text text-transparent">
-                      {(viewChart as any).mc?.formatted}
+                      {(viewChart).mc?.formatted}
                     </div>
                   </div>
                 </div>

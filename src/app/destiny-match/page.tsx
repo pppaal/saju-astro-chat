@@ -1,12 +1,37 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './DestinyMatch.module.css';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
+// API에서 반환하는 프로필 타입
+type DiscoverProfile = {
+  id: string;
+  userId: string;
+  displayName: string;
+  bio: string | null;
+  occupation: string | null;
+  photos: string[];
+  city: string | null;
+  interests: string[];
+  verified: boolean;
+  age: number | null;
+  distance: number | null;
+  zodiacSign: string | null;
+  sajuElement: string | null;
+  personalityType: string | null;
+  personalityName: string | null;
+  compatibilityScore: number;
+  compatibilityGrade: string;
+  compatibilityEmoji: string;
+  compatibilityTagline: string;
+  lastActiveAt: string;
+};
+
+// 화면에 표시할 프로필 타입
 type UserProfile = {
   id: string;
   name: string;
@@ -18,10 +43,15 @@ type UserProfile = {
   birthChart: string;
   interests: string[];
   compatibility: number;
+  compatibilityGrade?: string;
+  compatibilityEmoji?: string;
+  compatibilityTagline?: string;
   bio: string;
   distance: number;
   verified: boolean;
   occupation?: string;
+  personalityType?: string;
+  personalityName?: string;
 };
 
 type ViewMode = 'swipe' | 'grid';
@@ -30,112 +60,41 @@ const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Li
 
 const SAJU_ELEMENTS = ["Fire", "Water", "Wood", "Metal", "Earth"];
 
-// Premium mock profiles
-const MOCK_PROFILES: UserProfile[] = [
-  {
-    id: '1',
-    name: 'Luna',
-    age: 28,
-    avatar: 'moon',
-    photos: ['moon', 'starlit', 'dusk'],
-    zodiacSign: 'Pisces',
-    sajuElement: 'Water',
-    birthChart: 'Moon in Cancer, Rising Scorpio',
-    interests: ['Tarot', 'Moon Phases', 'Crystals'],
-    compatibility: 95,
-    bio: 'Intuitive soul seeking deep cosmic connections. Professional tarot reader. Love moonlit walks and spiritual conversations.',
-    distance: 2,
-    verified: true,
-    occupation: 'Tarot Reader'
-  },
-  {
-    id: '2',
-    name: 'Phoenix',
-    age: 32,
-    avatar: 'phoenix',
-    photos: ['phoenix', 'sun', 'fire'],
-    zodiacSign: 'Leo',
-    sajuElement: 'Fire',
-    birthChart: 'Sun in Leo, Moon in Aries',
-    interests: ['Astrology', 'Manifestation', 'Yoga'],
-    compatibility: 88,
-    bio: 'Life coach and astrology enthusiast. Passionate about empowering others through cosmic wisdom.',
-    distance: 5,
-    verified: true,
-    occupation: 'Life Coach'
-  },
-  {
-    id: '3',
-    name: 'Aria',
-    age: 26,
-    avatar: 'aria',
-    photos: ['aria', 'sky', 'night'],
-    zodiacSign: 'Aquarius',
-    sajuElement: 'Metal',
-    birthChart: 'Sun in Aquarius, Moon in Gemini',
-    interests: ['Dream Analysis', 'Spirituality', 'Meditation'],
-    compatibility: 82,
-    bio: 'Creative artist exploring consciousness. Loves deep conversations about the universe.',
-    distance: 8,
-    verified: false,
-    occupation: 'Artist'
-  },
-  {
-    id: '4',
-    name: 'Rose',
-    age: 30,
-    avatar: 'rose',
-    photos: ['rose', 'bloom', 'water'],
-    zodiacSign: 'Scorpio',
-    sajuElement: 'Water',
-    birthChart: 'Sun in Scorpio, Moon in Pisces',
-    interests: ['Energy Healing', 'Chakras', 'Crystals'],
-    compatibility: 79,
-    bio: 'Reiki master and crystal healer dedicated to balance and awakening.',
-    distance: 12,
-    verified: true,
-    occupation: 'Reiki Master'
-  },
-  {
-    id: '5',
-    name: 'Kai',
-    age: 29,
-    avatar: 'kai',
-    photos: ['kai', 'sea', 'moon'],
-    zodiacSign: 'Cancer',
-    sajuElement: 'Water',
-    birthChart: 'Sun in Cancer, Moon in Taurus',
-    interests: ['Meditation', 'Yoga', 'Moon Phases'],
-    compatibility: 91,
-    bio: 'Ocean lover and meditation guide seeking someone to share spiritual adventures with.',
-    distance: 3,
-    verified: true,
-    occupation: 'Meditation Teacher'
-  },
-  {
-    id: '6',
-    name: 'Sage',
-    age: 34,
-    avatar: 'sage',
-    photos: ['sage', 'herb', 'forest'],
-    zodiacSign: 'Taurus',
-    sajuElement: 'Earth',
-    birthChart: 'Sun in Taurus, Moon in Virgo',
-    interests: ['Numerology', 'Astrology', 'Crystals'],
-    compatibility: 86,
-    bio: 'Grounded soul with ancient wisdom. Herbalist and spiritual guide living in harmony with nature.',
-    distance: 7,
-    verified: false,
-    occupation: 'Herbalist'
-  }
-];
+// API 프로필을 화면용 프로필로 변환
+function convertToUserProfile(profile: DiscoverProfile): UserProfile {
+  return {
+    id: profile.id,
+    name: profile.displayName,
+    age: profile.age || 0,
+    avatar: profile.displayName.charAt(0).toUpperCase(),
+    photos: Array.isArray(profile.photos) && profile.photos.length > 0
+      ? profile.photos
+      : [profile.displayName.charAt(0).toUpperCase()],
+    zodiacSign: profile.zodiacSign || 'Unknown',
+    sajuElement: profile.sajuElement || 'Unknown',
+    birthChart: profile.personalityType
+      ? `${profile.personalityType} - ${profile.personalityName || ''}`
+      : `${profile.zodiacSign || ''} / ${profile.sajuElement || ''}`,
+    interests: Array.isArray(profile.interests) ? profile.interests : [],
+    compatibility: profile.compatibilityScore,
+    compatibilityGrade: profile.compatibilityGrade,
+    compatibilityEmoji: profile.compatibilityEmoji,
+    compatibilityTagline: profile.compatibilityTagline,
+    bio: profile.bio || '자기소개가 없습니다.',
+    distance: profile.distance || 0,
+    verified: profile.verified,
+    occupation: profile.occupation || undefined,
+    personalityType: profile.personalityType || undefined,
+    personalityName: profile.personalityName || undefined,
+  };
+}
 
 export default function DestinyMatchPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const signInUrl = buildSignInUrl('/destiny-match');
   const [viewMode, setViewMode] = useState<ViewMode>('swipe');
-  const [profiles] = useState<UserProfile[]>(MOCK_PROFILES);
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
   const [_passedProfiles, setPassedProfiles] = useState<string[]>([]);
@@ -149,6 +108,12 @@ export default function DestinyMatchPage() {
     maxDistance: 50
   });
 
+  // 로딩/에러 상태
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
   const cardRef = useRef<HTMLDivElement>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -156,6 +121,80 @@ export default function DestinyMatchPage() {
 
   const currentProfile = profiles[currentIndex];
   const hasMoreProfiles = currentIndex < profiles.length;
+
+  // 프로필 로딩 함수
+  const loadProfiles = useCallback(async () => {
+    if (!session?.user) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('limit', '20');
+      if (filters.zodiacSign !== 'all') params.set('zodiac', filters.zodiacSign);
+      if (filters.sajuElement !== 'all') params.set('element', filters.sajuElement);
+
+      const res = await fetch(`/api/destiny-match/discover?${params.toString()}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 400 && data.error?.includes('프로필')) {
+          setNeedsSetup(true);
+          return;
+        }
+        throw new Error(data.error || '프로필을 불러오는데 실패했습니다');
+      }
+
+      const convertedProfiles = (data.profiles || []).map(convertToUserProfile);
+      setProfiles(convertedProfiles);
+      setHasMore(data.hasMore);
+      setCurrentIndex(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '오류가 발생했습니다');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session?.user, filters.zodiacSign, filters.sajuElement]);
+
+  // 세션 변경 시 프로필 로딩
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      loadProfiles();
+    }
+  }, [status, session?.user, loadProfiles]);
+
+  // 스와이프 API 호출
+  const handleSwipeApi = async (profileId: string, action: 'like' | 'pass' | 'super_like', compatibilityScore?: number) => {
+    try {
+      const res = await fetch('/api/destiny-match/swipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetProfileId: profileId,
+          action,
+          compatibilityScore,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Swipe failed:', data.error);
+        return null;
+      }
+
+      // 매치 성사 시 알림
+      if (data.isMatch) {
+        alert('💕 매치 성사! 상대방도 당신을 좋아합니다!');
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Swipe error:', err);
+      return null;
+    }
+  };
 
   // Swipe handlers
   const handleDragStart = (clientX: number, clientY: number) => {
@@ -189,37 +228,42 @@ export default function DestinyMatchPage() {
     setDragOffset({ x: 0, y: 0 });
   };
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!session) {
       router.push(signInUrl);
       return;
     }
     if (currentProfile) {
+      // API 호출
+      await handleSwipeApi(currentProfile.id, 'like', currentProfile.compatibility);
       setLikedProfiles(prev => [...prev, currentProfile.id]);
       setCurrentIndex(prev => prev + 1);
     }
   };
 
-  const handlePass = () => {
+  const handlePass = async () => {
     if (!session) {
       router.push(signInUrl);
       return;
     }
     if (currentProfile) {
+      // API 호출
+      await handleSwipeApi(currentProfile.id, 'pass');
       setPassedProfiles(prev => [...prev, currentProfile.id]);
       setCurrentIndex(prev => prev + 1);
     }
   };
 
-  const handleSuperLike = () => {
+  const handleSuperLike = async () => {
     if (!session) {
       router.push(signInUrl);
       return;
     }
     if (currentProfile) {
+      // API 호출
+      await handleSwipeApi(currentProfile.id, 'super_like', currentProfile.compatibility);
       setLikedProfiles(prev => [...prev, currentProfile.id]);
       setCurrentIndex(prev => prev + 1);
-      // TODO: Add super like notification
     }
   };
 
@@ -306,20 +350,69 @@ export default function DestinyMatchPage() {
           </div>
         )}
 
-        {/* Swipe Mode */}
-        {viewMode === 'swipe' && (
+        {/* 로딩 중 */}
+        {status === 'loading' || isLoading ? (
+          <div className={styles.noMoreCards}>
+            <div className={styles.noMoreIcon}>✨</div>
+            <h2>프로필을 불러오는 중...</h2>
+            <p>잠시만 기다려주세요</p>
+          </div>
+        ) : !session ? (
+          /* 비로그인 상태 */
+          <div className={styles.noMoreCards}>
+            <div className={styles.noMoreIcon}>🔮</div>
+            <h2>로그인이 필요합니다</h2>
+            <p>운명의 상대를 찾으려면 먼저 로그인해주세요</p>
+            <button
+              onClick={() => router.push(signInUrl)}
+              className={styles.resetButton}
+            >
+              로그인하기
+            </button>
+          </div>
+        ) : needsSetup ? (
+          /* 프로필 설정 필요 */
+          <div className={styles.noMoreCards}>
+            <div className={styles.noMoreIcon}>📝</div>
+            <h2>프로필 설정이 필요합니다</h2>
+            <p>매칭을 시작하려면 먼저 프로필을 만들어주세요</p>
+            <button
+              onClick={() => router.push('/destiny-match/setup')}
+              className={styles.resetButton}
+            >
+              프로필 만들기
+            </button>
+          </div>
+        ) : error ? (
+          /* 에러 상태 */
+          <div className={styles.noMoreCards}>
+            <div className={styles.noMoreIcon}>😢</div>
+            <h2>오류가 발생했습니다</h2>
+            <p>{error}</p>
+            <button
+              onClick={loadProfiles}
+              className={styles.resetButton}
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : viewMode === 'swipe' && (
+          /* Swipe Mode */
           <div className={styles.swipeContainer}>
-            {!hasMoreProfiles ? (
+            {!hasMoreProfiles || profiles.length === 0 ? (
               <div className={styles.noMoreCards}>
                 <div className={styles.noMoreIcon}>🌟</div>
-                <h2>You&apos;ve seen everyone!</h2>
-                <p>Check back later for more cosmic connections</p>
+                <h2>{profiles.length === 0 ? '아직 매칭 상대가 없습니다' : '모든 프로필을 확인했어요!'}</h2>
+                <p>{profiles.length === 0 ? '나중에 다시 확인해주세요' : '나중에 더 많은 인연이 기다리고 있어요'}</p>
                 <button
-                  onClick={() => setCurrentIndex(0)}
+                  onClick={loadProfiles}
                   className={styles.resetButton}
                 >
-                  Start Over
+                  새로고침
                 </button>
+                <Link href="/destiny-match/matches" className={styles.resetButton} style={{ marginTop: '10px', display: 'inline-block' }}>
+                  매치 확인하기
+                </Link>
               </div>
             ) : (
               <>
@@ -384,8 +477,8 @@ export default function DestinyMatchPage() {
                               <p className={styles.cardOccupation}>{currentProfile.occupation}</p>
                             )}
                           </div>
-                          <div className={styles.compatibilityBadge}>
-                            {currentProfile.compatibility}%
+                          <div className={styles.compatibilityBadge} title={currentProfile.compatibilityTagline}>
+                            {currentProfile.compatibilityEmoji} {currentProfile.compatibility}%
                           </div>
                         </div>
 
@@ -449,26 +542,39 @@ export default function DestinyMatchPage() {
         )}
 
         {/* Grid Mode */}
-        {viewMode === 'grid' && (
+        {viewMode === 'grid' && session && !needsSetup && !error && !isLoading && (
           <div className={styles.gridContainer}>
-            {profiles.map((profile, idx) => (
-              <div
-                key={profile.id}
-                className={styles.gridCard}
-                style={{ animationDelay: `${idx * 0.1}s` }}
-                onClick={() => setSelectedProfile(profile)}
-              >
-                <div className={styles.gridPhoto}>{profile.avatar}</div>
-                <div className={styles.gridInfo}>
-                  <h3 className={styles.gridName}>
-                    {profile.name}, {profile.age}
-                    {profile.verified && <span className={styles.verified}>✓</span>}
-                  </h3>
-                  <p className={styles.gridDistance}>📍 {profile.distance} km</p>
-                  <div className={styles.gridCompatibility}>{profile.compatibility}% Match</div>
-                </div>
+            {profiles.length === 0 ? (
+              <div className={styles.noMoreCards}>
+                <div className={styles.noMoreIcon}>🌟</div>
+                <h2>아직 매칭 상대가 없습니다</h2>
+                <p>나중에 다시 확인해주세요</p>
+                <button onClick={loadProfiles} className={styles.resetButton}>
+                  새로고침
+                </button>
               </div>
-            ))}
+            ) : (
+              profiles.map((profile, idx) => (
+                <div
+                  key={profile.id}
+                  className={styles.gridCard}
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                  onClick={() => setSelectedProfile(profile)}
+                >
+                  <div className={styles.gridPhoto}>{profile.avatar}</div>
+                  <div className={styles.gridInfo}>
+                    <h3 className={styles.gridName}>
+                      {profile.name}, {profile.age}
+                      {profile.verified && <span className={styles.verified}>✓</span>}
+                    </h3>
+                    <p className={styles.gridDistance}>📍 {profile.distance} km</p>
+                    <div className={styles.gridCompatibility}>
+                      {profile.compatibilityEmoji} {profile.compatibility}%
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 

@@ -92,11 +92,11 @@ const getChartPoint = (index: number, radius: number) => {
 };
 
 interface PentagonChartProps {
-  saju: any;
-  astro: any;
+  saju: unknown;
+  astro: unknown;
   lang: string;
   isKo: boolean;
-  data: any;
+  data: unknown;
 }
 
 export default function PentagonChart({ saju, astro, lang, isKo, data }: PentagonChartProps) {
@@ -113,7 +113,7 @@ export default function PentagonChart({ saju, astro, lang, isKo, data }: Pentago
   const elementScores = saju?.advancedAnalysis?.elementScores || [];
   let sajuBalance: number = DEFAULT_SCORES.BALANCE;
   if (elementScores.length > 0) {
-    const ratios = elementScores.map((e: any) => e.ratio || DEFAULT_SCORES.ELEMENT_RATIO);
+    const ratios = elementScores.map((e: unknown) => e.ratio || DEFAULT_SCORES.ELEMENT_RATIO);
     const maxRatio = Math.max(...ratios);
     const minRatio = Math.min(...ratios);
     const diff = maxRatio - minRatio;

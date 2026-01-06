@@ -355,7 +355,7 @@ export function generateImagePrompt(
   const aspectRatio = options?.aspectRatio || '2:3';
 
   let positive = '';
-  let negative = 'low quality, blurry, distorted, ugly, deformed';
+  const negative = 'low quality, blurry, distorted, ugly, deformed';
 
   switch (imageType) {
     case 'aura':

@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const oversized = enforceBodySize(req as any, 256 * 1024, limit.headers);
+    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
     if (oversized) return oversized;
 
     const body: InterpretRequest = await req.json();

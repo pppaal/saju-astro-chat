@@ -102,10 +102,10 @@ export async function POST(req: NextRequest) {
             try { (advancedSajuData as Record<string, unknown>).hyeongchung = sajuModule.analyzeHyeongchung(pillarsSimple); } catch { /* ignore */ }
             try { (advancedSajuData as Record<string, unknown>).sibsin = sajuModule.analyzeSibsinComprehensive(pillarsSimple); } catch { /* ignore */ }
             try { (advancedSajuData as Record<string, unknown>).healthCareer = sajuModule.analyzeHealthCareer(pillarsSimple); } catch { /* ignore */ }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            try { (advancedSajuData as Record<string, unknown>).score = sajuModule.calculateComprehensiveScore(pillarsForAnalysis as any); } catch { /* ignore */ }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            try { (advancedSajuData as Record<string, unknown>).ultraAdvanced = sajuModule.performUltraAdvancedAnalysis(pillarsForAnalysis as any); } catch { /* ignore */ }
+             
+            try { (advancedSajuData as Record<string, unknown>).score = sajuModule.calculateComprehensiveScore(pillarsForAnalysis); } catch { /* ignore */ }
+             
+            try { (advancedSajuData as Record<string, unknown>).ultraAdvanced = sajuModule.performUltraAdvancedAnalysis(pillarsForAnalysis); } catch { /* ignore */ }
 
             (sajuData as Record<string, unknown>).advancedAnalysis = advancedSajuData;
           } catch { /* ignore */ }

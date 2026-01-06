@@ -55,8 +55,8 @@ export function generateMessageId(): string {
 export function useChatSession(options: UseChatSessionOptions = {}) {
   const { initialContext, initialFollowUps = [], storageKey } = options;
 
-  // Session ID (stable across renders)
-  const sessionIdRef = useRef<string>(generateSessionId());
+  // Session ID (stable across renders) - use state instead of ref to avoid render-time access issues
+  const [sessionId] = useState<string>(() => generateSessionId());
 
   // Core state
   const [messages, setMessages] = useState<ChatSessionMessage[]>(() => {
@@ -206,8 +206,8 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     error,
     setError,
 
-    // Refs
-    sessionId: sessionIdRef.current,
+    // Session
+    sessionId,
     messagesEndRef,
 
     // Actions

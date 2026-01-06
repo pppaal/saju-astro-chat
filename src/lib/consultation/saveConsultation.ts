@@ -5,8 +5,8 @@ interface SaveConsultationParams {
   theme: string;
   summary: string;
   fullReport: string;
-  jungQuotes?: any;
-  signals?: any;
+  jungQuotes?: unknown;
+  signals?: unknown;
   userQuestion?: string;
   locale?: string;
 }

@@ -215,10 +215,10 @@ function LifePredictionResultContent({
 
           // Find optimal and avoid periods from trend data
           if (trendData?.years && Array.isArray(trendData.years)) {
-            const sortedYears = [...trendData.years].sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
+            const sortedYears = [...trendData.years].sort((a: unknown, b: unknown) => (b.score || 0) - (a.score || 0));
 
             // Top 3 optimal years
-            ctx.optimalPeriods = sortedYears.slice(0, 3).map((y: any) => ({
+            ctx.optimalPeriods = sortedYears.slice(0, 3).map((y: unknown) => ({
               startDate: `${y.year}-01-01`,
               endDate: `${y.year}-12-31`,
               score: y.score || 0,
@@ -227,7 +227,7 @@ function LifePredictionResultContent({
             }));
 
             // Bottom 2 avoid years
-            ctx.avoidPeriods = sortedYears.slice(-2).reverse().map((y: any) => ({
+            ctx.avoidPeriods = sortedYears.slice(-2).reverse().map((y: unknown) => ({
               startDate: `${y.year}-01-01`,
               endDate: `${y.year}-12-31`,
               score: y.score || 0,

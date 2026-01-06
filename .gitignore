@@ -58,6 +58,10 @@ next-env.d.ts
 /venv/
 /backend_ai/venv/
 *.pyc
+.venv/
+
+# HuggingFace cache
+.hf_cache/
 
 # Windows reserved filename that can appear as phantom entry
 nul
@@ -75,3 +79,4 @@ nul
 *.swo
 
 .vercel
+logs/

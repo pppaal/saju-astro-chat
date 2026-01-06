@@ -75,6 +75,13 @@ export const quickQuestions = [
   { emoji: "☀️", label: "오늘 운세", labelEn: "Today", question: "오늘 하루 어떤 일이 생길까요?", questionEn: "What will happen today?" },
   { emoji: "💕", label: "썸남/썸녀", labelEn: "Crush", question: "그 사람이 나를 좋아할까요?", questionEn: "Does my crush like me back?" },
   { emoji: "💼", label: "면접 결과", labelEn: "Interview", question: "이번 면접 붙을 수 있을까요?", questionEn: "Will I pass this interview?" },
+  // ========== ??? ?? (A vs B) ==========
+  { keywords: ["vs", "??", "???", "? ?", "??", "? ?", "??", "??", "??", "??", "??", "?? ?", "???", "?? ??", "?? ?", "? ??", "which", "either"],
+    contextKeywords: ["??", "??", "??", "??", "??", "??", "??", "??", "???", "??", "?", "???", "??", "job", "career", "company", "offer", "salary", "position", "role", "department", "team"],
+    themeId: "career-work", spreadId: "career-path",
+    reason: "Compare career options", reasonKo: "??? ??? ???? ??",
+    priority: 85 },
+
   { emoji: "⚖️", label: "A vs B", labelEn: "Choice", question: "A와 B 중에 뭘 선택해야 할까요?", questionEn: "Should I choose A or B?" },
   { emoji: "🚀", label: "이직할까", labelEn: "Quit", question: "지금 회사 그만두고 이직해도 될까요?", questionEn: "Should I quit and find a new job?" },
   { emoji: "💰", label: "돈 들어올까", labelEn: "Money", question: "이번 달 돈이 들어올까요?", questionEn: "Will I receive money this month?" },
@@ -442,6 +449,13 @@ const directMatches: DirectMatch[] = [
     themeId: "spiritual-growth", spreadId: "path-of-growth",
     reason: "Path of growth", reasonKo: "성장의 방향을 봐요",
     priority: 55 },
+
+  // ========== 커리어 선택 (A vs B) ==========
+  { keywords: ["vs", "어느", "어디로", "둘 중", "둘중", "두 곳", "두곳", "비교", "선택", "갈까", "가야", "어느 쪽", "어느쪽", "어떤 회사", "회사 중", "둘 중에", "which", "either"],
+    contextKeywords: ["회사", "직장", "이직", "취업", "면접", "오퍼", "연봉", "직무", "포지션", "부서", "팀", "커리어", "직업", "job", "career", "company", "offer", "salary", "position", "role", "department", "team"],
+    themeId: "career-work", spreadId: "career-path",
+    reason: "Compare career options", reasonKo: "커리어 선택을 비교하는 질문",
+    priority: 85 },
 
   // ========== 선택/결정 ==========
   // 비교 질문 (A vs B, 살까 말까)

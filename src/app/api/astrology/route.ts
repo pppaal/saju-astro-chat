@@ -16,6 +16,7 @@ import {
   calculateNatalChart,
   toChart,
   type AspectRules,
+  type ChartMeta,
   resolveOptions,
   findNatalAspectsPlus,
   buildEngineMeta,
@@ -35,6 +36,7 @@ interface NatalPlanet {
   house?: number;
   speed?: number;
   rx?: boolean;
+  longitude?: number;
 }
 
 interface NatalPoint {
@@ -238,16 +240,16 @@ export async function POST(request: Request) {
       hour: h, minute: m,
       latitude, longitude,
       timeZone: String(timeZone),
-    }) as NatalChartResult;
+    });
 
-    const ascSplit = splitSignAndDegree(String(natal.ascendant?.formatted || ""));
-    const mcSplit  = splitSignAndDegree(String(natal.mc?.formatted || ""));
+    const ascSplit = splitSignAndDegree(natal.ascendant.formatted);
+    const mcSplit  = splitSignAndDegree(natal.mc.formatted);
     const ascStr = `${localizeSignLabel(ascSplit.signPart, locKey)} ${ascSplit.degreePart}`.trim();
     const mcStr  = `${localizeSignLabel(mcSplit.signPart, locKey)} ${mcSplit.degreePart}`.trim();
 
-    const planetLines = (natal.planets || []).map((p: NatalPlanet) => {
-      const name = localizePlanetLabel(String(p.name || ""), locKey);
-      const { signPart, degreePart } = splitSignAndDegree(String(p.formatted || ""));
+    const planetLines = natal.planets.map((p) => {
+      const name = localizePlanetLabel(p.name, locKey);
+      const { signPart, degreePart } = splitSignAndDegree(p.formatted);
       const sign = localizeSignLabel(signPart, locKey);
       return `${name}: ${sign} ${degreePart}`.trim();
     }).join("\n");
@@ -255,22 +257,21 @@ export async function POST(request: Request) {
     const basics = `${L?.asc ?? "Ascendant"}: ${ascStr}\n${L?.mc ?? "MC"}: ${mcStr}`;
     const interpretation = `${L?.title ?? "Natal Chart Summary"}\n${basics}\n\n${L?.planetPositions ?? "Planet Positions"}\n${planetLines}\n\n${L?.notice ?? ""}`;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chart = toChart(natal as any) as ChartResult;
+    const chart = toChart(natal);
     const aspectRules: AspectRules = {
       includeMinor: opts.includeMinorAspects,
       maxResults: 120,
       scoring: { weights: { orb: 0.55, aspect: 0.4, speed: 0.05 } },
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const aspectsPlus = findNatalAspectsPlus(chart as any, aspectRules, opts);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chartMeta = buildEngineMeta((natal.meta ?? {}) as any, opts);
+    const aspectsPlus = findNatalAspectsPlus(chart, aspectRules, opts);
+    const defaultMeta: ChartMeta = { jdUT: 0, isoUTC: "", timeZone: "", latitude: 0, longitude: 0, houseSystem: "Placidus" as const };
+    const natalMeta = natal.meta as ChartMeta | undefined;
+    const chartMeta = buildEngineMeta(natalMeta ?? defaultMeta, opts);
 
-    const houses = chart.houses || natal.houses || [];
-    const pointsRaw = chart.points || natal.planets || [];
-    const points = pointsRaw.map((p: NatalPlanet) => ({
-      key: p.key || p.name,
+    const houses = chart.houses || [];
+    const pointsRaw = chart.planets;
+    const points = pointsRaw.map((p) => ({
+      key: p.name,
       name: p.name,
       formatted: p.formatted,
       sign: p.sign,
@@ -278,7 +279,7 @@ export async function POST(request: Request) {
       minute: p.minute,
       house: p.house,
       speed: p.speed,
-      rx: typeof p.speed === "number" ? p.speed < 0 : !!p.rx,
+      rx: typeof p.speed === "number" ? p.speed < 0 : !!p.retrograde,
     }));
 
     const advanced = {

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Python virtual environments
+.venv/
+venv/
+backend_ai/venv/
+**/__pycache__/
+*.pyc
+
+# Cache and logs
+.cache/
+.turbo/
+*.log
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Other
+.vercel/
+.env*.local

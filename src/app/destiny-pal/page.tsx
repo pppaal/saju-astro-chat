@@ -150,7 +150,7 @@ function DestinyPalContent() {
 
   const loginFallback = (
     <div className={styles.loginPrompt}>
-      <div className={styles.loginIcon}>dY"r</div>
+      <div className={styles.loginIcon}>dY&quot;r</div>
       <h3 className={styles.loginTitle}>
         {t("destinyPal.loginTitle", "Join the Program")}
       </h3>

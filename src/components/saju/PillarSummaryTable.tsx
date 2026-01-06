@@ -53,9 +53,9 @@ export default function PillarSummaryTable({
       // For jijanggan object structure
       if (obj.chogi || obj.junggi || obj.jeonggi) {
         const parts: string[] = [];
-        if (obj.chogi && typeof (obj.chogi as any)?.name === 'string') parts.push((obj.chogi as any).name);
-        if (obj.junggi && typeof (obj.junggi as any)?.name === 'string') parts.push((obj.junggi as any).name);
-        if (obj.jeonggi && typeof (obj.jeonggi as any)?.name === 'string') parts.push((obj.jeonggi as any).name);
+        if (obj.chogi && typeof (obj.chogi)?.name === 'string') parts.push((obj.chogi).name);
+        if (obj.junggi && typeof (obj.junggi)?.name === 'string') parts.push((obj.junggi).name);
+        if (obj.jeonggi && typeof (obj.jeonggi)?.name === 'string') parts.push((obj.jeonggi).name);
         return parts.join(' ');
       }
       // Fallback: try to stringify or return empty
@@ -83,7 +83,7 @@ export default function PillarSummaryTable({
       return override.map((s) => (s ?? '').toString().trim()).filter(Boolean).join('\n');
     }
     // 2) 어댑터가 필터링 완료한 lucky를 그대로 출력
-    const lucky = (data as any)?.[k]?.lucky as string[] | undefined;
+    const lucky = (data)?.[k]?.lucky as string[] | undefined;
     return (lucky || []).map((s) => (s ?? '').toString().trim()).filter(Boolean).join('\n');
   };
 

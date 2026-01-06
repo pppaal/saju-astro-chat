@@ -661,14 +661,14 @@ const saturnSimple: Record<number, {
 };
 
 // 헬퍼 함수들
-function findPlanetHouse(planets: any[], name: string): number | null {
+function findPlanetHouse(planets: unknown[], name: string): number | null {
   if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: any) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  const planet = planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.house || null;
 }
 
 // 오행 분석 헬퍼
-function analyzeElements(saju: any): { strongest: string; weakest: string; balance: Record<string, number> } | null {
+function analyzeElements(saju: unknown): { strongest: string; weakest: string; balance: Record<string, number> } | null {
   const elements = saju?.fiveElements;
   if (!elements) return null;
 
@@ -961,7 +961,7 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
                 ✨ {isKo ? "축복의 별 (길신)" : "Blessing Stars (Lucky)"}
               </p>
               <div className="space-y-3">
-                {luckyList.map((item: any, i: number) => {
+                {luckyList.map((item: unknown, i: number) => {
                   const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
                   const info = shinsalSimple[name];
                   if (!name) return null;
@@ -1008,7 +1008,7 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
                 🌟 {isKo ? "도전의 별 (극복하면 강해져요!)" : "Challenge Stars (Overcome to Grow!)"}
               </p>
               <div className="space-y-3">
-                {unluckyList.map((item: any, i: number) => {
+                {unluckyList.map((item: unknown, i: number) => {
                   const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
                   const info = shinsalSimple[name];
                   if (!name) return null;

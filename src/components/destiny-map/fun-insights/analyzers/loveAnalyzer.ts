@@ -316,10 +316,10 @@ function getLilithSign(astro: AstroData | undefined): string | null {
 function getRomanceTiming(saju: SajuData | undefined, isKo: boolean): string | null {
   // 도화살 확인
   const sinsal = saju?.sinsal || saju?.advancedAnalysis?.sinsal;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const luckyList = (sinsal as any)?.luckyList || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const unluckyList = (sinsal as any)?.unluckyList || [];
+   
+  const luckyList = (sinsal)?.luckyList || [];
+   
+  const unluckyList = (sinsal)?.unluckyList || [];
   const allSinsal = [...luckyList, ...unluckyList];
   const hasDohwa = allSinsal.some((s: { name?: string } | string) => {
     const name = typeof s === 'string' ? s : s.name;
@@ -387,10 +387,10 @@ function calculateCharmScore(saju: SajuData | undefined, astro: AstroData | unde
   // === 사주 요소 ===
   // 도화살/홍염살
   const sinsal = saju?.sinsal || saju?.advancedAnalysis?.sinsal;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const luckyList = (sinsal as any)?.luckyList || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const unluckyList = (sinsal as any)?.unluckyList || [];
+   
+  const luckyList = (sinsal)?.luckyList || [];
+   
+  const unluckyList = (sinsal)?.unluckyList || [];
   const allSinsal = [...luckyList, ...unluckyList];
 
   const hasDohwa = allSinsal.some((s: { name?: string } | string) => (typeof s === 'string' ? s : s.name)?.includes('도화'));
@@ -408,10 +408,10 @@ function calculateCharmScore(saju: SajuData | undefined, astro: AstroData | unde
   // === 점성학 요소 ===
   const planets = astro?.planets;
   const venus = Array.isArray(planets) ? planets.find((p: { name?: string }) => p.name?.toLowerCase() === 'venus') : null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const venusSign = (venus as any)?.sign?.toLowerCase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const venusHouse = (venus as any)?.house;
+   
+  const venusSign = (venus)?.sign?.toLowerCase();
+   
+  const venusHouse = (venus)?.house;
 
   // 금성 본좌/고양
   if (venusSign === 'taurus' || venusSign === 'libra' || venusSign === 'pisces') {

@@ -5,6 +5,7 @@
  */
 
 import { vi } from "vitest";
+import "@testing-library/jest-dom";
 
 const shouldUseRealFetch =
   process.env.npm_lifecycle_event === "test:e2e:api" ||

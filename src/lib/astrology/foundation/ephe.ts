@@ -2,7 +2,7 @@
 // IMPORTANT: This file must not have any top-level imports that would fail in the browser.
 // All Node.js-specific imports (path, swisseph) are done dynamically inside getSwisseph().
 
-let sw: any;
+let sw: unknown;
 let ephePathSet = false;
 
 /**
@@ -17,13 +17,13 @@ export function getSwisseph() {
 
   if (!sw) {
     // Dynamic require to avoid bundling into client
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     sw = require("swisseph");
   }
 
   if (!ephePathSet && sw) {
     // Dynamic require of path module
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const path = require("path");
     const ephePath = process.env.EPHE_PATH || path.join(process.cwd(), "public", "ephe");
     sw.swe_set_ephe_path(ephePath);

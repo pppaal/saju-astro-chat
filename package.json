@@ -9,14 +9,22 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js --fix",
     "typecheck": "tsc -p tsconfig.json",
+    "typecheck:watch": "tsc -p tsconfig.json --watch --noEmit",
     "test": "vitest run",
+    "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "vitest run tests/integration",
     "test:e2e:api": "vitest run tests/e2e",
     "test:unit": "set TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\",\"jsx\":\"react-jsx\"}&& node -r ts-node/register --test tests/*.test.ts",
+    "test:backend": "python -m pytest backend_ai/tests",
     "dev:astro": "ts-node -P tsconfig.scripts.json -r tsconfig-paths/register scripts/dev-astro.ts",
     "check:env": "node scripts/validate-env.js",
+    "check:all": "npm run lint && npm run typecheck && npm test",
+    "quality:check": "npm run lint && npm run typecheck && npm run test:coverage",
+    "quality:report": "npm run test:coverage && npm run lint -- --format html --output-file lint-report.html",
+    "migrate:logger": "node scripts/migrate-console-to-logger.js",
     "marketing:auto-post": "node scripts/auto-post-daily-fortune.mjs",
     "marketing:test": "node scripts/auto-post-daily-fortune.mjs --test"
   },
@@ -72,10 +80,14 @@
     "swisseph": "^0.5.17",
     "three": "^0.181.1",
     "tz-lookup": "^6.1.25",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20.19.24",
@@ -90,6 +102,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "^16.0.10",
+    "happy-dom": "^20.0.11",
     "postcss": "^8.5.6",
     "prisma": "^6.16.3",
     "tailwindcss": "^3.4.17",
@@ -97,7 +110,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
     "typescript": "^5",
-    "vitest": "^4.0.15",
+    "vitest": "^4.0.16",
     "webpack": "^5.102.1"
   }
 }

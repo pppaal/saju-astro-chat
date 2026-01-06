@@ -1,5 +1,5 @@
 """
-Prediction Engine v5.1
+Prediction Engine v5.2
 사주 대운/세운 + 점성술 트랜짓 통합 예측 시스템 + RAG
 
 Features:
@@ -8,14 +8,21 @@ Features:
 - '언제가 좋을까?' 질문 답변
 - 사주-점성술 크로스 분석
 - GraphRAG 연동으로 풍부한 해석 컨텍스트 제공
+
+v5.2 Updates:
+- 병렬 처리로 성능 개선 (ThreadPoolExecutor)
+- 예측 결과 캐싱 추가
+- AI 해석 프롬프트 최적화 (토큰 절약)
 """
 
 import json
 import os
+import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import math
 import logging
 
@@ -1424,17 +1431,28 @@ class ElectionalEngine:
 
 class UnifiedPredictionEngine:
     """
-    통합 예측 엔진
+    통합 예측 엔진 v5.2
 
     사주 + 점성술 + 타로를 통합하여
     종합적인 예측과 타이밍 조언 제공
     + GraphRAG로 풍부한 해석 컨텍스트 제공
+
+    v5.2 Updates:
+    - 예측 결과 캐싱 (메모리 + TTL)
+    - 병렬 처리로 성능 개선
     """
+
+    # 캐시 TTL (초)
+    CACHE_TTL = 3600  # 1시간
 
     def __init__(self, api_key: str = None):
         self.data_loader = DataLoader()
         self.luck_predictor = LuckCyclePredictor(self.data_loader)
         self.transit_engine = TransitTimingEngine(self.data_loader)
+
+        # v5.2: 예측 결과 캐시 (메모리)
+        self._prediction_cache: Dict[str, Any] = {}
+        self._cache_timestamps: Dict[str, datetime] = {}
 
         # AI 해석을 위한 OpenAI 클라이언트 (먼저 초기화)
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
@@ -1443,7 +1461,7 @@ class UnifiedPredictionEngine:
             import httpx
             self.client = OpenAI(
                 api_key=self.api_key,
-                timeout=httpx.Timeout(60.0, connect=10.0)
+                timeout=httpx.Timeout(30.0, connect=5.0)  # v5.2: 타임아웃 축소
             )
             logger.info("[PredictionEngine] OpenAI client initialized for AI event detection")
 
@@ -1458,6 +1476,19 @@ class UnifiedPredictionEngine:
                 logger.info("[PredictionEngine] GraphRAG loaded successfully")
             except Exception as e:
                 logger.warning(f"[PredictionEngine] GraphRAG init failed: {e}")
+
+    def _is_cache_valid(self, key: str) -> bool:
+        """캐시 유효성 검사"""
+        if key not in self._cache_timestamps:
+            return False
+        age = (datetime.now(KST) - self._cache_timestamps[key]).total_seconds()
+        return age < self.CACHE_TTL
+
+    def clear_cache(self):
+        """캐시 초기화"""
+        self._prediction_cache.clear()
+        self._cache_timestamps.clear()
+        logger.info("[PredictionEngine] Cache cleared")
 
     def search_rag_context(
         self,
@@ -1576,6 +1607,12 @@ class UnifiedPredictionEngine:
 
         return ""
 
+    def _make_cache_key(self, prefix: str, data: Dict) -> str:
+        """캐시 키 생성"""
+        serialized = json.dumps(data, sort_keys=True)
+        hash_digest = hashlib.sha256(serialized.encode()).hexdigest()[:16]
+        return f"prediction:{prefix}:{hash_digest}"
+
     def get_comprehensive_forecast(
         self,
         birth_info: Dict,
@@ -1583,91 +1620,67 @@ class UnifiedPredictionEngine:
         include_timing: bool = True
     ) -> Dict:
         """
-        종합 예측 (RAG 컨텍스트 포함)
+        종합 예측 (RAG 컨텍스트 포함) - v5.2 병렬 처리 + 캐싱
 
         Args:
             birth_info: {"year": int, "month": int, "day": int, "hour": int, "gender": str}
             question: 특정 질문 (선택)
             include_timing: 타이밍 추천 포함 여부
         """
+        # 캐시 체크 (AI 해석 제외한 기본 예측)
+        cache_key = self._make_cache_key("forecast", {
+            **birth_info,
+            "year_now": datetime.now(KST).year
+        })
+
+        # 캐시된 기본 결과가 있으면 AI 해석만 추가
+        cached = self._prediction_cache.get(cache_key)
+        if cached and self._is_cache_valid(cache_key):
+            logger.info(f"[Forecast] Cache HIT: {cache_key[:30]}...")
+            result = cached.copy()
+            result["predictions"] = cached["predictions"].copy()
+            result["rag_context"] = cached.get("rag_context", {}).copy()
+
+            # AI 해석만 새로 생성 (질문이 있을 때)
+            if self.client and question:
+                try:
+                    ai_interpretation = self._generate_ai_interpretation_fast(result, question)
+                    result["ai_interpretation"] = ai_interpretation
+                except Exception as e:
+                    result["ai_interpretation"] = {"error": str(e)}
+
+            return result
+
         result = {
             "birth_info": birth_info,
             "generated_at": datetime.now(KST).isoformat(),
             "predictions": {},
-            "rag_context": {}  # RAG 컨텍스트 추가
+            "rag_context": {}
         }
 
-        # 1. 대운 분석
+        current_year = datetime.now(KST).year
         daeun_sipsin = None
-        try:
-            daeun = self.luck_predictor.calculate_daeun(
+        seun_sipsin = None
+
+        # ========== 병렬 처리: 대운/세운/5년예측 동시 실행 ==========
+        def calc_daeun():
+            return self.luck_predictor.calculate_daeun(
                 birth_info["year"],
                 birth_info["month"],
                 birth_info.get("day", 15),
                 birth_info.get("hour", 12),
                 birth_info.get("gender", "unknown")
             )
-            daeun_sipsin = daeun.dominant_god
-            result["predictions"]["current_daeun"] = {
-                "period": f"{daeun.start_year}-{daeun.end_year}",
-                "dominant_god": daeun.dominant_god,
-                "element": daeun.element,
-                "themes": daeun.themes,
-                "opportunities": daeun.opportunities,
-                "challenges": daeun.challenges,
-                "overall_rating": round(daeun.overall_rating, 1)
-            }
-        except Exception as e:
-            result["predictions"]["current_daeun"] = {"error": str(e)}
 
-        # 2. 세운 분석
-        seun_sipsin = None
-        try:
-            current_year = datetime.now(KST).year
-            seun = self.luck_predictor.calculate_seun(
+        def calc_seun():
+            return self.luck_predictor.calculate_seun(
                 birth_info["year"],
                 birth_info["month"],
                 current_year
             )
-            seun_sipsin = seun.dominant_god
-            result["predictions"]["current_seun"] = {
-                "year": current_year,
-                "dominant_god": seun.dominant_god,
-                "element": seun.element,
-                "themes": seun.themes,
-                "opportunities": seun.opportunities,
-                "challenges": seun.challenges,
-                "overall_rating": round(seun.overall_rating, 1)
-            }
-        except Exception as e:
-            result["predictions"]["current_seun"] = {"error": str(e)}
 
-        # 3. RAG 컨텍스트 검색 (대운/세운 기반)
-        if daeun_sipsin:
-            daeun_context = self.get_sipsin_rag_context(daeun_sipsin)
-            if daeun_context:
-                result["rag_context"]["daeun"] = daeun_context
-
-        if seun_sipsin:
-            seun_context = self.get_sipsin_rag_context(seun_sipsin)
-            if seun_context:
-                result["rag_context"]["seun"] = seun_context
-
-        # 대운+세운 조합 컨텍스트
-        if daeun_sipsin and seun_sipsin:
-            combo_query = f"{daeun_sipsin} {seun_sipsin} 조합 운세"
-            try:
-                combo_results = search_graphs(combo_query, top_k=4) if GRAPH_RAG_AVAILABLE else []
-                if combo_results:
-                    combo_context = "\n".join([r.get("description", "")[:150] for r in combo_results if r.get("description")])
-                    if combo_context:
-                        result["rag_context"]["combination"] = combo_context
-            except Exception:
-                pass
-
-        # 4. 장기 예측 (5년)
-        try:
-            long_term = self.luck_predictor.get_long_term_forecast(
+        def calc_long_term():
+            return self.luck_predictor.get_long_term_forecast(
                 birth_info["year"],
                 birth_info["month"],
                 birth_info.get("day", 15),
@@ -1675,11 +1688,66 @@ class UnifiedPredictionEngine:
                 birth_info.get("gender", "unknown"),
                 years_ahead=5
             )
-            result["predictions"]["five_year_outlook"] = long_term
-        except Exception as e:
-            result["predictions"]["five_year_outlook"] = {"error": str(e)}
 
-        # 5. 질문이 있으면 택일 분석 + 이벤트별 RAG
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            future_daeun = executor.submit(calc_daeun)
+            future_seun = executor.submit(calc_seun)
+            future_long = executor.submit(calc_long_term)
+
+            # 대운 결과
+            try:
+                daeun = future_daeun.result(timeout=5)
+                daeun_sipsin = daeun.dominant_god
+                result["predictions"]["current_daeun"] = {
+                    "period": f"{daeun.start_year}-{daeun.end_year}",
+                    "dominant_god": daeun.dominant_god,
+                    "element": daeun.element,
+                    "themes": daeun.themes,
+                    "opportunities": daeun.opportunities,
+                    "challenges": daeun.challenges,
+                    "overall_rating": round(daeun.overall_rating, 1)
+                }
+            except Exception as e:
+                result["predictions"]["current_daeun"] = {"error": str(e)}
+
+            # 세운 결과
+            try:
+                seun = future_seun.result(timeout=5)
+                seun_sipsin = seun.dominant_god
+                result["predictions"]["current_seun"] = {
+                    "year": current_year,
+                    "dominant_god": seun.dominant_god,
+                    "element": seun.element,
+                    "themes": seun.themes,
+                    "opportunities": seun.opportunities,
+                    "challenges": seun.challenges,
+                    "overall_rating": round(seun.overall_rating, 1)
+                }
+            except Exception as e:
+                result["predictions"]["current_seun"] = {"error": str(e)}
+
+            # 5년 예측 결과
+            try:
+                long_term = future_long.result(timeout=5)
+                result["predictions"]["five_year_outlook"] = long_term
+            except Exception as e:
+                result["predictions"]["five_year_outlook"] = {"error": str(e)}
+
+        # ========== RAG 컨텍스트 (간소화) ==========
+        # 대운+세운 십신이 같으면 하나만 검색
+        if daeun_sipsin:
+            daeun_context = self.get_sipsin_rag_context(daeun_sipsin)
+            if daeun_context:
+                result["rag_context"]["daeun"] = daeun_context
+
+        if seun_sipsin and seun_sipsin != daeun_sipsin:
+            seun_context = self.get_sipsin_rag_context(seun_sipsin)
+            if seun_context:
+                result["rag_context"]["seun"] = seun_context
+
+        # 조합 컨텍스트는 스킵 (속도 우선)
+
+        # ========== 택일 분석 (질문이 있을 때만) ==========
         if question and include_timing:
             try:
                 timing = self.electional_engine.find_best_time(
@@ -1688,20 +1756,22 @@ class UnifiedPredictionEngine:
                     days_range=90
                 )
                 result["predictions"]["timing_recommendation"] = timing
-
-                # 이벤트 유형별 RAG 컨텍스트
-                event_type = timing.get("event_type", "general")
-                timing_context = self.get_timing_rag_context(event_type)
-                if timing_context:
-                    result["rag_context"]["timing"] = timing_context
-
             except Exception as e:
                 result["predictions"]["timing_recommendation"] = {"error": str(e)}
 
-        # 6. AI 해석 (RAG 컨텍스트 포함)
+        # ========== 결과 캐싱 (AI 해석 제외) ==========
+        self._prediction_cache[cache_key] = {
+            "birth_info": result["birth_info"],
+            "generated_at": result["generated_at"],
+            "predictions": result["predictions"],
+            "rag_context": result.get("rag_context", {})
+        }
+        self._cache_timestamps[cache_key] = datetime.now(KST)
+
+        # ========== AI 해석 (최적화된 버전) ==========
         if self.client and question:
             try:
-                ai_interpretation = self._generate_ai_interpretation(result, question)
+                ai_interpretation = self._generate_ai_interpretation_fast(result, question)
                 result["ai_interpretation"] = ai_interpretation
             except Exception as e:
                 result["ai_interpretation"] = {"error": str(e)}
@@ -1728,53 +1798,47 @@ class UnifiedPredictionEngine:
 
         return timing
 
-    def _generate_ai_interpretation(self, data: Dict, question: str) -> str:
-        """AI를 통한 자연스러운 해석 생성 (RAG 컨텍스트 활용)"""
+    def _generate_ai_interpretation_fast(self, data: Dict, question: str) -> str:
+        """
+        AI 해석 생성 - 최적화 버전 v5.2
+        - 프롬프트 간소화 (토큰 50% 절감)
+        - max_tokens 축소 (600 -> 400)
+        - 불필요한 RAG 컨텍스트 생략
+        """
+        predictions = data.get('predictions', {})
 
-        # RAG 컨텍스트 구성
-        rag_context = data.get("rag_context", {})
-        rag_text = ""
-        if rag_context:
-            rag_parts = []
-            if rag_context.get("daeun"):
-                rag_parts.append(f"[대운 관련 지식]\n{rag_context['daeun'][:500]}")
-            if rag_context.get("seun"):
-                rag_parts.append(f"[세운 관련 지식]\n{rag_context['seun'][:500]}")
-            if rag_context.get("combination"):
-                rag_parts.append(f"[대운-세운 조합]\n{rag_context['combination'][:300]}")
-            if rag_context.get("timing"):
-                rag_parts.append(f"[타이밍 조언]\n{rag_context['timing'][:300]}")
-            rag_text = "\n\n".join(rag_parts)
+        # 핵심 정보만 추출
+        daeun = predictions.get('current_daeun', {})
+        seun = predictions.get('current_seun', {})
 
-        prompt = f"""당신은 전문 운세 상담사입니다.
-사주와 점성술 분석 결과를 바탕으로 따뜻하고 실용적인 조언을 해주세요.
+        summary = f"""대운: {daeun.get('dominant_god', '?')} ({daeun.get('period', '?')}) - {', '.join(daeun.get('themes', [])[:2])}
+세운: {seun.get('dominant_god', '?')} ({seun.get('year', '?')}) - {', '.join(seun.get('themes', [])[:2])}
+기회: {', '.join(daeun.get('opportunities', [])[:2] + seun.get('opportunities', [])[:2])}
+주의: {', '.join(daeun.get('challenges', [])[:1] + seun.get('challenges', [])[:1])}"""
 
-분석 데이터:
-{json.dumps(data.get('predictions', {}), ensure_ascii=False, indent=2)[:1500]}
+        prompt = f"""[운세 데이터]
+{summary}
 
-{f'참고 지식 (RAG):{chr(10)}{rag_text}' if rag_text else ''}
+[질문] {question}
 
-질문: {question}
-
-위 데이터와 참고 지식을 바탕으로:
-1. 현재 운세 흐름을 간략히 설명
-2. 질문에 대한 구체적인 답변
-3. 실천 가능한 조언
-
-응답은 친근하고 희망적인 톤으로, 400자 내외로 작성해주세요.
-참고 지식의 내용을 자연스럽게 녹여서 설명해주세요."""
+위 운세 흐름을 바탕으로 친근하고 희망적인 조언을 300자 이내로 작성하세요."""
 
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "당신은 따뜻하고 통찰력 있는 운세 상담사입니다. 사주/점성술 지식을 활용하여 구체적이고 풍부한 조언을 제공합니다."},
+                {"role": "system", "content": "운세 상담사. 따뜻하고 구체적인 조언 제공."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=600
+            max_tokens=400
         )
 
         return response.choices[0].message.content
+
+    def _generate_ai_interpretation(self, data: Dict, question: str) -> str:
+        """AI를 통한 자연스러운 해석 생성 (RAG 컨텍스트 활용) - 레거시"""
+        # v5.2: 최적화 버전으로 대체
+        return self._generate_ai_interpretation_fast(data, question)
 
     def _generate_natural_answer(self, question: str, timing_data: Dict) -> str:
         """자연스러운 타이밍 답변 생성"""

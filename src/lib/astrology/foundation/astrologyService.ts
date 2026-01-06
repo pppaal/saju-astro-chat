@@ -10,7 +10,7 @@ import { formatLongitude } from "./utils";
 import { calcHouses, inferHouseOf } from "./houses";
 import { getSwisseph } from "./ephe";
 
-// --- И,°Нн' public API ---
+// --- 출생 차트 public API ---
 export interface NatalChartInput {
   year: number;
   month: number;
@@ -146,7 +146,7 @@ export function toChart(n: NatalChartData): Chart {
     planets: n.planets.map(p => ({
       name: p.name,
       longitude: p.longitude,
-      sign: p.sign as any,
+      sign: p.sign,
       degree: p.degree,
       minute: p.minute,
       formatted: p.formatted,
@@ -154,8 +154,8 @@ export function toChart(n: NatalChartData): Chart {
       speed: p.speed,
       retrograde: p.retrograde,
     })),
-    ascendant: n.ascendant as any,
-    mc: n.mc as any,
+    ascendant: n.ascendant,
+    mc: n.mc,
     houses: n.houses.map((h, i) => {
       const f = formatLongitude(h.cusp);
       return { index: i + 1, cusp: h.cusp, sign: f.sign, formatted: f.formatted };

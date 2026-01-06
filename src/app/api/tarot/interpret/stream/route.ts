@@ -54,26 +54,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // Call backend streaming endpoint
+    // Call backend chat-stream endpoint (tarot interpret-stream is not exposed)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const latestQuestion = userQuestion || "general reading";
 
-    const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/interpret-stream`, {
+    const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/chat-stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
       },
       body: JSON.stringify({
-        category: categoryId,
-        spread_id: spreadId,
-        spread_title: spreadTitle,
-        cards: cards.map(c => ({
-          name: c.name,
-          is_reversed: c.isReversed,
-          position: c.position
-        })),
-        user_question: userQuestion,
+        messages: [{ role: "user", content: latestQuestion }],
+        context: {
+          category: categoryId,
+          spread_title: spreadTitle,
+          cards: cards.map(c => ({
+            name: c.name,
+            is_reversed: c.isReversed,
+            position: c.position
+          })),
+          overall_message: "",
+          guidance: ""
+        },
         language,
         counselor_id: counselorId,
         counselor_style: counselorStyle

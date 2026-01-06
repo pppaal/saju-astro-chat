@@ -58,7 +58,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }: Pro
       try {
         const data = await fetchDetail(consultationId);
         if (data) {
-          setDetail(data as any);
+          setDetail(data as Record<string, unknown>);
         } else if (!isPremiumRequired) {
           setError(isKo ? "상담 기록을 불러올 수 없습니다." : "Failed to load consultation.");
         }

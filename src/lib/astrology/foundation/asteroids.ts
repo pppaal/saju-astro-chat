@@ -231,7 +231,7 @@ export function interpretAsteroid(asteroid: Asteroid): AsteroidInterpretation {
   const { name, sign, house } = asteroid;
   const baseThemes = ASTEROID_THEMES[name].themes;
 
-  let result: AsteroidInterpretation = {
+  const result: AsteroidInterpretation = {
     asteroid: name,
     sign,
     house,

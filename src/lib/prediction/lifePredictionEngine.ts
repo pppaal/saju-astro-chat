@@ -2519,7 +2519,7 @@ export function findWeeklyOptimalTiming(
   const actualEndDate = endDate || new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000);
   const weeklyPeriods: WeeklyPeriod[] = [];
 
-  let currentWeekStart = new Date(startDate);
+  const currentWeekStart = new Date(startDate);
   // 월요일로 정렬
   const dayOfWeek = currentWeekStart.getDay();
   if (dayOfWeek !== 1) {

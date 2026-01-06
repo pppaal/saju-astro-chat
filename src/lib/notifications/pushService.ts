@@ -115,7 +115,7 @@ export async function sendPushNotification(
       });
 
       sent++;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[pushService] Failed to send to ${sub.id}:`, error.message);
 
       // 410 Gone 또는 404: 구독이 만료/삭제됨
@@ -184,8 +184,8 @@ export async function sendScheduledNotifications(hour: number): Promise<{
 
   for (const user of users) {
     try {
-      const sajuProfile = (user.personaMemory?.sajuProfile as any) || {};
-      const birthChart = (user.personaMemory?.birthChart as any) || {};
+      const sajuProfile = (user.personaMemory?.sajuProfile) || {};
+      const birthChart = (user.personaMemory?.birthChart) || {};
 
       // 알림 생성
       const allNotifications = generateDailyNotifications(
@@ -213,7 +213,7 @@ export async function sendScheduledNotifications(hour: number): Promise<{
         totalSent += result.sent;
         totalFailed += result.failed;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[pushService] Error for user ${user.id}:`, error.message);
       errors.push(`User ${user.id}: ${error.message}`);
       totalFailed++;
@@ -326,8 +326,8 @@ export async function previewUserNotifications(
     where: { userId },
   });
 
-  const sajuProfile = (memory?.sajuProfile as any) || {};
-  const birthChart = (memory?.birthChart as any) || {};
+  const sajuProfile = (memory?.sajuProfile) || {};
+  const birthChart = (memory?.birthChart) || {};
 
   return generateDailyNotifications(
     {

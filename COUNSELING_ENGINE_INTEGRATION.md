@@ -180,8 +180,8 @@ COUNSELOR_MODEL=gpt-4o        # 프리미엄 품질 (선택)
 
 ### 프론트엔드 (.env.local)
 ```env
-BACKEND_AI_URL=http://localhost:5000  # 로컬 개발
-# BACKEND_AI_URL=https://your-backend.com  # 프로덕션
+AI_BACKEND_URL=http://localhost:5000  # local dev
+# AI_BACKEND_URL=https://your-backend.com  # production
 ```
 
 ## 성능 최적화

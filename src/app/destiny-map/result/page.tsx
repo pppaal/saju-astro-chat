@@ -627,7 +627,7 @@ export default function DestinyResultPage({
         )}
 
         {/* 🧮 리포트 본문 렌더 */}
-        <Display result={result as any} lang={lang} theme={activeTheme} reportType="core" />
+        <Display result={result as Record<string, unknown>} lang={lang} theme={activeTheme} reportType="core" />
 
         {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
         <FunInsights
@@ -635,17 +635,17 @@ export default function DestinyResultPage({
           astro={{
             ...(result?.astro || result?.astrology || {}),
             // 🔥 고급 점성학 데이터 병합
-            extraPoints: (result as any)?.advancedAstrology?.extraPoints,
-            asteroids: (result as any)?.advancedAstrology?.asteroids,
-            solarReturn: (result as any)?.advancedAstrology?.solarReturn,
-            lunarReturn: (result as any)?.advancedAstrology?.lunarReturn,
-            progressions: (result as any)?.advancedAstrology?.progressions,
-            draconic: (result as any)?.advancedAstrology?.draconic,
-            harmonics: (result as any)?.advancedAstrology?.harmonics,
-            fixedStars: (result as any)?.advancedAstrology?.fixedStars,
-            eclipses: (result as any)?.advancedAstrology?.eclipses,
-            electional: (result as any)?.advancedAstrology?.electional,
-            midpoints: (result as any)?.advancedAstrology?.midpoints,
+            extraPoints: (result as Record<string, unknown>)?.advancedAstrology?.extraPoints,
+            asteroids: (result as Record<string, unknown>)?.advancedAstrology?.asteroids,
+            solarReturn: (result as Record<string, unknown>)?.advancedAstrology?.solarReturn,
+            lunarReturn: (result as Record<string, unknown>)?.advancedAstrology?.lunarReturn,
+            progressions: (result as Record<string, unknown>)?.advancedAstrology?.progressions,
+            draconic: (result as Record<string, unknown>)?.advancedAstrology?.draconic,
+            harmonics: (result as Record<string, unknown>)?.advancedAstrology?.harmonics,
+            fixedStars: (result as Record<string, unknown>)?.advancedAstrology?.fixedStars,
+            eclipses: (result as Record<string, unknown>)?.advancedAstrology?.eclipses,
+            electional: (result as Record<string, unknown>)?.advancedAstrology?.electional,
+            midpoints: (result as Record<string, unknown>)?.advancedAstrology?.midpoints,
           }}
           lang={lang}
           theme={activeTheme}

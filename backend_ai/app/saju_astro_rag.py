@@ -848,12 +848,36 @@ def search_graphs(query: str, top_k: int = 6, graph_root: str = None) -> List[Di
         _CACHE_EMBEDS[cache_key] = q_emb
 
     # Corpus embeddings
+    nodes = _NODES_CACHE
+    texts = _TEXTS_CACHE
+
     if _CORPUS_EMBEDS_CACHE is None:
         if _CORPUS_EMBEDS_PATH and os.path.exists(_CORPUS_EMBEDS_PATH):
-            print(f"[SajuAstroRAG] Loading cached embeddings: {_CORPUS_EMBEDS_PATH}")
-            _CORPUS_EMBEDS_CACHE = torch.load(_CORPUS_EMBEDS_PATH, map_location="cpu")
-        else:
-            _CORPUS_EMBEDS_CACHE = embed_batch(_TEXTS_CACHE, batch_size=64)
+            try:
+                print(f"[SajuAstroRAG] Loading cached embeddings: {_CORPUS_EMBEDS_PATH}")
+                _CORPUS_EMBEDS_CACHE = torch.load(_CORPUS_EMBEDS_PATH, map_location="cpu")
+                if (
+                    hasattr(_CORPUS_EMBEDS_CACHE, "shape")
+                    and _CORPUS_EMBEDS_CACHE.shape[0] != len(texts)
+                ):
+                    strategy = os.getenv("RAG_EMBED_MISMATCH", "trim").lower()
+                    if strategy == "rebuild":
+                        print("[SajuAstroRAG] Cached embeddings size mismatch; rebuilding cache")
+                        _CORPUS_EMBEDS_CACHE = None
+                    else:
+                        min_len = min(len(texts), _CORPUS_EMBEDS_CACHE.shape[0])
+                        print(
+                            "[SajuAstroRAG] Cached embeddings size mismatch; trimming cache"
+                        )
+                        texts = texts[:min_len]
+                        nodes = nodes[:min_len]
+                        _CORPUS_EMBEDS_CACHE = _CORPUS_EMBEDS_CACHE[:min_len]
+            except Exception as e:
+                print(f"[SajuAstroRAG] Failed to load embeddings cache: {e}")
+                _CORPUS_EMBEDS_CACHE = None
+
+        if _CORPUS_EMBEDS_CACHE is None:
+            _CORPUS_EMBEDS_CACHE = embed_batch(texts, batch_size=64)
             try:
                 if _CORPUS_EMBEDS_PATH:
                     torch.save(_CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH)
@@ -861,13 +885,23 @@ def search_graphs(query: str, top_k: int = 6, graph_root: str = None) -> List[Di
             except Exception as e:
                 print(f"[SajuAstroRAG] Failed to save embeddings: {e}")
 
+    if (
+        hasattr(_CORPUS_EMBEDS_CACHE, "shape")
+        and _CORPUS_EMBEDS_CACHE.shape[0] != len(texts)
+    ):
+        min_len = min(len(texts), _CORPUS_EMBEDS_CACHE.shape[0])
+        print("[SajuAstroRAG] Final embeddings size mismatch; trimming for search")
+        texts = texts[:min_len]
+        nodes = nodes[:min_len]
+        _CORPUS_EMBEDS_CACHE = _CORPUS_EMBEDS_CACHE[:min_len]
+
     # Search
     scores = util.cos_sim(q_emb, _CORPUS_EMBEDS_CACHE)[0]
-    best_indices = torch.topk(scores, k=min(top_k, len(_NODES_CACHE)))
+    best_indices = torch.topk(scores, k=min(top_k, len(texts)))
 
     results = []
     for idx, score in zip(best_indices.indices, best_indices.values):
-        node = dict(_NODES_CACHE[int(idx)])
+        node = dict(nodes[int(idx)])
         node["score"] = round(float(score), 4)
         results.append(node)
 

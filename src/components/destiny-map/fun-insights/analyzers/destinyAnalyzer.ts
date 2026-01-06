@@ -354,7 +354,7 @@ export function getDestinyAnalysis(
   let karmaType = selectLang(isKo, dmBase.karma);
   let destinyPath = selectLang(isKo, dmBase.path);
   let soulMateSign = selectLang(isKo, dmBase.sign);
-  let connectionAdvice = selectLang(isKo, dmBase.advice);
+  const connectionAdvice = selectLang(isKo, dmBase.advice);
   let northNode: string | undefined;
   let southNode: string | undefined;
   let house7RulerTrait: string | undefined;

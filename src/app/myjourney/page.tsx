@@ -280,7 +280,7 @@ function MyJourneyPage() {
   const loginFallback = (
     <div className={styles.loginContainer}>
       <div className={styles.loginCard}>
-        <div className={styles.loginIcon}>ƒo"</div>
+        <div className={styles.loginIcon}>ƒo&quot;</div>
         <h2>{t("myjourney.login.title")}</h2>
         <p>{t("myjourney.login.subtitle")}</p>
 

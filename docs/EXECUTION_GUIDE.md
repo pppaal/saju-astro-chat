@@ -28,6 +28,15 @@
    python main.py
    ```
 
+## Docker Compose (local)
+1. Create `.env.local` and `backend_ai/.env`.
+2. Start services:
+   - `docker compose up --build`
+3. Endpoints:
+   - Web: `http://localhost:3000`
+   - Backend AI: `http://localhost:5000`
+4. If you want AI responses, export `OPENAI_API_KEY` before starting Compose.
+
 ## Local run
 1. Start backend AI on `http://localhost:5000`.
 2. Set one of:
@@ -45,7 +54,7 @@
 - E2E API:
   - `npm run test:e2e:api`
 - Backend AI:
-  - `python -m pytest backend_ai/tests`
+  - `npm run test:backend`
 
 ## Validation
 - Env checks:

@@ -10,11 +10,11 @@ import { FiveElement } from '../Saju/types';
 // This avoids type mismatches without changing the underlying logic.
 const normalizeElement = (el: FiveElement | string): string => {
   const map: Record<string, string> = {
-    'Йжc': 'wood',
-    'бT"': 'fire',
-    'б+ ': 'earth',
-    'И,^': 'metal',
-    'Н^~': 'water',
+    '목': 'wood',
+    '화': 'fire',
+    '토': 'earth',
+    '금': 'metal',
+    '수': 'water',
   };
   return map[el] ?? (el as string);
 };
@@ -1377,4 +1377,3 @@ export function performExtendedSajuAnalysis(
     twelveStates,
   };
 }
-

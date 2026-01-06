@@ -1300,20 +1300,20 @@ export async function GET(request: NextRequest) {
     const sajuPillars = sajuResult?.pillars || {};
     const pillars = {
       year: {
-        stem: sajuPillars.year?.heavenlyStem?.name || sajuPillars.year?.stem?.name || "",
-        branch: sajuPillars.year?.earthlyBranch?.name || sajuPillars.year?.branch?.name || "",
+        stem: (sajuPillars.year as any)?.heavenlyStem?.name || (sajuPillars.year as any)?.stem?.name || "",
+        branch: (sajuPillars.year as any)?.earthlyBranch?.name || (sajuPillars.year as any)?.branch?.name || "",
       },
       month: {
-        stem: sajuPillars.month?.heavenlyStem?.name || sajuPillars.month?.stem?.name || "",
-        branch: sajuPillars.month?.earthlyBranch?.name || sajuPillars.month?.branch?.name || "",
+        stem: (sajuPillars.month as any)?.heavenlyStem?.name || (sajuPillars.month as any)?.stem?.name || "",
+        branch: (sajuPillars.month as any)?.earthlyBranch?.name || (sajuPillars.month as any)?.branch?.name || "",
       },
       day: {
-        stem: sajuPillars.day?.heavenlyStem?.name || sajuPillars.day?.stem?.name || "",
-        branch: sajuPillars.day?.earthlyBranch?.name || sajuPillars.day?.branch?.name || "",
+        stem: (sajuPillars.day as any)?.heavenlyStem?.name || (sajuPillars.day as any)?.stem?.name || "",
+        branch: (sajuPillars.day as any)?.earthlyBranch?.name || (sajuPillars.day as any)?.branch?.name || "",
       },
       hour: {
-        stem: sajuPillars.hour?.heavenlyStem?.name || sajuPillars.hour?.stem?.name || "",
-        branch: sajuPillars.hour?.earthlyBranch?.name || sajuPillars.hour?.branch?.name || "",
+        stem: (sajuPillars.time as any)?.heavenlyStem?.name || (sajuPillars.time as any)?.stem?.name || "",
+        branch: (sajuPillars.time as any)?.earthlyBranch?.name || (sajuPillars.time as any)?.branch?.name || "",
       },
     };
 
@@ -1321,11 +1321,11 @@ export async function GET(request: NextRequest) {
     const dayMasterElement = STEM_TO_ELEMENT[dayMasterStem] || "wood";
 
     // 대운 추출
-    const daeunCycles = sajuResult.unse?.daeun?.map((d: { age?: number; heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string }; sibsin?: string }) => ({
+    const daeunCycles = sajuResult.unse?.daeun?.map((d: { age?: number; heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string }; sibsin?: any }) => ({
       age: d.age || 0,
       heavenlyStem: d.heavenlyStem?.name || "",
       earthlyBranch: d.earthlyBranch?.name || "",
-      sibsin: d.sibsin,
+      sibsin: typeof d.sibsin === 'object' ? d.sibsin : undefined,
     })).filter((d: { heavenlyStem: string; earthlyBranch: string }) => d.heavenlyStem && d.earthlyBranch) || [];
 
     const sajuProfile = {
@@ -1335,7 +1335,7 @@ export async function GET(request: NextRequest) {
       birthYear: birthDate.getFullYear(),
       yearBranch: pillars.year.branch,
       daeunCycles,
-      daeunsu: sajuResult.unse?.daeunsu || 0,
+      daeunsu: (sajuResult.unse as any)?.daeunsu || 0,
       pillars,
     };
 

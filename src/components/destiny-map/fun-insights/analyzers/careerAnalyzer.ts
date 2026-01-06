@@ -382,10 +382,10 @@ const house9Patterns: Record<string, { ko: string; en: string }> = {
 function getOverseasFortune(saju: SajuData | undefined, astro: AstroData | undefined, isKo: boolean): string | null {
   // 역마살 확인
   const sinsal = saju?.sinsal || saju?.advancedAnalysis?.sinsal;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const luckyList = (sinsal as any)?.luckyList || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const unluckyList = (sinsal as any)?.unluckyList || [];
+   
+  const luckyList = (sinsal)?.luckyList || [];
+   
+  const unluckyList = (sinsal)?.unluckyList || [];
   const allSinsal = [...luckyList, ...unluckyList];
   const hasYeokma = allSinsal.some((s: { name?: string } | string) => {
     const name = typeof s === 'string' ? s : s.name;
@@ -402,8 +402,8 @@ function getOverseasFortune(saju: SajuData | undefined, astro: AstroData | undef
   // 목성 9하우스 확인
   const planets = astro?.planets;
   const jupiter = Array.isArray(planets) ? planets.find((p: { name?: string }) => p.name?.toLowerCase() === 'jupiter') : null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const jupiterIn9 = (jupiter as any)?.house === 9;
+   
+  const jupiterIn9 = (jupiter)?.house === 9;
 
   let result = "";
 
@@ -471,8 +471,8 @@ function getSuccessTiming(saju: SajuData | undefined, isKo: boolean): string | n
   const saeun = saju?.unse?.annual || [];
 
   // 용신에 해당하는 년도 찾기
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const yongsinData = saju?.advancedAnalysis?.yongsin as any;
+   
+  const yongsinData = saju?.advancedAnalysis?.yongsin;
   const yongsinList = yongsinData?.yongsinList || yongsinData?.list || [];
   const yongsinElements = (Array.isArray(yongsinList) ? yongsinList : []).map((y: { element?: string } | string) =>
     typeof y === 'string' ? y : y.element
@@ -552,8 +552,8 @@ function calculateWealthScore(saju: SajuData | undefined, astro: AstroData | und
 
   // 목성 위치
   const jupiter = Array.isArray(planets) ? planets.find((p: { name?: string }) => p.name?.toLowerCase() === 'jupiter') : null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const jupiterHouse = (jupiter as any)?.house;
+   
+  const jupiterHouse = (jupiter)?.house;
   if (jupiterHouse === 2 || jupiterHouse === 8 || jupiterHouse === 10) {
     score += 10;
   } else if (jupiterHouse === 4 || jupiterHouse === 11) {
@@ -562,8 +562,8 @@ function calculateWealthScore(saju: SajuData | undefined, astro: AstroData | und
 
   // 토성 위치 (장기적 재물 축적)
   const saturn = Array.isArray(planets) ? planets.find((p: { name?: string }) => p.name?.toLowerCase() === 'saturn') : null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const saturnHouse = (saturn as any)?.house;
+   
+  const saturnHouse = (saturn)?.house;
   if (saturnHouse === 10 || saturnHouse === 2) score += 6;
 
   // 2하우스에 행성 있음

@@ -47,12 +47,12 @@ export function resolveOptions(input?: AstroOptions): Required<AstroOptions> {
   const base = { ...defaultOptions, ...(presets[theme] ?? {}) };
   return {
     theme,
-    houseSystem: (input?.houseSystem ?? base.houseSystem) as any,
-    nodeType: (input?.nodeType ?? base.nodeType) as any,
+    houseSystem: (input?.houseSystem ?? base.houseSystem),
+    nodeType: (input?.nodeType ?? base.nodeType),
     includeMinorAspects: input?.includeMinorAspects ?? base.includeMinorAspects,
     enable: {
       chiron: input?.enable?.chiron ?? base.enable!.chiron ?? false,
-      lilith: (input?.enable?.lilith ?? base.enable!.lilith ?? false) as any,
+      lilith: (input?.enable?.lilith ?? base.enable!.lilith ?? false),
       pof: input?.enable?.pof ?? base.enable!.pof ?? false,
     },
   };

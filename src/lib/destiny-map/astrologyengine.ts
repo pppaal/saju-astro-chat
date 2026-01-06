@@ -629,7 +629,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           const solarArcChart = await calculateSolarArcDirections({ natal: natalInput, targetDate: today });
           const solarArcSummary = getProgressionSummary(solarArcChart);
           return {
-            secondary: { chart: secProgChart, moonPhase: secMoonPhase as any, summary: secProgSummary },
+            secondary: { chart: secProgChart, moonPhase: secMoonPhase, summary: secProgSummary },
             solarArc: { chart: solarArcChart, summary: solarArcSummary },
           };
         })(),
@@ -783,8 +783,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     const safeBirthTime = `${hh.padStart(2, "0")}:${(mmRaw ?? "00").padStart(2, "0")}`;
 
     // calculateSajuData returns: { yearPillar, monthPillar, dayPillar, timePillar, daeWoon, fiveElements, dayMaster }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let sajuFacts: any = {};
+     
+    let sajuFacts: Record<string, unknown> = {};
     try {
       sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, "solar", timezone);
       if (enableDebugLogs) { console.warn("[SajuFacts keys]:", Object.keys(sajuFacts || {})); }
@@ -813,17 +813,17 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     const hasValidPillars = Boolean(pillars.year && pillars.month && pillars.day);
     if (hasValidPillars) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const d = getDaeunCycles(birthDateObj, gender, pillars as any, dayMaster as any, timezone);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
+        const d = getDaeunCycles(birthDateObj, gender, pillars, dayMaster, timezone);
+         
         // 세운: 현재 연도부터 향후 10년 (과거가 아닌 미래/현재 운세)
-        const a = getAnnualCycles(currentYear, 10, dayMaster as any);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const a = getAnnualCycles(currentYear, 10, dayMaster);
+         
         // 월운: 현재 연도 기준
-        const m = getMonthlyCycles(currentYear, dayMaster as any);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const m = getMonthlyCycles(currentYear, dayMaster);
+         
         // 일진: 현재 연/월 기준
-        const i = getIljinCalendar(currentYear, currentMonth, dayMaster as any);
+        const i = getIljinCalendar(currentYear, currentMonth, dayMaster);
         daeun = Array.isArray(d?.cycles) ? d.cycles : [];
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
@@ -861,8 +861,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     if (hasValidPillars && pillars.year && pillars.month && pillars.day && pillars.time) {
       try {
         // dayMaster from calculateSajuData is { name, element, yin_yang }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dm = sajuFacts?.dayMaster as any;
+         
+        const dm = sajuFacts?.dayMaster;
 
         // 사주 pillars를 분석 함수에 맞는 형태로 변환
         const pillarsForAnalysis = {
@@ -962,24 +962,24 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
 
         // 5. 형충회합 - eslint-disable for type mismatch
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.hyeongchung = analyzeHyeongchung(pillarsSimple as any);
+           
+          advancedAnalysis.hyeongchung = analyzeHyeongchung(pillarsSimple);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Hyeongchung skipped]", e);
         }
 
         // 6. 십신 심층 분석 (takes 1 argument)
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.sibsin = analyzeSibsinComprehensive(pillarsSimple as any);
+           
+          advancedAnalysis.sibsin = analyzeSibsinComprehensive(pillarsSimple);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Sibsin analysis skipped]", e);
         }
 
         // 7. 건강/직업 분석 (takes 1 argument)
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.healthCareer = analyzeHealthCareer(pillarsSimple as any);
+           
+          advancedAnalysis.healthCareer = analyzeHealthCareer(pillarsSimple);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Health/Career analysis skipped]", e);
         }
@@ -1019,8 +1019,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
               jijanggan: (pillars.time as { jijanggan?: Record<string, unknown> }).jijanggan || {},
             },
           };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as any);
+           
+          advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Score calculation skipped]", e);
         }
@@ -1058,8 +1058,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
               jijanggan: (pillars.time as { jijanggan?: Record<string, unknown> }).jijanggan || {},
             },
           };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as any);
+           
+          advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra);
         } catch (e) {
           if (enableDebugLogs) console.warn("[Ultra Advanced analysis skipped]", e);
         }
@@ -1089,11 +1089,11 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     // v9 fix: always use sajuFacts.dayMaster as primary source
     console.warn("[v9 DEBUG] dayMaster:", JSON.stringify(dayMaster));
     console.warn("[v9 DEBUG] sajuFacts.dayMaster:", JSON.stringify(sajuFacts?.dayMaster));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const effectiveDayMaster = sajuFacts?.dayMaster || dayMaster || {};
     // Direct access to effectiveDayMaster properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edm = effectiveDayMaster as any;
+     
+    const edm = effectiveDayMaster as Record<string, unknown> | undefined;
     const dmName: string | undefined = edm?.name;
     const dmElement: string | undefined = edm?.element;
     console.warn("[v9 DEBUG] dmName:", dmName, "dmElement:", dmElement, "dmName truthy:", !!dmName);

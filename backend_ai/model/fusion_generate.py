@@ -18,8 +18,8 @@ def search_graphs(query, top_k=12):
 Fusion Generator - GPT-4 Powered
 ================================
 Production Setup:
-1) GPT-4o (Main Generation) - High quality output
-2) GPT-4o-mini (Polish/Refine) - Fast polish step
+1) GPT-4.1 (Main Generation) - High quality output
+2) GPT-4.1-mini (Polish/Refine) - Fast polish step
 
 Enhanced Features:
 - Hybrid RAG context (Vector + BM25 + Graph + Reranking)
@@ -29,6 +29,8 @@ Enhanced Features:
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+FUSION_MODEL = os.getenv("FUSION_MODEL", "gpt-4.1")
+FUSION_MINI_MODEL = os.getenv("FUSION_MINI_MODEL", "gpt-4.1-mini")
 
 # Token budget configuration - configurable via environment
 DEFAULT_MAX_TOKENS = int(os.getenv("FUSION_MAX_TOKENS", "2500"))
@@ -117,14 +119,13 @@ def _chat_with_retry(client, model: str, messages, max_tokens: int, temperature:
 
 
 def _generate_with_gpt4(prompt: str, max_tokens: int = MAX_OUTPUT_TOKENS, temperature: float = 0.15, use_mini: bool = True) -> str:
-    """Generate using GPT-4o or GPT-4o-mini.
+    """Generate using configured OpenAI chat models.
 
     Args:
-        use_mini: If True, use gpt-4o-mini (3x faster, good for chat). Default True (optimized for speed).
+        use_mini: If True, use FUSION_MINI_MODEL for faster responses.
     """
     client = get_openai_llm()
-    # Force gpt-4o-mini for all services (3x faster, 20x cheaper)
-    model = "gpt-4o-mini"
+    model = FUSION_MINI_MODEL if use_mini else FUSION_MODEL
     resp = _chat_with_retry(
         client,
         model=model,

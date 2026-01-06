@@ -221,8 +221,8 @@ function getWestElementFromSign(sign: string): WesternElement {
 // ============================
 
 export function getMatrixAnalysis(
-  saju: any,
-  astro: any,
+  saju: unknown,
+  astro: unknown,
   lang: string
 ): MatrixAnalysisResult | null {
   const isKo = lang === 'ko';
@@ -509,8 +509,8 @@ export function getLifeCycleDescription(
 // ============================
 
 export function getLoveMatrixAnalysis(
-  saju: any,
-  astro: any,
+  saju: unknown,
+  astro: unknown,
   lang: string
 ): LoveMatrixResult | null {
   const isKo = lang === 'ko';
@@ -585,13 +585,13 @@ export function getLoveMatrixAnalysis(
 
     for (const asteroid of loveAsteroids) {
       // asteroids 배열에서 찾기
-      let asteroidInfo = asteroidData.find((a: any) =>
+      let asteroidInfo = asteroidData.find((a: unknown) =>
         a.name?.toLowerCase() === asteroid.toLowerCase()
       );
 
       // planets 배열에서도 찾기 (일부 시스템에서 소행성을 planets에 포함)
       if (!asteroidInfo) {
-        asteroidInfo = planetData.find((p: any) =>
+        asteroidInfo = planetData.find((p: unknown) =>
           p.name?.toLowerCase() === asteroid.toLowerCase()
         );
       }
@@ -671,8 +671,8 @@ export function getLoveMatrixAnalysis(
 // ============================
 
 export function getCareerMatrixAnalysis(
-  saju: any,
-  astro: any,
+  saju: unknown,
+  astro: unknown,
   lang: string
 ): CareerMatrixResult | null {
   const isKo = lang === 'ko';

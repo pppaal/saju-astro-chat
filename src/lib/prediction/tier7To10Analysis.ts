@@ -35,8 +35,8 @@ export interface AdvancedAnalysisInput {
   yongsin?: FiveElement[];
   kisin?: FiveElement[];
   geokguk?: string; // 격국
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  advancedAstro?: any; // 다양한 점성술 데이터 포맷 수용
+   
+  advancedAstro?: unknown; // 다양한 점성술 데이터 포맷 수용
 }
 
 export interface TierBonus {

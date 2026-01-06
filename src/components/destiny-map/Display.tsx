@@ -467,7 +467,7 @@ export default function Display({
   const themed = themeMatch?.data;
   const name = result?.profile?.name?.trim() || tr.userFallback;
   const interpretationText =
-    typeof (themed as any)?.interpretation === "string" ? (themed as any).interpretation : "";
+    typeof ((themed as Record<string, unknown>))?.interpretation === "string" ? ((themed as Record<string, unknown>)).interpretation : "";
 
   // Try to parse structured JSON from interpretation
   const structuredData = useMemo(() => {

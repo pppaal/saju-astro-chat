@@ -7,7 +7,7 @@ import { sanitizeLocaleText } from "@/lib/destiny-map/sanitize";
 import { maskTextWithName } from "@/lib/security";
 import { enforceBodySize } from "@/lib/http";
 import { calculateSajuData } from "@/lib/Saju/saju";
-import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart } from "@/lib/astrology";
+import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart, type Chart, type PlanetBase } from "@/lib/astrology";
 import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
 import { buildFewShotPrompt } from "@/lib/destiny-map/counselor-examples";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
@@ -110,6 +110,51 @@ const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
 const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
 const MAX_MESSAGES = 10;
 const MAX_CV = 1200;
+
+// Type definitions for Saju data structure
+interface SajuPillar {
+  heavenlyStem?: { name?: string };
+  earthlyBranch?: { name?: string };
+}
+
+interface SajuDaeunItem {
+  startAge: number;
+  stem?: string;
+  heavenlyStem?: string;
+  branch?: string;
+  earthlyBranch?: string;
+}
+
+interface SajuUnse {
+  daeun?: SajuDaeunItem[];
+}
+
+interface SajuAdvancedAnalysis {
+  yongsin?: {
+    primary?: FiveElement;
+    avoid?: FiveElement;
+  };
+}
+
+interface SajuDayMaster {
+  name?: string;
+  heavenlyStem?: string;
+  element?: FiveElement;
+  yin_yang?: string;
+}
+
+interface SajuDataStructure {
+  dayMaster?: SajuDayMaster;
+  pillars?: {
+    year?: SajuPillar;
+    month?: SajuPillar;
+    day?: SajuPillar;
+    time?: SajuPillar;
+  };
+  unse?: SajuUnse;
+  advancedAnalysis?: SajuAdvancedAnalysis;
+  [key: string]: unknown;
+}
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
@@ -230,8 +275,8 @@ export async function POST(request: Request) {
     const theme = typeof body.theme === "string" ? body.theme.trim().slice(0, LIMITS.THEME) : "chat";
     const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
     const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : [];
-    let saju = body.saju;
-    let astro = body.astro;
+    let saju = body.saju as SajuDataStructure | undefined;
+    let astro = body.astro as Chart | undefined;
     const advancedAstro = body.advancedAstro;  // Advanced astrology features
     const predictionContext = body.predictionContext;  // Life prediction TIER 1-10
     const userContext = body.userContext;
@@ -242,8 +287,8 @@ export async function POST(request: Request) {
     // ========================================
     let effectiveBirthDate = birthDate;
     let effectiveBirthTime = birthTime;
-    let effectiveLatitude = latitude;
-    let effectiveLongitude = longitude;
+    const effectiveLatitude = latitude;
+    const effectiveLongitude = longitude;
     let effectiveGender = gender;
 
     if (userId && (!birthDate || !birthTime || !isValidLatitude(latitude) || !isValidLongitude(longitude))) {
@@ -455,10 +500,10 @@ export async function POST(request: Request) {
     }
 
     // 🔍 DEBUG: Log saju.unse to verify daeun data
-    console.warn("[chat-stream] saju.unse exists:", !!(saju as any)?.unse);
-    console.warn("[chat-stream] saju.unse.daeun count:", (saju as any)?.unse?.daeun?.length ?? 0);
-    if ((saju as any)?.unse?.daeun?.[0]) {
-      console.warn("[chat-stream] First daeun:", JSON.stringify((saju as any).unse.daeun[0]));
+    console.warn("[chat-stream] saju.unse exists:", !!saju?.unse);
+    console.warn("[chat-stream] saju.unse.daeun count:", saju?.unse?.daeun?.length ?? 0);
+    if (saju?.unse?.daeun?.[0]) {
+      console.warn("[chat-stream] First daeun:", JSON.stringify(saju.unse.daeun[0]));
     }
 
     // Compute astro if not provided or empty
@@ -730,14 +775,14 @@ export async function POST(request: Request) {
     let timingScoreSection = "";
     if (saju?.dayMaster && (theme === "year" || theme === "month" || theme === "today" || theme === "life" || theme === "chat")) {
       try {
-        const dayStem = (saju.dayMaster as any)?.heavenlyStem || '甲';
-        const dayBranch = (saju as any)?.pillars?.day?.earthlyBranch?.name || '子';
-        const dayElement = (saju.dayMaster as any)?.element as FiveElement || '토';
-        const yongsin: FiveElement[] = (saju as any)?.advancedAnalysis?.yongsin?.primary
-          ? [(saju as any).advancedAnalysis.yongsin.primary]
+        const dayStem = saju.dayMaster?.heavenlyStem || '甲';
+        const dayBranch = saju?.pillars?.day?.earthlyBranch?.name || '子';
+        const dayElement = (saju.dayMaster?.element as FiveElement) || '토';
+        const yongsin: FiveElement[] = saju?.advancedAnalysis?.yongsin?.primary
+          ? [saju.advancedAnalysis.yongsin.primary]
           : [];
-        const kisin: FiveElement[] = (saju as any)?.advancedAnalysis?.yongsin?.avoid
-          ? [(saju as any).advancedAnalysis.yongsin.avoid]
+        const kisin: FiveElement[] = saju?.advancedAnalysis?.yongsin?.avoid
+          ? [saju.advancedAnalysis.yongsin.avoid]
           : [];
 
         // 현재 대운 추출
@@ -747,8 +792,8 @@ export async function POST(request: Request) {
         const currentAge = birthYear ? currentYear - birthYear : undefined;
         let currentDaeun: { stem: string; branch: string } | undefined;
 
-        if ((saju as any)?.unse?.daeun && currentAge) {
-          const daeunList = (saju as any).unse.daeun;
+        if (saju?.unse?.daeun && currentAge) {
+          const daeunList = saju.unse.daeun;
           for (const d of daeunList) {
             if (currentAge >= d.startAge && currentAge < (d.startAge + 10)) {
               currentDaeun = {
@@ -800,15 +845,15 @@ export async function POST(request: Request) {
         try {
           const today = new Date();
           const dailyPillar = calculateDailyPillar(today);
-          const monthBranchVal = (saju as any)?.pillars?.month?.earthlyBranch?.name || '子';
-          const yearBranchVal = (saju as any)?.pillars?.year?.earthlyBranch?.name || '子';
+          const monthBranchVal = saju?.pillars?.month?.earthlyBranch?.name || '子';
+          const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
           const allStemsArr = [
-            (saju as any)?.pillars?.year?.heavenlyStem?.name,
-            (saju as any)?.pillars?.month?.heavenlyStem?.name,
+            saju?.pillars?.year?.heavenlyStem?.name,
+            saju?.pillars?.month?.heavenlyStem?.name,
             dayStem,
-            (saju as any)?.pillars?.time?.heavenlyStem?.name,
+            saju?.pillars?.time?.heavenlyStem?.name,
           ].filter(Boolean);
-          const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, (saju as any)?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+          const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
 
           // 공망 분석
           const gongmangResult = analyzeGongmang(dayStem, dayBranch, dailyPillar.branch);
@@ -914,8 +959,8 @@ export async function POST(request: Request) {
         let daeunTransitSection = "";
         try {
           // 대운 리스트가 있으면 트랜짓 동기화 분석
-          if ((saju as any)?.unse?.daeun && currentAge) {
-            const daeunList: DaeunInfo[] = convertSajuDaeunToInfo((saju as any).unse.daeun);
+          if (saju?.unse?.daeun && currentAge) {
+            const daeunList: DaeunInfo[] = convertSajuDaeunToInfo(saju.unse.daeun);
             if (daeunList.length > 0) {
               const syncAnalysis = analyzeDaeunTransitSync(daeunList, birthYear || currentYear - (currentAge || 30), currentAge);
 
@@ -986,9 +1031,9 @@ export async function POST(request: Request) {
           ];
 
           // 1. Moon Phase & Void of Course
-          if (astro && (astro as any).planets) {
-            const sun = (astro as any).planets.find((p: any) => p.name === "Sun");
-            const moon = (astro as any).planets.find((p: any) => p.name === "Moon");
+          if (astro && astro.planets) {
+            const sun = astro.planets.find((p: PlanetBase) => p.name === "Sun");
+            const moon = astro.planets.find((p: PlanetBase) => p.name === "Moon");
             if (sun && moon) {
               const moonPhase = getMoonPhase(sun.longitude, moon.longitude);
               const phaseName = getMoonPhaseName(moonPhase);
@@ -997,7 +1042,7 @@ export async function POST(request: Request) {
                 : `🌙 Moon Phase: ${phaseName}`);
 
               // Void of Course 체크
-              const vocInfo = checkVoidOfCourse(astro as any);
+              const vocInfo = checkVoidOfCourseastro;
               if (vocInfo.isVoid) {
                 tier3Parts.push(lang === "ko"
                   ? `⚠️ 공전 중 (Void of Course): ${vocInfo.description}`
@@ -1010,7 +1055,7 @@ export async function POST(request: Request) {
             }
 
             // 2. 역행 행성 체크
-            const retrogrades = getRetrogradePlanets(astro as any);
+            const retrogrades = getRetrogradePlanetsastro;
             if (retrogrades.length > 0) {
               tier3Parts.push(lang === "ko"
                 ? `🔄 역행 중: ${retrogrades.join(', ')}`
@@ -1033,10 +1078,10 @@ export async function POST(request: Request) {
             }
 
             // 3. Extra Points (키론/릴리스/버텍스) - 이미 astro에 있으면 사용
-            const chiron = (astro as any).planets?.find((p: any) => p.name === "Chiron");
-            const lilith = (astro as any).planets?.find((p: any) => p.name === "Lilith" || p.name === "Black Moon Lilith");
-            const vertex = (astro as any).extraPoints?.vertex;
-            const partOfFortune = (astro as any).extraPoints?.partOfFortune;
+            const chiron = astro.planets?.find((p: PlanetBase) => p.name === "Chiron");
+            const lilith = astro.planets?.find((p: PlanetBase) => p.name === "Lilith" || p.name === "Black Moon Lilith");
+            const vertex = astro.extraPoints?.vertex;
+            const partOfFortune = astro.extraPoints?.partOfFortune;
 
             if (chiron || lilith || vertex || partOfFortune) {
               tier3Parts.push("");
@@ -1060,8 +1105,8 @@ export async function POST(request: Request) {
           }
 
           // 4. 사주 패턴 분석 (희귀도)
-          if ((saju as any)?.pillars) {
-            const patternAnalysis = analyzePatterns((saju as any).pillars);
+          if (saju?.pillars) {
+            const patternAnalysis = analyzePatterns(saju.pillars);
             if (patternAnalysis.matchedPatterns.length > 0) {
               tier3Parts.push("");
               tier3Parts.push(lang === "ko" ? "--- 사주 패턴 분석 ---" : "--- Saju Pattern Analysis ---");
@@ -1278,15 +1323,15 @@ export async function POST(request: Request) {
         // 과거 분석 활성화 (TIER 2)
         if (isPastQuestion && birthYear) {
           try {
-            const monthBranchVal = (saju as any)?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranchVal = (saju as any)?.pillars?.year?.earthlyBranch?.name || '子';
+            const monthBranchVal = saju?.pillars?.month?.earthlyBranch?.name || '子';
+            const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
             const allStemsArr = [
-              (saju as any)?.pillars?.year?.heavenlyStem?.name,
-              (saju as any)?.pillars?.month?.heavenlyStem?.name,
+              saju?.pillars?.year?.heavenlyStem?.name,
+              saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
-              (saju as any)?.pillars?.time?.heavenlyStem?.name,
+              saju?.pillars?.time?.heavenlyStem?.name,
             ].filter(Boolean);
-            const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, (saju as any)?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
 
             // 작년 또는 재작년 분석 (기본값)
             const yearsAgoMatch = questionLower.match(/(\d+)\s*년\s*전|(\d+)\s*years?\s*ago/);
@@ -1369,18 +1414,18 @@ export async function POST(request: Request) {
 
         if (detectedActivity && isDateQuestion) {
           try {
-            const monthBranch = (saju as any)?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranch = (saju as any)?.pillars?.year?.earthlyBranch?.name || '子';
+            const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
+            const yearBranch = saju?.pillars?.year?.earthlyBranch?.name || '子';
             const allStems = [
-              (saju as any)?.pillars?.year?.heavenlyStem?.name,
-              (saju as any)?.pillars?.month?.heavenlyStem?.name,
+              saju?.pillars?.year?.heavenlyStem?.name,
+              saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
-              (saju as any)?.pillars?.time?.heavenlyStem?.name,
+              saju?.pillars?.time?.heavenlyStem?.name,
             ].filter(Boolean);
-            const allBranches = [yearBranch, monthBranch, dayBranch, (saju as any)?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
 
             // 용신 추출
-            const primaryYongsin = (saju as any)?.advancedAnalysis?.yongsin?.primary;
+            const primaryYongsin = saju?.advancedAnalysis?.yongsin?.primary;
 
             const recommendations = findBestDates({
               activity: detectedActivity,
@@ -1439,15 +1484,15 @@ export async function POST(request: Request) {
         let dailyAnalysisSection = "";
         if (theme === "today") {
           try {
-            const monthBranch = (saju as any)?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranch = (saju as any)?.pillars?.year?.earthlyBranch?.name || '子';
+            const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
+            const yearBranch = saju?.pillars?.year?.earthlyBranch?.name || '子';
             const allStems = [
-              (saju as any)?.pillars?.year?.heavenlyStem?.name,
-              (saju as any)?.pillars?.month?.heavenlyStem?.name,
+              saju?.pillars?.year?.heavenlyStem?.name,
+              saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
-              (saju as any)?.pillars?.time?.heavenlyStem?.name,
+              saju?.pillars?.time?.heavenlyStem?.name,
             ].filter(Boolean);
-            const allBranches = [yearBranch, monthBranch, dayBranch, (saju as any)?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
 
             const weeklyScores = generateWeeklyPrediction(
               new Date(),
@@ -1479,23 +1524,23 @@ export async function POST(request: Request) {
             const birthYear = parseInt(effectiveBirthDate.split("-")[0]);
             const birthMonth = parseInt(effectiveBirthDate.split("-")[1]);
             const birthDayNum = parseInt(effectiveBirthDate.split("-")[2]);
-            const monthBranch = (saju as any)?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranchVal = (saju as any)?.pillars?.year?.earthlyBranch?.name || '子';
+            const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
+            const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
             const allStems = [
-              (saju as any)?.pillars?.year?.heavenlyStem?.name,
-              (saju as any)?.pillars?.month?.heavenlyStem?.name,
+              saju?.pillars?.year?.heavenlyStem?.name,
+              saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
-              (saju as any)?.pillars?.time?.heavenlyStem?.name,
+              saju?.pillars?.time?.heavenlyStem?.name,
             ].filter(Boolean);
-            const allBranches = [yearBranchVal, monthBranch, dayBranch, (saju as any)?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            const allBranches = [yearBranchVal, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
 
             // 대운 정보 추출
-            const daeunData = (saju as any)?.daeun?.cycles || (saju as any)?.daeunCycles || [];
+            const daeunData = saju?.daeun?.cycles || saju?.daeunCycles || [];
             const daeunList = daeunData.length > 0 ? convertSajuDaeunToInfo(daeunData) : undefined;
 
             // 용신/기신 추출
-            const yongsinData = (saju as any)?.yongsin?.elements || (saju as any)?.yongsin;
-            const kisinData = (saju as any)?.kisin?.elements || (saju as any)?.kisin;
+            const yongsinData = saju?.yongsin?.elements || saju?.yongsin;
+            const kisinData = saju?.kisin?.elements || saju?.kisin;
 
             const predictionInput: LifePredictionInput = {
               birthYear,

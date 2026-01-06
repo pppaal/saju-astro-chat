@@ -10,9 +10,9 @@ import CreditBadge from "@/components/ui/CreditBadge";
 
 // Development-only logging
 const isDev = process.env.NODE_ENV === 'development';
-const devLog = (...args: any[]) => isDev && console.log(...args);
-const devWarn = (...args: any[]) => isDev && console.warn(...args);
-const devError = (...args: any[]) => console.error(...args); // Always log errors
+const devLog = (...args: unknown[]) => isDev && console.log(...args);
+const devWarn = (...args: unknown[]) => isDev && console.warn(...args);
+const devError = (...args: unknown[]) => console.error(...args); // Always log errors
 
 type LangKey = "ko" | "en";
 
@@ -1227,7 +1227,7 @@ type Message = { role: "user" | "assistant"; content: string };
 const MessageRow = React.memo(({
   message,
   index,
-  language,
+  language: _language,
   styles
 }: {
   message: Message;
@@ -1328,11 +1328,11 @@ export default function TarotChat({
   const loadingMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [showCardsModal, setShowCardsModal] = useState(false);
 
-  // 타로집 스타일: 질문마다 카드 뽑기 설정
-  const [cardCountForQuestion, setCardCountForQuestion] = useState<1 | 3 | 5>(1);
-  const [newlyDrawnCards, setNewlyDrawnCards] = useState<DrawnCard[]>([]);
-  const [showNewCards, setShowNewCards] = useState(false);
-  const [isDrawingCards, setIsDrawingCards] = useState(false);
+  // 타로집 스타일: 질문마다 카드 뽑기 설정 (reserved for future use)
+  const [_cardCountForQuestion, _setCardCountForQuestion] = useState<1 | 3 | 5>(1);
+  const [_newlyDrawnCards, _setNewlyDrawnCards] = useState<DrawnCard[]>([]);
+  const [_showNewCards, _setShowNewCards] = useState(false);
+  const [_isDrawingCards, _setIsDrawingCards] = useState(false);
 
   // Save messages to localStorage whenever they change
   useEffect(() => {

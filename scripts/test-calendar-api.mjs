@@ -68,8 +68,8 @@ async function testCalendarAPI(profile, index) {
     }
 
     // 각 날짜 데이터 검증
-    let issues = [];
-    let sampleDays = [];
+    const issues = [];
+    const sampleDays = [];
 
     if (hasAllDates) {
       for (const day of data.allDates) {

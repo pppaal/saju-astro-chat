@@ -101,7 +101,7 @@ export function findEclipseImpact(
     let eclipseHouse = 1;
     for (let i = 0; i < 12; i++) {
       const nextI = (i + 1) % 12;
-      let cusp = chart.houses[i].cusp;
+      const cusp = chart.houses[i].cusp;
       let nextCusp = chart.houses[nextI].cusp;
 
       if (nextCusp < cusp) nextCusp += 360;

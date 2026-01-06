@@ -76,7 +76,7 @@ export class LRUCache<K, V> {
 /**
  * 간단한 메모이제이션 함수
  */
-export function memoize<T extends (...args: any[]) => any>(
+export function memoize<T extends (...args: unknown[]) => any>(
   fn: T,
   options?: {
     maxSize?: number;
@@ -88,7 +88,7 @@ export function memoize<T extends (...args: any[]) => any>(
     options?.maxSize || 100
   );
 
-  const keyGen = options?.keyGenerator || ((...args: any[]) => JSON.stringify(args));
+  const keyGen = options?.keyGenerator || ((...args: unknown[]) => JSON.stringify(args));
   const ttl = options?.ttl || Infinity;
 
   return ((...args: Parameters<T>): ReturnType<T> => {
@@ -110,7 +110,7 @@ export function memoize<T extends (...args: any[]) => any>(
 /**
  * 비동기 메모이제이션
  */
-export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
+export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
   fn: T,
   options?: {
     maxSize?: number;
@@ -123,7 +123,7 @@ export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
   );
   const pending = new Map<string, Promise<Awaited<ReturnType<T>>>>();
 
-  const keyGen = options?.keyGenerator || ((...args: any[]) => JSON.stringify(args));
+  const keyGen = options?.keyGenerator || ((...args: unknown[]) => JSON.stringify(args));
   const ttl = options?.ttl || Infinity;
 
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {

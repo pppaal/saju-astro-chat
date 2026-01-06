@@ -145,25 +145,25 @@ export function findAspects(
 
   for (const t of transitSources) {
     for (const n of natalTargets) {
-      const sep = angleDiff(t.longitude, (n as any).longitude);
-      const relSpeed = (t as any).speed ?? 0 - ((n as any).speed ?? 0);
+      const sep = angleDiff(t.longitude, (n).longitude);
+      const relSpeed = (t).speed ?? 0 - ((n).speed ?? 0);
       for (const a of aspects) {
         const orb = orbOf(sep, a);
         const pairOverride = getPairOrbOverride(
           t.name,
-          (n as any).name,
+          (n).name,
           a,
           rules
         );
         const baseLimit = Math.max(
           getOrbLimitByName(t.name, rules),
-          getOrbLimitByName((n as any).name, rules)
+          getOrbLimitByName((n).name, rules)
         );
         const aspectDefault = rules.perAspectOrbs?.[a];
         let limit = pairOverride ?? aspectDefault ?? baseLimit;
 
         // 빠른/느린 행성에 따른 미세 보정
-        const speedAbs = Math.abs((t as any).speed ?? 0);
+        const speedAbs = Math.abs((t).speed ?? 0);
         const speedFactor = clamp(1 + (speedAbs - 1) * 0.1, 0.85, 1.15);
         limit *= speedFactor;
 
@@ -186,15 +186,15 @@ export function findAspects(
               name: t.name,
               kind: "transit",
               longitude: t.longitude,
-              house: (t as any).house,
-              sign: (t as any).sign,
+              house: (t).house,
+              sign: (t).sign,
             },
             to: {
-              name: (n as any).name,
+              name: (n).name,
               kind: "natal",
-              longitude: (n as any).longitude,
-              house: (n as any).house,
-              sign: (n as any).sign,
+              longitude: (n).longitude,
+              house: (n).house,
+              sign: (n).sign,
             },
             type: a,
             orb: Number(orb.toFixed(2)),

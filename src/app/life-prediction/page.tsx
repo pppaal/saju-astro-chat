@@ -586,8 +586,8 @@ function LifePredictionContent() {
       }
 
       // precompute-chart 응답 구조에서 사주 정보 추출
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pillars = (sajuData as any).pillars || {};
+       
+      const pillars = (sajuData as Record<string, unknown>).pillars || {};
       const yearPillar = pillars.year || {};
       const monthPillar = pillars.month || {};
       const dayPillar = pillars.day || {};

@@ -1,0 +1,389 @@
+import { getServerSession } from "next-auth";
+import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
+import { authOptions } from "@/lib/auth/authOptions";
+import { apiGuard } from "@/lib/apiGuard";
+import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
+import { logger } from '@/lib/logger';
+import {
+  calculateFusionCompatibility,
+  interpretCompatibilityScore,
+  type FusionCompatibilityResult,
+} from "@/lib/compatibility/compatibilityFusion";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 90;
+
+type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
+
+function clampMessages(messages: ChatMessage[], max = 8) {
+  return messages.slice(-max);
+}
+
+// Build SajuProfile from raw saju data (returns any for flexibility with FiveElement types)
+function buildSajuProfile(saju: Record<string, unknown>): Record<string, unknown> | null {
+  if (!saju) return null;
+
+  const dayMasterName = (saju?.dayMaster as Record<string, unknown>)?.name as string ||
+    (saju?.dayMaster as Record<string, unknown>)?.heavenlyStem as string || '갑';
+  const dayMasterElement = (saju?.dayMaster as Record<string, unknown>)?.element as string || '목';
+  const dayMasterYinYang = (saju?.dayMaster as Record<string, unknown>)?.yin_yang as string || '양';
+
+  const pillars = saju?.pillars as Record<string, Record<string, string>> || {};
+
+  return {
+    dayMaster: {
+      name: dayMasterName,
+      element: dayMasterElement,
+      yin_yang: dayMasterYinYang,
+    },
+    pillars: {
+      year: {
+        stem: pillars?.year?.heavenlyStem || '甲',
+        branch: pillars?.year?.earthlyBranch || '子',
+      },
+      month: {
+        stem: pillars?.month?.heavenlyStem || '甲',
+        branch: pillars?.month?.earthlyBranch || '子',
+      },
+      day: {
+        stem: pillars?.day?.heavenlyStem || '甲',
+        branch: pillars?.day?.earthlyBranch || '子',
+      },
+      time: {
+        stem: pillars?.time?.heavenlyStem || '甲',
+        branch: pillars?.time?.earthlyBranch || '子',
+      },
+    },
+    elements: saju?.fiveElements || saju?.elements || {
+      wood: 20, fire: 20, earth: 20, metal: 20, water: 20,
+    },
+  };
+}
+
+// Build AstrologyProfile from raw astro data
+function buildAstroProfile(astro: Record<string, unknown>): Record<string, unknown> | null {
+  if (!astro) return null;
+
+  const getElementFromSign = (sign: string): string => {
+    const elementMap: Record<string, string> = {
+      aries: 'fire', leo: 'fire', sagittarius: 'fire',
+      taurus: 'earth', virgo: 'earth', capricorn: 'earth',
+      gemini: 'air', libra: 'air', aquarius: 'air',
+      cancer: 'water', scorpio: 'water', pisces: 'water',
+    };
+    return elementMap[sign.toLowerCase()] || 'fire';
+  };
+
+  const getSignData = (source: Record<string, unknown>, planetName: string) => {
+    const planets = source?.planets as Record<string, Record<string, string>> | undefined;
+    if (planets?.[planetName]?.sign) {
+      const sign = planets[planetName].sign.toLowerCase();
+      return { sign, element: getElementFromSign(sign) };
+    }
+    const direct = source?.[planetName] as Record<string, string> | undefined;
+    if (direct?.sign) {
+      const sign = direct.sign.toLowerCase();
+      return { sign, element: getElementFromSign(sign) };
+    }
+    return { sign: 'aries', element: 'fire' };
+  };
+
+  return {
+    sun: getSignData(astro, 'sun'),
+    moon: getSignData(astro, 'moon'),
+    venus: getSignData(astro, 'venus'),
+    mars: getSignData(astro, 'mars'),
+    ascendant: getSignData(astro, 'ascendant'),
+  };
+}
+
+// Format fusion result for AI prompt
+function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string): string {
+  const isKo = lang === 'ko';
+  const scoreInfo = interpretCompatibilityScore(fusion.overallScore);
+
+  const lines = [
+    `## ${isKo ? '종합 궁합 분석' : 'Comprehensive Compatibility Analysis'}`,
+    `${isKo ? '등급' : 'Grade'}: ${scoreInfo.grade} ${scoreInfo.emoji} - ${scoreInfo.title}`,
+    `${isKo ? '점수' : 'Score'}: ${fusion.overallScore}/100`,
+    ``,
+    `### ${isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}`,
+    fusion.aiInsights.deepAnalysis,
+    ``,
+  ];
+
+  if (fusion.aiInsights.hiddenPatterns.length > 0) {
+    lines.push(`### ${isKo ? '숨겨진 패턴' : 'Hidden Patterns'}`);
+    fusion.aiInsights.hiddenPatterns.forEach(p => lines.push(`- ${p}`));
+    lines.push(``);
+  }
+
+  if (fusion.aiInsights.synergySources.length > 0) {
+    lines.push(`### ${isKo ? '시너지 요소' : 'Synergy Sources'}`);
+    fusion.aiInsights.synergySources.forEach(s => lines.push(`- ${s}`));
+    lines.push(``);
+  }
+
+  if (fusion.aiInsights.growthOpportunities.length > 0) {
+    lines.push(`### ${isKo ? '성장 기회' : 'Growth Opportunities'}`);
+    fusion.aiInsights.growthOpportunities.forEach(g => lines.push(`- ${g}`));
+    lines.push(``);
+  }
+
+  // Relationship Dynamics
+  lines.push(`### ${isKo ? '관계 역학' : 'Relationship Dynamics'}`);
+  lines.push(`- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${fusion.relationshipDynamics.emotionalIntensity}%`);
+  lines.push(`- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${fusion.relationshipDynamics.intellectualAlignment}%`);
+  lines.push(`- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${fusion.relationshipDynamics.spiritualConnection}%`);
+  lines.push(`- ${isKo ? '갈등 해결 스타일' : 'Conflict Style'}: ${fusion.relationshipDynamics.conflictResolutionStyle}`);
+  lines.push(``);
+
+  // Future Guidance
+  lines.push(`### ${isKo ? '미래 가이던스' : 'Future Guidance'}`);
+  lines.push(`**${isKo ? '단기(1-6개월)' : 'Short-term'}**: ${fusion.futureGuidance.shortTerm}`);
+  lines.push(`**${isKo ? '중기(6개월-2년)' : 'Medium-term'}**: ${fusion.futureGuidance.mediumTerm}`);
+  lines.push(`**${isKo ? '장기(2년+)' : 'Long-term'}**: ${fusion.futureGuidance.longTerm}`);
+  lines.push(``);
+
+  // Recommended Actions
+  if (fusion.recommendedActions.length > 0) {
+    lines.push(`### ${isKo ? '추천 행동' : 'Recommended Actions'}`);
+    fusion.recommendedActions.forEach(action => {
+      const priority = action.priority === 'high' ? '🔴' : action.priority === 'medium' ? '🟡' : '🟢';
+      lines.push(`${priority} [${action.category}] ${action.action}`);
+      lines.push(`   ${isKo ? '이유' : 'Why'}: ${action.reasoning}`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
+export async function POST(request: Request) {
+  try {
+    // Rate limiting - premium users get more
+    const guard = await apiGuard(request, { path: "compatibility-counselor", limit: 30, windowSeconds: 60 });
+    if (guard instanceof Response) return guard;
+
+    // Auth check - counselor is premium feature
+    const session = await getServerSession(authOptions);
+    const isDev = process.env.NODE_ENV === "development";
+
+    if (!isDev && !session?.user?.email) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await request.json();
+    const {
+      persons = [],
+      person1Saju = null,
+      person2Saju = null,
+      person1Astro = null,
+      person2Astro = null,
+      lang = "ko",
+      messages = [],
+      theme = "general", // general, love, business, family
+    } = body;
+
+    if (!persons || persons.length < 2) {
+      return new Response(JSON.stringify({ error: "At least 2 persons required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const trimmedHistory = clampMessages(messages);
+
+    // Safety check
+    const lastUser = [...trimmedHistory].reverse().find((m) => m.role === "user");
+    if (lastUser && containsForbidden(lastUser.content)) {
+      const encoder = new TextEncoder();
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${safetyMessage(lang)}\n\n`));
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        }),
+        {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        }
+      );
+    }
+
+    // Build profiles and run Fusion analysis
+    let fusionResult: FusionCompatibilityResult | null = null;
+    let fusionContext = "";
+
+    try {
+      const p1Saju = buildSajuProfile(person1Saju);
+      const p2Saju = buildSajuProfile(person2Saju);
+      const p1Astro = buildAstroProfile(person1Astro);
+      const p2Astro = buildAstroProfile(person2Astro);
+
+      if (p1Saju && p2Saju && p1Astro && p2Astro) {
+        fusionResult = calculateFusionCompatibility(p1Saju as any, p1Astro as any, p2Saju as any, p2Astro as any);
+        fusionContext = formatFusionForPrompt(fusionResult, lang);
+      }
+    } catch (fusionError) {
+      logger.error("[Compatibility Counselor] Fusion error:", { error: fusionError });
+    }
+
+    // Build conversation context
+    const historyText = trimmedHistory
+      .filter((m) => m.role !== "system")
+      .map((m) => `${m.role === "user" ? "Q" : "A"}: ${guardText(m.content, 400)}`)
+      .join("\n")
+      .slice(0, 2000);
+
+    const userQuestion = lastUser ? guardText(lastUser.content, 600) : "";
+
+    // Format persons info
+    const personsInfo = persons.map((p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
+      `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
+    ).join("\n");
+
+    // Theme-specific context
+    const themeContextMap: Record<string, string> = {
+      general: lang === 'ko' ? '전반적인 궁합 상담' : 'General compatibility counseling',
+      love: lang === 'ko' ? '연애/결혼 궁합 전문 상담' : 'Romance/Marriage compatibility',
+      business: lang === 'ko' ? '비즈니스 파트너십 궁합 상담' : 'Business partnership compatibility',
+      family: lang === 'ko' ? '가족 관계 궁합 상담' : 'Family relationship compatibility',
+    };
+    const themeContext = themeContextMap[theme as string] || (lang === 'ko' ? '궁합 상담' : 'Compatibility counseling');
+
+    // Build enhanced prompt for counselor
+    const counselorPrompt = [
+      `== 프리미엄 궁합 상담사 ==`,
+      `테마: ${themeContext}`,
+      ``,
+      `== 참여자 정보 ==`,
+      personsInfo,
+      fusionContext ? `\n${fusionContext}` : "",
+      historyText ? `\n== 이전 대화 ==\n${historyText}` : "",
+      `\n== 사용자 질문 ==\n${userQuestion}`,
+      ``,
+      `== 상담사 지침 ==`,
+      lang === 'ko'
+        ? `당신은 사주명리학과 점성학을 결합한 전문 궁합 상담사입니다.
+위의 심층 분석 데이터를 바탕으로 친근하지만 전문적인 어조로 답변하세요.
+- 구체적인 조언과 실천 가능한 팁을 제공하세요
+- 숨겨진 패턴과 시너지를 쉽게 설명해주세요
+- 미래 가이던스를 시기별로 안내하세요
+- 긍정적이면서도 현실적인 조언을 해주세요`
+        : `You are an expert compatibility counselor combining Saju and Astrology.
+Based on the deep analysis above, provide friendly but professional guidance.
+- Give specific, actionable advice
+- Explain hidden patterns and synergies simply
+- Provide time-based future guidance
+- Be positive yet realistic`,
+    ].filter(Boolean).join("\n");
+
+    // Call backend AI
+    const backendUrl = pickBackendUrl();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const apiToken = process.env.ADMIN_API_TOKEN;
+    if (apiToken) {
+      headers["X-API-KEY"] = apiToken;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 80000);
+
+    try {
+      const aiResponse = await fetch(`${backendUrl}/api/compatibility/chat`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          persons,
+          prompt: counselorPrompt,
+          question: userQuestion,
+          history: trimmedHistory,
+          locale: lang,
+          compatibility_context: fusionContext,
+          theme,
+          is_premium: true,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!aiResponse.ok) {
+        throw new Error(`Backend returned ${aiResponse.status}`);
+      }
+
+      const encoder = new TextEncoder();
+      const aiData = await aiResponse.json();
+      const answer = aiData?.data?.response || aiData?.response || aiData?.interpretation ||
+        (lang === "ko"
+          ? "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요."
+          : "Sorry, couldn't generate response. Please try again.");
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const chunks = answer.match(/.{1,60}/g) || [answer];
+            chunks.forEach((chunk: string, index: number) => {
+              setTimeout(() => {
+                controller.enqueue(encoder.encode(`data: ${chunk}\n\n`));
+                if (index === chunks.length - 1) {
+                  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                  controller.close();
+                }
+              }, index * 15);
+            });
+          },
+        }),
+        {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        }
+      );
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      logger.error("[Compatibility Counselor] Backend error:", { error: fetchError });
+
+      const fallback = lang === "ko"
+        ? "AI 서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요."
+        : "AI server connection issue. Please try again later.";
+
+      const encoder = new TextEncoder();
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${fallback}\n\n`));
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        }),
+        {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        }
+      );
+    }
+  } catch (error) {
+    logger.error("[Compatibility Counselor] Error:", { error: error });
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}

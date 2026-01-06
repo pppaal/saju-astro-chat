@@ -290,9 +290,9 @@ export function getWealthAnalysis(
 
   // 결과 조합
   let moneyStyle = selectLang(isKo, dmBase.style);
-  let earningWay = selectLang(isKo, dmBase.earning);
+  const earningWay = selectLang(isKo, dmBase.earning);
   let spendingPattern = selectLang(isKo, dmBase.spending);
-  let wealthTip = selectLang(isKo, dmBase.tip);
+  const wealthTip = selectLang(isKo, dmBase.tip);
   let luckyField = "";
   let house2Style: string | undefined;
   let jupiterWealth: string | undefined;

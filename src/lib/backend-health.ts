@@ -87,7 +87,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
 export async function callBackendWithFallback<T>(
   backendUrl: string,
   endpoint: string,
-  body: any,
+  body: unknown,
   fallbackResponse: T
 ): Promise<{ success: boolean; data: T }> {
   // Check health first

@@ -592,9 +592,9 @@ function getGeokgukType(geokName: string): GeokgukType | null {
 }
 
 // 행성 찾기 헬퍼
-function findPlanet(planets: any[], name: string): any {
+function findPlanet(planets: unknown[], name: string): unknown {
   if (!Array.isArray(planets)) return null;
-  return planets.find((p: any) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  return planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
 }
 
 export function getKarmaAnalysis(
@@ -713,15 +713,15 @@ export function getKarmaAnalysis(
 
   // === 6. 운명의 인연 ===
   const fatedConnections: KarmaAnalysisResult['fatedConnections'] = [];
-  const sinsal = (saju?.advancedAnalysis?.sinsal as any) || {};
+  const sinsal = (saju?.advancedAnalysis?.sinsal) || {};
   const luckyList = sinsal?.luckyList || [];
   const unluckyList = sinsal?.unluckyList || [];
   const allSinsal = [...luckyList, ...unluckyList];
 
-  const hasHongYeom = allSinsal.some((s: any) => (typeof s === 'string' ? s : s.name)?.includes('홍염'));
-  const hasYeokMa = allSinsal.some((s: any) => (typeof s === 'string' ? s : s.name)?.includes('역마'));
-  const hasGwiMun = allSinsal.some((s: any) => (typeof s === 'string' ? s : s.name)?.includes('귀문'));
-  const hasDohwa = allSinsal.some((s: any) => (typeof s === 'string' ? s : s.name)?.includes('도화'));
+  const hasHongYeom = allSinsal.some((s: unknown) => (typeof s === 'string' ? s : s.name)?.includes('홍염'));
+  const hasYeokMa = allSinsal.some((s: unknown) => (typeof s === 'string' ? s : s.name)?.includes('역마'));
+  const hasGwiMun = allSinsal.some((s: unknown) => (typeof s === 'string' ? s : s.name)?.includes('귀문'));
+  const hasDohwa = allSinsal.some((s: unknown) => (typeof s === 'string' ? s : s.name)?.includes('도화'));
 
   if (hasHongYeom || hasDohwa) {
     fatedConnections.push({

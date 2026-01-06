@@ -81,7 +81,9 @@ export function useTypingAnimation(
 
   // options를 ref로 관리하여 의존성 배열 최소화
   const optionsRef = useRef({ typingSpeed, deletingSpeed, pauseDuration, pauseAfterDelete });
-  optionsRef.current = { typingSpeed, deletingSpeed, pauseDuration, pauseAfterDelete };
+  useEffect(() => {
+    optionsRef.current = { typingSpeed, deletingSpeed, pauseDuration, pauseAfterDelete };
+  }, [typingSpeed, deletingSpeed, pauseDuration, pauseAfterDelete]);
 
   useEffect(() => {
     if (texts.length === 0) return;

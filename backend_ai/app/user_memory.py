@@ -14,17 +14,44 @@ Features:
 import os
 import json
 import hashlib
+import threading
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from functools import lru_cache
 
+def _ping_redis(client, timeout_sec: float) -> bool:
+    result = {"ok": False}
+
+    def _do_ping():
+        try:
+            client.ping()
+            result["ok"] = True
+        except Exception:
+            result["ok"] = False
+
+    thread = threading.Thread(target=_do_ping, daemon=True)
+    thread.start()
+    thread.join(timeout_sec)
+    return result["ok"]
+
+
 # Try Redis, fallback to in-memory
 try:
     import redis
+    if os.getenv("REDIS_DISABLE") == "1":
+        raise RuntimeError("Redis disabled by REDIS_DISABLE")
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-    _redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-    _redis_client.ping()
+    _redis_client = redis.from_url(
+        REDIS_URL,
+        decode_responses=True,
+        socket_timeout=2,
+        socket_connect_timeout=2,
+        retry_on_timeout=True,
+    )
+    ping_timeout = float(os.getenv("REDIS_PING_TIMEOUT", "2"))
+    if not _ping_redis(_redis_client, ping_timeout):
+        raise TimeoutError("Redis ping timed out")
     HAS_REDIS = True
     print("[UserMemory] Redis connected")
 except Exception:

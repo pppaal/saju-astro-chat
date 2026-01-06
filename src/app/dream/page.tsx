@@ -1084,7 +1084,7 @@ function DreamContent() {
                         <span className={styles.sectionBadge}>{locale === 'ko' ? '뒤집어보세요!' : 'Flip to explore!'}</span>
                       </div>
                       <div className={styles.symbolsScroll}>
-                        {result.dreamSymbols.map((sym: any, i: number) => {
+                        {result.dreamSymbols.map((sym: unknown, i: number) => {
                           // Generate unique color for each card
                           const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
                           const color = colors[i % colors.length];

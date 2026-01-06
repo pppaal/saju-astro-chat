@@ -12,16 +12,16 @@ interface CurrentFlow {
 }
 
 // 헬퍼: 행성 별자리 찾기
-function findPlanetSign(planets: any[], name: string): string | null {
+function findPlanetSign(planets: unknown[], name: string): string | null {
   if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: any) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  const planet = planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.sign || null;
 }
 
 // 헬퍼: 행성 하우스 찾기
-function findPlanetHouse(planets: any[], name: string): number | null {
+function findPlanetHouse(planets: unknown[], name: string): number | null {
   if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: any) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  const planet = planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.house || null;
 }
 
@@ -351,7 +351,7 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
   const dayMaster = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || saju?.fourPillars?.day?.heavenlyStem || "";
   const dayMasterElement = saju?.dayMaster?.element || "";
   const daeun = saju?.daeun || saju?.bigFortune;
-  const currentDaeun = Array.isArray(daeun) ? daeun.find((d: any) => d.current || d.isCurrent) : null;
+  const currentDaeun = Array.isArray(daeun) ? daeun.find((d: unknown) => d.current || d.isCurrent) : null;
 
   // 점성술 데이터 추출
   const planets = astro?.planets || [];
@@ -367,7 +367,7 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
     }
 
     const currentYear = new Date().getFullYear();
-    const thisYearUnse = saju.unse.annual.find((a: any) => a.year === currentYear) || saju.unse.annual[0];
+    const thisYearUnse = saju.unse.annual.find((a: unknown) => a.year === currentYear) || saju.unse.annual[0];
     if (!thisYearUnse) return null;
 
     const ganji = thisYearUnse.ganji || `${thisYearUnse.stem?.name || ""}${thisYearUnse.branch?.name || ""}`;
@@ -508,7 +508,7 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
     }
 
     const currentMonth = new Date().getMonth() + 1;
-    const thisMonthUnse = saju.unse.monthly.find((m: any) => m.month === currentMonth) || saju.unse.monthly[0];
+    const thisMonthUnse = saju.unse.monthly.find((m: unknown) => m.month === currentMonth) || saju.unse.monthly[0];
     if (!thisMonthUnse) return null;
 
     const ganji = thisMonthUnse.ganji || `${thisMonthUnse.stem?.name || ""}${thisMonthUnse.branch?.name || ""}`;
@@ -622,7 +622,7 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
 
     const today = new Date();
     const todayDate = today.getDate();
-    const todayIljin = saju.unse.iljin.find((i: any) => i.day === todayDate) || saju.unse.iljin[0];
+    const todayIljin = saju.unse.iljin.find((i: unknown) => i.day === todayDate) || saju.unse.iljin[0];
     if (!todayIljin) return null;
 
     const ganji = todayIljin.ganji || `${todayIljin.stem?.name || ""}${todayIljin.branch?.name || ""}`;

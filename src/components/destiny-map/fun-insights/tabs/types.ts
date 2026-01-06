@@ -1,20 +1,36 @@
 // 탭 컴포넌트 공통 타입
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type SajuData = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AstroData = any;
+export interface SajuData {
+  dayMaster?: { name?: string; element?: string; heavenlyStem?: string };
+  pillars?: {
+    year?: { heavenlyStem?: string; earthlyBranch?: string };
+    month?: { heavenlyStem?: string; earthlyBranch?: string };
+    day?: { heavenlyStem?: string; earthlyBranch?: string };
+    time?: { heavenlyStem?: string; earthlyBranch?: string };
+  };
+  fiveElements?: Record<string, number>;
+  sinsal?: {
+    luckyList?: Array<{ name: string }>;
+    unluckyList?: Array<{ name: string }>;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export interface AstroData {
+  planets?: Array<{ name?: string; sign?: string; house?: number; longitude?: number }>;
+  houses?: Array<{ index?: number; cusp?: number; sign?: string }>;
+  aspects?: Array<{ from?: string; to?: string; type?: string; orb?: number }>;
+  [key: string]: unknown;
+}
 
 export interface TabProps {
   saju?: SajuData;
   astro?: AstroData;
   lang: string;
   isKo: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  destinyNarrative?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  combinedLifeTheme?: any;
+  data: Record<string, unknown>;
+  destinyNarrative?: Record<string, unknown>;
+  combinedLifeTheme?: Record<string, unknown>;
 }
 
 // 탭 ID 타입

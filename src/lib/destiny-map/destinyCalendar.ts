@@ -2541,7 +2541,7 @@ function analyzeDate(
   const branchInteractions: LegacyBranchInteraction[] = advancedBranchInteractions.map(bi => ({
     type: bi.type,
     impact: (bi.impact === 'transformative' ? 'neutral' : bi.impact) as 'positive' | 'negative' | 'neutral',
-    element: (bi as any).element,
+    element: (bi).element,
   }));
 
   // 사주 입력 데이터 구성
@@ -2562,7 +2562,7 @@ function analyzeDate(
       branchInteractions,
       shinsalResult: shinsalForScoring,
     }),
-    yongsin: adaptYongsinResult(yongsinAnalysis as any, geokgukAnalysis),
+    yongsin: adaptYongsinResult(yongsinAnalysis, geokgukAnalysis),
   };
 
   // 점성술 입력 데이터 구성
@@ -2582,7 +2582,7 @@ function analyzeDate(
   const scoreResult: ScoreResult = calculateTotalScore(sajuInput, astroInput);
 
   // 점수 및 플래그 추출 (새 시스템에서 계산됨)
-  let score = scoreResult.totalScore;
+  const score = scoreResult.totalScore;
   let sajuPositive = scoreResult.sajuPositive;
   let sajuNegative = scoreResult.sajuNegative;
   let astroPositive = scoreResult.astroPositive;
@@ -3543,7 +3543,7 @@ export function calculateMonthlyImportantDates(
 /**
  * 사주 프로필 추출 (대운 포함)
  */
-export function extractSajuProfile(saju: any): UserSajuProfile {
+export function extractSajuProfile(saju: unknown): UserSajuProfile {
   const dayMasterRaw = saju?.dayMaster;
   const dayMaster = typeof dayMasterRaw === "string"
     ? dayMasterRaw
@@ -3564,7 +3564,7 @@ export function extractSajuProfile(saju: any): UserSajuProfile {
   // 대운 데이터 추출
   const unse = saju?.unse || {};
   const daeunRaw = unse.daeun || [];
-  const daeunCycles: DaeunCycle[] = daeunRaw.map((d: any) => ({
+  const daeunCycles: DaeunCycle[] = daeunRaw.map((d: unknown) => ({
     age: d.age || 0,
     heavenlyStem: d.heavenlyStem || "",
     earthlyBranch: d.earthlyBranch || "",
@@ -3595,9 +3595,9 @@ export function extractSajuProfile(saju: any): UserSajuProfile {
 /**
  * 점성술 프로필 추출
  */
-export function extractAstroProfile(astrology: any): UserAstroProfile {
+export function extractAstroProfile(astrology: unknown): UserAstroProfile {
   const planets = astrology?.planets || [];
-  const sun = planets.find((p: any) => p.name === "Sun");
+  const sun = planets.find((p: unknown) => p.name === "Sun");
   const sunSign = sun?.sign || "Aries";
 
   return {

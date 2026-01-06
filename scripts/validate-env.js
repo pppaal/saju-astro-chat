@@ -4,6 +4,26 @@
  * Fails the process if critical secrets are missing or placeholder values are present.
  */
 
+const fs = require("fs");
+const path = require("path");
+const dotenv = require("dotenv");
+
+function loadEnvFile(fileName, loadedKeys) {
+  const filePath = path.join(process.cwd(), fileName);
+  if (!fs.existsSync(filePath)) return;
+  const parsed = dotenv.parse(fs.readFileSync(filePath));
+  for (const [key, value] of Object.entries(parsed)) {
+    if (process.env[key] === undefined || loadedKeys.has(key)) {
+      process.env[key] = value;
+      loadedKeys.add(key);
+    }
+  }
+}
+
+const loadedKeys = new Set();
+loadEnvFile(".env", loadedKeys);
+loadEnvFile(".env.local", loadedKeys);
+
 const REQUIRED_ALWAYS = [
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
@@ -92,6 +112,10 @@ function main() {
   }
   if (metricsPrimaryMissing && !metricsLegacyMissing) {
     warnings.push("METRICS_TOKEN is deprecated; use PUBLIC_METRICS_TOKEN");
+  }
+
+  if (process.env.BACKEND_AI_URL && !process.env.AI_BACKEND_URL) {
+    warnings.push("BACKEND_AI_URL is deprecated; use AI_BACKEND_URL");
   }
 
   if (process.env.PUBLIC_API_TOKEN && isMissing("NEXT_PUBLIC_API_TOKEN")) {

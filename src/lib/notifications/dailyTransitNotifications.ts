@@ -49,15 +49,15 @@ interface SajuData {
     hour?: { heavenlyStem?: string; earthlyBranch?: string };
   };
   unse?: {
-    iljin?: any;
-    monthly?: any;
-    yearly?: any;
+    iljin?: unknown;
+    monthly?: unknown;
+    yearly?: unknown;
   };
 }
 
 interface AstrologyData {
-  transits?: any[];
-  planets?: any[];
+  transits?: unknown[];
+  planets?: unknown[];
 }
 
 interface UserProfile {
@@ -151,7 +151,7 @@ function findOptimalHours(dayMasterElement: string, iljinElement: string): {
 function calculateCategoryScores(
   dayMasterElement: string,
   iljinElement: string,
-  transits?: any[]
+  transits?: unknown[]
 ): {
   wealth: number;
   love: number;
@@ -182,11 +182,11 @@ function calculateCategoryScores(
 
   // 트랜짓 분석으로 보정
   if (transits && Array.isArray(transits)) {
-    const venusTransit = transits.find((t: any) =>
+    const venusTransit = transits.find((t: unknown) =>
       (t.planet || t.transiting || "").includes("Venus"));
-    const marsTransit = transits.find((t: any) =>
+    const marsTransit = transits.find((t: unknown) =>
       (t.planet || t.transiting || "").includes("Mars"));
-    const jupiterTransit = transits.find((t: any) =>
+    const jupiterTransit = transits.find((t: unknown) =>
       (t.planet || t.transiting || "").includes("Jupiter"));
 
     if (venusTransit) love += 15;

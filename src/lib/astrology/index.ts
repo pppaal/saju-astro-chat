@@ -35,6 +35,7 @@ export { calcHouses } from "./foundation/houses";
 // ======================================================
 export type {
   Chart,             // 차트 전체 모델
+  PlanetBase,        // 행성 기본 타입
   House,             // 하우스(궁)
   AspectHit,         // 위상 히트 단위
   AspectRules,       // 위상 규칙

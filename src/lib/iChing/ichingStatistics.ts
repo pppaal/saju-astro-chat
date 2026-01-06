@@ -489,7 +489,7 @@ export class IChingStatisticsEngine {
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
     const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
-    let report = `# 주역 통계 리포트
+    const report = `# 주역 통계 리포트
 
 ## 개요
 - 총 리딩 수: ${stats.totalReadings}

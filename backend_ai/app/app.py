@@ -1,11 +1,15 @@
 import sys
 import os
 import json
+import calendar
+import re
 
 # Load environment variables from backend_ai/.env file (explicit path with override)
 from dotenv import load_dotenv
 _backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(_backend_root, ".env"), override=True)
+
+RAG_DISABLED = os.getenv("RAG_DISABLE") == "1"
 
 # Add project root to Python path for standalone execution
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,7 +20,7 @@ import logging
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 from uuid import uuid4
@@ -126,7 +130,7 @@ def get_all_hexagrams_summary(*args, **kwargs):
     return m.get_all_hexagrams_summary(*args, **kwargs) if m else None
 
 # Persona Embeddings - Lazy loaded (uses SentenceTransformer)
-HAS_PERSONA_EMBED = True  # Assume available
+HAS_PERSONA_EMBED = not RAG_DISABLED  # Assume available unless disabled
 _persona_embed_module = None
 
 def _get_persona_embed_module():
@@ -147,7 +151,8 @@ def get_persona_embed_rag(*args, **kwargs):
 try:
     # This import is safe (no SentenceTransformer dependency at module level)
     pass  # Placeholder - persona_embeddings now lazy loaded above
-    HAS_PERSONA_EMBED = True  # Already set above
+    if not RAG_DISABLED:
+        HAS_PERSONA_EMBED = True  # Already set above
 except ImportError:
     HAS_PERSONA_EMBED = False
 
@@ -185,7 +190,7 @@ except ImportError:
     HAS_BADGES = False
 
 # Domain RAG - Lazy loaded (uses SentenceTransformer)
-HAS_DOMAIN_RAG = True  # Assume available
+HAS_DOMAIN_RAG = not RAG_DISABLED  # Assume available unless disabled
 DOMAIN_RAG_DOMAINS = []  # Will be populated on first access
 _domain_rag_module = None
 
@@ -341,18 +346,22 @@ class _CrisisDetectorProxy:
 CrisisDetector = _CrisisDetectorProxy
 
 # Prediction Engine (v5.0)
-try:
-    from backend_ai.app.prediction_engine import (
-        get_prediction_engine,
-        predict_luck,
-        find_best_date,
-        get_full_forecast,
-        EventType,
-    )
-    HAS_PREDICTION = True
-except ImportError:
+if os.getenv("PREDICTION_DISABLE") == "1":
     HAS_PREDICTION = False
-    print("[app.py] Prediction engine not available")
+    print("[app.py] Prediction engine disabled by PREDICTION_DISABLE")
+else:
+    try:
+        from backend_ai.app.prediction_engine import (
+            get_prediction_engine,
+            predict_luck,
+            find_best_date,
+            get_full_forecast,
+            EventType,
+        )
+        HAS_PREDICTION = True
+    except ImportError:
+        HAS_PREDICTION = False
+        print("[app.py] Prediction engine not available")
 
 # Theme Cross-Reference Filter (v5.1)
 try:
@@ -378,7 +387,7 @@ except ImportError:
     print("[app.py] Fortune score engine not available")
 
 # GraphRAG System - Lazy loaded (uses SentenceTransformer)
-HAS_GRAPH_RAG = True  # Assume available
+HAS_GRAPH_RAG = not RAG_DISABLED  # Assume available unless disabled
 _saju_astro_rag_module = None
 
 def _get_saju_astro_rag_module():
@@ -421,7 +430,7 @@ except Exception as e:
     print(f"[app.py] OpenAI client not available: {e}")
 
 # CorpusRAG System - Lazy loaded (uses SentenceTransformer)
-HAS_CORPUS_RAG = True  # Assume available
+HAS_CORPUS_RAG = not RAG_DISABLED  # Assume available unless disabled
 _corpus_rag_module = None
 
 def _get_corpus_rag_module():
@@ -900,6 +909,136 @@ def normalize_day_master(saju_data: dict) -> dict:
     # else: already in { name, element } format or empty
 
     return saju_data
+
+
+def _normalize_birth_date(value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        value = str(int(value))
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    text = text.replace(".", "-").replace("/", "-")
+    if re.fullmatch(r"\d{8}", text):
+        year, month, day = text[:4], text[4:6], text[6:8]
+    else:
+        parts = [p for p in text.split("-") if p]
+        if len(parts) != 3:
+            return None
+        year, month, day = parts
+        if not (year.isdigit() and month.isdigit() and day.isdigit()):
+            return None
+        if len(year) != 4:
+            return None
+        month = month.zfill(2)
+        day = day.zfill(2)
+    try:
+        datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d")
+    except ValueError:
+        return None
+    return f"{year}-{month}-{day}"
+
+
+def _normalize_birth_time(value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        value = str(value)
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    text = text.replace(".", ":")
+    if re.fullmatch(r"\d{1,2}:\d{2}(:\d{2})?", text):
+        parts = text.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1])
+        second = int(parts[2]) if len(parts) > 2 else None
+        if hour > 23 or minute > 59 or (second is not None and second > 59):
+            return None
+        if second is None:
+            return f"{hour:02d}:{minute:02d}"
+        return f"{hour:02d}:{minute:02d}:{second:02d}"
+    if re.fullmatch(r"\d{3,4}", text):
+        padded = text.zfill(4)
+        hour = int(padded[:2])
+        minute = int(padded[2:])
+        if hour > 23 or minute > 59:
+            return None
+        return f"{hour:02d}:{minute:02d}"
+    return None
+
+
+def _normalize_birth_payload(data: dict) -> dict:
+    """Normalize birth payload from nested or legacy fields."""
+    if not isinstance(data, dict):
+        return {}
+
+    birth = data.get("birth")
+    birth_data = birth if isinstance(birth, dict) else {}
+    normalized = dict(birth_data)
+
+    def _pick(source: dict, keys: list) -> Optional[object]:
+        for key in keys:
+            value = source.get(key)
+            if value not in (None, ""):
+                return value
+        return None
+
+    def _coerce_float(value: object) -> Optional[float]:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+            try:
+                return float(value)
+            except ValueError:
+                return None
+        return None
+
+    date_raw = _pick(birth_data, ["date"]) or _pick(data, ["birthdate", "birth_date", "birthDate"])
+    time_raw = _pick(birth_data, ["time"]) or _pick(data, ["birthtime", "birth_time", "birthTime"])
+    gender = _pick(birth_data, ["gender"]) or _pick(data, ["gender", "sex"])
+    city = _pick(birth_data, ["city", "place"]) or _pick(
+        data, ["birthplace", "birth_place", "birthPlace", "city", "place", "location"]
+    )
+    lat_val = _pick(birth_data, ["lat", "latitude"]) or _pick(data, ["lat", "latitude"])
+    lon_val = _pick(birth_data, ["lon", "longitude"]) or _pick(data, ["lon", "longitude", "lng", "long"])
+
+    date = _normalize_birth_date(date_raw)
+    if date:
+        normalized["date"] = date
+    elif date_raw:
+        normalized["date"] = str(date_raw).strip()
+
+    time_val = _normalize_birth_time(time_raw)
+    if time_val:
+        normalized["time"] = time_val
+    elif time_raw:
+        normalized["time"] = str(time_raw).strip()
+    if gender:
+        normalized["gender"] = gender
+    if city:
+        normalized["city"] = city
+
+    lat = _coerce_float(lat_val)
+    lon = _coerce_float(lon_val)
+    if lat is not None:
+        normalized["lat"] = lat
+        if "latitude" not in normalized:
+            normalized["latitude"] = lat
+    if lon is not None:
+        normalized["lon"] = lon
+        if "longitude" not in normalized:
+            normalized["longitude"] = lon
+
+    return normalized
 
 
 def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str = "chat", locale: str = "ko") -> str:
@@ -2280,17 +2419,73 @@ def _build_saju_summary(saju_data: dict) -> str:
     return "SAJU: " + " | ".join(parts) if parts else ""
 
 
+def _pick_astro_planet(astro_data: dict, name: str):
+    """Select a planet payload from multiple possible shapes."""
+    if not astro_data or not name:
+        return None
+
+    key = name.lower()
+    direct = astro_data.get(key) or astro_data.get(name)
+    if isinstance(direct, dict):
+        return direct
+
+    facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
+    fact_hit = facts.get(key) or facts.get(name)
+    if isinstance(fact_hit, dict):
+        return fact_hit
+
+    planets = astro_data.get("planets")
+    if isinstance(planets, list):
+        for p in planets:
+            if isinstance(p, dict) and str(p.get("name", "")).lower() == key:
+                return p
+    return None
+
+
+def _pick_ascendant(astro_data: dict):
+    """Select ascendant payload from multiple possible shapes."""
+    if not astro_data:
+        return None
+    asc = astro_data.get("ascendant") or astro_data.get("asc")
+    if isinstance(asc, dict):
+        return asc
+    facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
+    asc = facts.get("ascendant") or facts.get("asc")
+    return asc if isinstance(asc, dict) else None
+
+
+def _pick_astro_aspect(astro_data: dict):
+    """Pick a representative aspect entry."""
+    if not astro_data:
+        return None
+    aspects = astro_data.get("aspects")
+    if not isinstance(aspects, list):
+        facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
+        aspects = facts.get("aspects")
+    if not isinstance(aspects, list) or not aspects:
+        return None
+    sorted_aspects = sorted(
+        [a for a in aspects if isinstance(a, dict)],
+        key=lambda a: a.get("score", 0),
+        reverse=True
+    )
+    return sorted_aspects[0] if sorted_aspects else None
+
+
 def _build_astro_summary(astro_data: dict) -> str:
     """Build concise astro summary for chat context."""
     if not astro_data:
         return ""
     parts = []
-    if astro_data.get("sun"):
-        parts.append(f"Sun: {astro_data['sun'].get('sign', '')}")
-    if astro_data.get("moon"):
-        parts.append(f"Moon: {astro_data['moon'].get('sign', '')}")
-    if astro_data.get("ascendant"):
-        parts.append(f"Rising: {astro_data['ascendant'].get('sign', '')}")
+    sun = _pick_astro_planet(astro_data, "sun")
+    if sun:
+        parts.append(f"Sun: {sun.get('sign', '')}")
+    moon = _pick_astro_planet(astro_data, "moon")
+    if moon:
+        parts.append(f"Moon: {moon.get('sign', '')}")
+    asc = _pick_ascendant(astro_data)
+    if asc:
+        parts.append(f"Rising: {asc.get('sign', '')}")
     return "ASTRO: " + " | ".join(parts) if parts else ""
 
 
@@ -2300,41 +2495,56 @@ def _build_detailed_saju(saju_data: dict) -> str:
         return "사주 정보 없음"
 
     lines = []
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    pillars = saju_data.get("pillars") if isinstance(saju_data.get("pillars"), dict) else facts.get("pillars", {})
 
-    # Four Pillars
-    if saju_data.get("yearPillar"):
-        yp = saju_data["yearPillar"]
-        lines.append(f"년주: {yp.get('heavenlyStem', '')}{yp.get('earthlyBranch', '')} ({yp.get('element', '')})")
-    if saju_data.get("monthPillar"):
-        mp = saju_data["monthPillar"]
-        lines.append(f"월주: {mp.get('heavenlyStem', '')}{mp.get('earthlyBranch', '')} ({mp.get('element', '')})")
-    if saju_data.get("dayPillar"):
-        dp = saju_data["dayPillar"]
-        lines.append(f"일주: {dp.get('heavenlyStem', '')}{dp.get('earthlyBranch', '')} ({dp.get('element', '')})")
-    if saju_data.get("hourPillar"):
-        hp = saju_data["hourPillar"]
-        lines.append(f"시주: {hp.get('heavenlyStem', '')}{hp.get('earthlyBranch', '')} ({hp.get('element', '')})")
+    def _format_pillar(label: str, pillar: dict | str | None):
+        if not pillar:
+            return None
+        if isinstance(pillar, str):
+            return f"{label}: {pillar}"
+        if not isinstance(pillar, dict):
+            return None
+        hs = pillar.get("heavenlyStem") or {}
+        eb = pillar.get("earthlyBranch") or {}
+        stem = hs.get("name") if isinstance(hs, dict) else hs
+        branch = eb.get("name") if isinstance(eb, dict) else eb
+        element = pillar.get("element") or (hs.get("element") if isinstance(hs, dict) else None) or (eb.get("element") if isinstance(eb, dict) else None)
+        core = f"{stem or ''}{branch or ''}".strip() or pillar.get("name", "")
+        return f"{label}: {core}" + (f" ({element})" if element else "")
+
+    # Four Pillars (support facts/pillars shapes)
+    year_pillar = saju_data.get("yearPillar") or facts.get("yearPillar") or (pillars.get("year") if isinstance(pillars, dict) else None)
+    month_pillar = saju_data.get("monthPillar") or facts.get("monthPillar") or (pillars.get("month") if isinstance(pillars, dict) else None)
+    day_pillar = saju_data.get("dayPillar") or facts.get("dayPillar") or (pillars.get("day") if isinstance(pillars, dict) else None)
+    hour_pillar = saju_data.get("hourPillar") or facts.get("timePillar") or (pillars.get("time") if isinstance(pillars, dict) else None)
+
+    for label, pillar in [("년주", year_pillar), ("월주", month_pillar), ("일주", day_pillar), ("시주", hour_pillar)]:
+        formatted = _format_pillar(label, pillar)
+        if formatted:
+            lines.append(formatted)
 
     # Day Master (most important) - support both "heavenlyStem" and "name"
-    if saju_data.get("dayMaster"):
-        dm = saju_data["dayMaster"]
-        dm_stem = dm.get('heavenlyStem') or dm.get('name', '')
+    dm = saju_data.get("dayMaster") or facts.get("dayMaster")
+    if dm:
+        dm_stem = dm.get("heavenlyStem") or dm.get("name", "")
         lines.append(f"일간(본인): {dm_stem} - {dm.get('element', '')}의 기운")
 
     # Five Elements balance
-    if saju_data.get("fiveElements"):
-        fe = saju_data["fiveElements"]
+    fe = saju_data.get("fiveElements") or facts.get("fiveElements")
+    if fe:
         elements = [f"{k}({v})" for k, v in fe.items() if v]
         if elements:
             lines.append(f"오행 분포: {', '.join(elements)}")
 
     # Dominant element
-    if saju_data.get("dominantElement"):
-        lines.append(f"주요 기운: {saju_data['dominantElement']}")
+    dominant_element = saju_data.get("dominantElement") or facts.get("dominantElement")
+    if dominant_element:
+        lines.append(f"주요 기운: {dominant_element}")
 
     # Ten Gods (if available)
-    if saju_data.get("tenGods"):
-        tg = saju_data["tenGods"]
+    tg = saju_data.get("tenGods") or facts.get("tenGods")
+    if tg:
         if isinstance(tg, dict):
             gods = [f"{k}: {v}" for k, v in list(tg.items())[:4]]
             if gods:
@@ -2351,36 +2561,38 @@ def _build_detailed_astro(astro_data: dict) -> str:
     lines = []
     from datetime import datetime
     now = datetime.now()
+    facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
 
     # Big Three - ESSENTIAL
     sun_sign = ""
     moon_sign = ""
-    if astro_data.get("sun"):
-        sun = astro_data["sun"]
-        sun_sign = sun.get('sign', '')
-        house = sun.get('house', '')
+    sun = _pick_astro_planet(astro_data, "sun")
+    if sun:
+        sun_sign = sun.get("sign", "")
+        house = sun.get("house", "")
         lines.append(f"☀️ 태양(자아): {sun_sign} {sun.get('degree', '')}°" + (f" - {house}하우스" if house else ""))
-    if astro_data.get("moon"):
-        moon = astro_data["moon"]
-        moon_sign = moon.get('sign', '')
-        house = moon.get('house', '')
+    moon = _pick_astro_planet(astro_data, "moon")
+    if moon:
+        moon_sign = moon.get("sign", "")
+        house = moon.get("house", "")
         lines.append(f"🌙 달(감정): {moon_sign} {moon.get('degree', '')}°" + (f" - {house}하우스" if house else ""))
-    if astro_data.get("ascendant"):
-        asc = astro_data["ascendant"]
+    asc = _pick_ascendant(astro_data)
+    if asc:
         lines.append(f"⬆️ 상승(외적): {asc.get('sign', '')} {asc.get('degree', '')}°")
 
     # Key planets with houses
     for planet, info in [("mercury", "수성(소통)"), ("venus", "금성(사랑/관계)"),
                          ("mars", "화성(에너지)"), ("jupiter", "목성(행운/확장)"),
                          ("saturn", "토성(시련/책임)")]:
-        if astro_data.get(planet):
-            p = astro_data[planet]
-            house = p.get('house', '')
+        p = _pick_astro_planet(astro_data, planet)
+        if p:
+            house = p.get("house", "")
             lines.append(f"{info}: {p.get('sign', '')}" + (f" - {house}하우스" if house else ""))
 
     # Houses (if available)
-    if astro_data.get("houses"):
-        h = astro_data["houses"]
+    houses = astro_data.get("houses") or facts.get("houses")
+    if houses:
+        h = houses
         lines.append("\n🏠 주요 하우스:")
         # Handle both dict and list formats
         if isinstance(h, dict):
@@ -2574,6 +2786,776 @@ def _build_advanced_astro_context(advanced_astro: dict) -> str:
     return ""
 
 
+def _add_months(src_date: date, months: int) -> date:
+    """Add months to a date while keeping day within target month range."""
+    year = src_date.year + (src_date.month - 1 + months) // 12
+    month = (src_date.month - 1 + months) % 12 + 1
+    day = min(src_date.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+def _format_month_name(src_date: date) -> str:
+    month_names = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ]
+    return month_names[src_date.month - 1]
+
+
+def _format_date_ymd(src_date: date) -> str:
+    return f"{src_date.year:04d}-{src_date.month:02d}-{src_date.day:02d}"
+
+
+def _count_timing_markers(text: str) -> int:
+    if not text:
+        return 0
+    pattern = re.compile(
+        r"(?:\d{1,2}\s*~\s*\d{1,2}\s*월|\d{1,2}\s*월|\d{1,2}\s*주|\d{1,2}/\d{1,2}|"
+        r"이번\s*달|다음\s*달|다다음\s*달|이번\s*주|다음\s*주|상반기|하반기)"
+    )
+    return len({m.group(0) for m in pattern.finditer(text)})
+
+
+def _has_week_timing(text: str) -> bool:
+    if not text:
+        return False
+    pattern = re.compile(
+        r"(?:\d{1,2}\s*월\s*(?:\d{1,2}\s*주|1~2주차|2~3주차|3~4주차|"
+        r"첫째주|둘째주|셋째주|넷째주|다섯째주))"
+    )
+    return bool(pattern.search(text))
+
+
+def _has_caution(text: str) -> bool:
+    if not text:
+        return False
+    caution_terms = [
+        "주의",
+        "경고",
+        "유의",
+        "조심",
+        "피하",
+        "위험",
+        "경계",
+    ]
+    return any(term in text for term in caution_terms)
+
+def _count_timing_markers_en(text: str) -> int:
+    if not text:
+        return 0
+    pattern = re.compile(
+        r"(?:\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\w*|\bq[1-4]\b|"
+        r"\b(?:this|next)\s+(?:week|month|quarter)\b|\bweek\s*\d{1,2}\b|"
+        r"\b\d{1,2}(?:st|nd|rd|th)?\s+week\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b)",
+        re.IGNORECASE,
+    )
+    return len({m.group(0).lower() for m in pattern.finditer(text)})
+
+def _has_week_timing_en(text: str) -> bool:
+    if not text:
+        return False
+    pattern = re.compile(
+        r"(?:week\s*\d{1,2}|\d{1,2}(?:st|nd|rd|th)?\s+week)",
+        re.IGNORECASE,
+    )
+    return bool(pattern.search(text))
+
+def _has_caution_en(text: str) -> bool:
+    if not text:
+        return False
+    caution_terms = [
+        "caution", "avoid", "watch out", "be careful", "risk", "risky",
+        "hold off", "delay", "slow down", "conflict", "friction",
+    ]
+    lower = text.lower()
+    return any(term in lower for term in caution_terms)
+
+
+def _ensure_ko_prefix(text: str, locale: str) -> str:
+    if locale != "ko" or not text:
+        return text
+    trimmed = text.lstrip(" \t\r\n\"'“”‘’")
+    if trimmed.startswith("이야"):
+        return trimmed
+    return f"이야, {trimmed}"
+
+
+def _format_korean_spacing(text: str) -> str:
+    if not text:
+        return text
+    text = re.sub(r"([.!?])(?=[가-힣A-Za-z0-9])", r"\1 ", text)
+    text = re.sub(r"([,])(?=[가-힣A-Za-z0-9])", r"\1 ", text)
+    text = re.sub(r"([가-힣])(\d)", r"\1 \2", text)
+    text = re.sub(r"((?:ASC|MC|IC|DC))(\d)", r"\1 \2", text)
+
+    unit_tokens = ("년", "월", "일", "주", "차", "시", "분", "초", "하우스", "대", "세", "살", "개월")
+
+    def _digit_hangul(match: re.Match) -> str:
+        digit = match.group(1)
+        tail = match.group(2)
+        for unit in unit_tokens:
+            if tail.startswith(unit):
+                return f"{digit}{tail}"
+        return f"{digit} {tail}"
+
+    text = re.sub(r"(\d)([가-힣])", _digit_hangul, text)
+    text = re.sub(r"(\d)\s*\.\s*(\d)", r"\1.\2", text)
+    text = re.sub(r"(\d)\s*,\s*(\d)", r"\1,\2", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"(\d)\s+(년|월|일|주|차|시|분|초|하우스|대|세|살|개월)", r"\1\2", text)
+    return text.strip()
+
+
+def _insert_addendum(text: str, addendum: str) -> str:
+    if not addendum:
+        return text
+    if "\n\n" in text:
+        parts = text.split("\n\n")
+        insert_idx = max(1, len(parts) - 1)
+        parts.insert(insert_idx, addendum)
+        return "\n\n".join(parts)
+    sentence_ends = [m.end() for m in re.finditer(r"[.!?]", text)]
+    if sentence_ends:
+        insert_pos = sentence_ends[0] if len(sentence_ends) == 1 else sentence_ends[1]
+        prefix = text[:insert_pos]
+        suffix = text[insert_pos:].lstrip()
+        sep = "" if prefix.endswith((" ", "\n", "\t")) else " "
+        return f"{prefix}{sep}{addendum} {suffix}"
+    if text:
+        # Fallback: insert near the middle so evidence lands in-body.
+        mid = max(0, len(text) // 2)
+        right = text.find(" ", mid)
+        left = text.rfind(" ", 0, mid)
+        insert_pos = right if right != -1 else left
+        if insert_pos > 0:
+            prefix = text[:insert_pos]
+            suffix = text[insert_pos:].lstrip()
+            sep = "" if prefix.endswith((" ", "\n", "\t")) else " "
+            return f"{prefix}{sep}{addendum} {suffix}"
+    last_question = text.rfind("?")
+    if last_question != -1:
+        prefix = text[:last_question]
+        suffix = text[last_question:]
+        sep = "" if prefix.endswith((" ", "\n", "\t")) else " "
+        return f"{prefix}{sep}{addendum} {suffix}"
+    last_period = max(text.rfind("."), text.rfind("!"))
+    if last_period != -1:
+        prefix = text[:last_period + 1]
+        suffix = text[last_period + 1:].lstrip()
+        sep = "" if prefix.endswith((" ", "\n", "\t")) else " "
+        return f"{prefix}{sep}{addendum} {suffix}"
+    return f"{text} {addendum}"
+
+
+def _chunk_text(text: str, chunk_size: int = 200):
+    if not text:
+        return []
+    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+def _get_stream_chunk_size() -> int:
+    return _get_int_env("ASK_STREAM_CHUNK_SIZE", 200, min_value=80, max_value=800)
+
+def _to_sse_event(text: str) -> str:
+    if text is None:
+        return ""
+    lines = text.splitlines()
+    if not lines:
+        return "data: \n\n"
+    payload = "".join([f"data: {line}\n" for line in lines])
+    return payload + "\n"
+
+def _sse_error_response(message: str) -> Response:
+    def generate():
+        chunk_size = _get_stream_chunk_size()
+        for piece in _chunk_text(message or "", chunk_size):
+            yield _to_sse_event(piece)
+        yield "data: [DONE]\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+def _has_saju_payload(saju_data: dict) -> bool:
+    if not isinstance(saju_data, dict) or not saju_data:
+        return False
+    if saju_data.get("dayMaster"):
+        return True
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    for key in ("pillars", "tenGods", "fiveElements", "dominantElement", "daeun", "unse"):
+        if saju_data.get(key) or facts.get(key):
+            return True
+    return False
+
+
+def _has_astro_payload(astro_data: dict) -> bool:
+    if not isinstance(astro_data, dict) or not astro_data:
+        return False
+    if astro_data.get("sun") or astro_data.get("moon"):
+        return True
+    if astro_data.get("planets") or astro_data.get("houses") or astro_data.get("aspects"):
+        return True
+    if astro_data.get("ascendant") or astro_data.get("asc") or astro_data.get("rising"):
+        return True
+    facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
+    if facts.get("planets") or facts.get("houses") or facts.get("aspects"):
+        return True
+    return False
+
+
+def _build_birth_format_message(locale: str) -> str:
+    if locale == "ko":
+        return "생년월일/시간 형식이 올바르지 않습니다. 예: 1995-02-09, 06:40"
+    return "Invalid birth date/time format. Example: 1995-02-09, 06:40"
+
+
+def _build_missing_payload_message(locale: str, missing_saju: bool, missing_astro: bool) -> str:
+    if locale == "ko":
+        if missing_saju and missing_astro:
+            return (
+                "사주/점성학 계산 결과가 누락되었습니다. 프런트에서 computeDestinyMap 결과를 "
+                "`saju`와 `astro`로 전달해 주세요. (생년월일/시간만으로는 이 API가 고급 차트를 계산하지 않습니다.)"
+            )
+        if missing_saju:
+            return (
+                "사주 계산 결과가 누락되었습니다. computeDestinyMap 결과를 `saju`로 전달해 주세요. "
+                "(생년월일/시간만으로는 이 API가 고급 차트를 계산하지 않습니다.)"
+            )
+        return (
+            "점성학 계산 결과가 누락되었습니다. computeDestinyMap 결과를 `astro`로 전달해 주세요. "
+            "(생년월일/시간만으로는 이 API가 고급 차트를 계산하지 않습니다.)"
+        )
+    if missing_saju and missing_astro:
+        return (
+            "Computed saju/astrology payload is missing. Please pass computeDestinyMap results in `saju` and `astro`. "
+            "(This API does not compute advanced charts from birth inputs alone.)"
+        )
+    if missing_saju:
+        return (
+            "Computed saju payload is missing. Please pass computeDestinyMap results in `saju`. "
+            "(This API does not compute advanced charts from birth inputs alone.)"
+        )
+    return (
+        "Computed astrology payload is missing. Please pass computeDestinyMap results in `astro`. "
+        "(This API does not compute advanced charts from birth inputs alone.)"
+    )
+
+def _summarize_five_elements(saju_data: dict) -> str:
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    five = saju_data.get("fiveElements") or facts.get("fiveElements")
+    if not isinstance(five, dict) or not five:
+        return ""
+    element_map = {
+        "wood": "목",
+        "fire": "화",
+        "earth": "토",
+        "metal": "금",
+        "water": "수",
+    }
+    normalized = {}
+    for key, value in five.items():
+        ko = element_map.get(key, key)
+        if isinstance(value, (int, float)):
+            normalized[ko] = value
+    if not normalized:
+        return ""
+    max_elem = max(normalized, key=normalized.get)
+    min_elem = min(normalized, key=normalized.get)
+    if normalized[max_elem] == normalized[min_elem]:
+        return "오행은 비교적 고르게 분포된 편이에요"
+    return f"오행은 {max_elem} 기운이 강하고 {min_elem} 기운이 약한 편이에요"
+
+def _summarize_five_elements_en(saju_data: dict) -> str:
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    five = saju_data.get("fiveElements") or facts.get("fiveElements")
+    if not isinstance(five, dict) or not five:
+        return ""
+    element_map = {
+        "wood": "wood",
+        "fire": "fire",
+        "earth": "earth",
+        "metal": "metal",
+        "water": "water",
+        "목": "wood",
+        "화": "fire",
+        "토": "earth",
+        "금": "metal",
+        "수": "water",
+        "木": "wood",
+        "火": "fire",
+        "土": "earth",
+        "金": "metal",
+        "水": "water",
+    }
+    normalized = {}
+    for key, value in five.items():
+        mapped = element_map.get(str(key).lower(), element_map.get(str(key), str(key)))
+        if isinstance(value, (int, float)):
+            normalized[mapped] = value
+    if not normalized:
+        return ""
+    max_elem = max(normalized, key=normalized.get)
+    min_elem = min(normalized, key=normalized.get)
+    if normalized[max_elem] == normalized[min_elem]:
+        return "Five Elements look fairly balanced."
+    return f"Five Elements show strong {max_elem} and weaker {min_elem}."
+
+
+def _pick_sibsin(saju_data: dict) -> str:
+    def _pick_from_pillar(pillar: dict) -> str:
+        if not isinstance(pillar, dict):
+            return ""
+        for key in ("heavenlyStem", "earthlyBranch"):
+            val = pillar.get(key) if isinstance(pillar.get(key), dict) else {}
+            sibsin = val.get("sibsin")
+            if sibsin:
+                return sibsin
+        sibsin = pillar.get("sibsin")
+        if isinstance(sibsin, dict):
+            for val in sibsin.values():
+                if val:
+                    return val
+        return ""
+
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    for root in (facts, saju_data):
+        pillars = root.get("pillars") if isinstance(root.get("pillars"), dict) else {}
+        for key in ("day", "month", "year", "time"):
+            sibsin = _pick_from_pillar(pillars.get(key))
+            if sibsin:
+                return sibsin
+        for key in ("dayPillar", "monthPillar", "yearPillar", "timePillar"):
+            sibsin = _pick_from_pillar(root.get(key))
+            if sibsin:
+                return sibsin
+    return ""
+
+
+def _planet_ko_name(name: str) -> str:
+    if not name:
+        return ""
+    planet_map = {
+        "sun": "태양",
+        "moon": "달",
+        "mercury": "수성",
+        "venus": "금성",
+        "mars": "화성",
+        "jupiter": "목성",
+        "saturn": "토성",
+        "uranus": "천왕성",
+        "neptune": "해왕성",
+        "pluto": "명왕성",
+    }
+    return planet_map.get(name.lower(), name)
+
+def _planet_en_name(name: str) -> str:
+    if not name:
+        return ""
+    planet_map = {
+        "sun": "Sun",
+        "moon": "Moon",
+        "mercury": "Mercury",
+        "venus": "Venus",
+        "mars": "Mars",
+        "jupiter": "Jupiter",
+        "saturn": "Saturn",
+        "uranus": "Uranus",
+        "neptune": "Neptune",
+        "pluto": "Pluto",
+    }
+    return planet_map.get(name.lower(), name)
+
+
+def _pick_any_planet(astro_data: dict):
+    for key in ("sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"):
+        hit = _pick_astro_planet(astro_data, key)
+        if hit:
+            return hit
+    facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
+    for source in (astro_data.get("planets"), facts.get("planets")):
+        if isinstance(source, list):
+            for planet in source:
+                if isinstance(planet, dict) and planet.get("name"):
+                    return planet
+    return None
+
+
+def _build_saju_evidence_sentence(saju_data: dict) -> str:
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    dm = saju_data.get("dayMaster") or facts.get("dayMaster") or {}
+    dm_name = dm.get("heavenlyStem") or dm.get("name")
+    dm_element = dm.get("element")
+
+    pillars = saju_data.get("pillars") if isinstance(saju_data.get("pillars"), dict) else facts.get("pillars", {})
+    month_pillar = None
+    if isinstance(pillars, dict):
+        month_pillar = pillars.get("month")
+    if isinstance(month_pillar, dict):
+        hs = month_pillar.get("heavenlyStem", {})
+        eb = month_pillar.get("earthlyBranch", {})
+        month_name = f"{hs.get('name', '')}{eb.get('name', '')}".strip()
+    else:
+        month_name = ""
+
+    dm_text = ""
+    if dm_name or dm_element:
+        dm_text = f"{dm_name}" if dm_name else ""
+        if dm_element:
+            dm_text = f"{dm_text}({dm_element})" if dm_text else f"{dm_element}"
+
+    element_summary = _summarize_five_elements(saju_data)
+    sibsin = _pick_sibsin(saju_data)
+
+    parts = []
+    if dm_text:
+        parts.append(f"일간 {dm_text} 흐름이 있고")
+    if element_summary:
+        parts.append(element_summary)
+    else:
+        parts.append("오행 균형은 추가 확인이 필요해요")
+    if sibsin:
+        parts.append(f"십성은 {sibsin} 기운이 도드라져요")
+    else:
+        parts.append("십성 흐름은 추가 확인이 필요해요")
+    if parts:
+        return "사주에서는 " + ", ".join(parts) + "."
+    if month_name:
+        return f"사주로 보면 월주 {month_name} 흐름이 있어서 안정과 확장의 균형을 자주 고민하게 되는 편이에요."
+    return ""
+
+def _build_saju_evidence_sentence_en(saju_data: dict) -> str:
+    facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
+    dm = saju_data.get("dayMaster") or facts.get("dayMaster") or {}
+    dm_name = dm.get("heavenlyStem") or dm.get("name")
+    dm_element = dm.get("element")
+    element_map = {
+        "목": "wood", "화": "fire", "토": "earth", "금": "metal", "수": "water",
+        "木": "wood", "火": "fire", "土": "earth", "金": "metal", "水": "water",
+        "wood": "wood", "fire": "fire", "earth": "earth", "metal": "metal", "water": "water",
+    }
+    dm_element_en = element_map.get(str(dm_element), dm_element) if dm_element else ""
+    dm_text = ""
+    if dm_name or dm_element_en:
+        dm_text = f"{dm_name}" if dm_name else ""
+        if dm_element_en:
+            dm_text = f"{dm_text} ({dm_element_en})" if dm_text else f"{dm_element_en}"
+
+    element_summary = _summarize_five_elements_en(saju_data)
+    sibsin = _pick_sibsin(saju_data)
+
+    parts = []
+    if dm_text:
+        parts.append(f"your Day Master is {dm_text}")
+    if element_summary:
+        parts.append(element_summary.rstrip("."))
+    else:
+        parts.append("Five Elements balance needs a closer check")
+    if sibsin:
+        parts.append(f"Ten Gods emphasize {sibsin}")
+    else:
+        parts.append("Ten Gods emphasis needs confirmation")
+    return "From your Four Pillars, " + ", ".join(parts) + "."
+
+
+def _build_astro_evidence_sentence(astro_data: dict) -> str:
+    planet = _pick_astro_planet(astro_data, "sun") or _pick_astro_planet(astro_data, "moon") or _pick_any_planet(astro_data)
+    asc = _pick_ascendant(astro_data)
+    aspect = _pick_astro_aspect(astro_data)
+
+    aspect_text = ""
+    if isinstance(aspect, dict):
+        aspect_map = {
+            "trine": "트라인",
+            "square": "스퀘어",
+            "conjunction": "컨정션",
+            "opposition": "옵포지션",
+            "sextile": "섹스타일",
+        }
+        from_name = _planet_ko_name(str(aspect.get("from", {}).get("name", "")))
+        to_name = _planet_ko_name(str(aspect.get("to", {}).get("name", "")))
+        aspect_type = aspect_map.get(str(aspect.get("type", "")).lower(), aspect.get("type", ""))
+        if from_name and to_name and aspect_type:
+            aspect_text = f"{from_name}-{to_name} {aspect_type} 각"
+
+    if planet:
+        planet_name = _planet_ko_name(str(planet.get("name", ""))) or "주요"
+        sign = planet.get("sign", "")
+        house = planet.get("house")
+        house_text = f"{house}하우스" if house else "하우스"
+        position_text = f"{sign} {house_text}".strip()
+        aspect_clause = f", {aspect_text}이 있어" if aspect_text else ""
+        return f"점성에서는 {planet_name}이라는 행성이 {position_text}에 있고{aspect_clause} 흐름이 보여요."
+    if asc:
+        sign = asc.get("sign", "")
+        return f"점성에서는 행성 데이터가 제한적이지만 상승점이 {sign}이고 하우스 축이 분명해 행동 방식이 또렷하게 보이는 편이에요."
+    return ""
+
+def _build_astro_evidence_sentence_en(astro_data: dict) -> str:
+    planet = _pick_astro_planet(astro_data, "sun") or _pick_astro_planet(astro_data, "moon") or _pick_any_planet(astro_data)
+    asc = _pick_ascendant(astro_data)
+    aspect = _pick_astro_aspect(astro_data)
+
+    aspect_text = ""
+    if isinstance(aspect, dict):
+        aspect_map = {
+            "trine": "trine",
+            "square": "square",
+            "conjunction": "conjunction",
+            "opposition": "opposition",
+            "sextile": "sextile",
+        }
+        from_name = _planet_en_name(str(aspect.get("from", {}).get("name", "")))
+        to_name = _planet_en_name(str(aspect.get("to", {}).get("name", "")))
+        aspect_type = aspect_map.get(str(aspect.get("type", "")).lower(), aspect.get("type", ""))
+        if from_name and to_name and aspect_type:
+            aspect_text = f"{from_name}-{to_name} {aspect_type}"
+
+    if planet:
+        planet_name = _planet_en_name(str(planet.get("name", ""))) or "a key planet"
+        sign = planet.get("sign", "")
+        house = planet.get("house")
+        house_text = f"{house}th house" if house else "a house placement"
+        position_text = f"{sign} {house_text}".strip()
+        aspect_clause = f", with a {aspect_text} aspect" if aspect_text else ""
+        return f"In your chart, {planet_name} in {position_text}{aspect_clause} shows up as a clear influence."
+    if asc:
+        sign = asc.get("sign", "")
+        return f"Your Ascendant in {sign} sets a clear outer persona even when other planetary data is limited."
+    return "Astrology data is limited, but keep the Sun/Moon and house axis as anchors for guidance."
+
+
+def _build_missing_requirements_addendum(
+    text: str,
+    locale: str,
+    saju_data: dict,
+    astro_data: dict,
+    now_date: date,
+    require_saju: bool = True,
+    require_astro: bool = True,
+    require_timing: bool = True,
+    require_caution: bool = True,
+) -> str:
+    if not text:
+        return ""
+
+    if locale == "ko":
+        saju_tokens = [
+            "일간", "오행", "십성", "대운", "세운", "월주", "일주", "년주", "시주",
+            "비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인",
+        ]
+        dm = (saju_data.get("dayMaster") or {}).get("name")
+        dm_element = (saju_data.get("dayMaster") or {}).get("element")
+        if dm:
+            saju_tokens.append(str(dm))
+        if dm_element:
+            saju_tokens.append(str(dm_element))
+        has_saju = any(token and token in text for token in saju_tokens)
+        has_saju_required = "오행" in text and "십성" in text
+
+        astro_tokens = ["태양", "달", "ASC", "상승", "행성", "하우스", "수성", "금성", "화성", "목성", "토성", "천왕성", "해왕성", "명왕성"]
+        sun = _pick_astro_planet(astro_data, "sun")
+        moon = _pick_astro_planet(astro_data, "moon")
+        asc = _pick_ascendant(astro_data)
+        for p in (sun, moon, asc):
+            if p and p.get("sign"):
+                astro_tokens.append(str(p.get("sign")))
+        has_astro = any(token and token in text for token in astro_tokens)
+        has_astro_required = "행성" in text and "하우스" in text
+
+        timing_count = _count_timing_markers(text)
+        has_week_timing = _has_week_timing(text)
+        has_caution = _has_caution(text)
+
+        add_parts = []
+        if require_saju and (not has_saju or not has_saju_required):
+            saju_sentence = _build_saju_evidence_sentence(saju_data)
+            if saju_sentence:
+                add_parts.append(saju_sentence)
+        if require_astro and (not has_astro or not has_astro_required):
+            astro_sentence = _build_astro_evidence_sentence(astro_data)
+            if astro_sentence:
+                add_parts.append(astro_sentence)
+        if require_timing and (timing_count < 2 or not has_week_timing):
+            m1 = _add_months(now_date, 1)
+            m2 = _add_months(now_date, 3)
+            m3 = _add_months(now_date, 5)
+            timing_sentence = (
+                f"타이밍은 {m1.year}년 {m1.month}월 1~2주차, "
+                f"{m2.year}년 {m2.month}월 2~3주차, "
+                f"{m3.year}년 {m3.month}월 3~4주차 흐름을 중심으로 보면 좋아요."
+            )
+            add_parts.append(timing_sentence)
+        if require_caution and not has_caution:
+            m2 = _add_months(now_date, 3)
+            add_parts.append(
+                f"\uC8FC\uC758: {m2.year}\uB144 {m2.month}\uC6D4 2~3\uC8FC\uCC28\uCBE4\uC740 \uC911\uC694\uD55C \uACB0\uC815\uC744 \uBB34\uB9AC\uD558\uAC8C \uBC00\uC5B4\uBD99\uC774\uAE30\uBCF4\uB2E4\uB294 \uD55C \uD15C\uD3EC \uC810\uAC80\uD558\uB294 \uAC8C \uC88B\uC544 \uBCF4\uC5EC\uC694."
+            )
+
+        return " ".join([part for part in add_parts if part]).strip()
+
+    lower = text.lower()
+    saju_tokens_en = [
+        "day master", "five elements", "ten gods", "daeun", "seun",
+        "year pillar", "month pillar", "day pillar", "hour pillar", "four pillars",
+    ]
+    has_saju = any(token in lower for token in saju_tokens_en)
+    has_saju_required = "five elements" in lower and "ten gods" in lower
+
+    astro_tokens_en = [
+        "sun", "moon", "ascendant", "rising", "house", "planet", "aspect", "transit",
+    ]
+    has_astro = any(token in lower for token in astro_tokens_en)
+    has_astro_required = "planet" in lower and "house" in lower
+
+    timing_count = _count_timing_markers_en(text)
+    has_week_timing = _has_week_timing_en(text)
+    has_caution = _has_caution_en(text)
+
+    add_parts = []
+    if require_saju and (not has_saju or not has_saju_required):
+        saju_sentence = _build_saju_evidence_sentence_en(saju_data)
+        if saju_sentence:
+            add_parts.append(saju_sentence)
+    if require_astro and (not has_astro or not has_astro_required):
+        astro_sentence = _build_astro_evidence_sentence_en(astro_data)
+        if astro_sentence:
+            add_parts.append(astro_sentence)
+    if require_timing and (timing_count < 2 or not has_week_timing):
+        m1 = _add_months(now_date, 1)
+        m2 = _add_months(now_date, 3)
+        m3 = _add_months(now_date, 5)
+        timing_sentence = (
+            f"Timing: focus on {_format_month_name(m1)} weeks 1-2, "
+            f"{_format_month_name(m2)} weeks 2-3, and "
+            f"{_format_month_name(m3)} weeks 3-4 for key moves."
+        )
+        add_parts.append(timing_sentence)
+    if require_caution and not has_caution:
+        m2 = _add_months(now_date, 3)
+        add_parts.append(
+            f"Caution: around {_format_month_name(m2)} weeks 2-3, avoid rushing decisions and double-check details."
+        )
+
+    return " ".join([part for part in add_parts if part]).strip()
+
+
+def _is_truthy(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    return False
+
+
+def _bool_env(name: str) -> bool:
+    return _is_truthy(os.getenv(name, ""))
+
+
+def _build_rag_debug_addendum(meta: dict, locale: str) -> str:
+    if not isinstance(meta, dict) or not meta.get("enabled"):
+        return ""
+
+    theme = meta.get("theme", "")
+    question = meta.get("question", "")
+    graph_nodes = meta.get("graph_nodes", 0)
+    corpus_quotes = meta.get("corpus_quotes", 0)
+    persona_jung = meta.get("persona_jung", 0)
+    persona_stoic = meta.get("persona_stoic", 0)
+    cross_analysis = "on" if meta.get("cross_analysis") else "off"
+    theme_fusion = "on" if meta.get("theme_fusion") else "off"
+    lifespan = "on" if meta.get("lifespan") else "off"
+    therapeutic = "on" if meta.get("therapeutic") else "off"
+
+    model = meta.get("model", "")
+    temperature = meta.get("temperature", "")
+    ab_variant = meta.get("ab_variant", "")
+
+    if locale == "ko":
+        return (
+            f"[RAG 근거 태그] theme={theme} | q=\"{question}\" | graph={graph_nodes} | "
+            f"corpus={corpus_quotes} | persona={persona_jung + persona_stoic} | cross={cross_analysis} | fusion={theme_fusion}\n"
+            f"[RAG 요약] graph_nodes={graph_nodes}; corpus_quotes={corpus_quotes}; "
+            f"persona_jung={persona_jung}; persona_stoic={persona_stoic}; "
+            f"cross_analysis={cross_analysis}; theme_fusion={theme_fusion}; "
+            f"lifespan={lifespan}; therapeutic={therapeutic}; model={model}; temp={temperature}; ab={ab_variant}\n"
+        )
+
+    return (
+        f"[RAG Evidence Tags] theme={theme} | q=\"{question}\" | graph={graph_nodes} | "
+        f"corpus={corpus_quotes} | persona={persona_jung + persona_stoic} | cross={cross_analysis} | fusion={theme_fusion}\n"
+        f"[RAG Summary] graph_nodes={graph_nodes}; corpus_quotes={corpus_quotes}; "
+        f"persona_jung={persona_jung}; persona_stoic={persona_stoic}; "
+        f"cross_analysis={cross_analysis}; theme_fusion={theme_fusion}; "
+        f"lifespan={lifespan}; therapeutic={therapeutic}; model={model}; temp={temperature}; ab={ab_variant}\n"
+    )
+
+
+def _coerce_float(value: object, default: Optional[float] = None) -> Optional[float]:
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_int(value: object, default: Optional[int] = None) -> Optional[int]:
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _get_int_env(name: str, default: int, min_value: int = 1, max_value: int = 16000) -> int:
+    raw = _coerce_int(os.getenv(name), default)
+    if raw is None:
+        return default
+    return max(min_value, min(max_value, raw))
+
+
+def _clamp_temperature(value: Optional[float], default: float = 0.75) -> float:
+    if value is None:
+        return default
+    return max(0.0, min(2.0, value))
+
+
+def _select_model_and_temperature(
+    data: dict,
+    default_model: str,
+    default_temp: float,
+    session_id: Optional[str],
+    request_id: str,
+) -> Tuple[str, float, str]:
+    model = data.get("model") or data.get("model_name") or default_model
+    temperature = _clamp_temperature(_coerce_float(data.get("temperature")), default_temp)
+
+    ab_variant = str(data.get("ab_variant") or "").strip().upper()
+    if not ab_variant and _bool_env("RAG_AB_MODE"):
+        seed = session_id or request_id or ""
+        ab_variant = "A" if (sum(ord(c) for c in seed) % 2 == 0) else "B"
+
+    if ab_variant in ("A", "B"):
+        model = os.getenv(f"RAG_AB_MODEL_{ab_variant}") or model
+        temperature = _clamp_temperature(
+            _coerce_float(os.getenv(f"RAG_AB_TEMP_{ab_variant}")),
+            temperature,
+        )
+    else:
+        ab_variant = ""
+
+    return model, temperature, ab_variant
+
+
 # Health check
 @app.route("/", methods=["GET"])
 def index():
@@ -2671,7 +3653,7 @@ def ask_stream():
         saju_data = data.get("saju") or {}
         astro_data = data.get("astro") or {}
         advanced_astro = data.get("advanced_astro") or {}  # Advanced astrology features
-        birth_data = data.get("birth") or {}
+        birth_data = _normalize_birth_payload(data)
         theme = data.get("theme", "chat")
         locale = data.get("locale", "en")
         raw_prompt = data.get("prompt") or ""
@@ -2695,6 +3677,17 @@ def ask_stream():
 
         prompt = sanitize_user_input(raw_prompt, max_length=8000 if is_frontend_structured else 1500, allow_newlines=True)
 
+        debug_rag = _is_truthy(data.get("debug_rag")) or _bool_env("RAG_DEBUG_RESPONSE")
+        debug_log = _is_truthy(data.get("debug_log")) or _bool_env("RAG_DEBUG_LOG") or debug_rag
+
+        current_user_question = ""
+        if "질문:" in prompt:
+            current_user_question = prompt.split("질문:")[-1].strip()[:500]
+        elif "Q:" in prompt:
+            current_user_question = prompt.split("Q:")[-1].strip()[:500]
+        else:
+            current_user_question = prompt[-500:] if prompt else ""
+
         if is_frontend_structured:
             logger.info(f"[ASK-STREAM] Detected STRUCTURED frontend prompt (len={len(raw_prompt)})")
 
@@ -2706,6 +3699,8 @@ def ask_stream():
 
         # Check for pre-fetched RAG data from session
         session_cache = None
+        session_rag_data = {}
+        persona_context = {}
         rag_context = ""
         if session_id:
             session_cache = get_session_rag_cache(session_id)
@@ -2719,6 +3714,7 @@ def ask_stream():
 
                 # Build rich RAG context from pre-fetched data
                 rag_data = session_cache.get("rag_data", {})
+                session_rag_data = rag_data
 
                 # GraphRAG context
                 if rag_data.get("graph_nodes"):
@@ -2732,50 +3728,46 @@ def ask_stream():
                         rag_context += f"• {q.get('text_ko', q.get('text_en', ''))} ({q.get('source', '')})\n"
 
                 # Persona insights
-                persona = rag_data.get("persona_context", {})
-                if persona.get("jung"):
+                persona_context = rag_data.get("persona_context", {})
+                if persona_context.get("jung"):
                     rag_context += "\n[🧠 분석가 관점]\n"
-                    rag_context += "\n".join(f"• {i}" for i in persona["jung"][:3])
-                if persona.get("stoic"):
+                    rag_context += "\n".join(f"• {i}" for i in persona_context["jung"][:3])
+                if persona_context.get("stoic"):
                     rag_context += "\n\n[⚔️ 스토아 철학 관점]\n"
-                    rag_context += "\n".join(f"• {i}" for i in persona["stoic"][:3])
+                    rag_context += "\n".join(f"• {i}" for i in persona_context["stoic"][:3])
 
                 logger.info(f"[ASK-STREAM] RAG context from session: {len(rag_context)} chars")
             else:
                 logger.warning(f"[ASK-STREAM] Session {session_id} not found or expired")
 
-        # If saju/astro not provided (or empty) but birth info is, compute minimal data
-        if (not saju_data or not saju_data.get("dayMaster")) and birth_data.get("date") and birth_data.get("time"):
+        allow_birth_compute = _bool_env("ALLOW_BIRTH_ONLY")
+        if allow_birth_compute and (not _has_saju_payload(saju_data)) and birth_data.get("date") and birth_data.get("time"):
             try:
-                saju_data = calculate_saju_data(
+                saju_data = _calculate_simple_saju(
                     birth_data["date"],
                     birth_data["time"],
-                    birth_data.get("gender", "male")
                 )
                 saju_data = normalize_day_master(saju_data)
-                logger.info(f"[ASK-STREAM] Computed saju from birth: {saju_data.get('dayMaster', {})}")
+                logger.info(f"[ASK-STREAM] Computed simple saju from birth: {saju_data.get('dayMaster', {})}")
             except Exception as e:
-                logger.warning(f"[ASK-STREAM] Failed to compute saju: {e}")
+                logger.warning(f"[ASK-STREAM] Failed to compute simple saju: {e}")
 
-        if (not astro_data or not astro_data.get("sun")) and birth_data.get("date") and birth_data.get("time"):
-            try:
-                lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
-                lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
-                # calculate_astrology_data expects a dict with year/month/day/hour/minute
-                date_parts = birth_data["date"].split("-")  # "YYYY-MM-DD"
-                time_parts = birth_data["time"].split(":")  # "HH:MM"
-                astro_data = calculate_astrology_data({
-                    "year": int(date_parts[0]),
-                    "month": int(date_parts[1]),
-                    "day": int(date_parts[2]),
-                    "hour": int(time_parts[0]),
-                    "minute": int(time_parts[1]) if len(time_parts) > 1 else 0,
-                    "latitude": lat,
-                    "longitude": lon,
-                })
-                logger.info(f"[ASK-STREAM] Computed astro from birth: sun={astro_data.get('sun', {}).get('sign')}")
-            except Exception as e:
-                logger.warning(f"[ASK-STREAM] Failed to compute astro: {e}")
+        has_saju_payload = _has_saju_payload(saju_data)
+        has_astro_payload = _has_astro_payload(astro_data)
+        require_computed_payload = _is_truthy(os.getenv("REQUIRE_COMPUTED_PAYLOAD", "1"))
+        if require_computed_payload and (not has_saju_payload or not has_astro_payload):
+            if birth_data.get("date") or birth_data.get("time"):
+                valid_birth, _err = validate_birth_data(birth_data.get("date"), birth_data.get("time"))
+                if not valid_birth:
+                    logger.warning("[ASK-STREAM] Invalid birth format for missing payload")
+                    return _sse_error_response(_build_birth_format_message(locale))
+            missing_message = _build_missing_payload_message(
+                locale,
+                missing_saju=not has_saju_payload,
+                missing_astro=not has_astro_payload,
+            )
+            logger.warning("[ASK-STREAM] Missing computed payload(s)")
+            return _sse_error_response(missing_message)
 
         # Build DETAILED chart context (not just summary)
         saju_detail = _build_detailed_saju(saju_data)
@@ -2799,6 +3791,7 @@ def ask_stream():
                 logger.warning(f"[ASK-STREAM] Cross-analysis lookup failed: {e}")
 
         # Get Jung/Stoic insights if not from session (instant lookup)
+        instant_quotes = []
         if not rag_context and HAS_CORPUS_RAG:
             try:
                 _corpus_rag_inst = get_corpus_rag()
@@ -2814,6 +3807,7 @@ def ask_stream():
                     jung_query = f"{theme_concepts.get(theme, theme)} {prompt[:50] if prompt else ''}"
                     quotes = _corpus_rag_inst.search(jung_query, top_k=3, min_score=0.15)
                     if quotes:
+                        instant_quotes = quotes
                         rag_context += "\n\n[📚 융 심리학 통찰]\n"
                         for q in quotes[:2]:
                             quote_text = q.get('quote_kr') or q.get('quote_en', '')
@@ -2829,10 +3823,16 @@ def ask_stream():
             cross_section = f"\n[사주+점성 교차 해석 규칙]\n{cross_rules}\n"
 
         # Current date for time-relevant advice
-        from datetime import datetime
         now = datetime.now()
+        today_date = now.date()
+        six_month_date = _add_months(today_date, 6)
         weekdays_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
         current_date_str = f"오늘: {now.year}년 {now.month}월 {now.day}일 ({weekdays_ko[now.weekday()]})"
+        timing_window_str = (
+            f"타이밍 기준: {_format_date_ymd(today_date)} ~ {_format_date_ymd(six_month_date)}"
+            if locale == "ko"
+            else f"Timing window: {_format_date_ymd(today_date)} to {_format_date_ymd(six_month_date)}"
+        )
 
         # Build user context section for returning users (premium feature)
         user_context_section = ""
@@ -2991,18 +3991,6 @@ def ask_stream():
         # ======================================================
         crisis_response = None
         crisis_check = {"is_crisis": False, "max_severity": "none", "requires_immediate_action": False}
-
-        # Extract current question from prompt (last Q: line) or use raw prompt
-        current_user_question = ""
-        if "질문:" in prompt:
-            # Frontend structured prompt - extract the actual question
-            current_user_question = prompt.split("질문:")[-1].strip()[:500]
-        elif "Q:" in prompt:
-            current_user_question = prompt.split("Q:")[-1].strip()[:500]
-        else:
-            # Fallback to last user message, but only if no structured prompt
-            current_user_question = prompt[-500:] if prompt else ""
-
         if HAS_COUNSELING and current_user_question:
             crisis_check = CrisisDetector.detect_crisis(current_user_question)
             if crisis_check["is_crisis"]:
@@ -3142,6 +4130,41 @@ def ask_stream():
 - 주의할 시기도 함께: "다만 ~월은 신중하게"
 """
 
+        rag_meta = {}
+        if debug_rag or debug_log:
+            rag_meta = {
+                "enabled": True,
+                "theme": theme,
+                "question": current_user_question[:120],
+                "graph_nodes": len(session_rag_data.get("graph_nodes", [])),
+                "corpus_quotes": len(session_rag_data.get("corpus_quotes", [])) or len(instant_quotes),
+                "persona_jung": len(persona_context.get("jung", [])),
+                "persona_stoic": len(persona_context.get("stoic", [])),
+                "cross_analysis": bool(cross_rules),
+                "theme_fusion": bool(theme_fusion_section),
+                "lifespan": bool(lifespan_section),
+                "therapeutic": bool(therapeutic_section),
+                "session_rag": bool(session_cache),
+            }
+            if debug_log:
+                logger.info(
+                    "[RAG-DEBUG] theme=%s q=%s graph=%s corpus=%s persona=%s cross=%s fusion=%s session=%s",
+                    theme,
+                    current_user_question[:80],
+                    rag_meta["graph_nodes"],
+                    rag_meta["corpus_quotes"],
+                    rag_meta["persona_jung"] + rag_meta["persona_stoic"],
+                    rag_meta["cross_analysis"],
+                    rag_meta["theme_fusion"],
+                    rag_meta["session_rag"],
+                )
+                if session_rag_data.get("graph_nodes"):
+                    logger.debug("[RAG-DEBUG] graph_nodes_sample=%s", session_rag_data["graph_nodes"][:3])
+                if session_rag_data.get("corpus_quotes"):
+                    logger.debug("[RAG-DEBUG] corpus_quotes_sample=%s", [
+                        q.get("text_ko") or q.get("text_en") for q in session_rag_data["corpus_quotes"][:2]
+                    ])
+
         # ======================================================
         # FRONTEND STRUCTURED PROMPT - Use simplified backend system prompt
         # Frontend already sent complete prompt with all analysis data
@@ -3187,7 +4210,34 @@ def ask_stream():
 
             # Simplified system prompt - frontend prompt is already comprehensive
             # Just add RAG enrichment and remind AI to use all provided data
-            system_prompt = f"""사주+점성 통합 상담사. 친구에게 말하듯 자연스럽게, 데이터를 녹여서 해석해.
+            if locale == "en":
+                system_prompt = f"""You are a Saju+Astrology integrated counselor. Speak naturally and weave the data into your sentences. Start the first sentence directly with an answer (e.g., "So," or "Right now,").
+
+ABSOLUTELY AVOID:
+- Formal greetings ("Hello", "Nice to meet you")
+- Self-introductions
+- Bullet lists or numbered lists
+- Bold text
+
+STYLE:
+- Conversational and warm, but concise
+- Use 3 short paragraphs (summary -> evidence/patterns -> timing/action + question)
+- End with exactly one follow-up question
+
+EVIDENCE REQUIRED (inline, not as a list):
+- At least one Saju reference (day master / ten gods / five elements / daeun or annual fortune)
+- At least one Astrology reference (Sun/Moon/ASC plus a planet+house if possible)
+- Give 2-3 timing windows within 6 months using month+week phrasing, and include one caution point
+- Theme lock: focus strictly on theme="{theme}". Do not drift to other domains.
+
+{timing_window_str}
+
+Additional knowledge:
+{rag_enrichment if rag_enrichment else "(none)"}
+
+Response length: 400-600 words, {locale}, natural spoken tone."""
+            else:
+                system_prompt = f"""사주+점성 통합 상담사. 친구에게 말하듯 자연스럽게, 데이터를 녹여서 해석해. 첫 문장은 '이야'로 시작해(말줄임표 가능).
 
 🚫 절대 금지:
 - "일간이 X입니다" 나열식 설명 (사용자는 이미 자기 차트 알고 있음)
@@ -3199,6 +4249,20 @@ def ask_stream():
 - 카페에서 친구한테 얘기하듯 자연스럽게
 - 데이터를 문장 속에 녹여서 (나열 X)
 - 실생활과 연결해서 설명
+- 해요체로 친근하게 (너무 딱딱한 문어체 금지)
+- 말투는 부드럽고 다정하게, 단정 대신 '~같아/가능성' 표현 사용
+- 문단 3개 내외 (핵심 요약 → 근거/패턴 → 타이밍/행동 + 질문)
+
+✅ 근거 필수:
+- 사주 근거 1개 이상(일간/대운/세운 중 1개) + 오행/십성 반드시 언급
+- 점성 근거 1개 이상(태양/달/ASC 중 1개) + 행성/하우스 반드시 언급(가능하면 각 1개)
+- 근거는 문장 속에 자연스럽게 포함 (나열 금지)
+- 6개월 타이밍 2~3개를 월+주 단위로 제시(예: 3월 2~3주차)
+- 타이밍 중 1개는 주의점/피해야 할 포인트 포함
+- 테마 고정: theme="{theme}"만 다루고 다른 테마로 흐르지 말 것.
+- 마지막에 후속 질문 1개
+
+📅 {timing_window_str}
 
 예시) "나는 어떤 사람이야?" 질문:
 ❌ 나쁜 답:
@@ -3209,16 +4273,16 @@ def ask_stream():
 ✅ 좋은 답:
 "이 차트 기준으로 보면, '머리는 차갑게(분석/전략), 돈과 기회는 빠르게(사업감각), 관계는 자존심 때문에 한 번씩 뜨겁게' 가는 타입이에요.
 
-물병자리 ASC + 태양 1하우스라 독립심 강하고 '내 방식'이 확실해요. 유행에 휘둘리기보다 새로운 관점/효율을 좋아하죠. 말이 빠르고 논리적이라 쿨하게 보이는데, 사실 사람 관찰 많이 하는 편.
+물병자리 ASC + 태양이라는 행성이 1하우스라 독립심 강하고 '내 방식'이 확실해요. 유행에 휘둘리기보다 새로운 관점/효율을 좋아하죠. 말이 빠르고 논리적이라 쿨하게 보이는데, 사실 사람 관찰 많이 하는 편.
 
-사주로 보면 일간 신금(辛) + 편재 강해서 돈의 흐름/시장 감각이 있어요. '기회 포착 → 구조 만들기 → 굴리기'에 재능. 다만 화(火)가 약해서 추진력의 연료가 들쭉날쭉할 수 있어요.
+사주로 보면 일간 신금(辛)이고 오행은 화가 약한 편, 십성으로는 편재가 강해서 돈의 흐름/시장 감각이 있어요. '기회 포착 → 구조 만들기 → 굴리기'에 재능. 다만 추진력의 연료가 들쭉날쭉할 수 있어요.
 
 관계에서는 화성 사자 7하우스 역행이라 자존심·인정 욕구가 버튼. 평소 참다가 쌓이면 터지는 패턴 주의. 작은 불만을 '예의 있게' 자주 말하는 게 오히려 유리해요."
 
 📚 추가 지식:
 {rag_enrichment if rag_enrichment else "(없음)"}
 
-📌 500-800단어, {locale}, 자연스러운 구어체"""
+📌 500-800자, {locale}, 자연스러운 구어체"""
 
             logger.info(f"[ASK-STREAM] Using SIMPLIFIED system prompt for frontend-structured request (RAG enrichment: {len(rag_enrichment)} chars)")
 
@@ -3242,6 +4306,20 @@ def ask_stream():
 • '왜 그런지' 이유를 충분히 설명
 • 융 심리학 인용이 있으면 해석에 자연스럽게 녹여서 깊이 더하기"""
 
+            if locale == "en":
+                counselor_persona = """You are an integrated Saju + Astrology counselor.
+
+ABSOLUTE RULES:
+1. No greetings or self-introductions.
+2. Answer the user's question from the first sentence.
+3. Use only provided data; do not invent 운 or placements.
+
+STYLE:
+- 3 short paragraphs (summary -> evidence/patterns -> timing/action + question)
+- Provide concrete timing windows within 6 months, including one caution
+- Keep the tone warm and practical
+"""
+
             # Build advanced astrology section (only if data available)
             advanced_astro_section = ""
             if advanced_astro_detail:
@@ -3253,9 +4331,33 @@ def ask_stream():
 
         if not is_frontend_structured and rag_context:
             # RICH prompt with all RAG data
-            system_prompt = f"""{counselor_persona}
+            if locale == "en":
+                system_prompt = f"""{counselor_persona}
+
+{timing_window_str}
+
+[SAJU ANALYSIS]
+{saju_detail}
+
+[ASTROLOGY ANALYSIS]
+{astro_detail}
+{advanced_astro_section}{cross_section}
+{rag_context}
+{user_context_section}{cv_section}{lifespan_section}{theme_fusion_section}{imagination_section}{crisis_context_section}{therapeutic_section}
+
+[RESPONSE RULES]
+- Include at least one Saju reference (day master / ten gods / five elements / daeun or annual fortune)
+- Include at least one Astrology reference (Sun/Moon/ASC + planet+house if possible)
+- 2-3 timing windows within 6 months (month+week phrasing), include one caution
+- End with exactly one follow-up question
+- Theme lock: focus strictly on theme="{theme}". Do not drift to other domains.
+- Respond in English only
+"""
+            else:
+                system_prompt = f"""{counselor_persona}
 
 ⚠️ {current_date_str} - 과거 날짜를 미래처럼 말하지 마세요
+⚠️ {timing_window_str} - 이 범위 안에서 2~3개 시기를 제시하세요
 
 [📊 사주 분석]
 {saju_detail}
@@ -3284,9 +4386,32 @@ def ask_stream():
 📌 응답 길이: 400-600단어로 충분히 상세하게 ({locale})"""
         elif not is_frontend_structured:
             # Standard prompt (no session data)
-            system_prompt = f"""{counselor_persona}
+            if locale == "en":
+                system_prompt = f"""{counselor_persona}
+
+{timing_window_str}
+
+[SAJU ANALYSIS]
+{saju_detail}
+
+[ASTROLOGY ANALYSIS]
+{astro_detail}
+{advanced_astro_section}{cross_section}
+{user_context_section}{cv_section}{lifespan_section}{theme_fusion_section}{imagination_section}{crisis_context_section}{therapeutic_section}
+
+[RESPONSE RULES]
+- Include at least one Saju reference (day master / ten gods / five elements / daeun or annual fortune)
+- Include at least one Astrology reference (Sun/Moon/ASC + planet+house if possible)
+- 2-3 timing windows within 6 months (month+week phrasing), include one caution
+- End with exactly one follow-up question
+- Theme lock: focus strictly on theme="{theme}". Do not drift to other domains.
+- Respond in English only
+"""
+            else:
+                system_prompt = f"""{counselor_persona}
 
 ⚠️ {current_date_str} - 과거 날짜를 미래처럼 말하지 마세요
+⚠️ {timing_window_str} - 이 범위 안에서 2~3개 시기를 제시하세요
 
 [📊 사주 분석]
 {saju_detail}
@@ -3412,19 +4537,75 @@ def ask_stream():
                 # Add current user message
                 messages.append({"role": "user", "content": prompt})
 
+                default_model = os.getenv("CHAT_MODEL") or os.getenv("FUSION_MODEL") or "gpt-4.1"
+                default_temp = _clamp_temperature(_coerce_float(os.getenv("CHAT_TEMPERATURE")), 0.75)
+                model_name, temperature, ab_variant = _select_model_and_temperature(
+                    data,
+                    default_model,
+                    default_temp,
+                    session_id,
+                    g.request_id,
+                )
+                if debug_rag or debug_log:
+                    rag_meta["model"] = model_name
+                    rag_meta["temperature"] = temperature
+                    rag_meta["ab_variant"] = ab_variant or ""
+                if debug_log:
+                    logger.info(
+                        "[RAG-DEBUG] model=%s temp=%s ab=%s",
+                        model_name,
+                        temperature,
+                        ab_variant or "default",
+                    )
+                max_tokens = _get_int_env("ASK_STREAM_MAX_TOKENS", 1600, min_value=400, max_value=4000)
                 stream = client.chat.completions.create(
-                    model="gpt-4o-mini",  # Fast model for chat
+                    model=model_name,
                     messages=messages,
-                    max_tokens=4000,  # Increased for full responses with advanced analysis
-                    temperature=0.75,  # Slightly more creative (was 0.7)
+                    max_tokens=max_tokens,
+                    temperature=temperature,  # Slightly more creative (was 0.7)
                     stream=True
                 )
 
+                full_text = ""
+
                 for chunk in stream:
-                    if chunk.choices[0].delta.content:
-                        text = chunk.choices[0].delta.content
-                        # SSE format: data: <content>\n\n
-                        yield f"data: {text}\n\n"
+                    if not chunk.choices or not chunk.choices[0].delta.content:
+                        continue
+                    full_text += chunk.choices[0].delta.content
+
+                full_text = _ensure_ko_prefix(full_text, locale)
+
+                if full_text.strip().startswith("[ERROR]") or not full_text.strip():
+                    yield "data: [DONE]\n\n"
+                    return
+
+                addendum = _build_missing_requirements_addendum(
+                    full_text,
+                    locale,
+                    saju_data,
+                    astro_data,
+                    today_date,
+                )
+                if addendum:
+                    full_text = _insert_addendum(full_text, addendum)
+
+                debug_addendum = _build_rag_debug_addendum(rag_meta, locale) if debug_rag else ""
+                if debug_addendum:
+                    sep = "\n\n" if full_text else ""
+                    full_text = f"{full_text}{sep}{debug_addendum}"
+
+                full_text = _format_korean_spacing(full_text)
+                if debug_rag and full_text:
+                    full_text = full_text.rstrip() + "\n"
+
+                if locale == "ko" and not full_text.rstrip().endswith("?"):
+                    followup = "혹시 지금 가장 궁금한 포인트가 뭐예요?"
+                    separator = "" if (full_text.endswith((" ", "\n", "\t")) or not full_text) else " "
+                    full_text += f"{separator}{followup}"
+
+                chunk_size = _get_stream_chunk_size()
+                for piece in _chunk_text(full_text, chunk_size):
+                    yield _to_sse_event(piece)
 
                 # Signal end of stream
                 yield "data: [DONE]\n\n"
@@ -3437,6 +4618,7 @@ def ask_stream():
             stream_with_context(generate()),
             mimetype="text/event-stream",
             headers={
+                "Content-Type": "text/event-stream; charset=utf-8",
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
                 "X-Accel-Buffering": "no",  # Disable nginx buffering
@@ -3483,49 +4665,45 @@ def counselor_init():
 
         saju_data = data.get("saju") or {}
         astro_data = data.get("astro") or {}
-        birth_data = data.get("birth") or {}
+        birth_data = _normalize_birth_payload(data)
         theme = data.get("theme", "chat")
         locale = data.get("locale", "ko")
 
         # Normalize dayMaster structure (nested -> flat)
         saju_data = normalize_day_master(saju_data)
 
+        has_saju_payload = _has_saju_payload(saju_data)
+        has_astro_payload = _has_astro_payload(astro_data)
+        require_computed_payload = _is_truthy(os.getenv("REQUIRE_COMPUTED_PAYLOAD", "1"))
+        if require_computed_payload and (not has_saju_payload or not has_astro_payload):
+            if birth_data.get("date") or birth_data.get("time"):
+                valid_birth, _err = validate_birth_data(birth_data.get("date"), birth_data.get("time"))
+                if not valid_birth:
+                    logger.warning("[COUNSELOR-INIT] Invalid birth format for missing payload")
+                    return jsonify({"status": "error", "message": _build_birth_format_message(locale)}), 400
+            missing_message = _build_missing_payload_message(
+                locale,
+                missing_saju=not has_saju_payload,
+                missing_astro=not has_astro_payload,
+            )
+            logger.warning("[COUNSELOR-INIT] Missing computed payload(s)")
+            return jsonify({"status": "error", "message": missing_message}), 400
+
         logger.info(f"[COUNSELOR-INIT] id={g.request_id} theme={theme}")
         logger.info(f"[COUNSELOR-INIT] saju dayMaster: {saju_data.get('dayMaster', {})}")
         logger.info(f"[COUNSELOR-INIT] astro_data keys: {list(astro_data.keys()) if astro_data else 'empty'}")
 
-        # Compute saju if not provided but birth info is available
-        if (not saju_data or not saju_data.get("dayMaster")) and birth_data.get("date") and birth_data.get("time"):
+        allow_birth_compute = _bool_env("ALLOW_BIRTH_ONLY")
+        if allow_birth_compute and (not _has_saju_payload(saju_data)) and birth_data.get("date") and birth_data.get("time"):
             try:
-                saju_data = calculate_saju_data(
+                saju_data = _calculate_simple_saju(
                     birth_data["date"],
                     birth_data["time"],
-                    birth_data.get("gender", "male")
                 )
                 saju_data = normalize_day_master(saju_data)
-                logger.info(f"[COUNSELOR-INIT] Computed saju from birth data: {saju_data.get('dayMaster', {})}")
+                logger.info(f"[COUNSELOR-INIT] Computed simple saju from birth data: {saju_data.get('dayMaster', {})}")
             except Exception as e:
-                logger.warning(f"[COUNSELOR-INIT] Failed to compute saju: {e}")
-
-        # Compute astro if not provided but birth info is available
-        if (not astro_data or not astro_data.get("sun")) and birth_data.get("date") and birth_data.get("time"):
-            try:
-                lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
-                lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
-                date_parts = birth_data["date"].split("-")
-                time_parts = birth_data["time"].split(":")
-                astro_data = calculate_astrology_data({
-                    "year": int(date_parts[0]),
-                    "month": int(date_parts[1]),
-                    "day": int(date_parts[2]),
-                    "hour": int(time_parts[0]),
-                    "minute": int(time_parts[1]) if len(time_parts) > 1 else 0,
-                    "latitude": lat,
-                    "longitude": lon,
-                })
-                logger.info(f"[COUNSELOR-INIT] Computed astro from birth data: sun={astro_data.get('sun', {}).get('sign')}")
-            except Exception as e:
-                logger.warning(f"[COUNSELOR-INIT] Failed to compute astro: {e}")
+                logger.warning(f"[COUNSELOR-INIT] Failed to compute simple saju: {e}")
 
         # Generate session ID
         session_id = str(uuid4())[:12]
@@ -4396,7 +5574,7 @@ def dream_interpret():
         logger.info(f"[DREAM] id={g.request_id} Processing dream interpretation")
 
         # Extract dream data
-        birth_data = data.get("birth") or {}
+        birth_data = _normalize_birth_payload(data)
         locale = data.get("locale", "en")
         facts = {
             "dream": data.get("dream", ""),
@@ -5714,6 +6892,32 @@ def domain_rag_search():
     if not HAS_DOMAIN_RAG:
         return jsonify({"status": "error", "message": "DomainRAG not available"}), 501
 
+    def _expand_tarot_query(query: str) -> str:
+        """Add lightweight Korean hints when English tarot queries return empty."""
+        lower = query.lower()
+        extras = []
+        if any(k in lower for k in ["business", "startup", "entrepreneur", "start a business", "company"]):
+            extras.append("사업 창업")
+        if any(k in lower for k in ["career", "job", "work", "promotion", "interview", "resume"]):
+            extras.append("직장 커리어 이직")
+        if any(k in lower for k in ["love", "relationship", "dating", "partner", "marriage", "breakup", "ex"]):
+            extras.append("연애 관계 결혼")
+        if any(k in lower for k in ["money", "finance", "financial", "invest", "investment", "stock", "stocks", "crypto", "bitcoin"]):
+            extras.append("재물 돈 투자")
+        if any(k in lower for k in ["health", "ill", "sick", "anxiety", "stress", "depression", "mental"]):
+            extras.append("건강 마음 불안")
+        if any(k in lower for k in ["decision", "choice", "choose", "should i", "which", "either", "vs"]):
+            extras.append("선택 결정")
+        if any(k in lower for k in ["timing", "when", "soon", "next", "this year", "next year"]):
+            extras.append("타이밍 시기")
+        if any(k in lower for k in ["family", "parents", "child", "children"]):
+            extras.append("가족 관계")
+        if any(k in lower for k in ["study", "school", "exam", "test"]):
+            extras.append("시험 공부")
+        if not extras:
+            return query
+        return f"{query} | {' '.join(extras)}"
+
     try:
         data = request.get_json(force=True)
         domain = (data.get("domain") or "").strip()
@@ -5734,11 +6938,19 @@ def domain_rag_search():
 
         results = rag.search(domain, query, top_k=top_k)
         context = rag.get_context(domain, query, top_k=min(top_k, 3), max_chars=1500)
+        expanded_query = ""
+
+        if domain == "tarot" and not results:
+            expanded_query = _expand_tarot_query(query)
+            if expanded_query != query:
+                results = rag.search(domain, expanded_query, top_k=top_k)
+                context = rag.get_context(domain, expanded_query, top_k=min(top_k, 3), max_chars=1500)
 
         return jsonify({
             "status": "success",
             "domain": domain,
             "query": query,
+            "expanded_query": expanded_query or None,
             "results": results,
             "context": context,
         })
@@ -6174,13 +7386,42 @@ def saju_counselor_init():
         data = json_mod.loads(raw_data.decode('utf-8'))
 
         saju_data = data.get("saju") or {}
+        birth_data = _normalize_birth_payload(data)
         theme = data.get("theme", "life")
         locale = data.get("locale", "ko")
 
         # Normalize dayMaster structure
         saju_data = normalize_day_master(saju_data)
 
+        has_saju_payload = _has_saju_payload(saju_data)
+        require_computed_payload = _is_truthy(os.getenv("REQUIRE_COMPUTED_PAYLOAD", "1"))
+        if require_computed_payload and not has_saju_payload:
+            if birth_data.get("date") or birth_data.get("time"):
+                valid_birth, _err = validate_birth_data(birth_data.get("date"), birth_data.get("time"))
+                if not valid_birth:
+                    logger.warning("[SAJU-COUNSELOR-INIT] Invalid birth format for missing payload")
+                    return jsonify({"status": "error", "message": _build_birth_format_message(locale)}), 400
+            missing_message = _build_missing_payload_message(
+                locale,
+                missing_saju=True,
+                missing_astro=False,
+            )
+            logger.warning("[SAJU-COUNSELOR-INIT] Missing computed saju payload")
+            return jsonify({"status": "error", "message": missing_message}), 400
+
         logger.info(f"[SAJU-COUNSELOR-INIT] id={g.request_id} theme={theme}")
+
+        # Compute saju if not provided but birth info is available
+        if _bool_env("ALLOW_BIRTH_ONLY") and (not _has_saju_payload(saju_data)) and birth_data.get("date") and birth_data.get("time"):
+            try:
+                saju_data = _calculate_simple_saju(
+                    birth_data["date"],
+                    birth_data["time"],
+                )
+                saju_data = normalize_day_master(saju_data)
+                logger.info(f"[SAJU-COUNSELOR-INIT] Computed simple saju from birth: {saju_data.get('dayMaster', {})}")
+            except Exception as e:
+                logger.warning(f"[SAJU-COUNSELOR-INIT] Failed to compute simple saju: {e}")
 
         # Generate session ID
         session_id = str(uuid4())[:12]
@@ -6195,10 +7436,9 @@ def saju_counselor_init():
         }
 
         # Load saju-specific graph rules
-        try:
-            from backend_ai.app.graph_rag import get_graph_rag
-            graph_rag = get_graph_rag()
-            if graph_rag:
+        if HAS_GRAPH_RAG:
+            try:
+                from backend_ai.app.saju_astro_rag import search_graphs
                 # Query saju-specific rules
                 day_master = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
                 queries = [
@@ -6208,10 +7448,13 @@ def saju_counselor_init():
                     f"사주 {theme} 운세",
                 ]
                 for q in queries:
-                    nodes = graph_rag.search(q, top_k=3)
-                    rag_data["graph_nodes"].extend([n.get("text", "") for n in nodes if n.get("text")])
-        except Exception as e:
-            logger.warning(f"[SAJU-COUNSELOR-INIT] Graph RAG failed: {e}")
+                    nodes = search_graphs(q, top_k=3)
+                    for node in nodes:
+                        text = node.get("description") or node.get("label") or ""
+                        if text:
+                            rag_data["graph_nodes"].append(text)
+            except Exception as e:
+                logger.warning(f"[SAJU-COUNSELOR-INIT] Graph RAG failed: {e}")
 
         prefetch_time_ms = int((time.time() - start_time) * 1000)
         rag_data["prefetch_time_ms"] = prefetch_time_ms
@@ -6252,7 +7495,7 @@ def saju_ask_stream():
         data = json_mod.loads(raw_data.decode('utf-8'))
 
         saju_data = data.get("saju") or {}
-        birth_data = data.get("birth") or {}
+        birth_data = _normalize_birth_payload(data)
         theme = data.get("theme", "life")
         locale = data.get("locale", "ko")
         prompt = (data.get("prompt") or "")[:1500]
@@ -6279,16 +7522,32 @@ def saju_ask_stream():
                     rag_context += "\n[사주 관련 지식]\n"
                     rag_context += "\n".join(rag_data["graph_nodes"][:8])
 
-        # Compute saju if not provided
-        if not saju_data and birth_data.get("date") and birth_data.get("time"):
+        # Compute saju if not provided (optional fallback)
+        if _bool_env("ALLOW_BIRTH_ONLY") and (not _has_saju_payload(saju_data)) and birth_data.get("date") and birth_data.get("time"):
             try:
-                saju_data = calculate_saju_data(
+                saju_data = _calculate_simple_saju(
                     birth_data["date"],
                     birth_data["time"],
-                    birth_data.get("gender", "male")
                 )
+                saju_data = normalize_day_master(saju_data)
             except Exception as e:
-                logger.warning(f"[SAJU-ASK-STREAM] Failed to compute saju: {e}")
+                logger.warning(f"[SAJU-ASK-STREAM] Failed to compute simple saju: {e}")
+
+        has_saju_payload = _has_saju_payload(saju_data)
+        require_computed_payload = _is_truthy(os.getenv("REQUIRE_COMPUTED_PAYLOAD", "1"))
+        if require_computed_payload and not has_saju_payload:
+            if birth_data.get("date") or birth_data.get("time"):
+                valid_birth, _err = validate_birth_data(birth_data.get("date"), birth_data.get("time"))
+                if not valid_birth:
+                    logger.warning("[SAJU-ASK-STREAM] Invalid birth format for missing payload")
+                    return _sse_error_response(_build_birth_format_message(locale))
+            missing_message = _build_missing_payload_message(
+                locale,
+                missing_saju=True,
+                missing_astro=False,
+            )
+            logger.warning("[SAJU-ASK-STREAM] Missing computed saju payload")
+            return _sse_error_response(missing_message)
 
         # Build detailed saju context (NO astrology)
         saju_detail = _build_detailed_saju(saju_data)
@@ -6361,26 +7620,63 @@ Response format:
         # Full prompt
         full_prompt = f"{system_prompt}\n\n사용자 질문: {prompt}"
 
+        default_model = os.getenv("CHAT_MODEL") or os.getenv("FUSION_MODEL") or "gpt-4.1"
+        default_temp = _clamp_temperature(_coerce_float(os.getenv("CHAT_TEMPERATURE")), 0.75)
+        model_name, temperature, _ab_variant = _select_model_and_temperature(
+            data,
+            default_model,
+            default_temp,
+            session_id,
+            g.request_id,
+        )
+
         # Streaming response
         def generate():
             try:
+                max_tokens = _get_int_env("SAJU_ASK_MAX_TOKENS", 700, min_value=300, max_value=2000)
                 response = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model=model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt}
                     ],
                     stream=True,
-                    temperature=0.7,
-                    max_tokens=800,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
                 )
 
-                collected_text = ""
+                full_text = ""
                 for chunk in response:
                     if chunk.choices and chunk.choices[0].delta.content:
-                        text = chunk.choices[0].delta.content
-                        collected_text += text
-                        yield f"data: {text}\n\n"
+                        full_text += chunk.choices[0].delta.content
+
+                if not full_text.strip():
+                    yield "data: [DONE]\n\n"
+                    return
+
+                addendum = _build_missing_requirements_addendum(
+                    full_text,
+                    locale,
+                    saju_data,
+                    {},
+                    now.date(),
+                    require_saju=True,
+                    require_astro=False,
+                    require_timing=True,
+                    require_caution=True,
+                )
+                if addendum:
+                    full_text = _insert_addendum(full_text, addendum)
+
+                full_text = _format_korean_spacing(full_text)
+                if locale == "ko" and not full_text.rstrip().endswith("?"):
+                    followup_inline = "지금 가장 궁금한 포인트가 뭐예요?"
+                    separator = "" if (full_text.endswith((" ", "\n", "\t")) or not full_text) else " "
+                    full_text += f"{separator}{followup_inline}"
+
+                chunk_size = _get_stream_chunk_size()
+                for piece in _chunk_text(full_text, chunk_size):
+                    yield _to_sse_event(piece)
 
                 # Add follow-up questions
                 follow_ups = [
@@ -6431,9 +7727,25 @@ def astrology_counselor_init():
         data = json_mod.loads(raw_data.decode('utf-8'))
 
         astro_data = data.get("astro") or {}
-        birth_data = data.get("birth") or {}
+        birth_data = _normalize_birth_payload(data)
         theme = data.get("theme", "life")
         locale = data.get("locale", "ko")
+
+        has_astro_payload = _has_astro_payload(astro_data)
+        require_computed_payload = _is_truthy(os.getenv("REQUIRE_COMPUTED_PAYLOAD", "1"))
+        if require_computed_payload and not has_astro_payload:
+            if birth_data.get("date") or birth_data.get("time"):
+                valid_birth, _err = validate_birth_data(birth_data.get("date"), birth_data.get("time"))
+                if not valid_birth:
+                    logger.warning("[ASTROLOGY-COUNSELOR-INIT] Invalid birth format for missing payload")
+                    return jsonify({"status": "error", "message": _build_birth_format_message(locale)}), 400
+            missing_message = _build_missing_payload_message(
+                locale,
+                missing_saju=False,
+                missing_astro=True,
+            )
+            logger.warning("[ASTROLOGY-COUNSELOR-INIT] Missing computed astro payload")
+            return jsonify({"status": "error", "message": missing_message}), 400
 
         logger.info(f"[ASTROLOGY-COUNSELOR-INIT] id={g.request_id} theme={theme}")
 
@@ -6442,8 +7754,8 @@ def astrology_counselor_init():
 
         start_time = time.time()
 
-        # Compute astrology if not provided but birth info is available
-        if not astro_data and birth_data.get("date") and birth_data.get("time"):
+        # Compute astrology if not provided but birth info is available (optional fallback)
+        if _bool_env("ALLOW_BIRTH_ONLY") and (not _has_astro_payload(astro_data)) and birth_data.get("date") and birth_data.get("time"):
             try:
                 lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
                 lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
@@ -6526,7 +7838,7 @@ def astrology_ask_stream():
         data = json_mod.loads(raw_data.decode('utf-8'))
 
         astro_data = data.get("astro") or {}
-        birth_data = data.get("birth") or {}
+        birth_data = _normalize_birth_payload(data)
         theme = data.get("theme", "life")
         locale = data.get("locale", "ko")
         prompt = (data.get("prompt") or "")[:1500]
@@ -6550,8 +7862,8 @@ def astrology_ask_stream():
                     rag_context += "\n[점성술 관련 지식]\n"
                     rag_context += "\n".join(rag_data["graph_nodes"][:8])
 
-        # Compute astrology if not provided
-        if not astro_data and birth_data.get("date") and birth_data.get("time"):
+        # Compute astrology if not provided (optional fallback)
+        if _bool_env("ALLOW_BIRTH_ONLY") and (not _has_astro_payload(astro_data)) and birth_data.get("date") and birth_data.get("time"):
             try:
                 lat = birth_data.get("lat") or birth_data.get("latitude") or 37.5665
                 lon = birth_data.get("lon") or birth_data.get("longitude") or 126.9780
@@ -6568,6 +7880,22 @@ def astrology_ask_stream():
                 })
             except Exception as e:
                 logger.warning(f"[ASTROLOGY-ASK-STREAM] Failed to compute astro: {e}")
+
+        has_astro_payload = _has_astro_payload(astro_data)
+        require_computed_payload = _is_truthy(os.getenv("REQUIRE_COMPUTED_PAYLOAD", "1"))
+        if require_computed_payload and not has_astro_payload:
+            if birth_data.get("date") or birth_data.get("time"):
+                valid_birth, _err = validate_birth_data(birth_data.get("date"), birth_data.get("time"))
+                if not valid_birth:
+                    logger.warning("[ASTROLOGY-ASK-STREAM] Invalid birth format for missing payload")
+                    return _sse_error_response(_build_birth_format_message(locale))
+            missing_message = _build_missing_payload_message(
+                locale,
+                missing_saju=False,
+                missing_astro=True,
+            )
+            logger.warning("[ASTROLOGY-ASK-STREAM] Missing computed astro payload")
+            return _sse_error_response(missing_message)
 
         # Build detailed astrology context (NO saju)
         astro_detail = _build_detailed_astro(astro_data)
@@ -6640,26 +7968,63 @@ Response format:
         # Full prompt
         full_prompt = f"{system_prompt}\n\n사용자 질문: {prompt}"
 
+        default_model = os.getenv("CHAT_MODEL") or os.getenv("FUSION_MODEL") or "gpt-4.1"
+        default_temp = _clamp_temperature(_coerce_float(os.getenv("CHAT_TEMPERATURE")), 0.75)
+        model_name, temperature, _ab_variant = _select_model_and_temperature(
+            data,
+            default_model,
+            default_temp,
+            session_id,
+            g.request_id,
+        )
+
         # Streaming response
         def generate():
             try:
+                max_tokens = _get_int_env("ASTRO_ASK_MAX_TOKENS", 700, min_value=300, max_value=2000)
                 response = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model=model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt}
                     ],
                     stream=True,
-                    temperature=0.7,
-                    max_tokens=800,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
                 )
 
-                collected_text = ""
+                full_text = ""
                 for chunk in response:
                     if chunk.choices and chunk.choices[0].delta.content:
-                        text = chunk.choices[0].delta.content
-                        collected_text += text
-                        yield f"data: {text}\n\n"
+                        full_text += chunk.choices[0].delta.content
+
+                if not full_text.strip():
+                    yield "data: [DONE]\n\n"
+                    return
+
+                addendum = _build_missing_requirements_addendum(
+                    full_text,
+                    locale,
+                    {},
+                    astro_data,
+                    now.date(),
+                    require_saju=False,
+                    require_astro=True,
+                    require_timing=True,
+                    require_caution=True,
+                )
+                if addendum:
+                    full_text = _insert_addendum(full_text, addendum)
+
+                full_text = _format_korean_spacing(full_text)
+                if locale == "ko" and not full_text.rstrip().endswith("?"):
+                    followup_inline = "지금 가장 궁금한 포인트가 뭐예요?"
+                    separator = "" if (full_text.endswith((" ", "\n", "\t")) or not full_text) else " "
+                    full_text += f"{separator}{followup_inline}"
+
+                chunk_size = _get_stream_chunk_size()
+                for piece in _chunk_text(full_text, chunk_size):
+                    yield _to_sse_event(piece)
 
                 # Add follow-up questions
                 follow_ups = [

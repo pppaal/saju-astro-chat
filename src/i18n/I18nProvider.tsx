@@ -508,8 +508,8 @@ const ICHING_OVERRIDES: Partial<Record<string, any>> = {
 for (const [loc, strings] of Object.entries(ICHING_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as any)[key].iching = {
-      ...(dicts as any)[key].iching,
+    (dicts as Record<string, Record<string, unknown>>)[key].iching = {
+      ...(dicts as Record<string, Record<string, unknown>>)[key].iching,
       ...strings,
     };
   }
@@ -542,9 +542,9 @@ const TAROT_OVERRIDES: Partial<Record<string, any>> = {
 for (const [loc, strings] of Object.entries(TAROT_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as any)[key].tarot = {
-      ...(dicts as any)[key].tarot,
-      ...(strings as any).tarot,
+    (dicts as Record<string, Record<string, unknown>>)[key].tarot = {
+      ...(dicts as Record<string, Record<string, unknown>>)[key].tarot,
+      ...(strings as Record<string, unknown>).tarot,
     };
   }
 }
@@ -558,9 +558,9 @@ const PERSONALITY_PREMIUM_OVERRIDES: Partial<Record<string, any>> = {};
 for (const [loc, strings] of Object.entries(PERSONALITY_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as any)[key].personality = {
-      ...(dicts as any)[key].personality,
-      ...(strings as any).personality,
+    (dicts as Record<string, Record<string, unknown>>)[key].personality = {
+      ...(dicts as Record<string, Record<string, unknown>>)[key].personality,
+      ...(strings as Record<string, unknown>).personality,
     };
   }
 }
@@ -568,9 +568,9 @@ for (const [loc, strings] of Object.entries(PERSONALITY_OVERRIDES)) {
 for (const [loc, strings] of Object.entries(PERSONALITY_PREMIUM_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as any)[key].personality = {
-      ...(dicts as any)[key].personality,
-      ...(strings as any).personality,
+    (dicts as Record<string, Record<string, unknown>>)[key].personality = {
+      ...(dicts as Record<string, Record<string, unknown>>)[key].personality,
+      ...(strings as Record<string, unknown>).personality,
     };
   }
 }
@@ -580,18 +580,18 @@ for (const [loc, namespaces] of Object.entries(allExtensions)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
     for (const [ns, translations] of Object.entries(namespaces)) {
-      (dicts as any)[key][ns] = {
-        ...((dicts as any)[key][ns] || {}),
+      (dicts as Record<string, Record<string, unknown>>)[key][ns] = {
+        ...((dicts as Record<string, Record<string, unknown>>)[key][ns] || {}),
         ...translations,
       };
     }
   }
 }
 
-function fillMissing(base: any, target: any) {
+function fillMissing(base: Record<string, unknown>, target: Record<string, unknown>) {
   for (const [k, v] of Object.entries(base)) {
     if (!(k in target)) {
-      (target as any)[k] = v;
+      (target as Record<string, unknown>)[k] = v;
       continue;
     }
     if (v && typeof v === "object" && !Array.isArray(v) && target[k] && typeof target[k] === "object") {
@@ -607,7 +607,7 @@ const jsonOverrides: Record<string, any> = {
 };
 
 for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
-  const target = (dicts as any)[locale];
+  const target = (dicts as Record<string, Record<string, unknown>>)[locale];
   if (target) {
     if (jsonData.landing) {
       if (!target.landing) target.landing = {};

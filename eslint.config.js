@@ -7,6 +7,12 @@ const config = [
     ignores: [
       'src/lib/cities.js',
       'src/lib/destiny-map/visual/*',
+      '.venv/**',
+      'venv/**',
+      'backend_ai/venv/**',
+      '.hf_cache/**',
+      'node_modules/**',
+      '.next/**',
     ],
   },
   {

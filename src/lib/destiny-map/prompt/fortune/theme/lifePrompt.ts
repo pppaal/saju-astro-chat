@@ -6,13 +6,13 @@ import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 // 빠른 분석용 최소 데이터 (토큰 절약)
 function buildQuickData(data: CombinedResult): string {
   const { astrology = {}, saju } = data ?? {};
-  const { planets = [], ascendant } = astrology as any;
-  const { pillars, dayMaster, unse } = saju ?? {} as any;
+  const { planets = [], ascendant } = astrology;
+  const { pillars, dayMaster, unse } = saju ?? {};
 
-  const sun = planets.find((p: any) => p.name === "Sun");
-  const moon = planets.find((p: any) => p.name === "Moon");
+  const sun = planets.find((p: unknown) => p.name === "Sun");
+  const moon = planets.find((p: unknown) => p.name === "Moon");
 
-  const formatPillar = (p: any) => {
+  const formatPillar = (p: unknown) => {
     if (!p) return "-";
     const stem = p.heavenlyStem?.name || "";
     const branch = p.earthlyBranch?.name || "";
@@ -21,7 +21,7 @@ function buildQuickData(data: CombinedResult): string {
 
   // 대운 정보 추출 (배열 또는 객체 형태 모두 처리)
   const currentDaeun = Array.isArray(unse?.daeun)
-    ? (unse.daeun as any[]).find((d: any) => d.isCurrent)?.ganji
+    ? unse.daeun.find((d: any) => d.isCurrent)?.ganji
     : (unse?.daeun as any)?.current?.ganji;
 
   return [
@@ -29,7 +29,7 @@ function buildQuickData(data: CombinedResult): string {
     `Day Master: ${dayMaster?.name || "-"} (${dayMaster?.element || "-"})`,
     `Four Pillars: ${formatPillar(pillars?.year)} / ${formatPillar(pillars?.month)} / ${formatPillar(pillars?.day)} / ${formatPillar(pillars?.time)}`,
     `현재 장기 흐름: ${currentDaeun || "-"}`,
-    `올해 연간 흐름: ${(unse as any)?.annual?.[0]?.ganji || "-"}`,
+    `올해 연간 흐름: ${(unse)?.annual?.[0]?.ganji || "-"}`,
     `Sun: ${sun?.sign || "-"} House${sun?.house || "?"}`,
     `Moon: ${moon?.sign || "-"} House${moon?.house || "?"}`,
     `Asc: ${ascendant?.sign || "-"}`,

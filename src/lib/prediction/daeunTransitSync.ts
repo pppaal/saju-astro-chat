@@ -727,7 +727,7 @@ export function generateDaeunTransitPromptContext(
 // 대운 리스트 변환 헬퍼
 // ============================================================
 
-export function convertSajuDaeunToInfo(daeunList: any[]): DaeunInfo[] {
+export function convertSajuDaeunToInfo(daeunList: unknown[]): DaeunInfo[] {
   const stemToElement: Record<string, FiveElement> = {
     '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
     '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',

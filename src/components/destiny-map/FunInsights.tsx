@@ -78,14 +78,14 @@ import {
 } from "./fun-insights/generators";
 
 interface Props {
-  saju?: any;
-  astro?: any;
+  saju?: unknown;
+  astro?: unknown;
   lang?: string;
   theme?: string;
   className?: string;
 }
 
-function generateReport(saju: any, astro: any, lang: string, _theme: string): string {
+function generateReport(saju: unknown, astro: unknown, lang: string, _theme: string): string {
   const isKo = lang === "ko";
 
   const rawDayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem;

@@ -31,8 +31,8 @@
 
 ## Backend URL selection
 - `AI_BACKEND_URL` (server-only, preferred)
-- `BACKEND_AI_URL` (used by some Next.js API routes)
 - `NEXT_PUBLIC_AI_BACKEND` (public fallback for client)
+- `BACKEND_AI_URL` (deprecated legacy alias)
 
 ## Public token pairing
 - If `PUBLIC_API_TOKEN` is set, set `NEXT_PUBLIC_API_TOKEN` to the same value for browser calls.

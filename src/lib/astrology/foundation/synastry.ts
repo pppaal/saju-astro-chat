@@ -95,7 +95,7 @@ function getHouseForLongitude(longitude: number, houses: { cusp: number }[]): nu
   const norm = normalize360(longitude);
   for (let i = 0; i < 12; i++) {
     const nextI = (i + 1) % 12;
-    let cusp = houses[i].cusp;
+    const cusp = houses[i].cusp;
     let nextCusp = houses[nextI].cusp;
 
     if (nextCusp < cusp) nextCusp += 360;

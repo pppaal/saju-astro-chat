@@ -216,7 +216,7 @@ export function analyzeSynastry(
 
   // Emotional Connection (Moon)
   const moonCompatibility = calculateMoonCompatibility(p1.moon, p2.moon);
-  let emotionalConnection = moonCompatibility;
+  const emotionalConnection = moonCompatibility;
 
   if (moonCompatibility >= 75) {
     strengths.push('깊은 감정적 이해와 공감');
