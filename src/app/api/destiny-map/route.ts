@@ -221,8 +221,8 @@ export async function POST(request: Request) {
           summary,
           fullReport,
           signals: {
-            saju: report.raw?.raw?.saju,
-            astrology: report.raw?.raw?.astrology,
+            saju: (report.raw?.raw as { saju?: unknown })?.saju,
+            astrology: (report.raw?.raw as { astrology?: unknown })?.astrology,
           },
           userQuestion: prompt || null,
           locale: lang,
@@ -238,14 +238,15 @@ export async function POST(request: Request) {
     }
 
     // Five element fallback values - check both saju.fiveElements and saju.facts.fiveElements
+    const sajuData = report?.raw?.saju as { fiveElements?: unknown; facts?: { fiveElements?: unknown; dayMaster?: unknown } } | undefined;
     const rawFiveElements =
-      report?.raw?.saju?.fiveElements || report?.raw?.saju?.facts?.fiveElements;
+      sajuData?.fiveElements || sajuData?.facts?.fiveElements;
     const dynamicFiveElements =
       rawFiveElements && Object.keys(rawFiveElements).length > 0
         ? rawFiveElements
         : undefined;
 
-    const fiveElements = dynamicFiveElements ?? {
+    const fiveElements: Record<string, number> = (dynamicFiveElements as Record<string, number>) ?? {
       wood: 25,
       fire: 20,
       earth: 20,
@@ -255,11 +256,12 @@ export async function POST(request: Request) {
 
     // Get dayMaster from saju data - check both saju.dayMaster and saju.facts.dayMaster
     // Normalize to consistent format: { name: string, element: string }
-    const rawDayMaster = report.raw?.saju?.dayMaster || report.raw?.saju?.facts?.dayMaster;
+    const sajuDataWithDayMaster = report.raw?.saju as { dayMaster?: { heavenlyStem?: { name?: string; element?: string }; name?: string; element?: string }; facts?: { dayMaster?: unknown } } | undefined;
+    const rawDayMaster = sajuDataWithDayMaster?.dayMaster || sajuData?.facts?.dayMaster as { heavenlyStem?: { name?: string; element?: string }; name?: string; element?: string } | undefined;
     if (enableDebugLogs) {
       console.warn("[API] dayMaster sources:", {
-        "saju.dayMaster": report.raw?.saju?.dayMaster,
-        "saju.facts.dayMaster": report.raw?.saju?.facts?.dayMaster,
+        "saju.dayMaster": sajuDataWithDayMaster?.dayMaster,
+        "saju.facts.dayMaster": sajuData?.facts?.dayMaster,
         rawDayMaster,
       });
     }
@@ -290,25 +292,28 @@ export async function POST(request: Request) {
       }
     }
 
+    const sajuRaw = report.raw?.saju as { pillars?: unknown; unse?: unknown; sinsal?: unknown; advancedAnalysis?: unknown; facts?: unknown } | undefined;
     const saju: SajuResult = {
       dayMaster,
       fiveElements,
-      pillars: report.raw?.saju?.pillars,
-      unse: report.raw?.saju?.unse,
-      sinsal: report.raw?.saju?.sinsal,
-      advancedAnalysis: report.raw?.saju?.advancedAnalysis,
-      facts: report.raw?.saju?.facts, // ✅ birthDate 등 기본 정보 포함
+      pillars: sajuRaw?.pillars as SajuResult['pillars'],
+      unse: sajuRaw?.unse as SajuResult['unse'],
+      sinsal: sajuRaw?.sinsal as SajuResult['sinsal'],
+      advancedAnalysis: sajuRaw?.advancedAnalysis as SajuResult['advancedAnalysis'],
+      facts: sajuRaw?.facts as SajuResult['facts'], // ✅ birthDate 등 기본 정보 포함
     };
 
     // 🔍 facts 데이터 확인
     if (enableDebugLogs) {
+      const factsData = sajuRaw?.facts as { birthDate?: unknown } | undefined;
+      const unseData = sajuRaw?.unse as { daeun?: unknown[] } | undefined;
       console.warn("[API] Saju facts check:", {
         hasSaju: !!report.raw?.saju,
-        sajuKeys: report.raw?.saju ? Object.keys(report.raw.saju) : [],
-        hasFacts: !!report.raw?.saju?.facts,
-        factsKeys: report.raw?.saju?.facts ? Object.keys(report.raw.saju.facts) : [],
-        birthDate: report.raw?.saju?.facts?.birthDate,
-        daeunCount: report.raw?.saju?.unse?.daeun?.length || 0,
+        sajuKeys: report.raw?.saju ? Object.keys(report.raw.saju as object) : [],
+        hasFacts: !!sajuRaw?.facts,
+        factsKeys: sajuRaw?.facts ? Object.keys(sajuRaw.facts as object) : [],
+        birthDate: factsData?.birthDate,
+        daeunCount: unseData?.daeun?.length || 0,
       });
     }
 

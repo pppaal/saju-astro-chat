@@ -6902,6 +6902,12 @@ def domain_rag_search():
             extras.append("직장 커리어 이직")
         if any(k in lower for k in ["love", "relationship", "dating", "partner", "marriage", "breakup", "ex"]):
             extras.append("연애 관계 결혼")
+        if any(k in lower for k in ["travel", "trip", "journey", "move", "relocation", "relocate"]):
+            extras.append("여행 이동 이사")
+        if any(k in lower for k in ["blocking", "blockage", "stuck", "progress", "obstacle", "challenge"]):
+            extras.append("장애물 정체 성장")
+        if any(k in lower for k in ["strength", "strengths", "talent", "ability"]):
+            extras.append("강점 재능")
         if any(k in lower for k in ["money", "finance", "financial", "invest", "investment", "stock", "stocks", "crypto", "bitcoin"]):
             extras.append("재물 돈 투자")
         if any(k in lower for k in ["health", "ill", "sick", "anxiety", "stress", "depression", "mental"]):
@@ -6914,9 +6920,93 @@ def domain_rag_search():
             extras.append("가족 관계")
         if any(k in lower for k in ["study", "school", "exam", "test"]):
             extras.append("시험 공부")
+
+        # Korean keywords → English hints (help when corpus is English-heavy)
+        if any(k in query for k in ["사업", "창업", "자영업", "스타트업"]):
+            extras.append("business startup")
+        if any(k in query for k in ["직장", "커리어", "이직", "취업", "직무", "면접", "승진", "연봉", "업무"]):
+            extras.append("career job work")
+        if any(k in query for k in ["연애", "사랑", "관계", "결혼", "이별", "재회", "궁합", "썸", "짝사랑", "전남친", "전여친", "그 사람", "상대", "상대방", "마음", "호감"]):
+            extras.append("love relationship")
+        if any(k in query for k in ["돈", "재물", "금전", "재정", "투자", "주식", "코인", "부동산", "대출", "빚", "저축", "수입", "월급", "수익"]):
+            extras.append("money finance investment")
+        if any(k in query for k in ["건강", "몸", "우울", "불안", "스트레스", "병", "치료", "회복", "멘탈"]):
+            extras.append("health stress")
+        if any(k in query for k in ["결정", "선택", "갈림길", "할까", "될까", "타이밍", "시기", "언제"]):
+            extras.append("decision timing")
+        if any(k in query for k in ["여행", "이사", "이동", "출장"]):
+            extras.append("travel move")
+        if any(k in query for k in ["강점", "장점", "재능", "능력"]):
+            extras.append("strength identity")
+        if any(k in query for k in ["막힘", "장애물", "정체", "진전", "방해"]):
+            extras.append("obstacle growth")
+        if any(k in query for k in ["가족", "부모", "자녀", "아이"]):
+            extras.append("family")
+        if any(k in query for k in ["공부", "시험", "합격", "수능", "자격증", "유학", "학업"]):
+            extras.append("study exam")
         if not extras:
             return query
         return f"{query} | {' '.join(extras)}"
+
+    def _fallback_tarot_queries(query: str) -> list:
+        """Provide compact fallback queries when expanded search still returns empty."""
+        lower = query.lower()
+        fallbacks = []
+        if any(k in lower for k in ["business", "startup", "entrepreneur", "start a business", "company"]):
+            fallbacks.extend(["business", "career"])
+        if any(k in lower for k in ["career", "job", "work", "promotion", "interview", "resume"]):
+            fallbacks.extend(["career", "job"])
+        if any(k in lower for k in ["love", "relationship", "dating", "partner", "marriage", "breakup", "ex"]):
+            fallbacks.extend(["love", "relationship"])
+        if any(k in lower for k in ["money", "finance", "financial", "invest", "investment", "stock", "stocks", "crypto", "bitcoin"]):
+            fallbacks.extend(["money", "finance"])
+        if any(k in lower for k in ["health", "ill", "sick", "anxiety", "stress", "depression", "mental"]):
+            fallbacks.extend(["health", "stress"])
+        if any(k in lower for k in ["decision", "choice", "choose", "should i", "which", "either", "vs"]):
+            fallbacks.extend(["decision", "timing"])
+        if any(k in lower for k in ["travel", "trip", "journey", "move", "relocation", "relocate"]):
+            fallbacks.extend(["travel", "journey"])
+        if any(k in lower for k in ["blocking", "blockage", "stuck", "progress", "obstacle", "challenge"]):
+            fallbacks.extend(["obstacle", "challenge"])
+        if any(k in lower for k in ["strength", "strengths", "talent", "ability"]):
+            fallbacks.extend(["strength", "identity"])
+        if any(k in lower for k in ["timing", "when", "soon", "next", "this year", "next year"]):
+            fallbacks.extend(["timing", "when"])
+        if any(k in lower for k in ["family", "parents", "child", "children"]):
+            fallbacks.extend(["family"])
+        if any(k in lower for k in ["study", "school", "exam", "test"]):
+            fallbacks.extend(["study", "exam"])
+        if any(k in query for k in ["사업", "창업", "자영업", "스타트업"]):
+            fallbacks.extend(["business", "career"])
+        if any(k in query for k in ["직장", "커리어", "이직", "취업", "직무", "면접", "승진", "연봉", "업무"]):
+            fallbacks.extend(["career", "job"])
+        if any(k in query for k in ["연애", "사랑", "관계", "결혼", "이별", "재회", "궁합", "썸", "짝사랑", "전남친", "전여친", "그 사람", "상대", "상대방", "마음", "호감"]):
+            fallbacks.extend(["love", "relationship"])
+        if any(k in query for k in ["돈", "재물", "금전", "재정", "투자", "주식", "코인", "부동산", "대출", "빚", "저축", "수입", "월급", "수익"]):
+            fallbacks.extend(["money", "finance"])
+        if any(k in query for k in ["건강", "몸", "우울", "불안", "스트레스", "병", "치료", "회복", "멘탈"]):
+            fallbacks.extend(["health", "stress"])
+        if any(k in query for k in ["결정", "선택", "갈림길", "할까", "될까", "타이밍", "시기", "언제"]):
+            fallbacks.extend(["decision", "timing"])
+        if any(k in query for k in ["여행", "이사", "이동", "출장"]):
+            fallbacks.extend(["travel", "journey"])
+        if any(k in query for k in ["강점", "장점", "재능", "능력"]):
+            fallbacks.extend(["strength", "identity"])
+        if any(k in query for k in ["막힘", "장애물", "정체", "진전", "방해"]):
+            fallbacks.extend(["obstacle", "challenge"])
+        if any(k in query for k in ["가족", "부모", "자녀", "아이"]):
+            fallbacks.extend(["family"])
+        if any(k in query for k in ["공부", "시험", "합격", "수능", "자격증", "유학", "학업"]):
+            fallbacks.extend(["study", "exam"])
+        # De-dup while preserving order
+        seen = set()
+        deduped = []
+        for item in fallbacks:
+            if item in seen:
+                continue
+            seen.add(item)
+            deduped.append(item)
+        return deduped
 
     try:
         data = request.get_json(force=True)
@@ -6927,30 +7017,43 @@ def domain_rag_search():
 
         if not query:
             return jsonify({"status": "error", "message": "query is required"}), 400
+
+        rag = get_domain_rag()
+        if not rag:
+            return jsonify({"status": "error", "message": "DomainRAG not available"}), 501
+
         if not domain or domain not in DOMAIN_RAG_DOMAINS:
             return jsonify({
                 "status": "error",
                 "message": f"domain must be one of {DOMAIN_RAG_DOMAINS}",
             }), 400
 
-        rag = get_domain_rag()
         rag.load_domain(domain)
 
         results = rag.search(domain, query, top_k=top_k)
         context = rag.get_context(domain, query, top_k=min(top_k, 3), max_chars=1500)
         expanded_query = ""
 
+        fallback_query = ""
         if domain == "tarot" and not results:
             expanded_query = _expand_tarot_query(query)
             if expanded_query != query:
                 results = rag.search(domain, expanded_query, top_k=top_k)
                 context = rag.get_context(domain, expanded_query, top_k=min(top_k, 3), max_chars=1500)
+        if domain == "tarot" and not results:
+            for candidate in _fallback_tarot_queries(query):
+                results = rag.search(domain, candidate, top_k=top_k)
+                context = rag.get_context(domain, candidate, top_k=min(top_k, 3), max_chars=1500)
+                if results:
+                    fallback_query = candidate
+                    break
 
         return jsonify({
             "status": "success",
             "domain": domain,
             "query": query,
             "expanded_query": expanded_query or None,
+            "fallback_query": fallback_query or None,
             "results": results,
             "context": context,
         })

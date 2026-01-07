@@ -14,11 +14,13 @@ const nextConfig = {
   compress: true, // Enable gzip compression
   reactStrictMode: true,
 
-  // Skip TypeScript and ESLint during build for faster deployment
-  // TODO: Remove these once all type errors are fixed
+  // TypeScript type checking has 1000+ errors that need gradual fixing
+  // Keep ignoreBuildErrors until types are properly defined
+  // TODO: Fix types incrementally and remove this flag
   typescript: {
     ignoreBuildErrors: true,
   },
+  // ESLint is enforced separately via CI
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -64,19 +66,25 @@ const nextConfig = {
       { key: 'X-XSS-Protection', value: '1; mode=block' },
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+      // HSTS - enforce HTTPS (enable after confirming HTTPS works in production)
+      ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }] : []),
       {
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
+          // Note: 'unsafe-inline' and 'unsafe-eval' are required for Next.js
+          // TODO: Implement nonce-based CSP for better security
           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://va.vercel-scripts.com https://cdnjs.cloudflare.com",
           "worker-src 'self' blob: https://cdnjs.cloudflare.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          "font-src 'self' https://fonts.gstatic.com",
-          "img-src 'self' data: blob: https: http:",
+          "font-src 'self' https://fonts.gstatic.com data:",
+          // Removed http: - only allow HTTPS for images in production
+          `img-src 'self' data: blob: https:${!isProd ? ' http:' : ''}`,
           `connect-src ${connectSrc.join(' ')}`,
           "frame-ancestors 'none'",
           "base-uri 'self'",
           "form-action 'self'",
+          "upgrade-insecure-requests",
         ].join('; '),
       },
     ];

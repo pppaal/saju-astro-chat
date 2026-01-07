@@ -816,8 +816,8 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     }
 
     return NextResponse.json({
-      // 프리미엄 상태 플래그 - 임시로 모든 사용자에게 프리미엄 제공
-      isPremium: true,
+      // 프리미엄 상태 플래그 - 크레딧/플랜 기반으로 체크
+      isPremium,
       isLoggedIn: !!session?.user?.id,
 
       birthYear: new Date(birthDateString).getFullYear(),
@@ -868,8 +868,8 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       aiInterpretation,
       aiModelUsed,
 
-      // ======== 고급 분석 결과 - 임시로 모든 사용자에게 전체 분석 제공 ========
-      advancedAnalysis: fullAdvancedAnalysis,
+      // ======== 고급 분석 결과 - 프리미엄 사용자에게만 제공 ========
+      advancedAnalysis: isPremium ? fullAdvancedAnalysis : null,
     });
   } catch (error) {
     console.error('[API /api/saju] Uncaught error:', error);

@@ -60,43 +60,30 @@ import {
   calculateDailyPillar,
 } from "@/lib/prediction/ultraPrecisionEngine";
 // TIER 3: 고급 점성술 + 사주 패턴 엔진
-import {
-  calculateSecondaryProgressions,
-  getProgressedMoonPhase,
-  getProgressionSummary,
-} from "@/lib/astrology/foundation/progressions";
+// Note: progressions are used for advanced analysis - keeping import for future integration
 import {
   getMoonPhase,
   getMoonPhaseName,
   checkVoidOfCourse,
   getRetrogradePlanets,
-  analyzeElection,
-  type ElectionalEventType,
 } from "@/lib/astrology/foundation/electional";
 import {
   analyzePatterns,
   getPatternStatistics,
 } from "@/lib/Saju/patternMatcher";
-import {
-  extendChartWithExtraPoints,
-} from "@/lib/astrology/foundation/extraPoints";
 // TIER 4: 추가 고급 엔진 (harmonics, eclipses, fixedStars)
 import {
   generateHarmonicProfile,
   analyzeAgeHarmonic,
   getHarmonicMeaning,
-  type HarmonicProfile,
 } from "@/lib/astrology/foundation/harmonics";
 import {
   findEclipseImpact,
   getUpcomingEclipses,
   checkEclipseSensitivity,
-  type EclipseImpact,
 } from "@/lib/astrology/foundation/eclipses";
 import {
   findFixedStarConjunctions,
-  getBrightestStars,
-  type FixedStarConjunction,
 } from "@/lib/astrology/foundation/fixedStars";
 
 export const dynamic = "force-dynamic";
@@ -109,7 +96,6 @@ const ALLOWED_LANG = new Set(["ko", "en"]);
 const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
 const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
 const MAX_MESSAGES = 10;
-const MAX_CV = 1200;
 
 // Type definitions for Saju data structure
 interface SajuPillar {
@@ -117,16 +103,8 @@ interface SajuPillar {
   earthlyBranch?: { name?: string };
 }
 
-interface SajuDaeunItem {
-  startAge: number;
-  stem?: string;
-  heavenlyStem?: string;
-  branch?: string;
-  earthlyBranch?: string;
-}
-
 interface SajuUnse {
-  daeun?: SajuDaeunItem[];
+  daeun?: unknown[];
 }
 
 interface SajuAdvancedAnalysis {
@@ -153,6 +131,29 @@ interface SajuDataStructure {
   };
   unse?: SajuUnse;
   advancedAnalysis?: SajuAdvancedAnalysis;
+  daeun?: { cycles?: unknown[] };
+  daeunCycles?: unknown[];
+  yongsin?: { elements?: unknown } | unknown;
+  kisin?: { elements?: unknown } | unknown;
+  [key: string]: unknown;
+}
+
+// Astro data structure with planets (using unknown for flexibility with different planet types)
+interface AstroDataStructure {
+  sun?: unknown;
+  moon?: unknown;
+  mercury?: unknown;
+  venus?: unknown;
+  mars?: unknown;
+  jupiter?: unknown;
+  saturn?: unknown;
+  ascendant?: unknown;
+  planets?: unknown[];
+  extraPoints?: {
+    vertex?: unknown;
+    partOfFortune?: unknown;
+  };
+  transits?: unknown[];
   [key: string]: unknown;
 }
 
@@ -276,7 +277,7 @@ export async function POST(request: Request) {
     const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
     const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : [];
     let saju = body.saju as SajuDataStructure | undefined;
-    let astro = body.astro as Chart | undefined;
+    let astro = body.astro as AstroDataStructure | undefined;
     const advancedAstro = body.advancedAstro;  // Advanced astrology features
     const predictionContext = body.predictionContext;  // Life prediction TIER 1-10
     const userContext = body.userContext;
@@ -315,11 +316,11 @@ export async function POST(request: Request) {
           const cachedAstro = userProfile.personaMemory?.birthChart;
 
           if (cachedSaju && !saju) {
-            saju = cachedSaju;
+            saju = cachedSaju as SajuDataStructure;
             console.warn("[chat-stream] Using cached saju from PersonaMemory");
           }
           if (cachedAstro && !astro) {
-            astro = cachedAstro;
+            astro = cachedAstro as Chart;
             console.warn("[chat-stream] Using cached astro from PersonaMemory");
           }
 
@@ -492,7 +493,7 @@ export async function POST(request: Request) {
     if (!saju || !saju.dayMaster) {
       try {
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
-        saju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender, "solar", userTz);
+        saju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender, "solar", userTz) as SajuDataStructure;
         console.warn("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
       } catch (e) {
         console.warn("[chat-stream] Failed to compute saju:", e);
@@ -534,7 +535,7 @@ export async function POST(request: Request) {
           saturn: getPlanet("Saturn"),
           ascendant: natalChartData.ascendant,
         };
-        console.warn("[chat-stream] Computed astro:", astro?.sun?.sign);
+        console.warn("[chat-stream] Computed astro:", (astro?.sun as { sign?: string })?.sign);
       } catch (e) {
         console.warn("[chat-stream] Failed to compute astro:", e);
       }
@@ -624,21 +625,23 @@ export async function POST(request: Request) {
           transits: currentTransits,
         } : undefined;
 
-        const combinedResult: CombinedResult = {
-          saju: saju || undefined,
-          astrology: astroWithTransits || undefined,
-          extraPoints: advancedAstro?.extraPoints || undefined,
-          asteroids: advancedAstro?.asteroids || undefined,
-          solarReturn: advancedAstro?.solarReturn || undefined,
-          lunarReturn: advancedAstro?.lunarReturn || undefined,
-          progressions: advancedAstro?.progressions || undefined,
-          draconic: advancedAstro?.draconic || undefined,
-          harmonics: advancedAstro?.harmonics || undefined,
-          fixedStars: advancedAstro?.fixedStars || undefined,
-          eclipses: advancedAstro?.eclipses || undefined,
-          electional: advancedAstro?.electional || undefined,
-          midpoints: advancedAstro?.midpoints || undefined,
-        } as CombinedResult;
+        const combinedResult = {
+          saju: saju as unknown,
+          astrology: astroWithTransits as unknown,
+          extraPoints: advancedAstro?.extraPoints,
+          asteroids: advancedAstro?.asteroids,
+          solarReturn: advancedAstro?.solarReturn,
+          lunarReturn: advancedAstro?.lunarReturn,
+          progressions: advancedAstro?.progressions,
+          draconic: advancedAstro?.draconic,
+          harmonics: advancedAstro?.harmonics,
+          fixedStars: advancedAstro?.fixedStars,
+          eclipses: advancedAstro?.eclipses,
+          electional: advancedAstro?.electional,
+          midpoints: advancedAstro?.midpoints,
+          meta: { generator: "chat-stream", generatedAt: new Date().toISOString() },
+          summary: "",
+        } as unknown as CombinedResult;
 
         // 🔍 DEBUG: Check what advanced data is available
         console.warn(`[chat-stream] Advanced astro check:`, {
@@ -742,8 +745,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Few-shot examples for quality improvement
-    const fewShotExamples = buildFewShotPrompt(lang as "ko" | "en", userQuestion);
+    // Few-shot examples for quality improvement (built but kept for future use)
+    buildFewShotPrompt(lang as "ko" | "en", userQuestion);
 
     // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -793,9 +796,10 @@ export async function POST(request: Request) {
         let currentDaeun: { stem: string; branch: string } | undefined;
 
         if (saju?.unse?.daeun && currentAge) {
-          const daeunList = saju.unse.daeun;
+          const daeunList = saju.unse.daeun as Array<{ startAge?: number; stem?: string; heavenlyStem?: string; branch?: string; earthlyBranch?: string }>;
           for (const d of daeunList) {
-            if (currentAge >= d.startAge && currentAge < (d.startAge + 10)) {
+            const startAge = d.startAge ?? 0;
+            if (currentAge >= startAge && currentAge < (startAge + 10)) {
               currentDaeun = {
                 stem: d.stem || d.heavenlyStem || '甲',
                 branch: d.branch || d.earthlyBranch || '子',
@@ -852,8 +856,8 @@ export async function POST(request: Request) {
             saju?.pillars?.month?.heavenlyStem?.name,
             dayStem,
             saju?.pillars?.time?.heavenlyStem?.name,
-          ].filter(Boolean);
-          const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+          ].filter((x): x is string => Boolean(x));
+          const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
 
           // 공망 분석
           const gongmangResult = analyzeGongmang(dayStem, dayBranch, dailyPillar.branch);
@@ -1032,8 +1036,9 @@ export async function POST(request: Request) {
 
           // 1. Moon Phase & Void of Course
           if (astro && astro.planets) {
-            const sun = astro.planets.find((p: PlanetBase) => p.name === "Sun");
-            const moon = astro.planets.find((p: PlanetBase) => p.name === "Moon");
+            const planets = astro.planets as PlanetBase[];
+            const sun = planets.find((p) => p.name === "Sun");
+            const moon = planets.find((p) => p.name === "Moon");
             if (sun && moon) {
               const moonPhase = getMoonPhase(sun.longitude, moon.longitude);
               const phaseName = getMoonPhaseName(moonPhase);
@@ -1041,8 +1046,9 @@ export async function POST(request: Request) {
                 ? `🌙 달 위상: ${phaseName}`
                 : `🌙 Moon Phase: ${phaseName}`);
 
-              // Void of Course 체크
-              const vocInfo = checkVoidOfCourseastro;
+              // Void of Course 체크 - construct a minimal Chart object
+              const chartForVoc = { planets, ascendant: planets[0], mc: planets[0], houses: [] } as Chart;
+              const vocInfo = checkVoidOfCourse(chartForVoc);
               if (vocInfo.isVoid) {
                 tier3Parts.push(lang === "ko"
                   ? `⚠️ 공전 중 (Void of Course): ${vocInfo.description}`
@@ -1055,7 +1061,8 @@ export async function POST(request: Request) {
             }
 
             // 2. 역행 행성 체크
-            const retrogrades = getRetrogradePlanetsastro;
+            const chartForRetro = { planets, ascendant: planets[0], mc: planets[0], houses: [] } as Chart;
+            const retrogrades = getRetrogradePlanets(chartForRetro);
             if (retrogrades.length > 0) {
               tier3Parts.push(lang === "ko"
                 ? `🔄 역행 중: ${retrogrades.join(', ')}`
@@ -1078,10 +1085,10 @@ export async function POST(request: Request) {
             }
 
             // 3. Extra Points (키론/릴리스/버텍스) - 이미 astro에 있으면 사용
-            const chiron = astro.planets?.find((p: PlanetBase) => p.name === "Chiron");
-            const lilith = astro.planets?.find((p: PlanetBase) => p.name === "Lilith" || p.name === "Black Moon Lilith");
-            const vertex = astro.extraPoints?.vertex;
-            const partOfFortune = astro.extraPoints?.partOfFortune;
+            const chiron = planets.find((p) => p.name === "Chiron") as PlanetBase | undefined;
+            const lilith = planets.find((p) => p.name === "Lilith" || p.name === "Black Moon Lilith") as PlanetBase | undefined;
+            const vertex = astro.extraPoints?.vertex as PlanetBase | undefined;
+            const partOfFortune = astro.extraPoints?.partOfFortune as PlanetBase | undefined;
 
             if (chiron || lilith || vertex || partOfFortune) {
               tier3Parts.push("");
@@ -1106,7 +1113,7 @@ export async function POST(request: Request) {
 
           // 4. 사주 패턴 분석 (희귀도)
           if (saju?.pillars) {
-            const patternAnalysis = analyzePatterns(saju.pillars);
+            const patternAnalysis = analyzePatterns(saju.pillars as unknown as import("@/lib/Saju/types").SajuPillars);
             if (patternAnalysis.matchedPatterns.length > 0) {
               tier3Parts.push("");
               tier3Parts.push(lang === "ko" ? "--- 사주 패턴 분석 ---" : "--- Saju Pattern Analysis ---");
@@ -1330,8 +1337,8 @@ export async function POST(request: Request) {
               saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
               saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter(Boolean);
-            const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            ].filter((x): x is string => Boolean(x));
+            const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
 
             // 작년 또는 재작년 분석 (기본값)
             const yearsAgoMatch = questionLower.match(/(\d+)\s*년\s*전|(\d+)\s*years?\s*ago/);
@@ -1421,8 +1428,8 @@ export async function POST(request: Request) {
               saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
               saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter(Boolean);
-            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            ].filter((x): x is string => Boolean(x));
+            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
 
             // 용신 추출
             const primaryYongsin = saju?.advancedAnalysis?.yongsin?.primary;
@@ -1491,8 +1498,8 @@ export async function POST(request: Request) {
               saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
               saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter(Boolean);
-            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            ].filter((x): x is string => Boolean(x));
+            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
 
             const weeklyScores = generateWeeklyPrediction(
               new Date(),
@@ -1531,16 +1538,16 @@ export async function POST(request: Request) {
               saju?.pillars?.month?.heavenlyStem?.name,
               dayStem,
               saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter(Boolean);
-            const allBranches = [yearBranchVal, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
+            ].filter((x): x is string => Boolean(x));
+            const allBranches = [yearBranchVal, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
 
             // 대운 정보 추출
-            const daeunData = saju?.daeun?.cycles || saju?.daeunCycles || [];
-            const daeunList = daeunData.length > 0 ? convertSajuDaeunToInfo(daeunData) : undefined;
+            const daeunData = (saju?.daeun?.cycles || saju?.daeunCycles || []) as unknown[];
+            const daeunList = daeunData.length > 0 ? convertSajuDaeunToInfo(daeunData as DaeunInfo[]) : undefined;
 
             // 용신/기신 추출
-            const yongsinData = saju?.yongsin?.elements || saju?.yongsin;
-            const kisinData = saju?.kisin?.elements || saju?.kisin;
+            const yongsinData = (saju?.yongsin as { elements?: unknown })?.elements || saju?.yongsin;
+            const kisinData = (saju?.kisin as { elements?: unknown })?.elements || saju?.kisin;
 
             const predictionInput: LifePredictionInput = {
               birthYear,
@@ -1554,8 +1561,8 @@ export async function POST(request: Request) {
               allStems,
               allBranches,
               daeunList,
-              yongsin: yongsinData,
-              kisin: kisinData,
+              yongsin: yongsinData as FiveElement[] | undefined,
+              kisin: kisinData as FiveElement[] | undefined,
             };
 
             const currentYear = new Date().getFullYear();

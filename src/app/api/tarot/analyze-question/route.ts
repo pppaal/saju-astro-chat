@@ -3884,24 +3884,31 @@ ${spreadListForPrompt}
 질문에 "~할까?", "~갈까?", "~볼까?", "~살까?", "~먹을까?" 패턴이 있으면
 → 무조건 decisions-crossroads/yes-no-why 선택!`;
 
-    const responseText = await callOpenAI([
+    let responseText = "";
+    try {
+      responseText = await callOpenAI([
       { role: "system", content: systemPrompt },
       { role: "user", content: `사용자 질문: "${trimmedQuestion}"` }
-    ]);
+      ]);
+    } catch (error) {
+      console.warn("[analyze-question] OpenAI unavailable, using fallback routing", error);
+    }
+
+    const fallbackParsed = {
+      themeId: "general-insight",
+      spreadId: "past-present-future",
+      reason: "일반적인 운세 확인",
+      userFriendlyExplanation: language === "ko"
+        ? "전반적인 흐름을 볼 수 있는 스프레드를 준비했어요"
+        : "I've prepared a spread to see the overall flow"
+    };
 
     let parsed;
     try {
-      parsed = JSON.parse(responseText);
+      parsed = responseText ? JSON.parse(responseText) : fallbackParsed;
     } catch {
       // 파싱 실패시 기본값
-      parsed = {
-        themeId: "general-insight",
-        spreadId: "past-present-future",
-        reason: "일반적인 운세 확인",
-        userFriendlyExplanation: language === "ko"
-          ? "전반적인 흐름을 볼 수 있는 스프레드를 준비했어요"
-          : "I've prepared a spread to see the overall flow"
-      };
+      parsed = fallbackParsed;
     }
 
     // ⭐ GPT 결과를 패턴 매칭으로 보정 (GPT가 잘못 선택한 경우 대비)
