@@ -475,6 +475,7 @@
     "dropdownLoading": "Searching...",
     "reset": "New Reading",
     "resultsTitle": "Complete Numerology Profile",
+    "masterBadge": "Master",
     "errors": {
       "birthdate": "Please enter your birth date.",
       "name": "Please enter your name for an accurate reading.",
@@ -1049,6 +1050,14 @@
       "planets": "Planets",
       "currentCycles": "Current cycles"
     }
+  },
+  "footer": {
+    "about": "About",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "refund": "Refund"
   },
   "policy": {
     "privacy": {
@@ -1629,6 +1638,32 @@
       "callback": "Error during callback. Please try again.",
       "default": "An error occurred. Please try again.",
       "unexpected": "An unexpected error occurred."
+    }
+  },
+  "premiumNotifications": {
+    "creditLow": {
+      "title": "Only {{count}} credits left",
+      "message": "Running low on credits. Upgrade to Premium and get unlimited readings!",
+      "messagePaid": "You have {{count}} credits left. Buy more credits or upgrade your plan."
+    },
+    "creditDepleted": {
+      "title": "No credits remaining!",
+      "message": "{{userName}}, you've used all your credits this month. Upgrade to Premium to continue!"
+    },
+    "calendarPremium": {
+      "title": "Premium Destiny Calendar",
+      "message": "{{userName}}, check your year-long destiny calendar! Perfect for planning weddings, contracts, and important events.",
+      "upgradePrompt": "See only 7 days? Upgrade to Premium and unlock your full year destiny calendar!",
+      "upgradeCta": "Upgrade Now"
+    },
+    "promotion": {
+      "title": "{{discount}}% Special Offer!",
+      "message": "{{title}} - {{discount}}% off! Limited time until {{endDate}}!",
+      "messageNoDate": "{{title}} - Get {{discount}}% off now!"
+    },
+    "newFeature": {
+      "title": "New Feature: {{name}}",
+      "message": "{{description}}"
     }
   }
 }
