@@ -702,6 +702,10 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
       if (!target.success) target.success = {};
       Object.assign(target.success, jsonData.success);
     }
+    if (jsonData.auth) {
+      if (!target.auth) target.auth = {};
+      Object.assign(target.auth, jsonData.auth);
+    }
     // Merge destinyPal translations from JSON
     if (jsonData.destinyPal) {
       if (!target.destinyPal) target.destinyPal = {};

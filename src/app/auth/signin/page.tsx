@@ -55,7 +55,7 @@ function SignInContent() {
       {/* Header */}
       <header className={styles.header}>
         <Link href="/" className={styles.backBtn}>
-          ΓåÉ
+          &larr;
         </Link>
         <h1 className={styles.logo}>{t("auth.signIn")}</h1>
       </header>
@@ -63,7 +63,7 @@ function SignInContent() {
       {/* Login Card */}
       <div className={styles.loginContainer}>
         <div className={styles.loginCard}>
-          <div className={styles.loginIcon}>Γ£¿</div>
+          <div className={styles.loginIcon}>&#x2728;</div>
           <h2>{t("auth.welcomeBack")}</h2>
           <p>{t("auth.signInToContinue")}</p>
 
@@ -173,9 +173,9 @@ function SignInContent() {
 
         {/* Bottom decoration */}
         <div className={styles.bottomDecor}>
-          <span>≡ƒîƒ</span>
-          <span>≡ƒö«</span>
-          <span>Γ£¿</span>
+          <span>&#x2728;</span>
+          <span>&#x1F52E;</span>
+          <span>&#x1F319;</span>
         </div>
       </div>
     </main>

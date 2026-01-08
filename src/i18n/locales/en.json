@@ -1618,6 +1618,10 @@
     "signInWithGoogle": "Sign in with Google",
     "secureAuthentication": "Secure Authentication",
     "dataProtected": "Your data is protected with OAuth 2.0",
+    "termsConsentPrefix": "By continuing, you agree to the",
+    "termsConsentJoin": "and acknowledge the",
+    "termsOfUse": "Terms of Use",
+    "privacyPolicy": "Privacy Policy",
     "error": {
       "oauthSignin": "Error starting sign in. Please try again.",
       "oauthCallback": "Error during sign in callback.",
