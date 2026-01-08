@@ -134,7 +134,9 @@ export async function POST(req: Request) {
     // Check credits and consume (required for dream interpretation)
     const creditResult = await checkAndConsumeCredits("reading", 1);
     if (!creditResult.allowed) {
-      return creditErrorResponse(creditResult);
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     // Call backend streaming endpoint

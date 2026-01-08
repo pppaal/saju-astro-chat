@@ -425,6 +425,40 @@
   font-size: 1.25rem;
 }
 
+/* Skip Birth Info */
+.skipBirthRow {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.skipBirthButton {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(168, 237, 234, 0.4);
+  background: transparent;
+  color: #a8edea;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skipBirthButton:hover {
+  background: rgba(168, 237, 234, 0.15);
+  transform: translateY(-1px);
+}
+
+.skipBirthHint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(168, 237, 234, 0.65);
+  max-width: 320px;
+}
+
 /* Login Hint */
 .loginHint {
   text-align: center;
@@ -1372,6 +1406,18 @@
   font-size: 0.95rem;
   color: rgba(168, 237, 234, 0.7);
   margin: 0;
+}
+
+.fallbackNotice {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  background: rgba(255, 193, 7, 0.12);
+  color: #ffd166;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 /* Result Card */

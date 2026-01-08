@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/authOptions';
 import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsultation';
 import { withCircuitBreaker } from '@/lib/circuitBreaker';
+import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
 
 type SymbolCombination = {
   combination: string;
@@ -167,6 +168,13 @@ export async function POST(req: NextRequest) {
       (acceptLanguage.includes('ko') ? 'ko' :
        acceptLanguage.includes('ja') ? 'ja' :
        acceptLanguage.includes('zh') ? 'zh' : 'en');
+
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
+    }
 
     // Fallback response generator - locale-aware
     const generateFallback = (): InsightResponse => {

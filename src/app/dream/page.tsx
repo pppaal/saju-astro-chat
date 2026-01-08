@@ -38,6 +38,7 @@ interface Recommendation {
 
 interface InsightResponse {
   summary?: string;
+  fromFallback?: boolean;
   dreamSymbols?: {
     label: string;
     meaning: string;
@@ -138,6 +139,7 @@ function DreamContent() {
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
+  const hasBirthInfo = Boolean(userProfile?.birthDate || guestBirthInfo?.birthDate);
 
   // Load user profile
   useEffect(() => {
@@ -183,6 +185,12 @@ function DreamContent() {
 
     loadProfile();
   }, [status]);
+
+  const handleSkipBirthInfo = useCallback(() => {
+    setError(null);
+    setGuestBirthInfo(null);
+    setPhase('dream-input');
+  }, []);
 
   // Handle birth info submit
   const handleBirthInfoSubmit = useCallback(async (e: React.FormEvent) => {
@@ -423,12 +431,6 @@ function DreamContent() {
         }
       : null;
 
-    if (!birthInfo?.birthDate) {
-      setError(locale === 'ko' ? '생년월일 정보가 필요합니다.' : 'Birth information is required.');
-      setPhase('birth-input');
-      return;
-    }
-
     setPhase('analyzing');
     setError(null);
     setIsLoading(true);
@@ -440,13 +442,13 @@ function DreamContent() {
         body: JSON.stringify({
           dream: dreamText.trim(),
           locale,
-          birth: {
+          birth: birthInfo?.birthDate ? {
             date: birthInfo.birthDate,
             time: birthInfo.birthTime || '12:00',
             latitude: birthInfo.latitude || 37.5665,
             longitude: birthInfo.longitude || 126.978,
             timeZone: birthInfo.timezone || 'Asia/Seoul',
-          },
+          } : undefined,
         }),
       });
 
@@ -659,7 +661,7 @@ function DreamContent() {
                   <p className={styles.formSubtitle}>
                     {locale === 'ko'
                       ? '정확한 해석을 위해 필요한 정보입니다'
-                      : 'Required for accurate interpretation'}
+                      : 'Optional, but improves accuracy'}
                   </p>
                 </div>
 
@@ -813,6 +815,21 @@ function DreamContent() {
                   </button>
                 </form>
 
+                <div className={styles.skipBirthRow}>
+                  <button
+                    type="button"
+                    className={styles.skipBirthButton}
+                    onClick={handleSkipBirthInfo}
+                  >
+                    {locale === 'ko' ? '??? ?????' : 'Skip for now'}
+                  </button>
+                  <p className={styles.skipBirthHint}>
+                    {locale === 'ko'
+                      ? '???? ??? ?? ????? ???? ??? ? ???.'
+                      : 'You can continue without birth info, but accuracy may drop.'}
+                  </p>
+                </div>
+
                 {status === 'unauthenticated' && (
                   <div className={styles.loginHint}>
                     <p>
@@ -957,8 +974,10 @@ function DreamContent() {
                 </h2>
                 <p className={styles.analyzingText}>
                   {locale === 'ko'
-                    ? '사주와 점성술을 기반으로 분석 중입니다...'
-                    : 'Analyzing based on your birth chart...'}
+                    ? '?,?????T? ????,??^???, ?,???~?o??n? ?,?,? ?`?z.?<^?<...'
+                    : (hasBirthInfo
+                        ? 'Analyzing based on your birth chart...'
+                        : 'Analyzing your dream details...')}
                 </p>
                 <div className={styles.analyzingDots}>
                   <span></span>
@@ -995,6 +1014,13 @@ function DreamContent() {
                 <p className={styles.resultSubtitle}>
                   {locale === 'ko' ? '당신의 꿈이 전하는 메시지입니다' : 'Messages from your dream'}
                 </p>
+                {result.fromFallback && (
+                  <div className={styles.fallbackNotice}>
+                    {locale === 'ko'
+                      ? '?? ???? ?? ??? ?????.'
+                      : 'Showing a simplified interpretation due to server delay.'}
+                  </div>
+                )}
               </div>
 
               <div className={styles.resultLayout}>
