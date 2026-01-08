@@ -2738,6 +2738,8 @@
 .saveMessage {
   font-size: 0.9rem;
   color: #7cf29c;
+  text-align: center;
+  margin: 0 0 0.75rem;
   animation: fadeInOut 3s ease-in-out;
 }
 

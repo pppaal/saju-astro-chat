@@ -213,6 +213,7 @@ export default function TarotReadingPage() {
   const [saveMessage, setSaveMessage] = useState<string>('');
   const detailedSectionRef = useRef<HTMLDivElement>(null);
   const [isSpreading, setIsSpreading] = useState(false); // Card spread animation - starts false, triggered on picking
+  const fetchTriggeredRef = useRef(false);
 
   // Streaming interpretation state - DISABLED (backend endpoint not available)
   // const [streamingOverall, setStreamingOverall] = useState<string>('');
@@ -256,6 +257,9 @@ export default function TarotReadingPage() {
   };
 
   useEffect(() => {
+    if (!categoryName || !spreadId) return;
+    if (spreadInfo?.id === spreadId) return;
+
     const theme = tarotThemes.find((t) => t.id === categoryName);
     const spread = theme?.spreads.find((s) => s.id === spreadId);
 
@@ -265,7 +269,7 @@ export default function TarotReadingPage() {
     } else {
       setGameState('error');
     }
-  }, [categoryName, spreadId]);
+  }, [categoryName, spreadId, spreadInfo?.id]);
 
   // Stop spreading animation after cards are spread
   useEffect(() => {
@@ -413,51 +417,59 @@ export default function TarotReadingPage() {
 
   useEffect(() => {
     const targetCardCount = spreadInfo?.cardCount || 0;
-    if (spreadInfo && selectedIndices.length === targetCardCount && gameState === 'picking') {
-      const fetchReading = async () => {
-        setGameState('revealing');
-        try {
-          const response = await apiFetch('/api/tarot', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ categoryId: categoryName, spreadId, cardCount: targetCardCount, userTopic }),
-          });
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error('Tarot API error:', response.status, errorData);
-            throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`);
-          }
-          const data = await response.json();
-          setReadingResult(data);
-
-          // 즉시 기본 해석으로 결과 화면 표시 (interpretation은 GPT가 채움)
-          const basicInterpretation: InterpretationResult = {
-            overall_message: '',
-            card_insights: data.drawnCards.map((dc: DrawnCard, idx: number) => ({
-              position: data.spread.positions[idx]?.title || `Card ${idx + 1}`,
-              card_name: dc.card.name,
-              is_reversed: dc.isReversed,
-              interpretation: ''  // GPT 해석이 올 때까지 빈 상태로 유지
-            })),
-            guidance: '',
-            affirmation: '',
-            fallback: true
-          };
-          setInterpretation(basicInterpretation);
-
-          // 바로 결과 화면으로 전환 (카드 클릭해서 볼 수 있음)
-          setTimeout(() => {
-            setGameState('results');
-            // 백그라운드에서 GPT 해석 가져오기
-            fetchInterpretation(data);
-          }, 1000);
-        } catch (error) {
-          console.error(error);
-          setGameState('error');
-        }
-      };
-      setTimeout(fetchReading, 500);
+    if (gameState === 'picking' && selectedIndices.length < targetCardCount) {
+      fetchTriggeredRef.current = false;
     }
+
+    if (!spreadInfo || selectedIndices.length !== targetCardCount || gameState !== 'picking') return;
+    if (fetchTriggeredRef.current) return;
+    fetchTriggeredRef.current = true;
+
+    const fetchReading = async () => {
+      setGameState('revealing');
+      try {
+        const response = await apiFetch('/api/tarot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId: categoryName, spreadId, cardCount: targetCardCount, userTopic }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Tarot API error:', response.status, errorData);
+          throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`);
+        }
+        const data = await response.json();
+        setReadingResult(data);
+
+        // 즉시 기본 해석으로 결과 화면 표시 (interpretation은 GPT가 채움)
+        const basicInterpretation: InterpretationResult = {
+          overall_message: '',
+          card_insights: data.drawnCards.map((dc: DrawnCard, idx: number) => ({
+            position: data.spread.positions[idx]?.title || `Card ${idx + 1}`,
+            card_name: dc.card.name,
+            is_reversed: dc.isReversed,
+            interpretation: ''  // GPT 해석이 올 때까지 빈 상태로 유지
+          })),
+          guidance: '',
+          affirmation: '',
+          fallback: true
+        };
+        setInterpretation(basicInterpretation);
+
+        // 바로 결과 화면으로 전환 (카드 클릭해서 볼 수 있음)
+        setTimeout(() => {
+          setGameState('results');
+          // 백그라운드에서 GPT 해석 가져오기
+          fetchInterpretation(data);
+        }, 1000);
+      } catch (error) {
+        console.error(error);
+        setGameState('error');
+      }
+    };
+
+    const timeoutId = setTimeout(fetchReading, 500);
+    return () => clearTimeout(timeoutId);
   }, [selectedIndices, spreadInfo, categoryName, spreadId, fetchInterpretation, gameState, userTopic, language]);
 
   const handleReset = () => {
@@ -1094,6 +1106,11 @@ export default function TarotReadingPage() {
         {/* Personality Insight (from Nova Persona quiz) */}
         <PersonalityInsight lang={language} compact className={styles.personalityInsight} />
 
+        {saveMessage && (
+          <div className={styles.saveMessage} role="status" aria-live="polite">
+            {saveMessage}
+          </div>
+        )}
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
           <button
@@ -1106,9 +1123,6 @@ export default function TarotReadingPage() {
               : (language === 'ko' ? '저장하기' : 'Save Reading')
             }
           </button>
-          {saveMessage && (
-            <span className={styles.saveMessage}>{saveMessage}</span>
-          )}
           <button onClick={handleReset} className={styles.resetButton}>
             {language === 'ko' ? '새로 읽기' : 'New Reading'}
           </button>
