@@ -197,6 +197,7 @@ D) Processing Time:
 - Approved refunds: 7-10 business days
 - Refund method: Original payment method only
 - Currency: Original currency (exchange rate differences not compensated)
+- Payment processor fees (e.g., Stripe) are non-refundable and may be deducted from the refund amount
 
 To Request Exception Refund - Email ${CONTACT_EMAIL} with:
 - Account email
@@ -228,6 +229,7 @@ D) 처리 시간:
 - 승인된 환불: 영업일 기준 7-10일
 - 환불 방법: 원래 결제 수단으로만 가능
 - 통화: 원래 통화 (환율 차이 보상 없음)
+- 결제 처리 수수료(예: Stripe)는 환불 불가이며 환불 금액에서 차감될 수 있습니다
 
 예외 환불 요청 - ${CONTACT_EMAIL}로 이메일:
 - 계정 이메일

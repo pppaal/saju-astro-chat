@@ -8,6 +8,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import {
   cleanStringArray,
   normalizeMessages as normalizeMessagesBase,
@@ -176,6 +177,13 @@ export async function POST(req: Request) {
         { error: "Invalid tarot context" },
         { status: 400, headers: limit.headers }
       );
+    }
+
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     // Inject system instruction for consistent, card-grounded replies

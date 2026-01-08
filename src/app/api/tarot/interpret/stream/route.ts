@@ -7,6 +7,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 
 interface CardInput {
   name: string;
@@ -52,6 +53,13 @@ export async function POST(req: Request) {
         { error: "Missing required fields: categoryId, spreadId, cards" },
         { status: 400, headers: limit.headers }
       );
+    }
+
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     // Call backend chat-stream endpoint (tarot interpret-stream is not exposed)

@@ -11,6 +11,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 
 
 interface CardInput {
@@ -135,6 +136,13 @@ export async function POST(req: Request) {
 
     if (moonPhase && moonPhase.length < 2) {
       return NextResponse.json({ error: "moonPhase is too short" }, { status: 400, headers: limit.headers });
+    }
+
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)

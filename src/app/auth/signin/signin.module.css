@@ -1,14 +1,15 @@
-/* ====================================
+﻿/* ====================================
    SIGN IN PAGE - Premium Design
    ==================================== */
 
 .container {
   min-height: 100vh;
-  background: radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.08), transparent),
-              radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.06), transparent),
-              linear-gradient(180deg, #050714 0%, #0a0f1f 100%);
+  background:
+    radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.08), transparent),
+    radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.06), transparent),
+    linear-gradient(180deg, #050714 0%, #0a0f1f 100%);
   padding: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   color: #fff;
   overflow-x: hidden;
   position: relative;
@@ -17,7 +18,9 @@
 /* ====================================
    BACKGROUND ORBS
    ==================================== */
-.bgOrb1, .bgOrb2, .bgOrb3 {
+.bgOrb1,
+.bgOrb2,
+.bgOrb3 {
   position: fixed;
   border-radius: 50%;
   filter: blur(80px);
@@ -54,18 +57,33 @@
 }
 
 @keyframes float1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 50px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 50px);
+  }
 }
 
 @keyframes float2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-40px, -30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-40px, -30px);
+  }
 }
 
 @keyframes float3 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(20px, -40px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, -40px);
+  }
 }
 
 /* ====================================
@@ -140,7 +158,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ====================================
@@ -176,7 +196,7 @@
 }
 
 .loginCard::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -50% -50% auto auto;
   width: 200%;
@@ -186,7 +206,7 @@
 }
 
 .loginCard::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -203,8 +223,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .loginCard h2 {
@@ -247,7 +272,19 @@
   gap: 1rem;
 }
 
-.googleBtn, .kakaoBtn {
+.disabledBtn {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.disabledBtn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.googleBtn,
+.kakaoBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,8 +301,9 @@
   overflow: hidden;
 }
 
-.googleBtn::before, .kakaoBtn::before {
-  content: '';
+.googleBtn::before,
+.kakaoBtn::before {
+  content: "";
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -288,7 +326,7 @@
 }
 
 .kakaoBtn {
-  background: #FEE500;
+  background: #fee500;
   color: #000;
   box-shadow: 0 8px 24px rgba(254, 229, 0, 0.25);
 }
@@ -334,6 +372,33 @@
 }
 
 /* ====================================
+   TERMS CONSENT
+   ==================================== */
+.termsRow {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.termsRow input {
+  margin-top: 0.2rem;
+}
+
+.termsLink {
+  color: #63d2ff;
+  text-decoration: none;
+}
+
+.termsLink:hover {
+  text-decoration: underline;
+}
+
+/* ====================================
    DIVIDER
    ==================================== */
 .divider {
@@ -343,8 +408,9 @@
   margin: 2rem 0 1.5rem;
 }
 
-.divider::before, .divider::after {
-  content: '';
+.divider::before,
+.divider::after {
+  content: "";
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
@@ -401,8 +467,15 @@
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
 /* ====================================
@@ -448,7 +521,8 @@
     font-size: 1.5rem;
   }
 
-  .googleBtn, .kakaoBtn {
+  .googleBtn,
+  .kakaoBtn {
     padding: 0.875rem 1.25rem;
     font-size: 0.95rem;
   }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { signIn, getProviders } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -31,6 +31,7 @@ function SignInContent() {
   const error = searchParams?.get("error");
   const [providers, setProviders] = useState<Providers>(null);
   const [loading, setLoading] = useState(true);
+  const [agreed, setAgreed] = useState(false);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -54,7 +55,7 @@ function SignInContent() {
       {/* Header */}
       <header className={styles.header}>
         <Link href="/" className={styles.backBtn}>
-          ←
+          ΓåÉ
         </Link>
         <h1 className={styles.logo}>{t("auth.signIn")}</h1>
       </header>
@@ -62,7 +63,7 @@ function SignInContent() {
       {/* Login Card */}
       <div className={styles.loginContainer}>
         <div className={styles.loginCard}>
-          <div className={styles.loginIcon}>✨</div>
+          <div className={styles.loginIcon}>Γ£¿</div>
           <h2>{t("auth.welcomeBack")}</h2>
           <p>{t("auth.signInToContinue")}</p>
 
@@ -73,15 +74,21 @@ function SignInContent() {
               {error === "OAuthAccountNotLinked" && t("auth.error.oauthAccountNotLinked")}
               {error === "Callback" && t("auth.error.callback")}
               {error === "Default" && t("auth.error.default")}
-              {!["OAuthSignin", "OAuthCallback", "OAuthAccountNotLinked", "Callback", "Default"].includes(error) &&
-                t("auth.error.unexpected")}
+              {![
+                "OAuthSignin",
+                "OAuthCallback",
+                "OAuthAccountNotLinked",
+                "Callback",
+                "Default",
+              ].includes(error) && t("auth.error.unexpected")}
             </div>
           )}
 
           <div className={styles.loginButtons}>
             {providers?.google && (
               <button
-                className={styles.googleBtn}
+                className={`${styles.googleBtn} ${!agreed ? styles.disabledBtn : ""}`}
+                disabled={!agreed}
                 onClick={() => signIn("google", { callbackUrl })}
               >
                 <svg viewBox="0 0 24 24" width="20" height="20">
@@ -106,7 +113,7 @@ function SignInContent() {
               </button>
             )}
 
-{/* Kakao Login - 임시로 숨김 (나중에 사업자등록 후 활성화)
+            {/* Kakao Login - ∞₧ä∞ï£δí£ ∞ê¿Ω╣Ç (δéÿ∞ñæ∞ùÉ ∞é¼∞ùà∞₧Éδô▒δí¥ φ¢ä φÖ£∞ä▒φÖö)
             <button
               className={`${styles.kakaoBtn} ${styles.comingSoon}`}
               disabled
@@ -123,6 +130,35 @@ function SignInContent() {
             */}
           </div>
 
+          <label className={styles.termsRow}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(event) => setAgreed(event.target.checked)}
+            />
+            <span>
+              {t("auth.termsConsentPrefix", "By continuing, you agree to the")}{" "}
+              <Link
+                href="/policy/terms"
+                className={styles.termsLink}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("auth.termsOfUse", "Terms of Use")}
+              </Link>{" "}
+              {t("auth.termsConsentJoin", "and acknowledge the")}{" "}
+              <Link
+                href="/policy/privacy"
+                className={styles.termsLink}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("auth.privacyPolicy", "Privacy Policy")}
+              </Link>
+              .
+            </span>
+          </label>
+
           <div className={styles.divider}>
             <span>{t("auth.secureAuthentication")}</span>
           </div>
@@ -137,9 +173,9 @@ function SignInContent() {
 
         {/* Bottom decoration */}
         <div className={styles.bottomDecor}>
-          <span>🌟</span>
-          <span>🔮</span>
-          <span>✨</span>
+          <span>≡ƒîƒ</span>
+          <span>≡ƒö«</span>
+          <span>Γ£¿</span>
         </div>
       </div>
     </main>

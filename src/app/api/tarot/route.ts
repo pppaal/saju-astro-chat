@@ -8,6 +8,7 @@ import { enforceBodySize } from "@/lib/http";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import { Card, DrawnCard } from "@/lib/Tarot/tarot.types";
 import { tarotDeck } from "@/lib/Tarot/tarot-data";
+import { checkCreditsOnly, creditErrorResponse } from "@/lib/credits/withCredits";
 
 const MAX_ID_LEN = 64;
 const BODY_LIMIT = 8 * 1024;
@@ -58,6 +59,13 @@ export async function POST(req: Request) {
         { error: "categoryId and spreadId are required" },
         { status: 400, headers: limit.headers }
       );
+    }
+
+    const creditResult = await checkCreditsOnly("reading", 1);
+    if (!creditResult.allowed) {
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     const theme = tarotThemes.find((t) => t.id === categoryId);

@@ -7,6 +7,7 @@ import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
 import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { logger } from '@/lib/logger';
+import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 
 interface CardInput {
   name: string;
@@ -312,6 +313,13 @@ export async function POST(req: Request) {
         status: 400,
         headers: { "Content-Type": "application/json" }
       });
+    }
+
+    const creditResult = await checkAndConsumeCredits("reading", 1);
+    if (!creditResult.allowed) {
+      const res = creditErrorResponse(creditResult);
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     const isKorean = language === "ko";
