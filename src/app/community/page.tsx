@@ -10,6 +10,7 @@ import { useI18n, DICTS } from "@/i18n/I18nProvider";
 import { useToast } from "@/components/ui/Toast";
 import { PostSkeleton } from "@/components/ui/Skeleton";
 import styles from "./community.module.css";
+import { logger } from '@/lib/logger';
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 // Prevent static export errors; this page depends on client/session data.
@@ -624,7 +625,7 @@ export default function CommunityPage() {
         const savedArray = JSON.parse(saved);
         setSavedPosts(new Set(savedArray));
       } catch (e) {
-        console.error("Failed to load saved posts", e);
+        logger.error("Failed to load saved posts", e);
       }
     }
   }, []);

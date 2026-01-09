@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>운명 캘린더 테스트</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #1a1a2e;
+      color: #f8fafc;
+    }
+    h1 {
+      text-align: center;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .test-form {
+      background: rgba(30, 30, 50, 0.9);
+      padding: 30px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 2px solid rgba(139, 92, 246, 0.3);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #a8edea;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(45, 45, 80, 0.6);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .results {
+      background: rgba(30, 30, 50, 0.9);
+      padding: 20px;
+      border-radius: 16px;
+      margin-top: 20px;
+      border: 2px solid rgba(139, 92, 246, 0.3);
+    }
+    .year-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .summary-card {
+      background: rgba(45, 45, 80, 0.6);
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+    .summary-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 32px;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .summary-card p {
+      margin: 0;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .grade-stats {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    .grade-badge {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid;
+    }
+    .grade-badge.grade0 {
+      background: rgba(251, 191, 36, 0.15);
+      border-color: rgba(251, 191, 36, 0.4);
+      color: #fbbf24;
+    }
+    .grade-badge.grade1 {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #3b82f6;
+    }
+    .grade-badge.grade2 {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+    }
+    .grade-badge.grade3 {
+      background: rgba(100, 116, 139, 0.15);
+      border-color: rgba(100, 116, 139, 0.4);
+      color: #64748b;
+    }
+    .grade-badge.grade4 {
+      background: rgba(249, 115, 22, 0.15);
+      border-color: rgba(249, 115, 22, 0.4);
+      color: #f97316;
+    }
+    .grade-badge.grade5 {
+      background: rgba(220, 38, 38, 0.15);
+      border-color: rgba(220, 38, 38, 0.4);
+      color: #dc2626;
+    }
+    .sample-dates {
+      margin-top: 20px;
+    }
+    .date-card {
+      background: rgba(45, 45, 80, 0.6);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border-left: 4px solid #8b5cf6;
+    }
+    .date-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .date-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .date-desc {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #8b5cf6;
+    }
+    .error {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      padding: 15px;
+      border-radius: 12px;
+      color: #fca5a5;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔮 운명 캘린더 완벽 테스트</h1>
+
+  <div class="test-form">
+    <div class="form-group">
+      <label>생년월일</label>
+      <input type="date" id="birthDate" value="1990-03-15">
+    </div>
+
+    <div class="form-group">
+      <label>출생 시간</label>
+      <input type="time" id="birthTime" value="08:30">
+    </div>
+
+    <div class="form-group">
+      <label>출생 도시</label>
+      <input type="text" id="birthPlace" value="Seoul, South Korea">
+    </div>
+
+    <div class="form-group">
+      <label>테스트 연도</label>
+      <input type="number" id="testYear" value="2025" min="2015" max="2035">
+    </div>
+
+    <button onclick="testCalendar()">🚀 캘린더 데이터 테스트</button>
+    <button onclick="testMultipleYears()" style="background: linear-gradient(135deg, #22c55e, #14b8a6);">📅 과거~미래 5년 테스트</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    async function testCalendar() {
+      const birthDate = document.getElementById('birthDate').value;
+      const birthTime = document.getElementById('birthTime').value;
+      const birthPlace = document.getElementById('birthPlace').value;
+      const year = document.getElementById('testYear').value;
+
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<div class="loading">⏳ 데이터 로딩 중...</div>';
+
+      try {
+        const params = new URLSearchParams({
+          year,
+          locale: 'ko',
+          birthDate,
+          birthTime,
+          birthPlace,
+          category: 'all'
+        });
+
+        const response = await fetch(`/api/calendar?${params}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // 연도별 데이터 필터링
+        const yearDates = data.allDates.filter(d => {
+          const dateYear = new Date(d.date).getFullYear();
+          return dateYear === parseInt(year);
+        });
+
+        // 통계 계산
+        const stats = {
+          total: yearDates.length,
+          grade0: yearDates.filter(d => d.grade === 0).length,
+          grade1: yearDates.filter(d => d.grade === 1).length,
+          grade2: yearDates.filter(d => d.grade === 2).length,
+          grade3: yearDates.filter(d => d.grade === 3).length,
+          grade4: yearDates.filter(d => d.grade === 4).length,
+          grade5: yearDates.filter(d => d.grade === 5).length,
+        };
+
+        // 샘플 날짜 (첫 5개)
+        const sampleDates = yearDates.slice(0, 5);
+
+        let html = `
+          <div class="results">
+            <h2>✅ ${year}년 데이터 분석 완료!</h2>
+
+            <div class="year-summary">
+              <div class="summary-card">
+                <h3>${stats.total}</h3>
+                <p>총 특별한 날</p>
+              </div>
+            </div>
+
+            <h3>📊 등급별 분포</h3>
+            <div class="grade-stats">
+              <div class="grade-badge grade0">💫 천운: ${stats.grade0}개</div>
+              <div class="grade-badge grade1">🌟 최고: ${stats.grade1}개</div>
+              <div class="grade-badge grade2">✨ 좋음: ${stats.grade2}개</div>
+              <div class="grade-badge grade3">⭐ 보통: ${stats.grade3}개</div>
+              <div class="grade-badge grade4">⚠️ 나쁨: ${stats.grade4}개</div>
+              <div class="grade-badge grade5">☠️ 최악: ${stats.grade5}개</div>
+            </div>
+
+            <h3>🔍 샘플 날짜 (처음 5개)</h3>
+            <div class="sample-dates">
+        `;
+
+        sampleDates.forEach(date => {
+          const gradeEmoji = date.grade === 0 ? '💫' :
+                            date.grade === 1 ? '🌟' :
+                            date.grade === 2 ? '✨' :
+                            date.grade === 3 ? '⭐' :
+                            date.grade === 4 ? '⚠️' : '☠️';
+
+          html += `
+            <div class="date-card">
+              <div class="date-header">
+                <span class="date-title">${gradeEmoji} ${date.date} (점수: ${date.score})</span>
+              </div>
+              <p><strong>${date.title}</strong></p>
+              <p class="date-desc">${date.description}</p>
+              <p class="date-desc"><strong>카테고리:</strong> ${date.categories.join(', ')}</p>
+            </div>
+          `;
+        });
+
+        html += '</div></div>';
+        resultsDiv.innerHTML = html;
+
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="error">
+            <h3>❌ 오류 발생</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    async function testMultipleYears() {
+      const birthDate = document.getElementById('birthDate').value;
+      const birthTime = document.getElementById('birthTime').value;
+      const birthPlace = document.getElementById('birthPlace').value;
+      const currentYear = new Date().getFullYear();
+
+      const years = [
+        currentYear - 2,
+        currentYear - 1,
+        currentYear,
+        currentYear + 1,
+        currentYear + 2
+      ];
+
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<div class="loading">⏳ 5년치 데이터 로딩 중...</div>';
+
+      try {
+        const allStats = {};
+
+        for (const year of years) {
+          const params = new URLSearchParams({
+            year,
+            locale: 'ko',
+            birthDate,
+            birthTime,
+            birthPlace,
+            category: 'all'
+          });
+
+          const response = await fetch(`/api/calendar?${params}`);
+
+          if (!response.ok) {
+            throw new Error(`${year}년 데이터 로드 실패: HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          const yearDates = data.allDates.filter(d => {
+            const dateYear = new Date(d.date).getFullYear();
+            return dateYear === year;
+          });
+
+          allStats[year] = {
+            total: yearDates.length,
+            grade0: yearDates.filter(d => d.grade === 0).length,
+            grade1: yearDates.filter(d => d.grade === 1).length,
+            grade2: yearDates.filter(d => d.grade === 2).length,
+            grade3: yearDates.filter(d => d.grade === 3).length,
+            grade4: yearDates.filter(d => d.grade === 4).length,
+            grade5: yearDates.filter(d => d.grade === 5).length,
+            sampleDates: yearDates.slice(0, 2)
+          };
+
+          // API 부하 방지 대기
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        let html = `
+          <div class="results">
+            <h2>✅ ${years[0]} ~ ${years[years.length - 1]}년 데이터 분석 완료!</h2>
+        `;
+
+        years.forEach(year => {
+          const stats = allStats[year];
+          html += `
+            <h3>📅 ${year}년</h3>
+            <div class="grade-stats">
+              <div class="grade-badge grade0">💫 천운: ${stats.grade0}개</div>
+              <div class="grade-badge grade1">🌟 최고: ${stats.grade1}개</div>
+              <div class="grade-badge grade2">✨ 좋음: ${stats.grade2}개</div>
+              <div class="grade-badge grade3">⭐ 보통: ${stats.grade3}개</div>
+              <div class="grade-badge grade4">⚠️ 나쁨: ${stats.grade4}개</div>
+              <div class="grade-badge grade5">☠️ 최악: ${stats.grade5}개</div>
+            </div>
+            <div class="sample-dates" style="margin-bottom: 30px;">
+          `;
+
+          stats.sampleDates.forEach(date => {
+            const gradeEmoji = date.grade === 0 ? '💫' :
+                              date.grade === 1 ? '🌟' :
+                              date.grade === 2 ? '✨' :
+                              date.grade === 3 ? '⭐' :
+                              date.grade === 4 ? '⚠️' : '☠️';
+
+            html += `
+              <div class="date-card">
+                <div class="date-header">
+                  <span class="date-title">${gradeEmoji} ${date.date} (점수: ${date.score})</span>
+                </div>
+                <p><strong>${date.title}</strong></p>
+                <p class="date-desc">${date.description.substring(0, 100)}...</p>
+              </div>
+            `;
+          });
+
+          html += '</div>';
+        });
+
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="error">
+            <h3>❌ 오류 발생</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

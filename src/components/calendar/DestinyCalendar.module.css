@@ -289,6 +289,37 @@
   color: #fed6e3;
 }
 
+/* Checkbox Wrapper */
+.checkboxWrapper {
+  margin-top: 8px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(168, 237, 234, 0.7);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  color: rgba(168, 237, 234, 0.9);
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #a8edea;
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Gender Buttons - Dream Style */
 .genderButtons {
   display: grid;
@@ -810,27 +841,72 @@
 .calendarHeader {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 16px 16px 12px;
-  background: var(--cal-bg-primary);
-  border-bottom: 1px solid var(--cal-border);
+  gap: 16px;
+  padding: 20px 20px 18px;
+  background: linear-gradient(145deg, #1a1a2e 0%, #252540 100%);
+  border-bottom: 2px solid rgba(139, 92, 246, 0.2);
   position: sticky;
   top: 0;
   z-index: 50;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.calendarIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.calendarIcon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .calendarTitle {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--cal-text-primary);
   margin: 0;
-  background: linear-gradient(135deg, var(--cal-text-primary), var(--cal-accent-primary));
+  background: linear-gradient(135deg, #ffffff, #8b5cf6, #06b6d4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-align: center;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.calendarSubtitle {
+  font-size: 13px;
+  color: var(--cal-text-tertiary);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .headerActions {
@@ -842,21 +918,30 @@
 }
 
 .editBirthBtn {
-  padding: 4px 8px;
-  background: var(--cal-bg-tertiary);
-  border: 1px solid var(--cal-border);
-  border-radius: 4px;
-  color: var(--cal-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 10px;
+  color: var(--cal-accent-primary);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--cal-transition-fast);
+  transition: all var(--cal-transition-medium);
+  flex-shrink: 0;
 }
 
 .editBirthBtn:hover {
-  background: var(--cal-bg-active);
-  color: var(--cal-text-primary);
-  border-color: var(--cal-accent-primary);
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.editBirthBtn span:first-child {
+  font-size: 16px;
 }
 
 /* 캐시 히트 배지 */
@@ -876,6 +961,51 @@
   animation: fadeInBadge 0.3s ease-out;
 }
 
+/* 헤더 액션 영역 */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 캐시 인디케이터 - v7 UI/UX 개선 */
+.cacheIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(6, 182, 212, 0.12));
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 8px;
+  color: #4ade80;
+  font-size: 12px;
+  font-weight: 600;
+  animation: fadeInBadge 0.3s ease-out;
+  cursor: help;
+  transition: all var(--cal-transition-fast);
+}
+
+.cacheIndicator:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(6, 182, 212, 0.18));
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.cacheIcon {
+  font-size: 14px;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.cacheText {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 @keyframes fadeInBadge {
   from {
     opacity: 0;
@@ -889,35 +1019,83 @@
 
 .summaryBadges {
   display: flex;
-  gap: 4px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .summaryBadge {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: var(--cal-bg-tertiary);
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 10px;
+  gap: 6px;
+  background: rgba(45, 45, 80, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  transition: all var(--cal-transition-fast);
+  cursor: default;
+}
+
+.summaryBadge:hover {
+  background: rgba(45, 45, 80, 0.8);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.badgeEmoji {
+  font-size: 16px;
+  line-height: 1;
 }
 
 .badgeLabel {
-  color: var(--cal-text-tertiary);
-  font-weight: 500;
+  color: var(--cal-text-secondary);
+  font-weight: 600;
+  font-size: 12px;
 }
 
 .badgeCount {
   color: var(--cal-text-primary);
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 16px;
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .cautionBadge {
   background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.cautionBadge:hover {
+  background: rgba(249, 115, 22, 0.18);
+  border-color: rgba(249, 115, 22, 0.5);
 }
 
 .cautionBadge .badgeCount {
-  color: #f97316;
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.worstBadge {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+.worstBadge:hover {
+  background: rgba(220, 38, 38, 0.22);
+  border-color: rgba(220, 38, 38, 0.6);
+}
+
+.worstBadge .badgeCount {
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ========== Score Distribution Chart ========== */
@@ -1319,14 +1497,14 @@
 
 /* ========== Calendar Grid ========== */
 .calendarWrapper {
-  padding: 16px 16px 20px;
+  padding: 20px;
   overflow: hidden;
-  margin: 0 auto;
-  max-width: 800px;
+  margin: 16px auto;
+  max-width: 850px;
   background: linear-gradient(145deg, #1e1e3a, #252550);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .weekdaysHeader {
@@ -1406,7 +1584,7 @@
 /* ========== Day Cell - Larger & Brighter ========== */
 .emptyDay {
   aspect-ratio: 1;
-  min-height: 90px;
+  min-height: 100px;
 }
 
 .day {
@@ -1415,12 +1593,12 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 14px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all var(--cal-transition-fast);
   position: relative;
   aspect-ratio: 1;
-  min-height: 90px;
+  min-height: 100px;
   background: rgba(45, 45, 80, 0.6);
   border: 2px solid rgba(139, 92, 246, 0.15);
 }
@@ -1507,9 +1685,9 @@
   display: none;
 }
 
-/* Grade Box Colors - Bright & Vibrant */
+/* Grade Box Colors - 5등급 시스템 */
 
-/* Celestial Day - Gold/Purple gradient - Best day */
+/* Grade 0: 최고의 날 (~5%) - Gold/Purple gradient */
 .day.dayGrade0 {
   background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #fbbf24 100%) !important;
   border-color: #fbbf24 !important;
@@ -1522,7 +1700,7 @@
   text-shadow: 0 0 10px rgba(251, 191, 36, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Great Day - Bright Blue */
+/* Grade 1: 좋은 날 (~15%) - Bright Blue */
 .day.dayGrade1 {
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
   border-color: #60a5fa !important;
@@ -1535,50 +1713,37 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Good Day - Vibrant Green */
+/* Grade 2: 보통 날 (~50%) - Soft Gray/Purple */
 .day.dayGrade2 {
-  background: linear-gradient(135deg, #166534 0%, #22c55e 100%) !important;
-  border-color: #4ade80 !important;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
-}
-
-.day.dayGrade2 .dayNumber {
-  color: #dcfce7 !important;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Normal Day - Soft purple/gray */
-.day.dayGrade3 {
-  background: rgba(75, 75, 120, 0.7) !important;
+  background: rgba(75, 85, 120, 0.6) !important;
   border-color: rgba(148, 163, 184, 0.3) !important;
 }
 
-.day.dayGrade3 .dayNumber {
-  color: #cbd5e1;
+.day.dayGrade2 .dayNumber {
+  color: #e2e8f0;
 }
 
-/* Bad Day - Orange/Red warning */
-.day.dayGrade4 {
+/* Grade 3: 안좋은 날 (~25%) - Orange Warning */
+.day.dayGrade3 {
   background: linear-gradient(135deg, #9a3412 0%, #f97316 100%) !important;
   border-color: #fb923c !important;
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
 }
 
-.day.dayGrade4 .dayNumber {
+.day.dayGrade3 .dayNumber {
   color: #ffedd5 !important;
   font-weight: 600;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Very Bad Day - Deep Red */
-.day.dayGrade5 {
+/* Grade 4: 최악의 날 (~5%) - Deep Red */
+.day.dayGrade4 {
   background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%) !important;
   border-color: #ef4444 !important;
   box-shadow: 0 0 12px rgba(220, 38, 38, 0.4);
 }
 
-.day.dayGrade5 .dayNumber {
+.day.dayGrade4 .dayNumber {
   color: #fecaca !important;
   font-weight: 600;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -1614,33 +1779,43 @@
 }
 
 .legendDot {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  position: relative;
 }
 
+/* 접근성 개선: 색상 + 패턴 표시 */
+.legendPattern {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+}
+
+/* 5등급 시스템 Legend 색상 */
 .grade0Dot {
-  background: linear-gradient(135deg, #a855f7, #fbbf24);
+  background: linear-gradient(135deg, #a855f7, #fbbf24); /* 최고 - 금/보라 */
 }
 
 .grade1Dot {
-  background: #3b82f6;
+  background: #3b82f6; /* 좋음 - 파랑 */
 }
 
 .grade2Dot {
-  background: #22c55e;
+  background: #64748b; /* 보통 - 회색 */
 }
 
 .grade3Dot {
-  background: #64748b;
+  background: #f97316; /* 안좋음 - 주황 */
 }
 
 .grade4Dot {
-  background: #f97316;
-}
-
-.grade5Dot {
-  background: #8B0000;
+  background: #dc2626; /* 최악 - 빨강 */
 }
 
 /* ========== Fortune Graph (SparkLine) ========== */
@@ -1727,41 +1902,38 @@
   outline-offset: 1px;
 }
 
+/* 5등급 시스템 SparkBar 색상 */
 .sparkBar.grade0 {
-  background: linear-gradient(180deg, #fbbf24, #a855f7);
+  background: linear-gradient(180deg, #fbbf24, #a855f7); /* 최고 */
 }
 
 .sparkBar.grade1 {
-  background: #3b82f6;
+  background: #3b82f6; /* 좋음 */
 }
 
 .sparkBar.grade2 {
-  background: #22c55e;
-  opacity: 0.85;
+  background: #64748b; /* 보통 */
+  opacity: 0.5;
 }
 
 .sparkBar.grade3 {
-  background: #64748b;
-  opacity: 0.4;
+  background: #f97316; /* 안좋음 */
 }
 
 .sparkBar.grade4 {
-  background: #f97316;
-}
-
-.sparkBar.grade5 {
-  background: #8B0000;
+  background: #dc2626; /* 최악 */
 }
 
 /* ========== Selected Day Card ========== */
 .selectedDayInfo {
-  margin: 14px auto 18px;
-  max-width: 650px;
-  background: var(--cal-bg-secondary);
-  border: 1px solid var(--cal-border);
-  border-radius: 16px;
+  margin: 20px auto 24px;
+  max-width: 750px;
+  background: linear-gradient(145deg, rgba(30, 30, 50, 0.95), rgba(20, 20, 40, 0.98));
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
   overflow: hidden;
   animation: slideUp 0.3s var(--cal-spring);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes slideUp {
@@ -2298,61 +2470,70 @@
 
 /* ========== Month Highlights ========== */
 .monthHighlights {
-  padding: 18px 14px;
-  max-width: 520px;
+  padding: 24px 20px;
+  max-width: 750px;
   margin: 0 auto;
 }
 
 .highlightsTitle {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--cal-text-primary);
-  margin: 0 0 14px 4px;
+  margin: 0 0 18px 4px;
   text-align: center;
+  background: linear-gradient(135deg, #ffffff, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .highlightsList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
 }
 
 .highlightCard {
-  padding: 14px;
-  background: var(--cal-bg-secondary);
-  border-radius: 12px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 40, 0.9));
+  border-radius: 14px;
   cursor: pointer;
   transition: all var(--cal-transition-fast);
-  border: 1px solid var(--cal-border-light);
+  border: 2px solid rgba(139, 92, 246, 0.2);
   text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .highlightCard:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--cal-shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(139, 92, 246, 0.4);
 }
 
+/* 5등급 시스템 Highlight 카드 색상 */
 .highlightCard.grade0 {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.12), rgba(255, 165, 0, 0.08));
-  border-color: rgba(255, 215, 0, 0.3);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(139, 92, 246, 0.12));
+  border-color: rgba(251, 191, 36, 0.4); /* 최고 - 금색 */
 }
 
 .highlightCard.grade1 {
-  border-left: 3px solid var(--cal-grade-great);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(30, 60, 120, 0.2)); /* 좋음 - 파랑 */
 }
 
 .highlightCard.grade2 {
-  border-left: 3px solid var(--cal-grade-good);
+  border-color: rgba(100, 116, 139, 0.5);
+  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(50, 50, 70, 0.2)); /* 보통 - 회색 */
+}
+
+.highlightCard.grade3 {
+  border-color: rgba(249, 115, 22, 0.5);
+  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(120, 50, 20, 0.2)); /* 안좋음 - 주황 */
 }
 
 .highlightCard.grade4 {
-  border-left: 3px solid var(--cal-grade-bad);
-  background: rgba(255, 69, 58, 0.06);
-}
-
-.highlightCard.grade5 {
-  border-left: 3px solid #8B0000;
-  background: rgba(139, 0, 0, 0.1);
+  border-color: rgba(220, 38, 38, 0.5);
+  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(100, 20, 20, 0.2)); /* 최악 - 빨강 */
 }
 
 .highlightHeader {
@@ -2403,23 +2584,23 @@
   display: none;
 }
 
-/* Grade colors for highlight titles */
+/* 5등급 시스템 highlight 타이틀 색상 */
 .grade0 .highlightDate,
 .grade0 .highlightTitle {
-  color: var(--cal-grade-celestial);
+  color: #fbbf24; /* 최고 - 금색 */
 }
 
 .grade1 .highlightTitle {
-  color: var(--cal-grade-great);
+  color: #3b82f6; /* 좋음 - 파랑 */
 }
 
-.grade4 .highlightTitle {
-  color: var(--cal-grade-bad);
+.grade3 .highlightTitle {
+  color: #f97316; /* 안좋음 - 주황 */
 }
 
-.grade5 .highlightTitle,
-.grade5 .highlightDate {
-  color: #8B0000;
+.grade4 .highlightTitle,
+.grade4 .highlightDate {
+  color: #dc2626; /* 최악 - 빨강 */
 }
 
 /* ========== Loading & Error States ========== */

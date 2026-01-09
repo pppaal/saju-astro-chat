@@ -90,20 +90,21 @@ export interface SajuData {
 }
 
 export interface PlanetData {
-  name: string;
+  name?: string;
   sign?: string;
   degree?: number;
   house?: number;
   formatted?: string;
   speed?: number;
   retrograde?: boolean;
+  longitude?: number;
 }
 
 export interface AspectData {
-  from: string;
-  to: string;
-  type: string;
-  orb: number;
+  from?: string;
+  to?: string;
+  type?: string;
+  orb?: number;
 }
 
 export interface ExtraPointData {
@@ -126,6 +127,12 @@ export interface AsteroidData {
   name?: string;
   sign?: string;
   house?: number;
+}
+
+export interface HouseData {
+  index?: number;
+  cusp?: number;
+  sign?: string;
 }
 
 export interface EclipseData {
@@ -189,7 +196,7 @@ export interface AstroData {
   planets?: PlanetData[] | Record<string, { sign?: string }>;
   ascendant?: { sign?: string; formatted?: string };
   mc?: { sign?: string; formatted?: string };
-  houses?: { index: number; cusp: number; sign?: string }[];
+  houses?: { index?: number; cusp?: number; sign?: string }[];
   aspects?: AspectData[];
   extraPoints?: {
     chiron?: ExtraPointData;
@@ -226,4 +233,66 @@ export interface AstroData {
   draconic?: DraconicData;
   electional?: ElectionalData;
   midpoints?: MidpointsData;
+  [key: string]: unknown;
+}
+
+// ============================
+// Tab Component Types
+// ============================
+
+export interface BilingualText {
+  ko?: string;
+  en?: string;
+  koDetail?: string;
+  enDetail?: string;
+}
+
+export interface DestinyNarrative {
+  relationshipStyle?: BilingualText;
+  careerStyle?: BilingualText;
+  healthStyle?: BilingualText;
+  personalityStyle?: BilingualText;
+  fortuneStyle?: BilingualText;
+  karmaStyle?: BilingualText;
+  careerDestiny?: BilingualText;
+  emotionPattern?: BilingualText;
+  [key: string]: unknown;
+}
+
+// Tab에서 사용하는 data 객체의 타입
+export interface TabData {
+  personalityAnalysis?: Record<string, unknown> | null;
+  loveAnalysis?: Record<string, unknown> | null;
+  careerAnalysis?: Record<string, unknown> | null;
+  fortuneAnalysis?: Record<string, unknown> | null;
+  healthAnalysis?: Record<string, unknown> | null;
+  karmaAnalysis?: Record<string, unknown> | null;
+  normalizedElements?: Array<{ element: string; value: number }> | null;
+  strongest?: string[] | null;
+  weakest?: string[] | null;
+  luckyItems?: Array<{ item: string }> | null;
+  dayMasterName?: string;
+  dayElement?: string;
+  [key: string]: unknown;
+}
+
+export interface TabProps {
+  saju?: SajuData | null;
+  astro?: AstroData | null;
+  lang: string;
+  isKo: boolean;
+  data: TabData;
+  destinyNarrative?: DestinyNarrative | null;
+  combinedLifeTheme?: (BilingualText & { detail?: BilingualText }) | null;
+}
+
+// 탭 ID 타입
+export type TabId = 'personality' | 'love' | 'career' | 'fortune' | 'health' | 'karma';
+
+// 탭 정의 타입
+export interface TabDefinition {
+  id: TabId;
+  label: string;
+  emoji: string;
+  desc: string;
 }

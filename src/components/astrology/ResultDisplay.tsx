@@ -352,7 +352,7 @@ function localizeSignLabel(inputSign: string, target: LocaleKey): string {
 }
 function localizePlanetLabel(inputName: string, target: LocaleKey): string {
   const enKeys = Object.keys(PLANET_LABELS.en) as (keyof typeof PLANET_LABELS.en)[];
-  if (enKeys.includes(inputName)) {
+  if (enKeys.includes(inputName as keyof typeof PLANET_LABELS.en)) {
     return PLANET_LABELS[target][inputName as keyof typeof PLANET_LABELS.en] || String(inputName);
   }
   for (const labels of Object.values(PLANET_LABELS)) {

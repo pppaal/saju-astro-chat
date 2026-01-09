@@ -1,3 +1,4 @@
+// TODO: Add proper types for prompt data structures
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 
 // Type definitions for data structures
@@ -16,6 +17,7 @@ interface HouseData {
   index: number;
   cusp?: number;
   sign?: string;
+  formatted?: string;
   [key: string]: unknown;
 }
 
@@ -25,6 +27,23 @@ interface AspectData {
   type?: string;
   angle?: number;
   orb?: number;
+  planet1?: { name?: string };
+  planet2?: { name?: string };
+  aspect?: string;
+  [key: string]: unknown;
+}
+
+// Pillar data for Saju
+interface PillarData {
+  heavenlyStem?: { name?: string; element?: string };
+  earthlyBranch?: { name?: string; element?: string };
+  ganji?: string;
+  [key: string]: unknown;
+}
+
+// Facts data from astrology
+interface FactsData {
+  elementRatios?: Record<string, number>;
   [key: string]: unknown;
 }
 
@@ -34,7 +53,7 @@ interface AstrologyData {
   aspects?: AspectData[];
   ascendant?: PlanetData;
   mc?: PlanetData;
-  facts?: unknown;
+  facts?: FactsData;
   transits?: unknown[];
   [key: string]: unknown;
 }
@@ -137,7 +156,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     return `${stemKo} + ${branchKo}`;
   };
 
-  const formatPillar = (p: PlanetData) => {
+  const formatPillar = (p: PillarData | undefined) => {
     if (!p) return null;
     const stem = p.heavenlyStem?.name || p.ganji?.split?.('')?.[0] || '';
     const branch = p.earthlyBranch?.name || p.ganji?.split?.('')?.[1] || '';

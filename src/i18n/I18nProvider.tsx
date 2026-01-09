@@ -1,4 +1,6 @@
-﻿"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Deep merge utilities require flexible typing for nested i18n dictionary structures
+"use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { allExtensions } from "@/lib/i18n/extensions";
@@ -508,8 +510,9 @@ const ICHING_OVERRIDES: Partial<Record<string, any>> = {
 for (const [loc, strings] of Object.entries(ICHING_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as Record<string, Record<string, unknown>>)[key].iching = {
-      ...(dicts as Record<string, Record<string, unknown>>)[key].iching,
+    const dict = dicts as Record<string, Record<string, any>>;
+    dict[key].iching = {
+      ...(dict[key].iching || {}),
       ...strings,
     };
   }
@@ -542,9 +545,10 @@ const TAROT_OVERRIDES: Partial<Record<string, any>> = {
 for (const [loc, strings] of Object.entries(TAROT_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as Record<string, Record<string, unknown>>)[key].tarot = {
-      ...(dicts as Record<string, Record<string, unknown>>)[key].tarot,
-      ...(strings as Record<string, unknown>).tarot,
+    const dict = dicts as Record<string, Record<string, any>>;
+    dict[key].tarot = {
+      ...(dict[key].tarot || {}),
+      ...(strings as any).tarot,
     };
   }
 }
@@ -558,9 +562,10 @@ const PERSONALITY_PREMIUM_OVERRIDES: Partial<Record<string, any>> = {};
 for (const [loc, strings] of Object.entries(PERSONALITY_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as Record<string, Record<string, unknown>>)[key].personality = {
-      ...(dicts as Record<string, Record<string, unknown>>)[key].personality,
-      ...(strings as Record<string, unknown>).personality,
+    const dict = dicts as Record<string, Record<string, any>>;
+    dict[key].personality = {
+      ...(dict[key].personality || {}),
+      ...(strings as any).personality,
     };
   }
 }
@@ -568,9 +573,10 @@ for (const [loc, strings] of Object.entries(PERSONALITY_OVERRIDES)) {
 for (const [loc, strings] of Object.entries(PERSONALITY_PREMIUM_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    (dicts as Record<string, Record<string, unknown>>)[key].personality = {
-      ...(dicts as Record<string, Record<string, unknown>>)[key].personality,
-      ...(strings as Record<string, unknown>).personality,
+    const dict = dicts as Record<string, Record<string, any>>;
+    dict[key].personality = {
+      ...(dict[key].personality || {}),
+      ...(strings as any).personality,
     };
   }
 }

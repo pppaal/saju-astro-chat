@@ -1376,3 +1376,83 @@
   background: rgba(99, 210, 255, 0.3);
   color: #ffffff;
 }
+
+/* ========== Numerology Detail ========== */
+.numerologyDetail {
+  color: #fff;
+}
+
+.numberGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.numberBox {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(240, 147, 251, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.numberBox:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(240, 147, 251, 0.4);
+  transform: translateY(-2px);
+}
+
+.numberValue {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.numberLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.numberKorean {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.personalYearBox {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+  border: 1px solid rgba(240, 147, 251, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.yearNumber {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.yearLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}

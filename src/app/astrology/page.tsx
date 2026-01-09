@@ -377,7 +377,7 @@ export default function Home() {
               isLoading={isLoading}
               error={error}
               interpretation={interpretation}
-              chartData={chartData}
+              chartData={chartData as any}
               aspects={aspects}
               advanced={advanced}
               isLoggedIn={isLoggedIn}

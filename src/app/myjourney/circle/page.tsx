@@ -7,6 +7,7 @@ import BackButton from "@/components/ui/BackButton";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import styles from "./circle.module.css";
+import { logger } from "@/lib/logger";
 
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
 
@@ -83,7 +84,7 @@ function CircleContent() {
           setPeople(data.people || []);
         }
       } catch (e) {
-        console.error("Failed to load circle:", e);
+        logger.error("Failed to load circle:", e);
       } finally {
         setLoading(false);
       }
@@ -175,7 +176,7 @@ function CircleContent() {
         setShowForm(false);
       }
     } catch (e) {
-      console.error("Failed to save:", e);
+      logger.error("Failed to save:", e);
     } finally {
       setSaving(false);
     }
@@ -189,7 +190,7 @@ function CircleContent() {
         setPeople(people.filter((p) => p.id !== id));
       }
     } catch (e) {
-      console.error("Failed to delete:", e);
+      logger.error("Failed to delete:", e);
     }
   };
 

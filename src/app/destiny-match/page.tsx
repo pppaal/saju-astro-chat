@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './DestinyMatch.module.css';
+import { logger } from '@/lib/logger';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 // API에서 반환하는 프로필 타입
@@ -180,7 +181,7 @@ export default function DestinyMatchPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        console.error('Swipe failed:', data.error);
+        logger.error('Swipe failed:', data.error);
         return null;
       }
 
@@ -191,7 +192,7 @@ export default function DestinyMatchPage() {
 
       return data;
     } catch (err) {
-      console.error('Swipe error:', err);
+      logger.error('Swipe error:', err);
       return null;
     }
   };

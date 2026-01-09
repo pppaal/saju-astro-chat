@@ -8,6 +8,7 @@ import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
 import { recommendSpreads, quickQuestions, checkDangerousQuestion } from "@/lib/Tarot/tarot-recommend";
 import styles from "./tarot-home.module.css";
+import { tarotLogger } from "@/lib/logger";
 
 interface AIAnalysisResult {
   isDangerous?: boolean;
@@ -21,7 +22,7 @@ interface AIAnalysisResult {
 }
 
 // 키워드 기반 빠른 추천 (미리보기용) - 키워드 매칭 성공 여부도 반환
-function getQuickRecommendation(question: string): { path: string; cardCount: number; spreadTitle: string; isKeywordMatch: boolean } {
+function getQuickRecommendation(question: string, isKo: boolean = true): { path: string; cardCount: number; spreadTitle: string; isKeywordMatch: boolean } {
   const recommendations = recommendSpreads(question, 1);
 
   if (recommendations.length > 0 && recommendations[0].matchScore > 0) {
@@ -29,7 +30,7 @@ function getQuickRecommendation(question: string): { path: string; cardCount: nu
     return {
       path: `/tarot/${rec.themeId}/${rec.spreadId}?question=${encodeURIComponent(question)}`,
       cardCount: rec.spread.cardCount,
-      spreadTitle: rec.spread.titleKo || rec.spread.title,
+      spreadTitle: isKo ? (rec.spread.titleKo || rec.spread.title) : rec.spread.title,
       isKeywordMatch: true
     };
   }
@@ -38,7 +39,7 @@ function getQuickRecommendation(question: string): { path: string; cardCount: nu
   return {
     path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(question)}`,
     cardCount: 3,
-    spreadTitle: "과거-현재-미래",
+    spreadTitle: isKo ? "과거-현재-미래" : "Past-Present-Future",
     isKeywordMatch: false
   };
 }
@@ -186,7 +187,7 @@ export default function TarotHomePage() {
       }
 
       setDangerWarning(null);
-      const fallbackResult = getQuickRecommendation(question);
+      const fallbackResult = getQuickRecommendation(question, isKo);
 
       // 항상 GPT 분석 사용 (더 정확함)
       setPreviewInfo({ cardCount: 3, spreadTitle: isKo ? "분석 중..." : "Analyzing...", path: undefined });
@@ -219,7 +220,7 @@ export default function TarotHomePage() {
             setPreviewInfo({ cardCount: fallbackResult.cardCount, spreadTitle: fallbackResult.spreadTitle, path: fallbackResult.path });
           }
         } catch (error) {
-          console.error("GPT analysis failed:", error);
+          tarotLogger.error("GPT analysis failed:", error instanceof Error ? error : new Error(String(error)));
           // 실패시 키워드 기반 폴백
           setPreviewInfo({ cardCount: fallbackResult.cardCount, spreadTitle: fallbackResult.spreadTitle, path: fallbackResult.path });
         } finally {
@@ -255,7 +256,7 @@ export default function TarotHomePage() {
 
       return await response.json();
     } catch (error) {
-      console.error("AI analysis failed:", error);
+      tarotLogger.error("AI analysis failed:", error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   }, [language]);
@@ -291,22 +292,22 @@ export default function TarotHomePage() {
         }, 500);
       } else {
         // AI 실패시 키워드 기반 폴백
-        const result = getQuickRecommendation(question);
+        const result = getQuickRecommendation(question, isKo);
         router.push(result.path);
       }
     } catch {
       // 에러시 키워드 기반 폴백
-      const result = getQuickRecommendation(question);
+      const result = getQuickRecommendation(question, isKo);
       router.push(result.path);
     }
-  }, [question, dangerWarning, isLoadingPreview, previewInfo, analyzeWithAI, router]);
+  }, [question, dangerWarning, isLoadingPreview, previewInfo, analyzeWithAI, router, isKo]);
 
   // 빠른 질문 선택 - 바로 이동 (GPT 분석 없이)
   const handleQuickQuestion = (q: typeof quickQuestions[0]) => {
-    const questionText = isKo ? q.question : q.questionEn;
+    const questionText = isKo ? (q.question || '') : (q.questionEn || '');
     setQuestion(questionText);
     saveRecentQuestion(questionText);
-    const result = getQuickRecommendation(questionText);
+    const result = getQuickRecommendation(questionText, isKo);
     router.push(result.path);
   };
 
@@ -314,7 +315,7 @@ export default function TarotHomePage() {
   const handleRecentQuestion = (q: string) => {
     setQuestion(q);
     saveRecentQuestion(q);
-    const result = getQuickRecommendation(q);
+    const result = getQuickRecommendation(q, isKo);
     router.push(result.path);
   };
 

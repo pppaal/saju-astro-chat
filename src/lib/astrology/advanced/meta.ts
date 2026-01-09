@@ -12,7 +12,7 @@ export type EngineMeta = {
 export type ExtendedMeta = ChartMeta & EngineMeta;
 
 export function buildEngineMeta(meta: ChartMeta, opts: Required<AstroOptions>): ExtendedMeta {
-  const swisseph = getSwisseph();
+  const swisseph = getSwisseph() as any;
   const seVersion = typeof swisseph.swe_version === "function" ? swisseph.swe_version() : "unknown";
   return {
     ...meta,

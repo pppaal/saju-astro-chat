@@ -11,6 +11,7 @@ import { SIBSIN_HOUSE_MATRIX, HOUSE_KEYWORDS } from '@/lib/destiny-matrix/data/l
 import type { WesternElement, HouseNumber, PlanetName, ShinsalKind, AsteroidName } from '@/lib/destiny-matrix/types';
 import type { FiveElement, SibsinKind, TwelveStage, TwelveStageStandard } from '@/lib/Saju/types';
 import { findPlanetSign } from '../utils/helpers';
+import type { SajuData, AstroData } from '../types';
 
 // ============================
 // 타입 정의
@@ -121,6 +122,30 @@ export interface CareerMatrixResult {
   careerMessage: { ko: string; en: string };
 }
 
+// 사주 데이터 확장 타입 (sibsin, twelveStages 포함)
+// SajuData와 별도 인터페이스로 정의 (확장 아닌 독립 타입)
+interface ExtendedSajuData {
+  dayMaster?: { element?: string; name?: string; heavenlyStem?: string };
+  sibsin?: {
+    year?: SibsinKind;
+    month?: SibsinKind;
+    day?: SibsinKind;
+    hour?: SibsinKind;
+  };
+  twelveStages?: {
+    year?: TwelveStage;
+    month?: TwelveStage;
+    day?: TwelveStage;
+    hour?: TwelveStage;
+  };
+  shinsal?: Array<{ name?: string; shinsal?: string } | string> | Record<string, unknown>;
+  sinsal?: {
+    luckyList?: Array<{ name?: string } | string>;
+    unluckyList?: Array<{ name?: string } | string>;
+    twelveAll?: Array<{ name?: string }>;
+  };
+}
+
 // ============================
 // 헬퍼 함수
 // ============================
@@ -221,13 +246,16 @@ function getWestElementFromSign(sign: string): WesternElement {
 // ============================
 
 export function getMatrixAnalysis(
-  saju: unknown,
-  astro: unknown,
+  saju: SajuData | ExtendedSajuData | undefined,
+  astro: AstroData | undefined,
   lang: string
 ): MatrixAnalysisResult | null {
   const isKo = lang === 'ko';
 
   if (!saju && !astro) return null;
+
+  // 타입 캐스팅
+  const extSaju = saju as ExtendedSajuData | undefined;
 
   // 1. 오행-서양원소 융합 분석
   const elementFusions: ElementFusionResult[] = [];
@@ -284,7 +312,7 @@ export function getMatrixAnalysis(
 
   // 2. 십신-행성 융합 분석
   const sibsinPlanetFusions: SibsinPlanetResult[] = [];
-  const sibsinList = saju?.sibsin || {};
+  const sibsinList = extSaju?.sibsin || {};
   const planets: Array<{ name: PlanetName; signKey: string }> = [
     { name: 'Sun', signKey: 'sun' },
     { name: 'Moon', signKey: 'moon' },
@@ -330,11 +358,11 @@ export function getMatrixAnalysis(
 
   // 3. 12운성-하우스 생명력 분석
   const lifeCycles: LifeCycleResult[] = [];
-  const twelveStages = saju?.twelveStages || {};
+  const twelveStages = extSaju?.twelveStages || {};
   const planetHouses: Partial<Record<PlanetName, number>> = {};
 
   // 행성 하우스 매핑
-  if (astro?.planets) {
+  if (astro?.planets && Array.isArray(astro.planets)) {
     for (const p of astro.planets) {
       if (p.name && p.house) {
         const pName = p.name.charAt(0).toUpperCase() + p.name.slice(1).toLowerCase();
@@ -344,9 +372,9 @@ export function getMatrixAnalysis(
   }
 
   // 12운성별 분석
-  const stageKeys = Object.keys(twelveStages) as Array<keyof typeof twelveStages>;
+  const stageKeys = Object.keys(twelveStages) as Array<'year' | 'month' | 'day' | 'hour'>;
   for (const pillar of stageKeys) {
-    const stage = twelveStages[pillar] as TwelveStage;
+    const stage = twelveStages[pillar] as TwelveStage | undefined;
     if (!stage) continue;
 
     // 건록/제왕 변환 (TwelveStage -> TwelveStageStandard)
@@ -360,7 +388,7 @@ export function getMatrixAnalysis(
       day: 1,
       hour: 10,
     };
-    const house = pillarHouseMap[String(pillar)] || 1;
+    const house = pillarHouseMap[pillar] || 1;
 
     const interaction = TWELVE_STAGE_HOUSE_MATRIX[normalizedStage]?.[house];
     const stageInfo = TWELVE_STAGE_INFO[normalizedStage];
@@ -375,8 +403,8 @@ export function getMatrixAnalysis(
           color: getInteractionColor(interaction.level),
           keyword: { ko: interaction.keyword, en: interaction.keywordEn },
           description: {
-            ko: `${normalizedStage}(${String(pillar)}주) × ${house}하우스`,
-            en: `${normalizedStage}(${String(pillar)} pillar) × House ${house}`,
+            ko: `${normalizedStage}(${pillar}주) × ${house}하우스`,
+            en: `${normalizedStage}(${pillar} pillar) × House ${house}`,
           },
         },
         stageInfo: { ko: stageInfo.ko, en: stageInfo.en },
@@ -509,37 +537,38 @@ export function getLifeCycleDescription(
 // ============================
 
 export function getLoveMatrixAnalysis(
-  saju: unknown,
-  astro: unknown,
+  saju: SajuData | ExtendedSajuData | undefined,
+  astro: AstroData | undefined,
   lang: string
 ): LoveMatrixResult | null {
   const isKo = lang === 'ko';
 
   if (!saju && !astro) return null;
 
+  const extSaju = saju as ExtendedSajuData | undefined;
   const shinsalLove: ShinsalPlanetResult[] = [];
   const asteroidLove: AsteroidHouseResult[] = [];
 
   // 1. 신살-행성 분석 (사랑 관련: 도화, 홍염살 중심)
   const loveShinsals: ShinsalKind[] = ['도화', '홍염살', '천을귀인', '월덕귀인', '반안'];
   const lovePlanets: PlanetName[] = ['Venus', 'Mars', 'Moon', 'Neptune'];
-  const shinsalList = saju?.shinsal || saju?.sinsal || [];
+  const shinsalList = extSaju?.shinsal || saju?.sinsal || [];
 
   // 사주에서 신살 추출 (배열 또는 객체 형태 처리)
   const userShinsals: ShinsalKind[] = [];
   if (Array.isArray(shinsalList)) {
     for (const s of shinsalList) {
-      const name = typeof s === 'string' ? s : s?.name || s?.shinsal;
+      const name = typeof s === 'string' ? s : (s as { name?: string; shinsal?: string })?.name || (s as { shinsal?: string })?.shinsal;
       if (name && loveShinsals.includes(name as ShinsalKind)) {
         userShinsals.push(name as ShinsalKind);
       }
     }
-  } else if (typeof shinsalList === 'object') {
-    for (const key of Object.keys(shinsalList)) {
-      const val = shinsalList[key];
+  } else if (typeof shinsalList === 'object' && shinsalList !== null) {
+    for (const key of Object.keys(shinsalList as Record<string, unknown>)) {
+      const val = (shinsalList as Record<string, unknown>)[key];
       if (Array.isArray(val)) {
         for (const v of val) {
-          const name = typeof v === 'string' ? v : v?.name;
+          const name = typeof v === 'string' ? v : (v as { name?: string })?.name;
           if (name && loveShinsals.includes(name as ShinsalKind)) {
             userShinsals.push(name as ShinsalKind);
           }
@@ -579,20 +608,21 @@ export function getLoveMatrixAnalysis(
   const loveAsteroids: AsteroidName[] = ['Juno', 'Ceres'];
 
   // astro에서 소행성 정보 추출
-  if (astro?.asteroids || astro?.planets) {
-    const asteroidData = astro.asteroids || [];
-    const planetData = astro.planets || [];
+  const astroWithAsteroids = astro as AstroData & { asteroids?: Array<{ name?: string; house?: number }> };
+  if (astroWithAsteroids?.asteroids || astro?.planets) {
+    const asteroidData = astroWithAsteroids?.asteroids || [];
+    const planetData = astro?.planets || [];
 
     for (const asteroid of loveAsteroids) {
       // asteroids 배열에서 찾기
-      let asteroidInfo = asteroidData.find((a: unknown) =>
-        a.name?.toLowerCase() === asteroid.toLowerCase()
-      );
+      let asteroidInfo = Array.isArray(asteroidData) ? asteroidData.find((a) =>
+        a?.name?.toLowerCase() === asteroid.toLowerCase()
+      ) : undefined;
 
       // planets 배열에서도 찾기 (일부 시스템에서 소행성을 planets에 포함)
-      if (!asteroidInfo) {
-        asteroidInfo = planetData.find((p: unknown) =>
-          p.name?.toLowerCase() === asteroid.toLowerCase()
+      if (!asteroidInfo && Array.isArray(planetData)) {
+        asteroidInfo = planetData.find((p) =>
+          p?.name?.toLowerCase() === asteroid.toLowerCase()
         );
       }
 
@@ -635,8 +665,8 @@ export function getLoveMatrixAnalysis(
     : 65;
 
   // 사랑 메시지 생성
-  const hasDoHwa = userShinsals.includes('도화');
-  const hasHongYeom = userShinsals.includes('홍염살');
+  const hasDoHwa = userShinsals.includes('도화' as ShinsalKind);
+  const hasHongYeom = userShinsals.includes('홍염살' as ShinsalKind);
   const hasJuno7H = asteroidLove.some(a => a.asteroid === 'Juno' && a.house === 7);
 
   let loveMessage = { ko: '균형 잡힌 연애 에너지를 가지고 있어요.', en: 'You have balanced romantic energy.' };
@@ -671,20 +701,21 @@ export function getLoveMatrixAnalysis(
 // ============================
 
 export function getCareerMatrixAnalysis(
-  saju: unknown,
-  astro: unknown,
+  saju: SajuData | ExtendedSajuData | undefined,
+  astro: AstroData | undefined,
   lang: string
 ): CareerMatrixResult | null {
   const isKo = lang === 'ko';
 
   if (!saju && !astro) return null;
 
+  const extSaju = saju as ExtendedSajuData | undefined;
   const sibsinCareer: SibsinHouseResult[] = [];
   const careerStrengths: Array<{ area: string; score: number; icon: string }> = [];
 
   // 1. 십신-하우스 분석 (10하우스 중심)
   const careerHouses: HouseNumber[] = [10, 6, 2]; // 커리어, 직장, 재물
-  const sibsinList = saju?.sibsin || {};
+  const sibsinList = extSaju?.sibsin || {};
 
   // 각 기둥의 십신 추출
   const allSibsin: SibsinKind[] = [];

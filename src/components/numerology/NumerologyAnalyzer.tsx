@@ -1,21 +1,21 @@
 // components/numerology/NumerologyAnalyzer.tsx
-/**
- * 수비학 분석 폼 컴포넌트
- * 생년월일과 이름을 입력받아 수비학 분석 요청
- */
 'use client';
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import { useI18n } from '@/i18n/I18nProvider';
 import styles from './NumerologyAnalyzer.module.css';
 
 interface NumerologyResult {
   lifePath: { number: number; meaning: string; description: string };
-  expression: { number: number; meaning: string; description: string };
-  soulUrge: { number: number; meaning: string; description: string };
-  personality: { number: number; meaning: string; description: string };
+  expression?: { number: number; meaning: string; description: string };
+  soulUrge?: { number: number; meaning: string; description: string };
+  personality?: { number: number; meaning: string; description: string };
   personalYear?: { number: number; theme: string };
-  koreanName?: { strokes: number; meaning: string };
+  personalMonth?: { number: number; theme?: string };
+  personalDay?: { number: number; theme?: string };
+  koreanName?: { number: number; strokes: number; meaning: string };
 }
 
 interface NumerologyAnalyzerProps {
@@ -23,17 +23,21 @@ interface NumerologyAnalyzerProps {
 }
 
 export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAnalyzerProps) {
+  const { t, locale } = useI18n();
   const [birthDate, setBirthDate] = useState('');
   const [englishName, setEnglishName] = useState('');
   const [koreanName, setKoreanName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<NumerologyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const apiLocale = locale === 'ko' ? 'ko' : 'en';
+  const isKo = locale === 'ko';
+  const masterBadgeLabel = t('numerology.masterBadge', 'Master');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!birthDate) {
-      setError('생년월일을 입력해주세요.');
+      setError(t('numerology.errors.birthdate', 'Please enter your birth date.'));
       return;
     }
 
@@ -49,19 +53,53 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
           birthDate,
           englishName: englishName || undefined,
           koreanName: koreanName || undefined,
-          locale: 'ko',
+          locale: apiLocale,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('분석 요청에 실패했습니다.');
+        throw new Error(t('numerology.errors.generate', 'An error occurred. Please try again.'));
       }
 
       const data = await response.json();
+
+      // Validate the response structure
+      if (!data.lifePath) {
+        console.error('Invalid numerology response structure:', data);
+        throw new Error(t('numerology.errors.generate', 'An error occurred. Please try again.'));
+      }
+
       setResult(data);
       onAnalysisComplete?.(data);
+
+      // Save to readings history
+      try {
+        const displayName = englishName || koreanName || t('numerology.title', 'Numerology');
+        await fetch('/api/readings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'numerology',
+            title: `${displayName} - ${t('numerology.title', 'Numerology')}`,
+            content: JSON.stringify({
+              birthDate,
+              englishName,
+              koreanName,
+              lifePath: data.lifePath?.number,
+              expression: data.expression?.number,
+              soulUrge: data.soulUrge?.number,
+              personality: data.personality?.number,
+              personalYear: data.personalYear?.number,
+              date: new Date().toISOString(),
+            }),
+          }),
+        });
+      } catch (saveErr) {
+        console.error('Failed to save reading:', saveErr);
+        // Don't show error to user, just log it
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : t('numerology.errors.generate', 'An error occurred. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -70,53 +108,44 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
   return (
     <div className={styles.container}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        <h2 className={styles.title}>수비학 분석</h2>
-        <p className={styles.subtitle}>
-          생년월일과 이름을 입력하여 당신의 수비학 프로필을 확인하세요
-        </p>
-
         <div className={styles.inputGroup}>
-          <label htmlFor="birthDate" className={styles.label}>
-            생년월일 <span className={styles.required}>*</span>
-          </label>
-          <input
-            type="date"
-            id="birthDate"
+          <DateTimePicker
             value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            className={styles.input}
+            onChange={setBirthDate}
+            label={t('numerology.birthdateLabel', 'Birthdate')}
             required
+            locale={apiLocale}
           />
         </div>
 
         <div className={styles.inputGroup}>
           <label htmlFor="englishName" className={styles.label}>
-            영문 이름 (선택)
+            {t('numerology.englishNameLabel', 'English Name (Optional)')}
           </label>
           <input
             type="text"
             id="englishName"
             value={englishName}
             onChange={(e) => setEnglishName(e.target.value)}
-            placeholder="Full Name in English"
+            placeholder="John Smith"
             className={styles.input}
           />
-          <span className={styles.hint}>Expression, Soul Urge 계산에 사용됩니다</span>
+          <span className={styles.hint}>{t('numerology.englishNameHint', 'Enter your English name to calculate Expression, Soul Urge, Personality numbers')}</span>
         </div>
 
         <div className={styles.inputGroup}>
           <label htmlFor="koreanName" className={styles.label}>
-            한글 이름 (선택)
+            {t('numerology.koreanNameLabel', 'Korean Name (Optional)')}
           </label>
           <input
             type="text"
             id="koreanName"
             value={koreanName}
             onChange={(e) => setKoreanName(e.target.value)}
-            placeholder="홍길동"
+            placeholder={isKo ? '홍길동' : 'Hong Gil-dong'}
             className={styles.input}
           />
-          <span className={styles.hint}>획수 분석에 사용됩니다</span>
+          <span className={styles.hint}>{t('numerology.koreanNameHint', 'Korean name stroke analysis will be provided')}</span>
         </div>
 
         {error && (
@@ -133,9 +162,9 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
           whileTap={{ scale: 0.98 }}
         >
           {isLoading ? (
-            <span className={styles.loading}>분석 중...</span>
+            <span className={styles.loading}>{t('common.loading', 'Loading...')}</span>
           ) : (
-            '분석하기'
+            t('numerology.buttonCalculate', 'Generate Reading')
           )}
         </motion.button>
       </form>
@@ -147,55 +176,103 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h3 className={styles.resultsTitle}>분석 결과</h3>
+          <h3 className={styles.resultsTitle}>{t('numerology.resultsTitle', 'Numerology Profile')}</h3>
 
           <div className={styles.numberGrid}>
-            <NumberCard
-              title="Life Path"
-              korean="인생 경로"
-              number={result.lifePath.number}
-              meaning={result.lifePath.meaning}
-              description={result.lifePath.description}
-            />
-            <NumberCard
-              title="Expression"
-              korean="표현수"
-              number={result.expression.number}
-              meaning={result.expression.meaning}
-              description={result.expression.description}
-            />
-            <NumberCard
-              title="Soul Urge"
-              korean="영혼의 욕구"
-              number={result.soulUrge.number}
-              meaning={result.soulUrge.meaning}
-              description={result.soulUrge.description}
-            />
-            <NumberCard
-              title="Personality"
-              korean="인격수"
-              number={result.personality.number}
-              meaning={result.personality.meaning}
-              description={result.personality.description}
-            />
+            {result.lifePath && (
+              <NumberCard
+                title="Life Path"
+                korean={isKo ? t('numerology.coreNumbers.lifePath', 'Life Path') : ''}
+                masterLabel={masterBadgeLabel}
+                number={result.lifePath.number}
+                meaning={result.lifePath.meaning}
+                description={result.lifePath.description}
+              />
+            )}
+            {result.expression && (
+              <NumberCard
+                title="Expression"
+                korean={isKo ? t('numerology.coreNumbers.expression', 'Expression') : ''}
+                masterLabel={masterBadgeLabel}
+                number={result.expression.number}
+                meaning={result.expression.meaning}
+                description={result.expression.description}
+              />
+            )}
+            {result.soulUrge && (
+              <NumberCard
+                title="Soul Urge"
+                korean={isKo ? t('numerology.coreNumbers.soulUrge', 'Soul Urge') : ''}
+                masterLabel={masterBadgeLabel}
+                number={result.soulUrge.number}
+                meaning={result.soulUrge.meaning}
+                description={result.soulUrge.description}
+              />
+            )}
+            {result.personality && (
+              <NumberCard
+                title="Personality"
+                korean={isKo ? t('numerology.coreNumbers.personality', 'Personality') : ''}
+                masterLabel={masterBadgeLabel}
+                number={result.personality.number}
+                meaning={result.personality.meaning}
+                description={result.personality.description}
+              />
+            )}
           </div>
 
-          {result.personalYear && (
-            <div className={styles.personalYear}>
-              <h4>올해의 개인년도수</h4>
-              <div className={styles.personalYearContent}>
-                <span className={styles.yearNumber}>{result.personalYear.number}</span>
-                <span className={styles.yearTheme}>{result.personalYear.theme}</span>
+          {/* Personal Cycles */}
+          {(result.personalYear || result.personalMonth || result.personalDay) && (
+            <div className={styles.personalCycles}>
+              <h4 className={styles.cyclesTitle}>📅 {t('numerology.currentCycles', 'Current Cycles')}</h4>
+              <div className={styles.cyclesGrid}>
+                {result.personalYear && (
+                  <div className={styles.cycleCard}>
+                    <div className={styles.cycleLabel}>Personal Year</div>
+                    <div className={styles.cycleNumber}>{result.personalYear.number}</div>
+                    {result.personalYear.theme && (
+                      <div className={styles.cycleTheme}>{result.personalYear.theme}</div>
+                    )}
+                  </div>
+                )}
+                {result.personalMonth && (
+                  <div className={styles.cycleCard}>
+                    <div className={styles.cycleLabel}>Personal Month</div>
+                    <div className={styles.cycleNumber}>{result.personalMonth.number}</div>
+                    {result.personalMonth.theme && (
+                      <div className={styles.cycleTheme}>{result.personalMonth.theme}</div>
+                    )}
+                  </div>
+                )}
+                {result.personalDay && (
+                  <div className={styles.cycleCard}>
+                    <div className={styles.cycleLabel}>Personal Day</div>
+                    <div className={styles.cycleNumber}>{result.personalDay.number}</div>
+                    {result.personalDay.theme && (
+                      <div className={styles.cycleTheme}>{result.personalDay.theme}</div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
 
+          {/* Korean Name Analysis */}
           {result.koreanName && (
-            <div className={styles.koreanNameResult}>
-              <h4>한글 이름 획수</h4>
-              <div className={styles.strokeInfo}>
-                <span className={styles.strokeNumber}>{result.koreanName.strokes}획</span>
-                <span className={styles.strokeMeaning}>{result.koreanName.meaning}</span>
+            <div className={styles.koreanNameSection}>
+              <h4 className={styles.koreanTitle}>🇰🇷 {t('numerology.koreanNameAnalysis', 'Korean Name Analysis')}</h4>
+              <div className={styles.koreanContent}>
+                <div className={styles.koreanNumber}>
+                  <span className={styles.koreanLabel}>{t('numerology.nameNumber', 'Name Number')}</span>
+                  <span className={styles.koreanValue}>{result.koreanName.number}</span>
+                </div>
+                <div className={styles.koreanStrokes}>
+                  <span className={styles.koreanLabel}>{t('numerology.totalStrokes', 'Total Strokes')}</span>
+                  <span className={styles.koreanValue}>{result.koreanName.strokes}{isKo ? '획' : ''}</span>
+                </div>
+                {result.koreanName.meaning && (
+                  <p className={styles.koreanMeaning}>{result.koreanName.meaning}</p>
+                )}
               </div>
             </div>
           )}
@@ -212,40 +289,22 @@ interface NumberCardProps {
   number: number;
   meaning: string;
   description: string;
+  masterLabel: string;
 }
 
-function NumberCard({ title, korean, number, meaning, description }: NumberCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
+function NumberCard({ title, korean, number, meaning, description, masterLabel }: NumberCardProps) {
   const isMasterNumber = number === 11 || number === 22 || number === 33;
 
   return (
-    <motion.div
-      className={`${styles.numberCard} ${isMasterNumber ? styles.masterNumber : ''}`}
-      onClick={() => setIsExpanded(!isExpanded)}
-      layout
-    >
+    <div className={`${styles.numberCard} ${isMasterNumber ? styles.masterNumber : ''}`}>
       <div className={styles.numberHeader}>
         <span className={styles.numberValue}>{number}</span>
-        {isMasterNumber && <span className={styles.masterBadge}>마스터</span>}
+        {isMasterNumber && <span className={styles.masterBadge}>{masterLabel}</span>}
       </div>
       <h4 className={styles.numberTitle}>{title}</h4>
-      <span className={styles.numberKorean}>{korean}</span>
+      {korean && <span className={styles.numberKorean}>{korean}</span>}
       <p className={styles.numberMeaning}>{meaning}</p>
-
-      {isExpanded && (
-        <motion.p
-          className={styles.numberDescription}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {description}
-        </motion.p>
-      )}
-
-      <span className={styles.expandHint}>
-        {isExpanded ? '접기' : '더보기'}
-      </span>
-    </motion.div>
+      <p className={styles.numberDescription}>{description}</p>
+    </div>
   );
 }

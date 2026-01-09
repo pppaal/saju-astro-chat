@@ -2,7 +2,7 @@
 
 import type { TabProps } from './types';
 import { getStrengthsAndWeaknesses, getMatrixAnalysis } from '../analyzers';
-import { getPersonalizedAdvice, getCombinedLifeTheme } from '../generators';
+import { getPersonalizedAdvice } from '../generators';
 import { elementTraits } from '../data';
 import PentagonChart from './PentagonChart';
 
@@ -25,10 +25,10 @@ interface PersonalityAnalysis {
 }
 
 export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combinedLifeTheme }: TabProps) {
-  const personalityAnalysis = data.personalityAnalysis as PersonalityAnalysis | null;
-  const strengthsWeaknesses = getStrengthsAndWeaknesses(saju, astro, lang);
-  const personalizedAdvices = getPersonalizedAdvice(saju, astro, lang);
-  const matrixAnalysis = getMatrixAnalysis(saju, astro, lang);
+  const personalityAnalysis = data.personalityAnalysis as unknown as PersonalityAnalysis | null;
+  const strengthsWeaknesses = getStrengthsAndWeaknesses(saju ?? undefined, astro ?? undefined, lang);
+  const personalizedAdvices = getPersonalizedAdvice(saju ?? undefined, astro ?? undefined, lang);
+  const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);
 
   return (
     <div className="space-y-6">
@@ -42,9 +42,11 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
           <p className="text-gray-200 text-base leading-relaxed mb-3">
             {isKo ? combinedLifeTheme.ko : combinedLifeTheme.en}
           </p>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            {isKo ? combinedLifeTheme.detail.ko : combinedLifeTheme.detail.en}
-          </p>
+          {combinedLifeTheme.detail && (
+            <p className="text-gray-400 text-sm leading-relaxed">
+              {isKo ? combinedLifeTheme.detail.ko : combinedLifeTheme.detail.en}
+            </p>
+          )}
         </div>
       )}
 
@@ -272,10 +274,10 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
 
           {/* 오행 바 차트 */}
           <div className="space-y-3 mb-4">
-            {data.normalizedElements.map((item: { element: string; value: number }) => {
+            {data.normalizedElements.map((item) => {
               const t = elementTraits[item.element];
-              const isStrong = item.element === data.strongest[0];
-              const isWeak = item.element === data.weakest[0];
+              const isStrong = item.element === data.strongest?.[0];
+              const isWeak = item.element === data.weakest?.[0];
               return (
                 <div key={item.element} className="flex items-center gap-3">
                   <span className="w-8 text-xl text-center flex-shrink-0">{t?.emoji}</span>
@@ -305,14 +307,14 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
           </div>
 
           {/* 보완 팁 */}
-          {data.luckyItems && data.luckyItems.length > 0 && (
+          {data.luckyItems && data.luckyItems.length > 0 && data.weakest?.[0] && (
             <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
               <p className="text-purple-300 font-bold mb-2 flex items-center gap-2">
                 <span>{elementTraits[data.weakest[0]]?.emoji}</span>
                 {isKo ? `이걸로 균형 맞추세요` : `Balance with these`}
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {data.luckyItems.slice(0, 3).map((item: { item: string }, idx: number) => (
+                {data.luckyItems.slice(0, 3).map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
                     <span className="text-lg">{item.item.split(" ")[0]}</span>
                     <span className="text-gray-300 text-xs">{item.item.replace(/^[^\s]+\s/, "")}</span>
@@ -472,7 +474,7 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
       )}
 
       {/* 종합 운세 점수 - 오각형 레이더 차트 */}
-      <PentagonChart saju={saju} astro={astro} lang={lang} isKo={isKo} data={data} />
+      <PentagonChart saju={saju as any} astro={astro as any} lang={lang} isKo={isKo} data={data as any} />
     </div>
   );
 }

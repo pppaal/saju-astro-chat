@@ -12,6 +12,7 @@ import AdvancedAnalysisPanel from '@/components/life-prediction/AdvancedAnalysis
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService';
 import styles from './result.module.css';
+import { logger } from "@/lib/logger";
 
 type Lang = 'ko' | 'en';
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -167,7 +168,7 @@ function LifePredictionResultContent({
         ].filter(Boolean);
 
         // Get daeun data
-        const daeunData = sajuResult?.daeun?.cycles || [];
+        const daeunData = (sajuResult as any)?.daeun?.cycles || [];
 
         // Calculate birth year
         const birthYear = parseInt(birthDate.split('-')[0]);
@@ -215,10 +216,10 @@ function LifePredictionResultContent({
 
           // Find optimal and avoid periods from trend data
           if (trendData?.years && Array.isArray(trendData.years)) {
-            const sortedYears = [...trendData.years].sort((a: unknown, b: unknown) => (b.score || 0) - (a.score || 0));
+            const sortedYears = [...trendData.years].sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
 
             // Top 3 optimal years
-            ctx.optimalPeriods = sortedYears.slice(0, 3).map((y: unknown) => ({
+            ctx.optimalPeriods = sortedYears.slice(0, 3).map((y: any) => ({
               startDate: `${y.year}-01-01`,
               endDate: `${y.year}-12-31`,
               score: y.score || 0,
@@ -227,7 +228,7 @@ function LifePredictionResultContent({
             }));
 
             // Bottom 2 avoid years
-            ctx.avoidPeriods = sortedYears.slice(-2).reverse().map((y: unknown) => ({
+            ctx.avoidPeriods = sortedYears.slice(-2).reverse().map((y: any) => ({
               startDate: `${y.year}-01-01`,
               endDate: `${y.year}-12-31`,
               score: y.score || 0,
@@ -259,7 +260,7 @@ function LifePredictionResultContent({
         }));
 
       } catch (err) {
-        console.error('[LifePrediction] Error:', err);
+        logger.error('[LifePrediction] Error:', err);
         setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);

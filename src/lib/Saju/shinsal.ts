@@ -224,7 +224,7 @@ const HYEONCHIM_BY_STEM: Record<string, string> = {
 };
 function isHyeonchim(dayStem: string, branch: string): boolean { return HYEONCHIM_BY_STEM[dayStem] === branch; }
 function isGosin(monthBranch: string, target: string): boolean {
-  const idx = BRANCH_ORDER.indexOf(monthBranch);
+  const idx = BRANCH_ORDER.indexOf(monthBranch as typeof BRANCH_ORDER[number]);
   if (idx < 0) return false;
   const prev = BRANCH_ORDER[(idx + 11) % 12];
   const next = BRANCH_ORDER[(idx + 1) % 12];

@@ -5688,6 +5688,83 @@ def health_check():
     })
 
 
+@app.route("/ready", methods=["GET"])
+def readiness_check():
+    """Readiness check - indicates app is ready to receive traffic."""
+    try:
+        # Check if essential services are available
+        checks = {
+            "app": True,
+            "openai_key": bool(os.getenv("OPENAI_API_KEY")),
+        }
+
+        # Check Redis if available
+        try:
+            cache = get_cache()
+            if cache:
+                cache.ping()
+                checks["redis"] = True
+            else:
+                checks["redis"] = False
+        except Exception:
+            checks["redis"] = False
+
+        all_ready = all(checks.values())
+
+        return jsonify({
+            "ready": all_ready,
+            "checks": checks,
+            "timestamp": time.time()
+        }), 200 if all_ready else 503
+    except Exception as e:
+        return jsonify({
+            "ready": False,
+            "error": str(e),
+            "timestamp": time.time()
+        }), 503
+
+
+@app.route("/metrics", methods=["GET"])
+def prometheus_metrics():
+    """Prometheus-compatible metrics endpoint."""
+    try:
+        perf_stats = get_performance_stats()
+        cache_health = get_cache_health()
+
+        # Format as Prometheus metrics
+        metrics = []
+
+        # Request metrics
+        metrics.append(f'# HELP ai_backend_requests_total Total number of requests')
+        metrics.append(f'# TYPE ai_backend_requests_total counter')
+        metrics.append(f'ai_backend_requests_total {perf_stats.get("total_requests", 0)}')
+
+        # Cache metrics
+        metrics.append(f'# HELP ai_backend_cache_hit_rate Cache hit rate percentage')
+        metrics.append(f'# TYPE ai_backend_cache_hit_rate gauge')
+        metrics.append(f'ai_backend_cache_hit_rate {perf_stats.get("cache_hit_rate", 0)}')
+
+        # Response time
+        metrics.append(f'# HELP ai_backend_response_time_ms Average response time in milliseconds')
+        metrics.append(f'# TYPE ai_backend_response_time_ms gauge')
+        metrics.append(f'ai_backend_response_time_ms {perf_stats.get("avg_response_time_ms", 0)}')
+
+        # Memory (if available)
+        try:
+            import psutil
+            process = psutil.Process()
+            memory_mb = process.memory_info().rss / 1024 / 1024
+            metrics.append(f'# HELP ai_backend_memory_mb Memory usage in MB')
+            metrics.append(f'# TYPE ai_backend_memory_mb gauge')
+            metrics.append(f'ai_backend_memory_mb {memory_mb:.2f}')
+        except ImportError:
+            pass
+
+        return Response('\n'.join(metrics), mimetype='text/plain')
+    except Exception as e:
+        return Response(f'# Error: {str(e)}', mimetype='text/plain'), 500
+
+
 @app.route("/health/full", methods=["GET"])
 def full_health_check():
     """Comprehensive health check including performance metrics."""
@@ -6589,158 +6666,8 @@ def counseling_health():
 # ===============================================================
 
 # ===============================================================
-# THEME CROSS-REFERENCE FILTER ENDPOINTS (v5.1)
-# 테마별 사주+점성 교차점 분석
+# THEME ENDPOINTS - Moved to routers/theme_routes.py
 # ===============================================================
-
-@app.route("/api/theme/filter", methods=["POST"])
-def theme_filter():
-    """
-    테마별 사주+점성 교차점 필터링.
-    테마에 맞는 데이터만 추출하여 반환.
-    """
-    if not HAS_THEME_FILTER:
-        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        theme = data.get("theme", "overall")
-        saju_data = data.get("saju", {})
-        astro_data = data.get("astro", {})
-
-        result = filter_data_by_theme(theme, saju_data, astro_data)
-
-        return jsonify({
-            "status": "success",
-            **result
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/theme/filter failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/api/theme/cross-points", methods=["POST"])
-def theme_cross_points():
-    """
-    테마별 사주-점성 교차점 상세 분석.
-    교차점, 중요 날짜, 하이라이트 포함.
-    """
-    if not HAS_THEME_FILTER:
-        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        theme = data.get("theme", "overall")
-        saju_data = data.get("saju", {})
-        astro_data = data.get("astro", {})
-
-        theme_filter_engine = get_theme_filter()
-        summary = theme_filter_engine.get_theme_summary(theme, saju_data, astro_data)
-
-        return jsonify({
-            "status": "success",
-            "theme": theme,
-            "relevance_score": summary.get("relevance_score", 0),
-            "highlights": summary.get("highlights", []),
-            "intersections": summary.get("intersections", []),
-            "important_dates": summary.get("important_dates", []),
-            "saju_factors": summary.get("saju_factors", []),
-            "astro_factors": summary.get("astro_factors", [])
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/theme/cross-points failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/api/theme/prompt-context", methods=["POST"])
-def theme_prompt_context():
-    """
-    AI 프롬프트용 테마별 컨텍스트 생성.
-    필터링된 데이터를 프롬프트에 사용할 수 있는 형식으로 반환.
-    """
-    if not HAS_THEME_FILTER:
-        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        theme = data.get("theme", "overall")
-        saju_data = data.get("saju", {})
-        astro_data = data.get("astro", {})
-
-        context = get_theme_prompt_context(theme, saju_data, astro_data)
-
-        return jsonify({
-            "status": "success",
-            "theme": theme,
-            "prompt_context": context
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/theme/prompt-context failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/api/theme/important-dates", methods=["POST"])
-def theme_important_dates():
-    """
-    테마별 중요 날짜만 반환.
-    """
-    if not HAS_THEME_FILTER:
-        return jsonify({"status": "error", "message": "Theme filter not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        theme = data.get("theme", "overall")
-        saju_data = data.get("saju", {})
-        astro_data = data.get("astro", {})
-
-        theme_filter_engine = get_theme_filter()
-        summary = theme_filter_engine.get_theme_summary(theme, saju_data, astro_data)
-
-        # 날짜만 추출
-        dates = summary.get("important_dates", [])
-
-        # 좋은 날짜와 주의 날짜 분리
-        auspicious = [d for d in dates if d.get("is_auspicious", True)]
-        caution = [d for d in dates if not d.get("is_auspicious", True)]
-
-        return jsonify({
-            "status": "success",
-            "theme": theme,
-            "auspicious_dates": auspicious,
-            "caution_dates": caution,
-            "total_count": len(dates)
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/theme/important-dates failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/api/theme/available", methods=["GET"])
-def theme_available():
-    """
-    사용 가능한 테마 목록.
-    """
-    themes = [
-        {"id": "love", "name_ko": "연애/결혼", "name_en": "Love/Marriage", "icon": "💕"},
-        {"id": "career", "name_ko": "직업/사업", "name_en": "Career/Business", "icon": "💼"},
-        {"id": "wealth", "name_ko": "재물/투자", "name_en": "Wealth/Finance", "icon": "💰"},
-        {"id": "health", "name_ko": "건강", "name_en": "Health", "icon": "🏥"},
-        {"id": "family", "name_ko": "가족/관계", "name_en": "Family/Relations", "icon": "👨‍👩‍👧‍👦"},
-        {"id": "education", "name_ko": "학업/시험", "name_en": "Education/Exam", "icon": "📚"},
-        {"id": "overall", "name_ko": "전체 운세", "name_en": "Overall Fortune", "icon": "🔮"},
-        {"id": "monthly", "name_ko": "월운", "name_en": "Monthly Fortune", "icon": "📅"},
-        {"id": "yearly", "name_ko": "연운", "name_en": "Yearly Fortune", "icon": "🗓️"},
-        {"id": "daily", "name_ko": "일운", "name_en": "Daily Fortune", "icon": "☀️"}
-    ]
-
-    return jsonify({
-        "status": "success",
-        "themes": themes
-    })
 
 
 # =============================================================================
@@ -7105,167 +7032,9 @@ def hybrid_rag_search():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/api/compatibility", methods=["POST"])
-def compatibility_analysis():
-    """
-    Relationship compatibility (Saju + Astrology fusion with GPT).
-    Accepts 2~4 people; uses group mode for 3-4 people.
-    """
-    if not HAS_COMPATIBILITY:
-        return jsonify({"status": "error", "message": "Compatibility engine not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        people = data.get("people") or []
-
-        # Backward compatibility: allow person1/person2 fields
-        if not people:
-            p1 = data.get("person1") or {}
-            p2 = data.get("person2") or {}
-            if p1 and p2:
-                people = [p1, p2]
-
-        relationship_type = data.get("relationship_type") or data.get("relationshipType") or "lover"
-        locale = data.get("locale", "ko")
-
-        if len(people) < 2:
-            return jsonify({"status": "error", "message": "At least two people are required"}), 400
-        if len(people) > 5:
-            return jsonify({"status": "error", "message": "Maximum 5 people supported"}), 400
-
-        if len(people) <= 2:
-            result = interpret_compatibility(people, relationship_type, locale)
-        else:
-            result = interpret_compatibility_group(people, relationship_type, locale)
-
-        status_code = 200 if result.get("status") == "success" else 500
-        return jsonify(result), status_code
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/compatibility failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/api/compatibility/chat", methods=["POST"])
-def compatibility_chat():
-    """
-    Compatibility chat consultation - follow-up questions about a compatibility reading.
-    """
-    if not HAS_COMPATIBILITY:
-        return jsonify({"status": "error", "message": "Compatibility engine not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        logger.info(f"[COMPAT_CHAT] id={g.request_id} Processing chat message")
-
-        persons = data.get("persons", [])
-        question = data.get("question", "")
-        history = data.get("history", [])
-        locale = data.get("locale", "ko")
-        compatibility_context = data.get("compatibility_context", "")
-        prompt = data.get("prompt", "")
-
-        if not persons or len(persons) < 2:
-            return jsonify({"status": "error", "message": "At least 2 persons required"}), 400
-
-        if not question and not prompt:
-            return jsonify({"status": "error", "message": "No question provided"}), 400
-
-        start_time = time.time()
-        is_korean = locale == "ko"
-
-        # Current date for contextual responses
-        now = datetime.now()
-        weekday_names_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
-        if is_korean:
-            date_str = f"{now.year}년 {now.month}월 {now.day}일 ({weekday_names_ko[now.weekday()]})"
-        else:
-            date_str = now.strftime("%B %d, %Y (%A)")
-
-        # Format persons info
-        persons_info = []
-        for i, p in enumerate(persons):
-            name = p.get("name") or f"Person {i + 1}"
-            birth_date = p.get("birthDate") or p.get("date", "")
-            birth_time = p.get("birthTime") or p.get("time", "")
-            relation = p.get("relation", "")
-            persons_info.append(f"- {name}: {birth_date} {birth_time}" + (f" ({relation})" if relation else ""))
-
-        persons_str = "\n".join(persons_info)
-
-        # Build conversation history
-        conversation_history = []
-        for msg in history[-6:]:  # Last 6 messages
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            if role != "system":
-                conversation_history.append(f"{'사용자' if role == 'user' else 'AI'}: {content[:300]}")
-
-        history_str = "\n".join(conversation_history) if conversation_history else "(첫 질문)"
-
-        # Build chat prompt - counselor style with GPT-4o-mini for speed
-        if is_korean:
-            system_instruction = """당신은 따뜻하고 공감 능력이 뛰어난 궁합 상담사입니다.
-마치 오랜 언니/오빠처럼 편안하게 대화하면서, 두 사람의 관계에 대해 진심 어린 조언을 해주세요.
-
-상담 스타일:
-- 공감하며 경청하는 말투 ("그러시군요", "이해해요", "~하실 수 있어요")
-- 사주·점성학 전문 용어는 쉽게 풀어서 설명
-- 단정적 판단보다는 가능성과 노력의 방향 제시
-- 관계의 강점을 먼저 짚어주고, 개선점은 건설적으로
-- 3-4문장으로 자연스럽게 대화하듯 답변"""
-        else:
-            system_instruction = """You are a warm and empathetic relationship counselor.
-Talk like a trusted friend while sharing genuine insights about their relationship.
-
-Counseling style:
-- Use empathetic, listening language
-- Explain Saju/Astrology terms simply
-- Focus on possibilities rather than definitive judgments
-- Highlight relationship strengths first, then constructive improvements
-- Answer naturally in 3-4 sentences like a conversation"""
-
-        chat_prompt = f"""{system_instruction}
-
-## 오늘: {date_str}
-
-## 분석 대상
-{persons_str}
-
-## 궁합 분석 결과
-{compatibility_context[:1500] if compatibility_context else '(분석 결과 없음)'}
-
-## 대화
-{history_str}
-
-## 질문
-{question or prompt}"""
-
-        try:
-            # GPT-4o-mini for fast, natural counselor responses (skip refine for speed)
-            reply = _generate_with_gpt4(chat_prompt, max_tokens=400, temperature=0.5, use_mini=True)
-        except Exception as llm_e:
-            logger.warning(f"[COMPAT_CHAT] GPT-4 failed: {llm_e}")
-            if is_korean:
-                reply = "죄송합니다. 현재 AI 응답을 생성할 수 없습니다. 잠시 후 다시 시도해 주세요."
-            else:
-                reply = "Sorry, unable to generate AI response at the moment. Please try again later."
-
-        duration_ms = int((time.time() - start_time) * 1000)
-        logger.info(f"[COMPAT_CHAT] id={g.request_id} completed in {duration_ms}ms")
-
-        return jsonify({
-            "status": "success",
-            "response": reply,
-            "data": {
-                "response": reply,
-            },
-            "performance": {"duration_ms": duration_ms}
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/compatibility/chat failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+# ===============================================================
+# COMPATIBILITY ENDPOINTS - Moved to routers/compatibility_routes.py
+# ===============================================================
 
 
 # System capabilities
@@ -7299,175 +7068,12 @@ def get_capabilities():
 
 
 # ===============================================================
-# NUMEROLOGY ENDPOINTS
+# NUMEROLOGY ENDPOINTS - Moved to routers/numerology_routes.py
 # ===============================================================
 
-@app.route("/api/numerology/analyze", methods=["POST"])
-def numerology_analyze():
-    """
-    Analyze numerology profile from birth date and name.
-
-    Request body:
-    {
-        "birthDate": "YYYY-MM-DD",
-        "englishName": "Full Name" (optional),
-        "koreanName": "한글이름" (optional),
-        "locale": "ko" (optional)
-    }
-    """
-    if not HAS_NUMEROLOGY:
-        return jsonify({"error": "Numerology module not available"}), 503
-
-    try:
-        data = request.get_json() or {}
-        birth_date = data.get("birthDate")
-        if not birth_date:
-            return jsonify({"error": "birthDate is required"}), 400
-
-        result = analyze_numerology(
-            birth_date=birth_date,
-            english_name=data.get("englishName"),
-            korean_name=data.get("koreanName"),
-            locale=data.get("locale", "ko")
-        )
-        return jsonify(result)
-
-    except Exception as e:
-        logger.exception("[numerology_analyze] Error")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/numerology/compatibility", methods=["POST"])
-def numerology_compatibility():
-    """
-    Analyze numerology compatibility between two people.
-
-    Request body:
-    {
-        "person1": {"birthDate": "YYYY-MM-DD", "name": "Name"},
-        "person2": {"birthDate": "YYYY-MM-DD", "name": "Name"},
-        "locale": "ko"
-    }
-    """
-    if not HAS_NUMEROLOGY:
-        return jsonify({"error": "Numerology module not available"}), 503
-
-    try:
-        data = request.get_json() or {}
-        p1 = data.get("person1", {})
-        p2 = data.get("person2", {})
-
-        if not p1.get("birthDate") or not p2.get("birthDate"):
-            return jsonify({"error": "Both birthDates are required"}), 400
-
-        result = analyze_numerology_compatibility(
-            person1_birth=p1["birthDate"],
-            person2_birth=p2["birthDate"],
-            person1_name=p1.get("name"),
-            person2_name=p2.get("name"),
-            locale=data.get("locale", "ko")
-        )
-        return jsonify(result)
-
-    except Exception as e:
-        logger.exception("[numerology_compatibility] Error")
-        return jsonify({"error": str(e)}), 500
-
-
 # ===============================================================
-# ICP (INTERPERSONAL CIRCUMPLEX) ENDPOINTS
+# ICP ENDPOINTS - Moved to routers/icp_routes.py
 # ===============================================================
-
-@app.route("/api/icp/analyze", methods=["POST"])
-def icp_analyze():
-    """
-    Analyze ICP interpersonal style from saju/astrology data.
-
-    Request body:
-    {
-        "sajuData": {...},  (optional)
-        "astroData": {...}, (optional)
-        "locale": "ko"
-    }
-    """
-    if not HAS_ICP:
-        return jsonify({"error": "ICP module not available"}), 503
-
-    try:
-        data = request.get_json() or {}
-        result = analyze_icp_style(
-            saju_data=data.get("sajuData"),
-            astro_data=data.get("astroData"),
-            locale=data.get("locale", "ko")
-        )
-        return jsonify(result)
-
-    except Exception as e:
-        logger.exception("[icp_analyze] Error")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/icp/compatibility", methods=["POST"])
-def icp_compatibility():
-    """
-    Analyze ICP compatibility between two people.
-
-    Request body:
-    {
-        "person1": {"sajuData": {...}, "astroData": {...}},
-        "person2": {"sajuData": {...}, "astroData": {...}},
-        "locale": "ko"
-    }
-    """
-    if not HAS_ICP:
-        return jsonify({"error": "ICP module not available"}), 503
-
-    try:
-        data = request.get_json() or {}
-        p1 = data.get("person1", {})
-        p2 = data.get("person2", {})
-
-        result = analyze_icp_compatibility(
-            person1_saju=p1.get("sajuData"),
-            person1_astro=p1.get("astroData"),
-            person2_saju=p2.get("sajuData"),
-            person2_astro=p2.get("astroData"),
-            locale=data.get("locale", "ko")
-        )
-        return jsonify(result)
-
-    except Exception as e:
-        logger.exception("[icp_compatibility] Error")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/icp/questions", methods=["POST"])
-def icp_questions():
-    """
-    Get therapeutic questions for an ICP style.
-
-    Request body:
-    {
-        "style": "PA",  (ICP octant code)
-        "locale": "ko"
-    }
-    """
-    if not HAS_ICP:
-        return jsonify({"error": "ICP module not available"}), 503
-
-    try:
-        data = request.get_json() or {}
-        style = data.get("style", "LM")
-        result = get_icp_questions(
-            style=style,
-            locale=data.get("locale", "ko")
-        )
-        return jsonify(result)
-
-    except Exception as e:
-        logger.exception("[icp_questions] Error")
-        return jsonify({"error": str(e)}), 500
-
 
 # ===============================================================
 # SESSION SUMMARY API - Auto-generate counseling session summaries

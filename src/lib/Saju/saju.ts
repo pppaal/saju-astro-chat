@@ -2,7 +2,7 @@
 
 import { toDate } from 'date-fns-tz';
 import Calendar from 'korean-lunar-calendar';
-import { FiveElement, YinYang } from './types';
+import { FiveElement, YinYang, CalculateSajuDataResult, DaeunPillar, CycleData, StemBranchInfo, PillarData, AnnualCycleData, MonthlyCycleData } from './types';
 import {
   STEMS, BRANCHES, MONTH_STEM_LOOKUP, TIME_STEM_LOOKUP, JIJANGGAN,
   CHEONEUL_GWIIN_MAP, FIVE_ELEMENT_RELATIONS, getSolarTermKST,
@@ -81,7 +81,7 @@ export function calculateSajuData(
   calendarType: 'solar' | 'lunar',
   timezone: string,
   lunarLeap?: boolean
-) {
+): CalculateSajuDataResult {
   try {
     // 1️⃣ 출생시각: 입력 보정 & 윤달 지원
     let solarBirthDateStr = birthDate;
@@ -216,13 +216,13 @@ export function calculateSajuData(
         age,
         heavenlyStem: s.name,
         earthlyBranch: b.name,
-        sibsin: { cheon: getSibseong(dayMaster, s), ji: getSibseong(dayMaster, mainForB ?? (b as string)) }
+        sibsin: { cheon: getSibseong(dayMaster, s), ji: getSibseong(dayMaster, mainForB ?? b) }
       });
     }
 
     /* ---------------- 결과 구성 ---------------- */
     const pillars = { yearPillar, monthPillar, dayPillar, timePillar } as const;
-    const finalPillars: Record<string, unknown> = {};
+    const finalPillars: Record<string, PillarData> = {} as Record<string, PillarData>;
     (['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const).forEach(name => {
       const p = pillars[name];
       const j = JIJANGGAN[p.branch.name];
@@ -235,22 +235,20 @@ export function calculateSajuData(
         heavenlyStem: {
           name: p.stem.name,
           element: p.stem.element,
+          yin_yang: p.stem.yin_yang,
           sibsin: getSibseong(dayMaster, p.stem)
         },
         earthlyBranch: {
           name: p.branch.name,
           element: p.branch.element,
-          sibsin: getSibseong(dayMaster, mainStem ?? (p.branch as string))
+          yin_yang: p.branch.yin_yang,
+          sibsin: getSibseong(dayMaster, mainStem ?? p.branch)
         },
         jijanggan: {
           chogi: chogiName ? { name: chogiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === chogiName)!) } : undefined,
           junggi: junggiName ? { name: junggiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === junggiName)!) } : undefined,
           jeonggi: jeonggiName ? { name: jeonggiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === jeonggiName)!) } : undefined,
         },
-        hiddenStems: {
-          main: mainStem?.name ?? null,
-          all: [chogiName, junggiName, jeonggiName].filter(Boolean)
-        }
       };
     });
 
@@ -267,7 +265,7 @@ export function calculateSajuData(
     const currentLuckPillar = daeWoonList.slice().reverse().find(d => currentAge >= d.age) || daeWoonList[0];
 
     // 연운 (현재 연도부터 6년치)
-    const annualCycles: CycleData[] = [];
+    const annualCycles: AnnualCycleData[] = [];
     for (let i = 0; i < 6; i++) {
       const yr = yNowLocal + i;
       const idx60 = (yr - 4 + 6000) % 60;
@@ -278,12 +276,12 @@ export function calculateSajuData(
         year: yr,
         ganji: `${stem.name}${branch.name}`,
         element: stem.element,
-        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as string)) }
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? branch) }
       });
     }
 
     // 월운 (현재 월부터 12개월치)
-    const monthlyCycles: CycleData[] = [];
+    const monthlyCycles: MonthlyCycleData[] = [];
     for (let i = 0; i < 12; i++) {
       let yr = yNowLocal;
       let mo = mNowLocal + i;
@@ -301,7 +299,7 @@ export function calculateSajuData(
         month: mo,
         ganji: `${stem.name}${branch.name}`,
         element: stem.element,
-        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as string)) }
+        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? branch) }
       });
     }
 
@@ -318,7 +316,10 @@ export function calculateSajuData(
     };
 
     return {
-      ...finalPillars,
+      yearPillar: finalPillars.yearPillar,
+      monthPillar: finalPillars.monthPillar,
+      dayPillar: finalPillars.dayPillar,
+      timePillar: finalPillars.timePillar,
       pillars: {
         year: finalPillars.yearPillar,
         month: finalPillars.monthPillar,
@@ -355,7 +356,7 @@ export function getAnnualCycles(startYear: number, count: number, dayMaster: Day
       year,
       heavenlyStem: stem.name,
       earthlyBranch: branch.name,
-      sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? (branch as string)) }
+      sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, mainForB ?? branch) }
     });
   }
   return cycles;
@@ -376,10 +377,10 @@ export function getMonthlyCycles(year: number, dayMaster: DayMaster) {
       month:i+1,
       heavenlyStem: stem.name,
       earthlyBranch: branch.name,
-      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? (branch as string)) }
+      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? branch) }
     });
   }
-  return cycles.sort((a,b)=>a.month-b.month);
+  return cycles.sort((a,b)=>(a.month ?? 0)-(b.month ?? 0));
 }
 
 export function getIljinCalendar(year:number,month:number,dayMaster:DayMaster){
@@ -397,7 +398,7 @@ export function getIljinCalendar(year:number,month:number,dayMaster:DayMaster){
       year,month,day,
       heavenlyStem:stem.name,
       earthlyBranch:branch.name,
-      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? (branch as string)) },
+      sibsin:{ cheon:getSibseong(dayMaster,stem), ji:getSibseong(dayMaster, mainForB ?? branch) },
       isCheoneulGwiin:isCheoneulGwiin(dayMaster.name,branch.name),
     });
   }

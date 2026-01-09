@@ -92,8 +92,8 @@ export default function PremiumModal({
           <h2 className={styles.title}>{t("paywall.unlockFeature")}</h2>
           <p className={styles.subtitle}>
             {creditsNeeded
-              ? t("paywall.needsCredits", { count: creditsNeeded })
-              : t("paywall.premiumRequired", { feature })}
+              ? t("paywall.needsCredits").replace("{count}", String(creditsNeeded))
+              : t("paywall.premiumRequired").replace("{feature}", feature)}
           </p>
         </div>
 

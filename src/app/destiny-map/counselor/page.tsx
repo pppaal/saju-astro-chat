@@ -21,6 +21,7 @@ import type {
   CounselorContextResponse,
 } from "@/types/api";
 import styles from "./counselor.module.css";
+import { logger } from "@/lib/logger";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -115,7 +116,7 @@ export default function CounselorPage({
     // Try to load from cache with birth data validation
     const cached = loadChartData(birthDate, birthTime, latitude, longitude);
     if (cached) {
-      console.warn("[CounselorPage] Using cached chart data");
+      logger.warn("[CounselorPage] Using cached chart data");
       saju = cached.saju ?? null;
       astro = cached.astro ?? null;
       advancedAstro = cached.advancedAstro ?? null;
@@ -124,18 +125,18 @@ export default function CounselorPage({
     // If no cached saju data, compute fresh from birth info
     if (!saju || !saju.dayMaster) {
       try {
-        console.warn("[CounselorPage] Computing fresh saju data...");
+        logger.warn("[CounselorPage] Computing fresh saju data...");
         const genderVal = (gender === "Male" || gender === "male") ? "male" : "female";
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
         const computed = calculateSajuData(birthDate, birthTime, genderVal, "solar", userTz);
-        saju = computed as Record<string, unknown>;
+        saju = computed as unknown as Record<string, unknown>;
 
-        console.warn("[CounselorPage] Fresh saju computed:", {
-          dayMaster: computed.dayMaster?.heavenlyStem,
-          yearPillar: computed.yearPillar?.heavenlyStem,
+        logger.warn("[CounselorPage] Fresh saju computed:", {
+          dayMaster: (computed.dayMaster as any)?.name,
+          yearPillar: computed.yearPillar?.heavenlyStem?.name,
         });
       } catch (e: unknown) {
-        console.warn("[CounselorPage] Failed to compute saju:", e);
+        logger.warn("[CounselorPage] Failed to compute saju:", e);
       }
     }
 
@@ -153,7 +154,7 @@ export default function CounselorPage({
       'eclipses' in advancedAstro &&
       'midpoints' in advancedAstro;
 
-    console.warn("[CounselorPage] Cache check:", {
+    logger.warn("[CounselorPage] Cache check:", {
       hasAdvancedAstro: !!advancedAstro,
       hasFixedStars: advancedAstro ? 'fixedStars' in advancedAstro : false,
       hasEclipses: advancedAstro ? 'eclipses' in advancedAstro : false,
@@ -162,7 +163,7 @@ export default function CounselorPage({
     });
 
     if (!hasAllFields) {
-      console.warn("[CounselorPage] Fetching advanced astrology data...", {
+      logger.warn("[CounselorPage] Fetching advanced astrology data...", {
         reason: !advancedAstro ? "no cache" : "missing fields"
       });
       const fetchAdvancedAstro = async () => {
@@ -286,7 +287,7 @@ export default function CounselorPage({
             advanced.midpoints = await midpointsRes.json();
           }
 
-          console.warn("[CounselorPage] ✅ Advanced astrology fetched:", Object.keys(advanced));
+          logger.warn("[CounselorPage] ✅ Advanced astrology fetched:", Object.keys(advanced));
 
           // Update chartData with advanced astrology
           setChartData(prev => ({
@@ -301,7 +302,7 @@ export default function CounselorPage({
             advancedAstro: advanced,
           });
         } catch (e) {
-          console.warn("[CounselorPage] Failed to fetch advanced astrology:", e);
+          logger.warn("[CounselorPage] Failed to fetch advanced astrology:", e);
         }
       };
 
@@ -343,11 +344,11 @@ export default function CounselorPage({
               graphNodes: data.data_summary?.graph_nodes,
               corpusQuotes: data.data_summary?.corpus_quotes,
             });
-            console.warn(`[Counselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
+            logger.warn(`[Counselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
           }
         }
       } catch (e: unknown) {
-        console.warn("[CounselorPage] RAG prefetch failed:", e);
+        logger.warn("[CounselorPage] RAG prefetch failed:", e);
         setPrefetchStatus({ done: true }); // Continue anyway
       }
     };
@@ -373,7 +374,7 @@ export default function CounselorPage({
                 typeCode: personalityData.typeCode,
                 personaName: personalityData.personaName || "",
               };
-              console.warn("[Counselor] Personality type loaded:", personalityData.typeCode);
+              logger.warn("[Counselor] Personality type loaded:", personalityData.typeCode);
             }
           }
         } catch (e: unknown) {
@@ -412,7 +413,7 @@ export default function CounselorPage({
             }
 
             setUserContext(context);
-            console.warn("[Counselor] User context loaded:", {
+            logger.warn("[Counselor] User context loaded:", {
               isReturningUser: data.isReturningUser,
               sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
@@ -421,7 +422,7 @@ export default function CounselorPage({
         }
       } catch (e: unknown) {
         // Not logged in or error - continue without user context
-        console.warn("[Counselor] No user context available (guest user)");
+        logger.warn("[Counselor] No user context available (guest user)");
       }
     };
 
@@ -449,11 +450,11 @@ export default function CounselorPage({
           if (data.success && !chatSessionId) {
             // Set session ID for subsequent messages
             setChatSessionId(data.session.id);
-            console.warn("[Counselor] New chat session created:", data.session.id);
+            logger.warn("[Counselor] New chat session created:", data.session.id);
           }
         }
       } catch (e: unknown) {
-        console.warn("[Counselor] Failed to save message:", e);
+        logger.warn("[Counselor] Failed to save message:", e);
       }
     },
     [chatSessionId, theme, lang]
@@ -654,8 +655,8 @@ export default function CounselorPage({
               reset={() => window.location.reload()}
             />
           }
-          onError={(error, errorInfo) => {
-            console.error("[Counselor] Chat error:", error, errorInfo);
+          onError={(error) => {
+            logger.error("[Counselor] Chat error", { error: error.message, stack: error.stack });
           }}
         >
           <Chat

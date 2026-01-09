@@ -107,49 +107,54 @@ export function ChatDemoSection({ translate }: Props) {
 
   // Add message with typing effect
   useEffect(() => {
-    if (messageIndexRef.current >= demoConversation.length) {
-      // Reset and restart after a pause - keep first Q&A
-      const resetTimer = setTimeout(() => {
-        setMessages([demoConversation[0], demoConversation[1]]);
-        setCurrentInput("");
-        messageIndexRef.current = 2;
-      }, 5000);
-      return () => clearTimeout(resetTimer);
-    }
-
-    const currentMessage = demoConversation[messageIndexRef.current];
-    const isUser = currentMessage.role === "user";
-
-    const timer = setTimeout(
-      () => {
-        if (isUser) {
-          setIsTyping(true);
-          typeUserMessage(currentMessage.content, () => {
-            // After typing completes, add message and clear input
-            setTimeout(() => {
-              setMessages((prev) => [...prev, currentMessage]);
-              setCurrentInput("");
-              setIsTyping(false);
-              messageIndexRef.current++;
-            }, 300);
-          });
-        } else {
-          // Assistant message appears directly
-          setMessages((prev) => [...prev, currentMessage]);
-          messageIndexRef.current++;
-        }
-      },
-      messageIndexRef.current === 0 ? 1000 : isUser ? 1500 : 800
-    );
-
-    return () => {
-      clearTimeout(timer);
-      if (typingIntervalRef.current) {
-        clearInterval(typingIntervalRef.current);
-        typingIntervalRef.current = null;
+    const addNextMessage = () => {
+      if (messageIndexRef.current >= demoConversation.length) {
+        // Reset and restart after a pause - keep first Q&A
+        const resetTimer = setTimeout(() => {
+          setMessages([demoConversation[0], demoConversation[1]]);
+          setCurrentInput("");
+          messageIndexRef.current = 2;
+        }, 5000);
+        return () => clearTimeout(resetTimer);
       }
+
+      const currentMessage = demoConversation[messageIndexRef.current];
+      const isUser = currentMessage.role === "user";
+
+      const timer = setTimeout(
+        () => {
+          if (isUser) {
+            setIsTyping(true);
+            typeUserMessage(currentMessage.content, () => {
+              // After typing completes, add message and clear input
+              setTimeout(() => {
+                setMessages((prev) => [...prev, currentMessage]);
+                setCurrentInput("");
+                setIsTyping(false);
+                messageIndexRef.current++;
+              }, 300);
+            });
+          } else {
+            // Assistant message appears directly
+            setMessages((prev) => [...prev, currentMessage]);
+            messageIndexRef.current++;
+          }
+        },
+        messageIndexRef.current === 2 ? 1000 : isUser ? 1500 : 800
+      );
+
+      return () => {
+        clearTimeout(timer);
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+          typingIntervalRef.current = null;
+        }
+      };
     };
-  }, [messages.length, demoConversation, typeUserMessage]);
+
+    return addNextMessage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]);
 
   // Auto-scroll when messages change
   useEffect(() => {

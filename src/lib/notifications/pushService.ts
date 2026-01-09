@@ -10,6 +10,12 @@ import {
   getNotificationsForHour,
   type DailyNotification,
 } from './dailyTransitNotifications';
+import {
+  generatePremiumNotifications,
+  checkActivePromotions,
+  type CreditStatus,
+} from './premiumNotifications';
+import { getUserCredits, getCreditBalance } from '@/lib/credits/creditService';
 
 // VAPID 설정 초기화
 let vapidConfigured = false;
@@ -116,10 +122,10 @@ export async function sendPushNotification(
 
       sent++;
     } catch (error: unknown) {
-      console.error(`[pushService] Failed to send to ${sub.id}:`, error.message);
+      console.error(`[pushService] Failed to send to ${sub.id}:`, error instanceof Error ? error.message : String(error));
 
       // 410 Gone 또는 404: 구독이 만료/삭제됨
-      if (error.statusCode === 404 || error.statusCode === 410) {
+      if ((error as any).statusCode === 404 || (error as any).statusCode === 410) {
         await prisma.pushSubscription.update({
           where: { id: sub.id },
           data: { isActive: false },
@@ -174,6 +180,22 @@ export async function sendScheduledNotifications(hour: number): Promise<{
           birthChart: true,
         },
       },
+      credits: {
+        select: {
+          plan: true,
+          monthlyCredits: true,
+          usedCredits: true,
+          bonusCredits: true,
+        },
+      },
+      subscriptions: {
+        where: {
+          status: 'active',
+        },
+        select: {
+          id: true,
+        },
+      },
     },
     take: 1000, // 배치 크기 제한
   });
@@ -184,11 +206,11 @@ export async function sendScheduledNotifications(hour: number): Promise<{
 
   for (const user of users) {
     try {
-      const sajuProfile = (user.personaMemory?.sajuProfile) || {};
-      const birthChart = (user.personaMemory?.birthChart) || {};
+      const sajuProfile = (user.personaMemory?.sajuProfile as any) || {};
+      const birthChart = (user.personaMemory?.birthChart as any) || {};
 
-      // 알림 생성
-      const allNotifications = generateDailyNotifications(
+      // 운세 알림 생성
+      const fortuneNotifications = generateDailyNotifications(
         {
           dayMaster: sajuProfile.dayMaster,
           pillars: sajuProfile.pillars,
@@ -205,6 +227,37 @@ export async function sendScheduledNotifications(hour: number): Promise<{
         }
       );
 
+      // 프리미엄 알림 생성 (크레딧 부족, 프리미엄 기능 안내)
+      let premiumNotifications: DailyNotification[] = [];
+      if (user.credits) {
+        const creditStatus: CreditStatus = {
+          plan: user.credits.plan,
+          remaining: user.credits.monthlyCredits - user.credits.usedCredits + user.credits.bonusCredits,
+          total: user.credits.monthlyCredits + user.credits.bonusCredits,
+          bonusCredits: user.credits.bonusCredits,
+          percentUsed: ((user.credits.usedCredits / user.credits.monthlyCredits) * 100) || 0,
+        };
+
+        const hasActiveSubscription = user.subscriptions.length > 0;
+
+        premiumNotifications = generatePremiumNotifications({
+          creditStatus,
+          hasActiveSubscription,
+          userName: user.name || undefined,
+        });
+      }
+
+      // 프로모션 알림 체크 (특정 시간에만)
+      if (hour === 19) {
+        const promotionNotification = await checkActivePromotions();
+        if (promotionNotification) {
+          premiumNotifications.push(promotionNotification);
+        }
+      }
+
+      // 모든 알림 합치기
+      const allNotifications = [...fortuneNotifications, ...premiumNotifications];
+
       // 해당 시간의 알림만 필터링
       const hourlyNotifications = getNotificationsForHour(allNotifications, hour);
 
@@ -214,8 +267,8 @@ export async function sendScheduledNotifications(hour: number): Promise<{
         totalFailed += result.failed;
       }
     } catch (error: unknown) {
-      console.error(`[pushService] Error for user ${user.id}:`, error.message);
-      errors.push(`User ${user.id}: ${error.message}`);
+      console.error(`[pushService] Error for user ${user.id}:`, error instanceof Error ? error.message : String(error));
+      errors.push(`User ${user.id}: ${error instanceof Error ? error.message : String(error)}`);
       totalFailed++;
     }
   }
@@ -326,8 +379,8 @@ export async function previewUserNotifications(
     where: { userId },
   });
 
-  const sajuProfile = (memory?.sajuProfile) || {};
-  const birthChart = (memory?.birthChart) || {};
+  const sajuProfile = (memory?.sajuProfile as any) || {};
+  const birthChart = (memory?.birthChart as any) || {};
 
   return generateDailyNotifications(
     {

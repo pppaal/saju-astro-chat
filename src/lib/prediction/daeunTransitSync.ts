@@ -738,7 +738,7 @@ export function convertSajuDaeunToInfo(daeunList: unknown[]): DaeunInfo[] {
     '己': '음', '庚': '양', '辛': '음', '壬': '양', '癸': '음',
   };
 
-  return daeunList.map(d => ({
+  return daeunList.map((d: any) => ({
     startAge: d.startAge ?? d.age ?? 0,
     endAge: (d.startAge ?? d.age ?? 0) + 9,
     stem: d.stem ?? d.heavenlyStem ?? '甲',

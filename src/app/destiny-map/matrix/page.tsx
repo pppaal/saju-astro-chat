@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import BackButton from '@/components/ui/BackButton';
 import styles from './matrix.module.css';
+import { logger } from "@/lib/logger";
 
 interface LayerCard {
   layer: number;
@@ -270,7 +271,7 @@ export default function MatrixJourneyPage() {
       }, 1500);
 
     } catch (error) {
-      console.error('Matrix calculation failed:', error);
+      logger.error('Matrix calculation failed:', error);
       setStep('intro');
     }
   };

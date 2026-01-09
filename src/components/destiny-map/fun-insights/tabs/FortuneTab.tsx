@@ -1,7 +1,7 @@
 "use client";
 
 import type { TabProps } from './types';
-import { getCurrentFlowAnalysis, getMatrixAnalysis } from '../analyzers';
+import { getMatrixAnalysis } from '../analyzers';
 import { elementTraits } from '../data';
 
 interface CurrentFlow {
@@ -11,18 +11,73 @@ interface CurrentFlow {
   advice: string;
 }
 
+interface PlanetData {
+  name?: string;
+  sign?: string;
+  house?: number;
+}
+
+interface DaeunData {
+  current?: boolean;
+  isCurrent?: boolean;
+  ganji?: string;
+  name?: string;
+  stem?: { name?: string };
+  branch?: { name?: string };
+  startAge?: number;
+  age?: number;
+}
+
+interface UnseAnnualData {
+  year?: number;
+  ganji?: string;
+  stem?: { name?: string; element?: string };
+  branch?: { name?: string };
+  element?: string;
+}
+
+interface UnseMonthlyData {
+  month?: number;
+  ganji?: string;
+  stem?: { name?: string; element?: string };
+  branch?: { name?: string };
+  element?: string;
+}
+
+interface UnseIljinData {
+  day?: number;
+  ganji?: string;
+  stem?: { name?: string; element?: string };
+  branch?: { name?: string };
+  element?: string;
+}
+
+// SajuData와 별도로 정의 (확장이 아닌 독립 타입으로 캐스팅에 사용)
+interface SajuDataExtended {
+  dayMaster?: { name?: string; element?: string; heavenlyStem?: string };
+  pillars?: { day?: { heavenlyStem?: string | { name?: string } } };
+  fourPillars?: { day?: { heavenlyStem?: string } };
+  daeun?: DaeunData[];
+  bigFortune?: DaeunData[];
+  unse?: {
+    annual?: UnseAnnualData[];
+    monthly?: UnseMonthlyData[];
+    iljin?: UnseIljinData[];
+  };
+}
+
 // 헬퍼: 행성 별자리 찾기
-function findPlanetSign(planets: unknown[], name: string): string | null {
+function findPlanetSign(planets: PlanetData[] | undefined, name: string): string | null {
   if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
-  return planet?.sign || null;
+  const planet = planets.find((p) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  return planet?.sign ?? null;
 }
 
 // 헬퍼: 행성 하우스 찾기
-function findPlanetHouse(planets: unknown[], name: string): number | null {
+function findPlanetHouse(planets: PlanetData[] | undefined, name: string): number | null {
   if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
-  return planet?.house || null;
+  const planet = planets.find((p) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  return planet?.house ?? null;
 }
 
 // 일간 구체적 해석 - 현재 운세와의 관계
@@ -344,17 +399,18 @@ function getDaeunRelation(dayMaster: string, daeunStem: string, isKo: boolean): 
 
 export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
   const currentFlow = data.currentFlow as CurrentFlow | null;
-  const dayElement = data.dayElement;
-  const matrixAnalysis = getMatrixAnalysis(saju, astro, lang);
+  const dayElement = data.dayElement as string | undefined;
+  const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);
 
   // 직접 사주 데이터 추출
-  const dayMaster = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || saju?.fourPillars?.day?.heavenlyStem || "";
-  const dayMasterElement = saju?.dayMaster?.element || "";
-  const daeun = saju?.daeun || saju?.bigFortune;
-  const currentDaeun = Array.isArray(daeun) ? daeun.find((d: unknown) => d.current || d.isCurrent) : null;
+  const sajuExt = saju as SajuDataExtended | undefined;
+  const dayMaster = sajuExt?.dayMaster?.name ?? sajuExt?.dayMaster?.heavenlyStem ?? sajuExt?.fourPillars?.day?.heavenlyStem ?? "";
+  const dayMasterElement = sajuExt?.dayMaster?.element ?? "";
+  const daeun = sajuExt?.daeun ?? sajuExt?.bigFortune;
+  const currentDaeun = Array.isArray(daeun) ? daeun.find((d) => d.current || d.isCurrent) : null;
 
   // 점성술 데이터 추출
-  const planets = astro?.planets || [];
+  const planets = astro?.planets as PlanetData[] | undefined;
   const jupiterSign = findPlanetSign(planets, 'jupiter');
   const jupiterHouse = findPlanetHouse(planets, 'jupiter');
   const saturnSign = findPlanetSign(planets, 'saturn');
@@ -362,12 +418,12 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
 
   // 올해 운세
   const yearFortune = (() => {
-    if (!saju?.unse?.annual || !Array.isArray(saju.unse.annual) || saju.unse.annual.length === 0) {
+    if (!sajuExt?.unse?.annual || !Array.isArray(sajuExt.unse.annual) || sajuExt.unse.annual.length === 0) {
       return null;
     }
 
     const currentYear = new Date().getFullYear();
-    const thisYearUnse = saju.unse.annual.find((a: unknown) => a.year === currentYear) || saju.unse.annual[0];
+    const thisYearUnse = sajuExt.unse.annual.find((a) => a.year === currentYear) ?? sajuExt.unse.annual[0];
     if (!thisYearUnse) return null;
 
     const ganji = thisYearUnse.ganji || `${thisYearUnse.stem?.name || ""}${thisYearUnse.branch?.name || ""}`;
@@ -439,11 +495,12 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
           : "Inner depth grows though not visible. Study, plan, reflect... preparation time for next leap.",
         emoji: "💧"
       };
+      const dayElTrait = dayElement ? elementTraits[dayElement] : undefined;
       return {
         theme: isKo ? "변화와 적응의 해 🔄" : "Year of Change & Adaptation 🔄",
         desc: isKo
-          ? `당신의 ${elementTraits[dayElement]?.ko || ""} 에너지와 올해의 기운이 만나 새로운 변화가 시작돼요.`
-          : `Your ${elementTraits[dayElement]?.en || ""} energy meets this year's energy, starting new changes.`,
+          ? `당신의 ${dayElTrait?.ko || ""} 에너지와 올해의 기운이 만나 새로운 변화가 시작돼요.`
+          : `Your ${dayElTrait?.en || ""} energy meets this year's energy, starting new changes.`,
         advice: isKo
           ? "올해는 변화의 흐름을 받아들이는 것이 핵심이에요. 유연하게 대응하세요."
           : "The key this year is accepting the flow of change. Respond flexibly to situations.",
@@ -503,12 +560,12 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
 
   // 이달 운세
   const monthFortune = (() => {
-    if (!saju?.unse?.monthly || !Array.isArray(saju.unse.monthly) || saju.unse.monthly.length === 0) {
+    if (!sajuExt?.unse?.monthly || !Array.isArray(sajuExt.unse.monthly) || sajuExt.unse.monthly.length === 0) {
       return null;
     }
 
     const currentMonth = new Date().getMonth() + 1;
-    const thisMonthUnse = saju.unse.monthly.find((m: unknown) => m.month === currentMonth) || saju.unse.monthly[0];
+    const thisMonthUnse = sajuExt.unse.monthly.find((m) => m.month === currentMonth) ?? sajuExt.unse.monthly[0];
     if (!thisMonthUnse) return null;
 
     const ganji = thisMonthUnse.ganji || `${thisMonthUnse.stem?.name || ""}${thisMonthUnse.branch?.name || ""}`;
@@ -616,13 +673,13 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
 
   // 오늘 운세
   const todayFortune = (() => {
-    if (!saju?.unse?.iljin || !Array.isArray(saju.unse.iljin) || saju.unse.iljin.length === 0) {
+    if (!sajuExt?.unse?.iljin || !Array.isArray(sajuExt.unse.iljin) || sajuExt.unse.iljin.length === 0) {
       return null;
     }
 
     const today = new Date();
     const todayDate = today.getDate();
-    const todayIljin = saju.unse.iljin.find((i: unknown) => i.day === todayDate) || saju.unse.iljin[0];
+    const todayIljin = sajuExt.unse.iljin.find((i) => i.day === todayDate) ?? sajuExt.unse.iljin[0];
     if (!todayIljin) return null;
 
     const ganji = todayIljin.ganji || `${todayIljin.stem?.name || ""}${todayIljin.branch?.name || ""}`;

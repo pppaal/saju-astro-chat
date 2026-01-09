@@ -11,6 +11,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import AuthGate from "@/components/auth/AuthGate";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import styles from "./profile.module.css";
+import { logger } from "@/lib/logger";
 
 type ActivityType = "post" | "comment" | "like" | "reading";
 
@@ -39,7 +40,7 @@ export default function ProfilePage() {
         const savedArray = JSON.parse(saved);
         setSavedCount(savedArray.length);
       } catch (e) {
-        console.error("Failed to load saved posts", e);
+        logger.error("Failed to load saved posts", e);
       }
     }
 

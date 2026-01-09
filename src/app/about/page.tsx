@@ -82,6 +82,16 @@ const services: Service[] = [
     href: "/personality",
     gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
   },
+  {
+    id: "numerology",
+    icon: "🔢",
+    title: "Numerology",
+    titleKo: "수비학",
+    description: "이름과 생년월일의 수비학적 분석으로 당신의 삶의 목적과 잠재력을 발견합니다",
+    descriptionEn: "Discover your life purpose and potential through numerological analysis of your name and birth date",
+    href: "/numerology",
+    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  },
 ];
 
 export default function AboutPage() {
@@ -116,7 +126,7 @@ export default function AboutPage() {
               {translate("about.servicesEyebrow", "DestinyPal Services")}
             </p>
             <h2 className={styles.sectionTitle}>
-              {translate("about.servicesTitle", "5 Destiny Readings")}
+              {translate("about.servicesTitle", "7 Destiny Readings")}
             </h2>
             <p className={styles.sectionDesc}>
               {translate("about.servicesDesc", "Explore your destiny from multiple perspectives with each unique service")}

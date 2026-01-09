@@ -12,6 +12,7 @@ import CreditBadge from "@/components/ui/CreditBadge";
 import AuthGate from "@/components/auth/AuthGate";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import styles from "./counselor.module.css";
+import { sajuLogger } from "@/lib/logger";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -125,28 +126,28 @@ export default function SajuCounselorPage({
         }
       }
     } catch (e: unknown) {
-      console.warn("[SajuCounselorPage] Failed to load saju data:", e);
+      sajuLogger.warn("[SajuCounselorPage] Failed to load saju data:", e instanceof Error ? e : { error: String(e) });
     }
 
     // If no cached saju data, compute fresh from birth info
     if (!saju || !saju.dayMaster) {
       try {
-        console.warn("[SajuCounselorPage] Computing fresh saju data...");
+        sajuLogger.warn("[SajuCounselorPage] Computing fresh saju data...");
         const genderVal = (gender === "Male" || gender === "male") ? "male" : "female";
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
         const computed = calculateSajuData(birthDate, birthTime, genderVal, "solar", userTz);
-        saju = computed as SajuData;
+        saju = computed as unknown as SajuData;
         // Save to sessionStorage for future use
         sessionStorage.setItem("sajuCounselorData", JSON.stringify({
           saju: computed,
           timestamp: Date.now(),
         }));
-        console.warn("[SajuCounselorPage] Fresh saju computed:", {
-          dayMaster: computed.dayMaster?.heavenlyStem,
-          yearPillar: computed.yearPillar?.heavenlyStem,
+        sajuLogger.warn("[SajuCounselorPage] Fresh saju computed:", {
+          dayMaster: computed.pillars?.day?.heavenlyStem?.name,
+          yearPillar: computed.pillars?.year?.heavenlyStem?.name,
         });
       } catch (e: unknown) {
-        console.warn("[SajuCounselorPage] Failed to compute saju:", e);
+        sajuLogger.warn("[SajuCounselorPage] Failed to compute saju:", e instanceof Error ? e : { error: String(e) });
       }
     }
 
@@ -173,11 +174,11 @@ export default function SajuCounselorPage({
                 timeMs: typeof data.prefetch_time_ms === "number" ? data.prefetch_time_ms : undefined,
                 graphNodes: data.data_summary?.graph_nodes,
               });
-              console.warn(`[SajuCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
+              sajuLogger.warn(`[SajuCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
             }
           }
         } catch (e: unknown) {
-          console.warn("[SajuCounselorPage] RAG prefetch failed:", e);
+          sajuLogger.warn("[SajuCounselorPage] RAG prefetch failed:", e instanceof Error ? e : { error: String(e) });
           setPrefetchStatus({ done: true }); // Continue anyway
         }
       };
@@ -222,7 +223,7 @@ export default function SajuCounselorPage({
             }
 
             setUserContext(context);
-            console.warn("[SajuCounselor] User context loaded:", {
+            sajuLogger.warn("[SajuCounselor] User context loaded:", {
               isReturningUser: data.isReturningUser,
               sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
@@ -230,7 +231,7 @@ export default function SajuCounselorPage({
           }
         }
       } catch (e: unknown) {
-        console.warn("[SajuCounselor] No user context available (guest user)");
+        sajuLogger.warn("[SajuCounselor] No user context available (guest user)", e instanceof Error ? e : { error: String(e) });
       }
     };
 
@@ -258,11 +259,11 @@ export default function SajuCounselorPage({
           const data = await res.json();
           if (data.success && !chatSessionId) {
             setChatSessionId(data.session.id);
-            console.warn("[SajuCounselor] New chat session created:", data.session.id);
+            sajuLogger.warn("[SajuCounselor] New chat session created:", data.session.id);
           }
         }
       } catch (e: unknown) {
-        console.warn("[SajuCounselor] Failed to save message:", e);
+        sajuLogger.warn("[SajuCounselor] Failed to save message:", e instanceof Error ? e : { error: String(e) });
       }
     },
     [chatSessionId, theme, lang]

@@ -29,8 +29,8 @@ interface LoveAnalysis {
 }
 
 export default function LoveTab({ isKo, data, destinyNarrative, saju, astro, lang }: TabProps) {
-  const loveAnalysis = data.loveAnalysis as LoveAnalysis | null;
-  const loveMatrix = getLoveMatrixAnalysis(saju, astro, lang) as LoveMatrixResult | null;
+  const loveAnalysis = data.loveAnalysis as unknown as LoveAnalysis | null;
+  const loveMatrix = getLoveMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang) as LoveMatrixResult | null;
 
   return (
     <div className="space-y-6">

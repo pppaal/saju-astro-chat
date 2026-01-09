@@ -1,4 +1,15 @@
+// TODO: Add proper types for prompt data structures
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+
+// Internal helper types for loose data structures
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type PlanetInput = Record<string, unknown>;
+type UnseItem = Record<string, unknown>;
+type AspectItem = Record<string, unknown>;
+type SinsalItem = Record<string, unknown>;
+type MonthlyItem = Record<string, unknown>;
+type TransitItem = Record<string, unknown>;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Structured output format for fortune prompts with date recommendations
@@ -69,7 +80,8 @@ export function buildStructuredFortunePrompt(
   const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = saju ?? {} as Record<string, unknown>;
 
   // ========== BASIC PLANETARY DATA ==========
-  const getPlanet = (name: string) => planets.find((p: PlanetInput) => p.name === name);
+  const planetsArray = planets as PlanetInput[];
+  const getPlanet = (name: string) => planetsArray.find((p: PlanetInput) => p.name === name);
   const sun = getPlanet("Sun");
   const moon = getPlanet("Moon");
   const mercury = getPlanet("Mercury");
@@ -111,12 +123,12 @@ export function buildStructuredFortunePrompt(
 
   // 월운 (monthly)
   const currentMonthly: unknown = (unse?.monthly ?? []).find(
-    (m: unknown) => m.year === currentYear && m.month === currentMonth
+    (m: MonthlyItem) => m.year === currentYear && m.month === currentMonth
   );
 
   // Upcoming months
   const upcomingMonths = (unse?.monthly ?? [])
-    .filter((m: unknown) => {
+    .filter((m: MonthlyItem) => {
       if (m.year > currentYear) return true;
       if (m.year === currentYear && m.month >= currentMonth) return true;
       return false;
@@ -124,9 +136,10 @@ export function buildStructuredFortunePrompt(
     .slice(0, 6);
 
   // ========== SINSAL (신살) ==========
-  const luckyList = ((sinsal as Record<string, unknown> | undefined)?.luckyList ?? []).map((x: SinsalItem) => x.name).join(", ");
-  const unluckyList = ((sinsal as Record<string, unknown> | undefined)?.unluckyList ?? []).map((x: SinsalItem) => x.name).join(", ");
-  const twelveGods = ((sinsal as Record<string, unknown> | undefined)?.twelveAll ?? []).slice(0, 5).map((x: SinsalItem) => x.name).join(", ");
+  const sinsalData = sinsal as any;
+  const luckyList = (sinsalData?.luckyList ?? []).map((x: SinsalItem) => x.name).join(", ");
+  const unluckyList = (sinsalData?.unluckyList ?? []).map((x: SinsalItem) => x.name).join(", ");
+  const twelveGods = (sinsalData?.twelveAll ?? []).slice(0, 5).map((x: SinsalItem) => x.name).join(", ");
 
   // ========== TRANSITS ==========
   const significantTransits = transits

@@ -36,6 +36,6 @@ RUN ln -s /app /app/backend_ai
 ENV PYTHONPATH=/app
 EXPOSE 8080
 
-# Use 1 worker with threads for memory efficiency on Railway
+# Use 1 worker with threads for memory efficiency
 # preload to share model memory, graceful-timeout for clean shutdown
 CMD ["sh", "-c", "gunicorn app.app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 4 --timeout 120 --graceful-timeout 30 --keep-alive 5"]

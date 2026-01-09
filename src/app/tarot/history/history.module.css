@@ -1,0 +1,464 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a0b2e 50%, #16213e 100%);
+  padding: 1rem;
+  padding-top: env(safe-area-inset-top, 1rem);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.statsToggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(99, 210, 255, 0.1);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.statsToggle.active {
+  background: rgba(99, 210, 255, 0.25);
+  border-color: rgba(99, 210, 255, 0.5);
+}
+
+.statsToggle:hover {
+  background: rgba(99, 210, 255, 0.2);
+}
+
+/* Stats Panel */
+.statsPanel {
+  background: rgba(99, 210, 255, 0.05);
+  border: 1px solid rgba(99, 210, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.statsSectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #63d2ff;
+  margin: 0 0 1rem;
+}
+
+.statsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.statRank {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(99, 210, 255, 0.7);
+  width: 28px;
+}
+
+.statName {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.statCount {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.reversedCount {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(255, 150, 150, 0.7);
+}
+
+.emptyStats {
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.totalReadings {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.searchInput:focus {
+  border-color: rgba(99, 210, 255, 0.5);
+  background: rgba(99, 210, 255, 0.05);
+}
+
+.select {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.select option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+/* Reading List */
+.readingList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.readingCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.readingCard:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(99, 210, 255, 0.2);
+}
+
+.readingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.readingTime {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.deleteBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 100, 100, 0.1);
+  border: none;
+  color: rgba(255, 100, 100, 0.7);
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.readingCard:hover .deleteBtn {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6b6b;
+}
+
+.readingQuestion {
+  font-size: 1rem;
+  color: #fff;
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.readingMeta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.spreadName {
+  color: #63d2ff;
+}
+
+.cardCount {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.cardPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.cardChip {
+  padding: 0.3rem 0.6rem;
+  background: rgba(150, 130, 255, 0.15);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cardChip.reversed {
+  background: rgba(255, 150, 150, 0.15);
+  color: rgba(255, 180, 180, 0.9);
+}
+
+.moreCards {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyState p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.startButton {
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.2), rgba(150, 130, 255, 0.2));
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 12px;
+  color: #63d2ff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.startButton:hover {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.3), rgba(150, 130, 255, 0.3));
+  transform: translateY(-2px);
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 20px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.modalClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #63d2ff;
+  margin: 0 0 0.25rem;
+  padding-right: 2rem;
+}
+
+.modalTime {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1.25rem;
+}
+
+.modalQuestion {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.modalCards {
+  margin-bottom: 1.25rem;
+}
+
+.modalCards h4 {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 0.75rem;
+  font-weight: 500;
+}
+
+.modalCardItem {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modalCardItem:last-child {
+  border-bottom: none;
+}
+
+.modalCardPosition {
+  flex: 0 0 100px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.modalCardName {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.modalCardName.reversed {
+  color: rgba(255, 180, 180, 0.9);
+}
+
+.modalInterpretation {
+  background: rgba(99, 210, 255, 0.05);
+  border: 1px solid rgba(99, 210, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.modalInterpretation h4 {
+  font-size: 0.9rem;
+  color: #63d2ff;
+  margin: 0 0 0.75rem;
+  font-weight: 500;
+}
+
+.modalInterpretation p {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
+.modalGuidance {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(99, 210, 255, 0.15);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.modalGuidance strong {
+  color: #63d2ff;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .controls {
+    flex-direction: column;
+  }
+
+  .searchInput {
+    min-width: 100%;
+  }
+
+  .select {
+    flex: 1;
+  }
+
+  .modalContent {
+    max-height: 90vh;
+  }
+
+  .modalCardPosition {
+    flex: 0 0 80px;
+  }
+}

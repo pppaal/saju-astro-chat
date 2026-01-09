@@ -1,0 +1,3010 @@
+[
+  {
+    "profile": "Profile1-1970s",
+    "year": 2005,
+    "locale": "ko",
+    "days": 351,
+    "grades": {
+      "0": 0,
+      "1": 79,
+      "2": 91,
+      "3": 120,
+      "4": 61,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 351,
+      "grade0": 0,
+      "grade1": 79,
+      "grade2": 91,
+      "grade3": 120,
+      "grade4": 61
+    },
+    "sample": {
+      "date": "2005-05-07",
+      "grade": 1,
+      "score": 86,
+      "categories": [
+        "general",
+        "travel",
+        "career",
+        "health"
+      ],
+      "title": "조심의 날",
+      "description": "상사 눈치 보이는 날. 티 나는 행동은 피하세요.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "🐎 여행 가면 좋은 일 생길 수 있어요. 출장, 외근 기회가 오면 잡으세요. 이직이나 이사 고민 중이라면 오늘 알아보세요.",
+        "⚡ 도전과 경쟁에 강해지는 날이에요! 스포츠, 경쟁 프레젠테이션, 협상에 유리해요. 다만 스트레스와 압박감도 커지니 건강 관리하세요. 승부욕이 강해지는 날!",
+        "오랫동안 연락 안 하던 사람한테서 연락이 올 수 있어요. 포기했던 프로젝트가 다시 살아날 수도 있고요. 예상치 못한 곳에서 도움이 와요.",
+        "상사 눈치가 보이는 날이에요. 큰 실수만 안 하면 됩니다. 티 나는 행동은 피하고 맡은 일 묵묵히 하세요.",
+        "1년에 몇 번 없는 좋은 날이에요. 계약서 사인, 이직 면접, 중요한 미팅 잡기 딱 좋아요. 오늘 시작하면 일이 잘 풀려요.",
+        "📅 올해는 당신의 기본 에너지가 강화되는 해예요. 자신감이 넘치고 추진력이 생기는 해이지만, 경쟁자도 많아질 수 있어요. 협력과 경쟁의 균형을 잘 잡으세요.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "📆 이번 달은 인연이 좋은 달이에요. 새로운 만남, 소개팅, 인맥 확장에 유리해요. 좋은 사람을 통해 기회가 올 수 있어요.",
+        "🌅 오늘은 외부 압박이나 스트레스가 있을 수 있어요. 상사, 윗사람과의 관계에서 조심하고, 겸손하게 대처하세요. 무리한 도전은 피하세요.",
+        "🌅 오늘은 세 가지 좋은 기운이 모이는 최고의 날이에요! 중요한 계약, 결혼, 사업 시작에 완벽한 타이밍! 오랫동안 미뤄왔던 일을 오늘 하세요!"
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "♂ 화성이 당신의 별자리에 들어왔어요! 에너지와 행동력이 최고조에 달해요. 운동, 경쟁, 도전에 좋은 날이에요. 다만 화가 나기 쉽고 다툼이 생길 수 있으니, 감정 조절에 주의하세요.",
+        "♄ 토성의 시련을 극복할 수 있는 날이에요! 오랫동안 힘들었던 문제가 해결되기 시작해요. 인내와 노력이 보상받는 시기입니다.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "🌙 달 에너지가 당신과 조화를 이루고 있어요. 정서적으로 안정되고, 주변 사람들과의 관계도 좋아요. 가족, 집과 관련된 일에 유리해요.",
+        "♃ 목성 스퀘어! 과욕이나 과잉 자신감에 주의하세요. 좋은 기회처럼 보이지만 위험이 숨어있을 수 있어요. 신중하게 판단하세요.",
+        "♄ 토성 오포지션! 다른 사람이나 상황이 당신을 막는 듯 느껴져요. 책임과 의무 사이에서 갈등이 생길 수 있어요. 균형을 찾으세요.",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌑 삭(새달)의 날! 새로운 시작의 에너지가 충만해요. 목표를 세우고 씨앗을 뿌리는 최적의 시기예요. 새 프로젝트, 새로운 습관, 새 인연을 시작하기에 좋아요!",
+        "♄⟲ 토성 역행 중! 책임과 구조를 재검토하는 시기예요. 과거의 교훈을 돌아보고, 장기 계획을 점검하세요. 내면의 규율을 세우기에 좋은 때예요.",
+        "♄ 토요일 - 토성의 날! 책임, 구조화, 장기 계획에 유리한 날이에요. 재미보다 의무에 집중하고, 기초를 다지세요. 부동산, 노인과 관련된 일에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "⚠ 동서양 운세 모두 조심하라는 날이에요. 중요한 결정은 미루고, 조용히 지내세요. 괜히 나서지 마세요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤝 협업 프로젝트나 팀 활동에 최적! 함께하면 더 큰 성과!",
+        "⚡ 시너지 효과가 극대화되는 날! 파트너와 힘을 합치세요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "✈️ 여행, 출장, 워케이션에 완벽한 날! 비행기표 예약하세요!",
+        "🔄 이직, 이사, 새 시작에 좋은 타이밍! 변화를 두려워하지 마세요!",
+        "🐢 서둘러 결정하지 마세요. '하루만 더 생각해볼게요'가 오늘의 무기!",
+        "🤫 SNS 포스팅이나 자랑은 피하세요. 조용히 자기 일 하는 게 최고 전략!",
+        "⚡ 이직, 창업, 이사, 결혼 결정에 완벽한 날!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤜🤛 사업 제안이나 공동 프로젝트 시작에 좋아요. 파트너와 대화하세요!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2005,
+    "locale": "en",
+    "days": 351,
+    "grades": {
+      "0": 0,
+      "1": 79,
+      "2": 91,
+      "3": 120,
+      "4": 61,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 351,
+      "grade0": 0,
+      "grade1": 79,
+      "grade2": 91,
+      "grade3": 120,
+      "grade4": 61
+    },
+    "sample": {
+      "date": "2005-05-07",
+      "grade": 1,
+      "score": 86,
+      "categories": [
+        "general",
+        "travel",
+        "career",
+        "health"
+      ],
+      "title": "Caution Day",
+      "description": "Watch out for bosses. Keep a low profile.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "🐎 Good things may happen if you travel. Grab business trip or outside work opportunities. If considering job change or moving, look into it today.",
+        "⚡ You become stronger in challenges and competition! Favorable for sports, competitive presentations, and negotiations. However, stress and pressure also increase, so manage your health. A day when competitive spirit rises!",
+        "You might hear from someone you haven't contacted in a while. A project you gave up might revive. Help comes from unexpected places.",
+        "A day to be aware of your boss's mood. Just avoid big mistakes. Keep a low profile and quietly do your assigned work.",
+        "One of the few great days this year. Perfect for signing contracts, job interviews, scheduling important meetings. Things started today go well.",
+        "📅 This year strengthens your core energy. A year of overflowing confidence and drive, but competitors may also increase. Balance cooperation and competition well.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "📆 This month has good relationship fortune. Favorable for new meetings, blind dates, and expanding connections. Opportunities may come through good people.",
+        "🌅 External pressure or stress may occur today. Be careful in relationships with bosses and superiors, stay humble. Avoid reckless challenges.",
+        "🌅 Three positive energies unite today - the best day! Perfect timing for important contracts, marriage, or starting a business. Do what you've been postponing!"
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "♂ Mars has entered your sign! Energy and action are at peak. Good day for exercise, competition, and challenges. However, you may get angry easily and arguments may arise, so be careful with emotional control.",
+        "♄ A day when you can overcome Saturn's challenges! Long-standing difficult problems begin to resolve. A time when patience and effort are rewarded.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "🌙 Moon energy harmonizes with you. Emotionally stable and relationships with people around you improve. Favorable for family and home-related matters.",
+        "♃ Jupiter square! Watch for overconfidence or excessive ambition. What looks like a good opportunity may hide risks. Judge carefully.",
+        "♄ Saturn opposition! Others or situations seem to block you. Conflicts may arise between responsibilities and duties. Find balance.",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌑 New Moon day! Full of new beginning energy. Optimal time to set goals and plant seeds. Great for starting new projects, habits, or relationships!",
+        "♄⟲ Saturn Retrograde! Time to review responsibilities and structures. Look back on past lessons and check long-term plans. Good time to establish inner discipline.",
+        "♄ Saturday - Saturn's day! Favorable for responsibility, structuring, and long-term planning. Focus on duty over fun and build foundations. Good for real estate and matters related to elders.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "⚠ A day when both Eastern and Western fortune say be careful. Postpone important decisions and stay quiet. Don't stick your neck out.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤝 Perfect for collaboration or team activities! Together you achieve more!",
+        "⚡ Synergy effects are maximized today! Join forces with your partner!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "✈️ Perfect day for travel, business trips, or workcations! Book those tickets!",
+        "🔄 Great timing for job changes, moving, or new beginnings! Don't fear change!",
+        "🐢 Don't decide in a hurry. 'Let me think about it one more day' is your weapon today!",
+        "🤫 Avoid posting on social media or bragging. Quietly doing your own work is the best strategy!",
+        "⚡ Perfect day for deciding on job changes, starting a business, moving, or marriage!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤜🤛 Good for business proposals or starting joint projects. Talk to your partner!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2015,
+    "locale": "ko",
+    "days": 364,
+    "grades": {
+      "0": 24,
+      "1": 98,
+      "2": 100,
+      "3": 119,
+      "4": 23,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 364,
+      "grade0": 24,
+      "grade1": 98,
+      "grade2": 100,
+      "grade3": 119,
+      "grade4": 23
+    },
+    "sample": {
+      "date": "2015-05-16",
+      "grade": 0,
+      "score": 86,
+      "categories": [
+        "study",
+        "health",
+        "career"
+      ],
+      "title": "✨ 천운의 날 ✨",
+      "description": "동양+서양 운세가 완벽하게 일치하는 희귀한 날! 1년에 몇 번 없어요. 결혼, 계약, 사업 시작, 중요한 결정에 최적!",
+      "summary": "🏆 합격운 최고! 시험, 면접에 행운이!",
+      "bestTimes": [
+        "📚 오전 9-12시: 집중력 최고",
+        "🌙 저녁 8-10시: 암기력 UP"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "📚 학습과 도움의 에너지가 넘쳐요! 시험, 자격증, 학업에 유리한 날이에요. 선생님이나 선배의 도움을 받기 좋고, 중요한 서류 처리에도 좋은 날이에요.",
+        "오랫동안 연락 안 하던 사람한테서 연락이 올 수 있어요. 포기했던 프로젝트가 다시 살아날 수도 있고요. 예상치 못한 곳에서 도움이 와요.",
+        "오늘 선배나 상사한테 물어보면 좋은 답을 들을 수 있어요. 막혔던 업무가 조언 한마디로 해결될 수 있습니다. 물어보는 게 이득!",
+        "오늘 한 얘기가 나중에 문제될 수 있어요. 험담이나 비밀 얘기는 피하세요. SNS 올리기 전에 한 번 더 생각하세요.",
+        "📅 올해는 당신의 기본 에너지가 강화되는 해예요. 자신감이 넘치고 추진력이 생기는 해이지만, 경쟁자도 많아질 수 있어요. 협력과 경쟁의 균형을 잘 잡으세요.",
+        "📅 올해는 세 가지 좋은 기운이 모이는 특별한 해예요! 큰 기회가 찾아올 수 있으니, 적극적으로 도전하세요. 인생의 전환점이 될 수 있는 해입니다.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "📆 이번 달은 인연이 좋은 달이에요. 새로운 만남, 소개팅, 인맥 확장에 유리해요. 좋은 사람을 통해 기회가 올 수 있어요.",
+        "🌅 오늘은 배움과 도움을 받기 좋은 날이에요. 선배나 멘토의 조언이 도움이 되고, 공부나 자격증 준비에도 좋아요. 지혜를 얻는 하루!",
+        "🌅 오늘은 오해와 방해가 생기기 쉬운 날이에요. 말조심하고, 비밀 이야기는 나누지 마세요. 새로운 사람을 쉽게 믿지 않는 게 좋아요."
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
+        "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
+        "♂ 화성 에너지가 당신과 조화를 이루고 있어요. 운동, 경쟁, 적극적인 활동에 유리해요. 추진력이 생기고 목표를 향해 나아가기 좋은 날이에요.",
+        "♃ 목성이 당신의 성장을 도와주고 있어요. 배움, 여행, 철학적 탐구에 유리해요. 새로운 경험과 넓은 시야가 인생을 풍요롭게 만들어요.",
+        "♄ 토성의 시련을 극복할 수 있는 날이에요! 오랫동안 힘들었던 문제가 해결되기 시작해요. 인내와 노력이 보상받는 시기입니다.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "🌙 달 에너지가 당신과 조화를 이루고 있어요. 정서적으로 안정되고, 주변 사람들과의 관계도 좋아요. 가족, 집과 관련된 일에 유리해요.",
+        "♄ 토성 섹스타일! 규율과 노력이 보상받는 작은 기회가 와요. 진지하게 접근하면 좋은 결과를 얻을 수 있어요.",
+        "♂ 화성 트라인! 에너지가 자연스럽게 흘러요. 운동, 경쟁, 적극적인 활동에 좋은 날이에요. 행동력이 빛나요!",
+        "♀ 금성 트라인! 사랑과 아름다움이 자연스럽게 흘러와요. 연애, 예술, 인간관계 모두 좋아요. 매력이 빛나는 날!",
+        "🌘 그믐달의 날! 휴식과 내면 성찰의 시기예요. 에너지가 낮을 수 있으니 무리하지 말고 쉬세요. 명상, 휴식, 다음 신월을 위한 준비에 좋아요.",
+        "♃⟲ 목성 역행 중! 외적 확장보다 내면의 성장에 집중하는 시기예요. 큰 투자나 확장 계획은 재검토하세요. 철학적 성찰과 지혜 축적에 좋아요.",
+        "♄ 토요일 - 토성의 날! 책임, 구조화, 장기 계획에 유리한 날이에요. 재미보다 의무에 집중하고, 기초를 다지세요. 부동산, 노인과 관련된 일에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "⚠ 동서양 운세 모두 조심하라는 날이에요. 중요한 결정은 미루고, 조용히 지내세요. 괜히 나서지 마세요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "⚡ 이직, 창업, 이사, 결혼 결정에 완벽한 날!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "📜 자격증 시험이나 온라인 강좌 등록하세요!",
+        "👩 어머니께 전화하세요! 좋은 조언을 받을 수 있어요!",
+        "📖 시험 접수, 강좌 구매, 수강 신청하기 좋은 날!",
+        "🙏 부모님, 상사, 선배에게 조언을 구하세요 - 해결책을 찾을 수 있어요. 먼저 연락하세요!",
+        "📝 관공서 서류, 여권 갱신, 은행 업무에 좋아요. 공식적인 일 처리하세요!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2015,
+    "locale": "en",
+    "days": 364,
+    "grades": {
+      "0": 24,
+      "1": 98,
+      "2": 100,
+      "3": 119,
+      "4": 23,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 364,
+      "grade0": 24,
+      "grade1": 98,
+      "grade2": 100,
+      "grade3": 119,
+      "grade4": 23
+    },
+    "sample": {
+      "date": "2015-05-16",
+      "grade": 0,
+      "score": 86,
+      "categories": [
+        "study",
+        "health",
+        "career"
+      ],
+      "title": "✨ Day of Celestial Fortune ✨",
+      "description": "A rare day when Eastern & Western fortunes align perfectly! Ideal for weddings, contracts, starting business, major decisions.",
+      "summary": "🏆 Best luck for exams and interviews!",
+      "bestTimes": [
+        "📚 9am-12pm: Peak focus",
+        "🌙 8-10pm: Memory boost"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "📚 Learning and support energy overflows! Favorable for exams, certifications, and studies. Good for receiving help from teachers or seniors, and good for handling important documents.",
+        "You might hear from someone you haven't contacted in a while. A project you gave up might revive. Help comes from unexpected places.",
+        "Ask seniors or supervisors today - you'll get good answers. A single piece of advice could solve your stuck work. Asking pays off!",
+        "What you say today might cause problems later. Avoid gossip or secrets. Think twice before posting on social media.",
+        "📅 This year strengthens your core energy. A year of overflowing confidence and drive, but competitors may also increase. Balance cooperation and competition well.",
+        "📅 This is a special year when three good energies unite! Big opportunities may come, so take on challenges actively. This could be a turning point in your life.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "📆 This month has good relationship fortune. Favorable for new meetings, blind dates, and expanding connections. Opportunities may come through good people.",
+        "🌅 Great day for learning and receiving help. Advice from seniors or mentors will be valuable, good for studying or certification prep. A day of gaining wisdom!",
+        "🌅 Misunderstandings and interference come easily today. Watch your words and don't share secrets. It's better not to easily trust new people."
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information.",
+        "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back.",
+        "♂ Mars energy harmonizes with you. Favorable for exercise, competition, and active pursuits. You gain drive and it's a good day to move toward your goals.",
+        "♃ Jupiter supports your growth. Favorable for learning, travel, and philosophical exploration. New experiences and broader perspectives enrich your life.",
+        "♄ A day when you can overcome Saturn's challenges! Long-standing difficult problems begin to resolve. A time when patience and effort are rewarded.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "🌙 Moon energy harmonizes with you. Emotionally stable and relationships with people around you improve. Favorable for family and home-related matters.",
+        "♄ Saturn sextile! Small opportunities come when discipline and effort are rewarded. Serious approach brings good results.",
+        "♂ Mars trine! Energy flows naturally. Good day for exercise, competition, and active pursuits. Your action power shines!",
+        "♀ Venus trine! Love and beauty flow naturally. Romance, art, and relationships are all good. A day your charm shines!",
+        "🌘 Waning Crescent day! A time for rest and inner reflection. Energy may be low, so don't overexert and rest. Good for meditation, rest, and preparing for next New Moon.",
+        "♃⟲ Jupiter Retrograde! Focus on inner growth rather than external expansion. Review big investments or expansion plans. Good for philosophical reflection and accumulating wisdom.",
+        "♄ Saturday - Saturn's day! Favorable for responsibility, structuring, and long-term planning. Focus on duty over fun and build foundations. Good for real estate and matters related to elders.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "⚠ A day when both Eastern and Western fortune say be careful. Postpone important decisions and stay quiet. Don't stick your neck out.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "⚡ Perfect day for deciding on job changes, starting a business, moving, or marriage!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "📜 Register for certification exams or online courses!",
+        "👩 Call your mother! You might receive good advice!",
+        "📖 Perfect day to register for exams, buy courses, or enroll in classes!",
+        "🙏 Ask parents, bosses, or seniors for advice - you'll find solutions. Reach out first!",
+        "📝 Great for government paperwork, passport renewal, or banking. Get official things done!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2024,
+    "locale": "ko",
+    "days": 366,
+    "grades": {
+      "0": 0,
+      "1": 152,
+      "2": 63,
+      "3": 105,
+      "4": 46,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 366,
+      "grade0": 0,
+      "grade1": 152,
+      "grade2": 63,
+      "grade3": 105,
+      "grade4": 46
+    },
+    "sample": {
+      "date": "2024-08-04",
+      "grade": 1,
+      "score": 88,
+      "categories": [
+        "general",
+        "career",
+        "health"
+      ],
+      "title": "조심의 날",
+      "description": "상사 눈치 보이는 날. 티 나는 행동은 피하세요.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "⚠️ 올해는 무리한 투자나 이직보다 현상유지가 안전해요. 건강검진 꼭 받으시고, 큰 변화는 내년으로 미루세요.",
+        "👔 직장운과 명예운이 좋아요! 승진, 인정, 공식적인 자리에 유리한 날이에요. 책임감 있게 행동하면 좋은 평가를 받을 수 있어요. 결혼이나 공식적인 약속에도 좋은 날!",
+        "너무 좋아 보이는 제안은 한 번 더 의심하세요. 중고거래, 투자 제안 등 조건 꼼꼼히 따져보세요. 급하게 결정하면 후회해요.",
+        "상사 눈치가 보이는 날이에요. 큰 실수만 안 하면 됩니다. 티 나는 행동은 피하고 맡은 일 묵묵히 하세요.",
+        "📅 올해는 당신의 기본 에너지가 강화되는 해예요. 자신감이 넘치고 추진력이 생기는 해이지만, 경쟁자도 많아질 수 있어요. 협력과 경쟁의 균형을 잘 잡으세요.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "🌅 오늘은 외부 압박이나 스트레스가 있을 수 있어요. 상사, 윗사람과의 관계에서 조심하고, 겸손하게 대처하세요. 무리한 도전은 피하세요."
+      ],
+      "astroFactors": [
+        "미뤄뒀던 일 시작하기 좋은 날이에요. 운동 시작, 다이어트, 새 프로젝트 등 첫걸음 떼기 딱 좋아요.",
+        "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
+        "♄ 토성의 시련을 극복할 수 있는 날이에요! 오랫동안 힘들었던 문제가 해결되기 시작해요. 인내와 노력이 보상받는 시기입니다.",
+        "☀️ 태양이 당신에게 에너지를 충전해줘요! 창의력과 활력이 넘치고, 새로운 시작에 최적의 날이에요. 자신감을 갖고 빛나세요!",
+        "🌙 달이 당신을 돌봐주는 에너지예요. 휴식, 자기 돌봄, 가족과의 시간에 좋은 날이에요. 따뜻한 음식과 편안한 시간을 즐기세요.",
+        "♃ 목성 트라인! 행운과 기회가 자연스럽게 흘러와요. 모든 일이 순조롭게 풀리는 날이에요. 큰 결정, 투자, 새로운 시작에 최고의 타이밍!",
+        "♄ 토성 섹스타일! 규율과 노력이 보상받는 작은 기회가 와요. 진지하게 접근하면 좋은 결과를 얻을 수 있어요.",
+        "♂ 화성 스퀘어! 갈등과 충돌에 주의하세요. 화가 나기 쉽고 다툼이 생길 수 있어요. 감정 조절이 중요해요.",
+        "♀ 금성 트라인! 사랑과 아름다움이 자연스럽게 흘러와요. 연애, 예술, 인간관계 모두 좋아요. 매력이 빛나는 날!",
+        "🌑 신월(新月)! 새로운 시작의 에너지가 충만한 날이에요. 목표를 세우고, 의도를 심는 최적의 날! 씨앗을 뿌리듯 새로운 프로젝트를 시작하세요.",
+        "🌑 삭(새달)의 날! 새로운 시작의 에너지가 충만해요. 목표를 세우고 씨앗을 뿌리는 최적의 시기예요. 새 프로젝트, 새로운 습관, 새 인연을 시작하기에 좋아요!",
+        "☀️ 일요일 - 태양의 날! 자아 표현, 리더십, 창의력에 유리한 날이에요. 자신감을 갖고 빛나세요! 중요한 발표나 자기 PR에 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "⚠ 동서양 운세 모두 조심하라는 날이에요. 중요한 결정은 미루고, 조용히 지내세요. 괜히 나서지 마세요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤝 협업 프로젝트나 팀 활동에 최적! 함께하면 더 큰 성과!",
+        "⚡ 시너지 효과가 극대화되는 날! 파트너와 힘을 합치세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "🐢 서둘러 결정하지 마세요. '하루만 더 생각해볼게요'가 오늘의 무기!",
+        "🤫 SNS 포스팅이나 자랑은 피하세요. 조용히 자기 일 하는 게 최고 전략!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "🎁 부탁이 받아들여질 확률이 높아요! 도움 요청을 망설이지 마세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2024,
+    "locale": "en",
+    "days": 366,
+    "grades": {
+      "0": 0,
+      "1": 152,
+      "2": 63,
+      "3": 105,
+      "4": 46,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 366,
+      "grade0": 0,
+      "grade1": 152,
+      "grade2": 63,
+      "grade3": 105,
+      "grade4": 46
+    },
+    "sample": {
+      "date": "2024-08-04",
+      "grade": 1,
+      "score": 88,
+      "categories": [
+        "general",
+        "career",
+        "health"
+      ],
+      "title": "Caution Day",
+      "description": "Watch out for bosses. Keep a low profile.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "⚠️ This year, maintaining status quo is safer than risky investments or job changes. Get health checkups and postpone big changes to next year.",
+        "👔 Career and honor luck is good! Favorable for promotions, recognition, and official occasions. Acting responsibly brings good evaluations. Also a good day for marriage or official commitments!",
+        "Be suspicious of offers that look too good. Check conditions carefully for secondhand deals or investment proposals. Rushing decisions leads to regret.",
+        "A day to be aware of your boss's mood. Just avoid big mistakes. Keep a low profile and quietly do your assigned work.",
+        "📅 This year strengthens your core energy. A year of overflowing confidence and drive, but competitors may also increase. Balance cooperation and competition well.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "🌅 External pressure or stress may occur today. Be careful in relationships with bosses and superiors, stay humble. Avoid reckless challenges."
+      ],
+      "astroFactors": [
+        "Good day to start things you've postponed. Perfect for first steps like starting exercise, diet, or new projects.",
+        "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back.",
+        "♄ A day when you can overcome Saturn's challenges! Long-standing difficult problems begin to resolve. A time when patience and effort are rewarded.",
+        "☀️ The Sun energizes you! Creativity and vitality overflow, an optimal day for new beginnings. Be confident and shine!",
+        "🌙 Moon energy nurtures you. Good day for rest, self-care, and family time. Enjoy warm food and comfortable moments.",
+        "♃ Jupiter trine! Luck and opportunities flow naturally. Everything goes smoothly today. Perfect timing for big decisions, investments, or new beginnings!",
+        "♄ Saturn sextile! Small opportunities come when discipline and effort are rewarded. Serious approach brings good results.",
+        "♂ Mars square! Watch for conflicts and clashes. Anger comes easily and arguments may arise. Emotional control is important.",
+        "♀ Venus trine! Love and beauty flow naturally. Romance, art, and relationships are all good. A day your charm shines!",
+        "🌑 New Moon! A day full of new beginning energy. Optimal day to set goals and plant intentions! Start new projects like sowing seeds.",
+        "🌑 New Moon day! Full of new beginning energy. Optimal time to set goals and plant seeds. Great for starting new projects, habits, or relationships!",
+        "☀️ Sunday - Sun's day! Favorable for self-expression, leadership, and creativity. Be confident and shine! Good for important presentations or self-promotion.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "⚠ A day when both Eastern and Western fortune say be careful. Postpone important decisions and stay quiet. Don't stick your neck out.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤝 Perfect for collaboration or team activities! Together you achieve more!",
+        "⚡ Synergy effects are maximized today! Join forces with your partner!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "🐢 Don't decide in a hurry. 'Let me think about it one more day' is your weapon today!",
+        "🤫 Avoid posting on social media or bragging. Quietly doing your own work is the best strategy!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "🎁 High chance your requests will be granted! Don't hesitate to ask for help!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2025,
+    "locale": "ko",
+    "days": 365,
+    "grades": {
+      "0": 22,
+      "1": 102,
+      "2": 83,
+      "3": 124,
+      "4": 34,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 365,
+      "grade0": 22,
+      "grade1": 102,
+      "grade2": 83,
+      "grade3": 124,
+      "grade4": 34
+    },
+    "sample": {
+      "date": "2025-05-07",
+      "grade": 0,
+      "score": 81,
+      "categories": [
+        "love",
+        "career"
+      ],
+      "title": "✨ 천운의 날 ✨",
+      "description": "동양+서양 운세가 완벽하게 일치하는 희귀한 날! 1년에 몇 번 없어요. 결혼, 계약, 사업 시작, 중요한 결정에 최적!",
+      "summary": "💍 프로포즈, 결혼 결정에 최고의 날!",
+      "bestTimes": [
+        "☕ 오후 3-5시: 데이트 최적",
+        "🌙 저녁 7-9시: 로맨틱한 시간"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "🎭 창의적 표현력이 극대화되지만 말조심하세요! 예술, 공연, 콘텐츠 제작에 유리해요. 다만 상사나 권위자와 충돌하기 쉬우니 언행을 조절하세요. 재능은 빛나지만 관계에 주의!",
+        "너무 좋아 보이는 제안은 한 번 더 의심하세요. 중고거래, 투자 제안 등 조건 꼼꼼히 따져보세요. 급하게 결정하면 후회해요.",
+        "아이디어가 잘 떠오르는 날이에요. 기획서 작성, 프레젠테이션 준비하기 딱 좋아요. 평소에 말 못 했던 제안도 오늘 해보세요.",
+        "📅 올해는 당신의 기본 에너지가 강화되는 해예요. 자신감이 넘치고 추진력이 생기는 해이지만, 경쟁자도 많아질 수 있어요. 협력과 경쟁의 균형을 잘 잡으세요.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "📆 이번 달은 인연이 좋은 달이에요. 새로운 만남, 소개팅, 인맥 확장에 유리해요. 좋은 사람을 통해 기회가 올 수 있어요.",
+        "🌅 오늘은 창의력과 표현력이 빛나는 날이에요. 글쓰기, 예술, 프레젠테이션에 좋아요. 당신의 아이디어를 자신 있게 표현하세요!"
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
+        "♀ 금성이 당신을 지원하고 있어요. 예술과 미적 감각이 빛나고, 주변 사람들에게 호감을 얻기 쉬워요. 디자인, 미술, 음악 등 창작 활동에 유리해요.",
+        "♂ 화성 에너지가 당신과 조화를 이루고 있어요. 운동, 경쟁, 적극적인 활동에 유리해요. 추진력이 생기고 목표를 향해 나아가기 좋은 날이에요.",
+        "♄ 토성이 당신의 삶에 구조와 안정을 가져다 줘요. 장기 계획을 세우거나, 기초를 다지기에 좋은 날이에요. 인내심을 갖고 천천히 쌓아가세요.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "🌙 달 에너지가 당신과 조화를 이루고 있어요. 정서적으로 안정되고, 주변 사람들과의 관계도 좋아요. 가족, 집과 관련된 일에 유리해요.",
+        "♄ 토성 섹스타일! 규율과 노력이 보상받는 작은 기회가 와요. 진지하게 접근하면 좋은 결과를 얻을 수 있어요.",
+        "♂ 화성 트라인! 에너지가 자연스럽게 흘러요. 운동, 경쟁, 적극적인 활동에 좋은 날이에요. 행동력이 빛나요!",
+        "🌔 차오르는 달의 날! 완성을 향해 정제하는 시기예요. 세부 사항을 다듬고, 마무리를 준비하세요. 분석과 개선에 좋은 날이에요.",
+        "♃⟲ 목성 역행 중! 외적 확장보다 내면의 성장에 집중하는 시기예요. 큰 투자나 확장 계획은 재검토하세요. 철학적 성찰과 지혜 축적에 좋아요.",
+        "☿️ 수요일 - 수성의 날! 커뮤니케이션, 학습, 거래에 최고의 날이에요. 중요한 미팅, 계약, 발표에 유리해요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "⚡ 이직, 창업, 이사, 결혼 결정에 완벽한 날!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "🎨 블로그, 그림, 음악에 영감이 넘쳐요. 무언가를 창작하세요!",
+        "🎤 발표, 면접, 콘텐츠 촬영에 좋아요. 자신감 있게 말하세요!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2025,
+    "locale": "en",
+    "days": 365,
+    "grades": {
+      "0": 22,
+      "1": 102,
+      "2": 83,
+      "3": 124,
+      "4": 34,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 365,
+      "grade0": 22,
+      "grade1": 102,
+      "grade2": 83,
+      "grade3": 124,
+      "grade4": 34
+    },
+    "sample": {
+      "date": "2025-05-07",
+      "grade": 0,
+      "score": 81,
+      "categories": [
+        "love",
+        "career"
+      ],
+      "title": "✨ Day of Celestial Fortune ✨",
+      "description": "A rare day when Eastern & Western fortunes align perfectly! Ideal for weddings, contracts, starting business, major decisions.",
+      "summary": "💍 Best day for proposals and wedding decisions!",
+      "bestTimes": [
+        "☕ 3-5pm: Perfect for dates",
+        "🌙 7-9pm: Romantic time"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "🎭 Creative expression maximizes but watch your words! Favorable for art, performance, and content creation. However, you may clash with bosses or authority figures, so moderate your behavior. Your talent shines, but be careful with relationships!",
+        "Be suspicious of offers that look too good. Check conditions carefully for secondhand deals or investment proposals. Rushing decisions leads to regret.",
+        "Ideas come easily today. Perfect for writing proposals or preparing presentations. Try making that suggestion you've been holding back.",
+        "📅 This year strengthens your core energy. A year of overflowing confidence and drive, but competitors may also increase. Balance cooperation and competition well.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "📆 This month has good relationship fortune. Favorable for new meetings, blind dates, and expanding connections. Opportunities may come through good people.",
+        "🌅 Creativity and expression shine today. Good for writing, art, and presentations. Express your ideas confidently!"
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information.",
+        "♀ Venus supports you. Art and aesthetic sense shine, and you easily gain favor from people around you. Favorable for creative activities like design, art, and music.",
+        "♂ Mars energy harmonizes with you. Favorable for exercise, competition, and active pursuits. You gain drive and it's a good day to move toward your goals.",
+        "♄ Saturn brings structure and stability to your life. Good day for long-term planning or building foundations. Be patient and build slowly.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "🌙 Moon energy harmonizes with you. Emotionally stable and relationships with people around you improve. Favorable for family and home-related matters.",
+        "♄ Saturn sextile! Small opportunities come when discipline and effort are rewarded. Serious approach brings good results.",
+        "♂ Mars trine! Energy flows naturally. Good day for exercise, competition, and active pursuits. Your action power shines!",
+        "🌔 Waxing Gibbous day! A time to refine toward completion. Polish details and prepare for finishing. Good day for analysis and improvement.",
+        "♃⟲ Jupiter Retrograde! Focus on inner growth rather than external expansion. Review big investments or expansion plans. Good for philosophical reflection and accumulating wisdom.",
+        "☿️ Wednesday - Mercury's day! Best day for communication, learning, and transactions. Favorable for important meetings, contracts, and presentations.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "⚡ Perfect day for deciding on job changes, starting a business, moving, or marriage!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "🎨 Inspiration flows for blogging, drawing, or music. Create something!",
+        "🎤 Good for presentations, interviews, or filming content. Speak with confidence!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2030,
+    "locale": "ko",
+    "days": 327,
+    "grades": {
+      "0": 16,
+      "1": 38,
+      "2": 73,
+      "3": 100,
+      "4": 100,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 327,
+      "grade0": 16,
+      "grade1": 38,
+      "grade2": 73,
+      "grade3": 100,
+      "grade4": 100
+    },
+    "sample": {
+      "date": "2030-05-15",
+      "grade": 0,
+      "score": 77,
+      "categories": [
+        "love",
+        "career",
+        "health"
+      ],
+      "title": "✨ 천운의 날 ✨",
+      "description": "동양+서양 운세가 완벽하게 일치하는 희귀한 날! 1년에 몇 번 없어요. 결혼, 계약, 사업 시작, 중요한 결정에 최적!",
+      "summary": "💍 프로포즈, 결혼 결정에 최고의 날!",
+      "bestTimes": [
+        "☕ 오후 3-5시: 데이트 최적",
+        "🌙 저녁 7-9시: 로맨틱한 시간"
+      ],
+      "sajuFactors": [
+        "🌸 오늘 외모에 신경 쓰면 좋은 만남이 있을 수 있어요. 소개팅, 미팅, 모임에서 눈에 띌 수 있는 날이에요. 연애운 UP!",
+        "👔 직장운과 명예운이 좋아요! 승진, 인정, 공식적인 자리에 유리한 날이에요. 책임감 있게 행동하면 좋은 평가를 받을 수 있어요. 결혼이나 공식적인 약속에도 좋은 날!",
+        "상사 눈치가 보이는 날이에요. 큰 실수만 안 하면 됩니다. 티 나는 행동은 피하고 맡은 일 묵묵히 하세요.",
+        "소개팅이나 새로운 사람 만나기 좋은 날이에요. 네트워킹 모임, 동창 모임 가면 좋은 인연 생길 수 있어요.",
+        "📅 올해는 외부 압박이 있는 해예요. 직장에서의 스트레스, 권위자와의 갈등이 생길 수 있어요. 겸손하게 대처하고, 건강 관리에 특히 신경 쓰세요.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "📆 이번 달은 인연이 좋은 달이에요. 새로운 만남, 소개팅, 인맥 확장에 유리해요. 좋은 사람을 통해 기회가 올 수 있어요.",
+        "🌅 오늘은 외부 압박이나 스트레스가 있을 수 있어요. 상사, 윗사람과의 관계에서 조심하고, 겸손하게 대처하세요. 무리한 도전은 피하세요.",
+        "🌅 오늘은 인연과 화합의 기운이 강해요! 새로운 만남, 소개팅, 면접, 비즈니스 미팅에 최적! 사람을 통해 좋은 기회가 올 수 있어요."
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
+        "♂ 화성 에너지가 당신과 조화를 이루고 있어요. 운동, 경쟁, 적극적인 활동에 유리해요. 추진력이 생기고 목표를 향해 나아가기 좋은 날이에요.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "♃ 목성 섹스타일! 작은 기회들이 주어지는 날이에요. 적극적으로 움직이면 좋은 결과를 얻을 수 있어요. 인맥 확장, 학습, 여행에 유리해요.",
+        "♄ 토성 트라인! 오랜 노력이 결실을 맺는 날이에요. 책임감 있는 행동이 인정받고, 안정적인 성과를 얻어요. 꾸준함이 빛나는 날!",
+        "♂ 화성 트라인! 에너지가 자연스럽게 흘러요. 운동, 경쟁, 적극적인 활동에 좋은 날이에요. 행동력이 빛나요!",
+        "🌕 보름달의 날! 에너지가 최고조에 달하는 완성과 결실의 날이에요. 성과를 축하하고, 감사를 표현하세요. 감정이 고조될 수 있으니 차분하게!",
+        "♄⟲ 토성 역행 중! 책임과 구조를 재검토하는 시기예요. 과거의 교훈을 돌아보고, 장기 계획을 점검하세요. 내면의 규율을 세우기에 좋은 때예요.",
+        "☿️ 수요일 - 수성의 날! 커뮤니케이션, 학습, 거래에 최고의 날이에요. 중요한 미팅, 계약, 발표에 유리해요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "⚡ 이직, 창업, 이사, 결혼 결정에 완벽한 날!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "💘 소개팅이나 첫 데이트 잡으세요! 인연을 찾을 확률이 높아요!",
+        "🎉 모임, 파티, 동창회에 참석하세요! 인맥이 자산이에요!",
+        "✨ 프로필 사진 바꾸고 새 룩을 시도하세요! 오늘 매력이 빛나요!",
+        "🐢 서둘러 결정하지 마세요. '하루만 더 생각해볼게요'가 오늘의 무기!",
+        "🤫 SNS 포스팅이나 자랑은 피하세요. 조용히 자기 일 하는 게 최고 전략!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "🤗 멀어진 친구에게 먼저 연락하세요. 다툼 후 화해하기 좋은 타이밍!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2030,
+    "locale": "en",
+    "days": 327,
+    "grades": {
+      "0": 16,
+      "1": 38,
+      "2": 73,
+      "3": 100,
+      "4": 100,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 327,
+      "grade0": 16,
+      "grade1": 38,
+      "grade2": 73,
+      "grade3": 100,
+      "grade4": 100
+    },
+    "sample": {
+      "date": "2030-05-15",
+      "grade": 0,
+      "score": 77,
+      "categories": [
+        "love",
+        "career",
+        "health"
+      ],
+      "title": "✨ Day of Celestial Fortune ✨",
+      "description": "A rare day when Eastern & Western fortunes align perfectly! Ideal for weddings, contracts, starting business, major decisions.",
+      "summary": "💍 Best day for proposals and wedding decisions!",
+      "bestTimes": [
+        "☕ 3-5pm: Perfect for dates",
+        "🌙 7-9pm: Romantic time"
+      ],
+      "sajuFactors": [
+        "🌸 Pay attention to your appearance today for good encounters. A day to stand out at blind dates, meetings, or gatherings. Romance luck UP!",
+        "👔 Career and honor luck is good! Favorable for promotions, recognition, and official occasions. Acting responsibly brings good evaluations. Also a good day for marriage or official commitments!",
+        "A day to be aware of your boss's mood. Just avoid big mistakes. Keep a low profile and quietly do your assigned work.",
+        "Good day for blind dates or meeting new people. Networking events or alumni gatherings could bring good connections.",
+        "📅 This year has external pressure. Stress at work or conflicts with authority figures may arise. Handle with humility and pay special attention to health management.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "📆 This month has good relationship fortune. Favorable for new meetings, blind dates, and expanding connections. Opportunities may come through good people.",
+        "🌅 External pressure or stress may occur today. Be careful in relationships with bosses and superiors, stay humble. Avoid reckless challenges.",
+        "🌅 Energy of connection and harmony is strong today! Optimal for new meetings, dates, interviews, and business meetings! Good opportunities may come through people."
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information.",
+        "♂ Mars energy harmonizes with you. Favorable for exercise, competition, and active pursuits. You gain drive and it's a good day to move toward your goals.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "♃ Jupiter sextile! Small opportunities are given today. Active movement brings good results. Favorable for networking, learning, and travel.",
+        "♄ Saturn trine! Long efforts bear fruit today. Responsible actions are recognized and stable results come. A day when consistency shines!",
+        "♂ Mars trine! Energy flows naturally. Good day for exercise, competition, and active pursuits. Your action power shines!",
+        "🌕 Full Moon day! Peak energy day of completion and harvest. Celebrate achievements and express gratitude. Emotions may run high, so stay calm!",
+        "♄⟲ Saturn Retrograde! Time to review responsibilities and structures. Look back on past lessons and check long-term plans. Good time to establish inner discipline.",
+        "☿️ Wednesday - Mercury's day! Best day for communication, learning, and transactions. Favorable for important meetings, contracts, and presentations.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "⚡ Perfect day for deciding on job changes, starting a business, moving, or marriage!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "💘 Set up blind dates or first dates! High chance of finding a connection!",
+        "🎉 Attend gatherings, parties, or reunions! Your network is your net worth!",
+        "✨ Change your profile photo, try a new look! Your charm shines today!",
+        "🐢 Don't decide in a hurry. 'Let me think about it one more day' is your weapon today!",
+        "🤫 Avoid posting on social media or bragging. Quietly doing your own work is the best strategy!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "🤗 Reach out to distant friends first. Good timing to make up after arguments!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2040,
+    "locale": "ko",
+    "days": 359,
+    "grades": {
+      "0": 6,
+      "1": 22,
+      "2": 76,
+      "3": 186,
+      "4": 69,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 359,
+      "grade0": 6,
+      "grade1": 22,
+      "grade2": 76,
+      "grade3": 186,
+      "grade4": 69
+    },
+    "sample": {
+      "date": "2040-05-24",
+      "grade": 0,
+      "score": 72,
+      "categories": [
+        "study",
+        "health",
+        "career"
+      ],
+      "title": "✨ 천운의 날 ✨",
+      "description": "동양+서양 운세가 완벽하게 일치하는 희귀한 날! 1년에 몇 번 없어요. 결혼, 계약, 사업 시작, 중요한 결정에 최적!",
+      "summary": "🏆 합격운 최고! 시험, 면접에 행운이!",
+      "bestTimes": [
+        "📚 오전 9-12시: 집중력 최고",
+        "🌙 저녁 8-10시: 암기력 UP"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "📚 학습과 도움의 에너지가 넘쳐요! 시험, 자격증, 학업에 유리한 날이에요. 선생님이나 선배의 도움을 받기 좋고, 중요한 서류 처리에도 좋은 날이에요.",
+        "너무 좋아 보이는 제안은 한 번 더 의심하세요. 중고거래, 투자 제안 등 조건 꼼꼼히 따져보세요. 급하게 결정하면 후회해요.",
+        "오늘 선배나 상사한테 물어보면 좋은 답을 들을 수 있어요. 막혔던 업무가 조언 한마디로 해결될 수 있습니다. 물어보는 게 이득!",
+        "📅 올해는 외부 압박이 있는 해예요. 직장에서의 스트레스, 권위자와의 갈등이 생길 수 있어요. 겸손하게 대처하고, 건강 관리에 특히 신경 쓰세요.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "📆 이번 달은 인연이 좋은 달이에요. 새로운 만남, 소개팅, 인맥 확장에 유리해요. 좋은 사람을 통해 기회가 올 수 있어요.",
+        "🌅 오늘은 배움과 도움을 받기 좋은 날이에요. 선배나 멘토의 조언이 도움이 되고, 공부나 자격증 준비에도 좋아요. 지혜를 얻는 하루!"
+      ],
+      "astroFactors": [
+        "후배나 동생 도와주면 나중에 좋은 일로 돌아와요. 재능기부, 멘토링, 지식 공유하기 좋은 날이에요.",
+        "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
+        "♂ 화성 에너지가 당신과 조화를 이루고 있어요. 운동, 경쟁, 적극적인 활동에 유리해요. 추진력이 생기고 목표를 향해 나아가기 좋은 날이에요.",
+        "♃ 목성 트라인! 행운과 기회가 자연스럽게 흘러와요. 모든 일이 순조롭게 풀리는 날이에요. 큰 결정, 투자, 새로운 시작에 최고의 타이밍!",
+        "♂ 화성 트라인! 에너지가 자연스럽게 흘러요. 운동, 경쟁, 적극적인 활동에 좋은 날이에요. 행동력이 빛나요!",
+        "♀ 금성 트라인! 사랑과 아름다움이 자연스럽게 흘러와요. 연애, 예술, 인간관계 모두 좋아요. 매력이 빛나는 날!",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌕 보름달의 날! 에너지가 최고조에 달하는 완성과 결실의 날이에요. 성과를 축하하고, 감사를 표현하세요. 감정이 고조될 수 있으니 차분하게!",
+        "♄⟲ 토성 역행 중! 책임과 구조를 재검토하는 시기예요. 과거의 교훈을 돌아보고, 장기 계획을 점검하세요. 내면의 규율을 세우기에 좋은 때예요.",
+        "🌙⚠️ 달이 공전 중(Void of Course)이에요! 새로운 시작에 매우 불리한 시간이에요. 오늘 시작한 일은 결과를 맺지 못할 수 있어요. 중요한 결정, 계약, 새 프로젝트는 반드시 피하세요. 기존 일 마무리나 휴식에 집중하세요.",
+        "♃ 목요일 - 목성의 날! 확장, 행운, 교육에 최고의 날이에요. 새로운 기회를 잡고, 큰 그림을 그리세요. 법률, 해외, 철학에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "⚡ 이직, 창업, 이사, 결혼 결정에 완벽한 날!",
+        "🤜🤛 사업 제안이나 공동 프로젝트 시작에 좋아요. 파트너와 대화하세요!",
+        "☯️ 조화와 균형의 에너지가 흘러요! 관계 개선에 집중하세요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "📜 자격증 시험이나 온라인 강좌 등록하세요!",
+        "👩 어머니께 전화하세요! 좋은 조언을 받을 수 있어요!",
+        "📖 시험 접수, 강좌 구매, 수강 신청하기 좋은 날!",
+        "🙏 부모님, 상사, 선배에게 조언을 구하세요 - 해결책을 찾을 수 있어요. 먼저 연락하세요!",
+        "📝 관공서 서류, 여권 갱신, 은행 업무에 좋아요. 공식적인 일 처리하세요!",
+        "❤️ 작은 선물, 밥 사주기, 칭찬에 좋아요. 주는 게 돌아와요!",
+        "👨‍🏫 후배 코칭이나 팀원 가르치기에 좋아요. 지식이 빛나는 날!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🍀 행운이 따르는 날! 새로운 시도나 모험에 적극적으로 나서세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile1-1970s",
+    "year": 2040,
+    "locale": "en",
+    "days": 359,
+    "grades": {
+      "0": 6,
+      "1": 22,
+      "2": 76,
+      "3": 186,
+      "4": 69,
+      "5": 0
+    },
+    "uniqueTitles": 7,
+    "uniqueDescs": 7,
+    "summary": {
+      "total": 359,
+      "grade0": 6,
+      "grade1": 22,
+      "grade2": 76,
+      "grade3": 186,
+      "grade4": 69
+    },
+    "sample": {
+      "date": "2040-05-24",
+      "grade": 0,
+      "score": 72,
+      "categories": [
+        "study",
+        "health",
+        "career"
+      ],
+      "title": "✨ Day of Celestial Fortune ✨",
+      "description": "A rare day when Eastern & Western fortunes align perfectly! Ideal for weddings, contracts, starting business, major decisions.",
+      "summary": "🏆 Best luck for exams and interviews!",
+      "bestTimes": [
+        "📚 9am-12pm: Peak focus",
+        "🌙 8-10pm: Memory boost"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "📚 Learning and support energy overflows! Favorable for exams, certifications, and studies. Good for receiving help from teachers or seniors, and good for handling important documents.",
+        "Be suspicious of offers that look too good. Check conditions carefully for secondhand deals or investment proposals. Rushing decisions leads to regret.",
+        "Ask seniors or supervisors today - you'll get good answers. A single piece of advice could solve your stuck work. Asking pays off!",
+        "📅 This year has external pressure. Stress at work or conflicts with authority figures may arise. Handle with humility and pay special attention to health management.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "📆 This month has good relationship fortune. Favorable for new meetings, blind dates, and expanding connections. Opportunities may come through good people.",
+        "🌅 Great day for learning and receiving help. Advice from seniors or mentors will be valuable, good for studying or certification prep. A day of gaining wisdom!"
+      ],
+      "astroFactors": [
+        "Helping juniors or younger people will come back as good things later. Good day for talent donation, mentoring, or knowledge sharing.",
+        "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back.",
+        "♂ Mars energy harmonizes with you. Favorable for exercise, competition, and active pursuits. You gain drive and it's a good day to move toward your goals.",
+        "♃ Jupiter trine! Luck and opportunities flow naturally. Everything goes smoothly today. Perfect timing for big decisions, investments, or new beginnings!",
+        "♂ Mars trine! Energy flows naturally. Good day for exercise, competition, and active pursuits. Your action power shines!",
+        "♀ Venus trine! Love and beauty flow naturally. Romance, art, and relationships are all good. A day your charm shines!",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌕 Full Moon day! Peak energy day of completion and harvest. Celebrate achievements and express gratitude. Emotions may run high, so stay calm!",
+        "♄⟲ Saturn Retrograde! Time to review responsibilities and structures. Look back on past lessons and check long-term plans. Good time to establish inner discipline.",
+        "🌙⚠️ Moon is Void of Course! Very unfavorable for new beginnings. Things started now may not come to fruition. Definitely avoid important decisions, contracts, or new projects. Focus on finishing existing work or resting.",
+        "♃ Thursday - Jupiter's day! Best day for expansion, luck, and education. Seize new opportunities and think big picture. Good for law, overseas, and philosophy too.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "⚡ Perfect day for deciding on job changes, starting a business, moving, or marriage!",
+        "🤜🤛 Good for business proposals or starting joint projects. Talk to your partner!",
+        "☯️ Energy of harmony and balance flows! Focus on improving relationships!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "📜 Register for certification exams or online courses!",
+        "👩 Call your mother! You might receive good advice!",
+        "📖 Perfect day to register for exams, buy courses, or enroll in classes!",
+        "🙏 Ask parents, bosses, or seniors for advice - you'll find solutions. Reach out first!",
+        "📝 Great for government paperwork, passport renewal, or banking. Get official things done!",
+        "❤️ Good for small gifts, treating someone to a meal, or giving compliments. What you give comes back!",
+        "👨‍🏫 Great for coaching juniors or teaching team members. Your knowledge shines today!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🍀 Luck is on your side! Be proactive with new attempts or adventures!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2005,
+    "locale": "ko",
+    "days": 358,
+    "grades": {
+      "0": 0,
+      "1": 108,
+      "2": 107,
+      "3": 107,
+      "4": 36,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 358,
+      "grade0": 0,
+      "grade1": 108,
+      "grade2": 107,
+      "grade3": 107,
+      "grade4": 36
+    },
+    "sample": {
+      "date": "2005-10-12",
+      "grade": 1,
+      "score": 86,
+      "categories": [
+        "general",
+        "career",
+        "love"
+      ],
+      "title": "아이디어의 날",
+      "description": "창의력 폭발! 기획, 글쓰기, 예술에 좋아요.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "🍽️ 창의력과 표현력이 풍부해지는 날이에요! 요리, 글쓰기, 예술 활동에 딱 좋아요. 여유롭고 편안한 에너지라서 휴식이나 맛집 탐방도 좋아요. 건강과 복을 상징하는 좋은 기운!",
+        "아이디어가 잘 떠오르는 날이에요. 기획서 작성, 프레젠테이션 준비하기 딱 좋아요. 평소에 말 못 했던 제안도 오늘 해보세요.",
+        "📅 올해는 도움을 받기 좋은 해예요. 멘토, 선배, 부모님 등 조력자의 도움이 많아요. 배움과 성장의 기회가 넘치니, 새로운 공부나 자격증 취득에 도전해보세요!",
+        "📆 이번 달은 에너지가 충전되는 달이에요. 자신감이 높아지고 추진력이 생겨요. 새로운 시작이나 도전에 적합한 달이에요.",
+        "🌅 오늘은 창의력과 표현력이 빛나는 날이에요. 글쓰기, 예술, 프레젠테이션에 좋아요. 당신의 아이디어를 자신 있게 표현하세요!"
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "🌓 시작한 일에 첫 번째 고비가 올 수 있어요. 여기서 포기하면 아까우니 조금만 더 힘내세요!",
+        "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
+        "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
+        "♂ 화성 에너지가 당신과 충돌하고 있어요. 다툼, 사고, 부상의 위험이 평소보다 높아요. 격한 운동이나 위험한 활동은 피하고, 화가 나도 참고 넘어가세요. 안전이 최우선이에요.",
+        "♃ 목성 에너지가 당신과 조화를 이루고 있어요. 전반적인 행운이 좋고, 기회가 자연스럽게 찾아와요. 낙관적인 마음으로 도전하면 좋은 결과를 얻을 수 있어요.",
+        "♄ 토성이 피할 수 없는 교훈을 가르치는 날이에요. 힘들고 무거운 에너지가 있지만, 이 시련을 통해 진정한 성장을 이룰 수 있어요. 피하지 말고 정면으로 마주하세요.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "🌙 달 에너지가 당신과 조화를 이루고 있어요. 정서적으로 안정되고, 주변 사람들과의 관계도 좋아요. 가족, 집과 관련된 일에 유리해요.",
+        "♃ 목성 트라인! 행운과 기회가 자연스럽게 흘러와요. 모든 일이 순조롭게 풀리는 날이에요. 큰 결정, 투자, 새로운 시작에 최고의 타이밍!",
+        "♀ 금성 트라인! 사랑과 아름다움이 자연스럽게 흘러와요. 연애, 예술, 인간관계 모두 좋아요. 매력이 빛나는 날!",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌔 차오르는 달의 날! 완성을 향해 정제하는 시기예요. 세부 사항을 다듬고, 마무리를 준비하세요. 분석과 개선에 좋은 날이에요.",
+        "♃⟲ 목성 역행 중! 외적 확장보다 내면의 성장에 집중하는 시기예요. 큰 투자나 확장 계획은 재검토하세요. 철학적 성찰과 지혜 축적에 좋아요.",
+        "☿️ 수요일 - 수성의 날! 커뮤니케이션, 학습, 거래에 최고의 날이에요. 중요한 미팅, 계약, 발표에 유리해요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "calendar.recommendations.creativity",
+        "calendar.recommendations.spiritual",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "🎨 블로그, 그림, 음악에 영감이 넘쳐요. 무언가를 창작하세요!",
+        "🎤 발표, 면접, 콘텐츠 촬영에 좋아요. 자신감 있게 말하세요!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2005,
+    "locale": "en",
+    "days": 358,
+    "grades": {
+      "0": 0,
+      "1": 108,
+      "2": 107,
+      "3": 107,
+      "4": 36,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 358,
+      "grade0": 0,
+      "grade1": 108,
+      "grade2": 107,
+      "grade3": 107,
+      "grade4": 36
+    },
+    "sample": {
+      "date": "2005-10-12",
+      "grade": 1,
+      "score": 86,
+      "categories": [
+        "general",
+        "career",
+        "love"
+      ],
+      "title": "Inspiration Day",
+      "description": "Creativity boost! Great for planning, writing, art.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "🍽️ Creativity and expression flourish! Perfect for cooking, writing, and artistic activities. It's relaxed and comfortable energy, so rest or food exploration is also great. Good energy symbolizing health and blessings!",
+        "Ideas come easily today. Perfect for writing proposals or preparing presentations. Try making that suggestion you've been holding back.",
+        "📅 This year is good for receiving support. Lots of help from mentors, seniors, parents. Opportunities for learning and growth abound, so try new studies or certifications!",
+        "📆 This month recharges your energy. Confidence rises and you gain drive. A suitable month for new beginnings or challenges.",
+        "🌅 Creativity and expression shine today. Good for writing, art, and presentations. Express your ideas confidently!"
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "🌓 First challenges may come to things you've started. It would be a waste to give up here, so hang in there a bit more!",
+        "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information.",
+        "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back.",
+        "♂ Mars energy conflicts with you. Risk of arguments, accidents, and injuries is higher than usual. Avoid intense exercise or dangerous activities, and let anger pass. Safety is the priority.",
+        "♃ Jupiter energy harmonizes with you. Overall luck is good and opportunities come naturally. Approaching challenges with optimism will bring good results.",
+        "♄ Saturn teaches an unavoidable lesson today. There's heavy energy and difficulty, but true growth comes through this challenge. Don't avoid it; face it head-on.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "🌙 Moon energy harmonizes with you. Emotionally stable and relationships with people around you improve. Favorable for family and home-related matters.",
+        "♃ Jupiter trine! Luck and opportunities flow naturally. Everything goes smoothly today. Perfect timing for big decisions, investments, or new beginnings!",
+        "♀ Venus trine! Love and beauty flow naturally. Romance, art, and relationships are all good. A day your charm shines!",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌔 Waxing Gibbous day! A time to refine toward completion. Polish details and prepare for finishing. Good day for analysis and improvement.",
+        "♃⟲ Jupiter Retrograde! Focus on inner growth rather than external expansion. Review big investments or expansion plans. Good for philosophical reflection and accumulating wisdom.",
+        "☿️ Wednesday - Mercury's day! Best day for communication, learning, and transactions. Favorable for important meetings, contracts, and presentations.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "calendar.recommendations.creativity",
+        "calendar.recommendations.spiritual",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "🎨 Inspiration flows for blogging, drawing, or music. Create something!",
+        "🎤 Good for presentations, interviews, or filming content. Speak with confidence!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2015,
+    "locale": "ko",
+    "days": 360,
+    "grades": {
+      "0": 0,
+      "1": 130,
+      "2": 76,
+      "3": 105,
+      "4": 49,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 360,
+      "grade0": 0,
+      "grade1": 130,
+      "grade2": 76,
+      "grade3": 105,
+      "grade4": 49
+    },
+    "sample": {
+      "date": "2015-10-01",
+      "grade": 1,
+      "score": 83,
+      "categories": [
+        "general",
+        "career",
+        "wealth",
+        "love"
+      ],
+      "title": "재물의 날",
+      "description": "돈 관련된 일에 유리한 날! 쇼핑, 투자 OK.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "📈 승진 면담, 연봉 협상, 취업 면접에 유리한 날이에요. 인정받고 싶은 일은 오늘 어필하세요. 좋은 소식 들을 가능성 높아요.",
+        "💵 안정적인 재물운이 좋아요! 월급, 저축, 정기 수입에 유리한 날이에요. 큰 투기보다는 안정적인 재테크에 집중하세요. 가족과의 관계도 좋아요.",
+        "쇼핑하면 좋은 딜을 건질 수 있는 날이에요. 할인 품목 체크해보세요. 미뤄뒀던 재테크 결정도 오늘 하면 괜찮아요.",
+        "📅 올해는 도움을 받기 좋은 해예요. 멘토, 선배, 부모님 등 조력자의 도움이 많아요. 배움과 성장의 기회가 넘치니, 새로운 공부나 자격증 취득에 도전해보세요!",
+        "📆 이번 달은 에너지가 충전되는 달이에요. 자신감이 높아지고 추진력이 생겨요. 새로운 시작이나 도전에 적합한 달이에요.",
+        "🌅 오늘은 재물운이 좋은 날이에요. 쇼핑, 투자 결정, 금전 거래에 유리해요. 돈과 관련된 중요한 결정을 하기 좋은 타이밍!"
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "♀ 금성이 당신을 지원하고 있어요. 예술과 미적 감각이 빛나고, 주변 사람들에게 호감을 얻기 쉬워요. 디자인, 미술, 음악 등 창작 활동에 유리해요.",
+        "♂ 화성 에너지가 당신과 충돌하고 있어요. 다툼, 사고, 부상의 위험이 평소보다 높아요. 격한 운동이나 위험한 활동은 피하고, 화가 나도 참고 넘어가세요. 안전이 최우선이에요.",
+        "♃ 목성이 당신의 성장을 도와주고 있어요. 배움, 여행, 철학적 탐구에 유리해요. 새로운 경험과 넓은 시야가 인생을 풍요롭게 만들어요.",
+        "♄ 토성이 피할 수 없는 교훈을 가르치는 날이에요. 힘들고 무거운 에너지가 있지만, 이 시련을 통해 진정한 성장을 이룰 수 있어요. 피하지 말고 정면으로 마주하세요.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "🌙 달이 당신을 돌봐주는 에너지예요. 휴식, 자기 돌봄, 가족과의 시간에 좋은 날이에요. 따뜻한 음식과 편안한 시간을 즐기세요.",
+        "♃ 목성 섹스타일! 작은 기회들이 주어지는 날이에요. 적극적으로 움직이면 좋은 결과를 얻을 수 있어요. 인맥 확장, 학습, 여행에 유리해요.",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌖 기우는 달의 날! 나눔과 감사의 시기예요. 배운 것을 다른 사람과 공유하고, 받은 것에 감사하세요. 지혜를 나누기에 좋은 날!",
+        "♄⟲ 토성 역행 중! 책임과 구조를 재검토하는 시기예요. 과거의 교훈을 돌아보고, 장기 계획을 점검하세요. 내면의 규율을 세우기에 좋은 때예요.",
+        "🌙⚠️ 달이 공전 중(Void of Course)이에요! 새로운 시작에 매우 불리한 시간이에요. 오늘 시작한 일은 결과를 맺지 못할 수 있어요. 중요한 결정, 계약, 새 프로젝트는 반드시 피하세요. 기존 일 마무리나 휴식에 집중하세요.",
+        "♃ 목요일 - 목성의 날! 확장, 행운, 교육에 최고의 날이에요. 새로운 기회를 잡고, 큰 그림을 그리세요. 법률, 해외, 철학에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "오늘 시작하는 일은 순조롭게 진행될 거예요. 새 프로젝트, 새 운동루틴, 새 습관 시작하기 좋아요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "💼 커리어 발전에 좋은 날! 이력서 업데이트, 네트워킹을 하세요!",
+        "👔 승진이나 연봉 인상 요청하세요! 상사 기분이 좋아요!",
+        "🎖️ 취업/승진 면접에 좋아요! 자신감 있게 가세요!",
+        "💵 적금 들고, 펀드에 투자하세요! 안정적 성장이 답!",
+        "🏦 은행, 보험, 재무 설계 처리하세요!",
+        "💰 주식/펀드 매수, 저축 계좌 개설, 보험 정리에 좋아요. 금융 앱 확인하세요!",
+        "📈 부동산 계약, 청약 신청, ETF 매수를 고려하세요. 장기적으로 생각하세요!",
+        "🛒 가전, 자동차, 가구 같은 큰 구매에 좋아요. 할인 쿠폰 잊지 마세요!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🍀 행운이 따르는 날! 새로운 시도나 모험에 적극적으로 나서세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2015,
+    "locale": "en",
+    "days": 360,
+    "grades": {
+      "0": 0,
+      "1": 130,
+      "2": 76,
+      "3": 105,
+      "4": 49,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 360,
+      "grade0": 0,
+      "grade1": 130,
+      "grade2": 76,
+      "grade3": 105,
+      "grade4": 49
+    },
+    "sample": {
+      "date": "2015-10-01",
+      "grade": 1,
+      "score": 83,
+      "categories": [
+        "general",
+        "career",
+        "wealth",
+        "love"
+      ],
+      "title": "Wealth Day",
+      "description": "Favorable for money matters! Shopping, investing OK.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "📈 Favorable day for promotion talks, salary negotiations, job interviews. Appeal for things you want recognition for today. High chance of hearing good news.",
+        "💵 Stable financial luck is good! Favorable for salary, savings, and regular income. Focus on stable investments rather than speculation. Family relationships are also good.",
+        "Good day for finding deals while shopping. Check discounted items. Making that postponed financial decision today is also fine.",
+        "📅 This year is good for receiving support. Lots of help from mentors, seniors, parents. Opportunities for learning and growth abound, so try new studies or certifications!",
+        "📆 This month recharges your energy. Confidence rises and you gain drive. A suitable month for new beginnings or challenges.",
+        "🌅 Financial luck is good today. Favorable for shopping, investment decisions, and monetary transactions. Good timing for important financial decisions!"
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "♀ Venus supports you. Art and aesthetic sense shine, and you easily gain favor from people around you. Favorable for creative activities like design, art, and music.",
+        "♂ Mars energy conflicts with you. Risk of arguments, accidents, and injuries is higher than usual. Avoid intense exercise or dangerous activities, and let anger pass. Safety is the priority.",
+        "♃ Jupiter supports your growth. Favorable for learning, travel, and philosophical exploration. New experiences and broader perspectives enrich your life.",
+        "♄ Saturn teaches an unavoidable lesson today. There's heavy energy and difficulty, but true growth comes through this challenge. Don't avoid it; face it head-on.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "🌙 Moon energy nurtures you. Good day for rest, self-care, and family time. Enjoy warm food and comfortable moments.",
+        "♃ Jupiter sextile! Small opportunities are given today. Active movement brings good results. Favorable for networking, learning, and travel.",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌖 Waning Gibbous day! A time for sharing and gratitude. Share what you've learned and be thankful for what you've received. Good day for sharing wisdom!",
+        "♄⟲ Saturn Retrograde! Time to review responsibilities and structures. Look back on past lessons and check long-term plans. Good time to establish inner discipline.",
+        "🌙⚠️ Moon is Void of Course! Very unfavorable for new beginnings. Things started now may not come to fruition. Definitely avoid important decisions, contracts, or new projects. Focus on finishing existing work or resting.",
+        "♃ Thursday - Jupiter's day! Best day for expansion, luck, and education. Seize new opportunities and think big picture. Good for law, overseas, and philosophy too.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "Things you start today will proceed smoothly. Good for starting new projects, new exercise routines, or new habits.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "💼 Good day for career advancement! Update your resume, do some networking!",
+        "👔 Ask for promotions or salary raises! Your boss is in a good mood!",
+        "🎖️ Great for job/promotion interviews! Go in with confidence!",
+        "💵 Open savings accounts, invest in funds! Stable growth is the way!",
+        "🏦 Handle banking, insurance, or financial planning today!",
+        "💰 Good for buying stocks/funds, opening savings, organizing insurance. Check your finance apps!",
+        "📈 Consider real estate contracts, housing applications, or ETF purchases. Think long-term!",
+        "🛒 Good for big purchases like appliances, cars, or furniture. Don't forget discount coupons!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🍀 Luck is on your side! Be proactive with new attempts or adventures!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2024,
+    "locale": "ko",
+    "days": 362,
+    "grades": {
+      "0": 0,
+      "1": 133,
+      "2": 79,
+      "3": 115,
+      "4": 35,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 362,
+      "grade0": 0,
+      "grade1": 133,
+      "grade2": 79,
+      "grade3": 115,
+      "grade4": 35
+    },
+    "sample": {
+      "date": "2024-05-30",
+      "grade": 1,
+      "score": 88,
+      "categories": [
+        "study",
+        "love",
+        "career"
+      ],
+      "title": "배움의 날",
+      "description": "뭔가 배우거나 조언 받기 딱 좋은 날이에요.",
+      "summary": "📚 집중력 UP! 시험, 공부에 유리해요!",
+      "bestTimes": [
+        "📚 오전 9-12시: 집중력 최고",
+        "🌙 저녁 8-10시: 암기력 UP"
+      ],
+      "sajuFactors": [
+        "📚 학습과 도움의 에너지가 넘쳐요! 시험, 자격증, 학업에 유리한 날이에요. 선생님이나 선배의 도움을 받기 좋고, 중요한 서류 처리에도 좋은 날이에요.",
+        "오랫동안 연락 안 하던 사람한테서 연락이 올 수 있어요. 포기했던 프로젝트가 다시 살아날 수도 있고요. 예상치 못한 곳에서 도움이 와요.",
+        "오늘 선배나 상사한테 물어보면 좋은 답을 들을 수 있어요. 막혔던 업무가 조언 한마디로 해결될 수 있습니다. 물어보는 게 이득!",
+        "📅 올해는 도움을 받기 좋은 해예요. 멘토, 선배, 부모님 등 조력자의 도움이 많아요. 배움과 성장의 기회가 넘치니, 새로운 공부나 자격증 취득에 도전해보세요!",
+        "📅 올해는 인연이 좋은 해예요. 좋은 사람을 만나거나, 귀인의 도움을 받을 수 있어요. 결혼, 파트너십, 협력 관계에 유리한 해입니다.",
+        "📆 이번 달은 재물운이 좋은 달이에요. 수입 증가, 좋은 쇼핑 기회, 재테크에 유리해요. 돈과 관련된 결정을 하기 좋아요.",
+        "🌅 오늘은 배움과 도움을 받기 좋은 날이에요. 선배나 멘토의 조언이 도움이 되고, 공부나 자격증 준비에도 좋아요. 지혜를 얻는 하루!"
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "☿ 수성이 당신의 별자리에 들어왔어요! 의사소통, 글쓰기, 계약, 협상에 최고의 날이에요. 중요한 이메일, 프레젠테이션, 미팅이 있다면 오늘이 좋아요. 머리가 맑아지고 표현력이 좋아지는 날이에요.",
+        "♀ 금성이 당신의 별자리에 들어왔어요! 사랑, 아름다움, 재물의 에너지가 빛나는 날이에요. 데이트, 미팅, 쇼핑에 최고의 날이고, 외모에 신경 쓰면 좋은 일이 생길 수 있어요. 매력이 빛나는 날!",
+        "♃ 목성이 당신의 성장을 도와주고 있어요. 배움, 여행, 철학적 탐구에 유리해요. 새로운 경험과 넓은 시야가 인생을 풍요롭게 만들어요.",
+        "☀️ 태양이 당신의 생일 별자리로 돌아왔어요! Solar Return - 새로운 1년이 시작되는 가장 중요한 시기예요. 이때 세운 목표와 의도가 다음 생일까지 영향을 미쳐요. 소원을 빌고, 새해 계획을 세우세요!",
+        "♄♂ 토성-화성 합. 조심해야 할 날이에요. 갈등, 좌절, 장애물이 동시에 오는 어려운 에너지예요. 큰 결정이나 위험한 활동은 피하고, 안전에 집중하세요.",
+        "🌓 상현/하현달! 도전과 결정이 필요한 전환점이에요. 장애물을 만나지만 극복할 힘도 주어져요. 포기하지 말고 밀고 나가세요!",
+        "🌗 하현달의 날! 정리와 반성의 시기예요. 불필요한 것을 버리고, 다음 사이클을 위해 준비하세요. 끝내지 못한 일을 마무리하기 좋아요.",
+        "♃ 목요일 - 목성의 날! 확장, 행운, 교육에 최고의 날이에요. 새로운 기회를 잡고, 큰 그림을 그리세요. 법률, 해외, 철학에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤜🤛 사업 제안이나 공동 프로젝트 시작에 좋아요. 파트너와 대화하세요!",
+        "☯️ 조화와 균형의 에너지가 흘러요! 관계 개선에 집중하세요!",
+        "🤝 협업 프로젝트나 팀 활동에 최적! 함께하면 더 큰 성과!",
+        "⚡ 시너지 효과가 극대화되는 날! 파트너와 힘을 합치세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "📜 자격증 시험이나 온라인 강좌 등록하세요!",
+        "👩 어머니께 전화하세요! 좋은 조언을 받을 수 있어요!",
+        "📖 시험 접수, 강좌 구매, 수강 신청하기 좋은 날!",
+        "🙏 부모님, 상사, 선배에게 조언을 구하세요 - 해결책을 찾을 수 있어요. 먼저 연락하세요!",
+        "📝 관공서 서류, 여권 갱신, 은행 업무에 좋아요. 공식적인 일 처리하세요!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🍀 행운이 따르는 날! 새로운 시도나 모험에 적극적으로 나서세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2024,
+    "locale": "en",
+    "days": 362,
+    "grades": {
+      "0": 0,
+      "1": 133,
+      "2": 79,
+      "3": 115,
+      "4": 35,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 362,
+      "grade0": 0,
+      "grade1": 133,
+      "grade2": 79,
+      "grade3": 115,
+      "grade4": 35
+    },
+    "sample": {
+      "date": "2024-05-30",
+      "grade": 1,
+      "score": 88,
+      "categories": [
+        "study",
+        "love",
+        "career"
+      ],
+      "title": "Learning Day",
+      "description": "Perfect for learning or getting advice.",
+      "summary": "📚 Focus is sharp! Great for exams!",
+      "bestTimes": [
+        "📚 9am-12pm: Peak focus",
+        "🌙 8-10pm: Memory boost"
+      ],
+      "sajuFactors": [
+        "📚 Learning and support energy overflows! Favorable for exams, certifications, and studies. Good for receiving help from teachers or seniors, and good for handling important documents.",
+        "You might hear from someone you haven't contacted in a while. A project you gave up might revive. Help comes from unexpected places.",
+        "Ask seniors or supervisors today - you'll get good answers. A single piece of advice could solve your stuck work. Asking pays off!",
+        "📅 This year is good for receiving support. Lots of help from mentors, seniors, parents. Opportunities for learning and growth abound, so try new studies or certifications!",
+        "📅 This year has good relationship fortune. You may meet good people or receive help from benefactors. Favorable for marriage, partnerships, and cooperative relationships.",
+        "📆 This month has good wealth fortune. Favorable for income increase, good shopping opportunities, and investments. Good for money-related decisions.",
+        "🌅 Great day for learning and receiving help. Advice from seniors or mentors will be valuable, good for studying or certification prep. A day of gaining wisdom!"
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "☿ Mercury has entered your sign! Best day for communication, writing, contracts, and negotiations. Great if you have important emails, presentations, or meetings. Your mind is clear and expression is good.",
+        "♀ Venus has entered your sign! A day when love, beauty, and wealth energy shine. Best for dates, meetings, and shopping. Taking care of your appearance may bring good things. A day your charm shines!",
+        "♃ Jupiter supports your growth. Favorable for learning, travel, and philosophical exploration. New experiences and broader perspectives enrich your life.",
+        "☀️ The Sun has returned to your birth sign! Solar Return - the most important time when a new year begins. Goals and intentions set now influence until your next birthday. Make wishes and set New Year plans!",
+        "♄♂ Saturn-Mars conjunction. A day to be careful. Difficult energy with conflicts, frustrations, and obstacles coming together. Avoid big decisions or dangerous activities; focus on safety.",
+        "🌓 Quarter Moon! A turning point requiring challenges and decisions. You meet obstacles but are also given strength to overcome. Push through without giving up!",
+        "🌗 Last Quarter day! A time for organization and reflection. Let go of what's unnecessary and prepare for the next cycle. Good for finishing unfinished tasks.",
+        "♃ Thursday - Jupiter's day! Best day for expansion, luck, and education. Seize new opportunities and think big picture. Good for law, overseas, and philosophy too.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤜🤛 Good for business proposals or starting joint projects. Talk to your partner!",
+        "☯️ Energy of harmony and balance flows! Focus on improving relationships!",
+        "🤝 Perfect for collaboration or team activities! Together you achieve more!",
+        "⚡ Synergy effects are maximized today! Join forces with your partner!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "📜 Register for certification exams or online courses!",
+        "👩 Call your mother! You might receive good advice!",
+        "📖 Perfect day to register for exams, buy courses, or enroll in classes!",
+        "🙏 Ask parents, bosses, or seniors for advice - you'll find solutions. Reach out first!",
+        "📝 Great for government paperwork, passport renewal, or banking. Get official things done!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🍀 Luck is on your side! Be proactive with new attempts or adventures!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2025,
+    "locale": "ko",
+    "days": 360,
+    "grades": {
+      "0": 0,
+      "1": 81,
+      "2": 127,
+      "3": 111,
+      "4": 41,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 360,
+      "grade0": 0,
+      "grade1": 81,
+      "grade2": 127,
+      "grade3": 111,
+      "grade4": 41
+    },
+    "sample": {
+      "date": "2025-01-10",
+      "grade": 1,
+      "score": 84,
+      "categories": [
+        "career",
+        "love"
+      ],
+      "title": "아이디어의 날",
+      "description": "창의력 폭발! 기획, 글쓰기, 예술에 좋아요.",
+      "summary": "💼 계약, 협상, 중요한 결정에 최적의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 미팅/협상 최적",
+        "🌆 오후 2-4시: 서류/계약 유리"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "🍽️ 창의력과 표현력이 풍부해지는 날이에요! 요리, 글쓰기, 예술 활동에 딱 좋아요. 여유롭고 편안한 에너지라서 휴식이나 맛집 탐방도 좋아요. 건강과 복을 상징하는 좋은 기운!",
+        "너무 좋아 보이는 제안은 한 번 더 의심하세요. 중고거래, 투자 제안 등 조건 꼼꼼히 따져보세요. 급하게 결정하면 후회해요.",
+        "아이디어가 잘 떠오르는 날이에요. 기획서 작성, 프레젠테이션 준비하기 딱 좋아요. 평소에 말 못 했던 제안도 오늘 해보세요.",
+        "📅 올해는 도움을 받기 좋은 해예요. 멘토, 선배, 부모님 등 조력자의 도움이 많아요. 배움과 성장의 기회가 넘치니, 새로운 공부나 자격증 취득에 도전해보세요!",
+        "📆 이번 달은 창의력이 빛나는 달이에요. 예술 활동, 창작, 연애에 유리해요. 자신을 표현하는 모든 활동에 좋은 달이에요.",
+        "🌅 오늘은 창의력과 표현력이 빛나는 날이에요. 글쓰기, 예술, 프레젠테이션에 좋아요. 당신의 아이디어를 자신 있게 표현하세요!"
+      ],
+      "astroFactors": [
+        "미뤄뒀던 일 시작하기 좋은 날이에요. 운동 시작, 다이어트, 새 프로젝트 등 첫걸음 떼기 딱 좋아요.",
+        "♀ 금성이 당신의 별자리에 들어왔어요! 사랑, 아름다움, 재물의 에너지가 빛나는 날이에요. 데이트, 미팅, 쇼핑에 최고의 날이고, 외모에 신경 쓰면 좋은 일이 생길 수 있어요. 매력이 빛나는 날!",
+        "♃ 목성이 당신의 별자리에 들어왔어요! 12년에 한 번 오는 최대 행운기입니다! 확장, 성장, 기회의 에너지가 넘쳐요. 새로운 사업, 해외 진출, 학업, 큰 투자에 최적의 시기예요. 이 황금기를 놓치지 마세요!",
+        "☀️ 태양이 당신에게 에너지를 충전해줘요! 창의력과 활력이 넘치고, 새로운 시작에 최적의 날이에요. 자신감을 갖고 빛나세요!",
+        "🌙 달이 당신의 별자리에 들어왔어요! 감정이 민감해지고 직관이 강해지는 날이에요. 내면의 목소리에 귀 기울이고, 감정에 충실하게 하루를 보내세요.",
+        "♄ 토성 스퀘어! 외부에서 장애물과 제한이 와요. 좌절감을 느끼기 쉽지만, 이 시련을 통해 더 강해질 수 있어요. 포기하지 마세요.",
+        "♃♀ 목성-금성 합! 최고의 대길 상이에요! 사랑, 재물, 행운이 모두 빛나는 날이에요. 연애, 결혼, 계약, 투자에 최고의 날! 이런 날은 1년에 몇 번 없어요!",
+        "🌔 차오르는 달의 날! 완성을 향해 정제하는 시기예요. 세부 사항을 다듬고, 마무리를 준비하세요. 분석과 개선에 좋은 날이에요.",
+        "♄⟲ 토성 역행 중! 책임과 구조를 재검토하는 시기예요. 과거의 교훈을 돌아보고, 장기 계획을 점검하세요. 내면의 규율을 세우기에 좋은 때예요.",
+        "♀️ 금요일 - 금성의 날! 사랑, 아름다움, 재물에 최고의 날이에요. 데이트, 쇼핑, 예술 활동에 완벽해요. 인간관계도 좋아져요!",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "오늘 시작하는 일은 순조롭게 진행될 거예요. 새 프로젝트, 새 운동루틴, 새 습관 시작하기 좋아요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤝 협업 프로젝트나 팀 활동에 최적! 함께하면 더 큰 성과!",
+        "⚡ 시너지 효과가 극대화되는 날! 파트너와 힘을 합치세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "🎨 블로그, 그림, 음악에 영감이 넘쳐요. 무언가를 창작하세요!",
+        "🎤 발표, 면접, 콘텐츠 촬영에 좋아요. 자신감 있게 말하세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "🎁 부탁이 받아들여질 확률이 높아요! 도움 요청을 망설이지 마세요!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "💄 미용, 패션, 외모 관리에 좋은 날! 새 스타일을 시도하세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2025,
+    "locale": "en",
+    "days": 360,
+    "grades": {
+      "0": 0,
+      "1": 81,
+      "2": 127,
+      "3": 111,
+      "4": 41,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 360,
+      "grade0": 0,
+      "grade1": 81,
+      "grade2": 127,
+      "grade3": 111,
+      "grade4": 41
+    },
+    "sample": {
+      "date": "2025-01-10",
+      "grade": 1,
+      "score": 84,
+      "categories": [
+        "career",
+        "love"
+      ],
+      "title": "Inspiration Day",
+      "description": "Creativity boost! Great for planning, writing, art.",
+      "summary": "💼 Best day for contracts and decisions!",
+      "bestTimes": [
+        "🌅 10am-12pm: Best for meetings",
+        "🌆 2-4pm: Good for documents"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "🍽️ Creativity and expression flourish! Perfect for cooking, writing, and artistic activities. It's relaxed and comfortable energy, so rest or food exploration is also great. Good energy symbolizing health and blessings!",
+        "Be suspicious of offers that look too good. Check conditions carefully for secondhand deals or investment proposals. Rushing decisions leads to regret.",
+        "Ideas come easily today. Perfect for writing proposals or preparing presentations. Try making that suggestion you've been holding back.",
+        "📅 This year is good for receiving support. Lots of help from mentors, seniors, parents. Opportunities for learning and growth abound, so try new studies or certifications!",
+        "📆 This month your creativity shines. Favorable for artistic activities, creation, and romance. A good month for all forms of self-expression.",
+        "🌅 Creativity and expression shine today. Good for writing, art, and presentations. Express your ideas confidently!"
+      ],
+      "astroFactors": [
+        "Good day to start things you've postponed. Perfect for first steps like starting exercise, diet, or new projects.",
+        "♀ Venus has entered your sign! A day when love, beauty, and wealth energy shine. Best for dates, meetings, and shopping. Taking care of your appearance may bring good things. A day your charm shines!",
+        "♃ Jupiter has entered your sign! This is a once-in-12-years peak luck period! Energy of expansion, growth, and opportunity overflows. Optimal time for new business, overseas ventures, studies, or big investments. Don't miss this golden period!",
+        "☀️ The Sun energizes you! Creativity and vitality overflow, an optimal day for new beginnings. Be confident and shine!",
+        "🌙 The Moon has entered your sign! A day when emotions become sensitive and intuition strengthens. Listen to your inner voice and spend the day true to your feelings.",
+        "♄ Saturn square! External obstacles and limitations come. Frustration is easy, but you can become stronger through this trial. Don't give up.",
+        "♃♀ Jupiter-Venus conjunction! The best auspicious sign! Love, wealth, and luck all shine. Best day for romance, marriage, contracts, or investments! Days like this only come a few times a year!",
+        "🌔 Waxing Gibbous day! A time to refine toward completion. Polish details and prepare for finishing. Good day for analysis and improvement.",
+        "♄⟲ Saturn Retrograde! Time to review responsibilities and structures. Look back on past lessons and check long-term plans. Good time to establish inner discipline.",
+        "♀️ Friday - Venus' day! Best day for love, beauty, and wealth. Perfect for dates, shopping, and art activities. Relationships improve too!",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "Things you start today will proceed smoothly. Good for starting new projects, new exercise routines, or new habits.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤝 Perfect for collaboration or team activities! Together you achieve more!",
+        "⚡ Synergy effects are maximized today! Join forces with your partner!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "🎨 Inspiration flows for blogging, drawing, or music. Create something!",
+        "🎤 Good for presentations, interviews, or filming content. Speak with confidence!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "🎁 High chance your requests will be granted! Don't hesitate to ask for help!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "💄 Great day for beauty, fashion, and self-care! Try a new style!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2030,
+    "locale": "ko",
+    "days": 358,
+    "grades": {
+      "0": 0,
+      "1": 111,
+      "2": 100,
+      "3": 94,
+      "4": 53,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 358,
+      "grade0": 0,
+      "grade1": 111,
+      "grade2": 100,
+      "grade3": 94,
+      "grade4": 53
+    },
+    "sample": {
+      "date": "2030-01-03",
+      "grade": 1,
+      "score": 84,
+      "categories": [
+        "general",
+        "career",
+        "love"
+      ],
+      "title": "아이디어의 날",
+      "description": "창의력 폭발! 기획, 글쓰기, 예술에 좋아요.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "📈 승진 면담, 연봉 협상, 취업 면접에 유리한 날이에요. 인정받고 싶은 일은 오늘 어필하세요. 좋은 소식 들을 가능성 높아요.",
+        "🎭 창의적 표현력이 극대화되지만 말조심하세요! 예술, 공연, 콘텐츠 제작에 유리해요. 다만 상사나 권위자와 충돌하기 쉬우니 언행을 조절하세요. 재능은 빛나지만 관계에 주의!",
+        "아이디어가 잘 떠오르는 날이에요. 기획서 작성, 프레젠테이션 준비하기 딱 좋아요. 평소에 말 못 했던 제안도 오늘 해보세요.",
+        "📅 올해는 재물운이 좋은 해예요. 수입이 늘어나거나 재테크에 유리한 기회가 찾아올 수 있어요. 돈과 관련된 중요한 결정을 하기에 좋은 해입니다.",
+        "📆 이번 달은 창의력이 빛나는 달이에요. 예술 활동, 창작, 연애에 유리해요. 자신을 표현하는 모든 활동에 좋은 달이에요.",
+        "🌅 오늘은 창의력과 표현력이 빛나는 날이에요. 글쓰기, 예술, 프레젠테이션에 좋아요. 당신의 아이디어를 자신 있게 표현하세요!"
+      ],
+      "astroFactors": [
+        "미뤄뒀던 일 시작하기 좋은 날이에요. 운동 시작, 다이어트, 새 프로젝트 등 첫걸음 떼기 딱 좋아요.",
+        "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
+        "♄ 토성이 당신의 삶에 구조와 안정을 가져다 줘요. 장기 계획을 세우거나, 기초를 다지기에 좋은 날이에요. 인내심을 갖고 천천히 쌓아가세요.",
+        "☀️ 태양이 당신에게 에너지를 충전해줘요! 창의력과 활력이 넘치고, 새로운 시작에 최적의 날이에요. 자신감을 갖고 빛나세요!",
+        "🌙 달이 당신을 돌봐주는 에너지예요. 휴식, 자기 돌봄, 가족과의 시간에 좋은 날이에요. 따뜻한 음식과 편안한 시간을 즐기세요.",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌑 삭(새달)의 날! 새로운 시작의 에너지가 충만해요. 목표를 세우고 씨앗을 뿌리는 최적의 시기예요. 새 프로젝트, 새로운 습관, 새 인연을 시작하기에 좋아요!",
+        "♂️⟲ 화성 역행 중! 에너지가 내면으로 향하는 시기예요. 새 프로젝트보다 기존 일을 마무리하세요. 분노 조절에 주의하고, 과격한 운동이나 모험은 삼가세요.",
+        "♃ 목요일 - 목성의 날! 확장, 행운, 교육에 최고의 날이에요. 새로운 기회를 잡고, 큰 그림을 그리세요. 법률, 해외, 철학에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "오늘 시작하는 일은 순조롭게 진행될 거예요. 새 프로젝트, 새 운동루틴, 새 습관 시작하기 좋아요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤝 협업 프로젝트나 팀 활동에 최적! 함께하면 더 큰 성과!",
+        "⚡ 시너지 효과가 극대화되는 날! 파트너와 힘을 합치세요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "💼 커리어 발전에 좋은 날! 이력서 업데이트, 네트워킹을 하세요!",
+        "👔 승진이나 연봉 인상 요청하세요! 상사 기분이 좋아요!",
+        "🎖️ 취업/승진 면접에 좋아요! 자신감 있게 가세요!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "🎨 블로그, 그림, 음악에 영감이 넘쳐요. 무언가를 창작하세요!",
+        "🎤 발표, 면접, 콘텐츠 촬영에 좋아요. 자신감 있게 말하세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "🎁 부탁이 받아들여질 확률이 높아요! 도움 요청을 망설이지 마세요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🍀 행운이 따르는 날! 새로운 시도나 모험에 적극적으로 나서세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2030,
+    "locale": "en",
+    "days": 358,
+    "grades": {
+      "0": 0,
+      "1": 111,
+      "2": 100,
+      "3": 94,
+      "4": 53,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 358,
+      "grade0": 0,
+      "grade1": 111,
+      "grade2": 100,
+      "grade3": 94,
+      "grade4": 53
+    },
+    "sample": {
+      "date": "2030-01-03",
+      "grade": 1,
+      "score": 84,
+      "categories": [
+        "general",
+        "career",
+        "love"
+      ],
+      "title": "Inspiration Day",
+      "description": "Creativity boost! Great for planning, writing, art.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "📈 Favorable day for promotion talks, salary negotiations, job interviews. Appeal for things you want recognition for today. High chance of hearing good news.",
+        "🎭 Creative expression maximizes but watch your words! Favorable for art, performance, and content creation. However, you may clash with bosses or authority figures, so moderate your behavior. Your talent shines, but be careful with relationships!",
+        "Ideas come easily today. Perfect for writing proposals or preparing presentations. Try making that suggestion you've been holding back.",
+        "📅 This year has good wealth fortune. Income may increase or favorable investment opportunities may arise. A good year for important money-related decisions.",
+        "📆 This month your creativity shines. Favorable for artistic activities, creation, and romance. A good month for all forms of self-expression.",
+        "🌅 Creativity and expression shine today. Good for writing, art, and presentations. Express your ideas confidently!"
+      ],
+      "astroFactors": [
+        "Good day to start things you've postponed. Perfect for first steps like starting exercise, diet, or new projects.",
+        "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information.",
+        "♄ Saturn brings structure and stability to your life. Good day for long-term planning or building foundations. Be patient and build slowly.",
+        "☀️ The Sun energizes you! Creativity and vitality overflow, an optimal day for new beginnings. Be confident and shine!",
+        "🌙 Moon energy nurtures you. Good day for rest, self-care, and family time. Enjoy warm food and comfortable moments.",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌑 New Moon day! Full of new beginning energy. Optimal time to set goals and plant seeds. Great for starting new projects, habits, or relationships!",
+        "♂️⟲ Mars Retrograde! Energy turns inward. Focus on finishing existing work rather than new projects. Watch anger management and avoid extreme exercise or adventures.",
+        "♃ Thursday - Jupiter's day! Best day for expansion, luck, and education. Seize new opportunities and think big picture. Good for law, overseas, and philosophy too.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "Things you start today will proceed smoothly. Good for starting new projects, new exercise routines, or new habits."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤝 Perfect for collaboration or team activities! Together you achieve more!",
+        "⚡ Synergy effects are maximized today! Join forces with your partner!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "💼 Good day for career advancement! Update your resume, do some networking!",
+        "👔 Ask for promotions or salary raises! Your boss is in a good mood!",
+        "🎖️ Great for job/promotion interviews! Go in with confidence!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "🎨 Inspiration flows for blogging, drawing, or music. Create something!",
+        "🎤 Good for presentations, interviews, or filming content. Speak with confidence!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "🎁 High chance your requests will be granted! Don't hesitate to ask for help!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🍀 Luck is on your side! Be proactive with new attempts or adventures!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2040,
+    "locale": "ko",
+    "days": 352,
+    "grades": {
+      "0": 0,
+      "1": 45,
+      "2": 74,
+      "3": 164,
+      "4": 69,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 352,
+      "grade0": 0,
+      "grade1": 45,
+      "grade2": 74,
+      "grade3": 164,
+      "grade4": 69
+    },
+    "sample": {
+      "date": "2040-10-25",
+      "grade": 1,
+      "score": 80,
+      "categories": [
+        "general",
+        "career",
+        "love"
+      ],
+      "title": "나를 찾는 날",
+      "description": "자신감이 높아지는 날! 리더십 발휘하기 좋아요.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "📈 승진 면담, 연봉 협상, 취업 면접에 유리한 날이에요. 인정받고 싶은 일은 오늘 어필하세요. 좋은 소식 들을 가능성 높아요.",
+        "⚔️ 경쟁자가 나타나거나 재물 손실에 주의하세요! 동업, 공동 투자는 피하는 게 좋고, 보증이나 빌려주는 것도 삼가세요. 내 것을 지키는 데 집중하세요.",
+        "오늘 회의나 미팅에서 평소보다 자신감 있게 말할 수 있어요. 다만 같은 포지션 동료랑 의견 충돌이 생길 수 있으니 너무 밀어붙이진 마세요.",
+        "📅 올해는 재물운이 좋은 해예요. 수입이 늘어나거나 재테크에 유리한 기회가 찾아올 수 있어요. 돈과 관련된 중요한 결정을 하기에 좋은 해입니다.",
+        "📆 이번 달은 에너지가 충전되는 달이에요. 자신감이 높아지고 추진력이 생겨요. 새로운 시작이나 도전에 적합한 달이에요.",
+        "🌅 오늘은 에너지가 강해지는 날이에요. 자신감이 넘치고 추진력이 생기지만, 경쟁심도 올라갈 수 있어요. 협력과 경쟁의 균형을 잡으세요."
+      ],
+      "astroFactors": [
+        "후배나 동생 도와주면 나중에 좋은 일로 돌아와요. 재능기부, 멘토링, 지식 공유하기 좋은 날이에요.",
+        "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
+        "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
+        "♂ 화성 에너지가 당신과 충돌하고 있어요. 다툼, 사고, 부상의 위험이 평소보다 높아요. 격한 운동이나 위험한 활동은 피하고, 화가 나도 참고 넘어가세요. 안전이 최우선이에요.",
+        "♃ 목성 에너지가 당신과 조화를 이루고 있어요. 전반적인 행운이 좋고, 기회가 자연스럽게 찾아와요. 낙관적인 마음으로 도전하면 좋은 결과를 얻을 수 있어요.",
+        "♄ 토성의 절제 에너지가 흐르고 있어요. 재미보다는 책임, 즐거움보다는 의무가 앞서는 날이에요. 지루하지만 꾸준히 해야 할 일에 집중하세요.",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌖 기우는 달의 날! 나눔과 감사의 시기예요. 배운 것을 다른 사람과 공유하고, 받은 것에 감사하세요. 지혜를 나누기에 좋은 날!",
+        "🌙⚠️ 달이 공전 중(Void of Course)이에요! 새로운 시작에 매우 불리한 시간이에요. 오늘 시작한 일은 결과를 맺지 못할 수 있어요. 중요한 결정, 계약, 새 프로젝트는 반드시 피하세요. 기존 일 마무리나 휴식에 집중하세요.",
+        "♃ 목요일 - 목성의 날! 확장, 행운, 교육에 최고의 날이에요. 새로운 기회를 잡고, 큰 그림을 그리세요. 법률, 해외, 철학에도 좋아요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🌱 성장과 발전의 에너지가 흘러요! 자기계발에 투자하세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "💼 커리어 발전에 좋은 날! 이력서 업데이트, 네트워킹을 하세요!",
+        "👔 승진이나 연봉 인상 요청하세요! 상사 기분이 좋아요!",
+        "🎖️ 취업/승진 면접에 좋아요! 자신감 있게 가세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "🤝 업계 행사나 동창회에 참석하세요 - 귀한 인연을 만날 수 있어요. 명함 챙기세요!",
+        "❤️ 작은 선물, 밥 사주기, 칭찬에 좋아요. 주는 게 돌아와요!",
+        "👨‍🏫 후배 코칭이나 팀원 가르치기에 좋아요. 지식이 빛나는 날!",
+        "🚀 사업 확장, 새 프로젝트 시작에 좋은 날! 시야를 넓히세요!",
+        "🍀 행운이 따르는 날! 새로운 시도나 모험에 적극적으로 나서세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile2-1975s",
+    "year": 2040,
+    "locale": "en",
+    "days": 352,
+    "grades": {
+      "0": 0,
+      "1": 45,
+      "2": 74,
+      "3": 164,
+      "4": 69,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 352,
+      "grade0": 0,
+      "grade1": 45,
+      "grade2": 74,
+      "grade3": 164,
+      "grade4": 69
+    },
+    "sample": {
+      "date": "2040-10-25",
+      "grade": 1,
+      "score": 80,
+      "categories": [
+        "general",
+        "career",
+        "love"
+      ],
+      "title": "Confidence Day",
+      "description": "A day when self-confidence rises! Great for leadership.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "📈 Favorable day for promotion talks, salary negotiations, job interviews. Appeal for things you want recognition for today. High chance of hearing good news.",
+        "⚔️ Watch for competitors or financial loss! Avoid partnerships or joint investments, and refrain from guarantees or lending. Focus on protecting what's yours.",
+        "You can speak more confidently in meetings today. But avoid pushing too hard as you might clash with colleagues in similar positions.",
+        "📅 This year has good wealth fortune. Income may increase or favorable investment opportunities may arise. A good year for important money-related decisions.",
+        "📆 This month recharges your energy. Confidence rises and you gain drive. A suitable month for new beginnings or challenges.",
+        "🌅 Today your energy strengthens. Confidence and drive increase, but competitiveness may also rise. Balance cooperation and competition."
+      ],
+      "astroFactors": [
+        "Helping juniors or younger people will come back as good things later. Good day for talent donation, mentoring, or knowledge sharing.",
+        "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information.",
+        "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back.",
+        "♂ Mars energy conflicts with you. Risk of arguments, accidents, and injuries is higher than usual. Avoid intense exercise or dangerous activities, and let anger pass. Safety is the priority.",
+        "♃ Jupiter energy harmonizes with you. Overall luck is good and opportunities come naturally. Approaching challenges with optimism will bring good results.",
+        "♄ Saturn's disciplined energy flows. Responsibility comes before fun, duty before pleasure. Focus on mundane but necessary tasks with persistence.",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌖 Waning Gibbous day! A time for sharing and gratitude. Share what you've learned and be thankful for what you've received. Good day for sharing wisdom!",
+        "🌙⚠️ Moon is Void of Course! Very unfavorable for new beginnings. Things started now may not come to fruition. Definitely avoid important decisions, contracts, or new projects. Focus on finishing existing work or resting.",
+        "♃ Thursday - Jupiter's day! Best day for expansion, luck, and education. Seize new opportunities and think big picture. Good for law, overseas, and philosophy too.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🌱 Energy for growth and development flows today! Invest in self-improvement!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "💼 Good day for career advancement! Update your resume, do some networking!",
+        "👔 Ask for promotions or salary raises! Your boss is in a good mood!",
+        "🎖️ Great for job/promotion interviews! Go in with confidence!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "🤝 Attend industry events or reunions - you might meet a valuable connection. Bring business cards!",
+        "❤️ Good for small gifts, treating someone to a meal, or giving compliments. What you give comes back!",
+        "👨‍🏫 Great for coaching juniors or teaching team members. Your knowledge shines today!",
+        "🚀 Great day for business expansion or new projects! Broaden your horizons!",
+        "🍀 Luck is on your side! Be proactive with new attempts or adventures!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2005,
+    "locale": "ko",
+    "days": 345,
+    "grades": {
+      "0": 0,
+      "1": 139,
+      "2": 107,
+      "3": 70,
+      "4": 29,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 345,
+      "grade0": 0,
+      "grade1": 139,
+      "grade2": 107,
+      "grade3": 70,
+      "grade4": 29
+    },
+    "sample": {
+      "date": "2005-11-01",
+      "grade": 1,
+      "score": 90,
+      "categories": [
+        "general",
+        "love",
+        "study",
+        "career"
+      ],
+      "title": "배움의 날",
+      "description": "뭔가 배우거나 조언 받기 딱 좋은 날이에요.",
+      "summary": "⭐ 모든 일이 잘 풀리는 최고의 날!",
+      "bestTimes": [
+        "🌅 오전 10-12시: 중요한 일 처리",
+        "🌆 오후 3-5시: 미팅/약속"
+      ],
+      "sajuFactors": [
+        "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
+        "🌸 오늘 외모에 신경 쓰면 좋은 만남이 있을 수 있어요. 소개팅, 미팅, 모임에서 눈에 띌 수 있는 날이에요. 연애운 UP!",
+        "📚 학습과 도움의 에너지가 넘쳐요! 시험, 자격증, 학업에 유리한 날이에요. 선생님이나 선배의 도움을 받기 좋고, 중요한 서류 처리에도 좋은 날이에요.",
+        "오늘 선배나 상사한테 물어보면 좋은 답을 들을 수 있어요. 막혔던 업무가 조언 한마디로 해결될 수 있습니다. 물어보는 게 이득!",
+        "소개팅이나 새로운 사람 만나기 좋은 날이에요. 네트워킹 모임, 동창 모임 가면 좋은 인연 생길 수 있어요.",
+        "📅 올해는 재물운이 좋은 해예요. 수입이 늘어나거나 재테크에 유리한 기회가 찾아올 수 있어요. 돈과 관련된 중요한 결정을 하기에 좋은 해입니다.",
+        "📅 올해는 인연이 좋은 해예요. 좋은 사람을 만나거나, 귀인의 도움을 받을 수 있어요. 결혼, 파트너십, 협력 관계에 유리한 해입니다.",
+        "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
+        "🌅 오늘은 배움과 도움을 받기 좋은 날이에요. 선배나 멘토의 조언이 도움이 되고, 공부나 자격증 준비에도 좋아요. 지혜를 얻는 하루!",
+        "🌅 오늘은 인연과 화합의 기운이 강해요! 새로운 만남, 소개팅, 면접, 비즈니스 미팅에 최적! 사람을 통해 좋은 기회가 올 수 있어요."
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "☿ 수성이 당신의 별자리에 들어왔어요! 의사소통, 글쓰기, 계약, 협상에 최고의 날이에요. 중요한 이메일, 프레젠테이션, 미팅이 있다면 오늘이 좋아요. 머리가 맑아지고 표현력이 좋아지는 날이에요.",
+        "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
+        "♂ 화성 에너지가 당신과 충돌하고 있어요. 다툼, 사고, 부상의 위험이 평소보다 높아요. 격한 운동이나 위험한 활동은 피하고, 화가 나도 참고 넘어가세요. 안전이 최우선이에요.",
+        "♃ 목성이 당신의 별자리에 들어왔어요! 12년에 한 번 오는 최대 행운기입니다! 확장, 성장, 기회의 에너지가 넘쳐요. 새로운 사업, 해외 진출, 학업, 큰 투자에 최적의 시기예요. 이 황금기를 놓치지 마세요!",
+        "♄ 토성의 시련을 극복할 수 있는 날이에요! 오랫동안 힘들었던 문제가 해결되기 시작해요. 인내와 노력이 보상받는 시기입니다.",
+        "☀️ 태양이 당신의 생일 별자리로 돌아왔어요! Solar Return - 새로운 1년이 시작되는 가장 중요한 시기예요. 이때 세운 목표와 의도가 다음 생일까지 영향을 미쳐요. 소원을 빌고, 새해 계획을 세우세요!",
+        "🌙 달이 당신의 별자리에 들어왔어요! 감정이 민감해지고 직관이 강해지는 날이에요. 내면의 목소리에 귀 기울이고, 감정에 충실하게 하루를 보내세요.",
+        "♄♂ 토성-화성 스퀘어. 긴장과 갈등의 에너지가 강해요. 쉽게 화가 나고, 외부에서 방해가 와요. 인내심을 갖고 감정을 조절하세요.",
+        "🌑 신월(新月)! 새로운 시작의 에너지가 충만한 날이에요. 목표를 세우고, 의도를 심는 최적의 날! 씨앗을 뿌리듯 새로운 프로젝트를 시작하세요.",
+        "🌑 삭(새달)의 날! 새로운 시작의 에너지가 충만해요. 목표를 세우고 씨앗을 뿌리는 최적의 시기예요. 새 프로젝트, 새로운 습관, 새 인연을 시작하기에 좋아요!",
+        "♂️ 화요일 - 화성의 날! 행동, 경쟁, 용기에 유리한 날이에요. 운동, 도전, 경쟁에 좋아요. 다만 갈등에 주의하세요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🤜🤛 사업 제안이나 공동 프로젝트 시작에 좋아요. 파트너와 대화하세요!",
+        "☯️ 조화와 균형의 에너지가 흘러요! 관계 개선에 집중하세요!",
+        "🏠 이사에 완벽한 날! 새 아파트 계약하거나 이사 일정 잡으세요!",
+        "💒 이상적인 결혼식 날짜! 청첩장 보내거나 예식장 예약하세요!",
+        "💼 계약 체결, 연봉 협상, 중요한 미팅에 좋은 날! 오전 10시~12시가 특히 유리합니다!",
+        "💘 소개팅이나 첫 데이트 잡으세요! 인연을 찾을 확률이 높아요!",
+        "🎉 모임, 파티, 동창회에 참석하세요! 인맥이 자산이에요!",
+        "✨ 프로필 사진 바꾸고 새 룩을 시도하세요! 오늘 매력이 빛나요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "📜 자격증 시험이나 온라인 강좌 등록하세요!",
+        "👩 어머니께 전화하세요! 좋은 조언을 받을 수 있어요!",
+        "📖 시험 접수, 강좌 구매, 수강 신청하기 좋은 날!",
+        "🙏 부모님, 상사, 선배에게 조언을 구하세요 - 해결책을 찾을 수 있어요. 먼저 연락하세요!",
+        "📝 관공서 서류, 여권 갱신, 은행 업무에 좋아요. 공식적인 일 처리하세요!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "🤗 멀어진 친구에게 먼저 연락하세요. 다툼 후 화해하기 좋은 타이밍!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2005,
+    "locale": "en",
+    "days": 345,
+    "grades": {
+      "0": 0,
+      "1": 139,
+      "2": 107,
+      "3": 70,
+      "4": 29,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 345,
+      "grade0": 0,
+      "grade1": 139,
+      "grade2": 107,
+      "grade3": 70,
+      "grade4": 29
+    },
+    "sample": {
+      "date": "2005-11-01",
+      "grade": 1,
+      "score": 90,
+      "categories": [
+        "general",
+        "love",
+        "study",
+        "career"
+      ],
+      "title": "Learning Day",
+      "description": "Perfect for learning or getting advice.",
+      "summary": "⭐ Everything flows smoothly today!",
+      "bestTimes": [
+        "🌅 10am-12pm: Important tasks",
+        "🌆 3-5pm: Meetings"
+      ],
+      "sajuFactors": [
+        "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good.",
+        "🌸 Pay attention to your appearance today for good encounters. A day to stand out at blind dates, meetings, or gatherings. Romance luck UP!",
+        "📚 Learning and support energy overflows! Favorable for exams, certifications, and studies. Good for receiving help from teachers or seniors, and good for handling important documents.",
+        "Ask seniors or supervisors today - you'll get good answers. A single piece of advice could solve your stuck work. Asking pays off!",
+        "Good day for blind dates or meeting new people. Networking events or alumni gatherings could bring good connections.",
+        "📅 This year has good wealth fortune. Income may increase or favorable investment opportunities may arise. A good year for important money-related decisions.",
+        "📅 This year has good relationship fortune. You may meet good people or receive help from benefactors. Favorable for marriage, partnerships, and cooperative relationships.",
+        "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning.",
+        "🌅 Great day for learning and receiving help. Advice from seniors or mentors will be valuable, good for studying or certification prep. A day of gaining wisdom!",
+        "🌅 Energy of connection and harmony is strong today! Optimal for new meetings, dates, interviews, and business meetings! Good opportunities may come through people."
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "☿ Mercury has entered your sign! Best day for communication, writing, contracts, and negotiations. Great if you have important emails, presentations, or meetings. Your mind is clear and expression is good.",
+        "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back.",
+        "♂ Mars energy conflicts with you. Risk of arguments, accidents, and injuries is higher than usual. Avoid intense exercise or dangerous activities, and let anger pass. Safety is the priority.",
+        "♃ Jupiter has entered your sign! This is a once-in-12-years peak luck period! Energy of expansion, growth, and opportunity overflows. Optimal time for new business, overseas ventures, studies, or big investments. Don't miss this golden period!",
+        "♄ A day when you can overcome Saturn's challenges! Long-standing difficult problems begin to resolve. A time when patience and effort are rewarded.",
+        "☀️ The Sun has returned to your birth sign! Solar Return - the most important time when a new year begins. Goals and intentions set now influence until your next birthday. Make wishes and set New Year plans!",
+        "🌙 The Moon has entered your sign! A day when emotions become sensitive and intuition strengthens. Listen to your inner voice and spend the day true to your feelings.",
+        "♄♂ Saturn-Mars square. Tension and conflict energy is strong. Anger comes easily and external interference occurs. Be patient and control emotions.",
+        "🌑 New Moon! A day full of new beginning energy. Optimal day to set goals and plant intentions! Start new projects like sowing seeds.",
+        "🌑 New Moon day! Full of new beginning energy. Optimal time to set goals and plant seeds. Great for starting new projects, habits, or relationships!",
+        "♂️ Tuesday - Mars' day! Favorable for action, competition, and courage. Good for exercise, challenges, and competition. But watch for conflicts.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🤜🤛 Good for business proposals or starting joint projects. Talk to your partner!",
+        "☯️ Energy of harmony and balance flows! Focus on improving relationships!",
+        "🏠 Perfect day for moving! Sign new apartment contracts or schedule your move!",
+        "💒 Ideal wedding date! Send invitations or book the venue today!",
+        "💼 Sign contracts, negotiate salary, have important meetings. 10am-12pm is especially favorable!",
+        "💘 Set up blind dates or first dates! High chance of finding a connection!",
+        "🎉 Attend gatherings, parties, or reunions! Your network is your net worth!",
+        "✨ Change your profile photo, try a new look! Your charm shines today!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "📜 Register for certification exams or online courses!",
+        "👩 Call your mother! You might receive good advice!",
+        "📖 Perfect day to register for exams, buy courses, or enroll in classes!",
+        "🙏 Ask parents, bosses, or seniors for advice - you'll find solutions. Reach out first!",
+        "📝 Great for government paperwork, passport renewal, or banking. Get official things done!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "🤗 Reach out to distant friends first. Good timing to make up after arguments!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2015,
+    "locale": "ko",
+    "days": 328,
+    "grades": {
+      "0": 0,
+      "1": 123,
+      "2": 70,
+      "3": 76,
+      "4": 59,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 328,
+      "grade0": 0,
+      "grade1": 123,
+      "grade2": 70,
+      "grade3": 76,
+      "grade4": 59
+    },
+    "sample": {
+      "date": "2015-07-10",
+      "grade": 1,
+      "score": 85,
+      "categories": [
+        "love",
+        "health",
+        "career"
+      ],
+      "title": "조심의 날",
+      "description": "상사 눈치 보이는 날. 티 나는 행동은 피하세요.",
+      "summary": "💕 연애운 폭발! 고백, 데이트 적극 추천!",
+      "bestTimes": [
+        "☕ 오후 3-5시: 데이트 최적",
+        "🌙 저녁 7-9시: 로맨틱한 시간"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "⚠️ 올해는 무리한 투자나 이직보다 현상유지가 안전해요. 건강검진 꼭 받으시고, 큰 변화는 내년으로 미루세요.",
+        "👔 직장운과 명예운이 좋아요! 승진, 인정, 공식적인 자리에 유리한 날이에요. 책임감 있게 행동하면 좋은 평가를 받을 수 있어요. 결혼이나 공식적인 약속에도 좋은 날!",
+        "오랫동안 연락 안 하던 사람한테서 연락이 올 수 있어요. 포기했던 프로젝트가 다시 살아날 수도 있고요. 예상치 못한 곳에서 도움이 와요.",
+        "상사 눈치가 보이는 날이에요. 큰 실수만 안 하면 됩니다. 티 나는 행동은 피하고 맡은 일 묵묵히 하세요.",
+        "📅 올해는 재물운이 좋은 해예요. 수입이 늘어나거나 재테크에 유리한 기회가 찾아올 수 있어요. 돈과 관련된 중요한 결정을 하기에 좋은 해입니다.",
+        "📆 이번 달은 재물운이 좋은 달이에요. 수입 증가, 좋은 쇼핑 기회, 재테크에 유리해요. 돈과 관련된 결정을 하기 좋아요.",
+        "🌅 오늘은 외부 압박이나 스트레스가 있을 수 있어요. 상사, 윗사람과의 관계에서 조심하고, 겸손하게 대처하세요. 무리한 도전은 피하세요."
+      ],
+      "astroFactors": [
+        "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
+        "🌗 안 쓰는 물건 정리, 불필요한 구독 해지, 관계 정리하기 좋은 때예요. 비워야 새로운 게 들어와요.",
+        "♄ 토성이 당신의 별자리에 들어왔어요. 인생의 전환점이 될 수 있는 시기예요. 책임감, 인내심이 요구되고 시련이 있지만, 이를 통해 단단하게 성장해요. Saturn Return 시기라면 더욱 중요한 때입니다.",
+        "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
+        "🌙 달 에너지가 감정적인 변화를 일으켜요. 예민해지거나 감정 기복이 있을 수 있어요. 중요한 결정은 감정이 안정된 후에 하세요.",
+        "♃♀ 목성-금성 트라인! 행운과 사랑이 조화롭게 흘러요. 로맨틱한 만남, 재물 기회, 예술적 영감이 넘쳐요. 아름답고 풍요로운 날!",
+        "🌗 하현달의 날! 정리와 반성의 시기예요. 불필요한 것을 버리고, 다음 사이클을 위해 준비하세요. 끝내지 못한 일을 마무리하기 좋아요.",
+        "♃⟲ 목성 역행 중! 외적 확장보다 내면의 성장에 집중하는 시기예요. 큰 투자나 확장 계획은 재검토하세요. 철학적 성찰과 지혜 축적에 좋아요.",
+        "🌙⚠️ 달이 공전 중(Void of Course)이에요! 새로운 시작에 매우 불리한 시간이에요. 오늘 시작한 일은 결과를 맺지 못할 수 있어요. 중요한 결정, 계약, 새 프로젝트는 반드시 피하세요. 기존 일 마무리나 휴식에 집중하세요.",
+        "♀️ 금요일 - 금성의 날! 사랑, 아름다움, 재물에 최고의 날이에요. 데이트, 쇼핑, 예술 활동에 완벽해요. 인간관계도 좋아져요!",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "⚠ 동서양 운세 모두 조심하라는 날이에요. 중요한 결정은 미루고, 조용히 지내세요. 괜히 나서지 마세요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "🐢 서둘러 결정하지 마세요. '하루만 더 생각해볼게요'가 오늘의 무기!",
+        "🤫 SNS 포스팅이나 자랑은 피하세요. 조용히 자기 일 하는 게 최고 전략!",
+        "💪 자신감 있게 밀어붙이세요! 오늘은 당신 편이에요. 망설이지 마세요!",
+        "✨ 셀카, 스타일 변신, 새 옷에 좋아요. 매력을 뽐내기 완벽한 타이밍!",
+        "🪞 되돌아보며 교훈 찾기 좋아요. 일기 쓰기나 리뷰해 보세요!",
+        "🍃 불필요한 것 정리에 좋아요. 옷장 정리, 구독 취소, 힘 빠지는 관계 정리!",
+        "💕 고백 성공률이 높아요! 데이트 신청이나 프로포즈에 완벽한 타이밍!",
+        "💄 미용, 패션, 외모 관리에 좋은 날! 새 스타일을 시도하세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2015,
+    "locale": "en",
+    "days": 328,
+    "grades": {
+      "0": 0,
+      "1": 123,
+      "2": 70,
+      "3": 76,
+      "4": 59,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 328,
+      "grade0": 0,
+      "grade1": 123,
+      "grade2": 70,
+      "grade3": 76,
+      "grade4": 59
+    },
+    "sample": {
+      "date": "2015-07-10",
+      "grade": 1,
+      "score": 85,
+      "categories": [
+        "love",
+        "health",
+        "career"
+      ],
+      "title": "Caution Day",
+      "description": "Watch out for bosses. Keep a low profile.",
+      "summary": "💕 Romance luck high! Perfect for dates!",
+      "bestTimes": [
+        "☕ 3-5pm: Perfect for dates",
+        "🌙 7-9pm: Romantic time"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "⚠️ This year, maintaining status quo is safer than risky investments or job changes. Get health checkups and postpone big changes to next year.",
+        "👔 Career and honor luck is good! Favorable for promotions, recognition, and official occasions. Acting responsibly brings good evaluations. Also a good day for marriage or official commitments!",
+        "You might hear from someone you haven't contacted in a while. A project you gave up might revive. Help comes from unexpected places.",
+        "A day to be aware of your boss's mood. Just avoid big mistakes. Keep a low profile and quietly do your assigned work.",
+        "📅 This year has good wealth fortune. Income may increase or favorable investment opportunities may arise. A good year for important money-related decisions.",
+        "📆 This month has good wealth fortune. Favorable for income increase, good shopping opportunities, and investments. Good for money-related decisions.",
+        "🌅 External pressure or stress may occur today. Be careful in relationships with bosses and superiors, stay humble. Avoid reckless challenges."
+      ],
+      "astroFactors": [
+        "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine.",
+        "🌗 Good time for decluttering, canceling unnecessary subscriptions, or organizing relationships. You need to empty to make room for new things.",
+        "♄ Saturn has entered your sign. This could be a life turning point. Responsibility and patience are required with challenges, but you'll grow stronger through them. Especially important if this is your Saturn Return.",
+        "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage.",
+        "🌙 Moon energy causes emotional changes. You may become sensitive or have mood swings. Make important decisions after emotions stabilize.",
+        "♃♀ Jupiter-Venus trine! Luck and love flow harmoniously. Romantic encounters, wealth opportunities, and artistic inspiration abound. A beautiful and abundant day!",
+        "🌗 Last Quarter day! A time for organization and reflection. Let go of what's unnecessary and prepare for the next cycle. Good for finishing unfinished tasks.",
+        "♃⟲ Jupiter Retrograde! Focus on inner growth rather than external expansion. Review big investments or expansion plans. Good for philosophical reflection and accumulating wisdom.",
+        "🌙⚠️ Moon is Void of Course! Very unfavorable for new beginnings. Things started now may not come to fruition. Definitely avoid important decisions, contracts, or new projects. Focus on finishing existing work or resting.",
+        "♀️ Friday - Venus' day! Best day for love, beauty, and wealth. Perfect for dates, shopping, and art activities. Relationships improve too!",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "⚠ A day when both Eastern and Western fortune say be careful. Postpone important decisions and stay quiet. Don't stick your neck out.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "🐢 Don't decide in a hurry. 'Let me think about it one more day' is your weapon today!",
+        "🤫 Avoid posting on social media or bragging. Quietly doing your own work is the best strategy!",
+        "💪 Push forward confidently! Today is on your side. Don't hesitate!",
+        "✨ Great for selfies, style changes, or new outfits. Perfect timing to show your charm!",
+        "🪞 Good for looking back and finding lessons. Try journaling or reviewing!",
+        "🍃 Good for clearing unnecessary things. Clean your closet, cancel subscriptions, or end draining relationships!",
+        "💕 Confessions have higher success rates! Perfect timing for asking someone out or proposing!",
+        "💄 Great day for beauty, fashion, and self-care! Try a new style!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2024,
+    "locale": "ko",
+    "days": 346,
+    "grades": {
+      "0": 0,
+      "1": 111,
+      "2": 61,
+      "3": 105,
+      "4": 69,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 346,
+      "grade0": 0,
+      "grade1": 111,
+      "grade2": 61,
+      "grade3": 105,
+      "grade4": 69
+    },
+    "sample": {
+      "date": "2024-06-04",
+      "grade": 1,
+      "score": 85,
+      "categories": [
+        "study",
+        "career"
+      ],
+      "title": "배움의 날",
+      "description": "뭔가 배우거나 조언 받기 딱 좋은 날이에요.",
+      "summary": "📚 집중력 UP! 시험, 공부에 유리해요!",
+      "bestTimes": [
+        "📚 오전 9-12시: 집중력 최고",
+        "🌙 저녁 8-10시: 암기력 UP"
+      ],
+      "sajuFactors": [
+        "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
+        "📚 학습과 도움의 에너지가 넘쳐요! 시험, 자격증, 학업에 유리한 날이에요. 선생님이나 선배의 도움을 받기 좋고, 중요한 서류 처리에도 좋은 날이에요.",
+        "오랫동안 연락 안 하던 사람한테서 연락이 올 수 있어요. 포기했던 프로젝트가 다시 살아날 수도 있고요. 예상치 못한 곳에서 도움이 와요.",
+        "오늘 선배나 상사한테 물어보면 좋은 답을 들을 수 있어요. 막혔던 업무가 조언 한마디로 해결될 수 있습니다. 물어보는 게 이득!",
+        "📅 올해는 재물운이 좋은 해예요. 수입이 늘어나거나 재테크에 유리한 기회가 찾아올 수 있어요. 돈과 관련된 중요한 결정을 하기에 좋은 해입니다.",
+        "📆 이번 달은 에너지가 충전되는 달이에요. 자신감이 높아지고 추진력이 생겨요. 새로운 시작이나 도전에 적합한 달이에요.",
+        "🌅 오늘은 배움과 도움을 받기 좋은 날이에요. 선배나 멘토의 조언이 도움이 되고, 공부나 자격증 준비에도 좋아요. 지혜를 얻는 하루!"
+      ],
+      "astroFactors": [
+        "미뤄뒀던 일 시작하기 좋은 날이에요. 운동 시작, 다이어트, 새 프로젝트 등 첫걸음 떼기 딱 좋아요.",
+        "♀ 금성이 당신을 지원하고 있어요. 예술과 미적 감각이 빛나고, 주변 사람들에게 호감을 얻기 쉬워요. 디자인, 미술, 음악 등 창작 활동에 유리해요.",
+        "♂ 화성 에너지가 당신과 조화를 이루고 있어요. 운동, 경쟁, 적극적인 활동에 유리해요. 추진력이 생기고 목표를 향해 나아가기 좋은 날이에요.",
+        "♃ 목성의 과잉 에너지에 주의하세요. 너무 큰 욕심이나 과도한 확장은 위험할 수 있어요. 적당한 선에서 멈추는 지혜가 필요해요. 욕심보다 절제가 필요한 시기예요.",
+        "♄ 토성의 절제 에너지가 흐르고 있어요. 재미보다는 책임, 즐거움보다는 의무가 앞서는 날이에요. 지루하지만 꾸준히 해야 할 일에 집중하세요.",
+        "☀️ 태양이 당신에게 에너지를 충전해줘요! 창의력과 활력이 넘치고, 새로운 시작에 최적의 날이에요. 자신감을 갖고 빛나세요!",
+        "🌙 달 에너지가 감정적인 변화를 일으켜요. 예민해지거나 감정 기복이 있을 수 있어요. 중요한 결정은 감정이 안정된 후에 하세요.",
+        "♄ 토성 트라인! 오랜 노력이 결실을 맺는 날이에요. 책임감 있는 행동이 인정받고, 안정적인 성과를 얻어요. 꾸준함이 빛나는 날!",
+        "♄♂ 토성-화성 합. 조심해야 할 날이에요. 갈등, 좌절, 장애물이 동시에 오는 어려운 에너지예요. 큰 결정이나 위험한 활동은 피하고, 안전에 집중하세요.",
+        "🌘 그믐달의 날! 휴식과 내면 성찰의 시기예요. 에너지가 낮을 수 있으니 무리하지 말고 쉬세요. 명상, 휴식, 다음 신월을 위한 준비에 좋아요.",
+        "♂️ 화요일 - 화성의 날! 행동, 경쟁, 용기에 유리한 날이에요. 운동, 도전, 경쟁에 좋아요. 다만 갈등에 주의하세요.",
+        "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
+        "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요."
+      ],
+      "recommendations": [
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!",
+        "✍️ 계약서 서명에 최적의 날! 일이 순조롭게 풀려요!",
+        "☕ 소개팅이나 첫 만남 잡기 좋아요. 좋은 인상을 위해 잘 차려입으세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "📜 자격증 시험이나 온라인 강좌 등록하세요!",
+        "👩 어머니께 전화하세요! 좋은 조언을 받을 수 있어요!",
+        "📖 시험 접수, 강좌 구매, 수강 신청하기 좋은 날!",
+        "🙏 부모님, 상사, 선배에게 조언을 구하세요 - 해결책을 찾을 수 있어요. 먼저 연락하세요!",
+        "📝 관공서 서류, 여권 갱신, 은행 업무에 좋아요. 공식적인 일 처리하세요!",
+        "📚 유튜브 강의, 독서, 새 취미 시작에 좋아요. 오늘 흡수력이 좋아요!",
+        "🎁 부탁이 받아들여질 확률이 높아요! 도움 요청을 망설이지 마세요!",
+        "🎯 망설이던 큰 결정이 있다면 오늘 결정하세요! 에너지가 도와줘요!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2024,
+    "locale": "en",
+    "days": 346,
+    "grades": {
+      "0": 0,
+      "1": 111,
+      "2": 61,
+      "3": 105,
+      "4": 69,
+      "5": 0
+    },
+    "uniqueTitles": 6,
+    "uniqueDescs": 6,
+    "summary": {
+      "total": 346,
+      "grade0": 0,
+      "grade1": 111,
+      "grade2": 61,
+      "grade3": 105,
+      "grade4": 69
+    },
+    "sample": {
+      "date": "2024-06-04",
+      "grade": 1,
+      "score": 85,
+      "categories": [
+        "study",
+        "career"
+      ],
+      "title": "Learning Day",
+      "description": "Perfect for learning or getting advice.",
+      "summary": "📚 Focus is sharp! Great for exams!",
+      "bestTimes": [
+        "📚 9am-12pm: Peak focus",
+        "🌙 8-10pm: Memory boost"
+      ],
+      "sajuFactors": [
+        "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly.",
+        "📚 Learning and support energy overflows! Favorable for exams, certifications, and studies. Good for receiving help from teachers or seniors, and good for handling important documents.",
+        "You might hear from someone you haven't contacted in a while. A project you gave up might revive. Help comes from unexpected places.",
+        "Ask seniors or supervisors today - you'll get good answers. A single piece of advice could solve your stuck work. Asking pays off!",
+        "📅 This year has good wealth fortune. Income may increase or favorable investment opportunities may arise. A good year for important money-related decisions.",
+        "📆 This month recharges your energy. Confidence rises and you gain drive. A suitable month for new beginnings or challenges.",
+        "🌅 Great day for learning and receiving help. Advice from seniors or mentors will be valuable, good for studying or certification prep. A day of gaining wisdom!"
+      ],
+      "astroFactors": [
+        "Good day to start things you've postponed. Perfect for first steps like starting exercise, diet, or new projects.",
+        "♀ Venus supports you. Art and aesthetic sense shine, and you easily gain favor from people around you. Favorable for creative activities like design, art, and music.",
+        "♂ Mars energy harmonizes with you. Favorable for exercise, competition, and active pursuits. You gain drive and it's a good day to move toward your goals.",
+        "♃ Be careful of Jupiter's excess energy. Too much ambition or excessive expansion can be risky. You need the wisdom to stop at the right point. A time requiring moderation over greed.",
+        "♄ Saturn's disciplined energy flows. Responsibility comes before fun, duty before pleasure. Focus on mundane but necessary tasks with persistence.",
+        "☀️ The Sun energizes you! Creativity and vitality overflow, an optimal day for new beginnings. Be confident and shine!",
+        "🌙 Moon energy causes emotional changes. You may become sensitive or have mood swings. Make important decisions after emotions stabilize.",
+        "♄ Saturn trine! Long efforts bear fruit today. Responsible actions are recognized and stable results come. A day when consistency shines!",
+        "♄♂ Saturn-Mars conjunction. A day to be careful. Difficult energy with conflicts, frustrations, and obstacles coming together. Avoid big decisions or dangerous activities; focus on safety.",
+        "🌘 Waning Crescent day! A time for rest and inner reflection. Energy may be low, so don't overexert and rest. Good for meditation, rest, and preparing for next New Moon.",
+        "♂️ Tuesday - Mars' day! Favorable for action, competition, and courage. Good for exercise, challenges, and competition. But watch for conflicts.",
+        "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year.",
+        "A day with both good and not-so-good points. Judge carefully but don't worry too much."
+      ],
+      "recommendations": [
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!",
+        "✍️ Optimal for signing contracts or agreements! Things will go smoothly!",
+        "☕ Great for setting up blind dates or first meetings. Dress well for a good impression!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "📜 Register for certification exams or online courses!",
+        "👩 Call your mother! You might receive good advice!",
+        "📖 Perfect day to register for exams, buy courses, or enroll in classes!",
+        "🙏 Ask parents, bosses, or seniors for advice - you'll find solutions. Reach out first!",
+        "📝 Great for government paperwork, passport renewal, or banking. Get official things done!",
+        "📚 Good for YouTube courses, reading books, or starting new hobbies. You absorb things well today!",
+        "🎁 High chance your requests will be granted! Don't hesitate to ask for help!",
+        "🎯 If you've been hesitating on a big decision, decide today! The energy supports you!"
+      ],
+      "warnings": []
+    }
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2025,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2025,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2030,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2030,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2040,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile3-1980s",
+    "year": 2040,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2005,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2005,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2015,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2015,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2024,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2024,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2025,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2025,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2030,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2030,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2040,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile4-1985s",
+    "year": 2040,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2005,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2005,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2015,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2015,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2024,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2024,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2025,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2025,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2030,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2030,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2040,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile5-1990s",
+    "year": 2040,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2005,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2005,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2015,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2015,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2024,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2024,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2025,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2025,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2030,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2030,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2040,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile6-1995s",
+    "year": 2040,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2005,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2005,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2015,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2015,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2024,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2024,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2025,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2025,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2030,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2030,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2040,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile7-2000s",
+    "year": 2040,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2005,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2005,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2015,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2015,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2024,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2024,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2025,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2025,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2030,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2030,
+    "locale": "en",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2040,
+    "locale": "ko",
+    "error": "rate_limited"
+  },
+  {
+    "profile": "Profile8-2005s",
+    "year": 2040,
+    "locale": "en",
+    "error": "rate_limited"
+  }
+]

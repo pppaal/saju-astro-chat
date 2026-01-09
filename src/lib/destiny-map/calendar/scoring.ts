@@ -564,26 +564,46 @@ export function calculateTotalScore(
   const astroBonus = Math.max(-10, Math.min(10, outerPlanetsScore + specialPointsScore + eclipseScore));
   const astroScore = Math.max(0, Math.min(50, baseAstroScore + astroBonus));
 
-  // 긍정/부정 판단 (중앙값 기준)
-  const sajuPositive = sajuScore > 25;
-  const sajuNegative = sajuScore < 20;
-  const astroPositive = astroScore > 25;
-  const astroNegative = astroScore < 20;
+  // 긍정/부정 판단 (v7: 명확한 기준값 사용)
+  // 긍정: 25점 초과 (50점 중 상위 50%)
+  // 부정: 20점 미만 (50점 중 하위 40%)
+  // 중립: 20~25점 (회색지대)
+  const positiveThreshold = CROSS_VERIFICATION_SCORES.positiveThreshold ?? 25;
+  const negativeThreshold = CROSS_VERIFICATION_SCORES.negativeThreshold ?? 20;
 
-  // 교차검증 보너스
+  const sajuPositive = sajuScore > positiveThreshold;
+  const sajuNegative = sajuScore < negativeThreshold;
+  const sajuNeutral = !sajuPositive && !sajuNegative;  // 20~25점 구간
+
+  const astroPositive = astroScore > positiveThreshold;
+  const astroNegative = astroScore < negativeThreshold;
+  const astroNeutral = !astroPositive && !astroNegative;  // 20~25점 구간
+
+  // 교차검증 보너스 (v7: 중립 구간 처리 개선)
   let crossBonus = 0;
   const crossVerified = sajuPositive && astroPositive;
 
   if (sajuPositive && astroPositive) {
+    // 둘 다 긍정: 최대 보너스
     crossBonus = CROSS_VERIFICATION_SCORES.bothPositive;
   } else if (sajuNegative && astroNegative) {
+    // 둘 다 부정: 페널티
     crossBonus = CROSS_VERIFICATION_SCORES.bothNegative;
+  } else if ((sajuPositive && astroNeutral) || (sajuNeutral && astroPositive)) {
+    // 하나 긍정, 하나 중립: 작은 보너스
+    crossBonus = 2;
+  } else if ((sajuNegative && astroNeutral) || (sajuNeutral && astroNegative)) {
+    // 하나 부정, 하나 중립: 작은 페널티
+    crossBonus = -1;
   }
+  // 나머지 경우 (혼합 또는 둘 다 중립): 0
 
   // 최종 점수 (0-100 범위)
   const totalScore = Math.round(Math.max(0, Math.min(100, sajuScore + astroScore + crossBonus)));
 
-  // 등급 결정
+  // 등급 결정 (5등급 시스템)
+  // Grade 0: 최고 (72+, 충/형 없음) ~5%, Grade 1: 좋음 (65+) ~15%
+  // Grade 2: 보통 (45+) ~50%, Grade 3: 안좋음 (30+) ~25%, Grade 4: 최악 (<30) ~5%
   let grade: ImportanceGrade;
   if (totalScore >= GRADE_THRESHOLDS.grade0) {
     grade = 0;
@@ -594,7 +614,7 @@ export function calculateTotalScore(
   } else if (totalScore >= GRADE_THRESHOLDS.grade3) {
     grade = 3;
   } else {
-    grade = 4;
+    grade = 4; // 최악
   }
 
   return {

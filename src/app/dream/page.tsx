@@ -9,6 +9,7 @@ import CreditBadge from '@/components/ui/CreditBadge';
 import { apiFetch } from '@/lib/api';
 import DreamSymbolCard from '@/components/dream/DreamSymbolCard';
 import styles from './Dream.module.css';
+import { logger } from '@/lib/logger';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
 type Phase = 'birth-input' | 'dream-input' | 'analyzing' | 'result';
@@ -176,7 +177,7 @@ function DreamContent() {
           setPhase('birth-input');
         }
       } catch (err) {
-        console.error('Failed to load profile:', err);
+        logger.error('Failed to load profile:', err);
         setPhase('birth-input');
       } finally {
         setProfileLoading(false);
@@ -221,7 +222,7 @@ function DreamContent() {
           });
         }
       } catch (err) {
-        console.error('Failed to save birth info:', err);
+        logger.error('Failed to save birth info:', err);
       }
     } else {
       setGuestBirthInfo(birthInfo);
@@ -277,7 +278,7 @@ function DreamContent() {
       });
       setProfileLoadedMsg(true);
     } catch (err) {
-      console.error('Failed to load profile:', err);
+      logger.error('Failed to load profile:', err);
       setProfileLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
     } finally {
       setLoadingProfileBtn(false);
@@ -461,7 +462,7 @@ function DreamContent() {
       setResult(data);
       setPhase('result');
     } catch (err) {
-      console.error('Dream analysis failed:', err);
+      logger.error('Dream analysis failed:', err);
       setError(locale === 'ko' ? '분석 중 오류가 발생했습니다. 다시 시도해주세요.' : 'An error occurred. Please try again.');
       setPhase('dream-input');
     } finally {
@@ -576,7 +577,7 @@ function DreamContent() {
         setChatMessages(prev => [...prev, { role: 'assistant', content: data.reply || data.response || (locale === 'ko' ? '응답을 받지 못했습니다.' : 'No response received.') }]);
       }
     } catch (err) {
-      console.error('Chat error:', err);
+      logger.error('Chat error:', err);
       setChatMessages(prev => [...prev, {
         role: 'assistant',
         content: locale === 'ko'
@@ -1114,13 +1115,14 @@ function DreamContent() {
                           // Generate unique color for each card
                           const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
                           const color = colors[i % colors.length];
+                          const typedSym = sym as { label: string; meaning: string; interpretations?: { jung?: string; stoic?: string; tarot?: string; } };
 
                           return (
                             <DreamSymbolCard
                               key={i}
-                              symbol={sym.label}
-                              meaning={sym.meaning}
-                              interpretations={sym.interpretations}
+                              symbol={typedSym.label}
+                              meaning={typedSym.meaning}
+                              interpretations={typedSym.interpretations}
                               color={color}
                               locale={locale as 'ko' | 'en'}
                             />

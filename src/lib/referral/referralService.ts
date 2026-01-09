@@ -93,7 +93,7 @@ export async function linkReferrer(
     return { success: true, referrerId: referrer.id };
   } catch (error: unknown) {
     console.error("[linkReferrer] error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -130,7 +130,7 @@ export async function claimReferralReward(
     return { success: true, creditsAwarded: pendingReward.creditsAwarded };
   } catch (error: unknown) {
     console.error("[claimReferralReward] error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 

@@ -26,6 +26,8 @@ import type {
   NodeAnalysis,
 } from '@/lib/compatibility/advancedAstrologyAnalysis';
 
+import type { CrossAnalysisResult } from '@/lib/compatibility/crossSystemAnalysis';
+
 export interface PersonData {
   name: string;
   date: string;
@@ -106,13 +108,17 @@ export interface CompatibilityData {
   outerPlanets?: OuterPlanetAnalysis;
   nodes?: NodeAnalysis;
 
+  // Cross-System Fusion (Saju × Astrology)
+  crossSystemAnalysis?: CrossAnalysisResult;
+
   // Overall scores
   overallScore?: number;
   sajuScore?: number;
   astroScore?: number;
+  crossScore?: number;
 }
 
-export type TabId = 'overview' | 'chemistry' | 'harmony' | 'synastry' | 'deepSaju' | 'deepAstro' | 'future';
+export type TabId = 'overview' | 'chemistry' | 'harmony' | 'fusion' | 'synastry' | 'deepSaju' | 'deepAstro' | 'future';
 
 export interface TabProps {
   data: CompatibilityData;

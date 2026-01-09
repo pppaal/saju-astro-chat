@@ -1,0 +1,76 @@
+# fly.toml app configuration file
+# See https://fly.io/docs/reference/configuration/ for documentation
+
+app = "backend-ai"
+primary_region = "nrt" # Tokyo - closest to Korea
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  OMP_NUM_THREADS = "2"
+  MKL_NUM_THREADS = "2"
+  PYTHONUNBUFFERED = "1"
+  # Gunicorn settings for better concurrency
+  GUNICORN_WORKERS = "2"
+  GUNICORN_THREADS = "4"
+  GUNICORN_TIMEOUT = "120"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # Keep at least min running
+  auto_start_machines = true  # Scale up on demand
+  min_machines_running = 1    # Always have 1 ready
+  processes = ["app"]
+
+  # Health check - more aggressive for faster failover
+  [[http_service.checks]]
+    grace_period = "60s"      # Give app time to start
+    interval = "10s"          # Check more frequently
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+  # Readiness check - separate from health
+  [[http_service.checks]]
+    type = "http"
+    grace_period = "30s"
+    interval = "30s"
+    method = "GET"
+    timeout = "10s"
+    path = "/ready"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  # Concurrency settings - requests-based is better for AI workloads
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 50           # Max concurrent requests per machine
+    soft_limit = 40           # Start scaling when this is reached
+
+# VM resources - increased for AI workloads
+[[vm]]
+  size = "shared-cpu-1x"      # 1 shared CPU
+  memory = "1024mb"           # 1GB RAM for AI operations
+
+# Auto-scaling configuration
+[deploy]
+  strategy = "rolling"        # Zero-downtime deploys
+
+# Metrics endpoint for monitoring
+[metrics]
+  port = 9091
+  path = "/metrics"

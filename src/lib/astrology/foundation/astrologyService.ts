@@ -5,7 +5,7 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-import { Chart } from "./types";
+import { Chart, ZodiacKo } from "./types";
 import { formatLongitude } from "./utils";
 import { calcHouses, inferHouseOf } from "./houses";
 import { getSwisseph } from "./ephe";
@@ -146,7 +146,7 @@ export function toChart(n: NatalChartData): Chart {
     planets: n.planets.map(p => ({
       name: p.name,
       longitude: p.longitude,
-      sign: p.sign,
+      sign: p.sign as ZodiacKo,
       degree: p.degree,
       minute: p.minute,
       formatted: p.formatted,
@@ -154,8 +154,14 @@ export function toChart(n: NatalChartData): Chart {
       speed: p.speed,
       retrograde: p.retrograde,
     })),
-    ascendant: n.ascendant,
-    mc: n.mc,
+    ascendant: {
+      ...n.ascendant,
+      sign: n.ascendant.sign as ZodiacKo,
+    },
+    mc: {
+      ...n.mc,
+      sign: n.mc.sign as ZodiacKo,
+    },
     houses: n.houses.map((h, i) => {
       const f = formatLongitude(h.cusp);
       return { index: i + 1, cusp: h.cusp, sign: f.sign, formatted: f.formatted };

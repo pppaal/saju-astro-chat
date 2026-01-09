@@ -1,62 +1,15 @@
-// 탭 컴포넌트 공통 타입
-export interface SajuData {
-  dayMaster?: { name?: string; element?: string; heavenlyStem?: string };
-  pillars?: {
-    year?: { heavenlyStem?: string; earthlyBranch?: string };
-    month?: { heavenlyStem?: string; earthlyBranch?: string };
-    day?: { heavenlyStem?: string; earthlyBranch?: string };
-    time?: { heavenlyStem?: string; earthlyBranch?: string };
-  };
-  fiveElements?: Record<string, number>;
-  sinsal?: {
-    luckyList?: Array<{ name: string }>;
-    unluckyList?: Array<{ name: string }>;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-export interface AstroData {
-  planets?: Array<{ name?: string; sign?: string; house?: number; longitude?: number }>;
-  houses?: Array<{ index?: number; cusp?: number; sign?: string }>;
-  aspects?: Array<{ from?: string; to?: string; type?: string; orb?: number }>;
-  [key: string]: unknown;
-}
-
-export interface BilingualText {
-  ko?: string;
-  en?: string;
-  koDetail?: string;
-  enDetail?: string;
-}
-
-export interface DestinyNarrative {
-  relationshipStyle?: BilingualText;
-  careerStyle?: BilingualText;
-  healthStyle?: BilingualText;
-  personalityStyle?: BilingualText;
-  fortuneStyle?: BilingualText;
-  karmaStyle?: BilingualText;
-  [key: string]: unknown;
-}
-
-export interface TabProps {
-  saju?: SajuData;
-  astro?: AstroData;
-  lang: string;
-  isKo: boolean;
-  data: Record<string, unknown>;
-  destinyNarrative?: DestinyNarrative;
-  combinedLifeTheme?: Record<string, unknown>;
-}
-
-// 탭 ID 타입
-export type TabId = 'personality' | 'love' | 'career' | 'fortune' | 'health' | 'karma';
-
-// 탭 정의 타입
-export interface TabDefinition {
-  id: TabId;
-  label: string;
-  emoji: string;
-  desc: string;
-}
+// Re-export all types from the main types file
+// This file is kept for backward compatibility
+export {
+  type SajuData,
+  type AstroData,
+  type TabProps,
+  type TabId,
+  type TabDefinition,
+  type TabData,
+  type BilingualText,
+  type DestinyNarrative,
+  type PlanetData,
+  type AspectData,
+  type HouseData,
+} from '../types';

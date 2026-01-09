@@ -2,7 +2,28 @@
 
 import type { TabProps } from './types';
 import type { KarmaAnalysisResult } from '../analyzers/karmaAnalyzer';
-import { getMatrixAnalysis } from '../analyzers';
+
+// Extended SajuData for Karma tab specific fields
+interface SajuDataExtended {
+  dayMaster?: { name?: string; element?: string; heavenlyStem?: string };
+  fourPillars?: {
+    day?: { heavenlyStem?: string };
+    [key: string]: unknown;
+  };
+  fiveElements?: Record<string, number>;
+  advancedAnalysis?: {
+    sinsal?: {
+      luckyList?: Array<string | { name?: string; shinsal?: string }>;
+      unluckyList?: Array<string | { name?: string; shinsal?: string }>;
+    };
+  };
+}
+
+interface PlanetData {
+  name?: string;
+  house?: number;
+  sign?: string;
+}
 
 // ============================================================
 // 비유 기반 쉬운 설명 데이터
@@ -661,23 +682,23 @@ const saturnSimple: Record<number, {
 };
 
 // 헬퍼 함수들
-function findPlanetHouse(planets: unknown[], name: string): number | null {
+function findPlanetHouse(planets: PlanetData[] | undefined, name: string): number | null {
   if (!Array.isArray(planets)) return null;
-  const planet = planets.find((p: unknown) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
-  return planet?.house || null;
+  const planet = planets.find((p) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
+  return planet?.house ?? null;
 }
 
 // 오행 분석 헬퍼
-function analyzeElements(saju: unknown): { strongest: string; weakest: string; balance: Record<string, number> } | null {
+function analyzeElements(saju: SajuDataExtended | undefined): { strongest: string; weakest: string; balance: Record<string, number> } | null {
   const elements = saju?.fiveElements;
   if (!elements) return null;
 
   const balance: Record<string, number> = {
-    wood: elements.wood || elements['목'] || 0,
-    fire: elements.fire || elements['화'] || 0,
-    earth: elements.earth || elements['토'] || 0,
-    metal: elements.metal || elements['금'] || 0,
-    water: elements.water || elements['수'] || 0
+    wood: (elements.wood as number) || (elements['목'] as number) || 0,
+    fire: (elements.fire as number) || (elements['화'] as number) || 0,
+    earth: (elements.earth as number) || (elements['토'] as number) || 0,
+    metal: (elements.metal as number) || (elements['금'] as number) || 0,
+    water: (elements.water as number) || (elements['수'] as number) || 0
   };
 
   const sorted = Object.entries(balance).sort(([,a], [,b]) => b - a);
@@ -689,18 +710,19 @@ function analyzeElements(saju: unknown): { strongest: string; weakest: string; b
 }
 
 export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
-  const karmaAnalysis = data.karmaAnalysis as KarmaAnalysisResult | null;
+  const karmaAnalysis = (data as Record<string, unknown>).karmaAnalysis as KarmaAnalysisResult | null;
 
   // 데이터 추출
-  const dayMaster = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || saju?.fourPillars?.day?.heavenlyStem || "";
-  const sinsal = saju?.advancedAnalysis?.sinsal || {};
-  const luckyList = sinsal?.luckyList || [];
-  const unluckyList = sinsal?.unluckyList || [];
-  const elementAnalysis = analyzeElements(saju);
+  const sajuExt = saju as SajuDataExtended | undefined;
+  const dayMaster = sajuExt?.dayMaster?.name ?? sajuExt?.dayMaster?.heavenlyStem ?? sajuExt?.fourPillars?.day?.heavenlyStem ?? "";
+  const sinsal = sajuExt?.advancedAnalysis?.sinsal ?? {};
+  const luckyList = sinsal?.luckyList ?? [];
+  const unluckyList = sinsal?.unluckyList ?? [];
+  const elementAnalysis = analyzeElements(sajuExt);
 
   // 점성술 데이터
-  const planets = astro?.planets || [];
-  const northNodeHouse = findPlanetHouse(planets, 'north node') || findPlanetHouse(planets, 'northnode');
+  const planets = astro?.planets as PlanetData[] | undefined;
+  const northNodeHouse = findPlanetHouse(planets, 'north node') ?? findPlanetHouse(planets, 'northnode');
   const saturnHouse = findPlanetHouse(planets, 'saturn');
   const southNodeHouse = northNodeHouse ? (northNodeHouse > 6 ? northNodeHouse - 6 : northNodeHouse + 6) : null;
 
@@ -961,8 +983,8 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
                 ✨ {isKo ? "축복의 별 (길신)" : "Blessing Stars (Lucky)"}
               </p>
               <div className="space-y-3">
-                {luckyList.map((item: unknown, i: number) => {
-                  const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
+                {luckyList.map((item, i: number) => {
+                  const name = typeof item === 'string' ? item : (item as { name?: string; shinsal?: string })?.name ?? (item as { name?: string; shinsal?: string })?.shinsal ?? '';
                   const info = shinsalSimple[name];
                   if (!name) return null;
 
@@ -1008,8 +1030,8 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
                 🌟 {isKo ? "도전의 별 (극복하면 강해져요!)" : "Challenge Stars (Overcome to Grow!)"}
               </p>
               <div className="space-y-3">
-                {unluckyList.map((item: unknown, i: number) => {
-                  const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
+                {unluckyList.map((item, i: number) => {
+                  const name = typeof item === 'string' ? item : (item as { name?: string; shinsal?: string })?.name ?? (item as { name?: string; shinsal?: string })?.shinsal ?? '';
                   const info = shinsalSimple[name];
                   if (!name) return null;
 

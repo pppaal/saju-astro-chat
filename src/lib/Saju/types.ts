@@ -19,6 +19,7 @@ export interface StemBranchInfo {
   name: string;            // 표기명(간지 문자: 甲, 乙, 丙 ... / 子, 丑, 寅 ...)
   element: FiveElement;    // 오행
   yin_yang: YinYang;       // 음/양
+  yinYang?: YinYang;       // camelCase alias for compatibility
   // 확장 포인트(선택): 한자/영문 등이 필요하면 아래 주석 해제
   // hanja?: string;
   // romanized?: string;
@@ -65,12 +66,20 @@ export interface SajuPillars {
   month: PillarData;
   day: PillarData;
   time: PillarData;
+  // Legacy aliases for backward compatibility
+  yearPillar?: PillarData;
+  monthPillar?: PillarData;
+  dayPillar?: PillarData;
+  timePillar?: PillarData;
 }
 
 // 간단한 입력용 타입 (stem/branch만 필요한 경우)
 export interface SimplePillar {
   stem: string;
   branch: string;
+  // Compatibility aliases
+  heavenlyStem?: string;
+  earthlyBranch?: string;
 }
 
 export interface SajuPillarsInput {
@@ -82,6 +91,51 @@ export interface SajuPillarsInput {
 
 // --- 공통 키 타입(관계/신살 등에서 사용) ---
 export type PillarKind = 'year' | 'month' | 'day' | 'time';
+
+// --- calculateSajuData 반환 타입 ---
+export interface CalculateSajuDataResult {
+  // Legacy format (spread properties)
+  yearPillar: PillarData;
+  monthPillar: PillarData;
+  dayPillar: PillarData;
+  timePillar: PillarData;
+
+  // New format (nested)
+  pillars: {
+    year: PillarData;
+    month: PillarData;
+    day: PillarData;
+    time: PillarData;
+  };
+
+  daeWoon: {
+    startAge: number;
+    isForward: boolean;
+    current: DaeunData | null;
+    list: DaeunData[];
+  };
+
+  unse: {
+    daeun: Array<{
+      age: number;
+      heavenlyStem: string;
+      earthlyBranch: string;
+      ganji: string;
+    }>;
+    annual: AnnualCycleData[];
+    monthly: MonthlyCycleData[];
+  };
+
+  fiveElements: {
+    wood: number;
+    fire: number;
+    earth: number;
+    metal: number;
+    water: number;
+  };
+
+  dayMaster: StemBranchInfo;
+}
 
 // --- 관계(합/충/형/파/해/원진/삼합/육합/방합/공망) 결과 타입 ---
 export interface RelationHit {
@@ -128,6 +182,46 @@ export interface UnseData {
 
 export interface DaeunData extends UnseData {
   age: number; // 시작 나이 또는 해당 대운의 기준 나이
+}
+
+// 대운 기둥 (saju.ts 내부 사용)
+export interface DaeunPillar {
+  age: number;
+  heavenlyStem: string;
+  earthlyBranch: string;
+  sibsin: { cheon: string; ji: string };
+}
+
+// 연운 사이클 데이터
+export interface AnnualCycleData {
+  year: number;
+  ganji?: string;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+  element?: FiveElement;
+  sibsin?: { cheon: string; ji: string };
+}
+
+// 월운 사이클 데이터
+export interface MonthlyCycleData {
+  year: number;
+  month: number;
+  ganji?: string;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+  element?: FiveElement;
+  sibsin?: { cheon: string; ji: string };
+}
+
+// 일반 사이클 데이터 (유틸 함수용)
+export interface CycleData {
+  year?: number;
+  month?: number;
+  ganji?: string;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+  element?: FiveElement;
+  sibsin?: { cheon: string; ji: string };
 }
 
 export interface YeonunData extends UnseData {

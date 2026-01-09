@@ -72,6 +72,7 @@ export default function MainPage() {
     { key: 'calendar', icon: '🗓️', path: '/calendar' },
     { key: 'dream', icon: '🌙', path: '/dream' },
     { key: 'personality', icon: '🌈', path: '/personality' },
+    { key: 'numerology', icon: '🔢', path: '/numerology' },
   ];
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
   const [totalVisitors, setTotalVisitors] = useState<number | null>(null);
@@ -128,16 +129,18 @@ export default function MainPage() {
   const { flippedCards, selectedCards, usedCardIndices, isDeckSpread } = tarotState;
 
   useEffect(() => {
+    const prompts = [
+      translate("landing.prompt1", "What do the stars say about my path today?"),
+      translate("landing.prompt2", "When will love arrive? What is my destiny cycle?"),
+      translate("landing.prompt3", "Should I make a bold move now or wait?"),
+    ];
+
     const timer = setInterval(() => {
-      const next = [
-        translate("landing.prompt1", "What do the stars say about my path today?"),
-        translate("landing.prompt2", "When will love arrive? What is my destiny cycle?"),
-        translate("landing.prompt3", "Should I make a bold move now or wait?"),
-      ];
-      setAnswer(next[Math.floor(Math.random() * next.length)]);
+      setAnswer(prompts[Math.floor(Math.random() * prompts.length)]);
     }, 4200);
     return () => clearInterval(timer);
-  }, [translate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Typing animation for placeholder
   useEffect(() => {
@@ -183,7 +186,8 @@ export default function MainPage() {
     timeoutId = setTimeout(type, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [translate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Scroll-triggered animation for feature sections
   useEffect(() => {

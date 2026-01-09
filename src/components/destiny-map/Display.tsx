@@ -471,8 +471,9 @@ export default function Display({
 
   // Try to parse structured JSON from interpretation
   const structuredData = useMemo(() => {
-    if (!interpretationText.trim()) return null;
-    return tryParseStructured(interpretationText);
+    const text = String(interpretationText);
+    if (!text.trim()) return null;
+    return tryParseStructured(text);
   }, [interpretationText]);
 
   const errorMessage = result.errorMessage || result.error;

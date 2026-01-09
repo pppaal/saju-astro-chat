@@ -14,9 +14,9 @@ interface ChironInsight {
   message: string;
 }
 
-export default function HealthTab({ saju, astro, lang, isKo, data }: TabProps) {
-  const healthAnalysis = data.healthAnalysis as HealthItem[] | null;
-  const chironInsight = data.chironInsight as ChironInsight | null;
+export default function HealthTab({ saju, isKo, data }: TabProps) {
+  const healthAnalysis = (data as Record<string, unknown>).healthAnalysis as HealthItem[] | null;
+  const chironInsight = (data as Record<string, unknown>).chironInsight as ChironInsight | null;
   const dayMasterName = data.dayMasterName || "";
 
   // 일간별 건강 정보

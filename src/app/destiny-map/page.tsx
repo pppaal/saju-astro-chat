@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './destiny-map.module.css';
+import { logger } from "@/lib/logger";
 
 const CreditBadge = dynamic(() => import('@/components/ui/CreditBadge'), { ssr: false });
 const BackButton = dynamic(() => import('@/components/ui/BackButton'), { ssr: false });
@@ -143,7 +144,7 @@ function DestinyMapContent() {
             }
           } catch {
             // City search failed, but continue with other data
-            console.warn('City search failed for:', cityName);
+            logger.warn('City search failed for:', cityName);
           }
         }
       }
@@ -153,7 +154,7 @@ function DestinyMapContent() {
 
       setProfileLoaded(true);
     } catch (err) {
-      console.error('Failed to load profile:', err);
+      logger.error('Failed to load profile:', err);
       setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
     } finally {
       setLoadingProfile(false);
@@ -180,17 +181,17 @@ function DestinyMapContent() {
     }
     const t = setTimeout(async () => {
       try {
-        console.log('[DestinyMap] Searching cities for:', q);
+        logger.info('[DestinyMap] Searching cities for:', q);
         const { searchCities } = await loadCitiesModule();
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
-        console.log('[DestinyMap] City search results:', hits);
+        logger.info('[DestinyMap] City search results:', hits);
         setSuggestions(hits);
         // Only open dropdown if user is actively typing
         if (isUserTyping) {
           setOpenSug(hits.length > 0);
         }
       } catch (err) {
-        console.error('[DestinyMap] City search error:', err);
+        logger.error('[DestinyMap] City search error:', err);
         setSuggestions([]);
       }
     }, 120);
@@ -213,7 +214,7 @@ function DestinyMapContent() {
           });
         }
       } catch (err) {
-        console.warn('[DestinyMap] city lookup failed', err);
+        logger.warn('[DestinyMap] city lookup failed', err);
       }
     };
     tryFindCity();

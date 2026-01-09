@@ -9,6 +9,7 @@ import {
   type LifeRecommendation,
 } from "@/lib/ai/recommendations";
 import styles from "./recommendations.module.css";
+import { logger } from '@/lib/logger';
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 export default function RecommendationsPage() {
@@ -79,7 +80,7 @@ export default function RecommendationsPage() {
       const result = await generateLifeRecommendations(userProfile);
       setRecommendations(result);
     } catch (error) {
-      console.error("Error loading recommendations:", error);
+      logger.error("Error loading recommendations:", error);
     } finally {
       setLoading(false);
     }

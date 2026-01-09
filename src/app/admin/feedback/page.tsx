@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import styles from "./feedback.module.css";
+import { logger } from '@/lib/logger';
 
 type SectionStat = {
   sectionId: string;
@@ -55,7 +56,7 @@ export default function FeedbackDashboard() {
         setStats(data);
       }
     } catch (err) {
-      console.error("Failed to fetch stats:", err);
+      logger.error("Failed to fetch stats:", err);
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export default function FeedbackDashboard() {
         setRecords(data.records || []);
       }
     } catch (err) {
-      console.error("Failed to fetch records:", err);
+      logger.error("Failed to fetch records:", err);
     }
   }, [service, theme, showNegativeOnly]);
 

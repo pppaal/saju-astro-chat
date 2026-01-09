@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import styles from './matrix.module.css';
+import { logger } from "@/lib/logger";
 
 interface LayerCard {
   layer: number;
@@ -272,7 +273,7 @@ export default function MatrixJourneyPage() {
       }, 1500);
 
     } catch (error) {
-      console.error('Matrix calculation failed:', error);
+      logger.error('Matrix calculation failed:', error);
       setStep('input');
     }
   };

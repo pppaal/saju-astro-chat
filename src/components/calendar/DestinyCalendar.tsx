@@ -9,10 +9,12 @@ import { getUserProfile } from "@/lib/userProfile";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import DateTimePicker from "@/components/ui/DateTimePicker";
+import TimePicker from "@/components/ui/TimePicker";
 import styles from "./DestinyCalendar.module.css";
 
 type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
-type ImportanceGrade = 0 | 1 | 2 | 3 | 4 | 5;
+type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
 
 interface ImportantDate {
@@ -39,12 +41,11 @@ interface CalendarData {
   year: number;
   summary?: {
     total: number;
-    grade0: number; // 천운의 날
-    grade1: number; // 아주 좋은 날
-    grade2: number; // 좋은 날
-    grade3: number; // 보통 날
-    grade4: number; // 나쁜 날
-    grade5: number; // 아주 나쁜 날
+    grade0: number; // 최고의 날 (~5%)
+    grade1: number; // 좋은 날 (~15%)
+    grade2: number; // 보통 날 (~50%)
+    grade3: number; // 안좋은 날 (~25%)
+    grade4: number; // 최악의 날 (~5%)
   };
   topDates?: ImportantDate[];
   goodDates?: ImportantDate[];
@@ -252,6 +253,7 @@ function DestinyCalendarContent() {
   });
   const [hasBirthInfo, setHasBirthInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [timeUnknown, setTimeUnknown] = useState(false);
 
   // 캐시 상태
   const [cacheHit, setCacheHit] = useState(false);
@@ -737,7 +739,8 @@ function DestinyCalendarContent() {
     if (hasBirthInfo && birthInfo.birthDate) {
       fetchCalendar(birthInfo);
     }
-  }, [year, activeCategory, hasBirthInfo, birthInfo, fetchCalendar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, activeCategory]);
 
   // 데이터 로드 후 오늘 날짜 자동 선택
   useEffect(() => {
@@ -764,7 +767,7 @@ function DestinyCalendarContent() {
       setCityErr(locale === "ko" ? "생년월일을 입력해주세요" : "Please enter birth date");
       return;
     }
-    if (!birthInfo.birthTime) {
+    if (!birthInfo.birthTime && !timeUnknown) {
       setCityErr(locale === "ko" ? "출생 시간을 입력해주세요" : "Please enter birth time");
       return;
     }
@@ -776,8 +779,12 @@ function DestinyCalendarContent() {
       setCityErr(locale === "ko" ? "목록에서 도시를 선택해주세요" : "Please select a city from the list");
       return;
     }
+
+    // If time is unknown, set to 12:00 (noon)
+    const finalBirthInfo = timeUnknown ? { ...birthInfo, birthTime: "12:00" } : birthInfo;
+
     setSubmitting(true);
-    fetchCalendar(birthInfo);
+    fetchCalendar(finalBirthInfo);
   };
 
   const getDateInfo = (date: Date): ImportantDate | undefined => {
@@ -858,11 +865,11 @@ function DestinyCalendarContent() {
 
   const getGradeEmoji = (grade: number): string => {
     switch (grade) {
-      case 0: return "💫"; // 천운의 날
-      case 1: return "🌟"; // 아주 좋은 날
-      case 2: return "✨"; // 좋은 날
-      case 3: return "⭐"; // 보통 날
-      case 4: return "⚠️"; // 나쁜 날
+      case 0: return "🌟"; // 최고의 날
+      case 1: return "✨"; // 좋은 날
+      case 2: return "⭐"; // 보통 날
+      case 3: return "⚠️"; // 안좋은 날
+      case 4: return "☠️"; // 최악의 날
       default: return "⭐";
     }
   };
@@ -942,35 +949,40 @@ function DestinyCalendarContent() {
 
             <form onSubmit={handleBirthInfoSubmit} className={styles.form}>
               {/* Birth Date */}
-              <div className={styles.fieldGroup}>
-                <label className={styles.label}>
-                  {locale === "ko" ? "생년월일" : "Birth Date"}
-                  <span className={styles.required}>*</span>
-                </label>
-                <input
-                  type="date"
-                  className={styles.input}
-                  value={birthInfo.birthDate}
-                  onChange={(e) => setBirthInfo({ ...birthInfo, birthDate: e.target.value })}
-                  required
-                  max={new Date().toISOString().split('T')[0]}
-                  min="1900-01-01"
-                />
-              </div>
+              <DateTimePicker
+                value={birthInfo.birthDate}
+                onChange={(date) => setBirthInfo({ ...birthInfo, birthDate: date })}
+                label={locale === "ko" ? "생년월일" : "Birth Date"}
+                required
+                locale={locale}
+              />
 
               {/* Birth Time */}
               <div className={styles.fieldGroup}>
-                <label className={styles.label}>
-                  {locale === "ko" ? "출생 시간" : "Birth Time"}
-                  <span className={styles.required}>*</span>
-                </label>
-                <input
-                  type="time"
-                  className={styles.input}
+                <TimePicker
                   value={birthInfo.birthTime}
-                  onChange={(e) => setBirthInfo({ ...birthInfo, birthTime: e.target.value })}
-                  required
+                  onChange={(time) => setBirthInfo({ ...birthInfo, birthTime: time })}
+                  label={locale === "ko" ? "출생 시간" : "Birth Time"}
+                  required={!timeUnknown}
+                  disabled={timeUnknown}
+                  locale={locale}
                 />
+                <div className={styles.checkboxWrapper}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={timeUnknown}
+                      onChange={(e) => {
+                        setTimeUnknown(e.target.checked);
+                        if (e.target.checked) {
+                          setBirthInfo({ ...birthInfo, birthTime: "" });
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    <span>{locale === "ko" ? "출생 시간을 모름 (정오 12:00으로 설정됩니다)" : "Time unknown (will use 12:00 noon)"}</span>
+                  </label>
+                </div>
               </div>
 
               {/* Birth City */}
@@ -1046,7 +1058,7 @@ function DestinyCalendarContent() {
               <button
                 type="submit"
                 className={styles.submitButton}
-                disabled={submitting || !birthInfo.birthDate || !birthInfo.birthTime || !birthInfo.birthPlace}
+                disabled={submitting || !birthInfo.birthDate || (!birthInfo.birthTime && !timeUnknown) || !birthInfo.birthPlace}
               >
                 {submitting ? (
                   <>
@@ -1146,37 +1158,94 @@ function DestinyCalendarContent() {
   const goodDaysCount = fortuneData.filter(d => d.grade <= 2).length;
   const badDaysCount = fortuneData.filter(d => d.grade >= 4).length; // grade 4 + 5
 
+  // 연도별 summary 계산 (allDates에서 직접 계산)
+  const getYearSummary = () => {
+    if (!data?.allDates) return null;
+
+    const yearDates = data.allDates.filter(d => {
+      const dateYear = new Date(d.date).getFullYear();
+      return dateYear === year;
+    });
+
+    return {
+      total: yearDates.length,
+      grade0: yearDates.filter(d => d.grade === 0).length,
+      grade1: yearDates.filter(d => d.grade === 1).length,
+      grade2: yearDates.filter(d => d.grade === 2).length,
+      grade3: yearDates.filter(d => d.grade === 3).length,
+      grade4: yearDates.filter(d => d.grade === 4).length,
+    };
+  };
+
+  const yearSummary = getYearSummary();
+
   return (
     <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
       <BackButton />
 
-      {/* 헤더 */}
+      {/* 헤더 - 개선된 디자인 */}
       <div className={styles.calendarHeader}>
-        <h1 className={styles.calendarTitle}>
-          {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
-        </h1>
-        <div className={styles.headerActions}>
-          <button className={styles.editBirthBtn} onClick={() => setHasBirthInfo(false)}>
-            {locale === "ko" ? "수정" : "Edit"}
-          </button>
-          {/* Summary - 천운, 최고, 주의 */}
-          {data?.summary && (
-            <div className={styles.summaryBadges}>
-              <span className={styles.summaryBadge} title="천운의 날">
-                <span className={styles.badgeLabel}>{locale === "ko" ? "천운" : "Celestial"}</span>
-                <span className={styles.badgeCount}>{data.summary.grade0}</span>
-              </span>
-              <span className={styles.summaryBadge} title="최고의 날">
-                <span className={styles.badgeLabel}>{locale === "ko" ? "최고" : "Great"}</span>
-                <span className={styles.badgeCount}>{data.summary.grade1}</span>
-              </span>
-              <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title="주의가 필요한 날">
-                <span className={styles.badgeLabel}>{locale === "ko" ? "주의" : "Caution"}</span>
-                <span className={styles.badgeCount}>{data.summary.grade4}</span>
-              </span>
+        <div className={styles.headerTop}>
+          <div className={styles.headerTitleSection}>
+            <div className={styles.calendarIconWrapper}>
+              <span className={styles.calendarIcon}>📅</span>
             </div>
-          )}
+            <div className={styles.titleGroup}>
+              <h1 className={styles.calendarTitle}>
+                {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
+              </h1>
+              <p className={styles.calendarSubtitle}>
+                {locale === "ko" ? `${year}년 당신만의 특별한 날들` : `Your special days in ${year}`}
+              </p>
+            </div>
+          </div>
+          <div className={styles.headerActions}>
+            {/* 캐시 상태 표시 - v7 UI/UX 개선 */}
+            {cacheHit && (
+              <span
+                className={styles.cacheIndicator}
+                title={locale === "ko" ? "저장된 데이터 사용 중 (빠른 로딩)" : "Using cached data (fast loading)"}
+                aria-label={locale === "ko" ? "캐시된 데이터" : "Cached data"}
+              >
+                <span className={styles.cacheIcon}>⚡</span>
+                <span className={styles.cacheText}>
+                  {locale === "ko" ? "캐시" : "Cached"}
+                </span>
+              </span>
+            )}
+            <button className={styles.editBirthBtn} onClick={() => setHasBirthInfo(false)}>
+              <span>✏️</span>
+              <span>{locale === "ko" ? "수정" : "Edit"}</span>
+            </button>
+          </div>
         </div>
+        {/* Summary - 5등급 시스템 (연도별) */}
+        {yearSummary && (
+          <div className={styles.summaryBadges}>
+            <span className={styles.summaryBadge} title={locale === "ko" ? "최고의 날 (~5%)" : "Best Days (~5%)"}>
+              <span className={styles.badgeEmoji}>🌟</span>
+              <span className={styles.badgeLabel}>{locale === "ko" ? "최고" : "Best"}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade0}</span>
+            </span>
+            <span className={styles.summaryBadge} title={locale === "ko" ? "좋은 날 (~15%)" : "Good Days (~15%)"}>
+              <span className={styles.badgeEmoji}>✨</span>
+              <span className={styles.badgeLabel}>{locale === "ko" ? "좋음" : "Good"}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade1}</span>
+            </span>
+            <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title={locale === "ko" ? "안좋은 날 (~25%)" : "Bad Days (~25%)"}>
+              <span className={styles.badgeEmoji}>⚠️</span>
+              <span className={styles.badgeLabel}>{locale === "ko" ? "안좋음" : "Bad"}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade3}</span>
+            </span>
+            {yearSummary.grade4 > 0 && (
+              <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (~5%)" : "Worst Days (~5%)"}>
+                <span className={styles.badgeEmoji}>☠️</span>
+                <span className={styles.badgeLabel}>{locale === "ko" ? "최악" : "Worst"}</span>
+                <span className={styles.badgeCount}>{yearSummary.grade4}</span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 월 네비게이션 */}
@@ -1240,13 +1309,13 @@ function DestinyCalendarContent() {
 
             const getGradeLabel = (grade: number) => {
               const labels = {
-                0: locale === "ko" ? "천운의 날" : "Celestial Day",
-                1: locale === "ko" ? "아주 좋은 날" : "Very Good Day",
-                2: locale === "ko" ? "좋은 날" : "Good Day",
-                3: locale === "ko" ? "보통 날" : "Normal Day",
-                4: locale === "ko" ? "나쁜 날" : "Bad Day",
+                0: locale === "ko" ? "최고의 날" : "Best Day",
+                1: locale === "ko" ? "좋은 날" : "Good Day",
+                2: locale === "ko" ? "보통 날" : "Normal Day",
+                3: locale === "ko" ? "안좋은 날" : "Bad Day",
+                4: locale === "ko" ? "최악의 날" : "Worst Day",
               };
-              return labels[grade as keyof typeof labels] || labels[3];
+              return labels[grade as keyof typeof labels] || labels[2];
             };
 
             return (
@@ -1290,31 +1359,37 @@ function DestinyCalendarContent() {
         </div>
       </div>
 
-      {/* 범례 - 6등급 시스템 */}
-      <div className={styles.legend}>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.grade0Dot}`}></span>
-          <span>{locale === "ko" ? "천운" : "Celestial"}</span>
+      {/* 범례 - 5등급 시스템 (접근성 개선: 색상 + 패턴 + 텍스트) */}
+      <div className={styles.legend} role="list" aria-label={locale === "ko" ? "등급 범례" : "Grade Legend"}>
+        <div className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendDot} ${styles.grade0Dot}`} aria-hidden="true">
+            <span className={styles.legendPattern}>★</span>
+          </span>
+          <span>{locale === "ko" ? "최고 (72+)" : "Best (72+)"}</span>
         </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.grade1Dot}`}></span>
-          <span>{locale === "ko" ? "최고" : "Great"}</span>
+        <div className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendDot} ${styles.grade1Dot}`} aria-hidden="true">
+            <span className={styles.legendPattern}>●</span>
+          </span>
+          <span>{locale === "ko" ? "좋음 (65-71)" : "Good (65-71)"}</span>
         </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.grade2Dot}`}></span>
-          <span>{locale === "ko" ? "좋음" : "Good"}</span>
+        <div className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendDot} ${styles.grade2Dot}`} aria-hidden="true">
+            <span className={styles.legendPattern}>◆</span>
+          </span>
+          <span>{locale === "ko" ? "보통 (45-64)" : "Normal (45-64)"}</span>
         </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.grade3Dot}`}></span>
-          <span>{locale === "ko" ? "보통" : "Normal"}</span>
+        <div className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendDot} ${styles.grade3Dot}`} aria-hidden="true">
+            <span className={styles.legendPattern}>▲</span>
+          </span>
+          <span>{locale === "ko" ? "안좋음 (30-44)" : "Bad (30-44)"}</span>
         </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.grade4Dot}`}></span>
-          <span>{locale === "ko" ? "주의" : "Caution"}</span>
-        </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.grade5Dot}`}></span>
-          <span>{locale === "ko" ? "위험" : "Danger"}</span>
+        <div className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendDot} ${styles.grade4Dot}`} aria-hidden="true">
+            <span className={styles.legendPattern}>✕</span>
+          </span>
+          <span>{locale === "ko" ? "최악 (<30)" : "Worst (<30)"}</span>
         </div>
       </div>
 
@@ -1588,9 +1663,9 @@ function DestinyCalendarContent() {
           .sort((a, b) => a.grade - b.grade || b.score - a.score)
           .slice(0, 3);
 
-        // 나쁜 날 (grade 4, 5) - 점수 낮은 순 2개
+        // 나쁜 날 (grade 3, 4) - 점수 낮은 순 2개
         const badDates = monthDates
-          .filter(d => d.grade >= 4)
+          .filter(d => d.grade >= 3)
           .sort((a, b) => b.grade - a.grade || a.score - b.score)
           .slice(0, 2);
 
@@ -1611,9 +1686,8 @@ function DestinyCalendarContent() {
                 const gradeClass = d.grade === 0 ? styles.grade0
                   : d.grade === 1 ? styles.grade1
                   : d.grade === 2 ? styles.grade2
-                  : d.grade === 4 ? styles.grade4
-                  : d.grade === 5 ? styles.grade5
-                  : styles.grade3;
+                  : d.grade === 3 ? styles.grade3
+                  : styles.grade4;
                 return (
                 <div
                   key={i}
@@ -1634,12 +1708,11 @@ function DestinyCalendarContent() {
                     </div>
                   </div>
                   <span className={styles.highlightTitle}>
-                    {d.title || (d.grade === 0 ? (locale === "ko" ? "천운의 날" : "Celestial Day")
-                      : d.grade === 1 ? (locale === "ko" ? "아주 좋은 날" : "Very Good Day")
-                      : d.grade === 2 ? (locale === "ko" ? "좋은 날" : "Good Day")
-                      : d.grade === 4 ? (locale === "ko" ? "나쁜 날" : "Bad Day")
-                      : d.grade === 5 ? (locale === "ko" ? "아주 나쁜 날" : "Very Bad Day")
-                      : (locale === "ko" ? "보통 날" : "Normal Day"))}
+                    {d.title || (d.grade === 0 ? (locale === "ko" ? "최고의 날" : "Best Day")
+                      : d.grade === 1 ? (locale === "ko" ? "좋은 날" : "Good Day")
+                      : d.grade === 2 ? (locale === "ko" ? "보통 날" : "Normal Day")
+                      : d.grade === 3 ? (locale === "ko" ? "안좋은 날" : "Bad Day")
+                      : (locale === "ko" ? "최악의 날" : "Worst Day"))}
                   </span>
                   {d.categories && d.categories.length > 0 && (
                     <span className={styles.highlightEmojis}>

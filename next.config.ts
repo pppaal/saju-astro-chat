@@ -20,10 +20,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // ESLint is enforced separately via CI
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // Note: ESLint config removed - no longer supported in next.config.ts for Next.js 16+
+  // ESLint is enforced separately via CI (see .github/workflows/ci.yml)
 
   // Native Node.js modules that should not be bundled
   // This is required for Turbopack compatibility with native modules like swisseph

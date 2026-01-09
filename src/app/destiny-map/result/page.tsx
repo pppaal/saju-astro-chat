@@ -5,6 +5,7 @@
 import * as React from "react";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import styles from "./result.module.css";
+import { logger } from "@/lib/logger";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
 import FunInsights from "@/components/destiny-map/FunInsights";
@@ -346,7 +347,7 @@ export default function DestinyResultPage({
             }));
             setCachedAge("0m");
           } catch (e) {
-            console.warn("[ResultPage] Failed to store chart data:", e);
+            logger.warn("[ResultPage] Failed to store chart data:", e);
           }
         }
 
@@ -357,7 +358,7 @@ export default function DestinyResultPage({
           // Silent fail - not critical
         }
       } catch (err: unknown) {
-        console.error("[ResultPage] analyzeDestiny error:", err);
+        logger.error("[ResultPage] analyzeDestiny error:", err);
         const message = err instanceof Error ? err.message : String(err);
         setError(message);
       } finally {
@@ -406,7 +407,7 @@ export default function DestinyResultPage({
       const yearBranch = sajuResult?.pillars?.year?.earthlyBranch?.name || "子";
       const allStems = [sajuResult?.pillars?.year?.heavenlyStem?.name, sajuResult?.pillars?.month?.heavenlyStem?.name, dayStem, sajuResult?.pillars?.time?.heavenlyStem?.name].filter(Boolean);
       const allBranches = [yearBranch, monthBranch, dayBranch, sajuResult?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
-      const daeunData = sajuResult?.daeun?.cycles || [];
+      const daeunData = (sajuResult as any)?.daeun?.cycles || sajuResult?.daeWoon?.list || [];
       const birthYear = parseInt(birthDate.split("-")[0]);
 
       const response = await fetch("/api/life-prediction", {
@@ -426,7 +427,7 @@ export default function DestinyResultPage({
         throw new Error(apiResult.error || "Unknown error");
       }
     } catch (err) {
-      console.error("[LifePrediction] Error:", err);
+      logger.error("[LifePrediction] Error:", err);
       setLifePredictionError(err instanceof Error ? err.message : String(err));
     } finally {
       setLifePredictionLoading(false);
@@ -630,26 +631,31 @@ export default function DestinyResultPage({
         <Display result={result as Record<string, unknown>} lang={lang} theme={activeTheme} reportType="core" />
 
         {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
-        <FunInsights
-          saju={result?.saju}
-          astro={{
-            ...(result?.astro || result?.astrology || {}),
-            // 🔥 고급 점성학 데이터 병합
-            extraPoints: (result as Record<string, unknown>)?.advancedAstrology?.extraPoints,
-            asteroids: (result as Record<string, unknown>)?.advancedAstrology?.asteroids,
-            solarReturn: (result as Record<string, unknown>)?.advancedAstrology?.solarReturn,
-            lunarReturn: (result as Record<string, unknown>)?.advancedAstrology?.lunarReturn,
-            progressions: (result as Record<string, unknown>)?.advancedAstrology?.progressions,
-            draconic: (result as Record<string, unknown>)?.advancedAstrology?.draconic,
-            harmonics: (result as Record<string, unknown>)?.advancedAstrology?.harmonics,
-            fixedStars: (result as Record<string, unknown>)?.advancedAstrology?.fixedStars,
-            eclipses: (result as Record<string, unknown>)?.advancedAstrology?.eclipses,
-            electional: (result as Record<string, unknown>)?.advancedAstrology?.electional,
-            midpoints: (result as Record<string, unknown>)?.advancedAstrology?.midpoints,
-          }}
-          lang={lang}
-          theme={activeTheme}
-        />
+        {(() => {
+          const advAstro = (result as any)?.advancedAstrology || {};
+          return (
+            <FunInsights
+              saju={result?.saju}
+              astro={{
+                ...(result?.astro || result?.astrology || {}),
+                // 🔥 고급 점성학 데이터 병합
+                extraPoints: advAstro.extraPoints,
+                asteroids: advAstro.asteroids,
+                solarReturn: advAstro.solarReturn,
+                lunarReturn: advAstro.lunarReturn,
+                progressions: advAstro.progressions,
+                draconic: advAstro.draconic,
+                harmonics: advAstro.harmonics,
+                fixedStars: advAstro.fixedStars,
+                eclipses: advAstro.eclipses,
+                electional: advAstro.electional,
+                midpoints: advAstro.midpoints,
+              }}
+              lang={lang}
+              theme={activeTheme}
+            />
+          );
+        })()}
 
 {/* DestinyMatrixStory AI 섹션 제거됨 - FunInsights에서 스토리텔링 형식으로 통합 */}
 

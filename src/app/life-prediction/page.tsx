@@ -17,6 +17,7 @@ import { cardContainerVariants, pageTransitionVariants } from '@/components/life
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
 import styles from './life-prediction.module.css';
+import { logger } from "@/lib/logger";
 
 const AdvisorChat = dynamic(
   () => import('@/components/life-prediction/AdvisorChat').then((mod) => mod.default),
@@ -243,7 +244,7 @@ function LifePredictionContent() {
           setPhase('birth-input');
         }
       } catch (err) {
-        console.error('Failed to load profile:', err);
+        logger.error('Failed to load profile:', err);
         setPhase('birth-input');
       } finally {
         setProfileLoading(false);
@@ -279,7 +280,7 @@ function LifePredictionContent() {
           });
         }
       } catch (err) {
-        console.error('Failed to save birth info:', err);
+        logger.error('Failed to save birth info:', err);
       }
     } else {
       // 비로그인 사용자는 로컬 상태에만 저장
@@ -459,7 +460,7 @@ function LifePredictionContent() {
 
       if (!response.ok || !data.success) {
         // 백엔드 서버 연결 실패 시 폴백 처리
-        console.warn('Backend unavailable or error, using fallback. Error:', data.error);
+        logger.warn('Backend unavailable or error, using fallback. Error:', data.error);
         await handleFallbackPrediction(question, eventType, birthInfo);
         return;
       }
@@ -492,7 +493,7 @@ function LifePredictionContent() {
 
       setPhase('result');
     } catch (err) {
-      console.error('Prediction failed:', err);
+      logger.error('Prediction failed:', err);
       setError(locale === 'ko'
         ? '예측 분석 중 오류가 발생했습니다. 다시 시도해주세요.'
         : 'An error occurred during analysis. Please try again.');
@@ -523,7 +524,7 @@ function LifePredictionContent() {
           setCurrentEventType(analyzedEventType);
         }
       } catch (e) {
-        console.warn('AI question analysis failed:', e);
+        logger.warn('AI question analysis failed:', e);
         analyzedEventType = eventType || 'career';
       }
 
@@ -564,7 +565,7 @@ function LifePredictionContent() {
           };
         }
       } catch (e) {
-        console.warn('Chart calculation failed:', e);
+        logger.warn('Chart calculation failed:', e);
       }
 
       // 사주 데이터 추출
@@ -586,12 +587,12 @@ function LifePredictionContent() {
       }
 
       // precompute-chart 응답 구조에서 사주 정보 추출
-       
-      const pillars = (sajuData as Record<string, unknown>).pillars || {};
-      const yearPillar = pillars.year || {};
-      const monthPillar = pillars.month || {};
-      const dayPillar = pillars.day || {};
-      const timePillar = pillars.time || {};
+
+      const pillars = (sajuData as Record<string, unknown>).pillars as Record<string, any> || {};
+      const yearPillar = pillars.year as Record<string, any> || {};
+      const monthPillar = pillars.month as Record<string, any> || {};
+      const dayPillar = pillars.day as Record<string, any> || {};
+      const timePillar = pillars.time as Record<string, any> || {};
 
       // 천간/지지 이름 추출
       const dayStem = dayPillar.heavenlyStem?.name || dayPillar.stem?.name || '';
@@ -616,7 +617,7 @@ function LifePredictionContent() {
 
       // 필수 데이터 확인
       if (!dayStem || !dayBranch) {
-        console.warn('Missing required saju data:', { dayStem, dayBranch });
+        logger.warn('Missing required saju data:', { dayStem, dayBranch });
         const periods: TimingPeriod[] = [{
           startDate: `${currentYear + 1}-03-01`,
           endDate: `${currentYear + 1}-05-31`,
@@ -681,7 +682,7 @@ function LifePredictionContent() {
             aiExplainedPeriods = explainData.data.periods;
           }
         } catch {
-          console.warn('AI explanation failed, using raw results');
+          logger.warn('AI explanation failed, using raw results');
         }
 
         const periods: TimingPeriod[] = data.data.optimalPeriods.map((p: {
@@ -709,7 +710,7 @@ function LifePredictionContent() {
         throw new Error(data.error || 'Fallback API failed');
       }
     } catch (err) {
-      console.error('Fallback prediction failed:', err);
+      logger.error('Fallback prediction failed:', err);
       setError(locale === 'ko'
         ? '예측 분석 중 오류가 발생했습니다. 다시 시도해주세요.'
         : 'An error occurred during analysis. Please try again.');

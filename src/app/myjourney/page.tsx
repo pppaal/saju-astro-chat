@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./myjourney.module.css";
+import { logger } from "@/lib/logger";
 import { useI18n } from "@/i18n/I18nProvider";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import AuthGate from "@/components/auth/AuthGate";
@@ -185,7 +186,7 @@ function MyJourneyPage() {
           });
         }
       } catch (e) {
-        console.error("Failed to load initial data:", e);
+        logger.error("Failed to load initial data:", e);
       } finally {
         setInitialLoading(false);
       }
@@ -205,7 +206,7 @@ function MyJourneyPage() {
           setRecentHistory((data.history || []).slice(0, 2));
         }
       } catch (e) {
-        console.error("Failed to load history:", e);
+        logger.error("Failed to load history:", e);
       } finally {
         setHistoryLoading(false);
       }
@@ -231,7 +232,7 @@ function MyJourneyPage() {
           setFortune(data.fortune);
         }
       } catch (e) {
-        console.error("Failed to load fortune:", e);
+        logger.error("Failed to load fortune:", e);
       } finally {
         setFortuneLoading(false);
       }

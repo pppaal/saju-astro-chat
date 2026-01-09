@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./destiny-pal.module.css";
+import { logger } from '@/lib/logger';
 import { useI18n } from "@/i18n/I18nProvider";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import AuthGate from "@/components/auth/AuthGate";
@@ -69,7 +70,7 @@ function DestinyPalContent() {
             sessionStorage.setItem("referralCode", refCode);
           }
         })
-        .catch(console.error);
+        .catch((err) => logger.error("Fetch error", err));
     }
   }, [refCode]);
 
@@ -90,7 +91,7 @@ function DestinyPalContent() {
               sessionStorage.removeItem("referralCode");
             }
           })
-          .catch(console.error);
+          .catch((err) => logger.error("Fetch error", err));
       }
 
       // Load user's referral stats
@@ -101,7 +102,7 @@ function DestinyPalContent() {
           setLoading(false);
         })
         .catch((err) => {
-          console.error(err);
+          logger.error("Referral error", err);
           setLoading(false);
         });
     } else if (status === "unauthenticated") {
@@ -115,7 +116,7 @@ function DestinyPalContent() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("Failed to copy:", err);
     }
   };
 
@@ -131,7 +132,7 @@ function DestinyPalContent() {
         });
       } catch (err) {
         // User cancelled or error occurred
-        console.log('Share cancelled or failed:', err);
+        logger.debug('Share cancelled or failed:', err);
       }
     } else {
       // Fallback to copy link

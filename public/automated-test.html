@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>운명 캘린더 30명 자동 테스트</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #0f0f1a;
+      color: #f8fafc;
+    }
+    h1 {
+      text-align: center;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+    .controls {
+      background: rgba(30, 30, 50, 0.9);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      border: 2px solid rgba(139, 92, 246, 0.3);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .stop-btn {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .progress {
+      flex: 1;
+      min-width: 200px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(45, 45, 80, 0.6);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+      transition: width 0.3s;
+    }
+    .progress-text {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: rgba(30, 30, 50, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid rgba(139, 92, 246, 0.2);
+    }
+    .summary-card h3 {
+      font-size: 36px;
+      margin: 0;
+      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .summary-card p {
+      margin: 5px 0 0 0;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .results {
+      background: rgba(30, 30, 50, 0.9);
+      padding: 20px;
+      border-radius: 16px;
+      border: 2px solid rgba(139, 92, 246, 0.3);
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .test-item {
+      padding: 15px;
+      margin-bottom: 10px;
+      background: rgba(45, 45, 80, 0.6);
+      border-radius: 10px;
+      border-left: 4px solid #64748b;
+    }
+    .test-item.success {
+      border-left-color: #22c55e;
+    }
+    .test-item.failed {
+      border-left-color: #ef4444;
+    }
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .test-name {
+      font-weight: 600;
+      color: #fff;
+    }
+    .test-status {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-success {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+    .status-failed {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    .status-testing {
+      background: rgba(139, 92, 246, 0.2);
+      color: #8b5cf6;
+    }
+    .test-details {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .grade-stats {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .grade-badge {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .final-summary {
+      background: linear-gradient(145deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+      padding: 30px;
+      border-radius: 16px;
+      margin-top: 20px;
+      border: 2px solid rgba(139, 92, 246, 0.4);
+      text-align: center;
+    }
+    .final-summary h2 {
+      font-size: 32px;
+      margin: 0 0 20px 0;
+    }
+    .grade-distribution {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .grade-item {
+      text-align: center;
+    }
+    .grade-count {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .grade-label {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔮 운명 캘린더 완벽 테스트</h1>
+  <p class="subtitle">30명 × 과거/현재/미래 3년 = 90개 케이스 자동 검증</p>
+
+  <div class="controls">
+    <button id="startBtn" onclick="startTest()">🚀 테스트 시작</button>
+    <button id="stopBtn" class="stop-btn" onclick="stopTest()" disabled>⏹️ 중지</button>
+    <div class="progress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-text" id="progressText">대기 중...</div>
+    </div>
+  </div>
+
+  <div class="summary" id="summary" style="display: none;">
+    <div class="summary-card">
+      <h3 id="totalTests">0</h3>
+      <p>총 테스트</p>
+    </div>
+    <div class="summary-card">
+      <h3 id="passedTests" style="background: linear-gradient(135deg, #22c55e, #14b8a6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</h3>
+      <p>성공</p>
+    </div>
+    <div class="summary-card">
+      <h3 id="failedTests" style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</h3>
+      <p>실패</p>
+    </div>
+    <div class="summary-card">
+      <h3 id="successRate">0%</h3>
+      <p>성공률</p>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <div class="final-summary" id="finalSummary" style="display: none;"></div>
+
+  <script>
+    const testUsers = [
+      { name: "서울 남성 1990", birthDate: "1990-03-15", birthTime: "08:30", birthPlace: "Seoul, South Korea" },
+      { name: "부산 여성 1985", birthDate: "1985-07-22", birthTime: "14:45", birthPlace: "Busan, South Korea" },
+      { name: "인천 남성 1995", birthDate: "1995-11-08", birthTime: "22:15", birthPlace: "Incheon, South Korea" },
+      { name: "대구 여성 2000", birthDate: "2000-01-01", birthTime: "00:00", birthPlace: "Daegu, South Korea" },
+      { name: "광주 남성 1978", birthDate: "1978-05-30", birthTime: "11:20", birthPlace: "Gwangju, South Korea" },
+      { name: "뉴욕 여성 1992", birthDate: "1992-09-17", birthTime: "16:00", birthPlace: "New York, United States" },
+      { name: "런던 남성 1988", birthDate: "1988-12-25", birthTime: "09:30", birthPlace: "London, United Kingdom" },
+      { name: "도쿄 여성 1997", birthDate: "1997-04-11", birthTime: "18:45", birthPlace: "Tokyo, Japan" },
+      { name: "파리 남성 1983", birthDate: "1983-08-08", birthTime: "13:00", birthPlace: "Paris, France" },
+      { name: "시드니 여성 1999", birthDate: "1999-06-20", birthTime: "07:15", birthPlace: "Sydney, Australia" },
+      { name: "새벽생 남성 1991", birthDate: "1991-10-05", birthTime: "03:30", birthPlace: "Seoul, South Korea" },
+      { name: "밤생 여성 1987", birthDate: "1987-02-14", birthTime: "23:55", birthPlace: "Seoul, South Korea" },
+      { name: "정오생 남성 1993", birthDate: "1993-12-31", birthTime: "12:00", birthPlace: "Seoul, South Korea" },
+      { name: "아침생 여성 1996", birthDate: "1996-07-04", birthTime: "06:00", birthPlace: "Seoul, South Korea" },
+      { name: "저녁생 남성 1989", birthDate: "1989-03-21", birthTime: "20:30", birthPlace: "Seoul, South Korea" },
+      { name: "윤년생 여성 1994", birthDate: "1994-02-29", birthTime: "10:10", birthPlace: "Seoul, South Korea" },
+      { name: "어린이날 남성 1986", birthDate: "1986-05-05", birthTime: "05:05", birthPlace: "Seoul, South Korea" },
+      { name: "크리스마스이브 여성 1998", birthDate: "1998-12-24", birthTime: "15:30", birthPlace: "Seoul, South Korea" },
+      { name: "개천절 남성 1984", birthDate: "1984-10-03", birthTime: "11:00", birthPlace: "Seoul, South Korea" },
+      { name: "삼일절 여성 2001", birthDate: "2001-03-01", birthTime: "14:20", birthPlace: "Seoul, South Korea" },
+      { name: "말띠 남성 1990", birthDate: "1990-01-27", birthTime: "09:00", birthPlace: "Seoul, South Korea" },
+      { name: "양띠 여성 1991", birthDate: "1991-02-15", birthTime: "10:30", birthPlace: "Seoul, South Korea" },
+      { name: "원숭이띠 남성 1992", birthDate: "1992-02-04", birthTime: "11:45", birthPlace: "Seoul, South Korea" },
+      { name: "닭띠 여성 1993", birthDate: "1993-01-23", birthTime: "13:15", birthPlace: "Seoul, South Korea" },
+      { name: "개띠 남성 1994", birthDate: "1994-02-10", birthTime: "14:00", birthPlace: "Seoul, South Korea" },
+      { name: "2003년생 여성", birthDate: "2003-08-18", birthTime: "16:20", birthPlace: "Seoul, South Korea" },
+      { name: "2005년생 남성", birthDate: "2005-11-11", birthTime: "11:11", birthPlace: "Seoul, South Korea" },
+      { name: "2010년생 여성", birthDate: "2010-05-25", birthTime: "17:30", birthPlace: "Seoul, South Korea" },
+      { name: "1970년생 남성", birthDate: "1970-04-15", birthTime: "08:00", birthPlace: "Seoul, South Korea" },
+      { name: "1965년생 여성", birthDate: "1965-09-22", birthTime: "12:30", birthPlace: "Seoul, South Korea" },
+    ];
+
+    const currentYear = new Date().getFullYear();
+    const testYears = [currentYear - 5, currentYear, currentYear + 5]; // 과거, 현재, 미래
+
+    let stopRequested = false;
+    let totalTests = 0;
+    let passedTests = 0;
+    let failedTests = 0;
+    let allGradeStats = { grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0, grade5: 0 };
+
+    async function testCalendar(user, year) {
+      const params = new URLSearchParams({
+        year: String(year),
+        locale: 'ko',
+        birthDate: user.birthDate,
+        birthTime: user.birthTime,
+        birthPlace: user.birthPlace,
+        category: 'all'
+      });
+
+      const response = await fetch(`/api/calendar?${params}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || error.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // 연도별 필터링
+      const yearDates = data.allDates.filter(d => new Date(d.date).getFullYear() === year);
+
+      const stats = {
+        total: yearDates.length,
+        grade0: yearDates.filter(d => d.grade === 0).length,
+        grade1: yearDates.filter(d => d.grade === 1).length,
+        grade2: yearDates.filter(d => d.grade === 2).length,
+        grade3: yearDates.filter(d => d.grade === 3).length,
+        grade4: yearDates.filter(d => d.grade === 4).length,
+        grade5: yearDates.filter(d => d.grade === 5).length,
+      };
+
+      // 샘플 검증
+      const sample = yearDates[0];
+      const hasContent = sample && sample.title && sample.description && sample.description.length > 20;
+      const hasCategories = sample && Array.isArray(sample.categories) && sample.categories.length > 0;
+
+      return { stats, hasContent, hasCategories, sample };
+    }
+
+    async function startTest() {
+      stopRequested = false;
+      totalTests = 0;
+      passedTests = 0;
+      failedTests = 0;
+      allGradeStats = { grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0, grade5: 0 };
+
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('stopBtn').disabled = false;
+      document.getElementById('summary').style.display = 'grid';
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('finalSummary').style.display = 'none';
+
+      const resultsDiv = document.getElementById('results');
+
+      for (let i = 0; i < testUsers.length; i++) {
+        if (stopRequested) break;
+
+        const user = testUsers[i];
+        const userDiv = document.createElement('div');
+        userDiv.className = 'test-item';
+        userDiv.id = `test-${i}`;
+        userDiv.innerHTML = `
+          <div class="test-header">
+            <span class="test-name">${user.name}</span>
+            <span class="test-status status-testing">테스트 중...</span>
+          </div>
+          <div class="test-details">준비 중...</div>
+        `;
+        resultsDiv.appendChild(userDiv);
+        userDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        let userPassed = 0;
+        let userFailed = 0;
+        let userDetails = [];
+
+        for (const year of testYears) {
+          if (stopRequested) break;
+
+          totalTests++;
+          updateProgress();
+
+          try {
+            const result = await testCalendar(user, year);
+            passedTests++;
+            userPassed++;
+
+            // 통계 누적
+            Object.keys(allGradeStats).forEach(grade => {
+              allGradeStats[grade] += result.stats[grade];
+            });
+
+            const gradeStats = `<div class="grade-stats">
+              <span class="grade-badge" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">💫 ${result.stats.grade0}</span>
+              <span class="grade-badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">🌟 ${result.stats.grade1}</span>
+              <span class="grade-badge" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">✨ ${result.stats.grade2}</span>
+              <span class="grade-badge" style="background: rgba(100, 116, 139, 0.15); color: #64748b;">⭐ ${result.stats.grade3}</span>
+              <span class="grade-badge" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">⚠️ ${result.stats.grade4}</span>
+              <span class="grade-badge" style="background: rgba(220, 38, 38, 0.15); color: #dc2626;">☠️ ${result.stats.grade5}</span>
+            </div>`;
+
+            userDetails.push(`✅ ${year}년: 성공 (총 ${result.stats.total}개)${gradeStats}`);
+
+          } catch (error) {
+            failedTests++;
+            userFailed++;
+            userDetails.push(`❌ ${year}년: 실패 (${error.message})`);
+          }
+
+          updateProgress();
+          await new Promise(resolve => setTimeout(resolve, 1500)); // API 부하 방지
+        }
+
+        // 결과 업데이트
+        userDiv.className = `test-item ${userFailed === 0 ? 'success' : 'failed'}`;
+        userDiv.innerHTML = `
+          <div class="test-header">
+            <span class="test-name">${user.name}</span>
+            <span class="test-status ${userFailed === 0 ? 'status-success' : 'status-failed'}">
+              ${userPassed}/${userPassed + userFailed} 성공
+            </span>
+          </div>
+          <div class="test-details">${userDetails.join('<br>')}</div>
+        `;
+      }
+
+      showFinalSummary();
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('stopBtn').disabled = true;
+    }
+
+    function stopTest() {
+      stopRequested = true;
+      document.getElementById('stopBtn').disabled = true;
+      document.getElementById('progressText').textContent = '중지됨';
+    }
+
+    function updateProgress() {
+      const progress = (totalTests / (testUsers.length * testYears.length) * 100).toFixed(1);
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressText').textContent = `${totalTests} / ${testUsers.length * testYears.length} 완료 (${progress}%)`;
+
+      document.getElementById('totalTests').textContent = totalTests;
+      document.getElementById('passedTests').textContent = passedTests;
+      document.getElementById('failedTests').textContent = failedTests;
+      document.getElementById('successRate').textContent = totalTests > 0
+        ? (passedTests / totalTests * 100).toFixed(1) + '%'
+        : '0%';
+    }
+
+    function showFinalSummary() {
+      const successRate = (passedTests / totalTests * 100).toFixed(1);
+      const totalDates = Object.values(allGradeStats).reduce((a, b) => a + b, 0);
+
+      let html = `
+        <h2>🎉 테스트 완료!</h2>
+        <p style="font-size: 48px; margin: 20px 0; font-weight: 700;">성공률: ${successRate}%</p>
+        <p style="font-size: 18px; color: #94a3b8; margin-bottom: 30px;">
+          총 ${totalTests}개 테스트 중 ${passedTests}개 성공, ${failedTests}개 실패
+        </p>
+        <h3 style="margin-bottom: 15px;">📊 전체 등급 분포 (총 ${totalDates.toLocaleString()}개 날짜)</h3>
+        <div class="grade-distribution">
+          <div class="grade-item">
+            <div class="grade-count" style="color: #fbbf24;">💫 ${allGradeStats.grade0}</div>
+            <div class="grade-label">천운 (${(allGradeStats.grade0 / totalDates * 100).toFixed(1)}%)</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-count" style="color: #3b82f6;">🌟 ${allGradeStats.grade1}</div>
+            <div class="grade-label">최고 (${(allGradeStats.grade1 / totalDates * 100).toFixed(1)}%)</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-count" style="color: #22c55e;">✨ ${allGradeStats.grade2}</div>
+            <div class="grade-label">좋음 (${(allGradeStats.grade2 / totalDates * 100).toFixed(1)}%)</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-count" style="color: #64748b;">⭐ ${allGradeStats.grade3}</div>
+            <div class="grade-label">보통 (${(allGradeStats.grade3 / totalDates * 100).toFixed(1)}%)</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-count" style="color: #f97316;">⚠️ ${allGradeStats.grade4}</div>
+            <div class="grade-label">나쁨 (${(allGradeStats.grade4 / totalDates * 100).toFixed(1)}%)</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-count" style="color: #dc2626;">☠️ ${allGradeStats.grade5}</div>
+            <div class="grade-label">최악 (${(allGradeStats.grade5 / totalDates * 100).toFixed(1)}%)</div>
+          </div>
+        </div>
+      `;
+
+      if (successRate === '100.0') {
+        html += '<p style="font-size: 20px; margin-top: 30px; color: #22c55e;">🌟 모든 테스트 통과! 운명 캘린더가 완벽하게 작동합니다!</p>';
+      }
+
+      document.getElementById('finalSummary').innerHTML = html;
+      document.getElementById('finalSummary').style.display = 'block';
+      document.getElementById('finalSummary').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

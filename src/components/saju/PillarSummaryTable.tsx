@@ -53,9 +53,15 @@ export default function PillarSummaryTable({
       // For jijanggan object structure
       if (obj.chogi || obj.junggi || obj.jeonggi) {
         const parts: string[] = [];
-        if (obj.chogi && typeof (obj.chogi)?.name === 'string') parts.push((obj.chogi).name);
-        if (obj.junggi && typeof (obj.junggi)?.name === 'string') parts.push((obj.junggi).name);
-        if (obj.jeonggi && typeof (obj.jeonggi)?.name === 'string') parts.push((obj.jeonggi).name);
+        if (obj.chogi && typeof (obj.chogi as Record<string, unknown>)?.name === 'string') {
+          parts.push((obj.chogi as Record<string, unknown>).name as string);
+        }
+        if (obj.junggi && typeof (obj.junggi as Record<string, unknown>)?.name === 'string') {
+          parts.push((obj.junggi as Record<string, unknown>).name as string);
+        }
+        if (obj.jeonggi && typeof (obj.jeonggi as Record<string, unknown>)?.name === 'string') {
+          parts.push((obj.jeonggi as Record<string, unknown>).name as string);
+        }
         return parts.join(' ');
       }
       // Fallback: try to stringify or return empty

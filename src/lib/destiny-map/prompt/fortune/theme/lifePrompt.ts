@@ -6,33 +6,42 @@ import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 // 빠른 분석용 최소 데이터 (토큰 절약)
 function buildQuickData(data: CombinedResult): string {
   const { astrology = {}, saju } = data ?? {};
-  const { planets = [], ascendant } = astrology;
-  const { pillars, dayMaster, unse } = saju ?? {};
+  const { planets = [], ascendant } = astrology as { planets?: unknown[]; ascendant?: unknown };
+  const { pillars, dayMaster, unse } = saju ?? {} as { pillars?: unknown; dayMaster?: unknown; unse?: unknown };
 
-  const sun = planets.find((p: unknown) => p.name === "Sun");
-  const moon = planets.find((p: unknown) => p.name === "Moon");
+  const sun = planets.find((p: unknown) => (p as { name?: string }).name === "Sun");
+  const moon = planets.find((p: unknown) => (p as { name?: string }).name === "Moon");
 
   const formatPillar = (p: unknown) => {
     if (!p) return "-";
-    const stem = p.heavenlyStem?.name || "";
-    const branch = p.earthlyBranch?.name || "";
+    const pillar = p as { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } };
+    const stem = pillar.heavenlyStem?.name || "";
+    const branch = pillar.earthlyBranch?.name || "";
     return stem && branch ? `${stem}${branch}` : "-";
   };
 
   // 대운 정보 추출 (배열 또는 객체 형태 모두 처리)
-  const currentDaeun = Array.isArray(unse?.daeun)
-    ? unse.daeun.find((d: any) => d.isCurrent)?.ganji
-    : (unse?.daeun as any)?.current?.ganji;
+  interface DaeunEntry { isCurrent?: boolean; ganji?: string }
+  const unseObj = unse as { daeun?: DaeunEntry[] | { current?: { ganji?: string } }; annual?: Array<{ ganji?: string }> } | undefined;
+  const currentDaeun = Array.isArray(unseObj?.daeun)
+    ? (unseObj.daeun as DaeunEntry[]).find((d) => d.isCurrent)?.ganji
+    : (unseObj?.daeun as { current?: { ganji?: string } })?.current?.ganji;
+
+  const dayMasterObj = dayMaster as { name?: string; element?: string } | undefined;
+  const pillarsObj = pillars as { year?: unknown; month?: unknown; day?: unknown; time?: unknown } | undefined;
+  const sunObj = sun as { sign?: string; house?: number } | undefined;
+  const moonObj = moon as { sign?: string; house?: number } | undefined;
+  const ascendantObj = ascendant as { sign?: string } | undefined;
 
   return [
     "=== CORE DATA (요약) ===",
-    `Day Master: ${dayMaster?.name || "-"} (${dayMaster?.element || "-"})`,
-    `Four Pillars: ${formatPillar(pillars?.year)} / ${formatPillar(pillars?.month)} / ${formatPillar(pillars?.day)} / ${formatPillar(pillars?.time)}`,
+    `Day Master: ${dayMasterObj?.name || "-"} (${dayMasterObj?.element || "-"})`,
+    `Four Pillars: ${formatPillar(pillarsObj?.year)} / ${formatPillar(pillarsObj?.month)} / ${formatPillar(pillarsObj?.day)} / ${formatPillar(pillarsObj?.time)}`,
     `현재 장기 흐름: ${currentDaeun || "-"}`,
-    `올해 연간 흐름: ${(unse)?.annual?.[0]?.ganji || "-"}`,
-    `Sun: ${sun?.sign || "-"} House${sun?.house || "?"}`,
-    `Moon: ${moon?.sign || "-"} House${moon?.house || "?"}`,
-    `Asc: ${ascendant?.sign || "-"}`,
+    `올해 연간 흐름: ${unseObj?.annual?.[0]?.ganji || "-"}`,
+    `Sun: ${sunObj?.sign || "-"} House${sunObj?.house || "?"}`,
+    `Moon: ${moonObj?.sign || "-"} House${moonObj?.house || "?"}`,
+    `Asc: ${ascendantObj?.sign || "-"}`,
   ].join("\n");
 }
 

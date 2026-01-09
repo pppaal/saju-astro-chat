@@ -92,9 +92,9 @@ export async function generateReport({
       hasRaw: !!cached.raw,
       rawKeys: cached.raw ? Object.keys(cached.raw) : [],
       hasSaju: !!cached.raw?.saju,
-      sajuKeys: cached.raw?.saju ? Object.keys(cached.raw.saju) : [],
-      dayMaster: cached.raw?.saju?.dayMaster,
-      daeunCount: cached.raw?.saju?.unse?.daeun?.length || 0,
+      sajuKeys: cached.raw?.saju ? Object.keys(cached.raw.saju as Record<string, unknown>) : [],
+      dayMaster: (cached.raw?.saju as { dayMaster?: unknown } | undefined)?.dayMaster,
+      daeunCount: (cached.raw?.saju as { unse?: { daeun?: unknown[] } } | undefined)?.unse?.daeun?.length || 0,
     });
     return cached;
   }

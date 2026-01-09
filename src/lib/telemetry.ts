@@ -42,4 +42,63 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
   };
 
   console.error("Server error:", payload);
+
+  // Send to Sentry for real-time alerts
+  if (typeof window === 'undefined') {
+    // Server-side
+    import('@sentry/nextjs').then(Sentry => {
+      if (error instanceof Error) {
+        Sentry.captureException(error, { extra: scrubObject(context) as Record<string, unknown> });
+      } else {
+        Sentry.captureMessage(String(error), { extra: scrubObject(context) as Record<string, unknown>, level: 'error' });
+      }
+    }).catch(() => {});
+  }
+}
+
+/**
+ * Capture an exception with Sentry
+ * Used for catching errors and sending them to Sentry for monitoring
+ */
+export function captureException(error: unknown, context?: Record<string, unknown>) {
+  const scrubbedContext = context ? scrubObject(context) as Record<string, unknown> : undefined;
+
+  console.error("Exception captured:", {
+    message: error instanceof Error ? error.message : String(error),
+    ...(scrubbedContext || {})
+  });
+
+  // Send to Sentry
+  if (typeof window !== 'undefined') {
+    // Client-side
+    import('@sentry/nextjs').then(Sentry => {
+      if (error instanceof Error) {
+        Sentry.captureException(error, { extra: scrubbedContext });
+      } else {
+        Sentry.captureMessage(String(error), { extra: scrubbedContext, level: 'error' });
+      }
+    }).catch(() => {});
+  } else {
+    // Server-side
+    import('@sentry/nextjs').then(Sentry => {
+      if (error instanceof Error) {
+        Sentry.captureException(error, { extra: scrubbedContext });
+      } else {
+        Sentry.captureMessage(String(error), { extra: scrubbedContext, level: 'error' });
+      }
+    }).catch(() => {});
+  }
+}
+
+/**
+ * Track a custom metric
+ */
+export function trackMetric(name: string, value: number, tags?: Record<string, string>) {
+  // Log locally
+  console.log(`[Metric] ${name}: ${value}`, tags || '');
+
+  // Send to Sentry as a custom metric (requires Sentry performance monitoring)
+  import('@sentry/nextjs').then(Sentry => {
+    Sentry.setMeasurement(name, value, 'none');
+  }).catch(() => {});
 }

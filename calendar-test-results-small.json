@@ -1,0 +1,299 @@
+{
+  "totalTests": 25,
+  "passedTests": 0,
+  "failedTests": 25,
+  "byUser": {
+    "서울 남성 1990": {
+      "totalYears": 5,
+      "passedYears": 0,
+      "failedYears": 5,
+      "yearResults": {
+        "2023": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2024": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2025": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2026": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2027": {
+          "success": false,
+          "error": "Unauthorized"
+        }
+      }
+    },
+    "부산 여성 1985": {
+      "totalYears": 5,
+      "passedYears": 0,
+      "failedYears": 5,
+      "yearResults": {
+        "2023": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2024": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2025": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2026": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2027": {
+          "success": false,
+          "error": "Unauthorized"
+        }
+      }
+    },
+    "도쿄 여성 2000": {
+      "totalYears": 5,
+      "passedYears": 0,
+      "failedYears": 5,
+      "yearResults": {
+        "2023": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2024": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2025": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2026": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2027": {
+          "success": false,
+          "error": "Unauthorized"
+        }
+      }
+    },
+    "윤년생 여성 1994": {
+      "totalYears": 5,
+      "passedYears": 0,
+      "failedYears": 5,
+      "yearResults": {
+        "2023": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2024": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2025": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2026": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2027": {
+          "success": false,
+          "error": "Unauthorized"
+        }
+      }
+    },
+    "1970년생 남성": {
+      "totalYears": 5,
+      "passedYears": 0,
+      "failedYears": 5,
+      "yearResults": {
+        "2023": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2024": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2025": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2026": {
+          "success": false,
+          "error": "Unauthorized"
+        },
+        "2027": {
+          "success": false,
+          "error": "Unauthorized"
+        }
+      }
+    }
+  },
+  "byYear": {
+    "2023": {
+      "passed": 0,
+      "failed": 5
+    },
+    "2024": {
+      "passed": 0,
+      "failed": 5
+    },
+    "2025": {
+      "passed": 0,
+      "failed": 5
+    },
+    "2026": {
+      "passed": 0,
+      "failed": 5
+    },
+    "2027": {
+      "passed": 0,
+      "failed": 5
+    }
+  },
+  "criticalIssues": [
+    {
+      "user": "서울 남성 1990",
+      "year": 2023,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "서울 남성 1990",
+      "year": 2024,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "서울 남성 1990",
+      "year": 2025,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "서울 남성 1990",
+      "year": 2026,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "서울 남성 1990",
+      "year": 2027,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "부산 여성 1985",
+      "year": 2023,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "부산 여성 1985",
+      "year": 2024,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "부산 여성 1985",
+      "year": 2025,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "부산 여성 1985",
+      "year": 2026,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "부산 여성 1985",
+      "year": 2027,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "도쿄 여성 2000",
+      "year": 2023,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "도쿄 여성 2000",
+      "year": 2024,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "도쿄 여성 2000",
+      "year": 2025,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "도쿄 여성 2000",
+      "year": 2026,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "도쿄 여성 2000",
+      "year": 2027,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "윤년생 여성 1994",
+      "year": 2023,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "윤년생 여성 1994",
+      "year": 2024,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "윤년생 여성 1994",
+      "year": 2025,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "윤년생 여성 1994",
+      "year": 2026,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "윤년생 여성 1994",
+      "year": 2027,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "1970년생 남성",
+      "year": 2023,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "1970년생 남성",
+      "year": 2024,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "1970년생 남성",
+      "year": 2025,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "1970년생 남성",
+      "year": 2026,
+      "error": "Unauthorized"
+    },
+    {
+      "user": "1970년생 남성",
+      "year": 2027,
+      "error": "Unauthorized"
+    }
+  ],
+  "gradeDistribution": {
+    "grade0": 0,
+    "grade1": 0,
+    "grade2": 0,
+    "grade3": 0,
+    "grade4": 0,
+    "grade5": 0
+  }
+}

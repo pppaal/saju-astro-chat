@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// This component handles flexible data from multiple API sources with varying shapes
 "use client";
 
 import { useMemo, useState } from "react";
@@ -12,6 +14,7 @@ import {
   KarmaTab,
   type TabId
 } from "./fun-insights/tabs";
+import type { TabData } from "./fun-insights/types";
 import {
   extractSajuProfile,
   extractAstroProfile,
@@ -77,9 +80,40 @@ import {
   getCombinedLifeTheme
 } from "./fun-insights/generators";
 
+// Saju data type definition
+interface SajuData {
+  dayMaster?: {
+    name?: string;
+    heavenlyStem?: string;
+    element?: string;
+  };
+  pillars?: {
+    year?: { heavenlyStem?: string; earthlyBranch?: string };
+    month?: { heavenlyStem?: string; earthlyBranch?: string };
+    day?: { heavenlyStem?: string; earthlyBranch?: string };
+    time?: { heavenlyStem?: string; earthlyBranch?: string };
+  };
+  fiveElements?: Record<string, number>;
+  sinsal?: {
+    luckyList?: Array<{ name: string }>;
+    unluckyList?: Array<{ name: string }>;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+// Astro data type definition
+interface AstroData {
+  planets?: Array<{ name?: string; sign?: string; house?: number; longitude?: number }>;
+  houses?: Array<{ index?: number; cusp?: number; sign?: string }>;
+  aspects?: Array<{ from?: string; to?: string; type?: string; orb?: number }>;
+  ascendant?: { sign?: string };
+  [key: string]: unknown;
+}
+
 interface Props {
-  saju?: unknown;
-  astro?: unknown;
+  saju?: SajuData;
+  astro?: AstroData;
   lang?: string;
   theme?: string;
   className?: string;
@@ -87,18 +121,20 @@ interface Props {
 
 function generateReport(saju: unknown, astro: unknown, lang: string, _theme: string): string {
   const isKo = lang === "ko";
+  const sajuData = saju as Record<string, any> | undefined;
+  const astroData = astro as AstroData | undefined;
 
-  const rawDayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem;
+  const rawDayMasterName = sajuData?.dayMaster?.name || sajuData?.dayMaster?.heavenlyStem;
   const dayMasterName = rawDayMasterName ? (tianGanMap[rawDayMasterName] || rawDayMasterName) : null;
   const dayMasterInfo = dayMasterName ? dayMasterData[dayMasterName] : null;
   const dayElement = dayMasterInfo?.element;
 
-  const sunSign = findPlanetSign(astro, "sun");
-  const moonSign = findPlanetSign(astro, "moon");
+  const sunSign = findPlanetSign(astroData, "sun");
+  const moonSign = findPlanetSign(astroData, "moon");
   const sunData = sunSign ? zodiacData[sunSign] : null;
   const moonData = moonSign ? zodiacData[moonSign] : null;
 
-  const fiveElements = saju?.fiveElements || {};
+  const fiveElements = sajuData?.fiveElements || {};
   const sorted = Object.entries(fiveElements).sort(([,a], [,b]) => (b as number) - (a as number));
   const strongest = sorted[0];
   const weakest = sorted[sorted.length - 1];
@@ -267,7 +303,7 @@ export default function FunInsights({ saju, astro, lang = "ko", theme = "", clas
     chironInsight: data.chironInsight,
     luckyItems: data.luckyItems,
     normalizedElements, // 오행 균형 차트용
-  };
+  } as unknown as TabData;
 
   const sunData = data.sunSign ? zodiacData[data.sunSign] : null;
   const moonData = data.moonSign ? zodiacData[data.moonSign] : null;

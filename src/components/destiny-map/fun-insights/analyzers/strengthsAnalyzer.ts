@@ -52,7 +52,7 @@ export function getStrengthsAndWeaknesses(saju: SajuData | undefined, astro: Ast
   const aspects = astro?.aspects;
   if (Array.isArray(aspects)) {
     const trineOrSextile = aspects.filter((a: AspectData) =>
-      (a.type === 'Trine' || a.type === 'Sextile') && a.orb < 3
+      (a.type === 'Trine' || a.type === 'Sextile') && (a.orb ?? 10) < 3
     );
     if (trineOrSextile.length > 0) {
       const aspectCount = trineOrSextile.length;
@@ -68,7 +68,7 @@ export function getStrengthsAndWeaknesses(saju: SajuData | undefined, astro: Ast
   // 점성술 약점 - 어려운 aspect 찾기
   if (Array.isArray(aspects)) {
     const squareOrOpposition = aspects.filter((a: AspectData) =>
-      (a.type === 'Square' || a.type === 'Opposition') && a.orb < 3
+      (a.type === 'Square' || a.type === 'Opposition') && (a.orb ?? 10) < 3
     );
     if (squareOrOpposition.length >= 3) {
       weaknesses.push({

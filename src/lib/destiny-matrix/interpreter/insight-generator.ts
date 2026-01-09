@@ -238,7 +238,7 @@ export class InsightGenerator {
       weightedScore,
       sources: [{
         layer: layerNum,
-        layerName: getLayerDisplayName(layerKey as string, 'ko'),
+        layerName: getLayerDisplayName(layerKey as keyof LayerWeights, 'ko'),
         sajuFactor: sajuBasis || '',
         astroFactor: astroBasis || '',
         interaction,

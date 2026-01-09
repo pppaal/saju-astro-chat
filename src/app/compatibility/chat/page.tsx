@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './Chat.module.css';
+import { logger } from '@/lib/logger';
 
 // Loading fallback for Suspense
 function ChatLoading() {
@@ -59,7 +60,7 @@ function CompatibilityChatContent() {
         setCompatibilityResult(decodeURIComponent(resultParam));
       }
     } catch (e) {
-      console.error('Failed to parse URL params:', e);
+      logger.error('Failed to parse URL params:', { error: e instanceof Error ? e.message : String(e) });
     }
   }, [searchParams]);
 
@@ -132,7 +133,7 @@ function CompatibilityChatContent() {
         }
       }
     } catch (e) {
-      console.error('Chat error:', e);
+      logger.error('Chat error:', { error: e instanceof Error ? e.message : String(e) });
       setError(t('compatibilityPage.chat.error', '오류가 발생했습니다. 다시 시도해 주세요.'));
     } finally {
       setIsLoading(false);

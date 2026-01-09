@@ -249,86 +249,100 @@ export const TRANSIT_MOON_SCORES = {
 } as const;
 
 /**
- * 주요 행성 트랜짓 점수 (최대 15점) - 천운/나쁜날 구분 강화
+ * 주요 행성 트랜짓 점수 (최대 15점) - 역행 강화
+ *
+ * v7 변경: 역행 페널티 강화 (특히 수성)
+ * 이유: 전통 점성학에서 역행은 중요한 요소
  */
 export const MAJOR_PLANETS_SCORES = {
   weights: {
     mercury: 0.20,
     venus: 0.25,
     mars: 0.20,
-    jupiter: 0.40,   // 행운/확장 (가장 중요 - 대폭 상향)
+    jupiter: 0.40,   // 행운/확장 (가장 중요)
     saturn: 0.25,
   },
   aspects: {
-    conjunction: 0.50,  // 합 (대폭 상향)
-    trine: 0.45,        // 삼분 (대폭 상향)
-    sextile: 0.30,      // 육분 (상향)
-    square: -0.35,      // 사분 (상향)
-    opposition: -0.25,  // 충 (상향)
+    conjunction: 0.45,  // 합 (0.50 → 0.45)
+    trine: 0.40,        // 삼분 (0.45 → 0.40)
+    sextile: 0.25,      // 육분 (0.30 → 0.25)
+    square: -0.30,      // 사분 (-0.35 → -0.30)
+    opposition: -0.22,  // 충 (-0.25 → -0.22)
   },
   retrograde: {
-    mercury: -0.20,    // 수성 역행 (상향)
-    venus: -0.15,
-    mars: -0.12,
-    jupiter: -0.08,
-    saturn: -0.08,
+    mercury: -0.28,    // 수성 역행 강화 (-0.20 → -0.28)
+    venus: -0.18,      // 금성 역행 강화 (-0.15 → -0.18)
+    mars: -0.15,       // 화성 역행 강화 (-0.12 → -0.15)
+    jupiter: -0.10,    // 목성 역행 강화 (-0.08 → -0.10)
+    saturn: -0.10,     // 토성 역행 강화 (-0.08 → -0.10)
   },
-  maxRaw: 0.8,  // 상향
+  maxRaw: 0.7,  // 0.8 → 0.7 조정
 } as const;
 
 /**
- * 달 위상 점수 (최대 8점) - 보름달/신월 강화
+ * 달 위상 점수 (최대 8점) - 균형 조정
+ *
+ * v7 변경: 보름달/신월 가중치 하향 (0.45/0.35 → 0.28/0.22)
+ * 이유: 달 위상이 8점 중 3~4점을 차지하는 과도한 영향 완화
  */
 export const LUNAR_PHASE_SCORES = {
-  newMoon: 0.35,         // 신월: 새로운 시작 (대폭 상향)
-  waxingCrescent: 0.18,  // 초승달: 성장 시작
-  firstQuarter: -0.08,   // 상현달: 긴장/도전
-  waxingGibbous: 0.25,   // 상현망: 성숙
-  fullMoon: 0.45,        // 보름달: 완성/성취 (대폭 상향)
-  waningGibbous: 0.15,   // 하현망: 수확
-  lastQuarter: -0.12,    // 하현달: 반성/장애
-  waningCrescent: -0.05, // 그믐달: 휴식/피로
-  maxRaw: 0.45,
+  newMoon: 0.22,         // 신월: 새로운 시작 (0.35 → 0.22 하향)
+  waxingCrescent: 0.15,  // 초승달: 성장 시작
+  firstQuarter: -0.06,   // 상현달: 긴장/도전
+  waxingGibbous: 0.18,   // 상현망: 성숙
+  fullMoon: 0.28,        // 보름달: 완성/성취 (0.45 → 0.28 하향)
+  waningGibbous: 0.12,   // 하현망: 수확
+  lastQuarter: -0.08,    // 하현달: 반성/장애
+  waningCrescent: -0.04, // 그믐달: 휴식/피로
+  maxRaw: 0.35,          // 0.45 → 0.35 하향
 } as const;
 
 /**
- * Solar Return / Progressions 점수 (최대 7점) - 생일 보너스 강화
+ * Solar Return / Progressions 점수 (최대 7점) - 생일 보너스 합리화
+ *
+ * v7 변경: 생일 당일 0.50 → 0.35 하향
+ * 이유: 생일만으로 7점 중 5점 이상 획득은 과도함
  */
 export const SOLAR_RETURN_SCORES = {
-  exactBirthday: 0.50,    // 생일 당일 (대폭 상향)
-  nearBirthday1: 0.35,    // ±1일
-  nearBirthday3: 0.20,    // ±3일
-  nearBirthday7: 0.10,    // ±7일
-  progressionSupport: 0.15,
-  progressionChallenge: -0.08,
-  maxRaw: 0.50,
+  exactBirthday: 0.35,    // 생일 당일 (0.50 → 0.35 하향)
+  nearBirthday1: 0.25,    // ±1일 (0.35 → 0.25)
+  nearBirthday3: 0.15,    // ±3일
+  nearBirthday7: 0.08,    // ±7일
+  progressionSupport: 0.12,
+  progressionChallenge: -0.06,
+  maxRaw: 0.40,           // 0.50 → 0.40 하향
 } as const;
 
 // ============================================================
-// 교차검증 보너스/페널티 (천운 달성 지원)
+// 교차검증 보너스/페널티 (v7 - 회색지대 처리 개선)
 // ============================================================
 
 export const CROSS_VERIFICATION_SCORES = {
-  bothPositive: 5,        // 사주+점성 모두 긍정 (복원)
-  bothNegative: -4,       // 사주+점성 모두 부정 (강화)
-  mixed: 0,
-  elementAlign: 2,        // 일진 오행과 트랜짓 태양 오행 일치 (복원)
+  bothPositive: 5,        // 사주+점성 모두 긍정 (25점 초과)
+  bothNegative: -4,       // 사주+점성 모두 부정 (20점 미만)
+  mixed: 0,               // 혼합 상태 (20~25점 사이)
+  elementAlign: 2,        // 일진 오행과 트랜짓 태양 오행 일치
+  // v7 추가: 교차검증 기준값 명확화
+  positiveThreshold: 25,  // 긍정 기준: 50점 중 25점 초과
+  negativeThreshold: 20,  // 부정 기준: 50점 중 20점 미만
+  neutralMin: 20,         // 중립 구간 시작
+  neutralMax: 25,         // 중립 구간 끝
 } as const;
 
 // ============================================================
-// 등급 임계값 (6등급 시스템 v7)
-// 실제 점수 범위: 약 25~81, 평균 54
+// 등급 임계값 (5등급 시스템 - 목표 분포 최적화)
 // 목표 분포:
-//   천운 ~3%, 아주좋음 ~12%, 좋음 ~25%, 보통 ~35%, 나쁨 ~17%, 아주나쁨 ~5%
+//   최고 ~5%, 좋음 ~15%, 보통 ~50%, 안좋음 ~25%, 최악 ~5%
+//
+// grading.ts와 일관성 유지
 // ============================================================
 
 export const GRADE_THRESHOLDS = {
-  grade0: 74,  // 천운: 74점 이상 (~3%) - 76→74 하향으로 천운 증가
-  grade1: 66,  // 아주좋음: 66~73점 (~12%) - 68→66 하향
-  grade2: 56,  // 좋음: 56~65점 (~25%) - 54→56 상향으로 좋음 감소
-  grade3: 45,  // 보통: 45~55점 (~35%)
-  grade4: 35,  // 나쁨: 35~44점 (~17%)
-  // grade5: 35 미만 (아주나쁨) (~5%)
+  grade0: 72,  // 최고: 72점 이상 AND 충/형 없음 (~5%)
+  grade1: 65,  // 좋음: 65~71점 (~15%)
+  grade2: 45,  // 보통: 45~64점 (~50%)
+  grade3: 30,  // 안좋음: 30~44점 (~25%)
+  // grade4: 30 미만 (최악) (~5%)
 } as const;
 
 // ============================================================
@@ -363,24 +377,28 @@ export function sumAndNormalize(
 }
 
 /**
- * 직접 점수 계산 방식 (v6 - 6등급 분포 최적화)
+ * 직접 점수 계산 방식 (v7 - 균형 잡힌 분포)
  *
- * 핵심 변경:
- * - 기본값 40%에서 시작 (낮춰서 나쁜날/아주나쁜날 비율 높임)
- * - 보정값을 3.2배로 증폭하여 변동폭 더 확대
- * - 목표 분포: 천운 ~3%, 아주좋음 ~12%, 좋음 ~28%, 보통 ~32%, 나쁨 ~17%, 아주나쁨 ~5%
+ * 핵심 변경 (v6 → v7):
+ * - 기본값 40% → 45%로 상향 (중앙값에 가깝게)
+ * - 증폭값 3.2배 → 2.2배로 하향 (과도한 변동성 완화)
+ * - 목표 분포: 천운 ~3%, 아주좋음 ~12%, 좋음 ~25%, 보통 ~35%, 나쁨 ~17%, 아주나쁨 ~5%
+ *
+ * 변경 이유:
+ * - 3.2배 증폭은 작은 요소 변화(±0.05)가 최종 점수에 ±0.8점 영향을 줘서 과도함
+ * - 2.2배로 완화하여 점수 변동성을 합리적 수준으로 조정
  */
 export function calculateAdjustedScore(
   categoryMax: number,
   adjustments: number[],
   _maxAdjustment: number = 0.5  // 하위 호환성 유지
 ): number {
-  // 기본값: 카테고리 최대의 40% (낮춰서 나쁜날 비율 높임)
-  const baseScore = categoryMax * 0.40;
+  // 기본값: 카테고리 최대의 45% (중앙값에 가깝게 조정)
+  const baseScore = categoryMax * 0.45;
   const totalAdj = adjustments.reduce((a, b) => a + b, 0);
 
-  // 보정값 증폭: 3.2배로 적용하여 변동폭 더 확대
-  const amplifiedAdj = totalAdj * 3.2;
+  // 보정값 증폭: 2.2배로 적용 (3.2 → 2.2로 하향, 변동성 완화)
+  const amplifiedAdj = totalAdj * 2.2;
   const adjScore = amplifiedAdj * categoryMax;
 
   return Math.round(Math.max(0, Math.min(categoryMax, baseScore + adjScore)) * 10) / 10;

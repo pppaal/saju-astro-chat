@@ -200,6 +200,7 @@ export async function canUseCredits(
 }
 
 // 보너스 크레딧 소비 (FIFO - 먼저 구매한 것부터 사용)
+// Optimized to use batch updates instead of N+1 queries
 async function consumeBonusCreditsFromPurchases(userId: string, amount: number): Promise<number> {
   if (amount <= 0) return 0;
 
@@ -222,18 +223,29 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
   let remainingToConsume = amount;
   let totalConsumed = 0;
 
+  // Collect updates to batch process
+  const updates: Array<{ id: string; decrement: number }> = [];
+
   for (const purchase of validPurchases) {
     if (remainingToConsume <= 0) break;
 
     const toConsume = Math.min(purchase.remaining, remainingToConsume);
-
-    await prisma.bonusCreditPurchase.update({
-      where: { id: purchase.id },
-      data: { remaining: { decrement: toConsume } },
-    });
+    updates.push({ id: purchase.id, decrement: toConsume });
 
     totalConsumed += toConsume;
     remainingToConsume -= toConsume;
+  }
+
+  // Batch update using transaction (avoids N+1 queries)
+  if (updates.length > 0) {
+    await prisma.$transaction(
+      updates.map(({ id, decrement }) =>
+        prisma.bonusCreditPurchase.update({
+          where: { id },
+          data: { remaining: { decrement } },
+        })
+      )
+    );
   }
 
   return totalConsumed;

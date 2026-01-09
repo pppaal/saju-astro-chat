@@ -363,7 +363,7 @@ export default function SajuResultDisplay({ result }: Props) {
 
         {/* 표: 외부 컴포넌트 + 어댑터 정규화 */}
         <PillarSummaryTable
-          data={buildPillarView(result.table?.byPillar)}
+          data={buildPillarView(result.table?.byPillar as any)}
         />
 
         <p style={{ textAlign: 'center', marginTop: 18, fontSize: '1rem', color: '#a0a0a0' }}>
@@ -1002,8 +1002,8 @@ const UnsePillar = ({
   topText, topSubText, cheon, ji, bottomSubText, onClick, isSelected,
 }: { topText: string; topSubText: string | object; cheon: string | object; ji: string | object; bottomSubText: string | object; onClick?: () => void; isSelected?: boolean }) => {
   // 안전하게 문자열 추출
-  const cheonStr = typeof cheon === 'string' ? cheon : ((cheon)?.name ?? '');
-  const jiStr = typeof ji === 'string' ? ji : ((ji)?.name ?? '');
+  const cheonStr = typeof cheon === 'string' ? cheon : ((cheon as any)?.name ?? '');
+  const jiStr = typeof ji === 'string' ? ji : ((ji as any)?.name ?? '');
   const topSubStr = typeof topSubText === 'string' ? topSubText : String(topSubText ?? '');
   const bottomSubStr = typeof bottomSubText === 'string' ? bottomSubText : String(bottomSubText ?? '');
 
@@ -1077,8 +1077,8 @@ function IljinCalendar({ iljinData, year, month }: { iljinData: IljinData[]; yea
     const ty=cellKst.getUTCFullYear(); const tm=cellKst.getUTCMonth()+1; const td=cellKst.getUTCDate();
     const iljin = iljinMap.get(keyOf(ty,tm,td));
     // 안전하게 문자열 추출
-    const stemStr = iljin ? (typeof iljin.heavenlyStem === 'string' ? iljin.heavenlyStem : ((iljin.heavenlyStem)?.name ?? '')) : '';
-    const branchStr = iljin ? (typeof iljin.earthlyBranch === 'string' ? iljin.earthlyBranch : ((iljin.earthlyBranch)?.name ?? '')) : '';
+    const stemStr = iljin ? (typeof iljin.heavenlyStem === 'string' ? iljin.heavenlyStem : ((iljin.heavenlyStem as any)?.name ?? '')) : '';
+    const branchStr = iljin ? (typeof iljin.earthlyBranch === 'string' ? iljin.earthlyBranch : ((iljin.earthlyBranch as any)?.name ?? '')) : '';
     const ganjiStr = iljin ? `${stemStr}${branchStr}` : '—';
     const sibsinCheon = iljin?.sibsin?.cheon ? (typeof iljin.sibsin.cheon === 'string' ? iljin.sibsin.cheon : String(iljin.sibsin.cheon)) : '';
     const sibsinJi = iljin?.sibsin?.ji ? (typeof iljin.sibsin.ji === 'string' ? iljin.sibsin.ji : String(iljin.sibsin.ji)) : '';

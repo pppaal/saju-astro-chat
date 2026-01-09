@@ -11,6 +11,7 @@ import ShareButton from '@/components/share/ShareButton';
 import { generateCompatibilityCard, CompatibilityData } from '@/components/share/cards/CompatibilityCard';
 import { useRouter } from 'next/navigation';
 import styles from './Compatibility.module.css';
+import { logger } from '@/lib/logger';
 
 type SavedPerson = {
   id: string;
@@ -284,7 +285,7 @@ export default function CompatPage() {
           setCirclePeople(data.people || []);
         }
       } catch (e) {
-        console.error('Failed to load circle:', e);
+        logger.error('Failed to load circle:', { error: e instanceof Error ? e.message : String(e) });
       }
     };
     loadCircle();

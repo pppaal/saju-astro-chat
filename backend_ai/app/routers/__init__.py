@@ -17,11 +17,6 @@ logger = logging.getLogger(__name__)
 # Import blueprints with graceful fallback
 _blueprints = []
 
-try:
-    from .fusion_routes import fusion_bp
-    _blueprints.append((fusion_bp, "Fusion analysis (Saju + Astro + Tarot)"))
-except ImportError as e:
-    logger.warning(f"Could not import fusion_routes: {e}")
 
 try:
     from .health_routes import health_bp
@@ -59,23 +54,8 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import rlhf_routes: {e}")
 
-try:
-    from .memory_routes import memory_bp
-    _blueprints.append((memory_bp, "User memory management"))
-except ImportError as e:
-    logger.warning(f"Could not import memory_routes: {e}")
 
-try:
-    from .badges_routes import badges_bp
-    _blueprints.append((badges_bp, "Badge system"))
-except ImportError as e:
-    logger.warning(f"Could not import badges_routes: {e}")
 
-try:
-    from .agentic_routes import agentic_bp
-    _blueprints.append((agentic_bp, "Agentic RAG"))
-except ImportError as e:
-    logger.warning(f"Could not import agentic_routes: {e}")
 
 try:
     from .prediction_routes import prediction_bp
@@ -88,6 +68,30 @@ try:
     _blueprints.append((fortune_bp, "Fortune score"))
 except ImportError as e:
     logger.warning(f"Could not import fortune_routes: {e}")
+
+try:
+    from .theme_routes import theme_bp
+    _blueprints.append((theme_bp, "Theme cross-filter"))
+except ImportError as e:
+    logger.warning(f"Could not import theme_routes: {e}")
+
+try:
+    from .compatibility_routes import compatibility_bp
+    _blueprints.append((compatibility_bp, "Compatibility analysis"))
+except ImportError as e:
+    logger.warning(f"Could not import compatibility_routes: {e}")
+
+try:
+    from .numerology_routes import numerology_bp
+    _blueprints.append((numerology_bp, "Numerology analysis"))
+except ImportError as e:
+    logger.warning(f"Could not import numerology_routes: {e}")
+
+try:
+    from .icp_routes import icp_bp
+    _blueprints.append((icp_bp, "ICP interpersonal style"))
+except ImportError as e:
+    logger.warning(f"Could not import icp_routes: {e}")
 
 
 # Export all blueprints

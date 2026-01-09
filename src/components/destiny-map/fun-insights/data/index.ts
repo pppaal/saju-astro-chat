@@ -7,3 +7,8 @@ export * from './zodiacTraits';
 export * from './zodiacData';
 export * from './elementAnalysisTraits';
 export * from './destinyNarrative';
+
+// New centralized data modules
+export * from './love';
+export * from './career';
+export * from './karma';

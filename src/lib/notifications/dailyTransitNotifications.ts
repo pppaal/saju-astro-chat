@@ -21,7 +21,12 @@ export type NotificationType =
   | "caution_time"       // 주의 시간 알림
   | "transit_peak"       // 트랜짓 피크 알림
   | "wealth_opportunity" // 재물 기회 알림
-  | "relationship_hint"; // 관계 힌트 알림
+  | "relationship_hint"  // 관계 힌트 알림
+  | "credit_low"         // 크레딧 부족 알림
+  | "credit_depleted"    // 크레딧 소진 알림
+  | "premium_feature"    // 프리미엄 기능 안내
+  | "promotion"          // 특별 할인/프로모션
+  | "new_feature";       // 신규 기능 안내
 
 export interface DailyNotification {
   type: NotificationType;
@@ -182,12 +187,18 @@ function calculateCategoryScores(
 
   // 트랜짓 분석으로 보정
   if (transits && Array.isArray(transits)) {
-    const venusTransit = transits.find((t: unknown) =>
-      (t.planet || t.transiting || "").includes("Venus"));
-    const marsTransit = transits.find((t: unknown) =>
-      (t.planet || t.transiting || "").includes("Mars"));
-    const jupiterTransit = transits.find((t: unknown) =>
-      (t.planet || t.transiting || "").includes("Jupiter"));
+    const venusTransit = transits.find((t: unknown) => {
+      const transit = t as Record<string, unknown>;
+      return ((transit.planet || transit.transiting || "") as string).includes("Venus");
+    });
+    const marsTransit = transits.find((t: unknown) => {
+      const transit = t as Record<string, unknown>;
+      return ((transit.planet || transit.transiting || "") as string).includes("Mars");
+    });
+    const jupiterTransit = transits.find((t: unknown) => {
+      const transit = t as Record<string, unknown>;
+      return ((transit.planet || transit.transiting || "") as string).includes("Jupiter");
+    });
 
     if (venusTransit) love += 15;
     if (marsTransit) career += 10;
@@ -411,7 +422,7 @@ export function localizeNotification(
 ): DailyNotification {
   // 현재는 한국어만 지원, 추후 확장 가능
   if (locale === "en") {
-    const typeTranslations: Record<NotificationType, { title: string; positive: string; neutral: string; caution: string }> = {
+    const typeTranslations: Partial<Record<NotificationType, { title: string; positive: string; neutral: string; caution: string }>> & Record<string, { title: string; positive: string; neutral: string; caution: string }> = {
       daily_fortune: {
         title: "Today's Fortune",
         positive: "Great energy today! Overall: {{score}}. Take action!",

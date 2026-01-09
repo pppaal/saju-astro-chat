@@ -7,6 +7,7 @@ import BackButton from "@/components/ui/BackButton";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import styles from "./profile.module.css";
+import { logger } from "@/lib/logger";
 import { useI18n } from "@/i18n/I18nProvider";
 
 type CityHit = {
@@ -151,7 +152,7 @@ function ProfileContent() {
       birthCity: city || null,
       tzId: tzId || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
     };
-    console.log('[Profile] Saving birth info:', payload);
+    logger.info('[Profile] Saving birth info:', payload);
 
     try {
       const res = await fetch("/api/user/update-birth-info", {

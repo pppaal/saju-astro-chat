@@ -252,7 +252,7 @@ export function calculateSolarReturnBonus(
   const reasons: string[] = [];
   const penalties: string[] = [];
 
-  const solarReturn = input.advancedAstro?.solarReturn;
+  const solarReturn = (input.advancedAstro as any)?.solarReturn;
   if (!solarReturn) {
     return { bonus: 0, reasons: [], penalties: [], confidence: 0 };
   }
@@ -324,7 +324,7 @@ export function calculateLunarReturnBonus(
   const reasons: string[] = [];
   const penalties: string[] = [];
 
-  const lunarReturn = input.advancedAstro?.lunarReturn;
+  const lunarReturn = (input.advancedAstro as any)?.lunarReturn;
   if (!lunarReturn) {
     return { bonus: 0, reasons: [], penalties: [], confidence: 0 };
   }
@@ -371,7 +371,7 @@ export function calculateEclipseBonus(
   const reasons: string[] = [];
   const penalties: string[] = [];
 
-  const eclipses = input.advancedAstro?.eclipses;
+  const eclipses = (input.advancedAstro as any)?.eclipses;
   if (!eclipses?.impact) {
     return { bonus: 0, reasons: [], penalties: [], confidence: 0 };
   }

@@ -6,11 +6,12 @@ import { recordCounter } from "@/lib/metrics";
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-type RateLimitResult = {
+export type RateLimitResult = {
   allowed: boolean;
   limit: number;
   remaining: number;
   reset: number;
+  retryAfter?: number;
   headers: Headers;
 };
 

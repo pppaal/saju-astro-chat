@@ -7,6 +7,7 @@ import Link from "next/link";
 import BackButton from "@/components/ui/BackButton";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./history.module.css";
+import { logger } from "@/lib/logger";
 
 type ServiceRecord = {
   id: string;
@@ -105,6 +106,17 @@ type TarotContent = {
   affirmation?: string;
 };
 
+type NumerologyContent = {
+  birthDate: string;
+  name: string;
+  lifePath: number;
+  expression: number;
+  soulUrge: number;
+  personality: number;
+  personalYear?: number;
+  date: string;
+};
+
 // Service configuration with icons and colors (titles and descriptions from i18n)
 const SERVICE_CONFIG: Record<string, { icon: string; titleKey: string; descKey: string; color: string }> = {
   "daily-fortune": { icon: "🌟", titleKey: "history.services.dailyFortune.title", descKey: "history.services.dailyFortune.desc", color: "#fbbf24" },
@@ -148,6 +160,7 @@ function HistoryContent() {
   const [ichingDetail, setIchingDetail] = useState<IChingContent | null>(null);
   const [destinyMapDetail, setDestinyMapDetail] = useState<DestinyMapContent | null>(null);
   const [calendarDetail, setCalendarDetail] = useState<CalendarContent | null>(null);
+  const [numerologyDetail, setNumerologyDetail] = useState<NumerologyContent | null>(null);
   const [tarotDetail, setTarotDetail] = useState<TarotContent | null>(null);
   const [showAllRecords, setShowAllRecords] = useState(false);
   const INITIAL_DISPLAY_COUNT = 5;
@@ -366,7 +379,7 @@ function HistoryContent() {
           setHistory(data.history || []);
         }
       } catch (e) {
-        console.error("Failed to load history:", e);
+        logger.error("Failed to load history:", e);
       } finally {
         setLoading(false);
       }
@@ -382,6 +395,7 @@ function HistoryContent() {
     setDestinyMapDetail(null);
     setCalendarDetail(null);
     setTarotDetail(null);
+    setNumerologyDetail(null);
 
     try {
       if (record.service === "iching" && record.type === "reading") {
@@ -464,9 +478,18 @@ function HistoryContent() {
             }
           }
         }
+      } else if (record.service === "numerology" && record.type === "numerology") {
+        const res = await fetch(`/api/readings/${record.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.reading?.content) {
+            const parsed = JSON.parse(data.reading.content) as NumerologyContent;
+            setNumerologyDetail(parsed);
+          }
+        }
       }
     } catch (e) {
-      console.error("Failed to load reading detail:", e);
+      logger.error("Failed to load reading detail:", e);
     } finally {
       setDetailLoading(false);
     }
@@ -478,6 +501,7 @@ function HistoryContent() {
     setDestinyMapDetail(null);
     setCalendarDetail(null);
     setTarotDetail(null);
+    setNumerologyDetail(null);
   }, []);
 
   if (status === "loading" || loading) {
@@ -1135,6 +1159,60 @@ function HistoryContent() {
                     {new Date(ichingDetail.timestamp).toLocaleString()}
                   </p>
                 )}
+              </div>
+            ) : numerologyDetail ? (
+              <div className={styles.numerologyDetail}>
+                {/* Header */}
+                <div className={styles.destinyHeader}>
+                  <span className={styles.destinyIcon}>🔢</span>
+                  <div>
+                    <h2>수비학 분석</h2>
+                    <p className={styles.destinyTheme}>{numerologyDetail.name}</p>
+                  </div>
+                </div>
+
+                {/* Core Numbers */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>핵심 숫자</h3>
+                  <div className={styles.numberGrid}>
+                    <div className={styles.numberBox}>
+                      <span className={styles.numberValue}>{numerologyDetail.lifePath}</span>
+                      <span className={styles.numberLabel}>Life Path</span>
+                      <span className={styles.numberKorean}>인생 경로</span>
+                    </div>
+                    <div className={styles.numberBox}>
+                      <span className={styles.numberValue}>{numerologyDetail.expression}</span>
+                      <span className={styles.numberLabel}>Expression</span>
+                      <span className={styles.numberKorean}>표현수</span>
+                    </div>
+                    <div className={styles.numberBox}>
+                      <span className={styles.numberValue}>{numerologyDetail.soulUrge}</span>
+                      <span className={styles.numberLabel}>Soul Urge</span>
+                      <span className={styles.numberKorean}>영혼의 욕구</span>
+                    </div>
+                    <div className={styles.numberBox}>
+                      <span className={styles.numberValue}>{numerologyDetail.personality}</span>
+                      <span className={styles.numberLabel}>Personality</span>
+                      <span className={styles.numberKorean}>인격수</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Year */}
+                {numerologyDetail.personalYear && (
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>🌟 올해의 테마</h3>
+                    <div className={styles.personalYearBox}>
+                      <span className={styles.yearNumber}>{numerologyDetail.personalYear}</span>
+                      <span className={styles.yearLabel}>Personal Year Number</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Birth Date */}
+                <p className={styles.timestamp}>
+                  생년월일: {new Date(numerologyDetail.birthDate).toLocaleDateString('ko-KR')}
+                </p>
               </div>
             ) : (
               <div className={styles.modalError}>

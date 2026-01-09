@@ -3,6 +3,38 @@
 import { findPlanetSign } from '../utils';
 import { dayMasterData } from '../data';
 
+// ============ 타입 정의 ============
+interface SajuAdvancedAnalysis {
+  score?: {
+    balance?: number;
+    elementBalance?: number;
+    structure?: number;
+    geokguk?: number;
+    yongsin?: number;
+    usefulGod?: number;
+  };
+  extended?: {
+    strength?: { total?: number; score?: number };
+    geokguk?: { purity?: number };
+    yongsin?: { fitScore?: number };
+  };
+  elementScores?: Array<{ ratio?: number }>;
+  tonggeun?: { score?: number; totalScore?: number };
+}
+
+interface SajuData {
+  advancedAnalysis?: SajuAdvancedAnalysis;
+}
+
+interface AstroData {
+  planets?: Array<{ name: string; sign?: string }>;
+  ascendant?: { sign?: string };
+}
+
+interface ChartData {
+  dayMasterName?: string;
+}
+
 // ============ 상수 정의 ============
 const CHART = {
   CENTER_X: 150,
@@ -92,28 +124,28 @@ const getChartPoint = (index: number, radius: number) => {
 };
 
 interface PentagonChartProps {
-  saju: unknown;
-  astro: unknown;
+  saju?: SajuData | null;
+  astro?: AstroData | null;
   lang: string;
   isKo: boolean;
-  data: unknown;
+  data?: ChartData | null;
 }
 
 export default function PentagonChart({ saju, astro, lang, isKo, data }: PentagonChartProps) {
-  const sc = saju?.advancedAnalysis?.score || {};
-  const strength = saju?.advancedAnalysis?.extended?.strength || {};
-  const geokguk = saju?.advancedAnalysis?.extended?.geokguk || {};
-  const yongsinData = saju?.advancedAnalysis?.extended?.yongsin || {};
-  const tonggeun = saju?.advancedAnalysis?.tonggeun || {};
+  const sc = saju?.advancedAnalysis?.score ?? {};
+  const strength = saju?.advancedAnalysis?.extended?.strength ?? {};
+  const geokguk = saju?.advancedAnalysis?.extended?.geokguk ?? {};
+  const yongsinData = saju?.advancedAnalysis?.extended?.yongsin ?? {};
+  const tonggeun = saju?.advancedAnalysis?.tonggeun ?? {};
 
   // ============ 사주 점수 계산 (95점 상한 알고리즘) ============
   const strengthTotal = clampScore(strength.total) || clampScore(strength.score) || DEFAULT_SCORES.STRENGTH;
   const sajuEnergy = capAt95(strengthTotal * 1.1);
 
-  const elementScores = saju?.advancedAnalysis?.elementScores || [];
+  const elementScores = saju?.advancedAnalysis?.elementScores ?? [];
   let sajuBalance: number = DEFAULT_SCORES.BALANCE;
   if (elementScores.length > 0) {
-    const ratios = elementScores.map((e: unknown) => e.ratio || DEFAULT_SCORES.ELEMENT_RATIO);
+    const ratios = elementScores.map((e) => e.ratio ?? DEFAULT_SCORES.ELEMENT_RATIO);
     const maxRatio = Math.max(...ratios);
     const minRatio = Math.min(...ratios);
     const diff = maxRatio - minRatio;
@@ -127,10 +159,11 @@ export default function PentagonChart({ saju, astro, lang, isKo, data }: Pentago
   const sajuStability = capAt95(clampScore(tonggeun.score) || clampScore(tonggeun.totalScore) || DEFAULT_SCORES.STABILITY);
 
   // ============ 점성학 점수 계산 ============
-  const sunSign = findPlanetSign(astro, "sun");
-  const moonSign = findPlanetSign(astro, "moon");
-  const ascSign = astro?.ascendant?.sign?.toLowerCase() || null;
-  const dm = data.dayMasterName || "";
+  // Cast to any to handle flexible AstroData shapes from different sources
+  const sunSign = findPlanetSign(astro as any, "sun");
+  const moonSign = findPlanetSign(astro as any, "moon");
+  const ascSign = astro?.ascendant?.sign?.toLowerCase() ?? null;
+  const dm = data?.dayMasterName ?? "";
 
   const dmInfo = dayMasterData[dm];
   const dmElement = dmInfo?.element || "";

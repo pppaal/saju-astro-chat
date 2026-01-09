@@ -3,6 +3,18 @@
 import type { TabProps } from './types';
 import { getCareerMatrixAnalysis, type CareerMatrixResult } from '../analyzers';
 
+interface GeokgukInfo {
+  name?: string;
+  type?: string;
+}
+
+// SajuData와 별도로 정의 (확장이 아닌 독립 타입으로 캐스팅에 사용)
+interface SajuWithGeokguk {
+  advancedAnalysis?: {
+    geokguk?: GeokgukInfo;
+  };
+}
+
 interface CareerAnalysis {
   workStyle: string;
   strengths: string[];
@@ -29,12 +41,13 @@ interface CareerAnalysis {
 }
 
 export default function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps) {
-  const careerAnalysis = data.careerAnalysis as CareerAnalysis | null;
-  const careerMatrix = getCareerMatrixAnalysis(saju, astro, lang) as CareerMatrixResult | null;
+  const careerAnalysis = data.careerAnalysis as unknown as CareerAnalysis | null;
+  const careerMatrix = getCareerMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang) as CareerMatrixResult | null;
 
   // 격국 정보 추출
-  const geokguk = saju?.advancedAnalysis?.geokguk;
-  const geokName = geokguk?.name || geokguk?.type || "";
+  const sajuWithGeokguk = saju as SajuWithGeokguk | undefined;
+  const geokguk = sajuWithGeokguk?.advancedAnalysis?.geokguk;
+  const geokName = geokguk?.name ?? geokguk?.type ?? "";
 
   // 격국별 커리어 해석
   const getGeokgukCareer = (name: string): { title: string; desc: string; emoji: string } | null => {
