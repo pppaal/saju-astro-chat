@@ -277,7 +277,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (!requirePublicToken(req)) {
+    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" }

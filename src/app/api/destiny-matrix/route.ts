@@ -6,11 +6,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix';
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix';
 import { calculateSajuData } from '@/lib/Saju/saju';
+import type { FiveElement } from '@/lib/Saju/types';
 
 // Map Korean element names to standard format
-const ELEMENT_MAP: Record<string, string> = {
-  '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water',
-  'wood': 'wood', 'fire': 'fire', 'earth': 'earth', 'metal': 'metal', 'water': 'water',
+const ELEMENT_MAP: Record<string, FiveElement> = {
+  '목': '목', '화': '화', '토': '토', '금': '금', '수': '수',
+  'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수',
 };
 
 /**
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
 
         // Extract day master element
         const dayElement = sajuData.dayPillar?.heavenlyStem?.element;
-        dayMasterElement = ELEMENT_MAP[dayElement] || dayElement;
+        dayMasterElement = (ELEMENT_MAP[dayElement] || dayElement) as any;
 
         // Extract pillar elements
         calculatedPillarElements = [
@@ -147,7 +148,7 @@ export async function POST(req: NextRequest) {
           sajuData.dayPillar?.earthlyBranch?.element,
           sajuData.timePillar?.heavenlyStem?.element,
           sajuData.timePillar?.earthlyBranch?.element,
-        ].filter(Boolean).map(e => ELEMENT_MAP[e] || e);
+        ].filter(Boolean).map(e => ELEMENT_MAP[e as string] || e) as any;
 
         // Build sibsin distribution from pillars
         const sibsinMap: Record<string, number> = {};

@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
         { status: 429, headers: limit.headers }
       );
     }
-    if (!requirePublicToken(req)) {
+    const tokenResult = requirePublicToken(req);
+    if (!tokenResult.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 

@@ -23,13 +23,30 @@ export interface AstroData {
   [key: string]: unknown;
 }
 
+export interface BilingualText {
+  ko?: string;
+  en?: string;
+  koDetail?: string;
+  enDetail?: string;
+}
+
+export interface DestinyNarrative {
+  relationshipStyle?: BilingualText;
+  careerStyle?: BilingualText;
+  healthStyle?: BilingualText;
+  personalityStyle?: BilingualText;
+  fortuneStyle?: BilingualText;
+  karmaStyle?: BilingualText;
+  [key: string]: unknown;
+}
+
 export interface TabProps {
   saju?: SajuData;
   astro?: AstroData;
   lang: string;
   isKo: boolean;
   data: Record<string, unknown>;
-  destinyNarrative?: Record<string, unknown>;
+  destinyNarrative?: DestinyNarrative;
   combinedLifeTheme?: Record<string, unknown>;
 }
 

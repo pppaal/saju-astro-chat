@@ -23,6 +23,26 @@ if (!shouldUseRealFetch) {
   process.env.NEXT_PUBLIC_AI_BACKEND = "http://localhost:5000";
 }
 
+// Mock Prisma client for unit tests (Prisma 7.x requires adapter/accelerateUrl)
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    user: { findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn() },
+    userCredits: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    subscription: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+    bonusCreditPurchase: { findMany: vi.fn(), updateMany: vi.fn() },
+    $transaction: vi.fn((fn) => fn({
+      user: { findUnique: vi.fn(), update: vi.fn() },
+      userCredits: { findUnique: vi.fn(), update: vi.fn() },
+      bonusCreditPurchase: { findMany: vi.fn(), updateMany: vi.fn() },
+    })),
+    $queryRaw: vi.fn(),
+    $disconnect: vi.fn(),
+    $connect: vi.fn(),
+  },
+  encryptAccountData: vi.fn((data) => data),
+  ensureDbConnection: vi.fn(),
+}))
+
 // Mock fetch globally for unit/integration tests.
 if (!shouldUseRealFetch) {
   global.fetch = vi.fn();

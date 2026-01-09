@@ -493,7 +493,7 @@ export async function POST(request: Request) {
     if (!saju || !saju.dayMaster) {
       try {
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
-        saju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender, "solar", userTz) as SajuDataStructure;
+        saju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender as 'male' | 'female', "solar", userTz) as unknown as SajuDataStructure;
         console.warn("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
       } catch (e) {
         console.warn("[chat-stream] Failed to compute saju:", e);

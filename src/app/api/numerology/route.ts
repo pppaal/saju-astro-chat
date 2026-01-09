@@ -94,6 +94,82 @@ export async function POST(req: Request) {
       );
     }
 
+    // Transform backend response to frontend format
+    const backendData = result.data as any;
+
+    if (action === 'analyze' && backendData.profile) {
+      const profile = backendData.profile;
+      const interpretations = backendData.interpretations || {};
+
+      const transformed: any = {
+        lifePath: {
+          number: profile.life_path?.life_path,
+          meaning: interpretations.life_path?.meaning || '',
+          description: interpretations.life_path?.description || ''
+        }
+      };
+
+      // Optional expression number
+      if (profile.expression) {
+        transformed.expression = {
+          number: profile.expression.expression,
+          meaning: interpretations.expression?.meaning || '',
+          description: interpretations.expression?.description || ''
+        };
+      }
+
+      // Optional soul urge
+      if (profile.soul_urge) {
+        transformed.soulUrge = {
+          number: profile.soul_urge.soul_urge,
+          meaning: interpretations.soul_urge?.meaning || '',
+          description: interpretations.soul_urge?.description || ''
+        };
+      }
+
+      // Optional personality
+      if (profile.personality) {
+        transformed.personality = {
+          number: profile.personality.personality,
+          meaning: interpretations.personality?.meaning || '',
+          description: interpretations.personality?.description || ''
+        };
+      }
+
+      // Personal cycles
+      if (profile.personal_year) {
+        transformed.personalYear = {
+          number: profile.personal_year.personal_year,
+          theme: interpretations.personal_year?.theme || profile.personal_year.calculation || ''
+        };
+      }
+
+      if (profile.personal_month) {
+        transformed.personalMonth = {
+          number: profile.personal_month.personal_month,
+          theme: interpretations.personal_month?.theme || ''
+        };
+      }
+
+      if (profile.personal_day) {
+        transformed.personalDay = {
+          number: profile.personal_day.personal_day,
+          theme: interpretations.personal_day?.theme || ''
+        };
+      }
+
+      // Korean name
+      if (profile.korean_name_number) {
+        transformed.koreanName = {
+          number: profile.korean_name_number.name_number,
+          strokes: profile.korean_name_number.total_strokes,
+          meaning: interpretations.korean_name?.meaning || ''
+        };
+      }
+
+      return NextResponse.json(transformed);
+    }
+
     return NextResponse.json(result.data);
 
   } catch (error) {
@@ -145,6 +221,78 @@ export async function GET(req: Request) {
         { error: 'Backend service error' },
         { status: result.status }
       );
+    }
+
+    // Transform backend response to frontend format
+    const backendData = result.data as any;
+
+    if (backendData.profile) {
+      const profile = backendData.profile;
+      const interpretations = backendData.interpretations || {};
+
+      const transformed: any = {
+        lifePath: {
+          number: profile.life_path?.life_path,
+          meaning: interpretations.life_path?.meaning || '',
+          description: interpretations.life_path?.description || ''
+        }
+      };
+
+      // Optional fields
+      if (profile.expression) {
+        transformed.expression = {
+          number: profile.expression.expression,
+          meaning: interpretations.expression?.meaning || '',
+          description: interpretations.expression?.description || ''
+        };
+      }
+
+      if (profile.soul_urge) {
+        transformed.soulUrge = {
+          number: profile.soul_urge.soul_urge,
+          meaning: interpretations.soul_urge?.meaning || '',
+          description: interpretations.soul_urge?.description || ''
+        };
+      }
+
+      if (profile.personality) {
+        transformed.personality = {
+          number: profile.personality.personality,
+          meaning: interpretations.personality?.meaning || '',
+          description: interpretations.personality?.description || ''
+        };
+      }
+
+      if (profile.personal_year) {
+        transformed.personalYear = {
+          number: profile.personal_year.personal_year,
+          theme: interpretations.personal_year?.theme || profile.personal_year.calculation || ''
+        };
+      }
+
+      if (profile.personal_month) {
+        transformed.personalMonth = {
+          number: profile.personal_month.personal_month,
+          theme: interpretations.personal_month?.theme || ''
+        };
+      }
+
+      if (profile.personal_day) {
+        transformed.personalDay = {
+          number: profile.personal_day.personal_day,
+          theme: interpretations.personal_day?.theme || ''
+        };
+      }
+
+      if (profile.korean_name_number) {
+        transformed.koreanName = {
+          number: profile.korean_name_number.name_number,
+          strokes: profile.korean_name_number.total_strokes,
+          meaning: interpretations.korean_name?.meaning || ''
+        };
+      }
+
+      return NextResponse.json(transformed);
     }
 
     return NextResponse.json(result.data);

@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     if (!limit.allowed) {
       return bad('Too many requests. Please try again in a minute.', 429, limit.headers);
     }
-    if (!requirePublicToken(req)) {
+    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
       return bad('Unauthorized', 401, limit.headers);
     }
     const oversized = enforceBodySize(req, 256 * 1024, limit.headers);

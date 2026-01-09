@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     if (!limit.allowed) {
       return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
     }
-    if (!requirePublicToken(request)) {
+    const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 

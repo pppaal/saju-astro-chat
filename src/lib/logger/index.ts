@@ -3,9 +3,9 @@
  * console.log를 대체하는 프로덕션급 로거
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogContext {
+export interface LogContext {
   [key: string]: unknown;
 }
 
@@ -118,12 +118,11 @@ class Logger {
   }
 
   private sendToSentry(entry: LogEntry) {
-    // Sentry가 이미 설정되어 있으므로 captureException 사용
-    if (typeof window !== 'undefined') {
-      // 브라우저 환경
-      import('@/lib/telemetry').then(({ captureException }) => {
+    // captureServerError 사용 (서버 환경)
+    if (typeof window === 'undefined') {
+      import('@/lib/telemetry').then(({ captureServerError }) => {
         if (entry.error) {
-          captureException(entry.error, entry.context);
+          captureServerError(entry.error, entry.context);
         }
       });
     }

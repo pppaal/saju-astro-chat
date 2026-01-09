@@ -1,53 +1,77 @@
 // app/api/db-ping/route.ts
-import { Client } from 'pg';
-import { rateLimit } from '@/lib/rateLimit';
-import { getClientIp } from '@/lib/request-ip';
-import { captureServerError } from '@/lib/telemetry';
+/**
+ * Database ping endpoint for health checks
+ * Uses the new API middleware for consistent error handling
+ */
 
-export const runtime = 'nodejs';
+import { NextRequest } from "next/server";
+import { Client } from "pg";
+import {
+  withApiMiddleware,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from "@/lib/api/middleware";
+import { captureServerError } from "@/lib/telemetry";
 
-function json(data: unknown, status = 200, headers?: Headers) {
-  const res = new Response(JSON.stringify(data), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-  });
-  headers?.forEach((value, key) => res.headers.set(key, value));
-  return res;
-}
+export const runtime = "nodejs";
 
-function authorize(req: Request) {
+/**
+ * Authorize admin requests
+ */
+function authorize(req: NextRequest): boolean {
   const token = process.env.ADMIN_API_TOKEN;
   if (!token) return false;
-  return req.headers.get('x-admin-token') === token;
+  return req.headers.get("x-admin-token") === token;
 }
 
-export async function GET(req: Request) {
-  try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`dbping:${ip}`, { limit: 10, windowSeconds: 60 });
-    if (!limit.allowed) return json({ ok: false, error: 'Too many requests' }, 429, limit.headers);
-    if (!authorize(req)) return json({ ok: false, error: 'Unauthorized' }, 401, limit.headers);
+/**
+ * GET /api/db-ping
+ * Health check endpoint for database connectivity
+ */
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    // Admin authorization required
+    if (!authorize(req)) {
+      return apiError(ErrorCodes.UNAUTHORIZED, "Admin token required");
+    }
 
     const dbUrl = process.env.DATABASE_URL;
     const ca = process.env.DB_CA_PEM;
 
     if (!dbUrl || !ca) {
-      // Fail closed when required secrets are not provided
-      return json({ ok: false, error: 'Service not configured' }, 503, limit.headers);
+      return apiError(
+        ErrorCodes.SERVICE_UNAVAILABLE,
+        "Database not configured"
+      );
     }
 
-    const client = new Client({
-      connectionString: dbUrl,
-      ssl: { ca, rejectUnauthorized: true },
-    });
+    try {
+      const client = new Client({
+        connectionString: dbUrl,
+        ssl: { ca, rejectUnauthorized: true },
+      });
 
-    await client.connect();
-    const r = await client.query('select 1');
-    await client.end();
+      await client.connect();
+      const result = await client.query("SELECT 1 as ping");
+      await client.end();
 
-    return json({ ok: true, rows: r.rows }, 200, limit.headers);
-  } catch (e: unknown) {
-    captureServerError(e, { route: "/api/db-ping" });
-    return json({ ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
+      return apiSuccess({
+        ok: true,
+        rows: result.rows,
+        checkedAt: new Date().toISOString(),
+      });
+    } catch (e: unknown) {
+      captureServerError(e, { route: "/api/db-ping" });
+      return apiError(
+        ErrorCodes.DATABASE_ERROR,
+        e instanceof Error ? e.message : "Database connection failed"
+      );
+    }
+  },
+  {
+    route: "/api/db-ping",
+    rateLimit: { limit: 10, windowSeconds: 60 },
   }
-}
+);

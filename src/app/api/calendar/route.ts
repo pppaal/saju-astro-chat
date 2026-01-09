@@ -18,14 +18,14 @@ import { calculateSajuData } from "@/lib/Saju/saju";
 import { calculateNatalChart } from "@/lib/astrology/foundation/astrologyService";
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from "@/lib/Saju/stemElementMapping";
 import { getBackendUrl } from "@/lib/backend-url";
+import { getApiToken } from "@/lib/validateEnv";
 import koTranslations from "@/i18n/locales/ko.json";
 import enTranslations from "@/i18n/locales/en.json";
+import type { TranslationData } from "@/types/calendar-api";
 
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL = getBackendUrl();
-
-type TranslationData = Record<string, unknown>;
 
 // Translation helper
 
@@ -993,7 +993,7 @@ function generateSummary(
         general: "🌤️ 평범한 하루, 편안하게 보내세요"
       };
       return messages[cat] || messages.general;
-    } else {
+    } else if (grade === 4) {
       // Grade 4 - 나쁜 날
       const messages: Record<string, string> = {
         career: "⚠️ 중요한 결정은 미루세요",
@@ -1003,6 +1003,18 @@ function generateSummary(
         travel: "🚫 이동 시 각별히 주의하세요",
         study: "😵 집중이 안 될 수 있어요",
         general: "🌧️ 조용히 지내는 게 좋은 날"
+      };
+      return messages[cat] || messages.general;
+    } else {
+      // Grade 5 - 최악의 날
+      const messages: Record<string, string> = {
+        career: "🚨 모든 중요한 일정을 연기하세요!",
+        wealth: "💀 절대 투자/계약 금지!",
+        love: "🖤 감정적 결정은 후회할 수 있어요",
+        health: "🆘 건강 관리에 특히 주의하세요",
+        travel: "☠️ 장거리 이동은 피하세요!",
+        study: "🔴 시험/면접은 다른 날로!",
+        general: "⛈️ 최악의 날, 모든 것을 조심하세요!"
       };
       return messages[cat] || messages.general;
     }
@@ -1037,8 +1049,11 @@ function generateSummary(
       return "🌥️ An ordinary day, take it easy";
     } else if (grade === 3) {
       return "🌤️ A normal day, take it easy";
-    } else {
+    } else if (grade === 4) {
       return "🌧️ Be cautious and avoid big decisions";
+    } else {
+      // Grade 5 - Worst day
+      return "⛈️ Worst day! Postpone all important matters!";
     }
   }
 }
@@ -1224,7 +1239,7 @@ export async function GET(request: NextRequest) {
         { status: 429, headers: limit.headers }
       );
     }
-    if (!requirePublicToken(request)) {
+    const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
@@ -1320,13 +1335,12 @@ export async function GET(request: NextRequest) {
     const dayMasterStem = pillars.day.stem;
     const dayMasterElement = STEM_TO_ELEMENT[dayMasterStem] || "wood";
 
-    // 대운 추출
-    const daeunCycles = sajuResult.unse?.daeun?.map((d: { age?: number; heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string }; sibsin?: any }) => ({
+    // 대운 추출 - DaeunCycle 타입에 맞춤
+    const daeunCycles = sajuResult.unse?.daeun?.map((d) => ({
       age: d.age || 0,
-      heavenlyStem: d.heavenlyStem?.name || "",
-      earthlyBranch: d.earthlyBranch?.name || "",
-      sibsin: typeof d.sibsin === 'object' ? d.sibsin : undefined,
-    })).filter((d: { heavenlyStem: string; earthlyBranch: string }) => d.heavenlyStem && d.earthlyBranch) || [];
+      heavenlyStem: d.heavenlyStem || "",
+      earthlyBranch: d.earthlyBranch || "",
+    })).filter((d) => d.heavenlyStem && d.earthlyBranch) || [];
 
     const sajuProfile = {
       dayMaster: dayMasterStem,
@@ -1410,7 +1424,7 @@ export async function GET(request: NextRequest) {
 
     // 로컬 계산으로 중요 날짜 가져오기 (모든 등급 포함)
     const localDates = calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
-      minGrade: 4,  // grade 4 (나쁜 날)까지 포함
+      minGrade: 5,  // grade 5 (최악의 날)까지 포함
     });
 
     // 카테고리 필터링
@@ -1445,12 +1459,13 @@ export async function GET(request: NextRequest) {
     // AI 백엔드 호출 시도
     const aiDates = await fetchAIDates(sajuData, astroData, category || "overall");
 
-    // 5등급별 그룹화
+    // 6등급별 그룹화
     const grade0 = filteredDates.filter(d => d.grade === 0); // 천운의 날
     const grade1 = filteredDates.filter(d => d.grade === 1); // 아주 좋은 날
     const grade2 = filteredDates.filter(d => d.grade === 2); // 좋은 날
     const grade3 = filteredDates.filter(d => d.grade === 3); // 보통 날
     const grade4 = filteredDates.filter(d => d.grade === 4); // 나쁜 날
+    const grade5 = filteredDates.filter(d => d.grade === 5); // 최악의 날
 
     // AI 날짜 병합
     let aiEnhanced = false;
@@ -1476,6 +1491,7 @@ export async function GET(request: NextRequest) {
         grade2: grade2.length, // 좋은 날
         grade3: grade3.length, // 보통 날
         grade4: grade4.length, // 나쁜 날
+        grade5: grade5.length, // 최악의 날
       },
       topDates: (() => {
         // grade0 + grade1 + grade2가 부족하면 grade3 중 높은 점수 날짜도 포함
@@ -1489,7 +1505,8 @@ export async function GET(request: NextRequest) {
         return topCandidates.slice(0, 10).map(d => formatDateForResponse(d, locale));
       })(),
       goodDates: [...grade1, ...grade2].slice(0, 20).map(d => formatDateForResponse(d, locale)),
-      badDates: grade4.slice(0, 10).map(d => formatDateForResponse(d, locale)),
+      badDates: [...grade5, ...grade4].slice(0, 10).map(d => formatDateForResponse(d, locale)),
+      worstDates: grade5.slice(0, 5).map(d => formatDateForResponse(d, locale)),
       allDates: filteredDates.map(d => formatDateForResponse(d, locale)),
       ...(aiDates && {
         aiInsights: {

@@ -16,6 +16,7 @@ import { getCounselorById, TarotCounselor } from '@/lib/Tarot/tarot-counselors';
 import { saveReading, formatReadingForSave, getSavedReadings } from '@/lib/Tarot/tarot-storage';
 import { apiFetch } from '@/lib/api';
 import styles from './tarot-reading.module.css';
+import { tarotLogger } from "@/lib/logger";
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import AuthGate from '@/components/auth/AuthGate';
 
@@ -299,21 +300,19 @@ export default function TarotReadingPage() {
 
   const handleCardClick = (index: number) => {
     const currentMap = selectionOrderRef.current;
-    console.warn('=== Card Click ===');
-    console.warn('Clicked index:', index);
-    console.warn('Current map size:', currentMap.size);
-    console.warn('Current map entries:', Array.from(currentMap.entries()));
+    tarotLogger.debug('=== Card Click ===');
+    tarotLogger.debug('Card clicked', { index, mapSize: currentMap.size });
 
     if (gameState !== 'picking') {
-      console.warn('Rejected: not in picking state');
+      tarotLogger.debug('Rejected: not in picking state');
       return;
     }
     if (currentMap.size >= (spreadInfo?.cardCount ?? 0)) {
-      console.warn('Rejected: max cards reached');
+      tarotLogger.debug('Rejected: max cards reached');
       return;
     }
     if (currentMap.has(index)) {
-      console.warn('Rejected: card already selected');
+      tarotLogger.debug('Rejected: card already selected');
       return;
     }
 
@@ -321,8 +320,7 @@ export default function TarotReadingPage() {
     const newMap = new Map(currentMap).set(index, newOrder);
     selectionOrderRef.current = newMap;
 
-    console.warn('New order:', newOrder);
-    console.warn('New map entries:', Array.from(newMap.entries()));
+    tarotLogger.debug('Card selected', { newOrder, mapSize: newMap.size });
 
     setSelectionOrderMap(newMap);
     setSelectedIndices((prev) => [...prev, index]);
@@ -365,7 +363,7 @@ export default function TarotReadingPage() {
       }
       throw new Error('Interpretation failed');
     } catch (error) {
-      console.error('Failed to fetch interpretation:', error);
+      tarotLogger.error('Failed to fetch interpretation', error instanceof Error ? error : undefined);
       // Set fallback interpretation
       setInterpretation({
         overall_message: translate('tarot.results.defaultMessage', 'The cards have revealed their wisdom to you.'),
@@ -435,7 +433,7 @@ export default function TarotReadingPage() {
         });
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          console.error('Tarot API error:', response.status, errorData);
+          tarotLogger.error('Tarot API error', undefined, { status: response.status, errorData });
           throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`);
         }
         const data = await response.json();
@@ -463,7 +461,7 @@ export default function TarotReadingPage() {
           fetchInterpretation(data);
         }, 1000);
       } catch (error) {
-        console.error(error);
+        tarotLogger.error('Failed to fetch reading', error instanceof Error ? error : undefined);
         setGameState('error');
       }
     };
@@ -561,7 +559,7 @@ export default function TarotReadingPage() {
       // 3초 후 메시지 숨기기
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
-      console.error('Failed to save reading:', error);
+      tarotLogger.error('Failed to save reading', error instanceof Error ? error : undefined);
       setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed');
       setTimeout(() => setSaveMessage(''), 3000);
     }

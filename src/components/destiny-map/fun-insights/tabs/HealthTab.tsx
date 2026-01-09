@@ -113,13 +113,16 @@ export default function HealthTab({ saju, astro, lang, isKo, data }: TabProps) {
     };
   };
 
-  const healthStory = getHealthStory(dayMasterName);
+  const healthStory = getHealthStory(String(dayMasterName || ''));
 
   // 에너지 강도 분석
-  const energyStrength = saju?.advancedAnalysis?.extended?.strength;
+  const advancedAnalysis = (saju as Record<string, unknown>)?.advancedAnalysis as Record<string, unknown> | undefined;
+  const extendedAnalysis = advancedAnalysis?.extended as Record<string, unknown> | undefined;
+  const energyStrength = extendedAnalysis?.strength as Record<string, unknown> | undefined;
   const getEnergyLevel = () => {
     if (!energyStrength) return null;
-    const level = energyStrength.level || energyStrength.type || "";
+    const levelVal = energyStrength.level || energyStrength.type || "";
+    const level = String(levelVal);
     const lv = level.toLowerCase();
 
     if (lv.includes("강") || lv.includes("strong") || lv.includes("extreme")) {

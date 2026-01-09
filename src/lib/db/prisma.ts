@@ -18,14 +18,11 @@ const encryptAccountTokens = <T>(data: T): T => {
 };
 
 function createPrismaClient(): PrismaClient {
+  // Prisma 7.x: DATABASE_URL is read from env automatically
+  // No need to specify datasourceUrl in constructor
   const basePrisma = new PrismaClient({
     // 로그가 필요하면 켜기
     // log: ['query', 'error', 'warn'],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
   });
 
   // Prisma 6.x: use Client Extensions instead of deprecated $use middleware

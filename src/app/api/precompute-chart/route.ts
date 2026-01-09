@@ -80,11 +80,27 @@ export async function POST(req: NextRequest) {
             };
 
             const pillarsForAnalysis = {
-              yearPillar: { heavenlyStem: pillars.year?.heavenlyStem, earthlyBranch: pillars.year?.earthlyBranch },
-              monthPillar: { heavenlyStem: pillars.month?.heavenlyStem, earthlyBranch: pillars.month?.earthlyBranch },
-              dayPillar: { heavenlyStem: pillars.day?.heavenlyStem, earthlyBranch: pillars.day?.earthlyBranch },
-              timePillar: { heavenlyStem: pillars.time?.heavenlyStem, earthlyBranch: pillars.time?.earthlyBranch },
-            };
+              year: {
+                heavenlyStem: pillars.year?.heavenlyStem,
+                earthlyBranch: pillars.year?.earthlyBranch,
+                jijanggan: pillars.year?.jijanggan || {},
+              },
+              month: {
+                heavenlyStem: pillars.month?.heavenlyStem,
+                earthlyBranch: pillars.month?.earthlyBranch,
+                jijanggan: pillars.month?.jijanggan || {},
+              },
+              day: {
+                heavenlyStem: pillars.day?.heavenlyStem,
+                earthlyBranch: pillars.day?.earthlyBranch,
+                jijanggan: pillars.day?.jijanggan || {},
+              },
+              time: {
+                heavenlyStem: pillars.time?.heavenlyStem,
+                earthlyBranch: pillars.time?.earthlyBranch,
+                jijanggan: pillars.time?.jijanggan || {},
+              },
+            } as any; // Type assertion for compatibility
 
             advancedSajuData = {};
 

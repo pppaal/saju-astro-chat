@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!requirePublicToken(req)) {
+    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 

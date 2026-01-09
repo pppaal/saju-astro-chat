@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import CreditBadge from "@/components/ui/CreditBadge";
 import AuthGate from "@/components/auth/AuthGate";
 import styles from "./counselor.module.css";
+import { astroLogger } from '@/lib/logger';
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -133,8 +134,8 @@ export default function AstrologyCounselorPage({
           astro = data.astro;
         }
       }
-    } catch (e: unknown) {
-      console.warn("[AstrologyCounselorPage] Failed to load astro data:", e);
+    } catch (e) {
+      astroLogger.warn("[AstrologyCounselorPage] Failed to load astro data:", e instanceof Error ? e : undefined);
     }
 
     // If no cached astro data, we'll let the backend compute it
@@ -184,11 +185,11 @@ export default function AstrologyCounselorPage({
               timeMs: typeof data.prefetch_time_ms === "number" ? data.prefetch_time_ms : undefined,
               graphNodes: data.data_summary?.graph_nodes,
             });
-            console.warn(`[AstrologyCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
+            astroLogger.warn(`[AstrologyCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`);
           }
         }
-      } catch (e: unknown) {
-        console.warn("[AstrologyCounselorPage] RAG prefetch failed:", e);
+      } catch (e) {
+        astroLogger.warn("[AstrologyCounselorPage] RAG prefetch failed", e instanceof Error ? e : undefined);
         setPrefetchStatus({ done: true }); // Continue anyway
       }
     };
@@ -232,7 +233,7 @@ export default function AstrologyCounselorPage({
             }
 
             setUserContext(context);
-            console.warn("[AstrologyCounselor] User context loaded:", {
+            astroLogger.warn("[AstrologyCounselor] User context loaded:", {
               isReturningUser: data.isReturningUser,
               sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
@@ -240,7 +241,7 @@ export default function AstrologyCounselorPage({
           }
         }
       } catch (e: unknown) {
-        console.warn("[AstrologyCounselor] No user context available (guest user)");
+        astroLogger.warn("[AstrologyCounselor] No user context available (guest user)");
       }
     };
 
@@ -268,11 +269,11 @@ export default function AstrologyCounselorPage({
           const data = await res.json();
           if (data.success && !chatSessionId) {
             setChatSessionId(data.session.id);
-            console.warn("[AstrologyCounselor] New chat session created:", data.session.id);
+            astroLogger.warn("[AstrologyCounselor] New chat session created:", data.session.id);
           }
         }
-      } catch (e: unknown) {
-        console.warn("[AstrologyCounselor] Failed to save message:", e);
+      } catch (e) {
+        astroLogger.warn("[AstrologyCounselor] Failed to save message", e instanceof Error ? e : undefined);
       }
     },
     [chatSessionId, theme, lang]

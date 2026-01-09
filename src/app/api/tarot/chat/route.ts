@@ -59,12 +59,13 @@ function sanitizeCards(raw: unknown): CardContext[] {
   const cards: CardContext[] = [];
   for (const card of raw.slice(0, MAX_CARD_COUNT)) {
     if (!card || typeof card !== "object") continue;
-    const position = typeof (card as Record<string, unknown>).position === "string" ? (card as Record<string, unknown>).position.trim().slice(0, MAX_TITLE_TEXT) : "";
-    const name = typeof (card as Record<string, unknown>).name === "string" ? (card as Record<string, unknown>).name.trim().slice(0, MAX_TITLE_TEXT) : "";
-    const meaning = typeof (card as Record<string, unknown>).meaning === "string" ? (card as Record<string, unknown>).meaning.trim().slice(0, MAX_CARD_TEXT) : "";
+    const cardObj = card as Record<string, unknown>;
+    const position = typeof cardObj.position === "string" ? cardObj.position.trim().slice(0, MAX_TITLE_TEXT) : "";
+    const name = typeof cardObj.name === "string" ? cardObj.name.trim().slice(0, MAX_TITLE_TEXT) : "";
+    const meaning = typeof cardObj.meaning === "string" ? cardObj.meaning.trim().slice(0, MAX_CARD_TEXT) : "";
     if (!position || !name || !meaning) continue;
-    const isReversed = Boolean((card as Record<string, unknown>).is_reversed ?? (card as Record<string, unknown>).isReversed);
-    const keywords = cleanStringArray((card as Record<string, unknown>).keywords);
+    const isReversed = Boolean(cardObj.is_reversed ?? cardObj.isReversed);
+    const keywords = cleanStringArray(cardObj.keywords);
     cards.push({
       position,
       name,
@@ -78,11 +79,12 @@ function sanitizeCards(raw: unknown): CardContext[] {
 
 function sanitizeContext(raw: unknown): TarotContext | null {
   if (!raw || typeof raw !== "object") return null;
-  const spread_title = typeof (raw as Record<string, unknown>).spread_title === "string" ? (raw as Record<string, unknown>).spread_title.trim().slice(0, MAX_TITLE_TEXT) : "";
-  const category = typeof (raw as Record<string, unknown>).category === "string" ? (raw as Record<string, unknown>).category.trim().slice(0, MAX_TITLE_TEXT) : "";
-  const cards = sanitizeCards((raw as Record<string, unknown>).cards);
-  const overall_message = typeof (raw as Record<string, unknown>).overall_message === "string" ? (raw as Record<string, unknown>).overall_message.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
-  const guidance = typeof (raw as Record<string, unknown>).guidance === "string" ? (raw as Record<string, unknown>).guidance.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
+  const rawObj = raw as Record<string, unknown>;
+  const spread_title = typeof rawObj.spread_title === "string" ? rawObj.spread_title.trim().slice(0, MAX_TITLE_TEXT) : "";
+  const category = typeof rawObj.category === "string" ? rawObj.category.trim().slice(0, MAX_TITLE_TEXT) : "";
+  const cards = sanitizeCards(rawObj.cards);
+  const overall_message = typeof rawObj.overall_message === "string" ? rawObj.overall_message.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
+  const guidance = typeof rawObj.guidance === "string" ? rawObj.guidance.trim().slice(0, MAX_GUIDANCE_TEXT) : "";
 
   if (!spread_title || !category || cards.length === 0) {
     return null;
@@ -145,7 +147,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!requirePublicToken(req)) {
+    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
@@ -160,11 +162,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const language = typeof (body as Record<string, unknown>).language === "string" && ALLOWED_TAROT_LANG.has((body as Record<string, unknown>).language)
-      ? (body as Record<string, unknown>).language as "ko" | "en"
+    const bodyObj = body as Record<string, unknown>;
+    const language = typeof bodyObj.language === "string" && ALLOWED_TAROT_LANG.has(bodyObj.language as string)
+      ? bodyObj.language as "ko" | "en"
       : "ko";
-    const messages = normalizeMessages((body as Record<string, unknown>).messages);
-    const context = sanitizeContext((body as Record<string, unknown>).context);
+    const messages = normalizeMessages(bodyObj.messages);
+    const context = sanitizeContext(bodyObj.context);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(

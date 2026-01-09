@@ -9,33 +9,56 @@ import Stripe from 'stripe';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
-import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
 import { getCreditBalance } from '@/lib/credits/creditService';
 import { getBackendUrl as pickBackendUrl } from '@/lib/backend-url';
 import { getNowInTimezone } from '@/lib/datetime';
+import { getApiToken } from '@/lib/validateEnv';
+import type {
+  SajuApiRequest,
+  SajuPromptData,
+  DaeunCycle,
+  JGItem,
+  JijangganAny,
+  JijangganObject,
+  PremiumCacheEntry,
+} from '@/types/saju-api';
 
 // simple in-memory cache to reduce repeated Stripe lookups per runtime
-const premiumCache = new Map<string, { value: boolean; expires: number }>();
+const premiumCache = new Map<string, PremiumCacheEntry>();
 const PREMIUM_TTL_MS = 5 * 60 * 1000;
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover';
 
-function getCachedPremium(email: string) {
+// Email validation regex (RFC 5322 simplified)
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+/**
+ * Escape special characters in Stripe query to prevent injection
+ * Order matters: escape backslashes first, then quotes
+ */
+function escapeStripeQuery(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function getCachedPremium(email: string): boolean | null {
   const entry = premiumCache.get(email.toLowerCase());
   if (entry && entry.expires > Date.now()) return entry.value;
   return null;
 }
 
-function setCachedPremium(email: string, value: boolean) {
+function setCachedPremium(email: string, value: boolean): void {
   premiumCache.set(email.toLowerCase(), { value, expires: Date.now() + PREMIUM_TTL_MS });
 }
 
-// 프리미엄 상태 확인 헬퍼
+/**
+ * Check premium status via Stripe
+ * Includes rate limiting and input validation
+ */
 async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email) return false;
 
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(email) || email.length > 254) return false;
+  // Validate email format
+  if (!EMAIL_REGEX.test(email) || email.length > 254) return false;
 
   const cached = getCachedPremium(email);
   if (cached !== null) return cached;
@@ -48,8 +71,11 @@ async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean>
     }
 
     const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
+
+    // Escape email to prevent query injection
+    const safeEmail = escapeStripeQuery(email);
     const customers = await stripe.customers.search({
-      query: `email:'${email}'`,
+      query: `email:'${safeEmail}'`,
       limit: 3,
     });
 
@@ -114,17 +140,7 @@ import {
 /* -----------------------------
    Utilities
 ------------------------------*/
-type DaeunCycle = { age: number; heavenlyStem: string; earthlyBranch: string };
-type SajuPromptPillar = { heavenlyStem: { name: string }; earthlyBranch: { name: string } };
-type SajuPromptData = {
-  yearPillar: SajuPromptPillar;
-  monthPillar: SajuPromptPillar;
-  dayPillar: SajuPromptPillar;
-  timePillar: SajuPromptPillar;
-  fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number };
-  daeun?: { cycles?: DaeunCycle[] };
-  birthDate: string;
-};
+// Types imported from @/types/saju-api
 
 function formatSajuForGPT(sajuData: SajuPromptData): string {
   const { yearPillar, monthPillar, dayPillar, timePillar, fiveElements, daeun } = sajuData;
@@ -212,8 +228,7 @@ const pickLucky = (
 /* -----------------------------
    지장간 포매터
 ------------------------------*/
-type JGItem = { name?: string; sibsin?: string };
-type JijangganAny = string | Record<string, unknown> | JGItem[] | null | undefined;
+// JGItem and JijangganAny types imported from @/types/saju-api
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
@@ -376,6 +391,7 @@ export async function POST(req: Request) {
       false
     );
 
+    // sajuResult has both formats: { yearPillar, monthPillar, dayPillar, timePillar } AND { pillars: { year, month, day, time } }
     const sajuPillars: SajuPillars = {
       year: {
         heavenlyStem: withYY(sajuResult.yearPillar.heavenlyStem),
@@ -452,25 +468,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
         .join(' · ');
       const shinsalKinds = rawShinsal.filter(h => h.pillars.includes(pillar)).map(h => h.kind);
 
-        // [여기부터 추가] 길성 화이트리스트 + 라벨
-  const LUCKY_ORDER = [
-    '도화','화개','현침','귀문관','역마','고신',
-    '천을귀인','태극귀인','금여성','천문성','문창','문곡',
-  ];
-  const LUCKY_SET = new Set(LUCKY_ORDER);
-
-  const luckyKinds = Array.from(new Set(
-    rawShinsal
-      .filter(h => h.pillars.includes(pillar))
-      .map(h => h.kind)
-      .filter(k => LUCKY_SET.has(k))
-  )).sort((a, b) => LUCKY_ORDER.indexOf(a) - LUCKY_ORDER.indexOf(b));
-
-  const _lucky = luckyKinds.map(n =>
-    ['천을귀인','태극귀인','금여성','천문성','문창','문곡'].includes(n) ? n : `${n}살`
-  );
-  // [추가 끝]
-
+      // Use top-level LUCKY_ORDER/LUCKY_SET constants (already defined above)
 
       return {
         stem: p.heavenlyStem.name,
@@ -743,7 +741,9 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
-      const apiToken = process.env.ADMIN_API_TOKEN;
+
+      // Secure API token handling - throws in production if missing
+      const apiToken = getApiToken();
       if (apiToken) {
         headers['X-API-KEY'] = apiToken;
       }
@@ -793,7 +793,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
           data: {
             userId: session.user.id,
             type: 'saju',
-            title: `${sajuResult.dayMaster?.stem || ''} 일간 사주 분석`,
+            title: `${sajuResult.dayMaster?.name || ''} 일간 사주 분석`,
             content: JSON.stringify({
               birthDate: birthDateString,
               birthTime: adjustedBirthTime,
