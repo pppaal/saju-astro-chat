@@ -19,6 +19,48 @@ _blueprints = []
 
 
 try:
+    from .core_routes import core_bp
+    _blueprints.append((core_bp, "Core routes (index, health, capabilities)"))
+except ImportError as e:
+    logger.warning(f"Could not import core_routes: {e}")
+
+try:
+    from .chart_routes import chart_bp
+    _blueprints.append((chart_bp, "Chart calculation (Saju, Astro)"))
+except ImportError as e:
+    logger.warning(f"Could not import chart_routes: {e}")
+
+try:
+    from .cache_routes import cache_bp
+    _blueprints.append((cache_bp, "Cache and performance monitoring"))
+except ImportError as e:
+    logger.warning(f"Could not import cache_routes: {e}")
+
+try:
+    from .search_routes import search_bp
+    _blueprints.append((search_bp, "RAG search (domain, hybrid)"))
+except ImportError as e:
+    logger.warning(f"Could not import search_routes: {e}")
+
+try:
+    from .stream_routes import stream_bp
+    _blueprints.append((stream_bp, "Streaming AI fortune telling"))
+except ImportError as e:
+    logger.warning(f"Could not import stream_routes: {e}")
+
+try:
+    from .saju_routes import saju_bp
+    _blueprints.append((saju_bp, "Saju streaming endpoints"))
+except ImportError as e:
+    logger.warning(f"Could not import saju_routes: {e}")
+
+try:
+    from .astrology_routes import astrology_bp
+    _blueprints.append((astrology_bp, "Astrology streaming endpoints"))
+except ImportError as e:
+    logger.warning(f"Could not import astrology_routes: {e}")
+
+try:
     from .health_routes import health_bp
     _blueprints.append((health_bp, "Health checks and monitoring"))
 except ImportError as e:
