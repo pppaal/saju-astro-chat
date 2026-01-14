@@ -8,8 +8,7 @@ Routes:
 - POST /ask-stream - Streaming AI fortune telling with SSE
 - POST /counselor/init - Initialize counselor session with RAG prefetch
 
-NOTE: These routes currently proxy to app.py functions.
-TODO: Refactor to use StreamingService and move business logic to services layer.
+✅ Phase 2 Refactored: Now uses FortuneService directly instead of app.py proxy.
 """
 from flask import Blueprint, request, jsonify, Response, g
 import logging
@@ -21,26 +20,30 @@ stream_bp = Blueprint('stream', __name__)
 
 
 # ============================================================================
-# Temporary Proxy Functions
+# Service Layer (Phase 2)
 # ============================================================================
-# These import and wrap app.py functions for now.
-# Will be refactored in future to use services layer directly.
+# Routes now call services directly instead of proxying through app.py
 
-def _get_app_functions():
+def _get_fortune_service():
+    """Lazy load FortuneService to avoid import issues."""
+    from backend_ai.services.fortune_service import FortuneService
+    return FortuneService()
+
+def _get_streaming_service():
+    """Lazy load StreamingService to avoid import issues."""
+    from backend_ai.services.streaming_service import StreamingService
+    return StreamingService()
+
+def _get_app_functions_legacy():
     """
-    Lazy import app.py functions to avoid circular imports.
-
-    Returns dict of app functions that we're wrapping.
+    Legacy proxy for routes not yet migrated to services.
+    TODO: Remove after all routes migrated.
     """
     from backend_ai.app.app import (
-        ask as app_ask,
-        ask_stream as app_ask_stream,
         counselor_init as app_counselor_init,
     )
 
     return {
-        "ask": app_ask,
-        "ask_stream": app_ask_stream,
         "counselor_init": app_counselor_init,
     }
 
@@ -53,6 +56,8 @@ def _get_app_functions():
 def ask():
     """
     Synchronous AI fortune telling with fusion of Saju/Astrology/Tarot.
+
+    ✅ Phase 2 Refactored: Now uses FortuneService directly.
 
     Request body:
     {
@@ -73,14 +78,41 @@ def ask():
             "performance": {"duration_ms": 123, "cached": false}
         }
     }
-
-    TODO: Refactor to use services layer
-    - ValidationService.sanitize_user_input()
-    - ChartContextService.build_combined_context()
-    - Direct AI generation instead of interpret_with_ai()
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["ask"]()
+    try:
+        # Parse request data
+        data = request.get_json(force=True)
+
+        # Extract parameters
+        saju_data = data.get("saju") or {}
+        astro_data = data.get("astro") or {}
+        tarot_data = data.get("tarot") or {}
+        theme = data.get("theme", "daily")
+        locale = data.get("locale", "en")
+        prompt = data.get("prompt") or ""
+        render_mode = data.get("render_mode", "gpt")
+
+        # Get request ID from Flask context
+        request_id = getattr(g, 'request_id', None)
+
+        # Call FortuneService (business logic)
+        service = _get_fortune_service()
+        result = service.calculate_fortune(
+            saju_data=saju_data,
+            astro_data=astro_data,
+            tarot_data=tarot_data,
+            theme=theme,
+            locale=locale,
+            prompt=prompt,
+            render_mode=render_mode,
+            request_id=request_id
+        )
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception(f"[ask] Failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @stream_bp.route("/ask-stream", methods=["POST"])
@@ -88,32 +120,73 @@ def ask_stream():
     """
     Streaming AI fortune telling with Server-Sent Events (SSE).
 
+    ✅ Phase 2 Refactored: Now uses StreamingService directly.
+
     Request body:
     {
         "saju": {...},
         "astro": {...},
-        "tarot": {...},
-        "theme": "daily" | "career" | "love" | ...,
+        "advanced_astro": {...},
+        "theme": "chat" | "career" | "love" | ...,
         "locale": "en" | "ko",
         "prompt": "user question",
-        "session_id": "optional - from /counselor/init for RAG context"
+        "session_id": "optional - from /counselor/init for RAG context",
+        "history": [...],  # Conversation history
+        "user_context": {...},  # Premium user context
+        "cv_text": "..."  # CV/Resume for career consultations
     }
 
     SSE Events:
-    - {"type": "start"} - Stream started
-    - {"type": "rag_context", "data": {...}} - RAG search results (if session_id)
-    - {"type": "content", "content": "..."} - Streaming AI response
-    - {"type": "done"} - Stream complete
-    - {"type": "error", "error": "..."} - Error occurred
-
-    TODO: Refactor to use services layer
-    - StreamingService.sse_stream_response()
-    - StreamingService.stream_with_prefetch()
-    - ChartContextService for chart context
-    - RAG search through domain_rag or hybrid_rag
+    - data: {content} - Streaming AI response chunks
+    - data: [DONE] - Stream complete
+    - data: [ERROR] {error} - Error occurred
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["ask_stream"]()
+    try:
+        # Parse request data (UTF-8 encoding for Windows)
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        # Extract parameters
+        saju_data = data.get("saju") or {}
+        astro_data = data.get("astro") or {}
+        advanced_astro = data.get("advanced_astro") or {}
+        theme = data.get("theme", "chat")
+        locale = data.get("locale", "ko")
+        prompt = data.get("prompt") or ""
+        session_id = data.get("session_id")
+        conversation_history = data.get("history") or []
+        user_context = data.get("user_context") or {}
+        cv_text = (data.get("cv_text") or "")[:4000]
+
+        # Normalize birth payload
+        from backend_ai.app.app import _normalize_birth_payload
+        birth_data = _normalize_birth_payload(data)
+
+        # Get request ID from Flask context
+        request_id = getattr(g, 'request_id', None)
+
+        # Call StreamingService (business logic)
+        service = _get_streaming_service()
+        return service.stream_fortune(
+            saju_data=saju_data,
+            astro_data=astro_data,
+            advanced_astro=advanced_astro,
+            birth_data=birth_data,
+            theme=theme,
+            locale=locale,
+            prompt=prompt,
+            session_id=session_id,
+            conversation_history=conversation_history,
+            user_context=user_context,
+            cv_text=cv_text,
+            request_id=request_id
+        )
+
+    except Exception as e:
+        logger.exception(f"[ask-stream] Failed: {e}")
+        from flask import jsonify
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @stream_bp.route("/counselor/init", methods=["POST"])

@@ -3561,76 +3561,16 @@ def index():
     return jsonify({"status": "ok", "message": "DestinyPal Fusion AI backend is running!"})
 
 
-# Fusion endpoint with caching and performance optimization
-def ask():
-    """
-    Accepts saju/astro/tarot facts + theme/locale/prompt and runs fusion logic.
-    Enhanced with Redis caching and performance monitoring.
-    """
-    try:
-        data = request.get_json(force=True)
-        saju_data = data.get("saju") or {}
-        astro_data = data.get("astro") or {}
-        tarot_data = data.get("tarot") or {}
-        theme = data.get("theme", "daily")
-        locale = data.get("locale", "en")
-        raw_prompt = data.get("prompt") or ""
-
-        # Input validation - check for suspicious patterns
-        if is_suspicious_input(raw_prompt):
-            logger.warning(f"[ASK] Suspicious input detected: {raw_prompt[:100]}...")
-
-        # Normalize dayMaster structure (nested -> flat)
-        saju_data = normalize_day_master(saju_data)
-
-        # Detect structured JSON prompts from frontend (these contain format instructions)
-        is_structured_prompt = (
-            "You MUST return a valid JSON object" in raw_prompt or
-            '"lifeTimeline"' in raw_prompt or
-            '"categoryAnalysis"' in raw_prompt
-        )
-        # Allow full prompt for structured requests, otherwise sanitize and clamp
-        prompt = raw_prompt if is_structured_prompt else sanitize_user_input(raw_prompt, max_length=500)
-        if is_structured_prompt:
-            logger.info(f"[ASK] Detected STRUCTURED JSON prompt (len={len(raw_prompt)})")
-
-        # render_mode: "template" (AI 없이 즉시) or "gpt" (AI 사용)
-        render_mode = data.get("render_mode", "gpt")
-        logger.info(f"[ASK] id={g.request_id} theme={theme} locale={locale} render_mode={render_mode}")
-
-        # DEBUG: Log saju.unse data received from frontend
-        unse_data = saju_data.get("unse", {})
-        logger.info(f"[ASK] saju.unse received: daeun={len(unse_data.get('daeun', []))}, annual={len(unse_data.get('annual', []))}")
-
-        facts = {
-            "theme": theme,
-            "saju": saju_data,
-            "astro": astro_data,
-            "tarot": tarot_data,
-            "prompt": prompt,
-            "locale": locale,
-            "render_mode": render_mode,  # 🔥 템플릿/AI 모드 구분
-        }
-
-        # Performance monitoring
-        start_time = time.time()
-        result = interpret_with_ai(facts)
-        duration_ms = int((time.time() - start_time) * 1000)
-
-        logger.info(f"[ASK] id={g.request_id} completed in {duration_ms}ms cache_hit={result.get('cached', False)}")
-
-        # Add performance metadata
-        if isinstance(result, dict):
-            result["performance"] = {
-                "duration_ms": duration_ms,
-                "cached": result.get("cached", False)
-            }
-
-        return jsonify({"status": "success", "data": result})
-
-    except Exception as e:
-        logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /ask failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+# ============================================================================
+# REMOVED IN PHASE 2: ask() function moved to FortuneService
+# ============================================================================
+# The /ask endpoint business logic has been moved to:
+#   backend_ai/services/fortune_service.py -> FortuneService.calculate_fortune()
+#
+# Router: backend_ai/app/routers/stream_routes.py now calls FortuneService directly
+#
+# Lines removed: ~70 lines (ask function)
+# ============================================================================
 
 
 def ask_stream():
@@ -4770,7 +4710,8 @@ def calc_astro():
 
 
 # Dream interpretation endpoint
-@app.route("/api/dream/interpret-stream", methods=["POST"])
+# Route moved to dream_routes.py
+# @app.route("/api/dream/interpret-stream", methods=["POST"])
 def dream_interpret_stream():
     """
     Streaming dream interpretation - returns SSE for real-time display.
@@ -4951,7 +4892,8 @@ def dream_interpret_stream():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/api/dream/chat-stream", methods=["POST"])
+# Route moved to dream_routes.py
+# @app.route("/api/dream/chat-stream", methods=["POST"])
 def dream_chat_stream():
     """
     Streaming dream follow-up chat - Enhanced with RAG + Saju + Celestial context.
@@ -5556,8 +5498,9 @@ Using all context (knowledge base, celestial, saju, previous consultations, ther
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/dream", methods=["POST"])
-@app.route("/api/dream", methods=["POST"])
+# Routes moved to dream_routes.py
+# @app.route("/dream", methods=["POST"])
+# @app.route("/api/dream", methods=["POST"])
 def dream_interpret():
     """
     Dream interpretation endpoint.
@@ -6490,7 +6433,8 @@ def detect_tarot_topic(text: str) -> dict:
 # JUNGIAN COUNSELING ENDPOINTS (심리상담)
 # ===============================================================
 
-@app.route("/api/counseling/chat", methods=["POST"])
+# Route moved to counseling_routes.py
+# @app.route("/api/counseling/chat", methods=["POST"])
 def counseling_chat():
     """
     융 심리학 기반 상담 채팅 엔드포인트
@@ -6548,7 +6492,8 @@ def counseling_chat():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/api/counseling/therapeutic-questions", methods=["POST"])
+# Route moved to counseling_routes.py
+# @app.route("/api/counseling/therapeutic-questions", methods=["POST"])
 def therapeutic_questions():
     """
     융 심리학 기반 치료적 질문 생성
@@ -6599,7 +6544,8 @@ def therapeutic_questions():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/api/counseling/health", methods=["GET"])
+# Route moved to counseling_routes.py
+# @app.route("/api/counseling/health", methods=["GET"])
 def counseling_health():
     """상담 엔진 상태 확인"""
     if not HAS_COUNSELING:
@@ -7748,7 +7694,8 @@ Response format:
 # DESTINY MATRIX STORY - AI Generated Personal Destiny Analysis
 # ============================================================
 
-@app.route("/api/destiny-story/generate-stream", methods=["POST"])
+# Route: TODO - Create destiny_story_routes.py or add to fortune_routes.py
+# @app.route("/api/destiny-story/generate-stream", methods=["POST"])
 def generate_destiny_story_stream():
     """
     Generate a personalized ~20,000 character destiny story using AI.
