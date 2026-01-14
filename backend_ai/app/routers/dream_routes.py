@@ -1,91 +1,284 @@
 """
-Dream Interpretation API Routes
-Dream analysis and chat functionality.
+Dream Routes
+
+Dream interpretation endpoints using DreamService.
+
+Routes:
+- POST /api/dream/interpret-stream - Streaming dream interpretation (SSE)
+- POST /api/dream/chat-stream - Dream follow-up chat with RAG+Jung+Saju context
+
+✅ Phase 2.4 Refactored: Now uses DreamService directly instead of app.py proxy.
 """
-from flask import Blueprint, request, jsonify, Response, stream_with_context
+from flask import Blueprint, request, jsonify, Response, g
 import logging
 
-dream_bp = Blueprint('dream', __name__, url_prefix='/api/dream')
 logger = logging.getLogger(__name__)
 
-# Lazy imports
-_dream_logic = None
-_sanitizer = None
+# Create Blueprint
+dream_bp = Blueprint('dream', __name__)
 
 
-def _get_dream_logic():
-    global _dream_logic
-    if _dream_logic is None:
-        try:
-            from backend_ai.app import dream_logic
-            _dream_logic = dream_logic
-        except ImportError:
-            from .. import dream_logic
-            _dream_logic = dream_logic
-    return _dream_logic
+# ============================================================================
+# Service Layer (Phase 2.4)
+# ============================================================================
+
+def _get_dream_service():
+    """Lazy load DreamService to avoid import issues."""
+    from backend_ai.services.dream_service import DreamService
+    return DreamService()
 
 
-def _get_sanitizer():
-    global _sanitizer
-    if _sanitizer is None:
-        try:
-            from backend_ai.app import sanitizer
-            _sanitizer = sanitizer
-        except ImportError:
-            from .. import sanitizer
-            _sanitizer = sanitizer
-    return _sanitizer
+# ============================================================================
+# Routes
+# ============================================================================
 
-
-@dream_bp.route('/', methods=['POST'])
-@dream_bp.route('/interpret', methods=['POST'])
-def dream_interpret():
-    """Interpret a dream."""
-    try:
-        data = request.get_json()
-
-        # Sanitize dream text
-        sanitizer = _get_sanitizer()
-        dream_text = data.get('dreamText', '')
-        dream_text = sanitizer.sanitize_dream_text(dream_text)
-
-        dream_logic = _get_dream_logic()
-        result = dream_logic.interpret_dream({
-            **data,
-            'dreamText': dream_text
-        })
-
-        return jsonify(result)
-
-    except Exception as e:
-        logger.error(f"[dream_interpret] Error: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@dream_bp.route('/interpret-stream', methods=['POST'])
+@dream_bp.route("/api/dream/interpret-stream", methods=["POST"])
 def dream_interpret_stream():
-    """Stream dream interpretation."""
+    """
+    Streaming dream interpretation - returns SSE for real-time display.
+
+    ✅ Phase 2.4: Direct implementation (no service extraction needed - simple GPT streaming)
+
+    Uses GPT-4o for fast streaming.
+    Streams: summary → symbols → recommendations → done
+    """
     try:
-        data = request.get_json()
+        # Import dependencies
+        import json as json_mod
+        from backend_ai.app.app import (
+            openai_client,
+            OPENAI_AVAILABLE,
+            is_suspicious_input,
+            sanitize_dream_text
+        )
 
-        def generate():
+        data = request.get_json(force=True)
+        logger.info(f"[DREAM_STREAM] id={g.request_id} Starting streaming interpretation")
+
+        raw_dream_text = data.get("dream", "")
+        symbols = data.get("symbols", [])
+        emotions = data.get("emotions", [])
+        themes = data.get("themes", [])
+        context = data.get("context", [])
+        locale = data.get("locale", "ko")
+
+        # Input validation - sanitize dream text
+        if is_suspicious_input(raw_dream_text):
+            logger.warning(f"[DREAM_STREAM] Suspicious input detected")
+        dream_text = sanitize_dream_text(raw_dream_text)
+
+        # Cultural symbols
+        cultural_parts = []
+        if data.get("koreanTypes"):
+            cultural_parts.append(f"Korean Types: {', '.join(data['koreanTypes'])}")
+        if data.get("koreanLucky"):
+            cultural_parts.append(f"Korean Lucky: {', '.join(data['koreanLucky'])}")
+        if data.get("chinese"):
+            cultural_parts.append(f"Chinese: {', '.join(data['chinese'])}")
+        if data.get("islamicTypes"):
+            cultural_parts.append(f"Islamic Types: {', '.join(data['islamicTypes'])}")
+        if data.get("western"):
+            cultural_parts.append(f"Western/Jungian: {', '.join(data['western'])}")
+        if data.get("hindu"):
+            cultural_parts.append(f"Hindu: {', '.join(data['hindu'])}")
+        if data.get("japanese"):
+            cultural_parts.append(f"Japanese: {', '.join(data['japanese'])}")
+
+        cultural_context = '\n'.join(cultural_parts) if cultural_parts else 'None'
+
+        is_korean = locale == "ko"
+        lang_instruction = "Please respond entirely in Korean (한국어로 답변해주세요)." if is_korean else "Please respond in English."
+
+        def generate_stream():
+            """Generator for SSE streaming dream interpretation"""
             try:
-                sanitizer = _get_sanitizer()
-                dream_logic = _get_dream_logic()
-                dream_text = sanitizer.sanitize_dream_text(data.get('dreamText', ''))
-                result = dream_logic.interpret_dream({**data, 'dreamText': dream_text})
+                if not OPENAI_AVAILABLE or not openai_client:
+                    yield f"data: {json_mod.dumps({'error': 'OpenAI not available'})}\n\n"
+                    return
 
-                yield f"data: {jsonify({'type': 'complete', 'result': result}).get_data(as_text=True)}\n\n"
+                # === SECTION 1: Summary (streaming) ===
+                yield f"data: {json_mod.dumps({'section': 'summary', 'status': 'start'})}\n\n"
 
-            except Exception as e:
-                logger.error(f"[dream_interpret_stream] Error: {e}")
-                yield f"data: {jsonify({'type': 'error', 'message': str(e)}).get_data(as_text=True)}\n\n"
+                summary_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 꿈 상담사입니다.
+마치 오랜 친구에게 이야기하듯 편안하게 꿈의 메시지를 전달해주세요.
+
+{lang_instruction}
+
+꿈 내용:
+{dream_text[:1500]}
+
+심볼: {', '.join(symbols) if symbols else '없음'}
+감정: {', '.join(emotions) if emotions else '없음'}
+유형: {', '.join(themes) if themes else '없음'}
+상황: {', '.join(context) if context else '없음'}
+문화적 맥락: {cultural_context}
+
+상담 스타일:
+- 따뜻하고 공감하는 말투 ("~하셨군요", "~느끼셨을 거예요")
+- 꿈이 전하는 메시지를 부드럽게 해석
+- 불안한 꿈이라도 긍정적 관점으로 재해석
+- 3-4문장으로 자연스럽게 요약"""
+
+                stream = openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": summary_prompt}],
+                    temperature=0.7,
+                    max_tokens=400,
+                    stream=True
+                )
+
+                summary_text = ""
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        summary_text += content
+                        yield f"data: {json_mod.dumps({'section': 'summary', 'content': content})}\n\n"
+
+                yield f"data: {json_mod.dumps({'section': 'summary', 'status': 'done', 'full_text': summary_text})}\n\n"
+
+                # === SECTION 2: Symbol Analysis (streaming) ===
+                yield f"data: {json_mod.dumps({'section': 'symbols', 'status': 'start'})}\n\n"
+
+                symbols_prompt = f"""당신은 따뜻한 꿈 상담사입니다. 꿈에 나타난 심볼들의 의미를 친근하게 설명해주세요.
+
+{lang_instruction}
+
+꿈 내용: {dream_text[:1000]}
+심볼: {', '.join(symbols) if symbols else '꿈에서 추출'}
+문화적 맥락: {cultural_context}
+
+상담 스타일:
+- 각 심볼을 개인의 상황과 연결하여 해석
+- 문화적·심리학적 의미를 쉽게 풀어서 설명
+- 부정적 심볼도 성장의 메시지로 재해석
+- 번호 없이 자연스러운 대화체로 2-3개 심볼 분석"""
+
+                symbol_stream = openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": symbols_prompt}],
+                    temperature=0.7,
+                    max_tokens=500,
+                    stream=True
+                )
+
+                symbols_text = ""
+                for chunk in symbol_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        symbols_text += content
+                        yield f"data: {json_mod.dumps({'section': 'symbols', 'content': content})}\n\n"
+
+                yield f"data: {json_mod.dumps({'section': 'symbols', 'status': 'done', 'full_text': symbols_text})}\n\n"
+
+                # === SECTION 3: Recommendations (streaming) ===
+                yield f"data: {json_mod.dumps({'section': 'recommendations', 'status': 'start'})}\n\n"
+
+                rec_prompt = f"""당신은 따뜻한 꿈 상담사입니다. 꿈의 메시지를 실생활에 적용할 수 있는 조언을 해주세요.
+
+{lang_instruction}
+
+꿈 요약: {summary_text[:500]}
+감정: {', '.join(emotions) if emotions else '없음'}
+
+상담 스타일:
+- 친구에게 조언하듯 편안하고 실용적으로
+- 작은 실천 가능한 행동 제안 (예: "오늘 잠깐 산책해보시는 건 어떨까요?")
+- 꿈이 전하는 긍정적 메시지 강조
+- 2-3가지 따뜻한 조언"""
+
+                rec_stream = openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": rec_prompt}],
+                    temperature=0.7,
+                    max_tokens=300,
+                    stream=True
+                )
+
+                rec_text = ""
+                for chunk in rec_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        rec_text += content
+                        yield f"data: {json_mod.dumps({'section': 'recommendations', 'content': content})}\n\n"
+
+                yield f"data: {json_mod.dumps({'section': 'recommendations', 'status': 'done', 'full_text': rec_text})}\n\n"
+
+                # === DONE ===
+                yield f"data: {json_mod.dumps({'done': True})}\n\n"
+
+            except Exception as stream_error:
+                logger.exception(f"[DREAM_STREAM] Error: {stream_error}")
+                yield f"data: {json_mod.dumps({'error': str(stream_error)})}\n\n"
 
         return Response(
-            stream_with_context(generate()),
-            mimetype='text/event-stream'
+            generate_stream(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            }
         )
 
     except Exception as e:
-        logger.error(f"[dream_interpret_stream] Setup error: {e}")
+        logger.exception(f"[ERROR] /api/dream/interpret-stream failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@dream_bp.route("/api/dream/chat-stream", methods=["POST"])
+def dream_chat_stream():
+    """
+    Dream follow-up chat with enhanced RAG + Jung + Saju + Celestial context.
+
+    ✅ Phase 2.4 Refactored: Now uses DreamService directly.
+
+    This is the main dream counselor chat endpoint with:
+    - DreamRAG search (interpretation context, therapeutic questions, counseling scenarios)
+    - CounselingEngine integration (5-level crisis detection, session management, Jung psychology)
+    - Celestial context (moon phase, planetary influences)
+    - Saju fortune context (day master, daeun, iljin)
+    - Previous consultations memory (continuity)
+    - Persona memory (personalization, session count, insights)
+    """
+    try:
+        # Parse request data
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        messages = data.get("messages", [])
+        dream_context = data.get("dream_context", {})
+        language = data.get("language", "ko")
+        session_id = data.get("session_id")
+
+        # Get request ID from Flask context
+        request_id = getattr(g, 'request_id', None)
+
+        # Call DreamService (business logic)
+        service = _get_dream_service()
+        return service.stream_dream_chat(
+            messages=messages,
+            dream_context=dream_context,
+            language=language,
+            session_id=session_id,
+            request_id=request_id
+        )
+
+    except Exception as e:
+        logger.exception(f"[dream/chat-stream] Failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ============================================================================
+# Route Registration Helper
+# ============================================================================
+
+def register_dream_routes(app):
+    """
+    Register dream routes blueprint.
+
+    Args:
+        app: Flask application instance
+    """
+    app.register_blueprint(dream_bp)
+    logger.info("[DreamRoutes] Registered dream routes blueprint")
