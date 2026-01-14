@@ -34,18 +34,10 @@ def _get_streaming_service():
     from backend_ai.services.streaming_service import StreamingService
     return StreamingService()
 
-def _get_app_functions_legacy():
-    """
-    Legacy proxy for routes not yet migrated to services.
-    TODO: Remove after all routes migrated.
-    """
-    from backend_ai.app.app import (
-        counselor_init as app_counselor_init,
-    )
-
-    return {
-        "counselor_init": app_counselor_init,
-    }
+def _get_counselor_service():
+    """Lazy load CounselorService to avoid import issues."""
+    from backend_ai.services.counselor_service import CounselorService
+    return CounselorService()
 
 
 # ============================================================================
@@ -194,39 +186,77 @@ def counselor_init():
     """
     Initialize counselor session with RAG prefetch.
 
+    ✅ Phase 2 Refactored: Now uses CounselorService directly.
+
     Pre-fetches relevant knowledge from:
     - Domain RAG (destiny_map, tarot, dream, iching)
     - Hybrid RAG (BM25 + Vector + Graph)
     - Jung psychology data
 
-    Stores session data in Redis and returns session_id for use in /ask-stream.
+    Stores session data in cache and returns session_id for use in /ask-stream.
 
     Request body:
     {
         "saju": {...},
         "astro": {...},
         "theme": "career" | "love" | "life",
-        "question": "initial user question"
+        "date": "YYYY-MM-DD",
+        "time": "HH:MM",
+        "locale": "en" | "ko"
     }
 
     Returns:
     {
         "status": "success",
         "session_id": "uuid",
-        "rag_summary": {
-            "domain_results": 5,
-            "hybrid_results": 8,
-            "total_chars": 2500
+        "prefetch_time_ms": 15234,
+        "data_summary": {
+            "graph_nodes": 15,
+            "corpus_quotes": 5,
+            "persona_insights": 10
         }
     }
-
-    TODO: Refactor to use services layer
-    - Create CounselorService for session management
-    - Use domain_rag and hybrid_rag directly
-    - Redis session storage helper
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["counselor_init"]()
+    try:
+        # Parse request data (UTF-8 encoding for Windows)
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        # Extract parameters
+        saju_data = data.get("saju") or {}
+        astro_data = data.get("astro") or {}
+        theme = data.get("theme", "chat")
+        locale = data.get("locale", "ko")
+
+        # Normalize birth payload
+        from backend_ai.app.app import _normalize_birth_payload
+        birth_data = _normalize_birth_payload(data)
+
+        # Get request ID from Flask context
+        request_id = getattr(g, 'request_id', None)
+
+        # Call CounselorService (business logic)
+        service = _get_counselor_service()
+        result = service.initialize_session(
+            saju_data=saju_data,
+            astro_data=astro_data,
+            birth_data=birth_data,
+            theme=theme,
+            locale=locale,
+            request_id=request_id
+        )
+
+        # Handle error responses with HTTP status
+        if result.get("status") == "error":
+            http_status = result.pop("http_status", 500)
+            return jsonify(result), http_status
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.exception(f"[counselor/init] Failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 # ============================================================================
