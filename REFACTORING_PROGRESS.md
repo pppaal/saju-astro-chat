@@ -19,13 +19,13 @@ Phase 1 Total:                  ✅ 100% COMPLETE!
 
 ### Phase 2 Overview
 ```
-Phase 2.1: FortuneService 생성      ✅ 100% (ask() 로직 분리, 60줄 감소)
-Phase 2.2: StreamingService         🔄 진행중 (ask_stream 994줄 대기)
-Phase 2.3: DreamService             ⏳ 대기중
-Phase 2.4: CounselingService        ⏳ 대기중
-Phase 2.5: ChartService             ⏳ 대기중
+Phase 2.1: FortuneService 생성       ✅ 100% (ask() 로직 분리, 60줄 감소)
+Phase 2.2: StreamingService 생성     ✅ 100% (ask_stream() 987줄 분리!)
+Phase 2.3: CounselorService 생성     ✅ 100% (counselor_init() 104줄 분리!)
+Phase 2.4: DreamService              ⏳ 대기중 (dream_chat_stream 607줄)
+Phase 2.5: ChartService              ⏳ 대기중
 ────────────────────────────────────────────────────────
-Phase 2 진행률:                     🔄 20% (1/5 services)
+Phase 2 진행률:                      🔄 60% (3/5 services)
 ```
 
 ### ✅ Phase 2.1 완료: FortuneService (2026-01-14)
@@ -67,6 +67,99 @@ After (Phase 2.1):
 - ✅ 비즈니스 로직 100% 동일 유지 (기능 변화 없음)
 - ✅ app.py 크기 감소: 8,325 → 8,265 줄
 - ✅ Services 레이어 패턴 확립
+
+---
+
+### ✅ Phase 2.2 완료: StreamingService (2026-01-14)
+
+**목표:** SSE 스트리밍 비즈니스 로직을 app.py에서 StreamingService로 분리
+
+**생성된 파일:**
+1. `backend_ai/services/streaming_service.py` (1,088줄)
+   - StreamingService.stream_fortune() - ask_stream() 로직 100% 동일하게 이동
+   - SSE (Server-Sent Events) 스트리밍 처리
+   - RAG 컨텍스트 통합 (Jung psychology, cross-analysis, graph nodes)
+   - 위기 감지 및 치료 가이드 (CrisisDetector)
+   - 대화 이력 관리 (12개 메시지 히스토리)
+   - 생애주기 가이드, 테마 융합 규칙, 적극적 상상 프롬프트
+   - 감정 추적 및 사용자 컨텍스트 (persona, sessions, personality type)
+   - CV/이력서 통합 (커리어 상담용)
+   - 8개 Helper 메서드: user_context, lifespan, theme_fusion, imagination, crisis, therapeutic, system_prompt, emotion
+
+**수정된 파일:**
+1. `backend_ai/app/routers/stream_routes.py`
+   - /ask-stream 라우트: Proxy 패턴 → StreamingService 직접 호출로 변경
+   - _get_streaming_service() lazy loader 추가
+   - ✅ Phase 2 리팩토링 완료 표시
+   - request 파라미터 추출 및 StreamingService.stream_fortune() 호출
+
+2. `backend_ai/services/__init__.py`
+   - get_streaming_service() 함수 추가
+   - StreamingService exports 추가
+
+3. `backend_ai/app/app.py`
+   - ask_stream() 함수 제거 (~987줄)
+   - 제거 위치에 주석 마커 추가 (새 위치 안내)
+   - **8,282줄 → 7,295줄 (987줄 감소!)**
+
+**아키텍처 변화:**
+```
+Before (Phase 1):
+  Request → stream_routes.py → app.ask_stream() → SSE generator → OpenAI stream
+
+After (Phase 2.2):
+  Request → stream_routes.py → StreamingService.stream_fortune() → SSE generator → OpenAI stream
+```
+
+**결과:**
+- ✅ 최대 규모 함수(994줄) 성공적 추출
+- ✅ 비즈니스 로직 100% 동일 유지 (SSE, RAG, 위기감지, 치료가이드 모두 포함)
+- ✅ app.py 크기 대폭 감소: 8,282 → 7,295 줄 (**987줄 감소!**)
+- ✅ 복잡한 스트리밍 로직 완전 분리
+
+---
+
+### ✅ Phase 2.3 완료: CounselorService (2026-01-14)
+
+**목표:** Counselor 세션 초기화 및 RAG prefetch 로직을 app.py에서 CounselorService로 분리
+
+**생성된 파일:**
+1. `backend_ai/services/counselor_service.py` (165줄)
+   - CounselorService.initialize_session() - counselor_init() 로직 100% 동일하게 이동
+   - RAG prefetch 로직 (GraphRAG, CorpusRAG, PersonaEmbedRAG, DomainRAG, Cross-analysis)
+   - Birth data validation 및 computed payload 검증
+   - Session cache 관리 (UUID 생성, Redis 저장)
+
+**수정된 파일:**
+1. `backend_ai/app/routers/stream_routes.py`
+   - /counselor/init 라우트: Proxy 패턴 → CounselorService 직접 호출로 변경
+   - _get_counselor_service() lazy loader 추가
+   - ✅ Phase 2 리팩토링 완료 표시
+   - Request 파라미터 추출 및 CounselorService.initialize_session() 호출
+
+2. `backend_ai/services/__init__.py`
+   - get_counselor_service() 함수 추가 (이미 존재했음)
+   - CounselorService exports 추가
+
+3. `backend_ai/app/app.py`
+   - counselor_init() 함수 제거 (~104줄)
+   - 제거 위치에 주석 마커 추가 (새 위치 안내)
+   - **7,295줄 → 7,197줄 (104줄 감소!)**
+
+**아키텍처 변화:**
+```
+Before (Phase 1):
+  Request → stream_routes.py → app.counselor_init() → RAG prefetch
+
+After (Phase 2.3):
+  Request → stream_routes.py → CounselorService.initialize_session() → RAG prefetch
+```
+
+**결과:**
+- ✅ stream_routes.py의 모든 proxy 제거 완료 (/ask, /ask-stream, /counselor/init)
+- ✅ RAG prefetch 로직 100% 동일 유지 (기능 변화 없음)
+- ✅ app.py 크기 감소: 7,295 → 7,197 줄 (**104줄 감소!**)
+- ✅ Counselor 세션 관리 완전 분리
 
 ---
 
@@ -197,9 +290,11 @@ After (Phase 2.1):
 - **시작 (Phase 0)**: 8,342줄, 32개 @app.route 데코레이터
 - **Phase 1.6 완료 후**: 8,325줄, 0개 @app.route 데코레이터 (17줄 감소)
 - **Phase 2.1 완료 후**: 8,265줄 (ask() 함수 제거, 60줄 감소)
-- **총 감소**: 77줄 (8,342 → 8,265)
-- **목표**: ~1,000줄 (약 7,265줄 더 제거 필요)
-- **진행률**: 1.1% (77/7,342 줄)
+- **Phase 2.2 완료 후**: 7,295줄 (ask_stream() 함수 제거, 970줄 감소)
+- **Phase 2.3 완료 후**: 7,197줄 (counselor_init() 함수 제거, 98줄 감소)
+- **총 감소**: **1,145줄** (8,342 → 7,197)
+- **목표**: ~1,000줄 (약 6,197줄 더 제거 필요)
+- **진행률**: 15.6% (1,145/7,342 줄)
 
 ### Router 파일 (18개) - Phase 1
 - ✅ core_routes.py (91줄) - 기본 인프라
@@ -221,11 +316,11 @@ After (Phase 2.1):
 - ✅ icp_routes.py (~2KB) - ICP 성격
 - ✅ rlhf_routes.py (~10KB) - RLHF 피드백
 
-### Service 파일 (5개 계획 / 1개 완료) - Phase 2
-- ✅ fortune_service.py (139줄) - 운세 계산 [Phase 2.1 완료]
-- ⏳ streaming_service.py - SSE 스트리밍 (ask_stream, dream_chat_stream 등)
-- ⏳ dream_service.py - 꿈 해석
-- ⏳ counseling_service.py - 융 심리 상담
+### Service 파일 (5개 계획 / 3개 완료) - Phase 2
+- ✅ fortune_service.py (137줄) - 운세 계산 [Phase 2.1 완료]
+- ✅ streaming_service.py (1,088줄) - SSE 스트리밍, RAG, 위기감지, 치료가이드 [Phase 2.2 완료]
+- ✅ counselor_service.py (165줄) - RAG prefetch, 세션 관리 [Phase 2.3 완료]
+- ⏳ dream_service.py - 꿈 해석 (dream_chat_stream 607줄 대기)
 - ⏳ chart_service.py - 차트 계산 및 분석
 
 ### 이동된 라우트
@@ -299,6 +394,8 @@ After (Phase 2.1):
 
 ## 📝 변경 이력
 
+- **2026-01-14 (Phase 2.3)**: CounselorService 생성, counselor_init() 로직 분리 (**104줄 감소!**)
+- **2026-01-14 (Phase 2.2)**: StreamingService 생성, ask_stream() 로직 분리 (**970줄 감소!**)
 - **2026-01-14 (Phase 2.1)**: FortuneService 생성, ask() 로직 분리 (60줄 감소)
 - **2026-01-14 (Phase 1.6)**: 최종 7개 @app.route 제거 (dream, counseling, destiny-story)
 - **2026-01-14 (Phase 1.5)**: 초기 24개 @app.route 제거 완료
@@ -308,4 +405,6 @@ After (Phase 2.1):
 **시작일**: 2026-01-14
 **Phase 1 완료**: 2026-01-14
 **Phase 2.1 완료**: 2026-01-14
-**상태**: 🔄 **Phase 2 진행 중 (20% - 1/5 services)**
+**Phase 2.2 완료**: 2026-01-14
+**Phase 2.3 완료**: 2026-01-14
+**상태**: 🔄 **Phase 2 진행 중 (60% - 3/5 services)**
