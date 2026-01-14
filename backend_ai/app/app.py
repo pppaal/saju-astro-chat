@@ -3557,13 +3557,11 @@ def _select_model_and_temperature(
 
 
 # Health check
-@app.route("/", methods=["GET"])
 def index():
     return jsonify({"status": "ok", "message": "DestinyPal Fusion AI backend is running!"})
 
 
 # Fusion endpoint with caching and performance optimization
-@app.route("/ask", methods=["POST"])
 def ask():
     """
     Accepts saju/astro/tarot facts + theme/locale/prompt and runs fusion logic.
@@ -3635,7 +3633,6 @@ def ask():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/ask-stream", methods=["POST"])
 def ask_stream():
     """
     Streaming version of /ask for real-time chat responses.
@@ -4630,7 +4627,6 @@ STYLE:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/counselor/init", methods=["POST"])
 def counselor_init():
     """
     Initialize counselor session with pre-fetched RAG data.
@@ -4738,7 +4734,6 @@ def counselor_init():
 
 
 # Saju calc
-@app.route("/calc_saju", methods=["POST"])
 def calc_saju():
     try:
         body = request.get_json(force=True)
@@ -4754,7 +4749,6 @@ def calc_saju():
 
 
 # Astrology calc
-@app.route("/calc_astro", methods=["POST"])
 def calc_astro():
     try:
         body = request.get_json(force=True)
@@ -5633,7 +5627,6 @@ def dream_interpret():
 
 
 # Cache stats and management
-@app.route("/cache/stats", methods=["GET"])
 def cache_stats():
     """Get cache statistics."""
     try:
@@ -5645,7 +5638,6 @@ def cache_stats():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/cache/clear", methods=["POST"])
 def cache_clear():
     """Clear cache (admin only)."""
     try:
@@ -5659,7 +5651,6 @@ def cache_clear():
 
 
 # Performance monitoring endpoints
-@app.route("/performance/stats", methods=["GET"])
 def performance_stats():
     """Get performance statistics with optimization suggestions."""
     try:
@@ -5678,7 +5669,6 @@ def performance_stats():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/health", methods=["GET"])
 def health_check():
     """Simple health check for Railway/load balancer."""
     return jsonify({
@@ -5688,7 +5678,6 @@ def health_check():
     })
 
 
-@app.route("/ready", methods=["GET"])
 def readiness_check():
     """Readiness check - indicates app is ready to receive traffic."""
     try:
@@ -5724,7 +5713,6 @@ def readiness_check():
         }), 503
 
 
-@app.route("/metrics", methods=["GET"])
 def prometheus_metrics():
     """Prometheus-compatible metrics endpoint."""
     try:
@@ -5765,7 +5753,6 @@ def prometheus_metrics():
         return Response(f'# Error: {str(e)}', mimetype='text/plain'), 500
 
 
-@app.route("/health/full", methods=["GET"])
 def full_health_check():
     """Comprehensive health check including performance metrics."""
     try:
@@ -5831,7 +5818,6 @@ def full_health_check():
 # ===============================================================
 
 # Real-time transit data
-@app.route("/transits", methods=["GET"])
 def get_transits():
     """Get current planetary transits (real-time)."""
     if not HAS_REALTIME:
@@ -5853,7 +5839,6 @@ def get_transits():
 
 
 # Chart generation
-@app.route("/charts/saju", methods=["POST"])
 def generate_saju_chart():
     """Generate Saju Paljja table SVG."""
     if not HAS_CHARTS:
@@ -5877,7 +5862,6 @@ def generate_saju_chart():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/charts/natal", methods=["POST"])
 def generate_natal_chart():
     """Generate natal chart wheel SVG."""
     if not HAS_CHARTS:
@@ -5901,7 +5885,6 @@ def generate_natal_chart():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/charts/full", methods=["POST"])
 def generate_full_charts():
     """Generate complete HTML with all charts."""
     if not HAS_CHARTS:
@@ -6810,7 +6793,6 @@ def _calculate_simple_saju(birth_date: str, birth_time: str = "12:00") -> dict:
         }
 
 
-@app.route("/api/search/domain", methods=["POST"])
 def domain_rag_search():
     """
     Lightweight domain search over precomputed embeddings.
@@ -6990,7 +6972,6 @@ def domain_rag_search():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/api/search/hybrid", methods=["POST"])
 def hybrid_rag_search():
     """
     Hybrid search (vector + BM25 + graph, optional rerank).
@@ -7038,7 +7019,6 @@ def hybrid_rag_search():
 
 
 # System capabilities
-@app.route("/capabilities", methods=["GET"])
 def get_capabilities():
     """Get system capabilities (what's enabled)."""
     return jsonify({
@@ -7083,7 +7063,6 @@ def get_capabilities():
 # SAJU-ONLY COUNSELOR ENDPOINTS
 # ============================================================
 
-@app.route("/saju/counselor/init", methods=["POST"])
 def saju_counselor_init():
     """
     Initialize saju-only counselor session with pre-fetched RAG data.
@@ -7191,7 +7170,6 @@ def saju_counselor_init():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/saju/ask-stream", methods=["POST"])
 def saju_ask_stream():
     """
     Streaming chat for saju-only counselor.
@@ -7424,7 +7402,6 @@ Response format:
 # ASTROLOGY-ONLY COUNSELOR ENDPOINTS
 # ============================================================
 
-@app.route("/astrology/counselor/init", methods=["POST"])
 def astrology_counselor_init():
     """
     Initialize astrology-only counselor session with pre-fetched RAG data.
@@ -7534,7 +7511,6 @@ def astrology_counselor_init():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/astrology/ask-stream", methods=["POST"])
 def astrology_ask_stream():
     """
     Streaming chat for astrology-only counselor.

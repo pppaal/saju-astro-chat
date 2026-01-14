@@ -2,7 +2,20 @@
 
 > 전체 로드맵: [BACKEND_AI_REFACTORING_ROADMAP.md](BACKEND_AI_REFACTORING_ROADMAP.md)
 
-## 📊 현재 진행: Phase 1.1 - 라우트 추출
+## 🎉 Phase 1 완료! (100%)
+
+### Phase 1 Overview
+```
+Phase 1.1: Routes 추출          ✅ 100% (24/24 routes, ~1,082줄)
+Phase 1.2: Lazy Loading         ✅ 100% (443줄 유틸리티)
+Phase 1.3: Service Layer        ✅ 100% (1,456줄 5개 서비스)
+Phase 1.4: Data Loading         ✅ 100% (640줄 데이터 로더)
+Phase 1.5: app.py Cleanup       ✅ 100% (24개 @app.route 제거)
+────────────────────────────────────────────────────────
+Phase 1 Total:                  ✅ 100% COMPLETE!
+```
+
+## 📊 현재 진행: Phase 1.5 - app.py 클린업 ✅ COMPLETE
 
 ### ✅ 완료된 작업 (2026-01-14)
 
@@ -84,10 +97,11 @@
 ## 📊 통계
 
 ### app.py 크기 변화
-- **시작**: 8,342줄 (367KB)
-- **현재**: 8,342줄 (아직 제거 안 함)
-- **이동 완료**: ~714줄이 routers로 분리됨
-- **목표 (Phase 1 완료)**: ~1,200줄 (85% 감소)
+- **시작**: 8,342줄, 32개 @app.route 데코레이터
+- **Phase 1.5 완료 후**: 8,318줄, 0개 @app.route 데코레이터
+- **감소**: 24줄 (라우트 데코레이터 제거)
+- **Router 파일로 이동**: ~1,082줄 (24개 라우트)
+- **함수 유지**: 라우트 함수들은 proxy pattern을 위해 유지
 
 ### 생성된 파일
 - ✅ backend_ai/app/routers/core_routes.py (91줄)
@@ -116,5 +130,54 @@
 
 ---
 
+## 🎯 Phase 1.5: app.py Cleanup 상세 내역
+
+### 제거된 @app.route 데코레이터 (24개)
+
+**core_routes.py로 이동 (4개)**:
+- `@app.route("/")` → index()
+- `@app.route("/health")` → health_check()
+- `@app.route("/ready")` → readiness_check()
+- `@app.route("/capabilities")` → get_capabilities()
+
+**chart_routes.py로 이동 (6개)**:
+- `@app.route("/calc_saju")` → calc_saju()
+- `@app.route("/calc_astro")` → calc_astro()
+- `@app.route("/transits")` → get_transits()
+- `@app.route("/charts/saju")` → generate_saju_chart()
+- `@app.route("/charts/natal")` → generate_natal_chart()
+- `@app.route("/charts/full")` → generate_full_charts()
+
+**cache_routes.py로 이동 (5개)**:
+- `@app.route("/cache/stats")` → cache_stats()
+- `@app.route("/cache/clear")` → cache_clear()
+- `@app.route("/performance/stats")` → performance_stats()
+- `@app.route("/metrics")` → prometheus_metrics()
+- `@app.route("/health/full")` → full_health_check()
+
+**search_routes.py로 이동 (2개)**:
+- `@app.route("/api/search/domain")` → domain_rag_search()
+- `@app.route("/api/search/hybrid")` → hybrid_rag_search()
+
+**stream_routes.py로 이동 (3개)**:
+- `@app.route("/ask")` → ask()
+- `@app.route("/ask-stream")` → ask_stream()
+- `@app.route("/counselor/init")` → counselor_init()
+
+**saju_routes.py로 이동 (2개)**:
+- `@app.route("/saju/counselor/init")` → saju_counselor_init()
+- `@app.route("/saju/ask-stream")` → saju_ask_stream()
+
+**astrology_routes.py로 이동 (2개)**:
+- `@app.route("/astrology/counselor/init")` → astrology_counselor_init()
+- `@app.route("/astrology/ask-stream")` → astrology_ask_stream()
+
+### 자동화 도구
+- **스크립트**: [backend_ai/scripts/remove_migrated_routes.py](backend_ai/scripts/remove_migrated_routes.py)
+- **기능**: @app.route 데코레이터만 제거, 함수 본체는 유지 (proxy pattern)
+- **안전성**: Dry run 먼저 실행 → 검증 → 실제 제거
+
+---
+
 시작일: 2026-01-14
-마지막 업데이트: 2026-01-14 (search_routes 추가)
+마지막 업데이트: 2026-01-14 (Phase 1.5 완료 - app.py cleanup)
