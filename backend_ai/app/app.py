@@ -20,8 +20,9 @@ import logging
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
+from threading import Lock
 from typing import Dict, Optional, Tuple
 from uuid import uuid4
 
@@ -520,7 +521,6 @@ try:
 except Exception as e:  # pragma: no cover
     logger.warning(f"Sentry init skipped: {e}")
 
-
 # ===============================================================
 # 🔌 REGISTER MODULAR BLUEPRINTS
 # ===============================================================
@@ -534,7 +534,6 @@ except ImportError as e:
     logger.warning(f"Could not import routers: {e}")
 except Exception as e:
     logger.error(f"Failed to register blueprints: {e}")
-
 
 # ===============================================================
 # 🛡️ INPUT SANITIZATION HELPERS
@@ -558,7 +557,6 @@ def sanitize_messages(messages: list, max_content_length: int = 2000) -> list:
         sanitized.append({"role": role, "content": content})
     return sanitized
 
-
 def mask_sensitive_data(text: str) -> str:
     """Mask potentially sensitive data in logs."""
     import re
@@ -569,7 +567,6 @@ def mask_sensitive_data(text: str) -> str:
     # Mask credit card numbers
     text = re.sub(r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b', '[CARD]', text)
     return text
-
 
 # ===============================================================
 # 🚀 CROSS-ANALYSIS CACHE - Pre-loaded for instant lookups
@@ -588,7 +585,6 @@ _INTEGRATION_DATA_CACHE = {
     "numerology_astro": None,
     "numerology_therapeutic": None,
 }
-
 
 def _load_integration_data():
     """Load integration engine and numerology data."""
@@ -642,7 +638,6 @@ def _load_integration_data():
     logger.info(f"[INTEGRATION-CACHE] Loaded {loaded_count}/7 integration/numerology files")
     return _INTEGRATION_DATA_CACHE
 
-
 def get_integration_context(theme: str = "life") -> Dict:
     """Get theme-specific integration context for multimodal analysis."""
     data = _load_integration_data()
@@ -659,7 +654,6 @@ def get_integration_context(theme: str = "life") -> Dict:
         result["theme_focus"] = question_router[theme]
 
     return result
-
 
 # ===============================================================
 # 🧠 JUNG PSYCHOLOGY CACHE - Enhanced therapeutic data
@@ -680,6 +674,18 @@ _JUNG_DATA_CACHE = {
     "expanded_counseling": None,
 }
 
+try:
+    SESSION_CACHE_MAX_SIZE = int(os.getenv("SESSION_CACHE_MAX_SIZE", "200"))
+except ValueError:
+    SESSION_CACHE_MAX_SIZE = 200
+
+try:
+    SESSION_CACHE_TTL_MINUTES = int(os.getenv("SESSION_CACHE_TTL_MINUTES", "60"))
+except ValueError:
+    SESSION_CACHE_TTL_MINUTES = 60
+
+_SESSION_RAG_CACHE = {}
+_SESSION_CACHE_LOCK = Lock()
 
 def _load_jung_data():
     """Load extended Jung psychology data for deeper therapeutic sessions."""
@@ -721,7 +727,6 @@ def _load_jung_data():
 
     logger.info(f"[JUNG-CACHE] Loaded {sum(1 for v in _JUNG_DATA_CACHE.values() if v)} Jung psychology files")
     return _JUNG_DATA_CACHE
-
 
 def get_lifespan_guidance(birth_year: int) -> dict:
     """Get age-appropriate psychological guidance based on Jung's lifespan individuation."""
@@ -765,7 +770,6 @@ def get_lifespan_guidance(birth_year: int) -> dict:
         "guidance": stage_data.get("guidance", stage_data.get("saturn_return_guidance", stage_data.get("uranus_opposition_guidance", {}))),
     }
 
-
 def get_active_imagination_prompts(context: str) -> list:
     """Get appropriate active imagination exercise prompts based on context."""
     jung_data = _load_jung_data()
@@ -798,7 +802,6 @@ def get_active_imagination_prompts(context: str) -> list:
         "deepening": deepening[:3],
         "integration": integration[:2],
     }
-
 
 def get_crisis_resources(locale: str = "ko") -> dict:
     """Get crisis intervention resources and scripts."""
@@ -845,7 +848,6 @@ def _load_cross_analysis_cache():
 
     logger.info(f"[CROSS-CACHE] Loaded {len(_CROSS_ANALYSIS_CACHE)} cross-analysis files")
     return _CROSS_ANALYSIS_CACHE
-
 
 def normalize_day_master(saju_data: dict) -> dict:
     """
@@ -910,7 +912,6 @@ def normalize_day_master(saju_data: dict) -> dict:
 
     return saju_data
 
-
 def _normalize_birth_date(value: object) -> Optional[str]:
     if value is None:
         return None
@@ -941,7 +942,6 @@ def _normalize_birth_date(value: object) -> Optional[str]:
         return None
     return f"{year}-{month}-{day}"
 
-
 def _normalize_birth_time(value: object) -> Optional[str]:
     if value is None:
         return None
@@ -971,7 +971,6 @@ def _normalize_birth_time(value: object) -> Optional[str]:
             return None
         return f"{hour:02d}:{minute:02d}"
     return None
-
 
 def _normalize_birth_payload(data: dict) -> dict:
     """Normalize birth payload from nested or legacy fields."""
@@ -1040,7 +1039,6 @@ def _normalize_birth_payload(data: dict) -> dict:
 
     return normalized
 
-
 # ============================================================================
 # REMOVED IN PHASE 2.5: Chart analysis functions moved to ChartService
 # ============================================================================
@@ -1085,7 +1083,6 @@ def _cleanup_expired_sessions():
     if expired:
         logger.info(f"[SESSION-CACHE] Cleaned up {len(expired)} expired sessions")
 
-
 def _evict_lru_sessions(keep_count: int = SESSION_CACHE_MAX_SIZE):
     """Evict least recently used sessions to maintain cache size."""
     with _SESSION_CACHE_LOCK:
@@ -1101,7 +1098,6 @@ def _evict_lru_sessions(keep_count: int = SESSION_CACHE_MAX_SIZE):
         for sid, _ in sorted_sessions[:evict_count]:
             del _SESSION_RAG_CACHE[sid]
         logger.info(f"[SESSION-CACHE] LRU evicted {evict_count} sessions, {len(_SESSION_RAG_CACHE)} remaining")
-
 
 def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat", locale: str = "ko") -> dict:
     """
@@ -1276,7 +1272,6 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
 
     return result
 
-
 def get_session_rag_cache(session_id: str) -> dict:
     """Get cached RAG data for a session. Updates last_accessed for LRU."""
     with _SESSION_CACHE_LOCK:
@@ -1291,7 +1286,6 @@ def get_session_rag_cache(session_id: str) -> dict:
             return cache_entry.get("data")
     return None
 
-
 def set_session_rag_cache(session_id: str, data: dict):
     """Store RAG data in session cache with LRU eviction."""
     now = datetime.now()
@@ -1305,7 +1299,6 @@ def set_session_rag_cache(session_id: str, data: dict):
     if len(_SESSION_RAG_CACHE) > SESSION_CACHE_MAX_SIZE:
         _cleanup_expired_sessions()  # First remove expired
         _evict_lru_sessions()  # Then evict LRU if still over limit
-
 
 # ===============================================================
 # 🚀 MODEL WARMUP - Preload models on startup for faster first request
@@ -1363,7 +1356,6 @@ def warmup_models():
     except Exception as e:
         logger.warning(f"⚠️ Warmup error (non-fatal): {e}")
 
-
 # Auto-warmup on import if WARMUP_ON_START is set (for Gunicorn/production)
 if os.getenv("WARMUP_ON_START", "").lower() in ("1", "true", "yes"):
     warmup_models()
@@ -1375,14 +1367,12 @@ RATE_WINDOW_SECONDS = 60
 _rate_state = defaultdict(list)  # ip -> timestamps
 UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init", "/api/destiny-story/generate-stream"}
 
-
 def _client_id() -> str:
     return (
         (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
         or request.remote_addr
         or "unknown"
     )
-
 
 _rate_cleanup_counter = 0
 
@@ -1413,7 +1403,6 @@ def _check_rate() -> Tuple[bool, Optional[float]]:
     _rate_state[client] = window
     return True, None
 
-
 def _require_auth() -> Optional[Tuple[dict, int]]:
     # Read token at request time to handle dotenv race conditions
     admin_token = os.getenv("ADMIN_API_TOKEN") or ADMIN_TOKEN
@@ -1430,7 +1419,6 @@ def _require_auth() -> Optional[Tuple[dict, int]]:
     if token != admin_token:
         return {"status": "error", "message": "unauthorized"}, 401
     return None
-
 
 @app.before_request
 def before_request():
@@ -1459,7 +1447,6 @@ def before_request():
         body, code = auth_error
         return jsonify(body), code
 
-
 @app.after_request
 def after_request(response):
     response.headers["X-Request-ID"] = getattr(g, "request_id", "")
@@ -1472,7 +1459,6 @@ def after_request(response):
     except Exception:
         pass
     return response
-
 
 # ===============================================================
 # GLOBAL ERROR HANDLERS - Consistent error responses
@@ -1487,7 +1473,6 @@ def bad_request(e):
         "request_id": getattr(g, "request_id", None)
     }), 400
 
-
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({
@@ -1497,7 +1482,6 @@ def not_found(e):
         "request_id": getattr(g, "request_id", None)
     }), 404
 
-
 @app.errorhandler(405)
 def method_not_allowed(e):
     return jsonify({
@@ -1506,7 +1490,6 @@ def method_not_allowed(e):
         "message": "Method not allowed",
         "request_id": getattr(g, "request_id", None)
     }), 405
-
 
 @app.errorhandler(500)
 def internal_error(e):
@@ -1518,7 +1501,6 @@ def internal_error(e):
         "request_id": getattr(g, "request_id", None)
     }), 500
 
-
 @app.errorhandler(Exception)
 def handle_exception(e):
     """Catch-all for unhandled exceptions."""
@@ -1529,7 +1511,6 @@ def handle_exception(e):
         "message": "An unexpected error occurred",
         "request_id": getattr(g, "request_id", None)
     }), 500
-
 
 # Helper functions for building chart context
 def _build_saju_summary(saju_data: dict) -> str:
@@ -1550,7 +1531,6 @@ def _build_saju_summary(saju_data: dict) -> str:
     if saju_data.get("dominantElement"):
         parts.append(f"Dominant: {saju_data['dominantElement']}")
     return "SAJU: " + " | ".join(parts) if parts else ""
-
 
 def _pick_astro_planet(astro_data: dict, name: str):
     """Select a planet payload from multiple possible shapes."""
@@ -1574,7 +1554,6 @@ def _pick_astro_planet(astro_data: dict, name: str):
                 return p
     return None
 
-
 def _pick_ascendant(astro_data: dict):
     """Select ascendant payload from multiple possible shapes."""
     if not astro_data:
@@ -1585,7 +1564,6 @@ def _pick_ascendant(astro_data: dict):
     facts = astro_data.get("facts") if isinstance(astro_data.get("facts"), dict) else {}
     asc = facts.get("ascendant") or facts.get("asc")
     return asc if isinstance(asc, dict) else None
-
 
 def _pick_astro_aspect(astro_data: dict):
     """Pick a representative aspect entry."""
@@ -1604,7 +1582,6 @@ def _pick_astro_aspect(astro_data: dict):
     )
     return sorted_aspects[0] if sorted_aspects else None
 
-
 def _build_astro_summary(astro_data: dict) -> str:
     """Build concise astro summary for chat context."""
     if not astro_data:
@@ -1620,7 +1597,6 @@ def _build_astro_summary(astro_data: dict) -> str:
     if asc:
         parts.append(f"Rising: {asc.get('sign', '')}")
     return "ASTRO: " + " | ".join(parts) if parts else ""
-
 
 def _build_detailed_saju(saju_data: dict) -> str:
     """Build detailed saju context for personalized responses."""
@@ -1684,7 +1660,6 @@ def _build_detailed_saju(saju_data: dict) -> str:
                 lines.append(f"십신: {', '.join(gods)}")
 
     return "\n".join(lines) if lines else "사주 정보 부족"
-
 
 def _build_detailed_astro(astro_data: dict) -> str:
     """Build detailed astrology context for personalized responses."""
@@ -1772,7 +1747,6 @@ def _build_detailed_astro(astro_data: dict) -> str:
             lines.append(f"  달 {moon_sign}: 감정 패턴, 내면의 욕구")
 
     return "\n".join(lines) if lines else "점성술 정보 부족"
-
 
 def _build_advanced_astro_context(advanced_astro: dict) -> str:
     """Build context from advanced astrology features (draconic, harmonics, progressions, etc.)."""
@@ -1918,7 +1892,6 @@ def _build_advanced_astro_context(advanced_astro: dict) -> str:
         return "\n".join(lines)
     return ""
 
-
 def _add_months(src_date: date, months: int) -> date:
     """Add months to a date while keeping day within target month range."""
     year = src_date.year + (src_date.month - 1 + months) // 12
@@ -1933,10 +1906,8 @@ def _format_month_name(src_date: date) -> str:
     ]
     return month_names[src_date.month - 1]
 
-
 def _format_date_ymd(src_date: date) -> str:
     return f"{src_date.year:04d}-{src_date.month:02d}-{src_date.day:02d}"
-
 
 def _count_timing_markers(text: str) -> int:
     if not text:
@@ -1947,7 +1918,6 @@ def _count_timing_markers(text: str) -> int:
     )
     return len({m.group(0) for m in pattern.finditer(text)})
 
-
 def _has_week_timing(text: str) -> bool:
     if not text:
         return False
@@ -1956,7 +1926,6 @@ def _has_week_timing(text: str) -> bool:
         r"첫째주|둘째주|셋째주|넷째주|다섯째주))"
     )
     return bool(pattern.search(text))
-
 
 def _has_caution(text: str) -> bool:
     if not text:
@@ -2002,7 +1971,6 @@ def _has_caution_en(text: str) -> bool:
     lower = text.lower()
     return any(term in lower for term in caution_terms)
 
-
 def _ensure_ko_prefix(text: str, locale: str) -> str:
     if locale != "ko" or not text:
         return text
@@ -2010,7 +1978,6 @@ def _ensure_ko_prefix(text: str, locale: str) -> str:
     if trimmed.startswith("이야"):
         return trimmed
     return f"이야, {trimmed}"
-
 
 def _format_korean_spacing(text: str) -> str:
     if not text:
@@ -2036,7 +2003,6 @@ def _format_korean_spacing(text: str) -> str:
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"(\d)\s+(년|월|일|주|차|시|분|초|하우스|대|세|살|개월)", r"\1\2", text)
     return text.strip()
-
 
 def _insert_addendum(text: str, addendum: str) -> str:
     if not addendum:
@@ -2078,7 +2044,6 @@ def _insert_addendum(text: str, addendum: str) -> str:
         return f"{prefix}{sep}{addendum} {suffix}"
     return f"{text} {addendum}"
 
-
 def _chunk_text(text: str, chunk_size: int = 200):
     if not text:
         return []
@@ -2114,7 +2079,6 @@ def _sse_error_response(message: str) -> Response:
         },
     )
 
-
 def _has_saju_payload(saju_data: dict) -> bool:
     if not isinstance(saju_data, dict) or not saju_data:
         return False
@@ -2125,7 +2089,6 @@ def _has_saju_payload(saju_data: dict) -> bool:
         if saju_data.get(key) or facts.get(key):
             return True
     return False
-
 
 def _has_astro_payload(astro_data: dict) -> bool:
     if not isinstance(astro_data, dict) or not astro_data:
@@ -2141,12 +2104,10 @@ def _has_astro_payload(astro_data: dict) -> bool:
         return True
     return False
 
-
 def _build_birth_format_message(locale: str) -> str:
     if locale == "ko":
         return "생년월일/시간 형식이 올바르지 않습니다. 예: 1995-02-09, 06:40"
     return "Invalid birth date/time format. Example: 1995-02-09, 06:40"
-
 
 def _build_missing_payload_message(locale: str, missing_saju: bool, missing_astro: bool) -> str:
     if locale == "ko":
@@ -2239,7 +2200,6 @@ def _summarize_five_elements_en(saju_data: dict) -> str:
         return "Five Elements look fairly balanced."
     return f"Five Elements show strong {max_elem} and weaker {min_elem}."
 
-
 def _pick_sibsin(saju_data: dict) -> str:
     def _pick_from_pillar(pillar: dict) -> str:
         if not isinstance(pillar, dict):
@@ -2268,7 +2228,6 @@ def _pick_sibsin(saju_data: dict) -> str:
             if sibsin:
                 return sibsin
     return ""
-
 
 def _planet_ko_name(name: str) -> str:
     if not name:
@@ -2304,7 +2263,6 @@ def _planet_en_name(name: str) -> str:
     }
     return planet_map.get(name.lower(), name)
 
-
 def _pick_any_planet(astro_data: dict):
     for key in ("sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"):
         hit = _pick_astro_planet(astro_data, key)
@@ -2317,7 +2275,6 @@ def _pick_any_planet(astro_data: dict):
                 if isinstance(planet, dict) and planet.get("name"):
                     return planet
     return None
-
 
 def _build_saju_evidence_sentence(saju_data: dict) -> str:
     facts = saju_data.get("facts") if isinstance(saju_data.get("facts"), dict) else {}
@@ -2395,7 +2352,6 @@ def _build_saju_evidence_sentence_en(saju_data: dict) -> str:
         parts.append("Ten Gods emphasis needs confirmation")
     return "From your Four Pillars, " + ", ".join(parts) + "."
 
-
 def _build_astro_evidence_sentence(astro_data: dict) -> str:
     planet = _pick_astro_planet(astro_data, "sun") or _pick_astro_planet(astro_data, "moon") or _pick_any_planet(astro_data)
     asc = _pick_ascendant(astro_data)
@@ -2461,7 +2417,6 @@ def _build_astro_evidence_sentence_en(astro_data: dict) -> str:
         sign = asc.get("sign", "")
         return f"Your Ascendant in {sign} sets a clear outer persona even when other planetary data is limited."
     return "Astrology data is limited, but keep the Sun/Moon and house axis as anchors for guidance."
-
 
 def _build_missing_requirements_addendum(
     text: str,
@@ -2577,7 +2532,6 @@ def _build_missing_requirements_addendum(
 
     return " ".join([part for part in add_parts if part]).strip()
 
-
 def _is_truthy(value: object) -> bool:
     if isinstance(value, bool):
         return value
@@ -2587,10 +2541,8 @@ def _is_truthy(value: object) -> bool:
         return value.strip().lower() in ("1", "true", "yes", "on")
     return False
 
-
 def _bool_env(name: str) -> bool:
     return _is_truthy(os.getenv(name, ""))
-
 
 def _build_rag_debug_addendum(meta: dict, locale: str) -> str:
     if not isinstance(meta, dict) or not meta.get("enabled"):
@@ -2630,7 +2582,6 @@ def _build_rag_debug_addendum(meta: dict, locale: str) -> str:
         f"lifespan={lifespan}; therapeutic={therapeutic}; model={model}; temp={temperature}; ab={ab_variant}\n"
     )
 
-
 def _coerce_float(value: object, default: Optional[float] = None) -> Optional[float]:
     if value is None:
         return default
@@ -2638,7 +2589,6 @@ def _coerce_float(value: object, default: Optional[float] = None) -> Optional[fl
         return float(value)
     except (TypeError, ValueError):
         return default
-
 
 def _coerce_int(value: object, default: Optional[int] = None) -> Optional[int]:
     if value is None:
@@ -2648,19 +2598,16 @@ def _coerce_int(value: object, default: Optional[int] = None) -> Optional[int]:
     except (TypeError, ValueError):
         return default
 
-
 def _get_int_env(name: str, default: int, min_value: int = 1, max_value: int = 16000) -> int:
     raw = _coerce_int(os.getenv(name), default)
     if raw is None:
         return default
     return max(min_value, min(max_value, raw))
 
-
 def _clamp_temperature(value: Optional[float], default: float = 0.75) -> float:
     if value is None:
         return default
     return max(0.0, min(2.0, value))
-
 
 def _select_model_and_temperature(
     data: dict,
@@ -2687,7 +2634,6 @@ def _select_model_and_temperature(
         ab_variant = ""
 
     return model, temperature, ab_variant
-
 
 # ===============================================================
 # MIGRATION SUMMARY (Phase 2-4)
