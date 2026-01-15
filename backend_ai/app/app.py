@@ -832,7 +832,6 @@ def get_lifespan_guidance(birth_year: int) -> dict:
         "guidance": stage_data.get("guidance", stage_data.get("saturn_return_guidance", stage_data.get("uranus_opposition_guidance", {}))),
     }
 
-
 # ============================================================================
 # ChartService Wrapper Functions (Phase 4.6)
 # These functions delegate to ChartService for backward compatibility
@@ -848,7 +847,6 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
         logger.warning(f"[get_cross_analysis_for_chart] Failed: {e}")
         return ""
 
-
 def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale: str = "ko", birth_year: int = None) -> str:
     """Wrapper for ChartService.get_theme_fusion_rules()."""
     try:
@@ -858,7 +856,6 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
     except Exception as e:
         logger.warning(f"[get_theme_fusion_rules] Failed: {e}")
         return ""
-
 
 def get_active_imagination_prompts(context: str) -> list:
     """Get appropriate active imagination exercise prompts based on context."""
