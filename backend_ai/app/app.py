@@ -2689,9 +2689,14 @@ def _select_model_and_temperature(
     return model, temperature, ab_variant
 
 
-# Health check
-def index():
-    return jsonify({"status": "ok", "message": "DestinyPal Fusion AI backend is running!"})
+# ===============================================================
+# Phase 4.3: Route handler functions moved to Blueprints
+# These functions are now defined in:
+#   - core_routes.py: index, health_check, readiness_check, get_capabilities
+#   - chart_routes.py: calc_saju, calc_astro, get_transits, generate_*_chart
+#   - cache_routes.py: cache_stats, cache_clear, performance_stats, prometheus_metrics, full_health_check
+#   - counseling_routes.py: counseling_chat, therapeutic_questions, counseling_health
+# ===============================================================
 
 
 # ============================================================================
@@ -2738,40 +2743,7 @@ def index():
 # ============================================================================
 
 
-# Saju calc
-def calc_saju():
-    try:
-        body = request.get_json(force=True)
-        birth_date = body.get("birth_date")
-        birth_time = body.get("birth_time")
-        gender = body.get("gender", "male")
-
-        result = calculate_saju_data(birth_date, birth_time, gender)
-        return jsonify({"status": "success", "saju": result})
-    except Exception as e:
-        logger.exception(f"[ERROR] /calc_saju failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# Astrology calc
-def calc_astro():
-    try:
-        body = request.get_json(force=True)
-        result = calculate_astrology_data(
-            {
-                "year": body.get("year"),
-                "month": body.get("month"),
-                "day": body.get("day"),
-                "hour": body.get("hour"),
-                "minute": body.get("minute"),
-                "latitude": body.get("latitude"),
-                "longitude": body.get("longitude"),
-            }
-        )
-        return jsonify({"status": "success", "astro": result})
-    except Exception as e:
-        logger.exception(f"[ERROR] /calc_astro failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+# Phase 4.3: calc_saju, calc_astro MOVED TO chart_routes.py
 
 
 # Dream interpretation endpoint
@@ -2813,358 +2785,17 @@ def calc_astro():
 # - Multi-language support (Korean/English)
 # - Cultural notes (Korean haemong + Western psychology)
 # ============================================================================
+# Phase 4.2: dream_interpret MOVED TO dream_routes.py
+# ============================================================================
 
-# Routes moved to dream_routes.py
-# @app.route("/dream", methods=["POST"])
-# @app.route("/api/dream", methods=["POST"])
-def dream_interpret():
-    """
-    Dream interpretation endpoint.
-    Accepts dream text, symbols, emotions, themes, and cultural context.
-    """
-    try:
-        data = request.get_json(force=True)
-        logger.info(f"[DREAM] id={g.request_id} Processing dream interpretation")
-
-        # Extract dream data
-        birth_data = _normalize_birth_payload(data)
-        locale = data.get("locale", "en")
-        facts = {
-            "dream": data.get("dream", ""),
-            "symbols": data.get("symbols", []),
-            "emotions": data.get("emotions", []),
-            "themes": data.get("themes", []),
-            "context": data.get("context", []),
-            "locale": locale,
-            # Cultural symbols
-            "koreanTypes": data.get("koreanTypes", []),
-            "koreanLucky": data.get("koreanLucky", []),
-            "chinese": data.get("chinese", []),
-            "islamicTypes": data.get("islamicTypes", []),
-            "islamicBlessed": data.get("islamicBlessed", []),
-            "western": data.get("western", []),
-            "hindu": data.get("hindu", []),
-            "nativeAmerican": data.get("nativeAmerican", []),
-            "japanese": data.get("japanese", []),
-            # Optional birth data
-            "birth": birth_data,
-        }
-
-        start_time = time.time()
-        result = interpret_dream(facts)
-        duration_ms = int((time.time() - start_time) * 1000)
-
-        logger.info(f"[DREAM] id={g.request_id} completed in {duration_ms}ms")
-
-        if isinstance(result, dict):
-            result["performance"] = {"duration_ms": duration_ms}
-
-        # 💾 Save to user memory (MOAT)
-        if HAS_USER_MEMORY and birth_data:
-            try:
-                user_id = generate_user_id(birth_data)
-                memory = get_user_memory(user_id)
-                interpretation = result.get("interpretation", "") if isinstance(result, dict) else str(result)
-                record_id = memory.save_consultation(
-                    theme="dream",
-                    locale=locale,
-                    birth_data=birth_data,
-                    fusion_result=interpretation,
-                    service_type="dream",
-                )
-                result["user_id"] = user_id
-                result["record_id"] = record_id
-                logger.info(f"[DREAM] Saved to memory: {record_id}")
-            except Exception as mem_e:
-                logger.warning(f"[DREAM] Memory save failed: {mem_e}")
-
-        return jsonify({"status": "success", "data": result})
-
-    except Exception as e:
-        logger.exception(f"[ERROR] id={getattr(g, 'request_id', '')} /dream failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+# Phase 4.3: cache_stats, cache_clear, performance_stats, health_check, readiness_check
+# MOVED TO cache_routes.py and core_routes.py
 
 
-# Cache stats and management
-def cache_stats():
-    """Get cache statistics."""
-    try:
-        cache = get_cache()
-        stats = cache.stats()
-        return jsonify({"status": "success", "cache": stats})
-    except Exception as e:
-        logger.exception(f"[ERROR] /cache/stats failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+# Phase 4.3: prometheus_metrics, full_health_check MOVED TO cache_routes.py
+# Phase 4.3: get_transits, generate_saju_chart MOVED TO chart_routes.py
 
-
-def cache_clear():
-    """Clear cache (admin only)."""
-    try:
-        cache = get_cache()
-        pattern = request.json.get("pattern", "fusion:*") if request.json else "fusion:*"
-        cleared = cache.clear(pattern)
-        return jsonify({"status": "success", "cleared": cleared})
-    except Exception as e:
-        logger.exception(f"[ERROR] /cache/clear failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# Performance monitoring endpoints
-def performance_stats():
-    """Get performance statistics with optimization suggestions."""
-    try:
-        stats = get_performance_stats()
-        suggestions = suggest_optimizations(stats)
-        cache_health = get_cache_health()
-
-        return jsonify({
-            "status": "success",
-            "performance": stats,
-            "cache_health": cache_health,
-            "suggestions": suggestions
-        })
-    except Exception as e:
-        logger.exception(f"[ERROR] /performance/stats failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-def health_check():
-    """Simple health check for Railway/load balancer."""
-    return jsonify({
-        "status": "ok",
-        "timestamp": time.time(),
-        "version": "1.0.0"
-    })
-
-
-def readiness_check():
-    """Readiness check - indicates app is ready to receive traffic."""
-    try:
-        # Check if essential services are available
-        checks = {
-            "app": True,
-            "openai_key": bool(os.getenv("OPENAI_API_KEY")),
-        }
-
-        # Check Redis if available
-        try:
-            cache = get_cache()
-            if cache:
-                cache.ping()
-                checks["redis"] = True
-            else:
-                checks["redis"] = False
-        except Exception:
-            checks["redis"] = False
-
-        all_ready = all(checks.values())
-
-        return jsonify({
-            "ready": all_ready,
-            "checks": checks,
-            "timestamp": time.time()
-        }), 200 if all_ready else 503
-    except Exception as e:
-        return jsonify({
-            "ready": False,
-            "error": str(e),
-            "timestamp": time.time()
-        }), 503
-
-
-def prometheus_metrics():
-    """Prometheus-compatible metrics endpoint."""
-    try:
-        perf_stats = get_performance_stats()
-        cache_health = get_cache_health()
-
-        # Format as Prometheus metrics
-        metrics = []
-
-        # Request metrics
-        metrics.append(f'# HELP ai_backend_requests_total Total number of requests')
-        metrics.append(f'# TYPE ai_backend_requests_total counter')
-        metrics.append(f'ai_backend_requests_total {perf_stats.get("total_requests", 0)}')
-
-        # Cache metrics
-        metrics.append(f'# HELP ai_backend_cache_hit_rate Cache hit rate percentage')
-        metrics.append(f'# TYPE ai_backend_cache_hit_rate gauge')
-        metrics.append(f'ai_backend_cache_hit_rate {perf_stats.get("cache_hit_rate", 0)}')
-
-        # Response time
-        metrics.append(f'# HELP ai_backend_response_time_ms Average response time in milliseconds')
-        metrics.append(f'# TYPE ai_backend_response_time_ms gauge')
-        metrics.append(f'ai_backend_response_time_ms {perf_stats.get("avg_response_time_ms", 0)}')
-
-        # Memory (if available)
-        try:
-            import psutil
-            process = psutil.Process()
-            memory_mb = process.memory_info().rss / 1024 / 1024
-            metrics.append(f'# HELP ai_backend_memory_mb Memory usage in MB')
-            metrics.append(f'# TYPE ai_backend_memory_mb gauge')
-            metrics.append(f'ai_backend_memory_mb {memory_mb:.2f}')
-        except ImportError:
-            pass
-
-        return Response('\n'.join(metrics), mimetype='text/plain')
-    except Exception as e:
-        return Response(f'# Error: {str(e)}', mimetype='text/plain'), 500
-
-
-def full_health_check():
-    """Comprehensive health check including performance metrics."""
-    try:
-        perf_stats = get_performance_stats()
-        cache_health = get_cache_health()
-
-        # Calculate overall health score
-        health_score = 100
-        issues = []
-
-        # Penalize for low cache hit rate
-        if perf_stats["cache_hit_rate"] < 30:
-            health_score -= 20
-            issues.append("Low cache hit rate")
-
-        # Penalize for slow responses
-        if perf_stats["avg_response_time_ms"] > 2000:
-            health_score -= 15
-            issues.append("Slow response times")
-
-        # Penalize for cache issues
-        if cache_health["health_score"] < 80:
-            health_score -= 15
-            issues.append("Cache degradation")
-
-        # Check memory (if available)
-        try:
-            import psutil
-            memory = psutil.Process().memory_info()
-            memory_mb = memory.rss / 1024 / 1024
-            if memory_mb > 450:  # Railway 512MB limit
-                health_score -= 20
-                issues.append(f"High memory usage: {memory_mb:.0f}MB")
-        except ImportError:
-            memory_mb = None
-
-        # Check rate limit state size
-        rate_state_size = len(_rate_state)
-        if rate_state_size > 1000:
-            issues.append(f"Large rate state: {rate_state_size} clients")
-
-        status_text = "excellent" if health_score >= 90 else "good" if health_score >= 70 else "degraded"
-
-        return jsonify({
-            "status": "success",
-            "health_score": max(0, health_score),
-            "status_text": status_text,
-            "issues": issues,
-            "performance": perf_stats,
-            "cache": cache_health,
-            "memory_mb": memory_mb,
-            "rate_state_clients": rate_state_size,
-            "timestamp": time.time(),
-            "version": "1.0.0"
-        })
-    except Exception as e:
-        logger.exception(f"[ERROR] /health/full failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# ===============================================================
-# GEMINI-LEVEL ENDPOINTS
-# ===============================================================
-
-# Real-time transit data
-def get_transits():
-    """Get current planetary transits (real-time)."""
-    if not HAS_REALTIME:
-        return jsonify({"status": "error", "message": "Realtime astro not available"}), 501
-
-    try:
-        locale = request.args.get("locale", "en")
-        transits = get_current_transits()
-        interpretation = get_transit_interpretation(transits, locale)
-
-        return jsonify({
-            "status": "success",
-            "transits": transits,
-            "interpretation": interpretation,
-        })
-    except Exception as e:
-        logger.exception(f"[ERROR] /transits failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# Chart generation
-def generate_saju_chart():
-    """Generate Saju Paljja table SVG."""
-    if not HAS_CHARTS:
-        return jsonify({"status": "error", "message": "Chart generator not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        pillars = data.get("pillars", {})
-        day_master = data.get("dayMaster", {})
-        five_elements = data.get("fiveElements", {})
-
-        svg = generate_saju_table_svg(pillars, day_master, five_elements)
-
-        return jsonify({
-            "status": "success",
-            "svg": svg,
-            "base64": svg_to_base64(svg),
-        })
-    except Exception as e:
-        logger.exception(f"[ERROR] /charts/saju failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-def generate_natal_chart():
-    """Generate natal chart wheel SVG."""
-    if not HAS_CHARTS:
-        return jsonify({"status": "error", "message": "Chart generator not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        planets = data.get("planets", [])
-        ascendant = data.get("ascendant", 0)
-        size = data.get("size", 400)
-
-        svg = generate_natal_chart_svg(planets, ascendant=ascendant, size=size)
-
-        return jsonify({
-            "status": "success",
-            "svg": svg,
-            "base64": svg_to_base64(svg),
-        })
-    except Exception as e:
-        logger.exception(f"[ERROR] /charts/natal failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-def generate_full_charts():
-    """Generate complete HTML with all charts."""
-    if not HAS_CHARTS:
-        return jsonify({"status": "error", "message": "Chart generator not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        saju_data = data.get("saju", {})
-        astro_data = data.get("astro", {})
-        locale = data.get("locale", "en")
-
-        html = generate_full_chart_html(saju_data, astro_data, locale)
-
-        return jsonify({
-            "status": "success",
-            "html": html,
-        })
-    except Exception as e:
-        logger.exception(f"[ERROR] /charts/full failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+# Phase 4.3: generate_saju_chart, generate_natal_chart MOVED TO chart_routes.py
 
 # User memory endpoints
 # ===============================================================
@@ -3265,57 +2896,7 @@ def _map_tarot_theme(category: str, spread_id: str, user_question: str = "") -> 
 
     return (mapped_theme, spread_id)
 
-
-# ===============================================================
-# 🎴 AI 특유 표현 후처리 필터
-# ===============================================================
-def _clean_ai_phrases(text: str) -> str:
-    """
-    Remove AI-sounding phrases from tarot interpretations.
-    Makes output more natural and less robotic.
-    """
-    import re
-
-    # AI 특유의 한국어 표현 패턴
-    ai_patterns_ko = [
-        (r'~하시는군요\.?', ''),
-        (r'~느끼실 수 있어요\.?', ''),
-        (r'~하시면 좋을 것 같습니다\.?', ''),
-        (r'~해보시는 건 어떨까요\?', ''),
-        (r'긍정적인 에너지가 느껴지네요\.?', ''),
-        (r'좋은 결과가 있을 거예요\.?', ''),
-        (r'잘 될 거예요\.?', ''),
-        (r'걱정하지 마세요\.?', ''),
-        (r'자신감을 가지시면 좋겠습니다\.?', ''),
-        (r'~을 나타냅니다\.', '다.'),
-        (r'~을 보여주고 있습니다\.', '다.'),
-        (r'~라고 할 수 있습니다\.', '다.'),
-        (r'희망적인 메시지를 전하고 있네요\.?', ''),
-        (r'응원합니다\.?', ''),
-        (r'파이팅이에요\.?', ''),
-        (r'화이팅!?', ''),
-    ]
-
-    # AI 특유의 영어 표현 패턴
-    ai_patterns_en = [
-        (r'I hope this helps\.?', ''),
-        (r'Feel free to ask.*', ''),
-        (r'I\'m here to help\.?', ''),
-        (r'This suggests that you should\.?', 'This suggests'),
-        (r'It\'s important to remember that\.?', ''),
-        (r'positive energy', 'energy'),
-    ]
-
-    result = text
-    for pattern, replacement in ai_patterns_ko + ai_patterns_en:
-        result = re.sub(pattern, replacement, result)
-
-    # 연속된 공백/마침표 정리
-    result = re.sub(r'\s+', ' ', result)
-    result = re.sub(r'\.+', '.', result)
-    result = result.strip()
-
-    return result
+# Phase 4.2: _clean_ai_phrases MOVED TO tarot_routes.py
 
 
 # ===============================================================
@@ -3330,151 +2911,9 @@ def _clean_ai_phrases(text: str) -> str:
 
 
 # ===============================================================
-# JUNGIAN COUNSELING ENDPOINTS (심리상담)
+# Phase 4.3: COUNSELING ENDPOINTS MOVED TO counseling_routes.py
+# Moved: counseling_chat, therapeutic_questions, counseling_health
 # ===============================================================
-
-# Route moved to counseling_routes.py
-# @app.route("/api/counseling/chat", methods=["POST"])
-def counseling_chat():
-    """
-    융 심리학 기반 상담 채팅 엔드포인트
-    - 위기 감지 자동화
-    - RAG + RuleEngine 기반 치료적 개입
-    - 사주/점성/타로 컨텍스트 통합
-    """
-    if not HAS_COUNSELING:
-        return jsonify({"status": "error", "message": "Counseling engine not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        user_message = data.get("message", "")
-        session_id = data.get("session_id")
-
-        # 사주/점성/타로 컨텍스트
-        saju_data = data.get("saju")
-        astro_data = data.get("astro")
-        tarot_data = data.get("tarot")
-
-        if not user_message.strip():
-            return jsonify({"status": "error", "message": "Message is required"}), 400
-
-        engine = get_counseling_engine()
-        if not engine:
-            return jsonify({"status": "error", "message": "Counseling engine initialization failed"}), 500
-
-        # 세션 가져오기 또는 생성
-        session = None
-        if session_id:
-            session = engine.get_session(session_id)
-
-        # 융 심리학 컨텍스트 통합 처리
-        result = engine.process_with_jung_context(
-            user_message=user_message,
-            session=session,
-            saju_data=saju_data,
-            astro_data=astro_data,
-            tarot_data=tarot_data
-        )
-
-        return jsonify({
-            "status": "success",
-            "response": result["response"],
-            "session_id": result["session_id"],
-            "phase": result.get("phase"),
-            "crisis_detected": result.get("crisis_detected", False),
-            "severity": result.get("severity"),
-            "should_continue": result.get("should_continue", True),
-            "jung_context": result.get("jung_context", {})
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/counseling/chat failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# Route moved to counseling_routes.py
-# @app.route("/api/counseling/therapeutic-questions", methods=["POST"])
-def therapeutic_questions():
-    """
-    융 심리학 기반 치료적 질문 생성
-    - 테마별 맞춤 질문
-    - 원형(archetype)별 질문
-    - 시맨틱 검색 기반 질문 추천
-    """
-    if not HAS_COUNSELING:
-        return jsonify({"status": "error", "message": "Counseling engine not available"}), 501
-
-    try:
-        data = request.get_json(force=True)
-        theme = data.get("theme")
-        user_message = data.get("user_message", "")
-        archetype = data.get("archetype")
-        question_type = data.get("question_type", "deepening")
-
-        engine = get_counseling_engine()
-        if not engine:
-            return jsonify({"status": "error", "message": "Counseling engine initialization failed"}), 500
-
-        # 기본 치료적 질문
-        question = engine.get_therapeutic_question(
-            theme=theme,
-            archetype=archetype,
-            question_type=question_type
-        )
-
-        # RAG 기반 추가 질문 (사용자 메시지가 있는 경우)
-        rag_questions = []
-        if user_message and engine.jungian_rag:
-            intervention = engine.jungian_rag.get_therapeutic_intervention(
-                user_message,
-                context={"theme": theme}
-            )
-            rag_questions = intervention.get("recommended_questions", [])
-
-        return jsonify({
-            "status": "success",
-            "question": question,
-            "rag_questions": rag_questions[:3],
-            "theme": theme,
-            "archetype": archetype
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/counseling/therapeutic-questions failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# Route moved to counseling_routes.py
-# @app.route("/api/counseling/health", methods=["GET"])
-def counseling_health():
-    """상담 엔진 상태 확인"""
-    if not HAS_COUNSELING:
-        return jsonify({
-            "status": "unavailable",
-            "message": "Counseling engine not loaded"
-        }), 501
-
-    try:
-        engine = get_counseling_engine()
-        if not engine:
-            return jsonify({
-                "status": "error",
-                "message": "Counseling engine initialization failed"
-            }), 500
-
-        is_healthy, status_message = engine.health_check()
-
-        return jsonify({
-            "status": "healthy" if is_healthy else "degraded",
-            "message": status_message,
-            "has_openai": engine.client is not None,
-            "model": engine.model_name,
-            "has_rag": engine.jungian_rag is not None
-        })
-
-    except Exception as e:
-        logger.exception(f"[ERROR] /api/counseling/health failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 # ===============================================================
@@ -3504,139 +2943,15 @@ def counseling_health():
 # =============================================================================
 
 # =========================================================
-# 간이 만세력 계산 (Daily Fortune용)
+# Phase 4.1: _calculate_simple_saju MOVED TO SajuCalculationService
+# See: backend_ai/services/saju_calculation_service.py
 # =========================================================
 def _calculate_simple_saju(birth_date: str, birth_time: str = "12:00") -> dict:
-    """
-    생년월일시로 기본 사주 데이터 계산 (만세력 간이 버전)
-    """
-    from datetime import datetime as dt_module
+    """Delegate to SajuCalculationService.calculate_simple_saju()."""
+    from backend_ai.services.saju_calculation_service import SajuCalculationService
+    service = SajuCalculationService()
+    return service.calculate_simple_saju(birth_date, birth_time)
 
-    # 천간/지지 데이터
-    STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
-    BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
-    STEM_ELEMENTS = {"甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土",
-                     "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水"}
-    BRANCH_ELEMENTS = {"子": "水", "丑": "土", "寅": "木", "卯": "木", "辰": "土", "巳": "火",
-                       "午": "火", "未": "土", "申": "金", "酉": "金", "戌": "土", "亥": "水"}
-
-    # 십신 계산 헬퍼
-    def get_sibsin(day_stem: str, target_stem: str) -> str:
-        dm_idx = STEMS.index(day_stem)
-        t_idx = STEMS.index(target_stem)
-        diff = (t_idx - dm_idx) % 10
-        sibsin_map = {0: "비견", 1: "겁재", 2: "식신", 3: "상관", 4: "편재",
-                      5: "정재", 6: "편관", 7: "정관", 8: "편인", 9: "정인"}
-        return sibsin_map.get(diff, "비견")
-
-    try:
-        # Parse birth date
-        bd = dt_module.strptime(birth_date, "%Y-%m-%d")
-        year, month, day = bd.year, bd.month, bd.day
-
-        # Parse birth time
-        hour = 12
-        if birth_time:
-            try:
-                hour = int(birth_time.split(":")[0])
-            except (ValueError, IndexError, AttributeError):
-                hour = 12
-
-        # 년주 계산 (1984=甲子 기준)
-        year_offset = (year - 1984) % 60
-        year_stem = STEMS[year_offset % 10]
-        year_branch = BRANCHES[year_offset % 12]
-
-        # 월주 계산 (간략화 - 실제로는 절기 고려 필요)
-        month_branch_idx = (month + 1) % 12  # 寅월(1월)부터 시작
-        month_branch = BRANCHES[month_branch_idx]
-        # 월간 계산 (년간 기준)
-        year_stem_idx = STEMS.index(year_stem)
-        month_stem_idx = (year_stem_idx * 2 + month) % 10
-        month_stem = STEMS[month_stem_idx]
-
-        # 일주 계산 (JDN 기반)
-        a = (14 - month) // 12
-        y = year + 4800 - a
-        m = month + 12 * a - 3
-        jdn = day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
-        day_offset = (jdn - 11) % 60  # 甲子일 보정
-        day_stem = STEMS[day_offset % 10]
-        day_branch = BRANCHES[day_offset % 12]
-
-        # 시주 계산
-        hour_branch_idx = ((hour + 1) // 2) % 12
-        hour_branch = BRANCHES[hour_branch_idx]
-        day_stem_idx = STEMS.index(day_stem)
-        hour_stem_idx = (day_stem_idx * 2 + hour_branch_idx) % 10
-        hour_stem = STEMS[hour_stem_idx]
-
-        # 일간 (day master)
-        dm_element = STEM_ELEMENTS[day_stem]
-
-        # 십신 분포 계산
-        sibsin_dist = {}
-        for stem in [year_stem, month_stem, hour_stem]:
-            s = get_sibsin(day_stem, stem)
-            sibsin_dist[s] = sibsin_dist.get(s, 0) + 1
-
-        # 오늘 일진 계산
-        today = dt_module.now()
-        today_jdn = today.day + (153 * ((today.month + 12 * ((14 - today.month) // 12) - 3)) + 2) // 5 + \
-                    365 * (today.year + 4800 - ((14 - today.month) // 12)) + \
-                    (today.year + 4800 - ((14 - today.month) // 12)) // 4 - \
-                    (today.year + 4800 - ((14 - today.month) // 12)) // 100 + \
-                    (today.year + 4800 - ((14 - today.month) // 12)) // 400 - 32045
-        today_offset = (today_jdn - 11) % 60
-        today_stem = STEMS[today_offset % 10]
-        today_branch = BRANCHES[today_offset % 12]
-        today_element = STEM_ELEMENTS[today_stem]
-
-        # 형충회합 간이 계산
-        CHONG_PAIRS = [("子", "午"), ("丑", "未"), ("寅", "申"), ("卯", "酉"), ("辰", "戌"), ("巳", "亥")]
-        HAP_PAIRS = [("子", "丑"), ("寅", "亥"), ("卯", "戌"), ("辰", "酉"), ("巳", "申"), ("午", "未")]
-
-        natal_branches = [year_branch, month_branch, day_branch, hour_branch]
-        chung_list = []
-        hap_list = []
-        for b in natal_branches:
-            if (b, today_branch) in CHONG_PAIRS or (today_branch, b) in CHONG_PAIRS:
-                chung_list.append(f"{b}-{today_branch}")
-            if (b, today_branch) in HAP_PAIRS or (today_branch, b) in HAP_PAIRS:
-                hap_list.append(f"{b}-{today_branch}")
-
-        return {
-            "dayMaster": {"name": day_stem, "element": dm_element},
-            "pillars": {
-                "year": year_stem + year_branch,
-                "month": month_stem + month_branch,
-                "day": day_stem + day_branch,
-                "time": hour_stem + hour_branch,
-            },
-            "unse": {
-                "iljin": [{"gan": today_stem, "ji": today_branch, "element": today_element}],
-                "monthly": [{"element": STEM_ELEMENTS.get(month_stem, "土")}],
-                "annual": [{"element": STEM_ELEMENTS.get(year_stem, "土")}],
-            },
-            "advancedAnalysis": {
-                "sibsin": {"distribution": sibsin_dist},
-                "hyeongchung": {"chung": chung_list, "hap": hap_list},
-                "yongsin": {"primary": {"element": dm_element}},  # 간이 용신
-                "geokguk": {"grade": "중"},
-            },
-        }
-    except Exception as e:
-        logger.warning(f"[SimpleSaju] Calculation error: {e}")
-        # Fallback minimal data
-        return {
-            "dayMaster": {"name": "甲", "element": "木"},
-            "pillars": {"year": "甲子", "month": "甲寅", "day": "甲午", "time": "甲子"},
-            "unse": {"iljin": [{"element": "木"}], "monthly": [{"element": "木"}], "annual": [{"element": "木"}]},
-            "advancedAnalysis": {
-                "sibsin": {"distribution": {}},
-                "hyeongchung": {"chung": [], "hap": []},
-            },
-        }
 
 
 
@@ -3654,33 +2969,7 @@ def _calculate_simple_saju(birth_date: str, birth_time: str = "12:00") -> dict:
 # ===============================================================
 
 
-# System capabilities
-def get_capabilities():
-    """Get system capabilities (what's enabled)."""
-    return jsonify({
-        "status": "success",
-        "capabilities": {
-            "realtime_transits": HAS_REALTIME,
-            "chart_generation": HAS_CHARTS,
-            "user_memory": HAS_USER_MEMORY,
-            "iching_premium": HAS_ICHING,
-            "persona_embeddings": HAS_PERSONA_EMBED,
-            "tarot_premium": HAS_TAROT,
-            "rlhf_learning": HAS_RLHF,
-            "badge_system": HAS_BADGES,
-            "agentic_rag": HAS_AGENTIC,
-            "jungian_counseling": HAS_COUNSELING,
-            "prediction_engine": HAS_PREDICTION,
-            "theme_cross_filter": HAS_THEME_FILTER,
-            "fortune_score": HAS_FORTUNE_SCORE,
-            "hybrid_rag": HAS_HYBRID_RAG,
-            "domain_rag": HAS_DOMAIN_RAG,
-            "compatibility": HAS_COMPATIBILITY,
-            "numerology": HAS_NUMEROLOGY,
-            "icp": HAS_ICP,
-        },
-        "version": "5.3.0-numerology-icp",
-    })
+# Phase 4.3: get_capabilities MOVED TO core_routes.py
 
 
 # ===============================================================
