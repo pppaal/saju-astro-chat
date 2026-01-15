@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { Chart } from '@/lib/astrology/foundation/types';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -100,11 +101,12 @@ export async function POST(req: NextRequest) {
                 earthlyBranch: pillars.time?.earthlyBranch,
                 jijanggan: pillars.time?.jijanggan || {},
               },
-            } as any; // Type assertion for compatibility
+            }; // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion needed for various Saju analysis functions with different signatures
+            const pillarsForAnalysisAny = pillarsForAnalysis as any;
 
             advancedSajuData = {};
 
-            try { (advancedSajuData as Record<string, unknown>).extended = sajuModule.analyzeExtendedSaju(dayMasterForAnalysis, pillarsForAnalysis); } catch { /* ignore */ }
+            try { (advancedSajuData as Record<string, unknown>).extended = sajuModule.analyzeExtendedSaju(dayMasterForAnalysis, pillarsForAnalysisAny); } catch { /* ignore */ }
             try { (advancedSajuData as Record<string, unknown>).geokguk = sajuModule.determineGeokguk(pillarsSimple); } catch { /* ignore */ }
             try { (advancedSajuData as Record<string, unknown>).yongsin = sajuModule.determineYongsin(pillarsSimple); } catch { /* ignore */ }
 
@@ -118,10 +120,10 @@ export async function POST(req: NextRequest) {
             try { (advancedSajuData as Record<string, unknown>).hyeongchung = sajuModule.analyzeHyeongchung(pillarsSimple); } catch { /* ignore */ }
             try { (advancedSajuData as Record<string, unknown>).sibsin = sajuModule.analyzeSibsinComprehensive(pillarsSimple); } catch { /* ignore */ }
             try { (advancedSajuData as Record<string, unknown>).healthCareer = sajuModule.analyzeHealthCareer(pillarsSimple); } catch { /* ignore */ }
-             
-            try { (advancedSajuData as Record<string, unknown>).score = sajuModule.calculateComprehensiveScore(pillarsForAnalysis); } catch { /* ignore */ }
-             
-            try { (advancedSajuData as Record<string, unknown>).ultraAdvanced = sajuModule.performUltraAdvancedAnalysis(pillarsForAnalysis); } catch { /* ignore */ }
+
+            try { (advancedSajuData as Record<string, unknown>).score = sajuModule.calculateComprehensiveScore(pillarsForAnalysisAny); } catch { /* ignore */ }
+
+            try { (advancedSajuData as Record<string, unknown>).ultraAdvanced = sajuModule.performUltraAdvancedAnalysis(pillarsForAnalysisAny); } catch { /* ignore */ }
 
             (sajuData as Record<string, unknown>).advancedAnalysis = advancedSajuData;
           } catch { /* ignore */ }
@@ -224,7 +226,7 @@ export async function POST(req: NextRequest) {
           const eclipseImpacts = astroModule.findEclipseImpact(chartForAdvanced);
           (advancedAstroData as Record<string, unknown>).eclipses = {
             impact: eclipseImpacts.length > 0 ? eclipseImpacts[0] : null,
-            upcoming: astroModule.getUpcomingEclipses(5),
+            upcoming: astroModule.getUpcomingEclipses(new Date(), 5),
           };
         } catch { /* ignore */ }
 
@@ -321,7 +323,7 @@ export async function POST(req: NextRequest) {
       advancedAstro: advancedAstroData,
     });
   } catch (error) {
-    console.error('[precompute-chart] Error:', error);
+    logger.error('[precompute-chart] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

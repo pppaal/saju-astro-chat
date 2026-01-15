@@ -24,7 +24,7 @@ async function test() {
           const url = "http://localhost:3000/api/calendar?" + params;
           console.log("Testing",p.name,yr,loc,"...");
           const res = await fetch(url, {headers:{"x-api-token":TOKEN}});
-          if (\!res.ok) { f++; console.log("  FAILED: HTTP",res.status); continue; }
+          if (!res.ok) { f++; console.log("  FAILED: HTTP",res.status); continue; }
           const data = await res.json();
           s++;
           const g = {0:0,1:0,2:0,3:0,4:0,5:0};

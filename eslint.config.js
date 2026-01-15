@@ -13,6 +13,13 @@ const config = [
       '.hf_cache/**',
       'node_modules/**',
       '.next/**',
+      'playwright-report/**',
+      'test-results/**',
+      'e2e/**',
+      'scripts/**',
+      'tests/**',
+      '*.js',
+      '*.mjs',
     ],
   },
   {

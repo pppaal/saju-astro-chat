@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     const impacts = findEclipseImpact(natalChart, undefined, orb);
 
     // 다가오는 이클립스 (4개)
-    const upcoming = getUpcomingEclipses(4);
+    const upcoming = getUpcomingEclipses(new Date(), 4);
 
     // 이클립스 민감도 체크
     const sensitivity = checkEclipseSensitivity(natalChart);

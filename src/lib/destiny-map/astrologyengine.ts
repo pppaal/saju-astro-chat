@@ -7,7 +7,6 @@ import {
   resolveOptions,
   type Chart,
   type AstrologyChartFacts,
-  type NatalChartData,
   type PlanetData,
   type AspectHit,
   // Extra Points (Chiron, Lilith, Part of Fortune, Vertex)
@@ -15,8 +14,6 @@ import {
   calculateLilith,
   calculatePartOfFortune,
   calculateVertex,
-  extendChartWithExtraPoints,
-  calculateExtraPoints,
   isNightChart,
   // Progressions (Secondary, Solar Arc)
   calculateSecondaryProgressions,
@@ -28,54 +25,45 @@ import {
   calculateLunarReturn,
   getSolarReturnSummary,
   getLunarReturnSummary,
-  // 🐉 Draconic (드라코닉 - 영혼 차트)
+  // Draconic (드라코닉 - 영혼 차트)
   calculateDraconicChart,
   compareDraconicToNatal,
   type DraconicChart,
   type DraconicComparison,
-  // 🎵 Harmonics (하모닉)
+  // Harmonics (하모닉)
   calculateHarmonicChart,
-  analyzeHarmonic,
   generateHarmonicProfile,
   type HarmonicChart,
-  type HarmonicAnalysis,
   type HarmonicProfile,
-  // ☄️ Asteroids (소행성)
+  // Asteroids (소행성)
   calculateAllAsteroids,
   findAllAsteroidAspects,
   type Asteroid,
-  // ⭐ Fixed Stars (항성)
+  // Fixed Stars (항성)
   findFixedStarConjunctions,
   type FixedStarConjunction,
-  // 🌑 Eclipses (일/월식)
+  // Eclipses (일/월식)
   findEclipseImpact,
   getUpcomingEclipses,
   type Eclipse,
   type EclipseImpact,
-  // 📅 Electional (택일)
+  // Electional (택일)
   getMoonPhase,
   checkVoidOfCourse,
-  calculatePlanetaryHour,
   getRetrogradePlanets,
-  analyzeElection,
-  findBestDates,
   type MoonPhase,
   type VoidOfCourseInfo,
   type PlanetaryHour,
   type ElectionalAnalysis,
-  // ⚡ Midpoints (미드포인트)
+  // Midpoints (미드포인트)
   calculateMidpoints,
   findMidpointActivations,
   type Midpoint,
   type MidpointActivation,
   // Types
   type ExtraPoint,
-  type ExtendedChart,
   type ReturnChart,
   type ProgressedChart,
-  type ProgressionInput,
-  type SolarReturnInput,
-  type LunarReturnInput,
 } from "../astrology";
 
 import {
@@ -123,6 +111,7 @@ import { annotateShinsal, toSajuPillarsLike, type SajuPillarsAdapterInput } from
 import fs from "fs";
 import path from "path";
 import tzLookup from "tz-lookup";
+import { logger } from "@/lib/logger";
 
 // Local type definitions for this module
 interface HouseCusp {
@@ -236,7 +225,8 @@ export interface CombinedResult {
   progressions?: {
     secondary: {
       chart: ProgressedChart;
-      moonPhase: ReturnType<typeof getProgressedMoonPhase>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      moonPhase: any; // ReturnType<typeof getProgressedMoonPhase> - can be string or object
       summary: ReturnType<typeof getProgressionSummary>;
     };
     solarArc?: {
@@ -345,6 +335,18 @@ function getNowInTimezone(tz?: string): { year: number; month: number; day: numb
   }
 }
 
+/**
+ * 천간/지지 이름으로 음양 판정
+ * 양(陽) stems: 갑, 병, 무, 경, 임
+ * 양(陽) branches: 자, 인, 진, 오, 신, 술
+ */
+function getYinYangFromName(name: string): '음' | '양' {
+  const yangStems = ['갑', '병', '무', '경', '임'];
+  const yangBranches = ['자', '인', '진', '오', '신', '술'];
+  if (yangStems.includes(name) || yangBranches.includes(name)) return '양';
+  return '음';
+}
+
 async function getSinsal(pillars: SajuPillars) {
   try {
     if (!pillars?.year || !pillars?.month || !pillars?.day || !pillars?.time) return null;
@@ -362,7 +364,7 @@ async function getSinsal(pillars: SajuPillars) {
       includeUnlucky: true,
     });
   } catch (err) {
-    console.error("[getSinsal_error]", err);
+    logger.error("[getSinsal_error]", err);
     return null;
   }
 }
@@ -475,11 +477,11 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     // 캐시 확인
     const cached = destinyMapCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      if (enableDebugLogs) { console.warn("[Engine] Cache hit"); }
+      if (enableDebugLogs) { logger.debug("[Engine] Cache hit"); }
       return cached.result;
     }
 
-    if (enableDebugLogs) { console.warn("[Engine] Input received"); }
+    if (enableDebugLogs) { logger.debug("[Engine] Input received"); }
 
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
       throw new Error("Invalid coordinates range");
@@ -487,7 +489,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
 
     const resolvedTz = resolveTimezone(tz, latitude, longitude);
     if (!tz && enableDebugLogs) {
-      console.warn("[Engine] Timezone inferred", resolvedTz);
+      logger.debug("[Engine] Timezone inferred", resolvedTz);
     }
     const gender = (rawGender ?? "male").toLowerCase() as "male" | "female";
     const [year, month, day] = birthDate.split("-").map(Number);
@@ -672,7 +674,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         // Eclipses
         (async () => {
           const eclipseImpacts = findEclipseImpact(natalChart);
-          const upcomingEclipses = getUpcomingEclipses(5);
+          const upcomingEclipses = getUpcomingEclipses(new Date(), 5);
           const firstImpact = eclipseImpacts.length > 0 ? eclipseImpacts[0] : null;
           return { impact: firstImpact, upcoming: upcomingEclipses };
         })(),
@@ -680,31 +682,31 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
 
       // 결과 할당
       if (extraPointsResult.status === 'fulfilled') extraPoints = extraPointsResult.value;
-      else if (enableDebugLogs) console.warn("[Extra points skipped]", extraPointsResult.reason);
+      else if (enableDebugLogs) logger.debug("[Extra points skipped]", extraPointsResult.reason);
 
       if (solarReturnResult.status === 'fulfilled') solarReturn = solarReturnResult.value;
-      else if (enableDebugLogs) console.warn("[Solar Return skipped]", solarReturnResult.reason);
+      else if (enableDebugLogs) logger.debug("[Solar Return skipped]", solarReturnResult.reason);
 
       if (lunarReturnResult.status === 'fulfilled') lunarReturn = lunarReturnResult.value;
-      else if (enableDebugLogs) console.warn("[Lunar Return skipped]", lunarReturnResult.reason);
+      else if (enableDebugLogs) logger.debug("[Lunar Return skipped]", lunarReturnResult.reason);
 
       if (progressionsResult.status === 'fulfilled') progressions = progressionsResult.value;
-      else if (enableDebugLogs) console.warn("[Progressions skipped]", progressionsResult.reason);
+      else if (enableDebugLogs) logger.debug("[Progressions skipped]", progressionsResult.reason);
 
       if (draconicResult.status === 'fulfilled') draconic = draconicResult.value;
-      else if (enableDebugLogs) console.warn("[Draconic skipped]", draconicResult.reason);
+      else if (enableDebugLogs) logger.debug("[Draconic skipped]", draconicResult.reason);
 
       if (harmonicsResult.status === 'fulfilled') harmonics = harmonicsResult.value;
-      else if (enableDebugLogs) console.warn("[Harmonics skipped]", harmonicsResult.reason);
+      else if (enableDebugLogs) logger.debug("[Harmonics skipped]", harmonicsResult.reason);
 
       if (asteroidsResult.status === 'fulfilled') asteroids = asteroidsResult.value;
-      else if (enableDebugLogs) console.warn("[Asteroids skipped]", asteroidsResult.reason);
+      else if (enableDebugLogs) logger.debug("[Asteroids skipped]", asteroidsResult.reason);
 
       if (fixedStarsResult.status === 'fulfilled') fixedStars = fixedStarsResult.value;
-      else if (enableDebugLogs) console.warn("[Fixed Stars skipped]", fixedStarsResult.reason);
+      else if (enableDebugLogs) logger.debug("[Fixed Stars skipped]", fixedStarsResult.reason);
 
       if (eclipsesResult.status === 'fulfilled') eclipses = eclipsesResult.value;
-      else if (enableDebugLogs) console.warn("[Eclipses skipped]", eclipsesResult.reason);
+      else if (enableDebugLogs) logger.debug("[Eclipses skipped]", eclipsesResult.reason);
 
       // ===== 📅 Electional (택일 분석 - 출생 차트 기반) =====
       try {
@@ -721,6 +723,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
             voidOfCourse,
             planetaryHour: {
               planet: "Sun",
+              dayRuler: "Sun",
               startTime: nowDate,
               endTime: new Date(nowDate.getTime() + 3600000),
               isDay: true,
@@ -731,7 +734,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           };
         }
       } catch (elErr) {
-        if (enableDebugLogs) console.warn("[Electional calculation skipped]", elErr);
+        if (enableDebugLogs) logger.debug("[Electional calculation skipped]", elErr);
       }
 
       // ===== ⚡ Midpoints (미드포인트) =====
@@ -752,15 +755,15 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           activations: midpointActivations,
         };
       } catch (mpErr) {
-        if (enableDebugLogs) console.warn("[Midpoints calculation skipped]", mpErr);
+        if (enableDebugLogs) logger.debug("[Midpoints calculation skipped]", mpErr);
       }
 
     } catch (advErr) {
-      if (enableDebugLogs) console.warn("[Advanced astrology features skipped]", advErr);
+      if (enableDebugLogs) logger.debug("[Advanced astrology features skipped]", advErr);
     }
 
     if (enableDebugLogs) {
-      console.warn("[Astrology finished]:", {
+      logger.debug("[Astrology finished]:", {
         sun: planets.find((p) => p.name === "Sun")?.sign,
         moon: planets.find((p) => p.name === "Moon")?.sign,
         extraPoints: extraPoints ? Object.keys(extraPoints) : 'none',
@@ -784,12 +787,13 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
 
     // calculateSajuData returns: { yearPillar, monthPillar, dayPillar, timePillar, daeWoon, fiveElements, dayMaster }
      
-    let sajuFacts: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let sajuFacts: any = {};
     try {
       sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, "solar", timezone);
-      if (enableDebugLogs) { console.warn("[SajuFacts keys]:", Object.keys(sajuFacts || {})); }
+      if (enableDebugLogs) { logger.debug("[SajuFacts keys]:", Object.keys(sajuFacts || {})); }
     } catch (err) {
-      console.error("[calculateSajuData Error]", err);
+      logger.error("[calculateSajuData Error]", err);
     }
 
     const pillars: SajuPillars = {
@@ -798,9 +802,10 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
       day: sajuFacts?.dayPillar,
       time: sajuFacts?.timePillar,
     };
-    const dayMaster = sajuFacts?.dayMaster ?? {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dayMaster: any = sajuFacts?.dayMaster ?? {};
     if (enableDebugLogs) {
-      console.warn("[computeDestinyMap] dayMaster extracted:", JSON.stringify(dayMaster));
+      logger.debug("[computeDestinyMap] dayMaster extracted:", JSON.stringify(dayMaster));
     }
 
     let daeun: unknown[] = [];
@@ -814,7 +819,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
     if (hasValidPillars) {
       try {
          
-        const d = getDaeunCycles(birthDateObj, gender, pillars, dayMaster, timezone);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const d = getDaeunCycles(birthDateObj, gender, pillars as any, dayMaster, timezone);
          
         // 세운: 현재 연도부터 향후 10년 (과거가 아닌 미래/현재 운세)
         const a = getAnnualCycles(currentYear, 10, dayMaster);
@@ -828,25 +834,25 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         annual = Array.isArray(a) ? a : [];
         monthly = Array.isArray(m) ? m : [];
         iljin = Array.isArray(i) ? i : [];
-        console.warn("[Unse cycles] daeun:", daeun.length, "annual:", annual.length, "monthly:", monthly.length);
+        logger.debug("[Unse cycles]", { daeun: daeun.length, annual: annual.length, monthly: monthly.length });
 
         // CRITICAL: Daeun must exist
         if (daeun.length === 0) {
-          console.error("[Unse CRITICAL] daeun is EMPTY!");
-          console.error("[Unse DEBUG] getDaeunCycles returned:", JSON.stringify(d));
-          console.error("[Unse DEBUG] birthDateObj:", birthDateObj?.toISOString());
-          console.error("[Unse DEBUG] gender:", gender);
-          console.error("[Unse DEBUG] timezone:", timezone);
-          console.error("[Unse DEBUG] pillars.year:", JSON.stringify(pillars.year));
-          console.error("[Unse DEBUG] pillars.month:", JSON.stringify(pillars.month));
-          console.error("[Unse DEBUG] dayMaster:", JSON.stringify(dayMaster));
+          logger.error("[Unse CRITICAL] daeun is EMPTY!");
+          logger.error("[Unse DEBUG] getDaeunCycles returned:", JSON.stringify(d));
+          logger.error("[Unse DEBUG] birthDateObj:", birthDateObj?.toISOString());
+          logger.error("[Unse DEBUG] gender:", gender);
+          logger.error("[Unse DEBUG] timezone:", timezone);
+          logger.error("[Unse DEBUG] pillars.year:", JSON.stringify(pillars.year));
+          logger.error("[Unse DEBUG] pillars.month:", JSON.stringify(pillars.month));
+          logger.error("[Unse DEBUG] dayMaster:", JSON.stringify(dayMaster));
           // 대운이 없으면 문제가 있는 것이므로 여기서 throw하지 않고 로그만 남김
         }
       } catch (err) {
-        console.error("[Unse calculation ERROR]", err);
+        logger.error("[Unse calculation ERROR]", err);
       }
     } else {
-      console.error("[Unse CRITICAL] Invalid pillars - cannot calculate daeun!", {
+      logger.error("[Unse CRITICAL] Invalid pillars - cannot calculate daeun!", {
         year: !!pillars.year,
         month: !!pillars.month,
         day: !!pillars.day
@@ -891,26 +897,6 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           yin_yang: (dm?.yinYang || '양') as '음' | '양',
         };
 
-        // SajuPillarsLike for shinsal modules (heavenlyStem/earthlyBranch format)
-        const pillarsLike = toSajuPillarsLike({
-          yearPillar: {
-            heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-            earthlyBranch: { name: pillars.year.earthlyBranch?.name || '', element: (pillars.year.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-          },
-          monthPillar: {
-            heavenlyStem: { name: pillars.month.heavenlyStem?.name || '', element: (pillars.month.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-            earthlyBranch: { name: pillars.month.earthlyBranch?.name || '', element: (pillars.month.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-          },
-          dayPillar: {
-            heavenlyStem: { name: pillars.day.heavenlyStem?.name || '', element: (pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-            earthlyBranch: { name: pillars.day.earthlyBranch?.name || '', element: (pillars.day.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-          },
-          timePillar: {
-            heavenlyStem: { name: pillars.time.heavenlyStem?.name || '', element: (pillars.time.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-            earthlyBranch: { name: pillars.time.earthlyBranch?.name || '', element: (pillars.time.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수' },
-          },
-        });
-
         // SajuPillarsInput for geokguk/yongsin/tonggeun modules (stem/branch)
         // Note: Some modules use 'hour', others use 'time' - include both for compatibility
         const timePillarSimple = { stem: pillars.time.heavenlyStem?.name || '', branch: pillars.time.earthlyBranch?.name || '' };
@@ -928,9 +914,9 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         try {
           const extended = analyzeExtendedSaju(dayMasterForAnalysis, pillarsForAnalysis);
           advancedAnalysis.extended = extended;
-          if (enableDebugLogs) console.warn("[Extended analysis]:", extended.strength.level, extended.geokguk.type);
+          if (enableDebugLogs) logger.debug("[Extended analysis]:", { strength: extended.strength.level, geokguk: extended.geokguk.type });
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Extended analysis skipped]", e);
+          if (enableDebugLogs) logger.debug("[Extended analysis skipped]", e);
         }
 
         // 2. 격국 (새 모듈) - uses pillarsSimple format
@@ -938,7 +924,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           const geokguk = determineGeokguk(pillarsSimple);
           advancedAnalysis.geokguk = geokguk;
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Geokguk skipped]", e);
+          if (enableDebugLogs) logger.debug("[Geokguk skipped]", e);
         }
 
         // 3. 용신 (새 모듈) - uses pillarsSimple format
@@ -946,7 +932,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           const yongsin = determineYongsin(pillarsSimple);
           advancedAnalysis.yongsin = yongsin;
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Yongsin skipped]", e);
+          if (enableDebugLogs) logger.debug("[Yongsin skipped]", e);
         }
 
         // 4. 통근/투출/회국/득령 - uses pillarsSimple format
@@ -957,7 +943,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           const monthBranch = pillarsSimple.month.branch;
           advancedAnalysis.deukryeong = calculateDeukryeong(dayMasterForAnalysis.name, monthBranch);
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Tonggeun/Tuechul/Hoeguk skipped]", e);
+          if (enableDebugLogs) logger.debug("[Tonggeun/Tuechul/Hoeguk skipped]", e);
         }
 
         // 5. 형충회합 - eslint-disable for type mismatch
@@ -965,7 +951,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
            
           advancedAnalysis.hyeongchung = analyzeHyeongchung(pillarsSimple);
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Hyeongchung skipped]", e);
+          if (enableDebugLogs) logger.debug("[Hyeongchung skipped]", e);
         }
 
         // 6. 십신 심층 분석 (takes 1 argument)
@@ -973,7 +959,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
            
           advancedAnalysis.sibsin = analyzeSibsinComprehensive(pillarsSimple);
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Sibsin analysis skipped]", e);
+          if (enableDebugLogs) logger.debug("[Sibsin analysis skipped]", e);
         }
 
         // 7. 건강/직업 분석 (takes 1 argument)
@@ -981,22 +967,12 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
            
           advancedAnalysis.healthCareer = analyzeHealthCareer(pillarsSimple);
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Health/Career analysis skipped]", e);
+          if (enableDebugLogs) logger.debug("[Health/Career analysis skipped]", e);
         }
 
         // 8. 종합 점수 (takes pillars and dayMaster)
         // calculateComprehensiveScore expects SajuPillars format with heavenlyStem/earthlyBranch objects
         try {
-          // Helper to derive yin_yang from stem/branch name (천간/지지 이름으로 음양 판정)
-          const getYinYangFromName = (name: string): '음' | '양' => {
-            // 양(陽) stems: 갑, 병, 무, 경, 임
-            const yangStems = ['갑', '병', '무', '경', '임'];
-            // 양(陽) branches: 자, 인, 진, 오, 신, 술
-            const yangBranches = ['자', '인', '진', '오', '신', '술'];
-            if (yangStems.includes(name) || yangBranches.includes(name)) return '양';
-            return '음';
-          };
-
           const pillarsForScore = {
             year: {
               heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.heavenlyStem?.name || '') },
@@ -1020,52 +996,46 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
             },
           };
            
-          advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as any);
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Score calculation skipped]", e);
+          if (enableDebugLogs) logger.debug("[Score calculation skipped]", e);
         }
 
         // 9. 🔥 1000% 급 고급 분석 (종격, 화격, 일주론 심화, 공망 심화, 삼기)
         // performUltraAdvancedAnalysis expects SajuPillars format with heavenlyStem/earthlyBranch objects
         try {
-          // Reuse the helper from above (defined in pillarsForScore block)
-          const getYinYangFromNameUltra = (name: string): '음' | '양' => {
-            const yangStems = ['갑', '병', '무', '경', '임'];
-            const yangBranches = ['자', '인', '진', '오', '신', '술'];
-            if (yangStems.includes(name) || yangBranches.includes(name)) return '양';
-            return '음';
-          };
-
           const pillarsForUltra = {
             year: {
-              heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.year.heavenlyStem?.name || '') },
-              earthlyBranch: { name: pillars.year.earthlyBranch?.name || '', element: (pillars.year.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.year.earthlyBranch?.name || '') },
+              heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.year.earthlyBranch?.name || '', element: (pillars.year.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.earthlyBranch?.name || '') },
               jijanggan: (pillars.year as { jijanggan?: Record<string, unknown> }).jijanggan || {},
             },
             month: {
-              heavenlyStem: { name: pillars.month.heavenlyStem?.name || '', element: (pillars.month.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.month.heavenlyStem?.name || '') },
-              earthlyBranch: { name: pillars.month.earthlyBranch?.name || '', element: (pillars.month.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.month.earthlyBranch?.name || '') },
+              heavenlyStem: { name: pillars.month.heavenlyStem?.name || '', element: (pillars.month.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.month.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.month.earthlyBranch?.name || '', element: (pillars.month.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.month.earthlyBranch?.name || '') },
               jijanggan: (pillars.month as { jijanggan?: Record<string, unknown> }).jijanggan || {},
             },
             day: {
-              heavenlyStem: { name: pillars.day.heavenlyStem?.name || '', element: (pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.day.heavenlyStem?.name || '') },
-              earthlyBranch: { name: pillars.day.earthlyBranch?.name || '', element: (pillars.day.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.day.earthlyBranch?.name || '') },
+              heavenlyStem: { name: pillars.day.heavenlyStem?.name || '', element: (pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.day.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.day.earthlyBranch?.name || '', element: (pillars.day.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.day.earthlyBranch?.name || '') },
               jijanggan: (pillars.day as { jijanggan?: Record<string, unknown> }).jijanggan || {},
             },
             time: {
-              heavenlyStem: { name: pillars.time.heavenlyStem?.name || '', element: (pillars.time.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.time.heavenlyStem?.name || '') },
-              earthlyBranch: { name: pillars.time.earthlyBranch?.name || '', element: (pillars.time.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromNameUltra(pillars.time.earthlyBranch?.name || '') },
+              heavenlyStem: { name: pillars.time.heavenlyStem?.name || '', element: (pillars.time.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.time.heavenlyStem?.name || '') },
+              earthlyBranch: { name: pillars.time.earthlyBranch?.name || '', element: (pillars.time.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.time.earthlyBranch?.name || '') },
               jijanggan: (pillars.time as { jijanggan?: Record<string, unknown> }).jijanggan || {},
             },
           };
            
-          advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as any);
         } catch (e) {
-          if (enableDebugLogs) console.warn("[Ultra Advanced analysis skipped]", e);
+          if (enableDebugLogs) logger.debug("[Ultra Advanced analysis skipped]", e);
         }
 
         if (enableDebugLogs) {
-          console.warn("[Advanced Saju Analysis completed]:", {
+          logger.debug("[Advanced Saju Analysis completed]:", {
             hasExtended: !!advancedAnalysis.extended,
             hasGeokguk: !!advancedAnalysis.geokguk,
             hasYongsin: !!advancedAnalysis.yongsin,
@@ -1078,31 +1048,22 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           });
         }
       } catch (advErr) {
-        console.warn("[Advanced Saju Analysis error]", advErr);
+        logger.warn("[Advanced Saju Analysis error]", advErr);
       }
     }
 
     // ---------- Summary ----------
-    // dayMaster는 sajuFacts?.dayMaster에서 가져옴 (line 780)
-    // sajuFacts.dayMaster 구조: { name: '庚', element: '금', yin_yang: '양' } (from STEMS)
-    // dayMaster가 비어있으면 sajuFacts에서 직접 가져오기
-    // v9 fix: always use sajuFacts.dayMaster as primary source
-    console.warn("[v9 DEBUG] dayMaster:", JSON.stringify(dayMaster));
-    console.warn("[v9 DEBUG] sajuFacts.dayMaster:", JSON.stringify(sajuFacts?.dayMaster));
-     
+    // Use sajuFacts.dayMaster as primary source for day master info
     const effectiveDayMaster = sajuFacts?.dayMaster || dayMaster || {};
-    // Direct access to effectiveDayMaster properties
-     
-    const edm = effectiveDayMaster as Record<string, unknown> | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const edm = effectiveDayMaster as any;
     const dmName: string | undefined = edm?.name;
     const dmElement: string | undefined = edm?.element;
-    console.warn("[v9 DEBUG] dmName:", dmName, "dmElement:", dmElement, "dmName truthy:", !!dmName);
     const dayMasterText = dmName
       ? `${dmName} (${dmElement ?? ""})`
       : dmElement
       ? `(${dmElement})`
       : "Unknown";
-    console.warn("[v9 DEBUG] dayMasterText:", dayMasterText);
     const sun = planets.find((p) => p.name === "Sun")?.sign ?? "-";
     const moon = planets.find((p) => p.name === "Moon")?.sign ?? "-";
     const element =
@@ -1153,9 +1114,9 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
           ),
           "utf8"
         );
-        console.warn("[Engine] Full output saved:", file);
+        logger.debug("[Engine] Full output saved:", file);
       } catch (err) {
-        console.warn("Log save failed:", err);
+        logger.warn("Log save failed:", err);
       }
     }
 
@@ -1173,8 +1134,8 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
         ascendant,
         mc,
         aspects: astroAspects,
-        meta: astroMeta,
-        options: astroOptions,
+        meta: astroMeta as Record<string, unknown>,
+        options: astroOptions as Record<string, unknown>,
         transits,
       },
       saju: { facts: { ...sajuFacts, birthDate }, pillars, dayMaster, unse: { daeun, annual, monthly, iljin }, sinsal, advancedAnalysis },
@@ -1209,7 +1170,7 @@ export async function computeDestinyMap(input: CombinedInput): Promise<CombinedR
 
     return result;
   } catch (err) {
-    console.error("[computeDestinyMap Error]", err);
+    logger.error("[computeDestinyMap Error]", err);
     return {
       meta: { generator: "DestinyMap Core Engine (error)", generatedAt: new Date().toISOString() },
       astrology: {},

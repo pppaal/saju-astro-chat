@@ -85,6 +85,7 @@ import {
 import {
   findFixedStarConjunctions,
 } from "@/lib/astrology/foundation/fixedStars";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -317,28 +318,28 @@ export async function POST(request: Request) {
 
           if (cachedSaju && !saju) {
             saju = cachedSaju as SajuDataStructure;
-            console.warn("[chat-stream] Using cached saju from PersonaMemory");
+            logger.warn("[chat-stream] Using cached saju from PersonaMemory");
           }
           if (cachedAstro && !astro) {
             astro = cachedAstro as Chart;
-            console.warn("[chat-stream] Using cached astro from PersonaMemory");
+            logger.warn("[chat-stream] Using cached astro from PersonaMemory");
           }
 
           // Fill in missing birth info from user profile
           if (!effectiveBirthDate && userProfile.birthDate) {
             effectiveBirthDate = userProfile.birthDate;
-            console.warn("[chat-stream] Auto-loaded birthDate from profile");
+            logger.warn("[chat-stream] Auto-loaded birthDate from profile");
           }
           if (!effectiveBirthTime && userProfile.birthTime) {
             effectiveBirthTime = userProfile.birthTime;
-            console.warn("[chat-stream] Auto-loaded birthTime from profile");
+            logger.warn("[chat-stream] Auto-loaded birthTime from profile");
           }
           if (userProfile.gender) {
             effectiveGender = userProfile.gender === "M" ? "male" : userProfile.gender === "F" ? "female" : effectiveGender;
           }
         }
       } catch (e) {
-        console.warn("[chat-stream] Failed to auto-load birth profile:", e);
+        logger.warn("[chat-stream] Failed to auto-load birth profile:", e);
       }
     }
 
@@ -450,7 +451,7 @@ export async function POST(request: Request) {
 
           if (parts.length > 0) {
             personaMemoryContext = parts.join(" | ");
-            console.warn(`[chat-stream] PersonaMemory loaded: ${personaMemory.sessionCount} sessions`);
+            logger.warn(`[chat-stream] PersonaMemory loaded: ${personaMemory.sessionCount} sessions`);
           }
         }
 
@@ -482,10 +483,10 @@ export async function POST(request: Request) {
 
         if (sessionSummaries.length > 0) {
           recentSessionSummaries = sessionSummaries.join("\n");
-          console.warn(`[chat-stream] Loaded ${sessionSummaries.length} recent session summaries`);
+          logger.warn(`[chat-stream] Loaded ${sessionSummaries.length} recent session summaries`);
         }
       } catch (e) {
-        console.warn("[chat-stream] Failed to load persona memory:", e);
+        logger.warn("[chat-stream] Failed to load persona memory:", e);
       }
     }
 
@@ -494,17 +495,17 @@ export async function POST(request: Request) {
       try {
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
         saju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender as 'male' | 'female', "solar", userTz) as unknown as SajuDataStructure;
-        console.warn("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
+        logger.warn("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
       } catch (e) {
-        console.warn("[chat-stream] Failed to compute saju:", e);
+        logger.warn("[chat-stream] Failed to compute saju:", e);
       }
     }
 
     // 🔍 DEBUG: Log saju.unse to verify daeun data
-    console.warn("[chat-stream] saju.unse exists:", !!saju?.unse);
-    console.warn("[chat-stream] saju.unse.daeun count:", saju?.unse?.daeun?.length ?? 0);
+    logger.warn("[chat-stream] saju.unse exists:", !!saju?.unse);
+    logger.warn("[chat-stream] saju.unse.daeun count:", saju?.unse?.daeun?.length ?? 0);
     if (saju?.unse?.daeun?.[0]) {
-      console.warn("[chat-stream] First daeun:", JSON.stringify(saju.unse.daeun[0]));
+      logger.warn("[chat-stream] First daeun:", JSON.stringify(saju.unse.daeun[0]));
     }
 
     // Compute astro if not provided or empty
@@ -535,9 +536,9 @@ export async function POST(request: Request) {
           saturn: getPlanet("Saturn"),
           ascendant: natalChartData.ascendant,
         };
-        console.warn("[chat-stream] Computed astro:", (astro?.sun as { sign?: string })?.sign);
+        logger.warn("[chat-stream] Computed astro:", (astro?.sun as { sign?: string })?.sign);
       } catch (e) {
-        console.warn("[chat-stream] Failed to compute astro:", e);
+        logger.warn("[chat-stream] Failed to compute astro:", e);
       }
     }
 
@@ -563,9 +564,9 @@ export async function POST(request: Request) {
           orb: t.orb?.toFixed(1),
           isApplying: t.isApplying,
         }));
-        console.warn("[chat-stream] Current transits found:", currentTransits.length);
+        logger.warn("[chat-stream] Current transits found:", currentTransits.length);
       } catch (e) {
-        console.warn("[chat-stream] Failed to compute transits:", e);
+        logger.warn("[chat-stream] Failed to compute transits:", e);
       }
     }
 
@@ -644,7 +645,7 @@ export async function POST(request: Request) {
         } as unknown as CombinedResult;
 
         // 🔍 DEBUG: Check what advanced data is available
-        console.warn(`[chat-stream] Advanced astro check:`, {
+        logger.warn(`[chat-stream] Advanced astro check:`, {
           hasExtraPoints: !!advancedAstro?.extraPoints,
           hasAsteroids: !!advancedAstro?.asteroids,
           hasSolarReturn: !!advancedAstro?.solarReturn,
@@ -660,9 +661,9 @@ export async function POST(request: Request) {
         });
 
         v3Snapshot = buildAllDataPrompt(lang, theme, combinedResult);
-        console.warn(`[chat-stream] v3.1 snapshot built: ${v3Snapshot.length} chars`);
+        logger.warn(`[chat-stream] v3.1 snapshot built: ${v3Snapshot.length} chars`);
       } catch (e) {
-        console.warn("[chat-stream] Failed to build v3.1 snapshot:", e);
+        logger.warn("[chat-stream] Failed to build v3.1 snapshot:", e);
       }
     }
 
@@ -739,9 +740,9 @@ export async function POST(request: Request) {
         }
 
         predictionSection = lines.join("\n");
-        console.warn(`[chat-stream] Prediction context built: ${predictionSection.length} chars`);
+        logger.warn(`[chat-stream] Prediction context built: ${predictionSection.length} chars`);
       } catch (e) {
-        console.warn("[chat-stream] Failed to build prediction context:", e);
+        logger.warn("[chat-stream] Failed to build prediction context:", e);
       }
     }
 
@@ -952,9 +953,9 @@ export async function POST(request: Request) {
 
           enhancedParts.push("");
           enhancedAnalysisSection = enhancedParts.join("\n");
-          console.warn(`[chat-stream] Enhanced analysis: Gongmang=${gongmangResult.isToday空}, Shinsal=${shinsalResult.active.length}, Energy=${energyResult.energyStrength}`);
+          logger.warn(`[chat-stream] Enhanced analysis: Gongmang=${gongmangResult.isToday空}, Shinsal=${shinsalResult.active.length}, Energy=${energyResult.energyStrength}`);
         } catch (e) {
-          console.warn("[chat-stream] Failed to generate enhanced analysis:", e);
+          logger.warn("[chat-stream] Failed to generate enhanced analysis:", e);
         }
 
         // ========================================
@@ -1014,11 +1015,11 @@ export async function POST(request: Request) {
 
               daeunParts.push("");
               daeunTransitSection = daeunParts.join("\n");
-              console.warn(`[chat-stream] Daeun-Transit sync: ${syncAnalysis.majorTransitions.length} transitions, confidence ${syncAnalysis.overallConfidence}%`);
+              logger.warn(`[chat-stream] Daeun-Transit sync: ${syncAnalysis.majorTransitions.length} transitions, confidence ${syncAnalysis.overallConfidence}%`);
             }
           }
         } catch (e) {
-          console.warn("[chat-stream] Failed to generate daeun-transit sync:", e);
+          logger.warn("[chat-stream] Failed to generate daeun-transit sync:", e);
         }
 
         // ========================================
@@ -1142,9 +1143,9 @@ export async function POST(request: Request) {
 
           tier3Parts.push("");
           advancedAstroSection = tier3Parts.join("\n");
-          console.warn(`[chat-stream] TIER 3 analysis completed`);
+          logger.warn(`[chat-stream] TIER 3 analysis completed`);
         } catch (e) {
-          console.warn("[chat-stream] Failed to generate TIER 3 analysis:", e);
+          logger.warn("[chat-stream] Failed to generate TIER 3 analysis:", e);
         }
 
         // ========================================
@@ -1209,9 +1210,9 @@ export async function POST(request: Request) {
                   : `🌟 Strongest Harmonic: H${strongest.harmonic} (${strongest.meaning})`);
               }
 
-              console.warn(`[chat-stream] TIER 4 Harmonics: age=${userAge}, strength=${ageHarmonic.strength.toFixed(0)}`);
+              logger.warn(`[chat-stream] TIER 4 Harmonics: age=${userAge}, strength=${ageHarmonic.strength.toFixed(0)}`);
             } catch (harmonicErr) {
-              console.warn("[chat-stream] Harmonic analysis failed:", harmonicErr);
+              logger.warn("[chat-stream] Harmonic analysis failed:", harmonicErr);
             }
           }
 
@@ -1224,7 +1225,7 @@ export async function POST(request: Request) {
               tier4Parts.push(lang === "ko" ? "--- 🌑 이클립스(일식/월식) 영향 ---" : "--- 🌑 Eclipse Impact ---");
 
               // 다가오는 이클립스
-              const upcomingEclipses = getUpcomingEclipses(4);
+              const upcomingEclipses = getUpcomingEclipses(new Date(), 4);
               if (upcomingEclipses.length > 0) {
                 tier4Parts.push(lang === "ko"
                   ? `📅 다가오는 이클립스:`
@@ -1258,9 +1259,9 @@ export async function POST(request: Request) {
                   : `⚠️ Eclipse Sensitive: Planets near nodal axis ${sensitivity.sensitivePoints.join(', ')}`);
               }
 
-              console.warn(`[chat-stream] TIER 4 Eclipses: ${eclipseImpacts.length} impacts, sensitive=${sensitivity.sensitive}`);
+              logger.warn(`[chat-stream] TIER 4 Eclipses: ${eclipseImpacts.length} impacts, sensitive=${sensitivity.sensitive}`);
             } catch (eclipseErr) {
-              console.warn("[chat-stream] Eclipse analysis failed:", eclipseErr);
+              logger.warn("[chat-stream] Eclipse analysis failed:", eclipseErr);
             }
           }
 
@@ -1305,17 +1306,17 @@ export async function POST(request: Request) {
                   : `📊 No major fixed star conjunctions within 1° orb`);
               }
 
-              console.warn(`[chat-stream] TIER 4 Fixed Stars: ${starConjunctions.length} conjunctions`);
+              logger.warn(`[chat-stream] TIER 4 Fixed Stars: ${starConjunctions.length} conjunctions`);
             } catch (starErr) {
-              console.warn("[chat-stream] Fixed stars analysis failed:", starErr);
+              logger.warn("[chat-stream] Fixed stars analysis failed:", starErr);
             }
           }
 
           tier4Parts.push("");
           tier4AdvancedSection = tier4Parts.join("\n");
-          console.warn(`[chat-stream] TIER 4 analysis completed`);
+          logger.warn(`[chat-stream] TIER 4 analysis completed`);
         } catch (e) {
-          console.warn("[chat-stream] Failed to generate TIER 4 analysis:", e);
+          logger.warn("[chat-stream] Failed to generate TIER 4 analysis:", e);
         }
 
         // 구체적 날짜 추천 (질문에 특정 활동이 포함된 경우)
@@ -1382,9 +1383,9 @@ export async function POST(request: Request) {
             ];
 
             pastAnalysisSection = pastParts.join("\n");
-            console.warn(`[chat-stream] Past analysis: ${targetYear}, score ${retrospective.score}`);
+            logger.warn(`[chat-stream] Past analysis: ${targetYear}, score ${retrospective.score}`);
           } catch (e) {
-            console.warn("[chat-stream] Failed to generate past analysis:", e);
+            logger.warn("[chat-stream] Failed to generate past analysis:", e);
           }
         }
 
@@ -1462,7 +1463,7 @@ export async function POST(request: Request) {
                 "",
               ].join("\n");
 
-              console.warn(`[chat-stream] Specific date recommendations: ${recommendations.length} for ${detectedActivity}`);
+              logger.warn(`[chat-stream] Specific date recommendations: ${recommendations.length} for ${detectedActivity}`);
             }
 
             // 용신 활성화 시점도 추가
@@ -1479,11 +1480,11 @@ export async function POST(request: Request) {
                   "",
                   generateYongsinPromptContext(activations.slice(0, 5), primaryYongsin, lang as "ko" | "en"),
                 ].join("\n");
-                console.warn(`[chat-stream] Yongsin activation periods: ${activations.length} for ${primaryYongsin}`);
+                logger.warn(`[chat-stream] Yongsin activation periods: ${activations.length} for ${primaryYongsin}`);
               }
             }
           } catch (e) {
-            console.warn("[chat-stream] Failed to generate specific date recommendations:", e);
+            logger.warn("[chat-stream] Failed to generate specific date recommendations:", e);
           }
         }
 
@@ -1517,9 +1518,9 @@ export async function POST(request: Request) {
               generateUltraPrecisionPromptContext(weeklyScores, lang as "ko" | "en"),
             ].join("\n");
 
-            console.warn(`[chat-stream] Ultra-precision daily analysis: ${weeklyScores.length} days`);
+            logger.warn(`[chat-stream] Ultra-precision daily analysis: ${weeklyScores.length} days`);
           } catch (e) {
-            console.warn("[chat-stream] Failed to generate daily analysis:", e);
+            logger.warn("[chat-stream] Failed to generate daily analysis:", e);
           }
         }
 
@@ -1606,9 +1607,9 @@ export async function POST(request: Request) {
             );
 
             lifePredictionSection = lifePredictionParts.join("\n");
-            console.warn(`[chat-stream] Life prediction: ${multiYearTrend.yearlyScores.length} years, trend: ${multiYearTrend.overallTrend}`);
+            logger.warn(`[chat-stream] Life prediction: ${multiYearTrend.yearlyScores.length} years, trend: ${multiYearTrend.overallTrend}`);
           } catch (e) {
-            console.warn("[chat-stream] Failed to generate life prediction:", e);
+            logger.warn("[chat-stream] Failed to generate life prediction:", e);
           }
         }
 
@@ -1637,9 +1638,9 @@ export async function POST(request: Request) {
           "",
         ].join("\n");
 
-        console.warn(`[chat-stream] Advanced timing generated: ${advancedScores.length} months, avg confidence ${Math.round(advancedScores.reduce((s, m) => s + m.confidence, 0) / advancedScores.length)}%`);
+        logger.warn(`[chat-stream] Advanced timing generated: ${advancedScores.length} months, avg confidence ${Math.round(advancedScores.reduce((s, m) => s + m.confidence, 0) / advancedScores.length)}%`);
       } catch (e) {
-        console.warn("[chat-stream] Failed to generate advanced timing scores:", e);
+        logger.warn("[chat-stream] Failed to generate advanced timing scores:", e);
       }
     }
 
@@ -1779,7 +1780,7 @@ export async function POST(request: Request) {
             read();
           }).catch((err) => {
             if (!isClosed) {
-              console.error("[chat-stream sanitize error]", err);
+              logger.error("[chat-stream sanitize error]", err);
               isClosed = true;
               try { controller.close(); } catch { /* already closed */ }
             }
@@ -1799,7 +1800,7 @@ export async function POST(request: Request) {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Chat-Stream API error]", err);
+    logger.error("[Chat-Stream API error]", err);
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

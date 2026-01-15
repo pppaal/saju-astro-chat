@@ -202,11 +202,16 @@ export class InsightGenerator {
   ): FusionInsight | null {
     const { interaction, sajuBasis, astroBasis } = cell;
 
+    // interaction이 없으면 null 반환
+    if (!interaction) {
+      return null;
+    }
+
     // 도메인 결정
     const domain = this.inferDomain(cellKey, sajuBasis, astroBasis);
 
     // 카테고리 결정
-    const category = LEVEL_CATEGORY_MAP[interaction.level];
+    const category: InsightCategory = interaction.level ? LEVEL_CATEGORY_MAP[interaction.level] : 'balance';
 
     // 우선순위 결정
     const priority = this.calculatePriority(interaction.score, layerWeight);
@@ -258,21 +263,7 @@ export class InsightGenerator {
    * 도메인 추론
    */
   private inferDomain(cellKey: string, sajuBasis?: string, astroBasis?: string): InsightDomain {
-    // 십신 기반 추론
-    for (const [sibsin, domains] of Object.entries(SIBSIN_DOMAIN_MAP)) {
-      if (cellKey.includes(sibsin) || sajuBasis?.includes(sibsin)) {
-        return domains[0];
-      }
-    }
-
-    // 행성 기반 추론
-    for (const [planet, domains] of Object.entries(PLANET_DOMAIN_MAP)) {
-      if (cellKey.includes(planet) || astroBasis?.includes(planet)) {
-        return domains[0];
-      }
-    }
-
-    // 하우스 기반 추론
+    // ??? ?? ??
     const houseMatch = astroBasis?.match(/H(\d+)/);
     if (houseMatch) {
       const houseNum = parseInt(houseMatch[1], 10) as HouseNumber;
@@ -281,7 +272,21 @@ export class InsightGenerator {
       }
     }
 
-    // 기본값
+    // ?? ?? ??
+    for (const [sibsin, domains] of Object.entries(SIBSIN_DOMAIN_MAP)) {
+      if (cellKey.includes(sibsin) || sajuBasis?.includes(sibsin)) {
+        return domains[0];
+      }
+    }
+
+    // ?? ?? ??
+    for (const [planet, domains] of Object.entries(PLANET_DOMAIN_MAP)) {
+      if (cellKey.includes(planet) || astroBasis?.includes(planet)) {
+        return domains[0];
+      }
+    }
+
+    // ???
     return 'personality';
   }
 

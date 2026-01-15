@@ -39,6 +39,7 @@ import {
 import {
   calculateUltraPrecisionScore,
 } from '@/lib/prediction/ultraPrecisionEngine';
+import { logger } from '@/lib/logger';
 
 // ============================================================
 // 고급 분석 결과 타입
@@ -508,7 +509,7 @@ function performAdvancedAnalysis(
     }
 
   } catch (error) {
-    console.error('[Advanced Analysis Error]', error);
+    logger.error('[Advanced Analysis Error]', error);
     // 에러 시에도 부분 결과 반환
   }
 
@@ -966,7 +967,7 @@ export async function POST(request: NextRequest) {
           ...w,
           startDate: w.startDate.toISOString().split('T')[0],
           endDate: w.endDate.toISOString().split('T')[0],
-          bestDays: w.bestDays.map(d => d.toISOString().split('T')[0]),
+          bestDays: (w.bestDays ?? []).map(d => d.toISOString().split('T')[0]),
         }));
 
         return NextResponse.json({
@@ -983,13 +984,13 @@ export async function POST(request: NextRequest) {
               ...weeklyResult.bestWeek,
               startDate: weeklyResult.bestWeek.startDate.toISOString().split('T')[0],
               endDate: weeklyResult.bestWeek.endDate.toISOString().split('T')[0],
-              bestDays: weeklyResult.bestWeek.bestDays.map(d => d.toISOString().split('T')[0]),
+              bestDays: (weeklyResult.bestWeek.bestDays ?? []).map(d => d.toISOString().split('T')[0]),
             } : null,
             worstWeek: weeklyResult.worstWeek ? {
               ...weeklyResult.worstWeek,
               startDate: weeklyResult.worstWeek.startDate.toISOString().split('T')[0],
               endDate: weeklyResult.worstWeek.endDate.toISOString().split('T')[0],
-              bestDays: weeklyResult.worstWeek.bestDays.map(d => d.toISOString().split('T')[0]),
+              bestDays: (weeklyResult.worstWeek.bestDays ?? []).map(d => d.toISOString().split('T')[0]),
             } : null,
             summary: weeklyResult.summary,
           },
@@ -1004,7 +1005,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('[life-prediction API error]', error);
+    logger.error('[life-prediction API error]', error);
     return NextResponse.json(
       {
         success: false,
