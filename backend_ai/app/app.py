@@ -75,6 +75,11 @@ try:
     HAS_REALTIME = True
 except ImportError:
     HAS_REALTIME = False
+    # Fallback functions when realtime_astro is not available
+    def get_current_transits():
+        return {}
+    def get_transit_interpretation(*args, **kwargs):
+        return ""
 
 try:
     from backend_ai.app.chart_generator import (
@@ -769,6 +774,34 @@ def get_lifespan_guidance(birth_year: int) -> dict:
         "astro_parallel": stage_data.get("astro_parallel", {}),
         "guidance": stage_data.get("guidance", stage_data.get("saturn_return_guidance", stage_data.get("uranus_opposition_guidance", {}))),
     }
+
+
+# ============================================================================
+# ChartService Wrapper Functions (Phase 4.6)
+# These functions delegate to ChartService for backward compatibility
+# ============================================================================
+
+def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str = "life", locale: str = "ko") -> str:
+    """Wrapper for ChartService.get_cross_analysis_for_chart()."""
+    try:
+        from backend_ai.services.chart_service import ChartService
+        chart_service = ChartService()
+        return chart_service.get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
+    except Exception as e:
+        logger.warning(f"[get_cross_analysis_for_chart] Failed: {e}")
+        return ""
+
+
+def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale: str = "ko", birth_year: int = None) -> str:
+    """Wrapper for ChartService.get_theme_fusion_rules()."""
+    try:
+        from backend_ai.services.chart_service import ChartService
+        chart_service = ChartService()
+        return chart_service.get_theme_fusion_rules(saju_data, astro_data, theme, locale, birth_year)
+    except Exception as e:
+        logger.warning(f"[get_theme_fusion_rules] Failed: {e}")
+        return ""
+
 
 def get_active_imagination_prompts(context: str) -> list:
     """Get appropriate active imagination exercise prompts based on context."""
