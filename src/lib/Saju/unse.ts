@@ -1,6 +1,7 @@
 // src/lib/Saju/unse.ts
 
 import { toDate } from 'date-fns-tz';
+import { logger } from "@/lib/logger";
 import {
   STEMS, BRANCHES, MONTH_STEM_LOOKUP, CHEONEUL_GWIIN_MAP,
   FIVE_ELEMENT_RELATIONS, getSolarTermKST
@@ -69,7 +70,7 @@ export function getDaeunCycles(
   timezone: string
 ): { daeunsu: number; cycles: DaeunData[] } {
   if (!birthDate || !sajuPillars || !dayMaster || !timezone) {
-    console.error('getDaeunCycles: 유효하지 않은 인자');
+    logger.error('getDaeunCycles: 유효하지 않은 인자');
     return { daeunsu: 0, cycles: [] };
   }
 
@@ -109,7 +110,7 @@ export function getDaeunCycles(
   const startStemIndex = STEMS.findIndex(s => s.name === sajuPillars.month.heavenlyStem.name);
   const startBranchIndex = BRANCHES.findIndex(b => b.name === sajuPillars.month.earthlyBranch.name);
   if (startStemIndex === -1 || startBranchIndex === -1) {
-    console.error('대운 시작 간지 탐색 실패');
+    logger.error('대운 시작 간지 탐색 실패');
     return { daeunsu: 0, cycles: [] };
   }
 

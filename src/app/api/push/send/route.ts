@@ -5,6 +5,7 @@ import {
   sendPushNotification,
   sendTestNotification,
 } from '@/lib/notifications/pushService';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       error: result.error,
     });
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    logger.error('Error sending push notification:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

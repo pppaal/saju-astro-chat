@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { enforceBodySize } from "@/lib/http";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export async function GET() {
 
     return NextResponse.json({ saved: true, result });
   } catch (error) {
-    console.error("GET /api/personality error:", error);
+    logger.error("GET /api/personality error:", error);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }
@@ -116,7 +117,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error("POST /api/personality error:", error);
+    logger.error("POST /api/personality error:", error);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@
 // Local template-based report generation (AI 없이 사주/점성 데이터만으로)
 
 import type { CombinedResult } from "./astrologyengine";
+import { logger } from "@/lib/logger";
 
 // ============================================================
 // Translation Maps
@@ -176,7 +177,7 @@ export function generateLocalReport(
   const astro = extractAstroData(result.astrology);
 
   // Debug logs
-  console.warn("[generateLocalReport] dayMaster:", saju.dayMasterName, "element:", saju.dayMasterElement);
+  logger.debug("[generateLocalReport] dayMaster:", { name: saju.dayMasterName, element: saju.dayMasterElement });
 
   // Translation helpers
   const dominantName = getElementName(saju.dominantElement, isKo);

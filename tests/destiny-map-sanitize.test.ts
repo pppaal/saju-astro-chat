@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 
 describe("sanitizeLocaleText", () => {

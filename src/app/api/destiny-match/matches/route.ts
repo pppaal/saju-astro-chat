@@ -202,28 +202,24 @@ export async function DELETE(req: NextRequest) {
       data: { status: 'unmatched' },
     });
 
-    // 양쪽 matchCount 감소 (0 이하로 내려가지 않도록)
-    const user1Profile = await prisma.matchProfile.findUnique({
-      where: { id: connection.user1Id },
-      select: { matchCount: true },
-    });
-    const user2Profile = await prisma.matchProfile.findUnique({
-      where: { id: connection.user2Id },
-      select: { matchCount: true },
-    });
-
-    if (user1Profile && user1Profile.matchCount > 0) {
-      await prisma.matchProfile.update({
-        where: { id: connection.user1Id },
+    // 양쪽 matchCount 감소 - 배치 쿼리로 최적화 (N+1 방지)
+    // matchCount가 0 이하로 내려가지 않도록 조건부 업데이트
+    await prisma.$transaction([
+      prisma.matchProfile.updateMany({
+        where: {
+          id: connection.user1Id,
+          matchCount: { gt: 0 },
+        },
         data: { matchCount: { decrement: 1 } },
-      });
-    }
-    if (user2Profile && user2Profile.matchCount > 0) {
-      await prisma.matchProfile.update({
-        where: { id: connection.user2Id },
+      }),
+      prisma.matchProfile.updateMany({
+        where: {
+          id: connection.user2Id,
+          matchCount: { gt: 0 },
+        },
         data: { matchCount: { decrement: 1 } },
-      });
-    }
+      }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { addBonusCredits } from "@/lib/credits/creditService";
 import { randomBytes } from "crypto";
 import { sendReferralRewardEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 const REFERRAL_CREDITS = 3; // 추천 시 지급 크레딧
 
@@ -86,13 +87,13 @@ export async function linkReferrer(
         userName: referrerUser.name || undefined,
         creditsAwarded: REFERRAL_CREDITS,
       }).catch((err) => {
-        console.error('[linkReferrer] Failed to send referral reward email:', err);
+        logger.error('[linkReferrer] Failed to send referral reward email:', err);
       });
     }
 
     return { success: true, referrerId: referrer.id };
   } catch (error: unknown) {
-    console.error("[linkReferrer] error:", error);
+    logger.error("[linkReferrer] error:", error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
@@ -129,7 +130,7 @@ export async function claimReferralReward(
 
     return { success: true, creditsAwarded: pendingReward.creditsAwarded };
   } catch (error: unknown) {
-    console.error("[claimReferralReward] error:", error);
+    logger.error("[claimReferralReward] error:", error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }

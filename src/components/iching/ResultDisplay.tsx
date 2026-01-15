@@ -11,6 +11,7 @@ import {
   calculateRelatedHexagrams
 } from "@/lib/iChing/iChingPremiumData";
 import styles from "./ResultDisplay.module.css";
+import { logger } from "@/lib/logger";
 
 interface ResultDisplayProps {
   result: IChingResult | null;
@@ -215,7 +216,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
       if (err instanceof Error && err.name === "AbortError") {
         return;
       }
-      console.error("AI streaming error:", err);
+      logger.error("[ResultDisplay] AI streaming error:", err);
       setAiError(err instanceof Error ? err.message : "AI 해석 중 오류가 발생했습니다.");
       setAiStatus("error");
     }

@@ -3,34 +3,14 @@
 // 종격, 화격, 일주론 심화, 공망 심화 분석
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types';
-import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
-
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element as FiveElement || '토';
-}
-
-function getStemYinYang(stem: string): '양' | '음' {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.yin_yang || '양';
-}
-
-function getStemIndex(stem: string): number {
-  return STEMS.findIndex(s => s.name === stem);
-}
-
-function getBranchIndex(branch: string): number {
-  return BRANCHES.findIndex(b => b.name === branch);
-}
+import { JIJANGGAN, FIVE_ELEMENT_RELATIONS, BRANCHES } from './constants';
+import {
+  getStemElement,
+  getBranchElement,
+  getStemYinYang,
+  getStemIndex,
+  getBranchIndex
+} from './stemBranchUtils';
 
 // ============================================================
 // 타입 정의
@@ -835,7 +815,7 @@ export function performUltraAdvancedAnalysis(pillars: SajuPillars): UltraAdvance
 
   if (jonggeok.isJonggeok) specialFormations.push(jonggeok.type);
   if (hwagyeok.isHwagyeok) specialFormations.push(hwagyeok.type);
-  if (samgi.hasSamgi) specialFormations.push(samgi.type!);
+  if (samgi.hasSamgi && samgi.type) specialFormations.push(samgi.type);
 
   const masterySummary = generateMasterySummary(jonggeok, hwagyeok, iljuDeep, samgi);
 

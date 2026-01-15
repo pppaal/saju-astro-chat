@@ -3,6 +3,7 @@
 
 import type { DailyFortune } from './dailyFortuneGenerator';
 import { generateShareText } from './dailyFortuneGenerator';
+import { logger } from '@/lib/logger';
 
 /**
  * Instagram Graph API 설정
@@ -108,7 +109,7 @@ export async function postToInstagram(
     };
 
   } catch (error) {
-    console.error('[Instagram Post Error]', error);
+    logger.error('[Instagram Post Error]', error);
     return {
       success: false,
       platform: 'instagram',
@@ -179,7 +180,7 @@ export async function postToInstagramStory(
     };
 
   } catch (error) {
-    console.error('[Instagram Story Error]', error);
+    logger.error('[Instagram Story Error]', error);
     return {
       success: false,
       platform: 'instagram',
@@ -236,7 +237,7 @@ export async function postToTwitter(
     };
 
   } catch (error) {
-    console.error('[Twitter Post Error]', error);
+    logger.error('[Twitter Post Error]', error);
     return {
       success: false,
       platform: 'twitter',

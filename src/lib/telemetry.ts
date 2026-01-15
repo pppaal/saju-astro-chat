@@ -1,5 +1,7 @@
 // Minimal telemetry helper with basic PII/token scrubbing
 
+import { logger } from "@/lib/logger";
+
 const REDACTED = "[redacted]";
 const SENSITIVE_KEYS = [
   "authorization",
@@ -41,7 +43,7 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
     ...(context ? (scrubObject(context) as Record<string, unknown>) : {}),
   };
 
-  console.error("Server error:", payload);
+  logger.error("Server error:", payload);
 
   // Send to Sentry for real-time alerts
   if (typeof window === 'undefined') {
@@ -63,7 +65,7 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
 export function captureException(error: unknown, context?: Record<string, unknown>) {
   const scrubbedContext = context ? scrubObject(context) as Record<string, unknown> : undefined;
 
-  console.error("Exception captured:", {
+  logger.error("Exception captured:", {
     message: error instanceof Error ? error.message : String(error),
     ...(scrubbedContext || {})
   });
@@ -95,7 +97,7 @@ export function captureException(error: unknown, context?: Record<string, unknow
  */
 export function trackMetric(name: string, value: number, tags?: Record<string, string>) {
   // Log locally
-  console.log(`[Metric] ${name}: ${value}`, tags || '');
+  logger.debug(`[Metric] ${name}: ${value}`, tags || '');
 
   // Send to Sentry as a custom metric (requires Sentry performance monitoring)
   import('@sentry/nextjs').then(Sentry => {

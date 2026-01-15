@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { getBackendUrl } from "@/lib/backend-url";
+import { logger } from '@/lib/logger';
 
 const BACKEND_URL = getBackendUrl();
 
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("[IChingStream] Backend error:", backendResponse.status, errorText);
+      logger.error("[IChingStream] Backend error:", { status: backendResponse.status, errorText });
       return NextResponse.json(
         { error: "Backend error", detail: errorText },
         { status: backendResponse.status, headers: limit.headers }
@@ -138,7 +139,7 @@ export async function POST(req: Request) {
             controller.enqueue(encoder.encode(text));
           }
         } catch (error) {
-          console.error("[IChingStream] Stream error:", error);
+          logger.error("[IChingStream] Stream error:", error);
         } finally {
           controller.close();
         }
@@ -155,7 +156,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err: unknown) {
-    console.error("I Ching stream error:", err);
+    logger.error("I Ching stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

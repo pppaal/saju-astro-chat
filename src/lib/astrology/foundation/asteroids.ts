@@ -2,7 +2,7 @@
 // 4대 소행성 (Ceres, Pallas, Juno, Vesta) 계산 및 해석
 
 import { ZodiacKo, PlanetBase, Chart, AspectHit, AspectType } from "./types";
-import { formatLongitude, normalize360, angleDiff } from "./utils";
+import { formatLongitude, normalize360, shortestAngle } from "./utils";
 import { inferHouseOf } from "./houses";
 import { getSwisseph } from "./ephe";
 
@@ -19,6 +19,8 @@ export interface Asteroid {
   speed?: number;
   retrograde?: boolean;
 }
+
+export type AsteroidCollection = Asteroid[] & Record<AsteroidName, Asteroid>;
 
 export interface AsteroidInterpretation {
   asteroid: AsteroidName;
@@ -155,15 +157,30 @@ const VESTA_SIGNS: Record<ZodiacKo, { devotion: string; fire: string; work: stri
   Pisces: { devotion: "영성, 예술, 자비", fire: "영적 불", work: "직관적, 창조적", shadow: "경계 상실" },
 };
 
-/**
- * 단일 소행성 계산
- */
+const DEFAULT_HOUSE_CUSPS = Array.from({ length: 12 }, (_, i) => i * 30);
+
+
+
+
+export function calculateAsteroid(
+  asteroidName: AsteroidName,
+  jdUT: number,
+  houseCusps?: number[]
+): Asteroid;
 export function calculateAsteroid(
   jdUT: number,
   asteroidName: AsteroidName,
-  houseCusps: number[]
+  houseCusps?: number[]
+): Asteroid;
+export function calculateAsteroid(
+  a: AsteroidName | number,
+  b: number | AsteroidName,
+  houseCusps: number[] = DEFAULT_HOUSE_CUSPS
 ): Asteroid {
   const swisseph = getSwisseph();
+  const asteroidName = typeof a === "string" ? a : (b as AsteroidName);
+  const jdUT = typeof a === "number" ? a : (b as number);
+  const cusps = houseCusps ?? DEFAULT_HOUSE_CUSPS;
   const asteroidId = getAsteroidIds()[asteroidName];
   const result = swisseph.swe_calc_ut(jdUT, asteroidId, swisseph.SEFLG_SPEED);
 
@@ -173,7 +190,7 @@ export function calculateAsteroid(
 
   const longitude = result.longitude;
   const info = formatLongitude(longitude);
-  const house = inferHouseOf(longitude, houseCusps);
+  const house = inferHouseOf(longitude, cusps);
   const speed = result.speed;
   const retrograde = typeof speed === "number" ? speed < 0 : undefined;
 
@@ -195,14 +212,25 @@ export function calculateAsteroid(
  */
 export function calculateAllAsteroids(
   jdUT: number,
-  houseCusps: number[]
-): Record<AsteroidName, Asteroid> {
-  return {
+  houseCusps: number[] = DEFAULT_HOUSE_CUSPS
+): AsteroidCollection {
+  const collection = {
     Ceres: calculateAsteroid(jdUT, "Ceres", houseCusps),
     Pallas: calculateAsteroid(jdUT, "Pallas", houseCusps),
     Juno: calculateAsteroid(jdUT, "Juno", houseCusps),
     Vesta: calculateAsteroid(jdUT, "Vesta", houseCusps),
   };
+  const list = [
+    collection.Ceres,
+    collection.Pallas,
+    collection.Juno,
+    collection.Vesta,
+  ] as AsteroidCollection;
+  list.Ceres = collection.Ceres;
+  list.Pallas = collection.Pallas;
+  list.Juno = collection.Juno;
+  list.Vesta = collection.Vesta;
+  return list;
 }
 
 /**
@@ -275,7 +303,7 @@ export function interpretAsteroid(asteroid: Asteroid): AsteroidInterpretation {
  */
 export function findAsteroidAspects(
   asteroid: Asteroid,
-  planets: PlanetBase[],
+  planets: PlanetBase[] | Chart,
   orbs?: Partial<Record<AspectType, number>>
 ): AspectHit[] {
   const defaultOrbs: Record<AspectType, number> = {
@@ -305,8 +333,10 @@ export function findAsteroidAspects(
   const aspects: AspectHit[] = [];
   const aspectTypes: AspectType[] = ["conjunction", "sextile", "square", "trine", "opposition"];
 
-  for (const planet of planets) {
-    const diff = angleDiff(asteroid.longitude, planet.longitude);
+  const planetList = Array.isArray(planets) ? planets : planets?.planets ?? [];
+
+  for (const planet of planetList) {
+    const diff = shortestAngle(asteroid.longitude, planet.longitude);
 
     for (const aspectType of aspectTypes) {
       const targetAngle = aspectAngles[aspectType];
@@ -445,3 +475,5 @@ export function analyzeAsteroidTransit(
 
   return { activeTransits, interpretation };
 }
+
+

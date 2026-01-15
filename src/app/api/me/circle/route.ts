@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/authOptions"
 import { prisma } from "@/lib/db/prisma"
+import { logger } from '@/lib/logger';
 
 // GET - List all saved people
 export async function GET() {
@@ -18,7 +19,7 @@ export async function GET() {
 
     return NextResponse.json({ people })
   } catch (error) {
-    console.error("Error fetching circle:", error)
+    logger.error("Error fetching circle:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ person })
   } catch (error) {
-    console.error("Error adding person:", error)
+    logger.error("Error adding person:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -91,7 +92,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error deleting person:", error)
+    logger.error("Error deleting person:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

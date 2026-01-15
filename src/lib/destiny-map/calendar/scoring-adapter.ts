@@ -226,37 +226,39 @@ export function adaptYongsinResult(
 ): SajuScoreInput['yongsin'] {
   const input: SajuScoreInput['yongsin'] = {};
 
-  // 용신 매치
+  // Yongsin factors
   for (const key of yongsinResult.factorKeys) {
-    if (key.includes('PrimaryMatch') || key.includes('yongsinMatch')) {
+    const lowerKey = key.toLowerCase();
+    if (lowerKey.includes('primarymatch') || lowerKey.includes('yongsinmatch')) {
       input.hasPrimaryMatch = true;
-    } else if (key.includes('SecondaryMatch')) {
+    } else if (lowerKey.includes('secondarymatch')) {
       input.hasSecondaryMatch = true;
-    } else if (key.includes('BranchMatch')) {
+    } else if (lowerKey.includes('branchmatch')) {
       input.hasBranchMatch = true;
-    } else if (key.includes('Support')) {
+    } else if (lowerKey.includes('support')) {
       input.hasSupport = true;
-    } else if (key.includes('kibsin') || key.includes('기신')) {
-      if (key.includes('Branch')) {
+    } else if (lowerKey.includes('kibsin') || key.includes('?,??<?')) {
+      if (lowerKey.includes('branch')) {
         input.hasKibsinBranch = true;
       } else {
         input.hasKibsinMatch = true;
       }
-    } else if (key.includes('Harm')) {
+    } else if (lowerKey.includes('harm')) {
       input.hasHarm = true;
     }
   }
 
-  // 격국 매치
+  // Geokguk factors
   for (const key of geokgukResult.factorKeys) {
-    if (key.includes('Favor') || key.includes('favor')) {
+    const lowerKey = key.toLowerCase();
+    if (lowerKey.includes('favor')) {
       input.geokgukFavor = true;
-    } else if (key.includes('Avoid') || key.includes('avoid')) {
+    } else if (lowerKey.includes('avoid')) {
       input.geokgukAvoid = true;
-    } else if (key.includes('Balance') || key.includes('balance')) {
-      input.strengthBalance = true;
-    } else if (key.includes('Imbalance') || key.includes('imbalance') || key.includes('excess')) {
+    } else if (lowerKey.includes('imbalance') || lowerKey.includes('excess')) {
       input.strengthImbalance = true;
+    } else if (lowerKey.includes('balance')) {
+      input.strengthBalance = true;
     }
   }
 

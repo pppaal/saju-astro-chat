@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 import { getEmailProvider } from './providers';
 import type {
   EmailType,
@@ -59,7 +60,7 @@ export async function sendEmail(
 ): Promise<SendEmailResult> {
   // Check if email is configured
   if (!process.env.RESEND_API_KEY && !process.env.SENDGRID_API_KEY) {
-    console.warn('[sendEmail] No email provider configured, skipping email');
+    logger.warn('[sendEmail] No email provider configured, skipping email');
     return { success: false, error: 'Email provider not configured' };
   }
 
@@ -82,7 +83,7 @@ export async function sendEmail(
       tags: [type],
     });
   } catch (error) {
-    console.error('[sendEmail] Provider error:', error);
+    logger.error('[sendEmail] Provider error:', error);
     result = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -104,7 +105,7 @@ export async function sendEmail(
       },
     });
   } catch (logError) {
-    console.error('[sendEmail] Failed to log email:', logError);
+    logger.error('[sendEmail] Failed to log email:', logError);
   }
 
   return result;

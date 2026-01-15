@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger';
 
 // Edge 환경이면 Prisma/NextAuth 이슈가 있을 수 있어 Node 런타임을 강제
 export const runtime = 'nodejs'
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, user }, { status: 200 })
   } catch (error) {
-    console.error('POST /api/user/update-birth-info error:', error)
+    logger.error("POST /api/user/update-birth-info error:", error)
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
   }
 }

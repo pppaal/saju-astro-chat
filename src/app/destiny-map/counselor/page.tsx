@@ -132,7 +132,7 @@ export default function CounselorPage({
         saju = computed as unknown as Record<string, unknown>;
 
         logger.warn("[CounselorPage] Fresh saju computed:", {
-          dayMaster: (computed.dayMaster as any)?.name,
+          dayMaster: computed.dayMaster?.name,
           yearPillar: computed.yearPillar?.heavenlyStem?.name,
         });
       } catch (e: unknown) {

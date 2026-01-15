@@ -6,6 +6,7 @@ import { computeDestinyMap } from "./astrologyengine";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { cacheGet, cacheSet, makeCacheKey } from "@/lib/redis-cache";
+import { logger } from "@/lib/logger";
 
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from "@/lib/security";
@@ -86,9 +87,9 @@ export async function generateReport({
 
   const cached = await cacheGet<ReportOutput>(cacheKey);
   if (cached) {
-    console.warn("[DestinyMap] Cache HIT:", cacheKey);
+    logger.debug("[DestinyMap] Cache HIT:", cacheKey);
     // DEBUG: Log cached structure to diagnose dayMaster/daeun issue
-    console.warn("[DestinyMap] Cached data structure:", {
+    logger.debug("[DestinyMap] Cached data structure:", {
       hasRaw: !!cached.raw,
       rawKeys: cached.raw ? Object.keys(cached.raw) : [],
       hasSaju: !!cached.raw?.saju,
@@ -98,7 +99,7 @@ export async function generateReport({
     });
     return cached;
   }
-  console.warn("[DestinyMap] Cache MISS:", cacheKey);
+  logger.debug("[DestinyMap] Cache MISS:", cacheKey);
 
   const safeExtra = extraPrompt ? guardText(extraPrompt, 2000) : "";
   const promptWasTrimmed = safeExtra.length > 1200;
@@ -151,13 +152,13 @@ export async function generateReport({
   let backendAvailable = true;
 
   // 백엔드 URL이 없거나 템플릿 모드일 경우 로컬 생성
-  console.warn("[DestinyMap] Backend URL check:", {
+  logger.debug("[DestinyMap] Backend URL check:", {
     AI_BACKEND_URL: process.env.AI_BACKEND_URL,
     NEXT_PUBLIC_AI_BACKEND: process.env.NEXT_PUBLIC_AI_BACKEND,
     resolved: backendUrl,
   });
   if (!backendUrl) {
-    console.warn("[DestinyMap] No backend URL - using local template generation");
+    logger.debug("[DestinyMap] No backend URL - using local template generation");
     aiText = generateLocalReport(result, theme, lang, name);
     modelUsed = "local-template";
   } else {
@@ -178,7 +179,7 @@ export async function generateReport({
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       // DEBUG: Log saju.unse data being sent to backend
-      console.warn("[DestinyMap] Sending to backend - saju.unse:", {
+      logger.debug("[DestinyMap] Sending to backend - saju.unse:", {
         daeun_count: result.saju?.unse?.daeun?.length || 0,
         annual_count: result.saju?.unse?.annual?.length || 0,
         monthly_count: result.saju?.unse?.monthly?.length || 0,
@@ -238,7 +239,7 @@ export async function generateReport({
 
       modelUsed = data?.data?.model || "fusion-backend";
     } catch (err) {
-      console.error("[DestinyMap] Fusion backend call failed:", err);
+      logger.error("[DestinyMap] Fusion backend call failed:", err);
       backendAvailable = false;
       // 백엔드 실패 시 로컬 생성으로 fallback
       aiText = generateLocalReport(result, theme, lang, name);
@@ -286,7 +287,7 @@ export async function generateReport({
   // 🔥 Save to cache (24h TTL) - only if we got a real response
   if (modelUsed !== "error-fallback") {
     cacheSet(cacheKey, output, 86400).catch(() => {});
-    console.warn("[DestinyMap] Cached result:", cacheKey);
+    logger.debug("[DestinyMap] Cached result:", cacheKey);
   }
 
   return output;

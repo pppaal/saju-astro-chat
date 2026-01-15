@@ -1,4 +1,4 @@
-import { beforeAll, describe, it, expect } from "vitest";
+import { beforeAll } from "vitest";
 import { API_BASE, fetchOrThrow, waitForServer } from "./test-helpers";
 
 beforeAll(async () => {

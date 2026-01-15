@@ -474,7 +474,7 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
       )}
 
       {/* 종합 운세 점수 - 오각형 레이더 차트 */}
-      <PentagonChart saju={saju as any} astro={astro as any} lang={lang} isKo={isKo} data={data as any} />
+      <PentagonChart saju={saju} astro={astro} lang={lang} isKo={isKo} data={data} />
     </div>
   );
 }

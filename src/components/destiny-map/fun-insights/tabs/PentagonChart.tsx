@@ -2,38 +2,7 @@
 
 import { findPlanetSign } from '../utils';
 import { dayMasterData } from '../data';
-
-// ============ 타입 정의 ============
-interface SajuAdvancedAnalysis {
-  score?: {
-    balance?: number;
-    elementBalance?: number;
-    structure?: number;
-    geokguk?: number;
-    yongsin?: number;
-    usefulGod?: number;
-  };
-  extended?: {
-    strength?: { total?: number; score?: number };
-    geokguk?: { purity?: number };
-    yongsin?: { fitScore?: number };
-  };
-  elementScores?: Array<{ ratio?: number }>;
-  tonggeun?: { score?: number; totalScore?: number };
-}
-
-interface SajuData {
-  advancedAnalysis?: SajuAdvancedAnalysis;
-}
-
-interface AstroData {
-  planets?: Array<{ name: string; sign?: string }>;
-  ascendant?: { sign?: string };
-}
-
-interface ChartData {
-  dayMasterName?: string;
-}
+import type { AstroData, SajuData, TabData } from '../types';
 
 // ============ 상수 정의 ============
 const CHART = {
@@ -128,7 +97,7 @@ interface PentagonChartProps {
   astro?: AstroData | null;
   lang: string;
   isKo: boolean;
-  data?: ChartData | null;
+  data?: TabData | null;
 }
 
 export default function PentagonChart({ saju, astro, lang, isKo, data }: PentagonChartProps) {
@@ -159,9 +128,8 @@ export default function PentagonChart({ saju, astro, lang, isKo, data }: Pentago
   const sajuStability = capAt95(clampScore(tonggeun.score) || clampScore(tonggeun.totalScore) || DEFAULT_SCORES.STABILITY);
 
   // ============ 점성학 점수 계산 ============
-  // Cast to any to handle flexible AstroData shapes from different sources
-  const sunSign = findPlanetSign(astro as any, "sun");
-  const moonSign = findPlanetSign(astro as any, "moon");
+  const sunSign = findPlanetSign(astro, "sun");
+  const moonSign = findPlanetSign(astro, "moon");
   const ascSign = astro?.ascendant?.sign?.toLowerCase() ?? null;
   const dm = data?.dayMasterName ?? "";
 

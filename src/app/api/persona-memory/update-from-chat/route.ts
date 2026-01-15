@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { summarizeConversation, type ConversationSummary } from "@/lib/ai/summarize";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
       summary: summary?.summary,
     });
   } catch (err: unknown) {
-    console.error("[PersonaMemory update-from-chat error]", err);
+    logger.error("[PersonaMemory update-from-chat error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }

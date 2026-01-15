@@ -6,7 +6,6 @@
  * - 오행 분석
  */
 
-import { describe, it, expect } from "vitest";
 import { calculateSajuData, getAnnualCycles, getMonthlyCycles } from "../src/lib/Saju/saju";
 import type { CalculateSajuDataResult } from "../src/lib/Saju/types";
 

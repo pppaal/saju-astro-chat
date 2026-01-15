@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { getReferralStats, getReferralUrl } from "@/lib/referral";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export async function GET() {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Referral GET error]", err);
+    logger.error("[Referral GET error]", err);
     return NextResponse.json(
       { error: message },
       { status: 500 }

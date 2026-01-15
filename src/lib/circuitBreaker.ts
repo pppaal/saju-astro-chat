@@ -9,6 +9,8 @@
  * - HALF_OPEN: 테스트 - 일부 요청만 통과시켜 복구 확인
  */
 
+import { logger } from "@/lib/logger";
+
 type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
 type CircuitBreakerOptions = {
@@ -66,7 +68,7 @@ export function isCircuitOpen(
     if (now - circuit.lastFailure >= opts.resetTimeoutMs) {
       circuit.state = "HALF_OPEN";
       circuit.halfOpenAttempts = 0;
-      console.warn(`[CircuitBreaker:${name}] OPEN → HALF_OPEN (testing)`);
+      logger.warn(`[CircuitBreaker:${name}] OPEN → HALF_OPEN (testing)`);
       return false; // 테스트 요청 허용
     }
     return true; // 차단
@@ -87,7 +89,7 @@ export function recordSuccess(name: string): void {
   const circuit = getCircuit(name);
 
   if (circuit.state === "HALF_OPEN") {
-    console.warn(`[CircuitBreaker:${name}] HALF_OPEN → CLOSED (recovered)`);
+    logger.warn(`[CircuitBreaker:${name}] HALF_OPEN → CLOSED (recovered)`);
   }
 
   circuit.state = "CLOSED";
@@ -112,13 +114,13 @@ export function recordFailure(
   if (circuit.state === "HALF_OPEN") {
     // HALF_OPEN에서 실패하면 다시 OPEN
     circuit.state = "OPEN";
-    console.warn(`[CircuitBreaker:${name}] HALF_OPEN → OPEN (still failing)`);
+    logger.warn(`[CircuitBreaker:${name}] HALF_OPEN → OPEN (still failing)`);
     return;
   }
 
   if (circuit.failures >= opts.failureThreshold) {
     circuit.state = "OPEN";
-    console.warn(
+    logger.warn(
       `[CircuitBreaker:${name}] CLOSED → OPEN (${circuit.failures} failures)`
     );
   }
@@ -135,7 +137,7 @@ export async function withCircuitBreaker<T>(
 ): Promise<{ result: T; fromFallback: boolean }> {
   // 회로가 열려있으면 즉시 폴백
   if (isCircuitOpen(name, options)) {
-    console.warn(`[CircuitBreaker:${name}] Circuit OPEN - using fallback`);
+    logger.warn(`[CircuitBreaker:${name}] Circuit OPEN - using fallback`);
     const fallbackResult =
       typeof fallback === "function"
         ? await (fallback as () => T | Promise<T>)()
@@ -149,7 +151,7 @@ export async function withCircuitBreaker<T>(
     return { result, fromFallback: false };
   } catch (error) {
     recordFailure(name, options);
-    console.warn(`[CircuitBreaker:${name}] Request failed:`, error);
+    logger.warn(`[CircuitBreaker:${name}] Request failed:`, error);
 
     const fallbackResult =
       typeof fallback === "function"

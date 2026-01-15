@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/authOptions"
 import { prisma } from "@/lib/db/prisma"
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(saved)
   } catch (e) {
-    console.error(e)
+    logger.error("[Fortune API] Failed to save fortune:", e)
     return NextResponse.json({ error: "Failed to save fortune" }, { status: 500 })
   }
 }
@@ -70,7 +71,7 @@ export async function GET(req: Request) {
     })
     return NextResponse.json({ fortune: row ?? null })
   } catch (e) {
-    console.error(e)
+    logger.error("[Fortune API] Failed to fetch fortune:", e)
     return NextResponse.json({ error: "Failed to fetch fortune" }, { status: 500 })
   }
 }

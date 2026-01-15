@@ -5,6 +5,7 @@
  */
 
 import { recordCounter, recordGauge } from "@/lib/metrics";
+import { logger } from "@/lib/logger";
 
 // Store active connections (local to this instance)
 const clients = new Map<string, ReadableStreamDefaultController>();
@@ -34,7 +35,7 @@ export function registerClient(
   // Store connection info in Redis with 1 hour TTL
   if (UPSTASH_URL && UPSTASH_TOKEN) {
     storeConnectionInRedis(userId).catch((err) => {
-      console.error("[SSE] Failed to register in Redis:", err);
+      logger.error("[SSE] Failed to register in Redis:", err);
     });
   }
 }
@@ -50,7 +51,7 @@ export function unregisterClient(userId: string): void {
   // Remove from Redis
   if (UPSTASH_URL && UPSTASH_TOKEN) {
     removeConnectionFromRedis(userId).catch((err) => {
-      console.error("[SSE] Failed to unregister from Redis:", err);
+      logger.error("[SSE] Failed to unregister from Redis:", err);
     });
   }
 }
@@ -77,7 +78,7 @@ export async function sendNotification(
       controller.enqueue(`data: ${JSON.stringify(data)}\n\n`);
       return true;
     } catch (error) {
-      console.error("[SSE] Error sending to local connection:", error);
+      logger.error("[SSE] Error sending to local connection:", error);
       clients.delete(userId);
     }
   }
@@ -88,13 +89,13 @@ export async function sendNotification(
       await publishNotificationToRedis(userId, data);
       return true;
     } catch (error) {
-      console.error("[SSE] Failed to publish to Redis:", error);
+      logger.error("[SSE] Failed to publish to Redis:", error);
     }
   }
 
   // Silently fail if user is not connected anywhere
   if (process.env.NODE_ENV === 'development') {
-    console.debug(`[SSE] User ${userId} is not connected (${clients.size} active local connections)`);
+    logger.debug(`[SSE] User ${userId} is not connected (${clients.size} active local connections)`);
   }
   return false;
 }

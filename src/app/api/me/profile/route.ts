@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/authOptions"
 import { prisma } from "@/lib/db/prisma"
+import { logger } from '@/lib/logger';
 
 const isNonEmptyString = (val: unknown, max = 120) =>
   typeof val === "string" && val.trim().length > 0 && val.trim().length <= max
@@ -55,7 +56,7 @@ export async function GET() {
 
     return NextResponse.json({ user })
   } catch (error) {
-    console.error("Error fetching profile:", error)
+    logger.error("Error fetching profile:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -121,7 +122,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true, userId: updated.id })
   } catch (error) {
-    console.error("Error updating profile:", error)
+    logger.error("Error updating profile:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

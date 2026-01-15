@@ -9,6 +9,8 @@ import {
   interpretCompatibilityScore,
   type FusionCompatibilityResult,
 } from "@/lib/compatibility/compatibilityFusion";
+import type { SajuProfile, AstrologyProfile } from "@/lib/compatibility/cosmicCompatibility";
+import type { FiveElement } from "@/lib/Saju/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,8 +22,8 @@ function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max);
 }
 
-// Build SajuProfile from raw saju data (returns any for flexibility with FiveElement types)
-function buildSajuProfile(saju: Record<string, unknown>): Record<string, unknown> | null {
+// Build SajuProfile from raw saju data
+function buildSajuProfile(saju: Record<string, unknown>): SajuProfile | null {
   if (!saju) return null;
 
   const dayMasterName = (saju?.dayMaster as Record<string, unknown>)?.name as string ||
@@ -31,11 +33,15 @@ function buildSajuProfile(saju: Record<string, unknown>): Record<string, unknown
 
   const pillars = saju?.pillars as Record<string, Record<string, string>> || {};
 
+  const elements = (saju?.fiveElements || saju?.elements || {
+    wood: 20, fire: 20, earth: 20, metal: 20, water: 20,
+  }) as SajuProfile['elements'];
+
   return {
     dayMaster: {
       name: dayMasterName,
-      element: dayMasterElement,
-      yin_yang: dayMasterYinYang,
+      element: dayMasterElement as FiveElement,
+      yin_yang: (dayMasterYinYang === 'yin' ? 'yin' : 'yang') as 'yin' | 'yang',
     },
     pillars: {
       year: {
@@ -55,14 +61,12 @@ function buildSajuProfile(saju: Record<string, unknown>): Record<string, unknown
         branch: pillars?.time?.earthlyBranch || '子',
       },
     },
-    elements: saju?.fiveElements || saju?.elements || {
-      wood: 20, fire: 20, earth: 20, metal: 20, water: 20,
-    },
+    elements,
   };
 }
 
 // Build AstrologyProfile from raw astro data
-function buildAstroProfile(astro: Record<string, unknown>): Record<string, unknown> | null {
+function buildAstroProfile(astro: Record<string, unknown>): AstrologyProfile | null {
   if (!astro) return null;
 
   const getElementFromSign = (sign: string): string => {
@@ -230,7 +234,7 @@ export async function POST(request: Request) {
       const p2Astro = buildAstroProfile(person2Astro);
 
       if (p1Saju && p2Saju && p1Astro && p2Astro) {
-        fusionResult = calculateFusionCompatibility(p1Saju as any, p1Astro as any, p2Saju as any, p2Astro as any);
+        fusionResult = calculateFusionCompatibility(p1Saju, p1Astro, p2Saju, p2Astro);
         fusionContext = formatFusionForPrompt(fusionResult, lang);
       }
     } catch (fusionError) {

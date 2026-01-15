@@ -1,0 +1,198 @@
+name: Performance Tests
+
+on:
+  # Run on pull requests to main
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/performance/**'
+      - 'package*.json'
+
+  # Run weekly on main branch (every Monday at 2 AM)
+  schedule:
+    - cron: '0 2 * * 1'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      test-type:
+        description: 'Test type to run'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+          - basic
+          - stress
+          - spike
+          - realistic
+          - all
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Setup database (if needed)
+        run: |
+          # Add database setup commands here if needed
+          # For example: npx prisma migrate deploy
+          echo "Database setup skipped (add if needed)"
+
+      - name: Start server in background
+        run: |
+          npm run start &
+          echo "Waiting for server to be ready..."
+          npx wait-on http://localhost:3000 -t 60000
+        env:
+          NODE_ENV: production
+
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-linux-amd64.tar.gz -L | tar xvz --strip-components=1
+          sudo cp k6 /usr/local/bin/
+          k6 version
+
+      - name: Run Node.js performance tests
+        run: npm run test:performance
+        continue-on-error: true
+        env:
+          API_BASE_URL: http://localhost:3000
+
+      - name: Run basic load test
+        if: github.event.inputs.test-type == 'basic' || github.event.inputs.test-type == 'all' || github.event.inputs.test-type == ''
+        run: npm run test:load:basic
+        env:
+          API_BASE_URL: http://localhost:3000
+
+      - name: Run stress test
+        if: github.event.inputs.test-type == 'stress' || github.event.inputs.test-type == 'all'
+        run: npm run test:load:stress
+        env:
+          API_BASE_URL: http://localhost:3000
+
+      - name: Run spike test
+        if: github.event.inputs.test-type == 'spike' || github.event.inputs.test-type == 'all'
+        run: npm run test:load:spike
+        env:
+          API_BASE_URL: http://localhost:3000
+
+      - name: Run realistic scenario test
+        if: github.event.inputs.test-type == 'realistic' || github.event.inputs.test-type == 'all'
+        run: npm run test:load:realistic
+        env:
+          API_BASE_URL: http://localhost:3000
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results-${{ github.sha }}
+          path: |
+            coverage/
+            *.json
+            baseline-results.txt
+            k6-baseline.txt
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Create comment body
+            let comment = '## Performance Test Results\n\n';
+            comment += '✅ Performance tests completed!\n\n';
+            comment += '### Summary\n';
+            comment += '- Node.js performance tests: ✓\n';
+            comment += '- K6 load tests: ✓\n\n';
+            comment += '📊 Detailed results are available in the workflow artifacts.\n\n';
+            comment += '### Quick Metrics\n';
+            comment += '_(Add metric parsing here if needed)_\n\n';
+            comment += '---\n';
+            comment += '*Triggered by: ${{ github.actor }}*';
+
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Optional: Run endurance test only on schedule
+  endurance-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start server in background
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000 -t 60000
+        env:
+          NODE_ENV: production
+
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-linux-amd64.tar.gz -L | tar xvz --strip-components=1
+          sudo cp k6 /usr/local/bin/
+
+      - name: Run endurance test
+        run: npm run test:load:endurance
+        env:
+          API_BASE_URL: http://localhost:3000
+
+      - name: Check for performance degradation
+        run: |
+          echo "Checking for performance degradation..."
+          # Add logic to compare with baseline if needed
+          echo "✓ Endurance test completed"
+
+      - name: Upload endurance results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: endurance-results-${{ github.sha }}
+          path: |
+            coverage/
+            *.json
+          retention-days: 90

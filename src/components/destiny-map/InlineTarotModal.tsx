@@ -5,6 +5,7 @@ import TarotCard from "@/components/tarot/TarotCard";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import { DrawnCard, Spread, CardInsight } from "@/lib/Tarot/tarot.types";
 import styles from "./InlineTarotModal.module.css";
+import { logger } from "@/lib/logger";
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
@@ -278,7 +279,7 @@ export default function InlineTarotModal({
         setStep("spread-select");
       }
     } catch (err) {
-      console.error("[InlineTarot] auto-select error:", err);
+      logger.error("[InlineTarot] auto-select error:", err);
       // Fallback to manual selection
       setStep("spread-select");
     } finally {
@@ -324,10 +325,10 @@ export default function InlineTarotModal({
         setIsSaved(true);
       } else {
         const err = await res.json().catch(() => ({}));
-        console.error("[InlineTarot] save error:", err);
+        logger.error("[InlineTarot] save error:", err);
       }
     } catch (err) {
-      console.error("[InlineTarot] save error:", err);
+      logger.error("[InlineTarot] save error:", err);
     } finally {
       setIsSaving(false);
     }
@@ -359,7 +360,7 @@ export default function InlineTarotModal({
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
-        console.error("[InlineTarot] API error:", res.status, errorData);
+        logger.error("[InlineTarot] API error:", { status: res.status, errorData });
         throw new Error(`Failed to draw cards: ${res.status} - ${JSON.stringify(errorData)}`);
       }
 
@@ -376,7 +377,7 @@ export default function InlineTarotModal({
       setStep("interpreting");
       await fetchInterpretation(data.drawnCards);
     } catch (err) {
-      console.error("[InlineTarot] draw error:", err);
+      logger.error("[InlineTarot] draw error:", err);
     } finally {
       setIsDrawing(false);
     }
@@ -472,7 +473,7 @@ export default function InlineTarotModal({
 
       setStep("result");
     } catch (err) {
-      console.error("[InlineTarot] interpret error:", err);
+      logger.error("[InlineTarot] interpret error:", err);
       setStep("result");
     }
   };

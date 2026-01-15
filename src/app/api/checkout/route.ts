@@ -8,6 +8,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { enforceBodySize } from '@/lib/http'
+import { logger } from '@/lib/logger'
 import {
   getPriceId,
   getCreditPackPriceId,
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const base = process.env.NEXT_PUBLIC_BASE_URL // e.g., https://your-domain.com
     if (!base) {
-      console.error('ERR: NEXT_PUBLIC_BASE_URL missing')
+      logger.error('ERR: NEXT_PUBLIC_BASE_URL missing')
       recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_base_url' })
       captureServerError(new Error('NEXT_PUBLIC_BASE_URL missing'), { route: '/api/checkout', ip })
       return NextResponse.json({ error: 'missing_base_url' }, { status: 500, headers: rateHeaders })
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     const stripe = getStripe()
     if (!stripe) {
-      console.error('ERR: STRIPE_SECRET_KEY missing')
+      logger.error('ERR: STRIPE_SECRET_KEY missing')
       recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_secret' })
       captureServerError(new Error('STRIPE_SECRET_KEY missing'), { route: '/api/checkout', ip })
       return NextResponse.json({ error: 'missing_secret' }, { status: 500, headers: rateHeaders })
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
 
     const email = sessionUser.email ?? ''
     if (!isValidEmail(email)) {
-      console.warn('[checkout] invalid email for session user', { userId: sessionUser.id })
+      logger.warn('[checkout] invalid email for session user', { userId: sessionUser.id })
       return NextResponse.json({ error: 'invalid_email' }, { status: 400, headers: rateHeaders })
     }
 
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     if (creditPack) {
       const creditPrice = getCreditPackPriceId(creditPack)
       if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
-        console.error('[checkout] credit pack price not allowed', { creditPack })
+        logger.error('[checkout] credit pack price not allowed', { creditPack })
         recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
         return NextResponse.json({ error: 'invalid_credit_pack' }, { status: 400, headers: rateHeaders })
       }
@@ -144,7 +145,7 @@ export async function POST(req: NextRequest) {
     const selectedBilling = billingCycle || 'monthly'
     const price = getPriceId(selectedPlan, selectedBilling)
     if (!price || !allowedPriceIds().includes(price)) {
-      console.error('[checkout] price not allowed', { plan: selectedPlan, billingCycle: selectedBilling })
+      logger.error('[checkout] price not allowed', { plan: selectedPlan, billingCycle: selectedBilling })
       recordCounter('stripe_checkout_price_error', 1, { type: 'subscription' })
       return NextResponse.json({ error: 'invalid_price' }, { status: 400, headers: rateHeaders })
     }
@@ -177,7 +178,7 @@ export async function POST(req: NextRequest) {
   } catch (e: unknown) {
     const err = e as { raw?: { message?: string }; message?: string; code?: string }
     const msg = err?.raw?.message || err?.message || 'unknown'
-    console.error('Stripe error:', msg)
+    logger.error('Stripe error:', msg)
     recordCounter('stripe_checkout_error', 1, { reason: err?.code || 'unknown' })
     captureServerError(e, { route: '/api/checkout', message: msg })
     return NextResponse.json(

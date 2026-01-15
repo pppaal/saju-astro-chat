@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { logger } from '@/lib/logger';
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
   const limitParam = Number(searchParams.get("limit"));
   const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 200) : 200;
 
-  console.log("[cities API] Query:", query, "Limit:", limit);
+  logger.info("[cities API] Query:", { query, limit });
 
   if (query.length < 1) {
     return NextResponse.json({ results: [] });
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
 
   try {
     const data = await loadCities();
-    console.log("[cities API] Loaded cities count:", data.length);
+    logger.info("[cities API] Loaded cities count:", { count: data.length });
     const scored: { c: City; score: number }[] = [];
 
     for (const c of data) {
@@ -61,12 +62,12 @@ export async function GET(request: Request) {
     scored.sort((a, b) => a.score - b.score || a.c.name.localeCompare(b.c.name));
     const results = scored.slice(0, limit).map(({ c }) => c);
 
-    console.log("[cities API] Found results:", results.length);
+    logger.info("[cities API] Found results:", { count: results.length });
     const response = NextResponse.json({ results });
     response.headers.set("Cache-Control", "public, max-age=86400");
     return response;
   } catch (error) {
-    console.error("[cities] Failed to load city data", error);
+    logger.error("[cities] Failed to load city data", error);
     return NextResponse.json({ error: "Failed to load cities" }, { status: 500 });
   }
 }

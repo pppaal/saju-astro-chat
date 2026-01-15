@@ -141,11 +141,15 @@ export class FusionReportGenerator {
       .slice(0, 3)
       .map(([sibsin]) => sibsin as SibsinKind);
 
-    // 격국 설명
+    // ?? ??
     let geokgukDescription: string | undefined;
-    if (input.geokguk && GEOKGUK_INFO[input.geokguk]) {
-      const info = GEOKGUK_INFO[input.geokguk];
-      geokgukDescription = lang === 'ko' ? info.ko : info.en;
+    if (input.geokguk) {
+      const info = GEOKGUK_INFO[input.geokguk as GeokgukType];
+      if (info) {
+        geokgukDescription = lang === 'ko' ? info.ko : info.en;
+      } else {
+        geokgukDescription = lang === 'ko' ? input.geokguk : `Geokguk: ${input.geokguk}`;
+      }
     }
 
     return {
@@ -247,7 +251,7 @@ export class FusionReportGenerator {
     if (score >= 75) return { grade: 'A', gradeDescription: '훌륭한 조화! 성장의 기회가 열려 있습니다.', gradeDescriptionEn: 'Excellent harmony! Opportunities for growth are open.' };
     if (score >= 60) return { grade: 'B', gradeDescription: '좋은 균형. 안정적인 흐름입니다.', gradeDescriptionEn: 'Good balance. Stable flow.' };
     if (score >= 45) return { grade: 'C', gradeDescription: '주의가 필요한 영역이 있습니다. 신중하게 진행하세요.', gradeDescriptionEn: 'Some areas need attention. Proceed carefully.' };
-    return { grade: 'D', gradeDescription: '도전의 시기입니다. 내면 성찰과 준비의 시간으로 삼으세요.', gradeDescriptionEn: 'A challenging period. Use it as a time for inner reflection and preparation.' };
+    return { grade: 'D', gradeDescription: '도전의 시기입니다. 내면 성찰과 준비의 시간으로 삼으세요.', gradeDescriptionEn: 'A challenge-focused period. Use it as a time for inner reflection and preparation.' };
   }
 
   /**

@@ -5,6 +5,7 @@ import {
   savePushSubscription,
   removePushSubscription,
 } from '@/lib/notifications/pushService';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
       message: 'Subscription saved successfully',
     });
   } catch (error) {
-    console.error('Error saving push subscription:', error);
+    logger.error('Error saving push subscription:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -95,7 +96,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Subscription removed successfully',
     });
   } catch (error) {
-    console.error('Error removing push subscription:', error);
+    logger.error('Error removing push subscription:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

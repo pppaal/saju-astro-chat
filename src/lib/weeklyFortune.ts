@@ -1,5 +1,7 @@
 // Weekly Fortune Image Storage using Upstash Redis
 
+import { logger } from "@/lib/logger";
+
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -44,13 +46,13 @@ export async function saveWeeklyFortuneImage(data: WeeklyFortuneData): Promise<b
     });
 
     if (!res.ok) {
-      console.error('[WeeklyFortune] Failed to save:', res.statusText);
+      logger.error('[WeeklyFortune] Failed to save:', res.statusText);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('[WeeklyFortune] Error saving:', error);
+    logger.error('[WeeklyFortune] Error saving:', error);
     return false;
   }
 }
@@ -89,7 +91,7 @@ export async function getWeeklyFortuneImage(): Promise<WeeklyFortuneData | null>
 
     return null;
   } catch (error) {
-    console.error('[WeeklyFortune] Error fetching:', error);
+    logger.error('[WeeklyFortune] Error fetching:', error);
     return null;
   }
 }

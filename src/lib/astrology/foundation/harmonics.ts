@@ -2,7 +2,7 @@
 // 하모닉 점성학 - 숨겨진 패턴과 잠재력 분석
 
 import { Chart, PlanetBase, ZodiacKo, AspectHit } from "./types";
-import { normalize360, formatLongitude, angleDiff } from "./utils";
+import { normalize360, formatLongitude, shortestAngle } from "./utils";
 import { findAspects } from "./aspects";
 
 export interface HarmonicChart extends Chart {
@@ -199,7 +199,7 @@ export function findHarmonicConjunctions(chart: HarmonicChart, orb: number = 10)
     for (let j = i + 1; j < planets.length; j++) {
       if (used.has(planets[j].name)) continue;
 
-      const diff = angleDiff(planets[i].longitude, planets[j].longitude);
+      const diff = shortestAngle(planets[i].longitude, planets[j].longitude);
       if (diff <= orb) {
         group.push(planets[j]);
         used.add(planets[j].name);
@@ -212,7 +212,7 @@ export function findHarmonicConjunctions(chart: HarmonicChart, orb: number = 10)
       );
       const info = formatLongitude(avgLongitude);
       const maxOrb = Math.max(
-        ...group.map(p => angleDiff(p.longitude, avgLongitude))
+        ...group.map(p => shortestAngle(p.longitude, avgLongitude))
       );
 
       conjunctions.push({

@@ -16,6 +16,7 @@ import {
   normalizeMessages as normalizeMessagesBase,
   type ChatMessage,
 } from "@/lib/api";
+import { logger } from '@/lib/logger';
 
 interface CardContext {
   position: string;
@@ -316,7 +317,7 @@ export async function POST(req: Request) {
         }
       }
     } catch (err) {
-      console.error("[TarotChatStream] Failed to fetch personality:", err);
+      logger.error("[TarotChatStream] Failed to fetch personality:", err);
       // Continue without personality data
     }
 
@@ -363,7 +364,7 @@ export async function POST(req: Request) {
       });
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      console.error("[TarotChatStream] Backend connection failed, using fallback:", fetchError);
+      logger.error("[TarotChatStream] Backend connection failed, using fallback:", fetchError);
 
       // Generate fallback response based on context
       const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
@@ -398,7 +399,7 @@ export async function POST(req: Request) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("[TarotChatStream] Backend error:", backendResponse.status, errorText);
+      logger.error("[TarotChatStream] Backend error:", { status: backendResponse.status, errorText });
 
       // Return fallback instead of error
       const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
@@ -456,7 +457,7 @@ export async function POST(req: Request) {
             controller.enqueue(encoder.encode(text));
           }
         } catch (error) {
-          console.error("[TarotChatStream] Stream error:", error);
+          logger.error("[TarotChatStream] Stream error:", error);
         } finally {
           controller.close();
         }
@@ -473,7 +474,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err: unknown) {
-    console.error("Tarot chat stream error:", err);
+    logger.error("Tarot chat stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

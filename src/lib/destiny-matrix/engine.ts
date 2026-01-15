@@ -25,11 +25,26 @@ import type {
 
 import type { FiveElement, SibsinKind, TwelveStageStandard, TwelveStage, RelationHit } from '../Saju/types';
 
-// 건록/제왕을 표준 십이운성으로 변환
-function toStandardStage(stage: TwelveStage): TwelveStageStandard {
-  if (stage === '건록') return '임관';
-  if (stage === '제왕') return '왕지';
-  return stage;
+// Note: 건록(建祿)과 임관(臨官)은 별개 개념
+// - 건록: 특수격국 (Layer 7에서 처리)
+// - 임관: 십이운성의 한 단계 (Layer 6에서 처리)
+// TwelveStage 타입이 둘 다 포함하므로, 십이운성만 필터링
+function toStandardStage(stage: TwelveStage): TwelveStageStandard | null {
+  // 십이운성 12단계만 유효
+  const validStages: TwelveStageStandard[] = [
+    '장생', '목욕', '관대', '임관', '왕지', '쇠',
+    '병', '사', '묘', '절', '태', '양'
+  ];
+
+  // 건록/제왕이 들어오면 십이운성이 아닌 특수 개념이므로 null 반환
+  if (stage === '건록' || stage === '제왕') {
+    logger.warn(`"${stage}" is not a twelve stage, but a special concept. Skipping for Layer 6.`);
+    return null;
+  }
+
+  return validStages.includes(stage as TwelveStageStandard)
+    ? (stage as TwelveStageStandard)
+    : null;
 }
 import type { AspectType } from '../astrology/foundation/types';
 
@@ -47,6 +62,34 @@ import { ADVANCED_ANALYSIS_MATRIX } from './data/layer7-advanced-analysis';
 import { SHINSAL_PLANET_MATRIX } from './data/layer8-shinsal-planet';
 import { ASTEROID_HOUSE_MATRIX, ASTEROID_ELEMENT_MATRIX } from './data/layer9-asteroid-house';
 import { EXTRAPOINT_ELEMENT_MATRIX, EXTRAPOINT_SIBSIN_MATRIX } from './data/layer10-extrapoint-element';
+
+// Import caching system
+import { getCachedMatrix, setCachedMatrix, isCachingEnabled } from './cache';
+import { logger } from '@/lib/logger';
+
+// Import house system configuration
+import { HOUSE_SYSTEM_CONFIG } from './house-system';
+
+// ===========================
+// System Configuration
+// ===========================
+
+/**
+ * House System Used: Placidus (default)
+ *
+ * Rationale:
+ * - Most widely used house system globally
+ * - Time-based calculations for accuracy
+ * - Fallback to Whole Sign for extreme latitudes (>66°)
+ *
+ * Note: If user provides planetHouses, we assume they are already calculated
+ * using their preferred house system. We document our default here for transparency.
+ */
+logger.info('Destiny Matrix using house system:', {
+  default: HOUSE_SYSTEM_CONFIG.default,
+  fallback: HOUSE_SYSTEM_CONFIG.fallbackForHighLatitude,
+  threshold: `${HOUSE_SYSTEM_CONFIG.highLatitudeThreshold}°`,
+});
 
 // ===========================
 // Helper Functions
@@ -213,6 +256,10 @@ function calculateLayer6(input: MatrixCalculationInput): Record<string, MatrixCe
 
   for (const rawStage of stageList) {
     const stage = toStandardStage(rawStage);
+
+    // Skip if not a valid twelve stage (e.g., 건록, 제왕)
+    if (!stage) continue;
+
     for (const [planet, house] of Object.entries(input.planetHouses)) {
       const houseNum = house as HouseNumber;
       const matrixCell = TWELVE_STAGE_HOUSE_MATRIX[stage]?.[houseNum];
@@ -453,7 +500,18 @@ function calculateSummary(
 // ===========================
 
 export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFusionMatrixComputed {
+  // Check cache first (if enabled)
+  if (isCachingEnabled()) {
+    const cached = getCachedMatrix(input);
+    if (cached) {
+      logger.debug('Returning cached matrix result');
+      return cached;
+    }
+  }
+
   // Calculate each layer
+  const startTime = Date.now();
+
   const layer1Results = calculateLayer1(input);
   const layer2Results = calculateLayer2(input);
   const layer3Results = calculateLayer3(input);
@@ -479,9 +537,7 @@ export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFu
     layer10Results,
   );
 
-  // Return calculated results for the specific input (filtered/computed cells)
-  // This returns only the cells relevant to the user's data, not the full static matrices
-  return {
+  const result: DestinyFusionMatrixComputed = {
     layer1_elementCore: layer1Results,
     layer2_sibsinPlanet: layer2Results,
     layer3_sibsinHouse: layer3Results,
@@ -494,6 +550,18 @@ export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFu
     layer10_extraPointElement: layer10Results,
     summary,
   };
+
+  const calculationTime = Date.now() - startTime;
+  logger.debug('Matrix calculation completed', { calculationTimeMs: calculationTime });
+
+  // Store in cache (if enabled)
+  if (isCachingEnabled()) {
+    setCachedMatrix(input, result);
+  }
+
+  // Return calculated results for the specific input (filtered/computed cells)
+  // This returns only the cells relevant to the user's data, not the full static matrices
+  return result;
 }
 
 // ===========================

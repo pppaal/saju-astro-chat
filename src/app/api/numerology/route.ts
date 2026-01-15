@@ -8,6 +8,61 @@ import { NextResponse } from 'next/server';
 import { apiClient } from "@/lib/api";
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
+import { logger } from '@/lib/logger';
+
+// Backend response types
+interface NumerologyProfile {
+  life_path?: { life_path: number };
+  expression?: { expression: number };
+  soul_urge?: { soul_urge: number };
+  personality?: { personality: number };
+  personal_year?: { personal_year: number; calculation?: string };
+  personal_month?: { personal_month: number };
+  personal_day?: { personal_day: number };
+  korean_name_number?: { name_number: number; total_strokes: number };
+}
+
+interface NumerologyInterpretation {
+  meaning?: string;
+  description?: string;
+  theme?: string;
+}
+
+interface NumerologyInterpretations {
+  life_path?: NumerologyInterpretation;
+  expression?: NumerologyInterpretation;
+  soul_urge?: NumerologyInterpretation;
+  personality?: NumerologyInterpretation;
+  personal_year?: NumerologyInterpretation;
+  personal_month?: NumerologyInterpretation;
+  personal_day?: NumerologyInterpretation;
+  korean_name?: NumerologyInterpretation;
+}
+
+interface NumerologyBackendData {
+  profile?: NumerologyProfile;
+  interpretations?: NumerologyInterpretations;
+}
+
+// Frontend response types
+interface NumerologyNumberResult {
+  number: number | undefined;
+  meaning: string;
+  description?: string;
+  theme?: string;
+  strokes?: number;
+}
+
+interface NumerologyTransformedResponse {
+  lifePath: NumerologyNumberResult;
+  expression?: NumerologyNumberResult;
+  soulUrge?: NumerologyNumberResult;
+  personality?: NumerologyNumberResult;
+  personalYear?: { number: number | undefined; theme: string };
+  personalMonth?: { number: number | undefined; theme: string };
+  personalDay?: { number: number | undefined; theme: string };
+  koreanName?: { number: number | undefined; strokes: number | undefined; meaning: string };
+}
 
 /**
  * POST /api/numerology
@@ -87,7 +142,7 @@ export async function POST(req: Request) {
     const result = await apiClient.post(endpoint, requestBody, { timeout: 30000 });
 
     if (!result.ok) {
-      console.error('[Numerology API] Backend error:', result.status, result.error);
+      logger.error('[Numerology API] Backend error:', { status: result.status, error: result.error });
       return NextResponse.json(
         { error: 'Backend service error', status: result.status },
         { status: result.status }
@@ -95,13 +150,13 @@ export async function POST(req: Request) {
     }
 
     // Transform backend response to frontend format
-    const backendData = result.data as any;
+    const backendData = result.data as NumerologyBackendData;
 
     if (action === 'analyze' && backendData.profile) {
       const profile = backendData.profile;
       const interpretations = backendData.interpretations || {};
 
-      const transformed: any = {
+      const transformed: NumerologyTransformedResponse = {
         lifePath: {
           number: profile.life_path?.life_path,
           meaning: interpretations.life_path?.meaning || '',
@@ -173,7 +228,7 @@ export async function POST(req: Request) {
     return NextResponse.json(result.data);
 
   } catch (error) {
-    console.error('[API /api/numerology] Error:', error);
+    logger.error('[API /api/numerology] Error:', error);
     const msg = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { error: `Internal Server Error: ${msg}` },
@@ -224,13 +279,13 @@ export async function GET(req: Request) {
     }
 
     // Transform backend response to frontend format
-    const backendData = result.data as any;
+    const backendData = result.data as NumerologyBackendData;
 
     if (backendData.profile) {
       const profile = backendData.profile;
       const interpretations = backendData.interpretations || {};
 
-      const transformed: any = {
+      const transformed: NumerologyTransformedResponse = {
         lifePath: {
           number: profile.life_path?.life_path,
           meaning: interpretations.life_path?.meaning || '',
@@ -298,7 +353,7 @@ export async function GET(req: Request) {
     return NextResponse.json(result.data);
 
   } catch (error) {
-    console.error('[API /api/numerology GET] Error:', error);
+    logger.error('[API /api/numerology GET] Error:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

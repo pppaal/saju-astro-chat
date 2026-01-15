@@ -23,6 +23,7 @@ import {
   consumeCredits,
   getCreditBalance,
 } from '@/lib/credits/creditService';
+import { logger } from '@/lib/logger';
 
 // ===========================
 // 크레딧 비용 설정
@@ -200,7 +201,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const wrappedError = wrapError(error);
 
-    console.error('AI Report Generation Error:', {
+    logger.error('AI Report Generation Error:', {
       code: wrappedError.code,
       message: wrappedError.message,
     });

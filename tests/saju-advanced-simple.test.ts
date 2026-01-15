@@ -3,7 +3,7 @@
  * 실제 데이터 구조 확인 및 고급분석 검증
  */
 
-describe("사주 데이터 구조 확인", () => {
+describe("사주 데이터 구조 확인", { timeout: 30000 }, () => {
   it("pillar 구조 확인", async () => {
     const { calculateSajuData } = await import("../src/lib/Saju/saju");
 

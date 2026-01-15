@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { claimReferralReward } from "@/lib/referral";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export async function POST() {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Referral claim error]", err);
+    logger.error("[Referral claim error]", err);
     return NextResponse.json(
       { error: message },
       { status: 500 }

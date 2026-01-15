@@ -2,6 +2,7 @@
 // Unified API client for backend calls with timeout and error handling
 
 import { getBackendUrl } from "@/lib/backend-url";
+import { logger } from "@/lib/logger";
 
 // ==========================================
 // Simple fetch wrapper for internal API calls
@@ -225,7 +226,7 @@ export class ApiClient {
       return response;
     } catch (err) {
       clearTimeout(timeoutId);
-      console.error("[ApiClient] Stream request failed:", err);
+      logger.error("[ApiClient] Stream request failed:", err);
       return null;
     }
   }

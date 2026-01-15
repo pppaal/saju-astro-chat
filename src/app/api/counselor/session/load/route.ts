@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       keyTopics: chatSession.keyTopics,
     });
   } catch (error) {
-    console.error("[Counselor Session Load Error]:", error);
+    logger.error("[Counselor Session Load Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }

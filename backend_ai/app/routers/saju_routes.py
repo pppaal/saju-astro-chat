@@ -7,8 +7,7 @@ Routes:
 - POST /saju/counselor/init - Initialize saju counselor session
 - POST /saju/ask-stream - Streaming saju-focused AI reading
 
-NOTE: These routes currently proxy to app.py functions.
-TODO: Refactor to use StreamingService and move business logic to services layer.
+Phase 3.2: Refactored to use SajuCounselorService
 """
 from flask import Blueprint, request, jsonify, Response, g
 import logging
@@ -19,69 +18,48 @@ logger = logging.getLogger(__name__)
 saju_bp = Blueprint('saju', __name__, url_prefix='/saju')
 
 
-# ============================================================================
-# Temporary Proxy Functions
-# ============================================================================
-
-def _get_app_functions():
-    """
-    Lazy import app.py functions to avoid circular imports.
-
-    Returns dict of app functions that we're wrapping.
-    """
-    from backend_ai.app.app import (
-        saju_counselor_init as app_saju_counselor_init,
-        saju_ask_stream as app_saju_ask_stream,
-    )
-
-    return {
-        "saju_counselor_init": app_saju_counselor_init,
-        "saju_ask_stream": app_saju_ask_stream,
-    }
+def _get_saju_counselor_service():
+    """Lazy load SajuCounselorService to avoid import issues."""
+    from backend_ai.services.saju_counselor_service import SajuCounselorService
+    return SajuCounselorService()
 
 
-# ============================================================================
-# Routes (Proxying to app.py for now)
-# ============================================================================
+def _normalize_birth_payload(data: dict) -> dict:
+    """Lazy import and call normalize function."""
+    from backend_ai.app.app import _normalize_birth_payload
+    return _normalize_birth_payload(data)
+
 
 @saju_bp.route("/counselor/init", methods=["POST"])
 def saju_counselor_init():
     """
     Initialize saju-specific counselor session with RAG prefetch.
 
-    Pre-fetches Saju-specific knowledge:
-    - Saju structure analysis (pillars, elements, sibsin, etc.)
-    - Cross-analysis with astrology if provided
-    - Relevant fortune patterns
-    - Jung psychology archetypes
-
-    Request body:
-    {
-        "saju": {
-            "pillars": {...},
-            "dayMaster": {...},
-            "sibsin": {...},
-            "unse": {...}
-        },
-        "question": "user's initial question",
-        "theme": "career" | "love" | "life" | ...
-    }
-
-    Returns:
-    {
-        "status": "success",
-        "session_id": "uuid",
-        "saju_summary": "compact saju summary",
-        "rag_context": {...}
-    }
-
-    TODO: Refactor to use services layer
-    - SajuCounselorService for session management
-    - ChartContextService.build_saju_context()
-    - Use saju_astro_rag for knowledge retrieval
+    Phase 3.2 Refactored: Now uses SajuCounselorService directly.
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["saju_counselor_init"]()
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        saju_data = data.get("saju") or {}
+        birth_data = _normalize_birth_payload(data)
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+
+        service = _get_saju_counselor_service()
+        result, status_code = service.initialize_session(
+            saju_data=saju_data,
+            birth_data=birth_data,
+            theme=theme,
+            locale=locale,
+            request_id=getattr(g, 'request_id', None)
+        )
+        return jsonify(result), status_code
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /saju/counselor/init failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @saju_bp.route("/ask-stream", methods=["POST"])
@@ -89,50 +67,41 @@ def saju_ask_stream():
     """
     Streaming saju-focused AI reading with SSE.
 
-    Provides saju-specific interpretation with:
-    - Detailed pillar analysis (year, month, day, hour)
-    - Sibsin (Ten Gods) interpretation
-    - Five elements balance
-    - Unse (Luck periods) analysis
-    - Geokguk (pattern) identification
-    - Practical life guidance
-
-    Request body:
-    {
-        "saju": {...},
-        "question": "user question",
-        "session_id": "optional - from /saju/counselor/init",
-        "locale": "en" | "ko",
-        "include_unse": true
-    }
-
-    SSE Events:
-    - {"type": "start"} - Stream started
-    - {"type": "saju_analysis", "data": {...}} - Saju structure analysis
-    - {"type": "content", "content": "..."} - Streaming interpretation
-    - {"type": "done"} - Stream complete
-    - {"type": "error", "error": "..."} - Error occurred
-
-    TODO: Refactor to use services layer
-    - StreamingService.sse_stream_response()
-    - ChartContextService.build_saju_context()
-    - ValidationService for input sanitization
-    - Direct OpenAI streaming with saju-specific prompts
+    Phase 3.2 Refactored: Now uses SajuCounselorService directly.
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["saju_ask_stream"]()
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
 
+        saju_data = data.get("saju") or {}
+        birth_data = _normalize_birth_payload(data)
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+        prompt = (data.get("prompt") or "")[:1500]
+        session_id = data.get("session_id")
+        conversation_history = data.get("history") or []
+        user_context = data.get("user_context") or {}
 
-# ============================================================================
-# Route Registration Helper
-# ============================================================================
+        service = _get_saju_counselor_service()
+        return service.stream_chat(
+            saju_data=saju_data,
+            birth_data=birth_data,
+            prompt=prompt,
+            theme=theme,
+            locale=locale,
+            session_id=session_id,
+            conversation_history=conversation_history,
+            user_context=user_context,
+            request_id=getattr(g, 'request_id', None)
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /saju/ask-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 def register_saju_routes(app):
-    """
-    Register saju routes blueprint.
-
-    Args:
-        app: Flask application instance
-    """
+    """Register saju routes blueprint."""
     app.register_blueprint(saju_bp)
     logger.info("[SajuRoutes] Registered saju routes blueprint")

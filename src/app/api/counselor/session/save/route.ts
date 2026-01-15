@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, sessionId: chatSession.id });
   } catch (error) {
-    console.error("[Counselor Session Save Error]:", error);
+    logger.error("[Counselor Session Save Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }

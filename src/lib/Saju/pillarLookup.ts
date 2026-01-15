@@ -3,6 +3,12 @@
 
 import { FiveElement, YinYang } from './types';
 import { STEMS, BRANCHES } from './constants';
+import {
+  getStemElement,
+  getBranchElement,
+  getStemYinYang,
+  getBranchYinYang
+} from './stemBranchUtils';
 
 /**
  * 60갑자 기본 정보
@@ -668,40 +674,6 @@ const ILJU_DATA: Record<string, IljuInfo> = {
     famousPeople: '칼 융'
   }
 };
-
-// ============ 유틸리티 함수 ============
-
-/**
- * 천간에서 오행 가져오기
- */
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element ?? '토';
-}
-
-/**
- * 지지에서 오행 가져오기
- */
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element ?? '토';
-}
-
-/**
- * 천간에서 음양 가져오기
- */
-function getStemYinYang(stem: string): YinYang {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.yin_yang ?? '양';
-}
-
-/**
- * 지지에서 음양 가져오기
- */
-function getBranchYinYang(branch: string): YinYang {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.yin_yang ?? '양';
-}
 
 // ============ 메인 함수들 ============
 

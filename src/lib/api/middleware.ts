@@ -10,6 +10,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { rateLimit, type RateLimitResult } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { logger } from "@/lib/logger";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -237,7 +238,7 @@ export function withApiMiddleware<T>(
       });
     } catch (error) {
       const e = error as Error & { code?: string };
-      console.error(`[API Error] ${route}:`, e);
+      logger.error(`[API Error] ${route}:`, e);
 
       // Classify error
       let code: ErrorCode = ErrorCodes.INTERNAL_ERROR;

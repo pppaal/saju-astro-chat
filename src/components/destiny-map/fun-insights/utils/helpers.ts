@@ -1,6 +1,6 @@
 import type { AstroData, PlanetData } from '../types';
 
-export function findPlanetSign(astro: AstroData | undefined, planetName: string): string | null {
+export function findPlanetSign(astro: AstroData | null | undefined, planetName: string): string | null {
   if (Array.isArray(astro?.planets)) {
     const planet = astro.planets.find((p: PlanetData) => p?.name?.toLowerCase() === planetName.toLowerCase());
     if (planet?.sign) return planet.sign.toLowerCase();

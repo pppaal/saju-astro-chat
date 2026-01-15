@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { NextRequest } from "next/server";
 import { GET as calendarGet } from "../src/app/api/calendar/route";
 import { POST as compatibilityPost } from "../src/app/api/compatibility/route";

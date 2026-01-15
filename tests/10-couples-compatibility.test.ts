@@ -1,5 +1,4 @@
 // Test 10 different couples to verify compatibility analysis produces unique results
-import { describe, it, expect } from 'vitest';
 import { calculateSajuData } from '../src/lib/Saju/saju';
 import {
   performComprehensiveSajuAnalysis,

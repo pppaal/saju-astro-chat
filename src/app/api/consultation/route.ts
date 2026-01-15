@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import Stripe from "stripe";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
       createdAt: consultation.createdAt,
     });
   } catch (err: unknown) {
-    console.error("[Consultation POST error]", err);
+    logger.error("[Consultation POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
@@ -184,7 +185,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err: unknown) {
-    console.error("[Consultation GET error]", err);
+    logger.error("[Consultation GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
@@ -232,7 +233,7 @@ async function updatePersonaMemory(userId: string, theme: string) {
       });
     }
   } catch (err) {
-    console.error("[updatePersonaMemory error]", err);
+    logger.error("[updatePersonaMemory error]", err);
     // 메모리 업데이트 실패해도 상담 저장은 성공으로 처리
   }
 }

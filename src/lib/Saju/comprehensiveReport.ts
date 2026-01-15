@@ -13,6 +13,7 @@ import {
   analyzeElementBalance,
   type TwelveStageType
 } from './interpretations';
+import { getStemElement, getBranchElement } from './stemBranchUtils';
 
 // ============ 타입 정의 ============
 
@@ -60,16 +61,6 @@ export interface ComprehensiveReport {
 
 // ============ 유틸리티 함수 ============
 
-const STEM_ELEMENT: Record<string, FiveElement> = {
-  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
-  '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수'
-};
-
-const BRANCH_ELEMENT: Record<string, FiveElement> = {
-  '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
-  '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수'
-};
-
 const STEM_KOREAN: Record<string, string> = {
   '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
   '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계'
@@ -79,14 +70,6 @@ const BRANCH_KOREAN: Record<string, string> = {
   '子': '자', '丑': '축', '寅': '인', '卯': '묘', '辰': '진', '巳': '사',
   '午': '오', '未': '미', '申': '신', '酉': '유', '戌': '술', '亥': '해'
 };
-
-function getStemElement(stem: string): FiveElement {
-  return STEM_ELEMENT[stem] || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  return BRANCH_ELEMENT[branch] || '토';
-}
 
 function countElements(pillars: SajuInput): ElementCount {
   const count: ElementCount = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };

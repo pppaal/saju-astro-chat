@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { saveConsultation } from '@/lib/consultation/saveConsultation';
+import { logger } from '@/lib/logger';
 
 interface SaveLifePredictionRequest {
   multiYearTrend: {
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('[life-prediction/save API error]', error);
+    logger.error('[life-prediction/save API error]', error);
     return NextResponse.json(
       {
         success: false,

@@ -15,6 +15,7 @@ import {
   performanceMonitor,
 } from '@/lib/destiny-matrix';
 import type { InsightDomain, MatrixCalculationInput, MatrixCell } from '@/lib/destiny-matrix';
+import { logger } from '@/lib/logger';
 
 // ===========================
 // POST - 리포트 생성
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
     // 에러를 DestinyMatrixError로 래핑
     const wrappedError = wrapError(error);
 
-    console.error('Destiny Matrix Report Error:', {
+    logger.error('Destiny Matrix Report Error:', {
       code: wrappedError.code,
       message: wrappedError.message,
       details: wrappedError.details,

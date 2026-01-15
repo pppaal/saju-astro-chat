@@ -15,6 +15,7 @@ import {
   isValidLongitude,
   LIMITS,
 } from "@/lib/validation";
+import { logger } from '@/lib/logger';
 
 type Relation = 'friend' | 'lover' | 'other';
 
@@ -216,7 +217,7 @@ export async function POST(req: NextRequest) {
         synergyBreakdown = aiData?.synergy_breakdown || null;
       }
     } catch (aiErr) {
-      console.warn('[Compatibility API] AI backend call failed:', aiErr);
+      logger.warn('[Compatibility API] AI backend call failed:', aiErr);
       aiInterpretation = '';
       aiModelUsed = 'error-fallback';
     }
@@ -247,7 +248,7 @@ export async function POST(req: NextRequest) {
           },
         });
       } catch (saveErr) {
-        console.warn('[Compatibility API] Failed to save reading:', saveErr);
+        logger.warn('[Compatibility API] Failed to save reading:', saveErr);
       }
     }
 

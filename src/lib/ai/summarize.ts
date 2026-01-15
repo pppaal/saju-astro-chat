@@ -3,6 +3,7 @@
 // Semantic summary: 장기 기억을 위한 의미론적 요약
 
 import { getBackendUrl } from "@/lib/backend-url";
+import { logger } from "@/lib/logger";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -350,7 +351,7 @@ export async function summarizeWithAI(
     });
 
     if (!response.ok) {
-      console.warn("[summarizeWithAI] Backend error:", response.status);
+      logger.warn("[summarizeWithAI] Backend error:", response.status);
       return null;
     }
 
@@ -365,7 +366,7 @@ export async function summarizeWithAI(
 
     return null;
   } catch (error) {
-    console.error("[summarizeWithAI] Error:", error);
+    logger.error("[summarizeWithAI] Error:", error);
     return null;
   }
 }

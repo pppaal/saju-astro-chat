@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './ShareButton.module.css';
+import { logger } from '@/lib/logger';
 
 type ShareButtonProps = {
   generateCard: () => Promise<Blob | null>;
@@ -54,7 +55,7 @@ export default function ShareButton({
         setTimeout(() => setShowToast(false), 2000);
       }
     } catch (err) {
-      console.error('Share failed:', err);
+      logger.error('[ShareButton] Share failed:', err);
       // Last resort: copy text
       try {
         await navigator.clipboard.writeText(shareText);

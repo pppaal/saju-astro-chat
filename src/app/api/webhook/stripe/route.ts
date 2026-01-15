@@ -13,6 +13,7 @@ import {
   sendSubscriptionCancelledEmail,
   sendPaymentFailedEmail,
 } from "@/lib/email"
+import { logger } from "@/lib/logger"
 
 export const dynamic = "force-dynamic"
 
@@ -38,7 +39,7 @@ async function findUserByEmail(email: string) {
 export async function POST(request: Request) {
   const webhookSecret = getWebhookSecret()
   if (!webhookSecret) {
-    console.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
+    logger.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
     captureServerError(new Error("STRIPE_WEBHOOK_SECRET missing"), { route: "/api/webhook/stripe", stage: "config" })
     recordCounter("stripe_webhook_config_error", 1, { reason: "missing_secret" })
     return NextResponse.json(
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error"
-    console.error("[Stripe Webhook] Signature verification failed:", message)
+    logger.error("[Stripe Webhook] Signature verification failed:", { message })
     recordCounter("stripe_webhook_auth_error", 1, { reason: "verify_failed" })
     captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip })
     return NextResponse.json(
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
     )
   }
 
-  console.warn(`[Stripe Webhook] Event: ${event.type}`, { ip })
+  logger.info(`[Stripe Webhook] Event: ${event.type}`, { ip })
 
   try {
     switch (event.type) {
@@ -112,13 +113,13 @@ export async function POST(request: Request) {
         break
       }
       default:
-        console.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
+        logger.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
     }
 
     return NextResponse.json({ received: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error"
-    console.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
+    logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
     recordCounter("stripe_webhook_handler_error", 1, { event: event.type })
     captureServerError(err, { route: "/api/webhook/stripe", event: event.type })
     return NextResponse.json(
@@ -133,7 +134,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 크레딧팩 구매인지 확인
   const metadata = session.metadata
   if (metadata?.type !== 'credit_pack') {
-    console.log('[Stripe Webhook] Not a credit pack purchase, skipping')
+    logger.debug('[Stripe Webhook] Not a credit pack purchase, skipping')
     return
   }
 
@@ -141,7 +142,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = metadata.userId
 
   if (!creditPack || !userId) {
-    console.error('[Stripe Webhook] Missing creditPack or userId in metadata')
+    logger.error('[Stripe Webhook] Missing creditPack or userId in metadata')
     return
   }
 
@@ -156,7 +157,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const creditAmount = CREDIT_PACK_AMOUNTS[creditPack]
   if (!creditAmount) {
-    console.error(`[Stripe Webhook] Unknown credit pack: ${creditPack}`)
+    logger.error(`[Stripe Webhook] Unknown credit pack: ${creditPack}`)
     return
   }
 
@@ -166,16 +167,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   })
 
   if (!user) {
-    console.error(`[Stripe Webhook] User not found: ${userId}`)
+    logger.error(`[Stripe Webhook] User not found: ${userId}`)
     return
   }
 
   // 보너스 크레딧 추가
   try {
     await addBonusCredits(userId, creditAmount)
-    console.warn(`[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`)
+    logger.info(`[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`)
   } catch (err) {
-    console.error('[Stripe Webhook] Failed to add bonus credits:', err)
+    logger.error('[Stripe Webhook] Failed to add bonus credits:', err)
     throw err
   }
 
@@ -195,7 +196,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       productName: packNames[creditPack] || `${creditPack} Credit Pack`,
       transactionId: session.id,
     }).catch((err) => {
-      console.error('[Stripe Webhook] Failed to send payment receipt email:', err)
+      logger.error('[Stripe Webhook] Failed to send payment receipt email:', err)
     })
   }
 
@@ -211,10 +212,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   //     status: 'completed',
   //   },
   // }).catch((err) => {
-  //   console.warn('[Stripe Webhook] Could not save credit purchase record:', err.message)
+  //   logger.warn('[Stripe Webhook] Could not save credit purchase record:', err.message)
   // })
 
-  console.warn(`[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`)
+  logger.info(`[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`)
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
@@ -223,32 +224,32 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const customer = await stripe.customers.retrieve(customerId)
 
   if (customer.deleted) {
-    console.error("[Stripe Webhook] Customer deleted")
+    logger.error("[Stripe Webhook] Customer deleted")
     return
   }
 
   const email = (customer as Stripe.Customer).email
   if (!email) {
-    console.error("[Stripe Webhook] Customer has no email")
+    logger.error("[Stripe Webhook] Customer has no email")
     return
   }
 
   const user = await findUserByEmail(email)
   if (!user) {
-    console.error(`[Stripe Webhook] User not found for email: ${email}`)
+    logger.error(`[Stripe Webhook] User not found for email: ${email}`)
     return
   }
 
   const priceId = subscription.items.data[0]?.price.id || ""
   const planInfo = getPlanFromPriceId(priceId)
   if (!planInfo) {
-    console.error("[Stripe Webhook] Price not whitelisted", { priceId })
+    logger.error("[Stripe Webhook] Price not whitelisted", { priceId })
     return
   }
   const { plan, billingCycle } = planInfo
 
-  const periodStart = (subscription as any).current_period_start as number | undefined
-  const periodEnd = (subscription as any).current_period_end as number | undefined
+  const periodStart = subscription.current_period_start
+  const periodEnd = subscription.current_period_end
 
   await prisma.subscription.upsert({
     where: { stripeSubscriptionId: subscription.id },
@@ -278,9 +279,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   // 크레딧 시스템 업그레이드
   try {
     await upgradePlan(user.id, plan as PlanType)
-    console.warn(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
+    logger.info(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
   } catch (creditErr) {
-    console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
+    logger.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
   }
 
   // 구독 확인 이메일 발송
@@ -294,11 +295,11 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       billingCycle,
       nextBillingDate,
     }).catch((err) => {
-      console.error('[Stripe Webhook] Failed to send subscription confirm email:', err)
+      logger.error('[Stripe Webhook] Failed to send subscription confirm email:', err)
     })
   }
 
-  console.warn(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
+  logger.info(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -316,8 +317,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const plan = planInfo?.plan ?? existing.plan
   const billingCycle = planInfo?.billingCycle ?? existing.billingCycle
 
-  const periodStart = (subscription as any).current_period_start as number | undefined
-  const periodEnd = (subscription as any).current_period_end as number | undefined
+  const periodStart = subscription.current_period_start
+  const periodEnd = subscription.current_period_end
   const canceledAt = subscription.canceled_at
 
   await prisma.subscription.update({
@@ -338,13 +339,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   if (existing.plan !== plan && subscription.status === "active") {
     try {
       await upgradePlan(existing.userId, plan as PlanType)
-      console.warn(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
+      logger.info(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
     } catch (creditErr) {
-      console.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
+      logger.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
     }
   }
 
-  console.warn(`[Stripe Webhook] Subscription updated: ${subscription.id} -> ${subscription.status}`)
+  logger.info(`[Stripe Webhook] Subscription updated: ${subscription.id} -> ${subscription.status}`)
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -353,7 +354,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   })
 
   if (!existing) {
-    console.warn(`[Stripe Webhook] Subscription not found: ${subscription.id}`)
+    logger.warn(`[Stripe Webhook] Subscription not found: ${subscription.id}`)
     return
   }
 
@@ -368,9 +369,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   // 구독 취소 시 free 플랜으로 다운그레이드
   try {
     await upgradePlan(existing.userId, "free")
-    console.warn(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
+    logger.info(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
   } catch (creditErr) {
-    console.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
+    logger.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
   }
 
   // 구독 취소 이메일 발송
@@ -383,16 +384,17 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       userName: user.name || undefined,
       planName: existing.plan,
     }).catch((err) => {
-      console.error('[Stripe Webhook] Failed to send subscription cancelled email:', err)
+      logger.error('[Stripe Webhook] Failed to send subscription cancelled email:', err)
     })
   }
 
-  console.warn(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
+  logger.info(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const invoiceAny = invoice as any
-  const subscriptionId = typeof invoiceAny.subscription === "string" ? invoiceAny.subscription : invoiceAny.subscription?.id
+  const subscriptionId = typeof invoice.subscription === "string"
+    ? invoice.subscription
+    : invoice.subscription?.id
   if (!subscriptionId) return
 
   const existing = await prisma.subscription.findUnique({
@@ -400,9 +402,9 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   })
 
   if (existing) {
-    const paymentIntentId = typeof invoiceAny.payment_intent === "string"
-      ? invoiceAny.payment_intent
-      : invoiceAny.payment_intent?.id
+    const paymentIntentId = typeof invoice.payment_intent === "string"
+      ? invoice.payment_intent
+      : invoice.payment_intent?.id
     const paymentMethod = paymentIntentId
       ? await getPaymentMethodType(paymentIntentId)
       : null
@@ -416,12 +418,13 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     })
   }
 
-  console.warn(`[Stripe Webhook] Payment succeeded for subscription: ${subscriptionId}`)
+  logger.info(`[Stripe Webhook] Payment succeeded for subscription: ${subscriptionId}`)
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const invoiceAny = invoice as any
-  const subscriptionId = typeof invoiceAny.subscription === "string" ? invoiceAny.subscription : invoiceAny.subscription?.id
+  const subscriptionId = typeof invoice.subscription === "string"
+    ? invoice.subscription
+    : invoice.subscription?.id
   if (!subscriptionId) return
 
   const existing = await prisma.subscription.findUnique({
@@ -446,12 +449,12 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
         userName: user.name || undefined,
         planName: existing.plan,
       }).catch((err) => {
-        console.error('[Stripe Webhook] Failed to send payment failed email:', err)
+        logger.error('[Stripe Webhook] Failed to send payment failed email:', err)
       })
     }
   }
 
-  console.warn(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)
+  logger.warn(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)
 }
 
 async function getPaymentMethodType(paymentIntentId: string): Promise<string | null> {

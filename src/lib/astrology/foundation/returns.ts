@@ -7,9 +7,6 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-import { getSwisseph } from "./ephe";
-const swisseph = getSwisseph();
-
 import {
   ReturnChart,
   SolarReturnInput,
@@ -19,65 +16,8 @@ import {
 } from "./types";
 import { formatLongitude, normalize360 } from "./utils";
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from "./houses";
-
-const PLANET_LIST = {
-  Sun: swisseph.SE_SUN,
-  Moon: swisseph.SE_MOON,
-  Mercury: swisseph.SE_MERCURY,
-  Venus: swisseph.SE_VENUS,
-  Mars: swisseph.SE_MARS,
-  Jupiter: swisseph.SE_JUPITER,
-  Saturn: swisseph.SE_SATURN,
-  Uranus: swisseph.SE_URANUS,
-  Neptune: swisseph.SE_NEPTUNE,
-  Pluto: swisseph.SE_PLUTO,
-  "True Node": swisseph.SE_TRUE_NODE,
-};
-
-const SW_FLAGS = swisseph.SEFLG_SPEED;
-
-function ensureEphePath() {
-  // Path is set via getSwisseph()
-}
-
-/**
- * 출생일시를 Julian Day로 변환
- */
-function natalToJD(natal: NatalInput): number {
-  const pad = (v: number) => String(v).padStart(2, "0");
-  const local = dayjs.tz(
-    `${natal.year}-${pad(natal.month)}-${pad(natal.date)}T${pad(natal.hour)}:${pad(natal.minute)}:00`,
-    natal.timeZone
-  );
-  if (!local.isValid()) throw new Error("Invalid natal datetime");
-  const utcDate = local.utc().toDate();
-
-  const jdResult = swisseph.swe_utc_to_jd(
-    utcDate.getUTCFullYear(),
-    utcDate.getUTCMonth() + 1,
-    utcDate.getUTCDate(),
-    utcDate.getUTCHours(),
-    utcDate.getUTCMinutes(),
-    utcDate.getUTCSeconds(),
-    swisseph.SE_GREG_CAL
-  );
-
-  if ("error" in jdResult) throw new Error(`JD conversion error: ${jdResult.error}`);
-  return jdResult.julianDayUT;
-}
-
-/**
- * Julian Day를 ISO 문자열로 변환
- */
-function jdToISO(jd: number): string {
-  const result = swisseph.swe_jdut1_to_utc(jd, swisseph.SE_GREG_CAL);
-  if ("error" in result) throw new Error(`JD to UTC error: ${result.error}`);
-
-  const { year, month, day, hour, minute, second } = result;
-  const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
-
-  return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}Z`;
-}
+import { getSwisseph } from "./ephe";
+import { getPlanetList, natalToJD, jdToISO, getSwissEphFlags } from "./shared";
 
 /**
  * 특정 경도에 태양이 도달하는 정확한 시간 찾기 (이분법)
@@ -88,6 +28,8 @@ function findSunAtLongitude(
   endJD: number,
   tolerance: number = 0.0001 // 약 8초 정확도
 ): number {
+  const swisseph = getSwisseph();
+  const SW_FLAGS = getSwissEphFlags();
   let low = startJD;
   let high = endJD;
 
@@ -127,6 +69,8 @@ function findMoonAtLongitude(
   endJD: number,
   tolerance: number = 0.0001
 ): number {
+  const swisseph = getSwisseph();
+  const SW_FLAGS = getSwissEphFlags();
   let low = startJD;
   let high = endJD;
 
@@ -160,8 +104,9 @@ function findMoonAtLongitude(
 export async function calculateSolarReturn(
   input: SolarReturnInput
 ): Promise<ReturnChart> {
-  ensureEphePath();
-
+  const swisseph = getSwisseph();
+  const PLANET_LIST = getPlanetList();
+  const SW_FLAGS = getSwissEphFlags();
   const { natal, year } = input;
 
   // 1. 출생 시 태양 위치 구하기
@@ -230,8 +175,9 @@ export async function calculateSolarReturn(
 export async function calculateLunarReturn(
   input: LunarReturnInput
 ): Promise<ReturnChart> {
-  ensureEphePath();
-
+  const swisseph = getSwisseph();
+  const PLANET_LIST = getPlanetList();
+  const SW_FLAGS = getSwissEphFlags();
   const { natal, month, year } = input;
 
   // 1. 출생 시 달 위치 구하기
@@ -241,7 +187,6 @@ export async function calculateLunarReturn(
   const natalMoonLon = natalMoonRes.longitude;
 
   // 2. 해당 월의 시작부터 끝까지 검색 (달은 약 27.3일 주기)
-  const startOfMonth = dayjs.tz(`${year}-${String(month).padStart(2, "0")}-01T00:00:00`, natal.timeZone);
   const startJD = natalToJD({
     ...natal,
     year,

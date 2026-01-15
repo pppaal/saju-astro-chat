@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { scoreToGrade as standardScoreToGrade, type PredictionGrade } from '@/lib/prediction';
+import { logger } from '@/lib/logger';
 
 // ============================================================
 // 타입 정의
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         requestBody = { question, year: birthYear, month: birthMonth };
     }
 
-    console.log(`[Backend Predict] Calling ${endpoint}`);
+    logger.info(`[Backend Predict] Calling ${endpoint}`);
 
     // 백엔드 API 호출
     const apiKey = process.env.ADMIN_API_TOKEN || '';
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!backendRes.ok) {
       const errorText = await backendRes.text();
-      console.error('[Backend Predict] Backend error:', errorText);
+      logger.error('[Backend Predict] Backend error:', errorText);
       // 백엔드 오류 시에도 폴백 사용하도록
       return NextResponse.json(
         {
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('[Backend Predict] Error:', error);
+    logger.error('[Backend Predict] Error:', error);
 
     // 백엔드 연결 실패 시 에러 반환
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

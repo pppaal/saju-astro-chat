@@ -2,28 +2,15 @@
 // 대운/세운 종합 분석 모듈 - 200% 급 심화 분석
 
 import { FiveElement } from './types';
-import { STEMS, BRANCHES } from './constants';
+import { getStemElement, getBranchElement, getStemByIndex, getBranchByIndex } from './stemBranchUtils';
 
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element as FiveElement || '토';
-}
-
+// 인덱스로 이름 가져오기 (로컬 래퍼)
 function getStemName(index: number): string {
-  return STEMS[index % 10]?.name || '甲';
+  return getStemByIndex(index).name;
 }
 
 function getBranchName(index: number): string {
-  return BRANCHES[index % 12]?.name || '子';
+  return getBranchByIndex(index).name;
 }
 
 // ============================================================

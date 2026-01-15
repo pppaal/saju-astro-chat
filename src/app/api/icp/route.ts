@@ -17,6 +17,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export async function GET() {
     // ICPResult 모델이 없어서 임시로 false 반환
     return NextResponse.json({ saved: false });
   } catch (error) {
-    console.error("GET /api/icp error:", error);
+    logger.error("GET /api/icp error:", error);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       message: "ICP result saved successfully",
     });
   } catch (error) {
-    console.error("POST /api/icp error:", error);
+    logger.error("POST /api/icp error:", error);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }

@@ -1,14 +1,13 @@
 """
 Astrology Routes
 
-Western astrology-specific streaming endpoints for AI-powered astrological reading.
+Astrology-specific streaming endpoints for AI-powered astrology reading.
 
 Routes:
 - POST /astrology/counselor/init - Initialize astrology counselor session
 - POST /astrology/ask-stream - Streaming astrology-focused AI reading
 
-NOTE: These routes currently proxy to app.py functions.
-TODO: Refactor to use StreamingService and move business logic to services layer.
+Phase 3.3: Refactored to use AstrologyCounselorService
 """
 from flask import Blueprint, request, jsonify, Response, g
 import logging
@@ -19,71 +18,48 @@ logger = logging.getLogger(__name__)
 astrology_bp = Blueprint('astrology', __name__, url_prefix='/astrology')
 
 
-# ============================================================================
-# Temporary Proxy Functions
-# ============================================================================
-
-def _get_app_functions():
-    """
-    Lazy import app.py functions to avoid circular imports.
-
-    Returns dict of app functions that we're wrapping.
-    """
-    from backend_ai.app.app import (
-        astrology_counselor_init as app_astrology_counselor_init,
-        astrology_ask_stream as app_astrology_ask_stream,
-    )
-
-    return {
-        "astrology_counselor_init": app_astrology_counselor_init,
-        "astrology_ask_stream": app_astrology_ask_stream,
-    }
+def _get_astrology_counselor_service():
+    """Lazy load AstrologyCounselorService to avoid import issues."""
+    from backend_ai.services.astrology_counselor_service import AstrologyCounselorService
+    return AstrologyCounselorService()
 
 
-# ============================================================================
-# Routes (Proxying to app.py for now)
-# ============================================================================
+def _normalize_birth_payload(data: dict) -> dict:
+    """Lazy import and call normalize function."""
+    from backend_ai.app.app import _normalize_birth_payload
+    return _normalize_birth_payload(data)
+
 
 @astrology_bp.route("/counselor/init", methods=["POST"])
 def astrology_counselor_init():
     """
     Initialize astrology-specific counselor session with RAG prefetch.
 
-    Pre-fetches Western astrology knowledge:
-    - Natal chart analysis (planets, houses, aspects)
-    - Current transits and progressions
-    - Synastry patterns (if comparing charts)
-    - Fixed stars and asteroids (if applicable)
-    - Jung psychology integration
-
-    Request body:
-    {
-        "astro": {
-            "sun": {...},
-            "moon": {...},
-            "planets": {...},
-            "houses": [...],
-            "aspects": [...]
-        },
-        "question": "user's initial question",
-        "theme": "career" | "love" | "life" | ...
-    }
-
-    Returns:
-    {
-        "status": "success",
-        "session_id": "uuid",
-        "astro_summary": "compact chart summary",
-        "rag_context": {...}
-    }
-
-    TODO: Refactor to use services layer
-    - AstrologyCounselorService for session management
-    - ChartContextService.build_astrology_context()
-    - Use saju_astro_rag for knowledge retrieval
+    Phase 3.3 Refactored: Now uses AstrologyCounselorService directly.
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["astrology_counselor_init"]()
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
+
+        astro_data = data.get("astro") or {}
+        birth_data = _normalize_birth_payload(data)
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+
+        service = _get_astrology_counselor_service()
+        result, status_code = service.initialize_session(
+            astro_data=astro_data,
+            birth_data=birth_data,
+            theme=theme,
+            locale=locale,
+            request_id=getattr(g, 'request_id', None)
+        )
+        return jsonify(result), status_code
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /astrology/counselor/init failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @astrology_bp.route("/ask-stream", methods=["POST"])
@@ -91,52 +67,41 @@ def astrology_ask_stream():
     """
     Streaming astrology-focused AI reading with SSE.
 
-    Provides western astrology interpretation with:
-    - Planetary positions and meanings
-    - House placements and life areas
-    - Major aspects (conjunction, opposition, trine, square, sextile)
-    - Current transits affecting the natal chart
-    - Psychological insights (Jung integration)
-    - Practical guidance for timing and decisions
-
-    Request body:
-    {
-        "astro": {...},
-        "question": "user question",
-        "session_id": "optional - from /astrology/counselor/init",
-        "locale": "en" | "ko",
-        "include_transits": true
-    }
-
-    SSE Events:
-    - {"type": "start"} - Stream started
-    - {"type": "chart_analysis", "data": {...}} - Chart structure analysis
-    - {"type": "transit_info", "data": {...}} - Current transits (if requested)
-    - {"type": "content", "content": "..."} - Streaming interpretation
-    - {"type": "done"} - Stream complete
-    - {"type": "error", "error": "..."} - Error occurred
-
-    TODO: Refactor to use services layer
-    - StreamingService.sse_stream_response()
-    - ChartContextService.build_astrology_context()
-    - ValidationService for input sanitization
-    - Direct OpenAI streaming with astrology-specific prompts
-    - Transit calculation service integration
+    Phase 3.3 Refactored: Now uses AstrologyCounselorService directly.
     """
-    app_funcs = _get_app_functions()
-    return app_funcs["astrology_ask_stream"]()
+    try:
+        import json as json_mod
+        raw_data = request.get_data(as_text=False)
+        data = json_mod.loads(raw_data.decode('utf-8'))
 
+        astro_data = data.get("astro") or {}
+        birth_data = _normalize_birth_payload(data)
+        theme = data.get("theme", "life")
+        locale = data.get("locale", "ko")
+        prompt = (data.get("prompt") or "")[:1500]
+        session_id = data.get("session_id")
+        conversation_history = data.get("history") or []
+        user_context = data.get("user_context") or {}
 
-# ============================================================================
-# Route Registration Helper
-# ============================================================================
+        service = _get_astrology_counselor_service()
+        return service.stream_chat(
+            astro_data=astro_data,
+            birth_data=birth_data,
+            prompt=prompt,
+            theme=theme,
+            locale=locale,
+            session_id=session_id,
+            conversation_history=conversation_history,
+            user_context=user_context,
+            request_id=getattr(g, 'request_id', None)
+        )
+
+    except Exception as e:
+        logger.exception(f"[ERROR] /astrology/ask-stream failed: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 def register_astrology_routes(app):
-    """
-    Register astrology routes blueprint.
-
-    Args:
-        app: Flask application instance
-    """
+    """Register astrology routes blueprint."""
     app.register_blueprint(astrology_bp)
     logger.info("[AstrologyRoutes] Registered astrology routes blueprint")

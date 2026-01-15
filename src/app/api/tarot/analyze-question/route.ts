@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
+import { logger } from '@/lib/logger';
 import {
   isYesNoQuestion,
   isCrushQuestion,
@@ -199,7 +200,7 @@ function applyPatternCorrections(
 ): ParsedResult {
   // 1. Yes/No 질문 (최우선)
   if (isYesNoQuestion(question) && parsed.spreadId !== "yes-no-why") {
-    console.log(`[analyze-question] Correcting: "${question}" → yes-no-why (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → yes-no-why (was: ${parsed.spreadId})`);
     return {
       themeId: "decisions-crossroads",
       spreadId: "yes-no-why",
@@ -212,7 +213,7 @@ function applyPatternCorrections(
 
   // 2. A vs B 비교 질문
   if (isComparisonQuestion(question) && parsed.spreadId !== "two-paths") {
-    console.log(`[analyze-question] Correcting: "${question}" → two-paths (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → two-paths (was: ${parsed.spreadId})`);
     return {
       themeId: "decisions-crossroads",
       spreadId: "two-paths",
@@ -225,7 +226,7 @@ function applyPatternCorrections(
 
   // 3. 타이밍/시기 질문
   if (isTimingQuestion(question) && parsed.spreadId !== "timing-window") {
-    console.log(`[analyze-question] Correcting: "${question}" → timing-window (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → timing-window (was: ${parsed.spreadId})`);
     return {
       themeId: "decisions-crossroads",
       spreadId: "timing-window",
@@ -238,7 +239,7 @@ function applyPatternCorrections(
 
   // 4. 재회/이별 질문
   if (isReconciliationQuestion(question) && parsed.spreadId !== "reconciliation") {
-    console.log(`[analyze-question] Correcting: "${question}" → reconciliation (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → reconciliation (was: ${parsed.spreadId})`);
     return {
       themeId: "love-relationships",
       spreadId: "reconciliation",
@@ -251,7 +252,7 @@ function applyPatternCorrections(
 
   // 5. 상대방 마음 질문
   if (isCrushQuestion(question) && parsed.spreadId !== "crush-feelings") {
-    console.log(`[analyze-question] Correcting: "${question}" → crush-feelings (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → crush-feelings (was: ${parsed.spreadId})`);
     return {
       themeId: "love-relationships",
       spreadId: "crush-feelings",
@@ -264,7 +265,7 @@ function applyPatternCorrections(
 
   // 6. 인연/소개팅 질문
   if (isFindingPartnerQuestion(question) && parsed.spreadId !== "finding-a-partner") {
-    console.log(`[analyze-question] Correcting: "${question}" → finding-a-partner (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → finding-a-partner (was: ${parsed.spreadId})`);
     return {
       themeId: "love-relationships",
       spreadId: "finding-a-partner",
@@ -280,7 +281,7 @@ function applyPatternCorrections(
     const isInterview = /면접/.test(question);
     const targetSpread = isInterview ? "interview-result" : "exam-pass";
     if (parsed.spreadId !== targetSpread) {
-      console.log(`[analyze-question] Correcting: "${question}" → ${targetSpread} (was: ${parsed.spreadId})`);
+      logger.info(`[analyze-question] Correcting: "${question}" → ${targetSpread} (was: ${parsed.spreadId})`);
       return {
         themeId: "career-work",
         spreadId: targetSpread,
@@ -294,7 +295,7 @@ function applyPatternCorrections(
 
   // 8. 이직/퇴사 질문
   if (isJobChangeQuestion(question) && parsed.spreadId !== "job-change") {
-    console.log(`[analyze-question] Correcting: "${question}" → job-change (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → job-change (was: ${parsed.spreadId})`);
     return {
       themeId: "career-work",
       spreadId: "job-change",
@@ -307,7 +308,7 @@ function applyPatternCorrections(
 
   // 9. 오늘 운세 질문
   if (isTodayFortuneQuestion(question) && parsed.spreadId !== "day-card") {
-    console.log(`[analyze-question] Correcting: "${question}" → day-card (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → day-card (was: ${parsed.spreadId})`);
     return {
       themeId: "daily-reading",
       spreadId: "day-card",
@@ -320,7 +321,7 @@ function applyPatternCorrections(
 
   // 10. 주간/월간 운세 질문
   if (isWeeklyMonthlyQuestion(question) && parsed.spreadId !== "weekly-outlook") {
-    console.log(`[analyze-question] Correcting: "${question}" → weekly-outlook (was: ${parsed.spreadId})`);
+    logger.info(`[analyze-question] Correcting: "${question}" → weekly-outlook (was: ${parsed.spreadId})`);
     return {
       themeId: "daily-reading",
       spreadId: "weekly-outlook",
@@ -560,7 +561,7 @@ function applyPatternCorrections(
 
   for (const mapping of categoryMappings) {
     if (mapping.check(question) && parsed.spreadId !== mapping.targetSpread) {
-      console.log(`[analyze-question] Correcting: "${question}" → ${mapping.targetSpread} (was: ${parsed.spreadId})`);
+      logger.info(`[analyze-question] Correcting: "${question}" → ${mapping.targetSpread} (was: ${parsed.spreadId})`);
       return {
         themeId: mapping.themeId,
         spreadId: mapping.targetSpread,
@@ -616,7 +617,7 @@ export async function POST(request: NextRequest) {
         { role: "user", content: `사용자 질문: "${trimmedQuestion}"` }
       ]);
     } catch (error) {
-      console.warn("[analyze-question] OpenAI unavailable, using fallback routing", error);
+      logger.warn("[analyze-question] OpenAI unavailable, using fallback routing", error);
     }
 
     const fallbackParsed: ParsedResult = {
@@ -670,7 +671,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error analyzing question:", error);
+    logger.error("Error analyzing question:", error);
     return NextResponse.json(
       { error: "Failed to analyze question" },
       { status: 500 }

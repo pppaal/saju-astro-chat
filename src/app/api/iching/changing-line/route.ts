@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { getBackendUrl } from "@/lib/backend-url";
+import { logger } from '@/lib/logger';
 
 const BACKEND_URL = getBackendUrl();
 
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("[ChangingLine] Backend error:", backendResponse.status, errorText);
+      logger.error("[ChangingLine] Backend error:", { status: backendResponse.status, errorText });
       return NextResponse.json(
         { error: "Backend error", detail: errorText },
         { status: backendResponse.status, headers: limit.headers }
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
     return NextResponse.json(data, { headers: limit.headers });
 
   } catch (err: unknown) {
-    console.error("Changing line API error:", err);
+    logger.error("Changing line API error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

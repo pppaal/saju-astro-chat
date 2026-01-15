@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import styles from './BirthInfoForm.module.css';
+import { logger } from '@/lib/logger';
 
 interface BirthInfo {
   birthDate: string;
@@ -146,7 +147,7 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
       }
 
       const { user } = await res.json();
-      console.log('[BirthInfoForm] Loaded profile:', { birthDate: user?.birthDate, birthTime: user?.birthTime, gender: user?.gender });
+      logger.info('[BirthInfoForm] Loaded profile:', { birthDate: user?.birthDate, birthTime: user?.birthTime, gender: user?.gender });
 
       if (!user || !user.birthDate) {
         setLoadError(locale === 'ko'
@@ -164,7 +165,7 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
 
       // Set time period from birthTime
       if (user.birthTime && user.birthTime.trim() !== '') {
-        console.log('[BirthInfoForm] Setting birthTime:', user.birthTime);
+        logger.debug('[BirthInfoForm] Setting birthTime:', user.birthTime);
         setTimePeriod(findTimePeriodFromTime(user.birthTime));
       }
 
@@ -174,14 +175,14 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
 
       // Set birth city
       if (user.birthCity && user.birthCity.trim() !== '') {
-        console.log('[BirthInfoForm] Setting birthCity:', user.birthCity);
+        logger.debug('[BirthInfoForm] Setting birthCity:', user.birthCity);
         setBirthCity(user.birthCity);
         setShowCityInput(true);
       }
 
       setProfileLoaded(true);
     } catch (err) {
-      console.error('Failed to load profile:', err);
+      logger.error('[BirthInfoForm] Failed to load profile:', err);
       setLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
     } finally {
       setLoadingProfile(false);

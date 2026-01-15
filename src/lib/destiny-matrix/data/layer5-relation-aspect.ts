@@ -17,7 +17,8 @@ const c = (
   icon: string,
   colorCode: InteractionCode['colorCode'],
   keyword: string,
-  keywordEn: string
+  keywordEn: string,
+  advice?: string
 ): InteractionCode => ({
   level,
   score,
@@ -25,6 +26,7 @@ const c = (
   colorCode,
   keyword,
   keywordEn,
+  ...(advice && { advice }),
 });
 
 // 지지 관계-애스펙트 교차 매트릭스
@@ -33,92 +35,236 @@ const c = (
 
 export const RELATION_ASPECT_MATRIX: RelationAspectMatrix = {
   samhap: { // 삼합 (三合) - 가장 조화로운 결합
-    conjunction: c('extreme', 10, '💥', 'purple', '극강시너지', 'Extreme synergy'),
-    sextile: c('extreme', 9, '🚀', 'purple', '배가효과', 'Doubled effect'),
-    square: c('clash', 5, '⚡', 'yellow', '긴장강화', 'Tension strengthen'),
-    trine: c('extreme', 10, '🌟', 'purple', '최상조화', 'Best harmony'),
-    opposition: c('amplify', 7, '💪', 'green', '균형강화', 'Balance strengthen'),
-    semisextile: c('balance', 6, '⚖️', 'blue', '미세조정', 'Fine tune'),
-    quincunx: c('balance', 5, '⚖️', 'blue', '적응필요', 'Adaptation need'),
-    quintile: c('amplify', 8, '✨', 'green', '창조강화', 'Creation strengthen'),
-    biquintile: c('amplify', 7, '💫', 'green', '재능발현', 'Talent manifest'),
+    conjunction: c('extreme', 10, '💥', 'purple', '극강시너지', 'Extreme synergy',
+      '삼합의 조화로운 에너지가 합의 강화력과 만나 최고조의 시너지를 이룹니다. 이 시기에는 중요한 결정이나 새로운 시작이 극강의 성공 가능성을 보입니다. 다만 너무 강한 에너지는 주변과의 균형을 깨뜨릴 수 있으니 겸손함을 잃지 마세요.'
+    ),
+    sextile: c('extreme', 9, '🚀', 'purple', '배가효과', 'Doubled effect',
+      '삼합의 완벽한 결합이 육분의 기회와 만나 배가된 효과를 발휘합니다. 협력과 소통을 통해 목표를 달성하기에 최적의 시기입니다. 적극적으로 기회를 포착하되, 과욕으로 인한 실수를 경계하세요.'
+    ),
+    square: c('clash', 5, '⚡', 'yellow', '긴장강화', 'Tension strengthen',
+      '삼합의 조화로운 기운이 사각의 긴장과 만나 양면성을 띱니다. 협력 속에서도 갈등이 생길 수 있는 미묘한 시기입니다. 조화를 유지하되 건설적인 긴장을 활용하여 발전하세요. 다만 과도한 충돌로 좋은 관계가 깨지지 않도록 신중하게 대처하세요.'
+    ),
+    trine: c('extreme', 10, '🌟', 'purple', '최상조화', 'Best harmony',
+      '삼합의 조화와 삼각의 자연스러운 흐름이 결합되어 최상의 조화를 이룹니다. 모든 일이 자연스럽게 풀리고 행운이 따르는 시기입니다. 이 흐름에 몸을 맡기되, 안주하지 말고 지속적으로 발전을 추구하세요.'
+    ),
+    opposition: c('amplify', 7, '💪', 'green', '균형강화', 'Balance strengthen',
+      '삼합의 조화로운 기운이 충의 대립과 만나 균형을 강화합니다. 서로 다른 면을 통합하여 완전함을 이룰 수 있는 시기입니다. 양극단을 조화롭게 융합하되, 한쪽으로 치우치지 마세요.'
+    ),
+    semisextile: c('balance', 6, '⚖️', 'blue', '미세조정', 'Fine tune',
+      '삼합의 완벽한 조화가 반육분의 미세 각도와 만나 균형 잡힌 조정을 이룹니다. 큰 흐름은 좋지만 세부적인 조율이 필요한 시기입니다. 작은 부분까지 신경 쓰며 완성도를 높이되, 지나친 완벽주의는 피하세요.'
+    ),
+    quincunx: c('balance', 5, '⚖️', 'blue', '적응필요', 'Adaptation need',
+      '삼합의 완벽한 조화가 인컨정트의 불편함과 만나 적응이 필요합니다. 기본적으로 좋은 흐름이지만 계속 조정해야 하는 시기입니다. 유연하게 적응하며 균형을 찾으세요. 다만 너무 많은 타협으로 본질을 잃지 않도록 주의하세요.'
+    ),
+    quintile: c('amplify', 8, '✨', 'green', '창조강화', 'Creation strengthen',
+      '삼합의 완성된 기운이 퀸타일의 창조적 재능과 만나 빛을 발합니다. 예술적 감각이나 독창적인 아이디어가 현실로 구현되기 좋은 시기입니다. 창의성을 마음껏 발휘하되, 실용성도 함께 고려하세요.'
+    ),
+    biquintile: c('amplify', 7, '💫', 'green', '재능발현', 'Talent manifest',
+      '삼합의 안정된 기운이 바이퀸타일의 숙련된 재능과 만나 유리한 결과를 냅니다. 오랜 노력이 결실을 맺고 재능이 인정받는 시기입니다. 자신의 전문성을 발휘하되, 계속 배움의 자세를 유지하세요.'
+    ),
   },
   yukhap: { // 육합 (六合) - 부드러운 결합
-    conjunction: c('amplify', 8, '🤝', 'green', '조화결합', 'Harmony combine'),
-    sextile: c('amplify', 8, '💕', 'green', '시너지효과', 'Synergy effect'),
-    square: c('balance', 6, '⚖️', 'blue', '보완긴장', 'Complement tension'),
-    trine: c('amplify', 8, '💎', 'green', '안정조화', 'Stable harmony'),
-    opposition: c('balance', 6, '⚖️', 'blue', '균형유지', 'Balance maintain'),
-    semisextile: c('amplify', 7, '🌱', 'green', '성장지원', 'Growth support'),
-    quincunx: c('balance', 5, '🔄', 'blue', '적응조절', 'Adapt adjust'),
-    quintile: c('amplify', 7, '🎨', 'green', '창조조화', 'Creative harmony'),
-    biquintile: c('amplify', 7, '✨', 'green', '재능조화', 'Talent harmony'),
+    conjunction: c('amplify', 8, '🤝', 'green', '조화결합', 'Harmony combine',
+      '육합의 부드러운 결합이 합의 에너지와 만나 조화로운 통합을 이룹니다. 관계 형성이나 협력 사업에 유리한 시기입니다. 상대방을 존중하며 함께 성장하되, 지나친 의존은 피하세요.'
+    ),
+    sextile: c('amplify', 8, '💕', 'green', '시너지효과', 'Synergy effect',
+      '육합의 조화와 육분의 협력이 만나 뛰어난 시너지를 발휘합니다. 소통과 협력을 통해 서로의 장점이 빛을 발하는 시기입니다. 적극적으로 네트워크를 확장하되, 진정성을 유지하세요.'
+    ),
+    square: c('balance', 6, '⚖️', 'blue', '보완긴장', 'Complement tension',
+      '육합의 조화로운 기운이 사각의 긴장과 만나 균형을 이룹니다. 서로 보완하며 긴장감을 유지하는 안정적인 시기입니다. 적절한 긴장을 통해 발전하며 조화를 유지하되, 무리한 추진은 삼가세요.'
+    ),
+    trine: c('amplify', 8, '💎', 'green', '안정조화', 'Stable harmony',
+      '육합의 안정적 결합과 삼각의 조화가 만나 편안한 발전을 이룹니다. 스트레스 없이 자연스럽게 성장할 수 있는 시기입니다. 안정을 유지하며 앞으로 나아가되, 안일함에 빠지지 마세요.'
+    ),
+    opposition: c('balance', 6, '⚖️', 'blue', '균형유지', 'Balance maintain',
+      '육합의 부드러운 결합이 충의 대립과 만나 균형을 유지합니다. 양극단 사이에서 중심을 잡고 조화를 이루는 시기입니다. 서로 다른 면을 존중하며 균형을 유지하되, 우유부단함을 경계하세요.'
+    ),
+    semisextile: c('amplify', 7, '🌱', 'green', '성장지원', 'Growth support',
+      '육합의 조화가 반육분의 미세 조정과 만나 성장을 지원합니다. 작은 개선과 발전이 누적되는 시기입니다. 꾸준히 노력하되, 조급해하지 마세요.'
+    ),
+    quincunx: c('balance', 5, '🔄', 'blue', '적응조절', 'Adapt adjust',
+      '육합의 부드러운 결합이 인컨정트의 어색함과 만나 조율이 필요합니다. 관계는 좋지만 서로 맞추는 노력이 계속 요구되는 시기입니다. 상대방을 배려하며 조화롭게 조절하세요. 다만 일방적인 양보로 지치지 않도록 균형을 유지하세요.'
+    ),
+    quintile: c('amplify', 7, '🎨', 'green', '창조조화', 'Creative harmony',
+      '육합의 부드러운 에너지가 퀸타일의 창조성과 만나 유리한 조화를 이룹니다. 예술적 협업이나 창의적 프로젝트에 좋은 시기입니다. 창조적 열정을 발휘하며 협력하되, 독단적이지 마세요.'
+    ),
+    biquintile: c('amplify', 7, '✨', 'green', '재능조화', 'Talent harmony',
+      '육합의 결합력이 바이퀸타일의 재능과 만나 유리한 발전을 이룹니다. 숙련된 기술과 협력이 시너지를 내는 시기입니다. 전문성을 나누며 발전하되, 경쟁심은 버리세요.'
+    ),
   },
   banghap: { // 방합 (方合) - 같은 방향의 결합
-    conjunction: c('amplify', 8, '🏔️', 'green', '강화집중', 'Strengthen focus'),
-    sextile: c('amplify', 8, '📈', 'green', '성장확대', 'Growth expand'),
-    square: c('amplify', 7, '💪', 'green', '도전성장', 'Challenge growth'),
-    trine: c('extreme', 9, '🚀', 'purple', '확장조화', 'Expansion harmony'),
-    opposition: c('clash', 5, '💥', 'yellow', '대립긴장', 'Opposition tension'),
-    semisextile: c('balance', 6, '⚖️', 'blue', '방향미세', 'Direction fine'),
-    quincunx: c('balance', 5, '🌀', 'blue', '전환필요', 'Transition need'),
-    quintile: c('amplify', 7, '🎯', 'green', '목표창조', 'Goal creation'),
-    biquintile: c('amplify', 7, '💡', 'green', '방향창조', 'Direction create'),
+    conjunction: c('amplify', 8, '🏔️', 'green', '강화집중', 'Strengthen focus',
+      '방합의 일치된 방향성이 합의 집중력과 만나 강력한 추진력을 발휘합니다. 명확한 목표를 향해 나아가기에 유리한 시기입니다. 한 방향으로 힘을 집중하되, 시야가 좁아지지 않도록 주의하세요.'
+    ),
+    sextile: c('amplify', 8, '📈', 'green', '성장확대', 'Growth expand',
+      '방합의 통일된 에너지가 육분의 기회와 만나 성장이 확대됩니다. 새로운 영역으로 확장하기에 좋은 시기입니다. 적극적으로 기회를 활용하되, 무리한 확장은 자제하세요.'
+    ),
+    square: c('amplify', 7, '💪', 'green', '도전성장', 'Challenge growth',
+      '방합의 강한 에너지가 사각의 긴장과 만나 도전을 통한 성장을 이룹니다. 어려움을 극복하며 더 강해지는 시기입니다. 도전을 두려워하지 말되, 무모한 행동은 피하세요.'
+    ),
+    trine: c('extreme', 9, '🚀', 'purple', '확장조화', 'Expansion harmony',
+      '방합의 강력한 기운이 삼각의 자연스러운 흐름과 만나 극강의 확장을 이룹니다. 큰 성공과 발전이 가능한 시기입니다. 대담하게 도전하되, 기본을 소홀히 하지 마세요.'
+    ),
+    opposition: c('clash', 5, '💥', 'yellow', '대립긴장', 'Opposition tension',
+      '방합의 강한 방향성이 충의 대립과 만나 팽팽한 긴장이 형성됩니다. 같은 목표를 향하지만 방법이 정반대인 상황이 발생하는 시기입니다. 서로 다른 접근법을 존중하며 균형을 찾으세요. 다만 고집으로 인한 정면충돌은 반드시 피하세요.'
+    ),
+    semisextile: c('balance', 6, '⚖️', 'blue', '방향미세', 'Direction fine',
+      '방합의 통일된 방향성이 반육분의 미세 각도와 만나 균형을 이룹니다. 큰 방향은 명확하지만 세부 조정이 필요한 안정적인 시기입니다. 방향을 유지하며 디테일을 다듬되, 본질을 놓치지 마세요.'
+    ),
+    quincunx: c('balance', 5, '🌀', 'blue', '전환필요', 'Transition need',
+      '방합의 일관된 방향이 인컨정트의 불편함과 만나 전환이 필요합니다. 기존 방식을 바꿔야 하는 전환점에 선 시기입니다. 변화를 두려워하지 말고 새로운 방향을 모색하세요. 다만 갑작스러운 변화로 기반을 잃지 않도록 단계적으로 전환하세요.'
+    ),
+    quintile: c('amplify', 7, '🎯', 'green', '목표창조', 'Goal creation',
+      '방합의 방향성이 퀸타일의 창조성과 만나 유리한 목표 달성을 이룹니다. 창의적인 방법으로 목표에 접근할 수 있는 시기입니다. 독창성을 발휘하되, 현실성을 잃지 마세요.'
+    ),
+    biquintile: c('amplify', 7, '💡', 'green', '방향창조', 'Direction create',
+      '방합의 통일된 기운이 바이퀸타일의 재능과 만나 유리한 방향을 창조합니다. 새로운 길을 개척하며 전문성을 쌓는 시기입니다. 자신만의 길을 만들되, 협력도 잊지 마세요.'
+    ),
   },
   chung: { // 충 (沖) - 대립/충돌
-    conjunction: c('extreme', 8, '💥', 'purple', '폭발적에너지', 'Explosive energy'),
-    sextile: c('clash', 5, '⚡', 'yellow', '자극활성', 'Stimulate activate'),
-    square: c('conflict', 2, '☠️', 'red', '파괴위험', 'Destruction risk'),
-    trine: c('clash', 5, '⚔️', 'yellow', '갈등완화', 'Conflict ease'),
-    opposition: c('extreme', 9, '💥', 'purple', '극심충돌', 'Extreme clash'),
-    semisextile: c('clash', 4, '⚡', 'yellow', '미세충돌', 'Minor clash'),
-    quincunx: c('clash', 4, '😵', 'yellow', '혼란가중', 'Confusion add'),
-    quintile: c('balance', 5, '🔄', 'blue', '창조적긴장', 'Creative tension'),
-    biquintile: c('balance', 5, '💫', 'blue', '변환가능', 'Transform possible'),
+    conjunction: c('extreme', 8, '💥', 'purple', '폭발적에너지', 'Explosive energy',
+      '충의 대립 에너지가 합의 강화력과 만나 폭발적인 변화를 일으킵니다. 큰 전환점이나 돌파구를 만들 수 있는 시기입니다. 에너지를 건설적으로 활용하되, 파괴적 충돌은 반드시 피하세요.'
+    ),
+    sextile: c('clash', 5, '⚡', 'yellow', '자극활성', 'Stimulate activate',
+      '충의 대립 에너지가 육분의 기회와 만나 자극적으로 활성화됩니다. 갈등이 오히려 동기부여가 되어 적극적으로 움직이게 되는 시기입니다. 긴장감을 긍정적 에너지로 전환하여 성장하세요. 다만 충동적인 행동으로 상황을 악화시키지 않도록 주의하세요.'
+    ),
+    square: c('conflict', 2, '☠️', 'red', '파괴위험', 'Destruction risk',
+      '충의 충돌과 사각의 긴장이 만나 극심한 파괴 위험이 있습니다. 중요한 결정이나 대립 상황은 반드시 피해야 하는 시기입니다. 최대한 방어적 자세를 취하고, 무리한 도전을 삼가세요.'
+    ),
+    trine: c('clash', 5, '⚔️', 'yellow', '갈등완화', 'Conflict ease',
+      '충의 충돌이 삼각의 조화로운 흐름과 만나 갈등이 완화됩니다. 대립하는 상황이지만 자연스럽게 해결될 가능성이 있는 시기입니다. 긴장을 풀고 유연하게 대처하면 갈등이 줄어듭니다. 다만 방심하여 문제를 키우지 않도록 지속적으로 관리하세요.'
+    ),
+    opposition: c('extreme', 9, '💥', 'purple', '극심충돌', 'Extreme clash',
+      '충과 충이 만나 최고조의 대립과 긴장이 발생합니다. 극단적 변화나 큰 충돌이 예상되는 시기입니다. 감정을 절제하고 신중하게 행동하되, 필요하다면 과감한 결단도 고려하세요.'
+    ),
+    semisextile: c('clash', 4, '⚡', 'yellow', '미세충돌', 'Minor clash',
+      '충의 대립 에너지가 반육분의 미세한 각도와 만나 작은 충돌이 반복됩니다. 사소한 일로 갈등이 생기며 신경이 날카로워지는 시기입니다. 작은 충돌을 가볍게 넘기며 큰 대립으로 번지지 않도록 하세요. 다만 계속 쌓이는 불만을 방치하면 나중에 폭발할 수 있으니 적절히 해소하세요.'
+    ),
+    quincunx: c('clash', 4, '😵', 'yellow', '혼란가중', 'Confusion add',
+      '충의 충돌이 인컨정트의 불편함과 만나 혼란이 가중됩니다. 대립 상황에서 방향을 잡기 어려워 더욱 혼란스러운 시기입니다. 침착하게 상황을 정리하며 명확한 방향을 찾으세요. 다만 급하게 결정하여 잘못된 선택을 하지 않도록 충분히 생각하세요.'
+    ),
+    quintile: c('balance', 5, '🔄', 'blue', '창조적긴장', 'Creative tension',
+      '충의 긴장이 퀸타일의 창조성과 만나 독특한 에너지를 만듭니다. 갈등 속에서 새로운 해결책이나 아이디어가 떠오르는 시기입니다. 긴장을 창조적으로 활용하여 혁신을 이루세요. 다만 대립에 매몰되지 말고 건설적인 방향으로 나아가세요.'
+    ),
+    biquintile: c('balance', 5, '💫', 'blue', '변환가능', 'Transform possible',
+      '충의 충돌이 바이퀸타일의 숙련된 재능과 만나 변환이 가능합니다. 대립을 새로운 형태로 전환할 수 있는 기술과 지혜가 있는 시기입니다. 경험과 재능을 활용하여 갈등을 기회로 바꾸세요. 다만 교만으로 상황을 오판하지 않도록 겸손함을 유지하세요.'
+    ),
   },
   hyeong: { // 형 (刑) - 형벌/시련
-    conjunction: c('clash', 5, '😰', 'yellow', '압박집중', 'Pressure focus'),
-    sextile: c('clash', 4, '⚠️', 'yellow', '주의필요', 'Caution need'),
-    square: c('conflict', 3, '💥', 'red', '시련가중', 'Trial intensify'),
-    trine: c('balance', 5, '⚖️', 'blue', '성장통완화', 'Growing pain ease'),
-    opposition: c('clash', 4, '😓', 'yellow', '고통지속', 'Pain persist'),
-    semisextile: c('clash', 4, '⚠️', 'yellow', '미세압박', 'Minor pressure'),
-    quincunx: c('clash', 4, '🌀', 'yellow', '꼬임복잡', 'Tangle complex'),
-    quintile: c('balance', 5, '🔄', 'blue', '시련극복', 'Trial overcome'),
-    biquintile: c('balance', 5, '💪', 'blue', '성장전환', 'Growth transform'),
+    conjunction: c('clash', 5, '😰', 'yellow', '압박집중', 'Pressure focus',
+      '형의 시련이 합의 강화력과 만나 압박이 집중됩니다. 어려움이 한곳에 몰려 부담이 커지는 시기입니다. 압박을 견디며 시련을 정면으로 대처하되, 혼자 감당하려 하지 말고 도움을 요청하세요. 과도한 스트레스로 무너지지 않도록 적절히 휴식하세요.'
+    ),
+    sextile: c('clash', 4, '⚠️', 'yellow', '주의필요', 'Caution need',
+      '형의 시련이 육분의 기회와 만나 주의가 필요합니다. 좋은 기회처럼 보이지만 숨겨진 어려움이 있는 시기입니다. 신중하게 상황을 판단하며 조심스럽게 진행하세요. 다만 지나친 두려움으로 기회를 완전히 놓치지 않도록 균형을 잡으세요.'
+    ),
+    square: c('conflict', 3, '💥', 'red', '시련가중', 'Trial intensify',
+      '형의 시련과 사각의 긴장이 만나 심각한 어려움이 가중됩니다. 이중고를 겪으며 극심한 압박을 받는 위험한 시기입니다. 반드시 방어적 자세를 취하고 무리한 도전을 피하세요. 중요한 결정은 미루고 현 상황을 견디는 데 집중하세요. 혼자 버티려 하지 말고 도움을 요청하며 위기를 극복하세요.'
+    ),
+    trine: c('balance', 5, '⚖️', 'blue', '성장통완화', 'Growing pain ease',
+      '형의 시련이 삼각의 자연스러운 흐름과 만나 성장통이 완화됩니다. 어려움은 있지만 부드럽게 극복할 수 있는 시기입니다. 자연스러운 흐름을 따르며 시련을 성장의 기회로 삼으세요. 다만 너무 안이하게 대응하여 교훈을 놓치지 않도록 주의하세요.'
+    ),
+    opposition: c('clash', 4, '😓', 'yellow', '고통지속', 'Pain persist',
+      '형의 시련과 충의 대립이 만나 고통이 지속됩니다. 양쪽에서 압박이 들어오며 끝나지 않는 어려움을 겪는 시기입니다. 인내심을 가지고 견디며 상황이 나아지길 기다리세요. 다만 무작정 참기만 하지 말고 현실적인 해결책을 찾으며 대응하세요.'
+    ),
+    semisextile: c('clash', 4, '⚠️', 'yellow', '미세압박', 'Minor pressure',
+      '형의 시련이 반육분의 미세한 각도와 만나 계속되는 압박을 받습니다. 사소한 어려움이 계속 반복되며 신경이 쓰이는 시기입니다. 작은 문제를 하나씩 해결하며 차근차근 대처하세요. 다만 너무 예민하게 반응하여 스스로 스트레스를 키우지 마세요.'
+    ),
+    quincunx: c('clash', 4, '🌀', 'yellow', '꼬임복잡', 'Tangle complex',
+      '형의 시련이 인컨정트의 불편함과 만나 상황이 꼬이고 복잡해집니다. 어려움 속에서 방향을 잡기 어려우며 문제가 얽히는 시기입니다. 침착하게 하나씩 풀어가며 정리하세요. 다만 조급하게 대응하여 더 꼬이지 않도록 신중하게 행동하세요.'
+    ),
+    quintile: c('balance', 5, '🔄', 'blue', '시련극복', 'Trial overcome',
+      '형의 어려움이 퀸타일의 창조성과 만나 시련을 극복할 방법이 보입니다. 어려운 상황이지만 창의적 접근으로 돌파구를 찾을 수 있는 시기입니다. 독창적인 해결책을 모색하며 시련을 극복하세요. 다만 현실성 없는 방법으로 시간을 낭비하지 않도록 신중하게 판단하세요.'
+    ),
+    biquintile: c('balance', 5, '💪', 'blue', '성장전환', 'Growth transform',
+      '형의 시련이 바이퀸타일의 숙련된 재능과 만나 성장으로 전환됩니다. 어려움 속에서 오랜 경험과 기술이 빛을 발하는 시기입니다. 축적된 역량을 활용하여 시련을 성장의 발판으로 삼으세요. 다만 과거 방식만 고집하지 말고 새로운 접근도 시도하세요.'
+    ),
   },
   pa: { // 파 (破) - 파괴/손상
-    conjunction: c('clash', 4, '💔', 'yellow', '손상집중', 'Damage focus'),
-    sextile: c('balance', 5, '⚖️', 'blue', '약화완화', 'Weaken ease'),
-    square: c('conflict', 3, '❌', 'red', '파손가중', 'Break intensify'),
-    trine: c('clash', 4, '😢', 'yellow', '실망완화', 'Disappointment ease'),
-    opposition: c('clash', 5, '💥', 'yellow', '파열긴장', 'Rupture tension'),
-    semisextile: c('clash', 4, '⚠️', 'yellow', '미세손상', 'Minor damage'),
-    quincunx: c('balance', 5, '🔄', 'blue', '해체조정', 'Dismantle adjust'),
-    quintile: c('balance', 5, '🔄', 'blue', '재구성', 'Reconstruct'),
-    biquintile: c('balance', 5, '💡', 'blue', '새로운형태', 'New form'),
+    conjunction: c('clash', 4, '💔', 'yellow', '손상집중', 'Damage focus',
+      '파의 파괴 에너지가 합의 강화력과 만나 손상이 집중됩니다. 한 곳에 문제가 몰리며 무너질 위험이 있는 시기입니다. 최대한 방어하며 피해를 최소화하세요. 다만 이미 깨진 것은 과감히 정리하고 재건에 집중하는 것도 고려하세요.'
+    ),
+    sextile: c('balance', 5, '⚖️', 'blue', '약화완화', 'Weaken ease',
+      '파의 손상이 육분의 기회와 만나 약화가 완화됩니다. 무너지는 것 같지만 회복할 기회가 보이는 시기입니다. 협력과 소통을 통해 손상을 최소화하고 재건하세요. 다만 방심하여 더 큰 손실을 입지 않도록 경계를 늦추지 마세요.'
+    ),
+    square: c('conflict', 3, '❌', 'red', '파손가중', 'Break intensify',
+      '파의 파괴와 사각의 긴장이 만나 심각한 손상이 가중됩니다. 모든 것이 무너지고 깨지는 극심한 위험이 있는 시기입니다. 반드시 중요한 것을 보호하고 더 이상의 손실을 막으세요. 무리한 시도는 절대 피하고 현재 가진 것을 지키는 데 집중하세요. 필요하다면 일시적으로 후퇴하며 재정비하세요.'
+    ),
+    trine: c('clash', 4, '😢', 'yellow', '실망완화', 'Disappointment ease',
+      '파의 손상이 삼각의 자연스러운 흐름과 만나 실망이 완화됩니다. 무너지는 상황이지만 자연스럽게 회복될 가능성이 있는 시기입니다. 자연스러운 흐름을 따르며 부드럽게 재건하세요. 다만 방심하여 더 큰 손실을 입지 않도록 경계를 유지하세요.'
+    ),
+    opposition: c('clash', 5, '💥', 'yellow', '파열긴장', 'Rupture tension',
+      '파의 파괴와 충의 대립이 만나 파열 직전의 긴장이 형성됩니다. 관계나 상황이 깨질 위험이 있는 위태로운 시기입니다. 양쪽의 균형을 신중하게 맞추며 파국을 막으세요. 다만 이미 깨진 것은 과감히 정리하고 새로 시작하는 것도 고려하세요.'
+    ),
+    semisextile: c('clash', 4, '⚠️', 'yellow', '미세손상', 'Minor damage',
+      '파의 파괴가 반육분의 미세한 각도와 만나 작은 손상이 반복됩니다. 사소한 문제가 계속 생기며 서서히 무너지는 시기입니다. 작은 문제를 방치하지 말고 즉시 보수하며 관리하세요. 다만 과도하게 걱정하여 에너지를 소진하지 마세요.'
+    ),
+    quincunx: c('balance', 5, '🔄', 'blue', '해체조정', 'Dismantle adjust',
+      '파의 손상이 인컨정트의 어색함과 만나 해체하며 조정이 필요합니다. 기존 구조를 뜯어고쳐야 하는 불편한 시기입니다. 무너진 부분을 인정하고 새롭게 재구성하세요. 다만 급하게 모든 것을 바꾸려 하지 말고 점진적으로 조정하세요.'
+    ),
+    quintile: c('balance', 5, '🔄', 'blue', '재구성', 'Reconstruct',
+      '파의 파괴가 퀸타일의 창조성과 만나 새롭게 재구성할 기회가 생깁니다. 무너진 것을 창의적으로 다시 만들 수 있는 시기입니다. 과거에 얽매이지 말고 혁신적으로 재건하세요. 다만 기존의 장점까지 버리지 말고 좋은 것은 보존하며 발전시키세요.'
+    ),
+    biquintile: c('balance', 5, '💡', 'blue', '새로운형태', 'New form',
+      '파의 손상이 바이퀸타일의 숙련된 재능과 만나 새로운 형태로 탄생합니다. 깨진 것을 전문성으로 완전히 새롭게 만들 수 있는 시기입니다. 경험과 기술을 바탕으로 혁신적인 형태를 창조하세요. 다만 너무 복잡하게 만들지 말고 실용성을 유지하세요.'
+    ),
   },
   hae: { // 해 (害) - 해침/방해
-    conjunction: c('clash', 4, '😰', 'yellow', '은밀방해', 'Hidden obstruct'),
-    sextile: c('clash', 4, '⚠️', 'yellow', '경계필요', 'Caution need'),
-    square: c('clash', 4, '😢', 'yellow', '상처위험', 'Wound risk'),
-    trine: c('balance', 5, '⚖️', 'blue', '마찰완화', 'Friction ease'),
-    opposition: c('clash', 5, '😵', 'yellow', '배신위험', 'Betrayal risk'),
-    semisextile: c('clash', 4, '⚠️', 'yellow', '미세방해', 'Minor obstruct'),
-    quincunx: c('clash', 4, '🌀', 'yellow', '음해가능', 'Scheme possible'),
-    quintile: c('balance', 5, '🛡️', 'blue', '방어창조', 'Defense create'),
-    biquintile: c('balance', 5, '💡', 'blue', '회피방법', 'Avoid method'),
+    conjunction: c('clash', 4, '😰', 'yellow', '은밀방해', 'Hidden obstruct',
+      '해의 방해가 합의 강화력과 만나 은밀한 방해가 집중됩니다. 보이지 않는 곳에서 강한 방해 공작이 일어나는 시기입니다. 주변을 경계하며 방어적으로 대처하세요. 다만 지나친 의심으로 좋은 관계까지 망치지 않도록 균형을 유지하세요.'
+    ),
+    sextile: c('clash', 4, '⚠️', 'yellow', '경계필요', 'Caution need',
+      '해의 해침이 육분의 기회와 만나 경계가 필요합니다. 좋은 기회처럼 보이지만 숨겨진 함정이 있는 시기입니다. 신중하게 판단하며 조심스럽게 접근하세요. 다만 두려움으로 좋은 기회를 완전히 놓치지 않도록 균형을 잡으세요.'
+    ),
+    square: c('clash', 4, '😢', 'yellow', '상처위험', 'Wound risk',
+      '해의 해침과 사각의 긴장이 만나 상처받을 위험이 있습니다. 방해와 공격으로 마음에 깊은 상처를 입을 수 있는 시기입니다. 자신을 보호하며 불필요한 노출을 피하세요. 다만 모든 사람을 의심하지 말고 믿을 수 있는 사람과는 관계를 유지하세요.'
+    ),
+    trine: c('balance', 5, '⚖️', 'blue', '마찰완화', 'Friction ease',
+      '해의 방해가 삼각의 자연스러운 흐름과 만나 마찰이 완화됩니다. 은밀한 방해가 있지만 순조롭게 해결될 수 있는 시기입니다. 자연스러운 흐름을 따르며 방해 요소를 부드럽게 제거하세요. 다만 방심하여 더 큰 문제가 생기지 않도록 경계를 유지하세요.'
+    ),
+    opposition: c('clash', 5, '😵', 'yellow', '배신위험', 'Betrayal risk',
+      '해의 해침과 충의 대립이 만나 배신의 위험이 높아집니다. 믿었던 사람이나 상황이 뒤집힐 수 있는 조심스러운 시기입니다. 신중하게 사람을 판단하고 방어적으로 대처하세요. 다만 지나친 의심으로 좋은 관계까지 망치지 않도록 균형을 잡으세요.'
+    ),
+    semisextile: c('clash', 4, '⚠️', 'yellow', '미세방해', 'Minor obstruct',
+      '해의 방해가 반육분의 미세한 각도와 만나 작은 방해가 계속됩니다. 사소한 일로 계속 발목이 잡히며 진행이 더딘 시기입니다. 작은 방해를 무시하지 말고 하나씩 제거하며 나아가세요. 다만 너무 예민하게 반응하여 스스로 스트레스를 키우지 마세요.'
+    ),
+    quincunx: c('clash', 4, '🌀', 'yellow', '음해가능', 'Scheme possible',
+      '해의 해침이 인컨정트의 불편함과 만나 음해가 가능한 시기입니다. 보이지 않는 곳에서 불리한 계략이 꾸며질 수 있습니다. 조심스럽게 행동하며 흔적을 남기지 마세요. 다만 과도한 두려움으로 움츠러들지 말고 현명하게 대처하세요.'
+    ),
+    quintile: c('balance', 5, '🛡️', 'blue', '방어창조', 'Defense create',
+      '해의 방해가 퀸타일의 창조성과 만나 독창적인 방어책이 떠오릅니다. 은밀한 공격에 대비할 창의적 해결책이 있는 시기입니다. 새로운 방식으로 자신을 보호하며 방해를 차단하세요. 다만 공격적으로 대응하기보다 현명하게 회피하는 데 집중하세요.'
+    ),
+    biquintile: c('balance', 5, '💡', 'blue', '회피방법', 'Avoid method',
+      '해의 해침이 바이퀸타일의 숙련된 재능과 만나 회피할 방법이 보입니다. 오랜 경험으로 방해를 피해갈 지혜가 있는 시기입니다. 전문성을 활용하여 영리하게 위험을 회피하세요. 다만 도피만 하지 말고 근본 원인을 해결하는 것도 고려하세요.'
+    ),
   },
   wonjin: { // 원진 (怨嗔) - 원한/불화
-    conjunction: c('clash', 5, '😤', 'yellow', '불화집중', 'Discord focus'),
-    sextile: c('clash', 4, '😒', 'yellow', '거부감', 'Rejection'),
-    square: c('clash', 5, '😡', 'yellow', '충돌격화', 'Clash escalate'),
-    trine: c('clash', 4, '😤', 'yellow', '긴장지속', 'Tension persist'),
-    opposition: c('clash', 5, '😵', 'yellow', '원한깊음', 'Resentment deep'),
-    semisextile: c('clash', 4, '😒', 'yellow', '미세불화', 'Minor discord'),
-    quincunx: c('clash', 4, '🌀', 'yellow', '악연가능', 'Bad fate possible'),
-    quintile: c('balance', 5, '🔄', 'blue', '화해창조', 'Reconcile create'),
-    biquintile: c('balance', 5, '💡', 'blue', '해소방법', 'Resolve method'),
+    conjunction: c('clash', 5, '😤', 'yellow', '불화집중', 'Discord focus',
+      '원진의 불화가 합의 강화력과 만나 갈등이 집중됩니다. 원한과 불만이 한 곳에 모여 폭발할 수 있는 시기입니다. 감정을 절제하고 이성적으로 대화하며 갈등을 풀어가세요. 다만 쌓인 감정을 무시하지 말고 적절히 표현하여 해소하세요.'
+    ),
+    sextile: c('clash', 4, '😒', 'yellow', '거부감', 'Rejection',
+      '원진의 불화가 육분의 기회와 만나 거부감이 생깁니다. 좋은 기회처럼 보이지만 마음이 내키지 않는 시기입니다. 직감을 믿고 불편한 것은 거절하세요. 다만 감정적 판단만으로 좋은 기회를 놓치지 않도록 이성적으로도 판단하세요.'
+    ),
+    square: c('clash', 5, '😡', 'yellow', '충돌격화', 'Clash escalate',
+      '원진의 원한이 사각의 긴장과 만나 충돌이 격화됩니다. 작은 불화가 큰 다툼으로 번질 수 있는 위험한 시기입니다. 감정적 대응을 피하고 냉정하게 상황을 관리하세요. 다만 중요한 문제는 회피하지 말고 근본적으로 해결하려 노력하세요.'
+    ),
+    trine: c('clash', 4, '😤', 'yellow', '긴장지속', 'Tension persist',
+      '원진의 불화가 삼각의 자연스러운 흐름과 만나도 긴장이 지속됩니다. 부드러운 흐름 속에서도 불편함이 계속되는 시기입니다. 자연스러운 흐름을 따르며 서서히 긴장을 풀어가세요. 다만 완전히 방심하지 말고 적절한 거리를 유지하세요.'
+    ),
+    opposition: c('clash', 5, '😵', 'yellow', '원한깊음', 'Resentment deep',
+      '원진의 원망과 충의 대립이 만나 원한이 깊어집니다. 양쪽이 서로를 미워하며 골이 깊어지는 시기입니다. 화해의 여지를 찾으며 관계 회복을 시도하되, 불가능하다면 과감히 관계를 정리하는 것도 고려하세요. 원한에 사로잡혀 스스로를 해치지 마세요.'
+    ),
+    semisextile: c('clash', 4, '😒', 'yellow', '미세불화', 'Minor discord',
+      '원진의 원한이 반육분의 미세한 각도와 만나 작은 불화가 계속됩니다. 사소한 일로 자꾸 감정이 상하며 불편한 시기입니다. 작은 갈등을 크게 만들지 말고 가볍게 넘기세요. 다만 계속 쌓이는 불만을 무시하지 말고 적절히 표현하며 해소하세요.'
+    ),
+    quincunx: c('clash', 4, '🌀', 'yellow', '악연가능', 'Bad fate possible',
+      '원진의 원망이 인컨정트의 불편함과 만나 악연으로 이어질 수 있습니다. 불편한 관계가 계속되며 악순환이 반복되는 시기입니다. 관계를 정리할지 회복할지 명확히 결정하세요. 다만 감정적으로만 판단하지 말고 이성적으로 최선의 선택을 하세요.'
+    ),
+    quintile: c('balance', 5, '🔄', 'blue', '화해창조', 'Reconcile create',
+      '원진의 불화가 퀸타일의 창조성과 만나 화해의 방법이 보입니다. 갈등 속에서 새로운 화해의 길을 찾을 수 있는 시기입니다. 창의적인 접근으로 관계를 회복하며 새로운 시작을 모색하세요. 다만 일방적인 양보보다 서로 존중하는 해결책을 찾으세요.'
+    ),
+    biquintile: c('balance', 5, '💡', 'blue', '해소방법', 'Resolve method',
+      '원진의 원한이 바이퀸타일의 숙련된 지혜와 만나 해소할 방법이 보입니다. 오랜 경험으로 갈등을 풀 수 있는 방법을 아는 시기입니다. 축적된 지혜를 활용하여 불화를 해소하고 관계를 회복하세요. 다만 과거 방식만 고집하지 말고 상황에 맞게 유연하게 접근하세요.'
+    ),
   },
 };
 

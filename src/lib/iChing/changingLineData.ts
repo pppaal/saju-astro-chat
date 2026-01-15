@@ -1,6 +1,8 @@
 // 변효 해석 데이터 - 프론트엔드용
 // 백엔드의 hexagrams JSON에서 변효 해석 정보를 가져옴
 
+import { logger } from "@/lib/logger";
+
 export interface ChangingLineInfo {
   lineIndex: number; // 0-5 (초효-상효)
   changingTo: number; // 변괘 번호
@@ -38,13 +40,13 @@ export async function fetchChangingLineInterpretation(
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch changing line interpretation");
+      logger.error("Failed to fetch changing line interpretation");
       return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Error fetching changing line interpretation:", error);
+    logger.error("Error fetching changing line interpretation:", error);
     return null;
   }
 }

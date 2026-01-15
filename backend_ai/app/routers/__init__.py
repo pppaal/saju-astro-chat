@@ -135,6 +135,12 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import icp_routes: {e}")
 
+try:
+    from .story_routes import story_bp
+    _blueprints.append((story_bp, "Destiny story generation"))
+except ImportError as e:
+    logger.warning(f"Could not import story_routes: {e}")
+
 
 # Export all blueprints
 __all__ = [

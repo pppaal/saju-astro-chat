@@ -51,9 +51,9 @@ export function resolveOptions(input?: AstroOptions): Required<AstroOptions> {
     nodeType: (input?.nodeType ?? base.nodeType),
     includeMinorAspects: input?.includeMinorAspects ?? base.includeMinorAspects,
     enable: {
-      chiron: input?.enable?.chiron ?? base.enable!.chiron ?? false,
-      lilith: (input?.enable?.lilith ?? base.enable!.lilith ?? false),
-      pof: input?.enable?.pof ?? base.enable!.pof ?? false,
+      chiron: input?.enable?.chiron ?? base.enable?.chiron ?? false,
+      lilith: input?.enable?.lilith ?? base.enable?.lilith ?? false,
+      pof: input?.enable?.pof ?? base.enable?.pof ?? false,
     },
   };
 }

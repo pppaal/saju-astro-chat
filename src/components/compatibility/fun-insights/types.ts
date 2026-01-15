@@ -109,7 +109,7 @@ export interface CompatibilityData {
   nodes?: NodeAnalysis;
 
   // Cross-System Fusion (Saju × Astrology)
-  crossSystemAnalysis?: CrossAnalysisResult;
+  crossSystemAnalysis?: CrossAnalysisResult | null;
 
   // Overall scores
   overallScore?: number;

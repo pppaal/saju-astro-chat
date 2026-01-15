@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./ShareButton.module.css";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import { logger } from "@/lib/logger";
 
 interface ShareButtonProps {
   variant?: "full" | "compact";
@@ -31,7 +32,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
             setReferralUrl(data.referralUrl);
           }
         })
-        .catch(console.error);
+        .catch((err) => logger.error('[ShareButton] Failed to get referral code:', err));
     } else {
       // For non-logged-in users, use base URL
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
@@ -61,7 +62,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("[ShareButton] Failed to copy:", err);
     }
   };
 
@@ -93,7 +94,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
         });
         setIsOpen(false);
       } catch (err) {
-        console.error("Share failed:", err);
+        logger.error("[ShareButton] Share failed:", err);
       }
     }
   };

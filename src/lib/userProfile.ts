@@ -5,6 +5,8 @@
  * Uses localStorage for persistence and syncs with DB for authenticated users.
  */
 
+import { logger } from "@/lib/logger";
+
 const USER_PROFILE_KEY = 'destinypal_user_profile';
 
 export interface UserProfile {
@@ -84,7 +86,7 @@ export function saveUserProfile(profile: Partial<UserProfile>): void {
     };
     localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
   } catch (error) {
-    console.warn('Failed to save user profile:', error);
+    logger.warn('Failed to save user profile:', error);
   }
 }
 

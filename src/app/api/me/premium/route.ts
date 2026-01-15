@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import Stripe from "stripe";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,7 @@ export async function GET() {
       isPremium,
     });
   } catch (err: unknown) {
-    console.error("[Premium check error]", err);
+    logger.error("[Premium check error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }

@@ -26,17 +26,22 @@ export function cleanseText(raw: string): string {
     return raw
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-      .replace(/on\w+\s*=/gi, "") // Remove event handlers like onclick=
+      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "") // Remove event handlers like onclick="..."
+      .replace(/on\w+\s*=\s*[^\s>]*/gi, "") // Remove event handlers without quotes
       .trim();
   }
 
   // For non-JSON (markdown/text) responses, do full cleansing
+  // IMPORTANT: Remove script/style tags FIRST before removing other HTML tags
   return raw
-    .replace(/<\/?[^>]+(>|$)/g, "")
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "") // Remove scripts first
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")   // Remove styles first
+    .replace(/<\/?[^>]+(>|$)/g, "")                       // Then remove other HTML tags
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "")         // Remove event handlers like onclick="..."
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, "")                 // Remove event handlers without quotes
     .replace(/@import.*?;/gi, "")
     .replace(
-      /(html|body|svg|button|form|document\.write|style|font\-family|background)/gi,
+      /(html|body|svg|button|form|document\.write|font\-family|background)/gi,
       ""
     )
     .replace(/&nbsp;/g, " ")

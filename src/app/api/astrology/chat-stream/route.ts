@@ -7,6 +7,7 @@ import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize
 import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { normalizeMessages as normalizeMessagesBase, type ChatMessage } from "@/lib/api";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -277,7 +278,7 @@ export async function POST(request: Request) {
             controller.enqueue(encoder.encode(masked));
             read();
           }).catch((err) => {
-            console.error("[astrology chat-stream sanitize error]", err);
+            logger.error("[astrology chat-stream sanitize error]", err);
             controller.close();
           });
         };
@@ -294,7 +295,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (err: unknown) {
-    console.error("[Astrology Chat-Stream API error]", err);
+    logger.error("[Astrology Chat-Stream API error]", err);
     return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

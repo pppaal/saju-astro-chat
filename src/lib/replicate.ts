@@ -1,4 +1,5 @@
 import Replicate from 'replicate';
+import { logger } from "@/lib/logger";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -58,7 +59,7 @@ mobile app card design, elegant composition, 8k quality`;
 
     throw new Error('Invalid response from Replicate');
   } catch (error) {
-    console.error('Failed to generate weekly fortune image:', error);
+    logger.error('Failed to generate weekly fortune image:', error);
     throw error;
   }
 }

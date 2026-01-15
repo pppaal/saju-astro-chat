@@ -6,7 +6,7 @@
  * - API 보호 로직
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { vi } from "vitest";
 
 describe("Authentication: Session Validation", () => {
   interface Session {

@@ -2,21 +2,8 @@
 // 사주 시각화 데이터 (500% 급 모듈)
 
 import { FiveElement, SajuPillars, PillarData, SibsinKind, PillarKind } from './types';
-import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
-
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element as FiveElement || '토';
-}
+import { JIJANGGAN, FIVE_ELEMENT_RELATIONS, STEMS, BRANCHES } from './constants';
+import { getStemElement, getBranchElement } from './stemBranchUtils';
 
 // ============================================================
 // 타입 정의

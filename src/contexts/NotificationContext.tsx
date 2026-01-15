@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/Toast";
+import { logger } from "@/lib/logger";
 
 export type NotificationType = "like" | "comment" | "reply" | "mention" | "system";
 
@@ -42,7 +43,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       try {
         setNotifications(JSON.parse(stored));
       } catch (e) {
-        console.error("Failed to load notifications", e);
+        logger.error("[NotificationContext] Failed to load notifications", e);
       }
     }
   }, []);
@@ -188,7 +189,7 @@ export function useNotifications() {
 // Helper to request notification permission
 export async function requestNotificationPermission() {
   if (!("Notification" in window)) {
-    console.warn("This browser does not support notifications");
+    logger.warn("[NotificationContext] This browser does not support notifications");
     return false;
   }
 

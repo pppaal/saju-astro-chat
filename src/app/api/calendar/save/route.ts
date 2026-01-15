@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, id: savedDate.id }, { headers: limit.headers });
   } catch (error) {
-    console.error("Failed to save calendar date:", error);
+    logger.error("Failed to save calendar date:", error);
     return NextResponse.json({ error: "Failed to save" }, { status: 500 });
   }
 }
@@ -127,7 +128,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete calendar date:", error);
+    logger.error("Failed to delete calendar date:", error);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }
@@ -161,7 +162,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ savedDates });
   } catch (error) {
-    console.error("Failed to fetch saved calendar dates:", error);
+    logger.error("Failed to fetch saved calendar dates:", error);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }

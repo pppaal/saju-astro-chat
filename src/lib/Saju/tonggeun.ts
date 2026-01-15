@@ -3,7 +3,8 @@
 // 일간 및 오행의 실제 힘을 정밀하게 계산
 
 import { FiveElement, YinYang, SajuPillarsInput } from './types';
-import { STEMS, BRANCHES, JIJANGGAN } from './constants';
+import { JIJANGGAN } from './constants';
+import { getStemElement, getStemYinYang, getBranchElement } from './stemBranchUtils';
 
 // Re-export for backward compatibility
 export type { SajuPillarsInput };
@@ -76,23 +77,6 @@ export interface TonggeunStrengthAnalysis {
 
 /** @deprecated Use TonggeunStrengthAnalysis instead */
 export type StrengthAnalysis = TonggeunStrengthAnalysis;
-
-// ============ 기본 유틸리티 ============
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element ?? '토';
-}
-
-function getStemYinYang(stem: string): YinYang {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.yin_yang ?? '양';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element ?? '토';
-}
 
 // ============ 통근 계산 ============
 

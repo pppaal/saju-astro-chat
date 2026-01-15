@@ -4,6 +4,8 @@
  * 사주 계산 결과 캐싱, 메모이제이션, 지연 로딩, 배치 처리
  */
 
+import { logger } from "@/lib/logger";
+
 // 간소화된 사주 결과 인터페이스 (이 모듈 내부용)
 interface SimplePillar {
   stem: string;
@@ -301,7 +303,7 @@ export class LRUCache<T> {
       localStorage.setItem(this.config.storageKey, JSON.stringify(data));
     } catch (e) {
       // 저장소 용량 초과 등
-      console.warn('Cache persist failed:', e);
+      logger.warn('Cache persist failed:', e);
     }
   }
 
@@ -325,7 +327,7 @@ export class LRUCache<T> {
         }
       }
     } catch (e) {
-      console.warn('Cache restore failed:', e);
+      logger.warn('Cache restore failed:', e);
     }
   }
 }
@@ -386,7 +388,7 @@ export function memoizeAsync<T extends (...args: never[]) => Promise<unknown>>(
     const key = generateKey(...args);
 
     if (cache.has(key)) {
-      return cache.get(key)!;
+      return cache.get(key) as Awaited<ReturnType<T>>;
     }
 
     const resultPromise = fn(...args) as Promise<Awaited<ReturnType<T>>>;
@@ -760,7 +762,7 @@ export async function measurePerformance<T>(
 ): Promise<{ result: T; metrics: PerformanceMetrics }> {
   const startTime = performance.now();
   let success = true;
-  let result: T;
+  let result: T | undefined;
 
   try {
     result = await Promise.resolve(fn());
@@ -785,7 +787,8 @@ export async function measurePerformance<T>(
     }
   }
 
-  return { result: result!, metrics: performanceHistory[performanceHistory.length - 1] };
+  // result는 try 블록에서 성공하면 반드시 할당되고, 실패하면 throw되므로 여기에 도달하면 result가 존재
+  return { result: result as T, metrics: performanceHistory[performanceHistory.length - 1] };
 }
 
 /**

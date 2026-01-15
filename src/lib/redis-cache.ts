@@ -1,6 +1,8 @@
 // src/lib/redis-cache.ts
 // Simple Redis cache using Upstash REST API
 
+import { logger } from "@/lib/logger";
+
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -26,7 +28,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     // Handle legacy format where value was wrapped in { value, ex } object
     // This ensures backward compatibility with old cache entries
     if (parsed && typeof parsed === 'object' && 'value' in parsed && 'ex' in parsed) {
-      console.warn("[Redis Cache] Converting legacy cache format");
+      logger.debug("[Redis Cache] Converting legacy cache format");
       // The 'value' field contains the actual stringified data
       if (typeof parsed.value === 'string') {
         return JSON.parse(parsed.value) as T;
@@ -36,7 +38,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 
     return parsed as T;
   } catch (err) {
-    console.error("[Redis Cache] GET error:", err);
+    logger.error("[Redis Cache] GET error:", err);
     return null;
   }
 }
@@ -69,7 +71,7 @@ export async function cacheSet(
 
     return res.ok;
   } catch (err) {
-    console.error("[Redis Cache] SET error:", err);
+    logger.error("[Redis Cache] SET error:", err);
     return false;
   }
 }

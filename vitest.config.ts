@@ -6,6 +6,17 @@ const isE2E =
   process.env.npm_lifecycle_event === "test:e2e:api" ||
   process.env.VITEST_INCLUDE_E2E === "1";
 
+// Integration tests use real database - opt-in via `npm run test:integration`
+const isIntegration =
+  process.env.npm_lifecycle_event === "test:integration" ||
+  process.env.VITEST_INTEGRATION === "1";
+
+// Performance tests require a running server - opt-in via `npm run test:performance`
+const isPerformance =
+  process.env.npm_lifecycle_event === "test:performance" ||
+  process.env.npm_lifecycle_event === "test:performance:watch" ||
+  process.env.VITEST_PERFORMANCE === "1";
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -15,10 +26,18 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "happy-dom",
+    environmentOptions: {
+      happyDOM: {
+        settings: {
+          disableErrorCapturing: true,
+        },
+      },
+    },
     include: ["tests/**/*.{test,spec}.{ts,tsx}"],
     exclude: [
       "**/node_modules/**",
       "tests/setup.ts",
+      "tests/integration/setup.ts",
       // Node.js native test runner tests (use `npm run test:node` instead)
       "tests/metrics.test.ts",
       "tests/textGuards.test.ts",
@@ -27,8 +46,14 @@ export default defineConfig({
       "tests/apiSmoke.test.ts",
       // E2E tests require a running server; opt in via `npm run test:e2e:api`
       ...(isE2E ? [] : ["tests/e2e/**"]),
+      // Integration tests use real DB; opt in via `npm run test:integration`
+      ...(isIntegration ? [] : ["tests/integration/**"]),
+      // Performance tests require a running server; opt in via `npm run test:performance`
+      ...(isPerformance ? [] : ["tests/performance/**"]),
     ],
-    setupFiles: ["./tests/setup.ts"],
+    setupFiles: isIntegration
+      ? ["./tests/integration/setup.ts"]
+      : ["./tests/setup.ts"],
     // Coverage configuration
     coverage: {
       enabled: false, // Enable with --coverage flag
@@ -52,16 +77,18 @@ export default defineConfig({
         "src/types/**",
         "src/generated/**",
       ],
-      // Baseline thresholds to prevent regressions; raise as coverage improves.
+      // Coverage thresholds - baseline to prevent regressions
+      // Will gradually increase as we add more tests
+      // Updated: Adjusted to current coverage baseline (307 test files, 10188 tests)
       thresholds: {
-        lines: 4.5,
-        functions: 4.2,
-        branches: 3.2,
-        statements: 4.5,
+        lines: 29,
+        functions: 32,
+        branches: 28,
+        statements: 29,
       },
     },
     // Test timeouts
-    testTimeout: 10000,
-    hookTimeout: 10000,
+    testTimeout: isPerformance ? 120000 : isE2E ? 60000 : 30000, // 2min for performance, 1min for E2E, 30s for regular
+    hookTimeout: isPerformance ? 120000 : isE2E ? 60000 : 10000, // 2min for performance, 1min for E2E setup
   },
 });

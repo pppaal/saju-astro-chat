@@ -2,21 +2,8 @@
 // 복합 운세 시뮬레이션 (500% 급 모듈)
 
 import { FiveElement, SajuPillars, SibsinKind } from './types';
-import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS } from './constants';
-
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element as FiveElement || '토';
-}
+import { FIVE_ELEMENT_RELATIONS, STEMS, BRANCHES } from './constants';
+import { getStemElement, getBranchElement } from './stemBranchUtils';
 
 // ============================================================
 // 타입 정의
@@ -380,8 +367,10 @@ export function simulateFortuneFlow(
   // 최고/최저 시점
   const maxScore = Math.max(...scores);
   const minScore = Math.min(...scores);
-  const bestPeriod = snapshots.find(s => s.overallScore === maxScore)!.timePoint;
-  const challengingPeriod = snapshots.find(s => s.overallScore === minScore)!.timePoint;
+  const bestSnapshot = snapshots.find(s => s.overallScore === maxScore);
+  const challengingSnapshot = snapshots.find(s => s.overallScore === minScore);
+  const bestPeriod = bestSnapshot?.timePoint ?? snapshots[0].timePoint;
+  const challengingPeriod = challengingSnapshot?.timePoint ?? snapshots[0].timePoint;
 
   // 전환점 감지
   const turningPoints: TimePoint[] = [];

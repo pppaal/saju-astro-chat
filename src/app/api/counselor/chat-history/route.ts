@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
       isReturningUser: (personaMemory?.sessionCount || 0) > 0,
     });
   } catch (err: unknown) {
-    console.error("[CounselorChatHistory GET error]", err);
+    logger.error("[CounselorChatHistory GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
@@ -183,7 +184,7 @@ export async function POST(request: Request) {
       });
     }
   } catch (err: unknown) {
-    console.error("[CounselorChatHistory POST error]", err);
+    logger.error("[CounselorChatHistory POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
@@ -228,7 +229,7 @@ export async function PATCH(request: Request) {
       session: updated,
     });
   } catch (err: unknown) {
-    console.error("[CounselorChatHistory PATCH error]", err);
+    logger.error("[CounselorChatHistory PATCH error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }

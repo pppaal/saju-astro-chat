@@ -1,9 +1,12 @@
 // src/lib/db/prisma.ts
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import { encryptToken } from '@/lib/security/tokenCrypto';
+import { logger } from '@/lib/logger';
 
 // HMR/다중 import 방지(개발 환경)
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; pool?: Pool };
 
 const encryptAccountTokens = <T>(data: T): T => {
   if (!data || typeof data !== 'object') return data;
@@ -18,17 +21,27 @@ const encryptAccountTokens = <T>(data: T): T => {
 };
 
 function createPrismaClient(): PrismaClient {
-  // Prisma 7.x: DATABASE_URL is read from env automatically
-  // No need to specify datasourceUrl in constructor
+  // Prisma 7.x: Use adapter for database connection
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+
+  // Create connection pool
+  const pool = globalForPrisma.pool ?? new Pool({ connectionString });
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.pool = pool;
+  }
+
+  // Create adapter
+  const adapter = new PrismaPg(pool);
+
   const basePrisma = new PrismaClient({
+    adapter,
     // 로그가 필요하면 켜기
     // log: ['query', 'error', 'warn'],
   });
-
-  // Prisma 6.x: use Client Extensions instead of deprecated $use middleware
-  // Token encryption is handled at the application layer when needed
-  // The extension API has type compatibility issues with groupBy, so we skip it
-  // and rely on explicit encryption calls where needed
 
   return basePrisma;
 }
@@ -38,7 +51,7 @@ export async function ensureDbConnection() {
   try {
     await prisma.$queryRaw`SELECT 1`;
   } catch (error) {
-    console.warn('[prisma] Connection lost, reconnecting...');
+    logger.warn('[prisma] Connection lost, reconnecting...');
     await prisma.$disconnect();
     await prisma.$connect();
   }

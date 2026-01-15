@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateWeeklyFortuneImage } from '@/lib/replicate';
 import { saveWeeklyFortuneImage, getWeekNumber } from '@/lib/weeklyFortune';
+import { logger } from '@/lib/logger';
 
 // Vercel Cron이 호출할 엔드포인트
 // 매주 월요일 오전 9시 (KST) = 월요일 0시 (UTC) 실행
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.warn('[WeeklyFortune] Starting image generation...');
+    logger.warn('[WeeklyFortune] Starting image generation...');
 
     // 이미지 생성
     const imageUrl = await generateWeeklyFortuneImage();
@@ -59,10 +60,10 @@ export async function GET(request: Request) {
     });
 
     if (!saved) {
-      console.error('[WeeklyFortune] Failed to save to Redis');
+      logger.error('[WeeklyFortune] Failed to save to Redis');
     }
 
-    console.warn('[WeeklyFortune] Image generated and saved successfully');
+    logger.warn('[WeeklyFortune] Image generated and saved successfully');
 
     return NextResponse.json({
       success: true,
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[WeeklyFortune] Error:', error);
+    logger.error('[WeeklyFortune] Error:', error);
     return NextResponse.json(
       {
         error: 'Failed to generate weekly fortune image',

@@ -1,14 +1,9 @@
 // src/lib/astrology/foundation/astrologyService.ts
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 import { Chart, ZodiacKo } from "./types";
 import { formatLongitude } from "./utils";
 import { calcHouses, inferHouseOf } from "./houses";
 import { getSwisseph } from "./ephe";
+import { getPlanetList, natalToJD } from "./shared";
 
 // --- 출생 차트 public API ---
 export interface NatalChartInput {
@@ -49,55 +44,13 @@ export interface NatalChartData {
   };
 }
 
-const getPlanetList = (() => {
-  let cache: Record<string, number> | null = null;
-  return () => {
-    if (cache) return cache;
-    const sw = getSwisseph();
-    cache = {
-      Sun: sw.SE_SUN,
-      Moon: sw.SE_MOON,
-      Mercury: sw.SE_MERCURY,
-      Venus: sw.SE_VENUS,
-      Mars: sw.SE_MARS,
-      Jupiter: sw.SE_JUPITER,
-      Saturn: sw.SE_SATURN,
-      Uranus: sw.SE_URANUS,
-      Neptune: sw.SE_NEPTUNE,
-      Pluto: sw.SE_PLUTO,
-      "True Node": sw.SE_TRUE_NODE,
-    };
-    return cache;
-  };
-})();
-
 // --- 메인 차트 계산 ---
 export async function calculateNatalChart(input: NatalChartInput): Promise<NatalChartData> {
   const swisseph = getSwisseph();
   const PLANET_LIST = getPlanetList();
   const SW_FLAGS = swisseph.SEFLG_SPEED;
 
-  const pad = (v: number) => String(v).padStart(2, "0");
-  const local = dayjs.tz(
-    `${input.year}-${pad(input.month)}-${pad(input.date)}T${pad(input.hour)}:${pad(input.minute)}:00`,
-    input.timeZone
-  );
-  if (!local.isValid()) throw new Error("Invalid local datetime for given timeZone");
-  const utcDate = local.utc().toDate();
-
-  const jdResult = swisseph.swe_utc_to_jd(
-    utcDate.getUTCFullYear(),
-    utcDate.getUTCMonth() + 1,
-    utcDate.getUTCDate(),
-    utcDate.getUTCHours(),
-    utcDate.getUTCMinutes(),
-    utcDate.getUTCSeconds(),
-    swisseph.SE_GREG_CAL
-  );
-  if ("error" in jdResult) {
-    throw new Error(`Swiss Ephemeris Error (swe_utc_to_jd): ${jdResult.error}`);
-  }
-  const ut_jd = jdResult.julianDayUT;
+  const ut_jd = natalToJD(input);
 
   // Houses / ASC / MC
   const housesRes = calcHouses(ut_jd, input.latitude, input.longitude, "Placidus");

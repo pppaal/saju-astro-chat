@@ -1,56 +1,16 @@
 // src/lib/astrology/foundation/transit.ts
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc); dayjs.extend(timezone);
-
 import { Chart, TransitInput, HouseSystem } from "./types";
 import { formatLongitude } from "./utils";
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from "./houses";
 import { getSwisseph } from "./ephe";
-
-const getPlanetList = (() => {
-  let cache: Record<string, number> | null = null;
-  return () => {
-    if (cache) return cache;
-    const sw = getSwisseph();
-    cache = {
-      Sun: sw.SE_SUN,
-      Moon: sw.SE_MOON,
-      Mercury: sw.SE_MERCURY,
-      Venus: sw.SE_VENUS,
-      Mars: sw.SE_MARS,
-      Jupiter: sw.SE_JUPITER,
-      Saturn: sw.SE_SATURN,
-      Uranus: sw.SE_URANUS,
-      Neptune: sw.SE_NEPTUNE,
-      Pluto: sw.SE_PLUTO,
-      "True Node": sw.SE_TRUE_NODE,
-    };
-    return cache;
-  };
-})();
+import { getPlanetList, isoToJD, throwIfSwissEphError } from "./shared";
 
 export async function calculateTransitChart(input: TransitInput, system: HouseSystem = "Placidus"): Promise<Chart> {
   const swisseph = getSwisseph();
   const PLANET_LIST = getPlanetList();
   const SW_FLAGS = swisseph.SEFLG_SPEED;
 
-  const local = dayjs.tz(input.iso, input.timeZone);
-  if (!local.isValid()) throw new Error("Invalid ISO datetime");
-  const utcDate = local.utc().toDate();
-
-  const jdResult = swisseph.swe_utc_to_jd(
-    utcDate.getUTCFullYear(),
-    utcDate.getUTCMonth() + 1,
-    utcDate.getUTCDate(),
-    utcDate.getUTCHours(),
-    utcDate.getUTCMinutes(),
-    utcDate.getUTCSeconds(),
-    swisseph.SE_GREG_CAL
-  );
-  if ("error" in jdResult) throw new Error(`swe_utc_to_jd: ${jdResult.error}`);
-  const ut_jd = jdResult.julianDayUT;
+  const ut_jd = isoToJD(input.iso, input.timeZone);
 
   const housesRes = calcHouses(ut_jd, input.latitude, input.longitude, system);
   const ascendantInfo = formatLongitude(housesRes.ascendant);
@@ -73,7 +33,7 @@ export async function calculateTransitChart(input: TransitInput, system: HouseSy
     houses: mapHouseCupsFormatted(housesRes.house),
     meta: {
       jdUT: ut_jd,
-      isoUTC: utcDate.toISOString(),
+      isoUTC: input.iso,
       timeZone: input.timeZone,
       latitude: input.latitude,
       longitude: input.longitude,

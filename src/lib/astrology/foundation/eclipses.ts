@@ -2,7 +2,7 @@
 // 이클립스 (Eclipse) 영향 계산
 
 import { Chart, PlanetBase, ZodiacKo } from "./types";
-import { normalize360, angleDiff, formatLongitude, ZODIAC_SIGNS } from "./utils";
+import { normalize360, shortestAngle, formatLongitude, ZODIAC_SIGNS } from "./utils";
 
 export interface Eclipse {
   type: "solar" | "lunar";
@@ -115,7 +115,7 @@ export function findEclipseImpact(
     }
 
     for (const point of allPoints) {
-      const diff = angleDiff(point.longitude, eclipse.longitude);
+      const diff = shortestAngle(point.longitude, eclipse.longitude);
 
       // Conjunction
       if (diff <= orb) {
@@ -211,8 +211,8 @@ export function getEclipsesBetween(
  * 다가오는 이클립스 가져오기
  */
 export function getUpcomingEclipses(
-  count: number = 4,
-  fromDate: Date = new Date()
+  fromDate: Date = new Date(),
+  count: number = 4
 ): Eclipse[] {
   return ECLIPSES.filter((eclipse) => new Date(eclipse.date) >= fromDate)
     .slice(0, count);
@@ -265,7 +265,7 @@ export function checkEclipseSensitivity(
   for (const point of allPoints) {
     if (point.name === "True Node") continue;
 
-    const diff = angleDiff(point.longitude, node.longitude);
+    const diff = shortestAngle(point.longitude, node.longitude);
     // 노드와 합 또는 충
     if (diff <= orb || Math.abs(diff - 180) <= orb) {
       sensitivePoints.push(point.name);
@@ -283,5 +283,7 @@ export function checkEclipseSensitivity(
  * 모든 이클립스 데이터 가져오기
  */
 export function getAllEclipses(): Eclipse[] {
-  return [...ECLIPSES];
+  return [...ECLIPSES].sort((a, b) =>
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 }

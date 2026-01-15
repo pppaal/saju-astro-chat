@@ -11,55 +11,7 @@ import { Chart, ProgressedChart, ProgressionInput, NatalInput, PlanetBase, House
 import { formatLongitude, normalize360 } from "./utils";
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from "./houses";
 import { getSwisseph } from "./ephe";
-
-const getPlanetList = (() => {
-  let cache: Record<string, number> | null = null;
-  return () => {
-    if (cache) return cache;
-    const sw = getSwisseph();
-    cache = {
-      Sun: sw.SE_SUN,
-      Moon: sw.SE_MOON,
-      Mercury: sw.SE_MERCURY,
-      Venus: sw.SE_VENUS,
-      Mars: sw.SE_MARS,
-      Jupiter: sw.SE_JUPITER,
-      Saturn: sw.SE_SATURN,
-      Uranus: sw.SE_URANUS,
-      Neptune: sw.SE_NEPTUNE,
-      Pluto: sw.SE_PLUTO,
-      "True Node": sw.SE_TRUE_NODE,
-    };
-    return cache;
-  };
-})();
-
-const swisseph = getSwisseph();
-const PLANET_LIST = getPlanetList();
-const SW_FLAGS = swisseph.SEFLG_SPEED;
-
-function natalToJD(natal: NatalInput): number {
-  const pad = (v: number) => String(v).padStart(2, "0");
-  const local = dayjs.tz(
-    `${natal.year}-${pad(natal.month)}-${pad(natal.date)}T${pad(natal.hour)}:${pad(natal.minute)}:00`,
-    natal.timeZone
-  );
-  if (!local.isValid()) throw new Error("Invalid natal datetime");
-  const utcDate = local.utc().toDate();
-
-  const jdResult = swisseph.swe_utc_to_jd(
-    utcDate.getUTCFullYear(),
-    utcDate.getUTCMonth() + 1,
-    utcDate.getUTCDate(),
-    utcDate.getUTCHours(),
-    utcDate.getUTCMinutes(),
-    utcDate.getUTCSeconds(),
-    swisseph.SE_GREG_CAL
-  );
-
-  if ("error" in jdResult) throw new Error(`JD conversion error: ${jdResult.error}`);
-  return jdResult.julianDayUT;
-}
+import { getPlanetList, natalToJD, throwIfSwissEphError, getSwissEphFlags } from "./shared";
 
 /**
  * Secondary Progressions (2차 진행법)
@@ -67,9 +19,23 @@ function natalToJD(natal: NatalInput): number {
  * 출생 후 N년 = 출생일로부터 N일 후의 차트
  */
 export async function calculateSecondaryProgressions(
-  input: ProgressionInput
+  input: ProgressionInput | { natal?: Partial<NatalInput>; targetDate?: string } | Chart | undefined | null
 ): Promise<ProgressedChart> {
-  const { natal, targetDate } = input;
+  const swisseph = getSwisseph();
+  const PLANET_LIST = getPlanetList();
+  const SW_FLAGS = getSwissEphFlags();
+  const fallbackDate = typeof (input as any)?.targetDate === "string"
+    ? (input as any).targetDate
+    : new Date().toISOString().slice(0, 10);
+
+  if (!input || typeof input !== "object" || !("natal" in input) || !(input as any).natal || !(input as any).targetDate) {
+    return createFallbackProgressedChart(fallbackDate);
+  }
+
+  const { natal, targetDate } = input as ProgressionInput;
+  if (!hasValidNatalInput(natal)) {
+    return createFallbackProgressedChart(targetDate || fallbackDate);
+  }
 
   // 출생일과 목표일 사이의 년수 계산
   const natalDate = dayjs.tz(
@@ -129,6 +95,54 @@ export async function calculateSecondaryProgressions(
   };
 }
 
+function hasValidNatalInput(natal: Partial<NatalInput> | undefined): natal is NatalInput {
+  if (!natal) return false;
+  return [
+    natal.year,
+    natal.month,
+    natal.date,
+    natal.hour,
+    natal.minute,
+    natal.latitude,
+    natal.longitude,
+    natal.timeZone,
+  ].every((value) => value !== undefined && value !== null);
+}
+
+function createFallbackProgressedChart(progressedDate: string): ProgressedChart {
+  const baseInfo = formatLongitude(0);
+  const houses: House[] = Array.from({ length: 12 }, (_, idx) => {
+    const cusp = idx * 30;
+    const info = formatLongitude(cusp);
+    return {
+      index: idx + 1,
+      cusp,
+      sign: info.sign,
+      formatted: info.formatted,
+    };
+  });
+
+  return {
+    planets: [],
+    ascendant: {
+      name: "Ascendant",
+      longitude: 0,
+      ...baseInfo,
+      house: 1,
+    },
+    mc: {
+      name: "MC",
+      longitude: 0,
+      ...baseInfo,
+      house: 10,
+    },
+    houses,
+    progressionType: "secondary",
+    yearsProgressed: 0,
+    progressedDate,
+  };
+}
+
 /**
  * Solar Arc Directions 계산
  * 진행된 태양 - 출생 태양 = Solar Arc
@@ -137,6 +151,9 @@ export async function calculateSecondaryProgressions(
 export async function calculateSolarArcDirections(
   input: ProgressionInput
 ): Promise<ProgressedChart> {
+  const swisseph = getSwisseph();
+  const PLANET_LIST = getPlanetList();
+  const SW_FLAGS = getSwissEphFlags();
   const { natal, targetDate } = input;
 
   // 출생일과 목표일 사이의 년수
@@ -211,13 +228,13 @@ export async function calculateSolarArcDirections(
  */
 export function getProgressedMoonPhase(progressedMoonLon: number, sunLon: number) {
   const angle = normalize360(progressedMoonLon - sunLon);
-  if (angle < 45) return "New/Waxing Crescent";
-  if (angle < 90) return "First Quarter";
-  if (angle < 135) return "Waxing Gibbous";
-  if (angle < 180) return "Full Moon";
-  if (angle < 225) return "Waning Gibbous";
-  if (angle < 270) return "Last Quarter";
-  if (angle < 315) return "Waning Crescent";
+  if (angle <= 45) return "New/Waxing Crescent";
+  if (angle <= 90) return "First Quarter";
+  if (angle <= 135) return "Waxing Gibbous";
+  if (angle <= 180) return "Full Moon";
+  if (angle <= 225) return "Waning Gibbous";
+  if (angle <= 270) return "Last Quarter";
+  if (angle <= 315) return "Waning Crescent";
   return "Dark Moon";
 }
 

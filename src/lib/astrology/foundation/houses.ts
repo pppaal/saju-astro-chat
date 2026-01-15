@@ -4,17 +4,17 @@ import { formatLongitude, normalize360 } from "./utils";
 import { getSwisseph } from "./ephe";
 
 export function calcHouses(ut_jd: number, lat: number, lon: number, system: HouseSystem = "Placidus") {
-  const swisseph = getSwisseph() as any;
+  const swisseph = getSwisseph();
   if (system === "Placidus") {
     const res = swisseph.swe_houses(ut_jd, lat, lon, "P");
-    if ("error" in res) throw new Error(res.error);
+    if ("error" in res) throw new Error(String(res.error));
     return res;
   }
 
   if (system === "WholeSign") {
     // Whole Sign: ASC의 별자리 시작을 1하우스 0°로, 각 30도씩 등분
     const base = swisseph.swe_houses(ut_jd, lat, lon, "P");
-    if ("error" in base) throw new Error(base.error);
+    if ("error" in base) throw new Error(String(base.error));
     const asc = normalize360(base.ascendant);
     const signStart = Math.floor(asc / 30) * 30; // 그 별자리의 0°
     const house: number[] = new Array(12).fill(0).map((_, i) => normalize360(signStart + i * 30));

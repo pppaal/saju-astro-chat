@@ -727,6 +727,15 @@ export function generateDaeunTransitPromptContext(
 // 대운 리스트 변환 헬퍼
 // ============================================================
 
+interface DaeunRawItem {
+  startAge?: number;
+  age?: number;
+  stem?: string;
+  heavenlyStem?: string;
+  branch?: string;
+  earthlyBranch?: string;
+}
+
 export function convertSajuDaeunToInfo(daeunList: unknown[]): DaeunInfo[] {
   const stemToElement: Record<string, FiveElement> = {
     '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
@@ -738,12 +747,15 @@ export function convertSajuDaeunToInfo(daeunList: unknown[]): DaeunInfo[] {
     '己': '음', '庚': '양', '辛': '음', '壬': '양', '癸': '음',
   };
 
-  return daeunList.map((d: any) => ({
-    startAge: d.startAge ?? d.age ?? 0,
-    endAge: (d.startAge ?? d.age ?? 0) + 9,
-    stem: d.stem ?? d.heavenlyStem ?? '甲',
-    branch: d.branch ?? d.earthlyBranch ?? '子',
-    element: stemToElement[d.stem ?? d.heavenlyStem] ?? '토',
-    yinYang: stemToYinYang[d.stem ?? d.heavenlyStem] ?? '양',
-  }));
+  return daeunList.map((d) => {
+    const item = d as DaeunRawItem;
+    return {
+      startAge: item.startAge ?? item.age ?? 0,
+      endAge: (item.startAge ?? item.age ?? 0) + 9,
+      stem: item.stem ?? item.heavenlyStem ?? '甲',
+      branch: item.branch ?? item.earthlyBranch ?? '子',
+      element: stemToElement[item.stem ?? item.heavenlyStem ?? ''] ?? '토',
+      yinYang: stemToYinYang[item.stem ?? item.heavenlyStem ?? ''] ?? '양',
+    };
+  });
 }

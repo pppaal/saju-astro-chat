@@ -4,7 +4,7 @@
  * - Upstash REST API 모킹 테스트
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { vi } from "vitest";
 
 // Rate limit 로직의 순수 함수 버전 (실제 모듈과 동일한 로직)
 function calculateRateLimitResult(
@@ -338,5 +338,319 @@ describe("Rate Limiting: Abuse Detection", () => {
     expect(isAbusePattern(10, 1000, 10)).toBe(false);
     // 11 rps is abuse
     expect(isAbusePattern(11, 1000, 10)).toBe(true);
+  });
+});
+
+describe("Rate Limiting: In-Memory Fallback", () => {
+  // Simulate the in-memory rate limiter logic
+  const inMemoryStore = new Map<string, { count: number; resetAt: number }>();
+
+  const inMemoryIncrement = (key: string, windowSeconds: number): number => {
+    const now = Math.floor(Date.now() / 1000);
+    const existing = inMemoryStore.get(key);
+
+    if (existing && existing.resetAt > now) {
+      existing.count++;
+      return existing.count;
+    }
+
+    // New window
+    inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds });
+    return 1;
+  };
+
+  beforeEach(() => {
+    inMemoryStore.clear();
+  });
+
+  it("starts with count 1 for new key", () => {
+    const count = inMemoryIncrement("test-key", 60);
+    expect(count).toBe(1);
+  });
+
+  it("increments count for existing key within window", () => {
+    inMemoryIncrement("test-key", 60);
+    inMemoryIncrement("test-key", 60);
+    const count = inMemoryIncrement("test-key", 60);
+    expect(count).toBe(3);
+  });
+
+  it("resets count after window expires", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-01-01T12:00:00Z"));
+
+    inMemoryIncrement("test-key", 60);
+    inMemoryIncrement("test-key", 60);
+
+    // Move time forward past window
+    vi.setSystemTime(new Date("2024-01-01T12:01:01Z"));
+
+    const count = inMemoryIncrement("test-key", 60);
+    expect(count).toBe(1);
+
+    vi.useRealTimers();
+  });
+
+  it("handles multiple keys independently", () => {
+    inMemoryIncrement("key-a", 60);
+    inMemoryIncrement("key-a", 60);
+    inMemoryIncrement("key-b", 60);
+
+    expect(inMemoryStore.get("key-a")?.count).toBe(2);
+    expect(inMemoryStore.get("key-b")?.count).toBe(1);
+  });
+});
+
+describe("Rate Limiting: Retry-After Header", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const createRateLimitHeadersWithRetry = (
+    limit: number,
+    remaining: number,
+    reset: number,
+    allowed: boolean
+  ): Headers => {
+    const headers = new Headers();
+    headers.set("X-RateLimit-Limit", String(limit));
+    headers.set("X-RateLimit-Remaining", String(remaining));
+    headers.set("X-RateLimit-Reset", String(reset));
+
+    if (!allowed) {
+      const retryAfter = reset - Math.floor(Date.now() / 1000);
+      if (retryAfter > 0) {
+        headers.set("Retry-After", String(retryAfter));
+      }
+    }
+    return headers;
+  };
+
+  it("sets Retry-After header when rate limited", () => {
+    vi.setSystemTime(new Date("2024-01-01T12:00:00Z"));
+    const reset = Math.floor(Date.now() / 1000) + 60;
+
+    const headers = createRateLimitHeadersWithRetry(60, 0, reset, false);
+    expect(headers.get("Retry-After")).toBe("60");
+  });
+
+  it("does not set Retry-After header when allowed", () => {
+    vi.setSystemTime(new Date("2024-01-01T12:00:00Z"));
+    const reset = Math.floor(Date.now() / 1000) + 60;
+
+    const headers = createRateLimitHeadersWithRetry(60, 30, reset, true);
+    expect(headers.get("Retry-After")).toBe(null);
+  });
+
+  it("calculates correct Retry-After value mid-window", () => {
+    vi.setSystemTime(new Date("2024-01-01T12:00:30Z"));
+    const reset = 1704110460; // 12:01:00 UTC
+
+    const headers = createRateLimitHeadersWithRetry(60, 0, reset, false);
+    expect(headers.get("Retry-After")).toBe("30");
+  });
+});
+
+describe("Rate Limiting: Integration Scenarios", () => {
+  beforeEach(() => {
+    vi.clearAllTimers();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it("handles burst traffic followed by cooldown", () => {
+    const inMemoryStore = new Map<string, { count: number; resetAt: number }>();
+
+    const inMemoryIncrement = (key: string, windowSeconds: number): number => {
+      const now = Math.floor(Date.now() / 1000);
+      const existing = inMemoryStore.get(key);
+
+      if (existing && existing.resetAt > now) {
+        existing.count++;
+        return existing.count;
+      }
+
+      inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds });
+      return 1;
+    };
+
+    // Burst: 5 requests in quick succession
+    for (let i = 0; i < 5; i++) {
+      const count = inMemoryIncrement("burst-user", 60);
+      expect(count).toBe(i + 1);
+    }
+
+    // Wait for window to expire
+    vi.advanceTimersByTime(61000);
+
+    // New window - count resets
+    const newCount = inMemoryIncrement("burst-user", 60);
+    expect(newCount).toBe(1);
+  });
+
+  it("handles concurrent users independently", () => {
+    const inMemoryStore = new Map<string, { count: number; resetAt: number }>();
+
+    const inMemoryIncrement = (key: string, windowSeconds: number): number => {
+      const now = Math.floor(Date.now() / 1000);
+      const existing = inMemoryStore.get(key);
+
+      if (existing && existing.resetAt > now) {
+        existing.count++;
+        return existing.count;
+      }
+
+      inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds });
+      return 1;
+    };
+
+    // User A makes 3 requests
+    inMemoryIncrement("user-a", 60);
+    inMemoryIncrement("user-a", 60);
+    inMemoryIncrement("user-a", 60);
+
+    // User B makes 2 requests
+    inMemoryIncrement("user-b", 60);
+    inMemoryIncrement("user-b", 60);
+
+    expect(inMemoryStore.get("user-a")?.count).toBe(3);
+    expect(inMemoryStore.get("user-b")?.count).toBe(2);
+  });
+
+  it("handles gradual approach to limit", () => {
+    const limit = 10;
+    const checkLimit = (count: number): { allowed: boolean; remaining: number } => {
+      const remaining = Math.max(0, limit - count);
+      return { allowed: count <= limit, remaining };
+    };
+
+    // Gradually approach limit
+    for (let i = 1; i <= 10; i++) {
+      const result = checkLimit(i);
+      expect(result.allowed).toBe(true);
+      expect(result.remaining).toBe(10 - i);
+    }
+
+    // Exceed limit
+    const exceeded = checkLimit(11);
+    expect(exceeded.allowed).toBe(false);
+    expect(exceeded.remaining).toBe(0);
+  });
+});
+
+describe("Rate Limiting: Edge Cases and Error Handling", () => {
+  it("handles negative count gracefully", () => {
+    const calculateRemaining = (count: number, limit: number): number => {
+      return Math.max(0, limit - count);
+    };
+
+    expect(calculateRemaining(-5, 60)).toBe(65); // limit - (-5) = 60 + 5 = 65
+    expect(calculateRemaining(0, 60)).toBe(60); // Proper edge case
+  });
+
+  it("handles zero limit", () => {
+    const isAllowed = (count: number, limit: number): boolean => {
+      return count <= limit;
+    };
+
+    expect(isAllowed(0, 0)).toBe(true);
+    expect(isAllowed(1, 0)).toBe(false);
+  });
+
+  it("handles very large limits", () => {
+    const limit = 1000000;
+    const remaining = Math.max(0, limit - 500);
+    expect(remaining).toBe(999500);
+  });
+
+  it("handles window boundary precisely", () => {
+    vi.setSystemTime(new Date("2024-01-01T12:00:00.000Z"));
+    const startTime = Math.floor(Date.now() / 1000);
+    const windowSeconds = 60;
+    const resetTime = startTime + windowSeconds;
+
+    // At boundary - 1 second
+    vi.setSystemTime(new Date("2024-01-01T12:00:59.000Z"));
+    expect(Math.floor(Date.now() / 1000)).toBe(resetTime - 1);
+
+    // At exact boundary
+    vi.setSystemTime(new Date("2024-01-01T12:01:00.000Z"));
+    expect(Math.floor(Date.now() / 1000)).toBe(resetTime);
+
+    // After boundary
+    vi.setSystemTime(new Date("2024-01-01T12:01:01.000Z"));
+    expect(Math.floor(Date.now() / 1000)).toBe(resetTime + 1);
+  });
+});
+
+describe("Rate Limiting: Performance Considerations", () => {
+  describe("cleanup efficiency", () => {
+    beforeEach(() => {
+      vi.useRealTimers();
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("handles high-frequency cleanup calls efficiently", () => {
+      const CLEANUP_INTERVAL_MS = 60000;
+      let lastCleanup = 0;
+      let cleanupCount = 0;
+
+      const shouldCleanup = (): boolean => {
+        const now = Date.now();
+        if (now - lastCleanup < CLEANUP_INTERVAL_MS) {
+          return false;
+        }
+        lastCleanup = now;
+        cleanupCount++;
+        return true;
+      };
+
+      vi.setSystemTime(new Date("2024-01-01T12:00:00Z"));
+
+      // Multiple calls within interval - only first triggers cleanup
+      for (let i = 0; i < 100; i++) {
+        shouldCleanup();
+      }
+      expect(cleanupCount).toBe(1);
+
+      // Advance time and call again
+      vi.advanceTimersByTime(60001);
+      shouldCleanup();
+      expect(cleanupCount).toBe(2);
+    });
+  });
+
+  it("efficiently manages large number of keys", () => {
+    const store = new Map<string, { count: number; resetAt: number }>();
+    const now = Math.floor(Date.now() / 1000);
+
+    // Add 1000 keys
+    for (let i = 0; i < 1000; i++) {
+      store.set(`key-${i}`, { count: 1, resetAt: now + 60 });
+    }
+
+    expect(store.size).toBe(1000);
+
+    // Cleanup expired entries
+    const cleanupTime = now + 61;
+    for (const [key, value] of store) {
+      if (value.resetAt < cleanupTime) {
+        store.delete(key);
+      }
+    }
+
+    expect(store.size).toBe(0);
   });
 });

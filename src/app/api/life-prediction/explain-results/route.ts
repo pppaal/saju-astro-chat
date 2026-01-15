@@ -3,6 +3,7 @@
 // RAG 컨텍스트를 활용하여 더 풍부한 해석 제공
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // ============================================================
 // 백엔드 RAG 컨텍스트 호출
@@ -21,7 +22,7 @@ async function fetchRagContext(sipsin?: string, eventType?: string): Promise<str
     });
 
     if (!response.ok) {
-      console.warn('[explain-results] RAG context fetch failed:', response.status);
+      logger.warn('[explain-results] RAG context fetch failed:', response.status);
       return '';
     }
 
@@ -36,7 +37,7 @@ async function fetchRagContext(sipsin?: string, eventType?: string): Promise<str
 
     return parts.join('\n\n');
   } catch (error) {
-    console.warn('[explain-results] RAG context error:', error);
+    logger.warn('[explain-results] RAG context error:', error);
     return '';
   }
 }
@@ -208,7 +209,7 @@ ${ragContext ? '참고 지식의 내용을 자연스럽게 녹여서 설명해�
     });
 
   } catch (error) {
-    console.error('Result explanation failed:', error);
+    logger.error('Result explanation failed:', error);
 
     // 에러 시 원본 반환
     const body = await request.clone().json();

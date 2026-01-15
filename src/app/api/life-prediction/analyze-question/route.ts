@@ -2,6 +2,7 @@
 // AI 기반 질문 분석 API - GPT-4o-mini를 사용하여 사용자 질문을 해석
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // ============================================================
 // OpenAI API 호출 헬퍼
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeQu
     });
 
   } catch (error) {
-    console.error('Question analysis failed:', error);
+    logger.error('Question analysis failed:', error);
 
     // 에러 시 기본값 반환 (서비스 계속 작동)
     return NextResponse.json({

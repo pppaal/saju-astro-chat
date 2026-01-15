@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
       readingId: tarotReading.id,
     });
   } catch (error) {
-    console.error("[Tarot Save Error]:", error);
+    logger.error("[Tarot Save Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }
@@ -151,7 +152,7 @@ export async function GET(request: Request) {
       hasMore: offset + readings.length < total,
     });
   } catch (error) {
-    console.error("[Tarot List Error]:", error);
+    logger.error("[Tarot List Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }

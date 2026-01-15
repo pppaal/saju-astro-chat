@@ -9,6 +9,7 @@ import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/a
 import { encryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 import { generateReferralCode } from '@/lib/referral'
 import { sendWelcomeEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 // ============================================
 // OAuth providers (Google, Kakao)
@@ -50,7 +51,7 @@ function ensureEncryptionKey() {
   if (process.env.NODE_ENV === 'production') {
     throw new Error(msg)
   }
-  console.warn(`[auth] ${msg} (development only: tokens will remain plaintext)`)
+  logger.warn(`[auth] ${msg} (development only: tokens will remain plaintext)`)
 }
 
 function encryptAccountTokens(account: AdapterAccount) {
@@ -175,7 +176,7 @@ export const authOptions: NextAuthOptions = {
           'ko',
           dbUser?.referralCode || undefined
         ).catch((err) => {
-          console.error('[auth] Failed to send welcome email:', err)
+          logger.error('[auth] Failed to send welcome email:', err)
         })
       }
 
@@ -200,7 +201,7 @@ export const authOptions: NextAuthOptions = {
           })
         }
       } catch (e) {
-        console.error('[auth] signOut revoke failed', e)
+        logger.error('[auth] signOut revoke failed', e)
         if (process.env.NODE_ENV === 'production') {
           Sentry.captureException(e)
         }

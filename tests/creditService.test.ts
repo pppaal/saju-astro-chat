@@ -6,7 +6,7 @@
  * - 크레딧 소비 로직
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { vi } from "vitest";
 
 // Plan configuration (실제 코드와 동일한 구조)
 const PLAN_CONFIG = {

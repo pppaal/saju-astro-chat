@@ -5,7 +5,7 @@
  * - 포맷 유효성 검사
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { vi } from "vitest";
 
 // Required environment variables
 const REQUIRED_SERVER_ENV = [

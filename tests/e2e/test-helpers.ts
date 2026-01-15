@@ -5,7 +5,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const fetchWithTimeout = async (
   url: string,
   init?: RequestInit,
-  timeoutMs = 8000
+  timeoutMs = 15000 // Increased from 8s to 15s for slow API responses
 ) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -19,7 +19,7 @@ const fetchWithTimeout = async (
 const fetchOrThrow = async (
   url: string,
   init?: RequestInit,
-  timeoutMs = 8000
+  timeoutMs = 15000 // Increased from 8s to 15s
 ) => {
   try {
     return await fetchWithTimeout(url, init, timeoutMs);
@@ -33,15 +33,15 @@ const fetchOrThrow = async (
 
 const waitForServer = async () => {
   const start = Date.now();
-  const timeoutMs = 20000;
+  const timeoutMs = 60000; // Increased from 20s to 60s for Next.js compilation
   while (Date.now() - start < timeoutMs) {
     try {
-      const res = await fetchWithTimeout(`${API_BASE}/api/auth/session`, undefined, 2000);
+      const res = await fetchWithTimeout(`${API_BASE}/api/auth/session`, undefined, 5000);
       if (res.status < 500) return;
     } catch {
       // ignore until timeout
     }
-    await sleep(500);
+    await sleep(1000); // Increased from 500ms to 1s
   }
   throw new Error(
     `API_BASE_URL not ready (${API_BASE}). Wait for the dev server to finish compiling.`

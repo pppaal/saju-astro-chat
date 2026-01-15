@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, id: reading.id }, { headers: limit.headers });
   } catch (error) {
-    console.error("Failed to save reading:", error);
+    logger.error("Failed to save reading:", error);
     return NextResponse.json({ error: "Failed to save reading" }, { status: 500 });
   }
 }
@@ -69,7 +70,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ readings }, { headers: limit.headers });
   } catch (error) {
-    console.error("Failed to fetch readings:", error);
+    logger.error("Failed to fetch readings:", error);
     return NextResponse.json({ error: "Failed to fetch readings" }, { status: 500 });
   }
 }

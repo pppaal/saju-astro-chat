@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/db/prisma';
 import { decryptToken } from '@/lib/security/tokenCrypto';
+import { logger } from '@/lib/logger';
 
 type GoogleAccountLike = {
   provider: string;
@@ -32,7 +33,7 @@ async function revokeWithGoogle(token: string) {
     });
     return res.ok;
   } catch (e) {
-    console.error('[auth] Failed to revoke Google token', e);
+    logger.error('[auth] Failed to revoke Google token', e);
     return false;
   }
 }

@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { cacheGet, cacheSet } from "@/lib/redis-cache";
+import { logger } from "@/lib/logger";
 
 declare const __firebase_config: string | undefined;
 declare const __app_id: string | undefined;
@@ -32,7 +33,7 @@ function initializeFirebase() {
     configString = __firebase_config;
   }
   if (!configString) {
-    console.warn("Firebase config missing; visitors endpoint disabled.");
+    logger.warn("Firebase config missing; visitors endpoint disabled.");
     return;
   }
 
@@ -42,11 +43,11 @@ function initializeFirebase() {
     if (parsed && typeof parsed === "object") {
       firebaseConfig = parsed as FirebaseOptions;
     } else {
-      console.warn("Firebase config JSON is invalid; visitors endpoint disabled.");
+      logger.warn("Firebase config JSON is invalid; visitors endpoint disabled.");
       return;
     }
   } catch {
-    console.warn("Firebase config JSON is invalid; visitors endpoint disabled.");
+    logger.warn("Firebase config JSON is invalid; visitors endpoint disabled.");
     return;
   }
 

@@ -1,6 +1,7 @@
 // 타로 리딩 결과 저장 및 관리
 
 import { DrawnCard, Spread } from './tarot.types';
+import { logger } from "@/lib/logger";
 
 export interface SavedTarotReading {
   id: string;
@@ -41,7 +42,8 @@ export function getSavedReadings(): SavedTarotReading[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
-  } catch {
+  } catch (e) {
+    logger.error('Failed to parse saved readings from localStorage:', e);
     return [];
   }
 }
@@ -63,7 +65,7 @@ export function saveReading(reading: Omit<SavedTarotReading, 'id' | 'timestamp'>
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
   } catch (e) {
-    console.error('Failed to save reading:', e);
+    logger.error('Failed to save reading:', e);
   }
 
   return savedReading;
@@ -79,7 +81,8 @@ export function deleteReading(id: string): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     return true;
-  } catch {
+  } catch (e) {
+    logger.error('Failed to delete reading:', e);
     return false;
   }
 }
@@ -97,7 +100,7 @@ export function getReadingsCount(): number {
 
 // ID 생성
 function generateId(): string {
-  return `tarot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `tarot_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
 // 리딩 결과를 저장 형식으로 변환

@@ -2,7 +2,8 @@
 
 import { toDate } from 'date-fns-tz';
 import Calendar from 'korean-lunar-calendar';
-import { FiveElement, YinYang, CalculateSajuDataResult, DaeunPillar, CycleData, StemBranchInfo, PillarData, AnnualCycleData, MonthlyCycleData } from './types';
+import { logger } from "@/lib/logger";
+import { FiveElement, YinYang, CalculateSajuDataResult, DaeunPillar, CycleData, StemBranchInfo, PillarData, AnnualCycleData, MonthlyCycleData, IljinData } from './types';
 import {
   STEMS, BRANCHES, MONTH_STEM_LOOKUP, TIME_STEM_LOOKUP, JIJANGGAN,
   CHEONEUL_GWIIN_MAP, FIVE_ELEMENT_RELATIONS, getSolarTermKST,
@@ -34,7 +35,8 @@ const MAIN_QI: Record<string, string | undefined> = {
 };
 function getBranchMainStem(branchName: string) {
   const name = MAIN_QI[branchName];
-  return name ? STEMS.find(s => s.name === name)! : undefined;
+  if (!name) return undefined;
+  return STEMS.find(s => s.name === name);
 }
 
 /* ========== 천을귀인 ========== */
@@ -108,7 +110,7 @@ export function calculateSajuData(
     const birthLocal = toDate(isoString, { timeZone: timezone });
 
     if (isNaN(birthLocal.getTime())) {
-      console.error("[saju.ts] ❌ Invalid birthLocal:", { birthDate, birthTime, isoString, timezone });
+      logger.error("[saju.ts] ❌ Invalid birthLocal:", { birthDate, birthTime, isoString, timezone });
       throw new Error("Invalid birthLocal date object");
     }
 
@@ -124,14 +126,16 @@ export function calculateSajuData(
     const D = fmtNum({ day: '2-digit' });
 
     /* ---------------- 연기둥 ---------------- */
-    const ipchunUTC = getSolarTermKST(year, 2)!;
+    const ipchunUTC = getSolarTermKST(year, 2);
+    if (!ipchunUTC) throw new Error(`Cannot determine Saju year: solar term data missing for ${year}`);
     const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year;
     const idx60Y = (sajuYear - 4 + 6000) % 60;
     const yearPillar = { stem: STEMS[idx60Y % 10], branch: BRANCHES[idx60Y % 12] };
 
     /* ---------------- 월기둥 ---------------- */
     let sajuMonth = month;
-    const termUTC_thisMonth = getSolarTermKST(year, month)!;
+    const termUTC_thisMonth = getSolarTermKST(year, month);
+    if (!termUTC_thisMonth) throw new Error(`Cannot determine Saju month: solar term data missing for ${year}/${month}`);
     if (birthDateTime < termUTC_thisMonth)
       sajuMonth = (sajuMonth === 1) ? 12 : (sajuMonth - 1);
 
@@ -182,17 +186,22 @@ export function calculateSajuData(
     const isYangYear = yearPillar.stem.yin_yang === '양';
     const isMale = gender === 'male';
     const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-    const termUTC_current = getSolarTermKST(year, sajuMonth)!;
+    const termUTC_current = getSolarTermKST(year, sajuMonth);
+    if (!termUTC_current) throw new Error(`Cannot determine Daeun: solar term data missing for ${year}/${sajuMonth}`);
     let nextTermUTC: Date, prevTermUTC: Date;
     if (isForward) {
       const nextMonth = sajuMonth === 12 ? 1 : sajuMonth + 1;
       const nextYear = sajuMonth === 12 ? year + 1 : year;
-      nextTermUTC = getSolarTermKST(nextYear, nextMonth)!;
+      const nextTerm = getSolarTermKST(nextYear, nextMonth);
+      if (!nextTerm) throw new Error(`Cannot determine Daeun: solar term data missing for ${nextYear}/${nextMonth}`);
+      nextTermUTC = nextTerm;
       prevTermUTC = termUTC_current;
     } else {
       const prevMonth = sajuMonth === 1 ? 12 : sajuMonth - 1;
       const prevYear = sajuMonth === 1 ? year - 1 : year;
-      prevTermUTC = getSolarTermKST(prevYear, prevMonth)!;
+      const prevTerm = getSolarTermKST(prevYear, prevMonth);
+      if (!prevTerm) throw new Error(`Cannot determine Daeun: solar term data missing for ${prevYear}/${prevMonth}`);
+      prevTermUTC = prevTerm;
       nextTermUTC = termUTC_current;
     }
 
@@ -223,6 +232,15 @@ export function calculateSajuData(
     /* ---------------- 결과 구성 ---------------- */
     const pillars = { yearPillar, monthPillar, dayPillar, timePillar } as const;
     const finalPillars: Record<string, PillarData> = {} as Record<string, PillarData>;
+
+    // 지장간 기운 정보를 안전하게 생성하는 헬퍼
+    const makeJijangganEntry = (stemName: string | undefined) => {
+      if (!stemName) return undefined;
+      const stem = STEMS.find(s => s.name === stemName);
+      if (!stem) return undefined;
+      return { name: stemName, sibsin: getSibseong(dayMaster, stem) };
+    };
+
     (['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const).forEach(name => {
       const p = pillars[name];
       const j = JIJANGGAN[p.branch.name];
@@ -245,9 +263,9 @@ export function calculateSajuData(
           sibsin: getSibseong(dayMaster, mainStem ?? p.branch)
         },
         jijanggan: {
-          chogi: chogiName ? { name: chogiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === chogiName)!) } : undefined,
-          junggi: junggiName ? { name: junggiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === junggiName)!) } : undefined,
-          jeonggi: jeonggiName ? { name: jeonggiName, sibsin: getSibseong(dayMaster, STEMS.find(s => s.name === jeonggiName)!) } : undefined,
+          chogi: makeJijangganEntry(chogiName),
+          junggi: makeJijangganEntry(junggiName),
+          jeonggi: makeJijangganEntry(jeonggiName),
         },
       };
     });
@@ -338,7 +356,7 @@ export function calculateSajuData(
       dayMaster,
     };
   } catch (error) {
-    console.error("[saju.ts] Error during Saju data calculation:", error);
+    logger.error("[saju.ts] Error during Saju data calculation:", error);
     throw new Error(`Error during calculation: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -383,9 +401,9 @@ export function getMonthlyCycles(year: number, dayMaster: DayMaster) {
   return cycles.sort((a,b)=>(a.month ?? 0)-(b.month ?? 0));
 }
 
-export function getIljinCalendar(year:number,month:number,dayMaster:DayMaster){
+export function getIljinCalendar(year:number,month:number,dayMaster:DayMaster): IljinData[] {
   const daysInMonth=new Date(year,month,0).getDate();
-  const calendar: unknown[] =[];
+  const calendar: IljinData[] =[];
   for(let day=1;day<=daysInMonth;day++){
     const a=Math.floor((14-month)/12);
     const y_=year+4800-a;

@@ -7,6 +7,7 @@ import React from "react";
 import styles from "./SajuChat.module.css";
 import { detectCrisis } from "@/components/destiny-map/chat-i18n";
 import MarkdownMessage from "@/components/ui/MarkdownMessage";
+import { logger } from "@/lib/logger";
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
@@ -310,7 +311,7 @@ export default function SajuChat({
   const [showCrisisModal, setShowCrisisModal] = React.useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const recognitionRef = React.useRef<any>(null);
+  const recognitionRef = React.useRef<SpeechRecognition | null>(null);
   const seedSentRef = React.useRef(false);
   const welcomeShownRef = React.useRef(false);
 
@@ -547,7 +548,7 @@ export default function SajuChat({
         setNotice(tr.noResponse);
       }
     } catch (err) {
-      console.error("[SajuChat] Error:", err);
+      logger.error("[SajuChat] Error:", err);
       setNotice(tr.error);
     } finally {
       setLoading(false);
@@ -571,8 +572,8 @@ export default function SajuChat({
           source: "saju-counselor",
         }),
       });
-    } catch {
-      // Silent fail
+    } catch (err) {
+      logger.warn("[SajuChat] Feedback submission failed:", err);
     }
   }, []);
 

@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
+import { logger } from '@/lib/logger';
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -126,7 +127,7 @@ export async function POST(req: Request) {
         });
       }
     } catch (memoryError) {
-      console.error("[DreamChatSave] PersonaMemory update failed:", memoryError);
+      logger.error("[DreamChatSave] PersonaMemory update failed:", memoryError);
       // Continue - main save succeeded
     }
 
@@ -137,7 +138,7 @@ export async function POST(req: Request) {
     }, { headers: limit.headers });
 
   } catch (err) {
-    console.error("[DreamChatSave] Error:", err);
+    logger.error("[DreamChatSave] Error:", err);
     return NextResponse.json(
       { error: "Failed to save chat history" },
       { status: 500 }
@@ -219,7 +220,7 @@ export async function GET(req: Request) {
     }, { headers: limit.headers });
 
   } catch (err) {
-    console.error("[DreamChatHistory] Error:", err);
+    logger.error("[DreamChatHistory] Error:", err);
     return NextResponse.json(
       { error: "Failed to fetch history" },
       { status: 500 }

@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import {
   isYesNoQuestion,
   isCrushQuestion,
   clearClassifierCache,
-} from "../src/lib/Tarot/questionClassifiers";
+} from "@/lib/Tarot/questionClassifiers";
 
 describe("Tarot Question Classifiers", () => {
   beforeEach(() => {

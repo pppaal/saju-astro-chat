@@ -1,4 +1,4 @@
-import { beforeAll, describe, it, expect } from "vitest";
+import { beforeAll } from "vitest";
 import { API_BASE, fetchOrThrow, waitForServer } from "./test-helpers";
 const CRON_SECRET = process.env.CRON_SECRET || "test-cron-secret";
 const METRICS_TOKEN =

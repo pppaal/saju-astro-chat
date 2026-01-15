@@ -22,6 +22,11 @@ __all__ = [
     'DreamService',
     'CounselingService',
     'ChartService',
+    'DestinyStoryService',
+    'SajuCounselorService',
+    'AstrologyCounselorService',
+    'TarotService',
+    'SajuCalculationService',
 ]
 
 # Lazy imports to avoid circular dependencies
@@ -49,3 +54,28 @@ def get_chart_service():
     """Get ChartService instance (lazy loaded)."""
     from .chart_service import ChartService
     return ChartService()
+
+def get_destiny_story_service():
+    """Get DestinyStoryService instance (lazy loaded)."""
+    from .destiny_story_service import DestinyStoryService
+    return DestinyStoryService()
+
+def get_saju_counselor_service():
+    """Get SajuCounselorService instance (lazy loaded)."""
+    from .saju_counselor_service import SajuCounselorService
+    return SajuCounselorService()
+
+def get_astrology_counselor_service():
+    """Get AstrologyCounselorService instance (lazy loaded)."""
+    from .astrology_counselor_service import AstrologyCounselorService
+    return AstrologyCounselorService()
+
+def get_tarot_service():
+    """Get TarotService instance (lazy loaded)."""
+    from .tarot_service import TarotService
+    return TarotService()
+
+def get_saju_calculation_service():
+    """Get SajuCalculationService instance (lazy loaded)."""
+    from .saju_calculation_service import SajuCalculationService
+    return SajuCalculationService()

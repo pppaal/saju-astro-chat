@@ -41,6 +41,29 @@ function testPatternsWithCache(classifierName: string, question: string, pattern
   return result;
 }
 
+// Pattern cache for lazy initialization
+const patternCache = new Map<string, RegExp[]>();
+
+// Helper to get or create patterns with lazy initialization
+function getOrCreatePatterns(name: string, createPatterns: () => RegExp[]): RegExp[] {
+  let patterns = patternCache.get(name);
+  if (!patterns) {
+    patterns = createPatterns();
+    patternCache.set(name, patterns);
+  }
+  return patterns;
+}
+
+// Combined helper: lazy pattern creation + result caching
+function testWithLazyPatterns(
+  classifierName: string,
+  question: string,
+  createPatterns: () => RegExp[]
+): boolean {
+  const patterns = getOrCreatePatterns(classifierName, createPatterns);
+  return testPatternsWithCache(classifierName, question, patterns);
+}
+
 // Clear cache (useful for testing)
 export function clearClassifierCache(): void {
   classifierCache.clear();
@@ -358,6 +381,7 @@ const crushPatterns: RegExp[] = [
   /진짜 ?마음/,
   /솔직한 ?마음/,
   /does (he|she|they) like me/i,
+  /does (he|she|they) like .*나/i,
   /what does (he|she|they) think/i,
   /how does (he|she|they) feel/i,
   /(his|her|their) feelings/i,
@@ -373,7 +397,7 @@ export function isCrushQuestion(question: string): boolean {
 // 재회/이별 질문 감지
 // ============================================================
 export function isReconciliationQuestion(question: string): boolean {
-  const patterns = [
+  return testWithLazyPatterns('reconciliation', question, () => [
     // 재회 관련
     /재회/,
     /다시 ?만날/,
@@ -438,15 +462,14 @@ export function isReconciliationQuestion(question: string): boolean {
     /come back/i,
     /will (he|she|they) come back/i,
     /will (he|she|they) contact/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 면접/시험 결과 질문 감지
 // ============================================================
 export function isExamInterviewQuestion(question: string): boolean {
-  const patterns = [
+  return testWithLazyPatterns('examInterview', question, () => [
     // 면접 관련
     /면접.*(결과|합격|붙을|될까|어떨까|잘|통과)/,
     /면접 ?보/,
@@ -501,8 +524,7 @@ export function isExamInterviewQuestion(question: string): boolean {
     /will i pass/i,
     /did i pass/i,
     /pass the (exam|test|interview)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -510,7 +532,10 @@ export function isExamInterviewQuestion(question: string): boolean {
 // ============================================================
 export function isJobChangeQuestion(question: string): boolean {
   // 단순 "이직할까?"는 Yes/No로 처리되므로 더 구체적인 이직 상담만 여기서 처리
-  const patterns = [
+  // Yes/No 패턴이면 Yes/No가 우선
+  if (isYesNoQuestion(question)) return false;
+
+  return testWithLazyPatterns('jobChange', question, () => [
     // 이직 관련
     /이직.*(해도|좋을까|타이밍|시기|어디로|방향|전망)/,
     /이직 ?전망/,
@@ -557,17 +582,14 @@ export function isJobChangeQuestion(question: string): boolean {
     /new job/i,
     /leave (my|the) (job|company)/i,
     /change (job|career)/i,
-  ];
-  // Yes/No 패턴이면 Yes/No가 우선
-  if (isYesNoQuestion(question)) return false;
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // A vs B 비교 질문 감지
 // ============================================================
 export function isComparisonQuestion(question: string): boolean {
-  const patterns = [
+  return testWithLazyPatterns('comparison', question, () => [
     // vs 관련
     /vs/i,
     /versus/i,
@@ -620,15 +642,15 @@ export function isComparisonQuestion(question: string): boolean {
     /choose between/i,
     /A or B/i,
     /option (A|1).*(option (B|2)|or)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 타이밍/시기 질문 감지
 // ============================================================
 export function isTimingQuestion(question: string): boolean {
-  const patterns = [
+  // Yes/No 패턴이면 제외
+  return testWithLazyPatterns('timing', question, () => [
     // 언제 관련
     /언제.*(하면|해야|좋을까|시작|할까|가야)/,
     /언제쯤/,
@@ -683,17 +705,14 @@ export function isTimingQuestion(question: string): boolean {
     /when to/i,
     /how long (until|before|should)/i,
     /timing/i,
-  ];
-  // Yes/No 패턴이면 제외
-  if (isYesNoQuestion(question)) return false;
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 인연/소개팅 질문 감지
 // ============================================================
 export function isFindingPartnerQuestion(question: string): boolean {
-  const patterns = [
+  return testWithLazyPatterns('findingPartner', question, () => [
     // 인연 관련
     /인연.*(언제|만날|찾을|있을까|올까)/,
     /인연이 ?있/,
@@ -756,8 +775,7 @@ export function isFindingPartnerQuestion(question: string): boolean {
     /when will i find/i,
     /dating/i,
     /single.*(forever|end)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -765,7 +783,7 @@ export function isFindingPartnerQuestion(question: string): boolean {
 // ============================================================
 export function isTodayFortuneQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
-  const patterns = [
+  return testWithLazyPatterns('todayFortune', question, () => [
     // 오늘 관련
     /오늘 ?(운세|운|어때|하루|기운|에너지)/,
     /오늘의 ?(운세|운|메시지|조언|카드)/,
@@ -787,15 +805,14 @@ export function isTodayFortuneQuestion(question: string): boolean {
     /daily (reading|card|fortune)/i,
     /today's (fortune|reading|card)/i,
     /how.*(today|my day)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 주간/월간 운세 질문 감지
 // ============================================================
 export function isWeeklyMonthlyQuestion(question: string): boolean {
-  const patterns = [
+  return testWithLazyPatterns('weeklyMonthly', question, () => [
     // 이번 주/달 관련
     /이번 ?주|이번주/,
     /이번 ?달|이번달/,
@@ -832,8 +849,7 @@ export function isWeeklyMonthlyQuestion(question: string): boolean {
     /next month/i,
     /yearly/i,
     /this year/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -842,7 +858,7 @@ export function isWeeklyMonthlyQuestion(question: string): boolean {
 export function isMoneyFortuneQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('moneyFortune', question, () => [
     // 돈/재물 운세 관련
     /돈 ?운|돈운/,
     /금전 ?운|금전운/,
@@ -919,8 +935,7 @@ export function isMoneyFortuneQuestion(question: string): boolean {
     /will i get rich/i,
     /income/i,
     /salary.*(increase|raise)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -929,7 +944,7 @@ export function isMoneyFortuneQuestion(question: string): boolean {
 export function isHealthFortuneQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('healthFortune', question, () => [
     // 건강 운세 관련
     /건강 ?운|건강운/,
     /건강 ?운세/,
@@ -995,8 +1010,7 @@ export function isHealthFortuneQuestion(question: string): boolean {
     /heal/i,
     /pregnancy/i,
     /fertility/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1005,7 +1019,7 @@ export function isHealthFortuneQuestion(question: string): boolean {
 export function isFamilyRelationQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('familyRelation', question, () => [
     // 부모님 관련
     /부모님.*(관계|사이|어떻|갈등|화해)/,
     /엄마.*(관계|사이|어떻|갈등)/,
@@ -1069,8 +1083,7 @@ export function isFamilyRelationQuestion(question: string): boolean {
     /spouse.*(relationship|issue)/i,
     /marriage.*(issue|problem|how)/i,
     /in-law/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1079,7 +1092,7 @@ export function isFamilyRelationQuestion(question: string): boolean {
 export function isBusinessQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('business', question, () => [
     // 창업 관련
     /창업.*(운|전망|어떻|성공|방향|아이템)/,
     /창업 ?운/,
@@ -1139,8 +1152,7 @@ export function isBusinessQuestion(question: string): boolean {
     /franchise/i,
     /company.*(start|run|success)/i,
     /self-employed/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1151,7 +1163,7 @@ export function isGeneralFortuneQuestion(question: string): boolean {
   if (isTodayFortuneQuestion(question)) return false;
   if (isWeeklyMonthlyQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('generalFortune', question, () => [
     // 앞으로/미래 관련
     /앞으로.*(어떻|어떨|될까|흐름)/,
     /앞날.*(어떻|어떨)/,
@@ -1240,8 +1252,7 @@ export function isGeneralFortuneQuestion(question: string): boolean {
     /advice/i,
     /guidance/i,
     /what should i (do|know)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1249,11 +1260,11 @@ export function isGeneralFortuneQuestion(question: string): boolean {
 // ============================================================
 export function isStudyFortuneQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
-  if (isExamInterviewQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('studyFortune', question, () => [
     // 학업 운세 관련
     /학업 ?운|학업운/,
+    /수능.*(결과|점수|합격|잘|어떻|어떨)/,
     /공부 ?운|공부운/,
     /학습 ?운/,
     /성적.*(오를|어떻|좋아질|나올)/,
@@ -1297,23 +1308,22 @@ export function isStudyFortuneQuestion(question: string): boolean {
     /school.*(how|going)/i,
     /university.*(how|going)/i,
     /major.*(change|choose)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 여행 운세 질문 감지
 // ============================================================
 export function isTravelQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('travel', question, () => [
     // 여행 운세 관련
     /여행 ?운|여행운/,
     /여행.*(어떻|잘|될까|안전)/,
     /여행 ?계획/,
     /여행지.*(어디|추천|어떻)/,
-    /해외여행.*(어떻|안전|좋을까)/,
+    /해외여행.*(어떻|어떨|안전|좋을까)/,
+    /출장.*(어떻|어떨|좋을까)/,
     /국내여행.*(어떻|어디)/,
 
     // 휴가 관련
@@ -1339,8 +1349,7 @@ export function isTravelQuestion(question: string): boolean {
     /vacation.*(fortune|luck|when|where)/i,
     /flight.*(safe|how)/i,
     /abroad/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1349,7 +1358,7 @@ export function isTravelQuestion(question: string): boolean {
 export function isWorkRelationQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('workRelation', question, () => [
     // 상사 관련
     /상사.*(관계|사이|어떻|갈등|마음)/,
     /사장.*(관계|사이|어떻|마음)/,
@@ -1392,8 +1401,7 @@ export function isWorkRelationQuestion(question: string): boolean {
     /colleague.*(relationship|how)/i,
     /office.*(politics|relationship)/i,
     /workplace.*(relationship|atmosphere)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1402,7 +1410,7 @@ export function isWorkRelationQuestion(question: string): boolean {
 export function isLegalQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('legal', question, () => [
     // 소송/법적 분쟁 관련
     /소송.*(어떻|이길|질까|결과|승소)/,
     /재판.*(어떻|이길|결과)/,
@@ -1455,8 +1463,7 @@ export function isLegalQuestion(question: string): boolean {
     /sue|suing/i,
     /divorce.*(court|lawsuit)/i,
     /custody/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1465,7 +1472,7 @@ export function isLegalQuestion(question: string): boolean {
 export function isDrivingQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('driving', question, () => [
     // 면허 관련
     /면허.*(따다|어떻|합격|시험|운)/,
     /면허 ?시험/,
@@ -1505,8 +1512,7 @@ export function isDrivingQuestion(question: string): boolean {
     /car.*(buy|purchase|fortune)/i,
     /vehicle/i,
     /traffic.*(safe|accident)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1515,7 +1521,7 @@ export function isDrivingQuestion(question: string): boolean {
 export function isPetQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('pet', question, () => [
     // 강아지 관련
     /강아지.*(건강|어떻|상태|병원|아파)/,
     /강아지 ?건강/,
@@ -1550,8 +1556,7 @@ export function isPetQuestion(question: string): boolean {
     /cat.*(health|how|sick)/i,
     /adopt.*(pet|dog|cat)/i,
     /vet/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1560,7 +1565,7 @@ export function isPetQuestion(question: string): boolean {
 export function isFriendRelationQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('friendRelation', question, () => [
     // 친구 관계 관련
     /친구.*(관계|사이|어떻|갈등|화해)/,
     /친구와.*(사이|갈등|화해)/,
@@ -1595,24 +1600,22 @@ export function isFriendRelationQuestion(question: string): boolean {
     /friendship.*(how|last|end)/i,
     /best friend.*(how|relationship)/i,
     /make.?friends/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 결혼/연애 관계 질문 감지
 // ============================================================
 export function isMarriageRelationQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) return false;
   if (isCrushQuestion(question)) return false;
   if (isReconciliationQuestion(question)) return false;
   if (isFindingPartnerQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('marriageRelation', question, () => [
     // 결혼 관련
     /결혼.*(운|어떻|언제|가능|될까)/,
     /결혼 ?운/,
-    /결혼생활.*(어떻|잘|힘들)/,
+    /결혼 ?생활.*(어떻|어떨|잘|힘들)/,
     /신혼.*(어떻|생활)/,
 
     // 연애 관계 관련
@@ -1648,8 +1651,7 @@ export function isMarriageRelationQuestion(question: string): boolean {
     /girlfriend.*(how|relationship|feelings)/i,
     /partner.*(how|relationship)/i,
     /break.?up.*(should|how)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1658,7 +1660,7 @@ export function isMarriageRelationQuestion(question: string): boolean {
 export function isBeautyFashionQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('beautyFashion', question, () => [
     // 외모 관련
     /외모.*(운|어떻|좋아질)/,
     /외모 ?운/,
@@ -1696,8 +1698,7 @@ export function isBeautyFashionQuestion(question: string): boolean {
     /appearance.*(how|improve)/i,
     /skin.*(how|condition|care)/i,
     /style.*(advice|how|change)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1706,7 +1707,7 @@ export function isBeautyFashionQuestion(question: string): boolean {
 export function isMovingRealEstateQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('movingRealEstate', question, () => [
     // 이사 관련
     /이사.*(운|어떻|언제|방향|좋을)/,
     /이사 ?운/,
@@ -1753,8 +1754,7 @@ export function isMovingRealEstateQuestion(question: string): boolean {
     /house.*(buy|sell|fortune)/i,
     /apartment.*(buy|rent|how)/i,
     /home.*(buy|move|fortune)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1763,7 +1763,7 @@ export function isMovingRealEstateQuestion(question: string): boolean {
 export function isParentCareQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('parentCare', question, () => [
     // 효도 관련
     /효도.*(어떻|해야|방법|하면)/,
     /부모님.*(모시|돌봐|케어)/,
@@ -1792,8 +1792,7 @@ export function isParentCareQuestion(question: string): boolean {
     /father.*(health|care|how)/i,
     /filial/i,
     /elderly.?care/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1802,7 +1801,7 @@ export function isParentCareQuestion(question: string): boolean {
 export function isSleepRestQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('sleepRest', question, () => [
     // 수면 관련
     /수면.*(어떻|좋아질|부족|패턴)/,
     /잠.*(어떻|못|잘|부족)/,
@@ -1834,8 +1833,7 @@ export function isSleepRestQuestion(question: string): boolean {
     /tired.*(how|always|so)/i,
     /burnout/i,
     /fatigue/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1844,7 +1842,7 @@ export function isSleepRestQuestion(question: string): boolean {
 export function isOnlineShoppingQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('onlineShopping', question, () => [
     // 온라인 쇼핑 관련
     /온라인.*(쇼핑|구매|주문).*(어떻)/,
     /인터넷.*(쇼핑|구매|주문).*(어떻)/,
@@ -1871,8 +1869,7 @@ export function isOnlineShoppingQuestion(question: string): boolean {
     /used.*(buy|sell|trade)/i,
     /delivery.*(when|how)/i,
     /scam.*(worry|check)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1881,7 +1878,7 @@ export function isOnlineShoppingQuestion(question: string): boolean {
 export function isRentalLeaseQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('rentalLease', question, () => [
     // 전세 관련
     /전세.*(구할|찾을|어떻|운|계약)/,
     /전세 ?계약/,
@@ -1914,8 +1911,7 @@ export function isRentalLeaseQuestion(question: string): boolean {
     /deposit.*(get back|how|pay)/i,
     /landlord.*(how|issue|deal)/i,
     /tenant.*(rights|how)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1924,7 +1920,7 @@ export function isRentalLeaseQuestion(question: string): boolean {
 export function isPhoneDeviceQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('phoneDevice', question, () => [
     // 핸드폰
     /핸드폰.*(바꿀|살까|어떻|언제)/,
     /휴대폰.*(바꿀|살까|어떻)/,
@@ -1963,8 +1959,7 @@ export function isPhoneDeviceQuestion(question: string): boolean {
     /computer.*(buy|upgrade|how)/i,
     /device.*(buy|upgrade|how)/i,
     /iphone.*(buy|how|when)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -1972,9 +1967,8 @@ export function isPhoneDeviceQuestion(question: string): boolean {
 // ============================================================
 export function isHairAppearanceQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
-  if (isBeautyFashionQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('hairAppearance', question, () => [
     // 헤어스타일
     /머리.*(자를|바꿀|어떻|스타일)/,
     /헤어.*(스타일|바꿀|어떻|컬러)/,
@@ -2005,17 +1999,15 @@ export function isHairAppearanceQuestion(question: string): boolean {
     /perm.*(get|how|should)/i,
     /salon.*(go|how|when)/i,
     /makeover.*(how|should|get)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 선물/기프트 질문 감지
 // ============================================================
 export function isGiftPresentQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('giftPresent', question, () => [
     // 선물 관련
     /선물.*(뭘|어떤|추천|고르|살|줄)/,
     /기프트.*(어떤|추천|살)/,
@@ -2053,8 +2045,7 @@ export function isGiftPresentQuestion(question: string): boolean {
     /what.*(give|buy|gift)/i,
     /birthday.?gift/i,
     /anniversary.?gift/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -2063,7 +2054,7 @@ export function isGiftPresentQuestion(question: string): boolean {
 export function isDietWeightQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('dietWeight', question, () => [
     // 다이어트
     /다이어트.*(어떻|성공|시작|방법|언제)/,
     /살.*(빼|뺄|빠질|어떻)/,
@@ -2102,8 +2093,7 @@ export function isDietWeightQuestion(question: string): boolean {
     /exercise.*(start|how|should)/i,
     /workout.*(how|start|routine)/i,
     /fitness.*(how|start|goal)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -2112,7 +2102,7 @@ export function isDietWeightQuestion(question: string): boolean {
 export function isLanguageLearningQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('languageLearning', question, () => [
     // 영어 학습
     /영어.*(공부|배울|어떻|실력|잘)/,
     /영어 ?실력/,
@@ -2150,17 +2140,15 @@ export function isLanguageLearningQuestion(question: string): boolean {
     /foreign.?language/i,
     /fluent/i,
     /TOEIC|TOEFL|IELTS/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 운전면허/차량 질문 감지
 // ============================================================
 export function isDriverLicenseQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('driverLicense', question, () => [
     // 면허 관련
     /면허.*(따다|어떻|합격|시험|언제)/,
     /면허 ?시험.*(어떻|합격)/,
@@ -2186,17 +2174,15 @@ export function isDriverLicenseQuestion(question: string): boolean {
     /driving.?test.*(pass|how)/i,
     /car.*(buy|when|which)/i,
     /vehicle.*(buy|purchase)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
 // 봉사/기부/자선 질문 감지
 // ============================================================
 export function isVolunteerCharityQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('volunteerCharity', question, () => [
     // 봉사 관련
     /봉사.*(하면|어떻|시작|활동)/,
     /봉사활동.*(어떻|하면)/,
@@ -2228,8 +2214,7 @@ export function isVolunteerCharityQuestion(question: string): boolean {
     /charit.*(y|able).*(how|give|donate)/i,
     /help.*(others|community|how)/i,
     /give.?back.*(how|community)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }
 
 // ============================================================
@@ -2238,7 +2223,7 @@ export function isVolunteerCharityQuestion(question: string): boolean {
 export function isCoupleFightQuestion(question: string): boolean {
   if (isYesNoQuestion(question)) return false;
 
-  const patterns = [
+  return testWithLazyPatterns('coupleFight', question, () => [
     // 싸움/다툼
     /싸웠.*(어떻|화해|연락)/,
     /다퉜.*(어떻|화해|먼저)/,
@@ -2276,6 +2261,5 @@ export function isCoupleFightQuestion(question: string): boolean {
     /apologize.*(how|should|first)/i,
     /reconcile.*(how|should)/i,
     /not.?talking.*(how|what)/i,
-  ];
-  return patterns.some(p => p.test(question));
+  ]);
 }

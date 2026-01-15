@@ -3,6 +3,7 @@ import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
 import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -159,7 +160,7 @@ export async function POST(request: Request) {
       );
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      console.error("[Compatibility Chat] Backend error:", fetchError);
+      logger.error("[Compatibility Chat] Backend error:", fetchError);
 
       // Fallback response
       const fallback = lang === "ko"
@@ -185,7 +186,7 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    console.error("[Compatibility Chat] Error:", error);
+    logger.error("[Compatibility Chat] Error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

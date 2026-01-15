@@ -3,6 +3,7 @@
 
 import Replicate from 'replicate';
 import type { DailyFortune } from './dailyFortuneGenerator';
+import { logger } from '@/lib/logger';
 
 /**
  * Replicate를 사용한 AI 이미지 생성
@@ -89,7 +90,7 @@ export async function generateAIBackground(
 
     return output[0];
   } catch (error) {
-    console.error('[Replicate AI Error]', error);
+    logger.error('[Replicate AI Error]', error);
     // Fallback to gradient
     return '';
   }

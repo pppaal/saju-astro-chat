@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function GET(
 
     return NextResponse.json({ savedDate });
   } catch (error) {
-    console.error("Failed to fetch saved calendar date:", error);
+    logger.error("Failed to fetch saved calendar date:", error);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }
@@ -67,7 +68,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete saved calendar date:", error);
+    logger.error("Failed to delete saved calendar date:", error);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }

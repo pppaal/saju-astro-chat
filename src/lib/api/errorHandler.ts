@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { captureServerError } from "@/lib/telemetry";
 import { recordCounter } from "@/lib/metrics";
+import { logger } from "@/lib/logger";
 
 // Error codes for categorization
 export const ErrorCodes = {
@@ -212,7 +213,7 @@ export function withErrorHandler<T>(
         code = ErrorCodes.DATABASE_ERROR;
       }
 
-      console.error(`[API Error] ${route}:`, e);
+      logger.error(`[API Error] ${route}:`, e);
 
       return createErrorResponse({
         code,

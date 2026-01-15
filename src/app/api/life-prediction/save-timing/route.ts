@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 interface TimingResult {
   startDate: string;
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[life-prediction/save-timing API error]', error);
+    logger.error('[life-prediction/save-timing API error]', error);
     return NextResponse.json(
       {
         success: false,

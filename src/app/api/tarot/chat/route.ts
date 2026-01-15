@@ -14,6 +14,7 @@ import {
   normalizeMessages as normalizeMessagesBase,
   type ChatMessage,
 } from "@/lib/api";
+import { logger } from '@/lib/logger';
 
 interface CardContext {
   position: string;
@@ -234,7 +235,7 @@ export async function POST(req: Request) {
         backendData = await backendResponse.json();
       }
     } catch (fetchError) {
-      console.warn("Backend connection failed, using fallback:", fetchError);
+      logger.warn("Backend connection failed, using fallback:", fetchError);
     }
 
     // Use backend response or fallback
@@ -246,7 +247,7 @@ export async function POST(req: Request) {
     }
 
     // Fallback response
-    console.warn("Using fallback chat response");
+    logger.warn("Using fallback chat response");
     const fallbackReply = generateFallbackReply(messages, context, language);
     const res = NextResponse.json({ reply: fallbackReply });
     res.headers.set("X-Fallback", "1");
@@ -256,7 +257,7 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     captureServerError(err as Error, { route: "/api/tarot/chat" });
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error("Tarot chat error:", errorMessage, err);
+    logger.error("Tarot chat error:", { message: errorMessage, error: err });
     return NextResponse.json(
       { error: "Server error", detail: process.env.NODE_ENV === "development" ? errorMessage : undefined },
       { status: 500 }

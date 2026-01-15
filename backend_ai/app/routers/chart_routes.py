@@ -20,11 +20,15 @@ def calc_saju():
     """Calculate Saju (사주) from birth data."""
     try:
         body = request.get_json(force=True)
+        payload = body.get("payload") or body.get("saju") or body.get("computeDestinyMap")
         birth_date = body.get("birth_date")
         birth_time = body.get("birth_time")
         gender = body.get("gender", "male")
 
-        result = calculate_saju_data(birth_date, birth_time, gender)
+        if payload:
+            result = calculate_saju_data(payload=payload)
+        else:
+            raise ValueError("Saju payload missing. computeDestinyMap result required.")
         return jsonify({"status": "success", "saju": result})
     except Exception as e:
         logger.exception(f"[ERROR] /calc_saju failed: {e}")

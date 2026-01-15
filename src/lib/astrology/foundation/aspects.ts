@@ -1,7 +1,7 @@
 // src/lib/astrology/foundation/aspects.ts
 
 import { AspectHit, AspectRules, AspectType, Chart } from "./types";
-import { angleDiff, clamp } from "./utils";
+import { shortestAngle, clamp } from "./utils";
 
 const MAJOR_ASPECTS: AspectType[] = [
   "conjunction",
@@ -145,7 +145,7 @@ export function findAspects(
 
   for (const t of transitSources) {
     for (const n of natalTargets) {
-      const sep = angleDiff(t.longitude, n.longitude);
+      const sep = shortestAngle(t.longitude, n.longitude);
       const relSpeed = (t.speed ?? 0) - (("speed" in n ? n.speed : 0) ?? 0);
       for (const a of aspects) {
         const orb = orbOf(sep, a);
@@ -232,7 +232,7 @@ export function findNatalAspects(
     for (let j = i + 1; j < ps.length; j++) {
       const A = ps[i],
         B = ps[j];
-      const sep = angleDiff(A.longitude, B.longitude);
+      const sep = shortestAngle(A.longitude, B.longitude);
       const relSpeed = (A.speed ?? 0) - (B.speed ?? 0);
       for (const t of aspects) {
         const orb = Math.abs(sep - DESIRED_ANGLES[t]);

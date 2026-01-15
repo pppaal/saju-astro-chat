@@ -13,6 +13,7 @@ import {
   normalizeMessages as normalizeMessagesBase,
   type ChatMessage,
 } from "@/lib/api";
+import { logger } from '@/lib/logger';
 
 
 // Message type imported from @/lib/api as ChatMessage, aliased below
@@ -332,7 +333,7 @@ export async function POST(req: Request) {
       language: locale
     };
 
-    console.log("[DreamChat] Sending enhanced context to backend:", {
+    logger.info("[DreamChat] Sending enhanced context to backend:", {
       hasContext: !!dreamContext,
       hasCultural: !!dreamContext.cultural_notes,
       hasCelestial: !!dreamContext.celestial,
@@ -357,7 +358,7 @@ export async function POST(req: Request) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("[DreamChat] Backend error:", backendResponse.status, errorText);
+      logger.error("[DreamChat] Backend error:", { status: backendResponse.status, errorText });
       return NextResponse.json(
         { error: "Backend error", detail: errorText },
         { status: backendResponse.status, headers: limit.headers }
@@ -394,7 +395,7 @@ export async function POST(req: Request) {
             streamController.enqueue(encoder.encode(text));
           }
         } catch (error) {
-          console.error("[DreamChat] Stream error:", error);
+          logger.error("[DreamChat] Stream error:", error);
         } finally {
           streamController.close();
         }
@@ -411,7 +412,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err: unknown) {
-    console.error("Dream chat error:", err);
+    logger.error("Dream chat error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

@@ -2016,13 +2016,33 @@ function getStageEffect(stage: string, category: keyof EventCategoryScores): str
 export function analyzePastPeriod(
   input: LifePredictionInput,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  options: { sampleSize?: number; enableTier5?: boolean } = {}
 ): PastRetrospective[] {
+  const { sampleSize, enableTier5 = true } = options;
   const results: PastRetrospective[] = [];
-  const current = new Date(startDate);
+  const dayMs = 24 * 60 * 60 * 1000;
+  const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / dayMs) + 1;
 
+  const analyzeDate = (date: Date) => analyzePastDate(input, date, {
+    detailed: enableTier5,
+    includeHours: enableTier5,
+  });
+
+  if (sampleSize && sampleSize > 0 && sampleSize < totalDays) {
+    const step = totalDays / sampleSize;
+    for (let i = 0; i < sampleSize; i++) {
+      const offset = Math.floor(i * step);
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + offset);
+      results.push(analyzeDate(date));
+    }
+    return results;
+  }
+
+  const current = new Date(startDate);
   while (current <= endDate) {
-    results.push(analyzePastDate(input, new Date(current)));
+    results.push(analyzeDate(new Date(current)));
     current.setDate(current.getDate() + 1);
   }
 
@@ -2056,6 +2076,7 @@ export function findOptimalEventTiming(
   }
   const optimalPeriods: OptimalPeriod[] = [];
   const avoidPeriods: AvoidPeriod[] = [];
+  const candidatePeriods: OptimalPeriod[] = [];
 
   const currentDate = new Date();
 
@@ -2070,7 +2091,6 @@ export function findOptimalEventTiming(
       const midMonth = new Date(year, month - 1, 15);
 
       // 이미 지난 달은 건너뛰기
-      if (monthEnd < currentDate) continue;
 
       const age = year - input.birthYear;
 
@@ -2291,6 +2311,15 @@ export function findOptimalEventTiming(
 
       score = Math.max(0, Math.min(100, score));
 
+      candidatePeriods.push({
+        startDate: monthStart,
+        endDate: monthEnd,
+        score,
+        grade: scoreToGrade(score),
+        reasons,
+      });
+
+
       // 분류
       if (score >= 70) {
         // 등급 결정 (통일된 기준 사용)
@@ -2322,6 +2351,18 @@ export function findOptimalEventTiming(
   }
 
   // 정렬
+  if (optimalPeriods.length == 0 && candidatePeriods.length > 0) {
+    candidatePeriods.sort((a, b) => b.score - a.score);
+    const fallback = candidatePeriods.slice(0, 3).map(p => ({
+      ...p,
+      specificDays: findSpecificGoodDays(input, p.startDate, p.endDate, eventType, {
+        useLunarMansions: true,
+        usePlanetaryHours: false,
+      }),
+    }));
+    optimalPeriods.push(...fallback);
+  }
+
   optimalPeriods.sort((a, b) => b.score - a.score);
   avoidPeriods.sort((a, b) => a.score - b.score);
 
@@ -2475,18 +2516,23 @@ export interface WeeklyPeriod {
   startDate: Date;
   endDate: Date;
   weekNumber: number;
-  score: number;
+  averageScore: number;
+  bestDay: Date;
+  bestDayScore: number;
   grade: PredictionGrade;
-  reasons: string[];
-  bestDays: Date[];
+  summary: string;
+  reasons?: string[];
+  bestDays?: Date[];
 }
 
 export interface WeeklyEventTimingResult {
   eventType: EventType;
+  searchWeeks: number;
   searchRange: { startDate: Date; endDate: Date };
   weeklyPeriods: WeeklyPeriod[];
   bestWeek: WeeklyPeriod | null;
   worstWeek: WeeklyPeriod | null;
+  overallAdvice: string;
   summary: string;
 }
 
@@ -2501,26 +2547,35 @@ export function findWeeklyOptimalTiming(
   input: LifePredictionInput,
   eventType: EventType,
   startDate: Date,
-  endDate?: Date
+  searchWeeksOrEndDate: number | Date = 4
 ): WeeklyEventTimingResult {
   const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
   if (!conditions) {
     return {
       eventType,
-      searchRange: { startDate, endDate: endDate || new Date() },
+      searchWeeks: 0,
+      searchRange: { startDate, endDate: startDate },
       weeklyPeriods: [],
       bestWeek: null,
       worstWeek: null,
+      overallAdvice: `Unknown event type: ${eventType}`,
       summary: `Unknown event type: ${eventType}`,
     };
   }
 
-  // 기본 3개월 분석
-  const actualEndDate = endDate || new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+  const dayMs = 24 * 60 * 60 * 1000;
+  const searchWeeks = typeof searchWeeksOrEndDate === 'number'
+    ? Math.max(1, Math.floor(searchWeeksOrEndDate))
+    : Math.max(1, Math.ceil(((searchWeeksOrEndDate as Date).getTime() - startDate.getTime()) / (7 * dayMs)));
+
+  const actualEndDate = searchWeeksOrEndDate instanceof Date
+    ? new Date(searchWeeksOrEndDate.getTime())
+    : new Date(startDate.getTime() + searchWeeks * 7 * dayMs);
+
   const weeklyPeriods: WeeklyPeriod[] = [];
 
   const currentWeekStart = new Date(startDate);
-  // 월요일로 정렬
+  // ??? ???? ??
   const dayOfWeek = currentWeekStart.getDay();
   if (dayOfWeek !== 1) {
     const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -2529,57 +2584,56 @@ export function findWeeklyOptimalTiming(
 
   let weekNumber = 1;
 
-  while (currentWeekStart < actualEndDate) {
+  while (weekNumber <= searchWeeks) {
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    // 주간 점수 계산
     const weekAnalysis = analyzeWeekPeriod(input, currentWeekStart, weekEnd, eventType, conditions);
+    const bestDay = weekAnalysis.bestDay || weekAnalysis.bestDays?.[0] || new Date(currentWeekStart);
+    const bestDayScore = weekAnalysis.bestDayScore ?? weekAnalysis.score;
 
     weeklyPeriods.push({
       startDate: new Date(currentWeekStart),
       endDate: weekEnd,
       weekNumber,
-      score: weekAnalysis.score,
+      averageScore: weekAnalysis.score,
+      bestDay,
+      bestDayScore,
       grade: scoreToGrade(weekAnalysis.score),
+      summary: `${eventType} week ${weekNumber} average ${weekAnalysis.score}`,
       reasons: weekAnalysis.reasons,
       bestDays: weekAnalysis.bestDays,
     });
 
-    // 다음 주로 이동
     currentWeekStart.setDate(currentWeekStart.getDate() + 7);
     weekNumber++;
   }
 
-  // 정렬
-  const sortedByScore = [...weeklyPeriods].sort((a, b) => b.score - a.score);
+  const sortedByScore = [...weeklyPeriods].sort((a, b) => b.averageScore - a.averageScore);
   const bestWeek = sortedByScore[0] || null;
   const worstWeek = sortedByScore[sortedByScore.length - 1] || null;
 
-  // 요약 생성
-  const summary = generateWeeklySummary(eventType, weeklyPeriods, bestWeek);
+  const overallAdvice = generateWeeklySummary(eventType, weeklyPeriods, bestWeek);
 
   return {
     eventType,
+    searchWeeks,
     searchRange: { startDate, endDate: actualEndDate },
     weeklyPeriods,
     bestWeek,
     worstWeek,
-    summary,
+    overallAdvice,
+    summary: overallAdvice,
   };
 }
 
-/**
- * 주간 기간 분석 (내부 함수) - 강화된 버전
- * 월별 분석과 동일한 수준의 정밀도 적용
- */
 function analyzeWeekPeriod(
   input: LifePredictionInput,
   weekStart: Date,
   weekEnd: Date,
   eventType: EventType,
   conditions: typeof EVENT_FAVORABLE_CONDITIONS['marriage']
-): { score: number; reasons: string[]; bestDays: Date[] } {
+): { score: number; reasons: string[]; bestDays: Date[]; bestDay: Date; bestDayScore: number } {
   const dailyScores: { date: Date; score: number; reasons: string[] }[] = [];
 
   const current = new Date(weekStart);
@@ -2773,19 +2827,21 @@ function analyzeWeekPeriod(
     .map(r => r.reason);
 
   // 최고의 날들 (상위 3개, 점수와 이유 개수 고려)
-  const bestDays = dailyScores
+  const sortedDays = [...dailyScores]
     .sort((a, b) => {
       const scoreDiff = b.score - a.score;
       if (Math.abs(scoreDiff) > 5) return scoreDiff;
-      return b.reasons.length - a.reasons.length; // 점수 비슷하면 이유 많은 날 우선
-    })
-    .slice(0, 3)
-    .map(d => d.date);
+      return b.reasons.length - a.reasons.length; // ?? ???? ?? ?? ? ??
+    });
+  const bestDayEntry = sortedDays[0];
+  const bestDays = sortedDays.slice(0, 3).map(d => d.date);
 
   return {
     score: Math.round(avgScore),
     reasons: topReasons,
     bestDays,
+    bestDay: bestDayEntry ? bestDayEntry.date : new Date(weekStart),
+    bestDayScore: bestDayEntry ? bestDayEntry.score : Math.round(avgScore),
   };
 }
 
@@ -2814,17 +2870,21 @@ function generateWeeklySummary(
   const startStr = `${bestWeek.startDate.getMonth() + 1}/${bestWeek.startDate.getDate()}`;
   const endStr = `${bestWeek.endDate.getMonth() + 1}/${bestWeek.endDate.getDate()}`;
 
-  let summary = `${eventNames[eventType]}에 가장 좋은 주간은 ${startStr}~${endStr} (${bestWeek.grade}등급, ${bestWeek.score}점)입니다.`;
+  let summary = `${eventNames[eventType]}에 가장 좋은 주간은 ${startStr}~${endStr} (${bestWeek.grade}등급, ${bestWeek.averageScore}점)입니다.`;
 
-  if (bestWeek.bestDays.length > 0) {
-    const bestDayStr = bestWeek.bestDays.slice(0, 2)
+  const bestDayList = bestWeek.bestDays && bestWeek.bestDays.length > 0
+    ? bestWeek.bestDays
+    : [bestWeek.bestDay];
+
+  if (bestDayList.length > 0) {
+    const bestDayStr = bestDayList.slice(0, 2)
       .map(d => `${d.getMonth() + 1}/${d.getDate()}`)
       .join(', ');
-    summary += ` 특히 ${bestDayStr}일이 좋습니다.`;
+    summary += ` ???? ${bestDayStr}???.`;
   }
 
   // 점수 분포 분석
-  const scores = weeklyPeriods.map(w => w.score);
+  const scores = weeklyPeriods.map(w => w.averageScore);
   const variance = Math.sqrt(scores.reduce((sum, s) => sum + Math.pow(s - (scores.reduce((a, b) => a + b) / scores.length), 2), 0) / scores.length);
 
   if (variance < 5) {
@@ -2880,11 +2940,28 @@ function generateEventAdvice(
 
 export function generateComprehensivePrediction(
   input: LifePredictionInput,
-  yearsRange: number = 10
+  yearsRangeOrOptions: number | { startYear?: number; endYear?: number } = 10
 ): ComprehensivePrediction {
   const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 2;
-  const endYear = currentYear + yearsRange;
+  let startYear = currentYear - 2;
+  let endYear = currentYear + 10;
+
+  if (typeof yearsRangeOrOptions === 'number') {
+    endYear = currentYear + yearsRangeOrOptions;
+  } else if (yearsRangeOrOptions) {
+    if (typeof yearsRangeOrOptions.startYear === 'number') {
+      startYear = yearsRangeOrOptions.startYear;
+    }
+    if (typeof yearsRangeOrOptions.endYear === 'number') {
+      endYear = yearsRangeOrOptions.endYear;
+    } else if (typeof yearsRangeOrOptions.startYear === 'number') {
+      endYear = yearsRangeOrOptions.startYear + 10;
+    }
+  }
+
+  if (endYear < startYear) {
+    [startYear, endYear] = [endYear, startYear];
+  }
 
   // 다년간 트렌드
   const multiYearTrend = analyzeMultiYearTrend(input, startYear, endYear);
@@ -3028,7 +3105,7 @@ export function generateLifePredictionPromptContext(
 
   } else {
     lines.push('=== Comprehensive Life Prediction ===');
-    lines.push(`Period: ${prediction.multiYearTrend.startYear}-${prediction.multiYearTrend.endYear}`);
+    lines.push(`year range: ${prediction.multiYearTrend.startYear}-${prediction.multiYearTrend.endYear}`);
     lines.push(`Trend: ${prediction.multiYearTrend.overallTrend}`);
     lines.push(`Confidence: ${prediction.confidence}%`);
     lines.push('');
@@ -3058,7 +3135,7 @@ export function generateEventTimingPromptContext(
   };
 
   if (lang === 'ko') {
-    lines.push(`=== ${eventNames[result.eventType].ko} 최적 타이밍 분석 ===`);
+    lines.push(`=== ${eventNames[result.eventType].ko} (${result.eventType}) 최적 타이밍 분석 ===`);
     lines.push(`검색 범위: ${result.searchRange.startYear}~${result.searchRange.endYear}년`);
     lines.push('');
 
@@ -3110,6 +3187,7 @@ export function generatePastAnalysisPromptContext(
     lines.push(`=== ${dateStr} 과거 분석 ===`);
     lines.push(`일진: ${retrospective.dailyPillar.stem}${retrospective.dailyPillar.branch}`);
     lines.push(`등급: ${retrospective.grade} (${Math.round(retrospective.score)}점)`);
+    lines.push(`점수: ${Math.round(retrospective.score)}점`);
     lines.push(`12운성: ${retrospective.twelveStage.stage}`);
     lines.push(`십신: ${retrospective.sibsin}`);
     lines.push('');

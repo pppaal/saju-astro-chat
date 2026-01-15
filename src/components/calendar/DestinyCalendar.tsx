@@ -12,6 +12,7 @@ import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import DateTimePicker from "@/components/ui/DateTimePicker";
 import TimePicker from "@/components/ui/TimePicker";
 import styles from "./DestinyCalendar.module.css";
+import { logger } from "@/lib/logger";
 
 type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
@@ -148,7 +149,7 @@ function getCachedData(cacheKey: string): CalendarData | null {
 
     return parsed.data;
   } catch (err) {
-    console.error('[Cache] Failed to get cached data:', err);
+    logger.error('[Cache] Failed to get cached data:', err);
     return null;
   }
 }
@@ -168,7 +169,7 @@ function setCachedData(cacheKey: string, birthInfo: BirthInfo, year: number, cat
 
     localStorage.setItem(cacheKey, JSON.stringify(cacheData));
   } catch (err) {
-    console.error('[Cache] Failed to set cached data:', err);
+    logger.error('[Cache] Failed to set cached data:', err);
     // localStorage quota exceeded - 오래된 캐시 삭제
     try {
       clearOldCache();
@@ -181,7 +182,7 @@ function setCachedData(cacheKey: string, birthInfo: BirthInfo, year: number, cat
         data,
       }));
     } catch (retryErr) {
-      console.error('[Cache] Failed to set cached data after cleanup:', retryErr);
+      logger.error('[Cache] Failed to set cached data after cleanup:', retryErr);
     }
   }
 }
@@ -211,7 +212,7 @@ function clearOldCache(): void {
       }
     });
   } catch (err) {
-    console.error('[Cache] Failed to clear old cache:', err);
+    logger.error('[Cache] Failed to clear old cache:', err);
   }
 }
 
@@ -296,8 +297,8 @@ function DestinyCalendarContent() {
       }
 
       const { user } = await res.json();
-      console.log('[DestinyCalendar] Loaded user profile:', user);
-      console.log('[DestinyCalendar] birthCity:', user?.birthCity);
+      logger.info('[DestinyCalendar] Loaded user profile:', user);
+      logger.debug('[DestinyCalendar] birthCity:', user?.birthCity);
 
       if (!user || !user.birthDate) {
         setCityErr(t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.');
@@ -317,11 +318,11 @@ function DestinyCalendarContent() {
       // Try to get city coordinates
       if (user.birthCity) {
         const cityName = user.birthCity.split(',')[0]?.trim();
-        console.log('[DestinyCalendar] Searching city:', cityName);
+        logger.debug('[DestinyCalendar] Searching city:', cityName);
         if (cityName) {
           try {
             const hits = await searchCities(cityName, { limit: 1 }) as CityHit[];
-            console.log('[DestinyCalendar] City search hits:', hits);
+            logger.debug('[DestinyCalendar] City search hits:', hits);
             if (hits && hits[0]) {
               const hit = hits[0];
               const tz = hit.timezone ?? user.tzId ?? tzLookup(hit.lat, hit.lon);
@@ -334,16 +335,16 @@ function DestinyCalendarContent() {
               updatedBirthInfo.timezone = tz;
             }
           } catch (searchErr) {
-            console.warn('[DestinyCalendar] City search failed for:', cityName, searchErr);
+            logger.warn('[DestinyCalendar] City search failed for:', { cityName, error: searchErr });
           }
         }
       }
 
-      console.log('[DestinyCalendar] Final birthInfo:', updatedBirthInfo);
+      logger.debug('[DestinyCalendar] Final birthInfo:', updatedBirthInfo);
       setBirthInfo(updatedBirthInfo);
       setProfileLoaded(true);
     } catch (err) {
-      console.error('Failed to load profile:', err);
+      logger.error('[DestinyCalendar] Failed to load profile:', err);
       setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
     } finally {
       setLoadingProfile(false);
@@ -364,7 +365,7 @@ function DestinyCalendarContent() {
           setSavedDates(new Set(dates.map((d: { date: string }) => d.date)));
         }
       } catch (err) {
-        console.error('Failed to load saved dates:', err);
+        logger.error('[DestinyCalendar] Failed to load saved dates:', err);
       }
     };
     loadSavedDates();
@@ -410,7 +411,7 @@ function DestinyCalendarContent() {
         setSaveMsg(data.error || (locale === 'ko' ? '저장 실패' : 'Save failed'));
       }
     } catch (err) {
-      console.error('Failed to save date:', err);
+      logger.error('[DestinyCalendar] Failed to save date:', err);
       setSaveMsg(locale === 'ko' ? '저장 실패' : 'Save failed');
     } finally {
       setSaving(false);
@@ -441,7 +442,7 @@ function DestinyCalendarContent() {
         setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed');
       }
     } catch (err) {
-      console.error('Failed to unsave date:', err);
+      logger.error('[DestinyCalendar] Failed to unsave date:', err);
       setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed');
     } finally {
       setSaving(false);
@@ -607,15 +608,15 @@ function DestinyCalendarContent() {
     }
     const timeout = setTimeout(async () => {
       try {
-        console.log('[DestinyCalendar] Searching cities for:', q);
+        logger.debug('[DestinyCalendar] Searching cities for:', q);
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
-        console.log('[DestinyCalendar] City search results:', hits);
+        logger.debug('[DestinyCalendar] City search results:', hits);
         setSuggestions(hits);
         if (isUserTyping) {
           setOpenSug(hits.length > 0);
         }
       } catch (err) {
-        console.error('[DestinyCalendar] City search error:', err);
+        logger.error('[DestinyCalendar] City search error:', err);
         setSuggestions([]);
       }
     }, 120);
@@ -689,7 +690,7 @@ function DestinyCalendarContent() {
       const cachedData = getCachedData(cacheKey);
 
       if (cachedData) {
-        console.log('[Calendar] Cache HIT! 🎯', { year, category: activeCategory });
+        logger.debug('[Calendar] Cache HIT!', { year, category: activeCategory });
         setData(cachedData);
         setHasBirthInfo(true);
         setCacheHit(true);
@@ -699,7 +700,7 @@ function DestinyCalendarContent() {
       }
 
       // 2. 캐시 없으면 API 호출
-      console.log('[Calendar] Cache MISS. Fetching from API...', { year, category: activeCategory });
+      logger.debug('[Calendar] Cache MISS. Fetching from API...', { year, category: activeCategory });
 
       const params = new URLSearchParams({ year: String(year), locale });
       if (activeCategory !== "all") {
@@ -724,7 +725,7 @@ function DestinyCalendarContent() {
 
         // 3. 성공한 데이터는 캐시에 저장
         setCachedData(cacheKey, birthData, year, activeCategory, json);
-        console.log('[Calendar] Data cached successfully ✅', { year, category: activeCategory });
+        logger.debug('[Calendar] Data cached successfully', { year, category: activeCategory });
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error loading calendar");

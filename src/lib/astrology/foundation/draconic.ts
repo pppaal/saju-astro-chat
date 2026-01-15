@@ -2,7 +2,7 @@
 // 드라코닉 차트 - 영혼 차트, 전생과 카르마 분석
 
 import { Chart, PlanetBase, ZodiacKo, AspectHit } from "./types";
-import { normalize360, formatLongitude, angleDiff } from "./utils";
+import { normalize360, formatLongitude, shortestAngle } from "./utils";
 import { findAspects } from "./aspects";
 
 export interface DraconicChart extends Chart {
@@ -145,7 +145,7 @@ export function compareDraconicToNatal(natalChart: Chart): DraconicComparison {
   // 드라코닉 행성과 출생 행성 비교
   for (const dPlanet of draconicChart.planets) {
     for (const nPlanet of natalChart.planets) {
-      const diff = angleDiff(dPlanet.longitude, nPlanet.longitude);
+      const diff = shortestAngle(dPlanet.longitude, nPlanet.longitude);
 
       // 컨정션 (일치)
       if (diff <= orb) {
@@ -293,7 +293,7 @@ function findCrossChartAspects(chartA: Chart, chartB: Chart): AspectHit[] {
 
   for (const pA of planetsA) {
     for (const pB of planetsB) {
-      const diff = angleDiff(pA.longitude, pB.longitude);
+      const diff = shortestAngle(pA.longitude, pB.longitude);
 
       for (const { type, angle, orb } of aspectAngles) {
         const aspectOrb = Math.abs(diff - angle);
@@ -344,10 +344,15 @@ function generateDraconicSummary(
   alignmentCount: number,
   tensionCount: number
 ): DraconicSummary {
-  const sunSign = draconicChart.planets.find(p => p.name === "Sun")?.sign as ZodiacKo;
-  const moonSign = draconicChart.planets.find(p => p.name === "Moon")?.sign as ZodiacKo;
-  const saturnSign = draconicChart.planets.find(p => p.name === "Saturn")?.sign as ZodiacKo;
-  const mcSign = draconicChart.mc.sign as ZodiacKo;
+  const sunPlanet = draconicChart.planets.find(p => p.name === "Sun");
+  const moonPlanet = draconicChart.planets.find(p => p.name === "Moon");
+  const saturnPlanet = draconicChart.planets.find(p => p.name === "Saturn");
+
+  // 기본값 제공 (행성을 찾지 못한 경우)
+  const sunSign: ZodiacKo = (sunPlanet?.sign as ZodiacKo) ?? "Aries";
+  const moonSign: ZodiacKo = (moonPlanet?.sign as ZodiacKo) ?? "Cancer";
+  const saturnSign: ZodiacKo = (saturnPlanet?.sign as ZodiacKo) ?? "Capricorn";
+  const mcSign: ZodiacKo = (draconicChart.mc.sign as ZodiacKo) ?? "Capricorn";
 
   const sunInfo = ZODIAC_SOUL_MEANINGS[sunSign];
   const moonInfo = ZODIAC_SOUL_MEANINGS[moonSign];

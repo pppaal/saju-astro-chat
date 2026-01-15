@@ -4,6 +4,7 @@
  */
 
 import type { ImportanceGrade } from './types';
+import { GRADE_THRESHOLDS } from './scoring-config';
 
 export interface GradeInput {
   score: number;
@@ -35,7 +36,21 @@ export interface GradeResult {
  * Grade 3: 안좋은날 (30-44) ~25%
  * Grade 4: 최악의날 (<30) ~5%
  */
-export function calculateGrade(input: GradeInput): GradeResult {
+function calculateSimpleGrade(score: number): ImportanceGrade {
+  if (score >= GRADE_THRESHOLDS.grade0) return 0;
+  if (score >= GRADE_THRESHOLDS.grade1) return 1;
+  if (score >= GRADE_THRESHOLDS.grade2) return 2;
+  if (score >= GRADE_THRESHOLDS.grade3) return 3;
+  return 4;
+}
+
+export function calculateGrade(score: number): ImportanceGrade;
+export function calculateGrade(input: GradeInput): GradeResult;
+export function calculateGrade(input: GradeInput | number): GradeResult | ImportanceGrade {
+  if (typeof input === 'number') {
+    return calculateSimpleGrade(input);
+  }
+
   let gradeBonus = 0;
 
   // 보너스 조건
@@ -72,6 +87,10 @@ export function calculateGrade(input: GradeInput): GradeResult {
   }
 
   return { grade, adjustedScore, gradeBonus };
+}
+
+export function getCategoryScore(score: number): ImportanceGrade {
+  return calculateSimpleGrade(score);
 }
 
 /**

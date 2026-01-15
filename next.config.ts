@@ -14,11 +14,8 @@ const nextConfig = {
   compress: true, // Enable gzip compression
   reactStrictMode: true,
 
-  // TypeScript type checking has 1000+ errors that need gradual fixing
-  // Keep ignoreBuildErrors until types are properly defined
-  // TODO: Fix types incrementally and remove this flag
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // Note: ESLint config removed - no longer supported in next.config.ts for Next.js 16+
   // ESLint is enforced separately via CI (see .github/workflows/ci.yml)

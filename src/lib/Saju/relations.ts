@@ -361,8 +361,8 @@ export function analyzeRelations(input: AnalyzeInput): RelationHit[] {
   if (opt.includeEarthly) {
     hits.push(...analyzeEarthly(pillars, !!opt.includeTrineElementNote, !!opt.includeSelfPunish));
   }
-  if (opt.includeGongmang) {
-    hits.push(...analyzeGongmang(pillars, opt.gongmangPolicy!, dayMasterStem));
+  if (opt.includeGongmang && opt.gongmangPolicy) {
+    hits.push(...analyzeGongmang(pillars, opt.gongmangPolicy, dayMasterStem));
   }
 
   // 정렬: kind, 기둥 수, detail

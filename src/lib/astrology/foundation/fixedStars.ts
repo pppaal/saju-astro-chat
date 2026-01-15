@@ -2,7 +2,7 @@
 // 항성 (Fixed Stars) 계산
 
 import { Chart, PlanetBase, ZodiacKo } from "./types";
-import { normalize360, angleDiff } from "./utils";
+import { normalize360, shortestAngle } from "./utils";
 
 export interface FixedStar {
   name: string;
@@ -555,7 +555,7 @@ export function findFixedStarConjunctions(
     const correctedLon = correctForPrecession(star.longitude, year);
 
     for (const point of allPoints) {
-      const diff = angleDiff(point.longitude, correctedLon);
+      const diff = shortestAngle(point.longitude, correctedLon);
 
       if (diff <= orb) {
         conjunctions.push({
@@ -597,7 +597,7 @@ export function findStarsNearLongitude(
 ): FixedStar[] {
   return FIXED_STARS.filter((star) => {
     const correctedLon = correctForPrecession(star.longitude, year);
-    const diff = angleDiff(longitude, correctedLon);
+    const diff = shortestAngle(longitude, correctedLon);
     return diff <= orb;
   });
 }

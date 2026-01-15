@@ -1,8 +1,15 @@
 // src/lib/Saju/geokguk.ts
 // 격국(格局) 판정 모듈
 
-import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
+import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
 import type { FiveElement, SajuPillarsInput } from './types';
+import {
+  getStemElement,
+  getBranchElement,
+  getStemYinYang,
+  normalizeStem,
+  normalizeBranch
+} from './stemBranchUtils';
 
 export type GeokgukType =
   | '식신격' | '상관격' | '편재격' | '정재격'
@@ -26,49 +33,14 @@ export interface GeokgukResult {
 // Re-export for backward compatibility
 export type { SajuPillarsInput };
 
-// 한글 ↔ 한자 변환
-const STEM_KO_TO_HAN: Record<string, string> = {
-  '갑': '甲', '을': '乙', '병': '丙', '정': '丁', '무': '戊',
-  '기': '己', '경': '庚', '신': '辛', '임': '壬', '계': '癸',
-};
-const STEM_HAN_TO_KO: Record<string, string> = Object.fromEntries(
-  Object.entries(STEM_KO_TO_HAN).map(([k, v]) => [v, k])
-);
-const BRANCH_KO_TO_HAN: Record<string, string> = {
-  '자': '子', '축': '丑', '인': '寅', '묘': '卯', '진': '辰', '사': '巳',
-  '오': '午', '미': '未', '신': '申', '유': '酉', '술': '戌', '해': '亥',
+// 한글 → 한자 한자 → 한글 변환 (로컬 사용)
+const STEM_HAN_TO_KO: Record<string, string> = {
+  '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
+  '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계',
 };
 
-function normalizeStem(s: string): string {
-  const t = s.trim();
-  return STEM_KO_TO_HAN[t] || t;
-}
-function normalizeBranch(b: string): string {
-  const t = b.trim();
-  return BRANCH_KO_TO_HAN[t] || t;
-}
 function stemToKo(s: string): string {
   return STEM_HAN_TO_KO[s] || s;
-}
-
-// 오행 가져오기
-function getStemElement(stem: string): FiveElement {
-  const s = normalizeStem(stem);
-  const found = STEMS.find(st => st.name === s);
-  return found?.element || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const b = normalizeBranch(branch);
-  const found = BRANCHES.find(br => br.name === b);
-  return found?.element || '토';
-}
-
-// 음양 가져오기
-function getStemYinYang(stem: string): '양' | '음' {
-  const s = normalizeStem(stem);
-  const found = STEMS.find(st => st.name === s);
-  return (found?.yin_yang as '양' | '음') || '양';
 }
 
 // 십성 계산

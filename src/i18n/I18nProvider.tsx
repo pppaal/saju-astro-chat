@@ -594,10 +594,11 @@ for (const [loc, namespaces] of Object.entries(allExtensions)) {
   }
 }
 
-function fillMissing(base: Record<string, unknown>, target: Record<string, unknown>) {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function fillMissing(base: Record<string, any>, target: Record<string, any>) {
   for (const [k, v] of Object.entries(base)) {
     if (!(k in target)) {
-      (target as Record<string, unknown>)[k] = v;
+      target[k] = v;
       continue;
     }
     if (v && typeof v === "object" && !Array.isArray(v) && target[k] && typeof target[k] === "object") {
@@ -605,6 +606,7 @@ function fillMissing(base: Record<string, unknown>, target: Record<string, unkno
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Merge translations from JSON files (landing, common, app, about)
 const jsonOverrides: Record<string, any> = {
@@ -613,7 +615,7 @@ const jsonOverrides: Record<string, any> = {
 };
 
 for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
-  const target = (dicts as Record<string, Record<string, unknown>>)[locale];
+  const target = (dicts as Record<string, Record<string, any>>)[locale];
   if (target) {
     if (jsonData.landing) {
       if (!target.landing) target.landing = {};

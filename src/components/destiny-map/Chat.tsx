@@ -6,6 +6,7 @@
 import React from "react";
 import styles from "./Chat.module.css";
 import InlineTarotModal, { type TarotResultSummary } from "./InlineTarotModal";
+import { logger } from "@/lib/logger";
 
 // Extracted modules
 import { CHAT_I18N, detectCrisis, type LangKey } from "./chat-i18n";
@@ -45,7 +46,7 @@ async function extractTextFromPDF(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-  console.warn("[PDF] Loaded:", file.name, "Pages:", pdf.numPages);
+  logger.info("[PDF] Loaded:", { fileName: file.name, pages: pdf.numPages });
 
   let fullText = "";
   let totalItems = 0;
@@ -58,10 +59,10 @@ async function extractTextFromPDF(file: File): Promise<string> {
       .filter((str: string) => str.trim().length > 0)
       .join(" ");
     fullText += pageText + "\n";
-    console.warn(`[PDF] Page ${i}: ${content.items.length} items, ${pageText.length} chars`);
+    logger.debug(`[PDF] Page ${i}: ${content.items.length} items, ${pageText.length} chars`);
   }
 
-  console.warn("[PDF] Total items:", totalItems, "Total chars:", fullText.length);
+  logger.info("[PDF] Total items:", { totalItems, totalChars: fullText.length });
 
   if (fullText.trim().length === 0 && totalItems === 0) {
     throw new Error("SCANNED_PDF");
@@ -201,7 +202,7 @@ export default function Chat({
   // Users can view history via "이전 채팅 보기" button
   React.useEffect(() => {
     setSessionLoaded(true);
-    console.log("[Chat] Session ready (fresh start - history available via button)");
+    logger.debug("[Chat] Session ready (fresh start - history available via button)");
   }, []);
 
   // Auto-save messages to database
@@ -221,9 +222,9 @@ export default function Chat({
             messages: messages.filter(m => m.role !== "system"),
           }),
         });
-        console.log("[Chat] Session auto-saved:", messages.length, "messages");
+        logger.debug("[Chat] Session auto-saved:", { messageCount: messages.length });
       } catch (e) {
-        console.warn("[Chat] Failed to save session:", e);
+        logger.warn("[Chat] Failed to save session:", e);
       }
     }, CHAT_TIMINGS.DEBOUNCE_SAVE);
 
@@ -262,11 +263,11 @@ export default function Chat({
     })
       .then(res => {
         if (res.ok) {
-          console.log("[Chat] PersonaMemory auto-updated");
+          logger.debug("[Chat] PersonaMemory auto-updated");
         }
       })
       .catch(e => {
-        console.warn("[Chat] Failed to update PersonaMemory:", e);
+        logger.warn("[Chat] Failed to update PersonaMemory:", e);
       });
   }, [messages, sessionLoaded, theme, lang, saju, astro]);
 
@@ -324,12 +325,12 @@ export default function Chat({
       });
 
       if (response.ok) {
-        console.warn(`[Feedback] Sent: ${msgId} = ${type}`);
+        logger.debug(`[Feedback] Sent: ${msgId} = ${type}`);
       } else {
-        console.warn("[Feedback] API error:", response.status);
+        logger.warn("[Feedback] API error:", response.status);
       }
     } catch (err) {
-      console.warn("[Feedback] Failed to send:", err);
+      logger.warn("[Feedback] Failed to send:", err);
     }
   }, [feedback, messages, theme, lang]);
 
@@ -421,7 +422,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
         setSessionHistory(data.sessions || []);
       }
     } catch (e) {
-      console.warn("[Chat] Failed to load history:", e);
+      logger.warn("[Chat] Failed to load history:", e);
     } finally {
       setHistoryLoading(false);
     }
@@ -446,7 +447,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
         }
       }
     } catch (e) {
-      console.warn("[Chat] Failed to load session:", e);
+      logger.warn("[Chat] Failed to load session:", e);
     }
   };
 
@@ -461,7 +462,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
         setDeleteConfirmId(null);
       }
     } catch (e) {
-      console.warn("[Chat] Failed to delete session:", e);
+      logger.warn("[Chat] Failed to delete session:", e);
     }
   };
 
@@ -505,14 +506,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
     const file = e.target.files?.[0];
     if (!file) return;
 
-    console.warn("[CV Upload] File:", file.name, "Type:", file.type, "Size:", file.size);
+    logger.info("[CV Upload] File:", { name: file.name, type: file.type, size: file.size });
     setCvName(file.name);
 
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
       setParsingPdf(true);
       try {
         const text = await extractTextFromPDF(file);
-        console.warn("[CV Upload] PDF parsed, text length:", text.length);
+        logger.info("[CV Upload] PDF parsed, text length:", { length: text.length });
         if (text.length > 0) {
           setCvText(text.slice(0, CHAT_LIMITS.MAX_CV_CHARS));
           setNotice(lang === "ko" ? `이력서 로드 완료 (${text.length}자)` : `CV loaded (${text.length} chars)`);
@@ -522,7 +523,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
           setNotice(lang === "ko" ? "PDF에서 텍스트를 추출할 수 없습니다" : "Could not extract text from PDF");
         }
       } catch (err: unknown) {
-        console.error("[PDF] parse error:", err);
+        logger.error("[PDF] parse error:", err);
         setCvText("");
         const error = err as Error;
         if (error?.message === "SCANNED_PDF") {
@@ -539,7 +540,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       const reader = new FileReader();
       reader.onload = () => {
         const text = typeof reader.result === "string" ? reader.result : "";
-        console.warn("[CV Upload] Text file loaded, length:", text.length);
+        logger.info("[CV Upload] Text file loaded, length:", { length: text.length });
         setCvText(text.slice(0, CHAT_LIMITS.MAX_CV_CHARS));
         if (text.length > 0) {
           setNotice(lang === "ko" ? `파일 로드 완료 (${text.length}자)` : `File loaded (${text.length} chars)`);
@@ -547,7 +548,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
         }
       };
       reader.onerror = () => {
-        console.error("[FileReader] error:", reader.error);
+        logger.error("[FileReader] error:", reader.error);
         setCvText("");
         setCvName("");
         setNotice(lang === "ko" ? "파일 읽기 실패" : "File reading failed");
@@ -559,7 +560,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
   // Make API request with retry logic
   async function makeRequest(payload: ChatPayload, attempt: number = 0): Promise<Response> {
     const startTime = performance.now();
-    console.warn(`[Chat] Request started (attempt ${attempt + 1})`);
+    logger.debug(`[Chat] Request started (attempt ${attempt + 1})`);
 
     try {
       const res = await fetch("/api/destiny-map/chat-stream", {
@@ -573,13 +574,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       });
 
       const responseTime = performance.now() - startTime;
-      console.warn(`[Chat] Response received: ${responseTime.toFixed(0)}ms`);
+      logger.debug(`[Chat] Response received: ${responseTime.toFixed(0)}ms`);
 
       setConnectionStatus(getConnectionStatus(responseTime));
 
       if (!res.ok) {
         if (res.status >= 500 && attempt < CHAT_LIMITS.MAX_RETRY_ATTEMPTS) {
-          console.warn(`[Chat] Server error ${res.status}, retrying...`);
+          logger.warn(`[Chat] Server error ${res.status}, retrying...`);
           setRetryCount(attempt + 1);
           await new Promise(resolve => setTimeout(resolve, CHAT_TIMINGS.RETRY_BASE_DELAY * (attempt + 1)));
           return makeRequest(payload, attempt + 1);
@@ -595,7 +596,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       if (err.name === "AbortError" || err.name === "TimeoutError") {
         setConnectionStatus("slow");
         if (attempt < CHAT_LIMITS.MAX_RETRY_ATTEMPTS) {
-          console.warn(`[Chat] Request timeout, retrying...`);
+          logger.warn(`[Chat] Request timeout, retrying...`);
           setRetryCount(attempt + 1);
           await new Promise(resolve => setTimeout(resolve, CHAT_TIMINGS.RETRY_BASE_DELAY * (attempt + 1)));
           return makeRequest(payload, attempt + 1);
@@ -713,7 +714,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
 
       await processStream(res, assistantMsgId, text);
     } catch (e: unknown) {
-      console.error("[Chat] send error:", e);
+      logger.error("[Chat] send error:", e);
       setConnectionStatus("offline");
 
       const errorMessage = getErrorMessage(e as Error, lang, tr);

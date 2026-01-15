@@ -17,6 +17,7 @@ import {
 } from '@/lib/Saju/compatibilityEngine';
 import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights';
 import styles from './CompatibilityAnalyzer.module.css';
+import { logger } from '@/lib/logger';
 
 // 간단한 점성 프로필 계산 (클라이언트용)
 function calculateSimpleAstroProfile(birthDate: string, birthTime: string) {
@@ -306,7 +307,7 @@ export default function CompatibilityAnalyzer() {
         person1AstroRaw = calculateSimpleAstroProfile(person1.birthDate, person1.birthTime || '12:00');
         person2AstroRaw = calculateSimpleAstroProfile(person2.birthDate, person2.birthTime || '12:00');
       } catch (astroErr) {
-        console.warn('[Compatibility] Astrology calculation failed:', astroErr);
+        logger.warn('[Compatibility] Astrology calculation failed:', astroErr);
       }
 
       try {
@@ -368,7 +369,7 @@ export default function CompatibilityAnalyzer() {
           categoryScores: [categoryAnalysis],
         };
       } catch (sajuErr) {
-        console.warn('[Compatibility] Frontend Saju calculation failed:', sajuErr);
+        logger.warn('[Compatibility] Frontend Saju calculation failed:', sajuErr);
         // Continue with backend-only analysis
       }
 

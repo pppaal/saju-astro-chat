@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './ResultShare.module.css';
+import { logger } from '@/lib/logger';
 
 interface TimingResult {
   startDate: string;
@@ -90,7 +91,7 @@ Question: "${result.question}"
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      logger.error('[ResultShare] Failed to copy:', err);
       setToastMessage(locale === 'ko' ? '복사 실패' : 'Copy failed');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
@@ -172,7 +173,7 @@ Question: "${result.question}"
         throw new Error(data.error || 'Save failed');
       }
     } catch (err) {
-      console.error('Save failed:', err);
+      logger.error('[ResultShare] Save failed:', err);
       setToastMessage(locale === 'ko' ? '저장 실패. 다시 시도해주세요.' : 'Save failed. Please try again.');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);

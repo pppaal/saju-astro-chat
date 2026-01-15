@@ -12,6 +12,7 @@ import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { cleanStringArray, isRecord } from "@/lib/api";
 import { getBackendUrl } from "@/lib/backend-url";
+import { logger } from '@/lib/logger';
 
 const BACKEND_URL = getBackendUrl();
 
@@ -167,7 +168,7 @@ export async function POST(req: Request) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("[DreamStream] Backend error:", backendResponse.status, errorText);
+      logger.error("[DreamStream] Backend error:", { status: backendResponse.status, errorText });
       return NextResponse.json(
         { error: "Backend error", detail: errorText },
         { status: backendResponse.status, headers: limit.headers }
@@ -196,7 +197,7 @@ export async function POST(req: Request) {
           },
         });
       } catch (saveErr) {
-        console.warn('[Dream API] Failed to save reading:', saveErr);
+        logger.warn('[Dream API] Failed to save reading:', saveErr);
       }
     }
 
@@ -230,7 +231,7 @@ export async function POST(req: Request) {
             controller.enqueue(encoder.encode(text));
           }
         } catch (error) {
-          console.error("[DreamStream] Stream error:", error);
+          logger.error("[DreamStream] Stream error:", error);
         } finally {
           controller.close();
         }
@@ -247,7 +248,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err: unknown) {
-    console.error("Dream stream error:", err);
+    logger.error("Dream stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

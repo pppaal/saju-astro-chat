@@ -2,21 +2,7 @@
 // 건강 및 직업 적성 심층 분석 모듈 - 200% 급
 
 import { FiveElement } from './types';
-import { STEMS, BRANCHES } from './constants';
-
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element as FiveElement || '토';
-}
+import { getStemElement, getBranchElement } from './stemBranchUtils';
 
 // ============================================================
 // 타입 정의

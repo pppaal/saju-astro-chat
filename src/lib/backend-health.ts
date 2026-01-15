@@ -1,6 +1,7 @@
 // Backend AI health check and fallback logic
 
 import { recordCounter, recordTiming } from "@/lib/metrics";
+import { logger } from "@/lib/logger";
 
 interface HealthStatus {
   healthy: boolean;
@@ -26,7 +27,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
 
   // Circuit breaker: if too many failures, wait before retry
   if (!healthStatus.healthy && now - healthStatus.lastCheck < CIRCUIT_BREAK_DURATION) {
-    console.warn(`[Backend] Circuit breaker active. Skipping health check.`);
+    logger.warn(`[Backend] Circuit breaker active. Skipping health check.`);
     return false;
   }
 
@@ -61,11 +62,11 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
         lastCheck: now,
         consecutiveFailures: 0,
       };
-      console.warn(`[Backend] Health check passed ✅`);
+      logger.info(`[Backend] Health check passed`);
       return true;
     }
   } catch (error) {
-    console.error(`[Backend] Health check failed:`, error);
+    logger.error(`[Backend] Health check failed:`, error);
   }
 
   // Record failure
@@ -75,7 +76,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
 
   if (healthStatus.consecutiveFailures >= MAX_FAILURES) {
     healthStatus.healthy = false;
-    console.error(`[Backend] Circuit breaker OPENED after ${MAX_FAILURES} failures 🔴`);
+    logger.error(`[Backend] Circuit breaker OPENED after ${MAX_FAILURES} failures`);
   }
 
   return false;
@@ -94,7 +95,7 @@ export async function callBackendWithFallback<T>(
   const isHealthy = await checkBackendHealth(backendUrl);
 
   if (!isHealthy) {
-    console.warn(`[Backend] Unhealthy, using fallback response`);
+    logger.warn(`[Backend] Unhealthy, using fallback response`);
     return { success: false, data: fallbackResponse };
   }
 
@@ -126,7 +127,7 @@ export async function callBackendWithFallback<T>(
     recordCounter("backend.call.success", 1, { endpoint });
     return { success: true, data: data.data || data };
   } catch (error) {
-    console.error(`[Backend] Request failed:`, error);
+    logger.error(`[Backend] Request failed:`, error);
     recordCounter("backend.call.failure", 1, { endpoint });
 
     // Record failure
@@ -155,5 +156,5 @@ export function resetHealthStatus(): void {
     lastCheck: 0,
     consecutiveFailures: 0,
   };
-  console.warn(`[Backend] Health status reset ✅`);
+  logger.info(`[Backend] Health status reset`);
 }

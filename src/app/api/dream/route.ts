@@ -9,6 +9,7 @@ import { authOptions } from '@/lib/auth/authOptions';
 import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsultation';
 import { withCircuitBreaker } from '@/lib/circuitBreaker';
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
+import { logger } from '@/lib/logger';
 
 type SymbolCombination = {
   combination: string;
@@ -163,11 +164,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const ALLOWED_LOCALES = ['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru'] as const;
     const acceptLanguage = req.headers.get('accept-language') || '';
-    const locale = body.locale ||
+    const rawLocale = body.locale ||
       (acceptLanguage.includes('ko') ? 'ko' :
        acceptLanguage.includes('ja') ? 'ja' :
        acceptLanguage.includes('zh') ? 'zh' : 'en');
+    // Validate locale to prevent injection attacks
+    const locale = ALLOWED_LOCALES.includes(rawLocale) ? rawLocale : 'en';
 
     const creditResult = await checkAndConsumeCredits("reading", 1);
     if (!creditResult.allowed) {
@@ -329,7 +333,7 @@ export async function POST(req: NextRequest) {
         saved = result.success;
       }
     } catch (saveErr) {
-      console.warn('[Dream API] Failed to save dream:', saveErr);
+      logger.warn('[Dream API] Failed to save dream:', saveErr);
     }
 
     const res = NextResponse.json({ ...response, saved, fromFallback });

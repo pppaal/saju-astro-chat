@@ -2,10 +2,11 @@
 Integration tests for API endpoints
 Tests end-to-end API functionality.
 """
-import pytest
 import json
+
+import pytest
 from backend_ai.app.routers.health_routes import health_bp
-from backend_ai.app.routers.fusion_routes import fusion_bp
+from backend_ai.app.routers.stream_routes import stream_bp
 from flask import Flask
 
 
@@ -14,8 +15,8 @@ def app():
     """Create Flask app for testing."""
     app = Flask(__name__)
     app.register_blueprint(health_bp)
-    app.register_blueprint(fusion_bp)
-    app.config['TESTING'] = True
+    app.register_blueprint(stream_bp)
+    app.config["TESTING"] = True
     return app
 
 
@@ -30,75 +31,75 @@ class TestHealthEndpoints:
 
     def test_basic_health_check(self, client):
         """Test basic health endpoint."""
-        response = client.get('/api/health/')
+        response = client.get("/api/health/")
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        assert data['status'] == 'healthy'
-        assert 'service' in data
-        assert data['service'] == 'backend_ai'
+        assert data["status"] == "healthy"
+        assert "service" in data
+        assert data["service"] == "backend_ai"
 
     def test_full_health_check(self, client):
         """Test full health endpoint with stats."""
-        response = client.get('/api/health/full')
+        response = client.get("/api/health/full")
         assert response.status_code in [200, 503]  # May be degraded
 
         data = json.loads(response.data)
-        assert 'status' in data
-        assert 'performance' in data or 'error' in data
+        assert "status" in data
+        assert "performance" in data or "error" in data
 
     def test_cache_stats(self, client):
         """Test cache stats endpoint."""
-        response = client.get('/api/health/cache/stats')
+        response = client.get("/api/health/cache/stats")
         assert response.status_code in [200, 500]
 
         if response.status_code == 200:
             data = json.loads(response.data)
-            assert 'status' in data
+            assert "status" in data
 
     def test_performance_stats(self, client):
         """Test performance stats endpoint."""
-        response = client.get('/api/health/performance/stats')
+        response = client.get("/api/health/performance/stats")
         assert response.status_code in [200, 500]
 
         if response.status_code == 200:
             data = json.loads(response.data)
-            assert 'status' in data
+            assert "status" in data
 
 
-class TestFusionEndpoints:
-    """Test fusion analysis endpoints."""
+class TestStreamEndpoints:
+    """Test stream analysis endpoints."""
 
     @pytest.fixture
     def sample_fusion_request(self):
-        """Sample fusion request data."""
+        """Sample stream request data."""
         return {
             "saju": {
-                "dayMaster": {"name": "甲木", "element": "木"},
+                "dayMaster": {"name": "Jia", "element": "wood"},
                 "pillars": {
-                    "year": "甲子",
-                    "month": "乙丑",
-                    "day": "甲寅",
-                    "time": "丙卯"
-                }
+                    "year": "jia-zi",
+                    "month": "yi-chou",
+                    "day": "bing-yin",
+                    "time": "ding-mao",
+                },
             },
             "astro": {
                 "planets": [
-                    {"name": "Sun", "sign": "Aries", "house": "1"}
+                    {"name": "Sun", "sign": "Aries", "house": "1"},
                 ]
             },
             "tarot": {},
             "theme": "life_path",
             "locale": "en",
-            "render_mode": "template"
+            "render_mode": "template",
         }
 
     def test_fusion_ask_endpoint(self, client, sample_fusion_request):
-        """Test fusion analysis endpoint."""
+        """Test stream analysis endpoint."""
         response = client.post(
-            '/api/fusion/ask',
+            "/ask",
             data=json.dumps(sample_fusion_request),
-            content_type='application/json'
+            content_type="application/json",
         )
 
         # Should return 200 or 500 depending on environment
@@ -106,14 +107,14 @@ class TestFusionEndpoints:
 
         if response.status_code == 200:
             data = json.loads(response.data)
-            assert 'status' in data
+            assert "status" in data
 
     def test_fusion_ask_stream_endpoint(self, client, sample_fusion_request):
-        """Test fusion streaming endpoint."""
+        """Test stream streaming endpoint."""
         response = client.post(
-            '/api/fusion/ask-stream',
+            "/ask-stream",
             data=json.dumps(sample_fusion_request),
-            content_type='application/json'
+            content_type="application/json",
         )
 
         # Should return streaming response
@@ -121,7 +122,7 @@ class TestFusionEndpoints:
 
         if response.status_code == 200:
             # Check that it's a streaming response
-            assert response.content_type == 'text/event-stream'
+            assert response.mimetype == "text/event-stream"
 
 
 # Parametrized endpoint tests

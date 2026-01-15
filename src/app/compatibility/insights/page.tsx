@@ -8,6 +8,7 @@ import { CompatibilityFunInsights } from '@/components/compatibility/fun-insight
 import ShareButton from '@/components/share/ShareButton';
 import { generateCompatibilityCard } from '@/components/share/cards/CompatibilityCard';
 import { logger } from '@/lib/logger';
+import type { SajuData, AstrologyData } from '@/types/api';
 
 // Loading fallback
 function InsightsLoading() {
@@ -36,10 +37,10 @@ function CompatibilityInsightsContent() {
   const searchParams = useSearchParams();
 
   const [persons, setPersons] = useState<PersonData[]>([]);
-  const [person1Saju, setPerson1Saju] = useState<any>(null);
-  const [person2Saju, setPerson2Saju] = useState<any>(null);
-  const [person1Astro, setPerson1Astro] = useState<any>(null);
-  const [person2Astro, setPerson2Astro] = useState<any>(null);
+  const [person1Saju, setPerson1Saju] = useState<SajuData | null>(null);
+  const [person2Saju, setPerson2Saju] = useState<SajuData | null>(null);
+  const [person1Astro, setPerson1Astro] = useState<AstrologyData | null>(null);
+  const [person2Astro, setPerson2Astro] = useState<AstrologyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -192,10 +193,10 @@ function CompatibilityInsightsContent() {
         <>
           <CompatibilityFunInsights
             persons={persons}
-            person1Saju={person1Saju}
-            person2Saju={person2Saju}
-            person1Astro={person1Astro}
-            person2Astro={person2Astro}
+            person1Saju={person1Saju ?? undefined}
+            person2Saju={person2Saju ?? undefined}
+            person1Astro={person1Astro ?? undefined}
+            person2Astro={person2Astro ?? undefined}
             lang={locale}
           />
           {/* Share Button */}

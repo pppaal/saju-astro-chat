@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ sessions });
   } catch (error) {
-    console.error("[Counselor Session List Error]:", error);
+    logger.error("[Counselor Session List Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }
@@ -81,7 +82,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[Counselor Session Delete Error]:", error);
+    logger.error("[Counselor Session Delete Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }

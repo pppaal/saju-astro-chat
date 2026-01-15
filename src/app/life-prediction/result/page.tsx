@@ -6,13 +6,19 @@ import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
 import Chat from '@/components/destiny-map/Chat';
-import type { PredictionContext } from '@/components/destiny-map/chat-types';
+import type { PredictionContext, SajuData as ChatSajuData, AstroData as ChatAstroData } from '@/components/destiny-map/chat-types';
 import FortuneDashboard from '@/components/life-prediction/FortuneDashboard';
 import AdvancedAnalysisPanel from '@/components/life-prediction/AdvancedAnalysisPanel';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService';
+import type { MultiYearTrend } from '@/lib/prediction/life-prediction/types';
 import styles from './result.module.css';
 import { logger } from "@/lib/logger";
+import type { SajuData, AstrologyData } from '@/types/api';
+
+interface AdvancedAnalysisData {
+  [key: string]: unknown;
+}
 
 type Lang = 'ko' | 'en';
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -104,10 +110,10 @@ function LifePredictionResultContent({
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [trend, setTrend] = useState<any>(null);
-  const [advancedAnalysis, setAdvancedAnalysis] = useState<any>(null);
-  const [saju, setSaju] = useState<any>(null);
-  const [astro, setAstro] = useState<any>(null);
+  const [trend, setTrend] = useState<MultiYearTrend | null>(null);
+  const [advancedAnalysis, setAdvancedAnalysis] = useState<AdvancedAnalysisData | null>(null);
+  const [saju, setSaju] = useState<SajuData | null>(null);
+  const [astro, setAstro] = useState<AstrologyData | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [predictionContext, setPredictionContext] = useState<PredictionContext | null>(null);
 
@@ -137,7 +143,7 @@ function LifePredictionResultContent({
         // Calculate saju
         const sajuGender = gender === 'Female' ? 'female' : 'male';
         const sajuResult = calculateSajuData(birthDate, birthTime, sajuGender, 'solar', 'Asia/Seoul');
-        setSaju(sajuResult);
+        setSaju(sajuResult as unknown as SajuData);
 
         // Calculate astrology
         const [year, month, day] = birthDate.split('-').map(Number);
@@ -147,7 +153,7 @@ function LifePredictionResultContent({
           latitude, longitude,
           timeZone: 'Asia/Seoul'
         });
-        setAstro(astroResult);
+        setAstro(astroResult as unknown as AstrologyData);
 
         // Extract day stem/branch for prediction
         const dayStem = sajuResult?.pillars?.day?.heavenlyStem?.name || '甲';
@@ -167,8 +173,8 @@ function LifePredictionResultContent({
           sajuResult?.pillars?.time?.earthlyBranch?.name,
         ].filter(Boolean);
 
-        // Get daeun data
-        const daeunData = (sajuResult as any)?.daeun?.cycles || [];
+        // Get daeun data from daeWoon structure
+        const daeunData = sajuResult?.daeWoon?.list || [];
 
         // Calculate birth year
         const birthYear = parseInt(birthDate.split('-')[0]);
@@ -216,19 +222,28 @@ function LifePredictionResultContent({
 
           // Find optimal and avoid periods from trend data
           if (trendData?.years && Array.isArray(trendData.years)) {
-            const sortedYears = [...trendData.years].sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
+            interface YearData {
+              year: number;
+              score?: number;
+              grade?: string;
+              highlights?: string[];
+              keywords?: string[];
+              warnings?: string[];
+              cautions?: string[];
+            }
+            const sortedYears = [...trendData.years].sort((a: YearData, b: YearData) => (b.score || 0) - (a.score || 0));
 
             // Top 3 optimal years
-            ctx.optimalPeriods = sortedYears.slice(0, 3).map((y: any) => ({
+            ctx.optimalPeriods = sortedYears.slice(0, 3).map((y: YearData) => ({
               startDate: `${y.year}-01-01`,
               endDate: `${y.year}-12-31`,
               score: y.score || 0,
-              grade: y.grade || (y.score >= 80 ? 'A' : y.score >= 60 ? 'B' : 'C'),
+              grade: y.grade || ((y.score ?? 0) >= 80 ? 'A' : (y.score ?? 0) >= 60 ? 'B' : 'C'),
               reasons: y.highlights || y.keywords || [],
             }));
 
             // Bottom 2 avoid years
-            ctx.avoidPeriods = sortedYears.slice(-2).reverse().map((y: any) => ({
+            ctx.avoidPeriods = sortedYears.slice(-2).reverse().map((y: YearData) => ({
               startDate: `${y.year}-01-01`,
               endDate: `${y.year}-12-31`,
               score: y.score || 0,
@@ -369,8 +384,8 @@ function LifePredictionResultContent({
               initialContext={chatContextMessage}
               lang={locale as 'ko' | 'en'}
               theme="future"
-              saju={saju}
-              astro={astro}
+              saju={saju as unknown as ChatSajuData | undefined}
+              astro={astro as unknown as ChatAstroData | undefined}
               predictionContext={predictionContext || undefined}
               autoScroll={true}
             />

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import Stripe from "stripe";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +90,7 @@ export async function GET(request: Request, context: RouteContext) {
       data: consultation,
     });
   } catch (err: unknown) {
-    console.error("[Consultation GET by ID error]", err);
+    logger.error("[Consultation GET by ID error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
@@ -136,7 +137,7 @@ export async function DELETE(
       message: "상담 기록이 삭제되었습니다.",
     });
   } catch (err: unknown) {
-    console.error("[Consultation DELETE error]", err);
+    logger.error("[Consultation DELETE error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }

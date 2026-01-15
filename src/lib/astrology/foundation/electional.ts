@@ -2,7 +2,7 @@
 // 택일 점성학 - 최적의 시간 선택을 위한 규칙 엔진
 
 import { Chart, PlanetBase, ZodiacKo, AspectType } from "./types";
-import { normalize360, angleDiff } from "./utils";
+import { normalize360, shortestAngle } from "./utils";
 import { findAspects } from "./aspects";
 
 export type MoonPhase =
@@ -42,11 +42,13 @@ export interface VoidOfCourseInfo {
   lastAspect: { planet: string; type: AspectType; exactTime?: Date } | null;
   voidStartTime?: Date;
   voidEndTime?: Date;
+  hoursRemaining?: number;
   description: string;
 }
 
 export interface PlanetaryHour {
   planet: string;
+  dayRuler: string;
   startTime: Date;
   endTime: Date;
   isDay: boolean;
@@ -300,6 +302,7 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
       isVoid: false,
       moonSign: "Aries",
       lastAspect: null,
+      hoursRemaining: 0,
       description: "달 정보 없음",
     };
   }
@@ -315,13 +318,19 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
   const hoursToSignChange = (degreesToSignEnd / moonSpeed) * 24;
 
   // 다른 행성들과의 주요 애스펙트 확인
-  const majorAspectAngles = [0, 60, 90, 120, 180];
+  const majorAspects: { angle: number; type: AspectType }[] = [
+    { angle: 0, type: "conjunction" },
+    { angle: 60, type: "sextile" },
+    { angle: 90, type: "square" },
+    { angle: 120, type: "trine" },
+    { angle: 180, type: "opposition" },
+  ];
   const otherPlanets = chart.planets.filter(p => p.name !== "Moon");
 
-  let closestFutureAspect: { planet: string; degrees: number } | null = null;
+  let closestFutureAspect: { planet: string; degrees: number; type: AspectType } | null = null;
 
   for (const planet of otherPlanets) {
-    for (const aspectAngle of majorAspectAngles) {
+    for (const { angle: aspectAngle, type: aspectType } of majorAspects) {
       // 달이 이동하면서 이 행성과 애스펙트를 형성할 도수 계산
       const targetLon = normalize360(planet.longitude + aspectAngle);
       const targetLon2 = normalize360(planet.longitude - aspectAngle);
@@ -331,7 +340,7 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
         if (target >= signStart && target < signEnd && target > moonLongitude) {
           const degreesToAspect = target - moonLongitude;
           if (!closestFutureAspect || degreesToAspect < closestFutureAspect.degrees) {
-            closestFutureAspect = { planet: planet.name, degrees: degreesToAspect };
+            closestFutureAspect = { planet: planet.name, degrees: degreesToAspect, type: aspectType };
           }
         }
       }
@@ -339,13 +348,12 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
   }
 
   const isVoid = closestFutureAspect === null;
-  const lastAspectPlanet = closestFutureAspect?.planet ?? null;
-  const lastAspectType: AspectType | null = null;
 
   return {
     isVoid,
     moonSign,
-    lastAspect: lastAspectPlanet ? { planet: lastAspectPlanet, type: lastAspectType! } : null,
+    lastAspect: closestFutureAspect ? { planet: closestFutureAspect.planet, type: closestFutureAspect.type } : null,
+    hoursRemaining: Number(hoursToSignChange.toFixed(2)),
     description: isVoid
       ? `달이 ${moonSign}에서 공전 중 (Void of Course) - ${Math.round(hoursToSignChange)}시간 후 사인 변경`
       : `달이 ${moonSign}에서 활성 - ${closestFutureAspect?.planet}과 애스펙트 예정`,
@@ -399,6 +407,7 @@ export function calculatePlanetaryHour(
 
   return {
     planet,
+    dayRuler,
     startTime: hourStartTime,
     endTime: hourEndTime,
     isDay,
@@ -624,3 +633,5 @@ export function getElectionalGuidelines(eventType: ElectionalEventType): {
     tips,
   };
 }
+
+

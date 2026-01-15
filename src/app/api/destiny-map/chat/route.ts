@@ -10,6 +10,7 @@ import { callBackendWithFallback } from "@/lib/backend-health";
 import { guardText, cleanText as _cleanText, PROMPT_BUDGET_CHARS, safetyMessage, containsForbidden } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { enforceBodySize } from "@/lib/http";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -233,7 +234,7 @@ export async function POST(request: Request) {
     return res;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[DestinyMap chat API error]", err);
+    logger.error("[DestinyMap chat API error]", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

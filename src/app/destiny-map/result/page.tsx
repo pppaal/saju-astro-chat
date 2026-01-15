@@ -26,6 +26,7 @@ type DestinyResult = {
   saju?: Record<string, unknown>;
   astrology?: Record<string, unknown>;
   astro?: Record<string, unknown>;
+  advancedAstrology?: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -407,7 +408,7 @@ export default function DestinyResultPage({
       const yearBranch = sajuResult?.pillars?.year?.earthlyBranch?.name || "子";
       const allStems = [sajuResult?.pillars?.year?.heavenlyStem?.name, sajuResult?.pillars?.month?.heavenlyStem?.name, dayStem, sajuResult?.pillars?.time?.heavenlyStem?.name].filter(Boolean);
       const allBranches = [yearBranch, monthBranch, dayBranch, sajuResult?.pillars?.time?.earthlyBranch?.name].filter(Boolean);
-      const daeunData = (sajuResult as any)?.daeun?.cycles || sajuResult?.daeWoon?.list || [];
+      const daeunData = sajuResult?.daeWoon?.list || [];
       const birthYear = parseInt(birthDate.split("-")[0]);
 
       const response = await fetch("/api/life-prediction", {
@@ -632,7 +633,7 @@ export default function DestinyResultPage({
 
         {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
         {(() => {
-          const advAstro = (result as any)?.advancedAstrology || {};
+          const advAstro = result?.advancedAstrology || {};
           return (
             <FunInsights
               saju={result?.saju}

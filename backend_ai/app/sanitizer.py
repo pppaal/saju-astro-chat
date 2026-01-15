@@ -104,6 +104,35 @@ def sanitize_user_input(
     return text
 
 
+def sanitize_messages(messages: list, max_content_length: int = 2000) -> list:
+    """
+    Sanitize a list of chat messages.
+
+    Args:
+        messages: List of message dicts with role/content
+        max_content_length: Max length for each message content
+
+    Returns:
+        Sanitized list of messages
+    """
+    if not messages or not isinstance(messages, list):
+        return []
+
+    sanitized = []
+    for msg in messages:
+        if not isinstance(msg, dict):
+            continue
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if isinstance(content, str) and content:
+            if is_suspicious_input(content):
+                logger.warning(f"[Sanitize] Suspicious content in {role} message")
+            content = sanitize_user_input(content, max_length=max_content_length, allow_newlines=True)
+        sanitized.append({"role": role, "content": content})
+
+    return sanitized
+
+
 def sanitize_dream_text(text: str, max_length: int = None) -> str:
     """
     Sanitize dream description text.

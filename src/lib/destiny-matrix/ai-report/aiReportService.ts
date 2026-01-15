@@ -493,7 +493,7 @@ export async function generateAIPremiumReport(
     meta: {
       modelUsed: model,
       tokensUsed,
-      processingTime: Date.now() - startTime,
+      processingTime: Math.max(1, Date.now() - startTime),
       reportVersion: '1.0.0',
     },
   };

@@ -6,6 +6,7 @@ import type { FiveElement } from "@/lib/Saju/types";
 import { STEM_TO_ELEMENT, ELEMENT_KO_TO_EN as ELEMENT_EN } from "@/lib/Saju/stemElementMapping";
 import { getBackendUrl } from "@/lib/backend-url";
 import type { SajuData, AstroData, ShinsalItem, PlanetData } from "./fun-insights/types";
+import { logger } from "@/lib/logger";
 
 interface Props {
   saju?: SajuData;
@@ -601,10 +602,10 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
 
   // AI 스토리 생성 함수
   const generateAIStory = useCallback(async () => {
-    console.warn("[DestinyMatrixStory] generateAIStory called", { saju, astro, lang });
+    logger.info("[DestinyMatrixStory] generateAIStory called", { saju, astro, lang });
 
     if (!saju || !astro) {
-      console.warn("[DestinyMatrixStory] Missing data - saju:", !!saju, "astro:", !!astro);
+      logger.warn("[DestinyMatrixStory] Missing data:", { hasSaju: !!saju, hasAstro: !!astro });
       return;
     }
 
@@ -682,7 +683,7 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
 
   // AI 모드일 때 자동으로 스토리 생성
   useEffect(() => {
-    console.warn("[DestinyMatrixStory] useEffect check:", {
+    logger.debug("[DestinyMatrixStory] useEffect check:", {
       useAI,
       hasSaju: !!saju,
       hasAstro: !!astro,
@@ -693,7 +694,7 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
     });
 
     if (useAI && saju && astro && !aiStory && !isLoading) {
-      console.warn("[DestinyMatrixStory] Calling generateAIStory...");
+      logger.info("[DestinyMatrixStory] Calling generateAIStory...");
       generateAIStory();
     }
   }, [useAI, saju, astro, aiStory, isLoading, generateAIStory]);

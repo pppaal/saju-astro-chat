@@ -7,7 +7,13 @@ Maximizes backend AI response speed and quality
 import time
 import functools
 from typing import Callable, Any
-from redis_cache import get_cache
+try:
+    from backend_ai.app.redis_cache import get_cache
+except ImportError:
+    try:
+        from .redis_cache import get_cache
+    except ImportError:
+        from redis_cache import get_cache
 
 # Performance tracking
 _performance_stats = {

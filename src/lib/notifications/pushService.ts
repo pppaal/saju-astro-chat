@@ -5,6 +5,7 @@
 
 import webpush from 'web-push';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 import {
   generateDailyNotifications,
   getNotificationsForHour,
@@ -17,6 +18,36 @@ import {
 } from './premiumNotifications';
 import { getUserCredits, getCreditBalance } from '@/lib/credits/creditService';
 
+// Types for persona memory JSON fields (matches SajuData/AstrologyData in dailyTransitNotifications)
+interface SajuProfileData {
+  dayMaster?: string;
+  pillars?: {
+    year?: { heavenlyStem?: string; earthlyBranch?: string };
+    month?: { heavenlyStem?: string; earthlyBranch?: string };
+    day?: { heavenlyStem?: string; earthlyBranch?: string };
+    hour?: { heavenlyStem?: string; earthlyBranch?: string };
+  };
+  unse?: {
+    iljin?: unknown;
+    monthly?: unknown;
+    yearly?: unknown;
+  };
+}
+
+interface BirthChartData {
+  transits?: unknown[];
+  planets?: unknown[];
+}
+
+// Type guard for web-push errors
+interface WebPushError extends Error {
+  statusCode?: number;
+}
+
+function isWebPushError(error: unknown): error is WebPushError {
+  return error instanceof Error && 'statusCode' in error;
+}
+
 // VAPID 설정 초기화
 let vapidConfigured = false;
 
@@ -28,7 +59,7 @@ function initializeVapid() {
   const subject = process.env.VAPID_SUBJECT || 'mailto:admin@destinypal.me';
 
   if (!publicKey || !privateKey) {
-    console.warn('[pushService] VAPID keys not configured');
+    logger.warn('[pushService] VAPID keys not configured');
     return false;
   }
 
@@ -37,7 +68,7 @@ function initializeVapid() {
     vapidConfigured = true;
     return true;
   } catch (error) {
-    console.error('[pushService] Failed to set VAPID details:', error);
+    logger.error('[pushService] Failed to set VAPID details:', error);
     return false;
   }
 }
@@ -122,10 +153,10 @@ export async function sendPushNotification(
 
       sent++;
     } catch (error: unknown) {
-      console.error(`[pushService] Failed to send to ${sub.id}:`, error instanceof Error ? error.message : String(error));
+      logger.error(`[pushService] Failed to send to ${sub.id}:`, error instanceof Error ? error.message : String(error));
 
       // 410 Gone 또는 404: 구독이 만료/삭제됨
-      if ((error as any).statusCode === 404 || (error as any).statusCode === 410) {
+      if (isWebPushError(error) && (error.statusCode === 404 || error.statusCode === 410)) {
         await prisma.pushSubscription.update({
           where: { id: sub.id },
           data: { isActive: false },
@@ -206,8 +237,8 @@ export async function sendScheduledNotifications(hour: number): Promise<{
 
   for (const user of users) {
     try {
-      const sajuProfile = (user.personaMemory?.sajuProfile as any) || {};
-      const birthChart = (user.personaMemory?.birthChart as any) || {};
+      const sajuProfile = (user.personaMemory?.sajuProfile as SajuProfileData) || {};
+      const birthChart = (user.personaMemory?.birthChart as BirthChartData) || {};
 
       // 운세 알림 생성
       const fortuneNotifications = generateDailyNotifications(
@@ -267,7 +298,7 @@ export async function sendScheduledNotifications(hour: number): Promise<{
         totalFailed += result.failed;
       }
     } catch (error: unknown) {
-      console.error(`[pushService] Error for user ${user.id}:`, error instanceof Error ? error.message : String(error));
+      logger.error(`[pushService] Error for user ${user.id}:`, error instanceof Error ? error.message : String(error));
       errors.push(`User ${user.id}: ${error instanceof Error ? error.message : String(error)}`);
       totalFailed++;
     }
@@ -379,8 +410,8 @@ export async function previewUserNotifications(
     where: { userId },
   });
 
-  const sajuProfile = (memory?.sajuProfile as any) || {};
-  const birthChart = (memory?.birthChart as any) || {};
+  const sajuProfile = (memory?.sajuProfile as SajuProfileData) || {};
+  const birthChart = (memory?.birthChart as BirthChartData) || {};
 
   return generateDailyNotifications(
     {

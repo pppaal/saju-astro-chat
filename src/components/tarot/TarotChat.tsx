@@ -7,12 +7,13 @@ import { Spread, DrawnCard } from "@/lib/Tarot/tarot.types";
 import { apiFetch } from "@/lib/api";
 import { tarotCounselors } from "@/lib/Tarot/tarot-counselors";
 import CreditBadge from "@/components/ui/CreditBadge";
+import { logger } from "@/lib/logger";
 
 // Development-only logging
 const isDev = process.env.NODE_ENV === 'development';
-const devLog = (...args: unknown[]) => isDev && console.log(...args);
-const devWarn = (...args: unknown[]) => isDev && console.warn(...args);
-const devError = (...args: unknown[]) => console.error(...args); // Always log errors
+const devLog = (...args: unknown[]) => isDev && logger.debug('[TarotChat]', ...args);
+const devWarn = (...args: unknown[]) => isDev && logger.warn('[TarotChat]', ...args);
+const devError = (...args: unknown[]) => logger.error('[TarotChat]', ...args); // Always log errors
 
 type LangKey = "ko" | "en";
 

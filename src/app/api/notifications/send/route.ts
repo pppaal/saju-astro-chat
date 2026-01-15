@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { sendNotification } from "@/lib/notifications/sse";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,7 @@ export async function POST(_request: NextRequest) {
         : "User not connected to notification stream",
     }, { headers: limit.headers });
   } catch (error) {
-    console.error("Error in send notification:", error);
+    logger.error("Error in send notification:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

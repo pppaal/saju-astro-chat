@@ -6,7 +6,7 @@
  * - 구독 상태 관리
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { vi } from "vitest";
 
 // Credit pack amounts (실제 코드와 동일)
 const CREDIT_PACK_AMOUNTS: Record<string, number> = {

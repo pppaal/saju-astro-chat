@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './AdvisorChat.module.css';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -102,7 +103,7 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
         throw new Error(data.error || 'Failed to get response');
       }
     } catch (error) {
-      console.error('Chat error:', error);
+      logger.error('[AdvisorChat] Chat error:', error);
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',

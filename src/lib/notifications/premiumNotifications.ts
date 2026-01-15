@@ -4,6 +4,7 @@
  */
 
 import { DailyNotification, NotificationType } from './dailyTransitNotifications';
+import { logger } from '@/lib/logger';
 
 export interface CreditStatus {
   plan: string;
@@ -293,7 +294,7 @@ export async function checkActivePromotions(
     const promotion = JSON.parse(ACTIVE_PROMOTION);
     return generatePromotionNotification(promotion, locale);
   } catch (error) {
-    console.error("Failed to parse promotion:", error);
+    logger.error("Failed to parse promotion:", error);
     return null;
   }
 }

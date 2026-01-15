@@ -125,7 +125,25 @@ export function getCounselorById(id: string): TarotCounselor | undefined {
 }
 
 // 기본 상담사 (선택 안 했을 때)
-export const defaultCounselor = tarotCounselors[0];
+// Note: tarotCounselors is a static array with at least one element
+export const defaultCounselor: TarotCounselor = tarotCounselors[0] ?? {
+  id: "mystic-luna",
+  name: "Luna",
+  nameKo: "루나",
+  title: "Intuitive Reader",
+  titleKo: "직관 리더",
+  avatar: "🌙",
+  personality: "Calm and intuitive",
+  personalityKo: "차분하고 직관적",
+  style: "intuitive, clear, sensitive",
+  styleKo: "직관적, 명확한, 섬세한",
+  greeting: "Hello. Let's explore what the cards want to show you today.",
+  greetingKo: "안녕하세요. 오늘 카드가 보여주고 싶은 걸 함께 봐요.",
+  color: "#8b5cf6",
+  gradient: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
+  specialty: ["love", "destiny", "spiritual"],
+  specialtyKo: ["연애", "운명", "영적 성장"]
+};
 
 // 테마에 맞는 상담사 추천
 export function recommendCounselorByTheme(themeId: string): TarotCounselor {

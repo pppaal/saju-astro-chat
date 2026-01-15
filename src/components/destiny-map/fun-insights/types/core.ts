@@ -13,7 +13,8 @@ export type StandardPlanetName =
   | 'sun' | 'moon' | 'mercury' | 'venus' | 'mars'
   | 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto'
   | 'northnode' | 'southnode' | 'chiron' | 'lilith'
-  | 'juno' | 'ceres' | 'pallas' | 'vesta';
+  | 'juno' | 'ceres' | 'pallas' | 'vesta'
+  | 'ascendant' | 'mc'; // Chart points
 
 /**
  * Standardized aspect types (lowercase)

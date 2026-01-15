@@ -12,6 +12,7 @@ import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import { logger } from '@/lib/logger';
 
 
 interface CardInput {
@@ -180,7 +181,7 @@ export async function POST(req: Request) {
         interpretation = await backendResponse.json();
       }
     } catch (fetchError) {
-      console.warn("Backend connection failed, using fallback:", fetchError);
+      logger.warn("Backend connection failed, using fallback:", fetchError);
     }
 
     // Use backend response or GPT fallback
@@ -188,7 +189,7 @@ export async function POST(req: Request) {
     if (interpretation && !interpretation.error) {
       result = interpretation;
     } else {
-      console.warn("Backend unavailable, using GPT interpretation");
+      logger.warn("Backend unavailable, using GPT interpretation");
       result = await generateGPTInterpretation(validatedCards, spreadTitle, language, userQuestion);
     }
 
@@ -216,7 +217,7 @@ export async function POST(req: Request) {
           },
         });
       } catch (saveErr) {
-        console.warn('[Tarot API] Failed to save reading:', saveErr);
+        logger.warn('[Tarot API] Failed to save reading:', saveErr);
       }
     }
 
@@ -228,7 +229,7 @@ export async function POST(req: Request) {
     captureServerError(err as Error, { route: "/api/tarot/interpret" });
 
     // Return fallback even on error
-    console.error("Tarot interpretation error:", err);
+    logger.error("Tarot interpretation error:", err);
     return NextResponse.json(
       { error: "Server error", fallback: true },
       { status: 500 }
@@ -405,7 +406,7 @@ Respond in this JSON format:
       fallback: false
     };
   } catch (error) {
-    console.error("GPT interpretation failed:", error);
+    logger.error("GPT interpretation failed:", error);
     return generateSimpleFallback(cards, spreadTitle, language, userQuestion);
   }
 }

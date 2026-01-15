@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './NumerologyAnalyzer.module.css';
+import { logger } from '@/lib/logger';
 
 interface NumerologyResult {
   lifePath: { number: number; meaning: string; description: string };
@@ -65,7 +66,7 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
 
       // Validate the response structure
       if (!data.lifePath) {
-        console.error('Invalid numerology response structure:', data);
+        logger.error('[NumerologyAnalyzer] Invalid numerology response structure:', data);
         throw new Error(t('numerology.errors.generate', 'An error occurred. Please try again.'));
       }
 
@@ -95,7 +96,7 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
           }),
         });
       } catch (saveErr) {
-        console.error('Failed to save reading:', saveErr);
+        logger.error('[NumerologyAnalyzer] Failed to save reading:', saveErr);
         // Don't show error to user, just log it
       }
     } catch (err) {

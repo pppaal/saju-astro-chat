@@ -292,8 +292,8 @@ export function getRetrogradePlanetsForDate(date: Date): RetrogradePlanet[] {
  * 0 = 신월, 7.4 = 상현, 14.8 = 보름, 22.1 = 하현
  */
 export function getLunarPhase(date: Date): LunarPhaseResult {
-  // 2000년 1월 6일 18:14 UTC 신월 기준
-  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+  // Reference new moon day (approx)
+  const knownNewMoon = Date.UTC(2000, 0, 6, 12, 0, 0);
   const lunarCycle = 29.53058867; // 평균 삭망월 (일)
 
   // UTC 기준으로 밀리초 차이 계산 (서버 타임존 영향 제거)

@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { sendScheduledNotifications } from "@/lib/notifications/pushService";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Vercel Pro: 최대 60초
@@ -42,11 +43,11 @@ export async function GET(request: NextRequest) {
     const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
     const currentHour = kstTime.getUTCHours();
 
-    console.warn(`[Cron] Running notification job at KST hour: ${currentHour}`);
+    logger.warn(`[Cron] Running notification job at KST hour: ${currentHour}`);
 
     const result = await sendScheduledNotifications(currentHour);
 
-    console.warn(`[Cron] Notification job completed:`, result);
+    logger.warn(`[Cron] Notification job completed:`, result);
 
     return NextResponse.json({
       success: true,
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("[Cron] Notification job failed:", error);
+    logger.error("[Cron] Notification job failed:", error);
 
     return NextResponse.json(
       {
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const hour = body.hour ?? new Date().getHours();
 
-    console.warn(`[Manual] Running notification job for hour: ${hour}`);
+    logger.warn(`[Manual] Running notification job for hour: ${hour}`);
 
     const result = await sendScheduledNotifications(hour);
 
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("[Manual] Notification job failed:", error);
+    logger.error("[Manual] Notification job failed:", error);
 
     return NextResponse.json(
       {

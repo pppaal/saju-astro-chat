@@ -1,0 +1,360 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Prevent multiple runs for the same PR
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Quick validation checks that run first
+  quick-checks:
+    name: Quick Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check PR title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: ]]; then
+            echo "::error::PR title must follow conventional commit format"
+            echo "Examples: feat: add new feature, fix: resolve bug, docs: update readme"
+            exit 1
+          fi
+
+      - name: Check for large files
+        run: |
+          # Check for files larger than 1MB in the PR
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | while read file; do
+            if [ -f "$file" ]; then
+              SIZE=$(wc -c < "$file")
+              if [ $SIZE -gt 1048576 ]; then
+                echo "::warning::Large file detected: $file ($(($SIZE / 1024))KB)"
+              fi
+            fi
+          done
+
+      - name: Check for console logs
+        run: |
+          # Check for console.log statements in changed files
+          FOUND=0
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | while read file; do
+            if [ -f "$file" ]; then
+              if grep -n "console\.log\|console\.debug\|console\.warn" "$file"; then
+                echo "::warning::Console statements found in $file"
+                FOUND=1
+              fi
+            fi
+          done
+          if [ $FOUND -eq 1 ]; then
+            echo "::notice::Consider removing console statements or replacing with proper logging"
+          fi
+
+      - name: Lint changed files
+        run: |
+          # Only lint files changed in this PR
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
+          if [ -n "$CHANGED_FILES" ]; then
+            npx eslint $CHANGED_FILES
+          else
+            echo "No JavaScript/TypeScript files changed"
+          fi
+
+  # Test matrix for comprehensive coverage
+  test-matrix:
+    name: Tests (${{ matrix.test-suite }})
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    if: github.event.pull_request.draft == false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-suite:
+          - unit
+          - integration
+          - e2e-api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Python
+        if: matrix.test-suite == 'integration'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: |
+            backend_ai/requirements.txt
+            backend_ai/requirements-dev.txt
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        if: matrix.test-suite == 'unit'
+        run: npm test
+
+      - name: Run integration tests
+        if: matrix.test-suite == 'integration'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend_ai/requirements.txt -r backend_ai/requirements-dev.txt
+          npm run test:integration
+          npm run test:backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test-ci-placeholder' }}
+
+      - name: Run E2E API tests
+        if: matrix.test-suite == 'e2e-api'
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3000 > /tmp/next-dev.log 2>&1 &
+          sleep 10
+          npm run test:e2e:api
+        env:
+          API_BASE_URL: http://localhost:3000
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-test-secret-32-characters-long
+          CRON_SECRET: ci-cron-secret
+          PUBLIC_METRICS_TOKEN: ci-metrics-token
+
+  # Build verification
+  build-check:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Check build size
+        run: |
+          BUILD_SIZE=$(du -sh .next | cut -f1)
+          echo "Build size: $BUILD_SIZE"
+          echo "::notice::Production build size: $BUILD_SIZE"
+
+  # Security checks
+  security-check:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for secrets
+        run: |
+          # Check changed files for potential secrets
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | while read file; do
+            if [ -f "$file" ]; then
+              if grep -rE "(sk-[a-zA-Z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN.*PRIVATE KEY-----)" "$file"; then
+                echo "::error::Potential secret found in $file"
+                exit 1
+              fi
+            fi
+          done
+
+  # Coverage report
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: test-matrix
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate coverage
+        run: npm run test:coverage
+
+      - name: Comment PR with coverage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            if (!fs.existsSync('./coverage/coverage-summary.json')) {
+              console.log('No coverage report found');
+              return;
+            }
+
+            const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+
+            const formatPct = (pct) => {
+              if (pct >= 80) return `🟢 ${pct}%`;
+              if (pct >= 60) return `🟡 ${pct}%`;
+              return `🔴 ${pct}%`;
+            };
+
+            const comment = `## 📊 Test Coverage Report
+
+            | Metric | Coverage | Covered | Total |
+            |--------|----------|---------|-------|
+            | Lines | ${formatPct(total.lines.pct)} | ${total.lines.covered} | ${total.lines.total} |
+            | Statements | ${formatPct(total.statements.pct)} | ${total.statements.covered} | ${total.statements.total} |
+            | Functions | ${formatPct(total.functions.pct)} | ${total.functions.covered} | ${total.functions.total} |
+            | Branches | ${formatPct(total.branches.pct)} | ${total.branches.covered} | ${total.branches.total} |
+
+            **Overall Coverage:** ${total.lines.pct >= 60 ? '✅' : '⚠️'} ${total.lines.pct}% (Target: 60%)
+
+            ${total.lines.pct < 60 ? '> ⚠️ Coverage is below the 60% threshold. Please add more tests.' : ''}
+
+            ---
+            <sub>Updated for commit ${context.sha.substring(0, 7)}</sub>
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('📊 Test Coverage Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                comment_id: botComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          fail_ci_if_error: false
+
+  # PR summary status
+  pr-status:
+    name: PR Status Summary
+    runs-on: ubuntu-latest
+    needs: [quick-checks, test-matrix, build-check, security-check, coverage]
+    if: always() && github.event.pull_request.draft == false
+
+    steps:
+      - name: Check all job statuses
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jobs = {
+              'Quick Checks': '${{ needs.quick-checks.result }}',
+              'Tests': '${{ needs.test-matrix.result }}',
+              'Build': '${{ needs.build-check.result }}',
+              'Security': '${{ needs.security-check.result }}',
+              'Coverage': '${{ needs.coverage.result }}'
+            };
+
+            const failed = Object.entries(jobs).filter(([_, status]) => status === 'failure');
+            const passed = Object.entries(jobs).filter(([_, status]) => status === 'success');
+
+            let summary = '## 🔍 PR Check Summary\n\n';
+
+            if (failed.length === 0) {
+              summary += '### ✅ All checks passed!\n\n';
+              summary += 'This PR is ready for review.\n\n';
+            } else {
+              summary += '### ❌ Some checks failed\n\n';
+              summary += 'Please fix the following before merging:\n\n';
+              failed.forEach(([name, _]) => {
+                summary += `- ❌ ${name}\n`;
+              });
+              summary += '\n';
+            }
+
+            summary += '#### Status Details:\n\n';
+            Object.entries(jobs).forEach(([name, status]) => {
+              const emoji = status === 'success' ? '✅' : status === 'failure' ? '❌' : '⏭️';
+              summary += `- ${emoji} ${name}: ${status}\n`;
+            });
+
+            console.log(summary);
+
+            if (failed.length > 0) {
+              core.setFailed(`${failed.length} check(s) failed`);
+            }

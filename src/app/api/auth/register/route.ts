@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { enforceBodySize } from "@/lib/http";
 import { sendWelcomeEmail } from "@/lib/email";
+import { logger } from '@/lib/logger';
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const MAX_NAME = 80;
@@ -72,12 +73,12 @@ export async function POST(req: Request) {
 
     // 환영 이메일 발송 (fire and forget)
     sendWelcomeEmail(user.id, email, name || '', 'ko', newUserReferralCode).catch((err) => {
-      console.error('[register] Failed to send welcome email:', err);
+      logger.error('[register] Failed to send welcome email:', err);
     });
 
     return NextResponse.json({ ok: true }, { headers: limit.headers });
   } catch (err: unknown) {
-    console.error("[register] error", err);
+    logger.error("[register] error", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "server_error" }, { status: 500 });
   }
 }

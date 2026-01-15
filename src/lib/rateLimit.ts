@@ -1,10 +1,48 @@
 // Lightweight rate limiter using Upstash REST API.
 // In production, missing Redis credentials blocks requests; in dev, it allows all.
+// Includes in-memory fallback for Redis failures to prevent server downtime.
 
 import { recordCounter } from "@/lib/metrics";
+import { logger } from "@/lib/logger";
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+// In-memory fallback rate limiter for when Redis is unavailable
+// Uses a simple sliding window approach with automatic cleanup
+const inMemoryStore = new Map<string, { count: number; resetAt: number }>();
+const CLEANUP_INTERVAL_MS = 60_000; // Clean up expired entries every minute
+let lastCleanup = Date.now();
+
+function cleanupExpiredEntries() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+
+  lastCleanup = now;
+  const nowSeconds = Math.floor(now / 1000);
+
+  for (const [key, value] of inMemoryStore) {
+    if (value.resetAt < nowSeconds) {
+      inMemoryStore.delete(key);
+    }
+  }
+}
+
+function inMemoryIncrement(key: string, windowSeconds: number): number {
+  cleanupExpiredEntries();
+
+  const now = Math.floor(Date.now() / 1000);
+  const existing = inMemoryStore.get(key);
+
+  if (existing && existing.resetAt > now) {
+    existing.count++;
+    return existing.count;
+  }
+
+  // New window
+  inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds });
+  return 1;
+}
 
 export type RateLimitResult = {
   allowed: boolean;
@@ -56,7 +94,7 @@ export async function rateLimit(
 
   if (!UPSTASH_URL || !UPSTASH_TOKEN) {
     if (process.env.NODE_ENV === "production") {
-      console.error("[SECURITY] Rate limiting not configured in production (UPSTASH_REDIS_REST_URL/TOKEN missing)");
+      logger.error("[SECURITY] Rate limiting not configured in production (UPSTASH_REDIS_REST_URL/TOKEN missing)");
       recordCounter("api.rate_limit.misconfig", 1, { env: "prod" });
       headers.set("X-RateLimit-Policy", "enforced-no-backend");
       headers.set("X-RateLimit-Remaining", "0");
@@ -73,45 +111,44 @@ export async function rateLimit(
   const reset = Math.floor(Date.now() / 1000) + windowSeconds;
   headers.set("X-RateLimit-Reset", String(reset));
 
-  try {
-    const count = await incrementCounter(key, windowSeconds);
-    if (count === null) {
-      // Redis unavailable: fail closed in prod, open in dev.
-      if (process.env.NODE_ENV === "production") {
-        console.error("[SECURITY] Rate limit check failed - blocking request in production");
-        recordCounter("api.rate_limit.blocked", 1, { env: "prod" });
-        headers.set("X-RateLimit-Policy", "error-blocked");
-        headers.set("X-RateLimit-Remaining", "0");
-        return { allowed: false, limit, remaining: 0, reset, headers };
-      }
-      headers.set("X-RateLimit-Remaining", "unknown");
-      headers.set("X-RateLimit-Policy", "error-dev");
-      return { allowed: true, limit, remaining: limit, reset, headers };
-    }
-
+  // Helper to build rate limit result with Retry-After header
+  const buildResult = (count: number, policy?: string): RateLimitResult => {
     const remaining = Math.max(0, limit - count);
+    const allowed = count <= limit;
+    const retryAfter = allowed ? undefined : reset - Math.floor(Date.now() / 1000);
+
     headers.set("X-RateLimit-Remaining", String(remaining));
+    if (policy) {
+      headers.set("X-RateLimit-Policy", policy);
+    }
+    if (!allowed && retryAfter && retryAfter > 0) {
+      headers.set("Retry-After", String(retryAfter));
+    }
     if (count > limit) {
       recordCounter("api.rate_limit.hit", 1, { key });
     }
-    return {
-      allowed: count <= limit,
-      limit,
-      remaining,
-      reset,
-      headers,
-    };
-  } catch {
-    // Unexpected error: fail closed in prod, open in dev.
-    if (process.env.NODE_ENV === "production") {
-      console.error("[SECURITY] Rate limit exception - blocking request in production");
-      recordCounter("api.rate_limit.blocked", 1, { env: "prod" });
-      headers.set("X-RateLimit-Policy", "exception-blocked");
-      headers.set("X-RateLimit-Remaining", "0");
-      return { allowed: false, limit, remaining: 0, reset, headers };
+
+    return { allowed, limit, remaining, reset, retryAfter, headers };
+  };
+
+  try {
+    const count = await incrementCounter(key, windowSeconds);
+    if (count === null) {
+      // Redis unavailable: use in-memory fallback instead of blocking
+      logger.warn("[RATE_LIMIT] Redis unavailable, using in-memory fallback");
+      recordCounter("api.rate_limit.fallback", 1, { reason: "redis_unavailable" });
+
+      const fallbackCount = inMemoryIncrement(key, windowSeconds);
+      return buildResult(fallbackCount, "in-memory-fallback");
     }
-    headers.set("X-RateLimit-Remaining", "unknown");
-    headers.set("X-RateLimit-Policy", "error-dev");
-    return { allowed: true, limit, remaining: limit, reset, headers };
+
+    return buildResult(count);
+  } catch (err) {
+    // Redis error: use in-memory fallback instead of blocking
+    logger.warn("[RATE_LIMIT] Redis error, using in-memory fallback:", err);
+    recordCounter("api.rate_limit.fallback", 1, { reason: "redis_error" });
+
+    const fallbackCount = inMemoryIncrement(key, windowSeconds);
+    return buildResult(fallbackCount, "in-memory-fallback");
   }
 }

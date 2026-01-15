@@ -17,6 +17,29 @@ import { calculateDailyPillar } from './ultraPrecisionEngine';
 
 export type EventType = 'marriage' | 'career' | 'investment' | 'move' | 'study' | 'health' | 'relationship';
 
+// Advanced Astro data structures
+interface ReturnChartData {
+  theme?: string;
+  summary?: { theme?: string };
+  ascSign?: string;
+  ascendant?: { sign?: string };
+  moonSign?: string;
+  moon?: { sign?: string };
+}
+
+interface EclipseData {
+  impact?: {
+    type?: string;
+    affectedPlanets?: string[];
+  };
+}
+
+interface AdvancedAstroData {
+  solarReturn?: ReturnChartData;
+  lunarReturn?: ReturnChartData;
+  eclipses?: EclipseData;
+}
+
 export interface AdvancedAnalysisInput {
   birthYear: number;
   birthMonth: number;
@@ -36,7 +59,7 @@ export interface AdvancedAnalysisInput {
   kisin?: FiveElement[];
   geokguk?: string; // 격국
    
-  advancedAstro?: unknown; // 다양한 점성술 데이터 포맷 수용
+  advancedAstro?: AdvancedAstroData; // 고급 점성술 데이터
 }
 
 export interface TierBonus {
@@ -252,7 +275,7 @@ export function calculateSolarReturnBonus(
   const reasons: string[] = [];
   const penalties: string[] = [];
 
-  const solarReturn = (input.advancedAstro as any)?.solarReturn;
+  const solarReturn = input.advancedAstro?.solarReturn;
   if (!solarReturn) {
     return { bonus: 0, reasons: [], penalties: [], confidence: 0 };
   }
@@ -324,7 +347,7 @@ export function calculateLunarReturnBonus(
   const reasons: string[] = [];
   const penalties: string[] = [];
 
-  const lunarReturn = (input.advancedAstro as any)?.lunarReturn;
+  const lunarReturn = input.advancedAstro?.lunarReturn;
   if (!lunarReturn) {
     return { bonus: 0, reasons: [], penalties: [], confidence: 0 };
   }
@@ -371,7 +394,7 @@ export function calculateEclipseBonus(
   const reasons: string[] = [];
   const penalties: string[] = [];
 
-  const eclipses = (input.advancedAstro as any)?.eclipses;
+  const eclipses = input.advancedAstro?.eclipses;
   if (!eclipses?.impact) {
     return { bonus: 0, reasons: [], penalties: [], confidence: 0 };
   }

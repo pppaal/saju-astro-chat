@@ -4,6 +4,8 @@
  * and provides type-safe access to them.
  */
 
+import { logger } from "@/lib/logger";
+
 // Required environment variables that must be present for the app to function
 const REQUIRED_SERVER_ENV = [
   'NEXTAUTH_SECRET',
@@ -96,17 +98,17 @@ export function logEnvValidation(): void {
   const result = validateEnv();
 
   if (result.warnings.length > 0) {
-    console.warn('[env] Recommended environment variables missing:', result.warnings.join(', '));
+    logger.warn('[env] Recommended environment variables missing:', result.warnings.join(', '));
   }
 
   if (!result.valid) {
-    console.error('[env] CRITICAL: Required environment variables missing:', result.missing.join(', '));
+    logger.error('[env] CRITICAL: Required environment variables missing:', result.missing.join(', '));
     if (process.env.NODE_ENV === 'production') {
       // In production, fail fast if critical env vars are missing
       throw new Error(`Missing required environment variables: ${result.missing.join(', ')}`);
     }
   } else {
-    console.log('[env] Environment validation passed');
+    logger.info('[env] Environment validation passed');
   }
 }
 

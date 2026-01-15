@@ -3,26 +3,8 @@
 // LLM/이미지 생성 AI를 위한 프롬프트 자동 생성
 
 import { FiveElement, SajuPillars, SibsinKind } from './types';
-import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS } from './constants';
-
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
-
-function getBranchElement(branch: string): FiveElement {
-  const found = BRANCHES.find(b => b.name === branch);
-  return found?.element as FiveElement || '토';
-}
-
-function getStemYinYang(stem: string): '양' | '음' {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.yin_yang || '양';
-}
+import { FIVE_ELEMENT_RELATIONS } from './constants';
+import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils';
 
 // ============================================================
 // 타입 정의

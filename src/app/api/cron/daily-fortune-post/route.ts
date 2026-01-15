@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { logger } from '@/lib/logger';
 
 const execAsync = promisify(exec);
 
@@ -24,14 +25,14 @@ export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] Unauthorized request');
+    logger.warn('[Cron] Unauthorized request');
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
     );
   }
 
-  console.log('[Cron] Starting daily fortune auto-post...');
+  logger.info('[Cron] Starting daily fortune auto-post...');
 
   try {
     // 자동 포스팅 스크립트 실행
@@ -47,10 +48,10 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    console.log('[Cron] Script output:', stdout);
+    logger.info('[Cron] Script output:', stdout);
 
     if (stderr) {
-      console.warn('[Cron] Script errors:', stderr);
+      logger.warn('[Cron] Script errors:', stderr);
     }
 
     return NextResponse.json({
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[Cron] Execution failed:', error);
+    logger.error('[Cron] Execution failed:', error);
 
     return NextResponse.json(
       {

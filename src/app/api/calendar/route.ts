@@ -22,8 +22,52 @@ import { getApiToken } from "@/lib/validateEnv";
 import koTranslations from "@/i18n/locales/ko.json";
 import enTranslations from "@/i18n/locales/en.json";
 import type { TranslationData } from "@/types/calendar-api";
+import type { PillarData } from "@/lib/Saju/types";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
+
+// Helper type for accessing pillar data with various formats
+interface SajuPillarAccessor {
+  heavenlyStem?: { name?: string } | string;
+  earthlyBranch?: { name?: string } | string;
+  stem?: { name?: string } | string;
+  branch?: { name?: string } | string;
+}
+
+function getPillarStemName(pillar: PillarData | SajuPillarAccessor | undefined): string {
+  if (!pillar) return "";
+  const p = pillar as SajuPillarAccessor;
+  // PillarData format (heavenlyStem is object with name)
+  if (typeof p.heavenlyStem === 'object' && p.heavenlyStem && 'name' in p.heavenlyStem) {
+    return p.heavenlyStem.name || "";
+  }
+  // Simple format with stem.name
+  if (typeof p.stem === 'object' && p.stem && 'name' in p.stem) {
+    return p.stem.name || "";
+  }
+  // String format
+  if (typeof p.heavenlyStem === 'string') return p.heavenlyStem;
+  if (typeof p.stem === 'string') return p.stem;
+  return "";
+}
+
+function getPillarBranchName(pillar: PillarData | SajuPillarAccessor | undefined): string {
+  if (!pillar) return "";
+  const p = pillar as SajuPillarAccessor;
+  // PillarData format (earthlyBranch is object with name)
+  if (typeof p.earthlyBranch === 'object' && p.earthlyBranch && 'name' in p.earthlyBranch) {
+    return p.earthlyBranch.name || "";
+  }
+  // Simple format with branch.name
+  if (typeof p.branch === 'object' && p.branch && 'name' in p.branch) {
+    return p.branch.name || "";
+  }
+  // String format
+  if (typeof p.earthlyBranch === 'string') return p.earthlyBranch;
+  if (typeof p.branch === 'string') return p.branch;
+  return "";
+}
 
 const BACKEND_URL = getBackendUrl();
 
@@ -31,10 +75,10 @@ const BACKEND_URL = getBackendUrl();
 
 function validateBackendUrl(url: string) {
   if (!url.startsWith("https://") && process.env.NODE_ENV === "production") {
-    console.warn("[Calendar API] Using non-HTTPS AI backend in production");
+    logger.warn("[Calendar API] Using non-HTTPS AI backend in production");
   }
   if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    console.warn("[Calendar API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
+    logger.warn("[Calendar API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL");
   }
 }
 
@@ -1172,7 +1216,7 @@ async function fetchAIDates(sajuData: Record<string, unknown>, astroData: Record
       };
     }
   } catch (error) {
-    console.warn("[Calendar] AI backend not available, using local calculation:", error);
+    logger.warn("[Calendar] AI backend not available, using local calculation:", error);
   }
   return null;
 }
@@ -1303,7 +1347,7 @@ export async function GET(request: NextRequest) {
         timezone
       );
     } catch (sajuError) {
-      console.error("[Calendar] Saju calculation error:", sajuError);
+      logger.error("[Calendar] Saju calculation error:", sajuError);
       return NextResponse.json(
         { error: "Failed to calculate saju data" },
         { status: 500, headers: limit.headers }
@@ -1315,20 +1359,20 @@ export async function GET(request: NextRequest) {
     const sajuPillars = sajuResult?.pillars || {};
     const pillars = {
       year: {
-        stem: (sajuPillars.year as any)?.heavenlyStem?.name || (sajuPillars.year as any)?.stem?.name || "",
-        branch: (sajuPillars.year as any)?.earthlyBranch?.name || (sajuPillars.year as any)?.branch?.name || "",
+        stem: getPillarStemName(sajuPillars.year),
+        branch: getPillarBranchName(sajuPillars.year),
       },
       month: {
-        stem: (sajuPillars.month as any)?.heavenlyStem?.name || (sajuPillars.month as any)?.stem?.name || "",
-        branch: (sajuPillars.month as any)?.earthlyBranch?.name || (sajuPillars.month as any)?.branch?.name || "",
+        stem: getPillarStemName(sajuPillars.month),
+        branch: getPillarBranchName(sajuPillars.month),
       },
       day: {
-        stem: (sajuPillars.day as any)?.heavenlyStem?.name || (sajuPillars.day as any)?.stem?.name || "",
-        branch: (sajuPillars.day as any)?.earthlyBranch?.name || (sajuPillars.day as any)?.branch?.name || "",
+        stem: getPillarStemName(sajuPillars.day),
+        branch: getPillarBranchName(sajuPillars.day),
       },
       hour: {
-        stem: (sajuPillars.time as any)?.heavenlyStem?.name || (sajuPillars.time as any)?.stem?.name || "",
-        branch: (sajuPillars.time as any)?.earthlyBranch?.name || (sajuPillars.time as any)?.branch?.name || "",
+        stem: getPillarStemName(sajuPillars.time),
+        branch: getPillarBranchName(sajuPillars.time),
       },
     };
 
@@ -1349,7 +1393,7 @@ export async function GET(request: NextRequest) {
       birthYear: birthDate.getFullYear(),
       yearBranch: pillars.year.branch,
       daeunCycles,
-      daeunsu: (sajuResult.unse as any)?.daeunsu || 0,
+      daeunsu: sajuResult.daeWoon?.startAge ?? 0,
       pillars,
     };
 
@@ -1389,7 +1433,7 @@ export async function GET(request: NextRequest) {
         birthDay: birthDate.getDate(),
       };
     } catch (astroError) {
-      console.warn("[Calendar] Astrology calculation fallback:", astroError);
+      logger.warn("[Calendar] Astrology calculation fallback:", astroError);
       // 폴백: 단순 계산
       const month = birthDate.getMonth();
       const day = birthDate.getDate();
@@ -1520,7 +1564,7 @@ export async function GET(request: NextRequest) {
     res.headers.set("Cache-Control", "no-store");
     return res;
   } catch (error: unknown) {
-    console.error("Calendar API error:", error);
+    logger.error("Calendar API error:", error);
     return NextResponse.json(
       { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500, headers: limitHeaders }

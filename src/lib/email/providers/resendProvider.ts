@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 import type { EmailProvider, SendEmailOptions, SendEmailResult } from '../types';
 
 export class ResendProvider implements EmailProvider {
@@ -37,7 +38,7 @@ export class ResendProvider implements EmailProvider {
         messageId: result.data?.id,
       };
     } catch (error) {
-      console.error('[ResendProvider] Error:', error);
+      logger.error('[ResendProvider] Error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

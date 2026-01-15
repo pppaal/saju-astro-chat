@@ -21,6 +21,7 @@ import {
   findNatalAspectsPlus,
   buildEngineMeta,
 } from "@/lib/astrology";
+import { logger } from '@/lib/logger';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -336,7 +337,7 @@ export async function POST(request: Request) {
         aiModelUsed = aiData?.data?.model || 'gpt-4o';
       }
     } catch (aiErr) {
-      console.warn('[Astrology API] AI backend call failed:', aiErr);
+      logger.warn('[Astrology API] AI backend call failed:', aiErr);
       aiInterpretation = '';
       aiModelUsed = 'error-fallback';
     }
@@ -366,7 +367,7 @@ export async function POST(request: Request) {
           },
         });
       } catch (saveErr) {
-        console.warn('[Astrology API] Failed to save reading:', saveErr);
+        logger.warn('[Astrology API] Failed to save reading:', saveErr);
       }
     }
 

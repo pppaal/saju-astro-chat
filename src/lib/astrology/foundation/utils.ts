@@ -22,9 +22,20 @@ export function formatLongitude(lon: number) {
   };
 }
 
+/**
+ * Calculate angular difference for aspect detection
+ * Returns 180 for same angles (no aspect), 0 for opposite angles (opposition)
+ */
 export function angleDiff(a: number, b: number) {
   const d = Math.abs(((a - b) % 360 + 540) % 360 - 180);
   return 180 - d;
+}
+
+/**
+ * Returns the shortest angular distance between two angles (0-180)
+ */
+export function shortestAngle(a: number, b: number) {
+  return Math.abs(((a - b) % 360 + 540) % 360 - 180);
 }
 
 export function normalize360(x: number) {

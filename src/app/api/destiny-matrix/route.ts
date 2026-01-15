@@ -7,6 +7,7 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix';
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import type { FiveElement } from '@/lib/Saju/types';
+import { logger } from '@/lib/logger';
 
 // Map Korean element names to standard format
 const ELEMENT_MAP: Record<string, FiveElement> = {
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
     }, { status: 400 });
 
   } catch (error) {
-    console.error('Destiny Matrix GET error:', error);
+    logger.error('Destiny Matrix GET error:', error);
     return NextResponse.json(
       { error: 'Failed to retrieve matrix info' },
       { status: 500 }
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
 
         // Extract day master element
         const dayElement = sajuData.dayPillar?.heavenlyStem?.element;
-        dayMasterElement = (ELEMENT_MAP[dayElement] || dayElement) as any;
+        dayMasterElement = dayElement ? (ELEMENT_MAP[dayElement] || dayElement) : undefined;
 
         // Extract pillar elements
         calculatedPillarElements = [
@@ -148,7 +149,7 @@ export async function POST(req: NextRequest) {
           sajuData.dayPillar?.earthlyBranch?.element,
           sajuData.timePillar?.heavenlyStem?.element,
           sajuData.timePillar?.earthlyBranch?.element,
-        ].filter(Boolean).map(e => ELEMENT_MAP[e as string] || e) as any;
+        ].filter((e): e is FiveElement => Boolean(e)).map(e => ELEMENT_MAP[e] || e);
 
         // Build sibsin distribution from pillars
         const sibsinMap: Record<string, number> = {};
@@ -165,7 +166,7 @@ export async function POST(req: NextRequest) {
         sibsinDistribution = sibsinMap;
 
       } catch (sajuError) {
-        console.error('Saju calculation failed:', sajuError);
+        logger.error('Saju calculation failed:', sajuError);
         return NextResponse.json(
           { error: 'Failed to calculate saju from birth data' },
           { status: 400 }
@@ -250,7 +251,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Destiny Matrix POST error:', error);
+    logger.error('Destiny Matrix POST error:', error);
     return NextResponse.json(
       { error: 'Failed to calculate matrix' },
       { status: 500 }

@@ -94,7 +94,7 @@ async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean>
       }
     }
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Premium check failed:', e);
+    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Premium check failed:', e);
   }
   setCachedPremium(email, false);
   return false;
@@ -136,6 +136,7 @@ import {
   TWELVE_STAGE_INTERPRETATIONS,
   type TwelveStageType,
 } from '@/lib/Saju/interpretations';
+import { logger } from '@/lib/logger';
 
 /* -----------------------------
    Utilities
@@ -555,7 +556,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
         description: getGeokgukDescription(geokguk.primary),
       };
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Geokguk analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Geokguk analysis failed:', e);
     }
 
     // 2. 용신 분석
@@ -573,7 +574,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
         luckyNumbers,
       };
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Yongsin analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Yongsin analysis failed:', e);
     }
 
     // 3. 형충회합 분석
@@ -581,7 +582,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     try {
       hyeongchungAnalysis = analyzeHyeongchung(simplePillars);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Hyeongchung analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Hyeongchung analysis failed:', e);
     }
 
     // 4. 통근/득령 분석
@@ -591,7 +592,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       tonggeunAnalysis = calculateTonggeun(dayMasterStem, simplePillars);
       deukryeongAnalysis = calculateDeukryeong(dayMasterStem, sajuResult.monthPillar.earthlyBranch.name);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Tonggeun/Deukryeong analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Tonggeun/Deukryeong analysis failed:', e);
     }
 
     // 5. 조후용신 (궁통보감) - dayMasterStem (甲,乙...) 사용, element (목,화...) 아님
@@ -600,7 +601,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       const monthBranch = sajuResult.monthPillar.earthlyBranch.name;
       johuYongsinAnalysis = getJohuYongsin(dayMasterStem, monthBranch);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] JohuYongsin analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] JohuYongsin analysis failed:', e);
     }
 
     // 6. 십신 종합 분석 (uses hour instead of time)
@@ -608,7 +609,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     try {
       sibsinAnalysis = analyzeSibsinComprehensive(pillarsWithHour);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Sibsin analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Sibsin analysis failed:', e);
     }
 
     // 7. 건강 분석
@@ -616,7 +617,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     try {
       healthAnalysis = analyzeHealth(pillarsWithHour);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Health analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Health analysis failed:', e);
     }
 
     // 8. 직업 적성 분석
@@ -624,7 +625,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     try {
       careerAnalysis = analyzeCareer(pillarsWithHour);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Career analysis failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Career analysis failed:', e);
     }
 
     // 9. 종합 점수 (uses full SajuPillars type from types.ts)
@@ -632,7 +633,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     try {
       comprehensiveScore = calculateComprehensiveScore(sajuPillars);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Comprehensive score failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Comprehensive score failed:', e);
     }
 
     // 10. 종합 리포트
@@ -640,7 +641,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     try {
       comprehensiveReport = generateComprehensiveReport(pillarsWithHour);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Comprehensive report failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Comprehensive report failed:', e);
     }
 
     // 11. 해석 데이터 수집
@@ -666,7 +667,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
         }
       }
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('[Saju API] Interpretations failed:', e);
+      if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Interpretations failed:', e);
     }
 
     // ======== 고급 분석 끝 ========
@@ -780,7 +781,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       }
     } catch (aiErr) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('[Saju API] AI backend call failed:', aiErr);
+        logger.warn('[Saju API] AI backend call failed:', aiErr);
       }
       aiInterpretation = '';
       aiModelUsed = 'error-fallback';
@@ -811,7 +812,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
           },
         });
       } catch (saveErr) {
-        console.warn('[Saju API] Failed to save reading:', saveErr);
+        logger.warn('[Saju API] Failed to save reading:', saveErr);
       }
     }
 
@@ -872,7 +873,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       advancedAnalysis: isPremium ? fullAdvancedAnalysis : null,
     });
   } catch (error) {
-    console.error('[API /api/saju] Uncaught error:', error);
+    logger.error('[API /api/saju] Uncaught error:', error);
     const msg = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ message: `Internal Server Error: ${msg}` }, { status: 500 });
   }

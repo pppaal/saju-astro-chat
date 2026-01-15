@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
       createdAt: accessLog.createdAt,
     });
   } catch (err: unknown) {
-    console.error("[ContentAccess POST error]", err);
+    logger.error("[ContentAccess POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }
@@ -169,7 +170,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err: unknown) {
-    console.error("[ContentAccess GET error]", err);
+    logger.error("[ContentAccess GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }

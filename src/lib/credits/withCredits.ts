@@ -7,6 +7,7 @@ import {
   getUserCredits,
   initializeUserCredits,
 } from "./creditService";
+import { logger } from "@/lib/logger";
 
 export type CreditType = "reading" | "compatibility" | "followUp";
 
@@ -154,6 +155,6 @@ export async function ensureUserCredits(userId: string): Promise<void> {
       await initializeUserCredits(userId, "free");
     }
   } catch (err) {
-    console.error("[ensureUserCredits] Failed:", err);
+    logger.error("[ensureUserCredits] Failed:", err);
   }
 }

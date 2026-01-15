@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
+import { logger } from '@/lib/logger';
 
 export async function GET(
   req: Request,
@@ -36,7 +37,7 @@ export async function GET(
 
     return NextResponse.json({ reading }, { headers: limit.headers });
   } catch (error) {
-    console.error("Failed to fetch reading:", error);
+    logger.error("Failed to fetch reading:", error);
     return NextResponse.json({ error: "Failed to fetch reading" }, { status: 500 });
   }
 }

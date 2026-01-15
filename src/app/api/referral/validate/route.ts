@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { findUserByReferralCode } from "@/lib/referral";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Referral validate error]", err);
+    logger.error("[Referral validate error]", err);
     return NextResponse.json(
       { valid: false, error: message },
       { status: 500 }

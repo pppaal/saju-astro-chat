@@ -303,7 +303,7 @@ export function getCareerAnalysis(
   const jupiterHouseNum = getPlanetHouse(astro, 'jupiter');
 
   // 애스펙트 분석 (중앙화된 유틸리티)
-  const saturnMcAspectData = findAspect(astro, 'saturn', 'mc' as any);
+  const saturnMcAspectData = findAspect(astro, 'saturn', 'mc');
   const sunSaturnAspectData = findAspect(astro, 'sun', 'saturn');
 
   // 조합해서 개인화된 텍스트 생성

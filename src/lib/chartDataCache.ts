@@ -3,6 +3,8 @@
  * Manages caching of Saju and Astrology calculation results
  */
 
+import { logger } from "@/lib/logger";
+
 const CACHE_KEY_PREFIX = "destinyChartData_";
 const CACHE_KEY_INDEX = "destinyChartDataKey";
 const LEGACY_CACHE_KEY = "destinyChartData"; // 레거시 호환
@@ -54,7 +56,7 @@ export function saveChartData(
     // 현재 활성 캐시 키 저장
     sessionStorage.setItem(CACHE_KEY_INDEX, cacheKey);
   } catch (error) {
-    console.warn("[ChartCache] Failed to save cache:", error);
+    logger.warn("[ChartCache] Failed to save cache:", error);
   }
 }
 
@@ -111,7 +113,7 @@ export function loadChartData(
       advancedAstro: cached.advancedAstro,
     };
   } catch (error) {
-    console.warn("[ChartCache] Failed to load cache:", error);
+    logger.warn("[ChartCache] Failed to load cache:", error);
     return null;
   }
 }
@@ -159,7 +161,7 @@ export function loadCurrentChartData(): {
       birthTime: cached.birthTime,
     };
   } catch (error) {
-    console.warn("[ChartCache] Failed to load current cache:", error);
+    logger.warn("[ChartCache] Failed to load current cache:", error);
     return null;
   }
 }
@@ -177,7 +179,7 @@ export function clearChartCache(): void {
     sessionStorage.removeItem(CACHE_KEY_INDEX);
     sessionStorage.removeItem(LEGACY_CACHE_KEY);
   } catch (error) {
-    console.warn("[ChartCache] Failed to clear cache:", error);
+    logger.warn("[ChartCache] Failed to clear cache:", error);
   }
 }
 

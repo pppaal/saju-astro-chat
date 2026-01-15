@@ -14,7 +14,15 @@ import {
   type PillarData,
 } from '../../lib/Saju';
 import PillarSummaryTable from './PillarSummaryTable';
-import { buildPillarView } from '../../adapters/map-12';
+import { buildPillarView, type PillarView } from '../../adapters/map-12';
+
+// 천간/지지 값에서 이름 추출 헬퍼 (string | { name: string } 처리)
+type GanjiValue = string | { name: string } | null | undefined;
+function getGanjiName(val: GanjiValue): string {
+  if (typeof val === 'string') return val;
+  if (val && typeof val === 'object' && 'name' in val) return val.name;
+  return '';
+}
 
 // 고급 분석 세부 타입 정의
 interface GeokgukAnalysis {
@@ -363,7 +371,8 @@ export default function SajuResultDisplay({ result }: Props) {
 
         {/* 표: 외부 컴포넌트 + 어댑터 정규화 */}
         <PillarSummaryTable
-          data={buildPillarView(result.table?.byPillar as any)}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- buildPillarView handles multiple pillar formats at runtime
+          data={buildPillarView(result.table?.byPillar as unknown as Parameters<typeof buildPillarView>[0])}
         />
 
         <p style={{ textAlign: 'center', marginTop: 18, fontSize: '1rem', color: '#a0a0a0' }}>
@@ -1000,10 +1009,10 @@ const UnseFlowContainer: React.FC<{ children: React.ReactNode }> = ({ children }
 
 const UnsePillar = ({
   topText, topSubText, cheon, ji, bottomSubText, onClick, isSelected,
-}: { topText: string; topSubText: string | object; cheon: string | object; ji: string | object; bottomSubText: string | object; onClick?: () => void; isSelected?: boolean }) => {
+}: { topText: string; topSubText: string | object; cheon: GanjiValue; ji: GanjiValue; bottomSubText: string | object; onClick?: () => void; isSelected?: boolean }) => {
   // 안전하게 문자열 추출
-  const cheonStr = typeof cheon === 'string' ? cheon : ((cheon as any)?.name ?? '');
-  const jiStr = typeof ji === 'string' ? ji : ((ji as any)?.name ?? '');
+  const cheonStr = getGanjiName(cheon);
+  const jiStr = getGanjiName(ji);
   const topSubStr = typeof topSubText === 'string' ? topSubText : String(topSubText ?? '');
   const bottomSubStr = typeof bottomSubText === 'string' ? bottomSubText : String(bottomSubText ?? '');
 
@@ -1077,8 +1086,8 @@ function IljinCalendar({ iljinData, year, month }: { iljinData: IljinData[]; yea
     const ty=cellKst.getUTCFullYear(); const tm=cellKst.getUTCMonth()+1; const td=cellKst.getUTCDate();
     const iljin = iljinMap.get(keyOf(ty,tm,td));
     // 안전하게 문자열 추출
-    const stemStr = iljin ? (typeof iljin.heavenlyStem === 'string' ? iljin.heavenlyStem : ((iljin.heavenlyStem as any)?.name ?? '')) : '';
-    const branchStr = iljin ? (typeof iljin.earthlyBranch === 'string' ? iljin.earthlyBranch : ((iljin.earthlyBranch as any)?.name ?? '')) : '';
+    const stemStr = iljin ? getGanjiName(iljin.heavenlyStem as GanjiValue) : '';
+    const branchStr = iljin ? getGanjiName(iljin.earthlyBranch as GanjiValue) : '';
     const ganjiStr = iljin ? `${stemStr}${branchStr}` : '—';
     const sibsinCheon = iljin?.sibsin?.cheon ? (typeof iljin.sibsin.cheon === 'string' ? iljin.sibsin.cheon : String(iljin.sibsin.cheon)) : '';
     const sibsinJi = iljin?.sibsin?.ji ? (typeof iljin.sibsin.ji === 'string' ? iljin.sibsin.ji : String(iljin.sibsin.ji)) : '';

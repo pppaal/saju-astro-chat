@@ -20,6 +20,7 @@ import {
 } from "@/lib/validation";
 import fs from "fs";
 import path from "path";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 180;
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => null);
     if (enableDebugLogs) {
-      console.warn("[API] DestinyMap POST received", { theme: body?.theme, lang: body?.lang, hasPrompt: Boolean(body?.prompt) });
+      logger.warn("[API] DestinyMap POST received", { theme: body?.theme, lang: body?.lang, hasPrompt: Boolean(body?.prompt) });
     }
 
     if (!body) {
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
 
     // Validate required fields using shared utilities
     if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
-      console.error("[API] Missing required fields");
+      logger.error("[API] Missing required fields");
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
     if (!isValidDate(birthDate)) {
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
     }
 
     if (enableDebugLogs) {
-      console.warn("[API] Calling generateReport ...");
+      logger.warn("[API] Calling generateReport ...");
     }
 
     const start = Date.now();
@@ -183,7 +184,7 @@ export async function POST(request: Request) {
     }
 
     if (enableDebugLogs) {
-      console.warn("[API] Report generated (redacted payload)");
+      logger.warn("[API] Report generated (redacted payload)");
     }
 
     // Notify user via SSE if logged in
@@ -201,12 +202,12 @@ export async function POST(request: Request) {
         // });
         // if (enableDebugLogs) {
         //   const maskedEmail = `${session.user.email.split("@")[0]?.slice(0, 2) ?? "**"}***@***`;
-        //   console.warn("[API] Notification sent (masked):", maskedEmail);
+        //   logger.warn("[API] Notification sent (masked):", maskedEmail);
         // }
       }
     } catch (notifErr) {
       if (enableDebugLogs) {
-        console.warn("[API] Notification send failed:", notifErr);
+        logger.warn("[API] Notification send failed:", notifErr);
       }
     }
 
@@ -228,11 +229,11 @@ export async function POST(request: Request) {
           locale: lang,
         });
         if (enableDebugLogs) {
-          console.warn("[API] Consultation saved for user");
+          logger.warn("[API] Consultation saved for user");
         }
       } catch (saveErr) {
         if (enableDebugLogs) {
-          console.warn("[API] Consultation save failed:", saveErr);
+          logger.warn("[API] Consultation save failed:", saveErr);
         }
       }
     }
@@ -259,7 +260,7 @@ export async function POST(request: Request) {
     const sajuDataWithDayMaster = report.raw?.saju as { dayMaster?: { heavenlyStem?: { name?: string; element?: string }; name?: string; element?: string }; facts?: { dayMaster?: unknown } } | undefined;
     const rawDayMaster = sajuDataWithDayMaster?.dayMaster || sajuData?.facts?.dayMaster as { heavenlyStem?: { name?: string; element?: string }; name?: string; element?: string } | undefined;
     if (enableDebugLogs) {
-      console.warn("[API] dayMaster sources:", {
+      logger.warn("[API] dayMaster sources:", {
         "saju.dayMaster": sajuDataWithDayMaster?.dayMaster,
         "saju.facts.dayMaster": sajuData?.facts?.dayMaster,
         rawDayMaster,
@@ -267,7 +268,7 @@ export async function POST(request: Request) {
     }
     // dayMaster should always exist if calculation succeeded - empty object means error occurred
     if (!rawDayMaster || Object.keys(rawDayMaster).length === 0) {
-      console.error("[API] dayMaster is missing or empty - saju calculation may have failed");
+      logger.error("[API] dayMaster is missing or empty - saju calculation may have failed");
     }
     // Normalize dayMaster to { name, element } format
     let dayMaster: { name?: string; element?: string } = {};
@@ -307,7 +308,7 @@ export async function POST(request: Request) {
     if (enableDebugLogs) {
       const factsData = sajuRaw?.facts as { birthDate?: unknown } | undefined;
       const unseData = sajuRaw?.unse as { daeun?: unknown[] } | undefined;
-      console.warn("[API] Saju facts check:", {
+      logger.warn("[API] Saju facts check:", {
         hasSaju: !!report.raw?.saju,
         sajuKeys: report.raw?.saju ? Object.keys(report.raw.saju as object) : [],
         hasFacts: !!sajuRaw?.facts,
@@ -326,9 +327,9 @@ export async function POST(request: Request) {
         if (!fs.existsSync(dir)) fs.mkdirSync(dir);
         const file = path.join(dir, `destinymap-${Date.now()}.json`);
         fs.writeFileSync(file, JSON.stringify({ body: maskPayload(body), report }, null, 2), "utf8");
-        console.warn("[API] Log saved:", file);
+        logger.warn("[API] Log saved:", file);
       } catch (err) {
-        console.warn("[API] Log save failed:", err);
+        logger.warn("[API] Log save failed:", err);
       }
     }
 
@@ -354,7 +355,7 @@ export async function POST(request: Request) {
     const maskedInterpretation = maskTextWithName(cleanseText(report.report), name);
 
     if (enableDebugLogs) {
-      console.warn("[API] Report content check:", {
+      logger.warn("[API] Report content check:", {
         hasReport: Boolean(report.report),
         reportLength: report.report?.length || 0,
         maskedInterpLength: maskedInterpretation?.length || 0,
@@ -413,7 +414,7 @@ export async function POST(request: Request) {
     return NextResponse.json(responsePayload);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[DestinyMap API Error]:", err);
+    logger.error("[DestinyMap API Error]:", err);
     recordCounter("destiny.report.failure", 1);
     return NextResponse.json({ error: message }, { status: 500 });
   }

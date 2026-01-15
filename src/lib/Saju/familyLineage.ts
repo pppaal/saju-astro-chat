@@ -1067,7 +1067,12 @@ export function performCompleteFamilyAnalysis(
           elementHarmony: analyzeElementHarmony(saju1, saju2),
           stemRelation: analyzeStemRelation(saju1, saju2),
           branchRelation: analyzeBranchRelation(saju1, saju2),
-          roleHarmony: memberRoles.get(members[i].id)!,
+          roleHarmony: memberRoles.get(members[i].id) ?? {
+            expectedRole: '알 수 없음',
+            actualEnergy: '알 수 없음',
+            alignment: 'moderate',
+            suggestions: []
+          },
           inheritedTraits: [],
           conflictPoints: [],
           blessings: [],

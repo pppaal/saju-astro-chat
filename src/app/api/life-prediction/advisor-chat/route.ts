@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getBackendUrl } from '@/lib/backend-url';
+import { logger } from '@/lib/logger';
 
 const BACKEND_URL = getBackendUrl();
 
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         if (counselingData.status === 'success') {
           // ✅ 백엔드 상담 엔진 사용 성공
-          console.log('[Advisor Chat] Using backend counseling engine');
+          logger.info('[Advisor Chat] Using backend counseling engine');
 
           return NextResponse.json({
             success: true,
@@ -186,14 +187,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
       }
     } catch (backendError) {
-      console.warn('[Advisor Chat] Backend counseling engine unavailable, falling back to GPT:', backendError);
+      logger.warn('[Advisor Chat] Backend counseling engine unavailable, falling back to GPT:', backendError);
       // Fallback continues below
     }
 
     // ============================================================
     // Fallback: 기존 GPT 방식 (백엔드 실패 시)
     // ============================================================
-    console.log('[Advisor Chat] Using fallback GPT mode');
+    logger.info('[Advisor Chat] Using fallback GPT mode');
 
     // RAG 컨텍스트 가져오기
     const { context: ragContext } = await fetchRagContext(
@@ -283,7 +284,7 @@ ${ragContext ? `[Knowledge]\n${ragContext.slice(0, 800)}` : ''}
     // OpenAI API 호출
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      console.error('[Advisor Chat] OPENAI_API_KEY is not set');
+      logger.error('[Advisor Chat] OPENAI_API_KEY is not set');
       return NextResponse.json(
         { success: false, error: 'API key not configured' },
         { status: 500 }
@@ -306,7 +307,7 @@ ${ragContext ? `[Knowledge]\n${ragContext.slice(0, 800)}` : ''}
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error('[Advisor Chat] OpenAI error:', response.status, errorBody);
+      logger.error('[Advisor Chat] OpenAI error:', { status: response.status, errorBody });
       throw new Error(`OpenAI API error: ${response.status} - ${errorBody}`);
     }
 
@@ -323,7 +324,7 @@ ${ragContext ? `[Knowledge]\n${ragContext.slice(0, 800)}` : ''}
     });
 
   } catch (error) {
-    console.error('[Advisor Chat] Error:', error);
+    logger.error('[Advisor Chat] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to generate response' },
       { status: 500 }

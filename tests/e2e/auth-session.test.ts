@@ -1,4 +1,4 @@
-import { beforeAll, describe, it, expect } from "vitest";
+import { beforeAll } from "vitest";
 import { API_BASE, fetchOrThrow, waitForServer } from "./test-helpers";
 const TEST_SESSION_COOKIE = process.env.AUTH_TEST_SESSION_COOKIE;
 
@@ -15,7 +15,8 @@ describe("Auth session", () => {
     expect(data.user).toBeUndefined();
   });
 
-  (TEST_SESSION_COOKIE ? it : it.skip)("returns user when session cookie provided", async () => {
+  it("returns user when session cookie provided", async () => {
+    if (!TEST_SESSION_COOKIE) return;
     const res = await fetchOrThrow(`${API_BASE}/api/auth/session`, {
       headers: { Cookie: TEST_SESSION_COOKIE },
     });

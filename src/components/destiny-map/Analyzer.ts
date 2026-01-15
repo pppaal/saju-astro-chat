@@ -1,4 +1,5 @@
 // src/components/destiny-map/Analyzer.ts
+import { logger } from "@/lib/logger";
 
 export type LangKey = "en" | "ko" | "ja" | "zh" | "es";
 
@@ -66,7 +67,7 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
     const activeTheme = themes[0] ?? "life";
 
     if (!input.latitude || !input.longitude) {
-      console.warn(
+      logger.warn(
         "[Analyzer] 좌표(latitude/longitude)가 비어 있습니다. 도시 선택이 완료되었는지 확인하세요."
       );
     }
@@ -113,7 +114,7 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
           : "Too many requests. Please wait 30 seconds and try again.";
       }
 
-      console.error("[Analyzer] API Error:", msg, "Response:", result);
+      logger.error("[Analyzer] API Error:", { message: msg, response: result });
       return {
         profile: input,
         interpretation: `⚠️ API 요청 실패: ${msg}`,
@@ -140,7 +141,7 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
     } as DestinyResult;
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("[Analyzer] Exception caught:", msg);
+    logger.error("[Analyzer] Exception caught:", msg);
     return {
       profile: input,
       interpretation: `⚠️ Analysis Error:\n${msg}`,

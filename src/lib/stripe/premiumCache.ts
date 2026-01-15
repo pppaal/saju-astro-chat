@@ -6,6 +6,7 @@
 
 import { cacheGet, cacheSet, makeCacheKey } from "@/lib/redis-cache";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from "@/lib/logger";
 
 // In-memory fallback cache
 const memoryCache = new Map<string, { value: boolean; expires: number }>();
@@ -33,7 +34,7 @@ export async function getCachedPremiumStatus(
       return cached.isPremium;
     }
   } catch (err) {
-    console.warn("[Premium Cache] Redis GET failed:", err);
+    logger.warn("[Premium Cache] Redis GET failed:", err);
   }
 
   // Fallback to memory cache
@@ -64,7 +65,7 @@ export async function setCachedPremiumStatus(
   try {
     await cacheSet(cacheKey, entry, PREMIUM_TTL_SECONDS);
   } catch (err) {
-    console.warn("[Premium Cache] Redis SET failed:", err);
+    logger.warn("[Premium Cache] Redis SET failed:", err);
   }
 
   // Also set in memory cache as fallback
@@ -102,7 +103,7 @@ export async function checkPremiumFromDatabase(
 
     return { isPremium, plan };
   } catch (err) {
-    console.error("[Premium Check] Database error:", err);
+    logger.error("[Premium Check] Database error:", err);
     return { isPremium: false, plan: "free" };
   }
 }
@@ -137,7 +138,7 @@ export async function checkPremiumFromSubscription(
 
     return isPremium;
   } catch (err) {
-    console.error("[Premium Check] Subscription check error:", err);
+    logger.error("[Premium Check] Subscription check error:", err);
     return false;
   }
 }
@@ -156,7 +157,7 @@ export async function invalidatePremiumCache(userId: string): Promise<void> {
   try {
     await cacheSet(cacheKey, { isPremium: false, checkedAt: 0 }, 1);
   } catch (err) {
-    console.warn("[Premium Cache] Redis invalidation failed:", err);
+    logger.warn("[Premium Cache] Redis invalidation failed:", err);
   }
 }
 

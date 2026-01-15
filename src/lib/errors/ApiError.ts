@@ -2,6 +2,7 @@
 // Standardized API error handling
 
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 /**
  * Standard error codes used across API routes
@@ -194,7 +195,7 @@ export function handleApiError(
 
   // Standard Error
   if (err instanceof Error) {
-    console.error("[API Error]:", err.message);
+    logger.error("[API Error]:", err.message);
     return new ApiError(
       ErrorCodes.INTERNAL_ERROR,
       500,
@@ -203,6 +204,6 @@ export function handleApiError(
   }
 
   // Unknown error
-  console.error("[API Error]:", err);
+  logger.error("[API Error]:", err);
   return new ApiError(ErrorCodes.INTERNAL_ERROR, 500).toResponse(lang);
 }

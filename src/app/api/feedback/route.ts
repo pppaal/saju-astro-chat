@@ -8,6 +8,7 @@ import { requirePublicToken } from "@/lib/auth/publicToken";
 import { guardText, cleanText } from "@/lib/textGuards";
 import { enforceBodySize } from "@/lib/http";
 import { apiClient } from "@/lib/api";
+import { logger } from '@/lib/logger';
 
 type FeedbackBody = {
   service?: string;
@@ -145,11 +146,11 @@ export async function POST(req: NextRequest) {
 
       if (result.ok && result.data) {
         rlhfResult = result.data;
-        console.warn("[Feedback] RLHF recorded:", rlhfResult.feedback_id);
+        logger.warn("[Feedback] RLHF recorded:", rlhfResult.feedback_id);
       }
     } catch (rlhfErr) {
       // RLHF is optional - don't fail the whole request
-      console.warn("[Feedback] RLHF backend not available:", rlhfErr);
+      logger.warn("[Feedback] RLHF backend not available:", rlhfErr);
     }
 
     const res = NextResponse.json({
@@ -162,7 +163,7 @@ export async function POST(req: NextRequest) {
     res.headers.set("Cache-Control", "no-store");
     return res;
   } catch (error: unknown) {
-    console.error("[Feedback API Error]:", error);
+    logger.error("[Feedback API Error]:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500, headers: limitHeaders }
@@ -224,7 +225,7 @@ export async function GET(req: NextRequest) {
       bySection: sectionStats,
     });
   } catch (error: unknown) {
-    console.error("[Feedback Stats Error]:", error);
+    logger.error("[Feedback Stats Error]:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500 }

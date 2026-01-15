@@ -3,7 +3,7 @@
 // 두 행성 사이의 중간점, 민감한 감응점
 
 import { Chart, PlanetBase, ZodiacKo, AspectType } from "./types";
-import { formatLongitude, normalize360, angleDiff } from "./utils";
+import { formatLongitude, normalize360, shortestAngle } from "./utils";
 
 export interface Midpoint {
   planet1: string;
@@ -131,7 +131,7 @@ export function findMidpointActivations(
         continue;
       }
 
-      const diff = angleDiff(point.longitude, mp.longitude);
+      const diff = shortestAngle(point.longitude, mp.longitude);
 
       // Conjunction (0도)
       if (diff <= orb) {
@@ -205,7 +205,7 @@ export function findCrossMidpointActivations(
 
   for (const mp of midpointsB) {
     for (const point of pointsA) {
-      const diff = angleDiff(point.longitude, mp.longitude);
+      const diff = shortestAngle(point.longitude, mp.longitude);
 
       if (diff <= orb) {
         activations.push({

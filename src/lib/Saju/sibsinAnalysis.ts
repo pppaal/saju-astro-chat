@@ -2,16 +2,8 @@
 // 십신(십성) 심층 분석 모듈 - 200% 급 상호작용 패턴 분석
 
 import { FiveElement } from './types';
-import { STEMS, JIJANGGAN } from './constants';
-
-// ============================================================
-// 헬퍼 함수
-// ============================================================
-
-function getStemElement(stem: string): FiveElement {
-  const found = STEMS.find(s => s.name === stem);
-  return found?.element as FiveElement || '토';
-}
+import { JIJANGGAN } from './constants';
+import { getStemElement } from './stemBranchUtils';
 
 // ============================================================
 // 타입 정의

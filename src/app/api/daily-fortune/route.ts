@@ -6,6 +6,7 @@ import { sendNotification } from "@/lib/notifications/sse";
 import { isValidDate, isValidTime } from "@/lib/validation";
 import { getNowInTimezone, formatDateString } from "@/lib/datetime";
 import { getDailyFortuneScore } from "@/lib/destiny-map/destinyCalendar";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
       message: sendEmail ? "Fortune sent to your email!" : "Fortune calculated!",
     });
   } catch (error: unknown) {
-    console.error("[Daily Fortune Error]:", error);
+    logger.error("[Daily Fortune Error]:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal Server Error" },
       { status: 500 }
@@ -171,8 +172,8 @@ async function sendFortuneEmail(email: string, fortune: FortuneData) {
       throw new Error("Email send failed");
     }
 
-    console.log("[Daily Fortune] Email sent to:", email);
+    logger.info("[Daily Fortune] Email sent to:", email);
   } catch (error) {
-    console.warn("[Daily Fortune] Email send failed:", error);
+    logger.warn("[Daily Fortune] Email send failed:", error);
   }
 }

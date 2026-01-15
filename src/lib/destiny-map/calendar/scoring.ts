@@ -27,6 +27,13 @@ import {
 } from './scoring-config';
 
 import type { ImportanceGrade } from './types';
+import { createScoreCalculator } from './scoring-factory';
+import {
+  DAEUN_CONFIG,
+  SEUN_CONFIG,
+  WOLUN_CONFIG,
+  ILJIN_CONFIG,
+} from './scoring-factory-config';
 
 // ============================================================
 // 입력 타입 정의
@@ -188,127 +195,17 @@ export interface ScoreResult {
 // 사주 점수 계산
 // ============================================================
 
-function calculateDaeunScore(input: SajuScoreInput['daeun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.daeun; // 8점 (개선)
-  const adjustments: number[] = [];
+// Factory-generated calculator (replaces original calculateDaeunScore)
+export const calculateDaeunScore = createScoreCalculator(DAEUN_CONFIG);
 
-  // 긍정 요소 - config 비율 사용
-  if (input.sibsin === 'inseong') adjustments.push(DAEUN_SCORES.positive.inseong);
-  else if (input.sibsin === 'jaeseong') adjustments.push(DAEUN_SCORES.positive.jaeseong);
-  else if (input.sibsin === 'bijeon') adjustments.push(DAEUN_SCORES.positive.bijeon);
-  else if (input.sibsin === 'siksang') adjustments.push(DAEUN_SCORES.positive.siksang);
-  else if (input.sibsin === 'gwansal') adjustments.push(DAEUN_SCORES.negative.gwansal);
+// Factory-generated calculator (replaces original calculateSeunScore)
+export const calculateSeunScore = createScoreCalculator(SEUN_CONFIG);
 
-  if (input.hasYukhap) adjustments.push(DAEUN_SCORES.positive.yukhap);
-  if (input.hasSamhapPositive) adjustments.push(DAEUN_SCORES.positive.samhapPositive);
+// Factory-generated calculator (replaces original calculateWolunScore)
+export const calculateWolunScore = createScoreCalculator(WOLUN_CONFIG);
 
-  // 부정 요소
-  if (input.hasChung) adjustments.push(DAEUN_SCORES.negative.chung);
-  if (input.hasGwansal) adjustments.push(DAEUN_SCORES.negative.gwansal);
-  if (input.hasSamhapNegative) adjustments.push(DAEUN_SCORES.negative.samhapNegative);
-
-  return calculateAdjustedScore(maxScore, adjustments, DAEUN_SCORES.maxRaw);
-}
-
-function calculateSeunScore(input: SajuScoreInput['seun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.seun; // 12점 (개선)
-  const adjustments: number[] = [];
-
-  // 긍정 요소 - config 비율 사용
-  if (input.sibsin === 'inseong') adjustments.push(SEUN_SCORES.positive.inseong);
-  else if (input.sibsin === 'jaeseong') adjustments.push(SEUN_SCORES.positive.jaeseong);
-  else if (input.sibsin === 'bijeon') adjustments.push(SEUN_SCORES.positive.bijeon);
-  else if (input.sibsin === 'siksang') adjustments.push(SEUN_SCORES.positive.siksang);
-  else if (input.sibsin === 'gwansal') adjustments.push(SEUN_SCORES.negative.gwansal);
-
-  if (input.hasYukhap) adjustments.push(SEUN_SCORES.positive.yukhap);
-  if (input.hasSamhapPositive) adjustments.push(SEUN_SCORES.positive.samhapPositive);
-
-  // 부정 요소
-  if (input.hasChung) adjustments.push(SEUN_SCORES.negative.chung);
-  if (input.hasGwansal) adjustments.push(SEUN_SCORES.negative.gwansal);
-  if (input.hasSamhapNegative) adjustments.push(SEUN_SCORES.negative.samhapNegative);
-
-  // 삼재 조건부 처리 (개선) - 매일 감점하지 않고 조건에 따라 처리
-  if (input.isSamjaeYear) {
-    if (input.hasGwiin) {
-      // 귀인이 있으면 삼재 상쇄
-      adjustments.push(SEUN_SCORES.samjae.withGwiin);
-    } else if (input.hasChung) {
-      // 삼재 + 충 = 더 나쁨
-      adjustments.push(SEUN_SCORES.samjae.withChung);
-    } else {
-      // 삼재만 있을 때 - 매우 약한 페널티
-      adjustments.push(SEUN_SCORES.samjae.base);
-    }
-  }
-
-  return calculateAdjustedScore(maxScore, adjustments, SEUN_SCORES.maxRaw);
-}
-
-function calculateWolunScore(input: SajuScoreInput['wolun']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.wolun; // 12점 (개선)
-  const adjustments: number[] = [];
-
-  // 긍정 요소 - config 비율 사용
-  if (input.sibsin === 'inseong') adjustments.push(WOLUN_SCORES.positive.inseong);
-  else if (input.sibsin === 'jaeseong') adjustments.push(WOLUN_SCORES.positive.jaeseong);
-  else if (input.sibsin === 'bijeon') adjustments.push(WOLUN_SCORES.positive.bijeon);
-  else if (input.sibsin === 'siksang') adjustments.push(WOLUN_SCORES.positive.siksang);
-  else if (input.sibsin === 'gwansal') adjustments.push(WOLUN_SCORES.negative.gwansal);
-
-  if (input.hasYukhap) adjustments.push(WOLUN_SCORES.positive.yukhap);
-  if (input.hasSamhapPositive) adjustments.push(WOLUN_SCORES.positive.samhapPositive);
-
-  // 부정 요소
-  if (input.hasChung) adjustments.push(WOLUN_SCORES.negative.chung);
-  if (input.hasGwansal) adjustments.push(WOLUN_SCORES.negative.gwansal);
-  if (input.hasSamhapNegative) adjustments.push(WOLUN_SCORES.negative.samhapNegative);
-
-  return calculateAdjustedScore(maxScore, adjustments, WOLUN_SCORES.maxRaw);
-}
-
-function calculateIljinScore(input: SajuScoreInput['iljin']): number {
-  const maxScore = CATEGORY_MAX_SCORES.saju.iljin; // 13점 (개선 - 20→13 하향)
-  const adjustments: number[] = [];
-
-  // 십신 점수 - config 비율 사용
-  const sipsinKey = input.sibsin as keyof typeof ILJIN_SCORES.sipsin;
-  if (sipsinKey && sipsinKey in ILJIN_SCORES.sipsin) {
-    adjustments.push(ILJIN_SCORES.sipsin[sipsinKey]);
-  }
-
-  // 지지 상호작용 - config 비율 사용 (완만하게 조정됨)
-  if (input.hasYukhap) adjustments.push(ILJIN_SCORES.branch.yukhap);
-  if (input.hasSamhapPositive) adjustments.push(ILJIN_SCORES.branch.samhapPositive);
-  if (input.hasSamhapNegative) adjustments.push(ILJIN_SCORES.branch.samhapNegative);
-  if (input.hasChung) adjustments.push(ILJIN_SCORES.branch.chung);
-  if (input.hasXing) adjustments.push(ILJIN_SCORES.branch.xing);
-  if (input.hasHai) adjustments.push(ILJIN_SCORES.branch.hai);
-
-  // 특수 길일 - config 비율 사용
-  if (input.hasCheoneulGwiin) adjustments.push(ILJIN_SCORES.special.cheoneulGwiin);
-  if (input.hasGeonrok) adjustments.push(ILJIN_SCORES.special.geonrok);
-  if (input.hasSonEomneun) adjustments.push(ILJIN_SCORES.special.sonEomneun);
-  if (input.hasYeokma) adjustments.push(ILJIN_SCORES.special.yeokma);
-  if (input.hasDohwa) adjustments.push(ILJIN_SCORES.special.dohwa);
-
-  // 추가 길신
-  if (input.hasTaegukGwiin) adjustments.push(ILJIN_SCORES.special.taegukGwiin);
-  if (input.hasCheondeokGwiin) adjustments.push(ILJIN_SCORES.special.cheondeokGwiin);
-  if (input.hasWoldeokGwiin) adjustments.push(ILJIN_SCORES.special.woldeokGwiin);
-  if (input.hasHwagae) adjustments.push(ILJIN_SCORES.special.hwagae);
-
-  // 추가 흉신 - config 비율 사용 (완화됨)
-  if (input.hasGongmang) adjustments.push(ILJIN_SCORES.negative.gongmang);
-  if (input.hasWonjin) adjustments.push(ILJIN_SCORES.negative.wonjin);
-  if (input.hasYangin) adjustments.push(ILJIN_SCORES.negative.yangin);
-  if (input.hasGoegang) adjustments.push(ILJIN_SCORES.negative.goegang);
-  if (input.hasBackho) adjustments.push(ILJIN_SCORES.negative.backho);
-  if (input.hasGuimungwan) adjustments.push(ILJIN_SCORES.negative.guimungwan);
-
-  return calculateAdjustedScore(maxScore, adjustments, ILJIN_SCORES.maxRaw);
-}
+// Factory-generated calculator (replaces original calculateIljinScore)
+export const calculateIljinScore = createScoreCalculator(ILJIN_CONFIG);
 
 function calculateYongsinScore(input: SajuScoreInput['yongsin']): number {
   const maxScore = CATEGORY_MAX_SCORES.saju.yongsin; // 5점

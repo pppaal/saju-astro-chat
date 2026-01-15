@@ -9,6 +9,7 @@ import {
   type FeatureType,
 } from "@/lib/credits/creditService";
 import { enforceBodySize } from "@/lib/http";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,7 @@ export async function GET() {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Credits GET error]", err);
+    logger.error("[Credits GET error]", err);
     return NextResponse.json(
       { error: message },
       { status: 500 }
@@ -138,7 +139,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Credits POST error]", err);
+    logger.error("[Credits POST error]", err);
     return NextResponse.json(
       { error: message },
       { status: 500 }

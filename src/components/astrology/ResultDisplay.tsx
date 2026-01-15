@@ -14,7 +14,7 @@ interface HouseData {
   sign?: string;
 }
 
-interface AspectData {
+export interface AspectData {
   planet1?: string;
   planet2?: string;
   type?: string;
@@ -60,7 +60,7 @@ interface AdvancedMeta {
   [key: string]: unknown;
 }
 
-interface AdvancedData {
+export interface AdvancedData {
   options?: AdvancedOptions;
   meta?: AdvancedMeta;
   houses?: HouseData[];

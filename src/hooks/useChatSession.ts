@@ -4,6 +4,10 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import {
+  generateSessionId,
+  generateMessageId as generateMessageIdFromUtils,
+} from "@/components/destiny-map/chat-utils";
 
 /**
  * Message type for chat sessions
@@ -32,20 +36,10 @@ export interface UseChatSessionOptions {
 }
 
 /**
- * Generate a unique session ID
- */
-function generateSessionId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-  return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-/**
- * Generate a unique message ID
+ * Generate a unique message ID (re-exported for convenience)
  */
 export function generateMessageId(): string {
-  return `msg-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  return generateMessageIdFromUtils("user");
 }
 
 /**

@@ -278,6 +278,7 @@ export {
 export type {
   AsteroidName,
   Asteroid,
+  AsteroidCollection,
   AsteroidInterpretation,
   ExtendedChartWithAsteroids,
 } from "./foundation/asteroids";

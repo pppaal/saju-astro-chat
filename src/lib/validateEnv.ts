@@ -3,6 +3,8 @@
  * Ensures required environment variables are present at runtime
  */
 
+import { logger } from "@/lib/logger";
+
 type EnvRequirement = boolean | (() => boolean);
 
 interface EnvConfig {
@@ -71,7 +73,7 @@ export function validateRequiredEnv(): void {
     if (isProduction) {
       throw new Error(errorMsg);
     } else {
-      console.warn(errorMsg);
+      logger.warn(errorMsg);
     }
   }
 }

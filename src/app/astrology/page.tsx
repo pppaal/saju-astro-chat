@@ -5,6 +5,8 @@
 import { useState, FormEvent, useMemo, useEffect } from 'react';
 import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
 import ResultDisplay from '@/components/astrology/ResultDisplay';
+import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService';
+import type { AspectData, AdvancedData } from '@/components/astrology/ResultDisplay';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -59,9 +61,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [chartData, setChartData] = useState<Record<string, unknown> | null>(null);
-  const [aspects, setAspects] = useState<Record<string, unknown>[] | null>(null);
-  const [advanced, setAdvanced] = useState<Record<string, unknown> | null>(null);
+  const [chartData, setChartData] = useState<NatalChartData | null>(null);
+  const [aspects, setAspects] = useState<AspectData[] | null>(null);
+  const [advanced, setAdvanced] = useState<AdvancedData | null>(null);
 
   const timezones = useMemo(() => getSupportedTimezones(), []);
   const [timeZone, setTimeZone] = useState<string>(() => {
@@ -171,7 +173,7 @@ export default function Home() {
       }
 
       if (result?.chartData && typeof result.chartData === 'object') {
-        setChartData(result.chartData as Record<string, unknown>);
+        setChartData(result.chartData as NatalChartData);
       }
       if (Array.isArray(result?.aspects)) {
         setAspects(result.aspects as Record<string, unknown>[]);
@@ -377,7 +379,7 @@ export default function Home() {
               isLoading={isLoading}
               error={error}
               interpretation={interpretation}
-              chartData={chartData as any}
+              chartData={chartData}
               aspects={aspects}
               advanced={advanced}
               isLoggedIn={isLoggedIn}

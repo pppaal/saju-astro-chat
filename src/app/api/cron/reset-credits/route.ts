@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resetAllExpiredCredits, expireBonusCredits } from "@/lib/credits/creditService";
+import { logger } from '@/lib/logger';
 
 // Vercel Cron 또는 외부 cron 서비스용 엔드포인트
 // 매일 자정에 실행 권장
@@ -13,7 +14,7 @@ function validateCronSecret(request: Request): boolean {
 
   // CRON_SECRET이 설정되지 않았으면 개발 환경으로 간주
   if (!cronSecret) {
-    console.warn("[Cron] CRON_SECRET not set - allowing request in dev mode");
+    logger.warn("[Cron] CRON_SECRET not set - allowing request in dev mode");
     return process.env.NODE_ENV === "development";
   }
 
@@ -30,14 +31,14 @@ export async function GET(request: Request) {
     }
 
     // 1. 만료된 보너스 크레딧 정리 (구매일로부터 3개월)
-    console.warn("[Cron] Starting bonus credit expiration...");
+    logger.warn("[Cron] Starting bonus credit expiration...");
     const bonusResult = await expireBonusCredits();
-    console.warn("[Cron] Bonus credit expiration completed:", bonusResult);
+    logger.warn("[Cron] Bonus credit expiration completed:", bonusResult);
 
     // 2. 월간 크레딧 리셋 (periodEnd 지난 유저)
-    console.warn("[Cron] Starting monthly credit reset...");
+    logger.warn("[Cron] Starting monthly credit reset...");
     const monthlyResult = await resetAllExpiredCredits();
-    console.warn("[Cron] Credit reset completed:", monthlyResult);
+    logger.warn("[Cron] Credit reset completed:", monthlyResult);
 
     return NextResponse.json({
       success: true,
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
       monthlyReset: monthlyResult,
     });
   } catch (err: unknown) {
-    console.error("[Cron Reset error]", err);
+    logger.error("[Cron Reset error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
       { status: 500 }

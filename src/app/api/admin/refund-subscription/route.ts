@@ -66,7 +66,7 @@ async function resolveInvoice(stripe: Stripe, subscription: Stripe.Subscription)
 }
 
 async function resolvePaymentIntent(stripe: Stripe, invoice: Stripe.Invoice) {
-  const paymentIntent = (invoice as any).payment_intent;
+  const paymentIntent = invoice.payment_intent;
   if (!paymentIntent) return null;
   if (typeof paymentIntent === "string") {
     return stripe.paymentIntents.retrieve(paymentIntent, {
@@ -186,7 +186,7 @@ export async function POST(req: Request) {
       canceled: canceled.status === "canceled",
     });
   } catch (err: unknown) {
-    logger.error("[AdminRefund] Failed:", err as any);
+    logger.error("[AdminRefund] Failed:", { error: err });
     captureServerError(err as Error, { route: "/api/admin/refund-subscription" });
     const message = err instanceof Error ? err.message : "Unknown error";
     return json({ error: message }, 500);

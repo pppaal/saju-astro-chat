@@ -2,7 +2,7 @@
 // 시너스트리 (두 차트 비교) 계산
 
 import { Chart, PlanetBase, AspectHit, AspectType, ZodiacKo } from "./types";
-import { angleDiff, normalize360 } from "./utils";
+import { shortestAngle, normalize360 } from "./utils";
 
 export interface SynastryInput {
   chartA: Chart;
@@ -59,7 +59,7 @@ function findAspectBetween(
   pB: PlanetBase,
   aspects: AspectType[] = ["conjunction", "sextile", "square", "trine", "opposition"]
 ): AspectHit | null {
-  const diff = angleDiff(pA.longitude, pB.longitude);
+  const diff = shortestAngle(pA.longitude, pB.longitude);
 
   for (const aspectType of aspects) {
     const targetAngle = ASPECT_ANGLES[aspectType];

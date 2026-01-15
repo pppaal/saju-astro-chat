@@ -5,6 +5,7 @@ import { apiGuard } from "@/lib/apiGuard";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -150,6 +151,10 @@ export async function POST(request: Request) {
     const backendUrl = pickBackendUrl();
     const apiKey = process.env.ADMIN_API_TOKEN || "";
 
+    if (!apiKey) {
+      logger.warn("[saju chat-stream] ADMIN_API_TOKEN is not set - backend auth may fail");
+    }
+
     // Get session_id from header for RAG cache
     const sessionId = request.headers.get("x-session-id") || undefined;
 
@@ -219,7 +224,7 @@ export async function POST(request: Request) {
             controller.enqueue(encoder.encode(masked));
             read();
           }).catch((err) => {
-            console.error("[saju chat-stream sanitize error]", err);
+            logger.error("[saju chat-stream sanitize error]", err);
             controller.close();
           });
         };
@@ -237,7 +242,7 @@ export async function POST(request: Request) {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
-    console.error("[Saju Chat-Stream API error]", err);
+    logger.error("[Saju Chat-Stream API error]", err);
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

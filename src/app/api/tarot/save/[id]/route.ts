@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +57,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("[Tarot Get Error]:", error);
+    logger.error("[Tarot Get Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 }

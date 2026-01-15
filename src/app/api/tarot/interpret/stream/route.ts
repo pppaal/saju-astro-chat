@@ -8,6 +8,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import { logger } from '@/lib/logger';
 
 interface CardInput {
   name: string;
@@ -98,7 +99,7 @@ export async function POST(req: Request) {
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error("[TarotInterpretStream] Backend error:", backendResponse.status, errorText);
+      logger.error("[TarotInterpretStream] Backend error:", { status: backendResponse.status, errorText });
       return NextResponse.json(
         { error: "Backend error", detail: errorText },
         { status: backendResponse.status, headers: limit.headers }
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
             controller.enqueue(encoder.encode(text));
           }
         } catch (error) {
-          console.error("[TarotInterpretStream] Stream error:", error);
+          logger.error("[TarotInterpretStream] Stream error:", error);
         } finally {
           controller.close();
         }
@@ -152,7 +153,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err: unknown) {
-    console.error("Tarot interpret stream error:", err);
+    logger.error("Tarot interpret stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

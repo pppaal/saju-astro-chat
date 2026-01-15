@@ -157,7 +157,7 @@ export interface CardMeaning {
 export interface Card {
   id: number;
   name: string;
-  nameKo?: string;
+  nameKo: string;  // Required to match tarot-data.ts Card interface
   arcana: Arcana;
   suit: Suit;
   image: string;

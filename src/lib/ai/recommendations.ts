@@ -3,6 +3,8 @@
  * 사주 + 점성학 + 타로 기반 종합 라이프 추천
  */
 
+import { logger } from "@/lib/logger";
+
 export interface UserProfile {
   name: string;
   birthDate: string; // YYYY-MM-DD
@@ -213,7 +215,7 @@ export async function generateLifeRecommendations(
     const data = await response.json();
     return data.recommendations;
   } catch (error) {
-    console.error("Error generating recommendations:", error);
+    logger.error("Error generating recommendations:", error);
 
     // Fallback: Generate mock recommendations
     return generateMockRecommendations(profile);

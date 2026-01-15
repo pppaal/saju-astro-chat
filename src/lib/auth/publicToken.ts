@@ -1,4 +1,5 @@
 import { recordCounter } from "@/lib/metrics";
+import { logger } from "@/lib/logger";
 
 export type TokenValidationResult = { valid: true } | { valid: false; reason: string };
 
@@ -7,7 +8,7 @@ export function requirePublicToken(req: Request): TokenValidationResult {
 
   if (!expected) {
     if (process.env.NODE_ENV === "production") {
-      console.error("[SECURITY] PUBLIC_API_TOKEN not configured in production");
+      logger.error("[SECURITY] PUBLIC_API_TOKEN not configured in production");
       recordCounter("api.auth.misconfig", 1, { env: "prod" });
       return { valid: false, reason: "Token not configured" };
     }

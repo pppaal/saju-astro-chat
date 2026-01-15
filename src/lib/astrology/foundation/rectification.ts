@@ -441,8 +441,9 @@ export async function performRectification(
   // 2. ASC 추정값이 있으면 필터링
   let filteredCandidates = candidates;
   if (options?.estimatedAscSigns && options.estimatedAscSigns.length > 0) {
+    const estimatedSigns = options.estimatedAscSigns;
     filteredCandidates = candidates.filter(c =>
-      options.estimatedAscSigns!.includes(c.chart.ascendant.sign as ZodiacKo)
+      estimatedSigns.includes(c.chart.ascendant.sign as ZodiacKo)
     );
   }
 

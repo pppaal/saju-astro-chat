@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
+import { Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 interface SaveConsultationParams {
   userId: string;
@@ -35,8 +37,8 @@ export async function saveConsultation(params: SaveConsultationParams) {
         theme,
         summary,
         fullReport,
-        jungQuotes: jungQuotes ? jungQuotes as any : null,
-        signals: signals ? signals as any : null,
+        jungQuotes: jungQuotes ? (jungQuotes as Prisma.InputJsonValue) : Prisma.JsonNull,
+        signals: signals ? (signals as Prisma.InputJsonValue) : Prisma.JsonNull,
         userQuestion: userQuestion || null,
         locale,
       },
@@ -47,7 +49,7 @@ export async function saveConsultation(params: SaveConsultationParams) {
 
     return { success: true, consultationId: consultation.id };
   } catch (err) {
-    console.error("[saveConsultation error]", err);
+    logger.error("[saveConsultation error]", err);
     // 저장 실패해도 에러를 throw하지 않음 (메인 기능에 영향 주지 않음)
     return { success: false, error: err };
   }
@@ -96,7 +98,7 @@ async function updatePersonaMemory(userId: string, theme: string) {
       });
     }
   } catch (err) {
-    console.error("[updatePersonaMemory error]", err);
+    logger.error("[updatePersonaMemory error]", err);
   }
 }
 
@@ -110,7 +112,7 @@ export async function getPersonaMemory(userId: string) {
     });
     return memory;
   } catch (err) {
-    console.error("[getPersonaMemory error]", err);
+    logger.error("[getPersonaMemory error]", err);
     return null;
   }
 }

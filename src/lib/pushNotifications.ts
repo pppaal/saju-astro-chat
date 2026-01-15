@@ -3,6 +3,8 @@
  * Handles browser push notification subscriptions and permissions
  */
 
+import { logger } from "@/lib/logger";
+
 // Check if push notifications are supported
 export function isPushNotificationSupported(): boolean {
   return (
@@ -24,16 +26,16 @@ export function getNotificationPermission(): NotificationPermission {
 // Request notification permission
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!isPushNotificationSupported()) {
-    console.warn("Push notifications are not supported");
+    logger.warn("Push notifications are not supported");
     return "denied";
   }
 
   try {
     const permission = await Notification.requestPermission();
-    console.warn("Notification permission:", permission);
+    logger.debug("Notification permission:", permission);
     return permission;
   } catch (error) {
-    console.error("Error requesting notification permission:", error);
+    logger.error("Error requesting notification permission:", error);
     return "denied";
   }
 }
@@ -41,7 +43,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 // Register service worker
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!isPushNotificationSupported()) {
-    console.warn("Service Workers are not supported");
+    logger.warn("Service Workers are not supported");
     return null;
   }
 
@@ -50,14 +52,14 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       scope: "/",
     });
 
-    console.warn("Service Worker registered:", registration);
+    logger.debug("Service Worker registered:", registration);
 
     // Wait for the service worker to be ready
     await navigator.serviceWorker.ready;
 
     return registration;
   } catch (error) {
-    console.error("Service Worker registration failed:", error);
+    logger.error("Service Worker registration failed:", error);
     return null;
   }
 }
@@ -106,14 +108,14 @@ export async function subscribeToPushNotifications(
         applicationServerKey: convertedVapidKey as BufferSource,
       });
 
-      console.warn("Push subscription created:", subscription);
+      logger.debug("Push subscription created:", subscription);
     } else {
-      console.warn("Already subscribed to push notifications");
+      logger.debug("Already subscribed to push notifications");
     }
 
     return subscription;
   } catch (error) {
-    console.error("Error subscribing to push notifications:", error);
+    logger.error("Error subscribing to push notifications:", error);
     return null;
   }
 }
@@ -126,13 +128,13 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
 
     if (subscription) {
       const successful = await subscription.unsubscribe();
-      console.warn("Push unsubscribe successful:", successful);
+      logger.debug("Push unsubscribe successful:", successful);
       return successful;
     }
 
     return true;
   } catch (error) {
-    console.error("Error unsubscribing from push notifications:", error);
+    logger.error("Error unsubscribing from push notifications:", error);
     return false;
   }
 }
@@ -144,7 +146,7 @@ export async function getPushSubscription(): Promise<PushSubscription | null> {
     const subscription = await registration.pushManager.getSubscription();
     return subscription;
   } catch (error) {
-    console.error("Error getting push subscription:", error);
+    logger.error("Error getting push subscription:", error);
     return null;
   }
 }
@@ -166,10 +168,10 @@ export async function sendSubscriptionToServer(
       throw new Error("Failed to send subscription to server");
     }
 
-    console.warn("Subscription sent to server");
+    logger.debug("Subscription sent to server");
     return true;
   } catch (error) {
-    console.error("Error sending subscription to server:", error);
+    logger.error("Error sending subscription to server:", error);
     return false;
   }
 }
@@ -180,7 +182,7 @@ export async function showLocalNotification(
   options?: NotificationOptions
 ): Promise<void> {
   if (!isPushNotificationSupported()) {
-    console.warn("Notifications are not supported");
+    logger.warn("Notifications are not supported");
     return;
   }
 
@@ -204,7 +206,7 @@ export async function initializePushNotifications(
   vapidPublicKey: string
 ): Promise<boolean> {
   if (!isPushNotificationSupported()) {
-    console.warn("Push notifications are not supported");
+    logger.warn("Push notifications are not supported");
     return false;
   }
 
@@ -218,14 +220,14 @@ export async function initializePushNotifications(
     // Check current permission
     const permission = getNotificationPermission();
     if (permission === "denied") {
-      console.warn("Notification permission denied");
+      logger.warn("Notification permission denied");
       return false;
     }
 
     // If permission is default, don't automatically request it
     // Let the user trigger it via a button
     if (permission === "default") {
-      console.warn("Notification permission not yet requested");
+      logger.debug("Notification permission not yet requested");
       return false;
     }
 
@@ -240,7 +242,7 @@ export async function initializePushNotifications(
 
     return false;
   } catch (error) {
-    console.error("Error initializing push notifications:", error);
+    logger.error("Error initializing push notifications:", error);
     return false;
   }
 }

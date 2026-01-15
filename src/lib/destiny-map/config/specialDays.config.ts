@@ -74,6 +74,7 @@ export function getSipsin(dayMasterStem: string, targetStem: string): string {
 
 // 손없는 날 (이사/결혼/개업에 좋은 날)
 export function isSonEomneunDay(lunarDay: number): boolean {
+  if (!Number.isFinite(lunarDay) || lunarDay < 1 || lunarDay > 30) return false;
   const dayInCycle = lunarDay % 10;
   return dayInCycle === 9 || dayInCycle === 0; // 9, 10, 19, 20, 29, 30일
 }

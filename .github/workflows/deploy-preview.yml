@@ -1,0 +1,190 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    name: Deploy Preview Environment
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    environment:
+      name: preview-pr-${{ github.event.pull_request.number }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for preview
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_VERSION: pr-${{ github.event.pull_request.number }}
+
+      - name: Deploy to Vercel Preview
+        id: deploy
+        run: |
+          npm install -g vercel@latest
+
+          # Deploy preview
+          VERCEL_URL=$(vercel deploy \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --yes \
+            --meta githubCommitRef=${{ github.head_ref }} \
+            --meta githubCommitSha=${{ github.event.pull_request.head.sha }} \
+            --meta githubDeployment=preview)
+
+          echo "url=$VERCEL_URL" >> $GITHUB_OUTPUT
+          echo "Preview deployed to: $VERCEL_URL"
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+
+            const comment = `## 🚀 Preview Deployment
+
+            Your preview deployment is ready!
+
+            | Name | Link |
+            |------|------|
+            | 🔍 Preview | [Visit Preview](${url}) |
+            | 📝 Commit | ${context.payload.pull_request.head.sha.substring(0, 7)} |
+
+            ---
+
+            ### Quick Links
+            - 📱 [Mobile View](${url}?mobile=true)
+            - 🧪 [Test Features](${url}/test)
+
+            <sub>Updated for ${context.payload.pull_request.head.sha.substring(0, 7)}</sub>
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('🚀 Preview Deployment')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                comment_id: botComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+      - name: Run preview smoke tests
+        run: |
+          URL="${{ steps.deploy.outputs.url }}"
+
+          # Wait for deployment
+          sleep 15
+
+          # Basic health check
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          if [ $STATUS -eq 200 ]; then
+            echo "✅ Preview is accessible"
+          else
+            echo "⚠️ Preview returned status: $STATUS"
+          fi
+
+          # Check API health
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/api/health" || echo "000")
+          echo "API Health Status: $API_STATUS"
+
+      - name: Update deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const state = '${{ job.status }}' === 'success' ? 'success' : 'failure';
+            const description = state === 'success'
+              ? 'Preview deployment successful'
+              : 'Preview deployment failed';
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.pull_request.head.sha,
+              state: state,
+              target_url: '${{ steps.deploy.outputs.url }}',
+              description: description,
+              context: 'preview-deployment'
+            });
+
+  # Cleanup old preview deployments
+  cleanup-old-previews:
+    name: Cleanup Old Previews
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+
+    steps:
+      - name: Remove preview environment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const envName = `preview-pr-${context.issue.number}`;
+
+            try {
+              const { data: environments } = await github.rest.repos.getAllEnvironments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+
+              const env = environments.environments.find(e => e.name === envName);
+
+              if (env) {
+                await github.rest.repos.deleteAnEnvironment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  environment_name: envName
+                });
+                console.log(`Deleted environment: ${envName}`);
+              }
+            } catch (error) {
+              console.log(`Could not delete environment: ${error.message}`);
+            }
+
+      - name: Comment cleanup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🧹 Preview environment cleaned up after PR closure.'
+            });
