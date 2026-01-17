@@ -32,8 +32,8 @@ export * from './constants';
 // Utilities (base utilities - getSipsin, isCheoneulGwiin, etc.)
 export * from './utils';
 
-// Grading
-export * from './grading';
+// Grading (optimized with memoization)
+export * from './grading-optimized';
 
 // Scoring System (New)
 export * from './scoring-config';
@@ -126,3 +126,33 @@ export {
   generateAlerts,
   createDefaultFortuneResult,
 } from './daily-fortune';
+
+// Special Days Analysis (12운성, 세운/월운 분석, 시간대 추천 등)
+export {
+  // Types
+  type TwelveStarSchool,
+  type TwelveFortuneStarInfo,
+  type TwelveStarAnalysis,
+  type FortuneFlowAnalysis,
+  type HourlyRecommendation,
+  type LunarAnalysis,
+  type ElementMappingDetail,
+  type YongsinRecommendation,
+  // 12운성 Functions
+  setTwelveStarSchool,
+  getTwelveStarSchool,
+  analyzeTwelveFortuneStar,
+  analyzeDayTwelveStars,
+  // 세운/월운 분석
+  analyzeFortuneFlow,
+  // 시간대 추천
+  getHourlyRecommendation,
+  // 음력 분석
+  analyzeLunarDate,
+  // 사주-점성술 매핑
+  analyzeElementCompatibility,
+  ELEMENT_ASTRO_MAPPING,
+  // 용신 추천
+  getYongsinRecommendations,
+  ELEMENT_RECOMMENDATIONS,
+} from './specialDays-analysis';

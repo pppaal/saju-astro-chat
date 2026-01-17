@@ -7,12 +7,15 @@ import { sanitizeLocaleText } from "@/lib/destiny-map/sanitize";
 import { maskTextWithName } from "@/lib/security";
 import { enforceBodySize } from "@/lib/http";
 import { calculateSajuData } from "@/lib/Saju/saju";
-import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart, type Chart, type PlanetBase } from "@/lib/astrology";
+import {
+  calculateNatalChart,
+  calculateTransitChart,
+  findMajorTransits,
+  toChart,
+} from "@/lib/astrology";
 import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
-import { buildFewShotPrompt } from "@/lib/destiny-map/counselor-examples";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
-import { prisma } from "@/lib/db/prisma";
 import {
   isValidDate,
   isValidTime,
@@ -29,6 +32,11 @@ import {
 import {
   generateWeeklyPrediction,
   generateUltraPrecisionPromptContext,
+  analyzeGongmang,
+  analyzeShinsal,
+  analyzeEnergyFlow,
+  generateHourlyAdvice,
+  calculateDailyPillar,
 } from "@/lib/prediction/ultraPrecisionEngine";
 import {
   findBestDates,
@@ -52,187 +60,33 @@ import {
   analyzeDaeunTransitSync,
   type DaeunInfo,
 } from "@/lib/prediction/daeunTransitSync";
-import {
-  analyzeGongmang,
-  analyzeShinsal,
-  analyzeEnergyFlow,
-  generateHourlyAdvice,
-  calculateDailyPillar,
-} from "@/lib/prediction/ultraPrecisionEngine";
-// TIER 3: 고급 점성술 + 사주 패턴 엔진
-// Note: progressions are used for advanced analysis - keeping import for future integration
-import {
-  getMoonPhase,
-  getMoonPhaseName,
-  checkVoidOfCourse,
-  getRetrogradePlanets,
-} from "@/lib/astrology/foundation/electional";
-import {
-  analyzePatterns,
-  getPatternStatistics,
-} from "@/lib/Saju/patternMatcher";
-// TIER 4: 추가 고급 엔진 (harmonics, eclipses, fixedStars)
-import {
-  generateHarmonicProfile,
-  analyzeAgeHarmonic,
-  getHarmonicMeaning,
-} from "@/lib/astrology/foundation/harmonics";
-import {
-  findEclipseImpact,
-  getUpcomingEclipses,
-  checkEclipseSensitivity,
-} from "@/lib/astrology/foundation/eclipses";
-import {
-  findFixedStarConjunctions,
-} from "@/lib/astrology/foundation/fixedStars";
 import { logger } from '@/lib/logger';
+import { toSajuDataStructure } from '@/lib/destiny-map/type-guards';
+
+// Local modules (extracted from this file)
+import {
+  type ChatMessage,
+  type SajuDataStructure,
+  type AstroDataStructure,
+  ALLOWED_LANG,
+  ALLOWED_GENDER,
+  MAX_MESSAGES,
+  clampMessages,
+  counselorSystemPrompt,
+  loadUserProfile,
+  loadPersonaMemory,
+} from "./lib";
+import {
+  generateTier3Analysis,
+  generateTier4Analysis,
+} from "./analysis";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
-
-const ALLOWED_LANG = new Set(["ko", "en"]);
+// Constants that are only used locally in this file
 const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
-const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
-const MAX_MESSAGES = 10;
-
-// Type definitions for Saju data structure
-interface SajuPillar {
-  heavenlyStem?: { name?: string };
-  earthlyBranch?: { name?: string };
-}
-
-interface SajuUnse {
-  daeun?: unknown[];
-}
-
-interface SajuAdvancedAnalysis {
-  yongsin?: {
-    primary?: FiveElement;
-    avoid?: FiveElement;
-  };
-}
-
-interface SajuDayMaster {
-  name?: string;
-  heavenlyStem?: string;
-  element?: FiveElement;
-  yin_yang?: string;
-}
-
-interface SajuDataStructure {
-  dayMaster?: SajuDayMaster;
-  pillars?: {
-    year?: SajuPillar;
-    month?: SajuPillar;
-    day?: SajuPillar;
-    time?: SajuPillar;
-  };
-  unse?: SajuUnse;
-  advancedAnalysis?: SajuAdvancedAnalysis;
-  daeun?: { cycles?: unknown[] };
-  daeunCycles?: unknown[];
-  yongsin?: { elements?: unknown } | unknown;
-  kisin?: { elements?: unknown } | unknown;
-  [key: string]: unknown;
-}
-
-// Astro data structure with planets (using unknown for flexibility with different planet types)
-interface AstroDataStructure {
-  sun?: unknown;
-  moon?: unknown;
-  mercury?: unknown;
-  venus?: unknown;
-  mars?: unknown;
-  jupiter?: unknown;
-  saturn?: unknown;
-  ascendant?: unknown;
-  planets?: unknown[];
-  extraPoints?: {
-    vertex?: unknown;
-    partOfFortune?: unknown;
-  };
-  transits?: unknown[];
-  [key: string]: unknown;
-}
-
-function clampMessages(messages: ChatMessage[], max = 6) {
-  return messages.slice(-max);
-}
-
-function counselorSystemPrompt(lang: string) {
-  return lang === "ko"
-    ? [
-        "사주+점성 통합 상담사. 친구한테 카페에서 얘기하듯 자연스럽게 말해.",
-        "",
-        "🚫 절대 금지:",
-        "- '일간이 X입니다' '태양이 Y자리입니다' 나열식 설명",
-        "- **볼드체**, 번호 매기기, 목록 나열",
-        "- '안녕하세요' 인사",
-        "- '조심하세요' '좋아질 거예요' 뜬구름 말",
-        "",
-        "✅ 올바른 스타일:",
-        "- 데이터를 문장 속에 자연스럽게 녹여서",
-        "- 실생활/실제 패턴과 연결해서 설명",
-        "- 강점도 말하고 약점/주의점도 솔직하게",
-        "",
-        "【예시 - 나는 어떤 사람이야?】",
-        "❌ 나쁜 답: '당신의 일간은 신금입니다. 태양은 물병자리입니다. 1. 독립적 2. 분석적...'",
-        "",
-        "✅ 좋은 답:",
-        "'이 차트 기준으로 보면, 머리는 차갑게(분석/전략), 돈과 기회는 빠르게(사업감각), 관계는 자존심 때문에 한 번씩 뜨겁게 가는 타입이에요.",
-        "",
-        "물병자리 ASC + 태양 1하우스라 독립심 강하고 내 방식이 확실해요. 말이 빠르고 논리적이라 쿨하게 보이는데, 사실 사람 관찰 많이 하는 편.",
-        "",
-        "사주로 보면 일간 신금 + 편재 강해서 돈의 흐름/시장 감각이 있어요. 기회 포착 → 구조 만들기 → 굴리기에 재능. 다만 화(火)가 약해서 추진력의 연료가 들쭉날쭉할 수 있어요.",
-        "",
-        "관계에서는 화성 사자 7하우스 역행이라 자존심·인정 욕구가 버튼. 평소 참다가 쌓이면 터지는 패턴 주의. 작은 불만을 예의 있게 자주 말하는 게 오히려 유리해요.'",
-        "",
-        "【예시 - 피해야 할 건?】",
-        "❌ 나쁜 답: '조심하세요. 힘든 시기가 있을 수 있어요.'",
-        "✅ 좋은 답: '3월은 기신인 화(火) 에너지가 강해져 충동적 결정 피하세요. 특히 3/15-22 수성역행 기간 계약은 금물. 5월 자-오(子-午) 충 시기에 대인관계 갈등 주의.'",
-        "",
-        "【예시 - 연애운?】",
-        "❌ 나쁜 답: '좋은 인연이 올 거예요.'",
-        "✅ 좋은 답: '도화살이 있어 이성 인기는 있는데, 현재 대운에서 편관이 강해 불안정한 만남이 많았을 수 있어요. 4-5월 금성이 7하우스 통과하며 진지한 만남 가능성.'",
-        "",
-        "길이: 500-800자, 자연스러운 구어체",
-      ].join("\n")
-    : [
-        "Saju+Astrology counselor. Talk naturally like chatting with a friend at a cafe.",
-        "",
-        "🚫 FORBIDDEN:",
-        "- 'Your day master is X' 'Your Sun is in Y' list-style explanations",
-        "- **bold**, numbered lists, bullet points",
-        "- 'Hello' greetings",
-        "- 'Be careful' 'It will get better' vague statements",
-        "",
-        "✅ CORRECT STYLE:",
-        "- Weave data naturally into sentences",
-        "- Connect to real life patterns and situations",
-        "- Be honest about both strengths AND weaknesses",
-        "",
-        "【Example - Who am I?】",
-        "❌ Bad: 'Your day master is Xin metal. Your Sun is Aquarius. 1. Independent 2. Analytical...'",
-        "",
-        "✅ Good:",
-        "'Based on this chart, you're the type who thinks coolly (analysis/strategy), moves fast on money/opportunities (business sense), but relationships can get heated over pride.",
-        "",
-        "Aquarius ASC + Sun in 1st house means strong independence and 'my way' is clear. You seem cool and logical, but actually observe people a lot.",
-        "",
-        "In Saju, Xin metal day master + strong Pyeonjae means you have good market sense. Talented at spotting opportunities → building structures → running them. But Fire is weak, so momentum can be inconsistent.",
-        "",
-        "In relationships, Mars Leo 7th house retrograde means pride and recognition needs are triggers. Watch out for bottling up then exploding. Better to voice small concerns politely and often.'",
-        "",
-        "【Example - What to avoid?】",
-        "❌ Bad: 'Be careful. There may be difficult times.'",
-        "✅ Good: 'March has strong Fire (kisin) energy - avoid impulsive decisions. Especially 3/15-22 Mercury retrograde, no contracts. May has Ja-O clash, watch for relationship conflicts.'",
-        "",
-        "Length: 500-800 words, natural conversational tone",
-      ].join("\n");
-}
 
 export async function POST(request: Request) {
   try {
@@ -294,53 +148,12 @@ export async function POST(request: Request) {
     let effectiveGender = gender;
 
     if (userId && (!birthDate || !birthTime || !isValidLatitude(latitude) || !isValidLongitude(longitude))) {
-      try {
-        const userProfile = await prisma.user.findUnique({
-          where: { id: userId },
-          select: {
-            birthDate: true,
-            birthTime: true,
-            gender: true,
-            birthCity: true,
-            personaMemory: {
-              select: {
-                sajuProfile: true,
-                birthChart: true,
-              }
-            }
-          }
-        });
-
-        if (userProfile) {
-          // Use cached saju/astro from PersonaMemory if available
-          const cachedSaju = userProfile.personaMemory?.sajuProfile;
-          const cachedAstro = userProfile.personaMemory?.birthChart;
-
-          if (cachedSaju && !saju) {
-            saju = cachedSaju as SajuDataStructure;
-            logger.warn("[chat-stream] Using cached saju from PersonaMemory");
-          }
-          if (cachedAstro && !astro) {
-            astro = cachedAstro as Chart;
-            logger.warn("[chat-stream] Using cached astro from PersonaMemory");
-          }
-
-          // Fill in missing birth info from user profile
-          if (!effectiveBirthDate && userProfile.birthDate) {
-            effectiveBirthDate = userProfile.birthDate;
-            logger.warn("[chat-stream] Auto-loaded birthDate from profile");
-          }
-          if (!effectiveBirthTime && userProfile.birthTime) {
-            effectiveBirthTime = userProfile.birthTime;
-            logger.warn("[chat-stream] Auto-loaded birthTime from profile");
-          }
-          if (userProfile.gender) {
-            effectiveGender = userProfile.gender === "M" ? "male" : userProfile.gender === "F" ? "female" : effectiveGender;
-          }
-        }
-      } catch (e) {
-        logger.warn("[chat-stream] Failed to auto-load birth profile:", e);
-      }
+      const profileResult = await loadUserProfile(userId, birthDate, birthTime, latitude, longitude, saju, astro);
+      if (profileResult.saju) saju = profileResult.saju;
+      if (profileResult.astro) astro = profileResult.astro as AstroDataStructure;
+      if (profileResult.birthDate) effectiveBirthDate = profileResult.birthDate;
+      if (profileResult.birthTime) effectiveBirthTime = profileResult.birthTime;
+      if (profileResult.gender) effectiveGender = profileResult.gender;
     }
 
     if (!effectiveBirthDate || !effectiveBirthTime || !isValidLatitude(effectiveLatitude) || !isValidLongitude(effectiveLongitude)) {
@@ -387,115 +200,21 @@ export async function POST(request: Request) {
     let recentSessionSummaries = "";
 
     if (userId) {
-      try {
-        // 1. PersonaMemory 로드 (핵심 인사이트, 반복 이슈, 감정 톤)
-        const personaMemory = await prisma.personaMemory.findUnique({
-          where: { userId },
-          select: {
-            sessionCount: true,
-            dominantThemes: true,
-            keyInsights: true,
-            emotionalTone: true,
-            growthAreas: true,
-            lastTopics: true,
-            recurringIssues: true,
-          },
-        });
-
-        if (personaMemory && personaMemory.sessionCount > 0) {
-          const parts: string[] = [];
-
-          // 세션 카운트
-          parts.push(lang === "ko"
-            ? `상담 횟수: ${personaMemory.sessionCount}회`
-            : `Session count: ${personaMemory.sessionCount}`);
-
-          // 최근 주제
-          const lastTopics = personaMemory.lastTopics as string[] | null;
-          if (lastTopics?.length) {
-            parts.push(lang === "ko"
-              ? `최근 관심사: ${lastTopics.slice(0, 3).join(", ")}`
-              : `Recent interests: ${lastTopics.slice(0, 3).join(", ")}`);
-          }
-
-          // 감정 톤
-          if (personaMemory.emotionalTone) {
-            parts.push(lang === "ko"
-              ? `감정 상태: ${personaMemory.emotionalTone}`
-              : `Emotional state: ${personaMemory.emotionalTone}`);
-          }
-
-          // 핵심 인사이트
-          const insights = personaMemory.keyInsights as string[] | null;
-          if (insights?.length) {
-            parts.push(lang === "ko"
-              ? `핵심 인사이트: ${insights.slice(0, 2).join("; ")}`
-              : `Key insights: ${insights.slice(0, 2).join("; ")}`);
-          }
-
-          // 반복 이슈
-          const issues = personaMemory.recurringIssues as string[] | null;
-          if (issues?.length) {
-            parts.push(lang === "ko"
-              ? `반복 이슈: ${issues.slice(0, 2).join(", ")}`
-              : `Recurring issues: ${issues.slice(0, 2).join(", ")}`);
-          }
-
-          // 성장 영역
-          const growth = personaMemory.growthAreas as string[] | null;
-          if (growth?.length) {
-            parts.push(lang === "ko"
-              ? `성장 영역: ${growth.slice(0, 2).join(", ")}`
-              : `Growth areas: ${growth.slice(0, 2).join(", ")}`);
-          }
-
-          if (parts.length > 0) {
-            personaMemoryContext = parts.join(" | ");
-            logger.warn(`[chat-stream] PersonaMemory loaded: ${personaMemory.sessionCount} sessions`);
-          }
-        }
-
-        // 2. 최근 세션 요약 로드 (이전 대화 컨텍스트)
-        const recentSessions = await prisma.counselorChatSession.findMany({
-          where: {
-            userId,
-            theme: theme || undefined,
-          },
-          orderBy: { updatedAt: "desc" },
-          take: 3,
-          select: {
-            summary: true,
-            keyTopics: true,
-            updatedAt: true,
-          },
-        });
-
-        const sessionSummaries = recentSessions
-          .filter(s => s.summary)
-          .map(s => {
-            const date = new Date(s.updatedAt);
-            const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-            const timeLabel = daysAgo === 0 ? (lang === "ko" ? "오늘" : "today")
-              : daysAgo === 1 ? (lang === "ko" ? "어제" : "yesterday")
-              : (lang === "ko" ? `${daysAgo}일 전` : `${daysAgo} days ago`);
-            return `[${timeLabel}] ${s.summary}`;
-          });
-
-        if (sessionSummaries.length > 0) {
-          recentSessionSummaries = sessionSummaries.join("\n");
-          logger.warn(`[chat-stream] Loaded ${sessionSummaries.length} recent session summaries`);
-        }
-      } catch (e) {
-        logger.warn("[chat-stream] Failed to load persona memory:", e);
-      }
+      const memoryResult = await loadPersonaMemory(userId, theme, lang);
+      personaMemoryContext = memoryResult.personaMemoryContext;
+      recentSessionSummaries = memoryResult.recentSessionSummaries;
     }
 
     // Compute saju if not provided or empty
     if (!saju || !saju.dayMaster) {
       try {
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
-        saju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender as 'male' | 'female', "solar", userTz) as unknown as SajuDataStructure;
-        logger.warn("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
+        const computedSaju = calculateSajuData(effectiveBirthDate, effectiveBirthTime, effectiveGender as 'male' | 'female', "solar", userTz);
+        const validatedSaju = toSajuDataStructure(computedSaju);
+        if (validatedSaju) {
+          saju = validatedSaju as SajuDataStructure;
+        }
+        logger.debug("[chat-stream] Computed saju:", saju?.dayMaster?.heavenlyStem);
       } catch (e) {
         logger.warn("[chat-stream] Failed to compute saju:", e);
       }
@@ -626,9 +345,10 @@ export async function POST(request: Request) {
           transits: currentTransits,
         } : undefined;
 
-        const combinedResult = {
-          saju: saju as unknown,
-          astrology: astroWithTransits as unknown,
+        // CombinedResult 인터페이스에 맞게 구성 (saju/astrology는 빈 객체로 기본값)
+        const combinedResult: CombinedResult = {
+          saju: (saju ?? {}) as unknown as CombinedResult['saju'],
+          astrology: (astroWithTransits ?? {}) as unknown as CombinedResult['astrology'],
           extraPoints: advancedAstro?.extraPoints,
           asteroids: advancedAstro?.asteroids,
           solarReturn: advancedAstro?.solarReturn,
@@ -642,7 +362,7 @@ export async function POST(request: Request) {
           midpoints: advancedAstro?.midpoints,
           meta: { generator: "chat-stream", generatedAt: new Date().toISOString() },
           summary: "",
-        } as unknown as CombinedResult;
+        };
 
         // 🔍 DEBUG: Check what advanced data is available
         logger.warn(`[chat-stream] Advanced astro check:`, {
@@ -745,9 +465,6 @@ export async function POST(request: Request) {
         logger.warn("[chat-stream] Failed to build prediction context:", e);
       }
     }
-
-    // Few-shot examples for quality improvement (built but kept for future use)
-    buildFewShotPrompt(lang as "ko" | "en", userQuestion);
 
     // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -1023,297 +740,30 @@ export async function POST(request: Request) {
         }
 
         // ========================================
-        // 🔮 TIER 3: 고급 점성술 + 사주 패턴 분석
+        // 🔮 TIER 3: 고급 점성술 + 사주 패턴 분석 (모듈화)
         // ========================================
         let advancedAstroSection = "";
         try {
-          const tier3Parts: string[] = [
-            "",
-            "═══════════════════════════════════════════════════════════════",
-            lang === "ko" ? "[🌙 고급 점성술 분석 - 진행법/택일/역행]" : "[🌙 ADVANCED ASTROLOGY - Progressions/Electional/Retrograde]",
-            "═══════════════════════════════════════════════════════════════",
-            "",
-          ];
-
-          // 1. Moon Phase & Void of Course
-          if (astro && astro.planets) {
-            const planets = astro.planets as PlanetBase[];
-            const sun = planets.find((p) => p.name === "Sun");
-            const moon = planets.find((p) => p.name === "Moon");
-            if (sun && moon) {
-              const moonPhase = getMoonPhase(sun.longitude, moon.longitude);
-              const phaseName = getMoonPhaseName(moonPhase);
-              tier3Parts.push(lang === "ko"
-                ? `🌙 달 위상: ${phaseName}`
-                : `🌙 Moon Phase: ${phaseName}`);
-
-              // Void of Course 체크 - construct a minimal Chart object
-              const chartForVoc = { planets, ascendant: planets[0], mc: planets[0], houses: [] } as Chart;
-              const vocInfo = checkVoidOfCourse(chartForVoc);
-              if (vocInfo.isVoid) {
-                tier3Parts.push(lang === "ko"
-                  ? `⚠️ 공전 중 (Void of Course): ${vocInfo.description}`
-                  : `⚠️ Void of Course: ${vocInfo.description}`);
-              } else {
-                tier3Parts.push(lang === "ko"
-                  ? `✅ 달 활성 상태: ${vocInfo.description}`
-                  : `✅ Moon Active: ${vocInfo.description}`);
-              }
-            }
-
-            // 2. 역행 행성 체크
-            const chartForRetro = { planets, ascendant: planets[0], mc: planets[0], houses: [] } as Chart;
-            const retrogrades = getRetrogradePlanets(chartForRetro);
-            if (retrogrades.length > 0) {
-              tier3Parts.push(lang === "ko"
-                ? `🔄 역행 중: ${retrogrades.join(', ')}`
-                : `🔄 Retrograde: ${retrogrades.join(', ')}`);
-              // 수성 역행 경고
-              if (retrogrades.includes("Mercury")) {
-                tier3Parts.push(lang === "ko"
-                  ? `  ⚠️ 수성 역행 - 계약/커뮤니케이션 신중히`
-                  : `  ⚠️ Mercury Rx - Be careful with contracts/communication`);
-              }
-              if (retrogrades.includes("Venus")) {
-                tier3Parts.push(lang === "ko"
-                  ? `  ⚠️ 금성 역행 - 연애/재정 결정 보류`
-                  : `  ⚠️ Venus Rx - Delay love/finance decisions`);
-              }
-            } else {
-              tier3Parts.push(lang === "ko"
-                ? `✅ 역행 없음 - 모든 행성 순행 중`
-                : `✅ No Retrogrades - All planets direct`);
-            }
-
-            // 3. Extra Points (키론/릴리스/버텍스) - 이미 astro에 있으면 사용
-            const chiron = planets.find((p) => p.name === "Chiron") as PlanetBase | undefined;
-            const lilith = planets.find((p) => p.name === "Lilith" || p.name === "Black Moon Lilith") as PlanetBase | undefined;
-            const vertex = astro.extraPoints?.vertex as PlanetBase | undefined;
-            const partOfFortune = astro.extraPoints?.partOfFortune as PlanetBase | undefined;
-
-            if (chiron || lilith || vertex || partOfFortune) {
-              tier3Parts.push("");
-              tier3Parts.push(lang === "ko" ? "--- 특수 포인트 ---" : "--- Extra Points ---");
-              if (chiron) {
-                tier3Parts.push(lang === "ko"
-                  ? `💫 키론 (상처와 치유): ${chiron.sign} ${chiron.degree || ''}°`
-                  : `💫 Chiron (Wound & Healing): ${chiron.sign} ${chiron.degree || ''}°`);
-              }
-              if (lilith) {
-                tier3Parts.push(lang === "ko"
-                  ? `🖤 릴리스 (그림자 자아): ${lilith.sign} ${lilith.degree || ''}°`
-                  : `🖤 Lilith (Shadow Self): ${lilith.sign} ${lilith.degree || ''}°`);
-              }
-              if (partOfFortune) {
-                tier3Parts.push(lang === "ko"
-                  ? `🍀 행운의 파트: ${partOfFortune.sign} ${partOfFortune.degree || ''}°`
-                  : `🍀 Part of Fortune: ${partOfFortune.sign} ${partOfFortune.degree || ''}°`);
-              }
-            }
-          }
-
-          // 4. 사주 패턴 분석 (희귀도)
-          if (saju?.pillars) {
-            const patternAnalysis = analyzePatterns(saju.pillars as unknown as import("@/lib/Saju/types").SajuPillars);
-            if (patternAnalysis.matchedPatterns.length > 0) {
-              tier3Parts.push("");
-              tier3Parts.push(lang === "ko" ? "--- 사주 패턴 분석 ---" : "--- Saju Pattern Analysis ---");
-
-              const stats = getPatternStatistics(patternAnalysis.matchedPatterns);
-              tier3Parts.push(lang === "ko"
-                ? `📊 패턴 수: ${patternAnalysis.matchedPatterns.length}개 (평균 점수: ${stats.averageScore})`
-                : `📊 Patterns: ${patternAnalysis.matchedPatterns.length} (Avg score: ${stats.averageScore})`);
-
-              // 희귀 패턴 강조
-              const rarePatterns = patternAnalysis.matchedPatterns.filter(
-                p => p.rarity === 'rare' || p.rarity === 'very_rare' || p.rarity === 'legendary'
-              );
-              if (rarePatterns.length > 0) {
-                tier3Parts.push(lang === "ko"
-                  ? `✨ 희귀 패턴: ${rarePatterns.map(p => p.patternName).join(', ')}`
-                  : `✨ Rare Patterns: ${rarePatterns.map(p => p.patternName).join(', ')}`);
-              }
-
-              // 패턴 요약
-              tier3Parts.push(lang === "ko"
-                ? `📝 요약: ${patternAnalysis.patternSummary}`
-                : `📝 Summary: ${patternAnalysis.patternSummary}`);
-            }
-          }
-
-          tier3Parts.push("");
-          advancedAstroSection = tier3Parts.join("\n");
+          const tier3Result = generateTier3Analysis({ saju, astro, lang });
+          advancedAstroSection = tier3Result.section;
           logger.warn(`[chat-stream] TIER 3 analysis completed`);
         } catch (e) {
           logger.warn("[chat-stream] Failed to generate TIER 3 analysis:", e);
         }
 
         // ========================================
-        // 🌟 TIER 4: 고급 점성술 확장 (Harmonics, Eclipses, Fixed Stars)
+        // 🌟 TIER 4: 고급 점성술 확장 (모듈화)
         // ========================================
         let tier4AdvancedSection = "";
         try {
-          const tier4Parts: string[] = [
-            "",
-            "═══════════════════════════════════════════════════════════════",
-            lang === "ko" ? "[🌟 고급 점성술 확장 - 하모닉/이클립스/항성]" : "[🌟 ADVANCED ASTROLOGY EXT - Harmonics/Eclipses/Fixed Stars]",
-            "═══════════════════════════════════════════════════════════════",
-            "",
-          ];
-
-          // 나이 계산
           const userAge = currentAge || (birthYear ? currentYear - birthYear : undefined);
-
-          // 1. 하모닉 분석 (나탈 차트가 있을 때만)
-          if (natalChartData && userAge) {
-            try {
-              const natalChart = toChart(natalChartData);
-
-              // 나이 하모닉 (현재 나이에 해당하는 차트)
-              const ageHarmonic = analyzeAgeHarmonic(natalChart, userAge);
-              const harmonicMeaning = getHarmonicMeaning(userAge);
-
-              tier4Parts.push(lang === "ko" ? "--- 🎵 하모닉 분석 ---" : "--- 🎵 Harmonic Analysis ---");
-              tier4Parts.push(lang === "ko"
-                ? `📊 나이 하모닉 (H${userAge}): ${harmonicMeaning.name}`
-                : `📊 Age Harmonic (H${userAge}): ${harmonicMeaning.name}`);
-              tier4Parts.push(lang === "ko"
-                ? `  → 의미: ${harmonicMeaning.meaning}`
-                : `  → Meaning: ${harmonicMeaning.meaning}`);
-              tier4Parts.push(lang === "ko"
-                ? `  → 영향 영역: ${harmonicMeaning.lifeArea}`
-                : `  → Life Area: ${harmonicMeaning.lifeArea}`);
-              tier4Parts.push(lang === "ko"
-                ? `  → 강도: ${ageHarmonic.strength.toFixed(0)}점`
-                : `  → Strength: ${ageHarmonic.strength.toFixed(0)} points`);
-
-              // 사주 병렬 개념 (있으면)
-              if (harmonicMeaning.sajuParallel) {
-                tier4Parts.push(lang === "ko"
-                  ? `  → 사주 병렬: ${harmonicMeaning.sajuParallel}`
-                  : `  → Saju Parallel: ${harmonicMeaning.sajuParallel}`);
-              }
-
-              // 하모닉 차트 패턴
-              if (ageHarmonic.patterns.length > 0) {
-                tier4Parts.push(lang === "ko"
-                  ? `  → 패턴: ${ageHarmonic.patterns.map(p => p.type).join(', ')}`
-                  : `  → Patterns: ${ageHarmonic.patterns.map(p => p.type).join(', ')}`);
-              }
-
-              // 전체 하모닉 프로필 (간략히)
-              const profile = generateHarmonicProfile(natalChart, userAge);
-              if (profile.strongestHarmonics.length > 0) {
-                const strongest = profile.strongestHarmonics[0];
-                tier4Parts.push(lang === "ko"
-                  ? `🌟 가장 강한 하모닉: H${strongest.harmonic} (${strongest.meaning})`
-                  : `🌟 Strongest Harmonic: H${strongest.harmonic} (${strongest.meaning})`);
-              }
-
-              logger.warn(`[chat-stream] TIER 4 Harmonics: age=${userAge}, strength=${ageHarmonic.strength.toFixed(0)}`);
-            } catch (harmonicErr) {
-              logger.warn("[chat-stream] Harmonic analysis failed:", harmonicErr);
-            }
-          }
-
-          // 2. 이클립스 영향 분석
-          if (natalChartData) {
-            try {
-              const natalChart = toChart(natalChartData);
-
-              tier4Parts.push("");
-              tier4Parts.push(lang === "ko" ? "--- 🌑 이클립스(일식/월식) 영향 ---" : "--- 🌑 Eclipse Impact ---");
-
-              // 다가오는 이클립스
-              const upcomingEclipses = getUpcomingEclipses(new Date(), 4);
-              if (upcomingEclipses.length > 0) {
-                tier4Parts.push(lang === "ko"
-                  ? `📅 다가오는 이클립스:`
-                  : `📅 Upcoming Eclipses:`);
-                for (const eclipse of upcomingEclipses.slice(0, 3)) {
-                  const eclipseType = eclipse.type === "solar" ? (lang === "ko" ? "일식" : "Solar") : (lang === "ko" ? "월식" : "Lunar");
-                  tier4Parts.push(`  → ${eclipse.date}: ${eclipseType} (${eclipse.sign} ${eclipse.degree}°)`);
-                }
-              }
-
-              // 차트에 미치는 영향 분석
-              const eclipseImpacts = findEclipseImpact(natalChart, upcomingEclipses, 3.0);
-              if (eclipseImpacts.length > 0) {
-                tier4Parts.push(lang === "ko"
-                  ? `⚡ 나탈 차트 영향:`
-                  : `⚡ Natal Chart Impact:`);
-                for (const impact of eclipseImpacts.slice(0, 3)) {
-                  const aspectKo = impact.aspectType === "conjunction" ? "합" : impact.aspectType === "opposition" ? "충" : "사각";
-                  tier4Parts.push(lang === "ko"
-                    ? `  → ${impact.eclipse.date}: ${impact.affectedPoint} ${aspectKo} (오브 ${impact.orb.toFixed(1)}°)`
-                    : `  → ${impact.eclipse.date}: ${impact.affectedPoint} ${impact.aspectType} (orb ${impact.orb.toFixed(1)}°)`);
-                  tier4Parts.push(`    ${impact.interpretation}`);
-                }
-              }
-
-              // 이클립스 민감도 체크
-              const sensitivity = checkEclipseSensitivity(natalChart);
-              if (sensitivity.sensitive) {
-                tier4Parts.push(lang === "ko"
-                  ? `⚠️ 이클립스 민감: 노드 축 근처 행성 ${sensitivity.sensitivePoints.join(', ')}`
-                  : `⚠️ Eclipse Sensitive: Planets near nodal axis ${sensitivity.sensitivePoints.join(', ')}`);
-              }
-
-              logger.warn(`[chat-stream] TIER 4 Eclipses: ${eclipseImpacts.length} impacts, sensitive=${sensitivity.sensitive}`);
-            } catch (eclipseErr) {
-              logger.warn("[chat-stream] Eclipse analysis failed:", eclipseErr);
-            }
-          }
-
-          // 3. 항성 분석
-          if (natalChartData) {
-            try {
-              const natalChart = toChart(natalChartData);
-
-              tier4Parts.push("");
-              tier4Parts.push(lang === "ko" ? "--- ⭐ 항성(Fixed Stars) 분석 ---" : "--- ⭐ Fixed Stars Analysis ---");
-
-              // 나탈 차트와 항성의 합
-              const starConjunctions = findFixedStarConjunctions(natalChart, currentYear, 1.0);
-
-              if (starConjunctions.length > 0) {
-                tier4Parts.push(lang === "ko"
-                  ? `🌟 나탈 차트 항성 합 (오브 1°):`
-                  : `🌟 Fixed Star Conjunctions (orb 1°):`);
-
-                for (const conj of starConjunctions.slice(0, 5)) {
-                  tier4Parts.push(lang === "ko"
-                    ? `  → ${conj.planet} ☌ ${conj.star.name_ko} (${conj.orb.toFixed(2)}°)`
-                    : `  → ${conj.planet} ☌ ${conj.star.name} (${conj.orb.toFixed(2)}°)`);
-                  tier4Parts.push(`    성질: ${conj.star.nature} | 키워드: ${conj.star.keywords.slice(0, 3).join(', ')}`);
-                  tier4Parts.push(`    해석: ${conj.star.interpretation}`);
-                }
-
-                // 왕의 별 체크
-                const royalStars = ["Regulus", "Aldebaran", "Antares", "Fomalhaut"];
-                const royalConjunctions = starConjunctions.filter(c => royalStars.includes(c.star.name));
-                if (royalConjunctions.length > 0) {
-                  tier4Parts.push(lang === "ko"
-                    ? `👑 왕의 별 영향: ${royalConjunctions.map(c => c.star.name_ko).join(', ')}`
-                    : `👑 Royal Star Influence: ${royalConjunctions.map(c => c.star.name).join(', ')}`);
-                  tier4Parts.push(lang === "ko"
-                    ? `  → 왕의 별이 활성화되면 특별한 운명적 에너지가 작용합니다`
-                    : `  → Royal stars bring special fateful energies when activated`);
-                }
-              } else {
-                tier4Parts.push(lang === "ko"
-                  ? `📊 주요 항성과의 직접적인 합 없음 (오브 1° 이내)`
-                  : `📊 No major fixed star conjunctions within 1° orb`);
-              }
-
-              logger.warn(`[chat-stream] TIER 4 Fixed Stars: ${starConjunctions.length} conjunctions`);
-            } catch (starErr) {
-              logger.warn("[chat-stream] Fixed stars analysis failed:", starErr);
-            }
-          }
-
-          tier4Parts.push("");
-          tier4AdvancedSection = tier4Parts.join("\n");
+          const tier4Result = generateTier4Analysis({
+            natalChartData: natalChartData || null,
+            userAge,
+            currentYear,
+            lang,
+          });
+          tier4AdvancedSection = tier4Result.section;
           logger.warn(`[chat-stream] TIER 4 analysis completed`);
         } catch (e) {
           logger.warn("[chat-stream] Failed to generate TIER 4 analysis:", e);
@@ -1681,7 +1131,7 @@ export async function POST(request: Request) {
       themeContext,
       "",
       // 기본 사주/점성 데이터
-      v3Snapshot ? `[사주/점성 기본 데이터]\n${v3Snapshot.slice(0, 3000)}` : "",
+      v3Snapshot ? `[사주/점성 기본 데이터]\n${v3Snapshot.slice(0, 5000)}` : "",
       // 🔮 고급 분석 - 공망/신살/에너지/시간대/대운/트랜짓/하모닉/이클립스/항성
       timingScoreSection ? `\n${timingScoreSection}` : "",
       // 🧠 장기 기억 - 이전 상담 컨텍스트

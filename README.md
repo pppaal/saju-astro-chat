@@ -29,9 +29,11 @@ AI-assisted astrology, saju, tarot, and dream counseling platform with a Next.js
 - [QUICK_WINS.md](./QUICK_WINS.md) - 30-minute improvements you can apply today
 - [PROJECT_QUALITY_10_ROADMAP.md](./PROJECT_QUALITY_10_ROADMAP.md) - Path to 10/10 quality
 
-### Architecture
+### Architecture & Performance
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture
+- [PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md) - Performance optimization guide (RAG 3x speedup)
 - [Backend Testing Guide](backend_ai/README_TESTING.md) - AI backend testing
+- [API Documentation](docs/API.md) - REST API endpoints
 
 ## Quickstart (local)
 1. Install frontend deps:

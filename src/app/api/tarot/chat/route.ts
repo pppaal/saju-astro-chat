@@ -33,7 +33,7 @@ interface TarotContext {
   guidance: string;
 }
 
-interface ChatRequest {
+interface _ChatRequest {
   messages: ChatMessage[];
   context: TarotContext;
   language?: "ko" | "en";

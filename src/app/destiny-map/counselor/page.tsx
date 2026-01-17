@@ -377,7 +377,7 @@ export default function CounselorPage({
               logger.warn("[Counselor] Personality type loaded:", personalityData.typeCode);
             }
           }
-        } catch (e: unknown) {
+        } catch {
           // Ignore localStorage errors
         }
 
@@ -420,7 +420,7 @@ export default function CounselorPage({
             });
           }
         }
-      } catch (e: unknown) {
+      } catch {
         // Not logged in or error - continue without user context
         logger.warn("[Counselor] No user context available (guest user)");
       }

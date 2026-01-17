@@ -79,6 +79,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 입력값 타입 및 범위 검증
+    if (latitude !== undefined && (typeof latitude !== 'number' || latitude < -90 || latitude > 90)) {
+      return NextResponse.json({ error: 'Invalid latitude value' }, { status: 400 });
+    }
+    if (longitude !== undefined && (typeof longitude !== 'number' || longitude < -180 || longitude > 180)) {
+      return NextResponse.json({ error: 'Invalid longitude value' }, { status: 400 });
+    }
+    if (photos !== undefined && (!Array.isArray(photos) || photos.length > 10)) {
+      return NextResponse.json({ error: 'Photos must be an array with max 10 items' }, { status: 400 });
+    }
+    if (ageMin !== undefined && (typeof ageMin !== 'number' || ageMin < 18 || ageMin > 100)) {
+      return NextResponse.json({ error: 'Invalid ageMin value' }, { status: 400 });
+    }
+    if (ageMax !== undefined && (typeof ageMax !== 'number' || ageMax < 18 || ageMax > 100)) {
+      return NextResponse.json({ error: 'Invalid ageMax value' }, { status: 400 });
+    }
+    if (maxDistance !== undefined && (typeof maxDistance !== 'number' || maxDistance < 1 || maxDistance > 500)) {
+      return NextResponse.json({ error: 'Invalid maxDistance value' }, { status: 400 });
+    }
+
     // 기존 프로필 확인
     const existingProfile = await prisma.matchProfile.findUnique({
       where: { userId: session.user.id },

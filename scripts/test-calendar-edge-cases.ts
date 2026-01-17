@@ -4,7 +4,7 @@
  */
 
 import { calculateTotalScore, type SajuScoreInput, type AstroScoreInput } from '../src/lib/destiny-map/calendar/scoring';
-import { calculateGrade, type GradeInput } from '../src/lib/destiny-map/calendar/grading';
+import { calculateGrade, type GradeInput } from '../src/lib/destiny-map/calendar/grading-optimized';
 
 // 테스트 케이스 정의
 const testCases: Array<{

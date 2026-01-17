@@ -341,7 +341,8 @@ export class LRUCache<T> {
  */
 export function memoize<T extends (...args: never[]) => unknown>(
   fn: T,
-  keyGenerator?: (...args: Parameters<T>) => string
+  keyGenerator?: (...args: Parameters<T>) => string,
+  maxSize: number = 500 // 캐시 최대 크기 제한
 ): MemoizedFunction<T> {
   const cache = new Map<string, ReturnType<T>>();
   let hits = 0;
@@ -354,10 +355,23 @@ export function memoize<T extends (...args: never[]) => unknown>(
 
     if (cache.has(key)) {
       hits++;
-      return cache.get(key) as ReturnType<T>;
+      // LRU: 최근 접근 항목을 끝으로 이동
+      const value = cache.get(key) as ReturnType<T>;
+      cache.delete(key);
+      cache.set(key, value);
+      return value;
     }
 
     misses++;
+
+    // 캐시 크기 제한 - 초과 시 가장 오래된 항목 제거
+    if (cache.size >= maxSize) {
+      const firstKey = cache.keys().next().value;
+      if (firstKey !== undefined) {
+        cache.delete(firstKey);
+      }
+    }
+
     const result = fn(...args) as ReturnType<T>;
     cache.set(key, result);
     return result;
@@ -379,7 +393,8 @@ export function memoize<T extends (...args: never[]) => unknown>(
  */
 export function memoizeAsync<T extends (...args: never[]) => Promise<unknown>>(
   fn: T,
-  keyGenerator?: (...args: Parameters<T>) => string
+  keyGenerator?: (...args: Parameters<T>) => string,
+  maxSize: number = 500 // 캐시 최대 크기 제한
 ): T & { cache: Map<string, Awaited<ReturnType<T>>>; clear: () => void } {
   const cache = new Map<string, Promise<Awaited<ReturnType<T>>>>();
   const generateKey = keyGenerator || ((...args: Parameters<T>) => JSON.stringify(args));
@@ -388,7 +403,19 @@ export function memoizeAsync<T extends (...args: never[]) => Promise<unknown>>(
     const key = generateKey(...args);
 
     if (cache.has(key)) {
-      return cache.get(key) as Awaited<ReturnType<T>>;
+      // LRU: 최근 접근 항목을 끝으로 이동
+      const value = cache.get(key)!;
+      cache.delete(key);
+      cache.set(key, value);
+      return value as Awaited<ReturnType<T>>;
+    }
+
+    // 캐시 크기 제한 - 초과 시 가장 오래된 항목 제거
+    if (cache.size >= maxSize) {
+      const firstKey = cache.keys().next().value;
+      if (firstKey !== undefined) {
+        cache.delete(firstKey);
+      }
     }
 
     const resultPromise = fn(...args) as Promise<Awaited<ReturnType<T>>>;

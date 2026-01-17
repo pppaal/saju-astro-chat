@@ -446,6 +446,56 @@ describe('ICP Analysis', () => {
         });
       });
     });
+
+    it('should verify compatibility score distribution across all levels', () => {
+      // Verify score distribution across all compatibility levels
+      const excellentResults: number[] = [];
+      const goodResults: number[] = [];
+      const moderateResults: number[] = [];
+      const challengingResults: number[] = [];
+
+      const octants: ICPOctantCode[] = ['PA', 'BC', 'DE', 'FG', 'HI', 'JK', 'LM', 'NO'];
+      octants.forEach(style1 => {
+        octants.forEach(style2 => {
+          const result = getICPCompatibility(style1, style2);
+          if (result.score >= 80) excellentResults.push(result.score);
+          else if (result.score >= 65) goodResults.push(result.score);
+          else if (result.score >= 50) moderateResults.push(result.score);
+          else challengingResults.push(result.score);
+        });
+      });
+
+      // Verify that multiple compatibility levels exist
+      expect(excellentResults.length).toBeGreaterThan(0);
+      expect(goodResults.length).toBeGreaterThan(0);
+      expect(moderateResults.length).toBeGreaterThan(0);
+      // Challenging match (< 50) is hard to achieve with current algorithm
+      // as minimum score without same-style bonus is 50 - 10 = 40
+      // but domDiff almost always adds at least +10
+    });
+
+    it('should correctly calculate BC + DE compatibility (cold styles)', () => {
+      // BC: dominance=0.7, affiliation=-0.7
+      // DE: dominance=0.0, affiliation=-1.0
+      // domDiff = 0.7 > 0.5, so +10
+      // affSum = -1.7 < -1.0, so -10
+      // score = 50 + 10 - 10 = 50 (Moderate Match)
+      const result = getICPCompatibility('BC', 'DE');
+      expect(result.score).toBe(50);
+      expect(result.level).toBe('Moderate Match');
+      expect(result.levelKo).toBe('보통 궁합');
+    });
+
+    it('should correctly calculate DE + FG compatibility (both cold/distant)', () => {
+      // DE: dominance=0.0, affiliation=-1.0
+      // FG: dominance=-0.7, affiliation=-0.7
+      // domDiff = 0.7 > 0.5, so +10
+      // affSum = -1.7 < -1.0, so -10
+      // score = 50 + 10 - 10 = 50
+      const result = getICPCompatibility('DE', 'FG');
+      expect(result.score).toBe(50);
+      expect(result.level).toBe('Moderate Match');
+    });
   });
 
   describe('Edge Cases', () => {

@@ -257,8 +257,8 @@ DOMAIN_RAG = _registry.register(
 )
 
 COMPATIBILITY = _registry.register(
-    'compatibility_logic',
-    'backend_ai.app.compatibility_logic',
+    'compatibility',
+    'backend_ai.app.compatibility',
     feature_name='Compatibility Analysis',
     assume_available=True
 )

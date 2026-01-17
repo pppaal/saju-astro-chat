@@ -1,5 +1,5 @@
-import PageLoading from "@/components/ui/PageLoading";
+import { DestinyMapSkeleton } from "@/components/ui/DestinyMapSkeleton";
 
 export default function Loading() {
-  return <PageLoading variant="form" />;
+  return <DestinyMapSkeleton />;
 }

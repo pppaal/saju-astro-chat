@@ -4,7 +4,7 @@
  */
 
 import { calculateTotalScore, type SajuScoreInput, type AstroScoreInput } from '../src/lib/destiny-map/calendar/scoring';
-import { calculateGrade, type GradeInput } from '../src/lib/destiny-map/calendar/grading';
+import { calculateGrade, type GradeInput } from '../src/lib/destiny-map/calendar/grading-optimized';
 
 // 무작위 사주 요소 생성
 const SIPSIN_OPTIONS = ['jeongyin', 'pyeonyin', 'jeongchaae', 'pyeonchaae', 'sikshin', 'sanggwan', 'jeongwan', 'pyeonwan', 'bijeon', 'gyeobjae'];

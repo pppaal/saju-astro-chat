@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
-import { summarizeConversation, type ConversationSummary } from "@/lib/ai/summarize";
+import { summarizeConversation } from "@/lib/ai/summarize";
 import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const existingLastTopics = (existingMemory?.lastTopics as string[]) || [];
 
     // 새 데이터 병합 (중복 제거, 최대 10개 유지)
-    const mergedTopics = mergeAndLimit([...existingTopics, ...(summary?.keyTopics || [])], 10);
+    const _mergedTopics = mergeAndLimit([...existingTopics, ...(summary?.keyTopics || [])], 10);
     const mergedInsights = mergeAndLimit([...existingInsights, ...(summary?.keyInsights || [])], 10);
     const mergedIssues = mergeAndLimit([...existingIssues, ...(summary?.recurringIssues || [])], 10);
     const mergedGrowth = mergeAndLimit([...existingGrowth, ...(summary?.growthAreas || [])], 5);

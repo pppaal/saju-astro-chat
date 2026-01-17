@@ -54,7 +54,8 @@
     "calendar": "Fortune Calendar",
     "numerology": "Numerology",
     "compatibility": "Compatibility",
-    "personality": "Personality"
+    "personality": "Personality",
+    "icp": "Relationship Style"
   },
   "landing": {
     "heroTitle": "Know yourself. Shape tomorrow.",
@@ -426,6 +427,10 @@
     "personality": {
       "label": "Personality",
       "desc": "Personality Analysis"
+    },
+    "icp": {
+      "label": "Relationship Style",
+      "desc": "ICP Interpersonal Analysis"
     },
     "destinyMatch": {
       "label": "Destiny Match",

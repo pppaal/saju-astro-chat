@@ -144,7 +144,7 @@ export interface UserAstroProfile {
  * // }
  */
 export function extractSajuProfile(saju: unknown): UserSajuProfile {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sajuData = saju as any;
 
   // dayMaster 추출 - string 또는 { name, heavenlyStem } 형태 처리
@@ -173,7 +173,7 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
   const unse = sajuData?.unse || {};
   const daeunRaw = unse.daeun || [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const daeunCycles: DaeunCycle[] = daeunRaw
     .map((d: any) => ({
       age: d.age || 0,
@@ -234,11 +234,11 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
  * // }
  */
 export function extractAstroProfile(astrology: unknown): UserAstroProfile {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const astroData = astrology as any;
   const planets = astroData?.planets || [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sun = planets.find((p: any) => p.name === 'Sun');
   const sunSign = sun?.sign || 'Aries';
 

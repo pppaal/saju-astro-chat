@@ -1683,6 +1683,7 @@ def _get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko")
             {"id":"reminder","icon":"💫","title":"이달의 리마인더","titleEn":"Reminder","content":f"✅ {month_info.get('timing', '이번 달의 흐름을 타세요')}\n⚠️ {dm_profile.get('weaknesses','주의사항').split(',')[0] if dm_profile.get('weaknesses') else '균형'} 유지 필요\n💪 {now.month}월을 {month_cheon} 에너지로 잘 마무리하세요!"}]
 
     elif theme == "fortune_new_year" or theme == "fortune_next_year":
+        monthly = unse.get("monthly", [])
         target_year = now.year if theme == "fortune_new_year" else now.year + 1
         target_annual = cur_annual if theme == "fortune_new_year" else next_annual
         target_cheon = _get_sibsin_value(target_annual.get("sibsin"), "cheon", "")

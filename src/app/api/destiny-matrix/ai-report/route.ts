@@ -108,7 +108,8 @@ export async function POST(req: NextRequest) {
 
     const validatedInput = validation.data!;
     const { queryDomain, maxInsights, ...rest } = validatedInput;
-    const matrixInput = rest as unknown as MatrixCalculationInput;
+    // Zod 검증 완료 후 타입 안전하게 변환 (rest spread로 나머지 속성 전달)
+    const matrixInput = rest as MatrixCalculationInput;
 
     // 5. 추가 옵션 추출
     const requestBody = body as Record<string, unknown>;
@@ -322,14 +323,21 @@ function extractAllLayerCells(matrix: MatrixLayers): Record<string, Record<strin
   };
 }
 
+function isMatrixCell(obj: unknown): obj is MatrixCell {
+  if (!isRecord(obj)) return false;
+  const candidate = obj as Record<string, unknown>;
+  if (!isRecord(candidate.interaction)) return false;
+  return 'level' in candidate.interaction;
+}
+
 function extractLayerCells(layerData: Record<string, unknown>): Record<string, MatrixCell> {
   const cells: Record<string, MatrixCell> = {};
 
   for (const [cellKey, cellData] of Object.entries(layerData || {})) {
     if (isRecord(cellData)) {
       // 새 Computed 형식: { interaction: {...}, sajuBasis: "...", astroBasis: "..." }
-      if (isRecord(cellData.interaction) && 'level' in cellData.interaction) {
-        cells[cellKey] = cellData as unknown as MatrixCell;
+      if (isMatrixCell(cellData)) {
+        cells[cellKey] = cellData;
       }
       // 레거시 중첩 형식 (하위 호환성)
       else {

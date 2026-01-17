@@ -94,6 +94,17 @@ from .prompts import (
     format_group_compatibility_report,
 )
 
+# Main entry points
+from .main import (
+    interpret_compatibility,
+    interpret_compatibility_group,
+    load_compatibility_data,
+    analyze_timing_compatibility,
+    get_action_items,
+    format_person_data,
+    analyze_group_element_distribution,
+)
+
 __all__ = [
     # Constants
     "OHENG_TO_ASTRO",
@@ -154,4 +165,12 @@ __all__ = [
     "build_group_prompt",
     "format_compatibility_report",
     "format_group_compatibility_report",
+    # Main entry points
+    "interpret_compatibility",
+    "interpret_compatibility_group",
+    "load_compatibility_data",
+    "analyze_timing_compatibility",
+    "get_action_items",
+    "format_person_data",
+    "analyze_group_element_distribution",
 ]

@@ -245,3 +245,149 @@ describe("luckyTag constant", () => {
     expect(Object.keys(luckyTag)).toHaveLength(12);
   });
 });
+
+describe("describeLocale extended coverage", () => {
+  describe("all extended core keys in Korean", () => {
+    const extendedKeys = [
+      "rationalThought",
+      "cornerstone",
+      "capstone",
+      "firstVowel",
+      "subconscious",
+      "karmicDebt",
+      "karmicLesson",
+      "universalMonth",
+      "universalDay",
+    ];
+
+    for (const key of extendedKeys) {
+      it(`returns Korean description for ${key}`, () => {
+        const result = describeLocale(key, 5, "ko");
+        expect(typeof result).toBe("string");
+        expect(result.length).toBeGreaterThan(0);
+      });
+    }
+  });
+
+  describe("handles two-digit numbers through reduction", () => {
+    it("reduces 19 to 1 and returns description", () => {
+      const result = describeLocale("lifePath", 19, "en");
+      expect(result).toContain("Leader");
+    });
+
+    it("reduces 28 to 1 and returns description", () => {
+      const result = describeLocale("expression", 28, "en");
+      expect(result).toContain("Leader");
+    });
+
+    it("reduces 37 to 1 and returns description", () => {
+      const result = describeLocale("personality", 37, "en");
+      expect(result).toContain("Leader");
+    });
+  });
+
+  describe("expression descriptions", () => {
+    it("returns expression description in English", () => {
+      const result = describeLocale("expression", 3, "en");
+      expect(result).toContain("expression number");
+      expect(result).toContain("Communicator");
+    });
+
+    it("returns expression description in Korean", () => {
+      const result = describeLocale("expression", 3, "ko");
+      expect(result).toContain("표현 숫자");
+      expect(result).toContain("소통가");
+    });
+  });
+
+  describe("soulUrge descriptions", () => {
+    it("returns soulUrge description in English", () => {
+      const result = describeLocale("soulUrge", 6, "en");
+      expect(result).toContain("Heart's Desire");
+      expect(result).toContain("Guardian");
+    });
+
+    it("returns soulUrge description in Korean", () => {
+      const result = describeLocale("soulUrge", 6, "ko");
+      expect(result).toContain("마음의 욕망");
+      expect(result).toContain("수호자");
+    });
+  });
+
+  describe("personality descriptions", () => {
+    it("returns personality description in English", () => {
+      const result = describeLocale("personality", 7, "en");
+      expect(result).toContain("Outward personality");
+      expect(result).toContain("Seeker");
+    });
+
+    it("returns personality description in Korean", () => {
+      const result = describeLocale("personality", 7, "ko");
+      expect(result).toContain("외향적 성격");
+      expect(result).toContain("탐구자");
+    });
+  });
+
+  describe("personalYear descriptions", () => {
+    it("returns personalYear description in English", () => {
+      const result = describeLocale("personalYear", 8, "en");
+      expect(result).toContain("This year");
+      expect(result).toContain("Executor");
+    });
+
+    it("returns personalYear description in Korean", () => {
+      const result = describeLocale("personalYear", 8, "ko");
+      expect(result).toContain("올해");
+      expect(result).toContain("실행자");
+    });
+  });
+
+  describe("personalMonth descriptions", () => {
+    it("returns personalMonth description in English", () => {
+      const result = describeLocale("personalMonth", 9, "en");
+      expect(result).toContain("This month");
+      expect(result).toContain("Humanitarian");
+    });
+
+    it("returns personalMonth description in Korean", () => {
+      const result = describeLocale("personalMonth", 9, "ko");
+      expect(result).toContain("이번 달");
+      expect(result).toContain("인도주의자");
+    });
+  });
+
+  describe("personalDay descriptions", () => {
+    it("returns personalDay description in English", () => {
+      const result = describeLocale("personalDay", 4, "en");
+      expect(result).toContain("Today");
+      expect(result).toContain("Builder");
+    });
+
+    it("returns personalDay description in Korean", () => {
+      const result = describeLocale("personalDay", 4, "ko");
+      expect(result).toContain("오늘");
+      expect(result).toContain("건설자");
+    });
+  });
+});
+
+describe("number title fallback coverage", () => {
+  it("returns reduced title for very large numbers", () => {
+    // 999 reduces to 9+9+9 = 27, then 2+7 = 9
+    const result = getNumberTitle(999, "en");
+    expect(result).toBe("Humanitarian / Visionary");
+  });
+
+  it("returns fallback for negative numbers", () => {
+    const result = getNumberTitle(-5, "en");
+    expect(typeof result).toBe("string");
+  });
+});
+
+describe("lucky tag fallback coverage", () => {
+  it("returns reduced lucky tag for very large numbers in Korean", () => {
+    // 999 reduces to 9+9+9 = 27, then 2+7 = 9
+    const result = getLuckyTag(999, "ko");
+    expect(result).toBe("자비, 유산");
+  });
+});

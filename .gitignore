@@ -76,6 +76,13 @@ nul
 *.bak
 *~
 
+# Temporary debug/test output files
+tmp_*.txt
+coverage-*.txt
+test-*.txt
+test-output.txt
+test-results.txt
+
 # IDE
 .idea/
 *.swp

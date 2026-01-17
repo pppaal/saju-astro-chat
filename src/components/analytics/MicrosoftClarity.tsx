@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useConsent } from "@/contexts/ConsentContext";
 
-export function MicrosoftClarity({ clarityId }: { clarityId: string }) {
+export function MicrosoftClarity({ clarityId, nonce }: { clarityId: string; nonce?: string }) {
   const { status } = useConsent();
   const consentGranted = status === "granted";
 
@@ -13,6 +13,7 @@ export function MicrosoftClarity({ clarityId }: { clarityId: string }) {
     <Script
       id="microsoft-clarity"
       strategy="afterInteractive"
+      nonce={nonce}
       dangerouslySetInnerHTML={{
         __html: `
           (function(c,l,a,r,i,t,y){

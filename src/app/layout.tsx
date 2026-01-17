@@ -22,6 +22,7 @@ import AuthProvider from "@/components/AuthProvider";
 import ScrollRestoration from "@/components/ui/ScrollRestoration";
 import { ReactNode, Suspense } from "react";
 import { Montserrat, Noto_Sans_KR, Cinzel, Lora, Merriweather } from "next/font/google";
+import { headers } from "next/headers";
 
 // Primary fonts with optimized loading
 const montserrat = Montserrat({
@@ -172,7 +173,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Get nonce from middleware
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') || '';
+
   const websiteJsonLd = generateJsonLd({
     type: "WebSite",
     name: "DestinyPal",
@@ -194,6 +199,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="theme-color" content="#0d1225" />
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />
+        {/* Kakao SDK for sharing */}
+        <script defer src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js" nonce={nonce} />
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('load', function() {
+                if (window.Kakao && !window.Kakao.isInitialized()) {
+                  window.Kakao.init('${process.env.NEXT_PUBLIC_KAKAO_APP_KEY || ''}');
+                }
+              });
+            `,
+          }}
+        />
       </head>
       <body
         className={`
@@ -212,10 +231,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ConsentProvider>
           {/* Analytics */}
           <Suspense fallback={null}>
-            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} nonce={nonce} />
           </Suspense>
           <Suspense fallback={null}>
-            <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} />
+            <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} nonce={nonce} />
           </Suspense>
 
           <AuthProvider>

@@ -1,6 +1,6 @@
 //src/lib/destiny-map/reportService.ts
 
-'use server';
+// Note: 'use server' removed - exports include interface definitions
 
 import { computeDestinyMap } from "./astrologyengine";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
@@ -88,15 +88,6 @@ export async function generateReport({
   const cached = await cacheGet<ReportOutput>(cacheKey);
   if (cached) {
     logger.debug("[DestinyMap] Cache HIT:", cacheKey);
-    // DEBUG: Log cached structure to diagnose dayMaster/daeun issue
-    logger.debug("[DestinyMap] Cached data structure:", {
-      hasRaw: !!cached.raw,
-      rawKeys: cached.raw ? Object.keys(cached.raw) : [],
-      hasSaju: !!cached.raw?.saju,
-      sajuKeys: cached.raw?.saju ? Object.keys(cached.raw.saju as Record<string, unknown>) : [],
-      dayMaster: (cached.raw?.saju as { dayMaster?: unknown } | undefined)?.dayMaster,
-      daeunCount: (cached.raw?.saju as { unse?: { daeun?: unknown[] } } | undefined)?.unse?.daeun?.length || 0,
-    });
     return cached;
   }
   logger.debug("[DestinyMap] Cache MISS:", cacheKey);
@@ -177,13 +168,6 @@ export async function generateReport({
       // 템플릿 모드: 30초, AI 모드: 180초
       const timeoutMs = useAI ? 180000 : 30000;
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-      // DEBUG: Log saju.unse data being sent to backend
-      logger.debug("[DestinyMap] Sending to backend - saju.unse:", {
-        daeun_count: result.saju?.unse?.daeun?.length || 0,
-        annual_count: result.saju?.unse?.annual?.length || 0,
-        monthly_count: result.saju?.unse?.monthly?.length || 0,
-      });
 
       const response = await fetch(`${backendUrl}/ask`, {
         method: "POST",

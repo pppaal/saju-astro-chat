@@ -2,7 +2,7 @@
 // This component handles flexible data from multiple API sources with varying shapes
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 
 // Import Tab Components
 import {
@@ -79,6 +79,7 @@ import {
   getPersonalizedAdvice,
   getCombinedLifeTheme
 } from "./fun-insights/generators";
+import { extractSajuProfile } from '@/lib/destiny-map/destinyCalendar';
 
 // Saju data type definition
 interface SajuData {
@@ -183,7 +184,7 @@ Your strengths are ${dayMasterInfo.strength.en}, while ${dayMasterInfo.weakness.
 // 메인 컴포넌트
 // ============================================================
 
-export default function FunInsights({ saju, astro, lang = "ko", theme = "", className = "" }: Props) {
+const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme = "", className = "" }: Props) {
   const isKo = lang === "ko";
 
   const hasFiveElements = Boolean(saju?.fiveElements && Object.keys(saju.fiveElements).length > 0);
@@ -491,4 +492,6 @@ export default function FunInsights({ saju, astro, lang = "ko", theme = "", clas
       </p>
     </div>
   );
-}
+});
+
+export default FunInsights;

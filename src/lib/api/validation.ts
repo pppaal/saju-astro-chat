@@ -241,6 +241,55 @@ export function validateDreamInput(data: Record<string, unknown>): ValidationRes
   });
 }
 
+/**
+ * Validate birth data (Saju, Astrology, Compatibility)
+ */
+export function validateBirthData(data: Record<string, unknown>): ValidationResult {
+  return validateFields(data, {
+    birthDate: CommonValidators.birthDate,
+    birthTime: CommonValidators.birthTime,
+    latitude: CommonValidators.latitude,
+    longitude: CommonValidators.longitude,
+    timezone: CommonValidators.timezone,
+    language: CommonValidators.language,
+  });
+}
+
+/**
+ * Validate compatibility input
+ */
+export function validateCompatibilityInput(data: Record<string, unknown>): ValidationResult {
+  const baseValidation = validateFields(data, {
+    person1: {
+      required: true,
+      type: "object",
+    },
+    person2: {
+      required: true,
+      type: "object",
+    },
+  });
+
+  if (!baseValidation.valid) {
+    return baseValidation;
+  }
+
+  // Validate person1 and person2 birth data
+  const person1 = data.person1 as Record<string, unknown>;
+  const person2 = data.person2 as Record<string, unknown>;
+
+  const person1Validation = validateBirthData(person1);
+  const person2Validation = validateBirthData(person2);
+
+  return {
+    valid: person1Validation.valid && person2Validation.valid,
+    errors: [
+      ...person1Validation.errors.map(e => `person1.${e}`),
+      ...person2Validation.errors.map(e => `person2.${e}`),
+    ],
+  };
+}
+
 // sanitizeString moved to sanitizers.ts - import from there
 // import { sanitizeString } from './sanitizers';
 

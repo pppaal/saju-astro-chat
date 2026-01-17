@@ -1,224 +1,94 @@
-/**
- * Logger Tests
- *
- * Tests for structured logging system types and configuration
- */
+import { describe, it, expect } from 'vitest';
 
+describe('Logger Module', () => {
+  it('should export logger object', async () => {
+    const { logger } = await import('@/lib/logger');
 
-
-describe("Logger type definitions", () => {
-  it("LogLevel accepts valid values", () => {
-    const validLevels = ["debug", "info", "warn", "error"];
-    expect(validLevels).toHaveLength(4);
-    expect(validLevels).toContain("debug");
-    expect(validLevels).toContain("info");
-    expect(validLevels).toContain("warn");
-    expect(validLevels).toContain("error");
+    expect(logger).toBeDefined();
+    expect(typeof logger.debug).toBe('function');
+    expect(typeof logger.info).toBe('function');
+    expect(typeof logger.warn).toBe('function');
+    expect(typeof logger.error).toBe('function');
   });
 
-  it("LogContext accepts various value types", () => {
-    const context = {
-      stringValue: "test",
-      numberValue: 42,
-      booleanValue: true,
-      arrayValue: [1, 2, 3],
-      nestedValue: { key: "value" },
-      nullValue: null,
-    };
+  it('should export convenience functions', async () => {
+    const { logInfo, logError, logWarn, logDebug } = await import('@/lib/logger');
 
-    expect(Object.keys(context)).toHaveLength(6);
-    expect(context.stringValue).toBe("test");
-    expect(context.numberValue).toBe(42);
-  });
-});
-
-describe("Log entry structure", () => {
-  it("creates valid log entry", () => {
-    interface LogEntry {
-      level: string;
-      message: string;
-      timestamp: string;
-      context?: Record<string, unknown>;
-      error?: Error;
-    }
-
-    const entry: LogEntry = {
-      level: "info",
-      message: "Test message",
-      timestamp: new Date().toISOString(),
-      context: { userId: "123" },
-    };
-
-    expect(entry.level).toBe("info");
-    expect(entry.message).toBe("Test message");
-    expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(entry.context?.userId).toBe("123");
+    expect(typeof logInfo).toBe('function');
+    expect(typeof logError).toBe('function');
+    expect(typeof logWarn).toBe('function');
+    expect(typeof logDebug).toBe('function');
   });
 
-  it("creates log entry with error", () => {
-    interface LogEntry {
-      level: string;
-      message: string;
-      timestamp: string;
-      error?: { name: string; message: string; stack?: string };
-    }
+  it('should export domain loggers', async () => {
+    const {
+      authLogger,
+      paymentLogger,
+      apiLogger,
+      dbLogger,
+      sajuLogger,
+      astroLogger,
+      tarotLogger,
+    } = await import('@/lib/logger');
 
-    const error = new Error("Test error");
-    const entry: LogEntry = {
-      level: "error",
-      message: "Something failed",
-      timestamp: new Date().toISOString(),
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-    };
+    expect(authLogger).toBeDefined();
+    expect(paymentLogger).toBeDefined();
+    expect(apiLogger).toBeDefined();
+    expect(dbLogger).toBeDefined();
+    expect(sajuLogger).toBeDefined();
+    expect(astroLogger).toBeDefined();
+    expect(tarotLogger).toBeDefined();
+  });
 
-    expect(entry.level).toBe("error");
-    expect(entry.error?.message).toBe("Test error");
-    expect(entry.error?.name).toBe("Error");
+  it('should export LogLevel type', async () => {
+    const module = await import('@/lib/logger');
+    expect(module).toBeDefined();
+  });
+
+  it('should export LogContext type', async () => {
+    const module = await import('@/lib/logger');
+    expect(module).toBeDefined();
   });
 });
 
-describe("Development log formatting", () => {
-  it("includes emoji for log levels", () => {
-    const emojiMap: Record<string, string> = {
-      debug: "🔍",
-      info: "ℹ️",
-      warn: "⚠️",
-      error: "❌",
-    };
+describe('Logger Index Domain', () => {
+  it('should create domain logger from index', async () => {
+    const { logger } = await import('@/lib/logger/index');
 
-    expect(emojiMap.debug).toBe("🔍");
-    expect(emojiMap.info).toBe("ℹ️");
-    expect(emojiMap.warn).toBe("⚠️");
-    expect(emojiMap.error).toBe("❌");
-  });
-
-  it("formats message with level", () => {
-    const formatDevMessage = (level: string, message: string): string => {
-      const emoji = { debug: "🔍", info: "ℹ️", warn: "⚠️", error: "❌" }[level] || "";
-      return `${emoji} [${level.toUpperCase()}] ${message}`;
-    };
-
-    expect(formatDevMessage("info", "Test")).toContain("[INFO]");
-    expect(formatDevMessage("error", "Failed")).toContain("[ERROR]");
-    expect(formatDevMessage("warn", "Warning")).toContain("⚠️");
+    const customLogger = logger.domain('custom');
+    expect(customLogger).toBeDefined();
+    expect(typeof customLogger.debug).toBe('function');
+    expect(typeof customLogger.info).toBe('function');
+    expect(typeof customLogger.warn).toBe('function');
+    expect(typeof customLogger.error).toBe('function');
   });
 });
 
-describe("Production log formatting", () => {
-  it("creates valid JSON output", () => {
-    const logEntry = {
-      level: "info",
-      message: "Production log",
-      timestamp: new Date().toISOString(),
-      context: { key: "value" },
-    };
+describe('Domain Loggers Methods', () => {
+  it('should have all methods on authLogger', async () => {
+    const { authLogger } = await import('@/lib/logger');
 
-    const jsonOutput = JSON.stringify(logEntry);
-    const parsed = JSON.parse(jsonOutput);
-
-    expect(parsed.level).toBe("info");
-    expect(parsed.message).toBe("Production log");
-    expect(parsed.context.key).toBe("value");
+    expect(typeof authLogger.debug).toBe('function');
+    expect(typeof authLogger.info).toBe('function');
+    expect(typeof authLogger.warn).toBe('function');
+    expect(typeof authLogger.error).toBe('function');
   });
 
-  it("serializes error in JSON", () => {
-    const error = new Error("Prod error");
-    const logEntry = {
-      level: "error",
-      message: "Error occurred",
-      timestamp: new Date().toISOString(),
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-    };
+  it('should have all methods on paymentLogger', async () => {
+    const { paymentLogger } = await import('@/lib/logger');
 
-    const jsonOutput = JSON.stringify(logEntry);
-    const parsed = JSON.parse(jsonOutput);
-
-    expect(parsed.error.message).toBe("Prod error");
-    expect(parsed.error.name).toBe("Error");
-  });
-});
-
-describe("Domain logger prefixing", () => {
-  it("adds domain prefix to message", () => {
-    const addDomainPrefix = (domain: string, message: string): string => {
-      return `[${domain}] ${message}`;
-    };
-
-    expect(addDomainPrefix("auth", "User logged in")).toBe("[auth] User logged in");
-    expect(addDomainPrefix("payment", "Transaction complete")).toBe("[payment] Transaction complete");
-    expect(addDomainPrefix("api", "Request received")).toBe("[api] Request received");
+    expect(typeof paymentLogger.debug).toBe('function');
+    expect(typeof paymentLogger.info).toBe('function');
+    expect(typeof paymentLogger.warn).toBe('function');
+    expect(typeof paymentLogger.error).toBe('function');
   });
 
-  it("predefined domains are correct", () => {
-    const domains = ["auth", "payment", "api", "db", "saju", "astro", "tarot"];
+  it('should have all methods on apiLogger', async () => {
+    const { apiLogger } = await import('@/lib/logger');
 
-    expect(domains).toContain("auth");
-    expect(domains).toContain("payment");
-    expect(domains).toContain("api");
-    expect(domains).toContain("db");
-    expect(domains).toContain("saju");
-    expect(domains).toContain("astro");
-    expect(domains).toContain("tarot");
-    expect(domains).toHaveLength(7);
-  });
-});
-
-describe("Log level filtering", () => {
-  it("test environment only logs errors", () => {
-    const shouldLogInTest = (level: string): boolean => {
-      return level === "error";
-    };
-
-    expect(shouldLogInTest("debug")).toBe(false);
-    expect(shouldLogInTest("info")).toBe(false);
-    expect(shouldLogInTest("warn")).toBe(false);
-    expect(shouldLogInTest("error")).toBe(true);
-  });
-
-  it("development environment logs all levels", () => {
-    const shouldLogInDev = (level: string): boolean => {
-      return ["debug", "info", "warn", "error"].includes(level);
-    };
-
-    expect(shouldLogInDev("debug")).toBe(true);
-    expect(shouldLogInDev("info")).toBe(true);
-    expect(shouldLogInDev("warn")).toBe(true);
-    expect(shouldLogInDev("error")).toBe(true);
-  });
-
-  it("production sends warn and error to Sentry", () => {
-    const shouldSendToSentry = (level: string): boolean => {
-      return level === "error" || level === "warn";
-    };
-
-    expect(shouldSendToSentry("debug")).toBe(false);
-    expect(shouldSendToSentry("info")).toBe(false);
-    expect(shouldSendToSentry("warn")).toBe(true);
-    expect(shouldSendToSentry("error")).toBe(true);
-  });
-});
-
-describe("Timestamp formatting", () => {
-  it("uses ISO 8601 format", () => {
-    const timestamp = new Date().toISOString();
-
-    // ISO 8601: YYYY-MM-DDTHH:mm:ss.sssZ
-    expect(timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-  });
-
-  it("timestamp is parseable", () => {
-    const timestamp = new Date().toISOString();
-    const parsed = new Date(timestamp);
-
-    expect(parsed.getTime()).not.toBeNaN();
-    expect(parsed instanceof Date).toBe(true);
+    expect(typeof apiLogger.debug).toBe('function');
+    expect(typeof apiLogger.info).toBe('function');
+    expect(typeof apiLogger.warn).toBe('function');
+    expect(typeof apiLogger.error).toBe('function');
   });
 });

@@ -21,8 +21,8 @@ def _get_compatibility():
     global _compatibility_module, HAS_COMPATIBILITY
     if _compatibility_module is None:
         try:
-            from backend_ai.app import compatibility_logic as _cl
-            _compatibility_module = _cl
+            from backend_ai.app import compatibility as _compat
+            _compatibility_module = _compat
         except ImportError:
             HAS_COMPATIBILITY = False
             return None

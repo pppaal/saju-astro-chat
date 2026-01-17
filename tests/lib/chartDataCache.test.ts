@@ -151,7 +151,7 @@ describe("chartDataCache", () => {
       ).not.toThrow();
 
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to save cache"),
+        expect.stringMatching(/Failed to (save cache|manage cache keys)/),
         expect.any(Error)
       );
     });

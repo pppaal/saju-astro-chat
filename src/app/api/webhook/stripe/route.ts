@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db/prisma"
-import { getPlanFromPriceId, getCreditPackFromPriceId } from "@/lib/payments/prices"
+import { getPlanFromPriceId } from "@/lib/payments/prices"
 import { getClientIp } from "@/lib/request-ip"
 import { captureServerError } from "@/lib/telemetry"
 import { recordCounter } from "@/lib/metrics"
@@ -52,7 +52,8 @@ export async function POST(request: Request) {
   const body = await request.text()
   const headersList = await headers()
   const signature = headersList.get("stripe-signature")
-  const ip = getClientIp(headersList as unknown as Headers)
+  // ReadonlyHeaders는 Headers 인터페이스와 호환되는 get/has 메서드를 가짐
+  const ip = getClientIp(headersList as Headers)
 
   if (!signature) {
     recordCounter("stripe_webhook_auth_error", 1, { reason: "missing_signature" })

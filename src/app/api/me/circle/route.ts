@@ -39,6 +39,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Name and relation are required" }, { status: 400 })
     }
 
+    // 입력값 검증
+    if (typeof name !== 'string' || name.length > 100) {
+      return NextResponse.json({ error: "Invalid name" }, { status: 400 })
+    }
+    if (typeof relation !== 'string' || relation.length > 50) {
+      return NextResponse.json({ error: "Invalid relation" }, { status: 400 })
+    }
+    if (latitude != null && (typeof latitude !== 'number' || latitude < -90 || latitude > 90)) {
+      return NextResponse.json({ error: "Invalid latitude" }, { status: 400 })
+    }
+    if (longitude != null && (typeof longitude !== 'number' || longitude < -180 || longitude > 180)) {
+      return NextResponse.json({ error: "Invalid longitude" }, { status: 400 })
+    }
+    if (note && (typeof note !== 'string' || note.length > 500)) {
+      return NextResponse.json({ error: "Note too long (max 500)" }, { status: 400 })
+    }
+
     const person = await prisma.savedPerson.create({
       data: {
         userId: session.user.id,

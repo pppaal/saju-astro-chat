@@ -93,8 +93,8 @@ const ALLOWED_CHAT_LOCALES = new Set(["ko", "en"]);
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_CONTEXT_FIELD = 2000;
-const MAX_CONTEXT_ITEMS = 20;
-const MAX_CONTEXT_ITEM_LEN = 200;
+const _MAX_CONTEXT_ITEMS = 20;
+const _MAX_CONTEXT_ITEM_LEN = 200;
 const MAX_CHAT_BODY = 96 * 1024; // Increased for additional context
 
 // Type alias for local usage (Message = ChatMessage from @/lib/api)

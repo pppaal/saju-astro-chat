@@ -90,6 +90,13 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
     ascendant,
     mc,
     houses: housesRes.house.map((cusp: number) => ({ cusp, formatted: formatLongitude(cusp).formatted })),
+    meta: {
+      jdUT: ut_jd,
+      timeZone: input.timeZone,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      houseSystem: "Placidus",
+    },
   };
 }
 

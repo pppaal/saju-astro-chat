@@ -240,7 +240,7 @@ export default function AstrologyCounselorPage({
             });
           }
         }
-      } catch (e: unknown) {
+      } catch {
         astroLogger.warn("[AstrologyCounselor] No user context available (guest user)");
       }
     };

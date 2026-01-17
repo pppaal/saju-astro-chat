@@ -1,5 +1,5 @@
-import PageLoading from "@/components/ui/PageLoading";
+import { TarotPageSkeleton } from "@/components/ui/TarotPageSkeleton";
 
 export default function Loading() {
-  return <PageLoading />;
+  return <TarotPageSkeleton />;
 }

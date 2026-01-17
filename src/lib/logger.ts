@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // Type definitions for logger metadata
 export interface LogMetadata {
   [key: string]: unknown;

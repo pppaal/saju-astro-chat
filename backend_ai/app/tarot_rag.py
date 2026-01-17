@@ -6,7 +6,10 @@ Uses SentenceTransformer for semantic similarity matching with tarot cards.
 - 타로 카드 전용 임베딩 시스템
 - 78장 라이더-웨이트 타로 덱 (메이저 아르카나 + 마이너 아르카나)
 
+Refactored to use BaseEmbeddingRAG for shared embedding infrastructure.
+
 개선사항 (v2.0):
+- BaseEmbeddingRAG 상속으로 공통 인프라 활용
 - 모델 업그레이드: mpnet-base-v2 (더 정확한 다국어 임베딩)
 - 캐시 무효화: 파일 해시 기반 자동 재생성
 - 에러 핸들링: fallback 모델 및 graceful degradation
@@ -16,39 +19,44 @@ import os
 import json
 import hashlib
 import time
-import torch
+import logging
 from typing import List, Dict, Optional, Tuple, Any
 
+import torch
+
 try:
-    from sentence_transformers import SentenceTransformer, util
+    from sentence_transformers import util
     SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
     print("[TarotRAG] sentence-transformers not installed. Semantic search disabled.")
 
-# 모델 설정 (정확도 순)
-MODEL_OPTIONS = {
-    'high': 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',  # 더 정확, 느림
-    'medium': 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',  # 균형
-    'fast': 'sentence-transformers/all-MiniLM-L6-v2',  # 빠름, 영어 위주
-}
-DEFAULT_MODEL = 'high'
+try:
+    from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
+except ImportError:
+    from app.rag import BaseEmbeddingRAG, RAGResult
 
-class TarotRAG:
+logger = logging.getLogger(__name__)
+
+
+class TarotRAG(BaseEmbeddingRAG):
     """
     임베딩 기반 타로 해석 검색 엔진
+
+    Inherits from BaseEmbeddingRAG for shared embedding infrastructure.
+
     - 질문/상황을 벡터로 변환하여 가장 관련 있는 카드 의미 검색
     - 정방향/역방향 해석 지원
     - 개선: 더 정확한 모델, 캐시 무효화, 에러 핸들링
     """
 
-    def __init__(self, rules_dir: str = None, model_quality: str = DEFAULT_MODEL):
+    def __init__(self, rules_dir: str = None, cache_path: Optional[str] = None):
         """
         Initialize TarotRAG.
 
         Args:
             rules_dir: Path to tarot rules directory
-            model_quality: 'high', 'medium', or 'fast' (default: 'high')
+            cache_path: Path to embedding cache (optional, auto-generated if not provided)
         """
         # 경로 설정
         if rules_dir is None:
@@ -56,59 +64,26 @@ class TarotRAG:
             rules_dir = os.path.join(base_dir, "data", "graph", "rules", "tarot")
 
         self.rules_dir = rules_dir
-        self.model_quality = model_quality
-        self.model_name = MODEL_OPTIONS.get(model_quality, MODEL_OPTIONS['high'])
-
-        self.cards = {}  # card_id -> card_data
-        self.card_texts = []  # [{card_id, text, orientation, keywords, meaning, ...}]
-        self.card_embeds = None
-        self.embed_cache_path = os.path.join(rules_dir, "tarot_embeds.pt")
         self._data_hash = None  # 캐시 무효화용 해시
 
-        # 모델 초기화 (lazy load)
-        self._model = None
-        self._model_load_failed = False
+        # Card storage (separate from base class _items for card-specific data)
+        self.cards = {}  # card_id -> card_data
+        self.card_texts = []  # [{card_id, text, orientation, keywords, meaning, ...}]
 
-        # 로드
-        self._load_cards()
-        self._prepare_embeddings()
+        # Complete corpus storage
+        self.complete_corpus = None
+        self.position_meanings = {}
+        self.card_combinations = []
 
-    @property
-    def model(self):
-        """Lazy load SentenceTransformer model with fallback"""
-        if self._model is None and not self._model_load_failed:
-            if not SENTENCE_TRANSFORMERS_AVAILABLE:
-                self._model_load_failed = True
-                return None
+        # Set default cache path
+        if cache_path is None:
+            cache_path = os.path.join(rules_dir, "tarot_embeds.pt")
 
-            os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-            torch.set_default_device("cpu")
+        # Calculate data hash before calling super().__init__
+        self._data_hash = self._calculate_data_hash()
 
-            # 모델 로딩 시도 (fallback 포함)
-            models_to_try = [
-                self.model_name,
-                MODEL_OPTIONS['medium'],
-                MODEL_OPTIONS['fast']
-            ]
-            # 중복 제거
-            models_to_try = list(dict.fromkeys(models_to_try))
-
-            for model_name in models_to_try:
-                try:
-                    print(f"[TarotRAG] Loading model: {model_name}...")
-                    self._model = SentenceTransformer(model_name, device="cpu")
-                    self.model_name = model_name
-                    print(f"[TarotRAG] Model loaded successfully: {model_name}")
-                    break
-                except Exception as e:
-                    print(f"[TarotRAG] Failed to load {model_name}: {e}")
-                    continue
-
-            if self._model is None:
-                print("[TarotRAG] All model loading attempts failed")
-                self._model_load_failed = True
-
-        return self._model
+        # Initialize base class (this calls _load_data and _prepare_embeddings)
+        super().__init__(cache_path=cache_path)
 
     def _calculate_data_hash(self) -> str:
         """파일 수정 시간 기반 해시 계산 (캐시 무효화용)"""
@@ -128,41 +103,16 @@ class TarotRAG:
             hash_str = "|".join(hash_data)
             return hashlib.md5(hash_str.encode()).hexdigest()[:16]
         except Exception as e:
-            print(f"[TarotRAG] Hash calculation error: {e}")
+            logger.warning(f"[TarotRAG] Hash calculation error: {e}")
             return str(time.time())
 
-    def clear_cache(self) -> bool:
-        """캐시 파일 삭제 및 임베딩 재생성"""
-        try:
-            if os.path.exists(self.embed_cache_path):
-                os.remove(self.embed_cache_path)
-                print("[TarotRAG] Cache cleared")
-
-            self.card_embeds = None
-            self._prepare_embeddings()
-            return True
-        except Exception as e:
-            print(f"[TarotRAG] Failed to clear cache: {e}")
-            return False
-
-    def is_cache_valid(self) -> bool:
-        """캐시 유효성 검사"""
-        if not os.path.exists(self.embed_cache_path):
-            return False
-
-        try:
-            cache = torch.load(self.embed_cache_path, map_location="cpu")
-            cached_hash = cache.get('data_hash', '')
-            current_hash = self._calculate_data_hash()
-
-            return cached_hash == current_hash and cache.get('model_name') == self.model_name
-        except Exception:
-            return False
-
-    def _load_cards(self):
-        """Load all tarot card JSON files"""
+    def _load_data(self) -> None:
+        """
+        Load all tarot card JSON files.
+        Implements abstract method from BaseEmbeddingRAG.
+        """
         if not os.path.exists(self.rules_dir):
-            print(f"[TarotRAG] Rules directory not found: {self.rules_dir}")
+            logger.warning(f"[TarotRAG] Rules directory not found: {self.rules_dir}")
             return
 
         for filename in os.listdir(self.rules_dir):
@@ -201,7 +151,7 @@ class TarotRAG:
                         advice = upright.get('advice', '')
                         combined = f"{card_name} upright: {' '.join(keywords)} {meaning} {advice}".strip()
 
-                        self.card_texts.append({
+                        card_data = {
                             'card_id': card_id,
                             'name': card_name,
                             'orientation': 'upright',
@@ -211,7 +161,10 @@ class TarotRAG:
                             'text': combined,
                             'suit': card.get('suit', 'major'),
                             'arcana': card.get('arcana', 'major')
-                        })
+                        }
+                        self.card_texts.append(card_data)
+                        self._items.append(card_data)
+                        self._texts.append(combined)
 
                     # Extract reversed meaning
                     reversed_data = card.get('reversed', {})
@@ -221,7 +174,7 @@ class TarotRAG:
                         advice = reversed_data.get('advice', '')
                         combined = f"{card_name} reversed: {' '.join(keywords)} {meaning} {advice}".strip()
 
-                        self.card_texts.append({
+                        card_data = {
                             'card_id': card_id,
                             'name': card_name,
                             'orientation': 'reversed',
@@ -231,12 +184,15 @@ class TarotRAG:
                             'text': combined,
                             'suit': card.get('suit', 'major'),
                             'arcana': card.get('arcana', 'major')
-                        })
+                        }
+                        self.card_texts.append(card_data)
+                        self._items.append(card_data)
+                        self._texts.append(combined)
 
             except Exception as e:
-                print(f"[TarotRAG] Failed to load {filename}: {e}")
+                logger.error(f"[TarotRAG] Failed to load {filename}: {e}")
 
-        print(f"[TarotRAG] Loaded {len(self.cards)} cards, {len(self.card_texts)} interpretations")
+        logger.info(f"[TarotRAG] Loaded {len(self.cards)} cards, {len(self.card_texts)} interpretations")
 
     def _load_complete_interpretations(self, data: dict):
         """Load complete_interpretations.json (generated corpus)"""
@@ -259,7 +215,7 @@ class TarotRAG:
                     if meaning:
                         keywords = card.get('keywords', [])
                         combined = f"{card_name} upright {area}: {' '.join(keywords[:3]) if keywords else ''} {meaning}".strip()
-                        self.card_texts.append({
+                        card_data = {
                             'card_id': card_id,
                             'name': card_name,
                             'orientation': 'upright',
@@ -271,7 +227,10 @@ class TarotRAG:
                             'suit': 'major',
                             'arcana': 'major',
                             'source': 'complete_corpus'
-                        })
+                        }
+                        self.card_texts.append(card_data)
+                        self._items.append(card_data)
+                        self._texts.append(combined)
 
             # Extract reversed meanings
             reversed_data = card.get('reversed', {})
@@ -281,7 +240,7 @@ class TarotRAG:
                     if meaning:
                         keywords = card.get('keywords', [])
                         combined = f"{card_name} reversed {area}: {meaning}".strip()
-                        self.card_texts.append({
+                        card_data = {
                             'card_id': card_id,
                             'name': card_name,
                             'orientation': 'reversed',
@@ -293,7 +252,10 @@ class TarotRAG:
                             'suit': 'major',
                             'arcana': 'major',
                             'source': 'complete_corpus'
-                        })
+                        }
+                        self.card_texts.append(card_data)
+                        self._items.append(card_data)
+                        self._texts.append(combined)
 
         # Load minor arcana
         for card in data.get('minor_arcana', []):
@@ -312,7 +274,7 @@ class TarotRAG:
                 if general:
                     keywords = card.get('keywords', [])
                     combined = f"{card_name} upright: {' '.join(keywords[:3]) if keywords else ''} {general}".strip()
-                    self.card_texts.append({
+                    card_data = {
                         'card_id': card_id,
                         'name': card_name,
                         'orientation': 'upright',
@@ -323,7 +285,10 @@ class TarotRAG:
                         'suit': suit_name,
                         'arcana': 'minor',
                         'source': 'complete_corpus'
-                    })
+                    }
+                    self.card_texts.append(card_data)
+                    self._items.append(card_data)
+                    self._texts.append(combined)
 
             # Extract reversed
             reversed_data = card.get('reversed', {})
@@ -331,7 +296,7 @@ class TarotRAG:
                 general = reversed_data.get('general', '')
                 if general:
                     combined = f"{card_name} reversed: {general}".strip()
-                    self.card_texts.append({
+                    card_data = {
                         'card_id': card_id,
                         'name': card_name,
                         'orientation': 'reversed',
@@ -342,92 +307,94 @@ class TarotRAG:
                         'suit': suit_name,
                         'arcana': 'minor',
                         'source': 'complete_corpus'
-                    })
+                    }
+                    self.card_texts.append(card_data)
+                    self._items.append(card_data)
+                    self._texts.append(combined)
 
         # Store position meanings and combinations
         self.position_meanings = data.get('position_meanings', {})
         self.card_combinations = data.get('combinations', [])
 
-        print(f"[TarotRAG] Loaded complete corpus: {len(data.get('major_arcana', []))} major + {len(data.get('minor_arcana', []))} minor")
+        logger.info(f"[TarotRAG] Loaded complete corpus: {len(data.get('major_arcana', []))} major + {len(data.get('minor_arcana', []))} minor")
 
-    def _prepare_embeddings(self):
-        """Prepare or load cached embeddings with cache invalidation"""
-        if not self.card_texts:
-            print("[TarotRAG] No card texts to embed")
+    def _prepare_embeddings(self) -> None:
+        """Prepare or load cached embeddings with cache invalidation and hash validation."""
+        if not self._texts:
+            logger.warning("[TarotRAG] No card texts to embed")
             return
 
-        # 현재 데이터 해시 계산
-        self._data_hash = self._calculate_data_hash()
-
         # Check cache with hash validation
-        if os.path.exists(self.embed_cache_path):
+        if self._cache_path and os.path.exists(self._cache_path):
             try:
-                cache_data = torch.load(self.embed_cache_path, map_location="cpu")
+                cache_data = torch.load(self._cache_path, map_location="cpu")
 
-                # 캐시 유효성 검사: count + data hash + model name
+                # 캐시 유효성 검사: count + data hash
                 cache_valid = (
-                    cache_data.get('count') == len(self.card_texts) and
-                    cache_data.get('data_hash') == self._data_hash and
-                    cache_data.get('model_name') == self.model_name
+                    cache_data.get('count') == len(self._texts) and
+                    cache_data.get('data_hash') == self._data_hash
                 )
 
                 if cache_valid:
-                    self.card_embeds = cache_data['embeds']
-                    print(f"[TarotRAG] Loaded cached embeddings: {self.card_embeds.shape} "
-                          f"(hash={self._data_hash[:8]})")
+                    self._embeddings = cache_data.get('embeds', cache_data.get('embeddings'))
+                    logger.info(f"[TarotRAG] Loaded cached embeddings: {self._embeddings.shape} "
+                              f"(hash={self._data_hash[:8] if self._data_hash else 'N/A'})")
                     return
                 else:
                     reason = []
-                    if cache_data.get('count') != len(self.card_texts):
-                        reason.append(f"count mismatch ({cache_data.get('count')} != {len(self.card_texts)})")
+                    if cache_data.get('count') != len(self._texts):
+                        reason.append(f"count mismatch ({cache_data.get('count')} != {len(self._texts)})")
                     if cache_data.get('data_hash') != self._data_hash:
                         reason.append("data files changed")
-                    if cache_data.get('model_name') != self.model_name:
-                        reason.append(f"model changed ({cache_data.get('model_name')} -> {self.model_name})")
-                    print(f"[TarotRAG] Cache invalidated: {', '.join(reason)}")
+                    logger.info(f"[TarotRAG] Cache invalidated: {', '.join(reason)}")
 
             except Exception as e:
-                print(f"[TarotRAG] Cache load failed: {e}")
+                logger.warning(f"[TarotRAG] Cache load failed: {e}")
 
-        # Check if model is available
-        if self.model is None:
-            print("[TarotRAG] Model not available, skipping embedding generation")
-            return
+        # Use base class embedding generation
+        super()._prepare_embeddings()
 
-        # Generate new embeddings with retry
-        max_retries = 2
-        for attempt in range(max_retries):
+        # Save cache with additional metadata
+        if self._embeddings is not None and self._cache_path:
             try:
-                print(f"[TarotRAG] Generating embeddings for {len(self.card_texts)} card interpretations "
-                      f"(model: {self.model_name})...")
-                texts = [r['text'] for r in self.card_texts]
-                self.card_embeds = self.model.encode(
-                    texts,
-                    convert_to_tensor=True,
-                    normalize_embeddings=True,
-                    show_progress_bar=len(texts) > 50,
-                    batch_size=32
-                )
-                print(f"[TarotRAG] Generated {self.card_embeds.shape[0]} embeddings")
-                break
+                torch.save({
+                    'embeds': self._embeddings,
+                    'embeddings': self._embeddings,  # For compatibility
+                    'count': len(self._texts),
+                    'data_hash': self._data_hash,
+                    'created_at': time.time()
+                }, self._cache_path)
+                logger.info(f"[TarotRAG] Saved embeddings cache (hash={self._data_hash[:8] if self._data_hash else 'N/A'})")
             except Exception as e:
-                print(f"[TarotRAG] Embedding generation attempt {attempt + 1} failed: {e}")
-                if attempt == max_retries - 1:
-                    print("[TarotRAG] All embedding attempts failed")
-                    return
+                logger.error(f"[TarotRAG] Failed to save cache: {e}")
 
-        # Save cache with metadata
+    def clear_cache(self) -> bool:
+        """캐시 파일 삭제 및 임베딩 재생성"""
         try:
-            torch.save({
-                'embeds': self.card_embeds,
-                'count': len(self.card_texts),
-                'data_hash': self._data_hash,
-                'model_name': self.model_name,
-                'created_at': time.time()
-            }, self.embed_cache_path)
-            print(f"[TarotRAG] Saved embeddings cache (hash={self._data_hash[:8]})")
+            if self._cache_path and os.path.exists(self._cache_path):
+                os.remove(self._cache_path)
+                logger.info("[TarotRAG] Cache cleared")
+
+            self._embeddings = None
+            self._prepare_embeddings()
+            return True
         except Exception as e:
-            print(f"[TarotRAG] Failed to save cache: {e}")
+            logger.error(f"[TarotRAG] Failed to clear cache: {e}")
+            return False
+
+    def is_cache_valid(self) -> bool:
+        """캐시 유효성 검사"""
+        if not self._cache_path or not os.path.exists(self._cache_path):
+            return False
+
+        try:
+            cache = torch.load(self._cache_path, map_location="cpu")
+            cached_hash = cache.get('data_hash', '')
+            current_hash = self._calculate_data_hash()
+
+            return cached_hash == current_hash
+        except Exception:
+            return False
 
     def search(self, query: str, top_k: int = 10, orientation: str = None, threshold: float = 0.1) -> List[Dict]:
         """
@@ -443,38 +410,25 @@ class TarotRAG:
             List of matched card interpretations with similarity scores
         """
         # Graceful degradation: 모델/임베딩 없으면 키워드 검색으로 fallback
-        if self.card_embeds is None or len(self.card_texts) == 0:
+        if self._embeddings is None or len(self.card_texts) == 0:
             return self._fallback_keyword_search(query, top_k, orientation)
 
         if self.model is None:
             return self._fallback_keyword_search(query, top_k, orientation)
 
         try:
-            # Encode query
-            query_embed = self.model.encode(
-                query,
-                convert_to_tensor=True,
-                normalize_embeddings=True
-            )
+            # Use base class search with orientation filter
+            filters = {}
+            if orientation:
+                filters['orientation'] = orientation
 
-            # Calculate similarity
-            scores = util.cos_sim(query_embed, self.card_embeds)[0]
+            rag_results = super().search(query, top_k=top_k * 2, min_score=threshold, **filters)
 
-            # Get top-k results
-            top_results = torch.topk(scores, k=min(top_k * 2, len(self.card_texts)))
-
+            # Convert RAGResult to legacy dict format
             results = []
-            for idx, score in zip(top_results.indices, top_results.values):
-                if float(score) < threshold:
-                    continue
-
-                card_data = self.card_texts[int(idx)].copy()
-
-                # Filter by orientation if specified
-                if orientation and card_data['orientation'] != orientation:
-                    continue
-
-                card_data['similarity'] = round(float(score), 4)
+            for r in rag_results:
+                card_data = dict(r.metadata)
+                card_data['similarity'] = round(r.score, 4)
                 results.append(card_data)
 
                 if len(results) >= top_k:
@@ -483,7 +437,7 @@ class TarotRAG:
             return results
 
         except Exception as e:
-            print(f"[TarotRAG] Search error: {e}")
+            logger.error(f"[TarotRAG] Search error: {e}")
             return self._fallback_keyword_search(query, top_k, orientation)
 
     def _fallback_keyword_search(self, query: str, top_k: int = 10, orientation: str = None) -> List[Dict]:
@@ -624,14 +578,13 @@ class TarotRAG:
         return {
             'total_cards': len(self.cards),
             'total_interpretations': len(self.card_texts),
-            'embeddings_loaded': self.card_embeds is not None,
-            'embeddings_shape': list(self.card_embeds.shape) if self.card_embeds is not None else None,
-            'model_name': self.model_name,
+            'embeddings_loaded': self._embeddings is not None,
+            'embeddings_shape': list(self._embeddings.shape) if self._embeddings is not None else None,
             'model_loaded': self._model is not None,
-            'model_load_failed': self._model_load_failed,
-            'cache_exists': os.path.exists(self.embed_cache_path),
+            'cache_exists': self._cache_path and os.path.exists(self._cache_path),
             'cache_valid': self.is_cache_valid(),
             'data_hash': self._data_hash[:8] if self._data_hash else None,
+            'is_ready': self.is_ready,
         }
 
     def health_check(self) -> Tuple[bool, str]:
@@ -649,16 +602,13 @@ class TarotRAG:
         if len(self.card_texts) == 0:
             issues.append("No card texts loaded")
 
-        if self.card_embeds is None:
+        if self._embeddings is None:
             issues.append("Embeddings not generated")
-
-        if self._model_load_failed:
-            issues.append("Model loading failed")
 
         if issues:
             return False, f"Unhealthy: {', '.join(issues)}"
 
-        return True, f"Healthy: {len(self.cards)} cards, {len(self.card_texts)} interpretations, model={self.model_name}"
+        return True, f"Healthy: {len(self.cards)} cards, {len(self.card_texts)} interpretations"
 
 
 # ===============================================================

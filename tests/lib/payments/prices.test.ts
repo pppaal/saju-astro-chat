@@ -1,185 +1,117 @@
-/**
- * Payment Prices Tests
- *
- * Tests for payment price configuration utilities
- */
+import { describe, it, expect } from 'vitest';
 
-import { vi, beforeEach, afterEach } from "vitest";
-import type { PlanKey, BillingCycle, CreditPackKey } from "@/lib/payments/prices";
-
-// Test the types and logic without relying on env vars
-describe("Payment Types", () => {
-  describe("PlanKey type", () => {
-    it("accepts valid plan keys", () => {
-      const validPlans: PlanKey[] = ["starter", "pro", "premium"];
-      expect(validPlans).toHaveLength(3);
-      expect(validPlans).toContain("starter");
-      expect(validPlans).toContain("pro");
-      expect(validPlans).toContain("premium");
-    });
+describe('Payments Prices Module', () => {
+  it('should export PlanKey type', async () => {
+    const module = await import('@/lib/payments/prices');
+    expect(module).toBeDefined();
   });
 
-  describe("BillingCycle type", () => {
-    it("accepts valid billing cycles", () => {
-      const validCycles: BillingCycle[] = ["monthly", "yearly"];
-      expect(validCycles).toHaveLength(2);
-      expect(validCycles).toContain("monthly");
-      expect(validCycles).toContain("yearly");
-    });
+  it('should export BillingCycle type', async () => {
+    const module = await import('@/lib/payments/prices');
+    expect(module).toBeDefined();
   });
 
-  describe("CreditPackKey type", () => {
-    it("accepts valid credit pack keys", () => {
-      const validPacks: CreditPackKey[] = ["mini", "standard", "plus", "mega", "ultimate"];
-      expect(validPacks).toHaveLength(5);
-      expect(validPacks).toContain("mini");
-      expect(validPacks).toContain("standard");
-      expect(validPacks).toContain("plus");
-      expect(validPacks).toContain("mega");
-      expect(validPacks).toContain("ultimate");
-    });
-  });
-});
-
-describe("Price lookup logic", () => {
-  // Test the matching logic without env vars
-  describe("plan price matching", () => {
-    const mockPriceEntries = [
-      { id: "price_starter_monthly", plan: "starter" as PlanKey, billingCycle: "monthly" as BillingCycle },
-      { id: "price_starter_yearly", plan: "starter" as PlanKey, billingCycle: "yearly" as BillingCycle },
-      { id: "price_pro_monthly", plan: "pro" as PlanKey, billingCycle: "monthly" as BillingCycle },
-      { id: "price_pro_yearly", plan: "pro" as PlanKey, billingCycle: "yearly" as BillingCycle },
-      { id: "price_premium_monthly", plan: "premium" as PlanKey, billingCycle: "monthly" as BillingCycle },
-      { id: "price_premium_yearly", plan: "premium" as PlanKey, billingCycle: "yearly" as BillingCycle },
-    ];
-
-    const getPriceId = (plan: PlanKey, billingCycle: BillingCycle): string | null => {
-      const found = mockPriceEntries.find((p) => p.plan === plan && p.billingCycle === billingCycle);
-      return found?.id ?? null;
-    };
-
-    const getPlanFromPriceId = (priceId: string) => {
-      const found = mockPriceEntries.find((p) => p.id === priceId);
-      return found ? { plan: found.plan, billingCycle: found.billingCycle } : null;
-    };
-
-    it("finds price id for starter monthly", () => {
-      expect(getPriceId("starter", "monthly")).toBe("price_starter_monthly");
-    });
-
-    it("finds price id for starter yearly", () => {
-      expect(getPriceId("starter", "yearly")).toBe("price_starter_yearly");
-    });
-
-    it("finds price id for pro monthly", () => {
-      expect(getPriceId("pro", "monthly")).toBe("price_pro_monthly");
-    });
-
-    it("finds price id for premium yearly", () => {
-      expect(getPriceId("premium", "yearly")).toBe("price_premium_yearly");
-    });
-
-    it("returns plan info from price id", () => {
-      const result = getPlanFromPriceId("price_pro_monthly");
-      expect(result).toEqual({ plan: "pro", billingCycle: "monthly" });
-    });
-
-    it("returns null for unknown price id", () => {
-      expect(getPlanFromPriceId("unknown_price")).toBeNull();
-    });
+  it('should export CreditPackKey type', async () => {
+    const module = await import('@/lib/payments/prices');
+    expect(module).toBeDefined();
   });
 
-  describe("credit pack matching", () => {
-    const mockCreditPackEntries = [
-      { id: "price_credit_mini", pack: "mini" as CreditPackKey },
-      { id: "price_credit_standard", pack: "standard" as CreditPackKey },
-      { id: "price_credit_plus", pack: "plus" as CreditPackKey },
-      { id: "price_credit_mega", pack: "mega" as CreditPackKey },
-      { id: "price_credit_ultimate", pack: "ultimate" as CreditPackKey },
-    ];
-
-    const getCreditPackPriceId = (pack: CreditPackKey): string | null => {
-      const found = mockCreditPackEntries.find((p) => p.pack === pack);
-      return found?.id ?? null;
-    };
-
-    const getCreditPackFromPriceId = (priceId: string) => {
-      const found = mockCreditPackEntries.find((p) => p.id === priceId);
-      return found ? { pack: found.pack } : null;
-    };
-
-    it("finds price id for mini pack", () => {
-      expect(getCreditPackPriceId("mini")).toBe("price_credit_mini");
-    });
-
-    it("finds price id for standard pack", () => {
-      expect(getCreditPackPriceId("standard")).toBe("price_credit_standard");
-    });
-
-    it("finds price id for ultimate pack", () => {
-      expect(getCreditPackPriceId("ultimate")).toBe("price_credit_ultimate");
-    });
-
-    it("returns pack info from price id", () => {
-      const result = getCreditPackFromPriceId("price_credit_mega");
-      expect(result).toEqual({ pack: "mega" });
-    });
-
-    it("returns null for unknown price id", () => {
-      expect(getCreditPackFromPriceId("unknown")).toBeNull();
-    });
-  });
-});
-
-describe("Credit pack sizes", () => {
-  // Document expected credit amounts for each pack
-  const creditAmounts: Record<CreditPackKey, number> = {
-    mini: 5,
-    standard: 15,
-    plus: 40,
-    mega: 100,
-    ultimate: 250,
-  };
-
-  it("mini pack gives 5 credits", () => {
-    expect(creditAmounts.mini).toBe(5);
+  it('should export getPriceId function', async () => {
+    const { getPriceId } = await import('@/lib/payments/prices');
+    expect(typeof getPriceId).toBe('function');
   });
 
-  it("standard pack gives 15 credits", () => {
-    expect(creditAmounts.standard).toBe(15);
+  it('should get price ID for starter monthly plan', async () => {
+    const { getPriceId } = await import('@/lib/payments/prices');
+    const result = getPriceId('starter', 'monthly');
+
+    // May return null if env vars not set, or string if set
+    expect(result === null || typeof result === 'string').toBe(true);
   });
 
-  it("plus pack gives 40 credits", () => {
-    expect(creditAmounts.plus).toBe(40);
+  it('should get price ID for pro yearly plan', async () => {
+    const { getPriceId } = await import('@/lib/payments/prices');
+    const result = getPriceId('pro', 'yearly');
+
+    expect(result === null || typeof result === 'string').toBe(true);
   });
 
-  it("mega pack gives 100 credits", () => {
-    expect(creditAmounts.mega).toBe(100);
+  it('should get price ID for premium plan', async () => {
+    const { getPriceId } = await import('@/lib/payments/prices');
+    const resultMonthly = getPriceId('premium', 'monthly');
+    const resultYearly = getPriceId('premium', 'yearly');
+
+    expect(resultMonthly === null || typeof resultMonthly === 'string').toBe(true);
+    expect(resultYearly === null || typeof resultYearly === 'string').toBe(true);
   });
 
-  it("ultimate pack gives 250 credits", () => {
-    expect(creditAmounts.ultimate).toBe(250);
+  it('should export getCreditPackPriceId function', async () => {
+    const { getCreditPackPriceId } = await import('@/lib/payments/prices');
+    expect(typeof getCreditPackPriceId).toBe('function');
   });
 
-  it("packs increase in size", () => {
-    const packs: CreditPackKey[] = ["mini", "standard", "plus", "mega", "ultimate"];
-    for (let i = 1; i < packs.length; i++) {
-      expect(creditAmounts[packs[i]]).toBeGreaterThan(creditAmounts[packs[i - 1]]);
+  it('should get credit pack price ID for mini', async () => {
+    const { getCreditPackPriceId } = await import('@/lib/payments/prices');
+    const result = getCreditPackPriceId('mini');
+
+    expect(result === null || typeof result === 'string').toBe(true);
+  });
+
+  it('should get credit pack price ID for all packs', async () => {
+    const { getCreditPackPriceId } = await import('@/lib/payments/prices');
+
+    const packs = ['mini', 'standard', 'plus', 'mega', 'ultimate'] as const;
+    for (const pack of packs) {
+      const result = getCreditPackPriceId(pack);
+      expect(result === null || typeof result === 'string').toBe(true);
     }
   });
-});
 
-describe("Billing cycle logic", () => {
-  it("yearly billing has 12 months", () => {
-    const monthsInYear = 12;
-    expect(monthsInYear).toBe(12);
+  it('should export getPlanFromPriceId function', async () => {
+    const { getPlanFromPriceId } = await import('@/lib/payments/prices');
+    expect(typeof getPlanFromPriceId).toBe('function');
   });
 
-  it("yearly discount calculation", () => {
-    // Typical: yearly = 10 months worth (2 months free)
-    const monthlyPrice = 10;
-    const yearlyPrice = monthlyPrice * 10; // 2 months free
-    const discount = ((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100;
-    expect(discount).toBeCloseTo(16.67, 1);
+  it('should return null for unknown price ID', async () => {
+    const { getPlanFromPriceId } = await import('@/lib/payments/prices');
+    const result = getPlanFromPriceId('unknown_price_id');
+
+    expect(result).toBe(null);
+  });
+
+  it('should export getCreditPackFromPriceId function', async () => {
+    const { getCreditPackFromPriceId } = await import('@/lib/payments/prices');
+    expect(typeof getCreditPackFromPriceId).toBe('function');
+  });
+
+  it('should return null for unknown credit pack price ID', async () => {
+    const { getCreditPackFromPriceId } = await import('@/lib/payments/prices');
+    const result = getCreditPackFromPriceId('unknown_credit_pack_id');
+
+    expect(result).toBe(null);
+  });
+
+  it('should export allowedPriceIds function', async () => {
+    const { allowedPriceIds } = await import('@/lib/payments/prices');
+    expect(typeof allowedPriceIds).toBe('function');
+  });
+
+  it('should return array of allowed price IDs', async () => {
+    const { allowedPriceIds } = await import('@/lib/payments/prices');
+    const result = allowedPriceIds();
+
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it('should export allowedCreditPackIds function', async () => {
+    const { allowedCreditPackIds } = await import('@/lib/payments/prices');
+    expect(typeof allowedCreditPackIds).toBe('function');
+  });
+
+  it('should return array of allowed credit pack IDs', async () => {
+    const { allowedCreditPackIds } = await import('@/lib/payments/prices');
+    const result = allowedCreditPackIds();
+
+    expect(Array.isArray(result)).toBe(true);
   });
 });

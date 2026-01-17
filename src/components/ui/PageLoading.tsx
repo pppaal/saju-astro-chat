@@ -1,13 +1,34 @@
 "use client";
 
 import styles from "./PageLoading.module.css";
+import { ChatSkeleton } from "./ChatSkeleton";
+import { CalendarSkeleton } from "./CalendarSkeleton";
+import { TarotPageSkeleton } from "./TarotPageSkeleton";
+import { DestinyMapSkeleton } from "./DestinyMapSkeleton";
 
 interface PageLoadingProps {
-  variant?: "default" | "minimal" | "card" | "chat" | "calendar" | "form";
+  variant?: "default" | "minimal" | "card" | "chat" | "calendar" | "form" | "tarot" | "destiny";
   message?: string;
 }
 
 export default function PageLoading({ variant = "default", message }: PageLoadingProps) {
+  // 새로운 스켈레톤들
+  if (variant === "chat") {
+    return <ChatSkeleton />;
+  }
+
+  if (variant === "calendar") {
+    return <CalendarSkeleton />;
+  }
+
+  if (variant === "tarot") {
+    return <TarotPageSkeleton />;
+  }
+
+  if (variant === "destiny") {
+    return <DestinyMapSkeleton />;
+  }
+
   if (variant === "minimal") {
     return (
       <div className={styles.minimalContainer}>
@@ -27,50 +48,6 @@ export default function PageLoading({ variant = "default", message }: PageLoadin
               <div className={styles.cardDesc} />
             </div>
           ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === "chat") {
-    return (
-      <div className={styles.container}>
-        <div className={styles.chatContainer}>
-          <div className={styles.chatHeader}>
-            <div className={styles.chatAvatar} />
-            <div className={styles.chatHeaderText} />
-          </div>
-          <div className={styles.chatMessages}>
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`${styles.chatMessage} ${i % 2 === 0 ? styles.sent : styles.received}`}
-              />
-            ))}
-          </div>
-          <div className={styles.chatInput} />
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === "calendar") {
-    return (
-      <div className={styles.container}>
-        <div className={styles.calendarContainer}>
-          <div className={styles.calendarHeader}>
-            <div className={styles.calendarNav} />
-            <div className={styles.calendarTitle} />
-            <div className={styles.calendarNav} />
-          </div>
-          <div className={styles.calendarGrid}>
-            {[...Array(7)].map((_, i) => (
-              <div key={`h-${i}`} className={styles.calendarDayHeader} />
-            ))}
-            {[...Array(35)].map((_, i) => (
-              <div key={i} className={styles.calendarDay} />
-            ))}
-          </div>
         </div>
       </div>
     );

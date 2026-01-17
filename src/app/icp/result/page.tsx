@@ -554,6 +554,9 @@ export default function ICPResultPage() {
           <Link href="/icp/quiz" className={styles.retakeButton}>
             <span>🔄</span> {isKo ? '다시 진단하기' : 'Retake Assessment'}
           </Link>
+          <Link href="/personality/combined" className={styles.retakeButton}>
+            <span>🔗</span> {isKo ? '통합 성격 분석' : 'Combined Analysis'}
+          </Link>
         </section>
       </div>
     </main>

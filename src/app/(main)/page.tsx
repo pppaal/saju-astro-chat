@@ -126,7 +126,7 @@ export default function MainPage() {
   }
 
   const [tarotState, dispatchTarot] = useReducer(tarotReducer, initialTarotState);
-  const { flippedCards, selectedCards, usedCardIndices, isDeckSpread } = tarotState;
+  const { flippedCards, selectedCards, isDeckSpread } = tarotState;
 
   useEffect(() => {
     const prompts = [

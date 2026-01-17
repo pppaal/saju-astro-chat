@@ -1,6 +1,7 @@
 import { elementTraits, dayMasterData, zodiacData, elementKeyMap, tianGanMap, elementRelations, astroToSaju } from '../data';
 import { findPlanetSign } from '../utils';
 import type { SajuData, AstroData } from '../types';
+import { getMatrixAnalysis } from './matrixAnalyzer';
 
 export function getCrossAnalysis(saju: SajuData | undefined, astro: AstroData | undefined, lang: string): { title: string; insight: string; emoji: string; summary?: string }[] {
   const insights: { title: string; insight: string; emoji: string; summary?: string }[] = [];
@@ -60,6 +61,35 @@ export function getCrossAnalysis(saju: SajuData | undefined, astro: AstroData | 
         ? `【기본】 ${elementEmotions[strongestEl]?.ko} 성향\n【감정】 ${moonData.trait.ko} 느낌\n【조합】 속마음은 이 두 가지가 섞여 있어요.`
         : `【Base】 ${elementEmotions[strongestEl]?.en} tendency\n【Emotion】 ${moonData.trait.en} feelings\n【Mix】 Your inner self is a blend of both.`
     });
+  }
+
+  // Destiny Fusion Matrix™ 시너지 분석 추가
+  const matrixAnalysis = getMatrixAnalysis(saju, astro, lang);
+  if (matrixAnalysis && matrixAnalysis.synergy) {
+    const { synergy } = matrixAnalysis;
+    const topFusions = matrixAnalysis.elementFusions
+      .filter(f => f.fusion.score >= 7)
+      .slice(0, 2);
+
+    if (topFusions.length > 0) {
+      const fusionTexts = topFusions.map(f =>
+        isKo
+          ? `${f.sajuElement} × ${f.westElement}: ${f.fusion.keyword.ko}`
+          : `${f.sajuElement} × ${f.westElement}: ${f.fusion.keyword.en}`
+      ).join('\n');
+
+      const topStrength = synergy.topStrengths[0];
+      const emoji = topStrength?.icon || "🔮";
+
+      insights.push({
+        emoji,
+        title: isKo ? '운명 융합 시너지' : 'Destiny Fusion Synergy',
+        summary: isKo ? synergy.dominantEnergy.ko : synergy.dominantEnergy.en,
+        insight: isKo
+          ? `【에너지】 ${synergy.dominantEnergy.ko}\n【핵심 융합】\n${fusionTexts}\n【종합점수】 ${synergy.overallScore}점`
+          : `【Energy】 ${synergy.dominantEnergy.en}\n【Key Fusions】\n${fusionTexts}\n【Overall Score】 ${synergy.overallScore}`
+      });
+    }
   }
 
   return insights;

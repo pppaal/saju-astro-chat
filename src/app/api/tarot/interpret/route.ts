@@ -416,7 +416,7 @@ function generateSimpleFallback(
   cards: CardInput[],
   spreadTitle: string,
   language: string,
-  userQuestion?: string
+  _userQuestion?: string
 ) {
   const isKorean = language === "ko";
 

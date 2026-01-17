@@ -59,11 +59,18 @@ export async function calculateNatal(
   }
 
   const natalRaw = await calculateNatalChart(input);
+  // NatalChartData는 Chart/AstrologyChartFacts와 구조적으로 호환됨
+  // 타입 시스템의 세부 차이(ZodiacKo vs string)는 런타임에 문제없으므로 캐스트
   const natalChart = natalRaw as unknown as Chart;
   const astroFacts = natalRaw as unknown as AstrologyChartFacts;
   const astroOptions = resolveOptions();
   const astroAspects = findNatalAspectsPlus(natalChart, {}, astroOptions);
-  const astroMeta = natalChart.meta ? buildEngineMeta(natalChart.meta, astroOptions) : null;
+
+  // meta 처리: jdUT 포함 확인 (소행성/키론 계산에 필수)
+  const rawMeta = natalRaw.meta;
+  const astroMeta = natalChart.meta
+    ? { ...buildEngineMeta(natalChart.meta, astroOptions), jdUT: rawMeta?.jdUT }
+    : rawMeta ?? null;
 
   const { planets, houses, ascendant, mc } = natalRaw;
 
@@ -80,8 +87,10 @@ export async function calculateNatal(
     facts: astroFacts,
     aspects: astroAspects,
     meta: astroMeta,
-    planets: planets as unknown as PlanetData[],
-    houses: houses as unknown as HouseCusp[],
+    // planets는 이미 PlanetData[] 타입
+    planets: planets as PlanetData[],
+    // houses를 HouseCusp[]로 변환
+    houses: houses.map(h => ({ cusp: h.cusp, longitude: h.cusp, formatted: h.formatted })) as HouseCusp[],
     ascendant,
     mc,
   };
@@ -128,21 +137,17 @@ export function computePartOfFortune(
   const degreeInSign = pofLong % 30;
 
   // Add Part of Fortune to planets
-  planets.push({
+  const partOfFortune: PlanetData = {
     name: "Part of Fortune",
     longitude: pofLong,
-    latitude: 0,
-    distance: 0,
-    longitudeSpeed: 0,
-    latitudeSpeed: 0,
-    distanceSpeed: 0,
     sign: signs[signIndex] || "Aries",
     degree: Math.floor(degreeInSign),
     minute: Math.floor((degreeInSign % 1) * 60),
     retrograde: false,
     formatted: `${signs[signIndex]} ${Math.floor(degreeInSign)}°${Math.floor((degreeInSign % 1) * 60)}'`,
     house: 0, // Will be calculated later if needed
-  } as unknown as PlanetData);
+  };
+  planets.push(partOfFortune);
 }
 
 /**

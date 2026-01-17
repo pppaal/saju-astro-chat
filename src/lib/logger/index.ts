@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 구조화된 로깅 시스템
  * console.log를 대체하는 프로덕션급 로거

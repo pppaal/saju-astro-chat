@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { searchCities } from "@/lib/cities";
@@ -48,7 +48,7 @@ export default function DestinyCalendar() {
   return <DestinyCalendarContent />;
 }
 
-function DestinyCalendarContent() {
+const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   const { locale, t } = useI18n();
   const { status } = useSession();
   const signInUrl = buildSignInUrl();
@@ -1525,4 +1525,4 @@ function DestinyCalendarContent() {
       })()}
     </div>
   );
-}
+});

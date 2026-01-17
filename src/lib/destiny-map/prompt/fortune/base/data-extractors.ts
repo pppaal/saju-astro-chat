@@ -6,7 +6,7 @@
  * It handles planetary data, saju pillars, advanced astrology points, and more.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 

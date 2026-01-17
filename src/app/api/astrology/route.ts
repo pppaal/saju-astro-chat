@@ -27,7 +27,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 // Type definitions for natal chart data
-interface NatalPlanet {
+interface _NatalPlanet {
   name: string;
   key?: string;
   formatted?: string;
@@ -38,23 +38,6 @@ interface NatalPlanet {
   speed?: number;
   rx?: boolean;
   longitude?: number;
-}
-
-interface NatalPoint {
-  formatted?: string;
-}
-
-interface NatalChartResult {
-  ascendant?: NatalPoint;
-  mc?: NatalPoint;
-  planets?: NatalPlanet[];
-  houses?: unknown[];
-  meta?: Record<string, unknown>;
-}
-
-interface ChartResult {
-  houses?: unknown[];
-  points?: NatalPlanet[];
 }
 
 interface AstrologyRequestBody {

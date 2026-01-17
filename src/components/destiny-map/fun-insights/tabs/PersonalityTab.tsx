@@ -25,7 +25,8 @@ interface PersonalityAnalysis {
 }
 
 export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combinedLifeTheme }: TabProps) {
-  const personalityAnalysis = data.personalityAnalysis as unknown as PersonalityAnalysis | null;
+  // TabData.personalityAnalysis is Record<string, unknown> | null, cast to local interface
+  const personalityAnalysis = data.personalityAnalysis as PersonalityAnalysis | null;
   const strengthsWeaknesses = getStrengthsAndWeaknesses(saju ?? undefined, astro ?? undefined, lang);
   const personalizedAdvices = getPersonalizedAdvice(saju ?? undefined, astro ?? undefined, lang);
   const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);

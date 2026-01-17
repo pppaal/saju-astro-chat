@@ -30,7 +30,10 @@ except ImportError:
     HAS_BM25 = False
     print("[HybridRAG] rank_bm25 not installed, using fallback keyword search")
 
-from saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
+try:
+    from backend_ai.app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
+except ImportError:
+    from app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
 
 
 # ===============================================================

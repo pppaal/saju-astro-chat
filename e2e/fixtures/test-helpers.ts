@@ -127,22 +127,30 @@ export class TestHelpers {
    * Check if user has premium status
    */
   async checkPremiumStatus(): Promise<boolean> {
-    const response = await this.page.request.get("/api/me/premium");
-    if (!response.ok()) return false;
+    try {
+      const response = await this.page.request.get("/api/me/premium", { timeout: 30000 });
+      if (!response.ok()) return false;
 
-    const data = await response.json();
-    return data.isPremium === true;
+      const data = await response.json();
+      return data.isPremium === true;
+    } catch {
+      return false;
+    }
   }
 
   /**
    * Get user's current credit balance
    */
   async getCreditBalance(): Promise<number> {
-    const response = await this.page.request.get("/api/me/credits");
-    if (!response.ok()) return 0;
+    try {
+      const response = await this.page.request.get("/api/me/credits", { timeout: 30000 });
+      if (!response.ok()) return 0;
 
-    const data = await response.json();
-    return data.credits || 0;
+      const data = await response.json();
+      return data.credits || 0;
+    } catch {
+      return 0;
+    }
   }
 
   /**
@@ -166,29 +174,41 @@ export class TestHelpers {
    * Clear all cookies and storage
    */
   async clearSession() {
-    await this.page.context().clearCookies();
-    await this.page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    try {
+      await this.page.context().clearCookies();
+      await this.page.evaluate(() => {
+        try { localStorage.clear(); } catch { /* ignore */ }
+        try { sessionStorage.clear(); } catch { /* ignore */ }
+      });
+    } catch {
+      // Ignore if page context not available
+    }
   }
 
   /**
    * Mock premium user by setting session
    */
   async mockPremiumUser() {
-    await this.page.evaluate(() => {
-      localStorage.setItem("mock_premium", "true");
-    });
+    try {
+      await this.page.evaluate(() => {
+        try { localStorage.setItem("mock_premium", "true"); } catch { /* ignore */ }
+      });
+    } catch {
+      // Ignore if page context not available
+    }
   }
 
   /**
    * Add credits to user account (for testing)
    */
   async mockCredits(amount: number) {
-    await this.page.evaluate((credits) => {
-      localStorage.setItem("mock_credits", String(credits));
-    }, amount);
+    try {
+      await this.page.evaluate((credits) => {
+        try { localStorage.setItem("mock_credits", String(credits)); } catch { /* ignore */ }
+      }, amount);
+    } catch {
+      // Ignore if page context not available
+    }
   }
 
   /**

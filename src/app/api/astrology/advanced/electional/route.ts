@@ -27,16 +27,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { date, time, latitude, longitude, timeZone, eventType } = body ?? {};
+    const { date, time, latitude, longitude, timeZone, eventType, basicOnly } = body ?? {};
 
-    if (!date || !time || latitude === undefined || longitude === undefined || !timeZone || !eventType) {
+    // basicOnly 모드: eventType 없이 기본 Moon Phase/VOC 정보만 반환
+    if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json(
-        { error: "date, time, latitude, longitude, timeZone, and eventType are required." },
+        { error: "date, time, latitude, longitude, and timeZone are required." },
         { status: 400, headers: limit.headers }
       );
     }
 
-    // 유효한 이벤트 타입 확인
+    // 유효한 이벤트 타입 확인 (basicOnly가 아닌 경우에만)
     const validEventTypes: ElectionalEventType[] = [
       "business_start", "signing_contracts", "marriage", "engagement", "first_date",
       "surgery", "dental", "start_treatment", "long_journey", "moving_house",
@@ -44,7 +45,14 @@ export async function POST(request: Request) {
       "publishing", "starting_studies", "exam", "lawsuit", "court_appearance"
     ];
 
-    if (!validEventTypes.includes(eventType)) {
+    if (!basicOnly && !eventType) {
+      return NextResponse.json(
+        { error: "eventType is required (or set basicOnly: true for basic moon/VOC info)" },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    if (eventType && !validEventTypes.includes(eventType)) {
       return NextResponse.json(
         { error: `Invalid eventType. Valid types: ${validEventTypes.join(", ")}` },
         { status: 400, headers: limit.headers }
@@ -76,10 +84,31 @@ export async function POST(request: Request) {
     const chart = toChart(chartData);
     const dateTime = new Date(year, month - 1, day, hour, minute);
 
-    // 택일 분석
-    const analysis = analyzeElection(chart, eventType as ElectionalEventType, dateTime);
+    // basicOnly 모드: 기본 Moon Phase/VOC/역행 정보만 반환
+    if (basicOnly) {
+      // analyzeElection을 general 목적으로 호출하여 기본 정보 추출
+      const basicAnalysis = analyzeElection(chart, "business_start" as ElectionalEventType, dateTime);
 
-    // 추가 정보
+      const res = NextResponse.json(
+        {
+          moonPhase: basicAnalysis.moonPhase,
+          moonPhaseName: getMoonPhaseName(basicAnalysis.moonPhase),
+          moonSign: basicAnalysis.moonSign,
+          voidOfCourse: basicAnalysis.voidOfCourse,
+          retrogradePlanets: basicAnalysis.retrogradePlanets,
+          dateTime: dateTime.toISOString(),
+          basicOnly: true,
+        },
+        { status: 200 }
+      );
+
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      res.headers.set("Cache-Control", "no-store");
+      return res;
+    }
+
+    // 택일 분석 (full mode)
+    const analysis = analyzeElection(chart, eventType as ElectionalEventType, dateTime);
 
     // 이벤트 가이드라인
     const guidelines = getElectionalGuidelines(eventType as ElectionalEventType);

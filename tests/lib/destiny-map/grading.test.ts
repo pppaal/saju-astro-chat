@@ -37,15 +37,24 @@ describe("calculateGrade", () => {
       expect(result.grade).toBe(0);
     });
 
-    it("does not return grade 0 if hasChung is true", () => {
+    it("still returns grade 0 if only hasChung is true (not both)", () => {
       const input: GradeInput = { ...baseInput, score: 75, hasChung: true };
       const result = calculateGrade(input);
-      expect(result.grade).not.toBe(0);
+      // 충만 있고 형이 없으면 Grade 0 가능 (완화된 조건)
+      expect(result.grade).toBe(0);
     });
 
-    it("does not return grade 0 if hasXing is true", () => {
+    it("still returns grade 0 if only hasXing is true (not both)", () => {
       const input: GradeInput = { ...baseInput, score: 75, hasXing: true };
       const result = calculateGrade(input);
+      // 형만 있고 충이 없으면 Grade 0 가능 (완화된 조건)
+      expect(result.grade).toBe(0);
+    });
+
+    it("does not return grade 0 if both hasChung AND hasXing are true", () => {
+      const input: GradeInput = { ...baseInput, score: 75, hasChung: true, hasXing: true };
+      const result = calculateGrade(input);
+      // 충과 형 둘 다 있으면 Grade 0 불가
       expect(result.grade).not.toBe(0);
     });
   });

@@ -2,15 +2,15 @@
  * Destiny Map Engine Core - Main Orchestrator
  * 운명 지도 엔진 코어 - 모든 모듈을 통합하는 메인 오케스트레이터
  *
- * This module orchestrates all astrology calculations by coordinating
+ * This module orchestrates all astrology and saju calculations by coordinating
  * the specialized modules: natal charts, advanced points, returns,
- * progressions, specialized charts, asteroids, and fixed stars.
+ * progressions, specialized charts, asteroids, fixed stars, saju, and more.
  */
 
-'use server';
+// Note: 'use server' removed - exports include non-async values (cache, utility functions)
 
 import { CacheManager, generateDestinyMapCacheKey } from './cache-manager';
-import { calculateNatal, getNowInTimezone } from './natal-calculations';
+import { calculateNatal } from './natal-calculations';
 import { calculateAdvancedPoints } from './advanced-points';
 import {
   calculateSolarReturnChart,
@@ -19,21 +19,23 @@ import {
 } from './returns-progressions';
 import { calculateAllSpecializedCharts } from './specialized-charts';
 import { calculateAllAsteroidsStars } from './asteroids-stars';
+import { calculateElectionalAnalysis, calculateMidpointsAnalysis } from './electional-midpoints';
+import { calculateSajuOrchestrated } from './saju-orchestrator';
+import { buildSummary, buildErrorSummary } from './summary-builder';
+import {
+  resolveTimezone,
+  validateCoordinates,
+  parseBirthDateTime,
+  getNowInTimezone,
+} from './helpers';
 
 import { isNightChart, type Chart } from '@/lib/astrology';
-import { calculateSajuData } from '@/lib/Saju';
 import { logger } from '@/lib/logger';
 
-// Re-export types from original engine for backward compatibility
-export type {
-  CombinedInput,
-  CombinedResult,
-} from '../astrologyengine';
+import type { CombinedInput, CombinedResult, DateComponents } from './types';
 
-import type {
-  CombinedInput,
-  CombinedResult,
-} from '../astrologyengine';
+// Re-export types for backward compatibility
+export type { CombinedInput, CombinedResult } from './types';
 
 const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === 'true';
 
@@ -47,45 +49,9 @@ const destinyMapCache = new CacheManager<CombinedResult>(
 );
 
 /**
- * Validate input coordinates
- */
-function validateCoordinates(latitude: number, longitude: number): void {
-  if (
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude) ||
-    Math.abs(latitude) > 90 ||
-    Math.abs(longitude) > 180
-  ) {
-    throw new Error('Invalid coordinates range');
-  }
-}
-
-/**
- * Parse birth date and time
- */
-function parseBirthDateTime(birthDate: string, birthTime: string): {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-} {
-  const [year, month, day] = birthDate.split('-').map(Number);
-  const [hour, minute] = birthTime.split(':').map((v) => Number(v) || 0);
-
-  const birthDateObj = new Date(Date.UTC(year, month - 1, day, hour, minute));
-  if (isNaN(birthDateObj.getTime())) {
-    throw new Error('Invalid birth date/time format');
-  }
-
-  return { year, month, day, hour, minute };
-}
-
-/**
  * Calculate all astrology features in parallel
  *
  * This function orchestrates parallel calculation of:
- * - Natal chart
  * - Advanced points (Chiron, Lilith, Part of Fortune, Vertex)
  * - Solar and Lunar Returns
  * - Progressions (Secondary and Solar Arc)
@@ -99,7 +65,7 @@ function parseBirthDateTime(birthDate: string, birthTime: string): {
 export async function calculateAstrologyData(
   input: CombinedInput,
   natalChart: Chart,
-  userNow: { year: number; month: number; day: number; hour: number; minute: number }
+  userNow: DateComponents
 ): Promise<{
   extraPoints?: CombinedResult['extraPoints'];
   solarReturn?: CombinedResult['solarReturn'];
@@ -110,20 +76,14 @@ export async function calculateAstrologyData(
   asteroids?: CombinedResult['asteroids'];
   fixedStars?: CombinedResult['fixedStars'];
   eclipses?: CombinedResult['eclipses'];
+  electional?: CombinedResult['electional'];
+  midpoints?: CombinedResult['midpoints'];
 }> {
   const { birthDate, birthTime, latitude, longitude, tz } = input;
   const { year, month, day, hour, minute } = parseBirthDateTime(birthDate, birthTime);
 
   // Resolve timezone
-  let resolvedTz = tz;
-  if (!resolvedTz) {
-    try {
-      const tzLookup = (await import('tz-lookup')).default;
-      resolvedTz = tzLookup(latitude, longitude);
-    } catch {
-      resolvedTz = 'Asia/Seoul';
-    }
-  }
+  const resolvedTz = resolveTimezone(tz, latitude, longitude);
 
   // Get essential natal data
   const { planets, houses, ascendant, mc, meta } = natalChart;
@@ -165,6 +125,8 @@ export async function calculateAstrologyData(
     progressionsResult,
     specializedChartsResult,
     asteroidsStarsResult,
+    electionalResult,
+    midpointsResult,
   ] = await Promise.allSettled([
     // Advanced Points (Chiron, Lilith, Part of Fortune, Vertex)
     calculateAdvancedPoints(
@@ -216,10 +178,19 @@ export async function calculateAstrologyData(
       },
       enableDebugLogs
     ),
+
+    // Electional Analysis
+    calculateElectionalAnalysis(
+      { natalChart, sunPlanet, moonPlanet },
+      enableDebugLogs
+    ),
+
+    // Midpoints Analysis
+    calculateMidpointsAnalysis(natalChart, enableDebugLogs),
   ]);
 
   // Extract results with error handling
-  const result: ReturnType<typeof calculateAstrologyData> extends Promise<infer R> ? R : never = {};
+  const result: Awaited<ReturnType<typeof calculateAstrologyData>> = {};
 
   if (advancedPointsResult.status === 'fulfilled') {
     result.extraPoints = advancedPointsResult.value;
@@ -263,6 +234,18 @@ export async function calculateAstrologyData(
     logger.debug('[Asteroids & Stars] Skipped', asteroidsStarsResult.reason);
   }
 
+  if (electionalResult.status === 'fulfilled' && electionalResult.value) {
+    result.electional = electionalResult.value;
+  } else if (enableDebugLogs) {
+    logger.debug('[Electional] Skipped', electionalResult.status === 'rejected' ? electionalResult.reason : 'No result');
+  }
+
+  if (midpointsResult.status === 'fulfilled' && midpointsResult.value) {
+    result.midpoints = midpointsResult.value;
+  } else if (enableDebugLogs) {
+    logger.debug('[Midpoints] Skipped', midpointsResult.status === 'rejected' ? midpointsResult.reason : 'No result');
+  }
+
   if (enableDebugLogs) {
     logger.debug('[Astrology Data] All calculations complete', {
       hasExtraPoints: !!result.extraPoints,
@@ -274,6 +257,8 @@ export async function calculateAstrologyData(
       hasAsteroids: !!result.asteroids,
       fixedStarsCount: result.fixedStars?.length || 0,
       hasEclipses: !!result.eclipses,
+      hasElectional: !!result.electional,
+      hasMidpoints: !!result.midpoints,
     });
   }
 
@@ -294,6 +279,7 @@ export async function calculateAstrologyData(
  * - Improved caching with cache-manager module
  * - Clear separation of concerns
  * - Enhanced debugging capabilities
+ * - Complete Saju orchestration with advanced analysis
  *
  * @param input - Combined input for destiny map calculation
  * @returns Complete destiny map result with astrology and saju data
@@ -333,72 +319,64 @@ export async function computeDestinyMapRefactored(
     // Parse birth date/time
     const { year, month, day, hour, minute } = parseBirthDateTime(birthDate, birthTime);
 
+    // Resolve timezone
+    const resolvedTz = resolveTimezone(tz, latitude, longitude);
+
     // Calculate natal chart
     const natalResult = await calculateNatal(
-      { year, month, date: day, hour, minute, latitude, longitude, timeZone: tz || 'Asia/Seoul' },
+      { year, month, date: day, hour, minute, latitude, longitude, timeZone: resolvedTz },
       enableDebugLogs
     );
 
-    const { chart: natalChart, facts: astrologyFacts, planets: astrologyPlanets, ascendant, mc } = natalResult;
-    const astrologyData = { planets: astrologyPlanets, facts: astrologyFacts, ascendant, mc };
+    const { chart: natalChart, facts: astrologyFacts, planets: astrologyPlanets, ascendant, mc, houses, aspects } = natalResult;
 
     // Get current date in user timezone for transits/progressions
     const userNow = getNowInTimezone(userTimezone);
 
-    // Calculate all advanced astrology features in parallel
-    const advancedData = await calculateAstrologyData(input, natalChart, userNow);
+    // Parallel calculation: Astrology data + Saju data
+    const [astrologyDataResult, sajuResult] = await Promise.allSettled([
+      calculateAstrologyData(input, natalChart, userNow),
+      calculateSajuOrchestrated(
+        {
+          birthDate,
+          birthTime,
+          gender: (rawGender ?? 'male').toLowerCase() as 'male' | 'female',
+          timezone: resolvedTz,
+        },
+        enableDebugLogs
+      ),
+    ]);
 
-    // Calculate Saju data
+    // Extract astrology advanced data
+    const advancedData = astrologyDataResult.status === 'fulfilled' ? astrologyDataResult.value : {};
 
-    // Resolve timezone for Saju
-    let resolvedTz = tz;
-    if (!resolvedTz) {
-      try {
-        const tzLookup = (await import('tz-lookup')).default;
-        resolvedTz = tzLookup(latitude, longitude);
-      } catch {
-        resolvedTz = 'Asia/Seoul';
-      }
-    }
-
-    const gender = (rawGender ?? 'male').toLowerCase() as 'male' | 'female';
-    const [hh, mmRaw] = birthTime.split(':');
-    const safeBirthTime = `${hh.padStart(2, '0')}:${(mmRaw ?? '00').padStart(2, '0')}`;
-
-    // Note: Saju calculation is still using the original implementation
-    // This will be refactored in a future phase
-    let sajuFacts: any = {};
-    try {
-      sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, 'solar', resolvedTz);
-    } catch (err) {
-      logger.error('[Saju Data] Calculation failed', err);
-    }
+    // Extract saju data
+    const sajuData = sajuResult.status === 'fulfilled'
+      ? sajuResult.value
+      : {
+          facts: {},
+          pillars: {},
+          dayMaster: {},
+          unse: { daeun: [], annual: [], monthly: [], iljin: [] },
+          sinsal: null,
+        };
 
     // Build summary
-    const sun = astrologyData.planets.find((p: { name: string; sign?: string }) => p.name === 'Sun')?.sign ?? '-';
-    const moon = astrologyData.planets.find((p: { name: string; sign?: string }) => p.name === 'Moon')?.sign ?? '-';
-    const element =
-      astrologyData.facts.elementRatios &&
-      Object.entries(astrologyData.facts.elementRatios)
-        .sort((a, b) => (b[1] as number) - (a[1] as number))[0]?.[0];
+    const ascendantData = ascendant as { sign?: string } | undefined;
+    const mcData = mc as { sign?: string } | undefined;
+    const dayMasterData = sajuData.dayMaster as { name?: string; element?: string } | undefined;
 
-    const dayMasterText = sajuFacts?.dayMaster?.name
-      ? `${sajuFacts.dayMaster.name} (${sajuFacts.dayMaster.element ?? ''})`
-      : sajuFacts?.dayMaster?.element
-      ? `(${sajuFacts.dayMaster.element})`
-      : 'Unknown';
-
-    const summary = [
-      input.name ? `Name: ${input.name}` : '',
-      `Sun: ${sun}`,
-      `Moon: ${moon}`,
-      `Asc: ${(astrologyData.ascendant as { sign?: string })?.sign ?? '-'}`,
-      `MC: ${(astrologyData.mc as { sign?: string })?.sign ?? '-'}`,
-      element ? `Dominant Element: ${element}` : '',
-      `Day Master: ${dayMasterText}`,
-    ]
-      .filter(Boolean)
-      .join(' | ');
+    const summary = buildSummary({
+      name: input.name,
+      planets: astrologyPlanets,
+      ascendant: { sign: ascendantData?.sign },
+      mc: { sign: mcData?.sign },
+      astrologyFacts,
+      dayMaster: {
+        name: dayMasterData?.name,
+        element: dayMasterData?.element,
+      },
+    });
 
     // Assemble complete result
     const result: CombinedResult = {
@@ -408,24 +386,18 @@ export async function computeDestinyMapRefactored(
         name: input.name,
         gender: rawGender,
       },
-      astrology: astrologyData,
-      saju: {
-        facts: { ...sajuFacts, birthDate },
-        pillars: {
-          year: sajuFacts?.yearPillar,
-          month: sajuFacts?.monthPillar,
-          day: sajuFacts?.dayPillar,
-          time: sajuFacts?.timePillar,
-        },
-        dayMaster: sajuFacts?.dayMaster ?? {},
-        unse: {
-          daeun: [],
-          annual: [],
-          monthly: [],
-          iljin: [],
-        },
-        sinsal: null,
+      astrology: {
+        facts: astrologyFacts,
+        planets: astrologyPlanets,
+        houses,
+        ascendant,
+        mc,
+        aspects,
+        meta: natalChart.meta,
+        options: {},
+        transits: [],
       },
+      saju: sajuData,
       summary,
       // Advanced astrology data
       ...advancedData,
@@ -458,7 +430,7 @@ export async function computeDestinyMapRefactored(
         unse: { daeun: [], annual: [], monthly: [], iljin: [] },
         sinsal: null,
       },
-      summary: 'Calculation error occurred. Returning data-only result.',
+      summary: buildErrorSummary(),
     };
   }
 }
@@ -467,3 +439,6 @@ export async function computeDestinyMapRefactored(
  * Export cache manager for manual cache control if needed
  */
 export { destinyMapCache };
+
+// Re-export helper for backward compatibility
+export { getNowInTimezone };

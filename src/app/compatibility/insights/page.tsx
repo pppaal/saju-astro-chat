@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
 import { CompatibilityFunInsights } from '@/components/compatibility/fun-insights';
-import ShareButton from '@/components/share/ShareButton';
+import { ShareButton } from '@/components/share/ShareButton';
 import { generateCompatibilityCard } from '@/components/share/cards/CompatibilityCard';
 import { logger } from '@/lib/logger';
 import type { SajuData, AstrologyData } from '@/types/api';

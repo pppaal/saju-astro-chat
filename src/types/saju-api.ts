@@ -5,10 +5,8 @@
 
 import type {
   FiveElement,
-  YinYang,
   SibsinKind,
   PillarData,
-  SajuPillars,
   DaeunData,
   StemBranchInfo,
   RelationHit,

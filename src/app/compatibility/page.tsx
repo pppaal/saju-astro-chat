@@ -7,178 +7,26 @@ import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
-import ShareButton from '@/components/share/ShareButton';
+import { ShareButton } from '@/components/share/ShareButton';
 import { generateCompatibilityCard, CompatibilityData } from '@/components/share/cards/CompatibilityCard';
 import { useRouter } from 'next/navigation';
 import styles from './Compatibility.module.css';
 import { logger } from '@/lib/logger';
 
-type SavedPerson = {
-  id: string;
-  name: string;
-  relation: string;
-  birthDate?: string | null;
-  birthTime?: string | null;
-  gender?: string | null;
-  birthCity?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  tzId?: string | null;
-};
-
-type Relation = 'friend' | 'lover' | 'other';
-
-type CityItem = { name: string; country: string; lat: number; lon: number };
-
-type PersonForm = {
-  name: string;
-  date: string;
-  time: string;
-  cityQuery: string;
-  lat: number | null;
-  lon: number | null;
-  timeZone: string;
-  suggestions: CityItem[];
-  showDropdown: boolean;
-  relation?: Relation;
-  relationNote?: string;
-};
-
-const makeEmptyPerson = (defaults?: Partial<PersonForm>): PersonForm => ({
-  name: '',
-  date: '',
-  time: '',
-  cityQuery: '',
-  lat: null,
-  lon: null,
-  timeZone: getUserTimezone() || 'Asia/Seoul',
-  suggestions: [],
-  showDropdown: false,
-  ...(defaults || {}),
-});
-
-const relationIcons: Record<Relation, string> = {
-  lover: '💕',
-  friend: '🤝',
-  other: '✨',
-};
-
-// Section title translation keys mapping
-const sectionTitleKeys: Record<string, string> = {
-  'Overall Score': 'compatibilityPage.sections.overallScore',
-  'Saju Analysis': 'compatibilityPage.sections.sajuAnalysis',
-  'Astrology Analysis': 'compatibilityPage.sections.astrologyAnalysis',
-  'Element Harmony': 'compatibilityPage.sections.elementHarmony',
-  'Love Compatibility': 'compatibilityPage.sections.loveCompatibility',
-  'Communication': 'compatibilityPage.sections.communication',
-  'Emotional Connection': 'compatibilityPage.sections.emotionalConnection',
-  'Strengths': 'compatibilityPage.sections.strengths',
-  'Challenges': 'compatibilityPage.sections.challenges',
-  'Advice': 'compatibilityPage.sections.advice',
-  'Summary': 'compatibilityPage.sections.summary',
-  'Sun Sign': 'compatibilityPage.sections.sunSign',
-  'Moon Sign': 'compatibilityPage.sections.moonSign',
-  'Venus Aspect': 'compatibilityPage.sections.venusAspect',
-  'Mars Aspect': 'compatibilityPage.sections.marsAspect',
-  'Overview': 'compatibilityPage.sections.overview',
-};
-
-// Parse result text into sections for beautiful display
-function parseResultSections(text: string): { title: string; icon: string; content: string }[] {
-  const sections: { title: string; icon: string; content: string }[] = [];
-
-  // Common section patterns with icons
-  const sectionPatterns = [
-    { pattern: /(?:^|\n)#+\s*(?:Overall|총합|종합|전체)\s*(?:Score|점수|Compatibility|궁합)/i, icon: '💫', title: 'Overall Score' },
-    { pattern: /(?:^|\n)#+\s*(?:Saju|사주|Four Pillars)/i, icon: '☯️', title: 'Saju Analysis' },
-    { pattern: /(?:^|\n)#+\s*(?:Astrology|점성술|별자리|Zodiac)/i, icon: '✨', title: 'Astrology Analysis' },
-    { pattern: /(?:^|\n)#+\s*(?:Element|오행|五行)/i, icon: '🔮', title: 'Element Harmony' },
-    { pattern: /(?:^|\n)#+\s*(?:Love|사랑|연애|Romance)/i, icon: '💕', title: 'Love Compatibility' },
-    { pattern: /(?:^|\n)#+\s*(?:Communication|소통|대화)/i, icon: '💬', title: 'Communication' },
-    { pattern: /(?:^|\n)#+\s*(?:Emotion|감정|Feeling)/i, icon: '💗', title: 'Emotional Connection' },
-    { pattern: /(?:^|\n)#+\s*(?:Strength|강점|장점)/i, icon: '💪', title: 'Strengths' },
-    { pattern: /(?:^|\n)#+\s*(?:Challenge|도전|과제|주의)/i, icon: '⚡', title: 'Challenges' },
-    { pattern: /(?:^|\n)#+\s*(?:Advice|조언|충고)/i, icon: '💡', title: 'Advice' },
-    { pattern: /(?:^|\n)#+\s*(?:Summary|요약|결론)/i, icon: '📝', title: 'Summary' },
-    { pattern: /(?:^|\n)#+\s*(?:Sun|태양)/i, icon: '☀️', title: 'Sun Sign' },
-    { pattern: /(?:^|\n)#+\s*(?:Moon|달|월)/i, icon: '🌙', title: 'Moon Sign' },
-    { pattern: /(?:^|\n)#+\s*(?:Venus|금성)/i, icon: '💖', title: 'Venus Aspect' },
-    { pattern: /(?:^|\n)#+\s*(?:Mars|화성)/i, icon: '🔥', title: 'Mars Aspect' },
-  ];
-
-  // Split by common section markers
-  const lines = text.split('\n');
-  let currentSection: { title: string; icon: string; content: string[] } | null = null;
-
-  for (const line of lines) {
-    let foundSection = false;
-
-    for (const { pattern, icon, title } of sectionPatterns) {
-      if (pattern.test(line)) {
-        if (currentSection && currentSection.content.length > 0) {
-          sections.push({
-            title: currentSection.title,
-            icon: currentSection.icon,
-            content: currentSection.content.join('\n').trim(),
-          });
-        }
-        currentSection = { title, icon, content: [] };
-        foundSection = true;
-        break;
-      }
-    }
-
-    if (!foundSection && line.match(/^#{1,3}\s+.+/)) {
-      // Generic heading
-      if (currentSection && currentSection.content.length > 0) {
-        sections.push({
-          title: currentSection.title,
-          icon: currentSection.icon,
-          content: currentSection.content.join('\n').trim(),
-        });
-      }
-      const headingText = line.replace(/^#+\s*/, '').trim();
-      currentSection = { title: headingText, icon: '✨', content: [] };
-    } else if (currentSection) {
-      currentSection.content.push(line);
-    } else if (line.trim()) {
-      // Content before any section header
-      if (!currentSection) {
-        currentSection = { title: 'Overview', icon: '💫', content: [] };
-      }
-      currentSection.content.push(line);
-    }
-  }
-
-  // Add last section
-  if (currentSection && currentSection.content.length > 0) {
-    sections.push({
-      title: currentSection.title,
-      icon: currentSection.icon,
-      content: currentSection.content.join('\n').trim(),
-    });
-  }
-
-  return sections;
-}
-
-// Extract score from text
-function extractScore(text: string): number | null {
-  const patterns = [
-    /(\d{1,3})(?:\s*)?(?:%|점|\/100|out of 100)/i,
-    /(?:score|점수|compatibility|궁합)[\s:]*(\d{1,3})/i,
-    /(\d{1,3})(?:\s*)?(?:percent|퍼센트)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const score = parseInt(match[1], 10);
-      if (score >= 0 && score <= 100) return score;
-    }
-  }
-  return null;
-}
+import {
+  type SavedPerson,
+  type Relation,
+  type CityItem,
+  type PersonForm,
+  type TimingData,
+  type GroupAnalysisData,
+  type SynergyBreakdown,
+  relationIcons,
+  sectionTitleKeys,
+  makeEmptyPerson,
+  parseResultSections,
+  extractScore,
+} from './lib';
 
 export default function CompatPage() {
   const { t } = useI18n();
@@ -199,75 +47,7 @@ export default function CompatPage() {
   const [circlePeople, setCirclePeople] = useState<SavedPerson[]>([]);
   const [showCircleDropdown, setShowCircleDropdown] = useState<number | null>(null);
 
-  // NEW: Timing and Action Items from fusion system
-  type TimingData = {
-    current_month?: {
-      branch: string;
-      element: string;
-      analysis: string;
-    };
-    good_days?: Array<{
-      type: string;
-      days: string;
-      activities: string[];
-      reason: string;
-    }>;
-    favorable_members?: number[];
-    group_activities?: Array<{
-      type: string;
-      days: string;
-      activities: string[];
-      reason: string;
-    }>;
-  };
-
-  type GroupAnalysisData = {
-    element_distribution?: {
-      oheng: Record<string, number>;
-      astro: Record<string, number>;
-      dominant_oheng: string | null;
-      lacking_oheng: string | null;
-      dominant_astro: string | null;
-      lacking_astro: string | null;
-    };
-    pairwise_matrix?: Array<{
-      pair: string;
-      index: [number, number];
-      saju: string;
-      astro: string;
-      // NEW: 상세 점수 정보
-      score?: number;
-      summary?: string;
-      saju_details?: string[];
-      astro_details?: string[];
-      fusion_insights?: string[];
-    }>;
-    group_roles?: Record<string, string[]>;
-  };
-
-  type SynergyBreakdown = {
-    total_score: number;
-    overall_score?: number; // API returns overall_score
-    avg_pair_score: number;
-    oheng_bonus: number;
-    astro_bonus: number;
-    role_bonus: number;
-    samhap_bonus: number;
-    banghap_bonus?: number; // NEW: 방합 보너스
-    size_adjustment: number;
-    special_formations?: string[]; // NEW: 특수 합 설명
-    best_pair: {
-      pair: string;
-      score: number;
-      summary: string;
-    };
-    weakest_pair: {
-      pair: string;
-      score: number;
-      summary: string;
-    };
-  };
-
+  // Timing and Action Items from fusion system
   const [timing, setTiming] = useState<TimingData | null>(null);
   const [actionItems, setActionItems] = useState<string[]>([]);
   const [groupAnalysis, setGroupAnalysis] = useState<GroupAnalysisData | null>(null);

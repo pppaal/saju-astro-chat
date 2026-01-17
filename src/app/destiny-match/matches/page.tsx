@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../DestinyMatch.module.css';
-import ShareButton from '@/components/share/ShareButton';
+import { ShareButton } from '@/components/share/ShareButton';
 import { generateDestinyMatchCard } from '@/components/share/cards/DestinyMatchCard';
 import { logger } from '@/lib/logger';
 

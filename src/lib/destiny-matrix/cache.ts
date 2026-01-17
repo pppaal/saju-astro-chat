@@ -134,17 +134,17 @@ export function hashMatrixInput(input: MatrixCalculationInput): string {
 /**
  * Sort object keys for deterministic hashing
  */
-function sortObjectKeys<T extends Record<string, any>>(obj: T): T {
+function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
   if (!obj || typeof obj !== 'object') return obj;
 
   const sorted = Object.keys(obj)
     .sort()
-    .reduce((acc, key) => {
+    .reduce<Record<string, unknown>>((acc, key) => {
       acc[key] = obj[key];
       return acc;
-    }, {} as any);
+    }, {});
 
-  return sorted;
+  return sorted as T;
 }
 
 /**
@@ -217,22 +217,41 @@ export function clearMatrixCache(): void {
 }
 
 /**
+ * Extended cache type with optional hit tracking
+ */
+interface CacheWithStats extends LRUCache<string, DestinyFusionMatrixComputed> {
+  hits?: number;
+  misses?: number;
+}
+
+/**
  * Get cache statistics
  */
 export function getMatrixCacheStats() {
-  const cache = getMatrixCache();
+  const cache = getMatrixCache() as CacheWithStats;
 
-  return {
+  const stats: {
+    size: number;
+    max: number;
+    calculatedSize: number;
+    hits?: number;
+    misses?: number;
+    hitRate?: number;
+  } = {
     size: cache.size,
     max: cache.max,
     calculatedSize: cache.calculatedSize || 0,
-    // Compute hit rate if available
-    ...(cache as any).hits !== undefined && {
-      hits: (cache as any).hits,
-      misses: (cache as any).misses,
-      hitRate: (cache as any).hits / ((cache as any).hits + (cache as any).misses),
-    },
   };
+
+  // Add hit rate if tracking is available
+  if (cache.hits !== undefined && cache.misses !== undefined) {
+    stats.hits = cache.hits;
+    stats.misses = cache.misses;
+    const total = cache.hits + cache.misses;
+    stats.hitRate = total > 0 ? cache.hits / total : 0;
+  }
+
+  return stats;
 }
 
 /**

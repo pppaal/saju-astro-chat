@@ -184,7 +184,7 @@ describe('UI Components', () => {
     it('should export ShareButton', async () => {
       const module = await import('@/components/share/ShareButton');
 
-      expect(module.default).toBeDefined();
+      expect(module.ShareButton).toBeDefined();
     });
 
     it('should export ShareResultButton', async () => {

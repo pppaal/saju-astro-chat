@@ -54,7 +54,8 @@
     "calendar": "운세 캘린더",
     "numerology": "수비학",
     "compatibility": "궁합",
-    "personality": "성격분석"
+    "personality": "성격분석",
+    "icp": "대인관계 스타일"
   },
   "landing": {
     "heroTitle": "나를 알고, 내일을 바꾸세요",
@@ -426,6 +427,10 @@
     "personality": {
       "label": "성격분석",
       "desc": "성격 유형 분석"
+    },
+    "icp": {
+      "label": "대인관계 스타일",
+      "desc": "ICP 대인관계 분석"
     },
     "destinyMatch": {
       "label": "인연 매칭",

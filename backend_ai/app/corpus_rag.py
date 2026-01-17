@@ -1,26 +1,28 @@
+# backend_ai/app/corpus_rag.py
 """
 Corpus RAG Engine - Jung Quote Retrieval System
 ================================================
 Retrieves authentic Jung quotes based on semantic similarity.
 Replaces template-based "fake" Jung interpretations with real citations.
+
+Refactored to use BaseEmbeddingRAG for shared embedding infrastructure.
 """
 
 import os
 import json
-import torch
+import logging
 from typing import List, Dict, Optional, Tuple
-from sentence_transformers import util
 
-# Use shared model singleton from saju_astro_rag
-try:
-    from backend_ai.app.saju_astro_rag import get_model
-except ImportError:
-    from saju_astro_rag import get_model
+from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
+
+logger = logging.getLogger(__name__)
 
 
-class CorpusRAG:
+class CorpusRAG(BaseEmbeddingRAG):
     """
     RAG engine for retrieving authentic Jung quotes.
+
+    Inherits from BaseEmbeddingRAG for shared embedding infrastructure.
 
     Features:
     - Loads curated Jung quotes from JSON files
@@ -28,13 +30,19 @@ class CorpusRAG:
     - Returns relevant quotes with proper citations
     """
 
-    def __init__(self, corpus_dir: str = None, corpus_dirs: Optional[List[str]] = None):
+    def __init__(
+        self,
+        corpus_dir: str = None,
+        corpus_dirs: Optional[List[str]] = None,
+        cache_path: Optional[str] = None,
+    ):
         """
         Initialize the Corpus RAG engine.
 
         Args:
             corpus_dir: Path to directory containing quote JSON files
             corpus_dirs: Optional list of directories to load (fallback to Jung + Stoic)
+            cache_path: Path to save/load embedding cache
         """
         # Set default corpus directories (Jung + Stoic)
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -51,23 +59,22 @@ class CorpusRAG:
         else:
             self.corpus_dirs = default_dirs
 
-        self.quotes: List[Dict] = []
-        self.quote_texts: List[str] = []
-        self.quote_embeddings = None
+        # Set default cache path
+        if cache_path is None:
+            cache_path = os.path.join(base_dir, "data", "embeddings", "corpus_embeds.pt")
 
-        # Use shared model singleton
-        self.embed_model = get_model()
+        # Initialize base class (this calls _load_data and _prepare_embeddings)
+        super().__init__(cache_path=cache_path)
 
-        # Load and embed quotes
-        self._load_quotes()
-        self._prepare_embeddings()
-
-    def _load_quotes(self):
-        """Load all quotes from JSON files in configured corpus directories."""
+    def _load_data(self) -> None:
+        """
+        Load all quotes from JSON files in configured corpus directories.
+        Implements abstract method from BaseEmbeddingRAG.
+        """
         total_files = 0
         for corpus_dir in self.corpus_dirs:
             if not os.path.exists(corpus_dir):
-                print(f"[CorpusRAG] Warning: Corpus directory not found: {corpus_dir}")
+                logger.warning(f"[CorpusRAG] Corpus directory not found: {corpus_dir}")
                 continue
 
             for filename in os.listdir(corpus_dir):
@@ -93,42 +100,26 @@ class CorpusRAG:
                         q.setdefault('concept_kr', concept_kr)
                         q.setdefault('source', default_source)
                         q['corpus_source'] = source_tag  # e.g., jung or stoic
-                        self.quotes.append(q)
+
+                        # Add to items list
+                        self._items.append(q)
+
+                        # Create searchable text (combine English + Korean + tags)
+                        combined_text = " ".join([
+                            q.get('concept', ''),
+                            q.get('en', ''),
+                            q.get('kr', ''),
+                            " ".join(q.get('tags', [])),
+                            q.get('corpus_source', '')
+                        ])
+                        self._texts.append(combined_text)
+
                         total_files += 1
 
                 except Exception as e:
-                    print(f"[CorpusRAG] Error loading {filename}: {e}")
+                    logger.error(f"[CorpusRAG] Error loading {filename}: {e}")
 
-        print(f"[CorpusRAG] Loaded {len(self.quotes)} quotes from {len(self.corpus_dirs)} corpus dirs")
-
-    def _prepare_embeddings(self):
-        """Create embeddings for all quotes."""
-        if not self.quotes:
-            print("[CorpusRAG] No quotes to embed")
-            return
-
-        # Combine English and Korean text for better multilingual matching
-        self.quote_texts = []
-        for q in self.quotes:
-            # Combine: concept + English quote + Korean quote + tags
-            combined_text = " ".join([
-                q.get('concept', ''),
-                q.get('en', ''),
-                q.get('kr', ''),
-                " ".join(q.get('tags', [])),
-                q.get('corpus_source', '')
-            ])
-            self.quote_texts.append(combined_text)
-
-        # Generate embeddings
-        self.quote_embeddings = self.embed_model.encode(
-            self.quote_texts,
-            convert_to_tensor=True,
-            normalize_embeddings=True,
-            show_progress_bar=False
-        )
-
-        print(f"[CorpusRAG] Created embeddings for {len(self.quote_texts)} quotes")
+        logger.info(f"[CorpusRAG] Loaded {len(self._items)} quotes from {len(self.corpus_dirs)} corpus dirs")
 
     def search(
         self,
@@ -149,34 +140,17 @@ class CorpusRAG:
         Returns:
             List of matching quotes with scores and citations
         """
-        if self.quote_embeddings is None or len(self.quotes) == 0:
-            return []
+        # Use base class search with optional concept filter
+        filters = {}
+        if concept_filter:
+            filters['concept'] = concept_filter
 
-        # Encode query
-        query_embedding = self.embed_model.encode(
-            query,
-            convert_to_tensor=True,
-            normalize_embeddings=True
-        )
+        rag_results = super().search(query, top_k=top_k, min_score=min_score, **filters)
 
-        # Calculate similarity scores
-        scores = util.cos_sim(query_embedding, self.quote_embeddings)[0]
-
-        # Get top results
-        top_results = torch.topk(scores, k=min(top_k * 2, len(self.quotes)))
-
+        # Convert RAGResult to legacy dict format for backward compatibility
         results = []
-        for idx, score in zip(top_results.indices, top_results.values):
-            score_val = float(score)
-            if score_val < min_score:
-                continue
-
-            quote = self.quotes[idx]
-
-            # Apply concept filter if specified
-            if concept_filter and quote.get('concept') != concept_filter:
-                continue
-
+        for r in rag_results:
+            quote = r.metadata
             results.append({
                 'quote_en': quote.get('en', ''),
                 'quote_kr': quote.get('kr', ''),
@@ -188,11 +162,8 @@ class CorpusRAG:
                 'context': quote.get('context', ''),
                 'tags': quote.get('tags', []),
                 'corpus_source': quote.get('corpus_source', ''),
-                'score': score_val
+                'score': r.score
             })
-
-            if len(results) >= top_k:
-                break
 
         return results
 

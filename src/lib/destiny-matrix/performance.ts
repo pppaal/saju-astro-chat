@@ -116,15 +116,29 @@ export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
     maxSize?: number;
     keyGenerator?: (...args: Parameters<T>) => string;
     ttl?: number;
+    pendingMaxSize?: number; // pending Map 최대 크기
+    pendingTimeoutMs?: number; // pending 요청 타임아웃
   }
 ): T {
   const cache = new LRUCache<string, { value: Awaited<ReturnType<T>>; timestamp: number }>(
     options?.maxSize || 100
   );
-  const pending = new Map<string, Promise<Awaited<ReturnType<T>>>>();
+  const pending = new Map<string, { promise: Promise<Awaited<ReturnType<T>>>; timestamp: number }>();
+  const pendingMaxSize = options?.pendingMaxSize || 100;
+  const pendingTimeoutMs = options?.pendingTimeoutMs || 30000; // 30초 기본 타임아웃
 
   const keyGen = options?.keyGenerator || ((...args: unknown[]) => JSON.stringify(args));
   const ttl = options?.ttl || Infinity;
+
+  // pending Map 정리 함수 - 오래된 pending 요청 제거
+  const cleanupPending = () => {
+    const now = Date.now();
+    for (const [key, entry] of pending.entries()) {
+      if (now - entry.timestamp > pendingTimeoutMs) {
+        pending.delete(key);
+      }
+    }
+  };
 
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const key = keyGen(...args);
@@ -135,9 +149,27 @@ export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
       return cached.value;
     }
 
-    // 이미 진행 중인 요청이 있으면 대기
-    if (pending.has(key)) {
-      return pending.get(key)!;
+    // 이미 진행 중인 요청이 있으면 대기 (타임아웃 체크)
+    const pendingEntry = pending.get(key);
+    if (pendingEntry) {
+      if (Date.now() - pendingEntry.timestamp < pendingTimeoutMs) {
+        return pendingEntry.promise;
+      } else {
+        // 타임아웃된 pending 제거
+        pending.delete(key);
+      }
+    }
+
+    // pending Map 크기 제한 - 초과 시 오래된 항목 정리
+    if (pending.size >= pendingMaxSize) {
+      cleanupPending();
+      // 정리 후에도 초과하면 가장 오래된 항목 제거
+      if (pending.size >= pendingMaxSize) {
+        const firstKey = pending.keys().next().value;
+        if (firstKey !== undefined) {
+          pending.delete(firstKey);
+        }
+      }
     }
 
     // 새 요청 시작
@@ -150,7 +182,7 @@ export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
       throw error;
     });
 
-    pending.set(key, promise);
+    pending.set(key, { promise, timestamp: Date.now() });
     return promise;
   }) as T;
 }

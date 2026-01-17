@@ -821,6 +821,9 @@ export default function ResultPage() {
           <Link href="/personality/quiz" className={styles.retakeButton}>
             <span>🔄</span> {t('personality.retake', 'Retake Quiz')}
           </Link>
+          <Link href="/personality/combined" className={styles.retakeButton}>
+            <span>🔗</span> {t('personality.combined', 'Combined Analysis')}
+          </Link>
         </section>
       </div>
     </main>

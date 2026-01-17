@@ -7,6 +7,7 @@ import { isValidDate, isValidTime } from "@/lib/validation";
 import { getNowInTimezone, formatDateString } from "@/lib/datetime";
 import { getDailyFortuneScore } from "@/lib/destiny-map/destinyCalendar";
 import { logger } from '@/lib/logger';
+import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache';
 
 export const dynamic = "force-dynamic";
 
@@ -60,10 +61,17 @@ export async function POST(request: Request) {
     const userNow = getNowInTimezone(userTimezone);
     const targetDate = new Date(userNow.year, userNow.month - 1, userNow.day);
 
-    // destinyCalendar의 getDailyFortuneScore 사용 (빠른 계산)
-    const fortuneResult = getDailyFortuneScore(birthDate, birthTime, targetDate);
+    // destinyCalendar의 getDailyFortuneScore 사용 (Redis 캐싱 적용)
+    const dateKey = formatDateString(userNow.year, userNow.month, userNow.day);
+    const cacheKey = CacheKeys.grading(dateKey, `${birthDate}:${birthTime || '12:00'}`);
 
-    const fortune = {
+    const fortuneResult = await cacheOrCalculate(
+      cacheKey,
+      async () => getDailyFortuneScore(birthDate, birthTime, targetDate),
+      CACHE_TTL.GRADING_RESULT // 1 day
+    );
+
+    const fortune: FortuneData = {
       love: fortuneResult.love,
       career: fortuneResult.career,
       wealth: fortuneResult.wealth,
@@ -71,7 +79,7 @@ export async function POST(request: Request) {
       overall: fortuneResult.overall,
       luckyColor: fortuneResult.luckyColor,
       luckyNumber: fortuneResult.luckyNumber,
-      date: formatDateString(userNow.year, userNow.month, userNow.day),
+      date: dateKey,
       userTimezone: userTimezone || 'Asia/Seoul',
       alerts: fortuneResult.alerts || [],
       source: 'destinyCalendar',
@@ -97,8 +105,12 @@ export async function POST(request: Request) {
           luckyColor: fortune.luckyColor,
           luckyNumber: fortune.luckyNumber,
         },
-      }).catch(() => {
-        // 이미 오늘 운세가 있으면 무시
+      }).catch((err: unknown) => {
+        // P2002 = unique constraint violation (이미 오늘 운세가 있음)
+        const prismaError = err as { code?: string };
+        if (prismaError?.code !== 'P2002') {
+          logger.error('[Daily Fortune] Failed to save fortune to DB:', err);
+        }
       });
     }
 
@@ -110,19 +122,30 @@ export async function POST(request: Request) {
       title: "🌟 Today's Fortune Ready!",
       message: `Overall: ${fortune.overall}점 | Love: ${fortune.love} | Career: ${fortune.career} | Wealth: ${fortune.wealth}`,
       link: "/myjourney",
+    }).catch((err: unknown) => {
+      logger.warn('[Daily Fortune] Failed to send notification:', err);
     });
 
     // ========================================
     // 4️⃣ 이메일 전송 (선택)
     // ========================================
+    let emailSent = false;
     if (sendEmail) {
-      await sendFortuneEmail(session.user.email, fortune);
+      try {
+        await sendFortuneEmail(session.user.email, fortune);
+        emailSent = true;
+      } catch (emailErr) {
+        logger.error('[Daily Fortune] Failed to send email:', emailErr);
+        // 이메일 실패해도 운세 결과는 반환
+      }
     }
 
     return NextResponse.json({
       success: true,
       fortune,
-      message: sendEmail ? "Fortune sent to your email!" : "Fortune calculated!",
+      message: sendEmail
+        ? (emailSent ? "Fortune sent to your email!" : "Fortune calculated! (Email delivery failed)")
+        : "Fortune calculated!",
     });
   } catch (error: unknown) {
     logger.error("[Daily Fortune Error]:", error);

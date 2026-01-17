@@ -1,25 +1,23 @@
 // src/components/destiny-map/Chat.tsx
-// Refactored: extracted i18n, constants, utils, types to separate files
+// Refactored: uses extracted hooks and components for cleaner code
 
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import styles from "./Chat.module.css";
 import InlineTarotModal, { type TarotResultSummary } from "./InlineTarotModal";
 import { logger } from "@/lib/logger";
 
 // Extracted modules
-import { CHAT_I18N, detectCrisis, type LangKey } from "./chat-i18n";
+import { CHAT_I18N, detectCrisis } from "./chat-i18n";
 import {
   CHAT_TIMINGS,
   CHAT_LIMITS,
   type Message,
   type FeedbackType,
   type ConnectionStatus,
-  type UserContext,
 } from "./chat-constants";
 import {
-  generateSessionId,
   generateMessageId,
   getConnectionStatus,
   getErrorMessage,
@@ -30,118 +28,15 @@ import {
   generateFollowUpQuestions,
   getSuggestedQuestions,
 } from "./chat-followups";
-import type {
-  ChatProps,
-  ChatPayload,
-  PDFTextItem,
-} from "./chat-types";
-import MarkdownMessage from "@/components/ui/MarkdownMessage";
+import type { ChatProps, ChatPayload } from "./chat-types";
 
-// PDF parsing utility
-async function extractTextFromPDF(file: File): Promise<string> {
-  const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+// Extracted components
+import MessageRow from "./MessageRow";
+import { CrisisModal, HistoryModal } from "./modals";
+import { extractTextFromPDF } from "./pdf-parser";
+import { useChatSession } from "./hooks/useChatSession";
 
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-  logger.info("[PDF] Loaded:", { fileName: file.name, pages: pdf.numPages });
-
-  let fullText = "";
-  let totalItems = 0;
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    totalItems += content.items.length;
-    const pageText = content.items
-      .map((item) => (item as PDFTextItem).str)
-      .filter((str: string) => str.trim().length > 0)
-      .join(" ");
-    fullText += pageText + "\n";
-    logger.debug(`[PDF] Page ${i}: ${content.items.length} items, ${pageText.length} chars`);
-  }
-
-  logger.info("[PDF] Total items:", { totalItems, totalChars: fullText.length });
-
-  if (fullText.trim().length === 0 && totalItems === 0) {
-    throw new Error("SCANNED_PDF");
-  }
-
-  return fullText.trim();
-}
-
-// Props type for MessageRow
-interface MessageRowProps {
-  message: Message;
-  index: number;
-  feedback: Record<string, FeedbackType>;
-  lang: string;
-  onFeedback: (id: string, type: FeedbackType) => void;
-  styles: Record<string, string>;
-}
-
-// Memoized Message Component for performance
-const MessageRow = React.memo(function MessageRow({
-  message,
-  index,
-  feedback,
-  lang,
-  onFeedback,
-  styles: s
-}: MessageRowProps) {
-  const isAssistant = message.role === "assistant";
-  const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`;
-  const messageClass = isAssistant ? s.assistantMessage : s.userMessage;
-  const hasFeedback = isAssistant && message.content && message.id;
-
-  return (
-    <div
-      key={message.id || index}
-      className={rowClass}
-      style={{ animationDelay: `${index * 0.1}s` }}
-    >
-      {isAssistant && <div className={s.counselorAvatar} />}
-      <div className={s.messageBubble}>
-        <div className={messageClass}>
-          {isAssistant ? (
-            <MarkdownMessage content={message.content} />
-          ) : (
-            message.content
-          )}
-        </div>
-
-        {hasFeedback && (
-          <div className={s.feedbackButtons}>
-            <button
-              type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id!] === "up" ? s.feedbackActive : ""}`}
-              onClick={() => onFeedback(message.id!, "up")}
-              title={lang === "ko" ? "도움이 됐어요" : "Helpful"}
-            >
-              👍
-            </button>
-            <button
-              type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id!] === "down" ? s.feedbackActive : ""}`}
-              onClick={() => onFeedback(message.id!, "down")}
-              title={lang === "ko" ? "아쉬워요" : "Not helpful"}
-            >
-              👎
-            </button>
-          </div>
-        )}
-      </div>
-      {!isAssistant && (
-        <div className={s.avatar}>
-          <span className={s.avatarIcon}>👤</span>
-        </div>
-      )}
-    </div>
-  );
-});
-
-export default function Chat({
+const Chat = memo(function Chat({
   profile,
   initialContext = "",
   lang = "ko",
@@ -160,13 +55,24 @@ export default function Chat({
 }: ChatProps) {
   const effectiveLang = lang === "ko" ? "ko" : "en";
   const tr = CHAT_I18N[effectiveLang];
-  const sessionIdRef = React.useRef<string>(generateSessionId());
 
-  // State
-  const [messages, setMessages] = React.useState<Message[]>(
-    initialContext ? [{ role: "system", content: initialContext }] : []
-  );
-  const [sessionLoaded, setSessionLoaded] = React.useState(false);
+  // Use extracted session management hook
+  const {
+    sessionIdRef,
+    messages,
+    setMessages,
+    sessionLoaded,
+    sessionHistory,
+    historyLoading,
+    deleteConfirmId,
+    setDeleteConfirmId,
+    loadSessionHistory,
+    loadSession,
+    deleteSession,
+    startNewChat: hookStartNewChat,
+  } = useChatSession({ theme, lang, initialContext, saju, astro });
+
+  // UI State
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [cvText, setCvText] = React.useState("");
@@ -184,26 +90,10 @@ export default function Chat({
   const [showCrisisModal, setShowCrisisModal] = React.useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = React.useState(false);
   const [showHistoryModal, setShowHistoryModal] = React.useState(false);
-  const [sessionHistory, setSessionHistory] = React.useState<Array<{
-    id: string;
-    theme: string;
-    messageCount: number;
-    updatedAt: string;
-    summary?: string;
-  }>>([]);
-  const [historyLoading, setHistoryLoading] = React.useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const seedSentRef = React.useRef(false);
   const welcomeShownRef = React.useRef(false);
-
-  // Mark session as loaded on mount (no longer auto-load previous messages)
-  // Users can view history via "이전 채팅 보기" button
-  React.useEffect(() => {
-    setSessionLoaded(true);
-    logger.debug("[Chat] Session ready (fresh start - history available via button)");
-  }, []);
 
   // Auto-save messages to database
   React.useEffect(() => {
@@ -412,64 +302,21 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
     return `${diffDays} ${tr.daysAgo}`;
   };
 
-  // Load session history
-  const loadSessionHistory = async () => {
-    setHistoryLoading(true);
-    try {
-      const res = await fetch(`/api/counselor/session/list?theme=${theme || "chat"}&limit=20`);
-      if (res.ok) {
-        const data = await res.json();
-        setSessionHistory(data.sessions || []);
-      }
-    } catch (e) {
-      logger.warn("[Chat] Failed to load history:", e);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
-  // Open history modal
+  // Open history modal (loads session list via hook)
   const openHistoryModal = () => {
     setShowHistoryModal(true);
     loadSessionHistory();
   };
 
-  // Load a specific session
-  const loadSession = async (sessionId: string) => {
-    try {
-      const res = await fetch(`/api/counselor/session/load?theme=${theme || "chat"}&sessionId=${sessionId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.messages && Array.isArray(data.messages)) {
-          setMessages(data.messages);
-          sessionIdRef.current = data.sessionId || sessionId;
-          setShowHistoryModal(false);
-        }
-      }
-    } catch (e) {
-      logger.warn("[Chat] Failed to load session:", e);
-    }
+  // Wrap hook functions to also manage local UI state
+  const handleLoadSession = async (sessionId: string) => {
+    await loadSession(sessionId);
+    setShowHistoryModal(false);
   };
 
-  // Delete a session
-  const deleteSession = async (sessionId: string) => {
-    try {
-      const res = await fetch(`/api/counselor/session/list?sessionId=${sessionId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setSessionHistory((prev) => prev.filter((s) => s.id !== sessionId));
-        setDeleteConfirmId(null);
-      }
-    } catch (e) {
-      logger.warn("[Chat] Failed to delete session:", e);
-    }
-  };
-
-  // Start new chat
+  // Start new chat (uses hook + reset UI state)
   const startNewChat = () => {
-    setMessages(initialContext ? [{ role: "system", content: initialContext }] : []);
-    sessionIdRef.current = generateSessionId();
+    hookStartNewChat();
     setShowHistoryModal(false);
     setFollowUpQuestions([]);
     setShowSuggestions(true);
@@ -750,119 +597,28 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       )}
 
       {/* Crisis Support Modal */}
-      {showCrisisModal && (
-        <div className={styles.crisisModalOverlay}>
-          <div className={styles.crisisModal}>
-            <div className={styles.crisisIcon}>💜</div>
-            <h3 className={styles.crisisTitle}>{tr.crisisTitle}</h3>
-            <p className={styles.crisisMessage}>{tr.crisisMessage}</p>
-            <div className={styles.crisisHotline}>
-              <span className={styles.crisisHotlineLabel}>{tr.crisisHotline}:</span>
-              <a href={`tel:${tr.crisisHotlineNumber.split(" ")[0]}`} className={styles.crisisHotlineNumber}>
-                {tr.crisisHotlineNumber}
-              </a>
-            </div>
-            <p className={styles.groundingTip}>{tr.groundingTip}</p>
-            <button
-              type="button"
-              className={styles.crisisCloseBtn}
-              onClick={() => setShowCrisisModal(false)}
-            >
-              {tr.crisisClose}
-            </button>
-          </div>
-        </div>
-      )}
+      <CrisisModal
+        isOpen={showCrisisModal}
+        onClose={() => setShowCrisisModal(false)}
+        tr={tr}
+        styles={styles}
+      />
 
       {/* Session History Modal */}
-      {showHistoryModal && (
-        <div className={styles.historyModalOverlay} onClick={() => setShowHistoryModal(false)}>
-          <div className={styles.historyModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.historyHeader}>
-              <h3 className={styles.historyTitle}>{tr.previousChats}</h3>
-              <button
-                type="button"
-                className={styles.historyCloseBtn}
-                onClick={() => setShowHistoryModal(false)}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={styles.historyContent}>
-              {historyLoading ? (
-                <div className={styles.historyLoading}>
-                  <div className={styles.loadingSpinner} />
-                </div>
-              ) : sessionHistory.length === 0 ? (
-                <div className={styles.historyEmpty}>{tr.noHistory}</div>
-              ) : (
-                <div className={styles.historyList}>
-                  {sessionHistory.map((session) => (
-                    <div key={session.id} className={styles.historyItem}>
-                      {deleteConfirmId === session.id ? (
-                        <div className={styles.deleteConfirm}>
-                          <span>{tr.confirmDelete}</span>
-                          <div className={styles.deleteConfirmButtons}>
-                            <button
-                              type="button"
-                              className={styles.deleteConfirmYes}
-                              onClick={() => deleteSession(session.id)}
-                            >
-                              {tr.deleteSession}
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.deleteConfirmNo}
-                              onClick={() => setDeleteConfirmId(null)}
-                            >
-                              {tr.cancel}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className={styles.historyItemContent} onClick={() => loadSession(session.id)}>
-                            <div className={styles.historyItemDate}>
-                              {formatRelativeDate(session.updatedAt)}
-                            </div>
-                            <div className={styles.historyItemMeta}>
-                              {session.messageCount} {tr.messages}
-                            </div>
-                            {session.summary && (
-                              <div className={styles.historyItemSummary}>
-                                {session.summary.slice(0, 80)}...
-                              </div>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            className={styles.historyItemDelete}
-                            onClick={() => setDeleteConfirmId(session.id)}
-                            title={tr.deleteSession}
-                          >
-                            🗑️
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className={styles.historyFooter}>
-              <button
-                type="button"
-                className={styles.newChatBtn}
-                onClick={startNewChat}
-              >
-                ✨ {tr.newChat}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <HistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        sessions={sessionHistory}
+        loading={historyLoading}
+        deleteConfirmId={deleteConfirmId}
+        onLoadSession={handleLoadSession}
+        onDeleteSession={deleteSession}
+        onDeleteConfirm={setDeleteConfirmId}
+        onNewChat={startNewChat}
+        formatRelativeDate={formatRelativeDate}
+        tr={tr}
+        styles={styles}
+      />
 
       {/* Welcome Back Banner */}
       {showWelcomeBack && (
@@ -1068,4 +824,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       />
     </div>
   );
-}
+});
+
+export default Chat;

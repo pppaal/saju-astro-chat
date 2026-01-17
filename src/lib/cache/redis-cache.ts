@@ -1,0 +1,199 @@
+/**
+ * Redis caching utilities for expensive calculations
+ * Saju, Tarot, Destiny Map results
+ */
+
+import { createClient, RedisClientType } from 'redis';
+
+let redisClient: RedisClientType | null = null;
+
+/**
+ * Get or create Redis client
+ */
+async function getRedisClient(): Promise<RedisClientType | null> {
+  if (!process.env.REDIS_URL) {
+    return null;
+  }
+
+  if (!redisClient) {
+    redisClient = createClient({
+      url: process.env.REDIS_URL,
+    });
+
+    redisClient.on('error', (err) => {
+      console.error('[Redis] Connection error:', err);
+    });
+
+    try {
+      await redisClient.connect();
+    } catch (error) {
+      console.error('[Redis] Failed to connect:', error);
+      redisClient = null;
+      return null;
+    }
+  }
+
+  return redisClient;
+}
+
+/**
+ * Cache configuration for different data types
+ */
+export const CACHE_TTL = {
+  SAJU_RESULT: 60 * 60 * 24 * 7, // 7 days (사주는 불변)
+  TAROT_READING: 60 * 60 * 24, // 1 day (타로는 매일 변경 가능)
+  DESTINY_MAP: 60 * 60 * 24 * 3, // 3 days
+  GRADING_RESULT: 60 * 60 * 24, // 1 day
+  CALENDAR_DATA: 60 * 60 * 24, // 1 day
+  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days
+} as const;
+
+/**
+ * Generic cache get/set wrapper with fallback
+ */
+export async function cacheGet<T>(key: string): Promise<T | null> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return null;
+
+    const data = await client.get(key);
+    if (!data) return null;
+
+    return JSON.parse(data) as T;
+  } catch (error) {
+    console.error('[Redis] Get error:', error);
+    return null;
+  }
+}
+
+export async function cacheSet(
+  key: string,
+  value: unknown,
+  ttl: number = 3600
+): Promise<boolean> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return false;
+
+    await client.setEx(key, ttl, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    console.error('[Redis] Set error:', error);
+    return false;
+  }
+}
+
+export async function cacheDel(key: string): Promise<boolean> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return false;
+
+    await client.del(key);
+    return true;
+  } catch (error) {
+    console.error('[Redis] Delete error:', error);
+    return false;
+  }
+}
+
+/**
+ * Cache key generators for consistency
+ */
+export const CacheKeys = {
+  saju: (birthDate: string, birthTime: string, gender: string) =>
+    `saju:${birthDate}:${birthTime}:${gender}`,
+
+  tarot: (userId: string, question: string, spread: string) =>
+    `tarot:${userId}:${btoa(question)}:${spread}`,
+
+  destinyMap: (birthDate: string, birthTime: string) =>
+    `destiny:${birthDate}:${birthTime}`,
+
+  grading: (date: string, sajuData: string) =>
+    `grade:${date}:${btoa(sajuData).slice(0, 20)}`,
+
+  calendar: (year: number, month: number, userId: string) =>
+    `cal:${year}:${month}:${userId}`,
+
+  yearlyCalendar: (birthDate: string, birthTime: string, gender: string, year: number, category?: string) =>
+    `yearly:${birthDate}:${birthTime}:${gender}:${year}${category ? `:${category}` : ''}`,
+
+  compatibility: (person1: string, person2: string) =>
+    `compat:${person1}:${person2}`,
+} as const;
+
+/**
+ * Wrapper for cache-or-calculate pattern
+ */
+export async function cacheOrCalculate<T>(
+  key: string,
+  calculate: () => Promise<T>,
+  ttl: number = 3600
+): Promise<T> {
+  // Try cache first
+  const cached = await cacheGet<T>(key);
+  if (cached !== null) {
+    return cached;
+  }
+
+  // Calculate
+  const result = await calculate();
+
+  // Cache the result (fire and forget)
+  cacheSet(key, result, ttl).catch((err) => {
+    console.error('[Redis] Background cache set failed:', err);
+  });
+
+  return result;
+}
+
+/**
+ * Batch cache operations
+ */
+export async function cacheGetMany<T>(keys: string[]): Promise<(T | null)[]> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return keys.map(() => null);
+
+    const results = await client.mGet(keys);
+    return results.map((data) => (data ? JSON.parse(data) as T : null));
+  } catch (error) {
+    console.error('[Redis] Batch get error:', error);
+    return keys.map(() => null);
+  }
+}
+
+/**
+ * Clear cache by pattern
+ */
+export async function clearCacheByPattern(pattern: string): Promise<number> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return 0;
+
+    const keys = await client.keys(pattern);
+    if (keys.length === 0) return 0;
+
+    await client.del(keys);
+    return keys.length;
+  } catch (error) {
+    console.error('[Redis] Clear pattern error:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get cache statistics
+ */
+export async function getCacheInfo() {
+  try {
+    const client = await getRedisClient();
+    if (!client) return null;
+
+    const info = await client.info('stats');
+    return info;
+  } catch (error) {
+    console.error('[Redis] Info error:', error);
+    return null;
+  }
+}

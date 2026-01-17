@@ -76,7 +76,26 @@ export interface AstrologyCompatibilityAnalysis {
 // 오행 상생상극 관계
 // ============================================================
 
-const ELEMENT_RELATIONS = {
+// 영어 오행 타입 (이 파일 내부 전용)
+type FiveElementEn = 'wood' | 'fire' | 'earth' | 'metal' | 'water';
+
+// 한글 오행 -> 영어 오행 변환 맵
+const ELEMENT_KO_TO_EN: Record<FiveElement, FiveElementEn> = {
+  '목': 'wood',
+  '화': 'fire',
+  '토': 'earth',
+  '금': 'metal',
+  '수': 'water',
+};
+
+// 영어로 변환하는 헬퍼 함수
+const toEnElement = (el: FiveElement): FiveElementEn => ELEMENT_KO_TO_EN[el];
+
+const ELEMENT_RELATIONS: {
+  generates: Record<FiveElementEn, FiveElementEn>;
+  controls: Record<FiveElementEn, FiveElementEn>;
+  controlledBy: Record<FiveElementEn, FiveElementEn>;
+} = {
   // 상생 (generates)
   generates: {
     wood: 'fire',
@@ -84,7 +103,7 @@ const ELEMENT_RELATIONS = {
     earth: 'metal',
     metal: 'water',
     water: 'wood',
-  } as unknown as Record<FiveElement, FiveElement>,
+  },
 
   // 상극 (controls)
   controls: {
@@ -93,7 +112,7 @@ const ELEMENT_RELATIONS = {
     water: 'fire',
     fire: 'metal',
     metal: 'wood',
-  } as unknown as Record<FiveElement, FiveElement>,
+  },
 
   // 피극 (controlled by)
   controlledBy: {
@@ -102,7 +121,7 @@ const ELEMENT_RELATIONS = {
     fire: 'water',
     water: 'earth',
     earth: 'wood',
-  } as unknown as Record<FiveElement, FiveElement>,
+  },
 };
 
 // ============================================================
@@ -124,8 +143,8 @@ const ZODIAC_ELEMENTS: Record<string, string> = {
   'Pisces': 'water',
 };
 
-// 서양 4원소 -> 동양 5원소 변환
-const WESTERN_TO_EASTERN_ELEMENT: Record<string, string> = {
+// 서양 4원소 -> 동양 5원소 변환 (영어 오행 반환)
+const WESTERN_TO_EASTERN_ELEMENT: Record<string, FiveElementEn> = {
   'fire': 'fire',
   'earth': 'earth',
   'air': 'wood',      // 공기는 나무로 매핑 (움직임, 성장)
@@ -194,6 +213,8 @@ function calculateDayMasterHarmony(
 ): number {
   const el1 = dm1.element;
   const el2 = dm2.element;
+  const el1En = toEnElement(el1);
+  const el2En = toEnElement(el2);
 
   // 같은 오행: 70점
   if (el1 === el2) {
@@ -202,21 +223,21 @@ function calculateDayMasterHarmony(
   }
 
   // 상생 관계: 90점
-  if (ELEMENT_RELATIONS.generates[el1] === el2) {
+  if (ELEMENT_RELATIONS.generates[el1En] === el2En) {
     insights.push(`✨ ${el1}이(가) ${el2}을(를) 생해주는 상생 관계입니다`);
     return 90;
   }
-  if (ELEMENT_RELATIONS.generates[el2] === el1) {
+  if (ELEMENT_RELATIONS.generates[el2En] === el1En) {
     insights.push(`✨ ${el2}이(가) ${el1}을(를) 생해주는 상생 관계입니다`);
     return 90;
   }
 
   // 상극 관계: 40점
-  if (ELEMENT_RELATIONS.controls[el1] === el2) {
+  if (ELEMENT_RELATIONS.controls[el1En] === el2En) {
     insights.push(`⚠️ ${el1}이(가) ${el2}을(를) 극하는 관계로 조율이 필요합니다`);
     return 40;
   }
-  if (ELEMENT_RELATIONS.controls[el2] === el1) {
+  if (ELEMENT_RELATIONS.controls[el2En] === el1En) {
     insights.push(`⚠️ ${el2}이(가) ${el1}을(를) 극하는 관계로 조율이 필요합니다`);
     return 40;
   }
@@ -497,6 +518,8 @@ function calculateCrossElementalHarmony(
   // 사주의 일간 오행과 점성학의 주요 원소 비교
   const saju1Element = p1Saju.dayMaster.element;
   const saju2Element = p2Saju.dayMaster.element;
+  const saju1En = toEnElement(saju1Element);
+  const saju2En = toEnElement(saju2Element);
 
   const astro1MainElement = WESTERN_TO_EASTERN_ELEMENT[
     ZODIAC_ELEMENTS[p1Astro.sun.sign]
@@ -507,13 +530,13 @@ function calculateCrossElementalHarmony(
 
   let score = 50;
 
-  // 사주-점성학 교차 조화
-  if (saju1Element === astro2MainElement) score += 15;
-  if (saju2Element === astro1MainElement) score += 15;
+  // 사주-점성학 교차 조화 (영어 오행으로 비교)
+  if (saju1En === astro2MainElement) score += 15;
+  if (saju2En === astro1MainElement) score += 15;
 
-  // 상생 관계 체크
-  if (ELEMENT_RELATIONS.generates[saju1Element] === astro2MainElement) score += 10;
-  if (ELEMENT_RELATIONS.generates[saju2Element] === astro1MainElement) score += 10;
+  // 상생 관계 체크 (astro는 이미 영어 오행이므로 직접 비교)
+  if (astro2MainElement && ELEMENT_RELATIONS.generates[saju1En] === astro2MainElement) score += 10;
+  if (astro1MainElement && ELEMENT_RELATIONS.generates[saju2En] === astro1MainElement) score += 10;
 
   return Math.min(100, score);
 }

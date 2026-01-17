@@ -31,7 +31,7 @@ function authorize(req: NextRequest): boolean {
  * Health check endpoint for database connectivity
  */
 export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     // Admin authorization required
     if (!authorize(req)) {
       return apiError(ErrorCodes.UNAUTHORIZED, "Admin token required");

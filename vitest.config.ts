@@ -79,12 +79,12 @@ export default defineConfig({
       ],
       // Coverage thresholds - baseline to prevent regressions
       // Will gradually increase as we add more tests
-      // Updated: Adjusted to current coverage baseline (307 test files, 10188 tests)
+      // Updated: Adjusted to current coverage baseline (357 test files, 12303 tests)
       thresholds: {
-        lines: 29,
-        functions: 32,
-        branches: 28,
-        statements: 29,
+        lines: 45,
+        functions: 68,
+        branches: 78,
+        statements: 45,
       },
     },
     // Test timeouts

@@ -1,7 +1,10 @@
+# backend_ai/app/domain_rag.py
 """
 Domain-Specific RAG Loader
 ==========================
 Loads pre-computed embeddings by domain for faster startup.
+
+Refactored to use BaseEmbeddingRAG for shared embedding infrastructure.
 
 Domains:
 - destiny_map: astro + saju (loaded on startup for destiny-map)
@@ -13,20 +16,21 @@ Usage:
     from domain_rag import DomainRAG
 
     rag = DomainRAG()
-    results = rag.search("destiny_map", "리더십과 추진력", top_k=5)
+    results = rag.search("tarot", "사랑과 관계", top_k=5)
 """
 
 import os
-import torch
+import logging
 from typing import List, Dict, Optional
 from functools import lru_cache
+
+import torch
 from sentence_transformers import util
 
-# Use shared model singleton from saju_astro_rag
-try:
-    from backend_ai.app.saju_astro_rag import get_model
-except ImportError:
-    from saju_astro_rag import get_model
+from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
+from backend_ai.app.rag.model_manager import get_shared_model
+
+logger = logging.getLogger(__name__)
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,6 +43,9 @@ DOMAINS = ["tarot", "dream"]
 class DomainRAG:
     """
     Domain-specific RAG with lazy loading and on-demand embedding retrieval.
+
+    Note: This class uses composition rather than inheritance from BaseEmbeddingRAG
+    because it manages multiple domains with separate embedding caches.
     """
 
     def __init__(self, preload_domains: List[str] = None):
@@ -48,7 +55,7 @@ class DomainRAG:
         Args:
             preload_domains: List of domains to preload on init (default: None - lazy load all)
         """
-        self._model: Optional[SentenceTransformer] = None
+        self._model = None
         self._domain_cache: Dict[str, Dict] = {}
 
         # Preload specified domains (none by default - lazy load for memory efficiency)
@@ -59,10 +66,10 @@ class DomainRAG:
 
     @property
     def model(self):
-        """Get shared model singleton from saju_astro_rag."""
+        """Get shared model singleton."""
         if self._model is None:
-            print("[DomainRAG] Using shared model from saju_astro_rag...")
-            self._model = get_model()
+            logger.info("[DomainRAG] Using shared model...")
+            self._model = get_shared_model()
         return self._model
 
     def _load_domain(self, domain: str) -> bool:
@@ -77,7 +84,7 @@ class DomainRAG:
 
         cache_file = os.path.join(EMBEDDINGS_DIR, f"{domain}_embeds.pt")
         if not os.path.exists(cache_file):
-            print(f"[DomainRAG] Cache not found: {cache_file}")
+            logger.warning(f"[DomainRAG] Cache not found: {cache_file}")
             return False
 
         try:
@@ -87,10 +94,10 @@ class DomainRAG:
                 "texts": data["texts"],
                 "count": data["count"],
             }
-            print(f"[DomainRAG] Loaded {domain}: {data['count']} embeddings")
+            logger.info(f"[DomainRAG] Loaded {domain}: {data['count']} embeddings")
             return True
         except Exception as e:
-            print(f"[DomainRAG] Error loading {domain}: {e}")
+            logger.error(f"[DomainRAG] Error loading {domain}: {e}")
             return False
 
     def is_loaded(self, domain: str) -> bool:
@@ -114,11 +121,13 @@ class DomainRAG:
         """Unload a domain to free memory."""
         if domain in self._domain_cache:
             del self._domain_cache[domain]
-            print(f"[DomainRAG] Unloaded {domain}")
+            logger.info(f"[DomainRAG] Unloaded {domain}")
 
     @lru_cache(maxsize=256)
     def _embed_query(self, query: str) -> torch.Tensor:
         """Embed a query string (with caching)."""
+        if self.model is None:
+            return None
         return self.model.encode(
             query,
             convert_to_tensor=True,
@@ -155,6 +164,8 @@ class DomainRAG:
 
         # Embed query
         query_emb = self._embed_query(query)
+        if query_emb is None:
+            return []
 
         # Compute similarities
         scores = util.cos_sim(query_emb, embeddings)[0]
@@ -236,6 +247,16 @@ class DomainRAG:
             total_chars += len(text)
 
         return "\n".join(context_parts)
+
+    @property
+    def item_count(self) -> int:
+        """Get total number of indexed items across all loaded domains."""
+        return sum(cache["count"] for cache in self._domain_cache.values())
+
+    @property
+    def is_ready(self) -> bool:
+        """Check if at least one domain is loaded."""
+        return len(self._domain_cache) > 0
 
 
 # Singleton instance

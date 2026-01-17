@@ -41,7 +41,8 @@ interface CareerAnalysis {
 }
 
 export default function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps) {
-  const careerAnalysis = data.careerAnalysis as unknown as CareerAnalysis | null;
+  // TabData.careerAnalysis is Record<string, unknown> | null, cast to local interface
+  const careerAnalysis = data.careerAnalysis as CareerAnalysis | null;
   const careerMatrix = getCareerMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang) as CareerMatrixResult | null;
 
   // 격국 정보 추출

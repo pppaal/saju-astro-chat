@@ -75,7 +75,7 @@ describe('Destiny Map Integration', () => {
   });
 
   it('should calculate grade from score', async () => {
-    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading');
+    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
     expect(calculateGrade(80)).toBe(0);
     expect(calculateGrade(65)).toBe(1);

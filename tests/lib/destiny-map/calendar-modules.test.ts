@@ -174,27 +174,27 @@ describe('Destiny Map Calendar - Scoring Config', () => {
 
 describe('Destiny Map Calendar - Grading', () => {
   it('should export calculateGrade function', async () => {
-    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading');
+    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
     expect(typeof calculateGrade).toBe('function');
   });
 
   it('should export getCategoryScore function', async () => {
-    const { getCategoryScore } = await import('@/lib/destiny-map/calendar/grading');
+    const { getCategoryScore } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
     expect(typeof getCategoryScore).toBe('function');
   });
 
-  it('should export getGradeKeys function', async () => {
-    const { getGradeKeys } = await import('@/lib/destiny-map/calendar/grading');
+  it('should export getGradeTitleKey function', async () => {
+    const { getGradeTitleKey } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
-    expect(typeof getGradeKeys).toBe('function');
+    expect(typeof getGradeTitleKey).toBe('function');
   });
 
-  it('should export getGradeRecommendations function', async () => {
-    const { getGradeRecommendations } = await import('@/lib/destiny-map/calendar/grading');
+  it('should export getGradeDescKey function', async () => {
+    const { getGradeDescKey } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
-    expect(typeof getGradeRecommendations).toBe('function');
+    expect(typeof getGradeDescKey).toBe('function');
   });
 });
 

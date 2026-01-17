@@ -355,7 +355,7 @@ export default function DestinyResultPage({
         // Trigger referral reward claim (if user was referred)
         try {
           fetch("/api/referral/claim", { method: "POST" }).catch(() => {});
-        } catch (e) {
+        } catch {
           // Silent fail - not critical
         }
       } catch (err: unknown) {

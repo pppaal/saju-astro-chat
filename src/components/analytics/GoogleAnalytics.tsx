@@ -14,7 +14,7 @@ const getGtag = () => {
   return (window as WindowWithGtag).gtag;
 };
 
-export function GoogleAnalytics({ gaId }: { gaId: string }) {
+export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { status } = useConsent();
@@ -55,10 +55,12 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
       <Script
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+        nonce={nonce}
       />
       <Script
         id="google-analytics"
         strategy="afterInteractive"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];

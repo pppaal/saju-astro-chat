@@ -142,65 +142,66 @@ import {
   normalizeElement,
 } from './utils';
 
-/**
- * 중요 날짜 등급 (5단계)
- */
-export type ImportanceGrade = 0 | 1 | 2 | 3 | 4 | 5;
+// Types - types.ts에서 import (중복 제거)
+import type {
+  ImportanceGrade as TypesImportanceGrade,
+  EventCategory as TypesEventCategory,
+  UserSajuProfile as TypesUserSajuProfile,
+  UserAstroProfile as TypesUserAstroProfile,
+} from './types';
+
+// Re-export for backward compatibility (extended version)
+export type ImportanceGrade = TypesImportanceGrade | 5; // 확장: 5등급 추가
+export type EventCategory = TypesEventCategory;
 
 /**
- * 이벤트 카테고리
- */
-export type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
-
-/**
- * 중요 날짜 상세 정보
+ * 중요 날짜 상세 정보 (확장 버전 - 고급 예측 필드 포함)
  */
 export interface ImportantDate {
   date: string;
   grade: ImportanceGrade;
   score: number;
-  categories: EventCategory[];     // 복수 카테고리 지원
-  titleKey: string;                // i18n key for title
-  descKey: string;                 // i18n key for description
-  ganzhi: string;                  // 干支
-  crossVerified: boolean;          // 사주+점성술 모두 확인
-  transitSunSign: string;          // 트랜짓 태양 별자리
-  sajuFactorKeys: string[];        // 사주 분석 요소 키
-  astroFactorKeys: string[];       // 점성술 분석 요소 키
-  recommendationKeys: string[];    // 추천 활동 키
-  warningKeys: string[];           // 주의사항 키
-
-  // === 고급 예측 필드 (ultraPrecisionEngine + daeunTransitSync) ===
-  confidence?: number;             // 분석 신뢰도 (0-100%)
-  confidenceNote?: string;         // 신뢰도 설명
-  gongmangStatus?: {               // 공망 상태
+  categories: EventCategory[];
+  titleKey: string;
+  descKey: string;
+  ganzhi: string;
+  crossVerified: boolean;
+  transitSunSign: string;
+  sajuFactorKeys: string[];
+  astroFactorKeys: string[];
+  recommendationKeys: string[];
+  warningKeys: string[];
+  // 고급 예측 필드
+  confidence?: number;
+  confidenceNote?: string;
+  gongmangStatus?: {
     isEmpty: boolean;
     emptyBranches: string[];
     affectedAreas: string[];
   };
-  shinsalActive?: {                // 활성 신살
+  shinsalActive?: {
     name: string;
     type: 'lucky' | 'unlucky' | 'special';
     affectedArea: string;
   }[];
-  energyFlow?: {                   // 에너지 흐름
+  energyFlow?: {
     strength: 'very_strong' | 'strong' | 'moderate' | 'weak' | 'very_weak';
     dominantElement: string;
     tonggeunCount: number;
     tuechulCount: number;
   };
-  bestHours?: {                    // 최적 시간대
+  bestHours?: {
     hour: number;
     siGan: string;
     quality: 'excellent' | 'good' | 'neutral' | 'caution';
   }[];
-  transitSync?: {                  // 대운-트랜짓 동기화
+  transitSync?: {
     isMajorTransitYear: boolean;
-    transitType?: string;          // 'jupiter_return' | 'saturn_return' | 'saturn_opposition'
+    transitType?: string;
     synergyType?: 'amplify' | 'clash' | 'balance' | 'neutral';
     synergyScore?: number;
   };
-  activityScores?: {               // 활동별 점수
+  activityScores?: {
     marriage?: number;
     career?: number;
     investment?: number;
@@ -208,67 +209,18 @@ export interface ImportantDate {
     surgery?: number;
     study?: number;
   };
-  // === 시간 구분 (과거/현재/미래) ===
   timeContext?: {
     isPast: boolean;
     isFuture: boolean;
     isToday: boolean;
     daysFromToday: number;
-    retrospectiveNote?: string;    // 과거 날짜에 대한 회고적 분석
+    retrospectiveNote?: string;
   };
 }
 
-/**
- * 대운 데이터 타입
- */
-interface DaeunCycle {
-  age: number;
-  heavenlyStem: string;
-  earthlyBranch: string;
-  sibsin?: { cheon: string; ji: string };
-}
-
-/**
- * 사주 프로필
- */
-export interface UserSajuProfile {
-  dayMaster: string;
-  dayMasterElement: string;
-  dayBranch?: string;
-  yearBranch?: string;       // 연지 - 삼재/역마/도화 계산용
-  birthYear?: number;        // 대운 계산용
-  daeunCycles?: DaeunCycle[]; // 대운 10주기
-  daeunsu?: number;          // 대운 시작 나이
-  // 고급 분석 - 용신/격국
-  yongsin?: {
-    primary: string;         // 주용신 (목/화/토/금/수)
-    secondary?: string;      // 보조용신
-    type: string;            // 용신 유형 (억부/조후/통관/병약)
-    kibsin?: string;         // 기신 (피해야 할 오행)
-  };
-  geokguk?: {
-    type: string;            // 격국 유형 (정격/편격/종격 등)
-    strength: string;        // 신강/신약
-  };
-  // 사주 원국 정보 (고급 분석용)
-  pillars?: {
-    year?: { stem: string; branch: string };
-    month?: { stem: string; branch: string };
-    day?: { stem: string; branch: string };
-    time?: { stem: string; branch: string };
-  };
-}
-
-/**
- * 점성술 프로필
- */
-export interface UserAstroProfile {
-  sunSign: string;
-  sunElement: string;
-  sunLongitude?: number; // 태양 경도 (어스펙트 분석용)
-  birthMonth?: number;   // 생일 월 (Solar Return 분석용)
-  birthDay?: number;     // 생일 일 (Solar Return 분석용)
-}
+// Re-export user profile types
+export type UserSajuProfile = TypesUserSajuProfile;
+export type UserAstroProfile = TypesUserAstroProfile;
 
 /**
  * 달의 원소 계산 (근사값)

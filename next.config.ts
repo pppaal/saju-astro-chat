@@ -28,6 +28,12 @@ const nextConfig = {
   experimental: {
     optimizeCss: true, // CSS optimization
     scrollRestoration: true, // Remember scroll position
+    optimizePackageImports: [
+      'framer-motion',
+      'chart.js',
+      'recharts',
+      '@vercel/speed-insights',
+    ], // Tree-shake large packages
   },
 
   // Empty turbopack config to silence Next.js 16 warning
@@ -63,25 +69,8 @@ const nextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
       // HSTS - enforce HTTPS (enable after confirming HTTPS works in production)
       ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }] : []),
-      {
-        key: 'Content-Security-Policy',
-        value: [
-          "default-src 'self'",
-          // Note: 'unsafe-inline' and 'unsafe-eval' are required for Next.js
-          // TODO: Implement nonce-based CSP for better security
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://va.vercel-scripts.com https://cdnjs.cloudflare.com",
-          "worker-src 'self' blob: https://cdnjs.cloudflare.com",
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          "font-src 'self' https://fonts.gstatic.com data:",
-          // Removed http: - only allow HTTPS for images in production
-          `img-src 'self' data: blob: https:${!isProd ? ' http:' : ''}`,
-          `connect-src ${connectSrc.join(' ')}`,
-          "frame-ancestors 'none'",
-          "base-uri 'self'",
-          "form-action 'self'",
-          "upgrade-insecure-requests",
-        ].join('; '),
-      },
+      // CSP is now handled by middleware.ts with nonce-based security
+      // This provides better protection against XSS attacks
     ];
 
     return [
@@ -180,6 +169,47 @@ const nextConfig = {
         config.externals = [externals, 'swisseph'];
       }
     }
+
+    // Performance optimizations
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: 'deterministic', // Better long-term caching
+      runtimeChunk: isServer ? undefined : 'single', // Separate runtime chunk for better caching
+      splitChunks: isServer
+        ? undefined
+        : {
+            chunks: 'all',
+            cacheGroups: {
+              default: false,
+              vendors: false,
+              // Heavy libraries in separate chunks
+              framework: {
+                name: 'framework',
+                test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+                priority: 40,
+                enforce: true,
+              },
+              commons: {
+                name: 'commons',
+                minChunks: 2,
+                priority: 20,
+              },
+              lib: {
+                test: /[\\/]node_modules[\\/]/,
+                name(module: any) {
+                  // Get package name
+                  const packageName = module.context.match(
+                    /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                  )?.[1];
+                  return `lib.${packageName?.replace('@', '')}`;
+                },
+                priority: 30,
+                minChunks: 1,
+                reuseExistingChunk: true,
+              },
+            },
+          },
+    };
 
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),

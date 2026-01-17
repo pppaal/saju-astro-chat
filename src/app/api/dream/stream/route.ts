@@ -52,8 +52,8 @@ interface StreamDreamRequest {
 
 const MAX_STREAM_BODY = 64 * 1024;
 const MAX_TEXT_LEN = 4000;
-const MAX_LIST_ITEMS = 20;
-const MAX_LIST_ITEM_LEN = 120;
+const _MAX_LIST_ITEMS = 20;
+const _MAX_LIST_ITEM_LEN = 120;
 const STREAM_LOCALES = new Set(["ko", "en"]);
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}$/;

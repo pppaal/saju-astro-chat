@@ -18,6 +18,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { logger } from '@/lib/logger';
+import { parseJsonBody, validateFields } from '@/lib/api/validation';
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
 
 export const dynamic = "force-dynamic";
 
@@ -44,16 +46,60 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        message: "Authentication required",
+      });
     }
 
-    const body = await request.json();
-    const { primaryStyle, secondaryStyle, dominanceScore, affiliationScore, consistencyScore } = body;
-
-    // 필수 필드 검증
-    if (!primaryStyle || dominanceScore === undefined || affiliationScore === undefined) {
-      return NextResponse.json({ error: "missing_fields" }, { status: 400 });
+    // Parse and validate JSON body
+    const { data, error } = await parseJsonBody(request);
+    if (error) {
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: error,
+      });
     }
+
+    // Validate ICP data
+    const validation = validateFields(data, {
+      primaryStyle: {
+        required: true,
+        type: "string",
+        enum: ["PA", "BC", "DE", "FG", "HI", "JK", "LM", "NO"],
+      },
+      secondaryStyle: {
+        type: "string",
+        enum: ["PA", "BC", "DE", "FG", "HI", "JK", "LM", "NO"],
+      },
+      dominanceScore: {
+        required: true,
+        type: "number",
+        min: -100,
+        max: 100,
+      },
+      affiliationScore: {
+        required: true,
+        type: "number",
+        min: -100,
+        max: 100,
+      },
+      consistencyScore: {
+        type: "number",
+        min: 0,
+        max: 100,
+      },
+    });
+
+    if (!validation.valid) {
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: "Invalid ICP data",
+        details: validation.errors,
+      });
+    }
+
+    const { primaryStyle, secondaryStyle, dominanceScore, affiliationScore, consistencyScore } = data;
 
     // ICPResult 모델이 없어서 임시 응답
     return NextResponse.json({
@@ -67,6 +113,10 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     logger.error("POST /api/icp error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      message: "Failed to save ICP result",
+      originalError: error as Error,
+    });
   }
 }

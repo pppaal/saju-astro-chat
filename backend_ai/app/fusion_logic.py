@@ -15,7 +15,7 @@ from signal_extractor import extract_signals, summarize_signals, summarize_cross
 from redis_cache import get_cache
 from performance_optimizer import track_performance
 from sanitizer import sanitize_user_input, sanitize_name, is_suspicious_input, validate_birth_data
-from template_renderer import render_template_report
+from rendering import render_template_report
 
 # Lazy imports for memory-heavy modules (avoid OOM on Railway free tier)
 # SentenceTransformer models use 500MB+ memory, only load when needed

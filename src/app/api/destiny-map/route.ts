@@ -5,13 +5,10 @@ import { recordCounter, recordTiming } from "@/lib/metrics";
 import { apiGuard } from "@/lib/apiGuard";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
-import { sendNotification } from "@/lib/notifications/sse";
 import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { enforceBodySize } from "@/lib/http";
 import {
-  DATE_RE,
-  TIME_RE,
   LIMITS,
   isValidDate,
   isValidTime,

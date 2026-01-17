@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 // TODO: Add proper types for prompt data structures
 // Using 'any' for dynamic prompt data structures that come from various sources
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";

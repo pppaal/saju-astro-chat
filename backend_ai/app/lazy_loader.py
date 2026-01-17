@@ -51,7 +51,7 @@ class LazyModules:
     persona_embeddings = LazyModule("backend_ai.app.persona_embeddings", "Persona Embeddings")
     tarot_hybrid_rag = LazyModule("backend_ai.app.tarot_hybrid_rag", "Tarot Hybrid RAG")
     domain_rag = LazyModule("backend_ai.app.domain_rag", "Domain RAG")
-    compatibility_logic = LazyModule("backend_ai.app.compatibility_logic", "Compatibility Logic")
+    compatibility = LazyModule("backend_ai.app.compatibility", "Compatibility")
     hybrid_rag = LazyModule("backend_ai.app.hybrid_rag", "Hybrid RAG")
     agentic_rag = LazyModule("backend_ai.app.agentic_rag", "Agentic RAG")
     counseling_engine = LazyModule("backend_ai.app.counseling_engine", "Counseling Engine")

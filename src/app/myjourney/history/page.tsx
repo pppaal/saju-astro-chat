@@ -9,133 +9,27 @@ import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./history.module.css";
 import { logger } from "@/lib/logger";
 
-type ServiceRecord = {
-  id: string;
-  date: string;
-  service: string;
-  theme?: string;
-  summary?: string;
-  type: string;
-  content?: string;
-};
-
-type DailyHistory = {
-  date: string;
-  records: ServiceRecord[];
-};
-
-type DestinyMapContent = {
-  id: string;
-  theme: string;
-  summary: string;
-  fullReport?: string;
-  createdAt: string;
-  locale?: string;
-  userQuestion?: string;
-};
-
-type IChingContent = {
-  question?: string;
-  primaryHexagram: {
-    number: number;
-    name: string;
-    symbol: string;
-    binary?: string;
-    judgment?: string;
-    image?: string;
-  };
-  hexagramLines?: { value: number; isChanging: boolean }[];
-  changingLines?: { index: number; text: string }[];
-  resultingHexagram?: {
-    number: number;
-    name: string;
-    symbol: string;
-    binary?: string;
-    judgment?: string;
-  } | null;
-  aiInterpretation?: {
-    overview: string;
-    changing: string;
-    advice: string;
-  } | null;
-  locale?: string;
-  timestamp?: string;
-};
-
-type CalendarContent = {
-  id: string;
-  date: string;
-  grade: number;
-  score: number;
-  title: string;
-  description: string;
-  summary?: string;
-  categories: string[];
-  bestTimes?: string[];
-  sajuFactors?: string[];
-  astroFactors?: string[];
-  recommendations?: string[];
-  warnings?: string[];
-  createdAt: string;
-};
-
-type TarotCard = {
-  name: string;
-  nameKo?: string;
-  isReversed: boolean;
-  position?: string;
-  image?: string;
-};
-
-type TarotCardInsight = {
-  position: string;
-  card_name: string;
-  is_reversed: boolean;
-  interpretation: string;
-};
-
-type TarotContent = {
-  categoryId: string;
-  spreadId: string;
-  spreadTitle: string;
-  cards: TarotCard[];
-  userQuestion?: string;
-  overallMessage?: string;
-  cardInsights?: TarotCardInsight[];
-  guidance?: string;
-  affirmation?: string;
-};
-
-type NumerologyContent = {
-  birthDate: string;
-  name: string;
-  lifePath: number;
-  expression: number;
-  soulUrge: number;
-  personality: number;
-  personalYear?: number;
-  date: string;
-};
-
-// Service configuration with icons and colors (titles and descriptions from i18n)
-const SERVICE_CONFIG: Record<string, { icon: string; titleKey: string; descKey: string; color: string }> = {
-  "daily-fortune": { icon: "🌟", titleKey: "history.services.dailyFortune.title", descKey: "history.services.dailyFortune.desc", color: "#fbbf24" },
-  "destiny-map": { icon: "🗺️", titleKey: "history.services.destinyMap.title", descKey: "history.services.destinyMap.desc", color: "#8b5cf6" },
-  "destiny-calendar": { icon: "📅", titleKey: "history.services.destinyCalendar.title", descKey: "history.services.destinyCalendar.desc", color: "#10b981" },
-  "life-prediction": { icon: "🔮", titleKey: "history.services.lifePrediction.title", descKey: "history.services.lifePrediction.desc", color: "#a855f7" },
-  "life-prediction-timing": { icon: "⏰", titleKey: "history.services.lifePredictionTiming.title", descKey: "history.services.lifePredictionTiming.desc", color: "#8b5cf6" },
-  iching: { icon: "☯️", titleKey: "history.services.iching.title", descKey: "history.services.iching.desc", color: "#6366f1" },
-  tarot: { icon: "🃏", titleKey: "history.services.tarot.title", descKey: "history.services.tarot.desc", color: "#ec4899" },
-  saju: { icon: "🔮", titleKey: "history.services.saju.title", descKey: "history.services.saju.desc", color: "#f97316" },
-  astrology: { icon: "⭐", titleKey: "history.services.astrology.title", descKey: "history.services.astrology.desc", color: "#06b6d4" },
-  dream: { icon: "💭", titleKey: "history.services.dream.title", descKey: "history.services.dream.desc", color: "#a855f7" },
-  compatibility: { icon: "💕", titleKey: "history.services.compatibility.title", descKey: "history.services.compatibility.desc", color: "#f43f5e" },
-  numerology: { icon: "🔢", titleKey: "history.services.numerology.title", descKey: "history.services.numerology.desc", color: "#14b8a6" },
-  aura: { icon: "🌈", titleKey: "history.services.aura.title", descKey: "history.services.aura.desc", color: "#84cc16" },
-  personality: { icon: "🧠", titleKey: "history.services.personality.title", descKey: "history.services.personality.desc", color: "#0ea5e9" },
-  "destiny-pal": { icon: "🤝", titleKey: "history.services.destinyPal.title", descKey: "history.services.destinyPal.desc", color: "#8b5cf6" },
-  "destiny-matrix": { icon: "🔷", titleKey: "history.services.destinyMatrix.title", descKey: "history.services.destinyMatrix.desc", color: "#6366f1" },
-};
+// Modularized imports
+import type {
+  ServiceRecord,
+  DailyHistory,
+  DestinyMapContent,
+  IChingContent,
+  CalendarContent,
+  TarotContent,
+  NumerologyContent,
+} from './lib';
+import {
+  SERVICE_CONFIG,
+  INITIAL_DISPLAY_COUNT,
+  ALL_SERVICES_ORDER,
+  formatDate,
+  formatServiceName,
+  getGradeEmoji,
+  getGradeLabel,
+  getThemeDisplayName,
+  getCategoryDisplay,
+} from './lib';
 
 
 export default function HistoryPage() {
@@ -163,7 +57,6 @@ function HistoryContent() {
   const [numerologyDetail, setNumerologyDetail] = useState<NumerologyContent | null>(null);
   const [tarotDetail, setTarotDetail] = useState<TarotContent | null>(null);
   const [showAllRecords, setShowAllRecords] = useState(false);
-  const INITIAL_DISPLAY_COUNT = 5;
 
   // Particle animation
   useEffect(() => {
@@ -528,18 +421,8 @@ function HistoryContent() {
     });
   });
 
-  // Define all services to display (in order)
-  const allServicesOrder = [
-    "destiny-map",
-    "destiny-calendar",
-    "life-prediction-timing",
-    "tarot",
-    "personality",
-    "dream",
-  ];
-
-  // Use all services (show all, even with 0 count)
-  const displayServices = allServicesOrder;
+  // Use all services from constants (show all, even with 0 count)
+  const displayServices = ALL_SERVICES_ORDER;
 
   // Filter history by selected service
   const filteredHistory = selectedService
@@ -1225,23 +1108,4 @@ function HistoryContent() {
     </main>
   );
 }
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  if (dateStr === today.toISOString().split("T")[0]) {
-    return "Today";
-  }
-  if (dateStr === yesterday.toISOString().split("T")[0]) {
-    return "Yesterday";
-  }
-
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-  });
-}
+// formatDate is now imported from ./lib

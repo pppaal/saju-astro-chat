@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
 
     // 최고 결과
     const topResult = results[0];
-    const startDate = new Date(topResult.startDate);
-    const endDate = new Date(topResult.endDate);
+    const _startDate = new Date(topResult.startDate);
+    const _endDate = new Date(topResult.endDate);
 
     // 요약 생성
     const summary = locale === 'ko'

@@ -8,7 +8,10 @@ import { calculateAdjustedScore } from './scoring-config';
 
 export interface ScorerInput {
   sibsin?: string;
-  [key: string]: any;
+  isSamjaeYear?: boolean;
+  hasGwiin?: boolean;
+  hasChung?: boolean;
+  [key: string]: unknown;
 }
 
 export interface ScorerConfig<T extends ScorerInput> {
@@ -146,10 +149,10 @@ export function createScoreCalculator<T extends ScorerInput>(
     }
 
     // Step 6: Handle samjae special case (only for Seun)
-    if (config.samjaeConfig && (input as any).isSamjaeYear) {
-      if ((input as any).hasGwiin) {
+    if (config.samjaeConfig && input.isSamjaeYear) {
+      if (input.hasGwiin) {
         adjustments.push(config.samjaeConfig.withGwiin);
-      } else if ((input as any).hasChung) {
+      } else if (input.hasChung) {
         adjustments.push(config.samjaeConfig.withChung);
       } else {
         adjustments.push(config.samjaeConfig.base);

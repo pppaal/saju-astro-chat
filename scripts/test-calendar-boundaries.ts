@@ -4,7 +4,7 @@
  */
 
 import { calculateTotalScore, type SajuScoreInput, type AstroScoreInput } from '../src/lib/destiny-map/calendar/scoring';
-import { calculateGrade, type GradeInput } from '../src/lib/destiny-map/calendar/grading';
+import { calculateGrade, type GradeInput } from '../src/lib/destiny-map/calendar/grading-optimized';
 
 console.log('='.repeat(80));
 console.log('운세 캘린더 경계값 테스트');

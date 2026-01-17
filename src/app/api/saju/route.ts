@@ -14,12 +14,10 @@ import { getBackendUrl as pickBackendUrl } from '@/lib/backend-url';
 import { getNowInTimezone } from '@/lib/datetime';
 import { getApiToken } from '@/lib/validateEnv';
 import type {
-  SajuApiRequest,
   SajuPromptData,
   DaeunCycle,
   JGItem,
   JijangganAny,
-  JijangganObject,
   PremiumCacheEntry,
 } from '@/types/saju-api';
 

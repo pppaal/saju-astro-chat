@@ -15,14 +15,14 @@ describe('Calendar Helpers Integration', () => {
 
   describe('grading', () => {
     it('should export grading functions', async () => {
-      const { calculateGrade, getCategoryScore } = await import('@/lib/destiny-map/calendar/grading');
+      const { calculateGrade, getCategoryScore } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
       expect(typeof calculateGrade).toBe('function');
       expect(typeof getCategoryScore).toBe('function');
     });
 
     it('should calculate grade correctly', async () => {
-      const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading');
+      const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
       expect(calculateGrade(80)).toBe(0); // Best
       expect(calculateGrade(70)).toBe(1); // Good

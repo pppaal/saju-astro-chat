@@ -18,7 +18,7 @@
  * and maintainability.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import { logger } from "@/lib/logger";

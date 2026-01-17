@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 // TODO: Add proper types for prompt data structures
 // Using 'any' for dynamic prompt data structures that come from various sources
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
@@ -43,12 +43,6 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     transits = [],
   } = astrology as any;
   const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = (saju ?? {}) as any;
-
-  // 🔍 DEBUG: Log what we receive from saju
-  logger.debug("[buildAllDataPrompt] saju keys:", saju ? Object.keys(saju) : "null");
-  logger.debug("[buildAllDataPrompt] unse:", unse ? JSON.stringify(unse).slice(0, 500) : "null");
-  logger.debug("[buildAllDataPrompt] daeun count:", unse?.daeun?.length ?? 0);
-  logger.debug("[buildAllDataPrompt] first daeun:", unse?.daeun?.[0] ? JSON.stringify(unse.daeun[0]) : "null");
 
   // ========== HELPER FUNCTIONS ==========
   const getPlanet = (name: string) => planets.find((p: PlanetData) => p.name === name);
@@ -172,12 +166,6 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       return `${startAge}-${endAge}세: ${easyGanji} ${marker}`;
     })
     .join("\n  ");
-
-  // 🔍 DEBUG: Log generated daeun text
-  logger.debug("[buildAllDataPrompt] currentAge:", currentAge);
-  logger.debug("[buildAllDataPrompt] currentDaeun:", currentDaeun ? JSON.stringify(currentDaeun) : "null");
-  logger.debug("[buildAllDataPrompt] daeunText:", daeunText);
-  logger.debug("[buildAllDataPrompt] allDaeunText preview:", allDaeunText.slice(0, 200));
 
   // 간지 문자열에서 천간/지지 분리 후 쉬운 형태로 변환
   const parseGanjiEasy = (ganji?: string) => {
@@ -368,12 +356,36 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
   // ========== PROGRESSIONS (진행 차트) ==========
   const progressions = data.progressions as any | undefined;
+  const progressedSun = progressions?.secondary?.summary?.keySigns?.sun ?? progressions?.secondary?.summary?.progressedSun ?? "-";
+  const progressedMoon = progressions?.secondary?.summary?.keySigns?.moon ?? progressions?.secondary?.summary?.progressedMoon ?? "-";
+  const progressedMoonPhase = progressions?.secondary?.moonPhase?.phase ?? "-";
+  const progressedMoonHouse = progressions?.secondary?.summary?.moonHouse ?? "-";
+  const progressedAsc = progressions?.secondary?.summary?.ascendant ?? progressions?.secondary?.chart?.ascendant?.sign ?? "-";
+  const solarArcSun = progressions?.solarArc?.summary?.keySigns?.sun ?? progressions?.solarArc?.summary?.progressedSun ?? "-";
+
   const progressionsText = progressions ? [
-    `Progressed Sun: ${progressions.secondary?.summary?.keySigns?.sun ?? progressions.secondary?.summary?.progressedSun ?? "-"}`,
-    `Progressed Moon: ${progressions.secondary?.summary?.keySigns?.moon ?? progressions.secondary?.summary?.progressedMoon ?? "-"}`,
-    `Moon Phase: ${progressions.secondary?.moonPhase?.phase ?? "-"}`,
-    progressions.solarArc ? `Solar Arc Sun: ${progressions.solarArc.summary?.keySigns?.sun ?? progressions.solarArc.summary?.progressedSun ?? "-"}` : null,
+    `P.Sun: ${progressedSun}`,
+    `P.Moon: ${progressedMoon} (Phase: ${progressedMoonPhase})`,
+    `P.ASC: ${progressedAsc}`,
+    progressions.solarArc ? `SA Sun: ${solarArcSun}` : null,
   ].filter(Boolean).join("; ") : "-";
+
+  // 프로그레션 상세 (인생 주기 분석용)
+  const progressionDetailText = progressions ? `
+• Progressed Sun: ${progressedSun} → 현재 자아 성장 방향
+• Progressed Moon: ${progressedMoon} (House ${progressedMoonHouse}) → 현재 감정적 초점
+• Progressed Moon Phase: ${progressedMoonPhase} → 29.5년 인생 주기 중 위치
+  - New Moon(0-3.5년): 새로운 시작, 씨앗 심기
+  - Crescent(3.5-7년): 성장 도전, 의지력 시험
+  - First Quarter(7-10.5년): 행동, 결단의 시기
+  - Gibbous(10.5-14년): 분석, 완성 추구
+  - Full Moon(14-17.5년): 수확, 관계 절정
+  - Disseminating(17.5-21년): 나눔, 가르침
+  - Last Quarter(21-24.5년): 재평가, 정리
+  - Balsamic(24.5-29.5년): 완료, 새 주기 준비
+• Progressed ASC: ${progressedAsc} → 현재 페르소나 변화
+${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 방향` : ""}
+`.trim() : "";
 
   // ========== DRACONIC CHART (드라코닉 - 영혼 차트) ==========
   const draconic = data.draconic as any | undefined;
@@ -455,231 +467,328 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     .join("; ");
 
   // ========== 연애/배우자 전용 분석 (love theme) ==========
+  // 7하우스 커스프 계산
+  const house7Cusp = houses?.[6]?.cusp ?? 0;
+  const house7Sign = (() => {
+    const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    return signs[Math.floor(house7Cusp / 30)] || "-";
+  })();
+  const house5Cusp = houses?.[4]?.cusp ?? 0;
+  const house5Sign = (() => {
+    const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    return signs[Math.floor(house5Cusp / 30)] || "-";
+  })();
+
   const loveAnalysisSection = theme === "love" ? `
 ═══════════════════════════════════════
-💕 연애/배우자 심층 분석 데이터
+💕 연애/배우자 심층 분석
 ═══════════════════════════════════════
 
-[동양 배우자 분석]
-- 배우자 자리: ${pillars?.day?.earthlyBranch?.name ?? "-"} (${pillars?.day?.earthlyBranch?.element ?? "-"})
-- 안정 파트너 에너지(남성): ${(sibsinDist as Record<string, number> | undefined)?.["정재"] ?? 0}개
-- 자유 파트너 에너지(남성): ${(sibsinDist as Record<string, number> | undefined)?.["편재"] ?? 0}개
-- 안정 파트너 에너지(여성): ${(sibsinDist as Record<string, number> | undefined)?.["정관"] ?? 0}개
-- 자유 파트너 에너지(여성): ${(sibsinDist as Record<string, number> | undefined)?.["편관"] ?? 0}개
-- 연애 매력: ${lucky.includes("도화") ? "있음 - 이성 인기" : "없음"}
-- 강한 끌림: ${lucky.includes("홍염") ? "있음 - 강한 이성 끌림" : "없음"}
-- 인간관계 패턴: ${relationshipText}
+[사주 연애/배우자 분석]
+• 배우자궁(일지): ${pillars?.day?.earthlyBranch?.name ?? "-"} (${pillars?.day?.earthlyBranch?.element ?? "-"})
+• 정재(남성-아내): ${(sibsinDist as Record<string, number> | undefined)?.["정재"] ?? 0}개 | 편재(여자친구): ${(sibsinDist as Record<string, number> | undefined)?.["편재"] ?? 0}개
+• 정관(여성-남편): ${(sibsinDist as Record<string, number> | undefined)?.["정관"] ?? 0}개 | 편관(남자친구): ${(sibsinDist as Record<string, number> | undefined)?.["편관"] ?? 0}개
+• 도화살: ${lucky.includes("도화") ? "있음 → 이성에게 인기" : "없음"} | 홍염살: ${lucky.includes("홍염") ? "있음 → 강한 성적 매력" : "없음"}
+• 원진살/귀문살: ${unlucky.includes("원진") || unlucky.includes("귀문") ? "있음 → 관계 트러블 주의" : "없음"}
 
 [점성술 연애 분석]
-- Venus(금성): ${venus?.sign ?? "-"} (House ${venus?.house ?? "-"}) - 연애 스타일/취향
-- Mars(화성): ${mars?.sign ?? "-"} (House ${mars?.house ?? "-"}) - 성적 매력/끌림
-- 7th House(결혼/파트너): 커스프 확인 필요
-- Juno(결혼 소행성): ${juno ? `${juno.sign} (House ${juno.house})` : "-"}
-- Vertex(운명적 만남): ${vertex ? `${vertex.sign} (House ${vertex.house})` : "-"}
-- 5th House(연애/로맨스): 확인 필요
-- 8th House(깊은 결합): 확인 필요
+• Venus(금성): ${venus?.sign ?? "-"} H${venus?.house ?? "-"} → 연애 스타일, 끌리는 타입
+• Mars(화성): ${mars?.sign ?? "-"} H${mars?.house ?? "-"} → 성적 매력, 추구 방식
+• 5하우스(연애): ${house5Sign} → 로맨스 스타일, 즐거움
+• 7하우스(결혼): ${house7Sign} → 배우자 특성, 결혼관
+• Juno(결혼): ${juno ? `${juno.sign} H${juno.house}` : "-"} → 이상적 배우자상
+• Lilith(그림자): ${lilith ? `${lilith.sign} H${lilith.house}` : "-"} → 숨겨진 욕망
 
-[배우자 성향 추론 근거]
-- 배우자 자리 오행 → 배우자 기질
-- 금성 사인 → 끌리는 타입
-- 7하우스 사인 → 배우자 외적 특성
-- Juno 사인 → 결혼 파트너 이상형
+[연애 타이밍 분석]
+• 현재 대운: ${daeunText} → ${(currentDaeun as any)?.element === "수" || (currentDaeun as any)?.element === "목" ? "감정/인연 활성화 시기" : "안정적 관계 구축 시기"}
+• 금성 트랜짓: 5하우스/7하우스 통과 시 연애 기회
+• 목성 트랜짓: 7하우스 통과 시 결혼 기회
 
-[연령대 추론 근거]
-- 금성 사인 (염소/토성 영향 → 연상 선호)
-- 토성-달 각도 → 관계 안정성 선호
-- 1하우스 토성 → 성숙한 파트너 선호
-
-[만남 장소 추론 근거]
-- 금성 하우스 위치
-- 11하우스 (친구/네트워크 소개)
-- 6하우스 (직장)
-- 9하우스 (해외/학업)
+[해석 포인트]
+• 배우자궁 오행 → 배우자 기질/성격
+• 금성 사인 → 끌리는 외모/성격 타입
+• 7하우스 사인 → 배우자 첫인상/외적 특성
+• 5하우스 vs 7하우스 → 연애 vs 결혼 스타일 차이
+• 도화+편관/편재 많으면 → 연애는 많으나 결혼 신중
+• 정관/정재 강하면 → 진지한 교제, 조기 결혼 경향
 ` : "";
 
   // ========== 직업/재물 전용 분석 (career/wealth theme) ==========
+  // 2하우스(수입), 6하우스(일상업무), 10하우스(커리어) 사인 추출
+  const house2Sign = houses?.[1]?.sign ?? "-";
+  const house6Sign = houses?.[5]?.sign ?? "-";
+  const house10Sign = houses?.[9]?.sign ?? "-";
+
+  // 관성(정관+편관), 재성(정재+편재), 식상(식신+상관) 합계
+  const officialStar = ((sibsinDist as Record<string, number> | undefined)?.["정관"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["편관"] ?? 0);
+  const wealthStar = ((sibsinDist as Record<string, number> | undefined)?.["정재"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["편재"] ?? 0);
+  const outputStar = ((sibsinDist as Record<string, number> | undefined)?.["식신"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["상관"] ?? 0);
+
   const careerAnalysisSection = (theme === "career" || theme === "wealth") ? `
 ═══════════════════════════════════════
-💼 직업/재물 심층 분석 데이터
+💼 직업/재물 심층 분석 데이터 (職業/財物 CAREER/WEALTH ANALYSIS)
 ═══════════════════════════════════════
 
-[동양 직업 분석]
-- 성향 유형: ${geokgukText} - ${geokgukDesc}
-- 핵심 에너지: ${yongsinPrimary} (보조: ${yongsinSecondary}, 주의: ${yongsinAvoid})
-- 직장 에너지: 안정(${(sibsinDist as Record<string, number> | undefined)?.["정관"] ?? 0}), 도전(${(sibsinDist as Record<string, number> | undefined)?.["편관"] ?? 0})
-- 재물 에너지: 안정(${(sibsinDist as Record<string, number> | undefined)?.["정재"] ?? 0}), 투자(${(sibsinDist as Record<string, number> | undefined)?.["편재"] ?? 0})
-- 창의 에너지: 표현(${(sibsinDist as Record<string, number> | undefined)?.["식신"] ?? 0}), 혁신(${(sibsinDist as Record<string, number> | undefined)?.["상관"] ?? 0})
-- 적합 직업: ${careerText}
-- 업계 추천: ${suitableCareers}
+[사주 직업 분석 - 四柱 職業]
+• 격국(格局): ${geokgukText} - ${geokgukDesc}
+• 용신(用神): ${yongsinPrimary} (보조: ${yongsinSecondary}, 기신: ${yongsinAvoid})
+• 관성(官星) 직장운: 정관 ${(sibsinDist as Record<string, number> | undefined)?.["정관"] ?? 0}개 + 편관 ${(sibsinDist as Record<string, number> | undefined)?.["편관"] ?? 0}개 = 총 ${officialStar}개
+• 재성(財星) 재물운: 정재 ${(sibsinDist as Record<string, number> | undefined)?.["정재"] ?? 0}개 + 편재 ${(sibsinDist as Record<string, number> | undefined)?.["편재"] ?? 0}개 = 총 ${wealthStar}개
+• 식상(食傷) 창의력: 식신 ${(sibsinDist as Record<string, number> | undefined)?.["식신"] ?? 0}개 + 상관 ${(sibsinDist as Record<string, number> | undefined)?.["상관"] ?? 0}개 = 총 ${outputStar}개
+• 비겁(比劫) 경쟁력: ${((sibsinDist as Record<string, number> | undefined)?.["비견"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["겁재"] ?? 0)}개
+• 적합 직업군: ${careerText}
+• 업계 추천: ${suitableCareers}
 
-[점성술 직업 분석]
-- MC(천정/직업): ${mc?.sign ?? "-"}
-- 10th House(사회적 지위): MC 사인 참조
-- Saturn(책임/구조): ${saturn?.sign ?? "-"} (House ${saturn?.house ?? "-"})
-- Jupiter(확장/기회): ${jupiter?.sign ?? "-"} (House ${jupiter?.house ?? "-"})
-- 2nd House(수입): 확인 필요
-- 6th House(일상 업무): 확인 필요
+[점성술 직업 분석 - WESTERN CAREER]
+• MC(천정/Medium Coeli): ${mc?.sign ?? "-"} - 사회적 이미지/커리어 방향
+• 10th House(커리어궁): ${house10Sign} - 직업적 성공 영역
+• 6th House(일상업무궁): ${house6Sign} - 일하는 방식/근무 환경
+• 2nd House(재물궁): ${house2Sign} - 돈 버는 방식/수입원
+• Saturn(토성): ${saturn?.sign ?? "-"} (${saturn?.house ?? "-"}하우스) - 책임/장기목표/권위
+• Jupiter(목성): ${jupiter?.sign ?? "-"} (${jupiter?.house ?? "-"}하우스) - 확장/기회/행운
+• Mars(화성): ${mars?.sign ?? "-"} (${mars?.house ?? "-"}하우스) - 추진력/경쟁/야망
+
+[직업 타이밍 분석]
+• 현재 대운(大運): ${daeunText ?? "-"}
+• 토성 트랜짓: 10하우스 통과 시 커리어 전환점/책임 증가
+• 목성 트랜짓: 10하우스 통과 시 승진/확장 기회
+• 목성 2하우스 통과: 수입 증가 가능성
+• 북노드(Rahu) 대운: 야망 실현의 시기
+
+[해석 포인트]
+• 관성 강함(3+) → 조직 생활 유리, 안정적 직장인
+• 관성 없음 → 프리랜서/자영업/창업 적합
+• 재성 강함(3+) → 사업/투자/재테크 능력
+• 식상 강함(3+) → 창의직/예술/기술직 적합
+• MC 사인 → 사회에서 보이고 싶은 이미지
+• 10하우스 vs 6하우스 → 큰 목표 vs 일상 업무 스타일 차이
+• 토성 하우스 → 노력으로 성공할 영역
+• 목성 하우스 → 자연스러운 행운/기회 영역
 ` : "";
 
   // ========== 건강 전용 분석 (health theme) ==========
   const healthAnalysisSection = theme === "health" ? `
 ═══════════════════════════════════════
-🏥 건강 심층 분석 데이터
+🏥 건강 심층 분석 데이터 (健康 HEALTH ANALYSIS)
 ═══════════════════════════════════════
 
-[사주 건강 분석]
-- 오행 균형: ${Object.entries(facts?.elementRatios ?? {}).map(([k, v]) => `${k}:${(v as number).toFixed?.(1) ?? v}`).join(", ") || "-"}
-- 부족 오행: ${yongsinPrimary} → 이 오행 관련 장기 주의
-- 건강 취약점: ${healthWeak}
-- 일간 체질: ${actualDayMaster} (${actualDayMasterElement})
+[사주 체질 분석 - 四柱 體質]
+• 일간 체질: ${actualDayMaster} (${actualDayMasterElement})
+• 오행 균형: ${Object.entries(facts?.elementRatios ?? {}).map(([k, v]) => `${k}:${(v as number).toFixed?.(1) ?? v}`).join(", ") || "-"}
+• 부족 오행(용신): ${yongsinPrimary} → 이 오행 관련 장기 보강 필요
+• 과다 오행(기신): ${yongsinAvoid} → 이 오행 관련 장기 과부하 주의
+• 건강 취약 영역: ${healthWeak}
 
-[오행별 건강 연관]
-- 木(목): 간, 담, 눈, 근육, 손톱
-- 火(화): 심장, 소장, 혀, 혈관
-- 土(토): 비장, 위장, 입술, 살
-- 金(금): 폐, 대장, 코, 피부, 털
-- 水(수): 신장, 방광, 귀, 뼈, 치아
+[오행별 장기/신체 연관표]
+• 木(목): 간(肝), 담(膽), 눈, 근육, 손톱, 신경계
+• 火(화): 심장(心), 소장(小腸), 혀, 혈관, 혈압
+• 土(토): 비장(脾), 위장(胃), 입술, 살, 소화기
+• 金(금): 폐(肺), 대장(大腸), 코, 피부, 털, 호흡기
+• 水(수): 신장(腎), 방광(膀胱), 귀, 뼈, 치아, 생식기
 
-[점성술 건강 분석]
-- 6th House(건강/질병): 해당 사인 참조
-- Mars(화성): ${mars?.sign ?? "-"} (House ${mars?.house ?? "-"}) - 에너지/염증
-- Saturn(토성): ${saturn?.sign ?? "-"} (House ${saturn?.house ?? "-"}) - 만성질환/뼈
-- Chiron(카이론): ${chiron ? `${chiron.sign} (House ${chiron.house})` : "-"} - 상처/치유
+[점성술 건강 분석 - WESTERN HEALTH]
+• 6th House(건강궁): ${house6Sign} - 질병 경향/건강 관리 방식
+• 1st House(신체): ASC ${ascendant?.sign ?? "-"} - 전반적 체력/외모
+• Mars(화성): ${mars?.sign ?? "-"} (${mars?.house ?? "-"}하우스) - 에너지/염증/외상
+• Saturn(토성): ${saturn?.sign ?? "-"} (${saturn?.house ?? "-"}하우스) - 만성질환/뼈/관절
+• Chiron(카이론): ${chiron ? `${chiron.sign} (${chiron.house}하우스)` : "-"} - 상처/치유의 영역
+• Neptune(해왕성): ${neptune?.sign ?? "-"} (${neptune?.house ?? "-"}하우스) - 면역/중독성
 
-[해석 가이드]
-- 부족 오행 → 해당 장기 보강 필요
-- 과다 오행 → 해당 장기 과부하 주의
-- Chiron 하우스 → 건강 트라우마 영역
+[건강 해석 가이드]
+• 부족 오행 → 해당 장기 기능 약화, 음식/운동으로 보강
+• 과다 오행 → 해당 장기 과부하, 절제/휴식 필요
+• 6하우스 사인 → 질병 유형 및 건강 관리 스타일
+• Chiron 하우스 → 평생 신경 써야 할 건강 영역
+• 화성 긴장각 시기 → 급성 질환/사고 주의
+• 토성 트랜짓 6하우스 → 건강 점검 필요 시기
+• 목(木) 과다/화(火) 부족 → 혈압/심장 주의 등 상생상극 활용
 ` : "";
 
   // ========== 가족/인간관계 전용 분석 (family theme) ==========
+  // 4하우스(가정) 사인 추출 (house5Sign은 love 섹션에서 이미 정의됨)
+  const house4Sign = houses?.[3]?.sign ?? "-";
+
+  // 비겁, 인성, 식상 합계
+  const bijeopStar = ((sibsinDist as Record<string, number> | undefined)?.["비견"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["겁재"] ?? 0);
+  const inseongStar = ((sibsinDist as Record<string, number> | undefined)?.["정인"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["편인"] ?? 0);
+  const siksangStar = ((sibsinDist as Record<string, number> | undefined)?.["식신"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["상관"] ?? 0);
+
   const familyAnalysisSection = theme === "family" ? `
 ═══════════════════════════════════════
-👨‍👩‍👧 가족/인간관계 심층 분석 데이터
+👨‍👩‍👧 가족/인간관계 심층 분석 데이터 (家族 FAMILY ANALYSIS)
 ═══════════════════════════════════════
 
-[사주 가족 분석]
-- 년주(조상/외부): ${formatPillar(pillars?.year) ?? "-"}
-- 월주(부모/형제): ${formatPillar(pillars?.month) ?? "-"}
-- 일주(배우자/자신): ${formatPillar(pillars?.day) ?? "-"}
-- 시주(자녀/말년): ${formatPillar(pillars?.time) ?? "-"}
-- 인간관계 패턴: ${relationshipText}
-- 비겁(형제자매): ${(sibsinDist as Record<string, number> | undefined)?.["비견"] ?? 0} + ${(sibsinDist as Record<string, number> | undefined)?.["겁재"] ?? 0}개
-- 인성(부모/스승): ${(sibsinDist as Record<string, number> | undefined)?.["정인"] ?? 0} + ${(sibsinDist as Record<string, number> | undefined)?.["편인"] ?? 0}개
-- 식상(자녀/표현): ${(sibsinDist as Record<string, number> | undefined)?.["식신"] ?? 0} + ${(sibsinDist as Record<string, number> | undefined)?.["상관"] ?? 0}개
+[사주 가족궁 분석 - 四柱 家族宮]
+• 년주(年柱) - 조상/외부 인연: ${formatPillar(pillars?.year) ?? "-"}
+• 월주(月柱) - 부모/형제 인연: ${formatPillar(pillars?.month) ?? "-"}
+• 일주(日柱) - 배우자/본인: ${formatPillar(pillars?.day) ?? "-"}
+• 시주(時柱) - 자녀/말년 운: ${formatPillar(pillars?.time) ?? "-"}
 
-[점성술 가족 분석]
-- 4th House(가정/어머니): IC 사인 참조
-- 10th House(아버지/권위): MC ${mc?.sign ?? "-"}
-- Moon(달): ${moon?.sign ?? "-"} (House ${moon?.house ?? "-"}) - 감정/어머니
-- Saturn(토성): ${saturn?.sign ?? "-"} (House ${saturn?.house ?? "-"}) - 아버지/제한
-- 5th House(자녀): 해당 사인 참조
-- Ceres(케레스): ${ceres ? `${ceres.sign} (House ${ceres.house})` : "-"} - 양육
+[가족 관계 십신 분석]
+• 비겁(比劫) 형제운: 비견 ${(sibsinDist as Record<string, number> | undefined)?.["비견"] ?? 0}개 + 겁재 ${(sibsinDist as Record<string, number> | undefined)?.["겁재"] ?? 0}개 = 총 ${bijeopStar}개
+• 인성(印星) 부모운: 정인 ${(sibsinDist as Record<string, number> | undefined)?.["정인"] ?? 0}개 + 편인 ${(sibsinDist as Record<string, number> | undefined)?.["편인"] ?? 0}개 = 총 ${inseongStar}개
+• 식상(食傷) 자녀운: 식신 ${(sibsinDist as Record<string, number> | undefined)?.["식신"] ?? 0}개 + 상관 ${(sibsinDist as Record<string, number> | undefined)?.["상관"] ?? 0}개 = 총 ${siksangStar}개
+• 관성(官星) 남편/직장: 총 ${officialStar}개
+• 재성(財星) 아내/아버지: 총 ${wealthStar}개
+• 인간관계 패턴: ${relationshipText}
 
-[해석 가이드]
-- 월주 충돌 → 부모와의 갈등
-- 4하우스 긴장 → 가정 환경 이슈
-- 인성 부족 → 정서적 지지 부족
+[점성술 가족 분석 - WESTERN FAMILY]
+• 4th House(가정궁): ${house4Sign} - 가정 환경/어머니/뿌리
+• IC(천저): 내면의 안식처/가족 원형
+• 10th House(아버지궁): MC ${mc?.sign ?? "-"} - 아버지/권위/사회적 이미지
+• Moon(달): ${moon?.sign ?? "-"} (${moon?.house ?? "-"}하우스) - 감정 패턴/어머니상
+• Saturn(토성): ${saturn?.sign ?? "-"} (${saturn?.house ?? "-"}하우스) - 아버지상/제한/책임
+• 5th House(자녀궁): ${house5Sign} - 자녀/창조성/즐거움
+• Ceres(케레스): ${ceres ? `${ceres.sign} (${ceres.house}하우스)` : "-"} - 양육 방식/돌봄
+
+[가족 해석 가이드]
+• 월주에 충(沖)이 있으면 → 부모와의 갈등/이별 가능성
+• 시주에 충(沖)이 있으면 → 자녀와의 관계 어려움
+• 인성 강함(3+) → 부모 덕/정서적 지지 많음
+• 인성 없음/약함 → 자수성가/독립심 강함
+• 비겁 강함(3+) → 형제간 경쟁/협력 많음
+• 식상 강함(3+) → 자녀복/표현력 좋음
+• Moon 4하우스 → 가정 중심 성향
+• Saturn 4하우스 → 가정에서의 책임/제한
 ` : "";
 
   // ========== 오늘 운세 전용 분석 (today theme) ==========
   const todayAnalysisSection = theme === "today" ? `
 ═══════════════════════════════════════
-📅 오늘의 운세 분석 데이터
+📅 오늘의 운세 분석 데이터 (今日運勢 TODAY'S FORTUNE)
 ═══════════════════════════════════════
 
-[오늘의 사주 흐름]
-- 현재 월운: ${currentMonthly?.ganji ?? "-"} (${currentMonthly?.element ?? "-"})
-- 일간과의 관계: ${actualDayMaster} vs 오늘 천간
-- 오늘의 에너지: 일간 기준 십신 확인
+[사주 일간(日干) 흐름]
+• 본인 일간: ${actualDayMaster} (${actualDayMasterElement})
+• 현재 월운(月運): ${currentMonthly?.ganji ?? "-"} (${currentMonthly?.element ?? "-"})
+• 일간 vs 월운 관계: ${actualDayMasterElement} 기준 ${currentMonthly?.element ?? "-"}의 십신 확인
+• 길한 오행(용신): ${yongsinPrimary} → 이 오행 에너지가 강한 날 좋음
+• 주의 오행(기신): ${yongsinAvoid} → 이 오행 에너지가 강한 날 주의
 
-[오늘의 점성술 흐름]
-- Current Transits: ${significantTransits || "-"}
-- Lunar Return 월간 테마: ${lunarReturnText}
-- 달 위치: ${moon?.sign ?? "-"} - 오늘의 감정/직관
+[점성술 트랜짓(Transit) 흐름]
+• 현재 주요 트랜짓: ${significantTransits || "특별한 배치 없음"}
+• Lunar Return 테마: ${lunarReturnText}
+• 출생 달(Moon) 사인: ${moon?.sign ?? "-"} → 기본 감정 성향
+• 트랜짓 달 → 현재 감정/직관 에너지
 
-[해석 가이드]
-- 트랜짓 조화 → 순조로운 하루
-- 트랜짓 긴장 → 도전적인 하루
-- 달 사인 → 오늘의 감정 톤
+[오늘 해석 가이드]
+• 트랜짓 행성이 네이탈과 조화각(트라인/섹스타일) → 순조로운 흐름
+• 트랜짓 행성이 네이탈과 긴장각(스퀘어/오포지션) → 도전/성장 기회
+• 트랜짓 달의 하우스 → 오늘 감정적 초점이 맞춰지는 영역
+• 오늘 천간과 일간의 관계 → 하루 에너지 파악
+• 용신 에너지 날 → 컨디션 좋음, 기신 에너지 날 → 컨디션 저하
 ` : "";
 
   // ========== 이달 운세 전용 분석 (month theme) ==========
   const monthAnalysisSection = theme === "month" ? `
 ═══════════════════════════════════════
-📆 이달의 운세 분석 데이터
+📆 이달의 운세 분석 데이터 (本月運勢 THIS MONTH'S FORTUNE)
 ═══════════════════════════════════════
 
-[이달의 사주 흐름]
-- 현재 월운: ${currentMonthly?.ganji ?? "-"} (${currentMonthly?.element ?? "-"})
-- 일간과의 관계: ${actualDayMaster} (${actualDayMasterElement}) vs ${currentMonthly?.element ?? "-"}
-- 향후 월운 흐름:
-  ${futureMonthlyList || "데이터 없음"}
+[사주 월운(月運) 분석]
+• 본인 일간: ${actualDayMaster} (${actualDayMasterElement})
+• 현재 월운: ${currentMonthly?.ganji ?? "-"} (${currentMonthly?.element ?? "-"})
+• 일간 vs 월운: ${actualDayMasterElement}일간에게 ${currentMonthly?.element ?? "-"}은 어떤 십신?
+• 용신(用神): ${yongsinPrimary} → 이 오행 월운이면 좋은 달
+• 기신(忌神): ${yongsinAvoid} → 이 오행 월운이면 주의 필요
+• 향후 월운 흐름:
+${futureMonthlyList || "데이터 없음"}
 
-[이달의 점성술 흐름]
-- Lunar Return: ${lunarReturnText}
-- 월간 테마: Lunar Return ASC와 Moon House 확인
-- Current Transits: ${significantTransits || "-"}
+[점성술 Lunar Return 분석]
+• Lunar Return 차트: ${lunarReturnText}
+• LR ASC(어센던트) → 이달의 페르소나/분위기
+• LR Moon House → 이달 감정이 집중되는 영역
+• 현재 트랜짓: ${significantTransits || "특별한 배치 없음"}
 
-[해석 가이드]
-- 월운 오행이 용신과 같으면 → 좋은 달
-- 월운 오행이 기신과 같으면 → 주의 필요
-- LR Moon House → 이달의 감정적 초점
+[이달 해석 가이드]
+• 월운 오행 = 용신 → 에너지 상승, 기회의 달
+• 월운 오행 = 기신 → 에너지 저하, 신중해야 할 달
+• 월운 오행 = 비겁(동일 오행) → 경쟁 심화, 협력 필요
+• 월운 천간이 일간과 합(合) → 새로운 인연/기회
+• LR 1하우스 강조 → 자아 성장의 달
+• LR 7하우스 강조 → 관계 중심의 달
+• LR 10하우스 강조 → 커리어 중요한 달
 ` : "";
 
   // ========== 올해 운세 전용 분석 (year theme) ==========
   const yearAnalysisSection = theme === "year" ? `
 ═══════════════════════════════════════
-🗓️ 올해의 운세 분석 데이터
+🗓️ 올해의 운세 분석 데이터 (年運 THIS YEAR'S FORTUNE)
 ═══════════════════════════════════════
 
-[올해의 사주 흐름]
-- ${currentYear}년 세운: ${currentAnnual?.ganji ?? "-"} (${currentAnnual?.element ?? "-"})
-- 현재 대운: ${daeunText}
-- 일간과의 관계: ${actualDayMaster} (${actualDayMasterElement}) vs ${currentAnnual?.element ?? "-"}
-- 향후 연운:
-  ${futureAnnualList || "데이터 없음"}
+[사주 세운(歲運) + 대운(大運) 분석]
+• 본인 일간: ${actualDayMaster} (${actualDayMasterElement})
+• ${currentYear}년 세운: ${currentAnnual?.ganji ?? "-"} (${currentAnnual?.element ?? "-"})
+• 현재 대운(10년 단위): ${daeunText}
+• 일간 vs 세운: ${actualDayMasterElement}일간에게 ${currentAnnual?.element ?? "-"}은 어떤 십신?
+• 용신(用神): ${yongsinPrimary} → 이 오행 세운이면 발전의 해
+• 기신(忌神): ${yongsinAvoid} → 이 오행 세운이면 정리의 해
+• 향후 연운 흐름:
+${futureAnnualList || "데이터 없음"}
 
-[올해의 점성술 흐름]
-- Solar Return: ${solarReturnText}
-- SR 태양 하우스 → 올해의 핵심 테마
-- SR ASC → 올해의 페르소나
-- Progressions: ${progressionsText}
-- Progressed Moon Phase → 인생 주기
+[점성술 Solar Return + Progressions 분석]
+• Solar Return 차트: ${solarReturnText}
+• SR ASC → 올해의 페르소나/대외 이미지
+• SR Sun House → 올해 에너지가 집중되는 영역
+• SR Moon House → 올해 감정이 집중되는 영역
+• Progressions: ${progressionsText}
+• Progressed Moon Phase → 29.5년 주기 중 현재 위치
+• Progressed Moon Sign → 현재 내면의 성장 테마
 
-[해석 가이드]
-- 세운이 용신이면 → 발전의 해
-- 세운이 기신이면 → 정리/인내의 해
-- SR Sun House → 올해 집중해야 할 영역
-- Progressed Moon → 현재 인생 단계
+[올해 해석 가이드]
+• 세운 = 용신 → 성장/확장/기회의 해
+• 세운 = 기신 → 내면 성장/정리/준비의 해
+• 세운이 일간과 합(合) → 큰 인연/변화의 해
+• 세운이 일간과 충(沖) → 도전/이별/전환의 해
+• 대운 첫해/마지막해 → 10년 테마 전환점
+• SR Sun 1하우스 → 자아 재정립의 해
+• SR Sun 7하우스 → 관계 중심의 해
+• SR Sun 10하우스 → 커리어 중요한 해
+• Progressed New Moon → 새 시작, Full Moon → 절정/수확
 ` : "";
 
   // ========== 인생 종합 전용 분석 (life theme) ==========
   const lifeAnalysisSection = theme === "life" ? `
 ═══════════════════════════════════════
-🌟 인생 종합 분석 데이터
+🌟 인생 종합 분석 데이터 (人生綜合 LIFE PURPOSE ANALYSIS)
 ═══════════════════════════════════════
 
-[인생 전체 대운 흐름]
+[대운(大運) 인생 흐름 - 10년 단위]
 ${allDaeunText || "데이터 없음"}
 
-[핵심 인생 포인트]
-- 격국(성향): ${geokgukText} - ${geokgukDesc}
-- 용신(필요): ${yongsinPrimary} | 기신(주의): ${yongsinAvoid}
-- 강점: ${sibsinDominant}
-- 보완점: ${sibsinMissing}
+[사주 핵심 운명 코드 - 四柱 命理]
+• 일주(日主): ${actualDayMaster} (${actualDayMasterElement}) - 본질적 자아
+• 격국(格局): ${geokgukText} - ${geokgukDesc}
+• 용신(用神): ${yongsinPrimary} - 인생에서 필요한 에너지
+• 희신(喜神): ${yongsinSecondary} - 용신을 돕는 보조 에너지
+• 기신(忌神): ${yongsinAvoid} - 피해야 할/조심해야 할 에너지
+• 십신 강점: ${sibsinDominant}
+• 십신 보완점: ${sibsinMissing}
 
-[점성술 인생 분석]
-- North Node(노스노드): ${northNode?.sign ?? "-"} (House ${northNode?.house ?? "-"}) - 영혼의 목적
-- Chiron(카이론): ${chiron ? `${chiron.sign} (House ${chiron.house})` : "-"} - 상처와 치유
-- Pluto(명왕성): ${pluto?.sign ?? "-"} (House ${pluto?.house ?? "-"}) - 변환
-- Draconic Chart: ${draconicText}
+[점성술 영혼 분석 - SOUL PURPOSE]
+• North Node(북노드/라후): ${northNode?.sign ?? "-"} (${northNode?.house ?? "-"}하우스) - 이번 생의 목표/성장 방향
+• South Node(남노드/케투): ${northNode?.sign ? `대칭 사인` : "-"} - 전생의 익숙함/버려야 할 패턴
+• Chiron(카이론): ${chiron ? `${chiron.sign} (${chiron.house}하우스)` : "-"} - 상처와 치유의 여정
+• Pluto(명왕성): ${pluto?.sign ?? "-"} (${pluto?.house ?? "-"}하우스) - 변환/재탄생의 영역
+• Saturn(토성): ${saturn?.sign ?? "-"} (${saturn?.house ?? "-"}하우스) - 인생의 과제/카르마
+• Draconic Chart: ${draconicText} - 영혼 레벨의 청사진
 
-[해석 가이드]
-- 대운 전환점 → 인생 변곡점
-- North Node House → 이번 생의 과제
-- Chiron House → 치유해야 할 영역
-- Draconic → 영혼 레벨의 목적
+[인생 주요 전환점 시기]
+• 대운 전환기(10년마다): 삶의 테마가 바뀌는 시기
+• 토성 회귀(29세, 58세): 인생 성숙의 관문
+• 카이론 회귀(50세): 상처 치유와 지혜의 시기
+• 명왕성 스퀘어(37-38세): 중년 변환기
+• 북노드 회귀(18-19세, 37-38세, 56세): 운명적 만남/결정
+
+[인생 해석 가이드]
+• 용신 대운 → 발전/성장/기회의 10년
+• 기신 대운 → 내면 성찰/정리/준비의 10년
+• North Node House → 이번 생에서 발전시켜야 할 영역
+• South Node House → 익숙하지만 집착하면 안 되는 영역
+• Chiron House → 상처를 통해 타인을 치유할 수 있는 영역
+• Pluto House → 완전히 변환되어야 할 삶의 영역
+• 격국 + MC → 사회적 역할과 내면 성향의 조화
+• 용신 + North Node → 동서양 운명학의 공통 성장 방향
 ` : "";
 
   // ========== BUILD FINAL PROMPT ==========
@@ -705,42 +814,45 @@ NEVER fabricate 대운/운세 data! ONLY use exact data from sections below!
 ═══════════════════════════════════════════════════════════════
 
 ════════════════════════════════════════════════════════════════
-PART 1: 동양 운명 분석 (EASTERN DESTINY ANALYSIS)
+PART 1: 사주팔자 동양 운명 분석 (四柱八字 EASTERN DESTINY ANALYSIS)
 ════════════════════════════════════════════════════════════════
 
-⚠️ 핵심 정체성 (CORE IDENTITY)
+⚠️ 일주(日主) 핵심 정체성 / 사주 팔자
 ───────────────────────────────────────
-Day Master: ${actualDayMaster} (${actualDayMasterElement})
-Four Pillars: ${pillarText}
-에너지 강도: ${strengthText}
-성향 유형: ${geokgukText}
-핵심 에너지: ${yongsinPrimary} | 보조: ${yongsinSecondary} | 주의: ${yongsinAvoid}
-뿌리 연결: ${tonggeunText}
-표출: ${tuechulText}
-결합: ${hoegukText}
-시기 조화: ${deukryeongText}
+일주(日主) / Day Master: ${actualDayMaster} (${actualDayMasterElement})
+사주 팔자(四柱八字) / Four Pillars: ${pillarText}
+신강/신약(身强身弱): ${strengthText}
+격국(格局) / 성향 유형: ${geokgukText}
+용신(用神) / 핵심 에너지: ${yongsinPrimary} | 희신(喜神) 보조: ${yongsinSecondary} | 기신(忌神) 주의: ${yongsinAvoid}
+통근(通根) 뿌리 연결: ${tonggeunText}
+투출(透出) 표출: ${tuechulText}
+회국(會局) 결합: ${hoegukText}
+득령(得令) 시기 조화: ${deukryeongText}
 
-📊 에너지 분포 (Energy Distribution)
+📊 십신(十神) 에너지 분포 (Energy Distribution)
 ───────────────────────────────────────
-분포: ${sibsinDistText || "-"}
+십신 분포: ${sibsinDistText || "-"}
 주요 에너지: ${sibsinDominant}
 부족 에너지: ${sibsinMissing}
 인간관계 패턴: ${relationshipText}
 직업 적성: ${careerText}
 
-🔄 에너지 상호작용 (Energy Interactions)
+🔄 형충회합(刑沖會合) 에너지 상호작용
 ───────────────────────────────────────
-충돌: ${chungText}
-조화: ${hapText}
-삼중 조화: ${samhapText}
+충(沖) 충돌: ${chungText}
+합(合) 조화: ${hapText}
+삼합(三合) 삼중 조화: ${samhapText}
 
-📅 현재 운세 흐름 (Current Luck)
+🔮 신살(神煞) 길흉 에너지
 ───────────────────────────────────────
-현재 장기 흐름: ${daeunText}
-${currentYear}년 연간 흐름: ${currentAnnual?.element ?? "-"} (${currentAnnual?.ganji ?? ""})
-${currentYear}년 ${currentMonth}월 월간 흐름: ${currentMonthly?.element ?? "-"}
-길한 에너지: ${lucky || "-"}
-주의 에너지: ${unlucky || "-"}
+길신(吉神): ${lucky || "-"}
+흉신(凶神): ${unlucky || "-"}
+
+📅 대운(大運)/세운(歲運)/월운(月運) 현재 흐름
+───────────────────────────────────────
+현재 대운(大運): ${daeunText}
+${currentYear}년 세운(歲運): ${currentAnnual?.element ?? "-"} (${currentAnnual?.ganji ?? ""})
+${currentYear}년 ${currentMonth}월 월운(月運): ${currentMonthly?.element ?? "-"}
 
 🔮 미래 예측용 운세 데이터 (Future Predictions)
 ───────────────────────────────────────
@@ -813,9 +925,10 @@ ${solarReturnText}
 ───────────────────────────────────────
 ${lunarReturnText}
 
-📈 Progressions (진행 차트)
+📈 프로그레션 Progressions (진행 차트 / 2차 진행법)
 ───────────────────────────────────────
 ${progressionsText}
+${progressionDetailText}
 
 🐉 Draconic Chart (드라코닉 - 영혼 차트)
 ───────────────────────────────────────
@@ -843,6 +956,75 @@ ${electionalText}
 Key: ${midpointsText}
 All: ${allMidpointsText}
 ${loveAnalysisSection}${careerAnalysisSection}${healthAnalysisSection}${familyAnalysisSection}${todayAnalysisSection}${monthAnalysisSection}${yearAnalysisSection}${lifeAnalysisSection}
+════════════════════════════════════════════════════════════════
+PART 4: 동서양 융합 해석 가이드 (EAST-WEST SYNTHESIS)
+════════════════════════════════════════════════════════════════
+
+🔗 사주-점성술 대응 관계
+───────────────────────────────────────
+• 일간(日干) ↔ 태양(Sun): 핵심 정체성/자아
+• 월간(月干) ↔ 달(Moon): 감정/내면/어머니
+• 격국(格局) ↔ ASC(어센던트): 성향/페르소나
+• 용신(用神) ↔ 가장 조화로운 행성: 필요한 에너지
+• 대운(大運) ↔ 프로그레션(Progressed): 장기 흐름
+• 세운(歲運) ↔ Solar Return: 연간 테마
+• 월운(月運) ↔ Lunar Return: 월간 테마
+• 신살(神煞) ↔ 항성(Fixed Stars): 특수 영향력
+
+🎯 현재 트랜짓 해석 가이드
+───────────────────────────────────────
+현재 트랜짓: ${significantTransits || "특별한 배치 없음"}
+
+[트랜짓 어스팩트별 의미]
+• conjunction(합): 강력한 활성화, 새로운 시작
+• trine(삼합): 순조로운 흐름, 기회
+• sextile(육합): 가벼운 기회, 노력하면 성과
+• square(사각): 도전/긴장, 성장 동력
+• opposition(충): 관계 긴장, 균형 필요
+
+[주요 트랜짓 행성별 의미]
+• TR Jupiter: 확장/기회/행운 (약 1년 영향)
+• TR Saturn: 책임/제한/성숙 (약 2.5년 영향)
+• TR Uranus: 급변/혁신/자유 (약 7년 영향)
+• TR Neptune: 영감/혼란/영성 (약 14년 영향)
+• TR Pluto: 변환/재탄생/권력 (약 20년+ 영향)
+
+🌊 융합 해석 핵심 원칙
+───────────────────────────────────────
+1. 일간 오행 + Sun Sign = 핵심 성격 융합
+   - ${actualDayMaster}(${actualDayMasterElement}) + ${sun?.sign ?? "-"} = 이 사람의 본질
+
+2. 용신 + 트랜짓 = 시기 판단
+   - 용신(${yongsinPrimary}) 에너지가 활성화되는 트랜짓 = 좋은 시기
+   - 기신(${yongsinAvoid}) 에너지가 활성화되는 트랜짓 = 주의 시기
+
+3. 대운/세운 + 프로그레션/Solar Return = 인생 흐름
+   - 동양: ${daeunText}
+   - 서양: ${progressionsText !== "-" ? progressionsText : "프로그레션 데이터 확인"}
+
+4. 십신 분포 + 하우스 배치 = 구체적 영역
+   - 관성 많음 + 10하우스 강조 = 조직 내 성공
+   - 재성 많음 + 2하우스 강조 = 재물 축적
+   - 식상 많음 + 5하우스 강조 = 창의적 표현
+
+⚡ 질문 유형별 분석 포인트
+───────────────────────────────────────
+[연애/결혼 질문]
+→ 사주: 배우자궁(일지), 정재/편재(남), 정관/편관(여), 도화살
+→ 점성: Venus, Mars, 5th/7th House, Juno, 금성 트랜짓
+
+[직업/재물 질문]
+→ 사주: 격국, 용신, 관성/재성/식상 분포, 대운 흐름
+→ 점성: MC, 10th House, Saturn, Jupiter, 2nd/6th House
+
+[건강 질문]
+→ 사주: 오행 균형, 부족 오행 → 장기, 형충 스트레스
+→ 점성: 6th House, Mars, Saturn, Chiron, 화성 트랜짓
+
+[타이밍/시기 질문]
+→ 사주: 대운 전환기, 세운/월운 흐름, 용신 에너지 시기
+→ 점성: 트랜짓, 프로그레션, Solar/Lunar Return, 일/월식
+
 ════════════════════════════════════════════════════════════════
 `.trim();
 }

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, description, resultData, resultType } = await req.json();
+    const { title, resultType } = await req.json();
 
     // Generate unique share ID
     const shareId = `${resultType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

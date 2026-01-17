@@ -1,5 +1,5 @@
-import PageLoading from "@/components/ui/PageLoading";
+import { CalendarSkeleton } from "@/components/ui/CalendarSkeleton";
 
 export default function Loading() {
-  return <PageLoading variant="calendar" />;
+  return <CalendarSkeleton />;
 }

@@ -13,7 +13,7 @@
  * - life (인생 종합)
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import { formatPillar } from './data-extractors';
 

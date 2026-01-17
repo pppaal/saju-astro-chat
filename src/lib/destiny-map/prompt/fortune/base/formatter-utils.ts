@@ -6,7 +6,7 @@
  * Handles planets, houses, aspects, luck cycles, and more.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import { formatGanjiEasy, parseGanjiEasy } from './translation-maps';
 import { formatPillar, type PlanetaryData, type SajuData } from './data-extractors';

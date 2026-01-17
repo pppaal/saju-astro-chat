@@ -199,3 +199,157 @@ describe("Default rate limit values", () => {
     expect(DEFAULT_WINDOW).toBe(60);
   });
 });
+
+// Mock for actual function tests
+vi.mock("@/lib/logger", () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+describe("rateLimit function", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    vi.resetModules();
+    process.env = { ...originalEnv };
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("allows all in dev mode without Redis", async () => {
+    process.env.NODE_ENV = "development";
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key");
+
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(result.limit);
+    expect(result.headers.get("X-RateLimit-Policy")).toBe("disabled-dev");
+  });
+
+  it("blocks in production without Redis", async () => {
+    process.env.NODE_ENV = "production";
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key");
+
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
+    expect(result.headers.get("X-RateLimit-Policy")).toBe("enforced-no-backend");
+  });
+
+  it("respects custom limit parameter", async () => {
+    process.env.NODE_ENV = "development";
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key", { limit: 100 });
+
+    expect(result.limit).toBe(100);
+  });
+
+  it("sets correct headers in dev mode", async () => {
+    process.env.NODE_ENV = "development";
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key");
+
+    expect(result.headers.get("X-RateLimit-Limit")).toBe("60");
+    expect(result.headers.get("X-RateLimit-Remaining")).toBe("unlimited");
+    expect(result.headers.get("X-RateLimit-Reset")).toBe("0");
+  });
+
+  it("sets correct headers in production without Redis", async () => {
+    process.env.NODE_ENV = "production";
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key");
+
+    expect(result.headers.get("X-RateLimit-Remaining")).toBe("0");
+  });
+});
+
+describe("rateLimit with Redis", () => {
+  const originalEnv = process.env;
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    vi.resetModules();
+    process.env = { ...originalEnv };
+    process.env.UPSTASH_REDIS_REST_URL = "https://redis.upstash.io";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
+    global.fetch = mockFetch;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("calls Redis and allows request when under limit", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([{ result: 1 }, { result: "OK" }]),
+    });
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key");
+
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(59);
+    expect(mockFetch).toHaveBeenCalled();
+  });
+
+  it("blocks request when over limit", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([{ result: 61 }, { result: "OK" }]),
+    });
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("test-key", { limit: 60 });
+
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
+    expect(result.retryAfter).toBeDefined();
+  });
+
+  it("falls back to in-memory when Redis fails", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("Redis error"));
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("fallback-key");
+
+    expect(result.allowed).toBe(true);
+    expect(result.headers.get("X-RateLimit-Policy")).toBe("in-memory-fallback");
+  });
+
+  it("falls back when Redis returns invalid data", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([{ result: "invalid" }]),
+    });
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("invalid-key");
+
+    expect(result.headers.get("X-RateLimit-Policy")).toBe("in-memory-fallback");
+  });
+
+  it("falls back when Redis returns non-ok response", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+    });
+
+    const { rateLimit } = await import("@/lib/rateLimit");
+    const result = await rateLimit("nonok-key");
+
+    expect(result.headers.get("X-RateLimit-Policy")).toBe("in-memory-fallback");
+  });
+});

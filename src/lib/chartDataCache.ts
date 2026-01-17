@@ -7,8 +7,10 @@ import { logger } from "@/lib/logger";
 
 const CACHE_KEY_PREFIX = "destinyChartData_";
 const CACHE_KEY_INDEX = "destinyChartDataKey";
+const CACHE_KEYS_LIST = "destinyChartDataKeys"; // 모든 캐시 키 추적용
 const LEGACY_CACHE_KEY = "destinyChartData"; // 레거시 호환
 const CACHE_DURATION = 3600000; // 1 hour in milliseconds
+const MAX_CACHE_ENTRIES = 10; // 최대 캐시 항목 수
 
 export interface ChartCacheData {
   saju?: Record<string, unknown>;
@@ -28,6 +30,73 @@ function generateBirthKey(
   longitude: number
 ): string {
   return `${birthDate}_${birthTime}_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
+}
+
+/**
+ * 캐시 키 목록 관리 - 오래된 항목 정리
+ */
+function manageCacheKeys(newKey: string): void {
+  try {
+    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
+    const keys: string[] = keysJson ? JSON.parse(keysJson) : [];
+
+    // 이미 있는 키면 맨 뒤로 이동 (LRU)
+    const existingIndex = keys.indexOf(newKey);
+    if (existingIndex !== -1) {
+      keys.splice(existingIndex, 1);
+    }
+    keys.push(newKey);
+
+    // 최대 개수 초과 시 가장 오래된 항목 제거
+    while (keys.length > MAX_CACHE_ENTRIES) {
+      const oldestKey = keys.shift();
+      if (oldestKey) {
+        sessionStorage.removeItem(oldestKey);
+      }
+    }
+
+    sessionStorage.setItem(CACHE_KEYS_LIST, JSON.stringify(keys));
+  } catch (error) {
+    logger.warn("[ChartCache] Failed to manage cache keys:", error);
+  }
+}
+
+/**
+ * 만료된 캐시 항목 정리
+ */
+export function cleanupExpiredCache(): number {
+  let removedCount = 0;
+  try {
+    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
+    if (!keysJson) return 0;
+
+    const keys: string[] = JSON.parse(keysJson);
+    const now = Date.now();
+    const validKeys: string[] = [];
+
+    for (const key of keys) {
+      const stored = sessionStorage.getItem(key);
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored);
+          if (now - cached.timestamp > CACHE_DURATION) {
+            sessionStorage.removeItem(key);
+            removedCount++;
+          } else {
+            validKeys.push(key);
+          }
+        } catch {
+          sessionStorage.removeItem(key);
+          removedCount++;
+        }
+      }
+    }
+
+    sessionStorage.setItem(CACHE_KEYS_LIST, JSON.stringify(validKeys));
+  } catch (error) {
+    logger.warn("[ChartCache] Failed to cleanup expired cache:", error);
+  }
+  return removedCount;
 }
 
 /**
@@ -52,6 +121,10 @@ export function saveChartData(
       timestamp: Date.now(),
       birthKey,
     };
+
+    // 캐시 키 관리 (크기 제한 및 정리)
+    manageCacheKeys(cacheKey);
+
     sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
     // 현재 활성 캐시 키 저장
     sessionStorage.setItem(CACHE_KEY_INDEX, cacheKey);
@@ -171,11 +244,15 @@ export function loadCurrentChartData(): {
  */
 export function clearChartCache(): void {
   try {
-    // 현재 활성 캐시 키 확인 후 삭제
-    const currentKey = sessionStorage.getItem(CACHE_KEY_INDEX);
-    if (currentKey) {
-      sessionStorage.removeItem(currentKey);
+    // 모든 추적된 캐시 키 삭제
+    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
+    if (keysJson) {
+      const keys: string[] = JSON.parse(keysJson);
+      for (const key of keys) {
+        sessionStorage.removeItem(key);
+      }
     }
+    sessionStorage.removeItem(CACHE_KEYS_LIST);
     sessionStorage.removeItem(CACHE_KEY_INDEX);
     sessionStorage.removeItem(LEGACY_CACHE_KEY);
   } catch (error) {
