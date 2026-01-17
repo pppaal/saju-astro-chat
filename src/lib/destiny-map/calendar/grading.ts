@@ -72,15 +72,17 @@ export function calculateGrade(input: GradeInput | number): GradeResult | Import
 
   // 5등급 시스템
   let grade: ImportanceGrade;
-  const hasChungOrXing = input.hasChung || input.hasXing;
+  // Grade 0 조건 완화: 충과 형이 "둘 다" 있을 때만 제외
+  // 이전: 충 OR 형 있으면 제외 → 너무 엄격해서 천운의 날이 거의 없었음
+  const hasBothChungAndXing = input.hasChung && input.hasXing;
 
-  if (adjustedScore >= 72 && !hasChungOrXing) {
-    grade = 0; // 최고의날 (~5%)
-  } else if (adjustedScore >= 65) {
+  if (adjustedScore >= 68 && !hasBothChungAndXing) {
+    grade = 0; // 최고의날 (~5-8%) - 72에서 68로 낮춤
+  } else if (adjustedScore >= 62) {
     grade = 1; // 좋은날 (~15%)
-  } else if (adjustedScore >= 45) {
+  } else if (adjustedScore >= 42) {
     grade = 2; // 보통날 (~50%)
-  } else if (adjustedScore >= 30) {
+  } else if (adjustedScore >= 28) {
     grade = 3; // 안좋은날 (~25%)
   } else {
     grade = 4; // 최악의날 (~5%)

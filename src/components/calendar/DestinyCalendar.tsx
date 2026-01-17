@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { searchCities } from "@/lib/cities";
@@ -14,207 +14,34 @@ import TimePicker from "@/components/ui/TimePicker";
 import styles from "./DestinyCalendar.module.css";
 import { logger } from "@/lib/logger";
 
-type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
-type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
-type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
+// Modularized imports
+import type {
+  EventCategory,
+  CityHit,
+  ImportantDate,
+  CalendarData,
+  BirthInfo,
+} from './types';
+import {
+  CATEGORY_EMOJI,
+  WEEKDAYS_KO,
+  WEEKDAYS_EN,
+  ICONS,
+} from './constants';
+import {
+  getCacheKey,
+  getCachedData,
+  setCachedData,
+} from './cache-utils';
+import {
+  extractCityPart,
+  parseLocalDate,
+  getGradeEmoji,
+  getCategoryLabel,
+  getScoreClass,
+} from './utils';
 
-interface ImportantDate {
-  date: string;
-  grade: ImportanceGrade;
-  score: number;
-  categories: EventCategory[];
-  title: string;
-  description: string;
-  summary?: string;
-  bestTimes?: string[];
-  sajuFactors: string[];
-  astroFactors: string[];
-  recommendations: string[];
-  warnings: string[];
-  // 신규 분석 데이터 (확장)
-  ganzhi?: string;           // 일주 간지
-  transitSunSign?: string;   // 트랜짓 태양 별자리
-  crossVerified?: boolean;   // 사주+점성술 교차 검증
-}
-
-interface CalendarData {
-  success: boolean;
-  year: number;
-  summary?: {
-    total: number;
-    grade0: number; // 최고의 날 (~5%)
-    grade1: number; // 좋은 날 (~15%)
-    grade2: number; // 보통 날 (~50%)
-    grade3: number; // 안좋은 날 (~25%)
-    grade4: number; // 최악의 날 (~5%)
-  };
-  topDates?: ImportantDate[];
-  goodDates?: ImportantDate[];
-  cautionDates?: ImportantDate[];
-  allDates?: ImportantDate[];
-  error?: string;
-}
-
-interface BirthInfo {
-  birthDate: string;
-  birthTime: string;
-  birthPlace: string;
-  gender: 'Male' | 'Female';
-  latitude?: number;
-  longitude?: number;
-  timezone?: string;
-}
-
-const CATEGORY_EMOJI: Record<EventCategory, string> = {
-  wealth: "💰",
-  career: "💼",
-  love: "💕",
-  health: "💪",
-  travel: "✈️",
-  study: "📚",
-  general: "⭐",
-};
-
-const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
-const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-// 이모지 상수 (hydration 불일치 방지)
-const ICONS = {
-  calendar: "📅",
-  clock: "🕐",
-  globe: "🌍",
-  gender: "⚧",
-  star: "🌟",
-  crystal: "🔮",
-  sparkle: "✦",
-} as const;
-
-function extractCityPart(input: string) {
-  const s = String(input || '').trim();
-  const idx = s.indexOf(',');
-  return (idx >= 0 ? s.slice(0, idx) : s).trim();
-}
-
-/**
- * YYYY-MM-DD 문자열을 로컬 타임존 Date로 파싱
- * new Date("2025-12-31")은 UTC로 파싱되어 타임존에 따라 전날로 계산될 수 있음
- */
-function parseLocalDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day);
-}
-
-// ============================================================
-// 캐싱 유틸리티
-// ============================================================
-const CACHE_VERSION = 'v1';
-const CACHE_EXPIRY_DAYS = 30; // 30일 후 만료
-
-interface CachedCalendarData {
-  version: string;
-  timestamp: number;
-  birthInfo: BirthInfo;
-  year: number;
-  category: string;
-  data: CalendarData;
-}
-
-function getCacheKey(birthInfo: BirthInfo, year: number, category: string): string {
-  // 생년월일+시간+장소+연도+카테고리로 고유 키 생성
-  return `calendar_${birthInfo.birthDate}_${birthInfo.birthTime}_${birthInfo.birthPlace}_${year}_${category}`;
-}
-
-function getCachedData(cacheKey: string): CalendarData | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (!cached) return null;
-
-    const parsed: CachedCalendarData = JSON.parse(cached);
-
-    // 버전 체크
-    if (parsed.version !== CACHE_VERSION) {
-      localStorage.removeItem(cacheKey);
-      return null;
-    }
-
-    // 만료 체크 (30일)
-    const now = Date.now();
-    const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-    if (now - parsed.timestamp > expiryMs) {
-      localStorage.removeItem(cacheKey);
-      return null;
-    }
-
-    return parsed.data;
-  } catch (err) {
-    logger.error('[Cache] Failed to get cached data:', err);
-    return null;
-  }
-}
-
-function setCachedData(cacheKey: string, birthInfo: BirthInfo, year: number, category: string, data: CalendarData): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    const cacheData: CachedCalendarData = {
-      version: CACHE_VERSION,
-      timestamp: Date.now(),
-      birthInfo,
-      year,
-      category,
-      data,
-    };
-
-    localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-  } catch (err) {
-    logger.error('[Cache] Failed to set cached data:', err);
-    // localStorage quota exceeded - 오래된 캐시 삭제
-    try {
-      clearOldCache();
-      localStorage.setItem(cacheKey, JSON.stringify({
-        version: CACHE_VERSION,
-        timestamp: Date.now(),
-        birthInfo,
-        year,
-        category,
-        data,
-      }));
-    } catch (retryErr) {
-      logger.error('[Cache] Failed to set cached data after cleanup:', retryErr);
-    }
-  }
-}
-
-function clearOldCache(): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    const now = Date.now();
-    const keys = Object.keys(localStorage);
-    const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
-
-    // 만료된 캐시 삭제
-    calendarKeys.forEach(key => {
-      try {
-        const cached = localStorage.getItem(key);
-        if (!cached) return;
-
-        const parsed: CachedCalendarData = JSON.parse(cached);
-        const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-        if (now - parsed.timestamp > expiryMs) {
-          localStorage.removeItem(key);
-        }
-      } catch {
-        // 파싱 실패한 캐시는 삭제
-        localStorage.removeItem(key);
-      }
-    });
-  } catch (err) {
-    logger.error('[Cache] Failed to clear old cache:', err);
-  }
-}
+// Cache utilities are now imported from ./cache-utils
 
 export default function DestinyCalendar() {
   // SessionProvider는 상위 레이아웃에서 이미 제공됨
@@ -353,6 +180,46 @@ function DestinyCalendarContent() {
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
+  const CATEGORIES: EventCategory[] = ["wealth", "career", "love", "health", "travel", "study"];
+
+  // 월간 운세 그래프 데이터 계산 (memoized)
+  const fortuneData = useMemo(() => {
+    if (!data?.allDates) return [];
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthData: { day: number; grade: number; score: number }[] = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dateInfo = data.allDates.find(d => d.date === dateStr);
+      monthData.push({
+        day,
+        grade: dateInfo?.grade ?? 3,
+        score: dateInfo?.score ?? 50
+      });
+    }
+    return monthData;
+  }, [data?.allDates, year, month]);
+
+
+  // 연도별 summary 계산 (memoized - 단일 순회로 최적화)
+  const yearSummary = useMemo(() => {
+    if (!data?.allDates) return null;
+
+    const result = { total: 0, grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0 };
+    for (const d of data.allDates) {
+      const dateYear = new Date(d.date).getFullYear();
+      if (dateYear === year) {
+        result.total++;
+        if (d.grade === 0) result.grade0++;
+        else if (d.grade === 1) result.grade1++;
+        else if (d.grade === 2) result.grade2++;
+        else if (d.grade === 3) result.grade3++;
+        else if (d.grade >= 4) result.grade4++;
+      }
+    }
+    return result.total > 0 ? result : null;
+  }, [data?.allDates, year]);
 
   // 로그인 사용자의 저장된 날짜 로드
   useEffect(() => {
@@ -644,18 +511,8 @@ function DestinyCalendarContent() {
     ? ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
     : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  const getCategoryLabel = (cat: EventCategory) => {
-    const labels: Record<EventCategory, Record<string, string>> = {
-      wealth: { ko: "재물", en: "Wealth" },
-      career: { ko: "직장", en: "Career" },
-      love: { ko: "연애", en: "Love" },
-      health: { ko: "건강", en: "Health" },
-      travel: { ko: "여행", en: "Travel" },
-      study: { ko: "학업", en: "Study" },
-      general: { ko: "전반", en: "General" },
-    };
-    return labels[cat][locale] || labels[cat]["en"];
-  };
+  // getCategoryLabel uses imported function with locale
+  const getCategoryLabelLocal = (cat: EventCategory) => getCategoryLabel(cat, locale);
 
   // 월의 날짜 배열 생성
   const getMonthDays = () => {
@@ -864,22 +721,7 @@ function DestinyCalendarContent() {
     setIsDarkTheme(!isDarkTheme);
   };
 
-  const getGradeEmoji = (grade: number): string => {
-    switch (grade) {
-      case 0: return "🌟"; // 최고의 날
-      case 1: return "✨"; // 좋은 날
-      case 2: return "⭐"; // 보통 날
-      case 3: return "⚠️"; // 안좋은 날
-      case 4: return "☠️"; // 최악의 날
-      default: return "⭐";
-    }
-  };
-
-  const getScoreClass = (score: number): string => {
-    if (score >= 70) return styles.high;
-    if (score >= 50) return styles.medium;
-    return styles.low;
-  };
+  // getGradeEmoji and getScoreClass are imported from ./utils
 
   const days = getMonthDays();
 
@@ -1135,51 +977,6 @@ function DestinyCalendarContent() {
     );
   }
 
-  const CATEGORIES: EventCategory[] = ["wealth", "career", "love", "health", "travel", "study"];
-
-  // 월간 운세 그래프 데이터 계산
-  const getMonthFortuneData = () => {
-    if (!data?.allDates) return [];
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const monthData: { day: number; grade: number; score: number }[] = [];
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const dateInfo = data.allDates.find(d => d.date === dateStr);
-      monthData.push({
-        day,
-        grade: dateInfo?.grade ?? 3,
-        score: dateInfo?.score ?? 50
-      });
-    }
-    return monthData;
-  };
-
-  const fortuneData = getMonthFortuneData();
-  const goodDaysCount = fortuneData.filter(d => d.grade <= 2).length;
-  const badDaysCount = fortuneData.filter(d => d.grade >= 4).length; // grade 4 + 5
-
-  // 연도별 summary 계산 (allDates에서 직접 계산)
-  const getYearSummary = () => {
-    if (!data?.allDates) return null;
-
-    const yearDates = data.allDates.filter(d => {
-      const dateYear = new Date(d.date).getFullYear();
-      return dateYear === year;
-    });
-
-    return {
-      total: yearDates.length,
-      grade0: yearDates.filter(d => d.grade === 0).length,
-      grade1: yearDates.filter(d => d.grade === 1).length,
-      grade2: yearDates.filter(d => d.grade === 2).length,
-      grade3: yearDates.filter(d => d.grade === 3).length,
-      grade4: yearDates.filter(d => d.grade === 4).length,
-    };
-  };
-
-  const yearSummary = getYearSummary();
-
   return (
     <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
       <BackButton />
@@ -1276,7 +1073,7 @@ function DestinyCalendarContent() {
             className={`${styles.filterBtn} ${activeCategory === cat ? styles.active : ""}`}
             onClick={() => setActiveCategory(cat)}
           >
-            {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat)}
+            {CATEGORY_EMOJI[cat]} {getCategoryLabelLocal(cat)}
           </button>
         ))}
       </div>
@@ -1401,16 +1198,6 @@ function DestinyCalendarContent() {
             <span className={styles.graphTitle}>
               📊 {locale === "ko" ? "월간 운세 흐름" : "Monthly Fortune Flow"}
             </span>
-            <div className={styles.graphStats}>
-              <span className={styles.graphStat}>
-                <span className={`${styles.graphStatDot} ${styles.good}`}></span>
-                {locale === "ko" ? `좋은 날 ${goodDaysCount}일` : `${goodDaysCount} good days`}
-              </span>
-              <span className={styles.graphStat}>
-                <span className={`${styles.graphStatDot} ${styles.bad}`}></span>
-                {locale === "ko" ? `주의 ${badDaysCount}일` : `${badDaysCount} caution`}
-              </span>
-            </div>
           </div>
           <div className={styles.sparkline}>
             {fortuneData.map((d, idx) => {
@@ -1528,7 +1315,7 @@ function DestinyCalendarContent() {
               <div className={styles.selectedCategories}>
                 {selectedDate.categories.map(cat => (
                   <span key={cat} className={`${styles.categoryTag} ${styles[cat]}`}>
-                    {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat)}
+                    {CATEGORY_EMOJI[cat]} {getCategoryLabelLocal(cat)}
                   </span>
                 ))}
               </div>

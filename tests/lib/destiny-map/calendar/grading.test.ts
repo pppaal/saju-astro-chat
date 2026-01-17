@@ -42,49 +42,59 @@ describe('grading', () => {
     });
 
     describe('grade levels', () => {
-      it('should return grade 0 for score >= 72 without chung/xing', () => {
+      it('should return grade 0 for score >= 68 without chung/xing', () => {
         const input = createGradeInput({ score: 75, hasChung: false, hasXing: false });
         const result = calculateGrade(input);
 
         expect(result.grade).toBe(0);
       });
 
-      it('should not return grade 0 if hasChung is true even with high score', () => {
-        const input = createGradeInput({ score: 80, hasChung: true });
+      it('should still return grade 0 if only hasChung is true (relaxed condition)', () => {
+        const input = createGradeInput({ score: 80, hasChung: true, hasXing: false });
         const result = calculateGrade(input);
 
+        // 충만 있고 형이 없으면 Grade 0 가능 (완화된 조건)
+        expect(result.grade).toBe(0);
+      });
+
+      it('should still return grade 0 if only hasXing is true (relaxed condition)', () => {
+        const input = createGradeInput({ score: 80, hasXing: true, hasChung: false });
+        const result = calculateGrade(input);
+
+        // 형만 있고 충이 없으면 Grade 0 가능 (완화된 조건)
+        expect(result.grade).toBe(0);
+      });
+
+      it('should not return grade 0 if both hasChung AND hasXing are true', () => {
+        const input = createGradeInput({ score: 80, hasChung: true, hasXing: true });
+        const result = calculateGrade(input);
+
+        // 충과 형 둘 다 있으면 Grade 0 불가
         expect(result.grade).not.toBe(0);
       });
 
-      it('should not return grade 0 if hasXing is true even with high score', () => {
-        const input = createGradeInput({ score: 80, hasXing: true });
-        const result = calculateGrade(input);
-
-        expect(result.grade).not.toBe(0);
-      });
-
-      it('should return grade 1 for score 65-71', () => {
-        const input = createGradeInput({ score: 68 });
+      it('should return grade 1 for score 62-67', () => {
+        const input = createGradeInput({ score: 64 });
         const result = calculateGrade(input);
 
         expect(result.grade).toBe(1);
       });
 
-      it('should return grade 2 for score 45-64', () => {
-        const input = createGradeInput({ score: 55 });
+      it('should return grade 2 for score 42-61', () => {
+        const input = createGradeInput({ score: 50 });
         const result = calculateGrade(input);
 
         expect(result.grade).toBe(2);
       });
 
-      it('should return grade 3 for score 30-44', () => {
+      it('should return grade 3 for score 28-41', () => {
         const input = createGradeInput({ score: 35 });
         const result = calculateGrade(input);
 
         expect(result.grade).toBe(3);
       });
 
-      it('should return grade 4 for score < 30', () => {
+      it('should return grade 4 for score < 28', () => {
         const input = createGradeInput({ score: 20 });
         const result = calculateGrade(input);
 
@@ -214,9 +224,9 @@ describe('grading', () => {
     });
 
     describe('grade boundaries', () => {
-      it('should correctly handle boundary at 72', () => {
-        const below = createGradeInput({ score: 71 });
-        const at = createGradeInput({ score: 72 });
+      it('should correctly handle boundary at 68', () => {
+        const below = createGradeInput({ score: 67 });
+        const at = createGradeInput({ score: 68 });
 
         const resultBelow = calculateGrade(below);
         const resultAt = calculateGrade(at);
@@ -225,9 +235,9 @@ describe('grading', () => {
         expect(resultAt.grade).toBe(0);
       });
 
-      it('should correctly handle boundary at 65', () => {
-        const below = createGradeInput({ score: 64 });
-        const at = createGradeInput({ score: 65 });
+      it('should correctly handle boundary at 62', () => {
+        const below = createGradeInput({ score: 61 });
+        const at = createGradeInput({ score: 62 });
 
         const resultBelow = calculateGrade(below);
         const resultAt = calculateGrade(at);
@@ -236,9 +246,9 @@ describe('grading', () => {
         expect(resultAt.grade).toBe(1);
       });
 
-      it('should correctly handle boundary at 45', () => {
-        const below = createGradeInput({ score: 44 });
-        const at = createGradeInput({ score: 45 });
+      it('should correctly handle boundary at 42', () => {
+        const below = createGradeInput({ score: 41 });
+        const at = createGradeInput({ score: 42 });
 
         const resultBelow = calculateGrade(below);
         const resultAt = calculateGrade(at);
@@ -247,9 +257,9 @@ describe('grading', () => {
         expect(resultAt.grade).toBe(2);
       });
 
-      it('should correctly handle boundary at 30', () => {
-        const below = createGradeInput({ score: 29 });
-        const at = createGradeInput({ score: 30 });
+      it('should correctly handle boundary at 28', () => {
+        const below = createGradeInput({ score: 27 });
+        const at = createGradeInput({ score: 28 });
 
         const resultBelow = calculateGrade(below);
         const resultAt = calculateGrade(at);
