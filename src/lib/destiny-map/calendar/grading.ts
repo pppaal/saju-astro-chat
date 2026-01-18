@@ -30,11 +30,12 @@ export interface GradeResult {
 /**
  * 점수 기반 등급 결정 (5등급 시스템)
  *
- * Grade 0: 최고의날 (72+ AND 충/형 없음) ~5%
- * Grade 1: 좋은날 (65-71) ~15%
- * Grade 2: 보통날 (45-64) ~50%
- * Grade 3: 안좋은날 (30-44) ~25%
- * Grade 4: 최악의날 (<30) ~5%
+ * Updated 2026-01-17: Thresholds lowered for better distribution
+ * Grade 0: 최고의날 (68+ AND 충/형 없음) ~5%
+ * Grade 1: 좋은날 (62-67) ~15%
+ * Grade 2: 보통날 (42-61) ~50%
+ * Grade 3: 안좋은날 (28-41) ~25%
+ * Grade 4: 최악의날 (<28) ~5%
  */
 function calculateSimpleGrade(score: number): ImportanceGrade {
   if (score >= GRADE_THRESHOLDS.grade0) return 0;

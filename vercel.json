@@ -4,11 +4,13 @@
   "framework": "nextjs",
   "regions": ["icn1"],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "NODE_OPTIONS": "--max-old-space-size=7168"
   },
   "build": {
     "env": {
-      "SKIP_ENV_VALIDATION": "1"
+      "SKIP_ENV_VALIDATION": "1",
+      "NODE_OPTIONS": "--max-old-space-size=7168"
     }
   },
   "functions": {

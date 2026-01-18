@@ -79,7 +79,6 @@ import {
   getPersonalizedAdvice,
   getCombinedLifeTheme
 } from "./fun-insights/generators";
-import { extractSajuProfile } from '@/lib/destiny-map/destinyCalendar';
 
 // Saju data type definition
 interface SajuData {
@@ -273,16 +272,18 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
     return null;
   }
 
-  // 오행 정규화 (탭 컴포넌트에 전달할 데이터보다 먼저 정의)
-  const totalElements = Object.values(data.fiveElements).reduce((a, b) => (a as number) + (b as number), 0) as number;
-  const normalizedElements = Object.entries(data.fiveElements).map(([el, val]) => ({
-    element: el,
-    value: totalElements > 0 ? Math.round(((val as number) / totalElements) * 100) : 20,
-    raw: val as number,
-  })).sort((a, b) => b.value - a.value);
+  // 오행 정규화 (탭 컴포넌트에 전달할 데이터보다 먼저 정의) - useMemo로 메모이제이션
+  const normalizedElements = useMemo(() => {
+    const totalElements = Object.values(data.fiveElements).reduce((a, b) => (a as number) + (b as number), 0) as number;
+    return Object.entries(data.fiveElements).map(([el, val]) => ({
+      element: el,
+      value: totalElements > 0 ? Math.round(((val as number) / totalElements) * 100) : 20,
+      raw: val as number,
+    })).sort((a, b) => b.value - a.value);
+  }, [data.fiveElements]);
 
-  // 탭 컴포넌트에 전달할 데이터
-  const tabData = {
+  // 탭 컴포넌트에 전달할 데이터 - useMemo로 메모이제이션
+  const tabData = useMemo(() => ({
     dayMasterName: data.dayMasterName,
     dayMasterInfo: data.dayMasterInfo,
     dayElement: data.dayElement,
@@ -304,7 +305,7 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
     chironInsight: data.chironInsight,
     luckyItems: data.luckyItems,
     normalizedElements, // 오행 균형 차트용
-  } as unknown as TabData;
+  } as unknown as TabData), [data, saju, astro, lang, normalizedElements]);
 
   const sunData = data.sunSign ? zodiacData[data.sunSign] : null;
   const moonData = data.moonSign ? zodiacData[data.moonSign] : null;

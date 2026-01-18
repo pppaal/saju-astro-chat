@@ -1,0 +1,1508 @@
+import sys
+import os
+import json
+import calendar
+import re
+
+# Load environment variables from backend_ai/.env file (explicit path with override)
+from dotenv import load_dotenv
+_backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(_backend_root, ".env"), override=True)
+
+RAG_DISABLED = os.getenv("RAG_DISABLE") == "1"
+
+# Add project root to Python path for standalone execution
+_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+import logging
+import time
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, date, timedelta
+from pathlib import Path
+from threading import Lock
+from typing import Dict, Optional, Tuple
+from uuid import uuid4
+
+from flask import Flask, jsonify, g, request, Response, stream_with_context
+from flask_cors import CORS
+from flask_compress import Compress
+
+from backend_ai.app.astro_parser import calculate_astrology_data
+from backend_ai.app.fusion_logic import interpret_with_ai
+from backend_ai.app.saju_parser import calculate_saju_data
+from backend_ai.app.dream_logic import interpret_dream
+from backend_ai.app.redis_cache import get_cache
+from backend_ai.app.sanitizer import (
+    sanitize_user_input,
+    sanitize_dream_text,
+    sanitize_name,
+    validate_birth_data,
+    is_suspicious_input,
+)
+
+# Phase 4.4: Utility functions moved to backend_ai/utils/
+from backend_ai.utils.context_builders import (
+    _build_saju_summary,
+    _pick_astro_planet,
+    _pick_ascendant,
+    _pick_astro_aspect,
+    _build_astro_summary,
+    _build_detailed_saju,
+    _build_detailed_astro,
+    _build_advanced_astro_context,
+)
+from backend_ai.utils.text_utils import (
+    _add_months,
+    _format_month_name,
+    _format_date_ymd,
+    _count_timing_markers,
+    _has_week_timing,
+    _has_caution,
+    _count_timing_markers_en,
+    _has_week_timing_en,
+    _has_caution_en,
+    _ensure_ko_prefix,
+    _format_korean_spacing,
+    _insert_addendum,
+    _chunk_text,
+    _get_stream_chunk_size,
+    _to_sse_event,
+    _sse_error_response,
+    _has_saju_payload,
+    _has_astro_payload,
+    _build_birth_format_message,
+    _build_missing_payload_message,
+)
+from backend_ai.utils.evidence_builders import (
+    _summarize_five_elements,
+    _summarize_five_elements_en,
+    _pick_sibsin,
+    _planet_ko_name,
+    _planet_en_name,
+    _pick_any_planet,
+    _build_saju_evidence_sentence,
+    _build_saju_evidence_sentence_en,
+    _build_astro_evidence_sentence,
+    _build_astro_evidence_sentence_en,
+    _build_missing_requirements_addendum,
+    _build_rag_debug_addendum,
+)
+from backend_ai.utils.env_utils import (
+    _is_truthy,
+    _bool_env,
+    _coerce_float,
+    _coerce_int,
+    _get_int_env,
+    _clamp_temperature,
+    _select_model_and_temperature,
+)
+# Lazy import fusion_generate to avoid loading SentenceTransformer on startup
+# This prevents OOM on Railway free tier (512MB limit)
+_fusion_generate_module = None
+
+def _get_fusion_generate():
+    """Lazy load fusion_generate module to save memory."""
+    global _fusion_generate_module
+    if _fusion_generate_module is None:
+        from backend_ai.model import fusion_generate as _fg
+        _fusion_generate_module = _fg
+    return _fusion_generate_module
+
+def _generate_with_gpt4(*args, **kwargs):
+    """Lazy wrapper for _generate_with_gpt4."""
+    return _get_fusion_generate()._generate_with_gpt4(*args, **kwargs)
+
+def refine_with_gpt5mini(*args, **kwargs):
+    """Lazy wrapper for refine_with_gpt5mini."""
+    return _get_fusion_generate().refine_with_gpt5mini(*args, **kwargs)
+
+from backend_ai.app.performance_optimizer import (
+    track_performance,
+    get_performance_stats,
+    get_cache_health,
+    suggest_optimizations,
+)
+
+# Gemini-level features
+try:
+    from backend_ai.app.realtime_astro import get_current_transits, get_transit_interpretation
+    HAS_REALTIME = True
+except ImportError:
+    HAS_REALTIME = False
+    # Fallback functions when realtime_astro is not available
+    def get_current_transits():
+        return {}
+    def get_transit_interpretation(*args, **kwargs):
+        return ""
+
+try:
+    from backend_ai.app.chart_generator import (
+        generate_saju_table_svg,
+        generate_natal_chart_svg,
+        generate_full_chart_html,
+        svg_to_base64,
+    )
+    HAS_CHARTS = True
+except ImportError:
+    HAS_CHARTS = False
+
+try:
+    from backend_ai.app.user_memory import get_user_memory, generate_user_id
+    HAS_USER_MEMORY = True
+except ImportError:
+    HAS_USER_MEMORY = False
+
+# I-Ching RAG - Lazy loaded to avoid OOM (uses saju_astro_rag -> SentenceTransformer)
+HAS_ICHING = True  # Assume available, will fail gracefully if not
+_iching_rag_module = None
+
+def _get_iching_rag():
+    """Lazy load iching_rag module."""
+    global _iching_rag_module, HAS_ICHING
+    if _iching_rag_module is None:
+        try:
+            from backend_ai.app import iching_rag as _ir
+            _iching_rag_module = _ir
+        except ImportError:
+            HAS_ICHING = False
+            print("[app.py] I-Ching RAG not available (lazy load)")
+            return None
+    return _iching_rag_module
+
+def cast_hexagram(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.cast_hexagram(*args, **kwargs) if m else None
+
+def get_hexagram_interpretation(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.get_hexagram_interpretation(*args, **kwargs) if m else None
+
+def perform_iching_reading(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.perform_iching_reading(*args, **kwargs) if m else None
+
+def search_iching_wisdom(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.search_iching_wisdom(*args, **kwargs) if m else None
+
+def get_all_hexagrams_summary(*args, **kwargs):
+    m = _get_iching_rag()
+    return m.get_all_hexagrams_summary(*args, **kwargs) if m else None
+
+# Persona Embeddings - Lazy loaded (uses SentenceTransformer)
+HAS_PERSONA_EMBED = not RAG_DISABLED  # Assume available unless disabled
+_persona_embed_module = None
+
+def _get_persona_embed_module():
+    global _persona_embed_module, HAS_PERSONA_EMBED
+    if _persona_embed_module is None:
+        try:
+            from backend_ai.app import persona_embeddings as _pe
+            _persona_embed_module = _pe
+        except ImportError:
+            HAS_PERSONA_EMBED = False
+            return None
+    return _persona_embed_module
+
+def get_persona_embed_rag(*args, **kwargs):
+    m = _get_persona_embed_module()
+    return m.get_persona_embed_rag(*args, **kwargs) if m else None
+
+try:
+    # This import is safe (no SentenceTransformer dependency at module level)
+    pass  # Placeholder - persona_embeddings now lazy loaded above
+    if not RAG_DISABLED:
+        HAS_PERSONA_EMBED = True  # Already set above
+except ImportError:
+    HAS_PERSONA_EMBED = False
+
+# Tarot Hybrid RAG - Lazy loaded (uses tarot_rag -> SentenceTransformer)
+HAS_TAROT = True  # Assume available
+_tarot_hybrid_rag_module = None
+
+def _get_tarot_hybrid_rag_module():
+    global _tarot_hybrid_rag_module, HAS_TAROT
+    if _tarot_hybrid_rag_module is None:
+        try:
+            from backend_ai.app import tarot_hybrid_rag as _thr
+            _tarot_hybrid_rag_module = _thr
+        except ImportError:
+            HAS_TAROT = False
+            return None
+    return _tarot_hybrid_rag_module
+
+def get_tarot_hybrid_rag(*args, **kwargs):
+    m = _get_tarot_hybrid_rag_module()
+    return m.get_tarot_hybrid_rag(*args, **kwargs) if m else None
+
+# RLHF Feedback Learning System
+try:
+    from backend_ai.app.feedback_learning import get_feedback_learning
+    HAS_RLHF = True
+except ImportError:
+    HAS_RLHF = False
+
+# Badge System
+try:
+    from backend_ai.app.badge_system import get_badge_system, get_midjourney_prompts
+    HAS_BADGES = True
+except ImportError:
+    HAS_BADGES = False
+
+# Domain RAG - Lazy loaded (uses SentenceTransformer)
+HAS_DOMAIN_RAG = not RAG_DISABLED  # Assume available unless disabled
+DOMAIN_RAG_DOMAINS = []  # Will be populated on first access
+_domain_rag_module = None
+
+def _get_domain_rag_module():
+    global _domain_rag_module, HAS_DOMAIN_RAG, DOMAIN_RAG_DOMAINS
+    if _domain_rag_module is None:
+        try:
+            from backend_ai.app import domain_rag as _dr
+            _domain_rag_module = _dr
+            DOMAIN_RAG_DOMAINS = _dr.DOMAINS
+        except ImportError:
+            HAS_DOMAIN_RAG = False
+            print("[app.py] DomainRAG not available (lazy load)")
+            return None
+    return _domain_rag_module
+
+def get_domain_rag(*args, **kwargs):
+    m = _get_domain_rag_module()
+    return m.get_domain_rag(*args, **kwargs) if m else None
+
+# Compatibility (Saju + Astrology fusion) - Lazy loaded (uses saju_astro_rag)
+HAS_COMPATIBILITY = True  # Assume available
+_compatibility_logic_module = None
+
+def _get_compatibility_module():
+    global _compatibility_logic_module, HAS_COMPATIBILITY
+    if _compatibility_logic_module is None:
+        try:
+            from backend_ai.app import compatibility as _compat
+            _compatibility_logic_module = _compat
+        except ImportError:
+            HAS_COMPATIBILITY = False
+            print("[app.py] Compatibility module not available (lazy load)")
+            return None
+    return _compatibility_logic_module
+
+def interpret_compatibility(*args, **kwargs):
+    m = _get_compatibility_module()
+    return m.interpret_compatibility(*args, **kwargs) if m else None
+
+def interpret_compatibility_group(*args, **kwargs):
+    m = _get_compatibility_module()
+    return m.interpret_compatibility_group(*args, **kwargs) if m else None
+
+# Hybrid RAG (Vector + BM25 + Graph + rerank) - Lazy loaded
+HAS_HYBRID_RAG = True  # Assume available
+_hybrid_rag_module = None
+
+def _get_hybrid_rag_module():
+    global _hybrid_rag_module, HAS_HYBRID_RAG
+    if _hybrid_rag_module is None:
+        try:
+            from backend_ai.app import hybrid_rag as _hr
+            _hybrid_rag_module = _hr
+        except ImportError:
+            HAS_HYBRID_RAG = False
+            print("[app.py] Hybrid RAG not available (lazy load)")
+            return None
+    return _hybrid_rag_module
+
+def hybrid_search(*args, **kwargs):
+    m = _get_hybrid_rag_module()
+    return m.hybrid_search(*args, **kwargs) if m else None
+
+def build_rag_context(*args, **kwargs):
+    m = _get_hybrid_rag_module()
+    return m.build_rag_context(*args, **kwargs) if m else None
+
+# Agentic RAG System (Next Level Features) - Lazy loaded to avoid OOM
+# Import deferred to first use to prevent loading SentenceTransformer on startup
+HAS_AGENTIC = True  # Assume available, will fail gracefully if not
+_agentic_rag_module = None
+
+def _get_agentic_rag():
+    """Lazy load agentic_rag module."""
+    global _agentic_rag_module, HAS_AGENTIC
+    if _agentic_rag_module is None:
+        try:
+            from backend_ai.app import agentic_rag as _ar
+            _agentic_rag_module = _ar
+        except ImportError:
+            HAS_AGENTIC = False
+            print("[app.py] Agentic RAG not available (lazy load)")
+            return None
+    return _agentic_rag_module
+
+def agentic_query(*args, **kwargs):
+    """Lazy wrapper for agentic_query."""
+    m = _get_agentic_rag()
+    return m.agentic_query(*args, **kwargs) if m else None
+
+def get_agent_orchestrator(*args, **kwargs):
+    """Lazy wrapper for get_agent_orchestrator."""
+    m = _get_agentic_rag()
+    return m.get_agent_orchestrator(*args, **kwargs) if m else None
+
+def get_entity_extractor(*args, **kwargs):
+    """Lazy wrapper for get_entity_extractor."""
+    m = _get_agentic_rag()
+    return m.get_entity_extractor(*args, **kwargs) if m else None
+
+def get_deep_traversal(*args, **kwargs):
+    """Lazy wrapper for get_deep_traversal."""
+    m = _get_agentic_rag()
+    return m.get_deep_traversal(*args, **kwargs) if m else None
+
+# Classes are accessed as properties
+EntityExtractor = property(lambda self: _get_agentic_rag().EntityExtractor if _get_agentic_rag() else None)
+DeepGraphTraversal = property(lambda self: _get_agentic_rag().DeepGraphTraversal if _get_agentic_rag() else None)
+AgentOrchestrator = property(lambda self: _get_agentic_rag().AgentOrchestrator if _get_agentic_rag() else None)
+
+# Jungian Counseling Engine - Lazy loaded (uses SentenceTransformer)
+HAS_COUNSELING = True  # Assume available
+_counseling_engine_module = None
+
+def _get_counseling_engine_module():
+    global _counseling_engine_module, HAS_COUNSELING
+    if _counseling_engine_module is None:
+        try:
+            from backend_ai.app import counseling_engine as _ce
+            _counseling_engine_module = _ce
+        except ImportError:
+            HAS_COUNSELING = False
+            print("[app.py] Counseling engine not available (lazy load)")
+            return None
+    return _counseling_engine_module
+
+def get_counseling_engine(*args, **kwargs):
+    m = _get_counseling_engine_module()
+    return m.get_counseling_engine(*args, **kwargs) if m else None
+
+def _get_crisis_detector():
+    """Get CrisisDetector class from counseling engine module."""
+    m = _get_counseling_engine_module()
+    return m.CrisisDetector if m else None
+
+# Proxy class that forwards calls to the actual CrisisDetector
+class _CrisisDetectorProxy:
+    @staticmethod
+    def detect_crisis(text):
+        detector = _get_crisis_detector()
+        if detector:
+            return detector.detect_crisis(text)
+        return {"is_crisis": False, "max_severity": "none", "detections": [], "requires_immediate_action": False}
+
+    @staticmethod
+    def get_crisis_response(severity, locale="ko"):
+        detector = _get_crisis_detector()
+        if detector:
+            return detector.get_crisis_response(severity, locale)
+        return {"immediate_message": "", "follow_up": "", "closing": ""}
+
+CrisisDetector = _CrisisDetectorProxy
+
+# Prediction Engine (v5.0)
+if os.getenv("PREDICTION_DISABLE") == "1":
+    HAS_PREDICTION = False
+    print("[app.py] Prediction engine disabled by PREDICTION_DISABLE")
+else:
+    try:
+        from backend_ai.app.prediction_engine import (
+            get_prediction_engine,
+            predict_luck,
+            find_best_date,
+            get_full_forecast,
+            EventType,
+        )
+        HAS_PREDICTION = True
+    except ImportError:
+        HAS_PREDICTION = False
+        print("[app.py] Prediction engine not available")
+
+# Theme Cross-Reference Filter (v5.1)
+try:
+    from backend_ai.app.theme_cross_filter import (
+        get_theme_filter,
+        filter_data_by_theme,
+        get_theme_prompt_context,
+    )
+    HAS_THEME_FILTER = True
+except ImportError:
+    HAS_THEME_FILTER = False
+    print("[app.py] Theme cross filter not available")
+
+# Fortune Score Engine (v1.0) - Real-time saju+astrology scoring
+try:
+    from backend_ai.app.fortune_score_engine import (
+        get_fortune_score_engine,
+        calculate_fortune_score,
+    )
+    HAS_FORTUNE_SCORE = True
+except ImportError:
+    HAS_FORTUNE_SCORE = False
+    print("[app.py] Fortune score engine not available")
+
+# GraphRAG System - Lazy loaded (uses SentenceTransformer)
+HAS_GRAPH_RAG = not RAG_DISABLED  # Assume available unless disabled
+_saju_astro_rag_module = None
+
+def _get_saju_astro_rag_module():
+    global _saju_astro_rag_module, HAS_GRAPH_RAG
+    if _saju_astro_rag_module is None:
+        try:
+            from backend_ai.app import saju_astro_rag as _sar
+            _saju_astro_rag_module = _sar
+        except ImportError:
+            HAS_GRAPH_RAG = False
+            print("[app.py] GraphRAG not available (lazy load)")
+            return None
+    return _saju_astro_rag_module
+
+def get_graph_rag(*args, **kwargs):
+    m = _get_saju_astro_rag_module()
+    return m.get_graph_rag(*args, **kwargs) if m else None
+
+def get_model(*args, **kwargs):
+    m = _get_saju_astro_rag_module()
+    return m.get_model(*args, **kwargs) if m else None
+
+# OpenAI Client for streaming endpoints with HTTP connection pooling
+try:
+    from openai import OpenAI
+    import httpx
+    _openai_key = os.getenv("OPENAI_API_KEY")
+    if not _openai_key:
+        print(f"[app.py] OPENAI_API_KEY not found in environment. Available env vars: {[k for k in os.environ.keys() if 'OPENAI' in k.upper() or 'API' in k.upper()]}")
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+
+    # HTTP connection pooling for better performance
+    # - limits: Connection pool limits (10 connections, 20 max)
+    # - timeout: 60s total, 10s connect
+    # - http2: Enable HTTP/2 for multiplexing
+    _http_client = httpx.Client(
+        limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
+        timeout=httpx.Timeout(60.0, connect=10.0),
+        http2=True  # Enable HTTP/2 for better performance
+    )
+
+    openai_client = OpenAI(
+        api_key=_openai_key,
+        http_client=_http_client
+    )
+    OPENAI_AVAILABLE = True
+    print(f"[app.py] OpenAI client initialized with connection pooling (key length: {len(_openai_key)})")
+except Exception as e:
+    openai_client = None
+    OPENAI_AVAILABLE = False
+    print(f"[app.py] OpenAI client not available: {e}")
+
+# CorpusRAG System - Lazy loaded (uses SentenceTransformer)
+HAS_CORPUS_RAG = not RAG_DISABLED  # Assume available unless disabled
+_corpus_rag_module = None
+
+def _get_corpus_rag_module():
+    global _corpus_rag_module, HAS_CORPUS_RAG
+    if _corpus_rag_module is None:
+        try:
+            from backend_ai.app import corpus_rag as _cr
+            _corpus_rag_module = _cr
+        except ImportError:
+            HAS_CORPUS_RAG = False
+            print("[app.py] CorpusRAG not available (lazy load)")
+            return None
+    return _corpus_rag_module
+
+def get_corpus_rag(*args, **kwargs):
+    m = _get_corpus_rag_module()
+    return m.get_corpus_rag(*args, **kwargs) if m else None
+
+# Numerology System
+try:
+    from backend_ai.app.numerology_logic import (
+        analyze_numerology,
+        analyze_numerology_compatibility,
+        calculate_full_numerology,
+    )
+    HAS_NUMEROLOGY = True
+except ImportError:
+    HAS_NUMEROLOGY = False
+    print("[app.py] Numerology not available")
+
+# ICP (Interpersonal Circumplex) System
+try:
+    from backend_ai.app.icp_logic import (
+        analyze_icp_style,
+        analyze_icp_compatibility,
+        get_icp_questions,
+        ICPAnalyzer,
+    )
+    HAS_ICP = True
+except ImportError:
+    HAS_ICP = False
+    print("[app.py] ICP not available")
+
+# Flask Application
+app = Flask(__name__)
+
+# Gzip compression - reduces response size by 30-50%
+Compress(app)
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html', 'text/css', 'text/xml', 'text/plain',
+    'application/json', 'application/javascript', 'application/xml'
+]
+app.config['COMPRESS_LEVEL'] = 6  # Balance between compression ratio and CPU usage
+app.config['COMPRESS_MIN_SIZE'] = 500  # Only compress responses > 500 bytes
+
+# CORS configuration - restrict to specific origins for security
+CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://destinypal.com",
+    "https://www.destinypal.com",
+]
+# Allow custom origins from environment variable
+if os.getenv("CORS_ALLOWED_ORIGINS"):
+    CORS_ORIGINS.extend(os.getenv("CORS_ALLOWED_ORIGINS").split(","))
+
+CORS(
+    app,
+    origins=CORS_ORIGINS,
+    allow_headers=["Content-Type", "Authorization", "X-API-KEY", "X-Request-ID"],
+    methods=["GET", "POST", "OPTIONS"],
+    supports_credentials=True,
+    max_age=3600,
+)
+
+# Basic logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("backend_ai")
+
+# Optional Sentry (no-op if DSN missing)
+try:
+    import sentry_sdk
+
+    if os.getenv("SENTRY_DSN"):
+        sentry_sdk.init(dsn=os.getenv("SENTRY_DSN"))
+        logger.info("Sentry initialized for Flask backend.")
+except Exception as e:  # pragma: no cover
+    logger.warning(f"Sentry init skipped: {e}")
+
+# ===============================================================
+# 🔌 REGISTER MODULAR BLUEPRINTS
+# ===============================================================
+# Blueprints are registered first, so they take priority over legacy routes below.
+# Legacy routes are kept for backwards compatibility but will be shadowed.
+try:
+    from backend_ai.app.routers import register_all_blueprints
+    register_all_blueprints(app)
+    logger.info("✅ Modular blueprints registered successfully")
+except ImportError as e:
+    logger.warning(f"Could not import routers: {e}")
+except Exception as e:
+    logger.error(f"Failed to register blueprints: {e}")
+
+# ===============================================================
+# 🛡️ INPUT SANITIZATION HELPERS
+# ===============================================================
+
+def sanitize_messages(messages: list, max_content_length: int = 2000) -> list:
+    """Sanitize a list of chat messages."""
+    if not messages or not isinstance(messages, list):
+        return []
+    sanitized = []
+    for msg in messages:
+        if not isinstance(msg, dict):
+            continue
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if isinstance(content, str) and content:
+            # Check for suspicious patterns
+            if is_suspicious_input(content):
+                logger.warning(f"[SANITIZE] Suspicious content in {role} message")
+            content = sanitize_user_input(content, max_length=max_content_length, allow_newlines=True)
+        sanitized.append({"role": role, "content": content})
+    return sanitized
+
+def mask_sensitive_data(text: str) -> str:
+    """Mask potentially sensitive data in logs."""
+    import re
+    # Mask email addresses
+    text = re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '[EMAIL]', text)
+    # Mask phone numbers (various formats)
+    text = re.sub(r'\b\d{3}[-.\s]?\d{3,4}[-.\s]?\d{4}\b', '[PHONE]', text)
+    # Mask credit card numbers
+    text = re.sub(r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b', '[CARD]', text)
+    return text
+
+# ===============================================================
+# 🚀 CROSS-ANALYSIS CACHE - Pre-loaded for instant lookups
+# ===============================================================
+_CROSS_ANALYSIS_CACHE = {}
+
+# ===============================================================
+# 🔗 INTEGRATION ENGINE CACHE - Multimodal analysis data
+# ===============================================================
+_INTEGRATION_DATA_CACHE = {
+    "multimodal_engine": None,
+    "career_mapping": None,
+    "numerology_core": None,
+    "numerology_compatibility": None,
+    "numerology_saju": None,
+    "numerology_astro": None,
+    "numerology_therapeutic": None,
+}
+
+def _load_integration_data():
+    """Load integration engine and numerology data."""
+    global _INTEGRATION_DATA_CACHE
+
+    if _INTEGRATION_DATA_CACHE.get("multimodal_engine") is not None:
+        return _INTEGRATION_DATA_CACHE
+
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+
+    # Integration engine files
+    integration_dir = os.path.join(base_dir, "data", "graph", "rules", "integration")
+    integration_files = {
+        "multimodal_engine": "multimodal_integration_engine.json",
+        "career_mapping": "modern_career_mapping.json",
+    }
+
+    for key, filename in integration_files.items():
+        filepath = os.path.join(integration_dir, filename)
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    _INTEGRATION_DATA_CACHE[key] = json.load(f)
+                    logger.info(f"  ✅ Loaded integration: {filename}")
+        except Exception as e:
+            logger.warning(f"  ⚠️ Failed to load {filename}: {e}")
+            _INTEGRATION_DATA_CACHE[key] = {}
+
+    # Numerology files
+    numerology_dir = os.path.join(base_dir, "data", "graph", "rules", "numerology")
+    numerology_files = {
+        "numerology_core": "numerology_core_rules.json",
+        "numerology_compatibility": "numerology_compatibility_rules.json",
+        "numerology_saju": "numerology_saju_mapping.json",
+        "numerology_astro": "numerology_astro_mapping.json",
+        "numerology_therapeutic": "numerology_therapeutic_questions.json",
+    }
+
+    for key, filename in numerology_files.items():
+        filepath = os.path.join(numerology_dir, filename)
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    _INTEGRATION_DATA_CACHE[key] = json.load(f)
+                    logger.info(f"  ✅ Loaded numerology: {filename}")
+        except Exception as e:
+            logger.warning(f"  ⚠️ Failed to load {filename}: {e}")
+            _INTEGRATION_DATA_CACHE[key] = {}
+
+    loaded_count = sum(1 for v in _INTEGRATION_DATA_CACHE.values() if v)
+    logger.info(f"[INTEGRATION-CACHE] Loaded {loaded_count}/7 integration/numerology files")
+    return _INTEGRATION_DATA_CACHE
+
+def get_integration_context(theme: str = "life") -> Dict:
+    """Get theme-specific integration context for multimodal analysis."""
+    data = _load_integration_data()
+    engine = data.get("multimodal_engine", {})
+
+    result = {
+        "correlation_matrix": engine.get("correlation_matrix", {}),
+        "theme_focus": {},
+    }
+
+    # Get theme-specific focus areas
+    question_router = engine.get("question_router", {})
+    if theme in question_router:
+        result["theme_focus"] = question_router[theme]
+
+    return result
+
+# ===============================================================
+# 🧠 JUNG PSYCHOLOGY CACHE - Enhanced therapeutic data
+# ===============================================================
+_JUNG_DATA_CACHE = {
+    "active_imagination": None,
+    "lifespan_individuation": None,
+    "crisis_intervention": None,
+    "archetypes": None,
+    "therapeutic": None,
+    "cross_analysis": None,
+    "psychological_types": None,
+    "alchemy": None,
+    "counseling_scenarios": None,
+    "integrated_counseling": None,
+    "counseling_prompts": None,
+    "personality_integration": None,
+    "expanded_counseling": None,
+}
+
+try:
+    SESSION_CACHE_MAX_SIZE = int(os.getenv("SESSION_CACHE_MAX_SIZE", "200"))
+except ValueError:
+    SESSION_CACHE_MAX_SIZE = 200
+
+try:
+    SESSION_CACHE_TTL_MINUTES = int(os.getenv("SESSION_CACHE_TTL_MINUTES", "60"))
+except ValueError:
+    SESSION_CACHE_TTL_MINUTES = 60
+
+_SESSION_RAG_CACHE = {}
+_SESSION_CACHE_LOCK = Lock()
+
+def _load_jung_data():
+    """Load extended Jung psychology data for deeper therapeutic sessions."""
+    global _JUNG_DATA_CACHE
+
+    # Return cached data if already loaded
+    if _JUNG_DATA_CACHE.get("active_imagination") is not None:
+        return _JUNG_DATA_CACHE
+
+    jung_dir = os.path.join(os.path.dirname(__file__), "..", "data", "graph", "rules", "jung")
+    jung_dir = os.path.abspath(jung_dir)
+
+    files_to_load = {
+        "active_imagination": "jung_active_imagination.json",
+        "lifespan_individuation": "jung_lifespan_individuation.json",
+        "crisis_intervention": "jung_crisis_intervention.json",
+        "archetypes": "jung_archetypes.json",
+        "therapeutic": "jung_therapeutic.json",
+        "cross_analysis": "jung_cross_analysis.json",
+        "psychological_types": "jung_psychological_types.json",
+        "alchemy": "jung_alchemy.json",
+        "counseling_scenarios": "jung_counseling_scenarios.json",
+        "integrated_counseling": "jung_integrated_counseling.json",
+        "counseling_prompts": "jung_counseling_prompts.json",
+        "personality_integration": "jung_personality_integration.json",
+        "expanded_counseling": "jung_expanded_counseling.json",
+    }
+
+    for key, filename in files_to_load.items():
+        filepath = os.path.join(jung_dir, filename)
+        try:
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    _JUNG_DATA_CACHE[key] = json.load(f)
+                    logger.info(f"  ✅ Loaded Jung data: {filename}")
+        except Exception as e:
+            logger.warning(f"  ⚠️ Failed to load {filename}: {e}")
+            _JUNG_DATA_CACHE[key] = {}
+
+    logger.info(f"[JUNG-CACHE] Loaded {sum(1 for v in _JUNG_DATA_CACHE.values() if v)} Jung psychology files")
+    return _JUNG_DATA_CACHE
+
+def get_lifespan_guidance(birth_year: int) -> dict:
+    """Get age-appropriate psychological guidance based on Jung's lifespan individuation."""
+    jung_data = _load_jung_data()
+    lifespan = jung_data.get("lifespan_individuation", {})
+
+    if not lifespan:
+        return {}
+
+    from datetime import datetime
+    current_year = datetime.now().year
+    age = current_year - birth_year
+
+    life_stages = lifespan.get("life_stages", {})
+
+    # Determine life stage
+    if age <= 12:
+        stage = "childhood"
+    elif age <= 22:
+        stage = "adolescence"
+    elif age <= 35:
+        stage = "early_adulthood"
+    elif age <= 55:
+        stage = "midlife"
+    elif age <= 70:
+        stage = "mature_adulthood"
+    else:
+        stage = "elder"
+
+    stage_data = life_stages.get(stage, {})
+
+    return {
+        "age": age,
+        "stage_name": stage_data.get("name_ko", stage),
+        "psychological_tasks": stage_data.get("psychological_tasks", []),
+        "archetypal_themes": stage_data.get("archetypal_themes", {}),
+        "developmental_crises": stage_data.get("developmental_crises", []),
+        "shadow_challenges": stage_data.get("shadow_challenges", stage_data.get("shadow_manifestations", [])),
+        "saju_parallel": stage_data.get("saju_parallel", {}),
+        "astro_parallel": stage_data.get("astro_parallel", {}),
+        "guidance": stage_data.get("guidance", stage_data.get("saturn_return_guidance", stage_data.get("uranus_opposition_guidance", {}))),
+    }
+
+# ============================================================================
+# ChartService Wrapper Functions (Phase 4.6)
+# These functions delegate to ChartService for backward compatibility
+# ============================================================================
+
+def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str = "life", locale: str = "ko") -> str:
+    """Wrapper for ChartService.get_cross_analysis_for_chart()."""
+    try:
+        from backend_ai.services.chart_service import ChartService
+        chart_service = ChartService()
+        return chart_service.get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
+    except Exception as e:
+        logger.warning(f"[get_cross_analysis_for_chart] Failed: {e}")
+        return ""
+
+def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale: str = "ko", birth_year: int = None) -> str:
+    """Wrapper for ChartService.get_theme_fusion_rules()."""
+    try:
+        from backend_ai.services.chart_service import ChartService
+        chart_service = ChartService()
+        return chart_service.get_theme_fusion_rules(saju_data, astro_data, theme, locale, birth_year)
+    except Exception as e:
+        logger.warning(f"[get_theme_fusion_rules] Failed: {e}")
+        return ""
+
+def get_active_imagination_prompts(context: str) -> list:
+    """Get appropriate active imagination exercise prompts based on context."""
+    jung_data = _load_jung_data()
+    ai_data = jung_data.get("active_imagination", {})
+
+    if not ai_data:
+        return []
+
+    prompts = []
+    facilitation = ai_data.get("ai_facilitation_guide", {})
+
+    # Get opening prompts based on context
+    context_lower = context.lower()
+
+    if any(k in context_lower for k in ["꿈", "악몽", "꿈에서"]):
+        prompts = facilitation.get("opening_prompts", {}).get("after_dream_sharing", [])
+    elif any(k in context_lower for k in ["사주", "운세", "일간"]):
+        prompts = facilitation.get("opening_prompts", {}).get("after_saju_analysis", [])
+    elif any(k in context_lower for k in ["점성", "별자리", "하우스"]):
+        prompts = facilitation.get("opening_prompts", {}).get("after_astro_analysis", [])
+    else:
+        prompts = facilitation.get("opening_prompts", {}).get("general", [])
+
+    # Add deepening and integration prompts
+    deepening = facilitation.get("deepening_prompts", [])
+    integration = facilitation.get("integration_prompts", [])
+
+    return {
+        "opening": prompts[:2],
+        "deepening": deepening[:3],
+        "integration": integration[:2],
+    }
+
+def get_crisis_resources(locale: str = "ko") -> dict:
+    """Get crisis intervention resources and scripts."""
+    jung_data = _load_jung_data()
+    crisis = jung_data.get("crisis_intervention", {})
+
+    if not crisis:
+        return {}
+
+    resources = crisis.get("response_protocols", {}).get("suicidal_ideation", {}).get("resources_korea", {})
+    limitations = crisis.get("ai_limitations_and_boundaries", {})
+    deescalation = crisis.get("de_escalation_techniques", {})
+
+    return {
+        "resources": resources,
+        "limitations": limitations,
+        "deescalation": deescalation,
+    }
+
+def _load_cross_analysis_cache():
+    """Load cross-analysis JSON files for instant lookups (no embedding search)."""
+    global _CROSS_ANALYSIS_CACHE
+    if _CROSS_ANALYSIS_CACHE:
+        return _CROSS_ANALYSIS_CACHE
+
+    import json
+    fusion_dir = os.path.join(os.path.dirname(__file__), "..", "data", "graph", "fusion")
+    fusion_dir = os.path.abspath(fusion_dir)
+
+    if not os.path.exists(fusion_dir):
+        logger.warning(f"[CROSS-CACHE] Fusion dir not found: {fusion_dir}")
+        return {}
+
+    for fname in os.listdir(fusion_dir):
+        if fname.endswith(".json") and "cross" in fname.lower():
+            try:
+                with open(os.path.join(fusion_dir, fname), "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    key = fname.replace(".json", "")
+                    _CROSS_ANALYSIS_CACHE[key] = data
+                    logger.info(f"  ✅ Loaded cross-analysis: {fname}")
+            except Exception as e:
+                logger.warning(f"  ⚠️ Failed to load {fname}: {e}")
+
+    logger.info(f"[CROSS-CACHE] Loaded {len(_CROSS_ANALYSIS_CACHE)} cross-analysis files")
+    return _CROSS_ANALYSIS_CACHE
+
+def normalize_day_master(saju_data: dict) -> dict:
+    """
+    Normalize dayMaster to flat structure { name, element }.
+    Handles:
+    - String: "庚" -> { name: "庚", heavenlyStem: "庚", element: "금" }
+    - Nested: { heavenlyStem: { name: "庚", element: "금" }, element: "..." }
+    - Flat: { name: "庚", element: "금" } or { heavenlyStem: "庚", element: "금" }
+    Returns normalized saju_data with flat dayMaster.
+    """
+    if not saju_data or not saju_data.get("dayMaster"):
+        return saju_data
+
+    dm = saju_data.get("dayMaster", {})
+
+    # Map stem to element
+    stem_to_element = {
+        "甲": "목", "乙": "목", "丙": "화", "丁": "화", "戊": "토",
+        "己": "토", "庚": "금", "辛": "금", "壬": "수", "癸": "수",
+        "갑": "목", "을": "목", "병": "화", "정": "화", "무": "토",
+        "기": "토", "경": "금", "신": "금", "임": "수", "계": "수",
+    }
+
+    # Handle dayMaster as string (e.g., "庚" or "경")
+    if isinstance(dm, str):
+        element = stem_to_element.get(dm, "")
+        normalized_dm = {
+            "name": dm,
+            "heavenlyStem": dm,
+            "element": element,
+        }
+        saju_data = dict(saju_data)
+        saju_data["dayMaster"] = normalized_dm
+        logger.debug(f"[NORMALIZE] dayMaster: string -> dict: {normalized_dm}")
+        return saju_data
+
+    if not isinstance(dm, dict):
+        return saju_data
+
+    # Check if heavenlyStem is a nested object
+    hs = dm.get("heavenlyStem")
+    if isinstance(hs, dict):
+        # Nested structure: { heavenlyStem: { name, element } }
+        normalized_dm = {
+            "name": hs.get("name", ""),
+            "heavenlyStem": hs.get("name", ""),
+            "element": hs.get("element") or dm.get("element", ""),
+        }
+        saju_data = dict(saju_data)  # Copy to avoid mutation
+        saju_data["dayMaster"] = normalized_dm
+        logger.debug(f"[NORMALIZE] dayMaster: nested -> flat: {normalized_dm}")
+    elif isinstance(hs, str):
+        # Already flat but with heavenlyStem as string
+        normalized_dm = {
+            "name": hs,
+            "heavenlyStem": hs,
+            "element": dm.get("element", ""),
+        }
+        saju_data = dict(saju_data)
+        saju_data["dayMaster"] = normalized_dm
+    # else: already in { name, element } format or empty
+
+    return saju_data
+
+def _normalize_birth_date(value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        value = str(int(value))
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    text = text.replace(".", "-").replace("/", "-")
+    if re.fullmatch(r"\d{8}", text):
+        year, month, day = text[:4], text[4:6], text[6:8]
+    else:
+        parts = [p for p in text.split("-") if p]
+        if len(parts) != 3:
+            return None
+        year, month, day = parts
+        if not (year.isdigit() and month.isdigit() and day.isdigit()):
+            return None
+        if len(year) != 4:
+            return None
+        month = month.zfill(2)
+        day = day.zfill(2)
+    try:
+        datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d")
+    except ValueError:
+        return None
+    return f"{year}-{month}-{day}"
+
+def _normalize_birth_time(value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        value = str(value)
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    text = text.replace(".", ":")
+    if re.fullmatch(r"\d{1,2}:\d{2}(:\d{2})?", text):
+        parts = text.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1])
+        second = int(parts[2]) if len(parts) > 2 else None
+        if hour > 23 or minute > 59 or (second is not None and second > 59):
+            return None
+        if second is None:
+            return f"{hour:02d}:{minute:02d}"
+        return f"{hour:02d}:{minute:02d}:{second:02d}"
+    if re.fullmatch(r"\d{3,4}", text):
+        padded = text.zfill(4)
+        hour = int(padded[:2])
+        minute = int(padded[2:])
+        if hour > 23 or minute > 59:
+            return None
+        return f"{hour:02d}:{minute:02d}"
+    return None
+
+def _normalize_birth_payload(data: dict) -> dict:
+    """Normalize birth payload from nested or legacy fields."""
+    if not isinstance(data, dict):
+        return {}
+
+    birth = data.get("birth")
+    birth_data = birth if isinstance(birth, dict) else {}
+    normalized = dict(birth_data)
+
+    def _pick(source: dict, keys: list) -> Optional[object]:
+        for key in keys:
+            value = source.get(key)
+            if value not in (None, ""):
+                return value
+        return None
+
+    def _coerce_float(value: object) -> Optional[float]:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+            try:
+                return float(value)
+            except ValueError:
+                return None
+        return None
+
+    date_raw = _pick(birth_data, ["date"]) or _pick(data, ["birthdate", "birth_date", "birthDate"])
+    time_raw = _pick(birth_data, ["time"]) or _pick(data, ["birthtime", "birth_time", "birthTime"])
+    gender = _pick(birth_data, ["gender"]) or _pick(data, ["gender", "sex"])
+    city = _pick(birth_data, ["city", "place"]) or _pick(
+        data, ["birthplace", "birth_place", "birthPlace", "city", "place", "location"]
+    )
+    lat_val = _pick(birth_data, ["lat", "latitude"]) or _pick(data, ["lat", "latitude"])
+    lon_val = _pick(birth_data, ["lon", "longitude"]) or _pick(data, ["lon", "longitude", "lng", "long"])
+
+    date = _normalize_birth_date(date_raw)
+    if date:
+        normalized["date"] = date
+    elif date_raw:
+        normalized["date"] = str(date_raw).strip()
+
+    time_val = _normalize_birth_time(time_raw)
+    if time_val:
+        normalized["time"] = time_val
+    elif time_raw:
+        normalized["time"] = str(time_raw).strip()
+    if gender:
+        normalized["gender"] = gender
+    if city:
+        normalized["city"] = city
+
+    lat = _coerce_float(lat_val)
+    lon = _coerce_float(lon_val)
+    if lat is not None:
+        normalized["lat"] = lat
+        if "latitude" not in normalized:
+            normalized["latitude"] = lat
+    if lon is not None:
+        normalized["lon"] = lon
+        if "longitude" not in normalized:
+            normalized["longitude"] = lon
+
+    return normalized
+
+# ============================================================================
+# REMOVED IN PHASE 2.5: Chart analysis functions moved to ChartService
+# ============================================================================
+# Two functions have been moved to backend_ai/services/chart_service.py:
+#   1. get_cross_analysis_for_chart() - 532 lines
+#   2. get_theme_fusion_rules() - 369 lines
+#
+# Total lines removed: 901 lines
+#
+# Usage updated:
+#   - prefetch_all_rag_data() now uses ChartService.get_cross_analysis_for_chart()
+#   - get_theme_fusion_rules() was not called anywhere (internal helper)
+#
+# Original functions handled:
+# - Cross-analysis: 9 types combining Saju and Astrology from GraphRAG cache
+#   * Daymaster × Sun Sign
+#   * Ten Gods × Planets
+#   * Branch × House
+#   * Relations × Aspects
+#   * Shinsal × Asteroids
+#   * Geokguk × House
+#   * Daeun × Progressions
+#   * 60 Ganji × Harmonics
+#   * Gongmang × Draconic
+# - Theme-specific fusion rules from JSON files:
+#   * daily.json, monthly.json, new_year.json, next_year.json
+#   * family.json, health.json, wealth.json, life_path.json
+# - Multi-language support (Korean/English)
+# - Planet-house combinations with timing/advice
+# ============================================================================
+
+def _cleanup_expired_sessions():
+    """Remove expired session data."""
+    now = datetime.now()
+    expired = []
+    with _SESSION_CACHE_LOCK:
+        for sid, data in _SESSION_RAG_CACHE.items():
+            if now - data.get("created_at", now) > timedelta(minutes=SESSION_CACHE_TTL_MINUTES):
+                expired.append(sid)
+        for sid in expired:
+            del _SESSION_RAG_CACHE[sid]
+    if expired:
+        logger.info(f"[SESSION-CACHE] Cleaned up {len(expired)} expired sessions")
+
+def _evict_lru_sessions(keep_count: int = SESSION_CACHE_MAX_SIZE):
+    """Evict least recently used sessions to maintain cache size."""
+    with _SESSION_CACHE_LOCK:
+        if len(_SESSION_RAG_CACHE) <= keep_count:
+            return
+        # Sort by last_accessed time (oldest first)
+        sorted_sessions = sorted(
+            _SESSION_RAG_CACHE.items(),
+            key=lambda x: x[1].get("last_accessed", x[1].get("created_at", datetime.min))
+        )
+        # Evict oldest sessions until we're under the limit
+        evict_count = len(_SESSION_RAG_CACHE) - keep_count
+        for sid, _ in sorted_sessions[:evict_count]:
+            del _SESSION_RAG_CACHE[sid]
+        logger.info(f"[SESSION-CACHE] LRU evicted {evict_count} sessions, {len(_SESSION_RAG_CACHE)} remaining")
+
+def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat", locale: str = "ko") -> dict:
+    """
+    Pre-fetch relevant data from ALL RAG systems for a user's chart.
+    Uses parallel execution for ~3x speedup (1500ms → 500ms).
+
+    This function now uses the async ThreadSafeRAGManager under the hood.
+    It wraps the async call in asyncio.run() for backward compatibility.
+
+    Returns:
+        Dict with all pre-fetched RAG data
+    """
+    import asyncio
+    from backend_ai.app.rag_manager import prefetch_all_rag_data_async
+
+    # Check if we're already in an event loop
+    try:
+        loop = asyncio.get_running_loop()
+        # We're in an async context, create a task
+        # Note: This won't work well in Flask - should use async routes
+        logger.warning("[PREFETCH] Called from async context - consider using prefetch_all_rag_data_async() directly")
+        # Fallback: use run_until_complete on a new loop (not ideal)
+        new_loop = asyncio.new_event_loop()
+        try:
+            result = new_loop.run_until_complete(
+                prefetch_all_rag_data_async(saju_data, astro_data, theme, locale)
+            )
+        finally:
+            new_loop.close()
+        return result
+    except RuntimeError:
+        # No event loop running - safe to use asyncio.run()
+        return asyncio.run(prefetch_all_rag_data_async(saju_data, astro_data, theme, locale))
+
+def get_session_rag_cache(session_id: str) -> dict:
+    """Get cached RAG data for a session. Updates last_accessed for LRU."""
+    with _SESSION_CACHE_LOCK:
+        cache_entry = _SESSION_RAG_CACHE.get(session_id)
+        if cache_entry:
+            # Check if expired
+            if datetime.now() - cache_entry.get("created_at", datetime.now()) > timedelta(minutes=SESSION_CACHE_TTL_MINUTES):
+                del _SESSION_RAG_CACHE[session_id]
+                return None
+            # Update last_accessed for LRU tracking
+            cache_entry["last_accessed"] = datetime.now()
+            return cache_entry.get("data")
+    return None
+
+def set_session_rag_cache(session_id: str, data: dict):
+    """Store RAG data in session cache with LRU eviction."""
+    now = datetime.now()
+    with _SESSION_CACHE_LOCK:
+        _SESSION_RAG_CACHE[session_id] = {
+            "data": data,
+            "created_at": now,
+            "last_accessed": now,
+        }
+    # LRU eviction if cache is too large
+    if len(_SESSION_RAG_CACHE) > SESSION_CACHE_MAX_SIZE:
+        _cleanup_expired_sessions()  # First remove expired
+        _evict_lru_sessions()  # Then evict LRU if still over limit
+
+# ===============================================================
+# 🚀 MODEL WARMUP - Preload models on startup for faster first request
+# ===============================================================
+def warmup_models():
+    """Preload all singleton models and caches on startup."""
+    logger.info("🔥 Starting model warmup...")
+    start = time.time()
+
+    try:
+        # 0. Cross-analysis cache (instant, no ML)
+        _load_cross_analysis_cache()
+
+        # 1. SentenceTransformer model + GraphRAG
+        if HAS_GRAPH_RAG:
+            model = get_model()
+            logger.info(f"  ✅ SentenceTransformer loaded: {model.get_sentence_embedding_dimension()}d")
+
+            # 2. GraphRAG with embeddings
+            rag = get_graph_rag()
+            logger.info(f"  ✅ GraphRAG loaded: {len(rag.graph.nodes())} nodes")
+
+        # 3. Corpus RAG (Jung quotes)
+        if HAS_CORPUS_RAG:
+            corpus = get_corpus_rag()
+            logger.info(f"  ✅ CorpusRAG loaded")
+
+        # 4. Persona embeddings (if available)
+        if HAS_PERSONA_EMBED:
+            persona = get_persona_embed_rag()
+            logger.info(f"  ✅ PersonaEmbedRAG loaded")
+
+        # 5. Tarot RAG (if available)
+        if HAS_TAROT:
+            tarot = get_tarot_hybrid_rag()
+            logger.info(f"  ✅ TarotHybridRAG loaded")
+
+        # 6. Dream RAG (for faster dream interpretation)
+        try:
+            from backend_ai.app.dream_logic import get_dream_embed_rag
+            dream_rag = get_dream_embed_rag()
+            # Warmup query to pre-compute any lazy embeddings
+            _ = dream_rag.search("꿈 해석 테스트", top_k=1)
+            logger.info(f"  ✅ DreamEmbedRAG loaded and warmed up")
+        except Exception as dream_err:
+            logger.warning(f"  ⚠️ DreamEmbedRAG warmup failed: {dream_err}")
+
+        # 7. Redis cache connection
+        cache = get_cache()
+        logger.info(f"  ✅ Redis cache: {'connected' if cache.enabled else 'memory fallback'}")
+
+        elapsed = time.time() - start
+        logger.info(f"🔥 Model warmup completed in {elapsed:.2f}s")
+
+    except Exception as e:
+        logger.warning(f"⚠️ Warmup error (non-fatal): {e}")
+
+# Auto-warmup on import if WARMUP_ON_START is set (for Gunicorn/production)
+if os.getenv("WARMUP_ON_START", "").lower() in ("1", "true", "yes"):
+    warmup_models()
+
+# Simple token gate + rate limiting
+ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
+RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
+RATE_WINDOW_SECONDS = 60
+_rate_state = defaultdict(list)  # ip -> timestamps
+UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init", "/api/destiny-story/generate-stream"}
+
+def _client_id() -> str:
+    return (
+        (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+        or request.remote_addr
+        or "unknown"
+    )
+
+_rate_cleanup_counter = 0
+
+def _check_rate() -> Tuple[bool, Optional[float]]:
+    global _rate_cleanup_counter
+    now = time.time()
+    client = _client_id()
+    window = [t for t in _rate_state[client] if now - t < RATE_WINDOW_SECONDS]
+    _rate_state[client] = window
+
+    # Periodic cleanup of stale clients (every 100 requests)
+    _rate_cleanup_counter += 1
+    if _rate_cleanup_counter >= 100:
+        _rate_cleanup_counter = 0
+        stale_clients = [
+            c for c, ts in _rate_state.items()
+            if not ts or (now - max(ts)) > RATE_WINDOW_SECONDS * 2
+        ]
+        for c in stale_clients:
+            del _rate_state[c]
+        if stale_clients:
+            logger.debug(f"[RATE] Cleaned up {len(stale_clients)} stale clients")
+
+    if len(window) >= RATE_LIMIT:
+        retry_after = max(0, RATE_WINDOW_SECONDS - (now - window[0]))
+        return False, retry_after
+    window.append(now)
+    _rate_state[client] = window
+    return True, None
+
+def _require_auth() -> Optional[Tuple[dict, int]]:
+    # Read token at request time to handle dotenv race conditions
+    admin_token = os.getenv("ADMIN_API_TOKEN") or ADMIN_TOKEN
+    if not admin_token:
+        return None
+    # Allow unauthenticated access to health endpoints for load balancers
+    if request.path in UNPROTECTED_PATHS or request.method == "OPTIONS":
+        return None
+    auth_header = request.headers.get("Authorization", "")
+    token = None
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+    token = token or request.headers.get("X-API-KEY") or request.args.get("token")
+    if token != admin_token:
+        return {"status": "error", "message": "unauthorized"}, 401
+    return None
+
+@app.before_request
+def before_request():
+    g.request_id = str(uuid4())
+    g._start_time = time.time()
+
+    ok, retry_after = _check_rate()
+    if not ok:
+        logger.warning(
+            f"[RATE_LIMIT] client={_client_id()} path={request.path} retry_after={retry_after}"
+        )
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "rate limit exceeded",
+                    "retry_after": retry_after,
+                }
+            ),
+            429,
+        )
+
+    auth_error = _require_auth()
+    if auth_error:
+        logger.warning(f"[AUTH] blocked client={_client_id()} path={request.path}")
+        body, code = auth_error
+        return jsonify(body), code
+
+@app.after_request
+def after_request(response):
+    response.headers["X-Request-ID"] = getattr(g, "request_id", "")
+    try:
+        duration = time.time() - getattr(g, "_start_time", time.time())
+        logger.info(
+            f"[REQ] id={getattr(g, 'request_id', '')} path={request.path} "
+            f"status={response.status_code} dur_ms={int(duration*1000)}"
+        )
+    except Exception:
+        pass
+    return response
+
+# ===============================================================
+# GLOBAL ERROR HANDLERS - Consistent error responses
+# ===============================================================
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({
+        "status": "error",
+        "code": 400,
+        "message": "Bad request",
+        "request_id": getattr(g, "request_id", None)
+    }), 400
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({
+        "status": "error",
+        "code": 404,
+        "message": "Endpoint not found",
+        "request_id": getattr(g, "request_id", None)
+    }), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({
+        "status": "error",
+        "code": 405,
+        "message": "Method not allowed",
+        "request_id": getattr(g, "request_id", None)
+    }), 405
+
+@app.errorhandler(500)
+def internal_error(e):
+    logger.exception(f"[ERROR] Unhandled exception: {e}")
+    return jsonify({
+        "status": "error",
+        "code": 500,
+        "message": "Internal server error",
+        "request_id": getattr(g, "request_id", None)
+    }), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Catch-all for unhandled exceptions."""
+    logger.exception(f"[ERROR] Unhandled exception: {e}")
+    return jsonify({
+        "status": "error",
+        "code": 500,
+        "message": "An unexpected error occurred",
+        "request_id": getattr(g, "request_id", None)
+    }), 500
+
+# ===============================================================
+# MIGRATION SUMMARY (Phase 2-4)
+# Route handlers and business logic have been moved to:
+#   - Routers: core, chart, cache, counseling, dream, tarot, search, etc.
+#   - Services: FortuneService, StreamingService, DreamService, etc.
+# See REFACTORING_PROGRESS.md for detailed migration history.
+# ===============================================================
+
+# ===============================================================
+# Phase 4: Consolidated migration notes
+# All endpoints and functions have been moved to appropriate routers/services:
+# - Tarot → tarot_routes.py, TarotService
+# - Counseling → counseling_routes.py
+# - Search → search_routes.py
+# - Compatibility → compatibility_routes.py
+# - Numerology → numerology_routes.py
+# - ICP → icp_routes.py
+# - Fortune Score → SajuCalculationService
+# - Destiny Story → DestinyStoryService
+# ===============================================================
+
+def _calculate_simple_saju(birth_date: str, birth_time: str = "12:00") -> dict:
+    """Delegate to SajuCalculationService.calculate_simple_saju()."""
+    from backend_ai.services.saju_calculation_service import SajuCalculationService
+    service = SajuCalculationService()
+    return service.calculate_simple_saju(birth_date, birth_time)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    logger.info(f"Flask server starting on http://127.0.0.1:{port}")
+    logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}, prediction={HAS_PREDICTION}, theme_filter={HAS_THEME_FILTER}, fortune_score={HAS_FORTUNE_SCORE}, compatibility={HAS_COMPATIBILITY}, hybrid_rag={HAS_HYBRID_RAG}, domain_rag={HAS_DOMAIN_RAG}")
+
+    # 🚀 Warmup models before accepting requests
+    warmup_models()
+
+    app.run(host="0.0.0.0", port=port, debug=True)

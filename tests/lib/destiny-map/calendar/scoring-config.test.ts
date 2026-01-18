@@ -392,11 +392,11 @@ describe('scoring-config', () => {
     });
 
     it('should have grade0 as highest threshold', () => {
-      expect(GRADE_THRESHOLDS.grade0).toBe(72);
+      expect(GRADE_THRESHOLDS.grade0).toBe(68);
     });
 
     it('should have grade3 as lowest threshold', () => {
-      expect(GRADE_THRESHOLDS.grade3).toBe(30);
+      expect(GRADE_THRESHOLDS.grade3).toBe(28);
     });
 
     it('should have realistic threshold values', () => {

@@ -153,7 +153,8 @@ function parseHM(input: string) {
   const ampm = (s.match(/\s?(AM|PM)$/) || [])[1];
   const core = s.replace(/\s?(AM|PM)$/, "");
   const [hhRaw, mmRaw = "0"] = core.split(":");
-  let h = Number(hhRaw), m = Number(mmRaw);
+  let h = Number(hhRaw);
+  const m = Number(mmRaw);
   if (!Number.isFinite(h) || !Number.isFinite(m)) throw new Error("Enter a valid time (HH:mm or HH:mm AM/PM).");
   if (ampm === "PM" && h < 12) h += 12;
   if (ampm === "AM" && h === 12) h = 0;

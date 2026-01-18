@@ -106,7 +106,7 @@ export default function DreamPage() {
 }
 
 function DreamContent() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const { status } = useSession();
   const signInUrl = buildSignInUrl();
   const canvasRef = useRef<HTMLCanvasElement>(null!);

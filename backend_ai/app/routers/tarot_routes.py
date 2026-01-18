@@ -4,17 +4,25 @@ Card interpretation, chat, streaming responses, and topic detection.
 Extracted from app.py for better maintainability.
 
 Phase 3.4 Refactored: Uses TarotService for generate_dynamic_followup_questions and detect_tarot_topic.
+Phase 3.5 Refactored: Extracted constants and utils to separate modules.
 """
 import json
 import logging
-import os
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Dict, Tuple
 
 from flask import Blueprint, request, jsonify, Response, g
+
+from .tarot_constants import WEEKDAY_NAMES_KO
+from .tarot_utils import (
+    map_tarot_theme,
+    clean_ai_phrases,
+    sanitize_messages as _sanitize_messages_util,
+    detect_question_context,
+    is_playful_question,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -250,149 +258,16 @@ def sanitize_messages(messages: list, max_content_length: int = 2000) -> list:
 
 
 # ===============================================================
-# THEME MAPPING CONSTANTS
+# THEME MAPPING - Now imported from tarot_constants and tarot_utils
 # ===============================================================
-
-# Theme mapping: Frontend IDs → Backend theme names
-TAROT_THEME_MAPPING = {
-    # Direct matches
-    "love": "love",
-    "career": "career",
-    "health": "health",
-    "spiritual": "spiritual",
-    "daily": "daily",
-    "monthly": "monthly",
-    "life_path": "life_path",
-    "family": "family",
-
-    # Frontend uses hyphens, backend uses underscores/different names
-    "love-relationships": "love",
-    "career-work": "career",
-    "money-finance": "wealth",
-    "well-being-health": "health",
-    "spiritual-growth": "spiritual",
-    "daily-reading": "daily",
-    "general-insight": "life_path",
-    "decisions-crossroads": "life_path",
-    "self-discovery": "life_path",
-}
-
-# Sub-topic mapping for themes that use different sub_topic names
-TAROT_SUBTOPIC_MAPPING = {
-    # decisions-crossroads spreads → life_path sub_topics
-    ("decisions-crossroads", "simple-choice"): ("life_path", "crossroads"),
-    ("decisions-crossroads", "decision-cross"): ("life_path", "major_decision"),
-    ("decisions-crossroads", "path-ahead"): ("life_path", "life_direction"),
-
-    # self-discovery spreads → life_path sub_topics
-    ("self-discovery", "inner-self"): ("life_path", "true_self"),
-    ("self-discovery", "personal-growth"): ("life_path", "life_lessons"),
-
-    # general-insight spreads → various themes
-    ("general-insight", "quick-reading"): ("daily", "one_card"),
-    ("general-insight", "past-present-future"): ("daily", "three_card"),
-    ("general-insight", "celtic-cross"): ("life_path", "life_direction"),
-}
-
-
-def _map_tarot_theme(category: str, spread_id: str, user_question: str = "") -> Tuple[str, str]:
-    """Map frontend theme/spread to backend theme/sub_topic, considering user's question"""
-    # Check specific mapping first
-    key = (category, spread_id)
-    if key in TAROT_SUBTOPIC_MAPPING:
-        return TAROT_SUBTOPIC_MAPPING[key]
-
-    # Fall back to theme-only mapping
-    mapped_theme = TAROT_THEME_MAPPING.get(category, category)
-
-    # Dynamic sub_topic selection based on user question keywords
-    if user_question and mapped_theme == "career":
-        q = user_question.lower()
-        if any(kw in q for kw in ["사업", "창업", "자영업", "business", "startup", "entrepreneur"]):
-            return (mapped_theme, "entrepreneurship")
-        elif any(kw in q for kw in ["취업", "취직", "입사", "job", "employment", "hire"]):
-            return (mapped_theme, "job_search")
-        elif any(kw in q for kw in ["이직", "퇴사", "전직", "resign", "quit", "change job"]):
-            return (mapped_theme, "career_change")
-        elif any(kw in q for kw in ["승진", "promotion", "raise"]):
-            return (mapped_theme, "promotion")
-        elif any(kw in q for kw in ["직장", "회사", "상사", "동료", "workplace", "boss", "colleague"]):
-            return (mapped_theme, "workplace")
-
-    elif user_question and mapped_theme == "love":
-        q = user_question.lower()
-        if any(kw in q for kw in ["짝사랑", "고백", "crush", "confess"]):
-            return (mapped_theme, "crush")
-        elif any(kw in q for kw in ["헤어", "이별", "breakup", "separate"]):
-            return (mapped_theme, "breakup")
-        elif any(kw in q for kw in ["결혼", "약혼", "marriage", "wedding"]):
-            return (mapped_theme, "marriage")
-        elif any(kw in q for kw in ["재회", "다시", "reconcile", "ex"]):
-            return (mapped_theme, "reconciliation")
-        elif any(kw in q for kw in ["만남", "소개팅", "dating", "meet"]):
-            return (mapped_theme, "new_love")
-
-    elif user_question and mapped_theme == "wealth":
-        q = user_question.lower()
-        if any(kw in q for kw in ["투자", "주식", "코인", "invest", "stock", "crypto"]):
-            return (mapped_theme, "investment")
-        elif any(kw in q for kw in ["빚", "대출", "부채", "debt", "loan"]):
-            return (mapped_theme, "debt")
-        elif any(kw in q for kw in ["저축", "절약", "save", "saving"]):
-            return (mapped_theme, "saving")
-
-    return (mapped_theme, spread_id)
+# map_tarot_theme -> map_tarot_theme (imported from tarot_utils)
 
 
 # ===============================================================
-# AI PHRASE CLEANING
+# AI PHRASE CLEANING - Now imported from tarot_utils
 # ===============================================================
-
-def _clean_ai_phrases(text: str) -> str:
-    """
-    Remove AI-sounding phrases from tarot interpretations.
-    Makes output more natural and less robotic.
-    """
-    # AI 특유의 한국어 표현 패턴
-    ai_patterns_ko = [
-        (r'~하시는군요\.?', ''),
-        (r'~느끼실 수 있어요\.?', ''),
-        (r'~하시면 좋을 것 같습니다\.?', ''),
-        (r'~해보시는 건 어떨까요\?', ''),
-        (r'긍정적인 에너지가 느껴지네요\.?', ''),
-        (r'좋은 결과가 있을 거예요\.?', ''),
-        (r'잘 될 거예요\.?', ''),
-        (r'걱정하지 마세요\.?', ''),
-        (r'자신감을 가지시면 좋겠습니다\.?', ''),
-        (r'~을 나타냅니다\.', '다.'),
-        (r'~을 보여주고 있습니다\.', '다.'),
-        (r'~라고 할 수 있습니다\.', '다.'),
-        (r'희망적인 메시지를 전하고 있네요\.?', ''),
-        (r'응원합니다\.?', ''),
-        (r'파이팅이에요\.?', ''),
-        (r'화이팅!?', ''),
-    ]
-
-    # AI 특유의 영어 표현 패턴
-    ai_patterns_en = [
-        (r'I hope this helps\.?', ''),
-        (r'Feel free to ask.*', ''),
-        (r'I\'m here to help\.?', ''),
-        (r'This suggests that you should\.?', 'This suggests'),
-        (r'It\'s important to remember that\.?', ''),
-        (r'positive energy', 'energy'),
-    ]
-
-    result = text
-    for pattern, replacement in ai_patterns_ko + ai_patterns_en:
-        result = re.sub(pattern, replacement, result)
-
-    # 연속된 공백/마침표 정리
-    result = re.sub(r'\s+', ' ', result)
-    result = re.sub(r'\.+', '.', result)
-    result = result.strip()
-
-    return result
+# _clean_ai_phrases -> clean_ai_phrases (imported from tarot_utils)
+_clean_ai_phrases = clean_ai_phrases  # Backward compatibility alias
 
 
 # Phase 3.4: Functions moved to TarotService (backend_ai/services/tarot_service.py)
@@ -509,7 +384,7 @@ def tarot_interpret():
                 enhanced_question = f"[배경: {', '.join(context_parts)}] {user_question}"
 
         # Map theme/spread
-        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id, user_question)
+        mapped_theme, mapped_spread = map_tarot_theme(category, spread_id, user_question)
         logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
 
         # === PARALLEL PROCESSING ===
@@ -1095,7 +970,7 @@ def tarot_prefetch():
         start_time = time.time()
         hybrid_rag = get_tarot_hybrid_rag()
 
-        mapped_theme, mapped_spread = _map_tarot_theme(category, spread_id)
+        mapped_theme, mapped_spread = map_tarot_theme(category, spread_id)
 
         try:
             hybrid_rag._ensure_loaded()
@@ -1276,7 +1151,7 @@ def tarot_chat_stream():
                     {"name": c.get("name", ""), "isReversed": c.get("is_reversed", False)}
                     for c in cards
                 ]
-                mapped_theme, mapped_spread = _map_tarot_theme(category, spread_title, latest_question)
+                mapped_theme, mapped_spread = map_tarot_theme(category, spread_title, latest_question)
                 rag_context = hybrid_rag.build_reading_context(
                     theme=mapped_theme,
                     sub_topic=mapped_spread,

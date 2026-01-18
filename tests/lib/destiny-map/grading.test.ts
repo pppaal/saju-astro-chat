@@ -60,48 +60,54 @@ describe("calculateGrade", () => {
   });
 
   describe("grade 1 (good day)", () => {
-    it("returns grade 1 for score 65-71", () => {
-      const input: GradeInput = { ...baseInput, score: 68 };
+    it("returns grade 1 for score 62-67", () => {
+      const input: GradeInput = { ...baseInput, score: 65 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(1);
     });
 
-    it("returns grade 1 for score 65 exactly", () => {
-      const input: GradeInput = { ...baseInput, score: 65 };
+    it("returns grade 1 for score 62 exactly", () => {
+      const input: GradeInput = { ...baseInput, score: 62 };
+      const result = calculateGrade(input);
+      expect(result.grade).toBe(1);
+    });
+
+    it("returns grade 1 for score 67 exactly", () => {
+      const input: GradeInput = { ...baseInput, score: 67 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(1);
     });
   });
 
   describe("grade 2 (normal day)", () => {
-    it("returns grade 2 for score 45-64", () => {
+    it("returns grade 2 for score 42-61", () => {
       const input: GradeInput = { ...baseInput, score: 55 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(2);
     });
 
-    it("returns grade 2 for score 45 exactly", () => {
-      const input: GradeInput = { ...baseInput, score: 45 };
+    it("returns grade 2 for score 42 exactly", () => {
+      const input: GradeInput = { ...baseInput, score: 42 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(2);
     });
 
-    it("returns grade 2 for score 64 exactly", () => {
+    it("returns grade 1 for score 64 exactly", () => {
       const input: GradeInput = { ...baseInput, score: 64 };
       const result = calculateGrade(input);
-      expect(result.grade).toBe(2);
+      expect(result.grade).toBe(1);
     });
   });
 
   describe("grade 3 (bad day)", () => {
-    it("returns grade 3 for score 30-44", () => {
+    it("returns grade 3 for score 28-41", () => {
       const input: GradeInput = { ...baseInput, score: 35 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(3);
     });
 
-    it("returns grade 3 for score 30 exactly", () => {
-      const input: GradeInput = { ...baseInput, score: 30 };
+    it("returns grade 3 for score 28 exactly", () => {
+      const input: GradeInput = { ...baseInput, score: 28 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(3);
     });

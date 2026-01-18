@@ -25,9 +25,9 @@ describe('Calendar Helpers Integration', () => {
       const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading-optimized');
 
       expect(calculateGrade(80)).toBe(0); // Best
-      expect(calculateGrade(70)).toBe(1); // Good
+      expect(calculateGrade(70)).toBe(0); // Best (68+)
       expect(calculateGrade(55)).toBe(2); // Normal
-      expect(calculateGrade(40)).toBe(3); // Bad
+      expect(calculateGrade(40)).toBe(3); // Bad (28-41)
       expect(calculateGrade(20)).toBe(4); // Worst
     });
   });

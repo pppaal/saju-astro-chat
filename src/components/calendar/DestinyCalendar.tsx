@@ -1,23 +1,29 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
+/**
+ * DestinyCalendar - Main Calendar Component
+ * Refactored to use modular sub-components for better maintainability.
+ *
+ * Sub-components:
+ * - BirthInfoForm: Birth info input form with city search
+ * - CalendarHeader: Header with title and summary badges
+ * - MonthNavigation: Month navigation controls
+ * - CategoryFilter: Category filter buttons
+ * - CalendarGrid: Main calendar grid with day cells
+ * - FortuneGraph: Monthly fortune flow graph
+ * - SelectedDatePanel: Selected date detail panel
+ */
+
+import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
-import { searchCities } from "@/lib/cities";
-import tzLookup from "tz-lookup";
-import { getUserProfile } from "@/lib/userProfile";
 import BackButton from "@/components/ui/BackButton";
-import CreditBadge from "@/components/ui/CreditBadge";
-import { buildSignInUrl } from "@/lib/auth/signInUrl";
-import DateTimePicker from "@/components/ui/DateTimePicker";
-import TimePicker from "@/components/ui/TimePicker";
 import styles from "./DestinyCalendar.module.css";
 import { logger } from "@/lib/logger";
 
 // Modularized imports
 import type {
   EventCategory,
-  CityHit,
   ImportantDate,
   CalendarData,
   BirthInfo,
@@ -26,7 +32,6 @@ import {
   CATEGORY_EMOJI,
   WEEKDAYS_KO,
   WEEKDAYS_EN,
-  ICONS,
 } from './constants';
 import {
   getCacheKey,
@@ -34,17 +39,22 @@ import {
   setCachedData,
 } from './cache-utils';
 import {
-  extractCityPart,
   parseLocalDate,
   getGradeEmoji,
   getCategoryLabel,
   getScoreClass,
 } from './utils';
 
-// Cache utilities are now imported from ./cache-utils
+// Sub-components
+import BirthInfoForm from './BirthInfoForm';
+import CalendarHeader from './CalendarHeader';
+import MonthNavigation from './MonthNavigation';
+import CategoryFilter from './CategoryFilter';
+import CalendarGrid from './CalendarGrid';
+import FortuneGraph from './FortuneGraph';
+import SelectedDatePanel from './SelectedDatePanel';
 
 export default function DestinyCalendar() {
-  // SessionProvider는 상위 레이아웃에서 이미 제공됨
   return <DestinyCalendarContent />;
 }
 
@@ -97,6 +107,15 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // Load profile from DB states
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // 오늘 날짜 캐싱 (매 렌더마다 new Date() 호출 방지)
+  const today = useMemo(() => new Date(), []);
+  const todayStr = useMemo(() => {
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, [today]);
 
   // Load saved profile on mount
   useEffect(() => {
@@ -603,19 +622,13 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // 데이터 로드 후 오늘 날짜 자동 선택
   useEffect(() => {
     if (data?.allDates && !selectedDay) {
-      const today = new Date();
-      // 로컬 타임존 기준 YYYY-MM-DD 문자열 생성
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const todayStr = `${year}-${month}-${day}`;
       const todayInfo = data.allDates.find(d => d.date === todayStr);
       setSelectedDay(today);
       if (todayInfo) {
         setSelectedDate(todayInfo);
       }
     }
-  }, [data, selectedDay]);
+  }, [data, selectedDay, today, todayStr]);
 
   const handleBirthInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -645,20 +658,19 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     fetchCalendar(finalBirthInfo);
   };
 
-  const getDateInfo = (date: Date): ImportantDate | undefined => {
+  const getDateInfo = useCallback((date: Date): ImportantDate | undefined => {
     if (!data?.allDates) return undefined;
     // 로컬 타임존 기준 YYYY-MM-DD 문자열 생성 (toISOString은 UTC 기준이라 타임존 문제 발생)
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    return data.allDates.find(d => d.date === dateStr);
-  };
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+    return data.allDates.find(item => item.date === dateStr);
+  }, [data?.allDates]);
 
-  const getDayClassName = (date: Date | null): string => {
+  const getDayClassName = useCallback((date: Date | null): string => {
     if (!date) return styles.emptyDay;
 
-    const today = new Date();
     const isToday =
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
@@ -681,9 +693,9 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     if (date.getDay() === 6) className += ` ${styles.saturday}`;
 
     return className;
-  };
+  }, [today, selectedDay, getDateInfo]);
 
-  const handleDayClick = (date: Date | null) => {
+  const handleDayClick = useCallback((date: Date | null) => {
     if (!date) return;
     setSelectedDay(date);
     const info = getDateInfo(date);
@@ -692,34 +704,33 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     } else {
       setSelectedDate(null);
     }
-  };
+  }, [getDateInfo]);
 
-  const prevMonth = () => {
+  const prevMonth = useCallback(() => {
     setSlideDirection('right');
     setCurrentDate(new Date(year, month - 1, 1));
     setTimeout(() => setSlideDirection(null), 300);
-  };
+  }, [year, month]);
 
-  const nextMonth = () => {
+  const nextMonth = useCallback(() => {
     setSlideDirection('left');
     setCurrentDate(new Date(year, month + 1, 1));
     setTimeout(() => setSlideDirection(null), 300);
-  };
+  }, [year, month]);
 
-  const goToToday = () => {
-    const today = new Date();
+  const goToToday = useCallback(() => {
     if (today.getMonth() > month || today.getFullYear() > year) {
       setSlideDirection('left');
     } else if (today.getMonth() < month || today.getFullYear() < year) {
       setSlideDirection('right');
     }
-    setCurrentDate(today);
+    setCurrentDate(new Date(today)); // 새 Date 객체로 상태 업데이트
     setTimeout(() => setSlideDirection(null), 300);
-  };
+  }, [today, month, year]);
 
-  const toggleTheme = () => {
-    setIsDarkTheme(!isDarkTheme);
-  };
+  const toggleTheme = useCallback(() => {
+    setIsDarkTheme(prev => !prev);
+  }, []);
 
   // getGradeEmoji and getScoreClass are imported from ./utils
 
@@ -1101,9 +1112,9 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
           {days.map((date, idx) => {
             const dateInfo = date ? getDateInfo(date) : undefined;
             const isToday = date &&
-              date.getDate() === new Date().getDate() &&
-              date.getMonth() === new Date().getMonth() &&
-              date.getFullYear() === new Date().getFullYear();
+              date.getDate() === today.getDate() &&
+              date.getMonth() === today.getMonth() &&
+              date.getFullYear() === today.getFullYear();
 
             const getGradeLabel = (grade: number) => {
               const labels = {

@@ -138,6 +138,27 @@ Preview environment deployment:
 
 ---
 
+#### 8. [deploy-backend.yml](./deploy-backend.yml) - Backend AI Deployment
+**Triggers:** Push to `main` (backend_ai changes), Manual dispatch
+
+Backend AI service deployment:
+- Python unit tests
+- Docker image build (GHCR)
+- Railway deployment
+- Health checks
+- Deployment notifications
+
+**Features:**
+- Only triggers on backend_ai changes
+- Multi-stage Docker build with caching
+- GitHub Container Registry (GHCR) integration
+- Environment-specific deployments (staging/production)
+
+**When it runs:** Backend changes to main branch
+**Duration:** ~10-15 minutes
+
+---
+
 ## Workflow Dependencies
 
 ```

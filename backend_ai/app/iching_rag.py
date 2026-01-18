@@ -13,14 +13,12 @@ Features:
 - Saju cross-analysis with day master element
 - Position-based line analysis (爻位)
 - Hybrid RAG search for related wisdom
+
+Phase 3.5 Refactored: Extracted data loading, wuxing, and hexagram calc to iching package.
 """
 
-import os
-import json
 import random
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
-from functools import lru_cache
+from typing import Dict, List, Optional
 
 # Try to import embedding utilities
 try:
@@ -31,10 +29,11 @@ except ImportError:
 
 
 # ===============================================================
-# CONSTANTS - Import from iching package
+# IMPORTS FROM ICHING PACKAGE (Refactored)
 # ===============================================================
 try:
     from backend_ai.app.iching import (
+        # Constants
         WUXING_GENERATING,
         WUXING_OVERCOMING,
         WUXING_KOREAN,
@@ -42,9 +41,27 @@ try:
         LINE_POSITION_MEANING,
         SOLAR_TERMS,
         SEASON_ELEMENT,
+        # Data loading
+        load_premium_data,
+        load_complete_hexagram_data,
+        load_changing_lines_data,
+        # Wuxing analysis
+        get_current_season,
+        get_current_solar_term,
+        analyze_seasonal_harmony,
+        analyze_wuxing_relationship,
+        get_saju_element_analysis,
+        # Hexagram calculation
+        binary_to_hexagram_num as _binary_to_hexagram_num,
+        calculate_nuclear_hexagram,
+        calculate_opposite_hexagram,
+        calculate_reverse_hexagram,
+        get_related_hexagrams,
+        cast_hexagram,
     )
 except ImportError:
     from app.iching import (
+        # Constants
         WUXING_GENERATING,
         WUXING_OVERCOMING,
         WUXING_KOREAN,
@@ -52,460 +69,54 @@ except ImportError:
         LINE_POSITION_MEANING,
         SOLAR_TERMS,
         SEASON_ELEMENT,
+        # Data loading
+        load_premium_data,
+        load_complete_hexagram_data,
+        load_changing_lines_data,
+        # Wuxing analysis
+        get_current_season,
+        get_current_solar_term,
+        analyze_seasonal_harmony,
+        analyze_wuxing_relationship,
+        get_saju_element_analysis,
+        # Hexagram calculation
+        binary_to_hexagram_num as _binary_to_hexagram_num,
+        calculate_nuclear_hexagram,
+        calculate_opposite_hexagram,
+        calculate_reverse_hexagram,
+        get_related_hexagrams,
+        cast_hexagram,
     )
 
 
-# ===============================================================
-# DATA LOADING
-# ===============================================================
-_HEXAGRAM_DATA = None
-_TRIGRAM_DATA = None
-_COMPLETE_HEXAGRAM_DATA = None
-_CHANGING_LINES_DATA = None
-
-
-def _get_data_path() -> str:
-    """Get path to I Ching data directory."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_dir, "data", "graph", "rules", "iching")
-
-
-@lru_cache(maxsize=1)
-def load_premium_data() -> Tuple[Dict, Dict]:
-    """Load premium hexagram and trigram data."""
-    global _HEXAGRAM_DATA, _TRIGRAM_DATA
-
-    if _HEXAGRAM_DATA is not None:
-        return _HEXAGRAM_DATA, _TRIGRAM_DATA
-
-    data_path = os.path.join(_get_data_path(), "hexagrams_full.json")
-
-    if os.path.exists(data_path):
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            _HEXAGRAM_DATA = data.get("hexagrams", {})
-            _TRIGRAM_DATA = data.get("trigrams", {})
-    else:
-        _HEXAGRAM_DATA = {}
-        _TRIGRAM_DATA = {}
-        print(f"[IChingRAG] Warning: Premium data not found at {data_path}")
-
-    return _HEXAGRAM_DATA, _TRIGRAM_DATA
-
-
-def load_complete_hexagram_data() -> Dict:
-    """Load complete hexagram data with line interpretations from all split files."""
-    global _COMPLETE_HEXAGRAM_DATA
-
-    if _COMPLETE_HEXAGRAM_DATA is not None:
-        return _COMPLETE_HEXAGRAM_DATA
-
-    _COMPLETE_HEXAGRAM_DATA = {}
-    base_path = _get_data_path()
-
-    try:
-        # Load main complete file
-        main_path = os.path.join(base_path, "hexagrams_complete_64.json")
-        if os.path.exists(main_path):
-            with open(main_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                _COMPLETE_HEXAGRAM_DATA.update(data.get("hexagrams", {}))
-
-        # Load additional split files (7-16, 17-32, 33-48, 49-64)
-        split_files = [
-            "hexagrams_7_to_16.json",
-            "hexagrams_17_to_32.json",
-            "hexagrams_33_to_48.json",
-            "hexagrams_49_to_64.json",
-        ]
-
-        for filename in split_files:
-            filepath = os.path.join(base_path, filename)
-            if os.path.exists(filepath):
-                try:
-                    with open(filepath, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        if "hexagrams" in data:
-                            _COMPLETE_HEXAGRAM_DATA.update(data["hexagrams"])
-                        elif isinstance(data, dict):
-                            for key, value in data.items():
-                                if key.isdigit() or (isinstance(value, dict) and "name" in value):
-                                    _COMPLETE_HEXAGRAM_DATA[key] = value
-                except (json.JSONDecodeError, IOError) as e:
-                    print(f"[IChingRAG] Warning: Failed to load {filename}: {e}")
-                    continue
-
-    except Exception as e:
-        print(f"[IChingRAG] Error loading complete hexagram data: {e}")
-        _COMPLETE_HEXAGRAM_DATA = {}
-
-    return _COMPLETE_HEXAGRAM_DATA
-
-
-def load_changing_lines_data() -> Dict:
-    """Load advanced changing lines interpretation data."""
-    global _CHANGING_LINES_DATA
-
-    if _CHANGING_LINES_DATA is not None:
-        return _CHANGING_LINES_DATA
-
-    data_path = os.path.join(_get_data_path(), "changing_lines_advanced.json")
-
-    try:
-        if os.path.exists(data_path):
-            with open(data_path, "r", encoding="utf-8") as f:
-                _CHANGING_LINES_DATA = json.load(f)
-        else:
-            _CHANGING_LINES_DATA = {}
-    except (json.JSONDecodeError, IOError) as e:
-        print(f"[IChingRAG] Warning: Failed to load changing lines data: {e}")
-        _CHANGING_LINES_DATA = {}
-
-    return _CHANGING_LINES_DATA
-
-
-# ===============================================================
-# SEASONAL & TIMING ANALYSIS
-# ===============================================================
-def get_current_season() -> str:
-    """Get current season based on date."""
-    now = datetime.now()
-    month = now.month
-
-    if month in [3, 4, 5]:
-        return "spring"
-    elif month in [6, 7, 8]:
-        return "summer"
-    elif month in [9, 10, 11]:
-        return "autumn"
-    else:
-        return "winter"
-
-
-def get_current_solar_term() -> str:
-    """Get current solar term (절기)."""
-    now = datetime.now()
-    month, day = now.month, now.day
-
-    for i, (term_name, term_month, term_day) in enumerate(SOLAR_TERMS):
-        next_idx = (i + 1) % len(SOLAR_TERMS)
-        next_term = SOLAR_TERMS[next_idx]
-
-        if term_month == month and day >= term_day:
-            if next_term[1] != month or day < next_term[2]:
-                return term_name
-
-    return "동지"  # Default
-
-
-def analyze_seasonal_harmony(hexagram_element: str) -> Dict:
-    """Analyze harmony between hexagram element and current season."""
-    season = get_current_season()
-    season_info = SEASON_ELEMENT.get(season, SEASON_ELEMENT["spring"])
-    season_element = season_info["element"]
-
-    harmony = {
-        "season": season,
-        "season_korean": season_info["korean"],
-        "season_element": season_element,
-        "hexagram_element": hexagram_element,
-        "solar_term": get_current_solar_term(),
-    }
-
-    # 상생/상극 분석
-    if WUXING_GENERATING.get(season_element) == hexagram_element:
-        harmony["relationship"] = "상생(相生)"
-        harmony["description"] = f"계절의 기운({WUXING_KOREAN.get(season_element, season_element)})이 괘의 기운({WUXING_KOREAN.get(hexagram_element, hexagram_element)})을 생(生)합니다. 시기적으로 유리합니다."
-        harmony["score"] = 5
-    elif WUXING_GENERATING.get(hexagram_element) == season_element:
-        harmony["relationship"] = "설기(洩氣)"
-        harmony["description"] = f"괘의 기운이 계절에 설(洩)됩니다. 에너지 소모에 주의하세요."
-        harmony["score"] = 3
-    elif WUXING_OVERCOMING.get(season_element) == hexagram_element:
-        harmony["relationship"] = "피극(被剋)"
-        harmony["description"] = f"계절의 기운이 괘를 극(剋)합니다. 저항이 있을 수 있으나 극복 가능합니다."
-        harmony["score"] = 2
-    elif WUXING_OVERCOMING.get(hexagram_element) == season_element:
-        harmony["relationship"] = "극출(剋出)"
-        harmony["description"] = f"괘의 기운이 계절을 극(剋)합니다. 강한 의지로 추진하면 성과가 있습니다."
-        harmony["score"] = 4
-    elif season_element == hexagram_element:
-        harmony["relationship"] = "비화(比和)"
-        harmony["description"] = f"계절과 괘가 같은 오행입니다. 조화롭고 안정적인 시기입니다."
-        harmony["score"] = 4
-    else:
-        harmony["relationship"] = "중립"
-        harmony["description"] = "특별한 상생상극 관계가 없습니다."
-        harmony["score"] = 3
-
-    return harmony
-
-
-# ===============================================================
-# FIVE ELEMENT (五行) ANALYSIS
-# ===============================================================
-def analyze_wuxing_relationship(element1: str, element2: str) -> Dict:
-    """Analyze the Five Element relationship between two elements."""
-    if not element1 or not element2:
-        return {"relationship": "unknown", "description": "오행 정보가 없습니다."}
-
-    e1 = element1.lower()
-    e2 = element2.lower()
-
-    if e1 == e2:
-        return {
-            "relationship": "비화(比和)",
-            "type": "harmony",
-            "description": f"{WUXING_KOREAN.get(e1, e1)}끼리 만나 서로 도움이 됩니다.",
-            "advice": "같은 기운이 만나 안정적입니다. 협력하면 좋습니다."
-        }
-    elif WUXING_GENERATING.get(e1) == e2:
-        return {
-            "relationship": "상생(相生)",
-            "type": "generating",
-            "description": f"{WUXING_KOREAN.get(e1, e1)}이(가) {WUXING_KOREAN.get(e2, e2)}을(를) 생(生)합니다.",
-            "advice": "자연스러운 흐름입니다. 순리대로 나아가세요."
-        }
-    elif WUXING_GENERATING.get(e2) == e1:
-        return {
-            "relationship": "상생(相生) - 생을 받음",
-            "type": "generated",
-            "description": f"{WUXING_KOREAN.get(e2, e2)}이(가) {WUXING_KOREAN.get(e1, e1)}을(를) 생(生)합니다.",
-            "advice": "도움을 받는 위치입니다. 감사히 받아들이세요."
-        }
-    elif WUXING_OVERCOMING.get(e1) == e2:
-        return {
-            "relationship": "상극(相剋) - 극함",
-            "type": "overcoming",
-            "description": f"{WUXING_KOREAN.get(e1, e1)}이(가) {WUXING_KOREAN.get(e2, e2)}을(를) 극(剋)합니다.",
-            "advice": "강하게 밀어붙일 수 있으나, 지나치면 반발이 있습니다."
-        }
-    elif WUXING_OVERCOMING.get(e2) == e1:
-        return {
-            "relationship": "상극(相剋) - 극을 받음",
-            "type": "overcome",
-            "description": f"{WUXING_KOREAN.get(e2, e2)}이(가) {WUXING_KOREAN.get(e1, e1)}을(를) 극(剋)합니다.",
-            "advice": "저항이 있습니다. 우회하거나 인내가 필요합니다."
-        }
-    else:
-        return {
-            "relationship": "중립",
-            "type": "neutral",
-            "description": "직접적인 상생상극 관계가 아닙니다.",
-            "advice": "상황에 따라 유연하게 대처하세요."
-        }
-
-
-def get_saju_element_analysis(hexagram_element: str, saju_element: str) -> Dict:
-    """Analyze relationship between hexagram and user's Saju day master element."""
-    if not saju_element:
-        return None
-
-    relationship = analyze_wuxing_relationship(saju_element, hexagram_element)
-
-    # 일간별 구체적 조언 추가
-    element_specific_advice = {
-        "wood": {
-            "generating": "목(木) 일간에게 화(火)의 괘는 재능을 발휘할 기회입니다.",
-            "generated": "수(水)의 도움을 받아 성장할 수 있습니다.",
-            "overcoming": "토(土)를 다스릴 수 있으니 재물운이 있습니다.",
-            "overcome": "금(金)의 극을 받으니 건강과 관계에 주의하세요.",
-        },
-        "fire": {
-            "generating": "화(火) 일간에게 토(土)의 괘는 안정과 결실을 의미합니다.",
-            "generated": "목(木)의 도움으로 열정이 살아납니다.",
-            "overcoming": "금(金)을 다스려 성과를 얻습니다.",
-            "overcome": "수(水)의 극을 받으니 감정 조절이 필요합니다.",
-        },
-        "earth": {
-            "generating": "토(土) 일간에게 금(金)의 괘는 수확과 보상을 뜻합니다.",
-            "generated": "화(火)의 도움으로 신뢰를 얻습니다.",
-            "overcoming": "수(水)를 다스려 방향을 잡습니다.",
-            "overcome": "목(木)의 극을 받으니 유연성이 필요합니다.",
-        },
-        "metal": {
-            "generating": "금(金) 일간에게 수(水)의 괘는 지혜와 흐름을 상징합니다.",
-            "generated": "토(土)의 도움으로 기반이 탄탄해집니다.",
-            "overcoming": "목(木)을 다스려 권위를 세웁니다.",
-            "overcome": "화(火)의 극을 받으니 스트레스 관리가 중요합니다.",
-        },
-        "water": {
-            "generating": "수(水) 일간에게 목(木)의 괘는 새로운 시작을 의미합니다.",
-            "generated": "금(金)의 도움으로 통찰력이 생깁니다.",
-            "overcoming": "화(火)를 다스려 열정을 조절합니다.",
-            "overcome": "토(土)의 극을 받으니 현실적 장애에 주의하세요.",
-        },
-    }
-
-    saju_advice = element_specific_advice.get(saju_element.lower(), {})
-    relationship["saju_specific_advice"] = saju_advice.get(relationship.get("type", ""), "")
-    relationship["day_master"] = WUXING_KOREAN.get(saju_element.lower(), saju_element)
-
-    return relationship
-
-
-# ===============================================================
-# NUCLEAR, OPPOSITE, REVERSE HEXAGRAM (互卦, 錯卦, 綜卦)
-# ===============================================================
-def calculate_nuclear_hexagram(binary: str) -> int:
-    """
-    Calculate the nuclear hexagram (互卦/호괘).
-    Formed by lines 2-3-4 as lower trigram and 3-4-5 as upper trigram.
-    """
-    if len(binary) != 6:
-        return None
-
-    # Lines are indexed 0-5 (bottom to top)
-    # Lower trigram: lines 2, 3, 4 (indices 1, 2, 3)
-    # Upper trigram: lines 3, 4, 5 (indices 2, 3, 4)
-    nuclear_binary = binary[1:4] + binary[2:5]
-    return _binary_to_hexagram_num(nuclear_binary)
-
-
-def calculate_opposite_hexagram(binary: str) -> int:
-    """
-    Calculate the opposite hexagram (錯卦/착괘).
-    All lines reversed (yin ↔ yang).
-    """
-    if len(binary) != 6:
-        return None
-
-    opposite_binary = "".join("1" if b == "0" else "0" for b in binary)
-    return _binary_to_hexagram_num(opposite_binary)
-
-
-def calculate_reverse_hexagram(binary: str) -> int:
-    """
-    Calculate the reverse hexagram (綜卦/종괘).
-    Hexagram flipped upside down.
-    """
-    if len(binary) != 6:
-        return None
-
-    reverse_binary = binary[::-1]
-    return _binary_to_hexagram_num(reverse_binary)
-
-
-def get_related_hexagrams(hexagram_num: int, binary: str) -> Dict:
-    """Get all related hexagrams (nuclear, opposite, reverse)."""
-    hexagrams, _ = load_premium_data()
-
-    nuclear_num = calculate_nuclear_hexagram(binary)
-    opposite_num = calculate_opposite_hexagram(binary)
-    reverse_num = calculate_reverse_hexagram(binary)
-
-    def get_hex_info(num):
-        if num is None:
-            return None
-        hex_data = hexagrams.get(str(num), {})
-        return {
-            "number": num,
-            "name": hex_data.get("name_ko", f"제{num}괘"),
-            "symbol": hex_data.get("symbol", chr(0x4DC0 + num - 1)),
-            "core_meaning": hex_data.get("core_meaning", {}).get("ko", ""),
-        }
-
-    return {
-        "nuclear": {
-            "info": get_hex_info(nuclear_num),
-            "korean": "호괘(互卦)",
-            "description": "내면에 숨겨진 의미, 상황의 본질을 나타냅니다. 2-3-4효와 3-4-5효로 구성됩니다.",
-            "interpretation_hint": "현재 상황 속에 숨겨진 진짜 의미를 보여줍니다.",
-        },
-        "opposite": {
-            "info": get_hex_info(opposite_num),
-            "korean": "착괘(錯卦)",
-            "description": "음양이 모두 반전된 괘. 정반대 상황이나 대비되는 관점을 나타냅니다.",
-            "interpretation_hint": "현 상황과 정반대로 생각해보면 얻을 수 있는 통찰입니다.",
-        },
-        "reverse": {
-            "info": get_hex_info(reverse_num),
-            "korean": "종괘(綜卦)",
-            "description": "위아래가 뒤집힌 괘. 상대방 입장이나 역지사지의 관점을 나타냅니다.",
-            "interpretation_hint": "상대방의 입장에서 보면 어떨지 생각해보세요.",
-        },
-    }
-
-
-# ===============================================================
-# HEXAGRAM CASTING (Traditional Three-Coin Method)
-# ===============================================================
-def cast_hexagram() -> Dict:
-    """
-    Cast a hexagram using the traditional three-coin method.
-
-    Returns:
-        Dict with primary hexagram, changing lines, and resulting hexagram
-    """
-    lines = []
-    primary_binary = ""
-    resulting_binary = ""
-
-    for i in range(6):
-        # Three coin tosses: 2=tails(yin), 3=heads(yang)
-        coins = [random.choice([2, 3]) for _ in range(3)]
-        total = sum(coins)
-
-        # 6 = old yin (changing), 7 = young yang, 8 = young yin, 9 = old yang (changing)
-        if total == 6:  # Old Yin (changing to yang)
-            lines.append({"value": 0, "changing": True, "line_num": i + 1})
-            primary_binary += "0"
-            resulting_binary += "1"
-        elif total == 7:  # Young Yang (stable)
-            lines.append({"value": 1, "changing": False, "line_num": i + 1})
-            primary_binary += "1"
-            resulting_binary += "1"
-        elif total == 8:  # Young Yin (stable)
-            lines.append({"value": 0, "changing": False, "line_num": i + 1})
-            primary_binary += "0"
-            resulting_binary += "0"
-        else:  # 9 = Old Yang (changing to yin)
-            lines.append({"value": 1, "changing": True, "line_num": i + 1})
-            primary_binary += "1"
-            resulting_binary += "0"
-
-    # Get hexagram numbers
-    primary_num = _binary_to_hexagram_num(primary_binary)
-    resulting_num = _binary_to_hexagram_num(resulting_binary) if primary_binary != resulting_binary else None
-
-    changing_lines = [line for line in lines if line["changing"]]
-
-    return {
-        "primary": {
-            "number": primary_num,
-            "binary": primary_binary,
-        },
-        "resulting": {
-            "number": resulting_num,
-            "binary": resulting_binary,
-        } if resulting_num else None,
-        "lines": lines,
-        "changing_lines": changing_lines,
-    }
-
-
-def _binary_to_hexagram_num(binary: str) -> int:
-    """Convert binary string to hexagram number (1-64)."""
-    # King Wen sequence mapping
-    king_wen_map = {
-        "111111": 1, "000000": 2, "010001": 3, "100010": 4,
-        "010111": 5, "111010": 6, "000010": 7, "010000": 8,
-        "110111": 9, "111011": 10, "000111": 11, "111000": 12,
-        "111101": 13, "101111": 14, "000100": 15, "001000": 16,
-        "011001": 17, "100110": 18, "000011": 19, "110000": 20,
-        "101001": 21, "100101": 22, "100000": 23, "000001": 24,
-        "111001": 25, "100111": 26, "100001": 27, "011110": 28,
-        "010010": 29, "101101": 30, "011100": 31, "001110": 32,
-        "111100": 33, "001111": 34, "101000": 35, "000101": 36,
-        "110101": 37, "101011": 38, "010100": 39, "001010": 40,
-        "100011": 41, "110001": 42, "011111": 43, "111110": 44,
-        "011000": 45, "000110": 46, "011010": 47, "010110": 48,
-        "011101": 49, "101110": 50, "001001": 51, "100100": 52,
-        "110100": 53, "001011": 54, "001101": 55, "101100": 56,
-        "110110": 57, "011011": 58, "110010": 59, "010011": 60,
-        "110011": 61, "001100": 62, "010101": 63, "101010": 64,
-    }
-    return king_wen_map.get(binary, 1)
+# Backward compatibility alias
+def _binary_to_hexagram_num_compat(binary: str) -> int:
+    """Backward compatibility wrapper."""
+    return _binary_to_hexagram_num(binary)
+
+
+# NOTE: The following functions have been moved to the iching package:
+# - load_premium_data() -> iching.data_loader
+# - load_complete_hexagram_data() -> iching.data_loader
+# - load_changing_lines_data() -> iching.data_loader
+# - get_current_season() -> iching.wuxing
+# - get_current_solar_term() -> iching.wuxing
+# - analyze_seasonal_harmony() -> iching.wuxing
+# - analyze_wuxing_relationship() -> iching.wuxing
+# - get_saju_element_analysis() -> iching.wuxing
+# - calculate_nuclear_hexagram() -> iching.hexagram_calc
+# - calculate_opposite_hexagram() -> iching.hexagram_calc
+# - calculate_reverse_hexagram() -> iching.hexagram_calc
+# - get_related_hexagrams() -> iching.hexagram_calc
+# - cast_hexagram() -> iching.hexagram_calc
+# - _binary_to_hexagram_num() -> iching.hexagram_calc
+
+
+# NOTE: All functions above have been moved to iching package submodules.
+# They are now imported at the top of this file from:
+# - iching.data_loader
+# - iching.wuxing
+# - iching.hexagram_calc
 
 
 # ===============================================================

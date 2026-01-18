@@ -90,15 +90,16 @@ def dream_interpret_stream():
         lang_instruction = "Please respond entirely in Korean (한국어로 답변해주세요)." if is_korean else "Please respond in English."
 
         def generate_stream():
-            """Generator for SSE streaming dream interpretation"""
+            """Generator for SSE streaming dream interpretation with parallel execution"""
             try:
                 if not OPENAI_AVAILABLE or not openai_client:
                     yield f"data: {json_mod.dumps({'error': 'OpenAI not available'})}\n\n"
                     return
 
-                # === SECTION 1: Summary (streaming) ===
-                yield f"data: {json_mod.dumps({'section': 'summary', 'status': 'start'})}\n\n"
+                # Import parallel streaming utility
+                from backend_ai.app.services.parallel_streaming import create_parallel_stream, StreamConfig
 
+                # === Build prompts for parallel execution ===
                 summary_prompt = f"""당신은 따뜻하고 공감 능력이 뛰어난 꿈 상담사입니다.
 마치 오랜 친구에게 이야기하듯 편안하게 꿈의 메시지를 전달해주세요.
 
@@ -119,26 +120,6 @@ def dream_interpret_stream():
 - 불안한 꿈이라도 긍정적 관점으로 재해석
 - 3-4문장으로 자연스럽게 요약"""
 
-                stream = openai_client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": summary_prompt}],
-                    temperature=0.7,
-                    max_tokens=400,
-                    stream=True
-                )
-
-                summary_text = ""
-                for chunk in stream:
-                    if chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        summary_text += content
-                        yield f"data: {json_mod.dumps({'section': 'summary', 'content': content})}\n\n"
-
-                yield f"data: {json_mod.dumps({'section': 'summary', 'status': 'done', 'full_text': summary_text})}\n\n"
-
-                # === SECTION 2: Symbol Analysis (streaming) ===
-                yield f"data: {json_mod.dumps({'section': 'symbols', 'status': 'start'})}\n\n"
-
                 symbols_prompt = f"""당신은 따뜻한 꿈 상담사입니다. 꿈에 나타난 심볼들의 의미를 친근하게 설명해주세요.
 
 {lang_instruction}
@@ -153,32 +134,15 @@ def dream_interpret_stream():
 - 부정적 심볼도 성장의 메시지로 재해석
 - 번호 없이 자연스러운 대화체로 2-3개 심볼 분석"""
 
-                symbol_stream = openai_client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": symbols_prompt}],
-                    temperature=0.7,
-                    max_tokens=500,
-                    stream=True
-                )
-
-                symbols_text = ""
-                for chunk in symbol_stream:
-                    if chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        symbols_text += content
-                        yield f"data: {json_mod.dumps({'section': 'symbols', 'content': content})}\n\n"
-
-                yield f"data: {json_mod.dumps({'section': 'symbols', 'status': 'done', 'full_text': symbols_text})}\n\n"
-
-                # === SECTION 3: Recommendations (streaming) ===
-                yield f"data: {json_mod.dumps({'section': 'recommendations', 'status': 'start'})}\n\n"
-
+                # Note: rec_prompt will use summary from parallel results
+                # For now, we'll use a simplified version that doesn't depend on summary
                 rec_prompt = f"""당신은 따뜻한 꿈 상담사입니다. 꿈의 메시지를 실생활에 적용할 수 있는 조언을 해주세요.
 
 {lang_instruction}
 
-꿈 요약: {summary_text[:500]}
+꿈 내용: {dream_text[:800]}
 감정: {', '.join(emotions) if emotions else '없음'}
+심볼: {', '.join(symbols) if symbols else '없음'}
 
 상담 스타일:
 - 친구에게 조언하듯 편안하고 실용적으로
@@ -186,22 +150,35 @@ def dream_interpret_stream():
 - 꿈이 전하는 긍정적 메시지 강조
 - 2-3가지 따뜻한 조언"""
 
-                rec_stream = openai_client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": rec_prompt}],
-                    temperature=0.7,
-                    max_tokens=300,
-                    stream=True
-                )
+                # === Configure parallel streams ===
+                stream_configs = [
+                    StreamConfig(
+                        section_name="summary",
+                        prompt=summary_prompt,
+                        model="gpt-4o",
+                        temperature=0.7,
+                        max_tokens=400
+                    ),
+                    StreamConfig(
+                        section_name="symbols",
+                        prompt=symbols_prompt,
+                        model="gpt-4o",
+                        temperature=0.7,
+                        max_tokens=500
+                    ),
+                    StreamConfig(
+                        section_name="recommendations",
+                        prompt=rec_prompt,
+                        model="gpt-4o",
+                        temperature=0.7,
+                        max_tokens=300
+                    ),
+                ]
 
-                rec_text = ""
-                for chunk in rec_stream:
-                    if chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        rec_text += content
-                        yield f"data: {json_mod.dumps({'section': 'recommendations', 'content': content})}\n\n"
-
-                yield f"data: {json_mod.dumps({'section': 'recommendations', 'status': 'done', 'full_text': rec_text})}\n\n"
+                # === Execute all streams in parallel (3x faster!) ===
+                logger.info(f"[DREAM_STREAM] Starting parallel execution of 3 streams")
+                for chunk in create_parallel_stream(openai_client, stream_configs):
+                    yield chunk
 
                 # === DONE ===
                 yield f"data: {json_mod.dumps({'done': True})}\n\n"

@@ -55,8 +55,30 @@ export async function POST(request: Request) {
       locale = "ko",
     } = body;
 
-    if (!question || !spreadId || !spreadTitle || !cards || cards.length === 0) {
-      return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+    // 입력 검증 강화
+    if (!question || typeof question !== 'string' || question.length > 1000) {
+      return NextResponse.json({ error: "invalid_question" }, { status: 400 });
+    }
+    if (!spreadId || typeof spreadId !== 'string' || spreadId.length > 100) {
+      return NextResponse.json({ error: "invalid_spreadId" }, { status: 400 });
+    }
+    if (!spreadTitle || typeof spreadTitle !== 'string' || spreadTitle.length > 200) {
+      return NextResponse.json({ error: "invalid_spreadTitle" }, { status: 400 });
+    }
+    if (!cards || !Array.isArray(cards) || cards.length === 0 || cards.length > 20) {
+      return NextResponse.json({ error: "invalid_cards" }, { status: 400 });
+    }
+    if (theme && (typeof theme !== 'string' || theme.length > 100)) {
+      return NextResponse.json({ error: "invalid_theme" }, { status: 400 });
+    }
+    if (overallMessage && (typeof overallMessage !== 'string' || overallMessage.length > 5000)) {
+      return NextResponse.json({ error: "invalid_overallMessage" }, { status: 400 });
+    }
+    if (guidance && (typeof guidance !== 'string' || guidance.length > 2000)) {
+      return NextResponse.json({ error: "invalid_guidance" }, { status: 400 });
+    }
+    if (affirmation && (typeof affirmation !== 'string' || affirmation.length > 500)) {
+      return NextResponse.json({ error: "invalid_affirmation" }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
@@ -107,9 +129,16 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const limitParam = parseInt(searchParams.get("limit") || "10", 10);
+    const offsetParam = parseInt(searchParams.get("offset") || "0", 10);
     const theme = searchParams.get("theme");
+
+    // 입력 검증
+    const limit = Math.min(Math.max(1, limitParam), 100); // 1-100
+    const offset = Math.max(0, offsetParam);
+    if (theme && theme.length > 100) {
+      return NextResponse.json({ error: "invalid_theme" }, { status: 400 });
+    }
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },

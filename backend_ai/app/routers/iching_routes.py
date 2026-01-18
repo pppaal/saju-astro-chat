@@ -292,15 +292,16 @@ def iching_reading_stream():
         openai_client = _get_openai_client()
 
         def generate_stream():
-            """Generator for SSE streaming I Ching interpretation"""
+            """Generator for SSE streaming I Ching interpretation with parallel execution"""
             try:
                 if not _is_openai_available() or not openai_client:
                     yield f"data: {json.dumps({'error': 'OpenAI not available'})}\n\n"
                     return
 
-                # === SECTION 1: Overview ===
-                yield f"data: {json.dumps({'section': 'overview', 'status': 'start'})}\n\n"
+                # Import parallel streaming utility
+                from backend_ai.app.services.parallel_streaming import create_parallel_stream, StreamConfig
 
+                # === Build context strings ===
                 trigram_context = ""
                 if upper_name and lower_name:
                     trigram_context = f"""
@@ -334,6 +335,7 @@ def iching_reading_stream():
                         related_context += f"""
 - 종괘(綜卦): {reverse_hexagram.get('name', '')} - 상대방 입장에서의 시각"""
 
+                # === Build prompts ===
                 overview_prompt = f"""당신은 깊은 통찰력을 가진 주역(周易) 상담사입니다.
 동양 철학과 오행(五行) 사상에 정통하며, 따뜻하고 지혜로운 스승처럼 괘의 메시지를 전달합니다.
 
@@ -367,27 +369,9 @@ def iching_reading_stream():
 5. 질문이 있다면 그에 맞춰 구체적으로 답변
 6. 4-5문장으로 깊이 있으면서도 이해하기 쉽게 해석"""
 
-                stream = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": overview_prompt}],
-                    temperature=0.7,
-                    max_tokens=500,
-                    stream=True
-                )
-
-                overview_text = ""
-                for chunk in stream:
-                    if chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        overview_text += content
-                        yield f"data: {json.dumps({'section': 'overview', 'content': content})}\n\n"
-
-                yield f"data: {json.dumps({'section': 'overview', 'status': 'done', 'full_text': overview_text})}\n\n"
-
-                # === SECTION 2: Changing Lines ===
+                # Build changing lines prompt (if applicable)
+                changing_prompt = None
                 if changing_lines:
-                    yield f"data: {json.dumps({'section': 'changing', 'status': 'start'})}\n\n"
-
                     changing_info = "\n".join([f"- {line.get('index', i+1)}효: {line.get('text', '')}" for i, line in enumerate(changing_lines)])
                     resulting_info = ""
                     if resulting_hexagram:
@@ -458,26 +442,7 @@ def iching_reading_stream():
 4. 변화를 두려워하지 않도록 긍정적이면서도 현실적으로
 5. 4-5문장으로 핵심을 전달"""
 
-                    changing_stream = openai_client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        messages=[{"role": "user", "content": changing_prompt}],
-                        temperature=0.7,
-                        max_tokens=400,
-                        stream=True
-                    )
-
-                    changing_text = ""
-                    for chunk in changing_stream:
-                        if chunk.choices[0].delta.content:
-                            content = chunk.choices[0].delta.content
-                            changing_text += content
-                            yield f"data: {json.dumps({'section': 'changing', 'content': content})}\n\n"
-
-                    yield f"data: {json.dumps({'section': 'changing', 'status': 'done', 'full_text': changing_text})}\n\n"
-
-                # === SECTION 3: Advice ===
-                yield f"data: {json.dumps({'section': 'advice', 'status': 'start'})}\n\n"
-
+                # Build advice prompt
                 saju_advice_context = ""
                 if saju_element:
                     saju_element_ko = wuxing_korean.get(saju_element, saju_element)
@@ -501,9 +466,6 @@ def iching_reading_stream():
 
 {f'【질문】 {question}' if question else ''}
 
-【앞선 해석 요약】
-{overview_text[:400]}
-
 【조언 지침】
 1. 오행의 상생상극을 활용한 구체적 행동 제안
 2. 현재 계절({season_ko})에 맞는 시의적절한 조언
@@ -511,22 +473,40 @@ def iching_reading_stream():
 4. 괘상(卦象) 이미지를 비유로 활용
 5. 번호 없이 자연스러운 문장으로 연결"""
 
-                advice_stream = openai_client.chat.completions.create(
+                # === Configure parallel streams (2-3 streams based on changing_lines) ===
+                stream_configs = [
+                    StreamConfig(
+                        section_name="overview",
+                        prompt=overview_prompt,
+                        model="gpt-4o-mini",
+                        temperature=0.7,
+                        max_tokens=500
+                    ),
+                ]
+
+                # Add changing lines stream if applicable
+                if changing_prompt:
+                    stream_configs.append(StreamConfig(
+                        section_name="changing",
+                        prompt=changing_prompt,
+                        model="gpt-4o-mini",
+                        temperature=0.7,
+                        max_tokens=400
+                    ))
+
+                # Add advice stream
+                stream_configs.append(StreamConfig(
+                    section_name="advice",
+                    prompt=advice_prompt,
                     model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": advice_prompt}],
                     temperature=0.7,
-                    max_tokens=400,
-                    stream=True
-                )
+                    max_tokens=400
+                ))
 
-                advice_text = ""
-                for chunk in advice_stream:
-                    if chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        advice_text += content
-                        yield f"data: {json.dumps({'section': 'advice', 'content': content})}\n\n"
-
-                yield f"data: {json.dumps({'section': 'advice', 'status': 'done', 'full_text': advice_text})}\n\n"
+                # === Execute all streams in parallel (2-3x faster!) ===
+                logger.info(f"[ICHING_STREAM] Starting parallel execution of {len(stream_configs)} streams")
+                for chunk in create_parallel_stream(openai_client, stream_configs):
+                    yield chunk
 
                 # === DONE ===
                 yield f"data: {json.dumps({'done': True})}\n\n"

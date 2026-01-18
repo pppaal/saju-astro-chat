@@ -12,8 +12,8 @@ import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
 import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImagePath } from '@/lib/Tarot/tarot.types';
 import { getStoredBirthDate } from '@/lib/userProfile';
 import CreditBadge from '@/components/ui/CreditBadge';
-import { getCounselorById, TarotCounselor } from '@/lib/Tarot/tarot-counselors';
-import { saveReading, formatReadingForSave, getSavedReadings } from '@/lib/Tarot/tarot-storage';
+import { getCounselorById } from '@/lib/Tarot/tarot-counselors';
+import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage';
 import { apiFetch } from '@/lib/api';
 import styles from './tarot-reading.module.css';
 import { tarotLogger } from "@/lib/logger";
@@ -141,7 +141,7 @@ const THEME_DISPLAY_INFO: Record<string, {
   },
 };
 
-const getThemeDisplayInfo = (categoryId: string | undefined) => {
+const _getThemeDisplayInfo = (categoryId: string | undefined) => {
   return THEME_DISPLAY_INFO[categoryId || ''] || THEME_DISPLAY_INFO['general-insight'];
 };
 
@@ -194,7 +194,7 @@ export default function TarotReadingPage() {
   const basePath = categoryName && spreadId ? `/tarot/${categoryName}/${spreadId}` : "/tarot";
   const callbackUrl = search ? `${basePath}?${search}` : basePath;
   const signInUrl = buildSignInUrl(callbackUrl);
-  const counselor = counselorId ? getCounselorById(counselorId) : undefined;
+  const _counselor = counselorId ? getCounselorById(counselorId) : undefined;
 
   const [gameState, setGameState] = useState<GameState>('loading');
   const [spreadInfo, setSpreadInfo] = useState<Spread | null>(null);

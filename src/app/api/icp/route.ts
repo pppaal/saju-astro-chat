@@ -62,6 +62,13 @@ export async function POST(request: Request) {
     }
 
     // Validate ICP data
+    if (!data) {
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: "ICP data is required",
+      });
+    }
+
     const validation = validateFields(data, {
       primaryStyle: {
         required: true,

@@ -101,7 +101,7 @@ const SERVICE_NAME_KEYS: Record<string, string> = {
   compatibility: "myjourney.services.compatibility",
 };
 
-const SERVICE_URLS: Record<string, string> = {
+const _SERVICE_URLS: Record<string, string> = {
   // kebab-case versions
   "destiny-map": "/destiny-map",
   "destiny-calendar": "/calendar",

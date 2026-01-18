@@ -20,7 +20,6 @@ interface AdvancedAnalysisData {
   [key: string]: unknown;
 }
 
-type Lang = 'ko' | 'en';
 type SearchParams = Record<string, string | string[] | undefined>;
 
 // Analyzing Loader
@@ -105,7 +104,7 @@ function LifePredictionResultContent({
 }: {
   searchParams: SearchParams;
 }) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const sp = searchParams;
 
   const [loading, setLoading] = useState(true);

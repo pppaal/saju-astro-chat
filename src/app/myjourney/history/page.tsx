@@ -24,11 +24,6 @@ import {
   INITIAL_DISPLAY_COUNT,
   ALL_SERVICES_ORDER,
   formatDate,
-  formatServiceName,
-  getGradeEmoji,
-  getGradeLabel,
-  getThemeDisplayName,
-  getCategoryDisplay,
 } from './lib';
 
 

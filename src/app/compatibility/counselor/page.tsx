@@ -46,7 +46,7 @@ const themeInfo: Record<Theme, { emoji: string; label: string; labelEn: string }
 };
 
 function CompatibilityCounselorContent() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { status: authStatus } = useSession();
@@ -252,7 +252,7 @@ function CompatibilityCounselorContent() {
   };
 
   const personNames = persons.map((p) => p.name || 'Person').join(' & ');
-  const currentTheme = themeInfo[theme];
+  const _currentTheme = themeInfo[theme];
 
   // Require auth for counselor
   if (!isAuthed && authStatus !== 'loading') {

@@ -177,8 +177,8 @@ describe("GRADE_THRESHOLDS", () => {
     expect(GRADE_THRESHOLDS.grade2).toBeGreaterThan(GRADE_THRESHOLDS.grade3);
   });
 
-  it("grade0 is 72", () => {
-    expect(GRADE_THRESHOLDS.grade0).toBe(72);
+  it("grade0 is 68", () => {
+    expect(GRADE_THRESHOLDS.grade0).toBe(68);
   });
 });
 

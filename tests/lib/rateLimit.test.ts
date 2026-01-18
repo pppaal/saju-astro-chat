@@ -218,6 +218,7 @@ describe("rateLimit function", () => {
     process.env = { ...originalEnv };
     delete process.env.UPSTASH_REDIS_REST_URL;
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.REDIS_URL;
   });
 
   afterEach(() => {
@@ -232,7 +233,7 @@ describe("rateLimit function", () => {
 
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(result.limit);
-    expect(result.headers.get("X-RateLimit-Policy")).toBe("disabled-dev");
+    expect(result.backend).toBe("disabled");
   });
 
   it("blocks in production without Redis", async () => {
@@ -243,7 +244,7 @@ describe("rateLimit function", () => {
 
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);
-    expect(result.headers.get("X-RateLimit-Policy")).toBe("enforced-no-backend");
+    expect(result.backend).toBe("disabled");
   });
 
   it("respects custom limit parameter", async () => {
@@ -259,11 +260,12 @@ describe("rateLimit function", () => {
     process.env.NODE_ENV = "development";
 
     const { rateLimit } = await import("@/lib/rateLimit");
-    const result = await rateLimit("test-key");
+    const result = await rateLimit("dev-header-test-key");
 
     expect(result.headers.get("X-RateLimit-Limit")).toBe("60");
     expect(result.headers.get("X-RateLimit-Remaining")).toBe("unlimited");
-    expect(result.headers.get("X-RateLimit-Reset")).toBe("0");
+    // In dev mode without Redis, reset should be 0
+    expect(result.reset).toBe(0);
   });
 
   it("sets correct headers in production without Redis", async () => {
@@ -276,13 +278,14 @@ describe("rateLimit function", () => {
   });
 });
 
-describe("rateLimit with Redis", () => {
+describe("rateLimit with Upstash", () => {
   const originalEnv = process.env;
   const mockFetch = vi.fn();
 
   beforeEach(() => {
     vi.resetModules();
     process.env = { ...originalEnv };
+    delete process.env.REDIS_URL; // Ensure IORedis is not used
     process.env.UPSTASH_REDIS_REST_URL = "https://redis.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
     global.fetch = mockFetch;
@@ -290,9 +293,10 @@ describe("rateLimit with Redis", () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    mockFetch.mockReset();
   });
 
-  it("calls Redis and allows request when under limit", async () => {
+  it("calls Upstash and allows request when under limit", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve([{ result: 1 }, { result: "OK" }]),
@@ -303,7 +307,7 @@ describe("rateLimit with Redis", () => {
 
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(59);
-    expect(mockFetch).toHaveBeenCalled();
+    expect(result.backend).toBe("upstash");
   });
 
   it("blocks request when over limit", async () => {
@@ -320,17 +324,19 @@ describe("rateLimit with Redis", () => {
     expect(result.retryAfter).toBeDefined();
   });
 
-  it("falls back to in-memory when Redis fails", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Redis error"));
+  it("falls back to in-memory when Upstash fails in dev", async () => {
+    process.env.NODE_ENV = "development";
+    mockFetch.mockRejectedValueOnce(new Error("Upstash error"));
 
     const { rateLimit } = await import("@/lib/rateLimit");
     const result = await rateLimit("fallback-key");
 
     expect(result.allowed).toBe(true);
-    expect(result.headers.get("X-RateLimit-Policy")).toBe("in-memory-fallback");
+    expect(result.backend).toBe("memory");
   });
 
-  it("falls back when Redis returns invalid data", async () => {
+  it("falls back when Upstash returns invalid data in dev", async () => {
+    process.env.NODE_ENV = "development";
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve([{ result: "invalid" }]),
@@ -339,10 +345,11 @@ describe("rateLimit with Redis", () => {
     const { rateLimit } = await import("@/lib/rateLimit");
     const result = await rateLimit("invalid-key");
 
-    expect(result.headers.get("X-RateLimit-Policy")).toBe("in-memory-fallback");
+    expect(result.backend).toBe("memory");
   });
 
-  it("falls back when Redis returns non-ok response", async () => {
+  it("falls back when Upstash returns non-ok response in dev", async () => {
+    process.env.NODE_ENV = "development";
     mockFetch.mockResolvedValueOnce({
       ok: false,
     });
@@ -350,6 +357,6 @@ describe("rateLimit with Redis", () => {
     const { rateLimit } = await import("@/lib/rateLimit");
     const result = await rateLimit("nonok-key");
 
-    expect(result.headers.get("X-RateLimit-Policy")).toBe("in-memory-fallback");
+    expect(result.backend).toBe("memory");
   });
 });

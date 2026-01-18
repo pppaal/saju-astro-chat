@@ -169,7 +169,16 @@
       "Bash(cmd /c \"taskkill /F /PID 72944\")",
       "Bash(cmd.exe //c \"taskkill /F /PID 72944\")",
       "Bash(pip install:*)",
-      "Bash(export NODE_OPTIONS=\"--max-old-space-size=8192\")"
+      "Bash(export NODE_OPTIONS=\"--max-old-space-size=8192\")",
+      "Bash(else echo \"Coverage summary not generated yet\")",
+      "Read(//c/dev/saju-astro-chat/**)",
+      "Bash(while IFS= read -r file)",
+      "Bash(for file in c:devsaju-astro-chatsrclibdestiny-mapcalendar/*.ts)",
+      "Bash(do basename \"$file\" .ts)",
+      "Bash(cd:*)",
+      "Bash(git -C \"/c/dev/saju-astro-chat\" status backend_ai/app/template_renderer*)",
+      "Bash(git -C \"/c/dev/saju-astro-chat\" show HEAD:backend_ai/app/template_renderer.py)",
+      "Bash(for file in c:devsaju-astro-chatsrclibpredictionadvancedTimingEngine.ts c:devsaju-astro-chatsrclibpredictiondaeunTransitSync.ts c:devsaju-astro-chatsrclibpredictionprecisionEngine.ts c:devsaju-astro-chatsrclibpredictionspecificDateEngine.ts c:devsaju-astro-chatsrclibpredictiontier6Analysis.ts c:devsaju-astro-chatsrclibpredictiontier7To10Analysis.ts c:devsaju-astro-chatsrclibpredictiontimingScore.ts c:devsaju-astro-chatsrclibpredictionlifePredictionEngine.ts c:devsaju-astro-chatsrclibpredictionultraPrecisionEngine.ts c:devsaju-astro-chatsrclibpredictionlife-prediction-helpers.ts c:devsaju-astro-chatsrclibpredictionultra-precision-helpers.ts)"
     ],
     "deny": [],
     "ask": []
