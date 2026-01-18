@@ -530,7 +530,7 @@ export function analyzeDate(
     }
   }
 
-  // 천을귀인(天乙貴人) 체크
+  // 천을��인(天乙貴人) 체크
   if (hasCheoneulGwiin) {
     sajuFactorKeys.push("cheoneulGwiin");
     recommendationKeys.push("majorDecision", "contract", "meeting");
@@ -987,13 +987,11 @@ export function analyzeDate(
   }
 
   // ═══════════════════════════════════════════════════════════
-  // SECTION 14: 중요하지 않은 날 제외
+  // SECTION 14: 모든 날짜 반환 (필터링 제거)
   // ═══════════════════════════════════════════════════════════
-
-  const hasSignificantFactors = sajuFactorKeys.length > 0 || astroFactorKeys.length > 0;
-  if (score >= 42 && score <= 58 && !crossVerified && !hasSignificantFactors) {
-    return null;
-  }
+  // v7.1: 캘린더에서 모든 날짜가 표시되어야 하므로 null 반환 조건 제거
+  // 이전에는 점수 42-58 사이, 교차검증 없음, 중요 요소 없으면 null 반환했으나
+  // 이로 인해 많은 날짜가 캘린더에 표시되지 않는 문제 발생
 
   // 카테고리가 비어있으면 general 추가
   if (categories.length === 0) {

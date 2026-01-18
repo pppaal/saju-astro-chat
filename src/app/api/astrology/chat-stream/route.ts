@@ -81,9 +81,9 @@ export async function POST(request: Request) {
     const guard = await apiGuard(request, { path: "astrology-chat-stream", limit: 60, windowSeconds: 60 });
     if (guard instanceof Response) return guard;
 
-    // Dev mode: skip auth check
-    const isDev = process.env.NODE_ENV === "development";
-    if (!isDev) {
+    // Authentication check - always required unless explicitly bypassed for testing
+    const allowDevBypass = process.env.ALLOW_DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV === "development";
+    if (!allowDevBypass) {
       const session = await getServerSession(authOptions);
       if (!session?.user?.email) {
         return new Response(JSON.stringify({ error: "not_authenticated" }), {

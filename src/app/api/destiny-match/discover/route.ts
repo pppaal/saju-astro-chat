@@ -126,62 +126,57 @@ export async function GET(req: NextRequest) {
     // 내 나이 계산
     const myAge = calculateAge(myProfile.user.birthDate);
 
-    // 필터링 및 궁합 점수 계산
-    const results = [];
-
-    for (const profile of profiles) {
+    // 1단계: 기본 필터링 (DB 레벨 + 메모리 레벨)
+    const filteredProfiles = profiles.filter((profile) => {
       // 나이 필터 (양방향)
       const age = calculateAge(profile.user.birthDate);
       if (age !== null) {
-        // 내 선호도 체크
-        if (age < myProfile.ageMin || age > myProfile.ageMax) continue;
-        // 상대방의 선호도 체크 (양방향)
+        if (age < myProfile.ageMin || age > myProfile.ageMax) return false;
         if (myAge !== null) {
-          if (myAge < profile.ageMin || myAge > profile.ageMax) continue;
+          if (myAge < profile.ageMin || myAge > profile.ageMax) return false;
         }
       }
 
-      // 성별 필터 (양방향 - 상대방의 선호도도 체크)
+      // 성별 필터 (양방향)
       if (profile.genderPreference !== 'all') {
-        if (profile.genderPreference !== myProfile.user.gender) continue;
+        if (profile.genderPreference !== myProfile.user.gender) return false;
       }
 
       // 도시 필터 (case-insensitive)
       if (myProfile.city && profile.city) {
         const myCity = myProfile.city.toLowerCase().trim();
         const theirCity = profile.city.toLowerCase().trim();
-        if (myCity !== theirCity) continue;
+        if (myCity !== theirCity) return false;
       }
 
-      // 거리 계산
-      let distance: number | null = null;
+      // 거리 필터
       if (
         myProfile.latitude &&
         myProfile.longitude &&
         profile.latitude &&
         profile.longitude
       ) {
-        distance = Math.round(
-          calculateDistance(
-            myProfile.latitude,
-            myProfile.longitude,
-            profile.latitude,
-            profile.longitude
-          )
+        const distance = calculateDistance(
+          myProfile.latitude,
+          myProfile.longitude,
+          profile.latitude,
+          profile.longitude
         );
-
-        // 거리 필터
-        if (distance > myProfile.maxDistance) continue;
+        if (distance > myProfile.maxDistance) return false;
       }
 
-      // 궁합 점수 + 요약 계산
-      let compatibilityScore = 75; // 기본값
+      return true;
+    });
+
+    // 2단계: 배치로 궁합 점수 계산 (N+1 방지)
+    const compatibilityPromises = filteredProfiles.slice(0, limit * 2).map(async (profile) => {
+      let compatibilityScore = 75;
       let compatibilityGrade = 'B';
       let compatibilityEmoji = '✨';
       let compatibilityTagline = '좋은 궁합';
-
-      // 1. 사주/별자리 기반 궁합 (기존)
       let sajuScore = 75;
+
+      // 사주/별자리 기반 궁합
       if (myProfile.user.birthDate && profile.user.birthDate) {
         try {
           const summary = await getCompatibilitySummary(
@@ -205,7 +200,7 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // 2. 성격 테스트 기반 궁합 (추가)
+      // 성격 테스트 기반 궁합
       let personalityScore: number | null = null;
       if (myProfile.personalityScores && profile.personalityScores) {
         try {
@@ -217,11 +212,47 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // 3. 최종 궁합 점수 (사주 60% + 성격 40% 가중 평균)
+      // 최종 궁합 점수 (사주 60% + 성격 40%)
       if (personalityScore !== null) {
         compatibilityScore = Math.round(sajuScore * 0.6 + personalityScore * 0.4);
       } else {
         compatibilityScore = sajuScore;
+      }
+
+      return {
+        profile,
+        compatibilityScore,
+        compatibilityGrade,
+        compatibilityEmoji,
+        compatibilityTagline,
+      };
+    });
+
+    // 병렬로 모든 궁합 계산 실행
+    const compatibilityResults = await Promise.all(compatibilityPromises);
+
+    // 3단계: 최종 결과 빌드
+    const results = [];
+
+    for (const { profile, compatibilityScore, compatibilityGrade, compatibilityEmoji, compatibilityTagline } of compatibilityResults) {
+      const age = calculateAge(profile.user.birthDate);
+
+      // 거리 계산
+      let distance: number | null = null;
+      if (
+        myProfile.latitude &&
+        myProfile.longitude &&
+        profile.latitude &&
+        profile.longitude
+      ) {
+        distance = Math.round(
+          calculateDistance(
+            myProfile.latitude,
+            myProfile.longitude,
+            profile.latitude,
+            profile.longitude
+          )
+        );
       }
 
       // 별자리 계산 (간단)

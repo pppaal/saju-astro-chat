@@ -116,7 +116,7 @@ export const CacheKeys = {
     `cal:${year}:${month}:${userId}`,
 
   yearlyCalendar: (birthDate: string, birthTime: string, gender: string, year: number, category?: string) =>
-    `yearly:${birthDate}:${birthTime}:${gender}:${year}${category ? `:${category}` : ''}`,
+    `yearly:v2:${birthDate}:${birthTime}:${gender}:${year}${category ? `:${category}` : ''}`, // v2: 날짜 필터링 제거
 
   compatibility: (person1: string, person2: string) =>
     `compat:${person1}:${person2}`,

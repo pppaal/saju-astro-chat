@@ -96,23 +96,18 @@ export async function POST(request: Request) {
     const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
     if (guard instanceof Response) return guard;
 
-    // Dev mode: skip auth check (only for local dev)
-    const isDev = process.env.NODE_ENV === "development";
+    // Authentication check - always required unless explicitly bypassed for testing
+    const allowDevBypass = process.env.ALLOW_DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV === "development";
     let userId: string | null = null;
-    if (!isDev) {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?.email) {
-        return new Response(JSON.stringify({ error: "not_authenticated" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      userId = session.user.id || null;
-    } else {
-      // In dev mode, try to get session anyway for persona memory
-      const session = await getServerSession(authOptions);
-      userId = session?.user?.id || null;
+    const session = await getServerSession(authOptions);
+
+    if (!allowDevBypass && !session?.user?.email) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
+    userId = session?.user?.id || null;
 
     const body = await request.json().catch(() => null);
     if (!body) {

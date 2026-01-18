@@ -33,6 +33,7 @@ export interface UnseItem {
 export interface ShinsalItem {
   name?: string;
   kind?: string;
+  shinsal?: string;
 }
 
 export interface SajuData {
@@ -287,7 +288,7 @@ export interface TabProps {
 }
 
 // 탭 ID 타입
-export type TabId = 'personality' | 'love' | 'career' | 'fortune' | 'health' | 'karma';
+export type TabId = 'personality' | 'love' | 'career' | 'fortune' | 'health' | 'karma' | 'timing' | 'hidden';
 
 // 탭 정의 타입
 export interface TabDefinition {

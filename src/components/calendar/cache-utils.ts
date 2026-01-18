@@ -6,7 +6,7 @@
 import { logger } from "@/lib/logger";
 import type { BirthInfo, CalendarData, CachedCalendarData } from './types';
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2'; // v7.1: 날짜 필터링 로직 수정으로 캐시 무효화
 const CACHE_EXPIRY_DAYS = 30; // 30일 후 만료
 
 export function getCacheKey(birthInfo: BirthInfo, year: number, category: string): string {

@@ -49,6 +49,15 @@ const CATEGORY_EMOJI: Record<EventCategory, string> = {
   general: "⭐",
 };
 
+// 등급별 스타일 클래스
+const GRADE_STYLES: Record<number, { bg: string; border: string; text: string }> = {
+  0: { bg: 'bg-gradient-to-r from-yellow-100 to-amber-100', border: 'border-yellow-400', text: 'text-yellow-800' },
+  1: { bg: 'bg-gradient-to-r from-green-50 to-emerald-50', border: 'border-green-400', text: 'text-green-800' },
+  2: { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-700' },
+  3: { bg: 'bg-gradient-to-r from-orange-50 to-amber-50', border: 'border-orange-400', text: 'text-orange-800' },
+  4: { bg: 'bg-gradient-to-r from-red-50 to-rose-50', border: 'border-red-400', text: 'text-red-800' },
+};
+
 const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
 const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -120,8 +129,32 @@ export default function SelectedDatePanel({
         <div className={styles.selectedDayContent}>
           <h3 className={styles.selectedTitle}>{selectedDate.title}</h3>
 
-          {/* Cross-verified badge */}
-          {selectedDate.crossVerified && (
+          {/* Grade 3, 4 (나쁜 날): 경고를 상단에 강조 표시 */}
+          {selectedDate.grade >= 3 && selectedDate.warnings.length > 0 && (
+            <div className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}>
+              <div className={styles.urgentWarningHeader}>
+                <span className={styles.urgentWarningIcon}>
+                  {selectedDate.grade === 4 ? '🚨' : '⚠️'}
+                </span>
+                <span className={styles.urgentWarningTitle}>
+                  {locale === "ko"
+                    ? (selectedDate.grade === 4 ? "오늘 주의해야 할 점!" : "오늘의 주의사항")
+                    : (selectedDate.grade === 4 ? "Critical Warnings!" : "Today's Cautions")}
+                </span>
+              </div>
+              <ul className={styles.urgentWarningList}>
+                {selectedDate.warnings.slice(0, 3).map((w, i) => (
+                  <li key={i} className={styles.urgentWarningItem}>
+                    <span className={styles.urgentWarningDot}>•</span>
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Cross-verified badge - 좋은 날에만 표시 */}
+          {selectedDate.crossVerified && selectedDate.grade <= 1 && (
             <div className={styles.crossVerifiedBadge}>
               <span className={styles.crossVerifiedIcon}>🔮</span>
               <span className={styles.crossVerifiedText}>
@@ -132,7 +165,7 @@ export default function SelectedDatePanel({
 
           {/* Summary */}
           {selectedDate.summary && (
-            <div className={styles.summaryBox}>
+            <div className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}>
               <p className={styles.summaryText}>{selectedDate.summary}</p>
             </div>
           )}

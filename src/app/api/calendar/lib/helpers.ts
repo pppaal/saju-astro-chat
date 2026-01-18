@@ -90,7 +90,9 @@ export function generateSummary(
   grade: ImportanceGrade,
   categories: EventCategory[],
   score: number,
-  lang: "ko" | "en"
+  lang: "ko" | "en",
+  sajuFactorKeys?: string[],
+  astroFactorKeys?: string[]
 ): string {
   const cat = categories[0] || "general";
 
@@ -132,31 +134,43 @@ export function generateSummary(
     } else if (grade === 2) {
       return "🌥️ 평범한 하루, 무리하지 마세요";
     } else if (grade === 3) {
-      // 보통 날 - 중립적 메시지
+      // Grade 3 - 안좋은 날: 원인 기반 메시지
+      const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
+      if (reason) {
+        return `⚠️ ${reason}`;
+      }
       const messages: Record<string, string> = {
-        career: "📝 일상 업무에 집중하세요",
-        wealth: "💵 큰 거래보다 평소대로 관리하세요",
-        love: "☕ 가벼운 대화가 좋아요",
-        health: "🚶 무리하지 않는 게 좋아요",
-        travel: "🏠 가까운 곳 위주가 좋아요",
-        study: "📖 복습 위주로 하세요",
-        general: "🌤️ 평범한 하루, 편안하게 보내세요"
+        career: "⚠️ 업무에 장애물이 있을 수 있어요. 신중하게!",
+        wealth: "💸 지출에 주의하세요. 큰 거래는 미루세요.",
+        love: "💔 오해가 생기기 쉬워요. 대화 조심!",
+        health: "🏥 컨디션이 저하될 수 있어요. 휴식 필요!",
+        travel: "🚫 이동 시 주의하세요. 계획 변경 가능성!",
+        study: "😓 집중이 어려울 수 있어요. 무리하지 마세요.",
+        general: "🌧️ 기운이 약한 날입니다. 조용히 보내세요."
       };
       return messages[cat] || messages.general;
     } else if (grade === 4) {
-      // Grade 4 - 나쁜 날
+      // Grade 4 - 나쁜 날: 강한 경고와 원인
+      const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
+      if (reason) {
+        return `🚨 ${reason}`;
+      }
       const messages: Record<string, string> = {
-        career: "⚠️ 중요한 결정은 미루세요",
-        wealth: "💸 큰 지출/투자는 피하세요",
-        love: "💔 오해가 생기기 쉬워요, 조심!",
-        health: "🏥 무리한 활동은 삼가세요",
-        travel: "🚫 이동 시 각별히 주의하세요",
-        study: "😵 집중이 안 될 수 있어요",
-        general: "🌧️ 조용히 지내는 게 좋은 날"
+        career: "🚨 중요한 결정은 반드시 미루세요!",
+        wealth: "💀 큰 지출/투자는 절대 금지!",
+        love: "🖤 감정적 결정은 후회할 수 있어요!",
+        health: "🆘 무리한 활동은 삼가고 건강 관리!",
+        travel: "☠️ 장거리 이동은 피하세요!",
+        study: "🔴 시험/면접은 다른 날로 미루세요!",
+        general: "⛈️ 최악의 날! 모든 중요한 일을 피하세요!"
       };
       return messages[cat] || messages.general;
     } else {
       // Grade 5 - 최악의 날
+      const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
+      if (reason) {
+        return `🚨🚨 ${reason} 모든 일정을 연기하세요!`;
+      }
       const messages: Record<string, string> = {
         career: "🚨 모든 중요한 일정을 연기하세요!",
         wealth: "💀 절대 투자/계약 금지!",
@@ -171,7 +185,6 @@ export function generateSummary(
   } else {
     // English
     if (grade === 0) {
-      // Celestial Day - best messages
       const messages: Record<string, string> = {
         career: "🌟 Perfect day for life-changing contracts!",
         wealth: "💎 Amazing fortune! Big investments highly recommended!",
@@ -198,14 +211,112 @@ export function generateSummary(
     } else if (grade === 2) {
       return "🌥️ An ordinary day, take it easy";
     } else if (grade === 3) {
-      return "🌤️ A normal day, take it easy";
+      const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
+      if (reason) return `⚠️ ${reason}`;
+      return "⚠️ Low energy day. Be cautious and avoid stress.";
     } else if (grade === 4) {
-      return "🌧️ Be cautious and avoid big decisions";
+      const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
+      if (reason) return `🚨 ${reason}`;
+      return "🚨 Bad day! Avoid all major decisions!";
     } else {
-      // Grade 5 - Worst day
+      const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
+      if (reason) return `🚨🚨 ${reason} Postpone everything!`;
       return "⛈️ Worst day! Postpone all important matters!";
     }
   }
+}
+
+/**
+ * 나쁜 날의 구체적 원인을 분석하여 메시지 생성
+ */
+function getBadDayReason(
+  sajuFactorKeys?: string[],
+  astroFactorKeys?: string[],
+  lang: "ko" | "en" = "ko"
+): string | null {
+  if (!sajuFactorKeys && !astroFactorKeys) return null;
+
+  const saju = sajuFactorKeys || [];
+  const astro = astroFactorKeys || [];
+
+  // 충(沖) - 가장 강력한 부정 요소
+  if (saju.some(k => k.toLowerCase().includes("chung"))) {
+    return lang === "ko"
+      ? "일진 충(沖)! 갈등과 급변에 주의하세요."
+      : "Day Clash (沖)! Watch for conflicts.";
+  }
+
+  // 형(刑)
+  if (saju.some(k => k.toLowerCase().includes("xing"))) {
+    return lang === "ko"
+      ? "형(刑)살! 서류 실수, 법적 문제에 주의하세요."
+      : "Punishment (刑)! Watch for legal issues.";
+  }
+
+  // 공망
+  if (saju.includes("shinsal_gongmang")) {
+    return lang === "ko"
+      ? "공망(空亡)! 계획이 무산되기 쉬운 날입니다."
+      : "Void Day! Plans may fall through.";
+  }
+
+  // 백호
+  if (saju.includes("shinsal_backho")) {
+    return lang === "ko"
+      ? "백호살! 사고, 수술에 특히 주의하세요."
+      : "White Tiger! Be careful of accidents.";
+  }
+
+  // 귀문관
+  if (saju.includes("shinsal_guimungwan")) {
+    return lang === "ko"
+      ? "귀문관! 정신적 혼란, 불안감에 주의하세요."
+      : "Ghost Gate! Watch for mental confusion.";
+  }
+
+  // 관살
+  if (saju.includes("stemGwansal")) {
+    return lang === "ko"
+      ? "관살 기운! 외부 압박과 스트레스가 강합니다."
+      : "Authority pressure! High stress expected.";
+  }
+
+  // 수성 역행
+  if (astro.includes("retrogradeMercury")) {
+    return lang === "ko"
+      ? "수성 역행 중! 계약/소통에 오류가 생기기 쉬워요."
+      : "Mercury retrograde! Communication errors likely.";
+  }
+
+  // 금성 역행
+  if (astro.includes("retrogradeVenus")) {
+    return lang === "ko"
+      ? "금성 역행 중! 연애/재정 결정은 미루세요."
+      : "Venus retrograde! Delay love/money decisions.";
+  }
+
+  // 보이드 오브 코스
+  if (astro.includes("voidOfCourse")) {
+    return lang === "ko"
+      ? "달이 공허한 상태! 새 시작은 피하세요."
+      : "Void of Course Moon! Avoid new starts.";
+  }
+
+  // 교차 부정
+  if (astro.includes("crossNegative")) {
+    return lang === "ko"
+      ? "사주+점성술 모두 부정! 매우 조심하세요."
+      : "Both Saju & Astro negative! Extra caution!";
+  }
+
+  // 충돌 원소
+  if (astro.includes("conflictElement")) {
+    return lang === "ko"
+      ? "오행 충돌! 에너지가 분산됩니다."
+      : "Element clash! Energy scattered.";
+  }
+
+  return null;
 }
 
 // 추천 시간대 생성
@@ -265,6 +376,29 @@ export function formatDateForResponse(
     .map(key => getFactorTranslation(key, lang))
     .filter((t): t is string => t !== null);
 
+  // Grade 3 이상(나쁜 날)에서는 부정적 요소를 먼저 보여주기
+  let orderedSajuFactors = translatedSajuFactors;
+  let orderedAstroFactors = translatedAstroFactors;
+
+  if (date.grade >= 3) {
+    // 부정적 키워드가 포함된 요소를 앞으로
+    const negativeKeywords = ['충', '형', '해', '공망', '역행', '주의', 'clash', 'conflict', 'retrograde', 'caution'];
+    orderedSajuFactors = [...translatedSajuFactors].sort((a, b) => {
+      const aHasNeg = negativeKeywords.some(k => a.toLowerCase().includes(k) || a.includes(k));
+      const bHasNeg = negativeKeywords.some(k => b.toLowerCase().includes(k) || b.includes(k));
+      if (aHasNeg && !bHasNeg) return -1;
+      if (!aHasNeg && bHasNeg) return 1;
+      return 0;
+    });
+    orderedAstroFactors = [...translatedAstroFactors].sort((a, b) => {
+      const aHasNeg = negativeKeywords.some(k => a.toLowerCase().includes(k) || a.includes(k));
+      const bHasNeg = negativeKeywords.some(k => b.toLowerCase().includes(k) || b.includes(k));
+      if (aHasNeg && !bHasNeg) return -1;
+      if (!aHasNeg && bHasNeg) return 1;
+      return 0;
+    });
+  }
+
   return {
     date: date.date,
     grade: date.grade,
@@ -272,10 +406,17 @@ export function formatDateForResponse(
     categories: uniqueCategories,
     title: getTranslation(date.titleKey, translations),
     description: getTranslation(date.descKey, translations),
-    summary: generateSummary(date.grade, uniqueCategories, date.score, lang),
+    summary: generateSummary(
+      date.grade,
+      uniqueCategories,
+      date.score,
+      lang,
+      date.sajuFactorKeys,
+      date.astroFactorKeys
+    ),
     bestTimes: generateBestTimes(date.grade, uniqueCategories, lang),
-    sajuFactors: translatedSajuFactors,
-    astroFactors: translatedAstroFactors,
+    sajuFactors: orderedSajuFactors,
+    astroFactors: orderedAstroFactors,
     recommendations: date.recommendationKeys.map(key =>
       getTranslation(`calendar.recommendations.${key}`, translations)
     ),

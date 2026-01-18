@@ -9,6 +9,7 @@ import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
+import { csrfGuard } from '@/lib/security/csrf'
 import {
   getPriceId,
   getCreditPackPriceId,
@@ -52,6 +53,14 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers)
 
   try {
+    // CSRF protection - validate request origin
+    const csrfError = csrfGuard(req.headers)
+    if (csrfError) {
+      logger.warn('[checkout] CSRF validation failed', { ip })
+      recordCounter('checkout_csrf_blocked', 1)
+      return csrfError
+    }
+
     const oversized = enforceBodySize(req, 32 * 1024)
     if (oversized) return oversized
 

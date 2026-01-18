@@ -20,6 +20,7 @@ export type InteractionCode = {
   colorCode: 'purple' | 'green' | 'blue' | 'yellow' | 'red';
   keyword: string;
   keywordEn: string;
+  advice?: string; // Optional advice text
 };
 
 export type WesternElement = 'fire' | 'earth' | 'air' | 'water';
@@ -79,6 +80,8 @@ export type ShinsalKind =
   // 흉신 (凶神) - 주의가 필요한 신살
   | '도화' | '홍염살' | '양인' | '백호' | '겁살' | '재살' | '천살' | '지살' | '년살'
   | '월살' | '망신' | '고신' | '괴강' | '현침' | '귀문관'
+  // 건강 관련 신살
+  | '병부' | '효신살' | '상문살'
   // 특수 신살
   | '역마' | '화개' | '장성' | '반안' | '천라지망' | '공망' | '삼재' | '원진';
 

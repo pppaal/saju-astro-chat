@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import HeaderUser from "./HeaderUser";
 import styles from "./main-page.module.css";
 import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -575,7 +574,6 @@ export default function MainPage() {
           </span>
         </nav>
         <div className={styles.headerLinks}>
-          <HeaderUser />
           <NotificationBell />
           <LanguageSwitcher />
         </div>

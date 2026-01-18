@@ -12,6 +12,8 @@ import {
   FortuneTab,
   HealthTab,
   KarmaTab,
+  TimingTab,
+  HiddenSelfTab,
   type TabId
 } from "./fun-insights/tabs";
 import type { TabData } from "./fun-insights/types";
@@ -261,6 +263,8 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
     { id: 'fortune', label: isKo ? '운세' : 'Fortune', emoji: '🔮' },
     { id: 'health', label: isKo ? '건강' : 'Health', emoji: '💪' },
     { id: 'karma', label: isKo ? '카르마' : 'Karma', emoji: '🌌' },
+    { id: 'timing', label: isKo ? '타이밍' : 'Timing', emoji: '⏰' },
+    { id: 'hidden', label: isKo ? '숨겨진 나' : 'Hidden Self', emoji: '🌑' },
   ];
 
   // combinedLifeTheme 계산
@@ -478,6 +482,28 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
 
       {activeTab === 'karma' && (
         <KarmaTab
+          saju={saju}
+          astro={astro}
+          lang={lang}
+          isKo={isKo}
+          data={tabData}
+          destinyNarrative={destinyNarrative}
+        />
+      )}
+
+      {activeTab === 'timing' && (
+        <TimingTab
+          saju={saju}
+          astro={astro}
+          lang={lang}
+          isKo={isKo}
+          data={tabData}
+          destinyNarrative={destinyNarrative}
+        />
+      )}
+
+      {activeTab === 'hidden' && (
+        <HiddenSelfTab
           saju={saju}
           astro={astro}
           lang={lang}

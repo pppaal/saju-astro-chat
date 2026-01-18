@@ -121,8 +121,25 @@ export function generateAlerts(
     alerts.push({ type: "positive", msg: "천운의 날! 중요한 결정에 최적입니다.", icon: "🌟" });
   } else if (analysis.grade === 1) {
     alerts.push({ type: "positive", msg: "아주 좋은 날입니다. 적극적으로 행동하세요.", icon: "✨" });
+  } else if (analysis.grade === 3) {
+    // Grade 3 - 안좋은 날: 구체적 이유 제공
+    const negativeReasons = getNegativeReasons(analysis);
+    if (negativeReasons.length > 0) {
+      alerts.push({ type: "warning", msg: negativeReasons[0], icon: "⚠️" });
+    } else {
+      alerts.push({ type: "warning", msg: "오늘은 에너지가 약합니다. 무리하지 마세요.", icon: "⚠️" });
+    }
   } else if (analysis.grade === 4) {
-    alerts.push({ type: "warning", msg: "오늘은 조심하세요. 중요한 결정은 미루세요.", icon: "⚠️" });
+    // Grade 4 - 최악의 날: 더 강한 경고와 구체적 이유
+    const negativeReasons = getNegativeReasons(analysis);
+    if (negativeReasons.length > 0) {
+      alerts.push({ type: "warning", msg: `🚨 ${negativeReasons[0]}`, icon: "🚨" });
+      if (negativeReasons.length > 1) {
+        alerts.push({ type: "warning", msg: negativeReasons[1], icon: "⚠️" });
+      }
+    } else {
+      alerts.push({ type: "warning", msg: "🚨 최악의 날입니다! 중요한 모든 일정을 피하세요.", icon: "🚨" });
+    }
   }
 
   // 특별 요소 알림
@@ -134,14 +151,127 @@ export function generateAlerts(
     alerts.push({ type: "info", msg: "도화살의 기운. 매력이 빛나는 날입니다.", icon: "💕" });
   }
 
+  // 나쁜 요소별 구체적 알림 (Grade 3, 4에서 추가)
+  if (analysis.grade >= 3) {
+    // 충(沖)
+    if (analysis.sajuFactorKeys.some(k => k.includes("Chung") || k.includes("chung"))) {
+      alerts.push({ type: "warning", msg: "일진 충(沖): 갈등과 변동에 주의하세요.", icon: "💥" });
+    }
+    // 형(刑)
+    if (analysis.sajuFactorKeys.some(k => k.includes("Xing") || k.includes("xing"))) {
+      alerts.push({ type: "warning", msg: "일진 형(刑): 법적 문제, 서류 실수에 주의하세요.", icon: "📋" });
+    }
+    // 공망
+    if (analysis.sajuFactorKeys.includes("shinsal_gongmang")) {
+      alerts.push({ type: "warning", msg: "공망(空亡): 계획이 무산되기 쉬워요. 새로운 시작은 피하세요.", icon: "🕳️" });
+    }
+    // 백호
+    if (analysis.sajuFactorKeys.includes("shinsal_backho")) {
+      alerts.push({ type: "warning", msg: "백호살: 사고, 수술 위험에 주의하세요.", icon: "🐯" });
+    }
+    // 귀문관
+    if (analysis.sajuFactorKeys.includes("shinsal_guimungwan")) {
+      alerts.push({ type: "warning", msg: "귀문관: 정신적 혼란, 불안감에 주의하세요.", icon: "👻" });
+    }
+  }
+
   if (analysis.astroFactorKeys.includes("retrogradeMercury")) {
     alerts.push({ type: "warning", msg: "수성 역행 중. 계약/통신에 주의하세요.", icon: "📝" });
+  }
+
+  if (analysis.astroFactorKeys.includes("retrogradeVenus")) {
+    alerts.push({ type: "warning", msg: "금성 역행 중. 연애/재정 결정은 미루세요.", icon: "💔" });
+  }
+
+  if (analysis.astroFactorKeys.includes("retrogradeMars")) {
+    alerts.push({ type: "warning", msg: "화성 역행 중. 충동적 행동을 삼가세요.", icon: "🔥" });
+  }
+
+  if (analysis.astroFactorKeys.includes("voidOfCourse")) {
+    alerts.push({ type: "warning", msg: "보이드 오브 코스: 중요한 결정은 피하세요.", icon: "🌙" });
   }
 
   if (analysis.crossVerified) {
     alerts.push({ type: "positive", msg: "사주와 점성술이 일치합니다. 신뢰도 높음!", icon: "🎯" });
   }
 
-  return alerts;
+  // 중복 제거 및 최대 5개로 제한
+  const uniqueAlerts = alerts.filter((alert, index, self) =>
+    index === self.findIndex(a => a.msg === alert.msg)
+  );
 
+  return uniqueAlerts.slice(0, 5);
+}
+
+/**
+ * 부정적 이유를 분석하여 사용자 친화적 메시지로 변환
+ */
+function getNegativeReasons(analysis: AlertAnalysis): string[] {
+  const reasons: string[] = [];
+
+  // 사주 부정 요소 분석
+  const sajuKeys = analysis.sajuFactorKeys;
+  const astroKeys = analysis.astroFactorKeys;
+
+  // 충(沖) - 가장 강력한 부정 요소
+  if (sajuKeys.some(k => k.toLowerCase().includes("chung"))) {
+    reasons.push("일진 충(沖)으로 인한 갈등/변동 기운이 강합니다.");
+  }
+
+  // 형(刑)
+  if (sajuKeys.some(k => k.toLowerCase().includes("xing"))) {
+    reasons.push("형(刑)살로 인해 실수나 마찰이 생기기 쉽습니다.");
+  }
+
+  // 해(害)
+  if (sajuKeys.some(k => k.toLowerCase().includes("hai"))) {
+    reasons.push("해(害)로 인해 배신이나 오해가 생길 수 있습니다.");
+  }
+
+  // 공망(空亡)
+  if (sajuKeys.includes("shinsal_gongmang")) {
+    reasons.push("공망(空亡)으로 인해 노력이 헛되기 쉽습니다.");
+  }
+
+  // 관살(官殺) - 외부 압박
+  if (sajuKeys.includes("stemGwansal")) {
+    reasons.push("관살 기운으로 외부 압박이나 스트레스가 강합니다.");
+  }
+
+  // 삼재
+  if (sajuKeys.includes("samjaeYear")) {
+    reasons.push("삼재년의 영향으로 조심해야 합니다.");
+  }
+
+  // 수성 역행
+  if (astroKeys.includes("retrogradeMercury")) {
+    reasons.push("수성 역행으로 커뮤니케이션/계약에 오류가 생기기 쉽습니다.");
+  }
+
+  // 금성 역행
+  if (astroKeys.includes("retrogradeVenus")) {
+    reasons.push("금성 역행으로 연애/재정에 혼란이 있을 수 있습니다.");
+  }
+
+  // 화성 역행
+  if (astroKeys.includes("retrogradeMars")) {
+    reasons.push("화성 역행으로 에너지가 낮고 분노 조절이 어렵습니다.");
+  }
+
+  // 보이드 오브 코스
+  if (astroKeys.includes("voidOfCourse")) {
+    reasons.push("달이 공허한 상태로 새로운 일이 성사되기 어렵습니다.");
+  }
+
+  // 충돌 원소
+  if (astroKeys.includes("conflictElement")) {
+    reasons.push("오행/원소 충돌로 에너지가 분산됩니다.");
+  }
+
+  // 토성 충돌
+  if (astroKeys.some(k => k.includes("saturnSquare") || k.includes("saturnOpposition"))) {
+    reasons.push("토성 충돌로 제약과 장애물이 많습니다.");
+  }
+
+  return reasons;
 }

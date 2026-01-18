@@ -8,6 +8,22 @@ import { getUserCredits } from "@/lib/credits/creditService";
 import { logger } from "@/lib/logger";
 import { captureServerError } from "@/lib/telemetry";
 
+// Audit log for admin actions
+async function logAdminAction(
+  adminEmail: string,
+  action: string,
+  details: Record<string, unknown>
+) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    adminEmail,
+    action,
+    details,
+  };
+  logger.info("[AdminAudit]", logEntry);
+  // TODO: In production, also write to a dedicated audit table or external service
+}
+
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 const MINI_CREDIT_PRICE_KRW = 633;
 
@@ -99,9 +115,12 @@ async function resolveStripeFee(stripe: Stripe, charge: Stripe.Charge | null) {
 }
 
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  const adminEmail = session?.user?.email || "unknown";
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!isAdminEmail(session?.user?.email)) {
+    if (!isAdminEmail(adminEmail)) {
+      await logAdminAction(adminEmail, "refund_attempt_unauthorized", {});
       return json({ error: "Unauthorized" }, 401);
     }
 
@@ -168,13 +187,27 @@ export async function POST(req: Request) {
 
     const canceled = await stripe.subscriptions.cancel(subscription.id);
 
+    const customerEmail =
+      typeof subscription.customer === "object"
+        ? (subscription.customer as Stripe.Customer).email
+        : null;
+
+    // Audit log for successful refund
+    await logAdminAction(adminEmail, "refund_completed", {
+      subscriptionId: subscription.id,
+      customerEmail,
+      amountPaid,
+      refundAmount,
+      usedCredits,
+      creditDeduction,
+      stripeFee,
+      refundId: refund?.id ?? null,
+    });
+
     return json({
       subscriptionId: subscription.id,
       customerId: subscription.customer ? String(subscription.customer) : null,
-      customerEmail:
-        typeof subscription.customer === "object"
-          ? (subscription.customer as Stripe.Customer).email
-          : null,
+      customerEmail,
       amountPaid,
       currency,
       usedCredits,
@@ -189,6 +222,13 @@ export async function POST(req: Request) {
     logger.error("[AdminRefund] Failed:", { error: err });
     captureServerError(err as Error, { route: "/api/admin/refund-subscription" });
     const message = err instanceof Error ? err.message : "Unknown error";
+
+    // Audit log for failed refund
+    await logAdminAction(adminEmail, "refund_failed", {
+      error: message,
+      body: await req.clone().json().catch(() => null),
+    });
+
     return json({ error: message }, 500);
   }
 }

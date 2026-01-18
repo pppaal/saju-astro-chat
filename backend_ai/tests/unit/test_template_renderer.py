@@ -107,7 +107,6 @@ class TestElementMeaning:
 class TestRatingCalculation:
     """Tests for rating calculation functions."""
 
-    @pytest.mark.skip(reason="calculate_rating not yet implemented in refactored package")
     def test_calculate_rating_positive(self):
         """Test positive rating calculation."""
         from app.template_renderer import _calculate_rating
@@ -117,7 +116,6 @@ class TestRatingCalculation:
         assert isinstance(result, int)
         assert -5 <= result <= 5
 
-    @pytest.mark.skip(reason="calculate_rating not yet implemented in refactored package")
     def test_calculate_rating_negative(self):
         """Test rating for challenging combinations."""
         from app.template_renderer import _calculate_rating
@@ -138,7 +136,6 @@ class TestRatingCalculation:
 class TestDaeunMeaning:
     """Tests for Daeun (대운) meaning generation."""
 
-    @pytest.mark.skip(reason="get_daeun_meaning not yet implemented in refactored package")
     def test_get_daeun_meaning_basic(self):
         """Test basic Daeun meaning."""
         from app.template_renderer import _get_daeun_meaning
@@ -147,7 +144,6 @@ class TestDaeunMeaning:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    @pytest.mark.skip(reason="get_daeun_meaning not yet implemented in refactored package")
     def test_get_daeun_meaning_various_elements(self):
         """Test Daeun meaning for various elements."""
         from app.template_renderer import _get_daeun_meaning
@@ -193,7 +189,6 @@ class TestAnnualMeaning:
 class TestPeriodAdvice:
     """Tests for period advice generation."""
 
-    @pytest.mark.skip(reason="get_period_advice not yet implemented in refactored package")
     def test_get_period_advice_basic(self):
         """Test basic period advice."""
         from app.template_renderer import _get_period_advice
@@ -201,7 +196,6 @@ class TestPeriodAdvice:
         result = _get_period_advice("木", "식신")
         assert isinstance(result, str)
 
-    @pytest.mark.skip(reason="get_period_advice not yet implemented in refactored package")
     def test_get_period_advice_various_combinations(self):
         """Test period advice for various combinations."""
         from app.template_renderer import _get_period_advice
@@ -449,7 +443,6 @@ class TestNormalizeDayMaster:
         assert isinstance(result, tuple)
 
 
-@pytest.mark.skip(reason="Theme sections not yet implemented in refactored package")
 class TestThemeSections:
     """Tests for theme sections generation."""
 
@@ -509,7 +502,6 @@ class TestThemeSections:
         assert isinstance(result, list)
 
 
-@pytest.mark.skip(reason="Theme summary not yet implemented in refactored package")
 class TestThemeSummary:
     """Tests for theme summary generation."""
 
@@ -606,7 +598,6 @@ class TestBuildAstroAnalysis:
         assert isinstance(result, str)
 
 
-@pytest.mark.skip(reason="render_template_report not yet implemented in refactored package")
 class TestRenderTemplateReport:
     """Tests for render_template_report function."""
 
@@ -666,7 +657,6 @@ class TestRenderTemplateReport:
 class TestModuleExports:
     """Tests for module exports."""
 
-    @pytest.mark.skip(reason="render_template_report not yet implemented in refactored package")
     def test_render_template_report_importable(self):
         """render_template_report should be importable."""
         from app.template_renderer import render_template_report
@@ -682,7 +672,6 @@ class TestModuleExports:
         from app.template_renderer import _get_element_meaning
         assert callable(_get_element_meaning)
 
-    @pytest.mark.skip(reason="_get_theme_sections not yet implemented in refactored package")
     def test_get_theme_sections_importable(self):
         """_get_theme_sections should be importable."""
         from app.template_renderer import _get_theme_sections

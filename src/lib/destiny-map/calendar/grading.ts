@@ -25,6 +25,15 @@ export interface GradeResult {
   grade: ImportanceGrade;
   adjustedScore: number;
   gradeBonus: number;
+  /** 등급 결정에 영향을 준 주요 요인들 */
+  gradeReasons: GradeReason[];
+}
+
+export interface GradeReason {
+  type: 'positive' | 'negative' | 'neutral';
+  factorKey: string;
+  impact: number; // 점수 영향 (-1 ~ +1)
+  descriptionKey: string; // i18n 키
 }
 
 /**
@@ -53,18 +62,91 @@ export function calculateGrade(input: GradeInput | number): GradeResult | Import
   }
 
   let gradeBonus = 0;
+  const gradeReasons: GradeReason[] = [];
 
   // 보너스 조건
-  if (input.isBirthdaySpecial) gradeBonus += 2;
-  if (input.crossVerified && input.sajuPositive && input.astroPositive) gradeBonus += 2;
-  if (input.totalStrengthCount >= 5 && input.sajuBadCount === 0) gradeBonus += 1;
+  if (input.isBirthdaySpecial) {
+    gradeBonus += 2;
+    gradeReasons.push({
+      type: 'positive',
+      factorKey: 'birthdaySpecial',
+      impact: 0.8,
+      descriptionKey: 'calendar.reasons.birthdaySpecial',
+    });
+  }
+  if (input.crossVerified && input.sajuPositive && input.astroPositive) {
+    gradeBonus += 2;
+    gradeReasons.push({
+      type: 'positive',
+      factorKey: 'crossVerifiedPositive',
+      impact: 0.7,
+      descriptionKey: 'calendar.reasons.crossVerifiedPositive',
+    });
+  }
+  if (input.totalStrengthCount >= 5 && input.sajuBadCount === 0) {
+    gradeBonus += 1;
+    gradeReasons.push({
+      type: 'positive',
+      factorKey: 'manyStrengths',
+      impact: 0.5,
+      descriptionKey: 'calendar.reasons.manyStrengths',
+    });
+  }
 
-  // 페널티 조건
-  if (input.hasChung && input.hasXing) gradeBonus -= 4;
-  else if (input.hasChung || input.hasXing) gradeBonus -= 2;
-  if (input.totalBadCount >= 3) gradeBonus -= 3;
-  else if (input.totalBadCount >= 2) gradeBonus -= 1;
-  if (!input.hasNoMajorRetrograde && input.retrogradeCount >= 2) gradeBonus -= 2;
+  // 페널티 조건 - 구체적 이유 추적
+  if (input.hasChung && input.hasXing) {
+    gradeBonus -= 4;
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'chungAndXing',
+      impact: -1.0,
+      descriptionKey: 'calendar.reasons.chungAndXing',
+    });
+  } else if (input.hasChung) {
+    gradeBonus -= 2;
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'chung',
+      impact: -0.7,
+      descriptionKey: 'calendar.reasons.chung',
+    });
+  } else if (input.hasXing) {
+    gradeBonus -= 2;
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'xing',
+      impact: -0.6,
+      descriptionKey: 'calendar.reasons.xing',
+    });
+  }
+
+  if (input.totalBadCount >= 3) {
+    gradeBonus -= 3;
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'manyBadFactors',
+      impact: -0.8,
+      descriptionKey: 'calendar.reasons.manyBadFactors',
+    });
+  } else if (input.totalBadCount >= 2) {
+    gradeBonus -= 1;
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'someBadFactors',
+      impact: -0.4,
+      descriptionKey: 'calendar.reasons.someBadFactors',
+    });
+  }
+
+  if (!input.hasNoMajorRetrograde && input.retrogradeCount >= 2) {
+    gradeBonus -= 2;
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'multipleRetrogrades',
+      impact: -0.6,
+      descriptionKey: 'calendar.reasons.multipleRetrogrades',
+    });
+  }
 
   // 보너스/페널티 제한
   gradeBonus = Math.max(-6, Math.min(4, gradeBonus));
@@ -74,11 +156,10 @@ export function calculateGrade(input: GradeInput | number): GradeResult | Import
   // 5등급 시스템
   let grade: ImportanceGrade;
   // Grade 0 조건 완화: 충과 형이 "둘 다" 있을 때만 제외
-  // 이전: 충 OR 형 있으면 제외 → 너무 엄격해서 천운의 날이 거의 없었음
   const hasBothChungAndXing = input.hasChung && input.hasXing;
 
   if (adjustedScore >= 68 && !hasBothChungAndXing) {
-    grade = 0; // 최고의날 (~5-8%) - 72에서 68로 낮춤
+    grade = 0; // 최고의날 (~5-8%)
   } else if (adjustedScore >= 62) {
     grade = 1; // 좋은날 (~15%)
   } else if (adjustedScore >= 42) {
@@ -89,7 +170,21 @@ export function calculateGrade(input: GradeInput | number): GradeResult | Import
     grade = 4; // 최악의날 (~5%)
   }
 
-  return { grade, adjustedScore, gradeBonus };
+  // 등급에 따른 기본 이유 추가 (부정적 요소가 없을 때도 설명 제공)
+  if (grade >= 3 && gradeReasons.filter(r => r.type === 'negative').length === 0) {
+    // 점수가 낮은데 특별한 부정 요소가 없으면 기본 점수 낮음 이유
+    gradeReasons.push({
+      type: 'negative',
+      factorKey: 'lowBaseScore',
+      impact: -0.5,
+      descriptionKey: 'calendar.reasons.lowBaseScore',
+    });
+  }
+
+  // 부정적 이유가 가장 중요한 순서대로 정렬
+  gradeReasons.sort((a, b) => a.impact - b.impact);
+
+  return { grade, adjustedScore, gradeBonus, gradeReasons };
 }
 
 export function getCategoryScore(score: number): ImportanceGrade {

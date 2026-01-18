@@ -31,7 +31,7 @@ const c = (
 // 신살-행성 교차 매트릭스
 // 신살이 특정 행성의 에너지와 만났을 때의 상호작용
 
-export const SHINSAL_PLANET_MATRIX: Record<ShinsalKind, Record<PlanetName, InteractionCode>> = {
+export const SHINSAL_PLANET_MATRIX: Partial<Record<ShinsalKind, Record<PlanetName, InteractionCode>>> = {
   // ===== 길신 (Lucky Spirits) =====
   '천을귀인': { // 가장 강력한 귀인, 위기를 도움으로 전환
     Sun: c('extreme', 10, '👑', 'purple', '귀인조력', 'Noble aid',
@@ -788,13 +788,13 @@ export const SHINSAL_PLANET_MATRIX: Record<ShinsalKind, Record<PlanetName, Inter
 };
 
 // 신살 정보 설명
-export const SHINSAL_INFO: Record<ShinsalKind, {
+export const SHINSAL_INFO: Partial<Record<ShinsalKind, {
   category: 'lucky' | 'challenging' | 'special';
   ko: string;
   en: string;
   effect: string;
   effectEn: string;
-}> = {
+}>> = {
   '천을귀인': { category: 'lucky', ko: '천을귀인', en: 'Heavenly Noble', effect: '위기를 기회로 전환, 귀인의 도움', effectEn: 'Crisis to opportunity, noble help' },
   '태극귀인': { category: 'lucky', ko: '태극귀인', en: 'Taiji Noble', effect: '만사형통, 음양조화', effectEn: 'All things prosper, yin-yang harmony' },
   '천덕귀인': { category: 'lucky', ko: '천덕귀인', en: 'Heavenly Virtue Noble', effect: '재난 회피, 덕망', effectEn: 'Disaster avoidance, virtue' },
@@ -821,6 +821,9 @@ export const SHINSAL_INFO: Record<ShinsalKind, {
   '괴강': { category: 'challenging', ko: '괴강살', en: 'Monster Strength Kill', effect: '극단적 성격, 강한 기운', effectEn: 'Extreme personality, strong energy' },
   '현침': { category: 'challenging', ko: '현침살', en: 'Needle Kill', effect: '의료/침술 인연, 수술 주의', effectEn: 'Medical/acupuncture connection, surgery caution' },
   '귀문관': { category: 'challenging', ko: '귀문관살', en: 'Ghost Gate Kill', effect: '영적 민감성, 심리 복잡', effectEn: 'Spiritual sensitivity, psychology complex' },
+  '병부': { category: 'challenging', ko: '병부살', en: 'Illness Spirit', effect: '건강 취약, 만성 질환 주의', effectEn: 'Health vulnerability, chronic illness caution' },
+  '효신살': { category: 'challenging', ko: '효신살', en: 'Filial Piety Spirit', effect: '부모 건강 걱정, 간병 인연', effectEn: 'Parent health concern, caregiving connection' },
+  '상문살': { category: 'challenging', ko: '상문살', en: 'Mourning Gate Kill', effect: '상실/이별 경험, 슬픔 주의', effectEn: 'Loss/separation experience, grief caution' },
   '역마': { category: 'special', ko: '역마살', en: 'Travel Horse Kill', effect: '이동/변화 많음, 해외 인연', effectEn: 'Much travel/change, overseas connection' },
   '화개': { category: 'special', ko: '화개살', en: 'Flower Canopy Kill', effect: '예술/종교 재능, 창작 능력', effectEn: 'Art/religion talent, creative ability' },
   '장성': { category: 'special', ko: '장성살', en: 'General Star Kill', effect: '리더십, 지휘 능력', effectEn: 'Leadership, command ability' },
