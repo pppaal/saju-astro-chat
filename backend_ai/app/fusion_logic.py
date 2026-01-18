@@ -17,7 +17,7 @@ from performance_optimizer import track_performance
 from sanitizer import sanitize_user_input, sanitize_name, is_suspicious_input, validate_birth_data
 from rendering import render_template_report
 
-# Lazy imports for memory-heavy modules (avoid OOM on Railway free tier)
+# Lazy imports for memory-heavy modules (avoid OOM on memory-limited environments)
 # SentenceTransformer models use 500MB+ memory, only load when needed
 _graph_rag_instance = None
 _corpus_rag_instance = None
@@ -582,7 +582,7 @@ def interpret_with_ai(facts: dict):
             return cached
 
         # ====================================================================
-        # TEMPLATE MODE - Fast path without RAG (prevents OOM on Railway)
+        # TEMPLATE MODE - Fast path without RAG (prevents OOM)
         # ====================================================================
         if render_mode == "template":
             # DEBUG logging removed to avoid Windows encoding errors

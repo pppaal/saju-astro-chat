@@ -143,19 +143,22 @@ Preview environment deployment:
 
 Backend AI service deployment:
 - Python unit tests
-- Docker image build (GHCR)
-- Railway deployment
+- Fly.io deployment
 - Health checks
 - Deployment notifications
 
 **Features:**
 - Only triggers on backend_ai changes
-- Multi-stage Docker build with caching
-- GitHub Container Registry (GHCR) integration
+- Fly.io remote Docker build
 - Environment-specific deployments (staging/production)
+- Automatic health verification
+
+**Required Secrets:**
+- `FLY_API_TOKEN` - Fly.io API token
+- `BACKEND_AI_URL` - Backend URL for health checks (optional)
 
 **When it runs:** Backend changes to main branch
-**Duration:** ~10-15 minutes
+**Duration:** ~8-12 minutes
 
 ---
 

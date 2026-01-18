@@ -9,10 +9,12 @@ Exports:
 - TarotPromptBuilder: 프롬프트 빌더 클래스
 """
 
-from .system_prompts import SYSTEM_PROMPT
+from .system_prompts import SYSTEM_PROMPT, QUICK_READING_PROMPT, READING_GUIDE
 from .builder import TarotPromptBuilder
 
 __all__ = [
     "SYSTEM_PROMPT",
+    "QUICK_READING_PROMPT",
+    "READING_GUIDE",
     "TarotPromptBuilder",
 ]

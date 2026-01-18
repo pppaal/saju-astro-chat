@@ -1,4 +1,4 @@
-"""Entry point for Railway deployment."""
+"""Entry point for Fly.io deployment."""
 import sys
 import os
 

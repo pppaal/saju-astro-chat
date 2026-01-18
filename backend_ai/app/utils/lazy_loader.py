@@ -1,7 +1,7 @@
 """
 Centralized Lazy Loading System for Backend AI
 
-Railway free tier (512MB) requires lazy loading of heavy modules
+Memory-limited environments require lazy loading of heavy modules
 like SentenceTransformer to avoid OOM (Out of Memory).
 
 This module provides a unified lazy loading system to replace

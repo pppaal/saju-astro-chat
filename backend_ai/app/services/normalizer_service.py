@@ -13,13 +13,15 @@ Functions:
 import re
 import logging
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, Any, List
 
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# STEM TO ELEMENT MAPPING
+# Configuration
 # ============================================================================
+
+# Stem to element mapping (Hanja and Korean)
 STEM_TO_ELEMENT = {
     # Hanja (Chinese characters)
     "甲": "목", "乙": "목",
@@ -35,8 +37,55 @@ STEM_TO_ELEMENT = {
     "임": "수", "계": "수",
 }
 
+# Regex patterns (compiled for performance)
+_DATE_YYYYMMDD_PATTERN = re.compile(r"^\d{8}$")
+_TIME_HHMM_PATTERN = re.compile(r"^\d{1,2}:\d{2}(:\d{2})?$")
+_TIME_NUMERIC_PATTERN = re.compile(r"^\d{3,4}$")
 
-def normalize_day_master(saju_data: Dict) -> Dict:
+# Field name mappings for payload normalization
+_DATE_FIELDS = ["birthdate", "birth_date", "birthDate"]
+_TIME_FIELDS = ["birthtime", "birth_time", "birthTime"]
+_CITY_FIELDS = ["birthplace", "birth_place", "birthPlace", "city", "place", "location"]
+_LON_FIELDS = ["lon", "longitude", "lng", "long"]
+
+# Validation constants
+_YEAR_LENGTH = 4
+_MAX_HOUR = 23
+_MAX_MINUTE = 59
+_MAX_SECOND = 59
+
+
+# ============================================================================
+# Helper functions
+# ============================================================================
+def _pick(source: Dict[str, Any], keys: List[str]) -> Optional[Any]:
+    """Pick first non-empty value from keys."""
+    for key in keys:
+        value = source.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _coerce_float(value: Any) -> Optional[float]:
+    """Coerce value to float."""
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        value = value.strip()
+        if not value:
+            return None
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    return None
+
+
+# ============================================================================
+# Day Master Normalization
+# ============================================================================
+def normalize_day_master(saju_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Normalize dayMaster to flat structure { name, element }.
 
@@ -81,7 +130,7 @@ def normalize_day_master(saju_data: Dict) -> Dict:
             "heavenlyStem": hs.get("name", ""),
             "element": hs.get("element") or dm.get("element", ""),
         }
-        saju_data = dict(saju_data)  # Copy to avoid mutation
+        saju_data = dict(saju_data)
         saju_data["dayMaster"] = normalized_dm
         logger.debug(f"[NORMALIZE] dayMaster: nested -> flat: {normalized_dm}")
     elif isinstance(hs, str):
@@ -93,12 +142,14 @@ def normalize_day_master(saju_data: Dict) -> Dict:
         }
         saju_data = dict(saju_data)
         saju_data["dayMaster"] = normalized_dm
-    # else: already in { name, element } format or empty
 
     return saju_data
 
 
-def _normalize_birth_date(value: object) -> Optional[str]:
+# ============================================================================
+# Birth Date/Time Normalization
+# ============================================================================
+def _normalize_birth_date(value: Any) -> Optional[str]:
     """
     Parse and normalize birth date to YYYY-MM-DD format.
 
@@ -131,7 +182,7 @@ def _normalize_birth_date(value: object) -> Optional[str]:
     text = text.replace(".", "-").replace("/", "-")
 
     # Handle YYYYMMDD format
-    if re.fullmatch(r"\d{8}", text):
+    if _DATE_YYYYMMDD_PATTERN.match(text):
         year, month, day = text[:4], text[4:6], text[6:8]
     else:
         # Handle YYYY-MM-DD format
@@ -143,7 +194,7 @@ def _normalize_birth_date(value: object) -> Optional[str]:
         if not (year.isdigit() and month.isdigit() and day.isdigit()):
             return None
 
-        if len(year) != 4:
+        if len(year) != _YEAR_LENGTH:
             return None
 
         month = month.zfill(2)
@@ -158,7 +209,7 @@ def _normalize_birth_date(value: object) -> Optional[str]:
     return f"{year}-{month}-{day}"
 
 
-def _normalize_birth_time(value: object) -> Optional[str]:
+def _normalize_birth_time(value: Any) -> Optional[str]:
     """
     Parse and normalize birth time to HH:MM or HH:MM:SS format.
 
@@ -191,13 +242,15 @@ def _normalize_birth_time(value: object) -> Optional[str]:
     text = text.replace(".", ":")
 
     # Handle HH:MM or HH:MM:SS format
-    if re.fullmatch(r"\d{1,2}:\d{2}(:\d{2})?", text):
+    if _TIME_HHMM_PATTERN.match(text):
         parts = text.split(":")
         hour = int(parts[0])
         minute = int(parts[1])
         second = int(parts[2]) if len(parts) > 2 else None
 
-        if hour > 23 or minute > 59 or (second is not None and second > 59):
+        if hour > _MAX_HOUR or minute > _MAX_MINUTE:
+            return None
+        if second is not None and second > _MAX_SECOND:
             return None
 
         if second is None:
@@ -205,12 +258,12 @@ def _normalize_birth_time(value: object) -> Optional[str]:
         return f"{hour:02d}:{minute:02d}:{second:02d}"
 
     # Handle HHMM format
-    if re.fullmatch(r"\d{3,4}", text):
+    if _TIME_NUMERIC_PATTERN.match(text):
         padded = text.zfill(4)
         hour = int(padded[:2])
         minute = int(padded[2:])
 
-        if hour > 23 or minute > 59:
+        if hour > _MAX_HOUR or minute > _MAX_MINUTE:
             return None
 
         return f"{hour:02d}:{minute:02d}"
@@ -218,7 +271,7 @@ def _normalize_birth_time(value: object) -> Optional[str]:
     return None
 
 
-def _normalize_birth_payload(data: Dict) -> Dict:
+def _normalize_birth_payload(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Normalize birth payload from nested or legacy fields.
 
@@ -240,43 +293,13 @@ def _normalize_birth_payload(data: Dict) -> Dict:
     birth_data = birth if isinstance(birth, dict) else {}
     normalized = dict(birth_data)
 
-    def _pick(source: Dict, keys: list) -> Optional[object]:
-        """Pick first non-empty value from keys."""
-        for key in keys:
-            value = source.get(key)
-            if value not in (None, ""):
-                return value
-        return None
-
-    def _coerce_float(value: object) -> Optional[float]:
-        """Coerce value to float."""
-        if isinstance(value, (int, float)):
-            return float(value)
-        if isinstance(value, str):
-            value = value.strip()
-            if not value:
-                return None
-            try:
-                return float(value)
-            except ValueError:
-                return None
-        return None
-
     # Extract values from various field names
-    date_raw = _pick(birth_data, ["date"]) or _pick(
-        data, ["birthdate", "birth_date", "birthDate"]
-    )
-    time_raw = _pick(birth_data, ["time"]) or _pick(
-        data, ["birthtime", "birth_time", "birthTime"]
-    )
+    date_raw = _pick(birth_data, ["date"]) or _pick(data, _DATE_FIELDS)
+    time_raw = _pick(birth_data, ["time"]) or _pick(data, _TIME_FIELDS)
     gender = _pick(birth_data, ["gender"]) or _pick(data, ["gender", "sex"])
-    city = _pick(birth_data, ["city", "place"]) or _pick(
-        data, ["birthplace", "birth_place", "birthPlace", "city", "place", "location"]
-    )
+    city = _pick(birth_data, ["city", "place"]) or _pick(data, _CITY_FIELDS)
     lat_val = _pick(birth_data, ["lat", "latitude"]) or _pick(data, ["lat", "latitude"])
-    lon_val = _pick(birth_data, ["lon", "longitude"]) or _pick(
-        data, ["lon", "longitude", "lng", "long"]
-    )
+    lon_val = _pick(birth_data, ["lon", "longitude"]) or _pick(data, _LON_FIELDS)
 
     # Normalize date
     date = _normalize_birth_date(date_raw)
@@ -316,7 +339,7 @@ def _normalize_birth_payload(data: Dict) -> Dict:
 
 
 # ============================================================================
-# Convenience exports
+# Exports
 # ============================================================================
 __all__ = [
     "STEM_TO_ELEMENT",

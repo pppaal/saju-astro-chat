@@ -19,7 +19,7 @@ except ImportError:
     from app.dream import DreamRuleEngine, get_dream_rule_engine
 
 # Lazy import dream_embeddings to avoid loading SentenceTransformer on module load
-# This prevents OOM on Railway free tier (512MB limit)
+# This prevents OOM on memory-limited environments
 _dream_embed_rag = None
 
 def get_dream_embed_rag():
@@ -34,7 +34,7 @@ def get_dream_embed_rag():
     return _dream_embed_rag
 
 # Lazy import to avoid loading SentenceTransformer on module load
-# This prevents OOM on Railway free tier (512MB limit)
+# This prevents OOM on memory-limited environments
 _fusion_generate_module = None
 
 def _get_fusion_generate():

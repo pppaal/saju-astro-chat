@@ -35,22 +35,21 @@ class TestTarotPatternEngineClass:
         assert hasattr(engine, 'suit_info')
         assert engine.suit_info is not None
 
-    def test_engine_has_numerology(self):
-        """Engine should have numerology attribute."""
-        from app.tarot.engine import TarotPatternEngine
+    def test_engine_uses_constants_numerology(self):
+        """Engine should use NUMEROLOGY from constants module."""
+        from app.tarot.constants import NUMEROLOGY
 
-        engine = TarotPatternEngine()
+        # NUMEROLOGY is in constants, not engine attribute
+        assert NUMEROLOGY is not None
+        assert isinstance(NUMEROLOGY, dict)
 
-        assert hasattr(engine, 'numerology')
-        assert engine.numerology is not None
+    def test_engine_uses_constants_court_ranks(self):
+        """Engine should use COURT_RANKS from constants module."""
+        from app.tarot.constants import COURT_RANKS
 
-    def test_engine_has_court_ranks(self):
-        """Engine should have court_ranks attribute."""
-        from app.tarot.engine import TarotPatternEngine
-
-        engine = TarotPatternEngine()
-
-        assert hasattr(engine, 'court_ranks')
+        # COURT_RANKS is in constants, not engine attribute
+        assert COURT_RANKS is not None
+        assert isinstance(COURT_RANKS, dict)
 
     def test_engine_has_analysis_cache(self):
         """Engine should have _analysis_cache attribute."""
@@ -107,35 +106,35 @@ class TestAnalyzeMethod:
 
 
 class TestConstantsImport:
-    """Tests for constants imported from constants module."""
+    """Tests for constants in constants module (refactored)."""
 
-    def test_suit_info_imported(self):
-        """SUIT_INFO should be imported."""
-        from app.tarot.engine import SUIT_INFO
+    def test_suit_info_in_constants(self):
+        """SUIT_INFO should be in constants module."""
+        from app.tarot.constants import SUIT_INFO
 
         assert SUIT_INFO is not None
 
-    def test_numerology_imported(self):
-        """NUMEROLOGY should be imported."""
-        from app.tarot.engine import NUMEROLOGY
+    def test_numerology_in_constants(self):
+        """NUMEROLOGY should be in constants module."""
+        from app.tarot.constants import NUMEROLOGY
 
         assert NUMEROLOGY is not None
 
-    def test_court_ranks_imported(self):
-        """COURT_RANKS should be imported."""
-        from app.tarot.engine import COURT_RANKS
+    def test_court_ranks_in_constants(self):
+        """COURT_RANKS should be in constants module."""
+        from app.tarot.constants import COURT_RANKS
 
         assert COURT_RANKS is not None
 
-    def test_element_interactions_imported(self):
-        """ELEMENT_INTERACTIONS should be imported."""
-        from app.tarot.engine import ELEMENT_INTERACTIONS
+    def test_element_interactions_in_constants(self):
+        """ELEMENT_INTERACTIONS should be in constants module."""
+        from app.tarot.constants import ELEMENT_INTERACTIONS
 
         assert ELEMENT_INTERACTIONS is not None
 
-    def test_polarity_pairs_imported(self):
-        """POLARITY_PAIRS should be imported."""
-        from app.tarot.engine import POLARITY_PAIRS
+    def test_polarity_pairs_in_constants(self):
+        """POLARITY_PAIRS should be in constants module."""
+        from app.tarot.constants import POLARITY_PAIRS
 
         assert POLARITY_PAIRS is not None
 

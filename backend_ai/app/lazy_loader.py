@@ -1,6 +1,6 @@
 """
 Lazy Loader Utility for Backend AI
-Prevents OOM on Railway free tier by loading heavy modules on-demand.
+Prevents OOM on memory-limited environments by loading heavy modules on-demand.
 """
 import logging
 from typing import Any, Optional, TypeVar, Generic

@@ -13,7 +13,7 @@ Key Features:
 - Performance monitoring
 
 Performance:
-- Before: 3 streams × 650ms = 1950ms (sequential)
+- Before: 3 streams x 650ms = 1950ms (sequential)
 - After:  max(650ms, 650ms, 650ms) = ~650ms (parallel)
 - Speedup: 3x faster
 """
@@ -22,31 +22,62 @@ import asyncio
 import json
 import logging
 import time
-from typing import Dict, List, Callable, Iterator, Any, Optional
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from queue import Queue
 import threading
+from typing import Dict, List, Iterator, Any
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-# Global executor for async OpenAI calls
-_ASYNC_EXECUTOR = None
-_ASYNC_EXECUTOR_MAX_WORKERS = 3  # Typically 3 streams max
+# ============================================================================
+# Configuration
+# ============================================================================
+_EXECUTOR_MAX_WORKERS = 3  # Typically 3 streams max
+_EXECUTOR_THREAD_PREFIX = "openai_stream"
+
+# Default stream settings by complexity
+_STREAM_PRESETS = {
+    "simple": {
+        "model": "gpt-4o-mini",
+        "temperature": 0.5,
+        "max_tokens": 300,
+    },
+    "medium": {
+        "model": "gpt-4o",
+        "temperature": 0.7,
+        "max_tokens": 500,
+    },
+    "complex": {
+        "model": "gpt-4o",
+        "temperature": 0.8,
+        "max_tokens": 800,
+    },
+}
+
+# ============================================================================
+# Global Executor (Singleton)
+# ============================================================================
+_async_executor: ThreadPoolExecutor | None = None
+_executor_lock = threading.Lock()
 
 
 def get_async_executor() -> ThreadPoolExecutor:
     """Get or create executor for async OpenAI streaming."""
-    global _ASYNC_EXECUTOR
-    if _ASYNC_EXECUTOR is None:
-        _ASYNC_EXECUTOR = ThreadPoolExecutor(
-            max_workers=_ASYNC_EXECUTOR_MAX_WORKERS,
-            thread_name_prefix="openai_stream"
-        )
-        logger.info(f"[ParallelStreaming] Executor created with {_ASYNC_EXECUTOR_MAX_WORKERS} workers")
-    return _ASYNC_EXECUTOR
+    global _async_executor
+    if _async_executor is None:
+        with _executor_lock:
+            if _async_executor is None:
+                _async_executor = ThreadPoolExecutor(
+                    max_workers=_EXECUTOR_MAX_WORKERS,
+                    thread_name_prefix=_EXECUTOR_THREAD_PREFIX
+                )
+                logger.info(f"[ParallelStreaming] Executor created with {_EXECUTOR_MAX_WORKERS} workers")
+    return _async_executor
 
 
+# ============================================================================
+# Data Classes
+# ============================================================================
 @dataclass
 class StreamConfig:
     """Configuration for a single stream."""
@@ -57,6 +88,17 @@ class StreamConfig:
     max_tokens: int = 500
 
 
+@dataclass
+class StreamMetrics:
+    """Performance metrics for a stream section."""
+    count: int = 0
+    total_time_ms: float = 0
+    total_chars: int = 0
+
+
+# ============================================================================
+# Parallel Stream Manager
+# ============================================================================
 class ParallelStreamManager:
     """
     Manages parallel execution of multiple OpenAI streams.
@@ -72,12 +114,7 @@ class ParallelStreamManager:
     """
 
     def __init__(self, openai_client):
-        """
-        Initialize parallel stream manager.
-
-        Args:
-            openai_client: OpenAI client instance
-        """
+        """Initialize parallel stream manager."""
         self.client = openai_client
         self.executor = get_async_executor()
 
@@ -95,30 +132,18 @@ class ParallelStreamManager:
 
         Yields:
             SSE formatted chunks or raw dicts
-
-        Example:
-            >>> configs = [
-            ...     StreamConfig("part1", "Explain X", max_tokens=300),
-            ...     StreamConfig("part2", "Explain Y", max_tokens=300),
-            ... ]
-            >>> for chunk in manager.execute_parallel_streams(configs):
-            ...     print(chunk)
         """
         start_time = time.time()
 
-        # Create async event loop in current thread
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            # Execute parallel streams
             results = loop.run_until_complete(
                 self._fetch_all_streams_async(stream_configs, format_sse)
             )
 
-            # Yield all collected chunks
-            for chunk in results:
-                yield chunk
+            yield from results
 
         except Exception as e:
             logger.error(f"[ParallelStreaming] Error: {e}", exc_info=True)
@@ -127,10 +152,7 @@ class ParallelStreamManager:
                 "error": str(e),
                 "message": "Parallel streaming failed"
             }
-            if format_sse:
-                yield self._format_sse(error_chunk)
-            else:
-                yield error_chunk
+            yield self._format_sse(error_chunk) if format_sse else error_chunk
         finally:
             loop.close()
 
@@ -142,38 +164,25 @@ class ParallelStreamManager:
         stream_configs: List[StreamConfig],
         format_sse: bool
     ) -> List[str]:
-        """
-        Fetch all streams in parallel using asyncio.
-
-        Returns:
-            List of SSE formatted chunks in order
-        """
-        # Create tasks for all streams
+        """Fetch all streams in parallel using asyncio."""
         tasks = [
             self._fetch_single_stream_async(config, format_sse)
             for config in stream_configs
         ]
 
-        # Execute in parallel
         stream_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Flatten results and maintain order
         all_chunks = []
         for i, result in enumerate(stream_results):
             if isinstance(result, Exception):
                 logger.error(f"[ParallelStreaming] Stream {i} failed: {result}")
-                # Add error chunk
                 error_chunk = {
                     "section": stream_configs[i].section_name,
                     "type": "error",
                     "error": str(result)
                 }
-                if format_sse:
-                    all_chunks.append(self._format_sse(error_chunk))
-                else:
-                    all_chunks.append(error_chunk)
+                all_chunks.append(self._format_sse(error_chunk) if format_sse else error_chunk)
             else:
-                # Add successful chunks
                 all_chunks.extend(result)
 
         return all_chunks
@@ -183,22 +192,14 @@ class ParallelStreamManager:
         config: StreamConfig,
         format_sse: bool
     ) -> List[str]:
-        """
-        Fetch a single OpenAI stream.
-
-        Returns:
-            List of chunks for this stream
-        """
+        """Fetch a single OpenAI stream."""
         chunks = []
         section = config.section_name
 
         try:
             # Start event
             start_chunk = {"section": section, "status": "start"}
-            if format_sse:
-                chunks.append(self._format_sse(start_chunk))
-            else:
-                chunks.append(start_chunk)
+            chunks.append(self._format_sse(start_chunk) if format_sse else start_chunk)
 
             # Create OpenAI stream (runs in executor to avoid blocking)
             loop = asyncio.get_event_loop()
@@ -215,14 +216,8 @@ class ParallelStreamManager:
                     content = chunk.choices[0].delta.content
                     full_text += content
 
-                    content_chunk = {
-                        "section": section,
-                        "content": content
-                    }
-                    if format_sse:
-                        chunks.append(self._format_sse(content_chunk))
-                    else:
-                        chunks.append(content_chunk)
+                    content_chunk = {"section": section, "content": content}
+                    chunks.append(self._format_sse(content_chunk) if format_sse else content_chunk)
 
             # Done event
             done_chunk = {
@@ -230,10 +225,7 @@ class ParallelStreamManager:
                 "status": "done",
                 "full_text": full_text
             }
-            if format_sse:
-                chunks.append(self._format_sse(done_chunk))
-            else:
-                chunks.append(done_chunk)
+            chunks.append(self._format_sse(done_chunk) if format_sse else done_chunk)
 
             logger.info(f"[ParallelStreaming] {section}: {len(full_text)} chars")
 
@@ -244,11 +236,7 @@ class ParallelStreamManager:
         return chunks
 
     def _create_stream_sync(self, config: StreamConfig):
-        """
-        Create OpenAI stream (synchronous, runs in executor).
-
-        This runs in a separate thread to avoid blocking the event loop.
-        """
+        """Create OpenAI stream (synchronous, runs in executor)."""
         return self.client.chat.completions.create(
             model=config.model,
             messages=[{"role": "user", "content": config.prompt}],
@@ -257,15 +245,59 @@ class ParallelStreamManager:
             stream=True
         )
 
-    def _format_sse(self, data: Dict[str, Any]) -> str:
+    @staticmethod
+    def _format_sse(data: Dict[str, Any]) -> str:
         """Format data as SSE chunk."""
         return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 # ============================================================================
+# Performance Monitoring
+# ============================================================================
+class StreamPerformanceMonitor:
+    """Monitor performance of parallel streaming."""
+
+    def __init__(self):
+        self._metrics: Dict[str, StreamMetrics] = {}
+        self._lock = threading.Lock()
+
+    def record_stream(self, section: str, elapsed_ms: float, char_count: int) -> None:
+        """Record stream performance."""
+        with self._lock:
+            if section not in self._metrics:
+                self._metrics[section] = StreamMetrics()
+
+            metrics = self._metrics[section]
+            metrics.count += 1
+            metrics.total_time_ms += elapsed_ms
+            metrics.total_chars += char_count
+
+    def get_stats(self) -> Dict[str, Dict[str, float]]:
+        """Get performance statistics."""
+        with self._lock:
+            stats = {}
+            for section, metrics in self._metrics.items():
+                if metrics.count > 0:
+                    stats[section] = {
+                        "avg_time_ms": metrics.total_time_ms / metrics.count,
+                        "avg_chars": metrics.total_chars / metrics.count,
+                        "count": metrics.count
+                    }
+            return stats
+
+
+# Global monitor instance
+_performance_monitor = StreamPerformanceMonitor()
+
+
+def get_stream_performance_stats() -> Dict[str, Dict[str, float]]:
+    """Get global streaming performance stats."""
+    return _performance_monitor.get_stats()
+
+
+# ============================================================================
 # Convenience Functions
 # ============================================================================
-
 def create_parallel_stream(
     openai_client,
     stream_configs: List[StreamConfig]
@@ -279,15 +311,6 @@ def create_parallel_stream(
 
     Yields:
         SSE formatted chunks
-
-    Example:
-        >>> from backend_ai.app.services.parallel_streaming import create_parallel_stream, StreamConfig
-        >>> configs = [
-        ...     StreamConfig("summary", prompt1),
-        ...     StreamConfig("details", prompt2),
-        ... ]
-        >>> for chunk in create_parallel_stream(openai_client, configs):
-        ...     yield chunk
     """
     manager = ParallelStreamManager(openai_client)
     yield from manager.execute_parallel_streams(stream_configs, format_sse=True)
@@ -308,81 +331,10 @@ def optimize_stream_config(
 
     Returns:
         Optimized StreamConfig
-
-    Example:
-        >>> config = optimize_stream_config("summary", prompt, "simple")
-        >>> # Uses faster model + lower tokens for simple tasks
     """
-    # Optimize based on complexity
-    if complexity == "simple":
-        return StreamConfig(
-            section_name=section_name,
-            prompt=prompt,
-            model="gpt-4o-mini",  # Faster, cheaper
-            temperature=0.5,      # More focused
-            max_tokens=300        # Shorter response
-        )
-    elif complexity == "medium":
-        return StreamConfig(
-            section_name=section_name,
-            prompt=prompt,
-            model="gpt-4o",
-            temperature=0.7,
-            max_tokens=500
-        )
-    else:  # complex
-        return StreamConfig(
-            section_name=section_name,
-            prompt=prompt,
-            model="gpt-4o",
-            temperature=0.8,      # More creative
-            max_tokens=800        # Longer response
-        )
-
-
-# ============================================================================
-# Performance Monitoring
-# ============================================================================
-
-class StreamPerformanceMonitor:
-    """Monitor performance of parallel streaming."""
-
-    def __init__(self):
-        self.metrics = {}
-        self.lock = threading.Lock()
-
-    def record_stream(self, section: str, elapsed_ms: float, char_count: int):
-        """Record stream performance."""
-        with self.lock:
-            if section not in self.metrics:
-                self.metrics[section] = {
-                    "count": 0,
-                    "total_time_ms": 0,
-                    "total_chars": 0
-                }
-
-            self.metrics[section]["count"] += 1
-            self.metrics[section]["total_time_ms"] += elapsed_ms
-            self.metrics[section]["total_chars"] += char_count
-
-    def get_stats(self) -> Dict[str, Dict[str, float]]:
-        """Get performance statistics."""
-        with self.lock:
-            stats = {}
-            for section, data in self.metrics.items():
-                if data["count"] > 0:
-                    stats[section] = {
-                        "avg_time_ms": data["total_time_ms"] / data["count"],
-                        "avg_chars": data["total_chars"] / data["count"],
-                        "count": data["count"]
-                    }
-            return stats
-
-
-# Global monitor instance
-_performance_monitor = StreamPerformanceMonitor()
-
-
-def get_stream_performance_stats() -> Dict[str, Dict[str, float]]:
-    """Get global streaming performance stats."""
-    return _performance_monitor.get_stats()
+    preset = _STREAM_PRESETS.get(complexity, _STREAM_PRESETS["medium"])
+    return StreamConfig(
+        section_name=section_name,
+        prompt=prompt,
+        **preset
+    )

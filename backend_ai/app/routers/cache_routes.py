@@ -137,7 +137,7 @@ def full_health_check():
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
 
-            # Warn if memory > 450MB (close to 512MB Railway limit)
+            # Warn if memory > 450MB (high memory usage threshold)
             if memory_mb > 450:
                 health_score -= 25
                 issues.append(f"High memory usage: {memory_mb:.0f}MB")

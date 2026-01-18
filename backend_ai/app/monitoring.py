@@ -167,7 +167,7 @@ class AlertManager:
         self.alert_thresholds = {
             "response_time_ms": 5000,  # 5 seconds
             "error_rate_percent": 10,   # 10% error rate
-            "memory_usage_mb": 450      # 450MB (Railway free tier is 512MB)
+            "memory_usage_mb": 450      # 450MB threshold for alerting
         }
 
     def check_response_time(self, endpoint: str, duration_ms: float):

@@ -20,6 +20,50 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# ============================================================================
+# Configuration constants
+# ============================================================================
+
+# Pillar names mapping
+_PILLAR_NAMES = [
+    ("year", "年柱"),
+    ("month", "月柱"),
+    ("day", "日柱"),
+    ("hour", "時柱"),
+]
+
+_PILLAR_ORDER = ["year", "month", "day", "hour"]
+
+# Major aspects in astrology
+_MAJOR_ASPECTS = frozenset(["conjunction", "opposition", "trine", "square", "sextile"])
+
+# Display limits
+_MAX_ASPECTS_DISPLAY = 10
+_MAX_HOUSES_DISPLAY = 4
+
+# Sibsin (Ten Gods) theme mapping
+_SIBSIN_THEME_MAP = {
+    "재성": ("wealth", 2),
+    "관성": ("career", 2),
+    "식상": ("creativity", 2),
+}
+
+# Pattern name to theme mapping
+_PATTERN_THEME_KEYWORDS = {
+    "재격": "wealth",
+    "관격": "career",
+    "식신": "creativity",
+    "상관": "creativity",
+}
+
+# Planet house to theme mapping
+_PLANET_HOUSE_THEMES = {
+    "Venus": (["7", "5"], "relationship"),
+    "Mars": (["10", "6"], "career"),
+    "Saturn": (["10"], "career"),
+    "Jupiter": (["2", "8"], "wealth"),
+}
+
 
 class ChartContextService:
     """
@@ -40,11 +84,6 @@ class ChartContextService:
 
         Returns:
             Formatted Saju context string
-
-        Example:
-            >>> context = ChartContextService.build_saju_context(saju_data)
-            >>> context
-            "사주 팔자:\\n年柱: 庚午 (경오)\\n月柱: 戊寅 (무인)\\n..."
         """
         if not saju_data:
             return ""
@@ -53,13 +92,8 @@ class ChartContextService:
 
         # 사주 팔자 (Four Pillars)
         pillars = saju_data.get("pillars", {})
-        for pillar_name, pillar_korean in [
-            ("year", "年柱"),
-            ("month", "月柱"),
-            ("day", "日柱"),
-            ("hour", "時柱")
-        ]:
-            pillar = pillars.get(pillar_name, {})
+        for pillar_key, pillar_korean in _PILLAR_NAMES:
+            pillar = pillars.get(pillar_key, {})
             stem = pillar.get("stem", "")
             branch = pillar.get("branch", "")
             hanja = pillar.get("hanja", "")
@@ -102,7 +136,7 @@ class ChartContextService:
         # 대운 (Daeun/Luck Periods)
         if include_unse:
             unse = saju_data.get("unse", [])
-            if unse and len(unse) > 0:
+            if unse:
                 current_unse = unse[0]  # First one is current
                 stem = current_unse.get("stem", "")
                 branch = current_unse.get("branch", "")
@@ -123,11 +157,6 @@ class ChartContextService:
 
         Returns:
             Formatted astrology context string
-
-        Example:
-            >>> context = ChartContextService.build_astrology_context(astro_data)
-            >>> context
-            "Natal Chart:\\nSun in Leo (5th house)\\nMoon in Pisces (12th house)\\n..."
         """
         if not astro_data:
             return ""
@@ -164,9 +193,9 @@ class ChartContextService:
 
         # Houses (simplified)
         houses = astro_data.get("houses", [])
-        if houses and len(houses) > 0:
+        if houses:
             lines.append("\nHouse Cusps:")
-            for i, house in enumerate(houses[:4], 1):  # First 4 houses only
+            for i, house in enumerate(houses[:_MAX_HOUSES_DISPLAY], 1):
                 if isinstance(house, dict):
                     sign = house.get("sign", "")
                     degree = house.get("longitude", 0)
@@ -178,14 +207,13 @@ class ChartContextService:
             aspects = astro_data.get("aspects", [])
             if aspects:
                 lines.append("\nMajor Aspects:")
-                major_aspects = ["conjunction", "opposition", "trine", "square", "sextile"]
-                for aspect in aspects[:10]:  # Limit to 10
+                for aspect in aspects[:_MAX_ASPECTS_DISPLAY]:
                     if isinstance(aspect, dict):
                         planet1 = aspect.get("planet1", "")
                         planet2 = aspect.get("planet2", "")
                         aspect_type = aspect.get("aspect", "")
                         orb = aspect.get("orb", 0)
-                        if aspect_type.lower() in major_aspects:
+                        if aspect_type.lower() in _MAJOR_ASPECTS:
                             lines.append(f"  {planet1} {aspect_type} {planet2} (orb: {orb:.1f}°)")
 
         return "\n".join(lines)
@@ -204,10 +232,6 @@ class ChartContextService:
 
         Returns:
             Combined context string
-
-        Example:
-            >>> context = ChartContextService.build_combined_context(saju_data, astro_data)
-            >>> # Used in AI prompts for comprehensive readings
         """
         contexts = []
 
@@ -237,12 +261,7 @@ class ChartContextService:
             saju_data: Saju calculation result
 
         Returns:
-            Compact summary string
-
-        Example:
-            >>> summary = ChartContextService.build_compact_saju_summary(saju_data)
-            >>> summary
-            "庚午 戊寅 甲子 乙丑 | 일간: 木(陰) | 격국: 식신격"
+            Compact summary string (e.g., "庚午 戊寅 甲子 乙丑 | 일간: 木(陰) | 격국: 식신격")
         """
         if not saju_data:
             return ""
@@ -251,11 +270,11 @@ class ChartContextService:
 
         # Pillars
         pillars = saju_data.get("pillars", {})
-        pillar_str = " ".join([
+        pillar_str = " ".join(
             pillars.get(p, {}).get("hanja", "")
-            for p in ["year", "month", "day", "hour"]
+            for p in _PILLAR_ORDER
             if pillars.get(p, {}).get("hanja")
-        ])
+        )
         if pillar_str:
             parts.append(pillar_str)
 
@@ -291,12 +310,7 @@ class ChartContextService:
             astro_data: Astrology calculation result (optional)
 
         Returns:
-            List of theme keywords
-
-        Example:
-            >>> themes = ChartContextService.extract_key_themes(saju_data, astro_data)
-            >>> themes
-            ["career", "wealth", "relationship", "health"]
+            List of theme keywords (e.g., ["career", "wealth", "relationship"])
         """
         themes = set()
 
@@ -304,50 +318,32 @@ class ChartContextService:
             # Extract from 십성 (Ten Gods)
             sibsin = saju_data.get("sibsin", {})
             if sibsin:
-                # Map sibsin to themes
-                if sibsin.get("재성", {}).get("count", 0) > 2:
-                    themes.add("wealth")
-                if sibsin.get("관성", {}).get("count", 0) > 2:
-                    themes.add("career")
-                if sibsin.get("식상", {}).get("count", 0) > 2:
-                    themes.add("creativity")
+                for sibsin_name, (theme, threshold) in _SIBSIN_THEME_MAP.items():
+                    if sibsin.get(sibsin_name, {}).get("count", 0) > threshold:
+                        themes.add(theme)
 
             # Extract from pattern
             pattern = saju_data.get("pattern", {})
             if pattern:
                 pattern_name = pattern.get("name", "")
-                if "재격" in pattern_name:
-                    themes.add("wealth")
-                if "관격" in pattern_name:
-                    themes.add("career")
-                if "식신" in pattern_name or "상관" in pattern_name:
-                    themes.add("creativity")
+                for keyword, theme in _PATTERN_THEME_KEYWORDS.items():
+                    if keyword in pattern_name:
+                        themes.add(theme)
 
         if astro_data:
             # Extract from emphasized planets
             planets = astro_data.get("planets", {})
             if planets:
-                # Venus emphasis -> relationship
-                venus = planets.get("Venus", {})
-                if venus.get("house") in ["7", "5"]:
-                    themes.add("relationship")
-
-                # Mars/Saturn -> career/ambition
-                mars = planets.get("Mars", {})
-                saturn = planets.get("Saturn", {})
-                if mars.get("house") in ["10", "6"] or saturn.get("house") == "10":
-                    themes.add("career")
-
-                # Jupiter -> wealth/expansion
-                jupiter = planets.get("Jupiter", {})
-                if jupiter.get("house") in ["2", "8"]:
-                    themes.add("wealth")
+                for planet_name, (houses, theme) in _PLANET_HOUSE_THEMES.items():
+                    planet = planets.get(planet_name, {})
+                    if planet.get("house") in houses:
+                        themes.add(theme)
 
         # Default themes if none found
         if not themes:
             themes.update(["general", "fortune"])
 
-        return sorted(list(themes))
+        return sorted(themes)
 
 
 # ============================================================================

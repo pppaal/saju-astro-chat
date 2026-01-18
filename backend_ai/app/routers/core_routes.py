@@ -26,7 +26,7 @@ def health():
 
 @core_bp.route("/ready", methods=["GET"])
 def ready():
-    """Readiness check for k8s/Railway."""
+    """Readiness check for k8s/Fly.io."""
     # TODO: Check Redis, DB connections
     return jsonify({"status": "ready"})
 

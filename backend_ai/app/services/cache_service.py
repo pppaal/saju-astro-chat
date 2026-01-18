@@ -27,20 +27,41 @@ from typing import Dict, Optional, Any
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# REDIS CLIENT (Optional)
+# Configuration
+# ============================================================================
+_DEFAULT_CACHE_MAX_SIZE = 200
+_DEFAULT_CACHE_TTL_MINUTES = 60
+_REDIS_KEY_PREFIX = "session:rag:"
+_REDIS_SOCKET_TIMEOUT = 2
+
+
+def _get_env_int(key: str, default: int) -> int:
+    """Get integer from environment variable with fallback."""
+    try:
+        return int(os.getenv(key, default))
+    except ValueError:
+        return default
+
+
+SESSION_CACHE_MAX_SIZE = _get_env_int("SESSION_CACHE_MAX_SIZE", _DEFAULT_CACHE_MAX_SIZE)
+SESSION_CACHE_TTL_MINUTES = _get_env_int("SESSION_CACHE_TTL_MINUTES", _DEFAULT_CACHE_TTL_MINUTES)
+
+# ============================================================================
+# Redis Client (Optional)
 # ============================================================================
 try:
     import redis
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
+    redis = None  # type: ignore
     logger.warning("[SESSION-CACHE] redis package not installed, using memory-only mode")
 
-_redis_client = None
+_redis_client: Any = None
 _redis_enabled = False
 
 
-def _init_redis_client():
+def _init_redis_client() -> None:
     """Initialize Redis client if configured."""
     global _redis_client, _redis_enabled
 
@@ -56,15 +77,15 @@ def _init_redis_client():
         _redis_client = redis.from_url(
             redis_url,
             decode_responses=True,
-            socket_timeout=2,
-            socket_connect_timeout=2,
+            socket_timeout=_REDIS_SOCKET_TIMEOUT,
+            socket_connect_timeout=_REDIS_SOCKET_TIMEOUT,
             retry_on_timeout=True,
         )
         _redis_client.ping()
         _redis_enabled = True
-        logger.info(f"[SESSION-CACHE] ✅ Redis connected for session cache")
+        logger.info("[SESSION-CACHE] Redis connected for session cache")
     except Exception as e:
-        logger.warning(f"[SESSION-CACHE] ⚠️ Redis connection failed: {e}, using memory cache")
+        logger.warning(f"[SESSION-CACHE] Redis connection failed: {e}, using memory cache")
         _redis_client = None
         _redis_enabled = False
 
@@ -73,23 +94,20 @@ def _init_redis_client():
 _init_redis_client()
 
 # ============================================================================
-# CONFIGURATION
+# Cache Storage
 # ============================================================================
-try:
-    SESSION_CACHE_MAX_SIZE = int(os.getenv("SESSION_CACHE_MAX_SIZE", "200"))
-except ValueError:
-    SESSION_CACHE_MAX_SIZE = 200
-
-try:
-    SESSION_CACHE_TTL_MINUTES = int(os.getenv("SESSION_CACHE_TTL_MINUTES", "60"))
-except ValueError:
-    SESSION_CACHE_TTL_MINUTES = 60
-
-# ============================================================================
-# CACHE STORAGE
-# ============================================================================
-_SESSION_RAG_CACHE: Dict[str, Dict] = {}
+_SESSION_RAG_CACHE: Dict[str, Dict[str, Any]] = {}
 _SESSION_CACHE_LOCK = Lock()
+
+
+def _get_redis_key(session_id: str) -> str:
+    """Generate Redis key for session cache."""
+    return f"{_REDIS_KEY_PREFIX}{session_id}"
+
+
+def _is_expired(created_at: datetime) -> bool:
+    """Check if a cache entry is expired."""
+    return datetime.now() - created_at > timedelta(minutes=SESSION_CACHE_TTL_MINUTES)
 
 
 def _cleanup_expired_sessions() -> int:
@@ -105,7 +123,7 @@ def _cleanup_expired_sessions() -> int:
     with _SESSION_CACHE_LOCK:
         for sid, data in _SESSION_RAG_CACHE.items():
             created_at = data.get("created_at", now)
-            if now - created_at > timedelta(minutes=SESSION_CACHE_TTL_MINUTES):
+            if _is_expired(created_at):
                 expired.append(sid)
 
         for sid in expired:
@@ -117,7 +135,7 @@ def _cleanup_expired_sessions() -> int:
     return len(expired)
 
 
-def _evict_lru_sessions(keep_count: int = None) -> int:
+def _evict_lru_sessions(keep_count: Optional[int] = None) -> int:
     """
     Evict least recently used sessions to maintain cache size.
 
@@ -139,10 +157,7 @@ def _evict_lru_sessions(keep_count: int = None) -> int:
         # Sort by last_accessed time (oldest first)
         sorted_sessions = sorted(
             _SESSION_RAG_CACHE.items(),
-            key=lambda x: x[1].get(
-                "last_accessed",
-                x[1].get("created_at", datetime.min)
-            )
+            key=lambda x: x[1].get("last_accessed", x[1].get("created_at", datetime.min))
         )
 
         # Evict oldest sessions until we're under the limit
@@ -159,11 +174,9 @@ def _evict_lru_sessions(keep_count: int = None) -> int:
     return evicted
 
 
-def _get_redis_key(session_id: str) -> str:
-    """Generate Redis key for session cache."""
-    return f"session:rag:{session_id}"
-
-
+# ============================================================================
+# Public API
+# ============================================================================
 def get_session_rag_cache(session_id: str) -> Optional[Dict]:
     """
     Get cached RAG data for a session.
@@ -193,9 +206,8 @@ def get_session_rag_cache(session_id: str) -> Optional[Dict]:
         cache_entry = _SESSION_RAG_CACHE.get(session_id)
 
         if cache_entry:
-            # Check if expired
             created_at = cache_entry.get("created_at", datetime.now())
-            if datetime.now() - created_at > timedelta(minutes=SESSION_CACHE_TTL_MINUTES):
+            if _is_expired(created_at):
                 del _SESSION_RAG_CACHE[session_id]
                 return None
 
@@ -240,8 +252,8 @@ def set_session_rag_cache(session_id: str, data: Dict) -> None:
 
     # LRU eviction if cache is too large
     if len(_SESSION_RAG_CACHE) > SESSION_CACHE_MAX_SIZE:
-        _cleanup_expired_sessions()  # First remove expired
-        _evict_lru_sessions()  # Then evict LRU if still over limit
+        _cleanup_expired_sessions()
+        _evict_lru_sessions()
 
 
 def clear_session_cache() -> int:
@@ -258,7 +270,8 @@ def clear_session_cache() -> int:
     # Clear Redis
     if _redis_enabled and _redis_client:
         try:
-            keys = _redis_client.keys("session:rag:*")
+            pattern = f"{_REDIS_KEY_PREFIX}*"
+            keys = _redis_client.keys(pattern)
             if keys:
                 _redis_client.delete(*keys)
                 total_cleared += len(keys)
@@ -276,14 +289,14 @@ def clear_session_cache() -> int:
     return total_cleared
 
 
-def get_cache_stats() -> Dict:
+def get_cache_stats() -> Dict[str, Any]:
     """
     Get session cache statistics.
 
     Returns:
         Dict with cache statistics including Redis info if available
     """
-    stats = {
+    stats: Dict[str, Any] = {
         "backend": "redis" if _redis_enabled else "memory",
         "redis_enabled": _redis_enabled,
         "max_size": SESSION_CACHE_MAX_SIZE,
@@ -293,11 +306,10 @@ def get_cache_stats() -> Dict:
     # Redis stats
     if _redis_enabled and _redis_client:
         try:
-            keys = _redis_client.keys("session:rag:*")
-            redis_entries = len(keys) if keys else 0
-            stats["redis_entries"] = redis_entries
+            pattern = f"{_REDIS_KEY_PREFIX}*"
+            keys = _redis_client.keys(pattern)
+            stats["redis_entries"] = len(keys) if keys else 0
 
-            # Get Redis server info
             info = _redis_client.info("stats")
             stats["redis_hits"] = info.get("keyspace_hits", 0)
             stats["redis_misses"] = info.get("keyspace_misses", 0)
@@ -307,12 +319,10 @@ def get_cache_stats() -> Dict:
 
     # Memory cache stats
     with _SESSION_CACHE_LOCK:
-        now = datetime.now()
         total = len(_SESSION_RAG_CACHE)
-
         expired_count = sum(
             1 for data in _SESSION_RAG_CACHE.values()
-            if now - data.get("created_at", now) > timedelta(minutes=SESSION_CACHE_TTL_MINUTES)
+            if _is_expired(data.get("created_at", datetime.now()))
         )
 
         stats.update({
@@ -322,27 +332,20 @@ def get_cache_stats() -> Dict:
             "memory_utilization_percent": round((total / SESSION_CACHE_MAX_SIZE) * 100, 1),
         })
 
-    # Total entries
     stats["total_entries"] = stats.get("redis_entries", 0) + stats.get("memory_entries", 0)
 
     return stats
 
 
 # ============================================================================
-# Convenience exports
+# Exports
 # ============================================================================
 __all__ = [
     "SESSION_CACHE_MAX_SIZE",
     "SESSION_CACHE_TTL_MINUTES",
-    "_cleanup_expired_sessions",
-    "_evict_lru_sessions",
-    "_init_redis_client",
-    "_get_redis_key",
+    "REDIS_AVAILABLE",
     "get_session_rag_cache",
     "set_session_rag_cache",
     "clear_session_cache",
     "get_cache_stats",
-    # Internal state (for testing)
-    "REDIS_AVAILABLE",
-    "_redis_enabled",
 ]

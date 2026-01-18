@@ -14,22 +14,19 @@ import os
 
 
 class TestDataPathFunction:
-    """Tests for _get_data_path function."""
+    """Tests for data loading functions (refactored to iching package)."""
 
-    def test_get_data_path_exists(self):
-        """_get_data_path function should exist."""
-        from app.iching_rag import _get_data_path
+    def test_load_premium_data_callable(self):
+        """load_premium_data function should be callable."""
+        from app.iching_rag import load_premium_data
 
-        assert callable(_get_data_path)
+        assert callable(load_premium_data)
 
-    def test_get_data_path_returns_string(self):
-        """_get_data_path should return a string path."""
-        from app.iching_rag import _get_data_path
+    def test_load_complete_hexagram_data_callable(self):
+        """load_complete_hexagram_data function should be callable."""
+        from app.iching_rag import load_complete_hexagram_data
 
-        result = _get_data_path()
-
-        assert isinstance(result, str)
-        assert "iching" in result
+        assert callable(load_complete_hexagram_data)
 
 
 class TestLoadPremiumData:
@@ -134,31 +131,36 @@ class TestConstantsImport:
 
 
 class TestGlobalVariables:
-    """Tests for global data variables."""
+    """Tests for data loading functions (refactored to iching package)."""
 
-    def test_hexagram_data_global_exists(self):
-        """_HEXAGRAM_DATA global should exist."""
-        from app import iching_rag
+    def test_load_premium_data_returns_tuple(self):
+        """load_premium_data should return tuple of dicts."""
+        from app.iching_rag import load_premium_data
 
-        assert hasattr(iching_rag, '_HEXAGRAM_DATA')
+        result = load_premium_data()
+        assert isinstance(result, tuple)
+        assert len(result) == 2
 
-    def test_trigram_data_global_exists(self):
-        """_TRIGRAM_DATA global should exist."""
-        from app import iching_rag
+    def test_load_complete_hexagram_data_returns_dict(self):
+        """load_complete_hexagram_data should return dict."""
+        from app.iching_rag import load_complete_hexagram_data
 
-        assert hasattr(iching_rag, '_TRIGRAM_DATA')
+        result = load_complete_hexagram_data()
+        assert isinstance(result, dict)
 
-    def test_complete_hexagram_data_global_exists(self):
-        """_COMPLETE_HEXAGRAM_DATA global should exist."""
-        from app import iching_rag
+    def test_load_changing_lines_data_returns_dict(self):
+        """load_changing_lines_data should return dict."""
+        from app.iching_rag import load_changing_lines_data
 
-        assert hasattr(iching_rag, '_COMPLETE_HEXAGRAM_DATA')
+        result = load_changing_lines_data()
+        assert isinstance(result, dict)
 
-    def test_changing_lines_data_global_exists(self):
-        """_CHANGING_LINES_DATA global should exist."""
-        from app import iching_rag
+    def test_trigram_info_imported(self):
+        """TRIGRAM_INFO should be imported from iching package."""
+        from app.iching_rag import TRIGRAM_INFO
 
-        assert hasattr(iching_rag, '_CHANGING_LINES_DATA')
+        assert TRIGRAM_INFO is not None
+        assert isinstance(TRIGRAM_INFO, dict)
 
 
 class TestModuleExports:

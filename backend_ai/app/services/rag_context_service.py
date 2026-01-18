@@ -8,10 +8,127 @@ Functions:
 - expand_tarot_query: Add multilingual hints for better tarot search
 - get_fallback_tarot_queries: Generate fallback queries when search returns empty
 """
-from typing import List
+from typing import List, Tuple, Optional, Any
 import logging
 
 logger = logging.getLogger(__name__)
+
+# ============================================================================
+# Query expansion configuration
+# Each entry: (english_keywords, korean_keywords, english_hint, korean_hint, fallbacks)
+# ============================================================================
+_QUERY_MAPPINGS = [
+    {
+        "id": "business",
+        "en_keywords": ["business", "startup", "entrepreneur", "start a business", "company"],
+        "ko_keywords": ["사업", "창업", "자영업", "스타트업"],
+        "en_hint": "사업 창업",
+        "ko_hint": "business startup",
+        "fallbacks": ["business", "career"],
+    },
+    {
+        "id": "career",
+        "en_keywords": ["career", "job", "work", "promotion", "interview", "resume"],
+        "ko_keywords": ["직장", "커리어", "이직", "취업", "직무", "면접", "승진", "연봉", "업무"],
+        "en_hint": "직장 커리어 이직",
+        "ko_hint": "career job work",
+        "fallbacks": ["career", "job"],
+    },
+    {
+        "id": "love",
+        "en_keywords": ["love", "relationship", "dating", "partner", "marriage", "breakup", "ex"],
+        "ko_keywords": ["연애", "사랑", "관계", "결혼", "이별", "재회", "궁합", "썸", "짝사랑",
+                       "전남친", "전여친", "그 사람", "상대", "상대방", "마음", "호감"],
+        "en_hint": "연애 관계 결혼",
+        "ko_hint": "love relationship",
+        "fallbacks": ["love", "relationship"],
+    },
+    {
+        "id": "travel",
+        "en_keywords": ["travel", "trip", "journey", "move", "relocation", "relocate"],
+        "ko_keywords": ["여행", "이사", "이동", "출장"],
+        "en_hint": "여행 이동 이사",
+        "ko_hint": "travel move",
+        "fallbacks": ["travel", "journey"],
+    },
+    {
+        "id": "obstacle",
+        "en_keywords": ["blocking", "blockage", "stuck", "progress", "obstacle", "challenge"],
+        "ko_keywords": ["막힘", "장애물", "정체", "진전", "방해"],
+        "en_hint": "장애물 정체 성장",
+        "ko_hint": "obstacle growth",
+        "fallbacks": ["obstacle", "challenge"],
+    },
+    {
+        "id": "strength",
+        "en_keywords": ["strength", "strengths", "talent", "ability"],
+        "ko_keywords": ["강점", "장점", "재능", "능력"],
+        "en_hint": "강점 재능",
+        "ko_hint": "strength identity",
+        "fallbacks": ["strength", "identity"],
+    },
+    {
+        "id": "money",
+        "en_keywords": ["money", "finance", "financial", "invest", "investment", "stock",
+                       "stocks", "crypto", "bitcoin"],
+        "ko_keywords": ["돈", "재물", "금전", "재정", "투자", "주식", "코인", "부동산",
+                       "대출", "빚", "저축", "수입", "월급", "수익"],
+        "en_hint": "재물 돈 투자",
+        "ko_hint": "money finance investment",
+        "fallbacks": ["money", "finance"],
+    },
+    {
+        "id": "health",
+        "en_keywords": ["health", "ill", "sick", "anxiety", "stress", "depression", "mental"],
+        "ko_keywords": ["건강", "몸", "우울", "불안", "스트레스", "병", "치료", "회복", "멘탈"],
+        "en_hint": "건강 마음 불안",
+        "ko_hint": "health stress",
+        "fallbacks": ["health", "stress"],
+    },
+    {
+        "id": "decision",
+        "en_keywords": ["decision", "choice", "choose", "should i", "which", "either", "vs"],
+        "ko_keywords": ["결정", "선택", "갈림길", "할까", "될까", "타이밍", "시기", "언제"],
+        "en_hint": "선택 결정",
+        "ko_hint": "decision timing",
+        "fallbacks": ["decision", "timing"],
+    },
+    {
+        "id": "timing",
+        "en_keywords": ["timing", "when", "soon", "next", "this year", "next year"],
+        "ko_keywords": [],  # Handled by decision mapping
+        "en_hint": "타이밍 시기",
+        "ko_hint": "",
+        "fallbacks": ["timing", "when"],
+    },
+    {
+        "id": "family",
+        "en_keywords": ["family", "parents", "child", "children"],
+        "ko_keywords": ["가족", "부모", "자녀", "아이"],
+        "en_hint": "가족 관계",
+        "ko_hint": "family",
+        "fallbacks": ["family"],
+    },
+    {
+        "id": "study",
+        "en_keywords": ["study", "school", "exam", "test"],
+        "ko_keywords": ["공부", "시험", "합격", "수능", "자격증", "유학", "학업"],
+        "en_hint": "시험 공부",
+        "ko_hint": "study exam",
+        "fallbacks": ["study", "exam"],
+    },
+]
+
+# Search configuration
+_DEFAULT_TOP_K = 5
+_CONTEXT_TOP_K = 3
+_CONTEXT_MAX_CHARS = 1500
+
+
+def _match_keywords(query: str, keywords: List[str], case_sensitive: bool = False) -> bool:
+    """Check if any keyword matches in the query."""
+    check_query = query if case_sensitive else query.lower()
+    return any(k in check_query for k in keywords)
 
 
 def expand_tarot_query(query: str) -> str:
@@ -30,86 +147,16 @@ def expand_tarot_query(query: str) -> str:
     lower = query.lower()
     extras = []
 
-    # ========================================================================
-    # English to Korean hints
-    # ========================================================================
+    for mapping in _QUERY_MAPPINGS:
+        # English to Korean expansion
+        if mapping["en_keywords"] and _match_keywords(lower, mapping["en_keywords"]):
+            if mapping["en_hint"]:
+                extras.append(mapping["en_hint"])
 
-    if any(k in lower for k in ["business", "startup", "entrepreneur", "start a business", "company"]):
-        extras.append("사업 창업")
-
-    if any(k in lower for k in ["career", "job", "work", "promotion", "interview", "resume"]):
-        extras.append("직장 커리어 이직")
-
-    if any(k in lower for k in ["love", "relationship", "dating", "partner", "marriage", "breakup", "ex"]):
-        extras.append("연애 관계 결혼")
-
-    if any(k in lower for k in ["travel", "trip", "journey", "move", "relocation", "relocate"]):
-        extras.append("여행 이동 이사")
-
-    if any(k in lower for k in ["blocking", "blockage", "stuck", "progress", "obstacle", "challenge"]):
-        extras.append("장애물 정체 성장")
-
-    if any(k in lower for k in ["strength", "strengths", "talent", "ability"]):
-        extras.append("강점 재능")
-
-    if any(k in lower for k in ["money", "finance", "financial", "invest", "investment", "stock", "stocks", "crypto", "bitcoin"]):
-        extras.append("재물 돈 투자")
-
-    if any(k in lower for k in ["health", "ill", "sick", "anxiety", "stress", "depression", "mental"]):
-        extras.append("건강 마음 불안")
-
-    if any(k in lower for k in ["decision", "choice", "choose", "should i", "which", "either", "vs"]):
-        extras.append("선택 결정")
-
-    if any(k in lower for k in ["timing", "when", "soon", "next", "this year", "next year"]):
-        extras.append("타이밍 시기")
-
-    if any(k in lower for k in ["family", "parents", "child", "children"]):
-        extras.append("가족 관계")
-
-    if any(k in lower for k in ["study", "school", "exam", "test"]):
-        extras.append("시험 공부")
-
-    # ========================================================================
-    # Korean to English hints
-    # ========================================================================
-
-    if any(k in query for k in ["사업", "창업", "자영업", "스타트업"]):
-        extras.append("business startup")
-
-    if any(k in query for k in ["직장", "커리어", "이직", "취업", "직무", "면접", "승진", "연봉", "업무"]):
-        extras.append("career job work")
-
-    if any(k in query for k in ["연애", "사랑", "관계", "결혼", "이별", "재회", "궁합", "썸", "짝사랑", "전남친", "전여친", "그 사람", "상대", "상대방", "마음", "호감"]):
-        extras.append("love relationship")
-
-    if any(k in query for k in ["돈", "재물", "금전", "재정", "투자", "주식", "코인", "부동산", "대출", "빚", "저축", "수입", "월급", "수익"]):
-        extras.append("money finance investment")
-
-    if any(k in query for k in ["건강", "몸", "우울", "불안", "스트레스", "병", "치료", "회복", "멘탈"]):
-        extras.append("health stress")
-
-    if any(k in query for k in ["결정", "선택", "갈림길", "할까", "될까", "타이밍", "시기", "언제"]):
-        extras.append("decision timing")
-
-    if any(k in query for k in ["여행", "이사", "이동", "출장"]):
-        extras.append("travel move")
-
-    if any(k in query for k in ["강점", "장점", "재능", "능력"]):
-        extras.append("strength identity")
-
-    if any(k in query for k in ["막힘", "장애물", "정체", "진전", "방해"]):
-        extras.append("obstacle growth")
-
-    if any(k in query for k in ["가족", "부모", "자녀", "아이"]):
-        extras.append("family")
-
-    if any(k in query for k in ["공부", "시험", "합격", "수능", "자격증", "유학", "학업"]):
-        extras.append("study exam")
-
-    # ========================================================================
-    # Return
-    # ========================================================================
+        # Korean to English expansion (case-sensitive for Korean)
+        if mapping["ko_keywords"] and _match_keywords(query, mapping["ko_keywords"], case_sensitive=True):
+            if mapping["ko_hint"]:
+                extras.append(mapping["ko_hint"])
 
     if not extras:
         return query
@@ -135,87 +182,16 @@ def get_fallback_tarot_queries(query: str) -> List[str]:
     lower = query.lower()
     fallbacks = []
 
-    # ========================================================================
-    # English fallbacks
-    # ========================================================================
+    for mapping in _QUERY_MAPPINGS:
+        # Check English keywords
+        if mapping["en_keywords"] and _match_keywords(lower, mapping["en_keywords"]):
+            fallbacks.extend(mapping["fallbacks"])
 
-    if any(k in lower for k in ["business", "startup", "entrepreneur", "start a business", "company"]):
-        fallbacks.extend(["business", "career"])
+        # Check Korean keywords (case-sensitive)
+        if mapping["ko_keywords"] and _match_keywords(query, mapping["ko_keywords"], case_sensitive=True):
+            fallbacks.extend(mapping["fallbacks"])
 
-    if any(k in lower for k in ["career", "job", "work", "promotion", "interview", "resume"]):
-        fallbacks.extend(["career", "job"])
-
-    if any(k in lower for k in ["love", "relationship", "dating", "partner", "marriage", "breakup", "ex"]):
-        fallbacks.extend(["love", "relationship"])
-
-    if any(k in lower for k in ["money", "finance", "financial", "invest", "investment", "stock", "stocks", "crypto", "bitcoin"]):
-        fallbacks.extend(["money", "finance"])
-
-    if any(k in lower for k in ["health", "ill", "sick", "anxiety", "stress", "depression", "mental"]):
-        fallbacks.extend(["health", "stress"])
-
-    if any(k in lower for k in ["decision", "choice", "choose", "should i", "which", "either", "vs"]):
-        fallbacks.extend(["decision", "timing"])
-
-    if any(k in lower for k in ["travel", "trip", "journey", "move", "relocation", "relocate"]):
-        fallbacks.extend(["travel", "journey"])
-
-    if any(k in lower for k in ["blocking", "blockage", "stuck", "progress", "obstacle", "challenge"]):
-        fallbacks.extend(["obstacle", "challenge"])
-
-    if any(k in lower for k in ["strength", "strengths", "talent", "ability"]):
-        fallbacks.extend(["strength", "identity"])
-
-    if any(k in lower for k in ["timing", "when", "soon", "next", "this year", "next year"]):
-        fallbacks.extend(["timing", "when"])
-
-    if any(k in lower for k in ["family", "parents", "child", "children"]):
-        fallbacks.extend(["family"])
-
-    if any(k in lower for k in ["study", "school", "exam", "test"]):
-        fallbacks.extend(["study", "exam"])
-
-    # ========================================================================
-    # Korean fallbacks
-    # ========================================================================
-
-    if any(k in query for k in ["사업", "창업", "자영업", "스타트업"]):
-        fallbacks.extend(["business", "career"])
-
-    if any(k in query for k in ["직장", "커리어", "이직", "취업", "직무", "면접", "승진", "연봉", "업무"]):
-        fallbacks.extend(["career", "job"])
-
-    if any(k in query for k in ["연애", "사랑", "관계", "결혼", "이별", "재회", "궁합", "썸", "짝사랑", "전남친", "전여친", "그 사람", "상대", "상대방", "마음", "호감"]):
-        fallbacks.extend(["love", "relationship"])
-
-    if any(k in query for k in ["돈", "재물", "금전", "재정", "투자", "주식", "코인", "부동산", "대출", "빚", "저축", "수입", "월급", "수익"]):
-        fallbacks.extend(["money", "finance"])
-
-    if any(k in query for k in ["건강", "몸", "우울", "불안", "스트레스", "병", "치료", "회복", "멘탈"]):
-        fallbacks.extend(["health", "stress"])
-
-    if any(k in query for k in ["결정", "선택", "갈림길", "할까", "될까", "타이밍", "시기", "언제"]):
-        fallbacks.extend(["decision", "timing"])
-
-    if any(k in query for k in ["여행", "이사", "이동", "출장"]):
-        fallbacks.extend(["travel", "journey"])
-
-    if any(k in query for k in ["강점", "장점", "재능", "능력"]):
-        fallbacks.extend(["strength", "identity"])
-
-    if any(k in query for k in ["막힘", "장애물", "정체", "진전", "방해"]):
-        fallbacks.extend(["obstacle", "challenge"])
-
-    if any(k in query for k in ["가족", "부모", "자녀", "아이"]):
-        fallbacks.extend(["family"])
-
-    if any(k in query for k in ["공부", "시험", "합격", "수능", "자격증", "유학", "학업"]):
-        fallbacks.extend(["study", "exam"])
-
-    # ========================================================================
     # De-duplicate while preserving order
-    # ========================================================================
-
     seen = set()
     deduped = []
     for item in fallbacks:
@@ -233,7 +209,12 @@ def get_fallback_tarot_queries(query: str) -> List[str]:
 # Convenience functions
 # ============================================================================
 
-def build_tarot_search_context(query: str, rag_instance, domain: str = "tarot", top_k: int = 5) -> tuple:
+def build_tarot_search_context(
+    query: str,
+    rag_instance: Any,
+    domain: str = "tarot",
+    top_k: int = _DEFAULT_TOP_K
+) -> Tuple[List, str, Optional[str], Optional[str]]:
     """
     Build full tarot search context with expansion and fallback.
 
@@ -251,27 +232,30 @@ def build_tarot_search_context(query: str, rag_instance, domain: str = "tarot", 
     """
     results = []
     context = ""
-    expanded_query = ""
-    fallback_query = ""
+    expanded_query = None
+    fallback_query = None
+
+    context_top_k = min(top_k, _CONTEXT_TOP_K)
 
     # Try original query
     results = rag_instance.search(domain, query, top_k=top_k)
-    context = rag_instance.get_context(domain, query, top_k=min(top_k, 3), max_chars=1500)
+    context = rag_instance.get_context(domain, query, top_k=context_top_k, max_chars=_CONTEXT_MAX_CHARS)
 
     # Try expanded query if no results
     if not results:
-        expanded_query = expand_tarot_query(query)
-        if expanded_query != query:
-            results = rag_instance.search(domain, expanded_query, top_k=top_k)
-            context = rag_instance.get_context(domain, expanded_query, top_k=min(top_k, 3), max_chars=1500)
+        expanded = expand_tarot_query(query)
+        if expanded != query:
+            expanded_query = expanded
+            results = rag_instance.search(domain, expanded, top_k=top_k)
+            context = rag_instance.get_context(domain, expanded, top_k=context_top_k, max_chars=_CONTEXT_MAX_CHARS)
 
     # Try fallback queries if still no results
     if not results:
         for candidate in get_fallback_tarot_queries(query):
             results = rag_instance.search(domain, candidate, top_k=top_k)
-            context = rag_instance.get_context(domain, candidate, top_k=min(top_k, 3), max_chars=1500)
+            context = rag_instance.get_context(domain, candidate, top_k=context_top_k, max_chars=_CONTEXT_MAX_CHARS)
             if results:
                 fallback_query = candidate
                 break
 
-    return results, context, expanded_query or None, fallback_query or None
+    return results, context, expanded_query, fallback_query

@@ -1,6 +1,6 @@
 """
 Model Loaders - Lazy loading for ML models
-Prevents OOM on limited memory environments (e.g., Railway free tier 512MB)
+Prevents OOM on limited memory environments
 """
 
 import os

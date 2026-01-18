@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Assume build context is backend_ai/ (Railway default when Dockerfile path is backend_ai/Dockerfile)
+# Assume build context is backend_ai/
 WORKDIR /app
 
 # Copy only requirements for caching
@@ -33,6 +33,6 @@ EXPOSE 8080
 ENV PYTHONPATH=/app
 
 # Start command (default to 8080 if PORT is not provided)
-# Use 1 worker with threads for memory efficiency on Railway
+# Use 1 worker with threads for memory efficiency on Fly.io
 # preload to share model memory, graceful-timeout for clean shutdown
 CMD ["sh", "-c", "gunicorn app.app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 4 --timeout 120 --graceful-timeout 30 --keep-alive 5 --preload"]

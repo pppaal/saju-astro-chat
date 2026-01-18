@@ -17,10 +17,20 @@ Used by:
 - astrology_routes.py
 """
 from datetime import datetime
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, List
 import logging
 
 logger = logging.getLogger(__name__)
+
+# ============================================================================
+# Configuration
+# ============================================================================
+_MIN_LATITUDE = -90
+_MAX_LATITUDE = 90
+_MIN_LONGITUDE = -180
+_MAX_LONGITUDE = 180
+_VALID_GENDERS = frozenset(["M", "F", "MALE", "FEMALE"])
+_DEFAULT_TIMEZONE = "Asia/Seoul"
 
 
 class BirthDataService:
@@ -35,11 +45,11 @@ class BirthDataService:
     def normalize_birth_data(
         birth_date: str,
         birth_time: str,
-        latitude: float = None,
-        longitude: float = None,
-        timezone: str = "Asia/Seoul",
-        gender: str = None,
-        city: str = None
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        timezone: str = _DEFAULT_TIMEZONE,
+        gender: Optional[str] = None,
+        city: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Normalize and validate birth data for calculations.
@@ -58,17 +68,6 @@ class BirthDataService:
 
         Raises:
             ValueError: If data is invalid
-
-        Example:
-            >>> data = BirthDataService.normalize_birth_data(
-            ...     "1990-01-15",
-            ...     "14:30",
-            ...     latitude=37.5665,
-            ...     longitude=126.9780,
-            ...     gender="M"
-            ... )
-            >>> data["birth_datetime"]
-            datetime(1990, 1, 15, 14, 30)
         """
         # Validate date format
         try:
@@ -78,23 +77,23 @@ class BirthDataService:
 
         # Validate latitude/longitude if provided
         if latitude is not None:
-            if not -90 <= latitude <= 90:
-                raise ValueError(f"Invalid latitude: {latitude} (must be -90 to 90)")
+            if not _MIN_LATITUDE <= latitude <= _MAX_LATITUDE:
+                raise ValueError(f"Invalid latitude: {latitude} (must be {_MIN_LATITUDE} to {_MAX_LATITUDE})")
 
         if longitude is not None:
-            if not -180 <= longitude <= 180:
-                raise ValueError(f"Invalid longitude: {longitude} (must be -180 to 180)")
+            if not _MIN_LONGITUDE <= longitude <= _MAX_LONGITUDE:
+                raise ValueError(f"Invalid longitude: {longitude} (must be {_MIN_LONGITUDE} to {_MAX_LONGITUDE})")
 
         # Validate gender if provided
         if gender is not None:
             gender = gender.strip().upper()
-            if gender not in ["M", "F", "MALE", "FEMALE"]:
+            if gender not in _VALID_GENDERS:
                 raise ValueError(f"Invalid gender: {gender} (must be M/F/Male/Female)")
             # Normalize to M/F
             gender = "M" if gender in ["M", "MALE"] else "F"
 
         # Build normalized result
-        result = {
+        result: Dict[str, Any] = {
             "birth_date": birth_date,
             "birth_time": birth_time,
             "birth_datetime": birth_datetime,
@@ -150,11 +149,6 @@ class BirthDataService:
 
         Returns:
             Tuple of (is_valid, error_message)
-
-        Example:
-            >>> valid, error = BirthDataService.validate_coordinates(37.5, 126.9)
-            >>> valid
-            True
         """
         if latitude is None or longitude is None:
             return False, "Latitude and longitude are required"
@@ -165,11 +159,11 @@ class BirthDataService:
         except (ValueError, TypeError):
             return False, "Latitude and longitude must be numbers"
 
-        if not -90 <= lat <= 90:
-            return False, f"Invalid latitude: {lat} (must be -90 to 90)"
+        if not _MIN_LATITUDE <= lat <= _MAX_LATITUDE:
+            return False, f"Invalid latitude: {lat} (must be {_MIN_LATITUDE} to {_MAX_LATITUDE})"
 
-        if not -180 <= lon <= 180:
-            return False, f"Invalid longitude: {lon} (must be -180 to 180)"
+        if not _MIN_LONGITUDE <= lon <= _MAX_LONGITUDE:
+            return False, f"Invalid longitude: {lon} (must be {_MIN_LONGITUDE} to {_MAX_LONGITUDE})"
 
         return True, ""
 
@@ -188,11 +182,6 @@ class BirthDataService:
 
         Raises:
             ValueError: If required fields are missing or invalid
-
-        Example:
-            >>> body = request.get_json()
-            >>> birth_data = BirthDataService.extract_birth_data_from_request(body)
-            >>> birth_data["birth_datetime"]
         """
         # Extract required fields
         birth_date = data.get("birth_date", "").strip()
@@ -204,7 +193,7 @@ class BirthDataService:
         # Extract optional fields
         latitude = data.get("latitude")
         longitude = data.get("longitude")
-        timezone = data.get("timezone", "Asia/Seoul").strip()
+        timezone = data.get("timezone", _DEFAULT_TIMEZONE).strip()
         gender = data.get("gender", "").strip() if data.get("gender") else None
         city = data.get("city", "").strip() if data.get("city") else None
 
@@ -231,11 +220,6 @@ class BirthDataService:
 
         Returns:
             Formatted summary string
-
-        Example:
-            >>> summary = BirthDataService.format_birth_summary(birth_data)
-            >>> summary
-            "1990-01-15 14:30 (Seoul, 37.57°N 126.98°E, Male)"
         """
         dt = birth_data.get("birth_datetime")
         if not dt:
@@ -243,14 +227,14 @@ class BirthDataService:
         else:
             dt_str = dt.strftime("%Y-%m-%d %H:%M")
 
-        parts = [dt_str]
+        parts: List[str] = [dt_str]
 
         # Add location info
         city = birth_data.get("city")
         lat = birth_data.get("latitude")
         lon = birth_data.get("longitude")
 
-        if city or (lat and lon):
+        if city or (lat is not None and lon is not None):
             location_parts = []
             if city:
                 location_parts.append(city)
@@ -271,7 +255,7 @@ class BirthDataService:
     @staticmethod
     def convert_to_utc(
         birth_datetime: datetime,
-        timezone: str = "Asia/Seoul"
+        timezone: str = _DEFAULT_TIMEZONE
     ) -> datetime:
         """
         Convert local birth time to UTC.
@@ -303,10 +287,19 @@ class BirthDataService:
 # ============================================================================
 # Convenience functions
 # ============================================================================
-
-def normalize_birth_data(*args, **kwargs) -> Dict[str, Any]:
+def normalize_birth_data(
+    birth_date: str,
+    birth_time: str,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    timezone: str = _DEFAULT_TIMEZONE,
+    gender: Optional[str] = None,
+    city: Optional[str] = None
+) -> Dict[str, Any]:
     """Convenience function for BirthDataService.normalize_birth_data()"""
-    return BirthDataService.normalize_birth_data(*args, **kwargs)
+    return BirthDataService.normalize_birth_data(
+        birth_date, birth_time, latitude, longitude, timezone, gender, city
+    )
 
 
 def extract_birth_data_from_request(data: Dict[str, Any]) -> Dict[str, Any]:

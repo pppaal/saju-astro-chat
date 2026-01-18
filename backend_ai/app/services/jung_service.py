@@ -10,32 +10,45 @@ Functions:
 - get_active_imagination_prompts(): Get active imagination exercise prompts
 - get_crisis_resources(): Get crisis intervention resources
 """
-import os
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# JUNG PSYCHOLOGY CACHE
+# JUNG PSYCHOLOGY CONFIGURATION
 # ============================================================================
-_JUNG_DATA_CACHE = {
-    "active_imagination": None,
-    "lifespan_individuation": None,
-    "crisis_intervention": None,
-    "archetypes": None,
-    "therapeutic": None,
-    "cross_analysis": None,
-    "psychological_types": None,
-    "alchemy": None,
-    "counseling_scenarios": None,
-    "integrated_counseling": None,
-    "counseling_prompts": None,
-    "personality_integration": None,
-    "expanded_counseling": None,
+_JUNG_FILES = {
+    "active_imagination": "jung_active_imagination.json",
+    "lifespan_individuation": "jung_lifespan_individuation.json",
+    "crisis_intervention": "jung_crisis_intervention.json",
+    "archetypes": "jung_archetypes.json",
+    "therapeutic": "jung_therapeutic.json",
+    "cross_analysis": "jung_cross_analysis.json",
+    "psychological_types": "jung_psychological_types.json",
+    "alchemy": "jung_alchemy.json",
+    "counseling_scenarios": "jung_counseling_scenarios.json",
+    "integrated_counseling": "jung_integrated_counseling.json",
+    "counseling_prompts": "jung_counseling_prompts.json",
+    "personality_integration": "jung_personality_integration.json",
+    "expanded_counseling": "jung_expanded_counseling.json",
 }
+
+_JUNG_DATA_CACHE: Dict[str, Dict | None] = {k: None for k in _JUNG_FILES}
+_JUNG_CACHE_LOADED = False
+
+# Age stage boundaries for lifespan individuation
+_AGE_STAGES = [
+    (12, "childhood"),
+    (22, "adolescence"),
+    (35, "early_adulthood"),
+    (55, "midlife"),
+    (70, "mature_adulthood"),
+]
+_DEFAULT_STAGE = "elder"
 
 
 def _load_jung_data() -> Dict:
@@ -48,46 +61,26 @@ def _load_jung_data() -> Dict:
     Returns:
         Dict containing all Jung psychology data
     """
-    global _JUNG_DATA_CACHE
+    global _JUNG_DATA_CACHE, _JUNG_CACHE_LOADED
 
     # Return cached data if already loaded
-    if _JUNG_DATA_CACHE.get("active_imagination") is not None:
+    if _JUNG_CACHE_LOADED:
         return _JUNG_DATA_CACHE
 
-    # Get path to jung data directory
-    jung_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),  # backend_ai/app
-        "..", "data", "graph", "rules", "jung"
-    )
-    jung_dir = os.path.abspath(jung_dir)
+    # Get path to jung data directory using pathlib
+    jung_dir = Path(__file__).parent.parent.parent / "data" / "graph" / "rules" / "jung"
 
-    files_to_load = {
-        "active_imagination": "jung_active_imagination.json",
-        "lifespan_individuation": "jung_lifespan_individuation.json",
-        "crisis_intervention": "jung_crisis_intervention.json",
-        "archetypes": "jung_archetypes.json",
-        "therapeutic": "jung_therapeutic.json",
-        "cross_analysis": "jung_cross_analysis.json",
-        "psychological_types": "jung_psychological_types.json",
-        "alchemy": "jung_alchemy.json",
-        "counseling_scenarios": "jung_counseling_scenarios.json",
-        "integrated_counseling": "jung_integrated_counseling.json",
-        "counseling_prompts": "jung_counseling_prompts.json",
-        "personality_integration": "jung_personality_integration.json",
-        "expanded_counseling": "jung_expanded_counseling.json",
-    }
-
-    for key, filename in files_to_load.items():
-        filepath = os.path.join(jung_dir, filename)
+    for key, filename in _JUNG_FILES.items():
+        filepath = jung_dir / filename
         try:
-            if os.path.exists(filepath):
-                with open(filepath, "r", encoding="utf-8") as f:
-                    _JUNG_DATA_CACHE[key] = json.load(f)
-                    logger.info(f"  Loaded Jung data: {filename}")
+            if filepath.exists():
+                _JUNG_DATA_CACHE[key] = json.loads(filepath.read_text(encoding="utf-8"))
+                logger.info(f"  Loaded Jung data: {filename}")
         except Exception as e:
             logger.warning(f"  Failed to load {filename}: {e}")
             _JUNG_DATA_CACHE[key] = {}
 
+    _JUNG_CACHE_LOADED = True
     loaded_count = sum(1 for v in _JUNG_DATA_CACHE.values() if v)
     logger.info(f"[JUNG-CACHE] Loaded {loaded_count} Jung psychology files")
     return _JUNG_DATA_CACHE
@@ -123,19 +116,12 @@ def get_lifespan_guidance(birth_year: int) -> Dict:
 
     life_stages = lifespan.get("life_stages", {})
 
-    # Determine life stage based on age
-    if age <= 12:
-        stage = "childhood"
-    elif age <= 22:
-        stage = "adolescence"
-    elif age <= 35:
-        stage = "early_adulthood"
-    elif age <= 55:
-        stage = "midlife"
-    elif age <= 70:
-        stage = "mature_adulthood"
-    else:
-        stage = "elder"
+    # Determine life stage based on age using constants
+    stage = _DEFAULT_STAGE
+    for max_age, stage_name in _AGE_STAGES:
+        if age <= max_age:
+            stage = stage_name
+            break
 
     stage_data = life_stages.get(stage, {})
 

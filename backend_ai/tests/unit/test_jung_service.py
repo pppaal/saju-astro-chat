@@ -20,6 +20,7 @@ from app.services.jung_service import (
     get_crisis_resources,
     _JUNG_DATA_CACHE,
 )
+import app.services.jung_service as jung_module
 
 
 class TestLoadJungData:
@@ -27,44 +28,48 @@ class TestLoadJungData:
 
     def setup_method(self):
         """Reset cache before each test"""
-        global _JUNG_DATA_CACHE
+        jung_module._JUNG_CACHE_LOADED = False
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
     def test_returns_cached_data_if_available(self):
         """Should return cached data without reloading files"""
-        # Pre-populate cache
+        # Pre-populate cache and mark as loaded
         _JUNG_DATA_CACHE["active_imagination"] = {"test": "data"}
         _JUNG_DATA_CACHE["lifespan_individuation"] = {"lifespan": "data"}
+        jung_module._JUNG_CACHE_LOADED = True
 
         result = _load_jung_data()
 
         assert result["active_imagination"] == {"test": "data"}
         assert result["lifespan_individuation"] == {"lifespan": "data"}
 
-    @patch("os.path.exists")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_loads_all_jung_files(self, mock_file, mock_exists):
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.read_text")
+    def test_loads_all_jung_files(self, mock_read_text, mock_exists):
         """Should attempt to load all expected Jung data files"""
         mock_exists.return_value = True
-        mock_file.return_value.read.return_value = '{"test": "data"}'
+        mock_read_text.return_value = '{"test": "data"}'
 
-        # Reset cache
+        # Reset cache and loaded flag
+        import app.services.jung_service as jung_module
+        jung_module._JUNG_CACHE_LOADED = False
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
-        with patch("json.load", return_value={"loaded": True}):
-            result = _load_jung_data()
+        result = _load_jung_data()
 
-        # Should have attempted to load multiple files
+        # Should have attempted to check if multiple files exist
         assert mock_exists.call_count >= 10
 
-    @patch("os.path.exists")
+    @patch("pathlib.Path.exists")
     def test_handles_missing_files_gracefully(self, mock_exists):
         """Should handle missing files without crashing"""
         mock_exists.return_value = False
 
-        # Reset cache
+        # Reset cache and loaded flag
+        import app.services.jung_service as jung_module
+        jung_module._JUNG_CACHE_LOADED = False
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
@@ -73,14 +78,16 @@ class TestLoadJungData:
         # Should return empty dict for missing files
         assert isinstance(result, dict)
 
-    @patch("os.path.exists")
-    @patch("builtins.open")
-    def test_handles_json_parse_errors(self, mock_file, mock_exists):
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.read_text")
+    def test_handles_json_parse_errors(self, mock_read_text, mock_exists):
         """Should handle JSON parse errors gracefully"""
         mock_exists.return_value = True
-        mock_file.side_effect = json.JSONDecodeError("test", "doc", 0)
+        mock_read_text.side_effect = json.JSONDecodeError("test", "doc", 0)
 
-        # Reset cache
+        # Reset cache and loaded flag
+        import app.services.jung_service as jung_module
+        jung_module._JUNG_CACHE_LOADED = False
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
@@ -94,7 +101,7 @@ class TestGetLifespanGuidance:
 
     def setup_method(self):
         """Reset cache and set up mock data"""
-        global _JUNG_DATA_CACHE
+        jung_module._JUNG_CACHE_LOADED = True  # Prevent actual file loading
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
@@ -278,7 +285,7 @@ class TestGetActiveImaginationPrompts:
 
     def setup_method(self):
         """Reset cache before each test"""
-        global _JUNG_DATA_CACHE
+        jung_module._JUNG_CACHE_LOADED = True  # Prevent actual file loading
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
@@ -435,7 +442,7 @@ class TestGetCrisisResources:
 
     def setup_method(self):
         """Reset cache before each test"""
-        global _JUNG_DATA_CACHE
+        jung_module._JUNG_CACHE_LOADED = True  # Prevent actual file loading
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 
@@ -544,6 +551,7 @@ class TestEdgeCases:
 
     def setup_method(self):
         """Reset cache before each test"""
+        jung_module._JUNG_CACHE_LOADED = True  # Prevent actual file loading
         for key in _JUNG_DATA_CACHE:
             _JUNG_DATA_CACHE[key] = None
 

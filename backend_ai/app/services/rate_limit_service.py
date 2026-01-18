@@ -18,37 +18,48 @@ Configuration (environment variables):
 import os
 import time
 import logging
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, List, Any
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# CONFIGURATION
+# Configuration
 # ============================================================================
-try:
-    RATE_LIMIT = int(os.getenv("API_RATE_PER_MIN", "60"))
-except ValueError:
-    RATE_LIMIT = 60
+_DEFAULT_RATE_LIMIT = 60
+_DEFAULT_WINDOW_SECONDS = 60
+_REDIS_KEY_PREFIX = "ratelimit:"
+_REDIS_SOCKET_TIMEOUT = 1
+_CLEANUP_INTERVAL = 100  # Cleanup every N requests
 
-RATE_WINDOW_SECONDS = 60
-RATE_LIMIT_PREFIX = "ratelimit:"
+
+def _get_env_int(key: str, default: int) -> int:
+    """Get integer from environment variable with fallback."""
+    try:
+        return int(os.getenv(key, default))
+    except ValueError:
+        return default
+
+
+RATE_LIMIT = _get_env_int("API_RATE_PER_MIN", _DEFAULT_RATE_LIMIT)
+RATE_WINDOW_SECONDS = _DEFAULT_WINDOW_SECONDS
 
 # ============================================================================
-# REDIS CLIENT
+# Redis Client
 # ============================================================================
 try:
     import redis
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
+    redis = None  # type: ignore
     logger.warning("[RATE-LIMIT] redis package not installed, using memory-only mode")
 
-_redis_client = None
+_redis_client: Any = None
 _redis_enabled = False
 
 
-def _init_redis_client():
+def _init_redis_client() -> None:
     """Initialize Redis client if configured."""
     global _redis_client, _redis_enabled
 
@@ -64,15 +75,15 @@ def _init_redis_client():
         _redis_client = redis.from_url(
             redis_url,
             decode_responses=True,
-            socket_timeout=1,  # Fast timeout for rate limiting
-            socket_connect_timeout=1,
+            socket_timeout=_REDIS_SOCKET_TIMEOUT,
+            socket_connect_timeout=_REDIS_SOCKET_TIMEOUT,
             retry_on_timeout=True,
         )
         _redis_client.ping()
         _redis_enabled = True
-        logger.info("[RATE-LIMIT] ✅ Redis connected for rate limiting")
+        logger.info("[RATE-LIMIT] Redis connected for rate limiting")
     except Exception as e:
-        logger.warning(f"[RATE-LIMIT] ⚠️ Redis connection failed: {e}, using memory")
+        logger.warning(f"[RATE-LIMIT] Redis connection failed: {e}, using memory")
         _redis_client = None
         _redis_enabled = False
 
@@ -81,13 +92,17 @@ def _init_redis_client():
 _init_redis_client()
 
 # ============================================================================
-# IN-MEMORY FALLBACK
+# In-Memory Fallback
 # ============================================================================
-_rate_state: Dict[str, list] = defaultdict(list)
+_rate_state: Dict[str, List[float]] = defaultdict(list)
 _cleanup_counter = 0
 
 
-def _memory_check_rate(client_id: str, limit: int = None, window: int = None) -> Tuple[bool, Optional[float]]:
+def _memory_check_rate(
+    client_id: str,
+    limit: Optional[int] = None,
+    window: Optional[int] = None
+) -> Tuple[bool, Optional[float]]:
     """
     In-memory rate limiting with sliding window.
 
@@ -110,9 +125,9 @@ def _memory_check_rate(client_id: str, limit: int = None, window: int = None) ->
     timestamps = [t for t in _rate_state[client_id] if now - t < window]
     _rate_state[client_id] = timestamps
 
-    # Periodic cleanup of stale clients (every 100 requests)
+    # Periodic cleanup of stale clients
     _cleanup_counter += 1
-    if _cleanup_counter >= 100:
+    if _cleanup_counter >= _CLEANUP_INTERVAL:
         _cleanup_counter = 0
         stale_clients = [
             c for c, ts in _rate_state.items()
@@ -132,7 +147,11 @@ def _memory_check_rate(client_id: str, limit: int = None, window: int = None) ->
     return True, None
 
 
-def _redis_check_rate(client_id: str, limit: int = None, window: int = None) -> Tuple[bool, Optional[float]]:
+def _redis_check_rate(
+    client_id: str,
+    limit: Optional[int] = None,
+    window: Optional[int] = None
+) -> Tuple[Optional[bool], Optional[float]]:
     """
     Redis-based rate limiting using sliding window.
 
@@ -144,10 +163,10 @@ def _redis_check_rate(client_id: str, limit: int = None, window: int = None) -> 
         window: Window in seconds (default: RATE_WINDOW_SECONDS)
 
     Returns:
-        Tuple of (allowed, retry_after_seconds)
+        Tuple of (allowed, retry_after_seconds) or (None, None) for fallback
     """
     if not _redis_enabled or not _redis_client:
-        return None, None  # Signal to use fallback
+        return None, None
 
     if limit is None:
         limit = RATE_LIMIT
@@ -155,7 +174,7 @@ def _redis_check_rate(client_id: str, limit: int = None, window: int = None) -> 
         window = RATE_WINDOW_SECONDS
 
     try:
-        key = f"{RATE_LIMIT_PREFIX}{client_id}"
+        key = f"{_REDIS_KEY_PREFIX}{client_id}"
 
         # Use pipeline for atomic INCR + EXPIRE
         pipe = _redis_client.pipeline()
@@ -166,24 +185,26 @@ def _redis_check_rate(client_id: str, limit: int = None, window: int = None) -> 
         count = results[0]
 
         if count > limit:
-            # Get TTL for retry_after
             ttl = _redis_client.ttl(key)
             retry_after = ttl if ttl > 0 else window
             logger.debug(f"[RATE-LIMIT] Redis DENIED: {client_id} count={count} limit={limit}")
-            return False, retry_after
+            return False, float(retry_after)
 
         logger.debug(f"[RATE-LIMIT] Redis ALLOWED: {client_id} count={count}/{limit}")
         return True, None
 
     except Exception as e:
         logger.warning(f"[RATE-LIMIT] Redis error: {e}, using memory fallback")
-        return None, None  # Signal to use fallback
+        return None, None
 
 
+# ============================================================================
+# Public API
+# ============================================================================
 def check_rate_limit(
     client_id: str,
-    limit: int = None,
-    window: int = None
+    limit: Optional[int] = None,
+    window: Optional[int] = None
 ) -> Tuple[bool, Optional[float]]:
     """
     Check rate limit for a client.
@@ -199,23 +220,16 @@ def check_rate_limit(
         Tuple of (allowed, retry_after_seconds)
         - allowed: True if request is allowed
         - retry_after_seconds: Seconds until rate limit resets (only if not allowed)
-
-    Example:
-        allowed, retry_after = check_rate_limit(client_ip)
-        if not allowed:
-            return jsonify({"error": "rate limit"}), 429
     """
-    # Try Redis first
     if _redis_enabled:
         allowed, retry_after = _redis_check_rate(client_id, limit, window)
         if allowed is not None:
             return allowed, retry_after
 
-    # Fallback to memory
     return _memory_check_rate(client_id, limit, window)
 
 
-def get_rate_limit_status(client_id: str) -> Dict:
+def get_rate_limit_status(client_id: str) -> Dict[str, Any]:
     """
     Get current rate limit status for a client.
 
@@ -225,7 +239,7 @@ def get_rate_limit_status(client_id: str) -> Dict:
     Returns:
         Dict with count, limit, remaining, reset info
     """
-    status = {
+    status: Dict[str, Any] = {
         "client_id": client_id,
         "limit": RATE_LIMIT,
         "window_seconds": RATE_WINDOW_SECONDS,
@@ -235,7 +249,7 @@ def get_rate_limit_status(client_id: str) -> Dict:
     # Try Redis
     if _redis_enabled and _redis_client:
         try:
-            key = f"{RATE_LIMIT_PREFIX}{client_id}"
+            key = f"{_REDIS_KEY_PREFIX}{client_id}"
             count = _redis_client.get(key)
             ttl = _redis_client.ttl(key)
 
@@ -269,7 +283,7 @@ def reset_rate_limit(client_id: str) -> bool:
     # Reset Redis
     if _redis_enabled and _redis_client:
         try:
-            key = f"{RATE_LIMIT_PREFIX}{client_id}"
+            key = f"{_REDIS_KEY_PREFIX}{client_id}"
             _redis_client.delete(key)
             logger.info(f"[RATE-LIMIT] Reset Redis rate limit for {client_id}")
         except Exception as e:
@@ -283,14 +297,14 @@ def reset_rate_limit(client_id: str) -> bool:
     return True
 
 
-def get_rate_limit_stats() -> Dict:
+def get_rate_limit_stats() -> Dict[str, Any]:
     """
     Get rate limiting statistics.
 
     Returns:
         Dict with backend info and statistics
     """
-    stats = {
+    stats: Dict[str, Any] = {
         "backend": "redis" if _redis_enabled else "memory",
         "redis_enabled": _redis_enabled,
         "default_limit": RATE_LIMIT,
@@ -300,7 +314,8 @@ def get_rate_limit_stats() -> Dict:
     # Redis stats
     if _redis_enabled and _redis_client:
         try:
-            keys = _redis_client.keys(f"{RATE_LIMIT_PREFIX}*")
+            pattern = f"{_REDIS_KEY_PREFIX}*"
+            keys = _redis_client.keys(pattern)
             stats["redis_active_clients"] = len(keys) if keys else 0
         except Exception as e:
             logger.warning(f"[RATE-LIMIT] Redis stats error: {e}")
@@ -313,15 +328,14 @@ def get_rate_limit_stats() -> Dict:
 
 
 # ============================================================================
-# Convenience exports
+# Exports
 # ============================================================================
 __all__ = [
     "RATE_LIMIT",
     "RATE_WINDOW_SECONDS",
+    "REDIS_AVAILABLE",
     "check_rate_limit",
     "get_rate_limit_status",
     "reset_rate_limit",
     "get_rate_limit_stats",
-    "REDIS_AVAILABLE",
-    "_redis_enabled",
 ]

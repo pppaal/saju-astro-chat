@@ -243,8 +243,8 @@ class TestTarotRoutes:
         assert tarot_bp.url_prefix == '/api/tarot'
 
     def test_theme_mapping_constants(self):
-        """Theme mapping constants should be defined."""
-        from app.routers.tarot_routes import TAROT_THEME_MAPPING, TAROT_SUBTOPIC_MAPPING
+        """Theme mapping constants should be defined in tarot_constants."""
+        from app.routers.tarot_constants import TAROT_THEME_MAPPING, TAROT_SUBTOPIC_MAPPING
 
         assert isinstance(TAROT_THEME_MAPPING, dict)
         assert 'love' in TAROT_THEME_MAPPING
@@ -252,19 +252,19 @@ class TestTarotRoutes:
         assert isinstance(TAROT_SUBTOPIC_MAPPING, dict)
 
     def test_map_tarot_theme(self):
-        """_map_tarot_theme should map frontend themes to backend."""
-        from app.routers.tarot_routes import _map_tarot_theme
+        """map_tarot_theme should map frontend themes to backend."""
+        from app.routers.tarot_utils import map_tarot_theme
 
         # Direct mapping
-        theme, spread = _map_tarot_theme('love', 'three_card', '')
+        theme, spread = map_tarot_theme('love', 'three_card', '')
         assert theme == 'love'
 
         # Hyphenated mapping
-        theme, spread = _map_tarot_theme('love-relationships', 'three_card', '')
+        theme, spread = map_tarot_theme('love-relationships', 'three_card', '')
         assert theme == 'love'
 
         # Career with keyword detection
-        theme, spread = _map_tarot_theme('career', 'general', '취업하고 싶어요')
+        theme, spread = map_tarot_theme('career', 'general', '취업하고 싶어요')
         assert theme == 'career'
         assert spread == 'job_search'
 

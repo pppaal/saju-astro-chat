@@ -3,8 +3,7 @@ Unit tests for Tarot Hybrid RAG module.
 
 Tests:
 - TarotPromptBuilder class
-- Module imports
-- OpenAI availability flag
+- Module imports (refactored structure)
 """
 import pytest
 from unittest.mock import patch, MagicMock
@@ -28,120 +27,133 @@ class TestTarotPromptBuilderClass:
         assert len(TarotPromptBuilder.SYSTEM_PROMPT) > 100
 
 
-class TestOpenAIAvailabilityFlag:
-    """Tests for OPENAI_AVAILABLE flag."""
-
-    def test_openai_available_flag_exists(self):
-        """OPENAI_AVAILABLE flag should exist."""
-        from app.tarot_hybrid_rag import OPENAI_AVAILABLE
-
-        assert isinstance(OPENAI_AVAILABLE, bool)
-
-
-class TestModuleImportsFromTarotRag:
-    """Tests for imports from tarot_rag module."""
-
-    def test_get_tarot_rag_imported(self):
-        """get_tarot_rag should be imported."""
-        from app.tarot_hybrid_rag import get_tarot_rag
-
-        assert callable(get_tarot_rag)
-
-    def test_tarot_rag_imported(self):
-        """TarotRAG should be imported."""
-        from app.tarot_hybrid_rag import TarotRAG
-
-        assert TarotRAG is not None
-
-    def test_suit_meanings_imported(self):
-        """SUIT_MEANINGS should be imported."""
-        from app.tarot_hybrid_rag import SUIT_MEANINGS
-
-        assert SUIT_MEANINGS is not None
-
-
-class TestModuleImportsFromAdvancedEmbeddings:
-    """Tests for imports from tarot_advanced_embeddings module."""
-
-    def test_get_tarot_advanced_embeddings_imported(self):
-        """get_tarot_advanced_embeddings should be imported."""
-        from app.tarot_hybrid_rag import get_tarot_advanced_embeddings
-
-        assert callable(get_tarot_advanced_embeddings)
-
-    def test_tarot_advanced_embeddings_imported(self):
-        """TarotAdvancedEmbeddings should be imported."""
-        from app.tarot_hybrid_rag import TarotAdvancedEmbeddings
-
-        assert TarotAdvancedEmbeddings is not None
-
-
 class TestModuleImportsFromTarotPackage:
-    """Tests for imports from tarot package."""
+    """Tests for imports from tarot package (refactored structure)."""
 
     def test_get_pattern_engine_imported(self):
-        """get_pattern_engine should be imported."""
-        from app.tarot_hybrid_rag import get_pattern_engine
+        """get_pattern_engine should be importable from tarot package."""
+        from app.tarot import get_pattern_engine
 
         assert callable(get_pattern_engine)
 
     def test_tarot_pattern_engine_imported(self):
-        """TarotPatternEngine should be imported."""
-        from app.tarot_hybrid_rag import TarotPatternEngine
+        """TarotPatternEngine should be importable from tarot package."""
+        from app.tarot import TarotPatternEngine
 
         assert TarotPatternEngine is not None
 
     def test_get_premium_engine_imported(self):
-        """get_premium_engine should be imported."""
-        from app.tarot_hybrid_rag import get_premium_engine
+        """get_premium_engine should be importable from tarot package."""
+        from app.tarot import get_premium_engine
 
         assert callable(get_premium_engine)
 
     def test_tarot_pattern_engine_premium_imported(self):
-        """TarotPatternEnginePremium should be imported."""
-        from app.tarot_hybrid_rag import TarotPatternEnginePremium
+        """TarotPatternEnginePremium should be importable from tarot package."""
+        from app.tarot import TarotPatternEnginePremium
 
         assert TarotPatternEnginePremium is not None
 
     def test_advanced_rules_loader_imported(self):
-        """AdvancedRulesLoader should be imported."""
-        from app.tarot_hybrid_rag import AdvancedRulesLoader
+        """AdvancedRulesLoader should be importable from tarot package."""
+        from app.tarot import AdvancedRulesLoader
 
         assert AdvancedRulesLoader is not None
 
     def test_get_rules_loader_imported(self):
-        """get_rules_loader should be imported."""
-        from app.tarot_hybrid_rag import get_rules_loader
+        """get_rules_loader should be importable from tarot package."""
+        from app.tarot import get_rules_loader
 
         assert callable(get_rules_loader)
 
     def test_spread_loader_imported(self):
-        """SpreadLoader should be imported."""
-        from app.tarot_hybrid_rag import SpreadLoader
+        """SpreadLoader should be importable from tarot package."""
+        from app.tarot import SpreadLoader
 
         assert SpreadLoader is not None
 
     def test_get_spread_loader_imported(self):
-        """get_spread_loader should be imported."""
-        from app.tarot_hybrid_rag import get_spread_loader
+        """get_spread_loader should be importable from tarot package."""
+        from app.tarot import get_spread_loader
 
         assert callable(get_spread_loader)
 
 
-class TestModuleExports:
-    """Tests for module exports."""
+class TestModuleImportsFromHybridRag:
+    """Tests for imports via backward-compat tarot_hybrid_rag module."""
 
-    def test_tarot_prompt_builder_importable(self):
-        """TarotPromptBuilder should be importable."""
+    def test_tarot_prompt_builder_backward_compat(self):
+        """TarotPromptBuilder should be importable via tarot_hybrid_rag."""
         from app.tarot_hybrid_rag import TarotPromptBuilder
+
         assert TarotPromptBuilder is not None
 
-    def test_openai_available_importable(self):
-        """OPENAI_AVAILABLE should be importable."""
-        from app.tarot_hybrid_rag import OPENAI_AVAILABLE
-        assert isinstance(OPENAI_AVAILABLE, bool)
+    def test_tarot_hybrid_rag_class_importable(self):
+        """TarotHybridRAG should be importable via tarot_hybrid_rag."""
+        from app.tarot_hybrid_rag import TarotHybridRAG
 
-    def test_get_tarot_rag_importable(self):
-        """get_tarot_rag should be importable."""
-        from app.tarot_hybrid_rag import get_tarot_rag
-        assert callable(get_tarot_rag)
+        assert TarotHybridRAG is not None
+
+    def test_get_tarot_hybrid_rag_importable(self):
+        """get_tarot_hybrid_rag should be importable via tarot_hybrid_rag."""
+        from app.tarot_hybrid_rag import get_tarot_hybrid_rag
+
+        assert callable(get_tarot_hybrid_rag)
+
+
+class TestModuleExportsFromTarotPackage:
+    """Tests for module exports from tarot package."""
+
+    def test_tarot_prompt_builder_importable(self):
+        """TarotPromptBuilder should be importable from tarot package."""
+        from app.tarot import TarotPromptBuilder
+        assert TarotPromptBuilder is not None
+
+    def test_system_prompt_importable(self):
+        """SYSTEM_PROMPT should be importable from tarot package."""
+        from app.tarot import SYSTEM_PROMPT
+        assert isinstance(SYSTEM_PROMPT, str)
+
+    def test_tarot_llm_client_importable(self):
+        """TarotLLMClient should be importable from tarot package."""
+        from app.tarot import TarotLLMClient
+        assert TarotLLMClient is not None
+
+    def test_get_tarot_llm_client_importable(self):
+        """get_tarot_llm_client should be importable from tarot package."""
+        from app.tarot import get_tarot_llm_client
+        assert callable(get_tarot_llm_client)
+
+
+class TestConstantsFromTarotPackage:
+    """Tests for constants importable from tarot package."""
+
+    def test_suit_info_importable(self):
+        """SUIT_INFO should be importable from tarot package."""
+        from app.tarot import SUIT_INFO
+        assert SUIT_INFO is not None
+        assert isinstance(SUIT_INFO, dict)
+
+    def test_numerology_importable(self):
+        """NUMEROLOGY should be importable from tarot package."""
+        from app.tarot import NUMEROLOGY
+        assert NUMEROLOGY is not None
+        assert isinstance(NUMEROLOGY, dict)
+
+    def test_court_ranks_importable(self):
+        """COURT_RANKS should be importable from tarot package."""
+        from app.tarot import COURT_RANKS
+        assert COURT_RANKS is not None
+        assert isinstance(COURT_RANKS, dict)
+
+    def test_element_interactions_importable(self):
+        """ELEMENT_INTERACTIONS should be importable from tarot package."""
+        from app.tarot import ELEMENT_INTERACTIONS
+        assert ELEMENT_INTERACTIONS is not None
+        assert isinstance(ELEMENT_INTERACTIONS, dict)
+
+    def test_polarity_pairs_importable(self):
+        """POLARITY_PAIRS should be importable from tarot package."""
+        from app.tarot import POLARITY_PAIRS
+        assert POLARITY_PAIRS is not None
+        assert isinstance(POLARITY_PAIRS, list)

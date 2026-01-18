@@ -62,6 +62,33 @@ from .utils import (
     DEFAULT_MODEL,
 )
 
+# Prompts (extracted from tarot_hybrid_rag.py)
+from .prompts import (
+    TarotPromptBuilder,
+    SYSTEM_PROMPT,
+    QUICK_READING_PROMPT,
+    READING_GUIDE,
+)
+
+# LLM Client (extracted from tarot_hybrid_rag.py)
+from .llm import (
+    TarotLLMClient,
+    get_tarot_llm_client,
+    stream_tarot_response,
+)
+
+# Context Builders (extracted from tarot_hybrid_rag.py)
+from .context import (
+    ReadingContextBuilder,
+    PremiumContextBuilder,
+)
+
+# Hybrid RAG (refactored main class)
+from .hybrid_rag import (
+    TarotHybridRAG,
+    get_tarot_hybrid_rag,
+)
+
 __all__ = [
     # Constants (Tier 1-3)
     "SUIT_INFO",
@@ -104,4 +131,19 @@ __all__ = [
     "detect_best_device",
     "MODEL_OPTIONS",
     "DEFAULT_MODEL",
+    # Prompts
+    "TarotPromptBuilder",
+    "SYSTEM_PROMPT",
+    "QUICK_READING_PROMPT",
+    "READING_GUIDE",
+    # LLM Client
+    "TarotLLMClient",
+    "get_tarot_llm_client",
+    "stream_tarot_response",
+    # Context Builders
+    "ReadingContextBuilder",
+    "PremiumContextBuilder",
+    # Hybrid RAG
+    "TarotHybridRAG",
+    "get_tarot_hybrid_rag",
 ]
