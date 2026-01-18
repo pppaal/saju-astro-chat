@@ -2,31 +2,190 @@
 Theme-specific section generation for destiny-map.
 Generates detailed sections for 9 different themes.
 """
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any, Dict, List
 
+from ..builders import get_sibsin_value, normalize_day_master
 from ..data import DAY_MASTER_PROFILES, SIBSIN_MEANINGS, ZODIAC_PROFILES
-from ..builders import normalize_day_master, get_sibsin_value
+
+# ===============================================================
+# CONSTANTS
+# ===============================================================
+_SIGN_KO = {
+    "Aries": "양자리", "Taurus": "황소자리", "Gemini": "쌍둥이자리",
+    "Cancer": "게자리", "Leo": "사자자리", "Virgo": "처녀자리",
+    "Libra": "천칭자리", "Scorpio": "전갈자리", "Sagittarius": "사수자리",
+    "Capricorn": "염소자리", "Aquarius": "물병자리", "Pisces": "물고기자리"
+}
+
+_ELEMENT_KO = {"목": "목(木)", "화": "화(火)", "토": "토(土)", "금": "금(金)", "수": "수(水)"}
+
+_WEEKDAY_KO = ("월", "화", "수", "목", "금", "토", "일")
+
+_MOON_PHASES = {
+    "초승달": "새로운 시작, 계획 수립",
+    "상현달": "적극 실행, 추진력 발휘",
+    "보름달": "결실, 완성, 인간관계 활발",
+    "하현달": "정리, 휴식, 성찰"
+}
+
+# Sibsin-based weekly guides
+_WEEK_GUIDE = {
+    "식신": {"week1": "새 아이디어 떠올리기", "week2": "창작/기획 본격화", "week3": "협업 진행", "week4": "결과물 완성"},
+    "상관": {"week1": "변화 계획 세우기", "week2": "과감한 시도", "week3": "수정 보완", "week4": "새로운 방향 정리"},
+    "편재": {"week1": "기회 포착", "week2": "투자 검토", "week3": "수익 실현", "week4": "재정 점검"},
+    "정재": {"week1": "예산 수립", "week2": "안정적 수입 관리", "week3": "저축 실행", "week4": "재무 점검"},
+    "편관": {"week1": "도전 준비", "week2": "적극 추진", "week3": "난관 극복", "week4": "성과 확인"},
+    "정관": {"week1": "계획 정리", "week2": "체계적 실행", "week3": "인정받기", "week4": "책임 완수"},
+    "편인": {"week1": "학습 시작", "week2": "정보 수집", "week3": "응용 연습", "week4": "실전 적용"},
+    "정인": {"week1": "멘토 만남", "week2": "조언 수용", "week3": "성장 체감", "week4": "감사 표현"},
+    "비견": {"week1": "동료 파악", "week2": "협업 시작", "week3": "경쟁/협력", "week4": "성과 나누기"},
+    "겁재": {"week1": "목표 설정", "week2": "과감한 도전", "week3": "리스크 관리", "week4": "결과 수용"}
+}
+
+_DEFAULT_WEEKS = {"week1": "계획 수립", "week2": "적극 실행", "week3": "조율/수정", "week4": "마무리/정리"}
+
+# Sibsin-based quarterly guides
+_QUARTER_GUIDE = {
+    "식신": {"q1": "창의적 아이디어 발굴", "q2": "프로젝트 본격화", "q3": "결과물 완성", "q4": "성과 공유 및 수입화"},
+    "상관": {"q1": "변화 계획 수립", "q2": "과감한 도전", "q3": "방향 수정", "q4": "새로운 길 확립"},
+    "편재": {"q1": "기회 탐색", "q2": "투자 결정", "q3": "수익 실현", "q4": "재투자 계획"},
+    "정재": {"q1": "연간 재정 계획", "q2": "안정적 수입 확보", "q3": "저축 강화", "q4": "자산 점검"},
+    "편관": {"q1": "목표 설정", "q2": "적극 도전", "q3": "난관 극복", "q4": "성과 확인"},
+    "정관": {"q1": "체계적 준비", "q2": "조직 내 인정", "q3": "책임 완수", "q4": "승진/보상"},
+    "편인": {"q1": "학습 계획", "q2": "전문 지식 습득", "q3": "실전 적용", "q4": "자격/경력 확보"},
+    "정인": {"q1": "멘토 찾기", "q2": "도움 받기", "q3": "성장 체감", "q4": "독립 준비"},
+    "비견": {"q1": "네트워크 구축", "q2": "협업 시작", "q3": "경쟁/협력", "q4": "성과 공유"},
+    "겁재": {"q1": "과감한 목표", "q2": "전력 투구", "q3": "리스크 관리", "q4": "결과 수용"}
+}
+
+_DEFAULT_QUARTERS = {"q1": "준비/계획", "q2": "본격 추진", "q3": "조율/보완", "q4": "결실/마무리"}
+
+# MC sign to career mapping
+_MC_CAREERS = {
+    "Aries": "리더십, 스포츠, 군/경찰, 스타트업",
+    "Taurus": "금융, 부동산, 예술, 요식업",
+    "Gemini": "미디어, 마케팅, 교육, IT",
+    "Cancer": "의료, 복지, 요식업, 상담",
+    "Leo": "엔터테인먼트, 경영, 패션, 정치",
+    "Virgo": "의료, IT, 편집, 품질관리",
+    "Libra": "법률, 외교, 디자인, 예술",
+    "Scorpio": "심리학, 수사, 금융, 연구",
+    "Sagittarius": "교육, 여행, 출판, 무역",
+    "Capricorn": "경영, 정치, 건축, 관리직",
+    "Aquarius": "IT, 과학, 사회운동, 방송",
+    "Pisces": "예술, 의료, 영성, 사회복지"
+}
+
+# Day master love compatibility (천간합)
+_DAY_MASTER_MATCH = {
+    "甲": "己(기토) - 갑기합! 서로를 완성시키는 인연",
+    "乙": "庚(경금) - 을경합! 강렬한 끌림",
+    "丙": "辛(신금) - 병신합! 열정적 만남",
+    "丁": "壬(임수) - 정임합! 깊은 교감",
+    "戊": "癸(계수) - 무계합! 안정적 인연",
+    "己": "甲(갑목) - 기갑합! 성장하는 관계",
+    "庚": "乙(을목) - 경을합! 서로 보완",
+    "辛": "丙(병화) - 신병합! 빛나는 만남",
+    "壬": "丁(정화) - 임정합! 지적 교감",
+    "癸": "戊(무토) - 계무합! 든든한 인연",
+}
+
+# Element-based family style
+_FAMILY_STYLE = {
+    "목": "성장을 돕는 부모/자녀. 교육에 관심 많고 독립심 키워줌.",
+    "화": "활기찬 가정. 함께 활동하는 시간이 중요. 때로 다툼도.",
+    "토": "안정적인 가정. 전통을 중시하고 가족 모임 챙김.",
+    "금": "원칙 있는 가정. 규율이 있지만 정이 깊음.",
+    "수": "유연한 가정. 대화가 많고 서로 존중하는 분위기.",
+}
+
+# Element-based health routine
+_HEALTH_ROUTINE = {
+    "목": {"exercise": "스트레칭, 요가, 산책", "food": "녹색 채소, 신맛 나는 음식", "caution": "스트레스, 분노 조절"},
+    "화": {"exercise": "유산소, 수영, 심호흡", "food": "쓴맛, 수분 섭취", "caution": "과로, 흥분 자제"},
+    "토": {"exercise": "걷기, 등산, 규칙적 운동", "food": "규칙적 식사, 단맛 적당히", "caution": "과식, 불규칙한 식사"},
+    "금": {"exercise": "호흡 운동, 명상, 등산", "food": "매운맛 적당히, 백색 음식", "caution": "건조함, 피부 관리"},
+    "수": {"exercise": "수영, 요가, 충분한 수면", "food": "검은 음식, 짠맛 적당히", "caution": "냉증, 과로 피하기"},
+}
+_DEFAULT_HEALTH_ROUTINE = {"exercise": "균형 잡힌 운동", "food": "균형 식단", "caution": "무리하지 않기"}
+
+# Element organs mapping (KO + EN)
+_ELEMENT_ORGANS = {
+    "wood": "간/담낭", "fire": "심장/소장", "earth": "위장/비장",
+    "metal": "폐/대장", "water": "신장/방광",
+    "목": "간/담낭", "화": "심장/소장", "토": "위장/비장",
+    "금": "폐/대장", "수": "신장/방광"
+}
+
+# Sibsin easy descriptions
+_SIBSIN_EASY = {
+    "비견": "경쟁과 협력의 시기",
+    "겁재": "도전과 추진의 시기",
+    "식신": "창의력이 빛나는 시기",
+    "상관": "자유와 변화의 시기",
+    "편재": "재물 기회가 많은 시기",
+    "정재": "안정적 수입의 시기",
+    "편관": "도전과 성장의 시기",
+    "정관": "인정받는 시기",
+    "편인": "배움과 변화의 시기",
+    "정인": "도움받는 시기",
+}
+
+# Sibsin English translation
+SIBSIN_EN = {
+    "비견": "Colleague Star", "겁재": "Competitor Star",
+    "식신": "Creativity Star", "상관": "Freedom Star",
+    "편재": "Opportunity Star", "정재": "Stability Star",
+    "편관": "Challenge Star", "정관": "Recognition Star",
+    "편인": "Learning Star", "정인": "Support Star",
+}
+
+
+# ===============================================================
+# HELPER FUNCTIONS
+# ===============================================================
+def _get_planet(planets: List[Dict], name: str) -> Dict:
+    """Get planet by name from planets list."""
+    return next((p for p in planets if p.get("name") == name), {})
+
+
+def _get_moon_phase(day: int) -> str:
+    """Get moon phase based on day of month."""
+    if day < 8:
+        return "초승달"
+    if day < 15:
+        return "상현달"
+    if day < 22:
+        return "보름달"
+    return "하현달"
+
+
+def _safe_split_first(text: str, sep: str = ",", default: str = "") -> str:
+    """Safely get first item from split string."""
+    if not text:
+        return default
+    parts = text.split(sep)
+    return parts[0].strip() if parts else default
+
 
 def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") -> List[Dict[str, Any]]:
-    """Generate theme-specific sections for 9 themes - 구체적이고 재미있는 내용!
+    """Generate theme-specific sections for 9 themes.
     Supports locale: 'ko' (Korean), 'en' (English)
     """
     is_en = locale == "en"
     day_master, day_el = normalize_day_master(saju)
     planets = astro.get("planets", [])
-    sun = next((p for p in planets if p.get("name") == "Sun"), {})
-    moon = next((p for p in planets if p.get("name") == "Moon"), {})
-    venus = next((p for p in planets if p.get("name") == "Venus"), {})
-    mars = next((p for p in planets if p.get("name") == "Mars"), {})
+    sun = _get_planet(planets, "Sun")
+    moon = _get_planet(planets, "Moon")
+    venus = _get_planet(planets, "Venus")
+    mars = _get_planet(planets, "Mars")
     mc = astro.get("mc", {})
     asc = astro.get("ascendant", {})
     sun_s, moon_s = sun.get("sign", ""), moon.get("sign", "")
     venus_s, mars_s = venus.get("sign", ""), mars.get("sign", "")
-    sign_ko = {"Aries":"양자리","Taurus":"황소자리","Gemini":"쌍둥이자리","Cancer":"게자리","Leo":"사자자리","Virgo":"처녀자리","Libra":"천칭자리","Scorpio":"전갈자리","Sagittarius":"사수자리","Capricorn":"염소자리","Aquarius":"물병자리","Pisces":"물고기자리"}
-    el_ko = {"목":"목(木)","화":"화(火)","토":"토(土)","금":"금(金)","수":"수(水)"}
     now = datetime.now()
-    dow = ["월","화","수","목","금","토","일"][now.weekday()]
+    dow = _WEEKDAY_KO[now.weekday()]
     unse = saju.get("unse", {})
     daeun = unse.get("daeun", [])
     annual = unse.get("annual", [])
@@ -138,21 +297,14 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
         month_cheon = get_sibsin_value(cur_month.get("sibsin"), "cheon", "")
 
         # 점성학 달 에너지 (문페이즈 간단 추정)
-        moon_day = now.day
-        moon_phase = "초승달" if moon_day < 8 else "상현달" if moon_day < 15 else "보름달" if moon_day < 22 else "하현달"
-        moon_energy = {
-            "초승달": "새로운 시작, 계획 수립",
-            "상현달": "적극 실행, 추진력 발휘",
-            "보름달": "결실, 완성, 인간관계 활발",
-            "하현달": "정리, 휴식, 성찰"
-        }
+        moon_phase = _get_moon_phase(now.day)
 
         return [
             {"id":"summary","icon":"☀️","title":"오늘 한줄요약","titleEn":"Summary","content":f"{dow}요일, {iljin_ganji}일 - {iljin_cheon} 에너지가 흐르는 날.\n{gwiin_msg}\n**이번 달 흐름**: {month_cheon}의 달 중 {now.day}일째"},
-            {"id":"energy","icon":"⚡","title":"오늘의 에너지","titleEn":"Energy","content":f"**사주**: {daily_tip}\n**점성**: {moon_phase} ({moon_energy.get(moon_phase, '')})\n두 시스템 모두 {'활동적인' if iljin_cheon in ['비견','겁재','식신'] else '신중한'} 에너지를 말하고 있어요!"},
+            {"id":"energy","icon":"⚡","title":"오늘의 에너지","titleEn":"Energy","content":f"**사주**: {daily_tip}\n**점성**: {moon_phase} ({_MOON_PHASES.get(moon_phase, '')})\n두 시스템 모두 {'활동적인' if iljin_cheon in ['비견','겁재','식신'] else '신중한'} 에너지를 말하고 있어요!"},
             {"id":"timing","icon":"⏰","title":"좋은 시간대","titleEn":"Best Times","content":f"**오전 9-11시**: {iljin_detail.get('career', '중요 업무 처리')}\n**오후 2-4시**: {iljin_detail.get('love', '소통과 미팅')}\n**저녁 7-9시**: 자기계발, {dm_profile.get('career_fit','').split(',')[0] if dm_profile.get('career_fit') else '관심사'} 관련 활동"},
             {"id":"action","icon":"🎯","title":"오늘 행동 가이드","titleEn":"Action","content":f"**커리어**: {today_career}\n**연애/관계**: {today_love}\n**재물**: {today_wealth}\n\n당신의 강점({dm_profile.get('strengths','').split(',')[0] if dm_profile.get('strengths') else '강점'})을 오늘 특히 발휘하세요!"},
-            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 오늘은 {iljin_cheon} 에너지 - {iljin_detail.get('meaning', '특별한 날')}\n**점성 분석**: 태양 {sign_ko.get(sun_s,sun_s)}, 달 {sign_ko.get(moon_s,moon_s)} - {zodiac_sun.get('trait','') if zodiac_sun else '당신의 본성'}\n**종합**: 일간 {day_master}({dm_profile.get('element','')})과 오늘 에너지가 {'조화로워요' if iljin_cheon in ['식신','정재','정인'] else '긴장감이 있어요'}"},
+            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 오늘은 {iljin_cheon} 에너지 - {iljin_detail.get('meaning', '특별한 날')}\n**점성 분석**: 태양 {_SIGN_KO.get(sun_s,sun_s)}, 달 {_SIGN_KO.get(moon_s,moon_s)} - {zodiac_sun.get('trait','') if zodiac_sun else '당신의 본성'}\n**종합**: 일간 {day_master}({dm_profile.get('element','')})과 오늘 에너지가 {'조화로워요' if iljin_cheon in ['식신','정재','정인'] else '긴장감이 있어요'}"},
             {"id":"reminder","icon":"💫","title":"오늘의 리마인더","titleEn":"Reminder","content":f"⚠️ {dm_profile.get('weaknesses', '과욕').split(',')[0] if dm_profile.get('weaknesses') else '주의점'} 조심!\n✅ {iljin_detail.get('timing', '오늘의 흐름을 타세요')}\n💪 긍정 에너지로 하루를 시작하면 좋은 결과가 따라와요!"}]
 
     elif theme == "fortune_monthly":
@@ -177,28 +329,16 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
         sun_trait = zodiac_sun.get("trait", "") if zodiac_sun else ""
 
         # 구체적인 주간 가이드 (십신 기반)
-        week_guide = {
-            "식신": {"week1": "새 아이디어 떠올리기", "week2": "창작/기획 본격화", "week3": "협업 진행", "week4": "결과물 완성"},
-            "상관": {"week1": "변화 계획 세우기", "week2": "과감한 시도", "week3": "수정 보완", "week4": "새로운 방향 정리"},
-            "편재": {"week1": "기회 포착", "week2": "투자 검토", "week3": "수익 실현", "week4": "재정 점검"},
-            "정재": {"week1": "예산 수립", "week2": "안정적 수입 관리", "week3": "저축 실행", "week4": "재무 점검"},
-            "편관": {"week1": "도전 준비", "week2": "적극 추진", "week3": "난관 극복", "week4": "성과 확인"},
-            "정관": {"week1": "계획 정리", "week2": "체계적 실행", "week3": "인정받기", "week4": "책임 완수"},
-            "편인": {"week1": "학습 시작", "week2": "정보 수집", "week3": "응용 연습", "week4": "실전 적용"},
-            "정인": {"week1": "멘토 만남", "week2": "조언 수용", "week3": "성장 체감", "week4": "감사 표현"},
-            "비견": {"week1": "동료 파악", "week2": "협업 시작", "week3": "경쟁/협력", "week4": "성과 나누기"},
-            "겁재": {"week1": "목표 설정", "week2": "과감한 도전", "week3": "리스크 관리", "week4": "결과 수용"}
-        }
-        weeks = week_guide.get(month_cheon, {"week1": "계획 수립", "week2": "적극 실행", "week3": "조율/수정", "week4": "마무리/정리"})
+        weeks = _WEEK_GUIDE.get(month_cheon, _DEFAULT_WEEKS)
 
         return [
             {"id":"theme","icon":"🗓️","title":"월간 한줄테마","titleEn":"Theme","content":f"{now.month}월({month_ganji}월)은 **{month_cheon}** 에너지의 달!\n\n💫 {month_info.get('meaning', '변화와 성장의 기회')}\n📊 **세운 흐름**: {annual_cheon}의 해 중 {month_cheon}의 달 - {'에너지가 일치해요!' if annual_cheon == month_cheon else '다른 에너지가 교차해요'}"},
             {"id":"career","icon":"💼","title":"이달 커리어","titleEn":"Career","content":f"**전망**: {month_info.get('career', '꾸준한 노력이 빛나는 시기')}\n**행동**: {dm_profile.get('career_fit','').split(',')[0] if dm_profile.get('career_fit') else '본업'} 관련 전문성 강화\n**주의**: {dm_profile.get('weaknesses','').split(',')[0] if dm_profile.get('weaknesses') else '과욕'} 조심"},
-            {"id":"love","icon":"💖","title":"이달 연애","titleEn":"Love","content":f"**분위기**: {month_info.get('love', '진심 어린 소통이 관계를 깊게 합니다')}\n**스타일**: 금성 {sign_ko.get(venus_s,venus_s)} - {zodiac_venus.get('love','') if zodiac_venus else '당신만의 사랑법'}\n**타이밍**: {dm_profile.get('love_timing','좋은 인연을 기다리는 중').split('.')[0] if dm_profile.get('love_timing') else '인연의 시기'}"},
+            {"id":"love","icon":"💖","title":"이달 연애","titleEn":"Love","content":f"**분위기**: {month_info.get('love', '진심 어린 소통이 관계를 깊게 합니다')}\n**스타일**: 금성 {_SIGN_KO.get(venus_s,venus_s)} - {zodiac_venus.get('love','') if zodiac_venus else '당신만의 사랑법'}\n**타이밍**: {dm_profile.get('love_timing','좋은 인연을 기다리는 중').split('.')[0] if dm_profile.get('love_timing') else '인연의 시기'}"},
             {"id":"wealth","icon":"💰","title":"이달 재물","titleEn":"Wealth","content":f"**재물운**: {month_info.get('wealth', '계획적인 지출과 저축 추천')}\n**수입 스타일**: {dm_profile.get('wealth_style','안정 추구').split('.')[0] if dm_profile.get('wealth_style') else '재물 관리'}\n**조언**: {'적극 투자 검토' if month_cheon in ['편재','편관'] else '안정적 저축 우선'}"},
             {"id":"weeks","icon":"📅","title":"주간 가이드","titleEn":"Weeks","content":f"**1주차**: {weeks['week1']}\n**2주차**: {weeks['week2']}\n**3주차**: {weeks['week3']}\n**4주차**: {weeks['week4']}\n\n💡 이번 달은 특히 {weeks['week2']} 시기가 중요해요!"},
             {"id":"nextmonth","icon":"🔮","title":"다음 달 미리보기","titleEn":"Next Month","content":f"**{now.month+1}월**: {next_month_cheon} 에너지\n{SIBSIN_MEANINGS.get(next_month_cheon, {}).get('meaning', '새로운 기회')}\n\n미리 준비하면 더 좋은 결과를 만들 수 있어요!"},
-            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 이달은 {month_cheon} 에너지 - {month_energy}\n**점성 분석**: 태양 {sign_ko.get(sun_s,sun_s)} - {sun_trait}\n**종합**: 일간 {day_master}({dm_profile.get('element','')})에게 이번 달은 {'순조로운' if month_cheon in ['식신','정재','정인'] else '도전적인'} 시기. {'적극 추진!' if month_cheon in ['비견','겁재','편재'] else '신중하게 진행!'}"},
+            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 이달은 {month_cheon} 에너지 - {month_energy}\n**점성 분석**: 태양 {_SIGN_KO.get(sun_s,sun_s)} - {sun_trait}\n**종합**: 일간 {day_master}({dm_profile.get('element','')})에게 이번 달은 {'순조로운' if month_cheon in ['식신','정재','정인'] else '도전적인'} 시기. {'적극 추진!' if month_cheon in ['비견','겁재','편재'] else '신중하게 진행!'}"},
             {"id":"reminder","icon":"💫","title":"이달의 리마인더","titleEn":"Reminder","content":f"✅ {month_info.get('timing', '이번 달의 흐름을 타세요')}\n⚠️ {dm_profile.get('weaknesses','주의사항').split(',')[0] if dm_profile.get('weaknesses') else '균형'} 유지 필요\n💪 {now.month}월을 {month_cheon} 에너지로 잘 마무리하세요!"}]
 
     elif theme == "fortune_new_year" or theme == "fortune_next_year":
@@ -220,19 +360,7 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
                 break
 
         # 구체적인 분기별 흐름 (십신 기반)
-        quarter_guide = {
-            "식신": {"q1": "창의적 아이디어 발굴", "q2": "프로젝트 본격화", "q3": "결과물 완성", "q4": "성과 공유 및 수입화"},
-            "상관": {"q1": "변화 계획 수립", "q2": "과감한 도전", "q3": "방향 수정", "q4": "새로운 길 확립"},
-            "편재": {"q1": "기회 탐색", "q2": "투자 결정", "q3": "수익 실현", "q4": "재투자 계획"},
-            "정재": {"q1": "연간 재정 계획", "q2": "안정적 수입 확보", "q3": "저축 강화", "q4": "자산 점검"},
-            "편관": {"q1": "목표 설정", "q2": "적극 도전", "q3": "난관 극복", "q4": "성과 확인"},
-            "정관": {"q1": "체계적 준비", "q2": "조직 내 인정", "q3": "책임 완수", "q4": "승진/보상"},
-            "편인": {"q1": "학습 계획", "q2": "전문 지식 습득", "q3": "실전 적용", "q4": "자격/경력 확보"},
-            "정인": {"q1": "멘토 찾기", "q2": "도움 받기", "q3": "성장 체감", "q4": "독립 준비"},
-            "비견": {"q1": "네트워크 구축", "q2": "협업 시작", "q3": "경쟁/협력", "q4": "성과 공유"},
-            "겁재": {"q1": "과감한 목표", "q2": "전력 투구", "q3": "리스크 관리", "q4": "결과 수용"}
-        }
-        quarters = quarter_guide.get(target_cheon, {"q1": "준비/계획", "q2": "본격 추진", "q3": "조율/보완", "q4": "결실/마무리"})
+        quarters = _QUARTER_GUIDE.get(target_cheon, _DEFAULT_QUARTERS)
 
         # 올해 주요 월 찾기 (같은 십신 에너지가 겹치는 달)
         key_months = []
@@ -254,25 +382,11 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
             {"id":"love","icon":"💖","title":"올해 연애","titleEn":"Love","content":f"**분위기**: {target_info.get('love', '인연의 변화가 있는 해')}{nl}**당신의 매력**: {dm_profile.get('love_style','진심 어린 사랑').split('.')[0] if dm_profile.get('love_style') else '사랑법'}{nl}**연애 시기**: {dm_profile.get('love_timing','좋은 인연').split('.')[0] if dm_profile.get('love_timing') else '인연의 때'}{nl}**주요 월**: {key_months_str} 특히 주목!"},
             {"id":"wealth","icon":"💰","title":"올해 재물","titleEn":"Wealth","content":f"**재물운**: {target_info.get('wealth', '재정 관리가 중요한 해')}{nl}**재물 스타일**: {dm_profile.get('wealth_style','').split('.')[0] if dm_profile.get('wealth_style') else '안정 추구'}{nl}**전략**: {'공격적 투자 검토' if target_cheon in ['편재','겁재'] else '안정적 축적 우선'}{nl}**주의**: {'과욕 경계' if target_cheon in ['편재','겁재'] else '기회 놓치지 않기'}"},
             {"id":"quarters","icon":"📊","title":"분기별 흐름","titleEn":"Quarters","content":f"**1분기(1-3월)**: {quarters['q1']}{nl}**2분기(4-6월)**: {quarters['q2']}{nl}**3분기(7-9월)**: {quarters['q3']}{nl}**4분기(10-12월)**: {quarters['q4']}{nl}{nl}💡 특히 2분기({quarters['q2']})가 핵심!"},
-            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: {ganji}년 {target_cheon} 에너지가 일간 {day_master}({dm_profile.get('element','')})와 만남{nl}**점성 분석**: 태양 {sign_ko.get(sun_s,sun_s)} - {zodiac_sun.get('trait','') if zodiac_sun else '본성'}{nl}**종합**: {'에너지가 조화로워 순조로운 해!' if target_cheon in ['식신','정재','정인'] else '도전적이지만 성장하는 해!'}"},
+            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: {ganji}년 {target_cheon} 에너지가 일간 {day_master}({dm_profile.get('element','')})와 만남{nl}**점성 분석**: 태양 {_SIGN_KO.get(sun_s,sun_s)} - {zodiac_sun.get('trait','') if zodiac_sun else '본성'}{nl}**종합**: {'에너지가 조화로워 순조로운 해!' if target_cheon in ['식신','정재','정인'] else '도전적이지만 성장하는 해!'}"},
             {"id":"reminder","icon":"💫","title":"연간 리마인더","titleEn":"Reminder","content":f"✅ {target_info.get('timing', '올해의 흐름을 타고 성장하세요')}{nl}⚠️ {dm_profile.get('weaknesses','').split(',')[0] if dm_profile.get('weaknesses') else '약점'} 보완 필요{nl}🎯 {target_year}년은 {target_cheon} 에너지를 활용하는 해!{nl}💪 {reminder_status}"}]
 
     elif theme == "focus_career":
         mc_s = mc.get("sign","")
-        mc_careers = {
-            "Aries": "리더십, 스포츠, 군/경찰, 스타트업",
-            "Taurus": "금융, 부동산, 예술, 요식업",
-            "Gemini": "미디어, 마케팅, 교육, IT",
-            "Cancer": "의료, 복지, 요식업, 상담",
-            "Leo": "엔터테인먼트, 경영, 패션, 정치",
-            "Virgo": "의료, IT, 편집, 품질관리",
-            "Libra": "법률, 외교, 디자인, 예술",
-            "Scorpio": "심리학, 수사, 금융, 연구",
-            "Sagittarius": "교육, 여행, 출판, 무역",
-            "Capricorn": "경영, 정치, 건축, 관리직",
-            "Aquarius": "IT, 과학, 사회운동, 방송",
-            "Pisces": "예술, 의료, 영성, 사회복지"
-        }
         career_timing = sibsin_info.get("career", "현재 운에서 커리어 기회 모색")
 
         # 대운 시기별 커리어 전망
@@ -286,12 +400,12 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
                 career_daeun.append(f"{d_age}~{d_age+9}세: 수입 증가 시기")
 
         return [
-            {"id":"summary","icon":"💼","title":"커리어 적성","titleEn":"Aptitude","content":f"**당신의 적성**: {dm_profile.get('career_fit', '다양한 분야 적성')}\n**별자리로 보면**: {mc_careers.get(mc_s, '전문 분야')} 적성"},
+            {"id":"summary","icon":"💼","title":"커리어 적성","titleEn":"Aptitude","content":f"**당신의 적성**: {dm_profile.get('career_fit', '다양한 분야 적성')}\n**별자리로 보면**: {_MC_CAREERS.get(mc_s, '전문 분야')} 적성"},
             {"id":"current","icon":"📍","title":"현재 커리어운","titleEn":"Current","content":f"**지금 시기**: {career_timing}"},
             {"id":"timing","icon":"⏰","title":"주요 시기","titleEn":"Timing","content":"\n".join(career_daeun[:3]) if career_daeun else "꾸준한 노력이 쌓이는 시기"},
             {"id":"strength","icon":"💪","title":"강점 활용","titleEn":"Strength","content":f"{dm_profile.get('strengths', '당신만의 강점')}을 살린 커리어 전략!\n{zodiac_sun.get('trait', '')} 에너지 활용"},
-            {"id":"action","icon":"🎯","title":"액션 플랜","titleEn":"Action","content":f"**단기**: 현재 역량 강화\n**중기**: 전문성 확보, 네트워크 확장\n**장기**: {mc_careers.get(mc_s, '목표 분야')} 전문가"},
-            {"id":"cross","icon":"✨","title":"동서양 종합","titleEn":"Cross","content":f"**동양**: 당신의 {dm_profile.get('element','성향')} 특성\n**서양**: {sign_ko.get(mc_s,'')} 직업 성향"},
+            {"id":"action","icon":"🎯","title":"액션 플랜","titleEn":"Action","content":f"**단기**: 현재 역량 강화\n**중기**: 전문성 확보, 네트워크 확장\n**장기**: {_MC_CAREERS.get(mc_s, '목표 분야')} 전문가"},
+            {"id":"cross","icon":"✨","title":"동서양 종합","titleEn":"Cross","content":f"**동양**: 당신의 {dm_profile.get('element','성향')} 특성\n**서양**: {_SIGN_KO.get(mc_s,'')} 직업 성향"},
             {"id":"caution","icon":"⚠️","title":"주의점","titleEn":"Caution","content":f"{dm_profile.get('weaknesses', '단점')} 경계!\n완급 조절과 협업 능력도 중요"}]
 
     elif theme == "focus_love":
@@ -306,38 +420,16 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
             elif a_sibsin in ["편관", "편재"]:
                 love_years.append(f"{a.get('year')}년: 새로운 만남 많음")
 
-        # 궁합 좋은 일간
-        good_match = {
-            "甲": "己(기토) - 갑기합! 서로를 완성시키는 인연",
-            "乙": "庚(경금) - 을경합! 강렬한 끌림",
-            "丙": "辛(신금) - 병신합! 열정적 만남",
-            "丁": "壬(임수) - 정임합! 깊은 교감",
-            "戊": "癸(계수) - 무계합! 안정적 인연",
-            "己": "甲(갑목) - 기갑합! 성장하는 관계",
-            "庚": "乙(을목) - 경을합! 서로 보완",
-            "辛": "丙(병화) - 신병합! 빛나는 만남",
-            "壬": "丁(정화) - 임정합! 지적 교감",
-            "癸": "戊(무토) - 계무합! 든든한 인연",
-        }
-
         return [
             {"id":"summary","icon":"💖","title":"연애 스타일","titleEn":"Style","content":f"**당신의 사랑법**: {dm_profile.get('love_style', '진심 어린 사랑')}\n**별자리로 보면**: {zodiac_venus.get('love', '독특한 사랑 방식')}"},
-            {"id":"ideal","icon":"👫","title":"이상형 & 궁합","titleEn":"Ideal","content":f"**이상형**: {dm_profile.get('ideal_partner', '마음이 통하는 사람')}\n**천생연분**: {good_match.get(day_master, '서로 성장하는 인연')}"},
+            {"id":"ideal","icon":"👫","title":"이상형 & 궁합","titleEn":"Ideal","content":f"**이상형**: {dm_profile.get('ideal_partner', '마음이 통하는 사람')}\n**천생연분**: {_DAY_MASTER_MATCH.get(day_master, '서로 성장하는 인연')}"},
             {"id":"timing","icon":"⏰","title":"연애 시기","titleEn":"Timing","content":f"{dm_profile.get('love_timing', '좋은 인연을 기다리는 중')}\n\n" + "\n".join(love_years[:3]) if love_years else dm_profile.get('love_timing', '좋은 인연의 시기')},
             {"id":"current","icon":"📍","title":"현재 연애운","titleEn":"Current","content":f"**지금 시기**: {sibsin_info.get('love', '연애에 변화가 있는 시기')}\n**올해**: {annual_sibsin_info.get('love', '새로운 인연을 기대해도 좋아요')}"},
             {"id":"comm","icon":"💬","title":"소통 스타일","titleEn":"Communication","content":f"**감정 표현**: {zodiac_moon.get('love', '감성적 교감')}\n감정 표현과 공감이 관계의 열쇠!"},
-            {"id":"cross","icon":"✨","title":"동서양 종합","titleEn":"Cross","content":f"**동양**: 당신의 연애 성향 분석\n**서양**: {sign_ko.get(v_s,'')} 금성이 말하는 사랑법"},
+            {"id":"cross","icon":"✨","title":"동서양 종합","titleEn":"Cross","content":f"**동양**: 당신의 연애 성향 분석\n**서양**: {_SIGN_KO.get(v_s,'')} 금성이 말하는 사랑법"},
             {"id":"advice","icon":"💝","title":"연애 조언","titleEn":"Advice","content":f"✅ {dm_profile.get('strengths', '강점').split(',')[0]} 어필하기\n⚠️ {dm_profile.get('weaknesses', '단점').split(',')[0]} 주의\n💕 상대의 입장에서 생각하기"}]
 
     elif theme == "focus_family":
-        # 가족 관계 분석
-        family_style = {
-            "목": "성장을 돕는 부모/자녀. 교육에 관심 많고 독립심 키워줌.",
-            "화": "활기찬 가정. 함께 활동하는 시간이 중요. 때로 다툼도.",
-            "토": "안정적인 가정. 전통을 중시하고 가족 모임 챙김.",
-            "금": "원칙 있는 가정. 규율이 있지만 정이 깊음.",
-            "수": "유연한 가정. 대화가 많고 서로 존중하는 분위기.",
-        }
 
         # 사주 pillars로 가족 관계 분석
         pillars = saju.get("pillars", {})
@@ -406,41 +498,26 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
         }
 
         return [
-            {"id":"summary","icon":"👪","title":"가족 관계 성향","titleEn":"Style","content":f"**당신의 가정**: {family_style.get(day_el, '조화로운 가정')}\n**감정 스타일**: 달 {sign_ko.get(moon_s,moon_s)} - {zodiac_moon.get('trait', '감정의 뿌리')}\n**가정 환경**: 4하우스 {sign_ko.get(house4_sign,house4_sign)} - {house4_analysis.get(house4_sign, '특별한 가정 분위기')}"},
+            {"id":"summary","icon":"👪","title":"가족 관계 성향","titleEn":"Style","content":f"**당신의 가정**: {_FAMILY_STYLE.get(day_el, '조화로운 가정')}\n**감정 스타일**: 달 {_SIGN_KO.get(moon_s,moon_s)} - {zodiac_moon.get('trait', '감정의 뿌리')}\n**가정 환경**: 4하우스 {_SIGN_KO.get(house4_sign,house4_sign)} - {house4_analysis.get(house4_sign, '특별한 가정 분위기')}"},
             {"id":"pillars","icon":"🏛️","title":"사주 가족 구조","titleEn":"Pillars","content":f"**년주(조상/부모)**: {year_stem} - {year_analysis}\n**월주(부모 관계)**: {month_stem} {month_sibsin_cheon} - {parent_msg}\n**시주(자녀)**: {time_stem} {time_sibsin_cheon} - {children_msg}"},
             {"id":"role","icon":"🏠","title":"가정에서의 역할","titleEn":"Role","content":f"**성격**: {dm_profile.get('personality', '').split('.')[0] if dm_profile.get('personality') else '당신의 본성'}. 가정에서도 이 성향이 나타나요.\n**강점**: {dm_profile.get('strengths', '강점')}이 가족에게 힘이 됩니다.\n**역할**: 일간 {day_master} - {dm_profile.get('name','')} 특성이 가족 관계의 핵심"},
             {"id":"parent","icon":"👨‍👩‍👧","title":"부모/자녀 관계","titleEn":"Parent","content":f"**부모로서**: {children_msg.split('.')[0]}\n**자녀로서**: {parent_msg.split('.')[0]}\n**주의**: {dm_profile.get('weaknesses', '').split(',')[0] if dm_profile.get('weaknesses') else '균형'} 때문에 갈등 가능"},
-            {"id":"comm","icon":"💬","title":"소통 포인트","titleEn":"Communication","content":f"✅ 경청하고 공감 표현하기\n✅ 서로의 입장 이해하기\n✅ 달 {sign_ko.get(moon_s,moon_s)} - {zodiac_moon.get('love','감성적 소통') if zodiac_moon else '마음의 교류'}\n⚠️ {dm_profile.get('weaknesses', '단점').split(',')[0] if dm_profile.get('weaknesses') else '감정 조절'} 자제"},
+            {"id":"comm","icon":"💬","title":"소통 포인트","titleEn":"Communication","content":f"✅ 경청하고 공감 표현하기\n✅ 서로의 입장 이해하기\n✅ 달 {_SIGN_KO.get(moon_s,moon_s)} - {zodiac_moon.get('love','감성적 소통') if zodiac_moon else '마음의 교류'}\n⚠️ {dm_profile.get('weaknesses', '단점').split(',')[0] if dm_profile.get('weaknesses') else '감정 조절'} 자제"},
             {"id":"timing","icon":"⏰","title":"가정 관련 시기","titleEn":"Timing","content":f"**현재 대운**: {cur_cheon} - {SIBSIN_MEANINGS.get(cur_cheon, {}).get('meaning', '가정에 집중하기 좋은 때')}\n**올해**: {annual_cheon} - {annual_sibsin_info.get('meaning', '가족과의 시간')}\n**특징**: {'가족 관계가 중요한 시기' if cur_cheon in ['정인','식신'] else '독립과 가족의 균형'}"},
-            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 월주 {month_sibsin_cheon} - {parent_msg.split('.')[0]}\n**점성 분석**: 달 {sign_ko.get(moon_s,moon_s)} + 4하우스 {sign_ko.get(house4_sign,house4_sign)}\n**종합**: 일간 {day_master}의 {dm_profile.get('element','')} 성향이 가족 관계에 {'조화롭게' if day_el in ['토','수'] else '활기차게'} 작용"},
+            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 월주 {month_sibsin_cheon} - {parent_msg.split('.')[0]}\n**점성 분석**: 달 {_SIGN_KO.get(moon_s,moon_s)} + 4하우스 {_SIGN_KO.get(house4_sign,house4_sign)}\n**종합**: 일간 {day_master}의 {dm_profile.get('element','')} 성향이 가족 관계에 {'조화롭게' if day_el in ['토','수'] else '활기차게'} 작용"},
             {"id":"advice","icon":"💝","title":"가족 관계 조언","titleEn":"Advice","content":f"✅ 함께하는 시간을 소중히!\n✅ 작은 관심과 표현이 관계를 깊게 합니다\n✅ {month_sibsin_cheon} 에너지 - {parent_msg.split('.')[0]}\n💕 {children_msg.split('.')[0]}"}]
 
     elif theme == "focus_health":
         m_s = mars.get("sign","")
-
-        # 오행별 건강 루틴
-        health_routine = {
-            "목": {"exercise": "스트레칭, 요가, 산책", "food": "녹색 채소, 신맛 나는 음식", "caution": "스트레스, 분노 조절"},
-            "화": {"exercise": "유산소, 수영, 심호흡", "food": "쓴맛, 수분 섭취", "caution": "과로, 흥분 자제"},
-            "토": {"exercise": "걷기, 등산, 규칙적 운동", "food": "규칙적 식사, 단맛 적당히", "caution": "과식, 불규칙한 식사"},
-            "금": {"exercise": "호흡 운동, 명상, 등산", "food": "매운맛 적당히, 백색 음식", "caution": "건조함, 피부 관리"},
-            "수": {"exercise": "수영, 요가, 충분한 수면", "food": "검은 음식, 짠맛 적당히", "caution": "냉증, 과로 피하기"},
-        }
-        hr = health_routine.get(day_el, {"exercise": "균형 잡힌 운동", "food": "균형 식단", "caution": "무리하지 않기"})
+        hr = _HEALTH_ROUTINE.get(day_el, _DEFAULT_HEALTH_ROUTINE)
 
         # 오행 균형으로 건강 분석
         five_elements = saju.get("fiveElements") or saju.get("facts", {}).get("fiveElements", {})
         weak_elements = [k for k, v in five_elements.items() if v == 0] if five_elements else []
         strong_elements = [k for k, v in five_elements.items() if v >= 3] if five_elements else []
 
-        element_organs = {
-            "wood": "간/담낭", "fire": "심장/소장", "earth": "위장/비장",
-            "metal": "폐/대장", "water": "신장/방광",
-            "목": "간/담낭", "화": "심장/소장", "토": "위장/비장",
-            "금": "폐/대장", "수": "신장/방광"
-        }
-        weak_organs = ", ".join([element_organs.get(e, e) for e in weak_elements[:2]]) if weak_elements else "없음"
-        strong_organs = ", ".join([element_organs.get(e, e) for e in strong_elements[:1]]) if strong_elements else day_el
+        weak_organs = ", ".join([_ELEMENT_ORGANS.get(e, e) for e in weak_elements[:2]]) if weak_elements else "없음"
+        strong_organs = ", ".join([_ELEMENT_ORGANS.get(e, e) for e in strong_elements[:1]]) if strong_elements else day_el
 
         # 점성학 6하우스 (건강/일상)
         houses = astro.get("houses", [])
@@ -485,32 +562,19 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
         chiron_msg = chiron_meaning.get(chiron_sign, "자기 돌봄이 건강의 기본")
 
         return [
-            {"id":"summary","icon":"💊","title":"체질 & 건강 포인트","titleEn":"Constitution","content":f"**당신의 체질**: {dm_profile.get('health_focus', '전반적인 건강 관리')}\n**에너지 스타일**: 화성 {sign_ko.get(m_s,m_s)}\n**6하우스**: {sign_ko.get(house6_sign,house6_sign)} - {house6_health.get(house6_sign, '건강 관리 필요')}"},
+            {"id":"summary","icon":"💊","title":"체질 & 건강 포인트","titleEn":"Constitution","content":f"**당신의 체질**: {dm_profile.get('health_focus', '전반적인 건강 관리')}\n**에너지 스타일**: 화성 {_SIGN_KO.get(m_s,m_s)}\n**6하우스**: {_SIGN_KO.get(house6_sign,house6_sign)} - {house6_health.get(house6_sign, '건강 관리 필요')}"},
             {"id":"organs","icon":"🫀","title":"주의 기관","titleEn":"Organs","content":f"**일간 체질**: {dm_profile.get('health_focus', '체질에 맞는 건강 관리')}\n**취약 오행**: {weak_organs} 관리 필요\n**강한 오행**: {strong_organs} 활력의 원천"},
-            {"id":"chiron","icon":"💫","title":"카이론 - 치유 포인트","titleEn":"Chiron","content":f"**카이론 {sign_ko.get(chiron_sign,chiron_sign)}**: {chiron_msg}\n\n상처를 이해하고 받아들이면 그것이 오히려 치유의 힘이 됩니다. 당신만의 방식으로 회복하세요."},
+            {"id":"chiron","icon":"💫","title":"카이론 - 치유 포인트","titleEn":"Chiron","content":f"**카이론 {_SIGN_KO.get(chiron_sign,chiron_sign)}**: {chiron_msg}\n\n상처를 이해하고 받아들이면 그것이 오히려 치유의 힘이 됩니다. 당신만의 방식으로 회복하세요."},
             {"id":"routine","icon":"🏃","title":"추천 루틴","titleEn":"Routine","content":f"**운동**: {hr['exercise']}\n**음식**: {hr['food']}\n**주의**: {hr['caution']}\n\n{'취약 오행 ' + weak_organs + ' 보강 필요!' if weak_elements else '오행 균형 양호!'}"},
             {"id":"stress","icon":"🧘","title":"스트레스 관리","titleEn":"Stress","content":f"**스트레스 원인**: {dm_profile.get('weaknesses', '').split(',')[0] if dm_profile.get('weaknesses') else '과로'} 성향\n**해소법**: 명상, 취미 활동, {hr['exercise']}\n**정서 치유**: {chiron_msg}"},
             {"id":"timing","icon":"⏰","title":"건강 주의 시기","titleEn":"Timing","content":f"**현재 대운**: {cur_cheon} - {SIBSIN_MEANINGS.get(cur_cheon, {}).get('meaning', '건강 관리 필요')}\n**올해**: {annual_cheon} - {'활력 넘치는 해' if annual_cheon in ['비견','겁재','식신'] else '휴식 필요한 해'}\n과로 피하고 규칙적인 생활 유지!"},
-            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 일간 {day_master} {day_el} 체질 - {dm_profile.get('health_focus','').split('.')[0] if dm_profile.get('health_focus') else '건강 관리'}\n**점성 분석**: 6하우스 {sign_ko.get(house6_sign,house6_sign)} + 카이론 {sign_ko.get(chiron_sign,chiron_sign)}\n**종합**: {'취약 부위 관리 필수' if weak_elements else '전반적 건강 양호'}, {chiron_msg}"},
+            {"id":"cross","icon":"✨","title":"동서양 교차 분석","titleEn":"Cross","content":f"**사주 분석**: 일간 {day_master} {day_el} 체질 - {dm_profile.get('health_focus','').split('.')[0] if dm_profile.get('health_focus') else '건강 관리'}\n**점성 분석**: 6하우스 {_SIGN_KO.get(house6_sign,house6_sign)} + 카이론 {_SIGN_KO.get(chiron_sign,chiron_sign)}\n**종합**: {'취약 부위 관리 필수' if weak_elements else '전반적 건강 양호'}, {chiron_msg}"},
             {"id":"reminder","icon":"💫","title":"건강 리마인더","titleEn":"Reminder","content":f"✅ 예방이 최선! 규칙적인 생활과 적당한 운동\n✅ 충분한 수면이 건강의 기본\n⚠️ {weak_organs} 정기 검진 권장\n💪 {chiron_msg}"}]
 
     else:  # focus_overall / life
         asc_s = asc.get("sign","")
 
         # 10년 주기 운세 (쉬운 말로)
-        # 십신을 쉬운 말로 변환
-        sibsin_easy = {
-            "비견": "경쟁과 협력의 시기",
-            "겁재": "도전과 추진의 시기",
-            "식신": "창의력이 빛나는 시기",
-            "상관": "자유와 변화의 시기",
-            "편재": "재물 기회가 많은 시기",
-            "정재": "안정적 수입의 시기",
-            "편관": "도전과 성장의 시기",
-            "정관": "인정받는 시기",
-            "편인": "배움과 변화의 시기",
-            "정인": "도움받는 시기",
-        }
         daeun_forecast = []
         if daeun:
             for d in daeun[:6]:
@@ -518,7 +582,7 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
                 d_sibsin = get_sibsin_value(d.get("sibsin"), "cheon", "")
                 is_current = d_age <= user_age < d_age + 10
                 marker = "👉 " if is_current else ""
-                easy_meaning = sibsin_easy.get(d_sibsin, "변화의 시기")
+                easy_meaning = _SIBSIN_EASY.get(d_sibsin, "변화의 시기")
                 daeun_forecast.append(f"{marker}**{d_age}~{d_age+9}세**: {easy_meaning}")
         else:
             # 데이터가 없을 때 대략적인 전망
@@ -533,7 +597,7 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
 
         # 현재 10년 운세 (쉬운 말로)
         if cur_daeun:
-            cur_easy = sibsin_easy.get(cur_cheon, "변화의 시기")
+            cur_easy = _SIBSIN_EASY.get(cur_cheon, "변화의 시기")
             current_daeun_text = f"**지금 10년 운세**: {cur_easy}\n{sibsin_info.get('meaning', '새로운 기회가 찾아오는 시기입니다.')}"
         else:
             el_now = {
@@ -547,14 +611,14 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
 
         # 올해 운세 (쉬운 말로)
         if cur_annual:
-            annual_easy = sibsin_easy.get(annual_cheon, "변화")
+            annual_easy = _SIBSIN_EASY.get(annual_cheon, "변화")
             annual_text = f"**{now.year}년 운세**: {annual_easy}\n{annual_sibsin_info.get('timing', '좋은 흐름이 이어집니다.')}"
         else:
             annual_text = f"**{now.year}년**: 꾸준한 노력이 좋은 결과로 이어지는 해입니다."
 
         # 별자리 성향 텍스트 (쉬운 말로)
         if sun_s or moon_s or asc_s:
-            astro_combo = f"\n\n**별자리로 보는 성향**\n- {sign_ko.get(sun_s,'')} (핵심 성격): {zodiac_sun.get('trait', '당신다움')}\n- {sign_ko.get(moon_s,'')} (감정 스타일): {zodiac_moon.get('trait', '내면의 감성')}\n- {sign_ko.get(asc_s,'')} (첫인상): 주변에서 느끼는 당신의 이미지"
+            astro_combo = f"\n\n**별자리로 보는 성향**\n- {_SIGN_KO.get(sun_s,'')} (핵심 성격): {zodiac_sun.get('trait', '당신다움')}\n- {_SIGN_KO.get(moon_s,'')} (감정 스타일): {zodiac_moon.get('trait', '내면의 감성')}\n- {_SIGN_KO.get(asc_s,'')} (첫인상): 주변에서 느끼는 당신의 이미지"
         else:
             el_traits = {
                 "목": "봄의 기운처럼 성장과 창의성이 넘칩니다. 새로운 시작과 발전에 강합니다.",
@@ -567,7 +631,7 @@ def get_theme_sections(theme: str, saju: Dict, astro: Dict, locale: str = "ko") 
 
         # 종합 인사이트 (쉬운 말로)
         if sun_s:
-            cross_text = f"**동양+서양 성격 분석**\n\n당신은 '{type_name_ko}'의 성향과 '{sign_ko.get(sun_s,'')}' 별자리의 특성을 함께 가지고 있어요.\n\n🔮 **핵심 메시지**\n동양의 지혜와 서양의 통찰이 만나 더 깊은 이해를 제공합니다.\n성장형 에너지와 {sign_ko.get(sun_s,'')}의 특성이 조화를 이뤄요."
+            cross_text = f"**동양+서양 성격 분석**\n\n당신은 '{type_name_ko}'의 성향과 '{_SIGN_KO.get(sun_s,'')}' 별자리의 특성을 함께 가지고 있어요.\n\n🔮 **핵심 메시지**\n동양의 지혜와 서양의 통찰이 만나 더 깊은 이해를 제공합니다.\n성장형 에너지와 {_SIGN_KO.get(sun_s,'')}의 특성이 조화를 이뤄요."
         else:
             el_fusion = {
                 "목": "성장을 추구하는 에너지가 당신의 핵심입니다. 나무가 하늘을 향해 자라듯, 끊임없는 발전과 확장이 삶의 테마입니다. 새로운 아이디어와 시작에 강하며, 리더십과 창의성이 빛납니다.",

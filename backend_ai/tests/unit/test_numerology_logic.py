@@ -13,21 +13,20 @@ from unittest.mock import patch, MagicMock
 
 
 class TestDataLoading:
-    """Tests for data loading functionality."""
+    """Tests for data loading via interpreter module."""
 
-    def test_load_numerology_data_exists(self):
-        """_load_numerology_data function should exist."""
-        from app.numerology_logic import _load_numerology_data
+    def test_numerology_interpreter_exists(self):
+        """NumerologyInterpreter class should exist."""
+        from app.numerology_logic import NumerologyInterpreter
 
-        assert callable(_load_numerology_data)
+        assert NumerologyInterpreter is not None
 
-    def test_load_numerology_data_returns_dict(self):
-        """_load_numerology_data should return a dict."""
-        from app.numerology_logic import _load_numerology_data
+    def test_numerology_interpreter_callable(self):
+        """NumerologyInterpreter should be instantiable."""
+        from app.numerology_logic import NumerologyInterpreter
 
-        result = _load_numerology_data()
-
-        assert isinstance(result, dict)
+        interpreter = NumerologyInterpreter()
+        assert interpreter is not None
 
 
 class TestGetNumberInterpretation:

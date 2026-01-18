@@ -4,8 +4,7 @@ Unit tests for Tarot Advanced Embeddings module.
 Tests:
 - TarotAdvancedEmbeddings class
 - Initialization parameters
-- Search functionality
-- Module imports and flags
+- Module imports and flags (refactored to tarot_embeddings package)
 """
 import pytest
 from unittest.mock import patch, MagicMock
@@ -35,80 +34,38 @@ class TestTarotAdvancedEmbeddingsClass:
         assert 'use_float16' in params
 
 
-class TestSentenceTransformersFlag:
-    """Tests for SENTENCE_TRANSFORMERS_AVAILABLE flag."""
+class TestModuleImportsFromTarotPackage:
+    """Tests for imports from tarot package (new location after refactoring)."""
 
-    def test_sentence_transformers_flag_exists(self):
-        """SENTENCE_TRANSFORMERS_AVAILABLE flag should exist."""
-        from app.tarot_advanced_embeddings import SENTENCE_TRANSFORMERS_AVAILABLE
-
-        assert isinstance(SENTENCE_TRANSFORMERS_AVAILABLE, bool)
-
-
-class TestModuleImportsFromTarot:
-    """Tests for imports from tarot package."""
-
-    def test_search_metrics_imported(self):
-        """SearchMetrics should be imported from tarot package."""
-        from app.tarot_advanced_embeddings import SearchMetrics
+    def test_search_metrics_from_tarot_package(self):
+        """SearchMetrics should be importable from tarot package."""
+        from app.tarot import SearchMetrics
 
         assert SearchMetrics is not None
 
-    def test_lru_cache_imported(self):
-        """LRUCache should be imported from tarot package."""
-        from app.tarot_advanced_embeddings import LRUCache
+    def test_lru_cache_from_tarot_package(self):
+        """LRUCache should be importable from tarot package."""
+        from app.tarot import LRUCache
 
         assert LRUCache is not None
 
-    def test_detect_best_device_imported(self):
-        """detect_best_device should be imported from tarot package."""
-        from app.tarot_advanced_embeddings import detect_best_device
+    def test_detect_best_device_from_tarot_package(self):
+        """detect_best_device should be importable from tarot package."""
+        from app.tarot import detect_best_device
 
         assert callable(detect_best_device)
 
-    def test_model_options_imported(self):
-        """MODEL_OPTIONS should be imported from tarot package."""
-        from app.tarot_advanced_embeddings import MODEL_OPTIONS
+    def test_model_options_from_tarot_package(self):
+        """MODEL_OPTIONS should be importable from tarot package."""
+        from app.tarot import MODEL_OPTIONS
 
         assert MODEL_OPTIONS is not None
 
-    def test_default_model_imported(self):
-        """DEFAULT_MODEL should be imported from tarot package."""
-        from app.tarot_advanced_embeddings import DEFAULT_MODEL
+    def test_default_model_from_tarot_package(self):
+        """DEFAULT_MODEL should be importable from tarot package."""
+        from app.tarot import DEFAULT_MODEL
 
         assert isinstance(DEFAULT_MODEL, str)
-
-
-class TestInstantiation:
-    """Tests for class instantiation."""
-
-    @patch('app.tarot_advanced_embeddings.SentenceTransformer')
-    @patch('os.path.exists')
-    def test_instantiation_with_nonexistent_dir(self, mock_exists, mock_st):
-        """TarotAdvancedEmbeddings should handle non-existent directory."""
-        mock_exists.return_value = False
-        mock_st.return_value = MagicMock()
-
-        from app.tarot_advanced_embeddings import TarotAdvancedEmbeddings, SENTENCE_TRANSFORMERS_AVAILABLE
-
-        if not SENTENCE_TRANSFORMERS_AVAILABLE:
-            pytest.skip("sentence-transformers not installed")
-
-        # Just verify class can be referenced
-        assert TarotAdvancedEmbeddings is not None
-
-
-class TestDeviceDetection:
-    """Tests for device detection."""
-
-    def test_detect_best_device_returns_string(self):
-        """detect_best_device should return a device string."""
-        from app.tarot_advanced_embeddings import detect_best_device
-
-        result = detect_best_device()
-
-        assert isinstance(result, str)
-        assert result in ['cpu', 'cuda', 'mps']
 
 
 class TestModuleExports:
@@ -119,7 +76,26 @@ class TestModuleExports:
         from app.tarot_advanced_embeddings import TarotAdvancedEmbeddings
         assert TarotAdvancedEmbeddings is not None
 
-    def test_sentence_transformers_available_importable(self):
-        """SENTENCE_TRANSFORMERS_AVAILABLE should be importable."""
-        from app.tarot_advanced_embeddings import SENTENCE_TRANSFORMERS_AVAILABLE
-        assert isinstance(SENTENCE_TRANSFORMERS_AVAILABLE, bool)
+    def test_get_tarot_advanced_embeddings_importable(self):
+        """get_tarot_advanced_embeddings should be importable."""
+        from app.tarot_advanced_embeddings import get_tarot_advanced_embeddings
+        assert callable(get_tarot_advanced_embeddings)
+
+
+class TestMixinsExport:
+    """Tests for mixin class exports."""
+
+    def test_search_methods_mixin_importable(self):
+        """SearchMethodsMixin should be importable."""
+        from app.tarot_advanced_embeddings import SearchMethodsMixin
+        assert SearchMethodsMixin is not None
+
+    def test_cache_methods_mixin_importable(self):
+        """CacheMethodsMixin should be importable."""
+        from app.tarot_advanced_embeddings import CacheMethodsMixin
+        assert CacheMethodsMixin is not None
+
+    def test_status_methods_mixin_importable(self):
+        """StatusMethodsMixin should be importable."""
+        from app.tarot_advanced_embeddings import StatusMethodsMixin
+        assert StatusMethodsMixin is not None

@@ -1,21 +1,37 @@
-﻿# backend_ai/app/fusion_logic.py
+# backend_ai/app/fusion_logic.py
+"""
+Fusion Logic - Main AI Interpreter
 
-import os
-import sys
+Combines Saju, Astrology, Tarot with RAG and LLM for comprehensive readings.
+Supports both GPT mode (full RAG) and Template mode (fast, no memory-heavy models).
+"""
+
 import json
+import os
 import traceback
-from datetime import datetime
-from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
-sys.path.append(os.path.dirname(__file__))
+from dotenv import load_dotenv
 
-from rule_engine import RuleEngine
-from signal_extractor import extract_signals, summarize_signals, summarize_cross_signals
-from redis_cache import get_cache
-from performance_optimizer import track_performance
-from sanitizer import sanitize_user_input, sanitize_name, is_suspicious_input, validate_birth_data
-from rendering import render_template_report
+from app.performance_optimizer import track_performance
+from app.redis_cache import get_cache
+from app.rendering import render_template_report
+from app.rule_engine import RuleEngine
+from app.sanitizer import is_suspicious_input, sanitize_user_input, validate_birth_data
+from app.signal_extractor import extract_signals, summarize_cross_signals, summarize_signals
+
+# ===============================================================
+# CONSTANTS
+# ===============================================================
+_CACHE_VERSION = "v6"  # Personalized daeun meanings, remove keywords, filter 4-5 stars
+_PARALLEL_MAX_WORKERS = 8
+_PARALLEL_TASK_TIMEOUT = 5  # seconds
+_MAX_STRUCTURED_PROMPT_LENGTH = 50000
+_MAX_CONTEXT_STORAGE = 2000
+_DEFAULT_AVG_LEN = 4800
 
 # Lazy imports for memory-heavy modules (avoid OOM on memory-limited environments)
 # SentenceTransformer models use 500MB+ memory, only load when needed
@@ -118,24 +134,25 @@ except ImportError:
     print("[fusion_logic] Theme cross filter not available")
 
 # Simple in-memory stats for average length per theme
-report_memory: dict[str, dict] = {}
-
+report_memory: Dict[str, Dict[str, Any]] = {}
 
 # ===============================================================
 # ELEMENT & INTERPRETATION HELPERS
 # ===============================================================
-ELEMENT_TRAITS = {
-    "목": {"name": "Wood/목", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
-    "화": {"name": "Fire/화", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
-    "토": {"name": "Earth/토", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
-    "금": {"name": "Metal/금", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
-    "수": {"name": "Water/수", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
+# Base element data (avoid duplication between Korean and English keys)
+_ELEMENT_DATA = {
     "wood": {"name": "Wood/목", "traits": "growth, creativity, flexibility, ambition", "organ": "liver/gallbladder"},
     "fire": {"name": "Fire/화", "traits": "passion, charisma, intuition, energy", "organ": "heart/small intestine"},
     "earth": {"name": "Earth/토", "traits": "stability, nurturing, practicality, trust", "organ": "spleen/stomach"},
     "metal": {"name": "Metal/금", "traits": "discipline, precision, justice, focus", "organ": "lungs/large intestine"},
     "water": {"name": "Water/수", "traits": "wisdom, adaptability, depth, intuition", "organ": "kidneys/bladder"},
 }
+
+# Map Korean element names to English keys
+_ELEMENT_KO_MAP = {"목": "wood", "화": "fire", "토": "earth", "금": "metal", "수": "water"}
+
+# Build ELEMENT_TRAITS with both Korean and English keys
+ELEMENT_TRAITS = {**_ELEMENT_DATA, **{ko: _ELEMENT_DATA[en] for ko, en in _ELEMENT_KO_MAP.items()}}
 
 TEN_GODS_MEANING = {
     "비견": "Peer/Competitor - independence, rivalry, partnership",
@@ -157,6 +174,41 @@ ASPECT_MEANINGS = {
     "square": "사각 (Square) - friction, challenge, growth through effort",
     "sextile": "육합 (Sextile) - opportunity, cooperation, gentle support",
     "quincunx": "퀸컨스 (Quincunx) - adjustment needed, blind spots",
+}
+
+# Planet meanings for astrology interpretation
+_PLANET_MEANINGS = {
+    "Sun": "core identity, vitality, ego",
+    "Moon": "emotions, instincts, inner needs",
+    "Mercury": "communication, thinking, learning",
+    "Venus": "love, beauty, values, money",
+    "Mars": "action, drive, passion, conflict",
+    "Jupiter": "expansion, luck, wisdom, abundance",
+    "Saturn": "discipline, limits, karma, mastery",
+    "Uranus": "innovation, rebellion, sudden change",
+    "Neptune": "dreams, intuition, spirituality",
+    "Pluto": "transformation, power, rebirth",
+}
+
+# Luck cycle labels and descriptions
+_CYCLE_LABELS = {
+    "daeun": ("대운 (Great Luck)", "10-year cycle, major life phases"),
+    "annual": ("세운 (Annual Luck)", "yearly energy, current year themes"),
+    "monthly": ("월운 (Monthly)", "monthly focus, timing for actions"),
+    "iljin": ("일진 (Daily)", "daily energy, immediate timing"),
+}
+
+# Theme queries for Jung quotes
+_THEME_QUERIES = {
+    "love": "anima animus relationship projection love",
+    "career": "persona individuation achievement work",
+    "life_path": "individuation self wholeness becoming",
+    "health": "shadow integration body psyche",
+    "family": "mother father archetype complex family",
+    "spiritual": "self collective unconscious transcendence",
+    "daily": "consciousness awareness present moment",
+    "monthly": "transformation change growth cycle",
+    "wealth": "shadow projection value meaning",
 }
 
 
@@ -269,13 +321,7 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
             s_parts.append(f"  {pb}")
 
     # Luck Cycles with context
-    cycle_labels = {
-        "daeun": ("대운 (Great Luck)", "10-year cycle, major life phases"),
-        "annual": ("세운 (Annual Luck)", "yearly energy, current year themes"),
-        "monthly": ("월운 (Monthly)", "monthly focus, timing for actions"),
-        "iljin": ("일진 (Daily)", "daily energy, immediate timing"),
-    }
-    for key, (label, desc) in cycle_labels.items():
+    for key, (label, desc) in _CYCLE_LABELS.items():
         cycles = unse.get(key, [])
         if cycles:
             names = [c.get("name") or str(c) for c in cycles[:6]]
@@ -315,25 +361,13 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
     # Planets with interpretive context
     if planets:
         a_parts.append("\n[행성 위치 / Planetary Positions]")
-        planet_meanings = {
-            "Sun": "core identity, vitality, ego",
-            "Moon": "emotions, instincts, inner needs",
-            "Mercury": "communication, thinking, learning",
-            "Venus": "love, beauty, values, money",
-            "Mars": "action, drive, passion, conflict",
-            "Jupiter": "expansion, luck, wisdom, abundance",
-            "Saturn": "discipline, limits, karma, mastery",
-            "Uranus": "innovation, rebellion, sudden change",
-            "Neptune": "dreams, intuition, spirituality",
-            "Pluto": "transformation, power, rebirth",
-        }
         for p in planets[:10]:
             if isinstance(p, dict):
                 name = p.get('name', '')
                 sign = p.get('sign', '')
                 house = p.get('house', '')
                 degree = p.get('degree', '')
-                meaning = planet_meanings.get(name, 'influence')
+                meaning = _PLANET_MEANINGS.get(name, 'influence')
                 degree_str = f" at {degree}°" if degree else ""
                 a_parts.append(f"  • {name} in {sign}{degree_str} (House {house}): {meaning}")
 
@@ -419,7 +453,7 @@ def _parallel_rag_query(rag, facts_data, domain):
         print(f"[Parallel] RAG {domain} error: {e}")
         return {}
 
-def _parallel_jung_quotes(theme, locale):
+def _parallel_jung_quotes(theme: str, locale: str) -> str:
     """Thread-safe Jung quotes retrieval.
 
     NOTE: Jung quotes are used as interpretive frameworks, not direct quotes.
@@ -427,18 +461,7 @@ def _parallel_jung_quotes(theme, locale):
     """
     try:
         corpus_rag = get_corpus_rag()
-        theme_queries = {
-            "love": "anima animus relationship projection love",
-            "career": "persona individuation achievement work",
-            "life_path": "individuation self wholeness becoming",
-            "health": "shadow integration body psyche",
-            "family": "mother father archetype complex family",
-            "spiritual": "self collective unconscious transcendence",
-            "daily": "consciousness awareness present moment",
-            "monthly": "transformation change growth cycle",
-            "wealth": "shadow projection value meaning",
-        }
-        search_query = theme_queries.get(theme, "individuation self shadow integration")
+        search_query = _THEME_QUERIES.get(theme, "individuation self shadow integration")
         _, formatted_quotes = corpus_rag.get_quotes_for_interpretation(
             query=search_query, locale=locale, top_k=2
         )
@@ -527,7 +550,7 @@ def interpret_with_ai(facts: dict):
 
         if is_structured_prompt or is_frontend_v3_snapshot:
             # For structured prompts or v3.1 snapshots from frontend, allow full length (no truncation)
-            user_prompt = sanitize_user_input(raw_prompt, max_length=50000, allow_newlines=True)
+            user_prompt = sanitize_user_input(raw_prompt, max_length=_MAX_STRUCTURED_PROMPT_LENGTH, allow_newlines=True)
             if is_structured_prompt:
                 print(f"[FusionLogic] Structured JSON prompt detected (len={len(raw_prompt)})")
             if is_frontend_v3_snapshot:
@@ -567,14 +590,14 @@ def interpret_with_ai(facts: dict):
         # Check Redis cache first
         cache = get_cache()
         cache_data = {
-            "cache_version": "v6",  # 🔥 v6: Personalized daeun meanings, remove keywords, filter 4-5 stars
+            "cache_version": _CACHE_VERSION,
             "theme": theme,
             "locale": locale,
             "prompt": user_prompt,
             "saju": facts.get("saju", {}),
             "astro": facts.get("astro", {}),
             "tarot": facts.get("tarot", {}),
-            "render_mode": render_mode,  # 🔥 템플릿/GPT 모드 구분 캐시
+            "render_mode": render_mode,
         }
         cached = cache.get("fusion", cache_data)
         if cached:
@@ -632,14 +655,12 @@ def interpret_with_ai(facts: dict):
         # ====================================================================
         # GPT MODE - Full RAG processing (memory intensive)
         # ====================================================================
-        base_dir = os.path.dirname(os.path.dirname(__file__))  # .../backend_ai
         rag = get_graph_rag()  # Use singleton instead of creating new instance
 
         # PARALLEL PREPROCESSING - Run independent tasks concurrently (optimized)
-        # Increased max_workers to 8 for better parallelism
         parallel_results = {}
 
-        with ThreadPoolExecutor(max_workers=8) as executor:
+        with ThreadPoolExecutor(max_workers=_PARALLEL_MAX_WORKERS) as executor:
             futures = {
                 executor.submit(_parallel_rag_query, rag, facts.get("saju", {}), "saju"): "rag_saju",
                 executor.submit(_parallel_rag_query, rag, facts.get("astro", {}), "astro"): "rag_astro",
@@ -652,7 +673,7 @@ def interpret_with_ai(facts: dict):
             for future in as_completed(futures):
                 key = futures[future]
                 try:
-                    parallel_results[key] = future.result(timeout=5)  # Add 5s timeout per task
+                    parallel_results[key] = future.result(timeout=_PARALLEL_TASK_TIMEOUT)
                 except Exception as e:
                     print(f"[Parallel] {key} failed: {e}")
                     parallel_results[key] = None
@@ -670,8 +691,8 @@ def interpret_with_ai(facts: dict):
         print(f"[Parallel] Completed 6 tasks concurrently")
 
         # rules under backend_ai/data/graph/rules/fusion
-        rules_base = os.path.join(base_dir, "data", "graph", "rules")
-        rule_engine = RuleEngine(os.path.join(rules_base, "fusion"))
+        rules_base = Path(__file__).parent.parent / "data" / "graph" / "rules"
+        rule_engine = RuleEngine(str(rules_base / "fusion"))
 
         # Apply RLHF weights to RuleEngine before evaluation
         if HAS_RLHF:
@@ -687,8 +708,8 @@ def interpret_with_ai(facts: dict):
 
         # Persona rules (Jung/Stoic V4) - separate for modularity
         persona_eval = {"matched_rules": [], "matched_count": 0}
-        persona_rules_path = os.path.join(rules_base, "persona")
-        if os.path.exists(persona_rules_path):
+        persona_rules_path = rules_base / "persona"
+        if persona_rules_path.exists():
             try:
                 persona_engine = RuleEngine(persona_rules_path)
                 persona_eval = persona_engine.evaluate(facts, search_all=True)
@@ -830,7 +851,7 @@ def interpret_with_ai(facts: dict):
         # This section is only reached in GPT mode
 
         model = get_llm()
-        meta = report_memory.get(theme, {"avg_len": 4800, "calls": 0})
+        meta = report_memory.get(theme, {"avg_len": _DEFAULT_AVG_LEN, "calls": 0})
         prev_avg = meta["avg_len"]
 
         out = generate_fusion_report(
@@ -914,7 +935,7 @@ def interpret_with_ai(facts: dict):
                     service_type="fusion",
                     # RLHF Learning Fields - enables Few-shot selection & rule weight adjustment
                     user_prompt=user_prompt,
-                    context_used=context_text[:2000],  # Truncate for storage
+                    context_used=context_text[:_MAX_CONTEXT_STORAGE],  # Truncate for storage
                     matched_rule_ids=matched_rule_ids,
                 )
                 result["user_id"] = user_id

@@ -111,14 +111,17 @@ class TestSearchGraphs:
 
         assert callable(search_graphs)
 
-    @patch('app.saju_astro_rag.get_graph_rag')
-    def test_search_graphs_returns_list(self, mock_get_graph_rag):
+    @patch('app.saju_astro_rag._load_graph_nodes')
+    @patch('app.saju_astro_rag._latest_mtime')
+    def test_search_graphs_returns_list(self, mock_latest_mtime, mock_load_nodes):
         """search_graphs should return list."""
-        mock_rag = MagicMock()
-        mock_rag.search.return_value = []
-        mock_get_graph_rag.return_value = mock_rag
+        mock_latest_mtime.return_value = 0
+        mock_load_nodes.return_value = []
 
         from app.saju_astro_rag import search_graphs
+        import app.saju_astro_rag as module
+        # Reset cache to trigger load
+        module._NODES_CACHE = None
 
         result = search_graphs("test query")
 

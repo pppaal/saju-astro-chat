@@ -11,11 +11,23 @@ import {
   clearChartCache,
 } from '@/lib/cache/chart-cache-server';
 
+// Type for cached chart data
+type ChartData = {
+  saju?: Record<string, unknown>;
+  astro?: Record<string, unknown>;
+  advancedAstro?: Record<string, unknown>;
+};
+
+// Response type for GET endpoint
+type GetCacheResponse =
+  | { cached: false; data: null }
+  | { cached: true; data: ChartData };
+
 /**
  * GET /api/cache/chart
  * Load chart data from Redis cache
  */
-export const GET = withApiMiddleware(
+export const GET = withApiMiddleware<GetCacheResponse>(
   async (req) => {
     const { searchParams } = new URL(req.url);
 

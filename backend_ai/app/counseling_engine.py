@@ -80,9 +80,22 @@ except ImportError:
     )
 
 
-# Note: CrisisDetector, TherapeuticQuestionGenerator, JungianRAG, get_jungian_rag
-# have been moved to backend_ai/app/counseling/ package
+# ===============================================================
+# CONSTANTS
+# ===============================================================
+_THEME_KEYWORDS = {
+    "relationship": ["관계", "연애", "결혼", "이별", "사랑", "짝", "소울메이트"],
+    "career": ["직장", "일", "커리어", "취업", "이직", "사업", "돈", "재정"],
+    "family": ["가족", "부모", "자녀", "형제", "집안", "원가족"],
+    "identity": ["나", "자아", "정체성", "누구", "의미", "목적"],
+    "health": ["건강", "몸", "병", "아프", "스트레스", "불안", "우울"],
+    "spiritual": ["영혼", "영적", "종교", "명상", "꿈", "직관"],
+}
 
+
+# ===============================================================
+# EMOTIONAL MESSAGE GENERATOR
+# ===============================================================
 class EmotionalMessageGenerator:
     """감동을 주는 메시지 생성"""
 
@@ -589,17 +602,8 @@ class JungianCounselingEngine:
 
     def _detect_theme(self, text: str) -> Optional[str]:
         """텍스트에서 상담 테마 감지"""
-        theme_keywords = {
-            "relationship": ["관계", "연애", "결혼", "이별", "사랑", "짝", "소울메이트"],
-            "career": ["직장", "일", "커리어", "취업", "이직", "사업", "돈", "재정"],
-            "family": ["가족", "부모", "자녀", "형제", "집안", "원가족"],
-            "identity": ["나", "자아", "정체성", "누구", "의미", "목적"],
-            "health": ["건강", "몸", "병", "아프", "스트레스", "불안", "우울"],
-            "spiritual": ["영혼", "영적", "종교", "명상", "꿈", "직관"],
-        }
-
         text_lower = text.lower()
-        for theme, keywords in theme_keywords.items():
+        for theme, keywords in _THEME_KEYWORDS.items():
             if any(kw in text_lower for kw in keywords):
                 return theme
         return None
@@ -779,62 +783,3 @@ def get_counseling_engine() -> JungianCounselingEngine:
     if _counseling_engine is None:
         _counseling_engine = JungianCounselingEngine()
     return _counseling_engine
-
-
-# ===============================================================
-# TEST
-# ===============================================================
-if __name__ == "__main__":
-    import sys
-    if sys.platform == 'win32':
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-
-    print("=" * 70)
-    print("[JUNGIAN COUNSELING ENGINE TEST]")
-    print("=" * 70)
-
-    engine = get_counseling_engine()
-
-    # Health check
-    is_healthy, status = engine.health_check()
-    print(f"\n[Health Check] {status}")
-
-    # Crisis detection test
-    print("\n[Crisis Detection Test]")
-    test_messages = [
-        "요즘 너무 힘들어요",
-        "죽고 싶어요",
-        "희망이 없어요",
-        "그 사람이 너무 싫어요"
-    ]
-
-    for msg in test_messages:
-        result = CrisisDetector.detect_crisis(msg)
-        print(f"  '{msg[:20]}...' -> Crisis: {result['is_crisis']}, Severity: {result['max_severity']}")
-
-    # Therapeutic questions test
-    print("\n[Therapeutic Questions]")
-    print(f"  Shadow: {engine.get_therapeutic_question(question_type='shadow')}")
-    print(f"  Deepening: {engine.get_therapeutic_question(question_type='deepening')}")
-    print(f"  For Love theme: {engine.get_therapeutic_question(theme='love')}")
-
-    # Emotional messages test
-    print("\n[Emotional Messages]")
-    response = engine.get_emotional_response("슬픔", "이별")
-    print(f"  Empathy: {response['empathy']}")
-    print(f"  Hope: {response['hope']}")
-
-    # Session test
-    print("\n[Session Test]")
-    session = engine.create_session()
-    print(f"  Session created: {session.session_id}")
-
-    # Process message
-    if engine.client:
-        print("\n[Processing Message...]")
-        result = engine.process_message("요즘 인간관계가 너무 힘들어요. 왜 이렇게 외로운지 모르겠어요.", session)
-        print(f"  Response preview: {result['response'][:200]}...")
-
-    print("\n" + "=" * 70)
-    print("[TEST COMPLETE]")
-    print("=" * 70)

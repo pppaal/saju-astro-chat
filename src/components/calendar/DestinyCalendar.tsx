@@ -14,12 +14,18 @@
  * - SelectedDatePanel: Selected date detail panel
  */
 
-import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
+import DateTimePicker from "@/components/ui/DateTimePicker";
+import TimePicker from "@/components/ui/TimePicker";
 import styles from "./DestinyCalendar.module.css";
 import { logger } from "@/lib/logger";
+import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import { getUserProfile } from "@/lib/userProfile";
+import { searchCities } from "@/lib/cities";
+import tzLookup from "tz-lookup";
 
 // Modularized imports
 import type {
@@ -27,11 +33,13 @@ import type {
   ImportantDate,
   CalendarData,
   BirthInfo,
+  CityHit,
 } from './types';
 import {
   CATEGORY_EMOJI,
   WEEKDAYS_KO,
   WEEKDAYS_EN,
+  ICONS,
 } from './constants';
 import {
   getCacheKey,
@@ -43,6 +51,7 @@ import {
   getGradeEmoji,
   getCategoryLabel,
   getScoreClass,
+  extractCityPart,
 } from './utils';
 
 // Sub-components

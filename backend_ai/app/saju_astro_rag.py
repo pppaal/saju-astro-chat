@@ -10,26 +10,120 @@ Features:
 - Cached embeddings for performance
 """
 
-import os
 import csv
-import json
 import hashlib
-import torch
-import networkx as nx
-from typing import List, Dict, Optional
+import json
+import os
 from functools import lru_cache
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import networkx as nx
+import torch
 from sentence_transformers import SentenceTransformer, util
 
+# ===============================================================
+# CONSTANTS
+# ===============================================================
+_MODEL_NAME_MULTILINGUAL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+_MODEL_NAME_ENGLISH = "sentence-transformers/all-MiniLM-L6-v2"
+_DEFAULT_CPU_THREADS = 4
+_DEFAULT_BATCH_SIZE = 64
+_GRAPH_CACHE_FILE = "graph_rag_embeds.pt"
+_CORPUS_CACHE_FILE = "corpus_embeds.pt"
+
+# Node ID fields to check in order
+_NODE_ID_FIELDS = ("id", "label", "name")
+# Edge source fields to check in order
+_EDGE_SRC_FIELDS = ("src", "source", "from")
+# Edge destination fields to check in order
+_EDGE_DST_FIELDS = ("dst", "target", "to")
+# Edge relation fields to check in order
+_EDGE_REL_FIELDS = ("relation", "type")
+# Edge description fields to check in order
+_EDGE_DESC_FIELDS = ("description", "desc")
+
+# Graph folders to load
+_GRAPH_TARGET_FOLDERS = frozenset([
+    "astro_database", "cross_analysis", "saju", "rules", "fusion",
+    "astro", "saju_literary", "numerology", "dream"
+])
+
+# Saju interpretation fields
+_SAJU_INTERP_FIELDS = (
+    "personality", "wealth", "relationship", "career", "health", "advice",
+    "meaning", "effect", "interpretation"
+)
+
+# Ohaeng (Five Elements) interpretation fields
+_OHAENG_FIELDS = (
+    "nature", "personality", "interpretation", "advice", "meaning",
+    "positive", "negative", "body", "disease", "career",
+    "excessive", "deficient"
+)
+
+# Astro interpretation fields (personal planets)
+_ASTRO_CORE_FIELDS = (
+    "core", "light", "shadow", "growth", "karma", "gift",
+    "meaning", "expression", "challenge", "advice",
+    "attraction_style", "love_language", "career_drive"
+)
+
+# Astro synthesis fields (all planets + special points)
+_ASTRO_SYNTHESIS_FIELDS = (
+    # Core
+    "core", "meaning", "dynamic", "gift", "challenge", "shadow",
+    # Mars
+    "drive", "aggression", "assertion", "competition",
+    # Jupiter
+    "expansion", "luck", "growth", "faith", "excess",
+    # Saturn
+    "lesson", "restriction", "maturity", "fear", "karma",
+    # Uranus
+    "awakening", "freedom", "genius", "disruption",
+    # Neptune
+    "inspiration", "illusion", "transcendence", "creativity",
+    # Pluto
+    "transformation", "power", "obsession", "regeneration",
+    # Nodes
+    "destiny", "comfort", "integration", "mission", "comfort_zone", "south_node",
+    # Chiron
+    "wound", "healing", "teacher", "healing_path", "detailed", "pain", "wound_theme", "healing_gift",
+    # Lilith
+    "expression", "manifestations",
+    # Part of Fortune
+    "fortune", "how_to_activate", "focus", "advice",
+    # Vertex
+    "fated_theme", "fated_encounters", "trigger", "how_to_recognize",
+)
+
+# Jiji relation types
+_JIJI_RELATION_TYPES = frozenset([
+    "yukchung", "yukhab", "samhab", "banghab", "hyung", "pa", "hae", "won"
+])
+
+# Saju literary fields
+_SAJU_LITERARY_FIELDS = (
+    "core", "meaning", "light", "shadow", "psychology",
+    "life_area", "relation", "expression", "advice",
+    "career", "love", "health", "wealth", "timing"
+)
 
 # ===============================================================
 # SHARED MODEL (Singleton)
 # ===============================================================
-# Multilingual model for Korean/English mixed content
-# Fallback to English-only model if multilingual fails to load
-_MODEL_NAME_MULTILINGUAL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-_MODEL_NAME_ENGLISH = "sentence-transformers/all-MiniLM-L6-v2"
-_MODEL = None
-_MODEL_TYPE = None  # "multilingual" or "english"
+_MODEL: Optional[SentenceTransformer] = None
+_MODEL_TYPE: Optional[str] = None  # "multilingual" or "english"
+
+
+def _get_device() -> str:
+    """Determine the best device for model inference."""
+    device_pref = os.getenv("RAG_DEVICE", "auto").lower()
+    if device_pref == "cuda" and torch.cuda.is_available():
+        return "cuda"
+    if device_pref == "auto" and torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
 
 
 def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
@@ -41,50 +135,37 @@ def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
                             Supports Korean, English, Chinese, Japanese, etc.
     """
     global _MODEL, _MODEL_TYPE
-    if _MODEL is None:
-        os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-        device_pref = os.getenv("RAG_DEVICE", "auto").lower()
-        device = "cpu"
-        if device_pref == "cuda" and torch.cuda.is_available():
-            device = "cuda"
-        elif device_pref == "auto" and torch.cuda.is_available():
-            device = "cuda"
-        elif device_pref.startswith("cpu"):
-            device = "cpu"
-        if device == "cuda":
-            torch.set_default_dtype(torch.float16)
-        else:
-            torch.set_default_dtype(torch.float32)
-        # Limit CPU threads to reduce context-switch overhead on small instances
+    if _MODEL is not None:
+        return _MODEL
+
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+    device = _get_device()
+    torch.set_default_dtype(torch.float16 if device == "cuda" else torch.float32)
+
+    try:
+        torch.set_num_threads(int(os.getenv("RAG_CPU_THREADS", str(_DEFAULT_CPU_THREADS))))
+    except (ValueError, TypeError):
+        torch.set_num_threads(_DEFAULT_CPU_THREADS)
+
+    model_override = os.getenv("RAG_MODEL", "").lower()
+    use_multilingual = prefer_multilingual and model_override != "english"
+
+    if use_multilingual:
         try:
-            torch.set_num_threads(int(os.getenv("RAG_CPU_THREADS", "4")))
-        except Exception:
-            torch.set_num_threads(4)
-
-        # Check environment override
-        model_override = os.getenv("RAG_MODEL", "").lower()
-        use_multilingual = prefer_multilingual and model_override != "english"
-
-        if use_multilingual:
-            try:
-                model_name = _MODEL_NAME_MULTILINGUAL
-                print(f"[SajuAstroRAG] Loading multilingual model: {model_name}")
-                print(f"[SajuAstroRAG] Using device: {device}")
-                _MODEL = SentenceTransformer(model_name, device=device)
-                _MODEL_TYPE = "multilingual"
-                print("[SajuAstroRAG] Multilingual model loaded (ko/en/zh/ja support)")
-            except Exception as e:
-                print(f"[SajuAstroRAG] Multilingual model failed: {e}, falling back to English")
-                use_multilingual = False
-
-        if not use_multilingual or _MODEL is None:
-            model_name = _MODEL_NAME_ENGLISH
-            print(f"[SajuAstroRAG] Loading English model: {model_name}")
+            print(f"[SajuAstroRAG] Loading multilingual model: {_MODEL_NAME_MULTILINGUAL}")
             print(f"[SajuAstroRAG] Using device: {device}")
-            _MODEL = SentenceTransformer(model_name, device=device)
-            _MODEL_TYPE = "english"
-            print("[SajuAstroRAG] English model loaded successfully")
+            _MODEL = SentenceTransformer(_MODEL_NAME_MULTILINGUAL, device=device)
+            _MODEL_TYPE = "multilingual"
+            print("[SajuAstroRAG] Multilingual model loaded (ko/en/zh/ja support)")
+            return _MODEL
+        except Exception as e:
+            print(f"[SajuAstroRAG] Multilingual model failed: {e}, falling back to English")
 
+    print(f"[SajuAstroRAG] Loading English model: {_MODEL_NAME_ENGLISH}")
+    print(f"[SajuAstroRAG] Using device: {device}")
+    _MODEL = SentenceTransformer(_MODEL_NAME_ENGLISH, device=device)
+    _MODEL_TYPE = "english"
+    print("[SajuAstroRAG] English model loaded successfully")
     return _MODEL
 
 
@@ -127,6 +208,18 @@ def embed_batch(texts: List[str], batch_size: int = 16):
 
 
 # ===============================================================
+# HELPER FUNCTIONS
+# ===============================================================
+def _get_first_field(row: Dict, fields: tuple) -> Optional[str]:
+    """Get the first non-empty value from a list of field names."""
+    for field in fields:
+        val = row.get(field)
+        if val:
+            return val
+    return None
+
+
+# ===============================================================
 # GRAPH RAG CLASS (NetworkX-based)
 # ===============================================================
 class GraphRAG:
@@ -136,36 +229,29 @@ class GraphRAG:
     Now with pre-computed embedding cache for fast startup.
     """
 
-    CACHE_FILE = "graph_rag_embeds.pt"
-
-    def __init__(self, base_dir: str = None, use_cache: bool = True):
+    def __init__(self, base_dir: Optional[str] = None, use_cache: bool = True):
         if base_dir is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            base_dir = os.path.join(base_dir, "data")
-
-        base_dir = os.path.abspath(base_dir)
-        if os.path.basename(base_dir) == "graph":
-            self.graph_dir = base_dir
+            base_path = Path(__file__).parent.parent / "data"
         else:
-            self.graph_dir = os.path.join(base_dir, "graph")
+            base_path = Path(base_dir).resolve()
 
-        # Cache path
-        self.cache_path = os.path.join(self.graph_dir, self.CACHE_FILE)
+        self.graph_dir = base_path if base_path.name == "graph" else base_path / "graph"
+        self.cache_path = self.graph_dir / _GRAPH_CACHE_FILE
 
         # Rules directory
-        preferred_rules = os.path.join(self.graph_dir, "rules")
-        fallback_rules = os.path.join(base_dir, "rules")
-        self.rules_dir = preferred_rules if os.path.isdir(preferred_rules) else fallback_rules
+        preferred_rules = self.graph_dir / "rules"
+        fallback_rules = base_path / "rules"
+        self.rules_dir = preferred_rules if preferred_rules.is_dir() else fallback_rules
 
         # Initialize
         self.graph = nx.MultiDiGraph()
-        self.rules = {}
+        self.rules: Dict[str, Dict] = {}
         self.embed_model = get_model()
         self.node_embeds = None
-        self.node_texts = []
-        self.node_ids = []
+        self.node_texts: List[str] = []
+        self.node_ids: List[str] = []
 
-        if not os.path.exists(self.graph_dir):
+        if not self.graph_dir.exists():
             raise FileNotFoundError(f"[GraphRAG] Graph folder not found: {self.graph_dir}")
 
         self._load_all()
@@ -174,80 +260,63 @@ class GraphRAG:
     def _load_all(self):
         """Load all CSV nodes/edges and JSON rules."""
         # Load graph CSVs
-        for root, _, files in os.walk(self.graph_dir):
-            for file in files:
-                if not file.lower().endswith(".csv"):
-                    continue
-                path = os.path.join(root, file)
-                fixed = path + ".fixed.csv"
-                if os.path.exists(fixed):
-                    path = fixed
-                name = file.lower()
-                try:
-                    if "node" in name:
-                        self._load_nodes(path)
-                    elif any(x in name for x in ["edge", "relation", "link"]):
-                        self._load_edges(path)
-                except Exception as e:
-                    print(f"[GraphRAG] CSV load failed ({path}): {e}")
+        for csv_path in self.graph_dir.rglob("*.csv"):
+            fixed_path = csv_path.with_suffix(".csv.fixed.csv")
+            path = fixed_path if fixed_path.exists() else csv_path
+            name = csv_path.name.lower()
+            try:
+                if "node" in name:
+                    self._load_nodes(path)
+                elif any(x in name for x in ("edge", "relation", "link")):
+                    self._load_edges(path)
+            except Exception as e:
+                print(f"[GraphRAG] CSV load failed ({path}): {e}")
 
         # Load rules JSONs
-        if os.path.exists(self.rules_dir):
-            for root, _, files in os.walk(self.rules_dir):
-                for file in files:
-                    if not file.lower().endswith(".json"):
-                        continue
-                    key = os.path.splitext(file)[0]
-                    path = os.path.join(root, file)
-                    try:
-                        with open(path, encoding="utf-8") as f:
-                            loaded = json.load(f)
-                            # Accept both dict and list; wrap list for uniformity
-                            if isinstance(loaded, list):
-                                loaded = {"items": loaded}
-                            self.rules[key] = loaded
-                    except Exception as e:
-                        print(f"[GraphRAG] Rule load failed ({file}): {e}")
+        if self.rules_dir.exists():
+            for json_path in self.rules_dir.rglob("*.json"):
+                key = json_path.stem
+                try:
+                    loaded = json.loads(json_path.read_text(encoding="utf-8"))
+                    # Accept both dict and list; wrap list for uniformity
+                    if isinstance(loaded, list):
+                        loaded = {"items": loaded}
+                    self.rules[key] = loaded
+                except Exception as e:
+                    print(f"[GraphRAG] Rule load failed ({json_path.name}): {e}")
 
         print(f"[GraphRAG] Loaded {len(self.graph.nodes)} nodes, {len(self.graph.edges)} edges")
         if self.rules:
             print(f"[GraphRAG] Rules: {', '.join(sorted(self.rules.keys()))}")
 
-    def _load_nodes(self, path: str):
+    def _load_nodes(self, path: Path):
         """Load nodes from CSV."""
         with open(path, encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                node_id = row.get("id") or row.get("label") or row.get("name")
-                if not node_id:
-                    continue
-                self.graph.add_node(node_id, **row)
+            for row in csv.DictReader(f):
+                node_id = _get_first_field(row, _NODE_ID_FIELDS)
+                if node_id:
+                    self.graph.add_node(node_id, **row)
 
-    def _load_edges(self, path: str):
+    def _load_edges(self, path: Path):
         """Load edges from CSV."""
         with open(path, encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                src = row.get("src") or row.get("source") or row.get("from")
-                dst = row.get("dst") or row.get("target") or row.get("to")
+            for row in csv.DictReader(f):
+                src = _get_first_field(row, _EDGE_SRC_FIELDS)
+                dst = _get_first_field(row, _EDGE_DST_FIELDS)
                 if not src or not dst:
                     continue
-                rel = row.get("relation") or row.get("type") or "link"
-                desc = row.get("description") or row.get("desc") or ""
+                rel = _get_first_field(row, _EDGE_REL_FIELDS) or "link"
+                desc = _get_first_field(row, _EDGE_DESC_FIELDS) or ""
                 weight = row.get("weight") or "1"
                 self.graph.add_edge(src, dst, relation=rel, desc=desc, weight=weight)
 
     def _prepare_embeddings(self, use_cache: bool = True):
         """Prepare node embeddings with optional caching."""
+        node_text_fields = ("label", "name", "desc", "element")
         texts = []
         ids = []
         for n, d in self.graph.nodes(data=True):
-            text = " ".join(filter(None, [
-                d.get("label"),
-                d.get("name"),
-                d.get("desc"),
-                d.get("element"),
-            ])).strip()
+            text = " ".join(filter(None, (d.get(f) for f in node_text_fields))).strip()
             texts.append(text)
             ids.append(n)
 
@@ -259,15 +328,14 @@ class GraphRAG:
             return
 
         # Try loading from cache
-        if use_cache and os.path.exists(self.cache_path):
+        if use_cache and self.cache_path.exists():
             try:
                 cache = torch.load(self.cache_path, map_location="cpu")
                 if cache.get("count") == len(texts):
                     self.node_embeds = cache["embeddings"]
                     print(f"[GraphRAG] Loaded {self.node_embeds.size(0)} embeddings from cache")
                     return
-                else:
-                    print(f"[GraphRAG] Cache stale (count mismatch), regenerating...")
+                print("[GraphRAG] Cache stale (count mismatch), regenerating...")
             except Exception as e:
                 print(f"[GraphRAG] Cache load failed: {e}")
 
@@ -282,10 +350,7 @@ class GraphRAG:
         # Save to cache
         if use_cache:
             try:
-                torch.save({
-                    "embeddings": self.node_embeds,
-                    "count": len(texts),
-                }, self.cache_path)
+                torch.save({"embeddings": self.node_embeds, "count": len(texts)}, self.cache_path)
                 print(f"[GraphRAG] Saved embeddings to cache: {self.cache_path}")
             except Exception as e:
                 print(f"[GraphRAG] Cache save failed: {e}")
@@ -381,21 +446,21 @@ class GraphRAG:
 # ===============================================================
 # SIMPLE EMBEDDING SEARCH (Function-based)
 # ===============================================================
-_NODES_CACHE = None
-_TEXTS_CACHE = None
+_NODES_CACHE: Optional[List[Dict]] = None
+_TEXTS_CACHE: Optional[List[str]] = None
 _CORPUS_EMBEDS_CACHE = None
-_CORPUS_EMBEDS_PATH = None
-_GRAPH_MTIME = None
-_CACHE_EMBEDS = {}
+_CORPUS_EMBEDS_PATH: Optional[Path] = None
+_GRAPH_MTIME: Optional[float] = None
+_CACHE_EMBEDS: Dict[str, any] = {}
 
 
-def _latest_mtime(folder: str) -> float:
+def _latest_mtime(folder: Path) -> float:
     """Get latest modification time of files in folder."""
     latest = 0.0
-    for root, _, files in os.walk(folder):
-        for f in files:
+    for f in folder.rglob("*"):
+        if f.is_file():
             try:
-                ts = os.path.getmtime(os.path.join(root, f))
+                ts = f.stat().st_mtime
                 if ts > latest:
                     latest = ts
             except OSError:
@@ -403,412 +468,396 @@ def _latest_mtime(folder: str) -> float:
     return latest
 
 
-def _load_graph_nodes(graph_root: str) -> List[Dict]:
+def _load_graph_nodes(graph_root: Path) -> List[Dict]:
     """Load all nodes from CSV and JSON files."""
-    all_nodes = []
-    # Include interpretations folders for detailed interpretation corpus
-    targets = [
-        "astro_database", "cross_analysis", "saju", "rules", "fusion", "astro", "saju_literary",
-        "numerology", "dream"
-    ]
+    all_nodes: List[Dict] = []
 
     # Explicitly load interpretation folders
     interpretation_folders = [
-        os.path.join(graph_root, "astro_database", "interpretations"),
-        os.path.join(graph_root, "saju", "interpretations"),
+        graph_root / "astro_database" / "interpretations",
+        graph_root / "saju" / "interpretations",
     ]
     for interp_folder in interpretation_folders:
-        if os.path.isdir(interp_folder):
+        if interp_folder.is_dir():
             _load_from_folder(interp_folder, all_nodes, "interpretation")
 
-    for sub in targets:
+    for sub in _GRAPH_TARGET_FOLDERS:
         if sub == "rules":
-            rules_path = os.path.join(graph_root, sub)
-            if os.path.isdir(rules_path):
-                for subdir in os.listdir(rules_path):
-                    subdir_path = os.path.join(rules_path, subdir)
-                    if os.path.isdir(subdir_path):
-                        _load_from_folder(subdir_path, all_nodes, subdir)
+            rules_path = graph_root / sub
+            if rules_path.is_dir():
+                for subdir in rules_path.iterdir():
+                    if subdir.is_dir():
+                        _load_from_folder(subdir, all_nodes, subdir.name)
             continue
 
-        folder = os.path.join(graph_root, sub)
-        if not os.path.isdir(folder):
-            continue
-        _load_from_folder(folder, all_nodes, sub)
+        folder = graph_root / sub
+        if folder.is_dir():
+            _load_from_folder(folder, all_nodes, sub)
 
     print(f"[SajuAstroRAG] Loaded {len(all_nodes)} nodes")
     return all_nodes
 
 
-def _load_from_folder(folder: str, all_nodes: List[Dict], source: str):
+def _extract_astro_interp_fields(item: Dict, desc_parts: List[str]) -> None:
+    """Extract astrology interpretation fields from an item."""
+    # Core interpretation (priority)
+    core = item.get("core_interpretation", "")
+    if core:
+        desc_parts.append(core)
+
+    # Personality/strengths/challenges (astro planet-sign)
+    for field in ("personality", "strengths", "challenges", "life_advice",
+                  "career_hints", "relationship_style"):
+        val = item.get(field, "")
+        if val and isinstance(val, str) and len(val) > 10:
+            desc_parts.append(f"{field}: {val[:150]}")
+
+    # Aspect interpretation fields
+    for field in ("positive_expression", "challenging_expression", "integration_advice"):
+        val = item.get(field, "")
+        if val and isinstance(val, str):
+            desc_parts.append(f"{field}: {val}")
+
+    # Ascendant fields
+    for field in ("first_impression", "approach_to_life", "physical_appearance", "life_path"):
+        val = item.get(field, "")
+        if val and isinstance(val, str):
+            desc_parts.append(f"{field}: {val}")
+
+    # Transit fields
+    for field in ("theme", "duration"):
+        val = item.get(field, "")
+        if val:
+            desc_parts.append(f"{field}: {val}")
+
+
+def _get_astro_node_type(item: Dict) -> str:
+    """Determine the node type based on item content."""
+    if "sign" in item and "planet" in item and "house" not in item:
+        return "astro_planet_sign"
+    if "house" in item and "planet" in item:
+        return "astro_planet_house"
+    if "aspect" in item:
+        return "astro_aspect"
+    if "first_impression" in item:
+        return "astro_ascendant"
+    if "transit_planet" in item:
+        return "astro_transit"
+    return "astro_interpretation"
+
+
+def _extract_ko_context(item: Dict) -> str:
+    """Extract Korean context from planet/sign/house/aspect info."""
+    context_parts = []
+    for key in ("planet", "sign", "house", "aspect"):
+        info = item.get(key, {})
+        if isinstance(info, dict) and info.get("ko"):
+            context_parts.append(info["ko"])
+    return " ".join(context_parts)
+
+
+def _load_csv_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
+    """Load nodes from a CSV file."""
+    try:
+        with open(path, newline="", encoding="utf-8-sig") as fr:
+            for row in csv.DictReader(fr):
+                desc = row.get("description") or row.get("content") or ""
+                label = row.get("label") or row.get("name") or ""
+                if desc.strip():
+                    all_nodes.append({
+                        "label": label.strip(),
+                        "description": desc.strip(),
+                        "type": "csv_node",
+                        "source": source,
+                    })
+    except Exception as e:
+        print(f"[SajuAstroRAG] CSV error: {path} | {e}")
+
+
+def _process_interpretations_array(v: list, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process 'interpretations' array (new astro corpus format)."""
+    for item in v:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("id", "")
+        desc_parts: List[str] = []
+
+        # Add Korean context
+        context = _extract_ko_context(item)
+        if context:
+            desc_parts.append(context)
+
+        _extract_astro_interp_fields(item, desc_parts)
+
+        if desc_parts:
+            nodes.append({
+                "label": item_id or k,
+                "description": " | ".join(desc_parts[:6]),
+                "type": _get_astro_node_type(item),
+                "source": source,
+                "raw": item,
+            })
+
+
+def _process_legacy_interp_array(v: list, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process legacy interpretation arrays."""
+    for item in v:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("id", "")
+        interp = item.get("detailed_interpretation", {})
+        if isinstance(interp, dict):
+            interp_text = interp.get("ko", "") or interp.get("en", "")
+        else:
+            interp_text = str(interp) if interp else ""
+
+        core_theme = item.get("core_theme", "")
+        advice = item.get("advice", "")
+        keywords = " ".join(item.get("keywords", []))
+
+        desc_parts = [p for p in (core_theme, interp_text[:300], advice, keywords) if p]
+        if desc_parts:
+            nodes.append({
+                "label": item_id or k,
+                "description": " | ".join(desc_parts),
+                "type": "interpretation_entry",
+                "source": source,
+                "raw": item,
+            })
+
+
+def _process_analysis_dict(v: dict, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process sipsung_detailed style (quantity_analysis, position_analysis)."""
+    for ss_name, ss_data in v.items():
+        if not isinstance(ss_data, dict):
+            continue
+        for level, level_data in ss_data.items():
+            if isinstance(level_data, dict):
+                desc_parts = [
+                    f"{field}: {level_data[field]}"
+                    for field in _SAJU_INTERP_FIELDS
+                    if level_data.get(field)
+                ]
+                if desc_parts:
+                    nodes.append({
+                        "label": f"{ss_name}_{level}",
+                        "description": " | ".join(desc_parts[:4]),
+                        "type": "saju_interpretation",
+                        "source": source,
+                        "category": k,
+                        "raw": level_data,
+                    })
+            elif isinstance(level_data, str):
+                nodes.append({
+                    "label": f"{ss_name}_{level}",
+                    "description": level_data,
+                    "type": "saju_interpretation",
+                    "source": source,
+                })
+
+
+def _process_jiji_relations(v: dict, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process jiji relations (yukchung, yukhab, samhab, etc.)."""
+    for rel_name, rel_data in v.items():
+        if not isinstance(rel_data, dict):
+            continue
+        meaning = rel_data.get("meaning", "")
+        effects = rel_data.get("effects", {})
+        advice = rel_data.get("advice", "")
+        if isinstance(effects, dict):
+            effect_texts = [f"{ek}: {ev}" for ek, ev in effects.items() if isinstance(ev, str)][:3]
+        else:
+            effect_texts = [str(effects)] if effects else []
+        desc_parts = [meaning] + effect_texts + ([advice] if advice else [])
+        if desc_parts:
+            nodes.append({
+                "label": f"{k}_{rel_name}",
+                "description": " | ".join(desc_parts),
+                "type": "jiji_relation",
+                "source": source,
+                "raw": rel_data,
+            })
+
+
+def _process_ohaeng(v: dict, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process ohaeng individual/balance."""
+    for oh_name, oh_data in v.items():
+        if not isinstance(oh_data, dict):
+            continue
+        desc_parts = []
+        for field in _OHAENG_FIELDS:
+            val = oh_data.get(field)
+            if val:
+                if isinstance(val, list):
+                    desc_parts.append(f"{field}: {', '.join(val[:3])}")
+                else:
+                    desc_parts.append(f"{field}: {val}")
+        if desc_parts:
+            nodes.append({
+                "label": f"ohaeng_{oh_name}",
+                "description": " | ".join(desc_parts[:5]),
+                "type": "ohaeng_interpretation",
+                "source": source,
+                "raw": oh_data,
+            })
+
+
+def _process_astro_nested_dict(v: dict, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process astro-style nested JSON (planet_in_sign, etc.)."""
+    # Handle rule files with when/text structure
+    if "text" in v and v["text"]:
+        text_content = str(v["text"])
+        if len(text_content) > 10:
+            nodes.append({
+                "label": k,
+                "description": text_content[:500],
+                "type": "rule",
+                "source": source,
+                "conditions": v.get("when", []),
+                "weight": v.get("weight", 1),
+            })
+        return
+
+    # Extract direct fields
+    desc_parts = [str(v[field]) for field in _ASTRO_CORE_FIELDS + _ASTRO_SYNTHESIS_FIELDS if v.get(field)]
+
+    # Handle nested dicts (synastry aspects, synthesis files, etc.)
+    if not desc_parts:
+        for sub_k, sub_v in v.items():
+            if isinstance(sub_v, dict):
+                for field in _ASTRO_SYNTHESIS_FIELDS:
+                    if sub_v.get(field):
+                        desc_parts.append(f"{sub_k}: {sub_v[field]}")
+            elif isinstance(sub_v, str) and len(sub_v) > 10:
+                desc_parts.append(sub_v)
+
+    if desc_parts:
+        nodes.append({
+            "label": k,
+            "description": " | ".join(desc_parts[:5]),
+            "type": "astro_interpretation",
+            "source": source,
+            "raw": v,
+        })
+
+
+def _process_saju_literary_list(v: list, k: str, source: str, nodes: List[Dict]) -> None:
+    """Process saju_literary style: {"ten_gods": [...], "five_elements": [...]}."""
+    for item in v:
+        if not isinstance(item, dict):
+            continue
+        desc_parts = [str(item[field]) for field in _SAJU_LITERARY_FIELDS if item.get(field)]
+        if desc_parts:
+            label = item.get("name") or item.get("id") or item.get("label") or k
+            if item.get("hanja"):
+                label = f"{label}({item['hanja']})"
+            nodes.append({
+                "label": label,
+                "description": " | ".join(desc_parts[:6]),
+                "type": "saju_literary",
+                "source": source,
+                "raw": item,
+            })
+
+
+def _load_json_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
+    """Load nodes from a JSON file."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+
+        if isinstance(data, list):
+            nodes = data
+        elif isinstance(data, dict) and "nodes" in data:
+            nodes = data["nodes"]
+        elif isinstance(data, dict):
+            nodes = []
+            for k, v in data.items():
+                if k.startswith("$") or k == "meta":
+                    continue
+
+                # Handle "interpretations" array (new astro corpus format)
+                if k == "interpretations" and isinstance(v, list) and v:
+                    _process_interpretations_array(v, k, source, nodes)
+                    continue
+
+                # Handle other interpretation arrays (legacy format)
+                if isinstance(v, list) and v and isinstance(v[0], dict):
+                    _process_legacy_interp_array(v, k, source, nodes)
+                    continue
+
+                # Handle sipsung_detailed style
+                if k in ("quantity_analysis", "position_analysis", "balance_analysis") and isinstance(v, dict):
+                    _process_analysis_dict(v, k, source, nodes)
+                    continue
+
+                # Handle combination_analysis
+                if k == "combination_analysis" and isinstance(v, list):
+                    for combo in v:
+                        if isinstance(combo, dict) and combo.get("interpretation"):
+                            nodes.append({
+                                "label": combo.get("pattern", "조합"),
+                                "description": f"{combo.get('condition', '')} | {combo['interpretation']} | {combo.get('advice', '')}",
+                                "type": "saju_combination",
+                                "source": source,
+                                "raw": combo,
+                            })
+                    continue
+
+                # Handle jiji_relations
+                if k in _JIJI_RELATION_TYPES and isinstance(v, dict):
+                    _process_jiji_relations(v, k, source, nodes)
+                    continue
+
+                # Handle ohaeng individual/balance
+                if k in ("individual", "balance") and isinstance(v, dict):
+                    _process_ohaeng(v, k, source, nodes)
+                    continue
+
+                # Original parsing logic
+                if isinstance(v, str):
+                    nodes.append({"label": k, "description": v, "type": "json_rule"})
+                elif isinstance(v, dict):
+                    _process_astro_nested_dict(v, k, source, nodes)
+                elif isinstance(v, list):
+                    _process_saju_literary_list(v, k, source, nodes)
+        else:
+            nodes = [data]
+
+        for node in nodes:
+            if isinstance(node, dict) and node.get("description"):
+                node.setdefault("source", source)
+                all_nodes.append(node)
+    except Exception as e:
+        print(f"[SajuAstroRAG] JSON error: {path} | {e}")
+
+
+def _load_from_folder(folder: Path, all_nodes: List[Dict], source: str):
     """Load nodes from a specific folder."""
-    for root, _, files in os.walk(folder):
-        for f in files:
-            path = os.path.join(root, f)
-
-            if f.endswith(".csv"):
-                try:
-                    with open(path, newline="", encoding="utf-8-sig") as fr:
-                        reader = csv.DictReader(fr)
-                        for row in reader:
-                            desc = row.get("description") or row.get("content") or ""
-                            label = row.get("label") or row.get("name") or ""
-                            if desc.strip():
-                                all_nodes.append({
-                                    "label": label.strip(),
-                                    "description": desc.strip(),
-                                    "type": "csv_node",
-                                    "source": source,
-                                })
-                except Exception as e:
-                    print(f"[SajuAstroRAG] CSV error: {path} | {e}")
-
-            elif f.endswith(".json"):
-                try:
-                    with open(path, "r", encoding="utf-8-sig") as fr:
-                        data = json.load(fr)
-
-                    if isinstance(data, list):
-                        nodes = data
-                    elif isinstance(data, dict) and "nodes" in data:
-                        nodes = data["nodes"]
-                    elif isinstance(data, dict):
-                        nodes = []
-                        for k, v in data.items():
-                            # Skip meta fields
-                            if k.startswith("$") or k == "meta":
-                                continue
-
-                            # ============================================
-                            # Handle new interpretation corpus structures
-                            # ============================================
-
-                            # 1. Handle "interpretations" array (new astro corpus format)
-                            if k == "interpretations" and isinstance(v, list) and len(v) > 0:
-                                for item in v:
-                                    if not isinstance(item, dict):
-                                        continue
-                                    item_id = item.get("id", "")
-
-                                    # Build description from multiple fields
-                                    desc_parts = []
-
-                                    # Core interpretation (priority)
-                                    core = item.get("core_interpretation", "")
-                                    if core:
-                                        desc_parts.append(core)
-
-                                    # Personality/strengths/challenges (astro planet-sign)
-                                    for field in ["personality", "strengths", "challenges", "life_advice",
-                                                  "career_hints", "relationship_style"]:
-                                        val = item.get(field, "")
-                                        if val and isinstance(val, str) and len(val) > 10:
-                                            desc_parts.append(f"{field}: {val[:150]}")
-
-                                    # Aspect interpretation fields
-                                    for field in ["positive_expression", "challenging_expression", "integration_advice"]:
-                                        val = item.get(field, "")
-                                        if val and isinstance(val, str):
-                                            desc_parts.append(f"{field}: {val}")
-
-                                    # Ascendant fields
-                                    for field in ["first_impression", "approach_to_life", "physical_appearance", "life_path"]:
-                                        val = item.get(field, "")
-                                        if val and isinstance(val, str):
-                                            desc_parts.append(f"{field}: {val}")
-
-                                    # Transit fields
-                                    theme = item.get("theme", "")
-                                    duration = item.get("duration", "")
-                                    if theme:
-                                        desc_parts.append(f"theme: {theme}")
-                                    if duration:
-                                        desc_parts.append(f"duration: {duration}")
-
-                                    # Planet/house/sign info for context
-                                    planet_info = item.get("planet", {})
-                                    sign_info = item.get("sign", {})
-                                    house_info = item.get("house", {})
-                                    aspect_info = item.get("aspect", {})
-
-                                    planet_ko = planet_info.get("ko", "") if isinstance(planet_info, dict) else ""
-                                    sign_ko = sign_info.get("ko", "") if isinstance(sign_info, dict) else ""
-                                    house_ko = house_info.get("ko", "") if isinstance(house_info, dict) else ""
-                                    aspect_ko = aspect_info.get("ko", "") if isinstance(aspect_info, dict) else ""
-
-                                    context_parts = [p for p in [planet_ko, sign_ko, house_ko, aspect_ko] if p]
-                                    if context_parts:
-                                        desc_parts.insert(0, " ".join(context_parts))
-
-                                    # Determine type based on item content
-                                    if "sign" in item and "planet" in item and "house" not in item:
-                                        node_type = "astro_planet_sign"
-                                    elif "house" in item and "planet" in item:
-                                        node_type = "astro_planet_house"
-                                    elif "aspect" in item:
-                                        node_type = "astro_aspect"
-                                    elif "first_impression" in item:
-                                        node_type = "astro_ascendant"
-                                    elif "transit_planet" in item:
-                                        node_type = "astro_transit"
-                                    else:
-                                        node_type = "astro_interpretation"
-
-                                    if desc_parts:
-                                        nodes.append({
-                                            "label": item_id or k,
-                                            "description": " | ".join(desc_parts[:6]),
-                                            "type": node_type,
-                                            "source": source,
-                                            "raw": item,
-                                        })
-                                continue
-
-                            # 1b. Handle other interpretation arrays (legacy format)
-                            if isinstance(v, list) and len(v) > 0 and isinstance(v[0], dict):
-                                for item in v:
-                                    item_id = item.get("id", "")
-                                    # Get detailed interpretation text
-                                    interp = item.get("detailed_interpretation", {})
-                                    if isinstance(interp, dict):
-                                        interp_text = interp.get("ko", "") or interp.get("en", "")
-                                    else:
-                                        interp_text = str(interp) if interp else ""
-
-                                    # Also get core_theme, advice, etc.
-                                    core_theme = item.get("core_theme", "")
-                                    advice = item.get("advice", "")
-                                    keywords = " ".join(item.get("keywords", []))
-
-                                    desc_parts = [p for p in [core_theme, interp_text[:300], advice, keywords] if p]
-                                    if desc_parts:
-                                        nodes.append({
-                                            "label": item_id or k,
-                                            "description": " | ".join(desc_parts),
-                                            "type": "interpretation_entry",
-                                            "source": source,
-                                            "raw": item,
-                                        })
-                                continue
-
-                            # 2. Handle sipsung_detailed style (quantity_analysis, position_analysis)
-                            if k in ["quantity_analysis", "position_analysis", "balance_analysis"] and isinstance(v, dict):
-                                for ss_name, ss_data in v.items():
-                                    if not isinstance(ss_data, dict):
-                                        continue
-                                    for level, level_data in ss_data.items():
-                                        if isinstance(level_data, dict):
-                                            # Extract all text fields
-                                            desc_parts = []
-                                            for field in ["personality", "wealth", "relationship", "career", "health", "advice",
-                                                         "meaning", "effect", "interpretation"]:
-                                                if field in level_data and level_data[field]:
-                                                    desc_parts.append(f"{field}: {level_data[field]}")
-                                            if desc_parts:
-                                                nodes.append({
-                                                    "label": f"{ss_name}_{level}",
-                                                    "description": " | ".join(desc_parts[:4]),
-                                                    "type": "saju_interpretation",
-                                                    "source": source,
-                                                    "category": k,
-                                                    "raw": level_data,
-                                                })
-                                        elif isinstance(level_data, str):
-                                            nodes.append({
-                                                "label": f"{ss_name}_{level}",
-                                                "description": level_data,
-                                                "type": "saju_interpretation",
-                                                "source": source,
-                                            })
-                                continue
-
-                            # 3. Handle combination_analysis (list of patterns)
-                            if k == "combination_analysis" and isinstance(v, list):
-                                for combo in v:
-                                    if isinstance(combo, dict):
-                                        pattern = combo.get("pattern", "")
-                                        interp = combo.get("interpretation", "")
-                                        advice = combo.get("advice", "")
-                                        condition = combo.get("condition", "")
-                                        if interp:
-                                            nodes.append({
-                                                "label": pattern or "조합",
-                                                "description": f"{condition} | {interp} | {advice}",
-                                                "type": "saju_combination",
-                                                "source": source,
-                                                "raw": combo,
-                                            })
-                                continue
-
-                            # 4. Handle jiji_relations (yukchung, yukhab, samhab, etc.)
-                            if k in ["yukchung", "yukhab", "samhab", "banghab", "hyung", "pa", "hae", "won"] and isinstance(v, dict):
-                                for rel_name, rel_data in v.items():
-                                    if isinstance(rel_data, dict):
-                                        meaning = rel_data.get("meaning", "")
-                                        effects = rel_data.get("effects", {})
-                                        advice = rel_data.get("advice", "")
-                                        if isinstance(effects, dict):
-                                            effect_texts = [f"{ek}: {ev}" for ek, ev in effects.items() if isinstance(ev, str)][:3]
-                                        else:
-                                            effect_texts = [str(effects)] if effects else []
-                                        desc_parts = [meaning] + effect_texts + ([advice] if advice else [])
-                                        if desc_parts:
-                                            nodes.append({
-                                                "label": f"{k}_{rel_name}",
-                                                "description": " | ".join(desc_parts),
-                                                "type": "jiji_relation",
-                                                "source": source,
-                                                "raw": rel_data,
-                                            })
-                                continue
-
-                            # 5. Handle ohaeng individual/balance
-                            if k in ["individual", "balance"] and isinstance(v, dict):
-                                for oh_name, oh_data in v.items():
-                                    if isinstance(oh_data, dict):
-                                        desc_parts = []
-                                        for field in ["nature", "personality", "interpretation", "advice", "meaning",
-                                                     "positive", "negative", "body", "disease", "career",
-                                                     "excessive", "deficient"]:
-                                            val = oh_data.get(field)
-                                            if val:
-                                                if isinstance(val, list):
-                                                    desc_parts.append(f"{field}: {', '.join(val[:3])}")
-                                                else:
-                                                    desc_parts.append(f"{field}: {val}")
-                                        if desc_parts:
-                                            nodes.append({
-                                                "label": f"ohaeng_{oh_name}",
-                                                "description": " | ".join(desc_parts[:5]),
-                                                "type": "ohaeng_interpretation",
-                                                "source": source,
-                                                "raw": oh_data,
-                                            })
-                                continue
-
-                            # ============================================
-                            # Original parsing logic below
-                            # ============================================
-
-                            if isinstance(v, str):
-                                nodes.append({"label": k, "description": v, "type": "json_rule"})
-                            elif isinstance(v, dict):
-                                # Handle rule files with when/text structure
-                                if "text" in v and v["text"]:
-                                    text_content = str(v["text"])
-                                    if len(text_content) > 10:
-                                        nodes.append({
-                                            "label": k,
-                                            "description": text_content[:500],
-                                            "type": "rule",
-                                            "source": source,
-                                            "conditions": v.get("when", []),
-                                            "weight": v.get("weight", 1),
-                                        })
-                                    continue
-
-                                # Handle astro-style nested JSON (planet_in_sign, etc.)
-                                desc_parts = []
-                                # Include all astro interpretation fields (personal planets)
-                                for field in ["core", "light", "shadow", "growth", "karma", "gift",
-                                              "meaning", "expression", "challenge", "advice",
-                                              "attraction_style", "love_language", "career_drive",
-                                              # Mars synthesis fields
-                                              "drive", "aggression", "assertion", "competition",
-                                              # Jupiter synthesis fields
-                                              "expansion", "luck", "faith", "excess",
-                                              # Saturn synthesis fields
-                                              "lesson", "restriction", "maturity", "fear",
-                                              # Uranus synthesis fields
-                                              "awakening", "freedom", "genius", "disruption",
-                                              # Neptune synthesis fields
-                                              "inspiration", "illusion", "transcendence", "creativity",
-                                              # Pluto synthesis fields
-                                              "transformation", "power", "obsession", "regeneration",
-                                              # Nodes synthesis fields
-                                              "destiny", "comfort", "integration", "mission",
-                                              # Chiron interpretation fields
-                                              "wound", "healing", "teacher", "healing_path", "detailed",
-                                              # Chiron synthesis fields
-                                              "pain", "wound_theme", "healing_gift",
-                                              # Lilith interpretation fields
-                                              "manifestations",
-                                              # Part of Fortune fields
-                                              "fortune", "how_to_activate", "focus",
-                                              # Vertex interpretation fields
-                                              "fated_theme", "fated_encounters", "trigger", "how_to_recognize",
-                                              # Nodes synthesis fields
-                                              "comfort_zone", "south_node", "lesson"]:
-                                    if field in v and v[field]:
-                                        desc_parts.append(str(v[field]))
-
-                                # Also handle nested dicts (synastry aspects, synthesis files, etc.)
-                                if not desc_parts:
-                                    for sub_k, sub_v in v.items():
-                                        if isinstance(sub_v, dict):
-                                            # Handle synthesis files: Sign_Planet -> H1/H2... -> {fields}
-                                            synthesis_fields = ["core", "meaning", "dynamic", "gift", "challenge",
-                                                                "drive", "aggression", "assertion", "competition", "shadow",
-                                                                "expansion", "luck", "growth", "faith", "excess",
-                                                                "lesson", "restriction", "maturity", "fear", "karma",
-                                                                "awakening", "freedom", "genius", "disruption",
-                                                                "inspiration", "illusion", "transcendence", "creativity",
-                                                                "transformation", "power", "obsession", "regeneration",
-                                                                "destiny", "comfort", "integration", "mission",
-                                                                "wound", "healing", "teacher", "healing_path", "detailed",
-                                                                "pain", "wound_theme", "healing_gift",
-                                                                "fortune", "how_to_activate", "focus", "advice",
-                                                                "fated_theme", "fated_encounters", "trigger", "how_to_recognize",
-                                                                "expression", "manifestations",
-                                                                "comfort_zone", "south_node"]
-                                            for field in synthesis_fields:
-                                                if field in sub_v and sub_v[field]:
-                                                    desc_parts.append(f"{sub_k}: {sub_v[field]}")
-                                        elif isinstance(sub_v, str) and len(sub_v) > 10:
-                                            desc_parts.append(sub_v)
-
-                                if desc_parts:
-                                    nodes.append({
-                                        "label": k,
-                                        "description": " | ".join(desc_parts[:5]),
-                                        "type": "astro_interpretation",
-                                        "source": source,
-                                        "raw": v,
-                                    })
-                            elif isinstance(v, list):
-                                # Handle saju_literary style: {"ten_gods": [...], "five_elements": [...]}
-                                for item in v:
-                                    if isinstance(item, dict):
-                                        desc_parts = []
-                                        for field in ["core", "meaning", "light", "shadow", "psychology",
-                                                      "life_area", "relation", "expression", "advice",
-                                                      "career", "love", "health", "wealth", "timing"]:
-                                            if field in item and item[field]:
-                                                desc_parts.append(str(item[field]))
-                                        if desc_parts:
-                                            label = item.get("name") or item.get("id") or item.get("label") or k
-                                            # Include hanja if available
-                                            if item.get("hanja"):
-                                                label = f"{label}({item['hanja']})"
-                                            nodes.append({
-                                                "label": label,
-                                                "description": " | ".join(desc_parts[:6]),
-                                                "type": "saju_literary",
-                                                "source": source,
-                                                "raw": item,
-                                            })
-                    else:
-                        nodes = [data]
-
-                    for node in nodes:
-                        if isinstance(node, dict) and node.get("description"):
-                            node.setdefault("source", source)
-                            all_nodes.append(node)
-                except Exception as e:
-                    print(f"[SajuAstroRAG] JSON error: {path} | {e}")
+    for path in folder.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.suffix == ".csv":
+            _load_csv_nodes(path, all_nodes, source)
+        elif path.suffix == ".json":
+            _load_json_nodes(path, all_nodes, source)
 
 
-def search_graphs(query: str, top_k: int = 6, graph_root: str = None) -> List[Dict]:
+def _handle_embed_mismatch(texts: List[str], nodes: List[Dict], embeds) -> tuple:
+    """Handle embedding size mismatch by trimming or rebuilding."""
+    if not hasattr(embeds, "shape") or embeds.shape[0] == len(texts):
+        return texts, nodes, embeds
+
+    strategy = os.getenv("RAG_EMBED_MISMATCH", "trim").lower()
+    if strategy == "rebuild":
+        print("[SajuAstroRAG] Cached embeddings size mismatch; rebuilding cache")
+        return texts, nodes, None
+
+    min_len = min(len(texts), embeds.shape[0])
+    print("[SajuAstroRAG] Cached embeddings size mismatch; trimming cache")
+    return texts[:min_len], nodes[:min_len], embeds[:min_len]
+
+
+def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) -> List[Dict]:
     """
     Simple embedding-based search in graph data.
 
@@ -820,19 +869,17 @@ def search_graphs(query: str, top_k: int = 6, graph_root: str = None) -> List[Di
     Returns:
         List of matching nodes with scores
     """
-    if graph_root is None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        graph_root = os.path.join(base_dir, "data", "graph")
-
     global _NODES_CACHE, _TEXTS_CACHE, _CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH, _GRAPH_MTIME
 
-    current_mtime = _latest_mtime(graph_root)
+    graph_path = Path(graph_root) if graph_root else Path(__file__).parent.parent / "data" / "graph"
+
+    current_mtime = _latest_mtime(graph_path)
     graph_changed = _GRAPH_MTIME is None or current_mtime > (_GRAPH_MTIME or 0)
 
     if _NODES_CACHE is None or graph_changed:
-        _NODES_CACHE = _load_graph_nodes(graph_root)
+        _NODES_CACHE = _load_graph_nodes(graph_path)
         _TEXTS_CACHE = [n["description"] for n in _NODES_CACHE if n.get("description")]
-        _CORPUS_EMBEDS_PATH = os.path.join(graph_root, "corpus_embeds.pt")
+        _CORPUS_EMBEDS_PATH = graph_path / _CORPUS_CACHE_FILE
         _CORPUS_EMBEDS_CACHE = None
         _GRAPH_MTIME = current_mtime
 
@@ -852,32 +899,17 @@ def search_graphs(query: str, top_k: int = 6, graph_root: str = None) -> List[Di
     texts = _TEXTS_CACHE
 
     if _CORPUS_EMBEDS_CACHE is None:
-        if _CORPUS_EMBEDS_PATH and os.path.exists(_CORPUS_EMBEDS_PATH):
+        if _CORPUS_EMBEDS_PATH and _CORPUS_EMBEDS_PATH.exists():
             try:
                 print(f"[SajuAstroRAG] Loading cached embeddings: {_CORPUS_EMBEDS_PATH}")
                 _CORPUS_EMBEDS_CACHE = torch.load(_CORPUS_EMBEDS_PATH, map_location="cpu")
-                if (
-                    hasattr(_CORPUS_EMBEDS_CACHE, "shape")
-                    and _CORPUS_EMBEDS_CACHE.shape[0] != len(texts)
-                ):
-                    strategy = os.getenv("RAG_EMBED_MISMATCH", "trim").lower()
-                    if strategy == "rebuild":
-                        print("[SajuAstroRAG] Cached embeddings size mismatch; rebuilding cache")
-                        _CORPUS_EMBEDS_CACHE = None
-                    else:
-                        min_len = min(len(texts), _CORPUS_EMBEDS_CACHE.shape[0])
-                        print(
-                            "[SajuAstroRAG] Cached embeddings size mismatch; trimming cache"
-                        )
-                        texts = texts[:min_len]
-                        nodes = nodes[:min_len]
-                        _CORPUS_EMBEDS_CACHE = _CORPUS_EMBEDS_CACHE[:min_len]
+                texts, nodes, _CORPUS_EMBEDS_CACHE = _handle_embed_mismatch(texts, nodes, _CORPUS_EMBEDS_CACHE)
             except Exception as e:
                 print(f"[SajuAstroRAG] Failed to load embeddings cache: {e}")
                 _CORPUS_EMBEDS_CACHE = None
 
         if _CORPUS_EMBEDS_CACHE is None:
-            _CORPUS_EMBEDS_CACHE = embed_batch(texts, batch_size=64)
+            _CORPUS_EMBEDS_CACHE = embed_batch(texts, batch_size=_DEFAULT_BATCH_SIZE)
             try:
                 if _CORPUS_EMBEDS_PATH:
                     torch.save(_CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH)
@@ -885,15 +917,8 @@ def search_graphs(query: str, top_k: int = 6, graph_root: str = None) -> List[Di
             except Exception as e:
                 print(f"[SajuAstroRAG] Failed to save embeddings: {e}")
 
-    if (
-        hasattr(_CORPUS_EMBEDS_CACHE, "shape")
-        and _CORPUS_EMBEDS_CACHE.shape[0] != len(texts)
-    ):
-        min_len = min(len(texts), _CORPUS_EMBEDS_CACHE.shape[0])
-        print("[SajuAstroRAG] Final embeddings size mismatch; trimming for search")
-        texts = texts[:min_len]
-        nodes = nodes[:min_len]
-        _CORPUS_EMBEDS_CACHE = _CORPUS_EMBEDS_CACHE[:min_len]
+    # Final mismatch check
+    texts, nodes, _CORPUS_EMBEDS_CACHE = _handle_embed_mismatch(texts, nodes, _CORPUS_EMBEDS_CACHE)
 
     # Search
     scores = util.cos_sim(q_emb, _CORPUS_EMBEDS_CACHE)[0]
@@ -920,23 +945,3 @@ def get_graph_rag() -> GraphRAG:
     if _graph_rag_instance is None:
         _graph_rag_instance = GraphRAG()
     return _graph_rag_instance
-
-
-# ===============================================================
-# TEST
-# ===============================================================
-if __name__ == "__main__":
-    print("Testing SajuAstroRAG...")
-
-    # Test search_graphs
-    print("\n[Test 1] search_graphs()")
-    results = search_graphs("리더십과 추진력", top_k=3)
-    for r in results:
-        print(f"  - {r.get('label', '?')}: {r.get('score', 0):.3f}")
-
-    # Test GraphRAG
-    print("\n[Test 2] GraphRAG.query()")
-    rag = get_graph_rag()
-    result = rag.query({"element": "wood", "house": 1}, top_k=3)
-    print(f"  Matched nodes: {len(result['matched_nodes'])}")
-    print(f"  Related edges: {len(result['related_edges'])}")

@@ -239,8 +239,8 @@ class TestBadgeModuleExports:
         assert BADGES is not None
 
     def test_has_redis_flag_exists(self):
-        """HAS_REDIS flag should exist."""
-        from backend_ai.app.badge_system import HAS_REDIS
+        """HAS_REDIS flag should exist in system module."""
+        from backend_ai.app.badge_system.system import HAS_REDIS
         assert isinstance(HAS_REDIS, bool)
 
 

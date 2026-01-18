@@ -87,13 +87,13 @@ class TestLoadChangingLinesData:
 
 
 class TestHasEmbeddingFlag:
-    """Tests for HAS_EMBEDDING flag."""
+    """Tests for _HAS_EMBEDDING flag."""
 
     def test_has_embedding_flag_exists(self):
-        """HAS_EMBEDDING flag should exist."""
-        from app.iching_rag import HAS_EMBEDDING
+        """_HAS_EMBEDDING flag should exist."""
+        from app.iching_rag import _HAS_EMBEDDING
 
-        assert isinstance(HAS_EMBEDDING, bool)
+        assert isinstance(_HAS_EMBEDDING, bool)
 
 
 class TestConstantsImport:

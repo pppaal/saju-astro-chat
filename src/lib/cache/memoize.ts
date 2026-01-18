@@ -5,8 +5,11 @@
 
 import { LRUCache } from 'lru-cache';
 
+// Wrapper type to satisfy LRUCache constraints (value must extend {})
+type CacheValue<T = unknown> = { value: T };
+
 // In-memory LRU cache for frequently accessed calculations
-const calculationCache = new LRUCache<string, unknown>({
+const calculationCache = new LRUCache<string, CacheValue>({
   max: 500, // Maximum 500 entries
   ttl: 1000 * 60 * 60, // 1 hour TTL
   updateAgeOnGet: true,
@@ -34,12 +37,12 @@ export function memoize<T extends (...args: any[]) => any>(
     // Check cache
     const cached = calculationCache.get(cacheKey);
     if (cached !== undefined) {
-      return cached as ReturnType<T>;
+      return cached.value as ReturnType<T>;
     }
 
     // Calculate and cache
     const result = fn(...args);
-    calculationCache.set(cacheKey, result, { ttl });
+    calculationCache.set(cacheKey, { value: result }, { ttl });
 
     return result;
   }) as T;

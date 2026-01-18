@@ -178,7 +178,11 @@ describe("Astrology Planets Module", () => {
         const sat2 = getPlanetPosition(date2, "saturn");
 
         // Saturn moves about 12 degrees per year
-        const movement = Math.abs(sat2.longitude - sat1.longitude);
+        // Handle wraparound at 0/360 boundary
+        let movement = Math.abs(sat2.longitude - sat1.longitude);
+        if (movement > 180) {
+          movement = 360 - movement;
+        }
         expect(movement).toBeLessThan(20);
       });
     });

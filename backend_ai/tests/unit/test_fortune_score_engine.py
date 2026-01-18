@@ -175,32 +175,32 @@ class TestFortuneScoreEngineConstants:
         assert FortuneScoreEngine.BRANCH_ZODIAC["午"] == "Gemini"
 
     def test_sibsin_weights(self):
-        """Test SIBSIN_WEIGHTS values."""
-        from backend_ai.app.fortune_score_engine import FortuneScoreEngine
+        """Test SIBSIN_WEIGHTS values (from constants module)."""
+        from backend_ai.app.fortune_score_engine import SIBSIN_WEIGHTS
 
-        assert FortuneScoreEngine.SIBSIN_WEIGHTS["정관"] == 0.5
-        assert FortuneScoreEngine.SIBSIN_WEIGHTS["겁재"] == -0.5
+        assert SIBSIN_WEIGHTS["정관"] == 0.5
+        assert SIBSIN_WEIGHTS["겁재"] == -0.5
 
     def test_transit_weights(self):
-        """Test TRANSIT_WEIGHTS structure."""
-        from backend_ai.app.fortune_score_engine import FortuneScoreEngine
+        """Test TRANSIT_WEIGHTS structure (from constants module)."""
+        from backend_ai.app.fortune_score_engine import TRANSIT_WEIGHTS
 
-        assert "Jupiter" in FortuneScoreEngine.TRANSIT_WEIGHTS
-        assert FortuneScoreEngine.TRANSIT_WEIGHTS["Jupiter"]["trine"] == 2
+        assert "Jupiter" in TRANSIT_WEIGHTS
+        assert TRANSIT_WEIGHTS["Jupiter"]["trine"] == 2
 
     def test_moon_phase_scores(self):
-        """Test MOON_PHASE_SCORES values."""
-        from backend_ai.app.fortune_score_engine import FortuneScoreEngine
+        """Test MOON_PHASE_SCORES values (from constants module)."""
+        from backend_ai.app.fortune_score_engine import MOON_PHASE_SCORES
 
-        assert FortuneScoreEngine.MOON_PHASE_SCORES["Full Moon"] == 10
-        assert FortuneScoreEngine.MOON_PHASE_SCORES["New Moon"] == 8
+        assert MOON_PHASE_SCORES["Full Moon"] == 10
+        assert MOON_PHASE_SCORES["New Moon"] == 8
 
     def test_planetary_hour_scores(self):
-        """Test PLANETARY_HOUR_SCORES values."""
-        from backend_ai.app.fortune_score_engine import FortuneScoreEngine
+        """Test PLANETARY_HOUR_SCORES values (from constants module)."""
+        from backend_ai.app.fortune_score_engine import PLANETARY_HOUR_SCORES
 
-        assert FortuneScoreEngine.PLANETARY_HOUR_SCORES["Jupiter"] == 8
-        assert FortuneScoreEngine.PLANETARY_HOUR_SCORES["Saturn"] == 3
+        assert PLANETARY_HOUR_SCORES["Jupiter"] == 8
+        assert PLANETARY_HOUR_SCORES["Saturn"] == 3
 
 
 class TestFortuneScoreEngineInit:
