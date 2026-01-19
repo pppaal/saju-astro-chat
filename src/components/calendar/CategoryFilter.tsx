@@ -28,20 +28,11 @@ export default function CategoryFilter({
   activeCategory,
   onCategoryChange,
 }: CategoryFilterProps) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
 
   const getCategoryLabel = (cat: EventCategory | "all") => {
-    const labels: Record<EventCategory | "all", { ko: string; en: string }> = {
-      all: { ko: "전체", en: "All" },
-      wealth: { ko: "재물운", en: "Wealth" },
-      career: { ko: "커리어", en: "Career" },
-      love: { ko: "연애운", en: "Love" },
-      health: { ko: "건강운", en: "Health" },
-      travel: { ko: "여행운", en: "Travel" },
-      study: { ko: "학업운", en: "Study" },
-      general: { ko: "전체운", en: "General" },
-    };
-    return locale === "ko" ? labels[cat].ko : labels[cat].en;
+    if (cat === "all") return t('calendar.categoryLabels.general', 'General');
+    return t(`calendar.categoryLabels.${cat}`, cat);
   };
 
   return (

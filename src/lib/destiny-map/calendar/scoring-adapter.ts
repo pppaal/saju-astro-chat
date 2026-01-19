@@ -221,7 +221,7 @@ export function adaptIljinResult(
  * 기존 용신 분석 결과 → 새 시스템 입력
  */
 export function adaptYongsinResult(
-  yongsinResult: LegacyYongsinResult,
+  yongsinResult: LegacyYongsinResult | { score: number; factorKeys: string[]; positive: boolean; negative: boolean },
   geokgukResult: LegacyGeokgukResult
 ): SajuScoreInput['yongsin'] {
   const input: SajuScoreInput['yongsin'] = {};

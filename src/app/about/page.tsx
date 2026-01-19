@@ -19,14 +19,14 @@ type Service = {
   comingSoon?: boolean;
 };
 
-const services: Service[] = [
+const getServices = (t: (key: string, fallback: string) => string): Service[] => [
   {
     id: "destinyMap",
     icon: "🗺️",
-    title: "Destiny Map",
-    titleKo: "운명 지도",
-    description: "사주·점성술·타로를 AI가 통합 분석하여 맞춤형 운세를 제공합니다",
-    descriptionEn: "AI integrates Saju, Astrology, and Tarot for personalized fortune reading",
+    title: t('about.services.destinyMap.title', 'Destiny Map'),
+    titleKo: t('about.services.destinyMap.title', '운명 지도'),
+    description: t('about.services.destinyMap.description', 'AI integrates Saju, Astrology, and Tarot for personalized fortune reading'),
+    descriptionEn: t('about.services.destinyMap.description', 'AI integrates Saju, Astrology, and Tarot for personalized fortune reading'),
     href: "/destiny-map",
     gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     featured: true,
@@ -34,10 +34,10 @@ const services: Service[] = [
   {
     id: "lifePrediction",
     icon: "🔮",
-    title: "Life Prediction",
-    titleKo: "인생 예측",
-    description: "10년간의 운세 흐름과 인생 전환점을 미리 알아보세요",
-    descriptionEn: "Discover your 10-year fortune flow and life turning points",
+    title: t('about.services.lifePrediction.title', 'Life Prediction'),
+    titleKo: t('about.services.lifePrediction.title', '인생 예측'),
+    description: t('about.services.lifePrediction.description', 'Discover your 10-year fortune flow and life turning points'),
+    descriptionEn: t('about.services.lifePrediction.description', 'Discover your 10-year fortune flow and life turning points'),
     href: "/life-prediction",
     gradient: "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)",
     featured: true,
@@ -45,50 +45,50 @@ const services: Service[] = [
   {
     id: "tarot",
     icon: "♜",
-    title: "Tarot",
-    titleKo: "타로",
-    description: "78장의 카드로 현재 상황과 미래의 가능성을 직관적으로 탐색합니다",
-    descriptionEn: "Explore current situations and future possibilities through 78 cards",
+    title: t('about.services.tarot.title', 'Tarot'),
+    titleKo: t('about.services.tarot.title', '타로'),
+    description: t('about.services.tarot.description', 'Explore current situations and future possibilities through 78 cards'),
+    descriptionEn: t('about.services.tarot.description', 'Explore current situations and future possibilities through 78 cards'),
     href: "/tarot",
     gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
   },
   {
     id: "calendar",
     icon: "📅",
-    title: "Calendar",
-    titleKo: "운세 캘린더",
-    description: "매일의 운세와 길일을 캘린더에서 확인하세요",
-    descriptionEn: "Check daily fortune and auspicious days on your calendar",
+    title: t('about.services.calendar.title', 'Fortune Calendar'),
+    titleKo: t('about.services.calendar.title', '운세 캘린더'),
+    description: t('about.services.calendar.description', 'Check daily fortune and auspicious days on your calendar'),
+    descriptionEn: t('about.services.calendar.description', 'Check daily fortune and auspicious days on your calendar'),
     href: "/calendar",
     gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
   },
   {
     id: "dream",
     icon: "💭",
-    title: "Dream",
-    titleKo: "꿈해몽",
-    description: "꿈속 상징과 메시지를 해석해 무의식의 신호를 읽습니다",
-    descriptionEn: "Interpret dream symbols and messages from your subconscious",
+    title: t('about.services.dream.title', 'Dream Interpretation'),
+    titleKo: t('about.services.dream.title', '꿈해몽'),
+    description: t('about.services.dream.description', 'Interpret dream symbols and messages from your subconscious'),
+    descriptionEn: t('about.services.dream.description', 'Interpret dream symbols and messages from your subconscious'),
     href: "/dream",
     gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
   },
   {
     id: "personality",
     icon: "🎭",
-    title: "Personality",
-    titleKo: "성격분석",
-    description: "다양한 관점에서 당신의 성격 특성과 장단점을 심층 분석합니다",
-    descriptionEn: "Deep analysis of your personality traits, strengths, and weaknesses",
+    title: t('about.services.personality.title', 'Personality Analysis'),
+    titleKo: t('about.services.personality.title', '성격분석'),
+    description: t('about.services.personality.description', 'Deep analysis of your personality traits, strengths, and weaknesses'),
+    descriptionEn: t('about.services.personality.description', 'Deep analysis of your personality traits, strengths, and weaknesses'),
     href: "/personality",
     gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
   },
   {
     id: "numerology",
     icon: "🔢",
-    title: "Numerology",
-    titleKo: "수비학",
-    description: "이름과 생년월일의 수비학적 분석으로 당신의 삶의 목적과 잠재력을 발견합니다",
-    descriptionEn: "Discover your life purpose and potential through numerological analysis of your name and birth date",
+    title: t('about.services.numerology.title', 'Numerology'),
+    titleKo: t('about.services.numerology.title', '수비학'),
+    description: t('about.services.numerology.description', 'Discover your life purpose and potential through numerological analysis of your name and birth date'),
+    descriptionEn: t('about.services.numerology.description', 'Discover your life purpose and potential through numerological analysis of your name and birth date'),
     href: "/numerology",
     gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
   },
@@ -97,6 +97,7 @@ const services: Service[] = [
 export default function AboutPage() {
   const { translate, locale } = useI18n();
   const isKo = locale === "ko";
+  const services = getServices(translate);
 
   return (
     <div className={styles.page}>

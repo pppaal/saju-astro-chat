@@ -238,6 +238,37 @@
   "calendar": {
     "title": "Fortune Calendar",
     "subtitle": "Combining Eastern & Western fortune to find your important dates",
+    "pageTitle": "Destiny Calendar",
+    "pageSubtitle": "Cross-analyze Eastern and Western fortune to find your important dates",
+    "formTitle": "Enter Your Birth Info",
+    "formSubtitle": "Required for accurate analysis",
+    "loadingProfile": "Loading...",
+    "loadMyProfile": "Load My Profile",
+    "profileLoaded": "Profile loaded!",
+    "analyzeButton": "View Destiny Calendar",
+    "analyzingButton": "Analyzing...",
+    "grades": {
+      "0": "Best Day",
+      "1": "Good Day",
+      "2": "Normal Day",
+      "3": "Bad Day",
+      "4": "Worst Day"
+    },
+    "categoryLabels": {
+      "wealth": "Wealth",
+      "career": "Career",
+      "love": "Love",
+      "health": "Health",
+      "travel": "Travel",
+      "study": "Study",
+      "general": "General"
+    },
+    "cachingNote": "Using cached data (fast loading)",
+    "bestDayShort": "Best Days (~5%)",
+    "goodDayShort": "Good Days (~15%)",
+    "normalDayShort": "Normal Days (~60%)",
+    "badDayShort": "Bad Days (~15%)",
+    "worstDayShort": "Worst Days (~5%)",
     "bijeon": "Confidence Day",
     "bijeonDesc": "A day when self-confidence rises! Great for leadership.",
     "inseong": "Learning Day",
@@ -562,6 +593,26 @@
       "permanentNote": "Calculated from your name, birthdate, and location - they never change.",
       "adjustHint": "Try adjusting the options and calculate again."
     },
+    "lucky": {
+      "errorBirthdate": "Please enter your birth date.",
+      "errorRequest": "Failed to analyze.",
+      "errorGeneral": "An error occurred. Please try again.",
+      "interpretation": "Lucky numbers generated based on your Life Path {{lifePath}}. These numbers resonate with your energy.",
+      "copied": "Numbers copied!",
+      "nameLabel": "Name (English, Optional)",
+      "nameHint": "Enter your name for more accurate lucky numbers",
+      "generateButton": "Generate Lucky Numbers",
+      "yourNumbers": "Your Lucky Numbers",
+      "copy": "Copy Numbers",
+      "regenerate": "Regenerate",
+      "tipsTitle": "Tips",
+      "tip1": "These numbers are derived from your birth date and name numerology energy",
+      "tip2": "Select 6 for Lotto 6/45 or use for other number games",
+      "tip3": "You can combine numbers or create patterns",
+      "tip4": "Generate new numbers regularly for variety",
+      "countLabel": "Number of lucky numbers to generate",
+      "countHint": "Select up to 15 numbers"
+    },
     "inputSummary": {
       "title": "Input Summary",
       "name": "Name",
@@ -875,6 +926,36 @@
     "heroSub": "Fate speaks. AI listens. You decide.",
     "heroSubtitle": "Fate speaks. AI listens. You decide.",
     "tagline": "Understand your patterns. Change your outcomes.",
+    "services": {
+      "destinyMap": {
+        "title": "Destiny Map",
+        "description": "AI integrates Saju, Astrology, and Tarot for personalized fortune reading"
+      },
+      "lifePrediction": {
+        "title": "Life Prediction",
+        "description": "Discover your 10-year fortune flow and life turning points"
+      },
+      "tarot": {
+        "title": "Tarot",
+        "description": "Explore current situations and future possibilities through 78 cards"
+      },
+      "calendar": {
+        "title": "Fortune Calendar",
+        "description": "Check daily fortune and auspicious days on your calendar"
+      },
+      "dream": {
+        "title": "Dream Interpretation",
+        "description": "Interpret dream symbols and messages from your subconscious"
+      },
+      "personality": {
+        "title": "Personality Analysis",
+        "description": "Deep analysis of your personality traits, strengths, and weaknesses"
+      },
+      "numerology": {
+        "title": "Numerology",
+        "description": "Discover your life purpose and potential through numerological analysis of your name and birth date"
+      }
+    },
     "tryDestinyMap": "Start Destiny Map",
     "seeFeatures": "See Features",
     "visualTitle": "Your destiny navigation, in a way the world loves",

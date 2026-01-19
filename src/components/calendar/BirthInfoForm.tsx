@@ -43,7 +43,7 @@ export default function BirthInfoForm({
   timeUnknown,
   setTimeUnknown,
 }: BirthInfoFormProps) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const { status } = useSession();
   const signInUrl = buildSignInUrl();
 
@@ -92,12 +92,10 @@ export default function BirthInfoForm({
             <span className={styles.icon}>{ICONS.calendar}</span>
           </div>
           <h1 className={styles.pageTitle}>
-            {locale === "ko" ? "운명 캘린더" : "Destiny Calendar"}
+            {t('calendar.pageTitle', 'Destiny Calendar')}
           </h1>
           <p className={styles.pageSubtitle}>
-            {locale === "ko"
-              ? "동서양 운세를 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다"
-              : "Cross-analyze Eastern and Western fortune to find your important dates"}
+            {t('calendar.pageSubtitle', 'Cross-analyze Eastern and Western fortune to find your important dates')}
           </p>
         </div>
 
@@ -105,12 +103,10 @@ export default function BirthInfoForm({
           <div className={styles.formHeader}>
             <span className={styles.formIcon}>🎂</span>
             <h3 className={styles.formTitle}>
-              {locale === "ko" ? "생년월일을 입력해주세요" : "Enter Your Birth Info"}
+              {t('calendar.formTitle', 'Enter Your Birth Info')}
             </h3>
             <p className={styles.formSubtitle}>
-              {locale === "ko"
-                ? "정확한 분석을 위해 필요한 정보입니다"
-                : "Required for accurate analysis"}
+              {t('calendar.formSubtitle', 'Required for accurate analysis')}
             </p>
           </div>
 
@@ -127,8 +123,8 @@ export default function BirthInfoForm({
               </span>
               <span className={styles.loadProfileText}>
                 {loadingProfile
-                  ? (locale === 'ko' ? '불러오는 중...' : 'Loading...')
-                  : (locale === 'ko' ? '내 프로필 불러오기' : 'Load My Profile')}
+                  ? t('calendar.loadingProfile', 'Loading...')
+                  : t('calendar.loadMyProfile', 'Load My Profile')}
               </span>
               <span className={styles.loadProfileArrow}>→</span>
             </button>
@@ -139,7 +135,7 @@ export default function BirthInfoForm({
             <div className={styles.profileLoadedMessage}>
               <span className={styles.profileLoadedIcon}>✓</span>
               <span className={styles.profileLoadedText}>
-                {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+                {t('calendar.profileLoaded', 'Profile loaded!')}
               </span>
             </div>
           )}
@@ -262,12 +258,12 @@ export default function BirthInfoForm({
               {submitting ? (
                 <>
                   <div className={styles.buttonSpinner} />
-                  <span>{locale === "ko" ? "분석 중..." : "Analyzing..."}</span>
+                  <span>{t('calendar.analyzingButton', 'Analyzing...')}</span>
                 </>
               ) : (
                 <>
                   <span>✨</span>
-                  <span>{locale === "ko" ? "운명의 날 찾기" : "Find Your Destiny Days"}</span>
+                  <span>{t('calendar.analyzeButton', 'View Destiny Calendar')}</span>
                 </>
               )}
             </button>

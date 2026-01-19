@@ -24,6 +24,8 @@ import {
   type UserAstroProfile,
 } from './date-analysis-orchestrator';
 
+import type { DaeunCycle } from './types';
+
 import {
   getYearGanzhi,
   getGanzhiForDate,
@@ -220,18 +222,20 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
   const yearBranch = typeof yearBranchObj === 'object' ? yearBranchObj?.name : (yearBranchObj || yearPillar.branch as string || "");
 
   // 대운 데이터 추출
-  const unse = (sajuData?.unse || {}) as Record<string, unknown>;
-  const daeunRaw = (unse.daeun || []) as Array<Record<string, unknown>>;
-  type DaeunCycle = { age: number; heavenlyStem: string; earthlyBranch: string; sibsin?: string };
+  type UnseData = { daeun?: unknown[]; daeunsu?: number };
+  const unse = (sajuData?.unse || {}) as UnseData;
+  type DaeunRawItem = { age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: string | { cheon: string; ji: string } };
+  const daeunRaw = (unse.daeun || []) as DaeunRawItem[];
   const daeunCycles: DaeunCycle[] = daeunRaw.map((d) => ({
-    age: (d.age as number) || 0,
-    heavenlyStem: (d.heavenlyStem as string) || "",
-    earthlyBranch: (d.earthlyBranch as string) || "",
-    sibsin: (d.sibsin as string) || undefined,
+    age: d.age || 0,
+    heavenlyStem: d.heavenlyStem || "",
+    earthlyBranch: d.earthlyBranch || "",
+    sibsin: typeof d.sibsin === 'object' ? d.sibsin : undefined,
   })).filter((d) => d.heavenlyStem && d.earthlyBranch);
 
   // 생년 추출
-  const birthDateStr = sajuData?.facts?.birthDate || sajuData?.birthDate || "";
+  type FactsData = { birthDate?: string };
+  const birthDateStr = (sajuData?.facts as FactsData)?.birthDate || (sajuData?.birthDate as string) || "";
   let birthYear: number | undefined;
   if (birthDateStr) {
     const parsed = new Date(birthDateStr);
@@ -240,6 +244,24 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
     }
   }
 
+  // yongsin과 geokguk 추출
+  type YongsinData = { primary?: string; secondary?: string; type?: string; kibsin?: string };
+  type GeokgukData = { type?: string; strength?: string };
+  const yongsinRaw = sajuData?.yongsin as YongsinData | undefined;
+  const geokgukRaw = sajuData?.geokguk as GeokgukData | undefined;
+
+  // pillars 변환 헬퍼
+  type PillarWithStem = { heavenlyStem?: unknown; stem?: unknown; earthlyBranch?: { name?: string } | string; branch?: unknown };
+  const extractPillarInfo = (p: Record<string, unknown> | undefined): { stem: string; branch: string } | undefined => {
+    if (!p) return undefined;
+    const pillar = p as PillarWithStem;
+    const stemVal = (pillar.heavenlyStem || pillar.stem) as string | undefined;
+    const branchObj = pillar.earthlyBranch;
+    const branchVal = (typeof branchObj === 'object' && branchObj ? branchObj.name : branchObj) || pillar.branch;
+    if (!stemVal || !branchVal) return undefined;
+    return { stem: stemVal as string, branch: branchVal as string };
+  };
+
   return {
     dayMaster: stem,
     dayMasterElement: STEM_TO_ELEMENT[stem] || "wood",
@@ -247,14 +269,22 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
     yearBranch: yearBranch || undefined,
     birthYear,
     daeunCycles: daeunCycles.length > 0 ? daeunCycles : undefined,
-    daeunsu: unse.daeunsu || undefined,
-    yongsin: sajuData?.yongsin,
-    geokguk: sajuData?.geokguk,
+    daeunsu: unse.daeunsu,
+    yongsin: yongsinRaw?.primary && yongsinRaw?.type ? {
+      primary: yongsinRaw.primary,
+      secondary: yongsinRaw.secondary,
+      type: yongsinRaw.type,
+      kibsin: yongsinRaw.kibsin,
+    } : undefined,
+    geokguk: geokgukRaw?.type && geokgukRaw?.strength ? {
+      type: geokgukRaw.type,
+      strength: geokgukRaw.strength,
+    } : undefined,
     pillars: pillars.year || pillars.month || pillars.day || pillars.time ? {
-      year: pillars.year ? { stem: pillars.year.heavenlyStem || pillars.year.stem, branch: pillars.year.earthlyBranch?.name || pillars.year.earthlyBranch || pillars.year.branch } : undefined,
-      month: pillars.month ? { stem: pillars.month.heavenlyStem || pillars.month.stem, branch: pillars.month.earthlyBranch?.name || pillars.month.earthlyBranch || pillars.month.branch } : undefined,
-      day: pillars.day ? { stem: pillars.day.heavenlyStem || pillars.day.stem, branch: pillars.day.earthlyBranch?.name || pillars.day.earthlyBranch || pillars.day.branch } : undefined,
-      time: pillars.time ? { stem: pillars.time.heavenlyStem || pillars.time.stem, branch: pillars.time.earthlyBranch?.name || pillars.time.earthlyBranch || pillars.time.branch } : undefined,
+      year: extractPillarInfo(pillars.year),
+      month: extractPillarInfo(pillars.month),
+      day: extractPillarInfo(pillars.day),
+      time: extractPillarInfo(pillars.time),
     } : undefined,
   };
 }
@@ -279,8 +309,8 @@ export function extractAstroProfile(astrology: unknown): UserAstroProfile {
     sunSign,
     sunElement: normalizeElement(ZODIAC_TO_ELEMENT[sunSign] || "fire"),
     sunLongitude: sun?.longitude,
-    birthMonth: astroData?.birthMonth,
-    birthDay: astroData?.birthDay,
+    birthMonth: astroData?.birthMonth as number | undefined,
+    birthDay: astroData?.birthDay as number | undefined,
   };
 }
 

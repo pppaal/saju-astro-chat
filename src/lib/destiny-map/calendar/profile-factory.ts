@@ -159,32 +159,38 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
     : '甲';
 
   // 기둥 정보 추출
-  const pillars = sajuData?.pillars || {};
+  type PillarData = { earthlyBranch?: { name?: string } | string; branch?: string };
+  type PillarsData = { day?: PillarData; year?: PillarData };
+  const pillars: PillarsData = sajuData?.pillars as PillarsData || {};
 
   // 일지 추출
   const dayPillar = pillars.day || {};
-  const dayBranch = dayPillar.earthlyBranch?.name || dayPillar.earthlyBranch || dayPillar.branch || '';
+  const dayBranchObj = dayPillar.earthlyBranch;
+  const dayBranch = (typeof dayBranchObj === 'object' ? dayBranchObj?.name : dayBranchObj) || dayPillar.branch || '';
 
   // 연지 추출 (삼재/역마/도화 계산에 필요)
   const yearPillar = pillars.year || {};
-  const yearBranch = yearPillar.earthlyBranch?.name || yearPillar.earthlyBranch || yearPillar.branch || '';
+  const yearBranchObj = yearPillar.earthlyBranch;
+  const yearBranch = (typeof yearBranchObj === 'object' ? yearBranchObj?.name : yearBranchObj) || yearPillar.branch || '';
 
   // 대운 데이터 추출
-  const unse = sajuData?.unse || {};
+  type UnseData = { daeun?: unknown[]; daeunsu?: number };
+  const unse: UnseData = sajuData?.unse as UnseData || {};
   const daeunRaw = unse.daeun || [];
 
-   
-  const daeunCycles: DaeunCycle[] = (daeunRaw as Array<Record<string, unknown>>)
+  type DaeunRawItem = { age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: string | { cheon: string; ji: string } };
+  const daeunCycles: DaeunCycle[] = (daeunRaw as DaeunRawItem[])
     .map((d) => ({
-      age: (d.age as number) || 0,
-      heavenlyStem: (d.heavenlyStem as string) || '',
-      earthlyBranch: (d.earthlyBranch as string) || '',
-      sibsin: (d.sibsin as string) || undefined,
+      age: d.age || 0,
+      heavenlyStem: d.heavenlyStem || '',
+      earthlyBranch: d.earthlyBranch || '',
+      sibsin: typeof d.sibsin === 'string' ? undefined : d.sibsin,
     }))
-    .filter((d: DaeunCycle) => d.heavenlyStem && d.earthlyBranch);
+    .filter((d) => d.heavenlyStem && d.earthlyBranch);
 
   // 생년 추출
-  const birthDateStr = sajuData?.facts?.birthDate || sajuData?.birthDate || '';
+  type FactsData = { birthDate?: string };
+  const birthDateStr = (sajuData?.facts as FactsData)?.birthDate || (sajuData?.birthDate as string) || '';
   let birthYear: number | undefined;
   if (birthDateStr) {
     const parsed = new Date(birthDateStr);

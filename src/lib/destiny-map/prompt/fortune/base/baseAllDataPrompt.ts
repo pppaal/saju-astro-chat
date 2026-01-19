@@ -7,12 +7,13 @@ import type { PlanetData, AspectHit } from "@/lib/astrology";
 import { logger } from "@/lib/logger";
 
 // Prompt-specific type aliases
-type HouseData = { cusp?: number; formatted?: string };
-type PillarData = { heavenlyStem?: { name: string }; earthlyBranch?: { name: string }; ganji?: string };
+type HouseData = { cusp?: number; formatted?: string; sign?: string };
+type PillarData = { heavenlyStem?: { name: string }; earthlyBranch?: { name: string }; ganji?: string; year?: number };
 type UnseItem = { year?: number; month?: number; element?: string; ganji?: string; startAge?: number; endAge?: number };
-type DaeunItem = UnseItem;
+type DaeunItem = UnseItem & { age?: number; heavenlyStem?: string; earthlyBranch?: string };
 type AnnualItem = UnseItem;
 type MonthlyItem = UnseItem;
+type AspectData = { planet1?: { name?: string }; planet2?: { name?: string }; type?: string; aspect?: string; from?: { name?: string }; to?: { name?: string } };
 type SinsalItem = { name?: string; stars?: string[] };
 type SibsinRelation = { type?: string; quality?: string; description?: string };
 type CareerAptitude = { field?: string; score?: number };
@@ -141,38 +142,41 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
-  // Get birth year from facts (for age-based daeun calculation)
-  const birthYear = facts?.birthDate ? new Date(facts.birthDate).getFullYear() :
-                   pillars?.year?.year ?? currentYear - 30;
+  // Get birth year from pillars (for age-based daeun calculation)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pillars may have year property from various sources
+  const birthYear = (pillars?.year as any)?.year ?? currentYear - 30;
   const currentAge = currentYear - birthYear;
 
   // 현재 대운 찾기 (age 기반)
-  type DaeunWithAge = DaeunItem & { age: number; heavenlyStem?: string; earthlyBranch?: string };
-  const currentDaeun = (unse?.daeun ?? []).find((d: DaeunWithAge) => {
-    const startAge = d.age;
+  type DaeunWithAge = DaeunItem;
+  const daeunList = (unse?.daeun ?? []) as DaeunItem[];
+  const currentDaeun = daeunList.find((d) => {
+    const startAge = d.age ?? 0;
     const endAge = startAge + 9; // 대운은 10년 단위
     return currentAge >= startAge && currentAge <= endAge;
-  }) as DaeunWithAge | undefined;
+  });
 
   // 현재 세운
-  const currentAnnual = (unse?.annual ?? []).find((a: AnnualItem) => a.year === currentYear) as AnnualItem | undefined;
+  const annualList = (unse?.annual ?? []) as AnnualItem[];
+  const currentAnnual = annualList.find((a) => a.year === currentYear);
   // 현재 월운
-  const currentMonthly = (unse?.monthly ?? []).find((m: MonthlyItem) =>
+  const monthlyList = (unse?.monthly ?? []) as MonthlyItem[];
+  const currentMonthly = monthlyList.find((m) =>
     m.year === currentYear && m.month === currentMonth
-  ) as MonthlyItem | undefined;
+  );
 
   // 현재 대운 텍스트 (age 기반) - 쉬운 한글로 변환
   const daeunText = currentDaeun
-    ? `${currentDaeun.age}-${currentDaeun.age + 9}세: ${formatGanjiEasy(currentDaeun.heavenlyStem, currentDaeun.earthlyBranch)}`
-    : (unse?.daeun ?? []).slice(0, 3).map((u: DaeunWithAge) =>
-        `${u.age}-${u.age + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}`
+    ? `${currentDaeun.age}-${(currentDaeun.age ?? 0) + 9}세: ${formatGanjiEasy(currentDaeun.heavenlyStem, currentDaeun.earthlyBranch)}`
+    : daeunList.slice(0, 3).map((u) =>
+        `${u.age}-${(u.age ?? 0) + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}`
       ).join("; ");
 
   // ========== 미래 운세 데이터 (FUTURE PREDICTIONS) ==========
   // 전체 대운 흐름 (과거~미래) - age 기반, 쉬운 한글로 표시
-  const allDaeunText = (unse?.daeun ?? [])
-    .map((d: DaeunWithAge) => {
-      const startAge = d.age;
+  const allDaeunText = daeunList
+    .map((d) => {
+      const startAge = d.age ?? 0;
       const endAge = startAge + 9;
       const isCurrent = currentAge >= startAge && currentAge <= endAge;
       const marker = isCurrent ? "★현재★" : "";
@@ -191,28 +195,30 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
   // 향후 연운 (현재년도 ~ +5년) - 쉬운 한글로 표시
   type AnnualWithName = AnnualItem & { name?: string };
-  const futureAnnualList = (unse?.annual ?? [])
-    .filter((a: AnnualWithName) => (a.year ?? 0) >= currentYear && (a.year ?? 0) <= currentYear + 5)
-    .map((a: AnnualWithName) => {
+  const futureAnnualList = annualList
+    .filter((a) => (a.year ?? 0) >= currentYear && (a.year ?? 0) <= currentYear + 5)
+    .map((a) => {
+      const aWithName = a as AnnualWithName;
       const isCurrent = a.year === currentYear;
       const marker = isCurrent ? "★현재★" : "";
-      const easyGanji = parseGanjiEasy(a.ganji ?? a.name);
+      const easyGanji = parseGanjiEasy(a.ganji ?? aWithName.name);
       return `${a.year}년: ${easyGanji} ${marker}`;
     })
     .join("\n  ");
 
   // 향후 월운 (현재월 ~ 12개월) - 쉬운 한글로 표시
-  const futureMonthlyList = (unse?.monthly ?? [])
-    .filter((m: MonthlyItem) => {
-      if (m.year > currentYear) return true;
-      if (m.year === currentYear && m.month >= currentMonth) return true;
+  const futureMonthlyList = monthlyList
+    .filter((m) => {
+      if ((m.year ?? 0) > currentYear) return true;
+      if ((m.year ?? 0) === currentYear && (m.month ?? 0) >= currentMonth) return true;
       return false;
     })
     .slice(0, 12)
-    .map((m: MonthlyItem & { name?: string }) => {
+    .map((m) => {
+      const mWithName = m as MonthlyItem & { name?: string };
       const isCurrent = m.year === currentYear && m.month === currentMonth;
       const marker = isCurrent ? "★현재★" : "";
-      const easyGanji = parseGanjiEasy(m.ganji ?? m.name);
+      const easyGanji = parseGanjiEasy(m.ganji ?? mWithName.name);
       return `${m.year}년 ${m.month}월: ${easyGanji} ${marker}`;
     })
     .join("\n  ");
@@ -224,8 +230,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const unlucky = (sinsalRecord?.unluckyList ?? []).map((x) => x.name).join(", ");
 
   // ========== ADVANCED SAJU ANALYSIS ==========
-  type AdvancedAnalysis = Record<string, unknown>;
-  const adv = advancedAnalysis as AdvancedAnalysis | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex nested structure with dynamic properties
+  const adv = advancedAnalysis as Record<string, any> | undefined;
 
   // 신강/신약
   const strengthText = adv?.extended?.strength
@@ -322,7 +328,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   // ========== ASTEROIDS (소행성 - Ceres, Pallas, Juno, Vesta) ==========
   type AsteroidPoint = { sign?: string; house?: number };
   type AsteroidData = { juno?: AsteroidPoint; ceres?: AsteroidPoint; pallas?: AsteroidPoint; vesta?: AsteroidPoint; aspects?: AsteroidAspect[] | Record<string, AsteroidAspect[]> };
-  const asteroids = (data as Record<string, unknown>).asteroids as AsteroidData | undefined ?? {};
+  const asteroids = (data as unknown as Record<string, unknown>).asteroids as AsteroidData | undefined ?? {};
   const juno = asteroids.juno;
   const ceres = asteroids.ceres;
   const pallas = asteroids.pallas;
@@ -561,9 +567,10 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
 
   // ========== 직업/재물 전용 분석 (career/wealth theme) ==========
   // 2하우스(수입), 6하우스(일상업무), 10하우스(커리어) 사인 추출
-  const house2Sign = houses?.[1]?.sign ?? "-";
-  const house6Sign = houses?.[5]?.sign ?? "-";
-  const house10Sign = houses?.[9]?.sign ?? "-";
+  const housesWithSign = houses as Array<HouseData>;
+  const house2Sign = housesWithSign?.[1]?.sign ?? "-";
+  const house6Sign = housesWithSign?.[5]?.sign ?? "-";
+  const house10Sign = housesWithSign?.[9]?.sign ?? "-";
 
   // 관성(정관+편관), 재성(정재+편재), 식상(식신+상관) 합계
   const officialStar = ((sibsinDist as Record<string, number> | undefined)?.["정관"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["편관"] ?? 0);
@@ -652,7 +659,7 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
 
   // ========== 가족/인간관계 전용 분석 (family theme) ==========
   // 4하우스(가정) 사인 추출 (house5Sign은 love 섹션에서 이미 정의됨)
-  const house4Sign = houses?.[3]?.sign ?? "-";
+  const house4Sign = housesWithSign?.[3]?.sign ?? "-";
 
   // 비겁, 인성, 식상 합계
   const bijeopStar = ((sibsinDist as Record<string, number> | undefined)?.["비견"] ?? 0) + ((sibsinDist as Record<string, number> | undefined)?.["겁재"] ?? 0);

@@ -231,7 +231,7 @@ async function calculateAdvancedSajuAnalysis(
       };
        
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for external function compatibility
-      advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as Parameters<typeof calculateComprehensiveScore>[0]);
+      advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as unknown as Parameters<typeof calculateComprehensiveScore>[0]);
     } catch (e) {
       if (enableDebugLogs) logger.debug('[Score calculation skipped]', e);
     }
@@ -262,7 +262,7 @@ async function calculateAdvancedSajuAnalysis(
       };
        
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for external function compatibility
-      advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as Parameters<typeof performUltraAdvancedAnalysis>[0]);
+      advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as unknown as Parameters<typeof performUltraAdvancedAnalysis>[0]);
     } catch (e) {
       if (enableDebugLogs) logger.debug('[Ultra Advanced analysis skipped]', e);
     }
@@ -323,16 +323,17 @@ export async function calculateSajuOrchestrated(
     logger.error('[calculateSajuData Error]', err);
   }
 
-  // Extract pillars
+  // Extract pillars - pillar types come from dynamic calculation
   const pillars: SajuPillars = {
-    year: sajuFacts?.yearPillar,
-    month: sajuFacts?.monthPillar,
-    day: sajuFacts?.dayPillar,
-    time: sajuFacts?.timePillar,
+    year: sajuFacts?.yearPillar as SajuPillars['year'],
+    month: sajuFacts?.monthPillar as SajuPillars['month'],
+    day: sajuFacts?.dayPillar as SajuPillars['day'],
+    time: sajuFacts?.timePillar as SajuPillars['time'],
   };
 
-  type DayMasterInput = { name?: string; element?: string; yinYang?: string };
-  const dayMaster: DayMasterInput = sajuFacts?.dayMaster ?? {};
+  // Day master from calculated data - shape varies by source
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dayMaster = sajuFacts?.dayMaster ?? {} as any;
   if (enableDebugLogs) {
     logger.debug('[calculateSajuOrchestrated] dayMaster extracted:', JSON.stringify(dayMaster));
   }
@@ -348,7 +349,8 @@ export async function calculateSajuOrchestrated(
   const hasValidPillars = Boolean(pillars.year && pillars.month && pillars.day);
   if (hasValidPillars) {
     try {
-      const d = getDaeunCycles(birthDateObj, gender, pillars as SajuPillars, dayMaster, timezone);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- External function compatibility
+      const d = getDaeunCycles(birthDateObj, gender, pillars as any, dayMaster, timezone);
 
       // 세운: 현재 연도부터 향후 10년
       const a = getAnnualCycles(currentYear, 10, dayMaster);

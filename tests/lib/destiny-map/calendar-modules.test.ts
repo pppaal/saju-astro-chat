@@ -174,25 +174,25 @@ describe('Destiny Map Calendar - Scoring Config', () => {
 
 describe('Destiny Map Calendar - Grading', () => {
   it('should export calculateGrade function', async () => {
-    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading-optimized');
+    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading');
 
     expect(typeof calculateGrade).toBe('function');
   });
 
   it('should export getCategoryScore function', async () => {
-    const { getCategoryScore } = await import('@/lib/destiny-map/calendar/grading-optimized');
+    const { getCategoryScore } = await import('@/lib/destiny-map/calendar/grading');
 
     expect(typeof getCategoryScore).toBe('function');
   });
 
   it('should export getGradeTitleKey function', async () => {
-    const { getGradeTitleKey } = await import('@/lib/destiny-map/calendar/grading-optimized');
+    const { getGradeTitleKey } = await import('@/lib/destiny-map/calendar/grading');
 
     expect(typeof getGradeTitleKey).toBe('function');
   });
 
   it('should export getGradeDescKey function', async () => {
-    const { getGradeDescKey } = await import('@/lib/destiny-map/calendar/grading-optimized');
+    const { getGradeDescKey } = await import('@/lib/destiny-map/calendar/grading');
 
     expect(typeof getGradeDescKey).toBe('function');
   });

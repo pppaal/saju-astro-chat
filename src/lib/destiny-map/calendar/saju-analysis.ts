@@ -450,7 +450,7 @@ export function calculateIljinScore(
     positive = true;
   }
 
-  const isSonEomneun = isSonEomneunDay(targetDate);
+  const isSonEomneun = isSonEomneunDay(targetDate.getDate());
   if (isSonEomneun) {
     score -= 5;
     factorKeys.push("iljinSonEomneun");

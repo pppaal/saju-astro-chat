@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Theme-Specific Prompt Sections
  * 테마별 프롬프트 섹션 생성기

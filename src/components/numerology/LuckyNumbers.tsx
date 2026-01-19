@@ -20,12 +20,13 @@ export default function LuckyNumbers() {
   const { t, locale } = useI18n();
   const [birthDate, setBirthDate] = useState('');
   const [name, setName] = useState('');
+  const [count, setCount] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<LuckyNumbersResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const apiLocale = locale === 'ko' ? 'ko' : 'en';
 
-  const generateLuckyNumbers = (lifePath: number, expression?: number, soulUrge?: number, personality?: number) => {
+  const generateLuckyNumbers = (lifePath: number, expression?: number, soulUrge?: number, personality?: number, targetCount: number = 10) => {
     const numbers = new Set<number>();
 
     // Core numbers
@@ -51,16 +52,16 @@ export default function LuckyNumbers() {
       });
     });
 
-    // Ensure we have at least 6 numbers
+    // Ensure we have enough numbers
     const today = new Date();
     const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
 
-    while (numbers.size < 12) {
+    while (numbers.size < targetCount + 5) {
       const derived = ((lifePath + dayOfYear + numbers.size) % 45) + 1;
       numbers.add(derived);
     }
 
-    return Array.from(numbers).sort((a, b) => a - b).slice(0, 10);
+    return Array.from(numbers).sort((a, b) => a - b).slice(0, targetCount);
   };
 
   const handleGenerate = async (e?: React.FormEvent) => {
@@ -96,7 +97,8 @@ export default function LuckyNumbers() {
         data.lifePath?.number,
         data.expression?.number,
         data.soulUrge?.number,
-        data.personality?.number
+        data.personality?.number,
+        count
       );
 
       setResult({
@@ -163,6 +165,22 @@ export default function LuckyNumbers() {
             className={styles.input}
           />
           <span className={styles.hint}>{t('numerology.lucky.nameHint', 'Enter your name for more accurate lucky numbers')}</span>
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="count" className={styles.label}>
+            {t('numerology.lucky.countLabel', 'Number of lucky numbers to generate')}
+          </label>
+          <input
+            type="number"
+            id="count"
+            value={count}
+            onChange={(e) => setCount(Math.min(15, Math.max(1, parseInt(e.target.value) || 10)))}
+            min="1"
+            max="15"
+            className={styles.input}
+          />
+          <span className={styles.hint}>{t('numerology.lucky.countHint', 'Select up to 15 numbers')}</span>
         </div>
 
         {error && (

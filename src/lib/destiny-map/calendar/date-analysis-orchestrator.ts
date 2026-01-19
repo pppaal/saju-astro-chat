@@ -81,6 +81,7 @@ import {
   adaptYongsinResult,
   adaptPlanetTransits,
   type LegacyBranchInteraction,
+  type LegacyYongsinResult,
 } from './scoring-adapter';
 import { calculateAreaScoresForCategories, getBestAreaCategory } from './category-scoring';
 import { calculateActivityScore } from './activity-scoring';
@@ -282,9 +283,14 @@ export function analyzeDate(
   const dayMasterElement = sajuProfile.dayMasterElement;
   const dayBranch = sajuProfile.dayBranch;
   const natalSunElement = astroProfile.sunElement;
-  const relations = ELEMENT_RELATIONS[dayMasterElement];
 
-  if (!relations) return null;
+  // 모든 날짜에 대해 데이터를 반환해야 하므로, relations가 없으면 기본값 사용
+  const relations = ELEMENT_RELATIONS[dayMasterElement] || {
+    generates: "earth",
+    generatedBy: "water",
+    controls: "metal",
+    controlledBy: "fire",
+  };
 
   // 날짜별 변동성을 위한 해시 기반 미세 조정
   const yearStartUtc = Date.UTC(date.getFullYear(), 0, 0);
@@ -459,6 +465,16 @@ export function analyzeDate(
   const hasAnyGwiin = hasCheoneulGwiin || shinsalForScoring?.active?.some(
     s => s.name.includes('귀인') || s.name === '태극귀인' || s.name === '천덕귀인' || s.name === '월덕귀인'
   );
+
+  // yongsinAnalysis가 null이면 기본값 사용 (LegacyYongsinResult 타입)
+  const safeYongsinAnalysis: LegacyYongsinResult = {
+    score: yongsinAnalysis?.score ?? 0,
+    factorKeys: yongsinAnalysis?.factorKeys ?? [],
+    positive: yongsinAnalysis?.positive ?? false,
+    negative: yongsinAnalysis?.negative ?? false,
+    matchType: yongsinAnalysis?.matchType as LegacyYongsinResult['matchType'],
+  };
+
   const sajuInput: SajuScoreInput = {
     daeun: adaptDaeunResult(daeunAnalysis),
     seun: adaptSeunResult(seunAnalysis, isSamjaeYearFlag, hasAnyGwiin),
@@ -472,7 +488,7 @@ export function analyzeDate(
       branchInteractions,
       shinsalResult: shinsalForScoring,
     }),
-    yongsin: adaptYongsinResult(yongsinAnalysis as YongsinAnalysis | null, geokgukAnalysis),
+    yongsin: adaptYongsinResult(safeYongsinAnalysis, geokgukAnalysis),
   };
 
   // 점성술 입력 데이터 구성

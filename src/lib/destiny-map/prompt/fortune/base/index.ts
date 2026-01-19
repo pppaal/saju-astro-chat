@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Prompt Builder Main Orchestrator (Refactored)
  * 프롬프트 빌더 메인 오케스트레이터 (리팩토링됨)
@@ -85,7 +86,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     const saju = extractSajuData(data);
     const advancedAstro = extractAdvancedAstrology(data);
     const timeInfo = getCurrentTimeInfo();
-    const ageInfo = calculateAgeInfo(saju.facts, saju.pillars);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Pillars structure may vary
+    const ageInfo = calculateAgeInfo(saju.facts, saju.pillars as any);
 
     // Debug logging
     logger.debug("[buildAllDataPrompt] saju keys:", saju ? Object.keys(saju) : "null");
@@ -97,23 +99,29 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     const planetLines = formatPlanetLines(planetary.planets);
     const houseLines = formatHouseLines(planetary.houses);
     const aspectLines = formatAspectLines(planetary.aspects);
-    const elements = formatElements(planetary.facts?.elementRatios);
+    const elements = formatElements(planetary.facts?.elementRatios as Record<string, number> | undefined);
     const pillarText = formatPillarText(saju.pillars);
     const dayMaster = extractDayMaster(saju.pillars, saju.dayMaster);
 
     // Step 3: Format luck cycles (daeun, annual, monthly)
-    const daeunText = formatDaeunText(saju.unse, ageInfo.currentAge);
-    const allDaeunText = formatAllDaeunText(saju.unse, ageInfo.currentAge);
-    const futureAnnualList = formatFutureAnnualList(saju.unse, timeInfo.currentYear);
-    const futureMonthlyList = formatFutureMonthlyList(saju.unse, timeInfo.currentYear, timeInfo.currentMonth);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Unse structure from external API may vary
+    const daeunText = formatDaeunText(saju.unse as any, ageInfo.currentAge);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Unse structure from external API may vary
+    const allDaeunText = formatAllDaeunText(saju.unse as any, ageInfo.currentAge);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Unse structure from external API may vary
+    const futureAnnualList = formatFutureAnnualList(saju.unse as any, timeInfo.currentYear);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Unse structure from external API may vary
+    const futureMonthlyList = formatFutureMonthlyList(saju.unse as any, timeInfo.currentYear, timeInfo.currentMonth);
 
     // Step 4: Format sinsal and advanced saju analysis
     const { lucky, unlucky } = formatSinsalLists(saju.sinsal);
     const advancedAnalysis = formatAdvancedSajuAnalysis(saju.advancedAnalysis);
 
     // Step 5: Find current annual and monthly
-    const currentAnnual = (saju.unse?.annual ?? []).find((a: { year?: number }) => a.year === timeInfo.currentYear);
-    const currentMonthly = (saju.unse?.monthly ?? []).find((m: { year?: number; month?: number }) =>
+    type AnnualItem = { year?: number };
+    type MonthlyItem = { year?: number; month?: number };
+    const currentAnnual = ((saju.unse?.annual ?? []) as AnnualItem[]).find((a) => a.year === timeInfo.currentYear);
+    const currentMonthly = ((saju.unse?.monthly ?? []) as MonthlyItem[]).find((m) =>
       m.year === timeInfo.currentYear && m.month === timeInfo.currentMonth
     );
 

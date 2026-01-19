@@ -83,6 +83,7 @@ interface SajuRawData {
 
 interface AstroRawData {
   planets?: Array<{ name?: string; sign?: string }> | Record<string, { sign?: string }>;
+  ascendant?: { sign?: string };
   [key: string]: unknown;
 }
 
@@ -189,8 +190,8 @@ export default function CompatibilityFunInsights({
         pluto: getSignData(astro, 'pluto'),
         northNode: getSignData(astro, 'northNode'),
         southNode: getSignData(astro, 'southNode'),
-        ascendant: (astro as any)?.ascendant?.sign
-          ? { sign: (astro as any).ascendant.sign.toLowerCase(), element: getElementFromSign((astro as any).ascendant.sign.toLowerCase()) }
+        ascendant: astro?.ascendant?.sign
+          ? { sign: astro.ascendant.sign.toLowerCase(), element: getElementFromSign(astro.ascendant.sign.toLowerCase()) }
           : undefined,
       };
     };

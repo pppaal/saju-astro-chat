@@ -645,79 +645,83 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
     if (jsonData.tarot) {
       if (!target.tarot) target.tarot = {};
       // Deep merge tarot object
+      const targetTarot = target.tarot as Record<string, unknown>;
       for (const [key, value] of Object.entries(jsonData.tarot)) {
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          if (!target.tarot[key]) target.tarot[key] = {};
-          Object.assign(target.tarot[key], value);
+          if (!targetTarot[key]) targetTarot[key] = {};
+          Object.assign(targetTarot[key] as object, value);
         } else {
-          target.tarot[key] = value;
+          targetTarot[key] = value;
         }
       }
     }
     // Merge iching translations from JSON
     if (jsonData.iching) {
       if (!target.iching) target.iching = {};
-      Object.assign(target.iching, jsonData.iching);
+      Object.assign(target.iching as object, jsonData.iching);
     }
     // Merge dream translations from JSON
     if (jsonData.dream) {
       if (!target.dream) target.dream = {};
-      Object.assign(target.dream, jsonData.dream);
+      Object.assign(target.dream as object, jsonData.dream);
     }
     // Merge form translations from JSON
     if (jsonData.form) {
       if (!target.form) target.form = {};
-      Object.assign(target.form, jsonData.form);
+      Object.assign(target.form as object, jsonData.form);
     }
     // Merge pricing translations from JSON
     if (jsonData.pricing) {
       if (!target.pricing) target.pricing = {};
+      const targetPricing = target.pricing as Record<string, unknown>;
       for (const [key, value] of Object.entries(jsonData.pricing)) {
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          if (!target.pricing[key]) target.pricing[key] = {};
-          Object.assign(target.pricing[key], value);
+          if (!targetPricing[key]) targetPricing[key] = {};
+          Object.assign(targetPricing[key] as object, value);
         } else {
-          target.pricing[key] = value;
+          targetPricing[key] = value;
         }
       }
     }
     // Merge history translations from JSON
     if (jsonData.history) {
       if (!target.history) target.history = {};
+      const targetHistory = target.history as Record<string, unknown>;
       for (const [key, value] of Object.entries(jsonData.history)) {
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          if (!target.history[key]) target.history[key] = {};
-          Object.assign(target.history[key], value);
+          if (!targetHistory[key]) targetHistory[key] = {};
+          Object.assign(targetHistory[key] as object, value);
         } else {
-          target.history[key] = value;
+          targetHistory[key] = value;
         }
       }
     }
     // Merge myjourney translations from JSON
     if (jsonData.myjourney) {
       if (!target.myjourney) target.myjourney = {};
+      const targetMyjourney = target.myjourney as Record<string, unknown>;
       for (const [key, value] of Object.entries(jsonData.myjourney)) {
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          if (!target.myjourney[key]) target.myjourney[key] = {};
-          Object.assign(target.myjourney[key], value);
+          if (!targetMyjourney[key]) targetMyjourney[key] = {};
+          Object.assign(targetMyjourney[key] as object, value);
         } else {
-          target.myjourney[key] = value;
+          targetMyjourney[key] = value;
         }
       }
     }
     // Merge success translations from JSON
     if (jsonData.success) {
       if (!target.success) target.success = {};
-      Object.assign(target.success, jsonData.success);
+      Object.assign(target.success as object, jsonData.success);
     }
     if (jsonData.auth) {
       if (!target.auth) target.auth = {};
-      Object.assign(target.auth, jsonData.auth);
+      Object.assign(target.auth as object, jsonData.auth);
     }
     // Merge destinyPal translations from JSON
     if (jsonData.destinyPal) {
       if (!target.destinyPal) target.destinyPal = {};
-      Object.assign(target.destinyPal, jsonData.destinyPal);
+      Object.assign(target.destinyPal as object, jsonData.destinyPal);
     }
   }
 }

@@ -55,17 +55,11 @@ const DayCell = React.memo(function DayCell({
   onClick,
   className,
 }: DayCellProps) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
 
   const getGradeLabel = (grade: number) => {
-    const labels = {
-      0: locale === "ko" ? "최고의 날" : "Best Day",
-      1: locale === "ko" ? "좋은 날" : "Good Day",
-      2: locale === "ko" ? "보통 날" : "Normal Day",
-      3: locale === "ko" ? "안좋은 날" : "Bad Day",
-      4: locale === "ko" ? "최악의 날" : "Worst Day",
-    };
-    return labels[grade as keyof typeof labels] || labels[2];
+    const key = `calendar.grades.${grade}`;
+    return t(key, grade === 0 ? "Best Day" : grade === 1 ? "Good Day" : grade === 2 ? "Normal Day" : grade === 3 ? "Bad Day" : "Worst Day");
   };
 
   const ariaLabel = date

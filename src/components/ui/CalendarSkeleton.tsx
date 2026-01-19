@@ -1,3 +1,5 @@
+"use client";
+
 import styles from "./CalendarSkeleton.module.css";
 import { useState, useEffect } from "react";
 
