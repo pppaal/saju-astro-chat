@@ -13,19 +13,76 @@
  * - life (인생 종합)
  */
 
- 
-
+import type { PlanetData } from '@/lib/astrology';
 import { formatPillar } from './data-extractors';
+
+// Local type definitions for theme section data
+type PlanetaryData = {
+  venus?: PlanetData;
+  mars?: PlanetData;
+  ascendant?: PlanetData;
+  sun?: PlanetData;
+  moon?: PlanetData;
+  mercury?: PlanetData;
+  jupiter?: PlanetData;
+  saturn?: PlanetData;
+  mc?: PlanetData;
+  transits?: TransitItem[];
+};
+type TransitItem = { type?: string; transitPlanet?: string; natalPoint?: string; orb?: string };
+type SajuPillars = {
+  day?: { earthlyBranch?: { name?: string; element?: string }; heavenlyStem?: { element?: string } };
+  year?: { earthlyBranch?: { name?: string }; heavenlyStem?: { name?: string } };
+};
+type UnseData = { monthly?: MonthlyItem[]; annual?: AnnualItem[]; daeun?: DaeunItem[] };
+type MonthlyItem = { year?: number; month?: number; element?: string };
+type AnnualItem = { year?: number; element?: string };
+type DaeunItem = { element?: string; startAge?: number; endAge?: number };
+type SajuData = { pillars?: SajuPillars; unse?: UnseData };
+type AsteroidPoint = { sign?: string; house?: number };
+type AsteroidsData = { juno?: AsteroidPoint; vertex?: AsteroidPoint; ceres?: AsteroidPoint; vesta?: AsteroidPoint; pallas?: AsteroidPoint };
+type ExtraPointsData = { chiron?: { sign?: string; house?: number }; lilith?: { sign?: string; house?: number } };
+type DraconicAlignment = { description?: string };
+type DraconicData = { chart?: { planets?: PlanetData[]; ascendant?: { sign?: string } }; comparison?: { alignments?: DraconicAlignment[] } };
+type AdvancedAstroData = {
+  asteroids: AsteroidsData;
+  extraPoints: ExtraPointsData;
+  solarReturn?: { summary?: { sunHouse?: number; theme?: string } };
+  draconic?: DraconicData;
+  progressions?: { secondary?: { moonPhase?: { phase?: string } } };
+  electional?: { voidOfCourse?: { isVoid?: boolean } };
+  midpoints?: { sunMoon?: { sign?: string }; ascMc?: { sign?: string } };
+};
+type FormattingData = {
+  sibsinDist?: Record<string, number>;
+  relationshipText?: string;
+  lucky?: string;
+  unlucky?: string;
+  suitableCareers?: string;
+  careerText?: string;
+  strengthText?: string;
+  geokgukText?: string;
+  yongsinPrimary?: string;
+  healthWeak?: string;
+  allDaeunText?: string;
+  futureAnnualList?: string;
+  futureMonthlyList?: string;
+  significantTransits?: string;
+  daeunText?: string;
+};
+type AgeInfo = { currentAge?: number; birthYear?: number };
+type TimeInfo = { currentYear: number; currentMonth: number };
+type AdvancedData = Record<string, unknown>;
 
 export interface ThemeSectionInput {
   theme: string;
-  planetary: any;
-  saju: any;
-  advanced: any;
-  advancedAstro: any;
-  formatting: any;
-  ageInfo: any;
-  timeInfo: any;
+  planetary: PlanetaryData;
+  saju: SajuData;
+  advanced: AdvancedData;
+  advancedAstro: AdvancedAstroData;
+  formatting: FormattingData;
+  ageInfo: AgeInfo;
+  timeInfo: TimeInfo;
 }
 
 /**
@@ -211,7 +268,7 @@ export function buildTodaySection(input: ThemeSectionInput): string {
   const { currentYear, currentMonth } = input.timeInfo;
   const significantTransits = formatting.significantTransits;
 
-  const currentMonthly = (unse?.monthly ?? []).find((m: any) =>
+  const currentMonthly = (unse?.monthly ?? []).find((m: MonthlyItem) =>
     m.year === currentYear && m.month === currentMonth
   );
 
@@ -254,7 +311,7 @@ export function buildMonthSection(input: ThemeSectionInput): string {
   const significantTransits = formatting.significantTransits;
   const futureMonthlyList = formatting.futureMonthlyList;
 
-  const currentMonthly = (unse?.monthly ?? []).find((m: any) =>
+  const currentMonthly = (unse?.monthly ?? []).find((m: MonthlyItem) =>
     m.year === currentYear && m.month === currentMonth
   );
 
@@ -297,7 +354,7 @@ export function buildYearSection(input: ThemeSectionInput): string {
   const { currentYear } = timeInfo;
   const { daeunText, futureAnnualList } = formatting;
 
-  const currentAnnual = (unse?.annual ?? []).find((a: any) => a.year === currentYear);
+  const currentAnnual = (unse?.annual ?? []).find((a: MonthlyItem) => a.year === currentYear);
 
   const solarReturnText = advancedAstro.solarReturn ? [
     `SR ASC: ${advancedAstro.solarReturn.summary?.ascSign ?? advancedAstro.solarReturn.summary?.ascendant ?? "-"}`,
@@ -351,10 +408,10 @@ export function buildLifeSection(input: ThemeSectionInput): string {
   const { chiron } = advancedAstro.extraPoints;
 
   const draconicText = advancedAstro.draconic ? [
-    `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: any) => p.name === "Sun")?.sign ?? "-"}`,
-    `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: any) => p.name === "Moon")?.sign ?? "-"}`,
+    `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: MonthlyItem) => p.name === "Sun")?.sign ?? "-"}`,
+    `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: MonthlyItem) => p.name === "Moon")?.sign ?? "-"}`,
     `Draconic ASC: ${advancedAstro.draconic.chart?.ascendant?.sign ?? "-"}`,
-    advancedAstro.draconic.comparison?.alignments?.length ? `Alignments: ${advancedAstro.draconic.comparison.alignments.slice(0, 2).map((a: any) => a.description).join("; ")}` : null,
+    advancedAstro.draconic.comparison?.alignments?.length ? `Alignments: ${advancedAstro.draconic.comparison.alignments.slice(0, 2).map((a: MonthlyItem) => a.description).join("; ")}` : null,
   ].filter(Boolean).join("; ") : "-";
 
   return `

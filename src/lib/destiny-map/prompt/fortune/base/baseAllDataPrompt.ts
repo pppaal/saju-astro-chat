@@ -1,17 +1,28 @@
- 
-// TODO: Add proper types for prompt data structures
-// Using 'any' for dynamic prompt data structures that come from various sources
+/**
+ * @deprecated This file is kept for backward compatibility. Use index.ts instead.
+ */
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { AstrologyData, SajuData } from "@/lib/destiny-map/astrology/types";
+import type { PlanetData, AspectHit } from "@/lib/astrology";
 import { logger } from "@/lib/logger";
 
-// Simple type aliases for prompt builder - using 'any' for deep property access
-type PlanetData = any;
-type HouseData = any;
-type AspectData = any;
-type PillarData = any;
-type FactsData = any;
-type AstrologyData = any;
-type SajuData = any;
+// Prompt-specific type aliases
+type HouseData = { cusp?: number; formatted?: string };
+type PillarData = { heavenlyStem?: { name: string }; earthlyBranch?: { name: string }; ganji?: string };
+type UnseItem = { year?: number; month?: number; element?: string; ganji?: string; startAge?: number; endAge?: number };
+type DaeunItem = UnseItem;
+type AnnualItem = UnseItem;
+type MonthlyItem = UnseItem;
+type SinsalItem = { name?: string; stars?: string[] };
+type SibsinRelation = { type?: string; quality?: string; description?: string };
+type CareerAptitude = { field?: string; score?: number };
+type BranchInteraction = { branch1?: string; branch2?: string; from?: string; to?: string; result?: string };
+type TuechulItem = { element?: string; stem?: string; type?: string };
+type HoegukItem = { type?: string; name?: string; resultElement?: string };
+type FixedStarItem = { star?: string; starName?: string; planet?: string; planetName?: string; meaning?: string };
+type MidpointItem = { planet1?: string; planet2?: string; sign?: string; degree?: number };
+type TransitItem = { type?: string; aspectType?: string; from?: { name?: string }; to?: { name?: string }; planet1Name?: string; planet2Name?: string; orb?: string };
+type AsteroidAspect = { asteroid?: string; from?: string; type?: string; aspect?: string; planet?: string; to?: string; planet2?: { name?: string } };
 
 
 /**
@@ -33,6 +44,7 @@ type SajuData = any;
  */
 export function buildAllDataPrompt(lang: string, theme: string, data: CombinedResult) {
   const { astrology = {}, saju } = data ?? {};
+  const astroData = astrology as AstrologyData | Record<string, unknown>;
   const {
     planets = [],
     houses = [],
@@ -41,8 +53,9 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     mc,
     facts,
     transits = [],
-  } = astrology as any;
-  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = (saju ?? {}) as any;
+  } = astroData as AstrologyData;
+  const sajuData = (saju ?? {}) as SajuData;
+  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = sajuData;
 
   // ========== HELPER FUNCTIONS ==========
   const getPlanet = (name: string) => planets.find((p: PlanetData) => p.name === name);
@@ -134,30 +147,31 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const currentAge = currentYear - birthYear;
 
   // 현재 대운 찾기 (age 기반)
-  const currentDaeun: any = (unse?.daeun ?? []).find((d: any) => {
+  type DaeunWithAge = DaeunItem & { age: number; heavenlyStem?: string; earthlyBranch?: string };
+  const currentDaeun = (unse?.daeun ?? []).find((d: DaeunWithAge) => {
     const startAge = d.age;
     const endAge = startAge + 9; // 대운은 10년 단위
     return currentAge >= startAge && currentAge <= endAge;
-  });
+  }) as DaeunWithAge | undefined;
 
   // 현재 세운
-  const currentAnnual: any = (unse?.annual ?? []).find((a: AspectData) => a.year === currentYear);
+  const currentAnnual = (unse?.annual ?? []).find((a: AnnualItem) => a.year === currentYear) as AnnualItem | undefined;
   // 현재 월운
-  const currentMonthly: any = (unse?.monthly ?? []).find((m: any) =>
+  const currentMonthly = (unse?.monthly ?? []).find((m: MonthlyItem) =>
     m.year === currentYear && m.month === currentMonth
-  );
+  ) as MonthlyItem | undefined;
 
   // 현재 대운 텍스트 (age 기반) - 쉬운 한글로 변환
   const daeunText = currentDaeun
     ? `${currentDaeun.age}-${currentDaeun.age + 9}세: ${formatGanjiEasy(currentDaeun.heavenlyStem, currentDaeun.earthlyBranch)}`
-    : (unse?.daeun ?? []).slice(0, 3).map((u: any) =>
+    : (unse?.daeun ?? []).slice(0, 3).map((u: DaeunWithAge) =>
         `${u.age}-${u.age + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}`
       ).join("; ");
 
   // ========== 미래 운세 데이터 (FUTURE PREDICTIONS) ==========
   // 전체 대운 흐름 (과거~미래) - age 기반, 쉬운 한글로 표시
   const allDaeunText = (unse?.daeun ?? [])
-    .map((d: any) => {
+    .map((d: DaeunWithAge) => {
       const startAge = d.age;
       const endAge = startAge + 9;
       const isCurrent = currentAge >= startAge && currentAge <= endAge;
@@ -176,9 +190,10 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   };
 
   // 향후 연운 (현재년도 ~ +5년) - 쉬운 한글로 표시
+  type AnnualWithName = AnnualItem & { name?: string };
   const futureAnnualList = (unse?.annual ?? [])
-    .filter((a: AspectData) => a.year >= currentYear && a.year <= currentYear + 5)
-    .map((a: AspectData) => {
+    .filter((a: AnnualWithName) => (a.year ?? 0) >= currentYear && (a.year ?? 0) <= currentYear + 5)
+    .map((a: AnnualWithName) => {
       const isCurrent = a.year === currentYear;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = parseGanjiEasy(a.ganji ?? a.name);
@@ -188,13 +203,13 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
   // 향후 월운 (현재월 ~ 12개월) - 쉬운 한글로 표시
   const futureMonthlyList = (unse?.monthly ?? [])
-    .filter((m: any) => {
+    .filter((m: MonthlyItem) => {
       if (m.year > currentYear) return true;
       if (m.year === currentYear && m.month >= currentMonth) return true;
       return false;
     })
     .slice(0, 12)
-    .map((m: any) => {
+    .map((m: MonthlyItem & { name?: string }) => {
       const isCurrent = m.year === currentYear && m.month === currentMonth;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = parseGanjiEasy(m.ganji ?? m.name);
@@ -203,12 +218,14 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     .join("\n  ");
 
   // ========== SINSAL ==========
-  const sinsalRecord = sinsal as any | undefined;
-  const lucky = (sinsalRecord?.luckyList as { name?: string }[] ?? []).map((x) => x.name).join(", ");
-  const unlucky = (sinsalRecord?.unluckyList as { name?: string }[] ?? []).map((x) => x.name).join(", ");
+  type SinsalRecord = { luckyList?: SinsalItem[]; unluckyList?: SinsalItem[] };
+  const sinsalRecord = sinsal as SinsalRecord | undefined;
+  const lucky = (sinsalRecord?.luckyList ?? []).map((x) => x.name).join(", ");
+  const unlucky = (sinsalRecord?.unluckyList ?? []).map((x) => x.name).join(", ");
 
   // ========== ADVANCED SAJU ANALYSIS ==========
-  const adv = advancedAnalysis as any | undefined;
+  type AdvancedAnalysis = Record<string, unknown>;
+  const adv = advancedAnalysis as AdvancedAnalysis | undefined;
 
   // 신강/신약
   const strengthText = adv?.extended?.strength
@@ -238,19 +255,19 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const sibsinRelationships = sibsin?.relationships ?? [];
   const sibsinCareerAptitudes = sibsin?.careerAptitudes ?? [];
   const relationshipText = Array.isArray(sibsinRelationships)
-    ? sibsinRelationships.slice(0, 3).map((r: any) => `${r.type}:${r.quality ?? r.description ?? ""}`).join("; ")
+    ? sibsinRelationships.slice(0, 3).map((r: SibsinRelation) => `${r.type}:${r.quality ?? r.description ?? ""}`).join("; ")
     : "-";
   const careerText = Array.isArray(sibsinCareerAptitudes)
-    ? sibsinCareerAptitudes.slice(0, 4).map((c: any) => `${c.field}(${c.score ?? 0})`).join(", ")
+    ? sibsinCareerAptitudes.slice(0, 4).map((c: CareerAptitude) => `${c.field}(${c.score ?? 0})`).join(", ")
     : "-";
 
   // 형충회합
   const hyeongchung = adv?.hyeongchung ?? {};
   const chungText = hyeongchung.chung?.length
-    ? hyeongchung.chung.map((c: any) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")
+    ? hyeongchung.chung.map((c: BranchInteraction) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")
     : "-";
   const hapText = hyeongchung.hap?.length
-    ? hyeongchung.hap.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")
+    ? hyeongchung.hap.map((h: BranchInteraction) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")
     : "-";
   const samhapText = hyeongchung.samhap?.length
     ? hyeongchung.samhap.map((s: { branches?: string[] }) => s.branches?.join?.("-") ?? "-").join("; ")
@@ -272,10 +289,10 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     ? `${adv.tonggeun.stem ?? "-"}→${adv.tonggeun.rootBranch ?? "-"} (${adv.tonggeun.strength ?? "-"})`
     : "-";
   const tuechulText = adv?.tuechul?.length
-    ? adv.tuechul.slice(0, 3).map((t: any) => `${t.element ?? t.stem}(${t.type ?? "-"})`).join(", ")
+    ? adv.tuechul.slice(0, 3).map((t: TuechulItem) => `${t.element ?? t.stem}(${t.type ?? "-"})`).join(", ")
     : "-";
   const hoegukText = adv?.hoeguk?.length
-    ? adv.hoeguk.slice(0, 2).map((h: any) => `${h.type ?? h.name}→${h.resultElement ?? "-"}`).join("; ")
+    ? adv.hoeguk.slice(0, 2).map((h: HoegukItem) => `${h.type ?? h.name}→${h.resultElement ?? "-"}`).join("; ")
     : "-";
   const deukryeongText = adv?.deukryeong
     ? `${adv.deukryeong.status ?? adv.deukryeong.type ?? "-"} (${adv.deukryeong.score ?? 0}점)`
@@ -288,7 +305,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const gongmangText = ultra.gongmang?.branches?.join?.(", ") ?? ultra.gongmang?.emptyBranches?.join?.(", ") ?? "";
 
   // ========== EXTRA ASTROLOGY POINTS (Chiron, Lilith, Vertex, Part of Fortune) ==========
-  const extraPoints = data.extraPoints ?? {} as any;
+  type ExtraPoint = { sign?: string; house?: number };
+  const extraPoints = data.extraPoints ?? {} as Record<string, ExtraPoint | undefined>;
   const vertex = extraPoints.vertex;
   const partOfFortune = extraPoints.partOfFortune;
   const chiron = extraPoints.chiron;
@@ -302,7 +320,9 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   ].filter(Boolean).join("; ") || "-";
 
   // ========== ASTEROIDS (소행성 - Ceres, Pallas, Juno, Vesta) ==========
-  const asteroids = data.asteroids ?? {} as any;
+  type AsteroidPoint = { sign?: string; house?: number };
+  type AsteroidData = { juno?: AsteroidPoint; ceres?: AsteroidPoint; pallas?: AsteroidPoint; vesta?: AsteroidPoint; aspects?: AsteroidAspect[] | Record<string, AsteroidAspect[]> };
+  const asteroids = (data as Record<string, unknown>).asteroids as AsteroidData | undefined ?? {};
   const juno = asteroids.juno;
   const ceres = asteroids.ceres;
   const pallas = asteroids.pallas;
@@ -319,7 +339,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const asteroidAspects = asteroids.aspects;
   const asteroidAspectsText = asteroidAspects ? (() => {
     if (Array.isArray(asteroidAspects)) {
-      return asteroidAspects.slice(0, 4).map((a: AspectData) =>
+      return asteroidAspects.slice(0, 4).map((a: AsteroidAspect) =>
         `${a.asteroid ?? a.from}-${a.type ?? a.aspect}-${a.planet ?? a.to}`
       ).join("; ");
     }
@@ -327,7 +347,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const allAsp: string[] = [];
       for (const [name, hits] of Object.entries(asteroidAspects)) {
         if (Array.isArray(hits)) {
-          for (const h of (hits as any[]).slice(0, 2)) {
+          for (const h of (hits as AsteroidAspect[]).slice(0, 2)) {
             allAsp.push(`${name}-${h.type ?? h.aspect}-${h.planet2?.name ?? h.to ?? h.planet}`);
           }
         }
@@ -338,7 +358,9 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   })() : "-";
 
   // ========== SOLAR RETURN (연간 차트) ==========
-  const solarReturn = data.solarReturn as any | undefined;
+  type ReturnSummary = { ascSign?: string; ascendant?: string; sunHouse?: number; moonSign?: string; moonHouse?: number; theme?: string; yearTheme?: string; monthTheme?: string };
+  type ReturnData = { summary?: ReturnSummary };
+  const solarReturn = data.solarReturn as ReturnData | undefined;
   const solarReturnText = solarReturn ? [
     `SR ASC: ${solarReturn.summary?.ascSign ?? solarReturn.summary?.ascendant ?? "-"}`,
     `SR Sun House: ${solarReturn.summary?.sunHouse ?? "-"}`,
@@ -347,7 +369,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   ].join("; ") : "-";
 
   // ========== LUNAR RETURN (월간 차트) ==========
-  const lunarReturn = data.lunarReturn as any | undefined;
+  const lunarReturn = data.lunarReturn as ReturnData | undefined;
   const lunarReturnText = lunarReturn ? [
     `LR ASC: ${lunarReturn.summary?.ascSign ?? lunarReturn.summary?.ascendant ?? "-"}`,
     `LR Moon House: ${lunarReturn.summary?.moonHouse ?? "-"}`,
@@ -355,7 +377,12 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   ].join("; ") : "-";
 
   // ========== PROGRESSIONS (진행 차트) ==========
-  const progressions = data.progressions as any | undefined;
+  type ProgressionSummary = { keySigns?: { sun?: string; moon?: string }; progressedSun?: string; progressedMoon?: string; moonHouse?: number; ascendant?: string };
+  type ProgressionChart = { ascendant?: { sign?: string } };
+  type ProgressionSecondary = { summary?: ProgressionSummary; moonPhase?: { phase?: string }; chart?: ProgressionChart };
+  type ProgressionSolarArc = { summary?: ProgressionSummary };
+  type ProgressionData = { secondary?: ProgressionSecondary; solarArc?: ProgressionSolarArc };
+  const progressions = data.progressions as ProgressionData | undefined;
   const progressedSun = progressions?.secondary?.summary?.keySigns?.sun ?? progressions?.secondary?.summary?.progressedSun ?? "-";
   const progressedMoon = progressions?.secondary?.summary?.keySigns?.moon ?? progressions?.secondary?.summary?.progressedMoon ?? "-";
   const progressedMoonPhase = progressions?.secondary?.moonPhase?.phase ?? "-";
@@ -388,16 +415,23 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
 `.trim() : "";
 
   // ========== DRACONIC CHART (드라코닉 - 영혼 차트) ==========
-  const draconic = data.draconic as any | undefined;
+  type DraconicAlignment = { description?: string };
+  type DraconicComparison = { alignments?: DraconicAlignment[] };
+  type DraconicChartData = { planets?: PlanetData[]; ascendant?: { sign?: string } };
+  type DraconicData = { chart?: DraconicChartData; comparison?: DraconicComparison };
+  const draconic = data.draconic as DraconicData | undefined;
   const draconicText = draconic ? [
     `Draconic Sun: ${draconic.chart?.planets?.find((p: PlanetData) => p.name === "Sun")?.sign ?? "-"}`,
     `Draconic Moon: ${draconic.chart?.planets?.find((p: PlanetData) => p.name === "Moon")?.sign ?? "-"}`,
     `Draconic ASC: ${draconic.chart?.ascendant?.sign ?? "-"}`,
-    draconic.comparison?.alignments?.length ? `Alignments: ${draconic.comparison.alignments.slice(0, 2).map((a: AspectData) => a.description).join("; ")}` : null,
+    draconic.comparison?.alignments?.length ? `Alignments: ${draconic.comparison.alignments.slice(0, 2).map((a: DraconicAlignment) => a.description).join("; ")}` : null,
   ].filter(Boolean).join("; ") : "-";
 
   // ========== HARMONICS (하모닉 분석) ==========
-  const harmonics = data.harmonics as any | undefined;
+  type HarmonicProfile = { dominant?: number; creative?: number; intuitive?: number; spiritual?: number };
+  type HarmonicChartData = { planets?: PlanetData[] };
+  type HarmonicsData = { profile?: HarmonicProfile; h5?: HarmonicChartData; h7?: HarmonicChartData; h9?: HarmonicChartData };
+  const harmonics = data.harmonics as HarmonicsData | undefined;
   const harmonicsText = harmonics?.profile ? [
     harmonics.profile.dominant ? `Dominant: H${harmonics.profile.dominant}` : null,
     harmonics.profile.creative ? `Creative(H5): ${harmonics.profile.creative?.toFixed?.(0) ?? harmonics.profile.creative}%` : null,
@@ -416,20 +450,28 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
   ].filter(Boolean).join("; ") || "-";
 
   // ========== FIXED STARS (항성) ==========
-  const fixedStars = data.fixedStars as any[] | undefined;
+  const fixedStars = data.fixedStars as FixedStarItem[] | undefined;
   const fixedStarsText = fixedStars?.length
-    ? fixedStars.slice(0, 4).map((fs: { star?: string; planet?: string; meaning?: string }) => `${fs.star}↔${fs.planet}(${fs.meaning ?? ""})`).join("; ")
+    ? fixedStars.slice(0, 4).map((fs: FixedStarItem) => `${fs.star ?? fs.starName}↔${fs.planet ?? fs.planetName}(${fs.meaning ?? ""})`).join("; ")
     : "-";
 
   // ========== ECLIPSES (일/월식 영향) ==========
-  const eclipses = data.eclipses as any | undefined;
+  type EclipseImpact = { eclipseType?: string; type?: string; affectedPoint?: string; affectedPlanet?: string };
+  type UpcomingEclipse = { date?: string; type?: string };
+  type EclipseData = { impact?: EclipseImpact; upcoming?: UpcomingEclipse[] };
+  const eclipses = data.eclipses as EclipseData | undefined;
   const eclipsesText = eclipses ? [
     eclipses.impact ? `Impact: ${eclipses.impact.eclipseType ?? eclipses.impact.type ?? "-"} on ${eclipses.impact.affectedPoint ?? eclipses.impact.affectedPlanet ?? "-"}` : null,
     eclipses.upcoming?.length ? `Next: ${eclipses.upcoming[0]?.date ?? "-"} (${eclipses.upcoming[0]?.type ?? "-"})` : null,
   ].filter(Boolean).join("; ") : "-";
 
   // ========== ELECTIONAL (택일 분석) ==========
-  const electional = data.electional as any | undefined;
+  type MoonPhaseInfo = { phase?: string; name?: string };
+  type VOCInfo = { isVoid?: boolean };
+  type PlanetaryHourInfo = { planet?: string };
+  type ElectionalAnalysis = { score?: number; recommendation?: string };
+  type ElectionalData = { moonPhase?: string | MoonPhaseInfo; voidOfCourse?: VOCInfo; planetaryHour?: PlanetaryHourInfo; retrograde?: string[]; analysis?: ElectionalAnalysis };
+  const electional = data.electional as ElectionalData | undefined;
   const electionalText = electional ? [
     `Moon Phase: ${typeof electional.moonPhase === 'string' ? electional.moonPhase : (electional.moonPhase?.phase ?? electional.moonPhase?.name ?? "-")}`,
     electional.voidOfCourse ? `VOC: ${electional.voidOfCourse.isVoid ? "YES - 중요한 결정 피하기" : "No"}` : null,
@@ -440,23 +482,27 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
   ].filter(Boolean).join("; ") : "-";
 
   // ========== MIDPOINTS (미드포인트) ==========
-  const midpoints = data.midpoints as any | undefined;
+  type MidpointPoint = { sign?: string; degree?: number };
+  type MidpointActivation = { description?: string; midpoint?: string; activator?: string };
+  type MidpointsData = { sunMoon?: MidpointPoint; ascMc?: MidpointPoint; activations?: MidpointActivation[]; all?: MidpointItem[] };
+  const midpoints = data.midpoints as MidpointsData | undefined;
   const midpointsText = midpoints ? [
     midpoints.sunMoon ? `Sun/Moon(심리): ${midpoints.sunMoon.sign} ${midpoints.sunMoon.degree?.toFixed?.(0) ?? midpoints.sunMoon.degree ?? 0}°` : null,
     midpoints.ascMc ? `ASC/MC(자아): ${midpoints.ascMc.sign} ${midpoints.ascMc.degree?.toFixed?.(0) ?? midpoints.ascMc.degree ?? 0}°` : null,
-    midpoints.activations?.length ? `Activated: ${midpoints.activations.slice(0, 3).map((a: AspectData) => a.description ?? `${a.midpoint}-${a.activator}`).join("; ")}` : null,
+    midpoints.activations?.length ? `Activated: ${midpoints.activations.slice(0, 3).map((a: MidpointActivation) => a.description ?? `${a.midpoint}-${a.activator}`).join("; ")}` : null,
   ].filter(Boolean).join("; ") : "-";
 
   // All Midpoints (주요 미드포인트 목록)
   const allMidpointsText = midpoints?.all?.length
-    ? midpoints.all.slice(0, 5).map((mp: any) => `${mp.planet1}-${mp.planet2}: ${mp.sign} ${mp.degree?.toFixed?.(0) ?? 0}°`).join("; ")
+    ? midpoints.all.slice(0, 5).map((mp: MidpointItem) => `${mp.planet1}-${mp.planet2}: ${mp.sign} ${mp.degree?.toFixed?.(0) ?? 0}°`).join("; ")
     : "-";
 
   // ========== TRANSITS (현재 트랜짓) ==========
+  type TransitData = TransitItem & { transitPlanet?: string; natalPoint?: string; isApplying?: boolean };
   const significantTransits = transits
-    .filter((t: any) => ["conjunction", "trine", "square", "opposition"].includes(t.type || t.aspectType))
+    .filter((t: TransitData) => ["conjunction", "trine", "square", "opposition"].includes(t.type || t.aspectType || ""))
     .slice(0, 8)
-    .map((t: any) => {
+    .map((t: TransitData) => {
       // Support both old format (from/to) and new format (transitPlanet/natalPoint)
       const planet1 = t.transitPlanet ?? t.from?.name ?? "?";
       const planet2 = t.natalPoint ?? t.to?.name ?? "?";
@@ -500,7 +546,7 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
 • Lilith(그림자): ${lilith ? `${lilith.sign} H${lilith.house}` : "-"} → 숨겨진 욕망
 
 [연애 타이밍 분석]
-• 현재 대운: ${daeunText} → ${(currentDaeun as any)?.element === "수" || (currentDaeun as any)?.element === "목" ? "감정/인연 활성화 시기" : "안정적 관계 구축 시기"}
+• 현재 대운: ${daeunText} → ${currentDaeun?.element === "수" || currentDaeun?.element === "목" ? "감정/인연 활성화 시기" : "안정적 관계 구축 시기"}
 • 금성 트랜짓: 5하우스/7하우스 통과 시 연애 기회
 • 목성 트랜짓: 7하우스 통과 시 결혼 기회
 

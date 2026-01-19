@@ -74,6 +74,11 @@ const DayCell = React.memo(function DayCell({
       }${isToday ? (locale === "ko" ? ", 오늘" : ", Today") : ""}`
     : undefined;
 
+  // 디버깅: dateInfo 확인
+  if (date && !dateInfo) {
+    // console.log(`No dateInfo for ${date.toISOString().split('T')[0]}`);
+  }
+
   return (
     <div
       className={className}
@@ -95,7 +100,7 @@ const DayCell = React.memo(function DayCell({
           <span className={styles.dayNumber}>{date.getDate()}</span>
           {dateInfo && (
             <div className={styles.dayIndicators} aria-hidden="true">
-              {dateInfo.categories.slice(0, 2).map((cat, i) => (
+              {dateInfo.categories && dateInfo.categories.length > 0 && dateInfo.categories.slice(0, 2).map((cat, i) => (
                 <span key={i} className={styles.dayEmoji}>{CATEGORY_EMOJI[cat]}</span>
               ))}
               <span className={styles.gradeIndicator}>

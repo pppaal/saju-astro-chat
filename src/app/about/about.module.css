@@ -420,3 +420,137 @@
     width: 100%;
   }
 }
+
+/* Detailed Info Section */
+.detailedInfo {
+  width: 100%;
+  max-width: 1000px;
+  margin: 4rem auto;
+  padding: 0 2rem;
+}
+
+.infoBlock {
+  margin-bottom: 4rem;
+}
+
+.infoTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.infoSubtitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.infoParagraph {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: justify;
+}
+
+.infoList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.infoList li {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 4px solid #667eea;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.infoList li strong {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.stepCard {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stepCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.stepNumber {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.stepTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: var(--text-color);
+}
+
+.stepDesc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 768px) {
+  .detailedInfo {
+    padding: 0 1.5rem;
+    margin: 2rem auto;
+  }
+
+  .infoBlock {
+    margin-bottom: 3rem;
+  }
+
+  .infoTitle {
+    font-size: 1.5rem;
+  }
+
+  .infoSubtitle {
+    font-size: 1.2rem;
+  }
+
+  .infoParagraph {
+    font-size: 1rem;
+    text-align: left;
+  }
+
+  .stepsGrid {
+    grid-template-columns: 1fr;
+  }
+}

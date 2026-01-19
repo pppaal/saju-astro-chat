@@ -619,27 +619,27 @@ for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
   if (target) {
     if (jsonData.landing) {
       if (!target.landing) target.landing = {};
-      Object.assign(target.landing, jsonData.landing);
+      Object.assign(target.landing as object, jsonData.landing);
     }
     if (jsonData.common) {
       if (!target.common) target.common = {};
-      Object.assign(target.common, jsonData.common);
+      Object.assign(target.common as object, jsonData.common);
     }
     if (jsonData.app) {
       if (!target.app) target.app = {};
-      Object.assign(target.app, jsonData.app);
+      Object.assign(target.app as object, jsonData.app);
     }
     if (jsonData.about) {
       if (!target.about) target.about = {};
-      Object.assign(target.about, jsonData.about);
+      Object.assign(target.about as object, jsonData.about);
     }
     if (jsonData.services) {
       if (!target.services) target.services = {};
-      Object.assign(target.services, jsonData.services);
+      Object.assign(target.services as object, jsonData.services);
     }
     if (jsonData.calendar) {
       if (!target.calendar) target.calendar = {};
-      Object.assign(target.calendar, jsonData.calendar);
+      Object.assign(target.calendar as object, jsonData.calendar);
     }
     // Merge tarot translations from JSON
     if (jsonData.tarot) {

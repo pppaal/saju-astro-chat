@@ -21,6 +21,7 @@
  
 
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { PlanetData } from "@/lib/astrology";
 import { logger } from "@/lib/logger";
 
 // Import all modules
@@ -111,8 +112,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     const advancedAnalysis = formatAdvancedSajuAnalysis(saju.advancedAnalysis);
 
     // Step 5: Find current annual and monthly
-    const currentAnnual = (saju.unse?.annual ?? []).find((a: any) => a.year === timeInfo.currentYear);
-    const currentMonthly = (saju.unse?.monthly ?? []).find((m: any) =>
+    const currentAnnual = (saju.unse?.annual ?? []).find((a: { year?: number }) => a.year === timeInfo.currentYear);
+    const currentMonthly = (saju.unse?.monthly ?? []).find((m: { year?: number; month?: number }) =>
       m.year === timeInfo.currentYear && m.month === timeInfo.currentMonth
     );
 
@@ -133,9 +134,10 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     ].filter(Boolean).join("; ") || "-";
 
     // Asteroid aspects
+    type AsteroidAspect = { asteroid?: string; from?: string; type?: string; aspect?: string; planet?: string; to?: string; planet2?: { name?: string } };
     const asteroidAspectsText = advancedAstro.asteroids.aspects ? (() => {
       if (Array.isArray(advancedAstro.asteroids.aspects)) {
-        return advancedAstro.asteroids.aspects.slice(0, 4).map((a: any) =>
+        return advancedAstro.asteroids.aspects.slice(0, 4).map((a: AsteroidAspect) =>
           `${a.asteroid ?? a.from}-${a.type ?? a.aspect}-${a.planet ?? a.to}`
         ).join("; ");
       }
@@ -143,7 +145,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
         const allAsp: string[] = [];
         for (const [name, hits] of Object.entries(advancedAstro.asteroids.aspects)) {
           if (Array.isArray(hits)) {
-            for (const h of (hits as any[]).slice(0, 2)) {
+            for (const h of (hits as AsteroidAspect[]).slice(0, 2)) {
               allAsp.push(`${name}-${h.type ?? h.aspect}-${h.planet2?.name ?? h.to ?? h.planet}`);
             }
           }
@@ -175,10 +177,10 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     ].filter(Boolean).join("; ") : "-";
 
     const draconicText = advancedAstro.draconic ? [
-      `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: any) => p.name === "Sun")?.sign ?? "-"}`,
-      `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: any) => p.name === "Moon")?.sign ?? "-"}`,
+      `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === "Sun")?.sign ?? "-"}`,
+      `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === "Moon")?.sign ?? "-"}`,
       `Draconic ASC: ${advancedAstro.draconic.chart?.ascendant?.sign ?? "-"}`,
-      advancedAstro.draconic.comparison?.alignments?.length ? `Alignments: ${advancedAstro.draconic.comparison.alignments.slice(0, 2).map((a: any) => a.description).join("; ")}` : null,
+      advancedAstro.draconic.comparison?.alignments?.length ? `Alignments: ${advancedAstro.draconic.comparison.alignments.slice(0, 2).map((a: { description?: string }) => a.description).join("; ")}` : null,
     ].filter(Boolean).join("; ") : "-";
 
     const harmonicsText = advancedAstro.harmonics?.profile ? [
@@ -188,17 +190,18 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       advancedAstro.harmonics.profile.spiritual ? `Spiritual(H9): ${advancedAstro.harmonics.profile.spiritual?.toFixed?.(0) ?? advancedAstro.harmonics.profile.spiritual}%` : null,
     ].filter(Boolean).join("; ") : "-";
 
-    const h5Sun = advancedAstro.harmonics?.h5?.planets?.find((p: any) => p.name === "Sun");
-    const h7Sun = advancedAstro.harmonics?.h7?.planets?.find((p: any) => p.name === "Sun");
-    const h9Sun = advancedAstro.harmonics?.h9?.planets?.find((p: any) => p.name === "Sun");
+    const h5Sun = advancedAstro.harmonics?.h5?.planets?.find((p: PlanetData) => p.name === "Sun");
+    const h7Sun = advancedAstro.harmonics?.h7?.planets?.find((p: PlanetData) => p.name === "Sun");
+    const h9Sun = advancedAstro.harmonics?.h9?.planets?.find((p: PlanetData) => p.name === "Sun");
     const harmonicChartsText = [
       h5Sun ? `H5 Sun: ${h5Sun.sign}` : null,
       h7Sun ? `H7 Sun: ${h7Sun.sign}` : null,
       h9Sun ? `H9 Sun: ${h9Sun.sign}` : null,
     ].filter(Boolean).join("; ") || "-";
 
+    type FixedStarItem = { star?: string; starName?: string; planet?: string; planetName?: string; meaning?: string };
     const fixedStarsText = advancedAstro.fixedStars?.length
-      ? advancedAstro.fixedStars.slice(0, 4).map((fs: any) => `${fs.star ?? fs.starName}↔${fs.planet ?? fs.planetName}(${fs.meaning ?? ""})`).join("; ")
+      ? advancedAstro.fixedStars.slice(0, 4).map((fs: FixedStarItem) => `${fs.star ?? fs.starName}↔${fs.planet ?? fs.planetName}(${fs.meaning ?? ""})`).join("; ")
       : "-";
 
     const eclipsesText = advancedAstro.eclipses ? [
@@ -218,11 +221,12 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     const midpointsText = advancedAstro.midpoints ? [
       advancedAstro.midpoints.sunMoon ? `Sun/Moon(심리): ${advancedAstro.midpoints.sunMoon.sign} ${advancedAstro.midpoints.sunMoon.degree?.toFixed?.(0) ?? advancedAstro.midpoints.sunMoon.degree ?? 0}°` : null,
       advancedAstro.midpoints.ascMc ? `ASC/MC(자아): ${advancedAstro.midpoints.ascMc.sign} ${advancedAstro.midpoints.ascMc.degree?.toFixed?.(0) ?? advancedAstro.midpoints.ascMc.degree ?? 0}°` : null,
-      advancedAstro.midpoints.activations?.length ? `Activated: ${advancedAstro.midpoints.activations.slice(0, 3).map((a: any) => a.description ?? `${a.midpoint}-${a.activator}`).join("; ")}` : null,
+      advancedAstro.midpoints.activations?.length ? `Activated: ${advancedAstro.midpoints.activations.slice(0, 3).map((a: { description?: string; midpoint?: string; activator?: string }) => a.description ?? `${a.midpoint}-${a.activator}`).join("; ")}` : null,
     ].filter(Boolean).join("; ") : "-";
 
+    type MidpointItem = { planet1?: string; planet2?: string; sign?: string; degree?: number };
     const allMidpointsText = advancedAstro.midpoints?.all?.length
-      ? advancedAstro.midpoints.all.slice(0, 5).map((mp: any) => `${mp.planet1}-${mp.planet2}: ${mp.sign} ${mp.degree?.toFixed?.(0) ?? 0}°`).join("; ")
+      ? advancedAstro.midpoints.all.slice(0, 5).map((mp: MidpointItem) => `${mp.planet1}-${mp.planet2}: ${mp.sign} ${mp.degree?.toFixed?.(0) ?? 0}°`).join("; ")
       : "-";
 
     const significantTransits = formatSignificantTransits(planetary.transits);

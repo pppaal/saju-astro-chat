@@ -28,7 +28,7 @@ import {
   getGradeBgColor,
   type GradeInput,
   type GradeResult,
-} from "@/lib/destiny-map/calendar/grading-optimized";
+} from "@/lib/destiny-map/calendar/grading";
 import type { ImportanceGrade } from "@/lib/destiny-map/calendar/types";
 
 describe("Grading Optimized Module", () => {
@@ -327,53 +327,53 @@ describe("Grading Optimized Module", () => {
 
   describe("getGradeTitleKey", () => {
     it("returns best title for grade 0", () => {
-      expect(getGradeTitleKey(0)).toBe("destiny.calendar.grade.best.title");
+      expect(getGradeTitleKey(0)).toBe("calendar.bestDay");
     });
 
     it("returns good title for grade 1", () => {
-      expect(getGradeTitleKey(1)).toBe("destiny.calendar.grade.good.title");
+      expect(getGradeTitleKey(1)).toBe("calendar.goodDay");
     });
 
     it("returns normal title for grade 2", () => {
-      expect(getGradeTitleKey(2)).toBe("destiny.calendar.grade.normal.title");
+      expect(getGradeTitleKey(2)).toBe("calendar.normalDay");
     });
 
     it("returns bad title for grade 3", () => {
-      expect(getGradeTitleKey(3)).toBe("destiny.calendar.grade.bad.title");
+      expect(getGradeTitleKey(3)).toBe("calendar.badDay");
     });
 
     it("returns worst title for grade 4", () => {
-      expect(getGradeTitleKey(4)).toBe("destiny.calendar.grade.worst.title");
+      expect(getGradeTitleKey(4)).toBe("calendar.worstDay");
     });
 
     it("returns normal title for unknown grade", () => {
-      expect(getGradeTitleKey(99 as ImportanceGrade)).toBe("destiny.calendar.grade.normal.title");
+      expect(getGradeTitleKey(99 as ImportanceGrade)).toBe("calendar.normalDay");
     });
   });
 
   describe("getGradeDescKey", () => {
     it("returns best desc for grade 0", () => {
-      expect(getGradeDescKey(0)).toBe("destiny.calendar.grade.best.desc");
+      expect(getGradeDescKey(0)).toBe("calendar.bestDayDesc");
     });
 
     it("returns good desc for grade 1", () => {
-      expect(getGradeDescKey(1)).toBe("destiny.calendar.grade.good.desc");
+      expect(getGradeDescKey(1)).toBe("calendar.goodDayDesc");
     });
 
     it("returns normal desc for grade 2", () => {
-      expect(getGradeDescKey(2)).toBe("destiny.calendar.grade.normal.desc");
+      expect(getGradeDescKey(2)).toBe("calendar.normalDayDesc");
     });
 
     it("returns bad desc for grade 3", () => {
-      expect(getGradeDescKey(3)).toBe("destiny.calendar.grade.bad.desc");
+      expect(getGradeDescKey(3)).toBe("calendar.badDayDesc");
     });
 
     it("returns worst desc for grade 4", () => {
-      expect(getGradeDescKey(4)).toBe("destiny.calendar.grade.worst.desc");
+      expect(getGradeDescKey(4)).toBe("calendar.worstDayDesc");
     });
 
     it("returns normal desc for unknown grade", () => {
-      expect(getGradeDescKey(99 as ImportanceGrade)).toBe("destiny.calendar.grade.normal.desc");
+      expect(getGradeDescKey(99 as ImportanceGrade)).toBe("calendar.normalDayDesc");
     });
   });
 

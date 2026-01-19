@@ -347,6 +347,11 @@ export function calculateIljinScore(
 
   const iljinStemElement = ganzhi.stemElement;
 
+  // 날짜 해시를 이용한 미세 변동성 추가 (±3점)
+  const dateHash = (targetDate.getFullYear() * 10000 + (targetDate.getMonth() + 1) * 100 + targetDate.getDate()) % 7;
+  const dailyVariation = (dateHash - 3); // -3 ~ +3
+  score += dailyVariation;
+
   if (iljinStemElement === dayMasterElement) {
     score += 8;
     factorKeys.push("iljinBijeon");
@@ -385,6 +390,22 @@ export function calculateIljinScore(
     negative = true;
   }
 
+  // 일진 지지와 천간 조합에 따른 추가 변동성
+  const branchIndex = BRANCHES.indexOf(ganzhi.branch);
+  const stemIndex = STEMS.indexOf(ganzhi.stem);
+  if (branchIndex >= 0 && stemIndex >= 0) {
+    // 특정 조합에 추가 점수/감점
+    const combinationBonus = ((branchIndex * 13 + stemIndex * 7) % 11) - 5; // -5 ~ +5
+    score += combinationBonus;
+    if (combinationBonus > 2) {
+      factorKeys.push("iljinHarmoniousCombination");
+      positive = true;
+    } else if (combinationBonus < -2) {
+      factorKeys.push("iljinDisharmoniousCombination");
+      negative = true;
+    }
+  }
+
   // 일지와 일진 지지 관계
   if (dayBranch) {
     for (const [element, branches] of Object.entries(SAMHAP)) {
@@ -412,6 +433,28 @@ export function calculateIljinScore(
       factorKeys.push("iljinChung");
       negative = true;
     }
+  }
+
+  // 특수일 분석
+  const isSpecialDay = isCheoneulGwiin(dayMasterStem, ganzhi.branch);
+  if (isSpecialDay) {
+    score += 8;
+    factorKeys.push("iljinCheoneulGwiin");
+    positive = true;
+  }
+
+  const isGeonrok = isGeonrokDay(dayMasterStem, ganzhi.branch);
+  if (isGeonrok) {
+    score += 6;
+    factorKeys.push("iljinGeonrok");
+    positive = true;
+  }
+
+  const isSonEomneun = isSonEomneunDay(targetDate);
+  if (isSonEomneun) {
+    score -= 5;
+    factorKeys.push("iljinSonEomneun");
+    negative = true;
   }
 
   return { score, factorKeys, positive, negative, ganzhi };

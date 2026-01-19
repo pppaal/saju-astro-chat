@@ -55,6 +55,7 @@ export default function CalendarHeader({
             </div>
           </div>
           <div className={styles.headerActions}>
+            <CreditBadge variant="compact" />
             {/* Cache indicator */}
             {cacheHit && (
               <span
@@ -103,9 +104,6 @@ export default function CalendarHeader({
           </div>
         )}
       </div>
-
-      {/* Credit Badge */}
-      <CreditBadge />
     </>
   );
 }

@@ -114,6 +114,7 @@ import {
   getGanzhiForDate,
   getLunarPhase,
 } from './temporal-scoring';
+import type { YongsinAnalysis } from './saju-analysis';
 
 // Constants and utilities
 import {
@@ -447,7 +448,8 @@ export function analyzeDate(
   const isSamjaeYearFlag = sajuProfile.yearBranch ? isSamjaeYear(sajuProfile.yearBranch, yearGanzhi.branch) : false;
 
   // 지지 상호작용 변환 (transformative → neutral 매핑)
-  const branchInteractions: LegacyBranchInteraction[] = advancedBranchInteractions.map((bi: any) => ({
+  type BranchInteractionRaw = { type: string; impact: string; element?: string };
+  const branchInteractions: LegacyBranchInteraction[] = advancedBranchInteractions.map((bi: BranchInteractionRaw) => ({
     type: bi.type,
     impact: (bi.impact === 'transformative' ? 'neutral' : bi.impact) as 'positive' | 'negative' | 'neutral',
     element: bi.element,
@@ -470,7 +472,7 @@ export function analyzeDate(
       branchInteractions,
       shinsalResult: shinsalForScoring,
     }),
-    yongsin: adaptYongsinResult(yongsinAnalysis as any, geokgukAnalysis),
+    yongsin: adaptYongsinResult(yongsinAnalysis as YongsinAnalysis | null, geokgukAnalysis),
   };
 
   // 점성술 입력 데이터 구성

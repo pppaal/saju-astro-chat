@@ -1,16 +1,21 @@
- 
-// TODO: Add proper types for prompt data structures
-// Using 'any' for dynamic prompt data structures that come from various sources
+/**
+ * Structured Fortune Prompt Builder
+ * @deprecated Use index.ts for main prompt generation. This file provides structured output format.
+ */
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { AstrologyData, SajuData } from "@/lib/destiny-map/astrology/types";
+import type { PlanetData } from "@/lib/astrology";
 import { logger } from "@/lib/logger";
 
-// Internal helper types for loose data structures - using 'any' for deep property access
-type PlanetInput = any;
-type UnseItem = any;
-type AspectItem = any;
-type SinsalItem = any;
-type MonthlyItem = any;
-type TransitItem = any;
+// Internal helper types for loose data structures
+type PlanetInput = { name?: string; sign?: string; house?: number; heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string }; ganji?: string; description?: string; from?: string; to?: string };
+type UnseItem = { year?: number; month?: number; element?: string; ganji?: string; heavenlyStem?: string; earthlyBranch?: string };
+type AspectItem = { year?: number; month?: number };
+type SinsalItem = { name?: string; stars?: string[] };
+type MonthlyItem = { year?: number; month?: number; element?: string; heavenlyStem?: string; earthlyBranch?: string };
+type TransitItem = { type?: string; aspectType?: string; from?: { name?: string }; to?: { name?: string }; transitPlanet?: string; natalPoint?: string; orb?: string; isApplying?: boolean };
+type HoegukItem = { type?: string; name?: string; resultElement?: string };
+type BranchInteraction = { branch1?: string; branch2?: string; from?: string; to?: string; result?: string; description?: string; branches?: string[] };
 
 /**
  * Structured output format for fortune prompts with date recommendations
@@ -71,14 +76,16 @@ export function buildStructuredFortunePrompt(
   data: CombinedResult
 ): string {
   const { astrology = {}, saju } = data ?? {};
+  const astroData = astrology as AstrologyData | Record<string, unknown>;
   const {
     planets = [],
     aspects = [],
     ascendant,
     mc,
     transits = [],
-  } = astrology as any;
-  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = (saju ?? {}) as any;
+  } = astroData as AstrologyData;
+  const sajuData = (saju ?? {}) as SajuData;
+  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = sajuData;
 
   // ========== BASIC PLANETARY DATA ==========
   const planetsArray = planets as PlanetInput[];
@@ -120,12 +127,12 @@ export function buildStructuredFortunePrompt(
   });
 
   // 세운 (annual)
-  const currentAnnual: any = (unse?.annual ?? []).find((a: AspectItem) => a.year === currentYear);
+  const currentAnnual = (unse?.annual ?? []).find((a: AspectItem) => a.year === currentYear) as UnseItem | undefined;
 
   // 월운 (monthly)
-  const currentMonthly: any = (unse?.monthly ?? []).find(
+  const currentMonthly = (unse?.monthly ?? []).find(
     (m: MonthlyItem) => m.year === currentYear && m.month === currentMonth
-  );
+  ) as MonthlyItem | undefined;
 
   // Upcoming months
   const upcomingMonths = (unse?.monthly ?? [])
@@ -137,7 +144,8 @@ export function buildStructuredFortunePrompt(
     .slice(0, 6);
 
   // ========== SINSAL (신살) ==========
-  const sinsalData = sinsal as any;
+  type SinsalRecord = { luckyList?: SinsalItem[]; unluckyList?: SinsalItem[]; twelveAll?: SinsalItem[] };
+  const sinsalData = sinsal as SinsalRecord | undefined;
   const luckyList = (sinsalData?.luckyList ?? []).map((x: SinsalItem) => x.name).join(", ");
   const unluckyList = (sinsalData?.unluckyList ?? []).map((x: SinsalItem) => x.name).join(", ");
   const twelveGods = (sinsalData?.twelveAll ?? []).slice(0, 5).map((x: SinsalItem) => x.name).join(", ");
@@ -163,7 +171,9 @@ export function buildStructuredFortunePrompt(
   ].filter(Boolean).join("\n") : "-";
 
   // ========== SOLAR RETURN (연간 차트) ==========
-  const solarReturn = data.solarReturn as any | undefined;
+  type ReturnSummary = { ascSign?: string; ascendant?: string; sunHouse?: number; moonSign?: string; moonHouse?: number; theme?: string; yearTheme?: string; monthTheme?: string };
+  type ReturnData = { summary?: ReturnSummary };
+  const solarReturn = data.solarReturn as ReturnData | undefined;
   const solarReturnText = solarReturn ? [
     `SR Ascendant: ${solarReturn.summary?.ascSign ?? solarReturn.summary?.ascendant ?? "-"}`,
     `SR Sun House: ${solarReturn.summary?.sunHouse ?? "-"}`,
@@ -172,7 +182,7 @@ export function buildStructuredFortunePrompt(
   ].join("\n") : "-";
 
   // ========== LUNAR RETURN (월간 차트) ==========
-  const lunarReturn = data.lunarReturn as any | undefined;
+  const lunarReturn = data.lunarReturn as ReturnData | undefined;
   const lunarReturnText = lunarReturn ? [
     `LR Ascendant: ${lunarReturn.summary?.ascSign ?? lunarReturn.summary?.ascendant ?? "-"}`,
     `LR Moon House: ${lunarReturn.summary?.moonHouse ?? "-"}`,
@@ -180,7 +190,11 @@ export function buildStructuredFortunePrompt(
   ].join("\n") : "-";
 
   // ========== PROGRESSIONS ==========
-  const progressions = data.progressions as any | undefined;
+  type ProgressionSummary = { keySigns?: { sun?: string; moon?: string }; progressedSun?: string; progressedMoon?: string };
+  type ProgressionSecondary = { summary?: ProgressionSummary; moonPhase?: { phase?: string; description?: string } };
+  type ProgressionSolarArc = { summary?: ProgressionSummary };
+  type ProgressionData = { secondary?: ProgressionSecondary; solarArc?: ProgressionSolarArc };
+  const progressions = data.progressions as ProgressionData | undefined;
   const progressionsText = progressions ? [
     `Secondary Progressed Sun: ${progressions.secondary?.summary?.keySigns?.sun ?? progressions.secondary?.summary?.progressedSun ?? "-"}`,
     `Secondary Progressed Moon: ${progressions.secondary?.summary?.keySigns?.moon ?? progressions.secondary?.summary?.progressedMoon ?? "-"}`,
@@ -189,16 +203,22 @@ export function buildStructuredFortunePrompt(
   ].filter(Boolean).join("\n") : "-";
 
   // ========== DRACONIC (드라코닉 - 영혼 차트) ==========
-  const draconic = data.draconic as any | undefined;
+  type DraconicAlignment = { description?: string };
+  type DraconicComparison = { alignments?: DraconicAlignment[] };
+  type DraconicChartData = { planets?: PlanetInput[]; ascendant?: { sign?: string } };
+  type DraconicData = { chart?: DraconicChartData; comparison?: DraconicComparison };
+  const draconic = data.draconic as DraconicData | undefined;
   const draconicText = draconic ? [
     `Draconic Sun: ${draconic.chart?.planets?.find((p: PlanetInput) => p.name === "Sun")?.sign ?? "-"}`,
     `Draconic Moon: ${draconic.chart?.planets?.find((p: PlanetInput) => p.name === "Moon")?.sign ?? "-"}`,
     `Draconic ASC: ${draconic.chart?.ascendant?.sign ?? "-"}`,
-    draconic.comparison?.alignments ? `Key Alignments: ${draconic.comparison.alignments.slice(0, 3).map((a: AspectItem) => a.description).join("; ")}` : null,
+    draconic.comparison?.alignments ? `Key Alignments: ${draconic.comparison.alignments.slice(0, 3).map((a: DraconicAlignment) => a.description).join("; ")}` : null,
   ].filter(Boolean).join("\n") : "-";
 
   // ========== HARMONICS (하모닉) ==========
-  const harmonics = data.harmonics as any | undefined;
+  type HarmonicProfile = { dominant?: number; creative?: number; spiritual?: number; intuitive?: number };
+  type HarmonicsData = { profile?: HarmonicProfile };
+  const harmonics = data.harmonics as HarmonicsData | undefined;
   const harmonicsText = harmonics ? [
     harmonics.profile?.dominant ? `Dominant Harmonic: H${harmonics.profile.dominant} (${getHarmonicMeaning(harmonics.profile.dominant)})` : null,
     harmonics.profile?.creative ? `Creative Harmonic (H5): ${harmonics.profile.creative?.toFixed?.(1) ?? harmonics.profile.creative}%` : null,
@@ -207,7 +227,10 @@ export function buildStructuredFortunePrompt(
   ].filter(Boolean).join("\n") : "-";
 
   // ========== ASTEROIDS (소행성) ==========
-  const asteroids = data.asteroids as any | undefined;
+  type AsteroidPoint = { sign?: string; house?: number };
+  type AsteroidAspect = { asteroid?: string; from?: string; type?: string; aspect?: string; planet?: string; to?: string; planet2?: { name?: string } };
+  type AsteroidsData = { ceres?: AsteroidPoint; pallas?: AsteroidPoint; juno?: AsteroidPoint; vesta?: AsteroidPoint; aspects?: AsteroidAspect[] | Record<string, AsteroidAspect[]> };
+  const asteroids = (data as Record<string, unknown>).asteroids as AsteroidsData | undefined;
   const asteroidsText = asteroids ? [
     asteroids.ceres ? `Ceres (양육): ${asteroids.ceres.sign} (House ${asteroids.ceres.house})` : null,
     asteroids.pallas ? `Pallas (지혜): ${asteroids.pallas.sign} (House ${asteroids.pallas.house})` : null,
@@ -217,22 +240,31 @@ export function buildStructuredFortunePrompt(
   ].filter(Boolean).join("\n") : "-";
 
   // ========== FIXED STARS (항성) ==========
-  const fixedStars = data.fixedStars as any | undefined;
-  const fixedStarsText = fixedStars?.length ? fixedStars.slice(0, 5).map((fs: { star?: string; planet?: string; meaning?: string }) =>
+  type FixedStarItem = { star?: string; planet?: string; meaning?: string };
+  const fixedStars = data.fixedStars as FixedStarItem[] | undefined;
+  const fixedStarsText = fixedStars?.length ? fixedStars.slice(0, 5).map((fs: FixedStarItem) =>
     `${fs.star} conjunct ${fs.planet} (${fs.meaning ?? ""})`
   ).join("\n") : "-";
 
   // ========== ECLIPSES (일/월식) ==========
-  const eclipses = data.eclipses as any | undefined;
+  type EclipseImpact = { eclipseType?: string; type?: string; affectedPoint?: string; affectedPlanet?: string; interpretation?: string };
+  type UpcomingEclipse = { date?: string; type?: string };
+  type EclipsesData = { impact?: EclipseImpact; upcoming?: UpcomingEclipse[] };
+  const eclipses = data.eclipses as EclipsesData | undefined;
   const eclipsesText = eclipses ? [
     eclipses.impact ? `Eclipse Impact: ${eclipses.impact.eclipseType ?? eclipses.impact.type ?? "-"} eclipse affecting ${eclipses.impact.affectedPoint ?? eclipses.impact.affectedPlanet ?? "natal chart"} - ${eclipses.impact.interpretation ?? ""}` : "No recent eclipse impact",
     eclipses.upcoming?.length ? `Next Eclipse: ${eclipses.upcoming[0]?.date ?? "-"} (${eclipses.upcoming[0]?.type ?? "-"})` : null,
   ].filter(Boolean).join("\n") : "-";
 
   // ========== ELECTIONAL (택일 분석) ==========
-  const electional = data.electional as any | undefined;
+  type MoonPhaseInfo = { phase?: string; name?: string; illumination?: number };
+  type VOCInfo = { isVoid?: boolean };
+  type PlanetaryHourInfo = { planet?: string; quality?: string; dayType?: string };
+  type ElectionalAnalysis = { score?: number; recommendation?: string };
+  type ElectionalData = { moonPhase?: string | MoonPhaseInfo; voidOfCourse?: VOCInfo; planetaryHour?: PlanetaryHourInfo; retrograde?: string[]; analysis?: ElectionalAnalysis };
+  const electional = data.electional as ElectionalData | undefined;
   const electionalText = electional ? [
-    `Moon Phase: ${typeof electional.moonPhase === 'string' ? electional.moonPhase : (electional.moonPhase?.phase ?? electional.moonPhase?.name ?? "-")} (${electional.moonPhase?.illumination?.toFixed?.(0) ?? ""}%)`,
+    `Moon Phase: ${typeof electional.moonPhase === 'string' ? electional.moonPhase : (electional.moonPhase?.phase ?? electional.moonPhase?.name ?? "-")} (${typeof electional.moonPhase === 'object' ? electional.moonPhase?.illumination?.toFixed?.(0) ?? "" : ""}%)`,
     electional.voidOfCourse ? `Void of Course Moon: ${electional.voidOfCourse.isVoid ? "YES - avoid important decisions" : "No"}` : null,
     `Planetary Hour: ${electional.planetaryHour?.planet ?? "-"} (${electional.planetaryHour?.quality ?? electional.planetaryHour?.dayType ?? "-"})`,
     electional.retrograde?.length ? `Retrograde Planets: ${electional.retrograde.join(", ")}` : "No retrogrades",
@@ -240,16 +272,19 @@ export function buildStructuredFortunePrompt(
   ].filter(Boolean).join("\n") : "-";
 
   // ========== MIDPOINTS (미드포인트) ==========
-  const midpoints = data.midpoints as any | undefined;
+  type MidpointPoint = { sign?: string; degree?: number };
+  type MidpointActivation = { description?: string };
+  type MidpointsData = { sunMoon?: MidpointPoint; ascMc?: MidpointPoint; activations?: MidpointActivation[] };
+  const midpoints = data.midpoints as MidpointsData | undefined;
   const midpointsText = midpoints ? [
     midpoints.sunMoon ? `Sun/Moon Midpoint: ${midpoints.sunMoon.sign} ${midpoints.sunMoon.degree?.toFixed?.(0) ?? midpoints.sunMoon.degree ?? 0}° (심리적 통합점)` : null,
     midpoints.ascMc ? `ASC/MC Midpoint: ${midpoints.ascMc.sign} ${midpoints.ascMc.degree?.toFixed?.(0) ?? midpoints.ascMc.degree ?? 0}° (자아 표현점)` : null,
-    midpoints.activations?.length ? `Active Midpoints: ${midpoints.activations.slice(0, 3).map((a: AspectItem) => a.description).join("; ")}` : null,
+    midpoints.activations?.length ? `Active Midpoints: ${midpoints.activations.slice(0, 3).map((a: MidpointActivation) => a.description).join("; ")}` : null,
   ].filter(Boolean).join("\n") : "-";
 
   // ========== ADVANCED SAJU ANALYSIS ==========
-  // Cast to any to avoid type errors with dynamic property access
-  const adv = advancedAnalysis as any | undefined;
+  type AdvancedAnalysis = Record<string, unknown>;
+  const adv = advancedAnalysis as AdvancedAnalysis | undefined;
 
   // 신강/신약 (Strength Analysis)
   const strengthText = adv?.extended?.strength ? [
@@ -293,8 +328,8 @@ export function buildStructuredFortunePrompt(
   ).join("\n") : "-";
 
   // 회국 (Hoeguk - Branch Combination)
-  const hoegukText = adv?.hoeguk?.length ? adv.hoeguk.map((h: any) =>
-    `${h.type ?? h.name ?? "-"}: ${h.branches?.join?.("-") ?? "-"} → ${h.result ?? h.element ?? "-"}`
+  const hoegukText = adv?.hoeguk?.length ? adv.hoeguk.map((h: HoegukItem & { branches?: string[]; element?: string }) =>
+    `${h.type ?? h.name ?? "-"}: ${h.branches?.join?.("-") ?? "-"} → ${h.resultElement ?? h.element ?? "-"}`
   ).join("\n") : "-";
 
   // 득령 (Deukryeong - Seasonal Timing)
@@ -306,9 +341,9 @@ export function buildStructuredFortunePrompt(
 
   // 형충회합 (Hyeongchung - Interactions)
   const hyeongchungText = adv?.hyeongchung ? [
-    adv.hyeongchung.chung?.length ? `충: ${adv.hyeongchung.chung.map((c: any) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")}` : (adv.hyeongchung.clashes?.length ? `충: ${adv.hyeongchung.clashes.map((c: any) => c.description ?? `${c.from}-${c.to}`).join(", ")}` : null),
-    adv.hyeongchung.hyeong?.length ? `형: ${adv.hyeongchung.hyeong.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}`).join(", ")}` : (adv.hyeongchung.punishments?.length ? `형: ${adv.hyeongchung.punishments.map((p: PlanetInput) => p.description ?? `${p.from}-${p.to}`).join(", ")}` : null),
-    adv.hyeongchung.hap?.length ? `합: ${adv.hyeongchung.hap.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")}` : (adv.hyeongchung.combinations?.length ? `합: ${adv.hyeongchung.combinations.map((c: any) => c.description ?? `${c.branches?.join?.("-")}`).join(", ")}` : null),
+    adv.hyeongchung.chung?.length ? `충: ${adv.hyeongchung.chung.map((c: BranchInteraction) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")}` : (adv.hyeongchung.clashes?.length ? `충: ${adv.hyeongchung.clashes.map((c: BranchInteraction) => c.description ?? `${c.from}-${c.to}`).join(", ")}` : null),
+    adv.hyeongchung.hyeong?.length ? `형: ${adv.hyeongchung.hyeong.map((h: BranchInteraction) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}`).join(", ")}` : (adv.hyeongchung.punishments?.length ? `형: ${adv.hyeongchung.punishments.map((p: BranchInteraction) => p.description ?? `${p.from}-${p.to}`).join(", ")}` : null),
+    adv.hyeongchung.hap?.length ? `합: ${adv.hyeongchung.hap.map((h: BranchInteraction) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")}` : (adv.hyeongchung.combinations?.length ? `합: ${adv.hyeongchung.combinations.map((c: BranchInteraction) => c.description ?? `${c.branches?.join?.("-")}`).join(", ")}` : null),
     adv.hyeongchung.samhap?.length ? `삼합: ${adv.hyeongchung.samhap.map((s: SinsalItem) => s.branches?.join?.("-") ?? s.description).join("; ")}` : null,
     adv.hyeongchung.banghap?.length ? `방합: ${adv.hyeongchung.banghap.map((b: { branches?: string[]; description?: string }) => b.branches?.join?.("-") ?? b.description).join("; ")}` : null,
   ].filter(Boolean).join("\n") : "-";
@@ -432,7 +467,7 @@ Unlucky: ${unluckyList || "-"}
 Twelve Gods: ${twelveGods || "-"}
 
 === 향후 월간 흐름 (Next 6 Months) ===
-${upcomingMonths.map((m: any) => `${m.year}-${String(m.month).padStart(2, "0")}: ${m.element ?? "-"} (${m.heavenlyStem ?? ""} ${m.earthlyBranch ?? ""})`).join("\n")}
+${upcomingMonths.map((m: MonthlyItem) => `${m.year}-${String(m.month).padStart(2, "0")}: ${m.element ?? "-"} (${m.heavenlyStem ?? ""} ${m.earthlyBranch ?? ""})`).join("\n")}
 
 ===========================================
 PART 2: WESTERN ASTROLOGY (서양 점성술)
@@ -670,26 +705,27 @@ function getHarmonicMeaning(h: number): string {
 /**
  * Format asteroid aspects - handles both array and object formats
  */
-function formatAsteroidAspects(aspects: any): string {
+type AspectHitItem = { type?: string; aspect?: string; planet2?: { name?: string }; to?: string; planet?: string; asteroid?: string; from?: string };
+function formatAsteroidAspects(aspects: AspectHitItem[] | Record<string, AspectHitItem[]> | undefined): string {
   if (!aspects) return "-";
 
   // If it's an array, format directly
   if (Array.isArray(aspects)) {
-    return aspects.slice(0, 3).map((a: AspectItem) =>
+    return aspects.slice(0, 3).map((a: AspectHitItem) =>
       `${a.asteroid ?? a.from}-${a.type ?? a.aspect}-${a.planet ?? a.to}`
     ).join(", ");
   }
 
   // If it's an object (Record<AsteroidName, AspectHit[]>), flatten it
   if (typeof aspects === 'object') {
-    const allAspects: any[] = [];
+    const allAspects: { asteroid: string; type: string | undefined; planet: string | undefined }[] = [];
     for (const [asteroidName, hits] of Object.entries(aspects)) {
       if (Array.isArray(hits)) {
         for (const hit of hits.slice(0, 2)) {
           allAspects.push({
             asteroid: asteroidName,
-            type: (hit as any).type ?? (hit as any).aspect,
-            planet: (hit as any).planet2?.name ?? (hit as any).to ?? (hit as any).planet
+            type: hit.type ?? hit.aspect,
+            planet: hit.planet2?.name ?? hit.to ?? hit.planet
           });
         }
       }

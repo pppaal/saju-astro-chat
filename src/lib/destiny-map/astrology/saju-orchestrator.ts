@@ -86,10 +86,17 @@ async function getSinsal(
 // Internal: Advanced Saju Analysis
 // ======================================================
 
+type SajuFactsInput = {
+  dayMaster?: { name?: string; element?: string; yinYang?: string };
+  yearPillar?: unknown;
+  monthPillar?: unknown;
+  dayPillar?: unknown;
+  timePillar?: unknown;
+};
+
 async function calculateAdvancedSajuAnalysis(
   pillars: SajuPillars,
-   
-  sajuFacts: any,
+  sajuFacts: SajuFactsInput,
   enableDebugLogs = false
 ): Promise<AdvancedSajuAnalysis | undefined> {
   if (!pillars.year || !pillars.month || !pillars.day || !pillars.time) {
@@ -223,7 +230,8 @@ async function calculateAdvancedSajuAnalysis(
         },
       };
        
-      advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for external function compatibility
+      advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as Parameters<typeof calculateComprehensiveScore>[0]);
     } catch (e) {
       if (enableDebugLogs) logger.debug('[Score calculation skipped]', e);
     }
@@ -253,7 +261,8 @@ async function calculateAdvancedSajuAnalysis(
         },
       };
        
-      advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for external function compatibility
+      advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as Parameters<typeof performUltraAdvancedAnalysis>[0]);
     } catch (e) {
       if (enableDebugLogs) logger.debug('[Ultra Advanced analysis skipped]', e);
     }
@@ -304,10 +313,9 @@ export async function calculateSajuOrchestrated(
   const birthDateObj = new Date(Date.UTC(year, month - 1, day, hour, minute));
 
   // Calculate core Saju data
-   
-  let sajuFacts: any = {};
+  let sajuFacts: SajuFactsInput = {};
   try {
-    sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, 'solar', timezone);
+    sajuFacts = await calculateSajuData(birthDate.trim(), safeBirthTime, gender, 'solar', timezone) as SajuFactsInput;
     if (enableDebugLogs) {
       logger.debug('[SajuFacts keys]:', Object.keys(sajuFacts || {}));
     }
@@ -323,8 +331,8 @@ export async function calculateSajuOrchestrated(
     time: sajuFacts?.timePillar,
   };
 
-   
-  const dayMaster: any = sajuFacts?.dayMaster ?? {};
+  type DayMasterInput = { name?: string; element?: string; yinYang?: string };
+  const dayMaster: DayMasterInput = sajuFacts?.dayMaster ?? {};
   if (enableDebugLogs) {
     logger.debug('[calculateSajuOrchestrated] dayMaster extracted:', JSON.stringify(dayMaster));
   }
@@ -340,8 +348,7 @@ export async function calculateSajuOrchestrated(
   const hasValidPillars = Boolean(pillars.year && pillars.month && pillars.day);
   if (hasValidPillars) {
     try {
-       
-      const d = getDaeunCycles(birthDateObj, gender, pillars as any, dayMaster, timezone);
+      const d = getDaeunCycles(birthDateObj, gender, pillars as SajuPillars, dayMaster, timezone);
 
       // 세운: 현재 연도부터 향후 10년
       const a = getAnnualCycles(currentYear, 10, dayMaster);
